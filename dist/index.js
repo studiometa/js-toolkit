@@ -1,0 +1,2 @@
+exports.utils={debounce:function(t,n){var e;return void 0===n&&(n=300),function(){for(var o=[],r=arguments.length;r--;)o[r]=arguments[r];clearTimeout(e),e=setTimeout(function(){t.apply(void 0,o)},n)}},isObject:function(t){var n=typeof t;return"function"===n||"value"===n&&!!t},throttle:function(t,n){void 0===n&&(n=16);var e=0;return function(){for(var o=[],r=arguments.length;r--;)o[r]=arguments[r];var i=(new Date).getTime();return!(i-e<n)&&(e=i,t.apply(void 0,o))}}};
+//# sourceMappingURL=index.js.map
