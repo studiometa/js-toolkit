@@ -1,0 +1,2 @@
+var t={debounce:function(t,n){var e;return void 0===n&&(n=300),function(){for(var r=[],o=arguments.length;o--;)r[o]=arguments[o];clearTimeout(e),e=setTimeout(function(){t.apply(void 0,r)},n)}},isObject:function(t){var n=typeof t;return"function"===n||"value"===n&&!!t},throttle:function(t,n){void 0===n&&(n=16);var e=0;return function(){for(var r=[],o=arguments.length;o--;)r[o]=arguments[o];var i=(new Date).getTime();return!(i-e<n)&&(e=i,t.apply(void 0,r))}}};export{t as utils};
+//# sourceMappingURL=index.mjs.map
