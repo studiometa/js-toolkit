@@ -28,7 +28,7 @@ class EventManager {
         _events.set(this, {});
     }
     /**
-     * Adds the event and the listener to the events list.
+     * Bind a listener function to an event.
      *
      * @param  {String}       event    Name of the event.
      * @param  {String}       listener Function to be called.
@@ -42,7 +42,7 @@ class EventManager {
         return this;
     }
     /**
-     * Removes the event and the listener from the events list.
+     * Unbind a listener function from an event.
      *
      * @param  {String}       event    Name of the event.
      * @param  {String}       listener Function to be removed.
@@ -86,7 +86,7 @@ class EventManager {
         return this;
     }
     /**
-     * Emits an event once and then removes it.
+     * Bind a listener function to an event for one execution only.
      *
      * @param  {String}       event    Name of the event.
      * @param  {String}       listener Function to be called.
@@ -101,7 +101,7 @@ class EventManager {
         return this;
     }
     /**
-     * Get the all the events attached to the current instance.
+     * Get all the events attached to the current instance.
      *
      * @return {Object}
      */

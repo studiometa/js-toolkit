@@ -9,7 +9,7 @@
 export default abstract class EventManager {
     #private;
     /**
-     * Adds the event and the listener to the events list.
+     * Bind a listener function to an event.
      *
      * @param  {String}       event    Name of the event.
      * @param  {String}       listener Function to be called.
@@ -17,7 +17,7 @@ export default abstract class EventManager {
      */
     $on(event: string, listener: (...args: any) => void): this;
     /**
-     * Removes the event and the listener from the events list.
+     * Unbind a listener function from an event.
      *
      * @param  {String}       event    Name of the event.
      * @param  {String}       listener Function to be removed.
@@ -33,7 +33,7 @@ export default abstract class EventManager {
      */
     $emit(event: string, ...args: any): this;
     /**
-     * Emits an event once and then removes it.
+     * Bind a listener function to an event for one execution only.
      *
      * @param  {String}       event    Name of the event.
      * @param  {String}       listener Function to be called.
@@ -41,11 +41,11 @@ export default abstract class EventManager {
      */
     $once(event: string, listener: (...args: any) => void): this;
     /**
-     * Get the all the events attached to the current instance.
+     * Get all the events attached to the current instance.
      *
      * @return {Object}
      */
     get events(): {
-        [key: string]: any;
+        [key: string]: Function[];
     };
 }
