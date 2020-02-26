@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Parcel Sandbox</title>
+    <meta charset="UTF-8" />
+    <link
+      rel="stylesheet"
+      href="./src/styles.css"
+      media="print"
+      onload="this.setAttribute('media', 'all');this.removeAttribute('onload')"
+    />
+  </head>
+
+  <body>
+    <main>
+      <!-- BEGIN Accordion component-->
+      <div class="accordion" data-component="Accordion">
+        <div data-component="AccordionItem" tabindex="0" class="accordion-item">
+          <p data-ref="AccordionItem.title" class="accordion-item__title">
+            Lorem ipsum
+          </p>
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content"
+            aria-hidden="true"
+          >
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto
+            nobis laboriosam rerum aspernatur deserunt similique facere impedit
+            alias, error officia cum quibusdam quisquam quo, magnam libero eius
+            provident dolorum molestiae.
+          </div>
+        </div>
+        <div data-component="AccordionItem" tabindex="0" class="accordion-item">
+          <p data-ref="AccordionItem.title" class="accordion-item__title">
+            Lorem ipsum
+          </p>
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content"
+            aria-hidden="true"
+          >
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto
+            nobis laboriosam rerum aspernatur deserunt similique facere impedit
+            alias, error officia cum quibusdam quisquam quo, magnam libero eius
+            provident dolorum molestiae.
+          </div>
+        </div>
+      </div>
+      <!-- END Accordion component-->
+
+      <hr />
+
+      <!-- BEGIN Accordion component-->
+      <div class="accordion" data-component="Accordion">
+        <div data-component="AccordionItem" tabindex="0" class="accordion-item">
+          <p data-ref="AccordionItem.title" class="accordion-item__title">
+            Show image #1
+          </p>
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content"
+            aria-hidden="true"
+          >
+            <img data-src="https://placekitten.com/200/100" alt="" />
+          </div>
+        </div>
+        <div data-component="AccordionItem" tabindex="0" class="accordion-item">
+          <p data-ref="AccordionItem.title" class="accordion-item__title">
+            Show image #2
+          </p>
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content"
+            aria-hidden="true"
+          >
+            <img data-src="https://placekitten.com/200/120" alt="" />
+          </div>
+        </div>
+        <div data-component="AccordionItem" tabindex="0" class="accordion-item">
+          <p data-ref="AccordionItem.title" class="accordion-item__title">
+            Show image #3
+          </p>
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content"
+            aria-hidden="true"
+          >
+            <img data-src="https://placekitten.com/200/80" alt="" />
+          </div>
+        </div>
+      </div>
+      <!-- END Accordion component-->
+
+      <hr />
+
+      <!-- BEGIN Tabs component-->
+      <div data-component="Tabs" class="tabs">
+        <div class="tabs__nav">
+          <button data-ref="Tabs.btn" class="tabs__btn is-active">
+            Tab #1
+          </button>
+          <button data-ref="Tabs.btn" class="tabs__btn">Tab #2</button>
+          <button data-ref="Tabs.btn" class="tabs__btn">Tab #3</button>
+        </div>
+        <div class="tabs__container">
+          <div
+            data-ref="Tabs.content"
+            class="tabs__content"
+            aria-hidden="false"
+          >
+            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Adipisci
+            nemo quod nobis laudantium iusto maiores molestias animi quos error
+            quo consequatur, eum veniam sequi repellat placeat rerum a labore.
+            Sit.
+          </div>
+          <div data-ref="Tabs.content" class="tabs__content" aria-hidden="true">
+            Nunc ultrices arcu quis mollis mollis. Duis at turpis et nibh
+            pellentesque dapibus. Quisque luctus neque a placerat sodales. Sed a
+            mauris efficitur eros fringilla viverra. Donec eleifend risus
+            ligula. Donec non tellus lacinia, tempus enim id, lacinia arcu.
+            Phasellus sit amet mollis nibh, at porta nunc. Fusce faucibus erat
+            quis risus molestie, ac aliquam purus finibus. Pellentesque aliquet
+            augue non sollicitudin semper. Vivamus est odio, efficitur vitae
+            lacus id, eleifend maximus felis.
+          </div>
+          <div data-ref="Tabs.content" class="tabs__content" aria-hidden="true">
+            <img
+              data-src="https://placekitten.com/300"
+              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+              width="300"
+              height="300"
+              alt=""
+            />
+          </div>
+        </div>
+      </div>
+      <!-- END Tabs component-->
+
+      <hr />
+
+      <img
+        data-src="https://placekitten.com/500"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="500"
+        height="500"
+        alt=""
+      />
+      <img
+        data-src="https://placekitten.com/510"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="510"
+        height="510"
+        alt=""
+      />
+      <img
+        data-src="https://placekitten.com/520"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="520"
+        height="520"
+        alt=""
+      />
+      <img
+        data-src="https://placekitten.com/530"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="530"
+        height="530"
+        alt=""
+      />
+      <img
+        data-src="https://placekitten.com/540"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="540"
+        height="540"
+        alt=""
+      />
+      <img
+        data-src="https://placekitten.com/550"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="550"
+        height="550"
+        alt=""
+      />
+      <img
+        data-src="https://placekitten.com/560"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="560"
+        height="560"
+        alt=""
+      />
+      <img
+        data-src="https://placekitten.com/570"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="570"
+        height="570"
+        alt=""
+      />
+      <img
+        data-src="https://placekitten.com/580"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="580"
+        height="580"
+        alt=""
+      />
+      <img
+        data-src="https://placekitten.com/590"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="590"
+        height="590"
+        alt=""
+      />
+      <img
+        data-src="https://placekitten.com/600"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="600"
+        height="600"
+        alt=""
+      />
+      <img
+        data-src="https://placekitten.com/610"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        width="610"
+        height="610"
+        alt=""
+      />
+
+      <hr />
+    </main>
+    <!-- BEGIN Cursor component -->
+    <div data-component="Cursor" class="cursor"></div>
+    <!-- END Cursor component -->
+    <script src="src/app.js"></script>
+  </body>
+</html>
