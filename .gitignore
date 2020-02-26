@@ -5,6 +5,7 @@ node_modules
 # NPM files
 package-lock.json
 yarn.lock
+.cache/
 
 # Log files
 npm-debug.log*
