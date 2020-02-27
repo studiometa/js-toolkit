@@ -2,6 +2,7 @@ import { Base } from '../../dist';
 import Accordion from './components/Accordion';
 import Cursor from './components/Cursor';
 import Lazyload from './components/Lazyload';
+import Skew from './components/Skew';
 import Tabs from './components/Tabs';
 
 class App extends Base {
@@ -13,6 +14,7 @@ class App extends Base {
         Accordion,
         Cursor,
         Lazyload,
+        Skew,
         Tabs,
       },
     };

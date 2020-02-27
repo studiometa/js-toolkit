@@ -24,9 +24,13 @@ export default class Lazyload extends Base {
         this.$el.removeAttribute('data-src');
       };
       img.src = src;
-      this.observer.unobserve(this.$el);
+      this.observer.disconnect();
     });
 
     this.observer.observe(this.$el);
+  }
+
+  destroyed() {
+    this.observer.disconnect();
   }
 }

@@ -24,3 +24,5 @@ yarn-error.log*
 
 # Build files
 dist/*.html
+demo/dist/
+docs/.vuepress/dist/
