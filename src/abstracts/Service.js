@@ -8,13 +8,9 @@ const schema = {
     test: descriptor => typeof descriptor.value === 'function',
     error: 'The `kill` method must be implemented.',
   },
-  /**
-   * The `props` property must be a getter
-   * @type {Object}
-   */
   props: {
     test: descriptor => typeof descriptor.get === 'function',
-    error: 'Foo',
+    error: 'The `props` property must be a getter.',
   },
   key: {
     test: descriptor => typeof descriptor.value === 'string',
