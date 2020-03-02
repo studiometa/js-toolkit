@@ -25,14 +25,14 @@ class Raf extends Service {
       // todo: add params to the trigger
       this.trigger(this.props);
 
-      if (!this.isLooping) {
+      if (!this.isTicking) {
         return;
       }
 
       requestAnimationFrame(loop);
     };
 
-    this.isLooping = true;
+    this.isTicking = true;
     loop();
   }
 
@@ -42,7 +42,7 @@ class Raf extends Service {
    * @return {void}
    */
   kill() {
-    this.isLooping = false;
+    this.isTicking = false;
   }
 
   /**
