@@ -7,10 +7,11 @@ import useRaf from './raf';
  * Pointer service
  *
  * ```
- * import scroll from '@studiometa/js/services/pointer';
- * scroll.add(key, callback);
- * scroll.remove(key);
- * scroll.props;
+ * import { usePointer } from '@studiometa/js/services';
+ * const { add, remove, props } = usePointer();
+ * add(key, (props) => {});
+ * remove(key);
+ * props();
  * ```
  */
 class Pointer extends Service {

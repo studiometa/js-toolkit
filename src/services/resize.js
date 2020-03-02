@@ -5,10 +5,11 @@ import debounce from '../utils/debounce';
  * Resize service
  *
  * ```
- * import resize from '@studiometa/js/services/resize';
- * resize.add(id, handler);
- * resize.remove(id);
- * resize.props;
+ * import { useResize } from '@studiometa/js/services';
+ * const { add, remove, props } = useResize();
+ * add(key, (props) => {});
+ * remove(key);
+ * props();
  * ```
  */
 class Resize extends Service {

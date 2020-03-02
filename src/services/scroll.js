@@ -7,7 +7,7 @@ import { throttle, debounce } from '../utils';
  * ```
  * import { useScroll } from '@studiometa/js-toolkit/services';
  * const { add, remove, props } = useScroll();
- * add(key, callback);
+ * add(key, (props) => {});
  * remove(key);
  * props();
  * ```

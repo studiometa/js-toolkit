@@ -4,15 +4,16 @@ import Service from '../abstracts/Service';
  * Tick service
  *
  * ```
- * import tick from '@studiometa/js/services/tick';
- * tick.add(id, handler);
- * tick.remove(id);
- * tick.props;
+ * import { useRaf } from '@studiometa/js/services';
+ * const { add, remove, props } = useRag();
+ * add(id, (props) => {});
+ * remove(id);
+ * props();
  * ```
  */
 class Raf extends Service {
   /** @type {Boolean} Whether the loop is running or not. */
-  isLooping = false;
+  isTicking = false;
 
   /**
    * Start the requestAnimationFrame loop.
