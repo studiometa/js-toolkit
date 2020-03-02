@@ -1,4 +1,3 @@
-/* eslint-disable require-jsdoc */
 import Service from '../abstracts/Service';
 import { throttle, debounce } from '../utils';
 import useRaf from './raf';
@@ -64,18 +63,10 @@ class Pointer extends Service {
     document.addEventListener('mouseenter', this.handler, { once: true });
     document.addEventListener('mousemove', this.handler, { passive: true });
     document.addEventListener('touchmove', this.handler, { passive: true });
-    document.addEventListener('mousedown', this.downHandler, {
-      passive: true,
-    });
-    document.addEventListener('touchstart', this.downHandler, {
-      passive: true,
-    });
-    document.addEventListener('mouseup', this.upHandler, {
-      passive: true,
-    });
-    document.addEventListener('touchend', this.upHandler, {
-      passive: true,
-    });
+    document.addEventListener('mousedown', this.downHandler, { passive: true });
+    document.addEventListener('touchstart', this.downHandler, { passive: true });
+    document.addEventListener('mouseup', this.upHandler, { passive: true });
+    document.addEventListener('touchend', this.upHandler, { passive: true });
   }
 
   /**
