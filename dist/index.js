@@ -1,2 +1,16 @@
-exports.utils={debounce:function(t,n){var e;return void 0===n&&(n=300),function(){for(var o=[],r=arguments.length;r--;)o[r]=arguments[r];clearTimeout(e),e=setTimeout(function(){t.apply(void 0,o)},n)}},isObject:function(t){var n=typeof t;return"function"===n||"value"===n&&!!t},throttle:function(t,n){void 0===n&&(n=16);var e=0;return function(){for(var o=[],r=arguments.length;r--;)o[r]=arguments[r];var i=(new Date).getTime();return!(i-e<n)&&(e=i,t.apply(void 0,o))}}};
+"use strict";
+
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+Object.defineProperty(exports, "Base", {
+  enumerable: true,
+  get: function get() {
+    return _Base["default"];
+  }
+});
+
+var _Base = _interopRequireDefault(require("./abstracts/Base"));
 //# sourceMappingURL=index.js.map

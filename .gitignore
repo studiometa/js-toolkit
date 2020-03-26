@@ -5,6 +5,7 @@ node_modules
 # NPM files
 package-lock.json
 yarn.lock
+.cache/
 
 # Log files
 npm-debug.log*
@@ -23,3 +24,5 @@ yarn-error.log*
 
 # Build files
 dist/*.html
+demo/dist/
+docs/.vuepress/dist/
