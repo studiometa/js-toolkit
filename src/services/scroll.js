@@ -33,6 +33,9 @@ class Scroll extends Service {
   init() {
     const debounced = debounce(() => {
       this.trigger(this.props);
+      requestAnimationFrame(() => {
+        this.trigger(this.props);
+      });
     }, 50);
 
     this.handler = throttle(() => {
