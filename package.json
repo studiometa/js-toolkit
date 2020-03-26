@@ -28,9 +28,10 @@
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.8.4",
+    "@babel/core": "^7.9.0",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
-    "@babel/plugin-transform-runtime": "^7.8.3",
+    "@babel/plugin-transform-runtime": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
     "@studiometa/eslint-config": "^2.0.3",
     "@studiometa/prettier-config": "^2.0.0",
     "eslint": "^6.8.0",
