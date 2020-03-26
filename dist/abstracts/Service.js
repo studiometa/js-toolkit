@@ -27,16 +27,11 @@ var schema = {
     },
     error: 'The `kill` method must be implemented.'
   },
-
-  /**
-   * The `props` property must be a getter
-   * @type {Object}
-   */
   props: {
     test: function test(descriptor) {
       return typeof descriptor.get === 'function';
     },
-    error: 'Foo'
+    error: 'The `props` property must be a getter.'
   },
   key: {
     test: function test(descriptor) {
@@ -105,9 +100,7 @@ function testSchema(object) {
  */
 
 
-var Service =
-/*#__PURE__*/
-function () {
+var Service = /*#__PURE__*/function () {
   /**
    * Class constructor, used to test the abstract class implementation.
    *

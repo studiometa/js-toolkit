@@ -11,11 +11,11 @@ var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/cl
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 
-var _getPrototypeOf3 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
 
 var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 
@@ -25,25 +25,27 @@ var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
 
 var _utils = require("../utils");
 
+function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
 /**
  * Scroll service
  *
  * ```
  * import { useScroll } from '@studiometa/js-toolkit/services';
  * const { add, remove, props } = useScroll();
- * add(key, callback);
+ * add(key, (props) => {});
  * remove(key);
  * props();
  * ```
  */
-var Scroll =
-/*#__PURE__*/
-function (_Service) {
+var Scroll = /*#__PURE__*/function (_Service) {
   (0, _inherits2["default"])(Scroll, _Service);
 
-  function Scroll() {
-    var _getPrototypeOf2;
+  var _super = _createSuper(Scroll);
 
+  function Scroll() {
     var _this;
 
     (0, _classCallCheck2["default"])(this, Scroll);
@@ -52,7 +54,7 @@ function (_Service) {
       args[_key] = arguments[_key];
     }
 
-    _this = (0, _possibleConstructorReturn2["default"])(this, (_getPrototypeOf2 = (0, _getPrototypeOf3["default"])(Scroll)).call.apply(_getPrototypeOf2, [this].concat(args)));
+    _this = _super.call.apply(_super, [this].concat(args));
     (0, _defineProperty2["default"])((0, _assertThisInitialized2["default"])(_this), "y", window.pageYOffset);
     (0, _defineProperty2["default"])((0, _assertThisInitialized2["default"])(_this), "yLast", window.pageYOffset);
     (0, _defineProperty2["default"])((0, _assertThisInitialized2["default"])(_this), "x", window.pageXOffset);
@@ -73,6 +75,10 @@ function (_Service) {
 
       var debounced = (0, _utils.debounce)(function () {
         _this2.trigger(_this2.props);
+
+        requestAnimationFrame(function () {
+          _this2.trigger(_this2.props);
+        });
       }, 50);
       this.handler = (0, _utils.throttle)(function () {
         _this2.trigger(_this2.props); // Reset changed flags at the end of the scroll event

@@ -21,24 +21,29 @@ var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
 
 var _debounce = _interopRequireDefault(require("../utils/debounce"));
 
+function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
 /**
  * Resize service
  *
  * ```
- * import resize from '@studiometa/js/services/resize';
- * resize.add(id, handler);
- * resize.remove(id);
- * resize.props;
+ * import { useResize } from '@studiometa/js/services';
+ * const { add, remove, props } = useResize();
+ * add(key, (props) => {});
+ * remove(key);
+ * props();
  * ```
  */
-var Resize =
-/*#__PURE__*/
-function (_Service) {
+var Resize = /*#__PURE__*/function (_Service) {
   (0, _inherits2["default"])(Resize, _Service);
+
+  var _super = _createSuper(Resize);
 
   function Resize() {
     (0, _classCallCheck2["default"])(this, Resize);
-    return (0, _possibleConstructorReturn2["default"])(this, (0, _getPrototypeOf2["default"])(Resize).apply(this, arguments));
+    return _super.apply(this, arguments);
   }
 
   (0, _createClass2["default"])(Resize, [{

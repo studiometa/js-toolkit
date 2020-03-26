@@ -11,11 +11,11 @@ var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/cl
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 
-var _getPrototypeOf3 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
 
 var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 
@@ -27,26 +27,27 @@ var _utils = require("../utils");
 
 var _raf = _interopRequireDefault(require("./raf"));
 
-/* eslint-disable require-jsdoc */
+function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 /**
  * Pointer service
  *
  * ```
- * import scroll from '@studiometa/js/services/pointer';
- * scroll.add(key, callback);
- * scroll.remove(key);
- * scroll.props;
+ * import { usePointer } from '@studiometa/js/services';
+ * const { add, remove, props } = usePointer();
+ * add(key, (props) => {});
+ * remove(key);
+ * props();
  * ```
  */
-var Pointer =
-/*#__PURE__*/
-function (_Service) {
+var Pointer = /*#__PURE__*/function (_Service) {
   (0, _inherits2["default"])(Pointer, _Service);
 
-  function Pointer() {
-    var _getPrototypeOf2;
+  var _super = _createSuper(Pointer);
 
+  function Pointer() {
     var _this;
 
     (0, _classCallCheck2["default"])(this, Pointer);
@@ -55,7 +56,7 @@ function (_Service) {
       args[_key] = arguments[_key];
     }
 
-    _this = (0, _possibleConstructorReturn2["default"])(this, (_getPrototypeOf2 = (0, _getPrototypeOf3["default"])(Pointer)).call.apply(_getPrototypeOf2, [this].concat(args)));
+    _this = _super.call.apply(_super, [this].concat(args));
     (0, _defineProperty2["default"])((0, _assertThisInitialized2["default"])(_this), "isDown", false);
     (0, _defineProperty2["default"])((0, _assertThisInitialized2["default"])(_this), "y", window.innerHeight / 2);
     (0, _defineProperty2["default"])((0, _assertThisInitialized2["default"])(_this), "yLast", window.innerHeight / 2);
@@ -175,11 +176,15 @@ function (_Service) {
     key: "updateValues",
     value: function updateValues(event) {
       this.yLast = this.y;
-      this.xLast = this.x; // Check scroll Y
+      this.xLast = this.x; // Check pointer Y
+      // We either get data from a touch event `event.touches[0].clientY` or from
+      // a mouse event `event.clientY`.
 
       if (((event.touches || [])[0] || event || {}).clientY !== this.y) {
         this.y = ((event.touches || [])[0] || event || {}).clientY;
-      } // Check scroll x
+      } // Check pointer X
+      // We either get data from a touch event `event.touches[0].clientX` or from
+      // a mouse event `event.clientX`.
 
 
       if (((event.touches || [])[0] || event || {}).clientX !== this.x) {

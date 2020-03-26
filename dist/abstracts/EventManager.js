@@ -21,9 +21,7 @@ var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/de
  * @method $once  Bind a given function to the given event once.
  * @method $emit  Emit an event with custom props.
  */
-var EventManager =
-/*#__PURE__*/
-function () {
+var EventManager = /*#__PURE__*/function () {
   function EventManager() {
     (0, _classCallCheck2["default"])(this, EventManager);
     (0, _defineProperty2["default"])(this, "events", {});
