@@ -113,12 +113,16 @@ class Pointer extends Service {
     this.yLast = this.y;
     this.xLast = this.x;
 
-    // Check scroll Y
+    // Check pointer Y
+    // We either get data from a touch event `event.touches[0].clientY` or from
+    // a mouse event `event.clientY`.
     if (((event.touches || [])[0] || event || {}).clientY !== this.y) {
       this.y = ((event.touches || [])[0] || event || {}).clientY;
     }
 
-    // Check scroll x
+    // Check pointer X
+    // We either get data from a touch event `event.touches[0].clientX` or from
+    // a mouse event `event.clientX`.
     if (((event.touches || [])[0] || event || {}).clientX !== this.x) {
       this.x = ((event.touches || [])[0] || event || {}).clientX;
     }
