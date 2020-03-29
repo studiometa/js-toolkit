@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/math/index.js"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;AAAA;;AACA;;AACA","sourcesContent":["import damp from './damp';\nimport map from './map';\nimport lerp from './lerp';\n\nexport { damp, map };\n"],"file":"index.js"}

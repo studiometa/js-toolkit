@@ -1,3 +1,4 @@
-import * as utils from './utils';
+import Base from './abstracts/Base';
 
-export { utils };
+// eslint-disable-next-line import/prefer-default-export
+export { Base };
