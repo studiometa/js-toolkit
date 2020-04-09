@@ -14,15 +14,6 @@ img:not(.is-loaded) {
   opacity: 0;
 }
 
-.tabs__btn.is-active {
-  border-bottom-color: #fff;
-}
-
-
-.tabs__content[aria-hidden="true"] {
-  display: none;
-}
-
 [data-breakpoint]::after,
 [data-breakpoint]::before {
   z-index: -999;

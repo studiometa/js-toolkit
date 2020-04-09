@@ -1,5 +1,1 @@
-module.exports = {
-  theme: {},
-  variants: {},
-  plugins: [],
-};
+module.exports = require('@studiometa/tailwind-config');

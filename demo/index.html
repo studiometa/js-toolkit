@@ -19,7 +19,11 @@
           <p data-ref="AccordionItem.title" class="accordion-item__title cursor-pointer">
             Lorem ipsum
           </p>
-          <div data-ref="AccordionItem.content" class="accordion-item__content pt-4" aria-hidden="true">
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content pt-4"
+            aria-hidden="true"
+          >
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto nobis laboriosam
             rerum aspernatur deserunt similique facere impedit alias, error officia cum quibusdam
             quisquam quo, magnam libero eius provident dolorum molestiae.
@@ -29,7 +33,11 @@
           <p data-ref="AccordionItem.title" class="accordion-item__title cursor-pointer">
             Lorem ipsum
           </p>
-          <div data-ref="AccordionItem.content" class="accordion-item__content pt-4" aria-hidden="true">
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content pt-4"
+            aria-hidden="true"
+          >
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto nobis laboriosam
             rerum aspernatur deserunt similique facere impedit alias, error officia cum quibusdam
             quisquam quo, magnam libero eius provident dolorum molestiae.
@@ -46,7 +54,11 @@
           <p data-ref="AccordionItem.title" class="accordion-item__title cursor-pointer">
             Show image #1
           </p>
-          <div data-ref="AccordionItem.content" class="accordion-item__content pt-4" aria-hidden="true">
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content pt-4"
+            aria-hidden="true"
+          >
             <img data-src="https://placekitten.com/200/100" alt="" />
           </div>
         </div>
@@ -54,7 +66,11 @@
           <p data-ref="AccordionItem.title" class="accordion-item__title cursor-pointer">
             Show image #2
           </p>
-          <div data-ref="AccordionItem.content" class="accordion-item__content pt-4" aria-hidden="true">
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content pt-4"
+            aria-hidden="true"
+          >
             <img data-src="https://placekitten.com/200/120" alt="" />
           </div>
         </div>
@@ -62,7 +78,11 @@
           <p data-ref="AccordionItem.title" class="accordion-item__title cursor-pointer">
             Show image #3
           </p>
-          <div data-ref="AccordionItem.content" class="accordion-item__content pt-4" aria-hidden="true">
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content pt-4"
+            aria-hidden="true"
+          >
             <img data-src="https://placekitten.com/200/80" alt="" />
           </div>
         </div>
@@ -72,21 +92,23 @@
       <hr class="my-10" />
 
       <!-- BEGIN Tabs component-->
-      <div data-component="Tabs" class="tabs">
-        <div class="flex border-b">
-          <button data-ref="Tabs.btn" class="tabs__btn -m-px ml-4 p-4 bg-white border is-active">
-            Tab #1
-          </button>
-          <button data-ref="Tabs.btn" class="tabs__btn -m-px -ml-px p-4 bg-white border">Tab #2</button>
-          <button data-ref="Tabs.btn" class="tabs__btn -m-px -ml-px p-4 bg-white border">Tab #3</button>
+      <h2 id="components-tabs" class="text-lg mb-4">Tabs</h2>
+      <div
+        data-component="Tabs"
+        class="tabs"
+        data-options='{ "tabActiveStyle": { "borderBottomColor": "#fff" } }'>
+        <div class="flex px-4 border-b">
+          <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 border">Tab #1</button>
+          <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 border">Tab #2</button>
+          <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 border">Tab #3</button>
         </div>
         <div class="tabs__container p-4">
-          <div data-ref="Tabs.content" class="tabs__content" aria-hidden="false">
+          <div data-ref="Tabs.content" aria-hidden="false">
             Lorem ipsum dolor sit amet consectetur, adipisicing elit. Adipisci nemo quod nobis
             laudantium iusto maiores molestias animi quos error quo consequatur, eum veniam sequi
             repellat placeat rerum a labore. Sit.
           </div>
-          <div data-ref="Tabs.content" class="tabs__content" aria-hidden="true">
+          <div data-ref="Tabs.content" aria-hidden="true">
             Nunc ultrices arcu quis mollis mollis. Duis at turpis et nibh pellentesque dapibus.
             Quisque luctus neque a placerat sodales. Sed a mauris efficitur eros fringilla viverra.
             Donec eleifend risus ligula. Donec non tellus lacinia, tempus enim id, lacinia arcu.
@@ -94,7 +116,7 @@
             ac aliquam purus finibus. Pellentesque aliquet augue non sollicitudin semper. Vivamus
             est odio, efficitur vitae lacus id, eleifend maximus felis.
           </div>
-          <div data-ref="Tabs.content" class="tabs__content" aria-hidden="true">
+          <div data-ref="Tabs.content" aria-hidden="true">
             <img
               data-src="https://placekitten.com/300/300"
               src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
@@ -251,7 +273,10 @@
       </div>
     </main>
     <!-- BEGIN Cursor component -->
-    <div data-component="Cursor" class="cursor"></div>
+    <div
+      data-component="Cursor"
+      class="z-goku fixed top-0 left-0 w-6 h-6 -mt-3 -ml-3 bg-black rounded-full pointer-events-none transform transition duration-200 ease-out-expo"
+    ></div>
     <!-- END Cursor component -->
     <script src="src/app.js"></script>
   </body>
