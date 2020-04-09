@@ -1,4 +1,4 @@
-import { Base } from '../../../dist';
+import { Base } from '../../../src';
 
 export default class Tabs extends Base {
   get config() {
@@ -15,9 +15,9 @@ export default class Tabs extends Base {
       content.setAttribute('aria-labelledby', id);
 
       const clickHandler = () => {
-        this.$refs.btn.forEach((el, index) => {
+        this.$refs.btn.forEach((el, i) => {
           el.classList.remove('is-active');
-          this.$refs.content[index].setAttribute('aria-hidden', 'true');
+          this.$refs.content[i].setAttribute('aria-hidden', 'true');
         });
         btn.classList.add('is-active');
         content.setAttribute('aria-hidden', 'false');
