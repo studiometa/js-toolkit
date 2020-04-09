@@ -175,7 +175,16 @@ export default class Base extends EventManager {
       throw new Error('Unable to find the root element.');
     }
 
-    this.$options = { ...this.config, ...(element.dataset.options || {}) };
+    let options = {};
+    if (this.$el.dataset.options) {
+      try {
+        options = JSON.parse(this.$el.dataset.options);
+      } catch (err) {
+        throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
+      }
+    }
+
+    this.$options = { ...this.config, ...(options || {}) };
 
     debug(this, 'constructor', this);
 

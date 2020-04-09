@@ -236,7 +236,17 @@ var Base = /*#__PURE__*/function (_EventManager) {
       throw new Error('Unable to find the root element.');
     }
 
-    _this.$options = _objectSpread({}, _this.config, {}, element.dataset.options || {});
+    var options = {};
+
+    if (_this.$el.dataset.options) {
+      try {
+        options = JSON.parse(_this.$el.dataset.options);
+      } catch (err) {
+        throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
+      }
+    }
+
+    _this.$options = _objectSpread({}, _this.config, {}, options || {});
     debug((0, _assertThisInitialized2["default"])(_this), 'constructor', (0, _assertThisInitialized2["default"])(_this));
     var $refs = getRefs(_this.$el, _this.config.name);
 
