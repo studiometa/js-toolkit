@@ -9,15 +9,17 @@ class AccordionItem extends Base {
   }
 
   mounted() {
-    this.$el.addEventListener('focusin', this);
-    this.$el.addEventListener('focusout', this);
-    this.$refs.title.setAttribute('id', this.id);
-    this.$refs.content.setAttribute('aria-labelledby', this.id);
+    this.$refs.button.setAttribute('id', this.$id);
+    this.$refs.button.addEventListener('click', this);
+    this.$refs.content.setAttribute('aria-labelledby', this.$id);
+
+    if (!this.isOpen) {
+      this.close();
+    }
   }
 
   destroyed() {
-    this.$el.removeEventListener('focusin', this);
-    this.$el.removeEventListener('focusout', this);
+    this.$el.removeEventListener('click', this);
   }
 
   handleEvent(event) {
@@ -28,28 +30,42 @@ class AccordionItem extends Base {
     }
   }
 
-  focusinHandler() {
-    this.$log('focusinHandler');
-    this.open();
-  }
-
-  focusoutHandler() {
-    this.$log('focusoutHandler');
-    this.close();
+  clickHandler() {
+    this.$log('clickHandler');
+    if (this.isOpen) {
+      this.close();
+    } else {
+      this.open();
+    }
   }
 
   open() {
     this.$emit('open');
     this.$refs.content.setAttribute('aria-hidden', 'false');
+    this.$refs.content.removeAttribute('tabindex');
+
+    this.$refs.content.style.display = 'block';
+
+    this.$el.classList.remove('is-close');
+    this.$el.classList.add('is-open');
   }
 
   close() {
     this.$emit('close');
     this.$refs.content.setAttribute('aria-hidden', 'true');
+    this.$refs.content.setAttribute('tabindex', '0');
+
+    this.$refs.content.style.display = 'none';
+
+    this.$el.classList.remove('is-open');
+    this.$el.classList.add('is-close');
   }
 
   get isOpen() {
-    return this.$refs.content.getAttribute('aria-hidden') === 'false';
+    return (
+      this.$refs.content.getAttribute('aria-hidden') === 'false' ||
+      this.$refs.content.getAttribute('aria-hidden') === null
+    );
   }
 }
 
@@ -64,6 +80,10 @@ export default class Accordion extends Base {
   }
 
   mounted() {
+    if (typeof this.$el.dataset.optionsItemAutoClose === 'undefined') {
+      return;
+    }
+
     this.unbindOpen = this.$children.AccordionItem.map((item, index) => {
       return item.$on('open', () => {
         this.openHandler(index);
