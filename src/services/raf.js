@@ -22,7 +22,6 @@ class Raf extends Service {
    */
   init() {
     const loop = () => {
-      // todo: add params to the trigger
       this.trigger(this.props);
 
       if (!this.isTicking) {
@@ -52,7 +51,9 @@ class Raf extends Service {
    * @type {Object}
    */
   get props() {
-    return {};
+    return {
+      time: window.performance.now(),
+    };
   }
 }
 
