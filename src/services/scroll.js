@@ -1,4 +1,4 @@
-import Service from '../abstracts/Service';
+import { Service } from '../abstracts';
 import { throttle, debounce } from '../utils';
 
 /**

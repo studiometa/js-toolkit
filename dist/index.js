@@ -8,9 +8,9 @@ Object.defineProperty(exports, "__esModule", {
 Object.defineProperty(exports, "Base", {
   enumerable: true,
   get: function get() {
-    return _Base["default"];
+    return _Base2["default"];
   }
 });
 
-var _Base = _interopRequireDefault(require("./abstracts/Base"));
+var _Base2 = _interopRequireDefault(require("./abstracts/Base"));
 //# sourceMappingURL=index.js.map

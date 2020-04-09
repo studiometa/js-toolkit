@@ -133,19 +133,19 @@ function call(instance, method) {
     args[_key2 - 2] = arguments[_key2];
   }
 
-  debug.apply(void 0, [instance, 'call', method].concat(args));
-
-  if (!(0, _utils.hasMethod)(instance, method)) {
-    return instance;
-  } // Prevent duplicate call of `created` and `destroyed`
+  debug.apply(void 0, [instance, 'call', method].concat(args)); // Prevent duplicate call of `mounted` and `destroyed`
   // methods based on the component status
 
-
-  if (method === 'destroyed' && !instance.$isMounted || method === 'created' && instance.$isMounted) {
+  if (method === 'destroyed' && !instance.$isMounted || method === 'mounted' && instance.$isMounted) {
+    debug(instance, 'not', method, 'because the method has already been triggered once.');
     return instance;
   }
 
-  instance.$emit.apply(instance, [method].concat(args));
+  instance.$emit.apply(instance, [method].concat(args)); // We always emit an event, but we do not call the method if it does not exist
+
+  if (!(0, _utils.hasMethod)(instance, method)) {
+    return instance;
+  }
 
   (_instance$method = instance[method]).call.apply(_instance$method, [instance].concat(args));
 
@@ -153,7 +153,7 @@ function call(instance, method) {
   return instance;
 }
 /**
- * Tie the components' `created` method to the instance
+ * Tie the components' `mounted` method to the instance
  */
 
 
@@ -188,13 +188,19 @@ function destroyComponents(instance) {
 
   debug(instance, 'destroyComponents', instance.$children);
   Object.values(instance.$children).forEach(function ($child) {
-    $child.destroy();
+    if (Array.isArray($child)) {
+      $child.forEach(function (c) {
+        c.$destroy();
+      });
+    } else {
+      $child.$destroy();
+    }
   });
 }
 /**
  * Page lifecycle class
  *
- * @method created   Fired when the class is instantiated
+ * @method mounted   Fired when the class is instantiated
  * @method loaded    Fired on the window's load event
  * @method ticked    Fired each frame with `requestAnimationFrame`
  * @method resized   Fired when the window is resized (`resize` event)
@@ -212,7 +218,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
   /**
    * Class constructor where all the magic takes place
    * @param  {Object}    options An option object
-   * @return {Base}         The created instance
+   * @return {Base}         The mounted instance
    */
   function Base(element) {
     var _this;
@@ -258,96 +264,120 @@ var Base = /*#__PURE__*/function (_EventManager) {
 
     if ($children) {
       _this.$children = $children;
-    } // Fire the `loaded` method on window load
-
-
-    if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'loaded')) {
-      window.addEventListener('load', function (event) {
-        call((0, _assertThisInitialized2["default"])(_this), 'loaded', {
-          event: event
-        });
-      });
-    } // Fire the `scrolled` method on window/document scroll
-
-
-    if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'scrolled')) {
-      var _useScroll = (0, _services.useScroll)(),
-          add = _useScroll.add;
-
-      add(_this.$id, function () {
-        for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-          args[_key3] = arguments[_key3];
-        }
-
-        call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'scrolled'].concat(args));
-      });
-    } // Fire the `resized` method on window resize
-
-
-    if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'resized')) {
-      var _useResize = (0, _services.useResize)(),
-          _add = _useResize.add;
-
-      _add(_this.$id, function () {
-        for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-          args[_key4] = arguments[_key4];
-        }
-
-        call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'resized'].concat(args));
-      });
-    } // Fire the `ticked` method on each frame
-
-
-    if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'ticked')) {
-      var _useRaf = (0, _services.useRaf)(),
-          _add2 = _useRaf.add;
-
-      _add2(_this.$id, function () {
-        for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-          args[_key5] = arguments[_key5];
-        }
-
-        call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'ticked'].concat(args));
-      });
-    } // Fire the `ticked` method on each frame
-
-
-    if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'moved')) {
-      var _usePointer = (0, _services.usePointer)(),
-          _add3 = _usePointer.add;
-
-      _add3(_this.$id, function () {
-        for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-          args[_key6] = arguments[_key6];
-        }
-
-        call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'moved'].concat(args));
-      });
-    } // Fire the `destroyed` method on window unload
-
-
-    if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'destroyed')) {
-      window.addEventListener('beforeunload', function () {
-        call((0, _assertThisInitialized2["default"])(_this), 'destroyed', _this.options);
-      });
     }
 
-    _this.$on('created', function () {
+    var unbindMethods = []; // Bind all the methods when the component is mounted,
+    // we save the unbind methods to unbind them all when
+    // the component is destroyed.
+
+    _this.$on('mounted', function () {
+      unbindMethods = []; // Fire the `loaded` method on window load
+
+      if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'loaded')) {
+        var loadedHandler = function loadedHandler(event) {
+          call((0, _assertThisInitialized2["default"])(_this), 'loaded', {
+            event: event
+          });
+        };
+
+        window.addEventListener('load', loadedHandler);
+        unbindMethods.push(function () {
+          window.removeEventListener('load', loadedHandler);
+        });
+      } // Fire the `scrolled` method on window/document scroll
+
+
+      if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'scrolled')) {
+        var _useScroll = (0, _services.useScroll)(),
+            add = _useScroll.add,
+            remove = _useScroll.remove;
+
+        add(_this.$id, function () {
+          for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+            args[_key3] = arguments[_key3];
+          }
+
+          call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'scrolled'].concat(args));
+        });
+        unbindMethods.push(function () {
+          return remove(_this.$id);
+        });
+      } // Fire the `resized` method on window resize
+
+
+      if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'resized')) {
+        var _useResize = (0, _services.useResize)(),
+            _add = _useResize.add,
+            _remove = _useResize.remove;
+
+        _add(_this.$id, function () {
+          for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+            args[_key4] = arguments[_key4];
+          }
+
+          call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'resized'].concat(args));
+        });
+
+        unbindMethods.push(function () {
+          return _remove(_this.$id);
+        });
+      } // Fire the `ticked` method on each frame
+
+
+      if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'ticked')) {
+        var _useRaf = (0, _services.useRaf)(),
+            _add2 = _useRaf.add,
+            _remove2 = _useRaf.remove;
+
+        _add2(_this.$id, function () {
+          for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+            args[_key5] = arguments[_key5];
+          }
+
+          call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'ticked'].concat(args));
+        });
+
+        unbindMethods.push(function () {
+          return _remove2(_this.$id);
+        });
+      } // Fire the `ticked` method on each frame
+
+
+      if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'moved')) {
+        var _usePointer = (0, _services.usePointer)(),
+            _add3 = _usePointer.add,
+            _remove3 = _usePointer.remove;
+
+        _add3(_this.$id, function () {
+          for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+            args[_key6] = arguments[_key6];
+          }
+
+          call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'moved'].concat(args));
+        });
+
+        unbindMethods.push(function () {
+          return _remove3(_this.$id);
+        });
+      }
+
       mountComponents((0, _assertThisInitialized2["default"])(_this));
       _this.$isMounted = true;
-    }); // Fire the `created` method on the next frame so the class
+    });
+
+    _this.$on('destroyed', function () {
+      _this.$isMounted = false;
+      unbindMethods.forEach(function (method) {
+        return method();
+      });
+      destroyComponents((0, _assertThisInitialized2["default"])(_this));
+    }); // Fire the `mounted` method on the next frame so the class
     // properties are correctly loaded
 
 
     requestAnimationFrame(function () {
       _this.$mount();
     });
-
-    _this.$on('destroyed', function () {
-      _this.$isMounted = false;
-      destroyComponents((0, _assertThisInitialized2["default"])(_this));
-    });
-
     return (0, _possibleConstructorReturn2["default"])(_this, (0, _assertThisInitialized2["default"])(_this));
   }
   /**
@@ -368,7 +398,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
       return this.$options.log ? window.console.log.apply(window, [this.config.name].concat(args)) : function () {};
     }
     /**
-     * Trigger the `created` callback.
+     * Trigger the `mounted` callback.
      */
 
   }, {
@@ -376,6 +406,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
     value: function $mount() {
       debug(this, '$mount');
       call(this, 'mounted');
+      return this;
     }
     /**
      * Trigger the `destroyed` callback.
@@ -386,6 +417,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
     value: function $destroy() {
       debug(this, '$destroy');
       call(this, 'destroyed');
+      return this;
     }
   }]);
   return Base;
