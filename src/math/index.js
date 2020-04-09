@@ -1,5 +1,6 @@
 import damp from './damp';
-import map from './map';
 import lerp from './lerp';
+import map from './map';
+import round from './round';
 
-export { damp, map };
+export { damp, lerp, map, round };
