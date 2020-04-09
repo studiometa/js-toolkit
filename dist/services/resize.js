@@ -21,9 +21,9 @@ var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
-var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
+var _abstracts = require("../abstracts");
 
-var _debounce = _interopRequireDefault(require("../utils/debounce"));
+var _utils = require("../utils");
 
 function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
 
@@ -70,7 +70,7 @@ var Resize = /*#__PURE__*/function (_Service) {
     value: function init() {
       var _this2 = this;
 
-      this.handler = (0, _debounce["default"])(function () {
+      this.handler = (0, _utils.debounce)(function () {
         _this2.trigger(_this2.props);
       }).bind(this);
       window.addEventListener('resize', this.handler);
@@ -141,7 +141,7 @@ var Resize = /*#__PURE__*/function (_Service) {
     }
   }]);
   return Resize;
-}(_Service2["default"]);
+}(_abstracts.Service);
 
 var resize = new Resize();
 var add = resize.add.bind(resize);
