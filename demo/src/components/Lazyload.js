@@ -1,4 +1,4 @@
-import { Base } from '../../../dist';
+import { Base } from '../../../src';
 
 export default class Lazyload extends Base {
   get config() {

@@ -7,9 +7,8 @@
   height: 20px;
   margin: -10px 0 0 -10px;
   border-radius: 50%;
-  background-color: #fff;
+  background-color: #000;
   pointer-events: none;
-  mix-blend-mode: difference;
   transform: scale(0) translate3d(50vw, 50vh, 0);
   transition: transform 0.2s cubic-bezier(0.19, 1, 0.22, 1);
 }
