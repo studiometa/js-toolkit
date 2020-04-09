@@ -6,10 +6,19 @@ module.exports = {
       { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/' },
       {
-        text: 'Reference',
-        link: '/reference/',
+        text: 'Components',
+        link: '/components/',
         items: [
-          { text: 'Utils', link: '/reference/utils/' },
+          { text: 'Tabs', link: '/components/tabs/' },
+        ],
+      },
+      {
+        text: 'Utils',
+        link: '/utils/',
+        items: [
+          { text: 'debounce', link: '/utils/#debounce' },
+          { text: 'isObject', link: '/utils/#isObject' },
+          { text: 'throttle', link: '/utils/#throttle' },
         ],
       },
       { text: 'Github', link: 'https://github.com/studiometa/js-toolkit' },
