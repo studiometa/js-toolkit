@@ -1,127 +1,98 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Parcel Sandbox</title>
+    <title>@studiometa/js-toolkit demo</title>
     <meta charset="UTF-8" />
     <link
       rel="stylesheet"
-      href="./src/styles.css"
+      href="./src/styles.scss"
       media="print"
       onload="this.setAttribute('media', 'all');this.removeAttribute('onload')"
     />
   </head>
 
   <body>
-    <main>
+    <main data-breakpoint class="relative p-10">
       <!-- BEGIN Accordion component-->
-      <div class="accordion" data-component="Accordion">
-        <div data-component="AccordionItem" tabindex="0" class="accordion-item">
-          <p data-ref="AccordionItem.title" class="accordion-item__title">
+      <div data-component="Accordion">
+        <div data-component="AccordionItem" tabindex="0" class="accordion-item border -mb-px p-4">
+          <p data-ref="AccordionItem.title" class="accordion-item__title cursor-pointer">
             Lorem ipsum
           </p>
-          <div
-            data-ref="AccordionItem.content"
-            class="accordion-item__content"
-            aria-hidden="true"
-          >
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto
-            nobis laboriosam rerum aspernatur deserunt similique facere impedit
-            alias, error officia cum quibusdam quisquam quo, magnam libero eius
-            provident dolorum molestiae.
+          <div data-ref="AccordionItem.content" class="accordion-item__content pt-4" aria-hidden="true">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto nobis laboriosam
+            rerum aspernatur deserunt similique facere impedit alias, error officia cum quibusdam
+            quisquam quo, magnam libero eius provident dolorum molestiae.
           </div>
         </div>
-        <div data-component="AccordionItem" tabindex="0" class="accordion-item">
-          <p data-ref="AccordionItem.title" class="accordion-item__title">
+        <div data-component="AccordionItem" tabindex="0" class="accordion-item border -mb-px p-4">
+          <p data-ref="AccordionItem.title" class="accordion-item__title cursor-pointer">
             Lorem ipsum
           </p>
-          <div
-            data-ref="AccordionItem.content"
-            class="accordion-item__content"
-            aria-hidden="true"
-          >
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto
-            nobis laboriosam rerum aspernatur deserunt similique facere impedit
-            alias, error officia cum quibusdam quisquam quo, magnam libero eius
-            provident dolorum molestiae.
+          <div data-ref="AccordionItem.content" class="accordion-item__content pt-4" aria-hidden="true">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto nobis laboriosam
+            rerum aspernatur deserunt similique facere impedit alias, error officia cum quibusdam
+            quisquam quo, magnam libero eius provident dolorum molestiae.
           </div>
         </div>
       </div>
       <!-- END Accordion component-->
 
-      <hr />
+      <hr class="my-10" />
 
       <!-- BEGIN Accordion component-->
       <div class="accordion" data-component="Accordion">
-        <div data-component="AccordionItem" tabindex="0" class="accordion-item">
-          <p data-ref="AccordionItem.title" class="accordion-item__title">
+        <div data-component="AccordionItem" tabindex="0" class="accordion-item border -mb-px p-4">
+          <p data-ref="AccordionItem.title" class="accordion-item__title cursor-pointer">
             Show image #1
           </p>
-          <div
-            data-ref="AccordionItem.content"
-            class="accordion-item__content"
-            aria-hidden="true"
-          >
+          <div data-ref="AccordionItem.content" class="accordion-item__content pt-4" aria-hidden="true">
             <img data-src="https://placekitten.com/200/100" alt="" />
           </div>
         </div>
-        <div data-component="AccordionItem" tabindex="0" class="accordion-item">
-          <p data-ref="AccordionItem.title" class="accordion-item__title">
+        <div data-component="AccordionItem" tabindex="0" class="accordion-item border -mb-px p-4">
+          <p data-ref="AccordionItem.title" class="accordion-item__title cursor-pointer">
             Show image #2
           </p>
-          <div
-            data-ref="AccordionItem.content"
-            class="accordion-item__content"
-            aria-hidden="true"
-          >
+          <div data-ref="AccordionItem.content" class="accordion-item__content pt-4" aria-hidden="true">
             <img data-src="https://placekitten.com/200/120" alt="" />
           </div>
         </div>
-        <div data-component="AccordionItem" tabindex="0" class="accordion-item">
-          <p data-ref="AccordionItem.title" class="accordion-item__title">
+        <div data-component="AccordionItem" tabindex="0" class="accordion-item border -mb-px p-4">
+          <p data-ref="AccordionItem.title" class="accordion-item__title cursor-pointer">
             Show image #3
           </p>
-          <div
-            data-ref="AccordionItem.content"
-            class="accordion-item__content"
-            aria-hidden="true"
-          >
+          <div data-ref="AccordionItem.content" class="accordion-item__content pt-4" aria-hidden="true">
             <img data-src="https://placekitten.com/200/80" alt="" />
           </div>
         </div>
       </div>
       <!-- END Accordion component-->
 
-      <hr />
+      <hr class="my-10" />
 
       <!-- BEGIN Tabs component-->
       <div data-component="Tabs" class="tabs">
-        <div class="tabs__nav">
-          <button data-ref="Tabs.btn" class="tabs__btn is-active">
+        <div class="flex border-b">
+          <button data-ref="Tabs.btn" class="tabs__btn -m-px ml-4 p-4 bg-white border is-active">
             Tab #1
           </button>
-          <button data-ref="Tabs.btn" class="tabs__btn">Tab #2</button>
-          <button data-ref="Tabs.btn" class="tabs__btn">Tab #3</button>
+          <button data-ref="Tabs.btn" class="tabs__btn -m-px -ml-px p-4 bg-white border">Tab #2</button>
+          <button data-ref="Tabs.btn" class="tabs__btn -m-px -ml-px p-4 bg-white border">Tab #3</button>
         </div>
-        <div class="tabs__container">
-          <div
-            data-ref="Tabs.content"
-            class="tabs__content"
-            aria-hidden="false"
-          >
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Adipisci
-            nemo quod nobis laudantium iusto maiores molestias animi quos error
-            quo consequatur, eum veniam sequi repellat placeat rerum a labore.
-            Sit.
+        <div class="tabs__container p-4">
+          <div data-ref="Tabs.content" class="tabs__content" aria-hidden="false">
+            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Adipisci nemo quod nobis
+            laudantium iusto maiores molestias animi quos error quo consequatur, eum veniam sequi
+            repellat placeat rerum a labore. Sit.
           </div>
           <div data-ref="Tabs.content" class="tabs__content" aria-hidden="true">
-            Nunc ultrices arcu quis mollis mollis. Duis at turpis et nibh
-            pellentesque dapibus. Quisque luctus neque a placerat sodales. Sed a
-            mauris efficitur eros fringilla viverra. Donec eleifend risus
-            ligula. Donec non tellus lacinia, tempus enim id, lacinia arcu.
-            Phasellus sit amet mollis nibh, at porta nunc. Fusce faucibus erat
-            quis risus molestie, ac aliquam purus finibus. Pellentesque aliquet
-            augue non sollicitudin semper. Vivamus est odio, efficitur vitae
-            lacus id, eleifend maximus felis.
+            Nunc ultrices arcu quis mollis mollis. Duis at turpis et nibh pellentesque dapibus.
+            Quisque luctus neque a placerat sodales. Sed a mauris efficitur eros fringilla viverra.
+            Donec eleifend risus ligula. Donec non tellus lacinia, tempus enim id, lacinia arcu.
+            Phasellus sit amet mollis nibh, at porta nunc. Fusce faucibus erat quis risus molestie,
+            ac aliquam purus finibus. Pellentesque aliquet augue non sollicitudin semper. Vivamus
+            est odio, efficitur vitae lacus id, eleifend maximus felis.
           </div>
           <div data-ref="Tabs.content" class="tabs__content" aria-hidden="true">
             <img
@@ -136,106 +107,148 @@
       </div>
       <!-- END Tabs component-->
 
-      <hr />
+      <hr class="my-10" />
 
-      <img
-        data-src="https://placekitten.com/500/500"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="500"
-        height="500"
-        alt=""
-      />
-      <img
-        data-src="https://placekitten.com/510/510"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="510"
-        height="510"
-        alt=""
-      />
-      <img
-        data-src="https://placekitten.com/520/520"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="520"
-        height="520"
-        alt=""
-      />
-      <img
-        data-src="https://placekitten.com/530/530"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="530"
-        height="530"
-        alt=""
-      />
-      <img
-        data-src="https://placekitten.com/540/540"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="540"
-        height="540"
-        alt=""
-      />
-      <img
-        data-src="https://placekitten.com/550/550"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="550"
-        height="550"
-        alt=""
-      />
-      <img
-        data-src="https://placekitten.com/560/560"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="560"
-        height="560"
-        alt=""
-      />
-      <img
-        data-src="https://placekitten.com/570/570"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="570"
-        height="570"
-        alt=""
-      />
-      <img
-        data-src="https://placekitten.com/580/580"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="580"
-        height="580"
-        alt=""
-      />
-      <img
-        data-src="https://placekitten.com/590/590"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="590"
-        height="590"
-        alt=""
-      />
-      <img
-        data-src="https://placekitten.com/600/600"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="600"
-        height="600"
-        alt=""
-      />
-      <img
-        data-src="https://placekitten.com/610/610"
-        data-component="Skew"
-        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-        width="610"
-        height="610"
-        alt=""
-      />
+      <div class="flex flex-wrap">
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/500/500"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="500"
+            height="500"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/510/510"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="510"
+            height="510"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/520/520"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="520"
+            height="520"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/530/530"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="530"
+            height="530"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/540/540"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="540"
+            height="540"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/550/550"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="550"
+            height="550"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/560/560"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="560"
+            height="560"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/570/570"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="570"
+            height="570"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/580/580"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="580"
+            height="580"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/590/590"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="590"
+            height="590"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/600/600"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="600"
+            height="600"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10">
+          <img
+            class="w-full transition duration-100 ease-out"
+            data-src="https://placekitten.com/610/610"
+            data-component="Skew"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="610"
+            height="610"
+            alt=""
+          />
+        </div>
+      </div>
 
-      <hr />
+      <hr class="my-10" />
+
+      <div class="absolute left-0 right-0 bottom-0 p-10 bg-gray-200">
+        Bottom
+      </div>
     </main>
     <!-- BEGIN Cursor component -->
     <div data-component="Cursor" class="cursor"></div>
