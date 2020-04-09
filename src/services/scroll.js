@@ -55,7 +55,7 @@ class Scroll extends Service {
    * @return {void}
    */
   kill() {
-    document.removeEventLisetner('scroll', this.handler);
+    document.removeEventListener('scroll', this.handler);
   }
 
   /**
