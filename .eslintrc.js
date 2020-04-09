@@ -16,6 +16,10 @@ module.exports = {
       parser: 'babel-eslint',
     },
     {
+      files: ['**/*.spec.js', '**/spec.js'],
+      extends: ['plugin:jest/recommended', 'plugin:jest/style'],
+    },
+    {
       files: 'demo/**/*.js',
       rules: {
         'require-jsdoc': 'off',
