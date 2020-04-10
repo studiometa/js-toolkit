@@ -230,13 +230,7 @@ var Pointer = /*#__PURE__*/function (_Service) {
   return Pointer;
 }(_abstracts.Service);
 
-var pointer = new Pointer();
-var add = pointer.add.bind(pointer);
-var remove = pointer.remove.bind(pointer);
-
-var props = function props() {
-  return pointer.props;
-};
+var pointer = null;
 /**
  * Use the pointer.
  *
@@ -249,8 +243,18 @@ var props = function props() {
  * ```
  */
 
-
 var _default = function _default() {
+  if (!pointer) {
+    pointer = new Pointer();
+  }
+
+  var add = pointer.add.bind(pointer);
+  var remove = pointer.remove.bind(pointer);
+
+  var props = function props() {
+    return pointer.props;
+  };
+
   return {
     add: add,
     remove: remove,

@@ -143,15 +143,20 @@ var Resize = /*#__PURE__*/function (_Service) {
   return Resize;
 }(_abstracts.Service);
 
-var resize = new Resize();
-var add = resize.add.bind(resize);
-var remove = resize.remove.bind(resize);
-
-var props = function props() {
-  return resize.props;
-};
+var resize = null;
 
 var _default = function _default() {
+  if (!resize) {
+    resize = new Resize();
+  }
+
+  var add = resize.add.bind(resize);
+  var remove = resize.remove.bind(resize);
+
+  var props = function props() {
+    return resize.props;
+  };
+
   return {
     add: add,
     remove: remove,
