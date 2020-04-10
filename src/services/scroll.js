@@ -1,4 +1,4 @@
-import Service from '../abstracts/Service';
+import { Service } from '../abstracts';
 import { throttle, debounce } from '../utils';
 
 /**
@@ -55,7 +55,7 @@ class Scroll extends Service {
    * @return {void}
    */
   kill() {
-    document.removeEventLisetner('scroll', this.handler);
+    document.removeEventListener('scroll', this.handler);
   }
 
   /**

@@ -1,5 +1,5 @@
-import Service from '../abstracts/Service';
-import debounce from '../utils/debounce';
+import { Service } from '../abstracts';
+import { debounce } from '../utils';
 
 /**
  * Resize service
