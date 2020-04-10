@@ -57,13 +57,20 @@ class Raf extends Service {
   }
 }
 
-const raf = new Raf();
-const add = raf.add.bind(raf);
-const remove = raf.remove.bind(raf);
-const props = () => raf.props;
+let raf = null;
 
-export default () => ({
-  add,
-  remove,
-  props,
-});
+export default () => {
+  if (!raf) {
+    raf = new Raf();
+  }
+
+  const add = raf.add.bind(raf);
+  const remove = raf.remove.bind(raf);
+  const props = () => raf.props;
+
+  return {
+    add,
+    remove,
+    props,
+  };
+};
