@@ -165,15 +165,20 @@ var Scroll = /*#__PURE__*/function (_Service) {
   return Scroll;
 }(_abstracts.Service);
 
-var scroll = new Scroll();
-var add = scroll.add.bind(scroll);
-var remove = scroll.remove.bind(scroll);
-
-var props = function props() {
-  return scroll.props;
-};
+var scroll = null;
 
 var _default = function _default() {
+  if (!scroll) {
+    scroll = new Scroll();
+  }
+
+  var add = scroll.add.bind(scroll);
+  var remove = scroll.remove.bind(scroll);
+
+  var props = function props() {
+    return scroll.props;
+  };
+
   return {
     add: add,
     remove: remove,

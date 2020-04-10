@@ -162,10 +162,7 @@ class Pointer extends Service {
   }
 }
 
-const pointer = new Pointer();
-const add = pointer.add.bind(pointer);
-const remove = pointer.remove.bind(pointer);
-const props = () => pointer.props;
+let pointer = null;
 
 /**
  * Use the pointer.
@@ -178,8 +175,18 @@ const props = () => pointer.props;
  * props();
  * ```
  */
-export default () => ({
-  add,
-  remove,
-  props,
-});
+export default () => {
+  if (!pointer) {
+    pointer = new Pointer();
+  }
+
+  const add = pointer.add.bind(pointer);
+  const remove = pointer.remove.bind(pointer);
+  const props = () => pointer.props;
+
+  return {
+    add,
+    remove,
+    props,
+  };
+};

@@ -95,13 +95,20 @@ class Resize extends Service {
   }
 }
 
-const resize = new Resize();
-const add = resize.add.bind(resize);
-const remove = resize.remove.bind(resize);
-const props = () => resize.props;
+let resize = null;
 
-export default () => ({
-  add,
-  remove,
-  props,
-});
+export default () => {
+  if (!resize) {
+    resize = new Resize();
+  }
+
+  const add = resize.add.bind(resize);
+  const remove = resize.remove.bind(resize);
+  const props = () => resize.props;
+
+  return {
+    add,
+    remove,
+    props,
+  };
+};

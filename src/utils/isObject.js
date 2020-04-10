@@ -5,6 +5,5 @@
  * @return {Boolean}       Whether or not the value is an object
  */
 export default function isObject(value) {
-  const type = typeof value;
-  return type === 'function' || (type === 'value' && !!value);
+  return typeof value === 'function' || (typeof value === 'object' && !!value);
 }

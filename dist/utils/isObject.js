@@ -16,7 +16,6 @@ var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
  * @return {Boolean}       Whether or not the value is an object
  */
 function isObject(value) {
-  var type = (0, _typeof2["default"])(value);
-  return type === 'function' || type === 'value' && !!value;
+  return typeof value === 'function' || (0, _typeof2["default"])(value) === 'object' && !!value;
 }
 //# sourceMappingURL=isObject.js.map
