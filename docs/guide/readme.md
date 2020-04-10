@@ -1,7 +1,7 @@
 ---
 sidebar: auto
 prev: /
-next: /reference/utils/
+next: /utils/
 ---
 
 # Guide
