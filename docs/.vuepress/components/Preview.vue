@@ -27,6 +27,10 @@
       });
     },
     updated() {
+      if (!this.component) {
+        return;
+      }
+
       this.component.$destroy();
       this.component = new App(this.$refs.parent);
     },

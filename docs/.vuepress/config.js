@@ -32,6 +32,7 @@ module.exports = {
       '@silvanite/tailwind',
       {
         config: path.resolve(__dirname, 'tailwind.config.js'),
+        purgecss: { enabled: false },
       },
     ],
   ],
