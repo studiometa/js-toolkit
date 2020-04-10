@@ -13,7 +13,7 @@ next: false
 
 <Preview>
   <div data-component="Tabs" data-options='{ "debug": true, "tabActiveStyle": { "borderBottomColor": "#fff" } }'>
-    <div class="flex px-10 border-b">
+    <div class="flex px-10">
       <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
         Tab #1
       </button>
@@ -24,7 +24,7 @@ next: false
         Tab #3
       </button>
     </div>
-    <div class="p-10 bg-white">
+    <div class="p-10 bg-white border">
       <div data-ref="Tabs.content" aria-hidden="false">
         Content #1
       </div>
@@ -39,35 +39,40 @@ next: false
 </Preview>
 
 ```html
-<div data-component="Tabs" data-options='{ "tabActiveStyle": { "borderBottomColor": "#fff" } }'>
-    <div class="flex px-10 border-b">
-      <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
-        Tab #1
-      </button>
-      <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
-        Tab #2
-      </button>
-      <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
-        Tab #3
-      </button>
+<div data-component="Tabs" data-options='{
+  "tabActiveStyle": {
+    "borderBottomColor": "#fff"
+  }
+}'>
+  <div class="flex px-10 border-b">
+    <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
+      Tab #1
+    </button>
+    <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
+      Tab #2
+    </button>
+    <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
+      Tab #3
+    </button>
+  </div>
+  <div class="p-10 bg-white">
+    <div data-ref="Tabs.content" aria-hidden="false">
+      Content #1
     </div>
-    <div class="p-10 bg-white">
-      <div data-ref="Tabs.content" aria-hidden="false">
-        Content #1
-      </div>
-      <div data-ref="Tabs.content" aria-hidden="true">
-        Content #2
-      </div>
-      <div data-ref="Tabs.content" aria-hidden="true">
-        Content #3
-      </div>
+    <div data-ref="Tabs.content" aria-hidden="true">
+      Content #2
+    </div>
+    <div data-ref="Tabs.content" aria-hidden="true">
+      Content #3
     </div>
   </div>
+</div>
 ```
 
 ### Animated transition
 
 You can add some transition to the content switch with the `contentActiveClass` and `contentInactiveClass` options.
+
 
 <Preview>
   <div data-component="Tabs" data-options='{ "tabActiveClass": "bg-green-500 hover:bg-green-600", "tabInactiveClass": "bg-gray-800 hover:bg-gray-900", "contentInactiveClass": "opacity-0 scale-75 pointer-events-none", "contentInactiveStyle": {} }'>
@@ -96,31 +101,37 @@ You can add some transition to the content switch with the `contentActiveClass` 
   </div>
 </Preview>
 
+
 ```html
-<div data-component="Tabs" data-options='{ "tabActiveClass": "bg-green-500 hover:bg-green-600", "tabInactiveClass": "bg-gray-800 hover:bg-gray-900", "contentInactiveClass": "opacity-0 scale-75 pointer-events-none", "contentInactiveStyle": {} }'>
-    <div class="relative w-full h-32 mb-10">
-      <div data-ref="Tabs.content" aria-hidden="false" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
-        Content #1
-      </div>
-      <div data-ref="Tabs.content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
-        Content #2
-      </div>
-      <div data-ref="Tabs.content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
-        Content #3
-      </div>
+<div data-component="Tabs" data-options='{
+  "tabActiveClass": "bg-green-500 hover:bg-green-600",
+  "tabInactiveClass": "bg-gray-800 hover:bg-gray-900",
+  "contentInactiveClass": "opacity-0 scale-75 pointer-events-none",
+  "contentInactiveStyle": {}
+}'>
+  <div class="relative w-full h-32 mb-10">
+    <div data-ref="Tabs.content" aria-hidden="false" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
+      Content #1
     </div>
-    <div class="flex justify-center">
-      <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
-        Tab #1
-      </button>
-      <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
-        Tab #2
-      </button>
-      <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
-        Tab #3
-      </button>
+    <div data-ref="Tabs.content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
+      Content #2
+    </div>
+    <div data-ref="Tabs.content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
+      Content #3
     </div>
   </div>
+  <div class="flex justify-center">
+    <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
+      Tab #1
+    </button>
+    <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
+      Tab #2
+    </button>
+    <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
+      Tab #3
+    </button>
+  </div>
+</div>
 ```
 
 ## Usage
