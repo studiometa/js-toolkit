@@ -110,15 +110,20 @@ var Raf = /*#__PURE__*/function (_Service) {
   return Raf;
 }(_abstracts.Service);
 
-var raf = new Raf();
-var add = raf.add.bind(raf);
-var remove = raf.remove.bind(raf);
-
-var props = function props() {
-  return raf.props;
-};
+var raf = null;
 
 var _default = function _default() {
+  if (!raf) {
+    raf = new Raf();
+  }
+
+  var add = raf.add.bind(raf);
+  var remove = raf.remove.bind(raf);
+
+  var props = function props() {
+    return raf.props;
+  };
+
   return {
     add: add,
     remove: remove,
