@@ -39,6 +39,9 @@ function setStyles(element, styles, method = 'add') {
  * Tabs class.
  */
 export default class Tabs extends Base {
+  /**
+   * Tabs options.
+   */
   get config() {
     return {
       name: 'Tabs',
@@ -55,6 +58,11 @@ export default class Tabs extends Base {
     };
   }
 
+  /**
+   * Initialize the component's behaviours.
+   *
+   * @return {Tabs} The current instance.
+   */
   mounted() {
     this.items = this.$refs.btn.map((btn, index) => {
       const id = `${this.$id}-${index}`;
@@ -82,8 +90,30 @@ export default class Tabs extends Base {
         clickHandler,
       };
     });
+
+    return this;
   }
 
+  /**
+   * Unbind all events on destroy.
+   *
+   * @return {Tabs} The Tabs instance.
+   */
+  destroyed() {
+    this.items.forEach(({ btn, clickHandler }) => {
+      btn.removeEventListener('click', clickHandler);
+    });
+
+    return this;
+  }
+
+  /**
+   * Enable the given tab and its associated content.
+   *
+   * @param  {HTMLElement} btn     The tab element.
+   * @param  {HTMLElement} content The content element.
+   * @return {Tabs}                The Tabs instance.
+   */
   enableTab(btn, content) {
     setClasses(btn, this.$options.tabActiveClass);
     setStyles(btn, this.$options.tabActiveStyle);
@@ -96,8 +126,18 @@ export default class Tabs extends Base {
     setStyles(content, this.$options.contentInactiveStyle, 'remove');
 
     content.setAttribute('aria-hidden', 'false');
+    this.$emit('enable', { btn, content });
+
+    return this;
   }
 
+  /**
+   * Disable the given tab and its associated content.
+   *
+   * @param  {HTMLElement} btn     The tab element.
+   * @param  {HTMLElement} content The content element.
+   * @return {Tabs}                The Tabs instance.
+   */
   disableTab(btn, content) {
     setClasses(btn, this.$options.tabActiveClass, 'remove');
     setStyles(btn, this.$options.tabActiveStyle, 'remove');
@@ -110,11 +150,8 @@ export default class Tabs extends Base {
     setStyles(content, this.$options.contentInactiveStyle);
 
     content.setAttribute('aria-hidden', 'true');
-  }
+    this.$emit('disable', { btn, content });
 
-  destroyed() {
-    this.items.forEach(({ btn, clickHandler }) => {
-      btn.removeEventListener('click', clickHandler);
-    });
+    return this;
   }
 }
