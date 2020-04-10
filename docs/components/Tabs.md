@@ -1,6 +1,8 @@
 ---
 sidebar: auto
 sidebarDepth: 5
+prev: /components/
+next: false
 ---
 
 # Tabs
