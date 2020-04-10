@@ -86,6 +86,12 @@ var Tabs = /*#__PURE__*/function (_Base) {
 
   (0, _createClass2["default"])(Tabs, [{
     key: "mounted",
+
+    /**
+     * Initialize the component's behaviours.
+     *
+     * @return {Tabs} The current instance.
+     */
     value: function mounted() {
       var _this = this;
 
@@ -115,7 +121,32 @@ var Tabs = /*#__PURE__*/function (_Base) {
           clickHandler: clickHandler
         };
       });
+      return this;
     }
+    /**
+     * Unbind all events on destroy.
+     *
+     * @return {Tabs} The Tabs instance.
+     */
+
+  }, {
+    key: "destroyed",
+    value: function destroyed() {
+      this.items.forEach(function (_ref3) {
+        var btn = _ref3.btn,
+            clickHandler = _ref3.clickHandler;
+        btn.removeEventListener('click', clickHandler);
+      });
+      return this;
+    }
+    /**
+     * Enable the given tab and its associated content.
+     *
+     * @param  {HTMLElement} btn     The tab element.
+     * @param  {HTMLElement} content The content element.
+     * @return {Tabs}                The Tabs instance.
+     */
+
   }, {
     key: "enableTab",
     value: function enableTab(btn, content) {
@@ -128,7 +159,20 @@ var Tabs = /*#__PURE__*/function (_Base) {
       setClasses(content, this.$options.contentInactiveClass, 'remove');
       setStyles(content, this.$options.contentInactiveStyle, 'remove');
       content.setAttribute('aria-hidden', 'false');
+      this.$emit('enable', {
+        btn: btn,
+        content: content
+      });
+      return this;
     }
+    /**
+     * Disable the given tab and its associated content.
+     *
+     * @param  {HTMLElement} btn     The tab element.
+     * @param  {HTMLElement} content The content element.
+     * @return {Tabs}                The Tabs instance.
+     */
+
   }, {
     key: "disableTab",
     value: function disableTab(btn, content) {
@@ -141,18 +185,18 @@ var Tabs = /*#__PURE__*/function (_Base) {
       setClasses(content, this.$options.contentInactiveClass);
       setStyles(content, this.$options.contentInactiveStyle);
       content.setAttribute('aria-hidden', 'true');
-    }
-  }, {
-    key: "destroyed",
-    value: function destroyed() {
-      this.items.forEach(function (_ref3) {
-        var btn = _ref3.btn,
-            clickHandler = _ref3.clickHandler;
-        btn.removeEventListener('click', clickHandler);
+      this.$emit('disable', {
+        btn: btn,
+        content: content
       });
+      return this;
     }
   }, {
     key: "config",
+
+    /**
+     * Tabs options.
+     */
     get: function get() {
       return {
         name: 'Tabs',
