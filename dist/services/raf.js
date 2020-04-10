@@ -21,7 +21,7 @@ var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
-var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
+var _abstracts = require("../abstracts");
 
 function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
 
@@ -69,7 +69,6 @@ var Raf = /*#__PURE__*/function (_Service) {
       var _this2 = this;
 
       var loop = function loop() {
-        // todo: add params to the trigger
         _this2.trigger(_this2.props);
 
         if (!_this2.isTicking) {
@@ -103,11 +102,13 @@ var Raf = /*#__PURE__*/function (_Service) {
   }, {
     key: "props",
     get: function get() {
-      return {};
+      return {
+        time: window.performance.now()
+      };
     }
   }]);
   return Raf;
-}(_Service2["default"]);
+}(_abstracts.Service);
 
 var raf = new Raf();
 var add = raf.add.bind(raf);
