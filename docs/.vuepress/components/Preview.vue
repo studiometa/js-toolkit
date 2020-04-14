@@ -1,5 +1,5 @@
 <template>
-  <div class="preview">
+  <div class="preview" :class="{ 'preview--full': full }">
     <div class="my-10 p-10 rounded" style="background-color: rgba(27,31,35,0.05);" ref="parent">
       <slot />
     </div>
@@ -21,6 +21,12 @@
   }
 
   export default {
+    props: {
+      full: {
+        type: Boolean,
+        default: false,
+      },
+    },
     async mounted() {
       this.$nextTick(() => {
         this.component = new App(this.$refs.parent);
@@ -87,15 +93,11 @@
     *,
     ::before,
     ::after {
-      box-sizing: border-box; /* 1 */
-      border-width: 0; /* 2 */
-      border-style: solid; /* 2 */
-      border-color: #ccc; /* 2 */
+      box-sizing: border-box;
+      border-width: 0;
+      border-style: solid;
+      border-color: theme('borderColor.default', currentColor);
     }
-
-    /*
- * Ensure horizontal rules are visible by default
- */
 
     hr {
       border-top-width: 1px;
@@ -166,5 +168,13 @@
       max-width: 100%;
       height: auto;
     }
+  }
+
+  .preview--full {
+    position: relative;
+    left: 50%;
+    width: calc(100vw - 30rem);
+    min-width: 100%;
+    transform: translateX(-50%);
   }
 </style>
