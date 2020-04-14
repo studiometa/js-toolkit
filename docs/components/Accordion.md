@@ -18,10 +18,10 @@ You can add in html `tabindex="-1"` to the `AccordionItem` components, this has 
 To open an accordion, use instead the html element `<button type="button">`, because it allows to be selected with the keyboard and is therefore better suited for people using the "accessibility" features of their browsers.
 
 <Preview>
-  <div class="accordion" data-component="Accordion">
-    <article class="border -mb-px p-4" data-component="AccordionItem">
+  <div class="accordion bg-white" data-component="Accordion">
+    <article class="border -mb-px" data-component="AccordionItem">
       <header>
-        <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+        <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
           Question
         </button>
       </header>
@@ -30,7 +30,7 @@ To open an accordion, use instead the html element `<button type="button">`, bec
         aria-hidden="true"
         tabindex="-1"
         style="display: none;">
-        <div class="pt-4">
+        <div class="p-4">
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
             Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -39,9 +39,9 @@ To open an accordion, use instead the html element `<button type="button">`, bec
         </div>
       </div>
     </article>
-    <article class="border -mb-px p-4" data-component="AccordionItem">
+    <article class="border -mb-px" data-component="AccordionItem">
       <header>
-        <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+        <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
           Question
         </button>
       </header>
@@ -50,7 +50,7 @@ To open an accordion, use instead the html element `<button type="button">`, bec
         aria-hidden="true"
         tabindex="-1"
         style="display: none;">
-        <div class="pt-4">
+        <div class="p-4">
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
             Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -63,10 +63,10 @@ To open an accordion, use instead the html element `<button type="button">`, bec
 </Preview>
 
 ```html
-<div class="accordion" data-component="Accordion">
-  <article class="border -mb-px p-4" data-component="AccordionItem">
+<div class="accordion bg-white" data-component="Accordion">
+  <article class="border -mb-px" data-component="AccordionItem">
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Question
       </button>
     </header>
@@ -75,7 +75,7 @@ To open an accordion, use instead the html element `<button type="button">`, bec
       aria-hidden="true"
       tabindex="-1"
       style="display: none;">
-      <div class="pt-4">
+      <div class="p-4">
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
           Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -84,9 +84,9 @@ To open an accordion, use instead the html element `<button type="button">`, bec
       </div>
     </div>
   </article>
-  <article class="border -mb-px p-4" data-component="AccordionItem">
+  <article class="border -mb-px" data-component="AccordionItem">
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Question
       </button>
     </header>
@@ -95,7 +95,7 @@ To open an accordion, use instead the html element `<button type="button">`, bec
       aria-hidden="true"
       tabindex="-1"
       style="display: none;">
-      <div class="pt-4">
+      <div class="p-4">
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
           Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -112,17 +112,17 @@ To open an accordion, use instead the html element `<button type="button">`, bec
 It is possible to display an `AccordionItem` by default. To do this it's very simple, just don't set the block style to `none` and set the `aria-hidden` to `false`.
 
 <Preview>
-  <div class="accordion" data-component="Accordion">
-    <article class="border -mb-px p-4" data-component="AccordionItem">
+  <div class="accordion bg-white" data-component="Accordion">
+    <article class="border -mb-px" data-component="AccordionItem">
       <header>
-        <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+        <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
           Question
         </button>
       </header>
       <div
         data-ref="AccordionItem.content"
         aria-hidden="false">
-        <div class="pt-4">
+        <div class="p-4">
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
             Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -131,9 +131,9 @@ It is possible to display an `AccordionItem` by default. To do this it's very si
         </div>
       </div>
     </article>
-    <article class="border -mb-px p-4" data-component="AccordionItem">
+    <article class="border -mb-px" data-component="AccordionItem">
       <header>
-        <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+        <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
           Question
         </button>
       </header>
@@ -142,7 +142,7 @@ It is possible to display an `AccordionItem` by default. To do this it's very si
         aria-hidden="true"
         tabindex="-1"
         style="display: none;">
-        <div class="pt-4">
+        <div class="p-4">
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
             Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -155,17 +155,17 @@ It is possible to display an `AccordionItem` by default. To do this it's very si
 </Preview>
 
 ```html
-<div class="accordion" data-component="Accordion">
-  <article class="border -mb-px p-4" data-component="AccordionItem">
+<div class="accordion bg-white" data-component="Accordion">
+  <article class="border -mb-px" data-component="AccordionItem">
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Question
       </button>
     </header>
     <div
       data-ref="AccordionItem.content"
       aria-hidden="false">
-      <div class="pt-4">
+      <div class="p-4">
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
           Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -174,9 +174,9 @@ It is possible to display an `AccordionItem` by default. To do this it's very si
       </div>
     </div>
   </article>
-  <article class="border -mb-px p-4" data-component="AccordionItem">
+  <article class="border -mb-px" data-component="AccordionItem">
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Question
       </button>
     </header>
@@ -185,7 +185,7 @@ It is possible to display an `AccordionItem` by default. To do this it's very si
       aria-hidden="true"
       tabindex="-1"
       style="display: none;">
-      <div class="pt-4">
+      <div class="p-4">
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
           Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -202,10 +202,10 @@ It is possible to display an `AccordionItem` by default. To do this it's very si
 To close items other than the one you just clicked, just pass the `itemAutoClose: true` parameter. This option is passed to the `Accordion` component.
 
 <Preview>
-  <div class="accordion" data-component="Accordion" data-options='{ "itemAutoClose": true }'>
-    <article class="border -mb-px p-4" data-component="AccordionItem">
+  <div class="accordion bg-white" data-component="Accordion" data-options='{ "itemAutoClose": true }'>
+    <article class="border -mb-px" data-component="AccordionItem">
       <header>
-        <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+        <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
           Question
         </button>
       </header>
@@ -214,7 +214,7 @@ To close items other than the one you just clicked, just pass the `itemAutoClose
         aria-hidden="true"
         tabindex="-1"
         style="display: none;">
-        <div class="pt-4">
+        <div class="p-4">
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
             Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -223,9 +223,9 @@ To close items other than the one you just clicked, just pass the `itemAutoClose
         </div>
       </div>
     </article>
-    <article class="border -mb-px p-4" data-component="AccordionItem">
+    <article class="border -mb-px" data-component="AccordionItem">
       <header>
-        <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+        <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
           Question
         </button>
       </header>
@@ -234,7 +234,7 @@ To close items other than the one you just clicked, just pass the `itemAutoClose
         aria-hidden="true"
         tabindex="-1"
         style="display: none;">
-        <div class="pt-4">
+        <div class="p-4">
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
             Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -247,10 +247,10 @@ To close items other than the one you just clicked, just pass the `itemAutoClose
 </Preview>
 
 ```html
-<div class="accordion" data-component="Accordion" data-options='{ "itemAutoClose": true }'>
-  <article class="border -mb-px p-4" data-component="AccordionItem">
+<div class="accordion bg-white" data-component="Accordion" data-options='{ "itemAutoClose": true }'>
+  <article class="border -mb-px" data-component="AccordionItem">
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Question
       </button>
     </header>
@@ -259,7 +259,7 @@ To close items other than the one you just clicked, just pass the `itemAutoClose
       aria-hidden="true"
       tabindex="-1"
       style="display: none;">
-      <div class="pt-4">
+      <div class="p-4">
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
           Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -268,9 +268,9 @@ To close items other than the one you just clicked, just pass the `itemAutoClose
       </div>
     </div>
   </article>
-  <article class="border -mb-px p-4" data-component="AccordionItem">
+  <article class="border -mb-px" data-component="AccordionItem">
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Question
       </button>
     </header>
@@ -279,7 +279,7 @@ To close items other than the one you just clicked, just pass the `itemAutoClose
       aria-hidden="true"
       tabindex="-1"
       style="display: none;">
-      <div class="pt-4">
+      <div class="p-4">
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
           Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -300,10 +300,10 @@ If you want to disable an animation you will have to switch `animation: false` t
 #### Disable animation
 
 <Preview>
-  <div class="accordion" data-component="Accordion">
-    <article class="border -mb-px p-4" data-component="AccordionItem" data-options='{ "animation": false }'>
+  <div class="accordion bg-white" data-component="Accordion">
+    <article class="border -mb-px" data-component="AccordionItem" data-options='{ "animation": false }'>
       <header>
-        <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+        <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
           Question
         </button>
       </header>
@@ -312,7 +312,7 @@ If you want to disable an animation you will have to switch `animation: false` t
         aria-hidden="true"
         tabindex="-1"
         style="display: none;">
-        <div class="pt-4">
+        <div class="p-4">
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
             Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -321,9 +321,9 @@ If you want to disable an animation you will have to switch `animation: false` t
         </div>
       </div>
     </article>
-    <article class="border -mb-px p-4" data-component="AccordionItem" data-options='{ "animation": false }'>
+    <article class="border -mb-px" data-component="AccordionItem" data-options='{ "animation": false }'>
       <header>
-        <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+        <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
           Question
         </button>
       </header>
@@ -332,7 +332,7 @@ If you want to disable an animation you will have to switch `animation: false` t
         aria-hidden="true"
         tabindex="-1"
         style="display: none;">
-        <div class="pt-4">
+        <div class="p-4">
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
             Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -345,10 +345,10 @@ If you want to disable an animation you will have to switch `animation: false` t
 </Preview>
 
 ```html
-<div class="accordion" data-component="Accordion">
-  <article class="border -mb-px p-4" data-component="AccordionItem" data-options='{ "animation": false }'>
+<div class="accordion bg-white" data-component="Accordion">
+  <article class="border -mb-px" data-component="AccordionItem" data-options='{ "animation": false }'>
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Question
       </button>
     </header>
@@ -357,7 +357,7 @@ If you want to disable an animation you will have to switch `animation: false` t
       aria-hidden="true"
       tabindex="-1"
       style="display: none;">
-      <div class="pt-4">
+      <div class="p-4">
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
           Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -366,9 +366,9 @@ If you want to disable an animation you will have to switch `animation: false` t
       </div>
     </div>
   </article>
-  <article class="border -mb-px p-4" data-component="AccordionItem" data-options='{ "animation": false }'>
+  <article class="border -mb-px" data-component="AccordionItem" data-options='{ "animation": false }'>
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Question
       </button>
     </header>
@@ -377,7 +377,7 @@ If you want to disable an animation you will have to switch `animation: false` t
       aria-hidden="true"
       tabindex="-1"
       style="display: none;">
-      <div class="pt-4">
+      <div class="p-4">
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
           Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -392,10 +392,10 @@ If you want to disable an animation you will have to switch `animation: false` t
 #### Choice animation duration
 
 <Preview>
-  <div class="accordion" data-component="Accordion">
-    <article class="border -mb-px p-4" data-component="AccordionItem" data-options='{ "animationDuration": 1000 }'>
+  <div class="accordion bg-white" data-component="Accordion">
+    <article class="border -mb-px" data-component="AccordionItem" data-options='{ "animationDuration": 1000 }'>
       <header>
-        <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+        <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
           Question
         </button>
       </header>
@@ -404,7 +404,7 @@ If you want to disable an animation you will have to switch `animation: false` t
         aria-hidden="true"
         tabindex="-1"
         style="display: none;">
-        <div class="pt-4">
+        <div class="p-4">
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
             Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -413,9 +413,9 @@ If you want to disable an animation you will have to switch `animation: false` t
         </div>
       </div>
     </article>
-    <article class="border -mb-px p-4" data-component="AccordionItem" data-options='{ "animationDuration": 1000 }'>
+    <article class="border -mb-px" data-component="AccordionItem" data-options='{ "animationDuration": 1000 }'>
       <header>
-        <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+        <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
           Question
         </button>
       </header>
@@ -424,7 +424,7 @@ If you want to disable an animation you will have to switch `animation: false` t
         aria-hidden="true"
         tabindex="-1"
         style="display: none;">
-        <div class="pt-4">
+        <div class="p-4">
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
             Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
@@ -437,43 +437,45 @@ If you want to disable an animation you will have to switch `animation: false` t
 </Preview>
 
 ```html
-<div class="accordion" data-component="Accordion">
-  <article class="border -mb-px p-4" data-component="AccordionItem" data-options='{ "animation": false }'>
+<div class="accordion bg-white" data-component="Accordion">
+  <article class="border -mb-px" data-component="AccordionItem" data-options='{ "animationDuration": 1000 }'>
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Question
       </button>
     </header>
     <div
       data-ref="AccordionItem.content"
-      class="pt-4"
       aria-hidden="true"
       tabindex="-1"
       style="display: none;">
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
-        Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
-        Nam sit amet auctor tortor. Morbi non dolor purus. Suspendisse eget odio lacinia, elementum tortor quis, congue orci.
-      </p>
+      <div class="p-4">
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
+          Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
+          Nam sit amet auctor tortor. Morbi non dolor purus. Suspendisse eget odio lacinia, elementum tortor quis, congue orci.
+        </p>
+      </div>
     </div>
   </article>
-  <article class="border -mb-px p-4" data-component="AccordionItem" data-options='{ "animation": false }'>
+  <article class="border -mb-px" data-component="AccordionItem" data-options='{ "animationDuration": 1000 }'>
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Question
       </button>
     </header>
     <div
       data-ref="AccordionItem.content"
-      class="pt-4"
       aria-hidden="true"
       tabindex="-1"
       style="display: none;">
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
-        Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
-        Nam sit amet auctor tortor. Morbi non dolor purus. Suspendisse eget odio lacinia, elementum tortor quis, congue orci.
-      </p>
+      <div class="p-4">
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
+          Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
+          Nam sit amet auctor tortor. Morbi non dolor purus. Suspendisse eget odio lacinia, elementum tortor quis, congue orci.
+        </p>
+      </div>
     </div>
   </article>
 </div>
@@ -514,10 +516,10 @@ new App(document.documentElement);
 And setup the following markup in your HTML:
 
 ```html
-<div class="accordion" data-component="Accordion">
-  <article class="border -mb-px p-4" data-component="AccordionItem">
+<div class="accordion bg-white" data-component="Accordion">
+  <article class="border -mb-px" data-component="AccordionItem">
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Header #1
       </button>
     </header>
@@ -526,16 +528,16 @@ And setup the following markup in your HTML:
       aria-hidden="true"
       tabindex="-1"
       style="display: none;">
-      <div class="pt-4">
+      <div class="p-4">
         <p>
           Content #1
         </p>
       </div>
     </div>
   </article>
-  <article class="border -mb-px p-4" data-component="AccordionItem">
+  <article class="border -mb-px" data-component="AccordionItem">
     <header>
-      <button type="button" class="w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+      <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
         Header #2
       </button>
     </header>
@@ -544,7 +546,7 @@ And setup the following markup in your HTML:
       aria-hidden="true"
       tabindex="-1"
       style="display: none;">
-      <div class="pt-4">
+      <div class="p-4">
         <p>
           Content #2
         </p>
