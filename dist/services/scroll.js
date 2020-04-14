@@ -21,7 +21,7 @@ var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
-var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
+var _abstracts = require("../abstracts");
 
 var _utils = require("../utils");
 
@@ -100,7 +100,7 @@ var Scroll = /*#__PURE__*/function (_Service) {
   }, {
     key: "kill",
     value: function kill() {
-      document.removeEventLisetner('scroll', this.handler);
+      document.removeEventListener('scroll', this.handler);
     }
     /**
      * Get scroll props.
@@ -163,17 +163,22 @@ var Scroll = /*#__PURE__*/function (_Service) {
     }
   }]);
   return Scroll;
-}(_Service2["default"]);
+}(_abstracts.Service);
 
-var scroll = new Scroll();
-var add = scroll.add.bind(scroll);
-var remove = scroll.remove.bind(scroll);
-
-var props = function props() {
-  return scroll.props;
-};
+var scroll = null;
 
 var _default = function _default() {
+  if (!scroll) {
+    scroll = new Scroll();
+  }
+
+  var add = scroll.add.bind(scroll);
+  var remove = scroll.remove.bind(scroll);
+
+  var props = function props() {
+    return scroll.props;
+  };
+
   return {
     add: add,
     remove: remove,

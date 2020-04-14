@@ -82,20 +82,23 @@ function getChildren(element, components) {
 function call(instance, method, ...args) {
   debug(instance, 'call', method, ...args);
 
-  if (!hasMethod(instance, method)) {
-    return instance;
-  }
-
-  // Prevent duplicate call of `created` and `destroyed`
+  // Prevent duplicate call of `mounted` and `destroyed`
   // methods based on the component status
   if (
     (method === 'destroyed' && !instance.$isMounted) ||
-    (method === 'created' && instance.$isMounted)
+    (method === 'mounted' && instance.$isMounted)
   ) {
+    debug(instance, 'not', method, 'because the method has already been triggered once.');
     return instance;
   }
 
   instance.$emit(method, ...args);
+
+  // We always emit an event, but we do not call the method if it does not exist
+  if (!hasMethod(instance, method)) {
+    return instance;
+  }
+
   instance[method].call(instance, ...args);
   debug(instance, method, instance, ...args);
 
@@ -103,7 +106,7 @@ function call(instance, method, ...args) {
 }
 
 /**
- * Tie the components' `created` method to the instance
+ * Tie the components' `mounted` method to the instance
  */
 function mountComponents(instance) {
   if (!instance.$children) {
@@ -135,14 +138,20 @@ function destroyComponents(instance) {
   debug(instance, 'destroyComponents', instance.$children);
 
   Object.values(instance.$children).forEach($child => {
-    $child.destroy();
+    if (Array.isArray($child)) {
+      $child.forEach(c => {
+        c.$destroy();
+      });
+    } else {
+      $child.$destroy();
+    }
   });
 }
 
 /**
  * Page lifecycle class
  *
- * @method created   Fired when the class is instantiated
+ * @method mounted   Fired when the class is instantiated
  * @method loaded    Fired on the window's load event
  * @method ticked    Fired each frame with `requestAnimationFrame`
  * @method resized   Fired when the window is resized (`resize` event)
@@ -154,7 +163,7 @@ export default class Base extends EventManager {
   /**
    * Class constructor where all the magic takes place
    * @param  {Object}    options An option object
-   * @return {Base}         The created instance
+   * @return {Base}         The mounted instance
    */
   constructor(element) {
     super();
@@ -175,7 +184,16 @@ export default class Base extends EventManager {
       throw new Error('Unable to find the root element.');
     }
 
-    this.$options = { ...this.config, ...(element.dataset.options || {}) };
+    let options = {};
+    if (this.$el.dataset.options) {
+      try {
+        options = JSON.parse(this.$el.dataset.options);
+      } catch (err) {
+        throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
+      }
+    }
+
+    this.$options = { ...this.config, ...(options || {}) };
 
     debug(this, 'constructor', this);
 
@@ -189,66 +207,73 @@ export default class Base extends EventManager {
       this.$children = $children;
     }
 
-    // Fire the `loaded` method on window load
-    if (hasMethod(this, 'loaded')) {
-      window.addEventListener('load', event => {
-        call(this, 'loaded', { event });
-      });
-    }
+    let unbindMethods = [];
 
-    // Fire the `scrolled` method on window/document scroll
-    if (hasMethod(this, 'scrolled')) {
-      const { add } = useScroll();
-      add(this.$id, (...args) => {
-        call(this, 'scrolled', ...args);
-      });
-    }
+    // Bind all the methods when the component is mounted,
+    // we save the unbind methods to unbind them all when
+    // the component is destroyed.
+    this.$on('mounted', () => {
+      unbindMethods = [];
+      // Fire the `loaded` method on window load
+      if (hasMethod(this, 'loaded')) {
+        const loadedHandler = event => {
+          call(this, 'loaded', { event });
+        };
+        window.addEventListener('load', loadedHandler);
+        unbindMethods.push(() => {
+          window.removeEventListener('load', loadedHandler);
+        });
+      }
 
-    // Fire the `resized` method on window resize
-    if (hasMethod(this, 'resized')) {
-      const { add } = useResize();
-      add(this.$id, (...args) => {
-        call(this, 'resized', ...args);
-      });
-    }
+      // Fire the `scrolled` method on window/document scroll
+      if (hasMethod(this, 'scrolled')) {
+        const { add, remove } = useScroll();
+        add(this.$id, (...args) => {
+          call(this, 'scrolled', ...args);
+        });
+        unbindMethods.push(() => remove(this.$id));
+      }
 
-    // Fire the `ticked` method on each frame
-    if (hasMethod(this, 'ticked')) {
-      const { add } = useRaf();
-      add(this.$id, (...args) => {
-        call(this, 'ticked', ...args);
-      });
-    }
+      // Fire the `resized` method on window resize
+      if (hasMethod(this, 'resized')) {
+        const { add, remove } = useResize();
+        add(this.$id, (...args) => {
+          call(this, 'resized', ...args);
+        });
+        unbindMethods.push(() => remove(this.$id));
+      }
 
-    // Fire the `ticked` method on each frame
-    if (hasMethod(this, 'moved')) {
-      const { add } = usePointer();
-      add(this.$id, (...args) => {
-        call(this, 'moved', ...args);
-      });
-    }
+      // Fire the `ticked` method on each frame
+      if (hasMethod(this, 'ticked')) {
+        const { add, remove } = useRaf();
+        add(this.$id, (...args) => {
+          call(this, 'ticked', ...args);
+        });
+        unbindMethods.push(() => remove(this.$id));
+      }
 
-    // Fire the `destroyed` method on window unload
-    if (hasMethod(this, 'destroyed')) {
-      window.addEventListener('beforeunload', () => {
-        call(this, 'destroyed', this.options);
-      });
-    }
-
-    this.$on('created', () => {
+      // Fire the `ticked` method on each frame
+      if (hasMethod(this, 'moved')) {
+        const { add, remove } = usePointer();
+        add(this.$id, (...args) => {
+          call(this, 'moved', ...args);
+        });
+        unbindMethods.push(() => remove(this.$id));
+      }
       mountComponents(this);
       this.$isMounted = true;
     });
 
-    // Fire the `created` method on the next frame so the class
+    this.$on('destroyed', () => {
+      this.$isMounted = false;
+      unbindMethods.forEach(method => method());
+      destroyComponents(this);
+    });
+
+    // Fire the `mounted` method on the next frame so the class
     // properties are correctly loaded
     requestAnimationFrame(() => {
       this.$mount();
-    });
-
-    this.$on('destroyed', () => {
-      this.$isMounted = false;
-      destroyComponents(this);
     });
 
     return this;
@@ -267,11 +292,12 @@ export default class Base extends EventManager {
   }
 
   /**
-   * Trigger the `created` callback.
+   * Trigger the `mounted` callback.
    */
   $mount() {
     debug(this, '$mount');
     call(this, 'mounted');
+    return this;
   }
 
   /**
@@ -280,5 +306,6 @@ export default class Base extends EventManager {
   $destroy() {
     debug(this, '$destroy');
     call(this, 'destroyed');
+    return this;
   }
 }

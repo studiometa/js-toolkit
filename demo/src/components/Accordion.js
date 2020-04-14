@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import { Base } from '../../../dist';
+import { Base } from '../../../src';
 
 class AccordionItem extends Base {
   get config() {

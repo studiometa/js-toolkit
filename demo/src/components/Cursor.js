@@ -1,10 +1,9 @@
-import "./style.css";
-import { Base } from '../../../../dist';
+import { Base } from '../../../src';
 
 export default class Cursor extends Base {
   get config() {
     return {
-      name: "Cursor"
+      name: 'Cursor',
     };
   }
 

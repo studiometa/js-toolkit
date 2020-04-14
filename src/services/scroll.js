@@ -1,4 +1,4 @@
-import Service from '../abstracts/Service';
+import { Service } from '../abstracts';
 import { throttle, debounce } from '../utils';
 
 /**
@@ -55,7 +55,7 @@ class Scroll extends Service {
    * @return {void}
    */
   kill() {
-    document.removeEventLisetner('scroll', this.handler);
+    document.removeEventListener('scroll', this.handler);
   }
 
   /**
@@ -115,13 +115,20 @@ class Scroll extends Service {
   }
 }
 
-const scroll = new Scroll();
-const add = scroll.add.bind(scroll);
-const remove = scroll.remove.bind(scroll);
-const props = () => scroll.props;
+let scroll = null;
 
-export default () => ({
-  add,
-  remove,
-  props,
-});
+export default () => {
+  if (!scroll) {
+    scroll = new Scroll();
+  }
+
+  const add = scroll.add.bind(scroll);
+  const remove = scroll.remove.bind(scroll);
+  const props = () => scroll.props;
+
+  return {
+    add,
+    remove,
+    props,
+  };
+};

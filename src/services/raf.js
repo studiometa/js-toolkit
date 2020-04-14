@@ -1,4 +1,4 @@
-import Service from '../abstracts/Service';
+import { Service } from '../abstracts';
 
 /**
  * Tick service
@@ -22,7 +22,6 @@ class Raf extends Service {
    */
   init() {
     const loop = () => {
-      // todo: add params to the trigger
       this.trigger(this.props);
 
       if (!this.isTicking) {
@@ -52,17 +51,26 @@ class Raf extends Service {
    * @type {Object}
    */
   get props() {
-    return {};
+    return {
+      time: window.performance.now(),
+    };
   }
 }
 
-const raf = new Raf();
-const add = raf.add.bind(raf);
-const remove = raf.remove.bind(raf);
-const props = () => raf.props;
+let raf = null;
 
-export default () => ({
-  add,
-  remove,
-  props,
-});
+export default () => {
+  if (!raf) {
+    raf = new Raf();
+  }
+
+  const add = raf.add.bind(raf);
+  const remove = raf.remove.bind(raf);
+  const props = () => raf.props;
+
+  return {
+    add,
+    remove,
+    props,
+  };
+};
