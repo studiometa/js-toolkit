@@ -6,10 +6,6 @@ main {
   height: 5000px;
 }
 
-.accordion-item__content[aria-hidden="true"] {
-  display: none;
-}
-
 img:not(.is-loaded) {
   opacity: 0;
 }
