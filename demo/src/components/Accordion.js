@@ -15,7 +15,7 @@ class AccordionItem extends Base {
 
     // Animation properties
     this.time = 0;
-    this.animationDuration = parseInt(this.$el.dataset.optionsAnimationDuration, 10) || 500;
+    this.animationDuration = parseInt(this.$options.animationDuration, 10) || 500;
     this.animationTimeStart = 0;
 
     // Padding top
@@ -269,7 +269,7 @@ export default class Accordion extends Base {
   }
 
   mounted() {
-    if (typeof this.$el.dataset.optionsItemAutoClose === 'undefined') {
+    if (typeof this.$options.itemAutoClose === 'undefined') {
       return;
     }
 
