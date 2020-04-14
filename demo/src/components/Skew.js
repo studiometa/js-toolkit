@@ -1,4 +1,4 @@
-import { Base } from '../../../dist';
+import { Base } from '../../../src';
 
 export default class Skew extends Base {
   get config() {
@@ -9,7 +9,6 @@ export default class Skew extends Base {
 
   mounted() {
     this.isVisible = false;
-
     this.observer = new IntersectionObserver(([entry]) => {
       this.isVisible = entry.intersectionRatio > 0;
     });
@@ -26,7 +25,7 @@ export default class Skew extends Base {
       return;
     }
 
-    const skewY = delta.y * -0.1;
+    const skewY = delta.y * -0.05;
     this.$el.style.transform = `skewY(${skewY}deg)`;
   }
 }

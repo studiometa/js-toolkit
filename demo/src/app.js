@@ -1,14 +1,13 @@
-import { Base } from '../../dist';
+import { Base } from '../../src';
+import { Tabs } from '../../src/components';
 import Accordion from './components/Accordion';
 import Cursor from './components/Cursor';
 import Lazyload from './components/Lazyload';
 import Skew from './components/Skew';
-import Tabs from './components/Tabs';
 
 class App extends Base {
   get config() {
     return {
-      log: true,
       name: 'App',
       components: {
         Accordion,
@@ -33,8 +32,6 @@ class App extends Base {
   }
 }
 
-const app = new App(document.body, {
-  debug: true,
-});
+const app = new App(document.documentElement);
 
 window.APP = app;
