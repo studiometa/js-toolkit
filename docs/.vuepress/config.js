@@ -10,7 +10,10 @@ module.exports = {
       {
         text: 'Components',
         link: '/components/',
-        items: [{ text: 'Tabs', link: '/components/tabs/' }],
+        items: [
+          { text: 'Accordion', link: '/components/accordion/' },
+          { text: 'Tabs', link: '/components/tabs/' },
+        ],
       },
       {
         text: 'Utils',

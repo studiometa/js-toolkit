@@ -1,6 +1,5 @@
 import { Base } from '../../src';
-import { Tabs } from '../../src/components';
-import Accordion from './components/Accordion';
+import { Accordion, Tabs } from '../../src/components';
 import Cursor from './components/Cursor';
 import Lazyload from './components/Lazyload';
 import Skew from './components/Skew';

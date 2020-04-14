@@ -1,9 +1,10 @@
 ---
 sidebar: auto
 prev: /utils/
-next: /components/Tabs.md
+next: /components/Accordion.md
 ---
 
 # Components
 
+- [Accordion](./Accordion.md)
 - [Tabs](./Tabs.md)

@@ -19,7 +19,7 @@
 
       <div class="accordion" data-component="Accordion">
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4">
-          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.button">
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
             Question
           </button>
           <div
@@ -41,7 +41,7 @@
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4">
           <header class="accordion-item__header">
             Question
-            <button type="button" class="accordion-item__btn cursor-pointer" data-ref="AccordionItem.button">
+            <button type="button" class="accordion-item__btn cursor-pointer" data-ref="AccordionItem.btn">
               button
             </button>
           </header>
@@ -64,12 +64,59 @@
       </div>
       <!-- END Accordion component - basic -->
 
+      <!-- BEGIN Accordion component - no animation -->
+      <h3 class="text-md mb-4">no animation</h3>
+
+      <div class="accordion" data-component="Accordion">
+        <div data-component="AccordionItem" class="accordion-item border -mb-px p-4" data-options='{ "animation": false }'>
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+            Question
+          </button>
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content pt-4"
+            aria-hidden="true"
+            style="display: none;">
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
+              Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
+              Nam sit amet auctor tortor. Morbi non dolor purus. Suspendisse eget odio lacinia, elementum tortor quis, congue orci.
+              Morbi bibendum sodales varius. Donec at orci auctor, eleifend orci id, tempus eros.
+              Sed scelerisque massa sed lorem lacinia, non iaculis nisl malesuada. Sed egestas turpis enim, quis sodales tellus eleifend commodo.
+              Fusce non condimentum enim. Ut eu aliquet purus. Quisque porttitor feugiat faucibus. Sed eu lectus nunc.
+              Donec elementum consequat risus, sit amet gravida quam accumsan nec.
+            </p>
+          </div>
+        </div>
+        <div data-component="AccordionItem" class="accordion-item border -mb-px p-4" data-options='{ "animation": false }'>
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
+            Question
+          </button>
+          <div
+            data-ref="AccordionItem.content"
+            class="accordion-item__content pt-4"
+            aria-hidden="true"
+            style="display: none;">
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et lacus sodales, condimentum justo at, accumsan erat.
+              Fusce sagittis augue ex. Vestibulum elit lectus, pharetra eu quam eget, tempus mollis quam. Nulla dignissim justo non porta tristique.
+              Nam sit amet auctor tortor. Morbi non dolor purus. Suspendisse eget odio lacinia, elementum tortor quis, congue orci.
+              Morbi bibendum sodales varius. Donec at orci auctor, eleifend orci id, tempus eros.
+              Sed scelerisque massa sed lorem lacinia, non iaculis nisl malesuada. Sed egestas turpis enim, quis sodales tellus eleifend commodo.
+              Fusce non condimentum enim. Ut eu aliquet purus. Quisque porttitor feugiat faucibus. Sed eu lectus nunc.
+              Donec elementum consequat risus, sit amet gravida quam accumsan nec.
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- END Accordion component - no animation -->
+
       <!-- BEGIN Accordion component - animation duration -->
       <h3 class="text-md my-4">animation duration</h3>
 
       <div class="accordion" data-component="Accordion">
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4" data-options='{ "animationDuration": 1000 }'>
-          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.button">
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
             Question
           </button>
           <div
@@ -89,7 +136,7 @@
           </div>
         </div>
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4" data-options='{ "animationDuration": 1000 }'>
-          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.button">
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
             Question
           </button>
           <div
@@ -116,7 +163,7 @@
 
       <div class="accordion" data-component="Accordion" data-options='{ "itemAutoClose": true }'>
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4">
-          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.button">
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
             Question
           </button>
           <div
@@ -136,7 +183,7 @@
           </div>
         </div>
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4">
-          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.button">
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
             Question
           </button>
           <div
@@ -156,7 +203,7 @@
           </div>
         </div>
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4">
-          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.button">
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
             Question
           </button>
           <div
@@ -183,7 +230,7 @@
 
       <div class="accordion" data-component="Accordion">
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4">
-          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.button">
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
             Question
           </button>
           <div
@@ -202,7 +249,7 @@
           </div>
         </div>
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4">
-          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.button">
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
             Question
           </button>
           <div
@@ -229,7 +276,7 @@
 
       <div class="accordion" data-component="Accordion">
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4">
-          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.button">
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
             Show image #1
           </button>
           <div
@@ -241,7 +288,7 @@
           </div>
         </div>
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4">
-          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.button">
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
             Show image #2
           </button>
           <div
@@ -253,7 +300,7 @@
           </div>
         </div>
         <div data-component="AccordionItem" class="accordion-item border -mb-px p-4">
-          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.button">
+          <button type="button" class="accordion-item__header accordion-item__btn w-full text-left cursor-pointer" data-ref="AccordionItem.btn">
             Show image #3
           </button>
           <div

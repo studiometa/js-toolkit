@@ -1,21 +1,33 @@
 /* eslint-disable max-classes-per-file */
-import { Base } from '../../../src';
+import { Base } from '../abstracts';
 
+/**
+ * AccorionItem class.
+ */
 class AccordionItem extends Base {
+  /**
+   * AccordionItem options.
+   */
   get config() {
     return {
       name: 'AccordionItem',
+      animation: true,
+      animationDuration: 300,
     };
   }
 
+  /**
+   * Initialize the component's behaviours.
+   *
+   * @return {AccordionItem} The current instance.
+   */
   mounted() {
-    this.$refs.button.setAttribute('id', this.$id);
-    this.$refs.button.addEventListener('click', this);
+    this.$refs.btn.setAttribute('id', this.$id);
+    this.$refs.btn.addEventListener('click', this);
     this.$refs.content.setAttribute('aria-labelledby', this.$id);
 
     // Animation properties
     this.time = 0;
-    this.animationDuration = parseInt(this.$options.animationDuration, 10) || 500;
     this.animationTimeStart = 0;
 
     // Padding top
@@ -33,12 +45,24 @@ class AccordionItem extends Base {
     if (!this.isOpen) {
       this.close(false);
     }
+
+    return this;
   }
 
+  /**
+   * Unbind all events on destroy.
+   *
+   * @return {AccordionItem} The AccordionItem instance.
+   */
   destroyed() {
     this.$el.removeEventListener('click', this);
+
+    return this;
   }
 
+  /**
+   * Accordion animation renderer.
+   */
   ticked() {
     // eslint-disable-next-line no-undef
     this.time = performance.now();
@@ -49,28 +73,28 @@ class AccordionItem extends Base {
         this.$refs.content.style.overflow = 'hidden';
       }
 
-      if (this.time <= this.animationTimeStart + this.animationDuration) {
+      if (this.time <= this.animationTimeStart + this.$options.animationDuration) {
         if (!this.isOpen) {
           /**
            * Percent calcul:
-           * -((this.time - this.animationTimeStart) / this.animationDuration) * this.animationHeightFrom + this.animationHeightFrom
+           * -((this.time - this.animationTimeStart) / this.$options.animationDuration) * this.animationHeightFrom + this.animationHeightFrom
            */
           this.$refs.content.style.paddingTop = `${parseInt(
-            -((this.time - this.animationTimeStart) / this.animationDuration) *
+            -((this.time - this.animationTimeStart) / this.$options.animationDuration) *
               this.animationPaddingTopFrom +
               this.animationPaddingTopFrom,
             10
           )}px`;
 
           this.$refs.content.style.height = `${parseInt(
-            -((this.time - this.animationTimeStart) / this.animationDuration) *
+            -((this.time - this.animationTimeStart) / this.$options.animationDuration) *
               this.animationHeightFrom +
               this.animationHeightFrom,
             10
           )}px`;
 
           this.$refs.content.style.paddingBottom = `${parseInt(
-            -((this.time - this.animationTimeStart) / this.animationDuration) *
+            -((this.time - this.animationTimeStart) / this.$options.animationDuration) *
               this.animationPaddingBottomFrom +
               this.animationPaddingBottomFrom,
             10
@@ -78,23 +102,23 @@ class AccordionItem extends Base {
         } else {
           /**
            * Percent calcul:
-           * this.animationHeightTo * ((this.time - this.animationTimeStart) / this.animationDuration)
+           * this.animationHeightTo * ((this.time - this.animationTimeStart) / this.$options.animationDuration)
            */
           this.$refs.content.style.paddingTop = `${parseInt(
             this.animationPaddingTopTo *
-              ((this.time - this.animationTimeStart) / this.animationDuration),
+              ((this.time - this.animationTimeStart) / this.$options.animationDuration),
             10
           )}px`;
 
           this.$refs.content.style.height = `${parseInt(
             this.animationHeightTo *
-              ((this.time - this.animationTimeStart) / this.animationDuration),
+              ((this.time - this.animationTimeStart) / this.$options.animationDuration),
             10
           )}px`;
 
           this.$refs.content.style.paddingBottom = `${parseInt(
             this.animationPaddingBottomTo *
-              ((this.time - this.animationTimeStart) / this.animationDuration),
+              ((this.time - this.animationTimeStart) / this.$options.animationDuration),
             10
           )}px`;
         }
@@ -124,14 +148,22 @@ class AccordionItem extends Base {
     }
   }
 
+  /**
+   * AccordionItem is animation complete.
+   */
   onComplete() {
     if (this.isOpen) {
       this.$refs.content.style.display = '';
     } else {
       this.$refs.content.style.display = 'none';
     }
+
+    this.$emit('afterAnimation', this);
   }
 
+  /**
+   * AccordionItem register event.
+   */
   handleEvent(event) {
     try {
       this[`${event.type}Handler`](event);
@@ -140,6 +172,9 @@ class AccordionItem extends Base {
     }
   }
 
+  /**
+   * AccordionItem click event.
+   */
   clickHandler() {
     this.$log('clickHandler');
 
@@ -147,20 +182,27 @@ class AccordionItem extends Base {
       return;
     }
 
+    this.$emit('beforeAnimation', this);
+
     if (this.isOpen) {
-      this.close();
+      this.close(this.$options.animation);
     } else {
-      this.open();
+      this.open(this.$options.animation);
     }
   }
 
-  open(isAnimated = true) {
-    this.$emit('open');
+  /**
+   * AccordionItem open function.
+   *
+   * @param {Boolean} animate Open the AccordionItem or not.
+   */
+  open(animate = true) {
+    this.$emit('open', this);
 
     this.$refs.content.setAttribute('aria-hidden', 'false');
     this.$refs.content.removeAttribute('tabindex');
 
-    if (!isAnimated) {
+    if (!animate) {
       this.$refs.content.style.display = '';
 
       this.$el.classList.remove('is-close');
@@ -216,12 +258,18 @@ class AccordionItem extends Base {
     this.animationTimeStart = this.time;
   }
 
-  close(isAnimated = true) {
-    this.$emit('close');
-    this.$refs.content.setAttribute('aria-hidden', 'true');
-    this.$refs.content.setAttribute('tabindex', '0');
+  /**
+   * AccordionItem close function.
+   *
+   * @param {Boolean} animate Close the AccordionItem or not.
+   */
+  close(animate = true) {
+    this.$emit('close', this);
 
-    if (!isAnimated) {
+    this.$refs.content.setAttribute('aria-hidden', 'true');
+    this.$refs.content.setAttribute('tabindex', '-1');
+
+    if (!animate) {
       this.$refs.content.style.display = 'none';
 
       this.$el.classList.remove('is-open');
@@ -250,6 +298,9 @@ class AccordionItem extends Base {
     this.animationTimeStart = this.time;
   }
 
+  /**
+   * AccordionItem is open getter.
+   */
   get isOpen() {
     return (
       this.$refs.content.getAttribute('aria-hidden') === 'false' ||
@@ -258,33 +309,59 @@ class AccordionItem extends Base {
   }
 }
 
+/**
+ * Accordion class.
+ */
 export default class Accordion extends Base {
+  /**
+   * Accordion options.
+   */
   get config() {
     return {
       name: 'Accordion',
       components: {
         AccordionItem,
       },
+      itemAutoClose: false,
     };
   }
 
+  /**
+   * Initialize the component's behaviours.
+   *
+   * @return {Accordion} The current instance.
+   */
   mounted() {
-    if (typeof this.$options.itemAutoClose === 'undefined') {
-      return;
+    if (this.$options.itemAutoClose) {
+      this.unbindOpen = this.$children.AccordionItem.map((item, index) => {
+        return item.$on('open', () => {
+          this.openHandler(index);
+        });
+      });
     }
 
-    this.unbindOpen = this.$children.AccordionItem.map((item, index) => {
-      return item.$on('open', () => {
-        this.openHandler(index);
-      });
-    });
+    return this;
   }
 
+  /**
+   * Unbind all events on destroy.
+   *
+   * @return {Accordion} The Accordion instance.
+   */
   destroyed() {
-    this.unbindOpen.forEach(unbind => unbind());
+    if (this.unbindOpen) {
+      this.unbindOpen.forEach(unbind => unbind());
+    }
+
+    return this;
   }
 
-  openHandler(index) {
+  /**
+   * Accordion open event.
+   *
+   * @param {Integer} index The AccordionItem index.
+   */
+  openHandler(index = 0) {
     this.$children.AccordionItem.filter((el, i) => index !== i).forEach(item => {
       if (item.isOpen) {
         item.close();
