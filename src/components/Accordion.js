@@ -27,7 +27,6 @@ class AccordionItem extends Base {
     this.$refs.content.setAttribute('aria-labelledby', this.$id);
 
     // Animation properties
-    this.time = 0;
     this.animationTimeStart = 0;
 
     // Padding top
@@ -63,38 +62,35 @@ class AccordionItem extends Base {
   /**
    * Accordion animation renderer.
    */
-  ticked() {
-    // eslint-disable-next-line no-undef
-    this.time = performance.now();
-
+  ticked({ time }) {
     if (this.animationTimeStart) {
       if (this.$refs.content.style.overflow !== 'hidden') {
         this.$refs.content.style.display = '';
         this.$refs.content.style.overflow = 'hidden';
       }
 
-      if (this.time <= this.animationTimeStart + this.$options.animationDuration) {
+      if (time <= this.animationTimeStart + this.$options.animationDuration) {
         if (!this.isOpen) {
           /**
            * Percent calcul:
-           * -((this.time - this.animationTimeStart) / this.$options.animationDuration) * this.animationHeightFrom + this.animationHeightFrom
+           * -((time - this.animationTimeStart) / this.$options.animationDuration) * this.animationHeightFrom + this.animationHeightFrom
            */
           this.$refs.content.style.paddingTop = `${parseInt(
-            -((this.time - this.animationTimeStart) / this.$options.animationDuration) *
+            -((time - this.animationTimeStart) / this.$options.animationDuration) *
               this.animationPaddingTopFrom +
               this.animationPaddingTopFrom,
             10
           )}px`;
 
           this.$refs.content.style.height = `${parseInt(
-            -((this.time - this.animationTimeStart) / this.$options.animationDuration) *
+            -((time - this.animationTimeStart) / this.$options.animationDuration) *
               this.animationHeightFrom +
               this.animationHeightFrom,
             10
           )}px`;
 
           this.$refs.content.style.paddingBottom = `${parseInt(
-            -((this.time - this.animationTimeStart) / this.$options.animationDuration) *
+            -((time - this.animationTimeStart) / this.$options.animationDuration) *
               this.animationPaddingBottomFrom +
               this.animationPaddingBottomFrom,
             10
@@ -102,23 +98,23 @@ class AccordionItem extends Base {
         } else {
           /**
            * Percent calcul:
-           * this.animationHeightTo * ((this.time - this.animationTimeStart) / this.$options.animationDuration)
+           * this.animationHeightTo * ((time - this.animationTimeStart) / this.$options.animationDuration)
            */
           this.$refs.content.style.paddingTop = `${parseInt(
             this.animationPaddingTopTo *
-              ((this.time - this.animationTimeStart) / this.$options.animationDuration),
+              ((time - this.animationTimeStart) / this.$options.animationDuration),
             10
           )}px`;
 
           this.$refs.content.style.height = `${parseInt(
             this.animationHeightTo *
-              ((this.time - this.animationTimeStart) / this.$options.animationDuration),
+              ((time - this.animationTimeStart) / this.$options.animationDuration),
             10
           )}px`;
 
           this.$refs.content.style.paddingBottom = `${parseInt(
             this.animationPaddingBottomTo *
-              ((this.time - this.animationTimeStart) / this.$options.animationDuration),
+              ((time - this.animationTimeStart) / this.$options.animationDuration),
             10
           )}px`;
         }
@@ -255,7 +251,8 @@ class AccordionItem extends Base {
     this.$refs.content.style.transition = '';
     this.$refs.content.style.animationDuration = '';
 
-    this.animationTimeStart = this.time;
+    // eslint-disable-next-line no-undef
+    this.animationTimeStart = performance.now();
   }
 
   /**
@@ -295,7 +292,8 @@ class AccordionItem extends Base {
     this.animationHeightTo = 0;
     this.animationPaddingBottomTo = 0;
 
-    this.animationTimeStart = this.time;
+    // eslint-disable-next-line no-undef
+    this.animationTimeStart = performance.now();
   }
 
   /**

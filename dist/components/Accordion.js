@@ -49,7 +49,6 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
       this.$refs.btn.addEventListener('click', this);
       this.$refs.content.setAttribute('aria-labelledby', this.$id); // Animation properties
 
-      this.time = 0;
       this.animationTimeStart = 0; // Padding top
 
       this.animationPaddingTopFrom = 0;
@@ -85,9 +84,8 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
 
   }, {
     key: "ticked",
-    value: function ticked() {
-      // eslint-disable-next-line no-undef
-      this.time = performance.now();
+    value: function ticked(_ref) {
+      var time = _ref.time;
 
       if (this.animationTimeStart) {
         if (this.$refs.content.style.overflow !== 'hidden') {
@@ -95,23 +93,23 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
           this.$refs.content.style.overflow = 'hidden';
         }
 
-        if (this.time <= this.animationTimeStart + this.$options.animationDuration) {
+        if (time <= this.animationTimeStart + this.$options.animationDuration) {
           if (!this.isOpen) {
             /**
              * Percent calcul:
-             * -((this.time - this.animationTimeStart) / this.$options.animationDuration) * this.animationHeightFrom + this.animationHeightFrom
+             * -((time - this.animationTimeStart) / this.$options.animationDuration) * this.animationHeightFrom + this.animationHeightFrom
              */
-            this.$refs.content.style.paddingTop = "".concat(parseInt(-((this.time - this.animationTimeStart) / this.$options.animationDuration) * this.animationPaddingTopFrom + this.animationPaddingTopFrom, 10), "px");
-            this.$refs.content.style.height = "".concat(parseInt(-((this.time - this.animationTimeStart) / this.$options.animationDuration) * this.animationHeightFrom + this.animationHeightFrom, 10), "px");
-            this.$refs.content.style.paddingBottom = "".concat(parseInt(-((this.time - this.animationTimeStart) / this.$options.animationDuration) * this.animationPaddingBottomFrom + this.animationPaddingBottomFrom, 10), "px");
+            this.$refs.content.style.paddingTop = "".concat(parseInt(-((time - this.animationTimeStart) / this.$options.animationDuration) * this.animationPaddingTopFrom + this.animationPaddingTopFrom, 10), "px");
+            this.$refs.content.style.height = "".concat(parseInt(-((time - this.animationTimeStart) / this.$options.animationDuration) * this.animationHeightFrom + this.animationHeightFrom, 10), "px");
+            this.$refs.content.style.paddingBottom = "".concat(parseInt(-((time - this.animationTimeStart) / this.$options.animationDuration) * this.animationPaddingBottomFrom + this.animationPaddingBottomFrom, 10), "px");
           } else {
             /**
              * Percent calcul:
-             * this.animationHeightTo * ((this.time - this.animationTimeStart) / this.$options.animationDuration)
+             * this.animationHeightTo * ((time - this.animationTimeStart) / this.$options.animationDuration)
              */
-            this.$refs.content.style.paddingTop = "".concat(parseInt(this.animationPaddingTopTo * ((this.time - this.animationTimeStart) / this.$options.animationDuration), 10), "px");
-            this.$refs.content.style.height = "".concat(parseInt(this.animationHeightTo * ((this.time - this.animationTimeStart) / this.$options.animationDuration), 10), "px");
-            this.$refs.content.style.paddingBottom = "".concat(parseInt(this.animationPaddingBottomTo * ((this.time - this.animationTimeStart) / this.$options.animationDuration), 10), "px");
+            this.$refs.content.style.paddingTop = "".concat(parseInt(this.animationPaddingTopTo * ((time - this.animationTimeStart) / this.$options.animationDuration), 10), "px");
+            this.$refs.content.style.height = "".concat(parseInt(this.animationHeightTo * ((time - this.animationTimeStart) / this.$options.animationDuration), 10), "px");
+            this.$refs.content.style.paddingBottom = "".concat(parseInt(this.animationPaddingBottomTo * ((time - this.animationTimeStart) / this.$options.animationDuration), 10), "px");
           }
         } else {
           this.animationTimeStart = 0; // Padding top
@@ -226,8 +224,9 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
       }
 
       this.$refs.content.style.transition = '';
-      this.$refs.content.style.animationDuration = '';
-      this.animationTimeStart = this.time;
+      this.$refs.content.style.animationDuration = ''; // eslint-disable-next-line no-undef
+
+      this.animationTimeStart = performance.now();
     }
     /**
      * AccordionItem close function.
@@ -255,8 +254,9 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
       this.animationPaddingBottomFrom = parseFloat(window.getComputedStyle(this.$refs.content, null).getPropertyValue('padding-bottom')) || 0;
       this.animationPaddingTopTo = 0;
       this.animationHeightTo = 0;
-      this.animationPaddingBottomTo = 0;
-      this.animationTimeStart = this.time;
+      this.animationPaddingBottomTo = 0; // eslint-disable-next-line no-undef
+
+      this.animationTimeStart = performance.now();
     }
     /**
      * AccordionItem is open getter.
