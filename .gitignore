@@ -26,3 +26,4 @@ yarn-error.log*
 dist/*.html
 demo/dist/
 docs/.vuepress/dist/
+coverage/
