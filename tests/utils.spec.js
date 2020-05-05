@@ -1,7 +1,15 @@
 import * as utils from '../src/utils';
 
 test('utils exports', () => {
-  expect(Object.keys(utils)).toEqual(['debounce', 'hasMethod', 'isObject', 'throttle']);
+  expect(Object.keys(utils)).toEqual([
+    'debounce',
+    'hasMethod',
+    'isObject',
+    'keyCodes',
+    'nextFrame',
+    'tabTrap',
+    'throttle',
+  ]);
 });
 
 describe('utils.debounce method', () => {
