@@ -13,7 +13,7 @@ test('utils exports', () => {
 });
 
 describe('utils.debounce method', () => {
-  it('should wait the given delay to call given function', () => {
+  it('should wait the given delay to call given function', (done) => {
     const fn = jest.fn(() => true);
     const debounced = utils.debounce(fn, 300);
 
@@ -30,12 +30,13 @@ describe('utils.debounce method', () => {
 
     setTimeout(() => {
       expect(fn).toHaveBeenCalledTimes(1);
+      done()
     }, 300);
   });
 });
 
 describe('utils.throttle method', () => {
-  it('should call the given function only once in the given delay', () => {
+  it('should call the given function only once in the given delay', (done) => {
     const fn = jest.fn(() => true);
     const throttled = utils.throttle(fn, 300);
 
@@ -54,6 +55,7 @@ describe('utils.throttle method', () => {
 
       setTimeout(() => {
         expect(fn).toHaveBeenCalledTimes(2);
+        done();
       }, 100);
     }, 400);
   });
