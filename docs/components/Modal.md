@@ -207,7 +207,7 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
     data-options='{
       "closedClass": {
         "modal": "opacity-0 pointer-events-none invisible",
-        "container": "opacity-0 scale-90 translate-y-16"
+        "container": "scale-90"
       },
       "closedStyle": {
         "modal": {}
@@ -234,7 +234,7 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
           This is the element in which the user can scroll
           if the content of the modal is too long.
         -->
-        <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto transform transition duration-500 ease-out-expo" style="max-height: 200px">
+        <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto transform transition duration-500 ease-out-expo">
           <!--
             Modal close button
             This will be used to close the modal on click.
@@ -257,27 +257,28 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
   </div>
 </Preview>
 
-```html{3-11,20,32}
+```html{3-11,21,33}
 <div
   data-component="Modal"
   data-options='{
     "closedClass": {
       "modal": "opacity-0 pointer-events-none invisible",
-      "container": "opacity-0 scale-50 translate-y-64"
+      "container": "scale-90"
     },
     "closedStyle": {
       "modal": {}
     }
-  }'>
+  }'
+  class="text-center">
   <!--
     Modal opening trigger.
     This ref will be used to open the modal on click.
   -->
-  <button data-ref="Modal.btn" type="button" class="py-2 px-4 text-white rounded bg-black focus:opacity-50">
+  <button data-ref="Modal.btn" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
     Open
   </button>
   <!-- Modal element -->
-  <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" class="z-goku fixed inset-0 opacity-0 pointer-events-none invisible transition-all duration-500 ease-in-out-expo">
+  <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" class="z-goku fixed inset-0 opacity-0 pointer-events-none invisible transition-all duration-500 ease-out-expo">
     <!--
       Modal overlay
       The `tabindex="-"` attribute is required.
@@ -289,7 +290,7 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
         This is the element in which the user can scroll
         if the content of the modal is too long.
       -->
-      <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto transform transition duration-500 ease-in-out-expo">
+      <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto transform transition duration-500 ease-out-expo">
         <!--
           Modal close button
           This will be used to close the modal on click.
@@ -332,6 +333,7 @@ import { Base, Modal } from '@studiometa/js-toolkit';
 class App extends Base {
   get config() {
     return {
+      name: 'App',
       components: {
         Modal,
       },
@@ -341,6 +343,25 @@ class App extends Base {
 
 new App(document.documentElement);
 ```
+
+You also can extend the class to create a styled `Modal`:
+
+```js
+import { Modal } from '@studiometa/js-toolkit';
+
+class CustoModal extends Modal {
+  get config() {
+    return {
+      name: 'CustomModal',
+      move: true,
+      closedClass: {
+        modal: 'hidden',
+      },
+    };
+  }
+}
+```
+
 
 ### HTML
 
@@ -417,3 +438,44 @@ This ref is placed inside the container and is used to close the modal.
 #### `Modal.content`
 
 This ref will hold the modal's dynamic content.
+
+### Options
+
+::: tip
+Options can be defined per component via the `data-options` attribute or by extending the Tabs class.
+:::
+
+#### `move`
+
+- Type: `Boolean`, `String`
+- Default: `false`
+
+A selector or a boolean to move the `Modal.modal` element in the DOM. A value of `false` will keep the element in place, `true` will append the element to `document.body` and a string selector will append the element to the first matching element for the given selector.
+
+#### `openClass`
+
+- Type: `Object`
+- Default: `{}`
+
+An object which keys are refs names and values are classes (`String`) that will be added to the refs when the modal opens.
+
+#### `openStyle`
+
+- Type: `Object`
+- Default: `{}`
+
+An object which keys are refs names and values are style definition (`CSSStyleDeclaration`) that will be added to the refs when the modal opens.
+
+#### `closedClass`
+
+- Type: `Object`
+- Default: `{}`
+
+An object which keys are refs names and values are classes (`String`) that will be added to the refs when the modal closes.
+
+#### `closedStyle`
+
+- Type: `Object`
+- Default: `{ modal: { opacity: 0, pointerEvents: 'none', visibility: 'hidden' } }`
+
+An object which keys are refs names and values are style definition (`CSSStyleDeclaration`) that will be added to the refs when the modal closes.
