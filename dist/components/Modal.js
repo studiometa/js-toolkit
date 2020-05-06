@@ -92,12 +92,20 @@ var Modal = /*#__PURE__*/function (_Base) {
      * @return {Modal} The current instance.
      */
     value: function mounted() {
+      var _this = this;
+
       this.isOpen = false;
       this.open = this.open.bind(this);
       this.close = this.close.bind(this);
       this.keydownHandler = this.keydownHandler.bind(this);
-      this.$refs.btn.addEventListener('click', this.open);
-      this.$refs.close.addEventListener('click', this.close);
+      var open = Array.isArray(this.$refs.open) ? this.$refs.open : [this.$refs.open];
+      open.forEach(function (btn) {
+        return btn.addEventListener('click', _this.open);
+      });
+      var close = Array.isArray(this.$refs.close) ? this.$refs.close : [this.$refs.close];
+      close.forEach(function (btn) {
+        return btn.addEventListener('click', _this.close);
+      });
       this.$refs.overlay.addEventListener('click', this.close);
       this.close();
 
@@ -117,9 +125,17 @@ var Modal = /*#__PURE__*/function (_Base) {
   }, {
     key: "destroyed",
     value: function destroyed() {
+      var _this2 = this;
+
       this.close();
-      this.$refs.btn.removeEventListener('click', this.open);
-      this.$refs.close.removeEventListener('click', this.close);
+      var open = Array.isArray(this.$refs.open) ? this.$refs.open : [this.$refs.open];
+      open.forEach(function (btn) {
+        return btn.removeEventListener('click', _this2.open);
+      });
+      var close = Array.isArray(this.$refs.close) ? this.$refs.close : [this.$refs.close];
+      close.forEach(function (btn) {
+        return btn.removeEventListener('click', _this2.close);
+      });
       this.$refs.overlay.removeEventListener('click', this.close);
       return this;
     }
@@ -132,7 +148,7 @@ var Modal = /*#__PURE__*/function (_Base) {
   }, {
     key: "open",
     value: function open() {
-      var _this = this;
+      var _this3 = this;
 
       this.$refs.modal.setAttribute('aria-hidden', 'false');
       document.documentElement.style.overflow = 'hidden';
@@ -143,7 +159,7 @@ var Modal = /*#__PURE__*/function (_Base) {
             ref = _ref4[0],
             classes = _ref4[1];
 
-        setClasses(_this.$refs[ref], classes);
+        setClasses(_this3.$refs[ref], classes);
       }); // Add "open" styles to refs
 
       Object.entries(this.$options.openStyle).forEach(function (_ref5) {
@@ -151,7 +167,7 @@ var Modal = /*#__PURE__*/function (_Base) {
             ref = _ref6[0],
             styles = _ref6[1];
 
-        setStyles(_this.$refs[ref], styles);
+        setStyles(_this3.$refs[ref], styles);
       }); // Remove "closed" classes from refs
 
       Object.entries(this.$options.closedClass).forEach(function (_ref7) {
@@ -159,7 +175,7 @@ var Modal = /*#__PURE__*/function (_Base) {
             ref = _ref8[0],
             classes = _ref8[1];
 
-        setClasses(_this.$refs[ref], classes, 'remove');
+        setClasses(_this3.$refs[ref], classes, 'remove');
       }); // Remove "closed" styles from refs
 
       Object.entries(this.$options.closedStyle).forEach(function (_ref9) {
@@ -167,7 +183,7 @@ var Modal = /*#__PURE__*/function (_Base) {
             ref = _ref10[0],
             styles = _ref10[1];
 
-        setStyles(_this.$refs[ref], styles, 'remove');
+        setStyles(_this3.$refs[ref], styles, 'remove');
       });
       this.isOpen = true;
       this.$emit('open');
@@ -181,7 +197,7 @@ var Modal = /*#__PURE__*/function (_Base) {
   }, {
     key: "close",
     value: function close() {
-      var _this2 = this;
+      var _this4 = this;
 
       this.$refs.modal.setAttribute('aria-hidden', 'true');
       document.documentElement.style.overflow = '';
@@ -192,7 +208,7 @@ var Modal = /*#__PURE__*/function (_Base) {
             ref = _ref12[0],
             classes = _ref12[1];
 
-        setClasses(_this2.$refs[ref], classes);
+        setClasses(_this4.$refs[ref], classes);
       }); // Add "closed" styles to refs
 
       Object.entries(this.$options.closedStyle).forEach(function (_ref13) {
@@ -200,7 +216,7 @@ var Modal = /*#__PURE__*/function (_Base) {
             ref = _ref14[0],
             styles = _ref14[1];
 
-        setStyles(_this2.$refs[ref], styles);
+        setStyles(_this4.$refs[ref], styles);
       }); // Remove "open" classes from refs
 
       Object.entries(this.$options.openClass).forEach(function (_ref15) {
@@ -208,7 +224,7 @@ var Modal = /*#__PURE__*/function (_Base) {
             ref = _ref16[0],
             classes = _ref16[1];
 
-        setClasses(_this2.$refs[ref], classes, 'remove');
+        setClasses(_this4.$refs[ref], classes, 'remove');
       }); // Remove "open" styles from refs
 
       Object.entries(this.$options.openStyle).forEach(function (_ref17) {
@@ -216,7 +232,7 @@ var Modal = /*#__PURE__*/function (_Base) {
             ref = _ref18[0],
             styles = _ref18[1];
 
-        setStyles(_this2.$refs[ref], styles, 'remove');
+        setStyles(_this4.$refs[ref], styles, 'remove');
       });
       this.isOpen = false;
       untrap();
