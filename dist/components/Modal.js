@@ -23,6 +23,10 @@ var _abstracts = require("../abstracts");
 
 var _utils = require("../utils");
 
+function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
 var _tabTrap = (0, _utils.tabTrap)(),
     trap = _tabTrap.trap,
     untrap = _tabTrap.untrap;
@@ -78,9 +82,11 @@ function setStyles(element, styles) {
 var Modal = /*#__PURE__*/function (_Base) {
   (0, _inherits2["default"])(Modal, _Base);
 
+  var _super = _createSuper(Modal);
+
   function Modal() {
     (0, _classCallCheck2["default"])(this, Modal);
-    return (0, _possibleConstructorReturn2["default"])(this, (0, _getPrototypeOf2["default"])(Modal).apply(this, arguments));
+    return _super.apply(this, arguments);
   }
 
   (0, _createClass2["default"])(Modal, [{
@@ -95,9 +101,6 @@ var Modal = /*#__PURE__*/function (_Base) {
       var _this = this;
 
       this.isOpen = false;
-      this.open = this.open.bind(this);
-      this.close = this.close.bind(this);
-      this.keydownHandler = this.keydownHandler.bind(this);
       var open = Array.isArray(this.$refs.open) ? this.$refs.open : [this.$refs.open];
       open.forEach(function (btn) {
         return btn.addEventListener('click', _this.open);
