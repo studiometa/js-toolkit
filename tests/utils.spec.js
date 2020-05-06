@@ -52,8 +52,10 @@ describe('utils.throttle method', () => {
       throttled();
       throttled();
 
-      expect(fn).toHaveBeenCalledTimes(2);
-    }, 300);
+      setTimeout(() => {
+        expect(fn).toHaveBeenCalledTimes(2);
+      }, 100);
+    }, 400);
   });
 });
 
