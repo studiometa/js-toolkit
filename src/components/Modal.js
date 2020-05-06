@@ -68,9 +68,6 @@ export default class Modal extends Base {
    */
   mounted() {
     this.isOpen = false;
-    this.open = this.open.bind(this);
-    this.close = this.close.bind(this);
-    this.keydownHandler = this.keydownHandler.bind(this);
 
     const open = Array.isArray(this.$refs.open) ? this.$refs.open : [this.$refs.open];
     open.forEach(btn => btn.addEventListener('click', this.open));
