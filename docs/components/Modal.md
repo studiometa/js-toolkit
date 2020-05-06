@@ -19,7 +19,7 @@ An accessible, flexible and responsive modal component, easy to use and easy to 
       Modal opening trigger.
       This ref will be used to open the modal on click.
     -->
-    <button data-ref="Modal.btn" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+    <button data-ref="Modal.open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
       Open
     </button>
     <!-- Modal element -->
@@ -63,7 +63,7 @@ An accessible, flexible and responsive modal component, easy to use and easy to 
     Modal opening trigger.
     This ref will be used to open the modal on click.
   -->
-  <button data-ref="Modal.btn" type="button" class="py-2 px-4 text-white rounded bg-black focus:opacity-50">
+  <button data-ref="Modal.open" type="button" class="py-2 px-4 text-white rounded bg-black focus:opacity-50">
     Open
   </button>
   <!-- Modal element -->
@@ -109,7 +109,7 @@ An accessible, flexible and responsive modal component, easy to use and easy to 
       Modal opening trigger.
       This ref will be used to open the modal on click.
     -->
-    <button data-ref="Modal.btn" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+    <button data-ref="Modal.open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
       Open
     </button>
     <!-- Modal element -->
@@ -156,7 +156,7 @@ An accessible, flexible and responsive modal component, easy to use and easy to 
       Modal opening trigger.
       This ref will be used to open the modal on click.
     -->
-    <button data-ref="Modal.btn" type="button" class="py-2 px-4 text-white rounded bg-black focus:opacity-50">
+    <button data-ref="Modal.open" type="button" class="py-2 px-4 text-white rounded bg-black focus:opacity-50">
       Open
     </button>
     <!-- Modal element -->
@@ -218,7 +218,7 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
       Modal opening trigger.
       This ref will be used to open the modal on click.
     -->
-    <button data-ref="Modal.btn" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+    <button data-ref="Modal.open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
       Open
     </button>
     <!-- Modal element -->
@@ -274,7 +274,7 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
     Modal opening trigger.
     This ref will be used to open the modal on click.
   -->
-  <button data-ref="Modal.btn" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+  <button data-ref="Modal.open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
     Open
   </button>
   <!-- Modal element -->
@@ -373,7 +373,7 @@ The following HTML is required for the `Modal` component:
     Modal opening trigger.
     This ref will be used to open the modal on click.
   -->
-  <button data-ref="Modal.btn" type="button">
+  <button data-ref="Modal.open" type="button">
     Open
   </button>
   <!-- Modal element -->
@@ -415,7 +415,7 @@ The following HTML is required for the `Modal` component:
 
 ### Refs
 
-#### `Modal.btn`
+#### `Modal.open`
 
 This ref will be the button used to open the modal.
 
