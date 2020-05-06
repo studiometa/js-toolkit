@@ -21,7 +21,7 @@ var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
-var _abstracts = require("../abstracts");
+var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
 
 /**
  * Tick service
@@ -104,7 +104,7 @@ var Raf = /*#__PURE__*/function (_Service) {
     }
   }]);
   return Raf;
-}(_abstracts.Service);
+}(_Service2["default"]);
 
 var raf = null;
 
