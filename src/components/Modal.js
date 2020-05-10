@@ -1,7 +1,7 @@
 import { Base } from '../abstracts';
 import { isObject, keyCodes, tabTrap } from '../utils';
 
-const { trap, untrap } = tabTrap();
+const { trap, untrap, saveActiveElement } = tabTrap();
 
 /**
  * Manage a list of classes as string on an element.
@@ -48,6 +48,7 @@ export default class Modal extends Base {
     return {
       name: 'Modal',
       move: false,
+      autofocus: '[autofocus]',
       openClass: {},
       openStyle: {},
       closedClass: {},
@@ -134,6 +135,11 @@ export default class Modal extends Base {
     Object.entries(this.$options.closedStyle).forEach(([ref, styles]) => {
       setStyles(this.$refs[ref], styles, 'remove');
     });
+
+    if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
+      saveActiveElement();
+      this.$refs.modal.querySelector(this.$options.autofocus).focus();
+    }
 
     this.isOpen = true;
     this.$emit('open');

@@ -101,6 +101,104 @@ An accessible, flexible and responsive modal component, easy to use and easy to 
 </div>
 ```
 
+### Autofocus
+
+You can choose an item to focus when the modal opens by adding an `autofocus` attribute to an element inside the `modal` ref.
+
+<Preview>
+  <div data-component="Modal" class="text-center">
+    <!--
+      Modal opening trigger.
+      This ref will be used to open the modal on click.
+    -->
+    <button data-ref="Modal.open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+      Open
+    </button>
+    <!-- Modal element -->
+    <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
+      <!--
+        Modal overlay
+        The `tabindex="-"` attribute is required.
+      -->
+      <div data-ref="Modal.overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <!--
+          Modal container
+          This is the element in which the user can scroll
+          if the content of the modal is too long.
+        -->
+        <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+          <!--
+            Modal close button
+            This will be used to close the modal on click.
+          -->
+          <button data-ref="Modal.close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
+            Close
+          </button>
+          <!--
+            Modal content
+            The content displayed in the modal.
+            The `max-w-3xl` class defines the modal width.
+          -->
+          <div class="max-w-3xl p-10 pt-16" data-ref="Modal.content">
+            <label class="block mb-2 text-left" for="input-firstname">Firstname</label>
+            <input class="block w-64 mb-6 p-4 border" style="border-color: #eee;" id="input-firstname" type="text" autofocus placeholder="Firstname">
+            <label class="block mb-2 text-left" for="input-lastname">Lastname</label>
+            <input class="block w-64 p-4 border" style="border-color: #eee;" id="input-lastname" type="text" placeholder="Lastname">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Preview>
+
+```html{37}
+<div data-component="Modal">
+  <!--
+    Modal opening trigger.
+    This ref will be used to open the modal on click.
+  -->
+  <button data-ref="Modal.open" type="button" class="py-2 px-4 text-white rounded bg-black focus:opacity-50">
+    Open
+  </button>
+  <!-- Modal element -->
+  <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
+    <!--
+      Modal overlay
+      The `tabindex="-"` attribute is required.
+    -->
+    <div data-ref="Modal.overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <!--
+        Modal container
+        This is the element in which the user can scroll
+        if the content of the modal is too long.
+      -->
+      <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+        <!--
+          Modal close button
+          This will be used to close the modal on click.
+        -->
+        <button data-ref="Modal.close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
+          Close
+        </button>
+        <!--
+          Modal content
+          The content displayed in the modal.
+          The `max-w-3xl` class defines the modal width.
+        -->
+        <div class="max-w-3xl p-10 pt-16" data-ref="Modal.content">
+          <label class="block mb-2 text-left" for="input-firstname">Firstname</label>
+          <input autofocus class="block w-64 mb-6 p-4 border" style="border-color: #eee;" id="input-firstname" type="text" placeholder="Firstname">
+          <label class="block mb-2 text-left" for="input-lastname">Lastname</label>
+          <input class="block w-64 p-4 border" style="border-color: #eee;" id="input-lastname" type="text" placeholder="Lastname">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
 ### Max height
 
 <Preview>
@@ -483,6 +581,13 @@ Options can be defined per component via the `data-options` attribute or by exte
 - Default: `false`
 
 A selector or a boolean to move the `Modal.modal` element in the DOM. A value of `false` will keep the element in place, `true` will append the element to `document.body` and a string selector will append the element to the first matching element for the given selector.
+
+#### `autofocus`
+
+- Type: `String`, `Boolean`
+- Default: `[autofocus]`
+
+A selector or a boolean to autofocus an element when the modal opens. If `false`, the behaviour is disabled.
 
 #### `openClass`
 

@@ -23,7 +23,16 @@ export default function useTabTrap() {
   let focusedBefore;
 
   /**
-   * Trap tab navigation inside the given element
+   * Save the current active element.
+   *
+   * @return {void}
+   */
+  function saveActiveElement() {
+    focusedBefore = document.activeElement;
+  }
+
+  /**
+   * Trap tab navigation inside the given element.
    *
    * @param  {HTMLElement} element The element in which to trap the tabulations.
    * @param  {Event}       event   The keydown or keyup event.
@@ -37,7 +46,6 @@ export default function useTabTrap() {
     // Save the previous focused element
     if (!focusedBefore) {
       focusedBefore = document.activeElement;
-      console.log(focusedBefore);
     }
 
     const focusableChildren = Array.from(element.querySelectorAll(FOCUSABLE_ELEMENTS.join(', ')));
@@ -71,5 +79,5 @@ export default function useTabTrap() {
     }
   }
 
-  return { trap, untrap };
+  return { trap, untrap, saveActiveElement };
 }
