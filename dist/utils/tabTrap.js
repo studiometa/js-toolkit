@@ -19,12 +19,22 @@ var FOCUSABLE_ELEMENTS = ['a[href]:not([tabindex^="-"]):not([inert])', 'area[hre
 function useTabTrap() {
   var focusedBefore;
   /**
-   * Trap tab navigation inside the given element
+   * Save the current active element.
+   *
+   * @return {void}
+   */
+
+  function saveActiveElement() {
+    focusedBefore = document.activeElement;
+  }
+  /**
+   * Trap tab navigation inside the given element.
    *
    * @param  {HTMLElement} element The element in which to trap the tabulations.
    * @param  {Event}       event   The keydown or keyup event.
    * @return {void}
    */
+
 
   function trap(element, event) {
     if (event.keyCode !== _keyCodes["default"].TAB) {
@@ -34,7 +44,6 @@ function useTabTrap() {
 
     if (!focusedBefore) {
       focusedBefore = document.activeElement;
-      console.log(focusedBefore);
     }
 
     var focusableChildren = Array.from(element.querySelectorAll(FOCUSABLE_ELEMENTS.join(', ')));
@@ -69,7 +78,8 @@ function useTabTrap() {
 
   return {
     trap: trap,
-    untrap: untrap
+    untrap: untrap,
+    saveActiveElement: saveActiveElement
   };
 }
 //# sourceMappingURL=tabTrap.js.map

@@ -29,7 +29,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 var _tabTrap = (0, _utils.tabTrap)(),
     trap = _tabTrap.trap,
-    untrap = _tabTrap.untrap;
+    untrap = _tabTrap.untrap,
+    saveActiveElement = _tabTrap.saveActiveElement;
 /**
  * Manage a list of classes as string on an element.
  *
@@ -188,6 +189,12 @@ var Modal = /*#__PURE__*/function (_Base) {
 
         setStyles(_this3.$refs[ref], styles, 'remove');
       });
+
+      if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
+        saveActiveElement();
+        this.$refs.modal.querySelector(this.$options.autofocus).focus();
+      }
+
       this.isOpen = true;
       this.$emit('open');
     }
@@ -269,6 +276,7 @@ var Modal = /*#__PURE__*/function (_Base) {
       return {
         name: 'Modal',
         move: false,
+        autofocus: '[autofocus]',
         openClass: {},
         openStyle: {},
         closedClass: {},
