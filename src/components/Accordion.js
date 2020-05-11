@@ -320,7 +320,7 @@ export default class Accordion extends Base {
       components: {
         AccordionItem,
       },
-      itemAutoClose: false,
+      autoClose: false,
     };
   }
 
@@ -330,7 +330,7 @@ export default class Accordion extends Base {
    * @return {Accordion} The current instance.
    */
   mounted() {
-    if (this.$options.itemAutoClose) {
+    if (this.$options.autoClose) {
       this.unbindOpen = this.$children.AccordionItem.map((item, index) => {
         return item.$on('open', () => {
           this.openHandler(index);

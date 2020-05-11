@@ -309,7 +309,7 @@ var Accordion = /*#__PURE__*/function (_Base2) {
     value: function mounted() {
       var _this = this;
 
-      if (this.$options.itemAutoClose) {
+      if (this.$options.autoClose) {
         this.unbindOpen = this.$children.AccordionItem.map(function (item, index) {
           return item.$on('open', function () {
             _this.openHandler(index);
@@ -366,7 +366,7 @@ var Accordion = /*#__PURE__*/function (_Base2) {
         components: {
           AccordionItem: AccordionItem
         },
-        itemAutoClose: false
+        autoClose: false
       };
     }
   }]);

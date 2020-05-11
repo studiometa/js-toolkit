@@ -199,10 +199,10 @@ It is possible to display an `AccordionItem` by default. To do this it's very si
 
 ### Items auto-close
 
-To close items other than the one you just clicked, just pass the `itemAutoClose: true` parameter. This option is passed to the `Accordion` component.
+To close items other than the one you just clicked, just pass the `autoClose: true` parameter. This option is passed to the `Accordion` component.
 
 <Preview>
-  <div class="accordion bg-white" data-component="Accordion" data-options='{ "itemAutoClose": true }'>
+  <div class="accordion bg-white" data-component="Accordion" data-options='{ "autoClose": true }'>
     <article class="border -mb-px" data-component="AccordionItem">
       <header>
         <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
@@ -247,7 +247,7 @@ To close items other than the one you just clicked, just pass the `itemAutoClose
 </Preview>
 
 ```html
-<div class="accordion bg-white" data-component="Accordion" data-options='{ "itemAutoClose": true }'>
+<div class="accordion bg-white" data-component="Accordion" data-options='{ "autoClose": true }'>
   <article class="border -mb-px" data-component="AccordionItem">
     <header>
       <button type="button" class="w-full p-4 text-left cursor-pointer" data-ref="AccordionItem.btn">
@@ -564,7 +564,7 @@ And setup the following markup in your HTML:
 Options can be defined per component via the `data-options` attribute or by extending the `Accordion` class.
 :::
 
-#### `itemAutoClose`
+#### `autoClose`
 
 - Type: `Boolean`
 - Default: `false`
