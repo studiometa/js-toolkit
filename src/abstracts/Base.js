@@ -184,6 +184,8 @@ export default class Base extends EventManager {
       throw new Error('Unable to find the root element.');
     }
 
+    this.$el.$instance = this;
+
     let options = {};
     if (this.$el.dataset.options) {
       try {
