@@ -391,6 +391,8 @@ If you want to disable an animation you will have to switch `animation: false` t
 
 #### Choice animation duration
 
+Default value `300` ms
+
 <Preview>
   <div class="accordion bg-white" data-component="Accordion">
     <article class="border -mb-px" data-component="AccordionItem" data-options='{ "animationDuration": 1000 }'>
