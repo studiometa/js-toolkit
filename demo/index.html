@@ -13,6 +13,47 @@
 
   <body>
     <main data-breakpoint class="relative p-10">
+      <div data-component="Modal" data-options='{ "move": "main" }'>
+        <button
+          type="button"
+          data-ref="Modal.open"
+          class="p-4 text-white rounded bg-black focus:opacity-50"
+        >
+          Open modal
+        </button>
+        <div data-ref="Modal.modal" role="dialog" aria-modal="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
+          <div
+            data-ref="Modal.overlay"
+            tabindex="-1"
+            class="z-under absolute inset-0 bg-black opacity-75"
+          ></div>
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div
+              class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l"
+            >
+              <div class="flex p-10 pb-0">
+                <button
+                  type="button"
+                  data-ref="Modal.close"
+                  class="ml-auto py-2 px-4 text-white rounded bg-black focus:opacity-50"
+                >
+                  Close modal
+                </button>
+              </div>
+              <div class="max-w-3xl p-10" data-ref="Modal.content">
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint
+                culpa sequi enim <a autofocus href="#">quaerat</a> itaque possimus at voluptatem voluptates voluptatum velit
+                illum nulla, optio porro ea. Doloremque, aut, beatae!
+                <a href="#">Link</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <br />
+      <br />
+      <br />
       <!-- BEGIN Accordion component-->
       <div data-component="Accordion">
         <div data-component="AccordionItem" tabindex="0" class="accordion-item border -mb-px p-4">
@@ -96,7 +137,8 @@
       <div
         data-component="Tabs"
         class="tabs"
-        data-options='{ "tabActiveStyle": { "borderBottomColor": "#fff" } }'>
+        data-options='{ "tabActiveStyle": { "borderBottomColor": "#fff" } }'
+      >
         <div class="flex px-4 border-b">
           <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 border">Tab #1</button>
           <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 border">Tab #2</button>
