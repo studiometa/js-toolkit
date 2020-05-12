@@ -10,16 +10,18 @@ module.exports = {
       {
         text: 'Components',
         link: '/components/',
-        items: [{ text: 'Tabs', link: '/components/tabs/' }],
+        items: [
+          { text: 'Modal', link: '/components/modal/' },
+          { text: 'Tabs', link: '/components/tabs/' },
+        ],
       },
       {
         text: 'Utils',
         link: '/utils/',
-        items: [
-          { text: 'debounce', link: '/utils/#debounce' },
-          { text: 'isObject', link: '/utils/#isObject' },
-          { text: 'throttle', link: '/utils/#throttle' },
-        ],
+        items: Object.keys(require('../../dist/utils')).map(util => ({
+          text: util,
+          link: `/utils/#${util.toLowerCase()}`,
+        })),
       },
       { text: 'Github', link: 'https://github.com/studiometa/js-toolkit' },
     ],

@@ -1,4 +1,5 @@
 import nanoid from 'nanoid';
+import autoBind from 'auto-bind';
 import EventManager from './EventManager';
 import { useScroll, useResize, useRaf, usePointer } from '../services';
 import { hasMethod } from '../utils';
@@ -30,14 +31,17 @@ function getRefs(element, name) {
 
   return elements.reduce(($refs, $ref) => {
     const refName = $ref.dataset.ref.replace(`${name}.`, '');
+    // eslint-disable-next-line no-underscore-dangle
+    const $realRef = $ref.__base__ ? $ref.__base__ : $ref;
+
     if ($refs[refName]) {
       if (Array.isArray($refs[refName])) {
-        $refs[refName].push($ref);
+        $refs[refName].push($realRef);
       } else {
-        $refs[refName] = [$refs[refName], $ref];
+        $refs[refName] = [$refs[refName], $realRef];
       }
     } else {
-      $refs[refName] = $ref;
+      $refs[refName] = $realRef;
     }
 
     return $refs;
@@ -269,6 +273,13 @@ export default class Base extends EventManager {
       unbindMethods.forEach(method => method());
       destroyComponents(this);
     });
+
+    // Attach the instance to the root element
+    // eslint-disable-next-line no-underscore-dangle
+    this.$el.__base__ = this;
+
+    // Autobind all methods to the instance
+    autoBind(this);
 
     // Fire the `mounted` method on the next frame so the class
     // properties are correctly loaded

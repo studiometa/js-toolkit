@@ -21,7 +21,7 @@ var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
-var _abstracts = require("../abstracts");
+var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
 
 var _utils = require("../utils");
 
@@ -228,7 +228,7 @@ var Pointer = /*#__PURE__*/function (_Service) {
     }
   }]);
   return Pointer;
-}(_abstracts.Service);
+}(_Service2["default"]);
 
 var pointer = null;
 /**
