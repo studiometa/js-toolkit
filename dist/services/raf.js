@@ -21,7 +21,7 @@ var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
-var _abstracts = require("../abstracts");
+var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
 
 function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
 
@@ -108,7 +108,7 @@ var Raf = /*#__PURE__*/function (_Service) {
     }
   }]);
   return Raf;
-}(_abstracts.Service);
+}(_Service2["default"]);
 
 var raf = null;
 

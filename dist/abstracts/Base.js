@@ -25,6 +25,8 @@ var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/sli
 
 var _nanoid = _interopRequireDefault(require("nanoid"));
 
+var _autoBind = _interopRequireDefault(require("auto-bind"));
+
 var _EventManager2 = _interopRequireDefault(require("./EventManager"));
 
 var _services = require("../services");
@@ -68,16 +70,18 @@ function getRefs(element, name) {
   }
 
   return elements.reduce(function ($refs, $ref) {
-    var refName = $ref.dataset.ref.replace("".concat(name, "."), '');
+    var refName = $ref.dataset.ref.replace("".concat(name, "."), ''); // eslint-disable-next-line no-underscore-dangle
+
+    var $realRef = $ref.__base__ ? $ref.__base__ : $ref;
 
     if ($refs[refName]) {
       if (Array.isArray($refs[refName])) {
-        $refs[refName].push($ref);
+        $refs[refName].push($realRef);
       } else {
-        $refs[refName] = [$refs[refName], $ref];
+        $refs[refName] = [$refs[refName], $realRef];
       }
     } else {
-      $refs[refName] = $ref;
+      $refs[refName] = $realRef;
     }
 
     return $refs;
@@ -371,9 +375,14 @@ var Base = /*#__PURE__*/function (_EventManager) {
         return method();
       });
       destroyComponents((0, _assertThisInitialized2["default"])(_this));
-    }); // Fire the `mounted` method on the next frame so the class
-    // properties are correctly loaded
+    }); // Attach the instance to the root element
+    // eslint-disable-next-line no-underscore-dangle
 
+
+    _this.$el.__base__ = (0, _assertThisInitialized2["default"])(_this); // Autobind all methods to the instance
+
+    (0, _autoBind["default"])((0, _assertThisInitialized2["default"])(_this)); // Fire the `mounted` method on the next frame so the class
+    // properties are correctly loaded
 
     requestAnimationFrame(function () {
       _this.$mount();
