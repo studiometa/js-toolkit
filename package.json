@@ -1,14 +1,14 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "description": "",
   "scripts": {
     "prepublishOnly": "if [[ ! $PWD =~ dist$ ]]; then echo '🚧 Use `npm run deploy` instead of `npm publish`!' && echo '' && exit 1; fi",
     "test": "jest",
     "lint": "eslint src/",
-    "docs:build": "vuepress build docs",
     "docs:dev": "vuepress dev docs",
-    "demo:start": "parcel demo/index.html --out-dir demo/dist",
+    "docs:build": "vuepress build docs",
+    "demo:dev": "parcel demo/index.html --out-dir demo/dist",
     "demo:build": "parcel build demo/index.html --out-dir demo/dist",
     "build": "rm -rf dist/ && babel --source-maps --out-dir dist/ src/",
     "deploy": "npm run build && cp package.json dist/ && cd dist/ && npm publish --access public --tag alpha && rm package.json"
@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/studiometa/js-toolkit#readme",
   "dependencies": {
+    "auto-bind": "^4.0.0",
     "nanoid": "2.1.11"
   },
   "devDependencies": {

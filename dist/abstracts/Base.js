@@ -15,15 +15,17 @@ var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/creat
 
 var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
 
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
 
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 
 var _nanoid = _interopRequireDefault(require("nanoid"));
+
+var _autoBind = _interopRequireDefault(require("auto-bind"));
 
 var _EventManager2 = _interopRequireDefault(require("./EventManager"));
 
@@ -35,7 +37,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2["default"])(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -68,16 +70,18 @@ function getRefs(element, name) {
   }
 
   return elements.reduce(function ($refs, $ref) {
-    var refName = $ref.dataset.ref.replace("".concat(name, "."), '');
+    var refName = $ref.dataset.ref.replace("".concat(name, "."), ''); // eslint-disable-next-line no-underscore-dangle
+
+    var $realRef = $ref.__base__ ? $ref.__base__ : $ref;
 
     if ($refs[refName]) {
       if (Array.isArray($refs[refName])) {
-        $refs[refName].push($ref);
+        $refs[refName].push($realRef);
       } else {
-        $refs[refName] = [$refs[refName], $ref];
+        $refs[refName] = [$refs[refName], $realRef];
       }
     } else {
-      $refs[refName] = $ref;
+      $refs[refName] = $realRef;
     }
 
     return $refs;
@@ -252,7 +256,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
       }
     }
 
-    _this.$options = _objectSpread({}, _this.config, {}, options || {});
+    _this.$options = _objectSpread(_objectSpread({}, _this.config), options || {});
     debug((0, _assertThisInitialized2["default"])(_this), 'constructor', (0, _assertThisInitialized2["default"])(_this));
     var $refs = getRefs(_this.$el, _this.config.name);
 
@@ -371,9 +375,14 @@ var Base = /*#__PURE__*/function (_EventManager) {
         return method();
       });
       destroyComponents((0, _assertThisInitialized2["default"])(_this));
-    }); // Fire the `mounted` method on the next frame so the class
-    // properties are correctly loaded
+    }); // Attach the instance to the root element
+    // eslint-disable-next-line no-underscore-dangle
 
+
+    _this.$el.__base__ = (0, _assertThisInitialized2["default"])(_this); // Autobind all methods to the instance
+
+    (0, _autoBind["default"])((0, _assertThisInitialized2["default"])(_this)); // Fire the `mounted` method on the next frame so the class
+    // properties are correctly loaded
 
     requestAnimationFrame(function () {
       _this.$mount();
