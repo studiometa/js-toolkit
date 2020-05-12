@@ -619,10 +619,10 @@ An object which keys are refs names and values are style definition (`CSSStyleDe
 
 ### Events
 
-### `open`
+#### `open`
 
 Emitted when the modal opens.
 
-### `close`
+#### `close`
 
 Emitted when the modal closes.
