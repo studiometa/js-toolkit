@@ -572,7 +572,7 @@ This ref will hold the modal's dynamic content.
 ### Options
 
 ::: tip
-Options can be defined per component via the `data-options` attribute or by extending the Tabs class.
+Options can be defined per component via the `data-options` attribute or by extending the `Modal` class.
 :::
 
 #### `move`
@@ -616,3 +616,13 @@ An object which keys are refs names and values are classes (`String`) that will 
 - Default: `{ modal: { opacity: 0, pointerEvents: 'none', visibility: 'hidden' } }`
 
 An object which keys are refs names and values are style definition (`CSSStyleDeclaration`) that will be added to the refs when the modal closes.
+
+### Events
+
+### `open`
+
+Emitted when the modal opens.
+
+### `close`
+
+Emitted when the modal closes.
