@@ -1,5 +1,5 @@
 import { Base } from '../../src';
-import { Tabs } from '../../src/components';
+import { Tabs, Modal } from '../../src/components';
 import Accordion from './components/Accordion';
 import Cursor from './components/Cursor';
 import Lazyload from './components/Lazyload';
@@ -15,6 +15,7 @@ class App extends Base {
         Lazyload,
         Skew,
         Tabs,
+        Modal,
       },
     };
   }

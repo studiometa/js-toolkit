@@ -1,11 +1,19 @@
 import * as utils from '../src/utils';
 
 test('utils exports', () => {
-  expect(Object.keys(utils)).toEqual(['debounce', 'hasMethod', 'isObject', 'throttle']);
+  expect(Object.keys(utils)).toEqual([
+    'debounce',
+    'hasMethod',
+    'isObject',
+    'keyCodes',
+    'nextFrame',
+    'tabTrap',
+    'throttle',
+  ]);
 });
 
 describe('utils.debounce method', () => {
-  it('should wait the given delay to call given function', () => {
+  it('should wait the given delay to call given function', (done) => {
     const fn = jest.fn(() => true);
     const debounced = utils.debounce(fn, 300);
 
@@ -22,12 +30,13 @@ describe('utils.debounce method', () => {
 
     setTimeout(() => {
       expect(fn).toHaveBeenCalledTimes(1);
+      done()
     }, 300);
   });
 });
 
 describe('utils.throttle method', () => {
-  it('should call the given function only once in the given delay', () => {
+  it('should call the given function only once in the given delay', (done) => {
     const fn = jest.fn(() => true);
     const throttled = utils.throttle(fn, 300);
 
@@ -44,8 +53,11 @@ describe('utils.throttle method', () => {
       throttled();
       throttled();
 
-      expect(fn).toHaveBeenCalledTimes(2);
-    }, 300);
+      setTimeout(() => {
+        expect(fn).toHaveBeenCalledTimes(2);
+        done();
+      }, 100);
+    }, 400);
   });
 });
 
