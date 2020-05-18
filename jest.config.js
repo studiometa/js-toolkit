@@ -3,5 +3,7 @@
 
 module.exports = {
   // The test environment that will be used for testing
-  testEnvironment: "node",
+  testEnvironment: 'jsdom',
+  collectCoverage: true,
+  collectCoverageFrom: ['<rootDir>/src/**/*.js'],
 };
