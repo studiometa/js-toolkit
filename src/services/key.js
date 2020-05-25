@@ -1,12 +1,12 @@
 import Service from '../abstracts/Service';
-import { keyCodes } from '../utils';
+import keyCodes from '../utils/keyCodes';
 
 /**
  * Scroll service
  *
  * ```
- * import { useScroll } from '@studiometa/js-toolkit/services';
- * const { add, remove, props } = useScroll();
+ * import { useKey } from '@studiometa/js-toolkit/services';
+ * const { add, remove, props } = useKey();
  * add(key, (props) => {});
  * remove(key);
  * props();
@@ -35,8 +35,8 @@ class Key extends Service {
       this.event = event;
       this.trigger(this.props);
     };
-    document.addEventListener('keydown', this.handler, { passive: true });
-    document.addEventListener('keyup', this.handler, { passive: true });
+    document.addEventListener('keydown', this.handler, { passive: false });
+    document.addEventListener('keyup', this.handler, { passive: false });
   }
 
   /**
@@ -76,8 +76,10 @@ class Key extends Service {
 
     return {
       event: this.event,
-      direction: this.event.type === 'keydown' ? 'down' : 'up',
       triggered: this.triggered,
+      direction: this.event.type === 'keydown' ? 'down': 'up',
+      isUp: this.event.type === 'keyup',
+      isDown: this.event.type === 'keydown',
       ...keys,
     };
   }

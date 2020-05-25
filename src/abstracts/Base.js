@@ -1,8 +1,12 @@
-import nanoid from 'nanoid';
+import nanoid from 'nanoid/non-secure';
 import autoBind from 'auto-bind';
 import EventManager from './EventManager';
-import { useScroll, useResize, useRaf, usePointer } from '../services';
-import { hasMethod } from '../utils';
+import hasMethod from '../utils/hasMethod';
+import usePointer from '../services/pointer';
+import useRaf from '../services/raf';
+import useResize from '../services/resize';
+import useScroll from '../services/scroll';
+import useKey from '../services/key';
 
 /**
  * Verbose debug for the component.
@@ -153,6 +157,27 @@ function destroyComponents(instance) {
 }
 
 /**
+ * Init the given service and bind it to the given instance.
+ *
+ * @param  {Base}     instance The Base instance.
+ * @param  {String}   method   The instance to test for binding
+ * @param  {Function} service  The service `use...` function
+ * @return {Function}          A function to unbind the service
+ */
+function initService(instance, method, service) {
+  if (!hasMethod(instance, method)) {
+    return () => {};
+  }
+
+  const { add, remove } = service();
+  add(instance.$id, (...args) => {
+    call(instance, method, ...args);
+  });
+
+  return () => remove(instance.$id);
+}
+
+/**
  * Page lifecycle class
  *
  * @method mounted   Fired when the class is instantiated
@@ -230,40 +255,15 @@ export default class Base extends EventManager {
       }
 
       // Fire the `scrolled` method on window/document scroll
-      if (hasMethod(this, 'scrolled')) {
-        const { add, remove } = useScroll();
-        add(this.$id, (...args) => {
-          call(this, 'scrolled', ...args);
-        });
-        unbindMethods.push(() => remove(this.$id));
-      }
+      unbindMethods = [
+        ...unbindMethods,
+        initService(this, 'scrolled', useScroll),
+        initService(this, 'resized', useResize),
+        initService(this, 'ticked', useRaf),
+        initService(this, 'moved', usePointer),
+        initService(this, 'keyed', useKey),
+      ];
 
-      // Fire the `resized` method on window resize
-      if (hasMethod(this, 'resized')) {
-        const { add, remove } = useResize();
-        add(this.$id, (...args) => {
-          call(this, 'resized', ...args);
-        });
-        unbindMethods.push(() => remove(this.$id));
-      }
-
-      // Fire the `ticked` method on each frame
-      if (hasMethod(this, 'ticked')) {
-        const { add, remove } = useRaf();
-        add(this.$id, (...args) => {
-          call(this, 'ticked', ...args);
-        });
-        unbindMethods.push(() => remove(this.$id));
-      }
-
-      // Fire the `ticked` method on each frame
-      if (hasMethod(this, 'moved')) {
-        const { add, remove } = usePointer();
-        add(this.$id, (...args) => {
-          call(this, 'moved', ...args);
-        });
-        unbindMethods.push(() => remove(this.$id));
-      }
       mountComponents(this);
       this.$isMounted = true;
     });
