@@ -8,57 +8,57 @@ Object.defineProperty(exports, "__esModule", {
 Object.defineProperty(exports, "debounce", {
   enumerable: true,
   get: function get() {
-    return _debounce["default"];
+    return _debounce2["default"];
   }
 });
 Object.defineProperty(exports, "hasMethod", {
   enumerable: true,
   get: function get() {
-    return _hasMethod["default"];
+    return _hasMethod2["default"];
   }
 });
 Object.defineProperty(exports, "isObject", {
   enumerable: true,
   get: function get() {
-    return _isObject["default"];
+    return _isObject2["default"];
   }
 });
 Object.defineProperty(exports, "keyCodes", {
   enumerable: true,
   get: function get() {
-    return _keyCodes["default"];
+    return _keyCodes2["default"];
   }
 });
 Object.defineProperty(exports, "nextFrame", {
   enumerable: true,
   get: function get() {
-    return _nextFrame["default"];
+    return _nextFrame2["default"];
   }
 });
 Object.defineProperty(exports, "tabTrap", {
   enumerable: true,
   get: function get() {
-    return _tabTrap["default"];
+    return _tabTrap2["default"];
   }
 });
 Object.defineProperty(exports, "throttle", {
   enumerable: true,
   get: function get() {
-    return _throttle["default"];
+    return _throttle2["default"];
   }
 });
 
-var _debounce = _interopRequireDefault(require("./debounce"));
+var _debounce2 = _interopRequireDefault(require("./debounce"));
 
-var _hasMethod = _interopRequireDefault(require("./hasMethod"));
+var _hasMethod2 = _interopRequireDefault(require("./hasMethod"));
 
-var _isObject = _interopRequireDefault(require("./isObject"));
+var _isObject2 = _interopRequireDefault(require("./isObject"));
 
-var _keyCodes = _interopRequireDefault(require("./keyCodes"));
+var _keyCodes2 = _interopRequireDefault(require("./keyCodes"));
 
-var _nextFrame = _interopRequireDefault(require("./nextFrame"));
+var _nextFrame2 = _interopRequireDefault(require("./nextFrame"));
 
-var _tabTrap = _interopRequireDefault(require("./tabTrap"));
+var _tabTrap2 = _interopRequireDefault(require("./tabTrap"));
 
-var _throttle = _interopRequireDefault(require("./throttle"));
+var _throttle2 = _interopRequireDefault(require("./throttle"));
 //# sourceMappingURL=index.js.map
