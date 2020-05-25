@@ -1,5 +1,6 @@
-import { Base } from '../abstracts';
-import { isObject, keyCodes, tabTrap } from '../utils';
+import Base from '../abstracts/Base';
+import isObject from '../utils/isObject';
+import tabTrap from '../utils/tabTrap';
 
 const { trap, untrap, saveActiveElement } = tabTrap();
 
@@ -107,6 +108,29 @@ export default class Modal extends Base {
   }
 
   /**
+   * Close the modal on `ESC` and trap the tabulation.
+   *
+   * @param  {KeyboardEvent} options.event  The original keyboard event
+   * @param  {Boolean}       options.isUp   Is it a keyup event?
+   * @param  {Boolean}       options.isDown Is it a keydown event?
+   * @param  {Boolean}       options.ESC    Is it the ESC key?
+   * @return {void}
+   */
+  keyed({ event, isUp, isDown, ESC }) {
+    if (!this.isOpen) {
+      return;
+    }
+
+    if (isDown) {
+      trap(this.$refs.modal, event);
+    }
+
+    if (ESC && isUp) {
+      this.close();
+    }
+  }
+
+  /**
    * Open the modal.
    *
    * @return {Modal} The Modal instance.
@@ -114,7 +138,6 @@ export default class Modal extends Base {
   open() {
     this.$refs.modal.setAttribute('aria-hidden', 'false');
     document.documentElement.style.overflow = 'hidden';
-    document.addEventListener('keydown', this.keydownHandler);
 
     // Add "open" classes to refs
     Object.entries(this.$options.openClass).forEach(([ref, classes]) => {
@@ -153,7 +176,6 @@ export default class Modal extends Base {
   close() {
     this.$refs.modal.setAttribute('aria-hidden', 'true');
     document.documentElement.style.overflow = '';
-    document.removeEventListener('keydown', this.keydownHandler);
 
     // Add "closed" classes to refs
     Object.entries(this.$options.closedClass).forEach(([ref, classes]) => {
@@ -178,22 +200,5 @@ export default class Modal extends Base {
     this.isOpen = false;
     untrap();
     this.$emit('close');
-  }
-
-  /**
-   * Manage closing the modal on `ESC` keydown and trapped tabulation.
-   *
-   * @param  {Event} event The event object.
-   * @return {Modal}       The Modal instance.
-   */
-  keydownHandler(event) {
-    if (event.keyCode === keyCodes.ESC) {
-      return this.close();
-    }
-
-    // Trap tab navigation
-    trap(this.$refs.modal, event);
-
-    return this;
   }
 }
