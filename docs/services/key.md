@@ -18,6 +18,8 @@ const { add, remove, props } = useKey();
 
 add('custom-id', (props) => {
   console.log(props.direction); // 'down' on keydown, 'up' on keyup
+  console.log(props.isUp); // true on keyup, false on keydown
+  console.log(props.isDown); // true on keydown, false on keyup
   console.log(props.triggered); // 1
   console.log(props.ENTER); // will be `true` when the pressed key is enter
 });
@@ -43,6 +45,18 @@ The original event instance.
 - Values: `up` or `down`
 
 The direction of the keystroke, `up` for the event is of type `keyup`, `down` when the event is of type `keydown`.
+
+### `isUp`
+
+- Type: `Boolean`
+
+A boolean for the event's direction. Will be `true` on `keyup` events.
+
+### `isDown`
+
+- Type: `Boolean`
+
+A boolean for the event's direction. Will be `true` on `keydown` events.
 
 ### `triggered`
 
