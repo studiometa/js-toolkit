@@ -11,23 +11,25 @@ var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/cl
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
 
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 
-var _abstracts = require("../abstracts");
+var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
 
-var _utils = require("../utils");
+var _isObject = _interopRequireDefault(require("../utils/isObject"));
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
+var _tabTrap2 = _interopRequireDefault(require("../utils/tabTrap"));
+
+function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-var _tabTrap = (0, _utils.tabTrap)(),
+var _tabTrap = (0, _tabTrap2["default"])(),
     trap = _tabTrap.trap,
     untrap = _tabTrap.untrap,
     saveActiveElement = _tabTrap.saveActiveElement;
@@ -63,7 +65,7 @@ function setClasses(element, classNames) {
 function setStyles(element, styles) {
   var method = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'add';
 
-  if (!element || !styles || !(0, _utils.isObject)(styles)) {
+  if (!element || !styles || !(0, _isObject["default"])(styles)) {
     return;
   }
 
@@ -144,6 +146,36 @@ var Modal = /*#__PURE__*/function (_Base) {
       return this;
     }
     /**
+     * Close the modal on `ESC` and trap the tabulation.
+     *
+     * @param  {KeyboardEvent} options.event  The original keyboard event
+     * @param  {Boolean}       options.isUp   Is it a keyup event?
+     * @param  {Boolean}       options.isDown Is it a keydown event?
+     * @param  {Boolean}       options.ESC    Is it the ESC key?
+     * @return {void}
+     */
+
+  }, {
+    key: "keyed",
+    value: function keyed(_ref3) {
+      var event = _ref3.event,
+          isUp = _ref3.isUp,
+          isDown = _ref3.isDown,
+          ESC = _ref3.ESC;
+
+      if (!this.isOpen) {
+        return;
+      }
+
+      if (isDown) {
+        trap(this.$refs.modal, event);
+      }
+
+      if (ESC && isUp) {
+        this.close();
+      }
+    }
+    /**
      * Open the modal.
      *
      * @return {Modal} The Modal instance.
@@ -155,37 +187,36 @@ var Modal = /*#__PURE__*/function (_Base) {
       var _this3 = this;
 
       this.$refs.modal.setAttribute('aria-hidden', 'false');
-      document.documentElement.style.overflow = 'hidden';
-      document.addEventListener('keydown', this.keydownHandler); // Add "open" classes to refs
+      document.documentElement.style.overflow = 'hidden'; // Add "open" classes to refs
 
-      Object.entries(this.$options.openClass).forEach(function (_ref3) {
-        var _ref4 = (0, _slicedToArray2["default"])(_ref3, 2),
-            ref = _ref4[0],
-            classes = _ref4[1];
+      Object.entries(this.$options.openClass).forEach(function (_ref4) {
+        var _ref5 = (0, _slicedToArray2["default"])(_ref4, 2),
+            ref = _ref5[0],
+            classes = _ref5[1];
 
         setClasses(_this3.$refs[ref], classes);
       }); // Add "open" styles to refs
 
-      Object.entries(this.$options.openStyle).forEach(function (_ref5) {
-        var _ref6 = (0, _slicedToArray2["default"])(_ref5, 2),
-            ref = _ref6[0],
-            styles = _ref6[1];
+      Object.entries(this.$options.openStyle).forEach(function (_ref6) {
+        var _ref7 = (0, _slicedToArray2["default"])(_ref6, 2),
+            ref = _ref7[0],
+            styles = _ref7[1];
 
         setStyles(_this3.$refs[ref], styles);
       }); // Remove "closed" classes from refs
 
-      Object.entries(this.$options.closedClass).forEach(function (_ref7) {
-        var _ref8 = (0, _slicedToArray2["default"])(_ref7, 2),
-            ref = _ref8[0],
-            classes = _ref8[1];
+      Object.entries(this.$options.closedClass).forEach(function (_ref8) {
+        var _ref9 = (0, _slicedToArray2["default"])(_ref8, 2),
+            ref = _ref9[0],
+            classes = _ref9[1];
 
         setClasses(_this3.$refs[ref], classes, 'remove');
       }); // Remove "closed" styles from refs
 
-      Object.entries(this.$options.closedStyle).forEach(function (_ref9) {
-        var _ref10 = (0, _slicedToArray2["default"])(_ref9, 2),
-            ref = _ref10[0],
-            styles = _ref10[1];
+      Object.entries(this.$options.closedStyle).forEach(function (_ref10) {
+        var _ref11 = (0, _slicedToArray2["default"])(_ref10, 2),
+            ref = _ref11[0],
+            styles = _ref11[1];
 
         setStyles(_this3.$refs[ref], styles, 'remove');
       });
@@ -210,61 +241,42 @@ var Modal = /*#__PURE__*/function (_Base) {
       var _this4 = this;
 
       this.$refs.modal.setAttribute('aria-hidden', 'true');
-      document.documentElement.style.overflow = '';
-      document.removeEventListener('keydown', this.keydownHandler); // Add "closed" classes to refs
+      document.documentElement.style.overflow = ''; // Add "closed" classes to refs
 
-      Object.entries(this.$options.closedClass).forEach(function (_ref11) {
-        var _ref12 = (0, _slicedToArray2["default"])(_ref11, 2),
-            ref = _ref12[0],
-            classes = _ref12[1];
+      Object.entries(this.$options.closedClass).forEach(function (_ref12) {
+        var _ref13 = (0, _slicedToArray2["default"])(_ref12, 2),
+            ref = _ref13[0],
+            classes = _ref13[1];
 
         setClasses(_this4.$refs[ref], classes);
       }); // Add "closed" styles to refs
 
-      Object.entries(this.$options.closedStyle).forEach(function (_ref13) {
-        var _ref14 = (0, _slicedToArray2["default"])(_ref13, 2),
-            ref = _ref14[0],
-            styles = _ref14[1];
+      Object.entries(this.$options.closedStyle).forEach(function (_ref14) {
+        var _ref15 = (0, _slicedToArray2["default"])(_ref14, 2),
+            ref = _ref15[0],
+            styles = _ref15[1];
 
         setStyles(_this4.$refs[ref], styles);
       }); // Remove "open" classes from refs
 
-      Object.entries(this.$options.openClass).forEach(function (_ref15) {
-        var _ref16 = (0, _slicedToArray2["default"])(_ref15, 2),
-            ref = _ref16[0],
-            classes = _ref16[1];
+      Object.entries(this.$options.openClass).forEach(function (_ref16) {
+        var _ref17 = (0, _slicedToArray2["default"])(_ref16, 2),
+            ref = _ref17[0],
+            classes = _ref17[1];
 
         setClasses(_this4.$refs[ref], classes, 'remove');
       }); // Remove "open" styles from refs
 
-      Object.entries(this.$options.openStyle).forEach(function (_ref17) {
-        var _ref18 = (0, _slicedToArray2["default"])(_ref17, 2),
-            ref = _ref18[0],
-            styles = _ref18[1];
+      Object.entries(this.$options.openStyle).forEach(function (_ref18) {
+        var _ref19 = (0, _slicedToArray2["default"])(_ref18, 2),
+            ref = _ref19[0],
+            styles = _ref19[1];
 
         setStyles(_this4.$refs[ref], styles, 'remove');
       });
       this.isOpen = false;
       untrap();
       this.$emit('close');
-    }
-    /**
-     * Manage closing the modal on `ESC` keydown and trapped tabulation.
-     *
-     * @param  {Event} event The event object.
-     * @return {Modal}       The Modal instance.
-     */
-
-  }, {
-    key: "keydownHandler",
-    value: function keydownHandler(event) {
-      if (event.keyCode === _utils.keyCodes.ESC) {
-        return this.close();
-      } // Trap tab navigation
-
-
-      trap(this.$refs.modal, event);
-      return this;
     }
   }, {
     key: "config",
@@ -291,7 +303,7 @@ var Modal = /*#__PURE__*/function (_Base) {
     }
   }]);
   return Modal;
-}(_abstracts.Base);
+}(_Base2["default"]);
 
 exports["default"] = Modal;
 //# sourceMappingURL=Modal.js.map
