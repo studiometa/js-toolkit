@@ -17,9 +17,9 @@ import { useScroll } from '@studiometa/js-toolkit';
 const { add, remove, props } = useScroll();
 
 add('custom-id', (props) => {
-  console.log(props.direction); // 'down' on keydown, 'up' on keyup
-  console.log(props.triggered); // 1
-  console.log(props.ENTER); // will be `true` when the pressed key is enter
+  console.log(props.x); // the horizontal position of the scroll
+  console.log(props.y); // the vertical position of the scroll
+  console.log(props.changed.x); // will be `true` when the `x` scroll has changed
 });
 
 // Get the latest prop object

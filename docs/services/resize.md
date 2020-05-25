@@ -17,9 +17,10 @@ import { useResize } from '@studiometa/js-toolkit';
 const { add, remove, props } = useResize();
 
 add('custom-id', (props) => {
-  console.log(props.direction); // 'down' on keydown, 'up' on keyup
-  console.log(props.triggered); // 1
-  console.log(props.ENTER); // will be `true` when the pressed key is enter
+  console.log(props.width); // the viewport's width
+  console.log(props.height); // the viewport's height
+  console.log(props.ratio); // the width / height ratio
+  console.log(props.orientation); // the orientation of the viewport
 });
 
 // Get the latest prop object
