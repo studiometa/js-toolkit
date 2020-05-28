@@ -47,9 +47,19 @@ function useTabTrap() {
     }
 
     var focusableChildren = Array.from(element.querySelectorAll(FOCUSABLE_ELEMENTS.join(', ')));
-    var focusedItemIndex = focusableChildren.indexOf(document.activeElement); // If the SHIFT key is being pressed while tabbing (moving backwards) and
+    var focusedItemIndex = focusableChildren.indexOf(document.activeElement);
+
+    if (!focusableChildren.length) {
+      return;
+    }
+
+    if (focusedItemIndex < 0) {
+      focusableChildren[0].focus();
+      event.preventDefault();
+    } // If the SHIFT key is being pressed while tabbing (moving backwards) and
     // the currently focused item is the first one, move the focus to the last
     // focusable item from the dialog element
+
 
     if (event.shiftKey && focusedItemIndex === 0) {
       focusableChildren[focusableChildren.length - 1].focus();

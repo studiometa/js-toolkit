@@ -6,6 +6,7 @@ module.exports = {
     requestAnimationFrame: false,
     IntersectionObserver: false,
     Image: false,
+    KeyboardEvent: false,
   },
   rules: {
     'class-methods-use-this': 'off',
