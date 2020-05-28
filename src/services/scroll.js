@@ -1,5 +1,6 @@
 import Service from '../abstracts/Service';
-import { throttle, debounce } from '../utils';
+import throttle from '../utils/throttle';
+import debounce from '../utils/debounce';
 
 /**
  * Scroll service
