@@ -13,38 +13,67 @@
 
   <body>
     <main data-breakpoint class="relative p-10">
-      <div data-component="Modal" data-options='{ "move": "main" }'>
+      <div data-component="Modal" class="text-center">
+        <!--
+          Modal opening trigger.
+          This ref will be used to open the modal on click.
+        -->
         <button
-          type="button"
           data-ref="Modal.open"
-          class="p-4 text-white rounded bg-black focus:opacity-50"
+          type="button"
+          class="py-4 px-8 text-white rounded bg-black focus:opacity-50"
         >
-          Open modal
+          Open
         </button>
-        <div data-ref="Modal.modal" role="dialog" aria-modal="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
+        <!-- Modal element -->
+        <div
+          data-ref="Modal.modal"
+          role="dialog"
+          aria-modal="true"
+          aria-hidden="true"
+          style="opacity: 0; pointer-events: none; visibility: hidden;"
+          class="z-goku fixed inset-0"
+        >
+          <!--
+            Modal overlay
+            The `tabindex="-"` attribute is required.
+          -->
           <div
             data-ref="Modal.overlay"
             tabindex="-1"
             class="z-under absolute inset-0 bg-black opacity-75"
           ></div>
           <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <!--
+              Modal container
+              This is the element in which the user can scroll
+              if the content of the modal is too long.
+            -->
             <div
-              class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l"
+              data-ref="Modal.container"
+              class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto"
             >
-              <div class="flex p-10 pb-0">
-                <button
-                  type="button"
-                  data-ref="Modal.close"
-                  class="ml-auto py-2 px-4 text-white rounded bg-black focus:opacity-50"
-                >
-                  Close modal
-                </button>
-              </div>
-              <div class="max-w-3xl p-10" data-ref="Modal.content">
+              <!--
+                Modal close button
+                This will be used to close the modal on click.
+              -->
+              <button
+                data-ref="Modal.close"
+                type="button"
+                class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50"
+              >
+                Close
+              </button>
+              <!--
+                Modal content
+                The content displayed in the modal.
+                The `max-w-3xl` class defines the modal width.
+              -->
+              <div class="max-w-3xl p-10 pt-16" data-ref="Modal.content">
                 Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint
-                culpa sequi enim <a autofocus href="#">quaerat</a> itaque possimus at voluptatem voluptates voluptatum velit
-                illum nulla, optio porro ea. Doloremque, aut, beatae!
-                <a href="#">Link</a>
+                culpa sequi enim <a href="#" autofocus class="border-b">quaerat</a> itaque possimus at
+                <a href="#" class="border-b">voluptatem</a> voluptates voluptatum velit illum nulla,
+                optio porro ea. Doloremque, aut, beatae!
               </div>
             </div>
           </div>
@@ -320,6 +349,7 @@
       class="z-goku fixed top-0 left-0 w-6 h-6 -mt-3 -ml-3 bg-black rounded-full pointer-events-none transform transition duration-200 ease-out-expo"
     ></div>
     <!-- END Cursor component -->
+    <script src="https://unpkg.com/rematrix"></script>
     <script src="src/app.js"></script>
   </body>
 </html>

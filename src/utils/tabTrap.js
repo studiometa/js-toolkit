@@ -51,6 +51,15 @@ export default function useTabTrap() {
     const focusableChildren = Array.from(element.querySelectorAll(FOCUSABLE_ELEMENTS.join(', ')));
     const focusedItemIndex = focusableChildren.indexOf(document.activeElement);
 
+    if (!focusableChildren.length) {
+      return;
+    }
+
+    if (focusedItemIndex < 0) {
+      focusableChildren[0].focus();
+      event.preventDefault();
+    }
+
     // If the SHIFT key is being pressed while tabbing (moving backwards) and
     // the currently focused item is the first one, move the focus to the last
     // focusable item from the dialog element
@@ -58,6 +67,7 @@ export default function useTabTrap() {
       focusableChildren[focusableChildren.length - 1].focus();
       event.preventDefault();
     }
+
     // If the SHIFT key is not being pressed (moving forwards) and the currently
     // focused item is the last one, move the focus to the first focusable item
     // from the dialog element

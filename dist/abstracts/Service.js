@@ -11,89 +11,20 @@ var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/cl
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
-
-/** @type {Object} A schema used to validate objects' keys */
-var schema = {
-  init: {
-    test: function test(descriptor) {
-      return typeof descriptor.value === 'function';
-    },
-    error: 'The `init` method must be implemented.'
-  },
-  kill: {
-    test: function test(descriptor) {
-      return typeof descriptor.value === 'function';
-    },
-    error: 'The `kill` method must be implemented.'
-  },
-  props: {
-    test: function test(descriptor) {
-      return typeof descriptor.get === 'function';
-    },
-    error: 'The `props` property must be a getter.'
-  },
-  key: {
-    test: function test(descriptor) {
-      return typeof descriptor.value === 'string';
-    },
-    error: 'The `key` parameter must be a string.'
-  },
-  callback: {
-    test: function test(descriptor) {
-      return typeof descriptor.value === 'function';
-    },
-    error: 'The `callback` parameter must be a function.'
-  }
-};
-/**
- * List of methods or properties that MUST be implemented by child classes.
- * @type {Object}
- */
-
-var implementations = {
-  init: 'The `init` method must be implemented.',
-  kill: 'The `kill` method must be implemented.',
-  props: 'The `props` getter must be implemented.'
-};
 /**
  * Test if the children classes implements this class correctly
  *
  * @return {Service} The current instance
  */
-
 function testImplementation(obj) {
   var descriptors = Object.getOwnPropertyDescriptors(obj);
   var methods = Object.keys(descriptors);
-  Object.entries(implementations).forEach(function (_ref) {
-    var _ref2 = (0, _slicedToArray2["default"])(_ref, 2),
-        key = _ref2[0],
-        error = _ref2[1];
-
+  ['init', 'kill', 'props'].forEach(function (key) {
     if (!methods.includes(key)) {
-      throw new Error(error);
+      throw new Error("The `".concat(key, "` method must be implemented."));
     }
   });
   return this;
-}
-/**
- * Test the given object against the schema.
- *
- * @param  {Object}  object The object to test
- * @return {Service}        The current instance
- */
-
-
-function testSchema(object) {
-  Object.entries(Object.getOwnPropertyDescriptors(object)).forEach(function (_ref3) {
-    var _ref4 = (0, _slicedToArray2["default"])(_ref3, 2),
-        key = _ref4[0],
-        value = _ref4[1];
-
-    if ({}.hasOwnProperty.call(schema, key) && !schema[key].test(value)) {
-      throw new Error(schema[key].error);
-    }
-  });
 }
 /**
  * Service abstract class
@@ -111,7 +42,6 @@ var Service = /*#__PURE__*/function () {
     this.callbacks = new Map();
     this.isInit = false;
     testImplementation(Object.getPrototypeOf(this));
-    testSchema(Object.getPrototypeOf(this));
   }
   /**
    * Method to initialize the service behaviors.
@@ -149,11 +79,6 @@ var Service = /*#__PURE__*/function () {
   }, {
     key: "add",
     value: function add(key, callback) {
-      testSchema({
-        key: key,
-        callback: callback
-      });
-
       if (this.has(key)) {
         throw new Error("A callback with the key `".concat(key, "` has already been registered."));
       } // Initialize the service when we add the first callback
@@ -177,9 +102,6 @@ var Service = /*#__PURE__*/function () {
   }, {
     key: "has",
     value: function has(key) {
-      testSchema({
-        key: key
-      });
       return this.callbacks.has(key);
     }
     /**
@@ -192,9 +114,6 @@ var Service = /*#__PURE__*/function () {
   }, {
     key: "get",
     value: function get(key) {
-      testSchema({
-        key: key
-      });
       return this.callbacks.get(key);
     }
     /**
@@ -207,9 +126,6 @@ var Service = /*#__PURE__*/function () {
   }, {
     key: "remove",
     value: function remove(key) {
-      testSchema({
-        key: key
-      });
       this.callbacks["delete"](key); // Kill the service when we add the first callback
 
       if (this.callbacks.size === 0 && this.isInit) {

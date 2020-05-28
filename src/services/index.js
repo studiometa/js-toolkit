@@ -1,3 +1,4 @@
+export useKey from './key';
 export usePointer from './pointer';
 export useRaf from './raf';
 export useResize from './resize';

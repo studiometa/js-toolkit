@@ -7,6 +7,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
@@ -15,29 +17,37 @@ var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/creat
 
 var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
 
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
 
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 
-var _nanoid = _interopRequireDefault(require("nanoid"));
+var _nonSecure = _interopRequireDefault(require("nanoid/non-secure"));
 
 var _autoBind = _interopRequireDefault(require("auto-bind"));
 
 var _EventManager2 = _interopRequireDefault(require("./EventManager"));
 
-var _services = require("../services");
+var _hasMethod = _interopRequireDefault(require("../utils/hasMethod"));
 
-var _utils = require("../utils");
+var _pointer = _interopRequireDefault(require("../services/pointer"));
+
+var _raf = _interopRequireDefault(require("../services/raf"));
+
+var _resize = _interopRequireDefault(require("../services/resize"));
+
+var _scroll = _interopRequireDefault(require("../services/scroll"));
+
+var _key5 = _interopRequireDefault(require("../services/key"));
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2["default"])(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
+function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -147,7 +157,7 @@ function call(instance, method) {
 
   instance.$emit.apply(instance, [method].concat(args)); // We always emit an event, but we do not call the method if it does not exist
 
-  if (!(0, _utils.hasMethod)(instance, method)) {
+  if (!(0, _hasMethod["default"])(instance, method)) {
     return instance;
   }
 
@@ -202,6 +212,36 @@ function destroyComponents(instance) {
   });
 }
 /**
+ * Init the given service and bind it to the given instance.
+ *
+ * @param  {Base}     instance The Base instance.
+ * @param  {String}   method   The instance to test for binding
+ * @param  {Function} service  The service `use...` function
+ * @return {Function}          A function to unbind the service
+ */
+
+
+function initService(instance, method, service) {
+  if (!(0, _hasMethod["default"])(instance, method)) {
+    return function () {};
+  }
+
+  var _service = service(),
+      add = _service.add,
+      remove = _service.remove;
+
+  add(instance.$id, function () {
+    for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+      args[_key3] = arguments[_key3];
+    }
+
+    call.apply(void 0, [instance, method].concat(args));
+  });
+  return function () {
+    return remove(instance.$id);
+  };
+}
+/**
  * Page lifecycle class
  *
  * @method mounted   Fired when the class is instantiated
@@ -239,7 +279,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
     }
 
     _this.$isMounted = false;
-    _this.$id = "".concat(_this.config.name, "-").concat((0, _nanoid["default"])());
+    _this.$id = "".concat(_this.config.name, "-").concat((0, _nonSecure["default"])());
     _this.$el = element || document.querySelector(_this.config.el);
 
     if (!_this.$el) {
@@ -256,7 +296,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
       }
     }
 
-    _this.$options = _objectSpread(_objectSpread({}, _this.config), options || {});
+    _this.$options = _objectSpread({}, _this.config, {}, options || {});
     debug((0, _assertThisInitialized2["default"])(_this), 'constructor', (0, _assertThisInitialized2["default"])(_this));
     var $refs = getRefs(_this.$el, _this.config.name);
 
@@ -277,7 +317,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
     _this.$on('mounted', function () {
       unbindMethods = []; // Fire the `loaded` method on window load
 
-      if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'loaded')) {
+      if ((0, _hasMethod["default"])((0, _assertThisInitialized2["default"])(_this), 'loaded')) {
         var loadedHandler = function loadedHandler(event) {
           call((0, _assertThisInitialized2["default"])(_this), 'loaded', {
             event: event
@@ -291,80 +331,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
       } // Fire the `scrolled` method on window/document scroll
 
 
-      if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'scrolled')) {
-        var _useScroll = (0, _services.useScroll)(),
-            add = _useScroll.add,
-            remove = _useScroll.remove;
-
-        add(_this.$id, function () {
-          for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            args[_key3] = arguments[_key3];
-          }
-
-          call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'scrolled'].concat(args));
-        });
-        unbindMethods.push(function () {
-          return remove(_this.$id);
-        });
-      } // Fire the `resized` method on window resize
-
-
-      if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'resized')) {
-        var _useResize = (0, _services.useResize)(),
-            _add = _useResize.add,
-            _remove = _useResize.remove;
-
-        _add(_this.$id, function () {
-          for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-            args[_key4] = arguments[_key4];
-          }
-
-          call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'resized'].concat(args));
-        });
-
-        unbindMethods.push(function () {
-          return _remove(_this.$id);
-        });
-      } // Fire the `ticked` method on each frame
-
-
-      if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'ticked')) {
-        var _useRaf = (0, _services.useRaf)(),
-            _add2 = _useRaf.add,
-            _remove2 = _useRaf.remove;
-
-        _add2(_this.$id, function () {
-          for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-            args[_key5] = arguments[_key5];
-          }
-
-          call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'ticked'].concat(args));
-        });
-
-        unbindMethods.push(function () {
-          return _remove2(_this.$id);
-        });
-      } // Fire the `ticked` method on each frame
-
-
-      if ((0, _utils.hasMethod)((0, _assertThisInitialized2["default"])(_this), 'moved')) {
-        var _usePointer = (0, _services.usePointer)(),
-            _add3 = _usePointer.add,
-            _remove3 = _usePointer.remove;
-
-        _add3(_this.$id, function () {
-          for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-            args[_key6] = arguments[_key6];
-          }
-
-          call.apply(void 0, [(0, _assertThisInitialized2["default"])(_this), 'moved'].concat(args));
-        });
-
-        unbindMethods.push(function () {
-          return _remove3(_this.$id);
-        });
-      }
-
+      unbindMethods = [].concat((0, _toConsumableArray2["default"])(unbindMethods), [initService((0, _assertThisInitialized2["default"])(_this), 'scrolled', _scroll["default"]), initService((0, _assertThisInitialized2["default"])(_this), 'resized', _resize["default"]), initService((0, _assertThisInitialized2["default"])(_this), 'ticked', _raf["default"]), initService((0, _assertThisInitialized2["default"])(_this), 'moved', _pointer["default"]), initService((0, _assertThisInitialized2["default"])(_this), 'keyed', _key5["default"])]);
       mountComponents((0, _assertThisInitialized2["default"])(_this));
       _this.$isMounted = true;
     });
@@ -400,8 +367,8 @@ var Base = /*#__PURE__*/function (_EventManager) {
   (0, _createClass2["default"])(Base, [{
     key: "$log",
     value: function $log() {
-      for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-        args[_key7] = arguments[_key7];
+      for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        args[_key4] = arguments[_key4];
       }
 
       return this.$options.log ? window.console.log.apply(window, [this.config.name].concat(args)) : function () {};
