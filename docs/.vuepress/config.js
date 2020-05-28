@@ -16,6 +16,16 @@ module.exports = {
         ],
       },
       {
+        text: 'Services',
+        items: [
+          { text: 'Key', link: '/services/key/' },
+          { text: 'Pointer', link: '/services/pointer/' },
+          { text: 'RAF', link: '/services/raf/' },
+          { text: 'Resize', link: '/services/resize/' },
+          { text: 'Scroll', link: '/services/scroll/' },
+        ],
+      },
+      {
         text: 'Utils',
         link: '/utils/',
         items: Object.keys(require('../../dist/utils')).map(util => ({

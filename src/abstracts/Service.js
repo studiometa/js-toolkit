@@ -1,37 +1,3 @@
-/** @type {Object} A schema used to validate objects' keys */
-const schema = {
-  init: {
-    test: descriptor => typeof descriptor.value === 'function',
-    error: 'The `init` method must be implemented.',
-  },
-  kill: {
-    test: descriptor => typeof descriptor.value === 'function',
-    error: 'The `kill` method must be implemented.',
-  },
-  props: {
-    test: descriptor => typeof descriptor.get === 'function',
-    error: 'The `props` property must be a getter.',
-  },
-  key: {
-    test: descriptor => typeof descriptor.value === 'string',
-    error: 'The `key` parameter must be a string.',
-  },
-  callback: {
-    test: descriptor => typeof descriptor.value === 'function',
-    error: 'The `callback` parameter must be a function.',
-  },
-};
-
-/**
- * List of methods or properties that MUST be implemented by child classes.
- * @type {Object}
- */
-const implementations = {
-  init: 'The `init` method must be implemented.',
-  kill: 'The `kill` method must be implemented.',
-  props: 'The `props` getter must be implemented.',
-};
-
 /**
  * Test if the children classes implements this class correctly
  *
@@ -41,27 +7,13 @@ function testImplementation(obj) {
   const descriptors = Object.getOwnPropertyDescriptors(obj);
   const methods = Object.keys(descriptors);
 
-  Object.entries(implementations).forEach(([key, error]) => {
+  ['init', 'kill', 'props'].forEach((key) => {
     if (!methods.includes(key)) {
-      throw new Error(error);
+      throw new Error(`The \`${key}\` method must be implemented.`);
     }
   });
 
   return this;
-}
-
-/**
- * Test the given object against the schema.
- *
- * @param  {Object}  object The object to test
- * @return {Service}        The current instance
- */
-function testSchema(object) {
-  Object.entries(Object.getOwnPropertyDescriptors(object)).forEach(([key, value]) => {
-    if ({}.hasOwnProperty.call(schema, key) && !schema[key].test(value)) {
-      throw new Error(schema[key].error);
-    }
-  });
 }
 
 /**
@@ -77,7 +29,6 @@ export default class Service {
     this.callbacks = new Map();
     this.isInit = false;
     testImplementation(Object.getPrototypeOf(this));
-    testSchema(Object.getPrototypeOf(this));
   }
 
   /**
@@ -108,8 +59,6 @@ export default class Service {
    * @return {Service}           The current instance
    */
   add(key, callback) {
-    testSchema({ key, callback });
-
     if (this.has(key)) {
       throw new Error(`A callback with the key \`${key}\` has already been registered.`);
     }
@@ -131,7 +80,6 @@ export default class Service {
    * @return {Boolean}     Whether or not the identifier already exists
    */
   has(key) {
-    testSchema({ key });
     return this.callbacks.has(key);
   }
 
@@ -142,7 +90,6 @@ export default class Service {
    * @return {Function}     The callback function
    */
   get(key) {
-    testSchema({ key });
     return this.callbacks.get(key);
   }
 
@@ -153,7 +100,6 @@ export default class Service {
    * @return {Service}    The current instance
    */
   remove(key) {
-    testSchema({ key });
     this.callbacks.delete(key);
 
     // Kill the service when we add the first callback

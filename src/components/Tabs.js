@@ -1,5 +1,5 @@
-import { Base } from '../abstracts';
-import { isObject } from '../utils';
+import Base from '../abstracts/Base';
+import isObject from '../utils/isObject';
 
 /**
  * Manage a list of classes as string on an element.

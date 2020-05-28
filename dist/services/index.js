@@ -5,6 +5,12 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+Object.defineProperty(exports, "useKey", {
+  enumerable: true,
+  get: function get() {
+    return _key["default"];
+  }
+});
 Object.defineProperty(exports, "usePointer", {
   enumerable: true,
   get: function get() {
@@ -29,6 +35,8 @@ Object.defineProperty(exports, "useScroll", {
     return _scroll["default"];
   }
 });
+
+var _key = _interopRequireDefault(require("./key"));
 
 var _pointer = _interopRequireDefault(require("./pointer"));
 
