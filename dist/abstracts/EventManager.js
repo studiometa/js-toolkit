@@ -5,7 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.default = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
@@ -23,11 +23,11 @@ var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/de
  */
 var EventManager = /*#__PURE__*/function () {
   function EventManager() {
-    (0, _classCallCheck2["default"])(this, EventManager);
-    (0, _defineProperty2["default"])(this, "events", {});
+    (0, _classCallCheck2.default)(this, EventManager);
+    (0, _defineProperty2.default)(this, "events", {});
   }
 
-  (0, _createClass2["default"])(EventManager, [{
+  (0, _createClass2.default)(EventManager, [{
     key: "$on",
 
     /**
@@ -138,5 +138,5 @@ var EventManager = /*#__PURE__*/function () {
   return EventManager;
 }();
 
-exports["default"] = EventManager;
+exports.default = EventManager;
 //# sourceMappingURL=EventManager.js.map

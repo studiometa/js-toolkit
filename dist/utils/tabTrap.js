@@ -5,7 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = useTabTrap;
+exports.default = useTabTrap;
 
 var _keyCodes = _interopRequireDefault(require("./keyCodes"));
 
@@ -37,7 +37,7 @@ function useTabTrap() {
 
 
   function trap(element, event) {
-    if (event.keyCode !== _keyCodes["default"].TAB) {
+    if (event.keyCode !== _keyCodes.default.TAB) {
       return;
     } // Save the previous focused element
 

@@ -8,25 +8,25 @@ Object.defineProperty(exports, "__esModule", {
 Object.defineProperty(exports, "damp", {
   enumerable: true,
   get: function get() {
-    return _damp2["default"];
+    return _damp2.default;
   }
 });
 Object.defineProperty(exports, "lerp", {
   enumerable: true,
   get: function get() {
-    return _lerp2["default"];
+    return _lerp2.default;
   }
 });
 Object.defineProperty(exports, "map", {
   enumerable: true,
   get: function get() {
-    return _map2["default"];
+    return _map2.default;
   }
 });
 Object.defineProperty(exports, "round", {
   enumerable: true,
   get: function get() {
-    return _round2["default"];
+    return _round2.default;
   }
 });
 

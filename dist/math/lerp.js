@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = lerp;
+exports.default = lerp;
 
 /**
  * Interpolate the ratio between a given interval.

@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = hasMethod;
+exports.default = hasMethod;
 
 /**
  * Test if an object has a method.

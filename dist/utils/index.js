@@ -8,43 +8,43 @@ Object.defineProperty(exports, "__esModule", {
 Object.defineProperty(exports, "debounce", {
   enumerable: true,
   get: function get() {
-    return _debounce2["default"];
+    return _debounce2.default;
   }
 });
 Object.defineProperty(exports, "hasMethod", {
   enumerable: true,
   get: function get() {
-    return _hasMethod2["default"];
+    return _hasMethod2.default;
   }
 });
 Object.defineProperty(exports, "isObject", {
   enumerable: true,
   get: function get() {
-    return _isObject2["default"];
+    return _isObject2.default;
   }
 });
 Object.defineProperty(exports, "keyCodes", {
   enumerable: true,
   get: function get() {
-    return _keyCodes2["default"];
+    return _keyCodes2.default;
   }
 });
 Object.defineProperty(exports, "nextFrame", {
   enumerable: true,
   get: function get() {
-    return _nextFrame2["default"];
+    return _nextFrame2.default;
   }
 });
 Object.defineProperty(exports, "tabTrap", {
   enumerable: true,
   get: function get() {
-    return _tabTrap2["default"];
+    return _tabTrap2.default;
   }
 });
 Object.defineProperty(exports, "throttle", {
   enumerable: true,
   get: function get() {
-    return _throttle2["default"];
+    return _throttle2.default;
   }
 });
 
