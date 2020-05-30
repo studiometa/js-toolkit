@@ -11,7 +11,10 @@
     "demo:dev": "parcel demo/index.html --out-dir demo/dist",
     "demo:build": "parcel build demo/index.html --out-dir demo/dist",
     "build": "rm -rf dist/ && babel --source-maps --out-dir dist/ src/",
-    "deploy": "npm run build && cp package.json dist/ && cd dist/ && npm publish --access public --tag alpha && rm package.json"
+    "deploy": "npm run build && cp package.json dist/ && cd dist/ && npm publish --tag alpha && rm package.json"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "repository": {
     "type": "git",
