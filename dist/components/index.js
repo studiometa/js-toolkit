@@ -8,13 +8,13 @@ Object.defineProperty(exports, "__esModule", {
 Object.defineProperty(exports, "Modal", {
   enumerable: true,
   get: function get() {
-    return _Modal2["default"];
+    return _Modal2.default;
   }
 });
 Object.defineProperty(exports, "Tabs", {
   enumerable: true,
   get: function get() {
-    return _Tabs2["default"];
+    return _Tabs2.default;
   }
 });
 

@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = damp;
+exports.default = damp;
 
 /**
  * Smooth step from currentValue to targetValue

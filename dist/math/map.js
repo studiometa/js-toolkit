@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = map;
+exports.default = map;
 
 /**
  * Maps the value from one range of [inputMin..inputMax] to another range of [outputMin..outputMax].
