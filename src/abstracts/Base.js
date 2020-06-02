@@ -30,7 +30,7 @@ function getRefs(element, name) {
   const elements = Array.from(element.querySelectorAll(`[data-ref^="${name}."]`));
 
   if (elements.length === 0) {
-    return null;
+    return {};
   }
 
   return elements.reduce(($refs, $ref) => {
@@ -60,7 +60,7 @@ function getRefs(element, name) {
  */
 function getChildren(element, components) {
   if (!components) {
-    return null;
+    return {};
   }
 
   return Object.entries(components).reduce((acc, [name, ComponentClass]) => {
@@ -226,15 +226,17 @@ export default class Base extends EventManager {
 
     debug(this, 'constructor', this);
 
-    const $refs = getRefs(this.$el, this.config.name);
-    if ($refs) {
-      this.$refs = $refs;
-    }
+    Object.defineProperty(this, '$refs', {
+      get() {
+        return getRefs(this.$el, this.config.name);
+      },
+    });
 
-    const $children = getChildren(this.$el, this.config.components);
-    if ($children) {
-      this.$children = $children;
-    }
+    Object.defineProperty(this, '$children', {
+      get() {
+        return getChildren(this.$el, this.config.components);
+      },
+    });
 
     let unbindMethods = [];
 
