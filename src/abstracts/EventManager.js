@@ -36,15 +36,11 @@ export default class EventManager {
    * @return {EventManager}          The current instance.
    */
   $off(event, listener) {
-    if (!Array.isArray(this.events[event])) {
-      return this;
-    }
     // If no event specified, we remove them all.
     if (!event) {
       this.events = {};
       return this;
     }
-
     // If no listener have been specified, we remove all
     // the listeners for the given event.
     if (!listener) {
