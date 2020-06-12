@@ -1,8 +1,8 @@
 import Base from '../abstracts/Base';
 import isObject from '../utils/isObject';
-import tabTrap from '../utils/tabTrap';
+import focusTrap from '../utils/focusTrap';
 
-const { trap, untrap, saveActiveElement } = tabTrap();
+const { trap, untrap, saveActiveElement } = focusTrap();
 
 /**
  * Manage a list of classes as string on an element.
