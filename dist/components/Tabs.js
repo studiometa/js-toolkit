@@ -5,7 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.default = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
@@ -23,7 +23,7 @@ var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
 
 var _isObject = _interopRequireDefault(require("../utils/isObject"));
 
-function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
+function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -57,12 +57,12 @@ function setClasses(element, classNames) {
 function setStyles(element, styles) {
   var method = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'add';
 
-  if (!element || !styles || !(0, _isObject["default"])(styles)) {
+  if (!element || !styles || !(0, _isObject.default)(styles)) {
     return;
   }
 
   Object.entries(styles).forEach(function (_ref) {
-    var _ref2 = (0, _slicedToArray2["default"])(_ref, 2),
+    var _ref2 = (0, _slicedToArray2.default)(_ref, 2),
         prop = _ref2[0],
         value = _ref2[1];
 
@@ -75,16 +75,16 @@ function setStyles(element, styles) {
 
 
 var Tabs = /*#__PURE__*/function (_Base) {
-  (0, _inherits2["default"])(Tabs, _Base);
+  (0, _inherits2.default)(Tabs, _Base);
 
   var _super = _createSuper(Tabs);
 
   function Tabs() {
-    (0, _classCallCheck2["default"])(this, Tabs);
+    (0, _classCallCheck2.default)(this, Tabs);
     return _super.apply(this, arguments);
   }
 
-  (0, _createClass2["default"])(Tabs, [{
+  (0, _createClass2.default)(Tabs, [{
     key: "mounted",
 
     /**
@@ -214,7 +214,7 @@ var Tabs = /*#__PURE__*/function (_Base) {
     }
   }]);
   return Tabs;
-}(_Base2["default"]);
+}(_Base2.default);
 
-exports["default"] = Tabs;
+exports.default = Tabs;
 //# sourceMappingURL=Tabs.js.map

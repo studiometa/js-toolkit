@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = round;
+exports.default = round;
 
 /**
  * Round a value with a given number of decimals.

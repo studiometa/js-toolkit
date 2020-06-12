@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = throttle;
+exports.default = throttle;
 
 /**
  * Simple throttling helper that limits a

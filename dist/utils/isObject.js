@@ -5,7 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = isObject;
+exports.default = isObject;
 
 var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
 
@@ -16,6 +16,6 @@ var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
  * @return {Boolean}       Whether or not the value is an object.
  */
 function isObject(value) {
-  return (0, _typeof2["default"])(value) === 'object' && !!value && value.toString() === '[object Object]';
+  return (0, _typeof2.default)(value) === 'object' && !!value && value.toString() === '[object Object]';
 }
 //# sourceMappingURL=isObject.js.map

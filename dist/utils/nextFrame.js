@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = nextFrame;
+exports.default = nextFrame;
 
 /* eslint-disable no-nested-ternary */
 
