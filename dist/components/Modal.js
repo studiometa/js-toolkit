@@ -5,7 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.default = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
@@ -25,11 +25,11 @@ var _isObject = _interopRequireDefault(require("../utils/isObject"));
 
 var _tabTrap2 = _interopRequireDefault(require("../utils/tabTrap"));
 
-function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
+function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-var _tabTrap = (0, _tabTrap2["default"])(),
+var _tabTrap = (0, _tabTrap2.default)(),
     trap = _tabTrap.trap,
     untrap = _tabTrap.untrap,
     saveActiveElement = _tabTrap.saveActiveElement;
@@ -65,12 +65,12 @@ function setClasses(element, classNames) {
 function setStyles(element, styles) {
   var method = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'add';
 
-  if (!element || !styles || !(0, _isObject["default"])(styles)) {
+  if (!element || !styles || !(0, _isObject.default)(styles)) {
     return;
   }
 
   Object.entries(styles).forEach(function (_ref) {
-    var _ref2 = (0, _slicedToArray2["default"])(_ref, 2),
+    var _ref2 = (0, _slicedToArray2.default)(_ref, 2),
         prop = _ref2[0],
         value = _ref2[1];
 
@@ -83,16 +83,16 @@ function setStyles(element, styles) {
 
 
 var Modal = /*#__PURE__*/function (_Base) {
-  (0, _inherits2["default"])(Modal, _Base);
+  (0, _inherits2.default)(Modal, _Base);
 
   var _super = _createSuper(Modal);
 
   function Modal() {
-    (0, _classCallCheck2["default"])(this, Modal);
+    (0, _classCallCheck2.default)(this, Modal);
     return _super.apply(this, arguments);
   }
 
-  (0, _createClass2["default"])(Modal, [{
+  (0, _createClass2.default)(Modal, [{
     key: "mounted",
 
     /**
@@ -190,7 +190,7 @@ var Modal = /*#__PURE__*/function (_Base) {
       document.documentElement.style.overflow = 'hidden'; // Add "open" classes to refs
 
       Object.entries(this.$options.openClass).forEach(function (_ref4) {
-        var _ref5 = (0, _slicedToArray2["default"])(_ref4, 2),
+        var _ref5 = (0, _slicedToArray2.default)(_ref4, 2),
             ref = _ref5[0],
             classes = _ref5[1];
 
@@ -198,7 +198,7 @@ var Modal = /*#__PURE__*/function (_Base) {
       }); // Add "open" styles to refs
 
       Object.entries(this.$options.openStyle).forEach(function (_ref6) {
-        var _ref7 = (0, _slicedToArray2["default"])(_ref6, 2),
+        var _ref7 = (0, _slicedToArray2.default)(_ref6, 2),
             ref = _ref7[0],
             styles = _ref7[1];
 
@@ -206,7 +206,7 @@ var Modal = /*#__PURE__*/function (_Base) {
       }); // Remove "closed" classes from refs
 
       Object.entries(this.$options.closedClass).forEach(function (_ref8) {
-        var _ref9 = (0, _slicedToArray2["default"])(_ref8, 2),
+        var _ref9 = (0, _slicedToArray2.default)(_ref8, 2),
             ref = _ref9[0],
             classes = _ref9[1];
 
@@ -214,7 +214,7 @@ var Modal = /*#__PURE__*/function (_Base) {
       }); // Remove "closed" styles from refs
 
       Object.entries(this.$options.closedStyle).forEach(function (_ref10) {
-        var _ref11 = (0, _slicedToArray2["default"])(_ref10, 2),
+        var _ref11 = (0, _slicedToArray2.default)(_ref10, 2),
             ref = _ref11[0],
             styles = _ref11[1];
 
@@ -244,7 +244,7 @@ var Modal = /*#__PURE__*/function (_Base) {
       document.documentElement.style.overflow = ''; // Add "closed" classes to refs
 
       Object.entries(this.$options.closedClass).forEach(function (_ref12) {
-        var _ref13 = (0, _slicedToArray2["default"])(_ref12, 2),
+        var _ref13 = (0, _slicedToArray2.default)(_ref12, 2),
             ref = _ref13[0],
             classes = _ref13[1];
 
@@ -252,7 +252,7 @@ var Modal = /*#__PURE__*/function (_Base) {
       }); // Add "closed" styles to refs
 
       Object.entries(this.$options.closedStyle).forEach(function (_ref14) {
-        var _ref15 = (0, _slicedToArray2["default"])(_ref14, 2),
+        var _ref15 = (0, _slicedToArray2.default)(_ref14, 2),
             ref = _ref15[0],
             styles = _ref15[1];
 
@@ -260,7 +260,7 @@ var Modal = /*#__PURE__*/function (_Base) {
       }); // Remove "open" classes from refs
 
       Object.entries(this.$options.openClass).forEach(function (_ref16) {
-        var _ref17 = (0, _slicedToArray2["default"])(_ref16, 2),
+        var _ref17 = (0, _slicedToArray2.default)(_ref16, 2),
             ref = _ref17[0],
             classes = _ref17[1];
 
@@ -268,7 +268,7 @@ var Modal = /*#__PURE__*/function (_Base) {
       }); // Remove "open" styles from refs
 
       Object.entries(this.$options.openStyle).forEach(function (_ref18) {
-        var _ref19 = (0, _slicedToArray2["default"])(_ref18, 2),
+        var _ref19 = (0, _slicedToArray2.default)(_ref18, 2),
             ref = _ref19[0],
             styles = _ref19[1];
 
@@ -303,7 +303,7 @@ var Modal = /*#__PURE__*/function (_Base) {
     }
   }]);
   return Modal;
-}(_Base2["default"]);
+}(_Base2.default);
 
-exports["default"] = Modal;
+exports.default = Modal;
 //# sourceMappingURL=Modal.js.map

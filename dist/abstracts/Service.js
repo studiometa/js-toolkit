@@ -5,7 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.default = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
@@ -38,7 +38,7 @@ var Service = /*#__PURE__*/function () {
    * @return {Service} The current instance
    */
   function Service() {
-    (0, _classCallCheck2["default"])(this, Service);
+    (0, _classCallCheck2.default)(this, Service);
     this.callbacks = new Map();
     this.isInit = false;
     testImplementation(Object.getPrototypeOf(this));
@@ -51,7 +51,7 @@ var Service = /*#__PURE__*/function () {
    */
 
 
-  (0, _createClass2["default"])(Service, [{
+  (0, _createClass2.default)(Service, [{
     key: "init",
     value: function init() {
       return this;
@@ -126,7 +126,7 @@ var Service = /*#__PURE__*/function () {
   }, {
     key: "remove",
     value: function remove(key) {
-      this.callbacks["delete"](key); // Kill the service when we add the first callback
+      this.callbacks.delete(key); // Kill the service when we add the first callback
 
       if (this.callbacks.size === 0 && this.isInit) {
         this.kill();
@@ -158,5 +158,5 @@ var Service = /*#__PURE__*/function () {
   return Service;
 }();
 
-exports["default"] = Service;
+exports.default = Service;
 //# sourceMappingURL=Service.js.map

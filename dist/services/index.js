@@ -8,31 +8,31 @@ Object.defineProperty(exports, "__esModule", {
 Object.defineProperty(exports, "useKey", {
   enumerable: true,
   get: function get() {
-    return _key["default"];
+    return _key.default;
   }
 });
 Object.defineProperty(exports, "usePointer", {
   enumerable: true,
   get: function get() {
-    return _pointer["default"];
+    return _pointer.default;
   }
 });
 Object.defineProperty(exports, "useRaf", {
   enumerable: true,
   get: function get() {
-    return _raf["default"];
+    return _raf.default;
   }
 });
 Object.defineProperty(exports, "useResize", {
   enumerable: true,
   get: function get() {
-    return _resize["default"];
+    return _resize.default;
   }
 });
 Object.defineProperty(exports, "useScroll", {
   enumerable: true,
   get: function get() {
-    return _scroll["default"];
+    return _scroll.default;
   }
 });
 
