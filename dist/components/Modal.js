@@ -23,16 +23,16 @@ var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
 
 var _isObject = _interopRequireDefault(require("../utils/isObject"));
 
-var _tabTrap2 = _interopRequireDefault(require("../utils/tabTrap"));
+var _focusTrap2 = _interopRequireDefault(require("../utils/focusTrap"));
 
 function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-var _tabTrap = (0, _tabTrap2.default)(),
-    trap = _tabTrap.trap,
-    untrap = _tabTrap.untrap,
-    saveActiveElement = _tabTrap.saveActiveElement;
+var _focusTrap = (0, _focusTrap2.default)(),
+    trap = _focusTrap.trap,
+    untrap = _focusTrap.untrap,
+    saveActiveElement = _focusTrap.saveActiveElement;
 /**
  * Manage a list of classes as string on an element.
  *

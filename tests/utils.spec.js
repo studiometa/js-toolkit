@@ -3,11 +3,11 @@ import * as utils from '../src/utils';
 test('utils exports', () => {
   expect(Object.keys(utils)).toEqual([
     'debounce',
+    'focusTrap',
     'hasMethod',
     'isObject',
     'keyCodes',
     'nextFrame',
-    'tabTrap',
     'throttle',
   ]);
 });

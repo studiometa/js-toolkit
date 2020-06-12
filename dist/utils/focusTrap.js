@@ -5,7 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = useTabTrap;
+exports.default = useFocusTrap;
 
 var _keyCodes = _interopRequireDefault(require("./keyCodes"));
 
@@ -16,7 +16,7 @@ var FOCUSABLE_ELEMENTS = ['a[href]:not([tabindex^="-"]):not([inert])', 'area[hre
  * @return {Object} An object containing the trap and untrap methods.
  */
 
-function useTabTrap() {
+function useFocusTrap() {
   var focusedBefore;
   /**
    * Save the current active element.
@@ -92,4 +92,4 @@ function useTabTrap() {
     saveActiveElement: saveActiveElement
   };
 }
-//# sourceMappingURL=tabTrap.js.map
+//# sourceMappingURL=focusTrap.js.map

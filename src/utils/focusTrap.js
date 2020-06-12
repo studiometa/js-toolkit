@@ -19,7 +19,7 @@ const FOCUSABLE_ELEMENTS = [
  *
  * @return {Object} An object containing the trap and untrap methods.
  */
-export default function useTabTrap() {
+export default function useFocusTrap() {
   let focusedBefore;
 
   /**
