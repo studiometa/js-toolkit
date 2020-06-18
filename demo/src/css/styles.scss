@@ -1,5 +1,7 @@
 @tailwind base;
+
 @tailwind components;
+
 @tailwind utilities;
 
 main {
@@ -18,8 +20,8 @@ img:not(.is-loaded) {
 [data-breakpoint]::before {
   z-index: -999;
   position: absolute;
-  opacity: 0;
   pointer-events: none;
+  opacity: 0;
 }
 
 [data-breakpoint]::after {
