@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import { Base } from '../../../src';
+import { Base } from '../../../../src';
 
 class AccordionItem extends Base {
   get config() {
@@ -24,6 +24,7 @@ class AccordionItem extends Base {
     try {
       this[`${event.type}Handler`](event);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.warn(`The method \`${event.type}Handler\` does not exists.`);
     }
   }

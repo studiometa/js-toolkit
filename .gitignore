@@ -1,9 +1,8 @@
 # OS files
 .DS_Store
-node_modules
 
 # NPM files
-package-lock.json
+node_modules/
 yarn.lock
 .cache/
 
