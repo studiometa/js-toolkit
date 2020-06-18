@@ -1,7 +1,7 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  src: ['./src/css/styles.scss', './src/js/app.js'],
+  src: ['./src/css/styles.scss', './src/js/app.js', './src/js/pages/*.js'],
   dist: './dist',
   public: '/',
   server: 'dist',
