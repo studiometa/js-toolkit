@@ -15,5 +15,4 @@ module.exports = {
   parserOpts: {
     plugins: ['dynamicImport', 'classProperties'],
   },
-  // babelrcRoots: ['.', 'packages/*'],
 };
