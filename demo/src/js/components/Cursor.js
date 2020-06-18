@@ -1,4 +1,4 @@
-import { Base } from '../../../src';
+import { Base } from '../../../../src';
 
 export default class Cursor extends Base {
   get config() {

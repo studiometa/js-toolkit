@@ -1,5 +1,5 @@
-import { Base } from '../../src';
-import { Tabs, Modal } from '../../src/components';
+import { Base } from '../../../src';
+import { Tabs, Modal } from '../../../src/components';
 import Accordion from './components/Accordion';
 import Cursor from './components/Cursor';
 import Lazyload from './components/Lazyload';
