@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import nanoid from 'nanoid/non-secure';
 import autoBind from 'auto-bind';
 import EventManager from './EventManager';
@@ -35,7 +36,6 @@ function getRefs(element, name) {
 
   return elements.reduce(($refs, $ref) => {
     const refName = $ref.dataset.ref.replace(`${name}.`, '');
-    // eslint-disable-next-line no-underscore-dangle
     const $realRef = $ref.__base__ ? $ref.__base__ : $ref;
 
     if ($refs[refName]) {
@@ -64,8 +64,7 @@ function getChildren(element, components) {
   }
 
   return Object.entries(components).reduce((acc, [name, ComponentClass]) => {
-    const { config } = ComponentClass.prototype || {};
-    const selector = config.el || `[data-component="${name}"]`;
+    const selector = `[data-component="${name}"]`;
     const elements = Array.from(element.querySelectorAll(selector));
 
     if (elements.length === 0) {
@@ -73,8 +72,25 @@ function getChildren(element, components) {
     }
 
     acc[name] = elements.map(el => {
-      const { options } = el.dataset;
-      return new ComponentClass(el, options);
+      // Return existing instance if it exists
+      if (el.__base__) {
+        return el.__base__;
+      }
+
+      // Return a new instance if the component class is a child of the Base class
+      if (ComponentClass.__isBase__) {
+        return new ComponentClass(el);
+      }
+
+      // Resolve async components
+      const asyncComponent = ComponentClass().then(module => {
+        const ResolvedClass = module.default;
+        return new ResolvedClass(el);
+      });
+
+      asyncComponent.__isAsync__ = true;
+
+      return asyncComponent;
     });
 
     return acc;
@@ -114,23 +130,50 @@ function call(instance, method, ...args) {
 }
 
 /**
+ * Mount a given component which might be async.
+ *
+ * @param  {Base|Promise} component The component to mount.
+ * @return {void}
+ */
+function mountComponent(component) {
+  if (component.__isAsync__) {
+    component.then(instance => instance.$mount());
+  } else {
+    component.$mount();
+  }
+}
+
+/**
  * Tie the components' `mounted` method to the instance
  */
 function mountComponents(instance) {
   if (!instance.$children) {
     return;
   }
+
   debug(instance, 'mountComponents', instance.$children);
 
   Object.values(instance.$children).forEach($child => {
     if (Array.isArray($child)) {
-      $child.forEach(c => {
-        c.$mount();
-      });
+      $child.forEach(mountComponent);
     } else {
-      $child.$mount();
+      mountComponent($child);
     }
   });
+}
+
+/**
+ * Destroy a given component which might be async.
+ *
+ * @param  {Base|Promise} component The component to destroy.
+ * @return {void}
+ */
+function destroyComponent(component) {
+  if (component.__isAsync__) {
+    component.then(instance => instance.$destroy());
+  } else {
+    component.$destroy();
+  }
 }
 
 /**
@@ -147,11 +190,9 @@ function destroyComponents(instance) {
 
   Object.values(instance.$children).forEach($child => {
     if (Array.isArray($child)) {
-      $child.forEach(c => {
-        c.$destroy();
-      });
+      $child.forEach(destroyComponent);
     } else {
-      $child.$destroy();
+      destroyComponent($child);
     }
   });
 }
@@ -207,7 +248,7 @@ export default class Base extends EventManager {
 
     this.$isMounted = false;
     this.$id = `${this.config.name}-${nanoid()}`;
-    this.$el = element || document.querySelector(this.config.el);
+    this.$el = element;
 
     if (!this.$el) {
       throw new Error('Unable to find the root element.');
@@ -277,7 +318,6 @@ export default class Base extends EventManager {
     });
 
     // Attach the instance to the root element
-    // eslint-disable-next-line no-underscore-dangle
     this.$el.__base__ = this;
 
     // Autobind all methods to the instance
@@ -322,3 +362,5 @@ export default class Base extends EventManager {
     return this;
   }
 }
+
+Base.__isBase__ = true;
