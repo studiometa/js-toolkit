@@ -1,21 +1,17 @@
 import { Base } from '../../../src';
-import { Tabs, Modal } from '../../../src/components';
-import Accordion from './components/Accordion';
-import Cursor from './components/Cursor';
-import Lazyload from './components/Lazyload';
-import Skew from './components/Skew';
 
 class App extends Base {
   get config() {
     return {
+      debug: true,
       name: 'App',
       components: {
-        Accordion,
-        Cursor,
-        Lazyload,
-        Skew,
-        Tabs,
-        Modal,
+        Accordion: () => import(/* webpackChunkName: "Accordion" */ './components/Accordion'),
+        Cursor: () => import(/* webpackChunkName: "async/Cursor" */ './components/Cursor'),
+        Lazyload: () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload'),
+        Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew'),
+        Tabs: () => import(/* webpackChunkName: "Tabs" */ './../../../src/components/Tabs'),
+        Modal: () => import(/* webpackChunkName: "Modal" */ './../../../src/components/Modal'),
       },
     };
   }
