@@ -60,11 +60,7 @@ var EventManager = /*#__PURE__*/function () {
   }, {
     key: "$off",
     value: function $off(event, listener) {
-      if (!Array.isArray(this.events[event])) {
-        return this;
-      } // If no event specified, we remove them all.
-
-
+      // If no event specified, we remove them all.
       if (!event) {
         this.events = {};
         return this;
