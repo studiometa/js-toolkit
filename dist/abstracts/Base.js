@@ -17,11 +17,11 @@ var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/creat
 
 var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
 
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 
@@ -47,7 +47,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -76,12 +76,11 @@ function getRefs(element, name) {
   var elements = Array.from(element.querySelectorAll("[data-ref^=\"".concat(name, ".\"]")));
 
   if (elements.length === 0) {
-    return null;
+    return {};
   }
 
   return elements.reduce(function ($refs, $ref) {
-    var refName = $ref.dataset.ref.replace("".concat(name, "."), ''); // eslint-disable-next-line no-underscore-dangle
-
+    var refName = $ref.dataset.ref.replace("".concat(name, "."), '');
     var $realRef = $ref.__base__ ? $ref.__base__ : $ref;
 
     if ($refs[refName]) {
@@ -107,7 +106,7 @@ function getRefs(element, name) {
 
 function getChildren(element, components) {
   if (!components) {
-    return null;
+    return {};
   }
 
   return Object.entries(components).reduce(function (acc, _ref) {
@@ -115,10 +114,7 @@ function getChildren(element, components) {
         name = _ref2[0],
         ComponentClass = _ref2[1];
 
-    var _ref3 = ComponentClass.prototype || {},
-        config = _ref3.config;
-
-    var selector = config.el || "[data-component=\"".concat(name, "\"]");
+    var selector = "[data-component=\"".concat(name, "\"]");
     var elements = Array.from(element.querySelectorAll(selector));
 
     if (elements.length === 0) {
@@ -126,8 +122,23 @@ function getChildren(element, components) {
     }
 
     acc[name] = elements.map(function (el) {
-      var options = el.dataset.options;
-      return new ComponentClass(el, options);
+      // Return existing instance if it exists
+      if (el.__base__) {
+        return el.__base__;
+      } // Return a new instance if the component class is a child of the Base class
+
+
+      if (ComponentClass.__isBase__) {
+        return new ComponentClass(el);
+      } // Resolve async components
+
+
+      var asyncComponent = ComponentClass().then(function (module) {
+        var ResolvedClass = module.default;
+        return new ResolvedClass(el);
+      });
+      asyncComponent.__isAsync__ = true;
+      return asyncComponent;
     });
     return acc;
   }, {});
@@ -167,6 +178,23 @@ function call(instance, method) {
   return instance;
 }
 /**
+ * Mount a given component which might be async.
+ *
+ * @param  {Base|Promise} component The component to mount.
+ * @return {void}
+ */
+
+
+function mountComponent(component) {
+  if (component.__isAsync__) {
+    component.then(function (instance) {
+      return instance.$mount();
+    });
+  } else {
+    component.$mount();
+  }
+}
+/**
  * Tie the components' `mounted` method to the instance
  */
 
@@ -179,13 +207,28 @@ function mountComponents(instance) {
   debug(instance, 'mountComponents', instance.$children);
   Object.values(instance.$children).forEach(function ($child) {
     if (Array.isArray($child)) {
-      $child.forEach(function (c) {
-        c.$mount();
-      });
+      $child.forEach(mountComponent);
     } else {
-      $child.$mount();
+      mountComponent($child);
     }
   });
+}
+/**
+ * Destroy a given component which might be async.
+ *
+ * @param  {Base|Promise} component The component to destroy.
+ * @return {void}
+ */
+
+
+function destroyComponent(component) {
+  if (component.__isAsync__) {
+    component.then(function (instance) {
+      return instance.$destroy();
+    });
+  } else {
+    component.$destroy();
+  }
 }
 /**
  * Tie the components' `destroyed` method to the instance.
@@ -203,11 +246,9 @@ function destroyComponents(instance) {
   debug(instance, 'destroyComponents', instance.$children);
   Object.values(instance.$children).forEach(function ($child) {
     if (Array.isArray($child)) {
-      $child.forEach(function (c) {
-        c.$destroy();
-      });
+      $child.forEach(destroyComponent);
     } else {
-      $child.$destroy();
+      destroyComponent($child);
     }
   });
 }
@@ -280,7 +321,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
 
     _this.$isMounted = false;
     _this.$id = "".concat(_this.config.name, "-").concat((0, _nonSecure.default)());
-    _this.$el = element || document.querySelector(_this.config.el);
+    _this.$el = element;
 
     if (!_this.$el) {
       throw new Error('Unable to find the root element.');
@@ -296,20 +337,18 @@ var Base = /*#__PURE__*/function (_EventManager) {
       }
     }
 
-    _this.$options = _objectSpread({}, _this.config, {}, options || {});
+    _this.$options = _objectSpread(_objectSpread({}, _this.config), options || {});
     debug((0, _assertThisInitialized2.default)(_this), 'constructor', (0, _assertThisInitialized2.default)(_this));
-    var $refs = getRefs(_this.$el, _this.config.name);
-
-    if ($refs) {
-      _this.$refs = $refs;
-    }
-
-    var $children = getChildren(_this.$el, _this.config.components);
-
-    if ($children) {
-      _this.$children = $children;
-    }
-
+    Object.defineProperty((0, _assertThisInitialized2.default)(_this), '$refs', {
+      get: function get() {
+        return getRefs(this.$el, this.config.name);
+      }
+    });
+    Object.defineProperty((0, _assertThisInitialized2.default)(_this), '$children', {
+      get: function get() {
+        return getChildren(this.$el, this.config.components);
+      }
+    });
     var unbindMethods = []; // Bind all the methods when the component is mounted,
     // we save the unbind methods to unbind them all when
     // the component is destroyed.
@@ -343,7 +382,6 @@ var Base = /*#__PURE__*/function (_EventManager) {
       });
       destroyComponents((0, _assertThisInitialized2.default)(_this));
     }); // Attach the instance to the root element
-    // eslint-disable-next-line no-underscore-dangle
 
 
     _this.$el.__base__ = (0, _assertThisInitialized2.default)(_this); // Autobind all methods to the instance
@@ -400,4 +438,5 @@ var Base = /*#__PURE__*/function (_EventManager) {
 }(_EventManager2.default);
 
 exports.default = Base;
+Base.__isBase__ = true;
 //# sourceMappingURL=Base.js.map
