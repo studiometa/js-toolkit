@@ -112,18 +112,18 @@ nextFrame(() => {
 });
 ```
 
-## `tabTrap`
+## `focusTrap`
 
 Trap the tab navigation inside a given element.
 
-[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/tabTrap.js)
+[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/focusTrap.js)
 
 **Usage**
 
 ```js
-import { tabTrap } from '@studiometa/js-toolkit/utils';
+import { focusTrap } from '@studiometa/js-toolkit/utils';
 
-const { trap, untrap } = tabTrap();
+const { trap, untrap } = focusTrap();
 
 // Limit the tab navigation to focusable children of the document's body
 document.addEventListener('keyup', (event) => {

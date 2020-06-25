@@ -11,6 +11,12 @@ Object.defineProperty(exports, "debounce", {
     return _debounce2.default;
   }
 });
+Object.defineProperty(exports, "focusTrap", {
+  enumerable: true,
+  get: function get() {
+    return _focusTrap2.default;
+  }
+});
 Object.defineProperty(exports, "hasMethod", {
   enumerable: true,
   get: function get() {
@@ -35,12 +41,6 @@ Object.defineProperty(exports, "nextFrame", {
     return _nextFrame2.default;
   }
 });
-Object.defineProperty(exports, "tabTrap", {
-  enumerable: true,
-  get: function get() {
-    return _tabTrap2.default;
-  }
-});
 Object.defineProperty(exports, "throttle", {
   enumerable: true,
   get: function get() {
@@ -50,6 +50,8 @@ Object.defineProperty(exports, "throttle", {
 
 var _debounce2 = _interopRequireDefault(require("./debounce"));
 
+var _focusTrap2 = _interopRequireDefault(require("./focusTrap"));
+
 var _hasMethod2 = _interopRequireDefault(require("./hasMethod"));
 
 var _isObject2 = _interopRequireDefault(require("./isObject"));
@@ -57,8 +59,6 @@ var _isObject2 = _interopRequireDefault(require("./isObject"));
 var _keyCodes2 = _interopRequireDefault(require("./keyCodes"));
 
 var _nextFrame2 = _interopRequireDefault(require("./nextFrame"));
-
-var _tabTrap2 = _interopRequireDefault(require("./tabTrap"));
 
 var _throttle2 = _interopRequireDefault(require("./throttle"));
 //# sourceMappingURL=index.js.map
