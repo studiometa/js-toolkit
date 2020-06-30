@@ -15,6 +15,9 @@ module.exports = {
     {
       files: ['**/*.spec.js', '**/spec.js'],
       extends: ['plugin:jest/recommended', 'plugin:jest/style'],
+      rules: {
+        'jest/no-test-callback': 'off',
+      },
     },
   ],
 };

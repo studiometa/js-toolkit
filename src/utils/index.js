@@ -4,4 +4,6 @@ export hasMethod from './hasMethod';
 export isObject from './isObject';
 export keyCodes from './keyCodes';
 export nextFrame from './nextFrame';
+export setClasses from './setClasses';
+export setStyles from './setStyles';
 export throttle from './throttle';

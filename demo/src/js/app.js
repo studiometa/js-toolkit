@@ -1,23 +1,29 @@
-import { Base } from '../../../src';
+import { Base, Modal } from '../../../src';
+
+import MediaQuery from './components/MediaQuery';
 
 class App extends Base {
   get config() {
     return {
-      debug: true,
+      log: false,
       name: 'App',
-      components: {
-        Accordion: () => import(/* webpackChunkName: "Accordion" */ './components/Accordion'),
-        Cursor: () => import(/* webpackChunkName: "async/Cursor" */ './components/Cursor'),
-        Lazyload: () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload'),
-        Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew'),
-        Tabs: () => import(/* webpackChunkName: "Tabs" */ './../../../src/components/Tabs'),
-        Modal: () => import(/* webpackChunkName: "Modal" */ './../../../src/components/Modal'),
-      },
+    };
+  }
+
+  get components() {
+    return {
+      Accordion: () => import(/* webpackChunkName: "Accordion" */ './components/Accordion'),
+      Cursor: () => import(/* webpackChunkName: "async/Cursor" */ './components/Cursor'),
+      Lazyload: () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload'),
+      Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew'),
+      Modal,
+      MediaQuery,
+      Tabs: () => import(/* webpackChunkName: "Tabs" */ './../../../src/components/Tabs'),
     };
   }
 
   mounted() {
-    this.$log('Mounted 🎉');
+    this.$log('Mounted 🎉', 'bar');
   }
 
   resized(props) {
@@ -25,7 +31,7 @@ class App extends Base {
   }
 
   scrolled(props) {
-    this.$log('scrolled', props);
+    this.$log('scrolled', props, 'foo');
   }
 }
 

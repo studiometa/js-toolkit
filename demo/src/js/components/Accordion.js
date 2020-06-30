@@ -11,8 +11,8 @@ class AccordionItem extends Base {
   mounted() {
     this.$el.addEventListener('focusin', this);
     this.$el.addEventListener('focusout', this);
-    this.$refs.title.setAttribute('id', this.id);
-    this.$refs.content.setAttribute('aria-labelledby', this.id);
+    this.$refs.title.setAttribute('id', this.$id);
+    this.$refs.content.setAttribute('aria-labelledby', this.$id);
   }
 
   destroyed() {

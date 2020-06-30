@@ -3,7 +3,7 @@ import { Base } from '../../../../src';
 class Home extends Base {
   get config() {
     return {
-      debug: true,
+      // debug: true,
       name: 'Home',
       components: {
         Cursor: () => import(/* webpackChunkName: "async/Cursor" */ '../components/Cursor'),

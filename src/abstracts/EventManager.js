@@ -8,7 +8,7 @@
  */
 export default class EventManager {
   /** @type {Object} An object to store the events */
-  events = {};
+  $events = {};
 
   /**
    * Bind a listener function to an event.
@@ -18,10 +18,10 @@ export default class EventManager {
    * @return {Function}          A function to unbind the listener.
    */
   $on(event, listener) {
-    if (!Array.isArray(this.events[event])) {
-      this.events[event] = [];
+    if (!Array.isArray(this.$events[event])) {
+      this.$events[event] = [];
     }
-    this.events[event].push(listener);
+    this.$events[event].push(listener);
 
     return () => {
       this.$off(event, listener);
@@ -38,20 +38,20 @@ export default class EventManager {
   $off(event, listener) {
     // If no event specified, we remove them all.
     if (!event) {
-      this.events = {};
+      this.$events = {};
       return this;
     }
     // If no listener have been specified, we remove all
     // the listeners for the given event.
     if (!listener) {
-      this.events[event] = [];
+      this.$events[event] = [];
       return this;
     }
 
-    const index = this.events[event].indexOf(listener);
+    const index = this.$events[event].indexOf(listener);
 
     if (index > -1) {
-      this.events[event].splice(index, 1);
+      this.$events[event].splice(index, 1);
     }
 
     return this;
@@ -65,11 +65,11 @@ export default class EventManager {
    * @return {EventManager}       The current instance.
    */
   $emit(event, ...args) {
-    if (!Array.isArray(this.events[event])) {
+    if (!Array.isArray(this.$events[event])) {
       return this;
     }
 
-    this.events[event].forEach(listener => {
+    this.$events[event].forEach(listener => {
       listener.apply(this, args);
     });
     return this;

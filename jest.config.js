@@ -6,4 +6,9 @@ module.exports = {
   testEnvironment: 'jsdom',
   collectCoverage: true,
   collectCoverageFrom: ['<rootDir>/src/**/*.js'],
+  transform: {
+    '^.+\\.js$': 'babel-jest',
+    '^.+\\.html?$': 'html-loader-jest',
+  },
+  setupFiles: ['<rootDir>/tests/__setup__/requestAnimationFrame.js'],
 };
