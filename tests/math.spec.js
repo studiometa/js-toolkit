@@ -21,6 +21,7 @@ test('math.damp method', () => {
   expect(math.damp(10, 5, 0.25)).toBe(6.25);
   expect(math.damp(10, 10, 0.25)).toBe(10);
   expect(math.damp(10, 10, 1)).toBe(10);
+  expect(math.damp(10, 9.9999)).toBe(10);
 });
 
 test('math.lerp method', () => {

@@ -1,11 +1,11 @@
-import EventManager from '../src/abstracts/EventManager';
+import EventManager from '../../src/abstracts/EventManager';
 
 describe('EventManager class', () => {
   it('can register callbacks to events', () => {
     const eventManager = new EventManager();
     const foo = jest.fn();
     eventManager.$on('foo', foo);
-    expect(eventManager.events.foo[0]).toEqual(foo);
+    expect(eventManager.$events.foo[0]).toEqual(foo);
 
     eventManager.$emit('foo');
     eventManager.$emit('foo', 'bar', 'baz');
@@ -35,8 +35,8 @@ describe('EventManager class', () => {
     eventManager.$emit('foo');
     eventManager.$off('foo', bar);
 
-    expect(eventManager.events.foo).toHaveLength(1);
-    expect(eventManager.events.foo[0]).toBe(foo);
+    expect(eventManager.$events.foo).toHaveLength(1);
+    expect(eventManager.$events.foo[0]).toBe(foo);
   });
 
   it('can unregister a specific callback from an event', () => {
@@ -45,7 +45,7 @@ describe('EventManager class', () => {
     eventManager.$on('foo', foo);
     eventManager.$emit('foo');
     eventManager.$off('foo', foo);
-    expect(eventManager.events.foo).toHaveLength(0);
+    expect(eventManager.$events.foo).toHaveLength(0);
     eventManager.$emit('foo');
     expect(foo).toHaveBeenCalledTimes(1);
   });
@@ -57,14 +57,14 @@ describe('EventManager class', () => {
     eventManager.$on('foo', () => foo());
     eventManager.$on('foo', () => bar());
 
-    expect(eventManager.events.foo).toHaveLength(2);
+    expect(eventManager.$events.foo).toHaveLength(2);
 
     eventManager.$emit('foo');
     eventManager.$off('foo');
 
     expect(foo).toHaveBeenCalledTimes(1);
     expect(bar).toHaveBeenCalledTimes(1);
-    expect(eventManager.events.foo).toHaveLength(0);
+    expect(eventManager.$events.foo).toHaveLength(0);
   });
 
   it('can disable all events from itself', () => {
@@ -74,13 +74,13 @@ describe('EventManager class', () => {
     eventManager.$on('foo', () => foo());
     eventManager.$on('bar', () => bar());
 
-    expect(eventManager.events.foo).toHaveLength(1);
-    expect(eventManager.events.bar).toHaveLength(1);
+    expect(eventManager.$events.foo).toHaveLength(1);
+    expect(eventManager.$events.bar).toHaveLength(1);
 
     eventManager.$off();
 
-    expect(eventManager.events.foo).toBeUndefined();
-    expect(eventManager.events.bar).toBeUndefined();
+    expect(eventManager.$events.foo).toBeUndefined();
+    expect(eventManager.$events.bar).toBeUndefined();
 
     eventManager.$emit('foo');
     eventManager.$emit('bar');
@@ -97,6 +97,6 @@ describe('EventManager class', () => {
     eventManager.$emit('foo');
 
     expect(foo).toHaveBeenCalledTimes(1);
-    expect(eventManager.events.foo).toHaveLength(0);
+    expect(eventManager.$events.foo).toHaveLength(0);
   });
 });

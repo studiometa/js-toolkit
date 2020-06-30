@@ -1,39 +1,6 @@
 import Base from '../abstracts/Base';
-import isObject from '../utils/isObject';
-
-/**
- * Manage a list of classes as string on an element.
- *
- * @param {HTMLElement} element    The element to update.
- * @param {String}      classNames A string of class names.
- * @param {String}      method     The method to use: add, remove or toggle.
- */
-function setClasses(element, classNames, method = 'add') {
-  if (!element || !classNames) {
-    return;
-  }
-
-  classNames.split(' ').forEach(className => {
-    element.classList[method](className);
-  });
-}
-
-/**
- * Manage a list of style properties on an element.
- *
- * @param {HTMLElement}         element The element to update.
- * @param {CSSStyleDeclaration} styles  An object of styles properties and values.
- * @param {String}              method  The method to use: add or remove.
- */
-function setStyles(element, styles, method = 'add') {
-  if (!element || !styles || !isObject(styles)) {
-    return;
-  }
-
-  Object.entries(styles).forEach(([prop, value]) => {
-    element.style[prop] = method === 'add' ? value : '';
-  });
-}
+import setClasses from '../utils/setClasses';
+import setStyles from '../utils/setStyles';
 
 /**
  * Tabs class.
@@ -78,7 +45,9 @@ export default class Tabs extends Base {
 
       const clickHandler = () => {
         this.$refs.btn.forEach((el, i) => {
-          this.disableTab(el, this.$refs.content[i]);
+          if (i !== index) {
+            this.disableTab(el, this.$refs.content[i]);
+          }
         });
 
         this.enableTab(btn, content);

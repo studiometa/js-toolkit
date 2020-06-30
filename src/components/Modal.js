@@ -1,42 +1,9 @@
 import Base from '../abstracts/Base';
-import isObject from '../utils/isObject';
+import setClasses from '../utils/setClasses';
+import setStyles from '../utils/setStyles';
 import focusTrap from '../utils/focusTrap';
 
 const { trap, untrap, saveActiveElement } = focusTrap();
-
-/**
- * Manage a list of classes as string on an element.
- *
- * @param {HTMLElement} element    The element to update.
- * @param {String}      classNames A string of class names.
- * @param {String}      method     The method to use: add, remove or toggle.
- */
-function setClasses(element, classNames, method = 'add') {
-  if (!element || !classNames) {
-    return;
-  }
-
-  classNames.split(' ').forEach(className => {
-    element.classList[method](className);
-  });
-}
-
-/**
- * Manage a list of style properties on an element.
- *
- * @param {HTMLElement}         element The element to update.
- * @param {CSSStyleDeclaration} styles  An object of styles properties and values.
- * @param {String}              method  The method to use: add or remove.
- */
-function setStyles(element, styles, method = 'add') {
-  if (!element || !styles || !isObject(styles)) {
-    return;
-  }
-
-  Object.entries(styles).forEach(([prop, value]) => {
-    element.style[prop] = method === 'add' ? value : '';
-  });
-}
 
 /**
  * Modal class.
@@ -83,6 +50,19 @@ export default class Modal extends Base {
 
     if (this.$options.move) {
       const target = document.querySelector(this.$options.move) || document.body;
+      const refsBackup = this.$refs;
+
+      this.refModalPlaceholder = document.createComment('');
+      this.refModalParentBackup = this.$refs.modal.parentElement || this.$el;
+      this.refModalParentBackup.insertBefore(this.refModalPlaceholder, this.$refs.modal);
+
+      this.refModalUnbindGetRefFilter = this.$on('get:refs', refs => {
+        Object.entries(refsBackup).forEach(([key, ref]) => {
+          if (!refs[key]) {
+            refs[key] = ref;
+          }
+        });
+      });
       target.appendChild(this.$refs.modal);
     }
 
@@ -96,6 +76,15 @@ export default class Modal extends Base {
    */
   destroyed() {
     this.close();
+
+    if (this.$options.move) {
+      this.refModalParentBackup.insertBefore(this.$refs.modal, this.refModalPlaceholder);
+      this.refModalUnbindGetRefFilter();
+      this.refModalPlaceholder.remove();
+      delete this.refModalPlaceholder;
+      delete this.refModalParentBackup;
+      delete this.refModalUnbindGetRefFilter;
+    }
 
     const open = Array.isArray(this.$refs.open) ? this.$refs.open : [this.$refs.open];
     open.forEach(btn => btn.removeEventListener('click', this.open));

@@ -11,6 +11,7 @@ import useKey from '../services/key';
 
 /**
  * Verbose debug for the component.
+ *
  * @param  {...any} args The arguments passed to the method
  * @return {void}
  */
@@ -23,20 +24,22 @@ function debug(instance, ...args) {
 /**
  * Get all refs of a component.
  *
- * @param {HTMLElement}  element The component's root element
- * @param {String}       name    The component's name
- * @return {null|Object}         Returns `null` if no refs were found or an object of references
+ * @param  {Base}        instance The component's instance.
+ * @param  {HTMLElement} element  The component's root element.
+ * @return {Object}               Return an object containing all the component's refs.
  */
-function getRefs(element, name) {
-  const elements = Array.from(element.querySelectorAll(`[data-ref^="${name}."]`));
+function getRefs(instance, element) {
+  const allRefs = Array.from(element.querySelectorAll(`[data-ref]`));
+  const childrenRefs = Array.from(element.querySelectorAll(`:scope [data-component] [data-ref]`));
+  const elements = allRefs.filter(ref => !childrenRefs.includes(ref));
 
-  if (elements.length === 0) {
-    return {};
-  }
-
-  return elements.reduce(($refs, $ref) => {
-    const refName = $ref.dataset.ref.replace(`${name}.`, '');
+  const refs = elements.reduce(($refs, $ref) => {
+    let refName = $ref.dataset.ref;
     const $realRef = $ref.__base__ ? $ref.__base__ : $ref;
+
+    if (instance.$options.name) {
+      refName = refName.replace(`${instance.$options.name}.`, '');
+    }
 
     if ($refs[refName]) {
       if (Array.isArray($refs[refName])) {
@@ -50,20 +53,20 @@ function getRefs(element, name) {
 
     return $refs;
   }, {});
+
+  instance.$emit('get:refs', refs);
+  return refs;
 }
 
 /**
  *
+ * @param  {Base}        instance   The component's instance.
  * @param  {HTMLElement} element    The component's root element
  * @param  {Object}      components The children components' classes
  * @return {null|Object}            Returns `null` if no child components are defined or an object of all child component instances
  */
-function getChildren(element, components) {
-  if (!components) {
-    return {};
-  }
-
-  return Object.entries(components).reduce((acc, [name, ComponentClass]) => {
+function getChildren(instance, element, components = {}) {
+  const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
     const selector = `[data-component="${name}"]`;
     const elements = Array.from(element.querySelectorAll(selector));
 
@@ -79,12 +82,14 @@ function getChildren(element, components) {
 
       // Return a new instance if the component class is a child of the Base class
       if (ComponentClass.__isBase__) {
+        Object.defineProperty(ComponentClass.prototype, '$isChild', { value: true });
         return new ComponentClass(el);
       }
 
       // Resolve async components
       const asyncComponent = ComponentClass().then(module => {
         const ResolvedClass = module.default;
+        Object.defineProperty(ResolvedClass.prototype, '$isChild', { value: true });
         return new ResolvedClass(el);
       });
 
@@ -95,6 +100,32 @@ function getChildren(element, components) {
 
     return acc;
   }, {});
+
+  instance.$emit('get:children', children);
+  return children;
+}
+
+/**
+ * Get a component's options.
+ *
+ * @param  {Base}        instance The component's instance.
+ * @param  {HTMLElement} element  The component's root element.
+ * @param  {Object}      config   The component's default config.
+ * @return {Object}               The component's merged options.
+ */
+function getOptions(instance, element, config = {}) {
+  let options = {};
+  if (element.dataset.options) {
+    try {
+      options = JSON.parse(element.dataset.options);
+    } catch (err) {
+      throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
+    }
+  }
+
+  options = { ...config, ...(options || {}) };
+  instance.$emit('get:options', options);
+  return options;
 }
 
 /**
@@ -144,7 +175,10 @@ function mountComponent(component) {
 }
 
 /**
- * Tie the components' `mounted` method to the instance
+ * Mount children components of a given instance.
+ *
+ * @param  {Base} instance The parent component's instance.
+ * @return {void}
  */
 function mountComponents(instance) {
   if (!instance.$children) {
@@ -177,9 +211,9 @@ function destroyComponent(component) {
 }
 
 /**
- * Tie the components' `destroyed` method to the instance.
+ * Destroy children components of a given instance.
  *
- * @param  {Base} instance The base instance.
+ * @param  {Base} instance The parent component's instance.
  * @return {void}
  */
 function destroyComponents(instance) {
@@ -231,6 +265,30 @@ function initService(instance, method, service) {
  */
 export default class Base extends EventManager {
   /**
+   * Get the component's refs.
+   * @return {Object}
+   */
+  get $refs() {
+    return getRefs(this, this.$el);
+  }
+
+  /**
+   * Get the component's children components.
+   * @return {Object}
+   */
+  get $children() {
+    return getChildren(this, this.$el, this.components || (this.config || {}).components);
+  }
+
+  /**
+   * Get the component's merged config and options.
+   * @return {Object}
+   */
+  get $options() {
+    return getOptions(this, this.$el, this.config || {});
+  }
+
+  /**
    * Class constructor where all the magic takes place
    * @param  {Object}    options An option object
    * @return {Base}         The mounted instance
@@ -246,38 +304,25 @@ export default class Base extends EventManager {
       throw new Error('The `config.name` property is required.');
     }
 
-    this.$isMounted = false;
-    this.$id = `${this.config.name}-${nanoid()}`;
-    this.$el = element;
-
-    if (!this.$el) {
-      throw new Error('Unable to find the root element.');
+    if (!element) {
+      throw new Error('The root element must be defined.');
     }
 
-    let options = {};
-    if (this.$el.dataset.options) {
-      try {
-        options = JSON.parse(this.$el.dataset.options);
-      } catch (err) {
-        throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
-      }
-    }
-
-    this.$options = { ...this.config, ...(options || {}) };
+    // eslint-disable-next-line
+    Object.defineProperties(this, {
+      $id: {
+        value: `${this.config.name}-${nanoid()}`,
+      },
+      $isMounted: {
+        value: false,
+        writable: true,
+      },
+      $el: {
+        value: element,
+      },
+    });
 
     debug(this, 'constructor', this);
-
-    Object.defineProperty(this, '$refs', {
-      get() {
-        return getRefs(this.$el, this.config.name);
-      },
-    });
-
-    Object.defineProperty(this, '$children', {
-      get() {
-        return getChildren(this.$el, this.config.components);
-      },
-    });
 
     let unbindMethods = [];
 
@@ -317,17 +362,38 @@ export default class Base extends EventManager {
       destroyComponents(this);
     });
 
-    // Attach the instance to the root element
-    this.$el.__base__ = this;
+    if (!this.$el.__base__) {
+      // Attach the instance to the root element
+      Object.defineProperty(this.$el, '__base__', {
+        get: () => this,
+      });
+    }
 
     // Autobind all methods to the instance
-    autoBind(this);
-
-    // Fire the `mounted` method on the next frame so the class
-    // properties are correctly loaded
-    requestAnimationFrame(() => {
-      this.$mount();
+    autoBind(this, {
+      exclude: [
+        '$mount',
+        '$destroy',
+        '$log',
+        '$on',
+        '$once',
+        '$off',
+        '$emit',
+        'mounted',
+        'loaded',
+        'ticked',
+        'resized',
+        'moved',
+        'keyed',
+        'scrolled',
+        'destroyed',
+      ],
     });
+
+    // Mount class which are not used as another component's child.
+    if (!this.$isChild) {
+      this.$mount();
+    }
 
     return this;
   }
