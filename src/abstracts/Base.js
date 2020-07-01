@@ -277,7 +277,7 @@ export default class Base extends EventManager {
    * @return {Object}
    */
   get $children() {
-    return getChildren(this, this.$el, this.components || (this.config || {}).components);
+    return getChildren(this, this.$el, (this.config || {}).components || {});
   }
 
   /**
