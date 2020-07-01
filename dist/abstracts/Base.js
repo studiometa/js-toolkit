@@ -359,7 +359,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
   }, {
     key: "$children",
     get: function get() {
-      return getChildren(this, this.$el, this.components || (this.config || {}).components);
+      return getChildren(this, this.$el, (this.config || {}).components || {});
     }
     /**
      * Get the component's merged config and options.
