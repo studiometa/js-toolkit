@@ -82,14 +82,14 @@ function getChildren(instance, element, components = {}) {
 
       // Return a new instance if the component class is a child of the Base class
       if (ComponentClass.__isBase__) {
-        Object.defineProperty(ComponentClass.prototype, '$isChild', { value: true });
+        Object.defineProperty(ComponentClass.prototype, '__isChild__', { value: true });
         return new ComponentClass(el);
       }
 
       // Resolve async components
       const asyncComponent = ComponentClass().then(module => {
         const ResolvedClass = module.default;
-        Object.defineProperty(ResolvedClass.prototype, '$isChild', { value: true });
+        Object.defineProperty(ResolvedClass.prototype, '__isChild__', { value: true });
         return new ResolvedClass(el);
       });
 
@@ -391,7 +391,7 @@ export default class Base extends EventManager {
     });
 
     // Mount class which are not used as another component's child.
-    if (!this.$isChild) {
+    if (!this.__isChild__) {
       this.$mount();
     }
 

@@ -10,5 +10,8 @@ module.exports = {
     '^.+\\.js$': 'babel-jest',
     '^.+\\.html?$': 'html-loader-jest',
   },
-  setupFiles: ['<rootDir>/tests/__setup__/requestAnimationFrame.js'],
+  setupFiles: [
+    '<rootDir>/tests/__setup__/requestAnimationFrame.js',
+    '<rootDir>/tests/__setup__/mockBreakpoints.js',
+  ],
 };
