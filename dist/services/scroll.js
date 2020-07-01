@@ -27,6 +27,8 @@ var _throttle = _interopRequireDefault(require("../utils/throttle"));
 
 var _debounce = _interopRequireDefault(require("../utils/debounce"));
 
+var _nextFrame = _interopRequireDefault(require("../utils/nextFrame"));
+
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
@@ -78,7 +80,7 @@ var Scroll = /*#__PURE__*/function (_Service) {
       var debounced = (0, _debounce.default)(function () {
         _this2.trigger(_this2.props);
 
-        requestAnimationFrame(function () {
+        (0, _nextFrame.default)(function () {
           _this2.trigger(_this2.props);
         });
       }, 50);
@@ -118,13 +120,11 @@ var Scroll = /*#__PURE__*/function (_Service) {
 
       if (window.pageYOffset !== this.y) {
         this.y = window.pageYOffset;
-        this.yProgress = this.y / this.max.y;
       } // Check scroll x
 
 
       if (window.pageXOffset !== this.x) {
         this.x = window.pageXOffset;
-        this.xProgress = this.x / this.max.x;
       }
 
       return {
@@ -143,8 +143,8 @@ var Scroll = /*#__PURE__*/function (_Service) {
           y: this.y - this.yLast
         },
         progress: {
-          x: this.xProgress,
-          y: this.yProgress
+          x: this.max.x === 0 ? 1 : this.x / this.max.x,
+          y: this.max.y === 0 ? 1 : this.y / this.max.y
         },
         max: this.max
       };
