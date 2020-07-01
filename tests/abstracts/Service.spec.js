@@ -38,4 +38,42 @@ describe('The abstract Service class', () => {
 
     expect(foo.get('key')).toBe(fn);
   });
+
+  it('should be killed when removing all callbacks', () => {
+    const fn = jest.fn();
+    class Foo extends Service {
+      init() {
+        fn();
+      }
+
+      kill() {
+        fn();
+      }
+    }
+    const foo = new Foo();
+
+    expect(foo.isInit).toBe(false);
+    expect(foo.callbacks.size).toBe(0);
+    expect(fn).toHaveBeenCalledTimes(0);
+
+    foo.add('key', () => {});
+    expect(foo.isInit).toBe(true);
+    expect(foo.callbacks.size).toBe(1);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    foo.add('otherKey', () => {});
+    expect(foo.isInit).toBe(true);
+    expect(foo.callbacks.size).toBe(2);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    foo.remove('key');
+    expect(foo.isInit).toBe(true);
+    expect(foo.callbacks.size).toBe(1);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    foo.remove('otherKey');
+    expect(foo.isInit).toBe(false);
+    expect(foo.callbacks.size).toBe(0);
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
 });
