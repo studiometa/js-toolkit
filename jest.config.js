@@ -4,7 +4,7 @@
 module.exports = {
   // The test environment that will be used for testing
   testEnvironment: 'jsdom',
-  collectCoverage: true,
+  collectCoverage: false,
   collectCoverageFrom: ['<rootDir>/src/**/*.js'],
   transform: {
     '^.+\\.js$': 'babel-jest',
