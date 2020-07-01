@@ -92,7 +92,7 @@ export default class Service {
   remove(key) {
     this.callbacks.delete(key);
 
-    // Kill the service when we add the first callback
+    // Kill the service when we remove the last callback
     if (this.callbacks.size === 0 && this.isInit) {
       this.kill();
       this.isInit = false;
