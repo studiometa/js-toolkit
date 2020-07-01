@@ -96,9 +96,10 @@ describe('utils.throttle method', () => {
 
     setTimeout(() => {
       throttled();
+      throttled();
       expect(fn).toHaveBeenCalledTimes(2);
       done();
-    }, 17);
+    }, 20);
   });
 });
 
