@@ -1,4 +1,5 @@
 import * as utils from '../src/utils';
+import wait from './__utils__/wait';
 
 test('utils exports', () => {
   expect(Object.keys(utils)).toEqual([
@@ -15,7 +16,7 @@ test('utils exports', () => {
 });
 
 describe('utils.debounce method', () => {
-  it('should wait the given delay to call given function', done => {
+  it('should wait the given delay to call given function', async () => {
     const fn = jest.fn(() => true);
     const debounced = utils.debounce(fn, 400);
 
@@ -26,36 +27,29 @@ describe('utils.debounce method', () => {
 
     expect(fn).not.toHaveBeenCalled();
 
-    setTimeout(() => {
-      expect(fn).not.toHaveBeenCalled();
-    }, 150);
+    await wait(150);
+    expect(fn).not.toHaveBeenCalled();
 
-    setTimeout(() => {
-      expect(fn).toHaveBeenCalledTimes(1);
-      done();
-    }, 400);
+    await wait(400);
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it('should wait for 300ms when used without the delay parameter', done => {
+  it('should wait for 300ms when used without the delay parameter', async () => {
     const fn = jest.fn();
     const debounced = utils.debounce(fn);
 
     debounced();
     debounced();
 
-    setTimeout(() => {
-      expect(fn).not.toHaveBeenCalled();
-    }, 200);
-
-    setTimeout(() => {
-      expect(fn).toHaveBeenCalledTimes(1);
-      done();
-    }, 301);
+    await wait(200);
+    expect(fn).not.toHaveBeenCalled();
+    await wait(301);
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 });
 
 describe('utils.throttle method', () => {
-  it('should call the given function only once in the given delay', done => {
+  it('should call the given function only once in the given delay', async () => {
     const fn = jest.fn(() => true);
     const throttled = utils.throttle(fn, 300);
 
@@ -66,20 +60,16 @@ describe('utils.throttle method', () => {
 
     expect(fn).toHaveBeenCalledTimes(1);
 
-    setTimeout(() => {
-      throttled();
-      throttled();
-      throttled();
-      throttled();
-
-      setTimeout(() => {
-        expect(fn).toHaveBeenCalledTimes(2);
-        done();
-      }, 100);
-    }, 400);
+    await wait(400);
+    throttled();
+    throttled();
+    throttled();
+    throttled();
+    await wait(100);
+    expect(fn).toHaveBeenCalledTimes(2);
   });
 
-  it('should call the callback after 16ms when no delay provided', done => {
+  it('should call the callback after 16ms when no delay provided', async () => {
     const fn = jest.fn(() => true);
     const throttled = utils.throttle(fn);
 
@@ -89,17 +79,14 @@ describe('utils.throttle method', () => {
 
     expect(fn).toHaveBeenCalledTimes(1);
 
-    setTimeout(() => {
-      throttled();
-      expect(fn).toHaveBeenCalledTimes(1);
-    }, 10);
+    await wait(10);
+    throttled();
+    expect(fn).toHaveBeenCalledTimes(1);
 
-    setTimeout(() => {
-      throttled();
-      throttled();
-      expect(fn).toHaveBeenCalledTimes(2);
-      done();
-    }, 20);
+    await wait(20);
+    throttled();
+    throttled();
+    expect(fn).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -141,17 +128,15 @@ describe('utils.isObject method', () => {
 });
 
 describe('utils.nextFrame method', () => {
-  it('should execute the callback function in the next frame', done => {
+  it('should execute the callback function in the next frame', async () => {
     const fn = jest.fn();
     utils.nextFrame(fn);
     expect(fn).toHaveBeenCalledTimes(0);
-    setTimeout(() => {
-      expect(fn).toHaveBeenCalledTimes(1);
-      done();
-    }, 10);
+    await wait(10);
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it('should work server-side', done => {
+  it('should work server-side', async () => {
     // Mock window === undefined
     // @see https://stackoverflow.com/a/56999581
     const windowSpy = jest.spyOn(global, 'window', 'get');
@@ -160,13 +145,10 @@ describe('utils.nextFrame method', () => {
 
     utils.nextFrame(fn);
     expect(fn).toHaveBeenCalledTimes(0);
-    setTimeout(() => {
-      setTimeout(() => {
-        expect(fn).toHaveBeenCalledTimes(1);
-        windowSpy.mockRestore();
-        done();
-      });
-    });
+    await wait(1);
+    await wait(1);
+    expect(fn).toHaveBeenCalledTimes(1);
+    windowSpy.mockRestore();
   });
 });
 
