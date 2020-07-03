@@ -61,7 +61,7 @@ class Pointer extends Service {
     this.downHandler = this.downHandler.bind(this);
     this.upHandler = this.upHandler.bind(this);
 
-    document.addEventListener('mouseenter', this.handler, { once: true });
+    document.documentElement.addEventListener('mouseenter', this.handler, { once: true });
     document.addEventListener('mousemove', this.handler, { passive: true });
     document.addEventListener('touchmove', this.handler, { passive: true });
     document.addEventListener('mousedown', this.downHandler, { passive: true });
