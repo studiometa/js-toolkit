@@ -10,8 +10,10 @@ export const raf =
 /**
  * Execute a callback in the next frame.
  * @param  {Function} fn The callback function to execute.
- * @return {void}
+ * @return {Promise}
  */
-export default function nextFrame(fn) {
-  raf(() => raf(fn));
+export default function nextFrame(fn = () => {}) {
+  return new Promise(resolve => {
+    raf(() => raf(() => resolve(fn())));
+  });
 }
