@@ -1,6 +1,22 @@
-/* eslint no-underscore-dangle: ["error", { "allow": ["__isTransitioning__"] }] */
+/* eslint no-underscore-dangle: ["error", { "allow": ["__isTransitioning__", "__transitionEndHandler__"] }] */
 import nextFrame from './nextFrame';
 import setClasses from './setClasses';
+import setStyles from './setStyles';
+
+/**
+ * Update either the classes or the styles of an element with the given method.
+ *
+ * @param {HTMLElement}   element         The element to update.
+ * @param {String|Object} classesOrStyles The classes or styles to apply.
+ * @param {String}        method          The method to use, one of `add` or `remove`.
+ */
+function setClassesOrStyles(element, classesOrStyles, method = 'add') {
+  if (typeof classesOrStyles === 'string') {
+    setClasses(element, classesOrStyles, method);
+  } else {
+    setStyles(element, classesOrStyles, method);
+  }
+}
 
 /**
  * Test if the given element has a transition duration.
@@ -9,9 +25,12 @@ import setClasses from './setClasses';
  * @return {Boolean}             The result of the test.
  */
 function testTransition(element) {
-  return typeof window === 'undefined'
-    ? false
-    : window.getComputedStyle(element).transitionDuration !== '0s';
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const { transitionDuration } = window.getComputedStyle(element);
+  return !!transitionDuration && transitionDuration !== '0s';
 }
 
 /**
@@ -21,9 +40,9 @@ function testTransition(element) {
  */
 async function start(element, classes) {
   element.__isTransitioning__ = true;
-  setClasses(element, classes.from);
+  setClassesOrStyles(element, classes.from);
   await nextFrame();
-  setClasses(element, classes.active);
+  setClassesOrStyles(element, classes.active);
   await nextFrame();
 }
 
@@ -38,17 +57,14 @@ async function next(element, classes) {
   /* eslint-disable-next-line */
   return new Promise(async resolve => {
     if (hasTransition) {
-      const transitionEndHandler = () => {
-        resolve();
-        element.removeEventListener('transitionend', transitionEndHandler);
-      };
-      element.addEventListener('transitionend', transitionEndHandler, false);
+      element.__transitionEndHandler__ = resolve;
+      element.addEventListener('transitionend', element.__transitionEndHandler__, false);
     }
-    setClasses(element, classes.from, 'remove');
+    setClassesOrStyles(element, classes.from, 'remove');
     if (!hasTransition) {
       await nextFrame();
     }
-    setClasses(element, classes.to);
+    setClassesOrStyles(element, classes.to);
     await nextFrame();
     if (!hasTransition) {
       resolve();
@@ -62,9 +78,11 @@ async function next(element, classes) {
  * @return {void}
  */
 function end(element, classes) {
-  setClasses(element, classes.to, 'remove');
-  setClasses(element, classes.active, 'remove');
-  element.__isTransitioning__ = false;
+  element.removeEventListener('transitionend', element.__transitionEndHandler__, false);
+  setClassesOrStyles(element, classes.to, 'remove');
+  setClassesOrStyles(element, classes.active, 'remove');
+  delete element.__isTransitioning__;
+  delete element.__transitionEndHandler__;
 }
 
 /**
@@ -77,7 +95,7 @@ function end(element, classes) {
  * @param  {String|Object} name    The name of the transition or an object with the hooks classes.
  * @return {Promise}               A promise resolving at the end of the transition.
  */
-export default async function transition(element, name = 'transition') {
+export default async function transition(element, name) {
   const classes =
     typeof name === 'string'
       ? {
@@ -101,4 +119,5 @@ export default async function transition(element, name = 'transition') {
   await start(element, classes);
   await next(element, classes);
   end(element, classes);
+  return Promise.resolve();
 }

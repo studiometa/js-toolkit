@@ -18,6 +18,7 @@ Object.defineProperty(window, 'getComputedStyle', {
 
     return {
       content,
+      transitionDuration: element.style.transitionDuration,
       getPropertyValue(key) {
         return this[key];
       },
