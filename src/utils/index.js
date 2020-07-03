@@ -7,3 +7,4 @@ export nextFrame from './nextFrame';
 export setClasses from './setClasses';
 export setStyles from './setStyles';
 export throttle from './throttle';
+export transition from './transition';
