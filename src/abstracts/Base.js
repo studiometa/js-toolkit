@@ -1,6 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import nanoid from 'nanoid/non-secure';
-import autoBind from 'auto-bind';
+import autoBind from '../utils/object/autoBind';
+import getAllProperties from '../utils/object/getAllProperties';
 import EventManager from './EventManager';
 import hasMethod from '../utils/hasMethod';
 import usePointer from '../services/pointer';
@@ -34,12 +35,8 @@ function getRefs(instance, element) {
   const elements = allRefs.filter(ref => !childrenRefs.includes(ref));
 
   const refs = elements.reduce(($refs, $ref) => {
-    let refName = $ref.dataset.ref;
+    const refName = $ref.dataset.ref;
     const $realRef = $ref.__base__ ? $ref.__base__ : $ref;
-
-    if (instance.$options.name) {
-      refName = refName.replace(`${instance.$options.name}.`, '');
-    }
 
     if ($refs[refName]) {
       if (Array.isArray($refs[refName])) {
@@ -351,6 +348,40 @@ export default class Base extends EventManager {
         initService(this, 'moved', usePointer),
         initService(this, 'keyed', useKey),
       ];
+
+      // Bind method to events on refs
+      let eventMethods = getAllProperties(this).filter(([name]) => name.startsWith('on'));
+
+      Object.entries(this.$refs).forEach(([refName, $refOrRefs]) => {
+        const $refs = Array.isArray($refOrRefs) ? $refOrRefs : [$refOrRefs];
+        const refEventMethod = `on${refName.replace(/^\w/, c => c.toUpperCase())}`;
+
+        eventMethods
+          .filter(([eventMethod]) => eventMethod.startsWith(refEventMethod))
+          .forEach(([eventMethod]) => {
+            $refs.forEach(($ref, index) => {
+              const eventName = eventMethod.replace(refEventMethod, '').toLowerCase();
+              const handler = event => this[eventMethod](event, index);
+              $ref.addEventListener(eventName, handler);
+
+              unbindMethods.push(() => {
+                $ref.removeEventListener(eventName, index);
+              });
+            });
+          });
+
+        eventMethods = eventMethods.filter(
+          ([eventMethod]) => !eventMethod.startsWith(refEventMethod)
+        );
+      });
+
+      eventMethods.forEach(([eventMethod]) => {
+        const eventName = eventMethod.replace(/^on/, '').toLowerCase();
+        this.$el.addEventListener(eventName, this[eventMethod]);
+        unbindMethods.push(() => {
+          this.$el.removeEventListener(eventName, this[eventMethod]);
+        });
+      });
 
       mountComponents(this);
       this.$isMounted = true;

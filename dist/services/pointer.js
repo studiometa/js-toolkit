@@ -105,7 +105,7 @@ var Pointer = /*#__PURE__*/function (_Service) {
       }, 32).bind(this);
       this.downHandler = this.downHandler.bind(this);
       this.upHandler = this.upHandler.bind(this);
-      document.addEventListener('mouseenter', this.handler, {
+      document.documentElement.addEventListener('mouseenter', this.handler, {
         once: true
       });
       document.addEventListener('mousemove', this.handler, {

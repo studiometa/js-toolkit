@@ -59,6 +59,12 @@ Object.defineProperty(exports, "throttle", {
     return _throttle2.default;
   }
 });
+Object.defineProperty(exports, "transition", {
+  enumerable: true,
+  get: function get() {
+    return _transition2.default;
+  }
+});
 
 var _debounce2 = _interopRequireDefault(require("./debounce"));
 
@@ -77,4 +83,6 @@ var _setClasses2 = _interopRequireDefault(require("./setClasses"));
 var _setStyles2 = _interopRequireDefault(require("./setStyles"));
 
 var _throttle2 = _interopRequireDefault(require("./throttle"));
+
+var _transition2 = _interopRequireDefault(require("./transition"));
 //# sourceMappingURL=index.js.map

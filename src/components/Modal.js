@@ -30,6 +30,18 @@ export default class Modal extends Base {
     };
   }
 
+  get onOpenClick() {
+    return this.open;
+  }
+
+  get onCloseClick() {
+    return this.close;
+  }
+
+  get onOverlayClick() {
+    return this.close;
+  }
+
   /**
    * Initialize the component's behaviours.
    *
@@ -37,15 +49,6 @@ export default class Modal extends Base {
    */
   mounted() {
     this.isOpen = false;
-
-    const open = Array.isArray(this.$refs.open) ? this.$refs.open : [this.$refs.open];
-    open.forEach(btn => btn.addEventListener('click', this.open));
-
-    const close = Array.isArray(this.$refs.close) ? this.$refs.close : [this.$refs.close];
-    close.forEach(btn => btn.addEventListener('click', this.close));
-
-    this.$refs.overlay.addEventListener('click', this.close);
-
     this.close();
 
     if (this.$options.move) {
@@ -86,13 +89,6 @@ export default class Modal extends Base {
       delete this.refModalUnbindGetRefFilter;
     }
 
-    const open = Array.isArray(this.$refs.open) ? this.$refs.open : [this.$refs.open];
-    open.forEach(btn => btn.removeEventListener('click', this.open));
-
-    const close = Array.isArray(this.$refs.close) ? this.$refs.close : [this.$refs.close];
-    close.forEach(btn => btn.removeEventListener('click', this.close));
-
-    this.$refs.overlay.removeEventListener('click', this.close);
     return this;
   }
 

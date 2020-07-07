@@ -27,7 +27,9 @@ var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/sli
 
 var _nonSecure = _interopRequireDefault(require("nanoid/non-secure"));
 
-var _autoBind = _interopRequireDefault(require("auto-bind"));
+var _autoBind = _interopRequireDefault(require("../utils/object/autoBind"));
+
+var _getAllProperties = _interopRequireDefault(require("../utils/object/getAllProperties"));
 
 var _EventManager2 = _interopRequireDefault(require("./EventManager"));
 
@@ -82,10 +84,6 @@ function getRefs(instance, element) {
   var refs = elements.reduce(function ($refs, $ref) {
     var refName = $ref.dataset.ref;
     var $realRef = $ref.__base__ ? $ref.__base__ : $ref;
-
-    if (instance.$options.name) {
-      refName = refName.replace("".concat(instance.$options.name, "."), '');
-    }
 
     if ($refs[refName]) {
       if (Array.isArray($refs[refName])) {
@@ -432,7 +430,64 @@ var Base = /*#__PURE__*/function (_EventManager) {
       } // Fire the `scrolled` method on window/document scroll
 
 
-      unbindMethods = [].concat((0, _toConsumableArray2.default)(unbindMethods), [initService((0, _assertThisInitialized2.default)(_this), 'scrolled', _scroll.default), initService((0, _assertThisInitialized2.default)(_this), 'resized', _resize.default), initService((0, _assertThisInitialized2.default)(_this), 'ticked', _raf.default), initService((0, _assertThisInitialized2.default)(_this), 'moved', _pointer.default), initService((0, _assertThisInitialized2.default)(_this), 'keyed', _key5.default)]);
+      unbindMethods = [].concat((0, _toConsumableArray2.default)(unbindMethods), [initService((0, _assertThisInitialized2.default)(_this), 'scrolled', _scroll.default), initService((0, _assertThisInitialized2.default)(_this), 'resized', _resize.default), initService((0, _assertThisInitialized2.default)(_this), 'ticked', _raf.default), initService((0, _assertThisInitialized2.default)(_this), 'moved', _pointer.default), initService((0, _assertThisInitialized2.default)(_this), 'keyed', _key5.default)]); // Bind method to events on refs
+
+      var eventMethods = (0, _getAllProperties.default)((0, _assertThisInitialized2.default)(_this)).filter(function (_ref3) {
+        var _ref4 = (0, _slicedToArray2.default)(_ref3, 1),
+            name = _ref4[0];
+
+        return name.startsWith('on');
+      });
+      Object.entries(_this.$refs).forEach(function (_ref5) {
+        var _ref6 = (0, _slicedToArray2.default)(_ref5, 2),
+            refName = _ref6[0],
+            $refOrRefs = _ref6[1];
+
+        var $refs = Array.isArray($refOrRefs) ? $refOrRefs : [$refOrRefs];
+        var refEventMethod = "on".concat(refName.replace(/^\w/, function (c) {
+          return c.toUpperCase();
+        }));
+        eventMethods.filter(function (_ref7) {
+          var _ref8 = (0, _slicedToArray2.default)(_ref7, 1),
+              eventMethod = _ref8[0];
+
+          return eventMethod.startsWith(refEventMethod);
+        }).forEach(function (_ref9) {
+          var _ref10 = (0, _slicedToArray2.default)(_ref9, 1),
+              eventMethod = _ref10[0];
+
+          $refs.forEach(function ($ref, index) {
+            var eventName = eventMethod.replace(refEventMethod, '').toLowerCase();
+
+            var handler = function handler(event) {
+              return _this[eventMethod](event, index);
+            };
+
+            $ref.addEventListener(eventName, handler);
+            unbindMethods.push(function () {
+              $ref.removeEventListener(eventName, index);
+            });
+          });
+        });
+        eventMethods = eventMethods.filter(function (_ref11) {
+          var _ref12 = (0, _slicedToArray2.default)(_ref11, 1),
+              eventMethod = _ref12[0];
+
+          return !eventMethod.startsWith(refEventMethod);
+        });
+      });
+      eventMethods.forEach(function (_ref13) {
+        var _ref14 = (0, _slicedToArray2.default)(_ref13, 1),
+            eventMethod = _ref14[0];
+
+        var eventName = eventMethod.replace(/^on/, '').toLowerCase();
+
+        _this.$el.addEventListener(eventName, _this[eventMethod]);
+
+        unbindMethods.push(function () {
+          _this.$el.removeEventListener(eventName, _this[eventMethod]);
+        });
+      });
       mountComponents((0, _assertThisInitialized2.default)(_this));
       _this.$isMounted = true;
     });
