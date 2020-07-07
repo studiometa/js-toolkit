@@ -43,6 +43,7 @@ class Pointer extends Service {
     const debounced = debounce(event => {
       this.updateValues(event);
       remove('usePointer');
+      this.trigger(this.props);
       this.hasRaf = false;
     }, 50);
 
@@ -54,7 +55,7 @@ class Pointer extends Service {
         });
         this.hasRaf = true;
       }
-      // Reset changed flags at the end of the scroll event
+      // Reset changed flags at the end of the mousemove or touchmove event
       debounced(event);
     }, 32).bind(this);
 
