@@ -15,14 +15,19 @@ var raf = typeof window !== 'undefined' && window.requestAnimationFrame ? window
 /**
  * Execute a callback in the next frame.
  * @param  {Function} fn The callback function to execute.
- * @return {void}
+ * @return {Promise}
  */
 
 exports.raf = raf;
 
-function nextFrame(fn) {
-  raf(function () {
-    return raf(fn);
+function nextFrame() {
+  var fn = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
+  return new Promise(function (resolve) {
+    raf(function () {
+      return raf(function () {
+        return resolve(fn());
+      });
+    });
   });
 }
 //# sourceMappingURL=nextFrame.js.map

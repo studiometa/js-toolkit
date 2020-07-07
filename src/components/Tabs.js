@@ -31,7 +31,7 @@ export default class Tabs extends Base {
    * @return {Tabs} The current instance.
    */
   mounted() {
-    this.items = this.$refs.btn.map((btn, index) => {
+    this.$refs.btn.forEach((btn, index) => {
       const id = `${this.$id}-${index}`;
       const content = this.$refs.content[index];
       btn.setAttribute('id', id);
@@ -42,38 +42,26 @@ export default class Tabs extends Base {
       } else {
         this.disableTab(btn, content);
       }
-
-      const clickHandler = () => {
-        this.$refs.btn.forEach((el, i) => {
-          if (i !== index) {
-            this.disableTab(el, this.$refs.content[i]);
-          }
-        });
-
-        this.enableTab(btn, content);
-      };
-
-      btn.addEventListener('click', clickHandler);
-      return {
-        btn,
-        clickHandler,
-      };
     });
 
     return this;
   }
 
   /**
-   * Unbind all events on destroy.
+   * Switch tab on button click.
    *
-   * @return {Tabs} The Tabs instance.
+   * @param  {Event}  event The click event object.
+   * @param  {Number} index The index of the clicked button.
+   * @return {void}
    */
-  destroyed() {
-    this.items.forEach(({ btn, clickHandler }) => {
-      btn.removeEventListener('click', clickHandler);
-    });
+  onBtnClick(event, index) {
+    this.$refs.btn
+      .filter((el, i) => i !== index)
+      .forEach((el, i) => {
+        this.disableTab(el, this.$refs.content[i]);
+      });
 
-    return this;
+    this.enableTab(this.$refs.btn[index], this.$refs.content[index]);
   }
 
   /**

@@ -51,7 +51,7 @@ var Tabs = /*#__PURE__*/function (_Base) {
     value: function mounted() {
       var _this = this;
 
-      this.items = this.$refs.btn.map(function (btn, index) {
+      this.$refs.btn.forEach(function (btn, index) {
         var id = "".concat(_this.$id, "-").concat(index);
         var content = _this.$refs.content[index];
         btn.setAttribute('id', id);
@@ -62,40 +62,28 @@ var Tabs = /*#__PURE__*/function (_Base) {
         } else {
           _this.disableTab(btn, content);
         }
-
-        var clickHandler = function clickHandler() {
-          _this.$refs.btn.forEach(function (el, i) {
-            if (i !== index) {
-              _this.disableTab(el, _this.$refs.content[i]);
-            }
-          });
-
-          _this.enableTab(btn, content);
-        };
-
-        btn.addEventListener('click', clickHandler);
-        return {
-          btn: btn,
-          clickHandler: clickHandler
-        };
       });
       return this;
     }
     /**
-     * Unbind all events on destroy.
+     * Switch tab on button click.
      *
-     * @return {Tabs} The Tabs instance.
+     * @param  {Event}  event The click event object.
+     * @param  {Number} index The index of the clicked button.
+     * @return {void}
      */
 
   }, {
-    key: "destroyed",
-    value: function destroyed() {
-      this.items.forEach(function (_ref) {
-        var btn = _ref.btn,
-            clickHandler = _ref.clickHandler;
-        btn.removeEventListener('click', clickHandler);
+    key: "onBtnClick",
+    value: function onBtnClick(event, index) {
+      var _this2 = this;
+
+      this.$refs.btn.filter(function (el, i) {
+        return i !== index;
+      }).forEach(function (el, i) {
+        _this2.disableTab(el, _this2.$refs.content[i]);
       });
-      return this;
+      this.enableTab(this.$refs.btn[index], this.$refs.content[index]);
     }
     /**
      * Enable the given tab and its associated content.
