@@ -1,6 +1,6 @@
 import Base from '../abstracts/Base';
-import setClasses from '../utils/setClasses';
-import setStyles from '../utils/setStyles';
+import * as classes from '../utils/css/classes';
+import * as styles from '../utils/css/styles';
 
 /**
  * Tabs class.
@@ -72,15 +72,15 @@ export default class Tabs extends Base {
    * @return {Tabs}                The Tabs instance.
    */
   enableTab(btn, content) {
-    setClasses(btn, this.$options.tabActiveClass);
-    setStyles(btn, this.$options.tabActiveStyle);
-    setClasses(content, this.$options.contentActiveClass);
-    setStyles(content, this.$options.contentActiveStyle);
+    classes.add(btn, this.$options.tabActiveClass);
+    styles.add(btn, this.$options.tabActiveStyle);
+    classes.add(content, this.$options.contentActiveClass);
+    styles.add(content, this.$options.contentActiveStyle);
 
-    setClasses(btn, this.$options.tabInactiveClass, 'remove');
-    setStyles(btn, this.$options.tabInactiveStyle, 'remove');
-    setClasses(content, this.$options.contentInactiveClass, 'remove');
-    setStyles(content, this.$options.contentInactiveStyle, 'remove');
+    classes.remove(btn, this.$options.tabInactiveClass);
+    styles.remove(btn, this.$options.tabInactiveStyle);
+    classes.remove(content, this.$options.contentInactiveClass);
+    styles.remove(content, this.$options.contentInactiveStyle);
 
     content.setAttribute('aria-hidden', 'false');
     this.$emit('enable', { btn, content });
@@ -96,15 +96,15 @@ export default class Tabs extends Base {
    * @return {Tabs}                The Tabs instance.
    */
   disableTab(btn, content) {
-    setClasses(btn, this.$options.tabActiveClass, 'remove');
-    setStyles(btn, this.$options.tabActiveStyle, 'remove');
-    setClasses(content, this.$options.contentActiveClass, 'remove');
-    setStyles(content, this.$options.contentActiveStyle, 'remove');
+    classes.remove(btn, this.$options.tabActiveClass);
+    styles.remove(btn, this.$options.tabActiveStyle);
+    classes.remove(content, this.$options.contentActiveClass);
+    styles.remove(content, this.$options.contentActiveStyle);
 
-    setClasses(btn, this.$options.tabInactiveClass);
-    setStyles(btn, this.$options.tabInactiveStyle);
-    setClasses(content, this.$options.contentInactiveClass);
-    setStyles(content, this.$options.contentInactiveStyle);
+    classes.add(btn, this.$options.tabInactiveClass);
+    styles.add(btn, this.$options.tabInactiveStyle);
+    classes.add(content, this.$options.contentInactiveClass);
+    styles.add(content, this.$options.contentInactiveStyle);
 
     content.setAttribute('aria-hidden', 'true');
     this.$emit('disable', { btn, content });

@@ -3,12 +3,22 @@ import nanoid from 'nanoid/non-secure';
 import autoBind from '../utils/object/autoBind';
 import getAllProperties from '../utils/object/getAllProperties';
 import EventManager from './EventManager';
-import hasMethod from '../utils/hasMethod';
 import usePointer from '../services/pointer';
 import useRaf from '../services/raf';
 import useResize from '../services/resize';
 import useScroll from '../services/scroll';
 import useKey from '../services/key';
+
+/**
+ * Test if an object has a method.
+ *
+ * @param  {Object}  obj The object to test
+ * @param  {String}  fn  The method's name
+ * @return {Boolean}
+ */
+function hasMethod(obj, name) {
+  return typeof obj[name] === 'function';
+}
 
 /**
  * Verbose debug for the component.
@@ -62,7 +72,7 @@ function getRefs(instance, element) {
  * @param  {Object}      components The children components' classes
  * @return {null|Object}            Returns `null` if no child components are defined or an object of all child component instances
  */
-function getChildren(instance, element, components = {}) {
+function getChildren(instance, element, components) {
   const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
     const selector = `[data-component="${name}"]`;
     const elements = Array.from(element.querySelectorAll(selector));
@@ -85,7 +95,7 @@ function getChildren(instance, element, components = {}) {
 
       // Resolve async components
       const asyncComponent = ComponentClass().then(module => {
-        const ResolvedClass = module.default;
+        const ResolvedClass = module.default ? module.default : module;
         Object.defineProperty(ResolvedClass.prototype, '__isChild__', { value: true });
         return new ResolvedClass(el);
       });
@@ -110,7 +120,7 @@ function getChildren(instance, element, components = {}) {
  * @param  {Object}      config   The component's default config.
  * @return {Object}               The component's merged options.
  */
-function getOptions(instance, element, config = {}) {
+function getOptions(instance, element, config) {
   let options = {};
   if (element.dataset.options) {
     try {
@@ -120,7 +130,7 @@ function getOptions(instance, element, config = {}) {
     }
   }
 
-  options = { ...config, ...(options || {}) };
+  options = { ...config, ...options };
   instance.$emit('get:options', options);
   return options;
 }
@@ -185,11 +195,7 @@ function mountComponents(instance) {
   debug(instance, 'mountComponents', instance.$children);
 
   Object.values(instance.$children).forEach($child => {
-    if (Array.isArray($child)) {
-      $child.forEach(mountComponent);
-    } else {
-      mountComponent($child);
-    }
+    $child.forEach(mountComponent);
   });
 }
 
@@ -220,11 +226,7 @@ function destroyComponents(instance) {
   debug(instance, 'destroyComponents', instance.$children);
 
   Object.values(instance.$children).forEach($child => {
-    if (Array.isArray($child)) {
-      $child.forEach(destroyComponent);
-    } else {
-      destroyComponent($child);
-    }
+    $child.forEach(destroyComponent);
   });
 }
 
@@ -274,7 +276,7 @@ export default class Base extends EventManager {
    * @return {Object}
    */
   get $children() {
-    return getChildren(this, this.$el, (this.config || {}).components || {});
+    return getChildren(this, this.$el, this.config.components || {});
   }
 
   /**
@@ -282,7 +284,7 @@ export default class Base extends EventManager {
    * @return {Object}
    */
   get $options() {
-    return getOptions(this, this.$el, this.config || {});
+    return getOptions(this, this.$el, this.config);
   }
 
   /**
@@ -365,7 +367,7 @@ export default class Base extends EventManager {
               $ref.addEventListener(eventName, handler);
 
               unbindMethods.push(() => {
-                $ref.removeEventListener(eventName, index);
+                $ref.removeEventListener(eventName, handler);
               });
             });
           });

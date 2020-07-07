@@ -33,8 +33,6 @@ var _getAllProperties = _interopRequireDefault(require("../utils/object/getAllPr
 
 var _EventManager2 = _interopRequireDefault(require("./EventManager"));
 
-var _hasMethod = _interopRequireDefault(require("../utils/hasMethod"));
-
 var _pointer = _interopRequireDefault(require("../services/pointer"));
 
 var _raf = _interopRequireDefault(require("../services/raf"));
@@ -54,11 +52,23 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 /**
+ * Test if an object has a method.
+ *
+ * @param  {Object}  obj The object to test
+ * @param  {String}  fn  The method's name
+ * @return {Boolean}
+ */
+function hasMethod(obj, name) {
+  return typeof obj[name] === 'function';
+}
+/**
  * Verbose debug for the component.
  *
  * @param  {...any} args The arguments passed to the method
  * @return {void}
  */
+
+
 function debug(instance) {
   for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     args[_key - 1] = arguments[_key];
@@ -109,8 +119,7 @@ function getRefs(instance, element) {
  */
 
 
-function getChildren(instance, element) {
-  var components = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+function getChildren(instance, element, components) {
   var children = Object.entries(components).reduce(function (acc, _ref) {
     var _ref2 = (0, _slicedToArray2.default)(_ref, 2),
         name = _ref2[0],
@@ -139,7 +148,7 @@ function getChildren(instance, element) {
 
 
       var asyncComponent = ComponentClass().then(function (module) {
-        var ResolvedClass = module.default;
+        var ResolvedClass = module.default ? module.default : module;
         Object.defineProperty(ResolvedClass.prototype, '__isChild__', {
           value: true
         });
@@ -163,8 +172,7 @@ function getChildren(instance, element) {
  */
 
 
-function getOptions(instance, element) {
-  var config = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+function getOptions(instance, element, config) {
   var options = {};
 
   if (element.dataset.options) {
@@ -175,7 +183,7 @@ function getOptions(instance, element) {
     }
   }
 
-  options = _objectSpread(_objectSpread({}, config), options || {});
+  options = _objectSpread(_objectSpread({}, config), options);
   instance.$emit('get:options', options);
   return options;
 }
@@ -204,7 +212,7 @@ function call(instance, method) {
 
   instance.$emit.apply(instance, [method].concat(args)); // We always emit an event, but we do not call the method if it does not exist
 
-  if (!(0, _hasMethod.default)(instance, method)) {
+  if (!hasMethod(instance, method)) {
     return instance;
   }
 
@@ -245,11 +253,7 @@ function mountComponents(instance) {
 
   debug(instance, 'mountComponents', instance.$children);
   Object.values(instance.$children).forEach(function ($child) {
-    if (Array.isArray($child)) {
-      $child.forEach(mountComponent);
-    } else {
-      mountComponent($child);
-    }
+    $child.forEach(mountComponent);
   });
 }
 /**
@@ -284,11 +288,7 @@ function destroyComponents(instance) {
 
   debug(instance, 'destroyComponents', instance.$children);
   Object.values(instance.$children).forEach(function ($child) {
-    if (Array.isArray($child)) {
-      $child.forEach(destroyComponent);
-    } else {
-      destroyComponent($child);
-    }
+    $child.forEach(destroyComponent);
   });
 }
 /**
@@ -302,7 +302,7 @@ function destroyComponents(instance) {
 
 
 function initService(instance, method, service) {
-  if (!(0, _hasMethod.default)(instance, method)) {
+  if (!hasMethod(instance, method)) {
     return function () {};
   }
 
@@ -357,7 +357,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
   }, {
     key: "$children",
     get: function get() {
-      return getChildren(this, this.$el, (this.config || {}).components || {});
+      return getChildren(this, this.$el, this.config.components || {});
     }
     /**
      * Get the component's merged config and options.
@@ -367,7 +367,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
   }, {
     key: "$options",
     get: function get() {
-      return getOptions(this, this.$el, this.config || {});
+      return getOptions(this, this.$el, this.config);
     }
     /**
      * Class constructor where all the magic takes place
@@ -416,7 +416,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
     _this.$on('mounted', function () {
       unbindMethods = []; // Fire the `loaded` method on window load
 
-      if ((0, _hasMethod.default)((0, _assertThisInitialized2.default)(_this), 'loaded')) {
+      if (hasMethod((0, _assertThisInitialized2.default)(_this), 'loaded')) {
         var loadedHandler = function loadedHandler(event) {
           call((0, _assertThisInitialized2.default)(_this), 'loaded', {
             event: event
@@ -465,7 +465,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
 
             $ref.addEventListener(eventName, handler);
             unbindMethods.push(function () {
-              $ref.removeEventListener(eventName, index);
+              $ref.removeEventListener(eventName, handler);
             });
           });
         });

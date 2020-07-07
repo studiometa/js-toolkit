@@ -1,5 +1,5 @@
 import Service from '../abstracts/Service';
-import { raf } from '../utils/nextFrame';
+import { getRaf } from '../utils/nextFrame';
 
 /**
  * Tick service
@@ -22,6 +22,8 @@ class Raf extends Service {
    * @return {void}
    */
   init() {
+    const raf = getRaf();
+
     const loop = () => {
       this.trigger(this.props);
 
