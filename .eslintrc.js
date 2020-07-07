@@ -12,12 +12,21 @@ module.exports = {
     'class-methods-use-this': 'off',
     'no-underscore-dangle': ['error', { allow: ['__base__', '__isChild__', '__isBase__'] }],
   },
+  settings: {
+    'import/resolver': {
+      alias: [
+        ['~', './src'],
+      ],
+    }
+  },
   overrides: [
     {
       files: ['**/*.spec.js', '**/spec.js', 'tests/**/*.js'],
       extends: ['plugin:jest/recommended', 'plugin:jest/style'],
       rules: {
+        'max-classes-per-file': 'off',
         'jest/no-test-callback': 'off',
+        'require-jsdoc': 'off',
       },
     },
   ],

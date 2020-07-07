@@ -1,6 +1,6 @@
 import Base from '../abstracts/Base';
-import setClasses from '../utils/setClasses';
-import setStyles from '../utils/setStyles';
+import * as classes from '../utils/css/classes';
+import * as styles from '../utils/css/styles';
 import focusTrap from '../utils/focusTrap';
 
 const { trap, untrap, saveActiveElement } = focusTrap();
@@ -30,14 +30,29 @@ export default class Modal extends Base {
     };
   }
 
+  /**
+   * Open the modal on click on the `open` ref.
+   *
+   * @return {Function} The component's `open` method.
+   */
   get onOpenClick() {
     return this.open;
   }
 
+  /**
+   * Close the modal on click on the `close` ref.
+   *
+   * @return {Function} The component's `close` method.
+   */
   get onCloseClick() {
     return this.close;
   }
 
+  /**
+   * Close the modal on click on the `overlay` ref.
+   *
+   * @return {Function} The component's `close` method.
+   */
   get onOverlayClick() {
     return this.close;
   }
@@ -125,23 +140,23 @@ export default class Modal extends Base {
     document.documentElement.style.overflow = 'hidden';
 
     // Add "open" classes to refs
-    Object.entries(this.$options.openClass).forEach(([ref, classes]) => {
-      setClasses(this.$refs[ref], classes);
+    Object.entries(this.$options.openClass).forEach(([ref, classNames]) => {
+      classes.add(this.$refs[ref], classNames);
     });
 
     // Add "open" styles to refs
-    Object.entries(this.$options.openStyle).forEach(([ref, styles]) => {
-      setStyles(this.$refs[ref], styles);
+    Object.entries(this.$options.openStyle).forEach(([ref, styleProps]) => {
+      styles.add(this.$refs[ref], styleProps);
     });
 
     // Remove "closed" classes from refs
-    Object.entries(this.$options.closedClass).forEach(([ref, classes]) => {
-      setClasses(this.$refs[ref], classes, 'remove');
+    Object.entries(this.$options.closedClass).forEach(([ref, classNames]) => {
+      classes.remove(this.$refs[ref], classNames);
     });
 
     // Remove "closed" styles from refs
-    Object.entries(this.$options.closedStyle).forEach(([ref, styles]) => {
-      setStyles(this.$refs[ref], styles, 'remove');
+    Object.entries(this.$options.closedStyle).forEach(([ref, styleProps]) => {
+      styles.remove(this.$refs[ref], styleProps);
     });
 
     if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
@@ -163,23 +178,23 @@ export default class Modal extends Base {
     document.documentElement.style.overflow = '';
 
     // Add "closed" classes to refs
-    Object.entries(this.$options.closedClass).forEach(([ref, classes]) => {
-      setClasses(this.$refs[ref], classes);
+    Object.entries(this.$options.closedClass).forEach(([ref, classNames]) => {
+      classes.add(this.$refs[ref], classNames);
     });
 
     // Add "closed" styles to refs
-    Object.entries(this.$options.closedStyle).forEach(([ref, styles]) => {
-      setStyles(this.$refs[ref], styles);
+    Object.entries(this.$options.closedStyle).forEach(([ref, styleProps]) => {
+      styles.add(this.$refs[ref], styleProps);
     });
 
     // Remove "open" classes from refs
-    Object.entries(this.$options.openClass).forEach(([ref, classes]) => {
-      setClasses(this.$refs[ref], classes, 'remove');
+    Object.entries(this.$options.openClass).forEach(([ref, classNames]) => {
+      classes.remove(this.$refs[ref], classNames);
     });
 
     // Remove "open" styles from refs
-    Object.entries(this.$options.openStyle).forEach(([ref, styles]) => {
-      setStyles(this.$refs[ref], styles, 'remove');
+    Object.entries(this.$options.openStyle).forEach(([ref, styleProps]) => {
+      styles.remove(this.$refs[ref], styleProps);
     });
 
     this.isOpen = false;

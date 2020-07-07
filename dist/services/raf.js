@@ -70,6 +70,8 @@ var Raf = /*#__PURE__*/function (_Service) {
     value: function init() {
       var _this2 = this;
 
+      var raf = (0, _nextFrame.getRaf)();
+
       var loop = function loop() {
         _this2.trigger(_this2.props);
 
@@ -77,7 +79,7 @@ var Raf = /*#__PURE__*/function (_Service) {
           return;
         }
 
-        (0, _nextFrame.raf)(loop);
+        raf(loop);
       };
 
       this.isTicking = true;

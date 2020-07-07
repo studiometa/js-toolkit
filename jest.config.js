@@ -14,4 +14,7 @@ module.exports = {
     '<rootDir>/tests/__setup__/requestAnimationFrame.js',
     '<rootDir>/tests/__setup__/mockBreakpoints.js',
   ],
+  moduleNameMapper: {
+    '~(.*)$': '<rootDir>/src/$1',
+  },
 };

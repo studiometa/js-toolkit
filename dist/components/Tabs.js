@@ -1,5 +1,7 @@
 "use strict";
 
+var _interopRequireWildcard = require("@babel/runtime/helpers/interopRequireWildcard");
+
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
 Object.defineProperty(exports, "__esModule", {
@@ -19,9 +21,9 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 
 var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
 
-var _setClasses = _interopRequireDefault(require("../utils/setClasses"));
+var classes = _interopRequireWildcard(require("../utils/css/classes"));
 
-var _setStyles = _interopRequireDefault(require("../utils/setStyles"));
+var styles = _interopRequireWildcard(require("../utils/css/styles"));
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -96,14 +98,14 @@ var Tabs = /*#__PURE__*/function (_Base) {
   }, {
     key: "enableTab",
     value: function enableTab(btn, content) {
-      (0, _setClasses.default)(btn, this.$options.tabActiveClass);
-      (0, _setStyles.default)(btn, this.$options.tabActiveStyle);
-      (0, _setClasses.default)(content, this.$options.contentActiveClass);
-      (0, _setStyles.default)(content, this.$options.contentActiveStyle);
-      (0, _setClasses.default)(btn, this.$options.tabInactiveClass, 'remove');
-      (0, _setStyles.default)(btn, this.$options.tabInactiveStyle, 'remove');
-      (0, _setClasses.default)(content, this.$options.contentInactiveClass, 'remove');
-      (0, _setStyles.default)(content, this.$options.contentInactiveStyle, 'remove');
+      classes.add(btn, this.$options.tabActiveClass);
+      styles.add(btn, this.$options.tabActiveStyle);
+      classes.add(content, this.$options.contentActiveClass);
+      styles.add(content, this.$options.contentActiveStyle);
+      classes.remove(btn, this.$options.tabInactiveClass);
+      styles.remove(btn, this.$options.tabInactiveStyle);
+      classes.remove(content, this.$options.contentInactiveClass);
+      styles.remove(content, this.$options.contentInactiveStyle);
       content.setAttribute('aria-hidden', 'false');
       this.$emit('enable', {
         btn: btn,
@@ -122,14 +124,14 @@ var Tabs = /*#__PURE__*/function (_Base) {
   }, {
     key: "disableTab",
     value: function disableTab(btn, content) {
-      (0, _setClasses.default)(btn, this.$options.tabActiveClass, 'remove');
-      (0, _setStyles.default)(btn, this.$options.tabActiveStyle, 'remove');
-      (0, _setClasses.default)(content, this.$options.contentActiveClass, 'remove');
-      (0, _setStyles.default)(content, this.$options.contentActiveStyle, 'remove');
-      (0, _setClasses.default)(btn, this.$options.tabInactiveClass);
-      (0, _setStyles.default)(btn, this.$options.tabInactiveStyle);
-      (0, _setClasses.default)(content, this.$options.contentInactiveClass);
-      (0, _setStyles.default)(content, this.$options.contentInactiveStyle);
+      classes.remove(btn, this.$options.tabActiveClass);
+      styles.remove(btn, this.$options.tabActiveStyle);
+      classes.remove(content, this.$options.contentActiveClass);
+      styles.remove(content, this.$options.contentActiveStyle);
+      classes.add(btn, this.$options.tabInactiveClass);
+      styles.add(btn, this.$options.tabInactiveStyle);
+      classes.add(content, this.$options.contentInactiveClass);
+      styles.add(content, this.$options.contentInactiveStyle);
       content.setAttribute('aria-hidden', 'true');
       this.$emit('disable', {
         btn: btn,

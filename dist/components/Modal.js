@@ -1,5 +1,7 @@
 "use strict";
 
+var _interopRequireWildcard = require("@babel/runtime/helpers/interopRequireWildcard");
+
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
 Object.defineProperty(exports, "__esModule", {
@@ -21,9 +23,9 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 
 var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
 
-var _setClasses = _interopRequireDefault(require("../utils/setClasses"));
+var classes = _interopRequireWildcard(require("../utils/css/classes"));
 
-var _setStyles = _interopRequireDefault(require("../utils/setStyles"));
+var styles = _interopRequireWildcard(require("../utils/css/styles"));
 
 var _focusTrap2 = _interopRequireDefault(require("../utils/focusTrap"));
 
@@ -153,33 +155,33 @@ var Modal = /*#__PURE__*/function (_Base) {
       Object.entries(this.$options.openClass).forEach(function (_ref4) {
         var _ref5 = (0, _slicedToArray2.default)(_ref4, 2),
             ref = _ref5[0],
-            classes = _ref5[1];
+            classNames = _ref5[1];
 
-        (0, _setClasses.default)(_this.$refs[ref], classes);
+        classes.add(_this.$refs[ref], classNames);
       }); // Add "open" styles to refs
 
       Object.entries(this.$options.openStyle).forEach(function (_ref6) {
         var _ref7 = (0, _slicedToArray2.default)(_ref6, 2),
             ref = _ref7[0],
-            styles = _ref7[1];
+            styleProps = _ref7[1];
 
-        (0, _setStyles.default)(_this.$refs[ref], styles);
+        styles.add(_this.$refs[ref], styleProps);
       }); // Remove "closed" classes from refs
 
       Object.entries(this.$options.closedClass).forEach(function (_ref8) {
         var _ref9 = (0, _slicedToArray2.default)(_ref8, 2),
             ref = _ref9[0],
-            classes = _ref9[1];
+            classNames = _ref9[1];
 
-        (0, _setClasses.default)(_this.$refs[ref], classes, 'remove');
+        classes.remove(_this.$refs[ref], classNames);
       }); // Remove "closed" styles from refs
 
       Object.entries(this.$options.closedStyle).forEach(function (_ref10) {
         var _ref11 = (0, _slicedToArray2.default)(_ref10, 2),
             ref = _ref11[0],
-            styles = _ref11[1];
+            styleProps = _ref11[1];
 
-        (0, _setStyles.default)(_this.$refs[ref], styles, 'remove');
+        styles.remove(_this.$refs[ref], styleProps);
       });
 
       if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
@@ -207,33 +209,33 @@ var Modal = /*#__PURE__*/function (_Base) {
       Object.entries(this.$options.closedClass).forEach(function (_ref12) {
         var _ref13 = (0, _slicedToArray2.default)(_ref12, 2),
             ref = _ref13[0],
-            classes = _ref13[1];
+            classNames = _ref13[1];
 
-        (0, _setClasses.default)(_this2.$refs[ref], classes);
+        classes.add(_this2.$refs[ref], classNames);
       }); // Add "closed" styles to refs
 
       Object.entries(this.$options.closedStyle).forEach(function (_ref14) {
         var _ref15 = (0, _slicedToArray2.default)(_ref14, 2),
             ref = _ref15[0],
-            styles = _ref15[1];
+            styleProps = _ref15[1];
 
-        (0, _setStyles.default)(_this2.$refs[ref], styles);
+        styles.add(_this2.$refs[ref], styleProps);
       }); // Remove "open" classes from refs
 
       Object.entries(this.$options.openClass).forEach(function (_ref16) {
         var _ref17 = (0, _slicedToArray2.default)(_ref16, 2),
             ref = _ref17[0],
-            classes = _ref17[1];
+            classNames = _ref17[1];
 
-        (0, _setClasses.default)(_this2.$refs[ref], classes, 'remove');
+        classes.remove(_this2.$refs[ref], classNames);
       }); // Remove "open" styles from refs
 
       Object.entries(this.$options.openStyle).forEach(function (_ref18) {
         var _ref19 = (0, _slicedToArray2.default)(_ref18, 2),
             ref = _ref19[0],
-            styles = _ref19[1];
+            styleProps = _ref19[1];
 
-        (0, _setStyles.default)(_this2.$refs[ref], styles, 'remove');
+        styles.remove(_this2.$refs[ref], styleProps);
       });
       this.isOpen = false;
       untrap();
@@ -262,16 +264,34 @@ var Modal = /*#__PURE__*/function (_Base) {
         }
       };
     }
+    /**
+     * Open the modal on click on the `open` ref.
+     *
+     * @return {Function} The component's `open` method.
+     */
+
   }, {
     key: "onOpenClick",
     get: function get() {
       return this.open;
     }
+    /**
+     * Close the modal on click on the `close` ref.
+     *
+     * @return {Function} The component's `close` method.
+     */
+
   }, {
     key: "onCloseClick",
     get: function get() {
       return this.close;
     }
+    /**
+     * Close the modal on click on the `overlay` ref.
+     *
+     * @return {Function} The component's `close` method.
+     */
+
   }, {
     key: "onOverlayClick",
     get: function get() {

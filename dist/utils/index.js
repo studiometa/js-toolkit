@@ -17,16 +17,10 @@ Object.defineProperty(exports, "focusTrap", {
     return _focusTrap2.default;
   }
 });
-Object.defineProperty(exports, "hasMethod", {
+Object.defineProperty(exports, "object", {
   enumerable: true,
   get: function get() {
-    return _hasMethod2.default;
-  }
-});
-Object.defineProperty(exports, "isObject", {
-  enumerable: true,
-  get: function get() {
-    return _isObject2.default;
+    return _object2.default;
   }
 });
 Object.defineProperty(exports, "keyCodes", {
@@ -41,28 +35,16 @@ Object.defineProperty(exports, "nextFrame", {
     return _nextFrame2.default;
   }
 });
-Object.defineProperty(exports, "setClasses", {
-  enumerable: true,
-  get: function get() {
-    return _setClasses2.default;
-  }
-});
-Object.defineProperty(exports, "setStyles", {
-  enumerable: true,
-  get: function get() {
-    return _setStyles2.default;
-  }
-});
 Object.defineProperty(exports, "throttle", {
   enumerable: true,
   get: function get() {
     return _throttle2.default;
   }
 });
-Object.defineProperty(exports, "transition", {
+Object.defineProperty(exports, "css", {
   enumerable: true,
   get: function get() {
-    return _transition2.default;
+    return _css2.default;
   }
 });
 
@@ -70,19 +52,13 @@ var _debounce2 = _interopRequireDefault(require("./debounce"));
 
 var _focusTrap2 = _interopRequireDefault(require("./focusTrap"));
 
-var _hasMethod2 = _interopRequireDefault(require("./hasMethod"));
-
-var _isObject2 = _interopRequireDefault(require("./isObject"));
+var _object2 = _interopRequireDefault(require("./object"));
 
 var _keyCodes2 = _interopRequireDefault(require("./keyCodes"));
 
 var _nextFrame2 = _interopRequireDefault(require("./nextFrame"));
 
-var _setClasses2 = _interopRequireDefault(require("./setClasses"));
-
-var _setStyles2 = _interopRequireDefault(require("./setStyles"));
-
 var _throttle2 = _interopRequireDefault(require("./throttle"));
 
-var _transition2 = _interopRequireDefault(require("./transition"));
+var _css2 = _interopRequireDefault(require("./css"));
 //# sourceMappingURL=index.js.map
