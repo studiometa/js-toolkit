@@ -1,29 +1,29 @@
-import { Base, Modal } from '../../../src';
-
-import MediaQuery from './components/MediaQuery';
+import { Base, Modal, MediaQuery, Tabs } from '../../../src';
 
 class App extends Base {
   get config() {
     return {
-      log: false,
+      log: true,
       name: 'App',
-    };
-  }
-
-  get components() {
-    return {
-      Accordion: () => import(/* webpackChunkName: "Accordion" */ './components/Accordion'),
-      Cursor: () => import(/* webpackChunkName: "async/Cursor" */ './components/Cursor'),
-      Lazyload: () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload'),
-      Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew'),
-      Modal,
-      MediaQuery,
-      Tabs: () => import(/* webpackChunkName: "Tabs" */ './../../../src/components/Tabs'),
+      components: {
+        Accordion: () => import('./components/Accordion'),
+        Cursor: () => import('./components/Cursor'),
+        Skew: () => import('./components/Skew'),
+        Modal,
+        MediaQuery,
+        Tabs,
+      },
     };
   }
 
   mounted() {
-    this.$log('Mounted 🎉', 'bar');
+    this.$log('Mounted 🎉');
+  }
+
+  loaded() {
+    // eslint-disable-next-line
+    import('lazysizes');
+    this.$log('Loaded');
   }
 
   resized(props) {

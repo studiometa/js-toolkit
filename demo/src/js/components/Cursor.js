@@ -7,7 +7,7 @@ export default class Cursor extends Base {
     };
   }
 
-  moved({ x, y, isDown }) {
+  moved({ x, y, delta, isDown }) {
     let transform = `translate3d(${x}px, ${y}px, 0)`;
 
     if (isDown) {
@@ -15,5 +15,6 @@ export default class Cursor extends Base {
     }
 
     this.$el.style.transform = transform;
+    this.$refs.inner.style.transform = `translate3d(${delta.x * -1}px, ${delta.y * -1}px, 0)`;
   }
 }
