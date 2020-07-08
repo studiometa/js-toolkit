@@ -1,12 +1,17 @@
-/* eslint-disable max-classes-per-file */
-import { Base } from '../../../../src';
-import * as classes from '../../../../src/utils/css/classes';
-import transition from '../../../../src/utils/css/transition';
+import Base from '../../abstracts/Base';
+import * as classes from '../../utils/css/classes';
+import transition from '../../utils/css/transition';
 
-class AccordionItem extends Base {
+/**
+ * AccordionItem class.
+ */
+export default class AccordionItem extends Base {
+  /**
+   * AccordionItem config
+   * @return {Object}
+   */
   get config() {
     return {
-      log: true,
       name: 'AccordionItem',
       active: '',
       enterActive: '',
@@ -14,12 +19,20 @@ class AccordionItem extends Base {
     };
   }
 
+  /**
+   * Add aria-attributes on mounted.
+   * @return {void}
+   */
   mounted() {
-    this.$refs.open.setAttribute('id', this.$id);
+    this.$refs.btn.setAttribute('id', this.$id);
     this.$refs.content.setAttribute('aria-labelledby', this.$id);
   }
 
-  onOpenClick() {
+  /**
+   * Handler for the click event on the `btn` ref.
+   * @return {void}
+   */
+  onBtnClick() {
     if (this.isOpen) {
       this.close();
     } else {
@@ -78,37 +91,5 @@ class AccordionItem extends Base {
     classes.add(this.$refs.container, 'h-0');
     classes.add(this.$refs.container, 'invisible');
     this.$refs.container.setAttribute('aria-hidden', 'true');
-  }
-}
-
-export default class Accordion extends Base {
-  get config() {
-    return {
-      name: 'Accordion',
-      autoclose: true,
-      components: {
-        AccordionItem,
-      },
-    };
-  }
-
-  mounted() {
-    if (!this.$options.autoclose) {
-      return;
-    }
-
-    this.unbindOpen = this.$children.AccordionItem.map((item, index) => {
-      return item.$on('open', () => {
-        this.$children.AccordionItem.filter((el, i) => index !== i).forEach(it => it.close());
-      });
-    });
-  }
-
-  destroyed() {
-    if (!this.$options.autoclose) {
-      return;
-    }
-
-    this.unbindOpen.forEach(unbind => unbind());
   }
 }

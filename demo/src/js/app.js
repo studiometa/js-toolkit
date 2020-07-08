@@ -1,4 +1,4 @@
-import { Base, Modal, MediaQuery, Tabs } from '../../../src';
+import { Base, Modal, MediaQuery, Tabs, Accordion } from '../../../src';
 
 class App extends Base {
   get config() {
@@ -6,7 +6,7 @@ class App extends Base {
       log: true,
       name: 'App',
       components: {
-        Accordion: () => import('./components/Accordion'),
+        Accordion,
         Cursor: () => import('./components/Cursor'),
         Skew: () => import('./components/Skew'),
         Modal,
@@ -22,7 +22,7 @@ class App extends Base {
 
   loaded() {
     // eslint-disable-next-line
-    import('lazysizes');
+    // import('lazysizes');
     this.$log('Loaded');
   }
 
