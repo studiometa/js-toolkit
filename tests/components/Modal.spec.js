@@ -1,5 +1,4 @@
-/* eslint-disable no-new, require-jsdoc, max-classes-per-file */
-import Modal from '../../src/components/Modal';
+import Modal from '~/components/Modal';
 import template from '../../docs/components/Modal.template.html';
 
 describe('The Modal component', () => {

@@ -1,6 +1,5 @@
-/* eslint-disable no-new, require-jsdoc, max-classes-per-file */
-import MediaQuery from '../../src/components/MediaQuery';
-import Base from '../../src/abstracts/Base';
+import MediaQuery from '~/components/MediaQuery';
+import Base from '~/abstracts/Base';
 import resizeWindow from '../__utils__/resizeWindow';
 
 class Foo extends Base {
