@@ -1,4 +1,5 @@
 import usePointer from '~/services/pointer';
+import nextFrame from '~/utils/nextFrame';
 import resizeWindow from '../__utils__/resizeWindow';
 import wait from '../__utils__/wait';
 
@@ -81,16 +82,16 @@ describe('usePointer', () => {
       x: 10,
       y: 10,
       changed: {
-        x: true,
-        y: true,
+        x: false,
+        y: false,
       },
       last: {
-        x: 0,
-        y: 0,
-      },
-      delta: {
         x: 10,
         y: 10,
+      },
+      delta: {
+        x: 0,
+        y: 0,
       },
       progress: {
         x: 0.01,
@@ -102,10 +103,12 @@ describe('usePointer', () => {
       },
     });
 
-    await dispatchEvent(new MouseEvent('mousemove', { clientX: 11, clientY: 10 }));
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 11, clientY: 10 }));
+    await nextFrame();
     expect(pointerProps.changed.x).toBe(true);
     expect(pointerProps.changed.y).toBe(false);
     expect(pointerProps.progress.x).toBe(0.011);
+    await wait(100);
   });
 
   it('should trigger the callbacks on touchmove', async () => {
@@ -120,16 +123,16 @@ describe('usePointer', () => {
       x: 10,
       y: 10,
       changed: {
-        x: true,
-        y: true,
+        x: false,
+        y: false,
       },
       last: {
-        x: 0,
-        y: 0,
-      },
-      delta: {
         x: 10,
         y: 10,
+      },
+      delta: {
+        x: 0,
+        y: 0,
       },
       progress: {
         x: 0.01,
@@ -141,8 +144,10 @@ describe('usePointer', () => {
       },
     });
 
-    await dispatchEvent(new TouchEvent('touchmove', { touches: [{ clientX: 11, clientY: 10 }] }));
-
+    document.dispatchEvent(
+      new TouchEvent('touchmove', { touches: [{ clientX: 11, clientY: 10 }] })
+    );
+    await nextFrame();
     expect(pointerProps).toEqual({
       isDown: false,
       x: 11,
