@@ -1,6 +1,5 @@
 import Base from '../abstracts/Base';
-import * as classes from '../utils/css/classes';
-import * as styles from '../utils/css/styles';
+import transition, { setClassesOrStyles } from '../utils/css/transition';
 import focusTrap from '../utils/focusTrap';
 
 const { trap, untrap, saveActiveElement } = focusTrap();
@@ -17,14 +16,13 @@ export default class Modal extends Base {
       name: 'Modal',
       move: false,
       autofocus: '[autofocus]',
-      openClass: {},
-      openStyle: {},
-      closedClass: {},
-      closedStyle: {
+      styles: {
         modal: {
-          opacity: 0,
-          pointerEvents: 'none',
-          visibility: 'hidden',
+          closed: {
+            opacity: 0,
+            pointerEvents: 'none',
+            visibility: 'hidden',
+          },
         },
       },
     };
@@ -135,37 +133,35 @@ export default class Modal extends Base {
    *
    * @return {Modal} The Modal instance.
    */
-  open() {
+  async open() {
+    if (this.isOpen) {
+      return Promise.resolve(this);
+    }
+
     this.$refs.modal.setAttribute('aria-hidden', 'false');
     document.documentElement.style.overflow = 'hidden';
 
-    // Add "open" classes to refs
-    Object.entries(this.$options.openClass).forEach(([ref, classNames]) => {
-      classes.add(this.$refs[ref], classNames);
-    });
-
-    // Add "open" styles to refs
-    Object.entries(this.$options.openStyle).forEach(([ref, styleProps]) => {
-      styles.add(this.$refs[ref], styleProps);
-    });
-
-    // Remove "closed" classes from refs
-    Object.entries(this.$options.closedClass).forEach(([ref, classNames]) => {
-      classes.remove(this.$refs[ref], classNames);
-    });
-
-    // Remove "closed" styles from refs
-    Object.entries(this.$options.closedStyle).forEach(([ref, styleProps]) => {
-      styles.remove(this.$refs[ref], styleProps);
-    });
-
-    if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
-      saveActiveElement();
-      this.$refs.modal.querySelector(this.$options.autofocus).focus();
-    }
-
     this.isOpen = true;
     this.$emit('open');
+
+    return Promise.all(
+      Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
+        transition(this.$refs[refName], {
+          from: closed,
+          active,
+          to: open,
+        }).then(() => {
+          setClassesOrStyles(this.$refs[refName], open);
+          return Promise.resolve();
+        })
+      )
+    ).then(() => {
+      if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
+        saveActiveElement();
+        this.$refs.modal.querySelector(this.$options.autofocus).focus();
+      }
+      return Promise.resolve(this);
+    });
   }
 
   /**
@@ -173,32 +169,29 @@ export default class Modal extends Base {
    *
    * @return {Modal} The Modal instance.
    */
-  close() {
+  async close() {
+    if (!this.isOpen) {
+      return Promise.resolve(this);
+    }
+
     this.$refs.modal.setAttribute('aria-hidden', 'true');
     document.documentElement.style.overflow = '';
-
-    // Add "closed" classes to refs
-    Object.entries(this.$options.closedClass).forEach(([ref, classNames]) => {
-      classes.add(this.$refs[ref], classNames);
-    });
-
-    // Add "closed" styles to refs
-    Object.entries(this.$options.closedStyle).forEach(([ref, styleProps]) => {
-      styles.add(this.$refs[ref], styleProps);
-    });
-
-    // Remove "open" classes from refs
-    Object.entries(this.$options.openClass).forEach(([ref, classNames]) => {
-      classes.remove(this.$refs[ref], classNames);
-    });
-
-    // Remove "open" styles from refs
-    Object.entries(this.$options.openStyle).forEach(([ref, styleProps]) => {
-      styles.remove(this.$refs[ref], styleProps);
-    });
 
     this.isOpen = false;
     untrap();
     this.$emit('close');
+
+    return Promise.all(
+      Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
+        transition(this.$refs[refName], {
+          from: open,
+          active,
+          to: closed,
+        }).then(() => {
+          setClassesOrStyles(this.$refs[refName], closed);
+          return Promise.resolve();
+        })
+      )
+    ).then(() => Promise.resolve(this));
   }
 }
