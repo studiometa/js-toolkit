@@ -1,5 +1,6 @@
 import Modal from '~/components/Modal';
 import template from '../../docs/components/Modal.template.html';
+import nextFrame from '~/utils/nextFrame';
 
 describe('The Modal component', () => {
   let modal;
@@ -14,75 +15,103 @@ describe('The Modal component', () => {
     expect(modal.isOpen).toBe(false);
   });
 
-  it('should emit events when opening and closing', () => {
+  it('should emit events when opening and closing', async () => {
     const fn = jest.fn();
     modal.$on('open', fn);
     modal.$on('close', fn);
 
-    modal.open();
+    await modal.open();
     expect(fn).toHaveBeenCalledTimes(1);
-    modal.close();
+    await modal.close();
     expect(fn).toHaveBeenCalledTimes(2);
   });
 
-  it('should update aria-attributes when opening and closing.', () => {
+  it('should update aria-attributes when opening and closing.', async () => {
     expect(modal.$refs.modal.getAttribute('aria-hidden')).toBe('true');
-    modal.open();
+    await modal.open();
     expect(modal.$refs.modal.getAttribute('aria-hidden')).toBe('false');
-    modal.close();
+    await modal.close();
   });
 
-  it('should update refs classes and styles when opening and closing.', () => {
-    modal.open();
+  it('should update refs classes and styles when opening and closing.', async () => {
+    await modal.open();
+    await nextFrame();
     expect(modal.$refs.modal.getAttribute('style')).toBe('');
-    modal.close();
+    await modal.close();
+    await nextFrame();
     expect(modal.$refs.modal.getAttribute('style')).toBe(
       'opacity: 0; pointer-events: none; visibility: hidden;'
     );
   });
 
-  it('should open when clicking the open button.', () => {
+  it('should set the focus to the `autofocus` element when opening.', async () => {
+    const autofocus = modal.$refs.modal.querySelector('[autofocus]');
+    jest.spyOn(autofocus, 'focus');
+    await modal.open();
+    expect(autofocus.focus).toHaveBeenCalledTimes(1);
+    await modal.close();
+  });
+
+  it('should trap the focus when open.', async () => {
+    const tabKeydown = new KeyboardEvent('keydown', { keyCode: 9, bubbles: true });
+    const closeButton = modal.$refs.modal.querySelector('[data-ref="close"]');
+    const openButton = modal.$el.querySelector('[data-ref="open"]');
+    openButton.focus();
+
+    jest.spyOn(closeButton, 'focus');
+    jest.spyOn(openButton, 'focus');
+
+    await modal.open();
+    document.dispatchEvent(tabKeydown);
+    expect(closeButton.focus).toHaveBeenCalledTimes(1);
+    expect(openButton.focus).toHaveBeenCalledTimes(0);
+    document.dispatchEvent(tabKeydown);
+    document.dispatchEvent(tabKeydown);
+    expect(openButton.focus).toHaveBeenCalledTimes(0);
+    expect(closeButton.focus).toHaveBeenCalledTimes(1);
+
+    await modal.close();
+    expect(openButton.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('should open when clicking the open button.', async () => {
     const btn = document.querySelector('[data-ref="open"]');
-    modal.close();
+    await modal.close();
     expect(modal.isOpen).toBe(false);
     btn.click();
     expect(modal.isOpen).toBe(true);
+    await nextFrame();
   });
 
-  it('should set the focus to the `autofocus` element when opening.', () => {
-    const autofocus = modal.$refs.modal.querySelector('[autofocus]');
-    jest.spyOn(autofocus, 'focus');
-    modal.open();
-    expect(autofocus.focus).toHaveBeenCalledTimes(1);
-  });
-
-  it('should close when pressing the escape key.', () => {
+  it('should close when pressing the escape key.', async () => {
     const escapeKeyup = new KeyboardEvent('keyup', { keyCode: 27 });
-    modal.open();
+    await modal.open();
     expect(modal.isOpen).toBe(true);
+    document.dispatchEvent(escapeKeyup);
+    expect(modal.isOpen).toBe(false);
     document.dispatchEvent(escapeKeyup);
     expect(modal.isOpen).toBe(false);
   });
 
-  it('should close when clicking the overlay.', () => {
+  it('should close when clicking the overlay.', async () => {
     const overlay = document.querySelector('[data-ref="overlay"]');
-    modal.open();
+    await modal.open();
     expect(modal.isOpen).toBe(true);
     overlay.click();
     expect(modal.isOpen).toBe(false);
   });
 
-  it('should close when clicking the close button.', () => {
+  it('should close when clicking the close button.', async () => {
     const btn = document.querySelector('[data-ref="close"]');
 
-    modal.open();
+    await modal.open();
     expect(modal.isOpen).toBe(true);
     btn.click();
     expect(modal.isOpen).toBe(false);
   });
 
-  it('should close on destroy.', () => {
-    modal.open();
+  it('should close on destroy.', async () => {
+    await modal.open();
     expect(modal.isOpen).toBe(true);
     modal.$destroy();
     expect(modal.isOpen).toBe(false);

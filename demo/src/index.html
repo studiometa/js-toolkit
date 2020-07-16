@@ -10,7 +10,7 @@
   <body>
     <main data-breakpoint class="relative p-10" @click="foo">
       <div data-component="MediaQuery" data-active-breakpoints="l">
-        <div data-component="Modal" data-options='{ "debug": false }' class="text-center">
+        <div data-component="Modal" data-options='{ "debug": false, "styles": { "modal": { "active": "transition-all duration-500" } } }' class="text-center">
           <!--
             Modal opening trigger.
             This ref will be used to open the modal on click.

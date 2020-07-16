@@ -9,6 +9,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
@@ -23,9 +27,7 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 
 var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
 
-var classes = _interopRequireWildcard(require("../utils/css/classes"));
-
-var styles = _interopRequireWildcard(require("../utils/css/styles"));
+var _transition = _interopRequireWildcard(require("../utils/css/transition"));
 
 var _focusTrap2 = _interopRequireDefault(require("../utils/focusTrap"));
 
@@ -146,52 +148,67 @@ var Modal = /*#__PURE__*/function (_Base) {
 
   }, {
     key: "open",
-    value: function open() {
-      var _this = this;
+    value: function () {
+      var _open = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var _this = this;
 
-      this.$refs.modal.setAttribute('aria-hidden', 'false');
-      document.documentElement.style.overflow = 'hidden'; // Add "open" classes to refs
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!this.isOpen) {
+                  _context.next = 2;
+                  break;
+                }
 
-      Object.entries(this.$options.openClass).forEach(function (_ref4) {
-        var _ref5 = (0, _slicedToArray2.default)(_ref4, 2),
-            ref = _ref5[0],
-            classNames = _ref5[1];
+                return _context.abrupt("return", Promise.resolve(this));
 
-        classes.add(_this.$refs[ref], classNames);
-      }); // Add "open" styles to refs
+              case 2:
+                this.$refs.modal.setAttribute('aria-hidden', 'false');
+                document.documentElement.style.overflow = 'hidden';
+                this.isOpen = true;
+                this.$emit('open');
+                return _context.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref4) {
+                  var _ref5 = (0, _slicedToArray2.default)(_ref4, 2),
+                      refName = _ref5[0],
+                      _ref5$ = _ref5[1];
 
-      Object.entries(this.$options.openStyle).forEach(function (_ref6) {
-        var _ref7 = (0, _slicedToArray2.default)(_ref6, 2),
-            ref = _ref7[0],
-            styleProps = _ref7[1];
+                  _ref5$ = _ref5$ === void 0 ? {} : _ref5$;
+                  var open = _ref5$.open,
+                      active = _ref5$.active,
+                      closed = _ref5$.closed;
+                  return (0, _transition.default)(_this.$refs[refName], {
+                    from: closed,
+                    active: active,
+                    to: open
+                  }).then(function () {
+                    (0, _transition.setClassesOrStyles)(_this.$refs[refName], open);
+                    return Promise.resolve();
+                  });
+                })).then(function () {
+                  if (_this.$options.autofocus && _this.$refs.modal.querySelector(_this.$options.autofocus)) {
+                    saveActiveElement();
 
-        styles.add(_this.$refs[ref], styleProps);
-      }); // Remove "closed" classes from refs
+                    _this.$refs.modal.querySelector(_this.$options.autofocus).focus();
+                  }
 
-      Object.entries(this.$options.closedClass).forEach(function (_ref8) {
-        var _ref9 = (0, _slicedToArray2.default)(_ref8, 2),
-            ref = _ref9[0],
-            classNames = _ref9[1];
+                  return Promise.resolve(_this);
+                }));
 
-        classes.remove(_this.$refs[ref], classNames);
-      }); // Remove "closed" styles from refs
+              case 7:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
 
-      Object.entries(this.$options.closedStyle).forEach(function (_ref10) {
-        var _ref11 = (0, _slicedToArray2.default)(_ref10, 2),
-            ref = _ref11[0],
-            styleProps = _ref11[1];
-
-        styles.remove(_this.$refs[ref], styleProps);
-      });
-
-      if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
-        saveActiveElement();
-        this.$refs.modal.querySelector(this.$options.autofocus).focus();
+      function open() {
+        return _open.apply(this, arguments);
       }
 
-      this.isOpen = true;
-      this.$emit('open');
-    }
+      return open;
+    }()
     /**
      * Close the modal.
      *
@@ -200,47 +217,62 @@ var Modal = /*#__PURE__*/function (_Base) {
 
   }, {
     key: "close",
-    value: function close() {
-      var _this2 = this;
+    value: function () {
+      var _close = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var _this2 = this;
 
-      this.$refs.modal.setAttribute('aria-hidden', 'true');
-      document.documentElement.style.overflow = ''; // Add "closed" classes to refs
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                if (this.isOpen) {
+                  _context2.next = 2;
+                  break;
+                }
 
-      Object.entries(this.$options.closedClass).forEach(function (_ref12) {
-        var _ref13 = (0, _slicedToArray2.default)(_ref12, 2),
-            ref = _ref13[0],
-            classNames = _ref13[1];
+                return _context2.abrupt("return", Promise.resolve(this));
 
-        classes.add(_this2.$refs[ref], classNames);
-      }); // Add "closed" styles to refs
+              case 2:
+                this.$refs.modal.setAttribute('aria-hidden', 'true');
+                document.documentElement.style.overflow = '';
+                this.isOpen = false;
+                untrap();
+                this.$emit('close');
+                return _context2.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref6) {
+                  var _ref7 = (0, _slicedToArray2.default)(_ref6, 2),
+                      refName = _ref7[0],
+                      _ref7$ = _ref7[1];
 
-      Object.entries(this.$options.closedStyle).forEach(function (_ref14) {
-        var _ref15 = (0, _slicedToArray2.default)(_ref14, 2),
-            ref = _ref15[0],
-            styleProps = _ref15[1];
+                  _ref7$ = _ref7$ === void 0 ? {} : _ref7$;
+                  var open = _ref7$.open,
+                      active = _ref7$.active,
+                      closed = _ref7$.closed;
+                  return (0, _transition.default)(_this2.$refs[refName], {
+                    from: open,
+                    active: active,
+                    to: closed
+                  }).then(function () {
+                    (0, _transition.setClassesOrStyles)(_this2.$refs[refName], closed);
+                    return Promise.resolve();
+                  });
+                })).then(function () {
+                  return Promise.resolve(_this2);
+                }));
 
-        styles.add(_this2.$refs[ref], styleProps);
-      }); // Remove "open" classes from refs
+              case 8:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
 
-      Object.entries(this.$options.openClass).forEach(function (_ref16) {
-        var _ref17 = (0, _slicedToArray2.default)(_ref16, 2),
-            ref = _ref17[0],
-            classNames = _ref17[1];
+      function close() {
+        return _close.apply(this, arguments);
+      }
 
-        classes.remove(_this2.$refs[ref], classNames);
-      }); // Remove "open" styles from refs
-
-      Object.entries(this.$options.openStyle).forEach(function (_ref18) {
-        var _ref19 = (0, _slicedToArray2.default)(_ref18, 2),
-            ref = _ref19[0],
-            styleProps = _ref19[1];
-
-        styles.remove(_this2.$refs[ref], styleProps);
-      });
-      this.isOpen = false;
-      untrap();
-      this.$emit('close');
-    }
+      return close;
+    }()
   }, {
     key: "config",
 
@@ -252,14 +284,13 @@ var Modal = /*#__PURE__*/function (_Base) {
         name: 'Modal',
         move: false,
         autofocus: '[autofocus]',
-        openClass: {},
-        openStyle: {},
-        closedClass: {},
-        closedStyle: {
+        styles: {
           modal: {
-            opacity: 0,
-            pointerEvents: 'none',
-            visibility: 'hidden'
+            closed: {
+              opacity: 0,
+              pointerEvents: 'none',
+              visibility: 'hidden'
+            }
           }
         }
       };
