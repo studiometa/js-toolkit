@@ -84,10 +84,6 @@ var MediaQuery = /*#__PURE__*/function (_Base) {
      * @return {void}
      */
     value: function test() {
-      if (!this.child) {
-        return;
-      }
-
       var isInBreakpoints = this.activeBreakpoints.includes(this.currentBreakpoint);
 
       if (isInBreakpoints && !this.child.$isMounted) {
@@ -115,11 +111,13 @@ var MediaQuery = /*#__PURE__*/function (_Base) {
   }, {
     key: "child",
     get: function get() {
-      if (this.$el.firstElementChild && this.$el.firstElementChild.__base__) {
-        return this.$el.firstElementChild.__base__;
+      var child = this.$el.firstElementChild ? this.$el.firstElementChild.__base__ : false;
+
+      if (!child) {
+        throw new Error('The first and only child of the MediaQuery component must be another Base component.');
       }
 
-      return false;
+      return child;
     }
     /**
      * Get the current active breakpoint from the `useResize` service.
