@@ -8,12 +8,24 @@ main {
   height: 5000px;
 }
 
-.accordion-item__content[aria-hidden="true"] {
+.fade-in-from {
+  opacity: 0;
+}
+
+.fade-in-active {
+  transition: opacity 1s ease-out;
+}
+
+.accordion-item__container[aria-hidden="true"] {
   display: none;
 }
 
-img:not(.is-loaded) {
+.lazyload {
   opacity: 0;
+}
+
+.lazyloaded {
+  // opacity: 1;s
 }
 
 [data-breakpoint]::after,

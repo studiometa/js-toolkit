@@ -12,6 +12,11 @@ module.exports = {
       })
     );
 
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      vue$: 'vue/dist/vue.esm.js',
+    };
+
     // Custom configuration for the babel-loader to transpile code from outside
     // the current working directory, as the toolkit's sources are one folder up.
     // @see https://stackoverflow.com/a/53207579

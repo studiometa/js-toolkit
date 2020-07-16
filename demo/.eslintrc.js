@@ -4,5 +4,7 @@ module.exports = {
   rules: {
     'class-methods-use-this': 'off',
     'require-jsdoc': 'off',
+    'no-underscore-dangle': ['error', { allow: ['__base__', '__isChild__', '__isBase__'] }],
+    'import/no-extraneous-dependencies': 'off',
   },
 };

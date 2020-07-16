@@ -17,16 +17,10 @@ Object.defineProperty(exports, "focusTrap", {
     return _focusTrap2.default;
   }
 });
-Object.defineProperty(exports, "hasMethod", {
+Object.defineProperty(exports, "object", {
   enumerable: true,
   get: function get() {
-    return _hasMethod2.default;
-  }
-});
-Object.defineProperty(exports, "isObject", {
-  enumerable: true,
-  get: function get() {
-    return _isObject2.default;
+    return _object2.default;
   }
 });
 Object.defineProperty(exports, "keyCodes", {
@@ -47,18 +41,24 @@ Object.defineProperty(exports, "throttle", {
     return _throttle2.default;
   }
 });
+Object.defineProperty(exports, "css", {
+  enumerable: true,
+  get: function get() {
+    return _css2.default;
+  }
+});
 
 var _debounce2 = _interopRequireDefault(require("./debounce"));
 
 var _focusTrap2 = _interopRequireDefault(require("./focusTrap"));
 
-var _hasMethod2 = _interopRequireDefault(require("./hasMethod"));
-
-var _isObject2 = _interopRequireDefault(require("./isObject"));
+var _object2 = _interopRequireDefault(require("./object"));
 
 var _keyCodes2 = _interopRequireDefault(require("./keyCodes"));
 
 var _nextFrame2 = _interopRequireDefault(require("./nextFrame"));
 
 var _throttle2 = _interopRequireDefault(require("./throttle"));
+
+var _css2 = _interopRequireDefault(require("./css"));
 //# sourceMappingURL=index.js.map

@@ -17,7 +17,13 @@ jobs:
           node-version: 12
       - run: npm ci
       - run: npm run build
-      - run: npm test
+      - name: Test
+        run: npm run test -- --coverage
+      - name: Upload to Codecov
+        run: npx codecov --disable=detect --commit=$GITHUB_SHA --branch=${GITHUB_REF#refs/heads/}
+        env:
+          CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
+
 
   publish:
     needs: build

@@ -23,6 +23,8 @@ var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/de
 
 var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
 
+var _nextFrame = require("../utils/nextFrame");
+
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
@@ -68,6 +70,8 @@ var Raf = /*#__PURE__*/function (_Service) {
     value: function init() {
       var _this2 = this;
 
+      var raf = (0, _nextFrame.getRaf)();
+
       var loop = function loop() {
         _this2.trigger(_this2.props);
 
@@ -75,7 +79,7 @@ var Raf = /*#__PURE__*/function (_Service) {
           return;
         }
 
-        requestAnimationFrame(loop);
+        raf(loop);
       };
 
       this.isTicking = true;
@@ -110,18 +114,18 @@ var Raf = /*#__PURE__*/function (_Service) {
   return Raf;
 }(_Service2.default);
 
-var raf = null;
+var instance = null;
 
 var _default = function _default() {
-  if (!raf) {
-    raf = new Raf();
+  if (!instance) {
+    instance = new Raf();
   }
 
-  var add = raf.add.bind(raf);
-  var remove = raf.remove.bind(raf);
+  var add = instance.add.bind(instance);
+  var remove = instance.remove.bind(instance);
 
   var props = function props() {
-    return raf.props;
+    return instance.props;
   };
 
   return {

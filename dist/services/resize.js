@@ -11,15 +11,11 @@ var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/cl
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
-var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
-
 var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
 var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
 
@@ -46,17 +42,8 @@ var Resize = /*#__PURE__*/function (_Service) {
   var _super = _createSuper(Resize);
 
   function Resize() {
-    var _this;
-
     (0, _classCallCheck2.default)(this, Resize);
-
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    _this = _super.call.apply(_super, [this].concat(args));
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "breakpointElement", null);
-    return _this;
+    return _super.apply(this, arguments);
   }
 
   (0, _createClass2.default)(Resize, [{
@@ -68,13 +55,12 @@ var Resize = /*#__PURE__*/function (_Service) {
      * @return {void}
      */
     value: function init() {
-      var _this2 = this;
+      var _this = this;
 
       this.handler = (0, _debounce.default)(function () {
-        _this2.trigger(_this2.props);
+        _this.trigger(_this.props);
       }).bind(this);
       window.addEventListener('resize', this.handler);
-      this.breakpointElement = document.querySelector('[data-breakpoint]') || null;
     }
     /**
      * Unbind the handler from the resize event.
@@ -119,6 +105,16 @@ var Resize = /*#__PURE__*/function (_Service) {
       return props;
     }
     /**
+     * The element holding the breakpoints data.
+     * @return {HTMLElement}
+     */
+
+  }, {
+    key: "breakpointElement",
+    get: function get() {
+      return document.querySelector('[data-breakpoint]') || null;
+    }
+    /**
      * Get the current breakpoint.
      * @return {String}
      */
@@ -126,7 +122,7 @@ var Resize = /*#__PURE__*/function (_Service) {
   }, {
     key: "breakpoint",
     get: function get() {
-      return window.getComputedStyle(this.breakpointElement, '::before').getPropertyValue('content').replace(/"/g, '') || '';
+      return window.getComputedStyle(this.breakpointElement, '::before').getPropertyValue('content').replace(/"/g, '');
     }
     /**
      * Get all breakpoints.

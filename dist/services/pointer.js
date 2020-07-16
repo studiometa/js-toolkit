@@ -88,6 +88,9 @@ var Pointer = /*#__PURE__*/function (_Service) {
         _this2.updateValues(event);
 
         remove('usePointer');
+
+        _this2.trigger(_this2.props);
+
         _this2.hasRaf = false;
       }, 50);
       this.handler = (0, _throttle.default)(function (event) {
@@ -98,14 +101,14 @@ var Pointer = /*#__PURE__*/function (_Service) {
             _this2.trigger(_this2.props);
           });
           _this2.hasRaf = true;
-        } // Reset changed flags at the end of the scroll event
+        } // Reset changed flags at the end of the mousemove or touchmove event
 
 
         debounced(event);
       }, 32).bind(this);
       this.downHandler = this.downHandler.bind(this);
       this.upHandler = this.upHandler.bind(this);
-      document.addEventListener('mouseenter', this.handler, {
+      document.documentElement.addEventListener('mouseenter', this.handler, {
         once: true
       });
       document.addEventListener('mousemove', this.handler, {
