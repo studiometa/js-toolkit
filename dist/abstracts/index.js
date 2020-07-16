@@ -8,19 +8,19 @@ Object.defineProperty(exports, "__esModule", {
 Object.defineProperty(exports, "Base", {
   enumerable: true,
   get: function get() {
-    return _Base2["default"];
+    return _Base2.default;
   }
 });
 Object.defineProperty(exports, "EventManager", {
   enumerable: true,
   get: function get() {
-    return _EventManager2["default"];
+    return _EventManager2.default;
   }
 });
 Object.defineProperty(exports, "Service", {
   enumerable: true,
   get: function get() {
-    return _Service2["default"];
+    return _Service2.default;
   }
 });
 

@@ -5,7 +5,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.default = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
@@ -13,11 +13,11 @@ var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/creat
 
 var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
 
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
@@ -29,7 +29,7 @@ var _debounce = _interopRequireDefault(require("../utils/debounce"));
 
 var _raf = _interopRequireDefault(require("./raf"));
 
-function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -45,29 +45,29 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
  * ```
  */
 var Pointer = /*#__PURE__*/function (_Service) {
-  (0, _inherits2["default"])(Pointer, _Service);
+  (0, _inherits2.default)(Pointer, _Service);
 
   var _super = _createSuper(Pointer);
 
   function Pointer() {
     var _this;
 
-    (0, _classCallCheck2["default"])(this, Pointer);
+    (0, _classCallCheck2.default)(this, Pointer);
 
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
 
     _this = _super.call.apply(_super, [this].concat(args));
-    (0, _defineProperty2["default"])((0, _assertThisInitialized2["default"])(_this), "isDown", false);
-    (0, _defineProperty2["default"])((0, _assertThisInitialized2["default"])(_this), "y", window.innerHeight / 2);
-    (0, _defineProperty2["default"])((0, _assertThisInitialized2["default"])(_this), "yLast", window.innerHeight / 2);
-    (0, _defineProperty2["default"])((0, _assertThisInitialized2["default"])(_this), "x", window.innerWidth / 2);
-    (0, _defineProperty2["default"])((0, _assertThisInitialized2["default"])(_this), "xLast", window.innerWidth / 2);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "isDown", false);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "y", window.innerHeight / 2);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "yLast", window.innerHeight / 2);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "x", window.innerWidth / 2);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "xLast", window.innerWidth / 2);
     return _this;
   }
 
-  (0, _createClass2["default"])(Pointer, [{
+  (0, _createClass2.default)(Pointer, [{
     key: "init",
 
     /**
@@ -79,18 +79,21 @@ var Pointer = /*#__PURE__*/function (_Service) {
     value: function init() {
       var _this2 = this;
 
-      var _useRaf = (0, _raf["default"])(),
+      var _useRaf = (0, _raf.default)(),
           add = _useRaf.add,
           remove = _useRaf.remove;
 
       this.hasRaf = false;
-      var debounced = (0, _debounce["default"])(function (event) {
+      var debounced = (0, _debounce.default)(function (event) {
         _this2.updateValues(event);
 
         remove('usePointer');
+
+        _this2.trigger(_this2.props);
+
         _this2.hasRaf = false;
       }, 50);
-      this.handler = (0, _throttle["default"])(function (event) {
+      this.handler = (0, _throttle.default)(function (event) {
         _this2.updateValues(event);
 
         if (!_this2.hasRaf) {
@@ -98,14 +101,14 @@ var Pointer = /*#__PURE__*/function (_Service) {
             _this2.trigger(_this2.props);
           });
           _this2.hasRaf = true;
-        } // Reset changed flags at the end of the scroll event
+        } // Reset changed flags at the end of the mousemove or touchmove event
 
 
         debounced(event);
       }, 32).bind(this);
       this.downHandler = this.downHandler.bind(this);
       this.upHandler = this.upHandler.bind(this);
-      document.addEventListener('mouseenter', this.handler, {
+      document.documentElement.addEventListener('mouseenter', this.handler, {
         once: true
       });
       document.addEventListener('mousemove', this.handler, {
@@ -230,7 +233,7 @@ var Pointer = /*#__PURE__*/function (_Service) {
     }
   }]);
   return Pointer;
-}(_Service2["default"]);
+}(_Service2.default);
 
 var pointer = null;
 /**
@@ -264,5 +267,5 @@ var _default = function _default() {
   };
 };
 
-exports["default"] = _default;
+exports.default = _default;
 //# sourceMappingURL=pointer.js.map

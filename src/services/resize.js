@@ -13,9 +13,6 @@ import debounce from '../utils/debounce';
  * ```
  */
 class Resize extends Service {
-  /** @type {HTMLElement} The element holding the breakpoints data. */
-  breakpointElement = null;
-
   /**
    * Bind the handler to the resize event.
    *
@@ -26,8 +23,6 @@ class Resize extends Service {
       this.trigger(this.props);
     }).bind(this);
     window.addEventListener('resize', this.handler);
-
-    this.breakpointElement = document.querySelector('[data-breakpoint]') || null;
   }
 
   /**
@@ -69,16 +64,22 @@ class Resize extends Service {
   }
 
   /**
+   * The element holding the breakpoints data.
+   * @return {HTMLElement}
+   */
+  get breakpointElement() {
+    return document.querySelector('[data-breakpoint]') || null;
+  }
+
+  /**
    * Get the current breakpoint.
    * @return {String}
    */
   get breakpoint() {
-    return (
-      window
-        .getComputedStyle(this.breakpointElement, '::before')
-        .getPropertyValue('content')
-        .replace(/"/g, '') || ''
-    );
+    return window
+      .getComputedStyle(this.breakpointElement, '::before')
+      .getPropertyValue('content')
+      .replace(/"/g, '');
   }
 
   /**

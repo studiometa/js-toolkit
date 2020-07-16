@@ -1,4 +1,5 @@
 import Service from '../abstracts/Service';
+import { getRaf } from '../utils/nextFrame';
 
 /**
  * Tick service
@@ -21,6 +22,8 @@ class Raf extends Service {
    * @return {void}
    */
   init() {
+    const raf = getRaf();
+
     const loop = () => {
       this.trigger(this.props);
 
@@ -28,7 +31,7 @@ class Raf extends Service {
         return;
       }
 
-      requestAnimationFrame(loop);
+      raf(loop);
     };
 
     this.isTicking = true;
@@ -57,16 +60,16 @@ class Raf extends Service {
   }
 }
 
-let raf = null;
+let instance = null;
 
 export default () => {
-  if (!raf) {
-    raf = new Raf();
+  if (!instance) {
+    instance = new Raf();
   }
 
-  const add = raf.add.bind(raf);
-  const remove = raf.remove.bind(raf);
-  const props = () => raf.props;
+  const add = instance.add.bind(instance);
+  const remove = instance.remove.bind(instance);
+  const props = () => instance.props;
 
   return {
     add,

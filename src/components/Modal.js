@@ -1,42 +1,8 @@
 import Base from '../abstracts/Base';
-import isObject from '../utils/isObject';
-import tabTrap from '../utils/tabTrap';
+import transition, { setClassesOrStyles } from '../utils/css/transition';
+import focusTrap from '../utils/focusTrap';
 
-const { trap, untrap, saveActiveElement } = tabTrap();
-
-/**
- * Manage a list of classes as string on an element.
- *
- * @param {HTMLElement} element    The element to update.
- * @param {String}      classNames A string of class names.
- * @param {String}      method     The method to use: add, remove or toggle.
- */
-function setClasses(element, classNames, method = 'add') {
-  if (!element || !classNames) {
-    return;
-  }
-
-  classNames.split(' ').forEach(className => {
-    element.classList[method](className);
-  });
-}
-
-/**
- * Manage a list of style properties on an element.
- *
- * @param {HTMLElement}         element The element to update.
- * @param {CSSStyleDeclaration} styles  An object of styles properties and values.
- * @param {String}              method  The method to use: add or remove.
- */
-function setStyles(element, styles, method = 'add') {
-  if (!element || !styles || !isObject(styles)) {
-    return;
-  }
-
-  Object.entries(styles).forEach(([prop, value]) => {
-    element.style[prop] = method === 'add' ? value : '';
-  });
-}
+const { trap, untrap, saveActiveElement } = focusTrap();
 
 /**
  * Modal class.
@@ -50,17 +16,43 @@ export default class Modal extends Base {
       name: 'Modal',
       move: false,
       autofocus: '[autofocus]',
-      openClass: {},
-      openStyle: {},
-      closedClass: {},
-      closedStyle: {
+      styles: {
         modal: {
-          opacity: 0,
-          pointerEvents: 'none',
-          visibility: 'hidden',
+          closed: {
+            opacity: 0,
+            pointerEvents: 'none',
+            visibility: 'hidden',
+          },
         },
       },
     };
+  }
+
+  /**
+   * Open the modal on click on the `open` ref.
+   *
+   * @return {Function} The component's `open` method.
+   */
+  get onOpenClick() {
+    return this.open;
+  }
+
+  /**
+   * Close the modal on click on the `close` ref.
+   *
+   * @return {Function} The component's `close` method.
+   */
+  get onCloseClick() {
+    return this.close;
+  }
+
+  /**
+   * Close the modal on click on the `overlay` ref.
+   *
+   * @return {Function} The component's `close` method.
+   */
+  get onOverlayClick() {
+    return this.close;
   }
 
   /**
@@ -70,19 +62,23 @@ export default class Modal extends Base {
    */
   mounted() {
     this.isOpen = false;
-
-    const open = Array.isArray(this.$refs.open) ? this.$refs.open : [this.$refs.open];
-    open.forEach(btn => btn.addEventListener('click', this.open));
-
-    const close = Array.isArray(this.$refs.close) ? this.$refs.close : [this.$refs.close];
-    close.forEach(btn => btn.addEventListener('click', this.close));
-
-    this.$refs.overlay.addEventListener('click', this.close);
-
     this.close();
 
     if (this.$options.move) {
       const target = document.querySelector(this.$options.move) || document.body;
+      const refsBackup = this.$refs;
+
+      this.refModalPlaceholder = document.createComment('');
+      this.refModalParentBackup = this.$refs.modal.parentElement || this.$el;
+      this.refModalParentBackup.insertBefore(this.refModalPlaceholder, this.$refs.modal);
+
+      this.refModalUnbindGetRefFilter = this.$on('get:refs', refs => {
+        Object.entries(refsBackup).forEach(([key, ref]) => {
+          if (!refs[key]) {
+            refs[key] = ref;
+          }
+        });
+      });
       target.appendChild(this.$refs.modal);
     }
 
@@ -97,13 +93,15 @@ export default class Modal extends Base {
   destroyed() {
     this.close();
 
-    const open = Array.isArray(this.$refs.open) ? this.$refs.open : [this.$refs.open];
-    open.forEach(btn => btn.removeEventListener('click', this.open));
+    if (this.$options.move) {
+      this.refModalParentBackup.insertBefore(this.$refs.modal, this.refModalPlaceholder);
+      this.refModalUnbindGetRefFilter();
+      this.refModalPlaceholder.remove();
+      delete this.refModalPlaceholder;
+      delete this.refModalParentBackup;
+      delete this.refModalUnbindGetRefFilter;
+    }
 
-    const close = Array.isArray(this.$refs.close) ? this.$refs.close : [this.$refs.close];
-    close.forEach(btn => btn.removeEventListener('click', this.close));
-
-    this.$refs.overlay.removeEventListener('click', this.close);
     return this;
   }
 
@@ -135,37 +133,35 @@ export default class Modal extends Base {
    *
    * @return {Modal} The Modal instance.
    */
-  open() {
+  async open() {
+    if (this.isOpen) {
+      return Promise.resolve(this);
+    }
+
     this.$refs.modal.setAttribute('aria-hidden', 'false');
     document.documentElement.style.overflow = 'hidden';
 
-    // Add "open" classes to refs
-    Object.entries(this.$options.openClass).forEach(([ref, classes]) => {
-      setClasses(this.$refs[ref], classes);
-    });
-
-    // Add "open" styles to refs
-    Object.entries(this.$options.openStyle).forEach(([ref, styles]) => {
-      setStyles(this.$refs[ref], styles);
-    });
-
-    // Remove "closed" classes from refs
-    Object.entries(this.$options.closedClass).forEach(([ref, classes]) => {
-      setClasses(this.$refs[ref], classes, 'remove');
-    });
-
-    // Remove "closed" styles from refs
-    Object.entries(this.$options.closedStyle).forEach(([ref, styles]) => {
-      setStyles(this.$refs[ref], styles, 'remove');
-    });
-
-    if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
-      saveActiveElement();
-      this.$refs.modal.querySelector(this.$options.autofocus).focus();
-    }
-
     this.isOpen = true;
     this.$emit('open');
+
+    return Promise.all(
+      Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
+        transition(this.$refs[refName], {
+          from: closed,
+          active,
+          to: open,
+        }).then(() => {
+          setClassesOrStyles(this.$refs[refName], open);
+          return Promise.resolve();
+        })
+      )
+    ).then(() => {
+      if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
+        saveActiveElement();
+        this.$refs.modal.querySelector(this.$options.autofocus).focus();
+      }
+      return Promise.resolve(this);
+    });
   }
 
   /**
@@ -173,32 +169,29 @@ export default class Modal extends Base {
    *
    * @return {Modal} The Modal instance.
    */
-  close() {
+  async close() {
+    if (!this.isOpen) {
+      return Promise.resolve(this);
+    }
+
     this.$refs.modal.setAttribute('aria-hidden', 'true');
     document.documentElement.style.overflow = '';
-
-    // Add "closed" classes to refs
-    Object.entries(this.$options.closedClass).forEach(([ref, classes]) => {
-      setClasses(this.$refs[ref], classes);
-    });
-
-    // Add "closed" styles to refs
-    Object.entries(this.$options.closedStyle).forEach(([ref, styles]) => {
-      setStyles(this.$refs[ref], styles);
-    });
-
-    // Remove "open" classes from refs
-    Object.entries(this.$options.openClass).forEach(([ref, classes]) => {
-      setClasses(this.$refs[ref], classes, 'remove');
-    });
-
-    // Remove "open" styles from refs
-    Object.entries(this.$options.openStyle).forEach(([ref, styles]) => {
-      setStyles(this.$refs[ref], styles, 'remove');
-    });
 
     this.isOpen = false;
     untrap();
     this.$emit('close');
+
+    return Promise.all(
+      Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
+        transition(this.$refs[refName], {
+          from: open,
+          active,
+          to: closed,
+        }).then(() => {
+          setClassesOrStyles(this.$refs[refName], closed);
+          return Promise.resolve();
+        })
+      )
+    ).then(() => Promise.resolve(this));
   }
 }

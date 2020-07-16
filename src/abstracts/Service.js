@@ -1,22 +1,4 @@
 /**
- * Test if the children classes implements this class correctly
- *
- * @return {Service} The current instance
- */
-function testImplementation(obj) {
-  const descriptors = Object.getOwnPropertyDescriptors(obj);
-  const methods = Object.keys(descriptors);
-
-  ['init', 'kill', 'props'].forEach((key) => {
-    if (!methods.includes(key)) {
-      throw new Error(`The \`${key}\` method must be implemented.`);
-    }
-  });
-
-  return this;
-}
-
-/**
  * Service abstract class
  */
 export default class Service {
@@ -28,27 +10,35 @@ export default class Service {
   constructor() {
     this.callbacks = new Map();
     this.isInit = false;
-    testImplementation(Object.getPrototypeOf(this));
+  }
+
+  /**
+   * Getter to get the services properties.
+   * This getter MUST be implementer by the service extending this class.
+   * @return {Object}
+   */
+  get props() {
+    throw new Error('The `props` getter must be implemented.');
   }
 
   /**
    * Method to initialize the service behaviors.
-   * This method MUST be implemented by the service implementing this class.
+   * This method MUST be implemented by the service extending this class.
    *
    * @return {Service} The current instance
    */
   init() {
-    return this;
+    throw new Error('The `init` method must be implemented.');
   }
 
   /**
    * Method to kill the service behaviors.
-   * This method MUST be implemented by the service implementing this class.
+   * This method MUST be implemented by the service extending this class.
    *
    * @return {Service} The current instance
    */
   kill() {
-    return this;
+    throw new Error('The `kill` method must be implemented.');
   }
 
   /**
@@ -102,7 +92,7 @@ export default class Service {
   remove(key) {
     this.callbacks.delete(key);
 
-    // Kill the service when we add the first callback
+    // Kill the service when we remove the last callback
     if (this.callbacks.size === 0 && this.isInit) {
       this.kill();
       this.isInit = false;

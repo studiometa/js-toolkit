@@ -26,7 +26,7 @@ class Key extends Service {
   previousEvent = {};
 
   /**
-   * Bind the handler to the scroll event.
+   * Bind the handler to the keyboard event.
    *
    * @return {void}
    */
@@ -40,7 +40,7 @@ class Key extends Service {
   }
 
   /**
-   * Unbind the handler from the scroll event.
+   * Unbind the handler from the keyboard event.
    *
    * @return {void}
    */
@@ -50,7 +50,7 @@ class Key extends Service {
   }
 
   /**
-   * Get scroll props.
+   * Get keyboard props.
    *
    * @type {Object}
    */
@@ -60,13 +60,11 @@ class Key extends Service {
       return acc;
     }, {});
 
-    if (
-      (this.event.type === 'keydown' && this.previousEvent.type === 'keydown') ||
-      !this.previousEvent.type
-    ) {
-      if (!this.previousEvent.type) {
-        this.triggered = 0;
-      }
+    if (!this.previousEvent.type) {
+      this.triggered = 0;
+    }
+
+    if (this.event.type === 'keydown' && this.previousEvent.type === 'keydown') {
       this.triggered += 1;
     } else {
       this.triggered = 1;
@@ -77,7 +75,7 @@ class Key extends Service {
     return {
       event: this.event,
       triggered: this.triggered,
-      direction: this.event.type === 'keydown' ? 'down': 'up',
+      direction: this.event.type === 'keydown' ? 'down' : 'up',
       isUp: this.event.type === 'keyup',
       isDown: this.event.type === 'keydown',
       ...keys,

@@ -43,6 +43,7 @@ class Pointer extends Service {
     const debounced = debounce(event => {
       this.updateValues(event);
       remove('usePointer');
+      this.trigger(this.props);
       this.hasRaf = false;
     }, 50);
 
@@ -54,14 +55,14 @@ class Pointer extends Service {
         });
         this.hasRaf = true;
       }
-      // Reset changed flags at the end of the scroll event
+      // Reset changed flags at the end of the mousemove or touchmove event
       debounced(event);
     }, 32).bind(this);
 
     this.downHandler = this.downHandler.bind(this);
     this.upHandler = this.upHandler.bind(this);
 
-    document.addEventListener('mouseenter', this.handler, { once: true });
+    document.documentElement.addEventListener('mouseenter', this.handler, { once: true });
     document.addEventListener('mousemove', this.handler, { passive: true });
     document.addEventListener('touchmove', this.handler, { passive: true });
     document.addEventListener('mousedown', this.downHandler, { passive: true });
