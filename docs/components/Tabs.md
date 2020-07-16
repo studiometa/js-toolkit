@@ -12,62 +12,33 @@ next: false
 ### Simple
 
 <Preview>
-  <div data-component="Tabs" data-options='{ "debug": true, "tabActiveStyle": { "borderBottomColor": "#fff" } }'>
+  <div data-component="Tabs" data-options='{ "debug": true, "styles": { "btn": { "open": { "borderBottomColor": "#fff" } } } }'>
     <div class="flex px-10">
-      <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
+      <button data-ref="btn" class="-mb-px -ml-px p-4 bg-white border">
         Tab #1
       </button>
-      <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
+      <button data-ref="btn" class="-mb-px -ml-px p-4 bg-white border">
         Tab #2
       </button>
-      <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
+      <button data-ref="btn" class="-mb-px -ml-px p-4 bg-white border">
         Tab #3
       </button>
     </div>
     <div class="p-10 bg-white border">
-      <div data-ref="Tabs.content" aria-hidden="false">
+      <div data-ref="content" aria-hidden="false">
         Content #1
       </div>
-      <div data-ref="Tabs.content" aria-hidden="true">
+      <div data-ref="content" aria-hidden="true">
         Content #2
       </div>
-      <div data-ref="Tabs.content" aria-hidden="true">
+      <div data-ref="content" aria-hidden="true">
         Content #3
       </div>
     </div>
   </div>
 </Preview>
 
-```html
-<div data-component="Tabs" data-options='{
-  "tabActiveStyle": {
-    "borderBottomColor": "#fff"
-  }
-}'>
-  <div class="flex px-10 border-b">
-    <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
-      Tab #1
-    </button>
-    <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
-      Tab #2
-    </button>
-    <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 bg-white border">
-      Tab #3
-    </button>
-  </div>
-  <div class="p-10 bg-white">
-    <div data-ref="Tabs.content" aria-hidden="false">
-      Content #1
-    </div>
-    <div data-ref="Tabs.content" aria-hidden="true">
-      Content #2
-    </div>
-    <div data-ref="Tabs.content" aria-hidden="true">
-      Content #3
-    </div>
-  </div>
-</div>
-```
+<<< @/docs/components/Tabs.template.html
 
 ### Animated transition
 
@@ -75,26 +46,40 @@ You can add some transition to the content switch with the `contentActiveClass` 
 
 
 <Preview>
-  <div data-component="Tabs" data-options='{ "tabActiveClass": "bg-green-500 hover:bg-green-600", "tabInactiveClass": "bg-gray-800 hover:bg-gray-900", "contentInactiveClass": "opacity-0 scale-75 pointer-events-none", "contentInactiveStyle": {} }'>
+  <div
+    data-component="Tabs"
+    data-options='{
+      "styles": {
+        "btn": {
+          "open": "bg-green-500 hover:bg-green-600",
+          "active": "transition duration-500 ease-out-expo",
+          "closed": "bg-gray-800 hover:bg-gray-900"
+        },
+        "content": {
+          "active": "transition duration-500 ease-out-expo",
+          "closed": "opacity-0 transform scale-50 pointer-events-none"
+        }
+      }
+    }'>
     <div class="relative w-full h-32 mb-10">
-      <div data-ref="Tabs.content" aria-hidden="false" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
+      <div data-ref="content" aria-hidden="false" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded">
         Content #1
       </div>
-      <div data-ref="Tabs.content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
+      <div data-ref="content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded ">
         Content #2
       </div>
-      <div data-ref="Tabs.content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
+      <div data-ref="content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded">
         Content #3
       </div>
     </div>
     <div class="flex justify-center">
-      <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
+      <button data-ref="btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded">
         Tab #1
       </button>
-      <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
+      <button data-ref="btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded">
         Tab #2
       </button>
-      <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
+      <button data-ref="btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded">
         Tab #3
       </button>
     </div>
@@ -103,31 +88,40 @@ You can add some transition to the content switch with the `contentActiveClass` 
 
 
 ```html
-<div data-component="Tabs" data-options='{
-  "tabActiveClass": "bg-green-500 hover:bg-green-600",
-  "tabInactiveClass": "bg-gray-800 hover:bg-gray-900",
-  "contentInactiveClass": "opacity-0 scale-75 pointer-events-none",
-  "contentInactiveStyle": {}
-}'>
+<div
+  data-component="Tabs"
+  data-options='{
+    "styles": {
+      "btn": {
+        "open": "bg-green-500 hover:bg-green-600",
+        "active": "transition duration-1000 ease-out-expo",
+        "closed": "bg-gray-800 hover:bg-gray-900"
+      },
+      "content": {
+        "active": "transition duration-1000 ease-out-expo",
+        "closed": "opacity-0 transform scale-50 pointer-events-none"
+      }
+    }
+  }'>
   <div class="relative w-full h-32 mb-10">
-    <div data-ref="Tabs.content" aria-hidden="false" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
+    <div data-ref="content" aria-hidden="false" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded">
       Content #1
     </div>
-    <div data-ref="Tabs.content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
+    <div data-ref="content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded ">
       Content #2
     </div>
-    <div data-ref="Tabs.content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded transform transition duration-500 ease-out-expo">
+    <div data-ref="content" aria-hidden="true" class="absolute inset-0 flex items-center justify-center bg-white shadow-xl rounded">
       Content #3
     </div>
   </div>
   <div class="flex justify-center">
-    <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
+    <button data-ref="btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded">
       Tab #1
     </button>
-    <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
+    <button data-ref="btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded">
       Tab #2
     </button>
-    <button data-ref="Tabs.btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded transition duration-200 ">
+    <button data-ref="btn" class="mr-4 py-3 px-4 text-white bg-gray-800 hover:bg-gray-900 rounded">
       Tab #3
     </button>
   </div>
@@ -164,33 +158,48 @@ class App extends Base {
 new App(document.documentElement);
 ```
 
+Or you can extend the component to apply a default configuration for your project:
+
+```js
+import { Tabs as TabsCore } from '@studiometa/js-toolkit';
+
+export default class Tabs extends TabsCore {
+  get config() {
+    return {
+      ...super.config,
+      styles: {
+        content: {
+          closed: 'absolute opacity-0 pointer-events-none visibility-hidden',
+        },
+      },
+    };
+  }
+}
+```
+
 ### HTML
 
 And setup the following markup in your HTML:
 
 ```html
-<div data-component="Tabs" data-options='{ "tabActiveStyle": { "borderBottomColor": "#fff" } }'>
-  <div class="flex px-4 border-b">
-    <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 border">
-      Tab #1
-    </button>
-    <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 border">
-      Tab #2
-    </button>
-    <button data-ref="Tabs.btn" class="-mb-px -ml-px p-4 border">
-      Tab #3
-    </button>
+<div data-component="Tabs" data-options="{}">
+  <button data-ref="btn">
+    Tab #1
+  </button>
+  <button data-ref="btn">
+    Tab #2
+  </button>
+  <button data-ref="btn">
+    Tab #3
+  </button>
+  <div data-ref="content" aria-hidden="false">
+    Content #1
   </div>
-  <div class="p-4">
-    <div data-ref="Tabs.content" aria-hidden="false">
-      Content #1
-    </div>
-    <div data-ref="Tabs.content" aria-hidden="true">
-      Content #2
-    </div>
-    <div data-ref="Tabs.content" aria-hidden="true">
-      Content #3
-    </div>
+  <div data-ref="content" aria-hidden="true">
+    Content #2
+  </div>
+  <div data-ref="content" aria-hidden="true">
+    Content #3
   </div>
 </div>
 ```
@@ -217,61 +226,28 @@ This ref will be used to display the content associated with a tab element.
 Options can be defined per component via the `data-options` attribute or by extending the Tabs class.
 :::
 
-#### `tabActiveClass`
+#### `styles`
 
-- Type: `String`
-- Default: `''`
+- Type: `Object`
+- Default:
 
-A list of space separated classes applied to the tab element when it is active.
+```js
+{
+  content: {
+    open: undefined, // Classes or styles for the `enabled` state
+    active: undefined, // Used to add transition between the states
+    closed: { // Default styles for the `disabled` state
+      position: 'absolute',
+      opacity: 0,
+      pointerEvents: 'none',
+      visibility: 'hidden'
+    },
+  },
+  btn: undefined, // Classes or styles for the `btn` ref for each states
+}
+```
 
-#### `tabActiveStyle`
-
-- Type: `CSSStyleDeclaration`
-- Default: `{}`
-
-Styles applied to the tab element when it is active.
-
-#### `tabInactiveClass`
-
-- Type: `String`
-- Default: `''`
-
-A list of space separated classes applied to the tab element when it is inactive.
-
-#### `tabInactiveStyle`
-
-- Type: `CSSStyleDeclaration`
-- Default: `{}`
-
-Styles applied to the tab element when it is inactive.
-
-#### `contentActiveClass`
-
-- Type: `String`
-- Default: `''`
-
-A list of space separated classes applied to the content element when it is active.
-
-#### `contentActiveStyle`
-
-- Type: `CSSStyleDeclaration`
-- Default: `{}`
-
-Styles applied to the content element when it is active.
-
-#### `contentInactiveClass`
-
-- Type: `String`
-- Default: `''`
-
-A list of space separated classes applied to the content element when it is inactive.
-
-#### `contentInactiveStyle`
-
-- Type: `CSSStyleDeclaration`
-- Default: ```{ display: 'none'}```
-
-Styles applied to the content element when it is inactive.
+The `styles` options should be used to apply custom classes or styles to the `content` and `btn` refs for their `enabled` or `disabled` states.
 
 ### Events
 
@@ -280,13 +256,17 @@ Styles applied to the content element when it is inactive.
 Emitted when a tab and its content are enabled.
 
 **Params**
-- `btn`: the button element
-- `content`: the content element
+- `item`: a tab item object
+  + `item.btn`: the button element
+  + `item.content`: the content element
+  + `item.isEnabled`: the state of the item
 
 #### `disable`
 
 Emitted when a tab and its content are disabled.
 
 **Params**
-- `btn`: the button element
-- `content`: the content element
+- `item`: a tab item object
+  + `item.btn`: the button element
+  + `item.content`: the content element
+  + `item.isEnabled`: the state of the item

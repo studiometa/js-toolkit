@@ -1,6 +1,7 @@
 import Service from '../abstracts/Service';
 import throttle from '../utils/throttle';
 import debounce from '../utils/debounce';
+import nextFrame from '../utils/nextFrame';
 
 /**
  * Scroll service
@@ -34,7 +35,7 @@ class Scroll extends Service {
   init() {
     const debounced = debounce(() => {
       this.trigger(this.props);
-      requestAnimationFrame(() => {
+      nextFrame(() => {
         this.trigger(this.props);
       });
     }, 50);
@@ -71,13 +72,11 @@ class Scroll extends Service {
     // Check scroll Y
     if (window.pageYOffset !== this.y) {
       this.y = window.pageYOffset;
-      this.yProgress = this.y / this.max.y;
     }
 
     // Check scroll x
     if (window.pageXOffset !== this.x) {
       this.x = window.pageXOffset;
-      this.xProgress = this.x / this.max.x;
     }
 
     return {
@@ -96,8 +95,8 @@ class Scroll extends Service {
         y: this.y - this.yLast,
       },
       progress: {
-        x: this.xProgress,
-        y: this.yProgress,
+        x: this.max.x === 0 ? 1 : this.x / this.max.x,
+        y: this.max.y === 0 ? 1 : this.y / this.max.y,
       },
       max: this.max,
     };

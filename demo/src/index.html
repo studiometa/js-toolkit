@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>@studiometa/js-toolkit demo</title>
+    <meta name="description" content="Demo of the @studiometa/js-toolkit components." />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  </head>
+
+  <body>
+    <main data-breakpoint class="relative p-10" @click="foo">
+      <div data-component="MediaQuery" data-active-breakpoints="l">
+        <div data-component="Modal" data-options='{ "debug": false, "styles": { "modal": { "active": "transition-all duration-500" } } }' class="text-center">
+          <!--
+            Modal opening trigger.
+            This ref will be used to open the modal on click.
+          -->
+          <button
+            data-ref="open"
+            type="button"
+            class="py-4 px-8 text-white rounded bg-black focus:opacity-50"
+          >
+            Open
+          </button>
+          <!-- Modal element -->
+          <div
+            data-ref="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-hidden="true"
+            style="opacity: 0; pointer-events: none; visibility: hidden;"
+            class="z-goku fixed inset-0"
+          >
+            <!--
+              Modal overlay
+              The `tabindex="-"` attribute is required.
+            -->
+            <div
+              data-ref="overlay"
+              tabindex="-1"
+              class="z-under absolute inset-0 bg-black opacity-75"
+            ></div>
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <!--
+                Modal container
+                This is the element in which the user can scroll
+                if the content of the modal is too long.
+              -->
+              <div
+                data-ref="container"
+                class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto"
+              >
+                <!--
+                  Modal close button
+                  This will be used to close the modal on click.
+                -->
+                <button
+                  data-ref="close"
+                  type="button"
+                  class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50"
+                >
+                  Close
+                </button>
+                <!--
+                  Modal content
+                  The content displayed in the modal.
+                  The `max-w-3xl` class defines the modal width.
+                -->
+                <div class="max-w-3xl p-10 pt-16" data-ref="content">
+                  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint
+                  culpa sequi enim <a href="#" autofocus class="border-b">quaerat</a> itaque
+                  possimus at <a href="#" class="border-b">voluptatem</a> voluptates voluptatum
+                  velit illum nulla, optio porro ea. Doloremque, aut, beatae!
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <br />
+      <br />
+      <br />
+      <!-- BEGIN Accordion component-->
+      <div data-component="Accordion" data-options='{ "autoclose": false }'>
+        <div
+          data-component="AccordionItem"
+          class="border -mb-px"
+          data-options='{ "enterActive": "transition-all duration-500 ease-out-expo", "leaveActive": "transition-all duration-300 ease-out-expo"}'
+        >
+          <button data-ref="btn" class="block w-full p-4 text-left cursor-pointer">
+            Lorem ipsum
+          </button>
+          <div
+            data-ref="container"
+            class="relative h-0 invisible overflow-hidden"
+            aria-hidden="true"
+          >
+            <div data-ref="content" class="absolute top-0 left-0 w-full p-4 pt-0">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto nobis laboriosam
+              rerum aspernatur deserunt similique facere impedit alias, error officia cum quibusdam
+              quisquam quo, magnam libero eius provident dolorum molestiae.
+            </div>
+          </div>
+        </div>
+        <div
+          data-component="AccordionItem"
+          class="border -mb-px"
+          data-options='{ "enterActive": "transition-all duration-500 ease-out-expo", "leaveActive": "transition-all duration-300 ease-out-expo"}'
+        >
+          <button data-ref="btn" class="block w-full p-4 text-left cursor-pointer">
+            Lorem ipsum
+          </button>
+          <div
+            data-ref="container"
+            class="relative h-0 invisible overflow-hidden"
+            aria-hidden="true"
+          >
+            <div data-ref="content" class="absolute top-0 left-0 w-full p-4 pt-0">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto nobis laboriosam
+              rerum aspernatur deserunt similique facere impedit alias, error officia cum quibusdam
+              quisquam quo, magnam libero eius provident dolorum molestiae.
+            </div>
+          </div>
+        </div>
+        <div
+          data-component="AccordionItem"
+          class="border -mb-px"
+          data-options='{ "enterActive": "transition-all duration-500 ease-out-expo", "leaveActive": "transition-all duration-300 ease-out-expo"}'
+        >
+          <button data-ref="btn" class="block w-full p-4 text-left cursor-pointer">
+            Lorem ipsum
+          </button>
+          <div
+            data-ref="container"
+            class="relative h-0 invisible overflow-hidden"
+            aria-hidden="true"
+          >
+            <div data-ref="content" class="absolute top-0 left-0 w-full p-4 pt-0">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto nobis laboriosam
+              rerum aspernatur deserunt similique facere impedit alias, error officia cum quibusdam
+              quisquam quo, magnam libero eius provident dolorum molestiae.
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END Accordion component-->
+
+      <hr class="my-10" />
+
+      <!-- BEGIN Accordion component-->
+      <div class="accordion" data-component="Accordion">
+        <div
+          data-component="AccordionItem"
+          class="border -mb-px"
+          data-options='{ "active": "transition-all duration-500 ease-out-expo" }'
+        >
+          <button data-ref="btn" class="block w-full p-4 text-left cursor-pointer">
+            Show image #1
+          </button>
+          <div
+            data-ref="container"
+            class="relative h-0 invisible overflow-hidden"
+            aria-hidden="true"
+          >
+            <div data-ref="content" class="absolute top-0 left-0 w-full p-4 pt-0">
+              <img
+                class="lazyload"
+                data-src="https://placekitten.com/200/100"
+                width="200"
+                height="100"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          data-component="AccordionItem"
+          class="border -mb-px"
+          data-options='{ "active": "transition-all duration-500 ease-out-expo" }'
+        >
+          <button data-ref="btn" class="block w-full p-4 text-left cursor-pointer">
+            Show image #2
+          </button>
+          <div
+            data-ref="container"
+            class="relative h-0 invisible overflow-hidden"
+            aria-hidden="true"
+          >
+            <div data-ref="content" class="absolute top-0 left-0 w-full p-4 pt-0">
+              <img
+                class="lazyload"
+                data-src="https://placekitten.com/200/120"
+                width="200"
+                height="120"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          data-component="AccordionItem"
+          class="border -mb-px"
+          data-options='{ "active": "transition-all duration-500 ease-out-expo" }'
+        >
+          <button data-ref="btn" class="block w-full p-4 text-left cursor-pointer">
+            Show image #3
+          </button>
+          <div
+            data-ref="container"
+            class="relative h-0 invisible overflow-hidden"
+            aria-hidden="true"
+          >
+            <div data-ref="content" class="absolute top-0 left-0 w-full p-4 pt-0">
+              <img
+                class="lazyload"
+                data-src="https://placekitten.com/200/80"
+                width="200"
+                height="80"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END Accordion component-->
+
+      <hr class="my-10" />
+
+      <!-- BEGIN Tabs component-->
+      <h2 id="components-tabs" class="text-lg mb-4">Tabs</h2>
+      <div
+        data-component="Tabs"
+        data-options='{ "styles": { "btn": { "open": { "borderBottomColor": "#fff" } } } }'
+      >
+        <div class="flex px-4 border-b">
+          <button data-ref="btn" class="-mb-px -ml-px p-4 border">Tab #1</button>
+          <button data-ref="btn" class="-mb-px -ml-px p-4 border">Tab #2</button>
+          <button data-ref="btn" class="-mb-px -ml-px p-4 border">Tab #3</button>
+        </div>
+        <div class="p-4">
+          <div data-ref="content" aria-hidden="false">
+            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Adipisci nemo quod nobis
+            laudantium iusto maiores molestias animi quos error quo consequatur, eum veniam sequi
+            repellat placeat rerum a labore. Sit.
+          </div>
+          <div data-ref="content" aria-hidden="true">
+            Nunc ultrices arcu quis mollis mollis. Duis at turpis et nibh pellentesque dapibus.
+            Quisque luctus neque a placerat sodales. Sed a mauris efficitur eros fringilla viverra.
+            Donec eleifend risus ligula. Donec non tellus lacinia, tempus enim id, lacinia arcu.
+            Phasellus sit amet mollis nibh, at porta nunc. Fusce faucibus erat quis risus molestie,
+            ac aliquam purus finibus. Pellentesque aliquet augue non sollicitudin semper. Vivamus
+            est odio, efficitur vitae lacus id, eleifend maximus felis.
+          </div>
+          <div data-ref="content" aria-hidden="true">
+            <img
+              data-src="https://placekitten.com/300/300"
+              class="lazyload"
+              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+              width="300"
+              height="300"
+              alt=""
+            />
+          </div>
+        </div>
+      </div>
+      <!-- END Tabs component-->
+
+      <hr class="my-10" />
+
+      <div class="flex flex-wrap">
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/500/500"
+            class="lazyload"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="500"
+            height="500"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/510/510"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="510"
+            height="510"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/520/520"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="520"
+            height="520"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/530/530"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="530"
+            height="530"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/540/540"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="540"
+            height="540"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/550/550"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="550"
+            height="550"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/560/560"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="560"
+            height="560"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/570/570"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="570"
+            height="570"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/580/580"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="580"
+            height="580"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/590/590"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="590"
+            height="590"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/600/600"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="600"
+            height="600"
+            alt=""
+          />
+        </div>
+        <div class="w-1/3 p-10" data-component="Skew">
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
+            data-src="https://placekitten.com/610/610"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            width="610"
+            height="610"
+            alt=""
+          />
+        </div>
+      </div>
+
+      <hr class="my-10" />
+
+      <div class="absolute left-0 right-0 bottom-0 p-10 bg-gray-200">
+        Bottom
+      </div>
+    </main>
+    <!-- BEGIN Cursor component -->
+    <div
+      data-component="Cursor"
+      class="z-goku fixed top-0 left-0 w-2 h-2 -mt-1 -ml-1 bg-black rounded-full pointer-events-none transform transition duration-200 ease-out-expo"
+    >
+      <div
+        data-ref="inner"
+        class="absolute top-0 left-0 w-8 h-8 -mt-3 -ml-3 rounded-full border transition duration-300 ease-out-expo"
+      ></div>
+    </div>
+    <!-- END Cursor component -->
+  </body>
+</html>

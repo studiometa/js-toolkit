@@ -11,7 +11,7 @@ var _exportNames = {
 Object.defineProperty(exports, "Base", {
   enumerable: true,
   get: function get() {
-    return _Base2["default"];
+    return _Base2.default;
   }
 });
 

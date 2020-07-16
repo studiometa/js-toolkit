@@ -5,13 +5,15 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.default = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+/* eslint no-underscore-dangle: ["error", { "allow": ["_events"] }] */
 
 /**
  * Event management class.
@@ -23,11 +25,11 @@ var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/de
  */
 var EventManager = /*#__PURE__*/function () {
   function EventManager() {
-    (0, _classCallCheck2["default"])(this, EventManager);
-    (0, _defineProperty2["default"])(this, "events", {});
+    (0, _classCallCheck2.default)(this, EventManager);
+    (0, _defineProperty2.default)(this, "_events", {});
   }
 
-  (0, _createClass2["default"])(EventManager, [{
+  (0, _createClass2.default)(EventManager, [{
     key: "$on",
 
     /**
@@ -40,11 +42,12 @@ var EventManager = /*#__PURE__*/function () {
     value: function $on(event, listener) {
       var _this = this;
 
-      if (!Array.isArray(this.events[event])) {
-        this.events[event] = [];
+      if (!Array.isArray(this._events[event])) {
+        this._events[event] = [];
       }
 
-      this.events[event].push(listener);
+      this._events[event].push(listener);
+
       return function () {
         _this.$off(event, listener);
       };
@@ -60,27 +63,23 @@ var EventManager = /*#__PURE__*/function () {
   }, {
     key: "$off",
     value: function $off(event, listener) {
-      if (!Array.isArray(this.events[event])) {
-        return this;
-      } // If no event specified, we remove them all.
-
-
+      // If no event specified, we remove them all.
       if (!event) {
-        this.events = {};
+        this._events = {};
         return this;
       } // If no listener have been specified, we remove all
       // the listeners for the given event.
 
 
       if (!listener) {
-        this.events[event] = [];
+        this._events[event] = [];
         return this;
       }
 
-      var index = this.events[event].indexOf(listener);
+      var index = this._events[event].indexOf(listener);
 
       if (index > -1) {
-        this.events[event].splice(index, 1);
+        this._events[event].splice(index, 1);
       }
 
       return this;
@@ -102,13 +101,14 @@ var EventManager = /*#__PURE__*/function () {
         args[_key - 1] = arguments[_key];
       }
 
-      if (!Array.isArray(this.events[event])) {
+      if (!Array.isArray(this._events[event])) {
         return this;
       }
 
-      this.events[event].forEach(function (listener) {
+      this._events[event].forEach(function (listener) {
         listener.apply(_this2, args);
       });
+
       return this;
     }
     /**
@@ -138,5 +138,5 @@ var EventManager = /*#__PURE__*/function () {
   return EventManager;
 }();
 
-exports["default"] = EventManager;
+exports.default = EventManager;
 //# sourceMappingURL=EventManager.js.map
