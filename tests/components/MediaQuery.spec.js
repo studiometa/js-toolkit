@@ -43,14 +43,6 @@ describe('The MediaQuery component', () => {
     expect(app.$children.MediaQuery[0].child).toBe(app.$children.Foo[0]);
   });
 
-  it('should fail silently when the child component can not be found', async () => {
-    await resizeWindow({ width: 1200 });
-    app = new App(document.body);
-    document.body.appendChild(app.$children.Foo[0].$el);
-    await resizeWindow({ width: 600 });
-    expect(app.$children.Foo[0].$isMounted).toBe(true);
-  });
-
   it('should always have an array for the `activeBreakpoints` getter', async () => {
     await resizeWindow({ width: 1200 });
     app = new App(document.body);
@@ -78,5 +70,15 @@ describe('The MediaQuery component', () => {
     expect(app.$children.Foo[0].$isMounted).toBe(false);
     await resizeWindow({ width: 800 });
     expect(app.$children.Foo[0].$isMounted).toBe(true);
+  });
+
+  it('should throw an error when the child component can not be found', async () => {
+    await resizeWindow({ width: 1200 });
+    app = new App(document.body);
+    document.body.appendChild(app.$children.Foo[0].$el);
+
+    expect(() => {
+      app.$children.MediaQuery[0].test();
+    }).toThrow();
   });
 });

@@ -43,11 +43,15 @@ export default class MediaQuery extends Base {
    * @return {Base|Boolean}
    */
   get child() {
-    if (this.$el.firstElementChild && this.$el.firstElementChild.__base__) {
-      return this.$el.firstElementChild.__base__;
+    const child = this.$el.firstElementChild ? this.$el.firstElementChild.__base__ : false;
+
+    if (!child) {
+      throw new Error(
+        'The first and only child of the MediaQuery component must be another Base component.'
+      );
     }
 
-    return false;
+    return child;
   }
 
   /**
@@ -79,10 +83,6 @@ export default class MediaQuery extends Base {
    * @return {void}
    */
   test() {
-    if (!this.child) {
-      return;
-    }
-
     const isInBreakpoints = this.activeBreakpoints.includes(this.currentBreakpoint);
 
     if (isInBreakpoints && !this.child.$isMounted) {
