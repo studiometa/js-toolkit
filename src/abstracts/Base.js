@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import nanoid from 'nanoid/non-secure';
+import merge from 'deepmerge';
 import autoBind from '../utils/object/autoBind';
 import getAllProperties from '../utils/object/getAllProperties';
 import EventManager from './EventManager';
@@ -130,7 +131,7 @@ function getOptions(instance, element, config) {
     }
   }
 
-  options = { ...config, ...options };
+  options = merge(config, options);
   instance.$emit('get:options', options);
   return options;
 }
@@ -363,7 +364,10 @@ export default class Base extends EventManager {
           .forEach(([eventMethod]) => {
             $refs.forEach(($ref, index) => {
               const eventName = eventMethod.replace(refEventMethod, '').toLowerCase();
-              const handler = event => this[eventMethod](event, index);
+              const handler = event => {
+                debug(this, eventMethod, $ref, event, index);
+                this[eventMethod](event, index);
+              };
               $ref.addEventListener(eventName, handler);
 
               unbindMethods.push(() => {
@@ -379,9 +383,13 @@ export default class Base extends EventManager {
 
       eventMethods.forEach(([eventMethod]) => {
         const eventName = eventMethod.replace(/^on/, '').toLowerCase();
-        this.$el.addEventListener(eventName, this[eventMethod]);
+        const handler = event => {
+          debug(this, eventMethod, this.$el, event);
+          this[eventMethod](event);
+        };
+        this.$el.addEventListener(eventName, handler);
         unbindMethods.push(() => {
-          this.$el.removeEventListener(eventName, this[eventMethod]);
+          this.$el.removeEventListener(eventName, handler);
         });
       });
 

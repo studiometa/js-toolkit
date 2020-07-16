@@ -7,6 +7,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.setClassesOrStyles = setClassesOrStyles;
 exports.default = transition;
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
@@ -134,26 +135,16 @@ function _next() {
                         }
 
                         setClassesOrStyles(element, classesOrStyles.from, 'remove');
-
-                        if (hasTransition) {
-                          _context2.next = 5;
-                          break;
-                        }
-
+                        setClassesOrStyles(element, classesOrStyles.to);
                         _context2.next = 5;
                         return (0, _nextFrame.default)();
 
                       case 5:
-                        setClassesOrStyles(element, classesOrStyles.to);
-                        _context2.next = 8;
-                        return (0, _nextFrame.default)();
-
-                      case 8:
                         if (!hasTransition) {
                           resolve();
                         }
 
-                      case 9:
+                      case 6:
                       case "end":
                         return _context2.stop();
                     }

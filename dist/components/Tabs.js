@@ -9,6 +9,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
@@ -21,9 +25,7 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 
 var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
 
-var classes = _interopRequireWildcard(require("../utils/css/classes"));
-
-var styles = _interopRequireWildcard(require("../utils/css/styles"));
+var _transition = _interopRequireWildcard(require("../utils/css/transition"));
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -53,17 +55,24 @@ var Tabs = /*#__PURE__*/function (_Base) {
     value: function mounted() {
       var _this = this;
 
-      this.$refs.btn.forEach(function (btn, index) {
+      this.items = this.$refs.btn.map(function (btn, index) {
         var id = "".concat(_this.$id, "-").concat(index);
         var content = _this.$refs.content[index];
         btn.setAttribute('id', id);
         content.setAttribute('aria-labelledby', id);
+        var item = {
+          btn: btn,
+          content: content,
+          isEnabled: index > 0
+        };
 
-        if (index === 0) {
-          _this.enableTab(btn, content);
+        if (index > 0) {
+          _this.disableItem(item);
         } else {
-          _this.disableTab(btn, content);
+          _this.enableItem(item);
         }
+
+        return item;
       });
       return this;
     }
@@ -80,12 +89,12 @@ var Tabs = /*#__PURE__*/function (_Base) {
     value: function onBtnClick(event, index) {
       var _this2 = this;
 
-      this.$refs.btn.filter(function (el, i) {
-        return i !== index;
-      }).forEach(function (el, i) {
-        _this2.disableTab(el, _this2.$refs.content[i]);
+      this.items.forEach(function (item, i) {
+        if (i !== index) {
+          _this2.disableItem(item);
+        }
       });
-      this.enableTab(this.$refs.btn[index], this.$refs.content[index]);
+      this.enableItem(this.items[index]);
     }
     /**
      * Enable the given tab and its associated content.
@@ -96,23 +105,62 @@ var Tabs = /*#__PURE__*/function (_Base) {
      */
 
   }, {
-    key: "enableTab",
-    value: function enableTab(btn, content) {
-      classes.add(btn, this.$options.tabActiveClass);
-      styles.add(btn, this.$options.tabActiveStyle);
-      classes.add(content, this.$options.contentActiveClass);
-      styles.add(content, this.$options.contentActiveStyle);
-      classes.remove(btn, this.$options.tabInactiveClass);
-      styles.remove(btn, this.$options.tabInactiveStyle);
-      classes.remove(content, this.$options.contentInactiveClass);
-      styles.remove(content, this.$options.contentInactiveStyle);
-      content.setAttribute('aria-hidden', 'false');
-      this.$emit('enable', {
-        btn: btn,
-        content: content
-      });
-      return this;
-    }
+    key: "enableItem",
+    value: function () {
+      var _enableItem = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(item) {
+        var _this3 = this;
+
+        var btn, content, btnStyles, contentStyles;
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!(!item || item.isEnabled)) {
+                  _context.next = 2;
+                  break;
+                }
+
+                return _context.abrupt("return", Promise.resolve(this));
+
+              case 2:
+                item.isEnabled = true;
+                btn = item.btn, content = item.content;
+                btnStyles = this.$options.styles.btn || {};
+                contentStyles = this.$options.styles.content || {};
+                content.setAttribute('aria-hidden', 'false');
+                this.$emit('enable', item);
+                return _context.abrupt("return", Promise.all([(0, _transition.default)(btn, {
+                  from: btnStyles.closed,
+                  active: btnStyles.active,
+                  to: btnStyles.open
+                }).then(function () {
+                  (0, _transition.setClassesOrStyles)(btn, btnStyles.open);
+                  return Promise.resolve(btn);
+                }), (0, _transition.default)(content, {
+                  from: contentStyles.closed,
+                  active: contentStyles.active,
+                  to: contentStyles.open
+                }).then(function () {
+                  (0, _transition.setClassesOrStyles)(content, contentStyles.open);
+                  return Promise.resolve(content);
+                })]).then(function () {
+                  return Promise.resolve(_this3);
+                }));
+
+              case 9:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function enableItem(_x) {
+        return _enableItem.apply(this, arguments);
+      }
+
+      return enableItem;
+    }()
     /**
      * Disable the given tab and its associated content.
      *
@@ -122,23 +170,62 @@ var Tabs = /*#__PURE__*/function (_Base) {
      */
 
   }, {
-    key: "disableTab",
-    value: function disableTab(btn, content) {
-      classes.remove(btn, this.$options.tabActiveClass);
-      styles.remove(btn, this.$options.tabActiveStyle);
-      classes.remove(content, this.$options.contentActiveClass);
-      styles.remove(content, this.$options.contentActiveStyle);
-      classes.add(btn, this.$options.tabInactiveClass);
-      styles.add(btn, this.$options.tabInactiveStyle);
-      classes.add(content, this.$options.contentInactiveClass);
-      styles.add(content, this.$options.contentInactiveStyle);
-      content.setAttribute('aria-hidden', 'true');
-      this.$emit('disable', {
-        btn: btn,
-        content: content
-      });
-      return this;
-    }
+    key: "disableItem",
+    value: function () {
+      var _disableItem = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(item) {
+        var _this4 = this;
+
+        var btn, content, btnStyles, contentStyles;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                if (!(!item || !item.isEnabled)) {
+                  _context2.next = 2;
+                  break;
+                }
+
+                return _context2.abrupt("return", Promise.resolve(this));
+
+              case 2:
+                item.isEnabled = false;
+                btn = item.btn, content = item.content;
+                btnStyles = this.$options.styles.btn || {};
+                contentStyles = this.$options.styles.content || {};
+                content.setAttribute('aria-hidden', 'true');
+                this.$emit('disable', item);
+                return _context2.abrupt("return", Promise.all([(0, _transition.default)(btn, {
+                  from: btnStyles.open,
+                  active: btnStyles.active,
+                  to: btnStyles.closed
+                }).then(function () {
+                  (0, _transition.setClassesOrStyles)(btn, btnStyles.closed);
+                  return Promise.resolve(btn);
+                }), (0, _transition.default)(content, {
+                  from: contentStyles.open,
+                  active: contentStyles.active,
+                  to: contentStyles.closed
+                }).then(function () {
+                  (0, _transition.setClassesOrStyles)(content, contentStyles.closed);
+                  return Promise.resolve(content);
+                })]).then(function () {
+                  return Promise.resolve(_this4);
+                }));
+
+              case 9:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function disableItem(_x2) {
+        return _disableItem.apply(this, arguments);
+      }
+
+      return disableItem;
+    }()
   }, {
     key: "config",
 
@@ -148,15 +235,15 @@ var Tabs = /*#__PURE__*/function (_Base) {
     get: function get() {
       return {
         name: 'Tabs',
-        tabActiveClass: '',
-        tabActiveStyle: {},
-        tabInactiveClass: '',
-        tabInactiveStyle: {},
-        contentActiveClass: '',
-        contentActiveStyle: {},
-        contentInactiveClass: '',
-        contentInactiveStyle: {
-          display: 'none'
+        styles: {
+          content: {
+            closed: {
+              position: 'absolute',
+              opacity: 0,
+              pointerEvents: 'none',
+              visibility: 'hidden'
+            }
+          }
         }
       };
     }

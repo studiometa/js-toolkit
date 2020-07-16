@@ -10,7 +10,7 @@ import * as styles from './styles';
  * @param {String|Object} classesOrStyles The classes or styles to apply.
  * @param {String}        method          The method to use, one of `add` or `remove`.
  */
-function setClassesOrStyles(element, classesOrStyles, method = 'add') {
+export function setClassesOrStyles(element, classesOrStyles, method = 'add') {
   if (typeof classesOrStyles === 'string') {
     classes[method](element, classesOrStyles, method);
   } else {
@@ -61,9 +61,6 @@ async function next(element, classesOrStyles) {
       element.addEventListener('transitionend', element.__transitionEndHandler__, false);
     }
     setClassesOrStyles(element, classesOrStyles.from, 'remove');
-    if (!hasTransition) {
-      await nextFrame();
-    }
     setClassesOrStyles(element, classesOrStyles.to);
     await nextFrame();
     if (!hasTransition) {

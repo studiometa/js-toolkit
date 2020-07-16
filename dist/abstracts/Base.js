@@ -21,11 +21,11 @@ var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime
 
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
 
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
-
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 
 var _nonSecure = _interopRequireDefault(require("nanoid/non-secure"));
+
+var _deepmerge = _interopRequireDefault(require("deepmerge"));
 
 var _autoBind = _interopRequireDefault(require("../utils/object/autoBind"));
 
@@ -46,10 +46,6 @@ var _key5 = _interopRequireDefault(require("../services/key"));
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 /**
  * Test if an object has a method.
@@ -183,7 +179,7 @@ function getOptions(instance, element, config) {
     }
   }
 
-  options = _objectSpread(_objectSpread({}, config), options);
+  options = (0, _deepmerge.default)(config, options);
   instance.$emit('get:options', options);
   return options;
 }
@@ -460,7 +456,9 @@ var Base = /*#__PURE__*/function (_EventManager) {
             var eventName = eventMethod.replace(refEventMethod, '').toLowerCase();
 
             var handler = function handler(event) {
-              return _this[eventMethod](event, index);
+              debug((0, _assertThisInitialized2.default)(_this), eventMethod, $ref, event, index);
+
+              _this[eventMethod](event, index);
             };
 
             $ref.addEventListener(eventName, handler);
@@ -482,10 +480,16 @@ var Base = /*#__PURE__*/function (_EventManager) {
 
         var eventName = eventMethod.replace(/^on/, '').toLowerCase();
 
-        _this.$el.addEventListener(eventName, _this[eventMethod]);
+        var handler = function handler(event) {
+          debug((0, _assertThisInitialized2.default)(_this), eventMethod, _this.$el, event);
+
+          _this[eventMethod](event);
+        };
+
+        _this.$el.addEventListener(eventName, handler);
 
         unbindMethods.push(function () {
-          _this.$el.removeEventListener(eventName, _this[eventMethod]);
+          _this.$el.removeEventListener(eventName, handler);
         });
       });
       mountComponents((0, _assertThisInitialized2.default)(_this));
