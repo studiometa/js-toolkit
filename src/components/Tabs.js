@@ -1,6 +1,5 @@
 import Base from '../abstracts/Base';
-import * as classes from '../utils/css/classes';
-import * as styles from '../utils/css/styles';
+import transition, { setClassesOrStyles } from '../utils/css/transition';
 
 /**
  * Tabs class.
@@ -12,15 +11,15 @@ export default class Tabs extends Base {
   get config() {
     return {
       name: 'Tabs',
-      tabActiveClass: '',
-      tabActiveStyle: {},
-      tabInactiveClass: '',
-      tabInactiveStyle: {},
-      contentActiveClass: '',
-      contentActiveStyle: {},
-      contentInactiveClass: '',
-      contentInactiveStyle: {
-        display: 'none',
+      styles: {
+        content: {
+          closed: {
+            position: 'absolute',
+            opacity: 0,
+            pointerEvents: 'none',
+            visibility: 'hidden',
+          },
+        },
       },
     };
   }
@@ -31,17 +30,19 @@ export default class Tabs extends Base {
    * @return {Tabs} The current instance.
    */
   mounted() {
-    this.$refs.btn.forEach((btn, index) => {
+    this.items = this.$refs.btn.map((btn, index) => {
       const id = `${this.$id}-${index}`;
       const content = this.$refs.content[index];
       btn.setAttribute('id', id);
       content.setAttribute('aria-labelledby', id);
 
-      if (index === 0) {
-        this.enableTab(btn, content);
+      const item = { btn, content, isEnabled: index > 0 };
+      if (index > 0) {
+        this.disableItem(item);
       } else {
-        this.disableTab(btn, content);
+        this.enableItem(item);
       }
+      return item;
     });
 
     return this;
@@ -55,13 +56,13 @@ export default class Tabs extends Base {
    * @return {void}
    */
   onBtnClick(event, index) {
-    this.$refs.btn
-      .filter((el, i) => i !== index)
-      .forEach((el, i) => {
-        this.disableTab(el, this.$refs.content[i]);
-      });
+    this.items.forEach((item, i) => {
+      if (i !== index) {
+        this.disableItem(item);
+      }
+    });
 
-    this.enableTab(this.$refs.btn[index], this.$refs.content[index]);
+    this.enableItem(this.items[index]);
   }
 
   /**
@@ -71,21 +72,37 @@ export default class Tabs extends Base {
    * @param  {HTMLElement} content The content element.
    * @return {Tabs}                The Tabs instance.
    */
-  enableTab(btn, content) {
-    classes.add(btn, this.$options.tabActiveClass);
-    styles.add(btn, this.$options.tabActiveStyle);
-    classes.add(content, this.$options.contentActiveClass);
-    styles.add(content, this.$options.contentActiveStyle);
+  async enableItem(item) {
+    if (!item || item.isEnabled) {
+      return Promise.resolve(this);
+    }
 
-    classes.remove(btn, this.$options.tabInactiveClass);
-    styles.remove(btn, this.$options.tabInactiveStyle);
-    classes.remove(content, this.$options.contentInactiveClass);
-    styles.remove(content, this.$options.contentInactiveStyle);
+    item.isEnabled = true;
+    const { btn, content } = item;
+    const btnStyles = this.$options.styles.btn || {};
+    const contentStyles = this.$options.styles.content || {};
 
     content.setAttribute('aria-hidden', 'false');
-    this.$emit('enable', { btn, content });
+    this.$emit('enable', item);
 
-    return this;
+    return Promise.all([
+      transition(btn, {
+        from: btnStyles.closed,
+        active: btnStyles.active,
+        to: btnStyles.open,
+      }).then(() => {
+        setClassesOrStyles(btn, btnStyles.open);
+        return Promise.resolve(btn);
+      }),
+      transition(content, {
+        from: contentStyles.closed,
+        active: contentStyles.active,
+        to: contentStyles.open,
+      }).then(() => {
+        setClassesOrStyles(content, contentStyles.open);
+        return Promise.resolve(content);
+      }),
+    ]).then(() => Promise.resolve(this));
   }
 
   /**
@@ -95,20 +112,36 @@ export default class Tabs extends Base {
    * @param  {HTMLElement} content The content element.
    * @return {Tabs}                The Tabs instance.
    */
-  disableTab(btn, content) {
-    classes.remove(btn, this.$options.tabActiveClass);
-    styles.remove(btn, this.$options.tabActiveStyle);
-    classes.remove(content, this.$options.contentActiveClass);
-    styles.remove(content, this.$options.contentActiveStyle);
+  async disableItem(item) {
+    if (!item || !item.isEnabled) {
+      return Promise.resolve(this);
+    }
 
-    classes.add(btn, this.$options.tabInactiveClass);
-    styles.add(btn, this.$options.tabInactiveStyle);
-    classes.add(content, this.$options.contentInactiveClass);
-    styles.add(content, this.$options.contentInactiveStyle);
+    item.isEnabled = false;
+    const { btn, content } = item;
+    const btnStyles = this.$options.styles.btn || {};
+    const contentStyles = this.$options.styles.content || {};
 
     content.setAttribute('aria-hidden', 'true');
-    this.$emit('disable', { btn, content });
+    this.$emit('disable', item);
 
-    return this;
+    return Promise.all([
+      transition(btn, {
+        from: btnStyles.open,
+        active: btnStyles.active,
+        to: btnStyles.closed,
+      }).then(() => {
+        setClassesOrStyles(btn, btnStyles.closed);
+        return Promise.resolve(btn);
+      }),
+      transition(content, {
+        from: contentStyles.open,
+        active: contentStyles.active,
+        to: contentStyles.closed,
+      }).then(() => {
+        setClassesOrStyles(content, contentStyles.closed);
+        return Promise.resolve(content);
+      }),
+    ]).then(() => Promise.resolve(this));
   }
 }
