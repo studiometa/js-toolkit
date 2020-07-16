@@ -4,6 +4,17 @@
 module.exports = {
   // The test environment that will be used for testing
   testEnvironment: 'jsdom',
-  collectCoverage: true,
+  collectCoverage: false,
   collectCoverageFrom: ['<rootDir>/src/**/*.js'],
+  transform: {
+    '^.+\\.js$': 'babel-jest',
+    '^.+\\.html?$': 'html-loader-jest',
+  },
+  setupFiles: [
+    '<rootDir>/tests/__setup__/requestAnimationFrame.js',
+    '<rootDir>/tests/__setup__/mockBreakpoints.js',
+  ],
+  moduleNameMapper: {
+    '~(.*)$': '<rootDir>/src/$1',
+  },
 };

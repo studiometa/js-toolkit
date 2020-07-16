@@ -12,25 +12,8 @@ var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/cl
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
 /**
- * Test if the children classes implements this class correctly
- *
- * @return {Service} The current instance
- */
-function testImplementation(obj) {
-  var descriptors = Object.getOwnPropertyDescriptors(obj);
-  var methods = Object.keys(descriptors);
-  ['init', 'kill', 'props'].forEach(function (key) {
-    if (!methods.includes(key)) {
-      throw new Error("The `".concat(key, "` method must be implemented."));
-    }
-  });
-  return this;
-}
-/**
  * Service abstract class
  */
-
-
 var Service = /*#__PURE__*/function () {
   /**
    * Class constructor, used to test the abstract class implementation.
@@ -41,24 +24,29 @@ var Service = /*#__PURE__*/function () {
     (0, _classCallCheck2.default)(this, Service);
     this.callbacks = new Map();
     this.isInit = false;
-    testImplementation(Object.getPrototypeOf(this));
   }
   /**
-   * Method to initialize the service behaviors.
-   * This method MUST be implemented by the service implementing this class.
-   *
-   * @return {Service} The current instance
+   * Getter to get the services properties.
+   * This getter MUST be implementer by the service extending this class.
+   * @return {Object}
    */
 
 
   (0, _createClass2.default)(Service, [{
     key: "init",
+
+    /**
+     * Method to initialize the service behaviors.
+     * This method MUST be implemented by the service extending this class.
+     *
+     * @return {Service} The current instance
+     */
     value: function init() {
-      return this;
+      throw new Error('The `init` method must be implemented.');
     }
     /**
      * Method to kill the service behaviors.
-     * This method MUST be implemented by the service implementing this class.
+     * This method MUST be implemented by the service extending this class.
      *
      * @return {Service} The current instance
      */
@@ -66,7 +54,7 @@ var Service = /*#__PURE__*/function () {
   }, {
     key: "kill",
     value: function kill() {
-      return this;
+      throw new Error('The `kill` method must be implemented.');
     }
     /**
      * Add a callback.
@@ -126,7 +114,7 @@ var Service = /*#__PURE__*/function () {
   }, {
     key: "remove",
     value: function remove(key) {
-      this.callbacks.delete(key); // Kill the service when we add the first callback
+      this.callbacks.delete(key); // Kill the service when we remove the last callback
 
       if (this.callbacks.size === 0 && this.isInit) {
         this.kill();
@@ -153,6 +141,11 @@ var Service = /*#__PURE__*/function () {
         callback.apply(void 0, args);
       });
       return this;
+    }
+  }, {
+    key: "props",
+    get: function get() {
+      throw new Error('The `props` getter must be implemented.');
     }
   }]);
   return Service;

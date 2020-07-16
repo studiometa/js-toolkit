@@ -1,11 +1,19 @@
 "use strict";
 
+var _interopRequireWildcard = require("@babel/runtime/helpers/interopRequireWildcard");
+
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
@@ -17,11 +25,9 @@ var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime
 
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
 
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
-
 var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
 
-var _isObject = _interopRequireDefault(require("../utils/isObject"));
+var _transition = _interopRequireWildcard(require("../utils/css/transition"));
 
 var _focusTrap2 = _interopRequireDefault(require("../utils/focusTrap"));
 
@@ -33,50 +39,6 @@ var _focusTrap = (0, _focusTrap2.default)(),
     trap = _focusTrap.trap,
     untrap = _focusTrap.untrap,
     saveActiveElement = _focusTrap.saveActiveElement;
-/**
- * Manage a list of classes as string on an element.
- *
- * @param {HTMLElement} element    The element to update.
- * @param {String}      classNames A string of class names.
- * @param {String}      method     The method to use: add, remove or toggle.
- */
-
-
-function setClasses(element, classNames) {
-  var method = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'add';
-
-  if (!element || !classNames) {
-    return;
-  }
-
-  classNames.split(' ').forEach(function (className) {
-    element.classList[method](className);
-  });
-}
-/**
- * Manage a list of style properties on an element.
- *
- * @param {HTMLElement}         element The element to update.
- * @param {CSSStyleDeclaration} styles  An object of styles properties and values.
- * @param {String}              method  The method to use: add or remove.
- */
-
-
-function setStyles(element, styles) {
-  var method = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'add';
-
-  if (!element || !styles || !(0, _isObject.default)(styles)) {
-    return;
-  }
-
-  Object.entries(styles).forEach(function (_ref) {
-    var _ref2 = (0, _slicedToArray2.default)(_ref, 2),
-        prop = _ref2[0],
-        value = _ref2[1];
-
-    element.style[prop] = method === 'add' ? value : '';
-  });
-}
 /**
  * Modal class.
  */
@@ -101,22 +63,26 @@ var Modal = /*#__PURE__*/function (_Base) {
      * @return {Modal} The current instance.
      */
     value: function mounted() {
-      var _this = this;
-
       this.isOpen = false;
-      var open = Array.isArray(this.$refs.open) ? this.$refs.open : [this.$refs.open];
-      open.forEach(function (btn) {
-        return btn.addEventListener('click', _this.open);
-      });
-      var close = Array.isArray(this.$refs.close) ? this.$refs.close : [this.$refs.close];
-      close.forEach(function (btn) {
-        return btn.addEventListener('click', _this.close);
-      });
-      this.$refs.overlay.addEventListener('click', this.close);
       this.close();
 
       if (this.$options.move) {
         var target = document.querySelector(this.$options.move) || document.body;
+        var refsBackup = this.$refs;
+        this.refModalPlaceholder = document.createComment('');
+        this.refModalParentBackup = this.$refs.modal.parentElement || this.$el;
+        this.refModalParentBackup.insertBefore(this.refModalPlaceholder, this.$refs.modal);
+        this.refModalUnbindGetRefFilter = this.$on('get:refs', function (refs) {
+          Object.entries(refsBackup).forEach(function (_ref) {
+            var _ref2 = (0, _slicedToArray2.default)(_ref, 2),
+                key = _ref2[0],
+                ref = _ref2[1];
+
+            if (!refs[key]) {
+              refs[key] = ref;
+            }
+          });
+        });
         target.appendChild(this.$refs.modal);
       }
 
@@ -131,18 +97,17 @@ var Modal = /*#__PURE__*/function (_Base) {
   }, {
     key: "destroyed",
     value: function destroyed() {
-      var _this2 = this;
-
       this.close();
-      var open = Array.isArray(this.$refs.open) ? this.$refs.open : [this.$refs.open];
-      open.forEach(function (btn) {
-        return btn.removeEventListener('click', _this2.open);
-      });
-      var close = Array.isArray(this.$refs.close) ? this.$refs.close : [this.$refs.close];
-      close.forEach(function (btn) {
-        return btn.removeEventListener('click', _this2.close);
-      });
-      this.$refs.overlay.removeEventListener('click', this.close);
+
+      if (this.$options.move) {
+        this.refModalParentBackup.insertBefore(this.$refs.modal, this.refModalPlaceholder);
+        this.refModalUnbindGetRefFilter();
+        this.refModalPlaceholder.remove();
+        delete this.refModalPlaceholder;
+        delete this.refModalParentBackup;
+        delete this.refModalUnbindGetRefFilter;
+      }
+
       return this;
     }
     /**
@@ -183,52 +148,67 @@ var Modal = /*#__PURE__*/function (_Base) {
 
   }, {
     key: "open",
-    value: function open() {
-      var _this3 = this;
+    value: function () {
+      var _open = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var _this = this;
 
-      this.$refs.modal.setAttribute('aria-hidden', 'false');
-      document.documentElement.style.overflow = 'hidden'; // Add "open" classes to refs
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!this.isOpen) {
+                  _context.next = 2;
+                  break;
+                }
 
-      Object.entries(this.$options.openClass).forEach(function (_ref4) {
-        var _ref5 = (0, _slicedToArray2.default)(_ref4, 2),
-            ref = _ref5[0],
-            classes = _ref5[1];
+                return _context.abrupt("return", Promise.resolve(this));
 
-        setClasses(_this3.$refs[ref], classes);
-      }); // Add "open" styles to refs
+              case 2:
+                this.$refs.modal.setAttribute('aria-hidden', 'false');
+                document.documentElement.style.overflow = 'hidden';
+                this.isOpen = true;
+                this.$emit('open');
+                return _context.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref4) {
+                  var _ref5 = (0, _slicedToArray2.default)(_ref4, 2),
+                      refName = _ref5[0],
+                      _ref5$ = _ref5[1];
 
-      Object.entries(this.$options.openStyle).forEach(function (_ref6) {
-        var _ref7 = (0, _slicedToArray2.default)(_ref6, 2),
-            ref = _ref7[0],
-            styles = _ref7[1];
+                  _ref5$ = _ref5$ === void 0 ? {} : _ref5$;
+                  var open = _ref5$.open,
+                      active = _ref5$.active,
+                      closed = _ref5$.closed;
+                  return (0, _transition.default)(_this.$refs[refName], {
+                    from: closed,
+                    active: active,
+                    to: open
+                  }).then(function () {
+                    (0, _transition.setClassesOrStyles)(_this.$refs[refName], open);
+                    return Promise.resolve();
+                  });
+                })).then(function () {
+                  if (_this.$options.autofocus && _this.$refs.modal.querySelector(_this.$options.autofocus)) {
+                    saveActiveElement();
 
-        setStyles(_this3.$refs[ref], styles);
-      }); // Remove "closed" classes from refs
+                    _this.$refs.modal.querySelector(_this.$options.autofocus).focus();
+                  }
 
-      Object.entries(this.$options.closedClass).forEach(function (_ref8) {
-        var _ref9 = (0, _slicedToArray2.default)(_ref8, 2),
-            ref = _ref9[0],
-            classes = _ref9[1];
+                  return Promise.resolve(_this);
+                }));
 
-        setClasses(_this3.$refs[ref], classes, 'remove');
-      }); // Remove "closed" styles from refs
+              case 7:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
 
-      Object.entries(this.$options.closedStyle).forEach(function (_ref10) {
-        var _ref11 = (0, _slicedToArray2.default)(_ref10, 2),
-            ref = _ref11[0],
-            styles = _ref11[1];
-
-        setStyles(_this3.$refs[ref], styles, 'remove');
-      });
-
-      if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
-        saveActiveElement();
-        this.$refs.modal.querySelector(this.$options.autofocus).focus();
+      function open() {
+        return _open.apply(this, arguments);
       }
 
-      this.isOpen = true;
-      this.$emit('open');
-    }
+      return open;
+    }()
     /**
      * Close the modal.
      *
@@ -237,47 +217,62 @@ var Modal = /*#__PURE__*/function (_Base) {
 
   }, {
     key: "close",
-    value: function close() {
-      var _this4 = this;
+    value: function () {
+      var _close = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var _this2 = this;
 
-      this.$refs.modal.setAttribute('aria-hidden', 'true');
-      document.documentElement.style.overflow = ''; // Add "closed" classes to refs
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                if (this.isOpen) {
+                  _context2.next = 2;
+                  break;
+                }
 
-      Object.entries(this.$options.closedClass).forEach(function (_ref12) {
-        var _ref13 = (0, _slicedToArray2.default)(_ref12, 2),
-            ref = _ref13[0],
-            classes = _ref13[1];
+                return _context2.abrupt("return", Promise.resolve(this));
 
-        setClasses(_this4.$refs[ref], classes);
-      }); // Add "closed" styles to refs
+              case 2:
+                this.$refs.modal.setAttribute('aria-hidden', 'true');
+                document.documentElement.style.overflow = '';
+                this.isOpen = false;
+                untrap();
+                this.$emit('close');
+                return _context2.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref6) {
+                  var _ref7 = (0, _slicedToArray2.default)(_ref6, 2),
+                      refName = _ref7[0],
+                      _ref7$ = _ref7[1];
 
-      Object.entries(this.$options.closedStyle).forEach(function (_ref14) {
-        var _ref15 = (0, _slicedToArray2.default)(_ref14, 2),
-            ref = _ref15[0],
-            styles = _ref15[1];
+                  _ref7$ = _ref7$ === void 0 ? {} : _ref7$;
+                  var open = _ref7$.open,
+                      active = _ref7$.active,
+                      closed = _ref7$.closed;
+                  return (0, _transition.default)(_this2.$refs[refName], {
+                    from: open,
+                    active: active,
+                    to: closed
+                  }).then(function () {
+                    (0, _transition.setClassesOrStyles)(_this2.$refs[refName], closed);
+                    return Promise.resolve();
+                  });
+                })).then(function () {
+                  return Promise.resolve(_this2);
+                }));
 
-        setStyles(_this4.$refs[ref], styles);
-      }); // Remove "open" classes from refs
+              case 8:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
 
-      Object.entries(this.$options.openClass).forEach(function (_ref16) {
-        var _ref17 = (0, _slicedToArray2.default)(_ref16, 2),
-            ref = _ref17[0],
-            classes = _ref17[1];
+      function close() {
+        return _close.apply(this, arguments);
+      }
 
-        setClasses(_this4.$refs[ref], classes, 'remove');
-      }); // Remove "open" styles from refs
-
-      Object.entries(this.$options.openStyle).forEach(function (_ref18) {
-        var _ref19 = (0, _slicedToArray2.default)(_ref18, 2),
-            ref = _ref19[0],
-            styles = _ref19[1];
-
-        setStyles(_this4.$refs[ref], styles, 'remove');
-      });
-      this.isOpen = false;
-      untrap();
-      this.$emit('close');
-    }
+      return close;
+    }()
   }, {
     key: "config",
 
@@ -289,17 +284,49 @@ var Modal = /*#__PURE__*/function (_Base) {
         name: 'Modal',
         move: false,
         autofocus: '[autofocus]',
-        openClass: {},
-        openStyle: {},
-        closedClass: {},
-        closedStyle: {
+        styles: {
           modal: {
-            opacity: 0,
-            pointerEvents: 'none',
-            visibility: 'hidden'
+            closed: {
+              opacity: 0,
+              pointerEvents: 'none',
+              visibility: 'hidden'
+            }
           }
         }
       };
+    }
+    /**
+     * Open the modal on click on the `open` ref.
+     *
+     * @return {Function} The component's `open` method.
+     */
+
+  }, {
+    key: "onOpenClick",
+    get: function get() {
+      return this.open;
+    }
+    /**
+     * Close the modal on click on the `close` ref.
+     *
+     * @return {Function} The component's `close` method.
+     */
+
+  }, {
+    key: "onCloseClick",
+    get: function get() {
+      return this.close;
+    }
+    /**
+     * Close the modal on click on the `overlay` ref.
+     *
+     * @return {Function} The component's `close` method.
+     */
+
+  }, {
+    key: "onOverlayClick",
+    get: function get() {
+      return this.close;
     }
   }]);
   return Modal;

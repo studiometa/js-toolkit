@@ -15,76 +15,32 @@ An accessible, flexible and responsive modal component, easy to use and easy to 
 
 <Preview>
   <div data-component="Modal" class="text-center">
-    <!--
-      Modal opening trigger.
-      This ref will be used to open the modal on click.
-    -->
-    <button data-ref="Modal.open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
-      Open
-    </button>
-    <!-- Modal element -->
-    <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
-      <!--
-        Modal overlay
-        The `tabindex="-"` attribute is required.
-      -->
-      <div data-ref="Modal.overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
-      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <!--
-          Modal container
-          This is the element in which the user can scroll
-          if the content of the modal is too long.
-        -->
-        <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
-          <!--
-            Modal close button
-            This will be used to close the modal on click.
-          -->
-          <button data-ref="Modal.close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
-            Close
-          </button>
-          <!--
-            Modal content
-            The content displayed in the modal.
-            The `max-w-3xl` class defines the modal width.
-          -->
-          <div class="max-w-3xl p-10 pt-16" data-ref="Modal.content">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint culpa sequi enim <a href="#" class="border-b">quaerat</a> itaque possimus at <a href="#" class="border-b">voluptatem</a> voluptates voluptatum velit illum nulla, optio porro ea. Doloremque, aut, beatae!
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</Preview>
-
-```html
-<div data-component="Modal">
   <!--
     Modal opening trigger.
     This ref will be used to open the modal on click.
   -->
-  <button data-ref="Modal.open" type="button" class="py-2 px-4 text-white rounded bg-black focus:opacity-50">
+  <button data-ref="open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
     Open
   </button>
   <!-- Modal element -->
-  <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
+  <div data-ref="modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
     <!--
       Modal overlay
       The `tabindex="-"` attribute is required.
     -->
-    <div data-ref="Modal.overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
+    <div data-ref="overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
       <!--
         Modal container
         This is the element in which the user can scroll
         if the content of the modal is too long.
       -->
-      <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+      <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
         <!--
           Modal close button
           This will be used to close the modal on click.
         -->
-        <button data-ref="Modal.close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
+        <button data-ref="close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
           Close
         </button>
         <!--
@@ -92,14 +48,16 @@ An accessible, flexible and responsive modal component, easy to use and easy to 
           The content displayed in the modal.
           The `max-w-3xl` class defines the modal width.
         -->
-        <div class="max-w-3xl p-10 pt-16" data-ref="Modal.content">
+        <div class="max-w-3xl p-10 pt-16" data-ref="content">
           Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint culpa sequi enim <a href="#" class="border-b">quaerat</a> itaque possimus at <a href="#" class="border-b">voluptatem</a> voluptates voluptatum velit illum nulla, optio porro ea. Doloremque, aut, beatae!
         </div>
       </div>
     </div>
   </div>
-</div>
-```
+  </div>
+</Preview>
+
+<<< @/docs/components/Modal.template.html
 
 ### Autofocus
 
@@ -111,28 +69,28 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
       Modal opening trigger.
       This ref will be used to open the modal on click.
     -->
-    <button data-ref="Modal.open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+    <button data-ref="open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
       Open
     </button>
     <!-- Modal element -->
-    <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
+    <div data-ref="modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
       <!--
         Modal overlay
         The `tabindex="-"` attribute is required.
       -->
-      <div data-ref="Modal.overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
+      <div data-ref="overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
       <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
         <!--
           Modal container
           This is the element in which the user can scroll
           if the content of the modal is too long.
         -->
-        <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+        <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
           <!--
             Modal close button
             This will be used to close the modal on click.
           -->
-          <button data-ref="Modal.close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
+          <button data-ref="close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
             Close
           </button>
           <!--
@@ -140,7 +98,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
             The content displayed in the modal.
             The `max-w-3xl` class defines the modal width.
           -->
-          <div class="max-w-3xl p-10 pt-16" data-ref="Modal.content">
+          <div class="max-w-3xl p-10 pt-16" data-ref="content">
             <label class="block mb-2 text-left" for="input-firstname">Firstname</label>
             <input class="block w-64 mb-6 p-4 border" style="border-color: #eee;" id="input-firstname" type="text" autofocus placeholder="Firstname">
             <label class="block mb-2 text-left" for="input-lastname">Lastname</label>
@@ -158,28 +116,28 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
     Modal opening trigger.
     This ref will be used to open the modal on click.
   -->
-  <button data-ref="Modal.open" type="button" class="py-2 px-4 text-white rounded bg-black focus:opacity-50">
+  <button data-ref="open" type="button" class="py-2 px-4 text-white rounded bg-black focus:opacity-50">
     Open
   </button>
   <!-- Modal element -->
-  <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
+  <div data-ref="modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
     <!--
       Modal overlay
       The `tabindex="-"` attribute is required.
     -->
-    <div data-ref="Modal.overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
+    <div data-ref="overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
       <!--
         Modal container
         This is the element in which the user can scroll
         if the content of the modal is too long.
       -->
-      <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+      <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
         <!--
           Modal close button
           This will be used to close the modal on click.
         -->
-        <button data-ref="Modal.close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
+        <button data-ref="close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
           Close
         </button>
         <!--
@@ -187,7 +145,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
           The content displayed in the modal.
           The `max-w-3xl` class defines the modal width.
         -->
-        <div class="max-w-3xl p-10 pt-16" data-ref="Modal.content">
+        <div class="max-w-3xl p-10 pt-16" data-ref="content">
           <label class="block mb-2 text-left" for="input-firstname">Firstname</label>
           <input autofocus class="block w-64 mb-6 p-4 border" style="border-color: #eee;" id="input-firstname" type="text" placeholder="Firstname">
           <label class="block mb-2 text-left" for="input-lastname">Lastname</label>
@@ -207,28 +165,28 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
       Modal opening trigger.
       This ref will be used to open the modal on click.
     -->
-    <button data-ref="Modal.open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+    <button data-ref="open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
       Open
     </button>
     <!-- Modal element -->
-    <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
+    <div data-ref="modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
       <!--
         Modal overlay
         The `tabindex="-"` attribute is required.
       -->
-      <div data-ref="Modal.overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
+      <div data-ref="overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
       <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
         <!--
           Modal container
           This is the element in which the user can scroll
           if the content of the modal is too long.
         -->
-        <div data-ref="Modal.container" class="z-above relative overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto" style="max-height: 15rem;">
+        <div data-ref="container" class="z-above relative overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto" style="max-height: 15rem;">
           <!--
             Modal close button
             This will be used to close the modal on click.
           -->
-          <button data-ref="Modal.close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
+          <button data-ref="close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
             Close
           </button>
           <!--
@@ -236,7 +194,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
             The content displayed in the modal.
             The `max-w-3xl` class defines the modal width.
           -->
-          <div class="max-w-3xl p-10 pt-16" data-ref="Modal.content">
+          <div class="max-w-3xl p-10 pt-16" data-ref="content">
             <p class="mb-4">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint culpa sequi enim <a href="#" class="border-b">quaerat</a> itaque possimus at <a href="#" class="border-b">voluptatem</a> voluptates voluptatum velit illum nulla, optio porro ea. Doloremque, aut, beatae!</p>
             <p class="mb-4">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint culpa sequi enim <a href="#" class="border-b">quaerat</a> itaque possimus at <a href="#" class="border-b">voluptatem</a> voluptates voluptatum velit illum nulla, optio porro ea. Doloremque, aut, beatae!</p>
             <p class="mb-4">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint culpa sequi enim <a href="#" class="border-b">quaerat</a> itaque possimus at <a href="#" class="border-b">voluptatem</a> voluptates voluptatum velit illum nulla, optio porro ea. Doloremque, aut, beatae!</p>
@@ -254,28 +212,28 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
     Modal opening trigger.
     This ref will be used to open the modal on click.
   -->
-  <button data-ref="Modal.open" type="button" class="py-2 px-4 text-white rounded bg-black focus:opacity-50">
+  <button data-ref="open" type="button" class="py-2 px-4 text-white rounded bg-black focus:opacity-50">
     Open
   </button>
   <!-- Modal element -->
-  <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
+  <div data-ref="modal" role="dialog" aria-modal="true" aria-hidden="true" style="opacity: 0; pointer-events: none; visibility: hidden;" class="z-goku fixed inset-0">
     <!--
       Modal overlay
       The `tabindex="-"` attribute is required.
     -->
-    <div data-ref="Modal.overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
+    <div data-ref="overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
       <!--
         Modal container
         This is the element in which the user can scroll
         if the content of the modal is too long.
       -->
-      <div data-ref="Modal.container" style="max-height: 15rem;" class="z-above relative overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+      <div data-ref="container" style="max-height: 15rem;" class="z-above relative overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
         <!--
           Modal close button
           This will be used to close the modal on click.
         -->
-        <button data-ref="Modal.close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
+        <button data-ref="close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
           Close
         </button>
         <!--
@@ -283,7 +241,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
           The content displayed in the modal.
           The `max-w-3xl` class defines the modal width.
         -->
-        <div class="max-w-3xl p-10 pt-16" data-ref="Modal.content">
+        <div class="max-w-3xl p-10 pt-16" data-ref="content">
           <p class="mb-4">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint culpa sequi enim <a href="#" class="border-b">quaerat</a> itaque possimus at <a href="#" class="border-b">voluptatem</a> voluptates voluptatum velit illum nulla, optio porro ea. Doloremque, aut, beatae!</p>
           <p class="mb-4">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint culpa sequi enim <a href="#" class="border-b">quaerat</a> itaque possimus at <a href="#" class="border-b">voluptatem</a> voluptates voluptatum velit illum nulla, optio porro ea. Doloremque, aut, beatae!</p>
           <p class="mb-4">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint culpa sequi enim <a href="#" class="border-b">quaerat</a> itaque possimus at <a href="#" class="border-b">voluptatem</a> voluptates voluptatum velit illum nulla, optio porro ea. Doloremque, aut, beatae!</p>
@@ -303,12 +261,15 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
   <div
     data-component="Modal"
     data-options='{
-      "closedClass": {
-        "modal": "opacity-0 pointer-events-none invisible",
-        "container": "scale-90"
-      },
-      "closedStyle": {
-        "modal": {}
+      "styles": {
+        "modal": {
+          "active": "transition-all duration-500 ease-out-expo",
+          "closed": "opacity-0 pointer-events-none invisible"
+        },
+        "container": {
+          "active": "transition duration-500 ease-out-expo",
+          "closed": "transform scale-90"
+        }
       }
     }'
     class="text-center">
@@ -316,28 +277,28 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
       Modal opening trigger.
       This ref will be used to open the modal on click.
     -->
-    <button data-ref="Modal.open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+    <button data-ref="open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
       Open
     </button>
     <!-- Modal element -->
-    <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" class="z-goku fixed inset-0 opacity-0 pointer-events-none invisible transition-all duration-500 ease-out-expo">
+    <div data-ref="modal" role="dialog" aria-modal="true" aria-hidden="true" class="z-goku fixed inset-0 opacity-0 pointer-events-none invisible">
       <!--
         Modal overlay
         The `tabindex="-"` attribute is required.
       -->
-      <div data-ref="Modal.overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
+      <div data-ref="overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
       <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
         <!--
           Modal container
           This is the element in which the user can scroll
           if the content of the modal is too long.
         -->
-        <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto transform transition duration-500 ease-out-expo">
+        <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
           <!--
             Modal close button
             This will be used to close the modal on click.
           -->
-          <button data-ref="Modal.close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
+          <button data-ref="close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
             Close
           </button>
           <!--
@@ -345,7 +306,7 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
             The content displayed in the modal.
             The `max-w-3xl` class defines the modal width.
           -->
-          <div class="max-w-3xl p-10 pt-16" data-ref="Modal.content">
+          <div class="max-w-3xl p-10 pt-16" data-ref="content">
             <img class="block mx-auto mb-6" src="https://picsum.photos/500/300" alt="" width="500" height="300">
             Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint culpa sequi enim <a href="#" class="border-b">quaerat</a> itaque possimus at <a href="#" class="border-b">voluptatem</a> voluptates voluptatum velit illum nulla, optio porro ea. Doloremque, aut, beatae!
           </div>
@@ -355,16 +316,19 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
   </div>
 </Preview>
 
-```html{3-11,21,33}
+```html{3-14}
 <div
   data-component="Modal"
   data-options='{
-    "closedClass": {
-      "modal": "opacity-0 pointer-events-none invisible",
-      "container": "scale-90"
-    },
-    "closedStyle": {
-      "modal": {}
+    "styles": {
+      "modal": {
+        "active": "transition-all duration-500 ease-out-expo",
+        "closed": "opacity-0 pointer-events-none invisible"
+      },
+      "container": {
+        "active": "transition duration-500 ease-out-expo",
+        "closed": "transform scale-90"
+      }
     }
   }'
   class="text-center">
@@ -372,28 +336,28 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
     Modal opening trigger.
     This ref will be used to open the modal on click.
   -->
-  <button data-ref="Modal.open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+  <button data-ref="open" type="button" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
     Open
   </button>
   <!-- Modal element -->
-  <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" class="z-goku fixed inset-0 opacity-0 pointer-events-none invisible transition-all duration-500 ease-out-expo">
+  <div data-ref="modal" role="dialog" aria-modal="true" aria-hidden="true" class="z-goku fixed inset-0 opacity-0 pointer-events-none invisible">
     <!--
       Modal overlay
       The `tabindex="-"` attribute is required.
     -->
-    <div data-ref="Modal.overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
+    <div data-ref="overlay" tabindex="-1" class="z-under absolute inset-0 bg-black opacity-75"></div>
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
       <!--
         Modal container
         This is the element in which the user can scroll
         if the content of the modal is too long.
       -->
-      <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto transform transition duration-500 ease-out-expo">
+      <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
         <!--
           Modal close button
           This will be used to close the modal on click.
         -->
-        <button data-ref="Modal.close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
+        <button data-ref="close" type="button" class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
           Close
         </button>
         <!--
@@ -401,7 +365,7 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
           The content displayed in the modal.
           The `max-w-3xl` class defines the modal width.
         -->
-        <div class="max-w-3xl p-10 pt-16" data-ref="Modal.content">
+        <div class="max-w-3xl p-10 pt-16" data-ref="content">
           <img class="block mx-auto mb-6" src="https://picsum.photos/500/300" alt="" width="500" height="300">
           Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint culpa sequi enim <a href="#" class="border-b">quaerat</a> itaque possimus at <a href="#" class="border-b">voluptatem</a> voluptates voluptatum velit illum nulla, optio porro ea. Doloremque, aut, beatae!
         </div>
@@ -442,20 +406,37 @@ class App extends Base {
 new App(document.documentElement);
 ```
 
-You also can extend the class to create a styled `Modal`:
+You also can extend the class to create a component with extra capabilities. The following example adds custom style by default, enables the `move` options and add an option to auto-open the modal after a given delay:
 
 ```js
-import { Modal } from '@studiometa/js-toolkit';
+import { Modal as ModalCore } from '@studiometa/js-toolkit';
 
-class CustoModal extends Modal {
+export default class Modal extends ModalCore {
   get config() {
     return {
-      name: 'CustomModal',
+      ...super.config,
       move: true,
-      closedClass: {
-        modal: 'hidden',
+      autoOpen: 5000,
+      styles: {
+        modal: {
+          closed: 'hidden',
+        },
       },
     };
+  }
+
+  mounted() {
+    super.mounted();
+
+    if (this.$options.autoOpen) {
+      this.timer = setTimeout(() => this.open(), this.$options.autoOpen);
+    }
+  }
+
+  destroyed() {
+    super.destroyed();
+
+    clearTimeout(this.timer);
   }
 }
 ```
@@ -469,7 +450,7 @@ import { Base, Modal } from '@studiometa/js-toolkit';
  * Based on the following HTML:
  *
  * <div data-component="MyPage">
- *   <div data-component="Modal" data-ref="MyPage.modal">
+ *   <div data-component="Modal" data-ref="modal">
  *     ...
  *   </div>
  * </div>
@@ -503,28 +484,28 @@ The following HTML is required for the `Modal` component:
     Modal opening trigger.
     This ref will be used to open the modal on click.
   -->
-  <button data-ref="Modal.open" type="button">
+  <button data-ref="open" type="button">
     Open
   </button>
   <!-- Modal element -->
-  <div data-ref="Modal.modal" role="dialog" aria-modal="true" aria-hidden="true" class="z-goku fixed inset-0">
+  <div data-ref="modal" role="dialog" aria-modal="true" aria-hidden="true" class="z-goku fixed inset-0">
     <!--
       Modal overlay
       The `tabindex="-"` attribute is required.
     -->
-    <div data-ref="Modal.overlay" tabindex="-1" class="z-under absolute inset-0"></div>
+    <div data-ref="overlay" tabindex="-1" class="z-under absolute inset-0"></div>
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
       <!--
         Modal container
         This is the element in which the user can scroll
         if the content of the modal is too long.
       -->
-      <div data-ref="Modal.container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white pointer-events-auto">
+      <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white pointer-events-auto">
         <!--
           Modal close button
           This will be used to close the modal on click.
         -->
-        <button data-ref="Modal.close" type="button">
+        <button data-ref="close" type="button">
           Close
         </button>
         <!--
@@ -532,7 +513,7 @@ The following HTML is required for the `Modal` component:
           The content displayed in the modal.
           The `max-w-3xl` class defines the modal width.
         -->
-        <div data-ref="Modal.content">
+        <div data-ref="content">
           <!-- ... -->
         </div>
       </div>
@@ -589,33 +570,36 @@ A selector or a boolean to move the `Modal.modal` element in the DOM. A value of
 
 A selector or a boolean to autofocus an element when the modal opens. If `false`, the behaviour is disabled.
 
-#### `openClass`
+#### `styles`
 
 - Type: `Object`
-- Default: `{}`
+- Default:
 
-An object which keys are refs names and values are classes (`String`) that will be added to the refs when the modal opens.
+```js
+{
+  modal: {
+    open: undefined, // Classes or styles for the `open` state
+    active: undefined, // Used to add transition between the states
+    closed: { // Default styles for the `closed` state
+      opacity: 0,
+      pointerEvents: 'none',
+      visibility: 'hidden',
+    },
+  },
+}
+```
 
-#### `openStyle`
+The `styles` options should be used to apply custom classes or styles to any refs for their `open` or `closed` states.
 
-- Type: `Object`
-- Default: `{}`
+### Methods
 
-An object which keys are refs names and values are style definition (`CSSStyleDeclaration`) that will be added to the refs when the modal opens.
+#### `open`
 
-#### `closedClass`
+Open the modal, returns a Promise resolving when the opening transitions are finished.
 
-- Type: `Object`
-- Default: `{}`
+#### `close`
 
-An object which keys are refs names and values are classes (`String`) that will be added to the refs when the modal closes.
-
-#### `closedStyle`
-
-- Type: `Object`
-- Default: `{ modal: { opacity: 0, pointerEvents: 'none', visibility: 'hidden' } }`
-
-An object which keys are refs names and values are style definition (`CSSStyleDeclaration`) that will be added to the refs when the modal closes.
+Close the modal, returns a Promise resolving when the closing transitions are finished.
 
 ### Events
 

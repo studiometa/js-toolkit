@@ -1,17 +1,17 @@
-import { Base } from '../../../src';
+import { Base, Modal, MediaQuery, Tabs, Accordion } from '../../../src';
 
 class App extends Base {
   get config() {
     return {
-      debug: true,
+      log: true,
       name: 'App',
       components: {
-        Accordion: () => import(/* webpackChunkName: "Accordion" */ './components/Accordion'),
-        Cursor: () => import(/* webpackChunkName: "async/Cursor" */ './components/Cursor'),
-        Lazyload: () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload'),
-        Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew'),
-        Tabs: () => import(/* webpackChunkName: "Tabs" */ './../../../src/components/Tabs'),
-        Modal: () => import(/* webpackChunkName: "Modal" */ './../../../src/components/Modal'),
+        Accordion,
+        Cursor: () => import('./components/Cursor'),
+        Skew: () => import('./components/Skew'),
+        Modal,
+        MediaQuery,
+        Tabs,
       },
     };
   }
@@ -20,12 +20,18 @@ class App extends Base {
     this.$log('Mounted 🎉');
   }
 
+  loaded() {
+    // eslint-disable-next-line
+    // import('lazysizes');
+    this.$log('Loaded');
+  }
+
   resized(props) {
     this.$log('resized', props);
   }
 
   scrolled(props) {
-    this.$log('scrolled', props);
+    this.$log('scrolled', props, 'foo');
   }
 }
 

@@ -71,7 +71,7 @@ var Key = /*#__PURE__*/function (_Service) {
     key: "init",
 
     /**
-     * Bind the handler to the scroll event.
+     * Bind the handler to the keyboard event.
      *
      * @return {void}
      */
@@ -92,7 +92,7 @@ var Key = /*#__PURE__*/function (_Service) {
       });
     }
     /**
-     * Unbind the handler from the scroll event.
+     * Unbind the handler from the keyboard event.
      *
      * @return {void}
      */
@@ -104,7 +104,7 @@ var Key = /*#__PURE__*/function (_Service) {
       document.removeEventListener('keyup', this.handler);
     }
     /**
-     * Get scroll props.
+     * Get keyboard props.
      *
      * @type {Object}
      */
@@ -123,11 +123,11 @@ var Key = /*#__PURE__*/function (_Service) {
         return acc;
       }, {});
 
-      if (this.event.type === 'keydown' && this.previousEvent.type === 'keydown' || !this.previousEvent.type) {
-        if (!this.previousEvent.type) {
-          this.triggered = 0;
-        }
+      if (!this.previousEvent.type) {
+        this.triggered = 0;
+      }
 
+      if (this.event.type === 'keydown' && this.previousEvent.type === 'keydown') {
         this.triggered += 1;
       } else {
         this.triggered = 1;

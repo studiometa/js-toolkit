@@ -1,39 +1,5 @@
 import Base from '../abstracts/Base';
-import isObject from '../utils/isObject';
-
-/**
- * Manage a list of classes as string on an element.
- *
- * @param {HTMLElement} element    The element to update.
- * @param {String}      classNames A string of class names.
- * @param {String}      method     The method to use: add, remove or toggle.
- */
-function setClasses(element, classNames, method = 'add') {
-  if (!element || !classNames) {
-    return;
-  }
-
-  classNames.split(' ').forEach(className => {
-    element.classList[method](className);
-  });
-}
-
-/**
- * Manage a list of style properties on an element.
- *
- * @param {HTMLElement}         element The element to update.
- * @param {CSSStyleDeclaration} styles  An object of styles properties and values.
- * @param {String}              method  The method to use: add or remove.
- */
-function setStyles(element, styles, method = 'add') {
-  if (!element || !styles || !isObject(styles)) {
-    return;
-  }
-
-  Object.entries(styles).forEach(([prop, value]) => {
-    element.style[prop] = method === 'add' ? value : '';
-  });
-}
+import transition, { setClassesOrStyles } from '../utils/css/transition';
 
 /**
  * Tabs class.
@@ -45,15 +11,15 @@ export default class Tabs extends Base {
   get config() {
     return {
       name: 'Tabs',
-      tabActiveClass: '',
-      tabActiveStyle: {},
-      tabInactiveClass: '',
-      tabInactiveStyle: {},
-      contentActiveClass: '',
-      contentActiveStyle: {},
-      contentInactiveClass: '',
-      contentInactiveStyle: {
-        display: 'none',
+      styles: {
+        content: {
+          closed: {
+            position: 'absolute',
+            opacity: 0,
+            pointerEvents: 'none',
+            visibility: 'hidden',
+          },
+        },
       },
     };
   }
@@ -70,41 +36,33 @@ export default class Tabs extends Base {
       btn.setAttribute('id', id);
       content.setAttribute('aria-labelledby', id);
 
-      if (index === 0) {
-        this.enableTab(btn, content);
+      const item = { btn, content, isEnabled: index > 0 };
+      if (index > 0) {
+        this.disableItem(item);
       } else {
-        this.disableTab(btn, content);
+        this.enableItem(item);
       }
-
-      const clickHandler = () => {
-        this.$refs.btn.forEach((el, i) => {
-          this.disableTab(el, this.$refs.content[i]);
-        });
-
-        this.enableTab(btn, content);
-      };
-
-      btn.addEventListener('click', clickHandler);
-      return {
-        btn,
-        clickHandler,
-      };
+      return item;
     });
 
     return this;
   }
 
   /**
-   * Unbind all events on destroy.
+   * Switch tab on button click.
    *
-   * @return {Tabs} The Tabs instance.
+   * @param  {Event}  event The click event object.
+   * @param  {Number} index The index of the clicked button.
+   * @return {void}
    */
-  destroyed() {
-    this.items.forEach(({ btn, clickHandler }) => {
-      btn.removeEventListener('click', clickHandler);
+  onBtnClick(event, index) {
+    this.items.forEach((item, i) => {
+      if (i !== index) {
+        this.disableItem(item);
+      }
     });
 
-    return this;
+    this.enableItem(this.items[index]);
   }
 
   /**
@@ -114,21 +72,37 @@ export default class Tabs extends Base {
    * @param  {HTMLElement} content The content element.
    * @return {Tabs}                The Tabs instance.
    */
-  enableTab(btn, content) {
-    setClasses(btn, this.$options.tabActiveClass);
-    setStyles(btn, this.$options.tabActiveStyle);
-    setClasses(content, this.$options.contentActiveClass);
-    setStyles(content, this.$options.contentActiveStyle);
+  async enableItem(item) {
+    if (!item || item.isEnabled) {
+      return Promise.resolve(this);
+    }
 
-    setClasses(btn, this.$options.tabInactiveClass, 'remove');
-    setStyles(btn, this.$options.tabInactiveStyle, 'remove');
-    setClasses(content, this.$options.contentInactiveClass, 'remove');
-    setStyles(content, this.$options.contentInactiveStyle, 'remove');
+    item.isEnabled = true;
+    const { btn, content } = item;
+    const btnStyles = this.$options.styles.btn || {};
+    const contentStyles = this.$options.styles.content || {};
 
     content.setAttribute('aria-hidden', 'false');
-    this.$emit('enable', { btn, content });
+    this.$emit('enable', item);
 
-    return this;
+    return Promise.all([
+      transition(btn, {
+        from: btnStyles.closed,
+        active: btnStyles.active,
+        to: btnStyles.open,
+      }).then(() => {
+        setClassesOrStyles(btn, btnStyles.open);
+        return Promise.resolve(btn);
+      }),
+      transition(content, {
+        from: contentStyles.closed,
+        active: contentStyles.active,
+        to: contentStyles.open,
+      }).then(() => {
+        setClassesOrStyles(content, contentStyles.open);
+        return Promise.resolve(content);
+      }),
+    ]).then(() => Promise.resolve(this));
   }
 
   /**
@@ -138,20 +112,36 @@ export default class Tabs extends Base {
    * @param  {HTMLElement} content The content element.
    * @return {Tabs}                The Tabs instance.
    */
-  disableTab(btn, content) {
-    setClasses(btn, this.$options.tabActiveClass, 'remove');
-    setStyles(btn, this.$options.tabActiveStyle, 'remove');
-    setClasses(content, this.$options.contentActiveClass, 'remove');
-    setStyles(content, this.$options.contentActiveStyle, 'remove');
+  async disableItem(item) {
+    if (!item || !item.isEnabled) {
+      return Promise.resolve(this);
+    }
 
-    setClasses(btn, this.$options.tabInactiveClass);
-    setStyles(btn, this.$options.tabInactiveStyle);
-    setClasses(content, this.$options.contentInactiveClass);
-    setStyles(content, this.$options.contentInactiveStyle);
+    item.isEnabled = false;
+    const { btn, content } = item;
+    const btnStyles = this.$options.styles.btn || {};
+    const contentStyles = this.$options.styles.content || {};
 
     content.setAttribute('aria-hidden', 'true');
-    this.$emit('disable', { btn, content });
+    this.$emit('disable', item);
 
-    return this;
+    return Promise.all([
+      transition(btn, {
+        from: btnStyles.open,
+        active: btnStyles.active,
+        to: btnStyles.closed,
+      }).then(() => {
+        setClassesOrStyles(btn, btnStyles.closed);
+        return Promise.resolve(btn);
+      }),
+      transition(content, {
+        from: contentStyles.open,
+        active: contentStyles.active,
+        to: contentStyles.closed,
+      }).then(() => {
+        setClassesOrStyles(content, contentStyles.closed);
+        return Promise.resolve(content);
+      }),
+    ]).then(() => Promise.resolve(this));
   }
 }
