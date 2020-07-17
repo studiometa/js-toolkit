@@ -20,7 +20,7 @@ jobs:
       - name: Test
         run: npm run test -- --coverage
       - name: Upload to Codecov
-        run: npx codecov --disable=detect --commit=$GITHUB_SHA --branch=${GITHUB_REF#refs/heads/}
+        run: npx codecov --disable=detect --commit=$GITHUB_SHA --branch=master
         env:
           CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
 
