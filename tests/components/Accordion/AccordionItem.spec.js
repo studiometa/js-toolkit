@@ -6,24 +6,35 @@ describe('AccordionItem component', () => {
   let btn;
   let container;
   let content;
+  let icon;
 
   beforeEach(() => {
     document.body.innerHTML = `
-      <div data-component="AccordionItem">
-        <button data-ref="btn">
-          Button
-        </button>
-        <div data-ref="container">
-          <div data-ref="content">
-            Content
-          </div>
-        </div>
-      </div>
+<div
+  data-component="AccordionItem"
+  data-options='{
+    "styles": {
+      "icon": {
+        "open": "transform rotate-180",
+        "active": { "transition": "all 1s linear" },
+        "closed": "transform rotate-0"
+      }
+    }
+  }'>
+  <button data-ref="btn">
+    Button
+    <span data-ref="icon">▼</span>
+  </button>
+  <div data-ref="container">
+    <div data-ref="content">Content</div>
+  </div>
+</div>;
     `;
     item = new AccordionItem(document.body.firstElementChild);
     btn = document.querySelector('[data-ref="btn"]');
     container = document.querySelector('[data-ref="container"]');
     content = document.querySelector('[data-ref="content"]');
+    icon = document.querySelector('[data-ref="icon"]');
   });
 
   it('should had aria-attributes when mounted', () => {
@@ -32,16 +43,27 @@ describe('AccordionItem component', () => {
   });
 
   it('should open and close', async () => {
+    const spy = jest.spyOn(icon.classList, 'add');
     await item.open();
     expect(container.getAttribute('aria-hidden')).toBe('false');
+    expect(spy).toHaveBeenLastCalledWith('rotate-180');
     await item.close();
     expect(container.getAttribute('aria-hidden')).toBe('true');
+    expect(spy).toHaveBeenLastCalledWith('rotate-0');
     btn.click();
     await wait(100);
     expect(container.getAttribute('aria-hidden')).toBe('false');
     btn.click();
     await wait(100);
     expect(container.getAttribute('aria-hidden')).toBe('true');
+
+    item.open();
+    item.close();
+    expect(spy).toHaveBeenLastCalledWith('rotate-180');
+    await item.open();
+    item.close();
+    item.open();
+    expect(spy).toHaveBeenLastCalledWith('rotate-0');
   });
 
   it('should emit open and close events', async () => {

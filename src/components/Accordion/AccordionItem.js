@@ -69,29 +69,30 @@ export default class AccordionItem extends Base {
         active: container.active,
         to: { height: `${this.$refs.content.offsetHeight}px` },
       }).then(() => {
-        // Do nothing if the item has been closed before the end
-        if (!this.isOpen) {
-          return Promise.resolve();
+        // Remove style only if the item has not been closed before the end
+        if (this.isOpen) {
+          styles.remove(this.$refs.content, { position: 'absolute' });
         }
 
-        styles.remove(this.$refs.content, { position: 'absolute' });
         return Promise.resolve();
       }),
-      ...Object.entries(otherStyles).map(([refName, { open, active, closed } = {}]) =>
-        transition(this.$refs[refName], {
-          from: closed,
-          active,
-          to: open,
-        }).then(() => {
-          // Do nothing if the item has been closed before the end
-          if (!this.isOpen) {
-            return Promise.resolve();
-          }
+      ...Object.entries(otherStyles)
+        .filter(([refName]) => this.$refs[refName])
+        .map(([refName, { open, active, closed } = {}]) =>
+          transition(this.$refs[refName], {
+            from: closed,
+            active,
+            to: open,
+          }).then(() => {
+            // Set style only if the item has not been closed before the end
+            // Do nothing if the item has been closed before the end
+            if (this.isOpen) {
+              setClassesOrStyles(this.$refs[refName], open);
+            }
 
-          setClassesOrStyles(this.$refs[refName], open);
-          return Promise.resolve();
-        })
-      ),
+            return Promise.resolve();
+          })
+        ),
     ]);
   }
 
@@ -119,30 +120,29 @@ export default class AccordionItem extends Base {
         active: container.active,
         to: { height: 0 },
       }).then(() => {
-        // Do nothing if the item has been re-opened before the end
-        if (this.isOpen) {
-          return Promise.resolve();
+        // Add end styles only if the item has not been re-opened before the end
+        if (!this.isOpen) {
+          styles.add(this.$refs.container, { height: 0, visibility: 'invisible' });
+          this.$refs.container.setAttribute('aria-hidden', 'true');
         }
-
-        styles.add(this.$refs.container, { height: 0, visibility: 'invisible' });
-        this.$refs.container.setAttribute('aria-hidden', 'true');
         return Promise.resolve();
       }),
-      ...Object.entries(otherStyles).map(([refName, { open, active, closed } = {}]) =>
-        transition(this.$refs[refName], {
-          from: open,
-          active,
-          to: closed,
-        }).then(() => {
-          // Do nothing if the item has been re-opened before the end
-          if (this.isOpen) {
-            return Promise.resolve();
-          }
+      ...Object.entries(otherStyles)
+        .filter(([refName]) => this.$refs[refName])
+        .map(([refName, { open, active, closed } = {}]) =>
+          transition(this.$refs[refName], {
+            from: open,
+            active,
+            to: closed,
+          }).then(() => {
+            // Add end styles only if the item has not been re-opened before the end
+            if (!this.isOpen) {
+              setClassesOrStyles(this.$refs[refName], closed);
+            }
 
-          setClassesOrStyles(this.$refs[refName], closed);
-          return Promise.resolve();
-        })
-      ),
+            return Promise.resolve();
+          })
+        ),
     ]);
   }
 }
