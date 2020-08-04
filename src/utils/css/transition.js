@@ -110,7 +110,6 @@ export default async function transition(element, name) {
   // End any previous transition running on the element.
   if (element.__isTransitioning__) {
     end(element, classesOrStyles);
-    await nextFrame();
   }
 
   await start(element, classesOrStyles);
