@@ -11,7 +11,7 @@ next: /utils/
 Install the package with your favorite package manager:
 
 ```bash
-npm install @studiometa/js-toolkit@alpha
+npm install @studiometa/js-toolkit
 ```
 
 ## Usage
