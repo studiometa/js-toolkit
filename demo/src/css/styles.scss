@@ -20,14 +20,6 @@ main {
   display: none;
 }
 
-.lazyload {
-  opacity: 0;
-}
-
-.lazyloaded {
-  // opacity: 1;s
-}
-
 [data-breakpoint]::after,
 [data-breakpoint]::before {
   z-index: -999;

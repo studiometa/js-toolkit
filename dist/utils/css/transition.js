@@ -207,28 +207,22 @@ function _transition() {
               to: ''
             }, name); // End any previous transition running on the element.
 
-            if (!element.__isTransitioning__) {
-              _context4.next = 5;
-              break;
+            if (element.__isTransitioning__) {
+              end(element, classesOrStyles);
             }
 
-            end(element, classesOrStyles);
-            _context4.next = 5;
-            return (0, _nextFrame.default)();
-
-          case 5:
-            _context4.next = 7;
+            _context4.next = 4;
             return start(element, classesOrStyles);
 
-          case 7:
-            _context4.next = 9;
+          case 4:
+            _context4.next = 6;
             return next(element, classesOrStyles);
 
-          case 9:
+          case 6:
             end(element, classesOrStyles);
             return _context4.abrupt("return", Promise.resolve());
 
-          case 11:
+          case 8:
           case "end":
             return _context4.stop();
         }
