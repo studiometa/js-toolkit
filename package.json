@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "1.0.0-alpha.7",
+  "version": "1.0.0-alpha.8",
   "description": "",
   "scripts": {
     "prepublishOnly": "if [[ ! $PWD =~ dist$ ]]; then echo '🚧 Use `npm run deploy` instead of `npm publish`!' && echo '' && exit 1; fi",
@@ -54,7 +54,6 @@
     "html-loader-jest": "^0.2.1",
     "html-webpack-plugin": "^4.3.0",
     "jest": "^25.2.7",
-    "lazysizes": "^5.2.2",
     "postcss": "^7.0.27",
     "prettier": "^1.19.1",
     "stylelint": "^13.6.1",
