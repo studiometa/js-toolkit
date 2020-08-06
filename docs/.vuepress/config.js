@@ -34,6 +34,7 @@ module.exports = {
           link: `/utils/#${util.toLowerCase()}`,
         })),
       },
+      { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
       { text: 'Github', link: 'https://github.com/studiometa/js-toolkit' },
     ],
   },
