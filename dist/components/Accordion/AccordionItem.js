@@ -11,6 +11,12 @@ exports.default = void 0;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+
+var _objectWithoutProperties2 = _interopRequireDefault(require("@babel/runtime/helpers/objectWithoutProperties"));
+
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
@@ -25,9 +31,9 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 
 var _Base2 = _interopRequireDefault(require("../../abstracts/Base"));
 
-var classes = _interopRequireWildcard(require("../../utils/css/classes"));
+var styles = _interopRequireWildcard(require("../../utils/css/styles"));
 
-var _transition = _interopRequireDefault(require("../../utils/css/transition"));
+var _transition = _interopRequireWildcard(require("../../utils/css/transition"));
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -56,6 +62,10 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
     value: function mounted() {
       this.$refs.btn.setAttribute('id', this.$id);
       this.$refs.content.setAttribute('aria-labelledby', this.$id);
+      styles.add(this.$refs.container, {
+        visibility: 'invisible',
+        height: 0
+      });
     }
     /**
      * Handler for the click event on the `btn` ref.
@@ -80,7 +90,10 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
     key: "open",
     value: function () {
       var _open = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var height;
+        var _this = this;
+
+        var _this$$options$styles, container, otherStyles;
+
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -97,24 +110,58 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                 this.$emit('open');
                 this.isOpen = true;
                 this.$refs.container.setAttribute('aria-hidden', 'false');
-                classes.remove(this.$refs.container, 'invisible');
-                height = this.$refs.content.offsetHeight;
+                styles.remove(this.$refs.container, {
+                  visibility: 'invisible'
+                });
+                _this$$options$styles = this.$options.styles, container = _this$$options$styles.container, otherStyles = (0, _objectWithoutProperties2.default)(_this$$options$styles, ["container"]);
                 _context.next = 10;
-                return (0, _transition.default)(this.$refs.container, {
+                return Promise.all([(0, _transition.default)(this.$refs.container, {
                   from: {
                     height: 0
                   },
-                  active: this.$options.enterActive || this.$options.active,
+                  active: container.active,
                   to: {
-                    height: "".concat(height, "px")
+                    height: "".concat(this.$refs.content.offsetHeight, "px")
                   }
-                });
+                }).then(function () {
+                  // Remove style only if the item has not been closed before the end
+                  if (_this.isOpen) {
+                    styles.remove(_this.$refs.content, {
+                      position: 'absolute'
+                    });
+                  }
+
+                  return Promise.resolve();
+                })].concat((0, _toConsumableArray2.default)(Object.entries(otherStyles).filter(function (_ref) {
+                  var _ref2 = (0, _slicedToArray2.default)(_ref, 1),
+                      refName = _ref2[0];
+
+                  return _this.$refs[refName];
+                }).map(function (_ref3) {
+                  var _ref4 = (0, _slicedToArray2.default)(_ref3, 2),
+                      refName = _ref4[0],
+                      _ref4$ = _ref4[1];
+
+                  _ref4$ = _ref4$ === void 0 ? {} : _ref4$;
+                  var open = _ref4$.open,
+                      active = _ref4$.active,
+                      closed = _ref4$.closed;
+                  return (0, _transition.default)(_this.$refs[refName], {
+                    from: closed,
+                    active: active,
+                    to: open
+                  }).then(function () {
+                    // Set style only if the item has not been closed before the end
+                    // Do nothing if the item has been closed before the end
+                    if (_this.isOpen) {
+                      (0, _transition.setClassesOrStyles)(_this.$refs[refName], open);
+                    }
+
+                    return Promise.resolve();
+                  });
+                }))));
 
               case 10:
-                classes.remove(this.$refs.container, 'h-0');
-                classes.remove(this.$refs.content, 'absolute');
-
-              case 12:
               case "end":
                 return _context.stop();
             }
@@ -137,7 +184,10 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
     key: "close",
     value: function () {
       var _close = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var height;
+        var _this2 = this;
+
+        var height, _this$$options$styles2, container, otherStyles;
+
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -153,23 +203,61 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                 this.$log('close');
                 this.$emit('close');
                 this.isOpen = false;
-                height = this.$refs.content.offsetHeight;
-                classes.add(this.$refs.content, 'absolute');
-                _context2.next = 9;
-                return (0, _transition.default)(this.$refs.container, {
+                height = this.$refs.container.offsetHeight;
+                styles.add(this.$refs.content, {
+                  position: 'absolute'
+                });
+                _this$$options$styles2 = this.$options.styles, container = _this$$options$styles2.container, otherStyles = (0, _objectWithoutProperties2.default)(_this$$options$styles2, ["container"]);
+                _context2.next = 10;
+                return Promise.all([(0, _transition.default)(this.$refs.container, {
                   from: {
                     height: "".concat(height, "px")
                   },
-                  active: this.$options.leaveActive || this.$options.active,
-                  to: 'h-0'
-                });
+                  active: container.active,
+                  to: {
+                    height: 0
+                  }
+                }).then(function () {
+                  // Add end styles only if the item has not been re-opened before the end
+                  if (!_this2.isOpen) {
+                    styles.add(_this2.$refs.container, {
+                      height: 0,
+                      visibility: 'invisible'
+                    });
 
-              case 9:
-                classes.add(this.$refs.container, 'h-0');
-                classes.add(this.$refs.container, 'invisible');
-                this.$refs.container.setAttribute('aria-hidden', 'true');
+                    _this2.$refs.container.setAttribute('aria-hidden', 'true');
+                  }
 
-              case 12:
+                  return Promise.resolve();
+                })].concat((0, _toConsumableArray2.default)(Object.entries(otherStyles).filter(function (_ref5) {
+                  var _ref6 = (0, _slicedToArray2.default)(_ref5, 1),
+                      refName = _ref6[0];
+
+                  return _this2.$refs[refName];
+                }).map(function (_ref7) {
+                  var _ref8 = (0, _slicedToArray2.default)(_ref7, 2),
+                      refName = _ref8[0],
+                      _ref8$ = _ref8[1];
+
+                  _ref8$ = _ref8$ === void 0 ? {} : _ref8$;
+                  var open = _ref8$.open,
+                      active = _ref8$.active,
+                      closed = _ref8$.closed;
+                  return (0, _transition.default)(_this2.$refs[refName], {
+                    from: open,
+                    active: active,
+                    to: closed
+                  }).then(function () {
+                    // Add end styles only if the item has not been re-opened before the end
+                    if (!_this2.isOpen) {
+                      (0, _transition.setClassesOrStyles)(_this2.$refs[refName], closed);
+                    }
+
+                    return Promise.resolve();
+                  });
+                }))));
+
+              case 10:
               case "end":
                 return _context2.stop();
             }
@@ -193,9 +281,13 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
     get: function get() {
       return {
         name: 'AccordionItem',
-        active: '',
-        enterActive: '',
-        leaveActive: ''
+        styles: {
+          container: {
+            open: '',
+            active: '',
+            closed: ''
+          }
+        }
       };
     }
   }]);
