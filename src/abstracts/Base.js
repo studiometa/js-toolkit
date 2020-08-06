@@ -76,7 +76,12 @@ function getRefs(instance, element) {
 function getChildren(instance, element, components) {
   const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
     const selector = `[data-component="${name}"]`;
-    const elements = Array.from(element.querySelectorAll(selector));
+    let elements = Array.from(element.querySelectorAll(selector));
+
+    // If no child component found with the default selector, the name must be a DOM selector
+    if (elements.length === 0) {
+      elements = Array.from(element.querySelectorAll(name));
+    }
 
     if (elements.length === 0) {
       return acc;
