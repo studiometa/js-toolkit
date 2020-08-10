@@ -13,6 +13,7 @@ export default class AccordionItem extends Base {
   get config() {
     return {
       name: 'AccordionItem',
+      isOpen: false,
       styles: {
         container: {
           open: '',
@@ -30,7 +31,10 @@ export default class AccordionItem extends Base {
   mounted() {
     this.$refs.btn.setAttribute('id', this.$id);
     this.$refs.content.setAttribute('aria-labelledby', this.$id);
-    styles.add(this.$refs.container, { visibility: 'invisible', height: 0 });
+    this.isOpen = this.$options.isOpen;
+    if (!this.isOpen) {
+      styles.add(this.$refs.container, { visibility: 'invisible', height: 0 });
+    }
   }
 
   /**
