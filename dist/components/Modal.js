@@ -1,7 +1,5 @@
 "use strict";
 
-var _interopRequireWildcard = require("@babel/runtime/helpers/interopRequireWildcard");
-
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
 Object.defineProperty(exports, "__esModule", {
@@ -27,7 +25,7 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 
 var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
 
-var _transition = _interopRequireWildcard(require("../utils/css/transition"));
+var _transition = _interopRequireDefault(require("../utils/css/transition"));
 
 var _focusTrap2 = _interopRequireDefault(require("../utils/focusTrap"));
 
@@ -181,10 +179,7 @@ var Modal = /*#__PURE__*/function (_Base) {
                     from: closed,
                     active: active,
                     to: open
-                  }).then(function () {
-                    (0, _transition.setClassesOrStyles)(_this.$refs[refName], open);
-                    return Promise.resolve();
-                  });
+                  }, 'keep');
                 })).then(function () {
                   if (_this.$options.autofocus && _this.$refs.modal.querySelector(_this.$options.autofocus)) {
                     saveActiveElement();
@@ -251,10 +246,7 @@ var Modal = /*#__PURE__*/function (_Base) {
                     from: open,
                     active: active,
                     to: closed
-                  }).then(function () {
-                    (0, _transition.setClassesOrStyles)(_this2.$refs[refName], closed);
-                    return Promise.resolve();
-                  });
+                  }, 'keep');
                 })).then(function () {
                   return Promise.resolve(_this2);
                 }));
