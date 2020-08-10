@@ -33,7 +33,7 @@ var _Base2 = _interopRequireDefault(require("../../abstracts/Base"));
 
 var styles = _interopRequireWildcard(require("../../utils/css/styles"));
 
-var _transition = _interopRequireWildcard(require("../../utils/css/transition"));
+var _transition = _interopRequireDefault(require("../../utils/css/transition"));
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -62,10 +62,14 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
     value: function mounted() {
       this.$refs.btn.setAttribute('id', this.$id);
       this.$refs.content.setAttribute('aria-labelledby', this.$id);
-      styles.add(this.$refs.container, {
-        visibility: 'invisible',
-        height: 0
-      });
+      this.isOpen = this.$options.isOpen;
+
+      if (!this.isOpen) {
+        styles.add(this.$refs.container, {
+          visibility: 'invisible',
+          height: 0
+        });
+      }
     }
     /**
      * Handler for the click event on the `btn` ref.
@@ -150,15 +154,7 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                     from: closed,
                     active: active,
                     to: open
-                  }).then(function () {
-                    // Set style only if the item has not been closed before the end
-                    // Do nothing if the item has been closed before the end
-                    if (_this.isOpen) {
-                      (0, _transition.setClassesOrStyles)(_this.$refs[refName], open);
-                    }
-
-                    return Promise.resolve();
-                  });
+                  }, 'keep');
                 }))));
 
               case 10:
@@ -247,14 +243,7 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                     from: open,
                     active: active,
                     to: closed
-                  }).then(function () {
-                    // Add end styles only if the item has not been re-opened before the end
-                    if (!_this2.isOpen) {
-                      (0, _transition.setClassesOrStyles)(_this2.$refs[refName], closed);
-                    }
-
-                    return Promise.resolve();
-                  });
+                  }, 'keep');
                 }))));
 
               case 10:
@@ -281,6 +270,7 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
     get: function get() {
       return {
         name: 'AccordionItem',
+        isOpen: false,
         styles: {
           container: {
             open: '',
