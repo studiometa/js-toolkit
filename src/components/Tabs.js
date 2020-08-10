@@ -1,5 +1,5 @@
 import Base from '../abstracts/Base';
-import transition, { setClassesOrStyles } from '../utils/css/transition';
+import transition from '../utils/css/transition';
 
 /**
  * Tabs class.
@@ -86,22 +86,24 @@ export default class Tabs extends Base {
     this.$emit('enable', item);
 
     return Promise.all([
-      transition(btn, {
-        from: btnStyles.closed,
-        active: btnStyles.active,
-        to: btnStyles.open,
-      }).then(() => {
-        setClassesOrStyles(btn, btnStyles.open);
-        return Promise.resolve(btn);
-      }),
-      transition(content, {
-        from: contentStyles.closed,
-        active: contentStyles.active,
-        to: contentStyles.open,
-      }).then(() => {
-        setClassesOrStyles(content, contentStyles.open);
-        return Promise.resolve(content);
-      }),
+      transition(
+        btn,
+        {
+          from: btnStyles.closed,
+          active: btnStyles.active,
+          to: btnStyles.open,
+        },
+        'keep'
+      ),
+      transition(
+        content,
+        {
+          from: contentStyles.closed,
+          active: contentStyles.active,
+          to: contentStyles.open,
+        },
+        'keep'
+      ),
     ]).then(() => Promise.resolve(this));
   }
 
@@ -126,22 +128,24 @@ export default class Tabs extends Base {
     this.$emit('disable', item);
 
     return Promise.all([
-      transition(btn, {
-        from: btnStyles.open,
-        active: btnStyles.active,
-        to: btnStyles.closed,
-      }).then(() => {
-        setClassesOrStyles(btn, btnStyles.closed);
-        return Promise.resolve(btn);
-      }),
-      transition(content, {
-        from: contentStyles.open,
-        active: contentStyles.active,
-        to: contentStyles.closed,
-      }).then(() => {
-        setClassesOrStyles(content, contentStyles.closed);
-        return Promise.resolve(content);
-      }),
+      transition(
+        btn,
+        {
+          from: btnStyles.open,
+          active: btnStyles.active,
+          to: btnStyles.closed,
+        },
+        'keep'
+      ),
+      transition(
+        content,
+        {
+          from: contentStyles.open,
+          active: contentStyles.active,
+          to: contentStyles.closed,
+        },
+        'keep'
+      ),
     ]).then(() => Promise.resolve(this));
   }
 }

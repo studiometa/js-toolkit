@@ -1,5 +1,5 @@
 import Base from '../abstracts/Base';
-import transition, { setClassesOrStyles } from '../utils/css/transition';
+import transition from '../utils/css/transition';
 import focusTrap from '../utils/focusTrap';
 
 const { trap, untrap, saveActiveElement } = focusTrap();
@@ -146,14 +146,15 @@ export default class Modal extends Base {
 
     return Promise.all(
       Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
-        transition(this.$refs[refName], {
-          from: closed,
-          active,
-          to: open,
-        }).then(() => {
-          setClassesOrStyles(this.$refs[refName], open);
-          return Promise.resolve();
-        })
+        transition(
+          this.$refs[refName],
+          {
+            from: closed,
+            active,
+            to: open,
+          },
+          'keep'
+        )
       )
     ).then(() => {
       if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
@@ -183,14 +184,15 @@ export default class Modal extends Base {
 
     return Promise.all(
       Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
-        transition(this.$refs[refName], {
-          from: open,
-          active,
-          to: closed,
-        }).then(() => {
-          setClassesOrStyles(this.$refs[refName], closed);
-          return Promise.resolve();
-        })
+        transition(
+          this.$refs[refName],
+          {
+            from: open,
+            active,
+            to: closed,
+          },
+          'keep'
+        )
       )
     ).then(() => Promise.resolve(this));
   }

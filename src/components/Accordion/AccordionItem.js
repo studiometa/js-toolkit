@@ -1,6 +1,6 @@
 import Base from '../../abstracts/Base';
 import * as styles from '../../utils/css/styles';
-import transition, { setClassesOrStyles } from '../../utils/css/transition';
+import transition from '../../utils/css/transition';
 
 /**
  * AccordionItem class.
@@ -79,19 +79,15 @@ export default class AccordionItem extends Base {
       ...Object.entries(otherStyles)
         .filter(([refName]) => this.$refs[refName])
         .map(([refName, { open, active, closed } = {}]) =>
-          transition(this.$refs[refName], {
-            from: closed,
-            active,
-            to: open,
-          }).then(() => {
-            // Set style only if the item has not been closed before the end
-            // Do nothing if the item has been closed before the end
-            if (this.isOpen) {
-              setClassesOrStyles(this.$refs[refName], open);
-            }
-
-            return Promise.resolve();
-          })
+          transition(
+            this.$refs[refName],
+            {
+              from: closed,
+              active,
+              to: open,
+            },
+            'keep'
+          )
         ),
     ]);
   }
@@ -130,18 +126,15 @@ export default class AccordionItem extends Base {
       ...Object.entries(otherStyles)
         .filter(([refName]) => this.$refs[refName])
         .map(([refName, { open, active, closed } = {}]) =>
-          transition(this.$refs[refName], {
-            from: open,
-            active,
-            to: closed,
-          }).then(() => {
-            // Add end styles only if the item has not been re-opened before the end
-            if (!this.isOpen) {
-              setClassesOrStyles(this.$refs[refName], closed);
-            }
-
-            return Promise.resolve();
-          })
+          transition(
+            this.$refs[refName],
+            {
+              from: open,
+              active,
+              to: closed,
+            },
+            'keep'
+          )
         ),
     ]);
   }
