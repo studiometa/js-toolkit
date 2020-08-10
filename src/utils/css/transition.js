@@ -36,6 +36,8 @@ function testTransition(element) {
 /**
  * Apply the from state.
  *
+ * @param {HTMLElement}   element         The target element.
+ * @param {String|Object} classesOrStyles The classes or styles definition.
  * @return {Promise}
  */
 async function start(element, classesOrStyles) {
@@ -49,6 +51,8 @@ async function start(element, classesOrStyles) {
 /**
  * Apply the active state.
  *
+ * @param {HTMLElement}   element         The target element.
+ * @param {String|Object} classesOrStyles The classes or styles definition.
  * @return {Promise}
  */
 async function next(element, classesOrStyles) {
@@ -72,11 +76,16 @@ async function next(element, classesOrStyles) {
 /**
  * Apply the final state.
  *
+ * @param {HTMLElement}   element         The target element.
+ * @param {String|Object} classesOrStyles The classes or styles definition.
+ * @param {String}        mode            Whether to remove or keep the `to`  classes/styles.
  * @return {void}
  */
-function end(element, classesOrStyles) {
+function end(element, classesOrStyles, mode = 'remove') {
   element.removeEventListener('transitionend', element.__transitionEndHandler__, false);
-  setClassesOrStyles(element, classesOrStyles.to, 'remove');
+  if (mode === 'remove') {
+    setClassesOrStyles(element, classesOrStyles.to, 'remove');
+  }
   setClassesOrStyles(element, classesOrStyles.active, 'remove');
   delete element.__isTransitioning__;
   delete element.__transitionEndHandler__;
@@ -90,9 +99,10 @@ function end(element, classesOrStyles) {
  *
  * @param  {HTMLElement}   element The target element.
  * @param  {String|Object} name    The name of the transition or an object with the hooks classesOrStyles.
+ * @param  {String}        endMode    Whether to remove or keep the `to` classes/styles
  * @return {Promise}               A promise resolving at the end of the transition.
  */
-export default async function transition(element, name) {
+export default async function transition(element, name, endMode = 'remove') {
   const classesOrStyles =
     typeof name === 'string'
       ? {
@@ -114,6 +124,6 @@ export default async function transition(element, name) {
 
   await start(element, classesOrStyles);
   await next(element, classesOrStyles);
-  end(element, classesOrStyles);
+  end(element, classesOrStyles, endMode);
   return Promise.resolve();
 }
