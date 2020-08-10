@@ -33,26 +33,31 @@ debouncedFn(); // Hello 👋
 You can read [Debounce vs throttle](https://redd.one/blog/debounce-vs-throttle) if the difference between the `debounce` and `throttle` methods is not clear for you.
 :::
 
-## `hasMethod`
+## `focusTrap`
 
-Test if a given object has a given method.
+Trap the tab navigation inside a given element.
 
-**Parameters**
-
-- `obj` (`Object`): the object to test
-- `name` (`String`): the method to test
-
-[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/hasMethod.js)
+[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/focusTrap.js)
 
 **Usage**
 
 ```js
-import { hasMethod } from '@studiometa/js-toolkit/utils';
+import { focusTrap } from '@studiometa/js-toolkit/utils';
 
-const foo = { bar: () => 'bar' };
-console.log(hasMethod(foo, 'bar')); // true
-console.log(hasMethod(foo, 'baz')); // false
+const { trap, untrap } = focusTrap();
+
+// Limit the tab navigation to focusable children of the document's body
+document.addEventListener('keyup', (event) => {
+  trap(document.body, event);
+});
+
+// Resume the trap and refocus the previously focused element
+untrap();
 ```
+
+::: tip
+To understand the "tab trap" usage, read [Using JavaScript to trap focus in an element](https://hiddedevries.nl/en/blog/2017-01-29-using-javascript-to-trap-focus-in-an-element).
+:::
 
 ## `isObject`
 
@@ -60,14 +65,14 @@ Test if the given value is an object.
 
 **Parameters**
 
-- `value` (`*`): the value to test
+- `value` (`any`): the value to test
 
-[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/isObject.js)
+[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/object/isObject.js)
 
 **Usage**
 
 ```js
-import { isObject } from '@studiometa/js-toolkit/utils';
+import { isObject } from '@studiometa/js-toolkit/utils/object';
 
 console.log(isObject({ foo: 'bar' })); // true
 console.log(isObject('hello')); // false
@@ -112,33 +117,6 @@ nextFrame(() => {
 });
 ```
 
-## `focusTrap`
-
-Trap the tab navigation inside a given element.
-
-[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/focusTrap.js)
-
-**Usage**
-
-```js
-import { focusTrap } from '@studiometa/js-toolkit/utils';
-
-const { trap, untrap } = focusTrap();
-
-// Limit the tab navigation to focusable children of the document's body
-document.addEventListener('keyup', (event) => {
-  trap(document.body, event);
-});
-
-// Resume the trap and refocus the previously focused element
-untrap();
-```
-
-::: tip
-To understand the "tab trap" usage, read [Using JavaScript to trap focus in an element](https://hiddedevries.nl/en/blog/2017-01-29-using-javascript-to-trap-focus-in-an-element).
-:::
-
-
 ## `throttle`
 
 Limit the execution of a function one time for the given delay in milliseconds.
@@ -162,3 +140,58 @@ const throttledFn = throttle(() => {
 throttledFn(); // Hello 👋
 ```
 
+## `transition`
+
+This method implements the same logic as the [`<transition>` component](https://vuejs.org/v2/api/#transition) from Vue to apply CSS based transition to a DOM element.
+
+**Parameters**
+
+- `element` (`HTMLElement`): the target DOM element
+- `name` (`String|Object`): the name of the transition or an object of classes or styles to apply
+- `endMode = 'remove'` (`String`): whether or not the transition keeps its final state or not, can be `remove` or `keep`, defaults to `remove`.
+
+**Returns**
+
+- `Promise`: a Promise
+
+[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/css/transition.js)
+
+**Usage**
+```js
+import transition from '@studiometa/js-toolkit/utils/css/transition';
+
+// Will apply and remove the following classes sequentially:
+// - fade-from
+// - fade-active
+// - fade-to
+transition(document.body, 'fade');
+
+// Will apply and remove the following styles sequentially:
+// - opacity: 0;
+// - transition: opacity 1s ease-out
+transition(document.body, {
+  from: { opacity: 0 },
+  active: { transition: 'opacity 1s ease-out' },
+});
+
+// Will apply and remove the following classes sequentially:
+// - opacity-0
+// - transition duration-500
+// - opacity-50
+transition(document.body, {
+  from: 'opacity-0',
+  active: 'transition duration-500',
+  to: 'opacity-50',
+});
+
+// Will apply and remove the following classes sequentially:
+// - opacity-0
+// - transition duration-500
+// - opacity-50
+// And keep the latest class at the end.
+transition(document.body, {
+  from: 'opacity-0',
+  active: 'transition duration-500',
+  to: 'opacity-50',
+}, 'keep');
+```

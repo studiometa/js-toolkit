@@ -29,10 +29,15 @@ module.exports = {
       {
         text: 'Utils',
         link: '/utils/',
-        items: Object.keys(require('../../dist/utils')).map(util => ({
-          text: util,
-          link: `/utils/#${util.toLowerCase()}`,
-        })),
+        items: [
+          { text: 'debounce', link: '/utils/#debounce' },
+          { text: 'focusTrap', link: '/utils/#focusTrap' },
+          { text: 'isObject', link: '/utils/#isObject' },
+          { text: 'keyCodes', link: '/utils/#keyCodes' },
+          { text: 'nextFrame', link: '/utils/#nextFrame' },
+          { text: 'throttle', link: '/utils/#throttle' },
+          { text: 'transition', link: '/utils/#transition' },
+        ],
       },
       { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
       { text: 'Github', link: 'https://github.com/studiometa/js-toolkit' },
