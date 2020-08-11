@@ -187,8 +187,8 @@ transition(document.body, {
 // Will apply and remove the following classes sequentially:
 // - opacity-0
 // - transition duration-500
+// And keep the latest class at the end:
 // - opacity-50
-// And keep the latest class at the end.
 transition(document.body, {
   from: 'opacity-0',
   active: 'transition duration-500',
