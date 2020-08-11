@@ -146,6 +146,26 @@ function getOptions(instance, element, config) {
 }
 
 /**
+ * Set a component instance options.
+ *
+ * @param {Base}        instance   The component's instance.
+ * @param {HTMLElement} element    The component's root element.
+ * @param {Object}      newOptions The new options object.
+ */
+function setOptions(instance, element, newOptions) {
+  let options = {};
+  if (element.dataset.options) {
+    try {
+      options = JSON.parse(element.dataset.options);
+    } catch (err) {
+      throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
+    }
+  }
+  options = merge(options, newOptions);
+  element.dataset.options = JSON.stringify(options);
+}
+
+/**
  * Call the given method while applying the given arguments.
  *
  * @param {String} method The method to call
@@ -295,6 +315,15 @@ export default class Base extends EventManager {
    */
   get $options() {
     return getOptions(this, this.$el, this.config);
+  }
+
+  /**
+   * Set the components option.
+   * @param  {Object} value The new options values to merge with the old ones.
+   * @return {void}
+   */
+  set $options(newOptions) {
+    setOptions(this, this.$el, newOptions);
   }
 
   /**
