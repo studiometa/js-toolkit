@@ -66,6 +66,11 @@ describe('A Base instance', () => {
     expect(foo.$options).toEqual({ name: 'Foo' });
   });
 
+  it('should be able to set the `$options` property', () => {
+    foo.$options = { test: true };
+    expect(foo.$options).toEqual({ name: 'Foo', test: true });
+  });
+
   it('should have an `$el` property', () => {
     expect(foo.$el).toBe(element);
   });
@@ -241,6 +246,12 @@ describe('A Base instance methods', () => {
   it('should throw and error when `data-options` can not be parsed', () => {
     document.body.dataset.options = 'foo-bar';
     expect(() => new Foo(document.body)).toThrow();
+    document.body.dataset.options = '{}';
+    const newFoo = new Foo(document.body);
+    document.body.dataset.options = 'foo-bar';
+    expect(() => {
+      newFoo.$options = '{}';
+    }).toThrow();
   });
 });
 

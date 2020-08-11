@@ -143,7 +143,13 @@ function getChildren(instance, element, components) {
         Object.defineProperty(ComponentClass.prototype, '__isChild__', {
           value: true
         });
-        return new ComponentClass(el);
+        var child = new ComponentClass(el);
+        Object.defineProperty(child, '$parent', {
+          get: function get() {
+            return instance;
+          }
+        });
+        return child;
       } // Resolve async components
 
 
@@ -152,7 +158,13 @@ function getChildren(instance, element, components) {
         Object.defineProperty(ResolvedClass.prototype, '__isChild__', {
           value: true
         });
-        return new ResolvedClass(el);
+        var child = new ResolvedClass(el);
+        Object.defineProperty(child, '$parent', {
+          get: function get() {
+            return instance;
+          }
+        });
+        return child;
       });
       asyncComponent.__isAsync__ = true;
       return asyncComponent;
@@ -186,6 +198,29 @@ function getOptions(instance, element, config) {
   options = (0, _deepmerge.default)(config, options);
   instance.$emit('get:options', options);
   return options;
+}
+/**
+ * Set a component instance options.
+ *
+ * @param {Base}        instance   The component's instance.
+ * @param {HTMLElement} element    The component's root element.
+ * @param {Object}      newOptions The new options object.
+ */
+
+
+function setOptions(instance, element, newOptions) {
+  var options = {};
+
+  if (element.dataset.options) {
+    try {
+      options = JSON.parse(element.dataset.options);
+    } catch (err) {
+      throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
+    }
+  }
+
+  options = (0, _deepmerge.default)(options, newOptions);
+  element.dataset.options = JSON.stringify(options);
 }
 /**
  * Call the given method while applying the given arguments.
@@ -370,6 +405,15 @@ var Base = /*#__PURE__*/function (_EventManager) {
       return getOptions(this, this.$el, this.config);
     }
     /**
+     * Set the components option.
+     * @param  {Object} value The new options values to merge with the old ones.
+     * @return {void}
+     */
+    ,
+    set: function set(newOptions) {
+      setOptions(this, this.$el, newOptions);
+    }
+    /**
      * Class constructor where all the magic takes place
      * @param  {Object}    options An option object
      * @return {Base}         The mounted instance
@@ -524,6 +568,12 @@ var Base = /*#__PURE__*/function (_EventManager) {
 
     if (!_this.__isChild__) {
       _this.$mount();
+
+      Object.defineProperty((0, _assertThisInitialized2.default)(_this), '$parent', {
+        get: function get() {
+          return null;
+        }
+      });
     }
 
     return (0, _possibleConstructorReturn2.default)(_this, (0, _assertThisInitialized2.default)(_this));
