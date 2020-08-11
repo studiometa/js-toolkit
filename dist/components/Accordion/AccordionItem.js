@@ -89,7 +89,7 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
             refName = _ref2[0];
 
         return _this.$refs[refName];
-      }).map(function (_ref3) {
+      }).forEach(function (_ref3) {
         var _ref4 = (0, _slicedToArray2.default)(_ref3, 2),
             refName = _ref4[0],
             _ref4$ = _ref4[1];

@@ -49,7 +49,7 @@ export default class AccordionItem extends Base {
     const { container, ...otherStyles } = this.$options.styles;
     Object.entries(otherStyles)
       .filter(([refName]) => this.$refs[refName])
-      .map(([refName, { open, closed } = {}]) => {
+      .forEach(([refName, { open, closed } = {}]) => {
         transition(this.$refs[refName], { to: this.isOpen ? open : closed }, 'keep');
       });
   }
