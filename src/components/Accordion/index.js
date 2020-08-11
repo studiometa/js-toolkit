@@ -13,6 +13,7 @@ export default class Accordion extends Base {
     return {
       name: 'Accordion',
       autoclose: true,
+      item: null,
       components: {
         AccordionItem,
       },
@@ -24,12 +25,21 @@ export default class Accordion extends Base {
    * @return {void}
    */
   mounted() {
-    this.unbindOpen = this.$children.AccordionItem.map((item, index) => {
-      return item.$on('open', () => {
+    this.unbindMethods = this.$children.AccordionItem.map((item, index) => {
+      const unbindOpen = item.$on('open', () => {
+        this.$emit('open', item, index);
         if (this.$options.autoclose) {
           this.$children.AccordionItem.filter((el, i) => index !== i).forEach(it => it.close());
         }
       });
+      const unbindClose = item.$on('close', () => {
+        this.$emit('close', item, index);
+      });
+
+      return () => {
+        unbindOpen();
+        unbindClose();
+      };
     });
   }
 
@@ -38,6 +48,6 @@ export default class Accordion extends Base {
    * @return {void}
    */
   destroyed() {
-    this.unbindOpen.forEach(unbind => unbind());
+    this.unbindMethods.forEach(unbind => unbind());
   }
 }

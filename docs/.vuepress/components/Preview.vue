@@ -1,6 +1,6 @@
 <template>
   <div class="preview" :class="{ 'preview--full': full }">
-    <div class="my-10 p-10 rounded" style="background-color: rgba(27,31,35,0.05);" ref="parent">
+    <div class="my-4 p-10 rounded" style="background-color: rgba(27,31,35,0.05);" ref="parent">
       <slot />
     </div>
   </div>
