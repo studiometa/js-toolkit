@@ -8,10 +8,11 @@ describe('Accordion component', () => {
 
   let item;
   let btn;
-  let container;
+  let content;
+
   beforeEach(() => {
     document.body.innerHTML = `
-       <section data-component="Accordion">
+       <section data-component="Accordion" data-options='{ "item": { "test": true } }'>
          <div data-component="AccordionItem">
            <button data-ref="btn">
              Button
@@ -51,34 +52,41 @@ describe('Accordion component', () => {
 
     item = new Accordion(document.body.firstElementChild);
     btn = Array.from(document.querySelectorAll('[data-ref="btn"]'));
-    container = Array.from(document.querySelectorAll('[data-ref="container"]'));
+    content = Array.from(document.querySelectorAll('[data-ref="content"]'));
+  });
+
+  it('should merge parent options with item option', () => {
+    const accordionItem = document.querySelector('[data-component="AccordionItem"]');
+    expect(JSON.parse(accordionItem.dataset.options)).toEqual({ test: true });
+    accordionItem.__base__.$options = { test: false };
+    expect(JSON.parse(accordionItem.dataset.options)).toEqual({ test: false });
   });
 
   it('should autoclose items by default', async () => {
     btn[0].click();
     await wait(100);
-    expect(container[0].getAttribute('aria-hidden')).toBe('false');
-    expect(container[1].getAttribute('aria-hidden')).toBe('true');
+    expect(content[0].getAttribute('aria-hidden')).toBe('false');
+    expect(content[1].getAttribute('aria-hidden')).toBe('true');
     btn[1].click();
     await wait(100);
-    expect(container[0].getAttribute('aria-hidden')).toBe('true');
-    expect(container[1].getAttribute('aria-hidden')).toBe('false');
+    expect(content[0].getAttribute('aria-hidden')).toBe('true');
+    expect(content[1].getAttribute('aria-hidden')).toBe('false');
   });
 
   it('should not autoclose items when specified', async () => {
     item.$el.setAttribute('data-options', '{ "autoclose": false }');
     btn[0].click();
     await wait(100);
-    expect(container[0].getAttribute('aria-hidden')).toBe('false');
-    expect(container[1].getAttribute('aria-hidden')).toBe('true');
+    expect(content[0].getAttribute('aria-hidden')).toBe('false');
+    expect(content[1].getAttribute('aria-hidden')).toBe('true');
     btn[1].click();
     await wait(100);
-    expect(container[0].getAttribute('aria-hidden')).toBe('false');
-    expect(container[1].getAttribute('aria-hidden')).toBe('false');
+    expect(content[0].getAttribute('aria-hidden')).toBe('false');
+    expect(content[1].getAttribute('aria-hidden')).toBe('false');
   });
 
   it('should unbind the open listeners on destroy', () => {
-    const spy = jest.spyOn(item.unbindOpen, 'forEach');
+    const spy = jest.spyOn(item.unbindMethods, 'forEach');
     item.$destroy();
     expect(spy).toHaveBeenCalledTimes(1);
   });
