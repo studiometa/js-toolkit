@@ -12,8 +12,9 @@ module.exports = {
         text: 'Components',
         link: '/components/',
         items: [
-          { text: 'Modal', link: '/components/modal/' },
-          { text: 'Tabs', link: '/components/tabs/' },
+          { text: 'Accordion', link: '/components/Accordion.html' },
+          { text: 'Modal', link: '/components/Modal.html' },
+          { text: 'Tabs', link: '/components/Tabs.html' },
         ],
       },
       {

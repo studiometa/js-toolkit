@@ -1,7 +1,7 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /components/
+prev: /components/Accordion.md
 next: /components/Tabs.md
 ---
 
