@@ -11,13 +11,13 @@ exports.default = void 0;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
-
 var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
-var _objectWithoutProperties2 = _interopRequireDefault(require("@babel/runtime/helpers/objectWithoutProperties"));
-
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
+var _objectWithoutProperties2 = _interopRequireDefault(require("@babel/runtime/helpers/objectWithoutProperties"));
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
@@ -60,16 +60,47 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
      * @return {void}
      */
     value: function mounted() {
+      var _this = this;
+
+      if (this.$parent && this.$parent.$options.item) {
+        this.$options = this.$parent.$options.item;
+      }
+
       this.$refs.btn.setAttribute('id', this.$id);
+      this.$refs.btn.setAttribute('aria-controls', this.contentId);
       this.$refs.content.setAttribute('aria-labelledby', this.$id);
+      this.$refs.content.setAttribute('id', this.contentId);
       this.isOpen = this.$options.isOpen;
+      this.updateAttributes(this.isOpen);
 
       if (!this.isOpen) {
         styles.add(this.$refs.container, {
           visibility: 'invisible',
           height: 0
         });
-      }
+      } // Update refs styles on mount
+
+
+      var _this$$options$styles = this.$options.styles,
+          container = _this$$options$styles.container,
+          otherStyles = (0, _objectWithoutProperties2.default)(_this$$options$styles, ["container"]);
+      Object.entries(otherStyles).filter(function (_ref) {
+        var _ref2 = (0, _slicedToArray2.default)(_ref, 1),
+            refName = _ref2[0];
+
+        return _this.$refs[refName];
+      }).map(function (_ref3) {
+        var _ref4 = (0, _slicedToArray2.default)(_ref3, 2),
+            refName = _ref4[0],
+            _ref4$ = _ref4[1];
+
+        _ref4$ = _ref4$ === void 0 ? {} : _ref4$;
+        var open = _ref4$.open,
+            closed = _ref4$.closed;
+        (0, _transition.default)(_this.$refs[refName], {
+          to: _this.isOpen ? open : closed
+        }, 'keep');
+      });
     }
     /**
      * Handler for the click event on the `btn` ref.
@@ -86,6 +117,24 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
       }
     }
     /**
+     * Get the content ID.
+     * @return {String}
+     */
+
+  }, {
+    key: "updateAttributes",
+
+    /**
+     * Update the refs' attributes according to the given type.
+     *
+     * @param  {Boolean} isOpen The state of the item.
+     * @return {void}
+     */
+    value: function updateAttributes(isOpen) {
+      this.$refs.content.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      this.$refs.btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+    /**
      * Open an item.
      * @return {void}
      */
@@ -94,9 +143,9 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
     key: "open",
     value: function () {
       var _open = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var _this = this;
+        var _this2 = this;
 
-        var _this$$options$styles, container, otherStyles;
+        var _this$$options$styles2, container, otherStyles;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -113,11 +162,11 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                 this.$log('open');
                 this.$emit('open');
                 this.isOpen = true;
-                this.$refs.container.setAttribute('aria-hidden', 'false');
+                this.updateAttributes(this.isOpen);
                 styles.remove(this.$refs.container, {
                   visibility: 'invisible'
                 });
-                _this$$options$styles = this.$options.styles, container = _this$$options$styles.container, otherStyles = (0, _objectWithoutProperties2.default)(_this$$options$styles, ["container"]);
+                _this$$options$styles2 = this.$options.styles, container = _this$$options$styles2.container, otherStyles = (0, _objectWithoutProperties2.default)(_this$$options$styles2, ["container"]);
                 _context.next = 10;
                 return Promise.all([(0, _transition.default)(this.$refs.container, {
                   from: {
@@ -129,28 +178,28 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                   }
                 }).then(function () {
                   // Remove style only if the item has not been closed before the end
-                  if (_this.isOpen) {
-                    styles.remove(_this.$refs.content, {
+                  if (_this2.isOpen) {
+                    styles.remove(_this2.$refs.content, {
                       position: 'absolute'
                     });
                   }
 
                   return Promise.resolve();
-                })].concat((0, _toConsumableArray2.default)(Object.entries(otherStyles).filter(function (_ref) {
-                  var _ref2 = (0, _slicedToArray2.default)(_ref, 1),
-                      refName = _ref2[0];
+                })].concat((0, _toConsumableArray2.default)(Object.entries(otherStyles).filter(function (_ref5) {
+                  var _ref6 = (0, _slicedToArray2.default)(_ref5, 1),
+                      refName = _ref6[0];
 
-                  return _this.$refs[refName];
-                }).map(function (_ref3) {
-                  var _ref4 = (0, _slicedToArray2.default)(_ref3, 2),
-                      refName = _ref4[0],
-                      _ref4$ = _ref4[1];
+                  return _this2.$refs[refName];
+                }).map(function (_ref7) {
+                  var _ref8 = (0, _slicedToArray2.default)(_ref7, 2),
+                      refName = _ref8[0],
+                      _ref8$ = _ref8[1];
 
-                  _ref4$ = _ref4$ === void 0 ? {} : _ref4$;
-                  var open = _ref4$.open,
-                      active = _ref4$.active,
-                      closed = _ref4$.closed;
-                  return (0, _transition.default)(_this.$refs[refName], {
+                  _ref8$ = _ref8$ === void 0 ? {} : _ref8$;
+                  var open = _ref8$.open,
+                      active = _ref8$.active,
+                      closed = _ref8$.closed;
+                  return (0, _transition.default)(_this2.$refs[refName], {
                     from: closed,
                     active: active,
                     to: open
@@ -180,9 +229,9 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
     key: "close",
     value: function () {
       var _close = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var _this2 = this;
+        var _this3 = this;
 
-        var height, _this$$options$styles2, container, otherStyles;
+        var height, _this$$options$styles3, container, otherStyles;
 
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
@@ -203,7 +252,7 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                 styles.add(this.$refs.content, {
                   position: 'absolute'
                 });
-                _this$$options$styles2 = this.$options.styles, container = _this$$options$styles2.container, otherStyles = (0, _objectWithoutProperties2.default)(_this$$options$styles2, ["container"]);
+                _this$$options$styles3 = this.$options.styles, container = _this$$options$styles3.container, otherStyles = (0, _objectWithoutProperties2.default)(_this$$options$styles3, ["container"]);
                 _context2.next = 10;
                 return Promise.all([(0, _transition.default)(this.$refs.container, {
                   from: {
@@ -215,31 +264,31 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                   }
                 }).then(function () {
                   // Add end styles only if the item has not been re-opened before the end
-                  if (!_this2.isOpen) {
-                    styles.add(_this2.$refs.container, {
+                  if (!_this3.isOpen) {
+                    styles.add(_this3.$refs.container, {
                       height: 0,
                       visibility: 'invisible'
                     });
 
-                    _this2.$refs.container.setAttribute('aria-hidden', 'true');
+                    _this3.updateAttributes(_this3.isOpen);
                   }
 
                   return Promise.resolve();
-                })].concat((0, _toConsumableArray2.default)(Object.entries(otherStyles).filter(function (_ref5) {
-                  var _ref6 = (0, _slicedToArray2.default)(_ref5, 1),
-                      refName = _ref6[0];
+                })].concat((0, _toConsumableArray2.default)(Object.entries(otherStyles).filter(function (_ref9) {
+                  var _ref10 = (0, _slicedToArray2.default)(_ref9, 1),
+                      refName = _ref10[0];
 
-                  return _this2.$refs[refName];
-                }).map(function (_ref7) {
-                  var _ref8 = (0, _slicedToArray2.default)(_ref7, 2),
-                      refName = _ref8[0],
-                      _ref8$ = _ref8[1];
+                  return _this3.$refs[refName];
+                }).map(function (_ref11) {
+                  var _ref12 = (0, _slicedToArray2.default)(_ref11, 2),
+                      refName = _ref12[0],
+                      _ref12$ = _ref12[1];
 
-                  _ref8$ = _ref8$ === void 0 ? {} : _ref8$;
-                  var open = _ref8$.open,
-                      active = _ref8$.active,
-                      closed = _ref8$.closed;
-                  return (0, _transition.default)(_this2.$refs[refName], {
+                  _ref12$ = _ref12$ === void 0 ? {} : _ref12$;
+                  var open = _ref12$.open,
+                      active = _ref12$.active,
+                      closed = _ref12$.closed;
+                  return (0, _transition.default)(_this3.$refs[refName], {
                     from: open,
                     active: active,
                     to: closed
@@ -279,6 +328,11 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
           }
         }
       };
+    }
+  }, {
+    key: "contentId",
+    get: function get() {
+      return "content-".concat(this.$id);
     }
   }]);
   return AccordionItem;
