@@ -40,22 +40,24 @@ describe('AccordionItem component', () => {
   it('should had aria-attributes when mounted', () => {
     expect(btn.id).toBe(item.$id);
     expect(content.getAttribute('aria-labelledby')).toBe(item.$id);
+    expect(btn.getAttribute('aria-expanded')).toBe('false');
+    expect(content.getAttribute('aria-hidden')).toBe('true');
   });
 
   it('should open and close', async () => {
     const spy = jest.spyOn(icon.classList, 'add');
     await item.open();
-    expect(container.getAttribute('aria-hidden')).toBe('false');
+    expect(content.getAttribute('aria-hidden')).toBe('false');
     expect(spy).toHaveBeenLastCalledWith('rotate-180');
     await item.close();
-    expect(container.getAttribute('aria-hidden')).toBe('true');
+    expect(content.getAttribute('aria-hidden')).toBe('true');
     expect(spy).toHaveBeenLastCalledWith('rotate-0');
     btn.click();
     await wait(100);
-    expect(container.getAttribute('aria-hidden')).toBe('false');
+    expect(content.getAttribute('aria-hidden')).toBe('false');
     btn.click();
     await wait(100);
-    expect(container.getAttribute('aria-hidden')).toBe('true');
+    expect(content.getAttribute('aria-hidden')).toBe('true');
 
     item.open();
     item.close();
