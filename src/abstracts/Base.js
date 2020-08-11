@@ -96,14 +96,18 @@ function getChildren(instance, element, components) {
       // Return a new instance if the component class is a child of the Base class
       if (ComponentClass.__isBase__) {
         Object.defineProperty(ComponentClass.prototype, '__isChild__', { value: true });
-        return new ComponentClass(el);
+        const child = new ComponentClass(el);
+        Object.defineProperty(child, '$parent', { get: () => instance });
+        return child;
       }
 
       // Resolve async components
       const asyncComponent = ComponentClass().then(module => {
         const ResolvedClass = module.default ? module.default : module;
         Object.defineProperty(ResolvedClass.prototype, '__isChild__', { value: true });
-        return new ResolvedClass(el);
+        const child = new ResolvedClass(el);
+        Object.defineProperty(child, '$parent', { get: () => instance });
+        return child;
       });
 
       asyncComponent.__isAsync__ = true;
@@ -139,6 +143,26 @@ function getOptions(instance, element, config) {
   options = merge(config, options);
   instance.$emit('get:options', options);
   return options;
+}
+
+/**
+ * Set a component instance options.
+ *
+ * @param {Base}        instance   The component's instance.
+ * @param {HTMLElement} element    The component's root element.
+ * @param {Object}      newOptions The new options object.
+ */
+function setOptions(instance, element, newOptions) {
+  let options = {};
+  if (element.dataset.options) {
+    try {
+      options = JSON.parse(element.dataset.options);
+    } catch (err) {
+      throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
+    }
+  }
+  options = merge(options, newOptions);
+  element.dataset.options = JSON.stringify(options);
 }
 
 /**
@@ -294,6 +318,15 @@ export default class Base extends EventManager {
   }
 
   /**
+   * Set the components option.
+   * @param  {Object} value The new options values to merge with the old ones.
+   * @return {void}
+   */
+  set $options(newOptions) {
+    setOptions(this, this.$el, newOptions);
+  }
+
+  /**
    * Class constructor where all the magic takes place
    * @param  {Object}    options An option object
    * @return {Base}         The mounted instance
@@ -439,6 +472,7 @@ export default class Base extends EventManager {
     // Mount class which are not used as another component's child.
     if (!this.__isChild__) {
       this.$mount();
+      Object.defineProperty(this, '$parent', { get: () => null });
     }
 
     return this;

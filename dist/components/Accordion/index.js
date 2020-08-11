@@ -48,8 +48,10 @@ var Accordion = /*#__PURE__*/function (_Base) {
     value: function mounted() {
       var _this = this;
 
-      this.unbindOpen = this.$children.AccordionItem.map(function (item, index) {
-        return item.$on('open', function () {
+      this.unbindMethods = this.$children.AccordionItem.map(function (item, index) {
+        var unbindOpen = item.$on('open', function () {
+          _this.$emit('open', item, index);
+
           if (_this.$options.autoclose) {
             _this.$children.AccordionItem.filter(function (el, i) {
               return index !== i;
@@ -58,6 +60,13 @@ var Accordion = /*#__PURE__*/function (_Base) {
             });
           }
         });
+        var unbindClose = item.$on('close', function () {
+          _this.$emit('close', item, index);
+        });
+        return function () {
+          unbindOpen();
+          unbindClose();
+        };
       });
     }
     /**
@@ -68,7 +77,7 @@ var Accordion = /*#__PURE__*/function (_Base) {
   }, {
     key: "destroyed",
     value: function destroyed() {
-      this.unbindOpen.forEach(function (unbind) {
+      this.unbindMethods.forEach(function (unbind) {
         return unbind();
       });
     }
@@ -83,6 +92,7 @@ var Accordion = /*#__PURE__*/function (_Base) {
       return {
         name: 'Accordion',
         autoclose: true,
+        item: null,
         components: {
           AccordionItem: _AccordionItem.default
         }

@@ -1,4 +1,4 @@
-const { colors } = require('tailwindcss/defaultTheme')
+const { colors } = require('tailwindcss/defaultTheme');
 const config = require('@studiometa/tailwind-config');
 
 module.exports = {
@@ -10,5 +10,6 @@ module.exports = {
       ...config.theme.colors,
       ...colors,
     },
-  }
+  },
+  purge: false,
 };

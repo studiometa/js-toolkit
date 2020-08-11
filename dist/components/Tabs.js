@@ -1,7 +1,5 @@
 "use strict";
 
-var _interopRequireWildcard = require("@babel/runtime/helpers/interopRequireWildcard");
-
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
 Object.defineProperty(exports, "__esModule", {
@@ -25,7 +23,7 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 
 var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
 
-var _transition = _interopRequireWildcard(require("../utils/css/transition"));
+var _transition = _interopRequireDefault(require("../utils/css/transition"));
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -133,17 +131,11 @@ var Tabs = /*#__PURE__*/function (_Base) {
                   from: btnStyles.closed,
                   active: btnStyles.active,
                   to: btnStyles.open
-                }).then(function () {
-                  (0, _transition.setClassesOrStyles)(btn, btnStyles.open);
-                  return Promise.resolve(btn);
-                }), (0, _transition.default)(content, {
+                }, 'keep'), (0, _transition.default)(content, {
                   from: contentStyles.closed,
                   active: contentStyles.active,
                   to: contentStyles.open
-                }).then(function () {
-                  (0, _transition.setClassesOrStyles)(content, contentStyles.open);
-                  return Promise.resolve(content);
-                })]).then(function () {
+                }, 'keep')]).then(function () {
                   return Promise.resolve(_this3);
                 }));
 
@@ -198,17 +190,11 @@ var Tabs = /*#__PURE__*/function (_Base) {
                   from: btnStyles.open,
                   active: btnStyles.active,
                   to: btnStyles.closed
-                }).then(function () {
-                  (0, _transition.setClassesOrStyles)(btn, btnStyles.closed);
-                  return Promise.resolve(btn);
-                }), (0, _transition.default)(content, {
+                }, 'keep'), (0, _transition.default)(content, {
                   from: contentStyles.open,
                   active: contentStyles.active,
                   to: contentStyles.closed
-                }).then(function () {
-                  (0, _transition.setClassesOrStyles)(content, contentStyles.closed);
-                  return Promise.resolve(content);
-                })]).then(function () {
+                }, 'keep')]).then(function () {
                   return Promise.resolve(_this4);
                 }));
 

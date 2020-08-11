@@ -63,6 +63,8 @@ function testTransition(element) {
 /**
  * Apply the from state.
  *
+ * @param {HTMLElement}   element         The target element.
+ * @param {String|Object} classesOrStyles The classes or styles definition.
  * @return {Promise}
  */
 
@@ -73,6 +75,8 @@ function start(_x, _x2) {
 /**
  * Apply the active state.
  *
+ * @param {HTMLElement}   element         The target element.
+ * @param {String|Object} classesOrStyles The classes or styles definition.
  * @return {Promise}
  */
 
@@ -109,6 +113,9 @@ function next(_x3, _x4) {
 /**
  * Apply the final state.
  *
+ * @param {HTMLElement}   element         The target element.
+ * @param {String|Object} classesOrStyles The classes or styles definition.
+ * @param {String}        mode            Whether to remove or keep the `to`  classes/styles.
  * @return {void}
  */
 
@@ -168,8 +175,13 @@ function _next() {
 }
 
 function end(element, classesOrStyles) {
+  var mode = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'remove';
   element.removeEventListener('transitionend', element.__transitionEndHandler__, false);
-  setClassesOrStyles(element, classesOrStyles.to, 'remove');
+
+  if (mode === 'remove') {
+    setClassesOrStyles(element, classesOrStyles.to, 'remove');
+  }
+
   setClassesOrStyles(element, classesOrStyles.active, 'remove');
   delete element.__isTransitioning__;
   delete element.__transitionEndHandler__;
@@ -182,6 +194,7 @@ function end(element, classesOrStyles) {
  *
  * @param  {HTMLElement}   element The target element.
  * @param  {String|Object} name    The name of the transition or an object with the hooks classesOrStyles.
+ * @param  {String}        endMode    Whether to remove or keep the `to` classes/styles
  * @return {Promise}               A promise resolving at the end of the transition.
  */
 
@@ -192,11 +205,14 @@ function transition(_x5, _x6) {
 
 function _transition() {
   _transition = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(element, name) {
-    var classesOrStyles;
+    var endMode,
+        classesOrStyles,
+        _args4 = arguments;
     return _regenerator.default.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
           case 0:
+            endMode = _args4.length > 2 && _args4[2] !== undefined ? _args4[2] : 'remove';
             classesOrStyles = typeof name === 'string' ? {
               from: "".concat(name, "-from"),
               active: "".concat(name, "-active"),
@@ -211,18 +227,18 @@ function _transition() {
               end(element, classesOrStyles);
             }
 
-            _context4.next = 4;
+            _context4.next = 5;
             return start(element, classesOrStyles);
 
-          case 4:
-            _context4.next = 6;
+          case 5:
+            _context4.next = 7;
             return next(element, classesOrStyles);
 
-          case 6:
-            end(element, classesOrStyles);
+          case 7:
+            end(element, classesOrStyles, endMode);
             return _context4.abrupt("return", Promise.resolve());
 
-          case 8:
+          case 9:
           case "end":
             return _context4.stop();
         }
