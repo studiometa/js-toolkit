@@ -33,7 +33,7 @@ class Resize extends Service {
    * @return {void}
    */
   kill() {
-    this.resizeObserver.observe(document.documentElement);
+    this.resizeObserver.disconnect();
     delete this.resizeObserver;
   }
 
