@@ -9,6 +9,38 @@
 
   <body>
     <main data-breakpoint class="relative p-10" @click="foo">
+      <!-- BEGIN BreakpointManagerDemo -->
+      <div
+        data-component="BreakpointManagerDemo"
+        class="relative flex items-center justify-center w-full h-32 mb-10 text-white"
+      >
+        <div class="z-under absolute inset-0 opacity-75 bg-black rounded"></div>
+        <span data-ref="content">BreakpointManagerDemo</span>
+      </div>
+      <!-- END BreakpointManagerDemo -->
+
+      <!-- BEGIN BreakpointObserverDemo -->
+      <div
+        data-component="BreakpointObserverDemo"
+        data-options='{ "name": "BreakpointObserverDemoTable", "activeBreakpoints": "m" }'
+        class="relative flex items-center justify-center w-full h-32 mb-10 text-white"
+      >
+        <div class="z-under absolute inset-0 opacity-75 bg-black rounded"></div>
+        <span data-ref="content">BreakpointObserverDemo</span>
+      </div>
+      <!-- END BreakpointObserverDemo -->
+
+      <!-- BEGIN BreakpointObserverDemo -->
+      <div
+        data-component="BreakpointObserverDemo"
+        data-options='{ "name": "BreakpointObserverDemoMobileDesktop", "inactiveBreakpoints": "m" }'
+        class="relative flex items-center justify-center w-full h-32 mb-10 text-white"
+      >
+        <div class="z-under absolute inset-0 opacity-75 bg-black rounded"></div>
+        <span data-ref="content">BreakpointObserverDemo</span>
+      </div>
+      <!-- END BreakpointObserverDemo -->
+
       <div data-component="MediaQuery" data-active-breakpoints="l">
         <div
           data-component="Modal"
@@ -153,7 +185,13 @@
           </button>
           <div data-ref="container" class="relative overflow-hidden">
             <div data-ref="content" class="w-full p-4 pt-0">
-              <img data-options='{ "log": true }' data-src="https://placekitten.com/200/100" width="200" height="100" alt="" />
+              <img
+                data-options='{ "log": true }'
+                data-src="https://placekitten.com/200/100"
+                width="200"
+                height="100"
+                alt=""
+              />
             </div>
           </div>
         </div>
