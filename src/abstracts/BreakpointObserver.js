@@ -14,9 +14,6 @@ function testBreakpoints(instance, breakpoint = useResize().props().breakpoint) 
   const isInInactiveBreakpoint =
     inactiveBreakpoints && inactiveBreakpoints.split(' ').includes(breakpoint);
 
-  instance.$log('isInActiveBreakpoint', isInActiveBreakpoint);
-  instance.$log('isInInactiveBreakpoint', isInInactiveBreakpoint);
-
   if (
     (activeBreakpoints && isInActiveBreakpoint) ||
     (inactiveBreakpoints && !isInInactiveBreakpoint)
