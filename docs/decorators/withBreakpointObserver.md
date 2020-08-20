@@ -7,13 +7,13 @@ next: /components/
 
 # withBreakpointObserver
 
-Use this decorator to create a that will have the capacity to be mounted or destroyed when the current breakpoint changes.
+Use this decorator to create a class that will have the capacity to be mounted or destroyed when the current breakpoint changes.
 
 ## Examples
 
 ### Enable for the given breakpoints
 
-In the following example, the `MobileComponent` class will self mount on devices matching any of the breakpoint defined in the `activeBreakpoint` property, and self destroy on all others:
+In the following example, the `MobileComponent` class will self mount on devices matching any of the breakpoint defined in the `activeBreakpoints` property, and self destroy on all others:
 
 ```js{4,8}
 import { Base } from '@studiometa/js-toolkit/abstracts';
