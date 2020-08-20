@@ -1,6 +1,7 @@
-import { BreakpointObserver } from '../../../../src/abstracts';
+import { Base } from '../../../../src/abstracts';
+import { withBreakpointObserver } from '../../../../src/decorators';
 
-export default class BreakpointObserverDemo extends BreakpointObserver {
+export default class BreakpointObserverDemo extends withBreakpointObserver(Base) {
   get config() {
     return {
       name: 'BreakpointObserverDemo',
@@ -10,15 +11,31 @@ export default class BreakpointObserverDemo extends BreakpointObserver {
 
   mounted() {
     this.$log('mounted');
-    this.$refs.content.innerHTML = `${this.$options.name}: mounted`;
+    this.status = 'mounted';
   }
 
   destroyed() {
     this.$log('destroyed');
-    this.$refs.content.innerHTML = `${this.$options.name}: destroyed`;
+    this.status = 'destroyed';
   }
 
   onClick(event) {
     this.$log('click', event);
+  }
+
+  set status(value) {
+    let content = `${this.$options.name}<br>`;
+
+    const { activeBreakpoints, inactiveBreakpoints } = this.$options;
+
+    if (activeBreakpoints) {
+      content += `activeBreakpoints: ${activeBreakpoints}<br>`;
+    } else if (inactiveBreakpoints) {
+      content += `inactiveBreakpoints: ${inactiveBreakpoints}<br>`;
+    }
+
+    content += `status: ${value}`;
+
+    this.$refs.content.innerHTML = content;
   }
 }

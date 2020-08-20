@@ -9,11 +9,11 @@ module.exports = {
       { text: 'Guide', link: '/guide/' },
       { text: 'API', link: '/api/' },
       {
-        text: 'Abstracts',
-        link: '/abstracts/',
+        text: 'Decorators',
+        link: '/decorators/',
         items: [
-          { text: 'BreakpointManager', link: '/abstracts/BreakpointManager.html' },
-          { text: 'BreakpointObserver', link: '/abstracts/BreakpointObserver.html' },
+          { text: 'withBreakpointManager', link: '/decorators/withBreakpointManager.html' },
+          { text: 'withBreakpointObserver', link: '/decorators/withBreakpointObserver.html' },
         ],
       },
       {

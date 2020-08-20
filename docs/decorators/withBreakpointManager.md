@@ -1,13 +1,13 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /abstracts/
-next: /abstracts/BreakpointObserver.html
+prev: /decorators/
+next: /decorators/withBreakpointObserver.html
 ---
 
-# BreakpointManager
+# withBreakpointManager
 
-A component based on this class will have the capacity to switch components between different breakpoints.
+Use this decorator to create a component that will have the capacity to switch components between different breakpoints.
 
 ## Examples
 
@@ -17,19 +17,19 @@ In the following example, the `MenuMobile` class will be mounted along the `Menu
 
 The root element `this.$el` of each classes will be the same.
 
-```js{9-12}
-import { BreakpointManager } from '@studiometa/js-toolkit/abstracts';
+```js{6-9}
+import { Base } from '@studiometa/js-toolkit/abstracts';
+import { withBreakpointManager } from '@studiometa/js-toolkit/decorators';
 import MenuMobile from './MenuMobile';
 import MenuDesktop from './MenuDesktop';
 
-export default class Menu extends BreakpointManager {
+export default class Menu extends withBreakpointManager(Base, [
+  ['xxs xs s', MenuMobile],
+  ['m l xl xxl', MenuDesktop],
+]) {
   get config() {
     return {
       name: 'Menu',
-      breakpoints: [
-        ['xxs xs s', MenuMobile],
-        ['m l xl xxl', MenuDesktop],
-      ],
     };
   }
 }

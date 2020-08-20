@@ -72,7 +72,7 @@ var Resize = /*#__PURE__*/function (_Service) {
   }, {
     key: "kill",
     value: function kill() {
-      this.resizeObserver.observe(document.documentElement);
+      this.resizeObserver.disconnect();
       delete this.resizeObserver;
     }
     /**
