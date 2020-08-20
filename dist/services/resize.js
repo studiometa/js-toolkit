@@ -150,6 +150,7 @@ var _default = function _default() {
 
   var add = resize.add.bind(resize);
   var remove = resize.remove.bind(resize);
+  var has = resize.has.bind(resize);
 
   var props = function props() {
     return resize.props;
@@ -158,6 +159,7 @@ var _default = function _default() {
   return {
     add: add,
     remove: remove,
+    has: has,
     props: props
   };
 };

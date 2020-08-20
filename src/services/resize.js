@@ -108,11 +108,13 @@ export default () => {
 
   const add = resize.add.bind(resize);
   const remove = resize.remove.bind(resize);
+  const has = resize.has.bind(resize);
   const props = () => resize.props;
 
   return {
     add,
     remove,
+    has,
     props,
   };
 };

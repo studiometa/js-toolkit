@@ -176,6 +176,7 @@ var _default = function _default() {
 
   var add = scroll.add.bind(scroll);
   var remove = scroll.remove.bind(scroll);
+  var has = scroll.has.bind(scroll);
 
   var props = function props() {
     return scroll.props;
@@ -184,6 +185,7 @@ var _default = function _default() {
   return {
     add: add,
     remove: remove,
+    has: has,
     props: props
   };
 };

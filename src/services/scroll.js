@@ -124,11 +124,13 @@ export default () => {
 
   const add = scroll.add.bind(scroll);
   const remove = scroll.remove.bind(scroll);
+  const has = scroll.has.bind(scroll);
   const props = () => scroll.props;
 
   return {
     add,
     remove,
+    has,
     props,
   };
 };
