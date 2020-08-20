@@ -20,14 +20,7 @@ function testBreakpoints(instance, breakpoint = useResize().props().breakpoint) 
     return '$mount';
   }
 
-  if (
-    (activeBreakpoints && !isInActiveBreakpoint) ||
-    (inactiveBreakpoints && isInInactiveBreakpoint)
-  ) {
-    return '$destroy';
-  }
-
-  return '';
+  return '$destroy';
 }
 
 /**
@@ -42,12 +35,16 @@ function hasBreakpointConfiguration(instance) {
 
 /**
  * Test if the given instance has a conflicting configuration for breakpoints.
- * @param  {Base}    instance A Base class instance.
- * @return {Boolean}          True if configured incorrectly, false otherwise.
+ * @param  {Base} instance A Base class instance.
+ * @return {void}
  */
-function hasConflictingBreakpointConfiguration(instance) {
-  const { activeBreakpoints, inactiveBreakpoints } = instance.$options;
-  return Boolean(activeBreakpoints && inactiveBreakpoints);
+function testConflictingBreakpointConfiguration(instance) {
+  const { activeBreakpoints, inactiveBreakpoints, name } = instance.$options;
+  if (activeBreakpoints && inactiveBreakpoints) {
+    throw new Error(
+      `[${name}] Incorrect configuration: the \`activeBreakpoints\` and \`inactiveBreakpoints\` are not compatible.`
+    );
+  }
 }
 
 /**
@@ -63,7 +60,7 @@ export default BaseClass =>
     constructor(element) {
       super(element);
 
-      const { add, props } = useResize();
+      const { add, has, remove, props } = useResize();
       const { name } = this.$options;
 
       // Do nothing if no breakpoint has been defined.
@@ -74,23 +71,39 @@ export default BaseClass =>
         );
       }
 
+      const key = `BreakpointObserver-${this.$id}`;
+
+      // Watch change on the `data-options` attribute to emit the `set:options` event.
+      const mutationObserver = new MutationObserver(([mutation]) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-options') {
+          // Stop here silently when no breakpoint configuration given.
+          if (!hasBreakpointConfiguration(this)) {
+            this.$mount();
+            remove(key);
+            return;
+          }
+
+          testConflictingBreakpointConfiguration(this);
+
+          if (!has(key)) {
+            add(key, ({ breakpoint }) => {
+              const action = testBreakpoints(this, breakpoint);
+              this[action]();
+            });
+          }
+        }
+      });
+      mutationObserver.observe(this.$el, { attributes: true });
+
       // Stop here silently when no breakpoint configuration given.
       if (!hasBreakpointConfiguration(this)) {
         return this;
       }
 
-      // Do nothing if both configuration are set, as they are not compatible.
-      if (hasConflictingBreakpointConfiguration(this)) {
-        throw new Error(
-          `[${name}]  Incorrect configuration: the \`activeBreakpoints\` and \`inactiveBreakpoints\` are not compatible.`
-        );
-      }
-
-      add(`BreakpointObserver-${this.$id}`, ({ breakpoint }) => {
+      testConflictingBreakpointConfiguration(this);
+      add(key, ({ breakpoint }) => {
         const action = testBreakpoints(this, breakpoint);
-        if (action) {
-          this[action]();
-        }
+        this[action]();
       });
 
       return this;

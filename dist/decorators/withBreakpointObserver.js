@@ -7,6 +7,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
@@ -45,11 +47,7 @@ function testBreakpoints(instance) {
     return '$mount';
   }
 
-  if (activeBreakpoints && !isInActiveBreakpoint || inactiveBreakpoints && isInInactiveBreakpoint) {
-    return '$destroy';
-  }
-
-  return '';
+  return '$destroy';
 }
 /**
  * Test if the given instance is configured for breakpoints.
@@ -66,16 +64,20 @@ function hasBreakpointConfiguration(instance) {
 }
 /**
  * Test if the given instance has a conflicting configuration for breakpoints.
- * @param  {Base}    instance A Base class instance.
- * @return {Boolean}          True if configured incorrectly, false otherwise.
+ * @param  {Base} instance A Base class instance.
+ * @return {void}
  */
 
 
-function hasConflictingBreakpointConfiguration(instance) {
+function testConflictingBreakpointConfiguration(instance) {
   var _instance$$options3 = instance.$options,
       activeBreakpoints = _instance$$options3.activeBreakpoints,
-      inactiveBreakpoints = _instance$$options3.inactiveBreakpoints;
-  return Boolean(activeBreakpoints && inactiveBreakpoints);
+      inactiveBreakpoints = _instance$$options3.inactiveBreakpoints,
+      name = _instance$$options3.name;
+
+  if (activeBreakpoints && inactiveBreakpoints) {
+    throw new Error("[".concat(name, "] Incorrect configuration: the `activeBreakpoints` and `inactiveBreakpoints` are not compatible."));
+  }
 }
 /**
  * BreakpointObserver class.
@@ -101,6 +103,8 @@ var _default = function _default(BaseClass) {
 
       var _useResize = (0, _resize.default)(),
           add = _useResize.add,
+          has = _useResize.has,
+          remove = _useResize.remove,
           props = _useResize.props;
 
       var name = _this.$options.name; // Do nothing if no breakpoint has been defined.
@@ -108,25 +112,49 @@ var _default = function _default(BaseClass) {
 
       if (!props().breakpoint) {
         throw new Error("[".concat(name, "] The `BreakpointObserver` class requires breakpoints to be defined."));
-      } // Stop here silently when no breakpoint configuration given.
+      }
 
+      var key = "BreakpointObserver-".concat(_this.$id); // Watch change on the `data-options` attribute to emit the `set:options` event.
+
+      var mutationObserver = new MutationObserver(function (_ref) {
+        var _ref2 = (0, _slicedToArray2.default)(_ref, 1),
+            mutation = _ref2[0];
+
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-options') {
+          // Stop here silently when no breakpoint configuration given.
+          if (!hasBreakpointConfiguration((0, _assertThisInitialized2.default)(_this))) {
+            _this.$mount();
+
+            remove(key);
+            return;
+          }
+
+          testConflictingBreakpointConfiguration((0, _assertThisInitialized2.default)(_this));
+
+          if (!has(key)) {
+            add(key, function (_ref3) {
+              var breakpoint = _ref3.breakpoint;
+              var action = testBreakpoints((0, _assertThisInitialized2.default)(_this), breakpoint);
+
+              _this[action]();
+            });
+          }
+        }
+      });
+      mutationObserver.observe(_this.$el, {
+        attributes: true
+      }); // Stop here silently when no breakpoint configuration given.
 
       if (!hasBreakpointConfiguration((0, _assertThisInitialized2.default)(_this))) {
         return (0, _possibleConstructorReturn2.default)(_this, (0, _assertThisInitialized2.default)(_this));
-      } // Do nothing if both configuration are set, as they are not compatible.
-
-
-      if (hasConflictingBreakpointConfiguration((0, _assertThisInitialized2.default)(_this))) {
-        throw new Error("[".concat(name, "]  Incorrect configuration: the `activeBreakpoints` and `inactiveBreakpoints` are not compatible."));
       }
 
-      add("BreakpointObserver-".concat(_this.$id), function (_ref) {
-        var breakpoint = _ref.breakpoint;
+      testConflictingBreakpointConfiguration((0, _assertThisInitialized2.default)(_this));
+      add(key, function (_ref4) {
+        var breakpoint = _ref4.breakpoint;
         var action = testBreakpoints((0, _assertThisInitialized2.default)(_this), breakpoint);
 
-        if (action) {
-          _this[action]();
-        }
+        _this[action]();
       });
       return (0, _possibleConstructorReturn2.default)(_this, (0, _assertThisInitialized2.default)(_this));
     }
