@@ -26,13 +26,21 @@ const instances = {};
 /**
  * BreakpointManager class.
  */
-export default (BaseClass, breakpoints = []) => {
+export default (BaseClass, breakpoints) => {
   if (!Array.isArray(breakpoints)) {
     throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
   }
 
   if (breakpoints.length < 2) {
     throw new Error('[withBreakpointManager] You must define at least 2 breakpoints.');
+  }
+
+  const { add, props } = useResize();
+
+  // Do nothing if no breakpoint has been defined.
+  // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
+  if (!props().breakpoint) {
+    throw new Error(`The \`BreakpointManager\` class requires breakpoints to be defined.`);
   }
 
   return class BreakpointManager extends BaseClass {
@@ -43,17 +51,6 @@ export default (BaseClass, breakpoints = []) => {
      */
     constructor(element) {
       super(element);
-
-      const { add, props } = useResize();
-      const { name } = this.$options;
-
-      // Do nothing if no breakpoint has been defined.
-      // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
-      if (!props().breakpoint) {
-        throw new Error(
-          `[${name}] The \`BreakpointManager\` class requires breakpoints to be defined.`
-        );
-      }
 
       instances[this.$id] = breakpoints.map(([bk, ComponentClass]) => {
         // eslint-disable-next-line no-underscore-dangle
@@ -73,11 +70,26 @@ export default (BaseClass, breakpoints = []) => {
     /**
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
-     * @return {BreakpointManager} The component's instance.
+     * @return {Base} The Base instance.
      */
     $mount() {
       testBreakpoints(instances[this.$id]);
+
       return super.$mount();
+    }
+
+    /**
+     * Destroy all instances when the main one is destroyed.
+     * @return {Base} The Base instance.
+     */
+    $destroy() {
+      if (Array.isArray(instances[this.$id])) {
+        instances[this.$id].forEach(([, instance]) => {
+          instance.$destroy();
+        });
+      }
+
+      return super.$destroy();
     }
   };
 };

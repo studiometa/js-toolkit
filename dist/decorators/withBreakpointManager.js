@@ -62,15 +62,23 @@ var instances = {};
  * BreakpointManager class.
  */
 
-var _default = function _default(BaseClass) {
-  var breakpoints = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-
+var _default = function _default(BaseClass, breakpoints) {
   if (!Array.isArray(breakpoints)) {
     throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
   }
 
   if (breakpoints.length < 2) {
     throw new Error('[withBreakpointManager] You must define at least 2 breakpoints.');
+  }
+
+  var _useResize = (0, _resize.default)(),
+      add = _useResize.add,
+      props = _useResize.props; // Do nothing if no breakpoint has been defined.
+  // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
+
+
+  if (!props().breakpoint) {
+    throw new Error("The `BreakpointManager` class requires breakpoints to be defined.");
   }
 
   return /*#__PURE__*/function (_BaseClass) {
@@ -88,18 +96,6 @@ var _default = function _default(BaseClass) {
 
       (0, _classCallCheck2.default)(this, BreakpointManager);
       _this = _super.call(this, element);
-
-      var _useResize = (0, _resize.default)(),
-          add = _useResize.add,
-          props = _useResize.props;
-
-      var name = _this.$options.name; // Do nothing if no breakpoint has been defined.
-      // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
-
-      if (!props().breakpoint) {
-        throw new Error("[".concat(name, "] The `BreakpointManager` class requires breakpoints to be defined."));
-      }
-
       instances[_this.$id] = breakpoints.map(function (_ref3) {
         var _ref4 = (0, _slicedToArray2.default)(_ref3, 2),
             bk = _ref4[0],
@@ -123,7 +119,7 @@ var _default = function _default(BaseClass) {
     /**
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
-     * @return {BreakpointManager} The component's instance.
+     * @return {Base} The Base instance.
      */
 
 
@@ -132,6 +128,25 @@ var _default = function _default(BaseClass) {
       value: function $mount() {
         testBreakpoints(instances[this.$id]);
         return (0, _get2.default)((0, _getPrototypeOf2.default)(BreakpointManager.prototype), "$mount", this).call(this);
+      }
+      /**
+       * Destroy all instances when the main one is destroyed.
+       * @return {Base} The Base instance.
+       */
+
+    }, {
+      key: "$destroy",
+      value: function $destroy() {
+        if (Array.isArray(instances[this.$id])) {
+          instances[this.$id].forEach(function (_ref5) {
+            var _ref6 = (0, _slicedToArray2.default)(_ref5, 2),
+                instance = _ref6[1];
+
+            instance.$destroy();
+          });
+        }
+
+        return (0, _get2.default)((0, _getPrototypeOf2.default)(BreakpointManager.prototype), "$destroy", this).call(this);
       }
     }]);
     return BreakpointManager;
