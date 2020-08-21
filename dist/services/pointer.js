@@ -255,6 +255,7 @@ var _default = function _default() {
 
   var add = pointer.add.bind(pointer);
   var remove = pointer.remove.bind(pointer);
+  var has = pointer.has.bind(pointer);
 
   var props = function props() {
     return pointer.props;
@@ -263,6 +264,7 @@ var _default = function _default() {
   return {
     add: add,
     remove: remove,
+    has: has,
     props: props
   };
 };

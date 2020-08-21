@@ -123,6 +123,7 @@ var _default = function _default() {
 
   var add = instance.add.bind(instance);
   var remove = instance.remove.bind(instance);
+  var has = instance.has.bind(instance);
 
   var props = function props() {
     return instance.props;
@@ -131,6 +132,7 @@ var _default = function _default() {
   return {
     add: add,
     remove: remove,
+    has: has,
     props: props
   };
 };

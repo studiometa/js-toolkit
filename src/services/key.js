@@ -92,11 +92,13 @@ export default () => {
 
   const add = key.add.bind(key);
   const remove = key.remove.bind(key);
+  const has = key.has.bind(key);
   const props = () => key.props;
 
   return {
     add,
     remove,
+    has,
     props,
   };
 };

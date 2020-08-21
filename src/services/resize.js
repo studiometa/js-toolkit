@@ -22,7 +22,9 @@ class Resize extends Service {
     this.handler = debounce(() => {
       this.trigger(this.props);
     }).bind(this);
-    window.addEventListener('resize', this.handler);
+
+    this.resizeObserver = new ResizeObserver(this.handler);
+    this.resizeObserver.observe(document.documentElement);
   }
 
   /**
@@ -31,7 +33,8 @@ class Resize extends Service {
    * @return {void}
    */
   kill() {
-    window.removeEventListener('resize', this.handler);
+    this.resizeObserver.disconnect();
+    delete this.resizeObserver;
   }
 
   /**
@@ -105,11 +108,13 @@ export default () => {
 
   const add = resize.add.bind(resize);
   const remove = resize.remove.bind(resize);
+  const has = resize.has.bind(resize);
   const props = () => resize.props;
 
   return {
     add,
     remove,
+    has,
     props,
   };
 };
