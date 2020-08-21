@@ -9,6 +9,14 @@ module.exports = {
       { text: 'Guide', link: '/guide/' },
       { text: 'API', link: '/api/' },
       {
+        text: 'Decorators',
+        link: '/decorators/',
+        items: [
+          { text: 'withBreakpointManager', link: '/decorators/withBreakpointManager.html' },
+          { text: 'withBreakpointObserver', link: '/decorators/withBreakpointObserver.html' },
+        ],
+      },
+      {
         text: 'Components',
         link: '/components/',
         items: [

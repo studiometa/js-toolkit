@@ -60,7 +60,8 @@ var Resize = /*#__PURE__*/function (_Service) {
       this.handler = (0, _debounce.default)(function () {
         _this.trigger(_this.props);
       }).bind(this);
-      window.addEventListener('resize', this.handler);
+      this.resizeObserver = new ResizeObserver(this.handler);
+      this.resizeObserver.observe(document.documentElement);
     }
     /**
      * Unbind the handler from the resize event.
@@ -71,7 +72,8 @@ var Resize = /*#__PURE__*/function (_Service) {
   }, {
     key: "kill",
     value: function kill() {
-      window.removeEventListener('resize', this.handler);
+      this.resizeObserver.disconnect();
+      delete this.resizeObserver;
     }
     /**
      * Get resize props.
@@ -148,6 +150,7 @@ var _default = function _default() {
 
   var add = resize.add.bind(resize);
   var remove = resize.remove.bind(resize);
+  var has = resize.has.bind(resize);
 
   var props = function props() {
     return resize.props;
@@ -156,6 +159,7 @@ var _default = function _default() {
   return {
     add: add,
     remove: remove,
+    has: has,
     props: props
   };
 };
