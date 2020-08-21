@@ -155,6 +155,7 @@ var _default = function _default() {
 
   var add = key.add.bind(key);
   var remove = key.remove.bind(key);
+  var has = key.has.bind(key);
 
   var props = function props() {
     return key.props;
@@ -163,6 +164,7 @@ var _default = function _default() {
   return {
     add: add,
     remove: remove,
+    has: has,
     props: props
   };
 };

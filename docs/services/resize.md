@@ -71,7 +71,7 @@ This prop will not be available if no `[data-breakpoint]` element was found in t
 :::
 
 ::: tip
-This prop and the following one will work smoothly with the [breakpoint plugin](https://tailwind-config.meta.fr/plugins/breakpoint.html) of our [Tailwind configuration](https://tailwind-config.meta.fr/).
+This prop and the following one will work smoothly with the [breakpoint plugin](https://tailwind-config.meta.fr/plugins/breakpoint.html) of our [Tailwind configuration](https://tailwind-config.meta.fr/) and will use its [defined screens](https://tailwind-config.meta.fr/configuration/#screens) as breakpoints.
 :::
 
 ### `breakpoints`

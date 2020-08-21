@@ -69,11 +69,13 @@ export default () => {
 
   const add = instance.add.bind(instance);
   const remove = instance.remove.bind(instance);
+  const has = instance.has.bind(instance);
   const props = () => instance.props;
 
   return {
     add,
     remove,
+    has,
     props,
   };
 };

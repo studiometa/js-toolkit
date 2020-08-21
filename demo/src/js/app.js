@@ -1,4 +1,7 @@
-import { Base, Modal, MediaQuery, Tabs, Accordion } from '../../../src';
+import { Base, Modal, Tabs, Accordion } from '../../../src';
+import { withBreakpointObserver } from '../../../src/decorators';
+import BreakpointManagerDemo from './components/BreakPointManagerDemo';
+import BreakpointObserverDemo from './components/BreakpointObserverDemo';
 
 class App extends Base {
   get config() {
@@ -6,11 +9,12 @@ class App extends Base {
       name: 'App',
       components: {
         Accordion,
+        BreakpointManagerDemo,
+        BreakpointObserverDemo,
         Cursor: () => import('./components/Cursor'),
         Skew: () => import('./components/Skew'),
         '[data-src]': () => import('./components/Lazyload'),
-        Modal,
-        MediaQuery,
+        Modal: withBreakpointObserver(Modal),
         Tabs,
       },
     };
