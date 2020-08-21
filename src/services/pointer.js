@@ -184,11 +184,13 @@ export default () => {
 
   const add = pointer.add.bind(pointer);
   const remove = pointer.remove.bind(pointer);
+  const has = pointer.has.bind(pointer);
   const props = () => pointer.props;
 
   return {
     add,
     remove,
+    has,
     props,
   };
 };

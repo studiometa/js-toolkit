@@ -13,6 +13,7 @@ module.exports = {
   setupFiles: [
     '<rootDir>/tests/__setup__/requestAnimationFrame.js',
     '<rootDir>/tests/__setup__/mockBreakpoints.js',
+    '<rootDir>/tests/__setup__/ResizeObserver.js',
   ],
   moduleNameMapper: {
     '~(.*)$': '<rootDir>/src/$1',
