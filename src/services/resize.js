@@ -23,8 +23,12 @@ class Resize extends Service {
       this.trigger(this.props);
     }).bind(this);
 
-    this.resizeObserver = new ResizeObserver(this.handler);
-    this.resizeObserver.observe(document.documentElement);
+    if (this.canUseResizeObserver) {
+      this.resizeObserver = new ResizeObserver(this.handler);
+      this.resizeObserver.observe(document.documentElement);
+    } else {
+      window.addEventListener('resize', this.handler);
+    }
   }
 
   /**
@@ -33,7 +37,11 @@ class Resize extends Service {
    * @return {void}
    */
   kill() {
-    this.resizeObserver.disconnect();
+    if (this.canUseResizeObserver) {
+      this.resizeObserver.disconnect();
+    } else {
+      window.removeEventListener('resize', this.handler);
+    }
     delete this.resizeObserver;
   }
 
@@ -96,6 +104,14 @@ class Resize extends Service {
       .replace(/"/g, '');
 
     return breakpoints.split(',');
+  }
+
+  /**
+   * Test if we can use the `ResizeObserver` API.
+   * @return {Boolean}
+   */
+  get canUseResizeObserver() {
+    return typeof window.ResizeObserver !== 'undefined';
   }
 }
 
