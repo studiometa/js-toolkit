@@ -60,8 +60,13 @@ var Resize = /*#__PURE__*/function (_Service) {
       this.handler = (0, _debounce.default)(function () {
         _this.trigger(_this.props);
       }).bind(this);
-      this.resizeObserver = new ResizeObserver(this.handler);
-      this.resizeObserver.observe(document.documentElement);
+
+      if (this.canUseResizeObserver) {
+        this.resizeObserver = new ResizeObserver(this.handler);
+        this.resizeObserver.observe(document.documentElement);
+      } else {
+        window.addEventListener('resize', this.handler);
+      }
     }
     /**
      * Unbind the handler from the resize event.
@@ -72,7 +77,12 @@ var Resize = /*#__PURE__*/function (_Service) {
   }, {
     key: "kill",
     value: function kill() {
-      this.resizeObserver.disconnect();
+      if (this.canUseResizeObserver) {
+        this.resizeObserver.disconnect();
+      } else {
+        window.removeEventListener('resize', this.handler);
+      }
+
       delete this.resizeObserver;
     }
     /**
@@ -136,6 +146,16 @@ var Resize = /*#__PURE__*/function (_Service) {
     get: function get() {
       var breakpoints = window.getComputedStyle(this.breakpointElement, '::after').getPropertyValue('content').replace(/"/g, '');
       return breakpoints.split(',');
+    }
+    /**
+     * Test if we can use the `ResizeObserver` API.
+     * @return {Boolean}
+     */
+
+  }, {
+    key: "canUseResizeObserver",
+    get: function get() {
+      return typeof window.ResizeObserver !== 'undefined';
     }
   }]);
   return Resize;
