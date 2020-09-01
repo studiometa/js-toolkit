@@ -1,6 +1,7 @@
-import { Base } from '../../../../src';
+import { Base } from '~/src';
+import { withIntersectionObserver } from '~/src/decorators';
 
-export default class Skew extends Base {
+export default class Skew extends withIntersectionObserver(Base) {
   get config() {
     return {
       name: 'Skew',
@@ -9,15 +10,10 @@ export default class Skew extends Base {
 
   mounted() {
     this.isVisible = false;
-    this.observer = new IntersectionObserver(([entry]) => {
-      this.isVisible = entry.intersectionRatio > 0;
-    });
-
-    this.observer.observe(this.$el);
   }
 
-  destroyed() {
-    this.observer.disconnect();
+  intersected([entry]) {
+    this.isVisible = entry.intersectionRatio > 0;
   }
 
   scrolled({ delta }) {
