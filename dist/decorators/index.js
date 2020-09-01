@@ -17,8 +17,16 @@ Object.defineProperty(exports, "withBreakpointObserver", {
     return _withBreakpointObserver2.default;
   }
 });
+Object.defineProperty(exports, "withIntersectionObserver", {
+  enumerable: true,
+  get: function get() {
+    return _withIntersectionObserver2.default;
+  }
+});
 
 var _withBreakpointManager2 = _interopRequireDefault(require("./withBreakpointManager"));
 
 var _withBreakpointObserver2 = _interopRequireDefault(require("./withBreakpointObserver"));
+
+var _withIntersectionObserver2 = _interopRequireDefault(require("./withIntersectionObserver"));
 //# sourceMappingURL=index.js.map
