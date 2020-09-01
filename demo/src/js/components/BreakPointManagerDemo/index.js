@@ -1,5 +1,5 @@
-import { Base } from '../../../../../src/abstracts';
-import { withBreakpointManager } from '../../../../../src/decorators';
+import { Base } from '~/src/abstracts';
+import { withBreakpointManager } from '~/src/decorators';
 import BreakpointManagerDemoMobile from './BreakpointManagerDemoMobile';
 import BreakpointManagerDemoTablet from './BreakpointManagerDemoTablet';
 import BreakpointManagerDemoDesktop from './BreakpointManagerDemoDesktop';
