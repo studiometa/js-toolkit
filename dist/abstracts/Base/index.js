@@ -241,6 +241,32 @@ var Base = /*#__PURE__*/function (_EventManager) {
         writable: false
       });
     }
+    /**
+     * Factory method to generate multiple instance of the class.
+     *
+     * @param  {String}      selector The selector on which to mount each instance.
+     * @return {Array<Base>}          A list of the created instance.
+     */
+
+  }], [{
+    key: "$factory",
+    value: function $factory(nameOrSelector) {
+      var _this2 = this;
+
+      if (!nameOrSelector) {
+        throw new Error('The $factory method requires a component’s name or selector to be specified.');
+      }
+
+      var elements = document.querySelectorAll("[data-component=\"".concat(nameOrSelector, "\"]"));
+
+      if (elements.length === 0) {
+        elements = document.querySelectorAll(nameOrSelector);
+      }
+
+      return Array.from(elements).map(function (el) {
+        return new _this2(el);
+      });
+    }
   }]);
 
   return Base;

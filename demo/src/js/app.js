@@ -43,6 +43,5 @@ class App extends Base {
   }
 }
 
-const app = new App(document.documentElement);
-
+const app = App.$factory('html');
 window.APP = app;

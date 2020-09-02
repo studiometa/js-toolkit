@@ -2,7 +2,7 @@ import nanoid from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind';
 import EventManager from '../EventManager';
 import { callMethod, debug } from './utils';
-import { getChildren } from './children';
+import { getChildren, getComponentElements } from './children';
 import { getOptions, setOptions } from './options';
 import { getRefs } from './refs';
 import { mountComponents, destroyComponents } from './components';
@@ -211,6 +211,22 @@ export default class Base extends EventManager {
       configurable: false,
       writable: false,
     });
+  }
+
+  /**
+   * Factory method to generate multiple instance of the class.
+   *
+   * @param  {String}      selector The selector on which to mount each instance.
+   * @return {Array<Base>}          A list of the created instance.
+   */
+  static $factory(nameOrSelector) {
+    if (!nameOrSelector) {
+      throw new Error(
+        'The $factory method requires a component’s name or selector to be specified.'
+      );
+    }
+
+    return getComponentElements(nameOrSelector).map(el => new this(el));
   }
 }
 
