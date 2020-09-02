@@ -1,9 +1,11 @@
 ---
 sidebar: auto
-sidebarDepth: 5
+sidebarDepth: 6
 prev: /guide/
 next: /components/
 ---
+
+# API
 
 ## Instance properties
 
@@ -122,24 +124,109 @@ When `true`, the lifecycle hooks and services hooks will be logged to the consol
 
 ## Class methods
 
-### Lifecycle hooks
+### `mounted` <Badge vertical="middle" text="Lifecycle hooks" />
+### `loaded` <Badge vertical="middle" text="Lifecycle hooks" />
+### `destroyed` <Badge vertical="middle" text="Lifecycle hooks" />
+### `scrolled` <Badge vertical="middle" text="Service hooks" />
+### `resized` <Badge vertical="middle" text="Service hooks" />
+### `keyed` <Badge vertical="middle" text="Service hooks" />
+### `moved` <Badge vertical="middle" text="Service hooks" />
+### `ticked` <Badge vertical="middle" text="Service hooks" />
 
-#### `mounted`
-#### `loaded`
-#### `destroyed`
+### `on＜Event＞` <Badge vertical="middle" text="Event handlers" />
 
-### Services hooks
+Methods following this pattern will be executed when the event is triggered on the instance's `$el` element.
 
-#### `scrolled`
-#### `resized`
-#### `keyed`
-#### `moved`
-#### `ticked`
+**Arguments**
+- `event` ([`Event`](https://developer.mozilla.org/en-US/docs/Web/API/Event)): the event object
 
-### Event handlers
+**Example**
+```js{8-9}
+class Foo extends Base {
+  get config() {
+    return {
+      name: 'Foo',
+    };
+  }
 
-#### `on<Event>`
-#### `on<Refname><Event>`
+  // Will be triggered when clicking on `this.$el`
+  onClick(event) {}
+
+  // The same behaviour can be implemented by doing the following:
+  mounted() {
+    this.$el.addEventListener('click', this.onClick);
+  }
+
+  destroyed() {
+    this.$el.removeEventListener('click', this.onClick);
+  }
+}
+```
+
+### `on＜Refname＞＜Event＞` <Badge vertical="middle" text="Event handlers" />
+
+Methods following this pattern will be executed when the corresponding event is triggered on the corresponding ref element. This will work for native DOM events as well as components' events when the ref is a component.
+
+**Arguments**
+- `event|...args` ([`Event`](https://developer.mozilla.org/en-US/docs/Web/API/Event) or `mixed`): the event object when triggered from a native DOM event, the event arguments when triggered by a component
+- `index` (`Number`): the index of the ref triggering the event when multiple refs exists
+-
+**Examples**
+```html{2-3,14-17}
+<div data-component="Foo">
+  <button data-ref="btn">Open</btn>
+  <button data-ref="btn">Close</btn>
+</div>
+
+<script>
+  class Foo extends Base {
+    get config() {
+      return {
+        name: 'Foo',
+      };
+    }
+
+    // Will be triggered when clicking on one of `this.$refs.btn`
+    // `event` is the click event's object
+    // `index` is the index of the ref that triggered the event
+    onBtnClick(event, index) {}
+  }
+
+  new Foo(document.querySelector('[data-component="Foo"]'));
+</script>
+```
+
+```html{2,18-20,24-25}
+<div data-component="Foo">
+  <div data-ref="baz" data-component="Baz"></div>
+</div>
+
+<script>
+  class Baz extends Base {
+    get config() {
+      return {
+        name: 'Baz',
+      };
+    }
+  }
+
+  class Foo extends Base {
+    get config() {
+      return {
+        name: 'Foo',
+        components: {
+          Baz,
+        },
+      };
+    }
+
+    // Will be triggered when the component emits the `mounted` event
+    onBazMounted() {}
+  }
+
+  new Foo(document.querySelector('[data-component="Foo"]'));
+</script>
+```
 
 ## Events
 
