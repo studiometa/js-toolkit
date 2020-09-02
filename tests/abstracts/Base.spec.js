@@ -130,6 +130,48 @@ describe('A Base instance methods', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
+  it('should bind methods to refs', () => {
+    const fn = jest.fn();
+
+    class Baz extends Foo {
+      onClick() {
+        this.$emit('open', 'baz');
+      }
+    }
+
+    class Bar extends Foo {
+      get config() {
+        return {
+          ...(super.config || {}),
+          components: {
+            Baz,
+          },
+        };
+      }
+
+      onFooClick() {
+        fn();
+      }
+
+      onBazOpen(...args) {
+        fn(...args);
+      }
+    }
+
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div data-ref="foo"></div>
+      <div data-ref="baz" data-component="Baz"></div>
+    `;
+
+    const bar = new Bar(div);
+    expect(bar.$refs.baz instanceof Baz).toBe(true);
+    div.querySelector('[data-ref="foo"]').click();
+    expect(fn).toHaveBeenCalledTimes(1);
+    div.querySelector('[data-ref="baz"]').click();
+    expect(fn).toHaveBeenLastCalledWith('baz', 0);
+  });
+
   it('should not find children if none provided', () => {
     class Bar extends Base {
       get config() {
