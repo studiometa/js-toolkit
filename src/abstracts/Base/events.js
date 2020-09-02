@@ -22,13 +22,18 @@ export default function bindEvents(instance) {
         $refs.forEach(($ref, index) => {
           const eventName = eventMethod.replace(refEventMethod, '').toLowerCase();
           const handler = (...args) => {
-            debug(this, eventMethod, $ref, ...args, index);
-            this[eventMethod](...args, index);
+            debug(instance, eventMethod, $ref, ...args, index);
+            instance[eventMethod](...args, index);
           };
 
           let unbindMethod = () => {};
           if ($ref.constructor && $ref.constructor.__isBase__) {
-            unbindMethod = $ref.$on(eventName, handler);
+            const unbindComponentEvent = $ref.$on(eventName, handler);
+            $ref.$el.addEventListener(eventName, handler);
+            unbindMethod = () => {
+              unbindComponentEvent();
+              $ref.$el.removeEventListener(eventName, handler);
+            };
           } else {
             $ref.addEventListener(eventName, handler);
             unbindMethod = () => {
@@ -46,8 +51,8 @@ export default function bindEvents(instance) {
   eventMethods.forEach(([eventMethod]) => {
     const eventName = eventMethod.replace(/^on/, '').toLowerCase();
     const handler = (...args) => {
-      debug(this, eventMethod, this.$el, ...args);
-      this[eventMethod](...args);
+      debug(instance, eventMethod, instance.$el, ...args);
+      instance[eventMethod](...args);
     };
     instance.$el.addEventListener(eventName, handler);
     unbindMethods.push(() => {
