@@ -205,6 +205,35 @@ describe('A Base instance methods', () => {
     expect(bar.$children.Foo[0]).toBe(bar.$refs.bar);
   });
 
+  it('should cast single ref as array when ending with []', () => {
+    class Bar extends Base {
+      get config() {
+        return { name: 'Bar' };
+      }
+    }
+
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <button data-ref="btn"></button>
+      <ul>
+        <li data-ref="item[]"></li>
+      </ul>
+      <ul>
+        <li data-ref="itemBis[]"></li>
+        <li data-ref="itemBis[]"></li>
+      </ul>
+    `;
+
+    const bar = new Bar(div);
+    expect(bar.$refs.btn).toEqual(div.firstElementChild);
+    expect(Array.isArray(bar.$refs.item)).toBe(true);
+    expect(bar.$refs.item).toHaveLength(1);
+    expect(bar.$refs.item[0]).toEqual(div.querySelector('[data-ref="item[]"]'));
+    expect(Array.isArray(bar.$refs.itemBis)).toBe(true);
+    expect(bar.$refs.itemBis).toHaveLength(2);
+    expect(bar.$refs.itemBis[1]).toEqual(div.querySelector('[data-ref="itemBis[]"]:last-child'));
+  });
+
   it('should resolve async components', async () => {
     const getFoo = jest.fn(resolve => resolve(Foo));
     const getBaz = jest.fn(resolve => resolve({ default: Foo }));
