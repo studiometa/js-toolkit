@@ -156,6 +156,10 @@ describe('A Base instance methods', () => {
       onBazOpen(...args) {
         fn(...args);
       }
+
+      onBazFocus() {
+        fn('focus');
+      }
     }
 
     const div = document.createElement('div');
@@ -170,6 +174,13 @@ describe('A Base instance methods', () => {
     expect(fn).toHaveBeenCalledTimes(1);
     div.querySelector('[data-ref="baz"]').click();
     expect(fn).toHaveBeenLastCalledWith('baz', 0);
+    div.querySelector('[data-ref="baz"]').dispatchEvent(new CustomEvent('focus'));
+    expect(fn).toHaveBeenLastCalledWith('focus');
+    expect(fn).toHaveBeenCalledTimes(3);
+    bar.$destroy();
+    div.querySelector('[data-ref="baz"]').click();
+    div.querySelector('[data-ref="baz"]').dispatchEvent(new CustomEvent('focus'));
+    expect(fn).toHaveBeenCalledTimes(3);
   });
 
   it('should not find children if none provided', () => {
