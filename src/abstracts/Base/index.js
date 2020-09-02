@@ -117,8 +117,8 @@ export default class Base extends EventManager {
 
     let unbindMethods = [];
     this.$on('mounted', () => {
-      unbindMethods = [...bindServices(this), ...bindEvents(this)];
       mountComponents(this);
+      unbindMethods = [...bindServices(this), ...bindEvents(this)];
       this.$isMounted = true;
     });
 
