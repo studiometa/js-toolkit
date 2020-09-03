@@ -168,6 +168,31 @@ export default class Base extends EventManager {
     callMethod(this, 'destroyed');
     return this;
   }
+
+  /**
+   * Terminate a child instance when it is not needed anymore.
+   * @return {void}
+   */
+  $terminate() {
+    debug(this, '$terminate');
+
+    // First, destroy the component.
+    this.$destroy();
+
+    // Execture the `terminated` hook if it exists
+    callMethod(this, 'terminated');
+
+    // Delete the reference to the instance
+    delete this.$el.__base__;
+
+    // And update its status to prevent re-instantiation when accessing the
+    // parent's `$children` property
+    Object.defineProperty(this.$el, '__base__', {
+      value: 'terminated',
+      configurable: false,
+      writable: false,
+    });
+  }
 }
 
 Base.__isBase__ = true;
