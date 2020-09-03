@@ -17,19 +17,31 @@ Any change to this property will be merged with the `data-options` attribute and
 
 An object containing references to all the component's refs, with each key being the name of the ref, and each value either the DOM element or a list of DOM elements.
 
-```js
-{
-  <RefName>: <HTMLElement> || [...<HTMLElement>]
+```ts
+interface RefsInterface {
+  readonly [refName: string]: HTMLElement | Array<HTMLElement>;
 }
 ```
+
+Refs are resolved with the selector `data-ref="<refName>"` within the component's scope. Refs of [children components](#components) are excluded, even if the child has not been registered via the [`config.components`](#components) object.
+
+:::tip
+You can force a ref to be an `Array` even when only one corresponding element exists in the DOM by appending `[]` to its name:
+
+```html
+<ul>
+  <li data-ref="item[]"></li>
+</ul>
+```
+:::
 
 ### `$children`
 
 An object containing references to all the children component instances, with each key being the name of the child component, and each value a list of its corresponding instances.
 
-```js
-{
-  <ComponentName>: [...<componentInstance>]
+```ts
+interface ChildrenInterface {
+  readonly [ComponentName: string]: Array<Base>;
 }
 ```
 
