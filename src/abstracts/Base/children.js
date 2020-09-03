@@ -55,7 +55,14 @@ export function getChildren(instance, element, components) {
       return acc;
     }
 
-    acc[name] = elements.map(el => getChild(el, ComponentClass, instance));
+    acc[name] = elements
+      .map(el => getChild(el, ComponentClass, instance))
+      // Filter out terminated children
+      .filter(el => el !== 'terminated');
+
+    if (acc[name].length === 0) {
+      delete acc[name];
+    }
 
     return acc;
   }, {});
