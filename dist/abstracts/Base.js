@@ -89,7 +89,15 @@ function getRefs(instance, element) {
   });
   var refs = elements.reduce(function ($refs, $ref) {
     var refName = $ref.dataset.ref;
-    var $realRef = $ref.__base__ ? $ref.__base__ : $ref;
+    var $realRef = $ref.__base__ ? $ref.__base__ : $ref; // Cast the ref as an array if its name ends with `[]`
+
+    if (refName.endsWith('[]')) {
+      refName = refName.replace(/\[\]$/, '');
+
+      if (!$refs[refName]) {
+        $refs[refName] = [];
+      }
+    }
 
     if ($refs[refName]) {
       if (Array.isArray($refs[refName])) {

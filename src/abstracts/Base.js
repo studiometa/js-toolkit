@@ -46,8 +46,17 @@ function getRefs(instance, element) {
   const elements = allRefs.filter(ref => !childrenRefs.includes(ref));
 
   const refs = elements.reduce(($refs, $ref) => {
-    const refName = $ref.dataset.ref;
+    let refName = $ref.dataset.ref;
     const $realRef = $ref.__base__ ? $ref.__base__ : $ref;
+
+    // Cast the ref as an array if its name ends with `[]`
+    if (refName.endsWith('[]')) {
+      refName = refName.replace(/\[\]$/, '');
+
+      if (!$refs[refName]) {
+        $refs[refName] = [];
+      }
+    }
 
     if ($refs[refName]) {
       if (Array.isArray($refs[refName])) {
