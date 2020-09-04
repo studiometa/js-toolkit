@@ -16,9 +16,9 @@ exports.default = matrix;
  * @param  {Number} options.translateY The translate on the y axis.
  * @return {String}                    A formatted CSS matrix transform.
  */
-function matrix(t) {
+function matrix(transform) {
   // eslint-disable-next-line no-param-reassign
-  t = t || {};
-  return "matrix(".concat(t.scaleX || 1, ", ").concat(t.skewX || 0, ", ").concat(t.skewY || 0, ", ").concat(t.scaleY || 1, ", ").concat(t.translateX || 0, ", ").concat(t.translateY || 0, ")");
+  transform = transform || {};
+  return "matrix(".concat(transform.scaleX || 1, ", ").concat(transform.skewX || 0, ", ").concat(transform.skewY || 0, ", ").concat(transform.scaleY || 1, ", ").concat(transform.translateX || 0, ", ").concat(transform.translateY || 0, ")");
 }
 //# sourceMappingURL=matrix.js.map
