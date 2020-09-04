@@ -9,9 +9,9 @@
  * @param  {Number} options.translateY The translate on the y axis.
  * @return {String}                    A formatted CSS matrix transform.
  */
-export default function matrix(t) {
+export default function matrix(transform) {
   // eslint-disable-next-line no-param-reassign
-  t = t || {};
-  return `matrix(${t.scaleX || 1}, ${t.skewX || 0}, ${t.skewY || 0}, ${t.scaleY ||
-    1}, ${t.translateX || 0}, ${t.translateY || 0})`;
+  transform = transform || {};
+  return `matrix(${transform.scaleX || 1}, ${transform.skewX || 0}, ${transform.skewY ||
+    0}, ${transform.scaleY || 1}, ${transform.translateX || 0}, ${transform.translateY || 0})`;
 }
