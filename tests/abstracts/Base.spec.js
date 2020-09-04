@@ -329,9 +329,10 @@ describe('A Base instance config', () => {
     const spy = jest.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
     const foo = new Foo(document.createElement('div'));
-    expect(spy).toHaveBeenNthCalledWith(1, foo.$options.name, 'constructor', foo);
-    expect(spy).toHaveBeenNthCalledWith(2, foo.$options.name, '$mount');
-    expect(spy).toHaveBeenNthCalledWith(3, foo.$options.name, 'call', 'mounted');
+    expect(spy).toHaveBeenNthCalledWith(1, foo.$options.name, '$mount');
+    expect(spy).toHaveBeenNthCalledWith(2, foo.$options.name, 'callMethod', 'mounted');
+    expect(spy).toHaveBeenNthCalledWith(3, foo.$options.name, 'mountComponents', {});
+    expect(spy).toHaveBeenNthCalledWith(4, foo.$options.name, 'constructor', foo);
     spy.mockRestore();
   });
 });
