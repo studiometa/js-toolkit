@@ -150,7 +150,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
 
 
     (0, _autoBind.default)((0, _assertThisInitialized2.default)(_this), {
-      exclude: ['$mount', '$destroy', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed']
+      exclude: ['$mount', '$destroy', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed'].concat((0, _toConsumableArray2.default)(_this._excludeFromAutoBind || []))
     });
     var unbindMethods = [];
 
