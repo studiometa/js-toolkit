@@ -155,8 +155,8 @@ var Base = /*#__PURE__*/function (_EventManager) {
     var unbindMethods = [];
 
     _this.$on('mounted', function () {
-      unbindMethods = [].concat((0, _toConsumableArray2.default)((0, _services.default)((0, _assertThisInitialized2.default)(_this))), (0, _toConsumableArray2.default)((0, _events.default)((0, _assertThisInitialized2.default)(_this))));
       (0, _components.mountComponents)((0, _assertThisInitialized2.default)(_this));
+      unbindMethods = [].concat((0, _toConsumableArray2.default)((0, _services.default)((0, _assertThisInitialized2.default)(_this))), (0, _toConsumableArray2.default)((0, _events.default)((0, _assertThisInitialized2.default)(_this))));
       _this.$isMounted = true;
     });
 
