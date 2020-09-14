@@ -97,6 +97,33 @@ document.addEventListener('keydown', (e) => {
 });
 ```
 
+## `matrix`
+
+This method will format a matrix CSS transform function.
+
+**Parameters**
+
+- `options.scaleX` (`Number`): the scale on the x axis
+- `options.scaleY` (`Number`): the scale on the y axis
+- `options.skewX` (`Number`): the skew on the x axis
+- `options.skewY` (`Number`): the skew on the y axis
+- `options.translateX` (`Number`): the translate on the x axis
+- `options.translateY` (`Number`): the translate on the y axis
+
+**Returns**
+
+- `String`: a formatted CSS matrix transform
+
+[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/css/matrix.js)
+
+**Usage**
+```js
+import matrix from '@studiometa/js-toolkit/utils/css/matrix';
+
+document.body.style.transform = matrix({ scaleX: 0.5, scaleY: 0.5 });
+// matrix(0.5, 0, 0, 0.5, 0, 0)
+```
+
 ## `nextFrame`
 
 Execute a given function in the next window frame.

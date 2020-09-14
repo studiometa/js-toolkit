@@ -50,8 +50,9 @@
       <!-- END BreakpointObserverDemo -->
 
       <div
+        data-ref="modal"
         data-component="Modal"
-        data-options='{ "activeBreakpoints": "m l", "debug": true, "styles": { "modal": { "active": "transition-all duration-500" } } }'
+        data-options='{ "activeBreakpoints": "m l", "styles": { "modal": { "active": "transition-all duration-500" } } }'
         class="text-center"
       >
         <!--
@@ -243,17 +244,17 @@
         data-options='{ "styles": { "btn": { "open": { "borderBottomColor": "#fff" } } } }'
       >
         <div class="flex px-4 border-b">
-          <button data-ref="btn" class="-mb-px -ml-px p-4 border">Tab #1</button>
-          <button data-ref="btn" class="-mb-px -ml-px p-4 border">Tab #2</button>
-          <button data-ref="btn" class="-mb-px -ml-px p-4 border">Tab #3</button>
+          <button data-ref="btn[]" class="-mb-px -ml-px p-4 border">Tab #1</button>
+          <button data-ref="btn[]" class="-mb-px -ml-px p-4 border">Tab #2</button>
+          <button data-ref="btn[]" class="-mb-px -ml-px p-4 border">Tab #3</button>
         </div>
         <div class="p-4">
-          <div data-ref="content" aria-hidden="false">
+          <div data-ref="content[]" aria-hidden="false">
             Lorem ipsum dolor sit amet consectetur, adipisicing elit. Adipisci nemo quod nobis
             laudantium iusto maiores molestias animi quos error quo consequatur, eum veniam sequi
             repellat placeat rerum a labore. Sit.
           </div>
-          <div data-ref="content" aria-hidden="true">
+          <div data-ref="content[]" aria-hidden="true">
             Nunc ultrices arcu quis mollis mollis. Duis at turpis et nibh pellentesque dapibus.
             Quisque luctus neque a placerat sodales. Sed a mauris efficitur eros fringilla viverra.
             Donec eleifend risus ligula. Donec non tellus lacinia, tempus enim id, lacinia arcu.
@@ -261,10 +262,10 @@
             ac aliquam purus finibus. Pellentesque aliquet augue non sollicitudin semper. Vivamus
             est odio, efficitur vitae lacus id, eleifend maximus felis.
           </div>
-          <div data-ref="content" aria-hidden="true" style="display: none;">
+          <div data-ref="content[]" aria-hidden="true">
             <img
               data-src="https://placekitten.com/299/299"
-              data-options='{ "log": true }'
+              data-options='{ "debug": true }'
               src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
               width="300"
               height="300"

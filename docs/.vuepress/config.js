@@ -14,6 +14,7 @@ module.exports = {
         items: [
           { text: 'withBreakpointManager', link: '/decorators/withBreakpointManager.html' },
           { text: 'withBreakpointObserver', link: '/decorators/withBreakpointObserver.html' },
+          { text: 'withIntersectionObserver', link: '/decorators/withIntersectionObserver.html' },
         ],
       },
       {
@@ -43,6 +44,7 @@ module.exports = {
           { text: 'focusTrap', link: '/utils/#focusTrap' },
           { text: 'isObject', link: '/utils/#isObject' },
           { text: 'keyCodes', link: '/utils/#keyCodes' },
+          { text: 'matrix', link: '/utils/#matrix' },
           { text: 'nextFrame', link: '/utils/#nextFrame' },
           { text: 'throttle', link: '/utils/#throttle' },
           { text: 'transition', link: '/utils/#transition' },

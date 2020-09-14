@@ -130,6 +130,62 @@ describe('A Base instance methods', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
+  it('should bind methods to refs and children', () => {
+    const fn = jest.fn();
+
+    class Baz extends Foo {
+      onClick() {
+        this.$emit('open', 'baz');
+      }
+    }
+
+    class Bar extends Foo {
+      get config() {
+        return {
+          ...(super.config || {}),
+          components: {
+            Baz,
+          },
+        };
+      }
+
+      onFooClick() {
+        fn();
+      }
+
+      onBazOpen(...args) {
+        fn(...args);
+      }
+
+      onBazFocus() {
+        fn('focus');
+      }
+    }
+
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div data-ref="foo"></div>
+      <div data-component="Baz"></div>
+      <div data-ref="baz" data-component="Baz"></div>
+    `;
+
+    const bar = new Bar(div);
+    div.querySelector('[data-ref="foo"]').click();
+    expect(fn).toHaveBeenCalledTimes(1);
+    div.querySelector('[data-component="Baz"]').click();
+    expect(fn).toHaveBeenLastCalledWith('baz', 0);
+    div.querySelector('[data-component="Baz"]').dispatchEvent(new CustomEvent('focus'));
+    expect(fn).toHaveBeenLastCalledWith('baz', 0);
+    expect(fn).toHaveBeenCalledTimes(2);
+    div.querySelector('[data-ref="baz"]').dispatchEvent(new CustomEvent('focus'));
+    expect(fn).toHaveBeenLastCalledWith('focus');
+    expect(fn).toHaveBeenCalledTimes(3);
+    bar.$destroy();
+    div.querySelector('[data-component="Baz"]').click();
+    div.querySelector('[data-component="Baz"]').dispatchEvent(new CustomEvent('focus'));
+    expect(fn).toHaveBeenCalledTimes(3);
+  });
+
   it('should not find children if none provided', () => {
     class Bar extends Base {
       get config() {
@@ -203,6 +259,35 @@ describe('A Base instance methods', () => {
     document.body.innerHTML = `<div data-component="Foo" data-ref="bar"></div>`;
     const bar = new Bar(document.body);
     expect(bar.$children.Foo[0]).toBe(bar.$refs.bar);
+  });
+
+  it('should cast single ref as array when ending with []', () => {
+    class Bar extends Base {
+      get config() {
+        return { name: 'Bar' };
+      }
+    }
+
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <button data-ref="btn"></button>
+      <ul>
+        <li data-ref="item[]"></li>
+      </ul>
+      <ul>
+        <li data-ref="itemBis[]"></li>
+        <li data-ref="itemBis[]"></li>
+      </ul>
+    `;
+
+    const bar = new Bar(div);
+    expect(bar.$refs.btn).toEqual(div.firstElementChild);
+    expect(Array.isArray(bar.$refs.item)).toBe(true);
+    expect(bar.$refs.item).toHaveLength(1);
+    expect(bar.$refs.item[0]).toEqual(div.querySelector('[data-ref="item[]"]'));
+    expect(Array.isArray(bar.$refs.itemBis)).toBe(true);
+    expect(bar.$refs.itemBis).toHaveLength(2);
+    expect(bar.$refs.itemBis[1]).toEqual(div.querySelector('[data-ref="itemBis[]"]:last-child'));
   });
 
   it('should resolve async components', async () => {
@@ -300,9 +385,10 @@ describe('A Base instance config', () => {
     const spy = jest.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
     const foo = new Foo(document.createElement('div'));
-    expect(spy).toHaveBeenNthCalledWith(1, foo.$options.name, 'constructor', foo);
-    expect(spy).toHaveBeenNthCalledWith(2, foo.$options.name, '$mount');
-    expect(spy).toHaveBeenNthCalledWith(3, foo.$options.name, 'call', 'mounted');
+    expect(spy).toHaveBeenNthCalledWith(1, foo.$options.name, '$mount');
+    expect(spy).toHaveBeenNthCalledWith(2, foo.$options.name, 'callMethod', 'mounted');
+    expect(spy).toHaveBeenNthCalledWith(3, foo.$options.name, 'mountComponents', {});
+    expect(spy).toHaveBeenNthCalledWith(4, foo.$options.name, 'constructor', foo);
     spy.mockRestore();
   });
 });

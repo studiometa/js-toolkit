@@ -1,10 +1,12 @@
-import { Base } from '../../../../src';
-import transition, { setClassesOrStyles } from '../../../../src/utils/css/transition';
+import { Base } from '~/src';
+import { withIntersectionObserver } from '~/src/decorators';
+import transition, { setClassesOrStyles } from '~/src/utils/css/transition';
 
-export default class Lazyload extends Base {
+export default class Lazyload extends withIntersectionObserver(Base) {
   get config() {
     return {
       name: 'Lazyload',
+      log: true,
       styles: {
         unloaded: { opacity: 0 },
         active: { transition: 'opacity 0.5s' },
@@ -15,34 +17,28 @@ export default class Lazyload extends Base {
 
   mounted() {
     setClassesOrStyles(this.$el, this.$options.styles.unloaded);
-
-    this.observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          window.requestIdleCallback(this.load);
-        }
-      },
-      {
-        threshold: 1.0,
-      }
-    );
   }
 
-  loaded() {
-    this.observer.observe(this.$el);
-  }
-
-  destroyed() {
-    this.observer.disconnect();
+  intersected([entry]) {
+    if (entry.isIntersecting) {
+      window.requestIdleCallback(this.load);
+    }
   }
 
   load() {
     const { unloaded, active, loaded } = this.$options.styles;
     const src = this.$el.getAttribute('data-src');
+
+    if (!src || this.isLoaded) {
+      this.$destroy();
+      return;
+    }
+
     const img = new Image();
     img.onload = () => {
       this.$el.setAttribute('src', src);
       this.$el.removeAttribute('data-src');
+      this.isLoaded = true;
       transition(this.$el, {
         from: unloaded,
         active,
