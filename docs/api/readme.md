@@ -51,9 +51,25 @@ The parent instance when the current instance has been mounted as [child compone
 
 ## Instance methods
 
-### `$log(content)`
+### `$log(…content)`
 
 Can be used to log content to the console when the `instance.$options.log` options is set to true, either via the `config` getter or via the `data-options` attribute.
+
+### `$on(event, callback)`
+
+Bind a callback function to an event emitted by the instance. Returns a function to unbind the callback from the event.
+
+### `$once(event, callback)`
+
+Similar as the `$on` method, but the callback function will be detached from the event after being called once.
+
+### `$off(event[, callback])`
+
+Unbind a callback function from an event emitted by the instance. If no callback function is provided, all previously binded callbacks will be removed.
+
+### `$emit(event[, …args])`
+
+Emit an event from the current instance, with optional custom arguments.
 
 ### `$mount()`
 
