@@ -59,7 +59,44 @@ export default class Component extends withIntersectionObserver(Base, {
     }
   }
 }
+```
 
+Or by setting an `intersectionObserver` object in the class configuration:
+
+```js{3,8-10}
+import { Base } from '@studiometa/js-toolkit/abstracts';
+import { withIntersectionObserver } from '@studiometa/js-toolkit/decorators';
+
+export default class Component extends withIntersectionObserver(Base) {
+  get config() {
+    return {
+      name: "Component",
+      intersectionObserver: {
+        threshold: 0.5,
+      },
+    };
+  }
+
+  intersected(entries) {
+    if (entries[0].isIntersecting) {
+      this.isVisible = true;
+    }
+  }
+}
+```
+
+Or at the instance level in the `data-options` attribute of the rool element:
+
+```html{3-7}
+<div
+  data-component="Component"
+  data-options='{
+    "intersectionObserver": {
+      "threshold": 0.5
+    }
+  }'>
+  ...
+</div>
 ```
 
 ## API

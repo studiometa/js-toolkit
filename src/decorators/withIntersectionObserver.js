@@ -5,8 +5,8 @@ import { debug } from '../abstracts/Base/utils';
  * @param  {Number} length The length of the array.
  * @return {Array}        An array of number.
  */
-function createArrayOfNumber(length = 10) {
-  return [...new Array(length)].map((val, index) => index / length);
+function createArrayOfNumber(length) {
+  return [...new Array(length + 1)].map((val, index) => index / length);
 }
 
 /**
@@ -14,6 +14,13 @@ function createArrayOfNumber(length = 10) {
  */
 export default (BaseClass, defaultOptions = { threshold: createArrayOfNumber(100) }) =>
   class extends BaseClass {
+    /**
+     * Add the `intersected` method to the list of method to exclude from the `autoBind` call.
+     */
+    get _excludeFromAutoBind() {
+      return [...(super._excludeFromAutoBind || []), 'intersected'];
+    }
+
     /**
      * Create an observer when the class in instantiated.
      *
@@ -29,14 +36,16 @@ export default (BaseClass, defaultOptions = { threshold: createArrayOfNumber(100
 
       this.$observer = new IntersectionObserver(
         entries => {
-          if (typeof this.intersected === 'function') {
-            debug(this, 'intersected', entries);
-            this.$emit('intersected', entries);
-            this.intersected(entries);
-          }
+          debug(this, 'intersected', entries);
+          this.$emit('intersected', entries);
+          this.intersected(entries);
         },
         { ...defaultOptions, ...(this.$options.intersectionObserver || {}) }
       );
+
+      if (this.$isMounted) {
+        this.$observer.observe(this.$el);
+      }
 
       this.$on('mounted', () => {
         this.$observer.observe(this.$el);

@@ -12,7 +12,7 @@ module.exports = {
     'class-methods-use-this': 'off',
     'no-underscore-dangle': [
       'error',
-      { allow: ['__base__', '__isChild__', '__isBase__', '__isAsync__'] },
+      { allow: ['__base__', '__isChild__', '__isBase__', '__isAsync__', '_excludeFromAutoBind'] },
     ],
   },
   settings: {
