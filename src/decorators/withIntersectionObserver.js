@@ -27,10 +27,11 @@ export default (BaseClass, defaultOptions = { threshold: createArrayOfNumber(100
         return this;
       }
 
-      this.observer = new IntersectionObserver(
+      this.$observer = new IntersectionObserver(
         entries => {
           if (typeof this.intersected === 'function') {
             debug(this, 'intersected', entries);
+            this.$emit('intersected', entries);
             this.intersected(entries);
           }
         },
@@ -38,11 +39,11 @@ export default (BaseClass, defaultOptions = { threshold: createArrayOfNumber(100
       );
 
       this.$on('mounted', () => {
-        this.observer.observe(this.$el);
+        this.$observer.observe(this.$el);
       });
 
       this.$on('destroyed', () => {
-        this.observer.unobserve(this.$el);
+        this.$observer.unobserve(this.$el);
       });
 
       return this;
