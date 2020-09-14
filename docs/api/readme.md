@@ -163,14 +163,18 @@ class Foo extends Base {
 }
 ```
 
-### `on＜Refname＞＜Event＞` <Badge vertical="middle" text="Event handlers" />
+### `on＜RefOrChildName＞＜Event＞` <Badge vertical="middle" text="Event handlers" />
 
-Methods following this pattern will be executed when the corresponding event is triggered on the corresponding ref element. This will work for native DOM events as well as components' events when the ref is a component.
+Methods following this pattern will be executed when the corresponding event is triggered on the corresponding ref or child element.
 
 **Arguments**
 - `event|...args` ([`Event`](https://developer.mozilla.org/en-US/docs/Web/API/Event) or `mixed`): the event object when triggered from a native DOM event, the event arguments when triggered by a component
 - `index` (`Number`): the index of the ref triggering the event when multiple refs exists
--
+
+:::warning
+Native DOM events will only be binded to ref elements and component's events to child components.
+:::
+
 **Examples**
 ```html{2-3,14-17}
 <div data-component="Foo">
@@ -198,7 +202,7 @@ Methods following this pattern will be executed when the corresponding event is 
 
 ```html{2,18-20,24-25}
 <div data-component="Foo">
-  <div data-ref="baz" data-component="Baz"></div>
+  <div data-component="Baz"></div>
 </div>
 
 <script>
