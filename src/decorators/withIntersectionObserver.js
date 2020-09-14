@@ -31,7 +31,7 @@ export default (BaseClass, defaultOptions = { threshold: createArrayOfNumber(100
       super(element);
 
       if (!this.intersected || typeof this.intersected !== 'function') {
-        return this;
+        throw new Error('[withIntersectionObserver] The `intersected` method must be defined.');
       }
 
       this.$observer = new IntersectionObserver(

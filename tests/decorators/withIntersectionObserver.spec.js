@@ -45,7 +45,9 @@ describe('The withIntersectionObserver decorator', () => {
       }
     }
     const div = document.createElement('div');
-    const foo = new Foo(div);
-    expect(foo.$observer).toBeUndefined();
+    expect(() => {
+      // eslint-disable-next-line no-unused-vars
+      const foo = new Foo(div);
+    }).toThrow(/withIntersectionObserver/);
   });
 });
