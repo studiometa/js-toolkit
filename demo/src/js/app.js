@@ -1,5 +1,5 @@
-import { Base, Modal, Tabs, Accordion } from '../../../src';
-import { withBreakpointObserver } from '../../../src/decorators';
+import { Base, Modal, Tabs, Accordion } from '~/src';
+import { withBreakpointObserver } from '~/src/decorators';
 import BreakpointManagerDemo from './components/BreakPointManagerDemo';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo';
 
@@ -7,6 +7,7 @@ class App extends Base {
   get config() {
     return {
       name: 'App',
+      log: true,
       components: {
         Accordion,
         BreakpointManagerDemo,
@@ -22,6 +23,10 @@ class App extends Base {
 
   mounted() {
     this.$log('Mounted 🎉');
+  }
+
+  onModalOpen(...args) {
+    this.$log('onModalOpen', ...args);
   }
 
   loaded() {

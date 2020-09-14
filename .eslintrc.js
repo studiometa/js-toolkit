@@ -10,14 +10,15 @@ module.exports = {
   },
   rules: {
     'class-methods-use-this': 'off',
-    'no-underscore-dangle': ['error', { allow: ['__base__', '__isChild__', '__isBase__'] }],
+    'no-underscore-dangle': [
+      'error',
+      { allow: ['__base__', '__isChild__', '__isBase__', '__isAsync__', '_excludeFromAutoBind'] },
+    ],
   },
   settings: {
     'import/resolver': {
-      alias: [
-        ['~', './src'],
-      ],
-    }
+      alias: [['~', './src']],
+    },
   },
   overrides: [
     {
