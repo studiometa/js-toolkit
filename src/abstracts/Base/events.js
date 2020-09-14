@@ -52,6 +52,7 @@ function bindRefsEvents(instance, eventMethods) {
           debug(instance, 'binding ref event', refName, eventName);
 
           if ($ref.constructor && $ref.constructor.__isBase__) {
+            // eslint-disable-next-line no-param-reassign
             $ref = $ref.$el;
           }
 
