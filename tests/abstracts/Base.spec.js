@@ -130,6 +130,62 @@ describe('A Base instance methods', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
+  it('should bind methods to refs and children', () => {
+    const fn = jest.fn();
+
+    class Baz extends Foo {
+      onClick() {
+        this.$emit('open', 'baz');
+      }
+    }
+
+    class Bar extends Foo {
+      get config() {
+        return {
+          ...(super.config || {}),
+          components: {
+            Baz,
+          },
+        };
+      }
+
+      onFooClick() {
+        fn();
+      }
+
+      onBazOpen(...args) {
+        fn(...args);
+      }
+
+      onBazFocus() {
+        fn('focus');
+      }
+    }
+
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div data-ref="foo"></div>
+      <div data-component="Baz"></div>
+      <div data-ref="baz" data-component="Baz"></div>
+    `;
+
+    const bar = new Bar(div);
+    div.querySelector('[data-ref="foo"]').click();
+    expect(fn).toHaveBeenCalledTimes(1);
+    div.querySelector('[data-component="Baz"]').click();
+    expect(fn).toHaveBeenLastCalledWith('baz', 0);
+    div.querySelector('[data-component="Baz"]').dispatchEvent(new CustomEvent('focus'));
+    expect(fn).toHaveBeenLastCalledWith('baz', 0);
+    expect(fn).toHaveBeenCalledTimes(2);
+    div.querySelector('[data-ref="baz"]').dispatchEvent(new CustomEvent('focus'));
+    expect(fn).toHaveBeenLastCalledWith('focus');
+    expect(fn).toHaveBeenCalledTimes(3);
+    bar.$destroy();
+    div.querySelector('[data-component="Baz"]').click();
+    div.querySelector('[data-component="Baz"]').dispatchEvent(new CustomEvent('focus'));
+    expect(fn).toHaveBeenCalledTimes(3);
+  });
+
   it('should not find children if none provided', () => {
     class Bar extends Base {
       get config() {

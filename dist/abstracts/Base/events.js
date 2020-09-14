@@ -20,6 +20,8 @@ var _utils = require("./utils");
  * @return {Array}          A list of methods to unbind the events.
  */
 function bindEvents(instance) {
+  var _this = this;
+
   var unbindMethods = []; // Bind method to events on refs
 
   var eventMethods = (0, _getAllProperties.default)(instance).filter(function (_ref) {
@@ -49,15 +51,35 @@ function bindEvents(instance) {
       $refs.forEach(function ($ref, index) {
         var eventName = eventMethod.replace(refEventMethod, '').toLowerCase();
 
-        var handler = function handler(event) {
-          (0, _utils.debug)(instance, eventMethod, $ref, event, index);
-          instance[eventMethod](event, index);
+        var handler = function handler() {
+          for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          _utils.debug.apply(void 0, [_this, eventMethod, $ref].concat(args, [index]));
+
+          _this[eventMethod].apply(_this, args.concat([index]));
         };
 
-        $ref.addEventListener(eventName, handler);
-        unbindMethods.push(function () {
-          $ref.removeEventListener(eventName, handler);
-        });
+        var unbindMethod = function unbindMethod() {};
+
+        if ($ref.constructor && $ref.constructor.__isBase__) {
+          var unbindComponentEvent = $ref.$on(eventName, handler);
+          $ref.$el.addEventListener(eventName, handler);
+
+          unbindMethod = function unbindMethod() {
+            unbindComponentEvent();
+            $ref.$el.removeEventListener(eventName, handler);
+          };
+        } else {
+          $ref.addEventListener(eventName, handler);
+
+          unbindMethod = function unbindMethod() {
+            $ref.removeEventListener(eventName, handler);
+          };
+        }
+
+        unbindMethods.push(unbindMethod);
       });
     });
     eventMethods = eventMethods.filter(function (_ref9) {
@@ -73,9 +95,14 @@ function bindEvents(instance) {
 
     var eventName = eventMethod.replace(/^on/, '').toLowerCase();
 
-    var handler = function handler(event) {
-      (0, _utils.debug)(instance, eventMethod, instance.$el, event);
-      instance[eventMethod](event);
+    var handler = function handler() {
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      _utils.debug.apply(void 0, [_this, eventMethod, _this.$el].concat(args));
+
+      _this[eventMethod].apply(_this, args);
     };
 
     instance.$el.addEventListener(eventName, handler);
