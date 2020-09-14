@@ -63,7 +63,7 @@ export default class Component extends withIntersectionObserver(Base, {
 
 Or by setting an `intersectionObserver` object in the class configuration:
 
-```js{3,8-10}
+```js{8-10}
 import { Base } from '@studiometa/js-toolkit/abstracts';
 import { withIntersectionObserver } from '@studiometa/js-toolkit/decorators';
 
