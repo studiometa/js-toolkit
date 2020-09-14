@@ -13,9 +13,13 @@ var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/cl
 
 var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
 
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
 var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _get2 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
 
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
 
@@ -36,9 +40,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
  * @param  {Number} length The length of the array.
  * @return {Array}        An array of number.
  */
-function createArrayOfNumber() {
-  var length = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 10;
-  return (0, _toConsumableArray2.default)(new Array(length)).map(function (val, index) {
+function createArrayOfNumber(length) {
+  return (0, _toConsumableArray2.default)(new Array(length + 1)).map(function (val, index) {
     return index / length;
   });
 }
@@ -56,12 +59,24 @@ var _default = function _default(BaseClass) {
 
     var _super = _createSuper(_class);
 
-    /**
-     * Create an observer when the class in instantiated.
-     *
-     * @param  {HTMLElement} element The component's root element.
-     * @return {Base}                The class instace.
-     */
+    (0, _createClass2.default)(_class, [{
+      key: "_excludeFromAutoBind",
+
+      /**
+       * Add the `intersected` method to the list of method to exclude from the `autoBind` call.
+       */
+      get: function get() {
+        return [].concat((0, _toConsumableArray2.default)((0, _get2.default)((0, _getPrototypeOf2.default)(_class.prototype), "_excludeFromAutoBind", this) || []), ['intersected']);
+      }
+      /**
+       * Create an observer when the class in instantiated.
+       *
+       * @param  {HTMLElement} element The component's root element.
+       * @return {Base}                The class instace.
+       */
+
+    }]);
+
     function _class(element) {
       var _this;
 
@@ -69,23 +84,27 @@ var _default = function _default(BaseClass) {
       _this = _super.call(this, element);
 
       if (!_this.intersected || typeof _this.intersected !== 'function') {
-        return (0, _possibleConstructorReturn2.default)(_this, (0, _assertThisInitialized2.default)(_this));
+        throw new Error('[withIntersectionObserver] The `intersected` method must be defined.');
       }
 
-      _this.observer = new IntersectionObserver(function (entries) {
-        if (typeof _this.intersected === 'function') {
-          (0, _utils.debug)((0, _assertThisInitialized2.default)(_this), 'intersected', entries);
+      _this.$observer = new IntersectionObserver(function (entries) {
+        (0, _utils.debug)((0, _assertThisInitialized2.default)(_this), 'intersected', entries);
 
-          _this.intersected(entries);
-        }
+        _this.$emit('intersected', entries);
+
+        _this.intersected(entries);
       }, _objectSpread(_objectSpread({}, defaultOptions), _this.$options.intersectionObserver || {}));
 
+      if (_this.$isMounted) {
+        _this.$observer.observe(_this.$el);
+      }
+
       _this.$on('mounted', function () {
-        _this.observer.observe(_this.$el);
+        _this.$observer.observe(_this.$el);
       });
 
       _this.$on('destroyed', function () {
-        _this.observer.unobserve(_this.$el);
+        _this.$observer.unobserve(_this.$el);
       });
 
       return (0, _possibleConstructorReturn2.default)(_this, (0, _assertThisInitialized2.default)(_this));
