@@ -23,6 +23,14 @@ function getRefs(instance, element) {
     var refName = $ref.dataset.ref;
     var $realRef = $ref.__base__ ? $ref.__base__ : $ref;
 
+    if (refName.endsWith('[]')) {
+      refName = refName.replace(/\[\]$/, '');
+
+      if (!$refs[refName]) {
+        $refs[refName] = [];
+      }
+    }
+
     if ($refs[refName]) {
       if (Array.isArray($refs[refName])) {
         $refs[refName].push($realRef);
