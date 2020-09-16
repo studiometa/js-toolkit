@@ -45,7 +45,7 @@ export default class Lazyload extends withIntersectionObserver(Base) {
         to: loaded,
       });
       setClassesOrStyles(this.$el, loaded);
-      this.$destroy();
+      this.$terminate();
     };
     img.src = src;
   }
