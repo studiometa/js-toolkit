@@ -114,6 +114,23 @@ describe('A Base instance methods', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
+  it('should be able to be terminated', () => {
+    const fn = jest.fn();
+    class Bar extends Foo {
+      terminated() {
+        fn('method');
+      }
+    }
+    const div = document.createElement('div');
+    const bar = new Bar(div);
+    expect(bar).toEqual(div.__base__);
+    bar.$on('terminated', () => fn('event'));
+    bar.$terminate();
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(fn).toHaveBeenNthCalledWith(1, 'event');
+    expect(fn).toHaveBeenNthCalledWith(2, 'method');
+  });
+
   it('should bind methods to the root element', () => {
     const fn = jest.fn();
     class Bar extends Foo {
@@ -200,6 +217,29 @@ describe('A Base instance methods', () => {
     }
     expect(foo.$children).toEqual({});
     expect(new Baz(document.createElement('div')).$children).toEqual({});
+  });
+
+  it('should not find terminated children', () => {
+    class Bar extends Base {
+      get config() {
+        return { name: 'Bar' };
+      }
+    }
+
+    class Baz extends Base {
+      get config() {
+        return { name: 'Baz', components: { Bar } };
+      }
+    }
+
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div data-component="Bar"></div>
+    `;
+    const baz = new Baz(div);
+    expect(baz.$children).toEqual({ Bar: [div.firstElementChild.__base__] });
+    div.firstElementChild.__base__.$terminate();
+    expect(baz.$children).toEqual({});
   });
 
   it('should listen to the window.onload event', () => {
