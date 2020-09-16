@@ -91,6 +91,7 @@ export default class Base extends EventManager {
     if (!this.$el.__base__) {
       Object.defineProperty(this.$el, '__base__', {
         get: () => this,
+        configurable: true,
       });
     }
 
@@ -179,7 +180,7 @@ export default class Base extends EventManager {
     // First, destroy the component.
     this.$destroy();
 
-    // Execture the `terminated` hook if it exists
+    // Execute the `terminated` hook if it exists
     callMethod(this, 'terminated');
 
     // Delete the reference to the instance
