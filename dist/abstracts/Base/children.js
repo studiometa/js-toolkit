@@ -83,7 +83,15 @@ function getChildren(instance, element, components) {
 
     acc[name] = elements.map(function (el) {
       return getChild(el, ComponentClass, instance);
+    }) // Filter out terminated children
+    .filter(function (el) {
+      return el !== 'terminated';
     });
+
+    if (acc[name].length === 0) {
+      delete acc[name];
+    }
+
     return acc;
   }, {});
   instance.$emit('get:children', children);
