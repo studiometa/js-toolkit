@@ -226,7 +226,7 @@ export default class Base extends EventManager {
       );
     }
 
-    return getComponentElements(nameOrSelector).map(el => new this(el));
+    return getComponentElements(nameOrSelector).map((el) => new this(el));
   }
 }
 
