@@ -235,6 +235,14 @@ Update the chidlren list from the DOM, and mount the new ones. This method can b
 
 Destroy the component and its children, will trigger the `destroyed` lifecycle method.
 
+### `$terminate()`
+
+@todo
+
+### `$factory(nameOrSelector)`
+
+@todo
+
 ## Class getters
 
 ### `config`
@@ -412,6 +420,7 @@ Native DOM events will only be binded to ref elements and component's events to 
 ### `moved`
 ### `ticked`
 ### `destroyed`
+### `terminated`
 ### `get:options`
 ### `get:refs`
 ### `get:children`
