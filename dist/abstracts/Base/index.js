@@ -14,7 +14,7 @@ import nanoid from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind';
 import EventManager from '../EventManager';
 import { callMethod, debug } from './utils';
-import { getChildren } from './children';
+import { getChildren, getComponentElements } from './children';
 import { getOptions, setOptions } from './options';
 import { getRefs } from './refs';
 import { mountComponents, destroyComponents } from './components';
@@ -257,13 +257,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
         throw new Error('The $factory method requires a component’s name or selector to be specified.');
       }
 
-      var elements = document.querySelectorAll("[data-component=\"".concat(nameOrSelector, "\"]"));
-
-      if (elements.length === 0) {
-        elements = document.querySelectorAll(nameOrSelector);
-      }
-
-      return Array.from(elements).map(function (el) {
+      return getComponentElements(nameOrSelector).map(function (el) {
         return new _this2(el);
       });
     }
