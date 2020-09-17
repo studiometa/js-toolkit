@@ -321,6 +321,22 @@ function getChild(el, ComponentClass, parent) {
   return asyncComponent;
 }
 /**
+ * Get a list of elements based on the name of a component.
+ * @param  {String}         nameOrSelector The name or selector to used for this component.
+ * @return {Array<Element>}                A list of elements on which the component should be mounted.
+ */
+
+
+function getComponentElements(nameOrSelector) {
+  let elements = document.querySelectorAll(`[data-component="${nameOrSelector}"]`); // If no child component found with the default selector, try a classic DOM selector
+
+  if (elements.length === 0) {
+    elements = document.querySelectorAll(nameOrSelector);
+  }
+
+  return Array.from(elements);
+}
+/**
  *
  * @param  {Base}        instance   The component's instance.
  * @param  {HTMLElement} element    The component's root element
@@ -328,15 +344,9 @@ function getChild(el, ComponentClass, parent) {
  * @return {null|Object}            Returns `null` if no child components are defined or an object of all child component instances
  */
 
-
 function getChildren(instance, element, components) {
   const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
-    const selector = `[data-component="${name}"]`;
-    let elements = Array.from(element.querySelectorAll(selector)); // If no child component found with the default selector, the name must be a DOM selector
-
-    if (elements.length === 0) {
-      elements = Array.from(element.querySelectorAll(name));
-    }
+    const elements = getComponentElements(name);
 
     if (elements.length === 0) {
       return acc;
@@ -1861,6 +1871,21 @@ class Base extends EventManager {
       configurable: false,
       writable: false
     });
+  }
+  /**
+   * Factory method to generate multiple instance of the class.
+   *
+   * @param  {String}      selector The selector on which to mount each instance.
+   * @return {Array<Base>}          A list of the created instance.
+   */
+
+
+  static $factory(nameOrSelector) {
+    if (!nameOrSelector) {
+      throw new Error('The $factory method requires a component’s name or selector to be specified.');
+    }
+
+    return getComponentElements(nameOrSelector).map(el => new this(el));
   }
 
 }
