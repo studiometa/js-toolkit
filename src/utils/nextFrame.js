@@ -15,7 +15,7 @@ export const getRaf = () =>
  */
 export default function nextFrame(fn = () => {}) {
   const raf = getRaf();
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     raf(() => raf(() => resolve(fn())));
   });
 }

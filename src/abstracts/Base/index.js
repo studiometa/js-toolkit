@@ -126,7 +126,7 @@ export default class Base extends EventManager {
 
     this.$on('destroyed', () => {
       this.$isMounted = false;
-      unbindMethods.forEach(method => method());
+      unbindMethods.forEach((method) => method());
       destroyComponents(this);
     });
 

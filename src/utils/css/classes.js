@@ -10,7 +10,7 @@ function setClasses(element, classNames, method = 'add') {
     return;
   }
 
-  classNames.split(' ').forEach(className => {
+  classNames.split(' ').forEach((className) => {
     element.classList[method](className);
   });
 }
