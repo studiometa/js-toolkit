@@ -161,6 +161,14 @@ var Base = /*#__PURE__*/function (_EventManager) {
       _this.$isMounted = true;
     });
 
+    _this.$on('updated', function () {
+      unbindMethods.forEach(function (method) {
+        return method();
+      });
+      (0, _components.mountComponents)((0, _assertThisInitialized2.default)(_this));
+      unbindMethods = [].concat((0, _toConsumableArray2.default)((0, _services.default)((0, _assertThisInitialized2.default)(_this))), (0, _toConsumableArray2.default)((0, _events.default)((0, _assertThisInitialized2.default)(_this))));
+    });
+
     _this.$on('destroyed', function () {
       _this.$isMounted = false;
       unbindMethods.forEach(function (method) {
@@ -219,7 +227,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
     key: "$update",
     value: function $update() {
       (0, _utils.debug)(this, '$update');
-      (0, _components.mountComponents)(this);
+      (0, _utils.callMethod)(this, 'updated');
       return this;
     }
     /**
