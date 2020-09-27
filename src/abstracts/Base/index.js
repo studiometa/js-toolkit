@@ -162,6 +162,15 @@ export default class Base extends EventManager {
   }
 
   /**
+   * Update the instance children.
+   */
+  $update() {
+    debug(this, '$update');
+    mountComponents(this);
+    return this;
+  }
+
+  /**
    * Trigger the `destroyed` callback.
    */
   $destroy() {
