@@ -114,6 +114,43 @@ describe('A Base instance methods', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
+  it('should be able to update its child components.', () => {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div data-component="Bar"></div>
+      <div data-component="Bar"></div>
+    `;
+
+    class Bar extends Foo {}
+    class Baz extends Foo {}
+
+    class App extends Base {
+      get config() {
+        return {
+          name: 'App',
+          components: {
+            Bar,
+            Baz,
+          },
+        };
+      }
+    }
+
+    const app = new App(div);
+    expect(app.$children.Bar).toHaveLength(2);
+    expect(app.$children.Bar[0].$isMounted).toBe(true);
+    div.innerHTML = `
+      <div data-component="Baz"></div>
+      <div data-component="Baz"></div>
+    `;
+
+    app.$update();
+
+    expect(app.$children.Bar).toBeUndefined();
+    expect(app.$children.Baz).toHaveLength(2);
+    expect(app.$children.Baz[0].$isMounted).toBe(true);
+  });
+
   it('should be able to be terminated', () => {
     const fn = jest.fn();
     class Bar extends Foo {
@@ -331,10 +368,10 @@ describe('A Base instance methods', () => {
   });
 
   it('should resolve async components', async () => {
-    const getFoo = jest.fn(resolve => resolve(Foo));
-    const getBaz = jest.fn(resolve => resolve({ default: Foo }));
-    const getBoz = jest.fn(resolve => setTimeout(() => resolve(Foo), 100));
-    const getBuz = jest.fn(resolve => setTimeout(() => resolve(Foo), 200));
+    const getFoo = jest.fn((resolve) => resolve(Foo));
+    const getBaz = jest.fn((resolve) => resolve({ default: Foo }));
+    const getBoz = jest.fn((resolve) => setTimeout(() => resolve(Foo), 100));
+    const getBuz = jest.fn((resolve) => setTimeout(() => resolve(Foo), 200));
 
     class Bar extends Base {
       get config() {
