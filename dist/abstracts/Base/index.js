@@ -212,6 +212,17 @@ var Base = /*#__PURE__*/function (_EventManager) {
       return this;
     }
     /**
+     * Update the instance children.
+     */
+
+  }, {
+    key: "$update",
+    value: function $update() {
+      (0, _utils.debug)(this, '$update');
+      (0, _components.mountComponents)(this);
+      return this;
+    }
+    /**
      * Trigger the `destroyed` callback.
      */
 
