@@ -8,7 +8,7 @@
 export function getRefs(instance, element) {
   const allRefs = Array.from(element.querySelectorAll(`[data-ref]`));
   const childrenRefs = Array.from(element.querySelectorAll(`:scope [data-component] [data-ref]`));
-  const elements = allRefs.filter(ref => !childrenRefs.includes(ref));
+  const elements = allRefs.filter((ref) => !childrenRefs.includes(ref));
 
   const refs = elements.reduce(($refs, $ref) => {
     let refName = $ref.dataset.ref;
