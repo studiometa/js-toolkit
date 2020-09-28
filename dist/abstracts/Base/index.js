@@ -144,7 +144,8 @@ var Base = /*#__PURE__*/function (_EventManager) {
       Object.defineProperty(_this.$el, '__base__', {
         get: function get() {
           return (0, _assertThisInitialized2.default)(_this);
-        }
+        },
+        configurable: true
       });
     } // Autobind all methods to the instance
 
@@ -158,6 +159,14 @@ var Base = /*#__PURE__*/function (_EventManager) {
       (0, _components.mountComponents)((0, _assertThisInitialized2.default)(_this));
       unbindMethods = [].concat((0, _toConsumableArray2.default)((0, _services.default)((0, _assertThisInitialized2.default)(_this))), (0, _toConsumableArray2.default)((0, _events.default)((0, _assertThisInitialized2.default)(_this))));
       _this.$isMounted = true;
+    });
+
+    _this.$on('updated', function () {
+      unbindMethods.forEach(function (method) {
+        return method();
+      });
+      (0, _components.mountComponents)((0, _assertThisInitialized2.default)(_this));
+      unbindMethods = [].concat((0, _toConsumableArray2.default)((0, _services.default)((0, _assertThisInitialized2.default)(_this))), (0, _toConsumableArray2.default)((0, _events.default)((0, _assertThisInitialized2.default)(_this))));
     });
 
     _this.$on('destroyed', function () {
@@ -211,6 +220,17 @@ var Base = /*#__PURE__*/function (_EventManager) {
       return this;
     }
     /**
+     * Update the instance children.
+     */
+
+  }, {
+    key: "$update",
+    value: function $update() {
+      (0, _utils.debug)(this, '$update');
+      (0, _utils.callMethod)(this, 'updated');
+      return this;
+    }
+    /**
      * Trigger the `destroyed` callback.
      */
 
@@ -220,6 +240,29 @@ var Base = /*#__PURE__*/function (_EventManager) {
       (0, _utils.debug)(this, '$destroy');
       (0, _utils.callMethod)(this, 'destroyed');
       return this;
+    }
+    /**
+     * Terminate a child instance when it is not needed anymore.
+     * @return {void}
+     */
+
+  }, {
+    key: "$terminate",
+    value: function $terminate() {
+      (0, _utils.debug)(this, '$terminate'); // First, destroy the component.
+
+      this.$destroy(); // Execute the `terminated` hook if it exists
+
+      (0, _utils.callMethod)(this, 'terminated'); // Delete the reference to the instance
+
+      delete this.$el.__base__; // And update its status to prevent re-instantiation when accessing the
+      // parent's `$children` property
+
+      Object.defineProperty(this.$el, '__base__', {
+        value: 'terminated',
+        configurable: false,
+        writable: false
+      });
     }
   }]);
   return Base;
