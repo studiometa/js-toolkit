@@ -124,9 +124,15 @@ export default class Base extends EventManager {
       this.$isMounted = true;
     });
 
+    this.$on('updated', () => {
+      unbindMethods.forEach((method) => method());
+      mountComponents(this);
+      unbindMethods = [...bindServices(this), ...bindEvents(this)];
+    });
+
     this.$on('destroyed', () => {
       this.$isMounted = false;
-      unbindMethods.forEach(method => method());
+      unbindMethods.forEach((method) => method());
       destroyComponents(this);
     });
 
@@ -158,6 +164,15 @@ export default class Base extends EventManager {
   $mount() {
     debug(this, '$mount');
     callMethod(this, 'mounted');
+    return this;
+  }
+
+  /**
+   * Update the instance children.
+   */
+  $update() {
+    debug(this, '$update');
+    callMethod(this, 'updated');
     return this;
   }
 

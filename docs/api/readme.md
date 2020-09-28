@@ -77,6 +77,10 @@ Emit an event from the current instance, with optional custom arguments.
 
 Mount the component and its children, will trigger the `mounted` lifecycle method.
 
+### `$update()`
+
+Update the chidlren list from the DOM, and mount the new ones. This method can be used when inserting new content loaded over Ajax.
+
 ### `$destroy()`
 
 Destroy the component and its children, will trigger the `destroyed` lifecycle method.
