@@ -1,14 +1,4 @@
-"use strict";
-
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = useFocusTrap;
-
-var _keyCodes = _interopRequireDefault(require("./keyCodes"));
-
+import keyCodes from './keyCodes';
 var FOCUSABLE_ELEMENTS = ['a[href]:not([tabindex^="-"]):not([inert])', 'area[href]:not([tabindex^="-"]):not([inert])', 'input:not([disabled]):not([inert])', 'select:not([disabled]):not([inert])', 'textarea:not([disabled]):not([inert])', 'button:not([disabled]):not([inert])', 'iframe:not([tabindex^="-"]):not([inert])', 'audio:not([tabindex^="-"]):not([inert])', 'video:not([tabindex^="-"]):not([inert])', '[contenteditable]:not([tabindex^="-"]):not([inert])', '[tabindex]:not([tabindex^="-"]):not([inert])'];
 /**
  * Use a trap/untrap tabs logic.
@@ -16,7 +6,7 @@ var FOCUSABLE_ELEMENTS = ['a[href]:not([tabindex^="-"]):not([inert])', 'area[hre
  * @return {Object} An object containing the trap and untrap methods.
  */
 
-function useFocusTrap() {
+export default function useFocusTrap() {
   var focusedBefore;
   /**
    * Save the current active element.
@@ -37,7 +27,7 @@ function useFocusTrap() {
 
 
   function trap(element, event) {
-    if (event.keyCode !== _keyCodes.default.TAB) {
+    if (event.keyCode !== keyCodes.TAB) {
       return;
     } // Save the previous focused element
 

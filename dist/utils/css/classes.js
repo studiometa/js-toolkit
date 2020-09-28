@@ -1,12 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.add = add;
-exports.remove = remove;
-exports.toggle = toggle;
-
 /**
  * Manage a list of classes as string on an element.
  *
@@ -34,7 +25,7 @@ function setClasses(element, classNames) {
  */
 
 
-function add(element, classNames) {
+export function add(element, classNames) {
   setClasses(element, classNames);
 }
 /**
@@ -45,8 +36,7 @@ function add(element, classNames) {
  * @return {void}
  */
 
-
-function remove(element, classNames) {
+export function remove(element, classNames) {
   setClasses(element, classNames, 'remove');
 }
 /**
@@ -57,8 +47,7 @@ function remove(element, classNames) {
  * @return {void}
  */
 
-
-function toggle(element, classNames) {
+export function toggle(element, classNames) {
   setClasses(element, classNames, 'toggle');
 }
 //# sourceMappingURL=classes.js.map

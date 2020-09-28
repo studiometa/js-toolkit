@@ -1,50 +1,25 @@
-"use strict";
+import _toConsumableArray from "@babel/runtime/helpers/toConsumableArray";
+import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
+import _assertThisInitialized from "@babel/runtime/helpers/assertThisInitialized";
+import _createClass from "@babel/runtime/helpers/createClass";
+import _inherits from "@babel/runtime/helpers/inherits";
+import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
+import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
-
-var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _nonSecure = _interopRequireDefault(require("nanoid/non-secure"));
-
-var _autoBind = _interopRequireDefault(require("../../utils/object/autoBind"));
-
-var _EventManager2 = _interopRequireDefault(require("../EventManager"));
-
-var _utils = require("./utils");
-
-var _children = require("./children");
-
-var _options = require("./options");
-
-var _refs = require("./refs");
-
-var _components = require("./components");
-
-var _services = _interopRequireDefault(require("./services"));
-
-var _events = _interopRequireDefault(require("./events"));
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+import nanoid from 'nanoid/non-secure';
+import autoBind from '../../utils/object/autoBind';
+import EventManager from '../EventManager';
+import { callMethod, debug } from './utils';
+import { getChildren } from './children';
+import { getOptions, setOptions } from './options';
+import { getRefs } from './refs';
+import { mountComponents, destroyComponents } from './components';
+import bindServices from './services';
+import bindEvents from './events';
 /**
  * Page lifecycle class
  *
@@ -56,12 +31,13 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
  * @method scrolled  Fired with debounce when the document is scrolled (`scroll` event)
  * @method destroyed Fired when the window is being unloaded (`unload` event)
  */
+
 var Base = /*#__PURE__*/function (_EventManager) {
-  (0, _inherits2.default)(Base, _EventManager);
+  _inherits(Base, _EventManager);
 
   var _super = _createSuper(Base);
 
-  (0, _createClass2.default)(Base, [{
+  _createClass(Base, [{
     key: "$refs",
 
     /**
@@ -69,7 +45,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
      * @return {Object}
      */
     get: function get() {
-      return (0, _refs.getRefs)(this, this.$el);
+      return getRefs(this, this.$el);
     }
     /**
      * Get the component's children components.
@@ -79,7 +55,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
   }, {
     key: "$children",
     get: function get() {
-      return (0, _children.getChildren)(this, this.$el, this.config.components || {});
+      return getChildren(this, this.$el, this.config.components || {});
     }
     /**
      * Get the component's merged config and options.
@@ -89,7 +65,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
   }, {
     key: "$options",
     get: function get() {
-      return (0, _options.getOptions)(this, this.$el, this.config);
+      return getOptions(this, this.$el, this.config);
     }
     /**
      * Set the components option.
@@ -98,7 +74,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
      */
     ,
     set: function set(newOptions) {
-      (0, _options.setOptions)(this, this.$el, newOptions);
+      setOptions(this, this.$el, newOptions);
     }
     /**
      * Class constructor where all the magic takes place.
@@ -112,7 +88,8 @@ var Base = /*#__PURE__*/function (_EventManager) {
   function Base(element) {
     var _this;
 
-    (0, _classCallCheck2.default)(this, Base);
+    _classCallCheck(this, Base);
+
     _this = _super.call(this);
 
     if (!_this.config) {
@@ -127,9 +104,9 @@ var Base = /*#__PURE__*/function (_EventManager) {
       throw new Error('The root element must be defined.');
     }
 
-    Object.defineProperties((0, _assertThisInitialized2.default)(_this), {
+    Object.defineProperties(_assertThisInitialized(_this), {
       $id: {
-        value: "".concat(_this.config.name, "-").concat((0, _nonSecure.default)())
+        value: "".concat(_this.config.name, "-").concat(nanoid())
       },
       $isMounted: {
         value: false,
@@ -143,21 +120,21 @@ var Base = /*#__PURE__*/function (_EventManager) {
     if (!_this.$el.__base__) {
       Object.defineProperty(_this.$el, '__base__', {
         get: function get() {
-          return (0, _assertThisInitialized2.default)(_this);
+          return _assertThisInitialized(_this);
         },
         configurable: true
       });
     } // Autobind all methods to the instance
 
 
-    (0, _autoBind.default)((0, _assertThisInitialized2.default)(_this), {
-      exclude: ['$mount', '$destroy', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed'].concat((0, _toConsumableArray2.default)(_this._excludeFromAutoBind || []))
+    autoBind(_assertThisInitialized(_this), {
+      exclude: ['$mount', '$destroy', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed'].concat(_toConsumableArray(_this._excludeFromAutoBind || []))
     });
     var unbindMethods = [];
 
     _this.$on('mounted', function () {
-      (0, _components.mountComponents)((0, _assertThisInitialized2.default)(_this));
-      unbindMethods = [].concat((0, _toConsumableArray2.default)((0, _services.default)((0, _assertThisInitialized2.default)(_this))), (0, _toConsumableArray2.default)((0, _events.default)((0, _assertThisInitialized2.default)(_this))));
+      mountComponents(_assertThisInitialized(_this));
+      unbindMethods = [].concat(_toConsumableArray(bindServices(_assertThisInitialized(_this))), _toConsumableArray(bindEvents(_assertThisInitialized(_this))));
       _this.$isMounted = true;
     });
 
@@ -165,8 +142,8 @@ var Base = /*#__PURE__*/function (_EventManager) {
       unbindMethods.forEach(function (method) {
         return method();
       });
-      (0, _components.mountComponents)((0, _assertThisInitialized2.default)(_this));
-      unbindMethods = [].concat((0, _toConsumableArray2.default)((0, _services.default)((0, _assertThisInitialized2.default)(_this))), (0, _toConsumableArray2.default)((0, _events.default)((0, _assertThisInitialized2.default)(_this))));
+      mountComponents(_assertThisInitialized(_this));
+      unbindMethods = [].concat(_toConsumableArray(bindServices(_assertThisInitialized(_this))), _toConsumableArray(bindEvents(_assertThisInitialized(_this))));
     });
 
     _this.$on('destroyed', function () {
@@ -174,22 +151,22 @@ var Base = /*#__PURE__*/function (_EventManager) {
       unbindMethods.forEach(function (method) {
         return method();
       });
-      (0, _components.destroyComponents)((0, _assertThisInitialized2.default)(_this));
+      destroyComponents(_assertThisInitialized(_this));
     }); // Mount class which are not used as another component's child.
 
 
     if (!_this.__isChild__) {
       _this.$mount();
 
-      Object.defineProperty((0, _assertThisInitialized2.default)(_this), '$parent', {
+      Object.defineProperty(_assertThisInitialized(_this), '$parent', {
         get: function get() {
           return null;
         }
       });
     }
 
-    (0, _utils.debug)((0, _assertThisInitialized2.default)(_this), 'constructor', (0, _assertThisInitialized2.default)(_this));
-    return (0, _possibleConstructorReturn2.default)(_this, (0, _assertThisInitialized2.default)(_this));
+    debug(_assertThisInitialized(_this), 'constructor', _assertThisInitialized(_this));
+    return _possibleConstructorReturn(_this, _assertThisInitialized(_this));
   }
   /**
    * Small helper to log stuff.
@@ -199,7 +176,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
    */
 
 
-  (0, _createClass2.default)(Base, [{
+  _createClass(Base, [{
     key: "$log",
     value: function $log() {
       for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
@@ -215,8 +192,8 @@ var Base = /*#__PURE__*/function (_EventManager) {
   }, {
     key: "$mount",
     value: function $mount() {
-      (0, _utils.debug)(this, '$mount');
-      (0, _utils.callMethod)(this, 'mounted');
+      debug(this, '$mount');
+      callMethod(this, 'mounted');
       return this;
     }
     /**
@@ -226,8 +203,8 @@ var Base = /*#__PURE__*/function (_EventManager) {
   }, {
     key: "$update",
     value: function $update() {
-      (0, _utils.debug)(this, '$update');
-      (0, _utils.callMethod)(this, 'updated');
+      debug(this, '$update');
+      callMethod(this, 'updated');
       return this;
     }
     /**
@@ -237,8 +214,8 @@ var Base = /*#__PURE__*/function (_EventManager) {
   }, {
     key: "$destroy",
     value: function $destroy() {
-      (0, _utils.debug)(this, '$destroy');
-      (0, _utils.callMethod)(this, 'destroyed');
+      debug(this, '$destroy');
+      callMethod(this, 'destroyed');
       return this;
     }
     /**
@@ -249,11 +226,11 @@ var Base = /*#__PURE__*/function (_EventManager) {
   }, {
     key: "$terminate",
     value: function $terminate() {
-      (0, _utils.debug)(this, '$terminate'); // First, destroy the component.
+      debug(this, '$terminate'); // First, destroy the component.
 
       this.$destroy(); // Execute the `terminated` hook if it exists
 
-      (0, _utils.callMethod)(this, 'terminated'); // Delete the reference to the instance
+      callMethod(this, 'terminated'); // Delete the reference to the instance
 
       delete this.$el.__base__; // And update its status to prevent re-instantiation when accessing the
       // parent's `$children` property
@@ -265,9 +242,10 @@ var Base = /*#__PURE__*/function (_EventManager) {
       });
     }
   }]);
-  return Base;
-}(_EventManager2.default);
 
-exports.default = Base;
+  return Base;
+}(EventManager);
+
+export { Base as default };
 Base.__isBase__ = true;
 //# sourceMappingURL=index.js.map

@@ -1,32 +1,16 @@
-"use strict";
+import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
+import _createClass from "@babel/runtime/helpers/createClass";
+import _inherits from "@babel/runtime/helpers/inherits";
+import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
+import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
-
-var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
-
-var _resize = _interopRequireDefault(require("../services/resize"));
-
-var _nextFrame = _interopRequireDefault(require("../utils/nextFrame"));
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+import Base from '../abstracts/Base';
+import useResize from '../services/resize';
+import nextFrame from '../utils/nextFrame';
 /**
  * MediaQuery component.
  *
@@ -34,17 +18,19 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
  *   <div data-component="Foo"></div>
  * </div>
  */
+
 var MediaQuery = /*#__PURE__*/function (_Base) {
-  (0, _inherits2.default)(MediaQuery, _Base);
+  _inherits(MediaQuery, _Base);
 
   var _super = _createSuper(MediaQuery);
 
   function MediaQuery() {
-    (0, _classCallCheck2.default)(this, MediaQuery);
+    _classCallCheck(this, MediaQuery);
+
     return _super.apply(this, arguments);
   }
 
-  (0, _createClass2.default)(MediaQuery, [{
+  _createClass(MediaQuery, [{
     key: "mounted",
 
     /**
@@ -54,7 +40,7 @@ var MediaQuery = /*#__PURE__*/function (_Base) {
       var _this = this;
 
       this.test();
-      (0, _nextFrame.default)(function () {
+      nextFrame(function () {
         return _this.test();
       });
     }
@@ -128,7 +114,7 @@ var MediaQuery = /*#__PURE__*/function (_Base) {
   }, {
     key: "currentBreakpoint",
     get: function get() {
-      return (0, _resize.default)().props().breakpoint;
+      return useResize().props().breakpoint;
     }
     /**
      * Get a list of breakpoints in which the child component should be $mounted.
@@ -146,8 +132,9 @@ var MediaQuery = /*#__PURE__*/function (_Base) {
       return [];
     }
   }]);
-  return MediaQuery;
-}(_Base2.default);
 
-exports.default = MediaQuery;
+  return MediaQuery;
+}(Base);
+
+export { MediaQuery as default };
 //# sourceMappingURL=MediaQuery.js.map

@@ -1,58 +1,37 @@
-"use strict";
+import _regeneratorRuntime from "@babel/runtime/regenerator";
+import _toConsumableArray from "@babel/runtime/helpers/toConsumableArray";
+import _asyncToGenerator from "@babel/runtime/helpers/asyncToGenerator";
+import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
+import _objectWithoutProperties from "@babel/runtime/helpers/objectWithoutProperties";
+import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
+import _createClass from "@babel/runtime/helpers/createClass";
+import _inherits from "@babel/runtime/helpers/inherits";
+import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
+import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
 
-var _interopRequireWildcard = require("@babel/runtime/helpers/interopRequireWildcard");
-
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
-
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
-
-var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
-
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
-
-var _objectWithoutProperties2 = _interopRequireDefault(require("@babel/runtime/helpers/objectWithoutProperties"));
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
-
-var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _Base2 = _interopRequireDefault(require("../../abstracts/Base"));
-
-var styles = _interopRequireWildcard(require("../../utils/css/styles"));
-
-var _transition = _interopRequireDefault(require("../../utils/css/transition"));
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+import Base from '../../abstracts/Base';
+import * as styles from '../../utils/css/styles';
+import transition from '../../utils/css/transition';
 /**
  * AccordionItem class.
  */
+
 var AccordionItem = /*#__PURE__*/function (_Base) {
-  (0, _inherits2.default)(AccordionItem, _Base);
+  _inherits(AccordionItem, _Base);
 
   var _super = _createSuper(AccordionItem);
 
   function AccordionItem() {
-    (0, _classCallCheck2.default)(this, AccordionItem);
+    _classCallCheck(this, AccordionItem);
+
     return _super.apply(this, arguments);
   }
 
-  (0, _createClass2.default)(AccordionItem, [{
+  _createClass(AccordionItem, [{
     key: "mounted",
 
     /**
@@ -83,21 +62,22 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
 
       var _this$$options$styles = this.$options.styles,
           container = _this$$options$styles.container,
-          otherStyles = (0, _objectWithoutProperties2.default)(_this$$options$styles, ["container"]);
+          otherStyles = _objectWithoutProperties(_this$$options$styles, ["container"]);
+
       Object.entries(otherStyles).filter(function (_ref) {
-        var _ref2 = (0, _slicedToArray2.default)(_ref, 1),
+        var _ref2 = _slicedToArray(_ref, 1),
             refName = _ref2[0];
 
         return _this.$refs[refName];
       }).forEach(function (_ref3) {
-        var _ref4 = (0, _slicedToArray2.default)(_ref3, 2),
+        var _ref4 = _slicedToArray(_ref3, 2),
             refName = _ref4[0],
             _ref4$ = _ref4[1];
 
         _ref4$ = _ref4$ === void 0 ? {} : _ref4$;
         var open = _ref4$.open,
             closed = _ref4$.closed;
-        (0, _transition.default)(_this.$refs[refName], {
+        transition(_this.$refs[refName], {
           to: _this.isOpen ? open : closed
         }, 'keep');
       });
@@ -142,12 +122,12 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
   }, {
     key: "open",
     value: function () {
-      var _open = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+      var _open = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
         var _this2 = this;
 
         var _this$$options$styles2, container, otherStyles;
 
-        return _regenerator.default.wrap(function _callee$(_context) {
+        return _regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
@@ -166,9 +146,9 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                 styles.remove(this.$refs.container, {
                   visibility: 'invisible'
                 });
-                _this$$options$styles2 = this.$options.styles, container = _this$$options$styles2.container, otherStyles = (0, _objectWithoutProperties2.default)(_this$$options$styles2, ["container"]);
+                _this$$options$styles2 = this.$options.styles, container = _this$$options$styles2.container, otherStyles = _objectWithoutProperties(_this$$options$styles2, ["container"]);
                 _context.next = 10;
-                return Promise.all([(0, _transition.default)(this.$refs.container, {
+                return Promise.all([transition(this.$refs.container, {
                   from: {
                     height: 0
                   },
@@ -185,13 +165,13 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                   }
 
                   return Promise.resolve();
-                })].concat((0, _toConsumableArray2.default)(Object.entries(otherStyles).filter(function (_ref5) {
-                  var _ref6 = (0, _slicedToArray2.default)(_ref5, 1),
+                })].concat(_toConsumableArray(Object.entries(otherStyles).filter(function (_ref5) {
+                  var _ref6 = _slicedToArray(_ref5, 1),
                       refName = _ref6[0];
 
                   return _this2.$refs[refName];
                 }).map(function (_ref7) {
-                  var _ref8 = (0, _slicedToArray2.default)(_ref7, 2),
+                  var _ref8 = _slicedToArray(_ref7, 2),
                       refName = _ref8[0],
                       _ref8$ = _ref8[1];
 
@@ -199,7 +179,7 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                   var open = _ref8$.open,
                       active = _ref8$.active,
                       closed = _ref8$.closed;
-                  return (0, _transition.default)(_this2.$refs[refName], {
+                  return transition(_this2.$refs[refName], {
                     from: closed,
                     active: active,
                     to: open
@@ -228,12 +208,12 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
   }, {
     key: "close",
     value: function () {
-      var _close = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+      var _close = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2() {
         var _this3 = this;
 
         var height, _this$$options$styles3, container, otherStyles;
 
-        return _regenerator.default.wrap(function _callee2$(_context2) {
+        return _regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
@@ -252,9 +232,9 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                 styles.add(this.$refs.content, {
                   position: 'absolute'
                 });
-                _this$$options$styles3 = this.$options.styles, container = _this$$options$styles3.container, otherStyles = (0, _objectWithoutProperties2.default)(_this$$options$styles3, ["container"]);
+                _this$$options$styles3 = this.$options.styles, container = _this$$options$styles3.container, otherStyles = _objectWithoutProperties(_this$$options$styles3, ["container"]);
                 _context2.next = 10;
-                return Promise.all([(0, _transition.default)(this.$refs.container, {
+                return Promise.all([transition(this.$refs.container, {
                   from: {
                     height: "".concat(height, "px")
                   },
@@ -274,13 +254,13 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                   }
 
                   return Promise.resolve();
-                })].concat((0, _toConsumableArray2.default)(Object.entries(otherStyles).filter(function (_ref9) {
-                  var _ref10 = (0, _slicedToArray2.default)(_ref9, 1),
+                })].concat(_toConsumableArray(Object.entries(otherStyles).filter(function (_ref9) {
+                  var _ref10 = _slicedToArray(_ref9, 1),
                       refName = _ref10[0];
 
                   return _this3.$refs[refName];
                 }).map(function (_ref11) {
-                  var _ref12 = (0, _slicedToArray2.default)(_ref11, 2),
+                  var _ref12 = _slicedToArray(_ref11, 2),
                       refName = _ref12[0],
                       _ref12$ = _ref12[1];
 
@@ -288,7 +268,7 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                   var open = _ref12$.open,
                       active = _ref12$.active,
                       closed = _ref12$.closed;
-                  return (0, _transition.default)(_this3.$refs[refName], {
+                  return transition(_this3.$refs[refName], {
                     from: open,
                     active: active,
                     to: closed
@@ -335,8 +315,9 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
       return "content-".concat(this.$id);
     }
   }]);
-  return AccordionItem;
-}(_Base2.default);
 
-exports.default = AccordionItem;
+  return AccordionItem;
+}(Base);
+
+export { AccordionItem as default };
 //# sourceMappingURL=AccordionItem.js.map

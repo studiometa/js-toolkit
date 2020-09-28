@@ -1,30 +1,15 @@
-"use strict";
+import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
+import _createClass from "@babel/runtime/helpers/createClass";
+import _inherits from "@babel/runtime/helpers/inherits";
+import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
+import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
-
-var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
-
-var _debounce = _interopRequireDefault(require("../utils/debounce"));
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+import Service from '../abstracts/Service';
+import debounce from '../utils/debounce';
 /**
  * Resize service
  *
@@ -36,17 +21,19 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
  * props();
  * ```
  */
+
 var Resize = /*#__PURE__*/function (_Service) {
-  (0, _inherits2.default)(Resize, _Service);
+  _inherits(Resize, _Service);
 
   var _super = _createSuper(Resize);
 
   function Resize() {
-    (0, _classCallCheck2.default)(this, Resize);
+    _classCallCheck(this, Resize);
+
     return _super.apply(this, arguments);
   }
 
-  (0, _createClass2.default)(Resize, [{
+  _createClass(Resize, [{
     key: "init",
 
     /**
@@ -57,7 +44,7 @@ var Resize = /*#__PURE__*/function (_Service) {
     value: function init() {
       var _this = this;
 
-      this.handler = (0, _debounce.default)(function () {
+      this.handler = debounce(function () {
         _this.trigger(_this.props);
       }).bind(this);
 
@@ -158,12 +145,12 @@ var Resize = /*#__PURE__*/function (_Service) {
       return typeof window.ResizeObserver !== 'undefined';
     }
   }]);
+
   return Resize;
-}(_Service2.default);
+}(Service);
 
 var resize = null;
-
-var _default = function _default() {
+export default (function () {
   if (!resize) {
     resize = new Resize();
   }
@@ -182,7 +169,5 @@ var _default = function _default() {
     has: has,
     props: props
   };
-};
-
-exports.default = _default;
+});
 //# sourceMappingURL=resize.js.map

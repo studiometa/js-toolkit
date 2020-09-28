@@ -1,39 +1,21 @@
-"use strict";
+import _regeneratorRuntime from "@babel/runtime/regenerator";
+import _asyncToGenerator from "@babel/runtime/helpers/asyncToGenerator";
+import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
+import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
+import _createClass from "@babel/runtime/helpers/createClass";
+import _inherits from "@babel/runtime/helpers/inherits";
+import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
+import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
-
-var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
-
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
-
-var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
-
-var _transition = _interopRequireDefault(require("../utils/css/transition"));
-
-var _focusTrap2 = _interopRequireDefault(require("../utils/focusTrap"));
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-var _focusTrap = (0, _focusTrap2.default)(),
+import Base from '../abstracts/Base';
+import transition from '../utils/css/transition';
+import focusTrap from '../utils/focusTrap';
+
+var _focusTrap = focusTrap(),
     trap = _focusTrap.trap,
     untrap = _focusTrap.untrap,
     saveActiveElement = _focusTrap.saveActiveElement;
@@ -43,16 +25,17 @@ var _focusTrap = (0, _focusTrap2.default)(),
 
 
 var Modal = /*#__PURE__*/function (_Base) {
-  (0, _inherits2.default)(Modal, _Base);
+  _inherits(Modal, _Base);
 
   var _super = _createSuper(Modal);
 
   function Modal() {
-    (0, _classCallCheck2.default)(this, Modal);
+    _classCallCheck(this, Modal);
+
     return _super.apply(this, arguments);
   }
 
-  (0, _createClass2.default)(Modal, [{
+  _createClass(Modal, [{
     key: "mounted",
 
     /**
@@ -72,7 +55,7 @@ var Modal = /*#__PURE__*/function (_Base) {
         this.refModalParentBackup.insertBefore(this.refModalPlaceholder, this.$refs.modal);
         this.refModalUnbindGetRefFilter = this.$on('get:refs', function (refs) {
           Object.entries(refsBackup).forEach(function (_ref) {
-            var _ref2 = (0, _slicedToArray2.default)(_ref, 2),
+            var _ref2 = _slicedToArray(_ref, 2),
                 key = _ref2[0],
                 ref = _ref2[1];
 
@@ -147,10 +130,10 @@ var Modal = /*#__PURE__*/function (_Base) {
   }, {
     key: "open",
     value: function () {
-      var _open = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+      var _open = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
         var _this = this;
 
-        return _regenerator.default.wrap(function _callee$(_context) {
+        return _regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
@@ -167,7 +150,7 @@ var Modal = /*#__PURE__*/function (_Base) {
                 this.isOpen = true;
                 this.$emit('open');
                 return _context.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref4) {
-                  var _ref5 = (0, _slicedToArray2.default)(_ref4, 2),
+                  var _ref5 = _slicedToArray(_ref4, 2),
                       refName = _ref5[0],
                       _ref5$ = _ref5[1];
 
@@ -175,7 +158,7 @@ var Modal = /*#__PURE__*/function (_Base) {
                   var open = _ref5$.open,
                       active = _ref5$.active,
                       closed = _ref5$.closed;
-                  return (0, _transition.default)(_this.$refs[refName], {
+                  return transition(_this.$refs[refName], {
                     from: closed,
                     active: active,
                     to: open
@@ -213,10 +196,10 @@ var Modal = /*#__PURE__*/function (_Base) {
   }, {
     key: "close",
     value: function () {
-      var _close = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+      var _close = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2() {
         var _this2 = this;
 
-        return _regenerator.default.wrap(function _callee2$(_context2) {
+        return _regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
@@ -234,7 +217,7 @@ var Modal = /*#__PURE__*/function (_Base) {
                 untrap();
                 this.$emit('close');
                 return _context2.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref6) {
-                  var _ref7 = (0, _slicedToArray2.default)(_ref6, 2),
+                  var _ref7 = _slicedToArray(_ref6, 2),
                       refName = _ref7[0],
                       _ref7$ = _ref7[1];
 
@@ -242,7 +225,7 @@ var Modal = /*#__PURE__*/function (_Base) {
                   var open = _ref7$.open,
                       active = _ref7$.active,
                       closed = _ref7$.closed;
-                  return (0, _transition.default)(_this2.$refs[refName], {
+                  return transition(_this2.$refs[refName], {
                     from: open,
                     active: active,
                     to: closed
@@ -321,8 +304,9 @@ var Modal = /*#__PURE__*/function (_Base) {
       return this.close;
     }
   }]);
-  return Modal;
-}(_Base2.default);
 
-exports.default = Modal;
+  return Modal;
+}(Base);
+
+export { Modal as default };
 //# sourceMappingURL=Modal.js.map

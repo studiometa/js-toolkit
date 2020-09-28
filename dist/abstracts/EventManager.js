@@ -1,17 +1,6 @@
-"use strict";
-
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
+import _createClass from "@babel/runtime/helpers/createClass";
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
 
 /* eslint no-underscore-dangle: ["error", { "allow": ["_events"] }] */
 
@@ -25,11 +14,12 @@ var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/de
  */
 var EventManager = /*#__PURE__*/function () {
   function EventManager() {
-    (0, _classCallCheck2.default)(this, EventManager);
-    (0, _defineProperty2.default)(this, "_events", {});
+    _classCallCheck(this, EventManager);
+
+    _defineProperty(this, "_events", {});
   }
 
-  (0, _createClass2.default)(EventManager, [{
+  _createClass(EventManager, [{
     key: "$on",
 
     /**
@@ -135,8 +125,9 @@ var EventManager = /*#__PURE__*/function () {
       return this;
     }
   }]);
+
   return EventManager;
 }();
 
-exports.default = EventManager;
+export { EventManager as default };
 //# sourceMappingURL=EventManager.js.map

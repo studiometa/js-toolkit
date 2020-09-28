@@ -1,10 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = matrix;
-
 /**
  * Format a CSS transform matrix with the given values.
  *
@@ -16,7 +9,7 @@ exports.default = matrix;
  * @param  {Number} options.translateY The translate on the y axis.
  * @return {String}                    A formatted CSS matrix transform.
  */
-function matrix(transform) {
+export default function matrix(transform) {
   // eslint-disable-next-line no-param-reassign
   transform = transform || {};
   return "matrix(".concat(transform.scaleX || 1, ", ").concat(transform.skewX || 0, ", ").concat(transform.skewY || 0, ", ").concat(transform.scaleY || 1, ", ").concat(transform.translateX || 0, ", ").concat(transform.translateY || 0, ")");
