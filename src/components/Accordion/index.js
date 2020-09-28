@@ -29,7 +29,7 @@ export default class Accordion extends Base {
       const unbindOpen = item.$on('open', () => {
         this.$emit('open', item, index);
         if (this.$options.autoclose) {
-          this.$children.AccordionItem.filter((el, i) => index !== i).forEach(it => it.close());
+          this.$children.AccordionItem.filter((el, i) => index !== i).forEach((it) => it.close());
         }
       });
       const unbindClose = item.$on('close', () => {
@@ -48,6 +48,6 @@ export default class Accordion extends Base {
    * @return {void}
    */
   destroyed() {
-    this.unbindMethods.forEach(unbind => unbind());
+    this.unbindMethods.forEach((unbind) => unbind());
   }
 }

@@ -21,7 +21,7 @@ function getChild(el, ComponentClass, parent) {
   }
 
   // Resolve async components
-  const asyncComponent = ComponentClass().then(module => {
+  const asyncComponent = ComponentClass().then((module) => {
     const ResolvedClass = module.default ? module.default : module;
     Object.defineProperty(ResolvedClass.prototype, '__isChild__', { value: true });
     const child = new ResolvedClass(el);
@@ -55,7 +55,14 @@ export function getChildren(instance, element, components) {
       return acc;
     }
 
-    acc[name] = elements.map(el => getChild(el, ComponentClass, instance));
+    acc[name] = elements
+      .map((el) => getChild(el, ComponentClass, instance))
+      // Filter out terminated children
+      .filter((el) => el !== 'terminated');
+
+    if (acc[name].length === 0) {
+      delete acc[name];
+    }
 
     return acc;
   }, {});
