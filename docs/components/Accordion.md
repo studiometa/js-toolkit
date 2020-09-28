@@ -341,7 +341,8 @@ new Accordion(document.querySelector('.my-custom-accordion-element'));
 Or you can use the component as a child of another one:
 
 ```js
-import { Base, Accordion } from '@studiometa/js-toolkit';
+import Base from '@studiometa/js-toolkit';
+import Accordion from '@studiometa/js-toolkit/components/Accordion';
 
 class App extends Base {
   get config() {
@@ -360,7 +361,7 @@ new App(document.documentElement);
 You also can extend the class to create a component with extra capabilities. The following example adds custom style by default, enables the `move` options and add an option to auto-open the modal after a given delay:
 
 ```js
-import { Accordion as AccordionCore } from '@studiometa/js-toolkit/components/Accordion';
+import AccordionCore from '@studiometa/js-toolkit/components/Accordion';
 
 export default class Accordion extends AccordionCore {
   get config() {

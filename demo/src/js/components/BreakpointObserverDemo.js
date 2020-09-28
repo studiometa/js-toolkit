@@ -1,4 +1,4 @@
-import { Base } from '~/src/abstracts';
+import Base from '~/src/abstracts';
 import { withBreakpointObserver } from '~/src/decorators';
 
 export default class BreakpointObserverDemo extends withBreakpointObserver(Base) {

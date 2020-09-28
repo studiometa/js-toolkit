@@ -382,7 +382,7 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
 You can directly instantiate the `Modal` class on an element:
 
 ```js
-import { Modal } from '@studiometa/js-toolkit';
+import Modal from '@studiometa/js-toolkit/components/Modal';
 
 new Modal(document.querySelector('.my-custom-modal-element'));
 ```
@@ -390,7 +390,8 @@ new Modal(document.querySelector('.my-custom-modal-element'));
 Or you can use the component as a child of another one:
 
 ```js
-import { Base, Modal } from '@studiometa/js-toolkit';
+import Base from '@studiometa/js-toolkit';
+import Modal from '@studiometa/js-toolkit/components/Modal';
 
 class App extends Base {
   get config() {
@@ -409,7 +410,7 @@ new App(document.documentElement);
 You also can extend the class to create a component with extra capabilities. The following example adds custom style by default, enables the `move` options and add an option to auto-open the modal after a given delay:
 
 ```js
-import { Modal as ModalCore } from '@studiometa/js-toolkit';
+import ModalCore from '@studiometa/js-toolkit/components/Modal';
 
 export default class Modal extends ModalCore {
   get config() {
@@ -444,7 +445,8 @@ export default class Modal extends ModalCore {
 Programmatic usage of a modal component should be made from a parent component:
 
 ```js
-import { Base, Modal } from '@studiometa/js-toolkit';
+import Base from '@studiometa/js-toolkit';
+import Modal from '@studiometa/js-toolkit/components/Modal';
 
 /**
  * Based on the following HTML:

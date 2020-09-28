@@ -12,7 +12,7 @@ The key service will help you manage your keyboard events. It merges the `keydow
 ## Usage
 
 ```js
-import { useKey } from '@studiometa/js-toolkit';
+import useKey from '@studiometa/js-toolkit/services/key';
 
 const { add, remove, props } = useKey();
 
