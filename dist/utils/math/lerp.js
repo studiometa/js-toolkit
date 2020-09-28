@@ -1,10 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = lerp;
-
 /**
  * Interpolate the ratio between a given interval.
  *
@@ -13,7 +6,7 @@ exports.default = lerp;
  * @param  {Number} ratio The ratio to get.
  * @return {Number}       The value between min and max corresponding to ratio.
  */
-function lerp(min, max, ratio) {
+export default function lerp(min, max, ratio) {
   return (1 - ratio) * min + ratio * max;
 }
 //# sourceMappingURL=lerp.js.map

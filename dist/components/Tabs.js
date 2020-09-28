@@ -1,48 +1,33 @@
-"use strict";
+import _regeneratorRuntime from "@babel/runtime/regenerator";
+import _asyncToGenerator from "@babel/runtime/helpers/asyncToGenerator";
+import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
+import _createClass from "@babel/runtime/helpers/createClass";
+import _inherits from "@babel/runtime/helpers/inherits";
+import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
+import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
-
-var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
-
-var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _Base2 = _interopRequireDefault(require("../abstracts/Base"));
-
-var _transition = _interopRequireDefault(require("../utils/css/transition"));
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+import Base from '../abstracts/Base';
+import transition from '../utils/css/transition';
 /**
  * Tabs class.
  */
+
 var Tabs = /*#__PURE__*/function (_Base) {
-  (0, _inherits2.default)(Tabs, _Base);
+  _inherits(Tabs, _Base);
 
   var _super = _createSuper(Tabs);
 
   function Tabs() {
-    (0, _classCallCheck2.default)(this, Tabs);
+    _classCallCheck(this, Tabs);
+
     return _super.apply(this, arguments);
   }
 
-  (0, _createClass2.default)(Tabs, [{
+  _createClass(Tabs, [{
     key: "mounted",
 
     /**
@@ -105,11 +90,11 @@ var Tabs = /*#__PURE__*/function (_Base) {
   }, {
     key: "enableItem",
     value: function () {
-      var _enableItem = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(item) {
+      var _enableItem = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee(item) {
         var _this3 = this;
 
         var btn, content, btnStyles, contentStyles;
-        return _regenerator.default.wrap(function _callee$(_context) {
+        return _regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
@@ -127,11 +112,11 @@ var Tabs = /*#__PURE__*/function (_Base) {
                 contentStyles = this.$options.styles.content || {};
                 content.setAttribute('aria-hidden', 'false');
                 this.$emit('enable', item);
-                return _context.abrupt("return", Promise.all([(0, _transition.default)(btn, {
+                return _context.abrupt("return", Promise.all([transition(btn, {
                   from: btnStyles.closed,
                   active: btnStyles.active,
                   to: btnStyles.open
-                }, 'keep'), (0, _transition.default)(content, {
+                }, 'keep'), transition(content, {
                   from: contentStyles.closed,
                   active: contentStyles.active,
                   to: contentStyles.open
@@ -164,11 +149,11 @@ var Tabs = /*#__PURE__*/function (_Base) {
   }, {
     key: "disableItem",
     value: function () {
-      var _disableItem = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(item) {
+      var _disableItem = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2(item) {
         var _this4 = this;
 
         var btn, content, btnStyles, contentStyles;
-        return _regenerator.default.wrap(function _callee2$(_context2) {
+        return _regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
@@ -186,11 +171,11 @@ var Tabs = /*#__PURE__*/function (_Base) {
                 contentStyles = this.$options.styles.content || {};
                 content.setAttribute('aria-hidden', 'true');
                 this.$emit('disable', item);
-                return _context2.abrupt("return", Promise.all([(0, _transition.default)(btn, {
+                return _context2.abrupt("return", Promise.all([transition(btn, {
                   from: btnStyles.open,
                   active: btnStyles.active,
                   to: btnStyles.closed
-                }, 'keep'), (0, _transition.default)(content, {
+                }, 'keep'), transition(content, {
                   from: contentStyles.open,
                   active: contentStyles.active,
                   to: contentStyles.closed
@@ -234,8 +219,9 @@ var Tabs = /*#__PURE__*/function (_Base) {
       };
     }
   }]);
-  return Tabs;
-}(_Base2.default);
 
-exports.default = Tabs;
+  return Tabs;
+}(Base);
+
+export { Tabs as default };
 //# sourceMappingURL=Tabs.js.map

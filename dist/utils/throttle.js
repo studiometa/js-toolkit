@@ -1,10 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = throttle;
-
 /**
  * Simple throttling helper that limits a
  * function to only run once every {delay}ms
@@ -12,7 +5,7 @@ exports.default = throttle;
  * @param {Function} fn    The function to throttle
  * @param {Number}   delay The delay in ms
  */
-function throttle(fn) {
+export default function throttle(fn) {
   var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 16;
   var lastCall = 0;
   return function () {
