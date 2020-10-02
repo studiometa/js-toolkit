@@ -1,10 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = debounce;
-
 /**
  * Returns a function, that, as long as it continues to be invoked,
  * will not be triggered. The function will be called after it stops
@@ -13,7 +6,7 @@ exports.default = debounce;
  * @param {Function} fn    The function to call
  * @param {Number}   delay The delay in ms to wait before calling the function
  */
-function debounce(fn) {
+export default function debounce(fn) {
   var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 300;
   var timeout;
   return function () {

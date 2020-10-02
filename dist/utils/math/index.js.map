@@ -1,1 +1,1 @@
-{"version":3,"sources":[],"names":[],"mappings":"","sourcesContent":[],"file":"index.js"}
+{"version":3,"sources":["../../../src/utils/math/index.js"],"names":["damp","lerp","map","round"],"mappings":"kBAAiB,Q;kBAAVA,I;kBACU,Q;kBAAVC,I;iBACS,O;iBAATC,G;mBACW,S;mBAAXC,K","sourcesContent":["export damp from './damp';\nexport lerp from './lerp';\nexport map from './map';\nexport round from './round';\n"],"file":"index.js"}

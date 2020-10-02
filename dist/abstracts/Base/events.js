@@ -1,20 +1,7 @@
-"use strict";
-
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = bindEvents;
-
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
-
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
-
-var _getAllProperties = _interopRequireDefault(require("../../utils/object/getAllProperties"));
-
-var _utils = require("./utils");
-
+import _toConsumableArray from "@babel/runtime/helpers/toConsumableArray";
+import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
+import getAllProperties from '../../utils/object/getAllProperties';
+import { debug } from './utils';
 /**
  * Bind event handler methods to the root HTML element.
  *
@@ -22,6 +9,7 @@ var _utils = require("./utils");
  * @param  {Array} eventMethods A list of methods to bind.
  * @return {Array}              A list of unbind functions.
  */
+
 function bindRootEvents(instance, eventMethods) {
   return eventMethods.map(function (eventMethod) {
     var eventName = eventMethod.replace(/^on/, '').toLowerCase();
@@ -31,8 +19,7 @@ function bindRootEvents(instance, eventMethods) {
         args[_key] = arguments[_key];
       }
 
-      _utils.debug.apply(void 0, [instance, eventMethod, instance.$el].concat(args));
-
+      debug.apply(void 0, [instance, eventMethod, instance.$el].concat(args));
       instance[eventMethod].apply(instance, args);
     };
 
@@ -54,7 +41,7 @@ function bindRootEvents(instance, eventMethods) {
 function bindRefsEvents(instance, eventMethods) {
   var unbindMethods = [];
   Object.entries(instance.$refs).forEach(function (_ref) {
-    var _ref2 = (0, _slicedToArray2.default)(_ref, 2),
+    var _ref2 = _slicedToArray(_ref, 2),
         refName = _ref2[0],
         $refOrRefs = _ref2[1];
 
@@ -73,12 +60,11 @@ function bindRefsEvents(instance, eventMethods) {
             args[_key2] = arguments[_key2];
           }
 
-          _utils.debug.apply(void 0, [instance, eventMethod, $ref].concat(args, [index]));
-
+          debug.apply(void 0, [instance, eventMethod, $ref].concat(args, [index]));
           instance[eventMethod].apply(instance, args.concat([index]));
         };
 
-        (0, _utils.debug)(instance, 'binding ref event', refName, eventName);
+        debug(instance, 'binding ref event', refName, eventName);
 
         if ($ref.constructor && $ref.constructor.__isBase__) {
           // eslint-disable-next-line no-param-reassign
@@ -88,7 +74,7 @@ function bindRefsEvents(instance, eventMethods) {
         $ref.addEventListener(eventName, handler);
 
         var unbindMethod = function unbindMethod() {
-          (0, _utils.debug)(instance, 'unbinding ref event', eventMethods);
+          debug(instance, 'unbinding ref event', eventMethods);
           $ref.removeEventListener(eventName, handler);
         };
 
@@ -109,7 +95,7 @@ function bindRefsEvents(instance, eventMethods) {
 function bindChildrenEvents(instance, eventMethods) {
   var unbindMethods = [];
   Object.entries(instance.$children).forEach(function (_ref3) {
-    var _ref4 = (0, _slicedToArray2.default)(_ref3, 2),
+    var _ref4 = _slicedToArray(_ref3, 2),
         childName = _ref4[0],
         $children = _ref4[1];
 
@@ -127,15 +113,14 @@ function bindChildrenEvents(instance, eventMethods) {
             args[_key3] = arguments[_key3];
           }
 
-          _utils.debug.apply(void 0, [instance, eventMethod, $child].concat(args, [index]));
-
+          debug.apply(void 0, [instance, eventMethod, $child].concat(args, [index]));
           instance[eventMethod].apply(instance, args.concat([index]));
         };
 
-        (0, _utils.debug)(instance, 'binding child event', childName, eventName);
+        debug(instance, 'binding child event', childName, eventName);
         var unbindMethod = $child.$on(eventName, handler);
         unbindMethods.push(function () {
-          (0, _utils.debug)(instance, 'unbinding child event', childName, eventName);
+          debug(instance, 'unbinding child event', childName, eventName);
           unbindMethod();
         });
       });
@@ -151,12 +136,12 @@ function bindChildrenEvents(instance, eventMethods) {
  */
 
 
-function bindEvents(instance) {
+export default function bindEvents(instance) {
   var ROOT_EVENT_REGEX = /^on[A-Z][a-z]+$/;
   var REFS_CHILDREN_EVENT_REGEX = /^on([A-Z][a-z]+)([A-Z][a-z]+)+$/; // Get all event methods
 
-  var eventMethods = (0, _getAllProperties.default)(instance).reduce(function (acc, _ref5) {
-    var _ref6 = (0, _slicedToArray2.default)(_ref5, 1),
+  var eventMethods = getAllProperties(instance).reduce(function (acc, _ref5) {
+    var _ref6 = _slicedToArray(_ref5, 1),
         name = _ref6[0];
 
     // Testing camelCase with one word: onEvent.
@@ -175,7 +160,7 @@ function bindEvents(instance) {
     root: [],
     refsOrChildren: []
   });
-  var unbindMethods = [].concat((0, _toConsumableArray2.default)(bindRootEvents(instance, eventMethods.root)), (0, _toConsumableArray2.default)(bindRefsEvents(instance, eventMethods.refsOrChildren)), (0, _toConsumableArray2.default)(bindChildrenEvents(instance, eventMethods.refsOrChildren)));
+  var unbindMethods = [].concat(_toConsumableArray(bindRootEvents(instance, eventMethods.root)), _toConsumableArray(bindRefsEvents(instance, eventMethods.refsOrChildren)), _toConsumableArray(bindChildrenEvents(instance, eventMethods.refsOrChildren)));
   return unbindMethods;
 }
 //# sourceMappingURL=events.js.map

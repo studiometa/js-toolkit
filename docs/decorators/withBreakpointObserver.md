@@ -16,8 +16,8 @@ Use this decorator to create a class that will have the capacity to be mounted o
 In the following example, the `MobileComponent` class will self mount on devices matching any of the breakpoint defined in the `activeBreakpoints` property, and self destroy on all others:
 
 ```js{4,8}
-import { Base } from '@studiometa/js-toolkit/abstracts';
-import { withBreakpointObserver } from '@studiometa/js-toolkit/decorators';
+import Base from '@studiometa/js-toolkit';
+import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver';
 
 export default class MobileComponent extends withBreakpointObserver(Base) {
   get config() {
@@ -34,8 +34,8 @@ export default class MobileComponent extends withBreakpointObserver(Base) {
 The same behaviour as before can be achieved by specifying all the other breakpoints in the `inactiveBreakpoints` property instead:
 
 ```js{4,8}
-import { Base } from '@studiometa/js-toolkit/abstracts';
-import { withBreakpointObserver } from '@studiometa/js-toolkit/decorators';
+import Base from '@studiometa/js-toolkit';
+import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver';
 
 export default class MobileComponent extends withBreakpointObserver(Base) {
   get config() {
@@ -52,8 +52,9 @@ export default class MobileComponent extends withBreakpointObserver(Base) {
 You can add the `BreakpointObserver` behaviour on an existing component by wrapping it with the `withBreakpointObserver` function:
 
 ```js{10}
-import { Base, Modal } from '@studiometa/js-toolkit';
-import { withBreakpointObserver } from '@studiometa/js-toolkit/decorators';
+import Base from '@studiometa/js-toolkit';
+import Modal from '@studiometa/js-toolkit/components/Modal';
+import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver';
 
 class App extends Base {
   get config() {

@@ -135,7 +135,7 @@ You can add some transition to the content switch with the `contentActiveClass` 
 You can directly instantiate the `Tabs` class on an element:
 
 ```js
-import { Tabs } from '@studiometa/js-toolkit';
+import Tabs from '@studiometa/js-toolkit/components/Tabs';
 
 new Tabs(document.querySelector('.my-custom-tabs-element'));
 ```
@@ -143,7 +143,8 @@ new Tabs(document.querySelector('.my-custom-tabs-element'));
 Or you can use the component as a child of another one:
 
 ```js
-import { Base, Tabs } from '@studiometa/js-toolkit';
+import Base from '@studiometa/js-toolkit';
+import Tabs from '@studiometa/js-toolkit/components/Tabs';
 
 class App extends Base {
   get config() {
@@ -161,7 +162,7 @@ new App(document.documentElement);
 Or you can extend the component to apply a default configuration for your project:
 
 ```js
-import { Tabs as TabsCore } from '@studiometa/js-toolkit';
+import TabsCore from '@studiometa/js-toolkit/components/Tabs';
 
 export default class Tabs extends TabsCore {
   get config() {

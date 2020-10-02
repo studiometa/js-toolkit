@@ -1,24 +1,9 @@
-"use strict";
-
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = bindServices;
-
-var _pointer = _interopRequireDefault(require("../../services/pointer"));
-
-var _raf = _interopRequireDefault(require("../../services/raf"));
-
-var _resize = _interopRequireDefault(require("../../services/resize"));
-
-var _scroll = _interopRequireDefault(require("../../services/scroll"));
-
-var _key2 = _interopRequireDefault(require("../../services/key"));
-
-var _utils = require("./utils");
-
+import usePointer from '../../services/pointer';
+import useRaf from '../../services/raf';
+import useResize from '../../services/resize';
+import useScroll from '../../services/scroll';
+import useKey from '../../services/key';
+import { hasMethod, callMethod } from './utils';
 /**
  * Init the given service and bind it to the given instance.
  *
@@ -27,8 +12,9 @@ var _utils = require("./utils");
  * @param  {Function} service  The service `use...` function
  * @return {Function}          A function to unbind the service
  */
+
 function initService(instance, method, service) {
-  if (!(0, _utils.hasMethod)(instance, method)) {
+  if (!hasMethod(instance, method)) {
     return function () {};
   }
 
@@ -41,7 +27,7 @@ function initService(instance, method, service) {
       args[_key] = arguments[_key];
     }
 
-    _utils.callMethod.apply(void 0, [instance, method].concat(args));
+    callMethod.apply(void 0, [instance, method].concat(args));
   });
   return function () {
     return remove(instance.$id);
@@ -54,13 +40,13 @@ function initService(instance, method, service) {
  */
 
 
-function bindServices(instance) {
-  var unbindMethods = [initService(instance, 'scrolled', _scroll.default), initService(instance, 'resized', _resize.default), initService(instance, 'ticked', _raf.default), initService(instance, 'moved', _pointer.default), initService(instance, 'keyed', _key2.default)]; // Fire the `loaded` method on window load
+export default function bindServices(instance) {
+  var unbindMethods = [initService(instance, 'scrolled', useScroll), initService(instance, 'resized', useResize), initService(instance, 'ticked', useRaf), initService(instance, 'moved', usePointer), initService(instance, 'keyed', useKey)]; // Fire the `loaded` method on window load
   // @todo remove this? or move it elsewhere?
 
-  if ((0, _utils.hasMethod)(instance, 'loaded')) {
+  if (hasMethod(instance, 'loaded')) {
     var loadedHandler = function loadedHandler(event) {
-      (0, _utils.callMethod)(instance, 'loaded', {
+      callMethod(instance, 'loaded', {
         event: event
       });
     };

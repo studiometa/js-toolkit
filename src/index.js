@@ -1,2 +1,3 @@
-export Base from './abstracts/Base';
-export * from './components';
+import Base from './abstracts/Base';
+
+export default Base;
