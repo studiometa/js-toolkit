@@ -43,7 +43,7 @@ export default function bindServices(instance) {
   // Fire the `loaded` method on window load
   // @todo remove this? or move it elsewhere?
   if (hasMethod(instance, 'loaded')) {
-    const loadedHandler = (event) => {
+    const loadedHandler = event => {
       callMethod(instance, 'loaded', { event });
     };
     window.addEventListener('load', loadedHandler);

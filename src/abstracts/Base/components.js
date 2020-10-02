@@ -8,7 +8,7 @@ import { debug } from './utils';
  */
 function mountComponent(component) {
   if (component.__isAsync__) {
-    component.then((instance) => instance.$mount());
+    component.then(instance => instance.$mount());
   } else {
     component.$mount();
   }
@@ -27,7 +27,7 @@ export function mountComponents(instance) {
 
   debug(instance, 'mountComponents', instance.$children);
 
-  Object.values(instance.$children).forEach(($child) => {
+  Object.values(instance.$children).forEach($child => {
     $child.forEach(mountComponent);
   });
 }
@@ -40,7 +40,7 @@ export function mountComponents(instance) {
  */
 function destroyComponent(component) {
   if (component.__isAsync__) {
-    component.then((instance) => instance.$destroy());
+    component.then(instance => instance.$destroy());
   } else {
     component.$destroy();
   }
@@ -58,7 +58,7 @@ export function destroyComponents(instance) {
   }
   debug(instance, 'destroyComponents', instance.$children);
 
-  Object.values(instance.$children).forEach(($child) => {
+  Object.values(instance.$children).forEach($child => {
     $child.forEach(destroyComponent);
   });
 }

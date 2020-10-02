@@ -15,7 +15,7 @@ export default function getAllProperties(object, props = []) {
   return getAllProperties(
     proto,
     Object.getOwnPropertyNames(proto)
-      .map((name) => [name, proto])
+      .map(name => [name, proto])
       .reduce((acc, val) => [...acc, val], props)
   );
 }

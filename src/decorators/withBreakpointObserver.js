@@ -50,7 +50,7 @@ function testConflictingBreakpointConfiguration(instance) {
 /**
  * BreakpointObserver class.
  */
-export default (BaseClass) =>
+export default BaseClass =>
   class BreakpointObserver extends BaseClass {
     /**
      * Watch for the document resize to test the breakpoints.
