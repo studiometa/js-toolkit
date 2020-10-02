@@ -7,9 +7,9 @@
 </template>
 
 <script>
-  import * as toolkit from '../../../dist';
+  import Base from '../../../dist';
+  import * as components from '../../../dist/components/';
 
-  const { Base, ...components } = toolkit;
   class App extends Base {
     get config() {
       return {
