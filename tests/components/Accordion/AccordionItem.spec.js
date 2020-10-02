@@ -4,7 +4,6 @@ import wait from '../../__utils__/wait';
 describe('AccordionItem component', () => {
   let item;
   let btn;
-  let container;
   let content;
   let icon;
 
@@ -32,7 +31,6 @@ describe('AccordionItem component', () => {
     `;
     item = new AccordionItem(document.body.firstElementChild);
     btn = document.querySelector('[data-ref="btn"]');
-    container = document.querySelector('[data-ref="container"]');
     content = document.querySelector('[data-ref="content"]');
     icon = document.querySelector('[data-ref="icon"]');
   });

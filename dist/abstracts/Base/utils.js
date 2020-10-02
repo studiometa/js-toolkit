@@ -1,19 +1,10 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.debug = debug;
-exports.hasMethod = hasMethod;
-exports.callMethod = callMethod;
-
 /**
  * Verbose debug for the component.
  *
  * @param  {...any} args The arguments passed to the method
  * @return {void}
  */
-function debug(instance) {
+export function debug(instance) {
   for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     args[_key - 1] = arguments[_key];
   }
@@ -28,8 +19,7 @@ function debug(instance) {
  * @return {Boolean}
  */
 
-
-function hasMethod(obj, name) {
+export function hasMethod(obj, name) {
   return typeof obj[name] === 'function';
 }
 /**
@@ -39,8 +29,7 @@ function hasMethod(obj, name) {
  * @param {...any} args   The arguments to pass to the method
  */
 
-
-function callMethod(instance, method) {
+export function callMethod(instance, method) {
   var _instance$method;
 
   for (var _len2 = arguments.length, args = new Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {

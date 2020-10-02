@@ -1,10 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = map;
-
 /**
  * Maps the value from one range of [inputMin..inputMax] to another range of [outputMin..outputMax].
  *
@@ -15,7 +8,7 @@ exports.default = map;
  * @param  {Number} outputMax The intput's maximum value.
  * @return {Number}           The input value mapped to the output range.
  */
-function map(value, inputMin, inputMax, outputMin, outputMax) {
+export default function map(value, inputMin, inputMax, outputMin, outputMax) {
   return (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
 }
 //# sourceMappingURL=map.js.map

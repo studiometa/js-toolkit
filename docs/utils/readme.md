@@ -20,7 +20,7 @@ Execute a function until it stops being called.
 **Usage**
 
 ```js
-import { debounce } from '@studiometa/js-toolkit/utils';
+import debounce from '@studiometa/js-toolkit/utils/debounce';
 
 const debouncedFn = debounce(() => {
   console.log('Hello 👋');
@@ -42,7 +42,7 @@ Trap the tab navigation inside a given element.
 **Usage**
 
 ```js
-import { focusTrap } from '@studiometa/js-toolkit/utils';
+import focusTrap from '@studiometa/js-toolkit/utils/focusTrap';
 
 const { trap, untrap } = focusTrap();
 
@@ -72,7 +72,7 @@ Test if the given value is an object.
 **Usage**
 
 ```js
-import { isObject } from '@studiometa/js-toolkit/utils/object';
+import isObject from '@studiometa/js-toolkit/utils/object/isObject';
 
 console.log(isObject({ foo: 'bar' })); // true
 console.log(isObject('hello')); // false
@@ -88,7 +88,7 @@ Map of keyboard keycodes and their human readable name.
 **Usage**
 
 ```js
-import { keyCodes } from '@studiometa/js-toolkit/utils';
+import keyCodes from '@studiometa/js-toolkit/utils/keyCodes';
 
 document.addEventListener('keydown', (e) => {
   if (e.keyCode === keyCodes.ESC) {
@@ -137,7 +137,7 @@ Execute a given function in the next window frame.
 **Usage**
 
 ```js
-import { nextFrame } from '@studiometa/js-toolkit/utils';
+import nextFrame from '@studiometa/js-toolkit/utils/nextFrame';
 
 nextFrame(() => {
   console.log('I will be executed in the next frame!');
@@ -158,7 +158,7 @@ Limit the execution of a function one time for the given delay in milliseconds.
 **Usage**
 
 ```js
-import { throttle } from '@studiometa/js-toolkit/utils';
+import throttle from '@studiometa/js-toolkit/utils/throttle';
 
 const throttledFn = throttle(() => {
   console.log('Hello 👋');

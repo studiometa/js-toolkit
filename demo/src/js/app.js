@@ -1,4 +1,5 @@
-import { Base, Modal, Tabs, Accordion } from '~/src';
+import Base from '~/src';
+import { Modal, Tabs, Accordion } from '~/src/components';
 import { withBreakpointObserver } from '~/src/decorators';
 import BreakpointManagerDemo from './components/BreakPointManagerDemo';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo';
