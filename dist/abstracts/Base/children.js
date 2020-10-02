@@ -1,14 +1,4 @@
-"use strict";
-
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.getChildren = getChildren;
-exports.default = void 0;
-
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
 
 /**
  * Get a child component.
@@ -64,9 +54,9 @@ function getChild(el, ComponentClass, parent) {
  */
 
 
-function getChildren(instance, element, components) {
+export function getChildren(instance, element, components) {
   var children = Object.entries(components).reduce(function (acc, _ref) {
-    var _ref2 = (0, _slicedToArray2.default)(_ref, 2),
+    var _ref2 = _slicedToArray(_ref, 2),
         name = _ref2[0],
         ComponentClass = _ref2[1];
 
@@ -97,9 +87,7 @@ function getChildren(instance, element, components) {
   instance.$emit('get:children', children);
   return children;
 }
-
-var _default = {
+export default {
   getChildren: getChildren
 };
-exports.default = _default;
 //# sourceMappingURL=children.js.map

@@ -1,19 +1,11 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.mountComponents = mountComponents;
-exports.destroyComponents = destroyComponents;
-
-var _utils = require("./utils");
-
+import { debug } from './utils';
 /**
  * Mount a given component which might be async.
  *
  * @param  {Base|Promise} component The component to mount.
  * @return {void}
  */
+
 function mountComponent(component) {
   if (component.__isAsync__) {
     component.then(function (instance) {
@@ -31,12 +23,12 @@ function mountComponent(component) {
  */
 
 
-function mountComponents(instance) {
+export function mountComponents(instance) {
   if (!instance.$children) {
     return;
   }
 
-  (0, _utils.debug)(instance, 'mountComponents', instance.$children);
+  debug(instance, 'mountComponents', instance.$children);
   Object.values(instance.$children).forEach(function ($child) {
     $child.forEach(mountComponent);
   });
@@ -47,7 +39,6 @@ function mountComponents(instance) {
  * @param  {Base|Promise} component The component to destroy.
  * @return {void}
  */
-
 
 function destroyComponent(component) {
   if (component.__isAsync__) {
@@ -66,12 +57,12 @@ function destroyComponent(component) {
  */
 
 
-function destroyComponents(instance) {
+export function destroyComponents(instance) {
   if (!instance.$children) {
     return;
   }
 
-  (0, _utils.debug)(instance, 'destroyComponents', instance.$children);
+  debug(instance, 'destroyComponents', instance.$children);
   Object.values(instance.$children).forEach(function ($child) {
     $child.forEach(destroyComponent);
   });

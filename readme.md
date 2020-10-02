@@ -17,4 +17,41 @@ npm install @studiometa/js-toolkit
 
 ## Usage
 
-Have a look at the [small guide](https://js-toolkit.meta.fr/guide/) for information on how to use the toolkit.
+Use the `Base` class to create your components:
+
+```js
+import Base from '@studiometa/js-toolkit';
+import Modal from '@studiometa/js-toolkit/components/Modal';
+
+class App extends Base {
+  get config() {
+    return {
+      name: 'App',
+      log: true,
+      components: {
+        Modal,
+      },
+    };
+  }
+
+  mounted() {
+    this.$log('mounted');
+  }
+
+  destroyed() {
+    this.$log('destroyed');
+  }
+
+  scrolled(props) {
+    this.$log('scrolled', props);
+  }
+
+  resized(props) {
+    this.$log('resized', props);
+  }
+}
+
+export default new App(document.querySelector('#app'));
+```
+
+Read the [documentation](https://js-toolkit.meta.fr/) to learn more.

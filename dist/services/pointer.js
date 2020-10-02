@@ -1,38 +1,19 @@
-"use strict";
+import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
+import _createClass from "@babel/runtime/helpers/createClass";
+import _assertThisInitialized from "@babel/runtime/helpers/assertThisInitialized";
+import _inherits from "@babel/runtime/helpers/inherits";
+import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
+import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
-
-var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
-
-var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
-
-var _throttle = _interopRequireDefault(require("../utils/throttle"));
-
-var _debounce = _interopRequireDefault(require("../utils/debounce"));
-
-var _raf = _interopRequireDefault(require("./raf"));
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+import Service from '../abstracts/Service';
+import throttle from '../utils/throttle';
+import debounce from '../utils/debounce';
+import useRaf from './raf';
 /**
  * Pointer service
  *
@@ -44,30 +25,37 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
  * props();
  * ```
  */
+
 var Pointer = /*#__PURE__*/function (_Service) {
-  (0, _inherits2.default)(Pointer, _Service);
+  _inherits(Pointer, _Service);
 
   var _super = _createSuper(Pointer);
 
   function Pointer() {
     var _this;
 
-    (0, _classCallCheck2.default)(this, Pointer);
+    _classCallCheck(this, Pointer);
 
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
 
     _this = _super.call.apply(_super, [this].concat(args));
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "isDown", false);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "y", window.innerHeight / 2);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "yLast", window.innerHeight / 2);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "x", window.innerWidth / 2);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "xLast", window.innerWidth / 2);
+
+    _defineProperty(_assertThisInitialized(_this), "isDown", false);
+
+    _defineProperty(_assertThisInitialized(_this), "y", window.innerHeight / 2);
+
+    _defineProperty(_assertThisInitialized(_this), "yLast", window.innerHeight / 2);
+
+    _defineProperty(_assertThisInitialized(_this), "x", window.innerWidth / 2);
+
+    _defineProperty(_assertThisInitialized(_this), "xLast", window.innerWidth / 2);
+
     return _this;
   }
 
-  (0, _createClass2.default)(Pointer, [{
+  _createClass(Pointer, [{
     key: "init",
 
     /**
@@ -79,12 +67,12 @@ var Pointer = /*#__PURE__*/function (_Service) {
     value: function init() {
       var _this2 = this;
 
-      var _useRaf = (0, _raf.default)(),
+      var _useRaf = useRaf(),
           add = _useRaf.add,
           remove = _useRaf.remove;
 
       this.hasRaf = false;
-      var debounced = (0, _debounce.default)(function (event) {
+      var debounced = debounce(function (event) {
         _this2.updateValues(event);
 
         remove('usePointer');
@@ -93,7 +81,7 @@ var Pointer = /*#__PURE__*/function (_Service) {
 
         _this2.hasRaf = false;
       }, 50);
-      this.handler = (0, _throttle.default)(function (event) {
+      this.handler = throttle(function (event) {
         _this2.updateValues(event);
 
         if (!_this2.hasRaf) {
@@ -232,8 +220,9 @@ var Pointer = /*#__PURE__*/function (_Service) {
       };
     }
   }]);
+
   return Pointer;
-}(_Service2.default);
+}(Service);
 
 var pointer = null;
 /**
@@ -248,7 +237,7 @@ var pointer = null;
  * ```
  */
 
-var _default = function _default() {
+export default (function () {
   if (!pointer) {
     pointer = new Pointer();
   }
@@ -267,7 +256,5 @@ var _default = function _default() {
     has: has,
     props: props
   };
-};
-
-exports.default = _default;
+});
 //# sourceMappingURL=pointer.js.map

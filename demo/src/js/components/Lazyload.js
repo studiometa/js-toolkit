@@ -1,4 +1,4 @@
-import { Base } from '~/src';
+import Base from '~/src';
 import { withIntersectionObserver } from '~/src/decorators';
 import transition, { setClassesOrStyles } from '~/src/utils/css/transition';
 

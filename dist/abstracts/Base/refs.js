@@ -1,11 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.getRefs = getRefs;
-exports.default = void 0;
-
 /**
  * Get all refs of a component.
  *
@@ -13,7 +5,7 @@ exports.default = void 0;
  * @param  {HTMLElement} element  The component's root element.
  * @return {Object}               Return an object containing all the component's refs.
  */
-function getRefs(instance, element) {
+export function getRefs(instance, element) {
   var allRefs = Array.from(element.querySelectorAll("[data-ref]"));
   var childrenRefs = Array.from(element.querySelectorAll(":scope [data-component] [data-ref]"));
   var elements = allRefs.filter(function (ref) {
@@ -46,9 +38,7 @@ function getRefs(instance, element) {
   instance.$emit('get:refs', refs);
   return refs;
 }
-
-var _default = {
+export default {
   getRefs: getRefs
 };
-exports.default = _default;
 //# sourceMappingURL=refs.js.map
