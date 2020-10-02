@@ -9,8 +9,8 @@ import getAllProperties from './getAllProperties';
  * @return {Object}                               The instance.
  */
 export default function autoBind(instance, { include, exclude } = {}) {
-  const filter = key => {
-    const match = pattern => (typeof pattern === 'string' ? key === pattern : pattern.test(key));
+  const filter = (key) => {
+    const match = (pattern) => (typeof pattern === 'string' ? key === pattern : pattern.test(key));
 
     if (include) {
       return include.some(match);

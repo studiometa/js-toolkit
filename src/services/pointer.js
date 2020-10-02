@@ -40,14 +40,14 @@ class Pointer extends Service {
     const { add, remove } = useRaf();
     this.hasRaf = false;
 
-    const debounced = debounce(event => {
+    const debounced = debounce((event) => {
       this.updateValues(event);
       remove('usePointer');
       this.trigger(this.props);
       this.hasRaf = false;
     }, 50);
 
-    this.handler = throttle(event => {
+    this.handler = throttle((event) => {
       this.updateValues(event);
       if (!this.hasRaf) {
         add('usePointer', () => {

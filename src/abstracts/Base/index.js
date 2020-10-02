@@ -125,14 +125,14 @@ export default class Base extends EventManager {
     });
 
     this.$on('updated', () => {
-      unbindMethods.forEach(method => method());
+      unbindMethods.forEach((method) => method());
       mountComponents(this);
       unbindMethods = [...bindServices(this), ...bindEvents(this)];
     });
 
     this.$on('destroyed', () => {
       this.$isMounted = false;
-      unbindMethods.forEach(method => method());
+      unbindMethods.forEach((method) => method());
       destroyComponents(this);
     });
 

@@ -70,7 +70,7 @@ export default class EventManager {
       return this;
     }
 
-    this._events[event].forEach(listener => {
+    this._events[event].forEach((listener) => {
       listener.apply(this, args);
     });
     return this;
