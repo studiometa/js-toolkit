@@ -3,7 +3,7 @@ module.exports = {
     [
       '@babel/preset-env',
       {
-        modules: 'cjs',
+        modules: process.env.NODE_ENV === 'test' ? 'cjs' : false,
       },
     ],
   ],

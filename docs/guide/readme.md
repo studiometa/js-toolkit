@@ -19,7 +19,7 @@ npm install @studiometa/js-toolkit
 In your project, import the things you need:
 
 ```js
-import { debounce } from '@studiometa/js-toolkit/utils';
+import debounce from '@studiometa/js-toolkit/utils/debounce';
 
 const debounced = debounce(() => {
   console.log('Hello 👋');

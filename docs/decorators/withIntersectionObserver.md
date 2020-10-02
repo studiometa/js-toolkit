@@ -14,8 +14,8 @@ Use this decorator to create a class that will have the capacity to trigger an `
 ### Simple usage
 
 ```js{4,11-19}
-import { Base } from '@studiometa/js-toolkit/abstracts';
-import { withIntersectionObserver } from '@studiometa/js-toolkit/decorators';
+import Base from '@studiometa/js-toolkit';
+import withIntersectionObserver from '@studiometa/js-toolkit/decorators/withIntersectionObserver';
 
 export default class Component extends withIntersectionObserver(Base) {
   get config() {
@@ -41,8 +41,8 @@ export default class Component extends withIntersectionObserver(Base) {
 You can use custom options for the `IntersectionObserver` instance used by passing a second parameter to the `withIntersectionObserver` function:
 
 ```js{4-6}
-import { Base } from '@studiometa/js-toolkit/abstracts';
-import { withIntersectionObserver } from '@studiometa/js-toolkit/decorators';
+import Base from '@studiometa/js-toolkit';
+import withIntersectionObserver from '@studiometa/js-toolkit/decorators/withIntersectionObserver';
 
 export default class Component extends withIntersectionObserver(Base, {
   threshold: 0.5,
@@ -64,8 +64,8 @@ export default class Component extends withIntersectionObserver(Base, {
 Or by setting an `intersectionObserver` object in the class configuration:
 
 ```js{8-10}
-import { Base } from '@studiometa/js-toolkit/abstracts';
-import { withIntersectionObserver } from '@studiometa/js-toolkit/decorators';
+import Base from '@studiometa/js-toolkit';
+import withIntersectionObserver from '@studiometa/js-toolkit/decorators/withIntersectionObserver';
 
 export default class Component extends withIntersectionObserver(Base) {
   get config() {

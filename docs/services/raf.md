@@ -12,7 +12,7 @@ The RAF (short for `requestAnimationFrame`) service will help you manage your re
 ## Usage
 
 ```js
-import { useRaf } from '@studiometa/js-toolkit';
+import useRaf from '@studiometa/js-toolkit/services/raf';
 
 const { add, remove, props } = useRaf();
 

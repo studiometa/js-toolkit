@@ -368,10 +368,10 @@ describe('A Base instance methods', () => {
   });
 
   it('should resolve async components', async () => {
-    const getFoo = jest.fn((resolve) => resolve(Foo));
-    const getBaz = jest.fn((resolve) => resolve({ default: Foo }));
-    const getBoz = jest.fn((resolve) => setTimeout(() => resolve(Foo), 100));
-    const getBuz = jest.fn((resolve) => setTimeout(() => resolve(Foo), 200));
+    const getFoo = jest.fn(resolve => resolve(Foo));
+    const getBaz = jest.fn(resolve => resolve({ default: Foo }));
+    const getBoz = jest.fn(resolve => setTimeout(() => resolve(Foo), 100));
+    const getBuz = jest.fn(resolve => setTimeout(() => resolve(Foo), 200));
 
     class Bar extends Base {
       get config() {

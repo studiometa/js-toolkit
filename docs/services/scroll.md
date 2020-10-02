@@ -12,7 +12,7 @@ The scroll service will help you manage your actions when the page is scrolled.
 ## Usage
 
 ```js
-import { useScroll } from '@studiometa/js-toolkit';
+import useScroll from '@studiometa/js-toolkit/services/scroll';
 
 const { add, remove, props } = useScroll();
 

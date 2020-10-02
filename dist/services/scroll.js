@@ -1,38 +1,19 @@
-"use strict";
+import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
+import _createClass from "@babel/runtime/helpers/createClass";
+import _assertThisInitialized from "@babel/runtime/helpers/assertThisInitialized";
+import _inherits from "@babel/runtime/helpers/inherits";
+import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
+import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
-
-var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
-
-var _Service2 = _interopRequireDefault(require("../abstracts/Service"));
-
-var _throttle = _interopRequireDefault(require("../utils/throttle"));
-
-var _debounce = _interopRequireDefault(require("../utils/debounce"));
-
-var _nextFrame = _interopRequireDefault(require("../utils/nextFrame"));
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+import Service from '../abstracts/Service';
+import throttle from '../utils/throttle';
+import debounce from '../utils/debounce';
+import nextFrame from '../utils/nextFrame';
 /**
  * Scroll service
  *
@@ -44,29 +25,35 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
  * props();
  * ```
  */
+
 var Scroll = /*#__PURE__*/function (_Service) {
-  (0, _inherits2.default)(Scroll, _Service);
+  _inherits(Scroll, _Service);
 
   var _super = _createSuper(Scroll);
 
   function Scroll() {
     var _this;
 
-    (0, _classCallCheck2.default)(this, Scroll);
+    _classCallCheck(this, Scroll);
 
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
 
     _this = _super.call.apply(_super, [this].concat(args));
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "y", window.pageYOffset);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "yLast", window.pageYOffset);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "x", window.pageXOffset);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "xLast", window.pageXOffset);
+
+    _defineProperty(_assertThisInitialized(_this), "y", window.pageYOffset);
+
+    _defineProperty(_assertThisInitialized(_this), "yLast", window.pageYOffset);
+
+    _defineProperty(_assertThisInitialized(_this), "x", window.pageXOffset);
+
+    _defineProperty(_assertThisInitialized(_this), "xLast", window.pageXOffset);
+
     return _this;
   }
 
-  (0, _createClass2.default)(Scroll, [{
+  _createClass(Scroll, [{
     key: "init",
 
     /**
@@ -77,14 +64,14 @@ var Scroll = /*#__PURE__*/function (_Service) {
     value: function init() {
       var _this2 = this;
 
-      var debounced = (0, _debounce.default)(function () {
+      var debounced = debounce(function () {
         _this2.trigger(_this2.props);
 
-        (0, _nextFrame.default)(function () {
+        nextFrame(function () {
           _this2.trigger(_this2.props);
         });
       }, 50);
-      this.handler = (0, _throttle.default)(function () {
+      this.handler = throttle(function () {
         _this2.trigger(_this2.props); // Reset changed flags at the end of the scroll event
 
 
@@ -164,12 +151,12 @@ var Scroll = /*#__PURE__*/function (_Service) {
       };
     }
   }]);
+
   return Scroll;
-}(_Service2.default);
+}(Service);
 
 var scroll = null;
-
-var _default = function _default() {
+export default (function () {
   if (!scroll) {
     scroll = new Scroll();
   }
@@ -188,7 +175,5 @@ var _default = function _default() {
     has: has,
     props: props
   };
-};
-
-exports.default = _default;
+});
 //# sourceMappingURL=scroll.js.map

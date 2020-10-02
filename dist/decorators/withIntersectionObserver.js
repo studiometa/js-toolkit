@@ -1,47 +1,30 @@
-"use strict";
-
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
-
-var _get2 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
-
-var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
-
-var _utils = require("../abstracts/Base/utils");
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
+import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
+import _assertThisInitialized from "@babel/runtime/helpers/assertThisInitialized";
+import _createClass from "@babel/runtime/helpers/createClass";
+import _inherits from "@babel/runtime/helpers/inherits";
+import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
+import _get from "@babel/runtime/helpers/get";
+import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
+import _toConsumableArray from "@babel/runtime/helpers/toConsumableArray";
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+import { debug } from '../abstracts/Base/utils';
 /**
  * Create an array of number between 0 and 1 from the given length.
  * @param  {Number} length The length of the array.
  * @return {Array}        An array of number.
  */
+
 function createArrayOfNumber(length) {
-  return (0, _toConsumableArray2.default)(new Array(length + 1)).map(function (val, index) {
+  return _toConsumableArray(new Array(length + 1)).map(function (val, index) {
     return index / length;
   });
 }
@@ -50,23 +33,23 @@ function createArrayOfNumber(length) {
  */
 
 
-var _default = function _default(BaseClass) {
+export default (function (BaseClass) {
   var defaultOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
     threshold: createArrayOfNumber(100)
   };
   return /*#__PURE__*/function (_BaseClass) {
-    (0, _inherits2.default)(_class, _BaseClass);
+    _inherits(_class, _BaseClass);
 
     var _super = _createSuper(_class);
 
-    (0, _createClass2.default)(_class, [{
+    _createClass(_class, [{
       key: "_excludeFromAutoBind",
 
       /**
        * Add the `intersected` method to the list of method to exclude from the `autoBind` call.
        */
       get: function get() {
-        return [].concat((0, _toConsumableArray2.default)((0, _get2.default)((0, _getPrototypeOf2.default)(_class.prototype), "_excludeFromAutoBind", this) || []), ['intersected']);
+        return [].concat(_toConsumableArray(_get(_getPrototypeOf(_class.prototype), "_excludeFromAutoBind", this) || []), ['intersected']);
       }
       /**
        * Create an observer when the class in instantiated.
@@ -80,7 +63,8 @@ var _default = function _default(BaseClass) {
     function _class(element) {
       var _this;
 
-      (0, _classCallCheck2.default)(this, _class);
+      _classCallCheck(this, _class);
+
       _this = _super.call(this, element);
 
       if (!_this.intersected || typeof _this.intersected !== 'function') {
@@ -88,7 +72,7 @@ var _default = function _default(BaseClass) {
       }
 
       _this.$observer = new IntersectionObserver(function (entries) {
-        (0, _utils.debug)((0, _assertThisInitialized2.default)(_this), 'intersected', entries);
+        debug(_assertThisInitialized(_this), 'intersected', entries);
 
         _this.$emit('intersected', entries);
 
@@ -107,12 +91,10 @@ var _default = function _default(BaseClass) {
         _this.$observer.unobserve(_this.$el);
       });
 
-      return (0, _possibleConstructorReturn2.default)(_this, (0, _assertThisInitialized2.default)(_this));
+      return _possibleConstructorReturn(_this, _assertThisInitialized(_this));
     }
 
     return _class;
   }(BaseClass);
-};
-
-exports.default = _default;
+});
 //# sourceMappingURL=withIntersectionObserver.js.map

@@ -1,48 +1,11 @@
-"use strict";
-
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-Object.defineProperty(exports, "useKey", {
-  enumerable: true,
-  get: function get() {
-    return _key.default;
-  }
-});
-Object.defineProperty(exports, "usePointer", {
-  enumerable: true,
-  get: function get() {
-    return _pointer.default;
-  }
-});
-Object.defineProperty(exports, "useRaf", {
-  enumerable: true,
-  get: function get() {
-    return _raf.default;
-  }
-});
-Object.defineProperty(exports, "useResize", {
-  enumerable: true,
-  get: function get() {
-    return _resize.default;
-  }
-});
-Object.defineProperty(exports, "useScroll", {
-  enumerable: true,
-  get: function get() {
-    return _scroll.default;
-  }
-});
-
-var _key = _interopRequireDefault(require("./key"));
-
-var _pointer = _interopRequireDefault(require("./pointer"));
-
-var _raf = _interopRequireDefault(require("./raf"));
-
-var _resize = _interopRequireDefault(require("./resize"));
-
-var _scroll = _interopRequireDefault(require("./scroll"));
+import _useKey from './key';
+export { _useKey as useKey };
+import _usePointer from './pointer';
+export { _usePointer as usePointer };
+import _useRaf from './raf';
+export { _useRaf as useRaf };
+import _useResize from './resize';
+export { _useResize as useResize };
+import _useScroll from './scroll';
+export { _useScroll as useScroll };
 //# sourceMappingURL=index.js.map

@@ -1,18 +1,5 @@
-"use strict";
-
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = setStyles;
-exports.add = add;
-exports.remove = remove;
-
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
-
-var _isObject = _interopRequireDefault(require("../object/isObject"));
-
+import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
+import isObject from '../object/isObject';
 /**
  * Manage a list of style properties on an element.
  *
@@ -20,15 +7,16 @@ var _isObject = _interopRequireDefault(require("../object/isObject"));
  * @param {CSSStyleDeclaration} styles  An object of styles properties and values.
  * @param {String}              method  The method to use: add or remove.
  */
-function setStyles(element, styles) {
+
+export default function setStyles(element, styles) {
   var method = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'add';
 
-  if (!element || !styles || !(0, _isObject.default)(styles)) {
+  if (!element || !styles || !isObject(styles)) {
     return;
   }
 
   Object.entries(styles).forEach(function (_ref) {
-    var _ref2 = (0, _slicedToArray2.default)(_ref, 2),
+    var _ref2 = _slicedToArray(_ref, 2),
         prop = _ref2[0],
         value = _ref2[1];
 
@@ -43,8 +31,7 @@ function setStyles(element, styles) {
  * @return {void}
  */
 
-
-function add(element, classNames) {
+export function add(element, classNames) {
   setStyles(element, classNames);
 }
 /**
@@ -55,8 +42,7 @@ function add(element, classNames) {
  * @return {void}
  */
 
-
-function remove(element, classNames) {
+export function remove(element, classNames) {
   setStyles(element, classNames, 'remove');
 }
 //# sourceMappingURL=styles.js.map

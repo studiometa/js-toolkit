@@ -6,7 +6,6 @@ import {
   mockIsIntersecting,
   intersectionMockInstance,
 } from '../__setup__/mockIntersectionObserver';
-import wait from '../__utils__/wait';
 
 beforeAll(() => beforeAllCallback());
 afterEach(() => afterEachCallback());
