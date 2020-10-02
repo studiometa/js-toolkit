@@ -31,7 +31,7 @@ class Key extends Service {
    * @return {void}
    */
   init() {
-    this.handler = (event) => {
+    this.handler = event => {
       this.event = event;
       this.trigger(this.props);
     };

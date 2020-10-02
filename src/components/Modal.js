@@ -72,7 +72,7 @@ export default class Modal extends Base {
       this.refModalParentBackup = this.$refs.modal.parentElement || this.$el;
       this.refModalParentBackup.insertBefore(this.refModalPlaceholder, this.$refs.modal);
 
-      this.refModalUnbindGetRefFilter = this.$on('get:refs', (refs) => {
+      this.refModalUnbindGetRefFilter = this.$on('get:refs', refs => {
         Object.entries(refsBackup).forEach(([key, ref]) => {
           if (!refs[key]) {
             refs[key] = ref;

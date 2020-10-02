@@ -1,1 +1,1 @@
-{"version":3,"sources":["../src/index.js"],"names":["Base"],"mappings":"AAAA,OAAOA,IAAP,MAAiB,kBAAjB;AACA,eAAeA,IAAf","sourcesContent":["import Base from './abstracts/Base';\nexport default Base;\n"],"file":"index.js"}
+{"version":3,"sources":["../src/index.js"],"names":["Base"],"mappings":"AAAA,OAAOA,IAAP,MAAiB,kBAAjB;AAEA,eAAeA,IAAf","sourcesContent":["import Base from './abstracts/Base';\n\nexport default Base;\n"],"file":"index.js"}

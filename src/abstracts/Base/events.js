@@ -9,7 +9,7 @@ import { debug } from './utils';
  * @return {Array}              A list of unbind functions.
  */
 function bindRootEvents(instance, eventMethods) {
-  return eventMethods.map((eventMethod) => {
+  return eventMethods.map(eventMethod => {
     const eventName = eventMethod.replace(/^on/, '').toLowerCase();
 
     const handler = (...args) => {
@@ -37,11 +37,11 @@ function bindRefsEvents(instance, eventMethods) {
 
   Object.entries(instance.$refs).forEach(([refName, $refOrRefs]) => {
     const $refs = Array.isArray($refOrRefs) ? $refOrRefs : [$refOrRefs];
-    const refEventMethod = `on${refName.replace(/^\w/, (c) => c.toUpperCase())}`;
+    const refEventMethod = `on${refName.replace(/^\w/, c => c.toUpperCase())}`;
 
     eventMethods
-      .filter((eventMethod) => eventMethod.startsWith(refEventMethod))
-      .forEach((eventMethod) => {
+      .filter(eventMethod => eventMethod.startsWith(refEventMethod))
+      .forEach(eventMethod => {
         $refs.forEach(($ref, index) => {
           const eventName = eventMethod.replace(refEventMethod, '').toLowerCase();
           const handler = (...args) => {
@@ -80,11 +80,11 @@ function bindChildrenEvents(instance, eventMethods) {
   const unbindMethods = [];
 
   Object.entries(instance.$children).forEach(([childName, $children]) => {
-    const childEventMethod = `on${childName.replace(/^\w/, (c) => c.toUpperCase())}`;
+    const childEventMethod = `on${childName.replace(/^\w/, c => c.toUpperCase())}`;
 
     eventMethods
-      .filter((eventMethod) => eventMethod.startsWith(childEventMethod))
-      .forEach((eventMethod) => {
+      .filter(eventMethod => eventMethod.startsWith(childEventMethod))
+      .forEach(eventMethod => {
         $children.forEach(($child, index) => {
           const eventName = eventMethod.replace(childEventMethod, '').toLowerCase();
           const handler = (...args) => {
