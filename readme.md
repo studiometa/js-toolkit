@@ -15,6 +15,17 @@ Install the latest version via NPM:
 npm install @studiometa/js-toolkit
 ```
 
+Two modern builds are also provided for prototyping purpose, they can be used as follow:
+
+```html
+<script type="module">
+  // Import the Base class
+  import Base from 'https://unpkg.com/@studiometa/js-toolkit/index.modern.js';
+  // Import the full toolkit
+  import { utils, services, components, decorators } from 'https://unpkg.com/@studiometa/js-toolkit/full.modern.js';
+</script>
+```
+
 ## Usage
 
 Use the `Base` class to create your components:
