@@ -113,6 +113,7 @@ export default class Base extends EventManager {
         'keyed',
         'scrolled',
         'destroyed',
+        'terminated',
         ...(this._excludeFromAutoBind || []),
       ],
     });
