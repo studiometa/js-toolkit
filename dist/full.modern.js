@@ -1,3 +1,36 @@
+function _extends() {
+  _extends = Object.assign || function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+
+    return target;
+  };
+
+  return _extends.apply(this, arguments);
+}
+
+function _objectWithoutPropertiesLoose(source, excluded) {
+  if (source == null) return {};
+  var target = {};
+  var sourceKeys = Object.keys(source);
+  var key, i;
+
+  for (i = 0; i < sourceKeys.length; i++) {
+    key = sourceKeys[i];
+    if (excluded.indexOf(key) >= 0) continue;
+    target[key] = source[key];
+  }
+
+  return target;
+}
+
 // This alphabet uses a-z A-Z 0-9 _- symbols.
 // Symbols are generated for smaller size.
 // -_zyxwvutsrqponmlkjihgfedcba9876543210ZYXWVUTSRQPONMLKJIHGFEDCBA
@@ -1348,39 +1381,6 @@ var useScroll = (() => {
   };
 });
 
-function _extends() {
-  _extends = Object.assign || function (target) {
-    for (var i = 1; i < arguments.length; i++) {
-      var source = arguments[i];
-
-      for (var key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          target[key] = source[key];
-        }
-      }
-    }
-
-    return target;
-  };
-
-  return _extends.apply(this, arguments);
-}
-
-function _objectWithoutPropertiesLoose(source, excluded) {
-  if (source == null) return {};
-  var target = {};
-  var sourceKeys = Object.keys(source);
-  var key, i;
-
-  for (i = 0; i < sourceKeys.length; i++) {
-    key = sourceKeys[i];
-    if (excluded.indexOf(key) >= 0) continue;
-    target[key] = source[key];
-  }
-
-  return target;
-}
-
 var keyCodes = {
   ENTER: 13,
   SPACE: 32,
@@ -1770,7 +1770,7 @@ class Base extends EventManager {
 
 
     autoBind(this, {
-      exclude: ['$mount', '$destroy', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', ...(this._excludeFromAutoBind || [])]
+      exclude: ['$mount', '$destroy', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated', ...(this._excludeFromAutoBind || [])]
     });
     let unbindMethods = [];
     this.$on('mounted', () => {
@@ -1865,6 +1865,72 @@ class Base extends EventManager {
 
 }
 Base.__isBase__ = true;
+
+/**
+ * Define a component without a class.
+ *
+ * @param  {Object} options The component's object
+ * @return {Base}           A component's class.
+ */
+
+function defineComponent(options) {
+  const {
+    config,
+    methods
+  } = options,
+        hooks = _objectWithoutPropertiesLoose(options, ["config", "methods"]);
+
+  if (!config) {
+    throw new Error('The `config` property is required.');
+  }
+
+  if (!config.name) {
+    throw new Error('The `config.name` property is required.');
+  }
+  /**
+   * Component class.
+   */
+
+
+  class Component extends Base {
+    /**
+     * Component config.
+     */
+    get config() {
+      return config;
+    }
+
+  }
+
+  const allowedHooks = ['mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
+  const filteredHooks = Object.entries(hooks || {}).reduce((acc, [name, fn]) => {
+    if (allowedHooks.includes(name)) {
+      acc[name] = fn;
+    } else {
+      throw new Error(`
+          The "${name}" method is not a Base lifecycle hook,
+          it should be placed in the "method" property.
+          The following hooks are available: ${allowedHooks.join(', ')}
+        `);
+    }
+
+    return acc;
+  }, {});
+  [...Object.entries(methods || {}), ...Object.entries(filteredHooks)].forEach(([name, fn]) => {
+    Component.prototype[name] = fn;
+  });
+  return Component;
+}
+/**
+ * Create a Base instance with the given object configuration.
+ * @param {HTMLElement|String} elementOrSelector The instance root HTML element.
+ * @param {Object}             options           The Base class configuration.
+ */
+
+function createBase(elementOrSelector, options) {
+  const Component = defineComponent(options);
+  return typeof elementOrSelector === 'string' ? Component.$factory(elementOrSelector) : new Component(elementOrSelector);
+}
 
 
 
@@ -3329,6 +3395,5 @@ var index$7 = {
   throttle: throttle
 };
 
-export default Base;
-export { Base, index as abstracts, index$1 as components, index$2 as decorators, index$3 as services, index$7 as utils };
+export { Base, index as abstracts, index$1 as components, createBase, index$2 as decorators, defineComponent, index$3 as services, index$7 as utils };
 //# sourceMappingURL=full.modern.js.map
