@@ -10,9 +10,11 @@
     "docs:build": "vuepress build docs",
     "demo:dev": "cd demo && meta dev",
     "demo:build": "cd demo && meta build",
-    "build": "npm run build:all && npm run build:base",
-    "build:all": "babel --delete-dir-on-start --source-maps --out-dir dist/ src/",
-    "build:base": "NODE_TARGET=bundle microbundle --entry src/index.js --output dist --name Base --external none",
+    "build": "npm run build:babel && npm run build:bundle",
+    "build:babel": "babel --delete-dir-on-start --source-maps --out-dir dist/ src/",
+    "build:bundle": "npm run build:bundle:base && npm run build:bundle:full",
+    "build:bundle:base": "NODE_TARGET=bundle microbundle -i src/index.js -o dist/index.modern.js -f modern --no-pkg-main --no-compress --external none",
+    "build:bundle:full": "NODE_TARGET=bundle microbundle -i src/full.js -o dist/full.modern.js -f modern --no-pkg-main --no-compress --external none",
     "deploy": "npm run build && cp readme.md dist/ && cp package.json dist/ && cd dist/ && npm publish && rm package.json readme.md"
   },
   "publishConfig": {
