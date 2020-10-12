@@ -52,7 +52,7 @@
     "@studiometa/prettier-config": "^2.0.1",
     "@studiometa/stylelint-config": "^2.0.0",
     "@studiometa/tailwind-config": "^1.0.2",
-    "@studiometa/webpack-config": "^2.2.0",
+    "@studiometa/webpack-config": "^2.3.0",
     "autoprefixer": "^9.8.6",
     "babel-jest": "^26.3.0",
     "cssnano": "^4.1.10",
