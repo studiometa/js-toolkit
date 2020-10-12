@@ -41,7 +41,7 @@ export function defineComponent(options) {
     'terminated',
   ];
 
-  const filteredHooks = Object.entries(hooks || {}).reduce((acc, [name, fn]) => {
+  const filteredHooks = Object.entries(hooks).reduce((acc, [name, fn]) => {
     if (allowedHooks.includes(name)) {
       acc[name] = fn;
     } else {
@@ -71,9 +71,12 @@ export function defineComponent(options) {
  */
 export function createBase(elementOrSelector, options) {
   const Component = defineComponent(options);
-  return typeof elementOrSelector === 'string'
-    ? Component.$factory(elementOrSelector)
-    : new Component(elementOrSelector);
+
+  if (elementOrSelector.length) {
+    return [...elementOrSelector].map((el) => new Component(el));
+  }
+
+  return new Component(elementOrSelector);
 }
 
 export default Base;

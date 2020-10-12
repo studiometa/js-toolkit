@@ -5,11 +5,12 @@ describe('~/utils exports', () => {
     expect(Object.keys(utils)).toEqual([
       'debounce',
       'focusTrap',
-      'object',
       'keyCodes',
       'nextFrame',
       'throttle',
       'css',
+      'math',
+      'object',
     ]);
   });
 });
