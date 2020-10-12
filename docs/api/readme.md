@@ -68,7 +68,7 @@ Define a component without having to extend the `Base` class.
 
 **Parameters**
 - `options.config` (`Object`): see the [config getter](#config)
-- `options.methods` (`Object`): use for functions other than the [`Base` class methods](#class-methods)
+- `options.methods` (`Object`): used for functions other than the [`Base` class methods](#class-methods)
 - `options[<name>]` (`Function`): [class methods](#class-methods) of the component
 
 **Examples**
@@ -94,7 +94,7 @@ For legacy projects, use the UMD build:
 </script>
 ```
 
-For modern projects with the NPM package:
+For modern projects, prefer using the NPM package:
 
 ```js
 import { defineComponent } from '@studiometa/js-toolkit';
@@ -141,7 +141,7 @@ For legacy projects, use the UMD build:
 </script>
 ```
 
-For modern projects with the NPM package:
+For modern projects, prefer using the NPM package:
 
 ```js
 import { createBase } from '@studiometa/js-toolkit';
