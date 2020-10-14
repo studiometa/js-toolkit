@@ -2011,7 +2011,7 @@
 
 
       autoBind(_assertThisInitialized(_this), {
-        exclude: ['$mount', '$destroy', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'].concat(_this._excludeFromAutoBind || [])
+        exclude: ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'].concat(_this._excludeFromAutoBind || [])
       });
       var unbindMethods = [];
 
@@ -2167,7 +2167,7 @@
     }(Base);
 
     var allowedHooks = ['mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
-    var filteredHooks = Object.entries(hooks || {}).reduce(function (acc, _ref) {
+    var filteredHooks = Object.entries(hooks).reduce(function (acc, _ref) {
       var name = _ref[0],
           fn = _ref[1];
 
@@ -2194,7 +2194,14 @@
 
   function createBase(elementOrSelector, options) {
     var Component = defineComponent(options);
-    return typeof elementOrSelector === 'string' ? Component.$factory(elementOrSelector) : new Component(elementOrSelector);
+
+    if (elementOrSelector.length) {
+      return [].concat(elementOrSelector).map(function (el) {
+        return new Component(el);
+      });
+    }
+
+    return new Component(elementOrSelector);
   }
 
   exports.createBase = createBase;

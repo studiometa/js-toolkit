@@ -62,7 +62,7 @@ export function defineComponent(options) {
   }(Base);
 
   var allowedHooks = ['mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
-  var filteredHooks = Object.entries(hooks || {}).reduce(function (acc, _ref) {
+  var filteredHooks = Object.entries(hooks).reduce(function (acc, _ref) {
     var _ref2 = _slicedToArray(_ref, 2),
         name = _ref2[0],
         fn = _ref2[1];
@@ -92,7 +92,14 @@ export function defineComponent(options) {
 
 export function createBase(elementOrSelector, options) {
   var Component = defineComponent(options);
-  return typeof elementOrSelector === 'string' ? Component.$factory(elementOrSelector) : new Component(elementOrSelector);
+
+  if (elementOrSelector.length) {
+    return _toConsumableArray(elementOrSelector).map(function (el) {
+      return new Component(el);
+    });
+  }
+
+  return new Component(elementOrSelector);
 }
 export default Base;
 //# sourceMappingURL=index.js.map

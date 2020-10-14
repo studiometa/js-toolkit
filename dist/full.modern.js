@@ -1770,7 +1770,7 @@ class Base extends EventManager {
 
 
     autoBind(this, {
-      exclude: ['$mount', '$destroy', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated', ...(this._excludeFromAutoBind || [])]
+      exclude: ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated', ...(this._excludeFromAutoBind || [])]
     });
     let unbindMethods = [];
     this.$on('mounted', () => {
@@ -1903,7 +1903,7 @@ function defineComponent(options) {
   }
 
   const allowedHooks = ['mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
-  const filteredHooks = Object.entries(hooks || {}).reduce((acc, [name, fn]) => {
+  const filteredHooks = Object.entries(hooks).reduce((acc, [name, fn]) => {
     if (allowedHooks.includes(name)) {
       acc[name] = fn;
     } else {
@@ -1929,7 +1929,12 @@ function defineComponent(options) {
 
 function createBase(elementOrSelector, options) {
   const Component = defineComponent(options);
-  return typeof elementOrSelector === 'string' ? Component.$factory(elementOrSelector) : new Component(elementOrSelector);
+
+  if (elementOrSelector.length) {
+    return [...elementOrSelector].map(el => new Component(el));
+  }
+
+  return new Component(elementOrSelector);
 }
 
 
