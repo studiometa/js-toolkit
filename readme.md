@@ -15,9 +15,22 @@ Install the latest version via NPM:
 npm install @studiometa/js-toolkit
 ```
 
+Two modern builds are provided for prototyping purpose, they can be used as follow:
+
+```html
+<script type="module">
+  // Import the Base class
+  import Base from 'https://unpkg.com/@studiometa/js-toolkit/index.modern.js';
+  // Import the full toolkit
+  import { utils, services, components, decorators } from 'https://unpkg.com/@studiometa/js-toolkit/full.modern.js';
+</script>
+```
+
 ## Usage
 
-Use the `Base` class to create your components:
+### Modern JS with bundler
+
+Import the `Base` class to create your components from your `node_modules`:
 
 ```js
 import Base from '@studiometa/js-toolkit';
@@ -55,3 +68,54 @@ export default new App(document.querySelector('#app'));
 ```
 
 Read the [documentation](https://js-toolkit.meta.fr/) to learn more.
+
+### Modern JS in browser
+
+Two modern builds are provided for prototyping purpose, they can be used as follow:
+
+```html
+<script type="module">
+  // Import the Base class
+  import Base from 'https://unpkg.com/@studiometa/js-toolkit/index.modern.js';
+  // Import the full toolkit
+  import { utils, services, components, decorators } from 'https://unpkg.com/@studiometa/js-toolkit/full.modern.js';
+</script>
+```
+
+### Legacy JS
+
+Two UMD builds are also provided to be used in legacy projects.
+
+```html
+<div id="app">
+  <button data-ref="btn">Add more</button>
+  <input data-ref="input" value="0" readonly />
+  <div data-component="Component"></div>
+</div>
+<script src="https://unpkg.com/@studiometa/js-toolkit/index.umd.js"></script>
+<script>
+  var Component = Base.defineComponent({
+    config: {
+      name: 'Component',
+    },
+  });
+
+  Base.createBase(document.querySelector('#app'), {
+    config: {
+      name: 'App',
+      log: true,
+      components: {
+        Component: Component,
+      },
+    },
+    mounted: function() {
+      this.$log('mounted');
+    },
+    methods: {
+      onBtnClick: function() {
+        this.$refs.input.value = Number(this.$refs.input.value) + 1;
+      },
+    },
+  });
+</script>
+```

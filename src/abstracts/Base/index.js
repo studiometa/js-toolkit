@@ -99,7 +99,9 @@ export default class Base extends EventManager {
     autoBind(this, {
       exclude: [
         '$mount',
+        '$update',
         '$destroy',
+        '$terminate',
         '$log',
         '$on',
         '$once',
@@ -113,6 +115,7 @@ export default class Base extends EventManager {
         'keyed',
         'scrolled',
         'destroyed',
+        'terminated',
         ...(this._excludeFromAutoBind || []),
       ],
     });
