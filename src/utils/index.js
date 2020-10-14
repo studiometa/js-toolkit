@@ -1,7 +1,8 @@
+export * as css from './css';
+export * as math from './math';
+export * as object from './object';
 export debounce from './debounce';
 export focusTrap from './focusTrap';
-export object from './object';
 export keyCodes from './keyCodes';
 export nextFrame from './nextFrame';
 export throttle from './throttle';
-export css from './css';
