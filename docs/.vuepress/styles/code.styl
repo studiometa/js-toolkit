@@ -1,0 +1,15 @@
+$fontSize = 0.875em
+$lineHeight = 1.6
+
+{$contentClass}
+  code
+    font-size $fontSize
+
+div[class*="language-"]
+  margin 1rem 0
+
+  &.line-numbers-mode
+    .line-numbers-wrapper
+      .line-number
+        font-size $fontSize
+
