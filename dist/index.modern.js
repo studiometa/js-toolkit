@@ -322,22 +322,24 @@ function getChild(el, ComponentClass, parent) {
 }
 /**
  * Get a list of elements based on the name of a component.
- * @param  {String}         nameOrSelector The name or selector to used for this component.
- * @return {Array<Element>}                A list of elements on which the component should be mounted.
+ * @param  {String}             nameOrSelector The name or selector to used for this component.
+ * @param  {HTMLElement}        element        The root element on which to query the selector, defaults to `document`.
+ * @return {Array<HTMLElement>}                A list of elements on which the component should be mounted.
  */
 
 
-function getComponentElements(nameOrSelector) {
-  let elements = document.querySelectorAll(`[data-component="${nameOrSelector}"]`); // If no child component found with the default selector, try a classic DOM selector
+function getComponentElements(nameOrSelector, element = document) {
+  const selector = `[data-component="${nameOrSelector}"]`;
+  let elements = Array.from(element.querySelectorAll(selector)); // If no child component found with the default selector, try a classic DOM selector
 
   if (elements.length === 0) {
-    elements = document.querySelectorAll(nameOrSelector);
+    elements = Array.from(element.querySelectorAll(nameOrSelector));
   }
 
-  return Array.from(elements);
+  return elements;
 }
 /**
- *
+ * Get child components.
  * @param  {Base}        instance   The component's instance.
  * @param  {HTMLElement} element    The component's root element
  * @param  {Object}      components The children components' classes
@@ -346,7 +348,7 @@ function getComponentElements(nameOrSelector) {
 
 function getChildren(instance, element, components) {
   const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
-    const elements = getComponentElements(name);
+    const elements = getComponentElements(name, element);
 
     if (elements.length === 0) {
       return acc;
@@ -1954,12 +1956,8 @@ function defineComponent(options) {
 
 function createBase(elementOrSelector, options) {
   const Component = defineComponent(options);
-
-  if (elementOrSelector.length) {
-    return [...elementOrSelector].map(el => new Component(el));
-  }
-
-  return new Component(elementOrSelector);
+  const element = typeof elementOrSelector === 'string' ? document.querySelector(elementOrSelector) : elementOrSelector;
+  return new Component(element);
 }
 
 export default Base;
