@@ -59,6 +59,34 @@ untrap();
 To understand the "tab trap" usage, read [Using JavaScript to trap focus in an element](https://hiddedevries.nl/en/blog/2017-01-29-using-javascript-to-trap-focus-in-an-element).
 :::
 
+## `getValueDeep`
+
+Get a value from an object by its path.
+
+**Parameters**
+
+- `obj` (`Object | Array`): the object in which to find the value
+- `path` (`String`): the dotted path to the value
+
+**Returns**
+
+- `false`: if the value was not found
+- `any`: the value correponding to the path
+
+[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/object/getValueDeep.js)
+
+**Usage**
+
+```js
+import getValueDeep from '@studiometa/js-toolkit/utils/object/getValueDeep';
+
+const obj = { foo: { bar: 'baz', array: ['one', 'two'] } };
+
+console.log(getValueDeep(obj, 'foo.bar')); // 'baz'
+console.log(getValueDeep(obj, 'foo.array')); // ['one', 'two']
+console.log(getValueDeep(obj, 'foo.array.0')); // 'one'
+```
+
 ## `isObject`
 
 Test if the given value is an object.

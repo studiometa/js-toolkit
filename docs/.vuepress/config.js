@@ -42,6 +42,7 @@ module.exports = {
         items: [
           { text: 'debounce', link: '/utils/#debounce' },
           { text: 'focusTrap', link: '/utils/#focusTrap' },
+          { text: 'getValueDeep', link: '/utils/#getValueDeep' },
           { text: 'isObject', link: '/utils/#isObject' },
           { text: 'keyCodes', link: '/utils/#keyCodes' },
           { text: 'matrix', link: '/utils/#matrix' },
