@@ -322,22 +322,29 @@ function getChild(el, ComponentClass, parent) {
 }
 /**
  * Get a list of elements based on the name of a component.
- * @param  {String}         nameOrSelector The name or selector to used for this component.
- * @return {Array<Element>}                A list of elements on which the component should be mounted.
+ * @param  {String}             nameOrSelector The name or selector to used for this component.
+ * @param  {HTMLElement}        element        The root element on which to query the selector, defaults to `document`.
+ * @return {Array<HTMLElement>}                A list of elements on which the component should be mounted.
  */
 
 
-function getComponentElements(nameOrSelector) {
-  let elements = document.querySelectorAll(`[data-component="${nameOrSelector}"]`); // If no child component found with the default selector, try a classic DOM selector
+function getComponentElements(nameOrSelector, element = document) {
+  const selector = `[data-component="${nameOrSelector}"]`;
+  let elements = [];
+
+  try {
+    elements = Array.from(element.querySelectorAll(selector)); // eslint-disable-next-line no-empty
+  } catch (_unused) {} // If no child component found with the default selector, try a classic DOM selector
+
 
   if (elements.length === 0) {
-    elements = document.querySelectorAll(nameOrSelector);
+    elements = Array.from(element.querySelectorAll(nameOrSelector));
   }
 
-  return Array.from(elements);
+  return elements;
 }
 /**
- *
+ * Get child components.
  * @param  {Base}        instance   The component's instance.
  * @param  {HTMLElement} element    The component's root element
  * @param  {Object}      components The children components' classes
@@ -346,7 +353,7 @@ function getComponentElements(nameOrSelector) {
 
 function getChildren(instance, element, components) {
   const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
-    const elements = getComponentElements(name);
+    const elements = getComponentElements(name, element);
 
     if (elements.length === 0) {
       return acc;
@@ -1039,6 +1046,7 @@ class Pointer extends Service {
 
 
   updateValues(event) {
+    this.event = event;
     this.yLast = this.y;
     this.xLast = this.x; // Check pointer Y
     // We either get data from a touch event `event.touches[0].clientY` or from
@@ -1064,6 +1072,7 @@ class Pointer extends Service {
 
   get props() {
     return {
+      event: this.event,
       isDown: this.isDown,
       x: this.x,
       y: this.y,
@@ -1954,12 +1963,8 @@ function defineComponent(options) {
 
 function createBase(elementOrSelector, options) {
   const Component = defineComponent(options);
-
-  if (elementOrSelector.length) {
-    return [...elementOrSelector].map(el => new Component(el));
-  }
-
-  return new Component(elementOrSelector);
+  const element = typeof elementOrSelector === 'string' ? document.querySelector(elementOrSelector) : elementOrSelector;
+  return new Component(element);
 }
 
 
@@ -3333,12 +3338,30 @@ var index$3 = {
   useScroll: useScroll
 };
 
+/**
+ * Format a CSS transform matrix with the given values.
+ *
+ * @param  {Number} options.scaleX     The scale on the x axis.
+ * @param  {Number} options.scaleY     The scale on the y axis.
+ * @param  {Number} options.skewX      The skew on the x axis.
+ * @param  {Number} options.skewY      The skew on the y axis.
+ * @param  {Number} options.translateX The translate on the x axis.
+ * @param  {Number} options.translateY The translate on the y axis.
+ * @return {String}                    A formatted CSS matrix transform.
+ */
+function matrix(transform) {
+  // eslint-disable-next-line no-param-reassign
+  transform = transform || {};
+  return `matrix(${transform.scaleX || 1}, ${transform.skewX || 0}, ${transform.skewY || 0}, ${transform.scaleY || 1}, ${transform.translateX || 0}, ${transform.translateY || 0})`;
+}
+
 
 
 var index$4 = {
   __proto__: null,
   classes: classes,
   styles: styles,
+  matrix: matrix,
   transition: transition
 };
 
