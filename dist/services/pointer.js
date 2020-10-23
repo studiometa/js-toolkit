@@ -52,6 +52,8 @@ var Pointer = /*#__PURE__*/function (_Service) {
 
     _defineProperty(_assertThisInitialized(_this), "xLast", window.innerWidth / 2);
 
+    _defineProperty(_assertThisInitialized(_this), "event", void 0);
+
     return _this;
   }
 
@@ -168,6 +170,7 @@ var Pointer = /*#__PURE__*/function (_Service) {
   }, {
     key: "updateValues",
     value: function updateValues(event) {
+      this.event = event;
       this.yLast = this.y;
       this.xLast = this.x; // Check pointer Y
       // We either get data from a touch event `event.touches[0].clientY` or from
@@ -194,6 +197,7 @@ var Pointer = /*#__PURE__*/function (_Service) {
     key: "props",
     get: function get() {
       return {
+        event: this.event,
         isDown: this.isDown,
         x: this.x,
         y: this.y,

@@ -389,22 +389,33 @@
   }
   /**
    * Get a list of elements based on the name of a component.
-   * @param  {String}         nameOrSelector The name or selector to used for this component.
-   * @return {Array<Element>}                A list of elements on which the component should be mounted.
+   * @param  {String}             nameOrSelector The name or selector to used for this component.
+   * @param  {HTMLElement}        element        The root element on which to query the selector, defaults to `document`.
+   * @return {Array<HTMLElement>}                A list of elements on which the component should be mounted.
    */
 
 
-  function getComponentElements(nameOrSelector) {
-    var elements = document.querySelectorAll("[data-component=\"" + nameOrSelector + "\"]"); // If no child component found with the default selector, try a classic DOM selector
-
-    if (elements.length === 0) {
-      elements = document.querySelectorAll(nameOrSelector);
+  function getComponentElements(nameOrSelector, element) {
+    if (element === void 0) {
+      element = document;
     }
 
-    return Array.from(elements);
+    var selector = "[data-component=\"" + nameOrSelector + "\"]";
+    var elements = [];
+
+    try {
+      elements = Array.from(element.querySelectorAll(selector)); // eslint-disable-next-line no-empty
+    } catch (_unused) {} // If no child component found with the default selector, try a classic DOM selector
+
+
+    if (elements.length === 0) {
+      elements = Array.from(element.querySelectorAll(nameOrSelector));
+    }
+
+    return elements;
   }
   /**
-   *
+   * Get child components.
    * @param  {Base}        instance   The component's instance.
    * @param  {HTMLElement} element    The component's root element
    * @param  {Object}      components The children components' classes
@@ -415,7 +426,7 @@
     var children = Object.entries(components).reduce(function (acc, _ref) {
       var name = _ref[0],
           ComponentClass = _ref[1];
-      var elements = getComponentElements(name);
+      var elements = getComponentElements(name, element);
 
       if (elements.length === 0) {
         return acc;
@@ -1178,6 +1189,7 @@
     ;
 
     _proto.updateValues = function updateValues(event) {
+      this.event = event;
       this.yLast = this.y;
       this.xLast = this.x; // Check pointer Y
       // We either get data from a touch event `event.touches[0].clientY` or from
@@ -1205,6 +1217,7 @@
       key: "props",
       get: function get() {
         return {
+          event: this.event,
           isDown: this.isDown,
           x: this.x,
           y: this.y,
@@ -2223,14 +2236,8 @@
 
   function createBase(elementOrSelector, options) {
     var Component = defineComponent(options);
-
-    if (elementOrSelector.length) {
-      return [].concat(elementOrSelector).map(function (el) {
-        return new Component(el);
-      });
-    }
-
-    return new Component(elementOrSelector);
+    var element = typeof elementOrSelector === 'string' ? document.querySelector(elementOrSelector) : elementOrSelector;
+    return new Component(element);
   }
 
   exports.createBase = createBase;
