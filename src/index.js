@@ -71,12 +71,11 @@ export function defineComponent(options) {
  */
 export function createBase(elementOrSelector, options) {
   const Component = defineComponent(options);
-
-  if (elementOrSelector.length) {
-    return [...elementOrSelector].map((el) => new Component(el));
-  }
-
-  return new Component(elementOrSelector);
+  const element =
+    typeof elementOrSelector === 'string'
+      ? document.querySelector(elementOrSelector)
+      : elementOrSelector;
+  return new Component(element);
 }
 
 export default Base;

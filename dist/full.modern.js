@@ -321,22 +321,39 @@ function getChild(el, ComponentClass, parent) {
   return asyncComponent;
 }
 /**
- *
+ * Get a list of elements based on the name of a component.
+ * @param  {String}             nameOrSelector The name or selector to used for this component.
+ * @param  {HTMLElement}        element        The root element on which to query the selector, defaults to `document`.
+ * @return {Array<HTMLElement>}                A list of elements on which the component should be mounted.
+ */
+
+
+function getComponentElements(nameOrSelector, element = document) {
+  const selector = `[data-component="${nameOrSelector}"]`;
+  let elements = [];
+
+  try {
+    elements = Array.from(element.querySelectorAll(selector)); // eslint-disable-next-line no-empty
+  } catch (_unused) {} // If no child component found with the default selector, try a classic DOM selector
+
+
+  if (elements.length === 0) {
+    elements = Array.from(element.querySelectorAll(nameOrSelector));
+  }
+
+  return elements;
+}
+/**
+ * Get child components.
  * @param  {Base}        instance   The component's instance.
  * @param  {HTMLElement} element    The component's root element
  * @param  {Object}      components The children components' classes
  * @return {null|Object}            Returns `null` if no child components are defined or an object of all child component instances
  */
 
-
 function getChildren(instance, element, components) {
   const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
-    const selector = `[data-component="${name}"]`;
-    let elements = Array.from(element.querySelectorAll(selector)); // If no child component found with the default selector, the name must be a DOM selector
-
-    if (elements.length === 0) {
-      elements = Array.from(element.querySelectorAll(name));
-    }
+    const elements = getComponentElements(name, element);
 
     if (elements.length === 0) {
       return acc;
@@ -1029,6 +1046,7 @@ class Pointer extends Service {
 
 
   updateValues(event) {
+    this.event = event;
     this.yLast = this.y;
     this.xLast = this.x; // Check pointer Y
     // We either get data from a touch event `event.touches[0].clientY` or from
@@ -1054,6 +1072,7 @@ class Pointer extends Service {
 
   get props() {
     return {
+      event: this.event,
       isDown: this.isDown,
       x: this.x,
       y: this.y,
@@ -1862,6 +1881,21 @@ class Base extends EventManager {
       writable: false
     });
   }
+  /**
+   * Factory method to generate multiple instance of the class.
+   *
+   * @param  {String}      selector The selector on which to mount each instance.
+   * @return {Array<Base>}          A list of the created instance.
+   */
+
+
+  static $factory(nameOrSelector) {
+    if (!nameOrSelector) {
+      throw new Error('The $factory method requires a component’s name or selector to be specified.');
+    }
+
+    return getComponentElements(nameOrSelector).map(el => new this(el));
+  }
 
 }
 Base.__isBase__ = true;
@@ -1929,12 +1963,8 @@ function defineComponent(options) {
 
 function createBase(elementOrSelector, options) {
   const Component = defineComponent(options);
-
-  if (elementOrSelector.length) {
-    return [...elementOrSelector].map(el => new Component(el));
-  }
-
-  return new Component(elementOrSelector);
+  const element = typeof elementOrSelector === 'string' ? document.querySelector(elementOrSelector) : elementOrSelector;
+  return new Component(element);
 }
 
 
@@ -3308,12 +3338,30 @@ var index$3 = {
   useScroll: useScroll
 };
 
+/**
+ * Format a CSS transform matrix with the given values.
+ *
+ * @param  {Number} options.scaleX     The scale on the x axis.
+ * @param  {Number} options.scaleY     The scale on the y axis.
+ * @param  {Number} options.skewX      The skew on the x axis.
+ * @param  {Number} options.skewY      The skew on the y axis.
+ * @param  {Number} options.translateX The translate on the x axis.
+ * @param  {Number} options.translateY The translate on the y axis.
+ * @return {String}                    A formatted CSS matrix transform.
+ */
+function matrix(transform) {
+  // eslint-disable-next-line no-param-reassign
+  transform = transform || {};
+  return `matrix(${transform.scaleX || 1}, ${transform.skewX || 0}, ${transform.skewY || 0}, ${transform.scaleY || 1}, ${transform.translateX || 0}, ${transform.translateY || 0})`;
+}
+
 
 
 var index$4 = {
   __proto__: null,
   classes: classes,
   styles: styles,
+  matrix: matrix,
   transition: transition
 };
 

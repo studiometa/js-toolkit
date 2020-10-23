@@ -1,6 +1,6 @@
 /* eslint-disable no-new, require-jsdoc, max-classes-per-file */
-import Base from '../../src/abstracts/Base';
-import wait from '../__utils__/wait';
+import Base from '~/abstracts/Base';
+import wait from '../../__utils__/wait';
 
 describe('The abstract Base class', () => {
   it('must be extended', () => {
@@ -149,6 +149,28 @@ describe('A Base instance methods', () => {
     expect(app.$children.Bar).toBeUndefined();
     expect(app.$children.Baz).toHaveLength(2);
     expect(app.$children.Baz[0].$isMounted).toBe(true);
+  });
+
+  it('should implement the $factory method', () => {
+    class Bar extends Foo {}
+    class Baz extends Foo {}
+    class Boz extends Foo {}
+    document.body.innerHTML = `
+      <div data-component="Bar"></div>
+      <div data-component="Bar"></div>
+      <div class="custom-selector"></div>
+      <div class="custom-selector"></div>
+    `;
+
+    const barInstances = Bar.$factory('Bar');
+    const bazInstances = Baz.$factory('.custom-selector');
+    const bozInstances = Boz.$factory('Boz');
+    expect(barInstances).toHaveLength(2);
+    expect(barInstances[0] instanceof Bar).toBe(true);
+    expect(bazInstances).toHaveLength(2);
+    expect(bazInstances[0] instanceof Baz).toBe(true);
+    expect(bozInstances).toHaveLength(0);
+    expect(Baz.$factory).toThrow(/\$factory method/);
   });
 
   it('should be able to be terminated', () => {
@@ -368,10 +390,10 @@ describe('A Base instance methods', () => {
   });
 
   it('should resolve async components', async () => {
-    const getFoo = jest.fn(resolve => resolve(Foo));
-    const getBaz = jest.fn(resolve => resolve({ default: Foo }));
-    const getBoz = jest.fn(resolve => setTimeout(() => resolve(Foo), 100));
-    const getBuz = jest.fn(resolve => setTimeout(() => resolve(Foo), 200));
+    const getFoo = jest.fn((resolve) => resolve(Foo));
+    const getBaz = jest.fn((resolve) => resolve({ default: Foo }));
+    const getBoz = jest.fn((resolve) => setTimeout(() => resolve(Foo), 100));
+    const getBuz = jest.fn((resolve) => setTimeout(() => resolve(Foo), 200));
 
     class Bar extends Base {
       get config() {

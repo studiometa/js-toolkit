@@ -46,13 +46,36 @@ function getChild(el, ComponentClass, parent) {
   return asyncComponent;
 }
 /**
- *
+ * Get a list of elements based on the name of a component.
+ * @param  {String}             nameOrSelector The name or selector to used for this component.
+ * @param  {HTMLElement}        element        The root element on which to query the selector, defaults to `document`.
+ * @return {Array<HTMLElement>}                A list of elements on which the component should be mounted.
+ */
+
+
+export function getComponentElements(nameOrSelector) {
+  var element = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document;
+  var selector = "[data-component=\"".concat(nameOrSelector, "\"]");
+  var elements = [];
+
+  try {
+    elements = Array.from(element.querySelectorAll(selector)); // eslint-disable-next-line no-empty
+  } catch (_unused) {} // If no child component found with the default selector, try a classic DOM selector
+
+
+  if (elements.length === 0) {
+    elements = Array.from(element.querySelectorAll(nameOrSelector));
+  }
+
+  return elements;
+}
+/**
+ * Get child components.
  * @param  {Base}        instance   The component's instance.
  * @param  {HTMLElement} element    The component's root element
  * @param  {Object}      components The children components' classes
  * @return {null|Object}            Returns `null` if no child components are defined or an object of all child component instances
  */
-
 
 export function getChildren(instance, element, components) {
   var children = Object.entries(components).reduce(function (acc, _ref) {
@@ -60,12 +83,7 @@ export function getChildren(instance, element, components) {
         name = _ref2[0],
         ComponentClass = _ref2[1];
 
-    var selector = "[data-component=\"".concat(name, "\"]");
-    var elements = Array.from(element.querySelectorAll(selector)); // If no child component found with the default selector, the name must be a DOM selector
-
-    if (elements.length === 0) {
-      elements = Array.from(element.querySelectorAll(name));
-    }
+    var elements = getComponentElements(name, element);
 
     if (elements.length === 0) {
       return acc;
