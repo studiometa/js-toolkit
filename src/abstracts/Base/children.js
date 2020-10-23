@@ -35,7 +35,25 @@ function getChild(el, ComponentClass, parent) {
 }
 
 /**
- *
+ * Get a list of elements based on the name of a component.
+ * @param  {String}             nameOrSelector The name or selector to used for this component.
+ * @param  {HTMLElement}        element        The root element on which to query the selector, defaults to `document`.
+ * @return {Array<HTMLElement>}                A list of elements on which the component should be mounted.
+ */
+export function getComponentElements(nameOrSelector, element = document) {
+  const selector = `[data-component="${nameOrSelector}"]`;
+  let elements = Array.from(element.querySelectorAll(selector));
+
+  // If no child component found with the default selector, try a classic DOM selector
+  if (elements.length === 0) {
+    elements = Array.from(element.querySelectorAll(nameOrSelector));
+  }
+
+  return elements;
+}
+
+/**
+ * Get child components.
  * @param  {Base}        instance   The component's instance.
  * @param  {HTMLElement} element    The component's root element
  * @param  {Object}      components The children components' classes
@@ -43,13 +61,7 @@ function getChild(el, ComponentClass, parent) {
  */
 export function getChildren(instance, element, components) {
   const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
-    const selector = `[data-component="${name}"]`;
-    let elements = Array.from(element.querySelectorAll(selector));
-
-    // If no child component found with the default selector, the name must be a DOM selector
-    if (elements.length === 0) {
-      elements = Array.from(element.querySelectorAll(name));
-    }
+    const elements = getComponentElements(name, element);
 
     if (elements.length === 0) {
       return acc;
