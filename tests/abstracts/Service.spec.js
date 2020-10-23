@@ -1,5 +1,5 @@
 /* eslint-disable no-new, require-jsdoc, max-classes-per-file */
-import Service from '../../src/abstracts/Service';
+import Service from '~/abstracts/Service';
 
 describe('The abstract Service class', () => {
   it('should be implemented with the `init` and `kill` methods', () => {
