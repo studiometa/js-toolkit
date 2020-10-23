@@ -21,7 +21,7 @@ describe('usePointer', () => {
 
   beforeEach(() => {
     remove('usePointer');
-    fn = jest.fn(p => {
+    fn = jest.fn((p) => {
       pointerProps = p;
     });
     add('usePointer', fn);
@@ -73,11 +73,13 @@ describe('usePointer', () => {
   it('should trigger the callbacks on mousemove', async () => {
     await resizeWindow({ width: 1000, height: 1000 });
     await dispatchEvent(new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
-    await dispatchEvent(new MouseEvent('mousemove', { clientX: 10, clientY: 10 }));
+    const event = new MouseEvent('mousemove', { clientX: 10, clientY: 10 });
+    await dispatchEvent(event);
 
     expect(fn).toHaveBeenCalled();
 
     expect(pointerProps).toEqual({
+      event,
       isDown: false,
       x: 10,
       y: 10,
@@ -114,11 +116,13 @@ describe('usePointer', () => {
   it('should trigger the callbacks on touchmove', async () => {
     await resizeWindow({ width: 1000, height: 1000 });
     await dispatchEvent(new TouchEvent('touchmove', { touches: [{ clientX: 0, clientY: 0 }] }));
-    await dispatchEvent(new TouchEvent('touchmove', { touches: [{ clientX: 10, clientY: 10 }] }));
+    const event = new TouchEvent('touchmove', { touches: [{ clientX: 10, clientY: 10 }] });
+    await dispatchEvent(event);
 
     expect(fn).toHaveBeenCalled();
 
     expect(pointerProps).toEqual({
+      event,
       isDown: false,
       x: 10,
       y: 10,
@@ -144,11 +148,11 @@ describe('usePointer', () => {
       },
     });
 
-    document.dispatchEvent(
-      new TouchEvent('touchmove', { touches: [{ clientX: 11, clientY: 10 }] })
-    );
+    const otherEvent = new TouchEvent('touchmove', { touches: [{ clientX: 11, clientY: 10 }] });
+    document.dispatchEvent(otherEvent);
     await nextFrame();
     expect(pointerProps).toEqual({
+      event: otherEvent,
       isDown: false,
       x: 11,
       y: 10,
