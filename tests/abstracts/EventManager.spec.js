@@ -1,5 +1,5 @@
 /* eslint no-underscore-dangle: ["error", { "allow": ["_events"] }] */
-import EventManager from '../../src/abstracts/EventManager';
+import EventManager from '~/abstracts/EventManager';
 
 describe('EventManager class', () => {
   it('can register callbacks to events', () => {
