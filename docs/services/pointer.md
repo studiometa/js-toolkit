@@ -20,6 +20,7 @@ add('custom-id', (props) => {
   console.log(props.isDown); // `true` if the pointer is down
   console.log(props.x); // the pointer X position
   console.log(props.y); // the pointer Y position
+  console.log(props.event); // the latest MouseEvent object
 });
 
 // Get the latest prop object
@@ -30,6 +31,10 @@ remove('custom-id');
 ```
 
 ## Props
+
+### `event`
+
+- Type: `MouseEvent`
 
 ### `isDown`
 

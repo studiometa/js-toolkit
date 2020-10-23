@@ -30,6 +30,9 @@ class Pointer extends Service {
   /** @type {Number} The x previous pointer position. */
   xLast = window.innerWidth / 2;
 
+  /** @type {Event} The latest event emitted from the pointer. */
+  event;
+
   /**
    * Bind the handler to the mousemove and touchmove events.
    * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
@@ -112,6 +115,7 @@ class Pointer extends Service {
    * @return {void}
    */
   updateValues(event) {
+    this.event = event;
     this.yLast = this.y;
     this.xLast = this.x;
 
@@ -137,6 +141,7 @@ class Pointer extends Service {
    */
   get props() {
     return {
+      event: this.event,
       isDown: this.isDown,
       x: this.x,
       y: this.y,
