@@ -61,18 +61,17 @@ describe('The `createBase` function', () => {
     expect(fn).toHaveBeenLastCalledWith('clicked');
   });
 
-  it('should create multiple component instances', () => {
-    const div = document.createElement('div');
-    div.innerHTML = `
-      <div></div>
-      <div></div>
-      <div></div>
+  it('should look for an element', () => {
+    document.body.innerHTML = `
+      <div class="first"></div>
+      <div class="second"></div>
     `;
-
-    const components = createBase(div.querySelectorAll('div'), {
+    const [firstDiv, secondDiv] = Array.from(document.querySelectorAll('div'));
+    const component = createBase('div', {
       config: { name: 'Component' },
     });
 
-    expect(components).toHaveLength(3);
+    expect(component.$el).toEqual(firstDiv);
+    expect(component.$el).not.toEqual(secondDiv);
   });
 });

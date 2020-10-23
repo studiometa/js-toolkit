@@ -71,6 +71,10 @@ Define a component without having to extend the `Base` class.
 - `options.methods` (`Object`): used for functions other than the [`Base` class methods](#class-methods)
 - `options[<name>]` (`Function`): [class methods](#class-methods) of the component
 
+**Returns**
+
+- A constructor function for the component
+
 **Examples**
 
 For legacy projects, use the UMD build:
@@ -91,6 +95,8 @@ For legacy projects, use the UMD build:
       },
     },
   });
+
+  new Component(document.body);
 </script>
 ```
 
@@ -99,7 +105,7 @@ For modern projects, prefer using the NPM package:
 ```js
 import { defineComponent } from '@studiometa/js-toolkit';
 
-export default defineComponent({
+const Component = defineComponent({
   config: {
     name: 'Component',
   },
@@ -112,6 +118,8 @@ export default defineComponent({
     },
   },
 });
+
+new Component(document.body);
 ```
 
 :::warning
@@ -125,6 +133,10 @@ Define a component and instantiate it on the given element.
 **Parameters**
 - `element` (`HTMLElement`): the root element for the component's instance
 - `options` (`Object`): the component's configuration, see the [`defineComponent` function documentation](#definecomponent-options)
+
+**Returns**
+
+- `Base`: The given component's instance mounted on the given element, or first element in the DOM when given a CSS selector.
 
 **Examples**
 
@@ -156,6 +168,20 @@ const app = createBase(document.body, {
 :::warning
 The `createBase(elementOrSelector, options)` function is aimed at legacy projects which can not use classes. Modern projects should use the class based approach.
 :::
+
+## Static methods
+
+### `$factory(nameOrSelector)`
+
+Use the `$factory` method to instantiate a class on each elements matching the given component's name or CSS selector. This methods works like the [child component resolution](#components).
+
+**Parameters**
+
+- `nameOrSelector` (`String`): the name of the component or a CSS selector
+
+**Returns**
+
+- `Base[]`: an array of instances of the component that triggered the method
 
 ## Instance properties
 
@@ -235,7 +261,11 @@ Update the chidlren list from the DOM, and mount the new ones. This method can b
 
 Destroy the component and its children, will trigger the `destroyed` lifecycle method.
 
-## Class getters
+### `$terminate()`
+
+@todo
+
+## Interface getters
 
 ### `config`
 #### `name`
@@ -292,18 +322,19 @@ Enable the `this.$log(...args)` method when `true`.
 
 When `true`, the lifecycle hooks and services hooks will be logged to the console.
 
-## Class methods
+## Interface methods
 
-### `mounted` <Badge vertical="middle" text="Lifecycle hooks" />
-### `loaded` <Badge vertical="middle" text="Lifecycle hooks" />
-### `destroyed` <Badge vertical="middle" text="Lifecycle hooks" />
-### `scrolled` <Badge vertical="middle" text="Service hooks" />
-### `resized` <Badge vertical="middle" text="Service hooks" />
-### `keyed` <Badge vertical="middle" text="Service hooks" />
-### `moved` <Badge vertical="middle" text="Service hooks" />
-### `ticked` <Badge vertical="middle" text="Service hooks" />
+### `mounted()` <Badge vertical="middle" text="Lifecycle hooks" />
+### `loaded()` <Badge vertical="middle" text="Lifecycle hooks" />
+### `destroyed()` <Badge vertical="middle" text="Lifecycle hooks" />
+### `terminated()` <Badge vertical="middle" text="Lifecycle hooks" />
+### `scrolled(props)` <Badge vertical="middle" text="Service hooks" />
+### `resized(props)` <Badge vertical="middle" text="Service hooks" />
+### `keyed(props)` <Badge vertical="middle" text="Service hooks" />
+### `moved(props)` <Badge vertical="middle" text="Service hooks" />
+### `ticked(props)` <Badge vertical="middle" text="Service hooks" />
 
-### `on＜Event＞` <Badge vertical="middle" text="Event handlers" />
+### `on＜Event＞(event)` <Badge vertical="middle" text="Event handlers" />
 
 Methods following this pattern will be executed when the event is triggered on the instance's `$el` element.
 
@@ -333,7 +364,7 @@ class Foo extends Base {
 }
 ```
 
-### `on＜RefOrChildName＞＜Event＞` <Badge vertical="middle" text="Event handlers" />
+### `on＜RefOrChildName＞＜Event＞(event, index)` <Badge vertical="middle" text="Event handlers" />
 
 Methods following this pattern will be executed when the corresponding event is triggered on the corresponding ref or child element.
 
@@ -411,7 +442,9 @@ Native DOM events will only be binded to ref elements and component's events to 
 ### `keyed`
 ### `moved`
 ### `ticked`
+### `updated`
 ### `destroyed`
+### `terminated`
 ### `get:options`
 ### `get:refs`
 ### `get:children`
