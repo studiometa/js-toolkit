@@ -42,7 +42,12 @@ function getChild(el, ComponentClass, parent) {
  */
 export function getComponentElements(nameOrSelector, element = document) {
   const selector = `[data-component="${nameOrSelector}"]`;
-  let elements = Array.from(element.querySelectorAll(selector));
+  let elements = [];
+
+  try {
+    elements = Array.from(element.querySelectorAll(selector));
+    // eslint-disable-next-line no-empty
+  } catch {}
 
   // If no child component found with the default selector, try a classic DOM selector
   if (elements.length === 0) {
