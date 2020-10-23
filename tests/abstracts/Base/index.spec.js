@@ -1,6 +1,6 @@
 /* eslint-disable no-new, require-jsdoc, max-classes-per-file */
-import Base from '../../src/abstracts/Base';
-import wait from '../__utils__/wait';
+import Base from '~/abstracts/Base';
+import wait from '../../__utils__/wait';
 
 describe('The abstract Base class', () => {
   it('must be extended', () => {
