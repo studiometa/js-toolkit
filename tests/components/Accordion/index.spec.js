@@ -36,20 +36,6 @@ describe('Accordion component', () => {
        </section>
      `;
 
-    // Mock AccordionItem components `querySelectorAll` method because
-    // the `:scope` pseudo-selector does not work as expected in jsdom.
-    Array.from(document.querySelectorAll('[data-component="AccordionItem"]')).forEach(el => {
-      const spy = jest.spyOn(el, 'querySelectorAll');
-      spy.mockImplementation(selector => {
-        if (/:scope/i.test(selector)) {
-          return Array.from(el.children).reduce((acc, child) => {
-            return [...acc, ...Array.from(child.querySelectorAll(selector))];
-          }, []);
-        }
-        return HTMLElement.prototype.querySelectorAll.call(el, selector);
-      });
-    });
-
     item = new Accordion(document.body.firstElementChild);
     btn = Array.from(document.querySelectorAll('[data-ref="btn"]'));
     content = Array.from(document.querySelectorAll('[data-ref="content"]'));
