@@ -14,6 +14,7 @@ module.exports = {
     '<rootDir>/tests/__setup__/requestAnimationFrame.js',
     '<rootDir>/tests/__setup__/mockBreakpoints.js',
     '<rootDir>/tests/__setup__/ResizeObserver.js',
+    '<rootDir>/tests/__setup__/mockQuerySelectorAllWithScope.js',
   ],
   moduleNameMapper: {
     '~(.*)$': '<rootDir>/src/$1',
