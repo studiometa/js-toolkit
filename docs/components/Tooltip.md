@@ -22,7 +22,7 @@ An accessible, flexible and responsive tooltip component, easy to use and easy t
         This ref will be used to open the tooltip on mouseenter / focus.
         The `tabindex="-"` attribute is required.
       -->
-      <span type="button" data-ref="trigger" tabindex="0" class="font-semibold underline">
+      <span data-ref="trigger" tabindex="0" class="font-semibold underline">
         Tooltip trigger
       </span>
       <!-- Container element -->
@@ -50,13 +50,13 @@ An accessible, flexible and responsive tooltip component, easy to use and easy t
     Proin volutpat efficitur ultricies. Aliquam vitae est vel felis vestibulum dapibus. Donec sed finibus turpis. Suspendisse ac ante semper, pulvinar justo ut, convallis justo. Ut auctor nisl id orci accumsan, sodales semper ante ornare. Nullam et ligula vel lacus commodo sagittis. Etiam at massa non nunc pulvinar rhoncus a eu justo. Aliquam erat volutpat. Integer tincidunt, dui quis imperdiet auctor, mauris tellus bibendum augue, ac ullamcorper elit sem eget nisl. Sed finibus
     <div
       data-component="Tooltip" class="tooltip relative inline-block"
-      data-options='{"open": true}'>
+      data-options='{ "isOpen": true }'>
       <!--
         Tooltip opening trigger.
         This ref will be used to open the tooltip on mouseenter / focus.
         The `tabindex="-"` attribute is required.
       -->
-      <span type="button" data-ref="trigger" tabindex="0" class="font-semibold underline">
+      <span data-ref="trigger" tabindex="0" class="font-semibold underline">
         Tooltip trigger
       </span>
       <!-- Container element -->
@@ -78,13 +78,13 @@ An accessible, flexible and responsive tooltip component, easy to use and easy t
 ```html{3}
 <div
   data-component="Tooltip" class="tooltip relative inline-block"
-  data-options='{"open": true}'>
+  data-options='{ "isOpen": true }'>
   <!--
     Tooltip opening trigger.
     This ref will be used to open the tooltip on mouseenter / focus.
     The `tabindex="-"` attribute is required.
   -->
-  <span type="button" data-ref="trigger" tabindex="0" class="font-semibold underline">
+  <span data-ref="trigger" tabindex="0" class="font-semibold underline">
     Tooltip trigger
   </span>
   <!-- Container element -->
@@ -114,7 +114,7 @@ An accessible, flexible and responsive tooltip component, easy to use and easy t
         This ref will be used to open the tooltip on mouseenter / focus.
         The `tabindex="-"` attribute is required.
       -->
-      <span type="button" data-ref="trigger" tabindex="0" class="font-semibold underline">
+      <span data-ref="trigger" tabindex="0" class="font-semibold underline">
         Tooltip trigger
       </span>
       <!-- Container element -->
@@ -142,7 +142,7 @@ An accessible, flexible and responsive tooltip component, easy to use and easy t
     This ref will be used to open the tooltip on mouseenter / focus.
     The `tabindex="-"` attribute is required.
   -->
-  <span type="button" data-ref="trigger" tabindex="0" class="font-semibold underline">
+  <span data-ref="trigger" tabindex="0" class="font-semibold underline">
     Tooltip trigger
   </span>
   <!-- Container element -->
@@ -271,7 +271,7 @@ The following HTML is required for the `Tooltip` component:
     This ref will be used to open the tooltip on mouseenter / focus.
     The `tabindex="-"` attribute is required.
   -->
-  <span type="button" data-ref="trigger" tabindex="0" class="font-semibold underline">
+  <span data-ref="trigger" tabindex="0" class="font-semibold underline">
     Tooltip trigger
   </span>
   <!-- Container element -->
@@ -292,7 +292,7 @@ The following HTML is required for the `Tooltip` component:
 
 ### Refs
 
-#### `Tooltip.open`
+#### `Tooltip.trigger`
 
 This ref will be the button used to open the tooltip.
 
@@ -310,7 +310,7 @@ This ref will hold the tooltip's dynamic content.
 Options can be defined per component via the `data-options` attribute or by extending the `Tooltip` class.
 :::
 
-#### `open`
+#### `isOpen`
 
 - Type: `Boolean`
 - Default: `false`
@@ -322,7 +322,7 @@ A boolean to open tooltip on mount. A value of `false` will hide the element by 
 - Type: `Number`
 - Default: `0`
 
-An integer who defined the offset between the tooltip content and the viewport (usefull for fixed navbar for example).
+An integer (in pixels) who defined the offset between the tooltip content and the viewport (usefull for fixed navbar for example).
 
 #### `styles`
 

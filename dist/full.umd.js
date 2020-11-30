@@ -3561,7 +3561,7 @@
         trigger.setAttribute('id', _this2.$id);
         return Promise.resolve(_this2.close()).then(function () {
           var _temp = function () {
-            if (_this2.$options.open) {
+            if (_this2.$options.isOpen) {
               return Promise.resolve(_this2.open()).then(function () {});
             }
           }();
@@ -3727,7 +3727,7 @@
       try {
         var _this12 = this;
 
-        if (_this12.isOpen === false || _this12.isOpen === true && _this12.$options.open) {
+        if (_this12.isOpen === false || _this12.isOpen === true && _this12.$options.isOpen) {
           return Promise.resolve(_this12);
         }
 
@@ -3772,9 +3772,7 @@
         return {
           name: 'Tooltip',
           offset: 0,
-          debug: true,
-          log: true,
-          open: false,
+          isOpen: false,
           styles: {
             container: {
               closed: {

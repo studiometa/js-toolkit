@@ -3067,9 +3067,7 @@ class Tooltip extends Base {
     return {
       name: 'Tooltip',
       offset: 0,
-      debug: true,
-      log: true,
-      open: false,
+      isOpen: false,
       styles: {
         container: {
           closed: {
@@ -3160,7 +3158,7 @@ class Tooltip extends Base {
     trigger.setAttribute('id', this.$id);
     await this.close();
 
-    if (this.$options.open) {
+    if (this.$options.isOpen) {
       await this.open();
     }
 
@@ -3274,7 +3272,7 @@ class Tooltip extends Base {
   async close() {
     var _this = this;
 
-    if (this.isOpen === false || this.isOpen === true && this.$options.open) {
+    if (this.isOpen === false || this.isOpen === true && this.$options.isOpen) {
       return Promise.resolve(this);
     }
 

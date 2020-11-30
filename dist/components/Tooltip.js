@@ -83,7 +83,7 @@ var Tooltip = /*#__PURE__*/function (_Base) {
                 return this.close();
 
               case 5:
-                if (!this.$options.open) {
+                if (!this.$options.isOpen) {
                   _context.next = 8;
                   break;
                 }
@@ -343,7 +343,7 @@ var Tooltip = /*#__PURE__*/function (_Base) {
           while (1) {
             switch (_context7.prev = _context7.next) {
               case 0:
-                if (!(this.isOpen === false || this.isOpen === true && this.$options.open)) {
+                if (!(this.isOpen === false || this.isOpen === true && this.$options.isOpen)) {
                   _context7.next = 2;
                   break;
                 }
@@ -413,9 +413,7 @@ var Tooltip = /*#__PURE__*/function (_Base) {
       return {
         name: 'Tooltip',
         offset: 0,
-        debug: true,
-        log: true,
-        open: false,
+        isOpen: false,
         styles: {
           container: {
             closed: {

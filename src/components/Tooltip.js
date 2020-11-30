@@ -44,9 +44,7 @@ export default class Tooltip extends Base {
     return {
       name: 'Tooltip',
       offset: 0,
-      debug: true,
-      log: true,
-      open: false,
+      isOpen: false,
       styles: {
         container: {
           closed: {
@@ -130,7 +128,7 @@ export default class Tooltip extends Base {
 
     await this.close();
 
-    if (this.$options.open) {
+    if (this.$options.isOpen) {
       await this.open();
     }
 
@@ -249,7 +247,7 @@ export default class Tooltip extends Base {
    * @return {Tooltip} The Tooltip instance.
    */
   async close() {
-    if (this.isOpen === false || (this.isOpen === true && this.$options.open) ) {
+    if (this.isOpen === false || (this.isOpen === true && this.$options.isOpen) ) {
       return Promise.resolve(this);
     }
 
