@@ -24,6 +24,7 @@ module.exports = {
           { text: 'Accordion', link: '/components/Accordion.html' },
           { text: 'Modal', link: '/components/Modal.html' },
           { text: 'Tabs', link: '/components/Tabs.html' },
+          { text: 'Tooltip', link: '/components/Tooltip.html' },
         ],
       },
       {

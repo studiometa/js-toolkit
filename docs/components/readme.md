@@ -9,3 +9,4 @@ next: /components/Accordion.md
 - [Accordion](./Accordion.md)
 - [Modal](./Modal.md)
 - [Tabs](./Tabs.md)
+- [Tooltip](./Tooltip.md)

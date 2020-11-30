@@ -2,7 +2,7 @@
 sidebar: auto
 sidebarDepth: 5
 prev: /components/Modal.md
-next: false
+next: /components/Tooltip.md
 ---
 
 # Tabs

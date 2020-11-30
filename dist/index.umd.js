@@ -629,15 +629,36 @@
   }
 
   /**
+   * A ponyfill for the CSS `:scope` selector which is not supported in IE11.
+   * The following method will return an array of elements similare to the
+   * `:scope ${selector}` selector.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/CSS/:scope
+   * @see https://github.com/jonathantneal/element-qsa-scope
+   *
+   * @param {HTMLElement} element  The element from which the scope is taken.
+   * @param {String}      selector The children selector.
+   * @param {String}      uniqId   A uniq ID to prefix the selector with.
+   */
+  function scopeSelectorPonyfill(element, selector, uniqId) {
+    var attr = "data-uniq-id";
+    var scopedSelector = "[" + attr + "=\"" + uniqId + "\"] " + selector;
+    element.setAttribute(attr, uniqId);
+    var list = Array.from(element.querySelectorAll(scopedSelector));
+    element.removeAttribute(attr);
+    return list;
+  }
+  /**
    * Get all refs of a component.
    *
    * @param  {Base}        instance The component's instance.
    * @param  {HTMLElement} element  The component's root element.
    * @return {Object}               Return an object containing all the component's refs.
    */
+
   function getRefs(instance, element) {
     var allRefs = Array.from(element.querySelectorAll("[data-ref]"));
-    var childrenRefs = Array.from(element.querySelectorAll(":scope [data-component] [data-ref]"));
+    var childrenRefs = scopeSelectorPonyfill(element, '[data-component] [data-ref]', instance.$id);
     var elements = allRefs.filter(function (ref) {
       return !childrenRefs.includes(ref);
     });
@@ -1603,7 +1624,7 @@
   };
 
   /**
-   * Scroll service
+   * Key service
    *
    * ```
    * import { useKey } from '@studiometa/js-toolkit/services';

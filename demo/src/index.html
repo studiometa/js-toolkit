@@ -404,6 +404,43 @@
 
       <hr class="my-10" />
 
+      <!-- BEGIN Tooltip component-->
+      <h2 id="components-tooltip" class="text-lg mb-4">Tooltip</h2>
+      <div>
+        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Temporibus,
+        <div
+          data-component="Tooltip"
+          data-options='{ "open": true, "styles": { "container": { "top": { "bottom": "calc(100% + 2rem)" } } } }'
+          class="tooltip relative inline-block"
+        >
+          <button type="button" data-ref="trigger" class="font-semibold underline">Tooltip trigger (opened by default)</button>
+          <div data-ref="container" class="absolute z-above" aria-hidden="true">
+            <div data-ref="content" class="absolute w-40 p-4 bg-black text-white" role="tooltip">
+              Tooltip content...
+            </div>
+          </div>
+        </div>, quis sed quae asperiores eligendi eaque ut, suscipit nemo totam.Lorem, ipsum dolor sit amet consectetur adipisicing elit. Temporibus, porro
+        facilis itaque dicta adipisci qui, quis sed quae asperiores eligendi eaque ut, suscipit error atque consectetur. Cum delectus nemo totam.Lorem, ipsum dolor sit amet consectetur adipisicing elit. Temporibus, porro facilis itaque dicta adipisci qui, quis
+        sed quae asperiores eligendi eaque ut, suscipit error atque consectetur. Cum delectus nemo totam.Lorem, ipsum dolor sit amet consectetur adipisicing elit. Temporibus, porro facilis itaque dicta adipisci qui, quis sed quae asperiores eligendi eaque ut,
+        suscipit error atque consectetur.
+        <div
+          data-component="Tooltip"
+          class="tooltip relative inline-block"
+        >
+          <button type="button" data-ref="trigger" class="font-semibold underline">Tooltip trigger</button>
+          <div data-ref="container" class="absolute z-above" aria-hidden="true">
+            <div data-ref="content" class="absolute w-40 p-4 bg-black text-white" role="tooltip">
+              Tooltip content...
+            </div>
+          </div>
+        </div>
+        elit. Necessitatibus ipsa dolorum quia totam provident at eaque. Minus quibusdam ipsum eveniet neque fuga ipsa adipisci doloribus facilis officiis, enim dolorum cumque. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Necessitatibus ipsa dolorum
+        quia totam provident at eaque. Minus quibusdam ipsum eveniet neque fuga ipsa adipisci doloribus facilis officiis, enim
+      </div>
+      <!-- END Tooltip component-->
+
+      <hr class="my-10" />
+
       <div class="absolute left-0 right-0 bottom-0 p-10 bg-gray-200">
         Bottom
       </div>

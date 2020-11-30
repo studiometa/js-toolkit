@@ -629,15 +629,36 @@
   }
 
   /**
+   * A ponyfill for the CSS `:scope` selector which is not supported in IE11.
+   * The following method will return an array of elements similare to the
+   * `:scope ${selector}` selector.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/CSS/:scope
+   * @see https://github.com/jonathantneal/element-qsa-scope
+   *
+   * @param {HTMLElement} element  The element from which the scope is taken.
+   * @param {String}      selector The children selector.
+   * @param {String}      uniqId   A uniq ID to prefix the selector with.
+   */
+  function scopeSelectorPonyfill(element, selector, uniqId) {
+    var attr = "data-uniq-id";
+    var scopedSelector = "[" + attr + "=\"" + uniqId + "\"] " + selector;
+    element.setAttribute(attr, uniqId);
+    var list = Array.from(element.querySelectorAll(scopedSelector));
+    element.removeAttribute(attr);
+    return list;
+  }
+  /**
    * Get all refs of a component.
    *
    * @param  {Base}        instance The component's instance.
    * @param  {HTMLElement} element  The component's root element.
    * @return {Object}               Return an object containing all the component's refs.
    */
+
   function getRefs(instance, element) {
     var allRefs = Array.from(element.querySelectorAll("[data-ref]"));
-    var childrenRefs = Array.from(element.querySelectorAll(":scope [data-component] [data-ref]"));
+    var childrenRefs = scopeSelectorPonyfill(element, '[data-component] [data-ref]', instance.$id);
     var elements = allRefs.filter(function (ref) {
       return !childrenRefs.includes(ref);
     });
@@ -1603,7 +1624,7 @@
   };
 
   /**
-   * Scroll service
+   * Key service
    *
    * ```
    * import { useKey } from '@studiometa/js-toolkit/services';
@@ -3479,6 +3500,363 @@
     return Tabs;
   }(Base);
 
+  /**
+   * Find the best position for an element to be displayed.
+   *
+   * @param  {HTMLElement} element Element to search best position.
+   * @param  {Number}      offset  Offset to keep from window
+   *
+   * @return {Object} X, Y positions
+   */
+
+  function findBestPosition(element, offset) {
+    var contentSizes = element.getBoundingClientRect();
+    var isOverflowingTop = contentSizes.top < offset;
+    var isOverflowingRight = contentSizes.right > window.innerWidth - offset;
+    var isOverflowingLeft = contentSizes.left < offset;
+    var x = null;
+    var y = isOverflowingTop ? 'bottom' : 'top';
+
+    if (isOverflowingLeft) {
+      x = Math.abs(contentSizes.left) + offset;
+    }
+
+    if (isOverflowingRight) {
+      x = window.innerWidth - offset - Math.abs(contentSizes.right);
+    }
+
+    return {
+      x: x,
+      y: y
+    };
+  }
+  /**
+   * Tooltip class.
+   */
+
+
+  var Tooltip = /*#__PURE__*/function (_Base) {
+    _inheritsLoose(Tooltip, _Base);
+
+    function Tooltip() {
+      return _Base.apply(this, arguments) || this;
+    }
+
+    var _proto = Tooltip.prototype;
+
+    /**
+     * Initialize the component's behaviours.
+     *
+     * @return {Tooltip} The current instance.
+     */
+    _proto.mounted = function mounted() {
+      try {
+        var _this2 = this;
+
+        var _this2$$refs = _this2.$refs,
+            container = _this2$$refs.container,
+            content = _this2$$refs.content,
+            trigger = _this2$$refs.trigger;
+        content.setAttribute('aria-labelledby', _this2.$id);
+        trigger.setAttribute('id', _this2.$id);
+        return Promise.resolve(_this2.close()).then(function () {
+          var _temp = function () {
+            if (_this2.$options.open) {
+              return Promise.resolve(_this2.open()).then(function () {});
+            }
+          }();
+
+          return _temp && _temp.then ? _temp.then(function () {
+            return _this2;
+          }) : _this2;
+        });
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    }
+    /**
+     * Unbind all events on destroy.
+     *
+     * @return {Tooltip} The Tooltip instance.
+     */
+    ;
+
+    _proto.destroyed = function destroyed() {
+      try {
+        var _this4 = this;
+
+        return Promise.resolve(_this4.close()).then(function () {
+          return _this4;
+        });
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    }
+    /**
+     * Close the tooltip on `ESC`.
+     *
+     * @param  {Boolean}       options.isUp   Is it a keyup event?
+     * @param  {Boolean}       options.ESC    Is it the ESC key?
+     * @return {void}
+     */
+    ;
+
+    _proto.keyed = function keyed(_ref) {
+      var isUp = _ref.isUp,
+          ESC = _ref.ESC;
+
+      try {
+        var _this6 = this;
+
+        if (!_this6.isOpen) {
+          return Promise.resolve();
+        }
+
+        var _temp3 = function () {
+          if (ESC && isUp) {
+            return Promise.resolve(_this6.close()).then(function () {});
+          }
+        }();
+
+        return Promise.resolve(_temp3 && _temp3.then ? _temp3.then(function () {}) : void 0);
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    }
+    /**
+     * Set the position of the tooltip
+     *
+     * @return {void}
+     */
+    ;
+
+    _proto.setPosition = function setPosition(position) {
+      try {
+        var _this8 = this;
+
+        var allowed = ['top', 'bottom'];
+
+        if (!allowed.includes(position)) {
+          var list = allowed.map(function (pos) {
+            return "- " + pos;
+          }).join('\n');
+          throw new Error("\"" + position + "\" is not an authorized position. Choose one in the list below:\n\n" + list + "\n");
+        }
+
+        return Promise.all(Object.entries(_this8.$options.styles).map(function (_ref2) {
+          var refName = _ref2[0],
+              _ref2$ = _ref2[1],
+              value = _ref2$ === void 0 ? {} : _ref2$;
+
+          if (!value[position]) {
+            return Promise.resolve(_this8);
+          }
+
+          return transition(_this8.$refs[refName], {
+            from: value[_this8.position],
+            to: value[position]
+          }, 'keep');
+        })).then(function () {
+          _this8.position = position;
+          return Promise.resolve(_this8);
+        });
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    }
+    /**
+     * Open the tooltip.
+     *
+     * @return {Tooltip} The Tooltip instance.
+     */
+    ;
+
+    _proto.open = function open() {
+      try {
+        var _this10 = this;
+
+        if (_this10.isOpen) {
+          return Promise.resolve(_this10);
+        }
+
+        _this10.$refs.container.setAttribute('aria-hidden', 'false');
+
+        _this10.isOpen = true;
+
+        _this10.$emit('open');
+
+        var _findBestPosition = findBestPosition(_this10.$refs.content, _this10.$options.offset),
+            x = _findBestPosition.x,
+            position = _findBestPosition.y;
+
+        if (x !== null) {
+          add(_this10.$refs.content, {
+            marginLeft: x + "px"
+          });
+        }
+
+        return Promise.resolve(_this10.setPosition(position)).then(function () {
+          return Promise.all(Object.entries(_this10.$options.styles).map(function (_ref3) {
+            var refName = _ref3[0],
+                _ref3$ = _ref3[1];
+            _ref3$ = _ref3$ === void 0 ? {} : _ref3$;
+            var open = _ref3$.open,
+                active = _ref3$.active,
+                closed = _ref3$.closed;
+            return transition(_this10.$refs[refName], {
+              from: closed,
+              active: active,
+              to: open
+            }, 'keep');
+          })).then(function () {
+            return Promise.resolve(_this10);
+          });
+        });
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    }
+    /**
+     * Close the tooltip.
+     *
+     * @return {Tooltip} The Tooltip instance.
+     */
+    ;
+
+    _proto.close = function close() {
+      try {
+        var _this12 = this;
+
+        if (_this12.isOpen === false || _this12.isOpen === true && _this12.$options.open) {
+          return Promise.resolve(_this12);
+        }
+
+        _this12.isOpen = false;
+        return Promise.all(Object.entries(_this12.$options.styles).map(function (_ref4) {
+          var refName = _ref4[0],
+              _ref4$ = _ref4[1];
+          _ref4$ = _ref4$ === void 0 ? {} : _ref4$;
+          var open = _ref4$.open,
+              active = _ref4$.active,
+              closed = _ref4$.closed;
+          return transition(_this12.$refs[refName], {
+            from: open,
+            active: active,
+            to: closed
+          }, 'keep');
+        })).then(function () {
+          try {
+            return Promise.resolve(_this12.setPosition('top')).then(function () {
+              _this12.$emit('close');
+
+              _this12.$refs.container.setAttribute('aria-hidden', 'true');
+
+              return Promise.resolve(_this12);
+            });
+          } catch (e) {
+            return Promise.reject(e);
+          }
+        });
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    };
+
+    _createClass(Tooltip, [{
+      key: "config",
+
+      /**
+       * Tooltip options.
+       */
+      get: function get() {
+        return {
+          name: 'Tooltip',
+          offset: 0,
+          debug: true,
+          log: true,
+          open: false,
+          styles: {
+            container: {
+              closed: {
+                opacity: 0,
+                pointerEvents: 'none'
+              },
+              top: {
+                bottom: '100%',
+                left: '50%'
+              },
+              bottom: {
+                top: '100%',
+                bottom: 'auto',
+                left: '50%'
+              }
+            },
+            content: {
+              top: {
+                top: 'auto',
+                bottom: 0,
+                left: '50%',
+                transform: 'translateX(-50%)'
+              },
+              bottom: {
+                top: 0,
+                bottom: 'auto',
+                left: '50%',
+                transform: 'translateX(-50%)'
+              }
+            }
+          }
+        };
+      }
+      /**
+       * Switch tooltip on trigger focus.
+       *
+       * @return {Function}
+       */
+
+    }, {
+      key: "onTriggerFocus",
+      get: function get() {
+        return this.open;
+      }
+      /**
+       * Switch tooltip on trigger blur.
+       *
+       * @return {Function}
+       */
+
+    }, {
+      key: "onTriggerBlur",
+      get: function get() {
+        return this.close;
+      }
+      /**
+       * Switch tooltip on mouseenter.
+       *
+       * @return {Function}
+       */
+
+    }, {
+      key: "onMouseenter",
+      get: function get() {
+        return this.open;
+      }
+      /**
+       * Switch tooltip on mouseleave.
+       *
+       * @return {Function}
+       */
+
+    }, {
+      key: "onMouseleave",
+      get: function get() {
+        return this.close;
+      }
+    }]);
+
+    return Tooltip;
+  }(Base);
+
 
 
   var index$1 = {
@@ -3486,7 +3864,8 @@
     Accordion: Accordion,
     MediaQuery: MediaQuery,
     Modal: Modal,
-    Tabs: Tabs
+    Tabs: Tabs,
+    Tooltip: Tooltip
   };
 
   /**

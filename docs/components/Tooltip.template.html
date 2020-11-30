@@ -1,0 +1,21 @@
+<div data-component="Tooltip" class="tooltip relative inline-block">
+  <!--
+    Tooltip opening trigger.
+    This ref will be used to open the tooltip on mouseenter / focus.
+    The `tabindex="-"` attribute is required.
+  -->
+  <span type="button" data-ref="trigger" tabindex="0" class="font-semibold underline">
+    Tooltip trigger
+  </span>
+  <!-- Container element -->
+  <div data-ref="container" class="absolute z-above" aria-hidden="true">
+    <!--
+      Tooltip content
+      The content displayed in the tooltip.
+      The `w-40` class defines the tooltip width.
+    -->
+    <div data-ref="content" class="absolute w-40 p-4 bg-black text-white" role="tooltip">
+      Tooltip content...
+    </div>
+  </div>
+</div>

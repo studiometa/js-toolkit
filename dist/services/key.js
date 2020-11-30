@@ -18,7 +18,7 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 import Service from '../abstracts/Service';
 import keyCodes from '../utils/keyCodes';
 /**
- * Scroll service
+ * Key service
  *
  * ```
  * import { useKey } from '@studiometa/js-toolkit/services';
