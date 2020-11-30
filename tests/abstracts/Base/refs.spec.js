@@ -82,12 +82,33 @@ describe('The refs resolution', () => {
   it('should not resolve child components refs', () => {
     const div = document.createElement('div');
     div.innerHTML = `
-      <div data-ref="foo"></div>
-      <div data-component="Child">
-        <div data-ref="bar"></div>
+      <div>
+        <div data-ref="foo"></div>
+        <div data-component="Child">
+          <div data-ref="bar"></div>
+        </div>
       </div>
     `;
     const app = new App(div);
     expect(Object.keys(app.$refs)).not.toEqual(['foo', 'bar']);
+  });
+
+  it('should resolve child components refs when the :scope pseudo-class is not supported', () => {
+    // eslint-disable-next-line no-underscore-dangle
+    global.__SCOPE_PSEUDO_CLASS_SHOULD_FAIL__ = true;
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div>
+        <div data-ref="foo"></div>
+        <div data-component="Child">
+          <div data-ref="bar"></div>
+        </div>
+      </div>
+    `;
+    const app = new App(div);
+    expect(Object.keys(app.$refs)).toEqual(['foo']);
+    expect(Object.keys(app.$refs)).not.toEqual(['foo', 'bar']);
+    // eslint-disable-next-line no-underscore-dangle
+    global.__SCOPE_PSEUDO_CLASS_SHOULD_FAIL__ = false;
   });
 });
