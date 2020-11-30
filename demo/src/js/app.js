@@ -1,5 +1,5 @@
 import Base from '../../../src';
-import { Modal, Tabs, Accordion } from '../../../src/components';
+import { Modal, Tabs, Accordion, Cursor } from '../../../src/components';
 import withBreakpointObserver from '../../../src/decorators/withBreakpointObserver';
 import BreakpointManagerDemo from './components/BreakPointManagerDemo';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo';
@@ -18,7 +18,7 @@ class App extends Base {
       Accordion,
       BreakpointManagerDemo,
       BreakpointObserverDemo,
-      Cursor: () => import(/* webpackChunkName: "Cursor" */ './components/Cursor'),
+      Cursor,
       Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew'),
       '[data-src]': () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload'),
       Modal: withBreakpointObserver(Modal),
