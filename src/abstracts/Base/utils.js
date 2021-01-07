@@ -1,4 +1,14 @@
 /**
+ * Get the config from a Base instance, either the new static one or the old getter one.
+ *
+ * @param  {Base}       instance The instance to get the config from.
+ * @return {BaseConfig}         A Base class configuration object.
+ */
+export function getConfig(instance) {
+  return instance.constructor.config || instance.config || {};
+}
+
+/**
  * Verbose debug for the component.
  *
  * @param  {...any} args The arguments passed to the method
@@ -8,6 +18,17 @@ export function debug(instance, ...args) {
   return instance.$options.debug
     ? window.console.log.apply(window, [instance.config.name, ...args])
     : () => {};
+}
+
+/**
+ * Display a console warning for the given instance.
+ *
+ * @param {Base}      instance A Base instance.
+ * @param {...String} ...msg   Values to display in the console.
+ */
+export function warn(instance, ...msg) {
+  const name = getConfig(instance).name || 'Base';
+  console.warn(`[${name}]`, ...msg);
 }
 
 /**
