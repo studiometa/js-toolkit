@@ -1,3 +1,5 @@
+import { getConfig, warn } from './utils';
+
 /**
  * A ponyfill for the CSS `:scope` selector which is not supported in IE11.
  * The following method will return an array of elements similare to the
@@ -35,12 +37,22 @@ export function scopeSelectorPonyfill(element, selector, uniqId) {
  * @return {Object}               Return an object containing all the component's refs.
  */
 export function getRefs(instance, element) {
+  const definedRefs = getConfig(instance).refs || [];
   const allRefs = Array.from(element.querySelectorAll(`[data-ref]`));
   const childrenRefs = scopeSelectorPonyfill(element, '[data-component] [data-ref]', instance.$id);
   const elements = allRefs.filter((ref) => !childrenRefs.includes(ref));
 
   const refs = elements.reduce(($refs, $ref) => {
     let refName = $ref.dataset.ref;
+
+    if (!definedRefs.includes(refName)) {
+      warn(
+        instance,
+        `The "${refName}" ref is not defined in the class configuration.`,
+        'Did you forgot to define it?'
+      );
+    }
+
     const $realRef = $ref.__base__ ? $ref.__base__ : $ref;
 
     if (refName.endsWith('[]')) {
