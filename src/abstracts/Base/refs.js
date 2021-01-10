@@ -68,6 +68,11 @@ export function getRefs(instance, element) {
         $refs[refName].push($realRef);
       } else {
         $refs[refName] = [$refs[refName], $realRef];
+        warn(
+          instance,
+          `The "${refName}" ref has been found multiple times.`,
+          'Did you forgot to add the `[]` suffix to its name?'
+        );
       }
     } else {
       $refs[refName] = $realRef;

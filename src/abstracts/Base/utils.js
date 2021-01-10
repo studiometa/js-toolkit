@@ -5,19 +5,24 @@
  * @return {BaseConfig}         A Base class configuration object.
  */
 export function getConfig(instance) {
-  return instance.constructor.config || instance.config || {};
-}
+  const config = instance.constructor.config || instance.config;
 
-/**
- * Verbose debug for the component.
- *
- * @param  {...any} args The arguments passed to the method
- * @return {void}
- */
-export function debug(instance, ...args) {
-  return instance.$options.debug
-    ? window.console.log.apply(window, [instance.config.name, ...args])
-    : () => {};
+  if (!config) {
+    throw new Error('The `config` property must be defined.');
+  }
+
+  if (!config.name) {
+    throw new Error('The `config.name` property is required.');
+  }
+
+  if (instance.config && !instance.constructor.config) {
+    console.warn(
+      `[${config.name}]`,
+      'Defining the `config` as a getter is deprecated, replace it with a static property.'
+    );
+  }
+
+  return config;
 }
 
 /**
@@ -27,8 +32,29 @@ export function debug(instance, ...args) {
  * @param {...String} ...msg   Values to display in the console.
  */
 export function warn(instance, ...msg) {
-  const name = getConfig(instance).name || 'Base';
+  const { name } = getConfig(instance);
   console.warn(`[${name}]`, ...msg);
+}
+
+/**
+ * Display a console log for the given instance.
+ *
+ * @param {Base}      instance A Base instance.
+ * @param {...String} ...msg   Values to display in the console.
+ */
+export function log(instance, ...msg) {
+  const { name } = getConfig(instance);
+  console.log(`[${name}]`, ...msg);
+}
+
+/**
+ * Verbose debug for the component.
+ *
+ * @param  {...any} args The arguments passed to the method
+ * @return {void}
+ */
+export function debug(instance, ...args) {
+  return instance.$options.debug ? log(instance, ...args) : null;
 }
 
 /**
