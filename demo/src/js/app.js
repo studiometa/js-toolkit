@@ -5,23 +5,21 @@ import BreakpointManagerDemo from './components/BreakPointManagerDemo';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo';
 
 class App extends Base {
-  get config() {
-    return {
-      name: 'App',
-      refs: ['modal'],
-      log: true,
-      components: {
-        Accordion,
-        BreakpointManagerDemo,
-        BreakpointObserverDemo,
-        Cursor: () => import(/* webpackChunkName: "Cursor" */ './components/Cursor'),
-        Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew'),
-        '[data-src]': () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload'),
-        Modal: withBreakpointObserver(Modal),
-        Tabs,
-      },
-    };
-  }
+  static config = {
+    name: 'App',
+    refs: ['modal'],
+    log: true,
+    components: {
+      Accordion,
+      BreakpointManagerDemo,
+      BreakpointObserverDemo,
+      Cursor: () => import(/* webpackChunkName: "Cursor" */ './components/Cursor'),
+      Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew'),
+      '[data-src]': () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload'),
+      Modal: withBreakpointObserver(Modal),
+      Tabs,
+    },
+  };
 
   mounted() {
     this.$log('Mounted 🎉');

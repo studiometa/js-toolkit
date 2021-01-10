@@ -15,11 +15,9 @@ export default class MediaQuery extends Base {
    *
    * @return {Object}
    */
-  get config() {
-    return {
-      name: 'MediaQuery',
-    };
-  }
+  static config = {
+    name: 'MediaQuery',
+  };
 
   /**
    * Mounted hook.

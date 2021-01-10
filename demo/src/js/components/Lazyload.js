@@ -3,17 +3,15 @@ import { withIntersectionObserver } from '~/src/decorators';
 import transition, { setClassesOrStyles } from '~/src/utils/css/transition';
 
 export default class Lazyload extends withIntersectionObserver(Base) {
-  get config() {
-    return {
-      name: 'Lazyload',
-      log: true,
-      styles: {
-        unloaded: { opacity: 0 },
-        active: { transition: 'opacity 0.5s' },
-        loaded: '',
-      },
-    };
-  }
+  static config = {
+    name: 'Lazyload',
+    log: true,
+    styles: {
+      unloaded: { opacity: 0 },
+      active: { transition: 'opacity 0.5s' },
+      loaded: '',
+    },
+  };
 
   mounted() {
     setClassesOrStyles(this.$el, this.$options.styles.unloaded);

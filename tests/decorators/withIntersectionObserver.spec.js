@@ -14,9 +14,9 @@ describe('The withIntersectionObserver decorator', () => {
   it('should start when mounted and stop when destroyed', async () => {
     const fn = jest.fn();
     class Foo extends withIntersectionObserver(Base) {
-      get config() {
-        return { name: 'Foo' };
-      }
+      static config = {
+        name: 'Foo',
+      };
 
       intersected(...args) {
         fn(...args);
@@ -39,9 +39,9 @@ describe('The withIntersectionObserver decorator', () => {
 
   it('should not instantiate without `intersected` method', () => {
     class Foo extends withIntersectionObserver(Base) {
-      get config() {
-        return { name: 'Foo' };
-      }
+      static config = {
+        name: 'Foo',
+      };
     }
     const div = document.createElement('div');
     expect(() => {

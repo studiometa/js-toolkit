@@ -1,12 +1,10 @@
 import Base from '~/src';
 
 export default class BreakpointManagerDemoBase extends Base {
-  get config() {
-    return {
-      log: false,
-      refs: ['content'],
-    };
-  }
+  static config = {
+    log: false,
+    refs: ['content'],
+  };
 
   mounted() {
     this.$log('mounted');

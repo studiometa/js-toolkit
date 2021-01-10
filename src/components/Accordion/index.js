@@ -9,16 +9,14 @@ export default class Accordion extends Base {
    * Accordion config.
    * @return {Object}
    */
-  get config() {
-    return {
-      name: 'Accordion',
-      autoclose: true,
-      item: null,
-      components: {
-        AccordionItem,
-      },
-    };
-  }
+  static config = {
+    name: 'Accordion',
+    autoclose: true,
+    item: null,
+    components: {
+      AccordionItem,
+    },
+  };
 
   /**
    * Init autoclose behavior on mounted.

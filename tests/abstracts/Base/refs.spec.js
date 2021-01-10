@@ -30,20 +30,17 @@ describe('The :scope pseudo-class ponyfill', () => {
 
 describe('The refs resolution', () => {
   class Component extends Base {
-    get config() {
-      return {
-        name: 'Component',
-      };
-    }
+    static config = {
+      name: 'Component',
+    };
   }
 
   class App extends Base {
-    get config() {
-      return {
-        name: 'App',
-        components: { Component },
-      };
-    }
+    static config = {
+      name: 'App',
+      refs: ['foo', 'foo[]'],
+      components: { Component },
+    };
   }
 
   it('should resolve a component’s refs', () => {

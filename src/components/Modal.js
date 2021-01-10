@@ -11,23 +11,21 @@ export default class Modal extends Base {
   /**
    * Modal options.
    */
-  get config() {
-    return {
-      name: 'Modal',
-      refs: ['close', 'container', 'content', 'modal', 'open', 'overlay'],
-      move: false,
-      autofocus: '[autofocus]',
-      styles: {
-        modal: {
-          closed: {
-            opacity: 0,
-            pointerEvents: 'none',
-            visibility: 'hidden',
-          },
+  static config = {
+    name: 'Modal',
+    refs: ['close', 'container', 'content', 'modal', 'open', 'overlay'],
+    move: false,
+    autofocus: '[autofocus]',
+    styles: {
+      modal: {
+        closed: {
+          opacity: 0,
+          pointerEvents: 'none',
+          visibility: 'hidden',
         },
       },
-    };
-  }
+    },
+  };
 
   /**
    * Open the modal on click on the `open` ref.

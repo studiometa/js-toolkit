@@ -9,12 +9,10 @@ export default class BreakpointManagerDemo extends withBreakpointManager(Base, [
   ['m', BreakpointManagerDemoTablet],
   ['l', BreakpointManagerDemoDesktop],
 ]) {
-  get config() {
-    return {
-      name: 'BreakpointManagerDemo',
-      log: true,
-    };
-  }
+  static config = {
+    name: 'BreakpointManagerDemo',
+    log: true,
+  };
 
   mounted() {
     this.$log('mounted');
