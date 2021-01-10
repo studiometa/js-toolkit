@@ -8,6 +8,7 @@ class App extends Base {
   get config() {
     return {
       name: 'App',
+      refs: ['modal'],
       log: true,
       components: {
         Accordion,
