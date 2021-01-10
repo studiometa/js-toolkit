@@ -7,6 +7,13 @@ describe('AccordionItem component', () => {
   let content;
   let icon;
 
+  class AccordionItemWithIcon extends AccordionItem {
+    static config = {
+      ...(AccordionItem.config || {}),
+      refs: [...AccordionItem.config.refs, 'icon'],
+    };
+  }
+
   beforeEach(() => {
     document.body.innerHTML = `
 <div
@@ -29,7 +36,7 @@ describe('AccordionItem component', () => {
   </div>
 </div>;
     `;
-    item = new AccordionItem(document.body.firstElementChild);
+    item = new AccordionItemWithIcon(document.body.firstElementChild);
     btn = document.querySelector('[data-ref="btn"]');
     content = document.querySelector('[data-ref="content"]');
     icon = document.querySelector('[data-ref="icon"]');
