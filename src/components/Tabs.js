@@ -11,6 +11,7 @@ export default class Tabs extends Base {
   get config() {
     return {
       name: 'Tabs',
+      refs: ['btn[]', 'content[]'],
       styles: {
         content: {
           closed: {

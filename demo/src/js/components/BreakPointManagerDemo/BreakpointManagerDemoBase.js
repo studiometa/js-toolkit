@@ -4,6 +4,7 @@ export default class BreakpointManagerDemoBase extends Base {
   get config() {
     return {
       log: false,
+      refs: ['content'],
     };
   }
 

@@ -4,6 +4,7 @@ export default class Cursor extends Base {
   get config() {
     return {
       name: 'Cursor',
+      refs: ['inner'],
     };
   }
 

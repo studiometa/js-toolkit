@@ -13,6 +13,7 @@ export default class AccordionItem extends Base {
   get config() {
     return {
       name: 'AccordionItem',
+      refs: ['btn', 'content', 'container'],
       isOpen: false,
       styles: {
         container: {

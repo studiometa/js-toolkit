@@ -14,6 +14,7 @@ export default class Modal extends Base {
   get config() {
     return {
       name: 'Modal',
+      refs: ['close', 'container', 'content', 'modal', 'open', 'overlay'],
       move: false,
       autofocus: '[autofocus]',
       styles: {
