@@ -21,12 +21,10 @@ document.body.innerHTML = template;
  */
 const withName = (BaseClass, name) =>
   class extends BaseClass {
-    get config() {
-      return {
-        ...(super.config || {}),
-        name,
-      };
-    }
+    static config = {
+      ...(BaseClass.config || {}),
+      name,
+    };
 
     mounted() {
       fn(name, 'mounted');
@@ -45,14 +43,12 @@ class Foo extends withBreakpointManager(withName(Base, 'Foo'), [
 ]) {}
 
 class App extends Base {
-  get config() {
-    return {
-      name: 'App',
-      components: {
-        Foo,
-      },
-    };
-  }
+  static config = {
+    name: 'App',
+    components: {
+      Foo,
+    },
+  };
 }
 
 describe('The withBreakpointManager decorator', () => {

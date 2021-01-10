@@ -10,20 +10,18 @@ export default class AccordionItem extends Base {
    * AccordionItem config
    * @return {Object}
    */
-  get config() {
-    return {
-      name: 'AccordionItem',
-      refs: ['btn', 'content', 'container'],
-      isOpen: false,
-      styles: {
-        container: {
-          open: '',
-          active: '',
-          closed: '',
-        },
+  static config = {
+    name: 'AccordionItem',
+    refs: ['btn', 'content', 'container'],
+    isOpen: false,
+    styles: {
+      container: {
+        open: '',
+        active: '',
+        closed: '',
       },
-    };
-  }
+    },
+  };
 
   /**
    * Add aria-attributes on mounted.

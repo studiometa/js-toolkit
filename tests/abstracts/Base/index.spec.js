@@ -12,25 +12,23 @@ describe('The abstract Base class', () => {
   it('should throw an error when extended without proper configuration', () => {
     expect(() => {
       class Foo extends Base {}
-      new Foo();
-    }).toThrow('The `config` getter must be defined.');
+      new Foo(document.createElement('div'));
+    }).toThrow('The `config` property must be defined.');
 
     expect(() => {
       class Foo extends Base {
-        get config() {
-          return {};
-        }
+        static config = {};
       }
-      new Foo();
+      new Foo(document.createElement('div'));
     }).toThrow('The `config.name` property is required.');
   });
 
   it('should throw an error if instantiated without a root element.', () => {
     expect(() => {
       class Foo extends Base {
-        get config() {
-          return { name: 'Foo' };
-        }
+        static config = {
+          name: 'Foo',
+        };
       }
       new Foo();
     }).toThrow('The root element must be defined.');
@@ -39,9 +37,9 @@ describe('The abstract Base class', () => {
 
 describe('A Base instance', () => {
   class Foo extends Base {
-    get config() {
-      return { name: 'Foo' };
-    }
+    static config = {
+      name: 'Foo',
+    };
   }
   const element = document.createElement('div');
   const foo = new Foo(element);
@@ -82,9 +80,9 @@ describe('A Base instance', () => {
 
 describe('A Base instance methods', () => {
   class Foo extends Base {
-    get config() {
-      return { name: 'Foo' };
-    }
+    static config = {
+      name: 'Foo',
+    };
   }
 
   let element;
@@ -125,15 +123,13 @@ describe('A Base instance methods', () => {
     class Baz extends Foo {}
 
     class App extends Base {
-      get config() {
-        return {
-          name: 'App',
-          components: {
-            Bar,
-            Baz,
-          },
-        };
-      }
+      static config = {
+        name: 'App',
+        components: {
+          Bar,
+          Baz,
+        },
+      };
     }
 
     const app = new App(div);
@@ -216,14 +212,13 @@ describe('A Base instance methods', () => {
     }
 
     class Bar extends Foo {
-      get config() {
-        return {
-          ...(super.config || {}),
-          components: {
-            Baz,
-          },
-        };
-      }
+      static config = {
+        ...(Foo.config || {}),
+        refs: ['foo', 'baz'],
+        components: {
+          Baz,
+        },
+      };
 
       onFooClick() {
         fn();
@@ -264,15 +259,16 @@ describe('A Base instance methods', () => {
 
   it('should not find children if none provided', () => {
     class Bar extends Base {
-      get config() {
-        return { name: 'Bar' };
-      }
+      static config = {
+        name: 'Bar',
+      };
     }
 
     class Baz extends Base {
-      get config() {
-        return { name: 'Baz', components: { Bar } };
-      }
+      static config = {
+        name: 'Baz',
+        components: { Bar },
+      };
     }
     expect(foo.$children).toEqual({});
     expect(new Baz(document.createElement('div')).$children).toEqual({});
@@ -280,15 +276,16 @@ describe('A Base instance methods', () => {
 
   it('should not find terminated children', () => {
     class Bar extends Base {
-      get config() {
-        return { name: 'Bar' };
-      }
+      static config = {
+        name: 'Bar',
+      };
     }
 
     class Baz extends Base {
-      get config() {
-        return { name: 'Baz', components: { Bar } };
-      }
+      static config = {
+        name: 'Baz',
+        components: { Bar },
+      };
     }
 
     const div = document.createElement('div');
@@ -319,14 +316,15 @@ describe('A Base instance methods', () => {
 
   it('should mount and destroy its children', () => {
     class Bar extends Base {
-      get config() {
-        return { name: 'Bar' };
-      }
+      static config = {
+        name: 'Bar',
+      };
     }
     class Baz extends Foo {
-      get config() {
-        return { name: 'Baz', components: { Bar } };
-      }
+      static config = {
+        name: 'Baz',
+        components: { Bar },
+      };
     }
 
     document.body.innerHTML = `<div data-component="Bar"></div>`;
@@ -350,9 +348,11 @@ describe('A Base instance methods', () => {
 
   it('should resolve refs to children components', () => {
     class Bar extends Base {
-      get config() {
-        return { name: 'Bar', components: { Foo } };
-      }
+      static config = {
+        name: 'Bar',
+        refs: ['bar'],
+        components: { Foo },
+      };
     }
 
     document.body.innerHTML = `<div data-component="Foo" data-ref="bar"></div>`;
@@ -362,9 +362,10 @@ describe('A Base instance methods', () => {
 
   it('should cast single ref as array when ending with []', () => {
     class Bar extends Base {
-      get config() {
-        return { name: 'Bar' };
-      }
+      static config = {
+        name: 'Bar',
+        refs: ['btn', 'item[]', 'itemBis[]'],
+      };
     }
 
     const div = document.createElement('div');
@@ -396,17 +397,15 @@ describe('A Base instance methods', () => {
     const getBuz = jest.fn((resolve) => setTimeout(() => resolve(Foo), 200));
 
     class Bar extends Base {
-      get config() {
-        return {
-          name: 'Bar',
-          components: {
-            Foo: () => new Promise(getFoo),
-            Baz: () => new Promise(getBaz),
-            Boz: () => new Promise(getBoz),
-            Buz: () => new Promise(getBuz),
-          },
-        };
-      }
+      static config = {
+        name: 'Bar',
+        components: {
+          Foo: () => new Promise(getFoo),
+          Baz: () => new Promise(getBaz),
+          Boz: () => new Promise(getBoz),
+          Buz: () => new Promise(getBuz),
+        },
+      };
     }
 
     document.body.innerHTML = `
@@ -448,24 +447,26 @@ describe('A Base instance config', () => {
 
   it('should have a working $log method when active', () => {
     class Foo extends Base {
-      get config() {
-        return { name: 'Foo', log: true };
-      }
+      static config = {
+        name: 'Foo',
+        log: true,
+      };
     }
     const spy = jest.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
     const foo = new Foo(element);
     expect(foo.$options.log).toBe(true);
     foo.$log('bar');
-    expect(spy).toHaveBeenCalledWith('Foo', 'bar');
+    expect(spy).toHaveBeenCalledWith('[Foo]', 'bar');
     spy.mockRestore();
   });
 
   it('should have a silent $log method when not active', () => {
     class Foo extends Base {
-      get config() {
-        return { name: 'Foo', log: false };
-      }
+      static config = {
+        name: 'Foo',
+        log: false,
+      };
     }
     const spy = jest.spyOn(window.console, 'log');
     const foo = new Foo(element);
@@ -477,17 +478,18 @@ describe('A Base instance config', () => {
 
   it('should have a working debug method when active', () => {
     class Foo extends Base {
-      get config() {
-        return { name: 'Foo', debug: true };
-      }
+      static config = {
+        name: 'Foo',
+        debug: true,
+      };
     }
     const spy = jest.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
     const foo = new Foo(document.createElement('div'));
-    expect(spy).toHaveBeenNthCalledWith(1, foo.$options.name, '$mount');
-    expect(spy).toHaveBeenNthCalledWith(2, foo.$options.name, 'callMethod', 'mounted');
-    expect(spy).toHaveBeenNthCalledWith(3, foo.$options.name, 'mountComponents', {});
-    expect(spy).toHaveBeenNthCalledWith(4, foo.$options.name, 'constructor', foo);
+    expect(spy).toHaveBeenNthCalledWith(1, '[Foo]', '$mount');
+    expect(spy).toHaveBeenNthCalledWith(2, '[Foo]', 'callMethod', 'mounted');
+    expect(spy).toHaveBeenNthCalledWith(3, '[Foo]', 'mountComponents', {});
+    expect(spy).toHaveBeenNthCalledWith(4, '[Foo]', 'constructor', foo);
     spy.mockRestore();
   });
 });

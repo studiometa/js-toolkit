@@ -24,9 +24,7 @@ export function defineComponent(options) {
     /**
      * Component config.
      */
-    get config() {
-      return config;
-    }
+    static config = config;
   }
 
   const allowedHooks = [

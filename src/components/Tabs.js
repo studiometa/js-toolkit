@@ -8,22 +8,20 @@ export default class Tabs extends Base {
   /**
    * Tabs options.
    */
-  get config() {
-    return {
-      name: 'Tabs',
-      refs: ['btn[]', 'content[]'],
-      styles: {
-        content: {
-          closed: {
-            position: 'absolute',
-            opacity: 0,
-            pointerEvents: 'none',
-            visibility: 'hidden',
-          },
+  static config = {
+    name: 'Tabs',
+    refs: ['btn[]', 'content[]'],
+    styles: {
+      content: {
+        closed: {
+          position: 'absolute',
+          opacity: 0,
+          pointerEvents: 'none',
+          visibility: 'hidden',
         },
       },
-    };
-  }
+    },
+  };
 
   /**
    * Initialize the component's behaviours.

@@ -1,7 +1,7 @@
 import nanoid from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind';
 import EventManager from '../EventManager';
-import { callMethod, debug } from './utils';
+import { callMethod, debug, log, getConfig } from './utils';
 import { getChildren, getComponentElements } from './children';
 import { getOptions, setOptions } from './options';
 import { getRefs } from './refs';
@@ -34,7 +34,8 @@ export default class Base extends EventManager {
    * @return {Object}
    */
   get $children() {
-    return getChildren(this, this.$el, this.config.components || {});
+    const { components } = getConfig(this);
+    return getChildren(this, this.$el, components || {});
   }
 
   /**
@@ -42,7 +43,7 @@ export default class Base extends EventManager {
    * @return {Object}
    */
   get $options() {
-    return getOptions(this, this.$el, this.config);
+    return getOptions(this, this.$el, getConfig(this));
   }
 
   /**
@@ -63,21 +64,15 @@ export default class Base extends EventManager {
   constructor(element) {
     super();
 
-    if (!this.config) {
-      throw new Error('The `config` getter must be defined.');
-    }
-
-    if (!this.config.name) {
-      throw new Error('The `config.name` property is required.');
-    }
-
     if (!element) {
       throw new Error('The root element must be defined.');
     }
 
+    const { name } = getConfig(this);
+
     Object.defineProperties(this, {
       $id: {
-        value: `${this.config.name}-${nanoid()}`,
+        value: `${name}-${nanoid()}`,
       },
       $isMounted: {
         value: false,
@@ -156,9 +151,7 @@ export default class Base extends EventManager {
    * @return {void}
    */
   $log(...args) {
-    return this.$options.log
-      ? window.console.log.apply(window, [this.config.name, ...args])
-      : () => {};
+    return this.$options.log ? log(this, ...args) : () => {};
   }
 
   /**

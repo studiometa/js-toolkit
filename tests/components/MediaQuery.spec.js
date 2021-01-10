@@ -3,23 +3,19 @@ import Base from '~/abstracts/Base';
 import resizeWindow from '../__utils__/resizeWindow';
 
 class Foo extends Base {
-  get config() {
-    return {
-      name: 'Foo',
-    };
-  }
+  static config = {
+    name: 'Foo',
+  };
 }
 
 class App extends Base {
-  get config() {
-    return {
-      name: 'App',
-      components: {
-        Foo,
-        MediaQuery,
-      },
-    };
-  }
+  static config = {
+    name: 'App',
+    components: {
+      Foo,
+      MediaQuery,
+    },
+  };
 }
 
 const template = `

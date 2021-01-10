@@ -10,27 +10,23 @@ import resizeWindow from '../__utils__/resizeWindow';
  */
 const withName = (BaseClass, name) =>
   class extends BaseClass {
-    get config() {
-      return {
-        ...(super.config || {}),
-        name,
-      };
-    }
+    static config = {
+      ...(BaseClass.config || {}),
+      name,
+    };
   };
 
 class Foo extends withBreakpointObserver(withName(Base, 'Foo')) {}
 class FooResponsive extends withBreakpointObserver(withName(Base, 'FooResponsive')) {}
 
 class App extends Base {
-  get config() {
-    return {
-      name: 'App',
-      components: {
-        Foo,
-        FooResponsive,
-      },
-    };
-  }
+  static config = {
+    name: 'App',
+    components: {
+      Foo,
+      FooResponsive,
+    },
+  };
 }
 
 const template = `
@@ -103,9 +99,11 @@ describe('The withBreakpointObserver decorator', () => {
   it('should throw when configuring both breakpoint options', () => {
     expect(() => {
       class Bar extends withBreakpointObserver(Base) {
-        get config() {
-          return { name: 'Bar', activeBreakpoints: 's', inactiveBreakpoints: 'm' };
-        }
+        static config = {
+          name: 'Bar',
+          activeBreakpoints: 's',
+          inactiveBreakpoints: 'm',
+        };
       }
 
       const div = document.createElement('div');
@@ -118,9 +116,10 @@ describe('The withBreakpointObserver decorator', () => {
     expect(() => {
       document.body.innerHTML = '<div></div>';
       class Bar extends withBreakpointObserver(Base) {
-        get config() {
-          return { name: 'Bar', inactiveBreakpoints: 'm' };
-        }
+        static config = {
+          name: 'Bar',
+          inactiveBreakpoints: 'm',
+        };
       }
 
       // eslint-disable-next-line no-new
