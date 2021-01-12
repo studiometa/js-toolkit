@@ -36,7 +36,8 @@
   "homepage": "https://github.com/studiometa/js-toolkit#readme",
   "dependencies": {
     "deepmerge": "^4.2.2",
-    "nanoid": "2.1.11"
+    "nanoid": "2.1.11",
+    "no-case": "^3.0.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.11.6",
@@ -59,6 +60,7 @@
     "eslint": "^7.10.0",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-jest": "^24.0.2",
+    "htl": "^0.2.3",
     "html-loader-jest": "^0.2.1",
     "html-webpack-plugin": "^4.3.0",
     "jest": "^26.4.2",
