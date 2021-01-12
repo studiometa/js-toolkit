@@ -61,12 +61,13 @@ describe('A Base instance', () => {
   });
 
   it('should have an `$options` property', () => {
-    expect(foo.$options).toEqual({ name: 'Foo' });
+    expect(foo.$options).not.toBeUndefined();
+    expect(foo.$options.name).toBe('Foo');
   });
 
-  it('should be able to set the `$options` property', () => {
-    foo.$options = { test: true };
-    expect(foo.$options).toEqual({ name: 'Foo', test: true });
+  it('should be able to set any `$options` property', () => {
+    foo.$options.log = true;
+    expect(foo.$options.log).toBe(true);
   });
 
   it('should have an `$el` property', () => {
@@ -427,6 +428,8 @@ describe('A Base instance methods', () => {
   });
 
   it('should throw and error when `data-options` can not be parsed', () => {
+    const spy = jest.spyOn(window.console, 'warn');
+    spy.mockImplementation(() => true);
     document.body.dataset.options = 'foo-bar';
     expect(() => new Foo(document.body)).toThrow();
     document.body.dataset.options = '{}';
@@ -435,6 +438,7 @@ describe('A Base instance methods', () => {
     expect(() => {
       newFoo.$options = '{}';
     }).toThrow();
+    spy.mockRestore();
   });
 });
 
