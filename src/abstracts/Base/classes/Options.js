@@ -21,7 +21,7 @@ export default class Options {
   #values = {};
 
   /** @type {Array} List of allowed types. */
-  #types = [String, Number, Boolean, Array, Object];
+  static types = [String, Number, Boolean, Array, Object];
 
   /**
    * The default values to return for each available type.
@@ -48,7 +48,7 @@ export default class Options {
       const isArray = Array.isArray(config);
       const type = isArray ? config[0] : config;
 
-      if (!this.#types.includes(type)) {
+      if (!Options.types.includes(type)) {
         throw new Error(
           `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`
         );

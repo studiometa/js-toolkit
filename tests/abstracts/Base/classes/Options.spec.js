@@ -180,6 +180,4 @@ describe('The Options class', () => {
       options.object.baz = 'baz';
     }).not.toThrow('Cannot add property foo, object is not extensible');
   });
-
-  // it('should warn when using the global data-options attribute', () => {});
 });

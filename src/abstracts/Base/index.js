@@ -3,7 +3,7 @@ import autoBind from '../../utils/object/autoBind';
 import EventManager from '../EventManager';
 import { callMethod, debug, log, getConfig } from './utils';
 import { getChildren, getComponentElements } from './children';
-import { getOptions, setOptions } from './options';
+import { getOptions } from './options';
 import { getRefs } from './refs';
 import { mountComponents, destroyComponents } from './components';
 import bindServices from './services';
@@ -39,23 +39,6 @@ export default class Base extends EventManager {
   }
 
   /**
-   * Get the component's merged config and options.
-   * @return {Object}
-   */
-  get $options() {
-    return getOptions(this, this.$el, getConfig(this));
-  }
-
-  /**
-   * Set the components option.
-   * @param  {Object} value The new options values to merge with the old ones.
-   * @return {void}
-   */
-  set $options(newOptions) {
-    setOptions(this, this.$el, newOptions);
-  }
-
-  /**
    * Class constructor where all the magic takes place.
    *
    * @param  {HTMLElement} element The component's root element.
@@ -80,6 +63,9 @@ export default class Base extends EventManager {
       },
       $el: {
         value: element,
+      },
+      $options: {
+        value: getOptions(this, element, getConfig(this)),
       },
     });
 
