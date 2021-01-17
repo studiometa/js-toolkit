@@ -15,7 +15,7 @@ export default class EventManager {
    * Bind a listener function to an event.
    *
    * @param  {String}   event    Name of the event.
-   * @param  {String}   listener Function to be called.
+   * @param  {Function} listener Function to be called.
    * @return {Function}          A function to unbind the listener.
    */
   $on(event, listener) {
@@ -33,7 +33,7 @@ export default class EventManager {
    * Unbind a listener function from an event.
    *
    * @param  {String}       event    Name of the event.
-   * @param  {String}       listener Function to be removed.
+   * @param  {Function}     listener Function to be removed.
    * @return {EventManager}          The current instance.
    */
   $off(event, listener) {
