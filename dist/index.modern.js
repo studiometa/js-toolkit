@@ -551,16 +551,24 @@ function setOptions(instance, element, newOptions) {
  * @see https://developer.mozilla.org/en-US/docs/Web/CSS/:scope
  * @see https://github.com/jonathantneal/element-qsa-scope
  *
- * @param {HTMLElement} element  The element from which the scope is taken.
- * @param {String}      selector The children selector.
- * @param {String}      uniqId   A uniq ID to prefix the selector with.
+ * @param  {HTMLElement} element  The element from which the scope is taken.
+ * @param  {String}      selector The children selector.
+ * @param  {String}      uniqId   A uniq ID to prefix the selector with.
+ * @return {Array}                A list of elements.
  */
 function scopeSelectorPonyfill(element, selector, uniqId) {
-  const attr = `data-uniq-id`;
-  const scopedSelector = `[${attr}="${uniqId}"] ${selector}`;
-  element.setAttribute(attr, uniqId);
-  const list = Array.from(element.querySelectorAll(scopedSelector));
-  element.removeAttribute(attr);
+  let list = [];
+
+  try {
+    list = Array.from(element.querySelectorAll(`:scope ${selector}`));
+  } catch (err) {
+    const attr = `data-uniq-id`;
+    const scopedSelector = `[${attr}="${uniqId}"] ${selector}`;
+    element.setAttribute(attr, uniqId);
+    list = Array.from(element.querySelectorAll(scopedSelector));
+    element.removeAttribute(attr);
+  }
+
   return list;
 }
 /**

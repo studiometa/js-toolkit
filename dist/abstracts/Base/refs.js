@@ -6,16 +6,24 @@
  * @see https://developer.mozilla.org/en-US/docs/Web/CSS/:scope
  * @see https://github.com/jonathantneal/element-qsa-scope
  *
- * @param {HTMLElement} element  The element from which the scope is taken.
- * @param {String}      selector The children selector.
- * @param {String}      uniqId   A uniq ID to prefix the selector with.
+ * @param  {HTMLElement} element  The element from which the scope is taken.
+ * @param  {String}      selector The children selector.
+ * @param  {String}      uniqId   A uniq ID to prefix the selector with.
+ * @return {Array}                A list of elements.
  */
 export function scopeSelectorPonyfill(element, selector, uniqId) {
-  var attr = "data-uniq-id";
-  var scopedSelector = "[".concat(attr, "=\"").concat(uniqId, "\"] ").concat(selector);
-  element.setAttribute(attr, uniqId);
-  var list = Array.from(element.querySelectorAll(scopedSelector));
-  element.removeAttribute(attr);
+  var list = [];
+
+  try {
+    list = Array.from(element.querySelectorAll(":scope ".concat(selector)));
+  } catch (err) {
+    var attr = "data-uniq-id";
+    var scopedSelector = "[".concat(attr, "=\"").concat(uniqId, "\"] ").concat(selector);
+    element.setAttribute(attr, uniqId);
+    list = Array.from(element.querySelectorAll(scopedSelector));
+    element.removeAttribute(attr);
+  }
+
   return list;
 }
 /**
