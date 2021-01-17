@@ -22,11 +22,7 @@ function getChild(el, ComponentClass, parent) {
 
   // Resolve async components
   const asyncComponent = ComponentClass().then((module) => {
-    const ResolvedClass = module.default ? module.default : module;
-    Object.defineProperty(ResolvedClass.prototype, '__isChild__', { value: true });
-    const child = new ResolvedClass(el);
-    Object.defineProperty(child, '$parent', { get: () => parent });
-    return child;
+    return getChild(el, module.default ? module.default : module, parent);
   });
 
   asyncComponent.__isAsync__ = true;

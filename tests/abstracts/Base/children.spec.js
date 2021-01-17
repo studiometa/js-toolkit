@@ -1,3 +1,4 @@
+import Base from '~/index';
 import { getComponentElements } from '~/abstracts/Base/children';
 
 describe('The component resolution', () => {
@@ -37,5 +38,46 @@ describe('The component resolution', () => {
     component.setAttribute('data-component', 'Component');
     root.appendChild(component);
     expect(getComponentElements('Component', root)).toEqual([component]);
+  });
+
+  it('should resolve async component dedede', () => {
+    const div = document.createElement('div');
+    div.innerHTML = `<div data-component="AsyncComponent"></div>`;
+
+    const fn = jest.fn();
+    class AsyncComponent extends Base {
+      get config() {
+        return { name: 'AsyncComponent' };
+      }
+
+      constructor(...args) {
+        super(...args);
+        fn(...args);
+      }
+    }
+
+    class Component extends Base {
+      get config() {
+        return {
+          name: 'Component',
+          components: {
+            AsyncComponent: () =>
+              new Promise((resolve) => setTimeout(() => resolve(AsyncComponent), 10)),
+          },
+        };
+      }
+    }
+
+    const component = new Component(div);
+    expect(component.$children.AsyncComponent[0]).toBeInstanceOf(Promise);
+    expect(fn).toHaveBeenCalledTimes(0);
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        expect(component.$children.AsyncComponent[0]).toBeInstanceOf(Base);
+        expect(fn).toHaveBeenCalledTimes(1);
+        resolve();
+      }, 20);
+    });
   });
 });
