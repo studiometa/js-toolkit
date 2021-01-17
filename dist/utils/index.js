@@ -4,6 +4,8 @@ import * as _math from './math';
 export { _math as math };
 import * as _object from './object';
 export { _object as object };
+import * as _history from './history';
+export { _history as history };
 import _debounce from './debounce';
 export { _debounce as debounce };
 import _focusTrap from './focusTrap';
