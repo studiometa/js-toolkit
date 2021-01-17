@@ -1,5 +1,10 @@
 name: Tests
-on: pull_request
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
 jobs:
   Unit:
     runs-on: ubuntu-latest
@@ -11,4 +16,13 @@ jobs:
     - name: Install modules
       run: npm ci
     - name: Run tests
-      run: npm run test
+      run: npm run test -- --coverage
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: ./coverage
+        flags: unittests
+        fail_ci_if_error: false
+        path_to_write_report: ./codecov_report.txt
+        verbose: true
