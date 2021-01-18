@@ -35,6 +35,7 @@
   },
   "homepage": "https://github.com/studiometa/js-toolkit#readme",
   "dependencies": {
+    "deepmerge": "^4.2.2",
     "nanoid": "2.1.11",
     "no-case": "^3.0.4"
   },

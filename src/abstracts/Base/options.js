@@ -2,6 +2,10 @@ import Options from './classes/Options';
 import { warn } from './utils';
 
 /**
+ * @typedef {import('./index').default} Base
+ */
+
+/**
  * Get a component's options.
  *
  * @param  {Base}        instance The component's instance.
@@ -12,10 +16,11 @@ import { warn } from './utils';
 export function getOptions(instance, element, config) {
   let schema = { ...(config.options || {}) };
 
-  // Merge inherited options
+  /** @type {Base|false} Merge inherited options. */
   let prototype = instance;
   while (prototype) {
     const getterConfig = prototype.config;
+    // @ts-ignore
     const staticConfig = prototype.constructor.config;
     if (getterConfig || staticConfig) {
       schema = Object.assign(
@@ -31,13 +36,13 @@ export function getOptions(instance, element, config) {
 
   // Add legacy options from the config
   const propsToInclude = [
-    ['log', Boolean],
-    ['debug', Boolean],
-    ['name', String],
+    { name: 'log', type: Boolean },
+    { name: 'debug', type: Boolean },
+    { name: 'name', type: String },
   ];
 
-  propsToInclude.forEach(([propName, propType]) => {
-    schema[propName] = [propType, propType(config[propName])];
+  propsToInclude.forEach((prop) => {
+    schema[prop.name] = [prop.type, prop.type(config[prop.name])];
   });
 
   // Add legacy options to the schema

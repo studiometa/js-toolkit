@@ -5,16 +5,51 @@ import focusTrap from '../utils/focusTrap';
 const { trap, untrap, saveActiveElement } = focusTrap();
 
 /**
+ * @typedef {import('../abstracts/Base/index').default} Base
+ * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+ */
+
+/**
  * Modal class.
  */
 export default class Modal extends Base {
+  /**
+   * Modal options
+   * @type {BaseOptions & { move?: boolean, autofocus?: string, styles?: object }}
+   */
+  $options;
+
+  /**
+   * State of the modal.
+   * @type {Boolean}
+   */
+  isOpen;
+
+  /**
+   * The modal content placeholder when its content is moved.
+   * @type {Comment}
+   */
+  refModalPlaceholder;
+
+  /**
+   * A reference to the modal's parent to be used as backup.
+   * @type {HTMLElement}
+   */
+  refModalParentBackup;
+
+  /**
+   * Unbind function to remove the `get:refs` hook binding.
+   * @type {Function}
+   */
+  refModalUnbindGetRefFilter;
+
   /**
    * Modal options.
    */
   static config = {
     name: 'Modal',
     refs: ['close', 'container', 'content', 'modal', 'open', 'overlay'],
-    move: false,
+    move: '',
     autofocus: '[autofocus]',
     styles: {
       modal: {
@@ -144,6 +179,7 @@ export default class Modal extends Base {
     this.$emit('open');
 
     return Promise.all(
+      // @ts-ignore
       Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
         transition(
           this.$refs[refName],
@@ -182,6 +218,7 @@ export default class Modal extends Base {
     this.$emit('close');
 
     return Promise.all(
+      // @ts-ignore
       Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
         transition(
           this.$refs[refName],

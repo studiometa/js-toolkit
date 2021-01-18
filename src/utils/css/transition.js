@@ -3,6 +3,49 @@ import nextFrame from '../nextFrame';
 import * as classes from './classes';
 import * as styles from './styles';
 
+/** WeakMap to hold the transition instances. */
+const cache = new WeakMap();
+
+/**
+ * Transition class.
+ */
+class Transition {
+  /**
+   * Is a transition currently running?
+   * @type {Boolean}
+   */
+  isTransitioning = false;
+
+  /**
+   * A callback to execute when the transition ends.
+   * @type {EventListenerOrEventListenerObject|null}
+   */
+  transitionEndHandler = null;
+
+  /**
+   * Instantiate and save the instance to the cache.
+   * @param {HTMLElement} element The HTML element.
+   */
+  constructor(element) {
+    cache.set(element, this);
+  }
+
+  /**
+   * Get the transition class attached to the given element.
+   * @param  {HTMLElement} element The HTML element concerned by the transition.
+   * @return {Transition}          The transition instance tied to the given element.
+   */
+  static getInstance(element) {
+    let instance = cache.get(element);
+
+    if (!instance) {
+      instance = new this(element);
+    }
+
+    return instance;
+  }
+}
+
 /**
  * Update either the classes or the styles of an element with the given method.
  *
@@ -41,7 +84,8 @@ function testTransition(element) {
  * @return {Promise}
  */
 async function start(element, classesOrStyles) {
-  element.__isTransitioning__ = true;
+  const trs = Transition.getInstance(element);
+  trs.isTransitioning = true;
   setClassesOrStyles(element, classesOrStyles.from);
   await nextFrame();
   setClassesOrStyles(element, classesOrStyles.active);
@@ -61,8 +105,9 @@ async function next(element, classesOrStyles) {
   /* eslint-disable-next-line */
   return new Promise(async resolve => {
     if (hasTransition) {
-      element.__transitionEndHandler__ = resolve;
-      element.addEventListener('transitionend', element.__transitionEndHandler__, false);
+      const trs = Transition.getInstance(element);
+      trs.transitionEndHandler = resolve;
+      element.addEventListener('transitionend', trs.transitionEndHandler, false);
     }
     setClassesOrStyles(element, classesOrStyles.from, 'remove');
     setClassesOrStyles(element, classesOrStyles.to);
@@ -82,13 +127,14 @@ async function next(element, classesOrStyles) {
  * @return {void}
  */
 function end(element, classesOrStyles, mode = 'remove') {
-  element.removeEventListener('transitionend', element.__transitionEndHandler__, false);
+  const trs = Transition.getInstance(element);
+  element.removeEventListener('transitionend', trs.transitionEndHandler, false);
   if (mode === 'remove') {
     setClassesOrStyles(element, classesOrStyles.to, 'remove');
   }
   setClassesOrStyles(element, classesOrStyles.active, 'remove');
-  delete element.__isTransitioning__;
-  delete element.__transitionEndHandler__;
+  trs.isTransitioning = false;
+  trs.transitionEndHandler = null;
 }
 
 /**
@@ -117,8 +163,9 @@ export default async function transition(element, name, endMode = 'remove') {
           ...name,
         };
 
+  const trs = Transition.getInstance(element);
   // End any previous transition running on the element.
-  if (element.__isTransitioning__) {
+  if (trs.isTransitioning) {
     end(element, classesOrStyles);
   }
 

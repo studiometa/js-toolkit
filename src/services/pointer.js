@@ -30,14 +30,14 @@ class Pointer extends Service {
   /** @type {Number} The x previous pointer position. */
   xLast = window.innerWidth / 2;
 
-  /** @type {Event} The latest event emitted from the pointer. */
+  /** @type {MouseEvent|TouchEvent} The latest event emitted from the pointer. */
   event;
 
   /**
    * Bind the handler to the mousemove and touchmove events.
    * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
    *
-   * @return {void}
+   * @return {Pointer}
    */
   init() {
     const { add, remove } = useRaf();
@@ -72,12 +72,13 @@ class Pointer extends Service {
     document.addEventListener('touchstart', this.downHandler, { passive: true });
     document.addEventListener('mouseup', this.upHandler, { passive: true });
     document.addEventListener('touchend', this.upHandler, { passive: true });
+    return this;
   }
 
   /**
    * Unbind all handlers from their bounded event.
    *
-   * @return {void}
+   * @return {Pointer}
    */
   kill() {
     document.removeEventListener('mousemove', this.handler);
@@ -86,6 +87,7 @@ class Pointer extends Service {
     document.removeEventListener('touchstart', this.downHandler);
     document.removeEventListener('mouseup', this.upHandler);
     document.removeEventListener('touchend', this.upHandler);
+    return this;
   }
 
   /**
@@ -111,7 +113,7 @@ class Pointer extends Service {
   /**
    * Update the pointer positions.
    *
-   * @param  {Event} event The event object.
+   * @param  {MouseEvent|TouchEvent} event The event object.
    * @return {void}
    */
   updateValues(event) {
@@ -122,15 +124,17 @@ class Pointer extends Service {
     // Check pointer Y
     // We either get data from a touch event `event.touches[0].clientY` or from
     // a mouse event `event.clientY`.
-    if (((event.touches || [])[0] || event || {}).clientY !== this.y) {
-      this.y = ((event.touches || [])[0] || event || {}).clientY;
+    const y = event instanceof TouchEvent ? event.touches[0].clientY : event.clientY;
+    if (y !== this.y) {
+      this.y = y;
     }
 
     // Check pointer X
     // We either get data from a touch event `event.touches[0].clientX` or from
     // a mouse event `event.clientX`.
-    if (((event.touches || [])[0] || event || {}).clientX !== this.x) {
-      this.x = ((event.touches || [])[0] || event || {}).clientX;
+    const x = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
+    if (x !== this.x) {
+      this.x = x;
     }
   }
 

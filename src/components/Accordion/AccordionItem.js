@@ -29,7 +29,11 @@ export default class AccordionItem extends Base {
    */
   mounted() {
     if (this.$parent && this.$parent.$options.item) {
-      this.$options = this.$parent.$options.item;
+      Object.entries(this.$parent.$options.item).forEach(([key, value]) => {
+        if (Object.hasOwnProperty.call(this.$options, key)) {
+          this.$options[key] = value;
+        }
+      });
     }
 
     this.$refs.btn.setAttribute('id', this.$id);

@@ -6,10 +6,15 @@ export default class Lazyload extends withIntersectionObserver(Base) {
   static config = {
     name: 'Lazyload',
     log: true,
-    styles: {
-      unloaded: { opacity: 0 },
-      active: { transition: 'opacity 0.5s' },
-      loaded: '',
+    options: {
+      styles: [
+        Object,
+        {
+          unloaded: { opacity: 0 },
+          active: { transition: 'opacity 0.5s' },
+          loaded: '',
+        },
+      ],
     },
   };
 

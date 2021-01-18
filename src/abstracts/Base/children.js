@@ -1,10 +1,16 @@
 /**
+ * @typedef {import('./index.js').default} Base
+ * @typedef {import('./index.js').BaseHTMLElement} BaseHTMLElement
+ * @typedef {{[nameOrSelector:string]: Base|Promise }} ComponentsOption
+ */
+
+/**
  * Get a child component.
  *
- * @param  {HTMLElement}  el             The root element of the child component.
- * @param  {Base|Promise} ComponentClass A Base class or a Promise for async components.
- * @param  {Base}         parent         The parent component instance.
- * @return {Base|Promise}                A Base instance or a Promise resolving to a Base instance.
+ * @param  {BaseHTMLElement}           el             The root element of the child component.
+ * @param  {Base|Promise}              ComponentClass A Base class or a Promise for async components.
+ * @param  {Base}                      parent         The parent component instance.
+ * @return {Base|Promise|'terminated'}                A Base instance or a Promise resolving to a Base instance.
  */
 function getChild(el, ComponentClass, parent) {
   // Return existing instance if it exists
@@ -13,20 +19,18 @@ function getChild(el, ComponentClass, parent) {
   }
 
   // Return a new instance if the component class is a child of the Base class
-  if (ComponentClass.__isBase__) {
-    Object.defineProperty(ComponentClass.prototype, '__isChild__', { value: true });
+  if (Object.prototype.hasOwnProperty.call(ComponentClass, '__isBase__')) {
+    // @ts-ignore
     const child = new ComponentClass(el);
+    child.__isChild__ = true;
     Object.defineProperty(child, '$parent', { get: () => parent });
     return child;
   }
 
   // Resolve async components
+  // @ts-ignore
   const asyncComponent = ComponentClass().then((module) => {
-    const ResolvedClass = module.default ? module.default : module;
-    Object.defineProperty(ResolvedClass.prototype, '__isChild__', { value: true });
-    const child = new ResolvedClass(el);
-    Object.defineProperty(child, '$parent', { get: () => parent });
-    return child;
+    return getChild(el, module.default ? module.default : module, parent);
   });
 
   asyncComponent.__isAsync__ = true;
@@ -36,9 +40,9 @@ function getChild(el, ComponentClass, parent) {
 
 /**
  * Get a list of elements based on the name of a component.
- * @param  {String}             nameOrSelector The name or selector to used for this component.
- * @param  {HTMLElement}        element        The root element on which to query the selector, defaults to `document`.
- * @return {Array<HTMLElement>}                A list of elements on which the component should be mounted.
+ * @param  {String}                   nameOrSelector The name or selector to used for this component.
+ * @param  {BaseHTMLElement|Document} element        The root element on which to query the selector, defaults to `document`.
+ * @return {Array<HTMLElement>}                      A list of elements on which the component should be mounted.
  */
 export function getComponentElements(nameOrSelector, element = document) {
   const selector = `[data-component="${nameOrSelector}"]`;
@@ -59,10 +63,10 @@ export function getComponentElements(nameOrSelector, element = document) {
 
 /**
  * Get child components.
- * @param  {Base}        instance   The component's instance.
- * @param  {HTMLElement} element    The component's root element
- * @param  {Object}      components The children components' classes
- * @return {null|Object}            Returns `null` if no child components are defined or an object of all child component instances
+ * @param  {Base}             instance   The component's instance.
+ * @param  {BaseHTMLElement}  element    The component's root element
+ * @param  {ComponentsOption} components The children components' classes
+ * @return {null|Object}                 Returns `null` if no child components are defined or an object of all child component instances
  */
 export function getChildren(instance, element, components) {
   const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
@@ -75,6 +79,7 @@ export function getChildren(instance, element, components) {
     acc[name] = elements
       .map((el) => getChild(el, ComponentClass, instance))
       // Filter out terminated children
+      // @ts-ignore
       .filter((el) => el !== 'terminated');
 
     if (acc[name].length === 0) {

@@ -1,4 +1,6 @@
-export Accordion from './Accordion';
-export MediaQuery from './MediaQuery';
-export Modal from './Modal';
-export Tabs from './Tabs';
+import Accordion from './Accordion';
+import MediaQuery from './MediaQuery';
+import Modal from './Modal';
+import Tabs from './Tabs';
+
+export { Accordion, MediaQuery, Modal, Tabs };

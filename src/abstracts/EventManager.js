@@ -1,21 +1,16 @@
 /* eslint no-underscore-dangle: ["error", { "allow": ["_events"] }] */
 /**
  * Event management class.
- *
- * @method $on    Bind a given function to the given event.
- * @method $off   Unbind the given function from the given event.
- * @method $once  Bind a given function to the given event once.
- * @method $emit  Emit an event with custom props.
  */
 export default class EventManager {
-  /** @type {Object} An object to store the events */
+  /** @type {{[eventName:string]: Array<Function>}} An object to store the events */
   _events = {};
 
   /**
    * Bind a listener function to an event.
    *
    * @param  {String}   event    Name of the event.
-   * @param  {String}   listener Function to be called.
+   * @param  {Function} listener Function to be called.
    * @return {Function}          A function to unbind the listener.
    */
   $on(event, listener) {
@@ -33,7 +28,7 @@ export default class EventManager {
    * Unbind a listener function from an event.
    *
    * @param  {String}       event    Name of the event.
-   * @param  {String}       listener Function to be removed.
+   * @param  {Function}     listener Function to be removed.
    * @return {EventManager}          The current instance.
    */
   $off(event, listener) {
@@ -80,7 +75,7 @@ export default class EventManager {
    * Bind a listener function to an event for one execution only.
    *
    * @param  {String}       event    Name of the event.
-   * @param  {String}       listener Function to be called.
+   * @param  {Function}     listener Function to be called.
    * @return {EventManager}          The current instance.
    */
   $once(event, listener) {

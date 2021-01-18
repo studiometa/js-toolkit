@@ -30,7 +30,7 @@ class Scroll extends Service {
   /**
    * Bind the handler to the scroll event.
    *
-   * @return {void}
+   * @return {Scroll}
    */
   init() {
     const debounced = debounce(() => {
@@ -49,15 +49,17 @@ class Scroll extends Service {
 
     // Fire the `scrolled` method on document scroll
     document.addEventListener('scroll', this.handler, { passive: true });
+    return this;
   }
 
   /**
    * Unbind the handler from the scroll event.
    *
-   * @return {void}
+   * @return {Scroll}
    */
   kill() {
     document.removeEventListener('scroll', this.handler);
+    return this;
   }
 
   /**

@@ -1,10 +1,19 @@
 import useResize from '../services/resize';
 
 /**
+ * @typedef {import('../abstracts/Base/index').default} Base
+ * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+ */
+
+/**
+ * @typedef {BaseOptions & {activeBreakpoints?: string, inactiveBreakpoints?: string}} BreakpointObserverOptions
+ */
+
+/**
  * Test the breakpoins of the given Base instance and return the hook to call.
  *
- * @param  {BreakpointObserver} instance The component's instance.
- * @return {Sring}                       The action to trigger.
+ * @param  {Base}   instance The component's instance.
+ * @return {String}          The action to trigger.
  */
 function testBreakpoints(instance, breakpoint = useResize().props().breakpoint) {
   const { activeBreakpoints, inactiveBreakpoints } = instance.$options;
@@ -49,13 +58,28 @@ function testConflictingBreakpointConfiguration(instance) {
 
 /**
  * BreakpointObserver class.
+ *
+ * @param {Base} BaseClass The Base class to extend from.
  */
 export default (BaseClass) =>
   class BreakpointObserver extends BaseClass {
     /**
+     * BreakpointObserver options.
+     * @type {BaseOptions & { activeBreakpoints?: String, inactiveBreakpoints?: String }}
+     */
+    $options;
+
+    static config = {
+      name: 'BreakpointObserver',
+      options: {
+        activeBreakpoints: String,
+        inactiveBreakpoints: String,
+      },
+    };
+
+    /**
      * Watch for the document resize to test the breakpoints.
      * @param  {HTMLElement} element The component's root element.
-     * @return {BreakpointObserver}          The current instance.
      */
     constructor(element) {
       super(element);
