@@ -10,17 +10,77 @@ import bindServices from './services';
 import bindEvents from './events';
 
 /**
+ * @typedef {HTMLElement & { __base__?: Base | 'terminated' }} BaseHTMLElement
+ * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
+ */
+
+/**
  * Page lifecycle class
- *
- * @method mounted   Fired when the class is instantiated
- * @method loaded    Fired on the window's load event
- * @method ticked    Fired each frame with `requestAnimationFrame`
- * @method resized   Fired when the window is resized (`resize` event)
- * @method moved     Fired when the pointer has moved (`touchmove` and `mousemove` events)
- * @method scrolled  Fired with debounce when the document is scrolled (`scroll` event)
- * @method destroyed Fired when the window is being unloaded (`unload` event)
  */
 export default class Base extends EventManager {
+  /**
+   * The component's root element.
+   * @type {BaseHTMLElement}
+   */
+  $el;
+
+  /**
+   * The components options.
+   * @type {BaseOptions}
+   */
+  $options;
+
+  /**
+   * The instance uniq ID.
+   * @type {String}
+   */
+  $id;
+
+  /**
+   * Is this instance a child of another one?
+   * @type {Boolean}
+   */
+  __isChild__ = false;
+
+  /**
+   * This is a Base instance.
+   * @type {Boolean}
+   */
+  static __isBase__ = true;
+
+  /**
+   * Get properties to exclude from the autobind call.
+   * @return {Array<String|RegExp>}
+   */
+  get _excludeFromAutoBind() {
+    return [
+      '$mount',
+      '$update',
+      '$destroy',
+      '$terminate',
+      '$log',
+      '$on',
+      '$once',
+      '$off',
+      '$emit',
+      'mounted',
+      'loaded',
+      'ticked',
+      'resized',
+      'moved',
+      'keyed',
+      'scrolled',
+      'destroyed',
+      'terminated',
+    ];
+  }
+
+  get config() {
+    return {};
+  }
+
+  static config = {};
+
   /**
    * Get the component's refs.
    * @return {Object}
@@ -41,8 +101,7 @@ export default class Base extends EventManager {
   /**
    * Class constructor where all the magic takes place.
    *
-   * @param  {HTMLElement} element The component's root element.
-   * @return {Base}                A Base instance.
+   * @param {BaseHTMLElement} element The component's root element dd.
    */
   constructor(element) {
     super();
@@ -78,27 +137,7 @@ export default class Base extends EventManager {
 
     // Autobind all methods to the instance
     autoBind(this, {
-      exclude: [
-        '$mount',
-        '$update',
-        '$destroy',
-        '$terminate',
-        '$log',
-        '$on',
-        '$once',
-        '$off',
-        '$emit',
-        'mounted',
-        'loaded',
-        'ticked',
-        'resized',
-        'moved',
-        'keyed',
-        'scrolled',
-        'destroyed',
-        'terminated',
-        ...(this._excludeFromAutoBind || []),
-      ],
+      exclude: [...(this._excludeFromAutoBind || [])],
     });
 
     let unbindMethods = [];
@@ -137,7 +176,9 @@ export default class Base extends EventManager {
    * @return {void}
    */
   $log(...args) {
-    return this.$options.log ? log(this, ...args) : () => {};
+    if (this.$options.log) {
+      log(this, ...args);
+    }
   }
 
   /**
@@ -195,8 +236,8 @@ export default class Base extends EventManager {
   /**
    * Factory method to generate multiple instance of the class.
    *
-   * @param  {String}      selector The selector on which to mount each instance.
-   * @return {Array<Base>}          A list of the created instance.
+   * @param  {String}      nameOrSelector The selector on which to mount each instance.
+   * @return {Array<Base>}                A list of the created instance.
    */
   static $factory(nameOrSelector) {
     if (!nameOrSelector) {
@@ -208,5 +249,3 @@ export default class Base extends EventManager {
     return getComponentElements(nameOrSelector).map((el) => new this(el));
   }
 }
-
-Base.__isBase__ = true;

@@ -25,7 +25,6 @@ export default (BaseClass, defaultOptions = { threshold: createArrayOfNumber(100
      * Create an observer when the class in instantiated.
      *
      * @param  {HTMLElement} element The component's root element.
-     * @return {Base}                The class instace.
      */
     constructor(element) {
       super(element);

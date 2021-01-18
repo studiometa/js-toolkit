@@ -1,5 +1,11 @@
+import deepmerge from 'deepmerge';
 import { noCase } from 'no-case';
 import isObject from '../../../utils/object/isObject';
+
+/**
+ * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
+ * @typedef {{ [name:string]: OptionType | [OptionType, *] }} OptionsSchema
+ */
 
 /**
  * Get the attribute name based on the given option name.
@@ -11,7 +17,6 @@ function getAttributeName(name) {
 
 /**
  * Class options to manage options as data attributes on an HTML element.
- * @implements {OptionsInterface}
  */
 export default class Options {
   /** @type {HTMLElement} The HTML element holding the options attributes. */
@@ -38,8 +43,8 @@ export default class Options {
   /**
    * Class constructor.
    *
-   * @param {HTMLElement} element The HTML element storing the options.
-   * @param {Object}      options A Base class config.
+   * @param {HTMLElement}   element The HTML element storing the options.
+   * @param {OptionsSchema} schema  A Base class config.
    */
   constructor(element, schema) {
     this.#element = element;
@@ -70,9 +75,11 @@ export default class Options {
         set(value) {
           this.set(name, type, value);
         },
+        enumerable: true,
       });
     });
 
+    // @ts-ignore
     return Object.freeze(this);
   }
 
@@ -101,7 +108,7 @@ export default class Options {
     }
 
     if (type === Array || type === Object) {
-      const val = hasAttribute ? JSON.parse(value) : defaultValue();
+      const val = deepmerge(defaultValue(), hasAttribute ? JSON.parse(value) : {});
 
       if (!this.#values[name]) {
         this.#values[name] = val;

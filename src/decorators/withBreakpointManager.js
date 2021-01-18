@@ -1,6 +1,10 @@
 import useResize from '../services/resize';
 
 /**
+ * @typedef {import('../abstracts/Base')} Base
+ */
+
+/**
  * Test the breakpoins of the given Base instance and return the hook to call.
  *
  * @param  {Base}           instance The component's instance.

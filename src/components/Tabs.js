@@ -11,15 +11,20 @@ export default class Tabs extends Base {
   static config = {
     name: 'Tabs',
     refs: ['btn[]', 'content[]'],
-    styles: {
-      content: {
-        closed: {
-          position: 'absolute',
-          opacity: 0,
-          pointerEvents: 'none',
-          visibility: 'hidden',
-        },
-      },
+    options: {
+      styles: [
+        Object,
+        () => ({
+          content: {
+            closed: {
+              position: 'absolute',
+              opacity: 0,
+              pointerEvents: 'none',
+              visibility: 'hidden',
+            },
+          },
+        }),
+      ],
     },
   };
 

@@ -19,7 +19,7 @@ class Raf extends Service {
   /**
    * Start the requestAnimationFrame loop.
    *
-   * @return {void}
+   * @return {Raf}
    */
   init() {
     const raf = getRaf();
@@ -36,15 +36,17 @@ class Raf extends Service {
 
     this.isTicking = true;
     loop();
+    return this;
   }
 
   /**
    * Stop the requestAnimationFrame loop.
    *
-   * @return {void}
+   * @return {Raf}
    */
   kill() {
     this.isTicking = false;
+    return this;
   }
 
   /**

@@ -57,6 +57,8 @@ describe('The Tabs component', () => {
   });
 
   it('should add and remove classes and/or styles', async () => {
+    console.log(tabs.$el.outerHTML);
+    console.log(tabs.$options.styles);
     await tabs.enableItem(tabs.items[1]);
     await tabs.disableItem(tabs.items[0]);
     expect(tabs.$refs.btn[1].getAttribute('style')).toBe('border-bottom-color: #fff;');

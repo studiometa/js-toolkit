@@ -1,6 +1,10 @@
 import { debug } from './utils';
 
 /**
+ * @typedef {import('./index.js').default} Base
+ */
+
+/**
  * Mount a given component which might be async.
  *
  * @param  {Base|Promise} component The component to mount.

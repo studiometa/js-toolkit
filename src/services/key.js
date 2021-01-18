@@ -28,7 +28,7 @@ class Key extends Service {
   /**
    * Bind the handler to the keyboard event.
    *
-   * @return {void}
+   * @return {Key}
    */
   init() {
     this.handler = (event) => {
@@ -37,16 +37,18 @@ class Key extends Service {
     };
     document.addEventListener('keydown', this.handler, { passive: false });
     document.addEventListener('keyup', this.handler, { passive: false });
+    return this;
   }
 
   /**
    * Unbind the handler from the keyboard event.
    *
-   * @return {void}
+   * @return {Key}
    */
   kill() {
     document.removeEventListener('keydown', this.handler);
     document.removeEventListener('keyup', this.handler);
+    return this;
   }
 
   /**

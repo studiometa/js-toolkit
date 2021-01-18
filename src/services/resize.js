@@ -16,7 +16,7 @@ class Resize extends Service {
   /**
    * Bind the handler to the resize event.
    *
-   * @return {void}
+   * @return {Resize}
    */
   init() {
     this.handler = debounce(() => {
@@ -29,12 +29,14 @@ class Resize extends Service {
     } else {
       window.addEventListener('resize', this.handler);
     }
+
+    return this;
   }
 
   /**
    * Unbind the handler from the resize event.
    *
-   * @return {void}
+   * @return {Resize}
    */
   kill() {
     if (this.canUseResizeObserver) {
@@ -43,6 +45,8 @@ class Resize extends Service {
       window.removeEventListener('resize', this.handler);
     }
     delete this.resizeObserver;
+
+    return this;
   }
 
   /**

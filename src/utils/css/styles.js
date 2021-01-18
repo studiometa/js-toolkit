@@ -18,23 +18,23 @@ export default function setStyles(element, styles, method = 'add') {
 }
 
 /**
- * Add class names to an element.
+ * Add styles to an element.
  *
- * @param {HTMLElement} element    The element to update.
- * @param {String}      classNames A string of class names.
+ * @param {HTMLElement}         element The element to update.
+ * @param {CSSStyleDeclaration} styles  A string of class names.
  * @return {void}
  */
-export function add(element, classNames) {
-  setStyles(element, classNames);
+export function add(element, styles) {
+  setStyles(element, styles);
 }
 
 /**
  * Remove class names from an element.
  *
- * @param  {HTMLElement} element    The element to update.
- * @param  {String}      classNames A string of class names.
+ * @param  {HTMLElement}         element The element to update.
+ * @param  {CSSStyleDeclaration} styles  A string of class names.
  * @return {void}
  */
-export function remove(element, classNames) {
-  setStyles(element, classNames, 'remove');
+export function remove(element, styles) {
+  setStyles(element, styles, 'remove');
 }
