@@ -24,6 +24,7 @@ class Resize extends Service {
     }).bind(this);
 
     if (this.canUseResizeObserver) {
+      // @ts-ignore
       this.resizeObserver = new ResizeObserver(this.handler);
       this.resizeObserver.observe(document.documentElement);
     } else {
@@ -115,6 +116,7 @@ class Resize extends Service {
    * @return {Boolean}
    */
   get canUseResizeObserver() {
+    // @ts-ignore
     return typeof window.ResizeObserver !== 'undefined';
   }
 }

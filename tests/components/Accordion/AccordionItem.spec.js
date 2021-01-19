@@ -1,6 +1,17 @@
 import AccordionItem from '~/components/Accordion/AccordionItem';
 import wait from '../../__utils__/wait';
 
+let consoleSpy;
+
+beforeAll(() => {
+  consoleSpy = jest.spyOn(console, 'warn');
+  consoleSpy.mockImplementation(() => true);
+});
+
+afterAll(() => {
+  consoleSpy.mockRestore();
+});
+
 describe('AccordionItem component', () => {
   let item;
   let btn;

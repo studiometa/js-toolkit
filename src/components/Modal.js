@@ -5,20 +5,14 @@ import focusTrap from '../utils/focusTrap';
 const { trap, untrap, saveActiveElement } = focusTrap();
 
 /**
- * @typedef {import('../abstracts/Base/index').default} Base
  * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
  */
 
 /**
  * Modal class.
+ * @property {BaseOptions & { move?: Boolean | String, autofocus?: String, styles?: Object }} $options
  */
 export default class Modal extends Base {
-  /**
-   * Modal options
-   * @type {BaseOptions & { move?: boolean, autofocus?: string, styles?: object }}
-   */
-  $options;
-
   /**
    * State of the modal.
    * @type {Boolean}
@@ -99,7 +93,10 @@ export default class Modal extends Base {
     this.close();
 
     if (this.$options.move) {
-      const target = document.querySelector(this.$options.move) || document.body;
+      const target =
+        this.$options.move === true
+          ? document.body
+          : document.querySelector(this.$options.move) || document.body;
       const refsBackup = this.$refs;
 
       this.refModalPlaceholder = document.createComment('');
@@ -127,7 +124,7 @@ export default class Modal extends Base {
   destroyed() {
     this.close();
 
-    if (this.$options.move) {
+    if (this.$options.move && this.refModalParentBackup) {
       this.refModalParentBackup.insertBefore(this.$refs.modal, this.refModalPlaceholder);
       this.refModalUnbindGetRefFilter();
       this.refModalPlaceholder.remove();
@@ -142,6 +139,7 @@ export default class Modal extends Base {
   /**
    * Close the modal on `ESC` and trap the tabulation.
    *
+   * @param  {Object}        options
    * @param  {KeyboardEvent} options.event  The original keyboard event
    * @param  {Boolean}       options.isUp   Is it a keyup event?
    * @param  {Boolean}       options.isDown Is it a keydown event?
@@ -165,7 +163,7 @@ export default class Modal extends Base {
   /**
    * Open the modal.
    *
-   * @return {Modal} The Modal instance.
+   * @return {Promise<Modal>} The Modal instance.
    */
   async open() {
     if (this.isOpen) {
@@ -203,7 +201,7 @@ export default class Modal extends Base {
   /**
    * Close the modal.
    *
-   * @return {Modal} The Modal instance.
+   * @return {Promise<Modal>} The Modal instance.
    */
   async close() {
     if (!this.isOpen) {

@@ -42,7 +42,7 @@ export function getOptions(instance, element, config) {
   ];
 
   propsToInclude.forEach((prop) => {
-    schema[prop.name] = [prop.type, prop.type(config[prop.name])];
+    schema[prop.name] = { type: prop.type, default: prop.type(config[prop.name]) };
   });
 
   // Add legacy options to the schema
@@ -61,9 +61,9 @@ export function getOptions(instance, element, config) {
     }
 
     if (type === Array || type === Object) {
-      schema[propName] = [type, () => value];
+      schema[propName] = { type, default: () => value };
     } else {
-      schema[propName] = [type, value];
+      schema[propName] = { type, default: value };
     }
   });
 
@@ -88,6 +88,7 @@ export function getOptions(instance, element, config) {
   });
 
   instance.$emit('get:options', options);
+
   return options;
 }
 

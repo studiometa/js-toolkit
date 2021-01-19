@@ -1,10 +1,16 @@
 /**
+ * @typedef {import('./index').default} Base
+ * @typedef {import('./index').BaseConfig} BaseConfig
+ */
+
+/**
  * Get the config from a Base instance, either the new static one or the old getter one.
  *
  * @param  {Base}       instance The instance to get the config from.
  * @return {BaseConfig}         A Base class configuration object.
  */
 export function getConfig(instance) {
+  // @ts-ignore
   const config = instance.constructor.config || instance.config;
 
   if (!config) {
@@ -15,6 +21,7 @@ export function getConfig(instance) {
     throw new Error('The `config.name` property is required.');
   }
 
+  // @ts-ignore
   if (instance.config && !instance.constructor.config) {
     console.warn(
       `[${config.name}]`,
@@ -29,7 +36,7 @@ export function getConfig(instance) {
  * Display a console warning for the given instance.
  *
  * @param {Base}      instance A Base instance.
- * @param {...String} ...msg   Values to display in the console.
+ * @param {...String} msg   Values to display in the console.
  */
 export function warn(instance, ...msg) {
   const { name } = getConfig(instance);
@@ -39,8 +46,8 @@ export function warn(instance, ...msg) {
 /**
  * Display a console log for the given instance.
  *
- * @param {Base}      instance A Base instance.
- * @param {...String} ...msg   Values to display in the console.
+ * @param {Base}   instance The instance to log information from.
+ * @param {...any} msg      The data to print to the console.
  */
 export function log(instance, ...msg) {
   const { name } = getConfig(instance);
@@ -50,18 +57,20 @@ export function log(instance, ...msg) {
 /**
  * Verbose debug for the component.
  *
- * @param  {...any} args The arguments passed to the method
- * @return {void}
+ * @param {Base}   instance The instance to debug.
+ * @param {...any} args     The data to print.
  */
 export function debug(instance, ...args) {
-  return instance.$options.debug ? log(instance, ...args) : null;
+  if (instance.$options.debug) {
+    log(instance, ...args);
+  }
 }
 
 /**
  * Test if an object has a method.
  *
- * @param  {Object}  obj The object to test
- * @param  {String}  fn  The method's name
+ * @param  {Object}  obj  The object to test
+ * @param  {String}  name The method's name
  * @return {Boolean}
  */
 export function hasMethod(obj, name) {
@@ -71,8 +80,9 @@ export function hasMethod(obj, name) {
 /**
  * Call the given method while applying the given arguments.
  *
- * @param {String} method The method to call
- * @param {...any} args   The arguments to pass to the method
+ * @param {Base}   instance The Base instance on which to trigger the method.
+ * @param {String} method   The method to call.
+ * @param {...any} args     The arguments to pass to the method.
  */
 export function callMethod(instance, method, ...args) {
   debug(instance, 'callMethod', method, ...args);

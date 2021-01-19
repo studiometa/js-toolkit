@@ -124,7 +124,7 @@ class Pointer extends Service {
     // Check pointer Y
     // We either get data from a touch event `event.touches[0].clientY` or from
     // a mouse event `event.clientY`.
-    const y = event instanceof TouchEvent ? event.touches[0].clientY : event.clientY;
+    const y = event instanceof TouchEvent ? (event.touches[0] || {}).clientY : event.clientY;
     if (y !== this.y) {
       this.y = y;
     }
@@ -132,7 +132,7 @@ class Pointer extends Service {
     // Check pointer X
     // We either get data from a touch event `event.touches[0].clientX` or from
     // a mouse event `event.clientX`.
-    const x = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
+    const x = event instanceof TouchEvent ? (event.touches[0] || {}).clientX : event.clientX;
     if (x !== this.x) {
       this.x = x;
     }

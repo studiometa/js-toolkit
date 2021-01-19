@@ -80,10 +80,16 @@ export default class EventManager {
    */
   $once(event, listener) {
     const instance = this;
-    this.$on(event, function handler(...args) {
-      instance.$off(event, handler);
-      listener.apply(instance, args);
-    });
+    this.$on(
+      event,
+      /**
+       * @param {...any} args
+       */
+      function handler(...args) {
+        instance.$off(event, handler);
+        listener.apply(instance, args);
+      }
+    );
     return this;
   }
 }
