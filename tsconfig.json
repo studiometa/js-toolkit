@@ -4,14 +4,19 @@
     "module": "ESNext",
     "lib": ["ESNext", "dom", "ES2015", "ES2016", "ES2017", "ES2018", "ES2019", "ES2020"],
     "allowJs": true,
+    "declaration": true,
+    "declarationDir": "./types",
+    "emitDeclarationOnly": true,
     "checkJs": true,
-    "noEmit": true,
     "strict": false,
     "noImplicitThis": true,
-    "alwaysStrict": true,
     "types": ["node"],
     "esModuleInterop": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "baseUrl": "./",
+    "paths": {
+      "~/*": ["src/*"]
+    }
   },
-  "include": ["declarations.d.ts", "declarations/*.d.ts", "src/decorators/**/*.js"]
+  "include": ["src/abstracts/**/*.js", "src/utils/**/*.js", "src/services/**/*.js"]
 }
