@@ -33,9 +33,9 @@ const template = `
   <div data-breakpoint>
     <div data-component="Foo"></div>
     <div data-component="FooResponsive"></div>
-    <div data-component="FooResponsive" data-options='{ "activeBreakpoints": "s" }'></div>
-    <div data-component="FooResponsive" data-options='{ "inactiveBreakpoints": "s" }'></div>
-    <div data-component="FooResponsive" data-options='{ "activeBreakpoints": "small" }'></div>
+    <div data-component="FooResponsive" data-option-active-breakpoints="s"></div>
+    <div data-component="FooResponsive" data-option-inactive-breakpoints="s"></div>
+    <div data-component="FooResponsive" data-option-active-breakpoints="small"></div>
   </div>
 `;
 
@@ -78,7 +78,7 @@ describe('The withBreakpointObserver decorator', () => {
     expect(fooResponsive[2].__base__.$isMounted).toBe(true);
     expect(fooResponsive[3].__base__.$isMounted).toBe(false);
 
-    fooResponsive[0].__base__.$options = { inactiveBreakpoints: 's m' };
+    fooResponsive[0].__base__.$options.inactiveBreakpoints = 's m';
     await resizeWindow({ width: 800 });
     expect(window.innerWidth).toBe(800);
     expect(fooResponsive[0].__base__.$isMounted).toBe(false);

@@ -1,6 +1,10 @@
 import { getConfig, warn } from './utils';
 
 /**
+ * @typedef {import('./index').default} Base
+ */
+
+/**
  * A ponyfill for the CSS `:scope` selector which is not supported in IE11.
  * The following method will return an array of elements similare to the
  * `:scope ${selector}` selector.
@@ -38,48 +42,56 @@ export function scopeSelectorPonyfill(element, selector, uniqId) {
  */
 export function getRefs(instance, element) {
   const definedRefs = getConfig(instance).refs || [];
+  /** @type {Array<HTMLElement>} */
   const allRefs = Array.from(element.querySelectorAll(`[data-ref]`));
   const childrenRefs = scopeSelectorPonyfill(element, '[data-component] [data-ref]', instance.$id);
   const elements = allRefs.filter((ref) => !childrenRefs.includes(ref));
 
-  const refs = elements.reduce(($refs, $ref) => {
-    let refName = $ref.dataset.ref;
+  const refs = elements.reduce(
+    /**
+     * @param {Object} $refs
+     * @param {HTMLElement & {__base__?: Base}} $ref
+     */
+    ($refs, $ref) => {
+      let refName = $ref.dataset.ref;
 
-    if (!definedRefs.includes(refName)) {
-      warn(
-        instance,
-        `The "${refName}" ref is not defined in the class configuration.`,
-        'Did you forgot to define it?'
-      );
-    }
-
-    const $realRef = $ref.__base__ ? $ref.__base__ : $ref;
-
-    if (refName.endsWith('[]')) {
-      refName = refName.replace(/\[\]$/, '');
-
-      if (!$refs[refName]) {
-        $refs[refName] = [];
-      }
-    }
-
-    if ($refs[refName]) {
-      if (Array.isArray($refs[refName])) {
-        $refs[refName].push($realRef);
-      } else {
-        $refs[refName] = [$refs[refName], $realRef];
+      if (!definedRefs.includes(refName)) {
         warn(
           instance,
-          `The "${refName}" ref has been found multiple times.`,
-          'Did you forgot to add the `[]` suffix to its name?'
+          `The "${refName}" ref is not defined in the class configuration.`,
+          'Did you forgot to define it?'
         );
       }
-    } else {
-      $refs[refName] = $realRef;
-    }
 
-    return $refs;
-  }, {});
+      const $realRef = $ref.__base__ ? $ref.__base__ : $ref;
+
+      if (refName.endsWith('[]')) {
+        refName = refName.replace(/\[\]$/, '');
+
+        if (!$refs[refName]) {
+          $refs[refName] = [];
+        }
+      }
+
+      if ($refs[refName]) {
+        if (Array.isArray($refs[refName])) {
+          $refs[refName].push($realRef);
+        } else {
+          $refs[refName] = [$refs[refName], $realRef];
+          warn(
+            instance,
+            `The "${refName}" ref has been found multiple times.`,
+            'Did you forgot to add the `[]` suffix to its name?'
+          );
+        }
+      } else {
+        $refs[refName] = $realRef;
+      }
+
+      return $refs;
+    },
+    {}
+  );
 
   instance.$emit('get:refs', refs);
   return refs;

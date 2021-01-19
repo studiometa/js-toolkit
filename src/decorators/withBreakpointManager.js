@@ -1,14 +1,13 @@
 import useResize from '../services/resize';
 
 /**
- * @typedef {import('../abstracts/Base')} Base
+ * @typedef {import('../abstracts/Base').default} Base
  */
 
 /**
  * Test the breakpoins of the given Base instance and return the hook to call.
  *
- * @param  {Base}           instance The component's instance.
- * @return {String|Boolean}          The action to call ($mount|$destroy) or false.
+ * @param  {Array<[String[], Base]>} breakpoints The breakpoints's data.
  */
 function testBreakpoints(breakpoints) {
   const { breakpoint } = useResize().props();
@@ -22,6 +21,22 @@ function testBreakpoints(breakpoints) {
 }
 
 /**
+ * Prepare the components.
+ * @param {Base} instance
+ * @param {Array<[String, BaseConstructor]>} breakpoints
+ * @return {Array<[String, Base]>}
+ */
+function mountComponents(instance, breakpoints) {
+  return breakpoints.map(([bk, ComponentClass]) => {
+    const child = new ComponentClass(instance.$el);
+    // eslint-disable-next-line no-underscore-dangle
+    child.__isChild__ = true;
+    Object.defineProperty(child, '$parent', { get: () => instance });
+    return [bk, child];
+  });
+}
+
+/**
  * A cache object to hold each Base sub-instances.
  * @type {Object}
  */
@@ -29,6 +44,8 @@ const instances = {};
 
 /**
  * BreakpointManager class.
+ * @param {Base} BaseClass
+ * @param {Array<[String, BaseConstructor]>} breakpoints
  */
 export default (BaseClass, breakpoints) => {
   if (!Array.isArray(breakpoints)) {
@@ -50,19 +67,16 @@ export default (BaseClass, breakpoints) => {
   return class BreakpointManager extends BaseClass {
     /**
      * Watch for the document resize to test the breakpoints.
-     * @param  {HTMLElement} element The component's root element.
-     * @return {BreakpointManager}          The current instance.
+     * @param {HTMLElement} element The component's root element.
      */
     constructor(element) {
       super(element);
 
-      instances[this.$id] = breakpoints.map(([bk, ComponentClass]) => {
-        // eslint-disable-next-line no-underscore-dangle
-        ComponentClass.prototype.__isChild__ = true;
-        const instance = new ComponentClass(this.$el);
-        Object.defineProperty(instance, '$parent', { get: () => this });
-        return [bk, instance];
-      });
+      if (!instances[this.$id]) {
+        instances[this.$id] = mountComponents(this, breakpoints);
+      }
+
+      testBreakpoints(instances[this.$id]);
 
       add(`BreakpointManager-${this.$id}`, () => {
         testBreakpoints(instances[this.$id]);
@@ -77,6 +91,10 @@ export default (BaseClass, breakpoints) => {
      * @return {Base} The Base instance.
      */
     $mount() {
+      if (!instances[this.$id]) {
+        instances[this.$id] = mountComponents(this, breakpoints);
+      }
+
       testBreakpoints(instances[this.$id]);
 
       return super.$mount();

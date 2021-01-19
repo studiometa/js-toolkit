@@ -11,7 +11,7 @@ import { debug } from './utils';
  * @return {void}
  */
 function mountComponent(component) {
-  if (component.__isAsync__) {
+  if (component instanceof Promise) {
     component.then((instance) => instance.$mount());
   } else {
     component.$mount();
@@ -43,7 +43,7 @@ export function mountComponents(instance) {
  * @return {void}
  */
 function destroyComponent(component) {
-  if (component.__isAsync__) {
+  if (component instanceof Promise) {
     component.then((instance) => instance.$destroy());
   } else {
     component.$destroy();

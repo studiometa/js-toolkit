@@ -1,9 +1,17 @@
 import Base from '../../abstracts/Base';
+import Accordion from './index';
 import * as styles from '../../utils/css/styles';
 import transition from '../../utils/css/transition';
 
 /**
+ * @typedef {import('../../abstracts/Base').BaseOptions} BaseOptions
+ * @typedef {import('../../utils/css/styles').CssStyleObject} CssStyleObject
+ * @typedef {{ open: string | CssStyleObject, active: string | CssStyleObject, closed: string | CssStyleObject }} StylesOption
+ */
+
+/**
  * AccordionItem class.
+ * @property {BaseOptions & { styles: { container: StylesOption, [refName:string]: StylesOption}, isOpen: Boolean }} $options
  */
 export default class AccordionItem extends Base {
   /**
@@ -13,22 +21,33 @@ export default class AccordionItem extends Base {
   static config = {
     name: 'AccordionItem',
     refs: ['btn', 'content', 'container'],
-    isOpen: false,
-    styles: {
-      container: {
-        open: '',
-        active: '',
-        closed: '',
+    options: {
+      isOpen: Boolean,
+      styles: {
+        type: Object,
+        default: () => ({
+          container: {
+            open: '',
+            active: '',
+            closed: '',
+          },
+        }),
       },
     },
   };
+
+  /**
+   * State of the item.
+   * @type {Boolean}
+   */
+  isOpen;
 
   /**
    * Add aria-attributes on mounted.
    * @return {void}
    */
   mounted() {
-    if (this.$parent && this.$parent.$options.item) {
+    if (this.$parent && this.$parent instanceof Accordion && this.$parent.$options.item) {
       Object.entries(this.$parent.$options.item).forEach(([key, value]) => {
         if (Object.hasOwnProperty.call(this.$options, key)) {
           this.$options[key] = value;
@@ -45,14 +64,14 @@ export default class AccordionItem extends Base {
     this.updateAttributes(this.isOpen);
 
     if (!this.isOpen) {
-      styles.add(this.$refs.container, { visibility: 'invisible', height: 0 });
+      styles.add(this.$refs.container, { visibility: 'invisible', height: '0' });
     }
 
     // Update refs styles on mount
     const { container, ...otherStyles } = this.$options.styles;
     Object.entries(otherStyles)
       .filter(([refName]) => this.$refs[refName])
-      .forEach(([refName, { open, closed } = {}]) => {
+      .forEach(([refName, { open, closed } = { open: '', closed: '' }]) => {
         transition(this.$refs[refName], { to: this.isOpen ? open : closed }, 'keep');
       });
   }
@@ -90,7 +109,7 @@ export default class AccordionItem extends Base {
 
   /**
    * Open an item.
-   * @return {void}
+   * @return {Promise}
    */
   async open() {
     if (this.isOpen) {
@@ -105,6 +124,7 @@ export default class AccordionItem extends Base {
 
     styles.remove(this.$refs.container, { visibility: 'invisible' });
     const { container, ...otherStyles } = this.$options.styles;
+    console.log(this.$options);
 
     await Promise.all([
       transition(this.$refs.container, {
@@ -121,7 +141,7 @@ export default class AccordionItem extends Base {
       }),
       ...Object.entries(otherStyles)
         .filter(([refName]) => this.$refs[refName])
-        .map(([refName, { open, active, closed } = {}]) =>
+        .map(([refName, { open, active, closed } = { open: '', active: '', closed: '' }]) =>
           transition(
             this.$refs[refName],
             {
@@ -137,7 +157,7 @@ export default class AccordionItem extends Base {
 
   /**
    * Close an item.
-   * @return {void}
+   * @return {Promise}
    */
   async close() {
     if (!this.isOpen) {
@@ -157,18 +177,18 @@ export default class AccordionItem extends Base {
       transition(this.$refs.container, {
         from: { height: `${height}px` },
         active: container.active,
-        to: { height: 0 },
+        to: { height: '0' },
       }).then(() => {
         // Add end styles only if the item has not been re-opened before the end
         if (!this.isOpen) {
-          styles.add(this.$refs.container, { height: 0, visibility: 'invisible' });
+          styles.add(this.$refs.container, { height: '0', visibility: 'invisible' });
           this.updateAttributes(this.isOpen);
         }
         return Promise.resolve();
       }),
       ...Object.entries(otherStyles)
         .filter(([refName]) => this.$refs[refName])
-        .map(([refName, { open, active, closed } = {}]) =>
+        .map(([refName, { open, active, closed } = { open: '', active: '', closed: '' }]) =>
           transition(
             this.$refs[refName],
             {

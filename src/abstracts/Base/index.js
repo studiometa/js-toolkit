@@ -7,11 +7,17 @@ import { getOptions } from './options';
 import { getRefs } from './refs';
 import { mountComponents, destroyComponents } from './components';
 import bindServices from './services';
+// eslint-disable-next-line import/no-cycle
 import bindEvents from './events';
 
 /**
  * @typedef {HTMLElement & { __base__?: Base | 'terminated' }} BaseHTMLElement
  * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
+ * @typedef {{ [name:string]: HTMLElement | Base | Array<HTMLElement|Base> }} BaseRefs
+ * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
+ * @typedef {{ [nameOrSelector:string]: Base | (() => Promise<Base>) }} BaseConfigComponents
+ * @typedef {import('./classes/Options').OptionsSchema} BaseConfigOptions
+ * @typedef {{ name: string, debug?: boolean, log?: boolean, refs?: String[], components?: BaseConfigComponents, options?: BaseConfigOptions }} BaseConfig
  */
 
 /**
@@ -19,22 +25,16 @@ import bindEvents from './events';
  */
 export default class Base extends EventManager {
   /**
-   * The component's root element.
-   * @type {BaseHTMLElement}
+   * The instance parent.
+   * @type {Base}
    */
-  $el;
+  $parent;
 
   /**
-   * The components options.
-   * @type {BaseOptions}
+   * The state of the component.
+   * @type {Boolean}
    */
-  $options;
-
-  /**
-   * The instance uniq ID.
-   * @type {String}
-   */
-  $id;
+  $isMounted = false;
 
   /**
    * Is this instance a child of another one?
@@ -75,15 +75,20 @@ export default class Base extends EventManager {
     ];
   }
 
+  /**
+   * @deprecated Use the static `config` property instead.
+   * @return {BaseConfig}
+   */
   get config() {
-    return {};
+    return null;
   }
 
-  static config = {};
+  /** @type {BaseConfig} */
+  static config;
 
   /**
    * Get the component's refs.
-   * @return {Object}
+   * @return {BaseRefs}
    */
   get $refs() {
     return getRefs(this, this.$el);
@@ -91,7 +96,7 @@ export default class Base extends EventManager {
 
   /**
    * Get the component's children components.
-   * @return {Object}
+   * @return {BaseChildren}
    */
   get $children() {
     const { components } = getConfig(this);
@@ -112,21 +117,17 @@ export default class Base extends EventManager {
 
     const { name } = getConfig(this);
 
-    Object.defineProperties(this, {
-      $id: {
-        value: `${name}-${nanoid()}`,
-      },
-      $isMounted: {
-        value: false,
-        writable: true,
-      },
-      $el: {
-        value: element,
-      },
-      $options: {
-        value: getOptions(this, element, getConfig(this)),
-      },
-    });
+    /** @type {String} */
+    this.$id = `${name}-${nanoid()}`;
+
+    /** @type {BaseHTMLElement} */
+    this.$el = element;
+
+    /** @type {Boolean} */
+    this.$isMounted = false;
+
+    /** @type {BaseOptions} */
+    this.$options = getOptions(this, element, getConfig(this));
 
     if (!this.$el.__base__) {
       Object.defineProperty(this.$el, '__base__', {

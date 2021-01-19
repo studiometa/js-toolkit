@@ -2,76 +2,65 @@ import Base from '~/abstracts/Base';
 import withBreakpointManager from '~/decorators/withBreakpointManager';
 import resizeWindow from '../__utils__/resizeWindow';
 
-const fn = jest.fn();
-
-const template = `
-  <div data-breakpoint>
-    <div data-component="Foo">
-    </div>
-  </div>
-`;
-
-document.body.innerHTML = template;
-
-/**
- * With name decorator.
- * @param  {Base}   BaseClass A Base class to extend from
- * @param  {String} name      The name of the new class
- * @return {Base}             A class extending Base with a default config
- */
 const withName = (BaseClass, name) =>
   class extends BaseClass {
+    static config = { name };
+  };
+
+async function setupTest() {
+  document.body.innerHTML = `
+    <div data-breakpoint>
+      <div data-component="Foo">
+      </div>
+    </div>
+  `;
+  const fn = jest.fn();
+  const withMock = (BaseClass, name) =>
+    withName(
+      class extends BaseClass {
+        mounted() {
+          fn(name, 'mounted');
+        }
+
+        destroyed() {
+          fn(name, 'destroyed');
+        }
+      },
+      name
+    );
+  class FooMobile extends withMock(Base, 'FooMobile') {}
+  class FooDesktop extends withMock(Base, 'FooDesktop') {}
+  class Foo extends withBreakpointManager(withMock(Base, 'Foo'), [
+    ['s', FooMobile],
+    ['l', FooDesktop],
+  ]) {}
+
+  class App extends Base {
     static config = {
-      ...(BaseClass.config || {}),
-      name,
+      name: 'App',
+      components: {
+        Foo,
+      },
     };
+  }
 
-    mounted() {
-      fn(name, 'mounted');
-    }
+  await resizeWindow({ width: 800 });
+  const app = new App(document.body);
+  const foo = document.querySelector('[data-component="Foo"]').__base__;
 
-    destroyed() {
-      fn(name, 'destroyed');
-    }
-  };
-class FooMobile extends withName(Base, 'FooMobile') {}
-class FooDesktop extends withName(Base, 'FooDesktop') {}
-
-class Foo extends withBreakpointManager(withName(Base, 'Foo'), [
-  ['s', FooMobile],
-  ['l', FooDesktop],
-]) {}
-
-class App extends Base {
-  static config = {
-    name: 'App',
-    components: {
-      Foo,
-    },
-  };
+  return { app, foo, fn };
 }
 
 describe('The withBreakpointManager decorator', () => {
-  let app;
-  let foo;
-  beforeEach(async () => {
-    if (app && app.$destroy) {
-      app.$destroy();
-    }
-    await resizeWindow({ width: 800 });
-    fn.mockReset();
-    document.body.innerHTML = template;
-    app = new App(document.body.firstElementChild);
-    foo = document.querySelector('[data-component="Foo"]').__base__;
-  });
-
-  it('should mount', () => {
+  it('should mount', async () => {
+    const { app, foo, fn } = await setupTest();
     expect(app.$isMounted).toBe(true);
     expect(foo.$isMounted).toBe(true);
     expect(fn).toHaveBeenLastCalledWith('Foo', 'mounted');
   });
 
   it('should mount and destroy components', async () => {
+    const { app, foo, fn } = await setupTest();
     await resizeWindow({ width: 1200 });
     expect(fn).toHaveBeenLastCalledWith('FooDesktop', 'mounted');
     fn.mockReset();

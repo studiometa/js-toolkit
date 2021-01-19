@@ -1,3 +1,5 @@
+// eslint-disable-next-line import/no-cycle
+import Base from './index';
 import getAllProperties from '../../utils/object/getAllProperties';
 import { debug } from './utils';
 
@@ -51,7 +53,7 @@ function bindRefsEvents(instance, eventMethods) {
 
           debug(instance, 'binding ref event', refName, eventName);
 
-          if ($ref.constructor && $ref.constructor.__isBase__) {
+          if ($ref instanceof Base) {
             // eslint-disable-next-line no-param-reassign
             $ref = $ref.$el;
           }
@@ -59,7 +61,9 @@ function bindRefsEvents(instance, eventMethods) {
           $ref.addEventListener(eventName, handler);
           const unbindMethod = () => {
             debug(instance, 'unbinding ref event', eventMethods);
-            $ref.removeEventListener(eventName, handler);
+            if ($ref instanceof HTMLElement) {
+              $ref.removeEventListener(eventName, handler);
+            }
           };
 
           unbindMethods.push(unbindMethod);
@@ -85,21 +89,27 @@ function bindChildrenEvents(instance, eventMethods) {
     eventMethods
       .filter((eventMethod) => eventMethod.startsWith(childEventMethod))
       .forEach((eventMethod) => {
-        $children.forEach(($child, index) => {
-          const eventName = eventMethod.replace(childEventMethod, '').toLowerCase();
-          const handler = (...args) => {
-            debug(instance, eventMethod, $child, ...args, index);
-            instance[eventMethod](...args, index);
-          };
+        $children.forEach(
+          /**
+           * @param {Base} $child
+           * @param {Number} index
+           */
+          ($child, index) => {
+            const eventName = eventMethod.replace(childEventMethod, '').toLowerCase();
+            const handler = (...args) => {
+              debug(instance, eventMethod, $child, ...args, index);
+              instance[eventMethod](...args, index);
+            };
 
-          debug(instance, 'binding child event', childName, eventName);
+            debug(instance, 'binding child event', childName, eventName);
 
-          const unbindMethod = $child.$on(eventName, handler);
-          unbindMethods.push(() => {
-            debug(instance, 'unbinding child event', childName, eventName);
-            unbindMethod();
-          });
-        });
+            const unbindMethod = $child.$on(eventName, handler);
+            unbindMethods.push(() => {
+              debug(instance, 'unbinding child event', childName, eventName);
+              unbindMethod();
+            });
+          }
+        );
       });
   });
 

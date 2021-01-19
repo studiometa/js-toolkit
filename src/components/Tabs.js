@@ -2,38 +2,55 @@ import Base from '../abstracts/Base';
 import transition from '../utils/css/transition';
 
 /**
+ * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+ */
+
+/**
+ * @typedef {Object} TabItem
+ * @property {HTMLElement} btn
+ * @property {HTMLElement} content
+ * @property {Boolean} isEnabled
+ */
+
+/**
  * Tabs class.
+ * @property {BaseOptions & { styles: Object }} $options
  */
 export default class Tabs extends Base {
   /**
-   * Tabs options.
+   * Tabs config.
    */
   static config = {
     name: 'Tabs',
     refs: ['btn[]', 'content[]'],
     options: {
-      styles: [
-        Object,
-        () => ({
+      styles: {
+        type: Object,
+        default: () => ({
           content: {
             closed: {
               position: 'absolute',
-              opacity: 0,
+              opacity: '0',
               pointerEvents: 'none',
               visibility: 'hidden',
             },
           },
         }),
-      ],
+      },
     },
   };
 
   /**
+   * Tabs items.
+   * @type {Array<TabItem>}
+   */
+  items;
+
+  /**
    * Initialize the component's behaviours.
-   *
-   * @return {Tabs} The current instance.
    */
   mounted() {
+    // @ts-ignore
     this.items = this.$refs.btn.map((btn, index) => {
       const id = `${this.$id}-${index}`;
       const content = this.$refs.content[index];
@@ -72,9 +89,8 @@ export default class Tabs extends Base {
   /**
    * Enable the given tab and its associated content.
    *
-   * @param  {HTMLElement} btn     The tab element.
-   * @param  {HTMLElement} content The content element.
-   * @return {Tabs}                The Tabs instance.
+   * @param  {TabItem}       item The item to enable.
+   * @return {Promise<Tabs>}      Tabs instance.
    */
   async enableItem(item) {
     if (!item || item.isEnabled) {
@@ -114,9 +130,8 @@ export default class Tabs extends Base {
   /**
    * Disable the given tab and its associated content.
    *
-   * @param  {HTMLElement} btn     The tab element.
-   * @param  {HTMLElement} content The content element.
-   * @return {Tabs}                The Tabs instance.
+   * @param  {TabItem}       item The item to disable.
+   * @return {Promise<Tabs>}      The Tabs instance.
    */
   async disableItem(item) {
     if (!item || !item.isEnabled) {

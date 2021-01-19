@@ -125,11 +125,11 @@ describe('The Options class', () => {
       boolean: Boolean,
       array: Array,
       object: Object,
-      stringWithDefault: [String, 'foo'],
-      numberWithDefault: [Number, 10],
-      booleanWithDefault: [Boolean, true],
-      arrayWithDefault: [Array, () => [1, 2, 3]],
-      objectWithDefault: [Object, () => ({ foo: 'foo' })],
+      stringWithDefault: { type: String, default: 'foo' },
+      numberWithDefault: { type: Number, default: 10 },
+      booleanWithDefault: { type: Boolean, default: true },
+      arrayWithDefault: { type: Array, default: () => [1, 2, 3] },
+      objectWithDefault: { type: Object, default: () => ({ foo: 'foo' }) },
     });
 
     expect(options.string).toBe('');
@@ -152,7 +152,9 @@ describe('The Options class', () => {
         new Options(html`<div />`, {
           array: [Array, [1, 2, 3]],
         })
-    ).toThrow('The default value for options of type "Array" must be returned by a function.');
+    ).toThrow(
+      'The "array" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.'
+    );
   });
 
   it('should not allow to add unconfigured properties', () => {

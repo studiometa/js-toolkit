@@ -4,7 +4,7 @@ import isObject from '../../../utils/object/isObject';
 
 /**
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
- * @typedef {{ [name:string]: OptionType | [OptionType, *] }} OptionsSchema
+ * @typedef {{ [name:string]: OptionType | { type: OptionType, default: String|Number|Boolean|(() => Array|Object)} }} OptionsSchema
  */
 
 /**
@@ -50,8 +50,8 @@ export default class Options {
     this.#element = element;
 
     Object.entries(schema).forEach(([name, config]) => {
-      const isArray = Array.isArray(config);
-      const type = isArray ? config[0] : config;
+      const isObjectConfig = !Options.types.includes(config);
+      const type = isObjectConfig ? config.type : config;
 
       if (!Options.types.includes(type)) {
         throw new Error(
@@ -59,8 +59,7 @@ export default class Options {
         );
       }
 
-      // eslint-disable-next-line new-cap
-      const defaultValue = isArray ? config[1] : this.#defaultValues[type.name];
+      const defaultValue = isObjectConfig ? config.default : this.#defaultValues[type.name];
 
       if ((type === Array || type === Object) && typeof defaultValue !== 'function') {
         throw new Error(
@@ -108,7 +107,10 @@ export default class Options {
     }
 
     if (type === Array || type === Object) {
-      const val = deepmerge(defaultValue(), hasAttribute ? JSON.parse(value) : {});
+      const val = deepmerge(
+        defaultValue(),
+        hasAttribute ? JSON.parse(value) : this.#defaultValues[type.name]()
+      );
 
       if (!this.#values[name]) {
         this.#values[name] = val;
@@ -137,7 +139,6 @@ export default class Options {
    * @param {any} value The new value for this option.
    */
   set(name, type, value) {
-    // @todo convert name to kebab-case
     const attributeName = getAttributeName(name);
 
     if (value.constructor.name !== type.name) {
@@ -161,7 +162,7 @@ export default class Options {
         this.#element.setAttribute(attributeName, JSON.stringify(value));
         break;
       default:
-        this.#element.setAttribute(`data-option-${name}`, value);
+        this.#element.setAttribute(attributeName, value);
     }
   }
 }

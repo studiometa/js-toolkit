@@ -62,13 +62,10 @@ function testConflictingBreakpointConfiguration(instance) {
  * @param {Base} BaseClass The Base class to extend from.
  */
 export default (BaseClass) =>
+  /**
+   * @implements {Base}
+   */
   class BreakpointObserver extends BaseClass {
-    /**
-     * BreakpointObserver options.
-     * @type {BaseOptions & { activeBreakpoints?: String, inactiveBreakpoints?: String }}
-     */
-    $options;
-
     static config = {
       name: 'BreakpointObserver',
       options: {
@@ -99,7 +96,11 @@ export default (BaseClass) =>
 
       // Watch change on the `data-options` attribute to emit the `set:options` event.
       const mutationObserver = new MutationObserver(([mutation]) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'data-options') {
+        if (
+          mutation.type === 'attributes' &&
+          (mutation.attributeName === 'data-options' ||
+            mutation.attributeName.startsWith('data-option-'))
+        ) {
           // Stop here silently when no breakpoint configuration given.
           if (!hasBreakpointConfiguration(this)) {
             this.$mount();

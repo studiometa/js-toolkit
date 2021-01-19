@@ -1,13 +1,21 @@
 import Base from '../../abstracts/Base';
+/* eslint-disable import/no-cycle */
+/** @type {Base} */
 import AccordionItem from './AccordionItem';
 
 /**
+ * @typedef {import('../../abstracts/Base').BaseOptions} BaseOptions
+ * @typedef {import('../../abstracts/Base').BaseChildren} BaseChildren
+ */
+
+/**
  * Accordion class.
+ * @implements {Base}
+ * @property {BaseOptions & { autoclose: Boolean, item: Object|null }} $options
  */
 export default class Accordion extends Base {
   /**
    * Accordion config.
-   * @return {Object}
    */
   static config = {
     name: 'Accordion',
@@ -19,14 +27,27 @@ export default class Accordion extends Base {
   };
 
   /**
-   * Init autoclose behavior on mounted.
-   * @return {void}
+   * @type {Array<Function>}
    */
-  mounted() {
-    this.unbindMethods = this.$children.AccordionItem.map((item, index) => {
+  unbindMethods = [];
+
+  /**
+   * Init autoclose behavior on mounted.
+   * @return {Promise<void>}
+   */
+  async mounted() {
+    /** @type {AccordionItem[]} */
+    const items = await Promise.all(
+      this.$children.AccordionItem.map((item) =>
+        item instanceof Promise ? item : Promise.resolve(item)
+      )
+    );
+
+    this.unbindMethods = items.map((item, index) => {
       const unbindOpen = item.$on('open', () => {
         this.$emit('open', item, index);
         if (this.$options.autoclose) {
+          // @ts-ignore
           this.$children.AccordionItem.filter((el, i) => index !== i).forEach((it) => it.close());
         }
       });

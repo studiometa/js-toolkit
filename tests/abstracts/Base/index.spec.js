@@ -432,12 +432,6 @@ describe('A Base instance methods', () => {
     spy.mockImplementation(() => true);
     document.body.dataset.options = 'foo-bar';
     expect(() => new Foo(document.body)).toThrow();
-    document.body.dataset.options = '{}';
-    const newFoo = new Foo(document.body);
-    document.body.dataset.options = 'foo-bar';
-    expect(() => {
-      newFoo.$options = '{}';
-    }).toThrow();
     spy.mockRestore();
   });
 });
