@@ -1,3 +1,4 @@
+import deepmerge from 'deepmerge'
 import Base from '../../abstracts/Base';
 import Accordion from './index';
 import * as styles from '../../utils/css/styles';
@@ -37,20 +38,19 @@ export default class AccordionItem extends Base {
   };
 
   /**
-   * State of the item.
-   * @type {Boolean}
-   */
-  isOpen;
-
-  /**
    * Add aria-attributes on mounted.
    * @return {void}
    */
   mounted() {
     if (this.$parent && this.$parent instanceof Accordion && this.$parent.$options.item) {
       Object.entries(this.$parent.$options.item).forEach(([key, value]) => {
-        if (Object.hasOwnProperty.call(this.$options, key)) {
-          this.$options[key] = value;
+        if (key in this.$options) {
+          const type = AccordionItem.config.options[key].type || AccordionItem.config.options[key];
+          if (type === Array || type === Object) {
+            this.$options[key] = deepmerge(this.$options[key], value);
+          } else {
+            this.$options[key] = value;
+          }
         }
       });
     }
@@ -60,10 +60,10 @@ export default class AccordionItem extends Base {
     this.$refs.content.setAttribute('aria-labelledby', this.$id);
     this.$refs.content.setAttribute('id', this.contentId);
 
-    this.isOpen = this.$options.isOpen;
-    this.updateAttributes(this.isOpen);
+    const { isOpen } = this.$options;
+    this.updateAttributes(isOpen);
 
-    if (!this.isOpen) {
+    if (!isOpen) {
       styles.add(this.$refs.container, { visibility: 'invisible', height: '0' });
     }
 
@@ -72,7 +72,7 @@ export default class AccordionItem extends Base {
     Object.entries(otherStyles)
       .filter(([refName]) => this.$refs[refName])
       .forEach(([refName, { open, closed } = { open: '', closed: '' }]) => {
-        transition(this.$refs[refName], { to: this.isOpen ? open : closed }, 'keep');
+        transition(this.$refs[refName], { to: isOpen ? open : closed }, 'keep');
       });
   }
 
@@ -81,7 +81,7 @@ export default class AccordionItem extends Base {
    * @return {void}
    */
   onBtnClick() {
-    if (this.isOpen) {
+    if (this.$options.isOpen) {
       this.close();
     } else {
       this.open();
@@ -112,19 +112,18 @@ export default class AccordionItem extends Base {
    * @return {Promise}
    */
   async open() {
-    if (this.isOpen) {
+    if (this.$options.isOpen) {
       return;
     }
 
     this.$log('open');
     this.$emit('open');
 
-    this.isOpen = true;
-    this.updateAttributes(this.isOpen);
+    this.$options.isOpen = true;
+    this.updateAttributes(this.$options.isOpen);
 
     styles.remove(this.$refs.container, { visibility: 'invisible' });
     const { container, ...otherStyles } = this.$options.styles;
-    console.log(this.$options);
 
     await Promise.all([
       transition(this.$refs.container, {
@@ -133,7 +132,7 @@ export default class AccordionItem extends Base {
         to: { height: `${this.$refs.content.offsetHeight}px` },
       }).then(() => {
         // Remove style only if the item has not been closed before the end
-        if (this.isOpen) {
+        if (this.$options.isOpen) {
           styles.remove(this.$refs.content, { position: 'absolute' });
         }
 
@@ -160,14 +159,14 @@ export default class AccordionItem extends Base {
    * @return {Promise}
    */
   async close() {
-    if (!this.isOpen) {
+    if (!this.$options.isOpen) {
       return;
     }
 
     this.$log('close');
     this.$emit('close');
 
-    this.isOpen = false;
+    this.$options.isOpen = false;
 
     const height = this.$refs.container.offsetHeight;
     styles.add(this.$refs.content, { position: 'absolute' });
@@ -180,9 +179,9 @@ export default class AccordionItem extends Base {
         to: { height: '0' },
       }).then(() => {
         // Add end styles only if the item has not been re-opened before the end
-        if (!this.isOpen) {
+        if (!this.$options.isOpen) {
           styles.add(this.$refs.container, { height: '0', visibility: 'invisible' });
-          this.updateAttributes(this.isOpen);
+          this.updateAttributes(this.$options.isOpen);
         }
         return Promise.resolve();
       }),

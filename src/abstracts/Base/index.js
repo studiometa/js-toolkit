@@ -223,7 +223,7 @@ export default class Base extends EventManager {
     callMethod(this, 'terminated');
 
     // Delete the reference to the instance
-    delete this.$el.__base__;
+    // delete this.$el.__base__;
 
     // And update its status to prevent re-instantiation when accessing the
     // parent's `$children` property

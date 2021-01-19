@@ -22,7 +22,8 @@
       <!-- BEGIN BreakpointObserverDemo -->
       <div
         data-component="BreakpointObserverDemo"
-        data-options='{ "name": "BreakpointObserverDemoTable", "activeBreakpoints": "m" }'
+        data-option-name="BreakpointObserverDemoTable"
+        data-option-active-breakpoints="m"
         class="relative flex items-center justify-center w-full h-32 mb-10 text-white text-center"
       >
         <div class="z-under absolute inset-0 opacity-75 bg-black rounded"></div>
@@ -37,7 +38,8 @@
       <!-- BEGIN BreakpointObserverDemo -->
       <div
         data-component="BreakpointObserverDemo"
-        data-options='{ "name": "BreakpointObserverDemoMobileDesktop", "inactiveBreakpoints": "m" }'
+        data-option-name="BreakpointObserverDemoMobileDesktop"
+        data-option-inactive-breakpoints=m"
         class="relative flex items-center justify-center w-full h-32 mb-10 text-white text-center"
       >
         <div class="z-under absolute inset-0 opacity-75 bg-black rounded"></div>
@@ -52,7 +54,8 @@
       <div
         data-ref="modal"
         data-component="Modal"
-        data-options='{ "activeBreakpoints": "m l", "styles": { "modal": { "active": "transition-all duration-500" } } }'
+        data-option-active-breakpoints="m l"
+        data-option-styles='{ "modal": { "active": "transition-all duration-500" } }'
         class="text-center"
       >
         <!--
@@ -125,11 +128,13 @@
       <br />
       <br />
       <!-- BEGIN Accordion component-->
-      <div data-component="Accordion" data-options='{ "autoclose": false }'>
+      <div data-component="Accordion" 
+      data-option-autoclose
+      data-option-item='{ "styles": { "container": { "active": "transition-all duration-500 ease-out-expo" } } }'>
         <div
           data-component="AccordionItem"
           class="border -mb-px"
-          data-options='{ "isOpen": true, "styles": { "container": { "active": "transition-all duration-500 ease-out-expo" } } }'
+          data-option-is-open
         >
           <button data-ref="btn" class="block w-full p-4 text-left cursor-pointer">
             Lorem ipsum
@@ -145,7 +150,6 @@
         <div
           data-component="AccordionItem"
           class="border -mb-px"
-          data-options='{ "styles": { "container": { "active": "transition-all duration-500 ease-out-expo" } } }'
         >
           <button data-ref="btn" class="block w-full p-4 text-left cursor-pointer">
             Lorem ipsum
@@ -161,7 +165,6 @@
         <div
           data-component="AccordionItem"
           class="border -mb-px"
-          data-options='{ "styles": { "container": { "active": "transition-all duration-500 ease-out-expo" } } }'
         >
           <button data-ref="btn" class="block w-full p-4 text-left cursor-pointer">
             Lorem ipsum
@@ -184,7 +187,7 @@
         <div
           data-component="AccordionItem"
           class="border -mb-px"
-          data-options='{ "styles": { "container": { "active": "transition-all duration-500 ease-out-expo" }, "icon": { "open": "transform rotate-180", "active": "transition duration-500 ease-out-expo" } } }'
+          data-option-styles='{ "container": { "active": "transition-all duration-500 ease-out-expo" }, "icon": { "open": "transform rotate-180", "active": "transition duration-500 ease-out-expo" } }'
         >
           <button data-ref="btn" class="flex justify-between w-full p-4 text-left cursor-pointer">
             Show image #1
@@ -205,7 +208,7 @@
         <div
           data-component="AccordionItem"
           class="border -mb-px"
-          data-options='{ "styles": { "container": { "active": "transition-all duration-500 ease-out-expo" }, "icon": { "open": "transform rotate-180", "active": "transition duration-500 ease-out-expo" } } }'
+          data-option-styles='{ "container": { "active": "transition-all duration-500 ease-out-expo" }, "icon": { "open": "transform rotate-180", "active": "transition duration-500 ease-out-expo" } }'
         >
           <button data-ref="btn" class="flex justify-between w-full p-4 text-left cursor-pointer">
             Show image #2
@@ -220,7 +223,7 @@
         <div
           data-component="AccordionItem"
           class="border -mb-px"
-          data-options='{ "styles": { "container": { "active": "transition-all duration-500 ease-out-expo" }, "icon": { "open": "transform rotate-180", "active": "transition duration-500 ease-out-expo" } } }'
+          data-option-styles='{ "container": { "active": "transition-all duration-500 ease-out-expo" }, "icon": { "open": "transform rotate-180", "active": "transition duration-500 ease-out-expo" } }'
         >
           <button data-ref="btn" class="flex justify-between w-full p-4 text-left cursor-pointer">
             Show image #3

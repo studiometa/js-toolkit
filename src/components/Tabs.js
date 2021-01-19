@@ -41,16 +41,10 @@ export default class Tabs extends Base {
   };
 
   /**
-   * Tabs items.
-   * @type {Array<TabItem>}
-   */
-  items;
-
-  /**
    * Initialize the component's behaviours.
    */
   mounted() {
-    // @ts-ignore
+    /** @type {Array<TabItem>} */
     this.items = this.$refs.btn.map((btn, index) => {
       const id = `${this.$id}-${index}`;
       const content = this.$refs.content[index];
