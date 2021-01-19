@@ -33,7 +33,7 @@ jobs:
           path_to_write_report: ./codecov_report.txt
           verbose: true
 
-      - run: npm publish
+      - run: npm run deploy
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
