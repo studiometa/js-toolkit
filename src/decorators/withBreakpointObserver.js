@@ -67,8 +67,10 @@ export default (BaseClass) =>
    */
   class BreakpointObserver extends BaseClass {
     static config = {
-      name: 'BreakpointObserver',
+      ...(BaseClass.config || {}),
+      name: `${BaseClass?.config?.name}WithBreakpointObserver`,
       options: {
+        ...(BaseClass?.config?.options || {}),
         activeBreakpoints: String,
         inactiveBreakpoints: String,
       },

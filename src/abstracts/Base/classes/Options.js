@@ -78,8 +78,7 @@ export default class Options {
       });
     });
 
-    // @ts-ignore
-    return Object.freeze(this);
+    return this;
   }
 
   /**

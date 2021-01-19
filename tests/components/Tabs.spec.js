@@ -57,8 +57,6 @@ describe('The Tabs component', () => {
   });
 
   it('should add and remove classes and/or styles', async () => {
-    console.log(tabs.$el.outerHTML);
-    console.log(tabs.$options.styles);
     await tabs.enableItem(tabs.items[1]);
     await tabs.disableItem(tabs.items[0]);
     expect(tabs.$refs.btn[1].getAttribute('style')).toBe('border-bottom-color: #fff;');
@@ -72,7 +70,7 @@ describe('The Tabs component', () => {
   });
 
   it('should work without styles definition', async () => {
-    tabs.$el.setAttribute('data-options', '{ "styles": { "btn": false, "content": false } }');
+    tabs.$options.styles = { btn: false, content: false };
     tabs.$refs.btn[1].setAttribute('style', '');
     tabs.$refs.content[1].setAttribute('style', '');
     await tabs.enableItem(tabs.items[1]);

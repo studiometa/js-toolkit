@@ -4,6 +4,16 @@ import debounce from '../utils/debounce';
 import useRaf from './raf';
 
 /**
+ * Test if an event is an instance of TouchEvent.
+ *
+ * @param {TouchEvent|MouseEvent} event The event instance to test.
+ * @return {Boolean}                    Is it a TouchEvent?
+ */
+function isTouchEvent(event) {
+  return typeof TouchEvent !== 'undefined' && event instanceof TouchEvent;
+}
+
+/**
  * Pointer service
  *
  * ```
@@ -124,7 +134,7 @@ class Pointer extends Service {
     // Check pointer Y
     // We either get data from a touch event `event.touches[0].clientY` or from
     // a mouse event `event.clientY`.
-    const y = event instanceof TouchEvent ? (event.touches[0] || {}).clientY : event.clientY;
+    const y = isTouchEvent(event) ? (event.touches[0] || {}).clientY : event.clientY;
     if (y !== this.y) {
       this.y = y;
     }
@@ -132,7 +142,7 @@ class Pointer extends Service {
     // Check pointer X
     // We either get data from a touch event `event.touches[0].clientX` or from
     // a mouse event `event.clientX`.
-    const x = event instanceof TouchEvent ? (event.touches[0] || {}).clientX : event.clientX;
+    const x = isTouchEvent(event) ? (event.touches[0] || {}).clientX : event.clientX;
     if (x !== this.x) {
       this.x = x;
     }

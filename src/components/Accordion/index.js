@@ -19,8 +19,10 @@ export default class Accordion extends Base {
    */
   static config = {
     name: 'Accordion',
-    autoclose: true,
-    item: null,
+    options: {
+      autoclose: Boolean,
+      item: Object,
+    },
     components: {
       AccordionItem,
     },

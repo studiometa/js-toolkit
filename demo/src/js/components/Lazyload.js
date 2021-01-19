@@ -7,14 +7,14 @@ export default class Lazyload extends withIntersectionObserver(Base) {
     name: 'Lazyload',
     log: true,
     options: {
-      styles: [
-        Object,
-        {
+      styles: {
+        type: Object,
+        default: () => ({
           unloaded: { opacity: 0 },
           active: { transition: 'opacity 0.5s' },
           loaded: '',
-        },
-      ],
+        }),
+      },
     },
   };
 

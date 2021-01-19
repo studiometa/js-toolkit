@@ -17,25 +17,7 @@ export default class Modal extends Base {
    * State of the modal.
    * @type {Boolean}
    */
-  isOpen;
-
-  /**
-   * The modal content placeholder when its content is moved.
-   * @type {Comment}
-   */
-  refModalPlaceholder;
-
-  /**
-   * A reference to the modal's parent to be used as backup.
-   * @type {HTMLElement}
-   */
-  refModalParentBackup;
-
-  /**
-   * Unbind function to remove the `get:refs` hook binding.
-   * @type {Function}
-   */
-  refModalUnbindGetRefFilter;
+  isOpen = false;
 
   /**
    * Modal options.
@@ -99,10 +81,13 @@ export default class Modal extends Base {
           : document.querySelector(this.$options.move) || document.body;
       const refsBackup = this.$refs;
 
+      /** @type {Comment} */
       this.refModalPlaceholder = document.createComment('');
+      /** @type {HTMLElement} */
       this.refModalParentBackup = this.$refs.modal.parentElement || this.$el;
       this.refModalParentBackup.insertBefore(this.refModalPlaceholder, this.$refs.modal);
 
+      /** @type {Function} */
       this.refModalUnbindGetRefFilter = this.$on('get:refs', (refs) => {
         Object.entries(refsBackup).forEach(([key, ref]) => {
           if (!refs[key]) {

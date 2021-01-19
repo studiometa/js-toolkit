@@ -29,13 +29,11 @@ describe('AccordionItem component', () => {
     document.body.innerHTML = `
 <div
   data-component="AccordionItem"
-  data-options='{
-    "styles": {
-      "icon": {
-        "open": "transform rotate-180",
-        "active": { "transition": "all 1s linear" },
-        "closed": "transform rotate-0"
-      }
+  data-option-styles='{
+    "icon": {
+      "open": "transform rotate-180",
+      "active": { "transition": "all 1s linear" },
+      "closed": "transform rotate-0"
     }
   }'>
   <button data-ref="btn">

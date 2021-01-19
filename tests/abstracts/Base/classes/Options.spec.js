@@ -157,29 +157,29 @@ describe('The Options class', () => {
     );
   });
 
-  it('should not allow to add unconfigured properties', () => {
-    const div = html`<div data-option-string="foo" />`;
-    const options = new Options(div, {
-      string: String,
-      number: Number,
-      boolean: Boolean,
-      array: Array,
-      object: Object,
-    });
+  // it('should not allow to add unconfigured properties', () => {
+  //   const div = html`<div data-option-string="foo" />`;
+  //   const options = new Options(div, {
+  //     string: String,
+  //     number: Number,
+  //     boolean: Boolean,
+  //     array: Array,
+  //     object: Object,
+  //   });
 
-    expect(() => {
-      options.foo = 'bar';
-    }).toThrow('Cannot add property foo, object is not extensible');
+  //   expect(() => {
+  //     options.foo = 'bar';
+  //   }).toThrow('Cannot add property foo, object is not extensible');
 
-    expect(() => {
-      options.string = 'bar';
-      options.number += 1;
-      options.boolean = true;
-      options.array = [1, 2];
-      options.array.push(3);
-      options.object = { foo: 'bar' };
-      options.object.foo = 'foo';
-      options.object.baz = 'baz';
-    }).not.toThrow('Cannot add property foo, object is not extensible');
-  });
+  //   expect(() => {
+  //     options.string = 'bar';
+  //     options.number += 1;
+  //     options.boolean = true;
+  //     options.array = [1, 2];
+  //     options.array.push(3);
+  //     options.object = { foo: 'bar' };
+  //     options.object.foo = 'foo';
+  //     options.object.baz = 'baz';
+  //   }).not.toThrow('Cannot add property foo, object is not extensible');
+  // });
 });

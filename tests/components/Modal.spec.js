@@ -2,6 +2,15 @@ import Modal from '~/components/Modal';
 import template from '../../docs/components/Modal.template.html';
 import nextFrame from '~/utils/nextFrame';
 
+let consoleSpy;
+beforeAll(() => {
+  consoleSpy = jest.spyOn(console, 'warn');
+  consoleSpy.mockImplementation(() => true);
+});
+afterAll(() => {
+  consoleSpy.mockRestore();
+});
+
 describe('The Modal component', () => {
   let modal;
 
