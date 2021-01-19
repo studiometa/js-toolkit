@@ -3,6 +3,7 @@ name: Tests
 on: 
   push:
     branches:
+      - feature/config-optimization
       - master
       - develop
   pull_request:
