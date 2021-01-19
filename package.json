@@ -3,7 +3,6 @@
   "version": "1.0.0-beta.6",
   "description": "",
   "scripts": {
-    "prepublishOnly": "if [[ ! $PWD =~ dist$ ]]; then echo '🚧 Use `npm run deploy` instead of `npm publish`!' && echo '' && exit 1; fi",
     "test": "jest",
     "lint": "eslint src/",
     "docs:dev": "vuepress dev docs",
@@ -18,8 +17,7 @@
     "build:bundle:base:umd": "NODE_TARGET=bundle microbundle -i src/index.js -o dist/index.umd.js -f umd --name Base --no-pkg-main --no-compress --external none",
     "build:bundle:full": "npm run build:bundle:full:modern && npm run build:bundle:full:umd",
     "build:bundle:full:modern": "NODE_TARGET=bundle microbundle -i src/full.js -o dist/full.modern.js -f modern --no-pkg-main --no-compress --external none",
-    "build:bundle:full:umd": "NODE_TARGET=bundle microbundle -i src/full.js -o dist/full.umd.js -f umd --name JsToolkit --no-pkg-main --no-compress --external none",
-    "deploy": "npm run build && cp readme.md dist/ && cp package.json dist/ && cd dist/ && npm publish && rm package.json readme.md"
+    "build:bundle:full:umd": "NODE_TARGET=bundle microbundle -i src/full.js -o dist/full.umd.js -f umd --name JsToolkit --no-pkg-main --no-compress --external none"
   },
   "publishConfig": {
     "access": "public"
