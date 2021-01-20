@@ -101,8 +101,10 @@ describe('The withBreakpointObserver decorator', () => {
       class Bar extends withBreakpointObserver(Base) {
         static config = {
           name: 'Bar',
-          activeBreakpoints: 's',
-          inactiveBreakpoints: 'm',
+          options: {
+            activeBreakpoints: { type: String, default: 's' },
+            inactiveBreakpoints: { type: String, default: 'm' },
+          },
         };
       }
 
@@ -118,7 +120,9 @@ describe('The withBreakpointObserver decorator', () => {
       class Bar extends withBreakpointObserver(Base) {
         static config = {
           name: 'Bar',
-          inactiveBreakpoints: 'm',
+          options: {
+            inactiveBreakpoints: { type: String, default: 'm' },
+          }
         };
       }
 
