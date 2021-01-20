@@ -14,26 +14,25 @@ const { trap, untrap, saveActiveElement } = focusTrap();
  */
 export default class Modal extends Base {
   /**
-   * State of the modal.
-   * @type {Boolean}
-   */
-  isOpen = false;
-
-  /**
    * Modal options.
    */
   static config = {
     name: 'Modal',
     refs: ['close', 'container', 'content', 'modal', 'open', 'overlay'],
-    move: '',
-    autofocus: '[autofocus]',
-    styles: {
-      modal: {
-        closed: {
-          opacity: 0,
-          pointerEvents: 'none',
-          visibility: 'hidden',
-        },
+    options: {
+      move: String,
+      autofocus: { type: String, default: '[autofocus]' },
+      styles: {
+        type: Object,
+        default: () => ({
+          modal: {
+            closed: {
+              opacity: 0,
+              pointerEvents: 'none',
+              visibility: 'hidden',
+            },
+          },
+        }),
       },
     },
   };

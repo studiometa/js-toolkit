@@ -61,9 +61,7 @@ function bindRefsEvents(instance, eventMethods) {
           $ref.addEventListener(eventName, handler);
           const unbindMethod = () => {
             debug(instance, 'unbinding ref event', eventMethods);
-            if ($ref instanceof HTMLElement) {
-              $ref.removeEventListener(eventName, handler);
-            }
+            $ref.removeEventListener(eventName, handler);
           };
 
           unbindMethods.push(unbindMethod);
