@@ -5,6 +5,7 @@ export default class BreakpointObserverDemo extends withBreakpointObserver(Base)
   static config = {
     name: 'BreakpointObserverDemo',
     log: true,
+    refs: ['content'],
   };
 
   mounted() {

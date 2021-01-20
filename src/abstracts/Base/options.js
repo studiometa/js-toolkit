@@ -60,6 +60,12 @@ export function getOptions(instance, element, config) {
       type = Object;
     }
 
+    warn(
+      instance,
+      '\n  Options must be defined in the `config.options` property.',
+      `\n  Consider moving the \`config.${propName}\` option to \`config.options.${propName}\`.`,
+    );
+
     if (type === Array || type === Object) {
       schema[propName] = { type, default: () => value };
     } else {

@@ -12,6 +12,7 @@ export default class BreakpointManagerDemo extends withBreakpointManager(Base, [
   static config = {
     name: 'BreakpointManagerDemo',
     log: true,
+    refs: ['content'],
   };
 
   mounted() {
