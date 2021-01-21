@@ -53,5 +53,5 @@ export type BaseConfig = {
     log?: boolean;
     refs?: string[];
     components?: import(".").BaseConfigComponents;
-    options?: import(".").BaseConfigOptions;
+    options?: import("./classes/Options").OptionsSchema;
 };

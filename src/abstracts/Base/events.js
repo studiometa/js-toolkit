@@ -55,6 +55,7 @@ function bindRefsEvents(instance, eventMethods) {
 
           if ($ref instanceof Base) {
             // eslint-disable-next-line no-param-reassign
+            /** @type {HTMLElement} */
             $ref = $ref.$el;
           }
 

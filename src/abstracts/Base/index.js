@@ -22,6 +22,7 @@ import bindEvents from './events';
 
 /**
  * Page lifecycle class
+ * @property {Boolean=false} $isMounted
  */
 export default class Base extends EventManager {
   /**

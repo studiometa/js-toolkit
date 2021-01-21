@@ -31,5 +31,8 @@ export default class Options {
 }
 export type OptionType = ObjectConstructor | StringConstructor | BooleanConstructor | NumberConstructor | ArrayConstructor;
 export type OptionsSchema = {
-    [name: string]: ObjectConstructor | StringConstructor | BooleanConstructor | NumberConstructor | ArrayConstructor | [OptionType, any];
+    [name: string]: ObjectConstructor | StringConstructor | BooleanConstructor | NumberConstructor | ArrayConstructor | {
+        type: OptionType;
+        default: string | number | boolean | (() => any[] | any);
+    };
 };

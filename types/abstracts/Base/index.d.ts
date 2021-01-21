@@ -4,12 +4,12 @@
  * @typedef {{ [name:string]: HTMLElement | Base | Array<HTMLElement|Base> }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
  * @typedef {{ [nameOrSelector:string]: Base | (() => Promise<Base>) }} BaseConfigComponents
- * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionsTypes
- * @typedef {{ [name:string]: OptionsTypes | [OptionsTypes, String|Number|Boolean|(() => Array|Object)] }} BaseConfigOptions
+ * @typedef {import('./classes/Options').OptionsSchema} BaseConfigOptions
  * @typedef {{ name: string, debug?: boolean, log?: boolean, refs?: String[], components?: BaseConfigComponents, options?: BaseConfigOptions }} BaseConfig
  */
 /**
  * Page lifecycle class
+ * @property {Boolean=false} $isMounted
  */
 export default class Base extends EventManager {
     /**
@@ -17,6 +17,8 @@ export default class Base extends EventManager {
      * @type {Boolean}
      */
     static __isBase__: boolean;
+    /** @type {BaseConfig} */
+    static config: BaseConfig;
     /**
      * Factory method to generate multiple instance of the class.
      *
@@ -50,6 +52,11 @@ export default class Base extends EventManager {
      * @return {Array<String|RegExp>}
      */
     get _excludeFromAutoBind(): (string | RegExp)[];
+    /**
+     * @deprecated Use the static `config` property instead.
+     * @return {BaseConfig}
+     */
+    get config(): BaseConfig;
     /**
      * Get the component's refs.
      * @return {BaseRefs}
@@ -108,9 +115,11 @@ export type BaseChildren = {
 export type BaseConfigComponents = {
     [nameOrSelector: string]: Base | (() => Promise<Base>);
 };
-export type OptionsTypes = ObjectConstructor | StringConstructor | BooleanConstructor | NumberConstructor | ArrayConstructor;
 export type BaseConfigOptions = {
-    [name: string]: ObjectConstructor | StringConstructor | BooleanConstructor | NumberConstructor | ArrayConstructor | [import("./classes/Options").OptionType, string | number | boolean | (() => any[] | any)];
+    [name: string]: ObjectConstructor | StringConstructor | BooleanConstructor | NumberConstructor | ArrayConstructor | {
+        type: import("./classes/Options").OptionType;
+        default: string | number | boolean | (() => any);
+    };
 };
 export type BaseConfig = {
     name: string;

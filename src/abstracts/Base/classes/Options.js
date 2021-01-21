@@ -51,6 +51,8 @@ export default class Options {
 
     Object.entries(schema).forEach(([name, config]) => {
       const isObjectConfig = !Options.types.includes(config);
+      /** @type {OptionType} */
+      // @ts-ignore
       const type = isObjectConfig ? config.type : config;
 
       if (!Options.types.includes(type)) {
@@ -59,6 +61,7 @@ export default class Options {
         );
       }
 
+      // @ts-ignore
       const defaultValue = isObjectConfig ? config.default : this.#defaultValues[type.name];
 
       if ((type === Array || type === Object) && typeof defaultValue !== 'function') {
