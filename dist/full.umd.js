@@ -3679,6 +3679,35 @@
     }
   }
   /**
+   * Add the current instance to the resize service.
+   * @param {String} key      The key for the resize service callback.
+   * @param {Base}   instance The instance to observe.
+   */
+
+
+  function addToResize(key, instance) {
+    testConflictingBreakpointConfiguration(instance);
+
+    var _useResize = useResize(),
+        add = _useResize.add,
+        has = _useResize.has;
+
+    if (!has(key)) {
+      add(key, function onResize(_ref) {
+        var breakpoint = _ref.breakpoint;
+        var action = testBreakpoints$1(instance, breakpoint); // Always destroy before mounting
+
+        if (action === '$destroy' && instance.$isMounted) {
+          instance[action]();
+        } else if (action === '$mount' && !instance.$isMounted) {
+          setTimeout(function () {
+            return instance[action]();
+          }, 0);
+        }
+      });
+    }
+  }
+  /**
    * BreakpointObserver class.
    */
 
@@ -3697,11 +3726,9 @@
 
         _this = _BaseClass.call(this, element) || this;
 
-        var _useResize = useResize(),
-            add = _useResize.add,
-            has = _useResize.has,
-            remove = _useResize.remove,
-            props = _useResize.props;
+        var _useResize2 = useResize(),
+            remove = _useResize2.remove,
+            props = _useResize2.props;
 
         var name = _this.$options.name; // Do nothing if no breakpoint has been defined.
         // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
@@ -3712,8 +3739,8 @@
 
         var key = "BreakpointObserver-" + _this.$id; // Watch change on the `data-options` attribute to emit the `set:options` event.
 
-        var mutationObserver = new MutationObserver(function (_ref) {
-          var mutation = _ref[0];
+        var mutationObserver = new MutationObserver(function (_ref2) {
+          var mutation = _ref2[0];
 
           if (mutation.type === 'attributes' && mutation.attributeName === 'data-options') {
             // Stop here silently when no breakpoint configuration given.
@@ -3724,16 +3751,7 @@
               return;
             }
 
-            testConflictingBreakpointConfiguration(_assertThisInitialized(_this));
-
-            if (!has(key)) {
-              add(key, function (_ref2) {
-                var breakpoint = _ref2.breakpoint;
-                var action = testBreakpoints$1(_assertThisInitialized(_this), breakpoint);
-
-                _this[action]();
-              });
-            }
+            addToResize(key, _assertThisInitialized(_this));
           }
         });
         mutationObserver.observe(_this.$el, {
@@ -3744,13 +3762,7 @@
           return _assertThisInitialized(_this) || _assertThisInitialized(_this);
         }
 
-        testConflictingBreakpointConfiguration(_assertThisInitialized(_this));
-        add(key, function (_ref3) {
-          var breakpoint = _ref3.breakpoint;
-          var action = testBreakpoints$1(_assertThisInitialized(_this), breakpoint);
-
-          _this[action]();
-        });
+        addToResize(key, _assertThisInitialized(_this));
         return _assertThisInitialized(_this) || _assertThisInitialized(_this);
       }
       /**
