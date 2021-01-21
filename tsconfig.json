@@ -18,5 +18,10 @@
       "~/*": ["src/*"]
     }
   },
-  "include": ["src/abstracts/**/*.js", "src/utils/**/*.js", "src/services/**/*.js"]
+  "include": [
+    "src/abstracts/**/*.js",
+    "src/components/Modal.js", 
+    "src/utils/**/*.js", 
+    "src/services/**/*.js"
+  ]
 }

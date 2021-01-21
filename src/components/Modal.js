@@ -9,8 +9,34 @@ const { trap, untrap, saveActiveElement } = focusTrap();
  */
 
 /**
+ * @typedef {Object} ModalRefs
+ * @property {HTMLElement} close
+ * @property {HTMLElement} container
+ * @property {HTMLElement} content
+ * @property {HTMLElement} modal
+ * @property {HTMLElement} open
+ * @property {HTMLElement} overlay
+ */
+
+/**
+ * @typedef {Object} ModalOptions
+ * @property {String} move      A selector where to move the modal to.
+ * @property {String} autofocus A selector for the element to set the focus to when the modal opens.
+ * @property {Object} styles    The styles for the different state of the modal.
+ */
+
+/**
+ * @typedef {Object} ModalInterface
+ * @property {ModalRefs} $refs
+ * @property {ModalOptions} $options
+ * @property {Boolean} isOpen
+ * @property {Comment} refModalPlaceholder
+ * @property {HTMLElement} refModalParentBackup
+ * @property {Function} refModalUnbindGetRefFilter
+ */
+
+/**
  * Modal class.
- * @property {BaseOptions & { move?: Boolean | String, autofocus?: String, styles?: Object }} $options
  */
 export default class Modal extends Base {
   /**
@@ -67,33 +93,33 @@ export default class Modal extends Base {
   /**
    * Initialize the component's behaviours.
    *
-   * @return {Modal} The current instance.
+   * @this {Modal & ModalInterface}
    */
   mounted() {
     this.isOpen = false;
     this.close();
 
     if (this.$options.move) {
-      const target =
-        this.$options.move === true
-          ? document.body
-          : document.querySelector(this.$options.move) || document.body;
+      const target = document.querySelector(this.$options.move) || document.body;
       const refsBackup = this.$refs;
 
-      /** @type {Comment} */
       this.refModalPlaceholder = document.createComment('');
-      /** @type {HTMLElement} */
       this.refModalParentBackup = this.$refs.modal.parentElement || this.$el;
       this.refModalParentBackup.insertBefore(this.refModalPlaceholder, this.$refs.modal);
 
-      /** @type {Function} */
-      this.refModalUnbindGetRefFilter = this.$on('get:refs', (refs) => {
-        Object.entries(refsBackup).forEach(([key, ref]) => {
-          if (!refs[key]) {
-            refs[key] = ref;
-          }
-        });
-      });
+      this.refModalUnbindGetRefFilter = this.$on(
+        'get:refs',
+        /**
+         * @param {ModalRefs} refs
+         */
+        (refs) => {
+          Object.entries(refsBackup).forEach(([key, ref]) => {
+            if (!refs[key]) {
+              refs[key] = ref;
+            }
+          });
+        }
+      );
       target.appendChild(this.$refs.modal);
     }
 
@@ -103,6 +129,7 @@ export default class Modal extends Base {
   /**
    * Unbind all events on destroy.
    *
+   * @this {Modal & ModalInterface}
    * @return {Modal} The Modal instance.
    */
   destroyed() {
@@ -123,12 +150,12 @@ export default class Modal extends Base {
   /**
    * Close the modal on `ESC` and trap the tabulation.
    *
+   * @this {Modal & ModalInterface}
    * @param  {Object}        options
    * @param  {KeyboardEvent} options.event  The original keyboard event
    * @param  {Boolean}       options.isUp   Is it a keyup event?
    * @param  {Boolean}       options.isDown Is it a keydown event?
    * @param  {Boolean}       options.ESC    Is it the ESC key?
-   * @return {void}
    */
   keyed({ event, isUp, isDown, ESC }) {
     if (!this.isOpen) {
@@ -147,6 +174,7 @@ export default class Modal extends Base {
   /**
    * Open the modal.
    *
+   * @this {Modal & ModalInterface}
    * @return {Promise<Modal>} The Modal instance.
    */
   async open() {
@@ -160,23 +188,28 @@ export default class Modal extends Base {
     this.isOpen = true;
     this.$emit('open');
 
+    /** @type {ModalRefs} */
+    const refs = this.$refs;
+
     return Promise.all(
-      // @ts-ignore
-      Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
-        transition(
-          this.$refs[refName],
-          {
-            from: closed,
-            active,
-            to: open,
-          },
-          'keep'
-        )
+      Object.entries(this.$options.styles).map(
+        ([refName, { open, active, closed } = { open: '', active: '', closed: '' }]) =>
+          transition(
+            refs[refName],
+            {
+              from: closed,
+              active,
+              to: open,
+            },
+            'keep'
+          )
       )
     ).then(() => {
       if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
         saveActiveElement();
-        this.$refs.modal.querySelector(this.$options.autofocus).focus();
+        /** @type {HTMLElement} */
+        const autofocusElement = this.$refs.modal.querySelector(this.$options.autofocus);
+        autofocusElement.focus();
       }
       return Promise.resolve(this);
     });
@@ -185,6 +218,7 @@ export default class Modal extends Base {
   /**
    * Close the modal.
    *
+   * @this {Modal & ModalInterface}
    * @return {Promise<Modal>} The Modal instance.
    */
   async close() {
@@ -199,18 +233,21 @@ export default class Modal extends Base {
     untrap();
     this.$emit('close');
 
+    /** @type {ModalRefs} */
+    const refs = this.$refs;
+
     return Promise.all(
-      // @ts-ignore
-      Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
-        transition(
-          this.$refs[refName],
-          {
-            from: open,
-            active,
-            to: closed,
-          },
-          'keep'
-        )
+      Object.entries(this.$options.styles).map(
+        ([refName, { open, active, closed } = { open: '', active: '', closed: '' }]) =>
+          transition(
+            refs[refName],
+            {
+              from: open,
+              active,
+              to: closed,
+            },
+            'keep'
+          )
       )
     ).then(() => Promise.resolve(this));
   }
