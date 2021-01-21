@@ -114,6 +114,64 @@ describe('The withBreakpointObserver decorator', () => {
     }).toThrow(/Incorrect configuration/);
   });
 
+  it('should destroy components before mounting the others', async () => {
+    await resizeWindow({ width: 800 });
+    const fn = jest.fn();
+
+    class Mobile extends withBreakpointObserver(Base) {
+      get config() {
+        return { name: 'Mobile', inactiveBreakpoints: 'm' };
+      }
+
+      mounted() {
+        fn('Mobile', 'mounted')
+      }
+
+      destroyed() {
+        fn('Mobile', 'destroyed');
+      }
+    }
+
+    class Desktop extends withBreakpointObserver(Base) {
+      get config() {
+        return { name: 'Desktop', activeBreakpoints: 'm' };
+      }
+
+      mounted() {
+        fn('Desktop', 'mounted')
+      }
+
+      destroyed() {
+        fn('Desktop', 'destroyed');
+      }
+    }
+
+    class App extends Base {
+      get config() {
+        return {
+          name: 'App',
+          components: { Mobile, Desktop }
+        }
+      }
+    }
+
+    document.body.innerHTML = `
+      <div data-breakpoint>
+        <div data-component="Mobile"></div>
+        <div data-component="Desktop"></div>
+      </div>
+    `;
+
+    const app = new App(document.body);
+    expect(fn).toHaveBeenCalledWith('Desktop', 'mounted');
+    await resizeWindow({ width: 400 });
+    expect(fn).toHaveBeenNthCalledWith(2, 'Desktop', 'destroyed');
+    expect(fn).toHaveBeenNthCalledWith(3, 'Mobile', 'mounted');
+    await resizeWindow({ width: 800 });
+    expect(fn).toHaveBeenNthCalledWith(4, 'Mobile', 'destroyed');
+    expect(fn).toHaveBeenNthCalledWith(5, 'Desktop', 'mounted');
+  });
+
   it('should throw when breakpoints are not availabe', () => {
     expect(() => {
       document.body.innerHTML = '<div></div>';
