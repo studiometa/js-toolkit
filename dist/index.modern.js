@@ -92,8 +92,8 @@ var nonSecure = function (size) {
  * Gets all non-builtin properties up the prototype chain.
  *
  * @param  {Object} object The object to get the propeties from.
- * @param  {Array}  props  The already existing properties.
- * @return {Array}         An array of properties and their value.
+ * @param  {Array=} [props=[]] The already existing properties.
+ * @return {Array<[String, Object]>} An array of properties and the prototype they belong to.
  */
 function getAllProperties(object, props = []) {
   const proto = Object.getPrototypeOf(object);
@@ -109,7 +109,7 @@ function getAllProperties(object, props = []) {
  * Auto-bind methods to an instance.
  *
  * @param  {Object}               instance          The instance.
- * @param  {Object}               options           Specify methods to include or exlude.
+ * @param  {Object}               options           Define specific methods to include or exlude.
  * @param  {Array<String|RegExp>} [options.include] Methods to include.
  * @param  {Array<String|RegExp>} [options.exclude] Methods to exclude.
  * @return {Object}                                 The instance.
@@ -622,8 +622,8 @@ function replace(input, re, value) {
 /**
  * Test if the given value is an object.
  *
- * @param  {*}       value The value to test.
- * @return {Boolean}       Whether or not the value is an object.
+ * @param {*} value The value to test.
+ * @return {Boolean} Whether or not the value is an object.
  */
 function isObject(value) {
   return typeof value === 'object' && !!value && value.toString() === '[object Object]';
@@ -1197,15 +1197,15 @@ class Service {
 }
 
 /**
- * Simple throttling helper that limits a
- * function to only run once every {delay}ms
+ * Simple throttling helper that limits a function to only run once every {delay}ms.
  *
- * @param {Function} fn    The function to throttle
- * @param {Number}   delay The delay in ms
+ * @param {Function} fn The function to throttle
+ * @param {Number=} [delay=16] The delay in ms
+ * @return {Function} The throttled function.
  */
 function throttle(fn, delay = 16) {
   let lastCall = 0;
-  return (...args) => {
+  return function throttled(...args) {
     const now = new Date().getTime();
 
     if (now - lastCall < delay) {
@@ -1222,12 +1222,13 @@ function throttle(fn, delay = 16) {
  * will not be triggered. The function will be called after it stops
  * being called for N milliseconds.
  *
- * @param {Function} fn    The function to call
- * @param {Number}   delay The delay in ms to wait before calling the function
+ * @param {Function} fn The function to call.
+ * @param {Number=} [delay=300] The delay in ms to wait before calling the function.
+ * @return {Function} The debounced function.
  */
 function debounce(fn, delay = 300) {
   let timeout;
-  return (...args) => {
+  return function debounced(...args) {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
       fn(...args);
@@ -1238,13 +1239,22 @@ function debounce(fn, delay = 300) {
 /**
  * RequestAnimation frame polyfill.
  * @see  https://github.com/vuejs/vue/blob/ec78fc8b6d03e59da669be1adf4b4b5abf670a34/dist/vue.runtime.esm.js#L7355
- * @type {Function}
+ * @return {Function}
  */
 const getRaf = () => typeof window !== 'undefined' && window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : setTimeout;
 /**
- * Execute a callback in the next frame.
- * @param  {Function} fn The callback function to execute.
- * @return {Promise}
+ * Wait for the next frame to execute a function.
+ *
+ * @param  {Function=} [fn=() => {}] The callback function to execute.
+ * @return {Promise} A Promise resolving when the next frame is reached.
+ *
+ * @example
+ * ```js
+ * nextFrame(() => console.log('hello world'));
+ *
+ * await nextFrame();
+ * console.log('hello world');
+ * ```
  */
 
 function nextFrame(fn = () => {}) {

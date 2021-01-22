@@ -13,40 +13,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 import Base from '../abstracts/Base';
 import transition from '../utils/css/transition';
-/**
- * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
- */
 
-/**
- * @typedef {Object} TabItem
- * @property {HTMLElement} btn
- * @property {HTMLElement} content
- * @property {Boolean} isEnabled
- */
-
-/**
- * @typedef {Object} TabsRefs
- * @property {HTMLElement[]} btn
- * @property {HTMLElement[]} content
- */
-
-/**
- * @typedef {Object} TabsOptions
- * @property {Object} styles
- */
-
-/**
- * @typedef {Object} TabsInterface
- * @property {TabsOptions} $options
- * @property {TabsRefs} $refs
- * @property {Array<TabItem>} items
- */
-
-/**
- * Tabs class.
- */
-
-var Tabs = /*#__PURE__*/function (_Base) {
+var Tabs = function (_Base) {
   _inherits(Tabs, _Base);
 
   var _super = _createSuper(Tabs);
@@ -59,15 +27,6 @@ var Tabs = /*#__PURE__*/function (_Base) {
 
   _createClass(Tabs, [{
     key: "mounted",
-
-    /**
-     * Tabs config.
-     */
-
-    /**
-     * Initialize the component's behaviours.
-     * @this {Tabs & TabsInterface}
-     */
     value: function mounted() {
       var _this = this;
 
@@ -92,15 +51,6 @@ var Tabs = /*#__PURE__*/function (_Base) {
       });
       return this;
     }
-    /**
-     * Switch tab on button click.
-     *
-     * @this {Tabs & TabsInterface}
-     * @param  {Event}  event The click event object.
-     * @param  {Number} index The index of the clicked button.
-     * @return {void}
-     */
-
   }, {
     key: "onBtnClick",
     value: function onBtnClick(event, index) {
@@ -113,18 +63,10 @@ var Tabs = /*#__PURE__*/function (_Base) {
       });
       this.enableItem(this.items[index]);
     }
-    /**
-     * Enable the given tab and its associated content.
-     *
-     * @this {Tabs & TabsInterface}
-     * @param  {TabItem}       item The item to enable.
-     * @return {Promise<Tabs & TabsInterface>}      Tabs instance.
-     */
-
   }, {
     key: "enableItem",
     value: function () {
-      var _enableItem = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee(item) {
+      var _enableItem = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(item) {
         var _this3 = this;
 
         var btn, content, btnStyles, contentStyles;
@@ -172,18 +114,10 @@ var Tabs = /*#__PURE__*/function (_Base) {
 
       return enableItem;
     }()
-    /**
-     * Disable the given tab and its associated content.
-     *
-     * @this {Tabs & TabsInterface}
-     * @param  {TabItem}       item The item to disable.
-     * @return {Promise<Tabs & TabsInterface>}      The Tabs instance.
-     */
-
   }, {
     key: "disableItem",
     value: function () {
-      var _disableItem = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2(item) {
+      var _disableItem = _asyncToGenerator(_regeneratorRuntime.mark(function _callee2(item) {
         var _this4 = this;
 
         var btn, content, btnStyles, contentStyles;

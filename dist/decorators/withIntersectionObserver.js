@@ -17,41 +17,12 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 import { debug } from '../abstracts/Base/utils';
-/**
- * @typedef {import('../abstracts/Base').default} Base
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
- */
-
-/**
- * @typedef {Object} WithIntersectionObserverOptions
- * @property {Object} intersectionObserver
- */
-
-/**
- * @typedef {Object} WithIntersectionObserverInterface
- * @property {WithIntersectionObserverOptions} $options
- * @property {IntersectionObserver} $observer
- * @property {(entries: IntersectionObserverEntry[]) => void} intersected
- */
-
-/**
- * Create an array of number between 0 and 1 from the given length.
- * @param  {Number} length The length of the array.
- * @return {Array}        An array of number.
- */
 
 function createArrayOfNumber(length) {
   return _toConsumableArray(new Array(length + 1)).map(function (val, index) {
     return index / length;
   });
 }
-/**
- * IntersectionObserver decoration.
- * @param {BaseComponent} BaseClass The Base class to extend.
- * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
- * @return {BaseComponent}
- */
-
 
 export default (function (BaseClass) {
   var _class, _temp, _BaseClass$config$nam, _BaseClass$config, _BaseClass$config2;
@@ -59,28 +30,18 @@ export default (function (BaseClass) {
   var defaultOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
     threshold: createArrayOfNumber(100)
   };
-  return _temp = _class = /*#__PURE__*/function (_BaseClass) {
+  return _temp = _class = function (_BaseClass) {
     _inherits(_class, _BaseClass);
 
     var _super = _createSuper(_class);
 
     _createClass(_class, [{
       key: "_excludeFromAutoBind",
-
-      /**
-       * Add the `intersected` method to the list of method to exclude from the `autoBind` call.
-       */
       get: function get() {
         return [].concat(_toConsumableArray(_get(_getPrototypeOf(_class.prototype), "_excludeFromAutoBind", this) || []), ['intersected']);
       }
     }]);
 
-    /**
-     * Create an observer when the class in instantiated.
-     *
-     * @this {Base & WithIntersectionObserverInterface}
-     * @param  {HTMLElement} element The component's root element.
-     */
     function _class(element) {
       var _this;
 

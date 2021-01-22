@@ -15,49 +15,12 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 import deepmerge from 'deepmerge';
-import Base from '../../abstracts/Base'; // eslint-disable-next-line import/no-cycle
-
+import Base from '../../abstracts/Base';
 import Accordion from './index';
 import * as styles from '../../utils/css/styles';
 import transition from '../../utils/css/transition';
-/**
- * @typedef {import('../../abstracts/Base').BaseOptions} BaseOptions
- * @typedef {import('../../utils/css/styles').CssStyleObject} CssStyleObject
- * @typedef {import('./index').AccordionInterface} AccordionInterface
- */
 
-/**
- * @typedef {Object} AccordionItemRefs
- * @property {HTMLElement} btn
- * @property {HTMLElement} content
- * @property {HTMLElement} container
- */
-
-/**
- * @typedef {Object} StylesOption
- * @property {String|CssStyleObject} open
- * @property {String|CssStyleObject} active
- * @property {String|CssStyleObject} closed
- */
-
-/**
- * @typedef {Object} AccordionItemOptions
- * @property {Boolean} isOpen
- * @property {{ [refName: string]: StylesOption }} styles
- */
-
-/**
- * @typedef {Object} AccordionItemInterface
- * @property {AccordionItemOptions} $options
- * @property {AccordionItemRefs} $refs
- * @property {Accordion & AccordionInterface} $parent
- */
-
-/**
- * AccordionItem class.
- */
-
-var AccordionItem = /*#__PURE__*/function (_Base) {
+var AccordionItem = function (_Base) {
   _inherits(AccordionItem, _Base);
 
   var _super = _createSuper(AccordionItem);
@@ -70,16 +33,6 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
 
   _createClass(AccordionItem, [{
     key: "mounted",
-
-    /**
-     * AccordionItem config
-     * @return {Object}
-     */
-
-    /**
-     * Add aria-attributes on mounted.
-     * @this {AccordionItem & AccordionItemInterface}
-     */
     value: function mounted() {
       var _this = this;
 
@@ -113,14 +66,11 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
           visibility: 'invisible',
           height: '0'
         });
-      } // Update refs styles on mount
-
+      }
 
       var _this$$options$styles = this.$options.styles,
           container = _this$$options$styles.container,
           otherStyles = _objectWithoutProperties(_this$$options$styles, ["container"]);
-      /** @type {AccordionItemRefs} */
-
 
       var refs = this.$refs;
       Object.entries(otherStyles).filter(function (_ref3) {
@@ -144,11 +94,6 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
         }, 'keep');
       });
     }
-    /**
-     * Handler for the click event on the `btn` ref.
-     * @this {AccordionItem & AccordionItemInterface}
-     */
-
   }, {
     key: "onBtnClick",
     value: function onBtnClick() {
@@ -158,33 +103,16 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
         this.open();
       }
     }
-    /**
-     * Get the content ID.
-     * @return {String}
-     */
-
   }, {
     key: "updateAttributes",
-
-    /**
-     * Update the refs' attributes according to the given type.
-     *
-     * @this {AccordionItem & AccordionItemInterface}
-     * @param  {Boolean} isOpen The state of the item.
-     */
     value: function updateAttributes(isOpen) {
       this.$refs.content.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
       this.$refs.btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     }
-    /**
-     * Open an item.
-     * @this {AccordionItem & AccordionItemInterface}
-     */
-
   }, {
     key: "open",
     value: function () {
-      var _open = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
+      var _open = _asyncToGenerator(_regeneratorRuntime.mark(function _callee() {
         var _this2 = this;
 
         var _this$$options$styles2, container, otherStyles, refs;
@@ -209,8 +137,6 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                   visibility: 'invisible'
                 });
                 _this$$options$styles2 = this.$options.styles, container = _this$$options$styles2.container, otherStyles = _objectWithoutProperties(_this$$options$styles2, ["container"]);
-                /** @type {AccordionItemRefs} */
-
                 refs = this.$refs;
                 _context.next = 11;
                 return Promise.all([transition(refs.container, {
@@ -222,7 +148,6 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                     height: "".concat(refs.content.offsetHeight, "px")
                   }
                 }).then(function () {
-                  // Remove style only if the item has not been closed before the end
                   if (_this2.$options.isOpen) {
                     styles.remove(refs.content, {
                       position: 'absolute'
@@ -269,15 +194,10 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
 
       return open;
     }()
-    /**
-     * Close an item.
-     * @this {AccordionItem & AccordionItemInterface}
-     */
-
   }, {
     key: "close",
     value: function () {
-      var _close = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2() {
+      var _close = _asyncToGenerator(_regeneratorRuntime.mark(function _callee2() {
         var _this3 = this;
 
         var height, _this$$options$styles3, container, otherStyles, refs;
@@ -302,8 +222,6 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                   position: 'absolute'
                 });
                 _this$$options$styles3 = this.$options.styles, container = _this$$options$styles3.container, otherStyles = _objectWithoutProperties(_this$$options$styles3, ["container"]);
-                /** @type {AccordionItemRefs} */
-
                 refs = this.$refs;
                 _context2.next = 11;
                 return Promise.all([transition(refs.container, {
@@ -315,7 +233,6 @@ var AccordionItem = /*#__PURE__*/function (_Base) {
                     height: '0'
                   }
                 }).then(function () {
-                  // Add end styles only if the item has not been re-opened before the end
                   if (!_this3.$options.isOpen) {
                     styles.add(refs.container, {
                       height: '0',

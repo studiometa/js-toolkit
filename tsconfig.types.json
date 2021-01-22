@@ -13,10 +13,6 @@
     "types": ["node"],
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "baseUrl": "./",
-    "paths": {
-      "~/*": ["src/*"]
-    }
   },
   "include": ["src/**/*.js"]
 }

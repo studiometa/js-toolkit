@@ -1,9 +1,9 @@
 /**
  * Manage a list of classes as string on an element.
  *
- * @param {HTMLElement} element    The element to update.
- * @param {String}      classNames A string of class names.
- * @param {String}      method     The method to use: add, remove or toggle.
+ * @param {HTMLElement} element The element to update.
+ * @param {String} classNames A string of class names.
+ * @param {String=} [method='add'] The method to use: add, remove or toggle.
  */
 function setClasses(element, classNames, method = 'add') {
   if (!element || !classNames) {

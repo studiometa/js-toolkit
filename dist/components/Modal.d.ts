@@ -117,18 +117,7 @@ export default class Modal extends Base {
     close(): Promise<Modal>;
 }
 export type BaseOptions = {
-    name: string; /**
-     * @typedef {Object} ModalInterface
-     * @property {ModalRefs} $refs
-     * @property {ModalOptions} $options
-     * @property {Boolean} isOpen
-     * @property {Comment} refModalPlaceholder
-     * @property {HTMLElement} refModalParentBackup
-     * @property {Function} refModalUnbindGetRefFilter
-     */
-    /**
-     * Modal class.
-     */
+    name: string;
     debug: boolean;
     log: boolean;
 };

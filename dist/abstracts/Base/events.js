@@ -1,16 +1,8 @@
 import _toConsumableArray from "@babel/runtime/helpers/toConsumableArray";
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
-// eslint-disable-next-line import/no-cycle
 import Base from './index';
 import getAllProperties from '../../utils/object/getAllProperties';
 import { debug } from './utils';
-/**
- * Bind event handler methods to the root HTML element.
- *
- * @param  {Base}  instance     A Base instance.
- * @param  {Array} eventMethods A list of methods to bind.
- * @return {Array}              A list of unbind functions.
- */
 
 function bindRootEvents(instance, eventMethods) {
   return eventMethods.map(function (eventMethod) {
@@ -31,14 +23,6 @@ function bindRootEvents(instance, eventMethods) {
     };
   });
 }
-/**
- * Bind event handler methods to refs HTML element.
- *
- * @param  {Base}  instance     A Base instance.
- * @param  {Array} eventMethods A list of methods to bind.
- * @return {Array}              A list of unbind functions.
- */
-
 
 function bindRefsEvents(instance, eventMethods) {
   var unbindMethods = [];
@@ -69,18 +53,13 @@ function bindRefsEvents(instance, eventMethods) {
         debug(instance, 'binding ref event', refName, eventName);
 
         if ($ref instanceof Base) {
-          // eslint-disable-next-line no-param-reassign
           $ref = $ref.$el;
         }
-        /** @type {HTMLElement} */
-
 
         $ref.addEventListener(eventName, handler);
 
         var unbindMethod = function unbindMethod() {
           debug(instance, 'unbinding ref event', eventMethods);
-          /** @type {HTMLElement} */
-
           $ref.removeEventListener(eventName, handler);
         };
 
@@ -90,13 +69,6 @@ function bindRefsEvents(instance, eventMethods) {
   });
   return unbindMethods;
 }
-/**
- * Bind event handler methods to children Base instance.
- * @param  {Base}  instance     A Base instance.
- * @param  {Array} eventMethods A list of methods to bind.
- * @return {Array}              A list of unbind functions.
- */
-
 
 function bindChildrenEvents(instance, eventMethods) {
   var unbindMethods = [];
@@ -111,12 +83,7 @@ function bindChildrenEvents(instance, eventMethods) {
     eventMethods.filter(function (eventMethod) {
       return eventMethod.startsWith(childEventMethod);
     }).forEach(function (eventMethod) {
-      $children.forEach(
-      /**
-       * @param {Base} $child
-       * @param {Number} index
-       */
-      function ($child, index) {
+      $children.forEach(function ($child, index) {
         var eventName = eventMethod.replace(childEventMethod, '').toLowerCase();
 
         var handler = function handler() {
@@ -139,28 +106,18 @@ function bindChildrenEvents(instance, eventMethods) {
   });
   return unbindMethods;
 }
-/**
- * Bind ref and children component's events to their corresponding method.
- *
- * @param  {Base} instance  A Base instance.
- * @return {Array}          A list of methods to unbind the events.
- */
-
 
 export default function bindEvents(instance) {
   var ROOT_EVENT_REGEX = /^on[A-Z][a-z]+$/;
-  var REFS_CHILDREN_EVENT_REGEX = /^on([A-Z][a-z]+)([A-Z][a-z]+)+$/; // Get all event methods
-
+  var REFS_CHILDREN_EVENT_REGEX = /^on([A-Z][a-z]+)([A-Z][a-z]+)+$/;
   var eventMethods = getAllProperties(instance).reduce(function (acc, _ref5) {
     var _ref6 = _slicedToArray(_ref5, 1),
         name = _ref6[0];
 
-    // Testing camelCase with one word: onEvent.
     if (ROOT_EVENT_REGEX.test(name)) {
       acc.root.push(name);
       return acc;
-    } // Testing camelCase with more than two words: onRefEvent.
-
+    }
 
     if (REFS_CHILDREN_EVENT_REGEX.test(name)) {
       acc.refsOrChildren.push(name);
