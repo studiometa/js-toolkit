@@ -14,30 +14,12 @@ import Service from '../abstracts/Service';
 import throttle from '../utils/throttle';
 import debounce from '../utils/debounce';
 import useRaf from './raf';
-/**
- * Test if an event is an instance of TouchEvent.
- *
- * @param {TouchEvent|MouseEvent} event The event instance to test.
- * @return {Boolean}                    Is it a TouchEvent?
- */
 
 function isTouchEvent(event) {
   return typeof TouchEvent !== 'undefined' && event instanceof TouchEvent;
 }
-/**
- * Pointer service
- *
- * ```
- * import { usePointer } from '@studiometa/js/services';
- * const { add, remove, props } = usePointer();
- * add(key, (props) => {});
- * remove(key);
- * props();
- * ```
- */
 
-
-var Pointer = /*#__PURE__*/function (_Service) {
+var Pointer = function (_Service) {
   _inherits(Pointer, _Service);
 
   var _super = _createSuper(Pointer);
@@ -70,13 +52,6 @@ var Pointer = /*#__PURE__*/function (_Service) {
 
   _createClass(Pointer, [{
     key: "init",
-
-    /**
-     * Bind the handler to the mousemove and touchmove events.
-     * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
-     *
-     * @return {Pointer}
-     */
     value: function init() {
       var _this2 = this;
 
@@ -102,8 +77,7 @@ var Pointer = /*#__PURE__*/function (_Service) {
             _this2.trigger(_this2.props);
           });
           _this2.hasRaf = true;
-        } // Reset changed flags at the end of the mousemove or touchmove event
-
+        }
 
         debounced(event);
       }, 32).bind(this);
@@ -132,12 +106,6 @@ var Pointer = /*#__PURE__*/function (_Service) {
       });
       return this;
     }
-    /**
-     * Unbind all handlers from their bounded event.
-     *
-     * @return {Pointer}
-     */
-
   }, {
     key: "kill",
     value: function kill() {
@@ -149,37 +117,18 @@ var Pointer = /*#__PURE__*/function (_Service) {
       document.removeEventListener('touchend', this.upHandler);
       return this;
     }
-    /**
-     * Handler for the pointer's down action.
-     *
-     * @return {void}
-     */
-
   }, {
     key: "downHandler",
     value: function downHandler() {
       this.isDown = true;
       this.trigger(this.props);
     }
-    /**
-     * Handler for the pointer's up action.
-     *
-     * @return {void}
-     */
-
   }, {
     key: "upHandler",
     value: function upHandler() {
       this.isDown = false;
       this.trigger(this.props);
     }
-    /**
-     * Update the pointer positions.
-     *
-     * @param  {MouseEvent|TouchEvent} event The event object.
-     * @return {void}
-     */
-
   }, {
     key: "updateValues",
     value: function updateValues(event) {
@@ -187,39 +136,19 @@ var Pointer = /*#__PURE__*/function (_Service) {
 
       this.event = event;
       this.yLast = this.y;
-      this.xLast = this.x; // Check pointer Y
-      // We either get data from a touch event `event.touches[0].clientY` or from
-      // a mouse event `event.clientY`.
-
-      var y = isTouchEvent(event) ?
-      /** @type {TouchEvent} */
-      (_event$touches$ = event.touches[0]) === null || _event$touches$ === void 0 ? void 0 : _event$touches$.clientY :
-      /** @type {MouseEvent} */
-      event.clientY;
+      this.xLast = this.x;
+      var y = isTouchEvent(event) ? (_event$touches$ = event.touches[0]) === null || _event$touches$ === void 0 ? void 0 : _event$touches$.clientY : event.clientY;
 
       if (y !== this.y) {
         this.y = y;
-      } // Check pointer X
-      // We either get data from a touch event `event.touches[0].clientX` or from
-      // a mouse event `event.clientX`.
+      }
 
-
-      var x = isTouchEvent(event) ?
-      /** @type {TouchEvent} */
-      (_event$touches$2 = event.touches[0]) === null || _event$touches$2 === void 0 ? void 0 : _event$touches$2.clientX :
-      /** @type {MouseEvent} */
-      event.clientX;
+      var x = isTouchEvent(event) ? (_event$touches$2 = event.touches[0]) === null || _event$touches$2 === void 0 ? void 0 : _event$touches$2.clientX : event.clientX;
 
       if (x !== this.x) {
         this.x = x;
       }
     }
-    /**
-     * Get the pointer props.
-     *
-     * @type {Object}
-     */
-
   }, {
     key: "props",
     get: function get() {
@@ -256,18 +185,6 @@ var Pointer = /*#__PURE__*/function (_Service) {
 }(Service);
 
 var pointer = null;
-/**
- * Use the pointer.
- *
- * ```js
- * import usePointer from '@studiometa/js-toolkit/services';
- * const { add, remove, props } = usePointer();
- * add('id', () => {});
- * remove('id');
- * props();
- * ```
- */
-
 export default (function () {
   if (!pointer) {
     pointer = new Pointer();

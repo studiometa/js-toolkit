@@ -4,7 +4,7 @@ import getAllProperties from './getAllProperties';
  * Auto-bind methods to an instance.
  *
  * @param  {Object}               instance          The instance.
- * @param  {Object}               options           Specify methods to include or exlude.
+ * @param  {Object}               options           Define specific methods to include or exlude.
  * @param  {Array<String|RegExp>} [options.include] Methods to include.
  * @param  {Array<String|RegExp>} [options.exclude] Methods to exclude.
  * @return {Object}                                 The instance.

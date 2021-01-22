@@ -2,12 +2,7 @@ import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
 import _createClass from "@babel/runtime/helpers/createClass";
 import _defineProperty from "@babel/runtime/helpers/defineProperty";
 
-/* eslint no-underscore-dangle: ["error", { "allow": ["_events"] }] */
-
-/**
- * Event management class.
- */
-var EventManager = /*#__PURE__*/function () {
+var EventManager = function () {
   function EventManager() {
     _classCallCheck(this, EventManager);
 
@@ -16,14 +11,6 @@ var EventManager = /*#__PURE__*/function () {
 
   _createClass(EventManager, [{
     key: "$on",
-
-    /**
-     * Bind a listener function to an event.
-     *
-     * @param  {String}   event    Name of the event.
-     * @param  {Function} listener Function to be called.
-     * @return {Function}          A function to unbind the listener.
-     */
     value: function $on(event, listener) {
       var _this = this;
 
@@ -37,24 +24,13 @@ var EventManager = /*#__PURE__*/function () {
         _this.$off(event, listener);
       };
     }
-    /**
-     * Unbind a listener function from an event.
-     *
-     * @param  {String}       event    Name of the event.
-     * @param  {Function}     listener Function to be removed.
-     * @return {EventManager}          The current instance.
-     */
-
   }, {
     key: "$off",
     value: function $off(event, listener) {
-      // If no event specified, we remove them all.
       if (!event) {
         this._events = {};
         return this;
-      } // If no listener have been specified, we remove all
-      // the listeners for the given event.
-
+      }
 
       if (!listener) {
         this._events[event] = [];
@@ -69,14 +45,6 @@ var EventManager = /*#__PURE__*/function () {
 
       return this;
     }
-    /**
-     * Emits an event.
-     *
-     * @param  {String}       event Name of the event.
-     * @param  {Array}        args  The arguments to apply to the functions bound to this event.
-     * @return {EventManager}       The current instance.
-     */
-
   }, {
     key: "$emit",
     value: function $emit(event) {
@@ -96,23 +64,11 @@ var EventManager = /*#__PURE__*/function () {
 
       return this;
     }
-    /**
-     * Bind a listener function to an event for one execution only.
-     *
-     * @param  {String}       event    Name of the event.
-     * @param  {Function}     listener Function to be called.
-     * @return {EventManager}          The current instance.
-     */
-
   }, {
     key: "$once",
     value: function $once(event, listener) {
       var instance = this;
-      this.$on(event,
-      /**
-       * @param {...any} args
-       */
-      function handler() {
+      this.$on(event, function handler() {
         instance.$off(event, handler);
 
         for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {

@@ -1,8 +1,6 @@
 import Base from '../abstracts/Base';
 import transition from '../utils/css/transition';
-import focusTrap from '../utils/focusTrap';
-
-const { trap, untrap, saveActiveElement } = focusTrap();
+import { trap, untrap, saveActiveElement } from '../utils/focusTrap';
 
 /**
  * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions

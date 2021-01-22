@@ -92,8 +92,8 @@ var nonSecure = function (size) {
  * Gets all non-builtin properties up the prototype chain.
  *
  * @param  {Object} object The object to get the propeties from.
- * @param  {Array}  props  The already existing properties.
- * @return {Array}         An array of properties and their value.
+ * @param  {Array=} [props=[]] The already existing properties.
+ * @return {Array<[String, Object]>} An array of properties and the prototype they belong to.
  */
 function getAllProperties(object, props = []) {
   const proto = Object.getPrototypeOf(object);
@@ -109,7 +109,7 @@ function getAllProperties(object, props = []) {
  * Auto-bind methods to an instance.
  *
  * @param  {Object}               instance          The instance.
- * @param  {Object}               options           Specify methods to include or exlude.
+ * @param  {Object}               options           Define specific methods to include or exlude.
  * @param  {Array<String|RegExp>} [options.include] Methods to include.
  * @param  {Array<String|RegExp>} [options.exclude] Methods to exclude.
  * @return {Object}                                 The instance.
@@ -622,8 +622,8 @@ function replace(input, re, value) {
 /**
  * Test if the given value is an object.
  *
- * @param  {*}       value The value to test.
- * @return {Boolean}       Whether or not the value is an object.
+ * @param {*} value The value to test.
+ * @return {Boolean} Whether or not the value is an object.
  */
 function isObject(value) {
   return typeof value === 'object' && !!value && value.toString() === '[object Object]';
@@ -1197,15 +1197,15 @@ class Service {
 }
 
 /**
- * Simple throttling helper that limits a
- * function to only run once every {delay}ms
+ * Simple throttling helper that limits a function to only run once every {delay}ms.
  *
- * @param {Function} fn    The function to throttle
- * @param {Number}   delay The delay in ms
+ * @param {Function} fn The function to throttle
+ * @param {Number=} [delay=16] The delay in ms
+ * @return {Function} The throttled function.
  */
 function throttle(fn, delay = 16) {
   let lastCall = 0;
-  return (...args) => {
+  return function throttled(...args) {
     const now = new Date().getTime();
 
     if (now - lastCall < delay) {
@@ -1222,12 +1222,13 @@ function throttle(fn, delay = 16) {
  * will not be triggered. The function will be called after it stops
  * being called for N milliseconds.
  *
- * @param {Function} fn    The function to call
- * @param {Number}   delay The delay in ms to wait before calling the function
+ * @param {Function} fn The function to call.
+ * @param {Number=} [delay=300] The delay in ms to wait before calling the function.
+ * @return {Function} The debounced function.
  */
 function debounce(fn, delay = 300) {
   let timeout;
-  return (...args) => {
+  return function debounced(...args) {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
       fn(...args);
@@ -1238,13 +1239,22 @@ function debounce(fn, delay = 300) {
 /**
  * RequestAnimation frame polyfill.
  * @see  https://github.com/vuejs/vue/blob/ec78fc8b6d03e59da669be1adf4b4b5abf670a34/dist/vue.runtime.esm.js#L7355
- * @type {Function}
+ * @return {Function}
  */
 const getRaf = () => typeof window !== 'undefined' && window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : setTimeout;
 /**
- * Execute a callback in the next frame.
- * @param  {Function} fn The callback function to execute.
- * @return {Promise}
+ * Wait for the next frame to execute a function.
+ *
+ * @param  {Function=} [fn=() => {}] The callback function to execute.
+ * @return {Promise} A Promise resolving when the next frame is reached.
+ *
+ * @example
+ * ```js
+ * nextFrame(() => console.log('hello world'));
+ *
+ * await nextFrame();
+ * console.log('hello world');
+ * ```
  */
 
 function nextFrame(fn = () => {}) {
@@ -2529,9 +2539,9 @@ var styles = {
 /**
  * Manage a list of classes as string on an element.
  *
- * @param {HTMLElement} element    The element to update.
- * @param {String}      classNames A string of class names.
- * @param {String}      method     The method to use: add, remove or toggle.
+ * @param {HTMLElement} element The element to update.
+ * @param {String} classNames A string of class names.
+ * @param {String=} [method='add'] The method to use: add, remove or toggle.
  */
 function setClasses(element, classNames, method = 'add') {
   if (!element || !classNames) {
@@ -3123,84 +3133,73 @@ Accordion.config = {
 };
 
 const FOCUSABLE_ELEMENTS = ['a[href]:not([tabindex^="-"]):not([inert])', 'area[href]:not([tabindex^="-"]):not([inert])', 'input:not([disabled]):not([inert])', 'select:not([disabled]):not([inert])', 'textarea:not([disabled]):not([inert])', 'button:not([disabled]):not([inert])', 'iframe:not([tabindex^="-"]):not([inert])', 'audio:not([tabindex^="-"]):not([inert])', 'video:not([tabindex^="-"]):not([inert])', '[contenteditable]:not([tabindex^="-"]):not([inert])', '[tabindex]:not([tabindex^="-"]):not([inert])'];
+let focusedBefore;
+/**
+ * Save the current active element.
+ */
+
+function saveActiveElement() {
+  focusedBefore = document.activeElement;
+}
+/**
+ * Trap tab navigation inside the given element.
+ * @param {HTMLElement} element The element in which to trap the tabulations.
+ * @param {KeyboardEvent} event The keydown or keyup event.
+ */
+
+function trap(element, event) {
+  if (event.keyCode !== keyCodes.TAB) {
+    return;
+  } // Save the previous focused element
+
+
+  if (!focusedBefore) {
+    focusedBefore = document.activeElement;
+  }
+  /** @type {Array<HTMLElement>} */
+
+
+  const focusableChildren = Array.from(element.querySelectorAll(FOCUSABLE_ELEMENTS.join(', ')));
+  const focusedItemIndex = document.activeElement instanceof HTMLElement ? focusableChildren.indexOf(document.activeElement) : -1;
+
+  if (!focusableChildren.length) {
+    return;
+  }
+
+  if (focusedItemIndex < 0) {
+    focusableChildren[0].focus();
+    event.preventDefault();
+  } // If the SHIFT key is being pressed while tabbing (moving backwards) and
+  // the currently focused item is the first one, move the focus to the last
+  // focusable item from the dialog element
+
+
+  if (event.shiftKey && focusedItemIndex === 0) {
+    focusableChildren[focusableChildren.length - 1].focus();
+    event.preventDefault();
+  } // If the SHIFT key is not being pressed (moving forwards) and the currently
+  // focused item is the last one, move the focus to the first focusable item
+  // from the dialog element
+  else if (!event.shiftKey && focusedItemIndex === focusableChildren.length - 1) {
+      focusableChildren[0].focus();
+      event.preventDefault();
+    }
+}
+/**
+ * Untrap the tab navigation.
+ */
+
+function untrap() {
+  if (focusedBefore && typeof focusedBefore.focus === 'function') {
+    focusedBefore.focus();
+    focusedBefore = null;
+  }
+}
 /**
  * Use a trap/untrap tabs logic.
- *
- * @return {Object} An object containing the trap and untrap methods.
  */
 
 function useFocusTrap() {
-  let focusedBefore;
-  /**
-   * Save the current active element.
-   *
-   * @return {void}
-   */
-
-  function saveActiveElement() {
-    focusedBefore = document.activeElement;
-  }
-  /**
-   * Trap tab navigation inside the given element.
-   *
-   * @param  {HTMLElement} element The element in which to trap the tabulations.
-   * @param  {KeyboardEvent}       event   The keydown or keyup event.
-   * @return {void}
-   */
-
-
-  function trap(element, event) {
-    if (event.keyCode !== keyCodes.TAB) {
-      return;
-    } // Save the previous focused element
-
-
-    if (!focusedBefore) {
-      focusedBefore = document.activeElement;
-    }
-    /** @type {Array<HTMLElement>} */
-
-
-    const focusableChildren = Array.from(element.querySelectorAll(FOCUSABLE_ELEMENTS.join(', ')));
-    const focusedItemIndex = document.activeElement instanceof HTMLElement ? focusableChildren.indexOf(document.activeElement) : -1;
-
-    if (!focusableChildren.length) {
-      return;
-    }
-
-    if (focusedItemIndex < 0) {
-      focusableChildren[0].focus();
-      event.preventDefault();
-    } // If the SHIFT key is being pressed while tabbing (moving backwards) and
-    // the currently focused item is the first one, move the focus to the last
-    // focusable item from the dialog element
-
-
-    if (event.shiftKey && focusedItemIndex === 0) {
-      focusableChildren[focusableChildren.length - 1].focus();
-      event.preventDefault();
-    } // If the SHIFT key is not being pressed (moving forwards) and the currently
-    // focused item is the last one, move the focus to the first focusable item
-    // from the dialog element
-    else if (!event.shiftKey && focusedItemIndex === focusableChildren.length - 1) {
-        focusableChildren[0].focus();
-        event.preventDefault();
-      }
-  }
-  /**
-   * Untrap the tab navigation.
-   *
-   * @return {void}
-   */
-
-
-  function untrap() {
-    if (focusedBefore && typeof focusedBefore.focus === 'function') {
-      focusedBefore.focus();
-      focusedBefore = null;
-    }
-  }
-
   return {
     trap,
     untrap,
@@ -3208,11 +3207,14 @@ function useFocusTrap() {
   };
 }
 
-const {
-  trap,
-  untrap,
-  saveActiveElement
-} = useFocusTrap();
+var focusTrap = {
+  __proto__: null,
+  saveActiveElement: saveActiveElement,
+  trap: trap,
+  untrap: untrap,
+  'default': useFocusTrap
+};
+
 /**
  * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
  */
@@ -4055,14 +4057,20 @@ var index$3 = {
 /**
  * Format a CSS transform matrix with the given values.
  *
- * @param  {Object} transform
- * @param  {Number} [transform.scaleX]     The scale on the x axis.
- * @param  {Number} [transform.scaleY]     The scale on the y axis.
- * @param  {Number} [transform.skewX]      The skew on the x axis.
- * @param  {Number} [transform.skewY]      The skew on the y axis.
- * @param  {Number} [transform.translateX] The translate on the x axis.
- * @param  {Number} [transform.translateY] The translate on the y axis.
- * @return {String}                        A formatted CSS matrix transform.
+ * @param  {Object}  transform
+ * @param  {Number=} [transform.scaleX=1]     The scale on the x axis.
+ * @param  {Number=} [transform.scaleY=1]     The scale on the y axis.
+ * @param  {Number=} [transform.skewX=0]      The skew on the x axis.
+ * @param  {Number=} [transform.skewY=0]      The skew on the y axis.
+ * @param  {Number=} [transform.translateX=0] The translate on the x axis.
+ * @param  {Number=} [transform.translateY=0] The translate on the y axis.
+ * @return {String}                           A formatted CSS matrix transform.
+ *
+ * @example
+ * ```js
+ * matrix({ scaleX: 0.5, scaleY: 0.5 });
+ * // matrix(0.5, 0, 0, 0.5, 0, 0)
+ * ```
  */
 function matrix(transform) {
   // eslint-disable-next-line no-param-reassign
@@ -4079,12 +4087,12 @@ var index$4 = {
 };
 
 /**
- * Smooth step from currentValue to targetValue
+ * Get the next damped value for a given speed.
  *
- * @param  {Number} targetValue we want to reech
- * @param  {Number} currentValue
- * @param  {Number} speed to reech target value
- * @return {Number}
+ * @param  {Number} targetValue The final value.
+ * @param  {Number} currentValue The current value.
+ * @param  {Number=} [speed=0.5] The speed to reach the target value.
+ * @return {Number} The next value.
  */
 function damp(targetValue, currentValue, speed = 0.5) {
   const value = currentValue + (targetValue - currentValue) * speed;
@@ -4110,7 +4118,7 @@ function lerp(min, max, ratio) {
  * @param  {Number} inputMin  The input's minimum value.
  * @param  {Number} inputMax  The input's maximum value.
  * @param  {Number} outputMin The output's minimum value.
- * @param  {Number} outputMax The intput's maximum value.
+ * @param  {Number} outputMax The output's maximum value.
  * @return {Number}           The input value mapped to the output range.
  */
 function map(value, inputMin, inputMax, outputMin, outputMax) {
@@ -4120,9 +4128,9 @@ function map(value, inputMin, inputMax, outputMin, outputMax) {
 /**
  * Round a value with a given number of decimals.
  *
- * @param  {Number} value    The number to round.
- * @param  {Number} decimals The number of decimals to keep.
- * @return {Number}          A rounded number to the given decimals length.
+ * @param  {Number} value The number to round.
+ * @param  {Number=} [decimals=0] The number of decimals to keep.
+ * @return {Number} A rounded number to the given decimals length.
  */
 function round(value, decimals = 0) {
   return Number(value.toFixed(decimals));
@@ -4149,7 +4157,7 @@ var index$7 = {
   math: index$5,
   object: index$6,
   debounce: debounce,
-  focusTrap: useFocusTrap,
+  focusTrap: focusTrap,
   keyCodes: keyCodes,
   nextFrame: nextFrame,
   throttle: throttle

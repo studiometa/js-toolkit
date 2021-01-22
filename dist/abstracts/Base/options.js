@@ -7,29 +7,13 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 import Options from './classes/Options';
 import { warn } from './utils';
-/**
- * @typedef {import('./index').default} Base
- */
-
-/**
- * Get a component's options.
- *
- * @param  {Base}        instance The component's instance.
- * @param  {HTMLElement} element  The component's root element.
- * @param  {Object}      config   The component's default config.
- * @return {Object}               The component's merged options.
- */
-
 export function getOptions(instance, element, config) {
   var schema = _objectSpread({}, config.options || {});
-  /** @type {Base|false} Merge inherited options. */
-
 
   var prototype = instance;
 
   while (prototype) {
-    var getterConfig = prototype.config; // @ts-ignore
-
+    var getterConfig = prototype.config;
     var staticConfig = prototype.constructor.config;
 
     if (getterConfig || staticConfig) {
@@ -38,8 +22,7 @@ export function getOptions(instance, element, config) {
     } else {
       prototype = false;
     }
-  } // Add legacy options from the config
-
+  }
 
   var propsToInclude = [{
     name: 'log',
@@ -56,8 +39,7 @@ export function getOptions(instance, element, config) {
       type: prop.type,
       default: prop.type(config[prop.name])
     };
-  }); // Add legacy options to the schema
-
+  });
   var propsToExclude = ['name', 'log', 'debug', 'components', 'refs', 'options'];
   Object.keys(config).forEach(function (propName) {
     if (propsToExclude.includes(propName)) {
@@ -65,7 +47,7 @@ export function getOptions(instance, element, config) {
     }
 
     var value = config[propName];
-    var type = value === null || value === undefined ? Object : value.constructor; // Default to object type as it should work for any values.
+    var type = value === null || value === undefined ? Object : value.constructor;
 
     if (!Options.types.includes(type)) {
       type = Object;
@@ -87,8 +69,7 @@ export function getOptions(instance, element, config) {
       };
     }
   });
-  var options = new Options(element, schema); // Update legacy options with value from the `data-options` attribute
-
+  var options = new Options(element, schema);
   var legacyOptions = {};
 
   if (element.dataset.options) {

@@ -1,14 +1,4 @@
 import { debug } from './utils';
-/**
- * @typedef {import('./index.js').default} Base
- */
-
-/**
- * Mount a given component which might be async.
- *
- * @param  {Base|Promise} component The component to mount.
- * @return {void}
- */
 
 function mountComponent(component) {
   if (component instanceof Promise) {
@@ -19,13 +9,6 @@ function mountComponent(component) {
     component.$mount();
   }
 }
-/**
- * Mount children components of a given instance.
- *
- * @param  {Base} instance The parent component's instance.
- * @return {void}
- */
-
 
 export function mountComponents(instance) {
   if (!instance.$children) {
@@ -37,12 +20,6 @@ export function mountComponents(instance) {
     $child.forEach(mountComponent);
   });
 }
-/**
- * Destroy a given component which might be async.
- *
- * @param  {Base|Promise} component The component to destroy.
- * @return {void}
- */
 
 function destroyComponent(component) {
   if (component instanceof Promise) {
@@ -53,13 +30,6 @@ function destroyComponent(component) {
     component.$destroy();
   }
 }
-/**
- * Destroy children components of a given instance.
- *
- * @param  {Base} instance The parent component's instance.
- * @return {void}
- */
-
 
 export function destroyComponents(instance) {
   if (!instance.$children) {

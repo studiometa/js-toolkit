@@ -12,17 +12,6 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 import Base from './abstracts/Base';
-/**
- * @typedef {import('./abstracts/Base').BaseComponent} BaseComponent
- */
-
-/**
- * Define a component without a class.
- *
- * @param  {Object} options The component's object
- * @return {BaseComponent}           A component's class.
- */
-
 export function defineComponent(options) {
   var config = options.config,
       methods = options.methods,
@@ -35,12 +24,8 @@ export function defineComponent(options) {
   if (!config.name) {
     throw new Error('The `config.name` property is required.');
   }
-  /**
-   * Component class.
-   */
 
-
-  var Component = /*#__PURE__*/function (_Base) {
+  var Component = function (_Base) {
     _inherits(Component, _Base);
 
     var _super = _createSuper(Component);
@@ -79,16 +64,8 @@ export function defineComponent(options) {
   });
   return Component;
 }
-/**
- * Create a Base instance with the given object configuration.
- * @param {HTMLElement|String} elementOrSelector The instance root HTML element.
- * @param {Object}             options           The Base class configuration.
- */
-
 export function createBase(elementOrSelector, options) {
   var Component = defineComponent(options);
-  /** @type {HTMLElement} */
-
   var element = typeof elementOrSelector === 'string' ? document.querySelector(elementOrSelector) : elementOrSelector;
   return new Component(element);
 }

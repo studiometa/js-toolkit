@@ -17,28 +17,6 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 import useResize from '../services/resize';
-/**
- * @typedef {import('../abstracts/Base').default} Base
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
- */
-
-/**
- * @typedef {Object} WithBreakpointObserverOptions
- * @property {String} [activeBreakpoints]
- * @property {String} [inactiveBreakpoints]
- */
-
-/**
- * @typedef {Object} WithBreakpointObserverInterface
- * @property {WithBreakpointObserverOptions} $options
- */
-
-/**
- * Test the breakpoins of the given Base instance and return the hook to call.
- *
- * @param  {Base & WithBreakpointObserverInterface}   instance The component's instance.
- * @return {String}          The action to trigger.
- */
 
 function testBreakpoints(instance) {
   var breakpoint = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : useResize().props().breakpoint;
@@ -54,12 +32,6 @@ function testBreakpoints(instance) {
 
   return '$destroy';
 }
-/**
- * Test if the given instance is configured for breakpoints.
- * @param  {Base & WithBreakpointObserverInterface}    instance A Base class instance.
- * @return {Boolean}          True if configured correctly, false otherwise.
- */
-
 
 function hasBreakpointConfiguration(instance) {
   var _instance$$options2 = instance.$options,
@@ -67,12 +39,6 @@ function hasBreakpointConfiguration(instance) {
       inactiveBreakpoints = _instance$$options2.inactiveBreakpoints;
   return Boolean(activeBreakpoints || inactiveBreakpoints);
 }
-/**
- * Test if the given instance has a conflicting configuration for breakpoints.
- * @param  {Base & WithBreakpointObserverInterface} instance A Base class instance.
- * @return {void}
- */
-
 
 function testConflictingBreakpointConfiguration(instance) {
   var _instance$$options3 = instance.$options,
@@ -84,27 +50,15 @@ function testConflictingBreakpointConfiguration(instance) {
     throw new Error("[".concat(name, "] Incorrect configuration: the `activeBreakpoints` and `inactiveBreakpoints` are not compatible."));
   }
 }
-/**
- * BreakpointObserver class.
- *
- * @param {BaseComponent} BaseClass The Base class to extend from.
- * @return {BaseComponent}
- */
-
 
 export default (function (BaseClass) {
   var _class, _temp, _BaseClass$config$nam, _BaseClass$config, _BaseClass$config2;
 
-  return _temp = _class = /*#__PURE__*/function (_BaseClass) {
+  return _temp = _class = function (_BaseClass) {
     _inherits(BreakpointObserver, _BaseClass);
 
     var _super = _createSuper(BreakpointObserver);
 
-    /**
-     * Watch for the document resize to test the breakpoints.
-     * @this {Base & WithBreakpointObserverInterface}
-     * @param  {HTMLElement} element The component's root element.
-     */
     function BreakpointObserver(element) {
       var _this;
 
@@ -118,21 +72,18 @@ export default (function (BaseClass) {
           remove = _useResize.remove,
           props = _useResize.props;
 
-      var name = _this.$options.name; // Do nothing if no breakpoint has been defined.
-      // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
+      var name = _this.$options.name;
 
       if (!props().breakpoint) {
         throw new Error("[".concat(name, "] The `BreakpointObserver` class requires breakpoints to be defined."));
       }
 
-      var key = "BreakpointObserver-".concat(_this.$id); // Watch change on the `data-options` attribute to emit the `set:options` event.
-
+      var key = "BreakpointObserver-".concat(_this.$id);
       var mutationObserver = new MutationObserver(function (_ref) {
         var _ref2 = _slicedToArray(_ref, 1),
             mutation = _ref2[0];
 
         if (mutation.type === 'attributes' && (mutation.attributeName === 'data-options' || mutation.attributeName.startsWith('data-option-'))) {
-          // Stop here silently when no breakpoint configuration given.
           if (!hasBreakpointConfiguration(_assertThisInitialized(_this))) {
             _this.$mount();
 
@@ -154,7 +105,7 @@ export default (function (BaseClass) {
       });
       mutationObserver.observe(_this.$el, {
         attributes: true
-      }); // Stop here silently when no breakpoint configuration given.
+      });
 
       if (!hasBreakpointConfiguration(_assertThisInitialized(_this))) {
         return _possibleConstructorReturn(_this, _assertThisInitialized(_this));
@@ -169,17 +120,10 @@ export default (function (BaseClass) {
       });
       return _possibleConstructorReturn(_this, _assertThisInitialized(_this));
     }
-    /**
-     * Override the default $mount method to prevent component's from being
-     * mounted when they should not.
-     * @return {this}
-     */
-
 
     _createClass(BreakpointObserver, [{
       key: "$mount",
       value: function $mount() {
-        // Execute normal behavior when no breakpoint configuration given.
         if (!hasBreakpointConfiguration(this)) {
           return _get(_getPrototypeOf(BreakpointObserver.prototype), "$mount", this).call(this);
         }

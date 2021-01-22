@@ -14,49 +14,9 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 import Base from '../abstracts/Base';
 import transition from '../utils/css/transition';
-import focusTrap from '../utils/focusTrap';
+import { trap, untrap, saveActiveElement } from '../utils/focusTrap';
 
-var _focusTrap = focusTrap(),
-    trap = _focusTrap.trap,
-    untrap = _focusTrap.untrap,
-    saveActiveElement = _focusTrap.saveActiveElement;
-/**
- * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
- */
-
-/**
- * @typedef {Object} ModalRefs
- * @property {HTMLElement} close
- * @property {HTMLElement} container
- * @property {HTMLElement} content
- * @property {HTMLElement} modal
- * @property {HTMLElement} open
- * @property {HTMLElement} overlay
- */
-
-/**
- * @typedef {Object} ModalOptions
- * @property {String} move      A selector where to move the modal to.
- * @property {String} autofocus A selector for the element to set the focus to when the modal opens.
- * @property {Object} styles    The styles for the different state of the modal.
- */
-
-/**
- * @typedef {Object} ModalInterface
- * @property {ModalRefs} $refs
- * @property {ModalOptions} $options
- * @property {Boolean} isOpen
- * @property {Comment} refModalPlaceholder
- * @property {HTMLElement} refModalParentBackup
- * @property {Function} refModalUnbindGetRefFilter
- */
-
-/**
- * Modal class.
- */
-
-
-var Modal = /*#__PURE__*/function (_Base) {
+var Modal = function (_Base) {
   _inherits(Modal, _Base);
 
   var _super = _createSuper(Modal);
@@ -69,12 +29,6 @@ var Modal = /*#__PURE__*/function (_Base) {
 
   _createClass(Modal, [{
     key: "mounted",
-
-    /**
-     * Initialize the component's behaviours.
-     *
-     * @this {Modal & ModalInterface}
-     */
     value: function mounted() {
       this.isOpen = false;
       this.close();
@@ -85,11 +39,7 @@ var Modal = /*#__PURE__*/function (_Base) {
         this.refModalPlaceholder = document.createComment('');
         this.refModalParentBackup = this.$refs.modal.parentElement || this.$el;
         this.refModalParentBackup.insertBefore(this.refModalPlaceholder, this.$refs.modal);
-        this.refModalUnbindGetRefFilter = this.$on('get:refs',
-        /**
-         * @param {ModalRefs} refs
-         */
-        function (refs) {
+        this.refModalUnbindGetRefFilter = this.$on('get:refs', function (refs) {
           Object.entries(refsBackup).forEach(function (_ref) {
             var _ref2 = _slicedToArray(_ref, 2),
                 key = _ref2[0],
@@ -105,13 +55,6 @@ var Modal = /*#__PURE__*/function (_Base) {
 
       return this;
     }
-    /**
-     * Unbind all events on destroy.
-     *
-     * @this {Modal & ModalInterface}
-     * @return {Modal} The Modal instance.
-     */
-
   }, {
     key: "destroyed",
     value: function destroyed() {
@@ -128,17 +71,6 @@ var Modal = /*#__PURE__*/function (_Base) {
 
       return this;
     }
-    /**
-     * Close the modal on `ESC` and trap the tabulation.
-     *
-     * @this {Modal & ModalInterface}
-     * @param  {Object}        options
-     * @param  {KeyboardEvent} options.event  The original keyboard event
-     * @param  {Boolean}       options.isUp   Is it a keyup event?
-     * @param  {Boolean}       options.isDown Is it a keydown event?
-     * @param  {Boolean}       options.ESC    Is it the ESC key?
-     */
-
   }, {
     key: "keyed",
     value: function keyed(_ref3) {
@@ -159,17 +91,10 @@ var Modal = /*#__PURE__*/function (_Base) {
         this.close();
       }
     }
-    /**
-     * Open the modal.
-     *
-     * @this {Modal & ModalInterface}
-     * @return {Promise<Modal>} The Modal instance.
-     */
-
   }, {
     key: "open",
     value: function () {
-      var _open = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
+      var _open = _asyncToGenerator(_regeneratorRuntime.mark(function _callee() {
         var _this = this;
 
         var refs;
@@ -189,8 +114,6 @@ var Modal = /*#__PURE__*/function (_Base) {
                 document.documentElement.style.overflow = 'hidden';
                 this.isOpen = true;
                 this.$emit('open');
-                /** @type {ModalRefs} */
-
                 refs = this.$refs;
                 return _context.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref4) {
                   var _ref5 = _slicedToArray(_ref4, 2),
@@ -213,7 +136,6 @@ var Modal = /*#__PURE__*/function (_Base) {
                 })).then(function () {
                   if (_this.$options.autofocus && _this.$refs.modal.querySelector(_this.$options.autofocus)) {
                     saveActiveElement();
-                    /** @type {HTMLElement} */
 
                     var autofocusElement = _this.$refs.modal.querySelector(_this.$options.autofocus);
 
@@ -237,17 +159,10 @@ var Modal = /*#__PURE__*/function (_Base) {
 
       return open;
     }()
-    /**
-     * Close the modal.
-     *
-     * @this {Modal & ModalInterface}
-     * @return {Promise<Modal>} The Modal instance.
-     */
-
   }, {
     key: "close",
     value: function () {
-      var _close = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2() {
+      var _close = _asyncToGenerator(_regeneratorRuntime.mark(function _callee2() {
         var _this2 = this;
 
         var refs;
@@ -268,8 +183,6 @@ var Modal = /*#__PURE__*/function (_Base) {
                 this.isOpen = false;
                 untrap();
                 this.$emit('close');
-                /** @type {ModalRefs} */
-
                 refs = this.$refs;
                 return _context2.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref6) {
                   var _ref7 = _slicedToArray(_ref6, 2),
@@ -309,36 +222,14 @@ var Modal = /*#__PURE__*/function (_Base) {
     }()
   }, {
     key: "onOpenClick",
-
-    /**
-     * Modal options.
-     */
-
-    /**
-     * Open the modal on click on the `open` ref.
-     *
-     * @return {Function} The component's `open` method.
-     */
     get: function get() {
       return this.open;
     }
-    /**
-     * Close the modal on click on the `close` ref.
-     *
-     * @return {Function} The component's `close` method.
-     */
-
   }, {
     key: "onCloseClick",
     get: function get() {
       return this.close;
     }
-    /**
-     * Close the modal on click on the `overlay` ref.
-     *
-     * @return {Function} The component's `close` method.
-     */
-
   }, {
     key: "onOverlayClick",
     get: function get() {

@@ -12,16 +12,6 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 import useResize from '../services/resize';
-/**
- * @typedef {import('../abstracts/Base').default} Base
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
- */
-
-/**
- * Test the breakpoins of the given Base instance and return the hook to call.
- *
- * @param  {Array<[String[], Base]>} breakpoints The breakpoints's data.
- */
 
 function testBreakpoints(breakpoints) {
   var _useResize$props = useResize().props(),
@@ -39,13 +29,6 @@ function testBreakpoints(breakpoints) {
     }
   });
 }
-/**
- * Prepare the components.
- * @param {Base} instance
- * @param {Array<[String, BaseComponent]>} breakpoints
- * @return {Array<[String, Base]>}
- */
-
 
 function mountComponents(instance, breakpoints) {
   return breakpoints.map(function (_ref3) {
@@ -62,20 +45,8 @@ function mountComponents(instance, breakpoints) {
     return [bk, child];
   });
 }
-/**
- * A cache object to hold each Base sub-instances.
- * @type {Object}
- */
-
 
 var instances = {};
-/**
- * BreakpointManager class.
- * @param {BaseComponent} BaseClass
- * @param {Array<[String, BaseComponent]>} breakpoints
- * @return {BaseComponent}
- */
-
 export default (function (BaseClass, breakpoints) {
   if (!Array.isArray(breakpoints)) {
     throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
@@ -87,24 +58,17 @@ export default (function (BaseClass, breakpoints) {
 
   var _useResize = useResize(),
       add = _useResize.add,
-      props = _useResize.props; // Do nothing if no breakpoint has been defined.
-  // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
-
+      props = _useResize.props;
 
   if (!props().breakpoint) {
     throw new Error("The `BreakpointManager` class requires breakpoints to be defined.");
   }
 
-  return /*#__PURE__*/function (_BaseClass) {
+  return function (_BaseClass) {
     _inherits(BreakpointManager, _BaseClass);
 
     var _super = _createSuper(BreakpointManager);
 
-    /**
-     * Watch for the document resize to test the breakpoints.
-     * @this {Base & {}}
-     * @param {HTMLElement} element The component's root element.
-     */
     function BreakpointManager(element) {
       var _this;
 
@@ -122,13 +86,6 @@ export default (function (BaseClass, breakpoints) {
       });
       return _possibleConstructorReturn(_this, _assertThisInitialized(_this));
     }
-    /**
-     * Override the default $mount method to prevent component's from being
-     * mounted when they should not.
-     * @this {Base}
-     * @return {this}
-     */
-
 
     _createClass(BreakpointManager, [{
       key: "$mount",
@@ -140,11 +97,6 @@ export default (function (BaseClass, breakpoints) {
         testBreakpoints(instances[this.$id]);
         return _get(_getPrototypeOf(BreakpointManager.prototype), "$mount", this).call(this);
       }
-      /**
-       * Destroy all instances when the main one is destroyed.
-       * @return {this}
-       */
-
     }, {
       key: "$destroy",
       value: function $destroy() {
