@@ -60,7 +60,7 @@ var Key = /*#__PURE__*/function (_Service) {
     /**
      * Bind the handler to the keyboard event.
      *
-     * @return {void}
+     * @return {Key}
      */
     value: function init() {
       var _this2 = this;
@@ -77,11 +77,12 @@ var Key = /*#__PURE__*/function (_Service) {
       document.addEventListener('keyup', this.handler, {
         passive: false
       });
+      return this;
     }
     /**
      * Unbind the handler from the keyboard event.
      *
-     * @return {void}
+     * @return {Key}
      */
 
   }, {
@@ -89,6 +90,7 @@ var Key = /*#__PURE__*/function (_Service) {
     value: function kill() {
       document.removeEventListener('keydown', this.handler);
       document.removeEventListener('keyup', this.handler);
+      return this;
     }
     /**
      * Get keyboard props.

@@ -1,10 +1,10 @@
 import _toConsumableArray from "@babel/runtime/helpers/toConsumableArray";
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
 import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
-import _createClass from "@babel/runtime/helpers/createClass";
 import _inherits from "@babel/runtime/helpers/inherits";
 import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
 import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
 import _objectWithoutProperties from "@babel/runtime/helpers/objectWithoutProperties";
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
@@ -13,10 +13,14 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 import Base from './abstracts/Base';
 /**
+ * @typedef {import('./abstracts/Base').BaseComponent} BaseComponent
+ */
+
+/**
  * Define a component without a class.
  *
  * @param  {Object} options The component's object
- * @return {Base}           A component's class.
+ * @return {BaseComponent}           A component's class.
  */
 
 export function defineComponent(options) {
@@ -47,19 +51,10 @@ export function defineComponent(options) {
       return _super.apply(this, arguments);
     }
 
-    _createClass(Component, [{
-      key: "config",
-
-      /**
-       * Component config.
-       */
-      get: function get() {
-        return config;
-      }
-    }]);
-
     return Component;
   }(Base);
+
+  _defineProperty(Component, "config", config);
 
   var allowedHooks = ['mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
   var filteredHooks = Object.entries(hooks).reduce(function (acc, _ref) {
@@ -92,6 +87,8 @@ export function defineComponent(options) {
 
 export function createBase(elementOrSelector, options) {
   var Component = defineComponent(options);
+  /** @type {HTMLElement} */
+
   var element = typeof elementOrSelector === 'string' ? document.querySelector(elementOrSelector) : elementOrSelector;
   return new Component(element);
 }

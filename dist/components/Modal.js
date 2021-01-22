@@ -6,6 +6,7 @@ import _createClass from "@babel/runtime/helpers/createClass";
 import _inherits from "@babel/runtime/helpers/inherits";
 import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
 import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
@@ -19,6 +20,37 @@ var _focusTrap = focusTrap(),
     trap = _focusTrap.trap,
     untrap = _focusTrap.untrap,
     saveActiveElement = _focusTrap.saveActiveElement;
+/**
+ * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+ */
+
+/**
+ * @typedef {Object} ModalRefs
+ * @property {HTMLElement} close
+ * @property {HTMLElement} container
+ * @property {HTMLElement} content
+ * @property {HTMLElement} modal
+ * @property {HTMLElement} open
+ * @property {HTMLElement} overlay
+ */
+
+/**
+ * @typedef {Object} ModalOptions
+ * @property {String} move      A selector where to move the modal to.
+ * @property {String} autofocus A selector for the element to set the focus to when the modal opens.
+ * @property {Object} styles    The styles for the different state of the modal.
+ */
+
+/**
+ * @typedef {Object} ModalInterface
+ * @property {ModalRefs} $refs
+ * @property {ModalOptions} $options
+ * @property {Boolean} isOpen
+ * @property {Comment} refModalPlaceholder
+ * @property {HTMLElement} refModalParentBackup
+ * @property {Function} refModalUnbindGetRefFilter
+ */
+
 /**
  * Modal class.
  */
@@ -41,7 +73,7 @@ var Modal = /*#__PURE__*/function (_Base) {
     /**
      * Initialize the component's behaviours.
      *
-     * @return {Modal} The current instance.
+     * @this {Modal & ModalInterface}
      */
     value: function mounted() {
       this.isOpen = false;
@@ -53,7 +85,11 @@ var Modal = /*#__PURE__*/function (_Base) {
         this.refModalPlaceholder = document.createComment('');
         this.refModalParentBackup = this.$refs.modal.parentElement || this.$el;
         this.refModalParentBackup.insertBefore(this.refModalPlaceholder, this.$refs.modal);
-        this.refModalUnbindGetRefFilter = this.$on('get:refs', function (refs) {
+        this.refModalUnbindGetRefFilter = this.$on('get:refs',
+        /**
+         * @param {ModalRefs} refs
+         */
+        function (refs) {
           Object.entries(refsBackup).forEach(function (_ref) {
             var _ref2 = _slicedToArray(_ref, 2),
                 key = _ref2[0],
@@ -72,6 +108,7 @@ var Modal = /*#__PURE__*/function (_Base) {
     /**
      * Unbind all events on destroy.
      *
+     * @this {Modal & ModalInterface}
      * @return {Modal} The Modal instance.
      */
 
@@ -80,7 +117,7 @@ var Modal = /*#__PURE__*/function (_Base) {
     value: function destroyed() {
       this.close();
 
-      if (this.$options.move) {
+      if (this.$options.move && this.refModalParentBackup) {
         this.refModalParentBackup.insertBefore(this.$refs.modal, this.refModalPlaceholder);
         this.refModalUnbindGetRefFilter();
         this.refModalPlaceholder.remove();
@@ -94,11 +131,12 @@ var Modal = /*#__PURE__*/function (_Base) {
     /**
      * Close the modal on `ESC` and trap the tabulation.
      *
+     * @this {Modal & ModalInterface}
+     * @param  {Object}        options
      * @param  {KeyboardEvent} options.event  The original keyboard event
      * @param  {Boolean}       options.isUp   Is it a keyup event?
      * @param  {Boolean}       options.isDown Is it a keydown event?
      * @param  {Boolean}       options.ESC    Is it the ESC key?
-     * @return {void}
      */
 
   }, {
@@ -124,7 +162,8 @@ var Modal = /*#__PURE__*/function (_Base) {
     /**
      * Open the modal.
      *
-     * @return {Modal} The Modal instance.
+     * @this {Modal & ModalInterface}
+     * @return {Promise<Modal>} The Modal instance.
      */
 
   }, {
@@ -133,6 +172,7 @@ var Modal = /*#__PURE__*/function (_Base) {
       var _open = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
         var _this = this;
 
+        var refs;
         return _regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -149,16 +189,23 @@ var Modal = /*#__PURE__*/function (_Base) {
                 document.documentElement.style.overflow = 'hidden';
                 this.isOpen = true;
                 this.$emit('open');
+                /** @type {ModalRefs} */
+
+                refs = this.$refs;
                 return _context.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref4) {
                   var _ref5 = _slicedToArray(_ref4, 2),
                       refName = _ref5[0],
                       _ref5$ = _ref5[1];
 
-                  _ref5$ = _ref5$ === void 0 ? {} : _ref5$;
+                  _ref5$ = _ref5$ === void 0 ? {
+                    open: '',
+                    active: '',
+                    closed: ''
+                  } : _ref5$;
                   var open = _ref5$.open,
                       active = _ref5$.active,
                       closed = _ref5$.closed;
-                  return transition(_this.$refs[refName], {
+                  return transition(refs[refName], {
                     from: closed,
                     active: active,
                     to: open
@@ -166,14 +213,17 @@ var Modal = /*#__PURE__*/function (_Base) {
                 })).then(function () {
                   if (_this.$options.autofocus && _this.$refs.modal.querySelector(_this.$options.autofocus)) {
                     saveActiveElement();
+                    /** @type {HTMLElement} */
 
-                    _this.$refs.modal.querySelector(_this.$options.autofocus).focus();
+                    var autofocusElement = _this.$refs.modal.querySelector(_this.$options.autofocus);
+
+                    autofocusElement.focus();
                   }
 
                   return Promise.resolve(_this);
                 }));
 
-              case 7:
+              case 8:
               case "end":
                 return _context.stop();
             }
@@ -190,7 +240,8 @@ var Modal = /*#__PURE__*/function (_Base) {
     /**
      * Close the modal.
      *
-     * @return {Modal} The Modal instance.
+     * @this {Modal & ModalInterface}
+     * @return {Promise<Modal>} The Modal instance.
      */
 
   }, {
@@ -199,6 +250,7 @@ var Modal = /*#__PURE__*/function (_Base) {
       var _close = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2() {
         var _this2 = this;
 
+        var refs;
         return _regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -216,16 +268,23 @@ var Modal = /*#__PURE__*/function (_Base) {
                 this.isOpen = false;
                 untrap();
                 this.$emit('close');
+                /** @type {ModalRefs} */
+
+                refs = this.$refs;
                 return _context2.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref6) {
                   var _ref7 = _slicedToArray(_ref6, 2),
                       refName = _ref7[0],
                       _ref7$ = _ref7[1];
 
-                  _ref7$ = _ref7$ === void 0 ? {} : _ref7$;
+                  _ref7$ = _ref7$ === void 0 ? {
+                    open: '',
+                    active: '',
+                    closed: ''
+                  } : _ref7$;
                   var open = _ref7$.open,
                       active = _ref7$.active,
                       closed = _ref7$.closed;
-                  return transition(_this2.$refs[refName], {
+                  return transition(refs[refName], {
                     from: open,
                     active: active,
                     to: closed
@@ -234,7 +293,7 @@ var Modal = /*#__PURE__*/function (_Base) {
                   return Promise.resolve(_this2);
                 }));
 
-              case 8:
+              case 9:
               case "end":
                 return _context2.stop();
             }
@@ -249,35 +308,17 @@ var Modal = /*#__PURE__*/function (_Base) {
       return close;
     }()
   }, {
-    key: "config",
+    key: "onOpenClick",
 
     /**
      * Modal options.
      */
-    get: function get() {
-      return {
-        name: 'Modal',
-        move: false,
-        autofocus: '[autofocus]',
-        styles: {
-          modal: {
-            closed: {
-              opacity: 0,
-              pointerEvents: 'none',
-              visibility: 'hidden'
-            }
-          }
-        }
-      };
-    }
+
     /**
      * Open the modal on click on the `open` ref.
      *
      * @return {Function} The component's `open` method.
      */
-
-  }, {
-    key: "onOpenClick",
     get: function get() {
       return this.open;
     }
@@ -307,6 +348,32 @@ var Modal = /*#__PURE__*/function (_Base) {
 
   return Modal;
 }(Base);
+
+_defineProperty(Modal, "config", {
+  name: 'Modal',
+  refs: ['close', 'container', 'content', 'modal', 'open', 'overlay'],
+  options: {
+    move: String,
+    autofocus: {
+      type: String,
+      default: '[autofocus]'
+    },
+    styles: {
+      type: Object,
+      default: function _default() {
+        return {
+          modal: {
+            closed: {
+              opacity: 0,
+              pointerEvents: 'none',
+              visibility: 'hidden'
+            }
+          }
+        };
+      }
+    }
+  }
+});
 
 export { Modal as default };
 //# sourceMappingURL=Modal.js.map

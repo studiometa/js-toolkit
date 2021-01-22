@@ -31,6 +31,20 @@ function _objectWithoutPropertiesLoose(source, excluded) {
   return target;
 }
 
+var id = 0;
+
+function _classPrivateFieldLooseKey(name) {
+  return "__private_" + id++ + "_" + name;
+}
+
+function _classPrivateFieldLooseBase(receiver, privateKey) {
+  if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
+    throw new TypeError("attempted to use private field on non-instance");
+  }
+
+  return receiver;
+}
+
 // This alphabet uses a-z A-Z 0-9 _- symbols.
 // Symbols are generated for smaller size.
 // -_zyxwvutsrqponmlkjihgfedcba9876543210ZYXWVUTSRQPONMLKJIHGFEDCBA
@@ -94,16 +108,19 @@ function getAllProperties(object, props = []) {
 /**
  * Auto-bind methods to an instance.
  *
- * @param  {Object}               instance        The instance.
- * @param  {Array<String|RegExp>} options.include Methods to include.
- * @param  {Array<String|RegExp>} options.exclude Methods to exclude.
- * @return {Object}                               The instance.
+ * @param  {Object}               instance          The instance.
+ * @param  {Object}               options           Specify methods to include or exlude.
+ * @param  {Array<String|RegExp>} [options.include] Methods to include.
+ * @param  {Array<String|RegExp>} [options.exclude] Methods to exclude.
+ * @return {Object}                                 The instance.
  */
 
-function autoBind(instance, {
-  include,
-  exclude
-} = {}) {
+function autoBind(instance, options) {
+  const {
+    exclude,
+    include
+  } = options || {};
+
   const filter = key => {
     const match = pattern => typeof pattern === 'string' ? key === pattern : pattern.test(key);
 
@@ -132,11 +149,6 @@ function autoBind(instance, {
 
 /**
  * Event management class.
- *
- * @method $on    Bind a given function to the given event.
- * @method $off   Unbind the given function from the given event.
- * @method $once  Bind a given function to the given event once.
- * @method $emit  Emit an event with custom props.
  */
 class EventManager {
   constructor() {
@@ -147,7 +159,7 @@ class EventManager {
    * Bind a listener function to an event.
    *
    * @param  {String}   event    Name of the event.
-   * @param  {String}   listener Function to be called.
+   * @param  {Function} listener Function to be called.
    * @return {Function}          A function to unbind the listener.
    */
   $on(event, listener) {
@@ -165,7 +177,7 @@ class EventManager {
    * Unbind a listener function from an event.
    *
    * @param  {String}       event    Name of the event.
-   * @param  {String}       listener Function to be removed.
+   * @param  {Function}     listener Function to be removed.
    * @return {EventManager}          The current instance.
    */
 
@@ -216,14 +228,18 @@ class EventManager {
    * Bind a listener function to an event for one execution only.
    *
    * @param  {String}       event    Name of the event.
-   * @param  {String}       listener Function to be called.
+   * @param  {Function}     listener Function to be called.
    * @return {EventManager}          The current instance.
    */
 
 
   $once(event, listener) {
     const instance = this;
-    this.$on(event, function handler(...args) {
+    this.$on(event,
+    /**
+     * @param {...any} args
+     */
+    function handler(...args) {
       instance.$off(event, handler);
       listener.apply(instance, args);
     });
@@ -233,19 +249,78 @@ class EventManager {
 }
 
 /**
+ * @typedef {import('./index').default} Base
+ * @typedef {import('./index').BaseConfig} BaseConfig
+ */
+
+/**
+ * Get the config from a Base instance, either the new static one or the old getter one.
+ *
+ * @param  {Base}       instance The instance to get the config from.
+ * @return {BaseConfig}         A Base class configuration object.
+ */
+function getConfig(instance) {
+  // @ts-ignore
+  const config = instance.constructor.config || instance.config;
+
+  if (!config) {
+    throw new Error('The `config` property must be defined.');
+  }
+
+  if (!config.name) {
+    throw new Error('The `config.name` property is required.');
+  } // @ts-ignore
+
+
+  if (instance.config && !instance.constructor.config) {
+    console.warn(`[${config.name}]`, 'Defining the `config` as a getter is deprecated, replace it with a static property.');
+  }
+
+  return config;
+}
+/**
+ * Display a console warning for the given instance.
+ *
+ * @param {Base}      instance A Base instance.
+ * @param {...String} msg   Values to display in the console.
+ */
+
+function warn(instance, ...msg) {
+  const {
+    name
+  } = getConfig(instance);
+  console.warn(`[${name}]`, ...msg);
+}
+/**
+ * Display a console log for the given instance.
+ *
+ * @param {Base}   instance The instance to log information from.
+ * @param {...any} msg      The data to print to the console.
+ */
+
+function log(instance, ...msg) {
+  const {
+    name
+  } = getConfig(instance);
+  console.log(`[${name}]`, ...msg);
+}
+/**
  * Verbose debug for the component.
  *
- * @param  {...any} args The arguments passed to the method
- * @return {void}
+ * @param {Base}   instance The instance to debug.
+ * @param {...any} args     The data to print.
  */
+
 function debug(instance, ...args) {
-  return instance.$options.debug ? window.console.log.apply(window, [instance.config.name, ...args]) : () => {};
+  if (instance.$options.debug) {
+    log(instance, ...args);
+  }
 }
 /**
  * Test if an object has a method.
  *
- * @param  {Object}  obj The object to test
- * @param  {String}  fn  The method's name
+ * @param  {Object}  obj  The object to test
+ * @param  {String}  name The method's name
  * @return {Boolean}
  */
 
@@ -255,8 +330,9 @@ function hasMethod(obj, name) {
 /**
  * Call the given method while applying the given arguments.
  *
- * @param {String} method The method to call
- * @param {...any} args   The arguments to pass to the method
+ * @param {Base}   instance The Base instance on which to trigger the method.
+ * @param {String} method   The method to call.
+ * @param {...any} args     The arguments to pass to the method.
  */
 
 function callMethod(instance, method, ...args) {
@@ -280,12 +356,20 @@ function callMethod(instance, method, ...args) {
 }
 
 /**
+ * @typedef {import('./index.js').default} Base
+ * @typedef {import('./index.js').BaseComponent} BaseComponent
+ * @typedef {import('./index.js').BaseAsyncComponent} BaseAsyncComponent
+ * @typedef {import('./index.js').BaseHTMLElement} BaseHTMLElement
+ * @typedef {import('./index.js').BaseConfigComponents} BaseConfigComponents
+ */
+
+/**
  * Get a child component.
  *
- * @param  {HTMLElement}  el             The root element of the child component.
- * @param  {Base|Promise} ComponentClass A Base class or a Promise for async components.
- * @param  {Base}         parent         The parent component instance.
- * @return {Base|Promise}                A Base instance or a Promise resolving to a Base instance.
+ * @param  {BaseHTMLElement}                  el             The root element of the child component.
+ * @param  {BaseComponent|BaseAsyncComponent} ComponentClass A Base class or a Promise for async components.
+ * @param  {Base}                             parent         The parent component instance.
+ * @return {Base|Promise|'terminated'}                       A Base instance or a Promise resolving to a Base instance.
  */
 function getChild(el, ComponentClass, parent) {
   // Return existing instance if it exists
@@ -294,10 +378,7 @@ function getChild(el, ComponentClass, parent) {
   } // Return a new instance if the component class is a child of the Base class
 
 
-  if (ComponentClass.__isBase__) {
-    Object.defineProperty(ComponentClass.prototype, '__isChild__', {
-      value: true
-    });
+  if ('$isBase' in ComponentClass) {
     const child = new ComponentClass(el);
     Object.defineProperty(child, '$parent', {
       get: () => parent
@@ -306,25 +387,18 @@ function getChild(el, ComponentClass, parent) {
   } // Resolve async components
 
 
-  const asyncComponent = ComponentClass().then(module => {
-    const ResolvedClass = module.default ? module.default : module;
-    Object.defineProperty(ResolvedClass.prototype, '__isChild__', {
-      value: true
-    });
-    const child = new ResolvedClass(el);
-    Object.defineProperty(child, '$parent', {
-      get: () => parent
-    });
-    return child;
+  return ComponentClass().then(module => {
+    var _module$default;
+
+    // @ts-ignore
+    return getChild(el, (_module$default = module.default) != null ? _module$default : module, parent);
   });
-  asyncComponent.__isAsync__ = true;
-  return asyncComponent;
 }
 /**
  * Get a list of elements based on the name of a component.
- * @param  {String}             nameOrSelector The name or selector to used for this component.
- * @param  {HTMLElement}        element        The root element on which to query the selector, defaults to `document`.
- * @return {Array<HTMLElement>}                A list of elements on which the component should be mounted.
+ * @param  {String}                   nameOrSelector The name or selector to used for this component.
+ * @param  {BaseHTMLElement|Document} element        The root element on which to query the selector, defaults to `document`.
+ * @return {Array<HTMLElement>}                      A list of elements on which the component should be mounted.
  */
 
 
@@ -345,10 +419,10 @@ function getComponentElements(nameOrSelector, element = document) {
 }
 /**
  * Get child components.
- * @param  {Base}        instance   The component's instance.
- * @param  {HTMLElement} element    The component's root element
- * @param  {Object}      components The children components' classes
- * @return {null|Object}            Returns `null` if no child components are defined or an object of all child component instances
+ * @param  {Base}                 instance   The component's instance.
+ * @param  {BaseHTMLElement}      element    The component's root element
+ * @param  {BaseConfigComponents} components The children components' classes
+ * @return {null|Object}                     Returns `null` if no child components are defined or an object of all child component instances
  */
 
 function getChildren(instance, element, components) {
@@ -360,6 +434,7 @@ function getChildren(instance, element, components) {
     }
 
     acc[name] = elements.map(el => getChild(el, ComponentClass, instance)) // Filter out terminated children
+    // @ts-ignore
     .filter(el => el !== 'terminated');
 
     if (acc[name].length === 0) {
@@ -505,6 +580,249 @@ var deepmerge_1 = deepmerge;
 var cjs = deepmerge_1;
 
 /**
+ * Source: ftp://ftp.unicode.org/Public/UCD/latest/ucd/SpecialCasing.txt
+ */
+/**
+ * Lower case as a function.
+ */
+function lowerCase(str) {
+    return str.toLowerCase();
+}
+
+// Support camel case ("camelCase" -> "camel Case" and "CAMELCase" -> "CAMEL Case").
+var DEFAULT_SPLIT_REGEXP = [/([a-z0-9])([A-Z])/g, /([A-Z])([A-Z][a-z])/g];
+// Remove all non-word characters.
+var DEFAULT_STRIP_REGEXP = /[^A-Z0-9]+/gi;
+/**
+ * Normalize the string into something other libraries can manipulate easier.
+ */
+function noCase(input, options) {
+    if (options === void 0) { options = {}; }
+    var _a = options.splitRegexp, splitRegexp = _a === void 0 ? DEFAULT_SPLIT_REGEXP : _a, _b = options.stripRegexp, stripRegexp = _b === void 0 ? DEFAULT_STRIP_REGEXP : _b, _c = options.transform, transform = _c === void 0 ? lowerCase : _c, _d = options.delimiter, delimiter = _d === void 0 ? " " : _d;
+    var result = replace(replace(input, splitRegexp, "$1\0$2"), stripRegexp, "\0");
+    var start = 0;
+    var end = result.length;
+    // Trim the delimiter from around the output string.
+    while (result.charAt(start) === "\0")
+        start++;
+    while (result.charAt(end - 1) === "\0")
+        end--;
+    // Transform each token independently.
+    return result.slice(start, end).split("\0").map(transform).join(delimiter);
+}
+/**
+ * Replace `re` in the input string with the replacement value.
+ */
+function replace(input, re, value) {
+    if (re instanceof RegExp)
+        return input.replace(re, value);
+    return re.reduce(function (input, re) { return input.replace(re, value); }, input);
+}
+
+/**
+ * Test if the given value is an object.
+ *
+ * @param  {*}       value The value to test.
+ * @return {Boolean}       Whether or not the value is an object.
+ */
+function isObject(value) {
+  return typeof value === 'object' && !!value && value.toString() === '[object Object]';
+}
+
+/**
+ * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
+ * @typedef {{ [name:string]: OptionType | { type: OptionType, default: String|Number|Boolean|(() => Array|Object)} }} OptionsSchema
+ */
+
+/**
+ * Get the attribute name based on the given option name.
+ * @param {String} name The option name.
+ */
+
+function getAttributeName(name) {
+  return `data-option-${noCase(name, {
+    delimiter: '-'
+  })}`;
+}
+/**
+ * Class options to manage options as data attributes on an HTML element.
+ */
+
+
+var _element = _classPrivateFieldLooseKey("element");
+
+var _values = _classPrivateFieldLooseKey("values");
+
+var _defaultValues = _classPrivateFieldLooseKey("defaultValues");
+
+class Options {
+  /** @type {HTMLElement} The HTML element holding the options attributes. */
+
+  /** @type {Object} An object to store Array and Object values for reference. */
+
+  /** @type {Array} List of allowed types. */
+
+  /**
+   * The default values to return for each available type.
+   * @type {Object}
+   */
+
+  /**
+   * Class constructor.
+   *
+   * @param {HTMLElement}   element The HTML element storing the options.
+   * @param {OptionsSchema} schema  A Base class config.
+   */
+  constructor(element, schema) {
+    Object.defineProperty(this, _element, {
+      writable: true,
+      value: void 0
+    });
+    Object.defineProperty(this, _values, {
+      writable: true,
+      value: {}
+    });
+    Object.defineProperty(this, _defaultValues, {
+      writable: true,
+      value: {
+        String: '',
+        Number: 0,
+        Boolean: false,
+        Array: () => [],
+        Object: () => ({})
+      }
+    });
+    _classPrivateFieldLooseBase(this, _element)[_element] = element;
+    Object.entries(schema).forEach(([name, config]) => {
+      const isObjectConfig = !Options.types.includes(config);
+      /** @type {OptionType} */
+      // @ts-ignore
+
+      const type = isObjectConfig ? config.type : config;
+
+      if (!Options.types.includes(type)) {
+        throw new Error(`The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`);
+      } // @ts-ignore
+
+
+      const defaultValue = isObjectConfig ? config.default : _classPrivateFieldLooseBase(this, _defaultValues)[_defaultValues][type.name];
+
+      if ((type === Array || type === Object) && typeof defaultValue !== 'function') {
+        throw new Error(`The default value for options of type "${type.name}" must be returned by a function.`);
+      }
+
+      Object.defineProperty(this, name, {
+        get() {
+          return this.get(name, type, defaultValue);
+        },
+
+        set(value) {
+          this.set(name, type, value);
+        },
+
+        enumerable: true
+      });
+    });
+    return this;
+  }
+  /**
+   * Get an option value.
+   *
+   * @param {String} name The option name.
+   * @param {ArrayConstructor|ObjectConstructor|StringConstructor|NumberConstructor|BooleanConstructor} type The option data's type.
+   * @param {any} defaultValue The default value for this option.
+   */
+
+
+  get(name, type, defaultValue) {
+    const attributeName = getAttributeName(name);
+
+    const hasAttribute = _classPrivateFieldLooseBase(this, _element)[_element].hasAttribute(attributeName);
+
+    if (type === Boolean) {
+      if (!hasAttribute && defaultValue) {
+        _classPrivateFieldLooseBase(this, _element)[_element].setAttribute(attributeName, '');
+      }
+
+      return hasAttribute || defaultValue;
+    }
+
+    const value = _classPrivateFieldLooseBase(this, _element)[_element].getAttribute(attributeName);
+
+    if (type === Number) {
+      return hasAttribute ? Number(value) : defaultValue;
+    }
+
+    if (type === Array || type === Object) {
+      const val = cjs(defaultValue(), hasAttribute ? JSON.parse(value) : _classPrivateFieldLooseBase(this, _defaultValues)[_defaultValues][type.name]());
+
+      if (!_classPrivateFieldLooseBase(this, _values)[_values][name]) {
+        _classPrivateFieldLooseBase(this, _values)[_values][name] = val;
+      } else if (val !== _classPrivateFieldLooseBase(this, _values)[_values][name]) {
+        // When getting the value, wait for the next loop to update the data attribute
+        // with the new value. This is a simple trick to avoid using a Proxy to watch
+        // for any deep changes on an array or object. It should not break anything as
+        // the original value is read once from the data attribute and is then read from
+        // the private property `#values`.
+        setTimeout(() => {
+          _classPrivateFieldLooseBase(this, _element)[_element].setAttribute(attributeName, JSON.stringify(_classPrivateFieldLooseBase(this, _values)[_values][name]));
+        }, 0);
+      }
+
+      return _classPrivateFieldLooseBase(this, _values)[_values][name];
+    }
+
+    return hasAttribute ? value : defaultValue;
+  }
+  /**
+   * Set an option value.
+   *
+   * @param {String} name The option name.
+   * @param {ArrayConstructor|ObjectConstructor|StringConstructor|NumberConstructor|BooleanConstructor} type The option data's type.
+   * @param {any} value The new value for this option.
+   */
+
+
+  set(name, type, value) {
+    const attributeName = getAttributeName(name);
+
+    if (value.constructor.name !== type.name) {
+      const val = Array.isArray(value) || isObject(value) ? JSON.stringify(value) : value;
+      throw new TypeError(`The "${val}" value for the "${name}" option must be of type "${type.name}"`);
+    }
+
+    switch (type) {
+      case Boolean:
+        if (value) {
+          _classPrivateFieldLooseBase(this, _element)[_element].setAttribute(attributeName, '');
+        } else {
+          _classPrivateFieldLooseBase(this, _element)[_element].removeAttribute(attributeName);
+        }
+
+        break;
+
+      case Array:
+      case Object:
+        _classPrivateFieldLooseBase(this, _values)[_values][name] = value;
+
+        _classPrivateFieldLooseBase(this, _element)[_element].setAttribute(attributeName, JSON.stringify(value));
+
+        break;
+
+      default:
+        _classPrivateFieldLooseBase(this, _element)[_element].setAttribute(attributeName, value);
+
+    }
+  }
+
+}
+Options.types = [String, Number, Boolean, Array, Object];
+
+/**
+ * @typedef {import('./index').default} Base
+ */
+
+/**
  * Get a component's options.
  *
  * @param  {Base}        instance The component's instance.
@@ -514,43 +832,124 @@ var cjs = deepmerge_1;
  */
 
 function getOptions(instance, element, config) {
-  let options = {};
+  let schema = _extends({}, config.options || {});
+  /** @type {Base|false} Merge inherited options. */
+
+
+  let prototype = instance;
+
+  while (prototype) {
+    const getterConfig = prototype.config; // @ts-ignore
+
+    const staticConfig = prototype.constructor.config;
+
+    if (getterConfig || staticConfig) {
+      schema = Object.assign((getterConfig || {}).options || {}, (staticConfig || {}).options || {}, schema);
+      prototype = Object.getPrototypeOf(prototype);
+    } else {
+      prototype = false;
+    }
+  } // Add legacy options from the config
+
+
+  const propsToInclude = [{
+    name: 'log',
+    type: Boolean
+  }, {
+    name: 'debug',
+    type: Boolean
+  }, {
+    name: 'name',
+    type: String
+  }];
+  propsToInclude.forEach(prop => {
+    schema[prop.name] = {
+      type: prop.type,
+      default: prop.type(config[prop.name])
+    };
+  }); // Add legacy options to the schema
+
+  const propsToExclude = ['name', 'log', 'debug', 'components', 'refs', 'options'];
+  Object.keys(config).forEach(propName => {
+    if (propsToExclude.includes(propName)) {
+      return;
+    }
+
+    const value = config[propName];
+    let type = value === null || value === undefined ? Object : value.constructor; // Default to object type as it should work for any values.
+
+    if (!Options.types.includes(type)) {
+      type = Object;
+    }
+
+    warn(instance, '\n  Options must be defined in the `config.options` property.', `\n  Consider moving the \`config.${propName}\` option to \`config.options.${propName}\`.`);
+
+    if (type === Array || type === Object) {
+      schema[propName] = {
+        type,
+        default: () => value
+      };
+    } else {
+      schema[propName] = {
+        type,
+        default: value
+      };
+    }
+  });
+  const options = new Options(element, schema); // Update legacy options with value from the `data-options` attribute
+
+  let legacyOptions = {};
 
   if (element.dataset.options) {
+    warn(instance, 'The `data-options` attribute usage is deprecated, use multiple `data-option-...` attributes instead.');
+
     try {
-      options = JSON.parse(element.dataset.options);
+      legacyOptions = JSON.parse(element.dataset.options);
     } catch (err) {
       throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
     }
   }
 
-  options = cjs(config, options);
+  Object.entries(legacyOptions).forEach(([optionName, optionValue]) => {
+    options[optionName] = optionValue;
+  });
   instance.$emit('get:options', options);
   return options;
 }
+
 /**
- * Set a component instance options.
- *
- * @param {Base}        instance   The component's instance.
- * @param {HTMLElement} element    The component's root element.
- * @param {Object}      newOptions The new options object.
+ * @typedef {import('./index').default} Base
  */
 
-function setOptions(instance, element, newOptions) {
-  let options = {};
+/**
+ * A ponyfill for the CSS `:scope` selector which is not supported in IE11.
+ * The following method will return an array of elements similare to the
+ * `:scope ${selector}` selector.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/CSS/:scope
+ * @see https://github.com/jonathantneal/element-qsa-scope
+ *
+ * @param  {HTMLElement} element  The element from which the scope is taken.
+ * @param  {String}      selector The children selector.
+ * @param  {String}      uniqId   A uniq ID to prefix the selector with.
+ * @return {Array}                A list of elements.
+ */
 
-  if (element.dataset.options) {
-    try {
-      options = JSON.parse(element.dataset.options);
-    } catch (err) {
-      throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
-    }
+function scopeSelectorPonyfill(element, selector, uniqId) {
+  let list = [];
+
+  try {
+    list = Array.from(element.querySelectorAll(`:scope ${selector}`));
+  } catch (err) {
+    const attr = `data-uniq-id`;
+    const scopedSelector = `[${attr}="${uniqId}"] ${selector}`;
+    element.setAttribute(attr, uniqId);
+    list = Array.from(element.querySelectorAll(scopedSelector));
+    element.removeAttribute(attr);
   }
 
-  options = cjs(options, newOptions);
-  element.dataset.options = JSON.stringify(options);
+  return list;
 }
-
 /**
  * Get all refs of a component.
  *
@@ -558,12 +957,26 @@ function setOptions(instance, element, newOptions) {
  * @param  {HTMLElement} element  The component's root element.
  * @return {Object}               Return an object containing all the component's refs.
  */
+
 function getRefs(instance, element) {
+  const definedRefs = getConfig(instance).refs || [];
+  /** @type {Array<HTMLElement>} */
+
   const allRefs = Array.from(element.querySelectorAll(`[data-ref]`));
-  const childrenRefs = Array.from(element.querySelectorAll(`:scope [data-component] [data-ref]`));
+  const childrenRefs = scopeSelectorPonyfill(element, '[data-component] [data-ref]', instance.$id);
   const elements = allRefs.filter(ref => !childrenRefs.includes(ref));
-  const refs = elements.reduce(($refs, $ref) => {
+  const refs = elements.reduce(
+  /**
+   * @param {Object} $refs
+   * @param {HTMLElement & {__base__?: Base}} $ref
+   */
+  ($refs, $ref) => {
     let refName = $ref.dataset.ref;
+
+    if (!definedRefs.includes(refName)) {
+      warn(instance, `The "${refName}" ref is not defined in the class configuration.`, 'Did you forgot to define it?');
+    }
+
     const $realRef = $ref.__base__ ? $ref.__base__ : $ref;
 
     if (refName.endsWith('[]')) {
@@ -579,6 +992,7 @@ function getRefs(instance, element) {
         $refs[refName].push($realRef);
       } else {
         $refs[refName] = [$refs[refName], $realRef];
+        warn(instance, `The "${refName}" ref has been found multiple times.`, 'Did you forgot to add the `[]` suffix to its name?');
       }
     } else {
       $refs[refName] = $realRef;
@@ -591,6 +1005,10 @@ function getRefs(instance, element) {
 }
 
 /**
+ * @typedef {import('./index.js').default} Base
+ */
+
+/**
  * Mount a given component which might be async.
  *
  * @param  {Base|Promise} component The component to mount.
@@ -598,7 +1016,7 @@ function getRefs(instance, element) {
  */
 
 function mountComponent(component) {
-  if (component.__isAsync__) {
+  if (component instanceof Promise) {
     component.then(instance => instance.$mount());
   } else {
     component.$mount();
@@ -630,7 +1048,7 @@ function mountComponents(instance) {
  */
 
 function destroyComponent(component) {
-  if (component.__isAsync__) {
+  if (component instanceof Promise) {
     component.then(instance => instance.$destroy());
   } else {
     component.$destroy();
@@ -661,8 +1079,6 @@ function destroyComponents(instance) {
 class Service {
   /**
    * Class constructor, used to test the abstract class implementation.
-   *
-   * @return {Service} The current instance
    */
   constructor() {
     this.callbacks = new Map();
@@ -705,7 +1121,7 @@ class Service {
    *
    * @param  {String}   key      The callback's identifier
    * @param  {Function} callback The callback function
-   * @return {Service}           The current instance
+   * @return {InstanceType<typeof Service>} The current instance
    */
 
 
@@ -859,7 +1275,7 @@ class Raf extends Service {
   /**
    * Start the requestAnimationFrame loop.
    *
-   * @return {void}
+   * @return {Raf}
    */
   init() {
     const raf = getRaf();
@@ -876,16 +1292,18 @@ class Raf extends Service {
 
     this.isTicking = true;
     loop();
+    return this;
   }
   /**
    * Stop the requestAnimationFrame loop.
    *
-   * @return {void}
+   * @return {Raf}
    */
 
 
   kill() {
     this.isTicking = false;
+    return this;
   }
   /**
    * Get raf props.
@@ -924,6 +1342,16 @@ var useRaf = (() => {
 });
 
 /**
+ * Test if an event is an instance of TouchEvent.
+ *
+ * @param {TouchEvent|MouseEvent} event The event instance to test.
+ * @return {Boolean}                    Is it a TouchEvent?
+ */
+
+function isTouchEvent(event) {
+  return typeof TouchEvent !== 'undefined' && event instanceof TouchEvent;
+}
+/**
  * Pointer service
  *
  * ```
@@ -934,6 +1362,7 @@ var useRaf = (() => {
  * props();
  * ```
  */
+
 
 class Pointer extends Service {
   constructor(...args) {
@@ -949,7 +1378,7 @@ class Pointer extends Service {
    * Bind the handler to the mousemove and touchmove events.
    * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
    *
-   * @return {void}
+   * @return {Pointer}
    */
   init() {
     const {
@@ -999,11 +1428,12 @@ class Pointer extends Service {
     document.addEventListener('touchend', this.upHandler, {
       passive: true
     });
+    return this;
   }
   /**
    * Unbind all handlers from their bounded event.
    *
-   * @return {void}
+   * @return {Pointer}
    */
 
 
@@ -1014,6 +1444,7 @@ class Pointer extends Service {
     document.removeEventListener('touchstart', this.downHandler);
     document.removeEventListener('mouseup', this.upHandler);
     document.removeEventListener('touchend', this.upHandler);
+    return this;
   }
   /**
    * Handler for the pointer's down action.
@@ -1040,27 +1471,41 @@ class Pointer extends Service {
   /**
    * Update the pointer positions.
    *
-   * @param  {Event} event The event object.
+   * @param  {MouseEvent|TouchEvent} event The event object.
    * @return {void}
    */
 
 
   updateValues(event) {
+    var _event$touches$, _event$touches$2;
+
     this.event = event;
     this.yLast = this.y;
     this.xLast = this.x; // Check pointer Y
     // We either get data from a touch event `event.touches[0].clientY` or from
     // a mouse event `event.clientY`.
 
-    if (((event.touches || [])[0] || event || {}).clientY !== this.y) {
-      this.y = ((event.touches || [])[0] || event || {}).clientY;
+    const y = isTouchEvent(event) ?
+    /** @type {TouchEvent} */
+    (_event$touches$ = event.touches[0]) == null ? void 0 : _event$touches$.clientY :
+    /** @type {MouseEvent} */
+    event.clientY;
+
+    if (y !== this.y) {
+      this.y = y;
     } // Check pointer X
     // We either get data from a touch event `event.touches[0].clientX` or from
     // a mouse event `event.clientX`.
 
 
-    if (((event.touches || [])[0] || event || {}).clientX !== this.x) {
-      this.x = ((event.touches || [])[0] || event || {}).clientX;
+    const x = isTouchEvent(event) ?
+    /** @type {TouchEvent} */
+    (_event$touches$2 = event.touches[0]) == null ? void 0 : _event$touches$2.clientX :
+    /** @type {MouseEvent} */
+    event.clientX;
+
+    if (x !== this.x) {
+      this.x = x;
     }
   }
   /**
@@ -1149,7 +1594,7 @@ class Resize extends Service {
   /**
    * Bind the handler to the resize event.
    *
-   * @return {void}
+   * @return {Resize}
    */
   init() {
     this.handler = debounce(() => {
@@ -1157,16 +1602,19 @@ class Resize extends Service {
     }).bind(this);
 
     if (this.canUseResizeObserver) {
+      // @ts-ignore
       this.resizeObserver = new ResizeObserver(this.handler);
       this.resizeObserver.observe(document.documentElement);
     } else {
       window.addEventListener('resize', this.handler);
     }
+
+    return this;
   }
   /**
    * Unbind the handler from the resize event.
    *
-   * @return {void}
+   * @return {Resize}
    */
 
 
@@ -1178,6 +1626,7 @@ class Resize extends Service {
     }
 
     delete this.resizeObserver;
+    return this;
   }
   /**
    * Get resize props.
@@ -1244,6 +1693,7 @@ class Resize extends Service {
 
 
   get canUseResizeObserver() {
+    // @ts-ignore
     return typeof window.ResizeObserver !== 'undefined';
   }
 
@@ -1293,7 +1743,7 @@ class Scroll extends Service {
   /**
    * Bind the handler to the scroll event.
    *
-   * @return {void}
+   * @return {Scroll}
    */
   init() {
     const debounced = debounce(() => {
@@ -1311,16 +1761,18 @@ class Scroll extends Service {
     document.addEventListener('scroll', this.handler, {
       passive: true
     });
+    return this;
   }
   /**
    * Unbind the handler from the scroll event.
    *
-   * @return {void}
+   * @return {Scroll}
    */
 
 
   kill() {
     document.removeEventListener('scroll', this.handler);
+    return this;
   }
   /**
    * Get scroll props.
@@ -1434,7 +1886,7 @@ class Key extends Service {
   /**
    * Bind the handler to the keyboard event.
    *
-   * @return {void}
+   * @return {Key}
    */
   init() {
     this.handler = event => {
@@ -1448,17 +1900,19 @@ class Key extends Service {
     document.addEventListener('keyup', this.handler, {
       passive: false
     });
+    return this;
   }
   /**
    * Unbind the handler from the keyboard event.
    *
-   * @return {void}
+   * @return {Key}
    */
 
 
   kill() {
     document.removeEventListener('keydown', this.handler);
     document.removeEventListener('keyup', this.handler);
+    return this;
   }
   /**
    * Get keyboard props.
@@ -1516,6 +1970,10 @@ var useKey = (() => {
 });
 
 /**
+ * @typedef {import('./index').default} Base
+ */
+
+/**
  * Init the given service and bind it to the given instance.
  *
  * @param  {Base}     instance The Base instance.
@@ -1533,7 +1991,11 @@ function initService(instance, method, service) {
     add,
     remove
   } = service();
-  add(instance.$id, (...args) => {
+  add(instance.$id,
+  /**
+   * @param {any[]} args
+   */
+  (...args) => {
     callMethod(instance, method, ...args);
   });
   return () => remove(instance.$id);
@@ -1550,6 +2012,9 @@ function bindServices(instance) {
   // @todo remove this? or move it elsewhere?
 
   if (hasMethod(instance, 'loaded')) {
+    /**
+     * @param {Event} event
+     */
     const loadedHandler = event => {
       callMethod(instance, 'loaded', {
         event
@@ -1565,6 +2030,7 @@ function bindServices(instance) {
   return unbindMethods;
 }
 
+// eslint-disable-next-line import/no-cycle
 /**
  * Bind event handler methods to the root HTML element.
  *
@@ -1613,15 +2079,19 @@ function bindRefsEvents(instance, eventMethods) {
 
         debug(instance, 'binding ref event', refName, eventName);
 
-        if ($ref.constructor && $ref.constructor.__isBase__) {
+        if ($ref instanceof Base) {
           // eslint-disable-next-line no-param-reassign
           $ref = $ref.$el;
         }
+        /** @type {HTMLElement} */
+
 
         $ref.addEventListener(eventName, handler);
 
         const unbindMethod = () => {
           debug(instance, 'unbinding ref event', eventMethods);
+          /** @type {HTMLElement} */
+
           $ref.removeEventListener(eventName, handler);
         };
 
@@ -1644,7 +2114,12 @@ function bindChildrenEvents(instance, eventMethods) {
   Object.entries(instance.$children).forEach(([childName, $children]) => {
     const childEventMethod = `on${childName.replace(/^\w/, c => c.toUpperCase())}`;
     eventMethods.filter(eventMethod => eventMethod.startsWith(childEventMethod)).forEach(eventMethod => {
-      $children.forEach(($child, index) => {
+      $children.forEach(
+      /**
+       * @param {Base} $child
+       * @param {Number} index
+       */
+      ($child, index) => {
         const eventName = eventMethod.replace(childEventMethod, '').toLowerCase();
 
         const handler = (...args) => {
@@ -1697,88 +2172,115 @@ function bindEvents(instance) {
 }
 
 /**
+ * @typedef {typeof Base} BaseComponent
+ * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
+ * @typedef {HTMLElement & { __base__?: Base | 'terminated' }} BaseHTMLElement
+ * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
+ * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
+ * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
+ * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
+ * @typedef {import('./classes/Options').OptionsSchema} BaseConfigOptions
+ */
+
+/**
+ * @typedef {Object} BaseConfig
+ * @property {String} name
+ * @property {Boolean} [debug]
+ * @property {Boolean} [log]
+ * @property {String[]} [refs]
+ * @property {BaseConfigComponents} [components]
+ * @property {BaseConfigOptions} [options]
+ */
+
+/**
  * Page lifecycle class
- *
- * @method mounted   Fired when the class is instantiated
- * @method loaded    Fired on the window's load event
- * @method ticked    Fired each frame with `requestAnimationFrame`
- * @method resized   Fired when the window is resized (`resize` event)
- * @method moved     Fired when the pointer has moved (`touchmove` and `mousemove` events)
- * @method scrolled  Fired with debounce when the document is scrolled (`scroll` event)
- * @method destroyed Fired when the window is being unloaded (`unload` event)
  */
 
 class Base extends EventManager {
   /**
+   * The instance parent.
+   * @type {Base}
+   */
+
+  /**
+   * The state of the component.
+   * @type {Boolean}
+   */
+
+  /**
+   * This is a Base instance.
+   * @type {Boolean}
+   */
+
+  /**
+   * Get properties to exclude from the autobind call.
+   * @return {Array<String|RegExp>}
+   */
+  get _excludeFromAutoBind() {
+    return ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
+  }
+  /**
+   * @deprecated Use the static `config` property instead.
+   * @return {BaseConfig}
+   */
+
+
+  get config() {
+    return null;
+  }
+  /** @type {BaseConfig} */
+
+
+  /**
    * Get the component's refs.
-   * @return {Object}
+   * @return {BaseRefs}
    */
   get $refs() {
     return getRefs(this, this.$el);
   }
   /**
    * Get the component's children components.
-   * @return {Object}
+   * @return {BaseChildren}
    */
 
 
   get $children() {
-    return getChildren(this, this.$el, this.config.components || {});
-  }
-  /**
-   * Get the component's merged config and options.
-   * @return {Object}
-   */
-
-
-  get $options() {
-    return getOptions(this, this.$el, this.config);
-  }
-  /**
-   * Set the components option.
-   * @param  {Object} value The new options values to merge with the old ones.
-   * @return {void}
-   */
-
-
-  set $options(newOptions) {
-    setOptions(this, this.$el, newOptions);
+    const {
+      components
+    } = getConfig(this);
+    return getChildren(this, this.$el, components || {});
   }
   /**
    * Class constructor where all the magic takes place.
    *
-   * @param  {HTMLElement} element The component's root element.
-   * @return {Base}                A Base instance.
+   * @param {BaseHTMLElement} element The component's root element dd.
    */
 
 
   constructor(element) {
     super();
-
-    if (!this.config) {
-      throw new Error('The `config` getter must be defined.');
-    }
-
-    if (!this.config.name) {
-      throw new Error('The `config.name` property is required.');
-    }
+    this.$parent = null;
+    this.$isMounted = false;
 
     if (!element) {
       throw new Error('The root element must be defined.');
     }
 
-    Object.defineProperties(this, {
-      $id: {
-        value: `${this.config.name}-${nonSecure()}`
-      },
-      $isMounted: {
-        value: false,
-        writable: true
-      },
-      $el: {
-        value: element
-      }
-    });
+    const {
+      name
+    } = getConfig(this);
+    /** @type {String} */
+
+    this.$id = `${name}-${nonSecure()}`;
+    /** @type {BaseHTMLElement} */
+
+    this.$el = element;
+    /** @type {Boolean} */
+
+    this.$isMounted = false;
+    /** @type {BaseOptions} */
+
+    this.$options = getOptions(this, element, getConfig(this));
 
     if (!this.$el.__base__) {
       Object.defineProperty(this.$el, '__base__', {
@@ -1789,7 +2291,7 @@ class Base extends EventManager {
 
 
     autoBind(this, {
-      exclude: ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated', ...(this._excludeFromAutoBind || [])]
+      exclude: [...(this._excludeFromAutoBind || [])]
     });
     let unbindMethods = [];
     this.$on('mounted', () => {
@@ -1806,15 +2308,7 @@ class Base extends EventManager {
       this.$isMounted = false;
       unbindMethods.forEach(method => method());
       destroyComponents(this);
-    }); // Mount class which are not used as another component's child.
-
-    if (!this.__isChild__) {
-      this.$mount();
-      Object.defineProperty(this, '$parent', {
-        get: () => null
-      });
-    }
-
+    });
     debug(this, 'constructor', this);
     return this;
   }
@@ -1827,7 +2321,9 @@ class Base extends EventManager {
 
 
   $log(...args) {
-    return this.$options.log ? window.console.log.apply(window, [this.config.name, ...args]) : () => {};
+    if (this.$options.log) {
+      log(this, ...args);
+    }
   }
   /**
    * Trigger the `mounted` callback.
@@ -1871,8 +2367,8 @@ class Base extends EventManager {
     this.$destroy(); // Execute the `terminated` hook if it exists
 
     callMethod(this, 'terminated'); // Delete the reference to the instance
-
-    delete this.$el.__base__; // And update its status to prevent re-instantiation when accessing the
+    // delete this.$el.__base__;
+    // And update its status to prevent re-instantiation when accessing the
     // parent's `$children` property
 
     Object.defineProperty(this.$el, '__base__', {
@@ -1884,8 +2380,8 @@ class Base extends EventManager {
   /**
    * Factory method to generate multiple instance of the class.
    *
-   * @param  {String}      selector The selector on which to mount each instance.
-   * @return {Array<Base>}          A list of the created instance.
+   * @param  {String}      nameOrSelector The selector on which to mount each instance.
+   * @return {Array<Base>}                A list of the created instance.
    */
 
 
@@ -1894,17 +2390,27 @@ class Base extends EventManager {
       throw new Error('The $factory method requires a component’s name or selector to be specified.');
     }
 
-    return getComponentElements(nameOrSelector).map(el => new this(el));
+    return getComponentElements(nameOrSelector).map(el => new this(el).$mount());
   }
+  /**
+   * Hello world.
+   */
+
+
+  mounted() {}
 
 }
-Base.__isBase__ = true;
+Base.$isBase = true;
+
+/**
+ * @typedef {import('./abstracts/Base').BaseComponent} BaseComponent
+ */
 
 /**
  * Define a component without a class.
  *
  * @param  {Object} options The component's object
- * @return {Base}           A component's class.
+ * @return {BaseComponent}           A component's class.
  */
 
 function defineComponent(options) {
@@ -1926,16 +2432,9 @@ function defineComponent(options) {
    */
 
 
-  class Component extends Base {
-    /**
-     * Component config.
-     */
-    get config() {
-      return config;
-    }
+  class Component extends Base {}
 
-  }
-
+  Component.config = config;
   const allowedHooks = ['mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
   const filteredHooks = Object.entries(hooks).reduce((acc, [name, fn]) => {
     if (allowedHooks.includes(name)) {
@@ -1963,6 +2462,8 @@ function defineComponent(options) {
 
 function createBase(elementOrSelector, options) {
   const Component = defineComponent(options);
+  /** @type {HTMLElement} */
+
   const element = typeof elementOrSelector === 'string' ? document.querySelector(elementOrSelector) : elementOrSelector;
   return new Component(element);
 }

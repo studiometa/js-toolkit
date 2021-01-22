@@ -5,6 +5,10 @@ import useScroll from '../../services/scroll';
 import useKey from '../../services/key';
 import { hasMethod, callMethod } from './utils';
 /**
+ * @typedef {import('./index').default} Base
+ */
+
+/**
  * Init the given service and bind it to the given instance.
  *
  * @param  {Base}     instance The Base instance.
@@ -22,7 +26,11 @@ function initService(instance, method, service) {
       add = _service.add,
       remove = _service.remove;
 
-  add(instance.$id, function () {
+  add(instance.$id,
+  /**
+   * @param {any[]} args
+   */
+  function () {
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
@@ -45,6 +53,9 @@ export default function bindServices(instance) {
   // @todo remove this? or move it elsewhere?
 
   if (hasMethod(instance, 'loaded')) {
+    /**
+     * @param {Event} event
+     */
     var loadedHandler = function loadedHandler(event) {
       callMethod(instance, 'loaded', {
         event: event

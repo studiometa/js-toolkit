@@ -15,6 +15,16 @@ import throttle from '../utils/throttle';
 import debounce from '../utils/debounce';
 import useRaf from './raf';
 /**
+ * Test if an event is an instance of TouchEvent.
+ *
+ * @param {TouchEvent|MouseEvent} event The event instance to test.
+ * @return {Boolean}                    Is it a TouchEvent?
+ */
+
+function isTouchEvent(event) {
+  return typeof TouchEvent !== 'undefined' && event instanceof TouchEvent;
+}
+/**
  * Pointer service
  *
  * ```
@@ -25,6 +35,7 @@ import useRaf from './raf';
  * props();
  * ```
  */
+
 
 var Pointer = /*#__PURE__*/function (_Service) {
   _inherits(Pointer, _Service);
@@ -64,7 +75,7 @@ var Pointer = /*#__PURE__*/function (_Service) {
      * Bind the handler to the mousemove and touchmove events.
      * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
      *
-     * @return {void}
+     * @return {Pointer}
      */
     value: function init() {
       var _this2 = this;
@@ -119,11 +130,12 @@ var Pointer = /*#__PURE__*/function (_Service) {
       document.addEventListener('touchend', this.upHandler, {
         passive: true
       });
+      return this;
     }
     /**
      * Unbind all handlers from their bounded event.
      *
-     * @return {void}
+     * @return {Pointer}
      */
 
   }, {
@@ -135,6 +147,7 @@ var Pointer = /*#__PURE__*/function (_Service) {
       document.removeEventListener('touchstart', this.downHandler);
       document.removeEventListener('mouseup', this.upHandler);
       document.removeEventListener('touchend', this.upHandler);
+      return this;
     }
     /**
      * Handler for the pointer's down action.
@@ -163,28 +176,42 @@ var Pointer = /*#__PURE__*/function (_Service) {
     /**
      * Update the pointer positions.
      *
-     * @param  {Event} event The event object.
+     * @param  {MouseEvent|TouchEvent} event The event object.
      * @return {void}
      */
 
   }, {
     key: "updateValues",
     value: function updateValues(event) {
+      var _event$touches$, _event$touches$2;
+
       this.event = event;
       this.yLast = this.y;
       this.xLast = this.x; // Check pointer Y
       // We either get data from a touch event `event.touches[0].clientY` or from
       // a mouse event `event.clientY`.
 
-      if (((event.touches || [])[0] || event || {}).clientY !== this.y) {
-        this.y = ((event.touches || [])[0] || event || {}).clientY;
+      var y = isTouchEvent(event) ?
+      /** @type {TouchEvent} */
+      (_event$touches$ = event.touches[0]) === null || _event$touches$ === void 0 ? void 0 : _event$touches$.clientY :
+      /** @type {MouseEvent} */
+      event.clientY;
+
+      if (y !== this.y) {
+        this.y = y;
       } // Check pointer X
       // We either get data from a touch event `event.touches[0].clientX` or from
       // a mouse event `event.clientX`.
 
 
-      if (((event.touches || [])[0] || event || {}).clientX !== this.x) {
-        this.x = ((event.touches || [])[0] || event || {}).clientX;
+      var x = isTouchEvent(event) ?
+      /** @type {TouchEvent} */
+      (_event$touches$2 = event.touches[0]) === null || _event$touches$2 === void 0 ? void 0 : _event$touches$2.clientX :
+      /** @type {MouseEvent} */
+      event.clientX;
+
+      if (x !== this.x) {
+        this.x = x;
       }
     }
     /**

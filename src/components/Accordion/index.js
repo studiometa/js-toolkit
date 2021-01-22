@@ -1,17 +1,33 @@
 import Base from '../../abstracts/Base';
-/* eslint-disable import/no-cycle */
-/** @type {Base} */
+// eslint-disable-next-line import/no-cycle
 import AccordionItem from './AccordionItem';
 
 /**
- * @typedef {import('../../abstracts/Base').BaseOptions} BaseOptions
- * @typedef {import('../../abstracts/Base').BaseChildren} BaseChildren
+ * @typedef {Object} AccordionRefs
+ * @property {HTMLElement[]} btn
+ * @property {HTMLElement[]} content
+ */
+
+/**
+ * @typedef {Object} AccordionOptions
+ * @property {Boolean} autoclose
+ * @property {Object} item
+ */
+
+/**
+ * @typedef {Object} AccordionChildren
+ * @property {AccordionItem[]} AccordionItem
+ */
+
+/**
+ * @typedef {Object} AccordionInterface
+ * @property {AccordionOptions} $options
+ * @property {AccordionRefs} $refs
+ * @property {AccordionChildren} $children
  */
 
 /**
  * Accordion class.
- * @implements {Base}
- * @property {BaseOptions & { autoclose: Boolean, item: Object|null }} $options
  */
 export default class Accordion extends Base {
   /**
@@ -35,17 +51,18 @@ export default class Accordion extends Base {
 
   /**
    * Init autoclose behavior on mounted.
+   * @this {Accordion & AccordionInterface}
    * @return {Promise<void>}
    */
   async mounted() {
-    /** @type {AccordionItem[]} */
-    const items = await Promise.all(
-      this.$children.AccordionItem.map((item) =>
-        item instanceof Promise ? item : Promise.resolve(item)
-      )
-    );
+    // /** @type {AccordionItem[]} */
+    // const items = await Promise.all(
+    //   this.$children.AccordionItem.map((item) =>
+    //     item instanceof Promise ? item : Promise.resolve(item)
+    //   )
+    // );
 
-    this.unbindMethods = items.map((item, index) => {
+    this.unbindMethods = this.$children.AccordionItem.map((item, index) => {
       const unbindOpen = item.$on('open', () => {
         this.$emit('open', item, index);
         if (this.$options.autoclose) {

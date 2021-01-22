@@ -5,6 +5,7 @@ import _createClass from "@babel/runtime/helpers/createClass";
 import _inherits from "@babel/runtime/helpers/inherits";
 import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
 import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
@@ -13,23 +14,38 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 import nanoid from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind';
 import EventManager from '../EventManager';
-import { callMethod, debug } from './utils';
+import { callMethod, debug, log, getConfig } from './utils'; // eslint-disable-next-line import/no-cycle
+
 import { getChildren, getComponentElements } from './children';
-import { getOptions, setOptions } from './options';
+import { getOptions } from './options';
 import { getRefs } from './refs';
 import { mountComponents, destroyComponents } from './components';
-import bindServices from './services';
+import bindServices from './services'; // eslint-disable-next-line import/no-cycle
+
 import bindEvents from './events';
 /**
+ * @typedef {typeof Base} BaseComponent
+ * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
+ * @typedef {HTMLElement & { __base__?: Base | 'terminated' }} BaseHTMLElement
+ * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
+ * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
+ * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
+ * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
+ * @typedef {import('./classes/Options').OptionsSchema} BaseConfigOptions
+ */
+
+/**
+ * @typedef {Object} BaseConfig
+ * @property {String} name
+ * @property {Boolean} [debug]
+ * @property {Boolean} [log]
+ * @property {String[]} [refs]
+ * @property {BaseConfigComponents} [components]
+ * @property {BaseConfigOptions} [options]
+ */
+
+/**
  * Page lifecycle class
- *
- * @method mounted   Fired when the class is instantiated
- * @method loaded    Fired on the window's load event
- * @method ticked    Fired each frame with `requestAnimationFrame`
- * @method resized   Fired when the window is resized (`resize` event)
- * @method moved     Fired when the pointer has moved (`touchmove` and `mousemove` events)
- * @method scrolled  Fired with debounce when the document is scrolled (`scroll` event)
- * @method destroyed Fired when the window is being unloaded (`unload` event)
  */
 
 var Base = /*#__PURE__*/function (_EventManager) {
@@ -38,49 +54,69 @@ var Base = /*#__PURE__*/function (_EventManager) {
   var _super = _createSuper(Base);
 
   _createClass(Base, [{
+    key: "_excludeFromAutoBind",
+
+    /**
+     * The instance parent.
+     * @type {Base}
+     */
+
+    /**
+     * The state of the component.
+     * @type {Boolean}
+     */
+
+    /**
+     * This is a Base instance.
+     * @type {Boolean}
+     */
+
+    /**
+     * Get properties to exclude from the autobind call.
+     * @return {Array<String|RegExp>}
+     */
+    get: function get() {
+      return ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
+    }
+    /**
+     * @deprecated Use the static `config` property instead.
+     * @return {BaseConfig}
+     */
+
+  }, {
+    key: "config",
+    get: function get() {
+      return null;
+    }
+    /** @type {BaseConfig} */
+
+  }, {
     key: "$refs",
 
     /**
      * Get the component's refs.
-     * @return {Object}
+     * @return {BaseRefs}
      */
     get: function get() {
       return getRefs(this, this.$el);
     }
     /**
      * Get the component's children components.
-     * @return {Object}
+     * @return {BaseChildren}
      */
 
   }, {
     key: "$children",
     get: function get() {
-      return getChildren(this, this.$el, this.config.components || {});
-    }
-    /**
-     * Get the component's merged config and options.
-     * @return {Object}
-     */
+      var _getConfig = getConfig(this),
+          components = _getConfig.components;
 
-  }, {
-    key: "$options",
-    get: function get() {
-      return getOptions(this, this.$el, this.config);
-    }
-    /**
-     * Set the components option.
-     * @param  {Object} value The new options values to merge with the old ones.
-     * @return {void}
-     */
-    ,
-    set: function set(newOptions) {
-      setOptions(this, this.$el, newOptions);
+      return getChildren(this, this.$el, components || {});
     }
     /**
      * Class constructor where all the magic takes place.
      *
-     * @param  {HTMLElement} element The component's root element.
-     * @return {Base}                A Base instance.
+     * @param {BaseHTMLElement} element The component's root element dd.
      */
 
   }]);
@@ -92,30 +128,29 @@ var Base = /*#__PURE__*/function (_EventManager) {
 
     _this = _super.call(this);
 
-    if (!_this.config) {
-      throw new Error('The `config` getter must be defined.');
-    }
+    _defineProperty(_assertThisInitialized(_this), "$parent", null);
 
-    if (!_this.config.name) {
-      throw new Error('The `config.name` property is required.');
-    }
+    _defineProperty(_assertThisInitialized(_this), "$isMounted", false);
 
     if (!element) {
       throw new Error('The root element must be defined.');
     }
 
-    Object.defineProperties(_assertThisInitialized(_this), {
-      $id: {
-        value: "".concat(_this.config.name, "-").concat(nanoid())
-      },
-      $isMounted: {
-        value: false,
-        writable: true
-      },
-      $el: {
-        value: element
-      }
-    });
+    var _getConfig2 = getConfig(_assertThisInitialized(_this)),
+        name = _getConfig2.name;
+    /** @type {String} */
+
+
+    _this.$id = "".concat(name, "-").concat(nanoid());
+    /** @type {BaseHTMLElement} */
+
+    _this.$el = element;
+    /** @type {Boolean} */
+
+    _this.$isMounted = false;
+    /** @type {BaseOptions} */
+
+    _this.$options = getOptions(_assertThisInitialized(_this), element, getConfig(_assertThisInitialized(_this)));
 
     if (!_this.$el.__base__) {
       Object.defineProperty(_this.$el, '__base__', {
@@ -128,7 +163,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
 
 
     autoBind(_assertThisInitialized(_this), {
-      exclude: ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'].concat(_toConsumableArray(_this._excludeFromAutoBind || []))
+      exclude: _toConsumableArray(_this._excludeFromAutoBind || [])
     });
     var unbindMethods = [];
 
@@ -152,18 +187,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
         return method();
       });
       destroyComponents(_assertThisInitialized(_this));
-    }); // Mount class which are not used as another component's child.
-
-
-    if (!_this.__isChild__) {
-      _this.$mount();
-
-      Object.defineProperty(_assertThisInitialized(_this), '$parent', {
-        get: function get() {
-          return null;
-        }
-      });
-    }
+    });
 
     debug(_assertThisInitialized(_this), 'constructor', _assertThisInitialized(_this));
     return _possibleConstructorReturn(_this, _assertThisInitialized(_this));
@@ -179,11 +203,13 @@ var Base = /*#__PURE__*/function (_EventManager) {
   _createClass(Base, [{
     key: "$log",
     value: function $log() {
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
+      if (this.$options.log) {
+        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments[_key];
+        }
 
-      return this.$options.log ? window.console.log.apply(window, [this.config.name].concat(args)) : function () {};
+        log.apply(void 0, [this].concat(args));
+      }
     }
     /**
      * Trigger the `mounted` callback.
@@ -231,8 +257,8 @@ var Base = /*#__PURE__*/function (_EventManager) {
       this.$destroy(); // Execute the `terminated` hook if it exists
 
       callMethod(this, 'terminated'); // Delete the reference to the instance
-
-      delete this.$el.__base__; // And update its status to prevent re-instantiation when accessing the
+      // delete this.$el.__base__;
+      // And update its status to prevent re-instantiation when accessing the
       // parent's `$children` property
 
       Object.defineProperty(this.$el, '__base__', {
@@ -244,10 +270,17 @@ var Base = /*#__PURE__*/function (_EventManager) {
     /**
      * Factory method to generate multiple instance of the class.
      *
-     * @param  {String}      selector The selector on which to mount each instance.
-     * @return {Array<Base>}          A list of the created instance.
+     * @param  {String}      nameOrSelector The selector on which to mount each instance.
+     * @return {Array<Base>}                A list of the created instance.
      */
 
+  }, {
+    key: "mounted",
+
+    /**
+     * Hello world.
+     */
+    value: function mounted() {}
   }], [{
     key: "$factory",
     value: function $factory(nameOrSelector) {
@@ -258,7 +291,7 @@ var Base = /*#__PURE__*/function (_EventManager) {
       }
 
       return getComponentElements(nameOrSelector).map(function (el) {
-        return new _this2(el);
+        return new _this2(el).$mount();
       });
     }
   }]);
@@ -266,6 +299,9 @@ var Base = /*#__PURE__*/function (_EventManager) {
   return Base;
 }(EventManager);
 
+_defineProperty(Base, "$isBase", true);
+
+_defineProperty(Base, "config", void 0);
+
 export { Base as default };
-Base.__isBase__ = true;
 //# sourceMappingURL=index.js.map

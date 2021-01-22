@@ -29,9 +29,9 @@ export default class Options {
     set(name: string, type: ArrayConstructor | ObjectConstructor | StringConstructor | NumberConstructor | BooleanConstructor, value: any): void;
     #private;
 }
-export type OptionType = ObjectConstructor | StringConstructor | BooleanConstructor | NumberConstructor | ArrayConstructor;
+export type OptionType = ObjectConstructor | ArrayConstructor | StringConstructor | NumberConstructor | BooleanConstructor;
 export type OptionsSchema = {
-    [name: string]: ObjectConstructor | StringConstructor | BooleanConstructor | NumberConstructor | ArrayConstructor | {
+    [name: string]: ObjectConstructor | ArrayConstructor | StringConstructor | NumberConstructor | BooleanConstructor | {
         type: OptionType;
         default: string | number | boolean | (() => any[] | any);
     };

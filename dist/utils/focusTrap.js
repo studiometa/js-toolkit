@@ -21,7 +21,7 @@ export default function useFocusTrap() {
    * Trap tab navigation inside the given element.
    *
    * @param  {HTMLElement} element The element in which to trap the tabulations.
-   * @param  {Event}       event   The keydown or keyup event.
+   * @param  {KeyboardEvent}       event   The keydown or keyup event.
    * @return {void}
    */
 
@@ -35,9 +35,11 @@ export default function useFocusTrap() {
     if (!focusedBefore) {
       focusedBefore = document.activeElement;
     }
+    /** @type {Array<HTMLElement>} */
+
 
     var focusableChildren = Array.from(element.querySelectorAll(FOCUSABLE_ELEMENTS.join(', ')));
-    var focusedItemIndex = focusableChildren.indexOf(document.activeElement);
+    var focusedItemIndex = document.activeElement instanceof HTMLElement ? focusableChildren.indexOf(document.activeElement) : -1;
 
     if (!focusableChildren.length) {
       return;

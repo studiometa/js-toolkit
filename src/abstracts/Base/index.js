@@ -2,6 +2,7 @@ import nanoid from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind';
 import EventManager from '../EventManager';
 import { callMethod, debug, log, getConfig } from './utils';
+// eslint-disable-next-line import/no-cycle
 import { getChildren, getComponentElements } from './children';
 import { getOptions } from './options';
 import { getRefs } from './refs';
@@ -11,25 +12,35 @@ import bindServices from './services';
 import bindEvents from './events';
 
 /**
+ * @typedef {typeof Base} BaseComponent
+ * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
  * @typedef {HTMLElement & { __base__?: Base | 'terminated' }} BaseHTMLElement
  * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
- * @typedef {{ [name:string]: HTMLElement | Base | Array<HTMLElement|Base> }} BaseRefs
+ * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
- * @typedef {{ [nameOrSelector:string]: Base | (() => Promise<Base>) }} BaseConfigComponents
+ * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
  * @typedef {import('./classes/Options').OptionsSchema} BaseConfigOptions
- * @typedef {{ name: string, debug?: boolean, log?: boolean, refs?: String[], components?: BaseConfigComponents, options?: BaseConfigOptions }} BaseConfig
+ */
+
+/**
+ * @typedef {Object} BaseConfig
+ * @property {String} name
+ * @property {Boolean} [debug]
+ * @property {Boolean} [log]
+ * @property {String[]} [refs]
+ * @property {BaseConfigComponents} [components]
+ * @property {BaseConfigOptions} [options]
  */
 
 /**
  * Page lifecycle class
- * @property {Boolean=false} $isMounted
  */
 export default class Base extends EventManager {
   /**
    * The instance parent.
    * @type {Base}
    */
-  $parent;
+  $parent = null;
 
   /**
    * The state of the component.
@@ -38,16 +49,10 @@ export default class Base extends EventManager {
   $isMounted = false;
 
   /**
-   * Is this instance a child of another one?
-   * @type {Boolean}
-   */
-  __isChild__ = false;
-
-  /**
    * This is a Base instance.
    * @type {Boolean}
    */
-  static __isBase__ = true;
+  static $isBase = true;
 
   /**
    * Get properties to exclude from the autobind call.
@@ -161,12 +166,6 @@ export default class Base extends EventManager {
       destroyComponents(this);
     });
 
-    // Mount class which are not used as another component's child.
-    if (!this.__isChild__) {
-      this.$mount();
-      Object.defineProperty(this, '$parent', { get: () => null });
-    }
-
     debug(this, 'constructor', this);
     return this;
   }
@@ -248,6 +247,11 @@ export default class Base extends EventManager {
       );
     }
 
-    return getComponentElements(nameOrSelector).map((el) => new this(el));
+    return getComponentElements(nameOrSelector).map((el) => new this(el).$mount());
   }
+
+  /**
+   * Hello world.
+   */
+  mounted() {}
 }

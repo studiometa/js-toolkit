@@ -1,11 +1,7 @@
-import _useKey from './key';
-export { _useKey as useKey };
-import _usePointer from './pointer';
-export { _usePointer as usePointer };
-import _useRaf from './raf';
-export { _useRaf as useRaf };
-import _useResize from './resize';
-export { _useResize as useResize };
-import _useScroll from './scroll';
-export { _useScroll as useScroll };
+import useKey from './key';
+import usePointer from './pointer';
+import useRaf from './raf';
+import useResize from './resize';
+import useScroll from './scroll';
+export { useKey, usePointer, useRaf, useResize, useScroll };
 //# sourceMappingURL=index.js.map

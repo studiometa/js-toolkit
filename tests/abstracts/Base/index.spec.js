@@ -418,10 +418,8 @@ describe('A Base instance methods', () => {
     const bar = new Bar(document.body);
     expect(Object.keys(bar.$children)).toEqual(['Foo', 'Baz', 'Boz', 'Buz']);
     await wait(150);
-    /* eslint-disable no-underscore-dangle */
-    expect(bar.$children.Foo[0].__isAsync__).toBeUndefined();
-    expect(bar.$children.Buz[0].__isAsync__).toBe(true);
-    /* eslint-enable no-underscore-dangle */
+    expect(bar.$children.Foo[0]).toBeInstanceOf(Base);
+    expect(bar.$children.Buz[0]).toBeInstanceOf(Promise);
     bar.$destroy();
     await wait(200);
     expect(bar.$children.Buz[0].$isMounted).toBe(false);

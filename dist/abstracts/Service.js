@@ -7,8 +7,6 @@ import _createClass from "@babel/runtime/helpers/createClass";
 var Service = /*#__PURE__*/function () {
   /**
    * Class constructor, used to test the abstract class implementation.
-   *
-   * @return {Service} The current instance
    */
   function Service() {
     _classCallCheck(this, Service);
@@ -52,7 +50,7 @@ var Service = /*#__PURE__*/function () {
      *
      * @param  {String}   key      The callback's identifier
      * @param  {Function} callback The callback function
-     * @return {Service}           The current instance
+     * @return {InstanceType<typeof Service>} The current instance
      */
 
   }, {

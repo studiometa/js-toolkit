@@ -1,6 +1,6 @@
-import Base from '~/src';
-import { withIntersectionObserver } from '~/src/decorators';
-import transition, { setClassesOrStyles } from '~/src/utils/css/transition';
+import Base from '../../../../src';
+import { withIntersectionObserver } from '../../../../src/decorators';
+import transition, { setClassesOrStyles } from '../../../../src/utils/css/transition';
 
 export default class Lazyload extends withIntersectionObserver(Base) {
   static config = {

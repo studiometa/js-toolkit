@@ -1,6 +1,8 @@
-import _defineProperty from "@babel/runtime/helpers/defineProperty";
 import _regeneratorRuntime from "@babel/runtime/regenerator";
 import _asyncToGenerator from "@babel/runtime/helpers/asyncToGenerator";
+import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
+import _createClass from "@babel/runtime/helpers/createClass";
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -10,6 +12,59 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 import nextFrame from '../nextFrame';
 import * as classes from './classes';
 import * as styles from './styles';
+/** WeakMap to hold the transition instances. */
+
+var cache = new WeakMap();
+/**
+ * Transition class.
+ */
+
+var Transition = /*#__PURE__*/function () {
+  /**
+   * Is a transition currently running?
+   * @type {Boolean}
+   */
+
+  /**
+   * A callback to execute when the transition ends.
+   * @type {EventListenerOrEventListenerObject|null}
+   */
+
+  /**
+   * Instantiate and save the instance to the cache.
+   * @param {HTMLElement} element The HTML element.
+   */
+  function Transition(element) {
+    _classCallCheck(this, Transition);
+
+    _defineProperty(this, "isTransitioning", false);
+
+    _defineProperty(this, "transitionEndHandler", null);
+
+    cache.set(element, this);
+  }
+  /**
+   * Get the transition class attached to the given element.
+   * @param  {HTMLElement} element The HTML element concerned by the transition.
+   * @return {Transition}          The transition instance tied to the given element.
+   */
+
+
+  _createClass(Transition, null, [{
+    key: "getInstance",
+    value: function getInstance(element) {
+      var instance = cache.get(element);
+
+      if (!instance) {
+        instance = new this(element);
+      }
+
+      return instance;
+    }
+  }]);
+
+  return Transition;
+}();
 /**
  * Update either the classes or the styles of an element with the given method.
  *
@@ -17,6 +72,7 @@ import * as styles from './styles';
  * @param {String|Object} classesOrStyles The classes or styles to apply.
  * @param {String}        method          The method to use, one of `add` or `remove`.
  */
+
 
 export function setClassesOrStyles(element, classesOrStyles) {
   var method = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'add';
@@ -67,21 +123,23 @@ function start(_x, _x2) {
 
 function _start() {
   _start = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee(element, classesOrStyles) {
+    var trs;
     return _regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            element.__isTransitioning__ = true;
+            trs = Transition.getInstance(element);
+            trs.isTransitioning = true;
             setClassesOrStyles(element, classesOrStyles.from);
-            _context.next = 4;
+            _context.next = 5;
             return nextFrame();
 
-          case 4:
+          case 5:
             setClassesOrStyles(element, classesOrStyles.active);
-            _context.next = 7;
+            _context.next = 8;
             return nextFrame();
 
-          case 7:
+          case 8:
           case "end":
             return _context.stop();
         }
@@ -116,13 +174,15 @@ function _next() {
 
             return _context3.abrupt("return", new Promise( /*#__PURE__*/function () {
               var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2(resolve) {
+                var trs;
                 return _regeneratorRuntime.wrap(function _callee2$(_context2) {
                   while (1) {
                     switch (_context2.prev = _context2.next) {
                       case 0:
                         if (hasTransition) {
-                          element.__transitionEndHandler__ = resolve;
-                          element.addEventListener('transitionend', element.__transitionEndHandler__, false);
+                          trs = Transition.getInstance(element);
+                          trs.transitionEndHandler = resolve;
+                          element.addEventListener('transitionend', trs.transitionEndHandler, false);
                         }
 
                         setClassesOrStyles(element, classesOrStyles.from, 'remove');
@@ -160,15 +220,16 @@ function _next() {
 
 function end(element, classesOrStyles) {
   var mode = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'remove';
-  element.removeEventListener('transitionend', element.__transitionEndHandler__, false);
+  var trs = Transition.getInstance(element);
+  element.removeEventListener('transitionend', trs.transitionEndHandler, false);
 
   if (mode === 'remove') {
     setClassesOrStyles(element, classesOrStyles.to, 'remove');
   }
 
   setClassesOrStyles(element, classesOrStyles.active, 'remove');
-  delete element.__isTransitioning__;
-  delete element.__transitionEndHandler__;
+  trs.isTransitioning = false;
+  trs.transitionEndHandler = null;
 }
 /**
  * Manage CSS transition with class.
@@ -191,6 +252,7 @@ function _transition() {
   _transition = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee4(element, name) {
     var endMode,
         classesOrStyles,
+        trs,
         _args4 = arguments;
     return _regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
@@ -205,24 +267,25 @@ function _transition() {
               from: '',
               active: '',
               to: ''
-            }, name); // End any previous transition running on the element.
+            }, name);
+            trs = Transition.getInstance(element); // End any previous transition running on the element.
 
-            if (element.__isTransitioning__) {
+            if (trs.isTransitioning) {
               end(element, classesOrStyles);
             }
 
-            _context4.next = 5;
+            _context4.next = 6;
             return start(element, classesOrStyles);
 
-          case 5:
-            _context4.next = 7;
+          case 6:
+            _context4.next = 8;
             return next(element, classesOrStyles);
 
-          case 7:
+          case 8:
             end(element, classesOrStyles, endMode);
             return _context4.abrupt("return", Promise.resolve());
 
-          case 9:
+          case 10:
           case "end":
             return _context4.stop();
         }

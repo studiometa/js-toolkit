@@ -59,7 +59,7 @@ var Scroll = /*#__PURE__*/function (_Service) {
     /**
      * Bind the handler to the scroll event.
      *
-     * @return {void}
+     * @return {Scroll}
      */
     value: function init() {
       var _this2 = this;
@@ -81,17 +81,19 @@ var Scroll = /*#__PURE__*/function (_Service) {
       document.addEventListener('scroll', this.handler, {
         passive: true
       });
+      return this;
     }
     /**
      * Unbind the handler from the scroll event.
      *
-     * @return {void}
+     * @return {Scroll}
      */
 
   }, {
     key: "kill",
     value: function kill() {
       document.removeEventListener('scroll', this.handler);
+      return this;
     }
     /**
      * Get scroll props.

@@ -6,11 +6,6 @@ import _defineProperty from "@babel/runtime/helpers/defineProperty";
 
 /**
  * Event management class.
- *
- * @method $on    Bind a given function to the given event.
- * @method $off   Unbind the given function from the given event.
- * @method $once  Bind a given function to the given event once.
- * @method $emit  Emit an event with custom props.
  */
 var EventManager = /*#__PURE__*/function () {
   function EventManager() {
@@ -26,7 +21,7 @@ var EventManager = /*#__PURE__*/function () {
      * Bind a listener function to an event.
      *
      * @param  {String}   event    Name of the event.
-     * @param  {String}   listener Function to be called.
+     * @param  {Function} listener Function to be called.
      * @return {Function}          A function to unbind the listener.
      */
     value: function $on(event, listener) {
@@ -46,7 +41,7 @@ var EventManager = /*#__PURE__*/function () {
      * Unbind a listener function from an event.
      *
      * @param  {String}       event    Name of the event.
-     * @param  {String}       listener Function to be removed.
+     * @param  {Function}     listener Function to be removed.
      * @return {EventManager}          The current instance.
      */
 
@@ -105,7 +100,7 @@ var EventManager = /*#__PURE__*/function () {
      * Bind a listener function to an event for one execution only.
      *
      * @param  {String}       event    Name of the event.
-     * @param  {String}       listener Function to be called.
+     * @param  {Function}     listener Function to be called.
      * @return {EventManager}          The current instance.
      */
 
@@ -113,7 +108,11 @@ var EventManager = /*#__PURE__*/function () {
     key: "$once",
     value: function $once(event, listener) {
       var instance = this;
-      this.$on(event, function handler() {
+      this.$on(event,
+      /**
+       * @param {...any} args
+       */
+      function handler() {
         instance.$off(event, handler);
 
         for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {

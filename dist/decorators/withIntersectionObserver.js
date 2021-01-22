@@ -1,4 +1,3 @@
-import _defineProperty from "@babel/runtime/helpers/defineProperty";
 import _classCallCheck from "@babel/runtime/helpers/classCallCheck";
 import _assertThisInitialized from "@babel/runtime/helpers/assertThisInitialized";
 import _createClass from "@babel/runtime/helpers/createClass";
@@ -6,6 +5,7 @@ import _inherits from "@babel/runtime/helpers/inherits";
 import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
 import _get from "@babel/runtime/helpers/get";
 import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
 import _toConsumableArray from "@babel/runtime/helpers/toConsumableArray";
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -17,6 +17,23 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 import { debug } from '../abstracts/Base/utils';
+/**
+ * @typedef {import('../abstracts/Base').default} Base
+ * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ */
+
+/**
+ * @typedef {Object} WithIntersectionObserverOptions
+ * @property {Object} intersectionObserver
+ */
+
+/**
+ * @typedef {Object} WithIntersectionObserverInterface
+ * @property {WithIntersectionObserverOptions} $options
+ * @property {IntersectionObserver} $observer
+ * @property {(entries: IntersectionObserverEntry[]) => void} intersected
+ */
+
 /**
  * Create an array of number between 0 and 1 from the given length.
  * @param  {Number} length The length of the array.
@@ -30,14 +47,19 @@ function createArrayOfNumber(length) {
 }
 /**
  * IntersectionObserver decoration.
+ * @param {BaseComponent} BaseClass The Base class to extend.
+ * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
+ * @return {BaseComponent}
  */
 
 
 export default (function (BaseClass) {
+  var _class, _temp, _BaseClass$config$nam, _BaseClass$config, _BaseClass$config2;
+
   var defaultOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
     threshold: createArrayOfNumber(100)
   };
-  return /*#__PURE__*/function (_BaseClass) {
+  return _temp = _class = /*#__PURE__*/function (_BaseClass) {
     _inherits(_class, _BaseClass);
 
     var _super = _createSuper(_class);
@@ -51,15 +73,14 @@ export default (function (BaseClass) {
       get: function get() {
         return [].concat(_toConsumableArray(_get(_getPrototypeOf(_class.prototype), "_excludeFromAutoBind", this) || []), ['intersected']);
       }
-      /**
-       * Create an observer when the class in instantiated.
-       *
-       * @param  {HTMLElement} element The component's root element.
-       * @return {Base}                The class instace.
-       */
-
     }]);
 
+    /**
+     * Create an observer when the class in instantiated.
+     *
+     * @this {Base & WithIntersectionObserverInterface}
+     * @param  {HTMLElement} element The component's root element.
+     */
     function _class(element) {
       var _this;
 
@@ -95,6 +116,11 @@ export default (function (BaseClass) {
     }
 
     return _class;
-  }(BaseClass);
+  }(BaseClass), _defineProperty(_class, "config", _objectSpread(_objectSpread({}, BaseClass.config || {}), {}, {
+    name: "".concat((_BaseClass$config$nam = BaseClass === null || BaseClass === void 0 ? void 0 : (_BaseClass$config = BaseClass.config) === null || _BaseClass$config === void 0 ? void 0 : _BaseClass$config.name) !== null && _BaseClass$config$nam !== void 0 ? _BaseClass$config$nam : '', "WithIntersectionObserver"),
+    options: _objectSpread(_objectSpread({}, (BaseClass === null || BaseClass === void 0 ? void 0 : (_BaseClass$config2 = BaseClass.config) === null || _BaseClass$config2 === void 0 ? void 0 : _BaseClass$config2.options) || {}), {}, {
+      intersectionObserver: Object
+    })
+  })), _temp;
 });
 //# sourceMappingURL=withIntersectionObserver.js.map

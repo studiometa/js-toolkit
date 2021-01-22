@@ -51,7 +51,7 @@ var Raf = /*#__PURE__*/function (_Service) {
     /**
      * Start the requestAnimationFrame loop.
      *
-     * @return {void}
+     * @return {Raf}
      */
     value: function init() {
       var _this2 = this;
@@ -70,17 +70,19 @@ var Raf = /*#__PURE__*/function (_Service) {
 
       this.isTicking = true;
       loop();
+      return this;
     }
     /**
      * Stop the requestAnimationFrame loop.
      *
-     * @return {void}
+     * @return {Raf}
      */
 
   }, {
     key: "kill",
     value: function kill() {
       this.isTicking = false;
+      return this;
     }
     /**
      * Get raf props.
