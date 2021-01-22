@@ -1,5 +1,7 @@
 import _toConsumableArray from "@babel/runtime/helpers/toConsumableArray";
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
+// eslint-disable-next-line import/no-cycle
+import Base from './index';
 import getAllProperties from '../../utils/object/getAllProperties';
 import { debug } from './utils';
 /**
@@ -66,15 +68,19 @@ function bindRefsEvents(instance, eventMethods) {
 
         debug(instance, 'binding ref event', refName, eventName);
 
-        if ($ref.constructor && $ref.constructor.__isBase__) {
+        if ($ref instanceof Base) {
           // eslint-disable-next-line no-param-reassign
           $ref = $ref.$el;
         }
+        /** @type {HTMLElement} */
+
 
         $ref.addEventListener(eventName, handler);
 
         var unbindMethod = function unbindMethod() {
           debug(instance, 'unbinding ref event', eventMethods);
+          /** @type {HTMLElement} */
+
           $ref.removeEventListener(eventName, handler);
         };
 
@@ -105,7 +111,12 @@ function bindChildrenEvents(instance, eventMethods) {
     eventMethods.filter(function (eventMethod) {
       return eventMethod.startsWith(childEventMethod);
     }).forEach(function (eventMethod) {
-      $children.forEach(function ($child, index) {
+      $children.forEach(
+      /**
+       * @param {Base} $child
+       * @param {Number} index
+       */
+      function ($child, index) {
         var eventName = eventMethod.replace(childEventMethod, '').toLowerCase();
 
         var handler = function handler() {

@@ -1,22 +1,31 @@
 /**
+ * @typedef {typeof Base} BaseComponent
+ * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
  * @typedef {HTMLElement & { __base__?: Base | 'terminated' }} BaseHTMLElement
  * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
- * @typedef {{ [name:string]: HTMLElement | Base | Array<HTMLElement|Base> }} BaseRefs
+ * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
- * @typedef {{ [nameOrSelector:string]: Base | (() => Promise<Base>) }} BaseConfigComponents
+ * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
  * @typedef {import('./classes/Options').OptionsSchema} BaseConfigOptions
- * @typedef {{ name: string, debug?: boolean, log?: boolean, refs?: String[], components?: BaseConfigComponents, options?: BaseConfigOptions }} BaseConfig
+ */
+/**
+ * @typedef {Object} BaseConfig
+ * @property {String} name
+ * @property {Boolean} [debug]
+ * @property {Boolean} [log]
+ * @property {String[]} [refs]
+ * @property {BaseConfigComponents} [components]
+ * @property {BaseConfigOptions} [options]
  */
 /**
  * Page lifecycle class
- * @property {Boolean=false} $isMounted
  */
 export default class Base extends EventManager {
     /**
      * This is a Base instance.
      * @type {Boolean}
      */
-    static __isBase__: boolean;
+    static $isBase: boolean;
     /** @type {BaseConfig} */
     static config: BaseConfig;
     /**
@@ -42,11 +51,6 @@ export default class Base extends EventManager {
      * @type {Boolean}
      */
     $isMounted: boolean;
-    /**
-     * Is this instance a child of another one?
-     * @type {Boolean}
-     */
-    __isChild__: boolean;
     /**
      * Get properties to exclude from the autobind call.
      * @return {Array<String|RegExp>}
@@ -97,7 +101,15 @@ export default class Base extends EventManager {
      * @return {void}
      */
     $terminate(): void;
+    /**
+     * Hello world.
+     */
+    mounted(): void;
 }
+export type BaseComponent = typeof Base;
+export type BaseAsyncComponent = () => Promise<BaseComponent | {
+    default: BaseComponent;
+}>;
 export type BaseHTMLElement = HTMLElement & {
     __base__?: Base | 'terminated';
 };
@@ -107,16 +119,16 @@ export type BaseOptions = {
     log: boolean;
 };
 export type BaseRefs = {
-    [name: string]: HTMLElement | Base | (HTMLElement | Base)[];
+    [name: string]: typeof Base | HTMLElement | (typeof Base | HTMLElement)[];
 };
 export type BaseChildren = {
     [nameOrSelector: string]: (Base | Promise<Base>)[];
 };
 export type BaseConfigComponents = {
-    [nameOrSelector: string]: Base | (() => Promise<Base>);
+    [nameOrSelector: string]: typeof Base | BaseAsyncComponent;
 };
 export type BaseConfigOptions = {
-    [name: string]: ObjectConstructor | StringConstructor | BooleanConstructor | NumberConstructor | ArrayConstructor | {
+    [name: string]: ObjectConstructor | ArrayConstructor | StringConstructor | NumberConstructor | BooleanConstructor | {
         type: import("./classes/Options").OptionType;
         default: string | number | boolean | (() => any);
     };

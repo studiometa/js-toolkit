@@ -1,14 +1,19 @@
-import Base from '~/src';
-import { Modal, Tabs, Accordion } from '~/src/components';
-import withBreakpointObserver from '~/src/decorators/withBreakpointObserver';
+import Base from '../../../src';
+import { Modal, Tabs, Accordion } from '../../../src/components';
+import withBreakpointObserver from '../../../src/decorators/withBreakpointObserver';
 import BreakpointManagerDemo from './components/BreakPointManagerDemo';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo';
 
+/**
+ * @typedef {import(../../../src/abstracts/Base/index).BaseConfig} BaseConfig
+ */
 class App extends Base {
+  /** @type {Baseconfig} */
   static config = {
     name: 'App',
     refs: ['modal'],
     log: true,
+    foo: 'dede',
     components: {
       Accordion,
       BreakpointManagerDemo,
@@ -21,6 +26,9 @@ class App extends Base {
     },
   };
 
+  /**
+   * @inheritdoc
+   */
   mounted() {
     this.$log('Mounted 🎉');
   }

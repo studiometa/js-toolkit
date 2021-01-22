@@ -1,6 +1,23 @@
 import { debug } from '../abstracts/Base/utils';
 
 /**
+ * @typedef {import('../abstracts/Base').default} Base
+ * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ */
+
+/**
+ * @typedef {Object} WithIntersectionObserverOptions
+ * @property {Object} intersectionObserver
+ */
+
+/**
+ * @typedef {Object} WithIntersectionObserverInterface
+ * @property {WithIntersectionObserverOptions} $options
+ * @property {IntersectionObserver} $observer
+ * @property {(entries: IntersectionObserverEntry[]) => void} intersected
+ */
+
+/**
  * Create an array of number between 0 and 1 from the given length.
  * @param  {Number} length The length of the array.
  * @return {Array}        An array of number.
@@ -11,6 +28,9 @@ function createArrayOfNumber(length) {
 
 /**
  * IntersectionObserver decoration.
+ * @param {BaseComponent} BaseClass The Base class to extend.
+ * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
+ * @return {BaseComponent}
  */
 export default (BaseClass, defaultOptions = { threshold: createArrayOfNumber(100) }) =>
   class extends BaseClass {
@@ -21,9 +41,19 @@ export default (BaseClass, defaultOptions = { threshold: createArrayOfNumber(100
       return [...(super._excludeFromAutoBind || []), 'intersected'];
     }
 
+    static config = {
+      ...(BaseClass.config || {}),
+      name: `${BaseClass?.config?.name ?? ''}WithIntersectionObserver`,
+      options: {
+        ...(BaseClass?.config?.options || {}),
+        intersectionObserver: Object,
+      },
+    };
+
     /**
      * Create an observer when the class in instantiated.
      *
+     * @this {Base & WithIntersectionObserverInterface}
      * @param  {HTMLElement} element The component's root element.
      */
     constructor(element) {

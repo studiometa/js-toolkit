@@ -39,7 +39,7 @@ var Resize = /*#__PURE__*/function (_Service) {
     /**
      * Bind the handler to the resize event.
      *
-     * @return {void}
+     * @return {Resize}
      */
     value: function init() {
       var _this = this;
@@ -49,16 +49,19 @@ var Resize = /*#__PURE__*/function (_Service) {
       }).bind(this);
 
       if (this.canUseResizeObserver) {
+        // @ts-ignore
         this.resizeObserver = new ResizeObserver(this.handler);
         this.resizeObserver.observe(document.documentElement);
       } else {
         window.addEventListener('resize', this.handler);
       }
+
+      return this;
     }
     /**
      * Unbind the handler from the resize event.
      *
-     * @return {void}
+     * @return {Resize}
      */
 
   }, {
@@ -71,6 +74,7 @@ var Resize = /*#__PURE__*/function (_Service) {
       }
 
       delete this.resizeObserver;
+      return this;
     }
     /**
      * Get resize props.
@@ -142,6 +146,7 @@ var Resize = /*#__PURE__*/function (_Service) {
   }, {
     key: "canUseResizeObserver",
     get: function get() {
+      // @ts-ignore
       return typeof window.ResizeObserver !== 'undefined';
     }
   }]);

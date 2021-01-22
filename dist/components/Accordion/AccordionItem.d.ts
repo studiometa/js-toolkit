@@ -1,11 +1,33 @@
 /**
  * @typedef {import('../../abstracts/Base').BaseOptions} BaseOptions
  * @typedef {import('../../utils/css/styles').CssStyleObject} CssStyleObject
- * @typedef {{ open: string | CssStyleObject, active: string | CssStyleObject, closed: string | CssStyleObject }} StylesOption
+ * @typedef {import('./index').AccordionInterface} AccordionInterface
+ */
+/**
+ * @typedef {Object} AccordionItemRefs
+ * @property {HTMLElement} btn
+ * @property {HTMLElement} content
+ * @property {HTMLElement} container
+ */
+/**
+ * @typedef {Object} StylesOption
+ * @property {String|CssStyleObject} open
+ * @property {String|CssStyleObject} active
+ * @property {String|CssStyleObject} closed
+ */
+/**
+ * @typedef {Object} AccordionItemOptions
+ * @property {Boolean} isOpen
+ * @property {{ [refName: string]: StylesOption }} styles
+ */
+/**
+ * @typedef {Object} AccordionItemInterface
+ * @property {AccordionItemOptions} $options
+ * @property {AccordionItemRefs} $refs
+ * @property {Accordion & AccordionInterface} $parent
  */
 /**
  * AccordionItem class.
- * @property {BaseOptions & { styles: { container: StylesOption, [refName:string]: StylesOption}, isOpen: Boolean }} $options
  */
 export default class AccordionItem extends Base {
     /**
@@ -31,13 +53,8 @@ export default class AccordionItem extends Base {
     };
     constructor(element: import("../../abstracts/Base").BaseHTMLElement);
     /**
-     * Add aria-attributes on mounted.
-     * @return {void}
-     */
-    mounted(): void;
-    /**
      * Handler for the click event on the `btn` ref.
-     * @return {void}
+     * @this {AccordionItem & AccordionItemInterface}
      */
     onBtnClick(): void;
     /**
@@ -48,20 +65,20 @@ export default class AccordionItem extends Base {
     /**
      * Update the refs' attributes according to the given type.
      *
+     * @this {AccordionItem & AccordionItemInterface}
      * @param  {Boolean} isOpen The state of the item.
-     * @return {void}
      */
     updateAttributes(isOpen: boolean): void;
     /**
      * Open an item.
-     * @return {Promise}
+     * @this {AccordionItem & AccordionItemInterface}
      */
-    open(): Promise<any>;
+    open(): Promise<void>;
     /**
      * Close an item.
-     * @return {Promise}
+     * @this {AccordionItem & AccordionItemInterface}
      */
-    close(): Promise<any>;
+    close(): Promise<void>;
 }
 export type BaseOptions = {
     name: string;
@@ -69,9 +86,31 @@ export type BaseOptions = {
     log: boolean;
 };
 export type CssStyleObject = Partial<CSSStyleDeclaration> & Record<string, string>;
+export type AccordionInterface = {
+    $options: import(".").AccordionOptions;
+    $refs: import(".").AccordionRefs;
+    $children: import(".").AccordionChildren;
+};
+export type AccordionItemRefs = {
+    btn: HTMLElement;
+    content: HTMLElement;
+    container: HTMLElement;
+};
 export type StylesOption = {
     open: string | CssStyleObject;
     active: string | CssStyleObject;
     closed: string | CssStyleObject;
 };
+export type AccordionItemOptions = {
+    isOpen: boolean;
+    styles: {
+        [refName: string]: StylesOption;
+    };
+};
+export type AccordionItemInterface = {
+    $options: AccordionItemOptions;
+    $refs: AccordionItemRefs;
+    $parent: Accordion & AccordionInterface;
+};
 import Base from "../../abstracts/Base";
+import Accordion from ".";

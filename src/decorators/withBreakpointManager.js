@@ -2,6 +2,7 @@ import useResize from '../services/resize';
 
 /**
  * @typedef {import('../abstracts/Base').default} Base
+ * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
  */
 
 /**
@@ -23,14 +24,12 @@ function testBreakpoints(breakpoints) {
 /**
  * Prepare the components.
  * @param {Base} instance
- * @param {Array<[String, BaseConstructor]>} breakpoints
+ * @param {Array<[String, BaseComponent]>} breakpoints
  * @return {Array<[String, Base]>}
  */
 function mountComponents(instance, breakpoints) {
   return breakpoints.map(([bk, ComponentClass]) => {
     const child = new ComponentClass(instance.$el);
-    // eslint-disable-next-line no-underscore-dangle
-    child.__isChild__ = true;
     Object.defineProperty(child, '$parent', { get: () => instance });
     return [bk, child];
   });
@@ -44,8 +43,9 @@ const instances = {};
 
 /**
  * BreakpointManager class.
- * @param {Base} BaseClass
- * @param {Array<[String, BaseConstructor]>} breakpoints
+ * @param {BaseComponent} BaseClass
+ * @param {Array<[String, BaseComponent]>} breakpoints
+ * @return {BaseComponent}
  */
 export default (BaseClass, breakpoints) => {
   if (!Array.isArray(breakpoints)) {
@@ -67,6 +67,7 @@ export default (BaseClass, breakpoints) => {
   return class BreakpointManager extends BaseClass {
     /**
      * Watch for the document resize to test the breakpoints.
+     * @this {Base & {}}
      * @param {HTMLElement} element The component's root element.
      */
     constructor(element) {
@@ -88,7 +89,8 @@ export default (BaseClass, breakpoints) => {
     /**
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
-     * @return {Base} The Base instance.
+     * @this {Base}
+     * @return {this}
      */
     $mount() {
       if (!instances[this.$id]) {
@@ -102,7 +104,7 @@ export default (BaseClass, breakpoints) => {
 
     /**
      * Destroy all instances when the main one is destroyed.
-     * @return {Base} The Base instance.
+     * @return {this}
      */
     $destroy() {
       if (Array.isArray(instances[this.$id])) {

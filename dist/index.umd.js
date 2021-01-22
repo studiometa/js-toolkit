@@ -66,6 +66,20 @@
     return self;
   }
 
+  var id = 0;
+
+  function _classPrivateFieldLooseKey(name) {
+    return "__private_" + id++ + "_" + name;
+  }
+
+  function _classPrivateFieldLooseBase(receiver, privateKey) {
+    if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
+      throw new TypeError("attempted to use private field on non-instance");
+    }
+
+    return receiver;
+  }
+
   // This alphabet uses a-z A-Z 0-9 _- symbols.
   // Symbols are generated for smaller size.
   // -_zyxwvutsrqponmlkjihgfedcba9876543210ZYXWVUTSRQPONMLKJIHGFEDCBA
@@ -137,16 +151,17 @@
   /**
    * Auto-bind methods to an instance.
    *
-   * @param  {Object}               instance        The instance.
-   * @param  {Array<String|RegExp>} options.include Methods to include.
-   * @param  {Array<String|RegExp>} options.exclude Methods to exclude.
-   * @return {Object}                               The instance.
+   * @param  {Object}               instance          The instance.
+   * @param  {Object}               options           Specify methods to include or exlude.
+   * @param  {Array<String|RegExp>} [options.include] Methods to include.
+   * @param  {Array<String|RegExp>} [options.exclude] Methods to exclude.
+   * @return {Object}                                 The instance.
    */
 
-  function autoBind(instance, _temp) {
-    var _ref = _temp === void 0 ? {} : _temp,
-        include = _ref.include,
-        exclude = _ref.exclude;
+  function autoBind(instance, options) {
+    var _ref = options || {},
+        exclude = _ref.exclude,
+        include = _ref.include;
 
     var filter = function filter(key) {
       var match = function match(pattern) {
@@ -183,11 +198,6 @@
 
   /**
    * Event management class.
-   *
-   * @method $on    Bind a given function to the given event.
-   * @method $off   Unbind the given function from the given event.
-   * @method $once  Bind a given function to the given event once.
-   * @method $emit  Emit an event with custom props.
    */
   var EventManager = /*#__PURE__*/function () {
     function EventManager() {
@@ -200,7 +210,7 @@
      * Bind a listener function to an event.
      *
      * @param  {String}   event    Name of the event.
-     * @param  {String}   listener Function to be called.
+     * @param  {Function} listener Function to be called.
      * @return {Function}          A function to unbind the listener.
      */
     _proto.$on = function $on(event, listener) {
@@ -220,7 +230,7 @@
      * Unbind a listener function from an event.
      *
      * @param  {String}       event    Name of the event.
-     * @param  {String}       listener Function to be removed.
+     * @param  {Function}     listener Function to be removed.
      * @return {EventManager}          The current instance.
      */
     ;
@@ -274,14 +284,18 @@
      * Bind a listener function to an event for one execution only.
      *
      * @param  {String}       event    Name of the event.
-     * @param  {String}       listener Function to be called.
+     * @param  {Function}     listener Function to be called.
      * @return {EventManager}          The current instance.
      */
     ;
 
     _proto.$once = function $once(event, listener) {
       var instance = this;
-      this.$on(event, function handler() {
+      this.$on(event,
+      /**
+       * @param {...any} args
+       */
+      function handler() {
         instance.$off(event, handler);
         listener.apply(instance, [].slice.call(arguments));
       });
@@ -292,19 +306,82 @@
   }();
 
   /**
+   * @typedef {import('./index').default} Base
+   * @typedef {import('./index').BaseConfig} BaseConfig
+   */
+
+  /**
+   * Get the config from a Base instance, either the new static one or the old getter one.
+   *
+   * @param  {Base}       instance The instance to get the config from.
+   * @return {BaseConfig}         A Base class configuration object.
+   */
+  function getConfig(instance) {
+    // @ts-ignore
+    var config = instance.constructor.config || instance.config;
+
+    if (!config) {
+      throw new Error('The `config` property must be defined.');
+    }
+
+    if (!config.name) {
+      throw new Error('The `config.name` property is required.');
+    } // @ts-ignore
+
+
+    if (instance.config && !instance.constructor.config) {
+      console.warn("[" + config.name + "]", 'Defining the `config` as a getter is deprecated, replace it with a static property.');
+    }
+
+    return config;
+  }
+  /**
+   * Display a console warning for the given instance.
+   *
+   * @param {Base}      instance A Base instance.
+   * @param {...String} msg   Values to display in the console.
+   */
+
+  function warn(instance) {
+    var _console;
+
+    var _getConfig = getConfig(instance),
+        name = _getConfig.name;
+
+    (_console = console).warn.apply(_console, ["[" + name + "]"].concat([].slice.call(arguments, 1)));
+  }
+  /**
+   * Display a console log for the given instance.
+   *
+   * @param {Base}   instance The instance to log information from.
+   * @param {...any} msg      The data to print to the console.
+   */
+
+  function log(instance) {
+    var _console2;
+
+    var _getConfig2 = getConfig(instance),
+        name = _getConfig2.name;
+
+    (_console2 = console).log.apply(_console2, ["[" + name + "]"].concat([].slice.call(arguments, 1)));
+  }
+  /**
    * Verbose debug for the component.
    *
-   * @param  {...any} args The arguments passed to the method
-   * @return {void}
+   * @param {Base}   instance The instance to debug.
+   * @param {...any} args     The data to print.
    */
+
   function debug(instance) {
-    return instance.$options.debug ? window.console.log.apply(window, [instance.config.name].concat([].slice.call(arguments, 1))) : function () {};
+    if (instance.$options.debug) {
+      log.apply(void 0, [instance].concat([].slice.call(arguments, 1)));
+    }
   }
   /**
    * Test if an object has a method.
    *
-   * @param  {Object}  obj The object to test
-   * @param  {String}  fn  The method's name
+   * @param  {Object}  obj  The object to test
+   * @param  {String}  name The method's name
    * @return {Boolean}
    */
 
@@ -314,8 +391,9 @@
   /**
    * Call the given method while applying the given arguments.
    *
-   * @param {String} method The method to call
-   * @param {...any} args   The arguments to pass to the method
+   * @param {Base}   instance The Base instance on which to trigger the method.
+   * @param {String} method   The method to call.
+   * @param {...any} args     The arguments to pass to the method.
    */
 
   function callMethod(instance, method) {
@@ -343,12 +421,20 @@
   }
 
   /**
+   * @typedef {import('./index.js').default} Base
+   * @typedef {import('./index.js').BaseComponent} BaseComponent
+   * @typedef {import('./index.js').BaseAsyncComponent} BaseAsyncComponent
+   * @typedef {import('./index.js').BaseHTMLElement} BaseHTMLElement
+   * @typedef {import('./index.js').BaseConfigComponents} BaseConfigComponents
+   */
+
+  /**
    * Get a child component.
    *
-   * @param  {HTMLElement}  el             The root element of the child component.
-   * @param  {Base|Promise} ComponentClass A Base class or a Promise for async components.
-   * @param  {Base}         parent         The parent component instance.
-   * @return {Base|Promise}                A Base instance or a Promise resolving to a Base instance.
+   * @param  {BaseHTMLElement}                  el             The root element of the child component.
+   * @param  {BaseComponent|BaseAsyncComponent} ComponentClass A Base class or a Promise for async components.
+   * @param  {Base}                             parent         The parent component instance.
+   * @return {Base|Promise|'terminated'}                       A Base instance or a Promise resolving to a Base instance.
    */
   function getChild(el, ComponentClass, parent) {
     // Return existing instance if it exists
@@ -357,10 +443,7 @@
     } // Return a new instance if the component class is a child of the Base class
 
 
-    if (ComponentClass.__isBase__) {
-      Object.defineProperty(ComponentClass.prototype, '__isChild__', {
-        value: true
-      });
+    if ('$isBase' in ComponentClass) {
       var child = new ComponentClass(el);
       Object.defineProperty(child, '$parent', {
         get: function get() {
@@ -371,27 +454,18 @@
     } // Resolve async components
 
 
-    var asyncComponent = ComponentClass().then(function (module) {
-      var ResolvedClass = module.default ? module.default : module;
-      Object.defineProperty(ResolvedClass.prototype, '__isChild__', {
-        value: true
-      });
-      var child = new ResolvedClass(el);
-      Object.defineProperty(child, '$parent', {
-        get: function get() {
-          return parent;
-        }
-      });
-      return child;
+    return ComponentClass().then(function (module) {
+      var _module$default;
+
+      // @ts-ignore
+      return getChild(el, (_module$default = module.default) != null ? _module$default : module, parent);
     });
-    asyncComponent.__isAsync__ = true;
-    return asyncComponent;
   }
   /**
    * Get a list of elements based on the name of a component.
-   * @param  {String}             nameOrSelector The name or selector to used for this component.
-   * @param  {HTMLElement}        element        The root element on which to query the selector, defaults to `document`.
-   * @return {Array<HTMLElement>}                A list of elements on which the component should be mounted.
+   * @param  {String}                   nameOrSelector The name or selector to used for this component.
+   * @param  {BaseHTMLElement|Document} element        The root element on which to query the selector, defaults to `document`.
+   * @return {Array<HTMLElement>}                      A list of elements on which the component should be mounted.
    */
 
 
@@ -416,10 +490,10 @@
   }
   /**
    * Get child components.
-   * @param  {Base}        instance   The component's instance.
-   * @param  {HTMLElement} element    The component's root element
-   * @param  {Object}      components The children components' classes
-   * @return {null|Object}            Returns `null` if no child components are defined or an object of all child component instances
+   * @param  {Base}                 instance   The component's instance.
+   * @param  {BaseHTMLElement}      element    The component's root element
+   * @param  {BaseConfigComponents} components The children components' classes
+   * @return {null|Object}                     Returns `null` if no child components are defined or an object of all child component instances
    */
 
   function getChildren(instance, element, components) {
@@ -435,6 +509,7 @@
       acc[name] = elements.map(function (el) {
         return getChild(el, ComponentClass, instance);
       }) // Filter out terminated children
+      // @ts-ignore
       .filter(function (el) {
         return el !== 'terminated';
       });
@@ -582,6 +657,261 @@
   var cjs = deepmerge_1;
 
   /**
+   * Source: ftp://ftp.unicode.org/Public/UCD/latest/ucd/SpecialCasing.txt
+   */
+  /**
+   * Lower case as a function.
+   */
+  function lowerCase(str) {
+      return str.toLowerCase();
+  }
+
+  // Support camel case ("camelCase" -> "camel Case" and "CAMELCase" -> "CAMEL Case").
+  var DEFAULT_SPLIT_REGEXP = [/([a-z0-9])([A-Z])/g, /([A-Z])([A-Z][a-z])/g];
+  // Remove all non-word characters.
+  var DEFAULT_STRIP_REGEXP = /[^A-Z0-9]+/gi;
+  /**
+   * Normalize the string into something other libraries can manipulate easier.
+   */
+  function noCase(input, options) {
+      if (options === void 0) { options = {}; }
+      var _a = options.splitRegexp, splitRegexp = _a === void 0 ? DEFAULT_SPLIT_REGEXP : _a, _b = options.stripRegexp, stripRegexp = _b === void 0 ? DEFAULT_STRIP_REGEXP : _b, _c = options.transform, transform = _c === void 0 ? lowerCase : _c, _d = options.delimiter, delimiter = _d === void 0 ? " " : _d;
+      var result = replace(replace(input, splitRegexp, "$1\0$2"), stripRegexp, "\0");
+      var start = 0;
+      var end = result.length;
+      // Trim the delimiter from around the output string.
+      while (result.charAt(start) === "\0")
+          start++;
+      while (result.charAt(end - 1) === "\0")
+          end--;
+      // Transform each token independently.
+      return result.slice(start, end).split("\0").map(transform).join(delimiter);
+  }
+  /**
+   * Replace `re` in the input string with the replacement value.
+   */
+  function replace(input, re, value) {
+      if (re instanceof RegExp)
+          return input.replace(re, value);
+      return re.reduce(function (input, re) { return input.replace(re, value); }, input);
+  }
+
+  /**
+   * Test if the given value is an object.
+   *
+   * @param  {*}       value The value to test.
+   * @return {Boolean}       Whether or not the value is an object.
+   */
+  function isObject(value) {
+    return typeof value === 'object' && !!value && value.toString() === '[object Object]';
+  }
+
+  /**
+   * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
+   * @typedef {{ [name:string]: OptionType | { type: OptionType, default: String|Number|Boolean|(() => Array|Object)} }} OptionsSchema
+   */
+
+  /**
+   * Get the attribute name based on the given option name.
+   * @param {String} name The option name.
+   */
+
+  function getAttributeName(name) {
+    return "data-option-" + noCase(name, {
+      delimiter: '-'
+    });
+  }
+  /**
+   * Class options to manage options as data attributes on an HTML element.
+   */
+
+
+  var _element = _classPrivateFieldLooseKey("element");
+
+  var _values = _classPrivateFieldLooseKey("values");
+
+  var _defaultValues = _classPrivateFieldLooseKey("defaultValues");
+
+  var Options = /*#__PURE__*/function () {
+    /** @type {HTMLElement} The HTML element holding the options attributes. */
+
+    /** @type {Object} An object to store Array and Object values for reference. */
+
+    /** @type {Array} List of allowed types. */
+
+    /**
+     * The default values to return for each available type.
+     * @type {Object}
+     */
+
+    /**
+     * Class constructor.
+     *
+     * @param {HTMLElement}   element The HTML element storing the options.
+     * @param {OptionsSchema} schema  A Base class config.
+     */
+    function Options(element, schema) {
+      var _this = this;
+
+      Object.defineProperty(this, _element, {
+        writable: true,
+        value: void 0
+      });
+      Object.defineProperty(this, _values, {
+        writable: true,
+        value: {}
+      });
+      Object.defineProperty(this, _defaultValues, {
+        writable: true,
+        value: {
+          String: '',
+          Number: 0,
+          Boolean: false,
+          Array: function Array() {
+            return [];
+          },
+          Object: function Object() {
+            return {};
+          }
+        }
+      });
+      _classPrivateFieldLooseBase(this, _element)[_element] = element;
+      Object.entries(schema).forEach(function (_ref) {
+        var name = _ref[0],
+            config = _ref[1];
+        var isObjectConfig = !Options.types.includes(config);
+        /** @type {OptionType} */
+        // @ts-ignore
+
+        var type = isObjectConfig ? config.type : config;
+
+        if (!Options.types.includes(type)) {
+          throw new Error("The \"" + name + "\" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.");
+        } // @ts-ignore
+
+
+        var defaultValue = isObjectConfig ? config.default : _classPrivateFieldLooseBase(_this, _defaultValues)[_defaultValues][type.name];
+
+        if ((type === Array || type === Object) && typeof defaultValue !== 'function') {
+          throw new Error("The default value for options of type \"" + type.name + "\" must be returned by a function.");
+        }
+
+        Object.defineProperty(_this, name, {
+          get: function get() {
+            return this.get(name, type, defaultValue);
+          },
+          set: function set(value) {
+            this.set(name, type, value);
+          },
+          enumerable: true
+        });
+      });
+      return this;
+    }
+    /**
+     * Get an option value.
+     *
+     * @param {String} name The option name.
+     * @param {ArrayConstructor|ObjectConstructor|StringConstructor|NumberConstructor|BooleanConstructor} type The option data's type.
+     * @param {any} defaultValue The default value for this option.
+     */
+
+
+    var _proto = Options.prototype;
+
+    _proto.get = function get(name, type, defaultValue) {
+      var _this2 = this;
+
+      var attributeName = getAttributeName(name);
+
+      var hasAttribute = _classPrivateFieldLooseBase(this, _element)[_element].hasAttribute(attributeName);
+
+      if (type === Boolean) {
+        if (!hasAttribute && defaultValue) {
+          _classPrivateFieldLooseBase(this, _element)[_element].setAttribute(attributeName, '');
+        }
+
+        return hasAttribute || defaultValue;
+      }
+
+      var value = _classPrivateFieldLooseBase(this, _element)[_element].getAttribute(attributeName);
+
+      if (type === Number) {
+        return hasAttribute ? Number(value) : defaultValue;
+      }
+
+      if (type === Array || type === Object) {
+        var val = cjs(defaultValue(), hasAttribute ? JSON.parse(value) : _classPrivateFieldLooseBase(this, _defaultValues)[_defaultValues][type.name]());
+
+        if (!_classPrivateFieldLooseBase(this, _values)[_values][name]) {
+          _classPrivateFieldLooseBase(this, _values)[_values][name] = val;
+        } else if (val !== _classPrivateFieldLooseBase(this, _values)[_values][name]) {
+          // When getting the value, wait for the next loop to update the data attribute
+          // with the new value. This is a simple trick to avoid using a Proxy to watch
+          // for any deep changes on an array or object. It should not break anything as
+          // the original value is read once from the data attribute and is then read from
+          // the private property `#values`.
+          setTimeout(function () {
+            _classPrivateFieldLooseBase(_this2, _element)[_element].setAttribute(attributeName, JSON.stringify(_classPrivateFieldLooseBase(_this2, _values)[_values][name]));
+          }, 0);
+        }
+
+        return _classPrivateFieldLooseBase(this, _values)[_values][name];
+      }
+
+      return hasAttribute ? value : defaultValue;
+    }
+    /**
+     * Set an option value.
+     *
+     * @param {String} name The option name.
+     * @param {ArrayConstructor|ObjectConstructor|StringConstructor|NumberConstructor|BooleanConstructor} type The option data's type.
+     * @param {any} value The new value for this option.
+     */
+    ;
+
+    _proto.set = function set(name, type, value) {
+      var attributeName = getAttributeName(name);
+
+      if (value.constructor.name !== type.name) {
+        var val = Array.isArray(value) || isObject(value) ? JSON.stringify(value) : value;
+        throw new TypeError("The \"" + val + "\" value for the \"" + name + "\" option must be of type \"" + type.name + "\"");
+      }
+
+      switch (type) {
+        case Boolean:
+          if (value) {
+            _classPrivateFieldLooseBase(this, _element)[_element].setAttribute(attributeName, '');
+          } else {
+            _classPrivateFieldLooseBase(this, _element)[_element].removeAttribute(attributeName);
+          }
+
+          break;
+
+        case Array:
+        case Object:
+          _classPrivateFieldLooseBase(this, _values)[_values][name] = value;
+
+          _classPrivateFieldLooseBase(this, _element)[_element].setAttribute(attributeName, JSON.stringify(value));
+
+          break;
+
+        default:
+          _classPrivateFieldLooseBase(this, _element)[_element].setAttribute(attributeName, value);
+
+      }
+    };
+
+    return Options;
+  }();
+
+  Options.types = [String, Number, Boolean, Array, Object];
+
+  /**
+   * @typedef {import('./index').default} Base
+   */
+
+  /**
    * Get a component's options.
    *
    * @param  {Base}        instance The component's instance.
@@ -591,43 +921,128 @@
    */
 
   function getOptions(instance, element, config) {
-    var options = {};
+    var schema = _extends({}, config.options || {});
+    /** @type {Base|false} Merge inherited options. */
+
+
+    var prototype = instance;
+
+    while (prototype) {
+      var getterConfig = prototype.config; // @ts-ignore
+
+      var staticConfig = prototype.constructor.config;
+
+      if (getterConfig || staticConfig) {
+        schema = Object.assign((getterConfig || {}).options || {}, (staticConfig || {}).options || {}, schema);
+        prototype = Object.getPrototypeOf(prototype);
+      } else {
+        prototype = false;
+      }
+    } // Add legacy options from the config
+
+
+    var propsToInclude = [{
+      name: 'log',
+      type: Boolean
+    }, {
+      name: 'debug',
+      type: Boolean
+    }, {
+      name: 'name',
+      type: String
+    }];
+    propsToInclude.forEach(function (prop) {
+      schema[prop.name] = {
+        type: prop.type,
+        default: prop.type(config[prop.name])
+      };
+    }); // Add legacy options to the schema
+
+    var propsToExclude = ['name', 'log', 'debug', 'components', 'refs', 'options'];
+    Object.keys(config).forEach(function (propName) {
+      if (propsToExclude.includes(propName)) {
+        return;
+      }
+
+      var value = config[propName];
+      var type = value === null || value === undefined ? Object : value.constructor; // Default to object type as it should work for any values.
+
+      if (!Options.types.includes(type)) {
+        type = Object;
+      }
+
+      warn(instance, '\n  Options must be defined in the `config.options` property.', "\n  Consider moving the `config." + propName + "` option to `config.options." + propName + "`.");
+
+      if (type === Array || type === Object) {
+        schema[propName] = {
+          type: type,
+          default: function _default() {
+            return value;
+          }
+        };
+      } else {
+        schema[propName] = {
+          type: type,
+          default: value
+        };
+      }
+    });
+    var options = new Options(element, schema); // Update legacy options with value from the `data-options` attribute
+
+    var legacyOptions = {};
 
     if (element.dataset.options) {
+      warn(instance, 'The `data-options` attribute usage is deprecated, use multiple `data-option-...` attributes instead.');
+
       try {
-        options = JSON.parse(element.dataset.options);
+        legacyOptions = JSON.parse(element.dataset.options);
       } catch (err) {
         throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
       }
     }
 
-    options = cjs(config, options);
+    Object.entries(legacyOptions).forEach(function (_ref) {
+      var optionName = _ref[0],
+          optionValue = _ref[1];
+      options[optionName] = optionValue;
+    });
     instance.$emit('get:options', options);
     return options;
   }
+
   /**
-   * Set a component instance options.
-   *
-   * @param {Base}        instance   The component's instance.
-   * @param {HTMLElement} element    The component's root element.
-   * @param {Object}      newOptions The new options object.
+   * @typedef {import('./index').default} Base
    */
 
-  function setOptions(instance, element, newOptions) {
-    var options = {};
+  /**
+   * A ponyfill for the CSS `:scope` selector which is not supported in IE11.
+   * The following method will return an array of elements similare to the
+   * `:scope ${selector}` selector.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/CSS/:scope
+   * @see https://github.com/jonathantneal/element-qsa-scope
+   *
+   * @param  {HTMLElement} element  The element from which the scope is taken.
+   * @param  {String}      selector The children selector.
+   * @param  {String}      uniqId   A uniq ID to prefix the selector with.
+   * @return {Array}                A list of elements.
+   */
 
-    if (element.dataset.options) {
-      try {
-        options = JSON.parse(element.dataset.options);
-      } catch (err) {
-        throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
-      }
+  function scopeSelectorPonyfill(element, selector, uniqId) {
+    var list = [];
+
+    try {
+      list = Array.from(element.querySelectorAll(":scope " + selector));
+    } catch (err) {
+      var attr = "data-uniq-id";
+      var scopedSelector = "[" + attr + "=\"" + uniqId + "\"] " + selector;
+      element.setAttribute(attr, uniqId);
+      list = Array.from(element.querySelectorAll(scopedSelector));
+      element.removeAttribute(attr);
     }
 
-    options = cjs(options, newOptions);
-    element.dataset.options = JSON.stringify(options);
+    return list;
   }
-
   /**
    * Get all refs of a component.
    *
@@ -635,14 +1050,28 @@
    * @param  {HTMLElement} element  The component's root element.
    * @return {Object}               Return an object containing all the component's refs.
    */
+
   function getRefs(instance, element) {
+    var definedRefs = getConfig(instance).refs || [];
+    /** @type {Array<HTMLElement>} */
+
     var allRefs = Array.from(element.querySelectorAll("[data-ref]"));
-    var childrenRefs = Array.from(element.querySelectorAll(":scope [data-component] [data-ref]"));
+    var childrenRefs = scopeSelectorPonyfill(element, '[data-component] [data-ref]', instance.$id);
     var elements = allRefs.filter(function (ref) {
       return !childrenRefs.includes(ref);
     });
-    var refs = elements.reduce(function ($refs, $ref) {
+    var refs = elements.reduce(
+    /**
+     * @param {Object} $refs
+     * @param {HTMLElement & {__base__?: Base}} $ref
+     */
+    function ($refs, $ref) {
       var refName = $ref.dataset.ref;
+
+      if (!definedRefs.includes(refName)) {
+        warn(instance, "The \"" + refName + "\" ref is not defined in the class configuration.", 'Did you forgot to define it?');
+      }
+
       var $realRef = $ref.__base__ ? $ref.__base__ : $ref;
 
       if (refName.endsWith('[]')) {
@@ -658,6 +1087,7 @@
           $refs[refName].push($realRef);
         } else {
           $refs[refName] = [$refs[refName], $realRef];
+          warn(instance, "The \"" + refName + "\" ref has been found multiple times.", 'Did you forgot to add the `[]` suffix to its name?');
         }
       } else {
         $refs[refName] = $realRef;
@@ -670,6 +1100,10 @@
   }
 
   /**
+   * @typedef {import('./index.js').default} Base
+   */
+
+  /**
    * Mount a given component which might be async.
    *
    * @param  {Base|Promise} component The component to mount.
@@ -677,7 +1111,7 @@
    */
 
   function mountComponent(component) {
-    if (component.__isAsync__) {
+    if (component instanceof Promise) {
       component.then(function (instance) {
         return instance.$mount();
       });
@@ -711,7 +1145,7 @@
    */
 
   function destroyComponent(component) {
-    if (component.__isAsync__) {
+    if (component instanceof Promise) {
       component.then(function (instance) {
         return instance.$destroy();
       });
@@ -744,8 +1178,6 @@
   var Service = /*#__PURE__*/function () {
     /**
      * Class constructor, used to test the abstract class implementation.
-     *
-     * @return {Service} The current instance
      */
     function Service() {
       this.callbacks = new Map();
@@ -785,7 +1217,7 @@
      *
      * @param  {String}   key      The callback's identifier
      * @param  {Function} callback The callback function
-     * @return {Service}           The current instance
+     * @return {InstanceType<typeof Service>} The current instance
      */
     ;
 
@@ -978,7 +1410,7 @@
     /**
      * Start the requestAnimationFrame loop.
      *
-     * @return {void}
+     * @return {Raf}
      */
     _proto.init = function init() {
       var _this2 = this;
@@ -997,16 +1429,18 @@
 
       this.isTicking = true;
       loop();
+      return this;
     }
     /**
      * Stop the requestAnimationFrame loop.
      *
-     * @return {void}
+     * @return {Raf}
      */
     ;
 
     _proto.kill = function kill() {
       this.isTicking = false;
+      return this;
     }
     /**
      * Get raf props.
@@ -1051,6 +1485,16 @@
   });
 
   /**
+   * Test if an event is an instance of TouchEvent.
+   *
+   * @param {TouchEvent|MouseEvent} event The event instance to test.
+   * @return {Boolean}                    Is it a TouchEvent?
+   */
+
+  function isTouchEvent(event) {
+    return typeof TouchEvent !== 'undefined' && event instanceof TouchEvent;
+  }
+  /**
    * Pointer service
    *
    * ```
@@ -1061,6 +1505,7 @@
    * props();
    * ```
    */
+
 
   var Pointer = /*#__PURE__*/function (_Service) {
     _inheritsLoose(Pointer, _Service);
@@ -1087,7 +1532,7 @@
      * Bind the handler to the mousemove and touchmove events.
      * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
      *
-     * @return {void}
+     * @return {Pointer}
      */
     _proto.init = function init() {
       var _this2 = this;
@@ -1142,11 +1587,12 @@
       document.addEventListener('touchend', this.upHandler, {
         passive: true
       });
+      return this;
     }
     /**
      * Unbind all handlers from their bounded event.
      *
-     * @return {void}
+     * @return {Pointer}
      */
     ;
 
@@ -1157,6 +1603,7 @@
       document.removeEventListener('touchstart', this.downHandler);
       document.removeEventListener('mouseup', this.upHandler);
       document.removeEventListener('touchend', this.upHandler);
+      return this;
     }
     /**
      * Handler for the pointer's down action.
@@ -1183,27 +1630,41 @@
     /**
      * Update the pointer positions.
      *
-     * @param  {Event} event The event object.
+     * @param  {MouseEvent|TouchEvent} event The event object.
      * @return {void}
      */
     ;
 
     _proto.updateValues = function updateValues(event) {
+      var _event$touches$, _event$touches$2;
+
       this.event = event;
       this.yLast = this.y;
       this.xLast = this.x; // Check pointer Y
       // We either get data from a touch event `event.touches[0].clientY` or from
       // a mouse event `event.clientY`.
 
-      if (((event.touches || [])[0] || event || {}).clientY !== this.y) {
-        this.y = ((event.touches || [])[0] || event || {}).clientY;
+      var y = isTouchEvent(event) ?
+      /** @type {TouchEvent} */
+      (_event$touches$ = event.touches[0]) == null ? void 0 : _event$touches$.clientY :
+      /** @type {MouseEvent} */
+      event.clientY;
+
+      if (y !== this.y) {
+        this.y = y;
       } // Check pointer X
       // We either get data from a touch event `event.touches[0].clientX` or from
       // a mouse event `event.clientX`.
 
 
-      if (((event.touches || [])[0] || event || {}).clientX !== this.x) {
-        this.x = ((event.touches || [])[0] || event || {}).clientX;
+      var x = isTouchEvent(event) ?
+      /** @type {TouchEvent} */
+      (_event$touches$2 = event.touches[0]) == null ? void 0 : _event$touches$2.clientX :
+      /** @type {MouseEvent} */
+      event.clientX;
+
+      if (x !== this.x) {
+        this.x = x;
       }
     }
     /**
@@ -1306,7 +1767,7 @@
     /**
      * Bind the handler to the resize event.
      *
-     * @return {void}
+     * @return {Resize}
      */
     _proto.init = function init() {
       var _this = this;
@@ -1316,16 +1777,19 @@
       }).bind(this);
 
       if (this.canUseResizeObserver) {
+        // @ts-ignore
         this.resizeObserver = new ResizeObserver(this.handler);
         this.resizeObserver.observe(document.documentElement);
       } else {
         window.addEventListener('resize', this.handler);
       }
+
+      return this;
     }
     /**
      * Unbind the handler from the resize event.
      *
-     * @return {void}
+     * @return {Resize}
      */
     ;
 
@@ -1337,6 +1801,7 @@
       }
 
       delete this.resizeObserver;
+      return this;
     }
     /**
      * Get resize props.
@@ -1409,6 +1874,7 @@
     }, {
       key: "canUseResizeObserver",
       get: function get() {
+        // @ts-ignore
         return typeof window.ResizeObserver !== 'undefined';
       }
     }]);
@@ -1473,7 +1939,7 @@
     /**
      * Bind the handler to the scroll event.
      *
-     * @return {void}
+     * @return {Scroll}
      */
     _proto.init = function init() {
       var _this2 = this;
@@ -1495,16 +1961,18 @@
       document.addEventListener('scroll', this.handler, {
         passive: true
       });
+      return this;
     }
     /**
      * Unbind the handler from the scroll event.
      *
-     * @return {void}
+     * @return {Scroll}
      */
     ;
 
     _proto.kill = function kill() {
       document.removeEventListener('scroll', this.handler);
+      return this;
     }
     /**
      * Get scroll props.
@@ -1636,7 +2104,7 @@
     /**
      * Bind the handler to the keyboard event.
      *
-     * @return {void}
+     * @return {Key}
      */
     _proto.init = function init() {
       var _this2 = this;
@@ -1653,17 +2121,19 @@
       document.addEventListener('keyup', this.handler, {
         passive: false
       });
+      return this;
     }
     /**
      * Unbind the handler from the keyboard event.
      *
-     * @return {void}
+     * @return {Key}
      */
     ;
 
     _proto.kill = function kill() {
       document.removeEventListener('keydown', this.handler);
       document.removeEventListener('keyup', this.handler);
+      return this;
     }
     /**
      * Get keyboard props.
@@ -1731,6 +2201,10 @@
   });
 
   /**
+   * @typedef {import('./index').default} Base
+   */
+
+  /**
    * Init the given service and bind it to the given instance.
    *
    * @param  {Base}     instance The Base instance.
@@ -1748,7 +2222,11 @@
         add = _service.add,
         remove = _service.remove;
 
-    add(instance.$id, function () {
+    add(instance.$id,
+    /**
+     * @param {any[]} args
+     */
+    function () {
       callMethod.apply(void 0, [instance, method].concat([].slice.call(arguments)));
     });
     return function () {
@@ -1767,6 +2245,9 @@
     // @todo remove this? or move it elsewhere?
 
     if (hasMethod(instance, 'loaded')) {
+      /**
+       * @param {Event} event
+       */
       var loadedHandler = function loadedHandler(event) {
         callMethod(instance, 'loaded', {
           event: event
@@ -1782,6 +2263,7 @@
     return unbindMethods;
   }
 
+  // eslint-disable-next-line import/no-cycle
   /**
    * Bind event handler methods to the root HTML element.
    *
@@ -1838,15 +2320,19 @@
 
           debug(instance, 'binding ref event', refName, eventName);
 
-          if ($ref.constructor && $ref.constructor.__isBase__) {
+          if ($ref instanceof Base) {
             // eslint-disable-next-line no-param-reassign
             $ref = $ref.$el;
           }
+          /** @type {HTMLElement} */
+
 
           $ref.addEventListener(eventName, handler);
 
           var unbindMethod = function unbindMethod() {
             debug(instance, 'unbinding ref event', eventMethods);
+            /** @type {HTMLElement} */
+
             $ref.removeEventListener(eventName, handler);
           };
 
@@ -1875,7 +2361,12 @@
       eventMethods.filter(function (eventMethod) {
         return eventMethod.startsWith(childEventMethod);
       }).forEach(function (eventMethod) {
-        $children.forEach(function ($child, index) {
+        $children.forEach(
+        /**
+         * @param {Base} $child
+         * @param {Number} index
+         */
+        function ($child, index) {
           var eventName = eventMethod.replace(childEventMethod, '').toLowerCase();
 
           var handler = function handler() {
@@ -1931,64 +2422,97 @@
   }
 
   /**
+   * @typedef {typeof Base} BaseComponent
+   * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
+   * @typedef {HTMLElement & { __base__?: Base | 'terminated' }} BaseHTMLElement
+   * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
+   * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
+   * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
+   * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
+   * @typedef {import('./classes/Options').OptionsSchema} BaseConfigOptions
+   */
+
+  /**
+   * @typedef {Object} BaseConfig
+   * @property {String} name
+   * @property {Boolean} [debug]
+   * @property {Boolean} [log]
+   * @property {String[]} [refs]
+   * @property {BaseConfigComponents} [components]
+   * @property {BaseConfigOptions} [options]
+   */
+
+  /**
    * Page lifecycle class
-   *
-   * @method mounted   Fired when the class is instantiated
-   * @method loaded    Fired on the window's load event
-   * @method ticked    Fired each frame with `requestAnimationFrame`
-   * @method resized   Fired when the window is resized (`resize` event)
-   * @method moved     Fired when the pointer has moved (`touchmove` and `mousemove` events)
-   * @method scrolled  Fired with debounce when the document is scrolled (`scroll` event)
-   * @method destroyed Fired when the window is being unloaded (`unload` event)
    */
 
   var Base = /*#__PURE__*/function (_EventManager) {
     _inheritsLoose(Base, _EventManager);
 
     _createClass(Base, [{
+      key: "_excludeFromAutoBind",
+
+      /**
+       * The instance parent.
+       * @type {Base}
+       */
+
+      /**
+       * The state of the component.
+       * @type {Boolean}
+       */
+
+      /**
+       * This is a Base instance.
+       * @type {Boolean}
+       */
+
+      /**
+       * Get properties to exclude from the autobind call.
+       * @return {Array<String|RegExp>}
+       */
+      get: function get() {
+        return ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
+      }
+      /**
+       * @deprecated Use the static `config` property instead.
+       * @return {BaseConfig}
+       */
+
+    }, {
+      key: "config",
+      get: function get() {
+        return null;
+      }
+      /** @type {BaseConfig} */
+
+    }, {
       key: "$refs",
 
       /**
        * Get the component's refs.
-       * @return {Object}
+       * @return {BaseRefs}
        */
       get: function get() {
         return getRefs(this, this.$el);
       }
       /**
        * Get the component's children components.
-       * @return {Object}
+       * @return {BaseChildren}
        */
 
     }, {
       key: "$children",
       get: function get() {
-        return getChildren(this, this.$el, this.config.components || {});
-      }
-      /**
-       * Get the component's merged config and options.
-       * @return {Object}
-       */
+        var _getConfig = getConfig(this),
+            components = _getConfig.components;
 
-    }, {
-      key: "$options",
-      get: function get() {
-        return getOptions(this, this.$el, this.config);
-      }
-      /**
-       * Set the components option.
-       * @param  {Object} value The new options values to merge with the old ones.
-       * @return {void}
-       */
-      ,
-      set: function set(newOptions) {
-        setOptions(this, this.$el, newOptions);
+        return getChildren(this, this.$el, components || {});
       }
       /**
        * Class constructor where all the magic takes place.
        *
-       * @param  {HTMLElement} element The component's root element.
-       * @return {Base}                A Base instance.
+       * @param {BaseHTMLElement} element The component's root element dd.
        */
 
     }]);
@@ -1997,31 +2521,28 @@
       var _this;
 
       _this = _EventManager.call(this) || this;
-
-      if (!_this.config) {
-        throw new Error('The `config` getter must be defined.');
-      }
-
-      if (!_this.config.name) {
-        throw new Error('The `config.name` property is required.');
-      }
+      _this.$parent = null;
+      _this.$isMounted = false;
 
       if (!element) {
         throw new Error('The root element must be defined.');
       }
 
-      Object.defineProperties(_assertThisInitialized(_this), {
-        $id: {
-          value: _this.config.name + "-" + nonSecure()
-        },
-        $isMounted: {
-          value: false,
-          writable: true
-        },
-        $el: {
-          value: element
-        }
-      });
+      var _getConfig2 = getConfig(_assertThisInitialized(_this)),
+          name = _getConfig2.name;
+      /** @type {String} */
+
+
+      _this.$id = name + "-" + nonSecure();
+      /** @type {BaseHTMLElement} */
+
+      _this.$el = element;
+      /** @type {Boolean} */
+
+      _this.$isMounted = false;
+      /** @type {BaseOptions} */
+
+      _this.$options = getOptions(_assertThisInitialized(_this), element, getConfig(_assertThisInitialized(_this)));
 
       if (!_this.$el.__base__) {
         Object.defineProperty(_this.$el, '__base__', {
@@ -2034,7 +2555,7 @@
 
 
       autoBind(_assertThisInitialized(_this), {
-        exclude: ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'].concat(_this._excludeFromAutoBind || [])
+        exclude: [].concat(_this._excludeFromAutoBind || [])
       });
       var unbindMethods = [];
 
@@ -2058,18 +2579,7 @@
           return method();
         });
         destroyComponents(_assertThisInitialized(_this));
-      }); // Mount class which are not used as another component's child.
-
-
-      if (!_this.__isChild__) {
-        _this.$mount();
-
-        Object.defineProperty(_assertThisInitialized(_this), '$parent', {
-          get: function get() {
-            return null;
-          }
-        });
-      }
+      });
 
       debug(_assertThisInitialized(_this), 'constructor', _assertThisInitialized(_this));
       return _assertThisInitialized(_this) || _assertThisInitialized(_this);
@@ -2085,7 +2595,9 @@
     var _proto = Base.prototype;
 
     _proto.$log = function $log() {
-      return this.$options.log ? window.console.log.apply(window, [this.config.name].concat([].slice.call(arguments))) : function () {};
+      if (this.$options.log) {
+        log.apply(void 0, [this].concat([].slice.call(arguments)));
+      }
     }
     /**
      * Trigger the `mounted` callback.
@@ -2129,8 +2641,8 @@
       this.$destroy(); // Execute the `terminated` hook if it exists
 
       callMethod(this, 'terminated'); // Delete the reference to the instance
-
-      delete this.$el.__base__; // And update its status to prevent re-instantiation when accessing the
+      // delete this.$el.__base__;
+      // And update its status to prevent re-instantiation when accessing the
       // parent's `$children` property
 
       Object.defineProperty(this.$el, '__base__', {
@@ -2142,8 +2654,8 @@
     /**
      * Factory method to generate multiple instance of the class.
      *
-     * @param  {String}      selector The selector on which to mount each instance.
-     * @return {Array<Base>}          A list of the created instance.
+     * @param  {String}      nameOrSelector The selector on which to mount each instance.
+     * @return {Array<Base>}                A list of the created instance.
      */
     ;
 
@@ -2155,19 +2667,30 @@
       }
 
       return getComponentElements(nameOrSelector).map(function (el) {
-        return new _this2(el);
+        return new _this2(el).$mount();
       });
-    };
+    }
+    /**
+     * Hello world.
+     */
+    ;
+
+    _proto.mounted = function mounted() {};
 
     return Base;
   }(EventManager);
-  Base.__isBase__ = true;
+
+  Base.$isBase = true;
+
+  /**
+   * @typedef {import('./abstracts/Base').BaseComponent} BaseComponent
+   */
 
   /**
    * Define a component without a class.
    *
    * @param  {Object} options The component's object
-   * @return {Base}           A component's class.
+   * @return {BaseComponent}           A component's class.
    */
 
   function defineComponent(options) {
@@ -2194,20 +2717,10 @@
         return _Base.apply(this, arguments) || this;
       }
 
-      _createClass(Component, [{
-        key: "config",
-
-        /**
-         * Component config.
-         */
-        get: function get() {
-          return config;
-        }
-      }]);
-
       return Component;
     }(Base);
 
+    Component.config = config;
     var allowedHooks = ['mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
     var filteredHooks = Object.entries(hooks).reduce(function (acc, _ref) {
       var name = _ref[0],
@@ -2236,6 +2749,8 @@
 
   function createBase(elementOrSelector, options) {
     var Component = defineComponent(options);
+    /** @type {HTMLElement} */
+
     var element = typeof elementOrSelector === 'string' ? document.querySelector(elementOrSelector) : elementOrSelector;
     return new Component(element);
   }

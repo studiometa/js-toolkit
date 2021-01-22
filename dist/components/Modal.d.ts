@@ -74,12 +74,6 @@ export default class Modal extends Base {
      * @return {Function} The component's `close` method.
      */
     get onOverlayClick(): Function;
-    /**
-     * Initialize the component's behaviours.
-     *
-     * @this {Modal & ModalInterface}
-     */
-    mounted(): Modal & ModalInterface;
     isOpen: boolean;
     refModalPlaceholder: Comment;
     refModalParentBackup: any;
@@ -123,7 +117,18 @@ export default class Modal extends Base {
     close(): Promise<Modal>;
 }
 export type BaseOptions = {
-    name: string;
+    name: string; /**
+     * @typedef {Object} ModalInterface
+     * @property {ModalRefs} $refs
+     * @property {ModalOptions} $options
+     * @property {Boolean} isOpen
+     * @property {Comment} refModalPlaceholder
+     * @property {HTMLElement} refModalParentBackup
+     * @property {Function} refModalUnbindGetRefFilter
+     */
+    /**
+     * Modal class.
+     */
     debug: boolean;
     log: boolean;
 };

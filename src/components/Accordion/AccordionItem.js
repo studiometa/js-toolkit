@@ -1,5 +1,6 @@
 import deepmerge from 'deepmerge'
 import Base from '../../abstracts/Base';
+// eslint-disable-next-line import/no-cycle
 import Accordion from './index';
 import * as styles from '../../utils/css/styles';
 import transition from '../../utils/css/transition';
@@ -7,12 +8,38 @@ import transition from '../../utils/css/transition';
 /**
  * @typedef {import('../../abstracts/Base').BaseOptions} BaseOptions
  * @typedef {import('../../utils/css/styles').CssStyleObject} CssStyleObject
- * @typedef {{ open: string | CssStyleObject, active: string | CssStyleObject, closed: string | CssStyleObject }} StylesOption
+ * @typedef {import('./index').AccordionInterface} AccordionInterface
+ */
+
+/**
+ * @typedef {Object} AccordionItemRefs
+ * @property {HTMLElement} btn
+ * @property {HTMLElement} content
+ * @property {HTMLElement} container
+ */
+
+/**
+ * @typedef {Object} StylesOption
+ * @property {String|CssStyleObject} open
+ * @property {String|CssStyleObject} active
+ * @property {String|CssStyleObject} closed
+ */
+
+/**
+ * @typedef {Object} AccordionItemOptions
+ * @property {Boolean} isOpen
+ * @property {{ [refName: string]: StylesOption }} styles
+ */
+
+/**
+ * @typedef {Object} AccordionItemInterface
+ * @property {AccordionItemOptions} $options
+ * @property {AccordionItemRefs} $refs
+ * @property {Accordion & AccordionInterface} $parent
  */
 
 /**
  * AccordionItem class.
- * @property {BaseOptions & { styles: { container: StylesOption, [refName:string]: StylesOption}, isOpen: Boolean }} $options
  */
 export default class AccordionItem extends Base {
   /**
@@ -39,7 +66,7 @@ export default class AccordionItem extends Base {
 
   /**
    * Add aria-attributes on mounted.
-   * @return {void}
+   * @this {AccordionItem & AccordionItemInterface}
    */
   mounted() {
     if (this.$parent && this.$parent instanceof Accordion && this.$parent.$options.item) {
@@ -69,16 +96,18 @@ export default class AccordionItem extends Base {
 
     // Update refs styles on mount
     const { container, ...otherStyles } = this.$options.styles;
+    /** @type {AccordionItemRefs} */
+    const refs = this.$refs;
     Object.entries(otherStyles)
-      .filter(([refName]) => this.$refs[refName])
+      .filter(([refName]) => refs[refName])
       .forEach(([refName, { open, closed } = { open: '', closed: '' }]) => {
-        transition(this.$refs[refName], { to: isOpen ? open : closed }, 'keep');
+        transition(refs[refName], { to: isOpen ? open : closed }, 'keep');
       });
   }
 
   /**
    * Handler for the click event on the `btn` ref.
-   * @return {void}
+   * @this {AccordionItem & AccordionItemInterface}
    */
   onBtnClick() {
     if (this.$options.isOpen) {
@@ -99,8 +128,8 @@ export default class AccordionItem extends Base {
   /**
    * Update the refs' attributes according to the given type.
    *
+   * @this {AccordionItem & AccordionItemInterface}
    * @param  {Boolean} isOpen The state of the item.
-   * @return {void}
    */
   updateAttributes(isOpen) {
     this.$refs.content.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
@@ -109,7 +138,7 @@ export default class AccordionItem extends Base {
 
   /**
    * Open an item.
-   * @return {Promise}
+   * @this {AccordionItem & AccordionItemInterface}
    */
   async open() {
     if (this.$options.isOpen) {
@@ -125,24 +154,27 @@ export default class AccordionItem extends Base {
     styles.remove(this.$refs.container, { visibility: 'invisible' });
     const { container, ...otherStyles } = this.$options.styles;
 
+    /** @type {AccordionItemRefs} */
+    const refs = this.$refs;
+
     await Promise.all([
-      transition(this.$refs.container, {
+      transition(refs.container, {
         from: { height: 0 },
         active: container.active,
-        to: { height: `${this.$refs.content.offsetHeight}px` },
+        to: { height: `${refs.content.offsetHeight}px` },
       }).then(() => {
         // Remove style only if the item has not been closed before the end
         if (this.$options.isOpen) {
-          styles.remove(this.$refs.content, { position: 'absolute' });
+          styles.remove(refs.content, { position: 'absolute' });
         }
 
         return Promise.resolve();
       }),
       ...Object.entries(otherStyles)
-        .filter(([refName]) => this.$refs[refName])
+        .filter(([refName]) => refs[refName])
         .map(([refName, { open, active, closed } = { open: '', active: '', closed: '' }]) =>
           transition(
-            this.$refs[refName],
+            refs[refName],
             {
               from: closed,
               active,
@@ -156,7 +188,7 @@ export default class AccordionItem extends Base {
 
   /**
    * Close an item.
-   * @return {Promise}
+   * @this {AccordionItem & AccordionItemInterface}
    */
   async close() {
     if (!this.$options.isOpen) {
@@ -172,24 +204,27 @@ export default class AccordionItem extends Base {
     styles.add(this.$refs.content, { position: 'absolute' });
     const { container, ...otherStyles } = this.$options.styles;
 
+    /** @type {AccordionItemRefs} */
+    const refs = this.$refs;
+
     await Promise.all([
-      transition(this.$refs.container, {
+      transition(refs.container, {
         from: { height: `${height}px` },
         active: container.active,
         to: { height: '0' },
       }).then(() => {
         // Add end styles only if the item has not been re-opened before the end
         if (!this.$options.isOpen) {
-          styles.add(this.$refs.container, { height: '0', visibility: 'invisible' });
+          styles.add(refs.container, { height: '0', visibility: 'invisible' });
           this.updateAttributes(this.$options.isOpen);
         }
         return Promise.resolve();
       }),
       ...Object.entries(otherStyles)
-        .filter(([refName]) => this.$refs[refName])
+        .filter(([refName]) => refs[refName])
         .map(([refName, { open, active, closed } = { open: '', active: '', closed: '' }]) =>
           transition(
-            this.$refs[refName],
+            refs[refName],
             {
               from: open,
               active,

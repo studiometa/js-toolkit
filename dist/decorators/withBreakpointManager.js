@@ -13,10 +13,14 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 import useResize from '../services/resize';
 /**
+ * @typedef {import('../abstracts/Base').default} Base
+ * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ */
+
+/**
  * Test the breakpoins of the given Base instance and return the hook to call.
  *
- * @param  {Base}           instance The component's instance.
- * @return {String|Boolean}          The action to call ($mount|$destroy) or false.
+ * @param  {Array<[String[], Base]>} breakpoints The breakpoints's data.
  */
 
 function testBreakpoints(breakpoints) {
@@ -36,6 +40,29 @@ function testBreakpoints(breakpoints) {
   });
 }
 /**
+ * Prepare the components.
+ * @param {Base} instance
+ * @param {Array<[String, BaseComponent]>} breakpoints
+ * @return {Array<[String, Base]>}
+ */
+
+
+function mountComponents(instance, breakpoints) {
+  return breakpoints.map(function (_ref3) {
+    var _ref4 = _slicedToArray(_ref3, 2),
+        bk = _ref4[0],
+        ComponentClass = _ref4[1];
+
+    var child = new ComponentClass(instance.$el);
+    Object.defineProperty(child, '$parent', {
+      get: function get() {
+        return instance;
+      }
+    });
+    return [bk, child];
+  });
+}
+/**
  * A cache object to hold each Base sub-instances.
  * @type {Object}
  */
@@ -44,6 +71,9 @@ function testBreakpoints(breakpoints) {
 var instances = {};
 /**
  * BreakpointManager class.
+ * @param {BaseComponent} BaseClass
+ * @param {Array<[String, BaseComponent]>} breakpoints
+ * @return {BaseComponent}
  */
 
 export default (function (BaseClass, breakpoints) {
@@ -72,8 +102,8 @@ export default (function (BaseClass, breakpoints) {
 
     /**
      * Watch for the document resize to test the breakpoints.
-     * @param  {HTMLElement} element The component's root element.
-     * @return {BreakpointManager}          The current instance.
+     * @this {Base & {}}
+     * @param {HTMLElement} element The component's root element.
      */
     function BreakpointManager(element) {
       var _this;
@@ -81,21 +111,12 @@ export default (function (BaseClass, breakpoints) {
       _classCallCheck(this, BreakpointManager);
 
       _this = _super.call(this, element);
-      instances[_this.$id] = breakpoints.map(function (_ref3) {
-        var _ref4 = _slicedToArray(_ref3, 2),
-            bk = _ref4[0],
-            ComponentClass = _ref4[1];
 
-        // eslint-disable-next-line no-underscore-dangle
-        ComponentClass.prototype.__isChild__ = true;
-        var instance = new ComponentClass(_this.$el);
-        Object.defineProperty(instance, '$parent', {
-          get: function get() {
-            return _assertThisInitialized(_this);
-          }
-        });
-        return [bk, instance];
-      });
+      if (!instances[_this.$id]) {
+        instances[_this.$id] = mountComponents(_assertThisInitialized(_this), breakpoints);
+      }
+
+      testBreakpoints(instances[_this.$id]);
       add("BreakpointManager-".concat(_this.$id), function () {
         testBreakpoints(instances[_this.$id]);
       });
@@ -104,19 +125,24 @@ export default (function (BaseClass, breakpoints) {
     /**
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
-     * @return {Base} The Base instance.
+     * @this {Base}
+     * @return {this}
      */
 
 
     _createClass(BreakpointManager, [{
       key: "$mount",
       value: function $mount() {
+        if (!instances[this.$id]) {
+          instances[this.$id] = mountComponents(this, breakpoints);
+        }
+
         testBreakpoints(instances[this.$id]);
         return _get(_getPrototypeOf(BreakpointManager.prototype), "$mount", this).call(this);
       }
       /**
        * Destroy all instances when the main one is destroyed.
-       * @return {Base} The Base instance.
+       * @return {this}
        */
 
     }, {

@@ -1,5 +1,9 @@
 import { debug } from './utils';
 /**
+ * @typedef {import('./index.js').default} Base
+ */
+
+/**
  * Mount a given component which might be async.
  *
  * @param  {Base|Promise} component The component to mount.
@@ -7,7 +11,7 @@ import { debug } from './utils';
  */
 
 function mountComponent(component) {
-  if (component.__isAsync__) {
+  if (component instanceof Promise) {
     component.then(function (instance) {
       return instance.$mount();
     });
@@ -41,7 +45,7 @@ export function mountComponents(instance) {
  */
 
 function destroyComponent(component) {
-  if (component.__isAsync__) {
+  if (component instanceof Promise) {
     component.then(function (instance) {
       return instance.$destroy();
     });

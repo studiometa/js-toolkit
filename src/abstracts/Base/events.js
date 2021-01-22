@@ -55,14 +55,13 @@ function bindRefsEvents(instance, eventMethods) {
 
           if ($ref instanceof Base) {
             // eslint-disable-next-line no-param-reassign
-            /** @type {HTMLElement} */
             $ref = $ref.$el;
           }
 
-          $ref.addEventListener(eventName, handler);
+          /** @type {HTMLElement} */ ($ref).addEventListener(eventName, handler);
           const unbindMethod = () => {
             debug(instance, 'unbinding ref event', eventMethods);
-            $ref.removeEventListener(eventName, handler);
+            /** @type {HTMLElement} */ ($ref).removeEventListener(eventName, handler);
           };
 
           unbindMethods.push(unbindMethod);

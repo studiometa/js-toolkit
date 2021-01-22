@@ -1,5 +1,5 @@
-import Base from '~/src';
-import { withIntersectionObserver } from '~/src/decorators';
+import Base from '../../../../src';
+import { withIntersectionObserver } from '../../../../src/decorators';
 
 export default class Skew extends withIntersectionObserver(Base) {
   static config = {

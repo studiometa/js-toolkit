@@ -1,10 +1,14 @@
 import Base from './abstracts/Base';
 
 /**
+ * @typedef {import('./abstracts/Base').BaseComponent} BaseComponent
+ */
+
+/**
  * Define a component without a class.
  *
  * @param  {Object} options The component's object
- * @return {Base}           A component's class.
+ * @return {BaseComponent}           A component's class.
  */
 export function defineComponent(options) {
   const { config, methods, ...hooks } = options;
@@ -69,6 +73,7 @@ export function defineComponent(options) {
  */
 export function createBase(elementOrSelector, options) {
   const Component = defineComponent(options);
+  /** @type {HTMLElement} */
   const element =
     typeof elementOrSelector === 'string'
       ? document.querySelector(elementOrSelector)
