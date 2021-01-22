@@ -45,7 +45,7 @@ async function setupTest() {
   }
 
   await resizeWindow({ width: 800 });
-  const app = new App(document.body);
+  const app = new App(document.body).$mount();
   const foo = document.querySelector('[data-component="Foo"]').__base__;
 
   return { app, foo, fn };

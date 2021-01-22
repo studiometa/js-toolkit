@@ -117,7 +117,7 @@ describe('The refs resolution', () => {
     `;
     const spy = jest.spyOn(window.console, 'warn');
     spy.mockImplementation(() => true);
-    const app = new App(div);
+    const app = new App(div).$mount();
     expect(spy).toHaveBeenCalledWith(
       '[App]',
       'The "foo" ref has been found multiple times.',
@@ -130,7 +130,7 @@ describe('The refs resolution', () => {
     div.innerHTML = `<div data-ref="baz"></div>`;
     const spy = jest.spyOn(window.console, 'warn');
     spy.mockImplementation(() => true);
-    const app = new App(div);
+    const app = new App(div).$mount();
     expect(spy).toHaveBeenCalledWith(
       '[App]',
       'The "baz" ref is not defined in the class configuration.',

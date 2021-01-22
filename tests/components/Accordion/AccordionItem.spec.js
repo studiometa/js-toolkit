@@ -46,6 +46,7 @@ describe('AccordionItem component', () => {
 </div>;
     `;
     item = new AccordionItemWithIcon(document.body.firstElementChild);
+    item.$mount();
     btn = document.querySelector('[data-ref="btn"]');
     content = document.querySelector('[data-ref="content"]');
     icon = document.querySelector('[data-ref="icon"]');

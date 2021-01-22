@@ -8,7 +8,7 @@ describe('The Tabs component', () => {
 
   beforeEach(async () => {
     document.body.innerHTML = template;
-    tabs = new Tabs(document.body.firstElementChild);
+    tabs = new Tabs(document.body.firstElementChild).$mount();
     await wait(100);
   });
 

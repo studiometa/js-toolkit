@@ -54,6 +54,7 @@ describe('The `createBase` function', () => {
         },
       },
     });
+    component.$mount();
 
     expect(component.$options.name).toBe('Component');
     expect(fn).toHaveBeenLastCalledWith('mounted');
