@@ -36,7 +36,7 @@ describe('Accordion component', () => {
        </section>
      `;
 
-    item = new Accordion(document.body.firstElementChild);
+    item = new Accordion(document.body.firstElementChild).$mount();
     btn = Array.from(document.querySelectorAll('[data-ref="btn"]'));
     content = Array.from(document.querySelectorAll('[data-ref="content"]'));
   });

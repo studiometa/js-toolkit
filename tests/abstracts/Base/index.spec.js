@@ -42,7 +42,7 @@ describe('A Base instance', () => {
     };
   }
   const element = document.createElement('div');
-  const foo = new Foo(element);
+  const foo = new Foo(element).$mount();
 
   it('should have an `$id` property', () => {
     expect(foo.$id).toBeDefined();
@@ -91,7 +91,7 @@ describe('A Base instance methods', () => {
 
   beforeEach(() => {
     element = document.createElement('div');
-    foo = new Foo(element);
+    foo = new Foo(element).$mount();
   });
 
   it('should emit a mounted event', () => {
@@ -133,7 +133,7 @@ describe('A Base instance methods', () => {
       };
     }
 
-    const app = new App(div);
+    const app = new App(div).$mount();
     expect(app.$children.Bar).toHaveLength(2);
     expect(app.$children.Bar[0].$isMounted).toBe(true);
     div.innerHTML = `
@@ -178,7 +178,7 @@ describe('A Base instance methods', () => {
       }
     }
     const div = document.createElement('div');
-    const bar = new Bar(div);
+    const bar = new Bar(div).$mount();
     expect(bar).toEqual(div.__base__);
     bar.$on('terminated', () => fn('event'));
     bar.$terminate();
@@ -195,7 +195,7 @@ describe('A Base instance methods', () => {
       }
     }
 
-    const bar = new Bar(document.createElement('div'));
+    const bar = new Bar(document.createElement('div')).$mount();
     bar.$el.click();
     expect(fn).toHaveBeenCalledTimes(1);
     bar.$destroy();
@@ -241,7 +241,7 @@ describe('A Base instance methods', () => {
       <div data-ref="baz" data-component="Baz"></div>
     `;
 
-    const bar = new Bar(div);
+    const bar = new Bar(div).$mount();
     div.querySelector('[data-ref="foo"]').click();
     expect(fn).toHaveBeenCalledTimes(1);
     div.querySelector('[data-component="Baz"]').click();
@@ -272,7 +272,7 @@ describe('A Base instance methods', () => {
       };
     }
     expect(foo.$children).toEqual({});
-    expect(new Baz(document.createElement('div')).$children).toEqual({});
+    expect(new Baz(document.createElement('div')).$mount().$children).toEqual({});
   });
 
   it('should not find terminated children', () => {
@@ -293,7 +293,7 @@ describe('A Base instance methods', () => {
     div.innerHTML = `
       <div data-component="Bar"></div>
     `;
-    const baz = new Baz(div);
+    const baz = new Baz(div).$mount();
     expect(baz.$children).toEqual({ Bar: [div.firstElementChild.__base__] });
     div.firstElementChild.__base__.$terminate();
     expect(baz.$children).toEqual({});
@@ -307,7 +307,7 @@ describe('A Base instance methods', () => {
       }
     }
 
-    const bar = new Bar(document.createElement('div'));
+    const bar = new Bar(document.createElement('div')).$mount();
     window.dispatchEvent(new CustomEvent('load'));
     expect(fn).toHaveBeenCalledTimes(1);
     bar.$destroy();
@@ -329,7 +329,7 @@ describe('A Base instance methods', () => {
     }
 
     document.body.innerHTML = `<div data-component="Bar"></div>`;
-    const baz = new Baz(document.body);
+    const baz = new Baz(document.body).$mount();
     const barElement = document.querySelector('[data-component="Bar"]');
     expect(baz.$isMounted).toBe(true);
     expect(barElement.__base__.$isMounted).toBe(true);
@@ -357,7 +357,7 @@ describe('A Base instance methods', () => {
     }
 
     document.body.innerHTML = `<div data-component="Foo" data-ref="bar"></div>`;
-    const bar = new Bar(document.body);
+    const bar = new Bar(document.body).$mount();
     expect(bar.$children.Foo[0]).toBe(bar.$refs.bar);
   });
 
@@ -381,7 +381,7 @@ describe('A Base instance methods', () => {
       </ul>
     `;
 
-    const bar = new Bar(div);
+    const bar = new Bar(div).$mount();
     expect(bar.$refs.btn).toEqual(div.firstElementChild);
     expect(Array.isArray(bar.$refs.item)).toBe(true);
     expect(bar.$refs.item).toHaveLength(1);
@@ -415,7 +415,7 @@ describe('A Base instance methods', () => {
       <div data-component="Boz"></div>
       <div data-component="Buz"></div>
     `;
-    const bar = new Bar(document.body);
+    const bar = new Bar(document.body).$mount();
     expect(Object.keys(bar.$children)).toEqual(['Foo', 'Baz', 'Boz', 'Buz']);
     await wait(150);
     expect(bar.$children.Foo[0]).toBeInstanceOf(Base);
@@ -450,7 +450,7 @@ describe('A Base instance config', () => {
     }
     const spy = jest.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
-    const foo = new Foo(element);
+    const foo = new Foo(element).$mount();
     expect(foo.$options.log).toBe(true);
     foo.$log('bar');
     expect(spy).toHaveBeenCalledWith('[Foo]', 'bar');
@@ -465,7 +465,7 @@ describe('A Base instance config', () => {
       };
     }
     const spy = jest.spyOn(window.console, 'log');
-    const foo = new Foo(element);
+    const foo = new Foo(element).$mount();
     expect(foo.$options.log).toBe(false);
     foo.$log('bar');
     expect(spy).toHaveBeenCalledTimes(0);
@@ -481,11 +481,11 @@ describe('A Base instance config', () => {
     }
     const spy = jest.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
-    const foo = new Foo(document.createElement('div'));
-    expect(spy).toHaveBeenNthCalledWith(1, '[Foo]', '$mount');
-    expect(spy).toHaveBeenNthCalledWith(2, '[Foo]', 'callMethod', 'mounted');
-    expect(spy).toHaveBeenNthCalledWith(3, '[Foo]', 'mountComponents', {});
-    expect(spy).toHaveBeenNthCalledWith(4, '[Foo]', 'constructor', foo);
+    const foo = new Foo(document.createElement('div')).$mount();
+    expect(spy).toHaveBeenNthCalledWith(1, '[Foo]', 'constructor', foo);
+    expect(spy).toHaveBeenNthCalledWith(2, '[Foo]', '$mount');
+    expect(spy).toHaveBeenNthCalledWith(3, '[Foo]', 'callMethod', 'mounted');
+    expect(spy).toHaveBeenNthCalledWith(4, '[Foo]', 'mountComponents', {});
     spy.mockRestore();
   });
 });

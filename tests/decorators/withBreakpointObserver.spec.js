@@ -46,7 +46,7 @@ let fooResponsive;
 describe('The withBreakpointObserver decorator', () => {
   beforeEach(() => {
     document.body.innerHTML = template;
-    app = new App(document.body);
+    app = new App(document.body).$mount();
     foo = document.querySelector('[data-component="Foo"]');
     fooResponsive = document.querySelectorAll('[data-component="FooResponsive"]');
   });
@@ -110,7 +110,7 @@ describe('The withBreakpointObserver decorator', () => {
 
       const div = document.createElement('div');
       // eslint-disable-next-line no-new
-      new Bar(div);
+      new Bar(div).$mount();
     }).toThrow(/Incorrect configuration/);
   });
 
@@ -127,7 +127,7 @@ describe('The withBreakpointObserver decorator', () => {
       }
 
       // eslint-disable-next-line no-new
-      new Bar(document.body);
+      new Bar(document.body).$mount();
     }).toThrow(/requires breakpoints/);
   });
 });

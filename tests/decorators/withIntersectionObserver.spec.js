@@ -24,7 +24,7 @@ describe('The withIntersectionObserver decorator', () => {
     }
 
     const div = document.createElement('div');
-    const foo = new Foo(div);
+    const foo = new Foo(div).$mount();
     const observer = intersectionMockInstance(div);
     expect(foo.$observer).not.toBeUndefined();
     expect(observer.observe).toHaveBeenCalledTimes(1);

@@ -16,7 +16,7 @@ describe('The Modal component', () => {
 
   beforeAll(() => {
     document.body.innerHTML = template;
-    modal = new Modal(document.body.firstElementChild);
+    modal = new Modal(document.body.firstElementChild).$mount();
   });
 
   it('should be closed on instantiation', () => {
@@ -136,7 +136,7 @@ describe('The Modal component with the `move` option', () => {
       'data-options',
       JSON.stringify({ move: '#target' })
     );
-    modal = new Modal(document.body.firstElementChild);
+    modal = new Modal(document.body.firstElementChild).$mount();
   });
 
   it('should move the `modal` ref to the `#target` element on mounted.', () => {
