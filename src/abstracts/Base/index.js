@@ -1,7 +1,7 @@
 import nanoid from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind';
 import EventManager from '../EventManager';
-import { callMethod, debug, log, getConfig } from './utils';
+import { callMethod, debug, getConfig } from './utils';
 // eslint-disable-next-line import/no-cycle
 import { getChildren, getComponentElements } from './children';
 import { getOptions } from './options';
@@ -194,13 +194,12 @@ export default class Base extends EventManager {
   /**
    * Small helper to log stuff.
    *
-   * @param  {...any} args The arguments passed to the method
-   * @return {void}
+   * @return {(...args: any) => void} A log function if the log options is active.
    */
-  $log(...args) {
-    if (this.$options.log) {
-      log(this, ...args);
-    }
+  get $log() {
+    return this.$options.log
+      ? window.console.log.bind(window, `[${this.$options.name}]`)
+      : function noop() {};
   }
 
   /**
