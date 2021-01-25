@@ -1,7 +1,4 @@
 /**
- * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
- */
-/**
  * @typedef {Object} ModalRefs
  * @property {HTMLElement} close
  * @property {HTMLElement} container
@@ -55,7 +52,7 @@ export default class Modal extends Base {
             };
         };
     };
-    constructor(element: import("../abstracts/Base").BaseHTMLElement);
+    constructor(element: HTMLElement);
     /**
      * Open the modal on click on the `open` ref.
      *
@@ -74,6 +71,12 @@ export default class Modal extends Base {
      * @return {Function} The component's `close` method.
      */
     get onOverlayClick(): Function;
+    /**
+     * Initialize the component's behaviours.
+     *
+     * @this {Modal & ModalInterface}
+     */
+    mounted(): Modal & ModalInterface;
     isOpen: boolean;
     refModalPlaceholder: Comment;
     refModalParentBackup: any;
@@ -116,11 +119,6 @@ export default class Modal extends Base {
      */
     close(): Promise<Modal>;
 }
-export type BaseOptions = {
-    name: string;
-    debug: boolean;
-    log: boolean;
-};
 export type ModalRefs = {
     close: HTMLElement;
     container: HTMLElement;

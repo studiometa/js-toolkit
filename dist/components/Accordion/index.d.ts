@@ -35,11 +35,17 @@ export default class Accordion extends Base {
             AccordionItem: typeof AccordionItem;
         };
     };
-    constructor(element: import("../../abstracts/Base").BaseHTMLElement);
+    constructor(element: HTMLElement);
     /**
      * @type {Array<Function>}
      */
     unbindMethods: Array<Function>;
+    /**
+     * Init autoclose behavior on mounted.
+     * @this {Accordion & AccordionInterface}
+     * @return {Promise<void>}
+     */
+    mounted(): Promise<void>;
     /**
      * Destroy autoclose behavior on destroyed.
      * @return {void}

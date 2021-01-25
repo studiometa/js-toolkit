@@ -74,7 +74,7 @@ var Raf = function (_Service) {
 }(Service);
 
 var instance = null;
-export default (function () {
+export default function useRaf() {
   if (!instance) {
     instance = new Raf();
   }
@@ -93,5 +93,5 @@ export default (function () {
     has: has,
     props: props
   };
-});
+}
 //# sourceMappingURL=raf.js.map

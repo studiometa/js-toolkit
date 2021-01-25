@@ -120,7 +120,7 @@ var Scroll = function (_Service) {
 }(Service);
 
 var scroll = null;
-export default (function () {
+export default function useScroll() {
   if (!scroll) {
     scroll = new Scroll();
   }
@@ -139,5 +139,5 @@ export default (function () {
     has: has,
     props: props
   };
-});
+}
 //# sourceMappingURL=scroll.js.map

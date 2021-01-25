@@ -51,7 +51,12 @@ export default class AccordionItem extends Base {
             };
         };
     };
-    constructor(element: import("../../abstracts/Base").BaseHTMLElement);
+    constructor(element: HTMLElement);
+    /**
+     * Add aria-attributes on mounted.
+     * @this {AccordionItem & AccordionItemInterface}
+     */
+    mounted(): void;
     /**
      * Handler for the click event on the `btn` ref.
      * @this {AccordionItem & AccordionItemInterface}

@@ -48,7 +48,12 @@ export default class Tabs extends Base {
             };
         };
     };
-    constructor(element: import("../abstracts/Base").BaseHTMLElement);
+    constructor(element: HTMLElement);
+    /**
+     * Initialize the component's behaviours.
+     * @this {Tabs & TabsInterface}
+     */
+    mounted(): Tabs & TabsInterface;
     items: any;
     /**
      * Switch tab on button click.

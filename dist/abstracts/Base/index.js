@@ -14,7 +14,7 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 import nanoid from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind';
 import EventManager from '../EventManager';
-import { callMethod, debug, log, getConfig } from './utils';
+import { callMethod, debug, getConfig } from './utils';
 import { getChildren, getComponentElements } from './children';
 import { getOptions } from './options';
 import { getRefs } from './refs';
@@ -72,10 +72,9 @@ var Base = function (_EventManager) {
 
     _this.$id = "".concat(name, "-").concat(nanoid());
     _this.$el = element;
-    _this.$isMounted = false;
     _this.$options = getOptions(_assertThisInitialized(_this), element, getConfig(_assertThisInitialized(_this)));
 
-    if (!_this.$el.__base__) {
+    if (!('__base__' in _this.$el)) {
       Object.defineProperty(_this.$el, '__base__', {
         get: function get() {
           return _assertThisInitialized(_this);
@@ -116,17 +115,6 @@ var Base = function (_EventManager) {
   }
 
   _createClass(Base, [{
-    key: "$log",
-    value: function $log() {
-      if (this.$options.log) {
-        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-          args[_key] = arguments[_key];
-        }
-
-        log.apply(void 0, [this].concat(args));
-      }
-    }
-  }, {
     key: "$mount",
     value: function $mount() {
       debug(this, '$mount');
@@ -160,8 +148,10 @@ var Base = function (_EventManager) {
       });
     }
   }, {
-    key: "mounted",
-    value: function mounted() {}
+    key: "$log",
+    get: function get() {
+      return this.$options.log ? window.console.log.bind(window, "[".concat(this.$options.name, "]")) : function noop() {};
+    }
   }], [{
     key: "$factory",
     value: function $factory(nameOrSelector) {
