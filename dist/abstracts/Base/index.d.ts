@@ -1,7 +1,6 @@
 /**
  * @typedef {typeof Base} BaseComponent
  * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
- * @typedef {HTMLElement & { __base__?: Base | 'terminated' }} BaseHTMLElement
  * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
  * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
@@ -18,7 +17,32 @@
  * @property {BaseConfigOptions} [options]
  */
 /**
- * Page lifecycle class
+ * Base class to easily create components.
+ *
+ * @example
+ * ```js
+ * class Component extends Base {
+ *   static config = {
+ *     name: 'Component',
+ *     log: true,
+ *   };
+ *
+ *   mounted() {
+ *     this.$log('Component is mounted!');
+ *   }
+ * }
+ *
+ * class App extends Base {
+ *   static config = {
+ *     name: 'App',
+ *     components: {
+ *       Component,
+ *     },
+ *   };
+ * }
+ *
+ * new App(document.body).$mount();
+ * ```
  */
 export default class Base extends EventManager {
     /**
@@ -38,9 +62,9 @@ export default class Base extends EventManager {
     /**
      * Class constructor where all the magic takes place.
      *
-     * @param {BaseHTMLElement} element The component's root element dd.
+     * @param {HTMLElement} element The component's root element dd.
      */
-    constructor(element: BaseHTMLElement);
+    constructor(element: HTMLElement);
     /**
      * The instance parent.
      * @type {Base}
@@ -73,17 +97,16 @@ export default class Base extends EventManager {
     get $children(): BaseChildren;
     /** @type {String} */
     $id: string;
-    /** @type {BaseHTMLElement} */
-    $el: BaseHTMLElement;
+    /** @type {HTMLElement} */
+    $el: HTMLElement;
     /** @type {BaseOptions} */
     $options: BaseOptions;
     /**
      * Small helper to log stuff.
      *
-     * @param  {...any} args The arguments passed to the method
-     * @return {void}
+     * @return {(...args: any) => void} A log function if the log options is active.
      */
-    $log(...args: any[]): void;
+    get $log(): (...args: any) => void;
     /**
      * Trigger the `mounted` callback.
      */
@@ -101,18 +124,11 @@ export default class Base extends EventManager {
      * @return {void}
      */
     $terminate(): void;
-    /**
-     * Hello world.
-     */
-    mounted(): void;
 }
 export type BaseComponent = typeof Base;
 export type BaseAsyncComponent = () => Promise<BaseComponent | {
     default: BaseComponent;
 }>;
-export type BaseHTMLElement = HTMLElement & {
-    __base__?: Base | 'terminated';
-};
 export type BaseOptions = {
     name: string;
     debug: boolean;

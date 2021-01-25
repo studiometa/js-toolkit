@@ -73,7 +73,7 @@ var Pointer = function (_Service) {
         _this2.updateValues(event);
 
         if (!_this2.hasRaf) {
-          add('usePointer', function () {
+          add('usePointer', function (props) {
             _this2.trigger(_this2.props);
           });
           _this2.hasRaf = true;
@@ -185,7 +185,7 @@ var Pointer = function (_Service) {
 }(Service);
 
 var pointer = null;
-export default (function () {
+export default function usePointer() {
   if (!pointer) {
     pointer = new Pointer();
   }
@@ -204,5 +204,5 @@ export default (function () {
     has: has,
     props: props
   };
-});
+}
 //# sourceMappingURL=pointer.js.map

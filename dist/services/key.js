@@ -108,7 +108,7 @@ var Key = function (_Service) {
 }(Service);
 
 var key = null;
-export default (function () {
+export default function useKey() {
   if (!key) {
     key = new Key();
   }
@@ -127,5 +127,5 @@ export default (function () {
     has: has,
     props: props
   };
-});
+}
 //# sourceMappingURL=key.js.map

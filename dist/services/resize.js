@@ -104,7 +104,7 @@ var Resize = function (_Service) {
 }(Service);
 
 var resize = null;
-export default (function () {
+export default function useResize() {
   if (!resize) {
     resize = new Resize();
   }
@@ -123,5 +123,5 @@ export default (function () {
     has: has,
     props: props
   };
-});
+}
 //# sourceMappingURL=resize.js.map

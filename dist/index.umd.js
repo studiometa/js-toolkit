@@ -424,17 +424,20 @@
    * @typedef {import('./index.js').default} Base
    * @typedef {import('./index.js').BaseComponent} BaseComponent
    * @typedef {import('./index.js').BaseAsyncComponent} BaseAsyncComponent
-   * @typedef {import('./index.js').BaseHTMLElement} BaseHTMLElement
    * @typedef {import('./index.js').BaseConfigComponents} BaseConfigComponents
    */
 
   /**
    * Get a child component.
    *
-   * @param  {BaseHTMLElement}                  el             The root element of the child component.
-   * @param  {BaseComponent|BaseAsyncComponent} ComponentClass A Base class or a Promise for async components.
-   * @param  {Base}                             parent         The parent component instance.
-   * @return {Base|Promise|'terminated'}                       A Base instance or a Promise resolving to a Base instance.
+   * @param {HTMLElement & { __base__?: Base | 'terminated' }} el
+   *   The root element of the child component.
+   * @param {BaseComponent|BaseAsyncComponent} ComponentClass
+   *   A Base class or a Promise for async components.
+   * @param {Base} parent
+   *   The parent component instance.
+   * @return {Base|Promise|'terminated'}
+   *   A Base instance or a Promise resolving to a Base instance.
    */
   function getChild(el, ComponentClass, parent) {
     // Return existing instance if it exists
@@ -463,9 +466,13 @@
   }
   /**
    * Get a list of elements based on the name of a component.
-   * @param  {String}                   nameOrSelector The name or selector to used for this component.
-   * @param  {BaseHTMLElement|Document} element        The root element on which to query the selector, defaults to `document`.
-   * @return {Array<HTMLElement>}                      A list of elements on which the component should be mounted.
+   *
+   * @param {String} nameOrSelector
+   *   The name or selector to used for this component.
+   * @param {HTMLElement|Document} element
+   *   The root element on which to query the selector, defaults to `document`.
+   * @return {Array<HTMLElement>}
+   *   A list of elements on which the component should be mounted.
    */
 
 
@@ -491,7 +498,7 @@
   /**
    * Get child components.
    * @param  {Base}                 instance   The component's instance.
-   * @param  {BaseHTMLElement}      element    The component's root element
+   * @param  {HTMLElement}          element    The component's root element
    * @param  {BaseConfigComponents} components The children components' classes
    * @return {null|Object}                     Returns `null` if no child components are defined or an object of all child component instances
    */
@@ -1389,15 +1396,24 @@
   }
 
   /**
+   * @typedef {import('./index').ServiceInterface} ServiceInterface
+   */
+
+  /**
+   * @typedef {Object} RafServiceProps
+   * @property {DOMHighResTimeStamp} time
+   */
+
+  /**
+   * @typedef {Object} RafService
+   * @property {(key:String, callback:(props:RafServiceProps) => void) => void} add
+   *   Add a function to the resize service. The key must be uniq.
+   * @property {() => RafServiceProps} props
+   *   Get the current values of the resize service props.
+   */
+
+  /**
    * Tick service
-   *
-   * ```
-   * import { useRaf } from '@studiometa/js/services';
-   * const { add, remove, props } = useRag();
-   * add(id, (props) => {});
-   * remove(id);
-   * props();
-   * ```
    */
 
   var Raf = /*#__PURE__*/function (_Service) {
@@ -1473,7 +1489,21 @@
   }(Service);
 
   var instance = null;
-  var useRaf = (function () {
+  /**
+   * Use the RequestAnimationFrame (raf) service.
+   *
+   * ```js
+   * import { useRaf } from '@studiometa/js/services';
+   * const { add, remove, props } = useRag();
+   * add(id, (props) => {});
+   * remove(id);
+   * props();
+   * ```
+   *
+   * @return {ServiceInterface & RafService}
+   */
+
+  function useRaf() {
     if (!instance) {
       instance = new Raf();
     }
@@ -1492,7 +1522,32 @@
       has: has,
       props: props
     };
-  });
+  }
+
+  /**
+   * @typedef {import('./index').ServiceInterface} ServiceInterface
+   */
+
+  /**
+   * @typedef {Object} PointerServiceProps
+   * @property {MouseEvent | TouchEvent} event
+   * @property {Boolean} isDown
+   * @property {Number} x
+   * @property {Number} y
+   * @property {{ x: Boolean, y: Boolean }} changed
+   * @property {{ x: Number, y: Number }} last
+   * @property {{ x: Number, y: Number }} delta
+   * @property {{ x: Number, y: Number }} progress
+   * @property {{ x: Number, y: Number }} max
+   */
+
+  /**
+   * @typedef {Object} PointerService
+   * @property {(key:String, callback:(props:PointerServiceProps) => void) => void} add
+   *   Add a function to the resize service. The key must be uniq.
+   * @property {() => PointerServiceProps} props
+   *   Get the current values of the resize service props.
+   */
 
   /**
    * Test if an event is an instance of TouchEvent.
@@ -1506,14 +1561,6 @@
   }
   /**
    * Pointer service
-   *
-   * ```
-   * import { usePointer } from '@studiometa/js/services';
-   * const { add, remove, props } = usePointer();
-   * add(key, (props) => {});
-   * remove(key);
-   * props();
-   * ```
    */
 
 
@@ -1565,7 +1612,7 @@
         _this2.updateValues(event);
 
         if (!_this2.hasRaf) {
-          add('usePointer', function () {
+          add('usePointer', function (props) {
             _this2.trigger(_this2.props);
           });
           _this2.hasRaf = true;
@@ -1730,9 +1777,11 @@
    * remove('id');
    * props();
    * ```
+   *
+   * @return {ServiceInterface & PointerService}
    */
 
-  var usePointer = (function () {
+  function usePointer() {
     if (!pointer) {
       pointer = new Pointer();
     }
@@ -1751,7 +1800,29 @@
       has: has,
       props: props
     };
-  });
+  }
+
+  /**
+   * @typedef {import('./index').ServiceInterface} ServiceInterface
+   */
+
+  /**
+   * @typedef {Object} ResizeServiceProps
+   * @property {Number} width
+   * @property {Number} height
+   * @property {Number} ratio
+   * @property {'square'|'landscape'|'portrait'} orientation
+   * @property {String} [breakpoint]
+   * @property {String[]} [breakpoints]
+   */
+
+  /**
+   * @typedef {Object} ResizeService
+   * @property {(key:String, callback:(props:ResizeServiceProps) => void) => void} add
+   *   Add a function to the resize service. The key must be uniq.
+   * @property {() => ResizeServiceProps} props
+   *   Get the current values of the resize service props.
+   */
 
   /**
    * Resize service
@@ -1777,7 +1848,7 @@
     /**
      * Bind the handler to the resize event.
      *
-     * @return {Resize}
+     * @return {this}
      */
     _proto.init = function init() {
       var _this = this;
@@ -1799,7 +1870,7 @@
     /**
      * Unbind the handler from the resize event.
      *
-     * @return {Resize}
+     * @return {this}
      */
     ;
 
@@ -1816,13 +1887,14 @@
     /**
      * Get resize props.
      *
-     * @type {Object}
+     * @type {ResizeServiceProps}
      */
     ;
 
     _createClass(Resize, [{
       key: "props",
       get: function get() {
+        /** @type {ResizeServiceProps} [description] */
         var props = {
           width: window.innerWidth,
           height: window.innerHeight,
@@ -1893,7 +1965,20 @@
   }(Service);
 
   var resize = null;
-  var useResize = (function () {
+  /**
+   * Use the resize service.
+   *
+   * ```js
+   * import useResize from '@studiometa/js-toolkit/services/resize';
+   * const { add, remove, props } = useResize();
+   * add(key, (props) => {});
+   * remove(key);
+   * props();
+   * ```
+   * @return {ServiceInterface & ResizeService}
+   */
+
+  function useResize() {
     if (!resize) {
       resize = new Resize();
     }
@@ -1912,18 +1997,33 @@
       has: has,
       props: props
     };
-  });
+  }
+
+  /**
+   * @typedef {import('./index').ServiceInterface} ServiceInterface
+   */
+
+  /**
+   * @typedef {Object} ScrollServiceProps
+   * @property {Number} x
+   * @property {Number} y
+   * @property {{ x: Boolean, y: Boolean }} changed
+   * @property {{ x: Number, y: Number }} last
+   * @property {{ x: Number, y: Number }} delta
+   * @property {{ x: Number, y: Number }} progress
+   * @property {{ x: Number, y: Number }} max
+   */
+
+  /**
+   * @typedef {Object} ScrollService
+   * @property {(key:String, callback:(props:ScrollServiceProps) => void) => void} add
+   *   Add a function to the resize service. The key must be uniq.
+   * @property {() => ScrollServiceProps} props
+   *   Get the current values of the resize service props.
+   */
 
   /**
    * Scroll service
-   *
-   * ```
-   * import { useScroll } from '@studiometa/js-toolkit/services';
-   * const { add, remove, props } = useScroll();
-   * add(key, (props) => {});
-   * remove(key);
-   * props();
-   * ```
    */
 
   var Scroll = /*#__PURE__*/function (_Service) {
@@ -2048,7 +2148,21 @@
   }(Service);
 
   var scroll = null;
-  var useScroll = (function () {
+  /**
+   * Use the scroll service.
+   *
+   * ```js
+   * import { useScroll } from '@studiometa/js-toolkit/services';
+   * const { add, remove, props } = useScroll();
+   * add(key, (props) => {});
+   * remove(key);
+   * props();
+   * ```
+   *
+   * @return {ServiceInterface & ScrollService}
+   */
+
+  function useScroll() {
     if (!scroll) {
       scroll = new Scroll();
     }
@@ -2067,7 +2181,7 @@
       has: has,
       props: props
     };
-  });
+  }
 
   var keyCodes = {
     ENTER: 13,
@@ -2081,15 +2195,35 @@
   };
 
   /**
+   * @typedef {import('./index').ServiceInterface} ServiceInterface
+   */
+
+  /**
+   * @typedef {Object} KeyServiceProps
+   * @property {KeyboardEvent} event
+   * @property {Number} triggered
+   * @property {Boolean} isUp
+   * @property {Boolean} isDown
+   * @property {Boolean} ENTER
+   * @property {Boolean} SPACE
+   * @property {Boolean} TAB
+   * @property {Boolean} ESC
+   * @property {Boolean} LEFT
+   * @property {Boolean} UP
+   * @property {Boolean} RIGHT
+   * @property {Boolean} DOWN
+   */
+
+  /**
+   * @typedef {Object} KeyService
+   * @property {(key:String, callback:(props:KeyServiceProps) => void) => void} add
+   *   Add a function to the resize service. The key must be uniq.
+   * @property {() => KeyServiceProps} props
+   *   Get the current values of the resize service props.
+   */
+
+  /**
    * Scroll service
-   *
-   * ```
-   * import { useKey } from '@studiometa/js-toolkit/services';
-   * const { add, remove, props } = useKey();
-   * add(key, (props) => {});
-   * remove(key);
-   * props();
-   * ```
    */
 
   var Key = /*#__PURE__*/function (_Service) {
@@ -2189,7 +2323,21 @@
   }(Service);
 
   var key = null;
-  var useKey = (function () {
+  /**
+   * Use the keyboard service.
+   *
+   * ```js
+   * import { useKey } from '@studiometa/js-toolkit/services';
+   * const { add, remove, props } = useKey();
+   * add(key, (props) => {});
+   * remove(key);
+   * props();
+   * ```
+   *
+   * @return {ServiceInterface & KeyService}
+   */
+
+  function useKey() {
     if (!key) {
       key = new Key();
     }
@@ -2208,7 +2356,7 @@
       has: has,
       props: props
     };
-  });
+  }
 
   /**
    * @typedef {import('./index').default} Base
@@ -2340,7 +2488,7 @@
           $ref.addEventListener(eventName, handler);
 
           var unbindMethod = function unbindMethod() {
-            debug(instance, 'unbinding ref event', eventMethods);
+            debug(instance, 'unbinding ref event', eventMethod);
             /** @type {HTMLElement} */
 
             $ref.removeEventListener(eventName, handler);
@@ -2434,7 +2582,6 @@
   /**
    * @typedef {typeof Base} BaseComponent
    * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
-   * @typedef {HTMLElement & { __base__?: Base | 'terminated' }} BaseHTMLElement
    * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
    * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
    * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
@@ -2453,7 +2600,32 @@
    */
 
   /**
-   * Page lifecycle class
+   * Base class to easily create components.
+   *
+   * @example
+   * ```js
+   * class Component extends Base {
+   *   static config = {
+   *     name: 'Component',
+   *     log: true,
+   *   };
+   *
+   *   mounted() {
+   *     this.$log('Component is mounted!');
+   *   }
+   * }
+   *
+   * class App extends Base {
+   *   static config = {
+   *     name: 'App',
+   *     components: {
+   *       Component,
+   *     },
+   *   };
+   * }
+   *
+   * new App(document.body).$mount();
+   * ```
    */
 
   var Base = /*#__PURE__*/function (_EventManager) {
@@ -2522,7 +2694,7 @@
       /**
        * Class constructor where all the magic takes place.
        *
-       * @param {BaseHTMLElement} element The component's root element dd.
+       * @param {HTMLElement} element The component's root element dd.
        */
 
     }]);
@@ -2544,17 +2716,14 @@
 
 
       _this.$id = name + "-" + nonSecure();
-      /** @type {BaseHTMLElement} */
+      /** @type {HTMLElement} */
 
       _this.$el = element;
-      /** @type {Boolean} */
-
-      _this.$isMounted = false;
       /** @type {BaseOptions} */
 
       _this.$options = getOptions(_assertThisInitialized(_this), element, getConfig(_assertThisInitialized(_this)));
 
-      if (!_this.$el.__base__) {
+      if (!('__base__' in _this.$el)) {
         Object.defineProperty(_this.$el, '__base__', {
           get: function get() {
             return _assertThisInitialized(_this);
@@ -2597,23 +2766,15 @@
     /**
      * Small helper to log stuff.
      *
-     * @param  {...any} args The arguments passed to the method
-     * @return {void}
+     * @return {(...args: any) => void} A log function if the log options is active.
      */
 
 
     var _proto = Base.prototype;
 
-    _proto.$log = function $log() {
-      if (this.$options.log) {
-        log.apply(void 0, [this].concat([].slice.call(arguments)));
-      }
-    }
     /**
      * Trigger the `mounted` callback.
      */
-    ;
-
     _proto.$mount = function $mount() {
       debug(this, '$mount');
       callMethod(this, 'mounted');
@@ -2679,13 +2840,14 @@
       return getComponentElements(nameOrSelector).map(function (el) {
         return new _this2(el).$mount();
       });
-    }
-    /**
-     * Hello world.
-     */
-    ;
+    };
 
-    _proto.mounted = function mounted() {};
+    _createClass(Base, [{
+      key: "$log",
+      get: function get() {
+        return this.$options.log ? window.console.log.bind(window, "[" + this.$options.name + "]") : function noop() {};
+      }
+    }]);
 
     return Base;
   }(EventManager);

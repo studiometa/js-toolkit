@@ -59,7 +59,7 @@ function bindRefsEvents(instance, eventMethods) {
         $ref.addEventListener(eventName, handler);
 
         var unbindMethod = function unbindMethod() {
-          debug(instance, 'unbinding ref event', eventMethods);
+          debug(instance, 'unbinding ref event', eventMethod);
           $ref.removeEventListener(eventName, handler);
         };
 
