@@ -4,15 +4,30 @@ import debounce from '../utils/debounce';
 import nextFrame from '../utils/nextFrame';
 
 /**
+ * @typedef {import('./index').ServiceInterface} ServiceInterface
+ */
+
+/**
+ * @typedef {Object} ScrollServiceProps
+ * @property {Number} x
+ * @property {Number} y
+ * @property {{ x: Boolean, y: Boolean }} changed
+ * @property {{ x: Number, y: Number }} last
+ * @property {{ x: Number, y: Number }} delta
+ * @property {{ x: Number, y: Number }} progress
+ * @property {{ x: Number, y: Number }} max
+ */
+
+/**
+ * @typedef {Object} ScrollService
+ * @property {(key:String, callback:(props:ScrollServiceProps) => void) => void} add
+ *   Add a function to the resize service. The key must be uniq.
+ * @property {() => ScrollServiceProps} props
+ *   Get the current values of the resize service props.
+ */
+
+/**
  * Scroll service
- *
- * ```
- * import { useScroll } from '@studiometa/js-toolkit/services';
- * const { add, remove, props } = useScroll();
- * add(key, (props) => {});
- * remove(key);
- * props();
- * ```
  */
 class Scroll extends Service {
   /** @type {Number} The y scroll position. */
@@ -119,7 +134,20 @@ class Scroll extends Service {
 
 let scroll = null;
 
-export default () => {
+/**
+ * Use the scroll service.
+ *
+ * ```js
+ * import { useScroll } from '@studiometa/js-toolkit/services';
+ * const { add, remove, props } = useScroll();
+ * add(key, (props) => {});
+ * remove(key);
+ * props();
+ * ```
+ *
+ * @return {ServiceInterface & ScrollService}
+ */
+export default function useScroll() {
   if (!scroll) {
     scroll = new Scroll();
   }
@@ -135,4 +163,4 @@ export default () => {
     has,
     props,
   };
-};
+}

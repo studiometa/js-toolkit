@@ -14,7 +14,6 @@ import bindEvents from './events';
 /**
  * @typedef {typeof Base} BaseComponent
  * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
- * @typedef {HTMLElement & { __base__?: Base | 'terminated' }} BaseHTMLElement
  * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
  * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
@@ -33,7 +32,32 @@ import bindEvents from './events';
  */
 
 /**
- * Page lifecycle class
+ * Base class to easily create components.
+ *
+ * @example
+ * ```js
+ * class Component extends Base {
+ *   static config = {
+ *     name: 'Component',
+ *     log: true,
+ *   };
+ *
+ *   mounted() {
+ *     this.$log('Component is mounted!');
+ *   }
+ * }
+ *
+ * class App extends Base {
+ *   static config = {
+ *     name: 'App',
+ *     components: {
+ *       Component,
+ *     },
+ *   };
+ * }
+ *
+ * new App(document.body).$mount();
+ * ```
  */
 export default class Base extends EventManager {
   /**
@@ -112,7 +136,7 @@ export default class Base extends EventManager {
   /**
    * Class constructor where all the magic takes place.
    *
-   * @param {BaseHTMLElement} element The component's root element dd.
+   * @param {HTMLElement} element The component's root element dd.
    */
   constructor(element) {
     super();
@@ -126,16 +150,13 @@ export default class Base extends EventManager {
     /** @type {String} */
     this.$id = `${name}-${nanoid()}`;
 
-    /** @type {BaseHTMLElement} */
+    /** @type {HTMLElement} */
     this.$el = element;
-
-    /** @type {Boolean} */
-    this.$isMounted = false;
 
     /** @type {BaseOptions} */
     this.$options = getOptions(this, element, getConfig(this));
 
-    if (!this.$el.__base__) {
+    if (!('__base__' in this.$el)) {
       Object.defineProperty(this.$el, '__base__', {
         get: () => this,
         configurable: true,
@@ -249,9 +270,4 @@ export default class Base extends EventManager {
 
     return getComponentElements(nameOrSelector).map((el) => new this(el).$mount());
   }
-
-  /**
-   * Hello world.
-   */
-  mounted() {}
 }

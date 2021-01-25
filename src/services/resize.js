@@ -2,6 +2,28 @@ import Service from '../abstracts/Service';
 import debounce from '../utils/debounce';
 
 /**
+ * @typedef {import('./index').ServiceInterface} ServiceInterface
+ */
+
+/**
+ * @typedef {Object} ResizeServiceProps
+ * @property {Number} width
+ * @property {Number} height
+ * @property {Number} ratio
+ * @property {'square'|'landscape'|'portrait'} orientation
+ * @property {String} [breakpoint]
+ * @property {String[]} [breakpoints]
+ */
+
+/**
+ * @typedef {Object} ResizeService
+ * @property {(key:String, callback:(props:ResizeServiceProps) => void) => void} add
+ *   Add a function to the resize service. The key must be uniq.
+ * @property {() => ResizeServiceProps} props
+ *   Get the current values of the resize service props.
+ */
+
+/**
  * Resize service
  *
  * ```
@@ -16,7 +38,7 @@ class Resize extends Service {
   /**
    * Bind the handler to the resize event.
    *
-   * @return {Resize}
+   * @return {this}
    */
   init() {
     this.handler = debounce(() => {
@@ -37,7 +59,7 @@ class Resize extends Service {
   /**
    * Unbind the handler from the resize event.
    *
-   * @return {Resize}
+   * @return {this}
    */
   kill() {
     if (this.canUseResizeObserver) {
@@ -53,9 +75,10 @@ class Resize extends Service {
   /**
    * Get resize props.
    *
-   * @type {Object}
+   * @type {ResizeServiceProps}
    */
   get props() {
+    /** @type {ResizeServiceProps} [description] */
     const props = {
       width: window.innerWidth,
       height: window.innerHeight,
@@ -123,7 +146,19 @@ class Resize extends Service {
 
 let resize = null;
 
-export default () => {
+/**
+ * Use the resize service.
+ *
+ * ```js
+ * import useResize from '@studiometa/js-toolkit/services/resize';
+ * const { add, remove, props } = useResize();
+ * add(key, (props) => {});
+ * remove(key);
+ * props();
+ * ```
+ * @return {ServiceInterface & ResizeService}
+ */
+export default function useResize() {
   if (!resize) {
     resize = new Resize();
   }
@@ -139,4 +174,4 @@ export default () => {
     has,
     props,
   };
-};
+}
