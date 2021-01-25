@@ -18,6 +18,10 @@ export type ServiceInterface = {
      */
     remove: (key: string) => void;
     /**
+     * Add a callback to the service. The callback will receive the current service props as parameter.
+     */
+    add: (key: string, cb: (props: any) => void) => boolean;
+    /**
      * Test if the service has alreaydy a callback for the given key.
      */
     has: (key: string) => boolean;
