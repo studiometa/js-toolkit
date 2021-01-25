@@ -3,10 +3,6 @@ import transition from '../utils/css/transition';
 import { trap, untrap, saveActiveElement } from '../utils/focusTrap';
 
 /**
- * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
- */
-
-/**
  * @typedef {Object} ModalRefs
  * @property {HTMLElement} close
  * @property {HTMLElement} container

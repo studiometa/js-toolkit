@@ -4,6 +4,31 @@ import debounce from '../utils/debounce';
 import useRaf from './raf';
 
 /**
+ * @typedef {import('./index').ServiceInterface} ServiceInterface
+ */
+
+/**
+ * @typedef {Object} PointerServiceProps
+ * @property {MouseEvent | TouchEvent} event
+ * @property {Boolean} isDown
+ * @property {Number} x
+ * @property {Number} y
+ * @property {{ x: Boolean, y: Boolean }} changed
+ * @property {{ x: Number, y: Number }} last
+ * @property {{ x: Number, y: Number }} delta
+ * @property {{ x: Number, y: Number }} progress
+ * @property {{ x: Number, y: Number }} max
+ */
+
+/**
+ * @typedef {Object} PointerService
+ * @property {(key:String, callback:(props:PointerServiceProps) => void) => void} add
+ *   Add a function to the resize service. The key must be uniq.
+ * @property {() => PointerServiceProps} props
+ *   Get the current values of the resize service props.
+ */
+
+/**
  * Test if an event is an instance of TouchEvent.
  *
  * @param {TouchEvent|MouseEvent} event The event instance to test.
@@ -15,14 +40,6 @@ function isTouchEvent(event) {
 
 /**
  * Pointer service
- *
- * ```
- * import { usePointer } from '@studiometa/js/services';
- * const { add, remove, props } = usePointer();
- * add(key, (props) => {});
- * remove(key);
- * props();
- * ```
  */
 class Pointer extends Service {
   /** @type {Boolean} State of the pointer. */
@@ -63,7 +80,7 @@ class Pointer extends Service {
     this.handler = throttle((event) => {
       this.updateValues(event);
       if (!this.hasRaf) {
-        add('usePointer', () => {
+        add('usePointer', (props) => {
           this.trigger(this.props);
         });
         this.hasRaf = true;
@@ -199,8 +216,10 @@ let pointer = null;
  * remove('id');
  * props();
  * ```
+ *
+ * @return {ServiceInterface & PointerService}
  */
-export default () => {
+export default function usePointer() {
   if (!pointer) {
     pointer = new Pointer();
   }
@@ -216,4 +235,4 @@ export default () => {
     has,
     props,
   };
-};
+}

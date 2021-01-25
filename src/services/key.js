@@ -2,15 +2,35 @@ import Service from '../abstracts/Service';
 import keyCodes from '../utils/keyCodes';
 
 /**
+ * @typedef {import('./index').ServiceInterface} ServiceInterface
+ */
+
+/**
+ * @typedef {Object} KeyServiceProps
+ * @property {KeyboardEvent} event
+ * @property {Number} triggered
+ * @property {Boolean} isUp
+ * @property {Boolean} isDown
+ * @property {Boolean} ENTER
+ * @property {Boolean} SPACE
+ * @property {Boolean} TAB
+ * @property {Boolean} ESC
+ * @property {Boolean} LEFT
+ * @property {Boolean} UP
+ * @property {Boolean} RIGHT
+ * @property {Boolean} DOWN
+ */
+
+/**
+ * @typedef {Object} KeyService
+ * @property {(key:String, callback:(props:KeyServiceProps) => void) => void} add
+ *   Add a function to the resize service. The key must be uniq.
+ * @property {() => KeyServiceProps} props
+ *   Get the current values of the resize service props.
+ */
+
+/**
  * Scroll service
- *
- * ```
- * import { useKey } from '@studiometa/js-toolkit/services';
- * const { add, remove, props } = useKey();
- * add(key, (props) => {});
- * remove(key);
- * props();
- * ```
  */
 class Key extends Service {
   /** @type {Object} The event object. */
@@ -87,7 +107,20 @@ class Key extends Service {
 
 let key = null;
 
-export default () => {
+/**
+ * Use the keyboard service.
+ *
+ * ```js
+ * import { useKey } from '@studiometa/js-toolkit/services';
+ * const { add, remove, props } = useKey();
+ * add(key, (props) => {});
+ * remove(key);
+ * props();
+ * ```
+ *
+ * @return {ServiceInterface & KeyService}
+ */
+export default function useKey() {
   if (!key) {
     key = new Key();
   }
@@ -103,4 +136,4 @@ export default () => {
     has,
     props,
   };
-};
+}
