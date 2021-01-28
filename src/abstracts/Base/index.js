@@ -159,20 +159,20 @@ export default class Base extends EventManager {
 
     // Autobind all methods to the instance
     autoBind(this, {
-      exclude: [...(this._excludeFromAutoBind || [])],
+      exclude: [...this._excludeFromAutoBind],
     });
 
     let unbindMethods = [];
     this.$on('mounted', () => {
-      mountComponents(this);
       unbindMethods = [...bindServices(this), ...bindEvents(this)];
+      mountComponents(this);
       this.$isMounted = true;
     });
 
     this.$on('updated', () => {
       unbindMethods.forEach((method) => method());
-      mountComponents(this);
       unbindMethods = [...bindServices(this), ...bindEvents(this)];
+      mountComponents(this);
     });
 
     this.$on('destroyed', () => {

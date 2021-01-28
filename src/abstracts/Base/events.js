@@ -60,7 +60,7 @@ function bindRefsEvents(instance, eventMethods) {
 
           /** @type {HTMLElement} */ ($ref).addEventListener(eventName, handler);
           const unbindMethod = () => {
-            debug(instance, 'unbinding ref event', eventMethod);
+            debug(instance, 'unbinding ref event', refName, eventMethod);
             /** @type {HTMLElement} */ ($ref).removeEventListener(eventName, handler);
           };
 
