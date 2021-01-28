@@ -5,6 +5,7 @@ import isObject from '../../../utils/object/isObject';
 /**
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
  * @typedef {{ [name:string]: OptionType | { type: OptionType, default: String|Number|Boolean|(() => Array|Object)} }} OptionsSchema
+ * @typedef {{ [optionName:string]: any }} OptionsInterface
  */
 
 /**
@@ -17,6 +18,7 @@ function getAttributeName(name) {
 
 /**
  * Class options to manage options as data attributes on an HTML element.
+ * @augments {OptionsInterface}
  */
 export default class Options {
   /** @type {HTMLElement} The HTML element holding the options attributes. */
