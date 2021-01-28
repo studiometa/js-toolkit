@@ -125,15 +125,6 @@ export default class Base extends EventManager {
   }
 
   /**
-   * Get the component's children components.
-   * @return {BaseChildren}
-   */
-  get $children() {
-    const { components } = getConfig(this);
-    return getChildren(this, this.$el, components || {});
-  }
-
-  /**
    * Class constructor where all the magic takes place.
    *
    * @param {HTMLElement} element The component's root element dd.
@@ -155,6 +146,9 @@ export default class Base extends EventManager {
 
     /** @type {BaseOptions} */
     this.$options = getOptions(this, element, getConfig(this));
+
+    /** @type {BaseChildren} */
+    this.$children = getChildren(this, this.$el, getConfig(this).components || {});
 
     if (!('__base__' in this.$el)) {
       Object.defineProperty(this.$el, '__base__', {
