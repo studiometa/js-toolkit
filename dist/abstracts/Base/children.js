@@ -1,4 +1,5 @@
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
+import { debug } from './utils';
 
 function getChild(el, ComponentClass, parent) {
   if (el.__base__) {
@@ -38,30 +39,33 @@ export function getComponentElements(nameOrSelector) {
   return elements;
 }
 export function getChildren(instance, element, components) {
+  debug(instance, 'before:getChildren', element, components);
   var children = Object.entries(components).reduce(function (acc, _ref) {
     var _ref2 = _slicedToArray(_ref, 2),
         name = _ref2[0],
         ComponentClass = _ref2[1];
 
-    var elements = getComponentElements(name, element);
+    Object.defineProperty(acc, name, {
+      get: function get() {
+        var elements = getComponentElements(name, element);
 
-    if (elements.length === 0) {
-      return acc;
-    }
+        if (elements.length === 0) {
+          return [];
+        }
 
-    acc[name] = elements.map(function (el) {
-      return getChild(el, ComponentClass, instance);
-    }).filter(function (el) {
-      return el !== 'terminated';
+        return elements.map(function (el) {
+          return getChild(el, ComponentClass, instance);
+        }).filter(function (el) {
+          return el !== 'terminated';
+        });
+      },
+      enumerable: true,
+      configurable: true
     });
-
-    if (acc[name].length === 0) {
-      delete acc[name];
-    }
-
     return acc;
   }, {});
   instance.$emit('get:children', children);
+  debug(instance, 'after:getChildren', children);
   return children;
 }
 export default {

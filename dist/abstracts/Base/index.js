@@ -42,14 +42,6 @@ var Base = function (_EventManager) {
     get: function get() {
       return getRefs(this, this.$el);
     }
-  }, {
-    key: "$children",
-    get: function get() {
-      var _getConfig = getConfig(this),
-          components = _getConfig.components;
-
-      return getChildren(this, this.$el, components || {});
-    }
   }]);
 
   function Base(element) {
@@ -67,12 +59,13 @@ var Base = function (_EventManager) {
       throw new Error('The root element must be defined.');
     }
 
-    var _getConfig2 = getConfig(_assertThisInitialized(_this)),
-        name = _getConfig2.name;
+    var _getConfig = getConfig(_assertThisInitialized(_this)),
+        name = _getConfig.name;
 
     _this.$id = "".concat(name, "-").concat(nanoid());
     _this.$el = element;
     _this.$options = getOptions(_assertThisInitialized(_this), element, getConfig(_assertThisInitialized(_this)));
+    _this.$children = getChildren(_assertThisInitialized(_this), _this.$el, getConfig(_assertThisInitialized(_this)).components || {});
 
     if (!('__base__' in _this.$el)) {
       Object.defineProperty(_this.$el, '__base__', {
@@ -84,13 +77,13 @@ var Base = function (_EventManager) {
     }
 
     autoBind(_assertThisInitialized(_this), {
-      exclude: _toConsumableArray(_this._excludeFromAutoBind || [])
+      exclude: _toConsumableArray(_this._excludeFromAutoBind)
     });
     var unbindMethods = [];
 
     _this.$on('mounted', function () {
-      mountComponents(_assertThisInitialized(_this));
       unbindMethods = [].concat(_toConsumableArray(bindServices(_assertThisInitialized(_this))), _toConsumableArray(bindEvents(_assertThisInitialized(_this))));
+      mountComponents(_assertThisInitialized(_this));
       _this.$isMounted = true;
     });
 
@@ -98,8 +91,8 @@ var Base = function (_EventManager) {
       unbindMethods.forEach(function (method) {
         return method();
       });
-      mountComponents(_assertThisInitialized(_this));
       unbindMethods = [].concat(_toConsumableArray(bindServices(_assertThisInitialized(_this))), _toConsumableArray(bindEvents(_assertThisInitialized(_this))));
+      mountComponents(_assertThisInitialized(_this));
     });
 
     _this.$on('destroyed', function () {

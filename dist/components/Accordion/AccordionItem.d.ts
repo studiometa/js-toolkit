@@ -86,6 +86,7 @@ export default class AccordionItem extends Base {
     close(): Promise<void>;
 }
 export type BaseOptions = {
+    [name: string]: any;
     name: string;
     debug: boolean;
     log: boolean;
