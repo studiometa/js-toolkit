@@ -25,13 +25,10 @@ function mountComponent(component) {
  * @return {void}
  */
 export function mountComponents(instance) {
-  if (!instance.$children) {
-    return;
-  }
-
   debug(instance, 'mountComponents', instance.$children);
 
   Object.values(instance.$children).forEach(($child) => {
+    debug(instance, 'mountComponent', $child);
     $child.forEach(mountComponent);
   });
 }
@@ -57,12 +54,14 @@ function destroyComponent(component) {
  * @return {void}
  */
 export function destroyComponents(instance) {
-  if (!instance.$children) {
-    return;
-  }
   debug(instance, 'destroyComponents', instance.$children);
 
-  Object.values(instance.$children).forEach(($child) => {
-    $child.forEach(destroyComponent);
-  });
+  Object.values(instance.$children).forEach(
+    /**
+     * @param {Array<Base>} $child
+     */
+    ($child) => {
+      $child.forEach(destroyComponent);
+    }
+  );
 }
