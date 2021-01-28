@@ -3,21 +3,68 @@ import { warn } from './utils';
 
 /**
  * @typedef {import('./index').default} Base
+ * @typedef {import('./index').BaseOptions} BaseOptions
+ * @typedef {import('./classes/Options').OptionsSchema} OptionsSchema
  */
 
 /**
- * Get a component's options.
+ * Get the legacy options from the `config` properties.
  *
- * @param  {Base}        instance The component's instance.
- * @param  {HTMLElement} element  The component's root element.
- * @param  {Object}      config   The component's default config.
- * @return {Object}               The component's merged options.
+ * @param {Base}   instance The component's instance.
+ * @param {Object} config   The component's config.
+ * @return {OptionsSchema}
  */
-export function getOptions(instance, element, config) {
-  let schema = { ...(config.options || {}) };
+function getLegacyOptionsSchema(instance, config) {
+  // Add legacy options to the schema
+  const propsToExclude = ['name', 'log', 'debug', 'components', 'refs', 'options'];
+  return Object.keys(config).reduce(
+    /**
+     * @param {OptionsSchema} schema
+     * @param {String} propName
+     */
+    (schema, propName) => {
+      if (propsToExclude.includes(propName)) {
+        return schema;
+      }
+
+      const value = config[propName];
+      let type = value === null || value === undefined ? Object : value.constructor;
+
+      // Default to object type as it should work for any values.
+      if (!Options.types.includes(type)) {
+        type = Object;
+      }
+
+      warn(
+        instance,
+        '\n  Options must be defined in the `config.options` property.',
+        `\n  Consider moving the \`config.${propName}\` option to \`config.options.${propName}\`.`
+      );
+
+      if (type === Array || type === Object) {
+        schema[propName] = { type, default: () => value };
+      } else {
+        schema[propName] = { type, default: value };
+      }
+
+      return schema;
+    },
+    {}
+  );
+}
+
+/**
+ * Get the inherited options values from the current instance parent classes.
+ * @param {Base} instance The component's instance.
+ * @return {OptionsSchema}
+ */
+function getParentOptionsSchema(instance) {
+  /** @type {OptionsSchema} [description] */
+  let schema = {};
 
   /** @type {Base|false} Merge inherited options. */
   let prototype = instance;
+
   while (prototype) {
     const getterConfig = prototype.config;
     // @ts-ignore
@@ -34,68 +81,71 @@ export function getOptions(instance, element, config) {
     }
   }
 
-  // Add legacy options from the config
-  const propsToInclude = [
-    { name: 'log', type: Boolean },
-    { name: 'debug', type: Boolean },
-    { name: 'name', type: String },
-  ];
+  return schema;
+}
 
-  propsToInclude.forEach((prop) => {
-    schema[prop.name] = { type: prop.type, default: prop.type(config[prop.name]) };
-  });
-
-  // Add legacy options to the schema
-  const propsToExclude = ['name', 'log', 'debug', 'components', 'refs', 'options'];
-  Object.keys(config).forEach((propName) => {
-    if (propsToExclude.includes(propName)) {
-      return;
-    }
-
-    const value = config[propName];
-    let type = value === null || value === undefined ? Object : value.constructor;
-
-    // Default to object type as it should work for any values.
-    if (!Options.types.includes(type)) {
-      type = Object;
-    }
-
-    warn(
-      instance,
-      '\n  Options must be defined in the `config.options` property.',
-      `\n  Consider moving the \`config.${propName}\` option to \`config.options.${propName}\`.`,
-    );
-
-    if (type === Array || type === Object) {
-      schema[propName] = { type, default: () => value };
-    } else {
-      schema[propName] = { type, default: value };
-    }
-  });
-
-  const options = new Options(element, schema);
-
+/**
+ * Update an Options object with the legacy values from the element's `data-options` attribute.
+ *
+ * @param {Base}        instance The component's instance.
+ * @param {HTMLElement} element The component's root element.
+ * @param {Options}     options The component's options.
+ */
+function updateOptionsWithLegacyValues(instance, element, options) {
   // Update legacy options with value from the `data-options` attribute
-  let legacyOptions = {};
+  let legacyOptionsValues = {};
   if (element.dataset.options) {
     warn(
       instance,
       'The `data-options` attribute usage is deprecated, use multiple `data-option-...` attributes instead.'
     );
     try {
-      legacyOptions = JSON.parse(element.dataset.options);
+      legacyOptionsValues = JSON.parse(element.dataset.options);
     } catch (err) {
       throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
     }
   }
 
-  Object.entries(legacyOptions).forEach(([optionName, optionValue]) => {
+  Object.entries(legacyOptionsValues).forEach(([optionName, optionValue]) => {
     options[optionName] = optionValue;
   });
+}
+
+/**
+ * Get a component's options.
+ *
+ * @param  {Base}        instance The component's instance.
+ * @param  {HTMLElement} element  The component's root element.
+ * @param  {Object}      config   The component's default config.
+ * @return {Options & BaseOptions}              The component's merged options.
+ */
+export function getOptions(instance, element, config) {
+  /** @type {OptionsSchema} */
+  const schema = {
+    name: {
+      type: String,
+      default: config.name,
+    },
+    log: {
+      type: Boolean,
+      default: config.log ?? false,
+    },
+    debug: {
+      type: Boolean,
+      default: config.debug ?? false,
+    },
+    ...getParentOptionsSchema(instance),
+    ...getLegacyOptionsSchema(instance, config),
+    ...(config.options || {}),
+  };
+
+  const options = new Options(element, schema);
+
+  updateOptionsWithLegacyValues(instance, element, options);
 
   instance.$emit('get:options', options);
 
-  return options;
+  return /** @type {Options & BaseOptions} */ (options);
 }
 
 export default {
