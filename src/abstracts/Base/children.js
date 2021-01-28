@@ -1,3 +1,5 @@
+import { debug } from './utils';
+
 /**
  * @typedef {import('./index.js').default} Base
  * @typedef {import('./index.js').BaseComponent} BaseComponent
@@ -72,27 +74,33 @@ export function getComponentElements(nameOrSelector, element = document) {
  * @return {null|Object}                     Returns `null` if no child components are defined or an object of all child component instances
  */
 export function getChildren(instance, element, components) {
+  debug(instance, 'before:getChildren', element, components);
   const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
-    const elements = getComponentElements(name, element);
+    Object.defineProperty(acc, name, {
+      get() {
+        const elements = getComponentElements(name, element);
 
-    if (elements.length === 0) {
-      return acc;
-    }
+        if (elements.length === 0) {
+          return [];
+        }
 
-    acc[name] = elements
-      .map((el) => getChild(el, ComponentClass, instance))
-      // Filter out terminated children
-      // @ts-ignore
-      .filter((el) => el !== 'terminated');
-
-    if (acc[name].length === 0) {
-      delete acc[name];
-    }
+        return (
+          elements
+            .map((el) => getChild(el, ComponentClass, instance))
+            // Filter out terminated children
+            // @ts-ignore
+            .filter((el) => el !== 'terminated')
+        );
+      },
+      enumerable: true,
+      configurable: true,
+    });
 
     return acc;
   }, {});
 
   instance.$emit('get:children', children);
+  debug(instance, 'after:getChildren', children);
   return children;
 }
 
