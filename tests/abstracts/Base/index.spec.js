@@ -143,7 +143,7 @@ describe('A Base instance methods', () => {
 
     app.$update();
 
-    expect(app.$children.Bar).toBeUndefined();
+    expect(app.$children.Bar).toEqual([]);
     expect(app.$children.Baz).toHaveLength(2);
     expect(app.$children.Baz[0].$isMounted).toBe(true);
   });
@@ -272,7 +272,7 @@ describe('A Base instance methods', () => {
       };
     }
     expect(foo.$children).toEqual({});
-    expect(new Baz(document.createElement('div')).$mount().$children).toEqual({});
+    expect(new Baz(document.createElement('div')).$mount().$children).toEqual({ Bar: [] });
   });
 
   it('should not find terminated children', () => {
@@ -296,7 +296,7 @@ describe('A Base instance methods', () => {
     const baz = new Baz(div).$mount();
     expect(baz.$children).toEqual({ Bar: [div.firstElementChild.__base__] });
     div.firstElementChild.__base__.$terminate();
-    expect(baz.$children).toEqual({});
+    expect(baz.$children).toEqual({ Bar: [] });
   });
 
   it('should listen to the window.onload event', () => {
@@ -337,8 +337,8 @@ describe('A Base instance methods', () => {
     expect(baz.$isMounted).toBe(false);
     expect(barElement.__base__.$isMounted).toBe(false);
 
-    const spy = jest.spyOn(baz, '$children', 'get');
-    spy.mockImplementation(() => false);
+    const spy = jest.spyOn(baz.$children, 'Bar', 'get');
+    spy.mockImplementation(() => []);
     baz.$mount();
     expect(baz.$isMounted).toBe(true);
     expect(barElement.__base__.$isMounted).toBe(false);
@@ -481,11 +481,14 @@ describe('A Base instance config', () => {
     }
     const spy = jest.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
-    const foo = new Foo(document.createElement('div')).$mount();
-    expect(spy).toHaveBeenNthCalledWith(1, '[Foo]', 'constructor', foo);
-    expect(spy).toHaveBeenNthCalledWith(2, '[Foo]', '$mount');
-    expect(spy).toHaveBeenNthCalledWith(3, '[Foo]', 'callMethod', 'mounted');
-    expect(spy).toHaveBeenNthCalledWith(4, '[Foo]', 'mountComponents', {});
+    const div = document.createElement('div');
+    const foo = new Foo(div).$mount();
+    expect(spy).toHaveBeenNthCalledWith(1, '[Foo]', 'before:getChildren', div, {});
+    expect(spy).toHaveBeenNthCalledWith(2, '[Foo]', 'after:getChildren', {});
+    expect(spy).toHaveBeenNthCalledWith(3, '[Foo]', 'constructor', foo);
+    expect(spy).toHaveBeenNthCalledWith(4, '[Foo]', '$mount');
+    expect(spy).toHaveBeenNthCalledWith(5, '[Foo]', 'callMethod', 'mounted');
+    expect(spy).toHaveBeenNthCalledWith(6, '[Foo]', 'mountComponents', {});
     spy.mockRestore();
   });
 });
