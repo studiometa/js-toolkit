@@ -374,6 +374,7 @@ function callMethod(instance, method, ...args) {
  * @return {Base|Promise|'terminated'}
  *   A Base instance or a Promise resolving to a Base instance.
  */
+
 function getChild(el, ComponentClass, parent) {
   // Return existing instance if it exists
   if (el.__base__) {
@@ -433,24 +434,28 @@ function getComponentElements(nameOrSelector, element = document) {
  */
 
 function getChildren(instance, element, components) {
+  debug(instance, 'before:getChildren', element, components);
   const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
-    const elements = getComponentElements(name, element);
+    Object.defineProperty(acc, name, {
+      get() {
+        const elements = getComponentElements(name, element);
 
-    if (elements.length === 0) {
-      return acc;
-    }
+        if (elements.length === 0) {
+          return [];
+        }
 
-    acc[name] = elements.map(el => getChild(el, ComponentClass, instance)) // Filter out terminated children
-    // @ts-ignore
-    .filter(el => el !== 'terminated');
+        return elements.map(el => getChild(el, ComponentClass, instance)) // Filter out terminated children
+        // @ts-ignore
+        .filter(el => el !== 'terminated');
+      },
 
-    if (acc[name].length === 0) {
-      delete acc[name];
-    }
-
+      enumerable: true,
+      configurable: true
+    });
     return acc;
   }, {});
   instance.$emit('get:children', children);
+  debug(instance, 'after:getChildren', children);
   return children;
 }
 
@@ -639,6 +644,7 @@ function isObject(value) {
 /**
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
  * @typedef {{ [name:string]: OptionType | { type: OptionType, default: String|Number|Boolean|(() => Array|Object)} }} OptionsSchema
+ * @typedef {{ [optionName:string]: any }} OptionsInterface
  */
 
 /**
@@ -653,6 +659,7 @@ function getAttributeName(name) {
 }
 /**
  * Class options to manage options as data attributes on an HTML element.
+ * @augments {OptionsInterface}
  */
 
 
@@ -827,59 +834,29 @@ Options.types = [String, Number, Boolean, Array, Object];
 
 /**
  * @typedef {import('./index').default} Base
+ * @typedef {import('./index').BaseOptions} BaseOptions
+ * @typedef {import('./classes/Options').OptionsSchema} OptionsSchema
  */
 
 /**
- * Get a component's options.
+ * Get the legacy options from the `config` properties.
  *
- * @param  {Base}        instance The component's instance.
- * @param  {HTMLElement} element  The component's root element.
- * @param  {Object}      config   The component's default config.
- * @return {Object}               The component's merged options.
+ * @param {Base}   instance The component's instance.
+ * @param {Object} config   The component's config.
+ * @return {OptionsSchema}
  */
 
-function getOptions(instance, element, config) {
-  let schema = _extends({}, config.options || {});
-  /** @type {Base|false} Merge inherited options. */
-
-
-  let prototype = instance;
-
-  while (prototype) {
-    const getterConfig = prototype.config; // @ts-ignore
-
-    const staticConfig = prototype.constructor.config;
-
-    if (getterConfig || staticConfig) {
-      schema = Object.assign((getterConfig || {}).options || {}, (staticConfig || {}).options || {}, schema);
-      prototype = Object.getPrototypeOf(prototype);
-    } else {
-      prototype = false;
-    }
-  } // Add legacy options from the config
-
-
-  const propsToInclude = [{
-    name: 'log',
-    type: Boolean
-  }, {
-    name: 'debug',
-    type: Boolean
-  }, {
-    name: 'name',
-    type: String
-  }];
-  propsToInclude.forEach(prop => {
-    schema[prop.name] = {
-      type: prop.type,
-      default: prop.type(config[prop.name])
-    };
-  }); // Add legacy options to the schema
-
+function getLegacyOptionsSchema(instance, config) {
+  // Add legacy options to the schema
   const propsToExclude = ['name', 'log', 'debug', 'components', 'refs', 'options'];
-  Object.keys(config).forEach(propName => {
+  return Object.keys(config).reduce(
+  /**
+   * @param {OptionsSchema} schema
+   * @param {String} propName
+   */
+  (schema, propName) => {
     if (propsToExclude.includes(propName)) {
-      return;
+      return schema;
     }
 
     const value = config[propName];
@@ -902,26 +879,102 @@ function getOptions(instance, element, config) {
         default: value
       };
     }
-  });
-  const options = new Options(element, schema); // Update legacy options with value from the `data-options` attribute
 
-  let legacyOptions = {};
+    return schema;
+  }, {});
+}
+/**
+ * Get the inherited options values from the current instance parent classes.
+ * @param {Base} instance The component's instance.
+ * @return {OptionsSchema}
+ */
+
+
+function getParentOptionsSchema(instance) {
+  /** @type {OptionsSchema} [description] */
+  let schema = {};
+  /** @type {Base|false} Merge inherited options. */
+
+  let prototype = instance;
+
+  while (prototype) {
+    const getterConfig = prototype.config; // @ts-ignore
+
+    const staticConfig = prototype.constructor.config;
+
+    if (getterConfig || staticConfig) {
+      schema = Object.assign((getterConfig || {}).options || {}, (staticConfig || {}).options || {}, schema);
+      prototype = Object.getPrototypeOf(prototype);
+    } else {
+      prototype = false;
+    }
+  }
+
+  return schema;
+}
+/**
+ * Update an Options object with the legacy values from the element's `data-options` attribute.
+ *
+ * @param {Base}        instance The component's instance.
+ * @param {HTMLElement} element The component's root element.
+ * @param {Options}     options The component's options.
+ */
+
+
+function updateOptionsWithLegacyValues(instance, element, options) {
+  // Update legacy options with value from the `data-options` attribute
+  let legacyOptionsValues = {};
 
   if (element.dataset.options) {
     warn(instance, 'The `data-options` attribute usage is deprecated, use multiple `data-option-...` attributes instead.');
 
     try {
-      legacyOptions = JSON.parse(element.dataset.options);
+      legacyOptionsValues = JSON.parse(element.dataset.options);
     } catch (err) {
       throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
     }
   }
 
-  Object.entries(legacyOptions).forEach(([optionName, optionValue]) => {
+  Object.entries(legacyOptionsValues).forEach(([optionName, optionValue]) => {
     options[optionName] = optionValue;
   });
+}
+/**
+ * Get a component's options.
+ *
+ * @param  {Base}        instance The component's instance.
+ * @param  {HTMLElement} element  The component's root element.
+ * @param  {Object}      config   The component's default config.
+ * @return {Options & BaseOptions}              The component's merged options.
+ */
+
+
+function getOptions(instance, element, config) {
+  var _config$log, _config$debug;
+
+  /** @type {OptionsSchema} */
+  const schema = _extends({
+    name: {
+      type: String,
+      default: config.name
+    },
+    log: {
+      type: Boolean,
+      default: (_config$log = config.log) != null ? _config$log : false
+    },
+    debug: {
+      type: Boolean,
+      default: (_config$debug = config.debug) != null ? _config$debug : false
+    }
+  }, getParentOptionsSchema(instance), getLegacyOptionsSchema(instance, config), config.options || {});
+
+  const options = new Options(element, schema);
+  updateOptionsWithLegacyValues(instance, element, options);
   instance.$emit('get:options', options);
-  return options;
+  return (
+    /** @type {Options & BaseOptions} */
+    options
+  );
 }
 
 /**
@@ -1038,12 +1091,9 @@ function mountComponent(component) {
 
 
 function mountComponents(instance) {
-  if (!instance.$children) {
-    return;
-  }
-
   debug(instance, 'mountComponents', instance.$children);
   Object.values(instance.$children).forEach($child => {
+    debug(instance, 'mountComponent', $child);
     $child.forEach(mountComponent);
   });
 }
@@ -1070,12 +1120,12 @@ function destroyComponent(component) {
 
 
 function destroyComponents(instance) {
-  if (!instance.$children) {
-    return;
-  }
-
   debug(instance, 'destroyComponents', instance.$children);
-  Object.values(instance.$children).forEach($child => {
+  Object.values(instance.$children).forEach(
+  /**
+   * @param {Array<Base>} $child
+   */
+  $child => {
     $child.forEach(destroyComponent);
   });
 }
@@ -2247,7 +2297,7 @@ function bindRefsEvents(instance, eventMethods) {
         $ref.addEventListener(eventName, handler);
 
         const unbindMethod = () => {
-          debug(instance, 'unbinding ref event', eventMethod);
+          debug(instance, 'unbinding ref event', refName, eventMethod);
           /** @type {HTMLElement} */
 
           $ref.removeEventListener(eventName, handler);
@@ -2332,7 +2382,7 @@ function bindEvents(instance) {
 /**
  * @typedef {typeof Base} BaseComponent
  * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
- * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
+ * @typedef {{ name: string, debug: boolean, log: boolean, [name:string]: any }} BaseOptions
  * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
  * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
@@ -2421,18 +2471,6 @@ class Base extends EventManager {
     return getRefs(this, this.$el);
   }
   /**
-   * Get the component's children components.
-   * @return {BaseChildren}
-   */
-
-
-  get $children() {
-    const {
-      components
-    } = getConfig(this);
-    return getChildren(this, this.$el, components || {});
-  }
-  /**
    * Class constructor where all the magic takes place.
    *
    * @param {HTMLElement} element The component's root element dd.
@@ -2460,6 +2498,9 @@ class Base extends EventManager {
     /** @type {BaseOptions} */
 
     this.$options = getOptions(this, element, getConfig(this));
+    /** @type {BaseChildren} */
+
+    this.$children = getChildren(this, this.$el, getConfig(this).components || {});
 
     if (!('__base__' in this.$el)) {
       Object.defineProperty(this.$el, '__base__', {
@@ -2470,18 +2511,18 @@ class Base extends EventManager {
 
 
     autoBind(this, {
-      exclude: [...(this._excludeFromAutoBind || [])]
+      exclude: [...this._excludeFromAutoBind]
     });
     let unbindMethods = [];
     this.$on('mounted', () => {
-      mountComponents(this);
       unbindMethods = [...bindServices(this), ...bindEvents(this)];
+      mountComponents(this);
       this.$isMounted = true;
     });
     this.$on('updated', () => {
       unbindMethods.forEach(method => method());
-      mountComponents(this);
       unbindMethods = [...bindServices(this), ...bindEvents(this)];
+      mountComponents(this);
     });
     this.$on('destroyed', () => {
       this.$isMounted = false;

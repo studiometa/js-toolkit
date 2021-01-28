@@ -1,7 +1,7 @@
 /**
  * @typedef {typeof Base} BaseComponent
  * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
- * @typedef {{ name: string, debug: boolean, log: boolean }} BaseOptions
+ * @typedef {{ name: string, debug: boolean, log: boolean, [name:string]: any }} BaseOptions
  * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
  * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
@@ -90,17 +90,14 @@ export default class Base extends EventManager {
      * @return {BaseRefs}
      */
     get $refs(): BaseRefs;
-    /**
-     * Get the component's children components.
-     * @return {BaseChildren}
-     */
-    get $children(): BaseChildren;
     /** @type {String} */
     $id: string;
     /** @type {HTMLElement} */
     $el: HTMLElement;
     /** @type {BaseOptions} */
     $options: BaseOptions;
+    /** @type {BaseChildren} */
+    $children: BaseChildren;
     /**
      * Small helper to log stuff.
      *
@@ -130,6 +127,7 @@ export type BaseAsyncComponent = () => Promise<BaseComponent | {
     default: BaseComponent;
 }>;
 export type BaseOptions = {
+    [name: string]: any;
     name: string;
     debug: boolean;
     log: boolean;

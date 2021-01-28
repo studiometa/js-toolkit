@@ -1,5 +1,5 @@
-import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
 import _defineProperty from "@babel/runtime/helpers/defineProperty";
+import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -7,43 +7,12 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 import Options from './classes/Options';
 import { warn } from './utils';
-export function getOptions(instance, element, config) {
-  var schema = _objectSpread({}, config.options || {});
 
-  var prototype = instance;
-
-  while (prototype) {
-    var getterConfig = prototype.config;
-    var staticConfig = prototype.constructor.config;
-
-    if (getterConfig || staticConfig) {
-      schema = Object.assign((getterConfig || {}).options || {}, (staticConfig || {}).options || {}, schema);
-      prototype = Object.getPrototypeOf(prototype);
-    } else {
-      prototype = false;
-    }
-  }
-
-  var propsToInclude = [{
-    name: 'log',
-    type: Boolean
-  }, {
-    name: 'debug',
-    type: Boolean
-  }, {
-    name: 'name',
-    type: String
-  }];
-  propsToInclude.forEach(function (prop) {
-    schema[prop.name] = {
-      type: prop.type,
-      default: prop.type(config[prop.name])
-    };
-  });
+function getLegacyOptionsSchema(instance, config) {
   var propsToExclude = ['name', 'log', 'debug', 'components', 'refs', 'options'];
-  Object.keys(config).forEach(function (propName) {
+  return Object.keys(config).reduce(function (schema, propName) {
     if (propsToExclude.includes(propName)) {
-      return;
+      return schema;
     }
 
     var value = config[propName];
@@ -68,27 +37,72 @@ export function getOptions(instance, element, config) {
         default: value
       };
     }
-  });
-  var options = new Options(element, schema);
-  var legacyOptions = {};
+
+    return schema;
+  }, {});
+}
+
+function getParentOptionsSchema(instance) {
+  var schema = {};
+  var prototype = instance;
+
+  while (prototype) {
+    var getterConfig = prototype.config;
+    var staticConfig = prototype.constructor.config;
+
+    if (getterConfig || staticConfig) {
+      schema = Object.assign((getterConfig || {}).options || {}, (staticConfig || {}).options || {}, schema);
+      prototype = Object.getPrototypeOf(prototype);
+    } else {
+      prototype = false;
+    }
+  }
+
+  return schema;
+}
+
+function updateOptionsWithLegacyValues(instance, element, options) {
+  var legacyOptionsValues = {};
 
   if (element.dataset.options) {
     warn(instance, 'The `data-options` attribute usage is deprecated, use multiple `data-option-...` attributes instead.');
 
     try {
-      legacyOptions = JSON.parse(element.dataset.options);
+      legacyOptionsValues = JSON.parse(element.dataset.options);
     } catch (err) {
       throw new Error('Can not parse the `data-options` attribute. Is it a valid JSON string?');
     }
   }
 
-  Object.entries(legacyOptions).forEach(function (_ref) {
+  Object.entries(legacyOptionsValues).forEach(function (_ref) {
     var _ref2 = _slicedToArray(_ref, 2),
         optionName = _ref2[0],
         optionValue = _ref2[1];
 
     options[optionName] = optionValue;
   });
+}
+
+export function getOptions(instance, element, config) {
+  var _config$log, _config$debug;
+
+  var schema = _objectSpread(_objectSpread(_objectSpread({
+    name: {
+      type: String,
+      default: config.name
+    },
+    log: {
+      type: Boolean,
+      default: (_config$log = config.log) !== null && _config$log !== void 0 ? _config$log : false
+    },
+    debug: {
+      type: Boolean,
+      default: (_config$debug = config.debug) !== null && _config$debug !== void 0 ? _config$debug : false
+    }
+  }, getParentOptionsSchema(instance)), getLegacyOptionsSchema(instance, config)), config.options || {});
+
+  var options = new Options(element, schema);
+  updateOptionsWithLegacyValues(instance, element, options);
   instance.$emit('get:options', options);
   return options;
 }

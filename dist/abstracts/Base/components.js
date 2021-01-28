@@ -11,12 +11,9 @@ function mountComponent(component) {
 }
 
 export function mountComponents(instance) {
-  if (!instance.$children) {
-    return;
-  }
-
   debug(instance, 'mountComponents', instance.$children);
   Object.values(instance.$children).forEach(function ($child) {
+    debug(instance, 'mountComponent', $child);
     $child.forEach(mountComponent);
   });
 }
@@ -32,10 +29,6 @@ function destroyComponent(component) {
 }
 
 export function destroyComponents(instance) {
-  if (!instance.$children) {
-    return;
-  }
-
   debug(instance, 'destroyComponents', instance.$children);
   Object.values(instance.$children).forEach(function ($child) {
     $child.forEach(destroyComponent);

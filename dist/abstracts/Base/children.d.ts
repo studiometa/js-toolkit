@@ -21,11 +21,11 @@ declare namespace _default {
     export { getChildren };
 }
 export default _default;
-export type Base = import("./index.js").default;
-export type BaseComponent = typeof import("./index.js").default;
-export type BaseAsyncComponent = () => Promise<typeof import("./index.js").default | {
-    default: typeof import("./index.js").default;
+export type Base = import(".").default;
+export type BaseComponent = typeof import(".").default;
+export type BaseAsyncComponent = () => Promise<typeof import(".").default | {
+    default: typeof import(".").default;
 }>;
 export type BaseConfigComponents = {
-    [nameOrSelector: string]: typeof import("./index.js").default | import("./index.js").BaseAsyncComponent;
+    [nameOrSelector: string]: typeof import(".").default | import(".").BaseAsyncComponent;
 };

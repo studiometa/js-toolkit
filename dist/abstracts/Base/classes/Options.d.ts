@@ -1,5 +1,6 @@
 /**
  * Class options to manage options as data attributes on an HTML element.
+ * @augments {OptionsInterface}
  */
 export default class Options {
     /** @type {Array} List of allowed types. */
@@ -35,4 +36,7 @@ export type OptionsSchema = {
         type: OptionType;
         default: string | number | boolean | (() => any[] | any);
     };
+};
+export type OptionsInterface = {
+    [optionName: string]: any;
 };

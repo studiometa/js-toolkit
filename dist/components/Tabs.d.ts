@@ -82,6 +82,7 @@ export default class Tabs extends Base {
     disableItem(item: TabItem): Promise<Tabs & TabsInterface>;
 }
 export type BaseOptions = {
+    [name: string]: any;
     name: string;
     debug: boolean;
     log: boolean;
