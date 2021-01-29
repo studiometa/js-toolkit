@@ -1,10 +1,10 @@
 /**
- * Smooth step from currentValue to targetValue
+ * Get the next damped value for a given speed.
  *
- * @param  {Int} targetValue we want to reech
- * @param  {Int} currentValue
- * @param  {Int} speed to reech target value
- * @return {Int}
+ * @param  {Number} targetValue The final value.
+ * @param  {Number} currentValue The current value.
+ * @param  {Number=} [speed=0.5] The speed to reach the target value.
+ * @return {Number} The next value.
  */
 export default function damp(targetValue, currentValue, speed = 0.5) {
   const value = currentValue + (targetValue - currentValue) * speed;

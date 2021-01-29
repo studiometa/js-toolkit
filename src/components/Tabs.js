@@ -2,32 +2,64 @@ import Base from '../abstracts/Base';
 import transition from '../utils/css/transition';
 
 /**
+ * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+ */
+
+/**
+ * @typedef {Object} TabItem
+ * @property {HTMLElement} btn
+ * @property {HTMLElement} content
+ * @property {Boolean} isEnabled
+ */
+
+/**
+ * @typedef {Object} TabsRefs
+ * @property {HTMLElement[]} btn
+ * @property {HTMLElement[]} content
+ */
+
+/**
+ * @typedef {Object} TabsOptions
+ * @property {Object} styles
+ */
+
+/**
+ * @typedef {Object} TabsInterface
+ * @property {TabsOptions} $options
+ * @property {TabsRefs} $refs
+ * @property {Array<TabItem>} items
+ */
+
+/**
  * Tabs class.
  */
 export default class Tabs extends Base {
   /**
-   * Tabs options.
+   * Tabs config.
    */
-  get config() {
-    return {
-      name: 'Tabs',
+  static config = {
+    name: 'Tabs',
+    refs: ['btn[]', 'content[]'],
+    options: {
       styles: {
-        content: {
-          closed: {
-            position: 'absolute',
-            opacity: 0,
-            pointerEvents: 'none',
-            visibility: 'hidden',
+        type: Object,
+        default: () => ({
+          content: {
+            closed: {
+              position: 'absolute',
+              opacity: '0',
+              pointerEvents: 'none',
+              visibility: 'hidden',
+            },
           },
-        },
+        }),
       },
-    };
-  }
+    },
+  };
 
   /**
    * Initialize the component's behaviours.
-   *
-   * @return {Tabs} The current instance.
+   * @this {Tabs & TabsInterface}
    */
   mounted() {
     this.items = this.$refs.btn.map((btn, index) => {
@@ -51,6 +83,7 @@ export default class Tabs extends Base {
   /**
    * Switch tab on button click.
    *
+   * @this {Tabs & TabsInterface}
    * @param  {Event}  event The click event object.
    * @param  {Number} index The index of the clicked button.
    * @return {void}
@@ -68,9 +101,9 @@ export default class Tabs extends Base {
   /**
    * Enable the given tab and its associated content.
    *
-   * @param  {HTMLElement} btn     The tab element.
-   * @param  {HTMLElement} content The content element.
-   * @return {Tabs}                The Tabs instance.
+   * @this {Tabs & TabsInterface}
+   * @param  {TabItem}       item The item to enable.
+   * @return {Promise<Tabs & TabsInterface>}      Tabs instance.
    */
   async enableItem(item) {
     if (!item || item.isEnabled) {
@@ -110,9 +143,9 @@ export default class Tabs extends Base {
   /**
    * Disable the given tab and its associated content.
    *
-   * @param  {HTMLElement} btn     The tab element.
-   * @param  {HTMLElement} content The content element.
-   * @return {Tabs}                The Tabs instance.
+   * @this {Tabs & TabsInterface}
+   * @param  {TabItem}       item The item to disable.
+   * @return {Promise<Tabs & TabsInterface>}      The Tabs instance.
    */
   async disableItem(item) {
     if (!item || !item.isEnabled) {

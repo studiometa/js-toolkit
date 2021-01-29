@@ -10,19 +10,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 import Service from '../abstracts/Service';
 import debounce from '../utils/debounce';
-/**
- * Resize service
- *
- * ```
- * import { useResize } from '@studiometa/js/services';
- * const { add, remove, props } = useResize();
- * add(key, (props) => {});
- * remove(key);
- * props();
- * ```
- */
 
-var Resize = /*#__PURE__*/function (_Service) {
+var Resize = function (_Service) {
   _inherits(Resize, _Service);
 
   var _super = _createSuper(Resize);
@@ -35,12 +24,6 @@ var Resize = /*#__PURE__*/function (_Service) {
 
   _createClass(Resize, [{
     key: "init",
-
-    /**
-     * Bind the handler to the resize event.
-     *
-     * @return {void}
-     */
     value: function init() {
       var _this = this;
 
@@ -54,13 +37,9 @@ var Resize = /*#__PURE__*/function (_Service) {
       } else {
         window.addEventListener('resize', this.handler);
       }
-    }
-    /**
-     * Unbind the handler from the resize event.
-     *
-     * @return {void}
-     */
 
+      return this;
+    }
   }, {
     key: "kill",
     value: function kill() {
@@ -71,13 +50,8 @@ var Resize = /*#__PURE__*/function (_Service) {
       }
 
       delete this.resizeObserver;
+      return this;
     }
-    /**
-     * Get resize props.
-     *
-     * @type {Object}
-     */
-
   }, {
     key: "props",
     get: function get() {
@@ -103,42 +77,22 @@ var Resize = /*#__PURE__*/function (_Service) {
 
       return props;
     }
-    /**
-     * The element holding the breakpoints data.
-     * @return {HTMLElement}
-     */
-
   }, {
     key: "breakpointElement",
     get: function get() {
       return document.querySelector('[data-breakpoint]') || null;
     }
-    /**
-     * Get the current breakpoint.
-     * @return {String}
-     */
-
   }, {
     key: "breakpoint",
     get: function get() {
       return window.getComputedStyle(this.breakpointElement, '::before').getPropertyValue('content').replace(/"/g, '');
     }
-    /**
-     * Get all breakpoints.
-     * @return {Array}
-     */
-
   }, {
     key: "breakpoints",
     get: function get() {
       var breakpoints = window.getComputedStyle(this.breakpointElement, '::after').getPropertyValue('content').replace(/"/g, '');
       return breakpoints.split(',');
     }
-    /**
-     * Test if we can use the `ResizeObserver` API.
-     * @return {Boolean}
-     */
-
   }, {
     key: "canUseResizeObserver",
     get: function get() {
@@ -150,7 +104,7 @@ var Resize = /*#__PURE__*/function (_Service) {
 }(Service);
 
 var resize = null;
-export default (function () {
+export default function useResize() {
   if (!resize) {
     resize = new Resize();
   }
@@ -169,5 +123,5 @@ export default (function () {
     has: has,
     props: props
   };
-});
+}
 //# sourceMappingURL=resize.js.map

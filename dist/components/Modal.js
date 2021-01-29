@@ -6,6 +6,7 @@ import _createClass from "@babel/runtime/helpers/createClass";
 import _inherits from "@babel/runtime/helpers/inherits";
 import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
 import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
@@ -13,18 +14,9 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 import Base from '../abstracts/Base';
 import transition from '../utils/css/transition';
-import focusTrap from '../utils/focusTrap';
+import { trap, untrap, saveActiveElement } from '../utils/focusTrap';
 
-var _focusTrap = focusTrap(),
-    trap = _focusTrap.trap,
-    untrap = _focusTrap.untrap,
-    saveActiveElement = _focusTrap.saveActiveElement;
-/**
- * Modal class.
- */
-
-
-var Modal = /*#__PURE__*/function (_Base) {
+var Modal = function (_Base) {
   _inherits(Modal, _Base);
 
   var _super = _createSuper(Modal);
@@ -37,12 +29,6 @@ var Modal = /*#__PURE__*/function (_Base) {
 
   _createClass(Modal, [{
     key: "mounted",
-
-    /**
-     * Initialize the component's behaviours.
-     *
-     * @return {Modal} The current instance.
-     */
     value: function mounted() {
       this.isOpen = false;
       this.close();
@@ -69,18 +55,12 @@ var Modal = /*#__PURE__*/function (_Base) {
 
       return this;
     }
-    /**
-     * Unbind all events on destroy.
-     *
-     * @return {Modal} The Modal instance.
-     */
-
   }, {
     key: "destroyed",
     value: function destroyed() {
       this.close();
 
-      if (this.$options.move) {
+      if (this.$options.move && this.refModalParentBackup) {
         this.refModalParentBackup.insertBefore(this.$refs.modal, this.refModalPlaceholder);
         this.refModalUnbindGetRefFilter();
         this.refModalPlaceholder.remove();
@@ -91,16 +71,6 @@ var Modal = /*#__PURE__*/function (_Base) {
 
       return this;
     }
-    /**
-     * Close the modal on `ESC` and trap the tabulation.
-     *
-     * @param  {KeyboardEvent} options.event  The original keyboard event
-     * @param  {Boolean}       options.isUp   Is it a keyup event?
-     * @param  {Boolean}       options.isDown Is it a keydown event?
-     * @param  {Boolean}       options.ESC    Is it the ESC key?
-     * @return {void}
-     */
-
   }, {
     key: "keyed",
     value: function keyed(_ref3) {
@@ -121,18 +91,13 @@ var Modal = /*#__PURE__*/function (_Base) {
         this.close();
       }
     }
-    /**
-     * Open the modal.
-     *
-     * @return {Modal} The Modal instance.
-     */
-
   }, {
     key: "open",
     value: function () {
-      var _open = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee() {
+      var _open = _asyncToGenerator(_regeneratorRuntime.mark(function _callee() {
         var _this = this;
 
+        var refs;
         return _regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -149,16 +114,21 @@ var Modal = /*#__PURE__*/function (_Base) {
                 document.documentElement.style.overflow = 'hidden';
                 this.isOpen = true;
                 this.$emit('open');
+                refs = this.$refs;
                 return _context.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref4) {
                   var _ref5 = _slicedToArray(_ref4, 2),
                       refName = _ref5[0],
                       _ref5$ = _ref5[1];
 
-                  _ref5$ = _ref5$ === void 0 ? {} : _ref5$;
+                  _ref5$ = _ref5$ === void 0 ? {
+                    open: '',
+                    active: '',
+                    closed: ''
+                  } : _ref5$;
                   var open = _ref5$.open,
                       active = _ref5$.active,
                       closed = _ref5$.closed;
-                  return transition(_this.$refs[refName], {
+                  return transition(refs[refName], {
                     from: closed,
                     active: active,
                     to: open
@@ -167,13 +137,15 @@ var Modal = /*#__PURE__*/function (_Base) {
                   if (_this.$options.autofocus && _this.$refs.modal.querySelector(_this.$options.autofocus)) {
                     saveActiveElement();
 
-                    _this.$refs.modal.querySelector(_this.$options.autofocus).focus();
+                    var autofocusElement = _this.$refs.modal.querySelector(_this.$options.autofocus);
+
+                    autofocusElement.focus();
                   }
 
                   return Promise.resolve(_this);
                 }));
 
-              case 7:
+              case 8:
               case "end":
                 return _context.stop();
             }
@@ -187,18 +159,13 @@ var Modal = /*#__PURE__*/function (_Base) {
 
       return open;
     }()
-    /**
-     * Close the modal.
-     *
-     * @return {Modal} The Modal instance.
-     */
-
   }, {
     key: "close",
     value: function () {
-      var _close = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2() {
+      var _close = _asyncToGenerator(_regeneratorRuntime.mark(function _callee2() {
         var _this2 = this;
 
+        var refs;
         return _regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -216,16 +183,21 @@ var Modal = /*#__PURE__*/function (_Base) {
                 this.isOpen = false;
                 untrap();
                 this.$emit('close');
+                refs = this.$refs;
                 return _context2.abrupt("return", Promise.all(Object.entries(this.$options.styles).map(function (_ref6) {
                   var _ref7 = _slicedToArray(_ref6, 2),
                       refName = _ref7[0],
                       _ref7$ = _ref7[1];
 
-                  _ref7$ = _ref7$ === void 0 ? {} : _ref7$;
+                  _ref7$ = _ref7$ === void 0 ? {
+                    open: '',
+                    active: '',
+                    closed: ''
+                  } : _ref7$;
                   var open = _ref7$.open,
                       active = _ref7$.active,
                       closed = _ref7$.closed;
-                  return transition(_this2.$refs[refName], {
+                  return transition(refs[refName], {
                     from: open,
                     active: active,
                     to: closed
@@ -234,7 +206,7 @@ var Modal = /*#__PURE__*/function (_Base) {
                   return Promise.resolve(_this2);
                 }));
 
-              case 8:
+              case 9:
               case "end":
                 return _context2.stop();
             }
@@ -249,55 +221,15 @@ var Modal = /*#__PURE__*/function (_Base) {
       return close;
     }()
   }, {
-    key: "config",
-
-    /**
-     * Modal options.
-     */
-    get: function get() {
-      return {
-        name: 'Modal',
-        move: false,
-        autofocus: '[autofocus]',
-        styles: {
-          modal: {
-            closed: {
-              opacity: 0,
-              pointerEvents: 'none',
-              visibility: 'hidden'
-            }
-          }
-        }
-      };
-    }
-    /**
-     * Open the modal on click on the `open` ref.
-     *
-     * @return {Function} The component's `open` method.
-     */
-
-  }, {
     key: "onOpenClick",
     get: function get() {
       return this.open;
     }
-    /**
-     * Close the modal on click on the `close` ref.
-     *
-     * @return {Function} The component's `close` method.
-     */
-
   }, {
     key: "onCloseClick",
     get: function get() {
       return this.close;
     }
-    /**
-     * Close the modal on click on the `overlay` ref.
-     *
-     * @return {Function} The component's `close` method.
-     */
-
   }, {
     key: "onOverlayClick",
     get: function get() {
@@ -307,6 +239,32 @@ var Modal = /*#__PURE__*/function (_Base) {
 
   return Modal;
 }(Base);
+
+_defineProperty(Modal, "config", {
+  name: 'Modal',
+  refs: ['close', 'container', 'content', 'modal', 'open', 'overlay'],
+  options: {
+    move: String,
+    autofocus: {
+      type: String,
+      default: '[autofocus]'
+    },
+    styles: {
+      type: Object,
+      default: function _default() {
+        return {
+          modal: {
+            closed: {
+              opacity: 0,
+              pointerEvents: 'none',
+              visibility: 'hidden'
+            }
+          }
+        };
+      }
+    }
+  }
+});
 
 export { Modal as default };
 //# sourceMappingURL=Modal.js.map

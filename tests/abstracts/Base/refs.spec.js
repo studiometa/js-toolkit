@@ -30,20 +30,17 @@ describe('The :scope pseudo-class ponyfill', () => {
 
 describe('The refs resolution', () => {
   class Component extends Base {
-    get config() {
-      return {
-        name: 'Component',
-      };
-    }
+    static config = {
+      name: 'Component',
+    };
   }
 
   class App extends Base {
-    get config() {
-      return {
-        name: 'App',
-        components: { Component },
-      };
-    }
+    static config = {
+      name: 'App',
+      refs: ['foo', 'foo[]'],
+      components: { Component },
+    };
   }
 
   it('should resolve a component’s refs', () => {
@@ -110,5 +107,34 @@ describe('The refs resolution', () => {
     expect(Object.keys(app.$refs)).not.toEqual(['foo', 'bar']);
     // eslint-disable-next-line no-underscore-dangle
     global.__SCOPE_PSEUDO_CLASS_SHOULD_FAIL__ = false;
+  });
+
+  it('should be able to resolve multiple refs as array with a warning', () => {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div data-ref="foo"></div>
+      <div data-ref="foo"></div>
+    `;
+    const spy = jest.spyOn(window.console, 'warn');
+    spy.mockImplementation(() => true);
+    const app = new App(div).$mount();
+    expect(spy).toHaveBeenCalledWith(
+      '[App]',
+      'The "foo" ref has been found multiple times.',
+      'Did you forgot to add the `[]` suffix to its name?'
+    );
+  });
+
+  it('should warn when using non-defined refs', () => {
+    const div = document.createElement('div');
+    div.innerHTML = `<div data-ref="baz"></div>`;
+    const spy = jest.spyOn(window.console, 'warn');
+    spy.mockImplementation(() => true);
+    const app = new App(div).$mount();
+    expect(spy).toHaveBeenCalledWith(
+      '[App]',
+      'The "baz" ref is not defined in the class configuration.',
+      'Did you forgot to define it?'
+    );
   });
 });

@@ -1,13 +1,12 @@
-import Base from '~/src';
-import { withBreakpointObserver } from '~/src/decorators';
+import Base from '../../../../src';
+import { withBreakpointObserver } from '../../../../src/decorators';
 
 export default class BreakpointObserverDemo extends withBreakpointObserver(Base) {
-  get config() {
-    return {
-      name: 'BreakpointObserverDemo',
-      log: true,
-    };
-  }
+  static config = {
+    name: 'BreakpointObserverDemo',
+    log: true,
+    refs: ['content'],
+  };
 
   mounted() {
     this.$log('mounted');

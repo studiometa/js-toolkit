@@ -1,13 +1,5 @@
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
 import isObject from '../object/isObject';
-/**
- * Manage a list of style properties on an element.
- *
- * @param {HTMLElement}         element The element to update.
- * @param {CSSStyleDeclaration} styles  An object of styles properties and values.
- * @param {String}              method  The method to use: add or remove.
- */
-
 export default function setStyles(element, styles) {
   var method = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'add';
 
@@ -23,26 +15,10 @@ export default function setStyles(element, styles) {
     element.style[prop] = method === 'add' ? value : '';
   });
 }
-/**
- * Add class names to an element.
- *
- * @param {HTMLElement} element    The element to update.
- * @param {String}      classNames A string of class names.
- * @return {void}
- */
-
-export function add(element, classNames) {
-  setStyles(element, classNames);
+export function add(element, styles) {
+  setStyles(element, styles);
 }
-/**
- * Remove class names from an element.
- *
- * @param  {HTMLElement} element    The element to update.
- * @param  {String}      classNames A string of class names.
- * @return {void}
- */
-
-export function remove(element, classNames) {
-  setStyles(element, classNames, 'remove');
+export function remove(element, styles) {
+  setStyles(element, styles, 'remove');
 }
 //# sourceMappingURL=styles.js.map

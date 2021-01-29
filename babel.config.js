@@ -9,17 +9,8 @@ module.exports = {
   ],
   plugins:
     process.env.NODE_TARGET === 'bundle'
-      ? [
-          '@babel/plugin-proposal-class-properties',
-          '@babel/plugin-proposal-export-default-from',
-          '@babel/plugin-proposal-export-namespace-from',
-        ]
-      : [
-          '@babel/plugin-transform-runtime',
-          '@babel/plugin-proposal-class-properties',
-          '@babel/plugin-proposal-export-default-from',
-          '@babel/plugin-proposal-export-namespace-from',
-        ],
+      ? ['@babel/plugin-proposal-class-properties']
+      : ['@babel/plugin-transform-runtime', '@babel/plugin-proposal-class-properties'],
   parserOpts: {
     plugins: ['dynamicImport', 'classProperties'],
   },

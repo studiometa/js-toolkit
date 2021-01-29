@@ -37,18 +37,36 @@ import Base from '@studiometa/js-toolkit';
 import Modal from '@studiometa/js-toolkit/components/Modal';
 
 class App extends Base {
-  get config() {
-    return {
-      name: 'App',
-      log: true,
-      components: {
-        Modal,
-      },
-    };
-  }
+  static config = {
+    name: 'App',
+    log: true,
+    debug: true,
+    components: {
+      Modal,
+    },
+    refs: ['btn', 'items[]'],
+    options: {
+      foo: String,
+      bar: { type: String, default: 'bar' },
+    }
+  };
 
   mounted() {
     this.$log('mounted');
+
+    // Options
+    this.$options.name; // 'App'
+    this.$options.log; // true
+    this.$options.debug; // true
+    this.$options.foo // ''
+    this.$options.bar // 'bar'
+
+    // Children
+    this.$children.Modal; // Array<Modal>
+
+    // DOM references
+    this.$refs.btn; // <button data-ref="btn"></button>
+    this.$refs.items; // <li data-ref="items[]"></li>
   }
 
   destroyed() {

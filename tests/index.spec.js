@@ -18,8 +18,8 @@ describe('The `defineComponent` function', () => {
       },
     });
 
-    expect(Component.__isBase__).toBe(true);
-    expect(Component.prototype.config).toEqual({ name: 'Component' });
+    expect(Component.$isBase).toBe(true);
+    expect(Component.config).toEqual({ name: 'Component' });
     expect(Object.keys(Component.prototype)).toEqual(['onClick', 'mounted']);
     expect(Object.keys(OtherComponent.prototype)).toEqual([]);
   });
@@ -54,6 +54,7 @@ describe('The `createBase` function', () => {
         },
       },
     });
+    component.$mount();
 
     expect(component.$options.name).toBe('Component');
     expect(fn).toHaveBeenLastCalledWith('mounted');

@@ -1,18 +1,9 @@
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
 import getAllProperties from './getAllProperties';
-/**
- * Auto-bind methods to an instance.
- *
- * @param  {Object}               instance        The instance.
- * @param  {Array<String|RegExp>} options.include Methods to include.
- * @param  {Array<String|RegExp>} options.exclude Methods to exclude.
- * @return {Object}                               The instance.
- */
-
-export default function autoBind(instance) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-      include = _ref.include,
-      exclude = _ref.exclude;
+export default function autoBind(instance, options) {
+  var _ref = options || {},
+      exclude = _ref.exclude,
+      include = _ref.include;
 
   var filter = function filter(key) {
     var match = function match(pattern) {

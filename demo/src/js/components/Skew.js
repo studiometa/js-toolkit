@@ -1,12 +1,10 @@
-import Base from '~/src';
-import { withIntersectionObserver } from '~/src/decorators';
+import Base from '../../../../src';
+import { withIntersectionObserver } from '../../../../src/decorators';
 
 export default class Skew extends withIntersectionObserver(Base) {
-  get config() {
-    return {
-      name: 'Skew',
-    };
-  }
+  static config = {
+    name: 'Skew',
+  };
 
   mounted() {
     this.isVisible = false;

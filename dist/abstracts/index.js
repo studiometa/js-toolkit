@@ -1,7 +1,5 @@
-import _Base from './Base';
-export { _Base as Base };
-import _EventManager from './EventManager';
-export { _EventManager as EventManager };
-import _Service from './Service';
-export { _Service as Service };
+import Base from './Base';
+import EventManager from './EventManager';
+import Service from './Service';
+export { Base, EventManager, Service };
 //# sourceMappingURL=index.js.map
