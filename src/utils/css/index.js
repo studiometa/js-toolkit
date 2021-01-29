@@ -1,4 +1,6 @@
-export * as classes from './classes';
-export * as styles from './styles';
-export matrix from './matrix';
-export transition from './transition';
+import * as classes from './classes';
+import * as styles from './styles';
+import matrix from './matrix';
+import transition from './transition';
+
+export { classes, styles, matrix, transition };

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2015",
+    "module": "ES2015",
+    "lib": ["ESNext", "dom", "ES2015", "ES2016", "ES2017", "ES2018", "ES2019", "ES2020"],
+    "allowJs": true,
+    "noEmit": true,
+    "checkJs": true,
+    "strict": false,
+    "noImplicitThis": true,
+    "types": ["node"],
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "baseUrl": "./",
+    "paths": {
+      "~/*": ["src/*"]
+    }
+  },
+  "include": [
+    "src/**/*.js"
+  ]
+}

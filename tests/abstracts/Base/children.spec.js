@@ -46,9 +46,9 @@ describe('The component resolution', () => {
 
     const fn = jest.fn();
     class AsyncComponent extends Base {
-      get config() {
-        return { name: 'AsyncComponent' };
-      }
+      static config = {
+        name: 'AsyncComponent',
+      };
 
       constructor(...args) {
         super(...args);
@@ -57,15 +57,13 @@ describe('The component resolution', () => {
     }
 
     class Component extends Base {
-      get config() {
-        return {
-          name: 'Component',
-          components: {
-            AsyncComponent: () =>
-              new Promise((resolve) => setTimeout(() => resolve(AsyncComponent), 10)),
-          },
-        };
-      }
+      static config = {
+        name: 'Component',
+        components: {
+          AsyncComponent: () =>
+            new Promise((resolve) => setTimeout(() => resolve(AsyncComponent), 10)),
+        },
+      };
     }
 
     const component = new Component(div);

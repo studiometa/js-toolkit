@@ -26,3 +26,5 @@ dist/*.html
 demo/dist/
 docs/.vuepress/dist/
 coverage/
+/full.d.ts
+/index.d.ts

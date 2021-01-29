@@ -13,20 +13,18 @@ Use this decorator to create a class that will have the capacity to trigger an `
 
 ### Simple usage
 
-```js{4,11-19}
+```js{4,9-17}
 import Base from '@studiometa/js-toolkit';
 import withIntersectionObserver from '@studiometa/js-toolkit/decorators/withIntersectionObserver';
 
 export default class Component extends withIntersectionObserver(Base) {
-  get config() {
-    return {
-      name: 'Component',
-    };
+  static config = {
+    name: 'Component',
   }
 
   /**
    * Triggered when the root element of the component is intersecting.
-   * @param  {Array<IntersectionObserverEntry>} entries
+   * @param {Array<IntersectionObserverEntry>} entries
    */
   intersected(entries) {
     if (entries[0].isIntersecting) {
@@ -38,7 +36,7 @@ export default class Component extends withIntersectionObserver(Base) {
 
 ### With custom options
 
-You can use custom options for the `IntersectionObserver` instance used by passing a second parameter to the `withIntersectionObserver` function:
+You can pass custom options for the `IntersectionObserver` instance by passing a second parameter to the `withIntersectionObserver` function:
 
 ```js{4-6}
 import Base from '@studiometa/js-toolkit';
@@ -47,11 +45,9 @@ import withIntersectionObserver from '@studiometa/js-toolkit/decorators/withInte
 export default class Component extends withIntersectionObserver(Base, {
   threshold: 0.5,
 }) {
-  get config() {
-    return {
-      name: "Component",
-    };
-  }
+  static config = {
+    name: "Component",
+  };
 
   intersected(entries) {
     if (entries[0].isIntersecting) {
@@ -61,39 +57,13 @@ export default class Component extends withIntersectionObserver(Base, {
 }
 ```
 
-Or by setting an `intersectionObserver` object in the class configuration:
+Or at the instance level in the `data-option-intersection-observer` attribute of the rool element:
 
-```js{8-10}
-import Base from '@studiometa/js-toolkit';
-import withIntersectionObserver from '@studiometa/js-toolkit/decorators/withIntersectionObserver';
-
-export default class Component extends withIntersectionObserver(Base) {
-  get config() {
-    return {
-      name: "Component",
-      intersectionObserver: {
-        threshold: 0.5,
-      },
-    };
-  }
-
-  intersected(entries) {
-    if (entries[0].isIntersecting) {
-      this.isVisible = true;
-    }
-  }
-}
-```
-
-Or at the instance level in the `data-options` attribute of the rool element:
-
-```html{3-7}
+```html{3-5}
 <div
   data-component="Component"
-  data-options='{
-    "intersectionObserver": {
-      "threshold": 0.5
-    }
+  data-option-intersection-observer='{
+    "threshold": 0.5
   }'>
   ...
 </div>

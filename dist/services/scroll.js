@@ -14,19 +14,8 @@ import Service from '../abstracts/Service';
 import throttle from '../utils/throttle';
 import debounce from '../utils/debounce';
 import nextFrame from '../utils/nextFrame';
-/**
- * Scroll service
- *
- * ```
- * import { useScroll } from '@studiometa/js-toolkit/services';
- * const { add, remove, props } = useScroll();
- * add(key, (props) => {});
- * remove(key);
- * props();
- * ```
- */
 
-var Scroll = /*#__PURE__*/function (_Service) {
+var Scroll = function (_Service) {
   _inherits(Scroll, _Service);
 
   var _super = _createSuper(Scroll);
@@ -55,12 +44,6 @@ var Scroll = /*#__PURE__*/function (_Service) {
 
   _createClass(Scroll, [{
     key: "init",
-
-    /**
-     * Bind the handler to the scroll event.
-     *
-     * @return {void}
-     */
     value: function init() {
       var _this2 = this;
 
@@ -72,43 +55,30 @@ var Scroll = /*#__PURE__*/function (_Service) {
         });
       }, 50);
       this.handler = throttle(function () {
-        _this2.trigger(_this2.props); // Reset changed flags at the end of the scroll event
-
+        _this2.trigger(_this2.props);
 
         debounced();
-      }, 32).bind(this); // Fire the `scrolled` method on document scroll
-
+      }, 32).bind(this);
       document.addEventListener('scroll', this.handler, {
         passive: true
       });
+      return this;
     }
-    /**
-     * Unbind the handler from the scroll event.
-     *
-     * @return {void}
-     */
-
   }, {
     key: "kill",
     value: function kill() {
       document.removeEventListener('scroll', this.handler);
+      return this;
     }
-    /**
-     * Get scroll props.
-     *
-     * @type {Object}
-     */
-
   }, {
     key: "props",
     get: function get() {
       this.yLast = this.y;
-      this.xLast = this.x; // Check scroll Y
+      this.xLast = this.x;
 
       if (window.pageYOffset !== this.y) {
         this.y = window.pageYOffset;
-      } // Check scroll x
-
+      }
 
       if (window.pageXOffset !== this.x) {
         this.x = window.pageXOffset;
@@ -136,12 +106,6 @@ var Scroll = /*#__PURE__*/function (_Service) {
         max: this.max
       };
     }
-    /**
-     * Get scroll max values.
-     *
-     * @type {Object}
-     */
-
   }, {
     key: "max",
     get: function get() {
@@ -156,7 +120,7 @@ var Scroll = /*#__PURE__*/function (_Service) {
 }(Service);
 
 var scroll = null;
-export default (function () {
+export default function useScroll() {
   if (!scroll) {
     scroll = new Scroll();
   }
@@ -175,5 +139,5 @@ export default (function () {
     has: has,
     props: props
   };
-});
+}
 //# sourceMappingURL=scroll.js.map

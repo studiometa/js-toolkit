@@ -1,10 +1,13 @@
 import { defineComponent, createBase } from './index';
+import Base from './abstracts/Base';
+
+import * as abstracts from './abstracts';
+import * as components from './components';
+import * as decorators from './decorators';
+import * as services from './services';
+import * as utils from './utils';
 
 export { defineComponent, createBase };
-export Base from './abstracts/Base';
+export { Base };
 
-export * as abstracts from './abstracts';
-export * as components from './components';
-export * as decorators from './decorators';
-export * as services from './services';
-export * as utils from './utils';
+export { abstracts, components, decorators, services, utils };

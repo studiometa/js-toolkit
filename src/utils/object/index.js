@@ -1,3 +1,5 @@
-export autoBind from './autoBind';
-export getAllProperties from './getAllProperties';
-export isObject from './isObject';
+import autoBind from './autoBind';
+import getAllProperties from './getAllProperties';
+import isObject from './isObject';
+
+export { autoBind, getAllProperties, isObject };

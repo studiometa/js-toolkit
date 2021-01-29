@@ -17,19 +17,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 import Service from '../abstracts/Service';
 import keyCodes from '../utils/keyCodes';
-/**
- * Scroll service
- *
- * ```
- * import { useKey } from '@studiometa/js-toolkit/services';
- * const { add, remove, props } = useKey();
- * add(key, (props) => {});
- * remove(key);
- * props();
- * ```
- */
 
-var Key = /*#__PURE__*/function (_Service) {
+var Key = function (_Service) {
   _inherits(Key, _Service);
 
   var _super = _createSuper(Key);
@@ -56,12 +45,6 @@ var Key = /*#__PURE__*/function (_Service) {
 
   _createClass(Key, [{
     key: "init",
-
-    /**
-     * Bind the handler to the keyboard event.
-     *
-     * @return {void}
-     */
     value: function init() {
       var _this2 = this;
 
@@ -77,25 +60,15 @@ var Key = /*#__PURE__*/function (_Service) {
       document.addEventListener('keyup', this.handler, {
         passive: false
       });
+      return this;
     }
-    /**
-     * Unbind the handler from the keyboard event.
-     *
-     * @return {void}
-     */
-
   }, {
     key: "kill",
     value: function kill() {
       document.removeEventListener('keydown', this.handler);
       document.removeEventListener('keyup', this.handler);
+      return this;
     }
-    /**
-     * Get keyboard props.
-     *
-     * @type {Object}
-     */
-
   }, {
     key: "props",
     get: function get() {
@@ -135,7 +108,7 @@ var Key = /*#__PURE__*/function (_Service) {
 }(Service);
 
 var key = null;
-export default (function () {
+export default function useKey() {
   if (!key) {
     key = new Key();
   }
@@ -154,5 +127,5 @@ export default (function () {
     has: has,
     props: props
   };
-});
+}
 //# sourceMappingURL=key.js.map

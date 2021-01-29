@@ -1,4 +1,5 @@
 const path = require('path');
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 
 module.exports = {
   title: '🔧 JS Toolkit',
@@ -43,6 +44,7 @@ module.exports = {
           { text: 'debounce', link: '/utils/#debounce' },
           { text: 'focusTrap', link: '/utils/#focusTrap' },
           { text: 'isObject', link: '/utils/#isObject' },
+          { text: 'history', link: '/utils/#history' },
           { text: 'keyCodes', link: '/utils/#keyCodes' },
           { text: 'matrix', link: '/utils/#matrix' },
           { text: 'nextFrame', link: '/utils/#nextFrame' },
@@ -56,6 +58,14 @@ module.exports = {
   },
   markdown: {
     toc: { includeLevel: [2] },
+  },
+  configureWebpack(config) {
+    config.plugins.push(new HardSourceWebpackPlugin())
+    config.plugins.push(new HardSourceWebpackPlugin.ExcludeModulePlugin([
+      {
+        test: /mini-css-extract-plugin[\\/]dist[\\/]loader/,
+      },
+    ]),)
   },
   plugins: [
     [

@@ -1,13 +1,7 @@
 import { debug } from './utils';
-/**
- * Mount a given component which might be async.
- *
- * @param  {Base|Promise} component The component to mount.
- * @return {void}
- */
 
 function mountComponent(component) {
-  if (component.__isAsync__) {
+  if (component instanceof Promise) {
     component.then(function (instance) {
       return instance.$mount();
     });
@@ -15,33 +9,17 @@ function mountComponent(component) {
     component.$mount();
   }
 }
-/**
- * Mount children components of a given instance.
- *
- * @param  {Base} instance The parent component's instance.
- * @return {void}
- */
-
 
 export function mountComponents(instance) {
-  if (!instance.$children) {
-    return;
-  }
-
   debug(instance, 'mountComponents', instance.$children);
   Object.values(instance.$children).forEach(function ($child) {
+    debug(instance, 'mountComponent', $child);
     $child.forEach(mountComponent);
   });
 }
-/**
- * Destroy a given component which might be async.
- *
- * @param  {Base|Promise} component The component to destroy.
- * @return {void}
- */
 
 function destroyComponent(component) {
-  if (component.__isAsync__) {
+  if (component instanceof Promise) {
     component.then(function (instance) {
       return instance.$destroy();
     });
@@ -49,19 +27,8 @@ function destroyComponent(component) {
     component.$destroy();
   }
 }
-/**
- * Destroy children components of a given instance.
- *
- * @param  {Base} instance The parent component's instance.
- * @return {void}
- */
-
 
 export function destroyComponents(instance) {
-  if (!instance.$children) {
-    return;
-  }
-
   debug(instance, 'destroyComponents', instance.$children);
   Object.values(instance.$children).forEach(function ($child) {
     $child.forEach(destroyComponent);

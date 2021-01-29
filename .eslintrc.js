@@ -12,7 +12,7 @@ module.exports = {
     'class-methods-use-this': 'off',
     'no-underscore-dangle': [
       'error',
-      { allow: ['__base__', '__isChild__', '__isBase__', '__isAsync__', '_excludeFromAutoBind'] },
+      { allow: ['__base__', '_excludeFromAutoBind'] },
     ],
   },
   settings: {
@@ -29,6 +29,12 @@ module.exports = {
         'jest/no-test-callback': 'off',
         'require-jsdoc': 'off',
       },
+    },
+    {
+      files: ['**/*.ts'],
+      parser: '@typescript-eslint/parser',
+      plugins: ['@typescript-eslint'],
+      extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
     },
   ],
 };
