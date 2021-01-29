@@ -18,6 +18,8 @@ jobs:
         node-version: 14
     - name: Install modules
       run: npm ci
+    - name: Run code quality tests
+      run: npm run lint
     - name: Run tests
       run: npm run test -- --coverage
     - name: Upload coverage to Codecov
