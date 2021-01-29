@@ -43,6 +43,7 @@ module.exports = {
           { text: 'debounce', link: '/utils/#debounce' },
           { text: 'focusTrap', link: '/utils/#focusTrap' },
           { text: 'isObject', link: '/utils/#isObject' },
+          { text: 'history', link: '/utils/#history' },
           { text: 'keyCodes', link: '/utils/#keyCodes' },
           { text: 'matrix', link: '/utils/#matrix' },
           { text: 'nextFrame', link: '/utils/#nextFrame' },

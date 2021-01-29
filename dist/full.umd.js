@@ -3811,14 +3811,6 @@
     };
   }
 
-  var focusTrap = {
-    __proto__: null,
-    saveActiveElement: saveActiveElement,
-    trap: trap,
-    untrap: untrap,
-    'default': useFocusTrap
-  };
-
   /**
    * @typedef {Object} ModalRefs
    * @property {HTMLElement} close
@@ -4544,6 +4536,35 @@
     }
   }
   /**
+   * Add the current instance to the resize service.
+   * @param {String} key      The key for the resize service callback.
+   * @param {Base}   instance The instance to observe.
+   */
+
+
+  function addToResize(key, instance) {
+    testConflictingBreakpointConfiguration(instance);
+
+    var _useResize = useResize(),
+        add = _useResize.add,
+        has = _useResize.has;
+
+    if (!has(key)) {
+      add(key, function onResize(_ref) {
+        var breakpoint = _ref.breakpoint;
+        var action = testBreakpoints$1(instance, breakpoint); // Always destroy before mounting
+
+        if (action === '$destroy' && instance.$isMounted) {
+          instance[action]();
+        } else if (action === '$mount' && !instance.$isMounted) {
+          setTimeout(function () {
+            return instance[action]();
+          }, 0);
+        }
+      });
+    }
+  }
+  /**
    * BreakpointObserver class.
    *
    * @param {BaseComponent} BaseClass The Base class to extend from.
@@ -4567,11 +4588,9 @@
 
         _this = _BaseClass.call(this, element) || this;
 
-        var _useResize = useResize(),
-            add = _useResize.add,
-            has = _useResize.has,
-            remove = _useResize.remove,
-            props = _useResize.props;
+        var _useResize2 = useResize(),
+            remove = _useResize2.remove,
+            props = _useResize2.props;
 
         var name = _this.$options.name; // Do nothing if no breakpoint has been defined.
         // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
@@ -4582,8 +4601,8 @@
 
         var key = "BreakpointObserver-" + _this.$id; // Watch change on the `data-options` attribute to emit the `set:options` event.
 
-        var mutationObserver = new MutationObserver(function (_ref) {
-          var mutation = _ref[0];
+        var mutationObserver = new MutationObserver(function (_ref2) {
+          var mutation = _ref2[0];
 
           if (mutation.type === 'attributes' && (mutation.attributeName === 'data-options' || mutation.attributeName.startsWith('data-option-'))) {
             // Stop here silently when no breakpoint configuration given.
@@ -4594,16 +4613,7 @@
               return;
             }
 
-            testConflictingBreakpointConfiguration(_assertThisInitialized(_this));
-
-            if (!has(key)) {
-              add(key, function (_ref2) {
-                var breakpoint = _ref2.breakpoint;
-                var action = testBreakpoints$1(_assertThisInitialized(_this), breakpoint);
-
-                _this[action]();
-              });
-            }
+            addToResize(key, _assertThisInitialized(_this));
           }
         });
         mutationObserver.observe(_this.$el, {
@@ -4614,13 +4624,7 @@
           return _assertThisInitialized(_this) || _assertThisInitialized(_this);
         }
 
-        testConflictingBreakpointConfiguration(_assertThisInitialized(_this));
-        add(key, function (_ref3) {
-          var breakpoint = _ref3.breakpoint;
-          var action = testBreakpoints$1(_assertThisInitialized(_this), breakpoint);
-
-          _this[action]();
-        });
+        addToResize(key, _assertThisInitialized(_this));
         return _assertThisInitialized(_this) || _assertThisInitialized(_this);
       }
       /**
@@ -4884,16 +4888,153 @@
     isObject: isObject
   };
 
+  /**
+   * Set a param in a URLSearchParam instance.
+   * @param  {URLSearchParams}                    params The params to update.
+   * @param  {String}                             name   The name of the param to update.
+   * @param  {String|Number|Boolean|Array|Object} value  The value for this param.
+   * @return {URLSearchParams}                           The updated URLSearchParams instance.
+   */
+
+  function updateUrlSearchParam(params, name, value) {
+    if (!value) {
+      if (params.has(name)) {
+        params.delete(name);
+      }
+
+      return params;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach(function (val, index) {
+        var arrayName = name + "[" + index + "]";
+        updateUrlSearchParam(params, arrayName, val);
+      });
+      return params;
+    }
+
+    if (isObject(value)) {
+      Object.entries(value).forEach(function (_ref) {
+        var key = _ref[0],
+            val = _ref[1];
+        var objectName = name + "[" + key + "]";
+        updateUrlSearchParam(params, objectName, val);
+      });
+      return params;
+    }
+
+    params.set(name, value);
+    return params;
+  }
+  /**
+   * Transform an object to an URLSearchParams instance.
+   *
+   * @param  {Object}          obj           The object to convert.
+   * @param  {String}          defaultSearch A string of defaults search params.
+   * @return {URLSearchParams}
+   */
+
+
+  function objectToURLSearchParams(obj, defaultSearch) {
+    if (defaultSearch === void 0) {
+      defaultSearch = window.location.search;
+    }
+
+    return Object.entries(obj).reduce(function (urlSearchParams, _ref2) {
+      var name = _ref2[0],
+          value = _ref2[1];
+      return updateUrlSearchParam(urlSearchParams, name, value);
+    }, new URLSearchParams(defaultSearch));
+  }
+  /**
+   * Update the history with a new state.
+   * @param {String} mode             Wether to push or replace the new state.
+   * @param {Object} options
+   * @param {String} options.path     The new pathname.
+   * @param {Object} options.search   The new search params.
+   * @param {Object} options.hash     The new hash.
+   */
+
+
+  function updateHistory(mode, _ref3, data, title) {
+    var _ref3$path = _ref3.path,
+        path = _ref3$path === void 0 ? window.location.pathname : _ref3$path,
+        _ref3$search = _ref3.search,
+        search = _ref3$search === void 0 ? {} : _ref3$search,
+        _ref3$hash = _ref3.hash,
+        hash = _ref3$hash === void 0 ? window.location.hash : _ref3$hash;
+
+    if (data === void 0) {
+      data = {};
+    }
+
+    if (title === void 0) {
+      title = '';
+    }
+
+    if (!window.history) {
+      return;
+    }
+
+    var url = path;
+    var mergedSearch = objectToURLSearchParams(search);
+
+    if (mergedSearch.toString()) {
+      url += "?" + mergedSearch.toString();
+    }
+
+    if (hash) {
+      if (hash.startsWith('#')) {
+        url += hash;
+      } else {
+        url += "#" + hash;
+      }
+    }
+
+    var method = mode + "State";
+    window.history[method](data, title, url);
+  }
+  /**
+   * Push a new state.
+   *
+   * @param {Object} options The new state.
+   * @param {Object} data    The data for the new state.
+   * @param {String} title   The title for the new state.
+   */
+
+
+  function push(options, data, title) {
+    updateHistory('push', options, data, title);
+  }
+  /**
+   * Replace a new state.
+   *
+   * @param {Object} options The new state.
+   * @param {Object} data    The data for the new state.
+   * @param {String} title   The title for the new state.
+   */
+
+  function replace$1(options, data, title) {
+    updateHistory('replace', options, data, title);
+  }
+
+  var history = {
+    __proto__: null,
+    push: push,
+    replace: replace$1
+  };
+
   var index$7 = {
     __proto__: null,
     css: index$4,
     math: index$5,
     object: index$6,
     debounce: debounce,
-    focusTrap: focusTrap,
+    focusTrap: useFocusTrap,
     keyCodes: keyCodes,
     nextFrame: nextFrame,
-    throttle: throttle
+    throttle: throttle,
+    history: history
   };
 
   exports.Base = Base;

@@ -11,6 +11,7 @@ describe('~/utils exports', () => {
       'math',
       'object',
       'focusTrap',
+      'history',
     ]);
   });
 });

@@ -64,6 +64,29 @@ function testConflictingBreakpointConfiguration(instance) {
 }
 
 /**
+ * Add the current instance to the resize service.
+ * @param {String} key      The key for the resize service callback.
+ * @param {Base}   instance The instance to observe.
+ */
+function addToResize(key, instance) {
+  testConflictingBreakpointConfiguration(instance);
+  const { add, has } = useResize();
+
+  if (!has(key)) {
+    add(key, function onResize({ breakpoint }) {
+      const action = testBreakpoints(instance, breakpoint);
+
+      // Always destroy before mounting
+      if (action === '$destroy' && instance.$isMounted) {
+        instance[action]();
+      } else if (action === '$mount' && !instance.$isMounted) {
+        setTimeout(() => instance[action](), 0);
+      }
+    });
+  }
+}
+
+/**
  * BreakpointObserver class.
  *
  * @param {BaseComponent} BaseClass The Base class to extend from.
@@ -116,14 +139,7 @@ export default (BaseClass) =>
             return;
           }
 
-          testConflictingBreakpointConfiguration(this);
-
-          if (!has(key)) {
-            add(key, ({ breakpoint }) => {
-              const action = testBreakpoints(this, breakpoint);
-              this[action]();
-            });
-          }
+          addToResize(key, this);
         }
       });
       mutationObserver.observe(this.$el, { attributes: true });
@@ -133,12 +149,7 @@ export default (BaseClass) =>
         return this;
       }
 
-      testConflictingBreakpointConfiguration(this);
-      add(key, ({ breakpoint }) => {
-        const action = testBreakpoints(this, breakpoint);
-        this[action]();
-      });
-
+      addToResize(key, this);
       return this;
     }
 
