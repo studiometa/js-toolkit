@@ -1,4 +1,4 @@
-import deepmerge from 'deepmerge'
+import deepmerge from 'deepmerge';
 import Base from '../../abstracts/Base';
 // eslint-disable-next-line import/no-cycle
 import Accordion from './index';

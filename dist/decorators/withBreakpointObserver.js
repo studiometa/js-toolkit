@@ -90,8 +90,6 @@ export default (function (BaseClass) {
       _this = _super.call(this, element);
 
       var _useResize2 = useResize(),
-          add = _useResize2.add,
-          has = _useResize2.has,
           remove = _useResize2.remove,
           props = _useResize2.props;
 
