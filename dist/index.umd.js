@@ -1661,7 +1661,7 @@
         _this2.updateValues(event);
 
         if (!_this2.hasRaf) {
-          add('usePointer', function (props) {
+          add('usePointer', function () {
             _this2.trigger(_this2.props);
           });
           _this2.hasRaf = true;

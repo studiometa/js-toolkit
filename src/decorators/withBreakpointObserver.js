@@ -112,7 +112,7 @@ export default (BaseClass) =>
     constructor(element) {
       super(element);
 
-      const { add, has, remove, props } = useResize();
+      const { remove, props } = useResize();
       const { name } = this.$options;
 
       // Do nothing if no breakpoint has been defined.

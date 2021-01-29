@@ -1503,7 +1503,7 @@ class Pointer extends Service {
       this.updateValues(event);
 
       if (!this.hasRaf) {
-        add('usePointer', props => {
+        add('usePointer', () => {
           this.trigger(this.props);
         });
         this.hasRaf = true;
