@@ -119,12 +119,13 @@ describe('The withBreakpointObserver decorator', () => {
     const fn = jest.fn();
 
     class Mobile extends withBreakpointObserver(Base) {
-      get config() {
-        return { name: 'Mobile', inactiveBreakpoints: 'm' };
-      }
+      static config = {
+        name: 'Mobile',
+        inactiveBreakpoints: 'm',
+      };
 
       mounted() {
-        fn('Mobile', 'mounted')
+        fn('Mobile', 'mounted');
       }
 
       destroyed() {
@@ -133,12 +134,13 @@ describe('The withBreakpointObserver decorator', () => {
     }
 
     class Desktop extends withBreakpointObserver(Base) {
-      get config() {
-        return { name: 'Desktop', activeBreakpoints: 'm' };
-      }
+      static config = {
+        name: 'Desktop',
+        activeBreakpoints: 'm',
+      };
 
       mounted() {
-        fn('Desktop', 'mounted')
+        fn('Desktop', 'mounted');
       }
 
       destroyed() {
@@ -147,12 +149,10 @@ describe('The withBreakpointObserver decorator', () => {
     }
 
     class App extends Base {
-      get config() {
-        return {
-          name: 'App',
-          components: { Mobile, Desktop }
-        }
-      }
+      static config = {
+        name: 'App',
+        components: { Mobile, Desktop },
+      };
     }
 
     document.body.innerHTML = `
@@ -162,7 +162,7 @@ describe('The withBreakpointObserver decorator', () => {
       </div>
     `;
 
-    const app = new App(document.body);
+    const app = new App(document.body).$mount();
     expect(fn).toHaveBeenCalledWith('Desktop', 'mounted');
     await resizeWindow({ width: 400 });
     expect(fn).toHaveBeenNthCalledWith(2, 'Desktop', 'destroyed');
@@ -180,7 +180,7 @@ describe('The withBreakpointObserver decorator', () => {
           name: 'Bar',
           options: {
             inactiveBreakpoints: { type: String, default: 'm' },
-          }
+          },
         };
       }
 
