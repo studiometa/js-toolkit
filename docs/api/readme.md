@@ -26,18 +26,19 @@ import Modal from '@studiometa/js-toolkit/components/Modal';
 import Component from './components/Component';
 
 class App extends Base {
-  get config() {
-    return {
-      name: 'App',
-      components: {
-        Modal,
-        Component,
-      },
-    };
-  }
+  static config = {
+    name: 'App',
+    components: {
+      Modal,
+      Component,
+    },
+  };
 }
 
-export default new App(document.body);
+const app = new App(document.body);
+app.$mount();
+
+export default app;
 ```
 
 Create a component to be used by another component:
@@ -46,11 +47,10 @@ Create a component to be used by another component:
 import Base from '@studiometa/js-toolkit';
 
 export default class Component extends Base {
-  get config() {
-    return {
-      name: 'Component',
-    };
-  }
+  static config = {
+    name: 'Component',
+    log: true,
+  };
 
   mounted() {
     this.$log('mounted');
@@ -183,98 +183,69 @@ Use the `$factory` method to instantiate a class on each elements matching the g
 
 - `Base[]`: an array of instances of the component that triggered the method
 
-## Instance properties
-
-### `$options`
-
-An object containing the full options of the instance. It is a merge of the [`config`](#config) getter and the `data-options` attribute.
-
-Any change to this property will be merged with the `data-options` attribute and saved in the DOM in the same attribute.
-
-### `$refs`
-
-An object containing references to all the component's refs, with each key being the name of the ref, and each value either the DOM element or a list of DOM elements.
-
-```ts
-interface RefsInterface {
-  readonly [refName: string]: HTMLElement | Array<HTMLElement>;
-}
-```
-
-Refs are resolved with the selector `data-ref="<refName>"` within the component's scope. Refs of [children components](#components) are excluded, even if the child has not been registered via the [`config.components`](#components) object.
-
-:::tip
-You can force a ref to be an `Array` even when only one corresponding element exists in the DOM by appending `[]` to its name:
-
-```html
-<ul>
-  <li data-ref="item[]"></li>
-</ul>
-```
-:::
-
-### `$children`
-
-An object containing references to all the children component instances, with each key being the name of the child component, and each value a list of its corresponding instances.
-
-```ts
-interface ChildrenInterface {
-  readonly [ComponentName: string]: Array<Base>;
-}
-```
-
-### `$parent`
-
-The parent instance when the current instance has been mounted as [child component](#components), defaults to `null` if the component as been instantiated as a stand-alone component.
-
-## Instance methods
-
-### `$log(…content)`
-
-Can be used to log content to the console when the `instance.$options.log` options is set to true, either via the `config` getter or via the `data-options` attribute.
-
-### `$on(event, callback)`
-
-Bind a callback function to an event emitted by the instance. Returns a function to unbind the callback from the event.
-
-### `$once(event, callback)`
-
-Similar as the `$on` method, but the callback function will be detached from the event after being called once.
-
-### `$off(event[, callback])`
-
-Unbind a callback function from an event emitted by the instance. If no callback function is provided, all previously binded callbacks will be removed.
-
-### `$emit(event[, …args])`
-
-Emit an event from the current instance, with optional custom arguments.
-
-### `$mount()`
-
-Mount the component and its children, will trigger the `mounted` lifecycle method.
-
-### `$update()`
-
-Update the chidlren list from the DOM, and mount the new ones. This method can be used when inserting new content loaded over Ajax.
-
-### `$destroy()`
-
-Destroy the component and its children, will trigger the `destroyed` lifecycle method.
-
-### `$terminate()`
-
-@todo
-
-## Interface getters
+## Interface static properties
 
 ### `config`
-#### `name`
+
+The static `config` property must is required on each class extending the `Base` class.
+
+### `config.name`
 
 - Type: `String`
 
 The **required** name of the component.
 
-#### `components`
+```js{3}
+class Component extends Base {
+  static config = {
+    name: 'Component',
+  };
+}
+```
+
+### `config.options`
+
+- Type: `Object`
+- Default: `{}`
+
+Define configurable values for the component.
+
+```js
+class Component extends Base {
+  static config = {
+    name: 'Component',
+    options: {
+      stringOption: String, // default to ''
+      stringWithDefault: { type: String, default: 'Default value' },
+      numberOption: Number, // default to 0
+      numberWithDefault: { type: Number, default: 10 },
+      booleanOption: Boolean, // default to false
+      arrayOption: Array, // default to []
+      arrayWithDefault: { type: Array, default: () => ([1, 2]) },
+      objectOption: Object,
+      objectWithDefault: { type: Object, default: () => ({ foo: 'foo' }) },
+    }
+  }
+
+  mounted() {
+    this.$options.stringOption; // ''
+    this.$options.stringWithDefault; // 'Default value'
+    this.$options.numberOption; // 0
+    this.$options.numberWithDefault; // 10
+    this.$options.booleanOption; // false
+    this.$options.arrayOption; // []
+    this.$options.arrayWithDefault; // [1,2]
+    this.$options.objectOption; // {}
+    this.$options.objectWithDefault; // { foo: 'foo' }
+
+    this.$el.hasAttribute('data-boolean-option'); // false
+    this.$options.booleanOption = true;
+    this.$el.hasAttribute('data-boolean-option'); // true
+  }
+}
+```
+
+### `config.components`
 
 - Type: `Object`
 - Default: `{}`
@@ -286,7 +257,7 @@ import ComponentOne from './ComponentOne';
 import ComponentThree from './ComponentThree';
 
 class App extends Base {
-  get config() {
+  static config = {
     return {
       name: 'App',
       components: {
@@ -308,14 +279,52 @@ class App extends Base {
 }
 ```
 
-#### `log`
+### `config.refs`
+
+- Type : `Array<String>`
+- Default : `[]`
+
+Define the refs of the components by specifying their name in the configuration. Multiple refs should be suffixed with `[]`.
+
+```js
+/**
+ * Given the following HTML:
+ *
+ * ```html
+ * <div data-component="Component">
+ *   <button data-ref="btn">Click me</button>
+ *   <ul>
+ *     <li data-ref="items[]">#1</li>
+ *   </ul>
+ *   <ul>
+ *     <li data-ref="otherItems[]">#1</li>
+ *     <li data-ref="otherItems[]">#2</li>
+ *   </ul>
+ * </div>
+ * ```
+ */
+class Component extends Base {
+  static config = {
+    name: 'Component',
+    refs: ['btn', 'items[]', 'otherItems[]'],
+  };
+
+  mounted() {
+    this.$refs.btn; // <button data-ref="btn">Click me</button>
+    this.$refs.items; // [<li data-ref="items[]">#1</li>]
+    this.$refs.otherItems; // [<li data-ref="otherItems[]">#1</li>, <li data-ref="otherItems[]">#2</li>]
+  }
+}
+```
+
+### `config.log`
 
 - Type: `Boolean`
 - Default: `false`
 
 Enable the `this.$log(...args)` method when `true`.
 
-#### `debug`
+### `config.debug`
 
 - Type: `Boolean`
 - Default: `false`
@@ -432,6 +441,92 @@ Native DOM events will only be binded to ref elements and component's events to 
   new Foo(document.querySelector('[data-component="Foo"]'));
 </script>
 ```
+
+## Instance properties
+
+### `$options`
+
+An object containing the full options of the instance as defined in the [`config.options`](#options) property. Additionnally to the options defined in the config, the following properties are also available:
+
+- `$options.name` The name of the component
+- `$options.log` Wether the `$log` method is silent or not
+- `$options.debug` Wether the debug is active on this instance or not
+
+The values for the `$options` object are read from and written to the `data-option-<option-name>` attribute of the root element.
+
+### `$refs`
+
+An object containing references to all the component's refs, with each key being the name of the ref, and each value either the DOM element or a list of DOM elements.
+
+```ts
+interface RefsInterface {
+  readonly [refName: string]: HTMLElement | Base | HTMLElement[] | Base[] ;
+}
+```
+
+Refs are resolved with the selector `data-ref="<refName>"` within the component's scope. Refs of [children components](#components) are excluded, even if the child has not been registered via the [`config.components`](#components) object.
+
+:::tip
+You can force a ref to be an `Array` even when only one corresponding element exists in the DOM by appending `[]` to its name:
+
+```html
+<ul>
+  <li data-ref="item[]"></li>
+</ul>
+```
+:::
+
+### `$children`
+
+An object containing references to all the children component instances, with each key being the name of the child component, and each value a list of its corresponding instances.
+
+```ts
+interface ChildrenInterface {
+  readonly [ComponentName: string]: Array<Base>;
+}
+```
+
+### `$parent`
+
+The parent instance when the current instance has been mounted as [child component](#components), defaults to `null` if the component as been instantiated as a stand-alone component.
+
+## Instance methods
+
+### `$log(…content)`
+
+Can be used to log content to the console when the `instance.$options.log` options is set to true, either via the `config` getter or via the `data-options` attribute.
+
+### `$on(event, callback)`
+
+Bind a callback function to an event emitted by the instance. Returns a function to unbind the callback from the event.
+
+### `$once(event, callback)`
+
+Similar as the `$on` method, but the callback function will be detached from the event after being called once.
+
+### `$off(event[, callback])`
+
+Unbind a callback function from an event emitted by the instance. If no callback function is provided, all previously binded callbacks will be removed.
+
+### `$emit(event[, …args])`
+
+Emit an event from the current instance, with optional custom arguments.
+
+### `$mount()`
+
+Mount the component and its children, will trigger the `mounted` lifecycle method.
+
+### `$update()`
+
+Update the chidlren list from the DOM, and mount the new ones. This method can be used when inserting new content loaded over Ajax.
+
+### `$destroy()`
+
+Destroy the component and its children, will trigger the `destroyed` lifecycle method.
+
+### `$terminate()`
+
+Terminate the component, its instance is made available to garbage collection. A terminated component can not be re-mounted, use with precaution.
 
 ## Events
 

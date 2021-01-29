@@ -52,6 +52,7 @@ function objectToURLSearchParams(obj, defaultSearch = window.location.search) {
 /**
  * Update the history with a new state.
  * @param {String} mode             Wether to push or replace the new state.
+ * @param {Object} options
  * @param {String} options.path     The new pathname.
  * @param {Object} options.search   The new search params.
  * @param {Object} options.hash     The new hash.

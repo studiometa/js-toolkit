@@ -1,12 +1,5 @@
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
 import isObject from './object/isObject';
-/**
- * Set a param in a URLSearchParam instance.
- * @param  {URLSearchParams}                    params The params to update.
- * @param  {String}                             name   The name of the param to update.
- * @param  {String|Number|Boolean|Array|Object} value  The value for this param.
- * @return {URLSearchParams}                           The updated URLSearchParams instance.
- */
 
 function updateUrlSearchParam(params, name, value) {
   if (!value) {
@@ -40,14 +33,6 @@ function updateUrlSearchParam(params, name, value) {
   params.set(name, value);
   return params;
 }
-/**
- * Transform an object to an URLSearchParams instance.
- *
- * @param  {Object}          obj           The object to convert.
- * @param  {String}          defaultSearch A string of defaults search params.
- * @return {URLSearchParams}
- */
-
 
 function objectToURLSearchParams(obj) {
   var defaultSearch = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : window.location.search;
@@ -59,14 +44,6 @@ function objectToURLSearchParams(obj) {
     return updateUrlSearchParam(urlSearchParams, name, value);
   }, new URLSearchParams(defaultSearch));
 }
-/**
- * Update the history with a new state.
- * @param {String} mode             Wether to push or replace the new state.
- * @param {String} options.path     The new pathname.
- * @param {Object} options.search   The new search params.
- * @param {Object} options.hash     The new hash.
- */
-
 
 function updateHistory(mode, _ref5) {
   var _ref5$path = _ref5.path,
@@ -100,26 +77,10 @@ function updateHistory(mode, _ref5) {
   var method = "".concat(mode, "State");
   window.history[method](data, title, url);
 }
-/**
- * Push a new state.
- *
- * @param {Object} options The new state.
- * @param {Object} data    The data for the new state.
- * @param {String} title   The title for the new state.
- */
-
 
 export function push(options, data, title) {
   updateHistory('push', options, data, title);
 }
-/**
- * Replace a new state.
- *
- * @param {Object} options The new state.
- * @param {Object} data    The data for the new state.
- * @param {String} title   The title for the new state.
- */
-
 export function replace(options, data, title) {
   updateHistory('replace', options, data, title);
 }

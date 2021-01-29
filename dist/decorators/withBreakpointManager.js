@@ -12,12 +12,6 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 import useResize from '../services/resize';
-/**
- * Test the breakpoins of the given Base instance and return the hook to call.
- *
- * @param  {Base}           instance The component's instance.
- * @return {String|Boolean}          The action to call ($mount|$destroy) or false.
- */
 
 function testBreakpoints(breakpoints) {
   var _useResize$props = useResize().props(),
@@ -35,17 +29,24 @@ function testBreakpoints(breakpoints) {
     }
   });
 }
-/**
- * A cache object to hold each Base sub-instances.
- * @type {Object}
- */
 
+function mountComponents(instance, breakpoints) {
+  return breakpoints.map(function (_ref3) {
+    var _ref4 = _slicedToArray(_ref3, 2),
+        bk = _ref4[0],
+        ComponentClass = _ref4[1];
+
+    var child = new ComponentClass(instance.$el);
+    Object.defineProperty(child, '$parent', {
+      get: function get() {
+        return instance;
+      }
+    });
+    return [bk, child];
+  });
+}
 
 var instances = {};
-/**
- * BreakpointManager class.
- */
-
 export default (function (BaseClass, breakpoints) {
   if (!Array.isArray(breakpoints)) {
     throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
@@ -57,68 +58,45 @@ export default (function (BaseClass, breakpoints) {
 
   var _useResize = useResize(),
       add = _useResize.add,
-      props = _useResize.props; // Do nothing if no breakpoint has been defined.
-  // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
-
+      props = _useResize.props;
 
   if (!props().breakpoint) {
     throw new Error("The `BreakpointManager` class requires breakpoints to be defined.");
   }
 
-  return /*#__PURE__*/function (_BaseClass) {
+  return function (_BaseClass) {
     _inherits(BreakpointManager, _BaseClass);
 
     var _super = _createSuper(BreakpointManager);
 
-    /**
-     * Watch for the document resize to test the breakpoints.
-     * @param  {HTMLElement} element The component's root element.
-     * @return {BreakpointManager}          The current instance.
-     */
     function BreakpointManager(element) {
       var _this;
 
       _classCallCheck(this, BreakpointManager);
 
       _this = _super.call(this, element);
-      instances[_this.$id] = breakpoints.map(function (_ref3) {
-        var _ref4 = _slicedToArray(_ref3, 2),
-            bk = _ref4[0],
-            ComponentClass = _ref4[1];
 
-        // eslint-disable-next-line no-underscore-dangle
-        ComponentClass.prototype.__isChild__ = true;
-        var instance = new ComponentClass(_this.$el);
-        Object.defineProperty(instance, '$parent', {
-          get: function get() {
-            return _assertThisInitialized(_this);
-          }
-        });
-        return [bk, instance];
-      });
+      if (!instances[_this.$id]) {
+        instances[_this.$id] = mountComponents(_assertThisInitialized(_this), breakpoints);
+      }
+
+      testBreakpoints(instances[_this.$id]);
       add("BreakpointManager-".concat(_this.$id), function () {
         testBreakpoints(instances[_this.$id]);
       });
       return _possibleConstructorReturn(_this, _assertThisInitialized(_this));
     }
-    /**
-     * Override the default $mount method to prevent component's from being
-     * mounted when they should not.
-     * @return {Base} The Base instance.
-     */
-
 
     _createClass(BreakpointManager, [{
       key: "$mount",
       value: function $mount() {
+        if (!instances[this.$id]) {
+          instances[this.$id] = mountComponents(this, breakpoints);
+        }
+
         testBreakpoints(instances[this.$id]);
         return _get(_getPrototypeOf(BreakpointManager.prototype), "$mount", this).call(this);
       }
-      /**
-       * Destroy all instances when the main one is destroyed.
-       * @return {Base} The Base instance.
-       */
-
     }, {
       key: "$destroy",
       value: function $destroy() {

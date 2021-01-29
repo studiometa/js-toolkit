@@ -27,11 +27,9 @@ export default class Menu extends withBreakpointManager(Base, [
   ['xxs xs s', MenuMobile],
   ['m l xl xxl', MenuDesktop],
 ]) {
-  get config() {
-    return {
-      name: 'Menu',
-    };
-  }
+  static config = {
+    name: 'Menu',
+  };
 }
 ```
 

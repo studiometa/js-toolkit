@@ -1,9 +1,6 @@
-import * as _classes from './classes';
-export { _classes as classes };
-import * as _styles from './styles';
-export { _styles as styles };
-import _matrix from './matrix';
-export { _matrix as matrix };
-import _transition from './transition';
-export { _transition as transition };
+import * as classes from './classes';
+import * as styles from './styles';
+import matrix from './matrix';
+import transition from './transition';
+export { classes, styles, matrix, transition };
 //# sourceMappingURL=index.js.map

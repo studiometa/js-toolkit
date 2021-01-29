@@ -1,94 +1,156 @@
 import nanoid from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind';
 import EventManager from '../EventManager';
-import { callMethod, debug } from './utils';
+import { callMethod, debug, getConfig } from './utils';
+// eslint-disable-next-line import/no-cycle
 import { getChildren, getComponentElements } from './children';
-import { getOptions, setOptions } from './options';
+import { getOptions } from './options';
 import { getRefs } from './refs';
 import { mountComponents, destroyComponents } from './components';
 import bindServices from './services';
+// eslint-disable-next-line import/no-cycle
 import bindEvents from './events';
 
 /**
- * Page lifecycle class
+ * @typedef {typeof Base} BaseComponent
+ * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
+ * @typedef {{ name: string, debug: boolean, log: boolean, [name:string]: any }} BaseOptions
+ * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
+ * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
+ * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
+ * @typedef {import('./classes/Options').OptionsSchema} BaseConfigOptions
+ */
+
+/**
+ * @typedef {Object} BaseConfig
+ * @property {String} name
+ * @property {Boolean} [debug]
+ * @property {Boolean} [log]
+ * @property {String[]} [refs]
+ * @property {BaseConfigComponents} [components]
+ * @property {BaseConfigOptions} [options]
+ */
+
+/**
+ * Base class to easily create components.
  *
- * @method mounted   Fired when the class is instantiated
- * @method loaded    Fired on the window's load event
- * @method ticked    Fired each frame with `requestAnimationFrame`
- * @method resized   Fired when the window is resized (`resize` event)
- * @method moved     Fired when the pointer has moved (`touchmove` and `mousemove` events)
- * @method scrolled  Fired with debounce when the document is scrolled (`scroll` event)
- * @method destroyed Fired when the window is being unloaded (`unload` event)
+ * @example
+ * ```js
+ * class Component extends Base {
+ *   static config = {
+ *     name: 'Component',
+ *     log: true,
+ *   };
+ *
+ *   mounted() {
+ *     this.$log('Component is mounted!');
+ *   }
+ * }
+ *
+ * class App extends Base {
+ *   static config = {
+ *     name: 'App',
+ *     components: {
+ *       Component,
+ *     },
+ *   };
+ * }
+ *
+ * new App(document.body).$mount();
+ * ```
  */
 export default class Base extends EventManager {
   /**
+   * The instance parent.
+   * @type {Base}
+   */
+  $parent = null;
+
+  /**
+   * The state of the component.
+   * @type {Boolean}
+   */
+  $isMounted = false;
+
+  /**
+   * This is a Base instance.
+   * @type {Boolean}
+   */
+  static $isBase = true;
+
+  /**
+   * Get properties to exclude from the autobind call.
+   * @return {Array<String|RegExp>}
+   */
+  get _excludeFromAutoBind() {
+    return [
+      '$mount',
+      '$update',
+      '$destroy',
+      '$terminate',
+      '$log',
+      '$on',
+      '$once',
+      '$off',
+      '$emit',
+      'mounted',
+      'loaded',
+      'ticked',
+      'resized',
+      'moved',
+      'keyed',
+      'scrolled',
+      'destroyed',
+      'terminated',
+    ];
+  }
+
+  /**
+   * @deprecated Use the static `config` property instead.
+   * @return {BaseConfig}
+   */
+  get config() {
+    return null;
+  }
+
+  /** @type {BaseConfig} */
+  static config;
+
+  /**
    * Get the component's refs.
-   * @return {Object}
+   * @return {BaseRefs}
    */
   get $refs() {
     return getRefs(this, this.$el);
   }
 
   /**
-   * Get the component's children components.
-   * @return {Object}
-   */
-  get $children() {
-    return getChildren(this, this.$el, this.config.components || {});
-  }
-
-  /**
-   * Get the component's merged config and options.
-   * @return {Object}
-   */
-  get $options() {
-    return getOptions(this, this.$el, this.config);
-  }
-
-  /**
-   * Set the components option.
-   * @param  {Object} value The new options values to merge with the old ones.
-   * @return {void}
-   */
-  set $options(newOptions) {
-    setOptions(this, this.$el, newOptions);
-  }
-
-  /**
    * Class constructor where all the magic takes place.
    *
-   * @param  {HTMLElement} element The component's root element.
-   * @return {Base}                A Base instance.
+   * @param {HTMLElement} element The component's root element dd.
    */
   constructor(element) {
     super();
-
-    if (!this.config) {
-      throw new Error('The `config` getter must be defined.');
-    }
-
-    if (!this.config.name) {
-      throw new Error('The `config.name` property is required.');
-    }
 
     if (!element) {
       throw new Error('The root element must be defined.');
     }
 
-    Object.defineProperties(this, {
-      $id: {
-        value: `${this.config.name}-${nanoid()}`,
-      },
-      $isMounted: {
-        value: false,
-        writable: true,
-      },
-      $el: {
-        value: element,
-      },
-    });
+    const { name } = getConfig(this);
 
-    if (!this.$el.__base__) {
+    /** @type {String} */
+    this.$id = `${name}-${nanoid()}`;
+
+    /** @type {HTMLElement} */
+    this.$el = element;
+
+    /** @type {BaseOptions} */
+    this.$options = getOptions(this, element, getConfig(this));
+
+    /** @type {BaseChildren} */
+    this.$children = getChildren(this, this.$el, getConfig(this).components || {});
+
+    if (!('__base__' in this.$el)) {
       Object.defineProperty(this.$el, '__base__', {
         get: () => this,
         configurable: true,
@@ -97,40 +159,20 @@ export default class Base extends EventManager {
 
     // Autobind all methods to the instance
     autoBind(this, {
-      exclude: [
-        '$mount',
-        '$update',
-        '$destroy',
-        '$terminate',
-        '$log',
-        '$on',
-        '$once',
-        '$off',
-        '$emit',
-        'mounted',
-        'loaded',
-        'ticked',
-        'resized',
-        'moved',
-        'keyed',
-        'scrolled',
-        'destroyed',
-        'terminated',
-        ...(this._excludeFromAutoBind || []),
-      ],
+      exclude: [...this._excludeFromAutoBind],
     });
 
     let unbindMethods = [];
     this.$on('mounted', () => {
-      mountComponents(this);
       unbindMethods = [...bindServices(this), ...bindEvents(this)];
+      mountComponents(this);
       this.$isMounted = true;
     });
 
     this.$on('updated', () => {
       unbindMethods.forEach((method) => method());
-      mountComponents(this);
       unbindMethods = [...bindServices(this), ...bindEvents(this)];
+      mountComponents(this);
     });
 
     this.$on('destroyed', () => {
@@ -139,12 +181,6 @@ export default class Base extends EventManager {
       destroyComponents(this);
     });
 
-    // Mount class which are not used as another component's child.
-    if (!this.__isChild__) {
-      this.$mount();
-      Object.defineProperty(this, '$parent', { get: () => null });
-    }
-
     debug(this, 'constructor', this);
     return this;
   }
@@ -152,13 +188,12 @@ export default class Base extends EventManager {
   /**
    * Small helper to log stuff.
    *
-   * @param  {...any} args The arguments passed to the method
-   * @return {void}
+   * @return {(...args: any) => void} A log function if the log options is active.
    */
-  $log(...args) {
+  get $log() {
     return this.$options.log
-      ? window.console.log.apply(window, [this.config.name, ...args])
-      : () => {};
+      ? window.console.log.bind(window, `[${this.$options.name}]`)
+      : function noop() {};
   }
 
   /**
@@ -202,7 +237,7 @@ export default class Base extends EventManager {
     callMethod(this, 'terminated');
 
     // Delete the reference to the instance
-    delete this.$el.__base__;
+    // delete this.$el.__base__;
 
     // And update its status to prevent re-instantiation when accessing the
     // parent's `$children` property
@@ -216,8 +251,8 @@ export default class Base extends EventManager {
   /**
    * Factory method to generate multiple instance of the class.
    *
-   * @param  {String}      selector The selector on which to mount each instance.
-   * @return {Array<Base>}          A list of the created instance.
+   * @param  {String}      nameOrSelector The selector on which to mount each instance.
+   * @return {Array<Base>}                A list of the created instance.
    */
   static $factory(nameOrSelector) {
     if (!nameOrSelector) {
@@ -226,8 +261,6 @@ export default class Base extends EventManager {
       );
     }
 
-    return getComponentElements(nameOrSelector).map((el) => new this(el));
+    return getComponentElements(nameOrSelector).map((el) => new this(el).$mount());
   }
 }
-
-Base.__isBase__ = true;

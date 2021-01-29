@@ -12,19 +12,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 import Service from '../abstracts/Service';
 import { getRaf } from '../utils/nextFrame';
-/**
- * Tick service
- *
- * ```
- * import { useRaf } from '@studiometa/js/services';
- * const { add, remove, props } = useRag();
- * add(id, (props) => {});
- * remove(id);
- * props();
- * ```
- */
 
-var Raf = /*#__PURE__*/function (_Service) {
+var Raf = function (_Service) {
   _inherits(Raf, _Service);
 
   var _super = _createSuper(Raf);
@@ -47,12 +36,6 @@ var Raf = /*#__PURE__*/function (_Service) {
 
   _createClass(Raf, [{
     key: "init",
-
-    /**
-     * Start the requestAnimationFrame loop.
-     *
-     * @return {void}
-     */
     value: function init() {
       var _this2 = this;
 
@@ -70,25 +53,14 @@ var Raf = /*#__PURE__*/function (_Service) {
 
       this.isTicking = true;
       loop();
+      return this;
     }
-    /**
-     * Stop the requestAnimationFrame loop.
-     *
-     * @return {void}
-     */
-
   }, {
     key: "kill",
     value: function kill() {
       this.isTicking = false;
+      return this;
     }
-    /**
-     * Get raf props.
-     *
-     * @todo Return elapsed time / index?
-     * @type {Object}
-     */
-
   }, {
     key: "props",
     get: function get() {
@@ -102,7 +74,7 @@ var Raf = /*#__PURE__*/function (_Service) {
 }(Service);
 
 var instance = null;
-export default (function () {
+export default function useRaf() {
   if (!instance) {
     instance = new Raf();
   }
@@ -121,5 +93,5 @@ export default (function () {
     has: has,
     props: props
   };
-});
+}
 //# sourceMappingURL=raf.js.map

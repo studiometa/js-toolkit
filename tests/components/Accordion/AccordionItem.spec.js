@@ -1,23 +1,39 @@
 import AccordionItem from '~/components/Accordion/AccordionItem';
 import wait from '../../__utils__/wait';
 
+let consoleSpy;
+
+beforeAll(() => {
+  consoleSpy = jest.spyOn(console, 'warn');
+  consoleSpy.mockImplementation(() => true);
+});
+
+afterAll(() => {
+  consoleSpy.mockRestore();
+});
+
 describe('AccordionItem component', () => {
   let item;
   let btn;
   let content;
   let icon;
 
+  class AccordionItemWithIcon extends AccordionItem {
+    static config = {
+      ...(AccordionItem.config || {}),
+      refs: [...AccordionItem.config.refs, 'icon'],
+    };
+  }
+
   beforeEach(() => {
     document.body.innerHTML = `
 <div
   data-component="AccordionItem"
-  data-options='{
-    "styles": {
-      "icon": {
-        "open": "transform rotate-180",
-        "active": { "transition": "all 1s linear" },
-        "closed": "transform rotate-0"
-      }
+  data-option-styles='{
+    "icon": {
+      "open": "transform rotate-180",
+      "active": { "transition": "all 1s linear" },
+      "closed": "transform rotate-0"
     }
   }'>
   <button data-ref="btn">
@@ -29,7 +45,8 @@ describe('AccordionItem component', () => {
   </div>
 </div>;
     `;
-    item = new AccordionItem(document.body.firstElementChild);
+    item = new AccordionItemWithIcon(document.body.firstElementChild);
+    item.$mount();
     btn = document.querySelector('[data-ref="btn"]');
     content = document.querySelector('[data-ref="content"]');
     icon = document.querySelector('[data-ref="icon"]');
