@@ -8,7 +8,7 @@ describe('The Tabs component', () => {
 
   beforeEach(async () => {
     document.body.innerHTML = template;
-    tabs = new Tabs(document.body.firstElementChild);
+    tabs = new Tabs(document.body.firstElementChild).$mount();
     await wait(100);
   });
 
@@ -70,7 +70,7 @@ describe('The Tabs component', () => {
   });
 
   it('should work without styles definition', async () => {
-    tabs.$el.setAttribute('data-options', '{ "styles": { "btn": false, "content": false } }');
+    tabs.$options.styles = { btn: false, content: false };
     tabs.$refs.btn[1].setAttribute('style', '');
     tabs.$refs.content[1].setAttribute('style', '');
     await tabs.enableItem(tabs.items[1]);

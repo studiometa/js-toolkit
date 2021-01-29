@@ -2,12 +2,21 @@ import Modal from '~/components/Modal';
 import template from '../../docs/components/Modal.template.html';
 import nextFrame from '~/utils/nextFrame';
 
+let consoleSpy;
+beforeAll(() => {
+  consoleSpy = jest.spyOn(console, 'warn');
+  consoleSpy.mockImplementation(() => true);
+});
+afterAll(() => {
+  consoleSpy.mockRestore();
+});
+
 describe('The Modal component', () => {
   let modal;
 
   beforeAll(() => {
     document.body.innerHTML = template;
-    modal = new Modal(document.body.firstElementChild);
+    modal = new Modal(document.body.firstElementChild).$mount();
   });
 
   it('should be closed on instantiation', () => {
@@ -123,11 +132,8 @@ describe('The Modal component with the `move` option', () => {
 
   beforeAll(() => {
     document.body.innerHTML = `${template}<div id="target"></div>`;
-    document.body.firstElementChild.setAttribute(
-      'data-options',
-      JSON.stringify({ move: '#target' })
-    );
-    modal = new Modal(document.body.firstElementChild);
+    document.body.firstElementChild.setAttribute('data-option-move', '#target');
+    modal = new Modal(document.body.firstElementChild).$mount();
   });
 
   it('should move the `modal` ref to the `#target` element on mounted.', () => {

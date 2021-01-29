@@ -1,11 +1,10 @@
-import Base from '~/src';
+import Base from '../../../../src';
 
 export default class Cursor extends Base {
-  get config() {
-    return {
-      name: 'Cursor',
-    };
-  }
+  static config = {
+    name: 'Cursor',
+    refs: ['inner'],
+  };
 
   moved({ x, y, delta, isDown }) {
     let transform = `translate3d(${x}px, ${y}px, 0)`;

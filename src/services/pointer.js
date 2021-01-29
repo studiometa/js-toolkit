@@ -4,15 +4,42 @@ import debounce from '../utils/debounce';
 import useRaf from './raf';
 
 /**
- * Pointer service
+ * @typedef {import('./index').ServiceInterface} ServiceInterface
+ */
+
+/**
+ * @typedef {Object} PointerServiceProps
+ * @property {MouseEvent | TouchEvent} event
+ * @property {Boolean} isDown
+ * @property {Number} x
+ * @property {Number} y
+ * @property {{ x: Boolean, y: Boolean }} changed
+ * @property {{ x: Number, y: Number }} last
+ * @property {{ x: Number, y: Number }} delta
+ * @property {{ x: Number, y: Number }} progress
+ * @property {{ x: Number, y: Number }} max
+ */
+
+/**
+ * @typedef {Object} PointerService
+ * @property {(key:String, callback:(props:PointerServiceProps) => void) => void} add
+ *   Add a function to the resize service. The key must be uniq.
+ * @property {() => PointerServiceProps} props
+ *   Get the current values of the resize service props.
+ */
+
+/**
+ * Test if an event is an instance of TouchEvent.
  *
- * ```
- * import { usePointer } from '@studiometa/js/services';
- * const { add, remove, props } = usePointer();
- * add(key, (props) => {});
- * remove(key);
- * props();
- * ```
+ * @param {TouchEvent|MouseEvent} event The event instance to test.
+ * @return {Boolean}                    Is it a TouchEvent?
+ */
+function isTouchEvent(event) {
+  return typeof TouchEvent !== 'undefined' && event instanceof TouchEvent;
+}
+
+/**
+ * Pointer service
  */
 class Pointer extends Service {
   /** @type {Boolean} State of the pointer. */
@@ -30,14 +57,14 @@ class Pointer extends Service {
   /** @type {Number} The x previous pointer position. */
   xLast = window.innerWidth / 2;
 
-  /** @type {Event} The latest event emitted from the pointer. */
+  /** @type {MouseEvent|TouchEvent} The latest event emitted from the pointer. */
   event;
 
   /**
    * Bind the handler to the mousemove and touchmove events.
    * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
    *
-   * @return {void}
+   * @return {Pointer}
    */
   init() {
     const { add, remove } = useRaf();
@@ -72,12 +99,13 @@ class Pointer extends Service {
     document.addEventListener('touchstart', this.downHandler, { passive: true });
     document.addEventListener('mouseup', this.upHandler, { passive: true });
     document.addEventListener('touchend', this.upHandler, { passive: true });
+    return this;
   }
 
   /**
    * Unbind all handlers from their bounded event.
    *
-   * @return {void}
+   * @return {Pointer}
    */
   kill() {
     document.removeEventListener('mousemove', this.handler);
@@ -86,6 +114,7 @@ class Pointer extends Service {
     document.removeEventListener('touchstart', this.downHandler);
     document.removeEventListener('mouseup', this.upHandler);
     document.removeEventListener('touchend', this.upHandler);
+    return this;
   }
 
   /**
@@ -111,7 +140,7 @@ class Pointer extends Service {
   /**
    * Update the pointer positions.
    *
-   * @param  {Event} event The event object.
+   * @param  {MouseEvent|TouchEvent} event The event object.
    * @return {void}
    */
   updateValues(event) {
@@ -122,15 +151,21 @@ class Pointer extends Service {
     // Check pointer Y
     // We either get data from a touch event `event.touches[0].clientY` or from
     // a mouse event `event.clientY`.
-    if (((event.touches || [])[0] || event || {}).clientY !== this.y) {
-      this.y = ((event.touches || [])[0] || event || {}).clientY;
+    const y = isTouchEvent(event)
+      ? /** @type {TouchEvent} */ (event).touches[0]?.clientY
+      : /** @type {MouseEvent} */ (event).clientY;
+    if (y !== this.y) {
+      this.y = y;
     }
 
     // Check pointer X
     // We either get data from a touch event `event.touches[0].clientX` or from
     // a mouse event `event.clientX`.
-    if (((event.touches || [])[0] || event || {}).clientX !== this.x) {
-      this.x = ((event.touches || [])[0] || event || {}).clientX;
+    const x = isTouchEvent(event)
+      ? /** @type {TouchEvent} */ (event).touches[0]?.clientX
+      : /** @type {MouseEvent} */ (event).clientX;
+    if (x !== this.x) {
+      this.x = x;
     }
   }
 
@@ -181,8 +216,10 @@ let pointer = null;
  * remove('id');
  * props();
  * ```
+ *
+ * @return {ServiceInterface & PointerService}
  */
-export default () => {
+export default function usePointer() {
   if (!pointer) {
     pointer = new Pointer();
   }
@@ -198,4 +235,4 @@ export default () => {
     has,
     props,
   };
-};
+}

@@ -1,8 +1,33 @@
 import Base from '../abstracts/Base';
 import transition from '../utils/css/transition';
-import focusTrap from '../utils/focusTrap';
+import { trap, untrap, saveActiveElement } from '../utils/focusTrap';
 
-const { trap, untrap, saveActiveElement } = focusTrap();
+/**
+ * @typedef {Object} ModalRefs
+ * @property {HTMLElement} close
+ * @property {HTMLElement} container
+ * @property {HTMLElement} content
+ * @property {HTMLElement} modal
+ * @property {HTMLElement} open
+ * @property {HTMLElement} overlay
+ */
+
+/**
+ * @typedef {Object} ModalOptions
+ * @property {String} move      A selector where to move the modal to.
+ * @property {String} autofocus A selector for the element to set the focus to when the modal opens.
+ * @property {Object} styles    The styles for the different state of the modal.
+ */
+
+/**
+ * @typedef {Object} ModalInterface
+ * @property {ModalRefs} $refs
+ * @property {ModalOptions} $options
+ * @property {Boolean} isOpen
+ * @property {Comment} refModalPlaceholder
+ * @property {HTMLElement} refModalParentBackup
+ * @property {Function} refModalUnbindGetRefFilter
+ */
 
 /**
  * Modal class.
@@ -11,22 +36,26 @@ export default class Modal extends Base {
   /**
    * Modal options.
    */
-  get config() {
-    return {
-      name: 'Modal',
-      move: false,
-      autofocus: '[autofocus]',
+  static config = {
+    name: 'Modal',
+    refs: ['close', 'container', 'content', 'modal', 'open', 'overlay'],
+    options: {
+      move: String,
+      autofocus: { type: String, default: '[autofocus]' },
       styles: {
-        modal: {
-          closed: {
-            opacity: 0,
-            pointerEvents: 'none',
-            visibility: 'hidden',
+        type: Object,
+        default: () => ({
+          modal: {
+            closed: {
+              opacity: 0,
+              pointerEvents: 'none',
+              visibility: 'hidden',
+            },
           },
-        },
+        }),
       },
-    };
-  }
+    },
+  };
 
   /**
    * Open the modal on click on the `open` ref.
@@ -58,7 +87,7 @@ export default class Modal extends Base {
   /**
    * Initialize the component's behaviours.
    *
-   * @return {Modal} The current instance.
+   * @this {Modal & ModalInterface}
    */
   mounted() {
     this.isOpen = false;
@@ -72,13 +101,19 @@ export default class Modal extends Base {
       this.refModalParentBackup = this.$refs.modal.parentElement || this.$el;
       this.refModalParentBackup.insertBefore(this.refModalPlaceholder, this.$refs.modal);
 
-      this.refModalUnbindGetRefFilter = this.$on('get:refs', (refs) => {
-        Object.entries(refsBackup).forEach(([key, ref]) => {
-          if (!refs[key]) {
-            refs[key] = ref;
-          }
-        });
-      });
+      this.refModalUnbindGetRefFilter = this.$on(
+        'get:refs',
+        /**
+         * @param {ModalRefs} refs
+         */
+        (refs) => {
+          Object.entries(refsBackup).forEach(([key, ref]) => {
+            if (!refs[key]) {
+              refs[key] = ref;
+            }
+          });
+        }
+      );
       target.appendChild(this.$refs.modal);
     }
 
@@ -88,12 +123,13 @@ export default class Modal extends Base {
   /**
    * Unbind all events on destroy.
    *
+   * @this {Modal & ModalInterface}
    * @return {Modal} The Modal instance.
    */
   destroyed() {
     this.close();
 
-    if (this.$options.move) {
+    if (this.$options.move && this.refModalParentBackup) {
       this.refModalParentBackup.insertBefore(this.$refs.modal, this.refModalPlaceholder);
       this.refModalUnbindGetRefFilter();
       this.refModalPlaceholder.remove();
@@ -108,11 +144,12 @@ export default class Modal extends Base {
   /**
    * Close the modal on `ESC` and trap the tabulation.
    *
+   * @this {Modal & ModalInterface}
+   * @param  {Object}        options
    * @param  {KeyboardEvent} options.event  The original keyboard event
    * @param  {Boolean}       options.isUp   Is it a keyup event?
    * @param  {Boolean}       options.isDown Is it a keydown event?
    * @param  {Boolean}       options.ESC    Is it the ESC key?
-   * @return {void}
    */
   keyed({ event, isUp, isDown, ESC }) {
     if (!this.isOpen) {
@@ -131,7 +168,8 @@ export default class Modal extends Base {
   /**
    * Open the modal.
    *
-   * @return {Modal} The Modal instance.
+   * @this {Modal & ModalInterface}
+   * @return {Promise<Modal>} The Modal instance.
    */
   async open() {
     if (this.isOpen) {
@@ -144,22 +182,28 @@ export default class Modal extends Base {
     this.isOpen = true;
     this.$emit('open');
 
+    /** @type {ModalRefs} */
+    const refs = this.$refs;
+
     return Promise.all(
-      Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
-        transition(
-          this.$refs[refName],
-          {
-            from: closed,
-            active,
-            to: open,
-          },
-          'keep'
-        )
+      Object.entries(this.$options.styles).map(
+        ([refName, { open, active, closed } = { open: '', active: '', closed: '' }]) =>
+          transition(
+            refs[refName],
+            {
+              from: closed,
+              active,
+              to: open,
+            },
+            'keep'
+          )
       )
     ).then(() => {
       if (this.$options.autofocus && this.$refs.modal.querySelector(this.$options.autofocus)) {
         saveActiveElement();
-        this.$refs.modal.querySelector(this.$options.autofocus).focus();
+        /** @type {HTMLElement} */
+        const autofocusElement = this.$refs.modal.querySelector(this.$options.autofocus);
+        autofocusElement.focus();
       }
       return Promise.resolve(this);
     });
@@ -168,7 +212,8 @@ export default class Modal extends Base {
   /**
    * Close the modal.
    *
-   * @return {Modal} The Modal instance.
+   * @this {Modal & ModalInterface}
+   * @return {Promise<Modal>} The Modal instance.
    */
   async close() {
     if (!this.isOpen) {
@@ -182,17 +227,21 @@ export default class Modal extends Base {
     untrap();
     this.$emit('close');
 
+    /** @type {ModalRefs} */
+    const refs = this.$refs;
+
     return Promise.all(
-      Object.entries(this.$options.styles).map(([refName, { open, active, closed } = {}]) =>
-        transition(
-          this.$refs[refName],
-          {
-            from: open,
-            active,
-            to: closed,
-          },
-          'keep'
-        )
+      Object.entries(this.$options.styles).map(
+        ([refName, { open, active, closed } = { open: '', active: '', closed: '' }]) =>
+          transition(
+            refs[refName],
+            {
+              from: open,
+              active,
+              to: closed,
+            },
+            'keep'
+          )
       )
     ).then(() => Promise.resolve(this));
   }

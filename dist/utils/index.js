@@ -1,17 +1,11 @@
-import * as _css from './css';
-export { _css as css };
-import * as _math from './math';
-export { _math as math };
-import * as _object from './object';
-export { _object as object };
-import _debounce from './debounce';
-export { _debounce as debounce };
-import _focusTrap from './focusTrap';
-export { _focusTrap as focusTrap };
-import _keyCodes from './keyCodes';
-export { _keyCodes as keyCodes };
-import _nextFrame from './nextFrame';
-export { _nextFrame as nextFrame };
-import _throttle from './throttle';
-export { _throttle as throttle };
+import * as css from './css';
+import * as math from './math';
+import * as object from './object';
+import debounce from './debounce';
+import focusTrap from './focusTrap';
+import * as history from './history';
+import keyCodes from './keyCodes';
+import nextFrame from './nextFrame';
+import throttle from './throttle';
+export { css, math, object, debounce, focusTrap, keyCodes, nextFrame, throttle, history };
 //# sourceMappingURL=index.js.map

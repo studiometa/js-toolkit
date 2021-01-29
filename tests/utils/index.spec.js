@@ -11,6 +11,7 @@ describe('~/utils exports', () => {
       'css',
       'math',
       'object',
+      'history',
     ]);
   });
 });

@@ -1,6 +1,6 @@
 <template>
   <div class="preview" :class="{ 'preview--full': full }">
-    <div class="my-4 p-10 rounded" style="background-color: #f6f6f6;" ref="parent">
+    <div class="my-4 p-10 rounded" style="background-color: #f6f6f6" ref="parent">
       <slot />
     </div>
   </div>
@@ -11,13 +11,11 @@
   import * as components from '../../../dist/components/';
 
   class App extends Base {
-    get config() {
-      return {
-        name: 'App',
-        debug: true,
-        components,
-      };
-    }
+    static config = {
+      name: 'App',
+      debug: true,
+      components,
+    };
   }
 
   export default {
@@ -30,6 +28,7 @@
     async mounted() {
       this.$nextTick(() => {
         this.component = new App(this.$refs.parent);
+        this.component.$mount();
       });
     },
     updated() {
@@ -39,6 +38,7 @@
 
       this.component.$destroy();
       this.component = new App(this.$refs.parent);
+      this.component.$mount();
     },
     beforeDestroy() {
       this.component.$destroy();

@@ -5,6 +5,7 @@ import _createClass from "@babel/runtime/helpers/createClass";
 import _inherits from "@babel/runtime/helpers/inherits";
 import _possibleConstructorReturn from "@babel/runtime/helpers/possibleConstructorReturn";
 import _getPrototypeOf from "@babel/runtime/helpers/getPrototypeOf";
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
@@ -12,11 +13,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 import Base from '../abstracts/Base';
 import transition from '../utils/css/transition';
-/**
- * Tabs class.
- */
 
-var Tabs = /*#__PURE__*/function (_Base) {
+var Tabs = function (_Base) {
   _inherits(Tabs, _Base);
 
   var _super = _createSuper(Tabs);
@@ -29,12 +27,6 @@ var Tabs = /*#__PURE__*/function (_Base) {
 
   _createClass(Tabs, [{
     key: "mounted",
-
-    /**
-     * Initialize the component's behaviours.
-     *
-     * @return {Tabs} The current instance.
-     */
     value: function mounted() {
       var _this = this;
 
@@ -59,14 +51,6 @@ var Tabs = /*#__PURE__*/function (_Base) {
       });
       return this;
     }
-    /**
-     * Switch tab on button click.
-     *
-     * @param  {Event}  event The click event object.
-     * @param  {Number} index The index of the clicked button.
-     * @return {void}
-     */
-
   }, {
     key: "onBtnClick",
     value: function onBtnClick(event, index) {
@@ -79,18 +63,10 @@ var Tabs = /*#__PURE__*/function (_Base) {
       });
       this.enableItem(this.items[index]);
     }
-    /**
-     * Enable the given tab and its associated content.
-     *
-     * @param  {HTMLElement} btn     The tab element.
-     * @param  {HTMLElement} content The content element.
-     * @return {Tabs}                The Tabs instance.
-     */
-
   }, {
     key: "enableItem",
     value: function () {
-      var _enableItem = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee(item) {
+      var _enableItem = _asyncToGenerator(_regeneratorRuntime.mark(function _callee(item) {
         var _this3 = this;
 
         var btn, content, btnStyles, contentStyles;
@@ -138,18 +114,10 @@ var Tabs = /*#__PURE__*/function (_Base) {
 
       return enableItem;
     }()
-    /**
-     * Disable the given tab and its associated content.
-     *
-     * @param  {HTMLElement} btn     The tab element.
-     * @param  {HTMLElement} content The content element.
-     * @return {Tabs}                The Tabs instance.
-     */
-
   }, {
     key: "disableItem",
     value: function () {
-      var _disableItem = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime.mark(function _callee2(item) {
+      var _disableItem = _asyncToGenerator(_regeneratorRuntime.mark(function _callee2(item) {
         var _this4 = this;
 
         var btn, content, btnStyles, contentStyles;
@@ -197,31 +165,32 @@ var Tabs = /*#__PURE__*/function (_Base) {
 
       return disableItem;
     }()
-  }, {
-    key: "config",
-
-    /**
-     * Tabs options.
-     */
-    get: function get() {
-      return {
-        name: 'Tabs',
-        styles: {
-          content: {
-            closed: {
-              position: 'absolute',
-              opacity: 0,
-              pointerEvents: 'none',
-              visibility: 'hidden'
-            }
-          }
-        }
-      };
-    }
   }]);
 
   return Tabs;
 }(Base);
+
+_defineProperty(Tabs, "config", {
+  name: 'Tabs',
+  refs: ['btn[]', 'content[]'],
+  options: {
+    styles: {
+      type: Object,
+      default: function _default() {
+        return {
+          content: {
+            closed: {
+              position: 'absolute',
+              opacity: '0',
+              pointerEvents: 'none',
+              visibility: 'hidden'
+            }
+          }
+        };
+      }
+    }
+  }
+});
 
 export { Tabs as default };
 //# sourceMappingURL=Tabs.js.map

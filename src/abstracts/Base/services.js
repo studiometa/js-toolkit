@@ -6,6 +6,10 @@ import useKey from '../../services/key';
 import { hasMethod, callMethod } from './utils';
 
 /**
+ * @typedef {import('./index').default} Base
+ */
+
+/**
  * Init the given service and bind it to the given instance.
  *
  * @param  {Base}     instance The Base instance.
@@ -19,9 +23,15 @@ function initService(instance, method, service) {
   }
 
   const { add, remove } = service();
-  add(instance.$id, (...args) => {
-    callMethod(instance, method, ...args);
-  });
+  add(
+    instance.$id,
+    /**
+     * @param {any[]} args
+     */
+    (...args) => {
+      callMethod(instance, method, ...args);
+    }
+  );
 
   return () => remove(instance.$id);
 }
@@ -43,6 +53,9 @@ export default function bindServices(instance) {
   // Fire the `loaded` method on window load
   // @todo remove this? or move it elsewhere?
   if (hasMethod(instance, 'loaded')) {
+    /**
+     * @param {Event} event
+     */
     const loadedHandler = (event) => {
       callMethod(instance, 'loaded', { event });
     };

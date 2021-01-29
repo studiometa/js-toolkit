@@ -1,10 +1,26 @@
 import useResize from '../services/resize';
 
 /**
+ * @typedef {import('../abstracts/Base').default} Base
+ * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ */
+
+/**
+ * @typedef {Object} WithBreakpointObserverOptions
+ * @property {String} [activeBreakpoints]
+ * @property {String} [inactiveBreakpoints]
+ */
+
+/**
+ * @typedef {Object} WithBreakpointObserverInterface
+ * @property {WithBreakpointObserverOptions} $options
+ */
+
+/**
  * Test the breakpoins of the given Base instance and return the hook to call.
  *
- * @param  {BreakpointObserver} instance The component's instance.
- * @return {Sring}                       The action to trigger.
+ * @param  {Base & WithBreakpointObserverInterface}   instance The component's instance.
+ * @return {String}          The action to trigger.
  */
 function testBreakpoints(instance, breakpoint = useResize().props().breakpoint) {
   const { activeBreakpoints, inactiveBreakpoints } = instance.$options;
@@ -25,7 +41,7 @@ function testBreakpoints(instance, breakpoint = useResize().props().breakpoint) 
 
 /**
  * Test if the given instance is configured for breakpoints.
- * @param  {Base}    instance A Base class instance.
+ * @param  {Base & WithBreakpointObserverInterface}    instance A Base class instance.
  * @return {Boolean}          True if configured correctly, false otherwise.
  */
 function hasBreakpointConfiguration(instance) {
@@ -35,7 +51,7 @@ function hasBreakpointConfiguration(instance) {
 
 /**
  * Test if the given instance has a conflicting configuration for breakpoints.
- * @param  {Base} instance A Base class instance.
+ * @param  {Base & WithBreakpointObserverInterface} instance A Base class instance.
  * @return {void}
  */
 function testConflictingBreakpointConfiguration(instance) {
@@ -72,18 +88,31 @@ function addToResize(key, instance) {
 
 /**
  * BreakpointObserver class.
+ *
+ * @param {BaseComponent} BaseClass The Base class to extend from.
+ * @return {BaseComponent}
  */
 export default (BaseClass) =>
   class BreakpointObserver extends BaseClass {
+    static config = {
+      ...(BaseClass.config || {}),
+      name: `${BaseClass?.config?.name ?? ''}WithBreakpointObserver`,
+      options: {
+        ...(BaseClass?.config?.options || {}),
+        activeBreakpoints: String,
+        inactiveBreakpoints: String,
+      },
+    };
+
     /**
      * Watch for the document resize to test the breakpoints.
+     * @this {Base & WithBreakpointObserverInterface}
      * @param  {HTMLElement} element The component's root element.
-     * @return {BreakpointObserver}          The current instance.
      */
     constructor(element) {
       super(element);
 
-      const { add, has, remove, props } = useResize();
+      const { remove, props } = useResize();
       const { name } = this.$options;
 
       // Do nothing if no breakpoint has been defined.
@@ -98,7 +127,11 @@ export default (BaseClass) =>
 
       // Watch change on the `data-options` attribute to emit the `set:options` event.
       const mutationObserver = new MutationObserver(([mutation]) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'data-options') {
+        if (
+          mutation.type === 'attributes' &&
+          (mutation.attributeName === 'data-options' ||
+            mutation.attributeName.startsWith('data-option-'))
+        ) {
           // Stop here silently when no breakpoint configuration given.
           if (!hasBreakpointConfiguration(this)) {
             this.$mount();
@@ -123,7 +156,7 @@ export default (BaseClass) =>
     /**
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
-     * @return {BreakpointObserver} The component's instance.
+     * @return {this}
      */
     $mount() {
       // Execute normal behavior when no breakpoint configuration given.
