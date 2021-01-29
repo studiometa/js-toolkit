@@ -18,7 +18,9 @@ jobs:
     - name: Install modules
       run: npm ci
     - name: Run code quality tests
-      run: npm run lint
+      run: npm run lint:eslint -- --format=compact
+    - name: Run types tests
+      run: npm run lint:types
     - name: Run tests
       run: npm run test -- --coverage
     - name: Upload coverage to Codecov
