@@ -15,17 +15,20 @@ Use this decorator to create a class that will have the capacity to be mounted o
 
 In the following example, the `MobileComponent` class will self mount on devices matching any of the breakpoint defined in the `activeBreakpoints` property, and self destroy on all others:
 
-```js{4,8}
+```js{4,8-11}
 import Base from '@studiometa/js-toolkit';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver';
 
 export default class MobileComponent extends withBreakpointObserver(Base) {
-  get config() {
-    return {
-      name: 'MobileComponent',
-      activeBreakpoints: 'xxs xs s'
-    };
-  }
+  static config = {
+    name: 'MobileComponent',
+    options: {
+      activeBreakpoints: {
+        type: String,
+        default: 'xxs xs s',
+      },
+    },
+  };
 }
 ```
 
@@ -33,17 +36,20 @@ export default class MobileComponent extends withBreakpointObserver(Base) {
 
 The same behaviour as before can be achieved by specifying all the other breakpoints in the `inactiveBreakpoints` property instead:
 
-```js{4,8}
+```js{4,8-11}
 import Base from '@studiometa/js-toolkit';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver';
 
 export default class MobileComponent extends withBreakpointObserver(Base) {
-  get config() {
-    return {
-      name: 'MobileComponent',
-      inactiveBreakpoints: 'm l xl xxl',
-    };
-  }
+  static config = {
+    name: 'MobileComponent',
+    options: {
+      inactiveBreakpoints: {
+        type: String,
+        default: 'm l xl xxl',
+      },
+    },
+  };
 }
 ```
 
@@ -57,19 +63,17 @@ import Modal from '@studiometa/js-toolkit/components/Modal';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver';
 
 class App extends Base {
-  get config() {
-    return {
-      name: 'App',
-      components: {
-        Modal,
-        ResponsiveModal: withBreakpointObserver(Modal),
-      },
-    };
-  }
+  staitc config = {
+    name: 'App',
+    components: {
+      Modal,
+      ResponsiveModal: withBreakpointObserver(Modal),
+    },
+  };
 }
 ```
 
-The `ResponsiveModal` registered component will have the capacity to use either one of the `activeBreakpoints` and `inactiveBreakpoints` configuration options.
+The `ResponsiveModal` registered component will have the capacity to use either one of the `activeBreakpoints` and `inactiveBreakpoints` configuration options by setting the `data-option-active-breakpoint` or the `data-option-inactive-breakpoint` attribute.
 
 :::tip
 See the [`resize` service documentation on breakpoints](/services/resize.html#breakpoint) for a more comprehensive view of the potential values of the `activeBreakpoint` property.

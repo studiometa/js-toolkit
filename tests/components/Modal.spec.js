@@ -132,10 +132,7 @@ describe('The Modal component with the `move` option', () => {
 
   beforeAll(() => {
     document.body.innerHTML = `${template}<div id="target"></div>`;
-    document.body.firstElementChild.setAttribute(
-      'data-options',
-      JSON.stringify({ move: '#target' })
-    );
+    document.body.firstElementChild.setAttribute('data-option-move', '#target');
     modal = new Modal(document.body.firstElementChild).$mount();
   });
 

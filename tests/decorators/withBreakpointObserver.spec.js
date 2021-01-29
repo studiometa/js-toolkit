@@ -121,7 +121,9 @@ describe('The withBreakpointObserver decorator', () => {
     class Mobile extends withBreakpointObserver(Base) {
       static config = {
         name: 'Mobile',
-        inactiveBreakpoints: 'm',
+        options: {
+          inactiveBreakpoints: { type: String, default: 'm' },
+        },
       };
 
       mounted() {
@@ -136,7 +138,9 @@ describe('The withBreakpointObserver decorator', () => {
     class Desktop extends withBreakpointObserver(Base) {
       static config = {
         name: 'Desktop',
-        activeBreakpoints: 'm',
+        options: {
+          activeBreakpoints: { type: String, default: 'm' },
+        },
       };
 
       mounted() {

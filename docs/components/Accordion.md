@@ -63,12 +63,12 @@ An [accessible](http://web-accessibility.carnegiemuseums.org/code/accordions/), 
 </div>
 ```
 
-### Without autoclose
+### With autoclose
 
-By default, each `AccordionItem` will close itself when another one is opened. You can disable this behaviour by setting the `autoclose` option to `false`:
+By default, each `AccordionItem` will stay open when another one is opened. You can enable the `autoclose` behaviour by adding the `data-option-autoclose` attribute:
 
 <Preview>
-  <div data-component="Accordion" data-options='{ "autoclose": false }'>
+  <div data-component="Accordion" data-option-autoclose>
     <div data-component="AccordionItem">
       <button data-ref="btn" class="font-bold">
         Title
@@ -93,7 +93,7 @@ By default, each `AccordionItem` will close itself when another one is opened. Y
 </Preview>
 
 ```html{1}
-<div data-component="Accordion" data-options='{ "autoclose": false }'>
+<div data-component="Accordion" data-option-autoclose>
   …
 </div>
 ```
@@ -103,7 +103,7 @@ By default, each `AccordionItem` will close itself when another one is opened. Y
 You can configure the `AccordionItem` components globally with the `item` options:
 
 <Preview>
-  <div data-component="Accordion" data-options='{ "item": { "isOpen": true } }'>
+  <div data-component="Accordion" data-option-item='{ "isOpen": true }'>
     <div data-component="AccordionItem">
       <button data-ref="btn" class="font-bold">
         Title
@@ -128,7 +128,7 @@ You can configure the `AccordionItem` components globally with the `item` option
 </Preview>
 
 ```html{1}
-<div data-component="Accordion" data-options='{ "item": { "isOpen": true } }'>
+<div data-component="Accordion" data-option-item='{ "isOpen": true }'>
   <div data-component="AccordionItem">
     …
   </div>
@@ -138,11 +138,11 @@ You can configure the `AccordionItem` components globally with the `item` option
 </div>
 ```
 
-Or you can configure each `AccordionItem` component separately with their own `data-options` attribute:
+Or you can configure each `AccordionItem` component separately with their own `data-option-<option-name>` attribute:
 
 <Preview>
   <div data-component="Accordion">
-    <div data-component="AccordionItem" data-options='{ "isOpen": true }'>
+    <div data-component="AccordionItem" data-option-is-open>
       <button data-ref="btn" class="font-bold">
         Title
       </button>
@@ -167,7 +167,7 @@ Or you can configure each `AccordionItem` component separately with their own `d
 
 ```html{2}
 <div data-component="Accordion">
-  <div data-component="AccordionItem" data-options='{ "isOpen": true }'>
+  <div data-component="AccordionItem" data-option-is-open>
     …
   </div>
   <div data-component="AccordionItem">
@@ -181,7 +181,7 @@ Or you can configure each `AccordionItem` component separately with their own `d
 You can add transitions to the opening and closing of the `AccordionItem` components with the `styles` option from the `AccordionItem` components.
 
 <Preview>
-  <div data-component="Accordion" data-options='{ "item": { "styles": { "container": { "active": "transition-all duration-500 ease-out-expo" } } } }'>
+  <div data-component="Accordion" data-option-item='{ "styles": { "container": { "active": "transition-all duration-500 ease-out-expo" } } }'>
     <div data-component="AccordionItem">
       <button data-ref="btn" class="font-bold">
         Title
@@ -215,15 +215,13 @@ You can add transitions to the opening and closing of the `AccordionItem` compon
   </div>
 </Preview>
 
-```html{3-11}
+```html{3-9}
 <div
   data-component="Accordion"
-  data-options='{
-    "item": {
-      "styles": {
-        "container": {
-          "active": "transition-all duration-500 ease-out-expo"
-        }
+  data-option-item='{
+    "styles": {
+      "container": {
+        "active": "transition-all duration-500 ease-out-expo"
       }
     }
   }'>
@@ -244,21 +242,18 @@ Transitions can be added to additional refs by adding a key matching their name 
 <Preview>
   <div
     data-component="Accordion"
-    data-options='{
-      "autoclose": false,
-      "item": {
-        "styles": {
-          "container": {
-            "active": "transition-all duration-500 ease-out-expo"
-          },
-          "icon": {
-            "open": "transform rotate-180",
-            "active": "transition duration-500 ease-out-expo"
-          }
+    data-option-item='{
+      "styles": {
+        "container": {
+          "active": "transition-all duration-500 ease-out-expo"
+        },
+        "icon": {
+          "open": "transform rotate-180",
+          "active": "transition duration-500 ease-out-expo"
         }
       }
     }'>
-    <div data-component="AccordionItem" data-options='{ "isOpen": true }'>
+    <div data-component="AccordionItem" data-option-is-open>
       <button data-ref="btn" class="font-bold">
         Title
         <span class="inline-block" data-ref="icon">▼</span>
@@ -294,24 +289,21 @@ Transitions can be added to additional refs by adding a key matching their name 
   </div>
 </Preview>
 
-```html{10-13,20}
+```html{8-11,17}
 <div
   data-component="Accordion"
-  data-options='{
-    "autoclose": false,
-    "item": {
-      "styles": {
-        "container": {
-          "active": "transition-all duration-500 ease-out-expo"
-        },
-        "icon": {
-          "open": "transform rotate-180",
-          "active": "transition duration-500 ease-out-expo"
-        }
+  data-option-item='{
+    "styles": {
+      "container": {
+        "active": "transition-all duration-500 ease-out-expo"
+      },
+      "icon": {
+        "open": "transform rotate-180",
+        "active": "transition duration-500 ease-out-expo"
       }
     }
   }'>
-  <div data-component="AccordionItem" data-options='{ "isOpen": true }'>
+  <div data-component="AccordionItem" data-option-is-open>
     <button data-ref="btn" class="font-bold">
       Title
       <span class="inline-block" data-ref="icon">▼</span>
@@ -335,7 +327,8 @@ You can directly instantiate the `Accordion` class on an element:
 ```js
 import Accordion from '@studiometa/js-toolkit/components/Accordion';
 
-new Accordion(document.querySelector('.my-custom-accordion-element'));
+const accordion = new Accordion(document.querySelector('.my-custom-accordion-element'));
+accordion.$mount();
 ```
 
 Or you can use the component as a child of another one:
@@ -345,32 +338,15 @@ import Base from '@studiometa/js-toolkit';
 import Accordion from '@studiometa/js-toolkit/components/Accordion';
 
 class App extends Base {
-  get config() {
-    return {
-      name: 'App',
-      components: {
-        Accordion,
-      },
-    };
-  }
+  static config = {
+    name: 'App',
+    components: {
+      Accordion,
+    },
+  };
 }
 
-new App(document.documentElement);
-```
-
-You also can extend the class to create a component with extra capabilities. The following example adds custom style by default, enables the `move` options and add an option to auto-open the modal after a given delay:
-
-```js
-import AccordionCore from '@studiometa/js-toolkit/components/Accordion';
-
-export default class Accordion extends AccordionCore {
-  get config() {
-    return {
-      …super.config,
-      autoclose: false,
-    };
-  }
-}
+new App(document.documentElement).$mount();
 ```
 
 ### HTML
@@ -409,13 +385,13 @@ This ref is used to add the needed accessibility attributes and will hold your c
 ### Options
 
 ::: tip
-Options can be defined per component via the `data-options` attribute or by extending the `Modal` class.
+Options can be defined per component via the `data-option-<option-name>` attribute or by extending the `Modal` class.
 :::
 
 #### `autoclose`
 
 - Type: `Boolean`
-- Default: `true`
+- Default: `false`
 
 A boolean to control if the opening of an `AccordionItem` will close all the others or not.
 

@@ -255,21 +255,19 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
 
 ### With transitions
 
-We reset the default styles for the `modal` ref and add some Tailwind classes to the `data-options` along with classes to enable transforms and transitions on the `container` and `modal` refs.
+We reset the default styles for the `modal` ref and add some Tailwind classes to the `data-option-styles` along with classes to enable transforms and transitions on the `container` and `modal` refs.
 
 <Preview>
   <div
     data-component="Modal"
-    data-options='{
-      "styles": {
-        "modal": {
-          "active": "transition-all duration-500 ease-out-expo",
-          "closed": "opacity-0 pointer-events-none invisible"
-        },
-        "container": {
-          "active": "transition duration-500 ease-out-expo",
-          "closed": "transform scale-90"
-        }
+    data-option-styles='{
+      "modal": {
+        "active": "transition-all duration-500 ease-out-expo",
+        "closed": "opacity-0 pointer-events-none invisible"
+      },
+      "container": {
+        "active": "transition duration-500 ease-out-expo",
+        "closed": "transform scale-90"
       }
     }'
     class="text-center">
@@ -316,19 +314,17 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
   </div>
 </Preview>
 
-```html{3-14}
+```html{3-12}
 <div
   data-component="Modal"
-  data-options='{
-    "styles": {
-      "modal": {
-        "active": "transition-all duration-500 ease-out-expo",
-        "closed": "opacity-0 pointer-events-none invisible"
-      },
-      "container": {
-        "active": "transition duration-500 ease-out-expo",
-        "closed": "transform scale-90"
-      }
+  data-option-styles='{
+    "modal": {
+      "active": "transition-all duration-500 ease-out-expo",
+      "closed": "opacity-0 pointer-events-none invisible"
+    },
+    "container": {
+      "active": "transition duration-500 ease-out-expo",
+      "closed": "transform scale-90"
     }
   }'
   class="text-center">
@@ -384,7 +380,8 @@ You can directly instantiate the `Modal` class on an element:
 ```js
 import Modal from '@studiometa/js-toolkit/components/Modal';
 
-new Modal(document.querySelector('.my-custom-modal-element'));
+const modal = new Modal(document.querySelector('.my-custom-modal-element'));
+modal.$mount();
 ```
 
 Or you can use the component as a child of another one:
@@ -394,17 +391,16 @@ import Base from '@studiometa/js-toolkit';
 import Modal from '@studiometa/js-toolkit/components/Modal';
 
 class App extends Base {
-  get config() {
-    return {
-      name: 'App',
-      components: {
-        Modal,
-      },
-    };
-  }
+  static config = {
+    name: 'App',
+    components: {
+      Modal,
+    },
+  };
 }
 
-new App(document.documentElement);
+const app = new App(document.documentElement);
+app.$mount();
 ```
 
 You also can extend the class to create a component with extra capabilities. The following example adds custom style by default, enables the `move` options and add an option to auto-open the modal after a given delay:
@@ -413,17 +409,27 @@ You also can extend the class to create a component with extra capabilities. The
 import ModalCore from '@studiometa/js-toolkit/components/Modal';
 
 export default class Modal extends ModalCore {
-  get config() {
-    return {
-      ...super.config,
-      move: true,
-      autoOpen: 5000,
-      styles: {
-        modal: {
-          closed: 'hidden',
-        },
+  static config = {
+    ...ModalCore.config,
+    options: {
+      ...ModalCore.config.options,
+      move: {
+        type: String,
+        default: 'body',
       },
-    };
+      autoOpen: {
+        type: Number,
+        default: 5000,
+      },
+      styles: {
+        type: Object,
+        default: () => ({
+          modal: {
+            closed: 'hidden'
+          },
+        }),
+      },
+    },
   }
 
   mounted() {
@@ -436,7 +442,6 @@ export default class Modal extends ModalCore {
 
   destroyed() {
     super.destroyed();
-
     clearTimeout(this.timer);
   }
 }
@@ -459,12 +464,11 @@ import Modal from '@studiometa/js-toolkit/components/Modal';
  */
 
 class MyPage extends Base {
-  get config() {
-    return {
-      name: 'MyPage',
-      components: { Modal },
-    };
-  }
+  static config = {
+    name: 'MyPage',
+    components: { Modal },
+  };
+
 
   mounted() {
     // Wait for 5s before opening the modal component stored as a ref.
@@ -555,7 +559,7 @@ This ref will hold the modal's dynamic content.
 ### Options
 
 ::: tip
-Options can be defined per component via the `data-options` attribute or by extending the `Modal` class.
+Options can be defined per component via the `data-option-<option-name>` attributes or by extending the `Modal` class.
 :::
 
 #### `move`
