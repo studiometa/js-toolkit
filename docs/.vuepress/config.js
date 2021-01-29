@@ -1,4 +1,5 @@
 const path = require('path');
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 
 module.exports = {
   title: '🔧 JS Toolkit',
@@ -57,6 +58,14 @@ module.exports = {
   },
   markdown: {
     toc: { includeLevel: [2] },
+  },
+  configureWebpack(config) {
+    config.plugins.push(new HardSourceWebpackPlugin())
+    config.plugins.push(new HardSourceWebpackPlugin.ExcludeModulePlugin([
+      {
+        test: /mini-css-extract-plugin[\\/]dist[\\/]loader/,
+      },
+    ]),)
   },
   plugins: [
     [
