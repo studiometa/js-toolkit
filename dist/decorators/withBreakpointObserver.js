@@ -51,6 +51,29 @@ function testConflictingBreakpointConfiguration(instance) {
   }
 }
 
+function addToResize(key, instance) {
+  testConflictingBreakpointConfiguration(instance);
+
+  var _useResize = useResize(),
+      add = _useResize.add,
+      has = _useResize.has;
+
+  if (!has(key)) {
+    add(key, function onResize(_ref) {
+      var breakpoint = _ref.breakpoint;
+      var action = testBreakpoints(instance, breakpoint);
+
+      if (action === '$destroy' && instance.$isMounted) {
+        instance[action]();
+      } else if (action === '$mount' && !instance.$isMounted) {
+        setTimeout(function () {
+          return instance[action]();
+        }, 0);
+      }
+    });
+  }
+}
+
 export default (function (BaseClass) {
   var _class, _temp, _BaseClass$config$nam, _BaseClass$config, _BaseClass$config2;
 
@@ -66,11 +89,11 @@ export default (function (BaseClass) {
 
       _this = _super.call(this, element);
 
-      var _useResize = useResize(),
-          add = _useResize.add,
-          has = _useResize.has,
-          remove = _useResize.remove,
-          props = _useResize.props;
+      var _useResize2 = useResize(),
+          add = _useResize2.add,
+          has = _useResize2.has,
+          remove = _useResize2.remove,
+          props = _useResize2.props;
 
       var name = _this.$options.name;
 
@@ -79,9 +102,9 @@ export default (function (BaseClass) {
       }
 
       var key = "BreakpointObserver-".concat(_this.$id);
-      var mutationObserver = new MutationObserver(function (_ref) {
-        var _ref2 = _slicedToArray(_ref, 1),
-            mutation = _ref2[0];
+      var mutationObserver = new MutationObserver(function (_ref2) {
+        var _ref3 = _slicedToArray(_ref2, 1),
+            mutation = _ref3[0];
 
         if (mutation.type === 'attributes' && (mutation.attributeName === 'data-options' || mutation.attributeName.startsWith('data-option-'))) {
           if (!hasBreakpointConfiguration(_assertThisInitialized(_this))) {
@@ -91,16 +114,7 @@ export default (function (BaseClass) {
             return;
           }
 
-          testConflictingBreakpointConfiguration(_assertThisInitialized(_this));
-
-          if (!has(key)) {
-            add(key, function (_ref3) {
-              var breakpoint = _ref3.breakpoint;
-              var action = testBreakpoints(_assertThisInitialized(_this), breakpoint);
-
-              _this[action]();
-            });
-          }
+          addToResize(key, _assertThisInitialized(_this));
         }
       });
       mutationObserver.observe(_this.$el, {
@@ -111,13 +125,7 @@ export default (function (BaseClass) {
         return _possibleConstructorReturn(_this, _assertThisInitialized(_this));
       }
 
-      testConflictingBreakpointConfiguration(_assertThisInitialized(_this));
-      add(key, function (_ref4) {
-        var breakpoint = _ref4.breakpoint;
-        var action = testBreakpoints(_assertThisInitialized(_this), breakpoint);
-
-        _this[action]();
-      });
+      addToResize(key, _assertThisInitialized(_this));
       return _possibleConstructorReturn(_this, _assertThisInitialized(_this));
     }
 

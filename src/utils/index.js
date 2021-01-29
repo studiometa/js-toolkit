@@ -2,9 +2,10 @@ import * as css from './css';
 import * as math from './math';
 import * as object from './object';
 import debounce from './debounce';
-import * as focusTrap from './focusTrap';
+import focusTrap from './focusTrap';
+import * as history from './history';
 import keyCodes from './keyCodes';
 import nextFrame from './nextFrame';
 import throttle from './throttle';
 
-export { css, math, object, debounce, focusTrap, keyCodes, nextFrame, throttle };
+export { css, math, object, debounce, focusTrap, keyCodes, nextFrame, throttle, history };
