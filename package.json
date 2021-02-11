@@ -25,7 +25,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "types/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/studiometa/js-toolkit.git"
