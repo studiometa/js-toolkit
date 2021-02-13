@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "1.0.2-beta.11",
+  "version": "1.0.2",
   "description": "",
   "scripts": {
     "test": "jest",
