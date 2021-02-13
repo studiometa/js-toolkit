@@ -15,10 +15,10 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 import deepmerge from 'deepmerge';
-import Base from '../../abstracts/Base';
-import Accordion from './index';
-import * as styles from '../../utils/css/styles';
-import transition from '../../utils/css/transition';
+import Base from "../../abstracts/Base/index.js";
+import Accordion from "./index.js";
+import * as styles from "../../utils/css/styles.js";
+import transition from "../../utils/css/transition.js";
 
 var AccordionItem = function (_Base) {
   _inherits(AccordionItem, _Base);

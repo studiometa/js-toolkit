@@ -16,7 +16,7 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-import { debug } from '../abstracts/Base/utils';
+import { debug } from "../abstracts/Base/utils.js";
 
 function createArrayOfNumber(length) {
   return _toConsumableArray(new Array(length + 1)).map(function (val, index) {

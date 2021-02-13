@@ -15,14 +15,17 @@ Install the latest version via NPM:
 npm install @studiometa/js-toolkit
 ```
 
-Two modern builds are provided for prototyping purpose, they can be used as follow:
+The package can be used directly with the [Skypack CDN](https://www.skypack.dev) as follow:
 
 ```html
 <script type="module">
   // Import the Base class
-  import Base from 'https://unpkg.com/@studiometa/js-toolkit/index.modern.js';
+  import Base from 'https://cdn.skypack.dev/@studiometa/js-toolkit/';
   // Import the full toolkit
-  import { utils, services, components, decorators } from 'https://unpkg.com/@studiometa/js-toolkit/full.modern.js';
+  import * as components from 'https://cdn.skypack.dev/@studiometa/js-toolkit/components';
+  import * as decorators from 'https://cdn.skypack.dev/@studiometa/js-toolkit/decorators';
+  import * as services from 'https://cdn.skypack.dev/@studiometa/js-toolkit/services';
+  import * as utils from 'https://cdn.skypack.dev/@studiometa/js-toolkit/utils';
 </script>
 ```
 
@@ -94,9 +97,9 @@ Two modern builds are provided for prototyping purpose, they can be used as foll
 ```html
 <script type="module">
   // Import the Base class
-  import Base from 'https://unpkg.com/@studiometa/js-toolkit/index.modern.js';
+  import Base from 'https://cdn.skypack.dev/@studiometa/js-toolkit/';
   // Import the full toolkit
-  import { utils, services, components, decorators } from 'https://unpkg.com/@studiometa/js-toolkit/full.modern.js';
+  import Modal from 'https://cdn.skypack.dev/@studiometa/js-toolkit/components/Modal';
 </script>
 ```
 

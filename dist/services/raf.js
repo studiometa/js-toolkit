@@ -10,8 +10,8 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-import Service from '../abstracts/Service';
-import { getRaf } from '../utils/nextFrame';
+import Service from "../abstracts/Service.js";
+import { getRaf } from "../utils/nextFrame.js";
 
 var Raf = function (_Service) {
   _inherits(Raf, _Service);

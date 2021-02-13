@@ -2680,61 +2680,11 @@
   var Base = /*#__PURE__*/function (_EventManager) {
     _inheritsLoose(Base, _EventManager);
 
-    _createClass(Base, [{
-      key: "_excludeFromAutoBind",
-
-      /**
-       * The instance parent.
-       * @type {Base}
-       */
-
-      /**
-       * The state of the component.
-       * @type {Boolean}
-       */
-
-      /**
-       * This is a Base instance.
-       * @type {Boolean}
-       */
-
-      /**
-       * Get properties to exclude from the autobind call.
-       * @return {Array<String|RegExp>}
-       */
-      get: function get() {
-        return ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
-      }
-      /**
-       * @deprecated Use the static `config` property instead.
-       * @return {BaseConfig}
-       */
-
-    }, {
-      key: "config",
-      get: function get() {
-        return null;
-      }
-      /** @type {BaseConfig} */
-
-    }, {
-      key: "$refs",
-
-      /**
-       * Get the component's refs.
-       * @return {BaseRefs}
-       */
-      get: function get() {
-        return getRefs(this, this.$el);
-      }
-      /**
-       * Class constructor where all the magic takes place.
-       *
-       * @param {HTMLElement} element The component's root element dd.
-       */
-
-    }]);
-
+    /**
+     * Class constructor where all the magic takes place.
+     *
+     * @param {HTMLElement} element The component's root element dd.
+     */
     function Base(element) {
       var _this;
 
@@ -2882,6 +2832,53 @@
     };
 
     _createClass(Base, [{
+      key: "_excludeFromAutoBind",
+      get:
+      /**
+       * The instance parent.
+       * @type {Base}
+       */
+
+      /**
+       * The state of the component.
+       * @type {Boolean}
+       */
+
+      /**
+       * This is a Base instance.
+       * @type {Boolean}
+       */
+
+      /**
+       * Get properties to exclude from the autobind call.
+       * @return {Array<String|RegExp>}
+       */
+      function get() {
+        return ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
+      }
+      /**
+       * @deprecated Use the static `config` property instead.
+       * @return {BaseConfig}
+       */
+
+    }, {
+      key: "config",
+      get: function get() {
+        return null;
+      }
+      /** @type {BaseConfig} */
+
+    }, {
+      key: "$refs",
+      get:
+      /**
+       * Get the component's refs.
+       * @return {BaseRefs}
+       */
+      function get() {
+        return getRefs(this, this.$el);
+      }
+    }, {
       key: "$log",
       get: function get() {
         return this.$options.log ? window.console.log.bind(window, "[" + this.$options.name + "]") : function noop() {};
@@ -4048,7 +4045,7 @@
 
     _createClass(Modal, [{
       key: "onOpenClick",
-
+      get:
       /**
        * Modal options.
        */
@@ -4058,7 +4055,7 @@
        *
        * @return {Function} The component's `open` method.
        */
-      get: function get() {
+      function get() {
         return this.open;
       }
       /**
@@ -4709,17 +4706,6 @@
     return _temp = _class = /*#__PURE__*/function (_BaseClass) {
       _inheritsLoose(_class, _BaseClass);
 
-      _createClass(_class, [{
-        key: "_excludeFromAutoBind",
-
-        /**
-         * Add the `intersected` method to the list of method to exclude from the `autoBind` call.
-         */
-        get: function get() {
-          return [].concat(_BaseClass.prototype._excludeFromAutoBind || [], ['intersected']);
-        }
-      }]);
-
       /**
        * Create an observer when the class in instantiated.
        *
@@ -4757,6 +4743,17 @@
 
         return _assertThisInitialized(_this) || _assertThisInitialized(_this);
       }
+
+      _createClass(_class, [{
+        key: "_excludeFromAutoBind",
+        get:
+        /**
+         * Add the `intersected` method to the list of method to exclude from the `autoBind` call.
+         */
+        function get() {
+          return [].concat(_BaseClass.prototype._excludeFromAutoBind || [], ['intersected']);
+        }
+      }]);
 
       return _class;
     }(BaseClass), _class.config = _extends({}, BaseClass.config || {}, {

@@ -1,5 +1,5 @@
-import Base from './Base';
-import EventManager from './EventManager';
-import Service from './Service';
+import Base from "./Base/index.js";
+import EventManager from "./EventManager.js";
+import Service from "./Service.js";
 export { Base, EventManager, Service };
 //# sourceMappingURL=index.js.map

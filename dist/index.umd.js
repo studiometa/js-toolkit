@@ -2680,61 +2680,11 @@
   var Base = /*#__PURE__*/function (_EventManager) {
     _inheritsLoose(Base, _EventManager);
 
-    _createClass(Base, [{
-      key: "_excludeFromAutoBind",
-
-      /**
-       * The instance parent.
-       * @type {Base}
-       */
-
-      /**
-       * The state of the component.
-       * @type {Boolean}
-       */
-
-      /**
-       * This is a Base instance.
-       * @type {Boolean}
-       */
-
-      /**
-       * Get properties to exclude from the autobind call.
-       * @return {Array<String|RegExp>}
-       */
-      get: function get() {
-        return ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
-      }
-      /**
-       * @deprecated Use the static `config` property instead.
-       * @return {BaseConfig}
-       */
-
-    }, {
-      key: "config",
-      get: function get() {
-        return null;
-      }
-      /** @type {BaseConfig} */
-
-    }, {
-      key: "$refs",
-
-      /**
-       * Get the component's refs.
-       * @return {BaseRefs}
-       */
-      get: function get() {
-        return getRefs(this, this.$el);
-      }
-      /**
-       * Class constructor where all the magic takes place.
-       *
-       * @param {HTMLElement} element The component's root element dd.
-       */
-
-    }]);
-
+    /**
+     * Class constructor where all the magic takes place.
+     *
+     * @param {HTMLElement} element The component's root element dd.
+     */
     function Base(element) {
       var _this;
 
@@ -2882,6 +2832,53 @@
     };
 
     _createClass(Base, [{
+      key: "_excludeFromAutoBind",
+      get:
+      /**
+       * The instance parent.
+       * @type {Base}
+       */
+
+      /**
+       * The state of the component.
+       * @type {Boolean}
+       */
+
+      /**
+       * This is a Base instance.
+       * @type {Boolean}
+       */
+
+      /**
+       * Get properties to exclude from the autobind call.
+       * @return {Array<String|RegExp>}
+       */
+      function get() {
+        return ['$mount', '$update', '$destroy', '$terminate', '$log', '$on', '$once', '$off', '$emit', 'mounted', 'loaded', 'ticked', 'resized', 'moved', 'keyed', 'scrolled', 'destroyed', 'terminated'];
+      }
+      /**
+       * @deprecated Use the static `config` property instead.
+       * @return {BaseConfig}
+       */
+
+    }, {
+      key: "config",
+      get: function get() {
+        return null;
+      }
+      /** @type {BaseConfig} */
+
+    }, {
+      key: "$refs",
+      get:
+      /**
+       * Get the component's refs.
+       * @return {BaseRefs}
+       */
+      function get() {
+        return getRefs(this, this.$el);
+      }
+    }, {
       key: "$log",
       get: function get() {
         return this.$options.log ? window.console.log.bind(window, "[" + this.$options.name + "]") : function noop() {};

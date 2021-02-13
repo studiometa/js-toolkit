@@ -1,6 +1,6 @@
-import damp from './damp';
-import lerp from './lerp';
-import map from './map';
-import round from './round';
+import damp from "./damp.js";
+import lerp from "./lerp.js";
+import map from "./map.js";
+import round from "./round.js";
 export { damp, lerp, map, round };
 //# sourceMappingURL=index.js.map

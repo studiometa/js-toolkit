@@ -1,5 +1,5 @@
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
-import { debug } from './utils';
+import { debug } from "./utils.js";
 
 function getChild(el, ComponentClass, parent) {
   if (el.__base__) {
