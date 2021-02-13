@@ -10,10 +10,10 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-import Service from '../abstracts/Service';
-import throttle from '../utils/throttle';
-import debounce from '../utils/debounce';
-import nextFrame from '../utils/nextFrame';
+import Service from "../abstracts/Service.js";
+import throttle from "../utils/throttle.js";
+import debounce from "../utils/debounce.js";
+import nextFrame from "../utils/nextFrame.js";
 
 var Scroll = function (_Service) {
   _inherits(Scroll, _Service);

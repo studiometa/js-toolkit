@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "1.0.1",
+  "version": "1.0.2-beta.11",
   "description": "",
   "scripts": {
     "test": "jest",
@@ -11,7 +11,8 @@
     "docs:build": "vuepress build docs",
     "demo:dev": "cd demo && meta dev",
     "demo:build": "cd demo && meta build",
-    "build": "npm run build:babel && npm run build:bundle && npm run build:types",
+    "build": "npm run build:babel && npm run build:bundle && npm run build:types && npm run build:cp-files",
+    "build:cp-files": "cp package.json dist/ && cp README.md dist/ && cp LICENSE dist/",
     "build:types": "tsc --build tsconfig.types.json",
     "build:babel": "babel --no-comments --delete-dir-on-start --source-maps --out-dir dist/ src/",
     "build:bundle": "npm run build:bundle:base && npm run build:bundle:full",
@@ -30,12 +31,24 @@
     "url": "git+https://github.com/studiometa/js-toolkit.git"
   },
   "author": "Studio Meta <agence@studiometa.fr> (https://www.studiometa.fr)",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/studiometa/js-toolkit/issues"
   },
   "homepage": "https://github.com/studiometa/js-toolkit#readme",
+  "type": "module",
+  "unpkg": "./index.umd.js",
+  "main": "./index.umd.js",
+  "module": "./index.js",
+  "keywords": [
+    "js-toolkit",
+    "component",
+    "studiometa",
+    "toolkit"
+  ],
+  "types": "dist/index.d.ts",
   "dependencies": {
+    "@babel/runtime": "^7.12.13",
     "deepmerge": "^4.2.2",
     "nanoid": "2.1.11",
     "no-case": "^3.0.4"
@@ -59,6 +72,7 @@
     "@typescript-eslint/parser": "^4.14.0",
     "autoprefixer": "^9.8.6",
     "babel-jest": "^26.3.0",
+    "babel-plugin-add-import-extension": "^1.4.4",
     "cssnano": "^4.1.10",
     "eslint": "^7.10.0",
     "eslint-import-resolver-alias": "^1.1.2",
@@ -77,7 +91,6 @@
     "vuepress": "^1.8.0",
     "~": "file:./"
   },
-  "keywords": [],
   "browserslist": [
     "extends @studiometa/browserslist-config"
   ]

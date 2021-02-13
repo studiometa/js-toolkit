@@ -12,15 +12,15 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 import nanoid from 'nanoid/non-secure';
-import autoBind from '../../utils/object/autoBind';
-import EventManager from '../EventManager';
-import { callMethod, debug, getConfig } from './utils';
-import { getChildren, getComponentElements } from './children';
-import { getOptions } from './options';
-import { getRefs } from './refs';
-import { mountComponents, destroyComponents } from './components';
-import bindServices from './services';
-import bindEvents from './events';
+import autoBind from "../../utils/object/autoBind.js";
+import EventManager from "../EventManager.js";
+import { callMethod, debug, getConfig } from "./utils.js";
+import { getChildren, getComponentElements } from "./children.js";
+import { getOptions } from "./options.js";
+import { getRefs } from "./refs.js";
+import { mountComponents, destroyComponents } from "./components.js";
+import bindServices from "./services.js";
+import bindEvents from "./events.js";
 
 var Base = function (_EventManager) {
   _inherits(Base, _EventManager);

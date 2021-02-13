@@ -1,5 +1,5 @@
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
-import getAllProperties from './getAllProperties';
+import getAllProperties from "./getAllProperties.js";
 export default function autoBind(instance, options) {
   var _ref = options || {},
       exclude = _ref.exclude,

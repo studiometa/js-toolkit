@@ -1,4 +1,4 @@
-import { debug } from './utils';
+import { debug } from "./utils.js";
 
 function mountComponent(component) {
   if (component instanceof Promise) {

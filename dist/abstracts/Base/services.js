@@ -1,9 +1,9 @@
-import usePointer from '../../services/pointer';
-import useRaf from '../../services/raf';
-import useResize from '../../services/resize';
-import useScroll from '../../services/scroll';
-import useKey from '../../services/key';
-import { hasMethod, callMethod } from './utils';
+import usePointer from "../../services/pointer.js";
+import useRaf from "../../services/raf.js";
+import useResize from "../../services/resize.js";
+import useScroll from "../../services/scroll.js";
+import useKey from "../../services/key.js";
+import { hasMethod, callMethod } from "./utils.js";
 
 function initService(instance, method, service) {
   if (!hasMethod(instance, method)) {
