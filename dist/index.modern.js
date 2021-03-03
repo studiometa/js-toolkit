@@ -2352,6 +2352,7 @@ function bindEvents(instance) {
   return unbindMethods;
 }
 
+// eslint-disable-next-line import/extensions
 /**
  * @typedef {typeof Base} BaseComponent
  * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
