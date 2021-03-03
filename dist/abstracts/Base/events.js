@@ -1,8 +1,8 @@
 import _toConsumableArray from "@babel/runtime/helpers/toConsumableArray";
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
-import Base from './index';
-import getAllProperties from '../../utils/object/getAllProperties';
-import { debug } from './utils';
+import Base from "./index.js";
+import getAllProperties from "../../utils/object/getAllProperties.js";
+import { debug } from "./utils.js";
 
 function bindRootEvents(instance, eventMethods) {
   return eventMethods.map(function (eventMethod) {

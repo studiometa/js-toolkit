@@ -6,7 +6,7 @@ import _classPrivateFieldGet from "@babel/runtime/helpers/classPrivateFieldGet";
 import _classPrivateFieldSet from "@babel/runtime/helpers/classPrivateFieldSet";
 import deepmerge from 'deepmerge';
 import { noCase } from 'no-case';
-import isObject from '../../../utils/object/isObject';
+import isObject from "../../../utils/object/isObject.js";
 
 function getAttributeName(name) {
   return "data-option-".concat(noCase(name, {
