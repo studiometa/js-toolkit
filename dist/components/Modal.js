@@ -12,9 +12,9 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-import Base from '../abstracts/Base';
-import transition from '../utils/css/transition';
-import { trap, untrap, saveActiveElement } from '../utils/focusTrap';
+import Base from "../abstracts/Base/index.js";
+import transition from "../utils/css/transition.js";
+import { trap, untrap, saveActiveElement } from "../utils/focusTrap.js";
 
 var Modal = function (_Base) {
   _inherits(Modal, _Base);
