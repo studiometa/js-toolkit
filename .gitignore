@@ -23,6 +23,9 @@ yarn-error.log*
 
 # Build files
 dist/*.html
+dist/package.json
+dist/LICENSE
+dist/README.md
 demo/dist/
 docs/.vuepress/dist/
 coverage/

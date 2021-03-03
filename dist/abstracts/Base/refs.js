@@ -1,4 +1,4 @@
-import { getConfig, warn } from './utils';
+import { getConfig, warn } from "./utils.js";
 export function scopeSelectorPonyfill(element, selector, uniqId) {
   var list = [];
 

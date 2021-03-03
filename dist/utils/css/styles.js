@@ -1,5 +1,5 @@
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
-import isObject from '../object/isObject';
+import isObject from "../object/isObject.js";
 export default function setStyles(element, styles) {
   var method = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'add';
 
