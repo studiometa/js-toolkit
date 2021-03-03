@@ -1,5 +1,5 @@
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
-import isObject from './object/isObject';
+import isObject from "./object/isObject.js";
 
 function updateUrlSearchParam(params, name, value) {
   if (!value) {
