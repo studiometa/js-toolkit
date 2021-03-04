@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "scripts": {
     "test": "jest",
@@ -12,7 +12,7 @@
     "demo:dev": "cd demo && meta dev",
     "demo:build": "cd demo && meta build",
     "build": "npm run build:babel && npm run build:bundle && npm run build:types && npm run build:cp-files",
-    "build:cp-files": "cp package.json dist/ && cp README.md dist/ && cp LICENSE dist/",
+    "build:cp-files": "cp package.json dist/ && cp readme.md dist/ && cp LICENSE dist/",
     "build:types": "tsc --build tsconfig.types.json",
     "build:babel": "babel --no-comments --delete-dir-on-start --source-maps --out-dir dist/ src/",
     "build:bundle": "npm run build:bundle:base && npm run build:bundle:full",
