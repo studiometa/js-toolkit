@@ -106,7 +106,7 @@ export default class Service {
    * @return {Service}      The current instance
    */
   trigger(...args) {
-    this.callbacks.forEach((callback) => {
+    this.callbacks.forEach(function forEachCallback(callback) {
       callback(...args);
     });
 
