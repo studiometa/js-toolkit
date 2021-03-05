@@ -16,7 +16,6 @@
     }
   },
   "include": [
-    "src/**/*.js",
-    "tests/**/*.js"
+    "src/**/*.js"
   ]
 }

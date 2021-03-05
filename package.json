@@ -6,7 +6,7 @@
     "test": "jest",
     "lint": "npm run lint:eslint && npm run lint:types",
     "lint:eslint": "eslint src/",
-    "lint:types": "tsc",
+    "lint:types": "tsc --build tsconfig.lint.json",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "demo:dev": "cd demo && meta dev",
