@@ -3,24 +3,61 @@ import damp from '../utils/math/damp';
 import matrix from '../utils/css/matrix';
 
 /**
+ * @typedef {import('../services/pointer').PointerServiceProps} PointerServiceProps
+ */
+
+/**
  * Custom cursor component.
  */
 export default class Cursor extends Base {
   /**
    * Class config.
    */
-  get config() {
-    return {
-      name: 'Cursor',
-      growSelectors: '[data-cursor-grow], [data-cursor-grow] *',
-      shrinkSelectors: '[data-cursor-shrink], [data-cursor-shrink] *',
-      growTo: 2,
-      shrinkTo: 0.5,
-      translateDampFactor: 0.25,
-      growDampFactor: 0.075,
-      shrinkDampFactor: 0.25,
-    };
-  }
+  static config = {
+    name: 'Cursor',
+    options: {
+      growSelectors: {
+        type: String,
+        default: 'a, a *, button, button *, [data-cursor-grow], [data-cursor-grow] *',
+      },
+      shrinkSelectors: {
+        type: String,
+        default: '[data-cursor-shrink], [data-cursor-shrink] *',
+      },
+      growTo: {
+        type: Number,
+        default: 2,
+      },
+      shrinkTo: {
+        type: Number,
+        default: 0.5,
+      },
+      translateDampFactor: {
+        type: Number,
+        default: 0.25,
+      },
+      growDampFactor: {
+        type: Number,
+        default: 0.25,
+      },
+      shrinkDampFactor: {
+        type: Number,
+        default: 0.25,
+      },
+    },
+  };
+
+  x = 0;
+
+  y = 0;
+
+  scale = 0;
+
+  pointerX = 0;
+
+  pointerY = 0;
+
+  pointerScale = 0;
 
   /**
    * Mounted hook.
@@ -32,14 +69,18 @@ export default class Cursor extends Base {
     this.pointerX = 0;
     this.pointerY = 0;
     this.pointerScale = 0;
-    this.render();
+    this.render({ x: this.x, y: this.y, scale: this.scale });
   }
 
   /**
    * Moved hook.
-   * @param {PointerServiceProps} { event, x, y, isDown }
+   * @param {PointerServiceProps} options
    */
   moved({ event, x, y, isDown }) {
+    if (!this.$services.has('ticked')) {
+      this.$services.enable('ticked');
+    }
+
     this.pointerX = x;
     this.pointerY = y;
 
@@ -50,8 +91,13 @@ export default class Cursor extends Base {
       return;
     }
 
-    const shouldGrow = event.target.matches(this.$options.growSelectors) || false;
-    const shouldReduce = isDown || event.target.matches(this.$options.shrinkSelectors) || false;
+    const shouldGrow =
+      (event.target instanceof Element && event.target.matches(this.$options.growSelectors)) ||
+      false;
+    const shouldReduce =
+      isDown ||
+      (event.target instanceof Element && event.target.matches(this.$options.shrinkSelectors)) ||
+      false;
 
     if (shouldGrow) {
       scale = this.$options.growTo;
@@ -76,18 +122,28 @@ export default class Cursor extends Base {
       this.pointerScale < this.scale ? this.$options.shrinkDampFactor : this.$options.growDampFactor
     );
 
-    this.render();
+    this.render({ x: this.x, y: this.y, scale: this.scale });
+
+    if (this.x === this.pointerX && this.y === this.pointerY && this.scale === this.pointerScale) {
+      this.$services.disable('ticked');
+    }
   }
 
   /**
-   * Render the cursor
+   * Render the cursor.
+   *
+   * @param  {Object} options
+   * @param  {Number} options.x
+   * @param  {Number} options.y
+   * @param  {Number} options.scale
+   * @return {void}
    */
-  render() {
+  render({ x, y, scale }) {
     const transform = matrix({
-      translateX: `${this.x}`,
-      translateY: `${this.y}`,
-      scaleX: `${this.scale}`,
-      scaleY: `${this.scale}`,
+      translateX: x,
+      translateY: y,
+      scaleX: scale,
+      scaleY: scale,
     });
     this.$el.style.transform = `translateZ(0) ${transform}`;
   }
