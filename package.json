@@ -80,7 +80,7 @@
     "hard-source-webpack-plugin": "^0.13.1",
     "htl": "^0.2.3",
     "html-loader-jest": "^0.2.1",
-    "html-webpack-plugin": "^4.3.0",
+    "html-webpack-plugin": "^4.5.2",
     "jest": "^26.4.2",
     "microbundle": "^0.13.0",
     "postcss": "^7.0.27",
