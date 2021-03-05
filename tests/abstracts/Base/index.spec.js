@@ -5,7 +5,7 @@ import wait from '../../__utils__/wait';
 describe('The abstract Base class', () => {
   it('must be extended', () => {
     expect(() => {
-      new Base();
+      new Base(document.createElement('div'));
     }).toThrow();
   });
 
@@ -16,6 +16,7 @@ describe('The abstract Base class', () => {
     }).toThrow('The `config` property must be defined.');
 
     expect(() => {
+      // @ts-ignore
       class Foo extends Base {
         static config = {};
       }
@@ -30,6 +31,7 @@ describe('The abstract Base class', () => {
           name: 'Foo',
         };
       }
+      // @ts-ignore
       new Foo();
     }).toThrow('The root element must be defined.');
   });
@@ -75,6 +77,7 @@ describe('A Base instance', () => {
   });
 
   it('should have a `__base__` property', () => {
+    // @ts-ignore
     expect(foo.$el.__base__).toBe(foo);
   });
 });
@@ -177,6 +180,7 @@ describe('A Base instance methods', () => {
         fn('method');
       }
     }
+
     const div = document.createElement('div');
     const bar = new Bar(div).$mount();
     expect(bar).toEqual(div.__base__);
@@ -472,13 +476,14 @@ describe('A Base instance config', () => {
     spy.mockRestore();
   });
 
-  it('should have a working debug method when active', () => {
+  it('should have a working debug method when active in dev mode', () => {
     class Foo extends Base {
       static config = {
         name: 'Foo',
         debug: true,
       };
     }
+    process.env.NODE_ENV = 'development';
     const spy = jest.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
     const div = document.createElement('div');
@@ -490,5 +495,6 @@ describe('A Base instance config', () => {
     expect(spy).toHaveBeenNthCalledWith(5, '[Foo]', 'callMethod', 'mounted');
     expect(spy).toHaveBeenNthCalledWith(6, '[Foo]', 'mountComponents', {});
     spy.mockRestore();
+    process.env.NODE_ENV = 'test';
   });
 });
