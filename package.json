@@ -83,7 +83,7 @@
     "html-webpack-plugin": "^4.3.0",
     "jest": "^26.4.2",
     "microbundle": "^0.13.0",
-    "postcss": "^7.0.27",
+    "postcss": "^7.0.35",
     "prettier": "^2.1.2",
     "stylelint": "^13.6.1",
     "tailwindcss": "^1.6.2",
