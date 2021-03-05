@@ -8,7 +8,7 @@ import { getChildren, getComponentElements } from './children';
 import { getOptions } from './options';
 import { getRefs } from './refs';
 import { mountComponents, destroyComponents } from './components';
-import bindServices from './services';
+import Services from './classes/Services';
 // eslint-disable-next-line import/no-cycle
 import bindEvents from './events';
 
@@ -30,6 +30,10 @@ import bindEvents from './events';
  * @property {String[]} [refs]
  * @property {BaseConfigComponents} [components]
  * @property {BaseConfigOptions} [options]
+ */
+
+/**
+ * @typedef {import('./classes/Services').ServiceName} ServiceName
  */
 
 /**
@@ -163,21 +167,27 @@ export default class Base extends EventManager {
       exclude: [...this._excludeFromAutoBind],
     });
 
+    this.$services = new Services(this);
+
     let unbindMethods = [];
     this.$on('mounted', () => {
-      unbindMethods = [...bindServices(this), ...bindEvents(this)];
+      this.$services.enableAll();
+      unbindMethods = [...bindEvents(this)];
       mountComponents(this);
       this.$isMounted = true;
     });
 
     this.$on('updated', () => {
+      this.$services.disableAll();
       unbindMethods.forEach((method) => method());
-      unbindMethods = [...bindServices(this), ...bindEvents(this)];
+      unbindMethods = [...bindEvents(this)];
+      this.$services.enableAll();
       mountComponents(this);
     });
 
     this.$on('destroyed', () => {
       this.$isMounted = false;
+      this.$services.disableAll();
       unbindMethods.forEach((method) => method());
       destroyComponents(this);
     });
