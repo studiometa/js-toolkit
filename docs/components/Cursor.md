@@ -14,13 +14,13 @@ Easily create a custom cursor.
 ### Simple
 
 <Preview>
-  <div data-component="Cursor" class="w-4 h-4 rounded-full border border-black" />
+  <div data-component="Cursor" class="z-50 fixed top-0 left-0 w-4 h-4 -m-2 rounded-full border border-black pointer-events-none" />
 </Preview>
 
 ```html
 <div
   data-component="Cursor"
-  class="w-4 h-4 rounded-full border border-black">
+  class="z-50 fixed top-0 left-0 w-4 h-4 -m-2 rounded-full border border-black pointer-events-none">
 </div>
 ```
 
@@ -64,8 +64,12 @@ new App(document.documentElement).$mount();
 The following HTML is required for the `Cursor` component:
 
 ```html
-<div data-component="Cursor"></div>
+<div
+  data-component="Cursor"
+  class="z-10 fixed top-0 left-0 w-4 h-4 -ml-2"></div>
 ```
+
+The default styles should center the cursor around the top-left corner of the viewport.
 
 ## API
 
