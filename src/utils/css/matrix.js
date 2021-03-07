@@ -19,7 +19,7 @@
 export default function matrix(transform) {
   // eslint-disable-next-line no-param-reassign
   transform = transform || {};
-  return `matrix(${transform.scaleX || 1}, ${transform.skewX || 0}, ${transform.skewY || 0}, ${
+  return `matrix(${transform.scaleX || 1}, ${transform.skewY || 0}, ${transform.skewX || 0}, ${
     transform.scaleY || 1
   }, ${transform.translateX || 0}, ${transform.translateY || 0})`;
 }
