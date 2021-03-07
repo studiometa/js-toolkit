@@ -1,5 +1,5 @@
 import Service from '../abstracts/Service';
-import { getRaf } from '../utils/nextFrame';
+import { getRaf, getCancelRaf } from '../utils/nextFrame';
 
 /**
  * @typedef {import('./index').ServiceInterface} ServiceInterface
@@ -25,27 +25,43 @@ class Raf extends Service {
   /** @type {Boolean} Whether the loop is running or not. */
   isTicking = false;
 
+  /** @type {number} */
+  id = 0;
+
+  raf = getRaf();
+
+  cancelRaf = getCancelRaf();
+
+  /**
+   * Bind loop to the instance.
+   */
+  constructor() {
+    super();
+    this.loop = this.loop.bind(this);
+  }
+
   /**
    * Start the requestAnimationFrame loop.
    *
    * @return {Raf}
    */
   init() {
-    const raf = getRaf();
-
-    const loop = () => {
-      this.trigger(this.props);
-
-      if (!this.isTicking) {
-        return;
-      }
-
-      raf(loop);
-    };
-
     this.isTicking = true;
-    loop();
+    this.loop();
     return this;
+  }
+
+  /**
+   * Loop method.
+   */
+  loop() {
+    this.trigger(this.props);
+
+    if (!this.isTicking) {
+      return;
+    }
+
+    this.id = this.raf(this.loop);
   }
 
   /**
@@ -54,6 +70,7 @@ class Raf extends Service {
    * @return {Raf}
    */
   kill() {
+    this.cancelRaf(this.id);
     this.isTicking = false;
     return this;
   }
@@ -94,7 +111,11 @@ export default function useRaf() {
   const add = instance.add.bind(instance);
   const remove = instance.remove.bind(instance);
   const has = instance.has.bind(instance);
-  const props = () => instance.props;
+
+  // eslint-disable-next-line require-jsdoc
+  function props() {
+    return instance.props;
+  }
 
   return {
     add,

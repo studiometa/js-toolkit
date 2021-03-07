@@ -61,8 +61,10 @@ export function log(instance, ...msg) {
  * @param {...any} args     The data to print.
  */
 export function debug(instance, ...args) {
-  if (instance.$options.debug) {
-    log(instance, ...args);
+  if (typeof process !== 'undefined' && process?.env?.NODE_ENV === 'development') {
+    if (instance.$options.debug) {
+      log(instance, ...args);
+    }
   }
 }
 

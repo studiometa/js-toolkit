@@ -23,6 +23,7 @@ module.exports = {
         link: '/components/',
         items: [
           { text: 'Accordion', link: '/components/Accordion.html' },
+          { text: 'Cursor', link: '/components/Cursor.html' },
           { text: 'Modal', link: '/components/Modal.html' },
           { text: 'Tabs', link: '/components/Tabs.html' },
         ],
