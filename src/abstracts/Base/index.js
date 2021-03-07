@@ -7,7 +7,7 @@ import { callMethod, debug, getConfig } from './utils';
 import { getChildren, getComponentElements } from './children';
 import { getOptions } from './options';
 import { getRefs } from './refs';
-import { mountComponents, destroyComponents } from './components';
+import { mountComponents, mountOrUpdateComponents, destroyComponents } from './components';
 import Services from './classes/Services';
 // eslint-disable-next-line import/no-cycle
 import bindEvents from './events';
@@ -167,6 +167,7 @@ export default class Base extends EventManager {
       exclude: [...this._excludeFromAutoBind],
     });
 
+    /** @type {Services} */
     this.$services = new Services(this);
 
     let unbindMethods = [];
@@ -182,7 +183,7 @@ export default class Base extends EventManager {
       unbindMethods.forEach((method) => method());
       unbindMethods = [...bindEvents(this)];
       this.$services.enableAll();
-      mountComponents(this);
+      mountOrUpdateComponents(this);
     });
 
     this.$on('destroyed', () => {
