@@ -7,7 +7,7 @@ import { debug } from './utils';
 /**
  * Mount a given component which might be async.
  *
- * @param  {Base|Promise} component The component to mount.
+ * @param  {Base|Promise<Base>} component The component to mount.
  * @return {void}
  */
 function mountComponent(component) {
@@ -30,6 +30,35 @@ export function mountComponents(instance) {
   Object.values(instance.$children).forEach(($child) => {
     debug(instance, 'mountComponent', $child);
     $child.forEach(mountComponent);
+  });
+}
+
+/**
+ * Mount or update the given component.
+ *
+ * @param {Base|Promise<Base>} component [description]
+ * @return {void}
+ */
+function mountOrUpdateComponent(component) {
+  if (component instanceof Promise) {
+    component.then((instance) => (instance.$isMounted ? instance.$update() : instance.$mount()));
+  } else {
+    const method = component.$isMounted ? '$update' : '$mount';
+    component[method]();
+  }
+}
+
+/**
+ * Mount or updte children components of the given instance.
+ *
+ * @param {Base} instance The parent component's instance.
+ * @return {void}
+ */
+export function mountOrUpdateComponents(instance) {
+  debug(instance, 'mountComponents', instance.$children);
+
+  Object.values(instance.$children).forEach(($child) => {
+    $child.forEach(mountOrUpdateComponent);
   });
 }
 

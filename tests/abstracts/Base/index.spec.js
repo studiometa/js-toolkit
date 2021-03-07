@@ -116,15 +116,21 @@ describe('A Base instance methods', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it('should be able to update its child components.', () => {
+  it('should be able to update its child components.', async () => {
     const div = document.createElement('div');
     div.innerHTML = `
       <div data-component="Bar"></div>
       <div data-component="Bar"></div>
     `;
 
+    const fn = jest.fn();
     class Bar extends Foo {}
-    class Baz extends Foo {}
+    class Baz extends Base {
+      static config = { name: 'Baz', debug: true };
+      updated() {
+        fn();
+      }
+    }
 
     class App extends Base {
       static config = {
@@ -132,6 +138,7 @@ describe('A Base instance methods', () => {
         components: {
           Bar,
           Baz,
+          AsyncBaz: () => Promise.resolve(Baz),
         },
       };
     }
@@ -142,6 +149,7 @@ describe('A Base instance methods', () => {
     div.innerHTML = `
       <div data-component="Baz"></div>
       <div data-component="Baz"></div>
+      <div data-component="AsyncBaz"></div>
     `;
 
     app.$update();
@@ -149,6 +157,21 @@ describe('A Base instance methods', () => {
     expect(app.$children.Bar).toEqual([]);
     expect(app.$children.Baz).toHaveLength(2);
     expect(app.$children.Baz[0].$isMounted).toBe(true);
+    const asyncBaz = await app.$children.AsyncBaz[0];
+    expect(asyncBaz.$isMounted).toBe(true);
+
+    const id = div.firstElementChild.__base__.$id;
+    expect(id).toBe(app.$children.Baz[0].$id);
+
+    const child = document.createElement('div');
+    child.setAttribute('data-component', 'Baz');
+    div.appendChild(child);
+    expect(id).toBe(app.$children.Baz[0].$id);
+
+    app.$update();
+
+    expect(id).toBe(app.$children.Baz[0].$id);
+    expect(fn).toHaveBeenCalledTimes(3);
   });
 
   it('should implement the $factory method', () => {
