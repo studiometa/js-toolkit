@@ -1,6 +1,6 @@
 ---
 sidebar: auto
-prev: /utils/
+prev: /decorators/
 next: /components/Accordion.md
 ---
 

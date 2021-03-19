@@ -2,7 +2,7 @@
 sidebar: auto
 sidebarDepth: 5
 prev: /decorators/withBreakpointObserver.html
-next: /components/
+next: /decorators/withMountWhenInView.html
 ---
 
 # withIntersectionObserver
