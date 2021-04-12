@@ -64,7 +64,7 @@ export default class Services {
       return this.disable.bind(this, service);
     }
 
-    if (!hasMethod(this.#base, service) && !SERVICES_MAP[service]) {
+    if (!hasMethod(this.#base, service) || !SERVICES_MAP[service]) {
       return function noop() {};
     }
 
