@@ -2374,7 +2374,7 @@ class Services {
       return this.disable.bind(this, service);
     }
 
-    if (!hasMethod(_classPrivateFieldLooseBase(this, _base)[_base], service) && !SERVICES_MAP[service]) {
+    if (!hasMethod(_classPrivateFieldLooseBase(this, _base)[_base], service) || !SERVICES_MAP[service]) {
       return function noop() {};
     }
 
@@ -3288,6 +3288,18 @@ class AccordionItem extends Base {
     });
   }
   /**
+   * Remove styles on destroy.
+   * @this {AccordionItem & AccordionItemInterface}
+   */
+
+
+  destroyed() {
+    remove(this.$refs.container, {
+      visibility: '',
+      height: ''
+    });
+  }
+  /**
    * Handler for the click event on the `btn` ref.
    * @this {AccordionItem & AccordionItemInterface}
    */
@@ -3501,13 +3513,11 @@ class Accordion extends Base {
    * @return {Promise<void>}
    */
   async mounted() {
-    // /** @type {AccordionItem[]} */
-    // const items = await Promise.all(
-    //   this.$children.AccordionItem.map((item) =>
-    //     item instanceof Promise ? item : Promise.resolve(item)
-    //   )
-    // );
     this.unbindMethods = this.$children.AccordionItem.map((item, index) => {
+      if (item instanceof Promise) {
+        throw new Error('The AccordionItem component can not be used asynchronously.');
+      }
+
       const unbindOpen = item.$on('open', () => {
         this.$emit('open', item, index);
 
@@ -4668,11 +4678,116 @@ var withIntersectionObserver = ((BaseClass, defaultOptions = {
   }), _temp;
 });
 
+/**
+ * @typedef {import('../abstracts/Base').default} Base
+ * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+ * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ */
+
+/**
+ * @typedef {Object} WithMountWhenInViewOptions
+ * @property {Object} intersectionObserver
+ */
+
+/**
+ * @typedef {Object} WithMountWhenInViewInterface
+ * @property {() => void} terminated
+ * @property {WithMountWhenInViewOptions & BaseOptions} $options
+ */
+
+/**
+ * IntersectionObserver decoration.
+ * @param {BaseComponent} BaseClass The Base class to extend.
+ * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
+ * @return {BaseComponent}
+ */
+var withMountWhenInView = ((BaseClass, defaultOptions = {
+  threshold: [0, 1]
+}) => {
+  var _class, _isVisible, _observer, _temp, _BaseClass$config$nam, _BaseClass$config, _BaseClass$config2;
+
+  return _temp = (_isVisible = _classPrivateFieldLooseKey("isVisible"), _observer = _classPrivateFieldLooseKey("observer"), _class = class extends BaseClass {
+    /**
+     * Class config.
+     * @type {Object}
+     */
+
+    /**
+     * Is the component visible?
+     * @type {Boolean}
+     */
+
+    /**
+     * The component's observer.
+     * @type {IntersectionObserver}
+     */
+
+    /**
+     * Create an observer when the class in instantiated.
+     *
+     * @param {HTMLElement} element The component's root element.
+     */
+    constructor(element) {
+      super(element);
+      Object.defineProperty(this, _isVisible, {
+        writable: true,
+        value: false
+      });
+      Object.defineProperty(this, _observer, {
+        writable: true,
+        value: void 0
+      });
+      _classPrivateFieldLooseBase(this, _observer)[_observer] = new IntersectionObserver(entries => {
+        const isVisible = entries.reduce((acc, entry) => acc || entry.isIntersecting, false);
+
+        if (_classPrivateFieldLooseBase(this, _isVisible)[_isVisible] !== isVisible) {
+          _classPrivateFieldLooseBase(this, _isVisible)[_isVisible] = isVisible;
+          const method = isVisible ? '$mount' : '$destroy';
+          this[method]();
+        }
+      }, _extends({}, defaultOptions, this.$options.intersectionObserver));
+
+      _classPrivateFieldLooseBase(this, _observer)[_observer].observe(this.$el);
+
+      return this;
+    }
+    /**
+     * Override the mounting of the component.
+     *
+     * @return {this}
+     */
+
+
+    $mount() {
+      if (_classPrivateFieldLooseBase(this, _isVisible)[_isVisible]) {
+        super.$mount();
+      }
+
+      return this;
+    }
+    /**
+     * Disconnect the observer when the component is terminated.
+     */
+
+
+    terminated() {
+      _classPrivateFieldLooseBase(this, _observer)[_observer].disconnect();
+    }
+
+  }), _class.config = _extends({}, BaseClass.config || {}, {
+    name: `${(_BaseClass$config$nam = BaseClass == null ? void 0 : (_BaseClass$config = BaseClass.config) == null ? void 0 : _BaseClass$config.name) != null ? _BaseClass$config$nam : ''}WithMountWhenInView`,
+    options: _extends({}, (BaseClass == null ? void 0 : (_BaseClass$config2 = BaseClass.config) == null ? void 0 : _BaseClass$config2.options) || {}, {
+      intersectionObserver: Object
+    })
+  }), _temp;
+});
+
 var index$2 = {
   __proto__: null,
   withBreakpointManager: withBreakpointManager,
   withBreakpointObserver: withBreakpointObserver,
-  withIntersectionObserver: withIntersectionObserver
+  withIntersectionObserver: withIntersectionObserver,
+  withMountWhenInView: withMountWhenInView
 };
 
 var index$3 = {
