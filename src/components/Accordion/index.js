@@ -55,14 +55,11 @@ export default class Accordion extends Base {
    * @return {Promise<void>}
    */
   async mounted() {
-    // /** @type {AccordionItem[]} */
-    // const items = await Promise.all(
-    //   this.$children.AccordionItem.map((item) =>
-    //     item instanceof Promise ? item : Promise.resolve(item)
-    //   )
-    // );
-
     this.unbindMethods = this.$children.AccordionItem.map((item, index) => {
+      if (item instanceof Promise) {
+        throw new Error('The AccordionItem component can not be used asynchronously.');
+      }
+
       const unbindOpen = item.$on('open', () => {
         this.$emit('open', item, index);
         if (this.$options.autoclose) {
