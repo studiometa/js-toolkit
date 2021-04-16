@@ -1,14 +1,21 @@
 import isObject from './object/isObject';
 
 /**
+ * @typedef {Object} HistoryOptions
+ * @property {string=} [path]
+ * @property {URLSearchParams|{ [key:string]: unknown }=} [search]
+ * @property {string=} [hash]
+ */
+
+/**
  * Set a param in a URLSearchParam instance.
  * @param  {URLSearchParams}                    params The params to update.
- * @param  {String}                             name   The name of the param to update.
- * @param  {String|Number|Boolean|Array|Object} value  The value for this param.
+ * @param  {string}                             name   The name of the param to update.
+ * @param  {string|number|boolean|Array|Object} value  The value for this param.
  * @return {URLSearchParams}                           The updated URLSearchParams instance.
  */
 function updateUrlSearchParam(params, name, value) {
-  if (!value) {
+  if (value === '' || value === null || value === undefined) {
     if (params.has(name)) {
       params.delete(name);
     }
@@ -39,7 +46,7 @@ function updateUrlSearchParam(params, name, value) {
  * Transform an object to an URLSearchParams instance.
  *
  * @param  {Object}          obj           The object to convert.
- * @param  {String}          defaultSearch A string of defaults search params.
+ * @param  {string}          defaultSearch A string of defaults search params.
  * @return {URLSearchParams}
  */
 function objectToURLSearchParams(obj, defaultSearch = window.location.search) {
@@ -51,25 +58,28 @@ function objectToURLSearchParams(obj, defaultSearch = window.location.search) {
 
 /**
  * Update the history with a new state.
- * @param {String} mode             Wether to push or replace the new state.
- * @param {Object} options
- * @param {String} options.path     The new pathname.
- * @param {Object} options.search   The new search params.
- * @param {Object} options.hash     The new hash.
+ * @param {string}         mode
+ * @param {HistoryOptions} options
+ * @param {Object}         [data]
+ * @param {string}         [title]
  */
-function updateHistory(
-  mode,
-  { path = window.location.pathname, search = {}, hash = window.location.hash },
-  data = {},
-  title = ''
-) {
+function updateHistory(mode, options, data = {}, title = '') {
   if (!window.history) {
     return;
   }
 
+  /** @type {HistoryOptions} */
+  const { path, search, hash } = {
+    path: window.location.pathname,
+    search: new URLSearchParams(window.location.search),
+    hash: window.location.hash,
+    ...options,
+  };
+
   let url = path;
 
-  const mergedSearch = objectToURLSearchParams(search);
+  const mergedSearch = search instanceof URLSearchParams ? search : objectToURLSearchParams(search);
+
   if (mergedSearch.toString()) {
     url += `?${mergedSearch.toString()}`;
   }
@@ -89,9 +99,9 @@ function updateHistory(
 /**
  * Push a new state.
  *
- * @param {Object} options The new state.
- * @param {Object} data    The data for the new state.
- * @param {String} title   The title for the new state.
+ * @param {HistoryOptions} options The new state.
+ * @param {Object}         data    The data for the new state.
+ * @param {string}         title   The title for the new state.
  */
 export function push(options, data, title) {
   updateHistory('push', options, data, title);
@@ -100,9 +110,9 @@ export function push(options, data, title) {
 /**
  * Replace a new state.
  *
- * @param {Object} options The new state.
- * @param {Object} data    The data for the new state.
- * @param {String} title   The title for the new state.
+ * @param {HistoryOptions} options The new state.
+ * @param {Object}         data    The data for the new state.
+ * @param {string}         title   The title for the new state.
  */
 export function replace(options, data, title) {
   updateHistory('replace', options, data, title);
