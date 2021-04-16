@@ -1,8 +1,14 @@
+import _defineProperty from "@babel/runtime/helpers/defineProperty";
 import _slicedToArray from "@babel/runtime/helpers/slicedToArray";
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
 import isObject from "./object/isObject.js";
 
 function updateUrlSearchParam(params, name, value) {
-  if (!value) {
+  if (value === '' || value === null || value === undefined) {
     if (params.has(name)) {
       params.delete(name);
     }
@@ -45,13 +51,7 @@ function objectToURLSearchParams(obj) {
   }, new URLSearchParams(defaultSearch));
 }
 
-function updateHistory(mode, _ref5) {
-  var _ref5$path = _ref5.path,
-      path = _ref5$path === void 0 ? window.location.pathname : _ref5$path,
-      _ref5$search = _ref5.search,
-      search = _ref5$search === void 0 ? {} : _ref5$search,
-      _ref5$hash = _ref5.hash,
-      hash = _ref5$hash === void 0 ? window.location.hash : _ref5$hash;
+function updateHistory(mode, options) {
   var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
   var title = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
 
@@ -59,8 +59,17 @@ function updateHistory(mode, _ref5) {
     return;
   }
 
+  var _path$search$hash$opt = _objectSpread({
+    path: window.location.pathname,
+    search: new URLSearchParams(window.location.search),
+    hash: window.location.hash
+  }, options),
+      path = _path$search$hash$opt.path,
+      search = _path$search$hash$opt.search,
+      hash = _path$search$hash$opt.hash;
+
   var url = path;
-  var mergedSearch = objectToURLSearchParams(search);
+  var mergedSearch = search instanceof URLSearchParams ? search : objectToURLSearchParams(search);
 
   if (mergedSearch.toString()) {
     url += "?".concat(mergedSearch.toString());

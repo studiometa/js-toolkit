@@ -1,4 +1,5 @@
 import useKey from './key';
+import useLoad from './load';
 import usePointer from './pointer';
 import useRaf from './raf';
 import useResize from './resize';
@@ -14,4 +15,4 @@ import useScroll from './scroll';
  *   Test if the service has alreaydy a callback for the given key.
  */
 
-export { useKey, usePointer, useRaf, useResize, useScroll };
+export { useKey, usePointer, useLoad, useRaf, useResize, useScroll };

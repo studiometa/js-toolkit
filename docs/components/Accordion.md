@@ -2,7 +2,7 @@
 sidebar: auto
 sidebarDepth: 5
 prev: /components/
-next: /components/Modal.md
+next: /components/Cursor.md
 ---
 
 # Accordion

@@ -346,8 +346,12 @@
    */
 
   function debug(instance) {
-    if (instance.$options.debug) {
-      log.apply(void 0, [instance].concat([].slice.call(arguments, 1)));
+    var _process, _process$env;
+
+    if (typeof process !== 'undefined' && ((_process = process) == null ? void 0 : (_process$env = _process.env) == null ? void 0 : _process$env.NODE_ENV) === 'development') {
+      if (instance.$options.debug) {
+        log.apply(void 0, [instance].concat([].slice.call(arguments, 1)));
+      }
     }
   }
   /**
@@ -1138,7 +1142,7 @@
   /**
    * Mount a given component which might be async.
    *
-   * @param  {Base|Promise} component The component to mount.
+   * @param  {Base|Promise<Base>} component The component to mount.
    * @return {void}
    */
 
@@ -1164,6 +1168,37 @@
     Object.values(instance.$children).forEach(function ($child) {
       debug(instance, 'mountComponent', $child);
       $child.forEach(mountComponent);
+    });
+  }
+  /**
+   * Mount or update the given component.
+   *
+   * @param {Base|Promise<Base>} component [description]
+   * @return {void}
+   */
+
+  function mountOrUpdateComponent(component) {
+    if (component instanceof Promise) {
+      component.then(function (instance) {
+        return instance.$isMounted ? instance.$update() : instance.$mount();
+      });
+    } else {
+      var method = component.$isMounted ? '$update' : '$mount';
+      component[method]();
+    }
+  }
+  /**
+   * Mount or updte children components of the given instance.
+   *
+   * @param {Base} instance The parent component's instance.
+   * @return {void}
+   */
+
+
+  function mountOrUpdateComponents(instance) {
+    debug(instance, 'mountComponents', instance.$children);
+    Object.values(instance.$children).forEach(function ($child) {
+      $child.forEach(mountOrUpdateComponent);
     });
   }
   /**
@@ -1313,9 +1348,8 @@
     ;
 
     _proto.trigger = function trigger() {
-      var _arguments = arguments;
-      this.callbacks.forEach(function (callback) {
-        callback.apply(void 0, [].slice.call(_arguments));
+      this.callbacks.forEach(function forEachCallback(callback) {
+        callback.apply(void 0, [].slice.call(arguments));
       });
       return this;
     };
@@ -1382,11 +1416,20 @@
   /**
    * RequestAnimation frame polyfill.
    * @see  https://github.com/vuejs/vue/blob/ec78fc8b6d03e59da669be1adf4b4b5abf670a34/dist/vue.runtime.esm.js#L7355
-   * @return {Function}
+   * @return {(handler: Function) => number}
    */
-  var getRaf = function getRaf() {
+  function getRaf() {
     return typeof window !== 'undefined' && window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : setTimeout;
-  };
+  }
+  /**
+   * Get a function to cancel the method returned by `getRaf()`.
+   *
+   * @return {(id:number) => void}
+   */
+
+  function getCancelRaf() {
+    return typeof window !== 'undefined' && window.cancelAnimationFrame ? window.cancelAnimationFrame.bind(window) : clearTimeout;
+  }
   /**
    * Wait for the next frame to execute a function.
    *
@@ -1441,43 +1484,51 @@
   var Raf = /*#__PURE__*/function (_Service) {
     _inheritsLoose(Raf, _Service);
 
+    /** @type {Boolean} Whether the loop is running or not. */
+
+    /** @type {number} */
+
+    /**
+     * Bind loop to the instance.
+     */
     function Raf() {
       var _this;
 
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-
-      _this = _Service.call.apply(_Service, [this].concat(args)) || this;
+      _this = _Service.call(this) || this;
       _this.isTicking = false;
+      _this.id = 0;
+      _this.raf = getRaf();
+      _this.cancelRaf = getCancelRaf();
+      _this.loop = _this.loop.bind(_assertThisInitialized(_this));
       return _this;
     }
-
-    var _proto = Raf.prototype;
-
     /**
      * Start the requestAnimationFrame loop.
      *
      * @return {Raf}
      */
+
+
+    var _proto = Raf.prototype;
+
     _proto.init = function init() {
-      var _this2 = this;
-
-      var raf = getRaf();
-
-      var loop = function loop() {
-        _this2.trigger(_this2.props);
-
-        if (!_this2.isTicking) {
-          return;
-        }
-
-        raf(loop);
-      };
-
       this.isTicking = true;
-      loop();
+      this.loop();
       return this;
+    }
+    /**
+     * Loop method.
+     */
+    ;
+
+    _proto.loop = function loop() {
+      this.trigger(this.props);
+
+      if (!this.isTicking) {
+        return;
+      }
+
+      this.id = this.raf(this.loop);
     }
     /**
      * Stop the requestAnimationFrame loop.
@@ -1487,6 +1538,7 @@
     ;
 
     _proto.kill = function kill() {
+      this.cancelRaf(this.id);
       this.isTicking = false;
       return this;
     }
@@ -1532,11 +1584,11 @@
 
     var add = instance.add.bind(instance);
     var remove = instance.remove.bind(instance);
-    var has = instance.has.bind(instance);
+    var has = instance.has.bind(instance); // eslint-disable-next-line require-jsdoc
 
-    var props = function props() {
+    function props() {
       return instance.props;
-    };
+    }
 
     return {
       add: add,
@@ -2381,67 +2433,256 @@
   }
 
   /**
-   * @typedef {import('./index').default} Base
+   * @typedef {import('./index').ServiceInterface} ServiceInterface
    */
 
   /**
-   * Init the given service and bind it to the given instance.
-   *
-   * @param  {Base}     instance The Base instance.
-   * @param  {String}   method   The instance to test for binding
-   * @param  {Function} service  The service `use...` function
-   * @return {Function}          A function to unbind the service
+   * @typedef {Object} LoadServiceProps
+   * @property {DOMHighResTimeStamp} time
    */
 
-  function initService(instance, method, service) {
-    if (!hasMethod(instance, method)) {
-      return function () {};
+  /**
+   * @typedef {Object} LoadService
+   * @property {(key:String, callback:(props:LoadServiceProps) => void) => void} add
+   *   Add a function to the resize service. The key must be uniq.
+   * @property {() => LoadServiceProps} props
+   *   Get the current values of the resize service props.
+   */
+
+  /**
+   * Load service
+   */
+
+  var Load = /*#__PURE__*/function (_Service) {
+    _inheritsLoose(Load, _Service);
+
+    function Load() {
+      return _Service.apply(this, arguments) || this;
     }
 
-    var _service = service(),
-        add = _service.add,
-        remove = _service.remove;
+    var _proto = Load.prototype;
 
-    add(instance.$id,
     /**
-     * @param {any[]} args
+     * Start the requestAnimationFrame loop.
+     *
+     * @return {Load}
      */
-    function () {
-      callMethod.apply(void 0, [instance, method].concat([].slice.call(arguments)));
-    });
-    return function () {
-      return remove(instance.$id);
-    };
-  }
-  /**
-   * Use the services.
-   * @param  {Base} instance A Base class instance.
-   * @return {Array}         A list of unbind methods.
-   */
+    _proto.init = function init() {
+      var _this = this;
 
-
-  function bindServices(instance) {
-    var unbindMethods = [initService(instance, 'scrolled', useScroll), initService(instance, 'resized', useResize), initService(instance, 'ticked', useRaf), initService(instance, 'moved', usePointer), initService(instance, 'keyed', useKey)]; // Fire the `loaded` method on window load
-    // @todo remove this? or move it elsewhere?
-
-    if (hasMethod(instance, 'loaded')) {
-      /**
-       * @param {Event} event
-       */
-      var loadedHandler = function loadedHandler(event) {
-        callMethod(instance, 'loaded', {
-          event: event
-        });
+      this.handler = function () {
+        _this.trigger(_this.props);
       };
 
-      window.addEventListener('load', loadedHandler);
-      unbindMethods.push(function () {
-        window.removeEventListener('load', loadedHandler);
-      });
+      window.addEventListener('load', this.handler);
+      return this;
+    }
+    /**
+     * Stop the requestAnimationFrame loop.
+     *
+     * @return {Load}
+     */
+    ;
+
+    _proto.kill = function kill() {
+      window.removeEventListener('load', this.handler);
+      return this;
+    }
+    /**
+     * Get raf props.
+     *
+     * @todo Return elapsed time / index?
+     * @type {Object}
+     */
+    ;
+
+    _createClass(Load, [{
+      key: "props",
+      get: function get() {
+        return {};
+      }
+    }]);
+
+    return Load;
+  }(Service);
+
+  var instance$1 = null;
+  /**
+   * Use the load service.
+   *
+   * ```js
+   * import { useLoad } from '@studiometa/js/services';
+   * const { add, remove, props } = useRag();
+   * add(id, (props) => {});
+   * remove(id);
+   * props();
+   * ```
+   *
+   * @return {ServiceInterface & LoadService}
+   */
+
+  function useRaf$1() {
+    if (!instance$1) {
+      instance$1 = new Load();
     }
 
-    return unbindMethods;
+    var add = instance$1.add.bind(instance$1);
+    var remove = instance$1.remove.bind(instance$1);
+    var has = instance$1.has.bind(instance$1); // eslint-disable-next-line require-jsdoc
+
+    function props() {
+      return instance$1.props;
+    }
+
+    return {
+      add: add,
+      remove: remove,
+      has: has,
+      props: props
+    };
   }
+
+  /**
+   * @typedef {import('../index').default} Base
+   */
+
+  var SERVICES_MAP = {
+    scrolled: useScroll,
+    resized: useResize,
+    ticked: useRaf,
+    moved: usePointer,
+    keyed: useKey,
+    loaded: useRaf$1
+  };
+  /**
+   * @typedef {'scrolled'|'resized'|'ticked'|'moved'|'keyed'} ServiceName
+   */
+
+  /**
+   * Services management for the Base class.
+   */
+
+  var _base = _classPrivateFieldLooseKey("base");
+
+  var Services = /*#__PURE__*/function () {
+    /** @type {Base} */
+
+    /**
+     * Class constructor.
+     * @param {Base} instance The Base instance.
+     */
+    function Services(instance) {
+      Object.defineProperty(this, _base, {
+        writable: true,
+        value: void 0
+      });
+      _classPrivateFieldLooseBase(this, _base)[_base] = instance;
+    }
+    /**
+     * Test if the given service is registered.
+     *
+     * @param  {ServiceName} service The name of the service.
+     * @return {Boolean}
+     */
+
+
+    var _proto = Services.prototype;
+
+    _proto.has = function has(service) {
+      if (!hasMethod(_classPrivateFieldLooseBase(this, _base)[_base], service) && !SERVICES_MAP[service]) {
+        return false;
+      }
+
+      var _SERVICES_MAP$service = SERVICES_MAP[service](),
+          has = _SERVICES_MAP$service.has;
+
+      return has(_classPrivateFieldLooseBase(this, _base)[_base].$id);
+    }
+    /**
+     * Init the given service and bind it to the given instance.
+     *
+     * @param  {ServiceName} service The name of the service.
+     * @return {() => void}          A function to unbind the service.
+     */
+    ;
+
+    _proto.enable = function enable(service) {
+      if (this.has(service)) {
+        return this.disable.bind(this, service);
+      }
+
+      if (!hasMethod(_classPrivateFieldLooseBase(this, _base)[_base], service) || !SERVICES_MAP[service]) {
+        return function noop() {};
+      }
+
+      var _SERVICES_MAP$service2 = SERVICES_MAP[service](),
+          add = _SERVICES_MAP$service2.add;
+
+      var self = this;
+      /**
+       * @param {any[]} args
+       */
+
+      function serviceHandler() {
+        callMethod.apply(void 0, [_classPrivateFieldLooseBase(self, _base)[_base], service].concat([].slice.call(arguments)));
+      }
+
+      add(_classPrivateFieldLooseBase(this, _base)[_base].$id, serviceHandler);
+      return this.disable.bind(this, service);
+    }
+    /**
+     * Enable all services and return methods to disable them.
+     *
+     * @return {Function[]}
+     */
+    ;
+
+    _proto.enableAll = function enableAll() {
+      var _this = this;
+
+      return Object.keys(SERVICES_MAP).map(
+      /** @param {ServiceName} serviceName */
+      function (serviceName) {
+        return _this.enable(serviceName);
+      });
+    }
+    /**
+     * Disable all services.
+     *
+     * @return {void}
+     */
+    ;
+
+    _proto.disableAll = function disableAll() {
+      var _this2 = this;
+
+      Object.keys(SERVICES_MAP).forEach(
+      /** @param {ServiceName} serviceName */
+      function (serviceName) {
+        _this2.disable(serviceName);
+      });
+    }
+    /**
+     * Disable a service.
+     *
+     * @param  {String} service  The name of the service.
+     * @return {void}
+     */
+    ;
+
+    _proto.disable = function disable(service) {
+      if (!SERVICES_MAP[service]) {
+        return;
+      }
+
+      var _SERVICES_MAP$service3 = SERVICES_MAP[service](),
+          remove = _SERVICES_MAP$service3.remove;
+
+      remove(_classPrivateFieldLooseBase(this, _base)[_base].$id);
+    };
+
+    return Services;
+  }();
 
   // eslint-disable-next-line import/no-cycle
   /**
@@ -2622,6 +2863,10 @@
    */
 
   /**
+   * @typedef {import('./classes/Services').ServiceName} ServiceName
+   */
+
+  /**
    * Base class to easily create components.
    *
    * @example
@@ -2698,24 +2943,37 @@
       autoBind(_assertThisInitialized(_this), {
         exclude: [].concat(_this._excludeFromAutoBind)
       });
+      /** @type {Services} */
+
+      _this.$services = new Services(_assertThisInitialized(_this));
       var unbindMethods = [];
 
       _this.$on('mounted', function () {
-        unbindMethods = [].concat(bindServices(_assertThisInitialized(_this)), bindEvents(_assertThisInitialized(_this)));
+        _this.$services.enableAll();
+
+        unbindMethods = [].concat(bindEvents(_assertThisInitialized(_this)));
         mountComponents(_assertThisInitialized(_this));
         _this.$isMounted = true;
       });
 
       _this.$on('updated', function () {
+        _this.$services.disableAll();
+
         unbindMethods.forEach(function (method) {
           return method();
         });
-        unbindMethods = [].concat(bindServices(_assertThisInitialized(_this)), bindEvents(_assertThisInitialized(_this)));
-        mountComponents(_assertThisInitialized(_this));
+        unbindMethods = [].concat(bindEvents(_assertThisInitialized(_this)));
+
+        _this.$services.enableAll();
+
+        mountOrUpdateComponents(_assertThisInitialized(_this));
       });
 
       _this.$on('destroyed', function () {
         _this.$isMounted = false;
+
+        _this.$services.disableAll();
+
         unbindMethods.forEach(function (method) {
           return method();
         });
@@ -3386,6 +3644,18 @@
       });
     }
     /**
+     * Remove styles on destroy.
+     * @this {AccordionItem & AccordionItemInterface}
+     */
+    ;
+
+    _proto.destroyed = function destroyed() {
+      remove(this.$refs.container, {
+        visibility: '',
+        height: ''
+      });
+    }
+    /**
      * Handler for the click event on the `btn` ref.
      * @this {AccordionItem & AccordionItemInterface}
      */
@@ -3648,13 +3918,11 @@
       try {
         var _this3 = this;
 
-        // /** @type {AccordionItem[]} */
-        // const items = await Promise.all(
-        //   this.$children.AccordionItem.map((item) =>
-        //     item instanceof Promise ? item : Promise.resolve(item)
-        //   )
-        // );
         _this3.unbindMethods = _this3.$children.AccordionItem.map(function (item, index) {
+          if (item instanceof Promise) {
+            throw new Error('The AccordionItem component can not be used asynchronously.');
+          }
+
           var unbindOpen = item.$on('open', function () {
             _this3.$emit('open', item, index);
 
@@ -3703,6 +3971,237 @@
     },
     components: {
       AccordionItem: AccordionItem
+    }
+  };
+
+  /**
+   * Get the next damped value for a given speed.
+   *
+   * @param  {Number} targetValue The final value.
+   * @param  {Number} currentValue The current value.
+   * @param  {Number=} [speed=0.5] The speed to reach the target value.
+   * @return {Number} The next value.
+   */
+  function damp(targetValue, currentValue, speed) {
+    if (speed === void 0) {
+      speed = 0.5;
+    }
+
+    var value = currentValue + (targetValue - currentValue) * speed;
+    return Math.abs(targetValue - currentValue) < 0.001 ? targetValue : value;
+  }
+
+  /**
+   * Format a CSS transform matrix with the given values.
+   *
+   * @param  {Object}  transform
+   * @param  {Number=} [transform.scaleX=1]     The scale on the x axis.
+   * @param  {Number=} [transform.scaleY=1]     The scale on the y axis.
+   * @param  {Number=} [transform.skewX=0]      The skew on the x axis.
+   * @param  {Number=} [transform.skewY=0]      The skew on the y axis.
+   * @param  {Number=} [transform.translateX=0] The translate on the x axis.
+   * @param  {Number=} [transform.translateY=0] The translate on the y axis.
+   * @return {String}                           A formatted CSS matrix transform.
+   *
+   * @example
+   * ```js
+   * matrix({ scaleX: 0.5, scaleY: 0.5 });
+   * // matrix(0.5, 0, 0, 0.5, 0, 0)
+   * ```
+   */
+  function matrix(transform) {
+    // eslint-disable-next-line no-param-reassign
+    transform = transform || {};
+    return "matrix(" + (transform.scaleX || 1) + ", " + (transform.skewY || 0) + ", " + (transform.skewX || 0) + ", " + (transform.scaleY || 1) + ", " + (transform.translateX || 0) + ", " + (transform.translateY || 0) + ")";
+  }
+
+  /**
+   * @typedef {import('../services/pointer').PointerServiceProps} PointerServiceProps
+   * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+   */
+
+  /**
+   * @typedef {Object} CursorOptions
+   * @property {string} growSelectors
+   * @property {string} shrinkSelectors
+   * @property {number} growTo
+   * @property {number} shrinkTo
+   * @property {number} translateDampFactor
+   * @property {number} growDampFactor
+   * @property {number} shrinkDampFactor
+   */
+
+  /**
+   * @typedef {Object} CursorInterface
+   * @property {BaseOptions & CursorOptions} $options
+   */
+
+  /**
+   * Custom cursor component.
+   */
+
+  var Cursor = /*#__PURE__*/function (_Base) {
+    _inheritsLoose(Cursor, _Base);
+
+    function Cursor() {
+      var _this;
+
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      _this = _Base.call.apply(_Base, [this].concat(args)) || this;
+      _this.x = 0;
+      _this.y = 0;
+      _this.scale = 0;
+      _this.pointerX = 0;
+      _this.pointerY = 0;
+      _this.pointerScale = 0;
+      return _this;
+    }
+
+    var _proto = Cursor.prototype;
+
+    /**
+     * Mounted hook.
+     * @return {void}
+     */
+    _proto.mounted = function mounted() {
+      this.x = 0;
+      this.y = 0;
+      this.scale = 0;
+      this.pointerX = 0;
+      this.pointerY = 0;
+      this.pointerScale = 0;
+      this.render({
+        x: this.x,
+        y: this.y,
+        scale: this.scale
+      });
+    }
+    /**
+     * Moved hook.
+     *
+     * @this {Cursor & CursorInterface}
+     *
+     * @param {PointerServiceProps} options
+     * @return {void}
+     */
+    ;
+
+    _proto.moved = function moved(_ref) {
+      var event = _ref.event,
+          x = _ref.x,
+          y = _ref.y,
+          isDown = _ref.isDown;
+
+      if (!this.$services.has('ticked')) {
+        this.$services.enable('ticked');
+      }
+
+      this.pointerX = x;
+      this.pointerY = y;
+      var scale = 1;
+
+      if (!event) {
+        this.pointerScale = scale;
+        return;
+      }
+
+      var shouldGrow = event.target instanceof Element && event.target.matches(this.$options.growSelectors) || false;
+      var shouldReduce = isDown || event.target instanceof Element && event.target.matches(this.$options.shrinkSelectors) || false;
+
+      if (shouldGrow) {
+        scale = this.$options.growTo;
+      }
+
+      if (shouldReduce) {
+        scale = this.$options.shrinkTo;
+      }
+
+      this.pointerScale = scale;
+    }
+    /**
+     * RequestAnimationFrame hook.
+     *
+     * @this {Cursor & CursorInterface}
+     *
+     * @return {void}
+     */
+    ;
+
+    _proto.ticked = function ticked() {
+      this.x = damp(this.pointerX, this.x, this.$options.translateDampFactor);
+      this.y = damp(this.pointerY, this.y, this.$options.translateDampFactor);
+      this.scale = damp(this.pointerScale, this.scale, this.pointerScale < this.scale ? this.$options.shrinkDampFactor : this.$options.growDampFactor);
+      this.render({
+        x: this.x,
+        y: this.y,
+        scale: this.scale
+      });
+
+      if (this.x === this.pointerX && this.y === this.pointerY && this.scale === this.pointerScale) {
+        this.$services.disable('ticked');
+      }
+    }
+    /**
+     * Render the cursor.
+     *
+     * @param  {Object} options
+     * @param  {Number} options.x
+     * @param  {Number} options.y
+     * @param  {Number} options.scale
+     * @return {void}
+     */
+    ;
+
+    _proto.render = function render(_ref2) {
+      var x = _ref2.x,
+          y = _ref2.y,
+          scale = _ref2.scale;
+      var transform = matrix({
+        translateX: x,
+        translateY: y,
+        scaleX: scale,
+        scaleY: scale
+      });
+      this.$el.style.transform = "translateZ(0) " + transform;
+    };
+
+    return Cursor;
+  }(Base);
+
+  Cursor.config = {
+    name: 'Cursor',
+    options: {
+      growSelectors: {
+        type: String,
+        default: 'a, a *, button, button *, [data-cursor-grow], [data-cursor-grow] *'
+      },
+      shrinkSelectors: {
+        type: String,
+        default: '[data-cursor-shrink], [data-cursor-shrink] *'
+      },
+      growTo: {
+        type: Number,
+        default: 2
+      },
+      shrinkTo: {
+        type: Number,
+        default: 0.5
+      },
+      translateDampFactor: {
+        type: Number,
+        default: 0.25
+      },
+      growDampFactor: {
+        type: Number,
+        default: 0.25
+      },
+      shrinkDampFactor: {
+        type: Number,
+        default: 0.25
+      }
     }
   };
 
@@ -4289,6 +4788,7 @@
   var index$1 = {
     __proto__: null,
     Accordion: Accordion,
+    Cursor: Cursor,
     Modal: Modal,
     Tabs: Tabs
   };
@@ -4737,45 +5237,141 @@
     }), _temp;
   });
 
+  /**
+   * @typedef {import('../abstracts/Base').default} Base
+   * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+   * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+   */
+
+  /**
+   * @typedef {Object} WithMountWhenInViewOptions
+   * @property {Object} intersectionObserver
+   */
+
+  /**
+   * @typedef {Object} WithMountWhenInViewInterface
+   * @property {() => void} terminated
+   * @property {WithMountWhenInViewOptions & BaseOptions} $options
+   */
+
+  /**
+   * IntersectionObserver decoration.
+   * @param {BaseComponent} BaseClass The Base class to extend.
+   * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
+   * @return {BaseComponent}
+   */
+  var withMountWhenInView = (function (BaseClass, defaultOptions) {
+    var _class, _isVisible, _observer, _temp, _BaseClass$config$nam, _BaseClass$config, _BaseClass$config2;
+
+    if (defaultOptions === void 0) {
+      defaultOptions = {
+        threshold: [0, 1]
+      };
+    }
+
+    return _temp = (_isVisible = _classPrivateFieldLooseKey("isVisible"), _observer = _classPrivateFieldLooseKey("observer"), _class = /*#__PURE__*/function (_BaseClass) {
+      _inheritsLoose(_class, _BaseClass);
+
+      /**
+       * Class config.
+       * @type {Object}
+       */
+
+      /**
+       * Is the component visible?
+       * @type {Boolean}
+       */
+
+      /**
+       * The component's observer.
+       * @type {IntersectionObserver}
+       */
+
+      /**
+       * Create an observer when the class in instantiated.
+       *
+       * @param {HTMLElement} element The component's root element.
+       */
+      function _class(element) {
+        var _this;
+
+        _this = _BaseClass.call(this, element) || this;
+        Object.defineProperty(_assertThisInitialized(_this), _isVisible, {
+          writable: true,
+          value: false
+        });
+        Object.defineProperty(_assertThisInitialized(_this), _observer, {
+          writable: true,
+          value: void 0
+        });
+        _classPrivateFieldLooseBase(_assertThisInitialized(_this), _observer)[_observer] = new IntersectionObserver(function (entries) {
+          var isVisible = entries.reduce(function (acc, entry) {
+            return acc || entry.isIntersecting;
+          }, false);
+
+          if (_classPrivateFieldLooseBase(_assertThisInitialized(_this), _isVisible)[_isVisible] !== isVisible) {
+            _classPrivateFieldLooseBase(_assertThisInitialized(_this), _isVisible)[_isVisible] = isVisible;
+            var method = isVisible ? '$mount' : '$destroy';
+
+            _this[method]();
+          }
+        }, _extends({}, defaultOptions, _this.$options.intersectionObserver));
+
+        _classPrivateFieldLooseBase(_assertThisInitialized(_this), _observer)[_observer].observe(_this.$el);
+
+        return _assertThisInitialized(_this) || _assertThisInitialized(_this);
+      }
+      /**
+       * Override the mounting of the component.
+       *
+       * @return {this}
+       */
+
+
+      var _proto = _class.prototype;
+
+      _proto.$mount = function $mount() {
+        if (_classPrivateFieldLooseBase(this, _isVisible)[_isVisible]) {
+          _BaseClass.prototype.$mount.call(this);
+        }
+
+        return this;
+      }
+      /**
+       * Disconnect the observer when the component is terminated.
+       */
+      ;
+
+      _proto.terminated = function terminated() {
+        _classPrivateFieldLooseBase(this, _observer)[_observer].disconnect();
+      };
+
+      return _class;
+    }(BaseClass)), _class.config = _extends({}, BaseClass.config || {}, {
+      name: ((_BaseClass$config$nam = BaseClass == null ? void 0 : (_BaseClass$config = BaseClass.config) == null ? void 0 : _BaseClass$config.name) != null ? _BaseClass$config$nam : '') + "WithMountWhenInView",
+      options: _extends({}, (BaseClass == null ? void 0 : (_BaseClass$config2 = BaseClass.config) == null ? void 0 : _BaseClass$config2.options) || {}, {
+        intersectionObserver: Object
+      })
+    }), _temp;
+  });
+
   var index$2 = {
     __proto__: null,
     withBreakpointManager: withBreakpointManager,
     withBreakpointObserver: withBreakpointObserver,
-    withIntersectionObserver: withIntersectionObserver
+    withIntersectionObserver: withIntersectionObserver,
+    withMountWhenInView: withMountWhenInView
   };
 
   var index$3 = {
     __proto__: null,
     useKey: useKey,
     usePointer: usePointer,
+    useLoad: useRaf$1,
     useRaf: useRaf,
     useResize: useResize,
     useScroll: useScroll
   };
-
-  /**
-   * Format a CSS transform matrix with the given values.
-   *
-   * @param  {Object}  transform
-   * @param  {Number=} [transform.scaleX=1]     The scale on the x axis.
-   * @param  {Number=} [transform.scaleY=1]     The scale on the y axis.
-   * @param  {Number=} [transform.skewX=0]      The skew on the x axis.
-   * @param  {Number=} [transform.skewY=0]      The skew on the y axis.
-   * @param  {Number=} [transform.translateX=0] The translate on the x axis.
-   * @param  {Number=} [transform.translateY=0] The translate on the y axis.
-   * @return {String}                           A formatted CSS matrix transform.
-   *
-   * @example
-   * ```js
-   * matrix({ scaleX: 0.5, scaleY: 0.5 });
-   * // matrix(0.5, 0, 0, 0.5, 0, 0)
-   * ```
-   */
-  function matrix(transform) {
-    // eslint-disable-next-line no-param-reassign
-    transform = transform || {};
-    return "matrix(" + (transform.scaleX || 1) + ", " + (transform.skewX || 0) + ", " + (transform.skewY || 0) + ", " + (transform.scaleY || 1) + ", " + (transform.translateX || 0) + ", " + (transform.translateY || 0) + ")";
-  }
 
   var index$4 = {
     __proto__: null,
@@ -4784,23 +5380,6 @@
     matrix: matrix,
     transition: transition
   };
-
-  /**
-   * Get the next damped value for a given speed.
-   *
-   * @param  {Number} targetValue The final value.
-   * @param  {Number} currentValue The current value.
-   * @param  {Number=} [speed=0.5] The speed to reach the target value.
-   * @return {Number} The next value.
-   */
-  function damp(targetValue, currentValue, speed) {
-    if (speed === void 0) {
-      speed = 0.5;
-    }
-
-    var value = currentValue + (targetValue - currentValue) * speed;
-    return Math.abs(targetValue - currentValue) < 0.001 ? targetValue : value;
-  }
 
   /**
    * Interpolate the ratio between a given interval.
@@ -4859,15 +5438,22 @@
   };
 
   /**
+   * @typedef {Object} HistoryOptions
+   * @property {string=} [path]
+   * @property {URLSearchParams|{ [key:string]: unknown }=} [search]
+   * @property {string=} [hash]
+   */
+
+  /**
    * Set a param in a URLSearchParam instance.
    * @param  {URLSearchParams}                    params The params to update.
-   * @param  {String}                             name   The name of the param to update.
-   * @param  {String|Number|Boolean|Array|Object} value  The value for this param.
+   * @param  {string}                             name   The name of the param to update.
+   * @param  {string|number|boolean|Array|Object} value  The value for this param.
    * @return {URLSearchParams}                           The updated URLSearchParams instance.
    */
 
   function updateUrlSearchParam(params, name, value) {
-    if (!value) {
+    if (value === '' || value === null || value === undefined) {
       if (params.has(name)) {
         params.delete(name);
       }
@@ -4900,7 +5486,7 @@
    * Transform an object to an URLSearchParams instance.
    *
    * @param  {Object}          obj           The object to convert.
-   * @param  {String}          defaultSearch A string of defaults search params.
+   * @param  {string}          defaultSearch A string of defaults search params.
    * @return {URLSearchParams}
    */
 
@@ -4918,22 +5504,14 @@
   }
   /**
    * Update the history with a new state.
-   * @param {String} mode             Wether to push or replace the new state.
-   * @param {Object} options
-   * @param {String} options.path     The new pathname.
-   * @param {Object} options.search   The new search params.
-   * @param {Object} options.hash     The new hash.
+   * @param {string}         mode
+   * @param {HistoryOptions} options
+   * @param {Object}         [data]
+   * @param {string}         [title]
    */
 
 
-  function updateHistory(mode, _ref3, data, title) {
-    var _ref3$path = _ref3.path,
-        path = _ref3$path === void 0 ? window.location.pathname : _ref3$path,
-        _ref3$search = _ref3.search,
-        search = _ref3$search === void 0 ? {} : _ref3$search,
-        _ref3$hash = _ref3.hash,
-        hash = _ref3$hash === void 0 ? window.location.hash : _ref3$hash;
-
+  function updateHistory(mode, options, data, title) {
     if (data === void 0) {
       data = {};
     }
@@ -4945,9 +5523,20 @@
     if (!window.history) {
       return;
     }
+    /** @type {HistoryOptions} */
+
+
+    var _path$search$hash$opt = _extends({
+      path: window.location.pathname,
+      search: new URLSearchParams(window.location.search),
+      hash: window.location.hash
+    }, options),
+        path = _path$search$hash$opt.path,
+        search = _path$search$hash$opt.search,
+        hash = _path$search$hash$opt.hash;
 
     var url = path;
-    var mergedSearch = objectToURLSearchParams(search);
+    var mergedSearch = search instanceof URLSearchParams ? search : objectToURLSearchParams(search);
 
     if (mergedSearch.toString()) {
       url += "?" + mergedSearch.toString();
@@ -4967,9 +5556,9 @@
   /**
    * Push a new state.
    *
-   * @param {Object} options The new state.
-   * @param {Object} data    The data for the new state.
-   * @param {String} title   The title for the new state.
+   * @param {HistoryOptions} options The new state.
+   * @param {Object}         data    The data for the new state.
+   * @param {string}         title   The title for the new state.
    */
 
 
@@ -4979,9 +5568,9 @@
   /**
    * Replace a new state.
    *
-   * @param {Object} options The new state.
-   * @param {Object} data    The data for the new state.
-   * @param {String} title   The title for the new state.
+   * @param {HistoryOptions} options The new state.
+   * @param {Object}         data    The data for the new state.
+   * @param {string}         title   The title for the new state.
    */
 
   function replace$1(options, data, title) {

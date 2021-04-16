@@ -1,5 +1,7 @@
+/* eslint-disable max-classes-per-file */
 import Base from '../../../src';
-import { Modal, Tabs, Accordion } from '../../../src/components';
+import { Modal, Tabs, Accordion, Cursor } from '../../../src/components';
+import { matrix } from '../../../src/utils/css';
 import withBreakpointObserver from '../../../src/decorators/withBreakpointObserver';
 import BreakpointManagerDemo from './components/BreakPointManagerDemo';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo';
@@ -13,12 +15,24 @@ class App extends Base {
     name: 'App',
     refs: ['modal'],
     log: true,
-    foo: 'dede',
     components: {
       Accordion,
       BreakpointManagerDemo,
       BreakpointObserverDemo,
-      Cursor: () => import(/* webpackChunkName: "Cursor" */ './components/Cursor'),
+      Cursor: class extends Cursor {
+        static config = {
+          ...Cursor.config,
+          refs: ['inner'],
+        };
+
+        render({ x, y, scale }) {
+          this.$el.style.transform = `translateZ(0) ${matrix({ translateX: x, translateY: y })}`;
+          this.$refs.inner.style.transform = `translateZ(0) ${matrix({
+            scaleX: scale,
+            scaleY: scale,
+          })}`;
+        }
+      },
       Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew'),
       '[data-src]': () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload'),
       Modal: withBreakpointObserver(Modal),

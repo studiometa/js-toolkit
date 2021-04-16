@@ -1,12 +1,24 @@
 /**
  * RequestAnimation frame polyfill.
  * @see  https://github.com/vuejs/vue/blob/ec78fc8b6d03e59da669be1adf4b4b5abf670a34/dist/vue.runtime.esm.js#L7355
- * @return {Function}
+ * @return {(handler: Function) => number}
  */
-export const getRaf = () =>
-  typeof window !== 'undefined' && window.requestAnimationFrame
+export function getRaf() {
+  return typeof window !== 'undefined' && window.requestAnimationFrame
     ? window.requestAnimationFrame.bind(window)
     : setTimeout;
+}
+
+/**
+ * Get a function to cancel the method returned by `getRaf()`.
+ *
+ * @return {(id:number) => void}
+ */
+export function getCancelRaf() {
+  return typeof window !== 'undefined' && window.cancelAnimationFrame
+    ? window.cancelAnimationFrame.bind(window)
+    : clearTimeout;
+}
 
 /**
  * Wait for the next frame to execute a function.
