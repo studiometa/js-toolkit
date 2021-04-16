@@ -490,6 +490,41 @@ interface ChildrenInterface {
 
 The parent instance when the current instance has been mounted as [child component](#components), defaults to `null` if the component as been instantiated as a stand-alone component.
 
+### `$services`
+
+A [Service](https://github.com/studiometa/js-toolkit/blob/master/src/abstracts/Base/classes/Services.js) instance to manage the [`scrolled`](#scrolled-props), [`resized`](#resized-props), [`ticked`](#ticked-props), [`moved`](#moved-props), [`keyed`](#keyed-props), [`loaded`](#loaded) services hooks.
+
+The following methods are available:
+
+- `has(service: string): boolean`: test if the current component instance has the service method defined and if it is currently enabled
+- `enable(service: string): () => void`: enable the given service if the current component instance has the service method defined, returns a function to disable the service
+- `disable(service: string): void`: disable the given service
+- `enableAll(): Array<() => void>`: enable all services which are defined
+- `disableAll(): void`: disable all services
+
+#### Example
+
+```js
+class Component extends Base {
+  static config = {
+    name: 'Component',
+    refs: ['btn'],
+  };
+
+  onBtnClick() {
+    if (this.$services.has('ticked')) {
+      this.$services.enable('ticked');
+    } else {
+      this.$services.disable('ticked');
+    }
+  }
+
+  ticked() {
+    // Do something on each frame...
+  }
+}
+```
+
 ## Instance methods
 
 ### `$log(…content)`
