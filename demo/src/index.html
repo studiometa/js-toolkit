@@ -75,7 +75,7 @@
           role="dialog"
           aria-modal="true"
           aria-hidden="true"
-          style="opacity: 0; pointer-events: none; visibility: hidden;"
+          style="opacity: 0; pointer-events: none; visibility: hidden"
           class="z-goku fixed inset-0"
         >
           <!--
@@ -268,7 +268,6 @@
           <div data-ref="content[]" aria-hidden="true">
             <img
               data-src="https://placekitten.com/299/299"
-              data-option-debug
               src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
               width="300"
               height="300"
@@ -407,18 +406,16 @@
 
       <hr class="my-10" />
 
-      <div class="absolute left-0 right-0 bottom-0 p-10 bg-gray-200">
-        Bottom
-      </div>
+      <div class="absolute left-0 right-0 bottom-0 p-10 bg-gray-200">Bottom</div>
     </main>
     <!-- BEGIN Cursor component -->
     <div
       data-component="Cursor"
-      class="z-goku fixed top-0 left-0 w-2 h-2 -mt-1 -ml-1 bg-black rounded-full pointer-events-none transform transition duration-200 ease-out-expo"
+      class="z-goku fixed top-0 left-0 flex items-center justify-center w-8 h-8 -mt-4 -ml-4 rounded-full border pointer-events-none"
     >
       <div
         data-ref="inner"
-        class="absolute top-0 left-0 w-8 h-8 -mt-3 -ml-3 rounded-full border transition duration-300 ease-out-expo"
+        class="w-2 h-2 rounded-full bg-black"
       ></div>
     </div>
     <!-- END Cursor component -->

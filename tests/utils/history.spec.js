@@ -8,14 +8,14 @@ describe('The history `push` method', () => {
   it('should work', () => {
     expect(window.location.href).toBe('http://localhost/');
     push({ path: 'bar', search: { query: 'baz', baz: false }, hash: 'foo' });
-    expect(window.location.href).toBe('http://localhost/bar?query=baz#foo');
+    expect(window.location.href).toBe('http://localhost/bar?query=baz&baz=false#foo');
   });
 
-  it('should remove search params when evaluated as falsy values', () => {
-    window.history.replaceState({}, '', '/?query=foo');
-    expect(window.location.href).toBe('http://localhost/?query=foo');
-    push({ search: { query: '' } });
-    expect(window.location.href).toBe('http://localhost/');
+  it('should remove search params when their value is null, undefined or an empty string', () => {
+    window.history.replaceState({}, '', '/?query=foo&nullish=foo&notDefined=foo&false=true');
+    expect(window.location.href).toBe('http://localhost/?query=foo&nullish=foo&notDefined=foo&false=true');
+    push({ search: { query: '', notPresent: '', nullish: null, notDefined: undefined, false: false } });
+    expect(window.location.href).toBe('http://localhost/?false=false');
   });
 
   it('should remove the hash when none given', () => {
@@ -46,6 +46,13 @@ describe('The history `push` method', () => {
     push({ path: '/bar' });
     expect(pushMock).toHaveBeenCalledWith({}, '', '/bar');
     pushMock.mockRestore();
+  });
+
+  it('should accept URLSearchParams instance as search', () => {
+    const search = new URLSearchParams();
+    search.set('foo', 'bar');
+    push({ search });
+    expect(window.location.href).toBe('http://localhost/?foo=bar');
   });
 });
 

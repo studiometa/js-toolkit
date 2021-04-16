@@ -285,8 +285,12 @@ function log(instance, ...msg) {
  */
 
 function debug(instance, ...args) {
-  if (instance.$options.debug) {
-    log(instance, ...args);
+  var _process, _process$env;
+
+  if (typeof process !== 'undefined' && ((_process = process) == null ? void 0 : (_process$env = _process.env) == null ? void 0 : _process$env.NODE_ENV) === 'development') {
+    if (instance.$options.debug) {
+      log(instance, ...args);
+    }
   }
 }
 /**
@@ -1044,7 +1048,7 @@ function getRefs(instance, element) {
 /**
  * Mount a given component which might be async.
  *
- * @param  {Base|Promise} component The component to mount.
+ * @param  {Base|Promise<Base>} component The component to mount.
  * @return {void}
  */
 
@@ -1068,6 +1072,35 @@ function mountComponents(instance) {
   Object.values(instance.$children).forEach($child => {
     debug(instance, 'mountComponent', $child);
     $child.forEach(mountComponent);
+  });
+}
+/**
+ * Mount or update the given component.
+ *
+ * @param {Base|Promise<Base>} component [description]
+ * @return {void}
+ */
+
+function mountOrUpdateComponent(component) {
+  if (component instanceof Promise) {
+    component.then(instance => instance.$isMounted ? instance.$update() : instance.$mount());
+  } else {
+    const method = component.$isMounted ? '$update' : '$mount';
+    component[method]();
+  }
+}
+/**
+ * Mount or updte children components of the given instance.
+ *
+ * @param {Base} instance The parent component's instance.
+ * @return {void}
+ */
+
+
+function mountOrUpdateComponents(instance) {
+  debug(instance, 'mountComponents', instance.$children);
+  Object.values(instance.$children).forEach($child => {
+    $child.forEach(mountOrUpdateComponent);
   });
 }
 /**
@@ -1218,7 +1251,7 @@ class Service {
 
 
   trigger(...args) {
-    this.callbacks.forEach(callback => {
+    this.callbacks.forEach(function forEachCallback(callback) {
       callback(...args);
     });
     return this;
@@ -1269,9 +1302,20 @@ function debounce(fn, delay = 300) {
 /**
  * RequestAnimation frame polyfill.
  * @see  https://github.com/vuejs/vue/blob/ec78fc8b6d03e59da669be1adf4b4b5abf670a34/dist/vue.runtime.esm.js#L7355
- * @return {Function}
+ * @return {(handler: Function) => number}
  */
-const getRaf = () => typeof window !== 'undefined' && window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : setTimeout;
+function getRaf() {
+  return typeof window !== 'undefined' && window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : setTimeout;
+}
+/**
+ * Get a function to cancel the method returned by `getRaf()`.
+ *
+ * @return {(id:number) => void}
+ */
+
+function getCancelRaf() {
+  return typeof window !== 'undefined' && window.cancelAnimationFrame ? window.cancelAnimationFrame.bind(window) : clearTimeout;
+}
 /**
  * Wait for the next frame to execute a function.
  *
@@ -1316,32 +1360,46 @@ function nextFrame(fn = () => {}) {
  */
 
 class Raf extends Service {
-  constructor(...args) {
-    super(...args);
-    this.isTicking = false;
-  }
+  /** @type {Boolean} Whether the loop is running or not. */
 
+  /** @type {number} */
+
+  /**
+   * Bind loop to the instance.
+   */
+  constructor() {
+    super();
+    this.isTicking = false;
+    this.id = 0;
+    this.raf = getRaf();
+    this.cancelRaf = getCancelRaf();
+    this.loop = this.loop.bind(this);
+  }
   /**
    * Start the requestAnimationFrame loop.
    *
    * @return {Raf}
    */
+
+
   init() {
-    const raf = getRaf();
-
-    const loop = () => {
-      this.trigger(this.props);
-
-      if (!this.isTicking) {
-        return;
-      }
-
-      raf(loop);
-    };
-
     this.isTicking = true;
-    loop();
+    this.loop();
     return this;
+  }
+  /**
+   * Loop method.
+   */
+
+
+  loop() {
+    this.trigger(this.props);
+
+    if (!this.isTicking) {
+      return;
+    }
+
+    this.id = this.raf(this.loop);
   }
   /**
    * Stop the requestAnimationFrame loop.
@@ -1351,6 +1409,7 @@ class Raf extends Service {
 
 
   kill() {
+    this.cancelRaf(this.id);
     this.isTicking = false;
     return this;
   }
@@ -1392,9 +1451,11 @@ function useRaf() {
 
   const add = instance.add.bind(instance);
   const remove = instance.remove.bind(instance);
-  const has = instance.has.bind(instance);
+  const has = instance.has.bind(instance); // eslint-disable-next-line require-jsdoc
 
-  const props = () => instance.props;
+  function props() {
+    return instance.props;
+  }
 
   return {
     add,
@@ -2151,64 +2212,232 @@ function useKey() {
 }
 
 /**
- * @typedef {import('./index').default} Base
+ * @typedef {import('./index').ServiceInterface} ServiceInterface
  */
 
 /**
- * Init the given service and bind it to the given instance.
- *
- * @param  {Base}     instance The Base instance.
- * @param  {String}   method   The instance to test for binding
- * @param  {Function} service  The service `use...` function
- * @return {Function}          A function to unbind the service
+ * @typedef {Object} LoadServiceProps
+ * @property {DOMHighResTimeStamp} time
  */
 
-function initService(instance, method, service) {
-  if (!hasMethod(instance, method)) {
-    return () => {};
-  }
+/**
+ * @typedef {Object} LoadService
+ * @property {(key:String, callback:(props:LoadServiceProps) => void) => void} add
+ *   Add a function to the resize service. The key must be uniq.
+ * @property {() => LoadServiceProps} props
+ *   Get the current values of the resize service props.
+ */
 
-  const {
-    add,
-    remove
-  } = service();
-  add(instance.$id,
+/**
+ * Load service
+ */
+
+class Load extends Service {
   /**
-   * @param {any[]} args
+   * Start the requestAnimationFrame loop.
+   *
+   * @return {Load}
    */
-  (...args) => {
-    callMethod(instance, method, ...args);
-  });
-  return () => remove(instance.$id);
-}
-/**
- * Use the services.
- * @param  {Base} instance A Base class instance.
- * @return {Array}         A list of unbind methods.
- */
-
-
-function bindServices(instance) {
-  const unbindMethods = [initService(instance, 'scrolled', useScroll), initService(instance, 'resized', useResize), initService(instance, 'ticked', useRaf), initService(instance, 'moved', usePointer), initService(instance, 'keyed', useKey)]; // Fire the `loaded` method on window load
-  // @todo remove this? or move it elsewhere?
-
-  if (hasMethod(instance, 'loaded')) {
-    /**
-     * @param {Event} event
-     */
-    const loadedHandler = event => {
-      callMethod(instance, 'loaded', {
-        event
-      });
+  init() {
+    this.handler = () => {
+      this.trigger(this.props);
     };
 
-    window.addEventListener('load', loadedHandler);
-    unbindMethods.push(() => {
-      window.removeEventListener('load', loadedHandler);
-    });
+    window.addEventListener('load', this.handler);
+    return this;
+  }
+  /**
+   * Stop the requestAnimationFrame loop.
+   *
+   * @return {Load}
+   */
+
+
+  kill() {
+    window.removeEventListener('load', this.handler);
+    return this;
+  }
+  /**
+   * Get raf props.
+   *
+   * @todo Return elapsed time / index?
+   * @type {Object}
+   */
+
+
+  get props() {
+    return {};
   }
 
-  return unbindMethods;
+}
+
+let instance$1 = null;
+/**
+ * Use the load service.
+ *
+ * ```js
+ * import { useLoad } from '@studiometa/js/services';
+ * const { add, remove, props } = useRag();
+ * add(id, (props) => {});
+ * remove(id);
+ * props();
+ * ```
+ *
+ * @return {ServiceInterface & LoadService}
+ */
+
+function useRaf$1() {
+  if (!instance$1) {
+    instance$1 = new Load();
+  }
+
+  const add = instance$1.add.bind(instance$1);
+  const remove = instance$1.remove.bind(instance$1);
+  const has = instance$1.has.bind(instance$1); // eslint-disable-next-line require-jsdoc
+
+  function props() {
+    return instance$1.props;
+  }
+
+  return {
+    add,
+    remove,
+    has,
+    props
+  };
+}
+
+/**
+ * @typedef {import('../index').default} Base
+ */
+
+const SERVICES_MAP = {
+  scrolled: useScroll,
+  resized: useResize,
+  ticked: useRaf,
+  moved: usePointer,
+  keyed: useKey,
+  loaded: useRaf$1
+};
+/**
+ * @typedef {'scrolled'|'resized'|'ticked'|'moved'|'keyed'} ServiceName
+ */
+
+/**
+ * Services management for the Base class.
+ */
+
+var _base = _classPrivateFieldLooseKey("base");
+
+class Services {
+  /** @type {Base} */
+
+  /**
+   * Class constructor.
+   * @param {Base} instance The Base instance.
+   */
+  constructor(instance) {
+    Object.defineProperty(this, _base, {
+      writable: true,
+      value: void 0
+    });
+    _classPrivateFieldLooseBase(this, _base)[_base] = instance;
+  }
+  /**
+   * Test if the given service is registered.
+   *
+   * @param  {ServiceName} service The name of the service.
+   * @return {Boolean}
+   */
+
+
+  has(service) {
+    if (!hasMethod(_classPrivateFieldLooseBase(this, _base)[_base], service) && !SERVICES_MAP[service]) {
+      return false;
+    }
+
+    const {
+      has
+    } = SERVICES_MAP[service]();
+    return has(_classPrivateFieldLooseBase(this, _base)[_base].$id);
+  }
+  /**
+   * Init the given service and bind it to the given instance.
+   *
+   * @param  {ServiceName} service The name of the service.
+   * @return {() => void}          A function to unbind the service.
+   */
+
+
+  enable(service) {
+    if (this.has(service)) {
+      return this.disable.bind(this, service);
+    }
+
+    if (!hasMethod(_classPrivateFieldLooseBase(this, _base)[_base], service) || !SERVICES_MAP[service]) {
+      return function noop() {};
+    }
+
+    const {
+      add
+    } = SERVICES_MAP[service]();
+    const self = this;
+    /**
+     * @param {any[]} args
+     */
+
+    function serviceHandler(...args) {
+      callMethod(_classPrivateFieldLooseBase(self, _base)[_base], service, ...args);
+    }
+
+    add(_classPrivateFieldLooseBase(this, _base)[_base].$id, serviceHandler);
+    return this.disable.bind(this, service);
+  }
+  /**
+   * Enable all services and return methods to disable them.
+   *
+   * @return {Function[]}
+   */
+
+
+  enableAll() {
+    return Object.keys(SERVICES_MAP).map(
+    /** @param {ServiceName} serviceName */
+    serviceName => this.enable(serviceName));
+  }
+  /**
+   * Disable all services.
+   *
+   * @return {void}
+   */
+
+
+  disableAll() {
+    Object.keys(SERVICES_MAP).forEach(
+    /** @param {ServiceName} serviceName */
+    serviceName => {
+      this.disable(serviceName);
+    });
+  }
+  /**
+   * Disable a service.
+   *
+   * @param  {String} service  The name of the service.
+   * @return {void}
+   */
+
+
+  disable(service) {
+    if (!SERVICES_MAP[service]) {
+      return;
+    }
+
+    const {
+      remove
+    } = SERVICES_MAP[service]();
+    remove(_classPrivateFieldLooseBase(this, _base)[_base].$id);
+  }
+
 }
 
 // eslint-disable-next-line import/no-cycle
@@ -2374,6 +2603,10 @@ function bindEvents(instance) {
  */
 
 /**
+ * @typedef {import('./classes/Services').ServiceName} ServiceName
+ */
+
+/**
  * Base class to easily create components.
  *
  * @example
@@ -2487,19 +2720,26 @@ class Base extends EventManager {
     autoBind(this, {
       exclude: [...this._excludeFromAutoBind]
     });
+    /** @type {Services} */
+
+    this.$services = new Services(this);
     let unbindMethods = [];
     this.$on('mounted', () => {
-      unbindMethods = [...bindServices(this), ...bindEvents(this)];
+      this.$services.enableAll();
+      unbindMethods = [...bindEvents(this)];
       mountComponents(this);
       this.$isMounted = true;
     });
     this.$on('updated', () => {
+      this.$services.disableAll();
       unbindMethods.forEach(method => method());
-      unbindMethods = [...bindServices(this), ...bindEvents(this)];
-      mountComponents(this);
+      unbindMethods = [...bindEvents(this)];
+      this.$services.enableAll();
+      mountOrUpdateComponents(this);
     });
     this.$on('destroyed', () => {
       this.$isMounted = false;
+      this.$services.disableAll();
       unbindMethods.forEach(method => method());
       destroyComponents(this);
     });
@@ -3048,6 +3288,18 @@ class AccordionItem extends Base {
     });
   }
   /**
+   * Remove styles on destroy.
+   * @this {AccordionItem & AccordionItemInterface}
+   */
+
+
+  destroyed() {
+    remove(this.$refs.container, {
+      visibility: '',
+      height: ''
+    });
+  }
+  /**
    * Handler for the click event on the `btn` ref.
    * @this {AccordionItem & AccordionItemInterface}
    */
@@ -3261,13 +3513,11 @@ class Accordion extends Base {
    * @return {Promise<void>}
    */
   async mounted() {
-    // /** @type {AccordionItem[]} */
-    // const items = await Promise.all(
-    //   this.$children.AccordionItem.map((item) =>
-    //     item instanceof Promise ? item : Promise.resolve(item)
-    //   )
-    // );
     this.unbindMethods = this.$children.AccordionItem.map((item, index) => {
+      if (item instanceof Promise) {
+        throw new Error('The AccordionItem component can not be used asynchronously.');
+      }
+
       const unbindOpen = item.$on('open', () => {
         this.$emit('open', item, index);
 
@@ -3304,6 +3554,221 @@ Accordion.config = {
   },
   components: {
     AccordionItem
+  }
+};
+
+/**
+ * Get the next damped value for a given speed.
+ *
+ * @param  {Number} targetValue The final value.
+ * @param  {Number} currentValue The current value.
+ * @param  {Number=} [speed=0.5] The speed to reach the target value.
+ * @return {Number} The next value.
+ */
+function damp(targetValue, currentValue, speed = 0.5) {
+  const value = currentValue + (targetValue - currentValue) * speed;
+  return Math.abs(targetValue - currentValue) < 0.001 ? targetValue : value;
+}
+
+/**
+ * Format a CSS transform matrix with the given values.
+ *
+ * @param  {Object}  transform
+ * @param  {Number=} [transform.scaleX=1]     The scale on the x axis.
+ * @param  {Number=} [transform.scaleY=1]     The scale on the y axis.
+ * @param  {Number=} [transform.skewX=0]      The skew on the x axis.
+ * @param  {Number=} [transform.skewY=0]      The skew on the y axis.
+ * @param  {Number=} [transform.translateX=0] The translate on the x axis.
+ * @param  {Number=} [transform.translateY=0] The translate on the y axis.
+ * @return {String}                           A formatted CSS matrix transform.
+ *
+ * @example
+ * ```js
+ * matrix({ scaleX: 0.5, scaleY: 0.5 });
+ * // matrix(0.5, 0, 0, 0.5, 0, 0)
+ * ```
+ */
+function matrix(transform) {
+  // eslint-disable-next-line no-param-reassign
+  transform = transform || {};
+  return `matrix(${transform.scaleX || 1}, ${transform.skewY || 0}, ${transform.skewX || 0}, ${transform.scaleY || 1}, ${transform.translateX || 0}, ${transform.translateY || 0})`;
+}
+
+/**
+ * @typedef {import('../services/pointer').PointerServiceProps} PointerServiceProps
+ * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+ */
+
+/**
+ * @typedef {Object} CursorOptions
+ * @property {string} growSelectors
+ * @property {string} shrinkSelectors
+ * @property {number} growTo
+ * @property {number} shrinkTo
+ * @property {number} translateDampFactor
+ * @property {number} growDampFactor
+ * @property {number} shrinkDampFactor
+ */
+
+/**
+ * @typedef {Object} CursorInterface
+ * @property {BaseOptions & CursorOptions} $options
+ */
+
+/**
+ * Custom cursor component.
+ */
+
+class Cursor extends Base {
+  constructor(...args) {
+    super(...args);
+    this.x = 0;
+    this.y = 0;
+    this.scale = 0;
+    this.pointerX = 0;
+    this.pointerY = 0;
+    this.pointerScale = 0;
+  }
+
+  /**
+   * Mounted hook.
+   * @return {void}
+   */
+  mounted() {
+    this.x = 0;
+    this.y = 0;
+    this.scale = 0;
+    this.pointerX = 0;
+    this.pointerY = 0;
+    this.pointerScale = 0;
+    this.render({
+      x: this.x,
+      y: this.y,
+      scale: this.scale
+    });
+  }
+  /**
+   * Moved hook.
+   *
+   * @this {Cursor & CursorInterface}
+   *
+   * @param {PointerServiceProps} options
+   * @return {void}
+   */
+
+
+  moved({
+    event,
+    x,
+    y,
+    isDown
+  }) {
+    if (!this.$services.has('ticked')) {
+      this.$services.enable('ticked');
+    }
+
+    this.pointerX = x;
+    this.pointerY = y;
+    let scale = 1;
+
+    if (!event) {
+      this.pointerScale = scale;
+      return;
+    }
+
+    const shouldGrow = event.target instanceof Element && event.target.matches(this.$options.growSelectors) || false;
+    const shouldReduce = isDown || event.target instanceof Element && event.target.matches(this.$options.shrinkSelectors) || false;
+
+    if (shouldGrow) {
+      scale = this.$options.growTo;
+    }
+
+    if (shouldReduce) {
+      scale = this.$options.shrinkTo;
+    }
+
+    this.pointerScale = scale;
+  }
+  /**
+   * RequestAnimationFrame hook.
+   *
+   * @this {Cursor & CursorInterface}
+   *
+   * @return {void}
+   */
+
+
+  ticked() {
+    this.x = damp(this.pointerX, this.x, this.$options.translateDampFactor);
+    this.y = damp(this.pointerY, this.y, this.$options.translateDampFactor);
+    this.scale = damp(this.pointerScale, this.scale, this.pointerScale < this.scale ? this.$options.shrinkDampFactor : this.$options.growDampFactor);
+    this.render({
+      x: this.x,
+      y: this.y,
+      scale: this.scale
+    });
+
+    if (this.x === this.pointerX && this.y === this.pointerY && this.scale === this.pointerScale) {
+      this.$services.disable('ticked');
+    }
+  }
+  /**
+   * Render the cursor.
+   *
+   * @param  {Object} options
+   * @param  {Number} options.x
+   * @param  {Number} options.y
+   * @param  {Number} options.scale
+   * @return {void}
+   */
+
+
+  render({
+    x,
+    y,
+    scale
+  }) {
+    const transform = matrix({
+      translateX: x,
+      translateY: y,
+      scaleX: scale,
+      scaleY: scale
+    });
+    this.$el.style.transform = `translateZ(0) ${transform}`;
+  }
+
+}
+Cursor.config = {
+  name: 'Cursor',
+  options: {
+    growSelectors: {
+      type: String,
+      default: 'a, a *, button, button *, [data-cursor-grow], [data-cursor-grow] *'
+    },
+    shrinkSelectors: {
+      type: String,
+      default: '[data-cursor-shrink], [data-cursor-shrink] *'
+    },
+    growTo: {
+      type: Number,
+      default: 2
+    },
+    shrinkTo: {
+      type: Number,
+      default: 0.5
+    },
+    translateDampFactor: {
+      type: Number,
+      default: 0.25
+    },
+    growDampFactor: {
+      type: Number,
+      default: 0.25
+    },
+    shrinkDampFactor: {
+      type: Number,
+      default: 0.25
+    }
   }
 };
 
@@ -3809,6 +4274,7 @@ Tabs.config = {
 var index$1 = {
   __proto__: null,
   Accordion: Accordion,
+  Cursor: Cursor,
   Modal: Modal,
   Tabs: Tabs
 };
@@ -4212,45 +4678,127 @@ var withIntersectionObserver = ((BaseClass, defaultOptions = {
   }), _temp;
 });
 
+/**
+ * @typedef {import('../abstracts/Base').default} Base
+ * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+ * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ */
+
+/**
+ * @typedef {Object} WithMountWhenInViewOptions
+ * @property {Object} intersectionObserver
+ */
+
+/**
+ * @typedef {Object} WithMountWhenInViewInterface
+ * @property {() => void} terminated
+ * @property {WithMountWhenInViewOptions & BaseOptions} $options
+ */
+
+/**
+ * IntersectionObserver decoration.
+ * @param {BaseComponent} BaseClass The Base class to extend.
+ * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
+ * @return {BaseComponent}
+ */
+var withMountWhenInView = ((BaseClass, defaultOptions = {
+  threshold: [0, 1]
+}) => {
+  var _class, _isVisible, _observer, _temp, _BaseClass$config$nam, _BaseClass$config, _BaseClass$config2;
+
+  return _temp = (_isVisible = _classPrivateFieldLooseKey("isVisible"), _observer = _classPrivateFieldLooseKey("observer"), _class = class extends BaseClass {
+    /**
+     * Class config.
+     * @type {Object}
+     */
+
+    /**
+     * Is the component visible?
+     * @type {Boolean}
+     */
+
+    /**
+     * The component's observer.
+     * @type {IntersectionObserver}
+     */
+
+    /**
+     * Create an observer when the class in instantiated.
+     *
+     * @param {HTMLElement} element The component's root element.
+     */
+    constructor(element) {
+      super(element);
+      Object.defineProperty(this, _isVisible, {
+        writable: true,
+        value: false
+      });
+      Object.defineProperty(this, _observer, {
+        writable: true,
+        value: void 0
+      });
+      _classPrivateFieldLooseBase(this, _observer)[_observer] = new IntersectionObserver(entries => {
+        const isVisible = entries.reduce((acc, entry) => acc || entry.isIntersecting, false);
+
+        if (_classPrivateFieldLooseBase(this, _isVisible)[_isVisible] !== isVisible) {
+          _classPrivateFieldLooseBase(this, _isVisible)[_isVisible] = isVisible;
+          const method = isVisible ? '$mount' : '$destroy';
+          this[method]();
+        }
+      }, _extends({}, defaultOptions, this.$options.intersectionObserver));
+
+      _classPrivateFieldLooseBase(this, _observer)[_observer].observe(this.$el);
+
+      return this;
+    }
+    /**
+     * Override the mounting of the component.
+     *
+     * @return {this}
+     */
+
+
+    $mount() {
+      if (_classPrivateFieldLooseBase(this, _isVisible)[_isVisible]) {
+        super.$mount();
+      }
+
+      return this;
+    }
+    /**
+     * Disconnect the observer when the component is terminated.
+     */
+
+
+    terminated() {
+      _classPrivateFieldLooseBase(this, _observer)[_observer].disconnect();
+    }
+
+  }), _class.config = _extends({}, BaseClass.config || {}, {
+    name: `${(_BaseClass$config$nam = BaseClass == null ? void 0 : (_BaseClass$config = BaseClass.config) == null ? void 0 : _BaseClass$config.name) != null ? _BaseClass$config$nam : ''}WithMountWhenInView`,
+    options: _extends({}, (BaseClass == null ? void 0 : (_BaseClass$config2 = BaseClass.config) == null ? void 0 : _BaseClass$config2.options) || {}, {
+      intersectionObserver: Object
+    })
+  }), _temp;
+});
+
 var index$2 = {
   __proto__: null,
   withBreakpointManager: withBreakpointManager,
   withBreakpointObserver: withBreakpointObserver,
-  withIntersectionObserver: withIntersectionObserver
+  withIntersectionObserver: withIntersectionObserver,
+  withMountWhenInView: withMountWhenInView
 };
 
 var index$3 = {
   __proto__: null,
   useKey: useKey,
   usePointer: usePointer,
+  useLoad: useRaf$1,
   useRaf: useRaf,
   useResize: useResize,
   useScroll: useScroll
 };
-
-/**
- * Format a CSS transform matrix with the given values.
- *
- * @param  {Object}  transform
- * @param  {Number=} [transform.scaleX=1]     The scale on the x axis.
- * @param  {Number=} [transform.scaleY=1]     The scale on the y axis.
- * @param  {Number=} [transform.skewX=0]      The skew on the x axis.
- * @param  {Number=} [transform.skewY=0]      The skew on the y axis.
- * @param  {Number=} [transform.translateX=0] The translate on the x axis.
- * @param  {Number=} [transform.translateY=0] The translate on the y axis.
- * @return {String}                           A formatted CSS matrix transform.
- *
- * @example
- * ```js
- * matrix({ scaleX: 0.5, scaleY: 0.5 });
- * // matrix(0.5, 0, 0, 0.5, 0, 0)
- * ```
- */
-function matrix(transform) {
-  // eslint-disable-next-line no-param-reassign
-  transform = transform || {};
-  return `matrix(${transform.scaleX || 1}, ${transform.skewX || 0}, ${transform.skewY || 0}, ${transform.scaleY || 1}, ${transform.translateX || 0}, ${transform.translateY || 0})`;
-}
 
 var index$4 = {
   __proto__: null,
@@ -4259,19 +4807,6 @@ var index$4 = {
   matrix: matrix,
   transition: transition
 };
-
-/**
- * Get the next damped value for a given speed.
- *
- * @param  {Number} targetValue The final value.
- * @param  {Number} currentValue The current value.
- * @param  {Number=} [speed=0.5] The speed to reach the target value.
- * @return {Number} The next value.
- */
-function damp(targetValue, currentValue, speed = 0.5) {
-  const value = currentValue + (targetValue - currentValue) * speed;
-  return Math.abs(targetValue - currentValue) < 0.001 ? targetValue : value;
-}
 
 /**
  * Interpolate the ratio between a given interval.
@@ -4326,15 +4861,22 @@ var index$6 = {
 };
 
 /**
+ * @typedef {Object} HistoryOptions
+ * @property {string=} [path]
+ * @property {URLSearchParams|{ [key:string]: unknown }=} [search]
+ * @property {string=} [hash]
+ */
+
+/**
  * Set a param in a URLSearchParam instance.
  * @param  {URLSearchParams}                    params The params to update.
- * @param  {String}                             name   The name of the param to update.
- * @param  {String|Number|Boolean|Array|Object} value  The value for this param.
+ * @param  {string}                             name   The name of the param to update.
+ * @param  {string|number|boolean|Array|Object} value  The value for this param.
  * @return {URLSearchParams}                           The updated URLSearchParams instance.
  */
 
 function updateUrlSearchParam(params, name, value) {
-  if (!value) {
+  if (value === '' || value === null || value === undefined) {
     if (params.has(name)) {
       params.delete(name);
     }
@@ -4365,7 +4907,7 @@ function updateUrlSearchParam(params, name, value) {
  * Transform an object to an URLSearchParams instance.
  *
  * @param  {Object}          obj           The object to convert.
- * @param  {String}          defaultSearch A string of defaults search params.
+ * @param  {string}          defaultSearch A string of defaults search params.
  * @return {URLSearchParams}
  */
 
@@ -4375,25 +4917,32 @@ function objectToURLSearchParams(obj, defaultSearch = window.location.search) {
 }
 /**
  * Update the history with a new state.
- * @param {String} mode             Wether to push or replace the new state.
- * @param {Object} options
- * @param {String} options.path     The new pathname.
- * @param {Object} options.search   The new search params.
- * @param {Object} options.hash     The new hash.
+ * @param {string}         mode
+ * @param {HistoryOptions} options
+ * @param {Object}         [data]
+ * @param {string}         [title]
  */
 
 
-function updateHistory(mode, {
-  path = window.location.pathname,
-  search = {},
-  hash = window.location.hash
-}, data = {}, title = '') {
+function updateHistory(mode, options, data = {}, title = '') {
   if (!window.history) {
     return;
   }
+  /** @type {HistoryOptions} */
+
+
+  const {
+    path,
+    search,
+    hash
+  } = _extends({
+    path: window.location.pathname,
+    search: new URLSearchParams(window.location.search),
+    hash: window.location.hash
+  }, options);
 
   let url = path;
-  const mergedSearch = objectToURLSearchParams(search);
+  const mergedSearch = search instanceof URLSearchParams ? search : objectToURLSearchParams(search);
 
   if (mergedSearch.toString()) {
     url += `?${mergedSearch.toString()}`;
@@ -4413,9 +4962,9 @@ function updateHistory(mode, {
 /**
  * Push a new state.
  *
- * @param {Object} options The new state.
- * @param {Object} data    The data for the new state.
- * @param {String} title   The title for the new state.
+ * @param {HistoryOptions} options The new state.
+ * @param {Object}         data    The data for the new state.
+ * @param {string}         title   The title for the new state.
  */
 
 
@@ -4425,9 +4974,9 @@ function push(options, data, title) {
 /**
  * Replace a new state.
  *
- * @param {Object} options The new state.
- * @param {Object} data    The data for the new state.
- * @param {String} title   The title for the new state.
+ * @param {HistoryOptions} options The new state.
+ * @param {Object}         data    The data for the new state.
+ * @param {string}         title   The title for the new state.
  */
 
 function replace$1(options, data, title) {

@@ -106,6 +106,14 @@ export default class AccordionItem extends Base {
   }
 
   /**
+   * Remove styles on destroy.
+   * @this {AccordionItem & AccordionItemInterface}
+   */
+  destroyed() {
+    styles.remove(this.$refs.container, { visibility: '', height: '' });
+  }
+
+  /**
    * Handler for the click event on the `btn` ref.
    * @this {AccordionItem & AccordionItemInterface}
    */

@@ -7,8 +7,8 @@
 </template>
 
 <script>
-  import Base from '../../../dist';
-  import * as components from '../../../dist/components/';
+  import Base from '../../../src';
+  import * as components from '../../../src/components/';
 
   class App extends Base {
     static config = {

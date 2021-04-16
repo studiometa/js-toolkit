@@ -1,25 +1,47 @@
 import Base from '../../../../src';
-import { withIntersectionObserver } from '../../../../src/decorators';
+import { matrix } from '../../../../src/utils/css';
+import { damp } from '../../../../src/utils/math';
+import { withMountWhenInView } from '../../../../src/decorators';
 
-export default class Skew extends withIntersectionObserver(Base) {
+function clamp(value, min, max) {
+  /* eslint-disable no-nested-ternary */
+  return min < max
+    ? value < min
+      ? min
+      : value > max
+      ? max
+      : value
+    : value < max
+    ? max
+    : value > min
+    ? min
+    : value;
+  /* eslint-enable no-nested-ternary */
+}
+
+export default class Skew extends withMountWhenInView(Base) {
   static config = {
     name: 'Skew',
   };
 
-  mounted() {
-    this.isVisible = false;
-  }
+  skewY = 0;
 
-  intersected([entry]) {
-    this.isVisible = entry.intersectionRatio > 0;
-  }
+  dampedSkewY = 0;
 
-  scrolled({ delta }) {
-    if (!this.isVisible) {
-      return;
+  scrolled({ delta, changed }) {
+    if (changed.y && !this.$services.has('ticked')) {
+      this.$services.enable('ticked');
     }
 
-    const skewY = delta.y * -0.05;
-    this.$el.style.transform = `skewY(${skewY}deg)`;
+    this.skewY = clamp(delta.y * -0.005, -0.1, 0.1);
+  }
+
+  ticked() {
+    this.dampedSkewY = damp(this.skewY, this.dampedSkewY, 0.1);
+    this.$el.style.transform = matrix({ skewY: this.dampedSkewY });
+
+    if (Math.abs(this.dampedSkewY - this.skewY) < 0.01) {
+      this.$services.disable('ticked');
+    }
   }
 }
