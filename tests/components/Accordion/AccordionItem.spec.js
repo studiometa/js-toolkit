@@ -98,4 +98,10 @@ describe('AccordionItem component', () => {
     await item.open();
     expect(fn).toHaveBeenCalledTimes(3);
   });
+
+  it('should remove styles when destroyed', () => {
+    item.$destroy();
+    expect(item.$refs.container.style.visibility).toBe('');
+    expect(item.$refs.container.style.height).toBe('');
+  });
 });
