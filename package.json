@@ -5,6 +5,7 @@
     "packages/*"
   ],
   "scripts": {
+    "test": "NODE_OPTIONS=--experimental-vm-modules ./node_modules/.bin/npm run test --workspace=@studiometa/js-toolkit-tests -- --coverage",
     "lint": "npm run lint:eslint && npm run lint:types",
     "lint:eslint": "eslint packages/js-toolkit",
     "lint:types": "tsc --build tsconfig.lint.json",

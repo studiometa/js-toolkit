@@ -1,14 +1,14 @@
 // eslint-disable-next-line import/extensions
 import { nanoid } from 'nanoid/non-secure';
-import autoBind from '../../utils/object/autoBind';
-import EventManager from '../EventManager';
+import autoBind from '../../utils/object/autoBind.js';
+import EventManager from '../EventManager.js';
 import { callMethod, debug, getConfig } from './utils.js';
-import { getChildren, getComponentElements } from './children';
-import { getOptions } from './options';
-import { getRefs } from './refs';
-import { mountComponents, mountOrUpdateComponents, destroyComponents } from './components';
-import Services from './classes/Services';
-import bindEvents from './events';
+import { getChildren, getComponentElements } from './children.js';
+import { getOptions } from './options.js';
+import { getRefs } from './refs.js';
+import { mountComponents, mountOrUpdateComponents, destroyComponents } from './components.js';
+import Services from './classes/Services.js';
+import bindEvents from './events.js';
 
 /**
  * @typedef {typeof Base} BaseComponent
@@ -31,7 +31,7 @@ import bindEvents from './events';
  */
 
 /**
- * @typedef {import('./classes/Services').ServiceName} ServiceName
+ * @typedef {import('./classes/Services.js').ServiceName} ServiceName
  */
 
 /**

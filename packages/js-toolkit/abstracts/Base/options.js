@@ -1,10 +1,10 @@
-import Options from './classes/Options';
-import { warn } from './utils';
+import Options from './classes/Options.js';
+import { warn } from './utils.js';
 
 /**
- * @typedef {import('./index').default} Base
- * @typedef {import('./index').BaseOptions} BaseOptions
- * @typedef {import('./classes/Options').OptionsSchema} OptionsSchema
+ * @typedef {import('./index.js').default} Base
+ * @typedef {import('./index.js').BaseOptions} BaseOptions
+ * @typedef {import('./classes/Options.js').OptionsSchema} OptionsSchema
  */
 
 /**

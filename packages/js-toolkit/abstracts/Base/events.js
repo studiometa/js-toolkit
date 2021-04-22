@@ -1,8 +1,8 @@
-import getAllProperties from '../../utils/object/getAllProperties';
-import { debug } from './utils';
+import getAllProperties from '../../utils/object/getAllProperties.js';
+import { debug } from './utils.js';
 
 /**
- * @typedef {import('./index')} Base
+ * @typedef {import('./index.js')} Base
  */
 
 /**

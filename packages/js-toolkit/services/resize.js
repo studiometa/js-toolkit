@@ -1,5 +1,5 @@
-import Service from '../abstracts/Service';
-import debounce from '../utils/debounce';
+import Service from '../abstracts/Service.js';
+import debounce from '../utils/debounce.js';
 
 /**
  * @typedef {import('./index').ServiceInterface} ServiceInterface

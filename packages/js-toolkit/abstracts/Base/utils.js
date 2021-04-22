@@ -1,6 +1,6 @@
 /**
- * @typedef {import('./index').default} Base
- * @typedef {import('./index').BaseConfig} BaseConfig
+ * @typedef {import('./index.js').default} Base
+ * @typedef {import('./index.js').BaseConfig} BaseConfig
  */
 
 /**

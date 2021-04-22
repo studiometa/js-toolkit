@@ -1,6 +1,6 @@
 import deepmerge from 'deepmerge';
 import { noCase } from 'no-case';
-import isObject from '../../../utils/object/isObject';
+import isObject from '../../../utils/object/isObject.js';
 
 /**
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType

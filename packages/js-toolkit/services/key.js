@@ -1,5 +1,5 @@
-import Service from '../abstracts/Service';
-import keyCodes from '../utils/keyCodes';
+import Service from '../abstracts/Service.js';
+import keyCodes from '../utils/keyCodes.js';
 
 /**
  * @typedef {import('./index').ServiceInterface} ServiceInterface

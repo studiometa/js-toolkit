@@ -1,7 +1,7 @@
-import withBreakpointManager from './withBreakpointManager';
-import withBreakpointObserver from './withBreakpointObserver';
-import withIntersectionObserver from './withIntersectionObserver';
-import withMountWhenInView from './withMountWhenInView';
+import withBreakpointManager from './withBreakpointManager.js';
+import withBreakpointObserver from './withBreakpointObserver.js';
+import withIntersectionObserver from './withIntersectionObserver.js';
+import withMountWhenInView from './withMountWhenInView.js';
 
 export {
   withBreakpointManager,
