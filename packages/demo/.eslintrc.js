@@ -6,5 +6,6 @@ module.exports = {
     'require-jsdoc': 'off',
     'no-underscore-dangle': ['error', { allow: ['__base__'] }],
     'import/no-extraneous-dependencies': 'off',
+    'import/extensions': ['error', 'always', { ignorePackages: true }],
   },
 };

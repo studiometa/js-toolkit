@@ -1,4 +1,4 @@
-import BreakpointManagerDemoBase from './BreakpointManagerDemoBase';
+import BreakpointManagerDemoBase from './BreakpointManagerDemoBase.js';
 
 export default class BreakpointManagerDemoMobile extends BreakpointManagerDemoBase {
   static config = {
