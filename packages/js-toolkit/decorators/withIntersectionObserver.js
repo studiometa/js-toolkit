@@ -1,4 +1,4 @@
-import { debug } from '../abstracts/Base/utils';
+import { debug } from '../abstracts/Base/utils.js';
 
 /**
  * @typedef {import('../abstracts/Base').default} Base

@@ -1,4 +1,4 @@
-import clamp from './clamp';
+import clamp from './clamp.js';
 
 /**
  * Clamp a value in the 0–1 range.

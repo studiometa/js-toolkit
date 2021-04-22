@@ -1,8 +1,8 @@
 import deepmerge from 'deepmerge';
-import Base from '../../abstracts/Base';
-import Accordion from './Accordion';
-import * as styles from '../../utils/css/styles';
-import transition from '../../utils/css/transition';
+import Base from '../../abstracts/Base/index.js';
+import Accordion from './Accordion.js';
+import * as styles from '../../utils/css/styles.js';
+import transition from '../../utils/css/transition.js';
 
 /**
  * @typedef {import('../../abstracts/Base').BaseOptions} BaseOptions

@@ -1,4 +1,4 @@
-import keyCodes from './keyCodes';
+import keyCodes from './keyCodes.js';
 
 const FOCUSABLE_ELEMENTS = [
   'a[href]:not([tabindex^="-"]):not([inert])',

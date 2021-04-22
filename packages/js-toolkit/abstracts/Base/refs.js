@@ -1,7 +1,7 @@
-import { getConfig, warn } from './utils';
+import { getConfig, warn } from './utils.js';
 
 /**
- * @typedef {import('./index').default} Base
+ * @typedef {import('./index.js').default} Base
  */
 
 /**

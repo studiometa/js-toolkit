@@ -1,4 +1,4 @@
-import getAllProperties from './getAllProperties';
+import getAllProperties from './getAllProperties.js';
 
 /**
  * Auto-bind methods to an instance.

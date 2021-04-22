@@ -1,4 +1,4 @@
-import Service from '../abstracts/Service';
+import Service from '../abstracts/Service.js';
 
 /**
  * @typedef {import('./index').ServiceInterface} ServiceInterface

@@ -1,5 +1,5 @@
-import Base from '../abstracts/Base';
-import transition from '../utils/css/transition';
+import Base from '../abstracts/Base/index.js';
+import transition from '../utils/css/transition.js';
 
 /**
  * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions

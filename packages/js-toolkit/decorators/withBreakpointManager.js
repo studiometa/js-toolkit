@@ -1,4 +1,4 @@
-import useResize from '../services/resize';
+import useResize from '../services/resize.js';
 
 /**
  * @typedef {import('../abstracts/Base').default} Base

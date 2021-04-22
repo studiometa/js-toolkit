@@ -1,7 +1,7 @@
-import Service from '../abstracts/Service';
-import throttle from '../utils/throttle';
-import debounce from '../utils/debounce';
-import nextFrame from '../utils/nextFrame';
+import Service from '../abstracts/Service.js';
+import throttle from '../utils/throttle.js';
+import debounce from '../utils/debounce.js';
+import nextFrame from '../utils/nextFrame.js';
 
 /**
  * @typedef {import('./index').ServiceInterface} ServiceInterface

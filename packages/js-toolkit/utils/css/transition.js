@@ -1,7 +1,7 @@
 /* eslint no-underscore-dangle: ["error", { "allow": ["__isTransitioning__", "__transitionEndHandler__"] }] */
-import nextFrame from '../nextFrame';
-import * as classes from './classes';
-import * as styles from './styles';
+import nextFrame from '../nextFrame.js';
+import * as classes from './classes.js';
+import * as styles from './styles.js';
 
 /** WeakMap to hold the transition instances. */
 const cache = new WeakMap();

@@ -1,9 +1,9 @@
-import useKey from './key';
-import useLoad from './load';
-import usePointer from './pointer';
-import useRaf from './raf';
-import useResize from './resize';
-import useScroll from './scroll';
+import useKey from './key.js';
+import useLoad from './load.js';
+import usePointer from './pointer.js';
+import useRaf from './raf.js';
+import useResize from './resize.js';
+import useScroll from './scroll.js';
 
 /**
  * @typedef {Object} ServiceInterface

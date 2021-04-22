@@ -1,6 +1,6 @@
-import Accordion from './Accordion';
-import Cursor from './Cursor';
-import Modal from './Modal';
-import Tabs from './Tabs';
+import Accordion from './Accordion/index.js';
+import Cursor from './Cursor.js';
+import Modal from './Modal.js';
+import Tabs from './Tabs.js';
 
 export { Accordion, Cursor, Modal, Tabs };

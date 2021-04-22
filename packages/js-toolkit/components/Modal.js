@@ -1,6 +1,6 @@
-import Base from '../abstracts/Base';
-import transition from '../utils/css/transition';
-import { trap, untrap, saveActiveElement } from '../utils/focusTrap';
+import Base from '../abstracts/Base/index.js';
+import transition from '../utils/css/transition.js';
+import { trap, untrap, saveActiveElement } from '../utils/focusTrap.js';
 
 /**
  * @typedef {Object} ModalRefs

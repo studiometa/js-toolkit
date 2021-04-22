@@ -1,5 +1,5 @@
-import Accordion from './Accordion';
-import AccordionItem from './AccordionItem';
+import Accordion from './Accordion.js';
+import AccordionItem from './AccordionItem.js';
 
 Accordion.config.components = {
   AccordionItem,
