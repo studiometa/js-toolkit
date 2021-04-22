@@ -57,7 +57,7 @@ An accessible, flexible and responsive modal component, easy to use and easy to 
   </div>
 </Preview>
 
-<<< @/docs/components/Modal.template.html
+<<< @/src/components/Modal.template.html
 
 ### Autofocus
 

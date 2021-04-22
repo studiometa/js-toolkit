@@ -38,7 +38,7 @@ next: false
   </div>
 </Preview>
 
-<<< @/docs/components/Tabs.template.html
+<<< @/src/components/Tabs.template.html
 
 ### Animated transition
 
