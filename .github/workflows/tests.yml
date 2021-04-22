@@ -16,7 +16,9 @@ jobs:
       with:
         node-version: 14
     - name: Install modules
-      run: npm ci
+      run: |
+        npm install -g npm@7
+        npm ci
     - name: Run code quality tests
       run: npm run lint:eslint -- --format=compact
     - name: Run types tests
