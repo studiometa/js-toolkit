@@ -25,10 +25,14 @@ function mountComponent(component) {
  * @return {void}
  */
 export function mountComponents(instance) {
-  debug(instance, 'mountComponents', instance.$children);
+  if (__DEV__) {
+    debug(instance, 'mountComponents', instance.$children);
+  }
 
   Object.values(instance.$children).forEach(($child) => {
-    debug(instance, 'mountComponent', $child);
+    if (__DEV__) {
+      debug(instance, 'mountComponent', $child);
+    }
     $child.forEach(mountComponent);
   });
 }
@@ -55,7 +59,9 @@ function mountOrUpdateComponent(component) {
  * @return {void}
  */
 export function mountOrUpdateComponents(instance) {
-  debug(instance, 'mountComponents', instance.$children);
+  if (__DEV__) {
+    debug(instance, 'mountComponents', instance.$children);
+  }
 
   Object.values(instance.$children).forEach(($child) => {
     $child.forEach(mountOrUpdateComponent);
@@ -83,7 +89,9 @@ function destroyComponent(component) {
  * @return {void}
  */
 export function destroyComponents(instance) {
-  debug(instance, 'destroyComponents', instance.$children);
+  if (__DEV__) {
+    debug(instance, 'destroyComponents', instance.$children);
+  }
 
   Object.values(instance.$children).forEach(
     /**
