@@ -5,7 +5,6 @@
     "packages/*"
   ],
   "scripts": {
-    "test-version-npm": "npm -v && which npm",
     "test": "NODE_OPTIONS=--experimental-vm-modules npm run test --workspace=@studiometa/js-toolkit-tests",
     "lint": "npm run lint:eslint && npm run lint:types",
     "lint:eslint": "eslint packages/js-toolkit",
