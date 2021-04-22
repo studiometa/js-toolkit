@@ -261,7 +261,6 @@ export default class Base extends EventManager {
       debug(this, '$terminate');
     }
 
-
     // First, destroy the component.
     this.$destroy();
 
