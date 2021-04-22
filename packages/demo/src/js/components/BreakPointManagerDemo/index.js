@@ -1,8 +1,8 @@
 import Base from '@studiometa/js-toolkit';
 import { withBreakpointManager } from '@studiometa/js-toolkit/decorators';
-import BreakpointManagerDemoMobile from './BreakpointManagerDemoMobile';
-import BreakpointManagerDemoTablet from './BreakpointManagerDemoTablet';
-import BreakpointManagerDemoDesktop from './BreakpointManagerDemoDesktop';
+import BreakpointManagerDemoMobile from './BreakpointManagerDemoMobile.js';
+import BreakpointManagerDemoTablet from './BreakpointManagerDemoTablet.js';
+import BreakpointManagerDemoDesktop from './BreakpointManagerDemoDesktop.js';
 
 export default class BreakpointManagerDemo extends withBreakpointManager(Base, [
   ['s', BreakpointManagerDemoMobile],

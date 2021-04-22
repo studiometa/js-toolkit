@@ -2,9 +2,9 @@
 import Base from '@studiometa/js-toolkit';
 import { Modal, Tabs, Accordion, Cursor } from '@studiometa/js-toolkit/components';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
-import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver';
-import BreakpointManagerDemo from './components/BreakPointManagerDemo';
-import BreakpointObserverDemo from './components/BreakpointObserverDemo';
+import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
+import BreakpointManagerDemo from './components/BreakPointManagerDemo/index.js';
+import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
 
 /**
  * @typedef {import(@studiometa/js-toolkit/abstracts/Base/index).BaseConfig} BaseConfig
@@ -33,8 +33,8 @@ class App extends Base {
           })}`;
         }
       },
-      Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew'),
-      '[data-src]': () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload'),
+      Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew.js'),
+      '[data-src]': () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload.js'),
       Modal: withBreakpointObserver(Modal),
       Tabs,
     },
