@@ -48,9 +48,6 @@
     "prettier": "^2.1.2",
     "typescript": "^4.1.3"
   },
-  "dependencies": {
-    "npm": "^7.10.0"
-  },
   "browserslist": [
     "extends @studiometa/browserslist-config"
   ]
