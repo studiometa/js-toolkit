@@ -61,10 +61,8 @@ export function log(instance, ...msg) {
  * @param {...any} args     The data to print.
  */
 export function debug(instance, ...args) {
-  if (typeof process !== 'undefined' && process?.env?.NODE_ENV === 'development') {
-    if (instance.$options.debug) {
-      log(instance, ...args);
-    }
+  if (instance.$options.debug) {
+    log(instance, '[debug]', ...args);
   }
 }
 
@@ -87,7 +85,9 @@ export function hasMethod(obj, name) {
  * @param {...any} args     The arguments to pass to the method.
  */
 export function callMethod(instance, method, ...args) {
-  debug(instance, 'callMethod', method, ...args);
+  if (__DEV__) {
+    debug(instance, 'callMethod', method, ...args);
+  }
 
   // Prevent duplicate call of `mounted` and `destroyed`
   // methods based on the component status
@@ -95,7 +95,9 @@ export function callMethod(instance, method, ...args) {
     (method === 'destroyed' && !instance.$isMounted) ||
     (method === 'mounted' && instance.$isMounted)
   ) {
-    debug(instance, 'not', method, 'because the method has already been triggered once.');
+    if (__DEV__) {
+      debug(instance, 'not', method, 'because the method has already been triggered once.');
+    }
     return instance;
   }
 
@@ -107,7 +109,9 @@ export function callMethod(instance, method, ...args) {
   }
 
   instance[method].call(instance, ...args);
-  debug(instance, method, instance, ...args);
+  if (__DEV__) {
+    debug(instance, method, instance, ...args);
+  }
 
   return instance;
 }

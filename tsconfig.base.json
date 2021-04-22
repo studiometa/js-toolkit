@@ -12,6 +12,7 @@
     "baseUrl": "./packages/js-toolkit/"
   },
   "include": [
+    "packages/global.d.ts",
     "packages/js-toolkit/abstracts/**/*.js",
     "packages/js-toolkit/components/**/*.js",
     "packages/js-toolkit/decorators/**/*.js",

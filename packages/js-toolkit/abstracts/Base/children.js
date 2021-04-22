@@ -74,7 +74,9 @@ export function getComponentElements(nameOrSelector, element = document) {
  * @return {null|Object}                     Returns `null` if no child components are defined or an object of all child component instances
  */
 export function getChildren(instance, element, components) {
-  debug(instance, 'before:getChildren', element, components);
+  if (__DEV__) {
+    debug(instance, 'before:getChildren', element, components);
+  }
   const children = Object.entries(components).reduce((acc, [name, ComponentClass]) => {
     Object.defineProperty(acc, name, {
       get() {
@@ -100,7 +102,9 @@ export function getChildren(instance, element, components) {
   }, {});
 
   instance.$emit('get:children', children);
-  debug(instance, 'after:getChildren', children);
+  if (__DEV__) {
+    debug(instance, 'after:getChildren', children);
+  }
   return children;
 }
 

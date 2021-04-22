@@ -17,7 +17,9 @@ function bindRootEvents(instance, eventMethods) {
     const eventName = eventMethod.replace(/^on/, '').toLowerCase();
 
     const handler = (...args) => {
-      debug(instance, eventMethod, instance.$el, ...args);
+      if (__DEV__) {
+        debug(instance, eventMethod, instance.$el, ...args);
+      }
       instance[eventMethod](...args);
     };
 
@@ -49,11 +51,15 @@ function bindRefsEvents(instance, eventMethods) {
         $refs.forEach(($ref, index) => {
           const eventName = eventMethod.replace(refEventMethod, '').toLowerCase();
           const handler = (...args) => {
-            debug(instance, eventMethod, $ref, ...args, index);
+            if (__DEV__) {
+              debug(instance, eventMethod, $ref, ...args, index);
+            }
             instance[eventMethod](...args, index);
           };
 
-          debug(instance, 'binding ref event', refName, eventName);
+          if (__DEV__) {
+            debug(instance, 'binding ref event', refName, eventName);
+          }
 
           if ($ref instanceof instance.constructor) {
             // @ts-ignore
@@ -62,7 +68,9 @@ function bindRefsEvents(instance, eventMethods) {
 
           /** @type {HTMLElement} */ ($ref).addEventListener(eventName, handler);
           const unbindMethod = () => {
-            debug(instance, 'unbinding ref event', refName, eventMethod);
+            if (__DEV__) {
+              debug(instance, 'unbinding ref event', refName, eventMethod);
+            }
             /** @type {HTMLElement} */ ($ref).removeEventListener(eventName, handler);
           };
 
@@ -97,15 +105,21 @@ function bindChildrenEvents(instance, eventMethods) {
           ($child, index) => {
             const eventName = eventMethod.replace(childEventMethod, '').toLowerCase();
             const handler = (...args) => {
-              debug(instance, eventMethod, $child, ...args, index);
+              if (__DEV__) {
+                debug(instance, eventMethod, $child, ...args, index);
+              }
               instance[eventMethod](...args, index);
             };
 
-            debug(instance, 'binding child event', childName, eventName);
+            if (__DEV__) {
+              debug(instance, 'binding child event', childName, eventName);
+            }
 
             const unbindMethod = $child.$on(eventName, handler);
             unbindMethods.push(() => {
-              debug(instance, 'unbinding child event', childName, eventName);
+              if (__DEV__) {
+                debug(instance, 'unbinding child event', childName, eventName);
+              }
               unbindMethod();
             });
           }

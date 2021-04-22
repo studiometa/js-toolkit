@@ -65,7 +65,9 @@ export default (BaseClass, defaultOptions = { threshold: createArrayOfNumber(100
 
       this.$observer = new IntersectionObserver(
         (entries) => {
-          debug(this, 'intersected', entries);
+          if (__DEV__) {
+            debug(this, 'intersected', entries);
+          }
           this.$emit('intersected', entries);
           this.intersected(entries);
         },

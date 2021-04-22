@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/extensions
 import { nanoid } from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind.js';
 import EventManager from '../EventManager.js';
@@ -9,6 +8,15 @@ import { getRefs } from './refs.js';
 import { mountComponents, mountOrUpdateComponents, destroyComponents } from './components.js';
 import Services from './classes/Services.js';
 import bindEvents from './events.js';
+
+// Define the __DEV__ constant if not defined
+if (typeof __DEV__ === 'undefined') {
+  if (typeof globalThis !== 'undefined') {
+    globalThis.__DEV__ = false;
+  } else if (typeof window !== 'undefined') {
+    window.__DEV__ = false;
+  }
+}
 
 /**
  * @typedef {typeof Base} BaseComponent
@@ -191,7 +199,9 @@ export default class Base extends EventManager {
       destroyComponents(this);
     });
 
-    debug(this, 'constructor', this);
+    if (__DEV__) {
+      debug(this, 'constructor', this);
+    }
     return this;
   }
 
@@ -210,7 +220,10 @@ export default class Base extends EventManager {
    * Trigger the `mounted` callback.
    */
   $mount() {
-    debug(this, '$mount');
+    if (__DEV__) {
+      debug(this, '$mount');
+    }
+
     callMethod(this, 'mounted');
     return this;
   }
@@ -219,7 +232,10 @@ export default class Base extends EventManager {
    * Update the instance children.
    */
   $update() {
-    debug(this, '$update');
+    if (__DEV__) {
+      debug(this, '$update');
+    }
+
     callMethod(this, 'updated');
     return this;
   }
@@ -228,7 +244,10 @@ export default class Base extends EventManager {
    * Trigger the `destroyed` callback.
    */
   $destroy() {
-    debug(this, '$destroy');
+    if (__DEV__) {
+      debug(this, '$destroy');
+    }
+
     callMethod(this, 'destroyed');
     return this;
   }
@@ -238,7 +257,10 @@ export default class Base extends EventManager {
    * @return {void}
    */
   $terminate() {
-    debug(this, '$terminate');
+    if (__DEV__) {
+      debug(this, '$terminate');
+    }
+
 
     // First, destroy the component.
     this.$destroy();
