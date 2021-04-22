@@ -9,7 +9,7 @@ on:
 
 jobs:
   Unit:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-node@v1
@@ -18,7 +18,7 @@ jobs:
     - name: Install modules
       run: |
         npm install -g npm@7
-        npm ci
+        npm install
     - name: Run code quality tests
       run: npm run lint:eslint -- --format=compact
     - name: Run types tests
