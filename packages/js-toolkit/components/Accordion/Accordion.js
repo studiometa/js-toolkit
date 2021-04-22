@@ -1,7 +1,7 @@
 import Base from '../../abstracts/Base/index.js';
 
 /**
- * @typedef {import('./AccordionItem')} AccordionItem
+ * @typedef {import('./AccordionItem').default} AccordionItem
  */
 
 /**

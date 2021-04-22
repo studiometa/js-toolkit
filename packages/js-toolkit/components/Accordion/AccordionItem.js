@@ -6,8 +6,8 @@ import transition from '../../utils/css/transition.js';
 
 /**
  * @typedef {import('../../abstracts/Base').BaseOptions} BaseOptions
- * @typedef {import('../../utils/css/styles').CssStyleObject} CssStyleObject
- * @typedef {import('./index').AccordionInterface} AccordionInterface
+ * @typedef {import('../../utils/css/styles.js').CssStyleObject} CssStyleObject
+ * @typedef {import('./Accordion.js').AccordionInterface} AccordionInterface
  */
 
 /**

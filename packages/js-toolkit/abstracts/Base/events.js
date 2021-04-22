@@ -2,7 +2,7 @@ import getAllProperties from '../../utils/object/getAllProperties.js';
 import { debug } from './utils.js';
 
 /**
- * @typedef {import('./index.js')} Base
+ * @typedef {import('./index.js').default} Base
  */
 
 /**
@@ -56,8 +56,8 @@ function bindRefsEvents(instance, eventMethods) {
           debug(instance, 'binding ref event', refName, eventName);
 
           if ($ref instanceof instance.constructor) {
-            // eslint-disable-next-line no-param-reassign
-            $ref = $ref.$el;
+            // @ts-ignore
+            $ref = $ref.$el; // eslint-disable-line no-param-reassign
           }
 
           /** @type {HTMLElement} */ ($ref).addEventListener(eventName, handler);
