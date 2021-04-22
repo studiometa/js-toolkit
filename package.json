@@ -7,6 +7,8 @@
   "scripts": {
     "demo:dev": "npm run dev --workspace=@studiometa/js-toolkit-demo",
     "demo:build": "npm run build --workspace=@studiometa/js-toolkit-demo",
+    "docs:dev": "npm run dev --workspace=@studiometa/js-toolkit-docs",
+    "docs:build": "npm run build --workspace=@studiometa/js-toolkit-docs",
     "test": "NODE_OPTIONS=--experimental-vm-modules npm run test --workspace=@studiometa/js-toolkit-tests",
     "lint": "npm run lint:eslint && npm run lint:types",
     "lint:eslint": "eslint packages/js-toolkit",
