@@ -7,9 +7,7 @@
     "build": "vitepress build ."
   },
   "dependencies": {
-    "no-case": "^3.0.4",
     "tailwindcss": "^2.1.1",
-    "vitepress": "^0.13.0",
-    "webpack": "^4.46.0"
+    "vitepress": "^0.13.0"
   }
 }
