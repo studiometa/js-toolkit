@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import Modal from '@studiometa/js-toolkit/components/Modal';
-import template from '@studiometa/js-toolkit-docs/src/components/Modal.template.html';
+import template from '@studiometa/js-toolkit-docs/components/Modal.template.html';
 import nextFrame from '@studiometa/js-toolkit/utils/nextFrame';
 
 let consoleSpy;
