@@ -1,7 +1,7 @@
 /* eslint-disable no-new, require-jsdoc, max-classes-per-file */
 import { jest } from '@jest/globals';
 import Tabs from '@studiometa/js-toolkit/components/Tabs';
-import template from '@studiometa/js-toolkit-docs/src/components/Tabs.template.html';
+import template from '@studiometa/js-toolkit-docs/components/Tabs.template.html';
 import wait from '../__utils__/wait';
 
 describe('The Tabs component', () => {
