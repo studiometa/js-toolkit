@@ -1,9 +1,11 @@
 <template>
-  <div class="preview" :class="{ 'preview--full': full }">
-    <div class="my-4 p-10 rounded" style="background-color: #f6f6f6" ref="parent">
-      <slot />
+  <client-only>
+    <div class="preview" :class="{ 'preview--full': full }">
+      <div class="my-4 p-10 rounded" style="background-color: #f6f6f6" ref="parent">
+        <slot />
+      </div>
     </div>
-  </div>
+  </client-only>
 </template>
 
 <script>

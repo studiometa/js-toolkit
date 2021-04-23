@@ -1,10 +1,15 @@
-const path = require('path');
-// const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
-
 module.exports = {
+  lang: 'en-US',
   title: '🔧 JS Toolkit',
   description: 'A set of useful little bits of JavaScript to boost your project! 🚀',
   themeConfig: {
+    repo: 'studiometa/js-toolkit',
+    docsDir: 'packages/docs/src',
+    lastUpdated: 'Last updated',
+    // algolia: {
+    //   apiKey: '',
+    //   indexName: '',
+    // },
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/' },
@@ -55,27 +60,9 @@ module.exports = {
         ],
       },
       { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
-      { text: 'Github', link: 'https://github.com/studiometa/js-toolkit' },
     ],
   },
   markdown: {
     toc: { includeLevel: [2] },
   },
-  // configureWebpack(config) {
-  //   config.plugins.push(new HardSourceWebpackPlugin())
-  //   config.plugins.push(new HardSourceWebpackPlugin.ExcludeModulePlugin([
-  //     {
-  //       test: /mini-css-extract-plugin[\\/]dist[\\/]loader/,
-  //     },
-  //   ]),)
-  // },
-  plugins: [
-    [
-      '@silvanite/tailwind',
-      {
-        config: path.resolve(__dirname, 'tailwind.config.js'),
-        purgecss: { enabled: false },
-      },
-    ],
-  ],
 };

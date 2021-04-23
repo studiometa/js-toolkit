@@ -13,7 +13,7 @@ An [accessible](http://web-accessibility.carnegiemuseums.org/code/accordions/), 
 
 ### Simple
 
-<Preview>
+<ToolkitPreview>
   <div data-component="Accordion">
     <div data-component="AccordionItem">
       <button data-ref="btn" class="font-bold">
@@ -36,7 +36,7 @@ An [accessible](http://web-accessibility.carnegiemuseums.org/code/accordions/), 
       </div>
     </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
 ```html
 <div data-component="Accordion">
@@ -67,7 +67,7 @@ An [accessible](http://web-accessibility.carnegiemuseums.org/code/accordions/), 
 
 By default, each `AccordionItem` will stay open when another one is opened. You can enable the `autoclose` behaviour by adding the `data-option-autoclose` attribute:
 
-<Preview>
+<ToolkitPreview>
   <div data-component="Accordion" data-option-autoclose>
     <div data-component="AccordionItem">
       <button data-ref="btn" class="font-bold">
@@ -90,7 +90,7 @@ By default, each `AccordionItem` will stay open when another one is opened. You 
       </div>
     </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
 ```html{1}
 <div data-component="Accordion" data-option-autoclose>
@@ -102,7 +102,7 @@ By default, each `AccordionItem` will stay open when another one is opened. You 
 
 You can configure the `AccordionItem` components globally with the `item` options:
 
-<Preview>
+<ToolkitPreview>
   <div data-component="Accordion" data-option-item='{ "isOpen": true }'>
     <div data-component="AccordionItem">
       <button data-ref="btn" class="font-bold">
@@ -125,7 +125,7 @@ You can configure the `AccordionItem` components globally with the `item` option
       </div>
     </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
 ```html{1}
 <div data-component="Accordion" data-option-item='{ "isOpen": true }'>
@@ -140,7 +140,7 @@ You can configure the `AccordionItem` components globally with the `item` option
 
 Or you can configure each `AccordionItem` component separately with their own `data-option-<option-name>` attribute:
 
-<Preview>
+<ToolkitPreview>
   <div data-component="Accordion">
     <div data-component="AccordionItem" data-option-is-open>
       <button data-ref="btn" class="font-bold">
@@ -163,7 +163,7 @@ Or you can configure each `AccordionItem` component separately with their own `d
       </div>
     </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
 ```html{2}
 <div data-component="Accordion">
@@ -180,7 +180,7 @@ Or you can configure each `AccordionItem` component separately with their own `d
 
 You can add transitions to the opening and closing of the `AccordionItem` components with the `styles` option from the `AccordionItem` components.
 
-<Preview>
+<ToolkitPreview>
   <div data-component="Accordion" data-option-item='{ "styles": { "container": { "active": "transition-all duration-500 ease-out-expo" } } }'>
     <div data-component="AccordionItem">
       <button data-ref="btn" class="font-bold">
@@ -213,7 +213,7 @@ You can add transitions to the opening and closing of the `AccordionItem` compon
       </div>
     </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
 ```html{3-9}
 <div
@@ -239,7 +239,7 @@ You can add transitions to the opening and closing of the `AccordionItem` compon
 
 Transitions can be added to additional refs by adding a key matching their name in the `styles` option:
 
-<Preview>
+<ToolkitPreview>
   <div
     data-component="Accordion"
     data-option-item='{
@@ -287,7 +287,7 @@ Transitions can be added to additional refs by adding a key matching their name 
       </div>
     </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
 ```html{8-11,17}
 <div
