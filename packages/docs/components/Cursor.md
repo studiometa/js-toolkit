@@ -13,9 +13,9 @@ Easily create a custom cursor.
 
 ### Simple
 
-<Preview>
+<ToolkitPreview>
   <div data-component="Cursor" class="z-50 fixed top-0 left-0 w-4 h-4 -m-2 rounded-full border border-black pointer-events-none" />
-</Preview>
+</ToolkitPreview>
 
 ```html
 <div

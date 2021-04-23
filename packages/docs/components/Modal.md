@@ -13,7 +13,7 @@ An accessible, flexible and responsive modal component, easy to use and easy to 
 
 ### Simple
 
-<Preview>
+<ToolkitPreview>
   <div data-component="Modal" class="text-center">
   <!--
     Modal opening trigger.
@@ -55,15 +55,15 @@ An accessible, flexible and responsive modal component, easy to use and easy to 
     </div>
   </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
-<<< @/src/components/Modal.template.html
+<<< @/components/Modal.template.html
 
 ### Autofocus
 
 You can choose an item to focus when the modal opens by adding an `autofocus` attribute to an element inside the `modal` ref.
 
-<Preview>
+<ToolkitPreview>
   <div data-component="Modal" class="text-center">
     <!--
       Modal opening trigger.
@@ -108,7 +108,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
       </div>
     </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
 ```html{37}
 <div data-component="Modal">
@@ -159,7 +159,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
 
 ### Max height
 
-<Preview>
+<ToolkitPreview>
   <div data-component="Modal" class="text-center">
     <!--
       Modal opening trigger.
@@ -204,7 +204,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
       </div>
     </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
 ```html{22}
 <div data-component="Modal">
@@ -257,7 +257,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
 
 We reset the default styles for the `modal` ref and add some Tailwind classes to the `data-option-styles` along with classes to enable transforms and transitions on the `container` and `modal` refs.
 
-<Preview>
+<ToolkitPreview>
   <div
     data-component="Modal"
     data-option-styles='{
@@ -312,7 +312,7 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
       </div>
     </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
 ```html{3-12}
 <div

@@ -11,7 +11,7 @@ next: false
 
 ### Simple
 
-<Preview>
+<ToolkitPreview>
   <div data-component="Tabs" data-option-styles='{ "btn": { "open": { "borderBottomColor": "#fff" } } }'>
     <div class="flex px-10">
       <button data-ref="btn[]" class="-mb-px -ml-px p-4 bg-white border">
@@ -36,16 +36,16 @@ next: false
       </div>
     </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
-<<< @/src/components/Tabs.template.html
+<<< @/components/Tabs.template.html
 
 ### Animated transition
 
 You can add some transition to the content switch with the `contentActiveClass` and `contentInactiveClass` options.
 
 
-<Preview>
+<ToolkitPreview>
   <div
     data-component="Tabs"
     data-option-styles='{
@@ -82,7 +82,7 @@ You can add some transition to the content switch with the `contentActiveClass` 
       </button>
     </div>
   </div>
-</Preview>
+</ToolkitPreview>
 
 
 ```html
