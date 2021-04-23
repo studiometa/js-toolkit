@@ -63,6 +63,6 @@ module.exports = {
     ],
   },
   markdown: {
-    toc: { includeLevel: [2] },
+    toc: { includeLevel: [1,2] },
   },
 };
