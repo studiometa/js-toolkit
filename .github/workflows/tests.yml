@@ -8,21 +8,44 @@ on:
   pull_request:
 
 jobs:
-  Unit:
-    runs-on: ubuntu-latest
+
+  Build:
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-node@v1
       with:
-        node-version: 14
+        node-version: 15
     - name: Install modules
-      run: npm ci
+      run: npm install
+    - name: Build the package
+      run: npm run build
+
+  Code-Quality:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 15
+    - name: Install modules
+      run: npm install
     - name: Run code quality tests
       run: npm run lint:eslint -- --format=compact
     - name: Run types tests
       run: npm run lint:types
+
+  Unit:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 15
+    - name: Install modules
+      run: npm install
     - name: Run tests
-      run: npm run test -- --coverage
+      run: npm run test -- -- -i --coverage || npm run test -- -- -i --coverage
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:

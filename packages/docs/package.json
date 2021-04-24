@@ -1,0 +1,14 @@
+{
+  "name": "@studiometa/js-toolkit-docs",
+  "version": "1.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vitepress dev .",
+    "build": "vitepress build ."
+  },
+  "dependencies": {
+    "@studiometa/tailwind-config": "^1.0.2",
+    "tailwindcss": "^2.1.1",
+    "vitepress": "^0.13.0"
+  }
+}
