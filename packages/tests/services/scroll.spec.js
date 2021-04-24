@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+import retry from 'jest-retries';
 import useScroll from '@studiometa/js-toolkit/services/scroll';
 import resizeWindow from '../__utils__/resizeWindow';
 import wait from '../__utils__/wait';
@@ -39,7 +40,7 @@ describe('useScroll', () => {
     scrollHeightSpy.mockRestore();
   });
 
-  it('should trigger the callbacks on scroll', async () => {
+  retry('should trigger the callbacks on scroll', 5, async () => {
     await resizeWindow({ width: 1000, height: 1000 });
     expect(fn).toHaveBeenCalledTimes(0);
 
