@@ -1,0 +1,35 @@
+{
+  "name": "@studiometa/js-toolkit",
+  "version": "1.1.1",
+  "description": "A set of useful little bits of JavaScript to boost your project! 🚀",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/studiometa/js-toolkit.git"
+  },
+  "author": "Studio Meta <agence@studiometa.fr> (https://www.studiometa.fr)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/studiometa/js-toolkit/issues"
+  },
+  "homepage": "https://github.com/studiometa/js-toolkit#readme",
+  "type": "module",
+  "unpkg": "./index.umd.js",
+  "main": "./index.umd.js",
+  "module": "./index.js",
+  "keywords": [
+    "js-toolkit",
+    "component",
+    "studiometa",
+    "toolkit"
+  ],
+  "types": "index.d.ts",
+  "dependencies": {
+    "@babel/runtime": "^7.12.13",
+    "deepmerge": "^4.2.2",
+    "nanoid": "^3.1.20",
+    "no-case": "^3.0.4"
+  }
+}
