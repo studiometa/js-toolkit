@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 15
           registry-url: https://registry.npmjs.org/
 
       - run: npm ci
@@ -21,7 +21,7 @@ jobs:
       - run: npm run build
 
       - name: Test
-        run: npm run test -- --coverage
+        run: npm run test -- -- --coverage || npm run test -- -- --coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
