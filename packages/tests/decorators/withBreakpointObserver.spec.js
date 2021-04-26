@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+import retry from 'jest-retries';
 import Base from '@studiometa/js-toolkit/abstracts/Base';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver';
 import resizeWindow from '../__utils__/resizeWindow';
@@ -59,7 +60,7 @@ describe('The withBreakpointObserver decorator', () => {
     expect(fooResponsive[0].__base__.$isMounted).toBe(true);
   });
 
-  it('should disable the decorated component', async () => {
+  retry('should disable the decorated component', 5, async () => {
     await resizeWindow({ width: 480 });
     expect(window.innerWidth).toBe(480);
     expect(fooResponsive[0].__base__.$isMounted).toBe(true);
