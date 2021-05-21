@@ -49,7 +49,7 @@ function updateUrlSearchParam(params, name, value) {
  * @param  {string}          defaultSearch A string of defaults search params.
  * @return {URLSearchParams}
  */
-function objectToURLSearchParams(obj, defaultSearch = window.location.search) {
+export function objectToURLSearchParams(obj, defaultSearch = window.location.search) {
   return Object.entries(obj).reduce(
     (urlSearchParams, [name, value]) => updateUrlSearchParam(urlSearchParams, name, value),
     new URLSearchParams(defaultSearch)
