@@ -144,13 +144,13 @@ export default function bindEvents(instance) {
   const eventMethods = getAllProperties(instance).reduce(
     (acc, [name]) => {
       // Testing camelCase with one word: onEvent.
-      if (ROOT_EVENT_REGEX.test(name)) {
+      if (ROOT_EVENT_REGEX.test(name) && !acc.root.includes(name)) {
         acc.root.push(name);
         return acc;
       }
 
       // Testing camelCase with more than two words: onRefEvent.
-      if (REFS_CHILDREN_EVENT_REGEX.test(name)) {
+      if (REFS_CHILDREN_EVENT_REGEX.test(name) && !acc.refsOrChildren.includes(name)) {
         acc.refsOrChildren.push(name);
       }
 
