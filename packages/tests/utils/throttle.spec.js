@@ -28,12 +28,7 @@ describe('throttle method', () => {
     const throttled = throttle(fn);
 
     throttled();
-    throttled();
-    throttled();
-
-    expect(fn).toHaveBeenCalledTimes(1);
-
-    await wait(10);
+    await wait(5);
     throttled();
     expect(fn).toHaveBeenCalledTimes(1);
 

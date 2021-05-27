@@ -1,5 +1,4 @@
 import { jest } from '@jest/globals';
-import retry from 'jest-retries';
 import useScroll from '@studiometa/js-toolkit/services/scroll';
 import resizeWindow from '../__utils__/resizeWindow';
 import wait from '../__utils__/wait';
@@ -9,9 +8,10 @@ describe('useScroll', () => {
   let fn;
   let scrollProps;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await resizeWindow({ width: 1000, height: 1000 });
     remove('key');
-    fn = jest.fn(p => {
+    fn = jest.fn((p) => {
       scrollProps = p;
     });
     add('key', fn);
@@ -24,7 +24,6 @@ describe('useScroll', () => {
   });
 
   it('should show a progress of 1 if there is no scroll', async () => {
-    await resizeWindow({ width: 1000, height: 1000 });
     const scrollWidthSpy = jest.spyOn(document.body, 'scrollWidth', 'get');
     scrollWidthSpy.mockImplementation(() => window.innerWidth);
 
@@ -40,8 +39,7 @@ describe('useScroll', () => {
     scrollHeightSpy.mockRestore();
   });
 
-  retry('should trigger the callbacks on scroll', 5, async () => {
-    await resizeWindow({ width: 1000, height: 1000 });
+  it('should trigger the callbacks on scroll', async () => {
     expect(fn).toHaveBeenCalledTimes(0);
 
     const scrollWidthSpy = jest.spyOn(document.body, 'scrollWidth', 'get');
