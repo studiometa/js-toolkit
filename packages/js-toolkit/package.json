@@ -28,6 +28,7 @@
   "types": "index.d.ts",
   "dependencies": {
     "@babel/runtime": "^7.14.0",
+    "change-case": "^4.1.2",
     "deepmerge": "^4.2.2",
     "nanoid": "^3.1.23",
     "no-case": "^3.0.4"

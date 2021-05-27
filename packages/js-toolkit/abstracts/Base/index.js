@@ -7,6 +7,7 @@ import { getOptions } from './options.js';
 import { getRefs } from './refs.js';
 import { mountComponents, mountOrUpdateComponents, destroyComponents } from './components.js';
 import Services from './classes/Services.js';
+import Events from './classes/Events.js';
 import bindEvents from './events.js';
 
 // Define the __DEV__ constant if not defined
@@ -176,26 +177,27 @@ export default class Base extends EventManager {
     /** @type {Services} */
     this.$services = new Services(this);
 
-    let unbindMethods = [];
+    this.$events = new Events(this);
+
     this.$on('mounted', () => {
       this.$services.enableAll();
-      unbindMethods = [...bindEvents(this)];
+      this.$events.bindAll();
       mountComponents(this);
       this.$isMounted = true;
     });
 
     this.$on('updated', () => {
       this.$services.disableAll();
-      unbindMethods.forEach((method) => method());
-      unbindMethods = [...bindEvents(this)];
+      this.$event.unbindAll();
       this.$services.enableAll();
+      this.$events.bindAll();
       mountOrUpdateComponents(this);
     });
 
     this.$on('destroyed', () => {
       this.$isMounted = false;
       this.$services.disableAll();
-      unbindMethods.forEach((method) => method());
+      this.$event.unbindAll();
       destroyComponents(this);
     });
 
