@@ -1,18 +1,20 @@
 import { jest } from '@jest/globals';
-import retry from 'jest-retries';
 import nextFrame from '@studiometa/js-toolkit/utils/nextFrame';
 import wait from '../__utils__/wait';
 
+jest.useFakeTimers();
+
 describe('nextFrame method', () => {
-  retry('should execute the callback function in the next frame', 5, async () => {
+  it('should execute the callback function in the next frame', async () => {
     const fn = jest.fn();
     nextFrame(fn);
     expect(fn).toHaveBeenCalledTimes(0);
-    await wait(10);
+    wait(0);
+    jest.runAllTimers();
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  retry('should work server-side', 5, async () => {
+  it('should work server-side', async () => {
     // Mock window === undefined
     // @see https://stackoverflow.com/a/56999581
     const windowSpy = jest.spyOn(globalThis, 'window', 'get');
@@ -21,8 +23,8 @@ describe('nextFrame method', () => {
 
     nextFrame(fn);
     expect(fn).toHaveBeenCalledTimes(0);
-    await wait(1);
-    await wait(1);
+    jest.advanceTimersByTime(1);
+    jest.advanceTimersByTime(1);
     expect(fn).toHaveBeenCalledTimes(1);
     windowSpy.mockRestore();
   });

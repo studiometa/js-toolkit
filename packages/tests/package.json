@@ -7,11 +7,10 @@
     "test": "jest"
   },
   "dependencies": {
-    "@jest/globals": "^26.6.2",
-    "babel-jest": "^26.3.0",
+    "@jest/globals": "^27.0.1",
+    "babel-jest": "^27.0.1",
     "htl": "^0.2.5",
     "html-loader-jest": "^0.2.1",
-    "jest": "^26.4.2",
-    "jest-retries": "^1.0.1"
+    "jest": "^27.0.1"
   }
 }

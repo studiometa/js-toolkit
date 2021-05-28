@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals';
 import throttle from '@studiometa/js-toolkit/utils/throttle';
-import wait from '../__utils__/wait';
+
+jest.useFakeTimers();
 
 describe('throttle method', () => {
   it('should call the given function only once in the given delay', async () => {
@@ -14,12 +15,14 @@ describe('throttle method', () => {
 
     expect(fn).toHaveBeenCalledTimes(1);
 
-    await wait(400);
+    jest.advanceTimersByTime(400);
+
     throttled();
     throttled();
     throttled();
     throttled();
-    await wait(100);
+    jest.advanceTimersByTime(100);
+
     expect(fn).toHaveBeenCalledTimes(2);
   });
 
@@ -28,11 +31,11 @@ describe('throttle method', () => {
     const throttled = throttle(fn);
 
     throttled();
-    await wait(5);
+    jest.advanceTimersByTime(10);
     throttled();
     expect(fn).toHaveBeenCalledTimes(1);
 
-    await wait(20);
+    jest.advanceTimersByTime(20);
     throttled();
     throttled();
     expect(fn).toHaveBeenCalledTimes(2);
