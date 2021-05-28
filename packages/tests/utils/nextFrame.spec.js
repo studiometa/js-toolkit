@@ -2,9 +2,15 @@ import { jest } from '@jest/globals';
 import nextFrame from '@studiometa/js-toolkit/utils/nextFrame';
 import wait from '../__utils__/wait';
 
-jest.useFakeTimers();
-
 describe('nextFrame method', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   it('should execute the callback function in the next frame', async () => {
     const fn = jest.fn();
     nextFrame(fn);

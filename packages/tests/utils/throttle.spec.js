@@ -1,9 +1,16 @@
 import { jest } from '@jest/globals';
 import throttle from '@studiometa/js-toolkit/utils/throttle';
 
-jest.useFakeTimers();
-
 describe('throttle method', () => {
+
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   it('should call the given function only once in the given delay', async () => {
     const fn = jest.fn(() => true);
     const throttled = throttle(fn, 300);

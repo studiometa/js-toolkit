@@ -23,10 +23,16 @@ function moveMouse({ event = { target: document }, x, y }) {
   return new Promise((resolve) => setTimeout(resolve));
 }
 
-jest.useFakeTimers();
-
 describe('The Cursor component', () => {
   let renderSpy;
+
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
 
   beforeEach(() => {
     renderSpy = jest.spyOn(cursor, 'render');

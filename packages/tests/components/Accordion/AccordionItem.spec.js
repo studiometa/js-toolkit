@@ -69,10 +69,10 @@ describe('AccordionItem component', () => {
     expect(content.getAttribute('aria-hidden')).toBe('true');
     expect(spy).toHaveBeenLastCalledWith('rotate-0');
     btn.click();
-    await wait(100);
+    await wait(200);
     expect(content.getAttribute('aria-hidden')).toBe('false');
     btn.click();
-    await wait(100);
+    await wait(200);
     expect(content.getAttribute('aria-hidden')).toBe('true');
 
     item.open();

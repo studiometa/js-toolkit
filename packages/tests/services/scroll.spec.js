@@ -2,12 +2,18 @@ import { jest } from '@jest/globals';
 import useScroll from '@studiometa/js-toolkit/services/scroll';
 import resizeWindow from '../__utils__/resizeWindow';
 
-jest.useFakeTimers();
-
 describe('useScroll', () => {
   const { add, remove, props } = useScroll();
   let fn;
   let scrollProps;
+
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
 
   beforeEach(() => {
     resizeWindow({ width: 1000, height: 1000 });
