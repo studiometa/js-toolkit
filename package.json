@@ -27,8 +27,8 @@
     "build:bundle:full:umd": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/full.js -o dist/full.umd.js -f umd --name JsToolkit --no-pkg-main --no-compress --external none"
   },
   "devDependencies": {
-    "@babel/cli": "^7.11.6",
-    "@babel/core": "^7.11.6",
+    "@babel/cli": "^7.14.3",
+    "@babel/core": "^7.14.3",
     "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/plugin-transform-runtime": "^7.14.3",
     "@babel/preset-env": "^7.14.1",
@@ -42,7 +42,7 @@
     "@typescript-eslint/eslint-plugin": "^4.24.0",
     "@typescript-eslint/parser": "^4.24.0",
     "babel-plugin-add-import-extension": "^1.4.4",
-    "eslint": "^7.25.0",
+    "eslint": "^7.26.0",
     "eslint-plugin-jest": "^24.3.6",
     "microbundle": "^0.13.0",
     "prettier": "^2.3.0",
