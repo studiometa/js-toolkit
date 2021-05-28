@@ -1,9 +1,15 @@
 import { jest } from '@jest/globals';
 import debounce from '@studiometa/js-toolkit/utils/debounce';
 
-jest.useFakeTimers();
-
 describe('debounce method', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   it('should wait the given delay to call given function', async () => {
     const fn = jest.fn(() => true);
     const debounced = debounce(fn, 400);

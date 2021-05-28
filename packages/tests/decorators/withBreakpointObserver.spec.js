@@ -4,8 +4,6 @@ import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakp
 import useResize from '@studiometa/js-toolkit/services/resize.js';
 import resizeWindow from '../__utils__/resizeWindow';
 
-jest.useFakeTimers();
-
 /**
  * With name decorator.
  * @param  {Base}   BaseClass A Base class to extend from
@@ -48,6 +46,14 @@ let foo;
 let fooResponsive;
 
 describe('The withBreakpointObserver decorator', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     document.body.innerHTML = template;
     app = new App(document.body).$mount();

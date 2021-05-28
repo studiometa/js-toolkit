@@ -2,10 +2,16 @@ import { jest } from '@jest/globals';
 import useResize from '@studiometa/js-toolkit/services/resize';
 import resizeWindow from '../__utils__/resizeWindow';
 
-jest.useFakeTimers();
-
 describe('useResize', () => {
   const { add, remove, props } = useResize();
+
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
 
   it('should export the `add`, `remove` and `props` methods', () => {
     expect(typeof add).toBe('function');
@@ -17,11 +23,11 @@ describe('useResize', () => {
     const fn = jest.fn();
     add('key', fn);
     resizeWindow({ width: 1000 });
-    jest.runAllTimers()
+    jest.runAllTimers();
     expect(fn).toHaveBeenCalledTimes(1);
     remove('key');
     resizeWindow({ width: 800 });
-    jest.runAllTimers()
+    jest.runAllTimers();
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
@@ -30,8 +36,7 @@ describe('useResize', () => {
     expect(props().breakpoint).toBeUndefined();
 
     document.body.innerHTML = '<div data-breakpoint></div>';
-        jest.advanceTimersByTime(100);
-
+    jest.advanceTimersByTime(100);
 
     expect(props().breakpoints).toEqual(['s', 'm', 'l']);
     resizeWindow({ width: 600 });
