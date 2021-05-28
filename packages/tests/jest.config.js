@@ -3,6 +3,9 @@
  */
 export default {
   testEnvironment: 'jsdom',
+  testEnvironmentOptions: {
+    pretendToBeVisual: true,
+  },
   collectCoverage: false,
   collectCoverageFrom: ['<rootDir>/js-toolkit/**/*.js'],
   rootDir: '../',
@@ -11,7 +14,6 @@ export default {
     '^.+\\.html?$': 'html-loader-jest',
   },
   setupFiles: [
-    '<rootDir>/tests/__setup__/requestAnimationFrame.js',
     '<rootDir>/tests/__setup__/mockBreakpoints.js',
     '<rootDir>/tests/__setup__/ResizeObserver.js',
     '<rootDir>/tests/__setup__/mockQuerySelectorAllWithScope.js',

@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals';
 import debounce from '@studiometa/js-toolkit/utils/debounce';
-import wait from '../__utils__/wait';
+
+jest.useFakeTimers();
 
 describe('debounce method', () => {
   it('should wait the given delay to call given function', async () => {
@@ -14,10 +15,10 @@ describe('debounce method', () => {
 
     expect(fn).not.toHaveBeenCalled();
 
-    await wait(150);
+    jest.advanceTimersByTime(150);
     expect(fn).not.toHaveBeenCalled();
 
-    await wait(400);
+    jest.advanceTimersByTime(400);
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
@@ -28,9 +29,9 @@ describe('debounce method', () => {
     debounced();
     debounced();
 
-    await wait(200);
+    jest.advanceTimersByTime(200);
     expect(fn).not.toHaveBeenCalled();
-    await wait(301);
+    jest.advanceTimersByTime(301);
     expect(fn).toHaveBeenCalledTimes(1);
   });
 });

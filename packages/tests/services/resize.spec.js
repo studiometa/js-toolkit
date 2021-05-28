@@ -1,7 +1,8 @@
 import { jest } from '@jest/globals';
 import useResize from '@studiometa/js-toolkit/services/resize';
 import resizeWindow from '../__utils__/resizeWindow';
-import wait from '../__utils__/wait';
+
+jest.useFakeTimers();
 
 describe('useResize', () => {
   const { add, remove, props } = useResize();
@@ -12,29 +13,35 @@ describe('useResize', () => {
     expect(typeof props).toBe('function');
   });
 
-  it('should not trigger the callbacks when killed', async () => {
+  it('should not trigger the callbacks when killed', () => {
     const fn = jest.fn();
     add('key', fn);
-    await resizeWindow({ width: 1000 });
+    resizeWindow({ width: 1000 });
+    jest.runAllTimers()
     expect(fn).toHaveBeenCalledTimes(1);
     remove('key');
-    await resizeWindow({ width: 800 });
+    resizeWindow({ width: 800 });
+    jest.runAllTimers()
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it('should have breakpoints props', async () => {
+  it('should have breakpoints props', () => {
     expect(props().breakpoints).toBeUndefined();
     expect(props().breakpoint).toBeUndefined();
 
     document.body.innerHTML = '<div data-breakpoint></div>';
-    await wait(100);
+        jest.advanceTimersByTime(100);
+
 
     expect(props().breakpoints).toEqual(['s', 'm', 'l']);
-    await resizeWindow({ width: 600 });
+    resizeWindow({ width: 600 });
+    jest.runAllTimers();
     expect(props().breakpoint).toBe('s');
-    await resizeWindow({ width: 800 });
+    resizeWindow({ width: 800 });
+    jest.runAllTimers();
     expect(props().breakpoint).toBe('m');
-    await resizeWindow({ width: 1200 });
+    resizeWindow({ width: 1200 });
+    jest.runAllTimers();
     expect(props().breakpoint).toBe('l');
   });
 });
