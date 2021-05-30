@@ -14,7 +14,7 @@ import merge from 'deepmerge';
  * @param {DeepmergeOptions} options Options for the `deepmerge` function. {@link https://github.com/TehShrike/deepmerge#options}
  * @return {BaseComponent}
  */
-export default (BaseClass, config = {}, options = {}) => {
+export default (BaseClass, config, options = {}) => {
   const newConfig = merge(BaseClass.config, config, options);
 
   if (newConfig.name === BaseClass.config.name) {
