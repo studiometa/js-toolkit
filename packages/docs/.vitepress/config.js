@@ -37,11 +37,11 @@ module.exports = {
       {
         text: 'Services',
         items: [
-          { text: 'Key', link: '/services/key/' },
-          { text: 'Pointer', link: '/services/pointer/' },
-          { text: 'RAF', link: '/services/raf/' },
-          { text: 'Resize', link: '/services/resize/' },
-          { text: 'Scroll', link: '/services/scroll/' },
+          { text: 'Key', link: '/services/key.html' },
+          { text: 'Pointer', link: '/services/pointer.html' },
+          { text: 'RAF', link: '/services/raf.html' },
+          { text: 'Resize', link: '/services/resize.html' },
+          { text: 'Scroll', link: '/services/scroll.html' },
         ],
       },
       {
