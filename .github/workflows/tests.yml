@@ -36,7 +36,7 @@ jobs:
       run: npm run lint:types
 
   Unit:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-node@v1
@@ -45,7 +45,7 @@ jobs:
     - name: Install modules
       run: npm install
     - name: Run tests
-      run: npm run test -- -- --coverage || npm run test -- -- --coverage
+      run: npm run test -- -- --coverage --runInBand --ci || npm run test -- -- --coverage --runInBand --ci
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:

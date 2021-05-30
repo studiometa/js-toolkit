@@ -5,12 +5,12 @@ import Cursor from '@studiometa/js-toolkit/components/Cursor';
  * @typedef {import('@studiometa/js-toolkit/components/Cursor.js').CursorInterface} CursorInterface
  */
 
-  const root = document.createElement('div');
-  /** @type {Cursor & CursorInterface} */
-  const cursor = new Cursor(root);
-  cursor.$options.translateDampFactor = 1;
-  cursor.$options.growDampFactor = 1;
-  cursor.$options.shrinkDampFactor = 1;
+const root = document.createElement('div');
+/** @type {Cursor & CursorInterface} */
+const cursor = new Cursor(root);
+cursor.$options.translateDampFactor = 1;
+cursor.$options.growDampFactor = 1;
+cursor.$options.shrinkDampFactor = 1;
 
 /**
  * @param {Object} options
@@ -26,6 +26,14 @@ function moveMouse({ event = { target: document }, x, y }) {
 describe('The Cursor component', () => {
   let renderSpy;
 
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     renderSpy = jest.spyOn(cursor, 'render');
   });
@@ -39,8 +47,9 @@ describe('The Cursor component', () => {
     expect(renderSpy).toHaveBeenLastCalledWith({ x: 0, y: 0, scale: 0 });
   });
 
-  it('should render on mousemove', async () => {
-    await moveMouse({ x: 100, y: 100 });
+  it('should render on mousemove', () => {
+    moveMouse({ x: 100, y: 100 });
+    jest.runAllTimers();
     expect(renderSpy).toHaveBeenLastCalledWith({
       x: 100,
       y: 100,
@@ -48,16 +57,18 @@ describe('The Cursor component', () => {
     });
   });
 
-  it('should disable the `ticked` service when not moving', async () => {
+  it('should disable the `ticked` service when not moving', () => {
     const serviceSpy = jest.spyOn(cursor.$services, 'disable');
-    await moveMouse({ x: 100, y: 100 });
+    moveMouse({ x: 100, y: 100 });
+    jest.runAllTimers();
     expect(serviceSpy).toHaveBeenNthCalledWith(1, 'ticked');
   });
 
-  it('should grow when hovering on grow selectors', async () => {
+  it('should grow when hovering on grow selectors', () => {
     const div = document.createElement('div');
     div.setAttribute('data-cursor-grow', '');
-    await moveMouse({ x: 100, y: 100, event: { target: div } });
+    moveMouse({ x: 100, y: 100, event: { target: div } });
+    jest.runAllTimers();
     expect(renderSpy).toHaveBeenCalledWith({
       x: 100,
       y: 100,
@@ -65,10 +76,12 @@ describe('The Cursor component', () => {
     });
   });
 
-  it('should shrink when hovering on shrink selectors', async () => {
+  it('should shrink when hovering on shrink selectors', () => {
     const div = document.createElement('div');
     div.setAttribute('data-cursor-shrink', '');
-    await moveMouse({ x: 100, y: 100, event: { target: div } });
+    moveMouse({ x: 100, y: 100, event: { target: div } });
+    jest.runAllTimers();
+
     expect(renderSpy).toHaveBeenCalledWith({
       x: 100,
       y: 100,
@@ -76,8 +89,10 @@ describe('The Cursor component', () => {
     });
   });
 
-  it('should scale back to the original size when hovering on nothing', async () => {
-    await moveMouse({ event: null, x: 100, y: 100 });
+  it('should scale back to the original size when hovering on nothing', () => {
+    moveMouse({ event: null, x: 100, y: 100 });
+    jest.runAllTimers();
+
     expect(renderSpy).toHaveBeenCalledWith({
       x: 100,
       y: 100,
