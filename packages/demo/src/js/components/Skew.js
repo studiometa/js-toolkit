@@ -1,23 +1,7 @@
 import Base from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
-import { damp } from '@studiometa/js-toolkit/utils/math';
+import { damp, clamp } from '@studiometa/js-toolkit/utils/math';
 import { withMountWhenInView } from '@studiometa/js-toolkit/decorators';
-
-function clamp(value, min, max) {
-  /* eslint-disable no-nested-ternary */
-  return min < max
-    ? value < min
-      ? min
-      : value > max
-      ? max
-      : value
-    : value < max
-    ? max
-    : value > min
-    ? min
-    : value;
-  /* eslint-enable no-nested-ternary */
-}
 
 export default class Skew extends withMountWhenInView(Base) {
   static config = {

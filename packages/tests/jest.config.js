@@ -1,17 +1,19 @@
 /**
  * @link https://jestjs.io/docs/en/configuration.html
+ * @type {import('@jest/types').Config.GlobalConfig}
  */
 export default {
   testEnvironment: 'jsdom',
+  testEnvironmentOptions: {
+    pretendToBeVisual: true,
+  },
   collectCoverage: false,
   collectCoverageFrom: ['<rootDir>/js-toolkit/**/*.js'],
-  rootDir: '../',
+  rootDir: '..',
   transform: {
-    '^.+\\.js$': 'babel-jest',
     '^.+\\.html?$': 'html-loader-jest',
   },
   setupFiles: [
-    '<rootDir>/tests/__setup__/requestAnimationFrame.js',
     '<rootDir>/tests/__setup__/mockBreakpoints.js',
     '<rootDir>/tests/__setup__/ResizeObserver.js',
     '<rootDir>/tests/__setup__/mockQuerySelectorAllWithScope.js',

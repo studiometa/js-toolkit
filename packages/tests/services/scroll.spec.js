@@ -1,17 +1,25 @@
 import { jest } from '@jest/globals';
-import retry from 'jest-retries';
 import useScroll from '@studiometa/js-toolkit/services/scroll';
 import resizeWindow from '../__utils__/resizeWindow';
-import wait from '../__utils__/wait';
 
 describe('useScroll', () => {
   const { add, remove, props } = useScroll();
   let fn;
   let scrollProps;
 
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
+    resizeWindow({ width: 1000, height: 1000 });
+    jest.runAllTimers();
     remove('key');
-    fn = jest.fn(p => {
+    fn = jest.fn((p) => {
       scrollProps = p;
     });
     add('key', fn);
@@ -23,8 +31,7 @@ describe('useScroll', () => {
     expect(typeof props).toBe('function');
   });
 
-  it('should show a progress of 1 if there is no scroll', async () => {
-    await resizeWindow({ width: 1000, height: 1000 });
+  it('should show a progress of 1 if there is no scroll', () => {
     const scrollWidthSpy = jest.spyOn(document.body, 'scrollWidth', 'get');
     scrollWidthSpy.mockImplementation(() => window.innerWidth);
 
@@ -32,7 +39,7 @@ describe('useScroll', () => {
     scrollHeightSpy.mockImplementation(() => window.innerHeight);
 
     document.dispatchEvent(new CustomEvent('scroll'));
-    await wait(100);
+    jest.advanceTimersByTime(100);
 
     expect(scrollProps.progress).toEqual({ x: 1, y: 1 });
 
@@ -40,8 +47,7 @@ describe('useScroll', () => {
     scrollHeightSpy.mockRestore();
   });
 
-  retry('should trigger the callbacks on scroll', 5, async () => {
-    await resizeWindow({ width: 1000, height: 1000 });
+  it('should trigger the callbacks on scroll', () => {
     expect(fn).toHaveBeenCalledTimes(0);
 
     const scrollWidthSpy = jest.spyOn(document.body, 'scrollWidth', 'get');
@@ -51,7 +57,7 @@ describe('useScroll', () => {
     scrollHeightSpy.mockImplementation(() => window.innerHeight * 2);
 
     document.dispatchEvent(new CustomEvent('scroll'));
-    await wait(100);
+    jest.advanceTimersByTime(100);
 
     expect(scrollProps).toEqual({
       x: 0,
