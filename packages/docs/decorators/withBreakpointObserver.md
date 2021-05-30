@@ -2,7 +2,7 @@
 sidebar: auto
 sidebarDepth: 5
 prev: /decorators/withBreakpointManager.html
-next: /decorators/withIntersectionObserver.html
+next: /decorators/withExtraConfig.html
 ---
 
 # withBreakpointObserver
