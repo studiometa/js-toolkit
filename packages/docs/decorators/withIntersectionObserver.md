@@ -1,7 +1,7 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /decorators/withBreakpointObserver.html
+prev: /decorators/withExtraConfig.html
 next: /decorators/withMountWhenInView.html
 ---
 

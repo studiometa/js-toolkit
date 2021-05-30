@@ -20,6 +20,7 @@ module.exports = {
         items: [
           { text: 'withBreakpointManager', link: '/decorators/withBreakpointManager.html' },
           { text: 'withBreakpointObserver', link: '/decorators/withBreakpointObserver.html' },
+          { text: 'withExtraConfig', link: '/decorators/withExtraConfig.html' },
           { text: 'withIntersectionObserver', link: '/decorators/withIntersectionObserver.html' },
           { text: 'withMountWhenInView', link: '/decorators/withMountWhenInView.html' },
         ],
