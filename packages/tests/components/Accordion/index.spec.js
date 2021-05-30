@@ -50,13 +50,11 @@ describe('Accordion component', () => {
   //   expect(JSON.parse(accordionItem.dataset['option-item'])).toEqual({ test: false });
   // });
 
-  it('should not autoclose items by default', async () => {
+  it('should not autoclose items by default', () => {
     btn[0].click();
-    await wait(100);
     expect(content[0].getAttribute('aria-hidden')).toBe('false');
     expect(content[1].getAttribute('aria-hidden')).toBe('true');
     btn[1].click();
-    await wait(100);
     expect(content[0].getAttribute('aria-hidden')).toBe('false');
     expect(content[1].getAttribute('aria-hidden')).toBe('false');
   });
@@ -64,13 +62,15 @@ describe('Accordion component', () => {
   it('should autoclose items when specified', async () => {
     item.$el.setAttribute('data-option-autoclose', '');
     btn[0].click();
-    await wait(100);
+
     expect(content[0].getAttribute('aria-hidden')).toBe('false');
     expect(content[1].getAttribute('aria-hidden')).toBe('true');
+
     btn[1].click();
+
+    expect(content[1].getAttribute('aria-hidden')).toBe('false');
     await wait(100);
     expect(content[0].getAttribute('aria-hidden')).toBe('true');
-    expect(content[1].getAttribute('aria-hidden')).toBe('false');
   });
 
   it('should unbind the open listeners on destroy', () => {

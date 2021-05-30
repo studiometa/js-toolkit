@@ -8,6 +8,7 @@ describe('transition method', () => {
   let spyStyle;
 
   beforeEach(() => {
+    jest.useRealTimers();
     document.body.innerHTML = `
       <div class="w-16 h-16 m-10 bg-black"></div>
     `;

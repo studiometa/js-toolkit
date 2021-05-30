@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
-import retry from 'jest-retries';
 import Base from '@studiometa/js-toolkit/abstracts/Base';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver';
+import useResize from '@studiometa/js-toolkit/services/resize.js';
 import resizeWindow from '../__utils__/resizeWindow';
 
 /**
@@ -46,6 +46,14 @@ let foo;
 let fooResponsive;
 
 describe('The withBreakpointObserver decorator', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     document.body.innerHTML = template;
     app = new App(document.body).$mount();
@@ -53,27 +61,34 @@ describe('The withBreakpointObserver decorator', () => {
     fooResponsive = document.querySelectorAll('[data-component="FooResponsive"]');
   });
 
-  it('should mount', async () => {
-    await resizeWindow({ width: 1200 });
+  it('should mount', () => {
+    resizeWindow({ width: 1200 });
+    jest.runAllTimers();
     expect(app.$isMounted).toBe(true);
     expect(foo.__base__.$isMounted).toBe(true);
     expect(fooResponsive[0].__base__.$isMounted).toBe(true);
   });
 
-  retry('should disable the decorated component', 5, async () => {
-    await resizeWindow({ width: 480 });
+  it('should disable the decorated component', async () => {
+    resizeWindow({ width: 480 });
+    jest.runAllTimers();
+
     expect(window.innerWidth).toBe(480);
     expect(fooResponsive[0].__base__.$isMounted).toBe(true);
     expect(fooResponsive[1].__base__.$isMounted).toBe(true);
     expect(fooResponsive[2].__base__.$isMounted).toBe(false);
     expect(fooResponsive[3].__base__.$isMounted).toBe(false);
-    await resizeWindow({ width: 800 });
+    resizeWindow({ width: 800 });
+    jest.runAllTimers();
+
     expect(window.innerWidth).toBe(800);
     expect(fooResponsive[0].__base__.$isMounted).toBe(true);
     expect(fooResponsive[1].__base__.$isMounted).toBe(false);
     expect(fooResponsive[2].__base__.$isMounted).toBe(true);
     expect(fooResponsive[3].__base__.$isMounted).toBe(false);
-    await resizeWindow({ width: 1200 });
+    resizeWindow({ width: 1200 });
+    jest.runAllTimers();
+
     expect(window.innerWidth).toBe(1200);
     expect(fooResponsive[0].__base__.$isMounted).toBe(true);
     expect(fooResponsive[1].__base__.$isMounted).toBe(false);
@@ -81,20 +96,32 @@ describe('The withBreakpointObserver decorator', () => {
     expect(fooResponsive[3].__base__.$isMounted).toBe(false);
 
     fooResponsive[0].__base__.$options.inactiveBreakpoints = 's m';
+    // We need the real timers to wait for the MutationObserver to work correctly.
+    jest.useRealTimers();
     await resizeWindow({ width: 800 });
+
     expect(window.innerWidth).toBe(800);
     expect(fooResponsive[0].__base__.$isMounted).toBe(false);
+
     await resizeWindow({ width: 1200 });
     expect(fooResponsive[0].__base__.$isMounted).toBe(true);
+
+    jest.useFakeTimers();
   });
 
-  it('should re-mount component when deleting both breakpoint options', async () => {
-    await resizeWindow({ width: 400 });
+  it('should re-mount component when deleting both breakpoint options', () => {
+    resizeWindow({ width: 400 });
+    jest.runAllTimers();
+
     expect(fooResponsive[1].__base__.$isMounted).toBe(true);
-    await resizeWindow({ width: 800 });
+    resizeWindow({ width: 800 });
+    jest.runAllTimers();
+
     expect(fooResponsive[1].__base__.$isMounted).toBe(false);
     fooResponsive[1].dataset.options = '{}';
-    await resizeWindow({ width: 400 });
+    resizeWindow({ width: 400 });
+    jest.runAllTimers();
+
     expect(fooResponsive[1].__base__.$isMounted).toBe(true);
   });
 
@@ -116,8 +143,10 @@ describe('The withBreakpointObserver decorator', () => {
     }).toThrow(/Incorrect configuration/);
   });
 
-  it('should destroy components before mounting the others', async () => {
-    await resizeWindow({ width: 800 });
+  it('should destroy components before mounting the others', () => {
+    resizeWindow({ width: 800 });
+    jest.runAllTimers();
+
     const fn = jest.fn();
 
     class Mobile extends withBreakpointObserver(Base) {
@@ -170,10 +199,14 @@ describe('The withBreakpointObserver decorator', () => {
 
     const app = new App(document.body).$mount();
     expect(fn).toHaveBeenCalledWith('Desktop', 'mounted');
-    await resizeWindow({ width: 400 });
+    resizeWindow({ width: 400 });
+    jest.runAllTimers();
+
     expect(fn).toHaveBeenNthCalledWith(2, 'Desktop', 'destroyed');
     expect(fn).toHaveBeenNthCalledWith(3, 'Mobile', 'mounted');
-    await resizeWindow({ width: 800 });
+    resizeWindow({ width: 800 });
+    jest.runAllTimers();
+
     expect(fn).toHaveBeenNthCalledWith(4, 'Mobile', 'destroyed');
     expect(fn).toHaveBeenNthCalledWith(5, 'Desktop', 'mounted');
   });
