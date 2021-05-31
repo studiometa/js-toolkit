@@ -6,7 +6,7 @@
  */
 
 /**
- * Test if a circle collides with an other.
+ * Test if a circle collides with another.
  * Inspired by http://www.jeffreythompson.org/collision-detection/circle-circle.php
  *
  * @param {Circle} circle1 Circle 1
