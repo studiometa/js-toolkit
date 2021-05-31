@@ -8,7 +8,7 @@
 /**
  * Convert clientRect to a formatted circle object
  *
- * @param {DOMRect} domRect DOMRect of a square DOMElement
+ * @param {Partial<DOMRect>} domRect DOMRect of a square DOMElement
  * @param {Boolean} force Force usage of non-square DOMElements
  * @return {Circle} Circle object that can be used in collides functions
  */
