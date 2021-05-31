@@ -12,7 +12,7 @@
  */
 
 /**
- * Test if a point collides with a circle.
+ * Test if a point is inside a circle.
  * Inspired by http://www.jeffreythompson.org/collision-detection/point-circle.php
  *
  * @param {Point} point Point
