@@ -1,12 +1,14 @@
 import {
   withLeadingCharacters,
   withLeadingSlash,
+  withoutLeadingCharacters,
+  withoutLeadingCharactersRecursive,
   withoutLeadingSlash,
   withoutTrailingCharacters,
+  withoutTrailingCharactersRecursive,
   withoutTrailingSlash,
   withTrailingCharacters,
   withTrailingSlash,
-  withoutLeadingCharacters,
 } from '@studiometa/js-toolkit/utils/string/index.js';
 
 describe('The trailing slash utilities', () => {
@@ -42,6 +44,10 @@ describe('The trailing characters utilities', () => {
     expect(withoutTrailingCharacters('foo', '__')).toBe('foo');
     expect(withoutTrailingCharacters('foo__', '__')).toBe('foo');
   });
+  it('should remove characters recursively', () => {
+    expect(withoutTrailingCharactersRecursive('foo__', '__')).toBe('foo');
+    expect(withoutTrailingCharactersRecursive('foo____', '__')).toBe('foo');
+  });
 });
 
 describe('The leading characters utilities', () => {
@@ -52,5 +58,9 @@ describe('The leading characters utilities', () => {
   it('should remove characters', () => {
     expect(withoutLeadingCharacters('foo', '__')).toBe('foo');
     expect(withoutLeadingCharacters('__foo', '__')).toBe('foo');
+  });
+  it('should remove characters recursively', () => {
+    expect(withoutLeadingCharactersRecursive('__foo', '__')).toBe('foo');
+    expect(withoutLeadingCharactersRecursive('____foo', '__')).toBe('foo');
   });
 });
