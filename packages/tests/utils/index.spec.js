@@ -12,6 +12,7 @@ describe('@studiometa/js-toolkit/utils exports', () => {
       'math',
       'nextFrame',
       'object',
+      'string',
       'throttle',
     ]);
   });
