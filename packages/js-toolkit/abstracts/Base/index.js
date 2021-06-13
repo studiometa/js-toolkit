@@ -8,7 +8,6 @@ import { getRefs } from './refs.js';
 import { mountComponents, mountOrUpdateComponents, destroyComponents } from './components.js';
 import Services from './classes/Services.js';
 import Events from './classes/Events.js';
-import bindEvents from './events.js';
 
 // Define the __DEV__ constant if not defined
 if (typeof __DEV__ === 'undefined') {
@@ -188,7 +187,7 @@ export default class Base extends EventManager {
 
     this.$on('updated', () => {
       this.$services.disableAll();
-      this.$event.unbindAll();
+      this.$events.unbindAll();
       this.$services.enableAll();
       this.$events.bindAll();
       mountOrUpdateComponents(this);

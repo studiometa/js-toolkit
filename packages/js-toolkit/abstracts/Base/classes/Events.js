@@ -1,28 +1,29 @@
 import { pascalCase } from 'change-case';
+import getAllProperties from '../../../utils/object/getAllProperties.js';
+import EventsRefsManager from './EventsRefsManager.js';
+import EventsChildrenManager from './EventsChildrenManager.js';
 
 /**
- * @typedef {import('./index.js').default} Base
- * @typedef {import('./index.js').BaseComponent} BaseComponent
- * @typedef {import('./index.js').BaseAsyncComponent} BaseAsyncComponent
- */
-
-/**
- * @typedef {HTMLElement | HTMLElement[] | BaseComponent | BaseComponent[] | BaseAsyncComponent | BaseAsyncComponent[]} EventTarget
- */
-
-/**
- * @typedef {Object} EventDefinition
- * @property {Function} method The method's handler.
- * @property {EventTarget} target The target on which to bind the event.
- * @property {string} event The name of the event.
+ * @todo
+ * - get all refs event methods, instantiate a new EventsRefsManager with it
+ * - get all children event methods, instantiate a new EventsChildrenManager with it
  */
 
 /**
  * Event to method management for the Base class.
  */
 export default class Events {
-  /** @type {Base} */
+  /**
+   * @type {EventsRefsManager[]}
+   */
+  eventsRefsManagers = [];
+
   #base;
+
+  /**
+   * @type {EventsChildrenManager[]}
+   */
+  eventsChildrenManagers = [];
 
   /**
    * An array to store all the methods' name of the Base class.
@@ -30,7 +31,9 @@ export default class Events {
    */
   get #eventMethods() {
     const regex = /^on.+$/;
-    return getAllProperties(this.#base).filter((prop) => regex.test(prop));
+    return getAllProperties(this.#base)
+      .filter(([prop]) => regex.test(prop))
+      .map(([prop]) => prop);
   }
 
   /**
@@ -44,27 +47,36 @@ export default class Events {
    * @type {string[]}
    */
   get #refsEventMethods() {
-    const refs = Object.keys(this.$refs).map((ref) => new RegExp(`^on${pascalCase(ref)}.+`));
+    const refs = Object.keys(this.#base.$refs).map((ref) => new RegExp(`^on${pascalCase(ref)}.+`));
     return this.#eventMethods.filter((method) => refs.some((ref) => ref.test(method)));
   }
 
   /**
    * An array to store all the methods' name to bind to child components.
-   * @type {string[]}
+   * @type {Array}
    */
   get #childrenEventMethods() {
-    const children = Object.keys(this.$children).map(
-      (child) => new RegExp(`^on${pascalCase(child)}.+`)
-    );
+    const children = Object.entries(this.#base.$children).map(([name, instances]) => ({
+      regexp: new RegExp(`^on${pascalCase(name)}.+`),
+      name,
+      instances,
+    }));
     return this.#eventMethods
-      .filter((method) => children.some((child) => child.test(method)))
-      .map((method) => {
-        return {
-          method,
-          event: '',
-          target: '',
-        };
-      });
+      .map((method, index) => {
+        if (children.some((child) => child.regexp.test(method))) {
+          const handler = (...args) => {
+            this.#base[method](...args, index);
+          };
+
+          return {
+            method,
+            index,
+          };
+        }
+
+        return false;
+      })
+      .filter((value) => value);
   }
 
   /**
@@ -81,18 +93,39 @@ export default class Events {
     //
   }
 
-  getDefinitions() {
-
-    return [];
+  /**
+   * Instantiate everything.
+   */
+  init() {
+    this.eventsRefsManagers = [];
+    this.eventsChildrenManagers = [];
   }
 
   /**
    * Bind all methods to their event and target.
+   *
    * @return {void}
    */
   bindAll() {
-    this.definitions.forEach((definition) => {
-      this.bind(definition);
+    this.eventsRefsManagers.forEach((manager) => {
+      manager.bindAll();
+    });
+    this.eventsChildrenManagers.forEach((manager) => {
+      manager.bindAll();
+    });
+  }
+
+  /**
+   * Unbind all methods from their event and target.
+   *
+   * @return {void}
+   */
+  unbindAll() {
+    this.eventsRefsManagers.forEach((manager) => {
+      manager.unbindAll();
+    });
+    this.eventsChildrenManagers.forEach((manager) => {
+      manager.unbindAll();
     });
   }
 
@@ -100,65 +133,47 @@ export default class Events {
    * Bind an event definition.
    * @param {EventDefinition} eventDefinition
    */
-  bind(eventDefinition) {
-    const { method, event, target, index } = eventDefinition;
+  // bind(eventDefinition) {
+  //   const { method, event, target, index } = eventDefinition;
 
-    if (Array.isArray(target)) {
-      target.forEach((t, index) => {
-        this.bind({ method, event, target: t, index });
-      });
-      return;
-    }
+  //   if (Array.isArray(target)) {
+  //     target.forEach((t, i) => {
+  //       this.bind({ method, event, target: t, index: i });
+  //     });
+  //     return;
+  //   }
 
-    const handler = function eventHandler(...args) {
-      if (__DEV__) {
-        debug(this.#base, method, event, target, ...args, index);
-      }
+  //   const handler = function eventHandler(...args) {
+  //     if (__DEV__) {
+  //       debug(this.#base, method, event, target, ...args, index);
+  //     }
 
-      this.#base[method](...args, index);
-    };
+  //     this.#base[method](...args, index);
+  //   }.bind(this);
 
-    if (target instanceof HTMLElement) {
-      target.addEventListener(event, handler);
+  //   if (target instanceof HTMLElement) {
+  //     target.addEventListener(event, handler);
 
-      const unbindMethod = () => {
-        if (__DEV__) {
-          debug(this.#base, 'unbinding event', method, event, target, index);
-        }
-        target.removeEventListener(event, handler);
-      };
-    } else if (target instanceof Promise) {
-      target.then((t) => {
-        t.$on(event, handler);
-      });
-      const unbindMethod = () => {
-        if (__DEV__) {
-          debug(this.#base, 'unbinding event', method, event, target, index);
-        }
-        target.then((t) => {
-          t.off(event, handler);
-        });
-      };
-    } else {
-      target.$on(event, handler);
-    }
-  }
-
-  /**
-   * Unbind all methods from their event and target.
-   * @return {void}
-   */
-  unbindAll() {
-    this.definitions.forEach((definition) => {
-      this.unbind(definition);
-    });
-  }
-
-  /**
-   * Unbind an event definition.
-   * @param {EventDefinition} eventDefinition
-   */
-  unbind(eventDefinition) {
-
-  }
+  //     const unbindMethod = () => {
+  //       if (__DEV__) {
+  //         debug(this.#base, 'unbinding event', method, event, target, index);
+  //       }
+  //       target.removeEventListener(event, handler);
+  //     };
+  //   } else if (target instanceof Promise) {
+  //     target.then((t) => {
+  //       t.$on(event, handler);
+  //     });
+  //     const unbindMethod = () => {
+  //       if (__DEV__) {
+  //         debug(this.#base, 'unbinding event', method, event, target, index);
+  //       }
+  //       target.then((t) => {
+  //         t.off(event, handler);
+  //       });
+  //     };
+  //   } else {
+  //     target.$on(event, handler);
+  //   }
+  // }
 }
