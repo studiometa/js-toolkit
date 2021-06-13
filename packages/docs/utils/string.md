@@ -14,7 +14,7 @@ The leading and trailing string utilities will ensure that characters from the s
 
 **Params**
 - `string` (`string`): The string to modify.
-- `characters` (`string`): The characters to add from the start of the string.
+- `characters` (`string`): The characters to add to the start of the string.
 
 **Returns**
 - `string`: The modified string.
@@ -31,7 +31,7 @@ withLeadingCharacters('__string', '__'); // "__string"
 
 **Params**
 - `string` (`string`): The string to modify.
-- `characters` (`string`): The characters to add from the start of the string.
+- `characters` (`string`): The characters to add to the end of the string.
 
 **Returns**
 - `string`: The modified string.
@@ -48,7 +48,7 @@ withTrailingCharacters('string__', '__'); // "string__"
 
 **Params**
 - `string` (`string`): The string to modify.
-- `characters` (`string`): The characters to add from the start of the string.
+- `characters` (`string`): The characters to remove from the start of the string.
 
 **Returns**
 - `string`: The modified string.
@@ -61,11 +61,29 @@ withoutLeadingCharacters('__string', '__'); // "string"
 withoutLeadingCharacters('string', '__');   // "string"
 ```
 
+### `withoutLeadingCharactersRecursive`
+
+**Params**
+- `string` (`string`): The string to modify.
+- `characters` (`string`): The characters to recursively remove from the start of the string.
+
+**Returns**
+- `string`: The modified string.
+
+**Usage**
+```js
+import withoutLeadingCharactersRecursive from '@studiometa/js-toolkit/utils/string/withoutLeadingCharactersRecursive.js';
+
+withoutLeadingCharactersRecursive('///string', '/');   // "string"
+withoutLeadingCharactersRecursive('____string', '__'); // "string"
+withoutLeadingCharactersRecursive('string', '__');     // "string"
+```
+
 ### `withoutTrailingCharacters`
 
 **Params**
 - `string` (`string`): The string to modify.
-- `characters` (`string`): The characters to add from the start of the string.
+- `characters` (`string`): The characters to remove from the end of the string.
 
 **Returns**
 - `string`: The modified string.
@@ -76,6 +94,24 @@ import withoutTrailingCharacters from '@studiometa/js-toolkit/utils/string/witho
 
 withoutTrailingCharacters('string__', '__'); // "string"
 withoutTrailingCharacters('string', '__');   // "string"
+```
+
+### `withoutTrailingCharactersRecursive`
+
+**Params**
+- `string` (`string`): The string to modify.
+- `characters` (`string`): The characters to recursively remove from the end of the string.
+
+**Returns**
+- `string`: The modified string.
+
+**Usage**
+```js
+import withoutTrailingCharactersRecursive from '@studiometa/js-toolkit/utils/string/withoutTrailingCharactersRecursive.js';
+
+withoutLeadingCharactersRecursive('string///', '/');    // "string"
+withoutTrailingCharactersRecursive('string____', '__'); // "string"
+withoutTrailingCharactersRecursive('string', '__');     // "string"
 ```
 
 ### `withLeadingSlash`
