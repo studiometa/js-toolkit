@@ -9,6 +9,6 @@
   "dependencies": {
     "@studiometa/tailwind-config": "^1.0.2",
     "tailwindcss": "^2.1.2",
-    "vitepress": "^0.14.0"
+    "vitepress": "^0.15.4"
   }
 }
