@@ -17,7 +17,7 @@
   "homepage": "https://github.com/studiometa/js-toolkit#readme",
   "type": "module",
   "unpkg": "./index.umd.js",
-  "main": "./index.umd.js",
+  "main": "./index.js",
   "module": "./index.js",
   "keywords": [
     "js-toolkit",
