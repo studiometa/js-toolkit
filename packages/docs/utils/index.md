@@ -1,7 +1,7 @@
 ---
 sidebar: auto
 prev: /
-next: /components/
+next: /collide
 ---
 
 # Utils
@@ -275,3 +275,7 @@ transition(document.body, {
   to: 'opacity-50',
 }, 'keep');
 ```
+
+## [Collide](./collide.md)
+Collides utils is used to test if two DOM elements are overlapping.
+[Go to the detailed documentation.](./collide.md)
