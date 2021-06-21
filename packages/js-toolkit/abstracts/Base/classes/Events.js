@@ -31,6 +31,7 @@ export default class Events {
    */
   get #eventMethods() {
     const regex = /^on.+$/;
+    // @todo remove duplicates
     return getAllProperties(this.#base)
       .filter(([prop]) => regex.test(prop))
       .map(([prop]) => prop);
