@@ -1,11 +1,27 @@
 import Base from '../abstracts/Base/index.js';
 
 /**
- * Anchor component
+ * @typedef {Object} TableOfContentRefs
+ * @property {HTMLElement} nav
+ * @property {HTMLElement[]} anchors
+ */
+
+/**
+ * @typedef {Object} TableOfContentOptions
+ * @property {String} activeClass Class when the anchor is active.
+ */
+
+/**
+ * @typedef {Object} TableOfContentInterface
+ * @property {TableOfContentRefs} $refs
+ * @property {TableOfContentOptions} $options
+
+/**
+ * Anchor component.
  */
 export default class TableOfContent extends Base {
   /**
-   * Class config
+   * Class config.
    */
   static config = {
     name: 'TableOfContent',
@@ -19,34 +35,42 @@ export default class TableOfContent extends Base {
   };
 
   /**
-   * Initilize the component
+   * Initilize the component.
+   *
+   * @this {TableOfContent & TableOfContentInterface}
    *
    * @return {void}
    */
   mounted() {
-    this.sections = this.$el.parentElement.querySelectorAll('.js-section');
+    this.unbindMethods = [];
+    /** @type {HTMLElement[]} */
+    this.sections = Array.from(this.$el.parentElement.querySelectorAll('.js-section'));
     this.ul = document.createElement('ul');
     this.createNavItems();
   }
 
+  unbindMethods = [];
+
   /**
-   * Create nav items
+   * Create nav items.
+   *
+   * @this {TableOfContent & TableOfContentInterface}
    *
    * @return {void}
    */
   createNavItems() {
     (this.sections ?? []).forEach((section, i) => {
       const title = section.querySelector('h2')?.textContent ?? `Section ${i}`;
-      const a = document.createElement('a');
+      const anchor = document.createElement('a');
       const li = document.createElement('li');
       const id = section.id ?? `section-${i}`;
 
       li.classList.add('table-of-content__nav-item');
 
-      a.classList.add('table-of-content__nav-link');
-      a.href = `#${id}`;
-      a.dataset.ref = 'anchors[]';
-      a.textContent = title;
+      anchor.classList.add('table-of-content__nav-link');
+      anchor.href = `#${id}`;
+      anchor.dataset.ref = 'anchors[]';
+      anchor.textContent = title;
 
       const observer = new IntersectionObserver(([entry]) => {
         if (entry.isIntersecting) {
@@ -58,9 +82,17 @@ export default class TableOfContent extends Base {
 
       observer.observe(section);
 
-      a.addEventListener('click', this.scrollTo);
+      /** @param {MouseEvent} e */
+      const handler = (e) => {
+        e.preventDefault();
+        this.scrollTo(id);
+      };
+      anchor.addEventListener('click', handler);
+      this.unbindMethods.push(() => {
+        anchor.removeEventListener('click', handler);
+      });
 
-      li.appendChild(a);
+      li.appendChild(anchor);
       this.ul.appendChild(li);
     });
 
@@ -68,19 +100,34 @@ export default class TableOfContent extends Base {
   }
 
   /**
-   * Scroll to the section
+   * Scroll to the section.
    *
-   * @param {Event} event The click event object.
+   * @this {TableOfContent & TableOfContentInterface}
+   *
+   * @param {string} id of the target section.
+   *
+   * @return {void}
    */
-  scrollTo(event) {
-    event.preventDefault();
-    this.sections.forEach((section) => {
-      const id = event.currentTarget.getAttribute('href').replace(/^#/, '');
-      if (section.id !== id) {
-        return;
-      }
+  scrollTo(id) {
+    const section = this.sections.find((s) => s.id === id);
 
+    if (section) {
       window.scroll(0, section.offsetTop);
+    }
+  }
+
+  /**
+   * Destroyed.
+   *
+   * @this {TableOfContent & TableOfContentInterface}
+   *
+   * @return {void}
+   */
+  destroyed() {
+    this.unbindMethods.forEach((method) => {
+      if (typeof method === 'function') {
+        method();
+      }
     });
   }
 }
