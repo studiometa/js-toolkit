@@ -36,4 +36,37 @@ describe('The events to method binding', () => {
     expect(fn).not.toHaveBeenCalled();
     expect(fn2).toHaveBeenCalledTimes(1);
   });
+
+  it('should bind event methods to children with a one letter name', () => {
+    const fn = jest.fn();
+
+    class A extends Base {
+      static config = {
+        name: 'A',
+      };
+
+      onClick() {
+        this.$emit('click');
+      }
+    }
+
+    class Foo extends Base {
+      static config = {
+        name: 'Foo',
+        components: { A },
+      };
+
+      onAClick(event, index) {
+        fn();
+      }
+    }
+
+    const btn = html`<button data-component="A">Click me</button>`;
+    const tpl = html`<div>${btn}</div>`;
+
+    const foo = new Foo(tpl);
+    foo.$mount();
+    btn.click();
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
 });
