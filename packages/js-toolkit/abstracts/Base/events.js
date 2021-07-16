@@ -138,7 +138,7 @@ function bindChildrenEvents(instance, eventMethods) {
  */
 export default function bindEvents(instance) {
   const ROOT_EVENT_REGEX = /^on[A-Z][a-z]+$/;
-  const REFS_CHILDREN_EVENT_REGEX = /^on([A-Z][a-z]+)([A-Z][a-z]+)+$/;
+  const REFS_CHILDREN_EVENT_REGEX = /^on([A-Z]([a-z]+)?)([A-Z][a-z]+)+$/;
 
   // Get all event methods
   const eventMethods = getAllProperties(instance).reduce(
