@@ -4,6 +4,7 @@ import Base from '../abstracts/Base/index.js';
  * @typedef {Object} TableOfContentRefs
  * @property {HTMLElement} nav
  * @property {HTMLElement[]} anchors
+ * @property {HTMLElement[]} sections
  */
 
 /**
@@ -25,7 +26,7 @@ export default class TableOfContent extends Base {
    */
   static config = {
     name: 'TableOfContent',
-    refs: ['nav', 'anchors[]'],
+    refs: ['nav', 'anchors[]', 'sections[]'],
     options: {
       activeClass: {
         type: String,
@@ -44,8 +45,6 @@ export default class TableOfContent extends Base {
   mounted() {
     this.unbindMethods = [];
     /** @type {HTMLElement[]} */
-    this.sections = Array.from(this.$el.parentElement.querySelectorAll('.js-section'));
-    this.ul = document.createElement('ul');
     this.createNavItems();
   }
 
@@ -59,7 +58,8 @@ export default class TableOfContent extends Base {
    * @return {void}
    */
   createNavItems() {
-    (this.sections ?? []).forEach((section, i) => {
+    const ulElement = document.createElement('ul');
+    (this.$refs.sections ?? []).forEach((section, i) => {
       const title = section.querySelector('h2')?.textContent ?? `Section ${i}`;
       const anchor = document.createElement('a');
       const li = document.createElement('li');
@@ -93,10 +93,10 @@ export default class TableOfContent extends Base {
       });
 
       li.appendChild(anchor);
-      this.ul.appendChild(li);
+      ulElement.appendChild(li);
     });
 
-    this.$refs.nav.appendChild(this.ul);
+    this.$refs.nav.appendChild(ulElement);
   }
 
   /**
@@ -109,10 +109,13 @@ export default class TableOfContent extends Base {
    * @return {void}
    */
   scrollTo(id) {
-    const section = this.sections.find((s) => s.id === id);
+    const section = this.$refs.sections.find((s) => s.id === id);
+    const scrollY =
+      (window.pageYOffset || document.documentElement.scrollTop) +
+      section.getBoundingClientRect().top;
 
     if (section) {
-      window.scroll(0, section.offsetTop);
+      window.scroll(0, scrollY);
     }
   }
 
