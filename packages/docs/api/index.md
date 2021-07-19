@@ -245,8 +245,50 @@ module.exports = {
 
 ## Interface methods
 
+@TODO Add a lifecycle diagram
+
 ### `mounted()` <Badge vertical="middle" text="Lifecycle hooks" />
+
+Called after the instance has been mounted.
+@TODO Explain the mounted hook
+
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    // Logs 'mounted' when the component is mounted
+    this.$log('mounted');
+  }
+}
+```
+
 ### `loaded()` <Badge vertical="middle" text="Lifecycle hooks" />
+
+Called after the instance has been loaded.
+@TODO Explain the loaded hook
+
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  loaded() {
+    // Logs 'Loaded' when the component is loaded
+    this.$log('Loaded');
+  }
+}
+```
+
 ### `destroyed()` <Badge vertical="middle" text="Lifecycle hooks" />
 ### `terminated()` <Badge vertical="middle" text="Lifecycle hooks" />
 ### `scrolled(props)` <Badge vertical="middle" text="Service hooks" />
