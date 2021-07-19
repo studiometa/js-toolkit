@@ -20,6 +20,45 @@ main {
   display: none;
 }
 
+// TABLE OF CONTENT
+.table-of-content__section {
+  @apply my-5 border-b border-black border-solid pb-4;
+  min-height: 80vh;
+
+  &:last-child {
+    @apply border-b-0;
+  }
+}
+
+.table-of-content__nav ul {
+  @apply flex flex-row justify-around;
+
+  @screen s {
+    @apply block;
+  }
+}
+
+.table-of-content__nav-item {
+  @apply  border border-black border-solid text-center py-3 px-2 mr-1;
+
+  &:last-child {
+    @apply mr-0;
+  }
+
+  &.is-active {
+    @apply bg-black text-white;
+  }
+
+  @screen s {
+    @apply w-full mb-2 mr-1;
+  }
+}
+
+.table-of-content__nav-link {
+  @apply block w-full;
+}
+
+
 [data-breakpoint]::after,
 [data-breakpoint]::before {
   z-index: -999;

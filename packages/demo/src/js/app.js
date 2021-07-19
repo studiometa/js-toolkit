@@ -1,10 +1,11 @@
 /* eslint-disable max-classes-per-file */
 import Base from '@studiometa/js-toolkit';
-import { Modal, Tabs, Accordion, Cursor, TableOfContent } from '@studiometa/js-toolkit/components';
+import { Modal, Tabs, Accordion, Cursor } from '@studiometa/js-toolkit/components';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
 import BreakpointManagerDemo from './components/BreakPointManagerDemo/index.js';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
+import TableOfContent from './components/TableOfContent.js';
 
 /**
  * @typedef {import(@studiometa/js-toolkit/abstracts/Base/index).BaseConfig} BaseConfig
