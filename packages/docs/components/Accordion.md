@@ -385,7 +385,7 @@ This ref is used to add the needed accessibility attributes and will hold your c
 ### Options
 
 ::: tip
-Options can be defined per component via the `data-option-<option-name>` attribute or by extending the `Modal` class.
+Options can be defined per component via the `data-option-<option-name>` attribute or by extending the `Accordion` class.
 :::
 
 #### `autoclose`

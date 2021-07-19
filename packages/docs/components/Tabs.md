@@ -1,7 +1,7 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /components/Modal.md
+prev: /components/TableOfContent.md
 next: false
 ---
 
