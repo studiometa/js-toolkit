@@ -30,6 +30,7 @@
     "@babel/runtime": "^7.14.0",
     "deepmerge": "^4.2.2",
     "nanoid": "^3.1.23",
-    "no-case": "^3.0.4"
+    "no-case": "^3.0.4",
+    "stylefire": "^7.0.3"
   }
 }
