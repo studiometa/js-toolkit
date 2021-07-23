@@ -1,7 +1,4 @@
 import Service from '../abstracts/Service.js';
-import throttle from '../utils/throttle.js';
-import debounce from '../utils/debounce.js';
-import useRaf from './raf.js';
 
 /**
  * @typedef {import('./index').ServiceInterface} ServiceInterface
@@ -67,40 +64,13 @@ class Pointer extends Service {
   hasRaf = false;
 
   /**
-   * The service handler.
-   * @type {(this:Document, event:MouseEvent) => any}
-   */
-  handler;
-
-  /**
    * Bind the handler to the mousemove and touchmove events.
    * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
    *
    * @return {Pointer}
    */
   init() {
-    const { add, remove } = useRaf();
-    this.hasRaf = false;
-
-    const debounced = debounce((event) => {
-      this.updateValues(event);
-      remove('usePointer');
-      this.trigger(this.props);
-      this.hasRaf = false;
-    }, 50);
-
-    this.handler = throttle((event) => {
-      this.updateValues(event);
-      if (!this.hasRaf) {
-        add('usePointer', () => {
-          this.trigger(this.props);
-        });
-        this.hasRaf = true;
-      }
-      // Reset changed flags at the end of the mousemove or touchmove event
-      debounced(event);
-    }, 32).bind(this);
-
+    this.handler = this.handler.bind(this);
     this.downHandler = this.downHandler.bind(this);
     this.upHandler = this.upHandler.bind(this);
 
@@ -133,6 +103,15 @@ class Pointer extends Service {
     document.removeEventListener('mouseup', this.upHandler);
     document.removeEventListener('touchend', this.upHandler);
     return this;
+  }
+
+  /**
+   * The service handler.
+   * @param {MouseEvent} event The mouse event object.
+   */
+  handler(event) {
+    this.updateValues(event);
+    this.trigger(this.props);
   }
 
   /**
