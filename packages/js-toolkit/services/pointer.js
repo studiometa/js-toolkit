@@ -68,7 +68,7 @@ class Pointer extends Service {
 
   /**
    * The service handler.
-   * @type {Function}
+   * @type {(this:Document, event:MouseEvent) => any}
    */
   handler;
 
