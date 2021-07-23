@@ -99,6 +99,10 @@ export default class Draggable extends Base {
     this.$services.disable('moved');
   }
 
+  /**
+   * Destroyed hook.
+   * @return {void}
+   */
   destroyed() {
     this.styler = undefined;
   }
@@ -205,8 +209,8 @@ export default class Draggable extends Base {
     if (this.isGrabbing) {
       this.x = props.x;
       this.y = props.y;
-      this.delta.x = props.delta.x;
-      this.delta.y = props.delta.y;
+      this.delta.x = props.event.movementX;
+      this.delta.y = props.event.movementY;
       this.$emit('drag', this);
 
       if (!props.isDown) {
