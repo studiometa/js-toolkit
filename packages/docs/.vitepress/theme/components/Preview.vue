@@ -180,4 +180,12 @@
     min-width: 100%;
     transform: translateX(-50%);
   }
+
+  .cursor-grab {
+    cursor: grab;
+  }
+
+  .cursor-grabbing {
+    cursor: grabbing;
+  }
 </style>
