@@ -61,6 +61,18 @@ class Pointer extends Service {
   event;
 
   /**
+   * Whether or not the raf service is running.
+   * @type {Boolean}
+   */
+  hasRaf = false;
+
+  /**
+   * The service handler.
+   * @type {Function}
+   */
+  handler;
+
+  /**
    * Bind the handler to the mousemove and touchmove events.
    * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
    *
@@ -92,13 +104,19 @@ class Pointer extends Service {
     this.downHandler = this.downHandler.bind(this);
     this.upHandler = this.upHandler.bind(this);
 
-    document.documentElement.addEventListener('mouseenter', this.handler, { once: true });
-    document.addEventListener('mousemove', this.handler, { passive: true });
-    document.addEventListener('touchmove', this.handler, { passive: true });
-    document.addEventListener('mousedown', this.downHandler, { passive: true });
-    document.addEventListener('touchstart', this.downHandler, { passive: true });
-    document.addEventListener('mouseup', this.upHandler, { passive: true });
-    document.addEventListener('touchend', this.upHandler, { passive: true });
+    document.documentElement.addEventListener('mouseenter', this.handler, {
+      once: true,
+      capture: true,
+    });
+
+    const options = { passive: true, capture: true };
+
+    document.addEventListener('mousemove', this.handler, options);
+    document.addEventListener('touchmove', this.handler, options);
+    document.addEventListener('mousedown', this.downHandler, options);
+    document.addEventListener('touchstart', this.downHandler, options);
+    document.addEventListener('mouseup', this.upHandler, options);
+    document.addEventListener('touchend', this.upHandler, options);
     return this;
   }
 
