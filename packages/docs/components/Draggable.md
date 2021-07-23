@@ -1,26 +1,29 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /components/Accordion.md
-next: /components/Draggable.md
+prev: /components/Cursor.md
+next: /components/Modal.md
 ---
 
-# Cursor
+# Draggable
 
-Easily create a custom cursor.
+Easily create a draggable component.
 
 ## Examples
 
 ### Simple
 
 <ToolkitPreview>
-  <div data-component="Cursor" class="z-50 fixed top-0 left-0 w-4 h-4 -m-2 rounded-full border border-black pointer-events-none" />
+  <div class="w-full h-96 flex items-center justify-center">
+    <div data-component="Draggable" data-option-move class="z-goku relative w-32 h-32 rounded-full bg-black cursor-grab"></div>
+  </div>
 </ToolkitPreview>
 
 ```html
 <div
-  data-component="Cursor"
-  class="z-50 fixed top-0 left-0 w-4 h-4 -m-2 rounded-full border border-black pointer-events-none">
+  data-component="Draggable"
+  data-option-move
+  class="z-goku relative w-32 h-32 rounded-full bg-black">
 </div>
 ```
 
@@ -28,30 +31,30 @@ Easily create a custom cursor.
 
 ### JavaScript
 
-You can directly instantiate the `Cursor` class on an element:
+You can directly instantiate the `Draggable` class on an element:
 
 ```js
-import Cursor from '@studiometa/js-toolkit/components/Cursor';
+import Draggable from '@studiometa/js-toolkit/components/Draggable';
 
-const cursor = new Cursor(document.querySelector('.my-custom-cursor-element'));
-cursor.$mount();
+const draggable = new Draggable(document.querySelector('.my-draggable-element'));
+draggable.$mount();
 
 // Or with the `$factory` method:
-const cursors = Cursor.$factory('.my-custom-cursor-element');
-cursors.forEach(cursor => cursor.$mount());
+const draggables = Draggable.$factory('.my-draggable-element');
+draggables.forEach(cursor => cursor.$mount());
 ```
 
 Or you can use the component as a child of another one:
 
 ```js
 import Base from '@studiometa/js-toolkit';
-import Cursor from '@studiometa/js-toolkit/components/Cursor';
+import Draggable from '@studiometa/js-toolkit/components/Draggable';
 
 class App extends Base {
   static config = {
     name: 'App',
     components: {
-      Cursor,
+      Draggable,
     },
   };
 }
@@ -64,12 +67,8 @@ new App(document.documentElement).$mount();
 The following HTML is required for the `Cursor` component:
 
 ```html
-<div
-  data-component="Cursor"
-  class="z-10 fixed top-0 left-0 w-4 h-4 -ml-2"></div>
+<div data-component="Draggable"></div>
 ```
-
-The default styles should center the cursor around the top-left corner of the viewport.
 
 ## API
 

@@ -31,6 +31,7 @@ module.exports = {
         items: [
           { text: 'Accordion', link: '/components/Accordion.html' },
           { text: 'Cursor', link: '/components/Cursor.html' },
+          { text: 'Draggable', link: '/components/Draggable.html' },
           { text: 'Modal', link: '/components/Modal.html' },
           { text: 'Tabs', link: '/components/Tabs.html' },
         ],
