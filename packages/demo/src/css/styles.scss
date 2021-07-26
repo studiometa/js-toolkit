@@ -4,6 +4,10 @@
 
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 main {
   height: 5000px;
 }
