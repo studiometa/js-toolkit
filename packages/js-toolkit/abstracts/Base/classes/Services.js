@@ -8,6 +8,7 @@ import { hasMethod, callMethod } from '../utils.js';
 
 /**
  * @typedef {import('../index').default} Base
+ * @typedef {import('../../../services').ServiceInterface} ServiceInterface
  */
 
 const SERVICES_MAP = {
@@ -122,5 +123,30 @@ export default class Services {
 
     const { remove } = SERVICES_MAP[service]();
     remove(this.#base.$id);
+  }
+
+  /**
+   * Register a new service.
+   *
+   * @param {string}                 service    The service name.
+   * @param {() => ServiceInterface} useService The service use function.
+   * @return {void}
+   */
+  register(service, useService) {
+    if (typeof useService !== 'function') {
+      throw new Error('The `useService` parameter must be a function.');
+    }
+
+    SERVICES_MAP[service] = useService;
+  }
+
+  /**
+   * Unregister an existing service.
+   *
+   * @param {string} service The service name.
+   * @return {void}
+   */
+  unregister(service) {
+    delete SERVICES_MAP[service];
   }
 }
