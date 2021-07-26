@@ -1,5 +1,11 @@
 import TableOfContent from '@studiometa/js-toolkit/components/TableOfContent';
 import template from '@studiometa/js-toolkit-docs/components/TableOfContent.template.html';
+import '../__setup__/mockIntersectionObserver';
+import { jest } from '@jest/globals';
+
+window.IntersectionObserver = jest.fn(function() {
+  this.observe = jest.fn();
+});
 
 describe('The TableOfContent component', () => {
   let tableOfContentInstance;
