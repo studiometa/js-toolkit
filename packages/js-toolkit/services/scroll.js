@@ -16,6 +16,7 @@ import nextFrame from '../utils/nextFrame.js';
  * @property {{ x: Number, y: Number }} delta
  * @property {{ x: Number, y: Number }} progress
  * @property {{ x: Number, y: Number }} max
+ * @property {{ x: 'LEFT'|'RIGHT'|'NONE', y: 'UP'|'DOWN'|'NONE' }} direction
  */
 
 /**
@@ -114,6 +115,12 @@ class Scroll extends Service {
       progress: {
         x: this.max.x === 0 ? 1 : this.x / this.max.x,
         y: this.max.y === 0 ? 1 : this.y / this.max.y,
+      },
+      direction: {
+        /* eslint-disable no-nested-ternary */
+        x: this.x > this.xLast ? 'RIGHT' : this.x < this.xLast ? 'LEFT' : 'NONE',
+        y: this.y > this.yLast ? 'DOWN' : this.y < this.yLast ? 'UP' : 'NONE',
+        /* eslint-enable no-nested-ternary */
       },
       max: this.max,
     };
