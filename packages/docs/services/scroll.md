@@ -81,3 +81,10 @@ The scroll position on both axis mapped to a `0` to `1` range, based on the [max
 - Interface: `{ x: number, y: number }`
 
 The maximum value the scroll can reach.
+
+### `direction`
+
+- Type: `Object`
+- Interface `{ x: 'LEFT'|'RIGHT'|'NONE', y: 'UP'|'DOWN'|'NONE' }`
+
+The direction of the scroll.
