@@ -41,7 +41,7 @@ draggable.$mount();
 
 // Or with the `$factory` method:
 const draggables = Draggable.$factory('.my-draggable-element');
-draggables.forEach(cursor => cursor.$mount());
+draggables.forEach(draggable => draggable.$mount());
 ```
 
 Or you can use the component as a child of another one:
@@ -64,7 +64,7 @@ new App(document.documentElement).$mount();
 
 ### HTML
 
-The following HTML is required for the `Cursor` component:
+The following HTML is required for the `Draggable` component:
 
 ```html
 <div data-component="Draggable"></div>
@@ -75,54 +75,49 @@ The following HTML is required for the `Cursor` component:
 ### Options
 
 ::: tip
-Options can be defined per component via the `data-option-<option-name>` attribute or by extending the `Cursor` class.
+Options can be defined per component via the `data-option-<option-name>` attribute or by extending the `Draggable` class.
 :::
 
-#### `growSelectors`
+#### `move`
 
-- Type: `String`
-- Default: `'a, a *, button, button *, [data-cursor-grow], [data-cursor-grow] *'`
+- Type: `Boolean`
+- Default: `false`
 
-A CSS selector which will be used to trigger the scaling up of the cursor.
+Wether to move the root element or not ("headless" mode).
 
-#### `shrinkSelectors`
+#### `factor`
 
-- Type: `String`
-- Default: `'[data-cursor-shrink], [data-cursor-shrink] *'`
+- Type: `number`
+- Default: `0.85`
 
-A CSS selector which will be used to trigger the scaling down of the cursor.
+The factor used to decrease the velocity.
 
-#### `growTo`
+### Events
 
-- Type: `Numbr,`
-- Default: `2`
+#### `dragstart`
 
-The target scale when the cursor is over an element matching the `growSelector` option.
+Emitted when the drag start.
 
-#### `shrinkTo`
+**Parameters**
+- `instance`: the `Draggable` instance
 
-- Type: `Number`
-- Default: `0.5`
+#### `drag`
 
-The target scale when the cursor is over and element matching the `shrinkSelector` option.
+Emitted during the drag.
 
-#### `translateDampFactor`
+**Parameters**
+- `instance`: the `Draggable` instance
 
-- Type: `Number`
-- Default: `0.25`
+#### `dragend`
 
-The factor used to calculate the damped translation value, a value of `1` will disable damp smoothing. The closer to `0` the value is, greater will be the smoothing.
+Emitted when the drag is release.
 
-#### `growDampFactor`
+**Parameters**
+- `instance`: the `Draggable` instance
 
-- Type: `Number`
-- Default: `0.25`
+#### `draginertia`
 
-The factor used to calculate the damped scale up value, a value of `1` will disable damp smoothing. The closer to `0` the value is, greater will be the smoothing.
+Emitted when the drag has inertia applied.
 
-#### `shrinkDampFactor`
-
-- Type: `Number`
-- Default: `0.25`
-
-The factor used to calculate the damped scale down value, a value of `1` will disable damp smoothing. The closer to `0` the value is, greater will be the smoothing.
+**Parameters**
+- `instance`: the `Draggable` instance
