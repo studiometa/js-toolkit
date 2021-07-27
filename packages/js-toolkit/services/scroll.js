@@ -1,7 +1,5 @@
 import Service from '../abstracts/Service.js';
-import throttle from '../utils/throttle.js';
 import debounce from '../utils/debounce.js';
-import nextFrame from '../utils/nextFrame.js';
 
 /**
  * @typedef {import('./index').ServiceInterface} ServiceInterface
@@ -16,6 +14,7 @@ import nextFrame from '../utils/nextFrame.js';
  * @property {{ x: Number, y: Number }} delta
  * @property {{ x: Number, y: Number }} progress
  * @property {{ x: Number, y: Number }} max
+ * @property {{ x: 'LEFT'|'RIGHT'|'NONE', y: 'UP'|'DOWN'|'NONE' }} direction
  */
 
 /**
@@ -48,23 +47,38 @@ class Scroll extends Service {
    * @return {Scroll}
    */
   init() {
+    this.handler = this.handler.bind(this);
+    document.addEventListener('scroll', this.handler, { passive: true, capture: true });
+    return this;
+  }
+
+  /**
+   * Debounced handler.
+   *
+   * @return {() => void}
+   */
+  get debouncedHandler() {
     const debounced = debounce(() => {
       this.trigger(this.props);
-      nextFrame(() => {
-        this.trigger(this.props);
-      });
-    }, 50);
+    }, 0);
 
-    this.handler = throttle(() => {
-      this.trigger(this.props);
+    // Define property to avoid multiple call to the getter
+    Object.defineProperty(this, 'debouncedHandler', {
+      value: debounced,
+    });
 
-      // Reset changed flags at the end of the scroll event
-      debounced();
-    }, 32).bind(this);
+    return debounced;
+  }
 
-    // Fire the `scrolled` method on document scroll
-    document.addEventListener('scroll', this.handler, { passive: true });
-    return this;
+  /**
+   * Scroll event handler.
+   *
+   * @return {void}
+   */
+  handler() {
+    this.trigger(this.props);
+
+    this.debouncedHandler();
   }
 
   /**
@@ -114,6 +128,12 @@ class Scroll extends Service {
       progress: {
         x: this.max.x === 0 ? 1 : this.x / this.max.x,
         y: this.max.y === 0 ? 1 : this.y / this.max.y,
+      },
+      direction: {
+        /* eslint-disable no-nested-ternary */
+        x: this.x > this.xLast ? 'RIGHT' : this.x < this.xLast ? 'LEFT' : 'NONE',
+        y: this.y > this.yLast ? 'DOWN' : this.y < this.yLast ? 'UP' : 'NONE',
+        /* eslint-enable no-nested-ternary */
       },
       max: this.max,
     };
