@@ -9,7 +9,7 @@ import Base from '../abstracts/Base/index.js';
 /**
  * @typedef {Object} DraggableOptions
  * @property {boolean} move Whether to move the element or not.
- * @property {number} velocity The velocity factor.
+ * @property {number} factor The velocity factor.
  */
 
 /**
@@ -27,7 +27,7 @@ export default class Draggable extends Base {
     name: 'Draggable',
     options: {
       move: Boolean,
-      velocity: {
+      factor: {
         type: Number,
         default: 0.85,
       },
@@ -191,8 +191,8 @@ export default class Draggable extends Base {
 
       this.$emit('draginertia', this);
 
-      this.delta.x *= this.$options.velocity;
-      this.delta.y *= this.$options.velocity;
+      this.delta.x *= this.$options.factor;
+      this.delta.y *= this.$options.factor;
 
       if (Math.abs(this.delta.x) < 0.1 && Math.abs(this.delta.y) < 0.1) {
         this.$services.disable('ticked');
