@@ -1,5 +1,5 @@
-import styler from 'stylefire';
 import Base from '../abstracts/Base/index.js';
+import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
 
 /**
  * @typedef {import('../services/pointer.js').PointerServiceProps} PointerServiceProps
@@ -8,7 +8,6 @@ import Base from '../abstracts/Base/index.js';
 
 /**
  * @typedef {Object} DraggableOptions
- * @property {boolean} move Whether to move the element or not.
  * @property {number} factor The velocity factor.
  */
 
@@ -26,7 +25,6 @@ export default class Draggable extends Base {
   static config = {
     name: 'Draggable',
     options: {
-      move: Boolean,
       factor: {
         type: Number,
         default: 0.85,
@@ -71,40 +69,22 @@ export default class Draggable extends Base {
   };
 
   /**
-   * The origin of the element.
+   * The target positiion of the inertia.
    * @type {{ x: number, y: number }}
    */
-  elementOrigin = {
+  target = {
     x: 0,
     y: 0,
   };
-
-  /**
-   * The element styler for performant style update.
-   * @type {Styler}
-   */
-  styler;
 
   /**
    * Mounted hook.
    * @return {void}
    */
   mounted() {
-    if (this.$options.move) {
-      this.styler = styler(this.$el);
-    }
-
     // Disable ticking service on mount
     this.$services.disable('ticked');
     this.$services.disable('moved');
-  }
-
-  /**
-   * Destroyed hook.
-   * @return {void}
-   */
-  destroyed() {
-    this.styler = undefined;
   }
 
   /**
@@ -142,16 +122,12 @@ export default class Draggable extends Base {
     this.origin.y = y;
     this.delta.x = 0;
     this.delta.y = 0;
+    this.target.x = x;
+    this.target.y = y;
 
     // Enable grabbing
     this.isGrabbing = true;
-    this.$el.classList.add('cursor-grabbing');
     this.$emit('dragstart', this);
-
-    if (this.$options.move) {
-      this.elementOrigin.x = this.styler.get('x');
-      this.elementOrigin.y = this.styler.get('y');
-    }
 
     setTimeout(() => {
       this.$services.enable('moved');
@@ -166,8 +142,11 @@ export default class Draggable extends Base {
   stop() {
     this.$log('stop');
     this.$services.disable('moved');
+
+    this.target.x = inertiaFinalValue(this.x, this.delta.x, this.$options.factor);
+    this.target.y = inertiaFinalValue(this.y, this.delta.y, this.$options.factor);
+
     this.isGrabbing = false;
-    this.$el.classList.remove('cursor-grabbing');
     this.$emit('dragend', this);
   }
 
@@ -177,15 +156,9 @@ export default class Draggable extends Base {
    * @return {void}
    */
   ticked() {
-    if (this.$options.move) {
-      this.styler.set({
-        x: this.elementOrigin.x + this.x - this.origin.x,
-        y: this.elementOrigin.y + this.y - this.origin.y,
-      });
-    }
-
     if (!this.isGrabbing) {
       this.$log('inertia');
+
       this.x += this.delta.x;
       this.y += this.delta.y;
 
@@ -211,6 +184,9 @@ export default class Draggable extends Base {
       this.y = props.y;
       this.delta.x = props.delta.x;
       this.delta.y = props.delta.y;
+      this.target.x = props.x;
+      this.target.y = props.y;
+
       this.$emit('drag', this);
 
       if (!props.isDown) {
