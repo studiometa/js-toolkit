@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import Base from '@studiometa/js-toolkit';
-import { Modal, Tabs, Accordion, Cursor, Draggable } from '@studiometa/js-toolkit/components';
+import { Modal, Tabs, Accordion, Cursor, DraggableElement } from '@studiometa/js-toolkit/components';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
 import BreakpointManagerDemo from './components/BreakPointManagerDemo/index.js';
@@ -33,7 +33,7 @@ class App extends Base {
           })}`;
         }
       },
-      Draggable,
+      DraggableElement,
       Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew.js'),
       '[data-src]': () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload.js'),
       Modal: withBreakpointObserver(Modal),

@@ -1,7 +1,7 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /components/Cursor.md
+prev: /components/DraggableElement.md
 next: /components/Tabs.md
 ---
 
