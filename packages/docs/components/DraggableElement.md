@@ -5,9 +5,9 @@ prev: /components/Cursor.md
 next: /components/Modal.md
 ---
 
-# Draggable
+# DraggableElement
 
-Easily create a draggable component.
+Easily create a draggable element.
 
 ## Examples
 
@@ -15,14 +15,13 @@ Easily create a draggable component.
 
 <ToolkitPreview>
   <div class="w-full h-96 flex items-center justify-center">
-    <div data-component="Draggable" data-option-move class="z-goku relative w-32 h-32 rounded-full bg-black cursor-grab"></div>
+    <div data-component="DraggableElement" class="z-goku relative w-32 h-32 rounded-full bg-black cursor-grab"></div>
   </div>
 </ToolkitPreview>
 
 ```html
 <div
-  data-component="Draggable"
-  data-option-move
+  data-component="DraggableElement"
   class="z-goku relative w-32 h-32 rounded-full bg-black">
 </div>
 ```
@@ -34,27 +33,27 @@ Easily create a draggable component.
 You can directly instantiate the `Draggable` class on an element:
 
 ```js
-import Draggable from '@studiometa/js-toolkit/components/Draggable';
+import DraggableElement from '@studiometa/js-toolkit/components/Draggable';
 
-const draggable = new Draggable(document.querySelector('.my-draggable-element'));
-draggable.$mount();
+const draggableElement = new DraggableElement(document.querySelector('.my-draggable-element'));
+draggableElement.$mount();
 
 // Or with the `$factory` method:
-const draggables = Draggable.$factory('.my-draggable-element');
-draggables.forEach(draggable => draggable.$mount());
+const draggableElements = DraggableElement.$factory('.my-draggable-element');
+draggableElements.forEach(draggableElement => draggableElement.$mount());
 ```
 
 Or you can use the component as a child of another one:
 
 ```js
 import Base from '@studiometa/js-toolkit';
-import Draggable from '@studiometa/js-toolkit/components/Draggable';
+import DraggableElement from '@studiometa/js-toolkit/components/Draggable';
 
 class App extends Base {
   static config = {
     name: 'App',
     components: {
-      Draggable,
+      DraggableElement,
     },
   };
 }
@@ -64,10 +63,10 @@ new App(document.documentElement).$mount();
 
 ### HTML
 
-The following HTML is required for the `Draggable` component:
+The following HTML is required for the `DraggableElement` component:
 
 ```html
-<div data-component="Draggable"></div>
+<div data-component="DraggableElement"></div>
 ```
 
 ## API
@@ -75,15 +74,8 @@ The following HTML is required for the `Draggable` component:
 ### Options
 
 ::: tip
-Options can be defined per component via the `data-option-<option-name>` attribute or by extending the `Draggable` class.
+Options can be defined per component via the `data-option-<option-name>` attribute or by extending the `DraggableElement` class.
 :::
-
-#### `move`
-
-- Type: `Boolean`
-- Default: `false`
-
-Wether to move the root element or not ("headless" mode).
 
 #### `factor`
 
