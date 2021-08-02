@@ -17,5 +17,10 @@
     "prettier": "^2.3.0",
     "stylelint": "^13.13.1",
     "tailwindcss": "^2.1.2"
+  },
+  "optionalDependencies": {
+    "vue": "^2.6.14",
+    "vue-loader": "^15.9.6",
+    "vue-template-compiler": "^2.6.14"
   }
 }

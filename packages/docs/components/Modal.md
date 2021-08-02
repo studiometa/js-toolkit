@@ -35,7 +35,7 @@ An accessible, flexible and responsive modal component, easy to use and easy to 
         This is the element in which the user can scroll
         if the content of the modal is too long.
       -->
-      <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+      <div data-ref="container" class="z-above relative max-h-full overflow-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
         <!--
           Modal close button
           This will be used to close the modal on click.
@@ -85,7 +85,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
           This is the element in which the user can scroll
           if the content of the modal is too long.
         -->
-        <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+        <div data-ref="container" class="z-above relative max-h-full overflow-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
           <!--
             Modal close button
             This will be used to close the modal on click.
@@ -132,7 +132,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
         This is the element in which the user can scroll
         if the content of the modal is too long.
       -->
-      <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+      <div data-ref="container" class="z-above relative max-h-full overflow-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
         <!--
           Modal close button
           This will be used to close the modal on click.
@@ -181,7 +181,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
           This is the element in which the user can scroll
           if the content of the modal is too long.
         -->
-        <div data-ref="container" class="z-above relative overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto" style="max-height: 15rem;">
+        <div data-ref="container" class="z-above relative overflow-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto" style="max-height: 15rem;">
           <!--
             Modal close button
             This will be used to close the modal on click.
@@ -228,7 +228,7 @@ You can choose an item to focus when the modal opens by adding an `autofocus` at
         This is the element in which the user can scroll
         if the content of the modal is too long.
       -->
-      <div data-ref="container" style="max-height: 15rem;" class="z-above relative overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+      <div data-ref="container" style="max-height: 15rem;" class="z-above relative overflow-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
         <!--
           Modal close button
           This will be used to close the modal on click.
@@ -291,7 +291,7 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
           This is the element in which the user can scroll
           if the content of the modal is too long.
         -->
-        <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+        <div data-ref="container" class="z-above relative max-h-full overflow-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
           <!--
             Modal close button
             This will be used to close the modal on click.
@@ -348,7 +348,7 @@ We reset the default styles for the `modal` ref and add some Tailwind classes to
         This is the element in which the user can scroll
         if the content of the modal is too long.
       -->
-      <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
+      <div data-ref="container" class="z-above relative max-h-full overflow-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
         <!--
           Modal close button
           This will be used to close the modal on click.
@@ -506,7 +506,7 @@ The following HTML is required for the `Modal` component:
         This is the element in which the user can scroll
         if the content of the modal is too long.
       -->
-      <div data-ref="container" class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white pointer-events-auto">
+      <div data-ref="container" class="z-above relative max-h-full overflow-x-hidden overflow-y-auto bg-white pointer-events-auto">
         <!--
           Modal close button
           This will be used to close the modal on click.
