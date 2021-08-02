@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals';
 import { html } from 'htl';
 import Base from '@studiometa/js-toolkit/index';
+import wait from '../../__utils__/wait.js';
 
 describe('The events to method binding', () => {
   it('should only bind the latest method in the prototype chain', () => {
@@ -66,6 +67,48 @@ describe('The events to method binding', () => {
 
     const foo = new Foo(tpl);
     foo.$mount();
+    btn.click();
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('should bind method on async children', async () => {
+    const fn = jest.fn();
+
+    class Async extends Base {
+      static config = {
+        name: 'Async',
+        debug: true,
+      };
+
+      onClick() {
+        this.$emit('click');
+      }
+    }
+
+    async function importWithTimeout(response, delay = 100) {
+      return new Promise(resolve => setTimeout(() => resolve(response), delay));
+    }
+
+    class Foo extends Base {
+      static config = {
+        name: 'Foo',
+        debug: true,
+        components: { Async: () => importWithTimeout(Async) },
+      };
+
+      onAsyncClick(event, index) {
+        fn();
+      }
+    }
+
+    const btn = html`<button data-component="Async">Click me</button>`;
+    const tpl = html`<div>${btn}</div>`;
+    const foo = new Foo(tpl);
+    foo.$mount();
+    btn.click();
+    expect(fn).toHaveBeenCalledTimes(0);
+    await wait(150);
+    expect(fn).toHaveBeenCalledTimes(0);
     btn.click();
     expect(fn).toHaveBeenCalledTimes(1);
   });
