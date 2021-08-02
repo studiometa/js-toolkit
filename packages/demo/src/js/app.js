@@ -10,6 +10,7 @@ import {
 import { matrix } from '@studiometa/js-toolkit/utils/css';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
+import MyComponent from './components/MyComponent.js';
 
 // Add the new icon ref
 Accordion.config.components.AccordionItem.config.refs.push('icon');
@@ -33,6 +34,7 @@ class App extends Base {
           app
         ),
       BreakpointObserverDemo,
+      MyComponent,
       Cursor: class extends Cursor {
         static config = {
           ...Cursor.config,
