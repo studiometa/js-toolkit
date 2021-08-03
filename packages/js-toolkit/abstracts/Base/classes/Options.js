@@ -1,5 +1,6 @@
 import deepmerge from 'deepmerge';
-import { noCase } from 'no-case';
+import mem from 'mem';
+import camelToKebab from '../../../utils/string/camelToKebab.js';
 import isObject from '../../../utils/object/isObject.js';
 
 /**
@@ -13,8 +14,10 @@ import isObject from '../../../utils/object/isObject.js';
  * @param {String} name The option name.
  */
 function getAttributeName(name) {
-  return `data-option-${noCase(name, { delimiter: '-' })}`;
+  return `data-option-${camelToKebab(name)}`;
 }
+
+const getAttributeNameMemo = mem(getAttributeName);
 
 /**
  * Class options to manage options as data attributes on an HTML element.
@@ -94,7 +97,7 @@ export default class Options {
    * @param {any} defaultValue The default value for this option.
    */
   get(name, type, defaultValue) {
-    const attributeName = getAttributeName(name);
+    const attributeName = getAttributeNameMemo(name);
     const hasAttribute = this.#element.hasAttribute(attributeName);
 
     if (type === Boolean) {
@@ -143,7 +146,7 @@ export default class Options {
    * @param {any} value The new value for this option.
    */
   set(name, type, value) {
-    const attributeName = getAttributeName(name);
+    const attributeName = getAttributeNameMemo(name);
 
     if (value.constructor.name !== type.name) {
       const val = Array.isArray(value) || isObject(value) ? JSON.stringify(value) : value;
