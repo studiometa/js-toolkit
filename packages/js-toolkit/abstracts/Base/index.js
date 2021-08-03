@@ -18,7 +18,39 @@ if (typeof __DEV__ === 'undefined') {
 }
 
 let id = 0;
-const instances = new WeakMap();
+let instances;
+
+/**
+ * Get a class instance.
+ *
+ * @param {HTMLElement} element          The HTML root element of the component.
+ * @param {Base}        classConstructor The class constructor.
+ * @param {typeof Base} instance         The class instance.
+ * @return {void}
+ */
+function setInstance(element, classConstructor, instance) {
+  if (!instances) {
+    instances = new WeakMap();
+  }
+
+  if (!instances.has(element)) {
+    instances.set(element, new WeakMap());
+  }
+
+  instances.get(element).set(classConstructor, instance);
+}
+
+/**
+ * Get a class instance.
+ *
+ * @param {HTMLElement} element          The HTML root element of the component.
+ * @param {Base}        classConstructor The class constructor.
+ * @return {typeof Base} The instance of the given class attached to the given element.
+ */
+function getInstance(element, classConstructor) {
+  return instances.get(element).get(classConstructor);
+}
+
 
 /**
  * @typedef {typeof Base} BaseComponent
@@ -153,7 +185,7 @@ export default class Base extends EventManager {
 
     id += 1;
 
-    instances.set(this.$el, this);
+    setInstance(element, this.constructor, this);
 
     /** @type {String} */
     this.$id = `${name}-${id}`;

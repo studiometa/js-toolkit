@@ -1,3 +1,4 @@
+import queueMicrotask from  'queue-microtask';
 import { debug } from './utils.js';
 
 /**
@@ -33,7 +34,7 @@ export function mountComponents(instance) {
     if (__DEV__) {
       debug(instance, 'mountComponent', $child);
     }
-    $child.forEach(mountComponent);
+    $child.forEach((c) => queueMicrotask(() => mountComponent(c)));
   });
 }
 
@@ -64,7 +65,8 @@ export function mountOrUpdateComponents(instance) {
   }
 
   Object.values(instance.$children).forEach(($child) => {
-    $child.forEach(mountOrUpdateComponent);
+    $child.forEach((c) => queueMicrotask(() => mountOrUpdateComponent(c)));
+    // $child.forEach(mountOrUpdateComponent);
   });
 }
 
