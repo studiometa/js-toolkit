@@ -5,6 +5,7 @@ import { matrix } from '@studiometa/js-toolkit/utils/css';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
 import BreakpointManagerDemo from './components/BreakPointManagerDemo/index.js';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
+import TableOfContent from './components/TableOfContent.js';
 
 /**
  * @typedef {import(@studiometa/js-toolkit/abstracts/Base/index).BaseConfig} BaseConfig
@@ -37,6 +38,7 @@ class App extends Base {
       '[data-src]': () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload.js'),
       Modal: withBreakpointObserver(Modal),
       Tabs,
+      TableOfContent,
     },
   };
 

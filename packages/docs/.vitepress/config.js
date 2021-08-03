@@ -32,6 +32,7 @@ module.exports = {
           { text: 'Accordion', link: '/components/Accordion.html' },
           { text: 'Cursor', link: '/components/Cursor.html' },
           { text: 'Modal', link: '/components/Modal.html' },
+          { text: 'Table of content', link: '/components/TableOfContent.html' },
           { text: 'Tabs', link: '/components/Tabs.html' },
         ],
       },
