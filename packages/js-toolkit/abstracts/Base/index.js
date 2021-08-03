@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind.js';
 import EventManager from '../EventManager.js';
 import { callMethod, debug, getConfig } from './utils.js';
@@ -17,6 +16,9 @@ if (typeof __DEV__ === 'undefined') {
     window.__DEV__ = false;
   }
 }
+
+let id = 0;
+const instances = new WeakMap();
 
 /**
  * @typedef {typeof Base} BaseComponent
@@ -149,8 +151,12 @@ export default class Base extends EventManager {
 
     const { name } = getConfig(this);
 
+    id += 1;
+
+    instances.set(this.$el, this);
+
     /** @type {String} */
-    this.$id = `${name}-${nanoid()}`;
+    this.$id = `${name}-${id}`;
 
     /** @type {HTMLElement} */
     this.$el = element;
@@ -163,7 +169,7 @@ export default class Base extends EventManager {
 
     if (!('__base__' in this.$el)) {
       Object.defineProperty(this.$el, '__base__', {
-        get: () => this,
+        get: () => instances.get(this.$el),
         configurable: true,
       });
     }
@@ -267,16 +273,7 @@ export default class Base extends EventManager {
     // Execute the `terminated` hook if it exists
     callMethod(this, 'terminated');
 
-    // Delete the reference to the instance
-    // delete this.$el.__base__;
-
-    // And update its status to prevent re-instantiation when accessing the
-    // parent's `$children` property
-    Object.defineProperty(this.$el, '__base__', {
-      value: 'terminated',
-      configurable: false,
-      writable: false,
-    });
+    instances.delete(this.$el);
   }
 
   /**
