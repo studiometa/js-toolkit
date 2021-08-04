@@ -17,8 +17,8 @@ export default function inertiaFinalValue(initialValue, initialDelta, factor = 0
   let finalValue = initialValue;
 
   while (Math.abs(delta) > 0.1) {
-    delta *= factor;
     finalValue += delta;
+    delta *= factor;
   }
 
   return finalValue;

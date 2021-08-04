@@ -44,7 +44,7 @@ export default class Service {
    *
    * @param  {String}   key      The callback's identifier
    * @param  {Function} callback The callback function
-   * @return {InstanceType<typeof Service>} The current instance
+   * @return {this} The current instance
    */
   add(key, callback) {
     if (this.has(key)) {

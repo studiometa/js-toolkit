@@ -70,24 +70,42 @@ class Pointer extends Service {
    * @return {Pointer}
    */
   init() {
-    this.handler = this.handler.bind(this);
-    this.downHandler = this.downHandler.bind(this);
-    this.upHandler = this.upHandler.bind(this);
-
-    document.documentElement.addEventListener('mouseenter', this.handler, {
+    document.documentElement.addEventListener('mouseenter', this, {
       once: true,
       capture: true,
     });
 
     const options = { passive: true, capture: true };
-
-    document.addEventListener('mousemove', this.handler, options);
-    document.addEventListener('touchmove', this.handler, options);
-    document.addEventListener('mousedown', this.downHandler, options);
-    document.addEventListener('touchstart', this.downHandler, options);
-    document.addEventListener('mouseup', this.upHandler, options);
-    document.addEventListener('touchend', this.upHandler, options);
+    document.addEventListener('mousemove', this, options);
+    document.addEventListener('touchmove', this, options);
+    document.addEventListener('mousedown', this, options);
+    document.addEventListener('touchstart', this, options);
+    document.addEventListener('mouseup', this, options);
+    document.addEventListener('touchend', this, options);
     return this;
+  }
+
+  /**
+   * Handle events.
+   * @param {MouseEvent|TouchEvent} event The event object.
+   */
+  handleEvent(event) {
+    // eslint-disable-next-line default-case
+    switch (event.type) {
+      case 'mouseenter':
+      case 'mousemove':
+      case 'touchmove':
+        this.handler(event);
+        break;
+      case 'mousedown':
+      case 'touchstart':
+        this.downHandler();
+        break;
+      case 'mouseup':
+      case 'touchend':
+        this.upHandler();
+        break;
+    }
   }
 
   /**
@@ -96,18 +114,18 @@ class Pointer extends Service {
    * @return {Pointer}
    */
   kill() {
-    document.removeEventListener('mousemove', this.handler);
-    document.removeEventListener('touchmove', this.handler);
-    document.removeEventListener('mousedown', this.downHandler);
-    document.removeEventListener('touchstart', this.downHandler);
-    document.removeEventListener('mouseup', this.upHandler);
-    document.removeEventListener('touchend', this.upHandler);
+    document.removeEventListener('mousemove', this);
+    document.removeEventListener('touchmove', this);
+    document.removeEventListener('mousedown', this);
+    document.removeEventListener('touchstart', this);
+    document.removeEventListener('mouseup', this);
+    document.removeEventListener('touchend', this);
     return this;
   }
 
   /**
    * The service handler.
-   * @param {MouseEvent} event The mouse event object.
+   * @param {MouseEvent|TouchEvent} event The mouse event object.
    */
   handler(event) {
     this.updateValues(event);

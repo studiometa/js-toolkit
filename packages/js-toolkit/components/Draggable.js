@@ -1,19 +1,10 @@
+import styler from 'stylefire';
 import Base from '../abstracts/Base/index.js';
-import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
+import withDrag from '../decorators/withDrag.js';
 
 /**
- * @typedef {import('../services/pointer.js').PointerServiceProps} PointerServiceProps
  * @typedef {import('stylefire').Styler} Styler
- */
-
-/**
- * @typedef {Object} DraggableOptions
- * @property {number} factor The velocity factor.
- */
-
-/**
- * @typedef {Object} DraggableInterface
- * @property {DraggableOptions} $options
+ * @typedef {import('../services/drag.js').DragServiceProps} DragServiceProps
  */
 
 /**
@@ -21,177 +12,56 @@ import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
  *
  * @link https://jsfiddle.net/soulwire/znj683b9/
  */
-export default class Draggable extends Base {
+export default class Draggable extends withDrag(Base) {
   static config = {
-    name: 'Draggable',
-    options: {
-      factor: {
-        type: Number,
-        default: 0.85,
-      },
-    },
+    name: 'DraggableElement',
   };
 
   /**
-   * Whether we are currently dragging or not.
-   * @type {Boolean}
-   */
-  isGrabbing = false;
-
-  /**
-   * The horizontal position of the drag.
-   * @type {Number}
-   */
-  x = 0;
-
-  /**
-   * The vertical position of the drag.
-   * @type {Number}
-   */
-  y = 0;
-
-  /**
-   * The velocity of the drag.
+   * The origin of the element.
    * @type {{ x: number, y: number }}
    */
-  delta = {
+  elementOrigin = {
     x: 0,
     y: 0,
   };
 
   /**
-   * The origin of the drag.
-   * @type {{ x: number, y: number }}
+   * The element styler for performant style update.
+   * @type {Styler}
    */
-  origin = {
-    x: 0,
-    y: 0,
-  };
-
-  /**
-   * The target positiion of the inertia.
-   * @type {{ x: number, y: number }}
-   */
-  target = {
-    x: 0,
-    y: 0,
-  };
+  styler;
 
   /**
    * Mounted hook.
    * @return {void}
    */
   mounted() {
-    // Disable ticking service on mount
-    this.$services.disable('ticked');
-    this.$services.disable('moved');
+    this.styler = styler(this.$el);
   }
 
   /**
-   * Mousedown handler.
-   * @param {MouseEvent} event The event object.
+   * Destroyed hook.
    * @return {void}
    */
-  onMousedown(event) {
-    this.start(event.clientX, event.clientY);
+  destroyed() {
+    this.styler = undefined;
   }
 
   /**
-   * Touchstart handler.
-   * @param {TouchEvent} event The event object.
-   * @return {void}
+   * Drag service hook.
+   * @param {DragServiceProps} props
    */
-  onTouchstart(event) {
-    this.start(event.touches[0].clientX, event.touches[0].clientY);
-  }
-
-  /**
-   * Start the drag.
-   * @this {Draggable & DraggableInterface}
-   * @param {number} x The initial horizontal position.
-   * @param {number} y The initial vertical position.
-   * @return {void}
-   */
-  start(x, y) {
-    this.$log('start');
-
-    // Reset state
-    this.x = x;
-    this.y = y;
-    this.origin.x = x;
-    this.origin.y = y;
-    this.delta.x = 0;
-    this.delta.y = 0;
-    this.target.x = x;
-    this.target.y = y;
-
-    // Enable grabbing
-    this.isGrabbing = true;
-    this.$emit('dragstart', this);
-
-    setTimeout(() => {
-      this.$services.enable('moved');
-      this.$services.enable('ticked');
-    }, 0);
-  }
-
-  /**
-   * Stop the drag.
-   * @return {void}
-   */
-  stop() {
-    this.$log('stop');
-    this.$services.disable('moved');
-
-    this.target.x = inertiaFinalValue(this.x, this.delta.x, this.$options.factor);
-    this.target.y = inertiaFinalValue(this.y, this.delta.y, this.$options.factor);
-
-    this.isGrabbing = false;
-    this.$emit('dragend', this);
-  }
-
-  /**
-   * Raf service hook.
-   * @this {Draggable & DraggableInterface}
-   * @return {void}
-   */
-  ticked() {
-    if (!this.isGrabbing) {
-      this.$log('inertia');
-
-      this.x += this.delta.x;
-      this.y += this.delta.y;
-
-      this.$emit('draginertia', this);
-
-      this.delta.x *= this.$options.factor;
-      this.delta.y *= this.$options.factor;
-
-      if (Math.abs(this.delta.x) < 0.1 && Math.abs(this.delta.y) < 0.1) {
-        this.$services.disable('ticked');
-      }
+  dragged(props) {
+    if (props.mode === 'start') {
+      this.elementOrigin.x = this.styler.get('x');
+      this.elementOrigin.y = this.styler.get('y');
+      return;
     }
-  }
 
-  /**
-   * Pointer service hook.
-   * @param {PointerServiceProps} props [description]
-   * @return {void}
-   */
-  moved(props) {
-    if (this.isGrabbing) {
-      this.x = props.x;
-      this.y = props.y;
-      this.delta.x = props.delta.x;
-      this.delta.y = props.delta.y;
-      this.target.x = props.x;
-      this.target.y = props.y;
-
-      this.$emit('drag', this);
-
-      if (!props.isDown) {
-        this.stop();
-      }
-    }
+    this.styler.set({
+      x: this.elementOrigin.x + props.x - props.origin.x,
+      y: this.elementOrigin.y + props.y - props.origin.y,
+    });
   }
 }
