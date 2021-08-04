@@ -1,14 +1,13 @@
 import * as services from '@studiometa/js-toolkit/services';
+import getFilenamesInFolder from '../__utils__/getFilenamesInFolder.js';
 
-describe('@studiometa/js-toolkit/services exports', () => {
-  it('should export all scripts', () => {
-    expect(Object.keys(services)).toEqual([
-      'useKey',
-      'useLoad',
-      'usePointer',
-      'useRaf',
-      'useResize',
-      'useScroll',
-    ]);
-  });
+function capitalize(str) {
+  return str.replace(/^\w/, (c) => c.toUpperCase());
+}
+
+test('components exports', () => {
+  const names = getFilenamesInFolder('../../js-toolkit/services/', import.meta.url).map(
+    (name) => `use${capitalize(name)}`
+  );
+  expect(Object.keys(services)).toEqual(names);
 });
