@@ -2,7 +2,7 @@
 sidebar: auto
 sidebarDepth: 5
 prev: /components/Accordion.md
-next: /components/DraggableElement.md
+next: /components/Draggable.md
 ---
 
 # Cursor
