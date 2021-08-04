@@ -8,6 +8,7 @@ import { hasMethod, callMethod } from '../utils.js';
 
 /**
  * @typedef {import('../index').default} Base
+ * @typedef {import('../../../services').ServiceInterface} ServiceInterface
  */
 
 const SERVICES_MAP = {
@@ -122,5 +123,24 @@ export default class Services {
 
     const { remove } = SERVICES_MAP[service]();
     remove(this.#base.$id);
+  }
+
+  /**
+   * Register a new service to be enabled/disabled.
+   *
+   * @param {string}           name        The name of the service hook.
+   * @param {ServiceInterface} useFunction [description]
+   */
+  register(name, useFunction) {
+    SERVICES_MAP[name] = useFunction;
+  }
+
+  /**
+   * Unregister a new service to be enabled disabled.
+   *
+   * @param {string} name The name of the service hooK
+   */
+  unregister(name) {
+    delete SERVICES_MAP[name];
   }
 }
