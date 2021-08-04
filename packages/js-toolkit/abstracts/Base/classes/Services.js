@@ -11,6 +11,9 @@ import { hasMethod, callMethod } from '../utils.js';
  * @typedef {import('../../../services').ServiceInterface} ServiceInterface
  */
 
+/**
+ * @type {Record<string, () => ServiceInterface>}
+ */
 const SERVICES_MAP = {
   scrolled: useScroll,
   resized: useResize,
@@ -21,7 +24,7 @@ const SERVICES_MAP = {
 };
 
 /**
- * @typedef {'scrolled'|'resized'|'ticked'|'moved'|'keyed'} ServiceName
+ * @typedef {keyof SERVICES_MAP} ServiceName
  */
 
 /**
@@ -128,8 +131,8 @@ export default class Services {
   /**
    * Register a new service to be enabled/disabled.
    *
-   * @param {string}           name        The name of the service hook.
-   * @param {ServiceInterface} useFunction [description]
+   * @param {string}                 name        The name of the service hook.
+   * @param {() => ServiceInterface} useFunction The `use...` function for the service.
    */
   register(name, useFunction) {
     SERVICES_MAP[name] = useFunction;
