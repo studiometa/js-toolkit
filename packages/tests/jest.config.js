@@ -15,7 +15,8 @@ export default {
   },
   setupFiles: [
     '<rootDir>/tests/__setup__/mockBreakpoints.js',
-    '<rootDir>/tests/__setup__/ResizeObserver.js',
     '<rootDir>/tests/__setup__/mockQuerySelectorAllWithScope.js',
+    '<rootDir>/tests/__setup__/mockStylefireExports.js',
+    '<rootDir>/tests/__setup__/ResizeObserver.js',
   ],
 };

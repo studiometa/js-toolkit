@@ -1,10 +1,46 @@
 /* eslint-disable max-classes-per-file */
 import Base from '@studiometa/js-toolkit';
-import { Modal, Tabs, Accordion, Cursor } from '@studiometa/js-toolkit/components';
+import { Modal, Tabs, Accordion, Cursor, Draggable } from '@studiometa/js-toolkit/components';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
+// import useDrag from '@studiometa/js-toolkit/services/drag';
+// import styler from 'stylefire';
 import BreakpointManagerDemo from './components/BreakPointManagerDemo/index.js';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
+
+// window.addEventListener('load', () => {
+//   const el = document.querySelector('[data-component="DraggableElement"]');
+
+//   if (!el) {
+//     console.log('No el found.');
+//     return;
+//   }
+
+//   const elStyler = styler(el);
+//   const origins = { x: 0, y: 0 };
+
+//   const { add } = useDrag(el);
+//   add('one', (props) => {
+//     if (props.mode === 'drop') {
+//       console.log(props.final);
+//     }
+
+//     if (props.mode === 'stop') {
+//       console.log(props.x, props.y);
+//     }
+
+//     if (props.mode === 'start') {
+//       origins.x = elStyler.get('x');
+//       origins.y = elStyler.get('y');
+//       return;
+//     }
+
+//     elStyler.set({
+//       x: origins.x + props.distance.x,
+//       y: origins.y + props.distance.y,
+//     });
+//   });
+// });
 
 /**
  * @typedef {import(@studiometa/js-toolkit/abstracts/Base/index).BaseConfig} BaseConfig
@@ -33,6 +69,7 @@ class App extends Base {
           })}`;
         }
       },
+      Draggable,
       Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew.js'),
       '[data-src]': () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload.js'),
       Modal: withBreakpointObserver(Modal),
@@ -57,10 +94,6 @@ class App extends Base {
 
   resized(props) {
     this.$log('resized', props);
-  }
-
-  scrolled(props) {
-    this.$log('scrolled', props, 'foo');
   }
 }
 
