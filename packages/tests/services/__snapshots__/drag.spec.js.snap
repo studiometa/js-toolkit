@@ -1,0 +1,219 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`The drag service should run with inertia and stop 1`] = `
+Array [
+  Array [
+    Object {
+      "delta": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "distance": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "final": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "hasInertia": false,
+      "isGrabbing": true,
+      "mode": "start",
+      "origin": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "target": <div />,
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  Array [
+    Object {
+      "delta": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "distance": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "final": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "hasInertia": false,
+      "isGrabbing": true,
+      "mode": "drag",
+      "origin": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "target": <div />,
+      "x": 522,
+      "y": 394,
+    },
+  ],
+  Array [
+    Object {
+      "delta": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "distance": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "final": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "hasInertia": true,
+      "isGrabbing": false,
+      "mode": "drop",
+      "origin": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "target": <div />,
+      "x": 522,
+      "y": 394,
+    },
+  ],
+  Array [
+    Object {
+      "delta": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "distance": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "final": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "hasInertia": true,
+      "isGrabbing": false,
+      "mode": "inertia",
+      "origin": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "target": <div />,
+      "x": 522,
+      "y": 394,
+    },
+  ],
+  Array [
+    Object {
+      "delta": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "distance": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "final": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "hasInertia": false,
+      "isGrabbing": false,
+      "mode": "stop",
+      "origin": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "target": <div />,
+      "x": 522,
+      "y": 394,
+    },
+  ],
+]
+`;
+
+exports[`The drag service should start, drag and drop 1`] = `
+Array [
+  Array [
+    Object {
+      "delta": Object {
+        "x": 10,
+        "y": 10,
+      },
+      "distance": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "final": Object {
+        "x": 533,
+        "y": 405,
+      },
+      "hasInertia": false,
+      "isGrabbing": true,
+      "mode": "start",
+      "origin": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "target": <div />,
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  Array [
+    Object {
+      "delta": Object {
+        "x": 10,
+        "y": 10,
+      },
+      "distance": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "final": Object {
+        "x": 533,
+        "y": 405,
+      },
+      "hasInertia": false,
+      "isGrabbing": true,
+      "mode": "drag",
+      "origin": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "target": <div />,
+      "x": 522,
+      "y": 394,
+    },
+  ],
+  Array [
+    Object {
+      "delta": Object {
+        "x": 10,
+        "y": 10,
+      },
+      "distance": Object {
+        "x": 522,
+        "y": 394,
+      },
+      "final": Object {
+        "x": 533,
+        "y": 405,
+      },
+      "hasInertia": true,
+      "isGrabbing": false,
+      "mode": "drop",
+      "origin": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "target": <div />,
+      "x": 522,
+      "y": 394,
+    },
+  ],
+]
+`;

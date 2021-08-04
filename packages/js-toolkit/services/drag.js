@@ -96,6 +96,12 @@ class Drag extends Service {
   isGrabbing = false;
 
   /**
+   * Whether we are currently runnnig with inertia.
+   * @type {Boolean}
+   */
+  hasInertia = false;
+
+  /**
    * The horizontal position of the drag.
    * @type {Number}
    */
@@ -180,6 +186,20 @@ class Drag extends Service {
     const pointer = usePointer();
     pointer.add(this.id, this.pointerHandler);
 
+    return this;
+  }
+
+  /**
+   * Unbind all handlers from their bounded event.
+   *
+   * @return {this}
+   */
+  kill() {
+    this.target.removeEventListener('mousemove', this);
+    this.target.removeEventListener('touchmove', this);
+
+    const pointer = usePointer();
+    pointer.remove(this.id);
     return this;
   }
 
@@ -306,20 +326,6 @@ class Drag extends Service {
   }
 
   /**
-   * Unbind all handlers from their bounded event.
-   *
-   * @return {this}
-   */
-  kill() {
-    document.removeEventListener('mousemove', this);
-    document.removeEventListener('touchmove', this);
-
-    const pointer = usePointer();
-    pointer.remove(this.id);
-    return this;
-  }
-
-  /**
    * Get the pointer props.
    *
    * @type {Object}
@@ -363,6 +369,7 @@ export default function useDrag(target, options) {
 
   if (!drag) {
     drag = new Drag(target, options);
+    instances.set(target, drag);
   }
 
   const add = drag.add.bind(drag);
