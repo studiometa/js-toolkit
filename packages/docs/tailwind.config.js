@@ -7,11 +7,24 @@ module.exports = {
       './.vitepress/**/*.vue',
       './.vitepress/**/*.ts',
       './**/*.md',
-      './**/*.html'
+      './**/*.html',
     ],
   },
   future: {
     removeDeprecatedGapUtilities: true,
     purgeLayersByDefault: true,
+  },
+  theme: {
+    extend: {
+      cursor: {
+        grab: 'grab',
+        grabbing: 'grabbing',
+      },
+    },
+  },
+  variants: {
+    extend: {
+      cursor: ['active'],
+    },
   },
 };
