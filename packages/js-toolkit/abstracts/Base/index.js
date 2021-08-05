@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind.js';
 import EventManager from '../EventManager.js';
 import { callMethod, debug, getConfig } from './utils.js';
@@ -17,6 +16,8 @@ if (typeof __DEV__ === 'undefined') {
     window.__DEV__ = false;
   }
 }
+
+let id = 0;
 
 /**
  * @typedef {typeof Base} BaseComponent
@@ -180,7 +181,8 @@ export default class Base extends EventManager {
     const { name } = getConfig(this);
 
     /** @type {String} */
-    this.$id = `${name}-${nanoid()}`;
+    this.$id = `${name}-${id}`;
+    id += 1;
 
     /** @type {HTMLElement} */
     this.$el = element;
