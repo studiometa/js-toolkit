@@ -47,8 +47,7 @@ class Scroll extends Service {
    * @return {Scroll}
    */
   init() {
-    this.handler = this.handler.bind(this);
-    document.addEventListener('scroll', this.handler, { passive: true, capture: true });
+    document.addEventListener('scroll', this, { passive: true, capture: true });
     return this;
   }
 
@@ -75,7 +74,7 @@ class Scroll extends Service {
    *
    * @return {void}
    */
-  handler() {
+  handleEvent() {
     this.trigger(this.props);
 
     this.debouncedHandler();
@@ -87,7 +86,7 @@ class Scroll extends Service {
    * @return {Scroll}
    */
   kill() {
-    document.removeEventListener('scroll', this.handler);
+    document.removeEventListener('scroll', this);
     return this;
   }
 
