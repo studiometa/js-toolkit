@@ -1,3 +1,4 @@
+import useDrag from './drag.js';
 import useKey from './key.js';
 import useLoad from './load.js';
 import usePointer from './pointer.js';
@@ -15,4 +16,4 @@ import useScroll from './scroll.js';
  *   Test if the service has alreaydy a callback for the given key.
  */
 
-export { useKey, usePointer, useLoad, useRaf, useResize, useScroll };
+export { useKey, usePointer, useDrag, useLoad, useRaf, useResize, useScroll };
