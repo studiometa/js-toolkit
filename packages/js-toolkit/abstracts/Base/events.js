@@ -116,6 +116,7 @@ function bindChildrenEvents(instance, eventMethods) {
             }
 
             if ($child instanceof Promise) {
+              // eslint-disable-next-line no-param-reassign
               $child = await $child;
             }
 
