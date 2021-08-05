@@ -3,44 +3,11 @@ import Base from '@studiometa/js-toolkit';
 import { Modal, Tabs, Accordion, Cursor, Draggable } from '@studiometa/js-toolkit/components';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
-// import useDrag from '@studiometa/js-toolkit/services/drag';
-// import styler from 'stylefire';
 import BreakpointManagerDemo from './components/BreakPointManagerDemo/index.js';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
 
-// window.addEventListener('load', () => {
-//   const el = document.querySelector('[data-component="DraggableElement"]');
-
-//   if (!el) {
-//     console.log('No el found.');
-//     return;
-//   }
-
-//   const elStyler = styler(el);
-//   const origins = { x: 0, y: 0 };
-
-//   const { add } = useDrag(el);
-//   add('one', (props) => {
-//     if (props.mode === 'drop') {
-//       console.log(props.final);
-//     }
-
-//     if (props.mode === 'stop') {
-//       console.log(props.x, props.y);
-//     }
-
-//     if (props.mode === 'start') {
-//       origins.x = elStyler.get('x');
-//       origins.y = elStyler.get('y');
-//       return;
-//     }
-
-//     elStyler.set({
-//       x: origins.x + props.distance.x,
-//       y: origins.y + props.distance.y,
-//     });
-//   });
-// });
+// Add the new icon ref
+Accordion.config.components.AccordionItem.config.refs.push('icon');
 
 /**
  * @typedef {import(@studiometa/js-toolkit/abstracts/Base/index).BaseConfig} BaseConfig
@@ -50,7 +17,7 @@ class App extends Base {
   static config = {
     name: 'App',
     refs: ['modal'],
-    log: true,
+    log: false,
     components: {
       Accordion,
       BreakpointManagerDemo,
@@ -97,5 +64,7 @@ class App extends Base {
   }
 }
 
-const app = App.$factory('html');
-window.APP = app;
+window.addEventListener('load', () => {
+  const app = App.$factory('html');
+  window.APP = app;
+});
