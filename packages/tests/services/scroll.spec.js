@@ -4,25 +4,15 @@ import resizeWindow from '../__utils__/resizeWindow';
 
 describe('useScroll', () => {
   const { add, remove, props } = useScroll();
-  let fn;
   let scrollProps;
 
-  beforeAll(() => {
-    jest.useFakeTimers();
+  const fn = jest.fn((p) => {
+    scrollProps = p;
   });
-
-  afterAll(() => {
-    jest.useRealTimers();
-  });
+  add('key', fn);
 
   beforeEach(() => {
-    resizeWindow({ width: 1000, height: 1000 });
-    jest.runAllTimers();
-    remove('key');
-    fn = jest.fn((p) => {
-      scrollProps = p;
-    });
-    add('key', fn);
+    fn.mockClear();
   });
 
   it('should export the `add`, `remove` and `props` methods', () => {
@@ -39,17 +29,13 @@ describe('useScroll', () => {
     scrollHeightSpy.mockImplementation(() => window.innerHeight);
 
     document.dispatchEvent(new CustomEvent('scroll'));
-    jest.advanceTimersByTime(100);
-
     expect(scrollProps.progress).toEqual({ x: 1, y: 1 });
 
     scrollWidthSpy.mockRestore();
     scrollHeightSpy.mockRestore();
   });
 
-  it('should trigger the callbacks on scroll', () => {
-    expect(fn).toHaveBeenCalledTimes(0);
-
+  it('should trigger the callbacks on scroll', (done) => {
     const scrollWidthSpy = jest.spyOn(document.body, 'scrollWidth', 'get');
     scrollWidthSpy.mockImplementation(() => window.innerWidth * 2);
 
@@ -57,38 +43,67 @@ describe('useScroll', () => {
     scrollHeightSpy.mockImplementation(() => window.innerHeight * 2);
 
     document.dispatchEvent(new CustomEvent('scroll'));
-    jest.advanceTimersByTime(100);
-
     expect(scrollProps).toEqual({
       x: 0,
       y: 0,
       changed: { x: false, y: false },
+      direction: { x: 'NONE', y: 'NONE' },
       last: { x: 0, y: 0 },
       delta: { x: 0, y: 0 },
       progress: { x: 0, y: 0 },
-      max: { x: 1000, y: 1000 },
+      max: { x: window.innerWidth, y: window.innerHeight },
     });
+
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    const scroll = 100;
+    window.pageYOffset = scroll;
+    window.pageXOffset = scroll;
+    document.dispatchEvent(new CustomEvent('scroll'));
+
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(fn).toHaveBeenLastCalledWith({
+      x: scroll,
+      y: scroll,
+      changed: { x: true, y: true },
+      direction: { x: 'RIGHT', y: 'DOWN' },
+      last: { x: 0, y: 0 },
+      delta: { x: scroll, y: scroll },
+      progress: { x: scroll / window.innerWidth, y: scroll / window.innerHeight },
+      max: { x: window.innerWidth, y: window.innerHeight },
+    });
+
+
+    const newScroll = 50;
+    window.pageYOffset = newScroll;
+    window.pageXOffset = newScroll;
+    document.dispatchEvent(new CustomEvent('scroll'));
 
     expect(fn).toHaveBeenCalledTimes(3);
-
-    window.pageYOffset = 100;
-    window.pageXOffset = 100;
-    document.dispatchEvent(new CustomEvent('scroll'));
-    expect(scrollProps).toEqual({
-      x: 100,
-      y: 100,
+    expect(fn).toHaveBeenLastCalledWith({
+      x: newScroll,
+      y: newScroll,
       changed: { x: true, y: true },
-      last: { x: 0, y: 0 },
-      delta: { x: 100, y: 100 },
-      progress: { x: 0.1, y: 0.1 },
-      max: { x: 1000, y: 1000 },
+      direction: { x: 'LEFT', y: 'UP' },
+      last: { x: scroll, y: scroll },
+      delta: { x: newScroll - scroll, y: newScroll - scroll },
+      progress: { x: newScroll / window.innerWidth, y: newScroll / window.innerHeight },
+      max: { x: window.innerWidth, y: window.innerHeight },
     });
 
-    remove('key');
-    document.dispatchEvent(new CustomEvent('scroll'));
-    expect(fn).toHaveBeenCalledTimes(4);
+    setTimeout(() => {
+      expect(fn).toHaveBeenCalledTimes(4);
+      expect(scrollProps.changed).toEqual({ x: false, y: false });
+      done();
+    }, 0);
 
     scrollWidthSpy.mockRestore();
     scrollHeightSpy.mockRestore();
   });
+
+  it('should not trigger the callback when removed', () => {
+    remove('key');
+    document.dispatchEvent(new CustomEvent('scroll'));
+    expect(fn).toHaveBeenCalledTimes(0);
+  })
 });

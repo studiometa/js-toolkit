@@ -78,6 +78,36 @@ export default class Base extends EventManager {
   $parent = null;
 
   /**
+   * The instance id.
+   * @type {string}
+   */
+  $id;
+
+  /**
+   * The root element.
+   * @type {HTMLElement}
+   */
+  $el;
+
+  /**
+   * The instance options.
+   * @type {BaseOptions}
+   */
+  $options;
+
+  /**
+   * The instance children components.
+   * @type {BaseChildren}
+   */
+  $children;
+
+  /**
+   * The instance services.
+   * @type {Services}
+   */
+  $services;
+
+  /**
    * The state of the component.
    * @type {Boolean}
    */
@@ -155,11 +185,9 @@ export default class Base extends EventManager {
     /** @type {HTMLElement} */
     this.$el = element;
 
-    /** @type {BaseOptions} */
     this.$options = getOptions(this, element, getConfig(this));
-
-    /** @type {BaseChildren} */
     this.$children = getChildren(this, this.$el, getConfig(this).components || {});
+    this.$services = new Services(this);
 
     if (!('__base__' in this.$el)) {
       Object.defineProperty(this.$el, '__base__', {
@@ -172,9 +200,6 @@ export default class Base extends EventManager {
     autoBind(this, {
       exclude: [...this._excludeFromAutoBind],
     });
-
-    /** @type {Services} */
-    this.$services = new Services(this);
 
     let unbindMethods = [];
     this.$on('mounted', () => {

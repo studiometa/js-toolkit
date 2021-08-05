@@ -102,7 +102,7 @@ function bindChildrenEvents(instance, eventMethods) {
            * @param {Base} $child
            * @param {Number} index
            */
-          ($child, index) => {
+          async ($child, index) => {
             const eventName = eventMethod.replace(childEventMethod, '').toLowerCase();
             const handler = (...args) => {
               if (__DEV__) {
@@ -113,6 +113,11 @@ function bindChildrenEvents(instance, eventMethods) {
 
             if (__DEV__) {
               debug(instance, 'binding child event', childName, eventName);
+            }
+
+            if ($child instanceof Promise) {
+              // eslint-disable-next-line no-param-reassign
+              $child = await $child;
             }
 
             const unbindMethod = $child.$on(eventName, handler);

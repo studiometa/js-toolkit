@@ -20,6 +20,7 @@ module.exports = {
         items: [
           { text: 'withBreakpointManager', link: '/decorators/withBreakpointManager.html' },
           { text: 'withBreakpointObserver', link: '/decorators/withBreakpointObserver.html' },
+          { text: 'withDrag', link: '/decorators/withDrag.html' },
           { text: 'withExtraConfig', link: '/decorators/withExtraConfig.html' },
           { text: 'withIntersectionObserver', link: '/decorators/withIntersectionObserver.html' },
           { text: 'withMountWhenInView', link: '/decorators/withMountWhenInView.html' },
@@ -31,6 +32,7 @@ module.exports = {
         items: [
           { text: 'Accordion', link: '/components/Accordion.html' },
           { text: 'Cursor', link: '/components/Cursor.html' },
+          { text: 'Draggable', link: '/components/Draggable.html' },
           { text: 'Modal', link: '/components/Modal.html' },
           { text: 'Tabs', link: '/components/Tabs.html' },
         ],
@@ -38,6 +40,7 @@ module.exports = {
       {
         text: 'Services',
         items: [
+          { text: 'Drag', link: '/services/drag.html' },
           { text: 'Key', link: '/services/key.html' },
           { text: 'Pointer', link: '/services/pointer.html' },
           { text: 'RAF', link: '/services/raf.html' },
