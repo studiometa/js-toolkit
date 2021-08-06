@@ -71,6 +71,10 @@ export default (BaseClass, defaultOptions = { threshold: [0, 1] }) =>
 
       this.#observer.observe(this.$el);
 
+      this.$on('terminated', () => {
+        this.#observer.disconnect();
+      });
+
       return this;
     }
 
@@ -85,12 +89,5 @@ export default (BaseClass, defaultOptions = { threshold: [0, 1] }) =>
       }
 
       return this;
-    }
-
-    /**
-     * Disconnect the observer when the component is terminated.
-     */
-    terminated() {
-      this.#observer.disconnect();
     }
   };
