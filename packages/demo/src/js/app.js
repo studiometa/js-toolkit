@@ -2,10 +2,10 @@
 import Base from '@studiometa/js-toolkit';
 import { Modal, Tabs, Accordion, Cursor } from '@studiometa/js-toolkit/components';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
-import { withBreakpointObserver } from '@studiometa/js-toolkit/decorators';
+import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
 import BreakpointManagerDemo from './components/BreakPointManagerDemo/index.js';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
-import MyComponent from './components/MyComponent.js';
+import MyVueComponent from './components/MyVueComponent.js';
 
 /**
  * @typedef {import(@studiometa/js-toolkit/abstracts/Base/index).BaseConfig} BaseConfig
@@ -20,7 +20,7 @@ class App extends Base {
       Accordion,
       BreakpointManagerDemo,
       BreakpointObserverDemo,
-      MyComponent,
+      MyVueComponent,
       Cursor: class extends Cursor {
         static config = {
           ...Cursor.config,
