@@ -9,6 +9,7 @@ import {
 } from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
 import ScrollToDemo from './components/ScrollToDemo.js';
+import MyVueComponent from './components/MyVueComponent.js';
 
 /**
  * @typedef {import(@studiometa/js-toolkit/Base/index).BaseConfig} BaseConfig
@@ -81,6 +82,7 @@ class App extends Base {
         ),
       Tabs: (app) => importWhenVisible(() => import('@studiometa/ui/Tabs.js'), 'Tabs', app),
       ScrollToDemo,
+      MyVueComponent,
     },
   };
 
