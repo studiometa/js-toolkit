@@ -5,6 +5,10 @@ declare global {
     __DEV__: typeof __DEV__;
     requestIdleCallback?: (callback: () => void, options?:{timeout?:number}) => number;
   }
+
+  interface CSSStyleDeclaration {
+    scrollMarginTop: string;
+  }
 }
 
 export {};
