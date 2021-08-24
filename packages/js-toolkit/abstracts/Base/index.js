@@ -4,6 +4,7 @@ import { callMethod, debug, getConfig, getComponentElements } from './utils.js';
 import { getChildren } from './children.js';
 import { getOptions } from './options.js';
 import { getRefs } from './refs.js';
+import RefsManager from './classes/RefsManager.js';
 import { mountComponents, mountOrUpdateComponents, destroyComponents } from './components.js';
 import Services from './classes/Services.js';
 import bindEvents from './events.js';
@@ -159,14 +160,6 @@ export default class Base extends EventManager {
   static config;
 
   /**
-   * Get the component's refs.
-   * @return {BaseRefs}
-   */
-  get $refs() {
-    return getRefs(this, this.$el);
-  }
-
-  /**
    * Class constructor where all the magic takes place.
    *
    * @param {HTMLElement} element The component's root element dd.
@@ -190,6 +183,7 @@ export default class Base extends EventManager {
     this.$options = getOptions(this, element, getConfig(this));
     this.$children = getChildren(this, this.$el, getConfig(this).components || {});
     this.$services = new Services(this);
+    this.$refs = new RefsManager(this, element, getConfig(this).refs || []);
 
     if (!('__base__' in this.$el)) {
       Object.defineProperty(this.$el, '__base__', {
@@ -205,6 +199,7 @@ export default class Base extends EventManager {
 
     let unbindMethods = [];
     this.$on('mounted', () => {
+      this.$refs.registerAll();
       this.$services.enableAll();
       unbindMethods = [...bindEvents(this)];
       mountComponents(this);
@@ -215,6 +210,7 @@ export default class Base extends EventManager {
       this.$services.disableAll();
       unbindMethods.forEach((method) => method());
       unbindMethods = [...bindEvents(this)];
+      this.$refs.registerAll();
       this.$services.enableAll();
       mountOrUpdateComponents(this);
     });
