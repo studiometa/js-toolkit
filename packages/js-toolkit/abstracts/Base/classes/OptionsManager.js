@@ -23,7 +23,7 @@ const memoizedGetAttributeName = mem(getAttributeName);
  * Class options to manage options as data attributes on an HTML element.
  * @augments {OptionsInterface}
  */
-export default class Options {
+export default class OptionsManager {
   /** @type {HTMLElement} The HTML element holding the options attributes. */
   #element;
 
@@ -55,12 +55,12 @@ export default class Options {
     this.#element = element;
 
     Object.entries(schema).forEach(([name, config]) => {
-      const isObjectConfig = !Options.types.includes(config);
+      const isObjectConfig = !OptionsManager.types.includes(config);
       /** @type {OptionType} */
       // @ts-ignore
       const type = isObjectConfig ? config.type : config;
 
-      if (!Options.types.includes(type)) {
+      if (!OptionsManager.types.includes(type)) {
         throw new Error(
           `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`
         );
