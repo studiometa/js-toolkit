@@ -159,6 +159,14 @@ export default class Base extends EventManager {
   /** @type {BaseConfig} */
   static config;
 
+  #refs;
+
+  get $refs() {
+    const refs = this.#refs;
+    this.$emit('get:refs', refs);
+    return refs;
+  }
+
   /**
    * Class constructor where all the magic takes place.
    *
@@ -183,7 +191,7 @@ export default class Base extends EventManager {
     this.$options = getOptions(this, element, getConfig(this));
     this.$children = getChildren(this, this.$el, getConfig(this).components || {});
     this.$services = new Services(this);
-    this.$refs = new RefsManager(this, element, getConfig(this).refs || []);
+    this.#refs = new RefsManager(this, element, getConfig(this).refs || []);
 
     if (!('__base__' in this.$el)) {
       Object.defineProperty(this.$el, '__base__', {

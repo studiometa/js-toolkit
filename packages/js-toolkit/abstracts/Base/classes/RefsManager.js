@@ -32,7 +32,6 @@ export default class RefsManager {
    */
   registerAll() {
     this.#refs.forEach((refName) => this.#register(refName));
-    this.#base.$emit('get:refs', this);
   }
 
   /**
