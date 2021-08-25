@@ -364,29 +364,6 @@ describe('A Base instance methods', () => {
     baz.$destroy();
     expect(baz.$isMounted).toBe(false);
     expect(barElement.__base__.$isMounted).toBe(false);
-
-    const spy = jest.spyOn(baz.$children, 'Bar', 'get');
-    spy.mockImplementation(() => []);
-    baz.$mount();
-    expect(baz.$isMounted).toBe(true);
-    expect(barElement.__base__.$isMounted).toBe(false);
-    baz.$destroy();
-    expect(baz.$isMounted).toBe(false);
-    expect(barElement.__base__.$isMounted).toBe(false);
-  });
-
-  it('should resolve refs to children components', () => {
-    class Bar extends Base {
-      static config = {
-        name: 'Bar',
-        refs: ['bar'],
-        components: { Foo },
-      };
-    }
-
-    document.body.innerHTML = `<div data-component="Foo" data-ref="bar"></div>`;
-    const bar = new Bar(document.body).$mount();
-    expect(bar.$children.Foo[0]).toBe(bar.$refs.bar);
   });
 
   it('should cast single ref as array when ending with []', () => {

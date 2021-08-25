@@ -43,19 +43,9 @@ export default class RefsManager {
     const isMultiple = refName.endsWith('[]');
     const propName = isMultiple ? refName.replace(/\[\]$/, '') : refName;
 
-    const refs = Array.from(this.#element.querySelectorAll(`[data-ref="${refName}"]`))
-      .filter(
-        /**
-         * @param {HTMLElement} ref
-         */
-        (ref) => this.#filterRefsBelongingToInstance(ref)
-      )
-      .map(
-        /**
-         * @param {HTMLElement & { __base__?: Base }} ref
-         */
-        (ref) => ref.__base__ ?? ref
-      );
+    const refs = Array.from(this.#element.querySelectorAll(`[data-ref="${refName}"]`)).filter(
+      this.#filterRefsBelongingToInstance
+    );
 
     if (!isMultiple && refs.length > 1) {
       warn(
