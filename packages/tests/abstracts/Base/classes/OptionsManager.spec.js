@@ -1,11 +1,11 @@
 import { html } from 'htl';
-import Options from '@studiometa/js-toolkit/abstracts/Base/classes/Options';
+import OptionsManager from '@studiometa/js-toolkit/abstracts/Base/classes/OptionsManager';
 
 describe('The Options class', () => {
   it('should throw an error when using an unknown type', () => {
     expect(
       () =>
-        new Options(html`<div></div>`, {
+        new OptionsManager(html`<div></div>`, {
           foo: Map,
         })
     ).toThrow(
@@ -15,7 +15,7 @@ describe('The Options class', () => {
 
   it('should throw an error when setting value with the wrong type', () => {
     const div = html`<div data-option-foo="bar"></div>`;
-    const options = new Options(div, {
+    const options = new OptionsManager(div, {
       string: String,
       number: Number,
       boolean: Boolean,
@@ -46,7 +46,7 @@ describe('The Options class', () => {
 
   it('should get and set string options', () => {
     const div = html`<div data-option-foo="bar"></div>`;
-    const options = new Options(div, {
+    const options = new OptionsManager(div, {
       foo: String,
     });
 
@@ -58,7 +58,7 @@ describe('The Options class', () => {
 
   it('should get and set number options', () => {
     const div = html`<div data-option-foo="0"></div>`;
-    const options = new Options(div, {
+    const options = new OptionsManager(div, {
       foo: Number,
     });
 
@@ -70,7 +70,7 @@ describe('The Options class', () => {
 
   it('should get and set boolean options', () => {
     const div = html`<div data-option-foo></div>`;
-    const options = new Options(div, {
+    const options = new OptionsManager(div, {
       foo: Boolean,
     });
 
@@ -102,7 +102,7 @@ describe('The Options class', () => {
 
   it('should get and set array options', () => {
     const div = html`<div data-option-foo="[1, 2]"></div>`;
-    const options = new Options(div, {
+    const options = new OptionsManager(div, {
       foo: Array,
     });
 
@@ -123,7 +123,7 @@ describe('The Options class', () => {
 
   it('should get and set object options', () => {
     const div = html`<div data-option-foo="${JSON.stringify({ foo: 1 })}"></div>`;
-    const options = new Options(div, {
+    const options = new OptionsManager(div, {
       foo: Object,
     });
 
@@ -136,7 +136,7 @@ describe('The Options class', () => {
 
   it('should return the default values when there is no data-attribute', () => {
     const div = html`<div />`;
-    const options = new Options(div, {
+    const options = new OptionsManager(div, {
       string: String,
       number: Number,
       boolean: Boolean,
@@ -166,7 +166,7 @@ describe('The Options class', () => {
   it('should throw an error when default values for types Object or Array are not functions', () => {
     expect(
       () =>
-        new Options(html`<div />`, {
+        new OptionsManager(html`<div />`, {
           array: { type: Array, default: [1, 2, 3] },
         })
     ).toThrow(

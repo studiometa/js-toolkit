@@ -76,10 +76,10 @@ export default class OptionsManager {
       }
 
       Object.defineProperty(this, name, {
-        get() {
+        get: () => {
           return this.get(name, type, defaultValue);
         },
-        set(value) {
+        set: (value) => {
           this.set(name, type, value, defaultValue);
         },
         enumerable: true,

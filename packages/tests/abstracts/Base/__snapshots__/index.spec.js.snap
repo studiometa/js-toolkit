@@ -1,0 +1,92 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`A Base instance config should have a working debug method when active in dev mode 1`] = `
+Array [
+  Array [
+    "[Foo]",
+    "[debug]",
+    "constructor",
+    Foo {
+      "$el": <div
+        data-option-debug=""
+      />,
+      "$id": "Foo-46",
+      "$isMounted": true,
+      "$options": OptionsManager {
+        "debug": true,
+        "log": false,
+        "name": "Foo",
+      },
+      "$parent": null,
+      "$services": ServicesManager {},
+      "_events": Object {
+        "destroyed": Array [
+          [Function],
+        ],
+        "mounted": Array [
+          [Function],
+        ],
+        "updated": Array [
+          [Function],
+        ],
+      },
+    },
+  ],
+  Array [
+    "[Foo]",
+    "[debug]",
+    "$mount",
+  ],
+  Array [
+    "[Foo]",
+    "[debug]",
+    "callMethod",
+    "mounted",
+  ],
+  Array [
+    "[Foo]",
+    "[debug]",
+    "before:getChildren",
+    <div
+      data-option-debug=""
+    />,
+    undefined,
+  ],
+  Array [
+    "[Foo]",
+    "[debug]",
+    "after:getChildren",
+    ChildrenManager {},
+  ],
+  Array [
+    "[Foo]",
+    "[debug]",
+    "before:getChildren",
+    <div
+      data-option-debug=""
+    />,
+    undefined,
+  ],
+  Array [
+    "[Foo]",
+    "[debug]",
+    "after:getChildren",
+    ChildrenManager {},
+  ],
+  Array [
+    "[Foo]",
+    "[debug]",
+    "before:getChildren",
+    <div
+      data-option-debug=""
+    />,
+    undefined,
+  ],
+  Array [
+    "[Foo]",
+    "[debug]",
+    "after:getChildren",
+    ChildrenManager {},
+  ],
+]
+`;

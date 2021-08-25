@@ -490,12 +490,7 @@ describe('A Base instance config', () => {
     spy.mockImplementation(() => true);
     const div = document.createElement('div');
     const foo = new Foo(div).$mount();
-    expect(spy).toHaveBeenNthCalledWith(1, '[Foo]', '[debug]', 'before:getChildren', div, {});
-    expect(spy).toHaveBeenNthCalledWith(2, '[Foo]', '[debug]', 'after:getChildren', {});
-    expect(spy).toHaveBeenNthCalledWith(3, '[Foo]', '[debug]', 'constructor', foo);
-    expect(spy).toHaveBeenNthCalledWith(4, '[Foo]', '[debug]', '$mount');
-    expect(spy).toHaveBeenNthCalledWith(5, '[Foo]', '[debug]', 'callMethod', 'mounted');
-    expect(spy).toHaveBeenNthCalledWith(6, '[Foo]', '[debug]', 'mountComponents', {});
+    expect(spy.mock.calls).toMatchSnapshot();
     spy.mockRestore();
     process.env.NODE_ENV = 'test';
   });

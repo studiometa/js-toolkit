@@ -85,7 +85,7 @@ export default class ChildrenManager {
     Object.defineProperty(this, name, {
       enumerable: true,
       configurable: true,
-      value: () => {
+      get: () => {
         const elements = getComponentElements(name, this.#element);
 
         if (elements.length === 0) {
@@ -124,7 +124,6 @@ export default class ChildrenManager {
 
     // Resolve async components
     return ComponentClass().then((module) => {
-      // @ts-ignore
       return this.#getChild(el, module.default ?? module);
     });
   }
@@ -159,9 +158,9 @@ export default class ChildrenManager {
     this.#registeredNames.forEach((name) => {
       this[name].forEach((instance) => {
         if (instance instanceof Promise) {
-          instance.then(resolvedInstance => this.#triggerHook(hook, resolvedInstance))
+          instance.then((resolvedInstance) => this.#triggerHook(hook, resolvedInstance));
         } else {
-          this.#triggerHook(hook, instance)
+          this.#triggerHook(hook, instance);
         }
       });
     });
