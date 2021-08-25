@@ -30,7 +30,7 @@ const SERVICES_MAP = {
 /**
  * Services management for the Base class.
  */
-export default class Services {
+export default class ServicesManager {
   /** @type {Base} */
   #base;
 

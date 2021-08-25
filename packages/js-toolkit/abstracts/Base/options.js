@@ -1,10 +1,10 @@
-import Options from './classes/Options.js';
+import OptionsManager from './classes/OptionsManager.js';
 import { warn } from './utils.js';
 
 /**
  * @typedef {import('./index.js').default} Base
  * @typedef {import('./index.js').BaseOptions} BaseOptions
- * @typedef {import('./classes/Options.js').OptionsSchema} OptionsSchema
+ * @typedef {import('./classes/OptionsManager.js').OptionsSchema} OptionsSchema
  */
 
 /**
@@ -31,7 +31,7 @@ function getLegacyOptionsSchema(instance, config) {
       let type = value === null || value === undefined ? Object : value.constructor;
 
       // Default to object type as it should work for any values.
-      if (!Options.types.includes(type)) {
+      if (!OptionsManager.types.includes(type)) {
         type = Object;
       }
 
@@ -89,7 +89,7 @@ function getParentOptionsSchema(instance) {
  *
  * @param {Base}        instance The component's instance.
  * @param {HTMLElement} element The component's root element.
- * @param {Options}     options The component's options.
+ * @param {OptionsManager}     options The component's options.
  */
 function updateOptionsWithLegacyValues(instance, element, options) {
   // Update legacy options with value from the `data-options` attribute
@@ -117,7 +117,7 @@ function updateOptionsWithLegacyValues(instance, element, options) {
  * @param  {Base}        instance The component's instance.
  * @param  {HTMLElement} element  The component's root element.
  * @param  {Object}      config   The component's default config.
- * @return {Options & BaseOptions}              The component's merged options.
+ * @return {OptionsManager & BaseOptions}              The component's merged options.
  */
 export function getOptions(instance, element, config) {
   /** @type {OptionsSchema} */
@@ -139,13 +139,13 @@ export function getOptions(instance, element, config) {
     ...(config.options || {}),
   };
 
-  const options = new Options(element, schema);
+  const options = new OptionsManager(element, schema);
 
   updateOptionsWithLegacyValues(instance, element, options);
 
   instance.$emit('get:options', options);
 
-  return /** @type {Options & BaseOptions} */ (options);
+  return /** @type {OptionsManager & BaseOptions} */ (options);
 }
 
 export default {

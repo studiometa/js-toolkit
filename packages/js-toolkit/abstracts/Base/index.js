@@ -1,12 +1,10 @@
 import autoBind from '../../utils/object/autoBind.js';
 import EventManager from '../EventManager.js';
 import { callMethod, debug, getConfig, getComponentElements } from './utils.js';
-import { getChildren } from './children.js';
 import { getOptions } from './options.js';
-import { getRefs } from './refs.js';
+import ChildrenManager from './classes/ChildrenManager.js';
 import RefsManager from './classes/RefsManager.js';
-import { mountComponents, mountOrUpdateComponents, destroyComponents } from './components.js';
-import Services from './classes/Services.js';
+import ServicesManager from './classes/ServicesManager.js';
 import bindEvents from './events.js';
 
 // Define the __DEV__ constant if not defined
@@ -27,7 +25,8 @@ let id = 0;
  * @typedef {{ [name:string]: HTMLElement | HTMLElement[] | Base | Base[] | Promise<Base> | Promise<Base>[] }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Base[] | Promise<Base>[] }} BaseChildren
  * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
- * @typedef {import('./classes/Options').OptionsSchema} BaseConfigOptions
+ * @typedef {import('./classes/OptionsManager').OptionsSchema} BaseConfigOptions
+ * @typedef {import('./classes/ServicesManager.js').ServiceName} ServiceName
  */
 
 /**
@@ -38,10 +37,6 @@ let id = 0;
  * @property {String[]} [refs]
  * @property {BaseConfigComponents} [components]
  * @property {BaseConfigOptions} [options]
- */
-
-/**
- * @typedef {import('./classes/Services.js').ServiceName} ServiceName
  */
 
 /**
@@ -98,14 +93,8 @@ export default class Base extends EventManager {
   $options;
 
   /**
-   * The instance children components.
-   * @type {BaseChildren}
-   */
-  $children;
-
-  /**
    * The instance services.
-   * @type {Services}
+   * @type {ServicesManager}
    */
   $services;
 
@@ -159,12 +148,41 @@ export default class Base extends EventManager {
   /** @type {BaseConfig} */
   static config;
 
+  /**
+   * @type {RefsManager}
+   */
   #refs;
 
+  /**
+   * @return {RefsManager}
+   */
   get $refs() {
     const refs = this.#refs;
     this.$emit('get:refs', refs);
     return refs;
+  }
+
+  /**
+   * @type {ChildrenManager}
+   */
+  #children;
+
+  /**
+   * @return {ChildrenManager}
+   */
+  get $children() {
+    if (__DEV__) {
+      debug(this, 'before:getChildren', this.$el, getConfig(this).components);
+    }
+
+    const children = this.#children;
+    this.$emit('get:children', children);
+
+    if (__DEV__) {
+      debug(this, 'after:getChildren', children);
+    }
+
+    return children;
   }
 
   /**
@@ -179,19 +197,10 @@ export default class Base extends EventManager {
       throw new Error('The root element must be defined.');
     }
 
-    const { name } = getConfig(this);
-
-    /** @type {String} */
-    this.$id = `${name}-${id}`;
+    this.$id = `${getConfig(this).name}-${id}`;
     id += 1;
 
-    /** @type {HTMLElement} */
     this.$el = element;
-
-    this.$options = getOptions(this, element, getConfig(this));
-    this.$children = getChildren(this, this.$el, getConfig(this).components || {});
-    this.$services = new Services(this);
-    this.#refs = new RefsManager(this, element, getConfig(this).refs || []);
 
     if (!('__base__' in this.$el)) {
       Object.defineProperty(this.$el, '__base__', {
@@ -200,6 +209,11 @@ export default class Base extends EventManager {
       });
     }
 
+    this.$options = getOptions(this, element, getConfig(this));
+    this.$services = new ServicesManager(this);
+    this.#children = new ChildrenManager(this, element, getConfig(this).components || {});
+    this.#refs = new RefsManager(this, element, getConfig(this).refs || []);
+
     // Autobind all methods to the instance
     autoBind(this, {
       exclude: [...this._excludeFromAutoBind],
@@ -207,10 +221,11 @@ export default class Base extends EventManager {
 
     let unbindMethods = [];
     this.$on('mounted', () => {
+      this.$children.registerAll();
       this.$refs.registerAll();
       this.$services.enableAll();
       unbindMethods = [...bindEvents(this)];
-      mountComponents(this);
+      this.$children.mountAll();
       this.$isMounted = true;
     });
 
@@ -218,16 +233,17 @@ export default class Base extends EventManager {
       this.$services.disableAll();
       unbindMethods.forEach((method) => method());
       unbindMethods = [...bindEvents(this)];
+      this.$children.registerAll();
       this.$refs.registerAll();
       this.$services.enableAll();
-      mountOrUpdateComponents(this);
+      this.$children.updateAll();
     });
 
     this.$on('destroyed', () => {
       this.$isMounted = false;
       this.$services.disableAll();
       unbindMethods.forEach((method) => method());
-      destroyComponents(this);
+      this.$children.destroyAll();
     });
 
     if (__DEV__) {
