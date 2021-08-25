@@ -1,6 +1,9 @@
 import getAllProperties from '../../utils/object/getAllProperties.js';
 import { debug } from './utils.js';
 
+// @todo bind events on child components and refs respectively to the ChildrenManager and the
+// RefsManager.
+
 /**
  * @typedef {import('./index.js').default} Base
  */

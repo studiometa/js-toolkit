@@ -2,9 +2,9 @@ import autoBind from '../../utils/object/autoBind.js';
 import EventManager from '../EventManager.js';
 import { callMethod, debug, getConfig, getComponentElements } from './utils.js';
 import { getOptions } from './options.js';
-import ChildrenManager from './classes/ChildrenManager.js';
-import RefsManager from './classes/RefsManager.js';
-import ServicesManager from './classes/ServicesManager.js';
+import ChildrenManager from './managers/ChildrenManager.js';
+import RefsManager from './managers/RefsManager.js';
+import ServicesManager from './managers/ServicesManager.js';
 import bindEvents from './events.js';
 
 // Define the __DEV__ constant if not defined
@@ -25,8 +25,8 @@ let id = 0;
  * @typedef {{ [name:string]: HTMLElement | HTMLElement[] | Base | Base[] | Promise<Base> | Promise<Base>[] }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Base[] | Promise<Base>[] }} BaseChildren
  * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
- * @typedef {import('./classes/OptionsManager').OptionsSchema} BaseConfigOptions
- * @typedef {import('./classes/ServicesManager.js').ServiceName} ServiceName
+ * @typedef {import('./managers/OptionsManager').OptionsSchema} BaseConfigOptions
+ * @typedef {import('./managers/ServicesManager.js').ServiceName} ServiceName
  */
 
 /**
