@@ -1,5 +1,5 @@
 import { html } from 'htl';
-import OptionsManager from '@studiometa/js-toolkit/abstracts/Base/classes/OptionsManager';
+import OptionsManager from '@studiometa/js-toolkit/abstracts/Base/managers/OptionsManager';
 
 describe('The Options class', () => {
   it('should throw an error when using an unknown type', () => {

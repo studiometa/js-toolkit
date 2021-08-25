@@ -1,10 +1,12 @@
-import OptionsManager from './classes/OptionsManager.js';
+import OptionsManager from './managers/OptionsManager.js';
 import { warn } from './utils.js';
+
+// @todo use only the OptionsManager instead of the functions in this file.
 
 /**
  * @typedef {import('./index.js').default} Base
  * @typedef {import('./index.js').BaseOptions} BaseOptions
- * @typedef {import('./classes/OptionsManager.js').OptionsSchema} OptionsSchema
+ * @typedef {import('./managers/OptionsManager.js').OptionsSchema} OptionsSchema
  */
 
 /**

@@ -1,8 +1,8 @@
 /**
- * @typedef {import('./index.js').default} Base
- * @typedef {import('./index.js').BaseComponent} BaseComponent
- * @typedef {import('./index.js').BaseAsyncComponent} BaseAsyncComponent
- * @typedef {import('./index.js').BaseConfigComponents} BaseConfigComponents
+ * @typedef {import('../index.js').default} Base
+ * @typedef {import('../index.js').BaseComponent} BaseComponent
+ * @typedef {import('../index.js').BaseAsyncComponent} BaseAsyncComponent
+ * @typedef {import('../index.js').BaseConfigComponents} BaseConfigComponents
  */
 
 /**
@@ -54,7 +54,7 @@ export default class ChildrenManager {
 
   /**
    * Class constructor.
-   * @param  {Base}                 instance   The component's instance.
+   * @param  {Base}                 base       The component's instance.
    * @param  {HTMLElement}          element    The component's root element
    * @param  {BaseConfigComponents} components The children components' classes
    */
@@ -124,6 +124,7 @@ export default class ChildrenManager {
 
     // Resolve async components
     return ComponentClass().then((module) => {
+      // @ts-ignore
       return this.#getChild(el, module.default ?? module);
     });
   }
