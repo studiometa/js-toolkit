@@ -44,7 +44,7 @@ export default class RefsManager {
     const propName = isMultiple ? refName.replace(/\[\]$/, '') : refName;
 
     const refs = Array.from(this.#element.querySelectorAll(`[data-ref="${refName}"]`)).filter(
-      this.#filterRefsBelongingToInstance
+      (ref) => this.#filterRefsBelongingToInstance(ref)
     );
 
     if (!isMultiple && refs.length > 1) {
