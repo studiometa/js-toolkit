@@ -43,6 +43,33 @@ describe('The `importOnInteraction` lazy import helper', () => {
     expect(div.firstElementChild.__base__).toBeInstanceOf(Component);
   });
 
+  it('should import a component given a ref as target', async () => {
+    const div = html`<div>
+      <div data-component="Component"></div>
+      <button data-ref="btn[]"></button>
+      <button data-ref="btn[]"></button>
+    </div>`;
+
+    const AppOverride = withExtraConfig(App, {
+      refs: ['btn[]'],
+      components: {
+        Component: (app) =>
+          importOnInteraction(
+            () => Promise.resolve(Component),
+            app.$refs.btn,
+            'click',
+          ),
+      },
+    });
+
+    new AppOverride(div).$mount();
+
+    expect(div.firstElementChild.__base__).toBeUndefined();
+    div.lastElementChild.click();
+    await wait(0);
+    expect(div.firstElementChild.__base__).toBeInstanceOf(Component);
+  });
+
   it('should import a component given an array of events', async () => {
     const div = html`<div>
       <div data-component="Component"></div>
