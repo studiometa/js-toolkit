@@ -8,7 +8,6 @@ import {
 } from '@studiometa/js-toolkit/lazy-import';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
-// import BreakpointManagerDemo from './components/BreakPointManagerDemo/index.js';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
 
 // Add the new icon ref
@@ -27,13 +26,10 @@ class App extends Base {
       Accordion,
       BreakpointManagerDemo: (app) =>
         importOnInteraction(
-          () =>
-            import(
-              /* webpackChunkName: "BreakpointManagerDemo" */ './components/BreakPointManagerDemo/index.js'
-            ),
+          () => import('./components/BreakPointManagerDemo/index.js'),
           '#import-breakpoint-manager-demo',
-          app,
-          'click'
+          'click',
+          app
         ),
       BreakpointObserverDemo,
       Cursor: class extends Cursor {
