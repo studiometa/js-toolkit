@@ -21,7 +21,7 @@ let id = 0;
 
 /**
  * @typedef {typeof Base} BaseComponent
- * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
+ * @typedef {(BaseComponent) => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
  * @typedef {{ name: string, debug: boolean, log: boolean, [name:string]: any }} BaseOptions
  * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
