@@ -11,7 +11,7 @@
  *   The time to wait before triggering the callback if never idle.
  * @return {Promise<Base>}
  */
-export default function importWhenIdle(fn, options = { timeout: 0 }) {
+export default function importWhenIdle(fn, options = {}) {
   return new Promise((resolve) => {
     const timeout = options.timeout ?? 0;
 
@@ -19,12 +19,15 @@ export default function importWhenIdle(fn, options = { timeout: 0 }) {
       setTimeout(() => {
         fn().then(resolve);
       }, timeout);
+    } else {
+      window.requestIdleCallback(
+        () => {
+          setTimeout(() => {
+            fn().then(resolve);
+          }, 0);
+        },
+        { timeout }
+      );
     }
-
-    window.requestIdleCallback(() => {
-      setTimeout(() => {
-        fn().then(resolve);
-      }, 0);
-    }, options);
   });
 }
