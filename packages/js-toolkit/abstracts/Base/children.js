@@ -33,7 +33,7 @@ function getChild(el, ComponentClass, parent) {
   }
 
   // Resolve async components
-  return ComponentClass().then((module) => {
+  return ComponentClass(parent).then((module) => {
     // @ts-ignore
     return getChild(el, module.default ?? module, parent);
   });
