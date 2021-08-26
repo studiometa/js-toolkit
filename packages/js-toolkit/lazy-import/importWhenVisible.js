@@ -11,9 +11,9 @@ import { getComponentElements } from '../abstracts/Base/children.js';
  *   The import function.
  * @param {string} nameOrSelector
  *   The name or selector for the component.
- * @param {typeof Base} parent
+ * @param {typeof Base=} [parent]
  *   The parent component.
- * @param {IntersectionObserverInit=} observerOptions
+ * @param {IntersectionObserverInit=} [observerOptions]
  *   Options for the `IntersectionObserver` instance.
  *
  * @return {Promise<Base>}
@@ -32,7 +32,7 @@ export default function importWhenVisible(fn, nameOrSelector, parent, observerOp
       }
     }, observerOptions);
 
-    const elements = getComponentElements(nameOrSelector, parent.$el);
+    const elements = getComponentElements(nameOrSelector, parent?.$el);
     elements.forEach((element) => observer.observe(element));
   });
 }
