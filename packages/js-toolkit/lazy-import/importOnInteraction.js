@@ -1,4 +1,4 @@
-import { getComponentElements } from '../abstracts/Base/utils.js';
+import { getTargetElements } from './utils.js';
 
 /**
  * @typedef {import('../abstracts/Base/index.js').default} Base
@@ -9,7 +9,7 @@ import { getComponentElements } from '../abstracts/Base/utils.js';
  *
  * @param {() => Promise<Base>} fn
  *   The import function.
- * @param {string} nameOrSelector
+ * @param {string|HTMLElement|HTMLElement[]} nameOrSelectorOrElement
  *   The name or selector for the component.
  * @param {string|string[]} events
  *   The events to listen to to trigger the import.
@@ -18,12 +18,12 @@ import { getComponentElements } from '../abstracts/Base/utils.js';
  *
  * @return {Promise<Base>}
  */
-export default function importOnInteraction(fn, nameOrSelector, events, parent) {
+export default function importOnInteraction(fn, nameOrSelectorOrElement, events, parent) {
   // eslint-disable-next-line no-param-reassign
   events = Array.isArray(events) ? events : [events];
 
   return new Promise((resolve) => {
-    const elements = getComponentElements(nameOrSelector, parent?.$el);
+    const elements = getTargetElements(nameOrSelectorOrElement, parent?.$el);
     const eventListenerOptions = {
       capture: true,
       passive: true,

@@ -1,4 +1,4 @@
-import { getComponentElements } from '../abstracts/Base/utils.js';
+import { getTargetElements } from './utils.js';
 
 /**
  * @typedef {import('../abstracts/Base/index.js').default} Base
@@ -9,7 +9,7 @@ import { getComponentElements } from '../abstracts/Base/utils.js';
  *
  * @param {() => Promise<Base>} fn
  *   The import function.
- * @param {string} nameOrSelector
+ * @param {string|HTMLElement|HTMLElement[]} nameOrSelectorOrElement
  *   The name or selector for the component.
  * @param {typeof Base=} [parent]
  *   The parent component.
@@ -18,7 +18,12 @@ import { getComponentElements } from '../abstracts/Base/utils.js';
  *
  * @return {Promise<Base>}
  */
-export default function importWhenVisible(fn, nameOrSelector, parent, observerOptions = {}) {
+export default function importWhenVisible(
+  fn,
+  nameOrSelectorOrElement,
+  parent,
+  observerOptions = {}
+) {
   return new Promise((resolve) => {
     const observer = new IntersectionObserver((entries) => {
       const someEntriesAreVisible = entries.some((entry) => entry.isIntersecting);
@@ -32,7 +37,7 @@ export default function importWhenVisible(fn, nameOrSelector, parent, observerOp
       }
     }, observerOptions);
 
-    const elements = getComponentElements(nameOrSelector, parent?.$el);
+    const elements = getTargetElements(nameOrSelectorOrElement, parent?.$el);
     elements.forEach((element) => observer.observe(element));
   });
 }
