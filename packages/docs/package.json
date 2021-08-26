@@ -7,8 +7,8 @@
     "build": "vitepress build ."
   },
   "dependencies": {
-    "@studiometa/tailwind-config": "^1.0.2",
-    "tailwindcss": "^2.1.2",
+    "@studiometa/tailwind-config": "^1.0.4",
+    "tailwindcss": "^2.2.7",
     "vitepress": "^0.16.1"
   }
 }
