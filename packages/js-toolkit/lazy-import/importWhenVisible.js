@@ -1,4 +1,4 @@
-import { getComponentElements } from '../abstracts/Base/children.js';
+import { getComponentElements } from '../abstracts/Base/utils.js';
 
 /**
  * @typedef {import('../abstracts/Base/index.js').default} Base
