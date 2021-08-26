@@ -1,7 +1,7 @@
 import autoBind from '../../utils/object/autoBind.js';
 import EventManager from '../EventManager.js';
-import { callMethod, debug, getConfig } from './utils.js';
-import { getChildren, getComponentElements } from './children.js';
+import { callMethod, debug, getConfig, getComponentElements } from './utils.js';
+import { getChildren } from './children.js';
 import { getOptions } from './options.js';
 import { getRefs } from './refs.js';
 import { mountComponents, mountOrUpdateComponents, destroyComponents } from './components.js';
