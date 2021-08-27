@@ -11,7 +11,7 @@ import { getTargetElements } from './utils.js';
  *   The import function.
  * @param {string|HTMLElement|HTMLElement[]} nameOrSelectorOrElement
  *   The name or selector for the component.
- * @param {typeof Base=} [parent]
+ * @param {Base=} [parent]
  *   The parent component.
  * @param {IntersectionObserverInit=} [observerOptions]
  *   Options for the `IntersectionObserver` instance.
