@@ -1,7 +1,7 @@
 import Base from '../abstracts/Base/index.js';
 
 /**
- * @typedef {import('./abstracts/Base').BaseComponent} BaseComponent
+ * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
  */
 
 /**

@@ -13,14 +13,13 @@ import { getTargetElements } from './utils.js';
  *   The name or selector for the component.
  * @param {string|string[]} events
  *   The events to listen to to trigger the import.
- * @param {typeof Base=} [parent]
+ * @param {Base=} [parent]
  *   The parent component.
  *
  * @return {Promise<Base>}
  */
 export default function importOnInteraction(fn, nameOrSelectorOrElement, events, parent) {
-  // eslint-disable-next-line no-param-reassign
-  events = Array.isArray(events) ? events : [events];
+  const normalizedEvents = typeof events === 'string' ? [events] : events;
 
   return new Promise((resolve) => {
     const elements = getTargetElements(nameOrSelectorOrElement, parent?.$el);
@@ -34,7 +33,7 @@ export default function importOnInteraction(fn, nameOrSelectorOrElement, events,
     };
 
     elements.forEach((element) => {
-      events.forEach((event) => {
+      normalizedEvents.forEach((event) => {
         element.addEventListener(event, handler, eventListenerOptions);
       });
     });
