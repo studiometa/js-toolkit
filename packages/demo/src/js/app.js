@@ -1,9 +1,13 @@
 /* eslint-disable max-classes-per-file */
 import Base from '@studiometa/js-toolkit';
 import { Modal, Tabs, Accordion, Cursor, Draggable } from '@studiometa/js-toolkit/components';
+import {
+  importWhenIdle,
+  importWhenVisible,
+  importOnInteraction,
+} from '@studiometa/js-toolkit/helpers';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
-import BreakpointManagerDemo from './components/BreakPointManagerDemo/index.js';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
 
 // Add the new icon ref
@@ -20,7 +24,13 @@ class App extends Base {
     log: false,
     components: {
       Accordion,
-      BreakpointManagerDemo,
+      BreakpointManagerDemo: (app) =>
+        importOnInteraction(
+          () => import('./components/BreakPointManagerDemo/index.js'),
+          '#import-breakpoint-manager-demo',
+          'click',
+          app
+        ),
       BreakpointObserverDemo,
       Cursor: class extends Cursor {
         static config = {
@@ -37,8 +47,14 @@ class App extends Base {
         }
       },
       Draggable,
-      Skew: () => import(/* webpackChunkName: "Skew" */ './components/Skew.js'),
-      '[data-src]': () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload.js'),
+      Skew: () =>
+        importWhenIdle(() => import(/* webpackChunkName: "Skew" */ './components/Skew.js')),
+      '[data-src]': (app) =>
+        importWhenVisible(
+          () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload.js'),
+          '[data-src]',
+          app
+        ),
       Modal: withBreakpointObserver(Modal),
       Tabs,
     },

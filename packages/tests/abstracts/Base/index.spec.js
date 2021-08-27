@@ -127,7 +127,7 @@ describe('A Base instance methods', () => {
     const fn = jest.fn();
     class Bar extends Foo {}
     class Baz extends Base {
-      static config = { name: 'Baz', debug: true };
+      static config = { name: 'Baz' };
       updated() {
         fn();
       }
