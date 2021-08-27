@@ -77,7 +77,6 @@ describe('The events to method binding', () => {
     class Async extends Base {
       static config = {
         name: 'Async',
-        debug: true,
       };
 
       onClick() {
@@ -92,7 +91,6 @@ describe('The events to method binding', () => {
     class Foo extends Base {
       static config = {
         name: 'Foo',
-        debug: true,
         components: { Async: () => importWithTimeout(Async) },
       };
 
