@@ -3,6 +3,7 @@ import { getComponentElements } from '../abstracts/Base/utils.js';
 
 /**
  * Get the target elements for the lazy import helper functions.
+ *
  * @param {string|HTMLElement|HTMLElement} nameOrSelectorOrElement
  *   The original selector or element, or list of elements.
  * @param {Element=} [context]
