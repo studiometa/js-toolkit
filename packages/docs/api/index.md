@@ -62,113 +62,6 @@ export default class Component extends Base {
 }
 ```
 
-### `defineComponent(options)`
-
-Define a component without having to extend the `Base` class.
-
-**Parameters**
-- `options.config` (`Object`): see the [config getter](#config)
-- `options.methods` (`Object`): used for functions other than the [`Base` class methods](#class-methods)
-- `options[<name>]` (`Function`): [class methods](#class-methods) of the component
-
-**Returns**
-
-- A constructor function for the component
-
-**Examples**
-
-For legacy projects, use the UMD build:
-
-```html
-<script src="https://unpkg.com/@studiometa/js-toolkit/index.umd.js"></script>
-<script>
-  var Component = Base.defineComponent({
-    config: {
-      name: 'Component',
-    },
-    mounted: function() {
-      this.$log('mouted');
-    },
-    methods: {
-      onClick: function() {
-        this.$log('clicked');
-      },
-    },
-  });
-
-  new Component(document.body);
-</script>
-```
-
-For modern projects, prefer using the NPM package:
-
-```js
-import { defineComponent } from '@studiometa/js-toolkit';
-
-const Component = defineComponent({
-  config: {
-    name: 'Component',
-  },
-  mounted() {
-    this.$log('mounted');
-  },
-  methods: {
-    onClick() {
-      this.$log('clicked');
-    },
-  },
-});
-
-new Component(document.body);
-```
-
-:::warning
-The `defineComponent(options)` function is aimed at legacy projects which can not use classes. Modern projects should use the class based approach.
-:::
-
-### `createBase(element, options)`
-
-Define a component and instantiate it on the given element.
-
-**Parameters**
-- `element` (`HTMLElement`): the root element for the component's instance
-- `options` (`Object`): the component's configuration, see the [`defineComponent` function documentation](#definecomponent-options)
-
-**Returns**
-
-- `Base`: The given component's instance mounted on the given element, or first element in the DOM when given a CSS selector.
-
-**Examples**
-
-For legacy projects, use the UMD build:
-
-```html
-<script src="https://unpkg.com/@studiometa/js-toolkit/index.umd.js"></script>
-<script>
-  var app = Base.createBase(document.body, {
-    config: {
-      name: 'App',
-    },
-  });
-</script>
-```
-
-For modern projects, prefer using the NPM package:
-
-```js
-import { createBase } from '@studiometa/js-toolkit';
-
-const app = createBase(document.body, {
-  config: {
-    name: 'App',
-  },
-});
-```
-
-:::warning
-The `createBase(elementOrSelector, options)` function is aimed at legacy projects which can not use classes. Modern projects should use the class based approach.
-:::
-
 ## Static methods
 
 ### `$factory(nameOrSelector)`
@@ -278,6 +171,10 @@ class App extends Base {
   }
 }
 ```
+
+::: tip
+The [lazy import helpers](/api/helpers/#lazy-import-helpers) can be used to manage more precisely the components' imports.
+:::
 
 ### `config.refs`
 
@@ -593,3 +490,4 @@ Terminate the component, its instance is made available to garbage collection. A
 ### `get:options`
 ### `get:refs`
 ### `get:children`
+
