@@ -8,14 +8,14 @@ describe('The `withExtraConfig` decorator', () => {
       static config = {
         name: 'Foo',
         log: true,
-        debug: false,
+        debug: true,
       }
     }
 
-    const Bar = withExtraConfig(Foo, { log: false, debug: true });
+    const Bar = withExtraConfig(Foo, { log: false, debug: false });
 
     expect(Bar.config.log).toBe(false)
-    expect(Bar.config.debug).toBe(true);
+    expect(Bar.config.debug).toBe(false);
     expect(Bar.config.name).toBe('FooWithExtraConfig');
     expect(withExtraConfig(Foo, { name: 'OtherName' }).config.name).toBe('OtherName');
   })

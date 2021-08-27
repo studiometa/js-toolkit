@@ -1,8 +1,7 @@
-import { nanoid } from 'nanoid/non-secure';
 import autoBind from '../../utils/object/autoBind.js';
 import EventManager from '../EventManager.js';
-import { callMethod, debug, getConfig } from './utils.js';
-import { getChildren, getComponentElements } from './children.js';
+import { callMethod, debug, getConfig, getComponentElements } from './utils.js';
+import { getChildren } from './children.js';
 import { getOptions } from './options.js';
 import { getRefs } from './refs.js';
 import { mountComponents, mountOrUpdateComponents, destroyComponents } from './components.js';
@@ -18,9 +17,11 @@ if (typeof __DEV__ === 'undefined') {
   }
 }
 
+let id = 0;
+
 /**
  * @typedef {typeof Base} BaseComponent
- * @typedef {() => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
+ * @typedef {(BaseComponent) => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
  * @typedef {{ name: string, debug: boolean, log: boolean, [name:string]: any }} BaseOptions
  * @typedef {{ [name:string]: HTMLElement | BaseComponent | Array<HTMLElement|BaseComponent> }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Array<Base | Promise<Base>> }} BaseChildren
@@ -180,7 +181,8 @@ export default class Base extends EventManager {
     const { name } = getConfig(this);
 
     /** @type {String} */
-    this.$id = `${name}-${nanoid()}`;
+    this.$id = `${name}-${id}`;
+    id += 1;
 
     /** @type {HTMLElement} */
     this.$el = element;

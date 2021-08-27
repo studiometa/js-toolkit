@@ -1,19 +1,19 @@
 {
   "name": "@studiometa/js-toolkit-tests",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "NODE_NO_WARNINGS=1 NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "dependencies": {
-    "@jest/globals": "^27.0.3",
-    "babel-jest": "^27.0.2",
+    "@jest/globals": "^27.0.6",
+    "babel-jest": "^27.0.6",
     "htl": "^0.3.0",
     "html-loader-jest": "^0.2.1",
-    "jest": "^27.0.3"
+    "jest": "^27.0.6"
   },
   "devDependencies": {
-    "@jest/types": "^27.0.2"
+    "@jest/types": "^27.0.6"
   }
 }
