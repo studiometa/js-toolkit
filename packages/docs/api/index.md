@@ -83,7 +83,7 @@ Use the `importOnInteraction` function to import component when the user interac
 
 ```js{2,8-14,16-22,24-29}
 import Base from '@studiometa/js-toolkit';
-import importOnInteraction from '@studiometa/js-toolkit/lazy-import/importOnInteraction';
+import importOnInteraction from '@studiometa/js-toolkit/helpers/importOnInteraction';
 
 class App extends Base {
   static config = {
@@ -133,7 +133,7 @@ Use this function to import components when the [`requestIdleCallback`](https://
 
 ```js{8}
 import Base from '@studiometa/js-toolkit';
-import importWhenIdle from '@studiometa/js-toolkit/lazy-import/importWhenIdle';
+import importWhenIdle from '@studiometa/js-toolkit/helpers/importWhenIdle';
 
 class App extends Base {
   static config = {
@@ -164,7 +164,7 @@ Use this function to import component when an element is visible.
 
 ```js{2,8-13,15-20,22-27}
 import Base from '@studiometa/js-toolkit';
-import importWhenVisible from '@studiometa/js-toolkit/lazy-import/importWhenVisible';
+import importWhenVisible from '@studiometa/js-toolkit/helpers/importWhenVisible';
 
 class App extends Base {
   static config = {

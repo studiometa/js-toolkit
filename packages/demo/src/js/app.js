@@ -5,7 +5,7 @@ import {
   importWhenIdle,
   importWhenVisible,
   importOnInteraction,
-} from '@studiometa/js-toolkit/lazy-import';
+} from '@studiometa/js-toolkit/helpers';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
