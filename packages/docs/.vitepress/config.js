@@ -13,7 +13,14 @@ module.exports = {
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/' },
-      { text: 'API', link: '/api/' },
+      {
+        text: 'API',
+        link: '/api/',
+        items: [
+          { text: 'Reference', link: '/api/' },
+          { text: 'Helpers', link: '/api/helpers/' },
+        ],
+      },
       {
         text: 'Decorators',
         link: '/decorators/',
@@ -66,8 +73,41 @@ module.exports = {
       },
       { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
     ],
+    sidebar: {
+      '/api/helpers/': getHelpersSidebar(),
+    },
   },
   markdown: {
-    toc: { includeLevel: [1,2] },
+    toc: { includeLevel: [1, 2] },
   },
 };
+
+
+function getHelpersSidebar() {
+  return [
+    {
+      text: 'App helper',
+      link: '#app-helper',
+      children: [
+        { text: 'createApp', link: '#createApp'}
+      ]
+    },
+    {
+      text: 'Lazy import helpers',
+      link: '#lazy-import-helpers',
+      children: [
+        { text: 'importOnInteraction', link: '#importOnInteraction' },
+        { text: 'importWhenIdle', link: '#importWhenIdle'},
+        { text: 'importWhenVisible', link: '#importWhenVisible'},
+      ]
+    },
+    {
+      text: 'Legacy helpers',
+      link: '#legacy-helpers',
+      children: [
+        { text: 'defineComponent', link: '#defineComponent' },
+        { text: 'createBase', link: '#createBase'},
+      ]
+    }
+  ]
+}
