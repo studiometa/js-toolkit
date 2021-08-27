@@ -12,7 +12,9 @@ export default {
   rootDir: '..',
   transform: {
     '^.+\\.html?$': 'html-loader-jest',
+    '^.+\\.tsx?$': ['esbuild-jest', { target: 'es6', format: 'esm', loaders: { '.ts': 'ts' } }],
   },
+  resolver: 'ts-jest-resolver',
   setupFiles: [
     '<rootDir>/tests/__setup__/mockBreakpoints.js',
     '<rootDir>/tests/__setup__/mockQuerySelectorAllWithScope.js',

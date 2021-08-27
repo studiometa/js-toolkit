@@ -2,6 +2,7 @@
 import Base from '@studiometa/js-toolkit';
 import { Modal, Tabs, Accordion, Cursor, Draggable } from '@studiometa/js-toolkit/components';
 import {
+  createApp,
   importWhenIdle,
   importWhenVisible,
   importOnInteraction,
@@ -13,11 +14,7 @@ import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
 // Add the new icon ref
 Accordion.config.components.AccordionItem.config.refs.push('icon');
 
-/**
- * @typedef {import(@studiometa/js-toolkit/abstracts/Base/index).BaseConfig} BaseConfig
- */
 class App extends Base {
-  /** @type {Baseconfig} */
   static config = {
     name: 'App',
     refs: ['modal'],
@@ -80,7 +77,6 @@ class App extends Base {
   }
 }
 
-window.addEventListener('load', () => {
-  const app = App.$factory('html');
-  window.APP = app;
-});
+const useApp = createApp(App, document.body);
+
+export default useApp;
