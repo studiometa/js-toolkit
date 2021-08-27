@@ -1,36 +1,11 @@
+import { getComponentElements } from '../utils.js';
+
 /**
  * @typedef {import('../index.js').default} Base
  * @typedef {import('../index.js').BaseComponent} BaseComponent
  * @typedef {import('../index.js').BaseAsyncComponent} BaseAsyncComponent
  * @typedef {import('../index.js').BaseConfigComponents} BaseConfigComponents
  */
-
-/**
- * Get a list of elements based on the name of a component.
- *
- * @param {String} nameOrSelector
- *   The name or selector to used for this component.
- * @param {HTMLElement|Document} element
- *   The root element on which to query the selector, defaults to `document`.
- * @return {Array<HTMLElement>}
- *   A list of elements on which the component should be mounted.
- */
-export function getComponentElements(nameOrSelector, element = document) {
-  const selector = `[data-component="${nameOrSelector}"]`;
-  let elements = [];
-
-  try {
-    elements = Array.from(element.querySelectorAll(selector));
-    // eslint-disable-next-line no-empty
-  } catch {}
-
-  // If no child component found with the default selector, try a classic DOM selector
-  if (elements.length === 0) {
-    elements = Array.from(element.querySelectorAll(nameOrSelector));
-  }
-
-  return elements;
-}
 
 /**
  * Children manager.
@@ -123,7 +98,7 @@ export default class ChildrenManager {
     }
 
     // Resolve async components
-    return ComponentClass().then((module) => {
+    return ComponentClass(this.#base).then((module) => {
       // @ts-ignore
       return this.#getChild(el, module.default ?? module);
     });
