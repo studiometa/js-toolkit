@@ -2,12 +2,15 @@ import { getTargetElements } from './utils.js';
 
 /**
  * @typedef {import('../abstracts/Base/index.js').default} Base
+ * @typedef {import('../abstracts/Base/index.js').BaseComponent} BaseComponent
  */
 
 /**
  * Import a component when it is visible.
  *
- * @param {() => Promise<Base>} fn
+ * @template {BaseComponent} T
+ *
+ * @param {() => Promise<T>} fn
  *   The import function.
  * @param {string|HTMLElement|HTMLElement[]} nameOrSelectorOrElement
  *   The name or selector for the component.
@@ -16,7 +19,7 @@ import { getTargetElements } from './utils.js';
  * @param {IntersectionObserverInit=} [observerOptions]
  *   Options for the `IntersectionObserver` instance.
  *
- * @return {Promise<Base>}
+ * @return {Promise<T>}
  */
 export default function importWhenVisible(
   fn,

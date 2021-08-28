@@ -1,15 +1,18 @@
 /**
- * @typedef {import('../abstracts/Base/index.js').default} Base
+ * @typedef {import('../abstracts/Base/index.js').BaseComponent} BaseComponent
  */
 
 /**
  * Import a component when user is idle.
  *
- * @param {() => Promise<Base>} fn
+ * @template {BaseComponent} T
+ *
+ * @param {() => Promise<T>} fn
  *   The import function.
  * @param {{ timeout?: number }=} options
  *   The time to wait before triggering the callback if never idle.
- * @return {Promise<Base>}
+ *
+ * @return {Promise<T>}
  */
 export default function importWhenIdle(fn, options = {}) {
   return new Promise((resolve) => {
