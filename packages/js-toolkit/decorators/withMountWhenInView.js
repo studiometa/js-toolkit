@@ -17,12 +17,16 @@
 
 /**
  * IntersectionObserver decoration.
- * @param {BaseComponent} BaseClass The Base class to extend.
+ *
+ * @template {BaseComponent} T
+ * @param {T} BaseClass The Base class to extend.
  * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
- * @return {BaseComponent}
+ * @return {typeof DecoratedClass}
  */
-export default (BaseClass, defaultOptions = { threshold: [0, 1] }) =>
-  class extends BaseClass {
+export default function withMountWhenInView(BaseClass, defaultOptions = { threshold: [0, 1] }) {
+  /* eslint-disable require-jsdoc */
+  // @ts-ignore
+  class DecoratedClass extends BaseClass {
     /**
      * Class config.
      * @type {Object}
@@ -90,4 +94,7 @@ export default (BaseClass, defaultOptions = { threshold: [0, 1] }) =>
 
       return this;
     }
-  };
+  }
+
+  return DecoratedClass;
+}

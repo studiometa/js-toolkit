@@ -13,9 +13,10 @@ import useDrag from '../services/drag.js';
 /**
  * Add dragging capabilities to a component.
  *
- * @param {BaseComponent} BaseClass
+ * @template {BaseComponent} T
+ * @param {T} BaseClass
  * @param {DragDecoratorOptions} options
- * @return {BaseComponent}
+ * @return {typeof DecoratedClass}
  */
 export default function withDrag(
   BaseClass,
@@ -25,7 +26,9 @@ export default function withDrag(
     },
   }
 ) {
-  return class extends BaseClass {
+  /* eslint-disable require-jsdoc */
+  // @ts-ignore
+  class DecoratedClass extends BaseClass {
     /**
      * Class constructor.
      * @param {HTMLElement} el
@@ -46,5 +49,7 @@ export default function withDrag(
         this.$services.unregister('dragged');
       });
     }
-  };
+  }
+
+  return DecoratedClass;
 }
