@@ -10,7 +10,7 @@ import { getTargetElements } from './utils.js';
  *
  * @template {BaseComponent} T
  *
- * @param {() => Promise<T>} fn
+ * @param {() => Promise<T|{default:T}>} fn
  *   The import function.
  * @param {string|HTMLElement|HTMLElement[]} nameOrSelectorOrElement
  *   The name or selector for the component.
@@ -27,15 +27,25 @@ export default function importWhenVisible(
   parent,
   observerOptions = {}
 ) {
+  let ResolvedClass;
+
+  const resolver = (resolve, cb) => {
+    fn().then((module) => {
+      ResolvedClass = 'default' in module ? module.default : module;
+      resolve(ResolvedClass);
+
+      if (typeof cb === 'function') {
+        cb();
+      }
+    });
+  };
+
   return new Promise((resolve) => {
     const observer = new IntersectionObserver((entries) => {
       const someEntriesAreVisible = entries.some((entry) => entry.isIntersecting);
       if (someEntriesAreVisible) {
         setTimeout(() => {
-          fn().then((value) => {
-            resolve(value);
-            observer.disconnect();
-          });
+          resolver(resolve, () => observer.disconnect());
         }, 0);
       }
     }, observerOptions);
