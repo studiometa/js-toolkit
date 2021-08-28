@@ -28,12 +28,19 @@ function createArrayOfNumber(length) {
 
 /**
  * IntersectionObserver decoration.
- * @param {BaseComponent} BaseClass The Base class to extend.
+ *
+ * @template {BaseComponent} T
+ * @param {T} BaseClass The Base class to extend.
  * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
- * @return {BaseComponent}
+ * @return {typeof DecoratedClass}
  */
-export default (BaseClass, defaultOptions = { threshold: createArrayOfNumber(100) }) =>
-  class extends BaseClass {
+export default function withIntersectionObserver(
+  BaseClass,
+  defaultOptions = { threshold: createArrayOfNumber(100) }
+) {
+  /* eslint-disable require-jsdoc */
+  // @ts-ignore
+  class DecoratedClass extends BaseClass {
     /**
      * Add the `intersected` method to the list of method to exclude from the `autoBind` call.
      */
@@ -88,4 +95,7 @@ export default (BaseClass, defaultOptions = { threshold: createArrayOfNumber(100
 
       return this;
     }
-  };
+  }
+
+  return DecoratedClass;
+}

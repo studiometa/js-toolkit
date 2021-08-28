@@ -9,23 +9,28 @@ import merge from 'deepmerge';
 /**
  * Extends the configuration of an existing class.
  *
- * @param {BaseComponent} BaseClass The Base class to extend.
+ * @template {BaseComponent} T
+ * @param {T} BaseClass The Base class to extend.
  * @param {Partial<BaseConfig>} config Extra configuration to merge.
  * @param {DeepmergeOptions} options Options for the `deepmerge` function. {@link https://github.com/TehShrike/deepmerge#options}
- * @return {BaseComponent}
+ * @return {typeof DecoratedClass}
  */
-export default (BaseClass, config, options = {}) => {
+export default function withExtraConfig(BaseClass, config, options = {}) {
   const newConfig = merge(BaseClass.config, config, options);
 
   if (newConfig.name === BaseClass.config.name) {
     newConfig.name = `${BaseClass.config.name}WithExtraConfig`;
   }
 
-  return class extends BaseClass {
+  /* eslint-disable require-jsdoc */
+  // @ts-ignore
+  class DecoratedClass extends BaseClass {
     /**
      * Class config.
      * @type {BaseConfig}
      */
     static config = newConfig;
-  };
-};
+  }
+
+  return DecoratedClass;
+}
