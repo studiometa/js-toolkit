@@ -60,6 +60,7 @@ export default class Tabs extends Base {
   /**
    * Initialize the component's behaviours.
    * @this {Tabs & TabsInterface}
+   * @return {void}
    */
   mounted() {
     this.items = this.$refs.btn.map((btn, index) => {
@@ -76,8 +77,6 @@ export default class Tabs extends Base {
       }
       return item;
     });
-
-    return this;
   }
 
   /**
