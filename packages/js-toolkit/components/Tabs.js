@@ -19,15 +19,25 @@ import transition from '../utils/css/transition.js';
  */
 
 /**
- * @typedef {Object} TabsOptions
- * @property {Object} styles
+ * @typedef {import('../utils/css/styles.js').CssStyleObject} CssStyleObject
+ * @typedef {Partial<Record<'open'|'active'|'closed', string|CssStyleObject>>} TabsStates
+ * @typedef {Partial<Record<keyof TabsRefs, TabsStates>>} TabsStylesOption
  */
 
 /**
- * @typedef {Object} TabsInterface
+ * @typedef {Object} TabsOptions
+ * @property {TabsStylesOption} styles
+ */
+
+/**
+ * @typedef {Object} TabsPrivateInterface
  * @property {TabsOptions} $options
  * @property {TabsRefs} $refs
  * @property {Array<TabItem>} items
+ */
+
+/**
+ * @typedef {Tabs & TabsPrivateInterface} TabsInterface
  */
 
 /**
@@ -43,6 +53,9 @@ export default class Tabs extends Base {
     options: {
       styles: {
         type: Object,
+        /**
+         * @return {TabsStylesOption}
+         */
         default: () => ({
           content: {
             closed: {
@@ -59,7 +72,7 @@ export default class Tabs extends Base {
 
   /**
    * Initialize the component's behaviours.
-   * @this {Tabs & TabsInterface}
+   * @this {TabsInterface}
    * @return {void}
    */
   mounted() {
@@ -82,7 +95,7 @@ export default class Tabs extends Base {
   /**
    * Switch tab on button click.
    *
-   * @this {Tabs & TabsInterface}
+   * @this {TabsInterface}
    * @param  {Event}  event The click event object.
    * @param  {Number} index The index of the clicked button.
    * @return {void}
@@ -100,9 +113,9 @@ export default class Tabs extends Base {
   /**
    * Enable the given tab and its associated content.
    *
-   * @this {Tabs & TabsInterface}
-   * @param  {TabItem}       item The item to enable.
-   * @return {Promise<Tabs & TabsInterface>}      Tabs instance.
+   * @this {TabsInterface}
+   * @param  {TabItem}                item The item to enable.
+   * @return {Promise<TabsInterface>}      Tabs instance.
    */
   async enableItem(item) {
     if (!item || item.isEnabled) {
@@ -142,9 +155,9 @@ export default class Tabs extends Base {
   /**
    * Disable the given tab and its associated content.
    *
-   * @this {Tabs & TabsInterface}
-   * @param  {TabItem}       item The item to disable.
-   * @return {Promise<Tabs & TabsInterface>}      The Tabs instance.
+   * @this {TabsInterface}
+   * @param  {TabItem}                item The item to disable.
+   * @return {Promise<TabsInterface>}      The Tabs instance.
    */
   async disableItem(item) {
     if (!item || !item.isEnabled) {

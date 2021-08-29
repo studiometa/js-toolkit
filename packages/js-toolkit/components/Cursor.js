@@ -19,8 +19,12 @@ import matrix from '../utils/css/matrix.js';
  */
 
 /**
- * @typedef {Object} CursorInterface
+ * @typedef {Object} CursorPrivateInterface
  * @property {BaseOptions & CursorOptions} $options
+ */
+
+/**
+ * @typedef {Cursor & CursorPrivateInterface} CursorInterface
  */
 
 /**
@@ -111,7 +115,7 @@ export default class Cursor extends Base {
   /**
    * Moved hook.
    *
-   * @this {Cursor & CursorInterface}
+   * @this {CursorInterface}
    *
    * @param {PointerServiceProps} options
    * @return {void}
@@ -153,7 +157,7 @@ export default class Cursor extends Base {
   /**
    * RequestAnimationFrame hook.
    *
-   * @this {Cursor & CursorInterface}
+   * @this {CursorInterface}
    *
    * @return {void}
    */

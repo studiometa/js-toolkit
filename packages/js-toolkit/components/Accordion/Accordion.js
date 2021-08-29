@@ -2,6 +2,7 @@ import Base from '../../abstracts/Base/index.js';
 
 /**
  * @typedef {import('./AccordionItem').default} AccordionItem
+ * @typedef {import('./AccordionItem').AccordionItemStylesOption} AccordionItemStylesOption
  */
 
 /**
@@ -13,7 +14,7 @@ import Base from '../../abstracts/Base/index.js';
 /**
  * @typedef {Object} AccordionOptions
  * @property {Boolean} autoclose
- * @property {Object} item
+ * @property {AccordionItemStylesOption} item
  */
 
 /**
@@ -22,10 +23,14 @@ import Base from '../../abstracts/Base/index.js';
  */
 
 /**
- * @typedef {Object} AccordionInterface
+ * @typedef {Object} AccordionPrivateInterface
  * @property {AccordionOptions} $options
  * @property {AccordionRefs} $refs
  * @property {AccordionChildren} $children
+ */
+
+/**
+ * @typedef {Accordion & AccordionPrivateInterface} AccordionInterface
  */
 
 /**
@@ -39,7 +44,13 @@ export default class Accordion extends Base {
     name: 'Accordion',
     options: {
       autoclose: Boolean,
-      item: Object,
+      item: {
+        type: Object,
+        /**
+         * @return {AccordionItemStylesOption}
+         */
+        default: () => ({}),
+      },
     },
   };
 
@@ -50,7 +61,7 @@ export default class Accordion extends Base {
 
   /**
    * Init autoclose behavior on mounted.
-   * @this {Accordion & AccordionInterface}
+   * @this {AccordionInterface}
    * @return {Promise<void>}
    */
   async mounted() {
