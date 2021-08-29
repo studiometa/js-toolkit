@@ -91,12 +91,11 @@ function addToResize(key, instance) {
  *
  * @template {BaseComponent} T
  * @param {T} BaseClass The Base class to extend from.
- * @return {typeof DecoratedClass}
+ * @return {T}
  */
 export default function withBreakpointObserver(BaseClass) {
-  /* eslint-disable require-jsdoc */
   // @ts-ignore
-  class DecoratedClass extends BaseClass {
+  return class extends BaseClass {
     static config = {
       ...(BaseClass.config || {}),
       name: `${BaseClass?.config?.name ?? ''}WithBreakpointObserver`,
@@ -174,7 +173,5 @@ export default function withBreakpointObserver(BaseClass) {
 
       return this;
     }
-  }
-
-  return DecoratedClass;
+  };
 }

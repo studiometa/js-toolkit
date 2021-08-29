@@ -16,7 +16,7 @@ import useDrag from '../services/drag.js';
  * @template {BaseComponent} T
  * @param {T} BaseClass
  * @param {DragDecoratorOptions} options
- * @return {typeof DecoratedClass}
+ * @return {T}
  */
 export default function withDrag(
   BaseClass,
@@ -26,13 +26,11 @@ export default function withDrag(
     },
   }
 ) {
-  /* eslint-disable require-jsdoc */
   // @ts-ignore
-  class DecoratedClass extends BaseClass {
+  return class extends BaseClass {
     /**
      * Class constructor.
      * @param {HTMLElement} el
-     * @this {Base}
      */
     constructor(el) {
       super(el);
@@ -49,7 +47,5 @@ export default function withDrag(
         this.$services.unregister('dragged');
       });
     }
-  }
-
-  return DecoratedClass;
+  };
 }

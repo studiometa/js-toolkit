@@ -46,7 +46,7 @@ const instances = {};
  * @template {BaseComponent} T
  * @param {T} BaseClass
  * @param {Array<[String, BaseComponent]>} breakpoints
- * @return {typeof DecoratedClass}
+ * @return {T}
  */
 export default function withBreakpointManager(BaseClass, breakpoints) {
   if (!Array.isArray(breakpoints)) {
