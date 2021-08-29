@@ -13,7 +13,7 @@ import merge from 'deepmerge';
  * @param {T} BaseClass The Base class to extend.
  * @param {Partial<BaseConfig>} config Extra configuration to merge.
  * @param {DeepmergeOptions} options Options for the `deepmerge` function. {@link https://github.com/TehShrike/deepmerge#options}
- * @return {typeof DecoratedClass}
+ * @return {T}
  */
 export default function withExtraConfig(BaseClass, config, options = {}) {
   const newConfig = merge(BaseClass.config, config, options);
@@ -22,15 +22,12 @@ export default function withExtraConfig(BaseClass, config, options = {}) {
     newConfig.name = `${BaseClass.config.name}WithExtraConfig`;
   }
 
-  /* eslint-disable require-jsdoc */
   // @ts-ignore
-  class DecoratedClass extends BaseClass {
+  return class extends BaseClass {
     /**
      * Class config.
      * @type {BaseConfig}
      */
     static config = newConfig;
-  }
-
-  return DecoratedClass;
+  };
 }

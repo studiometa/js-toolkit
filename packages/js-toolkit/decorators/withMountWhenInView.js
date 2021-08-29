@@ -21,7 +21,7 @@
  * @template {BaseComponent} T
  * @param {T} BaseClass The Base class to extend.
  * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
- * @return {typeof DecoratedClass}
+ * @return {T}
  */
 export default function withMountWhenInView(BaseClass, defaultOptions = { threshold: [0, 1] }) {
   /* eslint-disable require-jsdoc */
