@@ -85,7 +85,7 @@ export default class AccordionItem extends Base {
         if (key in this.$options) {
           const type = AccordionItem.config.options[key].type || AccordionItem.config.options[key];
           if (type === Array || type === Object) {
-            this.$options[key] = deepmerge(this.$options[key], value);
+            this.$options[key] = deepmerge(this.$options[key], /** @type {any} */ (value));
           } else {
             this.$options[key] = value;
           }
