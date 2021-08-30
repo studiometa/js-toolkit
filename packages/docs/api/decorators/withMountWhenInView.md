@@ -1,5 +1,3 @@
-
-
 # withMountWhenInView
 
 Use this decorator to create a component which will mount and destroy itself based on its visibility in the viewport.
