@@ -65,9 +65,8 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
     throw new Error(`The \`BreakpointManager\` class requires breakpoints to be defined.`);
   }
 
-  /* eslint-disable require-jsdoc */
   // @ts-ignore
-  class DecoratedClass extends BaseClass {
+  return class extends BaseClass {
     /**
      * Watch for the document resize to test the breakpoints.
      * @param {HTMLElement} element The component's root element.
@@ -118,7 +117,5 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
 
       return super.$destroy();
     }
-  }
-
-  return DecoratedClass;
+  };
 }

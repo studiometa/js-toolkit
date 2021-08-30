@@ -24,9 +24,8 @@
  * @return {T}
  */
 export default function withMountWhenInView(BaseClass, defaultOptions = { threshold: [0, 1] }) {
-  /* eslint-disable require-jsdoc */
   // @ts-ignore
-  class DecoratedClass extends BaseClass {
+  return class extends BaseClass {
     /**
      * Class config.
      * @type {Object}
@@ -94,7 +93,5 @@ export default function withMountWhenInView(BaseClass, defaultOptions = { thresh
 
       return this;
     }
-  }
-
-  return DecoratedClass;
+  };
 }
