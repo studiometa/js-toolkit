@@ -26,7 +26,7 @@ export default function importWhenIdle(fn, options) {
   };
 
   return new Promise((resolve) => {
-    const timeout = options?.timeout ?? 0;
+    const timeout = options?.timeout ?? 1;
 
     if (!('requestIdleCallback' in window)) {
       setTimeout(() => {
@@ -39,7 +39,7 @@ export default function importWhenIdle(fn, options) {
             resolver(resolve);
           }, 0);
         },
-        { timeout }
+        { timeout: options?.timeout }
       );
     }
   });
