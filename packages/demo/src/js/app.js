@@ -2,6 +2,7 @@
 import Base from '@studiometa/js-toolkit';
 import { Modal, Tabs, Accordion, Cursor, Draggable } from '@studiometa/js-toolkit/components';
 import {
+  createApp,
   importWhenIdle,
   importWhenVisible,
   importOnInteraction,
@@ -80,7 +81,4 @@ class App extends Base {
   }
 }
 
-window.addEventListener('load', () => {
-  const app = App.$factory('html');
-  window.APP = app;
-});
+export default createApp(App, document.body);
