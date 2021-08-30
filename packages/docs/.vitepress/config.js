@@ -23,6 +23,7 @@ module.exports = {
           { text: 'withExtraConfig', link: '/decorators/withExtraConfig.html' },
           { text: 'withIntersectionObserver', link: '/decorators/withIntersectionObserver.html' },
           { text: 'withMountWhenInView', link: '/decorators/withMountWhenInView.html' },
+          { text: 'withVue', link: '/decorators/withVue.html' },
         ],
       },
       {
