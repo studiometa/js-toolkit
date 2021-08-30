@@ -1,13 +1,16 @@
 import { getTargetElements } from './utils.js';
 
 /**
+ * @typedef {import('../abstracts/Base/index.js').BaseComponent} BaseComponent
  * @typedef {import('../abstracts/Base/index.js').default} Base
  */
 
 /**
  * Import a component on an interaction.
  *
- * @param {() => Promise<Base>} fn
+ * @template {BaseComponent} T
+ *
+ * @param {() => Promise<T|{default:T}>} fn
  *   The import function.
  * @param {string|HTMLElement|HTMLElement[]} nameOrSelectorOrElement
  *   The name or selector for the component.
@@ -16,10 +19,19 @@ import { getTargetElements } from './utils.js';
  * @param {Base=} [parent]
  *   The parent component.
  *
- * @return {Promise<Base>}
+ * @return {Promise<T>}
  */
 export default function importOnInteraction(fn, nameOrSelectorOrElement, events, parent) {
   const normalizedEvents = typeof events === 'string' ? [events] : events;
+
+  let ResolvedClass;
+
+  const resolver = (resolve) => {
+    fn().then((module) => {
+      ResolvedClass = 'default' in module ? module.default : module;
+      resolve(ResolvedClass);
+    });
+  };
 
   return new Promise((resolve) => {
     const elements = getTargetElements(nameOrSelectorOrElement, parent?.$el);
@@ -29,7 +41,7 @@ export default function importOnInteraction(fn, nameOrSelectorOrElement, events,
       once: true,
     };
     const handler = () => {
-      fn().then(resolve);
+      resolver(resolve);
     };
 
     elements.forEach((element) => {

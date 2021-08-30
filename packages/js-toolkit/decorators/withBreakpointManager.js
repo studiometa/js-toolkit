@@ -43,11 +43,12 @@ const instances = {};
 
 /**
  * BreakpointManager class.
- * @param {BaseComponent} BaseClass
+ * @template {BaseComponent} T
+ * @param {T} BaseClass
  * @param {Array<[String, BaseComponent]>} breakpoints
- * @return {BaseComponent}
+ * @return {T}
  */
-export default (BaseClass, breakpoints) => {
+export default function withBreakpointManager(BaseClass, breakpoints) {
   if (!Array.isArray(breakpoints)) {
     throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
   }
@@ -64,10 +65,10 @@ export default (BaseClass, breakpoints) => {
     throw new Error(`The \`BreakpointManager\` class requires breakpoints to be defined.`);
   }
 
-  return class BreakpointManager extends BaseClass {
+  // @ts-ignore
+  return class extends BaseClass {
     /**
      * Watch for the document resize to test the breakpoints.
-     * @this {Base & {}}
      * @param {HTMLElement} element The component's root element.
      */
     constructor(element) {
@@ -89,7 +90,7 @@ export default (BaseClass, breakpoints) => {
     /**
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
-     * @this {Base}
+     *
      * @return {this}
      */
     $mount() {
@@ -104,6 +105,7 @@ export default (BaseClass, breakpoints) => {
 
     /**
      * Destroy all instances when the main one is destroyed.
+     *
      * @return {this}
      */
     $destroy() {
@@ -116,4 +118,4 @@ export default (BaseClass, breakpoints) => {
       return super.$destroy();
     }
   };
-};
+}

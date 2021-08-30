@@ -111,13 +111,14 @@ class App extends Base {
 ```
 <div id="importWhenIdle"></div>
 
-### `importWhenIdle(importFn)`
+### `importWhenIdle(importFn, options)`
 
 Use this function to import components when the [`requestIdleCallback`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback) function is called.
 
 **Parameters**
 
 - `importFn` (`() => Promise<Base>`): the function to import components
+- `options` (`{ timeout?: number }`): the time to wait before forcing the import to be made
 
 **Returns**
 

@@ -2,6 +2,7 @@ import Base from '../../abstracts/Base/index.js';
 
 /**
  * @typedef {import('./AccordionItem').default} AccordionItem
+ * @typedef {import('./AccordionItem').AccordionItemOptions} AccordionItemOptions
  */
 
 /**
@@ -13,7 +14,7 @@ import Base from '../../abstracts/Base/index.js';
 /**
  * @typedef {Object} AccordionOptions
  * @property {Boolean} autoclose
- * @property {Object} item
+ * @property {AccordionItemOptions} item
  */
 
 /**
@@ -22,10 +23,14 @@ import Base from '../../abstracts/Base/index.js';
  */
 
 /**
- * @typedef {Object} AccordionInterface
+ * @typedef {Object} AccordionPrivateInterface
  * @property {AccordionOptions} $options
  * @property {AccordionRefs} $refs
  * @property {AccordionChildren} $children
+ */
+
+/**
+ * @typedef {Accordion & AccordionPrivateInterface} AccordionInterface
  */
 
 /**
@@ -39,7 +44,13 @@ export default class Accordion extends Base {
     name: 'Accordion',
     options: {
       autoclose: Boolean,
-      item: Object,
+      item: {
+        type: Object,
+        /**
+         * @return {Partial<AccordionItemOptions>}
+         */
+        default: () => ({}),
+      },
     },
   };
 
@@ -50,7 +61,7 @@ export default class Accordion extends Base {
 
   /**
    * Init autoclose behavior on mounted.
-   * @this {Accordion & AccordionInterface}
+   * @this {AccordionInterface}
    * @return {Promise<void>}
    */
   async mounted() {
@@ -66,7 +77,6 @@ export default class Accordion extends Base {
       const unbindOpen = item.$on('open', () => {
         this.$emit('open', item, index);
         if (this.$options.autoclose) {
-          // @ts-ignore
           this.$children.AccordionItem.filter((el, i) => index !== i).forEach((it) => it.close());
         }
       });

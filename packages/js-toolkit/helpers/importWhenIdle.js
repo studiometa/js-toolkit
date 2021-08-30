@@ -1,32 +1,45 @@
 /**
- * @typedef {import('../abstracts/Base/index.js').default} Base
+ * @typedef {import('../abstracts/Base/index.js').BaseComponent} BaseComponent
+ * @typedef {{ timeout?: number }} ImportWhenIdleOptions
  */
 
 /**
  * Import a component when user is idle.
  *
- * @param {() => Promise<Base>} fn
+ * @template {BaseComponent} T
+ *
+ * @param {() => Promise<T|{default:T}>} fn
  *   The import function.
- * @param {{ timeout?: number }=} options
+ * @param {ImportWhenIdleOptions=} [options]
  *   The time to wait before triggering the callback if never idle.
- * @return {Promise<Base>}
+ *
+ * @return {Promise<T>}
  */
-export default function importWhenIdle(fn, options = {}) {
+export default function importWhenIdle(fn, options) {
+  let ResolvedClass;
+
+  const resolver = (resolve) => {
+    fn().then((module) => {
+      ResolvedClass = 'default' in module ? module.default : module;
+      resolve(ResolvedClass);
+    });
+  };
+
   return new Promise((resolve) => {
-    const timeout = options.timeout ?? 0;
+    const timeout = options?.timeout ?? 1;
 
     if (!('requestIdleCallback' in window)) {
       setTimeout(() => {
-        fn().then(resolve);
+        resolver(resolve);
       }, timeout);
     } else {
       window.requestIdleCallback(
         () => {
           setTimeout(() => {
-            fn().then(resolve);
+            resolver(resolve);
           }, 0);
         },
-        { timeout }
+        { timeout: options?.timeout }
       );
     }
   });
