@@ -6,7 +6,6 @@ import transition from '../../utils/css/transition.js';
 
 /**
  * @typedef {import('../../abstracts/Base').BaseOptions} BaseOptions
- * @typedef {import('../../utils/css/styles.js').CssStyleObject} CssStyleObject
  * @typedef {import('./Accordion.js').AccordionInterface} AccordionInterface
  */
 
@@ -25,16 +24,26 @@ import transition from '../../utils/css/transition.js';
  */
 
 /**
- * @typedef {Object} AccordionItemOptions
- * @property {Boolean} isOpen
- * @property {{ [refName: string]: StylesOption }} styles
+ * @typedef {import('../../utils/css/styles.js').CssStyleObject} CssStyleObject
+ * @typedef {Partial<Record<'open'|'active'|'closed', string|CssStyleObject>>} AccordionItemStates
+ * @typedef {Partial<Record<keyof AccordionItemRefs, AccordionItemStates>>} AccordionItemStylesOption
  */
 
 /**
- * @typedef {Object} AccordionItemInterface
+ * @typedef {Object} AccordionItemOptions
+ * @property {Boolean} isOpen
+ * @property {AccordionItemStylesOption} styles
+ */
+
+/**
+ * @typedef {Object} AccordionItemPrivateInterface
  * @property {AccordionItemOptions} $options
  * @property {AccordionItemRefs} $refs
  * @property {Accordion & AccordionInterface} $parent
+ */
+
+/**
+ * @typedef {AccordionItem & AccordionItemPrivateInterface} AccordionItemInterface
  */
 
 /**
@@ -52,6 +61,9 @@ export default class AccordionItem extends Base {
       isOpen: Boolean,
       styles: {
         type: Object,
+        /**
+         * @return {AccordionItemStylesOption}
+         */
         default: () => ({
           container: {
             open: '',
@@ -65,7 +77,7 @@ export default class AccordionItem extends Base {
 
   /**
    * Add aria-attributes on mounted.
-   * @this {AccordionItem & AccordionItemInterface}
+   * @this {AccordionItemInterface}
    */
   mounted() {
     if (this.$parent && this.$parent instanceof Accordion && this.$parent.$options.item) {
@@ -73,7 +85,7 @@ export default class AccordionItem extends Base {
         if (key in this.$options) {
           const type = AccordionItem.config.options[key].type || AccordionItem.config.options[key];
           if (type === Array || type === Object) {
-            this.$options[key] = deepmerge(this.$options[key], value);
+            this.$options[key] = deepmerge(this.$options[key], /** @type {any} */ (value));
           } else {
             this.$options[key] = value;
           }
@@ -106,7 +118,7 @@ export default class AccordionItem extends Base {
 
   /**
    * Remove styles on destroy.
-   * @this {AccordionItem & AccordionItemInterface}
+   * @this {AccordionItemInterface}
    */
   destroyed() {
     styles.remove(this.$refs.container, { visibility: '', height: '' });
@@ -114,7 +126,7 @@ export default class AccordionItem extends Base {
 
   /**
    * Handler for the click event on the `btn` ref.
-   * @this {AccordionItem & AccordionItemInterface}
+   * @this {AccordionItemInterface}
    */
   onBtnClick() {
     if (this.$options.isOpen) {
@@ -135,7 +147,7 @@ export default class AccordionItem extends Base {
   /**
    * Update the refs' attributes according to the given type.
    *
-   * @this {AccordionItem & AccordionItemInterface}
+   * @this {AccordionItemInterface}
    * @param  {Boolean} isOpen The state of the item.
    */
   updateAttributes(isOpen) {
@@ -145,7 +157,7 @@ export default class AccordionItem extends Base {
 
   /**
    * Open an item.
-   * @this {AccordionItem & AccordionItemInterface}
+   * @this {AccordionItemInterface}
    */
   async open() {
     if (this.$options.isOpen) {
@@ -195,7 +207,7 @@ export default class AccordionItem extends Base {
 
   /**
    * Close an item.
-   * @this {AccordionItem & AccordionItemInterface}
+   * @this {AccordionItemInterface}
    */
   async close() {
     if (!this.$options.isOpen) {

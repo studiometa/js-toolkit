@@ -8,6 +8,10 @@ import withDrag from '../decorators/withDrag.js';
  */
 
 /**
+ * @typedef {Draggable} DraggableInterface
+ */
+
+/**
  * Draggable class.
  *
  * @link https://jsfiddle.net/soulwire/znj683b9/
