@@ -7,7 +7,7 @@ export default class MyVueComponent extends withVue(Base) {
     components: {
       CustomComponent,
     },
-    render: (h) => h('CustomComponent'),
+    render: (h) => h(CustomComponent),
   };
 
   static config = {
