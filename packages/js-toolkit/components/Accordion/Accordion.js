@@ -2,7 +2,7 @@ import Base from '../../abstracts/Base/index.js';
 
 /**
  * @typedef {import('./AccordionItem').default} AccordionItem
- * @typedef {import('./AccordionItem').AccordionItemStylesOption} AccordionItemStylesOption
+ * @typedef {import('./AccordionItem').AccordionItemOptions} AccordionItemOptions
  */
 
 /**
@@ -14,7 +14,7 @@ import Base from '../../abstracts/Base/index.js';
 /**
  * @typedef {Object} AccordionOptions
  * @property {Boolean} autoclose
- * @property {AccordionItemStylesOption} item
+ * @property {AccordionItemOptions} item
  */
 
 /**
@@ -47,7 +47,7 @@ export default class Accordion extends Base {
       item: {
         type: Object,
         /**
-         * @return {AccordionItemStylesOption}
+         * @return {Partial<AccordionItemOptions>}
          */
         default: () => ({}),
       },
@@ -77,7 +77,6 @@ export default class Accordion extends Base {
       const unbindOpen = item.$on('open', () => {
         this.$emit('open', item, index);
         if (this.$options.autoclose) {
-          // @ts-ignore
           this.$children.AccordionItem.filter((el, i) => index !== i).forEach((it) => it.close());
         }
       });
