@@ -1,7 +1,7 @@
 import isObject from '../object/isObject.js';
 
 /**
- * @typedef {Partial<CSSStyleDeclaration> & Record<string, string | null>} CssStyleObject
+ * @typedef {Record<string, string | null> & Partial<CSSStyleDeclaration>} CssStyleObject
  */
 
 /**

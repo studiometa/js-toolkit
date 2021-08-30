@@ -13,20 +13,30 @@ import { trap, untrap, saveActiveElement } from '../utils/focusTrap.js';
  */
 
 /**
- * @typedef {Object} ModalOptions
- * @property {String} move      A selector where to move the modal to.
- * @property {String} autofocus A selector for the element to set the focus to when the modal opens.
- * @property {Object} styles    The styles for the different state of the modal.
+ * @typedef {import('../utils/css/styles.js').CssStyleObject} CssStyleObject
+ * @typedef {Partial<Record<'open'|'active'|'closed', string|CssStyleObject>>} ModalStates
+ * @typedef {Partial<Record<keyof ModalRefs, ModalStates>>} ModalStylesOption
  */
 
 /**
- * @typedef {Object} ModalInterface
+ * @typedef {Object} ModalOptions
+ * @property {String}            move      A selector where to move the modal to.
+ * @property {String}            autofocus A selector for the element to set the focus to when the modal opens.
+ * @property {ModalStylesOption} styles    The styles for the different state of the modal.
+ */
+
+/**
+ * @typedef {Object} ModalPrivateInterface
  * @property {ModalRefs} $refs
  * @property {ModalOptions} $options
  * @property {Boolean} isOpen
  * @property {Comment} refModalPlaceholder
  * @property {HTMLElement} refModalParentBackup
  * @property {Function} refModalUnbindGetRefFilter
+ */
+
+/**
+ * @typedef {Modal & ModalPrivateInterface} ModalInterface
  */
 
 /**
@@ -44,10 +54,13 @@ export default class Modal extends Base {
       autofocus: { type: String, default: '[autofocus]' },
       styles: {
         type: Object,
+        /**
+         * @return {ModalStylesOption}
+         */
         default: () => ({
           modal: {
             closed: {
-              opacity: 0,
+              opacity: '0',
               pointerEvents: 'none',
               visibility: 'hidden',
             },
@@ -87,7 +100,7 @@ export default class Modal extends Base {
   /**
    * Initialize the component's behaviours.
    *
-   * @this {Modal & ModalInterface}
+   * @this {ModalInterface}
    */
   mounted() {
     this.isOpen = false;
@@ -123,7 +136,7 @@ export default class Modal extends Base {
   /**
    * Unbind all events on destroy.
    *
-   * @this {Modal & ModalInterface}
+   * @this {ModalInterface}
    * @return {Modal} The Modal instance.
    */
   destroyed() {
@@ -144,7 +157,7 @@ export default class Modal extends Base {
   /**
    * Close the modal on `ESC` and trap the tabulation.
    *
-   * @this {Modal & ModalInterface}
+   * @this {ModalInterface}
    * @param  {Object}        options
    * @param  {KeyboardEvent} options.event  The original keyboard event
    * @param  {Boolean}       options.isUp   Is it a keyup event?
@@ -168,8 +181,8 @@ export default class Modal extends Base {
   /**
    * Open the modal.
    *
-   * @this {Modal & ModalInterface}
-   * @return {Promise<Modal>} The Modal instance.
+   * @this {ModalInterface}
+   * @return {Promise<ModalInterface>} The Modal instance.
    */
   async open() {
     if (this.isOpen) {
@@ -212,8 +225,8 @@ export default class Modal extends Base {
   /**
    * Close the modal.
    *
-   * @this {Modal & ModalInterface}
-   * @return {Promise<Modal>} The Modal instance.
+   * @this {ModalInterface}
+   * @return {Promise<ModalInterface>} The Modal instance.
    */
   async close() {
     if (!this.isOpen) {

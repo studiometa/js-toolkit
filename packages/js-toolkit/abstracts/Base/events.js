@@ -99,7 +99,7 @@ function bindChildrenEvents(instance, eventMethods) {
       .forEach((eventMethod) => {
         $children.forEach(
           /**
-           * @param {Base} $child
+           * @param {Base|Promise<Base>} $child
            * @param {Number} index
            */
           async ($child, index) => {
