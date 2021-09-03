@@ -180,8 +180,9 @@ class Drag extends Service {
    * @return {this}
    */
   init() {
-    this.target.addEventListener('mousedown', this);
-    this.target.addEventListener('touchstart', this);
+    const options = { passive: true };
+    this.target.addEventListener('mousedown', this, options);
+    this.target.addEventListener('touchstart', this, options);
 
     const pointer = usePointer();
     pointer.add(this.id, this.pointerHandler);
