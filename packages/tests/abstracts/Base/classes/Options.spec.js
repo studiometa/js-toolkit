@@ -83,6 +83,23 @@ describe('The Options class', () => {
     expect(options.foo).toBe(true);
   });
 
+  it('should get falsy boolean options', () => {
+    const div = html`<div data-option-no-foo></div>`;
+    const options = new Options(div, {
+      foo: { type: Boolean, default: true },
+    });
+
+    expect(options.foo).toBe(false);
+    expect(div.hasAttribute('data-option-foo')).toBe(false);
+    expect(div.hasAttribute('data-option-no-foo')).toBe(true);
+    options.foo = true;
+    expect(options.foo).toBe(true);
+    expect(div.hasAttribute('data-option-foo')).toBe(false);
+    expect(div.hasAttribute('data-option-no-foo')).toBe(false);
+    options.foo = false;
+    expect(div.hasAttribute('data-option-no-foo')).toBe(true);
+  });
+
   it('should get and set array options', () => {
     const div = html`<div data-option-foo="[1, 2]"></div>`;
     const options = new Options(div, {
@@ -141,7 +158,7 @@ describe('The Options class', () => {
     expect(options.stringWithDefault).toBe('foo');
     expect(options.numberWithDefault).toBe(10);
     expect(options.booleanWithDefault).toBe(true);
-    expect(div.hasAttribute('data-option-boolean-with-default')).toBe(true);
+    expect(div.hasAttribute('data-option-boolean-with-default')).toBe(false);
     expect(options.arrayWithDefault).toEqual([1, 2, 3]);
     expect(options.objectWithDefault).toEqual({ foo: 'foo' });
   });
@@ -150,10 +167,10 @@ describe('The Options class', () => {
     expect(
       () =>
         new Options(html`<div />`, {
-          array: [Array, [1, 2, 3]],
+          array: { type: Array, default: [1, 2, 3] },
         })
     ).toThrow(
-      'The "array" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.'
+      'The default value for options of type \"Array\" must be returned by a function.'
     );
   });
 

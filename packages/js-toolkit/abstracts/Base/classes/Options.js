@@ -80,7 +80,7 @@ export default class Options {
           return this.get(name, type, defaultValue);
         },
         set(value) {
-          this.set(name, type, value);
+          this.set(name, type, value, defaultValue);
         },
         enumerable: true,
       });
@@ -101,9 +101,13 @@ export default class Options {
     const hasAttribute = this.#element.hasAttribute(attributeName);
 
     if (type === Boolean) {
-      if (!hasAttribute && defaultValue) {
-        this.#element.setAttribute(attributeName, '');
+      if (defaultValue) {
+        const negatedAttributeName = memoizedGetAttributeName(`no-${name}`);
+        const hasNegatedAttribute = this.#element.hasAttribute(negatedAttributeName);
+
+        return !hasNegatedAttribute;
       }
+
       return hasAttribute || defaultValue;
     }
 
@@ -145,7 +149,7 @@ export default class Options {
    * @param {ArrayConstructor|ObjectConstructor|StringConstructor|NumberConstructor|BooleanConstructor} type The option data's type.
    * @param {any} value The new value for this option.
    */
-  set(name, type, value) {
+  set(name, type, value, defaultValue) {
     const attributeName = memoizedGetAttributeName(name);
 
     if (value.constructor.name !== type.name) {
@@ -157,7 +161,15 @@ export default class Options {
 
     switch (type) {
       case Boolean:
-        if (value) {
+        if (defaultValue) {
+          const negatedAttributeName = memoizedGetAttributeName(`no-${name}`);
+
+          if (value) {
+            this.#element.removeAttribute(negatedAttributeName);
+          } else {
+            this.#element.setAttribute(negatedAttributeName, '');
+          }
+        } else if (value) {
           this.#element.setAttribute(attributeName, '');
         } else {
           this.#element.removeAttribute(attributeName);
