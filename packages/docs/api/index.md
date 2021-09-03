@@ -101,7 +101,7 @@ class Component extends Base {
 - Type: `Object`
 - Default: `{}`
 
-Define configurable values for the component.
+Define values configurable with `data-option-...` attributes for the component.
 
 ```js
 class Component extends Base {
@@ -365,6 +365,10 @@ An object containing the full options of the instance as defined in the [`config
 - `$options.debug` Wether the debug is active on this instance or not
 
 The values for the `$options` object are read from and written to the `data-option-<option-name>` attribute of the root element.
+
+:::tip
+Boolean options with `true` as a default value can be negated with a `data-option-no-<option-name>` attribute.
+:::
 
 ### `$refs`
 
