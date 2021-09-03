@@ -96,6 +96,8 @@ describe('The Options class', () => {
     expect(options.foo).toBe(true);
     expect(div.hasAttribute('data-option-foo')).toBe(false);
     expect(div.hasAttribute('data-option-no-foo')).toBe(false);
+    options.foo = false;
+    expect(div.hasAttribute('data-option-no-foo')).toBe(true);
   });
 
   it('should get and set array options', () => {
@@ -165,10 +167,10 @@ describe('The Options class', () => {
     expect(
       () =>
         new Options(html`<div />`, {
-          array: [Array, [1, 2, 3]],
+          array: { type: Array, default: [1, 2, 3] },
         })
     ).toThrow(
-      'The "array" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.'
+      'The default value for options of type \"Array\" must be returned by a function.'
     );
   });
 
