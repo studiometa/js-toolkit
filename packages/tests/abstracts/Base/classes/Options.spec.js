@@ -83,6 +83,21 @@ describe('The Options class', () => {
     expect(options.foo).toBe(true);
   });
 
+  it('should get falsy boolean options', () => {
+    const div = html`<div data-option-no-foo></div>`;
+    const options = new Options(div, {
+      foo: { type: Boolean, default: true },
+    });
+
+    expect(options.foo).toBe(false);
+    expect(div.hasAttribute('data-option-foo')).toBe(false);
+    expect(div.hasAttribute('data-option-no-foo')).toBe(true);
+    options.foo = true;
+    expect(options.foo).toBe(true);
+    expect(div.hasAttribute('data-option-foo')).toBe(false);
+    expect(div.hasAttribute('data-option-no-foo')).toBe(false);
+  });
+
   it('should get and set array options', () => {
     const div = html`<div data-option-foo="[1, 2]"></div>`;
     const options = new Options(div, {
@@ -141,7 +156,7 @@ describe('The Options class', () => {
     expect(options.stringWithDefault).toBe('foo');
     expect(options.numberWithDefault).toBe(10);
     expect(options.booleanWithDefault).toBe(true);
-    expect(div.hasAttribute('data-option-boolean-with-default')).toBe(true);
+    expect(div.hasAttribute('data-option-boolean-with-default')).toBe(false);
     expect(options.arrayWithDefault).toEqual([1, 2, 3]);
     expect(options.objectWithDefault).toEqual({ foo: 'foo' });
   });
