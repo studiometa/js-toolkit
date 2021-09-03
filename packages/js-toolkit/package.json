@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "A set of useful little bits of JavaScript to boost your project! 🚀",
   "publishConfig": {
     "access": "public"
@@ -27,7 +27,7 @@
   ],
   "types": "index.d.ts",
   "dependencies": {
-    "@babel/runtime": "^7.15.3",
+    "@babel/runtime": "^7.15.4",
     "deepmerge": "^4.2.2",
     "mem": "^9.0.1",
     "no-case": "^3.0.4",
