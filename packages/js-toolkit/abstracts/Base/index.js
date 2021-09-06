@@ -1,11 +1,10 @@
 import autoBind from '../../utils/object/autoBind.js';
-import EventManager from '../EventManager.js';
 import { callMethod, debug, getConfig, getComponentElements } from './utils.js';
 import { getOptions } from './options.js';
 import ChildrenManager from './managers/ChildrenManager.js';
 import RefsManager from './managers/RefsManager.js';
 import ServicesManager from './managers/ServicesManager.js';
-import bindEvents from './events.js';
+import EventsManager from './managers/EventsManager.js';
 
 // Define the __DEV__ constant if not defined
 if (typeof __DEV__ === 'undefined') {
@@ -22,7 +21,7 @@ let id = 0;
  * @typedef {typeof Base} BaseComponent
  * @typedef {(Base) => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
  * @typedef {{ name: string, debug: boolean, log: boolean, [name:string]: any }} BaseOptions
- * @typedef {{ [name:string]: HTMLElement | HTMLElement[] | Base | Base[] | Promise<Base> | Promise<Base>[] }} BaseRefs
+ * @typedef {{ [name:string]: HTMLElement | HTMLElement[] }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Base[] | Promise<Base>[] }} BaseChildren
  * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
  * @typedef {import('./managers/OptionsManager').OptionsSchema} BaseConfigOptions
@@ -67,7 +66,7 @@ let id = 0;
  * new App(document.body).$mount();
  * ```
  */
-export default class Base extends EventManager {
+export default class Base {
   /**
    * The instance parent.
    * @type {Base}
@@ -186,13 +185,16 @@ export default class Base extends EventManager {
   }
 
   /**
+   * @type {EventsManager}
+   */
+  #events;
+
+  /**
    * Class constructor where all the magic takes place.
    *
    * @param {HTMLElement} element The component's root element dd.
    */
   constructor(element) {
-    super();
-
     if (!element) {
       throw new Error('The root element must be defined.');
     }
@@ -209,40 +211,53 @@ export default class Base extends EventManager {
       });
     }
 
+    // @todo implement getter with event get:options
     this.$options = getOptions(this, element, getConfig(this));
+    // @todo implement getter with event get:services
     this.$services = new ServicesManager(this);
     this.#children = new ChildrenManager(this, element, getConfig(this).components || {});
     this.#refs = new RefsManager(this, element, getConfig(this).refs || []);
 
+    // @todo reverse the dependencies, the RefsManager and ChildrenManager should use
+    // the EventsManager to improve performance. The EventsManager will only help to find
+    // which methods to bind to which element on which event.
+    this.#events = new EventsManager(element, this.#refs, this.#children, this);
+
     // Autobind all methods to the instance
+    // @todo Maybe remove for performance reason? This pattern can use a lot of memory when creating
+    // a large number of instances.
     autoBind(this, {
       exclude: [...this._excludeFromAutoBind],
     });
 
-    let unbindMethods = [];
     this.$on('mounted', () => {
       this.$children.registerAll();
       this.$refs.registerAll();
+      this.#events.bindAll();
       this.$services.enableAll();
-      unbindMethods = [...bindEvents(this)];
       this.$children.mountAll();
       this.$isMounted = true;
     });
 
     this.$on('updated', () => {
+      // Undo
+      this.#events.unbindAll();
       this.$services.disableAll();
-      unbindMethods.forEach((method) => method());
-      unbindMethods = [...bindEvents(this)];
+
+      // Redo
       this.$children.registerAll();
       this.$refs.registerAll();
+      this.#events.bindAll();
       this.$services.enableAll();
+
+      // Update
       this.$children.updateAll();
     });
 
     this.$on('destroyed', () => {
       this.$isMounted = false;
+      this.#events.unbindAll();
       this.$services.disableAll();
-      unbindMethods.forEach((method) => method());
       this.$children.destroyAll();
     });
 
@@ -340,5 +355,85 @@ export default class Base extends EventManager {
     }
 
     return getComponentElements(nameOrSelector).map((el) => new this(el).$mount());
+  }
+
+  /**
+   * Bind a listener function to an event.
+   *
+   * @param  {string} event
+   *   Name of the event.
+   * @param  {EventListenerOrEventListenerObject} listener
+   *   Function to be called.
+   * @param {boolean|AddEventListenerOptions} [options]
+   *   Options for the `removeEventListener` method.
+   * @return {() => void}
+   *   A function to unbind the listener.
+   */
+  $on(event, listener, options) {
+    this.$el.addEventListener(event, listener, options);
+
+    return () => {
+      this.$off(event, listener, options);
+    };
+  }
+
+  /**
+   * Unbind a listener function from an event.
+   *
+   * @param {string} event
+   *   Name of the event.
+   * @param {EventListenerOrEventListenerObject} listener
+   *   Function to be removed.
+   * @param {boolean|EventListenerOptions} [options]
+   *   Options for the `removeEventListener` method.
+   *
+   * @return {void}
+   */
+  $off(event, listener, options) {
+    this.$el.removeEventListener(event, listener, options);
+  }
+
+  /**
+   * Emits an event.
+   *
+   * @param  {string} event
+   *   Name of the event.
+   * @param  {any[]}        args  The arguments to apply to the functions bound to this event.
+   * @return {void}
+   */
+  $emit(event, ...args) {
+    this.$el.dispatchEvent(
+      new CustomEvent(event, {
+        detail: args,
+      })
+    );
+  }
+
+  /**
+   * Bind a listener function to an event for one execution only.
+   *
+   * @param {string} event
+   *   Name of the event.
+   * @param {EventListenerOrEventListenerObject} listener
+   *   Function to be called.
+   * @param {boolean|AddEventListenerOptions} [options]
+   *   Options for the `addEventListener` method.
+   * @return {void}
+   */
+  $once(event, listener, options) {
+    let normalizedOptions = {
+      once: true,
+    };
+
+    if (typeof options === 'boolean') {
+      normalizedOptions.capture = options;
+    } else if (typeof options !== 'undefined') {
+      normalizedOptions = {
+        ...options,
+        ...normalizedOptions,
+      };
+    }
+
+    this.$on(event, listener, normalizedOptions);
   }
 }
