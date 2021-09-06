@@ -85,7 +85,7 @@ describe('The Options class', () => {
 
   it('should get falsy boolean options', () => {
     const div = html`<div data-option-no-foo></div>`;
-    const options = new Options(div, {
+    const options = new OptionsManager(div, {
       foo: { type: Boolean, default: true },
     });
 
