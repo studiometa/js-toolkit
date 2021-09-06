@@ -1,10 +1,10 @@
 /* eslint no-underscore-dangle: ["error", { "allow": ["_events"] }] */
 import { jest } from '@jest/globals';
-import EventManager from '@studiometa/js-toolkit/abstracts/EventManager';
+import EventsManager from '@studiometa/js-toolkit/abstracts/Base/managers/EventsManager';
 
-describe('EventManager class', () => {
+describe('EventsManager class', () => {
   it('can register callbacks to events', () => {
-    const eventManager = new EventManager();
+    const eventManager = new EventsManager();
     const foo = jest.fn();
     eventManager.$on('foo', foo);
     expect(eventManager._events.foo[0]).toEqual(foo);
@@ -17,7 +17,7 @@ describe('EventManager class', () => {
   });
 
   it('returns a method to unbind the binded function', () => {
-    const eventManager = new EventManager();
+    const eventManager = new EventsManager();
     const foo = jest.fn();
     const unbind = eventManager.$on('foo', foo);
 
@@ -29,7 +29,7 @@ describe('EventManager class', () => {
   });
 
   it('fails silently when trying to unbind an unbounded method', () => {
-    const eventManager = new EventManager();
+    const eventManager = new EventsManager();
     const foo = jest.fn();
     const bar = jest.fn();
 
@@ -42,7 +42,7 @@ describe('EventManager class', () => {
   });
 
   it('can unregister a specific callback from an event', () => {
-    const eventManager = new EventManager();
+    const eventManager = new EventsManager();
     const foo = jest.fn();
     eventManager.$on('foo', foo);
     eventManager.$emit('foo');
@@ -53,7 +53,7 @@ describe('EventManager class', () => {
   });
 
   it('can unregister all callbacks from an event', () => {
-    const eventManager = new EventManager();
+    const eventManager = new EventsManager();
     const foo = jest.fn();
     const bar = jest.fn();
     eventManager.$on('foo', () => foo());
@@ -70,7 +70,7 @@ describe('EventManager class', () => {
   });
 
   it('can disable all events from itself', () => {
-    const eventManager = new EventManager();
+    const eventManager = new EventsManager();
     const foo = jest.fn();
     const bar = jest.fn();
     eventManager.$on('foo', () => foo());
@@ -92,7 +92,7 @@ describe('EventManager class', () => {
   });
 
   it('can listen to an event only once', () => {
-    const eventManager = new EventManager();
+    const eventManager = new EventsManager();
     const foo = jest.fn();
     eventManager.$once('foo', foo);
     eventManager.$emit('foo');
