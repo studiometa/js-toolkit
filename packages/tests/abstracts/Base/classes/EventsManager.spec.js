@@ -1,104 +1,180 @@
-/* eslint no-underscore-dangle: ["error", { "allow": ["_events"] }] */
 import { jest } from '@jest/globals';
+import { html } from 'htl';
+import Base from '@studiometa/js-toolkit';
 import EventsManager from '@studiometa/js-toolkit/abstracts/Base/managers/EventsManager';
 
-describe('EventsManager class', () => {
-  it('can register callbacks to events', () => {
-    const eventManager = new EventsManager();
-    const foo = jest.fn();
-    eventManager.$on('foo', foo);
-    expect(eventManager._events.foo[0]).toEqual(foo);
+describe('The EventsManager class', () => {
+  const rootElementFn = jest.fn();
+  const singleRefFn = jest.fn();
+  const multipleRefFn = jest.fn();
+  const componentFn = jest.fn();
+  const asyncComponentFn = jest.fn();
 
-    eventManager.$emit('foo');
-    eventManager.$emit('foo', 'bar', 'baz');
+  class Component extends Base {
+    static config = { name: 'Component' };
+  }
 
-    expect(foo).toHaveBeenCalledTimes(2);
-    expect(foo).toHaveBeenCalledWith('bar', 'baz');
+  class AsyncComponent extends Base {
+    static config = { name: 'AsyncComponent' };
+  }
+
+  class App extends Base {
+    static config = {
+      name: 'App',
+      refs: ['single', 'multiple[]'],
+      components: {
+        Component,
+        AsyncComponent: () => Promise.resolve(AsyncComponent),
+      },
+    };
+
+    onClick(...args) {
+      rootElementFn(...args);
+    }
+
+    onSingleClick(...args) {
+      singleRefFn(...args);
+    }
+
+    onMultipleClick(...args) {
+      multipleRefFn(...args);
+    }
+
+    onComponentMounted(...args) {
+      componentFn(...args);
+    }
+
+    onComponentCustomEvent(...args) {
+      componentFn(...args);
+    }
+
+    onAsyncComponentMounted(...args) {
+      asyncComponentFn(...args);
+    }
+
+    onAsyncComponentCustomEvent(...args) {
+      asyncComponentFn(...args);
+    }
+  }
+
+  const tpl = html`<div>
+    <div data-ref="single"></div>
+    <div data-ref="multiple[]"></div>
+    <div data-component="Component"></div>
+    <div data-component="AsyncComponent"></div>
+  </div>`;
+
+  const app = new App(tpl);
+
+  afterEach(() => {
+    rootElementFn.mockClear();
+    singleRefFn.mockClear();
+    multipleRefFn.mockClear();
+    componentFn.mockClear();
+    asyncComponentFn.mockClear();
   });
 
-  it('returns a method to unbind the binded function', () => {
-    const eventManager = new EventsManager();
-    const foo = jest.fn();
-    const unbind = eventManager.$on('foo', foo);
-
-    eventManager.$emit('foo');
-    unbind();
-    eventManager.$emit('foo');
-
-    expect(foo).toHaveBeenCalledTimes(1);
+  it('can bind event methods to the root element', () => {
+    app.$el.click();
+    expect(rootElementFn).not.toHaveBeenCalled();
+    app.$mount();
+    app.$el.click();
+    expect(rootElementFn).toHaveBeenCalledTimes(1);
   });
 
-  it('fails silently when trying to unbind an unbounded method', () => {
-    const eventManager = new EventsManager();
-    const foo = jest.fn();
-    const bar = jest.fn();
-
-    eventManager.$on('foo', foo);
-    eventManager.$emit('foo');
-    eventManager.$off('foo', bar);
-
-    expect(eventManager._events.foo).toHaveLength(1);
-    expect(eventManager._events.foo[0]).toBe(foo);
+  it('can unbind event methods to the root element', () => {
+    app.$destroy();
+    app.$el.click();
+    expect(rootElementFn).not.toHaveBeenCalled();
   });
 
-  it('can unregister a specific callback from an event', () => {
-    const eventManager = new EventsManager();
-    const foo = jest.fn();
-    eventManager.$on('foo', foo);
-    eventManager.$emit('foo');
-    eventManager.$off('foo', foo);
-    expect(eventManager._events.foo).toHaveLength(0);
-    eventManager.$emit('foo');
-    expect(foo).toHaveBeenCalledTimes(1);
+  it('can bind event methods to single refs', () => {
+    app.$refs.single.click();
+    expect(singleRefFn).not.toHaveBeenCalled();
+    app.$mount();
+    app.$refs.single.click();
+    expect(singleRefFn).toHaveBeenCalledTimes(1);
   });
 
-  it('can unregister all callbacks from an event', () => {
-    const eventManager = new EventsManager();
-    const foo = jest.fn();
-    const bar = jest.fn();
-    eventManager.$on('foo', () => foo());
-    eventManager.$on('foo', () => bar());
-
-    expect(eventManager._events.foo).toHaveLength(2);
-
-    eventManager.$emit('foo');
-    eventManager.$off('foo');
-
-    expect(foo).toHaveBeenCalledTimes(1);
-    expect(bar).toHaveBeenCalledTimes(1);
-    expect(eventManager._events.foo).toHaveLength(0);
+  it('can unbind event methods from single refs', () => {
+    app.$destroy();
+    app.$refs.single.click();
+    expect(singleRefFn).not.toHaveBeenCalled();
   });
 
-  it('can disable all events from itself', () => {
-    const eventManager = new EventsManager();
-    const foo = jest.fn();
-    const bar = jest.fn();
-    eventManager.$on('foo', () => foo());
-    eventManager.$on('bar', () => bar());
-
-    expect(eventManager._events.foo).toHaveLength(1);
-    expect(eventManager._events.bar).toHaveLength(1);
-
-    eventManager.$off();
-
-    expect(eventManager._events.foo).toBeUndefined();
-    expect(eventManager._events.bar).toBeUndefined();
-
-    eventManager.$emit('foo');
-    eventManager.$emit('bar');
-
-    expect(foo).toHaveBeenCalledTimes(0);
-    expect(bar).toHaveBeenCalledTimes(0);
+  it('can bind event methods to multiple refs', () => {
+    app.$refs.multiple[0].click();
+    expect(multipleRefFn).not.toHaveBeenCalled();
+    app.$mount();
+    app.$refs.multiple[0].click();
+    expect(multipleRefFn).toHaveBeenCalledTimes(1);
   });
 
-  it('can listen to an event only once', () => {
-    const eventManager = new EventsManager();
-    const foo = jest.fn();
-    eventManager.$once('foo', foo);
-    eventManager.$emit('foo');
-    eventManager.$emit('foo');
+  it('can unbind event methods from multiple refs', () => {
+    app.$destroy();
+    app.$refs.multiple[0].click();
+    expect(multipleRefFn).not.toHaveBeenCalled();
+  });
 
-    expect(foo).toHaveBeenCalledTimes(1);
-    expect(eventManager._events.foo).toHaveLength(0);
+  it('can bind event methods to children', () => {
+    expect(componentFn).not.toHaveBeenCalled();
+    app.$mount();
+    expect(componentFn).toHaveBeenCalledTimes(1);
+    app.$children.Component[0].$emit('custom-event', 1, 2);
+    expect(componentFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('can unbind event methods from children', () => {
+    expect(componentFn).not.toHaveBeenCalled();
+    app.$destroy();
+    expect(componentFn).not.toHaveBeenCalled();
+    app.$children.Component[0].$emit('custom-event', 1, 2);
+    expect(componentFn).not.toHaveBeenCalled();
+  });
+
+  it('can bind event methods to async children', async () => {
+    expect(asyncComponentFn).not.toHaveBeenCalled();
+    app.$mount();
+    await Promise.all(app.$children.AsyncComponent);
+    expect(asyncComponentFn).toHaveBeenCalledTimes(1);
+    app.$children.AsyncComponent[0].$emit('custom-event', 1, 2);
+    expect(asyncComponentFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('can unbind event methods from async children', () => {
+    expect(asyncComponentFn).not.toHaveBeenCalled();
+    app.$destroy();
+    expect(asyncComponentFn).not.toHaveBeenCalled();
+    app.$children.AsyncComponent[0].$emit('custom-event', 1, 2);
+    expect(asyncComponentFn).not.toHaveBeenCalled();
+  });
+
+  it('should normalize refs and children names', () => {
+    const names = [
+      ['sentence case', 'SentenceCase'],
+      ['lowercase', 'Lowercase'],
+      ['UPPERCASE', 'Uppercase'],
+      ['kebab-case', 'KebabCase'],
+      ['snake_case', 'SnakeCase'],
+      ['camelCase', 'CamelCase'],
+      ['PascalCase', 'PascalCase'],
+      ['.class-selector', 'ClassSelector'],
+      ['.bem__selector', 'BemSelector'],
+      ['#id-selector', 'IdSelector'],
+      ['.complex[class^ ="#"]', 'ComplexClass'],
+    ];
+
+    names.forEach(([input, output]) => expect(EventsManager.normalizeName(input)).toBe(output));
+  });
+
+  it('should normalize PascalCase event names to their kebab-case equivalent', () => {
+    const names = [
+      ['Single', 'single'],
+      ['MultipleParts', 'multiple-parts'],
+    ];
+
+    names.forEach(([input, output]) =>
+      expect(EventsManager.normalizeEventName(input)).toBe(output)
+    );
   });
 });

@@ -185,11 +185,6 @@ export default class Base {
   }
 
   /**
-   * @type {EventsManager}
-   */
-  #events;
-
-  /**
    * Class constructor where all the magic takes place.
    *
    * @param {HTMLElement} element The component's root element dd.
@@ -211,17 +206,16 @@ export default class Base {
       });
     }
 
+    const config = getConfig(this);
+
     // @todo implement getter with event get:options
-    this.$options = getOptions(this, element, getConfig(this));
+    this.$options = getOptions(this, element, config);
     // @todo implement getter with event get:services
     this.$services = new ServicesManager(this);
-    this.#children = new ChildrenManager(this, element, getConfig(this).components || {});
-    this.#refs = new RefsManager(this, element, getConfig(this).refs || []);
 
-    // @todo reverse the dependencies, the RefsManager and ChildrenManager should use
-    // the EventsManager to improve performance. The EventsManager will only help to find
-    // which methods to bind to which element on which event.
-    this.#events = new EventsManager(element, this.#refs, this.#children, this);
+    const eventsManager = new EventsManager(element, this);
+    this.#children = new ChildrenManager(this, element, config.components || {}, eventsManager);
+    this.#refs = new RefsManager(this, element, config.refs || [], eventsManager);
 
     // Autobind all methods to the instance
     // @todo Maybe remove for performance reason? This pattern can use a lot of memory when creating
@@ -233,7 +227,7 @@ export default class Base {
     this.$on('mounted', () => {
       this.$children.registerAll();
       this.$refs.registerAll();
-      this.#events.bindAll();
+      eventsManager.bindRootElement();
       this.$services.enableAll();
       this.$children.mountAll();
       this.$isMounted = true;
@@ -241,13 +235,12 @@ export default class Base {
 
     this.$on('updated', () => {
       // Undo
-      this.#events.unbindAll();
+      this.$refs.unregisterAll();
       this.$services.disableAll();
 
       // Redo
       this.$children.registerAll();
       this.$refs.registerAll();
-      this.#events.bindAll();
       this.$services.enableAll();
 
       // Update
@@ -256,7 +249,8 @@ export default class Base {
 
     this.$on('destroyed', () => {
       this.$isMounted = false;
-      this.#events.unbindAll();
+      eventsManager.unbindRootElement();
+      this.$refs.unregisterAll();
       this.$services.disableAll();
       this.$children.destroyAll();
     });
@@ -370,6 +364,10 @@ export default class Base {
    *   A function to unbind the listener.
    */
   $on(event, listener, options) {
+    if (__DEV__) {
+      debug(this, '$on', event, listener, options);
+    }
+
     this.$el.addEventListener(event, listener, options);
 
     return () => {
@@ -390,6 +388,10 @@ export default class Base {
    * @return {void}
    */
   $off(event, listener, options) {
+    if (__DEV__) {
+      debug(this, '$off', event, listener);
+    }
+
     this.$el.removeEventListener(event, listener, options);
   }
 
@@ -421,6 +423,10 @@ export default class Base {
    * @return {void}
    */
   $once(event, listener, options) {
+    if (__DEV__) {
+      debug(this, '$once', event, listener, options);
+    }
+
     let normalizedOptions = {
       once: true,
     };

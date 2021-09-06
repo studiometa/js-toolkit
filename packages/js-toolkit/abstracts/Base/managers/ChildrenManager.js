@@ -5,20 +5,32 @@ import { getComponentElements } from '../utils.js';
  * @typedef {import('../index.js').BaseComponent} BaseComponent
  * @typedef {import('../index.js').BaseAsyncComponent} BaseAsyncComponent
  * @typedef {import('../index.js').BaseConfigComponents} BaseConfigComponents
+ * @typedef {import('./EventsManager.js').default} EventsManager
  */
 
 /**
  * Children manager.
  */
 export default class ChildrenManager {
-  /** @type {Base} */
+  /**
+   * @type {Base}
+   */
   #base;
 
-  /** @type {HTMLElement} */
+  /**
+   * @type {HTMLElement}
+   */
   #element;
 
-  /** @type {BaseConfigComponents} */
+  /**
+   * @type {BaseConfigComponents}
+   */
   #components;
+
+  /**
+   * @type {EventsManager}
+   */
+  #eventsManager;
 
   /**
    * @return {string[]}
@@ -29,14 +41,19 @@ export default class ChildrenManager {
 
   /**
    * Class constructor.
-   * @param  {Base}                 base       The component's instance.
-   * @param  {HTMLElement}          element    The component's root element
-   * @param  {BaseConfigComponents} components The children components' classes
+   * @param {Base} base
+   *   The component's instance.
+   * @param {HTMLElement} element
+   *   The component's root element
+   * @param {BaseConfigComponents} components
+   *   The children components' classes
+   * @param {EventsManager} eventsManager
    */
-  constructor(base, element, components) {
+  constructor(base, element, components, eventsManager) {
     this.#base = base;
     this.#element = element;
     this.#components = components;
+    this.#eventsManager = eventsManager;
   }
 
   /**
@@ -68,7 +85,7 @@ export default class ChildrenManager {
         }
 
         return elements
-          .map((element) => this.#getChild(element, component))
+          .map((element) => this.#getChild(element, component, name))
           .filter((instance) => instance !== 'terminated');
       },
     });
@@ -81,10 +98,12 @@ export default class ChildrenManager {
    *   The root element of the child component.
    * @param {BaseComponent|BaseAsyncComponent} ComponentClass
    *   A Base class or a Promise for async components.
+   * @param {string} name
+   *   The name of the child component.
    * @return {Base|Promise|'terminated'}
    *   A Base instance or a Promise resolving to a Base instance.
    */
-  #getChild(el, ComponentClass) {
+  #getChild(el, ComponentClass, name) {
     // Return existing instance if it exists
     if (el.__base__) {
       return el.__base__;
@@ -100,7 +119,7 @@ export default class ChildrenManager {
     // Resolve async components
     return ComponentClass(this.#base).then((module) => {
       // @ts-ignore
-      return this.#getChild(el, module.default ?? module);
+      return this.#getChild(el, module.default ?? module, name);
     });
   }
 
@@ -134,9 +153,9 @@ export default class ChildrenManager {
     this.#registeredNames.forEach((name) => {
       this[name].forEach((instance) => {
         if (instance instanceof Promise) {
-          instance.then((resolvedInstance) => this.#triggerHook(hook, resolvedInstance));
+          instance.then((resolvedInstance) => this.#triggerHook(hook, resolvedInstance, name));
         } else {
-          this.#triggerHook(hook, instance);
+          this.#triggerHook(hook, instance, name);
         }
       });
     });
@@ -147,12 +166,22 @@ export default class ChildrenManager {
    *
    * @param {'$mount'|'$update'|'$destroy'} hook The hook to trigger.
    * @param {Base} instance The target instance.
+   * @param {string} name The name of the component.
    */
-  #triggerHook(hook, instance) {
+  #triggerHook(hook, instance, name) {
     if (hook === '$update' && !instance.$isMounted) {
       // eslint-disable-next-line no-param-reassign
       hook = '$mount';
     }
+
+    if (hook === '$update' || hook === '$destroy') {
+      this.#eventsManager.unbindChild(name, instance);
+    }
+
+    if (hook === '$update' || hook === '$mount') {
+      this.#eventsManager.bindChild(name, instance);
+    }
+
     instance[hook]();
   }
 }
