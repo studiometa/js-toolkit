@@ -1,6 +1,6 @@
 /* eslint-disable no-new, require-jsdoc, max-classes-per-file */
 import { jest } from '@jest/globals';
-import Service from '@studiometa/js-toolkit/abstracts/Service';
+import Service from '@studiometa/js-toolkit/services/Service';
 
 describe('The abstract Service class', () => {
   it('should be implemented with the `init` and `kill` methods', () => {

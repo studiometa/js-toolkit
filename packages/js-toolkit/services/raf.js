@@ -1,4 +1,4 @@
-import Service from '../abstracts/Service.js';
+import Service from './Service.js';
 import { getRaf, getCancelRaf } from '../utils/nextFrame.js';
 
 /**
