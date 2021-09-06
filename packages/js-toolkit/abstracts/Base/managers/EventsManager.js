@@ -16,16 +16,6 @@ export default class EventsManager {
   #rootElement;
 
   /**
-   * @type {RefsManager}
-   */
-  #refs;
-
-  /**
-   * @type {ChildrenManager}
-   */
-  #children;
-
-  /**
    * @type {Base}
    */
   #base;
@@ -39,103 +29,144 @@ export default class EventsManager {
    * Class constructor.
    *
    * @param {HTMLElement} rootElement
-   * @param {RefsManager} refs
-   * @param {ChildrenManager} children
    * @param {Base} base
    */
-  constructor(rootElement, refs, children, base) {
+  constructor(rootElement, base) {
     this.#rootElement = rootElement;
-    this.#refs = refs;
-    this.#children = children;
     this.#base = base;
   }
 
   /**
-   * Bind all event methods.
+   * Manage a ref event methods.
+   *
+   * @param  {string} name
+   *   The name of the ref.
+   * @param  {HTMLElement[]} elements
+   *   The elements of the ref.
+   * @param  {'add'|'remove'} [mode]
+   *   The action to perform: add or remove the event listeners.
    *
    * @return {void}
    */
-  bindAll() {
-    this.manageRootElement('add');
-    this.manageRefs('add');
-    this.manageChildren('add');
-  }
-
-  /**
-   * Unbind all event methods.
-   *
-   * @return {void}
-   */
-  unbindAll() {
-    this.manageRootElement('remove');
-    this.manageRefs('remove');
-    this.manageChildren('remove');
-  }
-
-  /**
-   * Unbind event methods from the root element.
-   *
-   * @param {'add'|'remove'} [mode]
-   * @return {void}
-   */
-  manageRootElement(mode = 'add') {
-    const modeMethod = `${mode}EventListener`;
-    const methods = this.getEventMethodsByName();
+  #manageRef(name, elements, mode = 'add') {
+    const action = `${mode}EventListener`;
+    const methods = this.#getEventMethodsByName(name);
     methods.forEach((method) => {
-      const event = this.getEventNameByMethod(method);
-      this.#rootElement[modeMethod](event, method);
+      const event = this.#getEventNameByMethod(method, name);
+      elements.forEach((element) => element[action](event, this.#base[method]));
     });
   }
 
   /**
-   * Bind event methods to the base instance refs.
+   * Bind event methods to the given ref elements.
    *
-   * @param {'add'|'remove'} [mode]
+   * @param {string} name
+   *   The name of the ref.
+   * @param {HTMLElement[]} elements
+   *   The elements of the ref.
+   *
    * @return {void}
    */
-  manageRefs(mode = 'add') {
+  bindRef(name, elements) {
+    this.#manageRef(name, elements);
+  }
+
+  /**
+   * Bind event methods to the given ref elements.
+   *
+   * @param {string} name
+   *   The name of the ref.
+   * @param {HTMLElement[]} elements
+   *   The elements of the ref.
+   *
+   * @return {void}
+   */
+  unbindRef(name, elements) {
+    this.#manageRef(name, elements, 'remove');
+  }
+
+  /**
+   * Manage event methods to the given child instance.
+   *
+   * @param {string} name
+   *   The name of the ref.
+   * @param {Base} instance
+   *   A base instance.
+   * @param {'add'|'remove'} [mode]
+   *   The action to perform: add or remove the event listeners.
+   *
+   * @return {void}
+   */
+  #manageChild(name, instance, mode = 'add') {
+    const action = mode === 'add' ? '$on' : '$off';
+    const methods = this.#getEventMethodsByName(name);
+    methods.forEach((method) => {
+      const event = this.#getEventNameByMethod(method, name);
+      instance[action](event, this.#base[method]);
+    });
+  }
+
+  /**
+   * Bind event methods to the given child instance.
+   *
+   * @param {string} name
+   *   The name of the ref.
+   * @param {Base} instance
+   *   A base instance.
+   *
+   * @return {void}
+   */
+  bindChild(name, instance) {
+    this.#manageChild(name, instance);
+  }
+
+  /**
+   * Unbind event methods to the given child instance.
+   *
+   * @param {string} name
+   *   The name of the ref.
+   * @param {Base} instance
+   *   A base instance.
+   *
+   * @return {void}
+   */
+  unbindChild(name, instance) {
+    this.#manageChild(name, instance, 'remove');
+  }
+
+  /**
+   * Manage event methods on the root element.
+   *
+   * @param {'add'|'remove'} [mode]
+   *   The action to perform: add or remove the event listeners.
+   *
+   * @return {void}
+   */
+  #manageRootElement(mode = 'add') {
     const modeMethod = `${mode}EventListener`;
-    Object.entries(this.#refs).forEach(([name, ref]) => {
-      const methods = this.getEventMethodsByName(name);
-      methods.forEach((method) => {
-        const event = this.getEventNameByMethod(method, name);
-
-        if (Array.isArray(ref)) {
-          // @todo
-          ref.forEach((element) => element[modeMethod](event, method));
-        } else {
-          // @todo
-          ref[modeMethod](event, method);
-        }
-      });
+    const methods = this.#getEventMethodsByName();
+    methods.forEach((method) => {
+      const event = this.#getEventNameByMethod(method);
+      this.#rootElement[modeMethod](event, this.#base[method]);
     });
   }
 
   /**
-   * Unbind event methods to the base instance children.
+   * Bind event methods on the root element.
    *
-   * @param {'add'|'remove'} [mode]
    * @return {void}
    */
-  manageChildren(mode = 'add') {
-    const modeMethod = mode === 'add' ? '$on' : '$off';
-    Object.entries(this.#children).forEach(([name, children]) => {
-      const methods = this.getEventMethodsByName(name);
+  bindRootElement() {
+    this.#manageRootElement();
+  }
 
-      methods.forEach((method) => {
-        const event = this.getEventNameByMethod(method, name);
-
-        children.forEach(async (child) => {
-          if (child instanceof Promise) {
-            // eslint-disable-next-line no-param-reassign
-            child = await child;
-          }
-
-          // @todo
-          child[modeMethod](event, method);
-        });
-      });
-    });
+  /**
+   * Unbind event method from the root element.
+   *
+   * @return {void}
+   */
+  unbindRootElement() {
+    this.#manageRootElement('remove');
   }
 
   /**
@@ -145,11 +176,11 @@ export default class EventsManager {
    * @param {string} name
    * @return {string}
    */
-  getEventNameByMethod(method, name = '') {
-    const normalizedName = this.normalizeName(name);
+  #getEventNameByMethod(method, name = '') {
+    const normalizedName = EventsManager.normalizeName(name);
     const regex = new RegExp(`^on${normalizedName}([A-Z].*)$`);
     const [, event] = method.match(regex);
-    return this.normalizeEventName(event);
+    return EventsManager.normalizeEventName(event);
   }
 
   /**
@@ -158,11 +189,12 @@ export default class EventsManager {
    * @param {string} [name]
    * @return {string[]}
    */
-  getEventMethodsByName(name = '') {
-    const normalizedName = this.normalizeName(name);
+  #getEventMethodsByName(name = '') {
+    const normalizedName = EventsManager.normalizeName(name);
     const regex = new RegExp(`^on${normalizedName}[A-Z].*$`);
 
     let methods = this.#methodsCache.get(regex);
+
     if (!methods) {
       methods = getAllProperties(this.#base, [], (method) => regex.test(method));
       this.#methodsCache.set(regex, methods);
@@ -188,6 +220,7 @@ export default class EventsManager {
    * camelCase             => CamelCase
    * PascalCase            => PascalCase
    * .class-selector       => ClassSelector
+   * .bem__selector        => BemSelector
    * #id-selector          => IdSelector
    * .complex[class^ ="#"] => ComplexClass
    * ```
@@ -195,11 +228,11 @@ export default class EventsManager {
    * @param {string} name
    * @return {string}
    */
-  normalizeName(name) {
+  static normalizeName(name) {
     return name
-      .toLowerCase()
+      .replace(/[A-Z]([A-Z].*)/g, (c) => c.toLowerCase())
       .replace(/[^a-zA-Z\d\s:]/g, ' ')
-      .replace(/(^\w|\s\w)/g, (c) => c.trim().toUpperCase())
+      .replace(/(^\w|\s+\w)/g, (c) => c.trim().toUpperCase())
       .trim();
   }
 
@@ -209,7 +242,7 @@ export default class EventsManager {
    * @param {string} name
    * @return {string}
    */
-  normalizeEventName(name) {
+  static normalizeEventName(name) {
     return name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`).replace(/^-/, '');
   }
 }
