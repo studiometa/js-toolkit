@@ -7,9 +7,7 @@ Array [
     "[debug]",
     "constructor",
     Foo {
-      "$el": <div
-        data-option-debug=""
-      />,
+      "$el": <div />,
       "$id": "Foo-46",
       "$isMounted": true,
       "$options": OptionsManager {
@@ -47,9 +45,7 @@ Array [
     "[Foo]",
     "[debug]",
     "before:getChildren",
-    <div
-      data-option-debug=""
-    />,
+    <div />,
     undefined,
   ],
   Array [
@@ -62,9 +58,7 @@ Array [
     "[Foo]",
     "[debug]",
     "before:getChildren",
-    <div
-      data-option-debug=""
-    />,
+    <div />,
     undefined,
   ],
   Array [
@@ -77,9 +71,7 @@ Array [
     "[Foo]",
     "[debug]",
     "before:getChildren",
-    <div
-      data-option-debug=""
-    />,
+    <div />,
     undefined,
   ],
   Array [
