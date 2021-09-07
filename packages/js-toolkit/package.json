@@ -16,6 +16,7 @@
   },
   "homepage": "https://github.com/studiometa/js-toolkit#readme",
   "type": "module",
+  "sideEffects": false,
   "unpkg": "./index.umd.js",
   "main": "./index.umd.js",
   "module": "./index.js",
