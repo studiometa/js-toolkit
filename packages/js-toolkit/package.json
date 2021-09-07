@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "A set of useful little bits of JavaScript to boost your project! 🚀",
   "publishConfig": {
     "access": "public"
@@ -16,6 +16,7 @@
   },
   "homepage": "https://github.com/studiometa/js-toolkit#readme",
   "type": "module",
+  "sideEffects": false,
   "unpkg": "./index.umd.js",
   "main": "./index.umd.js",
   "module": "./index.js",
