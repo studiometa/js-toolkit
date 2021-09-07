@@ -1,10 +1,10 @@
 import autoBind from '../../utils/object/autoBind.js';
 import { callMethod, debug, getConfig, getComponentElements } from './utils.js';
-import { getOptions } from './options.js';
 import ChildrenManager from './managers/ChildrenManager.js';
 import RefsManager from './managers/RefsManager.js';
 import ServicesManager from './managers/ServicesManager.js';
 import EventsManager from './managers/EventsManager.js';
+import OptionsManager from './managers/OptionsManager.js';
 
 // Define the __DEV__ constant if not defined
 if (typeof __DEV__ === 'undefined') {
@@ -86,12 +86,6 @@ export default class Base {
   $el;
 
   /**
-   * The instance options.
-   * @type {BaseOptions}
-   */
-  $options;
-
-  /**
    * The instance services.
    * @type {ServicesManager}
    */
@@ -162,6 +156,20 @@ export default class Base {
   }
 
   /**
+   * @type {OptionsManager}
+   */
+  #options;
+
+  /**
+   * @return {OptionsManager}
+   */
+  get $options() {
+    const options = this.#options;
+    this.$emit('get:options', options);
+    return options;
+  }
+
+  /**
    * @type {ChildrenManager}
    */
   #children;
@@ -209,7 +217,7 @@ export default class Base {
     const config = getConfig(this);
 
     // @todo implement getter with event get:options
-    this.$options = getOptions(this, element, config);
+    this.#options = new OptionsManager(element, config.options || {});
     // @todo implement getter with event get:services
     this.$services = new ServicesManager(this);
 
