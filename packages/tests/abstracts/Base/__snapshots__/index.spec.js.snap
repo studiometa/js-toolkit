@@ -3,82 +3,786 @@
 exports[`A Base instance config should have a working debug method when active in dev mode 1`] = `
 Array [
   Array [
-    "[Foo]",
-    "[debug]",
+    "[debug] [Foo-38]",
+    "$on",
+    "mounted",
+    [Function],
+    undefined,
+  ],
+  Array [
+    "[debug] [Foo-38]",
+    "$on",
+    "updated",
+    [Function],
+    undefined,
+  ],
+  Array [
+    "[debug] [Foo-38]",
+    "$on",
+    "destroyed",
+    [Function],
+    undefined,
+  ],
+  Array [
+    "[debug] [Foo-38]",
     "constructor",
     Foo {
       "$el": <div />,
-      "$id": "Foo-46",
+      "$id": "Foo-38",
       "$isMounted": true,
-      "$options": OptionsManager {
+      "$parent": null,
+      "__children": ChildrenManager {
+        "__base": [Circular],
+        "__components": Object {},
+        "__element": <div />,
+        "__eventsManager": EventsManager {
+          "__base": [Circular],
+          "__childrenHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__methodsCache": WeakMap {},
+          "__refsHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__rootElement": <div />,
+          "__rootElementHandler": Object {
+            "handleEvent": [Function],
+          },
+        },
+      },
+      "__options": OptionsManager {
+        "__defaultValues": Object {
+          "Array": [Function],
+          "Boolean": false,
+          "Number": 0,
+          "Object": [Function],
+          "String": "",
+        },
+        "__element": <div />,
+        "__values": Object {},
         "debug": true,
         "log": false,
         "name": "Foo",
       },
-      "$parent": null,
-      "$services": ServicesManager {},
-      "_events": Object {
-        "destroyed": Array [
-          [Function],
-        ],
-        "mounted": Array [
-          [Function],
-        ],
-        "updated": Array [
-          [Function],
-        ],
+      "__refs": RefsManager {
+        "__base": [Circular],
+        "__element": <div />,
+        "__eventsManager": EventsManager {
+          "__base": [Circular],
+          "__childrenHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__methodsCache": WeakMap {},
+          "__refsHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__rootElement": <div />,
+          "__rootElementHandler": Object {
+            "handleEvent": [Function],
+          },
+        },
+        "__refs": Array [],
+      },
+      "__services": ServicesManager {
+        "__base": [Circular],
       },
     },
   ],
   Array [
-    "[Foo]",
-    "[debug]",
+    "[debug] [Foo-38]",
     "$mount",
   ],
   Array [
-    "[Foo]",
-    "[debug]",
+    "[debug] [Foo-38]",
     "callMethod",
     "mounted",
   ],
   Array [
-    "[Foo]",
-    "[debug]",
+    "[debug] [Foo-38]",
+    "$emit",
+    "mounted",
+    Array [],
+  ],
+  Array [
+    "[debug] [Foo-38]",
     "before:getChildren",
     <div />,
     undefined,
   ],
   Array [
-    "[Foo]",
-    "[debug]",
-    "after:getChildren",
-    ChildrenManager {},
+    "[debug] [Foo-38]",
+    "$emit",
+    "get:children",
+    Array [
+      ChildrenManager {
+        "__base": Foo {
+          "$el": <div />,
+          "$id": "Foo-38",
+          "$isMounted": true,
+          "$parent": null,
+          "__children": [Circular],
+          "__options": OptionsManager {
+            "__defaultValues": Object {
+              "Array": [Function],
+              "Boolean": false,
+              "Number": 0,
+              "Object": [Function],
+              "String": "",
+            },
+            "__element": <div />,
+            "__values": Object {},
+            "debug": true,
+            "log": false,
+            "name": "Foo",
+          },
+          "__refs": RefsManager {
+            "__base": [Circular],
+            "__element": <div />,
+            "__eventsManager": EventsManager {
+              "__base": [Circular],
+              "__childrenHandler": Object {
+                "handleEvent": [Function],
+              },
+              "__methodsCache": WeakMap {},
+              "__refsHandler": Object {
+                "handleEvent": [Function],
+              },
+              "__rootElement": <div />,
+              "__rootElementHandler": Object {
+                "handleEvent": [Function],
+              },
+            },
+            "__refs": Array [],
+          },
+          "__services": ServicesManager {
+            "__base": [Circular],
+          },
+        },
+        "__components": Object {},
+        "__element": <div />,
+        "__eventsManager": EventsManager {
+          "__base": Foo {
+            "$el": <div />,
+            "$id": "Foo-38",
+            "$isMounted": true,
+            "$parent": null,
+            "__children": [Circular],
+            "__options": OptionsManager {
+              "__defaultValues": Object {
+                "Array": [Function],
+                "Boolean": false,
+                "Number": 0,
+                "Object": [Function],
+                "String": "",
+              },
+              "__element": <div />,
+              "__values": Object {},
+              "debug": true,
+              "log": false,
+              "name": "Foo",
+            },
+            "__refs": RefsManager {
+              "__base": [Circular],
+              "__element": <div />,
+              "__eventsManager": [Circular],
+              "__refs": Array [],
+            },
+            "__services": ServicesManager {
+              "__base": [Circular],
+            },
+          },
+          "__childrenHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__methodsCache": WeakMap {},
+          "__refsHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__rootElement": <div />,
+          "__rootElementHandler": Object {
+            "handleEvent": [Function],
+          },
+        },
+      },
+    ],
   ],
   Array [
-    "[Foo]",
-    "[debug]",
+    "[debug] [Foo-38]",
+    Foo {
+      "$el": <div />,
+      "$id": "Foo-38",
+      "$isMounted": true,
+      "$parent": null,
+      "__children": ChildrenManager {
+        "__base": [Circular],
+        "__components": Object {},
+        "__element": <div />,
+        "__eventsManager": EventsManager {
+          "__base": [Circular],
+          "__childrenHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__methodsCache": WeakMap {},
+          "__refsHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__rootElement": <div />,
+          "__rootElementHandler": Object {
+            "handleEvent": [Function],
+          },
+        },
+      },
+      "__options": OptionsManager {
+        "__defaultValues": Object {
+          "Array": [Function],
+          "Boolean": false,
+          "Number": 0,
+          "Object": [Function],
+          "String": "",
+        },
+        "__element": <div />,
+        "__values": Object {},
+        "debug": true,
+        "log": false,
+        "name": "Foo",
+      },
+      "__refs": RefsManager {
+        "__base": [Circular],
+        "__element": <div />,
+        "__eventsManager": EventsManager {
+          "__base": [Circular],
+          "__childrenHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__methodsCache": WeakMap {},
+          "__refsHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__rootElement": <div />,
+          "__rootElementHandler": Object {
+            "handleEvent": [Function],
+          },
+        },
+        "__refs": Array [],
+      },
+      "__services": ServicesManager {
+        "__base": [Circular],
+      },
+    },
+    "after:getChildren",
+    ChildrenManager {
+      "__base": Foo {
+        "$el": <div />,
+        "$id": "Foo-38",
+        "$isMounted": true,
+        "$parent": null,
+        "__children": [Circular],
+        "__options": OptionsManager {
+          "__defaultValues": Object {
+            "Array": [Function],
+            "Boolean": false,
+            "Number": 0,
+            "Object": [Function],
+            "String": "",
+          },
+          "__element": <div />,
+          "__values": Object {},
+          "debug": true,
+          "log": false,
+          "name": "Foo",
+        },
+        "__refs": RefsManager {
+          "__base": [Circular],
+          "__element": <div />,
+          "__eventsManager": EventsManager {
+            "__base": [Circular],
+            "__childrenHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__methodsCache": WeakMap {},
+            "__refsHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__rootElement": <div />,
+            "__rootElementHandler": Object {
+              "handleEvent": [Function],
+            },
+          },
+          "__refs": Array [],
+        },
+        "__services": ServicesManager {
+          "__base": [Circular],
+        },
+      },
+      "__components": Object {},
+      "__element": <div />,
+      "__eventsManager": EventsManager {
+        "__base": Foo {
+          "$el": <div />,
+          "$id": "Foo-38",
+          "$isMounted": true,
+          "$parent": null,
+          "__children": [Circular],
+          "__options": OptionsManager {
+            "__defaultValues": Object {
+              "Array": [Function],
+              "Boolean": false,
+              "Number": 0,
+              "Object": [Function],
+              "String": "",
+            },
+            "__element": <div />,
+            "__values": Object {},
+            "debug": true,
+            "log": false,
+            "name": "Foo",
+          },
+          "__refs": RefsManager {
+            "__base": [Circular],
+            "__element": <div />,
+            "__eventsManager": [Circular],
+            "__refs": Array [],
+          },
+          "__services": ServicesManager {
+            "__base": [Circular],
+          },
+        },
+        "__childrenHandler": Object {
+          "handleEvent": [Function],
+        },
+        "__methodsCache": WeakMap {},
+        "__refsHandler": Object {
+          "handleEvent": [Function],
+        },
+        "__rootElement": <div />,
+        "__rootElementHandler": Object {
+          "handleEvent": [Function],
+        },
+      },
+    },
+  ],
+  Array [
+    "[debug] [Foo-38]",
+    "$emit",
+    "get:refs",
+    Array [
+      RefsManager {
+        "__base": Foo {
+          "$el": <div />,
+          "$id": "Foo-38",
+          "$isMounted": true,
+          "$parent": null,
+          "__children": ChildrenManager {
+            "__base": [Circular],
+            "__components": Object {},
+            "__element": <div />,
+            "__eventsManager": EventsManager {
+              "__base": [Circular],
+              "__childrenHandler": Object {
+                "handleEvent": [Function],
+              },
+              "__methodsCache": WeakMap {},
+              "__refsHandler": Object {
+                "handleEvent": [Function],
+              },
+              "__rootElement": <div />,
+              "__rootElementHandler": Object {
+                "handleEvent": [Function],
+              },
+            },
+          },
+          "__options": OptionsManager {
+            "__defaultValues": Object {
+              "Array": [Function],
+              "Boolean": false,
+              "Number": 0,
+              "Object": [Function],
+              "String": "",
+            },
+            "__element": <div />,
+            "__values": Object {},
+            "debug": true,
+            "log": false,
+            "name": "Foo",
+          },
+          "__refs": [Circular],
+          "__services": ServicesManager {
+            "__base": [Circular],
+          },
+        },
+        "__element": <div />,
+        "__eventsManager": EventsManager {
+          "__base": Foo {
+            "$el": <div />,
+            "$id": "Foo-38",
+            "$isMounted": true,
+            "$parent": null,
+            "__children": ChildrenManager {
+              "__base": [Circular],
+              "__components": Object {},
+              "__element": <div />,
+              "__eventsManager": [Circular],
+            },
+            "__options": OptionsManager {
+              "__defaultValues": Object {
+                "Array": [Function],
+                "Boolean": false,
+                "Number": 0,
+                "Object": [Function],
+                "String": "",
+              },
+              "__element": <div />,
+              "__values": Object {},
+              "debug": true,
+              "log": false,
+              "name": "Foo",
+            },
+            "__refs": [Circular],
+            "__services": ServicesManager {
+              "__base": [Circular],
+            },
+          },
+          "__childrenHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__methodsCache": WeakMap {},
+          "__refsHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__rootElement": <div />,
+          "__rootElementHandler": Object {
+            "handleEvent": [Function],
+          },
+        },
+        "__refs": Array [],
+      },
+    ],
+  ],
+  Array [
+    "[debug] [Foo-38]",
+    "$emit",
+    "get:services",
+    Array [
+      ServicesManager {
+        "__base": Foo {
+          "$el": <div />,
+          "$id": "Foo-38",
+          "$isMounted": true,
+          "$parent": null,
+          "__children": ChildrenManager {
+            "__base": [Circular],
+            "__components": Object {},
+            "__element": <div />,
+            "__eventsManager": EventsManager {
+              "__base": [Circular],
+              "__childrenHandler": Object {
+                "handleEvent": [Function],
+              },
+              "__methodsCache": WeakMap {},
+              "__refsHandler": Object {
+                "handleEvent": [Function],
+              },
+              "__rootElement": <div />,
+              "__rootElementHandler": Object {
+                "handleEvent": [Function],
+              },
+            },
+          },
+          "__options": OptionsManager {
+            "__defaultValues": Object {
+              "Array": [Function],
+              "Boolean": false,
+              "Number": 0,
+              "Object": [Function],
+              "String": "",
+            },
+            "__element": <div />,
+            "__values": Object {},
+            "debug": true,
+            "log": false,
+            "name": "Foo",
+          },
+          "__refs": RefsManager {
+            "__base": [Circular],
+            "__element": <div />,
+            "__eventsManager": EventsManager {
+              "__base": [Circular],
+              "__childrenHandler": Object {
+                "handleEvent": [Function],
+              },
+              "__methodsCache": WeakMap {},
+              "__refsHandler": Object {
+                "handleEvent": [Function],
+              },
+              "__rootElement": <div />,
+              "__rootElementHandler": Object {
+                "handleEvent": [Function],
+              },
+            },
+            "__refs": Array [],
+          },
+          "__services": [Circular],
+        },
+      },
+    ],
+  ],
+  Array [
+    "[debug] [Foo-38]",
     "before:getChildren",
     <div />,
     undefined,
   ],
   Array [
-    "[Foo]",
-    "[debug]",
-    "after:getChildren",
-    ChildrenManager {},
+    "[debug] [Foo-38]",
+    "$emit",
+    "get:children",
+    Array [
+      ChildrenManager {
+        "__base": Foo {
+          "$el": <div />,
+          "$id": "Foo-38",
+          "$isMounted": true,
+          "$parent": null,
+          "__children": [Circular],
+          "__options": OptionsManager {
+            "__defaultValues": Object {
+              "Array": [Function],
+              "Boolean": false,
+              "Number": 0,
+              "Object": [Function],
+              "String": "",
+            },
+            "__element": <div />,
+            "__values": Object {},
+            "debug": true,
+            "log": false,
+            "name": "Foo",
+          },
+          "__refs": RefsManager {
+            "__base": [Circular],
+            "__element": <div />,
+            "__eventsManager": EventsManager {
+              "__base": [Circular],
+              "__childrenHandler": Object {
+                "handleEvent": [Function],
+              },
+              "__methodsCache": WeakMap {},
+              "__refsHandler": Object {
+                "handleEvent": [Function],
+              },
+              "__rootElement": <div />,
+              "__rootElementHandler": Object {
+                "handleEvent": [Function],
+              },
+            },
+            "__refs": Array [],
+          },
+          "__services": ServicesManager {
+            "__base": [Circular],
+          },
+        },
+        "__components": Object {},
+        "__element": <div />,
+        "__eventsManager": EventsManager {
+          "__base": Foo {
+            "$el": <div />,
+            "$id": "Foo-38",
+            "$isMounted": true,
+            "$parent": null,
+            "__children": [Circular],
+            "__options": OptionsManager {
+              "__defaultValues": Object {
+                "Array": [Function],
+                "Boolean": false,
+                "Number": 0,
+                "Object": [Function],
+                "String": "",
+              },
+              "__element": <div />,
+              "__values": Object {},
+              "debug": true,
+              "log": false,
+              "name": "Foo",
+            },
+            "__refs": RefsManager {
+              "__base": [Circular],
+              "__element": <div />,
+              "__eventsManager": [Circular],
+              "__refs": Array [],
+            },
+            "__services": ServicesManager {
+              "__base": [Circular],
+            },
+          },
+          "__childrenHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__methodsCache": WeakMap {},
+          "__refsHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__rootElement": <div />,
+          "__rootElementHandler": Object {
+            "handleEvent": [Function],
+          },
+        },
+      },
+    ],
   ],
   Array [
-    "[Foo]",
-    "[debug]",
-    "before:getChildren",
-    <div />,
-    undefined,
-  ],
-  Array [
-    "[Foo]",
-    "[debug]",
+    "[debug] [Foo-38]",
+    Foo {
+      "$el": <div />,
+      "$id": "Foo-38",
+      "$isMounted": true,
+      "$parent": null,
+      "__children": ChildrenManager {
+        "__base": [Circular],
+        "__components": Object {},
+        "__element": <div />,
+        "__eventsManager": EventsManager {
+          "__base": [Circular],
+          "__childrenHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__methodsCache": WeakMap {},
+          "__refsHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__rootElement": <div />,
+          "__rootElementHandler": Object {
+            "handleEvent": [Function],
+          },
+        },
+      },
+      "__options": OptionsManager {
+        "__defaultValues": Object {
+          "Array": [Function],
+          "Boolean": false,
+          "Number": 0,
+          "Object": [Function],
+          "String": "",
+        },
+        "__element": <div />,
+        "__values": Object {},
+        "debug": true,
+        "log": false,
+        "name": "Foo",
+      },
+      "__refs": RefsManager {
+        "__base": [Circular],
+        "__element": <div />,
+        "__eventsManager": EventsManager {
+          "__base": [Circular],
+          "__childrenHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__methodsCache": WeakMap {},
+          "__refsHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__rootElement": <div />,
+          "__rootElementHandler": Object {
+            "handleEvent": [Function],
+          },
+        },
+        "__refs": Array [],
+      },
+      "__services": ServicesManager {
+        "__base": [Circular],
+      },
+    },
     "after:getChildren",
-    ChildrenManager {},
+    ChildrenManager {
+      "__base": Foo {
+        "$el": <div />,
+        "$id": "Foo-38",
+        "$isMounted": true,
+        "$parent": null,
+        "__children": [Circular],
+        "__options": OptionsManager {
+          "__defaultValues": Object {
+            "Array": [Function],
+            "Boolean": false,
+            "Number": 0,
+            "Object": [Function],
+            "String": "",
+          },
+          "__element": <div />,
+          "__values": Object {},
+          "debug": true,
+          "log": false,
+          "name": "Foo",
+        },
+        "__refs": RefsManager {
+          "__base": [Circular],
+          "__element": <div />,
+          "__eventsManager": EventsManager {
+            "__base": [Circular],
+            "__childrenHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__methodsCache": WeakMap {},
+            "__refsHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__rootElement": <div />,
+            "__rootElementHandler": Object {
+              "handleEvent": [Function],
+            },
+          },
+          "__refs": Array [],
+        },
+        "__services": ServicesManager {
+          "__base": [Circular],
+        },
+      },
+      "__components": Object {},
+      "__element": <div />,
+      "__eventsManager": EventsManager {
+        "__base": Foo {
+          "$el": <div />,
+          "$id": "Foo-38",
+          "$isMounted": true,
+          "$parent": null,
+          "__children": [Circular],
+          "__options": OptionsManager {
+            "__defaultValues": Object {
+              "Array": [Function],
+              "Boolean": false,
+              "Number": 0,
+              "Object": [Function],
+              "String": "",
+            },
+            "__element": <div />,
+            "__values": Object {},
+            "debug": true,
+            "log": false,
+            "name": "Foo",
+          },
+          "__refs": RefsManager {
+            "__base": [Circular],
+            "__element": <div />,
+            "__eventsManager": [Circular],
+            "__refs": Array [],
+          },
+          "__services": ServicesManager {
+            "__base": [Circular],
+          },
+        },
+        "__childrenHandler": Object {
+          "handleEvent": [Function],
+        },
+        "__methodsCache": WeakMap {},
+        "__refsHandler": Object {
+          "handleEvent": [Function],
+        },
+        "__rootElement": <div />,
+        "__rootElementHandler": Object {
+          "handleEvent": [Function],
+        },
+      },
+    },
   ],
 ]
 `;

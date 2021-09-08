@@ -64,7 +64,9 @@ describe('The refs resolution', () => {
     const fn = jest.fn();
     app.$on('get:refs', fn);
     expect(app.$refs.foo).toBe(ref);
-    expect(fn).toHaveBeenNthCalledWith(1, { foo: ref, bar: [] });
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn.mock.calls[0][0].detail[0].foo).toBe(ref);
+    expect(fn.mock.calls[0][0].detail[0].bar).toEqual([]);
   });
 
   it('should parse ref as array when ending with `[]`', () => {
