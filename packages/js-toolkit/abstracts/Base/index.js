@@ -1,5 +1,5 @@
 import autoBind from '../../utils/object/autoBind.js';
-import { callMethod, debug, getConfig, getComponentElements } from './utils.js';
+import { callMethod, debug, getComponentElements } from './utils.js';
 import ChildrenManager from './managers/ChildrenManager.js';
 import RefsManager from './managers/RefsManager.js';
 import ServicesManager from './managers/ServicesManager.js';
@@ -20,7 +20,7 @@ let id = 0;
 /**
  * @typedef {typeof Base} BaseComponent
  * @typedef {(Base) => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
- * @typedef {{ name: string, debug: boolean, log: boolean, [name:string]: any }} BaseOptions
+ * @typedef {OptionsManager & { [name:string]: any }} BaseOptions
  * @typedef {{ [name:string]: HTMLElement | HTMLElement[] }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Base[] | Promise<Base>[] }} BaseChildren
  * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
@@ -131,11 +131,10 @@ export default class Base {
   }
 
   /**
-   * @deprecated Use the static `config` property instead.
    * @return {BaseConfig}
    */
   get config() {
-    return null;
+    return /** @type {BaseComponent} */ (this.constructor).config;
   }
 
   /** @type {BaseConfig} */
@@ -156,12 +155,12 @@ export default class Base {
   }
 
   /**
-   * @type {OptionsManager}
+   * @type {BaseOptions}
    */
   #options;
 
   /**
-   * @return {OptionsManager}
+   * @return {BaseOptions}
    */
   get $options() {
     const options = this.#options;
@@ -179,7 +178,7 @@ export default class Base {
    */
   get $children() {
     if (__DEV__) {
-      debug(this, 'before:getChildren', this.$el, getConfig(this).components);
+      debug(this, 'before:getChildren', this.$el, this.config.components);
     }
 
     const children = this.#children;
@@ -202,7 +201,7 @@ export default class Base {
       throw new Error('The root element must be defined.');
     }
 
-    const { config } = /** @type {BaseComponent} */ (this.constructor);
+    const { config } = this;
 
     if (!config) {
       throw new Error('The `config` static property must be defined.');
