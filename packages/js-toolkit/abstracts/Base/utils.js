@@ -1,47 +1,8 @@
 /**
  * @typedef {import('./index.js').default} Base
+ * @typedef {import('./index.js').BaseComponent} BaseComponent
  * @typedef {import('./index.js').BaseConfig} BaseConfig
  */
-
-/**
- * Get the config from a Base instance, either the new static one or the old getter one.
- *
- * @param  {Base}       instance The instance to get the config from.
- * @return {BaseConfig}         A Base class configuration object.
- */
-export function getConfig(instance) {
-  // @ts-ignore
-  const config = instance.constructor.config || instance.config;
-
-  if (!config) {
-    throw new Error('The `config` property must be defined.');
-  }
-
-  if (!config.name) {
-    throw new Error('The `config.name` property is required.');
-  }
-
-  // @ts-ignore
-  if (instance.config && !instance.constructor.config) {
-    console.warn(
-      `[${config.name}]`,
-      'Defining the `config` as a getter is deprecated, replace it with a static property.'
-    );
-  }
-
-  return config;
-}
-
-/**
- * Display a console warning for the given instance.
- *
- * @param {Base}      instance A Base instance.
- * @param {...String} msg   Values to display in the console.
- */
-export function warn(instance, ...msg) {
-  const { name } = getConfig(instance);
-  console.warn(`[${name}]`, ...msg);
-}
 
 /**
  * Display a console log for the given instance.
@@ -50,7 +11,7 @@ export function warn(instance, ...msg) {
  * @param {...any} msg      The data to print to the console.
  */
 export function log(instance, ...msg) {
-  const { name } = getConfig(instance);
+  const { name } = /** @type {BaseComponent} */ (instance.constructor).config;
   console.log(`[${name}]`, ...msg);
 }
 
