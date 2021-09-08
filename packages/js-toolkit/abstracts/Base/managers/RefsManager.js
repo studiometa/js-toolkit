@@ -75,7 +75,7 @@ export default class RefsManager {
    */
   __register(refName) {
     const isMultiple = refName.endsWith('[]');
-    const propName = this.__normalizeRefName(refName);
+    const propName = RefsManager.normalizeRefName(refName);
 
     const refs = /** @type {HTMLElement[]} */ (
       Array.from(this.__element.querySelectorAll(`[data-ref="${refName}"]`))
@@ -111,7 +111,7 @@ export default class RefsManager {
    * @private
    */
   __unregister(refName) {
-    const propName = this.__normalizeRefName(refName);
+    const propName = RefsManager.normalizeRefName(refName);
     const refs = Array.isArray(this[propName]) ? this[propName] : [this[propName]];
     this.__eventsManager.unbindRef(refName, refs);
   }
@@ -121,9 +121,8 @@ export default class RefsManager {
    *
    * @param {string} name The original name.
    * @return {string}     The normalized name.
-   * @private
    */
-  __normalizeRefName(name) {
+  static normalizeRefName(name) {
     return name.endsWith('[]') ? name.replace(/\[\]$/, '') : name;
   }
 

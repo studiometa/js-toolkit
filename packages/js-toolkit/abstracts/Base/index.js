@@ -8,7 +8,7 @@ import OptionsManager from './managers/OptionsManager.js';
 
 let id = 0;
 
-function noop() {}
+const noop = function noop() {};
 
 /**
  * @typedef {typeof Base} BaseComponent
