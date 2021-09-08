@@ -1,21 +1,14 @@
 import autoBind from '../../utils/object/autoBind.js';
-import { callMethod, debug, getComponentElements } from './utils.js';
+import { callMethod, getComponentElements } from './utils.js';
 import ChildrenManager from './managers/ChildrenManager.js';
 import RefsManager from './managers/RefsManager.js';
 import ServicesManager from './managers/ServicesManager.js';
 import EventsManager from './managers/EventsManager.js';
 import OptionsManager from './managers/OptionsManager.js';
 
-// Define the __DEV__ constant if not defined
-if (typeof __DEV__ === 'undefined') {
-  if (typeof globalThis !== 'undefined') {
-    globalThis.__DEV__ = false;
-  } else if (typeof window !== 'undefined') {
-    window.__DEV__ = false;
-  }
-}
-
 let id = 0;
+
+function noop() {}
 
 /**
  * @typedef {typeof Base} BaseComponent
@@ -86,12 +79,6 @@ export default class Base {
   $el;
 
   /**
-   * The instance services.
-   * @type {ServicesManager}
-   */
-  $services;
-
-  /**
    * The state of the component.
    * @type {Boolean}
    */
@@ -137,8 +124,25 @@ export default class Base {
     return /** @type {BaseComponent} */ (this.constructor).config;
   }
 
-  /** @type {BaseConfig} */
+  /**
+   * @type {BaseConfig}
+   */
   static config;
+
+  /**
+   * @type {ServicesManager}
+   */
+  __services;
+
+  /**
+   * The instance services.
+   * @type {ServicesManager}
+   */
+  get $services() {
+    const services = this.__services;
+    this.$emit('get:services', services);
+    return services;
+  }
 
   /**
    * @type {RefsManager}
@@ -177,16 +181,12 @@ export default class Base {
    * @return {ChildrenManager}
    */
   get $children() {
-    if (__DEV__) {
-      debug(this, 'before:getChildren', this.$el, this.config.components);
-    }
+    this.__debug('before:getChildren', this.$el, this.config.components);
 
     const children = this.__children;
     this.$emit('get:children', children);
 
-    if (__DEV__) {
-      debug(this, 'after:getChildren', children);
-    }
+    this.__debug(this, 'after:getChildren', children);
 
     return children;
   }
@@ -223,10 +223,8 @@ export default class Base {
       });
     }
 
-    // @todo implement getter with event get:options
     this.__options = new OptionsManager(element, config.options || {}, config);
-    // @todo implement getter with event get:services
-    this.$services = new ServicesManager(this);
+    this.__services = new ServicesManager(this);
 
     const eventsManager = new EventsManager(element, this);
     this.__children = new ChildrenManager(this, element, config.components || {}, eventsManager);
@@ -270,30 +268,36 @@ export default class Base {
       this.$children.destroyAll();
     });
 
-    if (__DEV__) {
-      debug(this, 'constructor', this);
-    }
+    this.__debug('constructor', this);
+
     return this;
   }
 
   /**
    * Small helper to log stuff.
    *
-   * @return {(...args: any) => void} A log function if the log options is active.
+   * @return {(...args: any) => void}
    */
   get $log() {
-    return this.$options.log
-      ? window.console.log.bind(window, `[${this.$options.name}]`)
-      : function noop() {};
+    return this.__options.log ? window.console.log.bind(window, `[${this.config.name}]`) : noop;
+  }
+
+  /**
+   * Small helper to debug information.
+   *
+   * @return {(...args:any) => void}
+   */
+  get __debug() {
+    return this.__options.debug && typeof window.__DEV__ !== 'undefined' && window.__DEV__
+      ? window.console.log.bind(window, `[debug] [${this.$id}]`)
+      : noop;
   }
 
   /**
    * Trigger the `mounted` callback.
    */
   $mount() {
-    if (__DEV__) {
-      debug(this, '$mount');
-    }
+    this.__debug('$mount');
 
     callMethod(this, 'mounted');
     return this;
@@ -303,9 +307,7 @@ export default class Base {
    * Update the instance children.
    */
   $update() {
-    if (__DEV__) {
-      debug(this, '$update');
-    }
+    this.__debug('$update');
 
     callMethod(this, 'updated');
     return this;
@@ -315,9 +317,7 @@ export default class Base {
    * Trigger the `destroyed` callback.
    */
   $destroy() {
-    if (__DEV__) {
-      debug(this, '$destroy');
-    }
+    this.__debug('$destroy');
 
     callMethod(this, 'destroyed');
     return this;
@@ -328,9 +328,7 @@ export default class Base {
    * @return {void}
    */
   $terminate() {
-    if (__DEV__) {
-      debug(this, '$terminate');
-    }
+    this.__debug('$terminate');
 
     // First, destroy the component.
     this.$destroy();
@@ -379,9 +377,7 @@ export default class Base {
    *   A function to unbind the listener.
    */
   $on(event, listener, options) {
-    if (__DEV__) {
-      debug(this, '$on', event, listener, options);
-    }
+    this.__debug('$on', event, listener, options);
 
     this.$el.addEventListener(event, listener, options);
 
@@ -403,9 +399,7 @@ export default class Base {
    * @return {void}
    */
   $off(event, listener, options) {
-    if (__DEV__) {
-      debug(this, '$off', event, listener);
-    }
+    this.__debug('$off', event, listener);
 
     this.$el.removeEventListener(event, listener, options);
   }
@@ -419,6 +413,8 @@ export default class Base {
    * @return {void}
    */
   $emit(event, ...args) {
+    this.__debug('$emit', event, args);
+
     this.$el.dispatchEvent(
       new CustomEvent(event, {
         detail: args,
@@ -438,9 +434,7 @@ export default class Base {
    * @return {void}
    */
   $once(event, listener, options) {
-    if (__DEV__) {
-      debug(this, '$once', event, listener, options);
-    }
+    this.__debug('$once', event, listener, options);
 
     let normalizedOptions = {
       once: true,

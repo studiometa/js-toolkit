@@ -1,5 +1,3 @@
-import { debug } from '../abstracts/Base/utils.js';
-
 /**
  * @typedef {import('../abstracts/Base').default} Base
  * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
@@ -71,9 +69,7 @@ export default function withIntersectionObserver(
 
       this.$observer = new IntersectionObserver(
         (entries) => {
-          if (__DEV__) {
-            debug(this, 'intersected', entries);
-          }
+          this.__debug('intersected', entries);
           this.$emit('intersected', entries);
           this.intersected(entries);
         },
