@@ -1,5 +1,3 @@
-import { warn } from '../utils.js';
-
 /**
  * @typedef {import('../index.js').default} Base
  * @typedef {import('./EventsManager.js').default} EventsManager
@@ -84,8 +82,8 @@ export default class RefsManager {
     );
 
     if (!isMultiple && refs.length > 1) {
-      warn(
-        this.#base,
+      console.warn(
+        `[${this.#base.$options.name}]`,
         `The "${refName}" ref has been found multiple times.`,
         'Did you forgot to add the `[]` suffix to its name?'
       );

@@ -4,6 +4,7 @@ import mem from 'mem';
 import isObject from '../../../utils/object/isObject.js';
 
 /**
+ * @typedef {import('../index.js').BaseConfig} BaseConfig
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
  * @typedef {{ [name:string]: OptionType | { type: OptionType, default: String|Number|Boolean|(() => Array|Object)} }} OptionsSchema
  * @typedef {{ [optionName:string]: any }} OptionsInterface
@@ -46,13 +47,43 @@ export default class OptionsManager {
   };
 
   /**
+   * Default value for the name property.
+   * @type {string}
+   */
+  name = 'Base';
+
+  /**
+   * Default value for the debug property.
+   * @type {boolean}
+   */
+  debug = false;
+
+  /**
+   * Default value for the log property.
+   * @type {Boolean}
+   */
+  log = false;
+
+  /**
    * Class constructor.
    *
    * @param {HTMLElement}   element The HTML element storing the options.
-   * @param {OptionsSchema} schema  A Base class config.
+   * @param {OptionsSchema} schema  A Base class config options.
+   * @param {BaseConfig}    baseConfig  A Base class config.
    */
-  constructor(element, schema) {
+  constructor(element, schema, baseConfig) {
     this.#element = element;
+    this.name = baseConfig.name;
+
+    schema.debug = {
+      type: Boolean,
+      default: baseConfig.debug ?? false,
+    };
+
+    schema.log = {
+      type: Boolean,
+      default: baseConfig.log ?? false,
+    };
 
     Object.entries(schema).forEach(([name, config]) => {
       const isObjectConfig = !OptionsManager.types.includes(config);

@@ -202,7 +202,17 @@ export default class Base {
       throw new Error('The root element must be defined.');
     }
 
-    this.$id = `${getConfig(this).name}-${id}`;
+    const { config } = /** @type {BaseComponent} */ (this.constructor);
+
+    if (!config) {
+      throw new Error('The `config` static property must be defined.');
+    }
+
+    if (!config.name) {
+      throw new Error('The `config.name` property is required.');
+    }
+
+    this.$id = `${config.name}-${id}`;
     id += 1;
 
     this.$el = element;
@@ -214,10 +224,8 @@ export default class Base {
       });
     }
 
-    const config = getConfig(this);
-
     // @todo implement getter with event get:options
-    this.#options = new OptionsManager(element, config.options || {});
+    this.#options = new OptionsManager(element, config.options || {}, config);
     // @todo implement getter with event get:services
     this.$services = new ServicesManager(this);
 
