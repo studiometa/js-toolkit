@@ -31,15 +31,18 @@ const SERVICES_MAP = {
  * Services management for the Base class.
  */
 export default class ServicesManager {
-  /** @type {Base} */
-  #base;
+  /**
+   * @type {Base}
+   * @private
+   */
+  __base;
 
   /**
    * Class constructor.
    * @param {Base} instance The Base instance.
    */
   constructor(instance) {
-    this.#base = instance;
+    this.__base = instance;
   }
 
   /**
@@ -49,12 +52,12 @@ export default class ServicesManager {
    * @return {Boolean}
    */
   has(service) {
-    if (!hasMethod(this.#base, service) && !SERVICES_MAP[service]) {
+    if (!hasMethod(this.__base, service) && !SERVICES_MAP[service]) {
       return false;
     }
 
     const { has } = SERVICES_MAP[service]();
-    return has(this.#base.$id);
+    return has(this.__base.$id);
   }
 
   /**
@@ -68,7 +71,7 @@ export default class ServicesManager {
       return this.disable.bind(this, service);
     }
 
-    if (!hasMethod(this.#base, service) || !SERVICES_MAP[service]) {
+    if (!hasMethod(this.__base, service) || !SERVICES_MAP[service]) {
       return function noop() {};
     }
 
@@ -79,10 +82,10 @@ export default class ServicesManager {
      * @param {any[]} args
      */
     function serviceHandler(...args) {
-      callMethod(self.#base, service, ...args);
+      callMethod(self.__base, service, ...args);
     }
 
-    add(this.#base.$id, serviceHandler);
+    add(this.__base.$id, serviceHandler);
 
     return this.disable.bind(this, service);
   }
@@ -125,7 +128,7 @@ export default class ServicesManager {
     }
 
     const { remove } = SERVICES_MAP[service]();
-    remove(this.#base.$id);
+    remove(this.__base.$id);
   }
 
   /**

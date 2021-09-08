@@ -25,20 +25,33 @@ const memoizedGetAttributeName = mem(getAttributeName);
  * @augments {OptionsInterface}
  */
 export default class OptionsManager {
-  /** @type {HTMLElement} The HTML element holding the options attributes. */
-  #element;
+  /**
+   * The HTML element holding the options attributes.
+   * @type {HTMLElement}
+   * @private
+   */
+  __element;
 
-  /** @type {Object} An object to store Array and Object values for reference. */
-  #values = {};
+  /**
+   * An object to store Array and Object values for reference.
+   * @type {Object}
+   * @private
+   */
+  __values = {};
 
-  /** @type {Array} List of allowed types. */
+  /**
+   * List of allowed types.
+   * @type {Array}
+   * @private
+   */
   static types = [String, Number, Boolean, Array, Object];
 
   /**
    * The default values to return for each available type.
    * @type {Object}
+   * @private
    */
-  #defaultValues = {
+  __defaultValues = {
     String: '',
     Number: 0,
     Boolean: false,
@@ -72,7 +85,7 @@ export default class OptionsManager {
    * @param {BaseConfig}    baseConfig  A Base class config.
    */
   constructor(element, schema, baseConfig) {
-    this.#element = element;
+    this.__element = element;
     this.name = baseConfig.name;
 
     schema.debug = {
@@ -98,7 +111,7 @@ export default class OptionsManager {
       }
 
       // @ts-ignore
-      const defaultValue = isObjectConfig ? config.default : this.#defaultValues[type.name];
+      const defaultValue = isObjectConfig ? config.default : this.__defaultValues[type.name];
 
       if ((type === Array || type === Object) && typeof defaultValue !== 'function') {
         throw new Error(
@@ -129,12 +142,12 @@ export default class OptionsManager {
    */
   get(name, type, defaultValue) {
     const attributeName = memoizedGetAttributeName(name);
-    const hasAttribute = this.#element.hasAttribute(attributeName);
+    const hasAttribute = this.__element.hasAttribute(attributeName);
 
     if (type === Boolean) {
       if (defaultValue) {
         const negatedAttributeName = memoizedGetAttributeName(`no-${name}`);
-        const hasNegatedAttribute = this.#element.hasAttribute(negatedAttributeName);
+        const hasNegatedAttribute = this.__element.hasAttribute(negatedAttributeName);
 
         return !hasNegatedAttribute;
       }
@@ -142,7 +155,7 @@ export default class OptionsManager {
       return hasAttribute || defaultValue;
     }
 
-    const value = this.#element.getAttribute(attributeName);
+    const value = this.__element.getAttribute(attributeName);
 
     if (type === Number) {
       return hasAttribute ? Number(value) : defaultValue;
@@ -151,23 +164,23 @@ export default class OptionsManager {
     if (type === Array || type === Object) {
       const val = deepmerge(
         defaultValue(),
-        hasAttribute ? JSON.parse(value) : this.#defaultValues[type.name]()
+        hasAttribute ? JSON.parse(value) : this.__defaultValues[type.name]()
       );
 
-      if (!this.#values[name]) {
-        this.#values[name] = val;
-      } else if (val !== this.#values[name]) {
+      if (!this.__values[name]) {
+        this.__values[name] = val;
+      } else if (val !== this.__values[name]) {
         // When getting the value, wait for the next loop to update the data attribute
         // with the new value. This is a simple trick to avoid using a Proxy to watch
         // for any deep changes on an array or object. It should not break anything as
         // the original value is read once from the data attribute and is then read from
-        // the private property `#values`.
+        // the private property `__values`.
         setTimeout(() => {
-          this.#element.setAttribute(attributeName, JSON.stringify(this.#values[name]));
+          this.__element.setAttribute(attributeName, JSON.stringify(this.__values[name]));
         }, 0);
       }
 
-      return this.#values[name];
+      return this.__values[name];
     }
 
     return hasAttribute ? value : defaultValue;
@@ -196,23 +209,23 @@ export default class OptionsManager {
           const negatedAttributeName = memoizedGetAttributeName(`no-${name}`);
 
           if (value) {
-            this.#element.removeAttribute(negatedAttributeName);
+            this.__element.removeAttribute(negatedAttributeName);
           } else {
-            this.#element.setAttribute(negatedAttributeName, '');
+            this.__element.setAttribute(negatedAttributeName, '');
           }
         } else if (value) {
-          this.#element.setAttribute(attributeName, '');
+          this.__element.setAttribute(attributeName, '');
         } else {
-          this.#element.removeAttribute(attributeName);
+          this.__element.removeAttribute(attributeName);
         }
         break;
       case Array:
       case Object:
-        this.#values[name] = value;
-        this.#element.setAttribute(attributeName, JSON.stringify(value));
+        this.__values[name] = value;
+        this.__element.setAttribute(attributeName, JSON.stringify(value));
         break;
       default:
-        this.#element.setAttribute(attributeName, value);
+        this.__element.setAttribute(attributeName, value);
     }
   }
 }

@@ -14,28 +14,33 @@ import { getComponentElements } from '../utils.js';
 export default class ChildrenManager {
   /**
    * @type {Base}
+   * @private
    */
-  #base;
+  __base;
 
   /**
    * @type {HTMLElement}
+   * @private
    */
-  #element;
+  __element;
 
   /**
    * @type {BaseConfigComponents}
+   * @private
    */
-  #components;
+  __components;
 
   /**
    * @type {EventsManager}
+   * @private
    */
-  #eventsManager;
+  __eventsManager;
 
   /**
    * @return {string[]}
+   * @private
    */
-  get #registeredNames() {
+  get __registeredNames() {
     return Object.keys(this);
   }
 
@@ -50,18 +55,18 @@ export default class ChildrenManager {
    * @param {EventsManager} eventsManager
    */
   constructor(base, element, components, eventsManager) {
-    this.#base = base;
-    this.#element = element;
-    this.#components = components;
-    this.#eventsManager = eventsManager;
+    this.__base = base;
+    this.__element = element;
+    this.__components = components;
+    this.__eventsManager = eventsManager;
   }
 
   /**
    * Register instances of all children components.
    */
   registerAll() {
-    Object.entries(this.#components).forEach(([name, component]) =>
-      this.#register(name, component)
+    Object.entries(this.__components).forEach(([name, component]) =>
+      this.__register(name, component)
     );
   }
 
@@ -72,20 +77,21 @@ export default class ChildrenManager {
    *   The name of the child component.
    * @param {BaseComponent|BaseAsyncComponent} component
    *   A Base class or a Promise for async components.
+   * @private
    */
-  #register(name, component) {
+  __register(name, component) {
     Object.defineProperty(this, name, {
       enumerable: true,
       configurable: true,
       get: () => {
-        const elements = getComponentElements(name, this.#element);
+        const elements = getComponentElements(name, this.__element);
 
         if (elements.length === 0) {
           return [];
         }
 
         return elements
-          .map((element) => this.#getChild(element, component, name))
+          .map((element) => this.__getChild(element, component, name))
           .filter((instance) => instance !== 'terminated');
       },
     });
@@ -102,8 +108,9 @@ export default class ChildrenManager {
    *   The name of the child component.
    * @return {Base|Promise|'terminated'}
    *   A Base instance or a Promise resolving to a Base instance.
+   * @private
    */
-  #getChild(el, ComponentClass, name) {
+  __getChild(el, ComponentClass, name) {
     // Return existing instance if it exists
     if (el.__base__) {
       return el.__base__;
@@ -112,14 +119,14 @@ export default class ChildrenManager {
     // Return a new instance if the component class is a child of the Base class
     if ('$isBase' in ComponentClass) {
       const child = new ComponentClass(el);
-      Object.defineProperty(child, '$parent', { get: () => this.#base });
+      Object.defineProperty(child, '$parent', { get: () => this.__base });
       return child;
     }
 
     // Resolve async components
-    return ComponentClass(this.#base).then((module) => {
+    return ComponentClass(this.__base).then((module) => {
       // @ts-ignore
-      return this.#getChild(el, module.default ?? module, name);
+      return this.__getChild(el, module.default ?? module, name);
     });
   }
 
@@ -127,35 +134,36 @@ export default class ChildrenManager {
    * Mount all child component instances.
    */
   mountAll() {
-    this.#triggerHookForAll('$mount');
+    this.__triggerHookForAll('$mount');
   }
 
   /**
    * Update all child component instances.
    */
   updateAll() {
-    this.#triggerHookForAll('$update');
+    this.__triggerHookForAll('$update');
   }
 
   /**
    * Destroy all child component instances.
    */
   destroyAll() {
-    this.#triggerHookForAll('$destroy');
+    this.__triggerHookForAll('$destroy');
   }
 
   /**
    * Execute the given hook for all children instances.
    *
    * @param {'$mount'|'$update'|'$destroy'} hook The hook to execute.
+   * @private
    */
-  #triggerHookForAll(hook) {
-    this.#registeredNames.forEach((name) => {
+  __triggerHookForAll(hook) {
+    this.__registeredNames.forEach((name) => {
       this[name].forEach((instance) => {
         if (instance instanceof Promise) {
-          instance.then((resolvedInstance) => this.#triggerHook(hook, resolvedInstance, name));
+          instance.then((resolvedInstance) => this.__triggerHook(hook, resolvedInstance, name));
         } else {
-          this.#triggerHook(hook, instance, name);
+          this.__triggerHook(hook, instance, name);
         }
       });
     });
@@ -167,19 +175,20 @@ export default class ChildrenManager {
    * @param {'$mount'|'$update'|'$destroy'} hook The hook to trigger.
    * @param {Base} instance The target instance.
    * @param {string} name The name of the component.
+   * @private
    */
-  #triggerHook(hook, instance, name) {
+  __triggerHook(hook, instance, name) {
     if (hook === '$update' && !instance.$isMounted) {
       // eslint-disable-next-line no-param-reassign
       hook = '$mount';
     }
 
     if (hook === '$update' || hook === '$destroy') {
-      this.#eventsManager.unbindChild(name, instance);
+      this.__eventsManager.unbindChild(name, instance);
     }
 
     if (hook === '$update' || hook === '$mount') {
-      this.#eventsManager.bindChild(name, instance);
+      this.__eventsManager.bindChild(name, instance);
     }
 
     instance[hook]();

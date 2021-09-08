@@ -9,23 +9,27 @@
 export default class RefsManager {
   /**
    * @type {HTMLElement}
+   * @private
    */
-  #element;
+  __element;
 
   /**
    * @type {string[]}
+   * @private
    */
-  #refs;
+  __refs;
 
   /**
    * @type {Base}
+   * @private
    */
-  #base;
+  __base;
 
   /**
    * @type {EventsManager}
+   * @private
    */
-  #eventsManager;
+  __eventsManager;
 
   /**
    * Class constructor.
@@ -39,10 +43,10 @@ export default class RefsManager {
    * @param {EventsManager} eventsManager
    */
   constructor(base, element, refs, eventsManager) {
-    this.#element = element;
-    this.#refs = refs;
-    this.#base = base;
-    this.#eventsManager = eventsManager;
+    this.__element = element;
+    this.__refs = refs;
+    this.__base = base;
+    this.__eventsManager = eventsManager;
   }
 
   /**
@@ -51,7 +55,7 @@ export default class RefsManager {
    * @return {void}
    */
   registerAll() {
-    this.#refs.forEach((refName) => this.#register(refName));
+    this.__refs.forEach((refName) => this.__register(refName));
   }
 
   /**
@@ -60,36 +64,37 @@ export default class RefsManager {
    * @return {void}
    */
   unregisterAll() {
-    this.#refs.forEach((refName) => this.#unregister(refName));
+    this.__refs.forEach((refName) => this.__unregister(refName));
   }
 
   /**
    * Register one ref.
    *
    * @param {string} refName The ref name.
+   * @private
    */
-  #register(refName) {
+  __register(refName) {
     const isMultiple = refName.endsWith('[]');
-    const propName = this.#normalizeRefName(refName);
+    const propName = this.__normalizeRefName(refName);
 
     const refs = /** @type {HTMLElement[]} */ (
-      Array.from(this.#element.querySelectorAll(`[data-ref="${refName}"]`))
+      Array.from(this.__element.querySelectorAll(`[data-ref="${refName}"]`))
     ).filter(
       /**
        * @param {HTMLElement} ref
        */
-      (ref) => this.#filterRefsBelongingToInstance(ref)
+      (ref) => this.__filterRefsBelongingToInstance(ref)
     );
 
     if (!isMultiple && refs.length > 1) {
       console.warn(
-        `[${this.#base.$options.name}]`,
+        `[${this.__base.$options.name}]`,
         `The "${refName}" ref has been found multiple times.`,
         'Did you forgot to add the `[]` suffix to its name?'
       );
     }
 
-    this.#eventsManager.bindRef(refName, refs);
+    this.__eventsManager.bindRef(refName, refs);
 
     Object.defineProperty(this, propName, {
       // @todo remove usage of non-multiple refs as array
@@ -103,11 +108,12 @@ export default class RefsManager {
    * Unregister one ref.
    *
    * @param {string} refName The ref name.
+   * @private
    */
-  #unregister(refName) {
-    const propName = this.#normalizeRefName(refName);
+  __unregister(refName) {
+    const propName = this.__normalizeRefName(refName);
     const refs = Array.isArray(this[propName]) ? this[propName] : [this[propName]];
-    this.#eventsManager.unbindRef(refName, refs);
+    this.__eventsManager.unbindRef(refName, refs);
   }
 
   /**
@@ -115,8 +121,9 @@ export default class RefsManager {
    *
    * @param {string} name The original name.
    * @return {string}     The normalized name.
+   * @private
    */
-  #normalizeRefName(name) {
+  __normalizeRefName(name) {
     return name.endsWith('[]') ? name.replace(/\[\]$/, '') : name;
   }
 
@@ -125,14 +132,15 @@ export default class RefsManager {
    *
    * @param {HTMLElement} ref The ref to test.
    * @return {boolean}
+   * @private
    */
-  #filterRefsBelongingToInstance(ref) {
+  __filterRefsBelongingToInstance(ref) {
     let ancestor = ref.parentElement;
 
     while (ancestor && ancestor.dataset.component === undefined) {
       ancestor = ancestor.parentElement;
     }
 
-    return ancestor === null || ancestor === this.#element;
+    return ancestor === null || ancestor === this.__element;
   }
 }

@@ -12,18 +12,21 @@ import getAllProperties from '../../../utils/object/getAllProperties.js';
 export default class EventsManager {
   /**
    * @type {HTMLElement}
+   * @private
    */
-  #rootElement;
+  __rootElement;
 
   /**
    * @type {Base}
+   * @private
    */
-  #base;
+  __base;
 
   /**
    * @type {WeakMap}
+   * @private
    */
-  #methodsCache = new WeakMap();
+  __methodsCache = new WeakMap();
 
   /**
    * Class constructor.
@@ -32,8 +35,8 @@ export default class EventsManager {
    * @param {Base} base
    */
   constructor(rootElement, base) {
-    this.#rootElement = rootElement;
-    this.#base = base;
+    this.__rootElement = rootElement;
+    this.__base = base;
   }
 
   /**
@@ -47,13 +50,14 @@ export default class EventsManager {
    *   The action to perform: add or remove the event listeners.
    *
    * @return {void}
+   * @private
    */
-  #manageRef(name, elements, mode = 'add') {
+  __manageRef(name, elements, mode = 'add') {
     const action = `${mode}EventListener`;
-    const methods = this.#getEventMethodsByName(name);
+    const methods = this.__getEventMethodsByName(name);
     methods.forEach((method) => {
-      const event = this.#getEventNameByMethod(method, name);
-      elements.forEach((element) => element[action](event, this.#base[method]));
+      const event = this.__getEventNameByMethod(method, name);
+      elements.forEach((element) => element[action](event, this.__base[method]));
     });
   }
 
@@ -68,7 +72,7 @@ export default class EventsManager {
    * @return {void}
    */
   bindRef(name, elements) {
-    this.#manageRef(name, elements);
+    this.__manageRef(name, elements);
   }
 
   /**
@@ -82,7 +86,7 @@ export default class EventsManager {
    * @return {void}
    */
   unbindRef(name, elements) {
-    this.#manageRef(name, elements, 'remove');
+    this.__manageRef(name, elements, 'remove');
   }
 
   /**
@@ -96,13 +100,14 @@ export default class EventsManager {
    *   The action to perform: add or remove the event listeners.
    *
    * @return {void}
+   * @private
    */
-  #manageChild(name, instance, mode = 'add') {
+  __manageChild(name, instance, mode = 'add') {
     const action = mode === 'add' ? '$on' : '$off';
-    const methods = this.#getEventMethodsByName(name);
+    const methods = this.__getEventMethodsByName(name);
     methods.forEach((method) => {
-      const event = this.#getEventNameByMethod(method, name);
-      instance[action](event, this.#base[method]);
+      const event = this.__getEventNameByMethod(method, name);
+      instance[action](event, this.__base[method]);
     });
   }
 
@@ -117,7 +122,7 @@ export default class EventsManager {
    * @return {void}
    */
   bindChild(name, instance) {
-    this.#manageChild(name, instance);
+    this.__manageChild(name, instance);
   }
 
   /**
@@ -131,7 +136,7 @@ export default class EventsManager {
    * @return {void}
    */
   unbindChild(name, instance) {
-    this.#manageChild(name, instance, 'remove');
+    this.__manageChild(name, instance, 'remove');
   }
 
   /**
@@ -141,13 +146,14 @@ export default class EventsManager {
    *   The action to perform: add or remove the event listeners.
    *
    * @return {void}
+   * @private
    */
-  #manageRootElement(mode = 'add') {
+  __manageRootElement(mode = 'add') {
     const modeMethod = `${mode}EventListener`;
-    const methods = this.#getEventMethodsByName();
+    const methods = this.__getEventMethodsByName();
     methods.forEach((method) => {
-      const event = this.#getEventNameByMethod(method);
-      this.#rootElement[modeMethod](event, this.#base[method]);
+      const event = this.__getEventNameByMethod(method);
+      this.__rootElement[modeMethod](event, this.__base[method]);
     });
   }
 
@@ -157,7 +163,7 @@ export default class EventsManager {
    * @return {void}
    */
   bindRootElement() {
-    this.#manageRootElement();
+    this.__manageRootElement();
   }
 
   /**
@@ -166,7 +172,7 @@ export default class EventsManager {
    * @return {void}
    */
   unbindRootElement() {
-    this.#manageRootElement('remove');
+    this.__manageRootElement('remove');
   }
 
   /**
@@ -175,8 +181,9 @@ export default class EventsManager {
    * @param {string} method
    * @param {string} name
    * @return {string}
+   * @private
    */
-  #getEventNameByMethod(method, name = '') {
+  __getEventNameByMethod(method, name = '') {
     const normalizedName = EventsManager.normalizeName(name);
     const regex = new RegExp(`^on${normalizedName}([A-Z].*)$`);
     const [, event] = method.match(regex);
@@ -188,16 +195,17 @@ export default class EventsManager {
    *
    * @param {string} [name]
    * @return {string[]}
+   * @private
    */
-  #getEventMethodsByName(name = '') {
+  __getEventMethodsByName(name = '') {
     const normalizedName = EventsManager.normalizeName(name);
     const regex = new RegExp(`^on${normalizedName}[A-Z].*$`);
 
-    let methods = this.#methodsCache.get(regex);
+    let methods = this.__methodsCache.get(regex);
 
     if (!methods) {
-      methods = getAllProperties(this.#base, [], (method) => regex.test(method));
-      this.#methodsCache.set(regex, methods);
+      methods = getAllProperties(this.__base, [], (method) => regex.test(method));
+      this.__methodsCache.set(regex, methods);
     }
 
     return methods.reduce((acc, [method]) => {
@@ -221,8 +229,8 @@ export default class EventsManager {
    * PascalCase            => PascalCase
    * .class-selector       => ClassSelector
    * .bem__selector        => BemSelector
-   * #id-selector          => IdSelector
-   * .complex[class^ ="#"] => ComplexClass
+   * __id-selector          => IdSelector
+   * .complex[class^ ="__"] => ComplexClass
    * ```
    *
    * @param {string} name
