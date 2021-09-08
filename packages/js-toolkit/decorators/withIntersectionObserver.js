@@ -43,8 +43,8 @@ export default function withIntersectionObserver(
     /**
      * Add the `intersected` method to the list of method to exclude from the `autoBind` call.
      */
-    get _excludeFromAutoBind() {
-      return [...(super._excludeFromAutoBind || []), 'intersected'];
+    get __excludeFromAutoBind() {
+      return [...(super.__excludeFromAutoBind || []), 'intersected'];
     }
 
     static config = {

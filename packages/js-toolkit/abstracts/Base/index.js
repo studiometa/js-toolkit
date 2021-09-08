@@ -107,7 +107,7 @@ export default class Base {
    * Get properties to exclude from the autobind call.
    * @return {Array<String|RegExp>}
    */
-  get _excludeFromAutoBind() {
+  get __excludeFromAutoBind() {
     return [
       '$mount',
       '$update',
@@ -143,13 +143,13 @@ export default class Base {
   /**
    * @type {RefsManager}
    */
-  #refs;
+  __refs;
 
   /**
    * @return {RefsManager}
    */
   get $refs() {
-    const refs = this.#refs;
+    const refs = this.__refs;
     this.$emit('get:refs', refs);
     return refs;
   }
@@ -157,13 +157,13 @@ export default class Base {
   /**
    * @type {BaseOptions}
    */
-  #options;
+  __options;
 
   /**
    * @return {BaseOptions}
    */
   get $options() {
-    const options = this.#options;
+    const options = this.__options;
     this.$emit('get:options', options);
     return options;
   }
@@ -171,7 +171,7 @@ export default class Base {
   /**
    * @type {ChildrenManager}
    */
-  #children;
+  __children;
 
   /**
    * @return {ChildrenManager}
@@ -181,7 +181,7 @@ export default class Base {
       debug(this, 'before:getChildren', this.$el, this.config.components);
     }
 
-    const children = this.#children;
+    const children = this.__children;
     this.$emit('get:children', children);
 
     if (__DEV__) {
@@ -224,19 +224,19 @@ export default class Base {
     }
 
     // @todo implement getter with event get:options
-    this.#options = new OptionsManager(element, config.options || {}, config);
+    this.__options = new OptionsManager(element, config.options || {}, config);
     // @todo implement getter with event get:services
     this.$services = new ServicesManager(this);
 
     const eventsManager = new EventsManager(element, this);
-    this.#children = new ChildrenManager(this, element, config.components || {}, eventsManager);
-    this.#refs = new RefsManager(this, element, config.refs || [], eventsManager);
+    this.__children = new ChildrenManager(this, element, config.components || {}, eventsManager);
+    this.__refs = new RefsManager(this, element, config.refs || [], eventsManager);
 
     // Autobind all methods to the instance
     // @todo Maybe remove for performance reason? This pattern can use a lot of memory when creating
     // a large number of instances.
     autoBind(this, {
-      exclude: [...this._excludeFromAutoBind],
+      exclude: [...this.__excludeFromAutoBind],
     });
 
     this.$on('mounted', () => {
