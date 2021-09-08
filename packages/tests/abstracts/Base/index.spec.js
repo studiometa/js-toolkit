@@ -1,6 +1,9 @@
 /* eslint-disable no-new, require-jsdoc, max-classes-per-file */
 import { jest } from '@jest/globals';
 import Base from '@studiometa/js-toolkit/abstracts/Base';
+import ChildrenManager from '@studiometa/js-toolkit/abstracts/Base/managers/ChildrenManager';
+import OptionsManager from '@studiometa/js-toolkit/abstracts/Base/managers/OptionsManager';
+import RefsManager from '@studiometa/js-toolkit/abstracts/Base/managers/RefsManager';
 import wait from '../../__utils__/wait';
 
 describe('The abstract Base class', () => {
@@ -14,7 +17,7 @@ describe('The abstract Base class', () => {
     expect(() => {
       class Foo extends Base {}
       new Foo(document.createElement('div'));
-    }).toThrow('The `config` property must be defined.');
+    }).toThrow('The `config` static property must be defined.');
 
     expect(() => {
       // @ts-ignore
@@ -56,15 +59,15 @@ describe('A Base instance', () => {
   });
 
   it('should have a `$refs` property', () => {
-    expect(foo.$refs).toEqual({});
+    expect(foo.$refs).toBeInstanceOf(RefsManager)
   });
 
   it('should have a `$children` property', () => {
-    expect(foo.$children).toEqual({});
+    expect(foo.$children).toBeInstanceOf(ChildrenManager);
   });
 
   it('should have an `$options` property', () => {
-    expect(foo.$options).not.toBeUndefined();
+    expect(foo.$options).toBeInstanceOf(OptionsManager);
     expect(foo.$options.name).toBe('Foo');
   });
 
@@ -215,77 +218,6 @@ describe('A Base instance methods', () => {
     expect(fn).toHaveBeenNthCalledWith(2, 'method');
   });
 
-  it('should bind methods to the root element', () => {
-    const fn = jest.fn();
-    class Bar extends Foo {
-      onClick() {
-        fn();
-      }
-    }
-
-    const bar = new Bar(document.createElement('div')).$mount();
-    bar.$el.click();
-    expect(fn).toHaveBeenCalledTimes(1);
-    bar.$destroy();
-    bar.$el.click();
-    expect(fn).toHaveBeenCalledTimes(1);
-  });
-
-  it('should bind methods to refs and children', () => {
-    const fn = jest.fn();
-
-    class Baz extends Foo {
-      onClick() {
-        this.$emit('open', 'baz');
-      }
-    }
-
-    class Bar extends Foo {
-      static config = {
-        ...(Foo.config || {}),
-        refs: ['foo', 'baz'],
-        components: {
-          Baz,
-        },
-      };
-
-      onFooClick() {
-        fn();
-      }
-
-      onBazOpen(...args) {
-        fn(...args);
-      }
-
-      onBazFocus() {
-        fn('focus');
-      }
-    }
-
-    const div = document.createElement('div');
-    div.innerHTML = `
-      <div data-ref="foo"></div>
-      <div data-component="Baz"></div>
-      <div data-ref="baz" data-component="Baz"></div>
-    `;
-
-    const bar = new Bar(div).$mount();
-    div.querySelector('[data-ref="foo"]').click();
-    expect(fn).toHaveBeenCalledTimes(1);
-    div.querySelector('[data-component="Baz"]').click();
-    expect(fn).toHaveBeenLastCalledWith('baz', 0);
-    div.querySelector('[data-component="Baz"]').dispatchEvent(new CustomEvent('focus'));
-    expect(fn).toHaveBeenLastCalledWith('baz', 0);
-    expect(fn).toHaveBeenCalledTimes(2);
-    div.querySelector('[data-ref="baz"]').dispatchEvent(new CustomEvent('focus'));
-    expect(fn).toHaveBeenLastCalledWith('focus');
-    expect(fn).toHaveBeenCalledTimes(3);
-    bar.$destroy();
-    div.querySelector('[data-component="Baz"]').click();
-    div.querySelector('[data-component="Baz"]').dispatchEvent(new CustomEvent('focus'));
-    expect(fn).toHaveBeenCalledTimes(3);
-  });
-
   it('should not find children if none provided', () => {
     class Bar extends Base {
       static config = {
@@ -299,8 +231,8 @@ describe('A Base instance methods', () => {
         components: { Bar },
       };
     }
-    expect(foo.$children).toEqual({});
-    expect(new Baz(document.createElement('div')).$mount().$children).toEqual({ Bar: [] });
+    expect(foo.$children.registeredNames).toEqual([]);
+    expect(new Baz(document.createElement('div')).$mount().$children.Bar).toEqual([]);
   });
 
   it('should not find terminated children', () => {
@@ -322,9 +254,9 @@ describe('A Base instance methods', () => {
       <div data-component="Bar"></div>
     `;
     const baz = new Baz(div).$mount();
-    expect(baz.$children).toEqual({ Bar: [div.firstElementChild.__base__] });
+    expect(baz.$children.Bar).toEqual([div.firstElementChild.__base__]);
     div.firstElementChild.__base__.$terminate();
-    expect(baz.$children).toEqual({ Bar: [] });
+    expect(baz.$children.Bar).toEqual([]);
   });
 
   it('should listen to the window.onload event', () => {
@@ -421,21 +353,13 @@ describe('A Base instance methods', () => {
       <div data-component="Buz"></div>
     `;
     const bar = new Bar(document.body).$mount();
-    expect(Object.keys(bar.$children)).toEqual(['Foo', 'Baz', 'Boz', 'Buz']);
+    expect(bar.$children.registeredNames).toEqual(['Foo', 'Baz', 'Boz', 'Buz']);
     await wait(150);
     expect(bar.$children.Foo[0]).toBeInstanceOf(Base);
     expect(bar.$children.Buz[0]).toBeInstanceOf(Promise);
     bar.$destroy();
     await wait(200);
     expect(bar.$children.Buz[0].$isMounted).toBe(false);
-  });
-
-  it('should throw and error when `data-options` can not be parsed', () => {
-    const spy = jest.spyOn(window.console, 'warn');
-    spy.mockImplementation(() => true);
-    document.body.dataset.options = 'foo-bar';
-    expect(() => new Foo(document.body)).toThrow();
-    spy.mockRestore();
   });
 });
 
