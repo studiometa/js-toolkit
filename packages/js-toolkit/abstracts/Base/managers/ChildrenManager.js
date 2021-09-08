@@ -38,9 +38,8 @@ export default class ChildrenManager {
 
   /**
    * @return {string[]}
-   * @private
    */
-  get __registeredNames() {
+  get registeredNames() {
     return Object.keys(this).filter((key) => !key.startsWith('__'));
   }
 
@@ -158,7 +157,7 @@ export default class ChildrenManager {
    * @private
    */
   __triggerHookForAll(hook) {
-    this.__registeredNames.forEach((name) => {
+    this.registeredNames.forEach((name) => {
       this[name].forEach((instance) => {
         if (instance instanceof Promise) {
           instance.then((resolvedInstance) => this.__triggerHook(hook, resolvedInstance, name));

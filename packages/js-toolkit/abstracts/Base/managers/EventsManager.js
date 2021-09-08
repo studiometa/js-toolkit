@@ -1,8 +1,8 @@
 import getAllProperties from '../../../utils/object/getAllProperties.js';
+import RefsManager from './RefsManager.js';
 
 /**
  * @typedef {import('../index.js').default} Base
- * @typedef {import('./RefsManager.js').default} RefsManager
  * @typedef {import('./ChildrenManager.js').default} ChildrenManager
  */
 
@@ -27,6 +27,85 @@ export default class EventsManager {
    * @private
    */
   __methodsCache = new WeakMap();
+
+  /**
+   * Event listener object for the root element.
+   *
+   * @type {EventListenerObject}
+   */
+  __rootElementHandler = {
+    handleEvent: (event) => {
+      const normalizedEventName = EventsManager.normalizeName(event.type);
+      const method = `on${normalizedEventName}`;
+
+      if (typeof this.__base[method] === 'function') {
+        this.__base[method](event);
+      }
+    },
+  };
+
+  /**
+   * Event listener object for the refs.
+   *
+   * @type {EventListenerObject}
+   */
+  __refsHandler = {
+    handleEvent: (event) => {
+      const ref = /** @type {HTMLElement} */ (event.currentTarget);
+      const refName = RefsManager.normalizeRefName(ref.dataset.ref);
+
+      const normalizedRefName = EventsManager.normalizeName(refName);
+      const normalizedEventName = EventsManager.normalizeName(event.type);
+      const method = `on${normalizedRefName}${normalizedEventName}`;
+
+      if (typeof this.__base[method] === 'function') {
+        let index = 0;
+        if (Array.isArray(this.__base.$refs[refName])) {
+          index = this.__base.$refs[refName].indexOf(ref);
+        }
+
+        this.__base[method](event, index);
+      }
+    },
+  };
+
+  /**
+   * Event listener object for the children.
+   *
+   * @type {EventListenerObject}
+   */
+  __childrenHandler = {
+    /**
+     * @param {CustomEvent} event
+     * @return {void}
+     */
+    handleEvent: (event) => {
+      const child = /** @type {HTMLElement & { __base__: Base }} */ (event.currentTarget).__base__;
+      let childName;
+      let index = 0;
+
+      const childrenManager = this.__base.$children;
+
+      childrenManager.registeredNames.find((name) => {
+        if (childrenManager[name].includes(child)) {
+          childName = name;
+          index = childrenManager[name].indexOf(child);
+          return true;
+        }
+
+        return false;
+      });
+
+      const normalizedRefName = EventsManager.normalizeName(childName);
+      const normalizedEventName = EventsManager.normalizeName(event.type);
+      const method = `on${normalizedRefName}${normalizedEventName}`;
+
+      if (typeof this.__base[method] === 'function') {
+        const args = event.detail ?? [];
+        this.__base[method](...args, index, event);
+      }
+    },
+  };
 
   /**
    * Class constructor.
@@ -57,7 +136,7 @@ export default class EventsManager {
     const methods = this.__getEventMethodsByName(name);
     methods.forEach((method) => {
       const event = this.__getEventNameByMethod(method, name);
-      elements.forEach((element) => element[action](event, this.__base[method]));
+      elements.forEach((element) => element[action](event, this.__refsHandler));
     });
   }
 
@@ -107,7 +186,7 @@ export default class EventsManager {
     const methods = this.__getEventMethodsByName(name);
     methods.forEach((method) => {
       const event = this.__getEventNameByMethod(method, name);
-      instance[action](event, this.__base[method]);
+      instance[action](event, this.__childrenHandler);
     });
   }
 
@@ -153,7 +232,7 @@ export default class EventsManager {
     const methods = this.__getEventMethodsByName();
     methods.forEach((method) => {
       const event = this.__getEventNameByMethod(method);
-      this.__rootElement[modeMethod](event, this.__base[method]);
+      this.__rootElement[modeMethod](event, this.__rootElementHandler);
     });
   }
 

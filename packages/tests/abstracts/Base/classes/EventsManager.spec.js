@@ -60,9 +60,16 @@ describe('The EventsManager class', () => {
   const tpl = html`<div>
     <div data-ref="single"></div>
     <div data-ref="multiple[]"></div>
+    <div data-ref="multiple[]"></div>
+    <div data-component="Component"></div>
     <div data-component="Component"></div>
     <div data-component="AsyncComponent"></div>
   </div>`;
+
+  const single = tpl.querySelector('[data-ref="single"]');
+  const multiple = Array.from(tpl.querySelectorAll('[data-ref="multiple[]"]'));
+  const component = tpl.querySelector('[data-component="Component"]');
+  const asyncComponent = tpl.querySelector('[data-component="AsyncComponent"]');
 
   const app = new App(tpl);
 
@@ -75,53 +82,58 @@ describe('The EventsManager class', () => {
   });
 
   it('can bind event methods to the root element', () => {
-    app.$el.click();
+    tpl.click();
     expect(rootElementFn).not.toHaveBeenCalled();
     app.$mount();
-    app.$el.click();
+    tpl.click();
     expect(rootElementFn).toHaveBeenCalledTimes(1);
   });
 
   it('can unbind event methods to the root element', () => {
     app.$destroy();
-    app.$el.click();
+    tpl.click();
     expect(rootElementFn).not.toHaveBeenCalled();
   });
 
   it('can bind event methods to single refs', () => {
-    app.$refs.single.click();
+    single.click();
     expect(singleRefFn).not.toHaveBeenCalled();
     app.$mount();
-    app.$refs.single.click();
+    single.click();
     expect(singleRefFn).toHaveBeenCalledTimes(1);
+    expect(singleRefFn.mock.calls[0][0]).toBeInstanceOf(MouseEvent);
+    expect(singleRefFn.mock.calls[0][1]).toBe(0);
   });
 
   it('can unbind event methods from single refs', () => {
     app.$destroy();
-    app.$refs.single.click();
+    single.click();
     expect(singleRefFn).not.toHaveBeenCalled();
   });
 
   it('can bind event methods to multiple refs', () => {
-    app.$refs.multiple[0].click();
+    multiple[1].click();
     expect(multipleRefFn).not.toHaveBeenCalled();
     app.$mount();
-    app.$refs.multiple[0].click();
+    multiple[1].click();
     expect(multipleRefFn).toHaveBeenCalledTimes(1);
+    expect(multipleRefFn.mock.calls[0][0]).toBeInstanceOf(MouseEvent);
+    expect(multipleRefFn.mock.calls[0][1]).toBe(1);
   });
 
   it('can unbind event methods from multiple refs', () => {
     app.$destroy();
-    app.$refs.multiple[0].click();
+    multiple[0].click();
     expect(multipleRefFn).not.toHaveBeenCalled();
   });
 
   it('can bind event methods to children', () => {
     expect(componentFn).not.toHaveBeenCalled();
     app.$mount();
-    expect(componentFn).toHaveBeenCalledTimes(1);
-    app.$children.Component[0].$emit('custom-event', 1, 2);
     expect(componentFn).toHaveBeenCalledTimes(2);
+    app.$children.Component[0].$emit('custom-event', 1, 2);
+    expect(componentFn).toHaveBeenCalledTimes(3);
+    expect(componentFn).toHaveBeenLastCalledWith(1, 2, 0, expect.objectContaining({ type: 'custom-event', detail: [1, 2]}));
   });
 
   it('can unbind event methods from children', () => {
