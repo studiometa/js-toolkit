@@ -41,7 +41,7 @@ export default class ChildrenManager {
    * @private
    */
   get __registeredNames() {
-    return Object.keys(this);
+    return Object.keys(this).filter((key) => !key.startsWith('__'));
   }
 
   /**
