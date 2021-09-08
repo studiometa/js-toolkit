@@ -1,31 +1,6 @@
 /**
  * @typedef {import('./index.js').default} Base
- * @typedef {import('./index.js').BaseComponent} BaseComponent
- * @typedef {import('./index.js').BaseConfig} BaseConfig
  */
-
-/**
- * Display a console log for the given instance.
- *
- * @param {Base}   instance The instance to log information from.
- * @param {...any} msg      The data to print to the console.
- */
-export function log(instance, ...msg) {
-  const { name } = /** @type {BaseComponent} */ (instance.constructor).config;
-  console.log(`[${name}]`, ...msg);
-}
-
-/**
- * Verbose debug for the component.
- *
- * @param {Base}   instance The instance to debug.
- * @param {...any} args     The data to print.
- */
-export function debug(instance, ...args) {
-  if (instance.$options.debug) {
-    log(instance, '[debug]', ...args);
-  }
-}
 
 /**
  * Test if an object has a method.
@@ -46,9 +21,7 @@ export function hasMethod(obj, name) {
  * @param {...any} args     The arguments to pass to the method.
  */
 export function callMethod(instance, method, ...args) {
-  if (__DEV__) {
-    debug(instance, 'callMethod', method, ...args);
-  }
+  instance.__debug('callMethod', method, ...args);
 
   // Prevent duplicate call of `mounted` and `destroyed`
   // methods based on the component status
@@ -56,9 +29,7 @@ export function callMethod(instance, method, ...args) {
     (method === 'destroyed' && !instance.$isMounted) ||
     (method === 'mounted' && instance.$isMounted)
   ) {
-    if (__DEV__) {
-      debug(instance, 'not', method, 'because the method has already been triggered once.');
-    }
+    instance.__debug('not', method, 'because the method has already been triggered once.');
     return instance;
   }
 
@@ -70,9 +41,7 @@ export function callMethod(instance, method, ...args) {
   }
 
   instance[method].call(instance, ...args);
-  if (__DEV__) {
-    debug(instance, method, instance, ...args);
-  }
+  instance.__debug(method, instance, ...args);
 
   return instance;
 }
