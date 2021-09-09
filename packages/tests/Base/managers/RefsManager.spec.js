@@ -1,33 +1,5 @@
 import { jest } from '@jest/globals';
 import Base from '@studiometa/js-toolkit';
-// import { scopeSelectorPonyfill } from '@studiometa/js-toolkit/Base/refs';
-
-// describe('The :scope pseudo-class ponyfill', () => {
-//   it('should find scoped elements', () => {
-//     const div = document.createElement('div');
-//     div.innerHTML = `
-//       <div data-component>
-
-//           <div data-ref>
-//             <div data-component>
-//               <div data-child data-ref></div>
-//               <div data-child data-ref></div>
-//             </div>
-//           </div>
-
-//       </div>
-//     `;
-
-//     const root = div.querySelector('[data-component]');
-//     const children = Array.from(div.querySelectorAll('[data-child]'));
-
-//     const allRefs = Array.from(root.querySelectorAll('[data-ref]'));
-//     const childrenRefs = scopeSelectorPonyfill(root, '[data-component] [data-ref]');
-
-//     expect(childrenRefs).toEqual(children);
-//     expect(childrenRefs).not.toEqual(allRefs);
-//   });
-// });
 
 describe('The refs resolution', () => {
   class Component extends Base {
