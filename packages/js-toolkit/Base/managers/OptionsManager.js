@@ -1,7 +1,7 @@
 import deepmerge from 'deepmerge';
 import { noCase } from 'no-case';
 import mem from 'mem';
-import isObject from '../../../utils/object/isObject.js';
+import isObject from '../../utils/object/isObject.js';
 
 /**
  * @typedef {import('../index.js').BaseConfig} BaseConfig

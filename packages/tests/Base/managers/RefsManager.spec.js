@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
-import Base from '@studiometa/js-toolkit/abstracts/Base';
-// import { scopeSelectorPonyfill } from '@studiometa/js-toolkit/abstracts/Base/refs';
+import Base from '@studiometa/js-toolkit';
+// import { scopeSelectorPonyfill } from '@studiometa/js-toolkit/Base/refs';
 
 // describe('The :scope pseudo-class ponyfill', () => {
 //   it('should find scoped elements', () => {

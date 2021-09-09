@@ -1,8 +1,8 @@
 import useResize from '../services/resize.js';
 
 /**
- * @typedef {import('../abstracts/Base').default} Base
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').default} Base
+ * @typedef {import('../Base').BaseComponent} BaseComponent
  */
 
 /**

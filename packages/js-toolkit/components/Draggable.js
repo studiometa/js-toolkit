@@ -1,5 +1,5 @@
 import styler from 'stylefire';
-import Base from '../abstracts/Base/index.js';
+import Base from '../Base/index.js';
 import withDrag from '../decorators/withDrag.js';
 
 /**

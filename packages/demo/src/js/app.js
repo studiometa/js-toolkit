@@ -15,7 +15,7 @@ import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
 Accordion.config.components.AccordionItem.config.refs.push('icon');
 
 /**
- * @typedef {import(@studiometa/js-toolkit/abstracts/Base/index).BaseConfig} BaseConfig
+ * @typedef {import(@studiometa/js-toolkit/Base/index).BaseConfig} BaseConfig
  */
 class App extends Base {
   /** @type {Baseconfig} */

@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import Base from '@studiometa/js-toolkit/index';
-import { getComponentElements } from '@studiometa/js-toolkit/abstracts/Base/utils';
+import { getComponentElements } from '@studiometa/js-toolkit/Base/utils';
 
 describe('The component resolution', () => {
   it('should resolve components by name', () => {

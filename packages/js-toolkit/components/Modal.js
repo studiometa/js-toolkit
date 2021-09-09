@@ -1,4 +1,4 @@
-import Base from '../abstracts/Base/index.js';
+import Base from '../Base/index.js';
 import transition from '../utils/css/transition.js';
 import { trap, untrap, saveActiveElement } from '../utils/focusTrap.js';
 

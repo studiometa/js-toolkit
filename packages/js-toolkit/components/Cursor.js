@@ -1,10 +1,10 @@
-import Base from '../abstracts/Base/index.js';
+import Base from '../Base/index.js';
 import damp from '../utils/math/damp.js';
 import matrix from '../utils/css/matrix.js';
 
 /**
  * @typedef {import('../services/pointer').PointerServiceProps} PointerServiceProps
- * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+ * @typedef {import('../Base').BaseOptions} BaseOptions
  */
 
 /**

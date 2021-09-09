@@ -1,7 +1,7 @@
 /**
- * @typedef {import('../abstracts/Base').default} Base
- * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').default} Base
+ * @typedef {import('../Base').BaseOptions} BaseOptions
+ * @typedef {import('../Base').BaseComponent} BaseComponent
  */
 
 /**

@@ -1,4 +1,4 @@
-import autoBind from '../../utils/object/autoBind.js';
+import autoBind from '../utils/object/autoBind.js';
 import { callMethod, getComponentElements } from './utils.js';
 import ChildrenManager from './managers/ChildrenManager.js';
 import RefsManager from './managers/RefsManager.js';
