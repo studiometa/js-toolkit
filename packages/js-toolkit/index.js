@@ -1,7 +1,21 @@
 import Base from './Base/index.js';
-import defineComponent from './helpers/defineComponent.js';
-import createBase from './helpers/createBase.js';
+import {
+  createApp,
+  createBase,
+  defineComponent,
+  importOnInteraction,
+  importWhenIdle,
+  importWhenVisible,
+} from './helpers/index.js';
 
-export { Base, createBase, defineComponent };
+export {
+  Base,
+  createApp,
+  createBase,
+  defineComponent,
+  importOnInteraction,
+  importWhenIdle,
+  importWhenVisible,
+};
 
 export default Base;
