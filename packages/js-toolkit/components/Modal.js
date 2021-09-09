@@ -1,4 +1,4 @@
-import Base from '../abstracts/Base/index.js';
+import Base from '../Base/index.js';
 import transition from '../utils/css/transition.js';
 import { trap, untrap, saveActiveElement } from '../utils/focusTrap.js';
 
@@ -119,6 +119,7 @@ export default class Modal extends Base {
         /**
          * @param {ModalRefs} refs
          */
+        // @ts-ignore
         (refs) => {
           Object.entries(refsBackup).forEach(([key, ref]) => {
             if (!refs[key]) {

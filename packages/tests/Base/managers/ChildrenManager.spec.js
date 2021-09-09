@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import Base from '@studiometa/js-toolkit/index';
-import { getComponentElements } from '@studiometa/js-toolkit/abstracts/Base/utils';
+import { getComponentElements } from '@studiometa/js-toolkit/Base/utils';
 
 describe('The component resolution', () => {
   it('should resolve components by name', () => {
@@ -41,7 +41,7 @@ describe('The component resolution', () => {
     expect(getComponentElements('Component', root)).toEqual([component]);
   });
 
-  it('should resolve async component dedede', () => {
+  it('should resolve async component', () => {
     const div = document.createElement('div');
     div.innerHTML = `<div data-component="AsyncComponent"></div>`;
 
@@ -67,7 +67,7 @@ describe('The component resolution', () => {
       };
     }
 
-    const component = new Component(div);
+    const component = new Component(div).$mount();
     expect(component.$children.AsyncComponent[0]).toBeInstanceOf(Promise);
     expect(fn).toHaveBeenCalledTimes(0);
 

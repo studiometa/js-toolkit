@@ -2,8 +2,8 @@ import merge from 'deepmerge';
 
 /**
  * @typedef {import('deepmerge').Options} DeepmergeOptions
- * @typedef {import('../abstracts/Base').BaseConfig} BaseConfig
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').BaseConfig} BaseConfig
+ * @typedef {import('../Base').BaseComponent} BaseComponent
  */
 
 /**

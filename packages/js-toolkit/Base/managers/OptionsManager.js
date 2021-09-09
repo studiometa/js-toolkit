@@ -1,9 +1,10 @@
 import deepmerge from 'deepmerge';
 import { noCase } from 'no-case';
 import mem from 'mem';
-import isObject from '../../../utils/object/isObject.js';
+import isObject from '../../utils/object/isObject.js';
 
 /**
+ * @typedef {import('../index.js').BaseConfig} BaseConfig
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
  * @typedef {{ [name:string]: OptionType | { type: OptionType, default: String|Number|Boolean|(() => Array|Object)} }} OptionsSchema
  * @typedef {{ [optionName:string]: any }} OptionsInterface
@@ -23,21 +24,34 @@ const memoizedGetAttributeName = mem(getAttributeName);
  * Class options to manage options as data attributes on an HTML element.
  * @augments {OptionsInterface}
  */
-export default class Options {
-  /** @type {HTMLElement} The HTML element holding the options attributes. */
-  #element;
+export default class OptionsManager {
+  /**
+   * The HTML element holding the options attributes.
+   * @type {HTMLElement}
+   * @private
+   */
+  __element;
 
-  /** @type {Object} An object to store Array and Object values for reference. */
-  #values = {};
+  /**
+   * An object to store Array and Object values for reference.
+   * @type {Object}
+   * @private
+   */
+  __values = {};
 
-  /** @type {Array} List of allowed types. */
+  /**
+   * List of allowed types.
+   * @type {Array}
+   * @private
+   */
   static types = [String, Number, Boolean, Array, Object];
 
   /**
    * The default values to return for each available type.
    * @type {Object}
+   * @private
    */
-  #defaultValues = {
+  __defaultValues = {
     String: '',
     Number: 0,
     Boolean: false,
@@ -46,28 +60,58 @@ export default class Options {
   };
 
   /**
+   * Default value for the name property.
+   * @type {string}
+   */
+  name = 'Base';
+
+  /**
+   * Default value for the debug property.
+   * @type {boolean}
+   */
+  debug = false;
+
+  /**
+   * Default value for the log property.
+   * @type {Boolean}
+   */
+  log = false;
+
+  /**
    * Class constructor.
    *
    * @param {HTMLElement}   element The HTML element storing the options.
-   * @param {OptionsSchema} schema  A Base class config.
+   * @param {OptionsSchema} schema  A Base class config options.
+   * @param {BaseConfig}    baseConfig  A Base class config.
    */
-  constructor(element, schema) {
-    this.#element = element;
+  constructor(element, schema, baseConfig) {
+    this.__element = element;
+    this.name = baseConfig.name;
+
+    schema.debug = {
+      type: Boolean,
+      default: baseConfig.debug ?? false,
+    };
+
+    schema.log = {
+      type: Boolean,
+      default: baseConfig.log ?? false,
+    };
 
     Object.entries(schema).forEach(([name, config]) => {
-      const isObjectConfig = !Options.types.includes(config);
+      const isObjectConfig = !OptionsManager.types.includes(config);
       /** @type {OptionType} */
       // @ts-ignore
       const type = isObjectConfig ? config.type : config;
 
-      if (!Options.types.includes(type)) {
+      if (!OptionsManager.types.includes(type)) {
         throw new Error(
           `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`
         );
       }
 
       // @ts-ignore
-      const defaultValue = isObjectConfig ? config.default : this.#defaultValues[type.name];
+      const defaultValue = isObjectConfig ? config.default : this.__defaultValues[type.name];
 
       if ((type === Array || type === Object) && typeof defaultValue !== 'function') {
         throw new Error(
@@ -76,10 +120,10 @@ export default class Options {
       }
 
       Object.defineProperty(this, name, {
-        get() {
+        get: () => {
           return this.get(name, type, defaultValue);
         },
-        set(value) {
+        set: (value) => {
           this.set(name, type, value, defaultValue);
         },
         enumerable: true,
@@ -98,12 +142,12 @@ export default class Options {
    */
   get(name, type, defaultValue) {
     const attributeName = memoizedGetAttributeName(name);
-    const hasAttribute = this.#element.hasAttribute(attributeName);
+    const hasAttribute = this.__element.hasAttribute(attributeName);
 
     if (type === Boolean) {
       if (defaultValue) {
         const negatedAttributeName = memoizedGetAttributeName(`no-${name}`);
-        const hasNegatedAttribute = this.#element.hasAttribute(negatedAttributeName);
+        const hasNegatedAttribute = this.__element.hasAttribute(negatedAttributeName);
 
         return !hasNegatedAttribute;
       }
@@ -111,7 +155,7 @@ export default class Options {
       return hasAttribute || defaultValue;
     }
 
-    const value = this.#element.getAttribute(attributeName);
+    const value = this.__element.getAttribute(attributeName);
 
     if (type === Number) {
       return hasAttribute ? Number(value) : defaultValue;
@@ -120,23 +164,23 @@ export default class Options {
     if (type === Array || type === Object) {
       const val = deepmerge(
         defaultValue(),
-        hasAttribute ? JSON.parse(value) : this.#defaultValues[type.name]()
+        hasAttribute ? JSON.parse(value) : this.__defaultValues[type.name]()
       );
 
-      if (!this.#values[name]) {
-        this.#values[name] = val;
-      } else if (val !== this.#values[name]) {
+      if (!this.__values[name]) {
+        this.__values[name] = val;
+      } else if (val !== this.__values[name]) {
         // When getting the value, wait for the next loop to update the data attribute
         // with the new value. This is a simple trick to avoid using a Proxy to watch
         // for any deep changes on an array or object. It should not break anything as
         // the original value is read once from the data attribute and is then read from
-        // the private property `#values`.
+        // the private property `__values`.
         setTimeout(() => {
-          this.#element.setAttribute(attributeName, JSON.stringify(this.#values[name]));
+          this.__element.setAttribute(attributeName, JSON.stringify(this.__values[name]));
         }, 0);
       }
 
-      return this.#values[name];
+      return this.__values[name];
     }
 
     return hasAttribute ? value : defaultValue;
@@ -165,23 +209,23 @@ export default class Options {
           const negatedAttributeName = memoizedGetAttributeName(`no-${name}`);
 
           if (value) {
-            this.#element.removeAttribute(negatedAttributeName);
+            this.__element.removeAttribute(negatedAttributeName);
           } else {
-            this.#element.setAttribute(negatedAttributeName, '');
+            this.__element.setAttribute(negatedAttributeName, '');
           }
         } else if (value) {
-          this.#element.setAttribute(attributeName, '');
+          this.__element.setAttribute(attributeName, '');
         } else {
-          this.#element.removeAttribute(attributeName);
+          this.__element.removeAttribute(attributeName);
         }
         break;
       case Array:
       case Object:
-        this.#values[name] = value;
-        this.#element.setAttribute(attributeName, JSON.stringify(value));
+        this.__values[name] = value;
+        this.__element.setAttribute(attributeName, JSON.stringify(value));
         break;
       default:
-        this.#element.setAttribute(attributeName, value);
+        this.__element.setAttribute(attributeName, value);
     }
   }
 }

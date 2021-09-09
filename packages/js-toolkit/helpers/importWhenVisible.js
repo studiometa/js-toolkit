@@ -1,8 +1,8 @@
 import { getTargetElements } from './utils.js';
 
 /**
- * @typedef {import('../abstracts/Base/index.js').default} Base
- * @typedef {import('../abstracts/Base/index.js').BaseComponent} BaseComponent
+ * @typedef {import('../Base/index.js').default} Base
+ * @typedef {import('../Base/index.js').BaseComponent} BaseComponent
  */
 
 /**

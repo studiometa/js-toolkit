@@ -1,5 +1,5 @@
 /**
- * @typedef {import('../abstracts/Base/index.js').BaseComponent} BaseComponent
+ * @typedef {import('../Base/index.js').BaseComponent} BaseComponent
  * @typedef {{ timeout?: number }} ImportWhenIdleOptions
  */
 

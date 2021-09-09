@@ -1,4 +1,4 @@
-import Base from '@studiometa/js-toolkit/abstracts/Base';
+import Base from '@studiometa/js-toolkit';
 import * as toolkit from '@studiometa/js-toolkit/';
 
 describe('The package exports', () => {

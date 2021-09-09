@@ -25,13 +25,13 @@ describe('The Tabs component', () => {
 
     tabs.$refs.btn[0].click();
     expect(enableFn).toHaveBeenCalledTimes(2);
-    expect(enableFn).toHaveBeenLastCalledWith({
+    expect(enableFn.mock.calls[1][0].detail[0]).toEqual({
       btn: tabs.$refs.btn[0],
       content: tabs.$refs.content[0],
       isEnabled: true,
     });
     expect(disableFn).toHaveBeenCalledTimes(2);
-    expect(disableFn).toHaveBeenLastCalledWith({
+    expect(disableFn.mock.calls[1][0].detail[0]).toEqual({
       btn: tabs.$refs.btn[1],
       content: tabs.$refs.content[1],
       isEnabled: false,

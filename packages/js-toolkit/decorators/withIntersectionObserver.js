@@ -1,8 +1,6 @@
-import { debug } from '../abstracts/Base/utils.js';
-
 /**
- * @typedef {import('../abstracts/Base').default} Base
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').default} Base
+ * @typedef {import('../Base').BaseComponent} BaseComponent
  */
 
 /**
@@ -43,8 +41,8 @@ export default function withIntersectionObserver(
     /**
      * Add the `intersected` method to the list of method to exclude from the `autoBind` call.
      */
-    get _excludeFromAutoBind() {
-      return [...(super._excludeFromAutoBind || []), 'intersected'];
+    get __excludeFromAutoBind() {
+      return [...(super.__excludeFromAutoBind || []), 'intersected'];
     }
 
     static config = {
@@ -71,9 +69,7 @@ export default function withIntersectionObserver(
 
       this.$observer = new IntersectionObserver(
         (entries) => {
-          if (__DEV__) {
-            debug(this, 'intersected', entries);
-          }
+          this.__debug('intersected', entries);
           this.$emit('intersected', entries);
           this.intersected(entries);
         },

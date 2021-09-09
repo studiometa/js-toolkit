@@ -1,14 +1,14 @@
-import usePointer from '../../../services/pointer.js';
-import useRaf from '../../../services/raf.js';
-import useResize from '../../../services/resize.js';
-import useScroll from '../../../services/scroll.js';
-import useKey from '../../../services/key.js';
-import useLoad from '../../../services/load.js';
+import usePointer from '../../services/pointer.js';
+import useRaf from '../../services/raf.js';
+import useResize from '../../services/resize.js';
+import useScroll from '../../services/scroll.js';
+import useKey from '../../services/key.js';
+import useLoad from '../../services/load.js';
 import { hasMethod, callMethod } from '../utils.js';
 
 /**
  * @typedef {import('../index').default} Base
- * @typedef {import('../../../services').ServiceInterface} ServiceInterface
+ * @typedef {import('../../services').ServiceInterface} ServiceInterface
  */
 
 /**
@@ -30,16 +30,19 @@ const SERVICES_MAP = {
 /**
  * Services management for the Base class.
  */
-export default class Services {
-  /** @type {Base} */
-  #base;
+export default class ServicesManager {
+  /**
+   * @type {Base}
+   * @private
+   */
+  __base;
 
   /**
    * Class constructor.
    * @param {Base} instance The Base instance.
    */
   constructor(instance) {
-    this.#base = instance;
+    this.__base = instance;
   }
 
   /**
@@ -49,12 +52,12 @@ export default class Services {
    * @return {Boolean}
    */
   has(service) {
-    if (!hasMethod(this.#base, service) && !SERVICES_MAP[service]) {
+    if (!hasMethod(this.__base, service) && !SERVICES_MAP[service]) {
       return false;
     }
 
     const { has } = SERVICES_MAP[service]();
-    return has(this.#base.$id);
+    return has(this.__base.$id);
   }
 
   /**
@@ -68,7 +71,7 @@ export default class Services {
       return this.disable.bind(this, service);
     }
 
-    if (!hasMethod(this.#base, service) || !SERVICES_MAP[service]) {
+    if (!hasMethod(this.__base, service) || !SERVICES_MAP[service]) {
       return function noop() {};
     }
 
@@ -79,10 +82,10 @@ export default class Services {
      * @param {any[]} args
      */
     function serviceHandler(...args) {
-      callMethod(self.#base, service, ...args);
+      callMethod(self.__base, service, ...args);
     }
 
-    add(this.#base.$id, serviceHandler);
+    add(this.__base.$id, serviceHandler);
 
     return this.disable.bind(this, service);
   }
@@ -125,7 +128,7 @@ export default class Services {
     }
 
     const { remove } = SERVICES_MAP[service]();
-    remove(this.#base.$id);
+    remove(this.__base.$id);
   }
 
   /**

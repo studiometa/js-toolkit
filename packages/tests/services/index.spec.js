@@ -6,8 +6,8 @@ function capitalize(str) {
 }
 
 test('components exports', () => {
-  const names = getFilenamesInFolder('../../js-toolkit/services/', import.meta.url).map(
-    (name) => `use${capitalize(name)}`
-  );
+  const names = getFilenamesInFolder('../../js-toolkit/services/', import.meta.url)
+    .filter((name) => name !== 'Service')
+    .map((name) => `use${capitalize(name)}`);
   expect(Object.keys(services)).toEqual(names);
 });

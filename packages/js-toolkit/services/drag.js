@@ -1,4 +1,4 @@
-import Service from '../abstracts/Service.js';
+import Service from './Service.js';
 import usePointer from './pointer.js';
 import useRaf from './raf.js';
 import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
