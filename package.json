@@ -19,8 +19,8 @@
     "build:types": "tsc --build tsconfig.build.json",
     "build:babel": "babel --no-comments --delete-dir-on-start --source-maps --out-dir dist/ packages/js-toolkit",
     "build:bundle": "npm run build:bundle:modern && npm run build:bundle:umd",
-    "build:bundle:modern": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/index.js -o dist/index.modern.js -f modern --no-pkg-main --no-compress --external none",
-    "build:bundle:umd": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/index.js -o dist/index.umd.js -f umd --name Base --no-pkg-main --no-compress --external none"
+    "build:bundle:modern": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/index.js -o dist/index.modern.js -f modern --no-pkg-main --external none",
+    "build:bundle:umd": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/index.js -o dist/index.umd.js -f umd --name Base --no-pkg-main --external none"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.8",
