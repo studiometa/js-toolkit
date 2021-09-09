@@ -118,10 +118,32 @@ export default class Base {
   }
 
   /**
+   * Merge configuration with the parents' configurations.
+   *
    * @return {BaseConfig}
+   * @private
    */
-  get config() {
-    return /** @type {BaseComponent} */ (this.constructor).config;
+  get __config() {
+    let proto = Object.getPrototypeOf(this);
+    let { config } = proto.constructor;
+
+    while (proto.constructor.config && proto.constructor.$isBase) {
+      config = {
+        ...proto.constructor.config,
+        ...config,
+      };
+
+      if (proto.constructor.config.options) {
+        config.options = {
+          ...proto.constructor.config.options,
+          ...(config.options || {}),
+        };
+      }
+
+      proto = Object.getPrototypeOf(proto);
+    }
+
+    return config;
   }
 
   /**
@@ -181,7 +203,7 @@ export default class Base {
    * @return {ChildrenManager}
    */
   get $children() {
-    this.__debug('before:getChildren', this.$el, this.config.components);
+    this.__debug('before:getChildren', this.$el, this.__config.components);
 
     const children = this.__children;
     this.$emit('get:children', children);
@@ -189,6 +211,26 @@ export default class Base {
     this.__debug(this, 'after:getChildren', children);
 
     return children;
+  }
+
+  /**
+   * Small helper to log stuff.
+   *
+   * @return {(...args: any) => void}
+   */
+  get $log() {
+    return this.__options.log ? window.console.log.bind(window, `[${this.__config.name}]`) : noop;
+  }
+
+  /**
+   * Small helper to debug information.
+   *
+   * @return {(...args:any) => void}
+   */
+  get __debug() {
+    return this.__options.debug && typeof window.__DEV__ !== 'undefined' && window.__DEV__
+      ? window.console.log.bind(window, `[debug] [${this.$id}]`)
+      : noop;
   }
 
   /**
@@ -201,17 +243,17 @@ export default class Base {
       throw new Error('The root element must be defined.');
     }
 
-    const { config } = this;
+    const { __config } = this;
 
-    if (!config) {
+    if (!__config) {
       throw new Error('The `config` static property must be defined.');
     }
 
-    if (!config.name) {
+    if (!__config.name) {
       throw new Error('The `config.name` property is required.');
     }
 
-    this.$id = `${config.name}-${id}`;
+    this.$id = `${__config.name}-${id}`;
     id += 1;
 
     this.$el = element;
@@ -223,12 +265,12 @@ export default class Base {
       });
     }
 
-    this.__options = new OptionsManager(element, config.options || {}, config);
+    this.__options = new OptionsManager(element, __config.options || {}, __config);
     this.__services = new ServicesManager(this);
 
     const eventsManager = new EventsManager(element, this);
-    this.__children = new ChildrenManager(this, element, config.components || {}, eventsManager);
-    this.__refs = new RefsManager(this, element, config.refs || [], eventsManager);
+    this.__children = new ChildrenManager(this, element, __config.components || {}, eventsManager);
+    this.__refs = new RefsManager(this, element, __config.refs || [], eventsManager);
 
     // Autobind all methods to the instance
     // @todo Maybe remove for performance reason? This pattern can use a lot of memory when creating
@@ -271,26 +313,6 @@ export default class Base {
     this.__debug('constructor', this);
 
     return this;
-  }
-
-  /**
-   * Small helper to log stuff.
-   *
-   * @return {(...args: any) => void}
-   */
-  get $log() {
-    return this.__options.log ? window.console.log.bind(window, `[${this.config.name}]`) : noop;
-  }
-
-  /**
-   * Small helper to debug information.
-   *
-   * @return {(...args:any) => void}
-   */
-  get __debug() {
-    return this.__options.debug && typeof window.__DEV__ !== 'undefined' && window.__DEV__
-      ? window.console.log.bind(window, `[debug] [${this.$id}]`)
-      : noop;
   }
 
   /**
