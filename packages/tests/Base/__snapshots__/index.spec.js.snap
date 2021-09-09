@@ -4,27 +4,6 @@ exports[`A Base instance config should have a working debug method when active i
 Array [
   Array [
     "[debug] [Foo-31]",
-    "$on",
-    "mounted",
-    [Function],
-    undefined,
-  ],
-  Array [
-    "[debug] [Foo-31]",
-    "$on",
-    "updated",
-    [Function],
-    undefined,
-  ],
-  Array [
-    "[debug] [Foo-31]",
-    "$on",
-    "destroyed",
-    [Function],
-    undefined,
-  ],
-  Array [
-    "[debug] [Foo-31]",
     "constructor",
     Foo {
       "$el": <div />,
@@ -48,6 +27,20 @@ Array [
           "__rootElementHandler": Object {
             "handleEvent": [Function],
           },
+        },
+      },
+      "__events": EventsManager {
+        "__base": [Circular],
+        "__childrenHandler": Object {
+          "handleEvent": [Function],
+        },
+        "__methodsCache": WeakMap {},
+        "__refsHandler": Object {
+          "handleEvent": [Function],
+        },
+        "__rootElement": <div />,
+        "__rootElementHandler": Object {
+          "handleEvent": [Function],
         },
       },
       "__options": OptionsManager {
@@ -94,17 +87,6 @@ Array [
   ],
   Array [
     "[debug] [Foo-31]",
-    "callMethod",
-    "mounted",
-  ],
-  Array [
-    "[debug] [Foo-31]",
-    "$emit",
-    "mounted",
-    Array [],
-  ],
-  Array [
-    "[debug] [Foo-31]",
     "before:getChildren",
     <div />,
     undefined,
@@ -121,6 +103,20 @@ Array [
           "$isMounted": true,
           "$parent": null,
           "__children": [Circular],
+          "__events": EventsManager {
+            "__base": [Circular],
+            "__childrenHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__methodsCache": WeakMap {},
+            "__refsHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__rootElement": <div />,
+            "__rootElementHandler": Object {
+              "handleEvent": [Function],
+            },
+          },
           "__options": OptionsManager {
             "__defaultValues": Object {
               "Array": [Function],
@@ -167,6 +163,7 @@ Array [
             "$isMounted": true,
             "$parent": null,
             "__children": [Circular],
+            "__events": [Circular],
             "__options": OptionsManager {
               "__defaultValues": Object {
                 "Array": [Function],
@@ -232,6 +229,20 @@ Array [
           },
         },
       },
+      "__events": EventsManager {
+        "__base": [Circular],
+        "__childrenHandler": Object {
+          "handleEvent": [Function],
+        },
+        "__methodsCache": WeakMap {},
+        "__refsHandler": Object {
+          "handleEvent": [Function],
+        },
+        "__rootElement": <div />,
+        "__rootElementHandler": Object {
+          "handleEvent": [Function],
+        },
+      },
       "__options": OptionsManager {
         "__defaultValues": Object {
           "Array": [Function],
@@ -277,6 +288,20 @@ Array [
         "$isMounted": true,
         "$parent": null,
         "__children": [Circular],
+        "__events": EventsManager {
+          "__base": [Circular],
+          "__childrenHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__methodsCache": WeakMap {},
+          "__refsHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__rootElement": <div />,
+          "__rootElementHandler": Object {
+            "handleEvent": [Function],
+          },
+        },
         "__options": OptionsManager {
           "__defaultValues": Object {
             "Array": [Function],
@@ -323,6 +348,7 @@ Array [
           "$isMounted": true,
           "$parent": null,
           "__children": [Circular],
+          "__events": [Circular],
           "__options": OptionsManager {
             "__defaultValues": Object {
               "Array": [Function],
@@ -391,6 +417,20 @@ Array [
               },
             },
           },
+          "__events": EventsManager {
+            "__base": [Circular],
+            "__childrenHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__methodsCache": WeakMap {},
+            "__refsHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__rootElement": <div />,
+            "__rootElementHandler": Object {
+              "handleEvent": [Function],
+            },
+          },
           "__options": OptionsManager {
             "__defaultValues": Object {
               "Array": [Function],
@@ -423,6 +463,7 @@ Array [
               "__element": <div />,
               "__eventsManager": [Circular],
             },
+            "__events": [Circular],
             "__options": OptionsManager {
               "__defaultValues": Object {
                 "Array": [Function],
@@ -488,6 +529,20 @@ Array [
               },
             },
           },
+          "__events": EventsManager {
+            "__base": [Circular],
+            "__childrenHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__methodsCache": WeakMap {},
+            "__refsHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__rootElement": <div />,
+            "__rootElementHandler": Object {
+              "handleEvent": [Function],
+            },
+          },
           "__options": OptionsManager {
             "__defaultValues": Object {
               "Array": [Function],
@@ -544,6 +599,20 @@ Array [
           "$isMounted": true,
           "$parent": null,
           "__children": [Circular],
+          "__events": EventsManager {
+            "__base": [Circular],
+            "__childrenHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__methodsCache": WeakMap {},
+            "__refsHandler": Object {
+              "handleEvent": [Function],
+            },
+            "__rootElement": <div />,
+            "__rootElementHandler": Object {
+              "handleEvent": [Function],
+            },
+          },
           "__options": OptionsManager {
             "__defaultValues": Object {
               "Array": [Function],
@@ -590,6 +659,7 @@ Array [
             "$isMounted": true,
             "$parent": null,
             "__children": [Circular],
+            "__events": [Circular],
             "__options": OptionsManager {
               "__defaultValues": Object {
                 "Array": [Function],
@@ -655,6 +725,20 @@ Array [
           },
         },
       },
+      "__events": EventsManager {
+        "__base": [Circular],
+        "__childrenHandler": Object {
+          "handleEvent": [Function],
+        },
+        "__methodsCache": WeakMap {},
+        "__refsHandler": Object {
+          "handleEvent": [Function],
+        },
+        "__rootElement": <div />,
+        "__rootElementHandler": Object {
+          "handleEvent": [Function],
+        },
+      },
       "__options": OptionsManager {
         "__defaultValues": Object {
           "Array": [Function],
@@ -700,6 +784,20 @@ Array [
         "$isMounted": true,
         "$parent": null,
         "__children": [Circular],
+        "__events": EventsManager {
+          "__base": [Circular],
+          "__childrenHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__methodsCache": WeakMap {},
+          "__refsHandler": Object {
+            "handleEvent": [Function],
+          },
+          "__rootElement": <div />,
+          "__rootElementHandler": Object {
+            "handleEvent": [Function],
+          },
+        },
         "__options": OptionsManager {
           "__defaultValues": Object {
             "Array": [Function],
@@ -746,6 +844,7 @@ Array [
           "$isMounted": true,
           "$parent": null,
           "__children": [Circular],
+          "__events": [Circular],
           "__options": OptionsManager {
             "__defaultValues": Object {
               "Array": [Function],
@@ -783,6 +882,17 @@ Array [
         },
       },
     },
+  ],
+  Array [
+    "[debug] [Foo-31]",
+    "callMethod",
+    "mounted",
+  ],
+  Array [
+    "[debug] [Foo-31]",
+    "$emit",
+    "mounted",
+    Array [],
   ],
 ]
 `;

@@ -214,6 +214,11 @@ export default class Base {
   }
 
   /**
+   * @type {EventsManager}
+   */
+  __events;
+
+  /**
    * Small helper to log stuff.
    *
    * @return {(...args: any) => void}
@@ -267,47 +272,15 @@ export default class Base {
 
     this.__options = new OptionsManager(element, __config.options || {}, __config);
     this.__services = new ServicesManager(this);
-
-    const eventsManager = new EventsManager(element, this);
-    this.__children = new ChildrenManager(this, element, __config.components || {}, eventsManager);
-    this.__refs = new RefsManager(this, element, __config.refs || [], eventsManager);
+    this.__events = new EventsManager(element, this);
+    this.__children = new ChildrenManager(this, element, __config.components || {}, this.__events);
+    this.__refs = new RefsManager(this, element, __config.refs || [], this.__events);
 
     // Autobind all methods to the instance
     // @todo Maybe remove for performance reason? This pattern can use a lot of memory when creating
     // a large number of instances.
     autoBind(this, {
       exclude: [...this.__excludeFromAutoBind],
-    });
-
-    this.$on('mounted', () => {
-      this.$children.registerAll();
-      this.$refs.registerAll();
-      eventsManager.bindRootElement();
-      this.$services.enableAll();
-      this.$children.mountAll();
-      this.$isMounted = true;
-    });
-
-    this.$on('updated', () => {
-      // Undo
-      this.$refs.unregisterAll();
-      this.$services.disableAll();
-
-      // Redo
-      this.$children.registerAll();
-      this.$refs.registerAll();
-      this.$services.enableAll();
-
-      // Update
-      this.$children.updateAll();
-    });
-
-    this.$on('destroyed', () => {
-      this.$isMounted = false;
-      eventsManager.unbindRootElement();
-      this.$refs.unregisterAll();
-      this.$services.disableAll();
-      this.$children.destroyAll();
     });
 
     this.__debug('constructor', this);
@@ -321,7 +294,14 @@ export default class Base {
   $mount() {
     this.__debug('$mount');
 
+    this.$children.registerAll();
+    this.$refs.registerAll();
+    this.__events.bindRootElement();
+    this.$services.enableAll();
+    this.$children.mountAll();
+
     callMethod(this, 'mounted');
+    this.$isMounted = true;
     return this;
   }
 
@@ -330,6 +310,18 @@ export default class Base {
    */
   $update() {
     this.__debug('$update');
+
+    // Undo
+    this.$refs.unregisterAll();
+    this.$services.disableAll();
+
+    // Redo
+    this.$children.registerAll();
+    this.$refs.registerAll();
+    this.$services.enableAll();
+
+    // Update
+    this.$children.updateAll();
 
     callMethod(this, 'updated');
     return this;
@@ -341,7 +333,12 @@ export default class Base {
   $destroy() {
     this.__debug('$destroy');
 
+    this.__events.unbindRootElement();
+    this.$refs.unregisterAll();
+    this.$services.disableAll();
+    this.$children.destroyAll();
     callMethod(this, 'destroyed');
+    this.$isMounted = false;
     return this;
   }
 
