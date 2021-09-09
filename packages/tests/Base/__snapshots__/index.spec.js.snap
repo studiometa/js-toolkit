@@ -3,32 +3,32 @@
 exports[`A Base instance config should have a working debug method when active in dev mode 1`] = `
 Array [
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "$on",
     "mounted",
     [Function],
     undefined,
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "$on",
     "updated",
     [Function],
     undefined,
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "$on",
     "destroyed",
     [Function],
     undefined,
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "constructor",
     Foo {
       "$el": <div />,
-      "$id": "Foo-38",
+      "$id": "Foo-31",
       "$isMounted": true,
       "$parent": null,
       "__children": ChildrenManager {
@@ -89,35 +89,35 @@ Array [
     },
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "$mount",
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "callMethod",
     "mounted",
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "$emit",
     "mounted",
     Array [],
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "before:getChildren",
     <div />,
     undefined,
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "$emit",
     "get:children",
     Array [
       ChildrenManager {
         "__base": Foo {
           "$el": <div />,
-          "$id": "Foo-38",
+          "$id": "Foo-31",
           "$isMounted": true,
           "$parent": null,
           "__children": [Circular],
@@ -163,7 +163,7 @@ Array [
         "__eventsManager": EventsManager {
           "__base": Foo {
             "$el": <div />,
-            "$id": "Foo-38",
+            "$id": "Foo-31",
             "$isMounted": true,
             "$parent": null,
             "__children": [Circular],
@@ -207,10 +207,10 @@ Array [
     ],
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     Foo {
       "$el": <div />,
-      "$id": "Foo-38",
+      "$id": "Foo-31",
       "$isMounted": true,
       "$parent": null,
       "__children": ChildrenManager {
@@ -273,7 +273,7 @@ Array [
     ChildrenManager {
       "__base": Foo {
         "$el": <div />,
-        "$id": "Foo-38",
+        "$id": "Foo-31",
         "$isMounted": true,
         "$parent": null,
         "__children": [Circular],
@@ -319,7 +319,7 @@ Array [
       "__eventsManager": EventsManager {
         "__base": Foo {
           "$el": <div />,
-          "$id": "Foo-38",
+          "$id": "Foo-31",
           "$isMounted": true,
           "$parent": null,
           "__children": [Circular],
@@ -362,14 +362,14 @@ Array [
     },
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "$emit",
     "get:refs",
     Array [
       RefsManager {
         "__base": Foo {
           "$el": <div />,
-          "$id": "Foo-38",
+          "$id": "Foo-31",
           "$isMounted": true,
           "$parent": null,
           "__children": ChildrenManager {
@@ -414,7 +414,7 @@ Array [
         "__eventsManager": EventsManager {
           "__base": Foo {
             "$el": <div />,
-            "$id": "Foo-38",
+            "$id": "Foo-31",
             "$isMounted": true,
             "$parent": null,
             "__children": ChildrenManager {
@@ -459,14 +459,14 @@ Array [
     ],
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "$emit",
     "get:services",
     Array [
       ServicesManager {
         "__base": Foo {
           "$el": <div />,
-          "$id": "Foo-38",
+          "$id": "Foo-31",
           "$isMounted": true,
           "$parent": null,
           "__children": ChildrenManager {
@@ -527,20 +527,20 @@ Array [
     ],
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "before:getChildren",
     <div />,
     undefined,
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     "$emit",
     "get:children",
     Array [
       ChildrenManager {
         "__base": Foo {
           "$el": <div />,
-          "$id": "Foo-38",
+          "$id": "Foo-31",
           "$isMounted": true,
           "$parent": null,
           "__children": [Circular],
@@ -586,7 +586,7 @@ Array [
         "__eventsManager": EventsManager {
           "__base": Foo {
             "$el": <div />,
-            "$id": "Foo-38",
+            "$id": "Foo-31",
             "$isMounted": true,
             "$parent": null,
             "__children": [Circular],
@@ -630,10 +630,10 @@ Array [
     ],
   ],
   Array [
-    "[debug] [Foo-38]",
+    "[debug] [Foo-31]",
     Foo {
       "$el": <div />,
-      "$id": "Foo-38",
+      "$id": "Foo-31",
       "$isMounted": true,
       "$parent": null,
       "__children": ChildrenManager {
@@ -696,7 +696,7 @@ Array [
     ChildrenManager {
       "__base": Foo {
         "$el": <div />,
-        "$id": "Foo-38",
+        "$id": "Foo-31",
         "$isMounted": true,
         "$parent": null,
         "__children": [Circular],
@@ -742,7 +742,7 @@ Array [
       "__eventsManager": EventsManager {
         "__base": Foo {
           "$el": <div />,
-          "$id": "Foo-38",
+          "$id": "Foo-31",
           "$isMounted": true,
           "$parent": null,
           "__children": [Circular],

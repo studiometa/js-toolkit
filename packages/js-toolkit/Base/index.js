@@ -136,7 +136,7 @@ export default class Base {
       if (proto.constructor.config.options) {
         config.options = {
           ...proto.constructor.config.options,
-          ...(config.options || {}),
+          ...config.options,
         };
       }
 
