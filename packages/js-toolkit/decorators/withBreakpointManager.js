@@ -107,8 +107,8 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
      * @return {this}
      */
     $destroy() {
-      if (Array.isArray(instances[this.$id])) {
-        instances[this.$id].forEach(([, instance]) => {
+      if (Array.isArray(instances.get(this))) {
+        instances.get(this).forEach(([, instance]) => {
           instance.$destroy();
         });
       }

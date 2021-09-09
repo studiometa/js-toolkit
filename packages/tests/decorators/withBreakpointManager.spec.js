@@ -66,8 +66,8 @@ describe('The withBreakpointManager decorator', () => {
     expect(fn).toHaveBeenLastCalledWith('FooDesktop', 'mounted');
     fn.mockReset();
     await resizeWindow({ width: 400 });
-    expect(fn).toHaveBeenNthCalledWith(1, 'FooMobile', 'mounted');
-    expect(fn).toHaveBeenLastCalledWith('FooDesktop', 'destroyed');
+    expect(fn).toHaveBeenNthCalledWith(1, 'FooDesktop', 'destroyed');
+    expect(fn).toHaveBeenNthCalledWith(2, 'FooMobile', 'mounted');
     fn.mockReset();
     await resizeWindow({ width: 800 });
     expect(fn).toHaveBeenLastCalledWith('FooMobile', 'destroyed');
@@ -77,7 +77,7 @@ describe('The withBreakpointManager decorator', () => {
     fn.mockReset();
     app.$destroy();
     expect(fn).toHaveBeenNthCalledWith(1, 'FooDesktop', 'destroyed');
-    expect(fn).toHaveBeenLastCalledWith('Foo', 'destroyed');
+    expect(fn).toHaveBeenNthCalledWith(2, 'Foo', 'destroyed');
   });
 
   it('should throw error when not configured correctly', () => {
