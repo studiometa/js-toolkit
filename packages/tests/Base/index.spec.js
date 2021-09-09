@@ -59,7 +59,7 @@ describe('A Base instance', () => {
   });
 
   it('should have a `$refs` property', () => {
-    expect(foo.$refs).toBeInstanceOf(RefsManager)
+    expect(foo.$refs).toBeInstanceOf(RefsManager);
   });
 
   it('should have a `$children` property', () => {
@@ -83,6 +83,51 @@ describe('A Base instance', () => {
   it('should have a `__base__` property', () => {
     // @ts-ignore
     expect(foo.$el.__base__).toBe(foo);
+  });
+
+  it('should inherit from parent config', () => {
+    class A extends Base {
+      static config = {
+        name: 'A',
+        log: true,
+      };
+    }
+
+    class B extends A {
+      static config = {
+        name: 'B',
+        options: {
+          title: String,
+          color: String,
+        },
+      };
+    }
+
+    class C extends B {
+      static config = {
+        name: 'C',
+        options: {
+          color: Boolean,
+        },
+      };
+    }
+
+    class D extends C {
+      static config = {
+        name: 'D',
+        log: false,
+      };
+    }
+
+    const d = new D(document.createElement('div'));
+    expect(d.__config).toEqual({
+      name: 'D',
+      log: false,
+      options: {
+        color: Boolean,
+        title: String,
+      },
+    });
   });
 });
 
