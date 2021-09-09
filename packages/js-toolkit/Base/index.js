@@ -443,34 +443,4 @@ export default class Base {
       })
     );
   }
-
-  /**
-   * Bind a listener function to an event for one execution only.
-   *
-   * @param {string} event
-   *   Name of the event.
-   * @param {EventListenerOrEventListenerObject} listener
-   *   Function to be called.
-   * @param {boolean|AddEventListenerOptions} [options]
-   *   Options for the `addEventListener` method.
-   * @return {void}
-   */
-  $once(event, listener, options) {
-    this.__debug('$once', event, listener, options);
-
-    let normalizedOptions = {
-      once: true,
-    };
-
-    if (typeof options === 'boolean') {
-      normalizedOptions.capture = options;
-    } else if (typeof options !== 'undefined') {
-      normalizedOptions = {
-        ...options,
-        ...normalizedOptions,
-      };
-    }
-
-    this.$on(event, listener, normalizedOptions);
-  }
 }
