@@ -1,14 +1,14 @@
-import usePointer from '../../../services/pointer.js';
-import useRaf from '../../../services/raf.js';
-import useResize from '../../../services/resize.js';
-import useScroll from '../../../services/scroll.js';
-import useKey from '../../../services/key.js';
-import useLoad from '../../../services/load.js';
+import usePointer from '../../services/pointer.js';
+import useRaf from '../../services/raf.js';
+import useResize from '../../services/resize.js';
+import useScroll from '../../services/scroll.js';
+import useKey from '../../services/key.js';
+import useLoad from '../../services/load.js';
 import { hasMethod, callMethod } from '../utils.js';
 
 /**
  * @typedef {import('../index').default} Base
- * @typedef {import('../../../services').ServiceInterface} ServiceInterface
+ * @typedef {import('../../services').ServiceInterface} ServiceInterface
  */
 
 /**

@@ -1,4 +1,4 @@
-import getAllProperties from '../../../utils/object/getAllProperties.js';
+import getAllProperties from '../../utils/object/getAllProperties.js';
 import RefsManager from './RefsManager.js';
 
 /**

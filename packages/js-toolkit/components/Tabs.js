@@ -1,8 +1,8 @@
-import Base from '../abstracts/Base/index.js';
+import Base from '../Base/index.js';
 import transition from '../utils/css/transition.js';
 
 /**
- * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
+ * @typedef {import('../Base').BaseOptions} BaseOptions
  */
 
 /**

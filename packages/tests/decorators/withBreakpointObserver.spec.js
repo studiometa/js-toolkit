@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import Base from '@studiometa/js-toolkit/abstracts/Base';
+import Base from '@studiometa/js-toolkit';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver';
 import useResize from '@studiometa/js-toolkit/services/resize.js';
 import resizeWindow from '../__utils__/resizeWindow';

@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { hasMethod } from '@studiometa/js-toolkit/abstracts/Base/utils';
+import { hasMethod } from '@studiometa/js-toolkit/Base/utils';
 
 describe('Base utils functions', () => {
   test('the `hasMethod` function should work', () => {

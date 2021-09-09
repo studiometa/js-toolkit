@@ -1,4 +1,4 @@
-import Base from '../../abstracts/Base/index.js';
+import Base from '../../Base/index.js';
 
 /**
  * @typedef {import('./AccordionItem').default} AccordionItem
