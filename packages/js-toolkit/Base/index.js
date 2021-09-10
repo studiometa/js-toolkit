@@ -1,4 +1,3 @@
-import autoBind from '../utils/object/autoBind.js';
 import { callMethod, getComponentElements } from './utils.js';
 import ChildrenManager from './managers/ChildrenManager.js';
 import RefsManager from './managers/RefsManager.js';
@@ -89,33 +88,6 @@ export default class Base {
    * @type {Boolean}
    */
   static $isBase = true;
-
-  /**
-   * Get properties to exclude from the autobind call.
-   * @return {Array<String|RegExp>}
-   */
-  get __excludeFromAutoBind() {
-    return [
-      '$mount',
-      '$update',
-      '$destroy',
-      '$terminate',
-      '$log',
-      '$on',
-      '$once',
-      '$off',
-      '$emit',
-      'mounted',
-      'loaded',
-      'ticked',
-      'resized',
-      'moved',
-      'keyed',
-      'scrolled',
-      'destroyed',
-      'terminated',
-    ];
-  }
 
   /**
    * Merge configuration with the parents' configurations.
@@ -275,13 +247,6 @@ export default class Base {
     this.__events = new EventsManager(element, this);
     this.__children = new ChildrenManager(this, element, __config.components || {}, this.__events);
     this.__refs = new RefsManager(this, element, __config.refs || [], this.__events);
-
-    // Autobind all methods to the instance
-    // @todo Maybe remove for performance reason? This pattern can use a lot of memory when creating
-    // a large number of instances.
-    autoBind(this, {
-      exclude: [...this.__excludeFromAutoBind],
-    });
 
     this.__debug('constructor', this);
 
