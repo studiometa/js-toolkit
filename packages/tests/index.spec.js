@@ -2,8 +2,17 @@ import Base from '@studiometa/js-toolkit';
 import * as toolkit from '@studiometa/js-toolkit/';
 
 describe('The package exports', () => {
-  it('should export the legacy helpers and the Base class', () => {
-    const names = ['Base', 'createBase', 'default', 'defineComponent'];
+  it('should export helpers and the Base class', () => {
+    const names = [
+      'Base',
+      'createApp',
+      'createBase',
+      'default',
+      'defineComponent',
+      'importOnInteraction',
+      'importWhenIdle',
+      'importWhenVisible',
+    ];
     expect(Object.keys(toolkit)).toEqual(names);
   });
 
