@@ -1,6 +1,5 @@
 import deepmerge from 'deepmerge';
 import { noCase } from 'no-case';
-import mem from 'mem';
 import isObject from '../../utils/object/isObject.js';
 
 /**
@@ -11,20 +10,17 @@ import isObject from '../../utils/object/isObject.js';
  */
 
 /**
- * Get the attribute name based on the given option name.
- * @param {String} name The option name.
- */
-function getAttributeName(name) {
-  return `data-option-${noCase(name, { delimiter: '-' })}`;
-}
-
-const memoizedGetAttributeName = mem(getAttributeName);
-
-/**
  * Class options to manage options as data attributes on an HTML element.
  * @augments {OptionsInterface}
  */
 export default class OptionsManager {
+  /**
+   * Cache for the attribute names conversion.
+   * @type {Map}
+   * @private
+   */
+  static __attributeNameCache = new Map();
+
   /**
    * The HTML element holding the options attributes.
    * @type {HTMLElement}
@@ -141,12 +137,12 @@ export default class OptionsManager {
    * @param {any} defaultValue The default value for this option.
    */
   get(name, type, defaultValue) {
-    const attributeName = memoizedGetAttributeName(name);
+    const attributeName = OptionsManager.__getAttributeName(name);
     const hasAttribute = this.__element.hasAttribute(attributeName);
 
     if (type === Boolean) {
       if (defaultValue) {
-        const negatedAttributeName = memoizedGetAttributeName(`no-${name}`);
+        const negatedAttributeName = OptionsManager.__getAttributeName(`no-${name}`);
         const hasNegatedAttribute = this.__element.hasAttribute(negatedAttributeName);
 
         return !hasNegatedAttribute;
@@ -194,7 +190,7 @@ export default class OptionsManager {
    * @param {any} value The new value for this option.
    */
   set(name, type, value, defaultValue) {
-    const attributeName = memoizedGetAttributeName(name);
+    const attributeName = OptionsManager.__getAttributeName(name);
 
     if (value.constructor.name !== type.name) {
       const val = Array.isArray(value) || isObject(value) ? JSON.stringify(value) : value;
@@ -206,7 +202,7 @@ export default class OptionsManager {
     switch (type) {
       case Boolean:
         if (defaultValue) {
-          const negatedAttributeName = memoizedGetAttributeName(`no-${name}`);
+          const negatedAttributeName = OptionsManager.__getAttributeName(`no-${name}`);
 
           if (value) {
             this.__element.removeAttribute(negatedAttributeName);
@@ -227,5 +223,22 @@ export default class OptionsManager {
       default:
         this.__element.setAttribute(attributeName, value);
     }
+  }
+
+  /**
+   * Get the attribute name based on the given option name.
+   *
+   * @param {string} name
+   * @return {string}
+   * @private
+   */
+  static __getAttributeName(name) {
+    if (OptionsManager.__attributeNameCache.has(name)) {
+      return OptionsManager.__attributeNameCache.get(name);
+    }
+
+    const attributeName = `data-option-${noCase(name, { delimiter: '-' })}`;
+    OptionsManager.__attributeNameCache.set(name, attributeName);
+    return attributeName;
   }
 }
