@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import createApp from '@studiometa/js-toolkit/helpers/createApp';
 
 describe('The `createApp` function', () => {

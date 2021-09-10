@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import withExtraConfig from '@studiometa/js-toolkit/decorators/withExtraConfig';
 
 describe('The `withExtraConfig` decorator', () => {
