@@ -43,8 +43,5 @@
     "microbundle": "^0.13.3",
     "prettier": "^2.3.2",
     "typescript": "^4.3.5"
-  },
-  "browserslist": [
-    "extends @studiometa/browserslist-config"
-  ]
+  }
 }
