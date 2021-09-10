@@ -30,7 +30,6 @@
   "dependencies": {
     "@babel/runtime": "^7.15.4",
     "deepmerge": "^4.2.2",
-    "no-case": "^3.0.4",
     "stylefire": "^7.0.3"
   }
 }

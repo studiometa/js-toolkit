@@ -1,11 +1,12 @@
 import deepmerge from 'deepmerge';
-import { noCase } from 'no-case';
 import isObject from '../../utils/object/isObject.js';
 
 /**
  * @typedef {import('../index.js').BaseConfig} BaseConfig
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
- * @typedef {{ [name:string]: OptionType | { type: OptionType, default: String|Number|Boolean|(() => Array|Object)} }} OptionsSchema
+ * @typedef {{ type: OptionType, default: String|Number|Boolean|(() => Array|Object)}} OptionWithDefault
+ * @typedef {OptionType | OptionWithDefault} OptionValue
+ * @typedef {{ [name:string]: OptionValue }} OptionsSchema
  * @typedef {{ [optionName:string]: any }} OptionsInterface
  */
 
@@ -14,13 +15,6 @@ import isObject from '../../utils/object/isObject.js';
  * @augments {OptionsInterface}
  */
 export default class OptionsManager {
-  /**
-   * Cache for the attribute names conversion.
-   * @type {Map}
-   * @private
-   */
-  static __attributeNameCache = new Map();
-
   /**
    * The HTML element holding the options attributes.
    * @type {HTMLElement}
@@ -95,102 +89,105 @@ export default class OptionsManager {
     };
 
     Object.entries(schema).forEach(([name, config]) => {
-      const isObjectConfig = !OptionsManager.types.includes(config);
-      /** @type {OptionType} */
-      // @ts-ignore
-      const type = isObjectConfig ? config.type : config;
-
-      if (!OptionsManager.types.includes(type)) {
-        throw new Error(
-          `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`
-        );
-      }
-
-      // @ts-ignore
-      const defaultValue = isObjectConfig ? config.default : this.__defaultValues[type.name];
-
-      if ((type === Array || type === Object) && typeof defaultValue !== 'function') {
-        throw new Error(
-          `The default value for options of type "${type.name}" must be returned by a function.`
-        );
-      }
-
-      Object.defineProperty(this, name, {
-        get: () => {
-          return this.get(name, type, defaultValue);
-        },
-        set: (value) => {
-          this.set(name, type, value, defaultValue);
-        },
-        enumerable: true,
-      });
+      this.__register(name, config);
     });
 
     return this;
   }
 
   /**
+   * Register an option.
+   *
+   * @param  {string} name
+   * @param  {OptionValue} config
+   * @return {void}
+   * @private
+   */
+  __register(name, config) {
+    const hasDefaultValue = !OptionsManager.types.includes(config);
+    const type = hasDefaultValue
+      ? /** @type {OptionWithDefault} */ (config).type
+      : /** @type {OptionType} */ (config);
+
+    if (!OptionsManager.types.includes(type)) {
+      throw new Error(
+        `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`
+      );
+    }
+
+    // @ts-ignore
+    const defaultValue = hasDefaultValue ? config.default : this.__defaultValues[type.name];
+
+    if ((type === Array || type === Object) && typeof defaultValue !== 'function') {
+      throw new Error(
+        `The default value for options of type "${type.name}" must be returned by a function.`
+      );
+    }
+
+    Object.defineProperty(this, name, {
+      get: () => {
+        return this.get(name, type, defaultValue);
+      },
+      set: (value) => {
+        this.set(name, type, value, defaultValue);
+      },
+      enumerable: true,
+    });
+  }
+
+  /**
    * Get an option value.
    *
    * @param {String} name The option name.
-   * @param {ArrayConstructor|ObjectConstructor|StringConstructor|NumberConstructor|BooleanConstructor} type The option data's type.
+   * @param {OptionType} type The option data's type.
    * @param {any} defaultValue The default value for this option.
    */
   get(name, type, defaultValue) {
-    const attributeName = OptionsManager.__getAttributeName(name);
-    const hasAttribute = this.__element.hasAttribute(attributeName);
+    const propertyName = OptionsManager.__getPropertyName(name);
+    const hasProperty = this.__hasProperty(propertyName);
 
     if (type === Boolean) {
       if (defaultValue) {
-        const negatedAttributeName = OptionsManager.__getAttributeName(`no-${name}`);
-        const hasNegatedAttribute = this.__element.hasAttribute(negatedAttributeName);
+        const negatedPropertyName = OptionsManager.__getPropertyName(name, 'No');
+        const hasNegatedProperty = this.__hasProperty(negatedPropertyName);
 
-        return !hasNegatedAttribute;
+        return !hasNegatedProperty;
       }
 
-      return hasAttribute || defaultValue;
+      return hasProperty || defaultValue;
     }
 
-    const value = this.__element.getAttribute(attributeName);
+    const value = this.__element.dataset[propertyName];
 
     if (type === Number) {
-      return hasAttribute ? Number(value) : defaultValue;
+      return hasProperty ? Number(value) : defaultValue;
     }
 
     if (type === Array || type === Object) {
       const val = deepmerge(
         defaultValue(),
-        hasAttribute ? JSON.parse(value) : this.__defaultValues[type.name]()
+        hasProperty ? JSON.parse(value) : this.__defaultValues[type.name]()
       );
 
       if (!this.__values[name]) {
         this.__values[name] = val;
-      } else if (val !== this.__values[name]) {
-        // When getting the value, wait for the next loop to update the data attribute
-        // with the new value. This is a simple trick to avoid using a Proxy to watch
-        // for any deep changes on an array or object. It should not break anything as
-        // the original value is read once from the data attribute and is then read from
-        // the private property `__values`.
-        setTimeout(() => {
-          this.__element.setAttribute(attributeName, JSON.stringify(this.__values[name]));
-        }, 0);
       }
 
       return this.__values[name];
     }
 
-    return hasAttribute ? value : defaultValue;
+    return hasProperty ? value : defaultValue;
   }
 
   /**
    * Set an option value.
    *
    * @param {String} name The option name.
-   * @param {ArrayConstructor|ObjectConstructor|StringConstructor|NumberConstructor|BooleanConstructor} type The option data's type.
+   * @param {OptionType} type The option data's type.
    * @param {any} value The new value for this option.
    */
   set(name, type, value, defaultValue) {
-    const attributeName = OptionsManager.__getAttributeName(name);
+    const propertyName = OptionsManager.__getPropertyName(name);
 
     if (value.constructor.name !== type.name) {
       const val = Array.isArray(value) || isObject(value) ? JSON.stringify(value) : value;
@@ -202,43 +199,77 @@ export default class OptionsManager {
     switch (type) {
       case Boolean:
         if (defaultValue) {
-          const negatedAttributeName = OptionsManager.__getAttributeName(`no-${name}`);
+          const negatedPropertyName = OptionsManager.__getPropertyName(name, 'No');
 
           if (value) {
-            this.__element.removeAttribute(negatedAttributeName);
+            delete this.__element.dataset[negatedPropertyName];
           } else {
-            this.__element.setAttribute(negatedAttributeName, '');
+            this.__element.dataset[negatedPropertyName] = '';
           }
         } else if (value) {
-          this.__element.setAttribute(attributeName, '');
+          this.__element.dataset[propertyName] = '';
         } else {
-          this.__element.removeAttribute(attributeName);
+          delete this.__element.dataset[propertyName];
         }
         break;
       case Array:
       case Object:
         this.__values[name] = value;
-        this.__element.setAttribute(attributeName, JSON.stringify(value));
         break;
       default:
-        this.__element.setAttribute(attributeName, value);
+        this.__element.dataset[propertyName] = value;
     }
   }
 
   /**
-   * Get the attribute name based on the given option name.
+   * Test if the element has a given property.
    *
-   * @param {string} name
+   * @param  {string} prop
+   * @return {boolean}
+   */
+  __hasProperty(prop) {
+    return typeof this.__element.dataset[prop] !== 'undefined';
+  }
+
+  /**
+   * Property name cache.
+   * @type {Map}
+   * @private
+   */
+  static __propertyNameCache = new Map();
+
+  /**
+   * Get a property name.
+   *
+   * @param  {string} name
    * @return {string}
    * @private
    */
-  static __getAttributeName(name) {
-    if (OptionsManager.__attributeNameCache.has(name)) {
-      return OptionsManager.__attributeNameCache.get(name);
+  static __getPropertyName(name, prefix = '') {
+    const key = name + prefix;
+
+    if (OptionsManager.__propertyNameCache.has(key)) {
+      return OptionsManager.__propertyNameCache.get(key);
     }
 
-    const attributeName = `data-option-${noCase(name, { delimiter: '-' })}`;
-    OptionsManager.__attributeNameCache.set(name, attributeName);
-    return attributeName;
+    const propertyName = `option${prefix}${name.replace(/^\w/, (c) => c.toUpperCase())}`;
+    OptionsManager.__propertyNameCache.set(key, propertyName);
+    return propertyName;
+  }
+
+  /**
+   * Test if a value is primitive
+   *
+   * @param  {any} value
+   * @return {boolean}
+   * @private
+   */
+  static __isPrimitive(value) {
+    return (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'symbol' ||
+      typeof value === 'boolean'
+    );
   }
 }
