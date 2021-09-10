@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { html } from 'htl';
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import EventsManager from '@studiometa/js-toolkit/Base/managers/EventsManager';
 
 describe('The EventsManager class', () => {

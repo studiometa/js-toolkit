@@ -1,6 +1,6 @@
 /* eslint-disable no-new, require-jsdoc, max-classes-per-file */
 import { jest } from '@jest/globals';
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import ChildrenManager from '@studiometa/js-toolkit/Base/managers/ChildrenManager';
 import OptionsManager from '@studiometa/js-toolkit/Base/managers/OptionsManager';
 import RefsManager from '@studiometa/js-toolkit/Base/managers/RefsManager';

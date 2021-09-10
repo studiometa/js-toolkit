@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import { Modal, Tabs, Accordion, Cursor, Draggable } from '@studiometa/js-toolkit/components';
 import {
   createApp,
