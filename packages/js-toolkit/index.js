@@ -9,8 +9,6 @@ import {
 } from './decorators/index.js';
 import {
   createApp,
-  createBase,
-  defineComponent,
   importOnInteraction,
   importWhenIdle,
   importWhenVisible,
@@ -28,8 +26,6 @@ import {
 export {
   Base,
   createApp,
-  createBase,
-  defineComponent,
   importOnInteraction,
   importWhenIdle,
   importWhenVisible,
