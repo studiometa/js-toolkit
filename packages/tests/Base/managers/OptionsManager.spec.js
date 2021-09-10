@@ -110,15 +110,7 @@ describe('The Options class', () => {
     options.foo = [1, 2, 3];
     expect(options.foo).toEqual([1, 2, 3]);
     options.foo.push(4);
-    // expect(options.foo).toEqual([1, 2, 3, 4]);
-    expect(div.outerHTML).toBe('<div data-option-foo="[1,2,3]"></div>');
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        expect(div.outerHTML).toBe('<div data-option-foo="[1,2,3,4]"></div>');
-        resolve();
-      }, 0);
-    });
+    expect(options.foo).toEqual([1, 2, 3, 4]);
   });
 
   it('should get and set object options', () => {
