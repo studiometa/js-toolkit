@@ -24,7 +24,7 @@ export default class Lazyload extends withIntersectionObserver(Base) {
 
   intersected([entry]) {
     if (entry.isIntersecting) {
-      window.requestIdleCallback(this.load);
+      window.requestIdleCallback(() => this.load());
     }
   }
 
