@@ -38,13 +38,6 @@ export default function withIntersectionObserver(
 ) {
   // @ts-ignore
   return class extends BaseClass {
-    /**
-     * Add the `intersected` method to the list of method to exclude from the `autoBind` call.
-     */
-    get __excludeFromAutoBind() {
-      return [...(super.__excludeFromAutoBind || []), 'intersected'];
-    }
-
     static config = {
       ...(BaseClass.config || {}),
       name: `${BaseClass?.config?.name ?? ''}WithIntersectionObserver`,
