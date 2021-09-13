@@ -9,6 +9,7 @@ import {
 import { matrix } from '@studiometa/js-toolkit/utils/css';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
 import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
+import ScrollToDemo from './components/ScrollToDemo.js';
 
 // Add the new icon ref
 Accordion.config.components.AccordionItem.config.refs.push('icon');
@@ -57,6 +58,7 @@ class App extends Base {
         ),
       Modal: withBreakpointObserver(Modal),
       Tabs,
+      ScrollToDemo,
     },
   };
 
