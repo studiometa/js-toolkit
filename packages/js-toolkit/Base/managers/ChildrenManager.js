@@ -2,8 +2,8 @@ import { getComponentElements } from '../utils.js';
 
 /**
  * @typedef {import('../index.js').default} Base
- * @typedef {import('../index.js').BaseComponent} BaseComponent
- * @typedef {import('../index.js').BaseAsyncComponent} BaseAsyncComponent
+ * @typedef {import('../index.js').BaseConstructor} BaseConstructor
+ * @typedef {import('../index.js').BaseAsyncConstructor} BaseAsyncConstructor
  * @typedef {import('../index.js').BaseConfigComponents} BaseConfigComponents
  * @typedef {import('./EventsManager.js').default} EventsManager
  */
@@ -74,7 +74,7 @@ export default class ChildrenManager {
    *
    * @param {string} name
    *   The name of the child component.
-   * @param {BaseComponent|BaseAsyncComponent} component
+   * @param {BaseConstructor|BaseAsyncConstructor} component
    *   A Base class or a Promise for async components.
    * @private
    */
@@ -101,7 +101,7 @@ export default class ChildrenManager {
    *
    * @param {HTMLElement & { __base__?: Base | 'terminated' }} el
    *   The root element of the child component.
-   * @param {BaseComponent|BaseAsyncComponent} ComponentClass
+   * @param {BaseConstructor|BaseAsyncConstructor} ComponentClass
    *   A Base class or a Promise for async components.
    * @param {string} name
    *   The name of the child component.

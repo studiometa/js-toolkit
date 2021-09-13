@@ -7,15 +7,19 @@ import OptionsManager from './managers/OptionsManager.js';
 
 let id = 0;
 
-const noop = function noop() {};
+/**
+ * No operation function.
+ * @return {void}
+ */
+function noop() {}
 
 /**
- * @typedef {typeof Base} BaseComponent
- * @typedef {(Base) => Promise<BaseComponent | { default: BaseComponent }>} BaseAsyncComponent
+ * @typedef {typeof Base} BaseConstructor
+ * @typedef {(Base) => Promise<BaseConstructor | { default: BaseConstructor }>} BaseAsyncConstructor
  * @typedef {OptionsManager & { [name:string]: any }} BaseOptions
  * @typedef {{ [name:string]: HTMLElement | HTMLElement[] }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Base[] | Promise<Base>[] }} BaseChildren
- * @typedef {{ [nameOrSelector:string]: BaseComponent | BaseAsyncComponent }} BaseConfigComponents
+ * @typedef {{ [nameOrSelector:string]: BaseConstructor | BaseAsyncConstructor }} BaseConfigComponents
  * @typedef {import('./managers/OptionsManager').OptionsSchema} BaseConfigOptions
  * @typedef {import('./managers/ServicesManager.js').ServiceName} ServiceName
  */
@@ -104,7 +108,6 @@ export default class Base {
   __services;
 
   /**
-   * The instance services.
    * @type {ServicesManager}
    */
   get $services() {
@@ -150,13 +153,8 @@ export default class Base {
    * @return {ChildrenManager}
    */
   get $children() {
-    this.__debug('before:getChildren', this.$el, this.__config.components);
-
     const children = this.__children;
     this.$emit('get:children', children);
-
-    this.__debug(this, 'after:getChildren', children);
-
     return children;
   }
 

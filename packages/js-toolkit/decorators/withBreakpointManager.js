@@ -2,7 +2,7 @@ import useResize from '../services/resize.js';
 
 /**
  * @typedef {import('../Base').default} Base
- * @typedef {import('../Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').BaseConstructor} BaseConstructor
  */
 
 /**
@@ -24,7 +24,7 @@ function testBreakpoints(breakpoints) {
 /**
  * Prepare the components.
  * @param {Base} instance
- * @param {Array<[String, BaseComponent]>} breakpoints
+ * @param {Array<[String, BaseConstructor]>} breakpoints
  * @return {Array<[String, Base]>}
  */
 function mountComponents(instance, breakpoints) {
@@ -43,9 +43,9 @@ const instances = new WeakMap();
 
 /**
  * BreakpointManager class.
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  * @param {T} BaseClass
- * @param {Array<[String, BaseComponent]>} breakpoints
+ * @param {Array<[String, BaseConstructor]>} breakpoints
  * @return {T}
  */
 export default function withBreakpointManager(BaseClass, breakpoints) {

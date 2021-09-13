@@ -1,6 +1,6 @@
 /**
  * @typedef {import('../Base').default} Base
- * @typedef {import('../Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').BaseConstructor} BaseConstructor
  */
 
 /**
@@ -27,7 +27,7 @@ function createArrayOfNumber(length) {
 /**
  * IntersectionObserver decoration.
  *
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  * @param {T} BaseClass The Base class to extend.
  * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
  * @return {T & { new: (element:HTMLElement) => { $observer: IntersectionObserver }}}

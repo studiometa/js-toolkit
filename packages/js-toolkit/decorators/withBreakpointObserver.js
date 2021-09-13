@@ -2,7 +2,7 @@ import useResize from '../services/resize.js';
 
 /**
  * @typedef {import('../Base').default} Base
- * @typedef {import('../Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').BaseConstructor} BaseConstructor
  */
 
 /**
@@ -89,7 +89,7 @@ function addToResize(key, instance) {
 /**
  * BreakpointObserver class.
  *
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  * @param {T} BaseClass The Base class to extend from.
  * @return {T}
  */

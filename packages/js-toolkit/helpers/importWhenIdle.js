@@ -1,12 +1,12 @@
 /**
- * @typedef {import('../Base/index.js').BaseComponent} BaseComponent
+ * @typedef {import('../Base/index.js').BaseConstructor} BaseConstructor
  * @typedef {{ timeout?: number }} ImportWhenIdleOptions
  */
 
 /**
  * Import a component when user is idle.
  *
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  *
  * @param {() => Promise<T|{default:T}>} fn
  *   The import function.
