@@ -3,14 +3,14 @@ import damp from './math/damp.js';
 /**
  * Handler for the click event on anchor links
  *
- * @param {string} selector The target selector.
+ * @param {HTMLElement} element The target element.
  * @param {Object} options Options for the scroll.
  * @param {Object} options.offset Offset to add to the target scroll position.
  * @param {Object} options.dampFactor The factor used for the scroll damping.
  * @return {Promise<number>} A promising resolving with the target scroll position.
  */
-export default function scrollTo(selector, options = { offset: 0, dampFactor: 0.2 }) {
-  const targetElement = document.querySelector(selector);
+export default function scrollTo(element, options = { offset: 0, dampFactor: 0.2 }) {
+  const targetElement = element;
 
   if (!targetElement) {
     return Promise.resolve(window.pageYOffset);
