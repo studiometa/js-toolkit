@@ -9,7 +9,7 @@
 </template>
 
 <script>
-  import Base from '@studiometa/js-toolkit';
+  import { Base } from '@studiometa/js-toolkit';
   import * as components from '@studiometa/js-toolkit/components/';
 
   class App extends Base {
@@ -27,9 +27,14 @@
         default: false,
       },
     },
+    data() {
+      return {
+        component: null,
+      }
+    },
     async mounted() {
       this.$nextTick(() => {
-        this.component = new App(this.$refs.parent);
+        this.component = new App(/** @type {HTMLElement} */ (this.$refs.parent));
         this.component.$mount();
       });
     },
@@ -39,7 +44,7 @@
       }
 
       this.component.$destroy();
-      this.component = new App(this.$refs.parent);
+      this.component = new App(/** @type {HTMLElement} */ (this.$refs.parent));
       this.component.$mount();
     },
     beforeDestroy() {
@@ -49,8 +54,8 @@
 </script>
 
 <style lang="scss">
-  @tailwind components;
-  @tailwind utilities;
+  @import 'tailwindcss/components';
+  @import 'tailwindcss/utilities';
 
   .preview {
     blockquote,
