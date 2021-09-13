@@ -250,7 +250,6 @@ module.exports = {
 ### `mounted()` <Badge vertical="middle" text="Lifecycle hooks" />
 
 Called after the instance has been mounted.
-@TODO Explain the mounted hook
 
 ```js
 import Base from '@studiometa/js-toolkit';
@@ -270,8 +269,7 @@ export default class Component extends Base {
 
 ### `loaded()` <Badge vertical="middle" text="Lifecycle hooks" />
 
-Called after the instance has been loaded.
-@TODO Explain the loaded hook
+Called on the window [load](https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event) event.
 
 ```js
 import Base from '@studiometa/js-toolkit';
@@ -283,19 +281,130 @@ export default class Component extends Base {
   };
 
   loaded() {
-    // Logs 'Loaded' when the component is loaded
+    // Logs 'Loaded' when the whole page has been loaded.
     this.$log('Loaded');
   }
 }
 ```
 
 ### `destroyed()` <Badge vertical="middle" text="Lifecycle hooks" />
+
+Called when the component will be destroyed.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  destroyed() {
+    this.$log('Destroyed');
+  }
+}
+```
+
 ### `terminated()` <Badge vertical="middle" text="Lifecycle hooks" />
+
+Called when the component will be terminated.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  terminated() {
+    this.$log('Terminated');
+  }
+}
+```
+
 ### `scrolled(props)` <Badge vertical="middle" text="Service hooks" />
+
+Called when the user is scrolling.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  scrolled({ x, y, changed, last, delta, progress, max, direction }) {
+    this.$log('Scrolling');
+  }
+}
+```
+
 ### `resized(props)` <Badge vertical="middle" text="Service hooks" />
+
+Called when the document has been resized.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  resized({ width, height, ratio, orientation, breakpoint, breakpoints }) {
+    this.$log('Resized');
+  }
+}
+```
+
 ### `keyed(props)` <Badge vertical="middle" text="Service hooks" />
+
+Called when the user is typing.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  keyed({ event, direction, isUp, isDown, triggered, ENTER, SPACE, TAB, ESC, LEFT, UP, RIGHT, DOWN }) {
+    this.$log('Keyed');
+  }
+}
+```
+
 ### `moved(props)` <Badge vertical="middle" text="Service hooks" />
+
+Called when the user is moving their cursor.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  moved({ event, isDown, x, y, changed, last, delta, progress, max }) {
+    this.$log('Moved');
+  }
+}
+```
+
 ### `ticked(props)` <Badge vertical="middle" text="Service hooks" />
+
+Creates a render loop with `requestAnimationFrame`.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  resized({ time }) {
+    this.$log('Ticked');
+  }
+}
+```
 
 ### `on＜Event＞(event)` <Badge vertical="middle" text="Event handlers" />
 
