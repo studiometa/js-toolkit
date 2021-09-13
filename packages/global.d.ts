@@ -6,6 +6,10 @@ declare global {
     requestIdleCallback?: (callback: () => void, options?:{timeout?:number}) => number;
     ResizeObserver?: (callback: () => void) => void;
   }
+
+  interface CSSStyleDeclaration {
+    scrollMarginTop: string;
+  }
 }
 
 export {};
