@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`The \`withVue\` decorator should destroy the vue component 1`] = `
+"
+    <p>Hello world</p>
+  "
+`;
+
+exports[`The \`withVue\` decorator should instantiate the vue component 1`] = `
+"
+    <div data-ref=\\"vue\\"></div>
+  "
+`;
+
+exports[`The \`withVue\` decorator should mount the vue component 1`] = `
+"
+    <p>Hello world</p>
+  "
+`;
