@@ -512,23 +512,114 @@ class Component extends Base {
 
 ### `$log(…content)`
 
-Can be used to log content to the console when the `instance.$options.log` options is set to true, either via the `config` getter or via the `data-options` attribute.
+Can be used to log content to the console when the `instance.$options.log` options is set to `true`, either via the `config` getter or via the `data-options` attribute.
+
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    this.$log('mounted');
+  }
+}
+```
 
 ### `$on(event, callback)`
 
 Bind a callback function to an event emitted by the instance. Returns a function to unbind the callback from the event.
 
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    const removeEventListener = this.$on('get:refs', () => {
+      this.$log('get:refs');
+    });
+
+    // Remove the event listener
+    removeEventListener();
+  }
+}
+```
+
 ### `$once(event, callback)`
 
 Similar as the `$on` method, but the callback function will be detached from the event after being called once.
+
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    this.$once('get:refs', () => {
+      // Event listener removed
+      this.$log('get:refs');
+    });
+  }
+}
+```
 
 ### `$off(event[, callback])`
 
 Unbind a callback function from an event emitted by the instance. If no callback function is provided, all previously binded callbacks will be removed.
 
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    this.$on('get:refs', () => this.$log('get:refs'));
+
+    // Removes the binded callback
+    this.$off('get:refs')
+
+    // Removes all previously binded callbacks
+    this.$off()
+  }
+}
+```
+
 ### `$emit(event[, …args])`
 
 Emit an event from the current instance, with optional custom arguments.
+
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    this.$on('event', (a, b) => this.$log(a + b));
+
+    this.$emit('event', 1, 2)
+  }
+}
+```
 
 ### `$mount()`
 
