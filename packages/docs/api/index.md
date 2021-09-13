@@ -400,7 +400,7 @@ export default class Component extends Base {
     log: true,
   };
 
-  resized({ time }) {
+  ticked({ time }) {
     this.$log('Ticked');
   }
 }
