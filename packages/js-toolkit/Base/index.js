@@ -31,32 +31,7 @@ const noop = function noop() {};
  */
 
 /**
- * Base class to easily create components.
- *
- * @example
- * ```js
- * class Component extends Base {
- *   static config = {
- *     name: 'Component',
- *     log: true,
- *   };
- *
- *   mounted() {
- *     this.$log('Component is mounted!');
- *   }
- * }
- *
- * class App extends Base {
- *   static config = {
- *     name: 'App',
- *     components: {
- *       Component,
- *     },
- *   };
- * }
- *
- * new App(document.body).$mount();
- * ```
+ * Base class.
  */
 export default class Base {
   /**
@@ -398,7 +373,6 @@ export default class Base {
    */
   $emit(event, ...args) {
     this.__debug('$emit', event, args);
-
     this.$el.dispatchEvent(
       new CustomEvent(event, {
         detail: args,
