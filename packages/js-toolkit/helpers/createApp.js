@@ -1,5 +1,5 @@
 /**
- * @typedef {import('../Base/index.js').BaseComponent} BaseComponent
+ * @typedef {import('../Base/index.js').BaseConstructor} BaseConstructor
  */
 
 /**
@@ -27,7 +27,7 @@
  * console.log(app.$options.name); // 'App'
  * ```
  *
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  * @param {T} App
  * @param {HTMLElement} rootElement
  *

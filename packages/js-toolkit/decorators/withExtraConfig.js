@@ -3,13 +3,13 @@ import merge from 'deepmerge';
 /**
  * @typedef {import('deepmerge').Options} DeepmergeOptions
  * @typedef {import('../Base').BaseConfig} BaseConfig
- * @typedef {import('../Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').BaseConstructor} BaseConstructor
  */
 
 /**
  * Extends the configuration of an existing class.
  *
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  * @param {T} BaseClass The Base class to extend.
  * @param {Partial<BaseConfig>} config Extra configuration to merge.
  * @param {DeepmergeOptions} options Options for the `deepmerge` function. {@link https://github.com/TehShrike/deepmerge#options}

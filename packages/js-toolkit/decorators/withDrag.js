@@ -2,7 +2,7 @@ import useDrag from '../services/drag.js';
 
 /**
  * @typedef {import('../Base').default} Base
- * @typedef {import('../Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').BaseConstructor} BaseConstructor
  * @typedef {import('../services/drag').DragServiceOptions} DragServiceOptions
  */
 
@@ -13,7 +13,7 @@ import useDrag from '../services/drag.js';
 /**
  * Add dragging capabilities to a component.
  *
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  * @param {T} BaseClass
  * @param {DragDecoratorOptions} options
  * @return {T}
