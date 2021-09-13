@@ -245,15 +245,166 @@ module.exports = {
 
 ## Interface methods
 
+@TODO Add a lifecycle diagram
+
 ### `mounted()` <Badge vertical="middle" text="Lifecycle hooks" />
+
+Called after the instance has been mounted.
+
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    // Logs 'mounted' when the component is mounted
+    this.$log('mounted');
+  }
+}
+```
+
 ### `loaded()` <Badge vertical="middle" text="Lifecycle hooks" />
+
+Called on the window [load](https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event) event.
+
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  loaded() {
+    // Logs 'Loaded' when the whole page has been loaded.
+    this.$log('Loaded');
+  }
+}
+```
+
 ### `destroyed()` <Badge vertical="middle" text="Lifecycle hooks" />
+
+Called when the component will be destroyed.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  destroyed() {
+    this.$log('Destroyed');
+  }
+}
+```
+
 ### `terminated()` <Badge vertical="middle" text="Lifecycle hooks" />
+
+Called when the component will be terminated.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  terminated() {
+    this.$log('Terminated');
+  }
+}
+```
+
 ### `scrolled(props)` <Badge vertical="middle" text="Service hooks" />
+
+Called when the user is scrolling.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  scrolled({ x, y, changed, last, delta, progress, max, direction }) {
+    this.$log('Scrolling');
+  }
+}
+```
+
 ### `resized(props)` <Badge vertical="middle" text="Service hooks" />
+
+Called when the document has been resized.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  resized({ width, height, ratio, orientation, breakpoint, breakpoints }) {
+    this.$log('Resized');
+  }
+}
+```
+
 ### `keyed(props)` <Badge vertical="middle" text="Service hooks" />
+
+Called when the user is typing.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  keyed({ event, direction, isUp, isDown, triggered, ENTER, SPACE, TAB, ESC, LEFT, UP, RIGHT, DOWN }) {
+    this.$log('Keyed');
+  }
+}
+```
+
 ### `moved(props)` <Badge vertical="middle" text="Service hooks" />
+
+Called when the user is moving their cursor.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  moved({ event, isDown, x, y, changed, last, delta, progress, max }) {
+    this.$log('Moved');
+  }
+}
+```
+
 ### `ticked(props)` <Badge vertical="middle" text="Service hooks" />
+
+Creates a render loop with `requestAnimationFrame`.
+
+```js
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  ticked({ time }) {
+    this.$log('Ticked');
+  }
+}
+```
 
 ### `on＜Event＞(event)` <Badge vertical="middle" text="Event handlers" />
 
@@ -445,23 +596,114 @@ class Component extends Base {
 
 ### `$log(…content)`
 
-Can be used to log content to the console when the `instance.$options.log` options is set to true, either via the `config` getter or via the `data-options` attribute.
+Can be used to log content to the console when the `instance.$options.log` options is set to `true`, either via the `config` getter or via the `data-options` attribute.
+
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    this.$log('mounted');
+  }
+}
+```
 
 ### `$on(event, callback)`
 
 Bind a callback function to an event emitted by the instance. Returns a function to unbind the callback from the event.
 
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    const removeEventListener = this.$on('get:refs', () => {
+      this.$log('get:refs');
+    });
+
+    // Remove the event listener
+    removeEventListener();
+  }
+}
+```
+
 ### `$once(event, callback)`
 
 Similar as the `$on` method, but the callback function will be detached from the event after being called once.
+
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    this.$once('get:refs', () => {
+      // Event listener removed
+      this.$log('get:refs');
+    });
+  }
+}
+```
 
 ### `$off(event[, callback])`
 
 Unbind a callback function from an event emitted by the instance. If no callback function is provided, all previously binded callbacks will be removed.
 
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    this.$on('get:refs', () => this.$log('get:refs'));
+
+    // Removes the binded callback
+    this.$off('get:refs')
+
+    // Removes all previously binded callbacks
+    this.$off()
+  }
+}
+```
+
 ### `$emit(event[, …args])`
 
 Emit an event from the current instance, with optional custom arguments.
+
+```js
+import Base from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    this.$on('event', (a, b) => this.$log(a + b));
+
+    this.$emit('event', 1, 2)
+  }
+}
+```
 
 ### `$mount()`
 
