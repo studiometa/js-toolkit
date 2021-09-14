@@ -13,7 +13,7 @@ describe('Accordion component', () => {
 
   beforeEach(() => {
     document.body.innerHTML = `
-       <section data-component="Accordion" data-option-styles='{ "test": "test" }'>
+       <section data-component="Accordion" data-option-item='{ "isOpen": false, "styles": { "test": true } }'>
          <div data-component="AccordionItem">
            <button data-ref="btn">
              Button
@@ -42,13 +42,15 @@ describe('Accordion component', () => {
     content = Array.from(document.querySelectorAll('[data-ref="content"]'));
   });
 
-  // @todo when the $parent is fixed
-  // it('should merge parent options with item option', () => {
-  //   const accordionItem = document.querySelector('[data-component="AccordionItem"]');
-  //   expect(JSON.parse(accordionItem.dataset['option-item'])).toEqual({ test: true });
-  //   accordionItem.__base__.$options.test = false;
-  //   expect(JSON.parse(accordionItem.dataset['option-item'])).toEqual({ test: false });
-  // });
+  it('should merge parent options with item option', () => {
+    const accordionItem = document.querySelector('[data-component="AccordionItem"]');
+    expect(accordionItem.__base__.$options.styles).toMatchObject({ test: true });
+    expect(accordionItem.__base__.$options.isOpen).toBe(false);
+    accordionItem.__base__.$options.isOpen = true;
+    accordionItem.__base__.$options.styles.test = false;
+    expect(accordionItem.__base__.$options.styles).toMatchObject({ test: false });
+    expect(accordionItem.__base__.$options.isOpen).toBe(true);
+  });
 
   it('should not autoclose items by default', () => {
     btn[0].click();
@@ -71,11 +73,5 @@ describe('Accordion component', () => {
     expect(content[1].getAttribute('aria-hidden')).toBe('false');
     await wait(150);
     expect(content[0].getAttribute('aria-hidden')).toBe('true');
-  });
-
-  it('should unbind the open listeners on destroy', () => {
-    const spy = jest.spyOn(item.unbindMethods, 'forEach');
-    item.$destroy();
-    expect(spy).toHaveBeenCalledTimes(1);
   });
 });
