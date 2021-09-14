@@ -7,6 +7,7 @@ import * as string from './string/index.js';
 import debounce from './debounce.js';
 import focusTrap from './focusTrap.js';
 import keyCodes from './keyCodes.js';
+import memoize from './memoize.js';
 import nextFrame from './nextFrame.js';
 import throttle from './throttle.js';
 
@@ -18,6 +19,7 @@ export {
   history,
   keyCodes,
   math,
+  memoize,
   nextFrame,
   object,
   string,

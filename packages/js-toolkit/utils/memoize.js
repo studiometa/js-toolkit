@@ -19,11 +19,11 @@
  * @param  {MemorizeOptions} options
  * @return {(...args:Parameters<T>) => ReturnType<T>}
  */
-export default function memorize(
+export default function memoize(
   fn,
   { maxAge = Number.POSITIVE_INFINITY, cacheKey = JSON.stringify, cache = new Map() } = {}
 ) {
-  return function memorized(...args) {
+  return function memoized(...args) {
     const key = cacheKey(args);
     const date = Date.now();
 
