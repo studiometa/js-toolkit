@@ -49,17 +49,19 @@ export default function createApp(App, rootElement) {
     app = new App(rootElement).$mount();
   }
 
+  const promise = new Promise((resolve) => {
+    document.addEventListener('readystatechange', () => {
+      if (document.readyState === 'complete') {
+        setTimeout(() => resolve(app), 0);
+      }
+    });
+  });
+
   return function useApp() {
     if (isLoaded) {
       return Promise.resolve(app);
     }
 
-    return new Promise((resolve) => {
-      document.addEventListener('readystatechange', () => {
-        if (document.readyState === 'complete') {
-          setTimeout(() => resolve(app), 0);
-        }
-      });
-    });
+    return promise;
   };
 }

@@ -30,20 +30,21 @@ describe('The `createApp` function', () => {
     // Loading state
     readyStateMock.mockImplementation(() => 'loading');
     const useApp = createApp(App, document.createElement('div'));
+    let app = useApp();
     expect(fn).not.toHaveBeenCalled();
-    expect(useApp()).toBeInstanceOf(Promise);
+    expect(app).toBeInstanceOf(Promise);
+    expect(app).toEqual(useApp());
 
     // Interactive state
     readyStateMock.mockImplementation(() => 'interactive');
     document.dispatchEvent(new CustomEvent('readystatechange'));
     expect(fn).not.toHaveBeenCalled();
-    expect(useApp()).toBeInstanceOf(Promise);
+    expect(app).toBeInstanceOf(Promise);
 
     // Complete state
     readyStateMock.mockImplementation(() => 'complete');
     document.dispatchEvent(new CustomEvent('readystatechange'));
     expect(fn).toHaveBeenCalledTimes(1);
-    const app = await useApp();
-    expect(app).toBeInstanceOf(App);
+    expect(await app).toBeInstanceOf(App);
   });
 });
