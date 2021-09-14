@@ -55,47 +55,25 @@ export default class Accordion extends Base {
   };
 
   /**
-   * @type {Array<Function>}
-   */
-  unbindMethods = [];
-
-  /**
-   * Init autoclose behavior on mounted.
    * @this {AccordionInterface}
-   * @return {Promise<void>}
+   * @param {number} index
+   * @return {void}
    */
-  async mounted() {
-    if (!Array.isArray(this.$children.AccordionItem)) {
-      throw new Error('The Accordion component must be used with the AccordionItem component.');
+  onAccordionItemOpen(index) {
+    const accordionItem = this.$children.AccordionItem[index];
+    this.$emit('open', accordionItem, index);
+    if (this.$options.autoclose) {
+      this.$children.AccordionItem.filter((el, i) => index !== i).forEach((item) => item.close());
     }
-
-    this.unbindMethods = this.$children.AccordionItem.map((item, index) => {
-      if (item instanceof Promise) {
-        throw new Error('The AccordionItem component can not be used asynchronously.');
-      }
-
-      const unbindOpen = item.$on('open', () => {
-        this.$emit('open', item, index);
-        if (this.$options.autoclose) {
-          this.$children.AccordionItem.filter((el, i) => index !== i).forEach((it) => it.close());
-        }
-      });
-      const unbindClose = item.$on('close', () => {
-        this.$emit('close', item, index);
-      });
-
-      return () => {
-        unbindOpen();
-        unbindClose();
-      };
-    });
   }
 
   /**
-   * Destroy autoclose behavior on destroyed.
+   * @this {AccordionInterface}
+   * @param {number} index
    * @return {void}
    */
-  destroyed() {
-    this.unbindMethods.forEach((unbind) => unbind());
+  onAccordionItemClose(index) {
+    const accordionItem = this.$children.AccordionItem[index];
+    this.$emit('close', accordionItem, index);
   }
 }
