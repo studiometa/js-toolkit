@@ -71,7 +71,7 @@ let instance = null;
  *
  * @return {ServiceInterface & LoadService}
  */
-export default function useRaf() {
+export default function useLoad() {
   if (!instance) {
     instance = new Load();
   }

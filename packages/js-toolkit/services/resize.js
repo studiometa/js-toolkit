@@ -122,14 +122,6 @@ class Resize extends Service {
 
     return breakpoints.split(',');
   }
-
-  /**
-   * Test if we can use the `ResizeObserver` API.
-   * @return {Boolean}
-   */
-  get canUseResizeObserver() {
-    return typeof window.ResizeObserver !== 'undefined';
-  }
 }
 
 let resize = null;
