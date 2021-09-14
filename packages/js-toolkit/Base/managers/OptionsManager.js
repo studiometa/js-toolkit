@@ -256,20 +256,4 @@ export default class OptionsManager {
     OptionsManager.__propertyNameCache.set(key, propertyName);
     return propertyName;
   }
-
-  /**
-   * Test if a value is primitive
-   *
-   * @param  {any} value
-   * @return {boolean}
-   * @private
-   */
-  static __isPrimitive(value) {
-    return (
-      typeof value === 'string' ||
-      typeof value === 'number' ||
-      typeof value === 'symbol' ||
-      typeof value === 'boolean'
-    );
-  }
 }
