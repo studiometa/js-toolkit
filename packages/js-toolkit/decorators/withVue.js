@@ -16,13 +16,15 @@ export default (BaseClass) =>
       name: `${BaseClass?.config?.name ?? ''}WithVue`,
     };
 
+    static vueConfig;
+
     /**
      * @param {HTMLElement} element The component's root element.
      */
     constructor(element) {
       super(element);
 
-      const { vueConfig } = this.constructor;
+      const { vueConfig } = /** @type {typeof withVue} */ (this.constructor);
 
       if (!vueConfig) {
         throw new Error('[withVue] You must define a `vueConfig` object.');
@@ -35,6 +37,10 @@ export default (BaseClass) =>
       this.$vue = new Vue(vueConfig);
 
       this.$on('mounted', () => {
+        if (!(this.$refs.vue instanceof HTMLElement)) {
+          throw new Error('The `vue` refs must be a single HTMLElement.');
+        }
+
         this.$vue.$mount(this.$refs.vue);
       });
 
