@@ -38,10 +38,6 @@ export default (BaseClass) =>
         this.$vue.$mount(this.$refs.vue);
       });
 
-      this.$on('updated', () => {
-        this.$vue.$forceUpdate();
-      });
-
       this.$on('destroyed', () => {
         this.$vue.$destroy();
       });
