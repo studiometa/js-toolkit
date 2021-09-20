@@ -38,7 +38,7 @@ export default (BaseClass) =>
 
       this.$on('mounted', () => {
         if (!(this.$refs.vue instanceof HTMLElement)) {
-          throw new Error('The `vue` refs must be a single HTMLElement.');
+          throw new Error('[withVue] The `vue` refs must be a single HTMLElement.');
         }
 
         this.$vue.$mount(this.$refs.vue);

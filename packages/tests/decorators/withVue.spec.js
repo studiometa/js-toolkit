@@ -74,4 +74,12 @@ describe('The `withVue` decorator', () => {
   it('should return an error because `render` is not a function', () => {
     expect(() => { new FooBar(tpl); }).toThrow('[withVue] You must define a `render` function in vueConfig.');
   });
+
+  const tplWithoutVueRef = html`<div></div>`;
+
+  const secondFoo = new Foo(tplWithoutVueRef)
+
+  it('should return an error because the `vue` ref isn\'t a single HTMLElement', () => {
+    expect(() => { secondFoo.$mount(); }).toThrow('[withVue] The `vue` refs must be a single HTMLElement.');
+  });
 });
