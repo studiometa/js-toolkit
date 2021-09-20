@@ -65,6 +65,7 @@ export default class Base {
   /**
    * This is a Base instance.
    * @type {Boolean}
+   * @readonly
    */
   static $isBase = true;
 
@@ -104,6 +105,7 @@ export default class Base {
 
   /**
    * @type {ServicesManager}
+   * @private
    */
   __services;
 
@@ -118,6 +120,7 @@ export default class Base {
 
   /**
    * @type {RefsManager}
+   * @private
    */
   __refs;
 
@@ -132,6 +135,7 @@ export default class Base {
 
   /**
    * @type {BaseOptions}
+   * @private
    */
   __options;
 
@@ -146,6 +150,7 @@ export default class Base {
 
   /**
    * @type {ChildrenManager}
+   * @private
    */
   __children;
 
@@ -160,6 +165,7 @@ export default class Base {
 
   /**
    * @type {EventsManager}
+   * @private
    */
   __events;
 
@@ -228,6 +234,7 @@ export default class Base {
 
   /**
    * Trigger the `mounted` callback.
+   * @return {this}
    */
   $mount() {
     this.__debug('$mount');
@@ -245,6 +252,7 @@ export default class Base {
 
   /**
    * Update the instance children.
+   * @return {this}
    */
   $update() {
     this.__debug('$update');
@@ -267,6 +275,7 @@ export default class Base {
 
   /**
    * Trigger the `destroyed` callback.
+   * @return {this}
    */
   $destroy() {
     this.__debug('$destroy');
