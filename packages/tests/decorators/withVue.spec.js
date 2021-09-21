@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals';
 import { html } from 'htl';
 import Base from '@studiometa/js-toolkit';
+import Vue from 'vue';
 import withVue from '@studiometa/js-toolkit/decorators/withVue';
 
 describe('The `withVue` decorator', () => {
@@ -19,7 +20,7 @@ describe('The `withVue` decorator', () => {
     },
   };
 
-  class Foo extends withVue(Base) {
+  class Foo extends withVue(Base, Vue) {
     static vueConfig = {
       components: {
         VueComponent,
@@ -53,33 +54,36 @@ describe('The `withVue` decorator', () => {
     expect(tpl.innerHTML).toMatchSnapshot();
   });
 
-  class Bar extends withVue(Base) {
-    static config = { name: 'Bar', refs: ['vue'] };
-  }
-
   it('should return an error about the missing vueConfig', () => {
-    expect(() => { new Bar(tpl); }).toThrow('[withVue] You must define a `vueConfig` object.');
+    class Bar extends withVue(Base, Vue) {
+      static config = { name: 'Bar', refs: ['vue'] };
+    }
+    expect(() => {
+      new Bar(tpl);
+    }).toThrow('[withVue] You must define a `vueConfig` object.');
   });
-
-  class FooBar extends withVue(Base) {
-    static vueConfig = {
-      components: {
-        VueComponent,
-      },
-      render: '',
-    };
-    static config = { name: 'FooBar', refs: ['vue'] };
-  }
 
   it('should return an error because `render` is not a function', () => {
-    expect(() => { new FooBar(tpl); }).toThrow('[withVue] You must define a `render` function in vueConfig.');
+    class FooBar extends withVue(Base, Vue) {
+      static vueConfig = {
+        components: {
+          VueComponent,
+        },
+        render: '',
+      };
+      static config = { name: 'FooBar', refs: ['vue'] };
+    }
+    expect(() => {
+      new FooBar(tpl);
+    }).toThrow('[withVue] You must define a `render` function in vueConfig.');
   });
 
-  const tplWithoutVueRef = html`<div></div>`;
+  it("should return an error because the `vue` ref isn't a single HTMLElement", () => {
+    const tplWithoutVueRef = html`<div></div>`;
 
-  const secondFoo = new Foo(tplWithoutVueRef)
-
-  it('should return an error because the `vue` ref isn\'t a single HTMLElement', () => {
-    expect(() => { secondFoo.$mount(); }).toThrow('[withVue] The `vue` refs must be a single HTMLElement.');
+    const secondFoo = new Foo(tplWithoutVueRef);
+    expect(() => {
+      secondFoo.$mount();
+    }).toThrow('[withVue] The `vue` refs must be a single HTMLElement.');
   });
 });
