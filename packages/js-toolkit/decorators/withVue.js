@@ -1,5 +1,3 @@
-import Vue from 'vue';
-
 /**
  * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
  */
@@ -7,15 +5,25 @@ import Vue from 'vue';
 /**
  * withVue class.
  * @param {BaseComponent} BaseClass
+ * @param {import('vue').VueConstructor} Vue
  */
 
-export default (BaseClass) =>
+export default (BaseClass, Vue) =>
   class withVue extends BaseClass {
     static config = {
       ...(BaseClass.config || {}),
       name: `${BaseClass?.config?.name ?? ''}WithVue`,
     };
 
+    /**
+     * @type {Vue}
+     */
+    $vue;
+
+    /**
+     * @typedef {import('vue').ComponentOptions} ComponentOptions
+     * @type {ComponentOptions & { render: ComponentOptions['render'] }}
+     */
     static vueConfig;
 
     /**
