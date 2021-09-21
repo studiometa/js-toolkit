@@ -13,3 +13,4 @@ Decorators are used to add extra functionalities to a Base class. The following 
 - [withExtraConfig](./withExtraConfig.md)
 - [withIntersectionObserver](./withIntersectionObserver.md)
 - [withMountWhenInView](./withMountWhenInView.md)
+- [withVue](./withVue.md)

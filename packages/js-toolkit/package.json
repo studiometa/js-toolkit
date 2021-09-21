@@ -33,5 +33,8 @@
     "mem": "^9.0.1",
     "no-case": "^3.0.4",
     "stylefire": "^7.0.3"
+  },
+  "devDependencies": {
+    "vue": "^2.6.14"
   }
 }
