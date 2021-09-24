@@ -11,7 +11,7 @@ export default class ScrollToDemo extends Base {
     this.$log('mounted');
   }
 
-  onBtnClick() {
+  async onBtnClick() {
     this.$log('click on btn ref');
     scrollTo(this.$refs.text);
   }
