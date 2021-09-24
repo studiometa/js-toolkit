@@ -3,24 +3,30 @@ import damp from './math/damp.js';
 /**
  * Handler for the click event on anchor links
  *
- * @param {HTMLElement} element The target element.
- * @param {Object} options Options for the scroll.
- * @param {Object} options.offset Offset to add to the target scroll position.
- * @param {Object} options.dampFactor The factor used for the scroll damping.
+ * @param {HTMLElement|string} element The target element.
+ * @param {{ offset?: number, dampFactor?: number }} [options] Options for the scroll.
  * @return {Promise<number>} A promising resolving with the target scroll position.
  */
-export default function scrollTo(element, options = { offset: 0, dampFactor: 0.2 }) {
-  if (!(element instanceof HTMLElement)) {
+export default function scrollTo(element, { offset = 0, dampFactor = 0.2 } = {}) {
+  let targetElement = null;
+
+  if (element instanceof HTMLElement) {
+    targetElement = element;
+  } else {
+    targetElement = document.querySelector(element);
+  }
+
+  if (!targetElement) {
     return Promise.resolve(window.pageYOffset);
   }
 
-  const sizes = element.getBoundingClientRect();
-  const scrollMargin = getComputedStyle(element).scrollMarginTop || '0';
+  const sizes = targetElement.getBoundingClientRect();
+  const scrollMargin = getComputedStyle(targetElement).scrollMarginTop || '0';
   const max = document.body.offsetHeight - window.innerHeight;
   let scrollTarget = sizes.top + window.pageYOffset + parseInt(scrollMargin, 10);
 
-  if (typeof options.offset === 'number') {
-    scrollTarget += options.offset;
+  if (typeof offset === 'number') {
+    scrollTarget += offset;
   }
 
   // Make sure to not scroll more than the max scroll allowed
@@ -60,7 +66,7 @@ export default function scrollTo(element, options = { offset: 0, dampFactor: 0.2
         return end();
       }
 
-      dampScroll = damp(scroll, dampScroll, options.dampFactor);
+      dampScroll = damp(scroll, dampScroll, dampFactor);
       window.scrollTo({ top: dampScroll });
 
       if (dampScroll === scroll) {
