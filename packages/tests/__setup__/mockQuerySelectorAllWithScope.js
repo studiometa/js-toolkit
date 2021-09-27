@@ -29,6 +29,6 @@ export default function mockSelectorWithScope(prototype, methodName) {
 }
 
 export const spies = [
-  mockSelectorWithScope(Element.prototype, 'querySelectorAll'),
-  mockSelectorWithScope(Document.prototype, 'querySelectorAll'),
+  typeof window !== 'undefined' && mockSelectorWithScope(Element.prototype, 'querySelectorAll'),
+  typeof window !== 'undefined' && mockSelectorWithScope(Document.prototype, 'querySelectorAll'),
 ];
