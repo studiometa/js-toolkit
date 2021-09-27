@@ -3,7 +3,7 @@
  * @param {Function} callback
  */
 function ResizeObserver(callback) {
-  window.addEventListener('resize', () => callback());
+  globalThis.addEventListener('resize', () => callback());
   return {
     observe: () => {},
     unobserve: () => {},
@@ -11,4 +11,4 @@ function ResizeObserver(callback) {
   };
 }
 
-window.ResizeObserver = ResizeObserver;
+globalThis.ResizeObserver = ResizeObserver;
