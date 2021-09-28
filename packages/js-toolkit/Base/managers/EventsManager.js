@@ -38,9 +38,7 @@ export default class EventsManager {
       const normalizedEventName = EventsManager.normalizeName(event.type);
       const method = `on${normalizedEventName}`;
 
-      if (typeof this.__base[method] === 'function') {
-        this.__base[method](event);
-      }
+      this.__base[method](event);
     },
   };
 
@@ -58,14 +56,12 @@ export default class EventsManager {
       const normalizedEventName = EventsManager.normalizeName(event.type);
       const method = `on${normalizedRefName}${normalizedEventName}`;
 
-      if (typeof this.__base[method] === 'function') {
-        let index = 0;
-        if (Array.isArray(this.__base.$refs[refName])) {
-          index = this.__base.$refs[refName].indexOf(ref);
-        }
-
-        this.__base[method](event, index);
+      let index = 0;
+      if (Array.isArray(this.__base.$refs[refName])) {
+        index = this.__base.$refs[refName].indexOf(ref);
       }
+
+      this.__base[method](event, index);
     },
   };
 
@@ -100,10 +96,8 @@ export default class EventsManager {
       const normalizedEventName = EventsManager.normalizeName(event.type);
       const method = `on${normalizedRefName}${normalizedEventName}`;
 
-      if (typeof this.__base[method] === 'function') {
-        const args = event.detail ?? [];
-        this.__base[method](...args, index, event);
-      }
+      const args = Array.isArray(event.detail) ? event.detail : [];
+      this.__base[method](...args, index, event);
     },
   };
 
