@@ -19,7 +19,9 @@ Array [
           "__childrenHandler": Object {
             "handleEvent": [Function],
           },
-          "__methodsCache": WeakMap {},
+          "__methodsCache": Map {
+            "/^on[A-Z].*$/" => Array [],
+          },
           "__refsHandler": Object {
             "handleEvent": [Function],
           },
@@ -34,7 +36,9 @@ Array [
         "__childrenHandler": Object {
           "handleEvent": [Function],
         },
-        "__methodsCache": WeakMap {},
+        "__methodsCache": Map {
+          "/^on[A-Z].*$/" => Array [],
+        },
         "__refsHandler": Object {
           "handleEvent": [Function],
         },
@@ -65,7 +69,9 @@ Array [
           "__childrenHandler": Object {
             "handleEvent": [Function],
           },
-          "__methodsCache": WeakMap {},
+          "__methodsCache": Map {
+            "/^on[A-Z].*$/" => Array [],
+          },
           "__refsHandler": Object {
             "handleEvent": [Function],
           },
@@ -102,7 +108,9 @@ Array [
             "__childrenHandler": Object {
               "handleEvent": [Function],
             },
-            "__methodsCache": WeakMap {},
+            "__methodsCache": Map {
+              "/^on[A-Z].*$/" => Array [],
+            },
             "__refsHandler": Object {
               "handleEvent": [Function],
             },
@@ -133,7 +141,9 @@ Array [
               "__childrenHandler": Object {
                 "handleEvent": [Function],
               },
-              "__methodsCache": WeakMap {},
+              "__methodsCache": Map {
+                "/^on[A-Z].*$/" => Array [],
+              },
               "__refsHandler": Object {
                 "handleEvent": [Function],
               },
@@ -185,7 +195,9 @@ Array [
           "__childrenHandler": Object {
             "handleEvent": [Function],
           },
-          "__methodsCache": WeakMap {},
+          "__methodsCache": Map {
+            "/^on[A-Z].*$/" => Array [],
+          },
           "__refsHandler": Object {
             "handleEvent": [Function],
           },
@@ -217,7 +229,9 @@ Array [
               "__childrenHandler": Object {
                 "handleEvent": [Function],
               },
-              "__methodsCache": WeakMap {},
+              "__methodsCache": Map {
+                "/^on[A-Z].*$/" => Array [],
+              },
               "__refsHandler": Object {
                 "handleEvent": [Function],
               },
@@ -232,7 +246,9 @@ Array [
             "__childrenHandler": Object {
               "handleEvent": [Function],
             },
-            "__methodsCache": WeakMap {},
+            "__methodsCache": Map {
+              "/^on[A-Z].*$/" => Array [],
+            },
             "__refsHandler": Object {
               "handleEvent": [Function],
             },
@@ -296,7 +312,9 @@ Array [
           "__childrenHandler": Object {
             "handleEvent": [Function],
           },
-          "__methodsCache": WeakMap {},
+          "__methodsCache": Map {
+            "/^on[A-Z].*$/" => Array [],
+          },
           "__refsHandler": Object {
             "handleEvent": [Function],
           },
@@ -329,7 +347,9 @@ Array [
               "__childrenHandler": Object {
                 "handleEvent": [Function],
               },
-              "__methodsCache": WeakMap {},
+              "__methodsCache": Map {
+                "/^on[A-Z].*$/" => Array [],
+              },
               "__refsHandler": Object {
                 "handleEvent": [Function],
               },
@@ -344,7 +364,9 @@ Array [
             "__childrenHandler": Object {
               "handleEvent": [Function],
             },
-            "__methodsCache": WeakMap {},
+            "__methodsCache": Map {
+              "/^on[A-Z].*$/" => Array [],
+            },
             "__refsHandler": Object {
               "handleEvent": [Function],
             },
@@ -375,7 +397,9 @@ Array [
               "__childrenHandler": Object {
                 "handleEvent": [Function],
               },
-              "__methodsCache": WeakMap {},
+              "__methodsCache": Map {
+                "/^on[A-Z].*$/" => Array [],
+              },
               "__refsHandler": Object {
                 "handleEvent": [Function],
               },
@@ -408,7 +432,9 @@ Array [
             "__childrenHandler": Object {
               "handleEvent": [Function],
             },
-            "__methodsCache": WeakMap {},
+            "__methodsCache": Map {
+              "/^on[A-Z].*$/" => Array [],
+            },
             "__refsHandler": Object {
               "handleEvent": [Function],
             },
@@ -439,7 +465,9 @@ Array [
               "__childrenHandler": Object {
                 "handleEvent": [Function],
               },
-              "__methodsCache": WeakMap {},
+              "__methodsCache": Map {
+                "/^on[A-Z].*$/" => Array [],
+              },
               "__refsHandler": Object {
                 "handleEvent": [Function],
               },
@@ -491,7 +519,9 @@ Array [
           "__childrenHandler": Object {
             "handleEvent": [Function],
           },
-          "__methodsCache": WeakMap {},
+          "__methodsCache": Map {
+            "/^on[A-Z].*$/" => Array [],
+          },
           "__refsHandler": Object {
             "handleEvent": [Function],
           },

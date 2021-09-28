@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 import { html } from 'htl';
 import { Base } from '@studiometa/js-toolkit';
 import EventsManager from '@studiometa/js-toolkit/Base/managers/EventsManager';
+import wait from '../../__utils__/wait';
 
 describe('The EventsManager class', () => {
   const rootElementFn = jest.fn();
@@ -73,7 +74,7 @@ describe('The EventsManager class', () => {
 
   const app = new App(tpl);
 
-  afterEach(() => {
+  beforeEach(() => {
     rootElementFn.mockClear();
     singleRefFn.mockClear();
     multipleRefFn.mockClear();
@@ -134,20 +135,27 @@ describe('The EventsManager class', () => {
     app.$children.Component[0].$emit('custom-event', 1, 2);
     expect(componentFn).toHaveBeenCalledTimes(3);
     expect(componentFn).toHaveBeenLastCalledWith(1, 2, 0, expect.objectContaining({ type: 'custom-event', detail: [1, 2]}));
+    app.$children.Component[0].$el.dispatchEvent(new CustomEvent('custom-event'));
+    expect(componentFn).toHaveBeenLastCalledWith(0, expect.objectContaining({ type: 'custom-event', detail: null }));
   });
 
-  it('can unbind event methods from children', () => {
+  it('can unbind and rebind event methods from children', () => {
     expect(componentFn).not.toHaveBeenCalled();
     app.$destroy();
     expect(componentFn).not.toHaveBeenCalled();
     app.$children.Component[0].$emit('custom-event', 1, 2);
     expect(componentFn).not.toHaveBeenCalled();
+    app.$mount();
+    app.$children.Component[0].$emit('custom-event', 1, 2);
+    expect(componentFn).toHaveBeenLastCalledWith(1, 2, 0, expect.objectContaining({ type: 'custom-event', detail: [1, 2]}));
+    app.$destroy();
   });
 
   it('can bind event methods to async children', async () => {
     expect(asyncComponentFn).not.toHaveBeenCalled();
     app.$mount();
     await Promise.all(app.$children.AsyncComponent);
+    await wait(1);
     expect(asyncComponentFn).toHaveBeenCalledTimes(1);
     app.$children.AsyncComponent[0].$emit('custom-event', 1, 2);
     expect(asyncComponentFn).toHaveBeenCalledTimes(2);

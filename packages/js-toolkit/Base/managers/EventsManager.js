@@ -26,7 +26,7 @@ export default class EventsManager {
    * @type {WeakMap}
    * @private
    */
-  __methodsCache = new WeakMap();
+  __methodsCache = new Map();
 
   /**
    * Event listener object for the root element.
@@ -273,35 +273,36 @@ export default class EventsManager {
   __getEventMethodsByName(name = '') {
     const normalizedName = EventsManager.normalizeName(name);
     const regex = new RegExp(`^on${normalizedName}[A-Z].*$`);
+    const key = regex.toString();
 
-    let methods = this.__methodsCache.get(regex);
+    let methods = this.__methodsCache.get(key);
 
     if (!methods) {
-      methods = getAllProperties(this.__base, [], (method) => regex.test(method));
-      this.__methodsCache.set(regex, methods);
+      methods = Array.from(
+        getAllProperties(this.__base, [], (method) => regex.test(method)).reduce(
+          (set, [method]) => set.add(method),
+          new Set()
+        )
+      );
+      this.__methodsCache.set(key, methods);
     }
 
-    return methods.reduce((acc, [method]) => {
-      if (!acc.includes(method)) {
-        acc.push(method);
-      }
-      return acc;
-    }, []);
+    return methods;
   }
 
   /**
    * Normalize the given name to PascalCase, such as:
    *
    * ```
-   * sentence case         => SentenceCase
-   * lowercase             => Lowercase
-   * UPPERCASE             => Uppercase
-   * kebab-case            => KebabCase
-   * snake_case            => SnakeCase
-   * camelCase             => CamelCase
-   * PascalCase            => PascalCase
-   * .class-selector       => ClassSelector
-   * .bem__selector        => BemSelector
+   * sentence case          => SentenceCase
+   * lowercase              => Lowercase
+   * UPPERCASE              => Uppercase
+   * kebab-case             => KebabCase
+   * snake_case             => SnakeCase
+   * camelCase              => CamelCase
+   * PascalCase             => PascalCase
+   * .class-selector        => ClassSelector
+   * .bem__selector         => BemSelector
    * __id-selector          => IdSelector
    * .complex[class^ ="__"] => ComplexClass
    * ```
