@@ -69,10 +69,6 @@ export default function withIntersectionObserver(
         { ...defaultOptions, ...(this.$options.intersectionObserver || {}) }
       );
 
-      if (this.$isMounted) {
-        this.$observer.observe(this.$el);
-      }
-
       this.$on('mounted', () => {
         this.$observer.observe(this.$el);
       });
