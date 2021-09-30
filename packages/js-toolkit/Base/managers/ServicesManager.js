@@ -23,6 +23,8 @@ const SERVICES_MAP = {
   loaded: useLoad,
 };
 
+const SERVICE_NAMES = Object.keys(SERVICES_MAP);
+
 /**
  * @typedef {keyof SERVICES_MAP} ServiceName
  */
@@ -36,6 +38,21 @@ export default class ServicesManager {
    * @private
    */
   __base;
+
+  /**
+   * @type {Record<string, () => ServiceInterface>}
+   */
+  __customServices = {};
+
+  /**
+   * @return {Record<string, () => ServiceInterface>}
+   */
+  get __services() {
+    return {
+      ...this.__customServices,
+      ...SERVICES_MAP,
+    };
+  }
 
   /**
    * Class constructor.
@@ -52,11 +69,11 @@ export default class ServicesManager {
    * @return {Boolean}
    */
   has(service) {
-    if (!hasMethod(this.__base, service) && !SERVICES_MAP[service]) {
+    if (!hasMethod(this.__base, service) && !this.__services[service]) {
       return false;
     }
 
-    const { has } = SERVICES_MAP[service]();
+    const { has } = this.__services[service]();
     return has(this.__base.$id);
   }
 
@@ -71,11 +88,11 @@ export default class ServicesManager {
       return this.disable.bind(this, service);
     }
 
-    if (!hasMethod(this.__base, service) || !SERVICES_MAP[service]) {
+    if (!hasMethod(this.__base, service) || !this.__services[service]) {
       return function noop() {};
     }
 
-    const { add } = SERVICES_MAP[service]();
+    const { add } = this.__services[service]();
     const self = this;
 
     /**
@@ -96,7 +113,7 @@ export default class ServicesManager {
    * @return {Function[]}
    */
   enableAll() {
-    return Object.keys(SERVICES_MAP).map(
+    return Object.keys(this.__services).map(
       /** @param {ServiceName} serviceName */
       (serviceName) => this.enable(serviceName)
     );
@@ -108,7 +125,7 @@ export default class ServicesManager {
    * @return {void}
    */
   disableAll() {
-    Object.keys(SERVICES_MAP).forEach(
+    Object.keys(this.__services).forEach(
       /** @param {ServiceName} serviceName */
       (serviceName) => {
         this.disable(serviceName);
@@ -123,30 +140,37 @@ export default class ServicesManager {
    * @return {void}
    */
   disable(service) {
-    if (!SERVICES_MAP[service]) {
+    if (!this.__services[service]) {
       return;
     }
 
-    const { remove } = SERVICES_MAP[service]();
+    const { remove } = this.__services[service]();
     remove(this.__base.$id);
   }
 
   /**
    * Register a new service to be enabled/disabled.
    *
-   * @param {string}                 name        The name of the service hook.
-   * @param {() => ServiceInterface} useFunction The `use...` function for the service.
+   * @param {string} name
+   *   The name of the service hook.
+   * @param {() => ServiceInterface} useFunction
+   *   The `use...` function for the service.
    */
   register(name, useFunction) {
-    SERVICES_MAP[name] = useFunction;
+    this.__customServices[name] = useFunction;
   }
 
   /**
    * Unregister a new service to be enabled disabled.
    *
-   * @param {string} name The name of the service hooK
+   * @param {string} name
+   *   The name of the service hook.
    */
   unregister(name) {
-    delete SERVICES_MAP[name];
+    if (SERVICE_NAMES.includes(name)) {
+      throw new Error(`[ServicesManager] The \`${name}\` core service can not be unregistered.`);
+    }
+
+    delete this.__customServices[name];
   }
 }
