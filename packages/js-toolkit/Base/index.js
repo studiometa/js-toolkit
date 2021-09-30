@@ -70,6 +70,29 @@ export default class Base {
   static $isBase = true;
 
   /**
+   * Get the root instance of the app.
+   * @return {Base}
+   */
+  get $root() {
+    if (!this.$parent) {
+      return this;
+    }
+
+    let parent = this.$parent;
+    let root = this.$parent;
+
+    while (parent) {
+      if (!parent.$parent) {
+        root = parent;
+      }
+
+      parent = parent.$parent;
+    }
+
+    return root;
+  }
+
+  /**
    * Merge configuration with the parents' configurations.
    *
    * @return {BaseConfig}
