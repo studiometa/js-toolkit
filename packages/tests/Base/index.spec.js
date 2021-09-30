@@ -1,6 +1,7 @@
 /* eslint-disable no-new, require-jsdoc, max-classes-per-file */
 import { jest } from '@jest/globals';
 import { Base } from '@studiometa/js-toolkit';
+import { html } from 'htl';
 import ChildrenManager from '@studiometa/js-toolkit/Base/managers/ChildrenManager';
 import OptionsManager from '@studiometa/js-toolkit/Base/managers/OptionsManager';
 import RefsManager from '@studiometa/js-toolkit/Base/managers/RefsManager';
@@ -128,6 +129,39 @@ describe('A Base instance', () => {
         title: String,
       },
     });
+  });
+
+  it('should have a `$root` property', () => {
+    class ChildComponent extends Base {
+      static config = {
+        name: 'ChildComponent',
+      };
+    }
+
+    class Component extends Base {
+      static config = {
+        name: 'Component',
+        components: { ChildComponent },
+      };
+    }
+
+    class App extends Base {
+      static config = {
+        name: 'App',
+        components: { Component },
+      };
+    }
+
+    const tpl = html`<div>
+      <div data-component="Component">
+        <div data-component="ChildComponent"></div>
+      </div>
+    </div>`;
+    const app = new App(tpl).$mount();
+
+    expect(app.$root).toBe(app);
+    expect(app.$children.Component[0].$root).toBe(app);
+    expect(app.$children.Component[0].$children.ChildComponent[0].$root).toBe(app);
   });
 });
 
