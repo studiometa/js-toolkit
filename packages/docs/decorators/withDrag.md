@@ -1,8 +1,6 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /decorators/withBreakpointObserver.html
-next: /decorators/withExtraConfig.html
 ---
 
 # withDrag
@@ -16,8 +14,7 @@ Use this decorator to add the `dragged(props)` hook from the [drag](/services/dr
 This decorator can be used to easily add drag capabilities to the root element of a component.
 
 ```js
-import Base from '@studiometa/js-toolkit';
-import withDrag from '@studiometa/js-toolkit/decorators/withDrag';
+import { Base, withDrag } from '@studiometa/js-toolkit';
 
 export default class Draggable extends withDrag(Base) {
   static config = {
@@ -31,14 +28,13 @@ export default class Draggable extends withDrag(Base) {
 }
 ```
 :::tip
-We recommend using [stylefire](https://popmotion.io/stylefire/) to update the root element position, see the [`Draggable`](https://github.com/studiometa/js-toolkit/blob/master/packages/js-toolkit/components/Draggable.js) component source for more details.
+We recommend using [stylefire](https://popmotion.io/stylefire/) to update the root element position, see the [`Draggable`](https://github.com/studiometa/ui/blob/master/packages/ui/Draggable.js) component source for more details.
 :::
 
 ### Move a ref element
 
 ```js{6-10}
-import Base from '@studiometa/js-toolkit';
-import withDrag from '@studiometa/js-toolkit/decorators/withDrag';
+import { Base, withDrag } from '@studiometa/js-toolkit';
 
 export default class Draggable extends withDrag(
   Base,

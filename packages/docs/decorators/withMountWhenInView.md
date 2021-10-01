@@ -1,8 +1,6 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /decorators/withIntersectionObserver.html
-next: /components/
 ---
 
 # withMountWhenInView
@@ -14,8 +12,7 @@ Use this decorator to create a component which will mount and destroy itself bas
 ### Simple usage
 
 ```js
-import Base from '@studiometa/js-toolkit';
-import withMountWhenInView from '@studiometa/js-toolkit/decorators/withMountWhenInView';
+import { Base, withMountWhenInView } from '@studiometa/js-toolkit';
 
 export default class Component extends withMountWhenInView(Base) {
   static config = {
@@ -38,8 +35,7 @@ export default class Component extends withMountWhenInView(Base) {
 You can pass custom options for the `IntersectionObserver` instance by passing a second parameter to the `withMountWhenInView` function:
 
 ```js{4-6}
-import Base from '@studiometa/js-toolkit';
-import withMountWhenInView from '@studiometa/js-toolkit/decorators/withMountWhenInView';
+import { Base, withMountWhenInView } from '@studiometa/js-toolkit';
 
 export default class Component extends withMountWhenInView(Base, {
   threshold: 0.5,

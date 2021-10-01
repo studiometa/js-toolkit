@@ -1,8 +1,6 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /decorators/
-next: /decorators/withBreakpointObserver.html
 ---
 
 # withBreakpointManager
@@ -18,8 +16,7 @@ In the following example, the `MenuMobile` class will be mounted along the `Menu
 The root element `this.$el` of each classes will be the same.
 
 ```js{6-9}
-import Base from '@studiometa/js-toolkit';
-import withBreakpointManager from '@studiometa/js-toolkit/decorators/withBreakpointManager';
+import { Base, withBreakpointManager } from '@studiometa/js-toolkit';
 import MenuMobile from './MenuMobile';
 import MenuDesktop from './MenuDesktop';
 

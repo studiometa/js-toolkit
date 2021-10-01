@@ -1,8 +1,6 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /decorators/withDrag.html
-next: /decorators/withIntersectionObserver.html
 ---
 
 # withExtraConfig
@@ -16,8 +14,8 @@ Use this decorator to quickly create variants of an existing class.
 This decorator can be used to easily add a new ref to an existing component.
 
 ```js
-import Modal from '@studiometa/js-toolkit/components/Modal';
-import withExtraConfig from '@studiometa/js-toolkit/decorators/withExtraConfig';
+import Modal from '@studiometa/ui/Modal';
+import { withExtraConfig } from '@studiometa/js-toolkit';
 
 export default withExtraConfig(Modal, { refs: ['toggle'] });
 ```
@@ -27,8 +25,8 @@ export default withExtraConfig(Modal, { refs: ['toggle'] });
 Components can define default values for their options, this decorator can be used to change them without the hassle of re-writing the whole configuration.
 
 ```js
-import Modal from '@studiometa/js-toolkit/components/Modal';
-import withExtraConfig from '@studiometa/js-toolkit/decorators/withExtraConfig';
+import Modal from '@studiometa/ui/Modal';
+import { withExtraConfig } from '@studiometa/js-toolkit';
 
 export default withExtraConfig(Modal, {
   options: {
@@ -44,9 +42,8 @@ export default withExtraConfig(Modal, {
 This decorator can be used to quickly enable debug for an external component.
 
 ```js{9}
-import Base from '@studiometa/js-toolkit';
-import Modal from '@studiometa/js-toolkit/components/Modal';
-import withExtraConfig from '@studiometa/js-toolkit/decorators/withExtraConfig';
+import { Base, withExtraConfig } from '@studiometa/js-toolkit';
+import Modal from '@studiometa/ui/Modal';
 
 class App extends Base {
   static config = {
@@ -63,8 +60,8 @@ class App extends Base {
 This decorator uses [`deepmerge`](https://github.com/TehShrike/deepmerge) to merge the `config` properties, you can pass [options](https://github.com/TehShrike/deepmerge#options) to it with the third parameter:
 
 ```js{7}
-import Modal from '@studiometa/js-toolkit/components/Modal';
-import withExtraConfig from '@studiometa/js-toolkit/decorators/withExtraConfig';
+import { withExtraConfig } from '@studiometa/js-toolkit';
+import Modal from '@studiometa/ui/Modal';
 
 export default withExtraConfig(Modal, {
   refs: ['toggle']

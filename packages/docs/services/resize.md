@@ -1,8 +1,6 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /services/raf.md
-next: /services/scroll.md
 ---
 
 # Resize service
@@ -12,7 +10,7 @@ The resize service will help you manage your actions when the window is resized.
 ## Usage
 
 ```js
-import useResize from '@studiometa/js-toolkit/services/resize';
+import { useResize } from '@studiometa/js-toolkit';
 
 const { add, remove, props } = useResize();
 

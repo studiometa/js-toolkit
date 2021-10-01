@@ -1,7 +1,5 @@
 ---
 sidebar: auto
-prev: /api/
-next: /components/
 ---
 
 # Decorators
