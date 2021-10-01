@@ -1,8 +1,6 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /services/resize.md
-next: /utils/
 ---
 
 # Scroll service
@@ -12,7 +10,7 @@ The scroll service will help you manage your actions when the page is scrolled.
 ## Usage
 
 ```js
-import useScroll from '@studiometa/js-toolkit/services/scroll';
+import { useScroll } from '@studiometa/js-toolkit';
 
 const { add, remove, props } = useScroll();
 

@@ -1,8 +1,6 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /components/
-next: /services/key.md
 ---
 
 # Drag service
@@ -12,7 +10,7 @@ The drag service will help you manage draggable elements.
 ## Usage
 
 ```js
-import useDrag from '@studiometa/js-toolkit/services/drag';
+import { useDrag } from '@studiometa/js-toolkit';
 
 const target = document.querySelector('.draggable');
 const { add, remove, props } = useDrag(target);

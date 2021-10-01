@@ -2,7 +2,7 @@
 sidebar: auto
 sidebarDepth: 6
 prev: /guide/
-next: /components/
+next: /api/helpers/
 ---
 
 # API
@@ -18,18 +18,16 @@ Create components with ease by extending the `Base` class.
 
 **Examples**
 
-Create an app using the [`Modal` component](/components/Modal.html) and instantiate it:
+Create an app using a custom component and instantiate it:
 
 ```js
-import Base from '@studiometa/js-toolkit';
-import Modal from '@studiometa/js-toolkit/components/Modal';
+import { Base } from '@studiometa/js-toolkit';
 import Component from './components/Component';
 
 class App extends Base {
   static config = {
     name: 'App',
     components: {
-      Modal,
       Component,
     },
   };
@@ -44,7 +42,7 @@ export default app;
 Create a component to be used by another component:
 
 ```js
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 
 export default class Component extends Base {
   static config = {

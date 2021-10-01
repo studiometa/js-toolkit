@@ -15,29 +15,19 @@ Install the latest version via NPM:
 npm install @studiometa/js-toolkit
 ```
 
-The package can be used directly with the [Skypack CDN](https://www.skypack.dev) as follow:
-
-```html
-<script type="module">
-  // Import the Base class
-  import Base from 'https://cdn.skypack.dev/@studiometa/js-toolkit/';
-  // Import the full toolkit
-  import * as components from 'https://cdn.skypack.dev/@studiometa/js-toolkit/components';
-  import * as decorators from 'https://cdn.skypack.dev/@studiometa/js-toolkit/decorators';
-  import * as services from 'https://cdn.skypack.dev/@studiometa/js-toolkit/services';
-  import * as utils from 'https://cdn.skypack.dev/@studiometa/js-toolkit/utils';
-</script>
-```
-
 ## Usage
 
-### Modern JS with bundler
-
-Import the `Base` class to create your components from your `node_modules`:
+Import the `Base` class and extend it to create your components:
 
 ```js
-import Base from '@studiometa/js-toolkit';
-import Modal from '@studiometa/js-toolkit/components/Modal';
+import { Base } from '@studiometa/js-toolkit';
+import Modal from '@studiometa/ui/Modal';
+
+class Component {
+  static config = {
+    name: 'Component',
+  }
+}
 
 class App extends Base {
   static config = {
@@ -46,6 +36,7 @@ class App extends Base {
     debug: true,
     components: {
       Modal,
+      Component,
     },
     refs: ['btn', 'items[]'],
     options: {
@@ -90,53 +81,4 @@ export default new App(document.querySelector('#app'));
 
 Read the [documentation](https://js-toolkit.meta.fr/) to learn more.
 
-### Modern JS in browser
 
-Two modern builds are provided for prototyping purpose, they can be used as follow:
-
-```html
-<script type="module">
-  // Import the Base class
-  import Base from 'https://cdn.skypack.dev/@studiometa/js-toolkit/';
-  // Import the full toolkit
-  import Modal from 'https://cdn.skypack.dev/@studiometa/js-toolkit/components/Modal';
-</script>
-```
-
-### Legacy JS
-
-Two UMD builds are also provided to be used in legacy projects.
-
-```html
-<div id="app">
-  <button data-ref="btn">Add more</button>
-  <input data-ref="input" value="0" readonly />
-  <div data-component="Component"></div>
-</div>
-<script src="https://unpkg.com/@studiometa/js-toolkit/index.umd.js"></script>
-<script>
-  var Component = Base.defineComponent({
-    config: {
-      name: 'Component',
-    },
-  });
-
-  Base.createBase(document.querySelector('#app'), {
-    config: {
-      name: 'App',
-      log: true,
-      components: {
-        Component: Component,
-      },
-    },
-    mounted: function() {
-      this.$log('mounted');
-    },
-    methods: {
-      onBtnClick: function() {
-        this.$refs.input.value = Number(this.$refs.input.value) + 1;
-      },
-    },
-  });
-</script>
-```

@@ -1,7 +1,7 @@
 ---
 sidebar: true
 prev: /api/
-next: /components/
+next: /decorators/
 ---
 
 # Helpers
@@ -29,8 +29,7 @@ Use the `createApp` function to instantiate your application on page load while 
 
 ```js{3,11}
 // app.js
-import Base from '@studiometa/js-toolkit';
-import createApp from '@studiometa/js-toolkit/helpers';
+import { Base, createApp } from '@studiometa/js-toolkit';
 
 class App extends Base {
   static config = {
@@ -75,8 +74,7 @@ Use the `importOnInteraction` function to import component when the user interac
 **Example**
 
 ```js{2,8-14,16-22,24-29}
-import Base from '@studiometa/js-toolkit';
-import importOnInteraction from '@studiometa/js-toolkit/helpers/importOnInteraction';
+import { Base, importOnInteraction } from '@studiometa/js-toolkit';
 
 class App extends Base {
   static config = {
@@ -127,8 +125,7 @@ Use this function to import components when the [`requestIdleCallback`](https://
 **Example**
 
 ```js{8}
-import Base from '@studiometa/js-toolkit';
-import importWhenIdle from '@studiometa/js-toolkit/helpers/importWhenIdle';
+import { Base, importWhenIdle } from '@studiometa/js-toolkit';
 
 class App extends Base {
   static config = {
@@ -160,8 +157,7 @@ Use this function to import component when an element is visible.
 **Example**
 
 ```js{2,8-13,15-20,22-27}
-import Base from '@studiometa/js-toolkit';
-import importWhenVisible from '@studiometa/js-toolkit/helpers/importWhenVisible';
+import { Base, importWhenVisible } from '@studiometa/js-toolkit';
 
 class App extends Base {
   static config = {
@@ -192,119 +188,3 @@ class App extends Base {
 }
 ```
 
-<div id="legacy-helpers"></div>
-
-## Legacy helpers
-
-Legacy project without bundler might not be able to use classes, the following functions should be used to define components.
-
-<div id="defineComponent"></div>
-
-### `defineComponent(options)`
-
-Define a component without having to extend the `Base` class.
-
-**Parameters**
-- `options.config` (`Object`): see the [config getter](#config)
-- `options.methods` (`Object`): used for functions other than the [`Base` class methods](#class-methods)
-- `options[<name>]` (`Function`): [class methods](#class-methods) of the component
-
-**Returns**
-
-- A constructor function for the component
-
-**Examples**
-
-For legacy projects, use the UMD build:
-
-```html
-<script src="https://unpkg.com/@studiometa/js-toolkit/index.umd.js"></script>
-<script>
-  var Component = Base.defineComponent({
-    config: {
-      name: 'Component',
-    },
-    mounted: function() {
-      this.$log('mouted');
-    },
-    methods: {
-      onClick: function() {
-        this.$log('clicked');
-      },
-    },
-  });
-
-  new Component(document.body);
-</script>
-```
-
-For modern projects, prefer using the NPM package:
-
-```js
-import { defineComponent } from '@studiometa/js-toolkit';
-
-const Component = defineComponent({
-  config: {
-    name: 'Component',
-  },
-  mounted() {
-    this.$log('mounted');
-  },
-  methods: {
-    onClick() {
-      this.$log('clicked');
-    },
-  },
-});
-
-new Component(document.body);
-```
-
-:::warning
-The `defineComponent(options)` function is aimed at legacy projects which can not use classes. Modern projects should use the class based approach.
-:::
-
-<div id="createBase"></div>
-
-### `createBase(element, options)`
-
-Define a component and instantiate it on the given element.
-
-**Parameters**
-- `element` (`HTMLElement`): the root element for the component's instance
-- `options` (`Object`): the component's configuration, see the [`defineComponent` function documentation](#definecomponent-options)
-
-**Returns**
-
-- `Base`: The given component's instance mounted on the given element, or first element in the DOM when given a CSS selector.
-
-**Examples**
-
-For legacy projects, use the UMD build:
-
-```html
-<script src="https://unpkg.com/@studiometa/js-toolkit/index.umd.js"></script>
-<script>
-  var app = Base.createBase(document.body, {
-    config: {
-      name: 'App',
-    },
-  });
-</script>
-```
-
-For modern projects, prefer using the NPM package:
-
-```js
-import { createBase } from '@studiometa/js-toolkit';
-
-const app = createBase(document.body, {
-  config: {
-    name: 'App',
-  },
-});
-```
-
-:::warning
-The `createBase(elementOrSelector, options)` function is aimed at legacy projects which can not use classes. Modern projects should use the class based approach.
-:::

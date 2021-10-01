@@ -1,8 +1,6 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /services/key.md
-next: /services/raf.md
 ---
 
 # Pointer service
@@ -12,7 +10,7 @@ The pointer service will help you manage your cursor. It merges the mouse and to
 ## Usage
 
 ```js
-import usePointer from '@studiometa/js-toolkit/services/pointer';
+import { usePointer } from '@studiometa/js-toolkit';
 
 const { add, remove, props } = usePointer();
 

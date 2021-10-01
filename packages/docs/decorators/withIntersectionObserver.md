@@ -1,8 +1,6 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /decorators/withExtraConfig.html
-next: /decorators/withMountWhenInView.html
 ---
 
 # withIntersectionObserver
@@ -14,8 +12,7 @@ Use this decorator to create a class that will have the capacity to trigger an `
 ### Simple usage
 
 ```js{4,9-17}
-import Base from '@studiometa/js-toolkit';
-import withIntersectionObserver from '@studiometa/js-toolkit/decorators/withIntersectionObserver';
+import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 
 export default class Component extends withIntersectionObserver(Base) {
   static config = {
@@ -39,8 +36,7 @@ export default class Component extends withIntersectionObserver(Base) {
 You can pass custom options for the `IntersectionObserver` instance by passing a second parameter to the `withIntersectionObserver` function:
 
 ```js{4-6}
-import Base from '@studiometa/js-toolkit';
-import withIntersectionObserver from '@studiometa/js-toolkit/decorators/withIntersectionObserver';
+import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 
 export default class Component extends withIntersectionObserver(Base, {
   threshold: 0.5,

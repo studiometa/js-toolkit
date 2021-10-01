@@ -1,8 +1,6 @@
 ---
 sidebar: auto
 sidebarDepth: 5
-prev: /services/pointer.md
-next: /services/resize.md
 ---
 
 # RAF service
@@ -12,7 +10,7 @@ The RAF (short for `requestAnimationFrame`) service will help you manage your re
 ## Usage
 
 ```js
-import useRaf from '@studiometa/js-toolkit/services/raf';
+import { useRaf } from '@studiometa/js-toolkit';
 
 const { add, remove, props } = useRaf();
 

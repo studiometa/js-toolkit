@@ -1,7 +1,5 @@
 ---
 sidebar: auto
-prev: /
-next: /collide
 ---
 
 # Utils
