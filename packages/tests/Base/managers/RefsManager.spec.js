@@ -56,34 +56,14 @@ describe('The refs resolution', () => {
     div.innerHTML = `
       <div>
         <div data-ref="foo"></div>
-        <div data-component="Child">
-          <div data-ref="baz"></div>
+        <div data-component="Component">
+          <div data-ref="bar[]"></div>
         </div>
       </div>
     `;
-    const app = new App(div);
-    expect(app.$refs.baz).toBeUndefined();
+    const app = new App(div).$mount();
+    expect(app.$refs.bar).toEqual([]);
   });
-
-  // @todo Remove in v2
-  // it('should resolve child components refs when the :scope pseudo-class is not supported', () => {
-  //   // eslint-disable-next-line no-underscore-dangle
-  //   globalThis.__SCOPE_PSEUDO_CLASS_SHOULD_FAIL__ = true;
-  //   const div = document.createElement('div');
-  //   div.innerHTML = `
-  //     <div>
-  //       <div data-ref="foo"></div>
-  //       <div data-component="Child">
-  //         <div data-ref="bar"></div>
-  //       </div>
-  //     </div>
-  //   `;
-  //   const app = new App(div);
-  //   expect(Object.keys(app.$refs)).toEqual(['foo']);
-  //   expect(Object.keys(app.$refs)).not.toEqual(['foo', 'bar']);
-  //   // eslint-disable-next-line no-underscore-dangle
-  //   globalThis.__SCOPE_PSEUDO_CLASS_SHOULD_FAIL__ = false;
-  // });
 
   it('should be able to resolve multiple refs as array with a warning', () => {
     const div = document.createElement('div');
@@ -100,18 +80,4 @@ describe('The refs resolution', () => {
       'Did you forgot to add the `[]` suffix to its name?'
     );
   });
-
-  // @todo remove in v2
-  // it('should warn when using non-defined refs', () => {
-  //   const div = document.createElement('div');
-  //   div.innerHTML = `<div data-ref="baz"></div>`;
-  //   const spy = jest.spyOn(window.console, 'warn');
-  //   spy.mockImplementation(() => true);
-  //   const app = new App(div).$mount();
-  //   expect(spy).toHaveBeenCalledWith(
-  //     '[App]',
-  //     'The "baz" ref is not defined in the class configuration.',
-  //     'Did you forgot to define it?'
-  //   );
-  // });
 });

@@ -378,6 +378,26 @@ describe('A Base instance methods', () => {
   });
 });
 
+describe('The Base class event methods', () => {
+  it('should bind handlers to events', () => {
+    class App extends Base {
+      static config = { name: 'A' };
+    }
+
+    const app = new App(document.createElement('div')).$mount();
+    const fn = jest.fn();
+    const off = app.$on('foo', fn);
+    app.$emit('foo', { foo: true });
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenLastCalledWith(
+      expect.objectContaining({ type: 'foo', detail: [{ foo: true }] })
+    );
+    off();
+    app.$emit('foo', { foo: true });
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('A Base instance config', () => {
   let element;
 
