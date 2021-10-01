@@ -5,9 +5,9 @@ import {
   importWhenIdle,
   importWhenVisible,
   importOnInteraction,
-  withBreakpointObserver,
+  // withBreakpointObserver,
 } from '@studiometa/js-toolkit';
-import { matrix } from '@studiometa/js-toolkit/utils/css';
+// import { matrix } from '@studiometa/js-toolkit/utils/css';
 
 /**
  * @typedef {import(@studiometa/js-toolkit/Base/index).BaseConfig} BaseConfig
@@ -19,19 +19,19 @@ class App extends Base {
     refs: ['modal'],
     log: false,
     components: {
-      Accordion: (app) =>
-        importWhenVisible(
-          async () => {
-            const { default: Accordion } = await import(
-              '@studiometa/js-toolkit/components/Accordion'
-            );
-            // Add icon ref
-            Accordion.config.components.AccordionItem.config.refs.push('icon');
-            return Accordion;
-          },
-          'Accordion',
-          app
-        ),
+      // Accordion: (app) =>
+      //   importWhenVisible(
+      //     async () => {
+      //       const { default: Accordion } = await import(
+      //         '@studiometa/ui/Accordion'
+      //       );
+      //       // Add icon ref
+      //       Accordion.config.components.AccordionItem.config.refs.push('icon');
+      //       return Accordion;
+      //     },
+      //     'Accordion',
+      //     app
+      //   ),
       BreakpointManagerDemo: (app) =>
         importOnInteraction(
           () => import('./components/BreakPointManagerDemo/index.js'),
@@ -41,51 +41,51 @@ class App extends Base {
         ),
       BreakpointObserverDemo: () =>
         importWhenIdle(() => import('./components/BreakpointObserverDemo.js')),
-      Cursor: () =>
-        importOnInteraction(
-          async () => {
-            const { default: Cursor } = await import('@studiometa/js-toolkit/components/Cursor');
-            return class extends Cursor {
-              static config = {
-                ...Cursor.config,
-                refs: ['inner'],
-              };
+      // Cursor: () =>
+      //   importOnInteraction(
+      //     async () => {
+      //       const { default: Cursor } = await import('@studiometa/ui/Cursor');
+      //       return class extends Cursor {
+      //         static config = {
+      //           ...Cursor.config,
+      //           refs: ['inner'],
+      //         };
 
-              render({ x, y, scale }) {
-                this.$el.style.transform = `translateZ(0) ${matrix({
-                  translateX: x,
-                  translateY: y,
-                })}`;
-                this.$refs.inner.style.transform = `translateZ(0) ${matrix({
-                  scaleX: scale,
-                  scaleY: scale,
-                })}`;
-              }
-            };
-          },
-          document.documentElement,
-          ['mousemove']
-        ),
-      Draggable: (app) =>
-        importWhenVisible(
-          () => import('@studiometa/js-toolkit/components/Draggable'),
-          'Draggable',
-          app
-        ),
+      //         render({ x, y, scale }) {
+      //           this.$el.style.transform = `translateZ(0) ${matrix({
+      //             translateX: x,
+      //             translateY: y,
+      //           })}`;
+      //           this.$refs.inner.style.transform = `translateZ(0) ${matrix({
+      //             scaleX: scale,
+      //             scaleY: scale,
+      //           })}`;
+      //         }
+      //       };
+      //     },
+      //     document.documentElement,
+      //     ['mousemove']
+      //   ),
+      // Draggable: (app) =>
+      //   importWhenVisible(
+      //     () => import('@studiometa/ui/Draggable'),
+      //     'Draggable',
+      //     app
+      //   ),
       Skew: (app) => importWhenVisible(() => import('./components/Skew.js'), 'Skew', app),
       '[data-src]': (app) =>
         importWhenVisible(() => import('./components/Lazyload.js'), '[data-src]', app),
-      Modal: (app) =>
-        importWhenVisible(
-          async () => {
-            const { default: Modal } = await import('@studiometa/js-toolkit/components/Modal');
-            return withBreakpointObserver(Modal);
-          },
-          'Modal',
-          app
-        ),
-      Tabs: (app) =>
-        importWhenVisible(() => import('@studiometa/js-toolkit/components/Tabs'), 'Tabs', app),
+      // Modal: (app) =>
+      //   importWhenVisible(
+      //     async () => {
+      //       const { default: Modal } = await import('@studiometa/ui/Modal');
+      //       return withBreakpointObserver(Modal);
+      //     },
+      //     'Modal',
+      //     app
+      //   ),
+      // Tabs: (app) =>
+      //   importWhenVisible(() => import('@studiometa/ui/Tabs'), 'Tabs', app),
     },
   };
 
