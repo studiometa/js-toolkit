@@ -29,7 +29,6 @@
   "types": "index.d.ts",
   "dependencies": {
     "@babel/runtime": "^7.15.4",
-    "deepmerge": "^4.2.2",
-    "stylefire": "^7.0.3"
+    "deepmerge": "^4.2.2"
   }
 }
