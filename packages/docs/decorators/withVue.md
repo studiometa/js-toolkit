@@ -28,10 +28,11 @@ See the [`refs` API documentation part](/api/#config-refs) for explanations abou
 
 ```js
 import Base from '@studiometa/js-toolkit';
+import Vue from 'vue';
 import { withVue } from '@studiometa/js-toolkit/decorators';
 import CustomComponent from './CustomComponent.vue';
 
-export default class MyVueComponent extends withVue(Base) {
+export default class MyVueComponent extends withVue(Base, Vue) {
   static vueConfig = {
     components: {
       CustomComponent,
