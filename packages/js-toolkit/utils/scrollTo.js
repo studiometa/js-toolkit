@@ -3,17 +3,17 @@ import damp from './math/damp.js';
 /**
  * Handler for the click event on anchor links
  *
- * @param {HTMLElement|string} element The target element.
+ * @param {HTMLElement|string} selectorElement The target element.
  * @param {{ offset?: number, dampFactor?: number }} [options] Options for the scroll.
  * @return {Promise<number>} A promising resolving with the target scroll position.
  */
-export default function scrollTo(element, { offset = 0, dampFactor = 0.2 } = {}) {
+export default function scrollTo(selectorElement, { offset = 0, dampFactor = 0.2 } = {}) {
   let targetElement = null;
 
-  if (element instanceof HTMLElement) {
-    targetElement = element;
+  if (selectorElement instanceof HTMLElement) {
+    targetElement = selectorElement;
   } else {
-    targetElement = document.querySelector(element);
+    targetElement = document.querySelector(selectorElement);
   }
 
   if (!targetElement) {
@@ -23,11 +23,7 @@ export default function scrollTo(element, { offset = 0, dampFactor = 0.2 } = {})
   const sizes = targetElement.getBoundingClientRect();
   const scrollMargin = getComputedStyle(targetElement).scrollMarginTop || '0';
   const max = document.body.offsetHeight - window.innerHeight;
-  let scrollTarget = sizes.top + window.pageYOffset + parseInt(scrollMargin, 10);
-
-  if (typeof offset === 'number') {
-    scrollTarget += offset;
-  }
+  let scrollTarget = sizes.top + window.pageYOffset + parseInt(scrollMargin, 10) + offset;
 
   // Make sure to not scroll more than the max scroll allowed
   if (scrollTarget > max) {
@@ -44,9 +40,7 @@ export default function scrollTo(element, { offset = 0, dampFactor = 0.2 } = {})
      * Is used to cancel the programmatic scroll animation
      */
     function eventHandler() {
-      if (isScrolling) {
-        isScrolling = false;
-      }
+      isScrolling = false;
     }
 
     /**
