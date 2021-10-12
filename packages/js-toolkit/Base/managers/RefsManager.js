@@ -43,10 +43,28 @@ export default class RefsManager {
    * @param {EventsManager} eventsManager
    */
   constructor(base, element, refs, eventsManager) {
-    this.__element = element;
-    this.__refs = refs;
-    this.__base = base;
-    this.__eventsManager = eventsManager;
+    Object.defineProperties(this, {
+      __element: {
+        enumerable: false,
+        writable: false,
+        value: element,
+      },
+      __refs: {
+        enumerable: false,
+        writable: false,
+        value: refs,
+      },
+      __base: {
+        enumerable: false,
+        writable: false,
+        value: base,
+      },
+      __eventsManager: {
+        enumerable: false,
+        writable: false,
+        value: eventsManager,
+      },
+    });
   }
 
   /**

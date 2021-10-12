@@ -59,7 +59,13 @@ export default class ServicesManager {
    * @param {Base} instance The Base instance.
    */
   constructor(instance) {
-    this.__base = instance;
+    Object.defineProperties(this, {
+      __base: {
+        enumerable: false,
+        writable: false,
+        value: instance,
+      },
+    });
   }
 
   /**
