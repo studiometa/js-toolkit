@@ -108,8 +108,38 @@ export default class EventsManager {
    * @param {Base} base
    */
   constructor(rootElement, base) {
-    this.__rootElement = rootElement;
-    this.__base = base;
+    Object.defineProperties(this, {
+      __rootElement: {
+        enumerable: false,
+        writable: false,
+        value: rootElement,
+      },
+      __base: {
+        enumerable: false,
+        writable: false,
+        value: base,
+      },
+      __methodsCache: {
+        enumerable: false,
+        writable: false,
+        value: this.__methodsCache,
+      },
+      __rootElementHandler: {
+        enumerable: false,
+        writable: false,
+        value: this.__rootElementHandler,
+      },
+      __refsHandler: {
+        enumerable: false,
+        writable: false,
+        value: this.__refsHandler,
+      },
+      __childrenHandler: {
+        enumerable: false,
+        writable: false,
+        value: this.__childrenHandler,
+      },
+    });
   }
 
   /**

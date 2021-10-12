@@ -75,7 +75,24 @@ export default class OptionsManager {
    * @param {BaseConfig}    baseConfig  A Base class config.
    */
   constructor(element, schema, baseConfig) {
-    this.__element = element;
+    Object.defineProperties(this, {
+      __element: {
+        enumerable: false,
+        writable: false,
+        value: element,
+      },
+      __values: {
+        enumerable: false,
+        writable: false,
+        value: this.__values,
+      },
+      __defaultValues: {
+        enumerable: false,
+        writable: false,
+        value: this.__defaultValues,
+      },
+    });
+
     this.name = baseConfig.name;
 
     schema.debug = {

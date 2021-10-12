@@ -54,10 +54,28 @@ export default class ChildrenManager {
    * @param {EventsManager} eventsManager
    */
   constructor(base, element, components, eventsManager) {
-    this.__base = base;
-    this.__element = element;
-    this.__components = components;
-    this.__eventsManager = eventsManager;
+    Object.defineProperties(this, {
+      __base: {
+        enumerable: false,
+        writable: false,
+        value: base,
+      },
+      __element: {
+        enumerable: false,
+        writable: false,
+        value: element,
+      },
+      __components: {
+        enumerable: false,
+        writable: false,
+        value: components,
+      },
+      __eventsManager: {
+        enumerable: false,
+        writable: false,
+        value: eventsManager,
+      },
+    });
   }
 
   /**
