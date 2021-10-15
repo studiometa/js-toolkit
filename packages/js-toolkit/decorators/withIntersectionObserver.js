@@ -62,9 +62,8 @@ export default function withIntersectionObserver(
 
       this.$observer = new IntersectionObserver(
         (entries) => {
-          this.__debug('intersected', entries);
-          this.$emit('intersected', entries);
-          this.intersected(entries);
+          // @ts-ignore
+          this.__callMethod('intersected', entries);
         },
         { ...defaultOptions, ...(this.$options.intersectionObserver || {}) }
       );

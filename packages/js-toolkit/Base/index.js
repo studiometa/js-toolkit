@@ -1,4 +1,4 @@
-import { callMethod, getComponentElements } from './utils.js';
+import { getComponentElements } from './utils.js';
 import ChildrenManager from './managers/ChildrenManager.js';
 import RefsManager from './managers/RefsManager.js';
 import ServicesManager from './managers/ServicesManager.js';
@@ -204,12 +204,42 @@ export default class Base {
   /**
    * Small helper to debug information.
    *
+   * @private
    * @return {(...args:any) => void}
    */
   get __debug() {
     return this.__options.debug && typeof window.__DEV__ !== 'undefined' && window.__DEV__
       ? window.console.log.bind(window, `[debug] [${this.$id}]`)
       : noop;
+  }
+
+  /**
+   * Call an instance method and emit corresponding events.
+   *
+   * @private
+   * @param {string} method
+   * @param {any[]} args
+   * @return {void}
+   */
+  __callMethod(method, ...args) {
+    this.__debug('callMethod', method, ...args);
+
+    // Prevent duplicate call of `mounted` and `destroyed`
+    // methods based on the component status
+    if ((method === 'destroyed' && !this.$isMounted) || (method === 'mounted' && this.$isMounted)) {
+      this.__debug('not', method, 'because the method has already been triggered once.');
+      return;
+    }
+
+    this.$emit(method, ...args);
+
+    // We always emit an event, but we do not call the method if it does not exist
+    if (typeof this[method] !== 'function') {
+      return;
+    }
+
+    this[method].call(this, ...args);
+    this.__debug(method, this, ...args);
   }
 
   /**
@@ -268,7 +298,7 @@ export default class Base {
     this.$services.enableAll();
     this.$children.mountAll();
 
-    callMethod(this, 'mounted');
+    this.__callMethod('mounted');
     this.$isMounted = true;
     return this;
   }
@@ -292,7 +322,7 @@ export default class Base {
     // Update
     this.$children.updateAll();
 
-    callMethod(this, 'updated');
+    this.__callMethod('updated');
     return this;
   }
 
@@ -307,7 +337,7 @@ export default class Base {
     this.$refs.unregisterAll();
     this.$services.disableAll();
     this.$children.destroyAll();
-    callMethod(this, 'destroyed');
+    this.__callMethod('destroyed');
     this.$isMounted = false;
     return this;
   }
@@ -323,7 +353,7 @@ export default class Base {
     this.$destroy();
 
     // Execute the `terminated` hook if it exists
-    callMethod(this, 'terminated');
+    this.__callMethod('terminated');
 
     // Delete the reference to the instance
     // delete this.$el.__base__;

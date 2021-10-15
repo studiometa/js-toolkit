@@ -4,7 +4,7 @@ import useResize from '../../services/resize.js';
 import useScroll from '../../services/scroll.js';
 import useKey from '../../services/key.js';
 import useLoad from '../../services/load.js';
-import { hasMethod, callMethod } from '../utils.js';
+import { hasMethod } from '../utils.js';
 
 /**
  * @typedef {import('../index').default} Base
@@ -105,7 +105,8 @@ export default class ServicesManager {
      * @param {any[]} args
      */
     function serviceHandler(...args) {
-      callMethod(self.__base, service, ...args);
+      // @ts-ignore
+      self.__base.__callMethod(service, ...args);
     }
 
     add(this.__base.$id, serviceHandler);
