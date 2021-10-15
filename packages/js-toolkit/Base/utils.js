@@ -14,39 +14,6 @@ export function hasMethod(obj, name) {
 }
 
 /**
- * Call the given method while applying the given arguments.
- *
- * @param {Base}   instance The Base instance on which to trigger the method.
- * @param {String} method   The method to call.
- * @param {...any} args     The arguments to pass to the method.
- */
-export function callMethod(instance, method, ...args) {
-  instance.__debug('callMethod', method, ...args);
-
-  // Prevent duplicate call of `mounted` and `destroyed`
-  // methods based on the component status
-  if (
-    (method === 'destroyed' && !instance.$isMounted) ||
-    (method === 'mounted' && instance.$isMounted)
-  ) {
-    instance.__debug('not', method, 'because the method has already been triggered once.');
-    return instance;
-  }
-
-  instance.$emit(method, ...args);
-
-  // We always emit an event, but we do not call the method if it does not exist
-  if (!hasMethod(instance, method)) {
-    return instance;
-  }
-
-  instance[method].call(instance, ...args);
-  instance.__debug(method, instance, ...args);
-
-  return instance;
-}
-
-/**
  * Get a list of elements based on the name of a component.
  *
  * @param {String} nameOrSelector
