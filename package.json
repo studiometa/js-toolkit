@@ -10,6 +10,7 @@
     "demo:build": "npm run build --workspace=@studiometa/js-toolkit-demo",
     "docs:dev": "npm run dev --workspace=@studiometa/js-toolkit-docs",
     "docs:build": "npm run build --workspace=@studiometa/js-toolkit-docs",
+    "docs:typedocs": "typedoc packages/js-toolkit/ packages/js-toolkit/utils/ --name '@studiometa/js-toolkit' --includeVersion --excludePrivate",
     "test": "npm run test --workspace=@studiometa/js-toolkit-tests",
     "lint": "npm run lint:eslint && npm run lint:types",
     "lint:eslint": "eslint packages/js-toolkit",

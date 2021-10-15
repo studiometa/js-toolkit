@@ -11,7 +11,7 @@ import isObject from '../object/isObject.js';
  * @param {CssStyleObject} styles  An object of styles properties and values.
  * @param {String}         method  The method to use: add or remove.
  */
-export default function setStyles(element, styles, method = 'add') {
+function setStyles(element, styles, method = 'add') {
   if (!element || !styles || !isObject(styles)) {
     return;
   }

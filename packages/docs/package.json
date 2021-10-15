@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "vitepress dev .",
-    "build": "vitepress build ."
+    "build": "vitepress build .",
+    "build:typedoc": "typedoc ../js-toolkit/ ../js-toolkit/utils/ --name '@studiometa/js-toolkit' --includeVersion --excludePrivate"
   },
   "dependencies": {
     "@studiometa/tailwind-config": "^1.0.4",
     "tailwindcss": "^2.2.7",
+    "typedoc": "^0.22.5",
     "vitepress": "^0.16.1"
   }
 }

@@ -1,0 +1,21 @@
+{
+    "name": "@studiometa/js-toolkit",
+    "package": "studiometa-js-toolkit",
+    "index": "index.html",
+    "selectors": {
+      "h1": {
+        "type": "Class",
+        "regexp": "^Class ",
+        "replacement": "",
+        "matchpath": "Base.html"
+      },
+      ".tsd-kind-method > h3": "Method",
+      ".tsd-kind-property > h3, .tsd-kind-get-signature > h3": "Property",
+      ".tsd-kind-constructor > h3": "Constructor",
+      ".tsd-kind-function > h3": "Function"
+    },
+    "ignore": [],
+    "icon32x32": "",
+    "allowJS": true,
+    "ExternalURL": ""
+}
