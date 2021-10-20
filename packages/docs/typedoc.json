@@ -1,0 +1,8 @@
+{
+  "entryPoints": ["../js-toolkit/", "../js-toolkit/utils/"],
+  "out": "docs",
+  "name": "@studiometa/js-toolkit",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "tsconfig": "../../tsconfig.json"
+}

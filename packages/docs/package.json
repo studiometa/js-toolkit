@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vitepress dev .",
     "build": "vitepress build .",
-    "build:typedoc": "typedoc ../js-toolkit/ ../js-toolkit/utils/ --name '@studiometa/js-toolkit' --includeVersion --excludePrivate"
+    "build:typedoc": "typedoc"
   },
   "dependencies": {
     "@studiometa/tailwind-config": "^1.0.4",
