@@ -32,5 +32,5 @@ export default class Menu extends withBreakpointManager(Base, [
 ```
 
 :::tip
-See the [`resize` service documentation on breakpoints](/services/resize.html#breakpoint) for a more comprehensive view of the potential values of the `activeBreakpoint` property.
+See the [`resize` service documentation on breakpoints](/api/services/useResize.html#breakpoint) for a more comprehensive view of the potential values of the `activeBreakpoint` property.
 :::
