@@ -196,6 +196,16 @@ nextFrame(() => {
   console.log('I will be executed in the next frame!');
 });
 ```
+## `scrollTo`
+
+Scroll vertically to a given target, be it a selector or an element.
+
+**Parameters**
+
+- `selectorElement` (`string|HTMLElement`): the target of the scroll
+- `options` (`{ offset?: number, dampFactor?: number }`): options for the scroll
+
+[Source](https://github.com/studiometa/js-toolkit/blob/master/packages/js-toolkit/utils/scrollTo.js)
 
 ## `throttle`
 
