@@ -1,11 +1,10 @@
----
-sidebar: auto
-sidebarDepth: 5
----
-
 # withExtraConfig
 
 Use this decorator to quickly create variants of an existing class.
+
+## Usage
+
+<label><input type="checkbox">todo</label>
 
 ## Examples
 
@@ -31,7 +30,9 @@ import { withExtraConfig } from '@studiometa/js-toolkit';
 export default withExtraConfig(Modal, {
   options: {
     styles: {
-      default: () => ({ /* ... */ }),
+      default: () => ({
+        /* ... */
+      }),
     },
   },
 });
@@ -69,7 +70,3 @@ export default withExtraConfig(Modal, {
   arrayMerge(target, source, options) { /* ... */ }
 })
 ```
-
-## API
-
-This decorator does not expose a specific API.

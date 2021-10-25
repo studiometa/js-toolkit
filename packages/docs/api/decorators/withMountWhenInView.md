@@ -1,11 +1,17 @@
----
-sidebar: auto
-sidebarDepth: 5
----
+
 
 # withMountWhenInView
 
 Use this decorator to create a component which will mount and destroy itself based on its visibility in the viewport.
+
+## Usage
+
+<label><input type="checkbox">todo</label>
+
+## API
+
+This decorator does not expose a specific API.
+
 
 ## Examples
 
@@ -65,7 +71,3 @@ Or at the instance level in the `data-option-intersection-observer` attribute of
   ...
 </div>
 ```
-
-## API
-
-This decorator does not expose a specific API.

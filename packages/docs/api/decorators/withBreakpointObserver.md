@@ -1,11 +1,12 @@
----
-sidebar: auto
-sidebarDepth: 5
----
+
 
 # withBreakpointObserver
 
 Use this decorator to create a class that will have the capacity to be mounted or destroyed when the current breakpoint changes.
+
+## Usage
+
+<label><input type="checkbox">todo</label>
 
 ## Examples
 
@@ -13,7 +14,7 @@ Use this decorator to create a class that will have the capacity to be mounted o
 
 In the following example, the `MobileComponent` class will self mount on devices matching any of the breakpoint defined in the `activeBreakpoints` property, and self destroy on all others:
 
-```js{4,8-11}
+```js{1,3,7-10}
 import { Base, withBreakpointObserver } from '@studiometa/js-toolkit';
 
 export default class MobileComponent extends withBreakpointObserver(Base) {
@@ -33,7 +34,7 @@ export default class MobileComponent extends withBreakpointObserver(Base) {
 
 The same behaviour as before can be achieved by specifying all the other breakpoints in the `inactiveBreakpoints` property instead:
 
-```js{4,8-11}
+```js{1,3,7-10}
 import { Base, withBreakpointObserver } from '@studiometa/js-toolkit';
 
 export default class MobileComponent extends withBreakpointObserver(Base) {
@@ -53,7 +54,7 @@ export default class MobileComponent extends withBreakpointObserver(Base) {
 
 You can add the `BreakpointObserver` behaviour on an existing component by wrapping it with the `withBreakpointObserver` function:
 
-```js{10}
+```js{1,9}
 import { Base, withBreakpointObserver } from '@studiometa/js-toolkit';
 import Modal from '@studiometa/ui/Modal';
 

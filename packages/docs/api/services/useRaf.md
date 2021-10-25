@@ -1,7 +1,4 @@
----
-sidebar: auto
-sidebarDepth: 5
----
+
 
 # RAF service
 
