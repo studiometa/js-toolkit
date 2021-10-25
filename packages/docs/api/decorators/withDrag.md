@@ -1,11 +1,22 @@
----
-sidebar: auto
-sidebarDepth: 5
----
-
 # withDrag
 
 Use this decorator to add the `dragged(props)` hook from the [drag](/services/drag.md) service.
+
+## Usage
+
+<label><input type="checkbox">todo</label>
+
+## API
+
+### Class methods
+
+#### `dragged`
+
+The `dragged` class method will be triggered when dragging the target element.
+
+**Arguments**
+
+- `props` (`DragServiceProps`): the [drag service props](/services/drag.md#props)
 
 ## Examples
 
@@ -27,6 +38,7 @@ export default class Draggable extends withDrag(Base) {
   }
 }
 ```
+
 :::tip
 We recommend using [stylefire](https://popmotion.io/stylefire/) to update the root element position, see the [`Draggable`](https://github.com/studiometa/ui/blob/master/packages/ui/Draggable.js) component source for more details.
 :::
@@ -55,15 +67,3 @@ export default class Draggable extends withDrag(
   }
 }
 ```
-
-## API
-
-### Class methods
-
-#### `dragged`
-
-The `dragged` class method will be triggered when dragging the target element.
-
-**Arguments**
-
-- `props` (`DragServiceProps`): the [drag service props](/services/drag.md#props)
