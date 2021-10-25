@@ -1,6 +1,6 @@
 # withDrag
 
-Use this decorator to add the `dragged(props)` hook from the [drag](/services/drag.md) service.
+Use this decorator to add the `dragged(props)` hook from the [drag](/api/services/useDrag.html) service.
 
 ## Usage
 
@@ -16,7 +16,7 @@ The `dragged` class method will be triggered when dragging the target element.
 
 **Arguments**
 
-- `props` (`DragServiceProps`): the [drag service props](/services/drag.md#props)
+- `props` (`DragServiceProps`): the [drag service props](/api/services/useDrag.md#props)
 
 ## Examples
 

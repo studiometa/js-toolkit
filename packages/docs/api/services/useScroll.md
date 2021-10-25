@@ -25,7 +25,7 @@ remove('custom-id');
 ```
 
 ::: warning IMPORTANT
-A throttle of 32ms is configured to limit the execution of each scroll callback to a minimum. If you need 60fps animation, use the [`raf`](./raf.md) service along this one.
+A throttle of 32ms is configured to limit the execution of each scroll callback to a minimum. If you need 60fps animation, use the [`raf`](./useRaf.html) service along this one.
 :::
 
 ## Props
