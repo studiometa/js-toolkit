@@ -90,16 +90,24 @@ function getApiSidebar({ expanded = 'api' } = {}) {
 function getBaseSidebar() {
   return [
     {
-      text: 'Static methods',
-      link: '/api/static-methods.html',
+      text: 'Configuration',
+      link: '/api/configuration.html',
     },
     {
-      text: 'Interface static properties',
-      link: '/api/interface-static-properties.html',
+      text: 'Lifecycle hooks',
+      link: '/api/methods-hooks-lifecycle.html',
     },
     {
-      text: 'Interface methods',
-      link: '/api/interface-methods.html',
+      text: 'Services hooks',
+      link: '/api/methods-hooks-services.html',
+    },
+    {
+      text: 'Events hooks',
+      link: '/api/methods-hooks-events.html',
+    },
+    {
+      text: 'Instantiation',
+      link: '/api/instanciation.html',
     },
     {
       text: 'Instance properties',
@@ -110,8 +118,12 @@ function getBaseSidebar() {
       link: '/api/instance-methods.html',
     },
     {
-      text: 'Events',
-      link: '/api/events.html',
+      text: 'Intance events',
+      link: '/api/instance-events.html',
+    },
+    {
+      text: 'Static methods',
+      link: '/api/static-methods.html',
     },
   ];
 }

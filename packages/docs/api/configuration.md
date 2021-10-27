@@ -1,10 +1,8 @@
-# Interface static properties
+# Configuration
 
-## `config`
+The static `config` property is required on each class extending the `Base` class. It should be used to configure the class.
 
-The static `config` property is required on each class extending the `Base` class.
-
-### `config.name`
+## `config.name`
 
 - Type: `String`
 
@@ -18,7 +16,7 @@ class Component extends Base {
 }
 ```
 
-### `config.options`
+## `config.options`
 
 - Type: `Object`
 - Default: `{}`
@@ -60,7 +58,7 @@ class Component extends Base {
 }
 ```
 
-### `config.components`
+## `config.components`
 
 - Type: `Object`
 - Default: `{}`
@@ -98,7 +96,7 @@ class App extends Base {
 The [lazy import helpers](/api/helpers/#lazy-import-helpers) can be used to manage more precisely the components' imports.
 :::
 
-### `config.refs`
+## `config.refs`
 
 - Type : `Array<String>`
 - Default : `[]`
@@ -136,14 +134,14 @@ class Component extends Base {
 }
 ```
 
-### `config.log`
+## `config.log`
 
 - Type: `Boolean`
 - Default: `false`
 
 Enable the `this.$log(...args)` method when `true`.
 
-### `config.debug`
+## `config.debug`
 
 - Type: `Boolean`
 - Default: `false`
