@@ -1,24 +1,6 @@
-# Interface methods
+# Event hooks
 
-## `mounted()` <Badge vertical="middle" text="Lifecycle hooks" />
-
-## `loaded()` <Badge vertical="middle" text="Lifecycle hooks" />
-
-## `destroyed()` <Badge vertical="middle" text="Lifecycle hooks" />
-
-## `terminated()` <Badge vertical="middle" text="Lifecycle hooks" />
-
-## `scrolled(props)` <Badge vertical="middle" text="Service hooks" />
-
-## `resized(props)` <Badge vertical="middle" text="Service hooks" />
-
-## `keyed(props)` <Badge vertical="middle" text="Service hooks" />
-
-## `moved(props)` <Badge vertical="middle" text="Service hooks" />
-
-## `ticked(props)` <Badge vertical="middle" text="Service hooks" />
-
-## `on＜Event＞(event)` <Badge vertical="middle" text="Event handlers" />
+## `on＜Event＞(event)`
 
 Methods following this pattern will be executed when the event is triggered on the instance's `$el` element.
 
@@ -50,7 +32,7 @@ class Foo extends Base {
 }
 ```
 
-## `on＜RefOrChildName＞＜Event＞(event, index)` <Badge vertical="middle" text="Event handlers" />
+## `on＜RefOrChildName＞＜Event＞(event, index)`
 
 Methods following this pattern will be executed when the corresponding event is triggered on the corresponding ref or child element.
 
