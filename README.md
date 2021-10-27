@@ -15,27 +15,31 @@ Install the latest version via NPM:
 npm install @studiometa/js-toolkit
 ```
 
+## Concept
+
+[] todo
+
 ## Usage
 
 Import the `Base` class and extend it to create your components:
 
 ```js
-import { Base } from '@studiometa/js-toolkit';
-import Modal from '@studiometa/ui/Modal';
+import { Base, createApp } from '@studiometa/js-toolkit';
 
-class Component {
+class Component extends Base {
   static config = {
     name: 'Component',
+  }
+
+  sayHello() {
+    console.log('Hello!');
   }
 }
 
 class App extends Base {
   static config = {
     name: 'App',
-    log: true,
-    debug: true,
     components: {
-      Modal,
       Component,
     },
     refs: ['btn', 'items[]'],
@@ -51,16 +55,16 @@ class App extends Base {
     // Options
     this.$options.name; // 'App'
     this.$options.log; // true
-    this.$options.debug; // true
+    this.$options.debug; // false
     this.$options.foo // ''
     this.$options.bar // 'bar'
 
     // Children
-    this.$children.Modal; // Array<Modal>
+    this.$children.Component; // Array<Component>
 
     // DOM references
     this.$refs.btn; // <button data-ref="btn"></button>
-    this.$refs.items; // <li data-ref="items[]"></li>
+    this.$refs.items[0]; // <li data-ref="items[]"></li>
   }
 
   destroyed() {
@@ -76,9 +80,15 @@ class App extends Base {
   }
 }
 
-export default new App(document.querySelector('#app'));
+export default createApp(App, document.body);
 ```
 
-Read the [documentation](https://js-toolkit.meta.fr/) to learn more.
+Read the [documentation](https://js-toolkit.studiometa.dev/) to learn more.
 
+## Contribution
 
+This projects follows the [Git Flow](https://github.com/petervanderdoes/gitflow-avh) methodology to manage its branches and features.
+
+The packages from this project are managed with NPM workspaces.
+
+The files are linted with ESLint, type checked with TypeScript and formatted with Prettier.
