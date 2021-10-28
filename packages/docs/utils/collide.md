@@ -1,8 +1,4 @@
----
-sidebar: auto
-prev: /utils/
-next: /components/
----
+
 
 # Collide
 

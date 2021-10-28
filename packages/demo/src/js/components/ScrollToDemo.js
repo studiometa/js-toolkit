@@ -1,10 +1,11 @@
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import scrollTo from '@studiometa/js-toolkit/utils/scrollTo';
 
 export default class ScrollToDemo extends Base {
   static config = {
     name: 'ScrollToDemo',
     log: true,
+    refs: ['text', 'btn'],
   };
 
   mounted() {
@@ -12,7 +13,8 @@ export default class ScrollToDemo extends Base {
   }
 
   async onBtnClick() {
-    this.$log('click on btn ref');
-    scrollTo(this.$refs.text);
+    this.$log('start scroll');
+    await scrollTo(this.$refs.text);
+    this.$log('end scroll');
   }
 }

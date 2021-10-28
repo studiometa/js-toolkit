@@ -1,8 +1,8 @@
 import useResize from '../services/resize.js';
 
 /**
- * @typedef {import('../abstracts/Base').default} Base
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').default} Base
+ * @typedef {import('../Base').BaseConstructor} BaseConstructor
  */
 
 /**
@@ -13,9 +13,9 @@ import useResize from '../services/resize.js';
 function testBreakpoints(breakpoints) {
   const { breakpoint } = useResize().props();
   breakpoints.forEach(([breakpointKeys, instance]) => {
-    if (breakpointKeys.includes(breakpoint)) {
-      instance.$mount();
-    } else {
+    if (breakpointKeys.includes(breakpoint) && !instance.$isMounted) {
+      setTimeout(() => instance.$mount(), 0);
+    } else if (!breakpointKeys.includes(breakpoint) && instance.$isMounted) {
       instance.$destroy();
     }
   });
@@ -24,13 +24,13 @@ function testBreakpoints(breakpoints) {
 /**
  * Prepare the components.
  * @param {Base} instance
- * @param {Array<[String, BaseComponent]>} breakpoints
+ * @param {Array<[String, BaseConstructor]>} breakpoints
  * @return {Array<[String, Base]>}
  */
 function mountComponents(instance, breakpoints) {
   return breakpoints.map(([bk, ComponentClass]) => {
     const child = new ComponentClass(instance.$el);
-    Object.defineProperty(child, '$parent', { get: () => instance });
+    Object.defineProperty(child, '$parent', { get: () => instance.$parent });
     return [bk, child];
   });
 }
@@ -39,13 +39,13 @@ function mountComponents(instance, breakpoints) {
  * A cache object to hold each Base sub-instances.
  * @type {Object}
  */
-const instances = {};
+const instances = new WeakMap();
 
 /**
  * BreakpointManager class.
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  * @param {T} BaseClass
- * @param {Array<[String, BaseComponent]>} breakpoints
+ * @param {Array<[String, BaseConstructor]>} breakpoints
  * @return {T}
  */
 export default function withBreakpointManager(BaseClass, breakpoints) {
@@ -74,15 +74,15 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
     constructor(element) {
       super(element);
 
-      if (!instances[this.$id]) {
-        instances[this.$id] = mountComponents(this, breakpoints);
+      if (!instances.has(this)) {
+        instances.set(this, mountComponents(this, breakpoints));
       }
 
-      testBreakpoints(instances[this.$id]);
-
       add(`BreakpointManager-${this.$id}`, () => {
-        testBreakpoints(instances[this.$id]);
+        testBreakpoints(instances.get(this));
       });
+
+      this.instances = instances.get(this);
 
       return this;
     }
@@ -94,13 +94,11 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
      * @return {this}
      */
     $mount() {
-      if (!instances[this.$id]) {
-        instances[this.$id] = mountComponents(this, breakpoints);
-      }
+      super.$mount();
 
-      testBreakpoints(instances[this.$id]);
+      testBreakpoints(instances.get(this));
 
-      return super.$mount();
+      return this;
     }
 
     /**
@@ -109,8 +107,8 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
      * @return {this}
      */
     $destroy() {
-      if (Array.isArray(instances[this.$id])) {
-        instances[this.$id].forEach(([, instance]) => {
+      if (Array.isArray(instances.get(this))) {
+        instances.get(this).forEach(([, instance]) => {
           instance.$destroy();
         });
       }

@@ -15,7 +15,6 @@
   "include": [
     "packages/global.d.ts",
     "packages/js-toolkit/abstracts/**/*.js",
-    "packages/js-toolkit/components/**/*.js",
     "packages/js-toolkit/decorators/**/*.js",
     "packages/js-toolkit/services/**/*.js",
     "packages/js-toolkit/utils/**/*.js",

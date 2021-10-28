@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-workspace",
-  "version": "1.7.3",
+  "version": "2.0.0-alpha.10",
   "private": true,
   "workspaces": [
     "packages/*"
@@ -17,14 +17,10 @@
     "build": "npm run build:babel && npm run build:types && npm run build:bundle && npm run build:cp-files",
     "build:cp-files": "cp packages/js-toolkit/package.json dist/ && cp LICENSE dist/ && cp README.md dist",
     "build:types": "tsc --build tsconfig.build.json",
-    "build:babel": "babel --no-comments --delete-dir-on-start --source-maps --out-dir dist/ packages/js-toolkit",
-    "build:bundle": "npm run build:bundle:base && npm run build:bundle:full",
-    "build:bundle:base": "npm run build:bundle:base:modern && npm run build:bundle:base:umd",
-    "build:bundle:base:modern": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/index.js -o dist/index.modern.js -f modern --no-pkg-main --no-compress --external none",
-    "build:bundle:base:umd": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/index.js -o dist/index.umd.js -f umd --name Base --no-pkg-main --no-compress --external none",
-    "build:bundle:full": "npm run build:bundle:full:modern && npm run build:bundle:full:umd",
-    "build:bundle:full:modern": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/full.js -o dist/full.modern.js -f modern --no-pkg-main --no-compress --external none",
-    "build:bundle:full:umd": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/full.js -o dist/full.umd.js -f umd --name JsToolkit --no-pkg-main --no-compress --external none"
+    "build:babel": "babel --no-comments --delete-dir-on-start --out-dir dist/ packages/js-toolkit",
+    "build:bundle": "npm run build:bundle:modern && npm run build:bundle:umd",
+    "build:bundle:modern": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/index.js -o dist/index.modern.js -f modern --no-sourcemap --no-pkg-main --external none",
+    "build:bundle:umd": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/index.js -o dist/index.umd.js -f umd --no-sourcemap --name Base --no-pkg-main --external none"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.8",
@@ -47,8 +43,5 @@
     "microbundle": "^0.13.3",
     "prettier": "^2.3.2",
     "typescript": "^4.3.5"
-  },
-  "browserslist": [
-    "extends @studiometa/browserslist-config"
-  ]
+  }
 }

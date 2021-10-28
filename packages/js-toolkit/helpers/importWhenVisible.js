@@ -1,14 +1,14 @@
 import { getTargetElements } from './utils.js';
 
 /**
- * @typedef {import('../abstracts/Base/index.js').default} Base
- * @typedef {import('../abstracts/Base/index.js').BaseComponent} BaseComponent
+ * @typedef {import('../Base/index.js').default} Base
+ * @typedef {import('../Base/index.js').BaseConstructor} BaseConstructor
  */
 
 /**
  * Import a component when it is visible.
  *
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  *
  * @param {() => Promise<T|{default:T}>} fn
  *   The import function.

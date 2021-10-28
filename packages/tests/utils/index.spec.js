@@ -10,6 +10,7 @@ describe('@studiometa/js-toolkit/utils exports', () => {
       'history',
       'keyCodes',
       'math',
+      'memoize',
       'nextFrame',
       'object',
       'string',

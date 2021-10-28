@@ -1,7 +1,45 @@
-import Base from './abstracts/Base/index.js';
-import defineComponent from './helpers/defineComponent.js';
-import createBase from './helpers/createBase.js';
+import Base from './Base/index.js';
+import {
+  withDrag,
+  withBreakpointManager,
+  withBreakpointObserver,
+  withExtraConfig,
+  withIntersectionObserver,
+  withMountWhenInView,
+} from './decorators/index.js';
+import {
+  createApp,
+  importOnInteraction,
+  importWhenIdle,
+  importWhenVisible,
+} from './helpers/index.js';
+import {
+  useDrag,
+  useKey,
+  useLoad,
+  usePointer,
+  useRaf,
+  useResize,
+  useScroll,
+} from './services/index.js';
 
-export { Base, createBase, defineComponent };
-
-export default Base;
+export {
+  Base,
+  createApp,
+  importOnInteraction,
+  importWhenIdle,
+  importWhenVisible,
+  useDrag,
+  useKey,
+  useLoad,
+  usePointer,
+  useRaf,
+  useResize,
+  useScroll,
+  withBreakpointManager,
+  withBreakpointObserver,
+  withDrag,
+  withExtraConfig,
+  withIntersectionObserver,
+  withMountWhenInView,
+};
