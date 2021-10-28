@@ -420,10 +420,10 @@
 
       <!--- BEGIN ScrollToDemo component -->
       <div data-component="ScrollToDemo">
-        <h2 id="util-tabs" class="text-lg mb-4">Scroll to</h2>
+        <h2 class="text-lg mb-4">Scroll to</h2>
         <button type="button" data-ref="btn" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">Click on me</button>
 
-        <div class="h-screen"></div>
+        <div class="w-full h-screen"></div>
 
         <div class="border-black border p-10 text-center" data-ref="text">You scrolled to me</div>
       </div>
@@ -431,13 +431,16 @@
 
       <hr class="my-10" />
 
-      <div class="absolute left-0 right-0 bottom-0 p-10 bg-gray-200">Bottom</div>
+      <div class="left-0 right-0 bottom-0 mb-10 p-10 bg-gray-200">Bottom</div>
     </main>
     <!-- BEGIN Cursor component -->
     <div
       data-component="Cursor"
-      class="z-goku fixed top-0 left-0 flex items-center justify-center w-8 h-8 -mt-4 -ml-4 rounded-full border pointer-events-none"
-    >
+      class="
+        z-goku fixed top-0 left-0 flex items-center justify-center
+        w-8 h-8 -mt-4 -ml-4 rounded-full border pointer-events-none
+        transform -translate-x-16 -translate-y-16
+      ">
       <div
         data-ref="inner"
         class="w-2 h-2 rounded-full bg-black"

@@ -1,4 +1,4 @@
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import { withBreakpointObserver } from '@studiometa/js-toolkit/decorators';
 
 export default class BreakpointObserverDemo extends withBreakpointObserver(Base) {

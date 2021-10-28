@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { html } from 'htl';
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import withExtraConfig from '@studiometa/js-toolkit/decorators/withExtraConfig';
 import importOnInteraction from '@studiometa/js-toolkit/helpers/importOnInteraction';
 import wait from '../__utils__/wait';

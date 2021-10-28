@@ -1,4 +1,4 @@
-import Service from '../abstracts/Service.js';
+import Service from './Service.js';
 
 /**
  * @typedef {import('./index').ServiceInterface} ServiceInterface
@@ -71,7 +71,7 @@ let instance = null;
  *
  * @return {ServiceInterface & LoadService}
  */
-export default function useRaf() {
+export default function useLoad() {
   if (!instance) {
     instance = new Load();
   }

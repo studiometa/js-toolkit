@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { getComponentElements } from '../abstracts/Base/utils.js';
+import { getComponentElements } from '../Base/utils.js';
 
 /**
  * Get the target elements for the lazy import helper functions.
