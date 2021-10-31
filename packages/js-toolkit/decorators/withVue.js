@@ -1,18 +1,28 @@
 /**
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').default} Base
+ * @typedef {import('../Base').BaseConstructor} BaseConstructor
  */
 
 /**
- * withVue class.
- * @param {BaseComponent} BaseClass
- * @param {import('vue').VueConstructor} Vue
+ * @typedef {Object} WithVueRefs
+ * @property {HTMLElement} vue
  */
 
-export default (BaseClass, Vue) =>
-  class withVue extends BaseClass {
+/**
+ * withVue decorator.
+ *
+ * @template {BaseConstructor} T
+ * @param {T} BaseClass
+ * @param {import('vue').VueConstructor} Vue
+ * @return {T}
+ */
+export default (BaseClass, Vue) => {
+  // @ts-ignore
+  return class WithVue extends BaseClass {
     static config = {
       ...(BaseClass.config || {}),
       name: `${BaseClass?.config?.name ?? ''}WithVue`,
+      refs: [...(BaseClass?.config?.refs ?? []), 'vue'],
     };
 
     /**
@@ -28,11 +38,12 @@ export default (BaseClass, Vue) =>
 
     /**
      * @param {HTMLElement} element The component's root element.
+     * @this {WithVue & { $refs: WithVueRefs }}
      */
     constructor(element) {
       super(element);
 
-      const { vueConfig } = /** @type {typeof withVue} */ (this.constructor);
+      const { vueConfig } = /** @type {typeof WithVue} */ (this.constructor);
 
       if (!vueConfig) {
         throw new Error('[withVue] You must define a `vueConfig` object.');
@@ -57,3 +68,4 @@ export default (BaseClass, Vue) =>
       });
     }
   };
+};
