@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { html } from 'htl';
-import { Base, withVue } from '@studiometa/js-toolkit';
+import { Base, withVue2 } from '@studiometa/js-toolkit';
 import Vue from 'vue';
 
 describe('The `withVue` decorator', () => {
@@ -19,7 +19,7 @@ describe('The `withVue` decorator', () => {
     },
   };
 
-  class Foo extends withVue(Base, Vue) {
+  class Foo extends withVue2(Base, Vue) {
     static vueConfig = {
       components: {
         VueComponent,
@@ -55,7 +55,7 @@ describe('The `withVue` decorator', () => {
   });
 
   it('should return an error about the missing vueConfig', () => {
-    class Bar extends withVue(Base, Vue) {
+    class Bar extends withVue2(Base, Vue) {
       static config = { name: 'Bar', refs: ['vue'] };
     }
     expect(() => {
@@ -64,7 +64,7 @@ describe('The `withVue` decorator', () => {
   });
 
   it('should return an error because `render` is not a function', () => {
-    class FooBar extends withVue(Base, Vue) {
+    class FooBar extends withVue2(Base, Vue) {
       static vueConfig = {
         components: {
           VueComponent,
