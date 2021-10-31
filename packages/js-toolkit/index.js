@@ -6,6 +6,7 @@ import {
   withExtraConfig,
   withIntersectionObserver,
   withMountWhenInView,
+  withVue,
 } from './decorators/index.js';
 import {
   createApp,
@@ -42,4 +43,5 @@ export {
   withExtraConfig,
   withIntersectionObserver,
   withMountWhenInView,
+  withVue,
 };
