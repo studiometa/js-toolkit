@@ -21,7 +21,7 @@ describe('The package exports', () => {
       'withExtraConfig',
       'withIntersectionObserver',
       'withMountWhenInView',
-      'withVue',
+      'withVue2',
     ];
     expect(Object.keys(toolkit)).toEqual(names);
   });

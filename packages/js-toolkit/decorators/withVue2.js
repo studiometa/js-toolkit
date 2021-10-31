@@ -4,7 +4,7 @@
  */
 
 /**
- * @typedef {Object} WithVueRefs
+ * @typedef {Object} WithVue2Refs
  * @property {HTMLElement} vue
  */
 
@@ -18,7 +18,7 @@
  */
 export default (BaseClass, Vue) => {
   // @ts-ignore
-  return class WithVue extends BaseClass {
+  return class WithVue2 extends BaseClass {
     static config = {
       ...(BaseClass.config || {}),
       name: `${BaseClass?.config?.name ?? ''}WithVue`,
@@ -38,12 +38,12 @@ export default (BaseClass, Vue) => {
 
     /**
      * @param {HTMLElement} element The component's root element.
-     * @this {WithVue & { $refs: WithVueRefs }}
+     * @this {WithVue2 & { $refs: WithVue2Refs }}
      */
     constructor(element) {
       super(element);
 
-      const { vueConfig } = /** @type {typeof WithVue} */ (this.constructor);
+      const { vueConfig } = /** @type {typeof WithVue2} */ (this.constructor);
 
       if (!vueConfig) {
         throw new Error('[withVue] You must define a `vueConfig` object.');
