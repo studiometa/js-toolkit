@@ -1,5 +1,3 @@
-
-
 # withIntersectionObserver
 
 Use this decorator to create a class that will have the capacity to trigger an `intersected` method when the component's root element is in view.
@@ -18,7 +16,7 @@ The `intersected` class method will be used as the callback for the `Intersectio
 
 **Arguments**
 
-- `entries` (`Array<IntersectionObserverEntry>`): an array of `IntersectionObserverEntry`  objects.
+- `entries` (`Array<IntersectionObserverEntry>`): an array of `IntersectionObserverEntry` objects.
 
 :::tip
 Read the [`IntersectionObserver` documentation](https://developer.mozilla.org/en-US/docs/Web/API/IntersectionObserver) for more informations on how to use its&nbsp;API.
@@ -38,8 +36,7 @@ Emitted when the [`intersected`](#intersected) class method is triggered.
 
 **Parameters**
 
-- `entries` (`Array<IntersectionObserverEntry>`): an array of `IntersectionObserverEntry`  objects.
-
+- `entries` (`Array<IntersectionObserverEntry>`): an array of `IntersectionObserverEntry` objects.
 
 ## Examples
 
@@ -98,4 +95,3 @@ Or at the instance level in the `data-option-intersection-observer` attribute of
   ...
 </div>
 ```
-

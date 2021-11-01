@@ -1,5 +1,3 @@
-
-
 # Resize service
 
 The resize service will help you manage your actions when the window is resized.
