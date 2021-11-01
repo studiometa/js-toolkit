@@ -1,6 +1,6 @@
 # Event hooks
 
-## `on＜Event＞(event)`
+## on\<Event>
 
 Methods following this pattern will be executed when the event is triggered on the instance's `$el` element.
 
@@ -32,7 +32,7 @@ class Foo extends Base {
 }
 ```
 
-## `on＜RefOrChildName＞＜Event＞(event, index)`
+## on\<RefOrChildName>\<Event>
 
 Methods following this pattern will be executed when the corresponding event is triggered on the corresponding ref or child element.
 

@@ -36,27 +36,30 @@ function getGuideSidebar() {
     {
       text: 'Introduction',
       children: [
-        { text: 'Getting started' },
-        { text: 'Managing components' },
-        { text: 'Managing refs' },
-        { text: 'Managing options' },
-        { text: 'Lifecycle hooks' },
-        { text: 'Working with events' },
-        { text: 'Using the services' },
+        { text: 'Getting started', link: '/guide/introduction/getting-started.html' },
+        { text: 'Managing components', link: '/guide/introduction/managing-components.html' },
+        { text: 'Managing refs', link: '/guide/introduction/managing-refs.html' },
+        { text: 'Managing options', link: '/guide/introduction/managing-options.html' },
+        { text: 'Lifecycle hooks', link: '/guide/introduction/lifecycle-hooks.html' },
+        { text: 'Using services', link: '/guide/introduction/using-services.html' },
+        { text: 'Working with events', link: '/guide/introduction/working-with-events.html' },
       ],
     },
     {
       text: 'Going further',
       children: [
-        { text: 'Using decorators' },
-        { text: 'Lazy imports' },
-        { text: 'Registering new services' },
+        { text: 'Using decorators', link: '/guide/going-further/using-decorators.html' },
+        { text: 'Lazy imports', link: '/guide/going-further/lazy-imports.html' },
+        {
+          text: 'Registering new services',
+          link: '/guide/going-further/registering-new-services.html',
+        },
       ],
     },
-    {
-      text: 'Recipes',
-      children: [{ text: 'todo' }],
-    },
+    // {
+    //   text: 'Recipes',
+    //   children: [{ text: 'todo' }],
+    // },
   ];
 }
 
@@ -163,7 +166,7 @@ function getUtilsSidebar() {
   return [
     {
       text: 'Utils',
-      // link: '/utils/',
+      link: '/utils/',
       children: [
         { text: 'debounce', link: '/utils/debounce.html' },
         { text: 'focusTrap', link: '/utils/focusTrap.html' },
