@@ -1,13 +1,15 @@
-# `focusTrap`
+# focusTrap
 
 Trap the tab navigation inside a given element.
 
-[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/focusTrap.js)
+::: tip
+To understand the "tab trap" usage, read [Using JavaScript to trap focus in an element](https://hiddedevries.nl/en/blog/2017-01-29-using-javascript-to-trap-focus-in-an-element).
+:::
 
-**Usage**
+## Usage
 
 ```js
-import focusTrap from '@studiometa/js-toolkit/utils/focusTrap';
+import { focusTrap } from '@studiometa/js-toolkit/utils';
 
 const { trap, untrap } = focusTrap();
 
@@ -20,6 +22,3 @@ document.addEventListener('keyup', (event) => {
 untrap();
 ```
 
-::: tip
-To understand the "tab trap" usage, read [Using JavaScript to trap focus in an element](https://hiddedevries.nl/en/blog/2017-01-29-using-javascript-to-trap-focus-in-an-element).
-:::
