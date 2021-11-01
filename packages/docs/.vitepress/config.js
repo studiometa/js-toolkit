@@ -37,9 +37,9 @@ function getGuideSidebar() {
       text: 'Introduction',
       children: [
         { text: 'Getting started' },
-        { text: 'Managing components'},
+        { text: 'Managing components' },
         { text: 'Managing refs' },
-        { text: 'Managing options'},
+        { text: 'Managing options' },
         { text: 'Lifecycle hooks' },
         { text: 'Working with events' },
         { text: 'Using the services' },
@@ -51,14 +51,12 @@ function getGuideSidebar() {
         { text: 'Using decorators' },
         { text: 'Lazy imports' },
         { text: 'Registering new services' },
-      ]
+      ],
     },
     {
       text: 'Recipes',
-      children: [
-        { text: 'todo' },
-      ],
-    }
+      children: [{ text: 'todo' }],
+    },
   ];
 }
 
@@ -164,9 +162,81 @@ function getHelpersSidebar() {
 function getUtilsSidebar() {
   return [
     {
-      text: 'Math',
-      link: '/utils/math',
-      children: [],
-    }
-  ]
+      text: 'Utils',
+      // link: '/utils/',
+      children: [
+        { text: 'debounce', link: '/utils/debounce.html' },
+        { text: 'focusTrap', link: '/utils/focusTrap.html' },
+        { text: 'keyCodes', link: '/utils/keyCodes.html' },
+        { text: 'memoize', link: '/utils/memoize.html' },
+        { text: 'nextFrame', link: '/utils/nextFrame.html' },
+        { text: 'scrollTo', link: '/utils/scrollTo.html' },
+        { text: 'throttle', link: '/utils/throttle.html' },
+      ],
+    },
+    {
+      text: 'Collision utils',
+      link: '/utils/collision/',
+      children: [
+        { text: 'boundingRectToCircle', link: '/utils/collision/boundingRectToCircle.html' },
+        { text: 'collideCircleCircle', link: '/utils/collision/collideCircleCircle.html' },
+        { text: 'collideCircleRect', link: '/utils/collision/collideCircleRect.html' },
+        { text: 'collidePointCircle', link: '/utils/collision/collidePointCircle.html' },
+        { text: 'collidePointRect', link: '/utils/collision/collidePointRect.html' },
+        { text: 'collideRectRect', link: '/utils/collision/collideRectRect.html' },
+      ],
+    },
+    {
+      text: 'CSS utils',
+      // link: '/utils/css/',
+      children: [
+        { text: 'matrix', link: '/utils/css/matrix.html' },
+        { text: 'transition', link: '/utils/css/transition.html' },
+      ],
+    },
+    {
+      text: 'History utils',
+      link: '/utils/history/',
+      children: [
+        { text: 'historyPush', link: '/utils/history/historyPush.html' },
+        { text: 'historyReplace', link: '/utils/history/historyReplace.html' },
+        { text: 'objectToURLSearchParams', link: '/utils/history/objectToURLSearchParams.html' },
+      ],
+    },
+    {
+      text: 'Math utils',
+      // link: '/utils/math/',
+      children: [
+        { text: 'clamp', link: '/utils/math/clamp.html' },
+        { text: 'clamp01', link: '/utils/math/clamp01.html' },
+        { text: 'damp', link: '/utils/math/damp.html' },
+        { text: 'inertiaFinalValue', link: '/utils/math/inertiaFinalValue.html' },
+        { text: 'lerp', link: '/utils/math/lerp.html' },
+        { text: 'map', link: '/utils/math/map.html' },
+        { text: 'round', link: '/utils/math/round.html' },
+      ],
+    },
+    {
+      text: 'String utils',
+      link: '/utils/string/',
+      children: [
+        { text: 'withLeadingCharacters', link: '/utils/string/withLeadingCharacters.html' },
+        { text: 'withLeadingSlash', link: '/utils/string/withLeadingSlash.html' },
+        { text: 'withoutLeadingCharacters', link: '/utils/string/withoutLeadingCharacters.html' },
+        {
+          text: 'withoutLeadingCharactersRecursive',
+          link: '/utils/string/withoutLeadingCharactersRecursive.html',
+        },
+        { text: 'withoutLeadingSlash', link: '/utils/string/withoutLeadingSlash.html' },
+        { text: 'withoutTrailingCharacters', link: '/utils/string/withoutTrailingCharacters.html' },
+        {
+          text: 'withoutTrailingCharactersRecursive',
+          link: '/utils/string/withoutTrailingCharactersRecursive.html',
+        },
+        { text: 'withoutTrailingSlash', link: '/utils/string/withoutTrailingSlash.html' },
+        { text: 'withTrailingCharacters', link: '/utils/string/withTrailingCharacters.html' },
+        { text: 'withTrailingSlash', link: '/utils/string/withTrailingSlash.html' },
+      ],
+    },
+  ];
 }

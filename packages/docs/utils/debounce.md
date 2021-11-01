@@ -1,18 +1,15 @@
-# `debounce`
+# debounce
 
 Execute a function until it stops being called.
 
-**Parameters**
+::: tip
+You can read [Debounce vs throttle](https://redd.one/blog/debounce-vs-throttle) if the difference between the `debounce` and `throttle` methods is not clear for you.
+:::
 
-- `fn` (`Function`): the function to execute
-- `delay` (`Number`): the delay in milliseconds
-
-[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/debounce.js)
-
-**Usage**
+## Usage
 
 ```js
-import debounce from '@studiometa/js-toolkit/utils/debounce';
+import { debounce } from '@studiometa/js-toolkit/utils';
 
 const debouncedFn = debounce(() => {
   console.log('Hello 👋');
@@ -21,6 +18,11 @@ const debouncedFn = debounce(() => {
 debouncedFn(); // Hello 👋
 ```
 
-::: tip
-You can read [Debounce vs throttle](https://redd.one/blog/debounce-vs-throttle) if the difference between the `debounce` and `throttle` methods is not clear for you.
-:::
+### Parameters
+
+- `fn` (`Function`): the function to execute
+- `delay` (`Number`): the delay in milliseconds
+
+### Return value
+
+A new function which will execute the given function only when it is not called in the given delay.

@@ -1,13 +1,11 @@
-# `keyCodes`
+# keyCodes
 
 Map of keyboard keycodes and their human readable name.
 
-[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/keyCodes.js)
-
-**Usage**
+## Usage
 
 ```js
-import keyCodes from '@studiometa/js-toolkit/utils/keyCodes';
+import { keyCodes } from '@studiometa/js-toolkit/utils';
 
 document.addEventListener('keydown', (e) => {
   if (e.keyCode === keyCodes.ESC) {
