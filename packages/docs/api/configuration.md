@@ -103,23 +103,20 @@ The [lazy import helpers](/api/helpers/#lazy-import-helpers) can be used to mana
 
 Define the refs of the components by specifying their name in the configuration. Multiple refs should be suffixed with `[]`.
 
+```html
+<div data-component="Component">
+  <button data-ref="btn">Click me</button>
+  <ul>
+    <li data-ref="items[]">#1</li>
+  </ul>
+  <ul>
+    <li data-ref="otherItems[]">#1</li>
+    <li data-ref="otherItems[]">#2</li>
+  </ul>
+</div>
+```
+
 ```js
-/**
- * Given the following HTML:
- *
- * ```html
- * <div data-component="Component">
- *   <button data-ref="btn">Click me</button>
- *   <ul>
- *     <li data-ref="items[]">#1</li>
- *   </ul>
- *   <ul>
- *     <li data-ref="otherItems[]">#1</li>
- *     <li data-ref="otherItems[]">#2</li>
- *   </ul>
- * </div>
- * ```
- */
 class Component extends Base {
   static config = {
     name: 'Component',
