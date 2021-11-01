@@ -16,6 +16,7 @@ component.$mount();
 ```
 
 **Parameters**
+
 - `element` (`HTMLElement`): the root element of the component/application
 
 **Return value**
@@ -52,4 +53,3 @@ app.$mount();
 
 export default app;
 ```
-

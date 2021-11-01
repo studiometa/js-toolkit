@@ -1,5 +1,3 @@
-
-
 # Pointer service
 
 The pointer service will help you manage your cursor. It merges the mouse and touch `move`, `up` and `down` events.
@@ -83,6 +81,7 @@ If the cursor is in the **top left corner of the viewport**, the value of this p
 ```js
 { x: 0, y: 0 }
 ```
+
 :::
 
 ### `max`

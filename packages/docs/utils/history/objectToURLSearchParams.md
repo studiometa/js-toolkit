@@ -17,7 +17,7 @@ const params = {
   arr: [1, 2],
   obj: {
     one: 1,
-    two: 2
+    two: 2,
   },
 };
 

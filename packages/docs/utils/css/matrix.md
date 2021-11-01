@@ -23,4 +23,3 @@ document.body.style.transform = matrix({ scaleX: 0.5, scaleY: 0.5 });
 ### Return value
 
 - `String`: a formatted CSS matrix transform
-

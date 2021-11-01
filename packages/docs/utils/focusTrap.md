@@ -21,4 +21,3 @@ document.addEventListener('keyup', (event) => {
 // Resume the trap and refocus the previously focused element
 untrap();
 ```
-

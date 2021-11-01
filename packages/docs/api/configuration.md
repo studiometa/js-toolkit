@@ -34,11 +34,11 @@ class Component extends Base {
       numberWithDefault: { type: Number, default: 10 },
       booleanOption: Boolean, // default to false
       arrayOption: Array, // default to []
-      arrayWithDefault: { type: Array, default: () => ([1, 2]) },
+      arrayWithDefault: { type: Array, default: () => [1, 2] },
       objectOption: Object,
       objectWithDefault: { type: Object, default: () => ({ foo: 'foo' }) },
-    }
-  }
+    },
+  };
 
   mounted() {
     this.$options.stringOption; // ''
@@ -152,6 +152,7 @@ When `true`, the lifecycle hooks and services hooks will be logged to the consol
 The debug logs are conditionnally rendered base on a `__DEV__` global variable which will default to `false`. To enable it in dev mode, you can use the [`DefinePlugin`](https://webpack.js.org/plugins/define-plugin/) with Webpack or the [`@rollup/plugin-replace`](https://github.com/rollup/plugins/tree/master/packages/replace) with Rollup.
 
 **Example Webpack configuration**
+
 ```js
 const { DefinePlugin } = require('webpack');
 
@@ -163,4 +164,5 @@ module.exports = {
   ],
 };
 ```
+
 :::
