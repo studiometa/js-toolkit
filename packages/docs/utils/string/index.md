@@ -10,7 +10,7 @@ The leading and trailing string utilities will ensure that characters from the s
 - [withoutLeadingCharactersRecursive](./withoutLeadingCharactersRecursive.html)
 - [withoutLeadingSlash](./withoutLeadingSlash.html)
 - [withoutTrailingCharacters](./withoutTrailingCharacters.html)
-- [withoutTrailingCharactersRecursive](./withoutTrailingCharactersRecursive.html')
+- [withoutTrailingCharactersRecursive](./withoutTrailingCharactersRecursive.html)
 - [withoutTrailingSlash](./withoutTrailingSlash.html)
 - [withTrailingCharacters](./withTrailingCharacters.html)
 - [withTrailingSlash](./withTrailingSlash.html)

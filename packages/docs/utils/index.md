@@ -50,7 +50,7 @@ Find below functions that can help you in your projects.
 - [withoutLeadingCharactersRecursive](/utils/string/withoutLeadingCharactersRecursive.html)
 - [withoutLeadingSlash](/utils/string/withoutLeadingSlash.html)
 - [withoutTrailingCharacters](/utils/string/withoutTrailingCharacters.html)
-- [withoutTrailingCharactersRecursive](/utils/string/withoutTrailingCharactersRecursive.html')
+- [withoutTrailingCharactersRecursive](/utils/string/withoutTrailingCharactersRecursive.html)
 - [withoutTrailingSlash](/utils/string/withoutTrailingSlash.html)
 - [withTrailingCharacters](/utils/string/withTrailingCharacters.html)
 - [withTrailingSlash](/utils/string/withTrailingSlash.html)
