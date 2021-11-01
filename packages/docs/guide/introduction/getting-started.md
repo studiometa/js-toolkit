@@ -16,6 +16,4 @@ Its purposes are:
 
 ## How it works
 
-
-
 ## Creating an app
