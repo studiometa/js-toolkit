@@ -1,5 +1,3 @@
-
-
 # Drag service
 
 The drag service will help you manage draggable elements.

@@ -1,5 +1,3 @@
-
-
 # Key service
 
 The key service will help you manage your keyboard events. It merges the `keydown` and `keyup` events.
@@ -110,4 +108,3 @@ Will be `true` if the key initiating the event is the right key.
 - Type: `Boolean`
 
 Will be `true` if the key initiating the event is the down key.
-

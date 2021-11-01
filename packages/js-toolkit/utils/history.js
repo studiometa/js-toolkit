@@ -103,10 +103,10 @@ function updateHistory(mode, options, data = {}, title = '') {
  * Push a new state.
  *
  * @param {HistoryOptions} options The new state.
- * @param {Object}         data    The data for the new state.
- * @param {string}         title   The title for the new state.
+ * @param {Object}         [data]  The data for the new state.
+ * @param {string}         [title] The title for the new state.
  */
-export function push(options, data, title) {
+export function push(options, data = {}, title = '') {
   updateHistory('push', options, data, title);
 }
 
@@ -114,9 +114,9 @@ export function push(options, data, title) {
  * Replace a new state.
  *
  * @param {HistoryOptions} options The new state.
- * @param {Object}         data    The data for the new state.
- * @param {string}         title   The title for the new state.
+ * @param {Object}         [data]  The data for the new state.
+ * @param {string}         [title] The title for the new state.
  */
-export function replace(options, data, title) {
+export function replace(options, data = {}, title = '') {
   updateHistory('replace', options, data, title);
 }

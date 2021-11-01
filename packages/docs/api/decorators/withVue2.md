@@ -26,8 +26,7 @@ See the [`refs` API documentation part](/api/#config-refs) for explanations abou
 
 ```html
 <div data-component="MyVueComponent">
-  <div data-ref="vue">
-  </div>
+  <div data-ref="vue"></div>
 </div>
 ```
 

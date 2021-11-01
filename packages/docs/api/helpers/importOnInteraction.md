@@ -7,11 +7,7 @@ Use the `importOnInteraction` function to import component when the user interac
 ```js
 import { importOnInteraction } from '@studiometa/js-toolkit';
 
-importOnInteraction(
-  () => import('./components/Component.js'),
-  'Component',
-  'click',
-);
+importOnInteraction(() => import('./components/Component.js'), 'Component', 'click');
 ```
 
 **Parameters**
@@ -46,6 +42,7 @@ class App extends Base {
   }
 }
 ```
+
 Import the class when clicking on the `#import-component-trigger` element which can be anywhere in the DOM:
 
 ```js{1,7-11}

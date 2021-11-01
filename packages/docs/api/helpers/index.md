@@ -14,7 +14,6 @@ The following helpers can help you bootstrap the root class of your application:
 
 - [createApp](./createApp.html)
 
-
 ## Lazy import helpers
 
 Some components might not need to be imported and instantiated immediately on page load. The following functions will help you define custom scenarios for when to import these components.
@@ -22,4 +21,3 @@ Some components might not need to be imported and instantiated immediately on pa
 - [importOnInteraction](./importOnInteraction.html)
 - [importWhenIdle](./importWhenIdle.html)
 - [importWhenVisible](./importWhenVisible.html)
-

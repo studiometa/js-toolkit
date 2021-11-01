@@ -10,7 +10,6 @@ Use this decorator to create a component which will mount and destroy itself bas
 
 This decorator does not expose a specific API.
 
-
 ## Examples
 
 ### Simple usage
