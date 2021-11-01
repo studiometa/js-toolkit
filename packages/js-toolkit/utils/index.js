@@ -1,27 +1,71 @@
-import * as collide from './collide/index.js';
-import * as css from './css/index.js';
-import * as history from './history.js';
-import * as math from './math/index.js';
-import * as object from './object/index.js';
-import * as string from './string/index.js';
 import debounce from './debounce.js';
 import focusTrap from './focusTrap.js';
 import keyCodes from './keyCodes.js';
 import memoize from './memoize.js';
 import nextFrame from './nextFrame.js';
 import throttle from './throttle.js';
+import {
+  matrix,
+  transition,
+} from './css/index.js';
+import {
+  collidePointRect,
+  collideRectRect,
+  boundingRectToCircle,
+  collideCircleRect,
+  collideCircleCircle,
+  collidePointCircle,
+} from './collide/index.js';
+import {
+  objectToURLSearchParams,
+  push as historyPush,
+  replace as historyReplace,
+} from './history.js';
+import { clamp, clamp01, damp, inertiaFinalValue, lerp, map, round } from './math/index.js';
+import {
+  withLeadingCharacters,
+  withLeadingSlash,
+  withoutLeadingCharacters,
+  withoutLeadingCharactersRecursive,
+  withoutLeadingSlash,
+  withoutTrailingCharacters,
+  withoutTrailingCharactersRecursive,
+  withoutTrailingSlash,
+  withTrailingCharacters,
+  withTrailingSlash,
+} from './string/index.js';
 
+// css
+export { matrix, transition };
+
+// collide
 export {
-  collide,
-  css,
-  debounce,
-  focusTrap,
-  history,
-  keyCodes,
-  math,
-  memoize,
-  nextFrame,
-  object,
-  string,
-  throttle,
+  collidePointRect,
+  collideRectRect,
+  boundingRectToCircle,
+  collideCircleRect,
+  collideCircleCircle,
+  collidePointCircle,
 };
+
+// history
+export { objectToURLSearchParams, historyPush, historyReplace };
+
+// math
+export { clamp, clamp01, damp, inertiaFinalValue, lerp, map, round };
+
+// string
+export {
+  withLeadingCharacters,
+  withLeadingSlash,
+  withoutLeadingCharacters,
+  withoutLeadingCharactersRecursive,
+  withoutLeadingSlash,
+  withoutTrailingCharacters,
+  withoutTrailingCharactersRecursive,
+  withoutTrailingSlash,
+  withTrailingCharacters,
+  withTrailingSlash,
+};
+
+export { debounce, focusTrap, keyCodes, memoize, nextFrame, throttle };
