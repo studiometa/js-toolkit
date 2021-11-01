@@ -4,10 +4,7 @@ import keyCodes from './keyCodes.js';
 import memoize from './memoize.js';
 import nextFrame from './nextFrame.js';
 import throttle from './throttle.js';
-import {
-  matrix,
-  transition,
-} from './css/index.js';
+import { matrix, transition } from './css/index.js';
 import {
   collidePointRect,
   collideRectRect,
