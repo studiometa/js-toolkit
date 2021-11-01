@@ -70,6 +70,11 @@ function getApiSidebar({ expanded = 'api' } = {}) {
       children: expanded === 'api' ? getBaseSidebar() : getBaseSidebar(),
     },
     {
+      text: 'Helpers',
+      link: '/api/helpers/',
+      children: expanded === 'helpers' ? getHelpersSidebar() : getHelpersSidebar(),
+    },
+    {
       text: 'Services',
       link: '/api/services/',
       children: expanded === 'services' ? getServicesSidebar() : getServicesSidebar(),
@@ -78,11 +83,6 @@ function getApiSidebar({ expanded = 'api' } = {}) {
       text: 'Decorators',
       link: '/api/decorators/',
       children: expanded === 'decorators' ? getDecoratorsSidebar() : getDecoratorsSidebar(),
-    },
-    {
-      text: 'Helpers',
-      link: '/api/helpers/',
-      children: expanded === 'helpers' ? getHelpersSidebar() : getHelpersSidebar(),
     },
   ];
 }
