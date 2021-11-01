@@ -1,5 +1,3 @@
-
-
 # withMountWhenInView
 
 Use this decorator to create a component which will mount and destroy itself based on its visibility in the viewport.
@@ -17,7 +15,7 @@ This decorator does not expose a specific API.
 
 ### Simple usage
 
-```js
+```js{1,3,10,14}
 import { Base, withMountWhenInView } from '@studiometa/js-toolkit';
 
 export default class Component extends withMountWhenInView(Base) {
@@ -40,7 +38,7 @@ export default class Component extends withMountWhenInView(Base) {
 
 You can pass custom options for the `IntersectionObserver` instance by passing a second parameter to the `withMountWhenInView` function:
 
-```js{4-6}
+```js{1,3-5}
 import { Base, withMountWhenInView } from '@studiometa/js-toolkit';
 
 export default class Component extends withMountWhenInView(Base, {

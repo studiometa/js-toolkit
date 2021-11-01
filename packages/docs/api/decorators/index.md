@@ -8,3 +8,4 @@ Decorators are used to add extra functionalities to a Base class. The following 
 - [withExtraConfig](./withExtraConfig.html)
 - [withIntersectionObserver](./withIntersectionObserver.html)
 - [withMountWhenInView](./withMountWhenInView.html)
+- [withVue2](./withVue2.html)
