@@ -4,7 +4,21 @@ Use this decorator to create a component which will mount and destroy itself bas
 
 ## Usage
 
-<label><input type="checkbox">todo</label>
+```js
+import { Base, withMountWhenInView } from '@studiometa/js-toolkit';
+import Component from './Component.js';
+
+export default withMountWhenInView(Component, { threshold: [0, 1] });
+```
+
+### Parameters
+
+- `BaseClass` (`Base`): The Base class to mount when in view.
+- `intersectionObserverOptions` (`IntersectionObserverInit`): Options for the `IntersectionObserver` instance.
+
+### Return value
+
+- `Base`: A child class of the given class which will be mounted when visible and destroyed when invisible
 
 ## API
 

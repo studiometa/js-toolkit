@@ -1,5 +1,7 @@
 # Managing components
 
+## What are components?
+
 ## Defining components
 
 ## Importing components lazyly

@@ -56,10 +56,10 @@ function getGuideSidebar() {
         },
       ],
     },
-    // {
-    //   text: 'Recipes',
-    //   children: [{ text: 'todo' }],
-    // },
+    {
+      text: 'Recipes',
+      children: [{ text: 'todo' }],
+    },
   ];
 }
 
