@@ -11,8 +11,8 @@ import App from './App.vue';
 
 export default class Component extends withVue2(Base, Vue) {
   static vueConfig = {
-    render: h => h(App)
-  }
+    render: (h) => h(App),
+  };
 }
 ```
 
