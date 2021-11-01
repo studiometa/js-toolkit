@@ -3,7 +3,6 @@ declare global {
   var __DEV__: boolean;
   interface Window {
     __DEV__: typeof __DEV__;
-    requestIdleCallback?: (callback: () => void, options?:{timeout?:number}) => number;
     ResizeObserver?: (callback: () => void) => void;
   }
 

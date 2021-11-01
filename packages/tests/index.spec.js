@@ -1,4 +1,3 @@
-import { Base } from '@studiometa/js-toolkit';
 import * as toolkit from '@studiometa/js-toolkit';
 
 describe('The package exports', () => {
@@ -22,6 +21,7 @@ describe('The package exports', () => {
       'withExtraConfig',
       'withIntersectionObserver',
       'withMountWhenInView',
+      'withVue2',
     ];
     expect(Object.keys(toolkit)).toEqual(names);
   });
