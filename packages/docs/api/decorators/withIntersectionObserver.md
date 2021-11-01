@@ -42,7 +42,7 @@ Emitted when the [`intersected`](#intersected) class method is triggered.
 
 ### Simple usage
 
-```js{4,9-17}
+```js{1,3,8-16}
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 
 export default class Component extends withIntersectionObserver(Base) {
@@ -66,7 +66,7 @@ export default class Component extends withIntersectionObserver(Base) {
 
 You can pass custom options for the `IntersectionObserver` instance by passing a second parameter to the `withIntersectionObserver` function:
 
-```js{4-6}
+```js{3-5}
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 
 export default class Component extends withIntersectionObserver(Base, {

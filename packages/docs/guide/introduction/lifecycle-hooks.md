@@ -2,10 +2,9 @@
 
 ## Using lifecycle hooks
 
-### mounted
-### updated
-### destroyed
-### terminated
+:::tip
+Find details for the lifecycle hooks APIs in the [Lifecycle hooks](/api/methods-hooks-lifecycle.html) section in the API Reference.
+:::
 
 ## Lifecycle diagram
 

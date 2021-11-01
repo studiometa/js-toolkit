@@ -4,13 +4,9 @@
 
 ## Using services
 
-### dragged
-### keyed
-### loaded
-### moved
-### ticked
-### resized
-### scrolled
+:::tip
+Find all natively available services and their API details in the [Services](/api/services/) section from the API Reference.
+:::
 
 ## Enabling/disabling a service
 
