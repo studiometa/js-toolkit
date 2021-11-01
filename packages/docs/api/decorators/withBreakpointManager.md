@@ -1,5 +1,3 @@
-
-
 # withBreakpointManager
 
 Use this decorator to create a component that will have the capacity to switch components between different breakpoints.

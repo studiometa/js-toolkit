@@ -36,11 +36,15 @@ transition(document.body, {
 // - transition duration-500
 // And keep the latest class at the end:
 // - opacity-50
-transition(document.body, {
-  from: 'opacity-0',
-  active: 'transition duration-500',
-  to: 'opacity-50',
-}, 'keep');
+transition(
+  document.body,
+  {
+    from: 'opacity-0',
+    active: 'transition duration-500',
+    to: 'opacity-50',
+  },
+  'keep'
+);
 ```
 
 ### Parameters
@@ -52,5 +56,3 @@ transition(document.body, {
 ### Return value
 
 - `Promise`: a `Promise` resolving when the transition has ended
-
-

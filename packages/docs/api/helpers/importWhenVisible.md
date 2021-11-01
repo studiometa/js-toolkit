@@ -7,10 +7,7 @@ Use this function to import component when an element is visible.
 ```js
 import { importWhenVisible } from '@studiometa/js-toolkit';
 
-importWhenVisible(
-  () => import('./components/Component.js'),
-  'Component'
-);
+importWhenVisible(() => import('./components/Component.js'), 'Component');
 ```
 
 **Parameters**
@@ -62,6 +59,7 @@ class App extends Base {
   }
 }
 ```
+
 Import the class when the app's `btn` ref is visible:
 
 ```js{1,8-11}

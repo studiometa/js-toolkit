@@ -5,7 +5,7 @@
 ```js
 import { withTrailingCharacters } from '@studiometa/js-toolkit/utils';
 
-withTrailingCharacters('string', '__');   // "string__"
+withTrailingCharacters('string', '__'); // "string__"
 withTrailingCharacters('string__', '__'); // "string__"
 ```
 
@@ -17,4 +17,3 @@ withTrailingCharacters('string__', '__'); // "string__"
 ### Return value
 
 - `string`: The modified string.
-

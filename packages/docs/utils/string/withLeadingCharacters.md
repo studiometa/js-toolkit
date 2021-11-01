@@ -5,7 +5,7 @@
 ```js
 import { withLeadingCharacters } from '@studiometa/js-toolkit/utils';
 
-withLeadingCharacters('string', '__');   // "__string"
+withLeadingCharacters('string', '__'); // "__string"
 withLeadingCharacters('__string', '__'); // "__string"
 ```
 
@@ -17,4 +17,3 @@ withLeadingCharacters('__string', '__'); // "__string"
 ### Return value
 
 - `string`: The modified string.
-

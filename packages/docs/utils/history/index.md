@@ -5,4 +5,3 @@ Helpers to interact with the [History API](http://developer.mozilla.org/en-US/do
 - [historyPush](./historyPush.html)
 - [historyReplace](./historyReplace.html)
 - [objectToURLSearchParams](./objectToURLSearchParams.html)
-

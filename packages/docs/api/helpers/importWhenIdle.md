@@ -7,11 +7,9 @@ Use this function to import components when the [`requestIdleCallback`](https://
 ```js
 import { importWhenIdle } from '@studiometa/js-toolkit';
 
-importWhenIdle(
-  () => import('./components/Component.js'),
-  { timeout: 1000 }
-);
+importWhenIdle(() => import('./components/Component.js'), { timeout: 1000 });
 ```
+
 **Parameters**
 
 - `importFn` (`() => Promise<Base>`): the function to import components

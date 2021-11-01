@@ -21,7 +21,6 @@ const circle = {
 collidePointCircle(point, circle); // true
 ```
 
-
 ### Parameters
 
 - `point` (`{ x: number, y: number }`): the point position
