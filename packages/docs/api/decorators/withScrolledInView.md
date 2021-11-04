@@ -33,10 +33,10 @@ The `scrolledInView` class method will be triggered for each frame of the compon
 **Arguments**
 
 - `props` (`{ start: number, end: number, current: number, progress: number }`): Values corresponding to the progress of the component's root element in the viewport.
-  + `props.start` (`number`): The scroll position were the element starts to be visible.
-  + `props.end` (`number`): The scroll position were the element is not visible anymore.
-  + `props.current` (`number`): The current scroll position, clamped in the `props.start` and `props.end` range.
-  + `props.progress` (`number`): The progress of the element between `props.start` and `props.end` mapped to a `0–1` range.
+  - `props.start` (`number`): The scroll position were the element starts to be visible.
+  - `props.end` (`number`): The scroll position were the element is not visible anymore.
+  - `props.current` (`number`): The current scroll position, clamped in the `props.start` and `props.end` range.
+  - `props.progress` (`number`): The progress of the element between `props.start` and `props.end` mapped to a `0–1` range.
 
 ## Examples
 

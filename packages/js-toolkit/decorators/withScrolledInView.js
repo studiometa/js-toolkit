@@ -1,5 +1,5 @@
 import withMountWhenInView from './withMountWhenInView.js';
-import { clamp, clamp01 } from '../utils';
+import { clamp, clamp01 } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base').default} Base
