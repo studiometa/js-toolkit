@@ -224,8 +224,7 @@ export default class Base {
   __callMethod(method, ...args) {
     this.__debug('callMethod', method, ...args);
 
-    // Prevent duplicate call of `mounted` and `destroyed`
-    // methods based on the component status
+    // Prevent duplicate call of `mounted` and `destroyed` methods based on the component status
     if ((method === 'destroyed' && !this.$isMounted) || (method === 'mounted' && this.$isMounted)) {
       this.__debug('not', method, 'because the method has already been triggered once.');
       return;
