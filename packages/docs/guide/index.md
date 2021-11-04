@@ -1,26 +1,19 @@
-# Guide
+# Getting started
 
-## Installation
+## What is the `Base` class?
 
-Install the package with your favorite package manager:
+The `Base` class is born from our needs and practices with JavaScript as a team at [Studio Meta](https://www.studiometa.fr).
 
-```bash
-npm install @studiometa/js-toolkit
-```
+Its purposes are:
 
-## Usage
+- Easily get elements from the DOM
+- Register custom behaviours on component initialization
+- Unregister these custom behaviours on component destruction
+- Adding custom behaviours on page load, scroll and resize
+- Adding custom behaviours on each frame with requestAnimationFrame
+- Initialize components in the right place at the right time
+- Define dependencies between components
 
-In your project, import the things you need:
+## How it works
 
-```js
-import debounce from '@studiometa/js-toolkit/utils/debounce';
-
-const debounced = debounce(() => {
-  console.log('Hello 👋');
-}, 500);
-
-debounced();
-// Hello 👋
-```
-
-See below or the API reference for the full list of exports.
+## Creating an app
