@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`The package exports should export helpers and the Base class 1`] = `
+Array [
+  "Base",
+  "createApp",
+  "importOnInteraction",
+  "importWhenIdle",
+  "importWhenVisible",
+  "useDrag",
+  "useKey",
+  "useLoad",
+  "usePointer",
+  "useRaf",
+  "useResize",
+  "useScroll",
+  "withBreakpointManager",
+  "withBreakpointObserver",
+  "withDrag",
+  "withExtraConfig",
+  "withIntersectionObserver",
+  "withMountWhenInView",
+  "withScrolledInView",
+  "withVue2",
+]
+`;
