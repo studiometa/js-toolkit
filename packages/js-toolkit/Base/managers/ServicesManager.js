@@ -156,6 +156,28 @@ export default class ServicesManager {
   }
 
   /**
+   * Toggle a service.
+   * @param  {string}  service    The name of the service.
+   * @param  {boolean} [force] The state to force.
+   * @return {void}
+   */
+  toggle(service, force) {
+    if (typeof force !== 'undefined') {
+      if (force && !this.has(service)) {
+        this.enable(service);
+      }
+
+      if (!force && this.has(service)) {
+        this.disable(service);
+      }
+    } else if (this.has(service)) {
+      this.disable(service);
+    } else {
+      this.enable(service);
+    }
+  }
+
+  /**
    * Register a new service to be enabled/disabled.
    *
    * @param {string} name
