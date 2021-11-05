@@ -77,7 +77,9 @@ export default class ServicesManager {
   has(service) {
     if (
       !(
-        (hasMethod(this.__base, service) || this.__base.__hasEvent(service)) &&
+        (hasMethod(this.__base, service) ||
+          // @ts-ignore
+          this.__base.__hasEvent(service)) &&
         this.__services[service]
       )
     ) {
