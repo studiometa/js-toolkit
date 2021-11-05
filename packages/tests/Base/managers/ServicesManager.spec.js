@@ -43,6 +43,27 @@ describe('The ServicesManager', () => {
     expect(app.$services.disable('foo')).toBeUndefined();
   });
 
+  it('should be able to to toggle services', () => {
+    jest.useFakeTimers();
+    app.$services.toggle('resized', false);
+    window.dispatchEvent(new CustomEvent('resize'));
+    jest.runAllTimers();
+    expect(fn).not.toHaveBeenCalled();
+    app.$services.toggle('resized', true);
+    window.dispatchEvent(new CustomEvent('resize'));
+    jest.runAllTimers();
+    expect(fn).toHaveBeenCalledTimes(1);
+    app.$services.toggle('resized');
+    window.dispatchEvent(new CustomEvent('resize'));
+    jest.runAllTimers();
+    expect(fn).toHaveBeenCalledTimes(1);
+    app.$services.toggle('resized');
+    window.dispatchEvent(new CustomEvent('resize'));
+    jest.runAllTimers();
+    expect(fn).toHaveBeenCalledTimes(2);
+    jest.useRealTimers();
+  });
+
   it('should be able to unregister custom services but not core services', () => {
     expect(() => app.$services.unregister('resized')).toThrow(
       /core service can not be unregistered/
