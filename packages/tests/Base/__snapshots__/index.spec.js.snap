@@ -3,14 +3,15 @@
 exports[`A Base instance config should have a working debug method when active in dev mode 1`] = `
 Array [
   Array [
-    "[debug] [Foo-35]",
+    "[debug] [Foo-36]",
     "constructor",
     Foo {
       "$el": <div />,
-      "$id": "Foo-35",
+      "$id": "Foo-36",
       "$isMounted": true,
       "$parent": null,
       "__children": ChildrenManager {},
+      "__eventHandlers": Map {},
       "__events": EventsManager {},
       "__options": OptionsManager {
         "debug": true,
@@ -24,11 +25,11 @@ Array [
     },
   ],
   Array [
-    "[debug] [Foo-35]",
+    "[debug] [Foo-36]",
     "$mount",
   ],
   Array [
-    "[debug] [Foo-35]",
+    "[debug] [Foo-36]",
     "$emit",
     "get:children",
     Array [
@@ -36,7 +37,7 @@ Array [
     ],
   ],
   Array [
-    "[debug] [Foo-35]",
+    "[debug] [Foo-36]",
     "$emit",
     "get:refs",
     Array [
@@ -44,7 +45,7 @@ Array [
     ],
   ],
   Array [
-    "[debug] [Foo-35]",
+    "[debug] [Foo-36]",
     "$emit",
     "get:services",
     Array [
@@ -54,7 +55,7 @@ Array [
     ],
   ],
   Array [
-    "[debug] [Foo-35]",
+    "[debug] [Foo-36]",
     "$emit",
     "get:children",
     Array [
@@ -62,12 +63,12 @@ Array [
     ],
   ],
   Array [
-    "[debug] [Foo-35]",
+    "[debug] [Foo-36]",
     "callMethod",
     "mounted",
   ],
   Array [
-    "[debug] [Foo-35]",
+    "[debug] [Foo-36]",
     "$emit",
     "mounted",
     Array [],

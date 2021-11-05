@@ -396,6 +396,20 @@ describe('The Base class event methods', () => {
     app.$emit('foo', { foo: true });
     expect(fn).toHaveBeenCalledTimes(1);
   });
+
+  it('should store event handlers', () => {
+    class App extends Base {
+      static config = { name: 'App' };
+    }
+
+    const app = new App(document.createElement('div')).$mount();
+    const fn = jest.fn();
+    app.$on('event', fn);
+    expect(app.__hasEvent('event')).toBe(true);
+    expect(app.__eventHandlers.get('event')).toEqual(new Set([fn]));
+    app.$off('event', fn);
+    expect(app.__eventHandlers.get('event')).toEqual(new Set());
+  });
 });
 
 describe('A Base instance config', () => {
