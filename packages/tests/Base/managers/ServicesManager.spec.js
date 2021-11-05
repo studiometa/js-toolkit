@@ -43,7 +43,7 @@ describe('The ServicesManager', () => {
     expect(app.$services.disable('foo')).toBeUndefined();
   });
 
-  it('should be able to to toggle services', () => {
+  it('should be able to toggle services', () => {
     jest.useFakeTimers();
     app.$services.toggle('resized', false);
     window.dispatchEvent(new CustomEvent('resize'));
@@ -61,6 +61,28 @@ describe('The ServicesManager', () => {
     window.dispatchEvent(new CustomEvent('resize'));
     jest.runAllTimers();
     expect(fn).toHaveBeenCalledTimes(2);
+    jest.useRealTimers();
+  });
+
+  it('should enable a service when it is used via event handlers', () => {
+    jest.useFakeTimers();
+
+    class Test extends Base {
+      static config = {
+        name: 'Test',
+      };
+
+      constructor(element) {
+        super(element);
+
+        this.$on('resized', fn);
+      }
+    }
+
+    const test = new Test(document.createElement('div'));
+    window.dispatchEvent(new CustomEvent('resize'));
+    jest.runAllTimers();
+    expect(fn).toHaveBeenCalledTimes(1);
     jest.useRealTimers();
   });
 

@@ -75,7 +75,12 @@ export default class ServicesManager {
    * @return {Boolean}
    */
   has(service) {
-    if (!hasMethod(this.__base, service) && !this.__services[service]) {
+    if (
+      !(
+        (hasMethod(this.__base, service) || this.__base.__hasEvent(service)) &&
+        this.__services[service]
+      )
+    ) {
       return false;
     }
 
@@ -94,10 +99,13 @@ export default class ServicesManager {
       return this.disable.bind(this, service);
     }
 
-    if (!hasMethod(this.__base, service) || !this.__services[service]) {
+    if (
+      // @ts-ignore
+      !(hasMethod(this.__base, service) || this.__base.__hasEvent(service)) ||
+      !this.__services[service]
+    ) {
       return function noop() {};
     }
-
     const { add } = this.__services[service]();
     const self = this;
 
