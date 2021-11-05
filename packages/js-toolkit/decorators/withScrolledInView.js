@@ -43,13 +43,7 @@ export default function withScrolledInView(BaseClass) {
          * @param {Event & { detail: [ScrollServiceProps] }} event
          */
         ({ detail: [props] }) => {
-          if (props.changed.y && !this.$services.has('ticked')) {
-            this.$services.enable('ticked');
-          }
-
-          if (!props.changed.y && this.$services.has('ticked')) {
-            this.$services.disable('ticked');
-          }
+          this.$services.toggle('ticked', props.changed.y);
         }
       );
 
@@ -58,7 +52,6 @@ export default function withScrolledInView(BaseClass) {
         this.__props.progress = clamp01(
           (this.__props.current - this.__props.start) / (this.__props.end - this.__props.start)
         );
-
         // @ts-ignore
         this.__callMethod('scrolledInView', this.__props);
       });
