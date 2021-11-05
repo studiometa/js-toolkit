@@ -1,0 +1,12 @@
+{#
+/**
+ * @param {string|number} speed
+ *   The speed of the parallax effect.
+ * @param {boolean} debug
+ *   Wether to enable the debug or not.
+ */
+#}
+
+<div data-component="Parallax" data-option-speed="{{ speed }}" {% if debug %}data-option-debug{% endif %}>
+  <div data-ref="target" class="w-48 h-48 rounded bg-black"></div>
+</div>

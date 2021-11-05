@@ -292,6 +292,14 @@
 
       <hr class="my-10" />
 
+      <div class="flex items-center justify-around h-screen">
+        {% include '@components/parallax.twig' with { speed: 1, debug: true } %}
+        {% include '@components/parallax.twig' with { speed: 2 } %}
+        {% include '@components/parallax.twig' with { speed: 3 } %}
+      </div>
+
+      <hr class="my-10" />
+
       <div class="flex flex-wrap">
         <div class="w-1/3 p-10" data-component="Skew">
           <img
