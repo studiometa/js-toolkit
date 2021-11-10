@@ -12,7 +12,7 @@ Bind a callback function to an event emitted by the instance. Returns a function
 
 Unbind a callback function from an event emitted by the instance. If no callback function is provided, all previously binded callbacks will be removed.
 
-## `$emit(event[, …args])`
+## `$emit(event[, ...args])`
 
 Emit an event from the current instance, with optional custom arguments.
 
