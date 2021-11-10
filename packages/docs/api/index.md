@@ -14,7 +14,7 @@ class Component extends Base {
 
 Discover how to configure and use the `Base` class in the following sections:
 
-- [Configuration](api/configuration.html)
+- [Configuration](/api/configuration.html)
 - [Lifecycle hooks](/api/methods-hooks-lifecycle.html)
 - [Services hooks](/api/methods-hooks-services.html)
 - [Events hooks](/api/methods-hooks-events.html)
