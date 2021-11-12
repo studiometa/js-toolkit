@@ -67,8 +67,8 @@ class App extends Base {
 }
 ```
 
-The `ResponsiveModal` registered component will have the capacity to use either one of the `activeBreakpoints` and `inactiveBreakpoints` configuration options by setting the `data-option-active-breakpoint` or the `data-option-inactive-breakpoint` attribute.
+The `ResponsiveModal` registered component will have the capacity to use either one of the `activeBreakpoints` and `inactiveBreakpoints` configuration options by setting the `data-option-active-breakpoints` or the `data-option-inactive-breakpoints` attribute.
 
 :::tip
-See the [`resize` service documentation on breakpoints](/api/services/useResize.html#breakpoint) for a more comprehensive view of the potential values of the `activeBreakpoint` property.
+See the [`resize` service documentation on breakpoints](/api/services/useResize.html#breakpoint) for a more comprehensive view of the potential values of the `activeBreakpoints` property.
 :::
