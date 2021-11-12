@@ -18,7 +18,7 @@ Discover how to configure and use the `Base` class in the following sections:
 - [Lifecycle hooks](/api/methods-hooks-lifecycle.html)
 - [Services hooks](/api/methods-hooks-services.html)
 - [Events hooks](/api/methods-hooks-events.html)
-- [Instantiation](api/instanciation.html)
+- [Instantiation](/api/instantiation.html)
 - [Instance properties](/api/instance-properties.html)
 - [Instance methods](/api/instance-methods.html)
 - [Intance events](/api/instance-events.html)
