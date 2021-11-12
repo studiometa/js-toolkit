@@ -1,3 +1,10 @@
 h3 + h4 {
   margin-top: 1.5rem;
 }
+
+
+.sidebar.sidebar {
+  @media (min-width: 960px) {
+    width: 24rem;
+  }
+}
