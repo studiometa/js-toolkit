@@ -7,7 +7,7 @@ import useDrag from '../services/drag.js';
  */
 
 /**
- * @typedef {DragServiceOptions & { target: (this:Base) => HTMLElement }} DragDecoratorOptions
+ * @typedef {DragServiceOptions & { target?: (this:Base, Base) => HTMLElement }} DragDecoratorOptions
  */
 
 /**
@@ -20,11 +20,7 @@ import useDrag from '../services/drag.js';
  */
 export default function withDrag(
   BaseClass,
-  options = {
-    target() {
-      return this.$el;
-    },
-  }
+  { target = (instance) => instance.$el, ...options } = {}
 ) {
   // @ts-ignore
   return class extends BaseClass {
@@ -36,9 +32,10 @@ export default function withDrag(
       super(el);
 
       this.$on('mounted', () => {
-        const { target, ...otherOptions } = options;
-        const boundUseDrag = useDrag.bind(undefined, target.call(this), otherOptions);
-        this.$services.register('dragged', boundUseDrag);
+        this.$services.register(
+          'dragged',
+          useDrag.bind(undefined, target.call(this, this), options)
+        );
         this.$services.enable('dragged');
       });
 

@@ -4,7 +4,31 @@ Use this decorator to add the `dragged(props)` hook from the [drag](/api/service
 
 ## Usage
 
-<label><input type="checkbox">todo</label>
+```js
+import { Base, withDrag } from '@studiometa/js-toolkit';
+
+export default class Draggable extends withDrag(Base, {
+  target: (instance) => instance.$el,
+  dampFactor: 0.5,
+}) {
+  static config = {
+    name: 'Draggable',
+  };
+
+  dragged(props) {
+    this.$el.style.transform = `translate(${props.x}px, ${props.y}px)`;
+  }
+}
+```
+
+### Parameters
+
+- `BaseClass` (`Base`): The class to add draggable capabilities to
+- `options?` (`{ target?: (instance:Base) => HTMLElement, dampFactor?: number }`): Options to choose the draggable target element and the drag dampFactor.
+
+### Return value
+
+- `Base`: A child of the given class with draggable capabilities
 
 ## API
 
@@ -33,8 +57,7 @@ export default class Draggable extends withDrag(Base) {
   };
 
   dragged(props) {
-    console.log(props.x);
-    console.log(props.y);
+    this.$el.style.transform = `translate(${props.x}px, ${props.y}px)`;
   }
 }
 ```
@@ -45,16 +68,12 @@ We recommend using [stylefire](https://popmotion.io/stylefire/) to update the ro
 
 ### Move a ref element
 
-```js{6-10}
+```js{5,9,12-14}
 import { Base, withDrag } from '@studiometa/js-toolkit';
 
 export default class Draggable extends withDrag(
   Base,
-  {
-    target() {
-      return this.$refs.draggbale;
-    },
-  }
+  { target: (instance) => instance.$refs.draggbale }
 ) {
   static config = {
     name: 'Draggable',
@@ -62,8 +81,7 @@ export default class Draggable extends withDrag(
   };
 
   dragged(props) {
-    console.log(props.x);
-    console.log(props.y);
+    this.$refs.draggable.style.transform = `translate(${props.x}px, ${props.y}px)`;
   }
 }
 ```

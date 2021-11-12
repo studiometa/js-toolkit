@@ -4,7 +4,21 @@ Use this decorator to quickly create variants of an existing class.
 
 ## Usage
 
-<label><input type="checkbox">todo</label>
+```js
+import { withExtraConfig } from '@studiometa/js-toolkit';
+import Component from './Component.js';
+
+export default withExtraConfig(Component, { log: true });
+```
+
+### Parameters
+
+- `BaseClass` (`Base`): The class to add extra configuration to.
+- `config` (`BaseConfig`): The extra config to merge with the existing one, see [Configuration](/api/configuration.html) for more details
+
+### Return value
+
+- `Base`: A child class of the given class with the merge configuration
 
 ## Examples
 
