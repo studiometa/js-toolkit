@@ -245,7 +245,7 @@ module.exports = {
 
 ## Interface methods
 
-@TODO Add a lifecycle diagram
+![Lifecycle diagram](../assets/lifecycle-diagram.png)
 
 ### `mounted()` <Badge vertical="middle" text="Lifecycle hooks" />
 
@@ -723,17 +723,213 @@ Terminate the component, its instance is made available to garbage collection. A
 
 ## Events
 
+![Events diagram](../assets/services-diagram.png)
+
 ### `mounted`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('mounted', () => {
+  console.log('App is mounted');
+});
+```
+
 ### `loaded`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('loaded', () => {
+  console.log('App is loaded');
+});
+```
+
 ### `scrolled`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('scrolled', () => {
+  console.log('User is scrolling');
+});
+```
+
 ### `resized`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('resized', () => {
+  console.log('User is resizing the window');
+});
+```
+
 ### `keyed`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('keyed', () => {
+  console.log('User is typing');
+});
+```
+
 ### `moved`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('moved', () => {
+  console.log('User is moving their cursor');
+});
+```
+
 ### `ticked`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('ticked', () => {
+  console.log('The render loop has ticked');
+});
+```
+
 ### `updated`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('updated', () => {
+  console.log('$update() has been called on this component');
+});
+```
+
 ### `destroyed`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('destroyed', () => {
+  console.log('$destroy() has been called on this component');
+});
+```
+
 ### `terminated`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('terminated', () => {
+  console.log('$terminate() has been called on this component');
+});
+```
+
 ### `get:options`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('terminated', () => {
+  console.log('$terminate() has been called on this component');
+});
+```
+
 ### `get:refs`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('get:refs', () => {
+  console.log('refs has been added');
+});
+```
+
 ### `get:children`
+
+```js
+class App extends Base {
+  static config = {
+    name: 'App',
+  }
+}
+
+const app = new App(document.body);
+
+app.$on('get:children', () => {
+  console.log('children has been added');
+});
+```
 
