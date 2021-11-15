@@ -1,4 +1,4 @@
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import { withIntersectionObserver } from '@studiometa/js-toolkit/decorators';
 import transition, { setClassesOrStyles } from '@studiometa/js-toolkit/utils/css/transition';
 
@@ -24,7 +24,7 @@ export default class Lazyload extends withIntersectionObserver(Base) {
 
   intersected([entry]) {
     if (entry.isIntersecting) {
-      window.requestIdleCallback(this.load);
+      window.requestIdleCallback(() => this.load());
     }
   }
 

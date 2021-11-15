@@ -37,10 +37,15 @@ module.exports = {
     const babel = config.module.rules.find((rule) => {
       return rule.use.includes('babel-loader') || rule.use.find((l) => l.loader === 'babel-loader');
     });
-    const loaderIndex = babel.use.findIndex((l) => l.loader === 'babel-loader');
-    babel.use.splice(loaderIndex, 1, {
+    const babelLoaders = babel.use;
+    const loaderIndex = babelLoaders.findIndex((l) => l.loader === 'babel-loader');
+    babelLoaders.splice(loaderIndex, 1, {
       loader: 'babel-loader',
-      options: { cacheDirectory: true, rootMode: 'upward' },
+      options: { cacheDirectory: true, targets: { esmodules: true } },
+    });
+
+    Object.defineProperty(babel, 'use', {
+      value: babelLoaders,
     });
   },
 };

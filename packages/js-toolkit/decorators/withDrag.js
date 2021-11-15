@@ -1,30 +1,26 @@
 import useDrag from '../services/drag.js';
 
 /**
- * @typedef {import('../abstracts/Base').default} Base
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').default} Base
+ * @typedef {import('../Base').BaseConstructor} BaseConstructor
  * @typedef {import('../services/drag').DragServiceOptions} DragServiceOptions
  */
 
 /**
- * @typedef {DragServiceOptions & { target: (this:Base) => HTMLElement }} DragDecoratorOptions
+ * @typedef {DragServiceOptions & { target?: (this:Base, Base) => HTMLElement }} DragDecoratorOptions
  */
 
 /**
  * Add dragging capabilities to a component.
  *
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  * @param {T} BaseClass
  * @param {DragDecoratorOptions} options
  * @return {T}
  */
 export default function withDrag(
   BaseClass,
-  options = {
-    target() {
-      return this.$el;
-    },
-  }
+  { target = (instance) => instance.$el, ...options } = {}
 ) {
   // @ts-ignore
   return class extends BaseClass {
@@ -36,9 +32,10 @@ export default function withDrag(
       super(el);
 
       this.$on('mounted', () => {
-        const { target, ...otherOptions } = options;
-        const boundUseDrag = useDrag.bind(undefined, target.call(this), otherOptions);
-        this.$services.register('dragged', boundUseDrag);
+        this.$services.register(
+          'dragged',
+          useDrag.bind(undefined, target.call(this, this), options)
+        );
         this.$services.enable('dragged');
       });
 

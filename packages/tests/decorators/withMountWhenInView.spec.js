@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import Base from '@studiometa/js-toolkit/abstracts/Base';
+import { Base } from '@studiometa/js-toolkit';
 import withMountWhenInView from '@studiometa/js-toolkit/decorators/withMountWhenInView';
 import {
   beforeAllCallback,

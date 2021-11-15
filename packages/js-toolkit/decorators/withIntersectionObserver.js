@@ -1,8 +1,6 @@
-import { debug } from '../abstracts/Base/utils.js';
-
 /**
- * @typedef {import('../abstracts/Base').default} Base
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').default} Base
+ * @typedef {import('../Base').BaseConstructor} BaseConstructor
  */
 
 /**
@@ -29,7 +27,7 @@ function createArrayOfNumber(length) {
 /**
  * IntersectionObserver decoration.
  *
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  * @param {T} BaseClass The Base class to extend.
  * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
  * @return {T & { new: (element:HTMLElement) => { $observer: IntersectionObserver }}}
@@ -40,13 +38,6 @@ export default function withIntersectionObserver(
 ) {
   // @ts-ignore
   return class extends BaseClass {
-    /**
-     * Add the `intersected` method to the list of method to exclude from the `autoBind` call.
-     */
-    get _excludeFromAutoBind() {
-      return [...(super._excludeFromAutoBind || []), 'intersected'];
-    }
-
     static config = {
       ...(BaseClass.config || {}),
       name: `${BaseClass?.config?.name ?? ''}WithIntersectionObserver`,
@@ -71,18 +62,11 @@ export default function withIntersectionObserver(
 
       this.$observer = new IntersectionObserver(
         (entries) => {
-          if (__DEV__) {
-            debug(this, 'intersected', entries);
-          }
-          this.$emit('intersected', entries);
-          this.intersected(entries);
+          // @ts-ignore
+          this.__callMethod('intersected', entries);
         },
         { ...defaultOptions, ...(this.$options.intersectionObserver || {}) }
       );
-
-      if (this.$isMounted) {
-        this.$observer.observe(this.$el);
-      }
 
       this.$on('mounted', () => {
         this.$observer.observe(this.$el);
