@@ -1,18 +1,20 @@
 <template>
-  <p>
-    {{ paragraph }}
-  </p>
+  <div class="space-x-4">
+    <div style="min-width: 10rem" class="inline-block border py-4 px-8 rounded text-center">
+      {{ count }}
+    </div>
+    <button class="py-4 px-8 text-white rounded bg-black focus:opacity-50" @click="count += 1">
+      Add
+    </button>
+    <button class="py-4 px-8 text-white rounded bg-black focus:opacity-50" @click="count -= 1">
+      Remove
+    </button>
+  </div>
 </template>
 
 <script>
   export default {
     name: 'CustomComponent',
-    data() {
-      return {
-        paragraph: `Lorem ipsum dolor sit amet consectetur, adipisicing elit. Adipisci nemo quod 
-        nobis laudantium iusto maiores molestias animi quos error quo consequatur, eum veniam sequi
-        repellat placeat rerum a labore. Sit.`,
-      };
-    },
+    data: () => ({ count: 1 }),
   };
 </script>

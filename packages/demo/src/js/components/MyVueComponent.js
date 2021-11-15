@@ -1,8 +1,8 @@
-import { Base } from '@studiometa/js-toolkit';
-import { withVue } from '@studiometa/js-toolkit/decorators';
+import { Base, withVue2 } from '@studiometa/js-toolkit';
+import Vue from 'vue';
 import CustomComponent from './CustomComponent.vue';
 
-export default class MyVueComponent extends withVue(Base) {
+export default class MyVueComponent extends withVue2(Base, Vue) {
   static vueConfig = {
     components: {
       CustomComponent,
