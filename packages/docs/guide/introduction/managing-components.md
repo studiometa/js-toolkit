@@ -13,8 +13,8 @@ import { Base } from '@studiometa/js-toolkit';
 
 class Child extends Base {
   static config = {
-    name: 'Child'
-  }
+    name: 'Child',
+  };
 
   mounted() {
     console.log('Child mounted');
@@ -79,7 +79,5 @@ Find more advanced lazy import strategies in the [Lazy imports](/guide/going-fur
 :::
 
 ## Re-evaluating components
-
-
 
 When updating HTML, use `this.$update()`
