@@ -1,4 +1,4 @@
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import { withVue } from '@studiometa/js-toolkit/decorators';
 import CustomComponent from './CustomComponent.vue';
 
