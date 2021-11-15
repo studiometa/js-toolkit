@@ -22,7 +22,7 @@ Mount the component and its children, will trigger the `mounted` lifecycle metho
 
 ## `$update()`
 
-Update the chidlren list from the DOM, and mount the new ones. This method can be used when inserting new content loaded over Ajax.
+Update the children list from the DOM, and mount the new ones. This method can be used when inserting new content loaded over Ajax.
 
 ## `$destroy()`
 
