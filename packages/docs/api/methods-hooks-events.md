@@ -12,10 +12,8 @@ Methods following this pattern will be executed when the event is triggered on t
 
 ```js{8-9}
 class Foo extends Base {
-  get config() {
-    return {
-      name: 'Foo',
-    };
+  static config = {
+    name: 'Foo',
   }
 
   // Will be triggered when clicking on `this.$el`
@@ -55,11 +53,9 @@ Native DOM events will only be binded to ref elements and component's events to 
 
 <script>
   class Foo extends Base {
-    get config() {
-      return {
-        name: 'Foo',
-      };
-    }
+    static config = {
+      name: 'Foo',
+    };
 
     // Will be triggered when clicking on one of `this.$refs.btn`
     // `event` is the click event's object
@@ -78,22 +74,18 @@ Native DOM events will only be binded to ref elements and component's events to 
 
 <script>
   class Baz extends Base {
-    get config() {
-      return {
-        name: 'Baz',
-      };
-    }
+    static config = {
+      name: 'Baz',
+    };
   }
 
   class Foo extends Base {
-    get config() {
-      return {
-        name: 'Foo',
-        components: {
-          Baz,
-        },
-      };
-    }
+    static config = {
+      name: 'Foo',
+      components: {
+        Baz,
+      },
+    };
 
     // Will be triggered when the component emits the `mounted` event
     onBazMounted() {}

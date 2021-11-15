@@ -108,7 +108,7 @@ function getBaseSidebar() {
     },
     {
       text: 'Instantiation',
-      link: '/api/instanciation.html',
+      link: '/api/instantiation.html',
     },
     {
       text: 'Instance properties',
