@@ -598,7 +598,7 @@ class Component extends Base {
 
 Can be used to log content to the console when the `instance.$options.log` options is set to `true`, either via the `config` getter or via the `data-options` attribute.
 
-```js
+```js{6,10}
 import Base from '@studiometa/js-toolkit';
 
 export default class Component extends Base {
@@ -637,9 +637,7 @@ export default class Component extends Base {
 }
 ```
 
-### `$once(event, callback)`
-
-Similar as the `$on` method, but the callback function will be detached from the event after being called once.
+#### If you want to run the callback only once
 
 ```js
 import Base from '@studiometa/js-toolkit';
@@ -651,10 +649,10 @@ export default class Component extends Base {
   };
 
   mounted() {
-    this.$once('get:refs', () => {
+    this.$on('get:refs', () => {
       // Event listener removed
       this.$log('get:refs');
-    });
+    }, { once: true });
   }
 }
 ```
@@ -672,14 +670,15 @@ export default class Component extends Base {
     log: true,
   };
 
+  handleEvent() {
+    this.$log('get:refs')
+  }
+
   mounted() {
-    this.$on('get:refs', () => this.$log('get:refs'));
+    this.$on('get:refs', handleEvent);
 
     // Removes the binded callback
-    this.$off('get:refs')
-
-    // Removes all previously binded callbacks
-    this.$off()
+    this.$off('get:refs', handleEvent)
   }
 }
 ```
