@@ -146,4 +146,3 @@ class Component extends Base {
 :::tip API Reference
 Learn more on the service manager in the [API Reference](/api/instance-properties.html#services).
 :::
-

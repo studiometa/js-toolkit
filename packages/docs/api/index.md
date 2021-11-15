@@ -8,7 +8,7 @@ import { Base } from '@studiometa/js-toolkit';
 class Component extends Base {
   static config = {
     name: 'Component',
-  }
+  };
 }
 ```
 
