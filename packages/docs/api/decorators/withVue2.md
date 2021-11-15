@@ -56,7 +56,7 @@ See the [`refs` API documentation part](/api/#config-refs) for explanations abou
 ```
 
 ```js
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import Vue from 'vue';
 import { withVue2 } from '@studiometa/js-toolkit/decorators';
 import CustomComponent from './CustomComponent.vue';
