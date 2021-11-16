@@ -30,7 +30,9 @@ beforeEach(() => {
   divRectSpy = jest.spyOn(div, 'getBoundingClientRect');
   divRectSpy.mockImplementation(() => ({
     height: 100,
+    width: 100,
     top: 500,
+    left: 500,
   }));
   instance = new Foo(div);
 });
@@ -40,33 +42,45 @@ afterEach(() => {
   divRectSpy.mockRestore();
 });
 
-describe('The withMountWhenInView decorator', () => {
+describe('The withScrolledInView decorator', () => {
   it('should trigger the `scrolledInView` hook when in view', async () => {
     mockIsIntersecting(div, true);
     const scrollHeightSpy = jest.spyOn(document.body, 'scrollHeight', 'get');
     scrollHeightSpy.mockImplementation(() => window.innerHeight * 2);
+    const scrollWidthSpy = jest.spyOn(document.body, 'scrollWidth', 'get');
+    scrollWidthSpy.mockImplementation(() => window.innerWidth * 2);
 
     document.dispatchEvent(new Event('scroll'));
     window.pageYOffset = 10;
+    window.pageXOffset = 10;
     document.dispatchEvent(new Event('scroll'));
     window.pageYOffset *= 2;
+    window.pageXOffset *= 2;
     document.dispatchEvent(new Event('scroll'));
     window.pageYOffset *= 2;
+    window.pageXOffset *= 2;
     document.dispatchEvent(new Event('scroll'));
     window.pageYOffset *= 2;
+    window.pageXOffset *= 2;
     document.dispatchEvent(new Event('scroll'));
     window.pageYOffset *= 2;
+    window.pageXOffset *= 2;
     document.dispatchEvent(new Event('scroll'));
     window.pageYOffset *= 2;
+    window.pageXOffset *= 2;
     document.dispatchEvent(new Event('scroll'));
     window.pageYOffset *= 2;
+    window.pageXOffset *= 2;
     document.dispatchEvent(new Event('scroll'));
     window.pageYOffset *= 2;
+    window.pageXOffset *= 2;
     document.dispatchEvent(new Event('scroll'));
     window.pageYOffset *= 2;
+    window.pageXOffset *= 2;
 
     await wait(50);
-    expect(fn).toHaveBeenLastCalledWith({ start: -268, end: 600, current: 600, progress: 1 });
+    expect(fn.mock.calls.pop()).toMatchSnapshot();
     scrollHeightSpy.mockRestore();
+    scrollWidthSpy.mockRestore();
   });
 });

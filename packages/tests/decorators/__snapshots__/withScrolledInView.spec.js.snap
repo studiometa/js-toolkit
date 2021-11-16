@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`The withScrolledInView decorator should trigger the \`scrolledInView\` hook when in view 1`] = `
+Array [
+  Object {
+    "current": Object {
+      "x": 600,
+      "y": 600,
+    },
+    "end": Object {
+      "x": 600,
+      "y": 600,
+    },
+    "progress": Object {
+      "x": 1,
+      "y": 1,
+    },
+    "start": Object {
+      "x": -524,
+      "y": -268,
+    },
+  },
+]
+`;

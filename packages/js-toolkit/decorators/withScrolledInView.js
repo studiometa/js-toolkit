@@ -20,10 +20,22 @@ export default function withScrolledInView(BaseClass) {
      * @private
      */
     __props = {
-      start: 0,
-      end: 0,
-      current: 0,
-      progress: 0,
+      start: {
+        x: 0,
+        y: 0,
+      },
+      end: {
+        x: 0,
+        y: 0,
+      },
+      current: {
+        x: 0,
+        y: 0,
+      },
+      progress: {
+        x: 0,
+        y: 0,
+      },
     };
 
     /**
@@ -43,15 +55,33 @@ export default function withScrolledInView(BaseClass) {
          * @param {Event & { detail: [ScrollServiceProps] }} event
          */
         ({ detail: [props] }) => {
-          this.$services.toggle('ticked', props.changed.y);
+          this.$services.toggle('ticked', props.changed.y || props.changed.x);
         }
       );
 
       this.$on('ticked', () => {
-        this.__props.current = clamp(window.pageYOffset, this.__props.start, this.__props.end);
-        this.__props.progress = clamp01(
-          (this.__props.current - this.__props.start) / (this.__props.end - this.__props.start)
+        // X axis
+        this.__props.current.x = clamp(
+          window.pageXOffset,
+          this.__props.start.x,
+          this.__props.end.x
         );
+        this.__props.progress.x = clamp01(
+          (this.__props.current.x - this.__props.start.x) /
+            (this.__props.end.x - this.__props.start.x)
+        );
+
+        // Y axis
+        this.__props.current.y = clamp(
+          window.pageYOffset,
+          this.__props.start.y,
+          this.__props.end.y
+        );
+        this.__props.progress.y = clamp01(
+          (this.__props.current.y - this.__props.start.y) /
+            (this.__props.end.y - this.__props.start.y)
+        );
+
         // @ts-ignore
         this.__callMethod('scrolledInView', this.__props);
       });
@@ -65,16 +95,36 @@ export default function withScrolledInView(BaseClass) {
      */
     __setProps() {
       const sizes = this.$el.getBoundingClientRect();
-      const end = sizes.top + window.pageYOffset + sizes.height;
-      const start = end - window.innerHeight - sizes.height;
-      const current = clamp(window.pageYOffset, start, end);
-      const progress = clamp01((current - start) / (end - start));
+
+      // Y axis
+      const yEnd = sizes.top + window.pageYOffset + sizes.height;
+      const yStart = yEnd - window.innerHeight - sizes.height;
+      const yCurrent = clamp(window.pageYOffset, yStart, yEnd);
+      const yProgress = clamp01((yCurrent - yStart) / (yEnd - yStart));
+
+      // X axis
+      const xEnd = sizes.left + window.pageXOffset + sizes.width;
+      const xStart = xEnd - window.innerWidth - sizes.width;
+      const xCurrent = clamp(window.pageXOffset, xStart, xEnd);
+      const xProgress = clamp01((xCurrent - xStart) / (xEnd - xStart));
 
       this.__props = {
-        start,
-        end,
-        current,
-        progress,
+        start: {
+          x: xStart,
+          y: yStart,
+        },
+        end: {
+          x: xEnd,
+          y: yEnd,
+        },
+        current: {
+          x: xCurrent,
+          y: yCurrent,
+        },
+        progress: {
+          x: xProgress,
+          y: yProgress,
+        },
       };
     }
   };

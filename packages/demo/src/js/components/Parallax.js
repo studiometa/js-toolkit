@@ -11,7 +11,8 @@ export default class Parallax extends withScrolledInView(Base) {
   };
 
   scrolledInView({ progress }) {
-    const y = map(progress, 0, 1, 100, -100) * this.$options.speed;
-    this.$refs.target.style.transform = `translateY(${y}px)`;
+    const y = map(progress.y, 0, 1, 100, -100) * this.$options.speed;
+    const scale = map(progress.x, 0, 1, 0.5, 2);
+    this.$refs.target.style.transform = `translateY(${y}px) scale(${scale})`;
   }
 }
