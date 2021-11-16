@@ -49,7 +49,11 @@ interface ChildrenInterface {
 
 ## `$parent`
 
-The parent instance when the current instance has been mounted as [child component](#components), defaults to `null` if the component as been instantiated as a stand-alone component.
+The parent instance when the current instance has been mounted as a [child component](#components), defaults to `null` if the component as been instantiated as a stand-alone component.
+
+## `$root`
+
+The root instance of the application when the current instance has been mounted as a [child component](#components). Defaults to a self reference if the component is stand-alone.
 
 ## `$services`
 

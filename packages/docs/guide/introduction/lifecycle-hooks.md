@@ -8,4 +8,4 @@ Find details for the lifecycle hooks APIs in the [Lifecycle hooks](/api/methods-
 
 ## Lifecycle diagram
 
-- <label><input type="checkbox"> todo add diagram @keziah</label>
+![Lifecycle diagram](../../assets/lifecycle-diagram.png)
