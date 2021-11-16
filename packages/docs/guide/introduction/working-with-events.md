@@ -2,7 +2,7 @@
 
 The `Base` class helps you manage event handler with automatic binding of a class methods following a naming convention.
 
-Two types of events:
+There are two types of events:
 
 - native events: click, mouseenter, submit, etc.
 - framework events
@@ -16,6 +16,8 @@ Handlers can be bounded to an event with the [`$on(event, handler)`](/api/instan
 Handlers can be unbounded from an event with the [`$off(event, handler)`](/api/instance-methods.html#off-event-callback) method.
 
 ## Naming convention for event handlers binding
+
+![Events diagram](../../assets/events-diagram.png)
 
 ### on\<Event>
 
