@@ -75,7 +75,14 @@ export default class ServicesManager {
    * @return {Boolean}
    */
   has(service) {
-    if (!hasMethod(this.__base, service) && !this.__services[service]) {
+    if (
+      !(
+        (hasMethod(this.__base, service) ||
+          // @ts-ignore
+          this.__base.__hasEvent(service)) &&
+        this.__services[service]
+      )
+    ) {
       return false;
     }
 
@@ -94,10 +101,13 @@ export default class ServicesManager {
       return this.disable.bind(this, service);
     }
 
-    if (!hasMethod(this.__base, service) || !this.__services[service]) {
+    if (
+      // @ts-ignore
+      !(hasMethod(this.__base, service) || this.__base.__hasEvent(service)) ||
+      !this.__services[service]
+    ) {
       return function noop() {};
     }
-
     const { add } = this.__services[service]();
     const self = this;
 
@@ -153,6 +163,28 @@ export default class ServicesManager {
 
     const { remove } = this.__services[service]();
     remove(this.__base.$id);
+  }
+
+  /**
+   * Toggle a service.
+   * @param  {string}  service    The name of the service.
+   * @param  {boolean} [force] The state to force.
+   * @return {void}
+   */
+  toggle(service, force) {
+    if (typeof force !== 'undefined') {
+      if (force && !this.has(service)) {
+        this.enable(service);
+      }
+
+      if (!force && this.has(service)) {
+        this.disable(service);
+      }
+    } else if (this.has(service)) {
+      this.disable(service);
+    } else {
+      this.enable(service);
+    }
   }
 
   /**

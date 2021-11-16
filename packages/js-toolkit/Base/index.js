@@ -39,6 +39,13 @@ function noop() {}
  */
 export default class Base {
   /**
+   * This is a Base instance.
+   * @type {Boolean}
+   * @readonly
+   */
+  static $isBase = true;
+
+  /**
    * The instance parent.
    * @type {Base}
    */
@@ -63,11 +70,12 @@ export default class Base {
   $isMounted = false;
 
   /**
-   * This is a Base instance.
-   * @type {Boolean}
-   * @readonly
+   * Store the event handlers.
+   *
+   * @private
+   * @type {Map<string, Set<EventListenerOrEventListenerObject>>}
    */
-  static $isBase = true;
+  __eventHandlers = new Map();
 
   /**
    * Get the root instance of the app.
@@ -224,8 +232,7 @@ export default class Base {
   __callMethod(method, ...args) {
     this.__debug('callMethod', method, ...args);
 
-    // Prevent duplicate call of `mounted` and `destroyed`
-    // methods based on the component status
+    // Prevent duplicate call of `mounted` and `destroyed` methods based on the component status
     if ((method === 'destroyed' && !this.$isMounted) || (method === 'mounted' && this.$isMounted)) {
       this.__debug('not', method, 'because the method has already been triggered once.');
       return;
@@ -240,6 +247,18 @@ export default class Base {
 
     this[method].call(this, ...args);
     this.__debug(method, this, ...args);
+  }
+
+  /**
+   * Test if the given event has been bound to the instance.
+   *
+   * @private
+   * @param  {string} event The event's name.
+   * @return {boolean}      Wether the given event has been bound or not.
+   */
+  __hasEvent(event) {
+    const eventHandlers = this.__eventHandlers.get(event);
+    return eventHandlers && eventHandlers.size > 0;
   }
 
   /**
@@ -368,22 +387,6 @@ export default class Base {
   }
 
   /**
-   * Factory method to generate multiple instance of the class.
-   *
-   * @param  {String}      nameOrSelector The selector on which to mount each instance.
-   * @return {Array<Base>}                A list of the created instance.
-   */
-  static $factory(nameOrSelector) {
-    if (!nameOrSelector) {
-      throw new Error(
-        'The $factory method requires a component’s name or selector to be specified.'
-      );
-    }
-
-    return getComponentElements(nameOrSelector).map((el) => new this(el).$mount());
-  }
-
-  /**
    * Bind a listener function to an event.
    *
    * @param  {string} event
@@ -398,6 +401,14 @@ export default class Base {
   $on(event, listener, options) {
     this.__debug('$on', event, listener, options);
 
+    let set = this.__eventHandlers.get(event);
+
+    if (!set) {
+      set = new Set();
+      this.__eventHandlers.set(event, set);
+    }
+
+    set.add(listener);
     this.$el.addEventListener(event, listener, options);
 
     return () => {
@@ -420,6 +431,7 @@ export default class Base {
   $off(event, listener, options) {
     this.__debug('$off', event, listener);
 
+    this.__eventHandlers.get(event).delete(listener);
     this.$el.removeEventListener(event, listener, options);
   }
 
@@ -438,5 +450,21 @@ export default class Base {
         detail: args,
       })
     );
+  }
+
+  /**
+   * Factory method to generate multiple instance of the class.
+   *
+   * @param  {String}      nameOrSelector The selector on which to mount each instance.
+   * @return {Array<Base>}                A list of the created instance.
+   */
+  static $factory(nameOrSelector) {
+    if (!nameOrSelector) {
+      throw new Error(
+        'The $factory method requires a component’s name or selector to be specified.'
+      );
+    }
+
+    return getComponentElements(nameOrSelector).map((el) => new this(el).$mount());
   }
 }

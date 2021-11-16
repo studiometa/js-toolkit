@@ -60,6 +60,7 @@ The following methods are available:
 - `has(service: string): boolean`: test if the current component instance has the service method defined and if it is currently enabled
 - `enable(service: string): () => void`: enable the given service if the current component instance has the service method defined, returns a function to disable the service
 - `disable(service: string): void`: disable the given service
+- `toggle(service: string, force?: boolean): void`: toggle the given service
 - `enableAll(): Array<() => void>`: enable all services which are defined
 - `disableAll(): void`: disable all services
 

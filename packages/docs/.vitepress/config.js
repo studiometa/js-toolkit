@@ -149,6 +149,7 @@ function getDecoratorsSidebar() {
     { text: 'withExtraConfig', link: '/api/decorators/withExtraConfig.html' },
     { text: 'withIntersectionObserver', link: '/api/decorators/withIntersectionObserver.html' },
     { text: 'withMountWhenInView', link: '/api/decorators/withMountWhenInView.html' },
+    { text: 'withScrolledInView', link: '/api/decorators/withScrolledInView.html' },
     { text: 'withVue2', link: '/api/decorators/withVue2.html' },
   ];
 }
