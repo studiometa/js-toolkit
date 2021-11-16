@@ -1,21 +1,19 @@
 /* eslint-disable max-classes-per-file */
-import Base from '@studiometa/js-toolkit';
-import { Modal, Tabs, Accordion, Cursor, Draggable } from '@studiometa/js-toolkit/components';
 import {
+  Base,
   createApp,
   importWhenIdle,
   importWhenVisible,
   importOnInteraction,
-} from '@studiometa/js-toolkit/helpers';
+  withBreakpointObserver,
+} from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
-import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver.js';
-import BreakpointObserverDemo from './components/BreakpointObserverDemo.js';
-
-// Add the new icon ref
-Accordion.config.components.AccordionItem.config.refs.push('icon');
+import ScrollToDemo from './components/ScrollToDemo.js';
+import MyVueComponent from './components/MyVueComponent.js';
+import Parallax from './components/Parallax.js';
 
 /**
- * @typedef {import(@studiometa/js-toolkit/abstracts/Base/index).BaseConfig} BaseConfig
+ * @typedef {import(@studiometa/js-toolkit/Base/index).BaseConfig} BaseConfig
  */
 class App extends Base {
   /** @type {Baseconfig} */
@@ -24,7 +22,17 @@ class App extends Base {
     refs: ['modal'],
     log: false,
     components: {
-      Accordion,
+      Accordion: (app) =>
+        importWhenVisible(
+          async () => {
+            const { Accordion } = await import('@studiometa/ui');
+            // Add icon ref
+            Accordion.config.components.AccordionItem.config.refs.push('icon');
+            return Accordion;
+          },
+          'Accordion',
+          app
+        ),
       BreakpointManagerDemo: (app) =>
         importOnInteraction(
           () => import('./components/BreakPointManagerDemo/index.js'),
@@ -32,32 +40,51 @@ class App extends Base {
           'click',
           app
         ),
-      BreakpointObserverDemo,
-      Cursor: class extends Cursor {
-        static config = {
-          ...Cursor.config,
-          refs: ['inner'],
-        };
+      BreakpointObserverDemo: () =>
+        importWhenIdle(() => import('./components/BreakpointObserverDemo.js')),
+      Cursor: () =>
+        importOnInteraction(
+          async () => {
+            const { Cursor } = await import('@studiometa/ui');
+            return class extends Cursor {
+              static config = {
+                ...Cursor.config,
+                refs: ['inner'],
+              };
 
-        render({ x, y, scale }) {
-          this.$el.style.transform = `translateZ(0) ${matrix({ translateX: x, translateY: y })}`;
-          this.$refs.inner.style.transform = `translateZ(0) ${matrix({
-            scaleX: scale,
-            scaleY: scale,
-          })}`;
-        }
-      },
-      Draggable,
-      Skew: () =>
-        importWhenIdle(() => import(/* webpackChunkName: "Skew" */ './components/Skew.js')),
+              render({ x, y, scale }) {
+                this.$el.style.transform = `translateZ(0) ${matrix({
+                  translateX: x,
+                  translateY: y,
+                })}`;
+                this.$refs.inner.style.transform = `translateZ(0) ${matrix({
+                  scaleX: scale,
+                  scaleY: scale,
+                })}`;
+              }
+            };
+          },
+          document.documentElement,
+          ['mousemove']
+        ),
+      Draggable: (app) =>
+        importWhenVisible(() => import('@studiometa/ui/Draggable.js'), 'Draggable', app),
+      Skew: (app) => importWhenVisible(() => import('./components/Skew.js'), 'Skew', app),
       '[data-src]': (app) =>
+        importWhenVisible(() => import('./components/Lazyload.js'), '[data-src]', app),
+      Modal: (app) =>
         importWhenVisible(
-          () => import(/* webpackChunkName: "Lazyload" */ './components/Lazyload.js'),
-          '[data-src]',
+          async () => {
+            const { Modal } = await import('@studiometa/ui');
+            return withBreakpointObserver(Modal);
+          },
+          'Modal',
           app
         ),
-      Modal: withBreakpointObserver(Modal),
-      Tabs,
+      Tabs: (app) => importWhenVisible(() => import('@studiometa/ui/Tabs.js'), 'Tabs', app),
+      ScrollToDemo,
+      MyVueComponent,
+      Parallax,
     },
   };
 

@@ -29,7 +29,7 @@ describe('transition method', () => {
   });
 
   it('should work with a string parameter', async () => {
-    el.style.transitionDuration = '1s';
+    el.style.transitionDuration = '0.1s';
     setTimeout(() => {
       el.dispatchEvent(new CustomEvent('transitionend'));
     }, 100);

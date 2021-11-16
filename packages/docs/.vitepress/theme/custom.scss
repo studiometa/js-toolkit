@@ -1,3 +1,38 @@
 h3 + h4 {
   margin-top: 1.5rem;
 }
+
+:root {
+  --sidebar-width: 16.4rem;
+
+  @media (min-width: 960px) {
+    --sidebar-width: 24rem;
+  }
+}
+
+.page.page {
+  @media (min-width: 720px) {
+    margin-left: var(--sidebar-width);
+  }
+}
+
+.sidebar.sidebar {
+  width: var(--sidebar-width);
+}
+
+.block-full-width {
+  width: 100%;
+
+  @media (min-width: 720px) {
+    --width: 90vw;
+    position: relative;
+    left: 50%;
+    width: max(calc(var(--width) - var(--sidebar-width)), 100%);
+    transform: translateX(-50%);
+  }
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}

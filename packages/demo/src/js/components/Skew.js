@@ -1,4 +1,4 @@
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils/css';
 import { damp, clamp } from '@studiometa/js-toolkit/utils/math';
 import { withMountWhenInView } from '@studiometa/js-toolkit/decorators';

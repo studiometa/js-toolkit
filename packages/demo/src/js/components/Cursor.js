@@ -1,4 +1,4 @@
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 
 export default class Cursor extends Base {
   static config = {

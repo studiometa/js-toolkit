@@ -1,8 +1,8 @@
 # JS Toolkit
 
 [![NPM Version](https://img.shields.io/npm/v/@studiometa/js-toolkit.svg?style=flat-square)](https://www.npmjs.com/package/@studiometa/js-toolkit/)
-[![Dependency Status](https://img.shields.io/david/studiometa/js-toolkit.svg?label=deps&style=flat-square)](https://david-dm.org/studiometa/js-toolkit)
-[![devDependency Status](https://img.shields.io/david/dev/studiometa/js-toolkit.svg?label=devDeps&style=flat-square)](https://david-dm.org/studiometa/js-toolkit?type=dev)
+[![Size](https://img.shields.io/bundlephobia/minzip/@studiometa/js-toolkit?label=size&style=flat-square)](https://bundlephobia.com/package/@studiometa/js-toolkit)
+[![Dependency Status](https://img.shields.io/librariesio/release/npm/@studiometa/js-toolkit?style=flat-square)](https://david-dm.org/studiometa/js-toolkit)
 ![Codecov](https://img.shields.io/codecov/c/github/studiometa/js-toolkit?style=flat-square)
 
 > A set of useful little bits of JavaScript to boost your project! 🚀
@@ -15,37 +15,32 @@ Install the latest version via NPM:
 npm install @studiometa/js-toolkit
 ```
 
-The package can be used directly with the [Skypack CDN](https://www.skypack.dev) as follow:
+## Concept
 
-```html
-<script type="module">
-  // Import the Base class
-  import Base from 'https://cdn.skypack.dev/@studiometa/js-toolkit/';
-  // Import the full toolkit
-  import * as components from 'https://cdn.skypack.dev/@studiometa/js-toolkit/components';
-  import * as decorators from 'https://cdn.skypack.dev/@studiometa/js-toolkit/decorators';
-  import * as services from 'https://cdn.skypack.dev/@studiometa/js-toolkit/services';
-  import * as utils from 'https://cdn.skypack.dev/@studiometa/js-toolkit/utils';
-</script>
-```
+[] todo
 
 ## Usage
 
-### Modern JS with bundler
-
-Import the `Base` class to create your components from your `node_modules`:
+Import the `Base` class and extend it to create your components:
 
 ```js
-import Base from '@studiometa/js-toolkit';
-import Modal from '@studiometa/js-toolkit/components/Modal';
+import { Base, createApp } from '@studiometa/js-toolkit';
+
+class Component extends Base {
+  static config = {
+    name: 'Component',
+  }
+
+  sayHello() {
+    console.log('Hello!');
+  }
+}
 
 class App extends Base {
   static config = {
     name: 'App',
-    log: true,
-    debug: true,
     components: {
-      Modal,
+      Component,
     },
     refs: ['btn', 'items[]'],
     options: {
@@ -60,16 +55,16 @@ class App extends Base {
     // Options
     this.$options.name; // 'App'
     this.$options.log; // true
-    this.$options.debug; // true
+    this.$options.debug; // false
     this.$options.foo // ''
     this.$options.bar // 'bar'
 
     // Children
-    this.$children.Modal; // Array<Modal>
+    this.$children.Component; // Array<Component>
 
     // DOM references
     this.$refs.btn; // <button data-ref="btn"></button>
-    this.$refs.items; // <li data-ref="items[]"></li>
+    this.$refs.items[0]; // <li data-ref="items[]"></li>
   }
 
   destroyed() {
@@ -85,58 +80,15 @@ class App extends Base {
   }
 }
 
-export default new App(document.querySelector('#app'));
+export default createApp(App, document.body);
 ```
 
-Read the [documentation](https://js-toolkit.meta.fr/) to learn more.
+Read the [documentation](https://js-toolkit.studiometa.dev/) to learn more.
 
-### Modern JS in browser
+## Contribution
 
-Two modern builds are provided for prototyping purpose, they can be used as follow:
+This projects follows the [Git Flow](https://github.com/petervanderdoes/gitflow-avh) methodology to manage its branches and features.
 
-```html
-<script type="module">
-  // Import the Base class
-  import Base from 'https://cdn.skypack.dev/@studiometa/js-toolkit/';
-  // Import the full toolkit
-  import Modal from 'https://cdn.skypack.dev/@studiometa/js-toolkit/components/Modal';
-</script>
-```
+The packages from this project are managed with NPM workspaces.
 
-### Legacy JS
-
-Two UMD builds are also provided to be used in legacy projects.
-
-```html
-<div id="app">
-  <button data-ref="btn">Add more</button>
-  <input data-ref="input" value="0" readonly />
-  <div data-component="Component"></div>
-</div>
-<script src="https://unpkg.com/@studiometa/js-toolkit/index.umd.js"></script>
-<script>
-  var Component = Base.defineComponent({
-    config: {
-      name: 'Component',
-    },
-  });
-
-  Base.createBase(document.querySelector('#app'), {
-    config: {
-      name: 'App',
-      log: true,
-      components: {
-        Component: Component,
-      },
-    },
-    mounted: function() {
-      this.$log('mounted');
-    },
-    methods: {
-      onBtnClick: function() {
-        this.$refs.input.value = Number(this.$refs.input.value) + 1;
-      },
-    },
-  });
-</script>
-```
+The files are linted with ESLint, type checked with TypeScript and formatted with Prettier.

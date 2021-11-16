@@ -1,4 +1,4 @@
-import Service from '../abstracts/Service.js';
+import Service from './Service.js';
 import debounce from '../utils/debounce.js';
 
 /**
@@ -45,12 +45,7 @@ class Resize extends Service {
       this.trigger(this.props);
     }).bind(this);
 
-    if (this.canUseResizeObserver) {
-      this.resizeObserver = new ResizeObserver(this.handler);
-      this.resizeObserver.observe(document.documentElement);
-    } else {
-      window.addEventListener('resize', this.handler);
-    }
+    window.addEventListener('resize', this.handler);
 
     return this;
   }
@@ -61,12 +56,7 @@ class Resize extends Service {
    * @return {this}
    */
   kill() {
-    if (this.canUseResizeObserver) {
-      this.resizeObserver.disconnect();
-    } else {
-      window.removeEventListener('resize', this.handler);
-    }
-    delete this.resizeObserver;
+    window.removeEventListener('resize', this.handler);
 
     return this;
   }
@@ -131,14 +121,6 @@ class Resize extends Service {
       .replace(/"/g, '');
 
     return breakpoints.split(',');
-  }
-
-  /**
-   * Test if we can use the `ResizeObserver` API.
-   * @return {Boolean}
-   */
-  get canUseResizeObserver() {
-    return typeof window.ResizeObserver !== 'undefined';
   }
 }
 
