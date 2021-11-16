@@ -33,6 +33,14 @@ The following service hooks and events are available:
 - `keyed` for the `useKey` service
 - `loaded` for the `useLoad` service
 
+**Service methods diagram**
+
+The following diagram can be helpful to understand what action will trigger a service method:
+
+<div class="my-10 block-full-width">
+  <img src="../../assets/services-diagram.png" alt="Services diagram" width="3198" height="1150">
+</div>
+
 **Using a service via its reserved method name**
 
 ```js{8-12}

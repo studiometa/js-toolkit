@@ -1,43 +1,39 @@
 # Event hooks
 
-## on\<Event>
+## `on<Event>`
 
 Methods following this pattern will be executed when the event is triggered on the instance's `$el` element.
 
 **Arguments**
 
-- `event` ([`Event`](https://developer.mozilla.org/en-US/docs/Web/API/Event)): the event object
+- `event|...args` ([`Event`](https://developer.mozilla.org/en-US/docs/Web/API/Event) or `any[]`): The event object when triggered from a native DOM event, the event arguments when triggered by a component.
 
 **Example**
 
-```js{8-9}
+```js {8-9,11-12}
+import { Base } from '@studiometa/js-toolkit';
+
 class Foo extends Base {
   static config = {
     name: 'Foo',
-  }
+  };
 
   // Will be triggered when clicking on `this.$el`
   onClick(event) {}
 
-  // The same behaviour can be implemented by doing the following:
-  mounted() {
-    this.$el.addEventListener('click', this.onClick);
-  }
-
-  destroyed() {
-    this.$el.removeEventListener('click', this.onClick);
-  }
+  // Will be triggered when emitting the `customEvent` or `custom-event` event
+  onCustomEvent(arg1, arg2) {}
 }
 ```
 
-## on\<RefOrChildName>\<Event>
+## `on<RefOrChildName><Event>`
 
 Methods following this pattern will be executed when the corresponding event is triggered on the corresponding ref or child element.
 
 **Arguments**
 
-- `event|...args` ([`Event`](https://developer.mozilla.org/en-US/docs/Web/API/Event) or `mixed`): the event object when triggered from a native DOM event, the event arguments when triggered by a component
-- `index` (`Number`): the index of the ref triggering the event when multiple refs exists
+- `event|...args` ([`Event`](https://developer.mozilla.org/en-US/docs/Web/API/Event) or `any[]`): The event object when triggered from a native DOM event, the event arguments when triggered by a component.
+- `index` (`Number`): The index of the ref triggering the event when multiple refs exists.
 
 :::warning
 Native DOM events will only be binded to ref elements and component's events to child components.

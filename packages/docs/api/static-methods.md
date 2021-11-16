@@ -8,6 +8,6 @@ Use the `$factory` method to instantiate a class on each element matching the gi
 
 - `nameOrSelector` (`String`): the name of the component or a CSS selector
 
-**Returns**
+**Return value**
 
 - `Base[]`: an array of instances of the component that triggered the method
