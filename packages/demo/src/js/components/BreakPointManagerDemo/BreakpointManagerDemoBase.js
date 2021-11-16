@@ -1,4 +1,4 @@
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 
 export default class BreakpointManagerDemoBase extends Base {
   static config = {

@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import Base from '@studiometa/js-toolkit';
+import { Base } from '@studiometa/js-toolkit';
 import withDrag from '@studiometa/js-toolkit/decorators/withDrag';
 
 describe('The `withDrag` decorator', () => {

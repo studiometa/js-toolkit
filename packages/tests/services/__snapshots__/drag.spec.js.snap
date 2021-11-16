@@ -148,8 +148,8 @@ Array [
         "y": 394,
       },
       "final": Object {
-        "x": 533,
-        "y": 405,
+        "x": 588.068175718056,
+        "y": 460.0681757180558,
       },
       "hasInertia": false,
       "isGrabbing": true,
@@ -174,8 +174,8 @@ Array [
         "y": 394,
       },
       "final": Object {
-        "x": 533,
-        "y": 405,
+        "x": 588.068175718056,
+        "y": 460.0681757180558,
       },
       "hasInertia": false,
       "isGrabbing": true,
@@ -200,8 +200,8 @@ Array [
         "y": 394,
       },
       "final": Object {
-        "x": 533,
-        "y": 405,
+        "x": 588.068175718056,
+        "y": 460.0681757180558,
       },
       "hasInertia": true,
       "isGrabbing": false,

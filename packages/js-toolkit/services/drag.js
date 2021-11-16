@@ -1,4 +1,4 @@
-import Service from '../abstracts/Service.js';
+import Service from './Service.js';
 import usePointer from './pointer.js';
 import useRaf from './raf.js';
 import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
@@ -52,7 +52,7 @@ const MODES = {
 
 /**
  * @typedef {Object} DragServiceOptions
- * @property {number=} [factor]
+ * @property {number=} [dampFactor]
  */
 
 /**
@@ -154,7 +154,7 @@ class Drag extends Service {
    * @type {DragServiceOptions}
    */
   options = {
-    factor: 0.85,
+    dampFactor: 0.85,
   };
 
   /**
@@ -250,8 +250,8 @@ class Drag extends Service {
     this.mode = MODES.DROP;
 
     this.hasInertia = true;
-    this.final.x = inertiaFinalValue(this.x, this.delta.x, this.options.factor);
-    this.final.y = inertiaFinalValue(this.y, this.delta.y, this.options.factor);
+    this.final.x = inertiaFinalValue(this.x, this.delta.x, this.options.dampFactor);
+    this.final.y = inertiaFinalValue(this.y, this.delta.y, this.options.dampFactor);
 
     this.trigger(this.props);
 
@@ -283,8 +283,8 @@ class Drag extends Service {
       this.distance.x = this.x - this.origin.x;
       this.distance.y = this.y - this.origin.y;
 
-      this.delta.x *= this.options.factor;
-      this.delta.y *= this.options.factor;
+      this.delta.x *= this.options.dampFactor;
+      this.delta.y *= this.options.dampFactor;
 
       if (this.mode !== MODES.INERTIA) {
         this.mode = MODES.INERTIA;

@@ -1,5 +1,5 @@
 /**
- * @typedef {import('../abstracts/Base/index.js').BaseComponent} BaseComponent
+ * @typedef {import('../Base/index.js').BaseConstructor} BaseConstructor
  */
 
 /**
@@ -27,7 +27,7 @@
  * console.log(app.$options.name); // 'App'
  * ```
  *
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  * @param {T} App
  * @param {HTMLElement} rootElement
  *
@@ -49,17 +49,19 @@ export default function createApp(App, rootElement) {
     app = new App(rootElement).$mount();
   }
 
+  const promise = new Promise((resolve) => {
+    document.addEventListener('readystatechange', () => {
+      if (document.readyState === 'complete') {
+        setTimeout(() => resolve(app), 0);
+      }
+    });
+  });
+
   return function useApp() {
     if (isLoaded) {
       return Promise.resolve(app);
     }
 
-    return new Promise((resolve) => {
-      document.addEventListener('readystatechange', () => {
-        if (document.readyState === 'complete') {
-          setTimeout(() => resolve(app), 0);
-        }
-      });
-    });
+    return promise;
   };
 }

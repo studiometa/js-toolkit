@@ -1,12 +1,12 @@
 /**
- * @typedef {import('../abstracts/Base').default} Base
- * @typedef {import('../abstracts/Base').BaseOptions} BaseOptions
- * @typedef {import('../abstracts/Base').BaseComponent} BaseComponent
+ * @typedef {import('../Base').default} Base
+ * @typedef {import('../Base').BaseOptions} BaseOptions
+ * @typedef {import('../Base').BaseConstructor} BaseConstructor
  */
 
 /**
  * @typedef {Object} WithMountWhenInViewOptions
- * @property {Object} intersectionObserver
+ * @property {IntersectionObserverInit} intersectionObserver
  */
 
 /**
@@ -18,9 +18,9 @@
 /**
  * IntersectionObserver decoration.
  *
- * @template {BaseComponent} T
+ * @template {BaseConstructor} T
  * @param {T} BaseClass The Base class to extend.
- * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
+ * @param {IntersectionObserverInit} [defaultOptions] The options for the IntersectionObserver instance.
  * @return {T}
  */
 export default function withMountWhenInView(BaseClass, defaultOptions = { threshold: [0, 1] }) {
