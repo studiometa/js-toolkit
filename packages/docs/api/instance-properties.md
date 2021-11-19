@@ -2,7 +2,7 @@
 
 ## `$options`
 
-An object containing the full options of the instance as defined in the [`config.options`](#options) property. Additionnally to the options defined in the config, the following properties are also available:
+An object containing the full options of the instance as defined in the [`config.options`](api/configuration.html#config-options) property. Additionnally to the options defined in the config, the following properties are also available:
 
 - `$options.name` The name of the component
 - `$options.log` Wether the `$log` method is silent or not
