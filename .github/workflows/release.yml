@@ -55,6 +55,9 @@ jobs:
           echo "Setting release version to $VERSION"
           echo "release_version=$VERSION" >> $GITHUB_ENV
 
+          echo "$GITHUB_REF"
+          echo "$GITHUB_REF_NAME"
+
           PRERELEASE=false
           # Check release type
           if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' ]]; then
@@ -63,7 +66,7 @@ jobs:
           fi
           echo "is_prerelease=$PRERELEASE" >> $GITHUB_ENV
 
-          CHANGELOG=$(git show refs/tags/1.7.0 | tail -n+7)
+          CHANGELOG=$(git show $GITHUB_REF | tail -n+7)
 
           # Set markdown titles
           CHANGELOG=${CHANGELOG/Added/## Added}
