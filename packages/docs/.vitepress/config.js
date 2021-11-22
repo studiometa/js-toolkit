@@ -60,6 +60,15 @@ function getGuideSidebar() {
       text: 'Recipes',
       children: [{ text: 'todo' }],
     },
+    {
+      text: 'Migration guide',
+      children: [
+        {
+          text: 'v1 → v2',
+          link: '/guide/migration/v1-to-v2.html',
+        },
+      ],
+    },
   ];
 }
 
