@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/setup-node@v1
         with:
-          node-version: 15
+          node-version: 16
           registry-url: https://registry.npmjs.org/
 
       - run: npm ci
@@ -33,7 +33,15 @@ jobs:
           path_to_write_report: ./codecov_report.txt
           verbose: true
 
-      - run: cd dist && ls -al && npm publish --tag next
+      - run: |
+          cd dist
+          ls -al
+          VERSION=${GITHUB_REF/refs\/tags\//}
+          TAG='latest'
+          if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' ]]; then
+            TAG='next'
+          fi
+          npm publish --tag $TAG
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
@@ -47,10 +55,15 @@ jobs:
           echo "Setting release version to $VERSION"
           echo "release_version=$VERSION" >> $GITHUB_ENV
 
-          # Parse tag message
-          CHANGELOG=$(git for-each-ref $GITHUB_REF | tail -n+3)
+          PRERELEASE=false
+          # Check release type
+          if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' ]]; then
+            echo "This is a prerelease."
+            PRERELEASE=true
+          fi
+          echo "is_prerelease=$PRERELEASE" >> $GITHUB_ENV
 
-          echo $CHANGELOG
+          CHANGELOG=$(git show refs/tags/1.7.0 | tail -n+7)
 
           # Set markdown titles
           CHANGELOG=${CHANGELOG/Added/## Added}
@@ -60,19 +73,16 @@ jobs:
           CHANGELOG=${CHANGELOG/Deprecated/## Deprecated}
           CHANGELOG=${CHANGELOG/Security/## Security}
 
-          echo $CHANGELOG
-
           # Remove PGP signature
           CHANGELOG="${CHANGELOG%-----BEGIN*}"
 
-          echo $CHANGELOG
+          echo "$CHANGELOG"
 
           # Change linebreaks and other special characters
           CHANGELOG="${CHANGELOG//'%'/'%25'}"
           CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
           CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
 
-          echo "Setting changelog body to:"
           echo $CHANGELOG
 
           echo 'changelog<<EOF' >> $GITHUB_ENV
@@ -90,4 +100,4 @@ jobs:
           release_name: v${{ env.release_version }}
           body: ${{ env.changelog }}
           draft: false
-          prerelease: false
+          prerelease: ${{ env.is_prerelease }}
