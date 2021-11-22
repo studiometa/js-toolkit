@@ -33,7 +33,15 @@ jobs:
           path_to_write_report: ./codecov_report.txt
           verbose: true
 
-      - run: cd dist && ls -al && npm publish --tag next
+      - run: |
+          cd dist
+          ls -al
+          VERSION=${GITHUB_REF/refs\/tags\//}
+          TAG='latest'
+          if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' ]]; then
+            TAG='next'
+          fi
+          npm publish --tag $TAG
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
