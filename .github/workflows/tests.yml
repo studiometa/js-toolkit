@@ -12,10 +12,11 @@ jobs:
   Build:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-node@v1
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
       with:
         node-version: 16
+        cache: npm
     - name: Install modules
       run: npm install
     - name: Build the package
@@ -24,10 +25,11 @@ jobs:
   Code-Quality:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-node@v1
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
       with:
         node-version: 16
+        cache: npm
     - name: Install modules
       run: npm install
     - name: Run code quality tests
@@ -38,10 +40,11 @@ jobs:
   Unit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-node@v1
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
       with:
         node-version: 16
+        cache: npm
     - name: Install modules
       run: npm install
     - name: Run tests
