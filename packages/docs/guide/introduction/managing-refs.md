@@ -2,34 +2,33 @@
 
 ## What are refs?
 
-A ref is a *reference* to a DOM element. It allow us to quickly access HTML elements. We can define single or multiple refs that we can easily use in our component without manually querying DOM elements.
+A ref is a *reference* to a DOM element. It allows to quickly access HTML elements. Define single or multiple refs to easily use them in a component without manually querying DOM elements.
 
 > No more `querySelector` and `querySelectorAll`!
 
 ## Defining refs
 
-The [`refs` property](/api/configuration.html#config-refs) of the static `config` object should be used to define what refs will be used in the component otherwise it can't be accessed. This property requires an array of string that correspond to the refs names in the HTML code.
+The [`refs` property](/api/configuration.html#config-refs) of the static `config` object should be used to define what refs will be available in the component. This property requires an array of string that correspond to the refs names in the HTML code.
 
-We have 2 type of refs:
+There is 2 type of refs:
 - Single ref (example: `btn`)
 - Multiple refs (example: `items[]`)
 
-If you want to get an array of refs you can append `[]` to the ref name.
-
-```js {4}
+```js {4-7}
 class Component extends Base {
   static config = {
     name: 'Component',
-    refs: ['btn', 'items[]'] // Declare the refs we will use
-    // `btn` is a single ref.
-    // `items[]` contains multiple refs and is always an array.
+    refs: [
+      'btn', // single ref
+      'items[]', // multiple ref with the `[]` suffix
+    ],
   };
 }
 ```
 
 ### Single refs
 
-First we need to declare the refs we want to use in our component, here we want to use a `btn`.
+To declare a single ref you must add it to the refs array like so:
 
 ```js {6,10}
 import { Base } from '@studiometa/js-toolkit';
@@ -42,28 +41,50 @@ class Component extends Base {
 }
 ```
 
+Then in the HTML template you must add a `data-ref` attribute with the same name as above.
+
+```html {2,5-7}
+<div data-component="Component">
+  <button data-ref="btn">Click me</button>
+</div>
+```
+
 ### Multiple refs
 
-If we want to iterate on a ref we can append `[]` after the ref name. For example here `data-ref="items[]"` will yield an array of HTML elements.
+If you want to iterate on multiple refs, you can append `[]` to the ref name. For example here `data-ref="items[]"` will yield an array of HTML elements.
 
 > Appending `[]` to a ref name will force the ref to an array even if there is only one occurence.
 
-```js {4,8}
+```js {4}
 class Component extends Base {
   static config = {
     name: 'Component',
     refs: ['items[]'],
   };
-
-  mounted() {
-    this.$refs.items; // [<li data-ref="items[]">#1</li>, ...]
-  }
 }
 ```
 
+Then in the HTML template:
+
+```html {3-5}
+<div data-component="Component">
+  <ul>
+    <li data-ref="items[]">#1</li>
+    <li data-ref="items[]">#2</li>
+    <li data-ref="items[]">#3</li>
+  </ul>
+</div>
+```
+
+### Naming convention
+
+Multiple refs should be pluralized and in `camelCase`.
+
+For example: `listItems[]`
+
 ## Using refs
 
-Now that we defined the refs we want to use we can add them to our HTML code:
+Once refs are declared and added in the HTML template it becomes accessible via the instance property `this.$refs.<name>`.
 
 
 ```html {2,5-7}
@@ -77,8 +98,6 @@ Now that we defined the refs we want to use we can add them to our HTML code:
   </ul>
 </div>
 ```
-
-They can be accessed directly in your instance with `this.$refs.<name>`
 
 ```js {8-9}
 class Component extends Base {
