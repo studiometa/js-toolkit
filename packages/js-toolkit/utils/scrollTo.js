@@ -22,7 +22,7 @@ export default function scrollTo(selectorElement, { offset = 0, dampFactor = 0.2
 
   const sizes = targetElement.getBoundingClientRect();
   const scrollMargin = getComputedStyle(targetElement).scrollMarginTop || '0';
-  const max = document.body.offsetHeight - window.innerHeight;
+  const max = document.documentElement.scrollHeight - window.innerHeight;
   let scrollTarget = sizes.top + window.pageYOffset + parseInt(scrollMargin, 10) + offset;
 
   // Make sure to not scroll more than the max scroll allowed
