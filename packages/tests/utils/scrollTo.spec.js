@@ -3,23 +3,25 @@ import scrollTo from '@studiometa/js-toolkit/utils/scrollTo';
 import wait from '../__utils__/wait';
 
 describe('The `scrollTo` function', () => {
-  const fn = jest.fn(({ top }) => { window.pageYOffset = top; });
+  const fn = jest.fn(({ top }) => {
+    window.pageYOffset = top;
+  });
   window.scrollTo = fn;
 
-  const bodyHeightSpy = jest.spyOn(document.body, 'offsetHeight', 'get');
-  bodyHeightSpy.mockImplementation(() => 10000);
+  const scrollHeightSpy = jest.spyOn(document.documentElement, 'scrollHeight', 'get');
+  scrollHeightSpy.mockImplementation(() => 10000);
 
   const element = document.createElement('div');
   const elementSpy = jest.spyOn(element, 'getBoundingClientRect');
   elementSpy.mockImplementation(() => ({
-    top: 5000
-  }))
+    top: 5000,
+  }));
 
   document.body.appendChild(element);
 
   afterAll(() => {
     delete window.scrollTo;
-    bodyHeightSpy.mockRestore();
+    scrollHeightSpy.mockRestore();
     elementSpy.mockRestore();
     document.body.innerHTML = '';
   });
@@ -27,7 +29,7 @@ describe('The `scrollTo` function', () => {
   beforeEach(() => {
     fn.mockClear();
     window.pageYOffset = 0;
-  })
+  });
 
   it('should scroll to a selector', async () => {
     expect(fn).not.toHaveBeenCalled();
@@ -49,10 +51,10 @@ describe('The `scrollTo` function', () => {
 
   it('should be limited to the maximum scroll height', async () => {
     elementSpy.mockImplementation(() => ({
-      top: 11000
+      top: 11000,
     }));
     expect(fn).not.toHaveBeenCalled();
-    const maxScroll = document.body.offsetHeight - window.innerHeight;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     await scrollTo(element);
     expect(fn).toHaveBeenLastCalledWith({ top: maxScroll });
   });
