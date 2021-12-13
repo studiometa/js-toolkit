@@ -69,6 +69,8 @@ jobs:
           fi
           echo "is_prerelease=$PRERELEASE" >> $GITHUB_ENV
 
+          git show $GITHUB_REF
+
           CHANGELOG=$(git show $GITHUB_REF | tail -n+7)
 
           # Set markdown titles
