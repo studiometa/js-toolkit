@@ -1,0 +1,12 @@
+// Vitest Snapshot v1
+
+exports[`~/utils/collide exports > should export all scripts 1`] = `
+Array [
+  "boundingRectToCircle",
+  "collideCircleCircle",
+  "collideCircleRect",
+  "collidePointCircle",
+  "collidePointRect",
+  "collideRectRect",
+]
+`;

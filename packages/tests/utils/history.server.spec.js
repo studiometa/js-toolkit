@@ -1,6 +1,7 @@
 /**
  * @jest-environment node
  */
+import { describe, it, expect } from 'vitest';
 import { objectToURLSearchParams } from '@studiometa/js-toolkit/utils/history';
 
 describe('The `objectToURLSearchParams` method', () => {

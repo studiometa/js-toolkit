@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import damp from '@studiometa/js-toolkit/utils/math/damp';
 
 describe('damp method', () => {

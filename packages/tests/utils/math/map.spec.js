@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import map from '@studiometa/js-toolkit/utils/math/map';
 
 describe('map method', () => {

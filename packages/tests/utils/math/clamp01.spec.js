@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import clamp01 from '@studiometa/js-toolkit/utils/math/clamp01';
 
 describe('clamp01 method', () => {

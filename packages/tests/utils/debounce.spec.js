@@ -1,17 +1,22 @@
-import { jest } from '@jest/globals';
+import { describe, beforeAll, afterAll, it, sinon, expect } from 'vitest';
 import debounce from '@studiometa/js-toolkit/utils/debounce';
 
 describe('debounce method', () => {
+  /**
+   * @type {import('sinon').SinonFakeTimers}
+   */
+  let clock;
+
   beforeAll(() => {
-    jest.useFakeTimers();
+    clock = sinon.useFakeTimers();
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    clock.restore();
   });
 
   it('should wait the given delay to call given function', async () => {
-    const fn = jest.fn(() => true);
+    const fn = sinon.fake(() => true);
     const debounced = debounce(fn, 400);
 
     debounced();
@@ -21,23 +26,23 @@ describe('debounce method', () => {
 
     expect(fn).not.toHaveBeenCalled();
 
-    jest.advanceTimersByTime(150);
+    clock.tick(150);
     expect(fn).not.toHaveBeenCalled();
 
-    jest.advanceTimersByTime(400);
+    clock.tick(400);
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
   it('should wait for 300ms when used without the delay parameter', async () => {
-    const fn = jest.fn();
+    const fn = sinon.fake(() => true);
     const debounced = debounce(fn);
 
     debounced();
     debounced();
 
-    jest.advanceTimersByTime(200);
+    clock.tick(200);
     expect(fn).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(301);
+    clock.tick(301);
     expect(fn).toHaveBeenCalledTimes(1);
   });
 });

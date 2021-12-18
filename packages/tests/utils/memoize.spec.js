@@ -1,9 +1,9 @@
-import { jest } from '@jest/globals';
+import { describe, it, expect, sinon } from 'vitest';
 import memoize from '@studiometa/js-toolkit/utils/memoize';
 
 describe('The `memoize` function', () => {
   it('should cache results', () => {
-    const fn = jest.fn((a,b) => a+b);
+    const fn = sinon.fake((a, b) => a + b);
     const memFn = memoize(fn);
     expect(memFn(1, 2)).toBe(3);
     expect(memFn(1, 2)).toBe(3);
@@ -12,21 +12,21 @@ describe('The `memoize` function', () => {
   });
 
   it('should cache results of async functions', () => {
-    const fn = jest.fn((arg) => {
-      return new Promise(resolve => {
+    const fn = sinon.fake((arg) => {
+      return new Promise((resolve) => {
         setTimeout(() => resolve(arg), 500);
       });
     });
-    jest.useFakeTimers();
+    const clock = sinon.useFakeTimers();
     const memFn = memoize(fn);
     expect(memFn('foo')).toBe(memFn('foo'));
-    jest.runAllTimers();
+    clock.runAll();
     expect(memFn('foo')).toBe(memFn('foo'));
-    jest.useRealTimers();
+    clock.restore();
   });
 
   it('should return new data if `maxAge` is reached', () => {
-    const fn = jest.fn((a,b) => a+b);
+    const fn = sinon.fake((a, b) => a + b);
     const memFn = memoize(fn, { maxAge: 0 });
     expect(memFn(1, 2)).toBe(3);
     expect(memFn(1, 2)).toBe(3);

@@ -1,4 +1,43 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
+
+exports[`@studiometa/js-toolkit/utils exports > should export all scripts 1`] = `
+Array [
+  "matrix",
+  "transition",
+  "collidePointRect",
+  "collideRectRect",
+  "boundingRectToCircle",
+  "collideCircleRect",
+  "collideCircleCircle",
+  "collidePointCircle",
+  "objectToURLSearchParams",
+  "historyPush",
+  "historyReplace",
+  "clamp",
+  "clamp01",
+  "damp",
+  "inertiaFinalValue",
+  "lerp",
+  "map",
+  "round",
+  "withLeadingCharacters",
+  "withLeadingSlash",
+  "withoutLeadingCharacters",
+  "withoutLeadingCharactersRecursive",
+  "withoutLeadingSlash",
+  "withoutTrailingCharacters",
+  "withoutTrailingCharactersRecursive",
+  "withoutTrailingSlash",
+  "withTrailingCharacters",
+  "withTrailingSlash",
+  "debounce",
+  "focusTrap",
+  "keyCodes",
+  "memoize",
+  "nextFrame",
+  "throttle",
+]
+`;
 
 exports[`@studiometa/js-toolkit/utils exports should export all scripts 1`] = `
 Array [

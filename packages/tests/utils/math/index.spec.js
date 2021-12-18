@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import * as math from '@studiometa/js-toolkit/utils/math';
 
 describe('@studiometa/js-toolkit/utils/math exports', () => {

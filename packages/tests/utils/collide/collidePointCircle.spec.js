@@ -1,4 +1,5 @@
-import { collidePointCircle } from '@studiometa/js-toolkit/utils/collide';
+import { describe, it, expect } from 'vitest';
+import { collidePointCircle } from '@studiometa/js-toolkit/utils';
 
 describe('collidePointCircle method', () => {
   it('should be true when the point is inside the circle', () => {

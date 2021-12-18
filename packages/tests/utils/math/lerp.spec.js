@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import lerp from '@studiometa/js-toolkit/utils/math/lerp';
 
 describe('lerp method', () => {

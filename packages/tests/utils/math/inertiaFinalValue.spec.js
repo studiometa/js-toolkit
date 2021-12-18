@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import inertiaFinalValue from '@studiometa/js-toolkit/utils/math/inertiaFinalValue';
 
 describe('The inertiaFinalValue function', () => {

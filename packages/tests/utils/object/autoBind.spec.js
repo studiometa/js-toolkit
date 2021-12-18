@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import autoBind from '@studiometa/js-toolkit/utils/object/autoBind';
 
 describe('autoBind method', () => {

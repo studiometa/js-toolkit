@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import * as utils from '@studiometa/js-toolkit/utils';
 
 describe('@studiometa/js-toolkit/utils exports', () => {

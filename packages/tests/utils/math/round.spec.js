@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import round from '@studiometa/js-toolkit/utils/math/round';
 
 describe('round method', () => {

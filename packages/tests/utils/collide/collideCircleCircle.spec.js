@@ -1,4 +1,5 @@
-import { collideCircleCircle } from '@studiometa/js-toolkit/utils/collide';
+import { describe, it, expect } from 'vitest';
+import { collideCircleCircle } from '@studiometa/js-toolkit/utils';
 
 describe('collideCircleCircle method', () => {
   it('should be true when circles are colliding', () => {

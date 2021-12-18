@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { add, remove, toggle } from '@studiometa/js-toolkit/utils/css/classes';
 
 describe('classes methods', () => {

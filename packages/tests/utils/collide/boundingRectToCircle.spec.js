@@ -1,4 +1,5 @@
-import { boundingRectToCircle } from '@studiometa/js-toolkit/utils/collide';
+import { describe, it, expect } from 'vitest';
+import { boundingRectToCircle } from '@studiometa/js-toolkit/utils';
 
 describe('boundingRectToCircle method', () => {
   it('should be a circle object when a valid DOMRect is passed', () => {
