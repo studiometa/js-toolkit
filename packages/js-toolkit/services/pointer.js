@@ -232,6 +232,7 @@ let pointer = null;
  * props();
  * ```
  *
+ * @todo Add element as parameter to get the pointer position relatively from.
  * @return {ServiceInterface & PointerService}
  */
 export default function usePointer() {

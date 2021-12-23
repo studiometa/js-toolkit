@@ -31,6 +31,8 @@ const SERVICE_NAMES = Object.keys(SERVICES_MAP);
 
 /**
  * Services management for the Base class.
+ *
+ * @todo Add support for disabled services on mount when the method is defined.
  */
 export default class ServicesManager {
   /**
