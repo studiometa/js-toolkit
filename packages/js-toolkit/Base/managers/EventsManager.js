@@ -8,6 +8,8 @@ import RefsManager from './RefsManager.js';
 
 /**
  * Event management class.
+ * @todo Prevent binding of `onChildOrRefEvent` to the root element
+ * @todo Use event delegation?
  */
 export default class EventsManager {
   /**
@@ -246,7 +248,7 @@ export default class EventsManager {
    * Manage event methods on the root element.
    *
    * @param {'add'|'remove'} [mode]
-   *   The action to perform: add or remove the event listeners.
+   *   The action to perform: add or remove the event listeners, defaults to 'add'.
    *
    * @return {void}
    * @private

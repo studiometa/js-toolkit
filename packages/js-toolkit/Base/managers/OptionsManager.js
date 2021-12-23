@@ -12,6 +12,8 @@ import isObject from '../../utils/object/isObject.js';
 
 /**
  * Class options to manage options as data attributes on an HTML element.
+ *
+ * @todo Use `MutationObserver` to update values? Might be more performant.
  * @augments {OptionsInterface}
  */
 export default class OptionsManager {

@@ -5,6 +5,8 @@
 
 /**
  * Refs Manager
+ *
+ * @todo Use `MutationObserver` to automatically update refs?
  */
 export default class RefsManager {
   /**
