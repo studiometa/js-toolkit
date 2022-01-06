@@ -20,7 +20,7 @@ export default class Service {
    * This method MUST be implemented by the service extending this class.
    *
    * @param {...any} args
-   * @return {unknown}
+   * @return {this['props']}
    */
   updateProps(...args) {
     this.props = args;
