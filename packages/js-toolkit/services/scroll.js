@@ -174,16 +174,11 @@ export default function useScroll() {
       instance = new Scroll();
     }
 
-    const add = instance.add.bind(instance);
-    const remove = instance.remove.bind(instance);
-    const has = instance.has.bind(instance);
-    const props = instance.updateProps.bind(instance);
-
     scroll = {
-      add,
-      remove,
-      has,
-      props,
+      add: instance.add.bind(instance),
+      remove: instance.remove.bind(instance),
+      has: instance.has.bind(instance),
+      props: instance.updateProps.bind(instance),
     };
   }
 
