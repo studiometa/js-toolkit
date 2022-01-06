@@ -11,11 +11,16 @@ export default class Service {
   }
 
   /**
-   * Getter to get the services properties.
-   * This getter MUST be implementer by the service extending this class.
+   * @type {unknown}
+   */
+  props;
+
+  /**
+   * Method to update the services properties.
+   * This method MUST be implemented by the service extending this class.
    * @return {Object}
    */
-  get props() {
+  updateProps() {
     throw new Error('The `props` getter must be implemented.');
   }
 
