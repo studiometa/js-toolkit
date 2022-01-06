@@ -35,7 +35,7 @@ describe('useScroll', () => {
     scrollHeightSpy.mockRestore();
   });
 
-  it('should trigger the callbacks on scroll', (done) => {
+  it('should trigger the callbacks on scroll', async () => {
     const scrollWidthSpy = jest.spyOn(document.body, 'scrollWidth', 'get');
     scrollWidthSpy.mockImplementation(() => window.innerWidth * 2);
 
@@ -73,7 +73,6 @@ describe('useScroll', () => {
       max: { x: window.innerWidth, y: window.innerHeight },
     });
 
-
     const newScroll = 50;
     window.pageYOffset = newScroll;
     window.pageXOffset = newScroll;
@@ -91,19 +90,21 @@ describe('useScroll', () => {
       max: { x: window.innerWidth, y: window.innerHeight },
     });
 
-    setTimeout(() => {
-      expect(fn).toHaveBeenCalledTimes(4);
-      expect(scrollProps.changed).toEqual({ x: false, y: false });
-      done();
-    }, 0);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        expect(fn).toHaveBeenCalledTimes(4);
+        expect(scrollProps.changed).toEqual({ x: false, y: false });
+        resolve();
+      }, 150);
 
-    scrollWidthSpy.mockRestore();
-    scrollHeightSpy.mockRestore();
+      scrollWidthSpy.mockRestore();
+      scrollHeightSpy.mockRestore();
+    });
   });
 
   it('should not trigger the callback when removed', () => {
     remove('key');
     document.dispatchEvent(new CustomEvent('scroll'));
     expect(fn).toHaveBeenCalledTimes(0);
-  })
+  });
 });

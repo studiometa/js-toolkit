@@ -2,44 +2,57 @@ import Service from './Service.js';
 import debounce from '../utils/debounce.js';
 
 /**
- * @typedef {import('./index').ServiceInterface} ServiceInterface
+ * @typedef {import('./index').ServiceInterface<ScrollServiceProps>} ScrollService
  */
 
 /**
  * @typedef {Object} ScrollServiceProps
- * @property {Number} x
- * @property {Number} y
- * @property {{ x: Boolean, y: Boolean }} changed
- * @property {{ x: Number, y: Number }} last
- * @property {{ x: Number, y: Number }} delta
- * @property {{ x: Number, y: Number }} progress
- * @property {{ x: Number, y: Number }} max
+ * @property {number} x
+ * @property {number} y
+ * @property {{ x: boolean, y: boolean }} changed
+ * @property {{ x: number, y: number }} last
+ * @property {{ x: number, y: number }} delta
+ * @property {{ x: number, y: number }} progress
+ * @property {{ x: number, y: number }} max
  * @property {{ x: 'LEFT'|'RIGHT'|'NONE', y: 'UP'|'DOWN'|'NONE' }} direction
- */
-
-/**
- * @typedef {Object} ScrollService
- * @property {(key:String, callback:(props:ScrollServiceProps) => void) => void} add
- *   Add a function to the resize service. The key must be uniq.
- * @property {() => ScrollServiceProps} props
- *   Get the current values of the resize service props.
  */
 
 /**
  * Scroll service
  */
 class Scroll extends Service {
-  /** @type {Number} The y scroll position. */
-  y = window.pageYOffset;
-
-  /** @type {Number} The y previous scroll position. */
-  yLast = window.pageYOffset;
-
-  /** @type {Number} The x scroll position. */
-  x = window.pageXOffset;
-
-  /** @type {Number} The x previous scroll position. */
-  xLast = window.pageXOffset;
+  /**
+   * Service's props.
+   * @type {ScrollServiceProps}
+   */
+  props = {
+    x: window.pageXOffset,
+    y: window.pageYOffset,
+    changed: {
+      x: false,
+      y: false,
+    },
+    last: {
+      x: window.pageXOffset,
+      y: window.pageYOffset,
+    },
+    delta: {
+      x: 0,
+      y: 0,
+    },
+    max: {
+      x: (document.scrollingElement || document.body).scrollWidth - window.innerWidth,
+      y: (document.scrollingElement || document.body).scrollHeight - window.innerHeight,
+    },
+    progress: {
+      x: 0,
+      y: 0,
+    },
+    direction: {
+      x: 'NONE',
+      y: 'NONE',
+    },
+  };
 
   /**
    * Bind the handler to the scroll event.
@@ -47,6 +60,7 @@ class Scroll extends Service {
    * @return {Scroll}
    */
   init() {
+    this.updateProps();
     document.addEventListener('scroll', this, { passive: true, capture: true });
     return this;
   }
@@ -58,8 +72,9 @@ class Scroll extends Service {
    */
   get debouncedHandler() {
     const debounced = debounce(() => {
+      this.updateProps();
       this.trigger(this.props);
-    }, 0);
+    }, 100);
 
     // Define property to avoid multiple call to the getter
     Object.defineProperty(this, 'debouncedHandler', {
@@ -75,8 +90,8 @@ class Scroll extends Service {
    * @return {void}
    */
   handleEvent() {
+    this.updateProps();
     this.trigger(this.props);
-
     this.debouncedHandler();
   }
 
@@ -93,65 +108,52 @@ class Scroll extends Service {
   /**
    * Get scroll props.
    *
-   * @type {Object}
+   * @returns {ScrollServiceProps}
    */
-  get props() {
-    this.yLast = this.y;
-    this.xLast = this.x;
+  updateProps() {
+    const yLast = this.props.y;
+    const xLast = this.props.x;
 
     // Check scroll Y
-    if (window.pageYOffset !== this.y) {
-      this.y = window.pageYOffset;
+    if (window.pageYOffset !== this.props.y) {
+      this.props.y = window.pageYOffset;
     }
 
     // Check scroll x
-    if (window.pageXOffset !== this.x) {
-      this.x = window.pageXOffset;
+    if (window.pageXOffset !== this.props.x) {
+      this.props.x = window.pageXOffset;
     }
 
-    return {
-      x: this.x,
-      y: this.y,
-      changed: {
-        x: this.x !== this.xLast,
-        y: this.y !== this.yLast,
-      },
-      last: {
-        x: this.xLast,
-        y: this.yLast,
-      },
-      delta: {
-        x: this.x - this.xLast,
-        y: this.y - this.yLast,
-      },
-      progress: {
-        x: this.max.x === 0 ? 1 : this.x / this.max.x,
-        y: this.max.y === 0 ? 1 : this.y / this.max.y,
-      },
-      direction: {
-        /* eslint-disable no-nested-ternary */
-        x: this.x > this.xLast ? 'RIGHT' : this.x < this.xLast ? 'LEFT' : 'NONE',
-        y: this.y > this.yLast ? 'DOWN' : this.y < this.yLast ? 'UP' : 'NONE',
-        /* eslint-enable no-nested-ternary */
-      },
-      max: this.max,
-    };
-  }
+    this.props.changed.x = this.props.x !== xLast;
+    this.props.changed.y = this.props.y !== yLast;
+    this.props.last.x = xLast;
+    this.props.last.y = yLast;
+    this.props.delta.x = this.props.x - xLast;
+    this.props.delta.y = this.props.y - yLast;
+    this.props.max.x = (document.scrollingElement || document.body).scrollWidth - window.innerWidth;
+    this.props.max.y =
+      (document.scrollingElement || document.body).scrollHeight - window.innerHeight;
+    this.props.progress.x = this.props.max.x === 0 ? 1 : this.props.x / this.props.max.x;
+    this.props.progress.y = this.props.max.y === 0 ? 1 : this.props.y / this.props.max.y;
+    /* eslint-disable no-nested-ternary */
+    this.props.direction.x =
+      this.props.x > xLast ? 'RIGHT' : this.props.x < xLast ? 'LEFT' : 'NONE';
+    this.props.direction.y = this.props.y > yLast ? 'DOWN' : this.props.y < yLast ? 'UP' : 'NONE';
+    /* eslint-enable no-nested-ternary */
 
-  /**
-   * Get scroll max values.
-   *
-   * @type {Object}
-   */
-  get max() {
-    return {
-      x: (document.scrollingElement || document.body).scrollWidth - window.innerWidth,
-      y: (document.scrollingElement || document.body).scrollHeight - window.innerHeight,
-    };
+    return this.props;
   }
 }
 
-let scroll = null;
+/**
+ * @type {Scroll}
+ */
+let instance;
+
+/**
+ * @type {ScrollService}
+ */
+let scroll;
 
 /**
  * Use the scroll service.
@@ -164,22 +166,26 @@ let scroll = null;
  * props();
  * ```
  *
- * @return {ServiceInterface & ScrollService}
+ * @return {ScrollService}
  */
 export default function useScroll() {
   if (!scroll) {
-    scroll = new Scroll();
+    if (!instance) {
+      instance = new Scroll();
+    }
+
+    const add = instance.add.bind(instance);
+    const remove = instance.remove.bind(instance);
+    const has = instance.has.bind(instance);
+    const props = instance.updateProps.bind(instance);
+
+    scroll = {
+      add,
+      remove,
+      has,
+      props,
+    };
   }
 
-  const add = scroll.add.bind(scroll);
-  const remove = scroll.remove.bind(scroll);
-  const has = scroll.has.bind(scroll);
-  const props = () => scroll.props;
-
-  return {
-    add,
-    remove,
-    has,
-    props,
-  };
+  return scroll;
 }
