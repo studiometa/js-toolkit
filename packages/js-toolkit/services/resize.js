@@ -90,6 +90,9 @@ class Resize extends Service {
     if (this.breakpointElement) {
       this.props.breakpoint = this.breakpoint;
       this.props.breakpoints = this.breakpoints;
+    } else {
+      this.props.breakpoint = undefined;
+      this.props.breakpoints = undefined;
     }
 
     return this.props;
@@ -100,7 +103,7 @@ class Resize extends Service {
    * @return {HTMLElement}
    */
   get breakpointElement() {
-    return document.querySelector('[data-breakpoint]') || null;
+    return document.querySelector('[data-breakpoint]');
   }
 
   /**
