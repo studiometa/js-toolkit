@@ -6,14 +6,13 @@ describe('useRaf', () => {
   const { add, remove, props } = useRaf();
   let rafProps;
   let fn;
-  let instance;
 
   beforeEach(() => {
     remove('key');
     fn = jest.fn(p => {
       rafProps = p;
     });
-    instance = add('key', fn);
+    add('key', fn);
   });
 
   it('should export the `add`, `remove` and `props` methods', () => {
@@ -40,14 +39,9 @@ describe('useRaf', () => {
     expect(fn.mock.calls).toHaveLength(numberOfCalls);
   });
 
-  it('should be ticking when having a callback', () => {
-    expect(instance.callbacks.size).toBe(1);
-    expect(instance.isTicking).toBe(true);
-  });
-
-  it('should stop ticking when having no callback', () => {
+  it('should stop triggering when having no callback', async () => {
     remove('key');
-    expect(instance.callbacks.size).toBe(0);
-    expect(instance.isTicking).toBe(false);
+    await wait(16);
+    expect(fn).not.toHaveBeenCalled();
   });
 });
