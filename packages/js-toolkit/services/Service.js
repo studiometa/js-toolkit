@@ -31,7 +31,7 @@ export default class Service {
    * Method to initialize the service behaviors.
    * This method MUST be implemented by the service extending this class.
    *
-   * @return {this} The current instance
+   * @return {void}
    */
   init() {
     throw new Error('The `init` method must be implemented.');
@@ -41,7 +41,7 @@ export default class Service {
    * Method to kill the service behaviors.
    * This method MUST be implemented by the service extending this class.
    *
-   * @return {this} The current instance
+   * @return {void}
    */
   kill() {
     throw new Error('The `kill` method must be implemented.');
@@ -81,7 +81,7 @@ export default class Service {
   /**
    * Get the callback tied to the given key.
    *
-   * @param  {String}   key The identifier to get
+   * @param  {string}   key The identifier to get
    * @return {Function}     The callback function
    */
   get(key) {
@@ -91,7 +91,7 @@ export default class Service {
   /**
    * Remove the callback tied to the given key.
    *
-   * @param  {String} key The identifier to remove
+   * @param {string} key The identifier to remove
    */
   remove(key) {
     this.callbacks.delete(key);
@@ -106,7 +106,7 @@ export default class Service {
   /**
    * Trigger each added callback with the given arguments.
    *
-   * @param  {Array}   args All the arguments to apply to the callback
+   * @param  {...any}   args All the arguments to apply to the callback
    * @return {this}      The current instance
    */
   trigger(...args) {

@@ -2,7 +2,7 @@ import Service from './Service.js';
 import debounce from '../utils/debounce.js';
 
 /**
- * @typedef {import('./index').ServiceInterface} ServiceInterface
+ * @typedef {import('./index').ServiceInterface<ResizeServiceProps>} ResizeService
  */
 
 /**
@@ -13,14 +13,6 @@ import debounce from '../utils/debounce.js';
  * @property {'square'|'landscape'|'portrait'} orientation
  * @property {String} [breakpoint]
  * @property {String[]} [breakpoints]
- */
-
-/**
- * @typedef {Object} ResizeService
- * @property {(key:String, callback:(props:ResizeServiceProps) => void) => void} add
- *   Add a function to the resize service. The key must be uniq.
- * @property {() => ResizeServiceProps} props
- *   Get the current values of the resize service props.
  */
 
 /**
@@ -36,12 +28,29 @@ import debounce from '../utils/debounce.js';
  */
 class Resize extends Service {
   /**
+   * Props.
+   * @type {ResizeServiceProps}
+   */
+  props = {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    ratio: window.innerWidth / window.innerHeight,
+    orientation: 'square',
+  };
+
+  /**
+   * @type {() => void}
+   */
+  handler;
+
+  /**
    * Bind the handler to the resize event.
    *
    * @return {this}
    */
   init() {
     this.handler = debounce(() => {
+      this.updateProps();
       this.trigger(this.props);
     }).bind(this);
 
@@ -53,42 +62,37 @@ class Resize extends Service {
   /**
    * Unbind the handler from the resize event.
    *
-   * @return {this}
+   * @return {void}
    */
   kill() {
     window.removeEventListener('resize', this.handler);
-
-    return this;
   }
 
   /**
    * Get resize props.
    *
-   * @type {ResizeServiceProps}
+   * @returns {ResizeServiceProps}
    */
-  get props() {
-    /** @type {ResizeServiceProps} [description] */
-    const props = {
-      width: window.innerWidth,
-      height: window.innerHeight,
-      ratio: window.innerWidth / window.innerHeight,
-      orientation: 'square',
-    };
+  updateProps() {
+    this.props.width = window.innerWidth;
+    this.props.height = window.innerHeight;
+    this.props.ratio = window.innerWidth / window.innerHeight;
+    this.props.orientation = 'square';
 
-    if (props.ratio > 1) {
-      props.orientation = 'landscape';
+    if (this.props.ratio > 1) {
+      this.props.orientation = 'landscape';
     }
 
-    if (props.ratio < 1) {
-      props.orientation = 'portrait';
+    if (this.props.ratio < 1) {
+      this.props.orientation = 'portrait';
     }
 
     if (this.breakpointElement) {
-      props.breakpoint = this.breakpoint;
-      props.breakpoints = this.breakpoints;
+      this.props.breakpoint = this.breakpoint;
+      this.props.breakpoints = this.breakpoints;
     }
 
-    return props;
+    return this.props;
   }
 
   /**
@@ -124,7 +128,15 @@ class Resize extends Service {
   }
 }
 
-let resize = null;
+/**
+ * @type {Resize}
+ */
+let instance;
+
+/**
+ * @type {ResizeService}
+ */
+let resize;
 
 /**
  * Use the resize service.
@@ -136,22 +148,26 @@ let resize = null;
  * remove(key);
  * props();
  * ```
- * @return {ServiceInterface & ResizeService}
+ * @return {ResizeService}
  */
 export default function useResize() {
   if (!resize) {
-    resize = new Resize();
+    if (!instance) {
+      instance = new Resize();
+    }
+
+    const add = instance.add.bind(instance);
+    const remove = instance.remove.bind(instance);
+    const has = instance.has.bind(instance);
+    const props = instance.updateProps.bind(instance);
+
+    resize = {
+      add,
+      remove,
+      has,
+      props,
+    };
   }
 
-  const add = resize.add.bind(resize);
-  const remove = resize.remove.bind(resize);
-  const has = resize.has.bind(resize);
-  const props = () => resize.props;
-
-  return {
-    add,
-    remove,
-    has,
-    props,
-  };
+  return resize;
 }
