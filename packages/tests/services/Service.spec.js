@@ -20,11 +20,11 @@ describe('The abstract Service class', () => {
     }).toThrow('The `kill` method must be implemented.');
   });
 
-  it('should be implemented with the `props` getter.', () => {
+  it('should be implemented with the `updateProps` method.', () => {
     class Foo extends Service {}
     const foo = new Foo();
 
-    expect(() => foo.props).toThrow('The `props` getter must be implemented.');
+    expect(() => foo.updateProps()).toThrow('The `updateProps` method must be implemented.');
   });
 
   it('should be able to get the callback for a given key.', () => {

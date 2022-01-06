@@ -24,7 +24,7 @@ export default class Service {
    */
   updateProps(...args) {
     this.props = args;
-    throw new Error('The `props` getter must be implemented.');
+    throw new Error('The `updateProps` method must be implemented.');
   }
 
   /**
