@@ -289,6 +289,7 @@ Defining custom values for an instance options with a single `data-options="{}"`
 The internal `get:options`, `get:refs`, `get:children` and `get:services` events have been removed, they can be replaced with getters in child classes:
 
 **Before**
+
 ```js
 class Foo extends Base {
   mounted() {
@@ -299,6 +300,7 @@ class Foo extends Base {
 ```
 
 **After**
+
 ```js
 class Foo extends Base {
   get $refs() {

@@ -26,7 +26,7 @@ export default function withDrag(
   return class extends BaseClass {
     static config = {
       name: `${BaseClass.config.name}WithDrag`,
-      emits: ['dragged']
+      emits: ['dragged'],
     };
 
     /**
