@@ -121,14 +121,7 @@ describe('A Base instance', () => {
     }
 
     const d = new D(document.createElement('div'));
-    expect(d.__config).toEqual({
-      name: 'D',
-      log: false,
-      options: {
-        color: Boolean,
-        title: String,
-      },
-    });
+    expect(d.__config).toMatchSnapshot();
   });
 
   it('should have a `$root` property', () => {
@@ -381,7 +374,10 @@ describe('A Base instance methods', () => {
 describe('The Base class event methods', () => {
   it('should bind handlers to events', () => {
     class App extends Base {
-      static config = { name: 'A' };
+      static config = {
+        name: 'A',
+        emits: ['foo'],
+      };
     }
 
     const app = new App(document.createElement('div')).$mount();
@@ -399,7 +395,7 @@ describe('The Base class event methods', () => {
 
   it('should store event handlers', () => {
     class App extends Base {
-      static config = { name: 'App' };
+      static config = { name: 'App', emits: ['event'] };
     }
 
     const app = new App(document.createElement('div')).$mount();
