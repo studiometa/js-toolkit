@@ -283,3 +283,28 @@ Defining custom values for an instance options with a single `data-options="{}"`
 +   data-option-one="1"
 +   data-option-two="2">
 ```
+
+## Replace `get:...` event handlers
+
+The internal `get:options`, `get:refs`, `get:children` and `get:services` events have been removed, they can be replaced with getters in child classes:
+
+**Before**
+```js
+class Foo extends Base {
+  mounted() {
+    this.$on('get:refs', (refs) => {
+      refs.body = document.body;
+    });
+  }
+```
+
+**After**
+```js
+class Foo extends Base {
+  get $refs() {
+    const $refs = super.$refs;
+    $refs.body = document.body;
+    return $refs;
+  }
+}
+```
