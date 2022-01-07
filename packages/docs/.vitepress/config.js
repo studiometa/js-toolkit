@@ -58,7 +58,12 @@ function getGuideSidebar() {
     },
     {
       text: 'Recipes',
-      children: [{ text: 'todo' }],
+      children: [
+        {
+          text: 'Teleport refs',
+          link: '/guide/recipes/teleport-refs.html',
+        },
+      ],
     },
     {
       text: 'Migration guide',
