@@ -16,11 +16,6 @@ describe('The abstract Base class', () => {
 
   it('should throw an error when extended without proper configuration', () => {
     expect(() => {
-      class Foo extends Base {}
-      new Foo(document.createElement('div'));
-    }).toThrow('The `config` static property must be defined.');
-
-    expect(() => {
       // @ts-ignore
       class Foo extends Base {
         static config = {};
