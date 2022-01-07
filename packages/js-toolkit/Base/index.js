@@ -30,6 +30,7 @@ function noop() {}
  * @property {Boolean} [debug]
  * @property {Boolean} [log]
  * @property {String[]} [refs]
+ * @property {String[]} emits
  * @property {BaseConfigComponents} [components]
  * @property {BaseConfigOptions} [options]
  */
@@ -37,7 +38,7 @@ function noop() {}
 /**
  * Base class.
  */
-export default class Base {
+export default class Base extends EventTarget {
   /**
    * This is a Base instance.
    * @type {Boolean}
@@ -123,6 +124,10 @@ export default class Base {
         };
       }
 
+      if (proto.constructor.config.emits && config.emits) {
+        config.emits = [...proto.constructor.config.emits, ...config.emits];
+      }
+
       proto = Object.getPrototypeOf(proto);
     }
 
@@ -132,7 +137,20 @@ export default class Base {
   /**
    * @type {BaseConfig}
    */
-  static config;
+  static config = {
+    name: 'Base',
+    emits: [
+      'mounted',
+      'updated',
+      'destroyed',
+      'terminated',
+      'ticked',
+      'scrolled',
+      'resized',
+      'moved',
+      'loaded',
+    ],
+  };
 
   /**
    * @type {ServicesManager}
@@ -259,17 +277,15 @@ export default class Base {
    * @param {HTMLElement} element The component's root element dd.
    */
   constructor(element) {
+    super();
+
     if (!element) {
       throw new Error('The root element must be defined.');
     }
 
     const { __config } = this;
 
-    if (!__config) {
-      throw new Error('The `config` static property must be defined.');
-    }
-
-    if (!__config.name) {
+    if (__config.name === 'Base') {
       throw new Error('The `config.name` property is required.');
     }
 
@@ -379,6 +395,53 @@ export default class Base {
   }
 
   /**
+   * Test if the given event is configured and warn otherwise.
+   *
+   * @private
+   * @param   {string} event The event name.
+   * @returns {void}
+   */
+  __testEventIsDefined(event) {
+    if (!(Array.isArray(this.__config.emits) && this.__config.emits.includes(event))) {
+      console.warn(
+        `[${this.__config.name}]`,
+        `The "${event}" event is missing from the configuration.`
+      );
+    }
+  }
+
+  /**
+   * Add an emitted event.
+   *
+   * @private
+   * @param   {string} event The event name.
+   * @returns {void}
+   */
+  __addEmits(event) {
+    const ctor = /** @type {BaseConstructor} */ (this.constructor);
+    if (Array.isArray(ctor.config.emits)) {
+      ctor.config.emits.push(event);
+    } else {
+      ctor.config.emits = [event];
+    }
+  }
+
+  /**
+   * Remove an emitted event.
+   *
+   * @private
+   * @param   {string} event The event name.
+   * @returns {void}
+   */
+  __removeEmits(event) {
+    const ctor = /** @type {BaseConstructor} */ (this.constructor);
+    if (Array.isArray(ctor.config.emits)) {
+      const index = ctor.config.emits.findIndex((value) => value === event);
+      ctor.config.emits.splice(index, 1);
+    }
+  }
+
+  /**
    * Bind a listener function to an event.
    *
    * @param  {string} event
@@ -392,6 +455,7 @@ export default class Base {
    */
   $on(event, listener, options) {
     this.__debug('$on', event, listener, options);
+    this.__testEventIsDefined(event);
 
     let set = this.__eventHandlers.get(event);
 
@@ -401,7 +465,7 @@ export default class Base {
     }
 
     set.add(listener);
-    this.$el.addEventListener(event, listener, options);
+    this.addEventListener(event, listener, options);
 
     return () => {
       this.$off(event, listener, options);
@@ -422,9 +486,10 @@ export default class Base {
    */
   $off(event, listener, options) {
     this.__debug('$off', event, listener);
+    this.__testEventIsDefined(event);
 
     this.__eventHandlers.get(event).delete(listener);
-    this.$el.removeEventListener(event, listener, options);
+    this.removeEventListener(event, listener, options);
   }
 
   /**
@@ -437,7 +502,9 @@ export default class Base {
    */
   $emit(event, ...args) {
     this.__debug('$emit', event, args);
-    this.$el.dispatchEvent(
+    this.__testEventIsDefined(event);
+
+    this.dispatchEvent(
       new CustomEvent(event, {
         detail: args,
       })
