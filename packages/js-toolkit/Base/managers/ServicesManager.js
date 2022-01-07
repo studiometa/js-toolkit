@@ -8,12 +8,9 @@ import { hasMethod } from '../utils.js';
 
 /**
  * @typedef {import('../index').default} Base
- * @typedef {import('../../services').ServiceInterface} ServiceInterface
+ * @typedef {import('../../services').ServiceInterface<any>} ServiceInterface
  */
 
-/**
- * @type {Record<string, () => ServiceInterface>}
- */
 const SERVICES_MAP = {
   scrolled: useScroll,
   resized: useResize,
@@ -26,7 +23,8 @@ const SERVICES_MAP = {
 const SERVICE_NAMES = Object.keys(SERVICES_MAP);
 
 /**
- * @typedef {keyof SERVICES_MAP} ServiceName
+ * @typedef {typeof SERVICES_MAP & Record<string, () => ServiceInterface>} Services
+ * @typedef {keyof SERVICES_MAP|string} ServiceName
  */
 
 /**

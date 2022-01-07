@@ -144,9 +144,7 @@ export default class Base {
    * @type {ServicesManager}
    */
   get $services() {
-    const services = this.__services;
-    this.$emit('get:services', services);
-    return services;
+    return this.__services;
   }
 
   /**
@@ -159,9 +157,7 @@ export default class Base {
    * @return {RefsManager}
    */
   get $refs() {
-    const refs = this.__refs;
-    this.$emit('get:refs', refs);
-    return refs;
+    return this.__refs;
   }
 
   /**
@@ -174,9 +170,7 @@ export default class Base {
    * @return {BaseOptions}
    */
   get $options() {
-    const options = this.__options;
-    this.$emit('get:options', options);
-    return options;
+    return this.__options;
   }
 
   /**
@@ -189,9 +183,7 @@ export default class Base {
    * @return {ChildrenManager}
    */
   get $children() {
-    const children = this.__children;
-    this.$emit('get:children', children);
-    return children;
+    return this.__children;
   }
 
   /**
