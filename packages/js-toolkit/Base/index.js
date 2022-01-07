@@ -226,7 +226,7 @@ export default class Base extends EventTarget {
    * @return {(...args:any) => void}
    */
   get __debug() {
-    return this.__options.debug && typeof window.__DEV__ !== 'undefined' && window.__DEV__
+    return typeof window.__DEV__ !== 'undefined' && window.__DEV__ && this.__options.debug
       ? window.console.log.bind(window, `[debug] [${this.$id}]`)
       : noop;
   }
