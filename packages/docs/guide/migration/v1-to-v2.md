@@ -308,3 +308,24 @@ class Foo extends Base {
   }
 }
 ```
+
+## Define emitted events
+
+Events emitted from a component must be defined in the static `config` property.
+
+```diff
+  class Component extends Base {
+    static config = {
+      name: 'Component'
++     emits: ['open', 'close'],
+    }
+
+    open() {
+      this.$emit('open');
+    }
+
+    close() {
+      this.$emit('close');
+    }
+  }
+```
