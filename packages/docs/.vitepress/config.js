@@ -1,8 +1,12 @@
-module.exports = {
+const { defineConfig } = require('vitepress');
+const pkg = require('../package.json');
+
+module.exports = defineConfig({
   lang: 'en-US',
-  title: '🔧 JS Toolkit',
+  title: `🔧 JS Toolkit`,
   description: 'A set of useful little bits of JavaScript to boost your project! 🚀',
   themeConfig: {
+    version: pkg.version,
     repo: 'studiometa/js-toolkit',
     docsDir: 'packages/docs',
     lastUpdated: 'Last updated',
@@ -29,7 +33,7 @@ module.exports = {
       '/utils/': getUtilsSidebar(),
     },
   },
-};
+});
 
 function getGuideSidebar() {
   return [
@@ -58,7 +62,12 @@ function getGuideSidebar() {
     },
     {
       text: 'Recipes',
-      children: [{ text: 'todo' }],
+      children: [
+        {
+          text: 'Teleport refs',
+          link: '/guide/recipes/teleport-refs.html',
+        },
+      ],
     },
     {
       text: 'Migration guide',

@@ -30,40 +30,6 @@ Array [
   ],
   Array [
     "[debug] [Foo-36]",
-    "$emit",
-    "get:children",
-    Array [
-      ChildrenManager {},
-    ],
-  ],
-  Array [
-    "[debug] [Foo-36]",
-    "$emit",
-    "get:refs",
-    Array [
-      RefsManager {},
-    ],
-  ],
-  Array [
-    "[debug] [Foo-36]",
-    "$emit",
-    "get:services",
-    Array [
-      ServicesManager {
-        "__customServices": Object {},
-      },
-    ],
-  ],
-  Array [
-    "[debug] [Foo-36]",
-    "$emit",
-    "get:children",
-    Array [
-      ChildrenManager {},
-    ],
-  ],
-  Array [
-    "[debug] [Foo-36]",
     "callMethod",
     "mounted",
   ],

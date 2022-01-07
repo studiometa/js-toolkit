@@ -11,19 +11,27 @@ export default class Service {
   }
 
   /**
-   * Getter to get the services properties.
-   * This getter MUST be implementer by the service extending this class.
-   * @return {Object}
+   * @type {unknown}
    */
-  get props() {
-    throw new Error('The `props` getter must be implemented.');
+  props;
+
+  /**
+   * Method to update the services properties.
+   * This method MUST be implemented by the service extending this class.
+   *
+   * @param {...any} args
+   * @return {this['props']}
+   */
+  updateProps(...args) {
+    this.props = args;
+    throw new Error('The `updateProps` method must be implemented.');
   }
 
   /**
    * Method to initialize the service behaviors.
    * This method MUST be implemented by the service extending this class.
    *
-   * @return {Service} The current instance
+   * @return {void}
    */
   init() {
     throw new Error('The `init` method must be implemented.');
@@ -33,7 +41,7 @@ export default class Service {
    * Method to kill the service behaviors.
    * This method MUST be implemented by the service extending this class.
    *
-   * @return {Service} The current instance
+   * @return {void}
    */
   kill() {
     throw new Error('The `kill` method must be implemented.');
@@ -44,7 +52,7 @@ export default class Service {
    *
    * @param  {String}   key      The callback's identifier
    * @param  {Function} callback The callback function
-   * @return {this} The current instance
+   * @return {void}
    */
   add(key, callback) {
     if (this.has(key)) {
@@ -58,7 +66,6 @@ export default class Service {
     }
 
     this.callbacks.set(key, callback);
-    return this;
   }
 
   /**
@@ -74,7 +81,7 @@ export default class Service {
   /**
    * Get the callback tied to the given key.
    *
-   * @param  {String}   key The identifier to get
+   * @param  {string}   key The identifier to get
    * @return {Function}     The callback function
    */
   get(key) {
@@ -84,8 +91,7 @@ export default class Service {
   /**
    * Remove the callback tied to the given key.
    *
-   * @param  {String} key The identifier to remove
-   * @return {Service}    The current instance
+   * @param {string} key The identifier to remove
    */
   remove(key) {
     this.callbacks.delete(key);
@@ -95,15 +101,13 @@ export default class Service {
       this.kill();
       this.isInit = false;
     }
-
-    return this;
   }
 
   /**
    * Trigger each added callback with the given arguments.
    *
-   * @param  {Array}   args All the arguments to apply to the callback
-   * @return {Service}      The current instance
+   * @param  {...any}   args All the arguments to apply to the callback
+   * @return {this}      The current instance
    */
   trigger(...args) {
     this.callbacks.forEach(function forEachCallback(callback) {

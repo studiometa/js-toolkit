@@ -2,20 +2,12 @@ import Service from './Service.js';
 import { getRaf, getCancelRaf } from '../utils/nextFrame.js';
 
 /**
- * @typedef {import('./index').ServiceInterface} ServiceInterface
+ * @typedef {import('./index').ServiceInterface<RafServiceProps>} RafService
  */
 
 /**
  * @typedef {Object} RafServiceProps
  * @property {DOMHighResTimeStamp} time
- */
-
-/**
- * @typedef {Object} RafService
- * @property {(key:String, callback:(props:RafServiceProps) => void) => void} add
- *   Add a function to the resize service. The key must be uniq.
- * @property {() => RafServiceProps} props
- *   Get the current values of the resize service props.
  */
 
 /**
@@ -33,62 +25,68 @@ class Raf extends Service {
   cancelRaf = getCancelRaf();
 
   /**
-   * Bind loop to the instance.
+   * Props.
+   * @type {RafServiceProps}
    */
-  constructor() {
-    super();
-    this.loop = this.loop.bind(this);
-  }
+  props = {
+    time: performance.now(),
+  };
 
   /**
    * Start the requestAnimationFrame loop.
    *
-   * @return {Raf}
+   * @return {void}
    */
   init() {
     this.isTicking = true;
     this.loop();
-    return this;
   }
 
   /**
    * Loop method.
    */
   loop() {
+    this.updateProps();
     this.trigger(this.props);
 
     if (!this.isTicking) {
       return;
     }
 
-    this.id = this.raf(this.loop);
+    this.id = this.raf(() => this.loop());
   }
 
   /**
    * Stop the requestAnimationFrame loop.
    *
-   * @return {Raf}
+   * @return {void}
    */
   kill() {
     this.cancelRaf(this.id);
     this.isTicking = false;
-    return this;
   }
 
   /**
    * Get raf props.
    *
    * @todo Return elapsed time / index?
-   * @type {Object}
+   * @return {this['props']}
    */
-  get props() {
-    return {
-      time: window.performance.now(),
-    };
+  updateProps() {
+    this.props.time = window.performance.now();
+    return this.props;
   }
 }
 
-let instance = null;
+/**
+ * @type {Raf}
+ */
+let instance;
+
+/**
+ * @type {RafService}
+ */
+let raf;
 
 /**
  * Use the RequestAnimationFrame (raf) service.
@@ -101,26 +99,21 @@ let instance = null;
  * props();
  * ```
  *
- * @return {ServiceInterface & RafService}
+ * @return {RafService}
  */
 export default function useRaf() {
-  if (!instance) {
-    instance = new Raf();
+  if (!raf) {
+    if (!instance) {
+      instance = new Raf();
+    }
+
+    raf = {
+      add: instance.add.bind(instance),
+      remove: instance.remove.bind(instance),
+      has: instance.has.bind(instance),
+      props: instance.updateProps.bind(instance),
+    };
   }
 
-  const add = instance.add.bind(instance);
-  const remove = instance.remove.bind(instance);
-  const has = instance.has.bind(instance);
-
-  // eslint-disable-next-line require-jsdoc
-  function props() {
-    return instance.props;
-  }
-
-  return {
-    add,
-    remove,
-    has,
-    props,
-  };
+  return raf;
 }
