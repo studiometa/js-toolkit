@@ -401,6 +401,21 @@ describe('The Base class event methods', () => {
     app.$off('event', fn);
     expect(app.__eventHandlers.get('event')).toEqual(new Set());
   });
+
+  it('should warn when an event is not configured', () => {
+    class App extends Base {
+      static config = { name: 'App' };
+    }
+
+    const app = new App(document.createElement('div')).$mount();
+    const warnMock = jest.spyOn(console, 'warn');
+    warnMock.mockImplementation(() => undefined);
+    app.$emit('event');
+    expect(warnMock).toHaveBeenCalled();
+    app.$on('other-event');
+    expect(warnMock).toHaveBeenCalledTimes(2);
+    warnMock.mockRestore();
+  });
 });
 
 describe('A Base instance config', () => {
