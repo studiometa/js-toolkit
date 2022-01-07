@@ -197,8 +197,16 @@ class Drag extends Service {
     this.props.mode = MODES.DROP;
 
     this.props.hasInertia = true;
-    this.props.final.x = inertiaFinalValue(this.props.x, this.props.delta.x, this.options.dampFactor);
-    this.props.final.y = inertiaFinalValue(this.props.y, this.props.delta.y, this.options.dampFactor);
+    this.props.final.x = inertiaFinalValue(
+      this.props.x,
+      this.props.delta.x,
+      this.options.dampFactor
+    );
+    this.props.final.y = inertiaFinalValue(
+      this.props.y,
+      this.props.delta.y,
+      this.options.dampFactor
+    );
 
     this.trigger(this.props);
 
