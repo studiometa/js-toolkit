@@ -41,3 +41,34 @@ Array [
   ],
 ]
 `;
+
+exports[`A Base instance should inherit from parent config 1`] = `
+Object {
+  "emits": Array [
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+  ],
+  "log": false,
+  "name": "D",
+  "options": Object {
+    "color": [Function],
+    "title": [Function],
+  },
+}
+`;
