@@ -256,7 +256,10 @@ export default class EventsManager {
   __manageRootElement(mode = 'add') {
     const modeMethod = `${mode}EventListener`;
     const methods = this.__getEventMethodsByName();
+
+    // @ts-ignore
     const { emits = [] } = this.__base.__config;
+
     methods.forEach((method) => {
       const event = this.__getEventNameByMethod(method);
       const target = emits.includes(event) ? this.__base : this.__rootElement;
