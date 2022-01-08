@@ -317,8 +317,11 @@ export default class Base extends EventTarget {
    * @return {this}
    */
   $mount() {
-    this.__debug('$mount');
+    if (this.$isMounted) {
+      return this;
+    }
 
+    this.__debug('$mount');
     this.$children.registerAll();
     this.$refs.registerAll();
     this.__events.bindRootElement();
@@ -327,6 +330,7 @@ export default class Base extends EventTarget {
 
     this.__callMethod('mounted');
     this.$isMounted = true;
+
     return this;
   }
 
@@ -358,14 +362,18 @@ export default class Base extends EventTarget {
    * @return {this}
    */
   $destroy() {
-    this.__debug('$destroy');
+    if (!this.$isMounted) {
+      return this;
+    }
 
+    this.__debug('$destroy');
     this.__events.unbindRootElement();
     this.$refs.unregisterAll();
     this.$services.disableAll();
     this.$children.destroyAll();
     this.__callMethod('destroyed');
     this.$isMounted = false;
+
     return this;
   }
 
