@@ -78,7 +78,7 @@ export default class EventsManager {
      * @return {void}
      */
     handleEvent: (event) => {
-      const child = /** @type {HTMLElement & { __base__: Base }} */ (event.currentTarget).__base__;
+      const child = /** @type {Base} */ (event.currentTarget);
       let childName;
       let index = 0;
 
@@ -256,9 +256,14 @@ export default class EventsManager {
   __manageRootElement(mode = 'add') {
     const modeMethod = `${mode}EventListener`;
     const methods = this.__getEventMethodsByName();
+
+    // @ts-ignore
+    const { emits = [] } = this.__base.__config;
+
     methods.forEach((method) => {
       const event = this.__getEventNameByMethod(method);
-      this.__rootElement[modeMethod](event, this.__rootElementHandler);
+      const target = emits.includes(event) ? this.__base : this.__rootElement;
+      target[modeMethod](event, this.__rootElementHandler);
     });
   }
 

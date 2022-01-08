@@ -7,6 +7,7 @@ import {
   mockIsIntersecting,
   intersectionMockInstance,
 } from '../__setup__/mockIntersectionObserver';
+import wait from '../__utils__/wait.js';
 
 beforeAll(() => beforeAllCallback());
 
@@ -38,10 +39,11 @@ describe('The withMountWhenInView decorator', () => {
     expect(instance.$isMounted).toBe(false);
   });
 
-  it('should destroy the component when not in view', () => {
+  it('should destroy the component when not in view', async () => {
     mockIsIntersecting(div, true);
     expect(instance.$isMounted).toBe(true);
     mockIsIntersecting(div, false);
+    await wait(1);
     expect(instance.$isMounted).toBe(false);
   });
 

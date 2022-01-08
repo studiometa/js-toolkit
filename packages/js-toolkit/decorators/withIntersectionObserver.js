@@ -45,6 +45,7 @@ export default function withIntersectionObserver(
         ...(BaseClass?.config?.options || {}),
         intersectionObserver: Object,
       },
+      emits: ['intersected'],
     };
 
     /**
