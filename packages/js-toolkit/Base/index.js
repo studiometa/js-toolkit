@@ -7,6 +7,8 @@ import OptionsManager from './managers/OptionsManager.js';
 
 let id = 0;
 
+const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
+
 /**
  * No operation function.
  * @return {void}
@@ -226,7 +228,7 @@ export default class Base extends EventTarget {
    * @return {(...args:any) => void}
    */
   get __debug() {
-    return typeof window.__DEV__ !== 'undefined' && window.__DEV__ && this.__options.debug
+    return isDev && this.__options.debug
       ? window.console.log.bind(window, `[debug] [${this.$id}]`)
       : noop;
   }
@@ -240,7 +242,9 @@ export default class Base extends EventTarget {
    * @return {void}
    */
   __callMethod(method, ...args) {
-    this.__debug('callMethod', method, ...args);
+    if (isDev) {
+      this.__debug('callMethod', method, ...args);
+    }
 
     this.$emit(method, ...args);
 
@@ -250,7 +254,9 @@ export default class Base extends EventTarget {
     }
 
     this[method].call(this, ...args);
-    this.__debug(method, this, ...args);
+    if (isDev) {
+      this.__debug(method, this, ...args);
+    }
   }
 
   /**
@@ -301,7 +307,9 @@ export default class Base extends EventTarget {
     this.__children = new ChildrenManager(this, element, __config.components || {}, this.__events);
     this.__refs = new RefsManager(this, element, __config.refs || [], this.__events);
 
-    this.__debug('constructor', this);
+    if (isDev) {
+      this.__debug('constructor', this);
+    }
 
     return this;
   }
@@ -316,7 +324,9 @@ export default class Base extends EventTarget {
     }
 
     this.$isMounted = true;
-    this.__debug('$mount');
+    if (isDev) {
+      this.__debug('$mount');
+    }
     this.$children.registerAll();
     this.$refs.registerAll();
     this.__events.bindRootElement();
@@ -333,7 +343,9 @@ export default class Base extends EventTarget {
    * @return {this}
    */
   $update() {
-    this.__debug('$update');
+    if (isDev) {
+      this.__debug('$update');
+    }
 
     // Undo
     this.$refs.unregisterAll();
@@ -361,7 +373,9 @@ export default class Base extends EventTarget {
     }
 
     this.$isMounted = false;
-    this.__debug('$destroy');
+    if (isDev) {
+      this.__debug('$destroy');
+    }
     this.__events.unbindRootElement();
     this.$refs.unregisterAll();
     this.$services.disableAll();
@@ -376,7 +390,9 @@ export default class Base extends EventTarget {
    * @return {void}
    */
   $terminate() {
-    this.__debug('$terminate');
+    if (isDev) {
+      this.__debug('$terminate');
+    }
 
     // First, destroy the component.
     this.$destroy();
@@ -454,8 +470,13 @@ export default class Base extends EventTarget {
    *   A function to unbind the listener.
    */
   $on(event, listener, options) {
-    this.__debug('$on', event, listener, options);
-    this.__testEventIsDefined(event);
+    if (isDev) {
+      this.__debug('$on', event, listener, options);
+    }
+
+    if (isDev) {
+      this.__testEventIsDefined(event);
+    }
 
     let set = this.__eventHandlers.get(event);
 
@@ -485,8 +506,13 @@ export default class Base extends EventTarget {
    * @return {void}
    */
   $off(event, listener, options) {
-    this.__debug('$off', event, listener);
-    this.__testEventIsDefined(event);
+    if (isDev) {
+      this.__debug('$off', event, listener);
+    }
+
+    if (isDev) {
+      this.__testEventIsDefined(event);
+    }
 
     this.__eventHandlers.get(event).delete(listener);
     this.removeEventListener(event, listener, options);
@@ -501,8 +527,13 @@ export default class Base extends EventTarget {
    * @return {void}
    */
   $emit(event, ...args) {
-    this.__debug('$emit', event, args);
-    this.__testEventIsDefined(event);
+    if (isDev) {
+      this.__debug('$emit', event, args);
+    }
+
+    if (isDev) {
+      this.__testEventIsDefined(event);
+    }
 
     this.dispatchEvent(
       new CustomEvent(event, {
