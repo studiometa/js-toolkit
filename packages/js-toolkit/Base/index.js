@@ -7,6 +7,7 @@ import OptionsManager from './managers/OptionsManager.js';
 
 let id = 0;
 
+// eslint-disable-next-line no-undef
 const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 
 /**
