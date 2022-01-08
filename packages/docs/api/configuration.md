@@ -131,6 +131,34 @@ class Component extends Base {
 }
 ```
 
+## `config.emits`
+
+- Type: `string[]`
+- Default: `undefined`
+
+Define the events emitted by the component by specifying their name.
+
+```js
+class Component extends Base {
+  static config = {
+    name: 'Component',
+    emits: ['open', 'close'],
+  };
+
+  open() {
+    this.$emit('open');
+  }
+
+  close() {
+    this.$emit('close');
+  }
+
+  toggle() {
+    this.$emit('toggle'); // will not be emitted and will trigger a warning
+  }
+}
+```
+
 ## `config.log`
 
 - Type: `Boolean`

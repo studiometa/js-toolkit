@@ -11,7 +11,7 @@
 export default function getAllProperties(object, props = [], testFn = null) {
   const proto = Object.getPrototypeOf(object);
 
-  if (proto === Object.prototype) {
+  if (proto === Object.prototype || proto === null) {
     return props;
   }
 

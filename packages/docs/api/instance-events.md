@@ -185,4 +185,3 @@ app.$on('ticked', () => {
   console.log('The render loop has ticked');
 });
 ```
-

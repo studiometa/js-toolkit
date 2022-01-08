@@ -16,11 +16,6 @@ describe('The abstract Base class', () => {
 
   it('should throw an error when extended without proper configuration', () => {
     expect(() => {
-      class Foo extends Base {}
-      new Foo(document.createElement('div'));
-    }).toThrow('The `config` static property must be defined.');
-
-    expect(() => {
       // @ts-ignore
       class Foo extends Base {
         static config = {};
@@ -121,14 +116,7 @@ describe('A Base instance', () => {
     }
 
     const d = new D(document.createElement('div'));
-    expect(d.__config).toEqual({
-      name: 'D',
-      log: false,
-      options: {
-        color: Boolean,
-        title: String,
-      },
-    });
+    expect(d.__config).toMatchSnapshot();
   });
 
   it('should have a `$root` property', () => {
@@ -381,7 +369,10 @@ describe('A Base instance methods', () => {
 describe('The Base class event methods', () => {
   it('should bind handlers to events', () => {
     class App extends Base {
-      static config = { name: 'A' };
+      static config = {
+        name: 'A',
+        emits: ['foo'],
+      };
     }
 
     const app = new App(document.createElement('div')).$mount();
@@ -399,7 +390,7 @@ describe('The Base class event methods', () => {
 
   it('should store event handlers', () => {
     class App extends Base {
-      static config = { name: 'App' };
+      static config = { name: 'App', emits: ['event'] };
     }
 
     const app = new App(document.createElement('div')).$mount();
@@ -409,6 +400,21 @@ describe('The Base class event methods', () => {
     expect(app.__eventHandlers.get('event')).toEqual(new Set([fn]));
     app.$off('event', fn);
     expect(app.__eventHandlers.get('event')).toEqual(new Set());
+  });
+
+  it('should warn when an event is not configured', () => {
+    class App extends Base {
+      static config = { name: 'App' };
+    }
+
+    const app = new App(document.createElement('div')).$mount();
+    const warnMock = jest.spyOn(console, 'warn');
+    warnMock.mockImplementation(() => undefined);
+    app.$emit('event');
+    expect(warnMock).toHaveBeenCalled();
+    app.$on('other-event');
+    expect(warnMock).toHaveBeenCalledTimes(2);
+    warnMock.mockRestore();
   });
 });
 

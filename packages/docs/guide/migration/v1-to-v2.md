@@ -289,6 +289,7 @@ Defining custom values for an instance options with a single `data-options="{}"`
 The internal `get:options`, `get:refs`, `get:children` and `get:services` events have been removed, they can be replaced with getters in child classes:
 
 **Before**
+
 ```js
 class Foo extends Base {
   mounted() {
@@ -299,6 +300,7 @@ class Foo extends Base {
 ```
 
 **After**
+
 ```js
 class Foo extends Base {
   get $refs() {
@@ -307,4 +309,25 @@ class Foo extends Base {
     return $refs;
   }
 }
+```
+
+## Define emitted events
+
+Events emitted from a component must be defined in the static `config` property.
+
+```diff
+  class Component extends Base {
+    static config = {
+      name: 'Component'
++     emits: ['open', 'close'],
+    }
+
+    open() {
+      this.$emit('open');
+    }
+
+    close() {
+      this.$emit('close');
+    }
+  }
 ```

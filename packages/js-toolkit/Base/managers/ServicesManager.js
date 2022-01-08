@@ -8,6 +8,7 @@ import { hasMethod } from '../utils.js';
 
 /**
  * @typedef {import('../index').default} Base
+ * @typedef {import('../index').BaseConstructor} BaseConstructor
  * @typedef {import('../../services').ServiceInterface<any>} ServiceInterface
  */
 
@@ -197,6 +198,8 @@ export default class ServicesManager {
    */
   register(name, useFunction) {
     this.__customServices[name] = useFunction;
+    // @ts-ignore
+    this.__base.__addEmits(name);
   }
 
   /**
@@ -209,7 +212,8 @@ export default class ServicesManager {
     if (SERVICE_NAMES.includes(name)) {
       throw new Error(`[ServicesManager] The \`${name}\` core service can not be unregistered.`);
     }
-
+    // @ts-ignore
+    this.__base.__removeEmits(name);
     delete this.__customServices[name];
   }
 }
