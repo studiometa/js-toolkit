@@ -437,10 +437,8 @@ export default class Base extends EventTarget {
    */
   __removeEmits(event) {
     const ctor = /** @type {BaseConstructor} */ (this.constructor);
-    if (Array.isArray(ctor.config.emits)) {
-      const index = ctor.config.emits.findIndex((value) => value === event);
-      ctor.config.emits.splice(index, 1);
-    }
+    const index = ctor.config.emits.findIndex((value) => value === event);
+    ctor.config.emits.splice(index, 1);
   }
 
   /**
