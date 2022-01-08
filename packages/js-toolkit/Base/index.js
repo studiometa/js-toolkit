@@ -7,6 +7,9 @@ import OptionsManager from './managers/OptionsManager.js';
 
 let id = 0;
 
+// eslint-disable-next-line no-undef
+const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
+
 /**
  * No operation function.
  * @return {void}
@@ -30,6 +33,7 @@ function noop() {}
  * @property {Boolean} [debug]
  * @property {Boolean} [log]
  * @property {String[]} [refs]
+ * @property {String[]} emits
  * @property {BaseConfigComponents} [components]
  * @property {BaseConfigOptions} [options]
  */
@@ -37,7 +41,7 @@ function noop() {}
 /**
  * Base class.
  */
-export default class Base {
+export default class Base extends EventTarget {
   /**
    * This is a Base instance.
    * @type {Boolean}
@@ -123,6 +127,10 @@ export default class Base {
         };
       }
 
+      if (proto.constructor.config.emits && config.emits) {
+        config.emits = [...proto.constructor.config.emits, ...config.emits];
+      }
+
       proto = Object.getPrototypeOf(proto);
     }
 
@@ -132,7 +140,20 @@ export default class Base {
   /**
    * @type {BaseConfig}
    */
-  static config;
+  static config = {
+    name: 'Base',
+    emits: [
+      'mounted',
+      'updated',
+      'destroyed',
+      'terminated',
+      'ticked',
+      'scrolled',
+      'resized',
+      'moved',
+      'loaded',
+    ],
+  };
 
   /**
    * @type {ServicesManager}
@@ -144,9 +165,7 @@ export default class Base {
    * @type {ServicesManager}
    */
   get $services() {
-    const services = this.__services;
-    this.$emit('get:services', services);
-    return services;
+    return this.__services;
   }
 
   /**
@@ -159,9 +178,7 @@ export default class Base {
    * @return {RefsManager}
    */
   get $refs() {
-    const refs = this.__refs;
-    this.$emit('get:refs', refs);
-    return refs;
+    return this.__refs;
   }
 
   /**
@@ -174,9 +191,7 @@ export default class Base {
    * @return {BaseOptions}
    */
   get $options() {
-    const options = this.__options;
-    this.$emit('get:options', options);
-    return options;
+    return this.__options;
   }
 
   /**
@@ -189,9 +204,7 @@ export default class Base {
    * @return {ChildrenManager}
    */
   get $children() {
-    const children = this.__children;
-    this.$emit('get:children', children);
-    return children;
+    return this.__children;
   }
 
   /**
@@ -216,7 +229,7 @@ export default class Base {
    * @return {(...args:any) => void}
    */
   get __debug() {
-    return this.__options.debug && typeof window.__DEV__ !== 'undefined' && window.__DEV__
+    return isDev && this.__options.debug
       ? window.console.log.bind(window, `[debug] [${this.$id}]`)
       : noop;
   }
@@ -230,12 +243,8 @@ export default class Base {
    * @return {void}
    */
   __callMethod(method, ...args) {
-    this.__debug('callMethod', method, ...args);
-
-    // Prevent duplicate call of `mounted` and `destroyed` methods based on the component status
-    if ((method === 'destroyed' && !this.$isMounted) || (method === 'mounted' && this.$isMounted)) {
-      this.__debug('not', method, 'because the method has already been triggered once.');
-      return;
+    if (isDev) {
+      this.__debug('callMethod', method, ...args);
     }
 
     this.$emit(method, ...args);
@@ -246,7 +255,9 @@ export default class Base {
     }
 
     this[method].call(this, ...args);
-    this.__debug(method, this, ...args);
+    if (isDev) {
+      this.__debug(method, this, ...args);
+    }
   }
 
   /**
@@ -267,17 +278,15 @@ export default class Base {
    * @param {HTMLElement} element The component's root element dd.
    */
   constructor(element) {
+    super();
+
     if (!element) {
       throw new Error('The root element must be defined.');
     }
 
     const { __config } = this;
 
-    if (!__config) {
-      throw new Error('The `config` static property must be defined.');
-    }
-
-    if (!__config.name) {
+    if (__config.name === 'Base') {
       throw new Error('The `config.name` property is required.');
     }
 
@@ -299,7 +308,9 @@ export default class Base {
     this.__children = new ChildrenManager(this, element, __config.components || {}, this.__events);
     this.__refs = new RefsManager(this, element, __config.refs || [], this.__events);
 
-    this.__debug('constructor', this);
+    if (isDev) {
+      this.__debug('constructor', this);
+    }
 
     return this;
   }
@@ -309,8 +320,14 @@ export default class Base {
    * @return {this}
    */
   $mount() {
-    this.__debug('$mount');
+    if (this.$isMounted) {
+      return this;
+    }
 
+    this.$isMounted = true;
+    if (isDev) {
+      this.__debug('$mount');
+    }
     this.$children.registerAll();
     this.$refs.registerAll();
     this.__events.bindRootElement();
@@ -318,7 +335,7 @@ export default class Base {
     this.$children.mountAll();
 
     this.__callMethod('mounted');
-    this.$isMounted = true;
+
     return this;
   }
 
@@ -327,7 +344,9 @@ export default class Base {
    * @return {this}
    */
   $update() {
-    this.__debug('$update');
+    if (isDev) {
+      this.__debug('$update');
+    }
 
     // Undo
     this.$refs.unregisterAll();
@@ -350,14 +369,20 @@ export default class Base {
    * @return {this}
    */
   $destroy() {
-    this.__debug('$destroy');
+    if (!this.$isMounted) {
+      return this;
+    }
 
+    this.$isMounted = false;
+    if (isDev) {
+      this.__debug('$destroy');
+    }
     this.__events.unbindRootElement();
     this.$refs.unregisterAll();
     this.$services.disableAll();
     this.$children.destroyAll();
     this.__callMethod('destroyed');
-    this.$isMounted = false;
+
     return this;
   }
 
@@ -366,7 +391,9 @@ export default class Base {
    * @return {void}
    */
   $terminate() {
-    this.__debug('$terminate');
+    if (isDev) {
+      this.__debug('$terminate');
+    }
 
     // First, destroy the component.
     this.$destroy();
@@ -387,6 +414,51 @@ export default class Base {
   }
 
   /**
+   * Test if the given event is configured and warn otherwise.
+   *
+   * @private
+   * @param   {string} event The event name.
+   * @returns {void}
+   */
+  __testEventIsDefined(event) {
+    if (!(Array.isArray(this.__config.emits) && this.__config.emits.includes(event))) {
+      console.warn(
+        `[${this.__config.name}]`,
+        `The "${event}" event is missing from the configuration.`
+      );
+    }
+  }
+
+  /**
+   * Add an emitted event.
+   *
+   * @private
+   * @param   {string} event The event name.
+   * @returns {void}
+   */
+  __addEmits(event) {
+    const ctor = /** @type {BaseConstructor} */ (this.constructor);
+    if (Array.isArray(ctor.config.emits)) {
+      ctor.config.emits.push(event);
+    } else {
+      ctor.config.emits = [event];
+    }
+  }
+
+  /**
+   * Remove an emitted event.
+   *
+   * @private
+   * @param   {string} event The event name.
+   * @returns {void}
+   */
+  __removeEmits(event) {
+    const ctor = /** @type {BaseConstructor} */ (this.constructor);
+    const index = ctor.config.emits.findIndex((value) => value === event);
+    ctor.config.emits.splice(index, 1);
+  }
+
+  /**
    * Bind a listener function to an event.
    *
    * @param  {string} event
@@ -399,7 +471,13 @@ export default class Base {
    *   A function to unbind the listener.
    */
   $on(event, listener, options) {
-    this.__debug('$on', event, listener, options);
+    if (isDev) {
+      this.__debug('$on', event, listener, options);
+    }
+
+    if (isDev) {
+      this.__testEventIsDefined(event);
+    }
 
     let set = this.__eventHandlers.get(event);
 
@@ -409,7 +487,7 @@ export default class Base {
     }
 
     set.add(listener);
-    this.$el.addEventListener(event, listener, options);
+    this.addEventListener(event, listener, options);
 
     return () => {
       this.$off(event, listener, options);
@@ -429,10 +507,16 @@ export default class Base {
    * @return {void}
    */
   $off(event, listener, options) {
-    this.__debug('$off', event, listener);
+    if (isDev) {
+      this.__debug('$off', event, listener);
+    }
+
+    if (isDev) {
+      this.__testEventIsDefined(event);
+    }
 
     this.__eventHandlers.get(event).delete(listener);
-    this.$el.removeEventListener(event, listener, options);
+    this.removeEventListener(event, listener, options);
   }
 
   /**
@@ -444,8 +528,15 @@ export default class Base {
    * @return {void}
    */
   $emit(event, ...args) {
-    this.__debug('$emit', event, args);
-    this.$el.dispatchEvent(
+    if (isDev) {
+      this.__debug('$emit', event, args);
+    }
+
+    if (isDev) {
+      this.__testEventIsDefined(event);
+    }
+
+    this.dispatchEvent(
       new CustomEvent(event, {
         detail: args,
       })

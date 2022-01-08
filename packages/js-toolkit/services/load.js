@@ -1,7 +1,7 @@
 import Service from './Service.js';
 
 /**
- * @typedef {import('./index').ServiceInterface} ServiceInterface
+ * @typedef {import('./index').ServiceInterface<LoadServiceProps>} LoadService
  */
 
 /**
@@ -10,53 +10,65 @@ import Service from './Service.js';
  */
 
 /**
- * @typedef {Object} LoadService
- * @property {(key:String, callback:(props:LoadServiceProps) => void) => void} add
- *   Add a function to the resize service. The key must be uniq.
- * @property {() => LoadServiceProps} props
- *   Get the current values of the resize service props.
- */
-
-/**
  * Load service
  */
 class Load extends Service {
   /**
+   * Props.
+   * @type {LoadServiceProps}
+   */
+  props = {
+    time: window.performance.now(),
+  };
+
+  /**
    * Start the requestAnimationFrame loop.
    *
-   * @return {Load}
+   * @return {void}
    */
   init() {
-    this.handler = () => {
-      this.trigger(this.props);
-    };
+    window.addEventListener('load', this);
+  }
 
-    window.addEventListener('load', this.handler);
-    return this;
+  /**
+   * Handle events.
+   * @returns {void}
+   */
+  handleEvent() {
+    this.updateProps();
+    this.trigger(this.props);
   }
 
   /**
    * Stop the requestAnimationFrame loop.
    *
-   * @return {Load}
+   * @return {void}
    */
   kill() {
-    window.removeEventListener('load', this.handler);
-    return this;
+    window.removeEventListener('load', this);
   }
 
   /**
    * Get raf props.
    *
    * @todo Return elapsed time / index?
-   * @type {Object}
+   * @returns {this['props']}
    */
-  get props() {
-    return {};
+  updateProps() {
+    this.props.time = window.performance.now();
+    return this.props;
   }
 }
 
-let instance = null;
+/**
+ * @type {Load}
+ */
+let instance;
+
+/**
+ * @type {LoadService}
+ */
+let load;
 
 /**
  * Use the load service.
@@ -69,26 +81,21 @@ let instance = null;
  * props();
  * ```
  *
- * @return {ServiceInterface & LoadService}
+ * @return {LoadService}
  */
 export default function useLoad() {
-  if (!instance) {
-    instance = new Load();
+  if (!load) {
+    if (!instance) {
+      instance = new Load();
+    }
+
+    load = {
+      add: instance.add.bind(instance),
+      remove: instance.remove.bind(instance),
+      has: instance.has.bind(instance),
+      props: instance.updateProps.bind(instance),
+    };
   }
 
-  const add = instance.add.bind(instance);
-  const remove = instance.remove.bind(instance);
-  const has = instance.has.bind(instance);
-
-  // eslint-disable-next-line require-jsdoc
-  function props() {
-    return instance.props;
-  }
-
-  return {
-    add,
-    remove,
-    has,
-    props,
-  };
+  return load;
 }

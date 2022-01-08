@@ -4,6 +4,7 @@ import { clamp, clamp01 } from '../utils/index.js';
 /**
  * @typedef {import('../Base').default} Base
  * @typedef {import('../Base').BaseConstructor} BaseConstructor
+ * @typedef {import('../Base').BaseConfig} BaseConfig
  */
 
 /**
@@ -16,6 +17,15 @@ import { clamp, clamp01 } from '../utils/index.js';
 export default function withScrolledInView(BaseClass) {
   // @ts-ignore
   return class extends withMountWhenInView(BaseClass) {
+    /**
+     * Config.
+     * @type {BaseConfig}
+     */
+    static config = {
+      name: `${BaseClass.config.name}WithMountWhenInView`,
+      emits: ['scrolledInView'],
+    };
+
     /**
      * @private
      */

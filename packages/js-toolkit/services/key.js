@@ -2,110 +2,126 @@ import Service from './Service.js';
 import keyCodes from '../utils/keyCodes.js';
 
 /**
- * @typedef {import('./index').ServiceInterface} ServiceInterface
+ * @typedef {import('./index').ServiceInterface<KeyServiceProps>} KeyService
  */
 
 /**
  * @typedef {Object} KeyServiceProps
  * @property {KeyboardEvent} event
- * @property {Number} triggered
- * @property {Boolean} isUp
- * @property {Boolean} isDown
- * @property {Boolean} ENTER
- * @property {Boolean} SPACE
- * @property {Boolean} TAB
- * @property {Boolean} ESC
- * @property {Boolean} LEFT
- * @property {Boolean} UP
- * @property {Boolean} RIGHT
- * @property {Boolean} DOWN
- */
-
-/**
- * @typedef {Object} KeyService
- * @property {(key:String, callback:(props:KeyServiceProps) => void) => void} add
- *   Add a function to the resize service. The key must be uniq.
- * @property {() => KeyServiceProps} props
- *   Get the current values of the resize service props.
+ * @property {number} triggered
+ * @property {'up'|'down'|'none'} direction
+ * @property {boolean} isUp
+ * @property {boolean} isDown
+ * @property {boolean} ENTER
+ * @property {boolean} SPACE
+ * @property {boolean} TAB
+ * @property {boolean} ESC
+ * @property {boolean} LEFT
+ * @property {boolean} UP
+ * @property {boolean} RIGHT
+ * @property {boolean} DOWN
  */
 
 /**
  * Scroll service
  */
 class Key extends Service {
-  /** @type {Object} The event object. */
-  event = {};
+  /** @type {KeyboardEvent} The previous event object. */
+  previousEvent;
 
   /**
-   * Used to accumulate the number of times the `keydown` event has been triggered.
-   * @type {Number}
+   * Props.
+   * @type {KeyServiceProps}
    */
-  triggered = 0;
-
-  /** @type {Object} The previous event object. */
-  previousEvent = {};
+  props = {
+    event: null,
+    triggered: 0,
+    isUp: false,
+    isDown: false,
+    ENTER: false,
+    SPACE: false,
+    TAB: false,
+    ESC: false,
+    LEFT: false,
+    UP: false,
+    RIGHT: false,
+    DOWN: false,
+    direction: 'none',
+  };
 
   /**
    * Bind the handler to the keyboard event.
    *
-   * @return {Key}
+   * @return {void}
    */
   init() {
-    this.handler = (event) => {
-      this.event = event;
-      this.trigger(this.props);
-    };
-    document.addEventListener('keydown', this.handler, { passive: false });
-    document.addEventListener('keyup', this.handler, { passive: false });
-    return this;
+    document.addEventListener('keydown', this);
+    document.addEventListener('keyup', this);
+  }
+
+  /**
+   * Handle keyboard events.
+   *
+   * @param   {KeyboardEvent} event
+   * @returns {void}
+   */
+  handleEvent(event) {
+    this.updateProps(event);
+    this.trigger(this.props);
   }
 
   /**
    * Unbind the handler from the keyboard event.
    *
-   * @return {Key}
+   * @return {void}
    */
   kill() {
-    document.removeEventListener('keydown', this.handler);
-    document.removeEventListener('keyup', this.handler);
-    return this;
+    document.removeEventListener('keydown', this);
+    document.removeEventListener('keyup', this);
   }
 
   /**
    * Get keyboard props.
    *
-   * @type {Object}
+   * @param   {KeyboardEvent} event
+   * @returns {this['props']}
    */
-  get props() {
-    const keys = Object.entries(keyCodes).reduce((acc, [name, code]) => {
-      acc[name] = code === this.event.keyCode;
-      return acc;
-    }, {});
+  updateProps(event) {
+    this.props.event = event;
 
-    if (!this.previousEvent.type) {
-      this.triggered = 0;
+    Object.entries(keyCodes).forEach(([name, code]) => {
+      this.props[name] = code === event.keyCode;
+    });
+
+    if (!this.previousEvent) {
+      this.props.triggered = 0;
     }
 
-    if (this.event.type === 'keydown' && this.previousEvent.type === 'keydown') {
-      this.triggered += 1;
+    if (this.props.event.type === 'keydown' && this.previousEvent?.type === 'keydown') {
+      this.props.triggered += 1;
     } else {
-      this.triggered = 1;
+      this.props.triggered = 1;
     }
 
-    this.previousEvent = this.event;
+    this.previousEvent = this.props.event;
 
-    return {
-      event: this.event,
-      triggered: this.triggered,
-      direction: this.event.type === 'keydown' ? 'down' : 'up',
-      isUp: this.event.type === 'keyup',
-      isDown: this.event.type === 'keydown',
-      ...keys,
-    };
+    this.props.direction = this.props.event.type === 'keydown' ? 'down' : 'up';
+    this.props.isUp = this.props.event.type === 'keyup';
+    this.props.isDown = this.props.event.type === 'keydown';
+
+    return this.props;
   }
 }
 
-let key = null;
+/**
+ * @type {Key}
+ */
+let instance;
+
+/**
+ * @type {KeyService}
+ */
+let key;
 
 /**
  * Use the keyboard service.
@@ -118,22 +134,20 @@ let key = null;
  * props();
  * ```
  *
- * @return {ServiceInterface & KeyService}
+ * @return {KeyService}
  */
 export default function useKey() {
   if (!key) {
-    key = new Key();
+    if (!instance) {
+      instance = new Key();
+    }
+
+    key = {
+      add: instance.add.bind(instance),
+      remove: instance.remove.bind(instance),
+      has: instance.has.bind(instance),
+      props: instance.updateProps.bind(instance),
+    };
   }
-
-  const add = key.add.bind(key);
-  const remove = key.remove.bind(key);
-  const has = key.has.bind(key);
-  const props = () => key.props;
-
-  return {
-    add,
-    remove,
-    has,
-    props,
-  };
+  return key;
 }
