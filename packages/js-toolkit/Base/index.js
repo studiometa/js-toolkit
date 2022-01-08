@@ -242,12 +242,6 @@ export default class Base extends EventTarget {
   __callMethod(method, ...args) {
     this.__debug('callMethod', method, ...args);
 
-    // Prevent duplicate call of `mounted` and `destroyed` methods based on the component status
-    if ((method === 'destroyed' && !this.$isMounted) || (method === 'mounted' && this.$isMounted)) {
-      this.__debug('not', method, 'because the method has already been triggered once.');
-      return;
-    }
-
     this.$emit(method, ...args);
 
     // We always emit an event, but we do not call the method if it does not exist
@@ -321,6 +315,7 @@ export default class Base extends EventTarget {
       return this;
     }
 
+    this.$isMounted = true;
     this.__debug('$mount');
     this.$children.registerAll();
     this.$refs.registerAll();
@@ -329,7 +324,6 @@ export default class Base extends EventTarget {
     this.$children.mountAll();
 
     this.__callMethod('mounted');
-    this.$isMounted = true;
 
     return this;
   }
@@ -366,13 +360,13 @@ export default class Base extends EventTarget {
       return this;
     }
 
+    this.$isMounted = false;
     this.__debug('$destroy');
     this.__events.unbindRootElement();
     this.$refs.unregisterAll();
     this.$services.disableAll();
     this.$children.destroyAll();
     this.__callMethod('destroyed');
-    this.$isMounted = false;
 
     return this;
   }
