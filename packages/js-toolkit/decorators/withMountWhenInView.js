@@ -65,8 +65,11 @@ export default function withMountWhenInView(BaseClass, defaultOptions = { thresh
           if (this.#isVisible !== isVisible) {
             this.#isVisible = isVisible;
 
-            const method = isVisible ? '$mount' : '$destroy';
-            this[method]();
+            if (isVisible) {
+              this.$mount();
+            } else {
+              setTimeout(() => this.$destroy());
+            }
           }
         },
         { ...defaultOptions, ...this.$options.intersectionObserver }

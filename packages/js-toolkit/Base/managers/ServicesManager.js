@@ -8,12 +8,10 @@ import { hasMethod } from '../utils.js';
 
 /**
  * @typedef {import('../index').default} Base
- * @typedef {import('../../services').ServiceInterface} ServiceInterface
+ * @typedef {import('../index').BaseConstructor} BaseConstructor
+ * @typedef {import('../../services').ServiceInterface<any>} ServiceInterface
  */
 
-/**
- * @type {Record<string, () => ServiceInterface>}
- */
 const SERVICES_MAP = {
   scrolled: useScroll,
   resized: useResize,
@@ -26,11 +24,14 @@ const SERVICES_MAP = {
 const SERVICE_NAMES = Object.keys(SERVICES_MAP);
 
 /**
- * @typedef {keyof SERVICES_MAP} ServiceName
+ * @typedef {typeof SERVICES_MAP & Record<string, () => ServiceInterface>} Services
+ * @typedef {keyof SERVICES_MAP|string} ServiceName
  */
 
 /**
  * Services management for the Base class.
+ *
+ * @todo Add support for disabled services on mount when the method is defined.
  */
 export default class ServicesManager {
   /**
@@ -197,6 +198,8 @@ export default class ServicesManager {
    */
   register(name, useFunction) {
     this.__customServices[name] = useFunction;
+    // @ts-ignore
+    this.__base.__addEmits(name);
   }
 
   /**
@@ -209,7 +212,8 @@ export default class ServicesManager {
     if (SERVICE_NAMES.includes(name)) {
       throw new Error(`[ServicesManager] The \`${name}\` core service can not be unregistered.`);
     }
-
+    // @ts-ignore
+    this.__base.__removeEmits(name);
     delete this.__customServices[name];
   }
 }

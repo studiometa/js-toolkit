@@ -24,6 +24,11 @@ export default function withDrag(
 ) {
   // @ts-ignore
   return class extends BaseClass {
+    static config = {
+      name: `${BaseClass.config.name}WithDrag`,
+      emits: ['dragged'],
+    };
+
     /**
      * Class constructor.
      * @param {HTMLElement} el

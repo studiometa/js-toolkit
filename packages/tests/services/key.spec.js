@@ -6,10 +6,15 @@ describe('useKey', () => {
   const keyup = new KeyboardEvent('keyup', { keyCode: 27 });
   const { add, remove, props } = useKey();
   let keyProps;
-  const fn = jest.fn(p => {
-    keyProps = p;
+  let fn;
+
+  beforeEach(() => {
+    remove('useKey');
+    fn = jest.fn((p) => {
+      keyProps = p;
+    });
+    add('useKey', fn);
   });
-  add('useKey', fn);
 
   test('exports the `add`, `remove` and `props` methods', () => {
     expect(typeof add).toBe('function');
@@ -35,7 +40,7 @@ describe('useKey', () => {
 
   test('callback should be triggered on keyup', () => {
     document.dispatchEvent(keyup);
-    expect(fn).toHaveBeenCalledTimes(3);
+    expect(fn).toHaveBeenCalledTimes(1);
     expect(keyProps.direction).toBe('up');
     expect(keyProps.ESC).toBe(true);
     expect(keyProps.triggered).toBe(1);
@@ -46,7 +51,7 @@ describe('useKey', () => {
   test('callback should not be triggered after removal', () => {
     remove('useKey');
     document.dispatchEvent(keydown);
-    expect(fn).toHaveBeenCalledTimes(4);
+    expect(fn).not.toHaveBeenCalled();
     expect(keyProps.direction).toBe('up');
   });
 });

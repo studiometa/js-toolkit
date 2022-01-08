@@ -5,7 +5,7 @@ describe('The drag service', () => {
   it('should start, drag and drop', () => {
     const fn = jest.fn();
     const div = document.createElement('div');
-    const { add } = useDrag(div, { factor: 0.1 });
+    const { add, props } = useDrag(div, { factor: 0.1 });
 
     add('key', fn);
     div.dispatchEvent(new MouseEvent('mousedown'));
@@ -25,6 +25,7 @@ describe('The drag service', () => {
     const clientX = window.innerWidth / 2 + 10;
     const clientY = window.innerHeight / 2 + 10;
     document.dispatchEvent(new MouseEvent('mousemove', { clientX, clientY }));
+    expect(fn).toHaveBeenLastCalledWith(props());
     expect(fn.mock.calls).toMatchSnapshot();
   });
 

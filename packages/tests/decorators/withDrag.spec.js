@@ -6,7 +6,7 @@ describe('The `withDrag` decorator', () => {
   it('should add a `dragged` hook', () => {
     const fn = jest.fn();
     class Foo extends withDrag(Base) {
-      static config = { name: 'Foo' };
+      static config = { name: 'Foo', emits: ['foo'] };
 
       dragged(props) {
         fn(props);
@@ -22,4 +22,4 @@ describe('The `withDrag` decorator', () => {
     div.dispatchEvent(new MouseEvent('mousedown'));
     expect(fn).toHaveBeenCalledTimes(1);
   });
-})
+});

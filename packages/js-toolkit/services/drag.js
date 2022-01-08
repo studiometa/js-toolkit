@@ -4,7 +4,7 @@ import useRaf from './raf.js';
 import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
 
 /**
- * @typedef {import('./index').ServiceInterface} ServiceInterface
+ * @typedef {import('./index').ServiceInterface<DragServiceProps>} DragService
  */
 
 /**
@@ -55,16 +55,6 @@ const MODES = {
  * @property {number=} [dampFactor]
  */
 
-/**
- * @typedef {Object} DragService
- * @property {(target:HTMLElement, callback:(props:DragServiceProps) => void, options?:DragServiceOptions) => void} add
- *   Add a callback function to the service. The key must be the HTML element targeted by the drag.
- * @property {(target:HTMLElement) => void} remove
- *   Remove a callback function to the service.
- * @property {() => DragServiceProps} props
- *   Get the current values of the resize service props.
- */
-
 let instanceIds = 0;
 
 /**
@@ -78,75 +68,32 @@ class Drag extends Service {
   id;
 
   /**
-   * The target element
-   * @type {HTMLElement}
+   * Props.
+   * @type {DragServiceProps}
    */
-  target;
-
-  /**
-   * The drag mode, use it to follow the different parts of the drag.
-   * @type {DragLifecycle}
-   */
-  mode;
-
-  /**
-   * Whether we are currently dragging or not.
-   * @type {Boolean}
-   */
-  isGrabbing = false;
-
-  /**
-   * Whether we are currently runnnig with inertia.
-   * @type {Boolean}
-   */
-  hasInertia = false;
-
-  /**
-   * The horizontal position of the drag.
-   * @type {Number}
-   */
-  x = 0;
-
-  /**
-   * The vertical position of the drag.
-   * @type {Number}
-   */
-  y = 0;
-
-  /**
-   * The velocity of the drag.
-   * @type {{ x: number, y: number }}
-   */
-  delta = {
+  props = {
+    target: null,
+    mode: undefined,
+    isGrabbing: false,
+    hasInertia: false,
     x: 0,
     y: 0,
-  };
-
-  /**
-   * The origin of the drag.
-   * @type {{ x: number, y: number }}
-   */
-  origin = {
-    x: 0,
-    y: 0,
-  };
-
-  /**
-   * The origin of the drag.
-   * @type {{ x: number, y: number }}
-   */
-  distance = {
-    x: 0,
-    y: 0,
-  };
-
-  /**
-   * The final position of the inertia.
-   * @type {{ x: number, y: number }}
-   */
-  final = {
-    x: 0,
-    y: 0,
+    delta: {
+      x: 0,
+      y: 0,
+    },
+    origin: {
+      x: 0,
+      y: 0,
+    },
+    distance: {
+      x: 0,
+      y: 0,
+    },
+    final: {
+      x: 0,
+      y: 0,
+    },
   };
 
   /**
@@ -166,7 +113,7 @@ class Drag extends Service {
     super();
     instanceIds += 1;
     this.id = `drag-${instanceIds}`;
-    this.target = target;
+    this.props.target = target;
     this.options = { ...this.options, ...options };
     this.pointerHandler = this.pointerHandler.bind(this);
     this.rafHandler = this.rafHandler.bind(this);
@@ -181,8 +128,8 @@ class Drag extends Service {
    */
   init() {
     const options = { passive: true };
-    this.target.addEventListener('mousedown', this, options);
-    this.target.addEventListener('touchstart', this, options);
+    this.props.target.addEventListener('mousedown', this, options);
+    this.props.target.addEventListener('touchstart', this, options);
 
     const pointer = usePointer();
     pointer.add(this.id, this.pointerHandler);
@@ -196,8 +143,8 @@ class Drag extends Service {
    * @return {this}
    */
   kill() {
-    this.target.removeEventListener('mousemove', this);
-    this.target.removeEventListener('touchmove', this);
+    this.props.target.removeEventListener('mousemove', this);
+    this.props.target.removeEventListener('touchmove', this);
 
     const pointer = usePointer();
     pointer.remove(this.id);
@@ -222,21 +169,21 @@ class Drag extends Service {
    */
   start(x, y) {
     // Reset state
-    this.x = x;
-    this.y = y;
-    this.origin.x = x;
-    this.origin.y = y;
-    this.delta.x = 0;
-    this.delta.y = 0;
-    this.distance.x = 0;
-    this.distance.y = 0;
-    this.final.x = x;
-    this.final.y = y;
+    this.props.x = x;
+    this.props.y = y;
+    this.props.origin.x = x;
+    this.props.origin.y = y;
+    this.props.delta.x = 0;
+    this.props.delta.y = 0;
+    this.props.distance.x = 0;
+    this.props.distance.y = 0;
+    this.props.final.x = x;
+    this.props.final.y = y;
 
-    this.mode = MODES.START;
+    this.props.mode = MODES.START;
 
     // Enable grabbing
-    this.isGrabbing = true;
+    this.props.isGrabbing = true;
 
     this.trigger(this.props);
   }
@@ -246,12 +193,20 @@ class Drag extends Service {
    * @return {void}
    */
   drop() {
-    this.isGrabbing = false;
-    this.mode = MODES.DROP;
+    this.props.isGrabbing = false;
+    this.props.mode = MODES.DROP;
 
-    this.hasInertia = true;
-    this.final.x = inertiaFinalValue(this.x, this.delta.x, this.options.dampFactor);
-    this.final.y = inertiaFinalValue(this.y, this.delta.y, this.options.dampFactor);
+    this.props.hasInertia = true;
+    this.props.final.x = inertiaFinalValue(
+      this.props.x,
+      this.props.delta.x,
+      this.options.dampFactor
+    );
+    this.props.final.y = inertiaFinalValue(
+      this.props.y,
+      this.props.delta.y,
+      this.options.dampFactor
+    );
 
     this.trigger(this.props);
 
@@ -267,8 +222,8 @@ class Drag extends Service {
    */
   stop() {
     useRaf().remove(this.id);
-    this.hasInertia = false;
-    this.mode = MODES.STOP;
+    this.props.hasInertia = false;
+    this.props.mode = MODES.STOP;
     this.trigger(this.props);
   }
 
@@ -277,22 +232,22 @@ class Drag extends Service {
    * @return {void}
    */
   rafHandler() {
-    if (!this.isGrabbing) {
-      this.x += this.delta.x;
-      this.y += this.delta.y;
-      this.distance.x = this.x - this.origin.x;
-      this.distance.y = this.y - this.origin.y;
+    if (!this.props.isGrabbing) {
+      this.props.x += this.props.delta.x;
+      this.props.y += this.props.delta.y;
+      this.props.distance.x = this.props.x - this.props.origin.x;
+      this.props.distance.y = this.props.y - this.props.origin.y;
 
-      this.delta.x *= this.options.dampFactor;
-      this.delta.y *= this.options.dampFactor;
+      this.props.delta.x *= this.options.dampFactor;
+      this.props.delta.y *= this.options.dampFactor;
 
-      if (this.mode !== MODES.INERTIA) {
-        this.mode = MODES.INERTIA;
+      if (this.props.mode !== MODES.INERTIA) {
+        this.props.mode = MODES.INERTIA;
       }
 
       this.trigger(this.props);
 
-      if (Math.abs(this.delta.x) < 0.1 && Math.abs(this.delta.y) < 0.1) {
+      if (Math.abs(this.props.delta.x) < 0.1 && Math.abs(this.props.delta.y) < 0.1) {
         this.stop();
       }
     }
@@ -304,18 +259,18 @@ class Drag extends Service {
    * @return {void}
    */
   pointerHandler(props) {
-    if (this.isGrabbing) {
-      this.x = props.x;
-      this.y = props.y;
-      this.delta.x = props.delta.x;
-      this.delta.y = props.delta.y;
-      this.final.x = props.x;
-      this.final.y = props.y;
-      this.distance.x = this.x - this.origin.x;
-      this.distance.y = this.y - this.origin.y;
+    if (this.props.isGrabbing) {
+      this.props.x = props.x;
+      this.props.y = props.y;
+      this.props.delta.x = props.delta.x;
+      this.props.delta.y = props.delta.y;
+      this.props.final.x = props.x;
+      this.props.final.y = props.y;
+      this.props.distance.x = this.props.x - this.props.origin.x;
+      this.props.distance.y = this.props.y - this.props.origin.y;
 
-      if (this.mode !== MODES.DRAG) {
-        this.mode = MODES.DRAG;
+      if (this.props.mode !== MODES.DRAG) {
+        this.props.mode = MODES.DRAG;
       }
 
       this.trigger(this.props);
@@ -329,28 +284,20 @@ class Drag extends Service {
   /**
    * Get the pointer props.
    *
-   * @type {Object}
+   * @returns {this['props']}
    */
-  get props() {
-    return {
-      target: this.target,
-      mode: this.mode,
-      isGrabbing: this.isGrabbing,
-      hasInertia: this.hasInertia,
-      x: this.x,
-      y: this.y,
-      delta: this.delta,
-      origin: this.origin,
-      distance: this.distance,
-      final: this.final,
-    };
+  updateProps() {
+    return this.props;
   }
 }
 
+/**
+ * @type {WeakMap<HTMLElement, DragService | undefined>}
+ */
 const instances = new WeakMap();
 
 /**
- * Use the pointer.
+ * Use the drag service.
  *
  * ```js
  * import { useDrag } from '@studiometa/js-toolkit/services';
@@ -363,25 +310,23 @@ const instances = new WeakMap();
  *
  * @param {HTMLElement} target
  * @param {DragServiceOptions} options
- * @return {ServiceInterface & DragService}
+ * @return {DragService}
  */
 export default function useDrag(target, options) {
   let drag = instances.get(target);
 
   if (!drag) {
-    drag = new Drag(target, options);
+    const instance = new Drag(target, options);
+
+    drag = {
+      add: instance.add.bind(instance),
+      remove: instance.remove.bind(instance),
+      has: instance.has.bind(instance),
+      props: instance.updateProps.bind(instance),
+    };
+
     instances.set(target, drag);
   }
 
-  const add = drag.add.bind(drag);
-  const remove = drag.remove.bind(drag);
-  const has = drag.has.bind(drag);
-  const props = () => drag.props;
-
-  return {
-    add,
-    remove,
-    has,
-    props,
-  };
+  return drag;
 }

@@ -1,16 +1,5 @@
-<script>
-  import { h } from 'vue';
-
-  const Badge = (props, { slots }) => {
-    return h('span', {
-      class: ['badge', props.type],
-      style: {
-        verticalAlign: props.vertical
-      }
-    }, props.text || slots().default)
-  }
-
-  Badge.props = {
+<script setup>
+  const { type, text, vertical } = defineProps({
     type: {
       type: String,
       default: 'tip'
@@ -20,15 +9,20 @@
       type: String,
       default: 'top'
     }
-  };
-
-  export default  Badge;
+  });
 </script>
+
+<template>
+  <span :class="type" class="badge" :style="{ verticalAlign: vertical }">
+    <slot>{{ text }}</slot>
+  </span>
+</template>
 
 <style scoped>
   .badge {
     display: inline-block;
     font-size: 14px;
+    font-weight: bold;
     height: 18px;
     line-height: 18px;
     border-radius: 3px;
@@ -36,7 +30,11 @@
     color: #fff;
     background-color: #42b983;
   }
-  .badge.tip,
+
+  .badge.tip {
+    background-color: #3f9ee3;
+  }
+
   .badge.green {
     background-color: #42b983;
   }

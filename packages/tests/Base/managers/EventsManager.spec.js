@@ -12,11 +12,17 @@ describe('The EventsManager class', () => {
   const asyncComponentFn = jest.fn();
 
   class Component extends Base {
-    static config = { name: 'Component' };
+    static config = {
+      name: 'Component',
+      emits: ['custom-event'],
+    };
   }
 
   class AsyncComponent extends Base {
-    static config = { name: 'AsyncComponent' };
+    static config = {
+      name: 'AsyncComponent',
+      emits: ['custom-event'],
+    };
   }
 
   class App extends Base {
@@ -134,9 +140,17 @@ describe('The EventsManager class', () => {
     expect(componentFn).toHaveBeenCalledTimes(2);
     app.$children.Component[0].$emit('custom-event', 1, 2);
     expect(componentFn).toHaveBeenCalledTimes(3);
-    expect(componentFn).toHaveBeenLastCalledWith(1, 2, 0, expect.objectContaining({ type: 'custom-event', detail: [1, 2]}));
-    app.$children.Component[0].$el.dispatchEvent(new CustomEvent('custom-event'));
-    expect(componentFn).toHaveBeenLastCalledWith(0, expect.objectContaining({ type: 'custom-event', detail: null }));
+    expect(componentFn).toHaveBeenLastCalledWith(
+      1,
+      2,
+      0,
+      expect.objectContaining({ type: 'custom-event', detail: [1, 2] })
+    );
+    app.$children.Component[0].dispatchEvent(new CustomEvent('custom-event'));
+    expect(componentFn).toHaveBeenLastCalledWith(
+      0,
+      expect.objectContaining({ type: 'custom-event', detail: null })
+    );
   });
 
   it('can unbind and rebind event methods from children', () => {
@@ -147,7 +161,12 @@ describe('The EventsManager class', () => {
     expect(componentFn).not.toHaveBeenCalled();
     app.$mount();
     app.$children.Component[0].$emit('custom-event', 1, 2);
-    expect(componentFn).toHaveBeenLastCalledWith(1, 2, 0, expect.objectContaining({ type: 'custom-event', detail: [1, 2]}));
+    expect(componentFn).toHaveBeenLastCalledWith(
+      1,
+      2,
+      0,
+      expect.objectContaining({ type: 'custom-event', detail: [1, 2] })
+    );
     app.$destroy();
   });
 

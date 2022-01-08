@@ -26,21 +26,6 @@ describe('The refs resolution', () => {
     expect(app.$refs.foo).toBe(ref);
   });
 
-  it('should emit an event when accessed', () => {
-    const div = document.createElement('div');
-    const ref = document.createElement('div');
-    ref.setAttribute('data-ref', 'foo');
-    div.appendChild(ref);
-
-    const app = new App(div).$mount();
-    const fn = jest.fn();
-    app.$on('get:refs', fn);
-    expect(app.$refs.foo).toBe(ref);
-    expect(fn).toHaveBeenCalledTimes(1);
-    expect(fn.mock.calls[0][0].detail[0].foo).toBe(ref);
-    expect(fn.mock.calls[0][0].detail[0].bar).toEqual([]);
-  });
-
   it('should parse ref as array when ending with `[]`', () => {
     const div = document.createElement('div');
     const ref = document.createElement('div');
