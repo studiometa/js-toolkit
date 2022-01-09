@@ -49,52 +49,51 @@ export default function withScrolledInView(BaseClass) {
     };
 
     /**
-     * Class constructor.
-     * @param {HTMLElement} element
+     * Mounted hook.
+     * @returns {void}
      */
-    constructor(element) {
-      super(element);
+    mounted() {
+      this.__setProps();
+    }
 
-      this.$on('mounted', () => this.__setProps());
-      this.$on('resized', () => this.__setProps());
+    /**
+     * Resized hook.
+     * @returns {void}
+     */
+    resized() {
+      this.__setProps();
+    }
 
-      this.$on(
-        'scrolled',
-        /**
-         * @typedef {import('../services/scroll').ScrollServiceProps} ScrollServiceProps
-         * @param {Event & { detail: [ScrollServiceProps] }} event
-         */
-        ({ detail: [props] }) => {
-          this.$services.toggle('ticked', props.changed.y || props.changed.x);
-        }
+    /**
+     * Scrolled hook.
+     * @param   {any} props
+     * @returns {void}
+     */
+    scrolled(props) {
+      this.$services.toggle('ticked', props.changed.y || props.changed.x);
+    }
+
+    /**
+     * Raf hook.
+     * @returns {void}
+     */
+    ticked() {
+      // X axis
+      this.__props.current.x = clamp(window.pageXOffset, this.__props.start.x, this.__props.end.x);
+      this.__props.progress.x = clamp01(
+        (this.__props.current.x - this.__props.start.x) /
+          (this.__props.end.x - this.__props.start.x)
       );
 
-      this.$on('ticked', () => {
-        // X axis
-        this.__props.current.x = clamp(
-          window.pageXOffset,
-          this.__props.start.x,
-          this.__props.end.x
-        );
-        this.__props.progress.x = clamp01(
-          (this.__props.current.x - this.__props.start.x) /
-            (this.__props.end.x - this.__props.start.x)
-        );
+      // Y axis
+      this.__props.current.y = clamp(window.pageYOffset, this.__props.start.y, this.__props.end.y);
+      this.__props.progress.y = clamp01(
+        (this.__props.current.y - this.__props.start.y) /
+          (this.__props.end.y - this.__props.start.y)
+      );
 
-        // Y axis
-        this.__props.current.y = clamp(
-          window.pageYOffset,
-          this.__props.start.y,
-          this.__props.end.y
-        );
-        this.__props.progress.y = clamp01(
-          (this.__props.current.y - this.__props.start.y) /
-            (this.__props.end.y - this.__props.start.y)
-        );
-
-        // @ts-ignore
-        this.__callMethod('scrolledInView', this.__props);
-      });
+      // @ts-ignore
+      this.__callMethod('scrolledInView', this.__props);
     }
 
     /**
