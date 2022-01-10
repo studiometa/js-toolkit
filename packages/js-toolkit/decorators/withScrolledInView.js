@@ -106,7 +106,7 @@ export default function withScrolledInView(BaseClass) {
         this.__props.progress.x,
         this.__props.dampedProgress.x,
         this.dampFactor,
-        this.dampPrecision,
+        this.dampPrecision
       );
 
       // Y axis
@@ -119,7 +119,7 @@ export default function withScrolledInView(BaseClass) {
         this.__props.progress.y,
         this.__props.dampedProgress.y,
         this.dampFactor,
-        this.dampPrecision,
+        this.dampPrecision
       );
 
       if (
