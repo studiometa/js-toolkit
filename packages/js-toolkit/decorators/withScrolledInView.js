@@ -1,5 +1,5 @@
 import withMountWhenInView from './withMountWhenInView.js';
-import { clamp, clamp01 } from '../utils/index.js';
+import { damp, clamp, clamp01 } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base').default} Base
@@ -46,6 +46,10 @@ export default function withScrolledInView(BaseClass) {
         x: 0,
         y: 0,
       },
+      dampedProgress: {
+        x: 0,
+        y: 0,
+      },
     };
 
     /**
@@ -70,7 +74,9 @@ export default function withScrolledInView(BaseClass) {
      * @returns {void}
      */
     scrolled(props) {
-      this.$services.toggle('ticked', props.changed.y || props.changed.x);
+      if ((!this.$services.has('ticked') && props.changed.y) || props.changed.x) {
+        this.$services.enable('ticked');
+      }
     }
 
     /**
@@ -84,6 +90,12 @@ export default function withScrolledInView(BaseClass) {
         (this.__props.current.x - this.__props.start.x) /
           (this.__props.end.x - this.__props.start.x)
       );
+      this.__props.dampedProgress.x = damp(
+        this.__props.progress.x,
+        this.__props.dampedProgress.x,
+        0.1,
+        0.001
+      );
 
       // Y axis
       this.__props.current.y = clamp(window.pageYOffset, this.__props.start.y, this.__props.end.y);
@@ -91,6 +103,19 @@ export default function withScrolledInView(BaseClass) {
         (this.__props.current.y - this.__props.start.y) /
           (this.__props.end.y - this.__props.start.y)
       );
+      this.__props.dampedProgress.y = damp(
+        this.__props.progress.y,
+        this.__props.dampedProgress.y,
+        0.1,
+        0.001
+      );
+
+      if (
+        this.__props.dampedProgress.x === this.__props.progress.x &&
+        this.__props.dampedProgress.y === this.__props.progress.y
+      ) {
+        this.$services.disable('ticked');
+      }
 
       // @ts-ignore
       this.__callMethod('scrolledInView', this.__props);
@@ -117,24 +142,16 @@ export default function withScrolledInView(BaseClass) {
       const xCurrent = clamp(window.pageXOffset, xStart, xEnd);
       const xProgress = clamp01((xCurrent - xStart) / (xEnd - xStart));
 
-      this.__props = {
-        start: {
-          x: xStart,
-          y: yStart,
-        },
-        end: {
-          x: xEnd,
-          y: yEnd,
-        },
-        current: {
-          x: xCurrent,
-          y: yCurrent,
-        },
-        progress: {
-          x: xProgress,
-          y: yProgress,
-        },
-      };
+      this.__props.start.x = xStart;
+      this.__props.start.y = yStart;
+      this.__props.end.x = xEnd;
+      this.__props.end.y = yEnd;
+      this.__props.current.x = xCurrent;
+      this.__props.current.y = yCurrent;
+      this.__props.progress.x = xProgress;
+      this.__props.progress.y = yProgress;
+      this.__props.dampedProgress.x = damp(xProgress, this.__props.dampedProgress.x);
+      this.__props.dampedProgress.y = damp(yProgress, this.__props.dampedProgress.y);
     }
   };
 }
