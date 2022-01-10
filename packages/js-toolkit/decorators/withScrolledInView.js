@@ -53,6 +53,18 @@ export default function withScrolledInView(BaseClass) {
     };
 
     /**
+     * Factor used for the `dampedProgress` props.
+     * @type {number}
+     */
+    dampFactor = 0.1;
+
+    /**
+     * Precision for the `dampedProgress` props.
+     * @type {number}
+     */
+    dampPrecision = 0.001;
+
+    /**
      * Mounted hook.
      * @returns {void}
      */
@@ -93,8 +105,8 @@ export default function withScrolledInView(BaseClass) {
       this.__props.dampedProgress.x = damp(
         this.__props.progress.x,
         this.__props.dampedProgress.x,
-        0.1,
-        0.001
+        this.dampFactor,
+        this.dampPrecision,
       );
 
       // Y axis
@@ -106,8 +118,8 @@ export default function withScrolledInView(BaseClass) {
       this.__props.dampedProgress.y = damp(
         this.__props.progress.y,
         this.__props.dampedProgress.y,
-        0.1,
-        0.001
+        this.dampFactor,
+        this.dampPrecision,
       );
 
       if (
