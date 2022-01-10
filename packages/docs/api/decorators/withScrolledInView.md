@@ -24,6 +24,46 @@ This decorator uses the [`withMountWhenInView`](./withMountWhenInView.html) deco
 
 ## API
 
+### Instance properties
+
+#### `dampFactor`
+
+- Type `number`
+- Default `0.1`
+
+The factor used by the [`damp` function](/utils/math/damp.md) for the `dampedProgress` values. It can be configured by defining a `dampFactor` property in the class using this decorator:
+
+```js {8}
+import { Base, withScrolledInView } from '@studiometa/js-toolkit';
+
+class Component extends withScrolledInView(Base) {
+  static config = {
+    name: 'Component',
+  };
+
+  dampFactor = 0.1;
+}
+```
+
+#### `dampPrecision`
+
+- Type `number`
+- Default `0.001`
+
+The precision used by the [`damp` function](/utils/math/damp.md) for the `dampedProgress` values.
+
+```js {8}
+import { Base, withScrolledInView } from '@studiometa/js-toolkit';
+
+class Component extends withScrolledInView(Base) {
+  static config = {
+    name: 'Component',
+  };
+
+  dampPrecision = 0.001;
+}
+```
+
 ### Custom hooks
 
 #### `scrolledInView`
@@ -37,6 +77,7 @@ The `scrolledInView` class method will be triggered for each frame of the compon
   - `props.end` (`{ x: number, y: number }`): The scroll position were the element is not visible anymore.
   - `props.current` (`{ x: number, y: number }`): The current scroll position, clamped in the `props.start` and `props.end` range.
   - `props.progress` (`{ x: number, y: number }`): The progress of the element between `props.start` and `props.end` mapped to a `0–1` range.
+  - `props.dampedProgress` (`{ x: number, y: number }`): The progress values smoothed with the [`damp` function](/utils/math/damp.md).
 
 ## Examples
 
