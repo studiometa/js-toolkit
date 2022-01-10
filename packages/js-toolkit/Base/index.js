@@ -33,7 +33,7 @@ function noop() {}
  * @property {Boolean} [debug]
  * @property {Boolean} [log]
  * @property {String[]} [refs]
- * @property {String[]} emits
+ * @property {String[]} [emits]
  * @property {BaseConfigComponents} [components]
  * @property {BaseConfigOptions} [options]
  */
