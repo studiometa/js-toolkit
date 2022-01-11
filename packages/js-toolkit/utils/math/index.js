@@ -1,9 +1,65 @@
 import clamp from './clamp.js';
 import clamp01 from './clamp01.js';
 import damp from './damp.js';
+import {
+  createEaseInOut,
+  createEaseOut,
+  easeInCirc,
+  easeInCubic,
+  easeInExpo,
+  easeInOutCirc,
+  easeInOutCubic,
+  easeInOutExpo,
+  easeInOutQuad,
+  easeInOutQuart,
+  easeInOutQuint,
+  easeInOutSine,
+  easeInQuad,
+  easeInQuart,
+  easeInQuint,
+  easeInSine,
+  easeOutCirc,
+  easeOutCubic,
+  easeOutExpo,
+  easeOutQuad,
+  easeOutQuart,
+  easeOutQuint,
+  easeOutSine,
+} from './ease.js';
 import inertiaFinalValue from './inertiaFinalValue.js';
 import lerp from './lerp.js';
 import map from './map.js';
 import round from './round.js';
 
-export { clamp, clamp01, damp, inertiaFinalValue, lerp, map, round };
+export {
+  clamp,
+  clamp01,
+  createEaseInOut,
+  createEaseOut,
+  damp,
+  easeInCirc,
+  easeInCubic,
+  easeInExpo,
+  easeInOutCirc,
+  easeInOutCubic,
+  easeInOutExpo,
+  easeInOutQuad,
+  easeInOutQuart,
+  easeInOutQuint,
+  easeInOutSine,
+  easeInQuad,
+  easeInQuart,
+  easeInQuint,
+  easeInSine,
+  easeOutCirc,
+  easeOutCubic,
+  easeOutExpo,
+  easeOutQuad,
+  easeOutQuart,
+  easeOutQuint,
+  easeOutSine,
+  inertiaFinalValue,
+  lerp,
+  map,
+  round,
+};

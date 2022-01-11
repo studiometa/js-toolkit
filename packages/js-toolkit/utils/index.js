@@ -18,7 +18,38 @@ import {
   push as historyPush,
   replace as historyReplace,
 } from './history.js';
-import { clamp, clamp01, damp, inertiaFinalValue, lerp, map, round } from './math/index.js';
+import {
+  clamp,
+  clamp01,
+  createEaseInOut,
+  createEaseOut,
+  damp,
+  easeInCirc,
+  easeInCubic,
+  easeInExpo,
+  easeInOutCirc,
+  easeInOutCubic,
+  easeInOutExpo,
+  easeInOutQuad,
+  easeInOutQuart,
+  easeInOutQuint,
+  easeInOutSine,
+  easeInQuad,
+  easeInQuart,
+  easeInQuint,
+  easeInSine,
+  easeOutCirc,
+  easeOutCubic,
+  easeOutExpo,
+  easeOutQuad,
+  easeOutQuart,
+  easeOutQuint,
+  easeOutSine,
+  inertiaFinalValue,
+  lerp,
+  map,
+  round,
+} from './math/index.js';
 import {
   withLeadingCharacters,
   withLeadingSlash,
@@ -49,7 +80,38 @@ export {
 export { objectToURLSearchParams, historyPush, historyReplace };
 
 // math
-export { clamp, clamp01, damp, inertiaFinalValue, lerp, map, round };
+export {
+  clamp,
+  clamp01,
+  createEaseInOut,
+  createEaseOut,
+  damp,
+  easeInCirc,
+  easeInCubic,
+  easeInExpo,
+  easeInOutCirc,
+  easeInOutCubic,
+  easeInOutExpo,
+  easeInOutQuad,
+  easeInOutQuart,
+  easeInOutQuint,
+  easeInOutSine,
+  easeInQuad,
+  easeInQuart,
+  easeInQuint,
+  easeInSine,
+  easeOutCirc,
+  easeOutCubic,
+  easeOutExpo,
+  easeOutQuad,
+  easeOutQuart,
+  easeOutQuint,
+  easeOutSine,
+  inertiaFinalValue,
+  lerp,
+  map,
+  round,
+};
 
 // string
 export {
