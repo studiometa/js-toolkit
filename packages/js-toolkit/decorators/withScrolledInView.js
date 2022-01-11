@@ -12,11 +12,12 @@ import { damp, clamp, clamp01 } from '../utils/index.js';
  *
  * @template {BaseConstructor} T
  * @param {T} BaseClass
+ * @param {IntersectionObserverInit} options
  * @return {T}
  */
-export default function withScrolledInView(BaseClass) {
+export default function withScrolledInView(BaseClass, options) {
   // @ts-ignore
-  return class extends withMountWhenInView(BaseClass) {
+  return class extends withMountWhenInView(BaseClass, options) {
     /**
      * Config.
      * @type {BaseConfig}
