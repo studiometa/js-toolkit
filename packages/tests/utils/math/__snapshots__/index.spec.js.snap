@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`@studiometa/js-toolkit/utils/math exports should export all scripts 1`] = `
+Array [
+  "clamp",
+  "clamp01",
+  "createEaseInOut",
+  "createEaseOut",
+  "damp",
+  "easeInCirc",
+  "easeInCubic",
+  "easeInExpo",
+  "easeInOutCirc",
+  "easeInOutCubic",
+  "easeInOutExpo",
+  "easeInOutQuad",
+  "easeInOutQuart",
+  "easeInOutQuint",
+  "easeInOutSine",
+  "easeInQuad",
+  "easeInQuart",
+  "easeInQuint",
+  "easeInSine",
+  "easeOutCirc",
+  "easeOutCubic",
+  "easeOutExpo",
+  "easeOutQuad",
+  "easeOutQuart",
+  "easeOutQuint",
+  "easeOutSine",
+  "inertiaFinalValue",
+  "lerp",
+  "map",
+  "round",
+]
+`;
