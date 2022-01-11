@@ -1,65 +1,8 @@
-import clamp from './clamp.js';
-import clamp01 from './clamp01.js';
-import damp from './damp.js';
-import {
-  createEaseInOut,
-  createEaseOut,
-  easeInCirc,
-  easeInCubic,
-  easeInExpo,
-  easeInOutCirc,
-  easeInOutCubic,
-  easeInOutExpo,
-  easeInOutQuad,
-  easeInOutQuart,
-  easeInOutQuint,
-  easeInOutSine,
-  easeInQuad,
-  easeInQuart,
-  easeInQuint,
-  easeInSine,
-  easeOutCirc,
-  easeOutCubic,
-  easeOutExpo,
-  easeOutQuad,
-  easeOutQuart,
-  easeOutQuint,
-  easeOutSine,
-} from './ease.js';
-import inertiaFinalValue from './inertiaFinalValue.js';
-import lerp from './lerp.js';
-import map from './map.js';
-import round from './round.js';
-
-export {
-  clamp,
-  clamp01,
-  createEaseInOut,
-  createEaseOut,
-  damp,
-  easeInCirc,
-  easeInCubic,
-  easeInExpo,
-  easeInOutCirc,
-  easeInOutCubic,
-  easeInOutExpo,
-  easeInOutQuad,
-  easeInOutQuart,
-  easeInOutQuint,
-  easeInOutSine,
-  easeInQuad,
-  easeInQuart,
-  easeInQuint,
-  easeInSine,
-  easeOutCirc,
-  easeOutCubic,
-  easeOutExpo,
-  easeOutQuad,
-  easeOutQuart,
-  easeOutQuint,
-  easeOutSine,
-  inertiaFinalValue,
-  lerp,
-  map,
-  round,
-};
+export { default as clamp } from './clamp.js';
+export { default as clamp01 } from './clamp01.js';
+export { default as damp } from './damp.js';
+export { default as inertiaFinalValue } from './inertiaFinalValue.js';
+export { default as lerp } from './lerp.js';
+export { default as map } from './map.js';
+export { default as round } from './round.js';
+export * from './ease.js';
