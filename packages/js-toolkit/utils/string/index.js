@@ -1,23 +1,10 @@
-import withLeadingCharacters from './withLeadingCharacters.js';
-import withLeadingSlash from './withLeadingSlash.js';
-import withoutLeadingCharacters from './withoutLeadingCharacters.js';
-import withoutLeadingCharactersRecursive from './withoutLeadingCharactersRecursive.js';
-import withoutLeadingSlash from './withoutLeadingSlash.js';
-import withoutTrailingCharacters from './withoutTrailingCharacters.js';
-import withoutTrailingCharactersRecursive from './withoutTrailingCharactersRecursive.js';
-import withoutTrailingSlash from './withoutTrailingSlash.js';
-import withTrailingCharacters from './withTrailingCharacters.js';
-import withTrailingSlash from './withTrailingSlash.js';
-
-export {
-  withLeadingCharacters,
-  withLeadingSlash,
-  withoutLeadingCharacters,
-  withoutLeadingCharactersRecursive,
-  withoutLeadingSlash,
-  withoutTrailingCharacters,
-  withoutTrailingCharactersRecursive,
-  withoutTrailingSlash,
-  withTrailingCharacters,
-  withTrailingSlash,
-};
+export { default as withLeadingCharacters } from './withLeadingCharacters.js';
+export { default as withLeadingSlash } from './withLeadingSlash.js';
+export { default as withoutLeadingCharacters } from './withoutLeadingCharacters.js';
+export { default as withoutLeadingCharactersRecursive } from './withoutLeadingCharactersRecursive.js';
+export { default as withoutLeadingSlash } from './withoutLeadingSlash.js';
+export { default as withoutTrailingCharacters } from './withoutTrailingCharacters.js';
+export { default as withoutTrailingCharactersRecursive } from './withoutTrailingCharactersRecursive.js';
+export { default as withoutTrailingSlash } from './withoutTrailingSlash.js';
+export { default as withTrailingCharacters } from './withTrailingCharacters.js';
+export { default as withTrailingSlash } from './withTrailingSlash.js';
