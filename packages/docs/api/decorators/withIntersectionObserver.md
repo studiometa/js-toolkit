@@ -4,7 +4,28 @@ Use this decorator to create a class that will have the capacity to trigger an `
 
 ## Usage
 
-<label><input type="checkbox">todo</label>
+```js {1,3,8-10}
+import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
+
+class Component extends withIntersectionObserver(Base, { rootMargin: '100%' }) {
+  static config = {
+    name: 'Component',
+  };
+
+  intersected(entries) {
+    // do something with `entries`
+  }
+}
+```
+
+### Parameters
+
+- `Base` (`BaseConstructor`): The `Base` class or a class extending it.
+- `options` (`IntersectionObserverInit`): Options for the `IntersectionObserver` instance.
+
+### Return value
+
+- `BaseConstructor`: A child class of the given class which will trigger an `intersected` hook when visible.
 
 ## API
 

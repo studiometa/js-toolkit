@@ -13,12 +13,12 @@ export default withMountWhenInView(Component, { threshold: [0, 1] });
 
 ### Parameters
 
-- `BaseClass` (`Base`): The Base class to mount when in view.
-- `intersectionObserverOptions` (`IntersectionObserverInit`): Options for the `IntersectionObserver` instance.
+- `Base` (`BaseConstructor`): The `Base` class or a class extending it.
+- `options` (`IntersectionObserverInit`): Options for the `IntersectionObserver` instance.
 
 ### Return value
 
-- `Base`: A child class of the given class which will be mounted when visible and destroyed when invisible
+- `BaseConstructor`: A child class of the given class which will be mounted when visible and destroyed when invisible.
 
 ## API
 
