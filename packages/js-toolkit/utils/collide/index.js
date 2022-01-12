@@ -1,18 +1,9 @@
 /**
  * Inspired by http://www.jeffreythompson.org/collision-detection/
  */
-import boundingRectToCircle from './boundingRectToCircle.js';
-import collideCircleCircle from './collideCircleCircle.js';
-import collideCircleRect from './collideCircleRect.js';
-import collidePointCircle from './collidePointCircle.js';
-import collidePointRect from './collidePointRect.js';
-import collideRectRect from './collideRectRect.js';
-
-export {
-  boundingRectToCircle,
-  collideCircleCircle,
-  collideCircleRect,
-  collidePointCircle,
-  collidePointRect,
-  collideRectRect,
-};
+export { default as boundingRectToCircle } from './boundingRectToCircle.js';
+export { default as collideCircleCircle } from './collideCircleCircle.js';
+export { default as collideCircleRect } from './collideCircleRect.js';
+export { default as collidePointCircle } from './collidePointCircle.js';
+export { default as collidePointRect } from './collidePointRect.js';
+export { default as collideRectRect } from './collideRectRect.js';
