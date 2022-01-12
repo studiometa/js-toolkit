@@ -28,12 +28,29 @@ describe('The refs resolution', () => {
 
   it('should parse ref as array when ending with `[]`', () => {
     const div = document.createElement('div');
+    const bar = document.createElement('div');
+    bar.setAttribute('data-ref', 'bar[]');
+    div.appendChild(bar);
+    const foo = document.createElement('div');
+    foo.setAttribute('data-ref', 'foo');
+    div.appendChild(foo);
+
+    const app = new App(div).$mount();
+    expect(app.$refs.bar).toEqual([bar]);
+  });
+
+  it('should not include single ref that were not found in the DOM', () => {
+    const div = document.createElement('div');
     const ref = document.createElement('div');
     ref.setAttribute('data-ref', 'bar[]');
     div.appendChild(ref);
 
+    const warnMock = jest.spyOn(console, 'warn');
+    warnMock.mockImplementation(() => undefined);
     const app = new App(div).$mount();
-    expect(app.$refs.bar).toEqual([ref]);
+    expect(app.$refs.foo).toBeUndefined();
+    expect(warnMock).toHaveBeenCalled();
+    warnMock.mockRestore();
   });
 
   it('should not resolve child components refs', () => {
