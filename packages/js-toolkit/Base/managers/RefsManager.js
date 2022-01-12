@@ -114,6 +114,16 @@ export default class RefsManager {
       );
     }
 
+    if (!isMultiple && refs.length <= 1 && refs[0] === undefined) {
+      console.warn(
+        `[${this.__base.$options.name}]`,
+        `The "${refName}" ref is missing.`,
+        `Is there an \`[data-ref="${refName}"]\` element in the component's scope?`
+      );
+
+      return;
+    }
+
     this.__eventsManager.bindRef(refName, refs);
 
     Object.defineProperty(this, propName, {

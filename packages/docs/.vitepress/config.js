@@ -231,7 +231,10 @@ function getUtilsSidebar() {
       children: [
         { text: 'clamp', link: '/utils/math/clamp.html' },
         { text: 'clamp01', link: '/utils/math/clamp01.html' },
+        { text: 'createEaseInOut', link: '/utils/math/createEaseInOut.html' },
+        { text: 'createEaseOut', link: '/utils/math/createEaseOut.html' },
         { text: 'damp', link: '/utils/math/damp.html' },
+        { text: 'ease', link: '/utils/math/ease.html' },
         { text: 'inertiaFinalValue', link: '/utils/math/inertiaFinalValue.html' },
         { text: 'lerp', link: '/utils/math/lerp.html' },
         { text: 'map', link: '/utils/math/map.html' },

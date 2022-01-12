@@ -1,19 +1,8 @@
-import withBreakpointManager from './withBreakpointManager.js';
-import withBreakpointObserver from './withBreakpointObserver.js';
-import withDrag from './withDrag.js';
-import withExtraConfig from './withExtraConfig.js';
-import withIntersectionObserver from './withIntersectionObserver.js';
-import withMountWhenInView from './withMountWhenInView.js';
-import withScrolledInView from './withScrolledInView.js';
-import withVue2 from './withVue2.js';
-
-export {
-  withBreakpointManager,
-  withBreakpointObserver,
-  withDrag,
-  withExtraConfig,
-  withIntersectionObserver,
-  withMountWhenInView,
-  withScrolledInView,
-  withVue2,
-};
+export { default as withBreakpointManager } from './withBreakpointManager.js';
+export { default as withBreakpointObserver } from './withBreakpointObserver.js';
+export { default as withDrag } from './withDrag.js';
+export { default as withExtraConfig } from './withExtraConfig.js';
+export { default as withIntersectionObserver } from './withIntersectionObserver.js';
+export { default as withMountWhenInView } from './withMountWhenInView.js';
+export { default as withScrolledInView } from './withScrolledInView.js';
+export { default as withVue2 } from './withVue2.js';

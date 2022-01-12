@@ -143,15 +143,18 @@ export default class Base extends EventTarget {
   static config = {
     name: 'Base',
     emits: [
+      // hook events
       'mounted',
       'updated',
       'destroyed',
       'terminated',
+      // default services' events
       'ticked',
       'scrolled',
       'resized',
       'moved',
       'loaded',
+      'keyed',
     ],
   };
 

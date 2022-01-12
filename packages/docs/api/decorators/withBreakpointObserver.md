@@ -4,7 +4,29 @@ Use this decorator to create a class that will have the capacity to be mounted o
 
 ## Usage
 
-<label><input type="checkbox">todo</label>
+```js{1,3,7-10}
+import { Base, withBreakpointObserver } from '@studiometa/js-toolkit';
+
+export default class MobileComponent extends withBreakpointObserver(Base) {
+  static config = {
+    name: 'MobileComponent',
+    options: {
+      activeBreakpoints: {
+        type: String,
+        default: 'xxs xs s',
+      },
+    },
+  };
+}
+```
+
+### Parameters
+
+- `Base` (`BaseConstructor`): The `Base` class or a class extending it.
+
+### Return value
+
+- `BaseConstructor`: A child class of the given class which will be mounted when visible and destroyed when invisible.
 
 ## Examples
 
