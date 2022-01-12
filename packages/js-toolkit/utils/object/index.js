@@ -1,5 +1,3 @@
-import autoBind from './autoBind.js';
-import getAllProperties from './getAllProperties.js';
-import isObject from './isObject.js';
-
-export { autoBind, getAllProperties, isObject };
+export { default as autoBind } from './autoBind.js';
+export { default as getAllProperties } from './getAllProperties.js';
+export { default as isObject } from './isObject.js';
