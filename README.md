@@ -15,80 +15,23 @@ Install the latest version via NPM:
 npm install @studiometa/js-toolkit
 ```
 
-## Concept
+## Documentation
 
-[] todo
+This project contains a JavaScript micro-framework and its utility functions whose main objectives are:
 
-## Usage
+- Enforcing best-practice and consistency between projects
+- Using elements from the DOM easily
+- Enabling custom behaviours on component initialization or other user events
+- Disabling custom behaviours on component destruction or other user events
+- Initializing components in the right place at the right time
+- Defining dependencies between components
 
-Import the `Base` class and extend it to create your components:
+Visit [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) to learn more.
 
-```js
-import { Base, createApp } from '@studiometa/js-toolkit';
+## Contributing
 
-class Component extends Base {
-  static config = {
-    name: 'Component',
-  }
+This projects follows the [Git Flow](https://github.com/petervanderdoes/gitflow-avh) methodology to manage its branches and features. The packages and their dependencies are managed with NPM workspaces. The files are linted with ESLint, type checked with TypeScript and formatted with Prettier.
 
-  sayHello() {
-    console.log('Hello!');
-  }
-}
+## License
 
-class App extends Base {
-  static config = {
-    name: 'App',
-    components: {
-      Component,
-    },
-    refs: ['btn', 'items[]'],
-    options: {
-      foo: String,
-      bar: { type: String, default: 'bar' },
-    }
-  };
-
-  mounted() {
-    this.$log('mounted');
-
-    // Options
-    this.$options.name; // 'App'
-    this.$options.log; // true
-    this.$options.debug; // false
-    this.$options.foo // ''
-    this.$options.bar // 'bar'
-
-    // Children
-    this.$children.Component; // Array<Component>
-
-    // DOM references
-    this.$refs.btn; // <button data-ref="btn"></button>
-    this.$refs.items[0]; // <li data-ref="items[]"></li>
-  }
-
-  destroyed() {
-    this.$log('destroyed');
-  }
-
-  scrolled(props) {
-    this.$log('scrolled', props);
-  }
-
-  resized(props) {
-    this.$log('resized', props);
-  }
-}
-
-export default createApp(App, document.body);
-```
-
-Read the [documentation](https://js-toolkit.studiometa.dev/) to learn more.
-
-## Contribution
-
-This projects follows the [Git Flow](https://github.com/petervanderdoes/gitflow-avh) methodology to manage its branches and features.
-
-The packages from this project are managed with NPM workspaces.
-
-The files are linted with ESLint, type checked with TypeScript and formatted with Prettier.
+See [LICENSE](./LICENSE).
