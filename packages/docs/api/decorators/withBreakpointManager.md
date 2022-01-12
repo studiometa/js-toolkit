@@ -4,7 +4,28 @@ Use this decorator to create a component that will have the capacity to switch c
 
 ## Usage
 
-<label><input type="checkbox">todo</label>
+```js{5-8}
+import { Base, withBreakpointManager } from '@studiometa/js-toolkit';
+import MenuMobile from './MenuMobile';
+import MenuDesktop from './MenuDesktop';
+
+export default class Menu extends withBreakpointManager(Base, [
+  ['xxs xs s', MenuMobile],
+  ['m l xl xxl', MenuDesktop],
+]) {
+  static config = {
+    name: 'Menu',
+  };
+}
+```
+### Parameters
+
+- `Base` (`BaseConstructor`): The `Base` class or a class extending it.
+- `options` (`Array<[string, BaseConstructor]>`): Definition for the components to be used for each breakpoints
+
+### Return value
+
+- `BaseConstructor`: A child class of the given class which will mount the given components based on the current active breakpoint
 
 ## Examples
 
