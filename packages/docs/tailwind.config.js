@@ -1,6 +1,6 @@
 module.exports = {
   presets: [require('@studiometa/tailwind-config')],
-  important: true,
+  // important: true,
   purge: {
     content: [
       './.vitepress/**/*.js',

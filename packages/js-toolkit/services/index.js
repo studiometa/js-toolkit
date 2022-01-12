@@ -1,10 +1,10 @@
-import useDrag from './drag.js';
-import useKey from './key.js';
-import useLoad from './load.js';
-import usePointer from './pointer.js';
-import useRaf from './raf.js';
-import useResize from './resize.js';
-import useScroll from './scroll.js';
+export { default as useDrag } from './drag.js';
+export { default as useKey } from './key.js';
+export { default as useLoad } from './load.js';
+export { default as usePointer } from './pointer.js';
+export { default as useRaf } from './raf.js';
+export { default as useResize } from './resize.js';
+export { default as useScroll } from './scroll.js';
 
 /**
  * @template T
@@ -18,5 +18,3 @@ import useScroll from './scroll.js';
  * @property {() => T} props
  *   Get the service's props.
  */
-
-export { useKey, usePointer, useDrag, useLoad, useRaf, useResize, useScroll };

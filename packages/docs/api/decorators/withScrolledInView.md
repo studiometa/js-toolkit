@@ -7,7 +7,7 @@ Use this decorator to create a component with a hook to easily create animation 
 ```js {1,3,8-10}
 import { Base, withScrolledInView } from '@studiometa/js-toolkit';
 
-class Component extends withScrolledInView(Base) {
+class Component extends withScrolledInView(Base, { rootMargin: '100%' }) {
   static config = {
     name: 'Component',
   };
@@ -21,6 +21,15 @@ class Component extends withScrolledInView(Base) {
 :::tip Info
 This decorator uses the [`withMountWhenInView`](./withMountWhenInView.html) decorator under the hood.
 :::
+
+### Parameters
+
+- `Base` (`BaseConstructor`): The `Base` class or a class extending it.
+- `options` (`IntersectionObserverInit`): Options for the `IntersectionObserver` used by the `withMountWhenInView` decorator
+
+### Return value
+
+- `BaseConstructor`: A child class of the given class which will be mounted when visible and destroyed when invisible and trigger a `scrolledInView` hook
 
 ## API
 

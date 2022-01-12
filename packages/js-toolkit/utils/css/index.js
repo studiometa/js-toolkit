@@ -1,6 +1,4 @@
-import * as classes from './classes.js';
-import * as styles from './styles.js';
-import matrix from './matrix.js';
-import transition from './transition.js';
-
-export { classes, styles, matrix, transition };
+export * as classes from './classes.js';
+export * as styles from './styles.js';
+export { default as matrix } from './matrix.js';
+export { default as transition } from './transition.js';

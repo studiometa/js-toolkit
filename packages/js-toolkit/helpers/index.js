@@ -1,6 +1,4 @@
-import createApp from './createApp.js';
-import importOnInteraction from './importOnInteraction.js';
-import importWhenIdle from './importWhenIdle.js';
-import importWhenVisible from './importWhenVisible.js';
-
-export { createApp, importOnInteraction, importWhenIdle, importWhenVisible };
+export { default as createApp } from './createApp.js';
+export { default as importOnInteraction } from './importOnInteraction.js';
+export { default as importWhenIdle } from './importWhenIdle.js';
+export { default as importWhenVisible } from './importWhenVisible.js';
