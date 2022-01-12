@@ -18,6 +18,7 @@ export default class Menu extends withBreakpointManager(Base, [
   };
 }
 ```
+
 ### Parameters
 
 - `Base` (`BaseConstructor`): The `Base` class or a class extending it.
