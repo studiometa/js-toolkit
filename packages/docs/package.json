@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "vitepress dev .",
-    "build": "vitepress build ."
+    "build": "vitepress build .",
+    "postinstall": "node scripts/patch-vue-kbar.js"
   },
   "dependencies": {
     "@bytebase/vue-kbar": "^0.1.5",
