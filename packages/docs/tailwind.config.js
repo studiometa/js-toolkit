@@ -20,11 +20,15 @@ module.exports = {
         grab: 'grab',
         grabbing: 'grabbing',
       },
+      colors: {
+        brand: '#3eaf7c',
+      },
     },
   },
   variants: {
     extend: {
       cursor: ['active'],
+      ringOpacity: ['hover', 'active', 'focus'],
     },
   },
 };

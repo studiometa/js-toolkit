@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { withBase, useData } from 'vitepress';
   import Badge from './Badge.vue';
+
   const { site, theme, localePath } = useData();
 </script>
 
