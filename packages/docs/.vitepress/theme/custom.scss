@@ -38,3 +38,13 @@ img {
   max-width: 100%;
   height: auto;
 }
+
+
+button {
+  font: inherit;
+}
+
+.focus\:ring-opacity-1:focus,
+.hover\:ring-opacity-1:hover {
+  --tw-ring-opacity: 1;
+}
