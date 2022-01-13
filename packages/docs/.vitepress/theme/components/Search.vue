@@ -28,7 +28,9 @@
           : link.link.startsWith('/')
           ? 'Documentation'
           : 'External',
-        perform: link.link.startsWith('/') ? () => router.go(link.link) : () => window.location.href = link.link,
+        perform: link.link.startsWith('/')
+          ? () => router.go(link.link)
+          : () => (window.location.href = link.link),
       })
     );
   });

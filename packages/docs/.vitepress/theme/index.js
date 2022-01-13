@@ -8,5 +8,5 @@ export default {
   Layout,
   enhanceApp({ app }) {
     app.component('Badge', Badge);
-  }
-}
+  },
+};
