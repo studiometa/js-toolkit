@@ -1,3 +1,5 @@
+const defaultConfig = require('tailwindcss/defaultConfig');
+
 module.exports = {
   presets: [require('@studiometa/tailwind-config')],
   // important: true,
@@ -20,11 +22,19 @@ module.exports = {
         grab: 'grab',
         grabbing: 'grabbing',
       },
+      colors: {
+        brand: '#3eaf7c',
+      },
+      fontSize: {
+        '2xs': ['0.625rem', '1'],
+      },
+      maxHeight: defaultConfig.theme.maxWidth,
     },
   },
   variants: {
     extend: {
       cursor: ['active'],
+      ringOpacity: ['hover', 'active', 'focus'],
     },
   },
 };
