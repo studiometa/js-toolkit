@@ -24,6 +24,9 @@ module.exports = {
       },
       colors: {
         brand: '#3eaf7c',
+        code: {
+          bg: 'var(--code-bg-color)',
+        },
       },
       fontSize: {
         '2xs': ['0.625rem', '1'],
