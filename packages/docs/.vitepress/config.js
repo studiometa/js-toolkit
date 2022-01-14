@@ -67,6 +67,10 @@ function getGuideSidebar() {
           text: 'Teleport refs',
           link: '/guide/recipes/teleport-refs.html',
         },
+        {
+          text: 'Counter component',
+          link: '/guide/recipes/counter-component.html',
+        },
       ],
     },
     {

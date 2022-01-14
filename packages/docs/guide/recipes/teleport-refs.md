@@ -6,58 +6,23 @@ We can make sure that the moved refs are still accessible by saving the original
 
 ### Modal component example
 
-```js
-import { Base } from '@studiometa/js-toolkit';
+<script setup>
+  import ModalRaw from './Modal.js?raw';
+  import ModalHtmlRaw from './Modal.html?raw';
 
-/**
- * Modal class.
- */
-export default class Modal extends Base {
-  static config = {
-    name: 'Modal',
-    refs: ['content'],
-    options: {
-      move: String,
+  const tabs = [
+    {
+      label: 'Modal.js',
+      lang: 'js',
+      content: ModalRaw,
     },
-  };
+    {
+      label: 'Modal.html',
+      lang: 'html',
+      content: ModalHtmlRaw,
+    },
+  ];
+</script>
 
-  /**
-   * @type {Modal['$refs']}
-   */
-  orignalRefs;
+<Tabs :items="tabs" />
 
-  /**
-   * Mounted hook.
-   * @returns {void}
-   */
-  mounted() {
-    if (this.$options.move) {
-      const target = document.querySelector(this.$options.move);
-
-      if (target) {
-        this.originalRefs = this.$refs;
-        target.appendChild(this.$refs.content);
-      }
-    }
-  }
-
-  /**
-   * Get teleported refs.
-   * @returns {Base['$refs']}
-   */
-  get $refs() {
-    const $refs = super.$refs;
-
-    // Add original refs to
-    if (this.originalRefs) {
-      Object.entries(this.originalRefs).forEach(([name, value]) => {
-        if (!$refs[name]) {
-          $refs[name] = value;
-        }
-      });
-    }
-
-    return $refs;
-  }
-}
-```
