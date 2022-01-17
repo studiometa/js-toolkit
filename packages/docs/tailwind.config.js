@@ -1,8 +1,10 @@
 const defaultConfig = require('tailwindcss/defaultConfig');
+const tailwindConfig = require('@studiometa/tailwind-config');
+
+tailwindConfig.corePlugins = undefined;
 
 module.exports = {
-  presets: [require('@studiometa/tailwind-config')],
-  // important: true,
+  presets: [tailwindConfig],
   purge: {
     content: [
       './.vitepress/**/*.js',
