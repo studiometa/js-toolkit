@@ -13,10 +13,6 @@ module.exports = defineConfig({
     editLinks: true,
     editLinkText: 'Edit this page on GitHub',
     sidebarDepth: 3,
-    // algolia: {
-    //   apiKey: '',
-    //   indexName: '',
-    // },
     nav: [
       { text: 'Guide', link: '/guide/' },
       { text: 'API Reference', link: '/api/' },
