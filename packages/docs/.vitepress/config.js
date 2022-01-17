@@ -64,12 +64,16 @@ function getGuideSidebar() {
       text: 'Recipes',
       children: [
         {
-          text: 'Teleport refs',
-          link: '/guide/recipes/teleport-refs.html',
+          text: 'Counter component',
+          link: '/guide/recipes/counter-component/',
         },
         {
-          text: 'Counter component',
-          link: '/guide/recipes/counter-component.html',
+          text: 'Scroll linked animation',
+          link: '/guide/recipes/scroll-linked-animation/',
+        },
+        {
+          text: 'Teleport refs',
+          link: '/guide/recipes/teleport-refs/',
         },
       ],
     },

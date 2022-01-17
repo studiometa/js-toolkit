@@ -20,7 +20,7 @@ Find below the JavaScript and HTML implementation of a counter component.
       content: CounterHtmlRaw,
     },
     {
-      label: 'App.js',
+      label: 'app.js',
       lang: 'js',
       content: `
 import { Base, createApp } from '@studiometa/js-toolkit';
