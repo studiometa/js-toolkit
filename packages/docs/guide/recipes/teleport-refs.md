@@ -25,4 +25,3 @@ We can make sure that the moved refs are still accessible by saving the original
 </script>
 
 <Tabs :items="tabs" />
-
