@@ -10,7 +10,7 @@
     <div class="absolute top-1/2 left-1/2 w-6 h-6 -mt-3 -ml-3">
       <svg
         class="animate-spin h-full w-full text-gray-500"
-        style="animation-duration: 0.2s;"
+        style="animation-duration: 0.2s"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"

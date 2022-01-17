@@ -50,7 +50,13 @@ export default class ScrollLinkedAnimation extends Base {
 
       let translateY;
       if (index % 2 === 0) {
-        translateY = map(this.dampedScrollProgressY, 0, 1, this.parallaxOffsetHeight, this.parallaxOffsetHeight * -1);
+        translateY = map(
+          this.dampedScrollProgressY,
+          0,
+          1,
+          this.parallaxOffsetHeight,
+          this.parallaxOffsetHeight * -1
+        );
       }
 
       col.style.transform = matrix({ skewY, translateY });

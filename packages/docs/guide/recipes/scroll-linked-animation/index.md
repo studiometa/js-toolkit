@@ -42,4 +42,3 @@ export default createApp(App, document.body);
 <PreviewIframe src="./ScrollLinkedAnimation.story.html" />
 
 <Tabs :items="tabs" />
-
