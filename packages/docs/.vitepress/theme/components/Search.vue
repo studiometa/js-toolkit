@@ -6,7 +6,7 @@
     KBarPositioner,
     KBarAnimator,
     KBarSearch,
-    createAction,
+    defineAction,
   } from '@bytebase/vue-kbar';
   import { useRouter, useRoute } from 'vitepress';
   import { useAllLinks } from '../composables/useAllLinks.ts';
@@ -91,8 +91,16 @@
     createHeaderLink('$services', 'services', parents.instanceProperties),
     // Instance methods
     createHeaderLink('$log(...content)', 'log-content', parents.instanceMethods),
-    createHeaderLink('$on(event, callback[, options])', 'on-event-callback-options', parents.instanceMethods),
-    createHeaderLink('$off(event, callback[, options])', 'off-event-callback-options', parents.instanceMethods),
+    createHeaderLink(
+      '$on(event, callback[, options])',
+      'on-event-callback-options',
+      parents.instanceMethods
+    ),
+    createHeaderLink(
+      '$off(event, callback[, options])',
+      'off-event-callback-options',
+      parents.instanceMethods
+    ),
     createHeaderLink('$emit(event[, ...args])', 'emit-event-args', parents.instanceMethods),
     createHeaderLink('$mount()', 'mount', parents.instanceMethods),
     createHeaderLink('$update()', 'update', parents.instanceMethods),
@@ -114,39 +122,43 @@
   ];
 
   const actions = computed(() => {
-    return unref(links).concat(headers).map((link) =>
-      createAction({
-        id: link.link,
-        name: [link.text, link.parent?.text ?? '', link.root?.text ?? ''].join(' '),
-        link,
-        section: link.parent
-          ? link.root
-            ? [link.root.text, link.parent.text].join(' → ')
-            : link.parent.text
-          : link.link.startsWith('/')
-          ? 'Documentation'
-          : 'External',
-        perform: link.link.startsWith('/')
-          ? () => router.go(link.link)
-          : () => (window.location.href = link.link),
-      })
-    );
+    return unref(links)
+      .concat(headers)
+      .map((link) =>
+        defineAction({
+          id: link.link,
+          name: [link.text, link.parent?.text ?? '', link.root?.text ?? ''].join(' '),
+          link,
+          section: link.parent
+            ? link.root
+              ? [link.root.text, link.parent.text].join(' → ')
+              : link.parent.text
+            : link.link.startsWith('/')
+            ? 'Documentation'
+            : 'External',
+          perform: link.link.startsWith('/')
+            ? () => router.go(link.link)
+            : () => (window.location.href = link.link),
+        })
+      );
   });
 </script>
 
 <template>
   <KBarProvider :actions="actions" :options="{ placeholder: 'Search docs' }">
-    <KBarPortal>
-      <KBarPositioner class="z-goku bg-gray-300 bg-opacity-80">
-        <KBarAnimator
-          class="bg-white shadow-lg rounded-lg w-full h-full max-w-lg max-h-lg overflow-hidden divide-y"
-        >
-          <KBarSearch class="p-4 text-lg w-full box-border outline-none border-none" />
-          <SearchResults />
-          <!-- see below -->
-        </KBarAnimator>
-      </KBarPositioner>
-    </KBarPortal>
+    <ClientOnly>
+      <KBarPortal>
+        <KBarPositioner class="z-goku bg-gray-300 bg-opacity-80">
+          <KBarAnimator
+            class="bg-white shadow-lg rounded-lg w-full h-full max-w-lg max-h-lg overflow-hidden divide-y"
+          >
+            <KBarSearch class="p-4 text-lg w-full box-border outline-none border-none" />
+            <SearchResults />
+            <!-- see below -->
+          </KBarAnimator>
+        </KBarPositioner>
+      </KBarPortal>
+    </ClientOnly>
 
     <!-- you application entrance here -->
     <slot />
