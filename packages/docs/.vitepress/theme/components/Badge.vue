@@ -2,13 +2,13 @@
   const { type, text, vertical } = defineProps({
     type: {
       type: String,
-      default: 'tip'
+      default: 'tip',
     },
     text: String,
     vertical: {
       type: String,
-      default: 'top'
-    }
+      default: 'top',
+    },
   });
 </script>
 
