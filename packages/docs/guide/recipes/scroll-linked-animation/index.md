@@ -20,8 +20,7 @@ This example demonstrate the usage of the [`scrolled` service](/api/methods-hook
     {
       label: 'app.js',
       lang: 'js',
-      content: `
-import { Base, createApp } from '@studiometa/js-toolkit';
+      content: `import { Base, createApp } from '@studiometa/js-toolkit';
 import ScrollLinkedAnimation from './ScrollLinkedAnimation.js';
 
 class App extends Base {
@@ -33,8 +32,7 @@ class App extends Base {
   };
 }
 
-export default createApp(App, document.body);
-`
+export default createApp(App, document.body);`
     },
   ];
 </script>
