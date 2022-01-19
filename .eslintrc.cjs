@@ -1,7 +1,7 @@
 module.exports = {
   extends: '@studiometa/eslint-config',
   rules: {
-    'import/extensions': ['error', 'always', { ignorePackages: true }],
+    'import/extensions': [ 'error', 'always', { ignorePackages: true }],
     'no-underscore-dangle': 'off',
   },
   overrides: [
@@ -21,10 +21,10 @@ module.exports = {
       extends: [ 'eslint:recommended', 'plugin:@typescript-eslint/recommended' ],
     },
     {
-      files: ['packages/docs/**/*.js'],
-      rules {
+      files: [ 'packages/docs/**/*.js' ],
+      rules: {
         'require-jsdoc': 'off',
       },
-    }
+    },
   ],
 };
