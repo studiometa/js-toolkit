@@ -25,7 +25,10 @@ module.exports = {
         grabbing: 'grabbing',
       },
       colors: {
-        brand: '#3eaf7c',
+        brand: {
+          DEFAULT: '#3eaf7c',
+          light: '#42d392',
+        },
         code: {
           bg: 'var(--code-bg-color)',
         },

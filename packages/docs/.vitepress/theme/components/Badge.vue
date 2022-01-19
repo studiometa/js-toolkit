@@ -28,6 +28,7 @@
     padding: 0.5em 0.75em;
     color: #fff;
     background-color: var(--c-brand);
+    white-space: nowrap;
   }
 
   .badge.green {

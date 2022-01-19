@@ -137,7 +137,13 @@
             ? 'Documentation'
             : 'External',
           perform: link.link.startsWith('/')
-            ? () => router.go(link.link)
+            ? async () => {
+                await router.go(link.link);
+                const activeSidebarLink = document.querySelector('.sidebar-link-item.active');
+                if (activeSidebarLink && typeof activeSidebarLink.scrollIntoView === 'function') {
+                  activeSidebarLink.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }
             : () => (window.location.href = link.link),
         })
       );
