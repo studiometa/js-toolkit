@@ -16,13 +16,15 @@
     "lint:docs": "prettier --check 'packages/docs/**/*.{md,js,html,vue}'",
     "lint:types": "tsc --build tsconfig.lint.json",
     "fix:docs": "prettier --write 'packages/docs/**/*.{md,js,html,vue}'",
-    "build": "npm run build:babel && npm run build:types && npm run build:bundle && npm run build:cp-files",
+    "build": "rm -rf dist && npm run build:esm && npm run build:cjs && npm run build:types && npm run build:cp-files",
     "build:cp-files": "cp packages/js-toolkit/package.json dist/ && cp LICENSE dist/ && cp README.md dist",
     "build:types": "tsc --build tsconfig.build.json",
-    "build:babel": "babel --no-comments --delete-dir-on-start --out-dir dist/ packages/js-toolkit",
-    "build:bundle": "npm run build:bundle:modern && npm run build:bundle:umd",
-    "build:bundle:modern": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/index.js -o dist/index.modern.js -f modern --no-sourcemap --no-pkg-main --external none",
-    "build:bundle:umd": "NODE_TARGET=bundle microbundle -i packages/js-toolkit/index.js -o dist/index.umd.js -f umd --no-sourcemap --name Base --no-pkg-main --external none"
+    "build:esm": "npm run build:esm:index && npm run build:esm:utils",
+    "build:esm:index": "esbuild --bundle packages/js-toolkit/index.js --outfile=dist/index.js --format=esm --minify",
+    "build:esm:utils": "esbuild --bundle packages/js-toolkit/utils/index.js --outfile=dist/utils.js --format=esm --minify",
+    "build:cjs": "npm run build:cjs:index && npm run build:cjs:utils",
+    "build:cjs:index": "esbuild --bundle packages/js-toolkit/index.js --outfile=dist/index.cjs --format=cjs --minify",
+    "build:cjs:utils": "esbuild --bundle packages/js-toolkit/utils/index.js --outfile=dist/utils.cjs --format=cjs --minify"
   },
   "devDependencies": {
     "@babel/cli": "^7.16.7",
