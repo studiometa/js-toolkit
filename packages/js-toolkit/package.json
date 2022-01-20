@@ -17,16 +17,26 @@
   "homepage": "https://github.com/studiometa/js-toolkit#readme",
   "type": "module",
   "sideEffects": false,
-  "unpkg": "./index.umd.js",
   "main": "./index.js",
   "module": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "require": "./index.cjs",
+      "types": "./index.d.ts"
+    },
+    "./utils": {
+      "import": "./utils/index.js",
+      "require": "./utils/index.cjs"
+    }
+  },
   "keywords": [
     "js-toolkit",
     "component",
     "studiometa",
     "toolkit"
   ],
-  "types": "index.d.ts",
   "dependencies": {
     "@babel/runtime": "^7.15.4",
     "deepmerge": "^4.2.2"
