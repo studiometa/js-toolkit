@@ -16,23 +16,12 @@
     "lint:docs": "prettier --check 'packages/docs/**/*.{md,js,html,vue}'",
     "lint:types": "tsc --build tsconfig.lint.json",
     "fix:docs": "prettier --write 'packages/docs/**/*.{md,js,html,vue}'",
-    "build": "rm -rf dist && npm run build:esm && npm run build:cjs && npm run build:types && npm run build:cp-files",
+    "build": "rm -rf dist && npm run build:pkg && npm run build:types && npm run build:cp-files",
     "build:cp-files": "cp packages/js-toolkit/package.json dist/ && cp LICENSE dist/ && cp README.md dist",
     "build:types": "tsc --build tsconfig.build.json",
-    "build:esm": "npm run build:esm:index && npm run build:esm:utils",
-    "build:esm:index": "esbuild --bundle packages/js-toolkit/index.js --outfile=dist/index.js --format=esm --minify",
-    "build:esm:utils": "esbuild --bundle packages/js-toolkit/utils/index.js --outfile=dist/utils.js --format=esm --minify",
-    "build:cjs": "npm run build:cjs:index && npm run build:cjs:utils",
-    "build:cjs:index": "esbuild --bundle packages/js-toolkit/index.js --outfile=dist/index.cjs --format=cjs --minify",
-    "build:cjs:utils": "esbuild --bundle packages/js-toolkit/utils/index.js --outfile=dist/utils.cjs --format=cjs --minify"
+    "build:pkg": "node scripts/build.js"
   },
   "devDependencies": {
-    "@babel/cli": "^7.16.7",
-    "@babel/core": "^7.16.5",
-    "@babel/plugin-proposal-class-properties": "^7.16.7",
-    "@babel/plugin-transform-runtime": "^7.16.5",
-    "@babel/preset-env": "^7.16.5",
-    "@studiometa/browserslist-config": "^1.0.1",
     "@studiometa/eslint-config": "^2.1.3",
     "@studiometa/prettier-config": "^2.1.1",
     "@studiometa/stylelint-config": "^2.0.0",
@@ -41,10 +30,10 @@
     "@types/node": "^16.11.13",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
-    "babel-plugin-add-import-extension": "^1.6.0",
+    "esbuild": "^0.14.12",
     "eslint": "^7.32.0",
     "eslint-plugin-jest": "^24.4.0",
-    "microbundle": "^0.13.3",
+    "fast-glob": "^3.2.11",
     "prettier": "^2.5.1",
     "typescript": "^4.5.4"
   }
