@@ -47,6 +47,7 @@ Array [
   "nextFrame",
   "objectToURLSearchParams",
   "round",
+  "scrollTo",
   "throttle",
   "transition",
   "withLeadingCharacters",

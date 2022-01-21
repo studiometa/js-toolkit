@@ -12,7 +12,7 @@
  * @param {Boolean} force Force usage of non-square DOMElements
  * @return {Circle} Circle object that can be used in collides functions
  */
-export default function collidePointRect({ x, y, width, height }, force = false) {
+export default function boundingRectToCircle({ x, y, width, height }, force = false) {
   if (width !== height && !force)
     throw new Error('Initial DOMElement is not a square. Please use the force mode.');
   return {

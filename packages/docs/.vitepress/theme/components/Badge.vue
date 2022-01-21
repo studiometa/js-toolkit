@@ -2,13 +2,13 @@
   const { type, text, vertical } = defineProps({
     type: {
       type: String,
-      default: 'tip'
+      default: 'tip',
     },
     text: String,
     vertical: {
       type: String,
-      default: 'top'
-    }
+      default: 'top',
+    },
   });
 </script>
 
@@ -28,6 +28,7 @@
     padding: 0.5em 0.75em;
     color: #fff;
     background-color: var(--c-brand);
+    white-space: nowrap;
   }
 
   .badge.green {

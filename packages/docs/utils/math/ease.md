@@ -71,8 +71,12 @@ Select an easing function below to see how it will transform the given progress 
   const fn = computed(() => (name.value === 'linear' ? linear : easingFunctions.value[name.value]));
   const count = 100;
 
-  import('@studiometa/js-toolkit/utils/math/ease.js').then((mod) => {
-    easingFunctions.value = mod;
+  import('@studiometa/js-toolkit/utils').then((mod) => {
+    for (const [key, value] of Object.entries(mod)) {
+      if (key.startsWith('ease')) {
+        easingFunctions.value[key] = value;
+      }
+    }
   });
 </script>
 
