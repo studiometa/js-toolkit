@@ -34,15 +34,16 @@ async function build(opts) {
 
 build({
   format: 'esm',
-  // bundle: true,
-  // splitting: true,
-  // chunkNames: '__chunks/[name]-[hash]',
 });
 
 build({
   format: 'cjs',
   bundle: true,
   outExtension: { '.js': '.cjs' },
+  footer: {
+    // Fix `export default {}` assigned to `module.exports.default`
+    js: 'if (module.exports.default) module.exports = module.exports.default;'
+  },
   plugins: [
     // @see https://github.com/evanw/esbuild/issues/622#issuecomment-769462611
     {
