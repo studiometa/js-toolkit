@@ -41,5 +41,23 @@ build({
 
 build({
   format: 'cjs',
+  bundle: true,
   outExtension: { '.js': '.cjs' },
+  plugins: [
+    // @see https://github.com/evanw/esbuild/issues/622#issuecomment-769462611
+    {
+      name: 'change-extension-to-cjs',
+      setup(builder) {
+        // eslint-disable-next-line consistent-return
+        builder.onResolve({ filter: /.*/ }, (args) => {
+          if (args.importer) {
+            return {
+              path: args.path.replace(/\.js$/, '.cjs'),
+              external: true,
+            };
+          }
+        });
+      },
+    },
+  ],
 });
