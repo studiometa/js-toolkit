@@ -5,7 +5,7 @@ Test if two circles collide with one another.
 ## Usage
 
 ```js
-import { collideCircleCircle } from '@studiometa/js-toolkit/utils/collide';
+import { collideCircleCircle } from '@studiometa/js-toolkit/utils';
 
 const circle1 = {
   x: 40,
