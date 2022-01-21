@@ -1,15 +1,15 @@
 {
   "name": "@studiometa/js-toolkit-docs",
-  "version": "2.0.0-beta.11",
+  "version": "2.0.0-beta.12",
   "private": true,
   "scripts": {
     "dev": "vitepress dev .",
-    "build": "vitepress build .",
-    "postinstall": "node scripts/patch-vue-kbar.js"
+    "build": "vitepress build ."
   },
   "dependencies": {
     "@bytebase/vue-kbar": "^0.1.5",
     "@studiometa/tailwind-config": "^1.0.4",
+    "codemirror": "^5.65.0",
     "tailwindcss": "^2.2.7",
     "vitepress": "^0.20.0"
   }

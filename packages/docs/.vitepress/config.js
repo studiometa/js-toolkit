@@ -13,10 +13,6 @@ module.exports = defineConfig({
     editLinks: true,
     editLinkText: 'Edit this page on GitHub',
     sidebarDepth: 3,
-    // algolia: {
-    //   apiKey: '',
-    //   indexName: '',
-    // },
     nav: [
       { text: 'Guide', link: '/guide/' },
       { text: 'API Reference', link: '/api/' },
@@ -64,8 +60,16 @@ function getGuideSidebar() {
       text: 'Recipes',
       children: [
         {
+          text: 'Counter component',
+          link: '/guide/recipes/counter-component/',
+        },
+        {
+          text: 'Scroll linked animation',
+          link: '/guide/recipes/scroll-linked-animation/',
+        },
+        {
           text: 'Teleport refs',
-          link: '/guide/recipes/teleport-refs.html',
+          link: '/guide/recipes/teleport-refs/',
         },
       ],
     },

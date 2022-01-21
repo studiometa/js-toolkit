@@ -33,13 +33,7 @@ The following service hooks and events are available:
 - `keyed` for the `useKey` service
 - `loaded` for the `useLoad` service
 
-**Service methods diagram**
-
-The following diagram can be helpful to understand what action will trigger a service method:
-
-<div class="my-10 block-full-width">
-  <img src="../../assets/services-diagram.png" alt="Services diagram" width="3198" height="1150">
-</div>
+The [services hooks diagram](#services-hooks-diagram) below present in greater detail what action will trigger a service method.
 
 **Using a service via its reserved method name**
 
@@ -154,3 +148,9 @@ class Component extends Base {
 :::tip API Reference
 Learn more on the service manager in the [API Reference](/api/instance-properties.html#services).
 :::
+
+## Services hooks diagram
+
+<div class="my-16 block-full-width">
+  <img class="block mx-auto" src="../../assets/services-hooks.svg" width="960" height="689" alt="Services hooks diagram">
+</div>

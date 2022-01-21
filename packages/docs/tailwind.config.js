@@ -1,8 +1,10 @@
 const defaultConfig = require('tailwindcss/defaultConfig');
+const tailwindConfig = require('@studiometa/tailwind-config');
+
+tailwindConfig.corePlugins = undefined;
 
 module.exports = {
-  presets: [require('@studiometa/tailwind-config')],
-  // important: true,
+  presets: [tailwindConfig],
   purge: {
     content: [
       './.vitepress/**/*.js',
@@ -23,7 +25,13 @@ module.exports = {
         grabbing: 'grabbing',
       },
       colors: {
-        brand: '#3eaf7c',
+        brand: {
+          DEFAULT: '#3eaf7c',
+          light: '#42d392',
+        },
+        code: {
+          bg: 'var(--code-bg-color)',
+        },
       },
       fontSize: {
         '2xs': ['0.625rem', '1'],

@@ -48,3 +48,7 @@ button {
 .hover\:ring-opacity-1:hover {
   --tw-ring-opacity: 1;
 }
+
+body {
+  scroll-behavior: smooth;
+}
