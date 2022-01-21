@@ -28,7 +28,8 @@
     },
     "./utils": {
       "import": "./utils/index.js",
-      "require": "./utils/index.cjs"
+      "require": "./utils/index.cjs",
+      "types": "./utils/index.d.ts"
     }
   },
   "keywords": [

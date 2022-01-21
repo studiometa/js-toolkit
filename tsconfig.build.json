@@ -3,7 +3,7 @@
   "compilerOptions": {
     "noEmit": false,
     "declaration": true,
-    "outFile": "dist/index.d.ts",
+    "outDir": "dist/",
     "emitDeclarationOnly": true
   }
 }
