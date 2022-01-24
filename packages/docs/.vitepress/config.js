@@ -3,8 +3,11 @@ const pkg = require('../package.json');
 
 module.exports = defineConfig({
   lang: 'en-US',
-  title: `🔧 JS Toolkit`,
+  title: 'JS Toolkit',
   description: 'A set of useful little bits of JavaScript to boost your project! 🚀',
+  head: [
+    ['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }],
+  ],
   themeConfig: {
     version: pkg.version,
     repo: 'studiometa/js-toolkit',
