@@ -39,10 +39,10 @@ export default function withIntersectionObserver(
   // @ts-ignore
   return class extends BaseClass {
     static config = {
-      ...(BaseClass.config || {}),
-      name: `${BaseClass?.config?.name ?? ''}WithIntersectionObserver`,
+      ...BaseClass.config,
+      name: `${BaseClass.config.name}WithIntersectionObserver`,
       options: {
-        ...(BaseClass?.config?.options || {}),
+        ...(BaseClass.config?.options || {}),
         intersectionObserver: Object,
       },
       emits: ['intersected'],
@@ -62,7 +62,10 @@ export default function withIntersectionObserver(
           // @ts-ignore
           this.__callMethod('intersected', entries);
         },
-        { ...defaultOptions, ...(this.$options.intersectionObserver || {}) }
+        {
+          ...defaultOptions,
+          ...this.$options.intersectionObserver,
+        }
       );
 
       this.$on('mounted', () => {
