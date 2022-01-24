@@ -31,25 +31,27 @@ export default function withMountWhenInView(BaseClass, defaultOptions = { thresh
      * @type {Object}
      */
     static config = {
-      ...(BaseClass.config || {}),
-      name: `${BaseClass?.config?.name ?? ''}WithMountWhenInView`,
+      ...BaseClass.config,
+      name: `${BaseClass.config.name}WithMountWhenInView`,
       options: {
-        ...(BaseClass?.config?.options || {}),
+        ...(BaseClass.config?.options || {}),
         intersectionObserver: Object,
       },
     };
 
     /**
      * Is the component visible?
+     * @private
      * @type {Boolean}
      */
-    #isVisible = false;
+    __isVisible = false;
 
     /**
      * The component's observer.
+     * @private
      * @type {IntersectionObserver}
      */
-    #observer;
+    __observer;
 
     /**
      * Create an observer when the class in instantiated.
@@ -59,11 +61,11 @@ export default function withMountWhenInView(BaseClass, defaultOptions = { thresh
     constructor(element) {
       super(element);
 
-      this.#observer = new IntersectionObserver(
+      this.__observer = new IntersectionObserver(
         (entries) => {
           const isVisible = entries.reduce((acc, entry) => acc || entry.isIntersecting, false);
-          if (this.#isVisible !== isVisible) {
-            this.#isVisible = isVisible;
+          if (this.__isVisible !== isVisible) {
+            this.__isVisible = isVisible;
 
             if (isVisible) {
               this.$mount();
@@ -75,10 +77,10 @@ export default function withMountWhenInView(BaseClass, defaultOptions = { thresh
         { ...defaultOptions, ...this.$options.intersectionObserver }
       );
 
-      this.#observer.observe(this.$el);
+      this.__observer.observe(this.$el);
 
       this.$on('terminated', () => {
-        this.#observer.disconnect();
+        this.__observer.disconnect();
       });
 
       return this;
@@ -90,7 +92,7 @@ export default function withMountWhenInView(BaseClass, defaultOptions = { thresh
      * @return {this}
      */
     $mount() {
-      if (this.#isVisible) {
+      if (this.__isVisible) {
         super.$mount();
       }
 
