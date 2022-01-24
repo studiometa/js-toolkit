@@ -97,10 +97,10 @@ export default function withBreakpointObserver(BaseClass) {
   // @ts-ignore
   return class extends BaseClass {
     static config = {
-      ...(BaseClass.config || {}),
-      name: `${BaseClass?.config?.name ?? ''}WithBreakpointObserver`,
+      ...BaseClass.config,
+      name: `${BaseClass.config.name}WithBreakpointObserver`,
       options: {
-        ...(BaseClass?.config?.options || {}),
+        ...(BaseClass.config?.options || {}),
         activeBreakpoints: String,
         inactiveBreakpoints: String,
       },
