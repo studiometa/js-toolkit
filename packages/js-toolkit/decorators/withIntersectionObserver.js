@@ -39,10 +39,10 @@ export default function withIntersectionObserver(
   // @ts-ignore
   return class extends BaseClass {
     static config = {
-      ...(BaseClass.config || {}),
-      name: `${BaseClass?.config?.name ?? ''}WithIntersectionObserver`,
+      ...BaseClass.config,
+      name: `${BaseClass.config.name}WithIntersectionObserver`,
       options: {
-        ...(BaseClass?.config?.options || {}),
+        ...(BaseClass.config?.options || {}),
         intersectionObserver: Object,
       },
       emits: ['intersected'],
@@ -52,21 +52,20 @@ export default function withIntersectionObserver(
      * Create an observer when the class in instantiated.
      *
      * @this {Base & WithIntersectionObserverInterface}
-     * @param  {HTMLElement} element The component's root element.
+     * @param {HTMLElement} element The component's root element.
      */
     constructor(element) {
       super(element);
-
-      if (!this.intersected || typeof this.intersected !== 'function') {
-        throw new Error('[withIntersectionObserver] The `intersected` method must be defined.');
-      }
 
       this.$observer = new IntersectionObserver(
         (entries) => {
           // @ts-ignore
           this.__callMethod('intersected', entries);
         },
-        { ...defaultOptions, ...(this.$options.intersectionObserver || {}) }
+        {
+          ...defaultOptions,
+          ...this.$options.intersectionObserver,
+        }
       );
 
       this.$on('mounted', () => {

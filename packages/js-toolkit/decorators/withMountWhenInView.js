@@ -31,10 +31,10 @@ export default function withMountWhenInView(BaseClass, defaultOptions = { thresh
      * @type {Object}
      */
     static config = {
-      ...(BaseClass.config || {}),
-      name: `${BaseClass?.config?.name ?? ''}WithMountWhenInView`,
+      ...BaseClass.config,
+      name: `${BaseClass.config.name}WithMountWhenInView`,
       options: {
-        ...(BaseClass?.config?.options || {}),
+        ...(BaseClass.config?.options || {}),
         intersectionObserver: Object,
       },
     };
