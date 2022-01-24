@@ -38,16 +38,27 @@ describe('The withIntersectionObserver decorator', () => {
     expect(observer.observe).toHaveBeenCalledTimes(2);
   });
 
-  it('should not instantiate without `intersected` method', () => {
-    class Foo extends withIntersectionObserver(Base) {
+  it('should be able to be used without the `intersected` method', () => {
+    const fn = jest.fn();
+    class Foo extends Base {
       static config = {
         name: 'Foo',
+        components: {
+          Detector: withIntersectionObserver(Base),
+        },
       };
+
+      onDetectorIntersected(entries) {
+        fn(entries);
+      }
     }
+
     const div = document.createElement('div');
-    expect(() => {
-      // eslint-disable-next-line no-unused-vars
-      const foo = new Foo(div);
-    }).toThrow(/withIntersectionObserver/);
+    div.innerHTML = '<div data-component="Detector"></div>';
+    new Foo(div).$mount();
+    mockIsIntersecting(div.firstElementChild, true);
+    expect(fn).toHaveBeenCalledTimes(1);
+    mockIsIntersecting(div.firstElementChild, true);
+    expect(fn).toHaveBeenCalledTimes(2);
   });
 });
