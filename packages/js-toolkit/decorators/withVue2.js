@@ -20,9 +20,9 @@ export default (BaseClass, Vue) => {
   // @ts-ignore
   return class WithVue2 extends BaseClass {
     static config = {
-      ...(BaseClass.config || {}),
-      name: `${BaseClass?.config?.name ?? ''}WithVue`,
-      refs: [...(BaseClass?.config?.refs ?? []), 'vue'],
+      ...BaseClass.config,
+      name: `${BaseClass.config.name}WithVue`,
+      refs: [...(BaseClass.config?.refs ?? []), 'vue'],
     };
 
     /**
