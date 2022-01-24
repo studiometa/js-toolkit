@@ -52,14 +52,10 @@ export default function withIntersectionObserver(
      * Create an observer when the class in instantiated.
      *
      * @this {Base & WithIntersectionObserverInterface}
-     * @param  {HTMLElement} element The component's root element.
+     * @param {HTMLElement} element The component's root element.
      */
     constructor(element) {
       super(element);
-
-      if (!this.intersected || typeof this.intersected !== 'function') {
-        throw new Error('[withIntersectionObserver] The `intersected` method must be defined.');
-      }
 
       this.$observer = new IntersectionObserver(
         (entries) => {
