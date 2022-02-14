@@ -8,7 +8,7 @@ The drag service will help you manage draggable elements.
 import { useDrag } from '@studiometa/js-toolkit';
 
 const target = document.querySelector('.draggable');
-const { add, remove, props } = useDrag(target);
+const { add, remove, props } = useDrag(target, { dampFactor: 0.5, dragTreshold: 10 });
 
 add('custom-id', (props) => {
   console.log(props.mode); // 'start', 'drag', 'drop', 'inertia' or 'stop'
@@ -23,6 +23,20 @@ console.log(props());
 // Remove the callback
 remove('custom-id');
 ```
+
+## Parameters
+
+### `target`
+
+- Type : `HTMLElement`
+
+The target element of the drag.
+
+### `options`
+
+- Type : `{ dampFactor?: number, dragTreshold?: number }`
+
+Options for the drag behavior. The `dampFactor` option is used for the inertia, it defaults to `0.5`. The `dragTreshold` property is the distance from which we prevent clicks on child elements, it defaults to `10` (pixels).
 
 ## Props
 
