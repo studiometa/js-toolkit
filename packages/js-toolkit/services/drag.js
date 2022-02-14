@@ -130,7 +130,7 @@ class Drag extends Service {
     const options = { passive: true };
     this.props.target.addEventListener('mousedown', this, options);
     this.props.target.addEventListener('touchstart', this, options);
-    this.props.target.addEventListener('dragstart', this);
+    this.props.target.addEventListener('dragstart', this, { capture: true });
     this.props.target.addEventListener('click', this, { capture: true });
 
     const pointer = usePointer();
