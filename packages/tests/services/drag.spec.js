@@ -45,6 +45,17 @@ describe('The drag service', () => {
     jest.useRealTimers();
   });
 
+  it('should prevent native drag', () => {
+    const fn = jest.fn();
+    const div = document.createElement('div');
+    div.innerHTML = '<div></div>';
+    const { add } = useDrag(div, { factor: 0.1 });
+
+    add('key', () => ({}));
+    div.addEventListener('dragstart', fn);
+    div.firstElementChild.dispatchEvent(new Event('dragstart'));
+    expect(fn).not.toHaveBeenCalled();
+  });
 
   it('should not trigger the callback when stopped', () => {
     const fn = jest.fn();
