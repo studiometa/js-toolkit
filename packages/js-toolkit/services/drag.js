@@ -53,6 +53,7 @@ const MODES = {
 /**
  * @typedef {Object} DragServiceOptions
  * @property {number=} [dampFactor]
+ * @property {number=} [dragTreshold]
  */
 
 let id = 0;
@@ -102,6 +103,7 @@ class Drag extends Service {
    */
   options = {
     dampFactor: 0.85,
+    dragTreshold: 10,
   };
 
   /**
@@ -314,10 +316,14 @@ class Drag extends Service {
   /**
    * Test if we should allow click on links and buttons.
    *
+   * @private
    * @returns {boolean}
    */
   get __shouldPreventClick() {
-    return Math.abs(this.props.distance.x) > 10 || Math.abs(this.props.distance.y) > 10;
+    return (
+      Math.abs(this.props.distance.x) > this.options.dragTreshold ||
+      Math.abs(this.props.distance.y) > this.options.dragTreshold
+    );
   }
 }
 
