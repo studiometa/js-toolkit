@@ -55,7 +55,7 @@ const MODES = {
  * @property {number=} [dampFactor]
  */
 
-let instanceIds = 0;
+let id = 0;
 
 /**
  * Drag service
@@ -111,8 +111,8 @@ class Drag extends Service {
    */
   constructor(target, options = {}) {
     super();
-    instanceIds += 1;
-    this.id = `drag-${instanceIds}`;
+    id += 1;
+    this.id = `drag-${id}`;
     this.props.target = target;
     this.options = { ...this.options, ...options };
     this.pointerHandler = this.pointerHandler.bind(this);
@@ -130,6 +130,8 @@ class Drag extends Service {
     const options = { passive: true };
     this.props.target.addEventListener('mousedown', this, options);
     this.props.target.addEventListener('touchstart', this, options);
+    this.props.target.addEventListener('dragstart', this);
+    this.props.target.addEventListener('click', this, { capture: true });
 
     const pointer = usePointer();
     pointer.add(this.id, this.pointerHandler);
@@ -143,8 +145,10 @@ class Drag extends Service {
    * @return {this}
    */
   kill() {
-    this.props.target.removeEventListener('mousemove', this);
-    this.props.target.removeEventListener('touchmove', this);
+    this.props.target.removeEventListener('mousedown', this);
+    this.props.target.removeEventListener('touchstart', this);
+    this.props.target.removeEventListener('dragstart', this);
+    this.props.target.removeEventListener('click', this);
 
     const pointer = usePointer();
     pointer.remove(this.id);
@@ -153,9 +157,24 @@ class Drag extends Service {
 
   /**
    * Handle any event.
-   * @param {MouseEvent|TouchEvent} event [description]
+   * @param {MouseEvent|TouchEvent|DragEvent} event
    */
   handleEvent(event) {
+    if (event.type === 'dragstart') {
+      event.preventDefault();
+      return;
+    }
+
+    if (event.type === 'click') {
+      if (this.__shouldPreventClick) {
+        event.stopImmediatePropagation();
+        event.stopPropagation();
+        event.preventDefault();
+      }
+
+      return;
+    }
+
     const x = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
     const y = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
     this.start(x, y);
@@ -259,6 +278,8 @@ class Drag extends Service {
    * @return {void}
    */
   pointerHandler(props) {
+    props.event.preventDefault();
+
     if (this.props.isGrabbing) {
       this.props.x = props.x;
       this.props.y = props.y;
@@ -288,6 +309,15 @@ class Drag extends Service {
    */
   updateProps() {
     return this.props;
+  }
+
+  /**
+   * Test if we should allow click on links and buttons.
+   *
+   * @returns {boolean}
+   */
+  get __shouldPreventClick() {
+    return Math.abs(this.props.distance.x) > 10 || Math.abs(this.props.distance.y) > 10;
   }
 }
 
