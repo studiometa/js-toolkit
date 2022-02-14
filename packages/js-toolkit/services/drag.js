@@ -280,8 +280,6 @@ class Drag extends Service {
    * @return {void}
    */
   pointerHandler(props) {
-    props.event.preventDefault();
-
     if (this.props.isGrabbing) {
       this.props.x = props.x;
       this.props.y = props.y;
