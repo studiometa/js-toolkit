@@ -50,7 +50,7 @@ describe('The `importWhenVisible` lazy import helper', () => {
     expect(div.firstElementChild.__base__).toBeUndefined();
     mockIsIntersecting(div.firstElementChild, true);
     await wait(0);
-    expect(div.firstElementChild.__base__).toBeInstanceOf(Component);
+    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
   });
 
   it('should import a component when a parent ref is visible', async () => {
@@ -78,7 +78,7 @@ describe('The `importWhenVisible` lazy import helper', () => {
     expect(div.firstElementChild.__base__).toBeUndefined();
     mockIsIntersecting(div.lastElementChild, true);
     await wait(0);
-    expect(div.firstElementChild.__base__).toBeInstanceOf(Component);
+    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
   });
 
   it('should import a component when an element outside the app context is visible', async () => {
@@ -101,6 +101,6 @@ describe('The `importWhenVisible` lazy import helper', () => {
     expect(div.firstElementChild.__base__).toBeUndefined();
     mockIsIntersecting(document.body, true);
     await wait(0);
-    expect(div.firstElementChild.__base__).toBeInstanceOf(Component);
+    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
   });
 });
