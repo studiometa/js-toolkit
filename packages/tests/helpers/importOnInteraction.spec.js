@@ -40,7 +40,8 @@ describe('The `importOnInteraction` lazy import helper', () => {
     expect(div.firstElementChild.__base__).toBeUndefined();
     div.firstElementChild.click();
     await wait(0);
-    expect(div.firstElementChild.__base__).toBeInstanceOf(Component);
+    expect(div.firstElementChild.__base__).toBeInstanceOf(WeakMap);
+    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
   });
 
   it('should import a component given a ref as target', async () => {
@@ -67,7 +68,7 @@ describe('The `importOnInteraction` lazy import helper', () => {
     expect(div.firstElementChild.__base__).toBeUndefined();
     div.lastElementChild.click();
     await wait(0);
-    expect(div.firstElementChild.__base__).toBeInstanceOf(Component);
+    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
   });
 
   it('should import a component given an array of events', async () => {
@@ -92,7 +93,7 @@ describe('The `importOnInteraction` lazy import helper', () => {
     expect(div.firstElementChild.__base__).toBeUndefined();
     div.firstElementChild.click();
     await wait(0);
-    expect(div.firstElementChild.__base__).toBeInstanceOf(Component);
+    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
   });
 
   it('should import a component given a selector outside the parent context', async () => {
@@ -118,6 +119,6 @@ describe('The `importOnInteraction` lazy import helper', () => {
     expect(div.firstElementChild.__base__).toBeUndefined();
     document.querySelector('#btn').click();
     await wait(0);
-    expect(div.firstElementChild.__base__).toBeInstanceOf(Component);
+    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
   });
 });
