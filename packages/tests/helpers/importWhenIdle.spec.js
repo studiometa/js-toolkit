@@ -35,7 +35,7 @@ describe('The `importWhenIdle` lazy import helper', () => {
     expect(div.firstElementChild.__base__).toBeUndefined();
     mockRequestIdleCallback();
     await wait(0);
-    expect(div.firstElementChild.__base__).toBeInstanceOf(Component);
+    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
   });
 
   it('should import a component in the next macrotask when `requestIdleCallback` is not supported', async () => {
@@ -56,7 +56,7 @@ describe('The `importWhenIdle` lazy import helper', () => {
 
     expect(div.firstElementChild.__base__).toBeUndefined();
     await wait(101);
-    expect(div.firstElementChild.__base__).toBeInstanceOf(Component);
+    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
 
     globalThis.requestIdleCallback = requestIdleCallback;
   });
