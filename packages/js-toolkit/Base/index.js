@@ -298,11 +298,9 @@ export default class Base extends EventTarget {
 
     this.$el = element;
 
-    if (!('__base__' in this.$el)) {
-      Object.defineProperty(this.$el, '__base__', {
-        get: () => this,
-        configurable: true,
-      });
+    if (!this.$el.__base__) {
+      this.$el.__base__ = new WeakMap();
+      this.$el.__base__.set(this.constructor, this);
     }
 
     this.__options = new OptionsManager(element, __config.options || {}, __config);
@@ -404,16 +402,8 @@ export default class Base extends EventTarget {
     // Execute the `terminated` hook if it exists
     this.__callMethod('terminated');
 
-    // Delete the reference to the instance
-    // delete this.$el.__base__;
-
-    // And update its status to prevent re-instantiation when accessing the
-    // parent's `$children` property
-    Object.defineProperty(this.$el, '__base__', {
-      value: 'terminated',
-      configurable: false,
-      writable: false,
-    });
+    // Delete instance
+    this.$el.__base__.delete(this.constructor);
   }
 
   /**
