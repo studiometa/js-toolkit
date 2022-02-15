@@ -128,14 +128,16 @@ export default class ChildrenManager {
    * @private
    */
   __getChild(el, ComponentClass, name) {
-    const asyncComponentPromise = this.__asyncComponentPromises.get(ComponentClass);
+    const asyncComponentPromise = this.__asyncComponentPromises.get(
+      /** @type {BaseAsyncConstructor} */ (ComponentClass)
+    );
 
     // Test if we have a constructor and not a promise or if the promise has been resolved
     if (
       '$isBase' in ComponentClass ||
       (asyncComponentPromise && asyncComponentPromise.status === 'resolved')
     ) {
-      let ctor = ComponentClass;
+      let ctor = /** @type {BaseConstructor} */ (ComponentClass);
 
       // Get resolved constructor from weakmap.
       // Only test for existence as the status was checked before.

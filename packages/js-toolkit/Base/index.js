@@ -63,7 +63,7 @@ export default class Base extends EventTarget {
 
   /**
    * The root element.
-   * @type {HTMLElement & { __base__?: WeakMap<BaseConstructor, Base> }}
+   * @type {HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> }}
    */
   $el;
 
