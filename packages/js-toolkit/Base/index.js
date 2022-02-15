@@ -403,7 +403,7 @@ export default class Base extends EventTarget {
     this.__callMethod('terminated');
 
     // Delete instance
-    this.$el.__base__.delete(this.__ctor);
+    this.$el.__base__.set(this.__ctor, 'terminated');
   }
 
   /**
