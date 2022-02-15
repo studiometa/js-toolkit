@@ -37,6 +37,15 @@ export default class ChildrenManager {
   __eventsManager;
 
   /**
+   * Store async component promises to avoid calling them multiple times and
+   * waiting for them when they are already resolved.
+   *
+   * @private
+   * @type {WeakMap<BaseAsyncConstructor, { promise: ReturnType<BaseAsyncConstructor>, status: 'pending'|'resolved', ctor?: BaseConstructor }>}
+   */
+  __asyncComponentPromises = new WeakMap();
+
+  /**
    * @return {string[]}
    */
   get registeredNames() {
@@ -183,15 +192,6 @@ export default class ChildrenManager {
       return this.__getChild(el, ctor, name);
     });
   }
-
-  /**
-   * Store async component promises to avoid calling them multiple times and
-   * waiting for them when they are already resolved.
-   *
-   * @private
-   * @type {WeakMap<BaseAsyncConstructor, { promise: ReturnType<BaseAsyncConstructor>, status: 'pending'|'resolved', ctor?: BaseConstructor }>}
-   */
-  __asyncComponentPromises = new WeakMap();
 
   /**
    * Mount all child component instances.
