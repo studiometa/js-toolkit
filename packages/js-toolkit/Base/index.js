@@ -63,7 +63,7 @@ export default class Base extends EventTarget {
 
   /**
    * The root element.
-   * @type {HTMLElement}
+   * @type {HTMLElement & { __base__?: WeakMap<BaseConstructor, Base> }}
    */
   $el;
 
@@ -300,7 +300,7 @@ export default class Base extends EventTarget {
 
     if (!this.$el.__base__) {
       this.$el.__base__ = new WeakMap();
-      this.$el.__base__.set(this.constructor, this);
+      this.$el.__base__.set(this.__ctor, this);
     }
 
     this.__options = new OptionsManager(element, __config.options || {}, __config);
@@ -403,7 +403,7 @@ export default class Base extends EventTarget {
     this.__callMethod('terminated');
 
     // Delete instance
-    this.$el.__base__.delete(this.constructor);
+    this.$el.__base__.delete(this.__ctor);
   }
 
   /**
@@ -430,7 +430,7 @@ export default class Base extends EventTarget {
    * @returns {void}
    */
   __addEmits(event) {
-    const ctor = /** @type {BaseConstructor} */ (this.constructor);
+    const ctor = this.__ctor;
     if (Array.isArray(ctor.config.emits)) {
       ctor.config.emits.push(event);
     } else {
@@ -446,9 +446,19 @@ export default class Base extends EventTarget {
    * @returns {void}
    */
   __removeEmits(event) {
-    const ctor = /** @type {BaseConstructor} */ (this.constructor);
+    const ctor = this.__ctor;
     const index = ctor.config.emits.findIndex((value) => value === event);
     ctor.config.emits.splice(index, 1);
+  }
+
+  /**
+   * Get the instance constructor.
+   *
+   * @private
+   * @returns {BaseConstructor}
+   */
+  get __ctor() {
+    return /** @type {BaseConstructor} */ (this.constructor);
   }
 
   /**

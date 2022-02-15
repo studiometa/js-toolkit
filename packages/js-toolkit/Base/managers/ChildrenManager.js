@@ -117,7 +117,7 @@ export default class ChildrenManager {
   /**
    * Get a child component's instance.
    *
-   * @param {HTMLElement & { __base__?: WeakMap(BaseConstructor, Base) }} el
+   * @param {HTMLElement & { __base__?: WeakMap<BaseConstructor, Base> }} el
    *   The root element of the child component.
    * @param {BaseConstructor|BaseAsyncConstructor} ComponentClass
    *   A Base class or a Promise for async components.
@@ -128,13 +128,14 @@ export default class ChildrenManager {
    * @private
    */
   __getChild(el, ComponentClass, name) {
-    // Return existing instance if it exists
-    if (el.__base__ && el.__base__.has(ComponentClass)) {
-      return el.__base__.get(ComponentClass);
-    }
-
-    // Return a new instance if the component class is a child of the Base class
+    // Test if we have a constructor and not a promise
     if ('$isBase' in ComponentClass) {
+      // Return existing instance if it exists
+      if (el.__base__ && el.__base__.has(ComponentClass)) {
+        return el.__base__.get(ComponentClass);
+      }
+
+      // Return a new instance if the component class is a child of the Base class
       const child = new ComponentClass(el);
       Object.defineProperty(child, '$parent', { get: () => this.__base });
       return child;
