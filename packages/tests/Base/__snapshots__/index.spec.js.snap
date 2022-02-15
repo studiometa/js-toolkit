@@ -10,7 +10,9 @@ Array [
       "$id": "Foo-37",
       "$isMounted": true,
       "$parent": null,
-      "__children": ChildrenManager {},
+      "__children": ChildrenManager {
+        "__asyncComponentPromises": WeakMap {},
+      },
       "__eventHandlers": Map {},
       "__events": EventsManager {},
       "__options": OptionsManager {
