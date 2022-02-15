@@ -128,25 +128,68 @@ export default class ChildrenManager {
    * @private
    */
   __getChild(el, ComponentClass, name) {
-    // Test if we have a constructor and not a promise
-    if ('$isBase' in ComponentClass) {
+    const asyncComponentPromise = this.__asyncComponentPromises.get(ComponentClass);
+
+    // Test if we have a constructor and not a promise or if the promise has been resolved
+    if (
+      '$isBase' in ComponentClass ||
+      (asyncComponentPromise && asyncComponentPromise.status === 'resolved')
+    ) {
+      let ctor = ComponentClass;
+
+      // Get resolved constructor from weakmap.
+      // Only test for existence as the status was checked before.
+      if (asyncComponentPromise) {
+        ctor = asyncComponentPromise.ctor;
+      }
+
       // Return existing instance if it exists
-      if (el.__base__ && el.__base__.has(ComponentClass)) {
-        return el.__base__.get(ComponentClass);
+      if (el.__base__ && el.__base__.has(ctor)) {
+        return el.__base__.get(ctor);
       }
 
       // Return a new instance if the component class is a child of the Base class
-      const child = new ComponentClass(el);
+      // eslint-disable-next-line new-cap
+      const child = new ctor(el);
       Object.defineProperty(child, '$parent', { get: () => this.__base });
       return child;
     }
 
+    const promise = asyncComponentPromise
+      ? asyncComponentPromise.promise
+      : ComponentClass(this.__base);
+
+    if (!asyncComponentPromise) {
+      this.__asyncComponentPromises.set(ComponentClass, {
+        promise,
+        status: 'pending',
+        ctor: undefined,
+      });
+    }
+
     // Resolve async components
-    return ComponentClass(this.__base).then((module) => {
+    return promise.then((module) => {
       // @ts-ignore
-      return this.__getChild(el, module.default ?? module, name);
+      const ctor = module.default ?? module;
+
+      this.__asyncComponentPromises.set(ComponentClass, {
+        promise,
+        status: 'resolved',
+        ctor,
+      });
+
+      return this.__getChild(el, ctor, name);
     });
   }
+
+  /**
+   * Store async component promises to avoid calling them multiple times and
+   * waiting for them when they are already resolved.
+   *
+   * @private
+   * @type {WeakMap<BaseAsyncConstructor, { promise: ReturnType<BaseAsyncConstructor>, status: 'pending'|'resolved', ctor?: BaseConstructor }>}
+   */
+  __asyncComponentPromises = new WeakMap();
 
   /**
    * Mount all child component instances.
