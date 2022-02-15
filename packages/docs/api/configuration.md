@@ -35,7 +35,7 @@ class Component extends Base {
       booleanOption: Boolean, // default to false
       arrayOption: Array, // default to []
       arrayWithDefault: { type: Array, default: () => [1, 2] },
-      objectOption: Object,
+      objectOption: Object, // default to {}
       objectWithDefault: { type: Object, default: () => ({ foo: 'foo' }) },
     },
   };
