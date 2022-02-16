@@ -45,6 +45,8 @@ Array [
   "matrix",
   "memoize",
   "nextFrame",
+  "nextMicrotask",
+  "nextTick",
   "objectToURLSearchParams",
   "round",
   "scrollTo",
