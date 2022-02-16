@@ -23,8 +23,9 @@ export function getCancelRaf() {
 /**
  * Wait for the next frame to execute a function.
  *
- * @param  {Function=} [fn=() => {}] The callback function to execute.
- * @return {Promise} A Promise resolving when the next frame is reached.
+ * @template {() => any} T
+ * @param    {T=} [fn] The callback function to execute.
+ * @returns  {Promise<T extends Function ? ReturnType<T> : undefined>} A Promise resolving when the next frame is reached.
  *
  * @example
  * ```js
@@ -34,9 +35,8 @@ export function getCancelRaf() {
  * console.log('hello world');
  * ```
  */
-export default function nextFrame(fn = () => {}) {
-  const raf = getRaf();
+export default function nextFrame(fn) {
   return new Promise((resolve) => {
-    raf(() => raf(() => resolve(fn())));
+    getRaf()(() => resolve(typeof fn === 'function' && fn()));
   });
 }
