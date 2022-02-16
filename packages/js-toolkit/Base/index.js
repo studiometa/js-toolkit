@@ -300,8 +300,9 @@ export default class Base extends EventTarget {
 
     if (!this.$el.__base__) {
       this.$el.__base__ = new WeakMap();
-      this.$el.__base__.set(this.__ctor, this);
     }
+
+    this.$el.__base__.set(this.__ctor, this);
 
     this.__options = new OptionsManager(element, __config.options || {}, __config);
     this.__services = new ServicesManager(this);
