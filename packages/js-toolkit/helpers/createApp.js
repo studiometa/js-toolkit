@@ -29,12 +29,12 @@
  *
  * @template {BaseConstructor} T
  * @param {T} App
- * @param {HTMLElement} rootElement
+ * @param {HTMLElement=} [rootElement]
  *
  * @return {() => Promise<InstanceType<T>>}
  *
  */
-export default function createApp(App, rootElement) {
+export default function createApp(App, rootElement = document.body) {
   let isLoaded = document.readyState === 'complete';
   let app;
 
