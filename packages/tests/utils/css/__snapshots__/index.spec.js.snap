@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`@studiometa/js-toolkit/utils/css exports should export all scripts 1`] = `
+Array [
+  "addClass",
+  "addStyle",
+  "matrix",
+  "removeClass",
+  "removeStyle",
+  "toggleClass",
+  "transition",
+]
+`;
