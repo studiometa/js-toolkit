@@ -1,10 +1,14 @@
-/* eslint no-underscore-dangle: ["error", { "allow": ["__isTransitioning__", "__transitionEndHandler__"] }] */
 import nextFrame from '../nextFrame.js';
 import * as classes from './classes.js';
 import * as styles from './styles.js';
 
 /** WeakMap to hold the transition instances. */
 const cache = new WeakMap();
+
+/**
+ * @typedef {string|string[]|Partial<CSSStyleDeclaration>} ClassesOrStyles
+ * @typedef {{ from?: ClassesOrStyles, active?: ClassesOrStyles, to?: ClassesOrStyles }} TransitionStyles
+ */
 
 /**
  * Transition class.
@@ -49,15 +53,15 @@ class Transition {
 /**
  * Update either the classes or the styles of an element with the given method.
  *
- * @param {HTMLElement}   element         The element to update.
- * @param {String|Object} classesOrStyles The classes or styles to apply.
- * @param {String}        method          The method to use, one of `add` or `remove`.
+ * @param {HTMLElement}     element         The element to update.
+ * @param {ClassesOrStyles} classesOrStyles The classes or styles to apply.
+ * @param {'add'|'remove'}  method          The method to use, one of `add` or `remove`.
  */
 export function setClassesOrStyles(element, classesOrStyles, method = 'add') {
-  if (typeof classesOrStyles === 'string') {
-    classes[method](element, classesOrStyles, method);
+  if (typeof classesOrStyles === 'string' || Array.isArray(classesOrStyles)) {
+    classes[method](element, classesOrStyles);
   } else {
-    styles[method](element, classesOrStyles, method);
+    styles[method](element, classesOrStyles);
   }
 }
 
@@ -79,9 +83,9 @@ function testTransition(element) {
 /**
  * Apply the from state.
  *
- * @param {HTMLElement}   element         The target element.
- * @param {String|Object} classesOrStyles The classes or styles definition.
- * @return {Promise}
+ * @param  {HTMLElement}      element         The target element.
+ * @param  {TransitionStyles} classesOrStyles The classes or styles definition.
+ * @return {Promise<void>}
  */
 async function start(element, classesOrStyles) {
   const trs = Transition.getInstance(element);
@@ -95,15 +99,15 @@ async function start(element, classesOrStyles) {
 /**
  * Apply the active state.
  *
- * @param {HTMLElement}   element         The target element.
- * @param {String|Object} classesOrStyles The classes or styles definition.
+ * @param  {HTMLElement}      element         The target element.
+ * @param  {TransitionStyles} classesOrStyles The classes or styles definition.
  * @return {Promise}
  */
 async function next(element, classesOrStyles) {
   const hasTransition = testTransition(element);
 
   /* eslint-disable-next-line */
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     if (hasTransition) {
       const trs = Transition.getInstance(element);
       trs.transitionEndHandler = resolve;
@@ -143,12 +147,13 @@ function end(element, classesOrStyles, mode = 'remove') {
  * This is heavily inspired by the Vue `<transition>` component
  * and the `@barba/css` package, many thanks to them!
  *
- * @param  {HTMLElement}   element The target element.
- * @param  {String|Object} name    The name of the transition or an object with the hooks classesOrStyles.
- * @param  {String}        endMode    Whether to remove or keep the `to` classes/styles
- * @return {Promise}               A promise resolving at the end of the transition.
+ * @param  {HTMLElement}             element The target element.
+ * @param  {string|TransitionStyles} name    The name of the transition or an object with the hooks classesOrStyles.
+ * @param  {String}                  endMode Whether to remove or keep the `to` classes/styles
+ * @return {Promise<void>}                   A promise resolving at the end of the transition.
  */
 export default async function transition(element, name, endMode = 'remove') {
+  /** @type {TransitionStyles} */
   const classesOrStyles =
     typeof name === 'string'
       ? {
