@@ -4,8 +4,9 @@
  * @param {HTMLElement} element The element to update.
  * @param {string|string[]} classNames A string of class names.
  * @param {'add'|'remove'|'toggle'} [method='add'] The method to use: add, remove or toggle.
+ * @param {boolean} [forceToggle] Force toggle?
  */
-function setClasses(element, classNames, method = 'add') {
+function setClasses(element, classNames, method = 'add', forceToggle = undefined) {
   if (!element || !classNames) {
     return;
   }
@@ -15,7 +16,7 @@ function setClasses(element, classNames, method = 'add') {
   if (method !== 'toggle') {
     element.classList[method](...normalizedClassNames);
   } else {
-    normalizedClassNames.forEach((className) => element.classList[method](className));
+    normalizedClassNames.forEach((className) => element.classList[method](className, forceToggle));
   }
 }
 
@@ -46,8 +47,9 @@ export function remove(element, classNames) {
  *
  * @param  {HTMLElement}     element    The element to update.
  * @param  {string|string[]} classNames A string of class names.
+ * @param  {boolean}         [force]    Force toggle?
  * @return {void}
  */
-export function toggle(element, classNames) {
-  setClasses(element, classNames, 'toggle');
+export function toggle(element, classNames, force = undefined) {
+  setClasses(element, classNames, 'toggle', force);
 }
