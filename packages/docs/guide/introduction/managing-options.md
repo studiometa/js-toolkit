@@ -65,7 +65,7 @@ class VideoPlayer extends Base {
     options: {
       videoId: {
         type: String,
-        default: 'dQw4w9WgXcQ'
+        default: 'dQw4w9WgXcQ',
       },
     },
   };
@@ -80,10 +80,7 @@ Once it is defined in the component, it is possible to add the corresponding att
 - The variable name will automatically be converted in `camelCase` in the component. (`optionName`)
 
 ```html {2}
-<div data-component="VideoPlayer"
-  data-option-video-id="dQw4w9WgXcQ">
-  ...
-</div>
+<div data-component="VideoPlayer" data-option-video-id="dQw4w9WgXcQ">...</div>
 ```
 
 ```js {15}
@@ -95,7 +92,7 @@ class VideoPlayer extends Base {
     options: {
       videoId: {
         type: String,
-        default: 'dQw4w9WgXcQ'
+        default: 'dQw4w9WgXcQ',
       },
     },
   };
@@ -119,7 +116,7 @@ class VideoPlayer extends Base {
     options: {
       videoId: {
         type: String,
-        default: 'dQw4w9WgXcQ'
+        default: 'dQw4w9WgXcQ',
       },
     },
   };

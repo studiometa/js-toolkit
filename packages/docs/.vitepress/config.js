@@ -217,7 +217,12 @@ function getUtilsSidebar() {
       text: 'CSS utils',
       // link: '/utils/css/',
       children: [
+        { text: 'addClass', link: '/utils/css/addClass.html' },
+        { text: 'addStyle', link: '/utils/css/addStyle.html' },
         { text: 'matrix', link: '/utils/css/matrix.html' },
+        { text: 'removeClass', link: '/utils/css/removeClass.html' },
+        { text: 'removeStyle', link: '/utils/css/removeStyle.html' },
+        { text: 'toggleClass', link: '/utils/css/toggleClass.html' },
         { text: 'transition', link: '/utils/css/transition.html' },
       ],
     },
