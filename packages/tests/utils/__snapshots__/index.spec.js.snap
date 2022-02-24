@@ -2,6 +2,8 @@
 
 exports[`@studiometa/js-toolkit/utils exports should export all scripts 1`] = `
 Array [
+  "addClass",
+  "addStyle",
   "boundingRectToCircle",
   "clamp",
   "clamp01",
@@ -45,10 +47,15 @@ Array [
   "matrix",
   "memoize",
   "nextFrame",
+  "nextMicrotask",
+  "nextTick",
   "objectToURLSearchParams",
+  "removeClass",
+  "removeStyle",
   "round",
   "scrollTo",
   "throttle",
+  "toggleClass",
   "transition",
   "withLeadingCharacters",
   "withLeadingSlash",

@@ -78,7 +78,8 @@ describe('A Base instance', () => {
 
   it('should have a `__base__` property', () => {
     // @ts-ignore
-    expect(foo.$el.__base__).toBe(foo);
+    expect(foo.$el.__base__).toBeInstanceOf(WeakMap);
+    expect(foo.$el.__base__.get(Foo)).toBe(foo);
   });
 
   it('should inherit from parent config', () => {
@@ -199,8 +200,14 @@ describe('A Base instance methods', () => {
     class Baz extends Base {
       static config = { name: 'Baz' };
       updated() {
-        fn();
+        fn(this.$id);
       }
+    }
+
+    class AsyncBaz extends Baz {
+      static config = {
+        name: 'AsyncBaz',
+      };
     }
 
     class App extends Base {
@@ -209,7 +216,7 @@ describe('A Base instance methods', () => {
         components: {
           Bar,
           Baz,
-          AsyncBaz: () => Promise.resolve(Baz),
+          AsyncBaz: () => Promise.resolve(AsyncBaz),
         },
       };
     }
@@ -231,7 +238,7 @@ describe('A Base instance methods', () => {
     const asyncBaz = await app.$children.AsyncBaz[0];
     expect(asyncBaz.$isMounted).toBe(true);
 
-    const id = div.firstElementChild.__base__.$id;
+    const id = div.firstElementChild.__base__.get(Baz).$id;
     expect(id).toBe(app.$children.Baz[0].$id);
 
     const child = document.createElement('div');
@@ -241,6 +248,8 @@ describe('A Base instance methods', () => {
 
     app.$update();
 
+    // Wait for the async component to update
+    await wait(1);
     expect(id).toBe(app.$children.Baz[0].$id);
     expect(fn).toHaveBeenCalledTimes(3);
   });
@@ -277,7 +286,7 @@ describe('A Base instance methods', () => {
 
     const div = document.createElement('div');
     const bar = new Bar(div).$mount();
-    expect(bar).toEqual(div.__base__);
+    expect(bar).toEqual(div.__base__.get(Bar));
     bar.$on('terminated', () => fn('event'));
     bar.$terminate();
     expect(fn).toHaveBeenCalledTimes(2);
@@ -321,8 +330,8 @@ describe('A Base instance methods', () => {
       <div data-component="Bar"></div>
     `;
     const baz = new Baz(div).$mount();
-    expect(baz.$children.Bar).toEqual([div.firstElementChild.__base__]);
-    div.firstElementChild.__base__.$terminate();
+    expect(baz.$children.Bar).toEqual([div.firstElementChild.__base__.get(Bar)]);
+    div.firstElementChild.__base__.get(Bar).$terminate();
     expect(baz.$children.Bar).toEqual([]);
   });
 
@@ -359,10 +368,10 @@ describe('A Base instance methods', () => {
     const baz = new Baz(document.body).$mount();
     const barElement = document.querySelector('[data-component="Bar"]');
     expect(baz.$isMounted).toBe(true);
-    expect(barElement.__base__.$isMounted).toBe(true);
+    expect(barElement.__base__.get(Bar).$isMounted).toBe(true);
     baz.$destroy();
     expect(baz.$isMounted).toBe(false);
-    expect(barElement.__base__.$isMounted).toBe(false);
+    expect(barElement.__base__.get(Bar).$isMounted).toBe(false);
   });
 });
 

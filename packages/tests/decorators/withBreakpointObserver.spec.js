@@ -65,8 +65,8 @@ describe('The withBreakpointObserver decorator', () => {
     resizeWindow({ width: 1200 });
     jest.runAllTimers();
     expect(app.$isMounted).toBe(true);
-    expect(foo.__base__.$isMounted).toBe(true);
-    expect(fooResponsive[0].__base__.$isMounted).toBe(true);
+    expect(foo.__base__.get(Foo).$isMounted).toBe(true);
+    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(true);
   });
 
   it('should disable the decorated component', async () => {
@@ -74,37 +74,37 @@ describe('The withBreakpointObserver decorator', () => {
     jest.runAllTimers();
 
     expect(window.innerWidth).toBe(480);
-    expect(fooResponsive[0].__base__.$isMounted).toBe(true);
-    expect(fooResponsive[1].__base__.$isMounted).toBe(true);
-    expect(fooResponsive[2].__base__.$isMounted).toBe(false);
-    expect(fooResponsive[3].__base__.$isMounted).toBe(false);
+    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(true);
+    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(true);
+    expect(fooResponsive[2].__base__.get(FooResponsive).$isMounted).toBe(false);
+    expect(fooResponsive[3].__base__.get(FooResponsive).$isMounted).toBe(false);
     resizeWindow({ width: 800 });
     jest.runAllTimers();
 
     expect(window.innerWidth).toBe(800);
-    expect(fooResponsive[0].__base__.$isMounted).toBe(true);
-    expect(fooResponsive[1].__base__.$isMounted).toBe(false);
-    expect(fooResponsive[2].__base__.$isMounted).toBe(true);
-    expect(fooResponsive[3].__base__.$isMounted).toBe(false);
+    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(true);
+    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(false);
+    expect(fooResponsive[2].__base__.get(FooResponsive).$isMounted).toBe(true);
+    expect(fooResponsive[3].__base__.get(FooResponsive).$isMounted).toBe(false);
     resizeWindow({ width: 1200 });
     jest.runAllTimers();
 
     expect(window.innerWidth).toBe(1200);
-    expect(fooResponsive[0].__base__.$isMounted).toBe(true);
-    expect(fooResponsive[1].__base__.$isMounted).toBe(false);
-    expect(fooResponsive[2].__base__.$isMounted).toBe(true);
-    expect(fooResponsive[3].__base__.$isMounted).toBe(false);
+    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(true);
+    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(false);
+    expect(fooResponsive[2].__base__.get(FooResponsive).$isMounted).toBe(true);
+    expect(fooResponsive[3].__base__.get(FooResponsive).$isMounted).toBe(false);
 
-    fooResponsive[0].__base__.$options.inactiveBreakpoints = 's m';
+    fooResponsive[0].__base__.get(FooResponsive).$options.inactiveBreakpoints = 's m';
     // We need the real timers to wait for the MutationObserver to work correctly.
     jest.useRealTimers();
     await resizeWindow({ width: 800 });
 
     expect(window.innerWidth).toBe(800);
-    expect(fooResponsive[0].__base__.$isMounted).toBe(false);
+    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(false);
 
     await resizeWindow({ width: 1200 });
-    expect(fooResponsive[0].__base__.$isMounted).toBe(true);
+    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(true);
 
     jest.useFakeTimers();
   });
@@ -113,16 +113,16 @@ describe('The withBreakpointObserver decorator', () => {
     resizeWindow({ width: 400 });
     jest.runAllTimers();
 
-    expect(fooResponsive[1].__base__.$isMounted).toBe(true);
+    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(true);
     resizeWindow({ width: 800 });
     jest.runAllTimers();
 
-    expect(fooResponsive[1].__base__.$isMounted).toBe(false);
+    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(false);
     fooResponsive[1].dataset.options = '{}';
     resizeWindow({ width: 400 });
     jest.runAllTimers();
 
-    expect(fooResponsive[1].__base__.$isMounted).toBe(true);
+    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(true);
   });
 
   it('should throw when configuring both breakpoint options', () => {

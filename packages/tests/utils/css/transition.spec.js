@@ -48,16 +48,9 @@ describe('transition method', () => {
       active: 'transition duration-500',
       to: 'transform scale-50',
     });
-    expect(spyStyle).toHaveBeenNthCalledWith(1, '0');
-    expect(spyAdd).toHaveBeenNthCalledWith(1, 'transition');
-    expect(spyAdd).toHaveBeenNthCalledWith(2, 'duration-500');
-    expect(spyAdd).toHaveBeenNthCalledWith(3, 'transform');
-    expect(spyAdd).toHaveBeenNthCalledWith(4, 'scale-50');
-    expect(spyStyle).toHaveBeenNthCalledWith(2, '');
-    expect(spyRemove).toHaveBeenNthCalledWith(1, 'transform');
-    expect(spyRemove).toHaveBeenNthCalledWith(2, 'scale-50');
-    expect(spyRemove).toHaveBeenNthCalledWith(3, 'transition');
-    expect(spyRemove).toHaveBeenNthCalledWith(4, 'duration-500');
+    expect(spyStyle.mock.calls).toMatchSnapshot();
+    expect(spyAdd.mock.calls).toMatchSnapshot();
+    expect(spyRemove.mock.calls).toMatchSnapshot();
   });
 
   it('should stop any previous transition', async () => {

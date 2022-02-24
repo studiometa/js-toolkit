@@ -1,4 +1,4 @@
-export * as classes from './classes.js';
-export * as styles from './styles.js';
+export { add as addClass, remove as removeClass, toggle as toggleClass } from './classes.js';
+export { add as addStyle, remove as removeStyle } from './styles.js';
 export { default as matrix } from './matrix.js';
 export { default as transition } from './transition.js';
