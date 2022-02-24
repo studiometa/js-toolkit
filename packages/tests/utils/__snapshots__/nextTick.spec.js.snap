@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`nextTick method should execute in order 1`] = `
+Array [
+  Array [
+    "start",
+  ],
+  Array [
+    "end",
+  ],
+  Array [
+    "nextMicrotask",
+  ],
+  Array [
+    "nextTick",
+  ],
+  Array [
+    "nextFrame",
+  ],
+]
+`;
