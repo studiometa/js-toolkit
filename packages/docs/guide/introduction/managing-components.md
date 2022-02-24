@@ -49,7 +49,7 @@ The child components will be resolved with the following strategy:
 - all elements matching the selector `[data-component="<COMPONENT_KEY>"]`
 - all elements matching the selector `<COMPONENT_KEY>`
 
-If no element is found, the child component will not be instanciated.
+If no element is found, the child component will not be instantiated.
 
 ::: tip API Reference
 Visit the API reference section for the [`config.components` property](/api/configuration.html#config-components) for more details.
