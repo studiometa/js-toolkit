@@ -63,7 +63,7 @@ export default class Base extends EventTarget {
 
   /**
    * The root element.
-   * @type {HTMLElement}
+   * @type {HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> }}
    */
   $el;
 
@@ -298,12 +298,11 @@ export default class Base extends EventTarget {
 
     this.$el = element;
 
-    if (!('__base__' in this.$el)) {
-      Object.defineProperty(this.$el, '__base__', {
-        get: () => this,
-        configurable: true,
-      });
+    if (!this.$el.__base__) {
+      this.$el.__base__ = new WeakMap();
     }
+
+    this.$el.__base__.set(this.__ctor, this);
 
     this.__options = new OptionsManager(element, __config.options || {}, __config);
     this.__services = new ServicesManager(this);
@@ -404,16 +403,8 @@ export default class Base extends EventTarget {
     // Execute the `terminated` hook if it exists
     this.__callMethod('terminated');
 
-    // Delete the reference to the instance
-    // delete this.$el.__base__;
-
-    // And update its status to prevent re-instantiation when accessing the
-    // parent's `$children` property
-    Object.defineProperty(this.$el, '__base__', {
-      value: 'terminated',
-      configurable: false,
-      writable: false,
-    });
+    // Delete instance
+    this.$el.__base__.set(this.__ctor, 'terminated');
   }
 
   /**
@@ -440,7 +431,7 @@ export default class Base extends EventTarget {
    * @returns {void}
    */
   __addEmits(event) {
-    const ctor = /** @type {BaseConstructor} */ (this.constructor);
+    const ctor = this.__ctor;
     if (Array.isArray(ctor.config.emits)) {
       ctor.config.emits.push(event);
     } else {
@@ -456,9 +447,19 @@ export default class Base extends EventTarget {
    * @returns {void}
    */
   __removeEmits(event) {
-    const ctor = /** @type {BaseConstructor} */ (this.constructor);
+    const ctor = this.__ctor;
     const index = ctor.config.emits.findIndex((value) => value === event);
     ctor.config.emits.splice(index, 1);
+  }
+
+  /**
+   * Get the instance constructor.
+   *
+   * @private
+   * @returns {BaseConstructor}
+   */
+  get __ctor() {
+    return /** @type {BaseConstructor} */ (this.constructor);
   }
 
   /**
