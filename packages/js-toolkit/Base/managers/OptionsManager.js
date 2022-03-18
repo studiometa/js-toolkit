@@ -187,7 +187,7 @@ export default class OptionsManager {
 
     if (type === Array || type === Object) {
       if (!this.__values[name]) {
-        let val = hasProperty ? JSON.parse(value) : this.__defaultValues[type.name]();
+        let val = hasProperty ? JSON.parse(value) : defaultValue();
 
         if (typeof merge !== 'undefined') {
           val =
