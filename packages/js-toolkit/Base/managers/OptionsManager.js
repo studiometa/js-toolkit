@@ -2,10 +2,11 @@ import deepmerge from 'deepmerge';
 import isObject from '../../utils/object/isObject.js';
 
 /**
+ * @typedef {import('deepmerge').Options} DeepmergeOptions
  * @typedef {import('../index.js').BaseConfig} BaseConfig
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
- * @typedef {{ type: OptionType, default: String|Number|Boolean|(() => Array|Object)}} OptionWithDefault
- * @typedef {OptionType | OptionWithDefault} OptionValue
+ * @typedef {{ type: OptionType, default: String|Number|Boolean|(() => Array|Object), merge?: boolean|DeepmergeOptions }} OptionObject
+ * @typedef {OptionType | OptionObject} OptionValue
  * @typedef {{ [name:string]: OptionValue }} OptionsSchema
  * @typedef {{ [optionName:string]: any }} OptionsInterface
  */
@@ -123,9 +124,10 @@ export default class OptionsManager {
    * @private
    */
   __register(name, config) {
+    const isObjectConfig = typeof config === 'object';
     const hasDefaultValue = !OptionsManager.types.includes(config);
-    const type = hasDefaultValue
-      ? /** @type {OptionWithDefault} */ (config).type
+    const type = isObjectConfig
+      ? /** @type {OptionObject} */ (config).type
       : /** @type {OptionType} */ (config);
 
     if (!OptionsManager.types.includes(type)) {
@@ -145,7 +147,7 @@ export default class OptionsManager {
 
     Object.defineProperty(this, name, {
       get: () => {
-        return this.get(name, type, defaultValue);
+        return this.get(name, type, defaultValue, isObjectConfig ? config.merge : undefined);
       },
       set: (value) => {
         this.set(name, type, value, defaultValue);
@@ -160,8 +162,9 @@ export default class OptionsManager {
    * @param {String} name The option name.
    * @param {OptionType} type The option data's type.
    * @param {any} defaultValue The default value for this option.
+   * @param {boolean|DeepmergeOptions} [merge] Wether to merge the value with the default or not.
    */
-  get(name, type, defaultValue) {
+  get(name, type, defaultValue, merge) {
     const propertyName = OptionsManager.__getPropertyName(name);
     const hasProperty = this.__hasProperty(propertyName);
 
@@ -183,12 +186,16 @@ export default class OptionsManager {
     }
 
     if (type === Array || type === Object) {
-      const val = deepmerge(
-        defaultValue(),
-        hasProperty ? JSON.parse(value) : this.__defaultValues[type.name]()
-      );
-
       if (!this.__values[name]) {
+        let val = hasProperty ? JSON.parse(value) : this.__defaultValues[type.name]();
+
+        if (typeof merge !== 'undefined') {
+          val =
+            typeof merge === 'boolean'
+              ? deepmerge(defaultValue(), val)
+              : deepmerge(defaultValue(), val, merge);
+        }
+
         this.__values[name] = val;
       }
 
