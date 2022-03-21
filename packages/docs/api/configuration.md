@@ -33,10 +33,19 @@ class Component extends Base {
       numberOption: Number, // default to 0
       numberWithDefault: { type: Number, default: 10 },
       booleanOption: Boolean, // default to false
+      // default to true, can be negated with the `data-option-no-boolean-with-default` attribute
+      booleanWithDefault: {
+        type: Boolean,
+        default: true,
+      },
       arrayOption: Array, // default to []
       arrayWithDefault: { type: Array, default: () => [1, 2] },
       objectOption: Object, // default to {}
-      objectWithDefault: { type: Object, default: () => ({ foo: 'foo' }) },
+      objectWithDefault: {
+        type: Object,
+        default: () => ({ foo: 'foo' }),
+        merge: true, // Optional, wether to merge values or not
+      },
     },
   };
 
@@ -46,14 +55,15 @@ class Component extends Base {
     this.$options.numberOption; // 0
     this.$options.numberWithDefault; // 10
     this.$options.booleanOption; // false
+    this.$options.booleanWithDefault; // true
     this.$options.arrayOption; // []
     this.$options.arrayWithDefault; // [1,2]
     this.$options.objectOption; // {}
     this.$options.objectWithDefault; // { foo: 'foo' }
 
-    this.$el.hasAttribute('data-boolean-option'); // false
+    this.$el.hasAttribute('data-option-boolean-option'); // false
     this.$options.booleanOption = true;
-    this.$el.hasAttribute('data-boolean-option'); // true
+    this.$el.hasAttribute('data-option-boolean-option'); // true
   }
 }
 ```
