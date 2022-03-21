@@ -18,4 +18,3 @@ export default class ComponentWithFreezedOptions extends withFreezedOptions(Comp
 ### Return value
 
 - `Base`: A child class of the given class with the `$options` property freezed.
-
