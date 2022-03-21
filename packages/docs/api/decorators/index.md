@@ -6,6 +6,7 @@ Decorators are used to add extra functionalities to a Base class. The following 
 - [withBreakpointObserver](./withBreakpointObserver.html)
 - [withDrag](./withDrag.html)
 - [withExtraConfig](./withExtraConfig.html)
+- [withFreezedOptions](./withFreezedOptions.html)
 - [withIntersectionObserver](./withIntersectionObserver.html)
 - [withMountWhenInView](./withMountWhenInView.html)
 - [withVue2](./withVue2.html)

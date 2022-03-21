@@ -170,6 +170,7 @@ function getDecoratorsSidebar() {
     { text: 'withBreakpointObserver', link: '/api/decorators/withBreakpointObserver.html' },
     { text: 'withDrag', link: '/api/decorators/withDrag.html' },
     { text: 'withExtraConfig', link: '/api/decorators/withExtraConfig.html' },
+    { text: 'withFreezedOptions', link: '/api/decorators/withFreezedOptions.html' },
     { text: 'withIntersectionObserver', link: '/api/decorators/withIntersectionObserver.html' },
     { text: 'withMountWhenInView', link: '/api/decorators/withMountWhenInView.html' },
     { text: 'withScrolledInView', link: '/api/decorators/withScrolledInView.html' },
