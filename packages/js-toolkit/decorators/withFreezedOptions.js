@@ -19,7 +19,7 @@ export default function withFreezedOptions(BaseClass) {
      */
     get $options() {
       Object.defineProperty(this, '$options', {
-        value: Object.freeze(super.$options),
+        value: Object.freeze({ ...super.$options }),
         enumerable: true,
       });
 
