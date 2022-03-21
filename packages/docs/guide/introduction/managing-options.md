@@ -72,6 +72,40 @@ class VideoPlayer extends Base {
 }
 ```
 
+### Merging options
+
+When working with `Array` or `Object` as option type, it can be useful to merge the values from the `data-option-...` attribute with the default ones. You can use the `merge` property to enable merge with [`deepmerge`](https://github.com/TehShrike/deepmerge):
+
+```js {10}
+import { Base } from '@studiometa/js-toolkit';
+
+class VideoPlayer extends Base {
+  static config = {
+    name: 'VideoPlayer',
+    options: {
+      styles: {
+        type: Object,
+        default: () => ({ display: 'none' }),
+        merge: {
+          isMergeableObject: (object) => object[display] === 'none',
+        },
+      },
+      array: {
+        type: Object,
+        default: () => [1, 2],
+        merge: true,
+      },
+    },
+  };
+}
+```
+
+The `merge` property can either be a `boolean` or an [option object for the `deepmerge`](https://github.com/TehShrike/deepmerge#options) function.
+
+::: warning
+The `merge` property will only have effect on options whose type is `Array` or `Object`.
+:::
+
 ## Using options
 
 Once it is defined in the component, it is possible to add the corresponding attribute to pass the data.
