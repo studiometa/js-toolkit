@@ -5,23 +5,34 @@ describe('The Options class', () => {
   it('should throw an error when using an unknown type', () => {
     expect(
       () =>
-        new OptionsManager(html`<div></div>`, {
-          foo: Map,
-        }, { name: 'Test' })
+        new OptionsManager(
+          // eslint-disable-next-line prettier/prettier
+          html`<div></div>`,
+          {
+            foo: Map,
+          },
+          { name: 'Test' }
+        )
     ).toThrow(
       'The "foo" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.'
     );
   });
 
   it('should throw an error when setting value with the wrong type', () => {
+    // eslint-disable-next-line prettier/prettier
     const div = html`<div data-option-foo="bar"></div>`;
-    const options = new OptionsManager(div, {
-      string: String,
-      number: Number,
-      boolean: Boolean,
-      array: Array,
-      object: Object,
-    }, { name: 'Test' });
+
+    const options = new OptionsManager(
+      div,
+      {
+        string: String,
+        number: Number,
+        boolean: Boolean,
+        array: Array,
+        object: Object,
+      },
+      { name: 'Test' }
+    );
 
     expect(() => {
       options.string = 10;
@@ -45,10 +56,15 @@ describe('The Options class', () => {
   });
 
   it('should get and set string options', () => {
+    // eslint-disable-next-line prettier/prettier
     const div = html`<div data-option-foo="bar"></div>`;
-    const options = new OptionsManager(div, {
-      foo: String,
-    }, { name: 'Test' });
+    const options = new OptionsManager(
+      div,
+      {
+        foo: String,
+      },
+      { name: 'Test' }
+    );
 
     expect(options.foo).toBe('bar');
     options.foo = 'baz';
@@ -57,10 +73,15 @@ describe('The Options class', () => {
   });
 
   it('should get and set number options', () => {
+    // eslint-disable-next-line prettier/prettier
     const div = html`<div data-option-foo="0"></div>`;
-    const options = new OptionsManager(div, {
-      foo: Number,
-    }, { name: 'Test' });
+    const options = new OptionsManager(
+      div,
+      {
+        foo: Number,
+      },
+      { name: 'Test' }
+    );
 
     expect(options.foo).toBe(0);
     options.foo = 1.5;
@@ -69,10 +90,15 @@ describe('The Options class', () => {
   });
 
   it('should get and set boolean options', () => {
+    // eslint-disable-next-line prettier/prettier
     const div = html`<div data-option-foo></div>`;
-    const options = new OptionsManager(div, {
-      foo: Boolean,
-    }, { name: 'Test' });
+    const options = new OptionsManager(
+      div,
+      {
+        foo: Boolean,
+      },
+      { name: 'Test' }
+    );
 
     expect(options.foo).toBe(true);
     options.foo = false;
@@ -84,10 +110,15 @@ describe('The Options class', () => {
   });
 
   it('should get falsy boolean options', () => {
+    // eslint-disable-next-line prettier/prettier
     const div = html`<div data-option-no-foo></div>`;
-    const options = new OptionsManager(div, {
-      foo: { type: Boolean, default: true },
-    }, { name: 'Test' });
+    const options = new OptionsManager(
+      div,
+      {
+        foo: { type: Boolean, default: true },
+      },
+      { name: 'Test' }
+    );
 
     expect(options.foo).toBe(false);
     expect(div.hasAttribute('data-option-foo')).toBe(false);
@@ -101,10 +132,15 @@ describe('The Options class', () => {
   });
 
   it('should get and set array options', () => {
+    // eslint-disable-next-line prettier/prettier
     const div = html`<div data-option-foo="[1, 2]"></div>`;
-    const options = new OptionsManager(div, {
-      foo: Array,
-    }, { name: 'Test' });
+    const options = new OptionsManager(
+      div,
+      {
+        foo: Array,
+      },
+      { name: 'Test' }
+    );
 
     expect(options.foo).toEqual([1, 2]);
     options.foo = [1, 2, 3];
@@ -114,10 +150,16 @@ describe('The Options class', () => {
   });
 
   it('should get and set object options', () => {
+    // eslint-disable-next-line prettier/prettier
     const div = html`<div data-option-foo="${JSON.stringify({ foo: 1 })}"></div>`;
-    const options = new OptionsManager(div, {
-      foo: Object,
-    }, { name: 'Test' });
+
+    const options = new OptionsManager(
+      div,
+      {
+        foo: Object,
+      },
+      { name: 'Test' }
+    );
 
     expect(options.foo).toEqual({ foo: 1 });
     options.foo = { bar: 2 };
@@ -126,20 +168,49 @@ describe('The Options class', () => {
     expect(options.foo).toEqual({ bar: 2, foo: 'foo' });
   });
 
+  it('should merge array and object options', () => {
+    // eslint-disable-next-line prettier/prettier
+    const div = html`<div data-option-bar="[3,4]" data-option-foo="${JSON.stringify({ key: 'key' })}"></div>`;
+    const options = new OptionsManager(
+      div,
+      {
+        foo: {
+          type: Object,
+          default: () => ({ foo: 'foo' }),
+          merge: true,
+        },
+        bar: {
+          type: Array,
+          default: () => [1, 2],
+          merge: true,
+        },
+      },
+      { name: 'Test' }
+    );
+
+    expect(options.foo).toEqual({ foo: 'foo', key: 'key' });
+    expect(options.bar).toEqual([1, 2, 3, 4]);
+  });
+
   it('should return the default values when there is no data-attribute', () => {
+    // eslint-disable-next-line prettier/prettier
     const div = html`<div />`;
-    const options = new OptionsManager(div, {
-      string: String,
-      number: Number,
-      boolean: Boolean,
-      array: Array,
-      object: Object,
-      stringWithDefault: { type: String, default: 'foo' },
-      numberWithDefault: { type: Number, default: 10 },
-      booleanWithDefault: { type: Boolean, default: true },
-      arrayWithDefault: { type: Array, default: () => [1, 2, 3] },
-      objectWithDefault: { type: Object, default: () => ({ foo: 'foo' }) },
-    }, { name: 'Test' });
+    const options = new OptionsManager(
+      div,
+      {
+        string: String,
+        number: Number,
+        boolean: Boolean,
+        array: Array,
+        object: Object,
+        stringWithDefault: { type: String, default: 'foo' },
+        numberWithDefault: { type: Number, default: 10 },
+        booleanWithDefault: { type: Boolean, default: true },
+        arrayWithDefault: { type: Array, default: () => [1, 2, 3] },
+        objectWithDefault: { type: Object, default: () => ({ foo: 'foo' }) },
+      },
+      { name: 'Test' }
+    );
 
     expect(options.name).toBe('Test');
     expect(options.string).toBe('');
@@ -159,12 +230,15 @@ describe('The Options class', () => {
   it('should throw an error when default values for types Object or Array are not functions', () => {
     expect(
       () =>
-        new OptionsManager(html`<div />`, {
-          array: { type: Array, default: [1, 2, 3] },
-        }, { name: 'Test' })
-    ).toThrow(
-      'The default value for options of type \"Array\" must be returned by a function.'
-    );
+        new OptionsManager(
+          // eslint-disable-next-line prettier/prettier
+          html`<div />`,
+          {
+            array: { type: Array, default: [1, 2, 3] },
+          },
+          { name: 'Test' }
+        )
+    ).toThrow('The default value for options of type "Array" must be returned by a function.');
   });
 
   // it('should not allow to add unconfigured properties', () => {
