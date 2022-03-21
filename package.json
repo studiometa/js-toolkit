@@ -9,7 +9,7 @@
     "demo:dev": "npm run dev --workspace=@studiometa/js-toolkit-demo",
     "demo:build": "npm run build --workspace=@studiometa/js-toolkit-demo",
     "docs:dev": "npm run dev --workspace=@studiometa/js-toolkit-docs",
-    "docs:build": "cd packages/docs && npm install && rm -fr node_modules/.vite && npm run build",
+    "docs:build": "cd packages/docs && npm install && rm -rf node_modules/.vite && npm run build",
     "test": "npm run test --workspace=@studiometa/js-toolkit-tests",
     "lint": "npm run lint:eslint && npm run lint:types && npm run lint:docs",
     "lint:eslint": "eslint packages/js-toolkit",

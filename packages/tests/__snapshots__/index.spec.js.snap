@@ -18,6 +18,7 @@ Array [
   "withBreakpointObserver",
   "withDrag",
   "withExtraConfig",
+  "withFreezedOptions",
   "withIntersectionObserver",
   "withMountWhenInView",
   "withScrolledInView",
