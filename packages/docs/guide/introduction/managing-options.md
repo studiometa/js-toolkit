@@ -92,9 +92,9 @@ class VideoPlayer extends Base {
       },
       array: {
         type: Object,
-        default: () => ([1, 2]),
+        default: () => [1, 2],
         merge: true,
-      }
+      },
     },
   };
 }
