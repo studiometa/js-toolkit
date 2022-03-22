@@ -41,7 +41,7 @@ jobs:
           ls -al
           VERSION=${GITHUB_REF/refs\/tags\//}
           TAG='latest'
-          if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' ]]; then
+          if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' || $VERSION =~ 'rc' ]]; then
             TAG='next'
           fi
           npm publish --tag $TAG

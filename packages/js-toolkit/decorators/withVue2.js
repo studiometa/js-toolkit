@@ -43,7 +43,9 @@ export default (BaseClass, Vue) => {
     constructor(element) {
       super(element);
 
-      const { vueConfig } = /** @type {typeof WithVue2} */ (this.constructor);
+      // const { vueConfig } = /** @type {typeof WithVue2} */ (this.constructor);
+      const vueConfig =
+        this.vueConfig ?? /** @type {typeof WithVue2} */ (this.constructor).vueConfig;
 
       if (!vueConfig) {
         throw new Error('[withVue] You must define a `vueConfig` object.');
