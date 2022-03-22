@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-workspace",
-  "version": "1.7.3",
+  "version": "1.7.4",
   "private": true,
   "workspaces": [
     "packages/*"
