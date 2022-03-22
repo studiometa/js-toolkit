@@ -23,6 +23,7 @@ export default function withFreezedOptions(BaseClass) {
       Object.defineProperty(this, '$options', {
         value: Object.freeze({ ...super.$options }),
         enumerable: true,
+        configurable: true,
       });
 
       return this.$options;
