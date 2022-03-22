@@ -30,9 +30,11 @@ describe('The `withVue` decorator', () => {
     static config = { name: 'Foo', refs: ['vue'] };
   }
 
-  const tpl = html`<div>
-    <div data-ref="vue"></div>
-  </div>`;
+  const tpl = html`
+    <div>
+      <div data-ref="vue"></div>
+    </div>
+  `;
   const foo = new Foo(tpl);
 
   it('should instantiate the vue component', () => {
@@ -76,6 +78,26 @@ describe('The `withVue` decorator', () => {
     expect(() => {
       new FooBar(tpl);
     }).toThrow('[withVue] You must define a `render` function in vueConfig.');
+  });
+
+  it('should work with config defined in a getter', () => {
+    class Bar extends withVue2(Base, Vue) {
+      static config = { name: 'Foo', refs: ['vue'] };
+
+      get vueConfig() {
+        return {
+          components: {
+            VueComponent,
+          },
+          render: (h) => h(VueComponent),
+        };
+      }
+    }
+
+    const tplClone = tpl.cloneNode();
+    const bar = new Bar(tplClone);
+    expect(bar.$vue._isVue).toBe(true);
+    expect(tplClone.innerHTML).toMatchSnapshot();
   });
 
   // Jest fails to catch the error thrown inside the `mounted` event handle, making
