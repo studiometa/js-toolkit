@@ -114,4 +114,8 @@ describe('The ServicesManager', () => {
     expect(service.remove).toHaveBeenCalledTimes(1);
     app.$services.unregister('customService');
   });
+
+  it('should expose each services props', () => {
+    expect(app.$services.get('ticked')).toHaveProperty('time');
+  });
 });

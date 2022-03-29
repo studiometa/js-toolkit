@@ -65,6 +65,7 @@ The following methods are available:
 - `enable(service: string): () => void`: enable the given service if the current component instance has the service method defined, returns a function to disable the service
 - `disable(service: string): void`: disable the given service
 - `toggle(service: string, force?: boolean): void`: toggle the given service
+- `get(service: string): any`: get the props of the given service
 - `enableAll(): Array<() => void>`: enable all services which are defined
 - `disableAll(): void`: disable all services
 
@@ -78,7 +79,7 @@ class Component extends Base {
   };
 
   onBtnClick() {
-    if (this.$services.has('ticked')) {
+    if (!this.$services.has('ticked')) {
       this.$services.enable('ticked');
     } else {
       this.$services.disable('ticked');
