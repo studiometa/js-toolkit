@@ -94,7 +94,7 @@ export default class ServicesManager {
   /**
    * Get a service props by name.
    * @param   {ServiceName} service The name of the service.
-   * @returns {ServiceInterface}
+   * @returns {ReturnType<ServiceInterface['props']>}
    */
   get(service) {
     return this.__services[service]().props();
