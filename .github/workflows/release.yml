@@ -63,7 +63,7 @@ jobs:
 
           PRERELEASE=false
           # Check release type
-          if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' ]]; then
+          if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' || $VERSION =~ 'rc' ]]; then
             echo "This is a prerelease."
             PRERELEASE=true
           fi
