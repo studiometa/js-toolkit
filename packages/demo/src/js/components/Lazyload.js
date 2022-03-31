@@ -30,7 +30,7 @@ export default class Lazyload extends withIntersectionObserver(Base) {
 
   load() {
     const { unloaded, active, loaded } = this.$options.styles;
-    const src = this.$el.getAttribute('data-src');
+    const { src } = this.$el.dataset;
 
     if (!src || this.isLoaded) {
       this.$destroy();
@@ -38,9 +38,9 @@ export default class Lazyload extends withIntersectionObserver(Base) {
     }
 
     const img = new Image();
-    img.onload = () => {
+    img.addEventListener('load', () => {
       this.$el.setAttribute('src', src);
-      this.$el.removeAttribute('data-src');
+      delete this.$el.dataset.src;
       this.isLoaded = true;
       transition(this.$el, {
         from: unloaded,
@@ -49,7 +49,7 @@ export default class Lazyload extends withIntersectionObserver(Base) {
       });
       setClassesOrStyles(this.$el, loaded);
       this.$terminate();
-    };
+    });
     img.src = src;
   }
 }
