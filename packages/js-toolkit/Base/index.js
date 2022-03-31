@@ -12,7 +12,7 @@ const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 
 /**
  * No operation function.
- * @return {void}
+ * @returns {void}
  */
 function noop() {}
 
@@ -29,11 +29,11 @@ function noop() {}
 
 /**
  * @typedef {Object} BaseConfig
- * @property {String} name
- * @property {Boolean} [debug]
- * @property {Boolean} [log]
- * @property {String[]} [refs]
- * @property {String[]} [emits]
+ * @property {string} name
+ * @property {boolean} [debug]
+ * @property {boolean} [log]
+ * @property {string[]} [refs]
+ * @property {string[]} [emits]
  * @property {BaseConfigComponents} [components]
  * @property {BaseConfigOptions} [options]
  */
@@ -44,7 +44,7 @@ function noop() {}
 export default class Base extends EventTarget {
   /**
    * This is a Base instance.
-   * @type {Boolean}
+   * @type {boolean}
    * @readonly
    */
   static $isBase = true;
@@ -69,7 +69,7 @@ export default class Base extends EventTarget {
 
   /**
    * The state of the component.
-   * @type {Boolean}
+   * @type {boolean}
    */
   $isMounted = false;
 
@@ -83,7 +83,7 @@ export default class Base extends EventTarget {
 
   /**
    * Get the root instance of the app.
-   * @return {Base}
+   * @returns {Base}
    */
   get $root() {
     if (!this.$parent) {
@@ -107,7 +107,7 @@ export default class Base extends EventTarget {
   /**
    * Merge configuration with the parents' configurations.
    *
-   * @return {BaseConfig}
+   * @returns {BaseConfig}
    * @private
    */
   get __config() {
@@ -178,7 +178,7 @@ export default class Base extends EventTarget {
   __refs;
 
   /**
-   * @return {RefsManager}
+   * @returns {RefsManager}
    */
   get $refs() {
     return this.__refs;
@@ -191,7 +191,7 @@ export default class Base extends EventTarget {
   __options;
 
   /**
-   * @return {BaseOptions}
+   * @returns {BaseOptions}
    */
   get $options() {
     return this.__options;
@@ -204,7 +204,7 @@ export default class Base extends EventTarget {
   __children;
 
   /**
-   * @return {ChildrenManager}
+   * @returns {ChildrenManager}
    */
   get $children() {
     return this.__children;
@@ -219,7 +219,7 @@ export default class Base extends EventTarget {
   /**
    * Small helper to log stuff.
    *
-   * @return {(...args: any) => void}
+   * @returns {(...args: any) => void}
    */
   get $log() {
     return this.__options.log ? window.console.log.bind(window, `[${this.__config.name}]`) : noop;
@@ -229,7 +229,7 @@ export default class Base extends EventTarget {
    * Small helper to debug information.
    *
    * @private
-   * @return {(...args:any) => void}
+   * @returns {(...args:any) => void}
    */
   get __debug() {
     return isDev && this.__options.debug
@@ -243,7 +243,7 @@ export default class Base extends EventTarget {
    * @private
    * @param {string} method
    * @param {any[]} args
-   * @return {void}
+   * @returns {void}
    */
   __callMethod(method, ...args) {
     if (isDev) {
@@ -268,7 +268,7 @@ export default class Base extends EventTarget {
    *
    * @private
    * @param  {string} event The event's name.
-   * @return {boolean}      Wether the given event has been bound or not.
+   * @returns {boolean}      Wether the given event has been bound or not.
    */
   __hasEvent(event) {
     const eventHandlers = this.__eventHandlers.get(event);
@@ -313,13 +313,11 @@ export default class Base extends EventTarget {
     if (isDev) {
       this.__debug('constructor', this);
     }
-
-    return this;
   }
 
   /**
    * Trigger the `mounted` callback.
-   * @return {this}
+   * @returns {this}
    */
   $mount() {
     if (this.$isMounted) {
@@ -343,7 +341,7 @@ export default class Base extends EventTarget {
 
   /**
    * Update the instance children.
-   * @return {this}
+   * @returns {this}
    */
   $update() {
     if (isDev) {
@@ -368,7 +366,7 @@ export default class Base extends EventTarget {
 
   /**
    * Trigger the `destroyed` callback.
-   * @return {this}
+   * @returns {this}
    */
   $destroy() {
     if (!this.$isMounted) {
@@ -390,7 +388,7 @@ export default class Base extends EventTarget {
 
   /**
    * Terminate a child instance when it is not needed anymore.
-   * @return {void}
+   * @returns {void}
    */
   $terminate() {
     if (isDev) {
@@ -448,7 +446,7 @@ export default class Base extends EventTarget {
    */
   __removeEmits(event) {
     const ctor = this.__ctor;
-    const index = ctor.config.emits.findIndex((value) => value === event);
+    const index = ctor.config.emits.indexOf(event);
     ctor.config.emits.splice(index, 1);
   }
 
@@ -471,7 +469,7 @@ export default class Base extends EventTarget {
    *   Function to be called.
    * @param {boolean|AddEventListenerOptions} [options]
    *   Options for the `removeEventListener` method.
-   * @return {() => void}
+   * @returns {() => void}
    *   A function to unbind the listener.
    */
   $on(event, listener, options) {
@@ -507,8 +505,7 @@ export default class Base extends EventTarget {
    *   Function to be removed.
    * @param {boolean|EventListenerOptions} [options]
    *   Options for the `removeEventListener` method.
-   *
-   * @return {void}
+   * @returns {void}
    */
   $off(event, listener, options) {
     if (isDev) {
@@ -529,7 +526,7 @@ export default class Base extends EventTarget {
    * @param  {string} event
    *   Name of the event.
    * @param  {any[]}        args  The arguments to apply to the functions bound to this event.
-   * @return {void}
+   * @returns {void}
    */
   $emit(event, ...args) {
     if (isDev) {
@@ -550,8 +547,8 @@ export default class Base extends EventTarget {
   /**
    * Factory method to generate multiple instance of the class.
    *
-   * @param  {String}      nameOrSelector The selector on which to mount each instance.
-   * @return {Array<Base>}                A list of the created instance.
+   * @param  {string}      nameOrSelector The selector on which to mount each instance.
+   * @returns {Array<Base>}                A list of the created instance.
    */
   static $factory(nameOrSelector) {
     if (!nameOrSelector) {

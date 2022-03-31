@@ -46,7 +46,7 @@ export default class ServicesManager {
   __customServices = {};
 
   /**
-   * @return {Record<string, () => ServiceInterface>}
+   * @returns {Record<string, () => ServiceInterface>}
    */
   get __services() {
     return {
@@ -73,7 +73,7 @@ export default class ServicesManager {
    * Test if the given service is registered.
    *
    * @param  {ServiceName} service The name of the service.
-   * @return {Boolean}
+   * @returns {boolean}
    */
   has(service) {
     if (
@@ -104,7 +104,7 @@ export default class ServicesManager {
    * Init the given service and bind it to the given instance.
    *
    * @param  {ServiceName} service The name of the service.
-   * @return {() => void}          A function to unbind the service.
+   * @returns {() => void}          A function to unbind the service.
    */
   enable(service) {
     if (this.has(service)) {
@@ -137,11 +137,14 @@ export default class ServicesManager {
   /**
    * Enable all services and return methods to disable them.
    *
-   * @return {Function[]}
+   * @returns {Function[]}
    */
   enableAll() {
     return Object.keys(this.__services).map(
-      /** @param {ServiceName} serviceName */
+      /**
+       * @param {ServiceName} serviceName
+       * @returns {() => void}
+       */
       (serviceName) => this.enable(serviceName)
     );
   }
@@ -149,7 +152,7 @@ export default class ServicesManager {
   /**
    * Disable all services.
    *
-   * @return {void}
+   * @returns {void}
    */
   disableAll() {
     Object.keys(this.__services).forEach(
@@ -163,8 +166,8 @@ export default class ServicesManager {
   /**
    * Disable a service.
    *
-   * @param  {String} service  The name of the service.
-   * @return {void}
+   * @param  {string} service  The name of the service.
+   * @returns {void}
    */
   disable(service) {
     if (!this.__services[service]) {
@@ -179,7 +182,7 @@ export default class ServicesManager {
    * Toggle a service.
    * @param  {string}  service    The name of the service.
    * @param  {boolean} [force] The state to force.
-   * @return {void}
+   * @returns {void}
    */
   toggle(service, force) {
     if (typeof force !== 'undefined') {

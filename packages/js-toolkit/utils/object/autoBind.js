@@ -5,9 +5,9 @@ import getAllProperties from './getAllProperties.js';
  *
  * @param  {Object}               instance          The instance.
  * @param  {Object}               options           Define specific methods to include or exlude.
- * @param  {Array<String|RegExp>} [options.include] Methods to include.
- * @param  {Array<String|RegExp>} [options.exclude] Methods to exclude.
- * @return {Object}                                 The instance.
+ * @param  {Array<string | RegExp>} [options.include] Methods to include.
+ * @param  {Array<string | RegExp>} [options.exclude] Methods to exclude.
+ * @returns {Object}                                 The instance.
  */
 export default function autoBind(instance, options) {
   const { exclude, include } = options || {};

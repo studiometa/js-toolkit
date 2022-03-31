@@ -3,10 +3,10 @@
  *
  * @param {Object} object
  *   The object to get the propeties from.
- * @param {Array=} [props=[]]
+ * @param {Array} [props=[]]
  *   The already existing properties.
  * @param {(name:string, proto:any) => boolean} testFn
- * @return {Array<[String, Object]>} An array of properties and the prototype they belong to.
+ * @returns {Array<[string, Object]>} An array of properties and the prototype they belong to.
  */
 export default function getAllProperties(object, props = [], testFn = null) {
   const proto = Object.getPrototypeOf(object);

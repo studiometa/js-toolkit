@@ -1,7 +1,7 @@
 /**
  * RequestAnimation frame polyfill.
  * @see  https://github.com/vuejs/vue/blob/ec78fc8b6d03e59da669be1adf4b4b5abf670a34/dist/vue.runtime.esm.js#L7355
- * @return {(handler: Function) => number}
+ * @returns {(handler: Function) => number}
  */
 export function getRaf() {
   return typeof window !== 'undefined' && window.requestAnimationFrame
@@ -12,7 +12,7 @@ export function getRaf() {
 /**
  * Get a function to cancel the method returned by `getRaf()`.
  *
- * @return {(id:number) => void}
+ * @returns {(id:number) => void}
  */
 export function getCancelRaf() {
   return typeof window !== 'undefined' && window.cancelAnimationFrame
@@ -24,9 +24,8 @@ export function getCancelRaf() {
  * Wait for the next frame to execute a function.
  *
  * @template {() => any} T
- * @param    {T=} [fn] The callback function to execute.
+ * @param    {T} [fn] The callback function to execute.
  * @returns  {Promise<T extends Function ? ReturnType<T> : undefined>} A Promise resolving when the next frame is reached.
- *
  * @example
  * ```js
  * nextFrame(() => console.log('hello world'));

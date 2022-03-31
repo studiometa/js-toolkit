@@ -8,7 +8,7 @@
  *
  * @template {BaseConstructor} T
  * @param {T} BaseClass The Base class to extend.
- * @return {T}
+ * @returns {T}
  */
 export default function withFreezedOptions(BaseClass) {
   // @ts-ignore

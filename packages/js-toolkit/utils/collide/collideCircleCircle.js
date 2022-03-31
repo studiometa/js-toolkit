@@ -1,8 +1,8 @@
 /**
  * @typedef {Object} Circle
- * @property {Number} x Circle's x position
- * @property {Number} y Circle's y position
- * @property {Number} radius Circle's radius
+ * @property {number} x Circle's x position
+ * @property {number} y Circle's y position
+ * @property {number} radius Circle's radius
  */
 
 /**
@@ -11,7 +11,7 @@
  *
  * @param {Circle} circle1 Circle 1
  * @param {Circle} circle2 Circle 2
- * @return {boolean} Are the sides of one circle touching the other ?
+ * @returns {boolean} Are the sides of one circle touching the other ?
  */
 export default function collideCircleCircle(circle1, circle2) {
   // get distance between the circle's centers

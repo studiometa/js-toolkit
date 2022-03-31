@@ -9,17 +9,15 @@ import { getTargetElements } from './utils.js';
  * Import a component on an interaction.
  *
  * @template {BaseConstructor} T
- *
  * @param {() => Promise<T|{default:T}>} fn
  *   The import function.
  * @param {string|HTMLElement|HTMLElement[]} nameOrSelectorOrElement
  *   The name or selector for the component.
  * @param {string|string[]} events
  *   The events to listen to to trigger the import.
- * @param {Base=} [parent]
+ * @param {Base} [parent]
  *   The parent component.
- *
- * @return {Promise<T>}
+ * @returns {Promise<T>}
  */
 export default function importOnInteraction(fn, nameOrSelectorOrElement, events, parent) {
   const normalizedEvents = typeof events === 'string' ? [events] : events;

@@ -72,7 +72,7 @@ export default class RefsManager {
   /**
    * Register all refs.
    *
-   * @return {void}
+   * @returns {void}
    */
   registerAll() {
     this.__refs.forEach((refName) => this.__register(refName));
@@ -81,7 +81,7 @@ export default class RefsManager {
   /**
    * Unregister all refs.
    *
-   * @return {void}
+   * @returns {void}
    */
   unregisterAll() {
     this.__refs.forEach((refName) => this.__unregister(refName));
@@ -102,6 +102,7 @@ export default class RefsManager {
     ).filter(
       /**
        * @param {HTMLElement} ref
+       * @returns {boolean}
        */
       (ref) => this.__filterRefsBelongingToInstance(ref)
     );
@@ -150,7 +151,7 @@ export default class RefsManager {
    * Normalize the name of ref.
    *
    * @param {string} name The original name.
-   * @return {string}     The normalized name.
+   * @returns {string}     The normalized name.
    */
   static normalizeRefName(name) {
     return name.endsWith('[]') ? name.replace(/\[\]$/, '') : name;
@@ -160,7 +161,7 @@ export default class RefsManager {
    * Filter refs belonging to the related Base instance.
    *
    * @param {HTMLElement} ref The ref to test.
-   * @return {boolean}
+   * @returns {boolean}
    * @private
    */
   __filterRefsBelongingToInstance(ref) {

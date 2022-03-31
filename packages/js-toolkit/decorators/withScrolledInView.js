@@ -13,7 +13,7 @@ import { damp, clamp, clamp01 } from '../utils/index.js';
  * @template {BaseConstructor} T
  * @param {T} BaseClass
  * @param {IntersectionObserverInit} options
- * @return {T}
+ * @returns {T}
  */
 export default function withScrolledInView(BaseClass, options) {
   // @ts-ignore
@@ -138,7 +138,7 @@ export default function withScrolledInView(BaseClass, options) {
      * Set the decorator props.
      *
      * @private
-     * @return {void}
+     * @returns {void}
      */
     __setProps() {
       const sizes = this.$el.getBoundingClientRect();
