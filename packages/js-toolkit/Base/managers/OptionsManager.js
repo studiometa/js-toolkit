@@ -5,7 +5,7 @@ import isObject from '../../utils/object/isObject.js';
  * @typedef {import('deepmerge').Options} DeepmergeOptions
  * @typedef {import('../index.js').BaseConfig} BaseConfig
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
- * @typedef {{ type: OptionType, default: String|Number|Boolean|(() => Array|Object), merge?: boolean|DeepmergeOptions }} OptionObject
+ * @typedef {{type: OptionType, default: string | number | boolean | (() => Array | Object), merge?: boolean | DeepmergeOptions}} OptionObject
  * @typedef {OptionType | OptionObject} OptionValue
  * @typedef {{ [name:string]: OptionValue }} OptionsSchema
  * @typedef {{ [optionName:string]: any }} OptionsInterface
@@ -66,7 +66,7 @@ export default class OptionsManager {
 
   /**
    * Default value for the log property.
-   * @type {Boolean}
+   * @type {boolean}
    */
   log = false;
 
@@ -111,8 +111,6 @@ export default class OptionsManager {
     Object.entries(schema).forEach(([name, config]) => {
       this.__register(name, config);
     });
-
-    return this;
   }
 
   /**
@@ -120,7 +118,7 @@ export default class OptionsManager {
    *
    * @param  {string} name
    * @param  {OptionValue} config
-   * @return {void}
+   * @returns {void}
    * @private
    */
   __register(name, config) {
@@ -159,10 +157,11 @@ export default class OptionsManager {
   /**
    * Get an option value.
    *
-   * @param {String} name The option name.
-   * @param {OptionType} type The option data's type.
-   * @param {any} defaultValue The default value for this option.
-   * @param {boolean|DeepmergeOptions} [merge] Wether to merge the value with the default or not.
+   * @param   {string} name The option name.
+   * @param   {OptionType} type The option data's type.
+   * @param   {any} defaultValue The default value for this option.
+   * @param   {boolean|DeepmergeOptions} [merge] Wether to merge the value with the default or not.
+   * @returns {any}
    */
   get(name, type, defaultValue, merge) {
     const propertyName = OptionsManager.__getPropertyName(name);
@@ -208,9 +207,10 @@ export default class OptionsManager {
   /**
    * Set an option value.
    *
-   * @param {String} name The option name.
+   * @param {string} name The option name.
    * @param {OptionType} type The option data's type.
    * @param {any} value The new value for this option.
+   * @param {any} defaultValue The default value for this option.
    */
   set(name, type, value, defaultValue) {
     const propertyName = OptionsManager.__getPropertyName(name);
@@ -251,7 +251,7 @@ export default class OptionsManager {
    * Test if the element has a given property.
    *
    * @param  {string} prop
-   * @return {boolean}
+   * @returns {boolean}
    */
   __hasProperty(prop) {
     return typeof this.__element.dataset[prop] !== 'undefined';
@@ -268,7 +268,8 @@ export default class OptionsManager {
    * Get a property name.
    *
    * @param  {string} name
-   * @return {string}
+   * @param  {string} [prefix]
+   * @returns {string}
    * @private
    */
   static __getPropertyName(name, prefix = '') {

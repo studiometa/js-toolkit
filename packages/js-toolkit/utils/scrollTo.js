@@ -5,7 +5,7 @@ import damp from './math/damp.js';
  *
  * @param {HTMLElement|string} selectorElement The target element.
  * @param {{ offset?: number, dampFactor?: number }} [options] Options for the scroll.
- * @return {Promise<number>} A promising resolving with the target scroll position.
+ * @returns {Promise<number>} A promising resolving with the target scroll position.
  */
 export default function scrollTo(selectorElement, { offset = 0, dampFactor = 0.2 } = {}) {
   let targetElement = null;
@@ -23,7 +23,7 @@ export default function scrollTo(selectorElement, { offset = 0, dampFactor = 0.2
   const sizes = targetElement.getBoundingClientRect();
   const scrollMargin = getComputedStyle(targetElement).scrollMarginTop || '0';
   const max = document.documentElement.scrollHeight - window.innerHeight;
-  let scrollTarget = sizes.top + window.pageYOffset - parseInt(scrollMargin, 10) - offset;
+  let scrollTarget = sizes.top + window.pageYOffset - Number.parseInt(scrollMargin, 10) - offset;
 
   // Make sure to not scroll more than the max scroll allowed
   if (scrollTarget > max) {
@@ -54,6 +54,7 @@ export default function scrollTo(selectorElement, { offset = 0, dampFactor = 0.2
 
     /**
      * Scroll animation's loop
+     * @returns {void|number}
      */
     function loop() {
       if (!isScrolling) {
@@ -72,7 +73,7 @@ export default function scrollTo(selectorElement, { offset = 0, dampFactor = 0.2
 
     /**
      * Start the scroll animation
-     * @param {Number} target The target scroll
+     * @param {number} target The target scroll
      */
     function start(target) {
       // Update vars

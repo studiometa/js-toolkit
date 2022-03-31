@@ -6,10 +6,9 @@ import { getComponentElements } from '../Base/utils.js';
  *
  * @param {string|HTMLElement|HTMLElement[]} nameOrSelectorOrElement
  *   The original selector or element, or list of elements.
- * @param {HTMLElement=} [context]
+ * @param {HTMLElement} [context]
  *   The optional context to use to query for elements.
- *
- * @return {HTMLElement[]} A normalized list of elements.
+ * @returns {HTMLElement[]} A normalized list of elements.
  */
 export function getTargetElements(nameOrSelectorOrElement, context) {
   if (typeof nameOrSelectorOrElement === 'string') {

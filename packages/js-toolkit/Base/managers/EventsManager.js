@@ -75,7 +75,7 @@ export default class EventsManager {
   __childrenHandler = {
     /**
      * @param {CustomEvent} event
-     * @return {void}
+     * @returns {void}
      */
     handleEvent: (event) => {
       const child = /** @type {Base} */ (event.currentTarget);
@@ -153,8 +153,7 @@ export default class EventsManager {
    *   The elements of the ref.
    * @param  {'add'|'remove'} [mode]
    *   The action to perform: add or remove the event listeners.
-   *
-   * @return {void}
+   * @returns {void}
    * @private
    */
   __manageRef(name, elements, mode = 'add') {
@@ -173,8 +172,7 @@ export default class EventsManager {
    *   The name of the ref.
    * @param {HTMLElement[]} elements
    *   The elements of the ref.
-   *
-   * @return {void}
+   * @returns {void}
    */
   bindRef(name, elements) {
     this.__manageRef(name, elements);
@@ -187,8 +185,7 @@ export default class EventsManager {
    *   The name of the ref.
    * @param {HTMLElement[]} elements
    *   The elements of the ref.
-   *
-   * @return {void}
+   * @returns {void}
    */
   unbindRef(name, elements) {
     this.__manageRef(name, elements, 'remove');
@@ -203,8 +200,7 @@ export default class EventsManager {
    *   A base instance.
    * @param {'add'|'remove'} [mode]
    *   The action to perform: add or remove the event listeners.
-   *
-   * @return {void}
+   * @returns {void}
    * @private
    */
   __manageChild(name, instance, mode = 'add') {
@@ -223,8 +219,7 @@ export default class EventsManager {
    *   The name of the ref.
    * @param {Base} instance
    *   A base instance.
-   *
-   * @return {void}
+   * @returns {void}
    */
   bindChild(name, instance) {
     this.__manageChild(name, instance);
@@ -237,8 +232,7 @@ export default class EventsManager {
    *   The name of the ref.
    * @param {Base} instance
    *   A base instance.
-   *
-   * @return {void}
+   * @returns {void}
    */
   unbindChild(name, instance) {
     this.__manageChild(name, instance, 'remove');
@@ -249,8 +243,7 @@ export default class EventsManager {
    *
    * @param {'add'|'remove'} [mode]
    *   The action to perform: add or remove the event listeners, defaults to 'add'.
-   *
-   * @return {void}
+   * @returns {void}
    * @private
    */
   __manageRootElement(mode = 'add') {
@@ -270,7 +263,7 @@ export default class EventsManager {
   /**
    * Bind event methods on the root element.
    *
-   * @return {void}
+   * @returns {void}
    */
   bindRootElement() {
     this.__manageRootElement();
@@ -279,7 +272,7 @@ export default class EventsManager {
   /**
    * Unbind event method from the root element.
    *
-   * @return {void}
+   * @returns {void}
    */
   unbindRootElement() {
     this.__manageRootElement('remove');
@@ -290,7 +283,7 @@ export default class EventsManager {
    *
    * @param {string} method
    * @param {string} name
-   * @return {string}
+   * @returns {string}
    * @private
    */
   __getEventNameByMethod(method, name = '') {
@@ -304,7 +297,7 @@ export default class EventsManager {
    * Get the base instance methods matching the `onSomething` pattern.
    *
    * @param {string} [name]
-   * @return {string[]}
+   * @returns {string[]}
    * @private
    */
   __getEventMethodsByName(name = '') {
@@ -345,7 +338,7 @@ export default class EventsManager {
    * ```
    *
    * @param {string} name
-   * @return {string}
+   * @returns {string}
    */
   static normalizeName(name) {
     return name
@@ -359,7 +352,7 @@ export default class EventsManager {
    * Normalize the event names from PascalCase to kebab-case.
    *
    * @param {string} name
-   * @return {string}
+   * @returns {string}
    */
   static normalizeEventName(name) {
     return name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`).replace(/^-/, '');

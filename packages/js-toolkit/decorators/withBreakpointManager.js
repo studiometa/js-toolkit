@@ -8,7 +8,7 @@ import useResize from '../services/resize.js';
 /**
  * Test the breakpoins of the given Base instance and return the hook to call.
  *
- * @param  {Array<[String[], Base]>} breakpoints The breakpoints's data.
+ * @param  {Array<[string[], Base]>} breakpoints The breakpoints's data.
  */
 function testBreakpoints(breakpoints) {
   const { breakpoint } = useResize().props();
@@ -24,8 +24,8 @@ function testBreakpoints(breakpoints) {
 /**
  * Prepare the components.
  * @param {Base} instance
- * @param {Array<[String, BaseConstructor]>} breakpoints
- * @return {Array<[String, Base]>}
+ * @param {Array<[string, BaseConstructor]>} breakpoints
+ * @returns {Array<[string, Base]>}
  */
 function mountComponents(instance, breakpoints) {
   return breakpoints.map(([bk, ComponentClass]) => {
@@ -45,8 +45,8 @@ const instances = new WeakMap();
  * BreakpointManager class.
  * @template {BaseConstructor} T
  * @param {T} BaseClass
- * @param {Array<[String, BaseConstructor]>} breakpoints
- * @return {T}
+ * @param {Array<[string, BaseConstructor]>} breakpoints
+ * @returns {T}
  */
 export default function withBreakpointManager(BaseClass, breakpoints) {
   if (!Array.isArray(breakpoints)) {
@@ -83,15 +83,13 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
       });
 
       this.instances = instances.get(this);
-
-      return this;
     }
 
     /**
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
      *
-     * @return {this}
+     * @returns {this}
      */
     $mount() {
       super.$mount();
@@ -104,7 +102,7 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
     /**
      * Destroy all instances when the main one is destroyed.
      *
-     * @return {this}
+     * @returns {this}
      */
     $destroy() {
       if (Array.isArray(instances.get(this))) {

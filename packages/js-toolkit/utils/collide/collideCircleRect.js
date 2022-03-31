@@ -1,16 +1,16 @@
 /**
  * @typedef {Object} Rect
- * @property {Number} x Rectangle's x position
- * @property {Number} y Rectangle's y position
- * @property {Number} width Rectangle's width
- * @property {Number} height Rectangle's height
+ * @property {number} x Rectangle's x position
+ * @property {number} y Rectangle's y position
+ * @property {number} width Rectangle's width
+ * @property {number} height Rectangle's height
  */
 
 /**
  * @typedef {Object} Circle
- * @property {Number} x Circle's x position
- * @property {Number} y Circle's y position
- * @property {Number} radius Circle's radius
+ * @property {number} x Circle's x position
+ * @property {number} y Circle's y position
+ * @property {number} radius Circle's radius
  */
 
 /**
@@ -19,7 +19,7 @@
  *
  * @param {Circle} circle Circle
  * @param {Rect} rect Rectangle
- * @return {boolean} Are the sides of the circle touching the rectangle ?
+ * @returns {boolean} Are the sides of the circle touching the rectangle ?
  */
 export default function collideCircleRect(circle, rect) {
   // temporary variables to set edges for testing

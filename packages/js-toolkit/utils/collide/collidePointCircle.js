@@ -1,14 +1,14 @@
 /**
  * @typedef {Object} Point
- * @property {Number} x Point's x position
- * @property {Number} y Point's y position
+ * @property {number} x Point's x position
+ * @property {number} y Point's y position
  */
 
 /**
  * @typedef {Object} Circle
- * @property {Number} x Circle's x position
- * @property {Number} y Circle's y position
- * @property {Number} radius Circle's radius
+ * @property {number} x Circle's x position
+ * @property {number} y Circle's y position
+ * @property {number} radius Circle's radius
  */
 
 /**
@@ -17,7 +17,7 @@
  *
  * @param {Point} point Point
  * @param {Circle} circle Circle
- * @return {boolean} Is the point inside the circle's bounds ?
+ * @returns {boolean} Is the point inside the circle's bounds ?
  */
 export default function collidePointCircle(point, circle) {
   // get distance between the point and circle's center

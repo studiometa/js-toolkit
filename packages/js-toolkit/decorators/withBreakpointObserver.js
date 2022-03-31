@@ -7,8 +7,8 @@ import useResize from '../services/resize.js';
 
 /**
  * @typedef {Object} WithBreakpointObserverOptions
- * @property {String} [activeBreakpoints]
- * @property {String} [inactiveBreakpoints]
+ * @property {string} [activeBreakpoints]
+ * @property {string} [inactiveBreakpoints]
  */
 
 /**
@@ -19,8 +19,9 @@ import useResize from '../services/resize.js';
 /**
  * Test the breakpoins of the given Base instance and return the hook to call.
  *
- * @param  {Base & WithBreakpointObserverInterface}   instance The component's instance.
- * @return {String}          The action to trigger.
+ * @param   {Base & WithBreakpointObserverInterface} instance The component's instance.
+ * @param   {string} [breakpoint] The breakpoint to test.
+ * @returns {string} The action to trigger.
  */
 function testBreakpoints(instance, breakpoint = useResize().props().breakpoint) {
   const { activeBreakpoints, inactiveBreakpoints } = instance.$options;
@@ -42,7 +43,7 @@ function testBreakpoints(instance, breakpoint = useResize().props().breakpoint) 
 /**
  * Test if the given instance is configured for breakpoints.
  * @param  {Base & WithBreakpointObserverInterface}    instance A Base class instance.
- * @return {Boolean}          True if configured correctly, false otherwise.
+ * @returns {boolean}          True if configured correctly, false otherwise.
  */
 function hasBreakpointConfiguration(instance) {
   const { activeBreakpoints, inactiveBreakpoints } = instance.$options;
@@ -52,7 +53,7 @@ function hasBreakpointConfiguration(instance) {
 /**
  * Test if the given instance has a conflicting configuration for breakpoints.
  * @param  {Base & WithBreakpointObserverInterface} instance A Base class instance.
- * @return {void}
+ * @returns {void}
  */
 function testConflictingBreakpointConfiguration(instance) {
   const { activeBreakpoints, inactiveBreakpoints, name } = instance.$options;
@@ -65,7 +66,7 @@ function testConflictingBreakpointConfiguration(instance) {
 
 /**
  * Add the current instance to the resize service.
- * @param {String} key      The key for the resize service callback.
+ * @param {string} key      The key for the resize service callback.
  * @param {Base}   instance The instance to observe.
  */
 function addToResize(key, instance) {
@@ -91,7 +92,7 @@ function addToResize(key, instance) {
  *
  * @template {BaseConstructor} T
  * @param {T} BaseClass The Base class to extend from.
- * @return {T}
+ * @returns {T}
  */
 export default function withBreakpointObserver(BaseClass) {
   // @ts-ignore
@@ -148,17 +149,16 @@ export default function withBreakpointObserver(BaseClass) {
 
       // Stop here silently when no breakpoint configuration given.
       if (!hasBreakpointConfiguration(this)) {
-        return this;
+        return;
       }
 
       addToResize(key, this);
-      return this;
     }
 
     /**
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
-     * @return {this}
+     * @returns {this}
      */
     $mount() {
       // Execute normal behavior when no breakpoint configuration given.

@@ -7,12 +7,12 @@ import debounce from '../utils/debounce.js';
 
 /**
  * @typedef {Object} ResizeServiceProps
- * @property {Number} width
- * @property {Number} height
- * @property {Number} ratio
+ * @property {number} width
+ * @property {number} height
+ * @property {number} ratio
  * @property {'square'|'landscape'|'portrait'} orientation
- * @property {String} [breakpoint]
- * @property {String[]} [breakpoints]
+ * @property {string} [breakpoint]
+ * @property {string[]} [breakpoints]
  */
 
 /**
@@ -46,7 +46,7 @@ class Resize extends Service {
   /**
    * Bind the handler to the resize event.
    *
-   * @return {this}
+   * @returns {this}
    */
   init() {
     this.handler = debounce(() => {
@@ -62,7 +62,7 @@ class Resize extends Service {
   /**
    * Unbind the handler from the resize event.
    *
-   * @return {void}
+   * @returns {void}
    */
   kill() {
     window.removeEventListener('resize', this.handler);
@@ -100,7 +100,7 @@ class Resize extends Service {
 
   /**
    * The element holding the breakpoints data.
-   * @return {HTMLElement}
+   * @returns {HTMLElement}
    */
   get breakpointElement() {
     return document.querySelector('[data-breakpoint]');
@@ -108,24 +108,24 @@ class Resize extends Service {
 
   /**
    * Get the current breakpoint.
-   * @return {String}
+   * @returns {string}
    */
   get breakpoint() {
     return window
       .getComputedStyle(this.breakpointElement, '::before')
       .getPropertyValue('content')
-      .replace(/"/g, '');
+      .replaceAll('"', '');
   }
 
   /**
    * Get all breakpoints.
-   * @return {Array}
+   * @returns {Array}
    */
   get breakpoints() {
     const breakpoints = window
       .getComputedStyle(this.breakpointElement, '::after')
       .getPropertyValue('content')
-      .replace(/"/g, '');
+      .replaceAll('"', '');
 
     return breakpoints.split(',');
   }
@@ -151,7 +151,7 @@ let resize;
  * remove(key);
  * props();
  * ```
- * @return {ResizeService}
+ * @returns {ResizeService}
  */
 export default function useResize() {
   if (!resize) {

@@ -5,7 +5,7 @@ import isObject from '../object/isObject.js';
  *
  * @param {HTMLElement}                  element The element to update.
  * @param {Partial<CSSStyleDeclaration>} styles  An object of styles properties and values.
- * @param {String}                       method  The method to use: add or remove.
+ * @param {string}                       method  The method to use: add or remove.
  */
 function setStyles(element, styles, method = 'add') {
   if (!element || !styles || !isObject(styles)) {
@@ -22,7 +22,7 @@ function setStyles(element, styles, method = 'add') {
  *
  * @param {HTMLElement}                  element The element to update.
  * @param {Partial<CSSStyleDeclaration>} styles  A string of class names.
- * @return {void}
+ * @returns {void}
  */
 export function add(element, styles) {
   setStyles(element, styles);
@@ -33,7 +33,7 @@ export function add(element, styles) {
  *
  * @param  {HTMLElement}                  element The element to update.
  * @param  {Partial<CSSStyleDeclaration>} styles  A string of class names.
- * @return {void}
+ * @returns {void}
  */
 export function remove(element, styles) {
   setStyles(element, styles, 'remove');

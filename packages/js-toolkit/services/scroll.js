@@ -57,7 +57,7 @@ class Scroll extends Service {
   /**
    * Bind the handler to the scroll event.
    *
-   * @return {Scroll}
+   * @returns {Scroll}
    */
   init() {
     this.updateProps();
@@ -68,7 +68,7 @@ class Scroll extends Service {
   /**
    * Debounced handler.
    *
-   * @return {() => void}
+   * @returns {() => void}
    */
   get debouncedHandler() {
     const debounced = debounce(() => {
@@ -87,7 +87,7 @@ class Scroll extends Service {
   /**
    * Scroll event handler.
    *
-   * @return {void}
+   * @returns {void}
    */
   handleEvent() {
     this.updateProps();
@@ -98,7 +98,7 @@ class Scroll extends Service {
   /**
    * Unbind the handler from the scroll event.
    *
-   * @return {Scroll}
+   * @returns {Scroll}
    */
   kill() {
     document.removeEventListener('scroll', this);
@@ -166,7 +166,7 @@ let scroll;
  * props();
  * ```
  *
- * @return {ScrollService}
+ * @returns {ScrollService}
  */
 export default function useScroll() {
   if (!scroll) {

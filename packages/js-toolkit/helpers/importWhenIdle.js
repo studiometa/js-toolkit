@@ -7,13 +7,11 @@
  * Import a component when user is idle.
  *
  * @template {BaseConstructor} T
- *
  * @param {() => Promise<T|{default:T}>} fn
  *   The import function.
- * @param {ImportWhenIdleOptions=} [options]
+ * @param {ImportWhenIdleOptions} [options]
  *   The time to wait before triggering the callback if never idle.
- *
- * @return {Promise<T>}
+ * @returns {Promise<T>}
  */
 export default function importWhenIdle(fn, options) {
   let ResolvedClass;

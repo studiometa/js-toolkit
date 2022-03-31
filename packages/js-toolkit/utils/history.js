@@ -2,17 +2,17 @@ import isObject from './object/isObject.js';
 
 /**
  * @typedef {Object} HistoryOptions
- * @property {string=} [path]
- * @property {URLSearchParams|{ [key:string]: unknown }=} [search]
- * @property {string=} [hash]
+ * @property {string} [path]
+ * @property {URLSearchParams|{ [key:string]: unknown }} [search]
+ * @property {string} [hash]
  */
 
 /**
  * Set a param in a URLSearchParam instance.
- * @param  {URLSearchParams}                    params The params to update.
- * @param  {string}                             name   The name of the param to update.
- * @param  {string|number|boolean|Array|Object} value  The value for this param.
- * @return {URLSearchParams}                           The updated URLSearchParams instance.
+ * @param   {URLSearchParams}                    params The params to update.
+ * @param   {string}                             name   The name of the param to update.
+ * @param   {string|number|boolean|Array|Object} value  The value for this param.
+ * @returns {URLSearchParams}                           The updated URLSearchParams instance.
  */
 function updateUrlSearchParam(params, name, value) {
   if (value === '' || value === null || value === undefined) {
@@ -45,9 +45,9 @@ function updateUrlSearchParam(params, name, value) {
 /**
  * Transform an object to an URLSearchParams instance.
  *
- * @param  {Object}          obj           The object to convert.
- * @param  {string}          defaultSearch A string of defaults search params.
- * @return {URLSearchParams}
+ * @param   {Object}          obj           The object to convert.
+ * @param   {string}          defaultSearch A string of defaults search params.
+ * @returns {URLSearchParams}
  */
 export function objectToURLSearchParams(
   obj,
@@ -61,10 +61,11 @@ export function objectToURLSearchParams(
 
 /**
  * Update the history with a new state.
- * @param {string}         mode
- * @param {HistoryOptions} options
- * @param {Object}         [data]
- * @param {string}         [title]
+ * @param   {string}         mode
+ * @param   {HistoryOptions} options
+ * @param   {Object}         [data]
+ * @param   {string}         [title]
+ * @returns {void}
  */
 function updateHistory(mode, options, data = {}, title = '') {
   if (!window.history) {
@@ -102,9 +103,10 @@ function updateHistory(mode, options, data = {}, title = '') {
 /**
  * Push a new state.
  *
- * @param {HistoryOptions} options The new state.
- * @param {Object}         [data]  The data for the new state.
- * @param {string}         [title] The title for the new state.
+ * @param   {HistoryOptions} options The new state.
+ * @param   {Object}         [data]  The data for the new state.
+ * @param   {string}         [title] The title for the new state.
+ * @returns {void}
  */
 export function push(options, data = {}, title = '') {
   updateHistory('push', options, data, title);
@@ -113,9 +115,10 @@ export function push(options, data = {}, title = '') {
 /**
  * Replace a new state.
  *
- * @param {HistoryOptions} options The new state.
- * @param {Object}         [data]  The data for the new state.
- * @param {string}         [title] The title for the new state.
+ * @param   {HistoryOptions} options The new state.
+ * @param   {Object}         [data]  The data for the new state.
+ * @param   {string}         [title] The title for the new state.
+ * @returns {void}
  */
 export function replace(options, data = {}, title = '') {
   updateHistory('replace', options, data, title);
