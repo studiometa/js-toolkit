@@ -12,7 +12,10 @@ export default defineConfig({
       name: 'add-common-js-package-plugin',
       writeBundle(viteConfig) {
         if (viteConfig.format === 'cjs' && viteConfig.esModule) {
-          fs.writeFileSync(path.join(viteConfig.dir, 'package.json'), JSON.stringify({ type: 'commonjs' }));
+          fs.writeFileSync(
+            path.join(viteConfig.dir, 'package.json'),
+            JSON.stringify({ type: 'commonjs' })
+          );
         }
       },
     },
