@@ -55,7 +55,7 @@ easeInCirc(1); // 1
 Select an easing function below to see how it will transform the given progress over time.
 
 <script setup>
-  import { ref, unref, computed } from 'vue';
+  import { ref, unref, computed, onMounted } from 'vue';
 
   const easingFunctions = ref({});
   const names = computed(() =>
@@ -71,13 +71,15 @@ Select an easing function below to see how it will transform the given progress 
   const fn = computed(() => (name.value === 'linear' ? linear : easingFunctions.value[name.value]));
   const count = 100;
 
-  import('@studiometa/js-toolkit/utils').then((mod) => {
-    for (const [key, value] of Object.entries(mod)) {
-      if (key.startsWith('ease')) {
-        easingFunctions.value[key] = value;
+  onMounted(() => {
+    import('@studiometa/js-toolkit/utils').then((mod) => {
+      for (const [key, value] of Object.entries(mod)) {
+        if (key.startsWith('ease')) {
+          easingFunctions.value[key] = value;
+        }
       }
-    }
-  });
+    });
+  })
 </script>
 
 <div class="p-10 rounded bg-gray-100">

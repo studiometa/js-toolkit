@@ -4,7 +4,6 @@ Find below the JavaScript and HTML implementation of a counter component.
 
 <script setup>
   import { onMounted, onUnmounted, nextTick } from 'vue';
-  import Counter from './Counter.js';
   import CounterRaw from './Counter.js?raw';
   import CounterHtmlRaw from './Counter.html?raw';
 
@@ -41,6 +40,7 @@ export default createApp(App, document.body);
   ];
   let counter;
   onMounted(async () => {
+    const { default: Counter } = await import('./Counter.js');
     await nextTick();
     [counter] = Counter.$factory('Counter');
   });

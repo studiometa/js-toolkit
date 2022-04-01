@@ -5,15 +5,13 @@ tailwindConfig.corePlugins = undefined;
 
 module.exports = {
   presets: [tailwindConfig],
-  purge: {
-    content: [
-      './.vitepress/**/*.js',
-      './.vitepress/**/*.vue',
-      './.vitepress/**/*.ts',
-      './**/*.md',
-      './**/*.html',
-    ],
-  },
+  content: [
+    './.vitepress/**/*.js',
+    './.vitepress/**/*.vue',
+    './.vitepress/**/*.ts',
+    './**/*.md',
+    './**/*.html',
+  ],
   future: {
     removeDeprecatedGapUtilities: true,
     purgeLayersByDefault: true,

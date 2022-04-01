@@ -6,11 +6,11 @@ customLayout: true
 
 <script setup>
   import { onMounted, onUnmounted, nextTick } from 'vue';
-  import ScrollLinkedAnimation from './ScrollLinkedAnimation.js';
   import ScrollLinkedAnimationHtmlRaw from './ScrollLinkedAnimation.html?raw';
 
   let scrollLinkedAnimations;
   onMounted(async () => {
+    const { default: ScrollLinkedAnimation } = await import('./ScrollLinkedAnimation.js');
     await nextTick();
     scrollLinkedAnimations = ScrollLinkedAnimation.$factory('ScrollLinkedAnimation');
   });
