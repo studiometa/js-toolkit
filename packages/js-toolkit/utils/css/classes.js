@@ -3,10 +3,10 @@
  *
  * @param {HTMLElement} element The element to update.
  * @param {string|string[]} classNames A string of class names.
- * @param {'add'|'remove'|'toggle'} [method='add'] The method to use: add, remove or toggle.
+ * @param {'add'|'remove'|'toggle'} [method] The method to use: add, remove or toggle.
  * @param {boolean} [forceToggle] Force toggle?
  */
-function setClasses(element, classNames, method = 'add', forceToggle = false) {
+function setClasses(element, classNames, method, forceToggle) {
   if (!element || !classNames) {
     return;
   }
@@ -28,7 +28,7 @@ function setClasses(element, classNames, method = 'add', forceToggle = false) {
  * @returns {void}
  */
 export function add(element, classNames) {
-  setClasses(element, classNames);
+  setClasses(element, classNames, 'add');
 }
 
 /**
