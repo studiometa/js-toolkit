@@ -26,15 +26,15 @@
     "@studiometa/prettier-config": "^2.1.1",
     "@studiometa/stylelint-config": "^2.0.0",
     "@types/estree": "^0.0.50",
-    "@types/jest": "^27.4.0",
-    "@types/node": "^16.11.13",
+    "@types/jest": "^27.4.1",
+    "@types/node": "^16.11.26",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
     "esbuild": "^0.14.12",
     "eslint": "^7.32.0",
     "eslint-plugin-jest": "^24.4.0",
     "fast-glob": "^3.2.11",
-    "prettier": "^2.5.1",
-    "typescript": "^4.5.4"
+    "prettier": "^2.6.0",
+    "typescript": "^4.6.3"
   }
 }
