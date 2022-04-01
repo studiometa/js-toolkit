@@ -15,12 +15,13 @@ export default class Service {
    */
   props;
 
+  // eslint-disable-next-line jsdoc/require-returns-check
   /**
    * Method to update the services properties.
    * This method MUST be implemented by the service extending this class.
    *
    * @param {...any} args
-   * @return {this['props']}
+   * @returns {this['props']}
    */
   updateProps(...args) {
     this.props = args;
@@ -31,7 +32,7 @@ export default class Service {
    * Method to initialize the service behaviors.
    * This method MUST be implemented by the service extending this class.
    *
-   * @return {void}
+   * @returns {void}
    */
   init() {
     throw new Error('The `init` method must be implemented.');
@@ -41,7 +42,7 @@ export default class Service {
    * Method to kill the service behaviors.
    * This method MUST be implemented by the service extending this class.
    *
-   * @return {void}
+   * @returns {void}
    */
   kill() {
     throw new Error('The `kill` method must be implemented.');
@@ -50,9 +51,9 @@ export default class Service {
   /**
    * Add a callback.
    *
-   * @param  {String}   key      The callback's identifier
+   * @param  {string}   key      The callback's identifier
    * @param  {Function} callback The callback function
-   * @return {void}
+   * @returns {void}
    */
   add(key, callback) {
     if (this.has(key)) {
@@ -71,8 +72,8 @@ export default class Service {
   /**
    * Test if a callback with the given key has already been added.
    *
-   * @param  {String}  key The identifier to test
-   * @return {Boolean}     Whether or not the identifier already exists
+   * @param  {string}  key The identifier to test
+   * @returns {boolean}     Whether or not the identifier already exists
    */
   has(key) {
     return this.callbacks.has(key);
@@ -82,7 +83,7 @@ export default class Service {
    * Get the callback tied to the given key.
    *
    * @param  {string}   key The identifier to get
-   * @return {Function}     The callback function
+   * @returns {Function}     The callback function
    */
   get(key) {
     return this.callbacks.get(key);
@@ -107,7 +108,7 @@ export default class Service {
    * Trigger each added callback with the given arguments.
    *
    * @param  {...any}   args All the arguments to apply to the callback
-   * @return {this}      The current instance
+   * @returns {this}      The current instance
    */
   trigger(...args) {
     this.callbacks.forEach(function forEachCallback(callback) {

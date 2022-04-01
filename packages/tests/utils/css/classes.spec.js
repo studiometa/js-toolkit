@@ -1,4 +1,8 @@
-import { add, remove, toggle } from '@studiometa/js-toolkit/utils/css/classes';
+import {
+  addClass as add,
+  removeClass as remove,
+  toggleClass as toggle,
+} from '@studiometa/js-toolkit/utils';
 
 describe('classes methods', () => {
   const element = document.createElement('div');

@@ -9,17 +9,15 @@ import { getTargetElements } from './utils.js';
  * Import a component when it is visible.
  *
  * @template {BaseConstructor} T
- *
  * @param {() => Promise<T|{default:T}>} fn
  *   The import function.
  * @param {string|HTMLElement|HTMLElement[]} nameOrSelectorOrElement
  *   The name or selector for the component.
- * @param {Base=} [parent]
+ * @param {Base} [parent]
  *   The parent component.
- * @param {IntersectionObserverInit=} [observerOptions]
+ * @param {IntersectionObserverInit} [observerOptions]
  *   Options for the `IntersectionObserver` instance.
- *
- * @return {Promise<T>}
+ * @returns {Promise<T>}
  */
 export default function importWhenVisible(
   fn,

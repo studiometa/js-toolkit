@@ -1,15 +1,15 @@
 /**
  * @typedef {Object} Point
- * @property {Number} x Point's x position
- * @property {Number} y Point's y position
+ * @property {number} x Point's x position
+ * @property {number} y Point's y position
  */
 
 /**
  * @typedef {Object} Rect
- * @property {Number} x Rectangle's x position
- * @property {Number} y Rectangle's y position
- * @property {Number} width Rectangle's width
- * @property {Number} height Rectangle's height
+ * @property {number} x Rectangle's x position
+ * @property {number} y Rectangle's y position
+ * @property {number} width Rectangle's width
+ * @property {number} height Rectangle's height
  */
 
 /**
@@ -18,7 +18,7 @@
  *
  * @param {Point} point Point
  * @param {Rect} rect Rectangle
- * @return {boolean} Is the point inside the rectangle's bounds ?
+ * @returns {boolean} Is the point inside the rectangle's bounds ?
  */
 export default function collidePointRect(point, rect) {
   return (

@@ -16,7 +16,7 @@ const cache = new WeakMap();
 class Transition {
   /**
    * Is a transition currently running?
-   * @type {Boolean}
+   * @type {boolean}
    */
   isTransitioning = false;
 
@@ -37,7 +37,7 @@ class Transition {
   /**
    * Get the transition class attached to the given element.
    * @param  {HTMLElement} element The HTML element concerned by the transition.
-   * @return {Transition}          The transition instance tied to the given element.
+   * @returns {Transition}          The transition instance tied to the given element.
    */
   static getInstance(element) {
     let instance = cache.get(element);
@@ -69,7 +69,7 @@ export function setClassesOrStyles(element, classesOrStyles, method = 'add') {
  * Test if the given element has a transition duration.
  *
  * @param  {HTMLElement} element The element to test.
- * @return {Boolean}             The result of the test.
+ * @returns {boolean}             The result of the test.
  */
 function testTransition(element) {
   if (typeof window === 'undefined') {
@@ -85,7 +85,7 @@ function testTransition(element) {
  *
  * @param  {HTMLElement}      element         The target element.
  * @param  {TransitionStyles} classesOrStyles The classes or styles definition.
- * @return {Promise<void>}
+ * @returns {Promise<void>}
  */
 async function start(element, classesOrStyles) {
   const trs = Transition.getInstance(element);
@@ -101,7 +101,7 @@ async function start(element, classesOrStyles) {
  *
  * @param  {HTMLElement}      element         The target element.
  * @param  {TransitionStyles} classesOrStyles The classes or styles definition.
- * @return {Promise}
+ * @returns {Promise}
  */
 async function next(element, classesOrStyles) {
   const hasTransition = testTransition(element);
@@ -126,9 +126,9 @@ async function next(element, classesOrStyles) {
  * Apply the final state.
  *
  * @param {HTMLElement}   element         The target element.
- * @param {String|Object} classesOrStyles The classes or styles definition.
- * @param {String}        mode            Whether to remove or keep the `to`  classes/styles.
- * @return {void}
+ * @param {string | Object} classesOrStyles The classes or styles definition.
+ * @param {string}        mode            Whether to remove or keep the `to`  classes/styles.
+ * @returns {void}
  */
 function end(element, classesOrStyles, mode = 'remove') {
   const trs = Transition.getInstance(element);
@@ -149,8 +149,8 @@ function end(element, classesOrStyles, mode = 'remove') {
  *
  * @param  {HTMLElement}             element The target element.
  * @param  {string|TransitionStyles} name    The name of the transition or an object with the hooks classesOrStyles.
- * @param  {String}                  endMode Whether to remove or keep the `to` classes/styles
- * @return {Promise<void>}                   A promise resolving at the end of the transition.
+ * @param  {string}                  endMode Whether to remove or keep the `to` classes/styles
+ * @returns {Promise<void>}                   A promise resolving at the end of the transition.
  */
 export default async function transition(element, name, endMode = 'remove') {
   /** @type {TransitionStyles} */

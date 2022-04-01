@@ -52,8 +52,8 @@ const MODES = {
 
 /**
  * @typedef {Object} DragServiceOptions
- * @property {number=} [dampFactor]
- * @property {number=} [dragTreshold]
+ * @property {number} [dampFactor]
+ * @property {number} [dragTreshold]
  */
 
 let id = 0;
@@ -119,14 +119,13 @@ class Drag extends Service {
     this.options = { ...this.options, ...options };
     this.pointerHandler = this.pointerHandler.bind(this);
     this.rafHandler = this.rafHandler.bind(this);
-    return this;
   }
 
   /**
    * Bind the handler to the mousemove and touchmove events.
    * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
    *
-   * @return {this}
+   * @returns {this}
    */
   init() {
     const options = { passive: true };
@@ -144,7 +143,7 @@ class Drag extends Service {
   /**
    * Unbind all handlers from their bounded event.
    *
-   * @return {this}
+   * @returns {this}
    */
   kill() {
     this.props.target.removeEventListener('mousedown', this);
@@ -186,7 +185,7 @@ class Drag extends Service {
    * Start the drag.
    * @param {number} x The initial horizontal position.
    * @param {number} y The initial vertical position.
-   * @return {void}
+   * @returns {void}
    */
   start(x, y) {
     // Reset state
@@ -211,7 +210,7 @@ class Drag extends Service {
 
   /**
    * Stop the drag, or drop.
-   * @return {void}
+   * @returns {void}
    */
   drop() {
     this.props.isGrabbing = false;
@@ -250,7 +249,7 @@ class Drag extends Service {
 
   /**
    * Raf service handler.
-   * @return {void}
+   * @returns {void}
    */
   rafHandler() {
     if (!this.props.isGrabbing) {
@@ -277,7 +276,7 @@ class Drag extends Service {
   /**
    * Pointer service handler.
    * @param {PointerServiceProps} props
-   * @return {void}
+   * @returns {void}
    */
   pointerHandler(props) {
     if (this.props.isGrabbing) {
@@ -344,7 +343,7 @@ const instances = new WeakMap();
  *
  * @param {HTMLElement} target
  * @param {DragServiceOptions} options
- * @return {DragService}
+ * @returns {DragService}
  */
 export default function useDrag(target, options) {
   let drag = instances.get(target);

@@ -16,7 +16,7 @@ export function createEaseOut(easeIn) {
  * Create an in-out easing function.
  *
  * @param  {EasingFunction} easeIn The ease in function.
- * @return {EasingFunction}        The in-out function.
+ * @returns {EasingFunction}        The in-out function.
  */
 export function createEaseInOut(easeIn) {
   /* eslint-disable no-nested-ternary */
@@ -44,7 +44,7 @@ export const easeInOutQuad = createEaseInOut(easeInQuad);
  * Ease in cubic.
  *
  * @param  {number} progress Progress value betwen 0 and 1.
- * @return {number}          Eased value between 0 and 1.
+ * @returns {number}          Eased value between 0 and 1.
  */
 export function easeInCubic(progress) {
   return progress ** 3;
@@ -57,7 +57,7 @@ export const easeInOutCubic = createEaseInOut(easeInCubic);
  * Ease in quart.
  *
  * @param  {number} progress Progress value betwen 0 and 1.
- * @return {number}          Eased value between 0 and 1.
+ * @returns {number}          Eased value between 0 and 1.
  */
 export function easeInQuart(progress) {
   return progress ** 4;
@@ -70,7 +70,7 @@ export const easeInOutQuart = createEaseInOut(easeInQuart);
  * Ease in quint.
  *
  * @param  {number} progress Progress value betwen 0 and 1.
- * @return {number}          Eased value between 0 and 1.
+ * @returns {number}          Eased value between 0 and 1.
  */
 export function easeInQuint(progress) {
   return progress ** 5;
@@ -83,7 +83,7 @@ export const easeInOutQuint = createEaseInOut(easeInQuint);
  * Ease in sine.
  *
  * @param  {number} progress Progress value betwen 0 and 1.
- * @return {number}          Eased value between 0 and 1.
+ * @returns {number}          Eased value between 0 and 1.
  */
 export function easeInSine(progress) {
   return progress === 1 ? 1 : -Math.cos((progress * Math.PI) / 2) + 1;
@@ -96,7 +96,7 @@ export const easeInOutSine = createEaseInOut(easeInSine);
  * Ease in circ.
  *
  * @param  {number} progress Progress value betwen 0 and 1.
- * @return {number}          Eased value between 0 and 1.
+ * @returns {number}          Eased value between 0 and 1.
  */
 export function easeInCirc(progress) {
   return -(Math.sqrt(1 - progress * progress) - 1);
@@ -109,7 +109,7 @@ export const easeInOutCirc = createEaseInOut(easeInCirc);
  * Ease in exponential.
  *
  * @param  {number} progress Progress value betwen 0 and 1.
- * @return {number}          Eased value between 0 and 1.
+ * @returns {number}          Eased value between 0 and 1.
  */
 export function easeInExpo(progress) {
   return 2 ** (10 * (progress - 1));

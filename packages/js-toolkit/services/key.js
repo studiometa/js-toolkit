@@ -52,7 +52,7 @@ class Key extends Service {
   /**
    * Bind the handler to the keyboard event.
    *
-   * @return {void}
+   * @returns {void}
    */
   init() {
     document.addEventListener('keydown', this);
@@ -73,7 +73,7 @@ class Key extends Service {
   /**
    * Unbind the handler from the keyboard event.
    *
-   * @return {void}
+   * @returns {void}
    */
   kill() {
     document.removeEventListener('keydown', this);
@@ -134,7 +134,7 @@ let key;
  * props();
  * ```
  *
- * @return {KeyService}
+ * @returns {KeyService}
  */
 export default function useKey() {
   if (!key) {

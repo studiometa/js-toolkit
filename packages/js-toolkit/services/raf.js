@@ -14,7 +14,7 @@ import { getRaf, getCancelRaf } from '../utils/nextFrame.js';
  * Tick service
  */
 class Raf extends Service {
-  /** @type {Boolean} Whether the loop is running or not. */
+  /** @type {boolean} Whether the loop is running or not. */
   isTicking = false;
 
   /** @type {number} */
@@ -35,7 +35,7 @@ class Raf extends Service {
   /**
    * Start the requestAnimationFrame loop.
    *
-   * @return {void}
+   * @returns {void}
    */
   init() {
     this.isTicking = true;
@@ -59,7 +59,7 @@ class Raf extends Service {
   /**
    * Stop the requestAnimationFrame loop.
    *
-   * @return {void}
+   * @returns {void}
    */
   kill() {
     this.cancelRaf(this.id);
@@ -70,7 +70,7 @@ class Raf extends Service {
    * Get raf props.
    *
    * @todo Return elapsed time / index?
-   * @return {this['props']}
+   * @returns {this['props']}
    */
   updateProps() {
     this.props.time = window.performance.now();
@@ -99,7 +99,7 @@ let raf;
  * props();
  * ```
  *
- * @return {RafService}
+ * @returns {RafService}
  */
 export default function useRaf() {
   if (!raf) {

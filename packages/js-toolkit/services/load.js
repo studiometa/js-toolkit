@@ -24,7 +24,7 @@ class Load extends Service {
   /**
    * Start the requestAnimationFrame loop.
    *
-   * @return {void}
+   * @returns {void}
    */
   init() {
     window.addEventListener('load', this);
@@ -42,7 +42,7 @@ class Load extends Service {
   /**
    * Stop the requestAnimationFrame loop.
    *
-   * @return {void}
+   * @returns {void}
    */
   kill() {
     window.removeEventListener('load', this);
@@ -81,7 +81,7 @@ let load;
  * props();
  * ```
  *
- * @return {LoadService}
+ * @returns {LoadService}
  */
 export default function useLoad() {
   if (!load) {

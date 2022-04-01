@@ -6,33 +6,10 @@
  * Instantiate and mount the given component on the given root element when the page has been loaded
  * and return a function to use the app instance when it is ready.
  *
- * @usage
- * ```js
- * // app.js
- * import Base, { createApp } from '@studiometa/js-toolkit';
- *
- * class App extends Base {
- *   static config = {
- *     name: 'App',
- *   }
- * }
- *
- * export default createApp(App, document.body);
- * ```
- * ```js
- * // other.js
- * import useApp from './app.js';
- *
- * const app = await useApp();
- * console.log(app.$options.name); // 'App'
- * ```
- *
  * @template {BaseConstructor} T
  * @param {T} App
- * @param {HTMLElement=} [rootElement]
- *
- * @return {() => Promise<InstanceType<T>>}
- *
+ * @param {HTMLElement} [rootElement]
+ * @returns {() => Promise<InstanceType<T>>}
  */
 export default function createApp(App, rootElement = document.body) {
   let isLoaded = document.readyState === 'complete';
