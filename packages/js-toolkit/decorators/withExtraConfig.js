@@ -13,7 +13,7 @@ import merge from 'deepmerge';
  * @param {T} BaseClass The Base class to extend.
  * @param {Partial<BaseConfig>} config Extra configuration to merge.
  * @param {DeepmergeOptions} options Options for the `deepmerge` function. {@link https://github.com/TehShrike/deepmerge#options}
- * @return {T}
+ * @returns {T}
  */
 export default function withExtraConfig(BaseClass, config, options = {}) {
   const newConfig = merge(BaseClass.config, config, options);

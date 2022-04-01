@@ -58,7 +58,7 @@ export function trap(element, event) {
   // the currently focused item is the first one, move the focus to the last
   // focusable item from the dialog element
   if (event.shiftKey && focusedItemIndex === 0) {
-    focusableChildren[focusableChildren.length - 1].focus();
+    focusableChildren.at(-1).focus();
     event.preventDefault();
   }
 
@@ -83,6 +83,7 @@ export function untrap() {
 
 /**
  * Use a trap/untrap tabs logic.
+ * @returns {{ trap: trap, untrap: untrap, saveActiveElement: saveActiveElement }}
  */
 export default function useFocusTrap() {
   return { trap, untrap, saveActiveElement };

@@ -21,9 +21,13 @@
  * @template {BaseConstructor} T
  * @param {T} BaseClass The Base class to extend.
  * @param {IntersectionObserverInit} [defaultOptions] The options for the IntersectionObserver instance.
- * @return {T}
+ * @returns {T}
  */
-export default function withMountWhenInView(BaseClass, defaultOptions = { threshold: [0, 1] }) {
+export default function withMountWhenInView(
+  BaseClass,
+  // eslint-disable-next-line unicorn/no-object-as-default-parameter
+  defaultOptions = { threshold: [0, 1] }
+) {
   // @ts-ignore
   return class extends BaseClass {
     /**
@@ -42,7 +46,7 @@ export default function withMountWhenInView(BaseClass, defaultOptions = { thresh
     /**
      * Is the component visible?
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     __isVisible = false;
 
@@ -82,14 +86,12 @@ export default function withMountWhenInView(BaseClass, defaultOptions = { thresh
       this.$on('terminated', () => {
         this.__observer.disconnect();
       });
-
-      return this;
     }
 
     /**
      * Override the mounting of the component.
      *
-     * @return {this}
+     * @returns {this}
      */
     $mount() {
       if (this.__isVisible) {

@@ -46,7 +46,7 @@ export default class ChildrenManager {
   __asyncComponentPromises = new WeakMap();
 
   /**
-   * @return {string[]}
+   * @returns {string[]}
    */
   get registeredNames() {
     return Object.keys(this).filter((key) => !key.startsWith('__'));
@@ -132,7 +132,7 @@ export default class ChildrenManager {
    *   A Base class or a Promise for async components.
    * @param {string} name
    *   The name of the child component.
-   * @return {Base|Promise|'terminated'}
+   * @returns {Base|Promise|'terminated'}
    *   A Base instance or a Promise resolving to a Base instance.
    * @private
    */

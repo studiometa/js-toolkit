@@ -17,8 +17,8 @@
 
 /**
  * Create an array of number between 0 and 1 from the given length.
- * @param  {Number} length The length of the array.
- * @return {Array}        An array of number.
+ * @param  {number} length The length of the array.
+ * @returns {Array}        An array of number.
  */
 function createArrayOfNumber(length) {
   return [...new Array(length + 1)].map((val, index) => index / length);
@@ -30,10 +30,11 @@ function createArrayOfNumber(length) {
  * @template {BaseConstructor} T
  * @param {T} BaseClass The Base class to extend.
  * @param {Object} [defaultOptions] The options for the IntersectionObserver instance.
- * @return {T & { new: (element:HTMLElement) => { $observer: IntersectionObserver }}}
+ * @returns {T & { new: (element:HTMLElement) => { $observer: IntersectionObserver }}}
  */
 export default function withIntersectionObserver(
   BaseClass,
+  // eslint-disable-next-line unicorn/no-object-as-default-parameter
   defaultOptions = { threshold: createArrayOfNumber(100) }
 ) {
   // @ts-ignore
@@ -75,8 +76,6 @@ export default function withIntersectionObserver(
       this.$on('destroyed', () => {
         this.$observer.unobserve(this.$el);
       });
-
-      return this;
     }
   };
 }

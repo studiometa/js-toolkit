@@ -1,9 +1,9 @@
 /**
  * @typedef {Object} Rect
- * @property {Number} x Rectangle's x position
- * @property {Number} y Rectangle's y position
- * @property {Number} width Rectangle's width
- * @property {Number} height Rectangle's height
+ * @property {number} x Rectangle's x position
+ * @property {number} y Rectangle's y position
+ * @property {number} width Rectangle's width
+ * @property {number} height Rectangle's height
  */
 
 /**
@@ -12,7 +12,7 @@
  *
  * @param {Rect} rect1 Rectangle 1
  * @param {Rect} rect2 Rectangle 2
- * @return {boolean} Are the sides of one rectangle touching the other ?
+ * @returns {boolean} Are the sides of one rectangle touching the other ?
  */
 export default function collideRectRect(rect1, rect2) {
   return (

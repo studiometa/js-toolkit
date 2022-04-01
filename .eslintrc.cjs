@@ -3,6 +3,7 @@ module.exports = {
   rules: {
     'import/extensions': [ 'error', 'always', { ignorePackages: true }],
     'no-underscore-dangle': 'off',
+    'jsdoc/valid-types': 'off',
   },
   overrides: [
     {

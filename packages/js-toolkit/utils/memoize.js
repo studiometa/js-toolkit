@@ -17,7 +17,7 @@
  * @template {(...args:any) => any} T
  * @param  {T} fn
  * @param  {MemorizeOptions} options
- * @return {(...args:Parameters<T>) => ReturnType<T>}
+ * @returns {(...args:Parameters<T>) => ReturnType<T>}
  */
 export default function memoize(
   fn,

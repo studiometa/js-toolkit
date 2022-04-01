@@ -3,10 +3,10 @@
  *
  * @param {HTMLElement} element The element to update.
  * @param {string|string[]} classNames A string of class names.
- * @param {'add'|'remove'|'toggle'} [method='add'] The method to use: add, remove or toggle.
+ * @param {'add'|'remove'|'toggle'} [method] The method to use: add, remove or toggle.
  * @param {boolean} [forceToggle] Force toggle?
  */
-function setClasses(element, classNames, method = 'add', forceToggle = undefined) {
+function setClasses(element, classNames, method, forceToggle) {
   if (!element || !classNames) {
     return;
   }
@@ -23,20 +23,20 @@ function setClasses(element, classNames, method = 'add', forceToggle = undefined
 /**
  * Add class names to an element.
  *
- * @param  {HTMLElement}     element    The element to update.
- * @param  {string|string[]} classNames A string of class names.
- * @return {void}
+ * @param   {HTMLElement}     element    The element to update.
+ * @param   {string|string[]} classNames A string of class names.
+ * @returns {void}
  */
 export function add(element, classNames) {
-  setClasses(element, classNames);
+  setClasses(element, classNames, 'add');
 }
 
 /**
  * Remove class names from an element.
  *
- * @param  {HTMLElement}     element    The element to update.
- * @param  {string|string[]} classNames A string of class names.
- * @return {void}
+ * @param   {HTMLElement}     element    The element to update.
+ * @param   {string|string[]} classNames A string of class names.
+ * @returns {void}
  */
 export function remove(element, classNames) {
   setClasses(element, classNames, 'remove');
@@ -45,11 +45,11 @@ export function remove(element, classNames) {
 /**
  * Toggle class names from an element.
  *
- * @param  {HTMLElement}     element    The element to update.
- * @param  {string|string[]} classNames A string of class names.
- * @param  {boolean}         [force]    Force toggle?
- * @return {void}
+ * @param   {HTMLElement}     element    The element to update.
+ * @param   {string|string[]} classNames A string of class names.
+ * @param   {boolean}         [force]    Force toggle?
+ * @returns {void}
  */
-export function toggle(element, classNames, force = undefined) {
+export function toggle(element, classNames, force) {
   setClasses(element, classNames, 'toggle', force);
 }

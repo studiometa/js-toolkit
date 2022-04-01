@@ -13,10 +13,12 @@ import MyVueComponent from './components/MyVueComponent.js';
 import Parallax from './components/Parallax.js';
 
 /**
- * @typedef {import(@studiometa/js-toolkit/Base/index).BaseConfig} BaseConfig
+ * App class.
  */
 class App extends Base {
-  /** @type {Baseconfig} */
+  /**
+   * Config.
+   */
   static config = {
     name: 'App',
     refs: ['modal'],
@@ -68,7 +70,14 @@ class App extends Base {
           ['mousemove']
         ),
       Draggable: (app) =>
-        importWhenVisible(() => import('@studiometa/ui/Draggable.js'), 'Draggable', app),
+        importWhenVisible(
+          async () => {
+            const { Draggable } = await import('@studiometa/ui');
+            return Draggable;
+          },
+          'Draggable',
+          app
+        ),
       Skew: (app) => importWhenVisible(() => import('./components/Skew.js'), 'Skew', app),
       '[data-src]': (app) =>
         importWhenVisible(() => import('./components/Lazyload.js'), '[data-src]', app),
@@ -76,12 +85,18 @@ class App extends Base {
         importWhenVisible(
           async () => {
             const { Modal } = await import('@studiometa/ui');
+            Modal.config.options.styles.merge = true;
             return withBreakpointObserver(Modal);
           },
           'Modal',
           app
         ),
-      Tabs: (app) => importWhenVisible(() => import('@studiometa/ui/Tabs.js'), 'Tabs', app),
+      Tabs: (app) =>
+        importWhenVisible(
+          () => import('@studiometa/ui').then((module) => module.Tabs),
+          'Tabs',
+          app
+        ),
       ScrollToDemo,
       MyVueComponent,
       Parallax,

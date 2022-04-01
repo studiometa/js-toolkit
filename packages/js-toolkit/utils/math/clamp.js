@@ -3,7 +3,7 @@
  * @param {number} value
  * @param {number} min
  * @param {number} max
- * @return {number}
+ * @returns {number}
  */
 export default function clamp(value, min, max) {
   /* eslint-disable no-nested-ternary */

@@ -21,7 +21,7 @@ import Service from './Service.js';
  * Test if an event is an instance of TouchEvent.
  *
  * @param {TouchEvent|MouseEvent} event The event instance to test.
- * @return {boolean}                    Is it a TouchEvent?
+ * @returns {boolean}                    Is it a TouchEvent?
  */
 function isTouchEvent(event) {
   return typeof TouchEvent !== 'undefined' && event instanceof TouchEvent;
@@ -65,7 +65,7 @@ class Pointer extends Service {
 
   /**
    * Whether or not the raf service is running.
-   * @type {Boolean}
+   * @type {boolean}
    */
   hasRaf = false;
 
@@ -73,7 +73,7 @@ class Pointer extends Service {
    * Bind the handler to the mousemove and touchmove events.
    * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
    *
-   * @return {this}
+   * @returns {this}
    */
   init() {
     document.documentElement.addEventListener('mouseenter', this, {
@@ -117,7 +117,7 @@ class Pointer extends Service {
   /**
    * Unbind all handlers from their bounded event.
    *
-   * @return {this}
+   * @returns {this}
    */
   kill() {
     document.removeEventListener('mousemove', this);
@@ -141,7 +141,7 @@ class Pointer extends Service {
   /**
    * Handler for the pointer's down action.
    *
-   * @return {void}
+   * @returns {void}
    */
   downHandler() {
     this.props.isDown = true;
@@ -151,7 +151,7 @@ class Pointer extends Service {
   /**
    * Handler for the pointer's up action.
    *
-   * @return {void}
+   * @returns {void}
    */
   upHandler() {
     this.props.isDown = false;
@@ -162,7 +162,7 @@ class Pointer extends Service {
    * Update the pointer positions.
    *
    * @param  {MouseEvent|TouchEvent} event The event object.
-   * @return {PointerServiceProps}
+   * @returns {PointerServiceProps}
    */
   updateProps(event) {
     this.props.event = event;
@@ -230,7 +230,7 @@ let pointer;
  * ```
  *
  * @todo Add element as parameter to get the pointer position relatively from.
- * @return {PointerService}
+ * @returns {PointerService}
  */
 export default function usePointer() {
   if (!pointer) {

@@ -16,7 +16,7 @@ import useDrag from '../services/drag.js';
  * @template {BaseConstructor} T
  * @param {T} BaseClass
  * @param {DragDecoratorOptions} options
- * @return {T}
+ * @returns {T}
  */
 export default function withDrag(
   BaseClass,

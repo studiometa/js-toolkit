@@ -14,7 +14,7 @@
  * @template {BaseConstructor} T
  * @param {T} BaseClass
  * @param {import('vue').VueConstructor} Vue
- * @return {T}
+ * @returns {T}
  */
 export default (BaseClass, Vue) => {
   // @ts-ignore

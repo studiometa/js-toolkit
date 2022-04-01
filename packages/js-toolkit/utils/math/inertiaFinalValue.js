@@ -1,10 +1,10 @@
 /**
  * Get the final damped value for a given factor.
  *
- * @param  {Number} initialValue The final value.
- * @param  {Number} initialDelta The current value.
- * @param  {Number=} [dampFactor=0.85] The speed to reach the target value.
- * @return {Number} The next value.
+ * @param   {number} initialValue The final value.
+ * @param   {number} initialDelta The current value.
+ * @param   {number} [dampFactor=0.85] The speed to reach the target value.
+ * @returns {number} The next value.
  */
 export default function inertiaFinalValue(initialValue, initialDelta, dampFactor = 0.85) {
   if (dampFactor >= 1 || dampFactor <= 0) {
