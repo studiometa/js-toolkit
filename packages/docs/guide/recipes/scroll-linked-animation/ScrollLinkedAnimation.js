@@ -1,5 +1,5 @@
 import { Base } from '@studiometa/js-toolkit';
-import { map, damp, nextFrame, matrix } from '@studiometa/js-toolkit/utils';
+import { map, damp, matrix } from '@studiometa/js-toolkit/utils';
 
 export default class ScrollLinkedAnimation extends Base {
   static config = {

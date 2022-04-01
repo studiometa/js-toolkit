@@ -1,7 +1,11 @@
-const { defineConfig } = require('vitepress');
-const pkg = require('../package.json');
+import { defineConfig } from 'vitepress';
+import fs from 'fs';
 
-module.exports = defineConfig({
+const pkg = JSON.parse(
+  fs.readFileSync(new URL('../package.json', import.meta.url), { encoding: 'utf8' })
+);
+
+export default defineConfig({
   lang: 'en-US',
   title: 'JS Toolkit',
   description: 'A set of useful little bits of JavaScript to boost your project! 🚀',
