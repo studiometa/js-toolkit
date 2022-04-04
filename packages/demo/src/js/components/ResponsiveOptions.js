@@ -1,9 +1,9 @@
-import { Base } from '@studiometa/js-toolkit';
+import { Base, withResponsiveOptions } from '@studiometa/js-toolkit';
 
 /**
  * ResponsiveOptions class.
  */
-export default class ResponsiveOptions extends Base {
+export default class ResponsiveOptions extends withResponsiveOptions(Base) {
   /**
    * Config.
    */
@@ -17,19 +17,31 @@ export default class ResponsiveOptions extends Base {
     },
   };
 
+  /**
+   * Mounted hook.
+   * @returns {void}
+   */
+  mounted() {
+    this.print();
+  }
+
+  /**
+   * Resized hook.
+   * @returns {void}
+   */
+  resized() {
+    this.print();
+  }
+
+  /**
+   * Print data to the DOM.
+   * @returns {void}
+   */
   print() {
     this.$el.innerHTML = `${this.$services.get('resized').breakpoint}<br>${JSON.stringify(
       this.$options,
       null,
       2
     )}`;
-  }
-
-  mounted() {
-    this.print();
-  }
-
-  resized() {
-    this.print();
   }
 }

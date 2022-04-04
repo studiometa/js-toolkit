@@ -22,6 +22,7 @@ Array [
   "withFreezedOptions",
   "withIntersectionObserver",
   "withMountWhenInView",
+  "withResponsiveOptions",
   "withScrolledInView",
   "withVue2",
 ]
