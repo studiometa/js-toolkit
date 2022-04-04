@@ -17,6 +17,29 @@ const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 function noop() {}
 
 /**
+ * Test if the managers' instances implement the default manager.
+ *
+ * @throws
+ * @param   {Base} instance The instance to test.
+ * @returns {void}
+ */
+function testManagers(instance) {
+  [
+    { prop: '__options', constructorName: 'OptionsManager', constructor: OptionsManager },
+    { prop: '__services', constructorName: 'ServicesManager', constructor: ServicesManager },
+    { prop: '__events', constructorName: 'EventsManager', constructor: EventsManager },
+    { prop: '__refs', constructorName: 'RefsManager', constructor: RefsManager },
+    { prop: '__children', constructorName: 'ChildrenManager', constructor: ChildrenManager },
+  ].forEach(({ prop, constructorName, constructor }) => {
+    if (!(instance[prop] instanceof constructor)) {
+      throw new Error(
+        `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`
+      );
+    }
+  });
+}
+
+/**
  * @typedef {typeof Base} BaseConstructor
  * @typedef {(Base) => Promise<BaseConstructor | { default: BaseConstructor }>} BaseAsyncConstructor
  * @typedef {OptionsManager & { [name:string]: any }} BaseOptions
@@ -36,6 +59,15 @@ function noop() {}
  * @property {string[]} [emits]
  * @property {BaseConfigComponents} [components]
  * @property {BaseConfigOptions} [options]
+ */
+
+/**
+ * @typedef {Object} Managers
+ * @property {typeof ChildrenManager} ChildrenManager
+ * @property {typeof EventsManager} EventsManager
+ * @property {typeof OptionsManager} OptionsManager
+ * @property {typeof RefsManager} RefsManager
+ * @property {typeof ServicesManager} ServicesManager
  */
 
 /**
@@ -238,6 +270,21 @@ export default class Base extends EventTarget {
   }
 
   /**
+   * Get manager constructors.
+   *
+   * @returns {Managers}
+   */
+  get $managers() {
+    return {
+      ChildrenManager,
+      EventsManager,
+      OptionsManager,
+      RefsManager,
+      ServicesManager,
+    };
+  }
+
+  /**
    * Call an instance method and emit corresponding events.
    *
    * @private
@@ -304,11 +351,19 @@ export default class Base extends EventTarget {
 
     this.$el.__base__.set(this.__ctor, this);
 
-    this.__options = new OptionsManager(element, __config.options || {}, __config);
-    this.__services = new ServicesManager(this);
-    this.__events = new EventsManager(element, this);
-    this.__children = new ChildrenManager(this, element, __config.components || {}, this.__events);
-    this.__refs = new RefsManager(this, element, __config.refs || [], this.__events);
+    const { $managers } = this;
+    this.__options = new $managers.OptionsManager(element, __config.options || {}, __config);
+    this.__services = new $managers.ServicesManager(this);
+    this.__events = new $managers.EventsManager(element, this);
+    this.__refs = new $managers.RefsManager(this, element, __config.refs || [], this.__events);
+    this.__children = new $managers.ChildrenManager(
+      this,
+      element,
+      __config.components || {},
+      this.__events
+    );
+
+    testManagers(this);
 
     if (isDev) {
       this.__debug('constructor', this);

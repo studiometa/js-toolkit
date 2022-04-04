@@ -1,19 +1,34 @@
 import deepmerge from 'deepmerge';
 import isObject from '../../utils/object/isObject.js';
-import { useResize } from '../../index.js';
 
 /**
  * @typedef {import('deepmerge').Options} DeepmergeOptions
  * @typedef {import('../index.js').BaseConfig} BaseConfig
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
  * @typedef {{
- *   type: OptionType,
- *   default: string | number | boolean | (() => Array | Object),
- *   merge?: boolean | DeepmergeOptions,
- *   responsive?: boolean,
- * }} OptionObject
- * @typedef {OptionType | OptionObject} OptionValue
- * @typedef {{ [name:string]: OptionValue }} OptionsSchema
+ *   type: ArrayConstructor,
+ *   default?: () => any[],
+ *   merge?: boolean,
+ * }} ArrayOption
+ * @typedef {{
+ *   type: ObjectConstructor,
+ *   default?: () => any,
+ *   merge?: boolean,
+ * }} ObjectOption
+ * @typedef {{
+ *   type: StringConstructor,
+ *   default?: string,
+ * }} StringOption
+ * @typedef {{
+ *   type: NumberConstructor,
+ *   default?: number,
+ * }} NumberOption
+ * @typedef {{
+ *   type: BooleanConstructor,
+ *   default?: boolean,
+ * }} BooleanOption
+ * @typedef {ArrayOption | ObjectOption | StringOption | NumberOption | BooleanOption} OptionObject
+ * @typedef {{ [name:string]: OptionType | OptionObject }} OptionsSchema
  * @typedef {{ [optionName:string]: any }} OptionsInterface
  */
 
@@ -27,7 +42,7 @@ export default class OptionsManager {
   /**
    * The HTML element holding the options attributes.
    * @type {HTMLElement}
-   * @private
+   * @protected
    */
   __element;
 
@@ -40,10 +55,10 @@ export default class OptionsManager {
 
   /**
    * List of allowed types.
-   * @type {Array}
+   * @type {Set<OptionType>}
    * @private
    */
-  static types = [String, Number, Boolean, Array, Object];
+  static types = new Set([String, Number, Boolean, Array, Object]);
 
   /**
    * The default values to return for each available type.
@@ -115,7 +130,12 @@ export default class OptionsManager {
     };
 
     Object.entries(schema).forEach(([name, config]) => {
-      this.__register(name, config);
+      this.__register(
+        name,
+        OptionsManager.types.has(/** @type {OptionType} */ (config))
+          ? /** @type {OptionObject} */ ({ type: config })
+          : /** @type {OptionObject} */ (config)
+      );
     });
   }
 
@@ -123,44 +143,31 @@ export default class OptionsManager {
    * Register an option.
    *
    * @param  {string} name
-   * @param  {OptionValue} config
+   * @param  {OptionObject} config
    * @returns {void}
    * @private
    */
   __register(name, config) {
-    const isObjectConfig = typeof config === 'object';
-    const hasDefaultValue = !OptionsManager.types.includes(config);
-    const type = isObjectConfig
-      ? /** @type {OptionObject} */ (config).type
-      : /** @type {OptionType} */ (config);
-
-    if (!OptionsManager.types.includes(type)) {
+    if (!OptionsManager.types.has(config.type)) {
       throw new Error(
         `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`
       );
     }
 
-    // @ts-ignore
-    const defaultValue = hasDefaultValue ? config.default : this.__defaultValues[type.name];
+    config.default = config.default ?? this.__defaultValues[config.type.name];
 
-    if ((type === Array || type === Object) && typeof defaultValue !== 'function') {
+    if ((config.type === Array || config.type === Object) && typeof config.default !== 'function') {
       throw new Error(
-        `The default value for options of type "${type.name}" must be returned by a function.`
+        `The default value for options of type "${config.type.name}" must be returned by a function.`
       );
     }
 
     Object.defineProperty(this, name, {
       get: () => {
-        return this.get(
-          name,
-          type,
-          defaultValue,
-          isObjectConfig ? config.merge : undefined,
-          isObjectConfig ? config.responsive : false
-        );
+        return this.get(name, config);
       },
       set: (value) => {
-        this.set(name, type, value, defaultValue);
+        this.set(name, value, config);
       },
       enumerable: true,
     });
@@ -170,31 +177,12 @@ export default class OptionsManager {
    * Get an option value.
    *
    * @param   {string} name The option name.
-   * @param   {OptionType} type The option data's type.
-   * @param   {any} defaultValue The default value for this option.
-   * @param   {boolean|DeepmergeOptions} [merge] Wether to merge the value with the default or not.
-   * @param   {boolean} [responsive] Wether this option can have different values for the given breakpoints.
+   * @param   {OptionObject} config The option config.
    * @returns {any}
    */
-  get(name, type, defaultValue, merge, responsive = false) {
-    let propertyName = OptionsManager.__getPropertyName(name);
-
-    if (responsive) {
-      const { breakpoint } = useResize().props();
-      if (breakpoint) {
-        const regex = /.*\[(.*)\]$/;
-        Object.keys(this.__element.dataset)
-          .filter((optionName) => regex.test(optionName))
-          .forEach((optionName) => {
-            const [, breakpoints] = optionName.match(regex);
-            const isInBreakpoint = breakpoints.split(',').includes(breakpoint);
-            if (isInBreakpoint) {
-              propertyName = optionName;
-            }
-          });
-      }
-    }
-
+  get(name, config) {
+    const { type, default: defaultValue } = config;
+    const propertyName = OptionsManager.__getPropertyName(name);
     const hasProperty = this.__hasProperty(propertyName);
 
     if (type === Boolean) {
@@ -215,14 +203,18 @@ export default class OptionsManager {
     }
 
     if (type === Array || type === Object) {
-      if (!this.__values[name]) {
-        let val = hasProperty ? JSON.parse(value) : defaultValue();
+      // eslint-disable-next-line no-param-reassign
+      config =
+        type === Array ? /** @type {ArrayOption} */ (config) : /** @type {ObjectOption} */ (config);
 
-        if (typeof merge !== 'undefined') {
+      if (!this.__values[name]) {
+        let val = hasProperty ? JSON.parse(value) : config.default();
+
+        if (typeof config.merge !== 'undefined') {
           val =
-            typeof merge === 'boolean'
-              ? deepmerge(defaultValue(), val)
-              : deepmerge(defaultValue(), val, merge);
+            typeof config.merge === 'boolean'
+              ? deepmerge(config.default(), val)
+              : deepmerge(config.default(), val, config.merge);
         }
 
         this.__values[name] = val;
@@ -238,11 +230,11 @@ export default class OptionsManager {
    * Set an option value.
    *
    * @param {string} name The option name.
-   * @param {OptionType} type The option data's type.
    * @param {any} value The new value for this option.
-   * @param {any} defaultValue The default value for this option.
+   * @param {OptionObject} config The option config.
    */
-  set(name, type, value, defaultValue) {
+  set(name, value, config) {
+    const { type, default: defaultValue } = config;
     const propertyName = OptionsManager.__getPropertyName(name);
 
     if (value.constructor.name !== type.name) {
@@ -300,7 +292,7 @@ export default class OptionsManager {
    * @param  {string} name
    * @param  {string} [prefix]
    * @returns {string}
-   * @private
+   * @protected
    */
   static __getPropertyName(name, prefix = '') {
     const key = name + prefix;
