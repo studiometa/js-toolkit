@@ -1,11 +1,17 @@
 import deepmerge from 'deepmerge';
 import isObject from '../../utils/object/isObject.js';
+import { useResize } from '../../index.js';
 
 /**
  * @typedef {import('deepmerge').Options} DeepmergeOptions
  * @typedef {import('../index.js').BaseConfig} BaseConfig
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
- * @typedef {{type: OptionType, default: string | number | boolean | (() => Array | Object), merge?: boolean | DeepmergeOptions}} OptionObject
+ * @typedef {{
+ *   type: OptionType,
+ *   default: string | number | boolean | (() => Array | Object),
+ *   merge?: boolean | DeepmergeOptions,
+ *   responsive?: boolean,
+ * }} OptionObject
  * @typedef {OptionType | OptionObject} OptionValue
  * @typedef {{ [name:string]: OptionValue }} OptionsSchema
  * @typedef {{ [optionName:string]: any }} OptionsInterface
@@ -145,7 +151,13 @@ export default class OptionsManager {
 
     Object.defineProperty(this, name, {
       get: () => {
-        return this.get(name, type, defaultValue, isObjectConfig ? config.merge : undefined);
+        return this.get(
+          name,
+          type,
+          defaultValue,
+          isObjectConfig ? config.merge : undefined,
+          isObjectConfig ? config.responsive : false
+        );
       },
       set: (value) => {
         this.set(name, type, value, defaultValue);
@@ -161,10 +173,28 @@ export default class OptionsManager {
    * @param   {OptionType} type The option data's type.
    * @param   {any} defaultValue The default value for this option.
    * @param   {boolean|DeepmergeOptions} [merge] Wether to merge the value with the default or not.
+   * @param   {boolean} [responsive] Wether this option can have different values for the given breakpoints.
    * @returns {any}
    */
-  get(name, type, defaultValue, merge) {
-    const propertyName = OptionsManager.__getPropertyName(name);
+  get(name, type, defaultValue, merge, responsive = false) {
+    let propertyName = OptionsManager.__getPropertyName(name);
+
+    if (responsive) {
+      const { breakpoint } = useResize().props();
+      if (breakpoint) {
+        const regex = /.*\[(.*)\]$/;
+        Object.keys(this.__element.dataset)
+          .filter((optionName) => regex.test(optionName))
+          .forEach((optionName) => {
+            const [, breakpoints] = optionName.match(regex);
+            const isInBreakpoint = breakpoints.split(',').includes(breakpoint);
+            if (isInBreakpoint) {
+              propertyName = optionName;
+            }
+          });
+      }
+    }
+
     const hasProperty = this.__hasProperty(propertyName);
 
     if (type === Boolean) {
