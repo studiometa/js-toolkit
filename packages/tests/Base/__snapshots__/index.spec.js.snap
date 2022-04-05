@@ -46,6 +46,7 @@ Array [
 
 exports[`A Base instance should inherit from parent config 1`] = `
 Object {
+  "components": Object {},
   "emits": Array [
     "mounted",
     "updated",
@@ -74,5 +75,6 @@ Object {
     "color": [Function],
     "title": [Function],
   },
+  "refs": Array [],
 }
 `;
