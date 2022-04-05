@@ -5,8 +5,8 @@
  */
 export default function getOffsetSizes(element) {
   let parent = element;
-  let x = 0;
-  let y = 0;
+  let x = -window.pageXOffset;
+  let y = -window.pageYOffset;
 
   while (parent) {
     x += parent.offsetLeft;
