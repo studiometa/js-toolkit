@@ -25,7 +25,9 @@ This decorator uses the [`withMountWhenInView`](./withMountWhenInView.html) deco
 ### Parameters
 
 - `Base` (`BaseConstructor`): The `Base` class or a class extending it.
-- `options` (`IntersectionObserverInit`): Options for the `IntersectionObserver` used by the `withMountWhenInView` decorator
+- `options` (`IntersectionObserverInit & { useOffsetSizes?: boolean }`):
+  - `options[key:string]`: Options for the `IntersectionObserver` used by the `withMountWhenInView` decorator
+  - `options.useOffsetSizes` (`boolean`): when `true`, uses the [`getOffsetSizes(el)` function](/utils/css/getOffsetSizes.html) instead of the `el.getBoundingClientRect()` to get the element sizes
 
 ### Return value
 

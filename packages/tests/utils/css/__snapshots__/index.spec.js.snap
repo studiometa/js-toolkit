@@ -4,6 +4,7 @@ exports[`@studiometa/js-toolkit/utils/css exports should export all scripts 1`] 
 Array [
   "addClass",
   "addStyle",
+  "getOffsetSizes",
   "matrix",
   "removeClass",
   "removeStyle",
