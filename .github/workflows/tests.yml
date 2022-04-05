@@ -58,3 +58,13 @@ jobs:
         fail_ci_if_error: false
         path_to_write_report: ./codecov_report.txt
         verbose: true
+
+  Export-Size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: antfu/export-size-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          build_script: npm run build
+          paths: dist

@@ -38,6 +38,7 @@ Array [
   "easeOutQuint",
   "easeOutSine",
   "focusTrap",
+  "getOffsetSizes",
   "historyPush",
   "historyReplace",
   "inertiaFinalValue",

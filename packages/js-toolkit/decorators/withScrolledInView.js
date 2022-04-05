@@ -1,5 +1,5 @@
 import withMountWhenInView from './withMountWhenInView.js';
-import { damp, clamp, clamp01 } from '../utils/index.js';
+import { damp, clamp, clamp01, getOffsetSizes } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base').default} Base
@@ -12,10 +12,10 @@ import { damp, clamp, clamp01 } from '../utils/index.js';
  *
  * @template {BaseConstructor} T
  * @param {T} BaseClass
- * @param {IntersectionObserverInit} options
+ * @param {IntersectionObserverInit & { useOffsetSizes?: boolean }} options
  * @returns {T}
  */
-export default function withScrolledInView(BaseClass, options) {
+export default function withScrolledInView(BaseClass, options = {}) {
   // @ts-ignore
   return class extends withMountWhenInView(BaseClass, options) {
     /**
@@ -141,16 +141,18 @@ export default function withScrolledInView(BaseClass, options) {
      * @returns {void}
      */
     __setProps() {
-      const sizes = this.$el.getBoundingClientRect();
+      const sizes = options.useOffsetSizes
+        ? getOffsetSizes(this.$el)
+        : this.$el.getBoundingClientRect();
 
       // Y axis
-      const yEnd = sizes.top + window.pageYOffset + sizes.height;
+      const yEnd = sizes.y + window.pageYOffset + sizes.height;
       const yStart = yEnd - window.innerHeight - sizes.height;
       const yCurrent = clamp(window.pageYOffset, yStart, yEnd);
       const yProgress = clamp01((yCurrent - yStart) / (yEnd - yStart));
 
       // X axis
-      const xEnd = sizes.left + window.pageXOffset + sizes.width;
+      const xEnd = sizes.x + window.pageXOffset + sizes.width;
       const xStart = xEnd - window.innerWidth - sizes.width;
       const xCurrent = clamp(window.pageXOffset, xStart, xEnd);
       const xProgress = clamp01((xCurrent - xStart) / (xEnd - xStart));
