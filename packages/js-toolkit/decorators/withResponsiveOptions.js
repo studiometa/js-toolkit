@@ -15,9 +15,9 @@ export default function withResponsiveOptions(BaseClass) {
      *
      * @returns {import('../Base/index.js').Managers}
      */
-    get $managers() {
+    get __managers() {
       return {
-        ...super.$managers,
+        ...super.__managers,
         OptionsManager: ResponsiveOptionsManager,
       };
     }

@@ -10,7 +10,6 @@
 export default class AbstractManager {
   /**
    * @type {Base}
-   * @protected
    */
   __base;
 
