@@ -166,6 +166,10 @@ export default class Base extends EventTarget {
       proto = Object.getPrototypeOf(proto);
     }
 
+    config.options = config.options ?? {};
+    config.refs = config.refs ?? [];
+    config.components = config.components ?? {};
+
     return config;
   }
 
@@ -352,16 +356,11 @@ export default class Base extends EventTarget {
     this.$el.__base__.set(this.__ctor, this);
 
     const { $managers } = this;
-    this.__options = new $managers.OptionsManager(element, __config.options || {}, __config);
+    this.__options = new $managers.OptionsManager(this);
     this.__services = new $managers.ServicesManager(this);
-    this.__events = new $managers.EventsManager(element, this);
-    this.__refs = new $managers.RefsManager(this, element, __config.refs || [], this.__events);
-    this.__children = new $managers.ChildrenManager(
-      this,
-      element,
-      __config.components || {},
-      this.__events
-    );
+    this.__events = new $managers.EventsManager(this);
+    this.__refs = new $managers.RefsManager(this);
+    this.__children = new $managers.ChildrenManager(this);
 
     testManagers(this);
 

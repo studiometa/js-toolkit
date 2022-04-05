@@ -1,72 +1,17 @@
-/**
- * @typedef {import('../index.js').default} Base
- * @typedef {import('./EventsManager.js').default} EventsManager
- */
+import AbstractManager from './AbstractManager.js';
 
 /**
  * Refs Manager
  *
  * @todo Use `MutationObserver` to automatically update refs?
  */
-export default class RefsManager {
+export default class RefsManager extends AbstractManager {
   /**
-   * @type {HTMLElement}
-   * @private
+   * Get refs configuration.
+   * @returns {string[]}
    */
-  __element;
-
-  /**
-   * @type {string[]}
-   * @private
-   */
-  __refs;
-
-  /**
-   * @type {Base}
-   * @private
-   */
-  __base;
-
-  /**
-   * @type {EventsManager}
-   * @private
-   */
-  __eventsManager;
-
-  /**
-   * Class constructor.
-   *
-   * @param {Base} base
-   *   The base instance tied to this manager.
-   * @param {HTMLElement} element
-   *   The root element of a Base component.
-   * @param {string[]} refs
-   *   The list of refs of this component.
-   * @param {EventsManager} eventsManager
-   */
-  constructor(base, element, refs, eventsManager) {
-    Object.defineProperties(this, {
-      __element: {
-        enumerable: false,
-        writable: false,
-        value: element,
-      },
-      __refs: {
-        enumerable: false,
-        writable: false,
-        value: refs,
-      },
-      __base: {
-        enumerable: false,
-        writable: false,
-        value: base,
-      },
-      __eventsManager: {
-        enumerable: false,
-        writable: false,
-        value: eventsManager,
-      },
-    });
+  get __refs() {
+    return this.__config.refs ?? [];
   }
 
   /**

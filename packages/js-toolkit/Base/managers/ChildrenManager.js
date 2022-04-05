@@ -1,3 +1,4 @@
+import AbstractManager from './AbstractManager.js';
 import { getComponentElements } from '../utils.js';
 
 /**
@@ -5,37 +6,12 @@ import { getComponentElements } from '../utils.js';
  * @typedef {import('../index.js').BaseConstructor} BaseConstructor
  * @typedef {import('../index.js').BaseAsyncConstructor} BaseAsyncConstructor
  * @typedef {import('../index.js').BaseConfigComponents} BaseConfigComponents
- * @typedef {import('./EventsManager.js').default} EventsManager
  */
 
 /**
  * Children manager.
  */
-export default class ChildrenManager {
-  /**
-   * @type {Base}
-   * @private
-   */
-  __base;
-
-  /**
-   * @type {HTMLElement}
-   * @private
-   */
-  __element;
-
-  /**
-   * @type {BaseConfigComponents}
-   * @private
-   */
-  __components;
-
-  /**
-   * @type {EventsManager}
-   * @private
-   */
-  __eventsManager;
-
+export default class ChildrenManager extends AbstractManager {
   /**
    * Store async component promises to avoid calling them multiple times and
    * waiting for them when they are already resolved.
@@ -53,45 +29,10 @@ export default class ChildrenManager {
   }
 
   /**
-   * Class constructor.
-   * @param {Base} base
-   *   The component's instance.
-   * @param {HTMLElement} element
-   *   The component's root element
-   * @param {BaseConfigComponents} components
-   *   The children components' classes
-   * @param {EventsManager} eventsManager
-   */
-  constructor(base, element, components, eventsManager) {
-    Object.defineProperties(this, {
-      __base: {
-        enumerable: false,
-        writable: false,
-        value: base,
-      },
-      __element: {
-        enumerable: false,
-        writable: false,
-        value: element,
-      },
-      __components: {
-        enumerable: false,
-        writable: false,
-        value: components,
-      },
-      __eventsManager: {
-        enumerable: false,
-        writable: false,
-        value: eventsManager,
-      },
-    });
-  }
-
-  /**
    * Register instances of all children components.
    */
   registerAll() {
-    Object.entries(this.__components).forEach(([name, component]) =>
+    Object.entries(this.__config.components).forEach(([name, component]) =>
       this.__register(name, component)
     );
   }

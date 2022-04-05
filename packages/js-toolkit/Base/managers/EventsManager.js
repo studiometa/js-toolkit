@@ -1,4 +1,5 @@
 import getAllProperties from '../../utils/object/getAllProperties.js';
+import AbstractManager from './AbstractManager.js';
 import RefsManager from './RefsManager.js';
 
 /**
@@ -11,19 +12,7 @@ import RefsManager from './RefsManager.js';
  * @todo Prevent binding of `onChildOrRefEvent` to the root element
  * @todo Use event delegation?
  */
-export default class EventsManager {
-  /**
-   * @type {HTMLElement}
-   * @private
-   */
-  __rootElement;
-
-  /**
-   * @type {Base}
-   * @private
-   */
-  __base;
-
+export default class EventsManager extends AbstractManager {
   /**
    * @type {WeakMap}
    * @private
@@ -106,42 +95,17 @@ export default class EventsManager {
   /**
    * Class constructor.
    *
-   * @param {HTMLElement} rootElement
    * @param {Base} base
    */
-  constructor(rootElement, base) {
-    Object.defineProperties(this, {
-      __rootElement: {
-        enumerable: false,
-        writable: false,
-        value: rootElement,
-      },
-      __base: {
-        enumerable: false,
-        writable: false,
-        value: base,
-      },
-      __methodsCache: {
-        enumerable: false,
-        writable: false,
-        value: this.__methodsCache,
-      },
-      __rootElementHandler: {
-        enumerable: false,
-        writable: false,
-        value: this.__rootElementHandler,
-      },
-      __refsHandler: {
-        enumerable: false,
-        writable: false,
-        value: this.__refsHandler,
-      },
-      __childrenHandler: {
-        enumerable: false,
-        writable: false,
-        value: this.__childrenHandler,
-      },
-    });
+  constructor(base) {
+    super(base);
+
+    this.__hideProperties([
+      '__methodsCache',
+      '__rootElementHandler',
+      '__refsHandler',
+      '__childrenHandler',
+    ]);
   }
 
   /**
@@ -255,7 +219,7 @@ export default class EventsManager {
 
     methods.forEach((method) => {
       const event = this.__getEventNameByMethod(method);
-      const target = emits.includes(event) ? this.__base : this.__rootElement;
+      const target = emits.includes(event) ? this.__base : this.__element;
       target[modeMethod](event, this.__rootElementHandler);
     });
   }

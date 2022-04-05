@@ -1,8 +1,10 @@
 import deepmerge from 'deepmerge';
+import AbstractManager from './AbstractManager.js';
 import isObject from '../../utils/object/isObject.js';
 
 /**
  * @typedef {import('deepmerge').Options} DeepmergeOptions
+ * @typedef {import('../index.js').default} Base
  * @typedef {import('../index.js').BaseConfig} BaseConfig
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
  * @typedef {{
@@ -36,16 +38,8 @@ import isObject from '../../utils/object/isObject.js';
  * Class options to manage options as data attributes on an HTML element.
  *
  * @todo Use `MutationObserver` to update values? Might be more performant.
- * @augments {OptionsInterface}
  */
-export default class OptionsManager {
-  /**
-   * The HTML element holding the options attributes.
-   * @type {HTMLElement}
-   * @protected
-   */
-  __element;
-
+export default class OptionsManager extends AbstractManager {
   /**
    * An object to store Array and Object values for reference.
    * @type {Object}
@@ -94,39 +88,23 @@ export default class OptionsManager {
   /**
    * Class constructor.
    *
-   * @param {HTMLElement}   element The HTML element storing the options.
-   * @param {OptionsSchema} schema  A Base class config options.
-   * @param {BaseConfig}    baseConfig  A Base class config.
+   * @param   {Base} base
    */
-  constructor(element, schema, baseConfig) {
-    Object.defineProperties(this, {
-      __element: {
-        enumerable: false,
-        writable: false,
-        value: element,
-      },
-      __values: {
-        enumerable: false,
-        writable: false,
-        value: this.__values,
-      },
-      __defaultValues: {
-        enumerable: false,
-        writable: false,
-        value: this.__defaultValues,
-      },
-    });
+  constructor(base) {
+    super(base);
 
-    this.name = baseConfig.name;
+    this.__hideProperties(['__values', '__defaultValues']);
+    const schema = this.__config.options || {};
+    this.name = this.__config.name;
 
     schema.debug = {
       type: Boolean,
-      default: baseConfig.debug ?? false,
+      default: this.__config.debug ?? false,
     };
 
     schema.log = {
       type: Boolean,
-      default: baseConfig.log ?? false,
+      default: this.__config.log ?? false,
     };
 
     Object.entries(schema).forEach(([name, config]) => {
