@@ -12,10 +12,10 @@ import { damp, clamp, clamp01, getOffsetSizes } from '../utils/index.js';
  *
  * @template {BaseConstructor} T
  * @param {T} BaseClass
- * @param {IntersectionObserverInit} options
+ * @param {IntersectionObserverInit & { useOffsetSizes?: boolean }} options
  * @returns {T}
  */
-export default function withScrolledInView(BaseClass, options) {
+export default function withScrolledInView(BaseClass, options = {}) {
   // @ts-ignore
   return class extends withMountWhenInView(BaseClass, options) {
     /**
@@ -141,7 +141,9 @@ export default function withScrolledInView(BaseClass, options) {
      * @returns {void}
      */
     __setProps() {
-      const sizes = getOffsetSizes(this.$el);
+      const sizes = options.useOffsetSizes
+        ? getOffsetSizes(this.$el)
+        : this.$el.getBoundingClientRect();
 
       // Y axis
       const yEnd = sizes.y + window.pageYOffset + sizes.height;
