@@ -35,6 +35,99 @@ import isObject from '../../utils/object/isObject.js';
  */
 
 /**
+ * List of allowed types.
+ * @type {Set<OptionType>}
+ * @private
+ */
+const types = new Set([String, Number, Boolean, Array, Object]);
+
+/**
+ * The default values to return for each available type.
+ * @type {Object}
+ * @private
+ */
+const __defaultValues = {
+  String: '',
+  Number: 0,
+  Boolean: false,
+  Array: () => [],
+  Object: () => ({}),
+};
+
+/**
+ * Test if the element has a given property.
+ *
+ * @param  {OptionsManager} that
+ * @param  {string} prop
+ * @returns {boolean}
+ */
+function __hasProperty(that, prop) {
+  return typeof that.__element.dataset[prop] !== 'undefined';
+}
+
+/**
+ * Property name cache.
+ * @type {Map}
+ * @private
+ */
+const __propertyNameCache = new Map();
+
+/**
+ * Get a property name.
+ *
+ * @param  {string} name
+ * @param  {string} [prefix]
+ * @returns {string}
+ * @protected
+ */
+export function __getPropertyName(name, prefix = '') {
+  const key = name + prefix;
+
+  if (__propertyNameCache.has(key)) {
+    return __propertyNameCache.get(key);
+  }
+
+  const propertyName = `option${prefix}${name.replace(/^\w/, (c) => c.toUpperCase())}`;
+  __propertyNameCache.set(key, propertyName);
+  return propertyName;
+}
+
+/**
+ * Register an option.
+ *
+ * @param  {OptionsManager} that
+ * @param  {string} name
+ * @param  {OptionObject} config
+ * @returns {void}
+ * @private
+ */
+function __register(that, name, config) {
+  if (!types.has(config.type)) {
+    throw new Error(
+      `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`
+    );
+  }
+
+  config.default = config.default ?? __defaultValues[config.type.name];
+
+  if ((config.type === Array || config.type === Object) && typeof config.default !== 'function') {
+    throw new Error(
+      `The default value for options of type "${config.type.name}" must be returned by a function.`
+    );
+  }
+
+  Object.defineProperty(that, name, {
+    get: () => {
+      return that.get(name, config);
+    },
+    set: (value) => {
+      that.set(name, value, config);
+    },
+    enumerable: true,
+  });
+}
+
+/**
  * Class options to manage options as data attributes on an HTML element.
  *
  * @todo Use `MutationObserver` to update values? Might be more performant.
@@ -46,26 +139,6 @@ export default class OptionsManager extends AbstractManager {
    * @private
    */
   __values = {};
-
-  /**
-   * List of allowed types.
-   * @type {Set<OptionType>}
-   * @private
-   */
-  static types = new Set([String, Number, Boolean, Array, Object]);
-
-  /**
-   * The default values to return for each available type.
-   * @type {Object}
-   * @private
-   */
-  __defaultValues = {
-    String: '',
-    Number: 0,
-    Boolean: false,
-    Array: () => [],
-    Object: () => ({}),
-  };
 
   /**
    * Default value for the name property.
@@ -108,46 +181,13 @@ export default class OptionsManager extends AbstractManager {
     };
 
     Object.entries(schema).forEach(([name, config]) => {
-      this.__register(
+      __register(
+        this,
         name,
-        OptionsManager.types.has(/** @type {OptionType} */ (config))
+        types.has(/** @type {OptionType} */ (config))
           ? /** @type {OptionObject} */ ({ type: config })
           : /** @type {OptionObject} */ (config)
       );
-    });
-  }
-
-  /**
-   * Register an option.
-   *
-   * @param  {string} name
-   * @param  {OptionObject} config
-   * @returns {void}
-   * @private
-   */
-  __register(name, config) {
-    if (!OptionsManager.types.has(config.type)) {
-      throw new Error(
-        `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`
-      );
-    }
-
-    config.default = config.default ?? this.__defaultValues[config.type.name];
-
-    if ((config.type === Array || config.type === Object) && typeof config.default !== 'function') {
-      throw new Error(
-        `The default value for options of type "${config.type.name}" must be returned by a function.`
-      );
-    }
-
-    Object.defineProperty(this, name, {
-      get: () => {
-        return this.get(name, config);
-      },
-      set: (value) => {
-        this.set(name, value, config);
-      },
-      enumerable: true,
     });
   }
 
@@ -160,13 +200,13 @@ export default class OptionsManager extends AbstractManager {
    */
   get(name, config) {
     const { type, default: defaultValue } = config;
-    const propertyName = OptionsManager.__getPropertyName(name);
-    const hasProperty = this.__hasProperty(propertyName);
+    const propertyName = __getPropertyName(name);
+    const hasProperty = __hasProperty(this, propertyName);
 
     if (type === Boolean) {
       if (defaultValue) {
-        const negatedPropertyName = OptionsManager.__getPropertyName(name, 'No');
-        const hasNegatedProperty = this.__hasProperty(negatedPropertyName);
+        const negatedPropertyName = __getPropertyName(name, 'No');
+        const hasNegatedProperty = __hasProperty(this, negatedPropertyName);
 
         return !hasNegatedProperty;
       }
@@ -213,7 +253,7 @@ export default class OptionsManager extends AbstractManager {
    */
   set(name, value, config) {
     const { type, default: defaultValue } = config;
-    const propertyName = OptionsManager.__getPropertyName(name);
+    const propertyName = __getPropertyName(name);
 
     if (value.constructor.name !== type.name) {
       const val = Array.isArray(value) || isObject(value) ? JSON.stringify(value) : value;
@@ -225,7 +265,7 @@ export default class OptionsManager extends AbstractManager {
     switch (type) {
       case Boolean:
         if (defaultValue) {
-          const negatedPropertyName = OptionsManager.__getPropertyName(name, 'No');
+          const negatedPropertyName = __getPropertyName(name, 'No');
 
           if (value) {
             delete this.__element.dataset[negatedPropertyName];
@@ -245,42 +285,5 @@ export default class OptionsManager extends AbstractManager {
       default:
         this.__element.dataset[propertyName] = value;
     }
-  }
-
-  /**
-   * Test if the element has a given property.
-   *
-   * @param  {string} prop
-   * @returns {boolean}
-   */
-  __hasProperty(prop) {
-    return typeof this.__element.dataset[prop] !== 'undefined';
-  }
-
-  /**
-   * Property name cache.
-   * @type {Map}
-   * @private
-   */
-  static __propertyNameCache = new Map();
-
-  /**
-   * Get a property name.
-   *
-   * @param  {string} name
-   * @param  {string} [prefix]
-   * @returns {string}
-   * @protected
-   */
-  static __getPropertyName(name, prefix = '') {
-    const key = name + prefix;
-
-    if (OptionsManager.__propertyNameCache.has(key)) {
-      return OptionsManager.__propertyNameCache.get(key);
-    }
-
-    const propertyName = `option${prefix}${name.replace(/^\w/, (c) => c.toUpperCase())}`;
-    OptionsManager.__propertyNameCache.set(key, propertyName);
-    return propertyName;
   }
 }

@@ -23,7 +23,7 @@ function noop() {}
  * @param   {Base} instance The instance to test.
  * @returns {void}
  */
-function testManagers(instance) {
+function createAndTestManagers(instance) {
   [
     { prop: '__options', constructorName: 'OptionsManager', constructor: OptionsManager },
     { prop: '__services', constructorName: 'ServicesManager', constructor: ServicesManager },
@@ -31,6 +31,7 @@ function testManagers(instance) {
     { prop: '__refs', constructorName: 'RefsManager', constructor: RefsManager },
     { prop: '__children', constructorName: 'ChildrenManager', constructor: ChildrenManager },
   ].forEach(({ prop, constructorName, constructor }) => {
+    instance[prop] = new instance.__managers[constructorName](instance);
     if (!(instance[prop] instanceof constructor)) {
       throw new Error(
         `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`
@@ -278,7 +279,7 @@ export default class Base extends EventTarget {
    *
    * @returns {Managers}
    */
-  get $managers() {
+  get __managers() {
     return {
       ChildrenManager,
       EventsManager,
@@ -355,14 +356,7 @@ export default class Base extends EventTarget {
 
     this.$el.__base__.set(this.__ctor, this);
 
-    const { $managers } = this;
-    this.__options = new $managers.OptionsManager(this);
-    this.__services = new $managers.ServicesManager(this);
-    this.__events = new $managers.EventsManager(this);
-    this.__refs = new $managers.RefsManager(this);
-    this.__children = new $managers.ChildrenManager(this);
-
-    testManagers(this);
+    createAndTestManagers(this);
 
     if (isDev) {
       this.__debug('constructor', this);
