@@ -7,6 +7,7 @@ describe('The `withFreezedOptions` decorator', () => {
       name: 'Foo',
       options: {
         bool: Boolean,
+        str: String,
       },
     };
   }
@@ -30,5 +31,20 @@ describe('The `withFreezedOptions` decorator', () => {
     expect(foo.$isMounted).toBe(false);
     foo.$terminate();
     expect(foo.$el.__base__.get(Foo)).toBe('terminated');
+  });
+
+  it('should still allow child class $option definition', () => {
+    class Bar extends Foo {
+      get $options() {
+        const options = super.$options;
+
+        return { ...options, str: 'bar' };
+      }
+    }
+
+    const bar = new Bar(document.createElement('div'));
+    expect(bar.$options.str).toBe('bar');
+    bar.$options.str = 'foo';
+    expect(bar.$options.str).toBe('bar');
   });
 });
