@@ -178,7 +178,9 @@ export default function useScroll() {
       add: instance.add.bind(instance),
       remove: instance.remove.bind(instance),
       has: instance.has.bind(instance),
-      props: instance.updateProps.bind(instance),
+      props() {
+        return instance.props;
+      },
     };
   }
 

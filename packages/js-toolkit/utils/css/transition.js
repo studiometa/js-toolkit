@@ -92,7 +92,9 @@ async function start(element, classesOrStyles) {
   trs.isTransitioning = true;
   setClassesOrStyles(element, classesOrStyles.from);
   await nextFrame();
+  await nextFrame();
   setClassesOrStyles(element, classesOrStyles.active);
+  await nextFrame();
   await nextFrame();
 }
 
