@@ -24,6 +24,7 @@ function __getResponsiveName(that, name) {
   const propertyName = __getPropertyName(name);
   const regex = new RegExp(`${propertyName}\\[(.+)\\]$`);
 
+  // @ts-ignore
   Object.keys(that.__element.dataset)
     .filter((optionName) => regex.test(optionName))
     .forEach((optionName) => {
@@ -69,6 +70,6 @@ export default class ResponsiveOptionsManager extends OptionsManager {
       return;
     }
 
-    super.set(__getResponsiveName(this, name), value, config);
+    console.warn(`[${this.__config.name}]`, 'Responsive options are read-only.');
   }
 }
