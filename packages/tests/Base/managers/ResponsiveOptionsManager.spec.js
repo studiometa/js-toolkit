@@ -1,19 +1,11 @@
 import { jest } from '@jest/globals';
-import { Base, withExtraConfig } from '@studiometa/js-toolkit';
-import ResponsiveOptionsManager from '@studiometa/js-toolkit/Base/managers/ResponsiveOptionsManager';
+import { Base, withExtraConfig, withResponsiveOptions } from '@studiometa/js-toolkit';
 import { mockBreakpoints, unmockBreakpoints } from '../../__setup__/mockBreakpoints.js';
 
-class Foo extends Base {
+class Foo extends withResponsiveOptions(Base) {
   static config = {
     name: 'Base',
   };
-
-  get __managers() {
-    return {
-      ...super.__managers,
-      OptionsManager: ResponsiveOptionsManager,
-    };
-  }
 }
 
 function componentWithOptions(content, options) {
