@@ -1,6 +1,5 @@
 /* eslint-disable unicorn/prefer-dom-node-dataset */
 import { Base, withExtraConfig } from '@studiometa/js-toolkit';
-import OptionsManager from '@studiometa/js-toolkit/Base/managers/OptionsManager';
 
 class Foo extends Base {
   static config = {

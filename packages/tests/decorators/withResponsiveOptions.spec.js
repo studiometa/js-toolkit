@@ -1,6 +1,5 @@
-import { jest } from '@jest/globals';
 import { Base, withResponsiveOptions } from '@studiometa/js-toolkit';
-import ResponsiveOptionsManager from '@studiometa/js-toolkit/Base/Managers/ResponsiveOptionsManager.js';
+import ResponsiveOptionsManager from '@studiometa/js-toolkit/Base/managers/ResponsiveOptionsManager.js';
 
 describe('The `withResponsiveOptions` decorator', () => {
   it('should use the `ResponsiveOptionsManager', () => {
