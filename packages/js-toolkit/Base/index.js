@@ -25,11 +25,31 @@ function noop() {}
  */
 function createAndTestManagers(instance) {
   [
-    { prop: '__options', constructorName: 'OptionsManager', constructor: OptionsManager },
-    { prop: '__services', constructorName: 'ServicesManager', constructor: ServicesManager },
-    { prop: '__events', constructorName: 'EventsManager', constructor: EventsManager },
-    { prop: '__refs', constructorName: 'RefsManager', constructor: RefsManager },
-    { prop: '__children', constructorName: 'ChildrenManager', constructor: ChildrenManager },
+    {
+      prop: '__options',
+      constructorName: 'OptionsManager',
+      constructor: OptionsManager,
+    },
+    {
+      prop: '__services',
+      constructorName: 'ServicesManager',
+      constructor: ServicesManager,
+    },
+    {
+      prop: '__events',
+      constructorName: 'EventsManager',
+      constructor: EventsManager,
+    },
+    {
+      prop: '__refs',
+      constructorName: 'RefsManager',
+      constructor: RefsManager,
+    },
+    {
+      prop: '__children',
+      constructorName: 'ChildrenManager',
+      constructor: ChildrenManager,
+    },
   ].forEach(({ prop, constructorName, constructor }) => {
     instance[prop] = new instance.__managers[constructorName](instance);
     if (!(instance[prop] instanceof constructor)) {
@@ -148,16 +168,10 @@ export default class Base extends EventTarget {
     let { config } = proto.constructor;
 
     while (proto.constructor.config && proto.constructor.$isBase) {
-      config = {
-        ...proto.constructor.config,
-        ...config,
-      };
+      config = { ...proto.constructor.config, ...config };
 
       if (proto.constructor.config.options) {
-        config.options = {
-          ...proto.constructor.config.options,
-          ...config.options,
-        };
+        config.options = { ...proto.constructor.config.options, ...config.options };
       }
 
       if (proto.constructor.config.emits && config.emits) {
@@ -505,7 +519,7 @@ export default class Base extends EventTarget {
    * @returns {BaseConstructor}
    */
   get __ctor() {
-    return /** @type {BaseConstructor} */ (this.constructor);
+    return this.constructor; /** @type {BaseConstructor} */
   }
 
   /**
@@ -585,11 +599,7 @@ export default class Base extends EventTarget {
       this.__testEventIsDefined(event);
     }
 
-    this.dispatchEvent(
-      new CustomEvent(event, {
-        detail: args,
-      })
-    );
+    this.dispatchEvent(new CustomEvent(event, { detail: args }));
   }
 
   /**
