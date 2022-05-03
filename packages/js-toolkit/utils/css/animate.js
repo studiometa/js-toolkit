@@ -1,5 +1,6 @@
 import { lerp, map } from '../math/index.js';
-import matrix from './matrix.js';
+import isDefined from '../isDefined.js';
+import transform from './transform.js';
 
 let id = 0;
 const running = new WeakMap();
@@ -11,10 +12,6 @@ const CSSUnitConverter = {
   vmin: (value) => (value * Math.min(window.innerWidth, window.innerHeight)) / 100,
   vmax: (value) => (value * Math.max(window.innerWidth, window.innerHeight)) / 100,
 };
-
-function isDefined(value) {
-  return typeof value !== 'undefined';
-}
 
 /**
  * Get the value from a step property.
@@ -46,20 +43,13 @@ function linear(value) {
 }
 
 /**
+ * @typedef {import('./transform.js').TransformProps} TransformProps
  * @typedef {{
  *   duration?: number;
  *   ease?: (value: number) => number;
  *   precision?: number;
  *  }} Options
- * @typedef {{
- *   x?: number;
- *   y?: number;
- *   scale?: number;
- *   scaleX?: number;
- *   scaleY?: number;
- *   rotate?: number;
- *   skewX?: number;
- *   skewY?: number;
+ * @typedef {TransformProps & {
  *   opacity?: number;
  *   ease?: (value: number) => number;
  * }} Step
@@ -157,16 +147,20 @@ export function animate(element, steps, options = {}) {
     }
 
     const stepProgress = stepEase(map(easedProgress, from[0], to[0], 0, 1));
-    // @todo add other transforms
-    let transform = matrix({
-      translateX: lerp(
+    element.style.transform = transform({
+      x: lerp(
         getAnimationStepValue(from[1].x, element.offsetWidth),
         getAnimationStepValue(to[1].x, element.offsetWidth),
         stepProgress
       ),
-      translateY: lerp(
+      y: lerp(
         getAnimationStepValue(from[1].y, element.offsetHeight),
         getAnimationStepValue(to[1].y, element.offsetHeight),
+        stepProgress
+      ),
+      z: lerp(
+        getAnimationStepValue(from[1].z, element.offsetWidth),
+        getAnimationStepValue(to[1].z, element.offsetWidth),
         stepProgress
       ),
       scaleX: lerp(
@@ -179,17 +173,10 @@ export function animate(element, steps, options = {}) {
         to[1].scale ?? to[1].scaleY ?? 1,
         stepProgress
       ),
-      skewX: lerp(from[1].skewX ?? 0, to[1].skew ?? to[1].skewX ?? 0, stepProgress),
-      skewY: lerp(from[1].skewY ?? 0, to[1].skew ?? to[1].skewY ?? 0, stepProgress),
+      skewX: lerp(from[1].skew ?? from[1].skewX ?? 0, to[1].skew ?? to[1].skewX ?? 0, stepProgress),
+      skewY: lerp(from[1].skew ?? from[1].skewY ?? 0, to[1].skew ?? to[1].skewY ?? 0, stepProgress),
+      rotate: lerp(from[1].rotate, to[1].rotate, stepProgress),
     });
-
-    if (isDefined(from[1].rotate) && isDefined(to[1].rotate)) {
-      transform += ` rotate(${lerp(from[1].rotate, to[1].rotate, stepProgress)}deg)`;
-    }
-
-    transform += ' translateZ(0)';
-
-    element.style.transform = transform;
   }
 
   /**
