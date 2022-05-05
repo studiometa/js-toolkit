@@ -12,6 +12,7 @@ import ScrollToDemo from './components/ScrollToDemo.js';
 import MyVueComponent from './components/MyVueComponent.js';
 import Parallax from './components/Parallax.js';
 import ResponsiveOptions from './components/ResponsiveOptions.js';
+import AnimateTest from './components/AnimateTest.js';
 
 /**
  * App class.
@@ -25,6 +26,7 @@ class App extends Base {
     refs: ['modal'],
     log: false,
     components: {
+      AnimateTest,
       ResponsiveOptions,
       Accordion: (app) =>
         importWhenVisible(

@@ -1,4 +1,4 @@
-import { lerp, map } from '../math/index.js';
+import { lerp, map, clamp01 } from '../math/index.js';
 import isDefined from '../isDefined.js';
 import transform from './transform.js';
 
@@ -66,7 +66,7 @@ function linear(value) {
 /**
  * Animate an element.
  * @param   {HTMLElement} element
- * @param   {Step[]} steps
+ * @param   {[number, Step][]} steps
  * @param   {Options} options
  * @returns {Animate}
  */
@@ -107,6 +107,7 @@ export function animate(element, steps, options = {}) {
       return;
     }
 
+    console.log('pause');
     isRunning = false;
   }
 
@@ -116,6 +117,7 @@ export function animate(element, steps, options = {}) {
    * @returns {void}
    */
   function stop() {
+    console.log('stop');
     pause();
     resolve();
   }
@@ -125,6 +127,7 @@ export function animate(element, steps, options = {}) {
    * @returns {void}
    */
   function update() {
+    console.log('update');
     easedProgress = ease(progress);
 
     let toIndex = 0;
@@ -134,6 +137,8 @@ export function animate(element, steps, options = {}) {
 
     const from = steps[toIndex - 1];
     const to = steps[toIndex];
+
+    console.log({ from, to, toIndex, easedProgress, progress })
 
     if (!to || !from || Math.abs(1 - easedProgress) < precision) {
       stop();
@@ -147,20 +152,21 @@ export function animate(element, steps, options = {}) {
     }
 
     const stepProgress = stepEase(map(easedProgress, from[0], to[0], 0, 1));
+    console.log(stepProgress)
     element.style.transform = transform({
       x: lerp(
-        getAnimationStepValue(from[1].x, element.offsetWidth),
-        getAnimationStepValue(to[1].x, element.offsetWidth),
+        getAnimationStepValue(from[1].x ?? 0, element.offsetWidth),
+        getAnimationStepValue(to[1].x ?? 0, element.offsetWidth),
         stepProgress
       ),
       y: lerp(
-        getAnimationStepValue(from[1].y, element.offsetHeight),
-        getAnimationStepValue(to[1].y, element.offsetHeight),
+        getAnimationStepValue(from[1].y ?? 0, element.offsetHeight),
+        getAnimationStepValue(to[1].y ?? 0, element.offsetHeight),
         stepProgress
       ),
       z: lerp(
-        getAnimationStepValue(from[1].z, element.offsetWidth),
-        getAnimationStepValue(to[1].z, element.offsetWidth),
+        getAnimationStepValue(from[1].z ?? 0, element.offsetWidth),
+        getAnimationStepValue(to[1].z ?? 0, element.offsetWidth),
         stepProgress
       ),
       scaleX: lerp(
@@ -175,7 +181,7 @@ export function animate(element, steps, options = {}) {
       ),
       skewX: lerp(from[1].skew ?? from[1].skewX ?? 0, to[1].skew ?? to[1].skewX ?? 0, stepProgress),
       skewY: lerp(from[1].skew ?? from[1].skewY ?? 0, to[1].skew ?? to[1].skewY ?? 0, stepProgress),
-      rotate: lerp(from[1].rotate, to[1].rotate, stepProgress),
+      rotate: lerp(from[1].rotate ?? 0, to[1].rotate ?? 0, stepProgress),
     });
   }
 
@@ -190,7 +196,8 @@ export function animate(element, steps, options = {}) {
       return;
     }
 
-    progress = map(time, startTime, endTime, 0, 1);
+    console.log('loop');
+    progress = clamp01(map(time, startTime, endTime, 0, 1));
     update();
     requestAnimationFrame(loop);
   }
@@ -216,6 +223,7 @@ export function animate(element, steps, options = {}) {
    * @returns {void}
    */
   function play() {
+    console.log('play');
     // Stop running instances
     const runningKeys = running.get(element);
     runningKeys.forEach((runningStop, runningKey) => {
@@ -242,6 +250,8 @@ export function animate(element, steps, options = {}) {
     if (isRunning) {
       return;
     }
+
+    console.log('resume');
 
     startTime = performance.now() - lerp(0, duration, progress);
     endTime = startTime + duration;

@@ -9,6 +9,36 @@
 
   <body>
     <main data-breakpoint class="relative p-10" @click="foo">
+      <div
+        data-component="AnimateTest"
+        data-option-steps='[[0, { "x": 0, "scale": 0.5 }], [1, { "x": [100, "%"] }]]'
+        class="my-10">
+        <div class="space-x-4 mb-4">
+          <button
+            data-ref="play"
+            class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+            Play
+          </button>
+          <button
+            data-ref="pause"
+            class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+            Pause
+          </button>
+          <button
+            data-ref="resume"
+            class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+            Resume
+          </button>
+          <button
+            data-ref="stop"
+            class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+            Stop
+          </button>
+        </div>
+        <div class="w-96 rounded bg-gray-200">
+          <div data-ref="target" class="w-48 h-48 rounded bg-black"></div>
+        </div>
+      </div>
       <!-- BEGIN BreakpointManagerDemo -->
       <div
         data-component="BreakpointManagerDemo"
