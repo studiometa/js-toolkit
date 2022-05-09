@@ -519,7 +519,7 @@ export default class Base extends EventTarget {
    * @returns {BaseConstructor}
    */
   get __ctor() {
-    return this.constructor; /** @type {BaseConstructor} */
+    return /** @type {BaseConstructor} */ (this.constructor);
   }
 
   /**
