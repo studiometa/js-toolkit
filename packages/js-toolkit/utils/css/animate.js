@@ -53,7 +53,7 @@ function linear(value) {
  *   ease?: (value: number) => number;
  *   precision?: number;
  *   onProgress?: (progress: number, easedProgress: number) => void;
- *   onStop?: (progress: number, easedProgress: number) => void;
+ *   onEnd?: (progress: number, easedProgress: number) => void;
  *  }} Options
  * @typedef {TransformProps & {
  *   opacity?: number;
@@ -63,7 +63,7 @@ function linear(value) {
  *   start: () => void;
  *   pause: () => void;
  *   play: () => void;
- *   stop: () => void;
+ *   end: () => void;
  *   progress: (value: number?) => number
  * }} Animate
  */
@@ -93,7 +93,7 @@ export function animate(element, steps, options = {}) {
   const key = `animate-${id}`;
   id += 1;
 
-  const { onProgress = noop, onStop = noop } = options;
+  const { onProgress = noop, onEnd = noop } = options;
   let isRunning = false;
 
   /**
@@ -114,9 +114,9 @@ export function animate(element, steps, options = {}) {
    *
    * @returns {void}
    */
-  function stop() {
+  function end() {
     pause();
-    onStop(progress, easedProgress);
+    onEnd(progress, easedProgress);
   }
 
   /**
@@ -135,7 +135,7 @@ export function animate(element, steps, options = {}) {
     const to = steps[toIndex];
 
     if (!to || !from) {
-      stop();
+      end();
       return;
     }
 
@@ -234,7 +234,7 @@ export function animate(element, steps, options = {}) {
     // Stop when reaching precision
     if (Math.abs(1 - progress) < PROGRESS_PRECISION) {
       progress = 1;
-      requestAnimationFrame(() => stop());
+      requestAnimationFrame(() => end());
     }
 
     update();
@@ -302,7 +302,7 @@ export function animate(element, steps, options = {}) {
     start,
     pause,
     play,
-    stop,
+    end,
     progress: setProgress,
   };
 }
