@@ -1,0 +1,41 @@
+{% set ease = ease|default('easeInOutExpo') %}
+
+{% set steps = steps|default([
+  [0.0, {}],
+  [0.5, { x: [50, '%'], rotate: 180, scale: 0.5, opacity: 0.5 }],
+  [1.0, { x: [100, '%'], rotate: 360 }]
+]) %}
+
+<div
+  data-component="{{ name|default('AnimateTest') }}"
+  data-option-duration="2"
+  data-option-ease="{{ ease }}"
+  data-option-steps='{{ steps|json_encode }}'
+  class="my-10">
+  <div class="space-x-4 mb-4">
+    <button
+      data-ref="start"
+      class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+      Start
+    </button>
+    <button
+      data-ref="pause"
+      class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+      Pause
+    </button>
+    <button
+      data-ref="play"
+      class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+      Play
+    </button>
+    <button
+      data-ref="stop"
+      class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+      Stop
+    </button>
+    <input type="range" step="0.001" min="0" max="1" value="0" data-ref="progress">
+  </div>
+  <div class="w-96 rounded-xl bg-gray-200">
+    <div data-ref="target" class="w-1/2 h-48 rounded-xl bg-black"></div>
+  </div>
+</div>
