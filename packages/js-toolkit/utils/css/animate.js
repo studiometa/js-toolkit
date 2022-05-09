@@ -5,6 +5,10 @@ import transform from './transform.js';
 let id = 0;
 const running = new WeakMap();
 
+const noop = () => {};
+
+const PROGRESS_PRECISION = 0.0001;
+
 const CSSUnitConverter = {
   '%': (value, sizeRef) => (sizeRef ? (value * sizeRef) / 100 : value),
   vh: (value) => (value * window.innerHeight) / 100,
@@ -48,16 +52,17 @@ function linear(value) {
  *   duration?: number;
  *   ease?: (value: number) => number;
  *   precision?: number;
+ *   onProgress?: (progress: number, easedProgress: number) => void;
+ *   onStop?: (progress: number, easedProgress: number) => void;
  *  }} Options
  * @typedef {TransformProps & {
  *   opacity?: number;
  *   ease?: (value: number) => number;
  * }} Step
  * @typedef {{
- *   promise: Promise<void>;
- *   play: () => void;
+ *   start: () => void;
  *   pause: () => void;
- *   resume: () => void;
+ *   play: () => void;
  *   stop: () => void;
  *   progress: (value: number?) => number
  * }} Animate
@@ -79,9 +84,7 @@ export function animate(element, steps, options = {}) {
   }
 
   const ease = options.ease ?? linear;
-
-  const precision = options.precision ?? 0.001;
-  let duration = options.duration ?? 2;
+  let duration = options.duration ?? 1;
   duration *= 1000;
 
   let startTime = performance.now();
@@ -90,11 +93,7 @@ export function animate(element, steps, options = {}) {
   const key = `animate-${id}`;
   id += 1;
 
-  let resolve;
-  const promise = new Promise((r) => {
-    resolve = r;
-  });
-
+  const { onProgress = noop, onStop = noop } = options;
   let isRunning = false;
 
   /**
@@ -107,7 +106,6 @@ export function animate(element, steps, options = {}) {
       return;
     }
 
-    console.log('pause');
     isRunning = false;
   }
 
@@ -117,9 +115,8 @@ export function animate(element, steps, options = {}) {
    * @returns {void}
    */
   function stop() {
-    console.log('stop');
     pause();
-    resolve();
+    onStop(progress, easedProgress);
   }
 
   /**
@@ -127,62 +124,123 @@ export function animate(element, steps, options = {}) {
    * @returns {void}
    */
   function update() {
-    console.log('update');
     easedProgress = ease(progress);
 
     let toIndex = 0;
-    while (steps[toIndex] && steps[toIndex][0] <= easedProgress) {
+    while (steps[toIndex] && steps[toIndex][0] <= easedProgress && steps[toIndex][0] !== 1) {
       toIndex += 1;
     }
 
     const from = steps[toIndex - 1];
     const to = steps[toIndex];
 
-    console.log({ from, to, toIndex, easedProgress, progress })
-
-    if (!to || !from || Math.abs(1 - easedProgress) < precision) {
+    if (!to || !from) {
       stop();
       return;
     }
 
     const stepEase = to[1].ease ?? linear;
 
-    if (isDefined(from[1].opacity) && isDefined(to[1].opacity)) {
-      element.style.opacity = String(stepEase(map(progress, 0, 1, from[1].opacity, to[1].opacity)));
+    if (isDefined(from[1].opacity) || isDefined(to[1].opacity)) {
+      // @ts-ignore
+      element.style.opacity = stepEase(
+        map(progress, 0, 1, from[1].opacity ?? 1, to[1].opacity ?? 1)
+      );
     }
 
     const stepProgress = stepEase(map(easedProgress, from[0], to[0], 0, 1));
-    console.log(stepProgress)
-    element.style.transform = transform({
-      x: lerp(
+    const transformProps = {};
+
+    if (isDefined(from[1].x) || isDefined(to[1].x)) {
+      transformProps.x = lerp(
         getAnimationStepValue(from[1].x ?? 0, element.offsetWidth),
         getAnimationStepValue(to[1].x ?? 0, element.offsetWidth),
         stepProgress
-      ),
-      y: lerp(
+      );
+    }
+
+    if (isDefined(from[1].y) || isDefined(to[1].y)) {
+      transformProps.y = lerp(
         getAnimationStepValue(from[1].y ?? 0, element.offsetHeight),
         getAnimationStepValue(to[1].y ?? 0, element.offsetHeight),
         stepProgress
-      ),
-      z: lerp(
+      );
+    }
+
+    if (isDefined(from[1].z) || isDefined(to[1].z)) {
+      transformProps.y = lerp(
         getAnimationStepValue(from[1].z ?? 0, element.offsetWidth),
         getAnimationStepValue(to[1].z ?? 0, element.offsetWidth),
         stepProgress
-      ),
-      scaleX: lerp(
-        from[1].scale ?? from[1].scaleX ?? 1,
-        to[1].scale ?? to[1].scaleX ?? 1,
-        stepProgress
-      ),
-      scaleY: lerp(
-        from[1].scale ?? from[1].scaleY ?? 1,
-        to[1].scale ?? to[1].scaleY ?? 1,
-        stepProgress
-      ),
-      skewX: lerp(from[1].skew ?? from[1].skewX ?? 0, to[1].skew ?? to[1].skewX ?? 0, stepProgress),
-      skewY: lerp(from[1].skew ?? from[1].skewY ?? 0, to[1].skew ?? to[1].skewY ?? 0, stepProgress),
-      rotate: lerp(from[1].rotate ?? 0, to[1].rotate ?? 0, stepProgress),
-    });
+      );
+    }
+
+    if (isDefined(from[1].scale) || to[1].scale) {
+      transformProps.scale = lerp(from[1].scale ?? 1, to[1].scale ?? 1, stepProgress);
+    } else {
+      if (isDefined(from[1].scaleX) || to[1].scaleX) {
+        transformProps.scaleX = lerp(from[1].scaleX ?? 1, to[1].scaleX ?? 1, stepProgress);
+      }
+
+      if (isDefined(from[1].scaleY) || to[1].scaleY) {
+        transformProps.scaleY = lerp(from[1].scaleY ?? 1, to[1].scaleY ?? 1, stepProgress);
+      }
+
+      if (isDefined(from[1].scaleZ) || to[1].scaleZ) {
+        transformProps.scaleZ = lerp(from[1].scaleZ ?? 1, to[1].scaleZ ?? 1, stepProgress);
+      }
+    }
+
+    if (isDefined(from[1].skew) || to[1].skew) {
+      transformProps.skew = lerp(from[1].skew ?? 0, to[1].skew ?? 0, stepProgress);
+    } else {
+      if (isDefined(from[1].skewX) || to[1].skewX) {
+        transformProps.skewX = lerp(from[1].skewX ?? 0, to[1].skewX ?? 0, stepProgress);
+      }
+
+      if (isDefined(from[1].skewY) || to[1].skewY) {
+        transformProps.skewY = lerp(from[1].skewY ?? 0, to[1].skewY ?? 0, stepProgress);
+      }
+    }
+
+    if (isDefined(from[1].rotate) || to[1].rotate) {
+      transformProps.rotate = lerp(from[1].rotate ?? 0, to[1].rotate ?? 0, stepProgress);
+    } else {
+      if (isDefined(from[1].rotateX) || to[1].rotateX) {
+        transformProps.rotateX = lerp(from[1].rotateX ?? 0, to[1].rotateX ?? 0, stepProgress);
+      }
+
+      if (isDefined(from[1].rotateY) || to[1].rotateY) {
+        transformProps.rotateY = lerp(from[1].rotateY ?? 0, to[1].rotateY ?? 0, stepProgress);
+      }
+
+      if (isDefined(from[1].rotateZ) || to[1].rotateZ) {
+        transformProps.rotateZ = lerp(from[1].rotateZ ?? 0, to[1].rotateZ ?? 0, stepProgress);
+      }
+    }
+
+    element.style.transform = transform(transformProps);
+  }
+
+  /**
+   * Set the progress value.
+   *
+   * @param {number} newProgress The new progress value.
+   * @returns {number}
+   */
+  function setProgress(newProgress) {
+    progress = newProgress;
+
+    // Stop when reaching precision
+    if (Math.abs(1 - progress) < PROGRESS_PRECISION) {
+      progress = 1;
+      requestAnimationFrame(() => stop());
+    }
+
+    update();
+    onProgress(progress, easedProgress);
+
+    return progress;
   }
 
   /**
@@ -196,25 +254,8 @@ export function animate(element, steps, options = {}) {
       return;
     }
 
-    console.log('loop');
-    progress = clamp01(map(time, startTime, endTime, 0, 1));
-    update();
+    setProgress(clamp01(map(time, startTime, endTime, 0, 1)));
     requestAnimationFrame(loop);
-  }
-
-  /**
-   * Set the progress value.
-   *
-   * @param {number} newProgress The new progress value.
-   * @returns {number}
-   */
-  function setProgress(newProgress) {
-    if (typeof newProgress !== 'undefined') {
-      progress = newProgress;
-      update();
-    }
-
-    return progress;
   }
 
   /**
@@ -222,15 +263,14 @@ export function animate(element, steps, options = {}) {
    *
    * @returns {void}
    */
-  function play() {
-    console.log('play');
+  function start() {
     // Stop running instances
     const runningKeys = running.get(element);
-    runningKeys.forEach((runningStop, runningKey) => {
-      runningStop();
+    runningKeys.forEach((runningPause, runningKey) => {
+      runningPause();
       runningKeys.delete(runningKey);
     });
-    runningKeys.set(key, stop);
+    runningKeys.set(key, pause);
     running.set(element, runningKeys);
 
     startTime = performance.now();
@@ -243,27 +283,25 @@ export function animate(element, steps, options = {}) {
   }
 
   /**
-   * Resume a paused animation.
+   * play a paused animation.
    * @returns {void}
    */
-  function resume() {
+  function play() {
     if (isRunning) {
       return;
     }
 
-    console.log('resume');
-
     startTime = performance.now() - lerp(0, duration, progress);
     endTime = startTime + duration;
     isRunning = true;
+
     requestAnimationFrame(loop);
   }
 
   return {
-    promise,
-    play,
+    start,
     pause,
-    resume,
+    play,
     stop,
     progress: setProgress,
   };

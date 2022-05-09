@@ -11,13 +11,17 @@
     <main data-breakpoint class="relative p-10" @click="foo">
       <div
         data-component="AnimateTest"
-        data-option-steps='[[0, { "x": 0, "scale": 0.5 }], [1, { "x": [100, "%"] }]]'
+        data-option-steps='[
+          [0.0, {}],
+          [0.5, { "x": [50, "%"], "rotate": 90, "scale": 0.5, "opacity": 0.5 }],
+          [1.0, { "x": [100, "%"], "rotate": 180 }]
+        ]'
         class="my-10">
         <div class="space-x-4 mb-4">
           <button
-            data-ref="play"
+            data-ref="start"
             class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
-            Play
+            Start
           </button>
           <button
             data-ref="pause"
@@ -25,18 +29,20 @@
             Pause
           </button>
           <button
-            data-ref="resume"
+            data-ref="play"
             class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
-            Resume
+            Play
           </button>
           <button
             data-ref="stop"
             class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
             Stop
           </button>
+          <input type="range" step="0.001" min="0" max="1" value="0" data-ref="progress">
+          <input type="range" step="0.001" min="0" max="1" value="0" data-ref="easedProgress">
         </div>
-        <div class="w-96 rounded bg-gray-200">
-          <div data-ref="target" class="w-48 h-48 rounded bg-black"></div>
+        <div class="w-full rounded bg-gray-200">
+          <div data-ref="target" class="w-1/2 h-48 rounded bg-black"></div>
         </div>
       </div>
       <!-- BEGIN BreakpointManagerDemo -->
