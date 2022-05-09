@@ -229,6 +229,10 @@ export function animate(element, steps, options = {}) {
    * @returns {number}
    */
   function setProgress(newProgress) {
+    if (typeof newProgress === 'undefined') {
+      return progress;
+    }
+
     progress = newProgress;
 
     // Stop when reaching precision
