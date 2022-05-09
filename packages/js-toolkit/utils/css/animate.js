@@ -140,15 +140,15 @@ export function animate(element, steps, options = {}) {
     }
 
     const stepEase = to[1].ease ?? linear;
+    const stepProgress = stepEase(map(easedProgress, from[0], to[0], 0, 1));
 
     if (isDefined(from[1].opacity) || isDefined(to[1].opacity)) {
       // @ts-ignore
-      element.style.opacity = stepEase(
-        map(progress, 0, 1, from[1].opacity ?? 1, to[1].opacity ?? 1)
-      );
+      element.style.opacity = map(stepProgress, 0, 1, from[1].opacity ?? 1, to[1].opacity ?? 1);
+    } else if (element.style.opacity) {
+      element.style.opacity = '';
     }
 
-    const stepProgress = stepEase(map(easedProgress, from[0], to[0], 0, 1));
     const transformProps = {};
 
     if (isDefined(from[1].x) || isDefined(to[1].x)) {
