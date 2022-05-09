@@ -1,8 +1,7 @@
-import { Base, withScrolledInView } from '@studiometa/js-toolkit';
-import { map } from '@studiometa/js-toolkit/utils';
-import stylefire from 'stylefire';
+import { Base, withScrolledInView, withFreezedOptions } from '@studiometa/js-toolkit';
+import { map, transform } from '@studiometa/js-toolkit/utils';
 
-export default class Parallax extends withScrolledInView(Base) {
+export default class Parallax extends withScrolledInView(withFreezedOptions(Base)) {
   static config = {
     name: 'Parallax',
     refs: ['target'],
@@ -11,29 +10,9 @@ export default class Parallax extends withScrolledInView(Base) {
     },
   };
 
-  /**
-   * @type {import('stylefire').Styler}
-   */
-  styler;
-
-  mounted() {
-    super.mounted();
-    this.styler = stylefire(this.$refs.target);
-  }
-
-  get freezedOptions() {
-    const options = this.$options;
-    Object.defineProperty(this, 'freezeOptions', {
-      value: Object.freeze(options),
-      configurable: true,
-    });
-
-    return options;
-  }
-
   scrolledInView(props) {
-    this.styler.set({
-      y: map(props.dampedProgress.y, 0, 1, 100, -100) * this.freezedOptions.speed,
+    this.$refs.target.style.transform = transform({
+      y: map(props.dampedProgress.y, 0, 1, 100, -100) * this.$options.speed,
       scale: map(props.dampedProgress.x, 0, 1, 0.5, 2),
     });
   }

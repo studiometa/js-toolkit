@@ -10,45 +10,31 @@ export default class AnimateTest extends Base {
    */
   static config = {
     name: 'AnimateTest',
-    refs: ['target', 'start', 'pause', 'play', 'stop', 'progress', 'easedProgress'],
-    debug: true,
+    refs: ['target', 'start', 'pause', 'play', 'stop', 'progress'],
     options: {
       steps: Array,
       duration: {
         type: Number,
         default: 2,
       },
+      ease: String,
     },
   };
 
   mounted() {
-    this.reverseAnimate = animate(
+    this.animate = animate(
       this.$refs.target,
-      this.$options.steps.map((step) => [1 - step[0], step[1]]).reverse(),
+      this.$options.steps.map((step) => [step[0], { ...step[1], ease: ease[step[1].ease] }]),
       {
         duration: this.$options.duration,
-        ease: ease.easeInOutExpo,
-        onProgress: (progress, easedProgress) => {
-          this.$refs.progress.value = 1 - progress;
-          this.$refs.easedProgress.value = 1 - easedProgress;
-        },
-        onStop: () => {
-          this.animate.start();
+        ease: ease[this.$options.ease],
+        onProgress: (progress) => {
+          this.$refs.progress.value = progress;
         },
       }
     );
 
-    this.animate = animate(this.$refs.target, this.$options.steps, {
-      duration: this.$options.duration,
-      ease: ease.easeInOutExpo,
-      onProgress: (progress, easedProgress) => {
-        this.$refs.progress.value = progress;
-        this.$refs.easedProgress.value = easedProgress;
-      },
-      onStop: () => {
-        this.reverseAnimate.start();
-      },
-    });
+    this.animate.progress(0.45);
   }
 
   onStartClick() {
