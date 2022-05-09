@@ -195,6 +195,7 @@ export default class Base extends EventTarget {
     name: 'Base',
     emits: [
       // hook events
+      'before-mounted',
       'mounted',
       'updated',
       'destroyed',
@@ -385,6 +386,8 @@ export default class Base extends EventTarget {
     if (this.$isMounted) {
       return this;
     }
+
+    this.$emit('before-mounted');
 
     this.$isMounted = true;
     if (isDev) {
