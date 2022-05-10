@@ -28,6 +28,12 @@ Array [
   ],
   Array [
     "[debug] [Foo-37]",
+    "$emit",
+    "before-mounted",
+    Array [],
+  ],
+  Array [
+    "[debug] [Foo-37]",
     "$mount",
   ],
   Array [
@@ -48,6 +54,7 @@ exports[`A Base instance should inherit from parent config 1`] = `
 Object {
   "components": Object {},
   "emits": Array [
+    "before-mounted",
     "mounted",
     "updated",
     "destroyed",
@@ -58,6 +65,7 @@ Object {
     "moved",
     "loaded",
     "keyed",
+    "before-mounted",
     "mounted",
     "updated",
     "destroyed",
