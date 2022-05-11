@@ -11,7 +11,7 @@ export default class Parallax extends withScrolledInView(withFreezedOptions(Base
   };
 
   scrolledInView(props) {
-    this.$refs.target.style.transform = transform({
+    transform(this.$refs.target, {
       y: map(props.dampedProgress.y, 0, 1, 100, -100) * this.$options.speed,
       scale: map(props.dampedProgress.x, 0, 1, 0.5, 2),
     });

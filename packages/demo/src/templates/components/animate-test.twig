@@ -1,9 +1,9 @@
 {% set ease = ease|default('easeInOutExpo') %}
 
 {% set steps = steps|default([
-  [0.0, {}],
-  [0.5, { x: [50, '%'], rotate: 180, scale: 0.5, opacity: 0.5 }],
-  [1.0, { x: [100, '%'], rotate: 360 }]
+  {},
+  { x: [50, '%'], rotate: 180, scale: 0.5, opacity: 0.5 },
+  { x: [100, '%'], rotate: 360 }
 ]) %}
 
 <div
