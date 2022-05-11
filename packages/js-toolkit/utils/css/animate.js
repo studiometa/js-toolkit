@@ -1,6 +1,6 @@
 import { lerp, map, clamp01 } from '../math/index.js';
 import isDefined from '../isDefined.js';
-import transform from './transform.js';
+import transform, { TRANSFORM_PROPS } from './transform.js';
 
 let id = 0;
 const running = new WeakMap();
@@ -46,6 +46,67 @@ function linear(value) {
   return value;
 }
 
+const generateTranslateRenderStrategy = (sizeRef) => (element, fromValue, toValue, progress) =>
+  lerp(
+    getAnimationStepValue(fromValue ?? 0, element[sizeRef]),
+    getAnimationStepValue(toValue ?? 0, element[sizeRef]),
+    progress
+  );
+const widthBasedTranslateRenderStrategy = generateTranslateRenderStrategy('offsetWidth');
+const heightBasedTranslateRenderStrategy = generateTranslateRenderStrategy('offsetHeight');
+
+const generateLerpRenderStrategy = (defaultValue) => (element, fromValue, toValue, progress) =>
+  lerp(fromValue ?? defaultValue, toValue ?? defaultValue, progress);
+const scaleRenderStrategy = generateLerpRenderStrategy(1);
+const degreesRenderStrategy = generateLerpRenderStrategy(0);
+
+const transformRenderStrategies = {
+  x: widthBasedTranslateRenderStrategy,
+  y: heightBasedTranslateRenderStrategy,
+  z: widthBasedTranslateRenderStrategy,
+  scale: scaleRenderStrategy,
+  scaleX: scaleRenderStrategy,
+  scaleY: scaleRenderStrategy,
+  scaleZ: scaleRenderStrategy,
+  skew: degreesRenderStrategy,
+  skewX: degreesRenderStrategy,
+  skewY: degreesRenderStrategy,
+  rotate: degreesRenderStrategy,
+  rotateX: degreesRenderStrategy,
+  rotateY: degreesRenderStrategy,
+  rotateZ: degreesRenderStrategy,
+};
+
+/**
+ * Render an element style based on 2 keyframes and a progress value.
+ *
+ * @param   {HTMLElement} element
+ * @param   {Keyframe} from
+ * @param   {Keyframe} to
+ * @param   {number} progress
+ * @returns {void}
+ */
+function render(element, from, to, progress) {
+  const stepEase = to.ease ?? linear;
+  const stepProgress = stepEase(map(progress, from.offset, to.offset, 0, 1));
+
+  if (isDefined(from.opacity) || isDefined(to.opacity)) {
+    // @ts-ignore
+    element.style.opacity = map(stepProgress, 0, 1, from.opacity ?? 1, to.opacity ?? 1);
+  } else if (element.style.opacity) {
+    element.style.opacity = '';
+  }
+
+  transform(
+    element,
+    Object.fromEntries(
+      TRANSFORM_PROPS.filter((name) => isDefined(from[name]) || isDefined(to[name])).map((name) => {
+        return [name, transformRenderStrategies[name](element, from[name], to[name], stepProgress)];
+      })
+    )
+  );
+}
+
 /**
  * @typedef {import('./transform.js').TransformProps} TransformProps
  * @typedef {{
@@ -58,7 +119,8 @@ function linear(value) {
  * @typedef {TransformProps & {
  *   opacity?: number;
  *   ease?: (value: number) => number;
- * }} Step
+ *   offset?: number;
+ * }} Keyframe
  * @typedef {{
  *   start: () => void;
  *   pause: () => void;
@@ -71,11 +133,11 @@ function linear(value) {
 /**
  * Animate an element.
  * @param   {HTMLElement} element
- * @param   {[number, Step][]} steps
+ * @param   {Keyframe[]} keyframes
  * @param   {Options} options
  * @returns {Animate}
  */
-export function animate(element, steps, options = {}) {
+export function animate(element, keyframes, options = {}) {
   let progress = 0;
   let easedProgress = 0;
 
@@ -95,6 +157,15 @@ export function animate(element, steps, options = {}) {
 
   const { onProgress = noop, onEnd = noop } = options;
   let isRunning = false;
+
+  const keyframesCount = keyframes.length - 1;
+  const normalizedKeyframes = keyframes.map((step, index) => {
+    if (!isDefined(step.offset)) {
+      step.offset = index / keyframesCount;
+    }
+
+    return step;
+  });
 
   /**
    * Pause the animation.
@@ -123,103 +194,27 @@ export function animate(element, steps, options = {}) {
    * Update element.
    * @returns {void}
    */
-  function update() {
+  function tick() {
     easedProgress = ease(progress);
 
     let toIndex = 0;
-    while (steps[toIndex] && steps[toIndex][0] <= easedProgress && steps[toIndex][0] !== 1) {
+    while (
+      normalizedKeyframes[toIndex] &&
+      normalizedKeyframes[toIndex].offset <= easedProgress &&
+      normalizedKeyframes[toIndex].offset !== 1
+    ) {
       toIndex += 1;
     }
 
-    const from = steps[toIndex - 1];
-    const to = steps[toIndex];
+    const from = normalizedKeyframes[toIndex - 1];
+    const to = normalizedKeyframes[toIndex];
 
     if (!to || !from) {
       end();
       return;
     }
 
-    const stepEase = to[1].ease ?? linear;
-    const stepProgress = stepEase(map(easedProgress, from[0], to[0], 0, 1));
-
-    if (isDefined(from[1].opacity) || isDefined(to[1].opacity)) {
-      // @ts-ignore
-      element.style.opacity = map(stepProgress, 0, 1, from[1].opacity ?? 1, to[1].opacity ?? 1);
-    } else if (element.style.opacity) {
-      element.style.opacity = '';
-    }
-
-    const transformProps = {};
-
-    if (isDefined(from[1].x) || isDefined(to[1].x)) {
-      transformProps.x = lerp(
-        getAnimationStepValue(from[1].x ?? 0, element.offsetWidth),
-        getAnimationStepValue(to[1].x ?? 0, element.offsetWidth),
-        stepProgress
-      );
-    }
-
-    if (isDefined(from[1].y) || isDefined(to[1].y)) {
-      transformProps.y = lerp(
-        getAnimationStepValue(from[1].y ?? 0, element.offsetHeight),
-        getAnimationStepValue(to[1].y ?? 0, element.offsetHeight),
-        stepProgress
-      );
-    }
-
-    if (isDefined(from[1].z) || isDefined(to[1].z)) {
-      transformProps.y = lerp(
-        getAnimationStepValue(from[1].z ?? 0, element.offsetWidth),
-        getAnimationStepValue(to[1].z ?? 0, element.offsetWidth),
-        stepProgress
-      );
-    }
-
-    if (isDefined(from[1].scale) || to[1].scale) {
-      transformProps.scale = lerp(from[1].scale ?? 1, to[1].scale ?? 1, stepProgress);
-    } else {
-      if (isDefined(from[1].scaleX) || to[1].scaleX) {
-        transformProps.scaleX = lerp(from[1].scaleX ?? 1, to[1].scaleX ?? 1, stepProgress);
-      }
-
-      if (isDefined(from[1].scaleY) || to[1].scaleY) {
-        transformProps.scaleY = lerp(from[1].scaleY ?? 1, to[1].scaleY ?? 1, stepProgress);
-      }
-
-      if (isDefined(from[1].scaleZ) || to[1].scaleZ) {
-        transformProps.scaleZ = lerp(from[1].scaleZ ?? 1, to[1].scaleZ ?? 1, stepProgress);
-      }
-    }
-
-    if (isDefined(from[1].skew) || to[1].skew) {
-      transformProps.skew = lerp(from[1].skew ?? 0, to[1].skew ?? 0, stepProgress);
-    } else {
-      if (isDefined(from[1].skewX) || to[1].skewX) {
-        transformProps.skewX = lerp(from[1].skewX ?? 0, to[1].skewX ?? 0, stepProgress);
-      }
-
-      if (isDefined(from[1].skewY) || to[1].skewY) {
-        transformProps.skewY = lerp(from[1].skewY ?? 0, to[1].skewY ?? 0, stepProgress);
-      }
-    }
-
-    if (isDefined(from[1].rotate) || to[1].rotate) {
-      transformProps.rotate = lerp(from[1].rotate ?? 0, to[1].rotate ?? 0, stepProgress);
-    } else {
-      if (isDefined(from[1].rotateX) || to[1].rotateX) {
-        transformProps.rotateX = lerp(from[1].rotateX ?? 0, to[1].rotateX ?? 0, stepProgress);
-      }
-
-      if (isDefined(from[1].rotateY) || to[1].rotateY) {
-        transformProps.rotateY = lerp(from[1].rotateY ?? 0, to[1].rotateY ?? 0, stepProgress);
-      }
-
-      if (isDefined(from[1].rotateZ) || to[1].rotateZ) {
-        transformProps.rotateZ = lerp(from[1].rotateZ ?? 0, to[1].rotateZ ?? 0, stepProgress);
-      }
-    }
-
-    element.style.transform = transform(transformProps);
+    render(element, from, to, easedProgress);
   }
 
   /**
@@ -241,7 +236,7 @@ export function animate(element, steps, options = {}) {
       requestAnimationFrame(() => end());
     }
 
-    update();
+    tick();
     onProgress(progress, easedProgress);
 
     return progress;
