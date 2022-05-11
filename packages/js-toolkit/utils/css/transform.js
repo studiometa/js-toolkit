@@ -19,13 +19,31 @@ import isDefined from '../isDefined.js';
  * }>} TransformProps
  */
 
+export const TRANSFORM_PROPS = [
+  'x',
+  'y',
+  'z',
+  'rotate',
+  'rotateX',
+  'rotateY',
+  'rotateZ',
+  'scale',
+  'scaleX',
+  'scaleY',
+  'scaleZ',
+  'skew',
+  'skewX',
+  'skewY',
+];
+
 /**
  * Generate a CSS transform.
  *
+ * @param   {HTMLElement} element
  * @param   {TransformProps} props
  * @returns {string}
  */
-export default function transform(props) {
+export default function transform(element, props) {
   let value = '';
 
   if (isDefined(props.x) || isDefined(props.y) || isDefined(props.z)) {
@@ -68,13 +86,14 @@ export default function transform(props) {
     value += `skew(${props.skew}deg) `;
   } else {
     if (isDefined(props.skewX)) {
-      value += `skewX(${props.skewX}) `;
+      value += `skewX(${props.skewX}deg) `;
     }
 
     if (isDefined(props.skewY)) {
-      value += `skewY(${props.skewY}) `;
+      value += `skewY(${props.skewY}deg) `;
     }
   }
 
+  element.style.transform = value;
   return value;
 }
