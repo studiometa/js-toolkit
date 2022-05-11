@@ -19,62 +19,46 @@ import isDefined from '../isDefined.js';
  * }>} TransformProps
  */
 
+const translate =
+  'translate3d(calc(var(--x, 0) * 1px), calc(var(--y, 0) * 1px), calc(var(--z, 0) * 1px))';
+const generateDeg = (name) => `${name}(calc(var(--${name}, 0) * 1deg))`;
+const generateScale = (name) => `${name}(var(--${name}, 1))`;
+
+const parts = {
+  x: translate,
+  y: translate,
+  z: translate,
+  rotate: generateDeg('rotate'),
+  rotateX: generateDeg('rotateX'),
+  rotateY: generateDeg('rotateY'),
+  rotateZ: generateDeg('rotateZ'),
+  scale: generateScale('scale'),
+  scaleX: generateScale('scaleX'),
+  scaleY: generateScale('scaleY'),
+  scaleZ: generateScale('scaleZ'),
+  skew: generateDeg('skew'),
+  skewX: generateDeg('skewX'),
+  skewY: generateDeg('skewY'),
+};
+
+export const TRANSFORM_PROPS = Object.keys(parts)
+
 /**
  * Generate a CSS transform.
  *
+ * @param   {HTMLElement} element
  * @param   {TransformProps} props
  * @returns {string}
  */
-export default function transform(props) {
-  let value = '';
+export default function transform(element, props) {
+  const value = new Set();
+  Object.keys(props).forEach((name) => {
+    // eslint-disable-next-line prefer-template
+    element.style.setProperty('--' + name, props[name]);
 
-  if (isDefined(props.x) || isDefined(props.y) || isDefined(props.z)) {
-    value += `translate3d(${props.x ?? 0}px, ${props.y ?? 0}px, ${props.z ?? 0}px) `;
-  }
+    value.add(parts[name]);
+  });
 
-  if (isDefined(props.rotate)) {
-    value += `rotate(${props.rotate}deg) `;
-  } else {
-    if (isDefined(props.rotateX)) {
-      value += `rotateX(${props.rotateX}deg) `;
-    }
-
-    if (isDefined(props.rotateY)) {
-      value += `rotateY(${props.rotateY}deg) `;
-    }
-
-    if (isDefined(props.rotateZ)) {
-      value += `rotateZ(${props.rotateZ}deg) `;
-    }
-  }
-
-  if (isDefined(props.scale)) {
-    value += `scale(${props.scale}) `;
-  } else {
-    if (isDefined(props.scaleX)) {
-      value += `scaleX(${props.scaleX}) `;
-    }
-
-    if (isDefined(props.scaleY)) {
-      value += `scaleY(${props.scaleY}) `;
-    }
-
-    if (isDefined(props.scaleZ)) {
-      value += `scaleZ(${props.scaleZ}) `;
-    }
-  }
-
-  if (isDefined(props.skew)) {
-    value += `skew(${props.skew}deg) `;
-  } else {
-    if (isDefined(props.skewX)) {
-      value += `skewX(${props.skewX}) `;
-    }
-
-    if (isDefined(props.skewY)) {
-      value += `skewY(${props.skewY}) `;
-    }
-  }
-
-  return value;
+  element.style.transform = Array.from(value).join(' ');
+  return element.style.transform;
 }
