@@ -13,18 +13,18 @@
       {% include '@components/animate-test.twig' with {
         ease: ' ',
         steps: [
-          [0.0, {}],
-          [0.5, { x: [50, '%'], rotate: 180, scale: 0.5, opacity: 0.5, ease: 'easeInExpo' }],
-          [1.0, { x: [100, '%'], rotate: 360, ease: 'easeOutExpo' }]
+          {},
+          { x: [50, '%'], skewY: -20, rotate: 180, scale: 0.5, opacity: 0.5, ease: 'easeInExpo' },
+          { x: [100, '%'], rotate: 360, ease: 'easeOutExpo' }
         ]
       } %}
       {% include '@components/animate-test.twig' with {
         name: 'AnimateScrollTest',
         steps: [
-          [0.0, {}],
-          [0.25, { x: [50, '%'] }],
-          [0.5, { x: [50, '%'], rotate: 180, scale: 0.5, opacity: 0.5, }],
-          [1.0, { x: [100, '%'], rotate: 360, }]
+          {},
+          { x: [50, '%'], offset: 0.25 },
+          { x: [50, '%'], rotate: 180, scale: 0.5, opacity: 0.5, offset: 0.5 },
+          { x: [100, '%'], rotate: 360, }
         ]
       } %}
       <!-- BEGIN BreakpointManagerDemo -->

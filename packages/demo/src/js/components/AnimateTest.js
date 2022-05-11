@@ -24,7 +24,13 @@ export default class AnimateTest extends Base {
   mounted() {
     this.animate = animate(
       this.$refs.target,
-      this.$options.steps.map((step) => [step[0], { ...step[1], ease: ease[step[1].ease] }]),
+      this.$options.steps.map((step) => {
+        if (step.ease) {
+          step.ease = ease[step.ease];
+        }
+
+        return step;
+      }),
       {
         duration: this.$options.duration,
         ease: ease[this.$options.ease],

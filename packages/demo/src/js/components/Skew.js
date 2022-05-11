@@ -1,6 +1,5 @@
 import { Base, withMountWhenInView, useScroll, useRaf } from '@studiometa/js-toolkit';
-import { damp, clamp } from '@studiometa/js-toolkit/utils';
-import stylefire from 'stylefire';
+import { damp, clamp, transform } from '@studiometa/js-toolkit/utils';
 
 const scroll = useScroll();
 const raf = useRaf();
@@ -27,31 +26,16 @@ export default class Skew extends withMountWhenInView(Base) {
     name: 'Skew',
   };
 
-  skewY = 0;
-
-  dampedSkewY = 0;
-
-  /**
-   * @type {import('stylefire').Styler}
-   */
-  styler;
-
-  mounted() {
-    this.styler = stylefire(this.$el);
-  }
-
-  scrolled({ changed }) {
-    if (changed.y && !this.$services.has('ticked')) {
+  scrolled(props) {
+    if (props.changed.y && !this.$services.has('ticked')) {
       this.$services.enable('ticked');
     }
   }
 
   ticked() {
-    if (!this.styler) {
-      return;
-    }
-
-    this.styler.set('skewY', dampedSkewY);
+    transform(this.$el, {
+      skewY: dampedSkewY,
+    });
 
     if (dampedSkewY === skewY) {
       this.$services.disable('ticked');
