@@ -105,7 +105,7 @@ function normalizeEase(ease) {
  * @returns {void}
  */
 function render(element, from, to, progress) {
-  const stepProgress = to.ease(map(progress, from.offset, to.offset, 0, 1));
+  const stepProgress = to.easing(map(progress, from.offset, to.offset, 0, 1));
 
   if (isDefined(from.opacity) || isDefined(to.opacity)) {
     // @ts-ignore
@@ -128,14 +128,14 @@ function render(element, from, to, progress) {
  * @typedef {import('./transform.js').TransformProps} TransformProps
  * @typedef {{
  *   duration?: number;
- *   ease?: (value: number) => number;
+ *   easing?: (value: number) => number;
  *   precision?: number;
  *   onProgress?: (progress: number, easedProgress: number) => void;
  *   onEnd?: (progress: number, easedProgress: number) => void;
  *  }} Options
  * @typedef {TransformProps & {
  *   opacity?: number;
- *   ease?: (value: number) => number;
+ *   easing?: (value: number) => number;
  *   offset?: number;
  * }} Keyframe
  * @typedef {{
@@ -162,7 +162,7 @@ export function animate(element, keyframes, options = {}) {
     running.set(element, new Map());
   }
 
-  const ease = normalizeEase(options.ease);
+  const ease = normalizeEase(options.easing);
   let duration = options.duration ?? 1;
   duration *= 1000;
 
@@ -181,7 +181,7 @@ export function animate(element, keyframes, options = {}) {
       step.offset = index / keyframesCount;
     }
 
-    step.ease = normalizeEase(step.ease);
+    step.easing = normalizeEase(step.easing);
 
     return step;
   });
