@@ -1,3 +1,4 @@
+import { cubicBezier } from '@motionone/easing';
 import { lerp, map, clamp01 } from '../math/index.js';
 import isDefined from '../isDefined.js';
 import transform, { TRANSFORM_PROPS } from './transform.js';
@@ -78,6 +79,23 @@ const transformRenderStrategies = {
 };
 
 /**
+ * Normalize a easing function with default fallbacks.
+ * @param   {((p:number) => number)|[number,number,number,number]} ease
+ * @returns {(p:number) => number}
+ */
+function normalizeEase(ease) {
+  if (!isDefined(ease)) {
+    return linear;
+  }
+
+  if (Array.isArray(ease)) {
+    return cubicBezier(...ease);
+  }
+
+  return ease;
+}
+
+/**
  * Render an element style based on 2 keyframes and a progress value.
  *
  * @param   {HTMLElement} element
@@ -87,8 +105,7 @@ const transformRenderStrategies = {
  * @returns {void}
  */
 function render(element, from, to, progress) {
-  const stepEase = to.ease ?? linear;
-  const stepProgress = stepEase(map(progress, from.offset, to.offset, 0, 1));
+  const stepProgress = to.ease(map(progress, from.offset, to.offset, 0, 1));
 
   if (isDefined(from.opacity) || isDefined(to.opacity)) {
     // @ts-ignore
@@ -145,7 +162,7 @@ export function animate(element, keyframes, options = {}) {
     running.set(element, new Map());
   }
 
-  const ease = options.ease ?? linear;
+  const ease = normalizeEase(options.ease);
   let duration = options.duration ?? 1;
   duration *= 1000;
 
@@ -163,6 +180,8 @@ export function animate(element, keyframes, options = {}) {
     if (!isDefined(step.offset)) {
       step.offset = index / keyframesCount;
     }
+
+    step.ease = normalizeEase(step.ease);
 
     return step;
   });
