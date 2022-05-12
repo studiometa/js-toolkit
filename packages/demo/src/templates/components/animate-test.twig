@@ -6,6 +6,9 @@
   { x: [100, '%'], rotate: 360 }
 ]) %}
 
+{% set target_class = target_class|default('w-1/2') %}
+{% set container_class = container_class|default('') %}
+
 <div
   data-component="{{ name|default('AnimateTest') }}"
   data-option-duration="2"
@@ -35,7 +38,7 @@
     </button>
     <input type="range" step="0.001" min="0" max="1" value="0" data-ref="progress">
   </div>
-  <div class="w-96 rounded-xl bg-gray-200">
-    <div data-ref="target" class="w-1/2 h-48 rounded-xl bg-black"></div>
+  <div class="w-96 rounded-xl bg-gray-200 {{ container_class }}">
+    <div data-ref="target" class="{{ target_class }} h-48 rounded-xl bg-black"></div>
   </div>
 </div>
