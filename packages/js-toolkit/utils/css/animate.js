@@ -47,6 +47,23 @@ function linear(value) {
   return value;
 }
 
+/**
+ * Normalize a easing function with default fallbacks.
+ * @param   {((p:number) => number)|[number,number,number,number]} ease
+ * @returns {(p:number) => number}
+ */
+function normalizeEase(ease) {
+  if (!isDefined(ease)) {
+    return linear;
+  }
+
+  if (Array.isArray(ease)) {
+    return cubicBezier(...ease);
+  }
+
+  return ease;
+}
+
 const generateTranslateRenderStrategy = (sizeRef) => (element, fromValue, toValue, progress) =>
   lerp(
     getAnimationStepValue(fromValue ?? 0, element[sizeRef]),
@@ -79,28 +96,11 @@ const transformRenderStrategies = {
 };
 
 /**
- * Normalize a easing function with default fallbacks.
- * @param   {((p:number) => number)|[number,number,number,number]} ease
- * @returns {(p:number) => number}
- */
-function normalizeEase(ease) {
-  if (!isDefined(ease)) {
-    return linear;
-  }
-
-  if (Array.isArray(ease)) {
-    return cubicBezier(...ease);
-  }
-
-  return ease;
-}
-
-/**
  * Render an element style based on 2 keyframes and a progress value.
  *
  * @param   {HTMLElement} element
- * @param   {Keyframe} from
- * @param   {Keyframe} to
+ * @param   {NormalizedKeyframe} from
+ * @param   {NormalizedKeyframe} to
  * @param   {number} progress
  * @returns {void}
  */
@@ -132,18 +132,25 @@ function render(element, from, to, progress) {
 
 /**
  * @typedef {import('./transform.js').TransformProps} TransformProps
+ * @typedef {import('../math/ease.js').EasingFunction} EasingFn
+ * @typedef {[number, number, number, number]} BezierCurve
  * @typedef {{
  *   duration?: number;
- *   easing?: (value: number) => number;
+ *   easing?: EasingFn|BezierCurve;
  *   precision?: number;
  *   onProgress?: (progress: number, easedProgress: number) => void;
  *   onEnd?: (progress: number, easedProgress: number) => void;
  *  }} Options
  * @typedef {TransformProps & {
  *   opacity?: number;
- *   easing?: (value: number) => number;
+ *   transformOrigin?: string;
+ *   easing?: EasingFn|BezierCurve;
  *   offset?: number;
  * }} Keyframe
+ * @typedef {Keyframe & {
+ *   easing: EasingFn;
+ *   offset: number;
+ * }} NormalizedKeyframe
  * @typedef {{
  *   start: () => void;
  *   pause: () => void;
@@ -189,7 +196,7 @@ export function animate(element, keyframes, options = {}) {
 
     step.easing = normalizeEase(step.easing);
 
-    return step;
+    return /** @type {NormalizedKeyframe} */ (step);
   });
 
   /**
