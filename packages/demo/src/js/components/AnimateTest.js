@@ -25,7 +25,7 @@ export default class AnimateTest extends Base {
     this.animate = animate(
       this.$refs.target,
       this.$options.steps.map((step) => {
-        if (step.ease) {
+        if (typeof step.ease === 'string') {
           step.ease = ease[step.ease];
         }
 
