@@ -139,7 +139,7 @@ function render(element, from, to, progress) {
  *   easing?: EasingFn|BezierCurve;
  *   precision?: number;
  *   onProgress?: (progress: number, easedProgress: number) => void;
- *   onEnd?: (progress: number, easedProgress: number) => void;
+ *   onFinish?: (progress: number, easedProgress: number) => void;
  *  }} Options
  * @typedef {TransformProps & {
  *   opacity?: number;
@@ -155,7 +155,7 @@ function render(element, from, to, progress) {
  *   start: () => void;
  *   pause: () => void;
  *   play: () => void;
- *   end: () => void;
+ *   finish: () => void;
  *   progress: (value: number?) => number
  * }} Animate
  */
@@ -168,7 +168,7 @@ function render(element, from, to, progress) {
  * @returns {Animate}
  */
 export function animate(element, keyframes, options = {}) {
-  let progress = 0;
+  let progressValue = 0;
   let easedProgress = 0;
 
   if (!running.has(element)) {
@@ -185,7 +185,7 @@ export function animate(element, keyframes, options = {}) {
   const key = `animate-${id}`;
   id += 1;
 
-  const { onProgress = noop, onEnd = noop } = options;
+  const { onProgress = noop, onFinish = noop } = options;
   let isRunning = false;
 
   const keyframesCount = keyframes.length - 1;
@@ -205,29 +205,29 @@ export function animate(element, keyframes, options = {}) {
    * @returns {void}
    */
   function pause() {
-    if (!isRunning) {
-      return;
-    }
-
     isRunning = false;
   }
 
   /**
-   * Stop the animation and resolve the promise.
+   * Set the progress value.
    *
-   * @returns {void}
+   * @param {number} newProgress The new progress value.
+   * @returns {number}
    */
-  function end() {
-    pause();
-    onEnd(progress, easedProgress);
-  }
+  function progress(newProgress) {
+    if (typeof newProgress === 'undefined') {
+      return progressValue;
+    }
 
-  /**
-   * Update element.
-   * @returns {void}
-   */
-  function tick() {
-    easedProgress = ease(progress);
+    progressValue = newProgress;
+    easedProgress = ease(progressValue);
+
+    // Stop when reaching precision
+    if (Math.abs(1 - progressValue) < PROGRESS_PRECISION) {
+      progressValue = 1;
+      pause();
+      onFinish(progressValue, easedProgress);
+    }
 
     let toIndex = 0;
     while (
@@ -238,40 +238,10 @@ export function animate(element, keyframes, options = {}) {
       toIndex += 1;
     }
 
-    const from = normalizedKeyframes[toIndex - 1];
-    const to = normalizedKeyframes[toIndex];
+    render(element, normalizedKeyframes[toIndex - 1], normalizedKeyframes[toIndex], easedProgress);
+    onProgress(progressValue, easedProgress);
 
-    if (!to || !from) {
-      end();
-      return;
-    }
-
-    render(element, from, to, easedProgress);
-  }
-
-  /**
-   * Set the progress value.
-   *
-   * @param {number} newProgress The new progress value.
-   * @returns {number}
-   */
-  function setProgress(newProgress) {
-    if (typeof newProgress === 'undefined') {
-      return progress;
-    }
-
-    progress = newProgress;
-
-    // Stop when reaching precision
-    if (Math.abs(1 - progress) < PROGRESS_PRECISION) {
-      progress = 1;
-      requestAnimationFrame(() => end());
-    }
-
-    tick();
-    onProgress(progress, easedProgress);
-
-    return progress;
+    return progressValue;
   }
 
   /**
@@ -280,13 +250,13 @@ export function animate(element, keyframes, options = {}) {
    * @param   {number} time
    * @returns {void}
    */
-  function loop(time) {
+  function tick(time) {
     if (!isRunning) {
       return;
     }
 
-    setProgress(clamp01(map(time, startTime, endTime, 0, 1)));
-    requestAnimationFrame(loop);
+    progress(clamp01(map(time, startTime, endTime, 0, 1)));
+    requestAnimationFrame(tick);
   }
 
   /**
@@ -306,15 +276,15 @@ export function animate(element, keyframes, options = {}) {
 
     startTime = performance.now();
     endTime = startTime + duration;
-    progress = 0;
+    progressValue = 0;
     easedProgress = 0;
     isRunning = true;
 
-    requestAnimationFrame(loop);
+    requestAnimationFrame(tick);
   }
 
   /**
-   * play a paused animation.
+   * Play a paused animation.
    * @returns {void}
    */
   function play() {
@@ -322,18 +292,18 @@ export function animate(element, keyframes, options = {}) {
       return;
     }
 
-    startTime = performance.now() - lerp(0, duration, progress);
+    startTime = performance.now() - lerp(0, duration, progressValue);
     endTime = startTime + duration;
     isRunning = true;
 
-    requestAnimationFrame(loop);
+    requestAnimationFrame(tick);
   }
 
   return {
     start,
+    finish: () => progress(1),
     pause,
     play,
-    end,
-    progress: setProgress,
+    progress,
   };
 }
