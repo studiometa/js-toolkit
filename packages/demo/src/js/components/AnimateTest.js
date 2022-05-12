@@ -10,7 +10,7 @@ export default class AnimateTest extends Base {
    */
   static config = {
     name: 'AnimateTest',
-    refs: ['target', 'start', 'pause', 'play', 'stop', 'progress'],
+    refs: ['target', 'start', 'pause', 'play', 'finish', 'progress'],
     options: {
       steps: Array,
       duration: {
@@ -55,8 +55,8 @@ export default class AnimateTest extends Base {
     this.animate.play();
   }
 
-  onStopClick() {
-    this.animate.stop();
+  onFinishClick() {
+    this.animate.finish();
   }
 
   onProgressInput() {
