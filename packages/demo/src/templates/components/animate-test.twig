@@ -1,4 +1,4 @@
-{% set ease = ease|default('easeInOutExpo') %}
+{% set easing = easing|default('easeInOutExpo') %}
 
 {% set steps = steps|default([
   {},
@@ -9,7 +9,7 @@
 <div
   data-component="{{ name|default('AnimateTest') }}"
   data-option-duration="2"
-  data-option-ease="{{ ease }}"
+  data-option-easing="{{ easing }}"
   data-option-steps='{{ steps|json_encode }}'
   class="my-10">
   <div class="space-x-4 mb-4">

@@ -17,7 +17,7 @@ export default class AnimateTest extends Base {
         type: Number,
         default: 2,
       },
-      ease: String,
+      easing: String,
     },
   };
 
@@ -25,15 +25,15 @@ export default class AnimateTest extends Base {
     this.animate = animate(
       this.$refs.target,
       this.$options.steps.map((step) => {
-        if (typeof step.ease === 'string') {
-          step.ease = ease[step.ease];
+        if (typeof step.easing === 'string') {
+          step.easing = ease[step.easing];
         }
 
         return step;
       }),
       {
         duration: this.$options.duration,
-        ease: ease[this.$options.ease],
+        easing: ease[this.$options.easing],
         onProgress: (progress) => {
           this.$refs.progress.value = progress;
         },
