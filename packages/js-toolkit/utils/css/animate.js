@@ -114,6 +114,12 @@ function render(element, from, to, progress) {
     element.style.opacity = '';
   }
 
+  if (isDefined(to.transformOrigin)) {
+    element.style.transformOrigin = to.transformOrigin;
+  } else if (element.style.transformOrigin) {
+    element.style.transformOrigin = '';
+  }
+
   transform(
     element,
     Object.fromEntries(
