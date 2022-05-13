@@ -22,14 +22,14 @@ function __getResponsiveName(that, name) {
 
   let responsiveName = name;
   const propertyName = __getPropertyName(name);
-  const regex = new RegExp(`${propertyName}\\[(.+)\\]$`);
+  const regex = new RegExp(`${propertyName}:(.+)$`);
 
   // @ts-ignore
   Object.keys(that.__element.dataset)
     .filter((optionName) => regex.test(optionName))
     .forEach((optionName) => {
       const [, breakpoints] = optionName.match(regex);
-      const isInBreakpoint = breakpoints.split(',').includes(breakpoint);
+      const isInBreakpoint = breakpoints.split(':').includes(breakpoint);
       if (isInBreakpoint) {
         responsiveName = optionName.replace(/^option/, '');
       }
