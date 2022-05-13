@@ -11,7 +11,7 @@ const noop = () => {};
 const PROGRESS_PRECISION = 0.0001;
 
 const CSSUnitConverter = {
-  '%': (value, sizeRef) => (sizeRef ? (value * sizeRef) / 100 : value),
+  '%': (value, sizeRef) => (value * sizeRef) / 100,
   vh: (value) => (value * window.innerHeight) / 100,
   vw: (value) => (value * window.innerWidth) / 100,
   vmin: (value) => (value * Math.min(window.innerWidth, window.innerHeight)) / 100,
