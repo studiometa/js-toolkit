@@ -225,6 +225,7 @@ function getUtilsSidebar() {
       text: 'CSS utils',
       // link: '/utils/css/',
       children: [
+        { text: 'animate', link: '/utils/css/animate.html' },
         { text: 'addClass', link: '/utils/css/addClass.html' },
         { text: 'addStyle', link: '/utils/css/addStyle.html' },
         { text: 'getOffsetSizes', link: '/utils/css/getOffsetSizes.html' },

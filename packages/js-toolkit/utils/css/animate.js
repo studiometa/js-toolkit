@@ -137,7 +137,6 @@ function render(element, from, to, progress) {
  * @typedef {{
  *   duration?: number;
  *   easing?: EasingFn|BezierCurve;
- *   precision?: number;
  *   onProgress?: (progress: number, easedProgress: number) => void;
  *   onFinish?: (progress: number, easedProgress: number) => void;
  *  }} Options
