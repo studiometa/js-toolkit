@@ -220,14 +220,15 @@ export function animate(element, keyframes, options = {}) {
     }
 
     progressValue = newProgress;
-    easedProgress = ease(progressValue);
 
     // Stop when reaching precision
     if (Math.abs(1 - progressValue) < PROGRESS_PRECISION) {
       progressValue = 1;
       pause();
-      onFinish(progressValue, easedProgress);
+      requestAnimationFrame(() => onFinish(progressValue, easedProgress));
     }
+
+    easedProgress = ease(progressValue);
 
     let toIndex = 0;
     while (
