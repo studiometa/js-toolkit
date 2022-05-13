@@ -14,7 +14,7 @@ describe('The `animate` utility function', () => {
         ],
         {
           duration: 0.1,
-          onEnd: () => {
+          onFinish: () => {
             expect(div.style.opacity).toBe('0');
             expect(div.style.transform).toBe('translate3d(100px, 0px, 0px) scaleX(1) ');
             expect(div.style.transformOrigin).toBe('top left');
