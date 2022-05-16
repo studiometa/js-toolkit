@@ -1,5 +1,5 @@
 import withMountWhenInView from './withMountWhenInView.js';
-import { damp, clamp, clamp01, getOffsetSizes } from '../utils/index.js';
+import { damp, clamp, clamp01, getOffsetSizes, isFunction } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base').default} Base
@@ -146,6 +146,64 @@ export default function withScrolledInView(BaseClass, options = {}) {
         this.$off('scrolled', delegate);
         this.$off('ticked', delegate);
       });
+    }
+
+    /**
+     * Mounted hook.
+     *
+     * @deprecated
+     * @returns {void}
+     */
+    mounted() {
+      // @ts-ignore
+      if (isFunction(super.mounted)) super.mounted();
+    }
+
+    /**
+     * Resized hook.
+     *
+     * @deprecated
+     * @param   {import('../services/resize').ResizeServiceProps} props
+     * @returns {void}
+     */
+    resized(props) {
+      // @ts-ignore
+      if (isFunction(super.resized)) super.resized(props);
+    }
+
+    /**
+     * Scrolled hook.
+     *
+     * @deprecated
+     * @param   {import('../services/scroll').ScrollServiceProps} props
+     * @returns {void}
+     */
+    scrolled(props) {
+      // @ts-ignore
+      if (isFunction(super.scrolled)) super.scrolled(props);
+    }
+
+    /**
+     * Ticked hook.
+     *
+     * @deprecated
+     * @param   {import('../services/raf').RafServiceProps} props
+     * @returns {void}
+     */
+    ticked(props) {
+      // @ts-ignore
+      if (isFunction(super.ticked)) super.ticked(props);
+    }
+
+    /**
+     * Destroyed hook.
+     *
+     * @deprecated
+     * @returns {void}
+     */
+    destroyed() {
+      // @ts-ignore
+      if (isFunction(super.destroyed)) super.destroyed();
     }
 
     /**
