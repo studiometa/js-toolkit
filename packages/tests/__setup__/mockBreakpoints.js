@@ -1,5 +1,15 @@
 import { jest } from '@jest/globals';
 
+let shouldMock = true;
+
+export function mockBreakpoints() {
+  shouldMock = true;
+}
+
+export function unmockBreakpoints() {
+  shouldMock = false;
+}
+
 /**
  * Global mock for the breakpoints detection used by the `resize` service.
  */
@@ -16,6 +26,10 @@ Object.defineProperty(globalThis, 'getComputedStyle', {
       } else {
         content = 'l';
       }
+    }
+
+    if (!shouldMock) {
+      content = '';
     }
 
     return {
