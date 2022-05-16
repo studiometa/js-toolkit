@@ -1,7 +1,10 @@
 import { jest } from '@jest/globals';
 import { html } from 'htl';
 import { Base } from '@studiometa/js-toolkit';
-import EventsManager from '@studiometa/js-toolkit/Base/managers/EventsManager';
+import {
+  normalizeEventName,
+  normalizeName,
+} from '@studiometa/js-toolkit/Base/managers/EventsManager';
 import wait from '../../__utils__/wait';
 
 describe('The EventsManager class', () => {
@@ -64,14 +67,16 @@ describe('The EventsManager class', () => {
     }
   }
 
-  const tpl = html`<div>
-    <div data-ref="single"></div>
-    <div data-ref="multiple[]"></div>
-    <div data-ref="multiple[]"></div>
-    <div data-component="Component"></div>
-    <div data-component="Component"></div>
-    <div data-component="AsyncComponent"></div>
-  </div>`;
+  const tpl = html`
+    <div>
+      <div data-ref="single"></div>
+      <div data-ref="multiple[]"></div>
+      <div data-ref="multiple[]"></div>
+      <div data-component="Component"></div>
+      <div data-component="Component"></div>
+      <div data-component="AsyncComponent"></div>
+    </div>
+  `;
 
   const single = tpl.querySelector('[data-ref="single"]');
   const multiple = Array.from(tpl.querySelectorAll('[data-ref="multiple[]"]'));
@@ -203,7 +208,7 @@ describe('The EventsManager class', () => {
       ['.complex[class^ ="#"]', 'ComplexClass'],
     ];
 
-    names.forEach(([input, output]) => expect(EventsManager.normalizeName(input)).toBe(output));
+    names.forEach(([input, output]) => expect(normalizeName(input)).toBe(output));
   });
 
   it('should normalize PascalCase event names to their kebab-case equivalent', () => {
@@ -212,8 +217,6 @@ describe('The EventsManager class', () => {
       ['MultipleParts', 'multiple-parts'],
     ];
 
-    names.forEach(([input, output]) =>
-      expect(EventsManager.normalizeEventName(input)).toBe(output)
-    );
+    names.forEach(([input, output]) => expect(normalizeEventName(input)).toBe(output));
   });
 });
