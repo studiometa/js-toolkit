@@ -11,7 +11,8 @@ const animation = animate(
   document.body,
   [
     { x: 0 }, // from
-    { x: 100, opacity: 0.5 }, // to
+    { x: 100, scale: 0.5, opacity: 0.5, easing: [0, 1, 0, 1] },
+    { x: 0 }, // to
   ],
   {
     duration: 10,
@@ -63,7 +64,7 @@ console.log(animation.progress()); // 1
 console.log(document.body.style.opacity); // '0'
 ```
 
-### Function types
+### Types
 
 ```ts
 import { TransformProps } from '@studiometa/js-toolkit/utils';
