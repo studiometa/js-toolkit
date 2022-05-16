@@ -44,6 +44,8 @@ Array [
   "historyPush",
   "historyReplace",
   "inertiaFinalValue",
+  "isDefined",
+  "isFunction",
   "keyCodes",
   "lerp",
   "map",
