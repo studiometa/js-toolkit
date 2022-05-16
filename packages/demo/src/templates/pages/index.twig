@@ -9,6 +9,43 @@
 
   <body>
     <main data-breakpoint class="relative p-10" @click="foo">
+      {% include '@components/animate-test.twig' %}
+      {% include '@components/animate-test.twig' with {
+        easing: ' ',
+        steps: [
+          {},
+          { x: [50, '%'], skewY: -20, rotate: 180, scale: 0.5, opacity: 0.5, easing: [0.6, -0.28, 0.735, 0.045] },
+          { x: [100, '%'], rotate: 360, easing: [0.175, 0.885, 0.32, 1.275] }
+        ]
+      } %}
+      {% include '@components/animate-test.twig' with {
+        target_class: 'w-full',
+        container_class: 'overflow-hidden',
+        steps: [
+          { scaleX: 0 },
+          { scaleX: 1, transformOrigin: 'top left' },
+          { scaleX: 0, transformOrigin: 'top right' }
+        ]
+      } %}
+      {% include '@components/animate-test.twig' with {
+        name: 'AnimateScrollTest',
+        steps: [
+          {},
+          { x: [50, '%'], offset: 0.25 },
+          { x: [50, '%'], rotate: 180, scale: 0.5, opacity: 0.5, offset: 0.5 },
+          { x: [100, '%'], rotate: 360, }
+        ]
+      } %}
+      {% include '@components/animate-test.twig' with {
+        name: 'AnimateScrollTest',
+        target_class: 'w-full',
+        container_class: 'overflow-hidden',
+        steps: [
+          { scaleX: 0 },
+          { scaleX: 1, transformOrigin: 'top left' },
+          { scaleX: 0, transformOrigin: 'top right' }
+        ]
+      } %}
       <!-- BEGIN BreakpointManagerDemo -->
       <div
         data-component="BreakpointManagerDemo"

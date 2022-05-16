@@ -4,11 +4,13 @@ exports[`@studiometa/js-toolkit/utils/css exports should export all scripts 1`] 
 Array [
   "addClass",
   "addStyle",
+  "animate",
   "getOffsetSizes",
   "matrix",
   "removeClass",
   "removeStyle",
   "toggleClass",
+  "transform",
   "transition",
 ]
 `;

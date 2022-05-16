@@ -6,3 +6,4 @@ export { default as lerp } from './lerp.js';
 export { default as map } from './map.js';
 export { default as round } from './round.js';
 export * from './ease.js';
+export * as ease from './ease.js';
