@@ -3,10 +3,16 @@
     <div style="min-width: 10rem" class="inline-block border py-4 px-8 rounded text-center">
       {{ count }}
     </div>
-    <button class="py-4 px-8 text-white rounded bg-black focus:opacity-50" @click="count += 1">
+    <button
+      type="button"
+      class="py-4 px-8 text-white rounded bg-black focus:opacity-50"
+      @click="count += 1">
       Add
     </button>
-    <button class="py-4 px-8 text-white rounded bg-black focus:opacity-50" @click="count -= 1">
+    <button
+      type="button"
+      class="py-4 px-8 text-white rounded bg-black focus:opacity-50"
+      @click="count -= 1">
       Remove
     </button>
   </div>

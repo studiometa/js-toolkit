@@ -4,6 +4,7 @@ import useResize from '../../services/resize.js';
 import useScroll from '../../services/scroll.js';
 import useKey from '../../services/key.js';
 import useLoad from '../../services/load.js';
+import AbstractManager from './AbstractManager.js';
 import { hasMethod } from '../utils.js';
 
 /**
@@ -33,13 +34,7 @@ const SERVICE_NAMES = Object.keys(SERVICES_MAP);
  *
  * @todo Add support for disabled services on mount when the method is defined.
  */
-export default class ServicesManager {
-  /**
-   * @type {Base}
-   * @private
-   */
-  __base;
-
+export default class ServicesManager extends AbstractManager {
   /**
    * @type {Record<string, () => ServiceInterface>}
    */
@@ -53,20 +48,6 @@ export default class ServicesManager {
       ...this.__customServices,
       ...SERVICES_MAP,
     };
-  }
-
-  /**
-   * Class constructor.
-   * @param {Base} instance The Base instance.
-   */
-  constructor(instance) {
-    Object.defineProperties(this, {
-      __base: {
-        enumerable: false,
-        writable: false,
-        value: instance,
-      },
-    });
   }
 
   /**
