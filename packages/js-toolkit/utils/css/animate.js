@@ -188,15 +188,14 @@ export function animate(element, keyframes, options = {}) {
   let isRunning = false;
 
   const keyframesCount = keyframes.length - 1;
-  const normalizedKeyframes = keyframes.map((step, index) => {
-    if (!isDefined(step.offset)) {
-      step.offset = index / keyframesCount;
-    }
-
-    step.easing = normalizeEase(step.easing);
-
-    return /** @type {NormalizedKeyframe} */ (step);
-  });
+  const normalizedKeyframes = keyframes.map(
+    (keyframe, index) =>
+      /** @type {NormalizedKeyframe} */ ({
+        ...keyframe,
+        offset: keyframe.offset ?? index / keyframesCount,
+        easing: normalizeEase(keyframe.easing),
+      })
+  );
 
   /**
    * Pause the animation.
