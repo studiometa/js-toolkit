@@ -1,5 +1,5 @@
 import withMountWhenInView from './withMountWhenInView.js';
-import { damp, clamp, clamp01, getOffsetSizes } from '../utils/index.js';
+import { damp, clamp, clamp01, getOffsetSizes, isFunction } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base').default} Base
@@ -66,72 +66,144 @@ export default function withScrolledInView(BaseClass, options = {}) {
     dampPrecision = 0.001;
 
     /**
+     * Bind listeners.
+     * @param   {HTMLElement} element
+     */
+    constructor(element) {
+      super(element);
+
+      const delegate = {
+        handleEvent(event) {
+          delegate[event.type](event.detail[0]);
+        },
+        resized: () => {
+          this.__setProps();
+        },
+        scrolled: (props) => {
+          if ((!this.$services.has('ticked') && props.changed.y) || props.changed.x) {
+            this.$services.enable('ticked');
+          }
+        },
+        ticked: () => {
+          // X axis
+          this.__props.current.x = clamp(
+            window.pageXOffset,
+            this.__props.start.x,
+            this.__props.end.x
+          );
+          this.__props.progress.x = clamp01(
+            (this.__props.current.x - this.__props.start.x) /
+              (this.__props.end.x - this.__props.start.x)
+          );
+          this.__props.dampedProgress.x = damp(
+            this.__props.progress.x,
+            this.__props.dampedProgress.x,
+            this.dampFactor,
+            this.dampPrecision
+          );
+
+          // Y axis
+          this.__props.current.y = clamp(
+            window.pageYOffset,
+            this.__props.start.y,
+            this.__props.end.y
+          );
+          this.__props.progress.y = clamp01(
+            (this.__props.current.y - this.__props.start.y) /
+              (this.__props.end.y - this.__props.start.y)
+          );
+          this.__props.dampedProgress.y = damp(
+            this.__props.progress.y,
+            this.__props.dampedProgress.y,
+            this.dampFactor,
+            this.dampPrecision
+          );
+
+          if (
+            this.__props.dampedProgress.x === this.__props.progress.x &&
+            this.__props.dampedProgress.y === this.__props.progress.y
+          ) {
+            this.$services.disable('ticked');
+          }
+
+          // @ts-ignore
+          this.__callMethod('scrolledInView', this.__props);
+        },
+      };
+
+      this.$on('before-mounted', () => {
+        this.$on('resized', delegate);
+        this.$on('scrolled', delegate);
+        this.$on('ticked', delegate);
+      });
+
+      this.$on('mounted', () => {
+        this.__setProps();
+      });
+
+      this.$on('destroyed', () => {
+        this.$off('resized', delegate);
+        this.$off('scrolled', delegate);
+        this.$off('ticked', delegate);
+      });
+    }
+
+    /**
      * Mounted hook.
+     *
+     * @deprecated
      * @returns {void}
      */
     mounted() {
-      this.__setProps();
+      // @ts-ignore
+      if (isFunction(super.mounted)) super.mounted();
     }
 
     /**
      * Resized hook.
+     *
+     * @deprecated
+     * @param   {import('../services/resize').ResizeServiceProps} props
      * @returns {void}
      */
-    resized() {
-      this.__setProps();
+    resized(props) {
+      // @ts-ignore
+      if (isFunction(super.resized)) super.resized(props);
     }
 
     /**
      * Scrolled hook.
-     * @param   {any} props
+     *
+     * @deprecated
+     * @param   {import('../services/scroll').ScrollServiceProps} props
      * @returns {void}
      */
     scrolled(props) {
-      if ((!this.$services.has('ticked') && props.changed.y) || props.changed.x) {
-        this.$services.enable('ticked');
-      }
+      // @ts-ignore
+      if (isFunction(super.scrolled)) super.scrolled(props);
     }
 
     /**
-     * Raf hook.
+     * Ticked hook.
+     *
+     * @deprecated
+     * @param   {import('../services/raf').RafServiceProps} props
      * @returns {void}
      */
-    ticked() {
-      // X axis
-      this.__props.current.x = clamp(window.pageXOffset, this.__props.start.x, this.__props.end.x);
-      this.__props.progress.x = clamp01(
-        (this.__props.current.x - this.__props.start.x) /
-          (this.__props.end.x - this.__props.start.x)
-      );
-      this.__props.dampedProgress.x = damp(
-        this.__props.progress.x,
-        this.__props.dampedProgress.x,
-        this.dampFactor,
-        this.dampPrecision
-      );
-
-      // Y axis
-      this.__props.current.y = clamp(window.pageYOffset, this.__props.start.y, this.__props.end.y);
-      this.__props.progress.y = clamp01(
-        (this.__props.current.y - this.__props.start.y) /
-          (this.__props.end.y - this.__props.start.y)
-      );
-      this.__props.dampedProgress.y = damp(
-        this.__props.progress.y,
-        this.__props.dampedProgress.y,
-        this.dampFactor,
-        this.dampPrecision
-      );
-
-      if (
-        this.__props.dampedProgress.x === this.__props.progress.x &&
-        this.__props.dampedProgress.y === this.__props.progress.y
-      ) {
-        this.$services.disable('ticked');
-      }
-
+    ticked(props) {
       // @ts-ignore
-      this.__callMethod('scrolledInView', this.__props);
+      if (isFunction(super.ticked)) super.ticked(props);
+    }
+
+    /**
+     * Destroyed hook.
+     *
+     * @deprecated
+     * @returns {void}
+     */
+    destroyed() {
+      // @ts-ignore
+      if (isFunction(super.destroyed)) super.destroyed();
     }
 
     /**

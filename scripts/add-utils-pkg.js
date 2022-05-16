@@ -1,12 +1,13 @@
 const path = require('path');
 const fs = require('fs');
-const pkg = require('../package.json');
+const pkg = require('../dist/package.json');
 
 const utilsPkg = {
   name: '@studiometa/js-toolkit/utils',
   version: pkg.version,
   type: 'module',
   module: './index.js',
+  dependencies: pkg.dependencies,
 };
 
 fs.writeFileSync(
