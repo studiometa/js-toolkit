@@ -17,6 +17,50 @@ const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 function noop() {}
 
 /**
+ * Test if the managers' instances implement the default manager.
+ *
+ * @throws
+ * @param   {Base} instance The instance to test.
+ * @returns {void}
+ */
+function createAndTestManagers(instance) {
+  [
+    {
+      prop: '__options',
+      constructorName: 'OptionsManager',
+      constructor: OptionsManager,
+    },
+    {
+      prop: '__services',
+      constructorName: 'ServicesManager',
+      constructor: ServicesManager,
+    },
+    {
+      prop: '__events',
+      constructorName: 'EventsManager',
+      constructor: EventsManager,
+    },
+    {
+      prop: '__refs',
+      constructorName: 'RefsManager',
+      constructor: RefsManager,
+    },
+    {
+      prop: '__children',
+      constructorName: 'ChildrenManager',
+      constructor: ChildrenManager,
+    },
+  ].forEach(({ prop, constructorName, constructor }) => {
+    instance[prop] = new instance.__managers[constructorName](instance);
+    if (!(instance[prop] instanceof constructor)) {
+      throw new Error(
+        `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`
+      );
+    }
+  });
+}
+
+/**
  * @typedef {typeof Base} BaseConstructor
  * @typedef {(Base) => Promise<BaseConstructor | { default: BaseConstructor }>} BaseAsyncConstructor
  * @typedef {OptionsManager & { [name:string]: any }} BaseOptions
@@ -36,6 +80,15 @@ function noop() {}
  * @property {string[]} [emits]
  * @property {BaseConfigComponents} [components]
  * @property {BaseConfigOptions} [options]
+ */
+
+/**
+ * @typedef {Object} Managers
+ * @property {typeof ChildrenManager} ChildrenManager
+ * @property {typeof EventsManager} EventsManager
+ * @property {typeof OptionsManager} OptionsManager
+ * @property {typeof RefsManager} RefsManager
+ * @property {typeof ServicesManager} ServicesManager
  */
 
 /**
@@ -115,16 +168,10 @@ export default class Base extends EventTarget {
     let { config } = proto.constructor;
 
     while (proto.constructor.config && proto.constructor.$isBase) {
-      config = {
-        ...proto.constructor.config,
-        ...config,
-      };
+      config = { ...proto.constructor.config, ...config };
 
       if (proto.constructor.config.options) {
-        config.options = {
-          ...proto.constructor.config.options,
-          ...config.options,
-        };
+        config.options = { ...proto.constructor.config.options, ...config.options };
       }
 
       if (proto.constructor.config.emits && config.emits) {
@@ -133,6 +180,10 @@ export default class Base extends EventTarget {
 
       proto = Object.getPrototypeOf(proto);
     }
+
+    config.options = config.options ?? {};
+    config.refs = config.refs ?? [];
+    config.components = config.components ?? {};
 
     return config;
   }
@@ -144,6 +195,7 @@ export default class Base extends EventTarget {
     name: 'Base',
     emits: [
       // hook events
+      'before-mounted',
       'mounted',
       'updated',
       'destroyed',
@@ -238,6 +290,21 @@ export default class Base extends EventTarget {
   }
 
   /**
+   * Get manager constructors.
+   *
+   * @returns {Managers}
+   */
+  get __managers() {
+    return {
+      ChildrenManager,
+      EventsManager,
+      OptionsManager,
+      RefsManager,
+      ServicesManager,
+    };
+  }
+
+  /**
    * Call an instance method and emit corresponding events.
    *
    * @private
@@ -304,11 +371,7 @@ export default class Base extends EventTarget {
 
     this.$el.__base__.set(this.__ctor, this);
 
-    this.__options = new OptionsManager(element, __config.options || {}, __config);
-    this.__services = new ServicesManager(this);
-    this.__events = new EventsManager(element, this);
-    this.__children = new ChildrenManager(this, element, __config.components || {}, this.__events);
-    this.__refs = new RefsManager(this, element, __config.refs || [], this.__events);
+    createAndTestManagers(this);
 
     if (isDev) {
       this.__debug('constructor', this);
@@ -323,6 +386,8 @@ export default class Base extends EventTarget {
     if (this.$isMounted) {
       return this;
     }
+
+    this.$emit('before-mounted');
 
     this.$isMounted = true;
     if (isDev) {
@@ -537,11 +602,7 @@ export default class Base extends EventTarget {
       this.__testEventIsDefined(event);
     }
 
-    this.dispatchEvent(
-      new CustomEvent(event, {
-        detail: args,
-      })
-    );
+    this.dispatchEvent(new CustomEvent(event, { detail: args }));
   }
 
   /**
