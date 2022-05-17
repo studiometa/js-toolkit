@@ -1,7 +1,11 @@
+import * as fastdom from 'fastdom';
 import { cubicBezier } from '@motionone/easing';
 import { lerp, map, clamp01 } from '../math/index.js';
 import isDefined from '../isDefined.js';
 import transform, { TRANSFORM_PROPS } from './transform.js';
+import { useRaf } from '../../services/index.js';
+
+const raf = useRaf();
 
 let id = 0;
 const running = new WeakMap();
@@ -11,7 +15,7 @@ const noop = () => {};
 const PROGRESS_PRECISION = 0.0001;
 
 const CSSUnitConverter = {
-  '%': (value, sizeRef) => (value * sizeRef) / 100,
+  '%': (value, getSizeRef) => (value * getSizeRef()) / 100,
   vh: (value) => (value * window.innerHeight) / 100,
   vw: (value) => (value * window.innerWidth) / 100,
   vmin: (value) => (value * Math.min(window.innerWidth, window.innerHeight)) / 100,
@@ -21,10 +25,10 @@ const CSSUnitConverter = {
 /**
  * Get the value from a step property.
  * @param   {number|[number, string]} val
- * @param   {number} sizeRef
+ * @param   {() => number} getSizeRef
  * @returns {number}
  */
-function getAnimationStepValue(val, sizeRef) {
+function getAnimationStepValue(val, getSizeRef) {
   if (typeof val === 'number') {
     return val;
   }
@@ -33,7 +37,7 @@ function getAnimationStepValue(val, sizeRef) {
     return val[0];
   }
 
-  return CSSUnitConverter[val[1]](val[0], sizeRef);
+  return CSSUnitConverter[val[1]](val[0], getSizeRef);
 }
 
 /**
@@ -66,8 +70,8 @@ function normalizeEase(ease) {
 
 const generateTranslateRenderStrategy = (sizeRef) => (element, fromValue, toValue, progress) =>
   lerp(
-    getAnimationStepValue(fromValue ?? 0, element[sizeRef]),
-    getAnimationStepValue(toValue ?? 0, element[sizeRef]),
+    getAnimationStepValue(fromValue ?? 0, () => element[sizeRef]),
+    getAnimationStepValue(toValue ?? 0, () => element[sizeRef]),
     progress
   );
 const widthBasedTranslateRenderStrategy = generateTranslateRenderStrategy('offsetWidth');
@@ -107,27 +111,39 @@ const transformRenderStrategies = {
 function render(element, from, to, progress) {
   const stepProgress = to.easing(map(progress, from.offset, to.offset, 0, 1));
 
-  if (isDefined(from.opacity) || isDefined(to.opacity)) {
-    // @ts-ignore
-    element.style.opacity = map(stepProgress, 0, 1, from.opacity ?? 1, to.opacity ?? 1);
-  } else if (element.style.opacity) {
-    element.style.opacity = '';
-  }
+  fastdom.measure(() => {
+    /** @type {false|number|string} */
+    let opacity = false;
+    if (isDefined(from.opacity) || isDefined(to.opacity)) {
+      opacity = map(stepProgress, 0, 1, from.opacity ?? 1, to.opacity ?? 1);
+    } else if (element.style.opacity) {
+      opacity = '';
+    }
 
-  if (isDefined(to.transformOrigin)) {
-    element.style.transformOrigin = to.transformOrigin;
-  } else if (element.style.transformOrigin) {
-    element.style.transformOrigin = '';
-  }
+    /** @type {false|string} */
+    let transformOrigin = false;
+    if (isDefined(to.transformOrigin)) {
+      transformOrigin = to.transformOrigin;
+    } else if (element.style.transformOrigin) {
+      transformOrigin = '';
+    }
 
-  transform(
-    element,
-    Object.fromEntries(
+    const props = Object.fromEntries(
       TRANSFORM_PROPS.filter((name) => isDefined(from[name]) || isDefined(to[name])).map((name) => {
         return [name, transformRenderStrategies[name](element, from[name], to[name], stepProgress)];
       })
-    )
-  );
+    );
+    fastdom.mutate(() => {
+      if (opacity !== false) {
+        // @ts-ignore
+        element.style.opacity = opacity;
+      }
+      if (transformOrigin !== false) {
+        element.style.transformOrigin = transformOrigin;
+      }
+      transform(element, props);
+    });
+  });
 }
 
 /**
@@ -204,6 +220,7 @@ export function animate(element, keyframes, options = {}) {
    */
   function pause() {
     isRunning = false;
+    raf.remove(key);
   }
 
   /**
@@ -246,16 +263,17 @@ export function animate(element, keyframes, options = {}) {
   /**
    * Loop for rendering the animation.
    *
-   * @param   {number} time
+   * @param   {Object} props
+   * @param   {number} props.time
    * @returns {void}
    */
-  function tick(time) {
+  function tick(props) {
     if (!isRunning) {
+      raf.remove(key);
       return;
     }
 
-    progress(clamp01(map(time, startTime, endTime, 0, 1)));
-    requestAnimationFrame(tick);
+    progress(clamp01(map(props.time, startTime, endTime, 0, 1)));
   }
 
   /**
@@ -279,7 +297,7 @@ export function animate(element, keyframes, options = {}) {
     easedProgress = 0;
     isRunning = true;
 
-    requestAnimationFrame(tick);
+    raf.add(key, tick);
   }
 
   /**
@@ -295,7 +313,7 @@ export function animate(element, keyframes, options = {}) {
     endTime = startTime + duration;
     isRunning = true;
 
-    requestAnimationFrame(tick);
+    raf.add(key, tick);
   }
 
   return {

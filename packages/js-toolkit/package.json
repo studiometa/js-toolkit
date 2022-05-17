@@ -40,6 +40,7 @@
   ],
   "dependencies": {
     "@motionone/easing": "^10.8.0",
-    "deepmerge": "^4.2.2"
+    "deepmerge": "^4.2.2",
+    "fastdom": "^1.0.10"
   }
 }

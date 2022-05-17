@@ -12,6 +12,20 @@ import { getRaf, getCancelRaf } from '../utils/nextFrame.js';
 
 /**
  * Tick service
+ * @todo Add multiple callbacks to schedule different actions in batch (see fastdom or framesync):
+ *
+ * ```js
+ * useRaf().add(key, callback, { step: 'update' })
+ * useRaf().add(key, callback, { step: 'render' })
+ * ````
+ *
+ * The `update` step should be used to read values from the DOM
+ * The `render` step should be used to set values in the DOM
+ *
+ * - [ ] Add a `updateCallbacks` property like the `callbacks` one
+ * - [ ] Trigger the `updateCallbacks` functions before the `callbacks` functions
+ * - [ ] Default value for the `step` option is `render`
+ * - [ ] Add a `beforeTicked` hook to the `Base` class using the `update` step (?)
  */
 class Raf extends Service {
   /** @type {boolean} Whether the loop is running or not. */
