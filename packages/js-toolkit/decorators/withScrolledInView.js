@@ -1,5 +1,7 @@
 import withMountWhenInView from './withMountWhenInView.js';
-import { damp, clamp, clamp01, getOffsetSizes, isFunction } from '../utils/index.js';
+import { damp, clamp, clamp01, getOffsetSizes, isFunction, useScheduler } from '../utils/index.js';
+
+const scheduler = useScheduler(['update', 'render']);
 
 /**
  * @typedef {import('../Base').default} Base
@@ -126,8 +128,15 @@ export default function withScrolledInView(BaseClass, options = {}) {
             this.$services.disable('ticked');
           }
 
-          // @ts-ignore
-          this.__callMethod('scrolledInView', this.__props);
+          scheduler.update(() => {
+            // @ts-ignore
+            const renderFn = this.__callMethod('scrolledInView', this.__props);
+            if (isFunction(renderFn)) {
+              scheduler.render(() => {
+                renderFn(this.__props);
+              });
+            }
+          });
         },
       };
 
