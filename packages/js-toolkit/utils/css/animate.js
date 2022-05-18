@@ -1,11 +1,12 @@
-import * as fastdom from 'fastdom';
 import { cubicBezier } from '@motionone/easing';
 import { lerp, map, clamp01 } from '../math/index.js';
 import isDefined from '../isDefined.js';
 import transform, { TRANSFORM_PROPS } from './transform.js';
-import { useRaf } from '../../services/index.js';
+import useRaf from '../../services/raf.js';
+import { useScheduler } from '../scheduler.js';
 
 const raf = useRaf();
+const scheduler = useScheduler(['read', 'write']);
 
 let id = 0;
 const running = new WeakMap();
@@ -111,7 +112,7 @@ const transformRenderStrategies = {
 function render(element, from, to, progress) {
   const stepProgress = to.easing(map(progress, from.offset, to.offset, 0, 1));
 
-  fastdom.measure(() => {
+  scheduler.read(function read() {
     /** @type {false|number|string} */
     let opacity = false;
     if (isDefined(from.opacity) || isDefined(to.opacity)) {
@@ -133,7 +134,7 @@ function render(element, from, to, progress) {
         return [name, transformRenderStrategies[name](element, from[name], to[name], stepProgress)];
       })
     );
-    fastdom.mutate(() => {
+    scheduler.write(function write() {
       if (opacity !== false) {
         // @ts-ignore
         element.style.opacity = opacity;
