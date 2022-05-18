@@ -237,7 +237,9 @@ export function animate(element, keyframes, options = {}) {
     if (Math.abs(1 - progressValue) < PROGRESS_PRECISION) {
       progressValue = 1;
       pause();
-      requestAnimationFrame(() => scheduler.afterWrite(() => onFinish(progressValue, easedProgress)));
+      requestAnimationFrame(() =>
+        scheduler.afterWrite(() => onFinish(progressValue, easedProgress))
+      );
     }
 
     easedProgress = ease(progressValue);
