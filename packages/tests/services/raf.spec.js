@@ -9,7 +9,7 @@ describe('useRaf', () => {
 
   beforeEach(() => {
     remove('key');
-    fn = jest.fn(p => {
+    fn = jest.fn((p) => {
       rafProps = p;
     });
     add('key', fn);
@@ -23,20 +23,22 @@ describe('useRaf', () => {
 
   it('should have a `time` prop', async () => {
     await wait(16);
+    await wait(16);
+    await wait(16);
     expect(typeof props().time).toBe('number');
     expect(typeof rafProps.time).toBe('number');
   });
 
   it('should trigger the callbkacks', async () => {
     await wait(16);
+    await wait(16);
+    await wait(16);
     expect(fn).toHaveBeenCalled();
-    let numberOfCalls = fn.mock.calls.length;
     await wait(16);
-    expect(fn.mock.calls.length).toBeGreaterThan(numberOfCalls);
+    expect(fn.mock.calls.length).toBeGreaterThan(1);
     remove('key');
-    numberOfCalls = fn.mock.calls.length;
     await wait(16);
-    expect(fn.mock.calls).toHaveLength(numberOfCalls);
+    expect(fn.mock.calls).toHaveLength(4);
   });
 
   it('should stop triggering when having no callback', async () => {
