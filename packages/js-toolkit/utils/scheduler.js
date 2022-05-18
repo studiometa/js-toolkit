@@ -86,4 +86,4 @@ export function useScheduler(steps = ['read', 'write']) {
   return scheduler;
 }
 
-export const domScheduler = useScheduler(['read', 'write']);
+export const domScheduler = useScheduler(['read', 'write', 'afterWrite']);
