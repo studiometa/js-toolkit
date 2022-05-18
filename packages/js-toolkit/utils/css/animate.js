@@ -3,16 +3,12 @@ import { lerp, map, clamp01 } from '../math/index.js';
 import isDefined from '../isDefined.js';
 import transform, { TRANSFORM_PROPS } from './transform.js';
 import useRaf from '../../services/raf.js';
-import { useScheduler } from '../scheduler.js';
-
-const raf = useRaf();
-const scheduler = useScheduler(['read', 'write']);
+import { domScheduler as scheduler } from '../scheduler.js';
 
 let id = 0;
 const running = new WeakMap();
-
+const raf = useRaf();
 const noop = () => {};
-
 const PROGRESS_PRECISION = 0.0001;
 
 const CSSUnitConverter = {
@@ -241,7 +237,7 @@ export function animate(element, keyframes, options = {}) {
     if (Math.abs(1 - progressValue) < PROGRESS_PRECISION) {
       progressValue = 1;
       pause();
-      requestAnimationFrame(() => onFinish(progressValue, easedProgress));
+      requestAnimationFrame(() => scheduler.afterWrite(() => onFinish(progressValue, easedProgress)));
     }
 
     easedProgress = ease(progressValue);
