@@ -310,7 +310,7 @@ export default class Base extends EventTarget {
    * @private
    * @param {string} method
    * @param {any[]} args
-   * @returns {unknown}
+   * @returns {any}
    */
   __callMethod(method, ...args) {
     if (isDev) {
