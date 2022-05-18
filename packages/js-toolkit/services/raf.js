@@ -1,5 +1,9 @@
 import Service from './Service.js';
 import { getRaf, getCancelRaf } from '../utils/nextFrame.js';
+import { useScheduler } from '../utils/scheduler.js';
+import isFunction from '../utils/isFunction.js';
+
+const scheduler = useScheduler(['update', 'render']);
 
 /**
  * @typedef {import('./index').ServiceInterface<RafServiceProps>} RafService
@@ -89,6 +93,27 @@ class Raf extends Service {
   updateProps() {
     this.props.time = window.performance.now();
     return this.props;
+  }
+
+  /**
+   * Trigger each added callback with the given arguments.
+   *
+   * @param  {...any} args All the arguments to apply to the callback
+   * @returns {this} The current instance
+   */
+  trigger(...args) {
+    this.callbacks.forEach(function forEachCallback(callback) {
+      scheduler.update(function rafUpdate() {
+        const render = callback(...args);
+        if (isFunction(render)) {
+          scheduler.render(function rafRender() {
+            render(...args);
+          });
+        }
+      });
+    });
+
+    return this;
   }
 }
 
