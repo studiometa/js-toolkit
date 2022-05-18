@@ -112,7 +112,7 @@ const transformRenderStrategies = {
 function render(element, from, to, progress) {
   const stepProgress = to.easing(map(progress, from.offset, to.offset, 0, 1));
 
-  scheduler.read(function read() {
+  scheduler.read(function renderRead() {
     /** @type {false|number|string} */
     let opacity = false;
     if (isDefined(from.opacity) || isDefined(to.opacity)) {
@@ -134,7 +134,7 @@ function render(element, from, to, progress) {
         return [name, transformRenderStrategies[name](element, from[name], to[name], stepProgress)];
       })
     );
-    scheduler.write(function write() {
+    scheduler.write(function renderWrite() {
       if (opacity !== false) {
         // @ts-ignore
         element.style.opacity = opacity;

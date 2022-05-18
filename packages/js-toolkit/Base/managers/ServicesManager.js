@@ -104,10 +104,11 @@ export default class ServicesManager extends AbstractManager {
 
     /**
      * @param {any[]} args
+     * @returns {unknown}
      */
     function serviceHandler(...args) {
       // @ts-ignore
-      self.__base.__callMethod(service, ...args);
+      return self.__base.__callMethod(service, ...args);
     }
 
     add(this.__base.$id, serviceHandler);
