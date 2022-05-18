@@ -2,12 +2,10 @@ import { cubicBezier } from '@motionone/easing';
 import { lerp, map, clamp01 } from '../math/index.js';
 import isDefined from '../isDefined.js';
 import transform, { TRANSFORM_PROPS } from './transform.js';
-import useRaf from '../../services/raf.js';
 import { domScheduler as scheduler } from '../scheduler.js';
 
 let id = 0;
 const running = new WeakMap();
-const raf = useRaf();
 const noop = () => {};
 const PROGRESS_PRECISION = 0.0001;
 
@@ -217,7 +215,6 @@ export function animate(element, keyframes, options = {}) {
    */
   function pause() {
     isRunning = false;
-    raf.remove(key);
   }
 
   /**
@@ -237,7 +234,9 @@ export function animate(element, keyframes, options = {}) {
     if (Math.abs(1 - progressValue) < PROGRESS_PRECISION) {
       progressValue = 1;
       pause();
-      requestAnimationFrame(() => scheduler.afterWrite(() => onFinish(progressValue, easedProgress)));
+      requestAnimationFrame(() =>
+        scheduler.afterWrite(() => onFinish(progressValue, easedProgress))
+      );
     }
 
     easedProgress = ease(progressValue);
@@ -260,17 +259,16 @@ export function animate(element, keyframes, options = {}) {
   /**
    * Loop for rendering the animation.
    *
-   * @param   {Object} props
-   * @param   {number} props.time
+   * @param   {number} time
    * @returns {void}
    */
-  function tick(props) {
+  function tick(time) {
     if (!isRunning) {
-      raf.remove(key);
       return;
     }
 
-    progress(clamp01(map(props.time, startTime, endTime, 0, 1)));
+    progress(clamp01(map(time, startTime, endTime, 0, 1)));
+    requestAnimationFrame(tick);
   }
 
   /**
@@ -294,7 +292,7 @@ export function animate(element, keyframes, options = {}) {
     easedProgress = 0;
     isRunning = true;
 
-    raf.add(key, tick);
+    requestAnimationFrame(tick);
   }
 
   /**
@@ -310,7 +308,7 @@ export function animate(element, keyframes, options = {}) {
     endTime = startTime + duration;
     isRunning = true;
 
-    raf.add(key, tick);
+    requestAnimationFrame(tick);
   }
 
   return {
