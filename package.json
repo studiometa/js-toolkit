@@ -20,7 +20,7 @@
     "build:cp-files": "cp packages/js-toolkit/package.json dist/ && cp LICENSE dist/ && cp README.md dist",
     "build:types": "tsc --build tsconfig.build.json",
     "build:pkg": "node scripts/build.js",
-    "build-for-export-size": "npm run build && node scripts/add-utils-pkg.js"
+    "build-for-export-size": "node scripts/add-utils-export.js && rm -rf dist && npm run build:pkg && npm run build:cp-files"
   },
   "devDependencies": {
     "@studiometa/eslint-config": "^3.0.1",
