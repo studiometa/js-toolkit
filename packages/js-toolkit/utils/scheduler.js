@@ -12,6 +12,8 @@ function getScheduler(steps) {
 
   let isScheduled = false;
 
+  const resolvedPromise = Promise.resolve();
+
   /**
    * Execute the given list of tasks.
    *
@@ -52,7 +54,7 @@ function getScheduler(steps) {
     }
 
     isScheduled = true;
-    requestAnimationFrame(flush);
+    resolvedPromise.then(flush);
   }
 
   steps.forEach((step) => {
