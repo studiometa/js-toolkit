@@ -7,6 +7,8 @@ import { normalizeRefName } from './RefsManager.js';
  * @typedef {import('./ChildrenManager.js').default} ChildrenManager
  */
 
+const names = new Map();
+
 /**
  * Normalize the given name to PascalCase, such as:
  *
@@ -28,12 +30,21 @@ import { normalizeRefName } from './RefsManager.js';
  * @returns {string}
  */
 export function normalizeName(name) {
-  return name
-    .replace(/[A-Z]([A-Z].*)/g, (c) => c.toLowerCase())
-    .replace(/[^a-zA-Z\d\s:]/g, ' ')
-    .replace(/(^\w|\s+\w)/g, (c) => c.trim().toUpperCase())
-    .trim();
+  if (!names.has(name)) {
+    names.set(
+      name,
+      name
+        .replace(/[A-Z]([A-Z].*)/g, (c) => c.toLowerCase())
+        .replace(/[^a-zA-Z\d\s:]/g, ' ')
+        .replace(/(^\w|\s+\w)/g, (c) => c.trim().toUpperCase())
+        .trim()
+    );
+  }
+
+  return names.get(name);
 }
+
+const eventNames = new Map();
 
 /**
  * Normalize the event names from PascalCase to kebab-case.
@@ -42,7 +53,27 @@ export function normalizeName(name) {
  * @returns {string}
  */
 export function normalizeEventName(name) {
-  return name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`).replace(/^-/, '');
+  if (!eventNames.has(name)) {
+    eventNames.set(name, name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`).replace(/^-/, ''));
+  }
+
+  return eventNames.get(name);
+}
+
+const regexes = new Map();
+
+/**
+ * Get a regex with a cache;
+ *
+ * @param   {string} regex
+ * @returns {RegExp}
+ */
+function getRegex(regex) {
+  if (!regexes.has(regex)) {
+    regexes.set(regex, new RegExp(regex));
+  }
+
+  return regexes.get(regex);
 }
 
 /**
@@ -55,8 +86,7 @@ export function normalizeEventName(name) {
  * @private
  */
 function __getEventNameByMethod(that, method, name = '') {
-  const normalizedName = normalizeName(name);
-  const regex = new RegExp(`^on${normalizedName}([A-Z].*)$`);
+  const regex = getRegex(`^on${normalizeName(name)}([A-Z].*)$`);
   const [, event] = method.match(regex);
   return normalizeEventName(event);
 }
@@ -70,8 +100,7 @@ function __getEventNameByMethod(that, method, name = '') {
  * @private
  */
 function __getEventMethodsByName(that, name = '') {
-  const normalizedName = normalizeName(name);
-  const regex = new RegExp(`^on${normalizedName}[A-Z].*$`);
+  const regex = getRegex(`^on${normalizeName(name)}[A-Z].*$`);
   const key = regex.toString();
 
   let methods = that.__methodsCache.get(key);
