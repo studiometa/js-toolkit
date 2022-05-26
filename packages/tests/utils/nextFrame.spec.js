@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import nextFrame, { getCancelRaf, getRaf } from '@studiometa/js-toolkit/utils/nextFrame';
+import { nextFrame, getCancelRaf, getRaf } from '@studiometa/js-toolkit/utils/nextFrame';
 
 describe('nextFrame method', () => {
   beforeAll(() => {
