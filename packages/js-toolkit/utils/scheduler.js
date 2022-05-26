@@ -70,12 +70,14 @@ function getScheduler(steps) {
 
 const instances = new Map();
 
+const domSchedulerSteps = ['read', 'write', 'afterWrite'];
+
 /**
  * Use a scheduler based on the given steps.
  * @param   {string[]}  steps
  * @returns {ReturnType<getScheduler>}
  */
-export function useScheduler(steps = ['read', 'write']) {
+export function useScheduler(steps = domSchedulerSteps) {
   const key = steps.join('-');
 
   if (instances.has(key)) {
@@ -88,4 +90,4 @@ export function useScheduler(steps = ['read', 'write']) {
   return scheduler;
 }
 
-export const domScheduler = useScheduler(['read', 'write', 'afterWrite']);
+export const domScheduler = useScheduler(domSchedulerSteps);
