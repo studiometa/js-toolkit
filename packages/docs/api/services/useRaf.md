@@ -11,6 +11,12 @@ const { add, remove, props } = useRaf();
 
 add('custom-id', (props) => {
   console.log(props.time); // latest `performance.now()`
+
+  // Read the DOM and compute values...
+
+  return () => {
+    // Update the DOM...
+  }
 });
 
 // Get the latest prop object
