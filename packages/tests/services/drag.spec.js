@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 import useDrag from '@studiometa/js-toolkit/services/drag';
+import wait from '../__utils__/wait.js';
 
 describe('The drag service', () => {
   it('should start, drag and drop', () => {
@@ -29,20 +30,17 @@ describe('The drag service', () => {
     expect(fn.mock.calls).toMatchSnapshot();
   });
 
-  it('should run with inertia and stop', () => {
+  it('should run with inertia and stop', async () => {
     const fn = jest.fn();
     const div = document.createElement('div');
     const { add } = useDrag(div, { factor: 0.2 });
-    jest.useFakeTimers();
-
     add('key', fn);
     div.dispatchEvent(new MouseEvent('mousedown'));
     const clientX = window.innerWidth / 2 + 10;
     const clientY = window.innerHeight / 2 + 10;
     document.dispatchEvent(new MouseEvent('mousemove', { clientX, clientY }));
-    jest.runAllTimers();
+    await wait(100);
     expect(fn.mock.calls).toMatchSnapshot();
-    jest.useRealTimers();
   });
 
   it('should prevent native drag', () => {
@@ -68,5 +66,22 @@ describe('The drag service', () => {
     remove('key');
     div.dispatchEvent(new MouseEvent('mousedown'));
     expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  // This test fails when run along the othe one in `drag.spec.js`
+  it('should prevent click on child elements while dragging', async () => {
+    const fn = jest.fn();
+    const div = document.createElement('div');
+    div.innerHTML = '<div></div>';
+    const { add } = useDrag(div, { factor: 0.1 });
+
+    add('key', () => ({}));
+    div.firstElementChild.addEventListener('click', fn);
+    div.dispatchEvent(new MouseEvent('mousedown'));
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 11, clientY: 11 }));
+    await wait(100);
+    div.firstElementChild.dispatchEvent(new Event('click'));
+    expect(fn).not.toHaveBeenCalled();
   });
 });

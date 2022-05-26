@@ -78,12 +78,14 @@ describe('The `animate` utility function', () => {
     expect(div.style.transform).toBe('');
   });
 
-  it('should be able to set the progress', () => {
+  it('should be able to set the progress', async () => {
     const div = document.createElement('div');
     const animation = animate(div, [{}, { opacity: 0, transformOrigin: 'top left' }, {}, {}]);
     animation.progress(0.25);
+    await wait(16);
     expect(div.style.opacity).toBe('0.25');
     animation.progress(1);
+    await wait(16);
     expect(div.style.opacity).toBe('');
   });
 
@@ -137,6 +139,7 @@ describe('The `animate` utility function', () => {
     animation.finish();
     await wait(16);
     expect(animation.progress()).toBe(1);
+    await wait(16);
     expect(fn).toHaveBeenCalledTimes(1);
   });
 

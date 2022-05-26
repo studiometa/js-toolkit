@@ -11,9 +11,9 @@ export default class Parallax extends withScrolledInView(withFreezedOptions(Base
   };
 
   scrolledInView(props) {
-    transform(this.$refs.target, {
-      y: map(props.dampedProgress.y, 0, 1, 100, -100) * this.$options.speed,
-      scale: map(props.dampedProgress.x, 0, 1, 0.5, 2),
-    });
+    const { target } = this.$refs;
+    const y = map(props.dampedProgress.y, 0, 1, 100, -100) * this.$options.speed;
+    const scale = map(props.dampedProgress.x, 0, 1, 0.5, 2);
+    return () => transform(target, { y, scale });
   }
 }
