@@ -16,7 +16,7 @@ add('custom-id', (props) => {
 
   return () => {
     // Update the DOM...
-  }
+  };
 });
 
 // Get the latest prop object
