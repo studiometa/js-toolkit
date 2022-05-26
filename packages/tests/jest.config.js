@@ -1,5 +1,5 @@
 /**
- * @link https://jestjs.io/docs/en/configuration.html
+ * @see https://jestjs.io/docs/en/configuration.html
  * @type {import('@jest/types').Config.GlobalConfig}
  */
 export default {
@@ -13,9 +13,11 @@ export default {
   transform: {
     '^.+\\.html?$': 'html-loader-jest',
   },
+  moduleNameMapper: {
+    '^@studiometa/js-toolkit(.*)': '<rootDir>/js-toolkit$1',
+  },
   setupFiles: [
     '<rootDir>/tests/__setup__/mockBreakpoints.js',
-    '<rootDir>/tests/__setup__/mockQuerySelectorAllWithScope.js',
     '<rootDir>/tests/__setup__/mockRequestIdleCallback.js',
     '<rootDir>/tests/__setup__/mockScrollTo.js',
     '<rootDir>/tests/__setup__/ResizeObserver.js',
