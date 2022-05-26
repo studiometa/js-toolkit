@@ -29,7 +29,7 @@ describe('useRaf', () => {
     expect(typeof rafProps.time).toBe('number');
   });
 
-  it('should trigger the callbkacks', async () => {
+  it('should trigger the callbacks', async () => {
     await wait(16);
     await wait(16);
     await wait(16);
@@ -39,6 +39,20 @@ describe('useRaf', () => {
     remove('key');
     await wait(16);
     expect(fn.mock.calls).toHaveLength(4);
+  });
+
+  it('should trigger the returned function after', async () => {
+    const fn2 = jest.fn();
+    add('fn2', () => {
+      fn2('update');
+      return () => {
+        fn2('render');
+      };
+    });
+    await wait(16);
+    await wait(16);
+    expect(fn2).toHaveBeenCalled();
+    expect(fn2.mock.calls).toEqual([['update'], ['render'], ['update'], ['render']]);
   });
 
   it('should stop triggering when having no callback', async () => {
