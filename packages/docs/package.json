@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-docs",
-  "version": "2.2.0-alpha.1",
+  "version": "2.2.0",
   "type": "module",
   "private": true,
   "scripts": {
