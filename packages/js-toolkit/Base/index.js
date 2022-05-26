@@ -310,7 +310,7 @@ export default class Base extends EventTarget {
    * @private
    * @param {string} method
    * @param {any[]} args
-   * @returns {void}
+   * @returns {any}
    */
   __callMethod(method, ...args) {
     if (isDev) {
@@ -321,13 +321,14 @@ export default class Base extends EventTarget {
 
     // We always emit an event, but we do not call the method if it does not exist
     if (typeof this[method] !== 'function') {
-      return;
+      return null;
     }
 
-    this[method].call(this, ...args);
     if (isDev) {
       this.__debug(method, this, ...args);
     }
+
+    return this[method].call(this, ...args);
   }
 
   /**

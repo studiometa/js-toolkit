@@ -94,7 +94,9 @@ describe('The withScrolledInView decorator', () => {
     window.pageXOffset *= 2;
 
     await wait(50);
-    expect(fn.mock.calls.pop()).toMatchSnapshot();
+    const [last] = fn.mock.calls.pop();
+    delete last.dampedProgress;
+    expect(last).toMatchSnapshot();
     scrollHeightSpy.mockRestore();
     scrollWidthSpy.mockRestore();
   });
@@ -146,7 +148,9 @@ describe('The withScrolledInView decorator', () => {
     window.pageXOffset *= 2;
 
     await wait(50);
-    expect(fn.mock.calls.pop()).toMatchSnapshot();
+    const [last] = fn.mock.calls.pop();
+    delete last.dampedProgress;
+    expect(last).toMatchSnapshot();
     scrollHeightSpy.mockRestore();
     scrollWidthSpy.mockRestore();
   });

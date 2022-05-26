@@ -3,10 +3,12 @@
 Use this decorator to enable responsive options definition in your HTML.
 
 :::warning
+
 - Responsive options are readonly
 - This decorator is not compatible with the [`withFreezedOptions` decorator](/api/decorators/withFreezedOptions.html)
 - This decorator does not make options reactive (as in Vue.js or React), the different values are only resolved when the option is accessed
 - Breakpoints' names are retrieved from the [`useResize` service](/api/services/useResize.html#breakpoint)
+
 :::
 
 ## Usage
@@ -24,14 +26,16 @@ export default class Component extends withResponsiveOptions(Base) {
       },
     },
   };
-};
+}
 ```
+
 ```html {3-4}
 <div
   data-component="Component"
   data-option-label:xxs="Small Mobile"
   data-option-label:xs:s="Large Mobile And Tablet"
-  data-option-label="Other devices">
+  data-option-label="Other devices"
+>
   ...
 </div>
 ```
@@ -60,7 +64,6 @@ This decorator adds support for one or more suffix to define breakpoints in whic
 <div data-option-label[:<breakpoint>...]></div>
 ```
 
-
 ## Examples
 
 ### Define option only for a given breakpoint
@@ -84,13 +87,15 @@ export default class Component extends withResponsiveOptions(Base) {
   resized(props) {
     console.log(props.breakpoint, this.$options.label);
   }
-};
+}
 ```
+
 ```html
 <div
   data-component="Component"
   data-option-label:s="You are on a small screen"
-  data-option-label="I am the default label">
+  data-option-label="I am the default label"
+>
   ...
 </div>
 ```
@@ -112,7 +117,8 @@ With the same breakpoins and component as before, but with a different markup, w
   data-component="Component"
   data-option-label:s="You are on a small screen"
   data-option-label:m="You are on a medium screen"
-  data-option-label:l="You are on a large screen">
+  data-option-label:l="You are on a large screen"
+>
   ...
 </div>
 ```
@@ -133,7 +139,8 @@ Breakpoints can be combined to use the same value multiple times:
 <div
   data-component="Component"
   data-option-label:s:m="You are on a small or medium screen"
-  data-option-label:l="You are on a large screen">
+  data-option-label:l="You are on a large screen"
+>
   ...
 </div>
 ```
