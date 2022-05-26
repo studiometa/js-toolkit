@@ -3,12 +3,16 @@
  */
 export default class Service {
   /**
-   * Class constructor, used to test the abstract class implementation.
+   * Map containing the callbacks.
+   * @type {Map<string, Function>}
    */
-  constructor() {
-    this.callbacks = new Map();
-    this.isInit = false;
-  }
+  callbacks = new Map();
+
+  /**
+   * State flag.
+   * @type {boolean}
+   */
+  isInit = false;
 
   /**
    * @type {unknown}

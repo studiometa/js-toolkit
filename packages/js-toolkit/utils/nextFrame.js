@@ -34,7 +34,7 @@ export function getCancelRaf() {
  * console.log('hello world');
  * ```
  */
-export default function nextFrame(fn) {
+export function nextFrame(fn) {
   return new Promise((resolve) => {
     getRaf()(() => resolve(typeof fn === 'function' && fn()));
   });

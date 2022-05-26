@@ -33,12 +33,11 @@ export default class Skew extends withMountWhenInView(Base) {
   }
 
   ticked() {
-    transform(this.$el, {
-      skewY: dampedSkewY,
-    });
-
     if (dampedSkewY === skewY) {
       this.$services.disable('ticked');
     }
+
+    const { $el } = this;
+    return () => transform($el, { skewY: dampedSkewY });
   }
 }

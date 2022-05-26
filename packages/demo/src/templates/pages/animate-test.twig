@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Animate test
+    </title>
+  </head>
+  <body>
+    <main data-breakpoint class="relative p-10">
+      {% embed '@components/animate-test.twig' with {
+        name: 'AnimateTestMultiple',
+        easing: ' ',
+        container_class: 'w-full flex flex-wrap items-center justify-between gap-10 p-10',
+        steps: [
+          {},
+          { x: 50, skewY: -20, rotate: 180, scale: 0.5, opacity: 0.5, easing: [0.6, -0.28, 0.735, 0.045] },
+          {
+            x: 0,
+            rotate: 360,
+            easing: [0.175, 0.885, 0.32, 1.275]
+          }
+        ]
+      } %}
+        {% block target %}
+          {% for index in 0..200 %}
+            <div data-ref="targets[]" class="w-6 h-6 rounded bg-black"></div>
+          {% endfor %}
+        {% endblock %}
+      {% endembed %}
+    </main>
+  </body>
+</html>

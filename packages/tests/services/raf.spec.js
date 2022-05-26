@@ -9,7 +9,7 @@ describe('useRaf', () => {
 
   beforeEach(() => {
     remove('key');
-    fn = jest.fn(p => {
+    fn = jest.fn((p) => {
       rafProps = p;
     });
     add('key', fn);
@@ -23,20 +23,36 @@ describe('useRaf', () => {
 
   it('should have a `time` prop', async () => {
     await wait(16);
+    await wait(16);
+    await wait(16);
     expect(typeof props().time).toBe('number');
     expect(typeof rafProps.time).toBe('number');
   });
 
-  it('should trigger the callbkacks', async () => {
+  it('should trigger the callbacks', async () => {
+    await wait(16);
+    await wait(16);
     await wait(16);
     expect(fn).toHaveBeenCalled();
-    let numberOfCalls = fn.mock.calls.length;
     await wait(16);
-    expect(fn.mock.calls.length).toBeGreaterThan(numberOfCalls);
+    expect(fn.mock.calls.length).toBeGreaterThan(1);
     remove('key');
-    numberOfCalls = fn.mock.calls.length;
     await wait(16);
-    expect(fn.mock.calls).toHaveLength(numberOfCalls);
+    expect(fn.mock.calls).toHaveLength(4);
+  });
+
+  it('should trigger the returned function after', async () => {
+    const fn2 = jest.fn();
+    add('fn2', () => {
+      fn2('update');
+      return () => {
+        fn2('render');
+      };
+    });
+    await wait(16);
+    await wait(16);
+    expect(fn2).toHaveBeenCalled();
+    expect(fn2.mock.calls).toEqual([['update'], ['render'], ['update'], ['render']]);
   });
 
   it('should stop triggering when having no callback', async () => {

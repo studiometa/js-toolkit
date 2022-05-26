@@ -1,4 +1,4 @@
-import nextFrame from '../nextFrame.js';
+import { nextFrame } from '../nextFrame.js';
 import * as classes from './classes.js';
 import * as styles from './styles.js';
 
