@@ -1,55 +1,43 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`The withScrolledInView decorator should trigger the \`scrolledInView\` hook when in view 1`] = `
-Array [
-  Object {
-    "current": Object {
-      "x": 600,
-      "y": 600,
-    },
-    "dampedProgress": Object {
-      "x": 0.44092704626334517,
-      "y": 0.3835414746543779,
-    },
-    "end": Object {
-      "x": 600,
-      "y": 600,
-    },
-    "progress": Object {
-      "x": 1,
-      "y": 1,
-    },
-    "start": Object {
-      "x": -524,
-      "y": -268,
-    },
+Object {
+  "current": Object {
+    "x": 600,
+    "y": 600,
   },
-]
+  "end": Object {
+    "x": 600,
+    "y": 600,
+  },
+  "progress": Object {
+    "x": 1,
+    "y": 1,
+  },
+  "start": Object {
+    "x": -524,
+    "y": -268,
+  },
+}
 `;
 
 exports[`The withScrolledInView decorator should trigger the \`scrolledInView\` hook when in view with the \`useOffsetSizes\` option 1`] = `
-Array [
-  Object {
-    "current": Object {
-      "x": 600,
-      "y": 600,
-    },
-    "dampedProgress": Object {
-      "x": 0.44092704626334517,
-      "y": 0.3835414746543779,
-    },
-    "end": Object {
-      "x": 600,
-      "y": 600,
-    },
-    "progress": Object {
-      "x": 1,
-      "y": 1,
-    },
-    "start": Object {
-      "x": -524,
-      "y": -268,
-    },
+Object {
+  "current": Object {
+    "x": 600,
+    "y": 600,
   },
-]
+  "end": Object {
+    "x": 600,
+    "y": 600,
+  },
+  "progress": Object {
+    "x": 1,
+    "y": 1,
+  },
+  "start": Object {
+    "x": -524,
+    "y": -268,
+  },
+}
 `;

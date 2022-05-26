@@ -7,13 +7,10 @@ Use this function to apply transforms to an element.
 ```js
 import { transform } from '@studiometa/js-toolkit/utils';
 
-transform(
-  document.body,
-  {
-    x: 100,
-    scale: 0.5,
-  },
-);
+transform(document.body, {
+  x: 100,
+  scale: 0.5,
+});
 ```
 
 ### Parameters
