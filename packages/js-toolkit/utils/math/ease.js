@@ -1,11 +1,8 @@
 import { createEaseOut, createEaseInOut } from './createEases.js';
 
 /**
- * @typedef {import('./createEases.js').EasingFunction} EasingFunction
- */
-
-/**
- * @type {EasingFunction}
+ * @param  {number} progress Progress value betwen 0 and 1.
+ * @returns {number}          Eased value between 0 and 1.
  */
 export function easeInQuad(progress) {
   return progress ** 2;
