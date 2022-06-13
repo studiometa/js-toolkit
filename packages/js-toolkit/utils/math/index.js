@@ -7,3 +7,4 @@ export { default as map } from './map.js';
 export { default as round } from './round.js';
 export * from './ease.js';
 export * as ease from './ease.js';
+export * from './createEases.js';
