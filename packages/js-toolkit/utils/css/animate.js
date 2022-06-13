@@ -146,12 +146,6 @@ function render(element, from, to, progress) {
 /**
  * @typedef {import('./transform.js').TransformProps} TransformProps
  * @typedef {[number, number, number, number]} BezierCurve
- * @typedef {{
- *   duration?: number;
- *   easing?: import('../math/createEases.js').EasingFunction|BezierCurve;
- *   onProgress?: (progress: number, easedProgress: number) => void;
- *   onFinish?: (progress: number, easedProgress: number) => void;
- *  }} Options
  * @typedef {TransformProps & {
  *   opacity?: number;
  *   transformOrigin?: string;
@@ -175,7 +169,12 @@ function render(element, from, to, progress) {
  * Animate an element.
  * @param   {HTMLElement} element
  * @param   {Keyframe[]} keyframes
- * @param   {Options} options
+ * @param   {{
+ *   duration?: number;
+ *   easing?: import('../math/createEases.js').EasingFunction|BezierCurve;
+ *   onProgress?: (progress: number, easedProgress: number) => void;
+ *   onFinish?: (progress: number, easedProgress: number) => void;
+ *  }} [options]
  * @returns {Animate}
  */
 export function animate(element, keyframes, options = {}) {
