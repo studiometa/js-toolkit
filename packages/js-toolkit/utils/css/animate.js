@@ -145,22 +145,21 @@ function render(element, from, to, progress) {
 
 /**
  * @typedef {import('./transform.js').TransformProps} TransformProps
- * @typedef {import('../math/ease.js').EasingFunction} EasingFn
  * @typedef {[number, number, number, number]} BezierCurve
  * @typedef {{
  *   duration?: number;
- *   easing?: EasingFn|BezierCurve;
+ *   easing?: import('../math/createEases.js').EasingFunction|BezierCurve;
  *   onProgress?: (progress: number, easedProgress: number) => void;
  *   onFinish?: (progress: number, easedProgress: number) => void;
  *  }} Options
  * @typedef {TransformProps & {
  *   opacity?: number;
  *   transformOrigin?: string;
- *   easing?: EasingFn|BezierCurve;
+ *   easing?: import('../math/createEases.js').EasingFunction|BezierCurve;
  *   offset?: number;
  * }} Keyframe
  * @typedef {Keyframe & {
- *   easing: EasingFn;
+ *   easing: import('../math/createEases.js').EasingFunction;
  *   offset: number;
  * }} NormalizedKeyframe
  * @typedef {{
