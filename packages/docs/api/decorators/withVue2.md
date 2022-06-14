@@ -70,3 +70,40 @@ export default class MyVueComponent extends withVue2(Base, Vue) {
   };
 }
 ```
+
+### Advanced usage
+Use component `$options` as a props using `vueConfig`.
+
+```html
+<div data-component="MyVueComponent">
+  <div data-ref="vue"></div>
+</div>
+```
+
+```js
+import { withVue2, Base } from '@studiometa/js-toolkit';
+import Vue from 'vue';
+import App from './App.vue';
+
+export default class Component extends withVue2(Base, Vue) {
+  static config = {
+    options: {
+      property: {
+        type: String,
+        default: '',
+      },
+    },
+  };
+
+  get vueConfig() {
+    return {
+      render: (h) =>
+        h(App, {
+          props: {
+            property: this.$options.property,
+          },
+        }),
+    };
+  }
+}
+```
