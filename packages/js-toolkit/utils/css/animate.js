@@ -7,7 +7,6 @@ import { domScheduler as scheduler } from '../scheduler.js';
 
 let id = 0;
 const running = new WeakMap();
-const raf = useRaf();
 const noop = () => {};
 const PROGRESS_PRECISION = 0.0001;
 
@@ -178,6 +177,8 @@ function render(element, from, to, progress) {
  * @returns {Animate}
  */
 export function animate(element, keyframes, options = {}) {
+  const raf = useRaf();
+
   let progressValue = 0;
   let easedProgress = 0;
 
