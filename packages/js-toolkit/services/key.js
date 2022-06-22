@@ -1,5 +1,73 @@
-import Service from './Service.js';
+/* eslint-disable no-use-before-define */
+import { useService } from './useService.js';
 import keyCodes from '../utils/keyCodes.js';
+
+let previousEvent;
+
+/**
+ * Update props
+ * @returns {any}
+ */
+function updateProps(event) {
+  props.event = event;
+
+  Object.entries(keyCodes).forEach(([name, code]) => {
+    props[name] = code === event.keyCode;
+  });
+
+  if (!previousEvent) {
+    props.triggered = 0;
+  }
+
+  if (props.event.type === 'keydown' && previousEvent?.type === 'keydown') {
+    props.triggered += 1;
+  } else {
+    props.triggered = 1;
+  }
+
+  previousEvent = props.event;
+
+  props.direction = props.event.type === 'keydown' ? 'down' : 'up';
+  props.isUp = props.event.type === 'keyup';
+  props.isDown = props.event.type === 'keydown';
+
+  return props;
+}
+
+/**
+ * Desc.
+ * @param   {KeyboardEvent} event
+ * @returns {void}
+ */
+function onKey(event) {
+  trigger(updateProps(event));
+}
+
+const { add, remove, has, trigger, props } = useService({
+  initialProps: {
+    event: null,
+    triggered: 0,
+    isUp: false,
+    isDown: false,
+    ENTER: false,
+    SPACE: false,
+    TAB: false,
+    ESC: false,
+    LEFT: false,
+    UP: false,
+    RIGHT: false,
+    DOWN: false,
+    direction: 'none',
+  },
+  init() {
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('keyup', onKey);
+  },
+  kill() {
+    document.removeEventListener('keydown', onKey);
+    document.removeEventListener('keyup', onKey);
+  },
+});
 
 /**
  * @typedef {import('./index').ServiceInterface<KeyServiceProps>} KeyService
@@ -23,102 +91,6 @@ import keyCodes from '../utils/keyCodes.js';
  */
 
 /**
- * Scroll service
- */
-class Key extends Service {
-  /** @type {KeyboardEvent} The previous event object. */
-  previousEvent;
-
-  /**
-   * Props.
-   * @type {KeyServiceProps}
-   */
-  props = {
-    event: null,
-    triggered: 0,
-    isUp: false,
-    isDown: false,
-    ENTER: false,
-    SPACE: false,
-    TAB: false,
-    ESC: false,
-    LEFT: false,
-    UP: false,
-    RIGHT: false,
-    DOWN: false,
-    direction: 'none',
-  };
-
-  /**
-   * Bind the handler to the keyboard event.
-   *
-   * @returns {void}
-   */
-  init() {
-    document.addEventListener('keydown', this);
-    document.addEventListener('keyup', this);
-  }
-
-  /**
-   * Handle keyboard events.
-   *
-   * @param   {KeyboardEvent} event
-   * @returns {void}
-   */
-  handleEvent(event) {
-    this.updateProps(event);
-    this.trigger(this.props);
-  }
-
-  /**
-   * Unbind the handler from the keyboard event.
-   *
-   * @returns {void}
-   */
-  kill() {
-    document.removeEventListener('keydown', this);
-    document.removeEventListener('keyup', this);
-  }
-
-  /**
-   * Get keyboard props.
-   *
-   * @param   {KeyboardEvent} event
-   * @returns {this['props']}
-   */
-  updateProps(event) {
-    this.props.event = event;
-
-    Object.entries(keyCodes).forEach(([name, code]) => {
-      this.props[name] = code === event.keyCode;
-    });
-
-    if (!this.previousEvent) {
-      this.props.triggered = 0;
-    }
-
-    if (this.props.event.type === 'keydown' && this.previousEvent?.type === 'keydown') {
-      this.props.triggered += 1;
-    } else {
-      this.props.triggered = 1;
-    }
-
-    this.previousEvent = this.props.event;
-
-    this.props.direction = this.props.event.type === 'keydown' ? 'down' : 'up';
-    this.props.isUp = this.props.event.type === 'keyup';
-    this.props.isDown = this.props.event.type === 'keydown';
-
-    return this.props;
-  }
-}
-
-/**
- * @type {Key}
- */
-let instance;
-
-/**
  * @type {KeyService}
  */
 let key;
@@ -138,16 +110,13 @@ let key;
  */
 export default function useKey() {
   if (!key) {
-    if (!instance) {
-      instance = new Key();
-    }
-
     key = {
-      add: instance.add.bind(instance),
-      remove: instance.remove.bind(instance),
-      has: instance.has.bind(instance),
-      props: instance.updateProps.bind(instance),
+      add,
+      remove,
+      has,
+      props: () => props,
     };
   }
+
   return key;
 }
