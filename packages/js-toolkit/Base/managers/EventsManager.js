@@ -203,11 +203,19 @@ export default class EventsManager extends AbstractManager {
    * @type {EventListenerObject}
    */
   __rootElementHandler = {
+    /**
+     * @param   {Event|CustomEvent} event
+     * @returns {void}
+     */
     handleEvent: (event) => {
       const normalizedEventName = normalizeName(event.type);
       const method = `on${normalizedEventName}`;
 
-      this.__base[method](event);
+      if (event instanceof CustomEvent && isArray(event.detail) && event.detail.length) {
+        this.__base[method](...event.detail, event);
+      } else {
+        this.__base[method](event);
+      }
     },
   };
 
