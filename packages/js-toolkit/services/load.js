@@ -1,4 +1,27 @@
-import Service from './Service.js';
+import { useService } from './useService.js';
+
+/**
+ * Trigger on load
+ * @returns {void}
+ */
+function onLoad() {
+  // eslint-disable-next-line no-use-before-define
+  props.time.performance.now();
+  // eslint-disable-next-line no-use-before-define
+  trigger(props);
+}
+
+const { add, remove, has, props, trigger } = useService({
+  initialProps: {
+    time: performance.now(),
+  },
+  init() {
+    window.addEventListener('load', onLoad);
+  },
+  kill() {
+    window.removeEventListener('load', onLoad);
+  },
+});
 
 /**
  * @typedef {import('./index').ServiceInterface<LoadServiceProps>} LoadService
@@ -9,91 +32,20 @@ import Service from './Service.js';
  * @property {DOMHighResTimeStamp} time
  */
 
-/**
- * Load service
- */
-class Load extends Service {
-  /**
-   * Props.
-   * @type {LoadServiceProps}
-   */
-  props = {
-    time: window.performance.now(),
-  };
-
-  /**
-   * Start the requestAnimationFrame loop.
-   *
-   * @returns {void}
-   */
-  init() {
-    window.addEventListener('load', this);
-  }
-
-  /**
-   * Handle events.
-   * @returns {void}
-   */
-  handleEvent() {
-    this.updateProps();
-    this.trigger(this.props);
-  }
-
-  /**
-   * Stop the requestAnimationFrame loop.
-   *
-   * @returns {void}
-   */
-  kill() {
-    window.removeEventListener('load', this);
-  }
-
-  /**
-   * Get raf props.
-   *
-   * @todo Return elapsed time / index?
-   * @returns {this['props']}
-   */
-  updateProps() {
-    this.props.time = window.performance.now();
-    return this.props;
-  }
-}
-
-/**
- * @type {Load}
- */
-let instance;
-
-/**
- * @type {LoadService}
- */
 let load;
 
 /**
  * Use the load service.
  *
- * ```js
- * import { useLoad } from '@studiometa/js/services';
- * const { add, remove, props } = useRag();
- * add(id, (props) => {});
- * remove(id);
- * props();
- * ```
- *
  * @returns {LoadService}
  */
 export default function useLoad() {
   if (!load) {
-    if (!instance) {
-      instance = new Load();
-    }
-
     load = {
-      add: instance.add.bind(instance),
-      remove: instance.remove.bind(instance),
-      has: instance.has.bind(instance),
-      props: instance.updateProps.bind(instance),
+      add,
+      remove,
+      has,
+      props: () => props,
     };
   }
 
