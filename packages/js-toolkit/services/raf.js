@@ -1,5 +1,5 @@
-import Service from './Service.js';
-import { getRaf, getCancelRaf } from '../utils/nextFrame.js';
+import { useService } from './useService.js';
+import { getRaf } from '../utils/nextFrame.js';
 import { useScheduler } from '../utils/scheduler.js';
 import isFunction from '../utils/isFunction.js';
 
@@ -31,100 +31,48 @@ const scheduler = useScheduler(['update', 'render']);
  * - [ ] Default value for the `step` option is `render`
  * - [ ] Add a `beforeTicked` hook to the `Base` class using the `update` step (?)
  */
-class Raf extends Service {
-  /** @type {boolean} Whether the loop is running or not. */
-  isTicking = false;
 
-  /** @type {number} */
-  id = 0;
+let isTicking = false;
+const RAF = getRaf();
 
-  raf = getRaf();
-
-  cancelRaf = getCancelRaf();
-
-  /**
-   * Props.
-   * @type {RafServiceProps}
-   */
-  props = {
-    time: performance.now(),
-  };
-
-  /**
-   * Start the requestAnimationFrame loop.
-   *
-   * @returns {void}
-   */
-  init() {
-    this.isTicking = true;
-    this.loop();
-  }
-
-  /**
-   * Loop method.
-   */
-  loop() {
-    this.updateProps();
-    this.trigger(this.props);
-
-    if (!this.isTicking) {
-      return;
-    }
-
-    this.id = this.raf(() => this.loop());
-  }
-
-  /**
-   * Stop the requestAnimationFrame loop.
-   *
-   * @returns {void}
-   */
-  kill() {
-    this.cancelRaf(this.id);
-    this.isTicking = false;
-  }
-
-  /**
-   * Get raf props.
-   *
-   * @todo Return elapsed time / index?
-   * @returns {this['props']}
-   */
-  updateProps() {
-    this.props.time = window.performance.now();
-    return this.props;
-  }
-
-  /**
-   * Trigger each added callback with the given arguments.
-   *
-   * @param  {...any} args All the arguments to apply to the callback
-   * @returns {this} The current instance
-   */
-  trigger(...args) {
-    this.callbacks.forEach(function forEachCallback(callback) {
-      scheduler.update(function rafUpdate() {
-        const render = callback(...args);
-        if (isFunction(render)) {
-          scheduler.render(function rafRender() {
-            render(...args);
-          });
-        }
-      });
+function trigger(props) {
+  callbacks.forEach(function forEachCallback(callback) {
+    scheduler.update(function rafUpdate() {
+      const render = callback(props);
+      if (isFunction(render)) {
+        scheduler.render(function rafRender() {
+          render(props);
+        });
+      }
     });
-
-    return this;
-  }
+  });
 }
 
-/**
- * @type {Raf}
- */
-let instance;
+function loop() {
+  // eslint-disable-next-line no-use-before-define
+  props.time = performance.now();
+  trigger(props);
 
-/**
- * @type {RafService}
- */
+  if (!isTicking) {
+    return;
+  }
+
+  RAF(loop);
+}
+
+const { add, remove, has, props, callbacks } = useService({
+  initialProps: {
+    time: performance.now(),
+  },
+  init() {
+    isTicking = true;
+    RAF(loop);
+  },
+  kill() {
+    isTicking = false;
+  },
+});
+
 let raf;
 
 /**
@@ -142,15 +90,11 @@ let raf;
  */
 export default function useRaf() {
   if (!raf) {
-    if (!instance) {
-      instance = new Raf();
-    }
-
     raf = {
-      add: instance.add.bind(instance),
-      remove: instance.remove.bind(instance),
-      has: instance.has.bind(instance),
-      props: instance.updateProps.bind(instance),
+      add,
+      remove,
+      has,
+      props: () => props,
     };
   }
 
