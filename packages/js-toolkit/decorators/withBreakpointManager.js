@@ -1,4 +1,5 @@
 import useResize from '../services/resize.js';
+import { isDev } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base').default} Base
@@ -50,11 +51,17 @@ const instances = new WeakMap();
  */
 export default function withBreakpointManager(BaseClass, breakpoints) {
   if (!Array.isArray(breakpoints)) {
-    throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
+    if (isDev) {
+      throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
+    }
+    return BaseClass;
   }
 
   if (breakpoints.length < 2) {
-    throw new Error('[withBreakpointManager] You must define at least 2 breakpoints.');
+    if (isDev) {
+      throw new Error('[withBreakpointManager] You must define at least 2 breakpoints.');
+    }
+    return BaseClass;
   }
 
   const { add, props } = useResize();
@@ -62,7 +69,10 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
   // Do nothing if no breakpoint has been defined.
   // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
   if (!props().breakpoint) {
-    throw new Error(`The \`BreakpointManager\` class requires breakpoints to be defined.`);
+    if (isDev) {
+      throw new Error(`The \`BreakpointManager\` class requires breakpoints to be defined.`);
+    }
+    return BaseClass;
   }
 
   // @ts-ignore

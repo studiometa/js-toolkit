@@ -1,4 +1,5 @@
 import AbstractManager from './AbstractManager.js';
+import { isDev } from '../../utils/index.js';
 
 /**
  * Normalize the name of ref.
@@ -50,21 +51,25 @@ function __register(that, refName) {
   );
 
   if (!isMultiple && refs.length > 1) {
-    console.warn(
-      // @ts-ignore
-      `[${that.__base.$options.name}]`,
-      `The "${refName}" ref has been found multiple times.`,
-      'Did you forgot to add the `[]` suffix to its name?'
-    );
+    if (isDev) {
+      console.warn(
+        // @ts-ignore
+        `[${that.__base.$options.name}]`,
+        `The "${refName}" ref has been found multiple times.`,
+        'Did you forgot to add the `[]` suffix to its name?'
+      );
+    }
   }
 
   if (!isMultiple && refs.length <= 1 && refs[0] === undefined) {
-    console.warn(
-      // @ts-ignore
-      `[${that.__base.$options.name}]`,
-      `The "${refName}" ref is missing.`,
-      `Is there an \`[data-ref="${refName}"]\` element in the component's scope?`
-    );
+    if (isDev) {
+      console.warn(
+        // @ts-ignore
+        `[${that.__base.$options.name}]`,
+        `The "${refName}" ref is missing.`,
+        `Is there an \`[data-ref="${refName}"]\` element in the component's scope?`
+      );
+    }
 
     return;
   }

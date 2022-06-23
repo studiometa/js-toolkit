@@ -1,6 +1,7 @@
 import deepmerge from 'deepmerge';
 import AbstractManager from './AbstractManager.js';
 import isObject from '../../utils/object/isObject.js';
+import { isDev } from '../../utils/index.js';
 
 /**
  * @typedef {import('deepmerge').Options} DeepmergeOptions
@@ -103,17 +104,23 @@ export function __getPropertyName(name, prefix = '') {
  */
 function __register(that, name, config) {
   if (!types.has(config.type)) {
-    throw new Error(
-      `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`
-    );
+    if (isDev) {
+      throw new Error(
+        `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`
+      );
+    }
+    return;
   }
 
   config.default = config.default ?? __defaultValues[config.type.name];
 
   if ((config.type === Array || config.type === Object) && typeof config.default !== 'function') {
-    throw new Error(
-      `The default value for options of type "${config.type.name}" must be returned by a function.`
-    );
+    if (isDev) {
+      throw new Error(
+        `The default value for options of type "${config.type.name}" must be returned by a function.`
+      );
+    }
+    return;
   }
 
   Object.defineProperty(that, name, {
@@ -256,10 +263,13 @@ export default class OptionsManager extends AbstractManager {
     const propertyName = __getPropertyName(name);
 
     if (value.constructor.name !== type.name) {
-      const val = Array.isArray(value) || isObject(value) ? JSON.stringify(value) : value;
-      throw new TypeError(
-        `The "${val}" value for the "${name}" option must be of type "${type.name}"`
-      );
+      if (isDev) {
+        const val = Array.isArray(value) || isObject(value) ? JSON.stringify(value) : value;
+        throw new TypeError(
+          `The "${val}" value for the "${name}" option must be of type "${type.name}"`
+        );
+      }
+      return;
     }
 
     switch (type) {

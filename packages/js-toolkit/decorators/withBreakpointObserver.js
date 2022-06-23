@@ -1,4 +1,5 @@
 import useResize from '../services/resize.js';
+import { isDev } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base').default} Base
@@ -70,7 +71,10 @@ function testConflictingBreakpointConfiguration(instance) {
  * @param {Base}   instance The instance to observe.
  */
 function addToResize(key, instance) {
-  testConflictingBreakpointConfiguration(instance);
+  if (isDev) {
+    testConflictingBreakpointConfiguration(instance);
+  }
+
   const { add, has } = useResize();
 
   if (!has(key)) {
@@ -121,9 +125,12 @@ export default function withBreakpointObserver(BaseClass) {
       // Do nothing if no breakpoint has been defined.
       // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
       if (!props().breakpoint) {
-        throw new Error(
-          `[${name}] The \`BreakpointObserver\` class requires breakpoints to be defined.`
-        );
+        if (isDev) {
+          throw new Error(
+            `[${name}] The \`BreakpointObserver\` class requires breakpoints to be defined.`
+          );
+        }
+        return;
       }
 
       const key = `BreakpointObserver-${this.$id}`;
