@@ -38,7 +38,7 @@ export function useService(options) {
    */
   function add(key, callback) {
     if (has(key)) {
-      console.warn(`A callback with the key \`${key}\` has already been registered.`);
+      console.warn(`The key \`${key}\` has already been added.`);
       return;
     }
 

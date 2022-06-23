@@ -27,7 +27,7 @@ describe('useKey', () => {
     warnMock.mockImplementation(() => null);
     add('useKey', () => {});
     expect(warnMock).toHaveBeenCalledWith(
-      'A callback with the key `useKey` has already been registered.'
+      'The key `useKey` has already been added.'
     );
     warnMock.mockRestore();
   });
