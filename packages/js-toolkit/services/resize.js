@@ -56,8 +56,8 @@ function getBreakpoints() {
  */
 function createResizeService() {
   /**
-   * [updateProps description]
-   * @returns {void}
+   * Update props.
+   * @returns {ResizeServiceProps}
    */
   function updateProps() {
     props.width = window.innerWidth;
@@ -89,6 +89,9 @@ function createResizeService() {
   });
 
   const { add, remove, has, trigger, props } = useService({
+    /**
+     * @type {ResizeServiceProps}
+     */
     initialProps: {
       width: window.innerWidth,
       height: window.innerHeight,

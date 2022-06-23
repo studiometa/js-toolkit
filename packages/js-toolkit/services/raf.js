@@ -55,6 +55,9 @@ function createRafService() {
   }
 
   const { add, remove, has, props, callbacks } = useService({
+    /**
+     * @type {RafServiceProps}
+     */
     initialProps: {
       time: performance.now(),
     },
@@ -72,7 +75,7 @@ function createRafService() {
     remove,
     has,
     props: () => props,
-  }
+  };
 }
 
 let raf;

@@ -23,6 +23,9 @@ function createLoadService() {
   }
 
   const { add, remove, has, props, trigger } = useService({
+    /**
+     * @type {LoadServiceProps}
+     */
     initialProps: {
       time: performance.now(),
     },

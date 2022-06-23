@@ -3,6 +3,15 @@ import { useService } from './useService.js';
 import keyCodes from '../utils/keyCodes.js';
 
 /**
+ * @returns {Record<keyof keyCodes, false>}
+ */
+function getInitialKeyCodes() {
+  return /** @type {Record<keyof keyCodes, false>} */ (
+    Object.fromEntries(Object.keys(keyCodes).map((key) => [key, false]))
+  );
+}
+
+/**
  * @typedef {import('./index').ServiceInterface<KeyServiceProps>} KeyService
  * @typedef {Object} KeyServiceProps
  * @property {KeyboardEvent} event
@@ -68,13 +77,16 @@ function createKeyService() {
   }
 
   const { add, remove, has, trigger, props } = useService({
+    /**
+     * @type {KeyServiceProps}
+     */
     initialProps: {
       event: null,
       triggered: 0,
       isUp: false,
       isDown: false,
       direction: 'none',
-      ...Object.fromEntries(Object.keys(keyCodes).map((key) => [key, false])),
+      ...getInitialKeyCodes(),
     },
     init() {
       document.addEventListener('keydown', onKey);
