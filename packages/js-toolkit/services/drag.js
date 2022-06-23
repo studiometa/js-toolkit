@@ -1,13 +1,11 @@
-import Service from './Service.js';
+/* eslint-disable no-use-before-define */
+import { useService } from './useService.js';
 import usePointer from './pointer.js';
 import useRaf from './raf.js';
 import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
 
 /**
  * @typedef {import('./index').ServiceInterface<DragServiceProps>} DragService
- */
-
-/**
  * @typedef {import('./pointer.js').PointerServiceProps} PointerServiceProps
  */
 
@@ -21,6 +19,220 @@ const MODES = {
   INERTIA: 'inertia',
   STOP: 'stop',
 };
+
+let count = 0;
+
+/**
+ * Get drag service.
+ * @param   {HTMLElement} target
+ * @param   {Object} [options]
+ * @param   {number} [options.dampFactor]
+ * @param   {number} [options.dragTreshold]
+ * @returns {DragService}
+ */
+function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}) {
+  count += 1;
+  const id = `drag-${count}`;
+
+  /**
+   * Test if we should allow click on links and buttons.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  function shouldPreventClick() {
+    return Math.abs(props.distance.x) > dragTreshold || Math.abs(props.distance.y) > dragTreshold;
+  }
+
+  /**
+   * Start the drag.
+   * @param {number} x The initial horizontal position.
+   * @param {number} y The initial vertical position.
+   * @returns {void}
+   */
+  function start(x, y) {
+    // Reset state
+    props.x = x;
+    props.y = y;
+    props.origin.x = x;
+    props.origin.y = y;
+    props.delta.x = 0;
+    props.delta.y = 0;
+    props.distance.x = 0;
+    props.distance.y = 0;
+    props.final.x = x;
+    props.final.y = y;
+
+    props.mode = MODES.START;
+
+    // Enable grabbing
+    props.isGrabbing = true;
+
+    trigger(props);
+  }
+
+  /**
+   * Stop the drag, or drop.
+   * @returns {void}
+   */
+  function drop() {
+    props.isGrabbing = false;
+    props.mode = MODES.DROP;
+
+    props.hasInertia = true;
+    props.final.x = inertiaFinalValue(props.x, props.delta.x, dampFactor);
+    props.final.y = inertiaFinalValue(props.y, props.delta.y, dampFactor);
+
+    trigger(props);
+
+    setTimeout(() => {
+      const raf = useRaf();
+      raf.remove(id);
+      raf.add(id, rafHandler);
+    }, 0);
+  }
+
+  /**
+   * Stop the drag.
+   */
+  function stop() {
+    useRaf().remove(id);
+    props.hasInertia = false;
+    props.mode = MODES.STOP;
+    trigger(props);
+  }
+
+  /**
+   * Raf service handler.
+   * @returns {void}
+   */
+  function rafHandler() {
+    if (!props.isGrabbing) {
+      props.x += props.delta.x;
+      props.y += props.delta.y;
+      props.distance.x = props.x - props.origin.x;
+      props.distance.y = props.y - props.origin.y;
+
+      props.delta.x *= dampFactor;
+      props.delta.y *= dampFactor;
+
+      if (props.mode !== MODES.INERTIA) {
+        props.mode = MODES.INERTIA;
+      }
+
+      trigger(props);
+
+      if (Math.abs(props.delta.x) < 0.1 && Math.abs(props.delta.y) < 0.1) {
+        stop();
+      }
+    }
+  }
+
+  /**
+   * Pointer service handler.
+   * @param {PointerServiceProps} pointerProps
+   * @returns {void}
+   */
+  function pointerHandler(pointerProps) {
+    if (props.isGrabbing) {
+      props.x = pointerProps.x;
+      props.y = pointerProps.y;
+      props.delta.x = pointerProps.delta.x;
+      props.delta.y = pointerProps.delta.y;
+      props.final.x = pointerProps.x;
+      props.final.y = pointerProps.y;
+      props.distance.x = props.x - props.origin.x;
+      props.distance.y = props.y - props.origin.y;
+
+      if (props.mode !== MODES.DRAG) {
+        props.mode = MODES.DRAG;
+      }
+
+      trigger(props);
+
+      if (!pointerProps.isDown) {
+        drop();
+      }
+    }
+  }
+
+  /**
+   * Handle any event.
+   * @param {MouseEvent|TouchEvent|DragEvent} event
+   */
+  function handleEvent(event) {
+    if (event.type === 'dragstart') {
+      event.preventDefault();
+      return;
+    }
+
+    if (event.type === 'click') {
+      if (shouldPreventClick()) {
+        event.stopImmediatePropagation();
+        event.stopPropagation();
+        event.preventDefault();
+      }
+
+      return;
+    }
+
+    const x = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
+    const y = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
+    start(x, y);
+  }
+  const { add, remove, has, trigger, props } = useService({
+    initialProps: {
+      target,
+      mode: undefined,
+      isGrabbing: false,
+      hasInertia: false,
+      x: 0,
+      y: 0,
+      delta: {
+        x: 0,
+        y: 0,
+      },
+      origin: {
+        x: 0,
+        y: 0,
+      },
+      distance: {
+        x: 0,
+        y: 0,
+      },
+      final: {
+        x: 0,
+        y: 0,
+      },
+    },
+    init() {
+      const options = { passive: true };
+      props.target.addEventListener('mousedown', handleEvent, options);
+      props.target.addEventListener('touchstart', handleEvent, options);
+      props.target.addEventListener('dragstart', handleEvent, { capture: true });
+      props.target.addEventListener('click', handleEvent, { capture: true });
+
+      const pointer = usePointer();
+      pointer.add(id, pointerHandler);
+    },
+    kill() {
+      props.target.removeEventListener('mousedown', handleEvent);
+      props.target.removeEventListener('touchstart', handleEvent);
+      props.target.removeEventListener('dragstart', handleEvent);
+      props.target.removeEventListener('click', handleEvent);
+
+      const pointer = usePointer();
+      pointer.remove(id);
+    },
+  });
+
+  return {
+    add,
+    remove,
+    has,
+    props: () => props,
+  };
+}
 
 /**
  * @typedef {'start'|'drag'|'drop'|'inertia'|'stop'} DragLifecycle
@@ -56,274 +268,6 @@ const MODES = {
  * @property {number} [dragTreshold]
  */
 
-let id = 0;
-
-/**
- * Drag service
- */
-class Drag extends Service {
-  /**
-   * The instance ID.
-   * @type {string}
-   */
-  id;
-
-  /**
-   * Props.
-   * @type {DragServiceProps}
-   */
-  props = {
-    target: null,
-    mode: undefined,
-    isGrabbing: false,
-    hasInertia: false,
-    x: 0,
-    y: 0,
-    delta: {
-      x: 0,
-      y: 0,
-    },
-    origin: {
-      x: 0,
-      y: 0,
-    },
-    distance: {
-      x: 0,
-      y: 0,
-    },
-    final: {
-      x: 0,
-      y: 0,
-    },
-  };
-
-  /**
-   * Options.
-   * @type {DragServiceOptions}
-   */
-  options = {
-    dampFactor: 0.85,
-    dragTreshold: 10,
-  };
-
-  /**
-   * Class constructor.
-   * @param {HTMLElement} target The drag target.
-   * @param {DragServiceOptions} options The drag options.
-   */
-  constructor(target, options = {}) {
-    super();
-    id += 1;
-    this.id = `drag-${id}`;
-    this.props.target = target;
-    this.options = { ...this.options, ...options };
-    this.pointerHandler = this.pointerHandler.bind(this);
-    this.rafHandler = this.rafHandler.bind(this);
-  }
-
-  /**
-   * Bind the handler to the mousemove and touchmove events.
-   * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
-   *
-   * @returns {this}
-   */
-  init() {
-    const options = { passive: true };
-    this.props.target.addEventListener('mousedown', this, options);
-    this.props.target.addEventListener('touchstart', this, options);
-    this.props.target.addEventListener('dragstart', this, { capture: true });
-    this.props.target.addEventListener('click', this, { capture: true });
-
-    const pointer = usePointer();
-    pointer.add(this.id, this.pointerHandler);
-
-    return this;
-  }
-
-  /**
-   * Unbind all handlers from their bounded event.
-   *
-   * @returns {this}
-   */
-  kill() {
-    this.props.target.removeEventListener('mousedown', this);
-    this.props.target.removeEventListener('touchstart', this);
-    this.props.target.removeEventListener('dragstart', this);
-    this.props.target.removeEventListener('click', this);
-
-    const pointer = usePointer();
-    pointer.remove(this.id);
-    return this;
-  }
-
-  /**
-   * Handle any event.
-   * @param {MouseEvent|TouchEvent|DragEvent} event
-   */
-  handleEvent(event) {
-    if (event.type === 'dragstart') {
-      event.preventDefault();
-      return;
-    }
-
-    if (event.type === 'click') {
-      if (this.__shouldPreventClick) {
-        event.stopImmediatePropagation();
-        event.stopPropagation();
-        event.preventDefault();
-      }
-
-      return;
-    }
-
-    const x = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
-    const y = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
-    this.start(x, y);
-  }
-
-  /**
-   * Start the drag.
-   * @param {number} x The initial horizontal position.
-   * @param {number} y The initial vertical position.
-   * @returns {void}
-   */
-  start(x, y) {
-    // Reset state
-    this.props.x = x;
-    this.props.y = y;
-    this.props.origin.x = x;
-    this.props.origin.y = y;
-    this.props.delta.x = 0;
-    this.props.delta.y = 0;
-    this.props.distance.x = 0;
-    this.props.distance.y = 0;
-    this.props.final.x = x;
-    this.props.final.y = y;
-
-    this.props.mode = MODES.START;
-
-    // Enable grabbing
-    this.props.isGrabbing = true;
-
-    this.trigger(this.props);
-  }
-
-  /**
-   * Stop the drag, or drop.
-   * @returns {void}
-   */
-  drop() {
-    this.props.isGrabbing = false;
-    this.props.mode = MODES.DROP;
-
-    this.props.hasInertia = true;
-    this.props.final.x = inertiaFinalValue(
-      this.props.x,
-      this.props.delta.x,
-      this.options.dampFactor
-    );
-    this.props.final.y = inertiaFinalValue(
-      this.props.y,
-      this.props.delta.y,
-      this.options.dampFactor
-    );
-
-    this.trigger(this.props);
-
-    setTimeout(() => {
-      const raf = useRaf();
-      raf.remove(this.id);
-      raf.add(this.id, this.rafHandler);
-    }, 0);
-  }
-
-  /**
-   * Stop the drag.
-   */
-  stop() {
-    useRaf().remove(this.id);
-    this.props.hasInertia = false;
-    this.props.mode = MODES.STOP;
-    this.trigger(this.props);
-  }
-
-  /**
-   * Raf service handler.
-   * @returns {void}
-   */
-  rafHandler() {
-    if (!this.props.isGrabbing) {
-      this.props.x += this.props.delta.x;
-      this.props.y += this.props.delta.y;
-      this.props.distance.x = this.props.x - this.props.origin.x;
-      this.props.distance.y = this.props.y - this.props.origin.y;
-
-      this.props.delta.x *= this.options.dampFactor;
-      this.props.delta.y *= this.options.dampFactor;
-
-      if (this.props.mode !== MODES.INERTIA) {
-        this.props.mode = MODES.INERTIA;
-      }
-
-      this.trigger(this.props);
-
-      if (Math.abs(this.props.delta.x) < 0.1 && Math.abs(this.props.delta.y) < 0.1) {
-        this.stop();
-      }
-    }
-  }
-
-  /**
-   * Pointer service handler.
-   * @param {PointerServiceProps} props
-   * @returns {void}
-   */
-  pointerHandler(props) {
-    if (this.props.isGrabbing) {
-      this.props.x = props.x;
-      this.props.y = props.y;
-      this.props.delta.x = props.delta.x;
-      this.props.delta.y = props.delta.y;
-      this.props.final.x = props.x;
-      this.props.final.y = props.y;
-      this.props.distance.x = this.props.x - this.props.origin.x;
-      this.props.distance.y = this.props.y - this.props.origin.y;
-
-      if (this.props.mode !== MODES.DRAG) {
-        this.props.mode = MODES.DRAG;
-      }
-
-      this.trigger(this.props);
-
-      if (!props.isDown) {
-        this.drop();
-      }
-    }
-  }
-
-  /**
-   * Get the pointer props.
-   *
-   * @returns {this['props']}
-   */
-  updateProps() {
-    return this.props;
-  }
-
-  /**
-   * Test if we should allow click on links and buttons.
-   *
-   * @private
-   * @returns {boolean}
-   */
-  get __shouldPreventClick() {
-    return (
-      Math.abs(this.props.distance.x) > this.options.dragTreshold ||
-      Math.abs(this.props.distance.y) > this.options.dragTreshold
-    );
-  }
-}
-
 /**
  * @type {WeakMap<HTMLElement, DragService | undefined>}
  */
@@ -346,20 +290,9 @@ const instances = new WeakMap();
  * @returns {DragService}
  */
 export default function useDrag(target, options) {
-  let drag = instances.get(target);
-
-  if (!drag) {
-    const instance = new Drag(target, options);
-
-    drag = {
-      add: instance.add.bind(instance),
-      remove: instance.remove.bind(instance),
-      has: instance.has.bind(instance),
-      props: instance.updateProps.bind(instance),
-    };
-
-    instances.set(target, drag);
+  if (!instances.has(target)) {
+    instances.set(target, createDragService(target, options));
   }
 
-  return drag;
+  return instances.get(target);
 }
