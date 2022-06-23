@@ -6,6 +6,7 @@ import useKey from '../../services/key.js';
 import useLoad from '../../services/load.js';
 import AbstractManager from './AbstractManager.js';
 import { hasMethod } from '../utils.js';
+import { noop } from '../../utils/noop.js';
 
 /**
  * @typedef {import('../index').default} Base
@@ -97,7 +98,7 @@ export default class ServicesManager extends AbstractManager {
       !(hasMethod(this.__base, service) || this.__base.__hasEvent(service)) ||
       !this.__services[service]
     ) {
-      return function noop() {};
+      return noop;
     }
     const { add } = this.__services[service]();
     const self = this;
