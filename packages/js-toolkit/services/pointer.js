@@ -1,10 +1,8 @@
-import Service from './Service.js';
+/* eslint-disable no-use-before-define */
+import { useService } from './useService.js';
 
 /**
  * @typedef {import('./index').ServiceInterface<PointerServiceProps>} PointerService
- */
-
-/**
  * @typedef {Object} PointerServiceProps
  * @property {MouseEvent | TouchEvent} event
  * @property {boolean} isDown
@@ -27,147 +25,23 @@ function isTouchEvent(event) {
   return typeof TouchEvent !== 'undefined' && event instanceof TouchEvent;
 }
 
+const events = ['mousemove', 'touchmove', 'mousedown', 'touchstart', 'mouseup', 'touchend'];
+
 /**
- * Pointer service
+ * Get pointer service.
+ * @returns {PointerService}
  */
-class Pointer extends Service {
-  /**
-   * Get the pointer props.
-   *
-   * @type {PointerServiceProps}
-   */
-  props = {
-    event: null,
-    isDown: false,
-    x: window.innerWidth / 2,
-    y: window.innerHeight / 2,
-    changed: {
-      x: false,
-      y: false,
-    },
-    last: {
-      x: window.innerWidth / 2,
-      y: window.innerHeight / 2,
-    },
-    delta: {
-      x: 0,
-      y: 0,
-    },
-    progress: {
-      x: 0.5,
-      y: 0.5,
-    },
-    max: {
-      x: window.innerWidth,
-      y: window.innerHeight,
-    },
-  };
-
-  /**
-   * Whether or not the raf service is running.
-   * @type {boolean}
-   */
-  hasRaf = false;
-
-  /**
-   * Bind the handler to the mousemove and touchmove events.
-   * Bind the up and down handler to the mousedown, mouseup, touchstart and touchend events.
-   *
-   * @returns {this}
-   */
-  init() {
-    document.documentElement.addEventListener('mouseenter', this, {
-      once: true,
-      capture: true,
-    });
-
-    const options = { passive: true, capture: true };
-    document.addEventListener('mousemove', this, options);
-    document.addEventListener('touchmove', this, options);
-    document.addEventListener('mousedown', this, options);
-    document.addEventListener('touchstart', this, options);
-    document.addEventListener('mouseup', this, options);
-    document.addEventListener('touchend', this, options);
-    return this;
-  }
-
-  /**
-   * Handle events.
-   * @param {MouseEvent|TouchEvent} event The event object.
-   */
-  handleEvent(event) {
-    // eslint-disable-next-line default-case
-    switch (event.type) {
-      case 'mouseenter':
-      case 'mousemove':
-      case 'touchmove':
-        this.handler(event);
-        break;
-      case 'mousedown':
-      case 'touchstart':
-        this.downHandler();
-        break;
-      case 'mouseup':
-      case 'touchend':
-        this.upHandler();
-        break;
-    }
-  }
-
-  /**
-   * Unbind all handlers from their bounded event.
-   *
-   * @returns {this}
-   */
-  kill() {
-    document.removeEventListener('mousemove', this);
-    document.removeEventListener('touchmove', this);
-    document.removeEventListener('mousedown', this);
-    document.removeEventListener('touchstart', this);
-    document.removeEventListener('mouseup', this);
-    document.removeEventListener('touchend', this);
-    return this;
-  }
-
-  /**
-   * The service handler.
-   * @param {MouseEvent|TouchEvent} event The mouse event object.
-   */
-  handler(event) {
-    this.updateProps(event);
-    this.trigger(this.props);
-  }
-
-  /**
-   * Handler for the pointer's down action.
-   *
-   * @returns {void}
-   */
-  downHandler() {
-    this.props.isDown = true;
-    this.trigger(this.props);
-  }
-
-  /**
-   * Handler for the pointer's up action.
-   *
-   * @returns {void}
-   */
-  upHandler() {
-    this.props.isDown = false;
-    this.trigger(this.props);
-  }
-
+function createPointerService() {
   /**
    * Update the pointer positions.
    *
    * @param  {MouseEvent|TouchEvent} event The event object.
    * @returns {PointerServiceProps}
    */
-  updateProps(event) {
-    this.props.event = event;
-    const yLast = this.props.y;
-    const xLast = this.props.x;
+  function updateProps(event) {
+    props.event = event;
+    const yLast = props.y;
+    const xLast = props.x;
 
     // Check pointer Y
     // We either get data from a touch event `event.touches[0].clientY` or from
@@ -175,8 +49,8 @@ class Pointer extends Service {
     const y = isTouchEvent(event)
       ? /** @type {TouchEvent} */ (event).touches[0]?.clientY
       : /** @type {MouseEvent} */ (event).clientY;
-    if (y !== this.props.y) {
-      this.props.y = y;
+    if (y !== props.y) {
+      props.y = y;
     }
 
     // Check pointer X
@@ -185,65 +59,117 @@ class Pointer extends Service {
     const x = isTouchEvent(event)
       ? /** @type {TouchEvent} */ (event).touches[0]?.clientX
       : /** @type {MouseEvent} */ (event).clientX;
-    if (x !== this.props.x) {
-      this.props.x = x;
+    if (x !== props.x) {
+      props.x = x;
     }
 
-    this.props.changed.x = this.props.x !== xLast;
-    this.props.changed.y = this.props.y !== yLast;
+    props.changed.x = props.x !== xLast;
+    props.changed.y = props.y !== yLast;
 
-    this.props.last.x = xLast;
-    this.props.last.y = yLast;
+    props.last.x = xLast;
+    props.last.y = yLast;
 
-    this.props.delta.x = this.props.x - xLast;
-    this.props.delta.y = this.props.y - yLast;
+    props.delta.x = props.x - xLast;
+    props.delta.y = props.y - yLast;
 
-    this.props.max.x = window.innerWidth;
-    this.props.max.y = window.innerHeight;
+    props.max.x = window.innerWidth;
+    props.max.y = window.innerHeight;
 
-    this.props.progress.x = this.props.x / this.props.max.x;
-    this.props.progress.y = this.props.y / this.props.max.y;
+    props.progress.x = props.x / props.max.x;
+    props.progress.y = props.y / props.max.y;
 
-    return this.props;
+    return props;
   }
+
+  /**
+   * Handle events.
+   * @param {MouseEvent|TouchEvent} event The event object.
+   */
+  function handleEvent(event) {
+    // eslint-disable-next-line default-case
+    switch (event.type) {
+      case 'mouseenter':
+      case 'mousemove':
+      case 'touchmove':
+        trigger(updateProps(event));
+        break;
+      case 'mousedown':
+      case 'touchstart':
+        props.isDown = true;
+        trigger(props);
+        break;
+      case 'mouseup':
+      case 'touchend':
+        props.isDown = false;
+        trigger(props);
+        break;
+    }
+  }
+
+  const { add, remove, has, trigger, props } = useService({
+    initialProps: {
+      event: null,
+      isDown: false,
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      changed: {
+        x: false,
+        y: false,
+      },
+      last: {
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+      },
+      delta: {
+        x: 0,
+        y: 0,
+      },
+      progress: {
+        x: 0.5,
+        y: 0.5,
+      },
+      max: {
+        x: window.innerWidth,
+        y: window.innerHeight,
+      },
+    },
+    init() {
+      document.documentElement.addEventListener('mouseenter', handleEvent, {
+        once: true,
+        capture: true,
+      });
+
+      const options = { passive: true, capture: true };
+      events.forEach((event) => {
+        document.addEventListener(event, handleEvent, options);
+      });
+    },
+    kill() {
+      events.forEach((event) => {
+        document.removeEventListener(event, handleEvent);
+      });
+    },
+  });
+
+  return {
+    add,
+    remove,
+    has,
+    props: () => props,
+  };
 }
 
-/**
- * @type {Pointer}
- */
-let instance;
-
-/**
- * @type {PointerService}
- */
 let pointer;
 
 /**
- * Use the pointer.
- *
- * ```js
- * import usePointer from '@studiometa/js-toolkit/services';
- * const { add, remove, props } = usePointer();
- * add('id', () => {});
- * remove('id');
- * props();
- * ```
+ * Use the pointer service.
  *
  * @todo Add element as parameter to get the pointer position relatively from.
  * @returns {PointerService}
  */
 export default function usePointer() {
   if (!pointer) {
-    if (!instance) {
-      instance = new Pointer();
-    }
-
-    pointer = {
-      add: instance.add.bind(instance),
-      remove: instance.remove.bind(instance),
-      has: instance.has.bind(instance),
-      props: instance.updateProps.bind(instance),
-    };
+    pointer = createPointerService();
   }
   return pointer;
 }
