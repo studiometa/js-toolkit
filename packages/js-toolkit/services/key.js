@@ -2,78 +2,8 @@
 import { useService } from './useService.js';
 import keyCodes from '../utils/keyCodes.js';
 
-let previousEvent;
-
-/**
- * Update props
- * @returns {any}
- */
-function updateProps(event) {
-  props.event = event;
-
-  Object.entries(keyCodes).forEach(([name, code]) => {
-    props[name] = code === event.keyCode;
-  });
-
-  if (!previousEvent) {
-    props.triggered = 0;
-  }
-
-  if (props.event.type === 'keydown' && previousEvent?.type === 'keydown') {
-    props.triggered += 1;
-  } else {
-    props.triggered = 1;
-  }
-
-  previousEvent = props.event;
-
-  props.direction = props.event.type === 'keydown' ? 'down' : 'up';
-  props.isUp = props.event.type === 'keyup';
-  props.isDown = props.event.type === 'keydown';
-
-  return props;
-}
-
-/**
- * Desc.
- * @param   {KeyboardEvent} event
- * @returns {void}
- */
-function onKey(event) {
-  trigger(updateProps(event));
-}
-
-const { add, remove, has, trigger, props } = useService({
-  initialProps: {
-    event: null,
-    triggered: 0,
-    isUp: false,
-    isDown: false,
-    ENTER: false,
-    SPACE: false,
-    TAB: false,
-    ESC: false,
-    LEFT: false,
-    UP: false,
-    RIGHT: false,
-    DOWN: false,
-    direction: 'none',
-  },
-  init() {
-    document.addEventListener('keydown', onKey);
-    document.addEventListener('keyup', onKey);
-  },
-  kill() {
-    document.removeEventListener('keydown', onKey);
-    document.removeEventListener('keyup', onKey);
-  },
-});
-
 /**
  * @typedef {import('./index').ServiceInterface<KeyServiceProps>} KeyService
- */
-
-/**
  * @typedef {Object} KeyServiceProps
  * @property {KeyboardEvent} event
  * @property {number} triggered
@@ -91,31 +21,89 @@ const { add, remove, has, trigger, props } = useService({
  */
 
 /**
- * @type {KeyService}
+ * Create key service.
+ * @returns {KeyService}
  */
+function createKeyService() {
+  let previousEvent;
+
+  /**
+   * Update props
+   * @param {KeyboardEvent} event
+   * @returns {KeyServiceProps}
+   */
+  function updateProps(event) {
+    props.event = event;
+
+    Object.entries(keyCodes).forEach(([name, code]) => {
+      props[name] = code === event.keyCode;
+    });
+
+    if (!previousEvent) {
+      props.triggered = 0;
+    }
+
+    if (props.event.type === 'keydown' && previousEvent?.type === 'keydown') {
+      props.triggered += 1;
+    } else {
+      props.triggered = 1;
+    }
+
+    previousEvent = props.event;
+
+    props.direction = props.event.type === 'keydown' ? 'down' : 'up';
+    props.isUp = props.event.type === 'keyup';
+    props.isDown = props.event.type === 'keydown';
+
+    return props;
+  }
+
+  /**
+   * Desc.
+   * @param   {KeyboardEvent} event
+   * @returns {void}
+   */
+  function onKey(event) {
+    trigger(updateProps(event));
+  }
+
+  const { add, remove, has, trigger, props } = useService({
+    initialProps: {
+      event: null,
+      triggered: 0,
+      isUp: false,
+      isDown: false,
+      direction: 'none',
+      ...Object.fromEntries(Object.keys(keyCodes).map((key) => [key, false])),
+    },
+    init() {
+      document.addEventListener('keydown', onKey);
+      document.addEventListener('keyup', onKey);
+    },
+    kill() {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('keyup', onKey);
+    },
+  });
+
+  return {
+    add,
+    remove,
+    has,
+    props: () => props,
+  };
+}
+
 let key;
 
 /**
  * Use the keyboard service.
  *
- * ```js
- * import { useKey } from '@studiometa/js-toolkit/services';
- * const { add, remove, props } = useKey();
- * add(key, (props) => {});
- * remove(key);
- * props();
- * ```
- *
  * @returns {KeyService}
  */
 export default function useKey() {
   if (!key) {
-    key = {
-      add,
-      remove,
-      has,
-      props: () => props,
-    };
+    key = createKeyService();
   }
 
   return key;

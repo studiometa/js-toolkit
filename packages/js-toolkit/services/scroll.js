@@ -2,89 +2,8 @@
 import { useService } from './useService.js';
 import debounce from '../utils/debounce.js';
 
-function updateProps() {
-  const yLast = props.y;
-  const xLast = props.x;
-
-  // Check scroll Y
-  if (window.pageYOffset !== props.y) {
-    props.y = window.pageYOffset;
-  }
-
-  // Check scroll x
-  if (window.pageXOffset !== props.x) {
-    props.x = window.pageXOffset;
-  }
-
-  props.changed.x = props.x !== xLast;
-  props.changed.y = props.y !== yLast;
-  props.last.x = xLast;
-  props.last.y = yLast;
-  props.delta.x = props.x - xLast;
-  props.delta.y = props.y - yLast;
-  props.max.x = (document.scrollingElement || document.body).scrollWidth - window.innerWidth;
-  props.max.y = (document.scrollingElement || document.body).scrollHeight - window.innerHeight;
-  props.progress.x = props.max.x === 0 ? 1 : props.x / props.max.x;
-  props.progress.y = props.max.y === 0 ? 1 : props.y / props.max.y;
-  /* eslint-disable no-nested-ternary */
-  props.direction.x = props.x > xLast ? 'RIGHT' : props.x < xLast ? 'LEFT' : 'NONE';
-  props.direction.y = props.y > yLast ? 'DOWN' : props.y < yLast ? 'UP' : 'NONE';
-  /* eslint-enable no-nested-ternary */
-}
-
-const onScrollDebounced = debounce(() => {
-  updateProps();
-  trigger(props);
-}, 100);
-
-function onScroll() {
-  updateProps();
-  trigger(props);
-  onScrollDebounced();
-}
-
-const { add, remove, has, props, trigger } = useService({
-  initialProps: {
-    x: window.pageXOffset,
-    y: window.pageYOffset,
-    changed: {
-      x: false,
-      y: false,
-    },
-    last: {
-      x: window.pageXOffset,
-      y: window.pageYOffset,
-    },
-    delta: {
-      x: 0,
-      y: 0,
-    },
-    max: {
-      x: (document.scrollingElement || document.body).scrollWidth - window.innerWidth,
-      y: (document.scrollingElement || document.body).scrollHeight - window.innerHeight,
-    },
-    progress: {
-      x: 0,
-      y: 0,
-    },
-    direction: {
-      x: 'NONE',
-      y: 'NONE',
-    },
-  },
-  init() {
-    document.addEventListener('scroll', onScroll, { passive: true, capture: true });
-  },
-  kill() {
-    document.removeEventListener('scroll', onScroll);
-  },
-});
-
 /**
  * @typedef {import('./index').ServiceInterface<ScrollServiceProps>} ScrollService
- */
-
-/**
  * @typedef {Object} ScrollServiceProps
  * @property {number} x
  * @property {number} y
@@ -97,8 +16,104 @@ const { add, remove, has, props, trigger } = useService({
  */
 
 /**
- * @type {ScrollService}
+ * Create scroll service.
+ * @returns {ScrollService}
  */
+function createScrollService() {
+  /**
+   * Update props.
+   * @returns {ScrollServiceProps}
+   */
+  function updateProps() {
+    const yLast = props.y;
+    const xLast = props.x;
+
+    // Check scroll Y
+    if (window.pageYOffset !== props.y) {
+      props.y = window.pageYOffset;
+    }
+
+    // Check scroll x
+    if (window.pageXOffset !== props.x) {
+      props.x = window.pageXOffset;
+    }
+
+    props.changed.x = props.x !== xLast;
+    props.changed.y = props.y !== yLast;
+    props.last.x = xLast;
+    props.last.y = yLast;
+    props.delta.x = props.x - xLast;
+    props.delta.y = props.y - yLast;
+    props.max.x = (document.scrollingElement || document.body).scrollWidth - window.innerWidth;
+    props.max.y = (document.scrollingElement || document.body).scrollHeight - window.innerHeight;
+    props.progress.x = props.max.x === 0 ? 1 : props.x / props.max.x;
+    props.progress.y = props.max.y === 0 ? 1 : props.y / props.max.y;
+    /* eslint-disable no-nested-ternary */
+    props.direction.x = props.x > xLast ? 'RIGHT' : props.x < xLast ? 'LEFT' : 'NONE';
+    props.direction.y = props.y > yLast ? 'DOWN' : props.y < yLast ? 'UP' : 'NONE';
+    /* eslint-enable no-nested-ternary */
+
+    return props;
+  }
+
+  const onScrollDebounced = debounce(() => {
+    trigger(updateProps());
+  }, 100);
+
+  /**
+   * Scroll handler.
+   * @returns {void}
+   */
+  function onScroll() {
+    trigger(updateProps());
+    onScrollDebounced();
+  }
+
+  const { add, remove, has, props, trigger } = useService({
+    initialProps: {
+      x: window.pageXOffset,
+      y: window.pageYOffset,
+      changed: {
+        x: false,
+        y: false,
+      },
+      last: {
+        x: window.pageXOffset,
+        y: window.pageYOffset,
+      },
+      delta: {
+        x: 0,
+        y: 0,
+      },
+      max: {
+        x: (document.scrollingElement || document.body).scrollWidth - window.innerWidth,
+        y: (document.scrollingElement || document.body).scrollHeight - window.innerHeight,
+      },
+      progress: {
+        x: 0,
+        y: 0,
+      },
+      direction: {
+        x: 'NONE',
+        y: 'NONE',
+      },
+    },
+    init() {
+      document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    },
+    kill() {
+      document.removeEventListener('scroll', onScroll);
+    },
+  });
+
+  return {
+    add,
+    remove,
+    has,
+    props: () => props,
+  };
+}
+
 let scroll;
 
 /**
@@ -116,12 +131,7 @@ let scroll;
  */
 export default function useScroll() {
   if (!scroll) {
-    scroll = {
-      add,
-      remove,
-      has,
-      props: () => props,
-    };
+    scroll = createScrollService();
   }
 
   return scroll;
