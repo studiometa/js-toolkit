@@ -7,6 +7,31 @@ import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
 /**
  * @typedef {import('./index').ServiceInterface<DragServiceProps>} DragService
  * @typedef {import('./pointer.js').PointerServiceProps} PointerServiceProps
+ * @typedef {'start'|'drag'|'drop'|'inertia'|'stop'} DragLifecycle
+ * @typedef {Object} DragServiceProps
+ * @property {DragLifecycle} mode
+ *   The current mode of the dragging logic.
+ * @property {HTMLElement} target
+ *   The target element of the drag.
+ * @property {boolean} isGrabbing
+ *   Whether the user is currently grabbing the targeted element or not.
+ * @property {boolean} hasInertia
+ *   Whether the drag currently has inertia or not.
+ * @property {number} x
+ *   The current horizontal position in the viewport.
+ * @property {number} y
+ *   The current vertical position in the viewport.
+ * @property {{ x: number, y: number }} delta
+ *   The delta between the current position and the last.
+ * @property {{ x: number, y: number }} origin
+ *   The initial position where the dragging started.
+ * @property {{ x: number, y: number }} distance
+ *   The distance from the current position to the origin.
+ * @property {{ x: number, y: number }} final
+ *   The final position that will be reached at the end of the inertia.
+ * @typedef {Object} DragServiceOptions
+ * @property {number} [dampFactor]
+ * @property {number} [dragTreshold]
  */
 
 /**
@@ -180,7 +205,11 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
     const y = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
     start(x, y);
   }
+
   const { add, remove, has, trigger, props } = useService({
+    /**
+     * @type {DragServiceProps}
+     */
     initialProps: {
       target,
       mode: undefined,
@@ -233,40 +262,6 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
     props: () => props,
   };
 }
-
-/**
- * @typedef {'start'|'drag'|'drop'|'inertia'|'stop'} DragLifecycle
- */
-
-/**
- * @typedef {Object} DragServiceProps
- * @property {DragLifecycle} mode
- *   The current mode of the dragging logic.
- * @property {HTMLElement} target
- *   The target element of the drag.
- * @property {boolean} isGrabbing
- *   Whether the user is currently grabbing the targeted element or not.
- * @property {boolean} hasInertia
- *   Whether the drag currently has inertia or not.
- * @property {number} x
- *   The current horizontal position in the viewport.
- * @property {number} y
- *   The current vertical position in the viewport.
- * @property {{ x: number, y: number }} delta
- *   The delta between the current position and the last.
- * @property {{ x: number, y: number }} origin
- *   The initial position where the dragging started.
- * @property {{ x: number, y: number }} distance
- *   The distance from the current position to the origin.
- * @property {{ x: number, y: number }} final
- *   The final position that will be reached at the end of the inertia.
- */
-
-/**
- * @typedef {Object} DragServiceOptions
- * @property {number} [dampFactor]
- * @property {number} [dragTreshold]
- */
 
 /**
  * @type {WeakMap<HTMLElement, DragService | undefined>}

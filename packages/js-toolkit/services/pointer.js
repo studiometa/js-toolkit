@@ -107,6 +107,9 @@ function createPointerService() {
   }
 
   const { add, remove, has, trigger, props } = useService({
+    /**
+     * @type {PointerServiceProps}
+     */
     initialProps: {
       event: null,
       isDown: false,

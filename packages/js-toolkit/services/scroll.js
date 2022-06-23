@@ -70,6 +70,9 @@ function createScrollService() {
   }
 
   const { add, remove, has, props, trigger } = useService({
+    /**
+     * @type {ScrollServiceProps}
+     */
     initialProps: {
       x: window.pageXOffset,
       y: window.pageYOffset,
