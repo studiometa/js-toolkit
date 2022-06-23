@@ -4,17 +4,12 @@ import RefsManager from './managers/RefsManager.js';
 import ServicesManager from './managers/ServicesManager.js';
 import EventsManager from './managers/EventsManager.js';
 import OptionsManager from './managers/OptionsManager.js';
+import { noop } from '../utils/noop.js';
 
 let id = 0;
 
 // eslint-disable-next-line no-undef
 const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
-
-/**
- * No operation function.
- * @returns {void}
- */
-function noop() {}
 
 /**
  * Test if the managers' instances implement the default manager.
