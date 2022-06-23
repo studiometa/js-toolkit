@@ -5,13 +5,13 @@ import wait from '../__utils__/wait.js';
 describe('useRaf', () => {
   const { add, remove, props } = useRaf();
   let rafProps;
-  let fn;
+  const fn = jest.fn((p) => {
+    rafProps = p;
+  });
 
   beforeEach(() => {
     remove('key');
-    fn = jest.fn((p) => {
-      rafProps = p;
-    });
+    fn.mockClear();
     add('key', fn);
   });
 
@@ -23,22 +23,19 @@ describe('useRaf', () => {
 
   it('should have a `time` prop', async () => {
     await wait(16);
-    await wait(16);
-    await wait(16);
     expect(typeof props().time).toBe('number');
     expect(typeof rafProps.time).toBe('number');
   });
 
   it('should trigger the callbacks', async () => {
     await wait(16);
-    await wait(16);
-    await wait(16);
     expect(fn).toHaveBeenCalled();
     await wait(16);
-    expect(fn.mock.calls.length).toBeGreaterThan(1);
+    const totalCalls = fn.mock.calls.length;
+    expect(totalCalls).toBeGreaterThan(1);
     remove('key');
     await wait(16);
-    expect(fn.mock.calls).toHaveLength(4);
+    expect(fn.mock.calls).toHaveLength(totalCalls);
   });
 
   it('should trigger the returned function after', async () => {

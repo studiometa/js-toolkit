@@ -1,4 +1,4 @@
-import { useService } from './useService.js';
+import { useService } from './service.js';
 
 /**
  * @typedef {import('./index').ServiceInterface<LoadServiceProps>} LoadService
@@ -26,7 +26,7 @@ function createLoadService() {
     /**
      * @type {LoadServiceProps}
      */
-    initialProps: {
+    props: {
       time: performance.now(),
     },
     init() {

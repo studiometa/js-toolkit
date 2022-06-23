@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { useService } from './useService.js';
+import { useService } from './service.js';
 import usePointer from './pointer.js';
 import useRaf from './raf.js';
 import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
@@ -210,7 +210,7 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
     /**
      * @type {DragServiceProps}
      */
-    initialProps: {
+    props: {
       target,
       mode: undefined,
       isGrabbing: false,

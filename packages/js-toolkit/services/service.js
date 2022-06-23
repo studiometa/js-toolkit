@@ -1,7 +1,8 @@
+// eslint-disable-next-line jsdoc/require-returns
 /**
  * Use a service.
  * @template {Record<string, any>} T
- * @param   {{ init: () => void, kill: () => void, initialProps: T }} options
+ * @param   {{ init: () => void, kill: () => void, props: T }} options
  */
 export function useService(options) {
   /**
@@ -10,12 +11,7 @@ export function useService(options) {
   const callbacks = new Map();
   let isInit = false;
 
-  const { init, kill, initialProps } = options;
-
-  /**
-   * @type {T}
-   */
-  const props = { ...initialProps };
+  const { init, kill, props } = options;
 
   /**
    * Does the service has the given key?
@@ -42,6 +38,7 @@ export function useService(options) {
    */
   function add(key, callback) {
     if (has(key)) {
+      console.warn(`A callback with the key \`${key}\` has already been registered.`);
       return;
     }
 

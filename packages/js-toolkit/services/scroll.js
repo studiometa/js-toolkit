@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { useService } from './useService.js';
+import { useService } from './service.js';
 import debounce from '../utils/debounce.js';
 
 /**
@@ -73,7 +73,7 @@ function createScrollService() {
     /**
      * @type {ScrollServiceProps}
      */
-    initialProps: {
+    props: {
       x: window.pageXOffset,
       y: window.pageYOffset,
       changed: {
