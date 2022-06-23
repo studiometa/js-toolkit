@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { useService } from './useService.js';
+import { useService } from './service.js';
 import keyCodes from '../utils/keyCodes.js';
 
 /**
@@ -80,7 +80,7 @@ function createKeyService() {
     /**
      * @type {KeyServiceProps}
      */
-    initialProps: {
+    props: {
       event: null,
       triggered: 0,
       isUp: false,

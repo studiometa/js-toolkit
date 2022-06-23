@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { useService } from './useService.js';
+import { useService } from './service.js';
 import { getRaf as getRequestAnimationFrame } from '../utils/nextFrame.js';
 import { useScheduler } from '../utils/scheduler.js';
 import isFunction from '../utils/isFunction.js';
@@ -58,7 +58,7 @@ function createRafService() {
     /**
      * @type {RafServiceProps}
      */
-    initialProps: {
+    props: {
       time: performance.now(),
     },
     init() {

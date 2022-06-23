@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { useService } from './useService.js';
+import { useService } from './service.js';
 import debounce from '../utils/debounce.js';
 
 /**
@@ -14,6 +14,7 @@ import debounce from '../utils/debounce.js';
  */
 
 let breakpointElement;
+let breakpoints = [];
 
 /**
  * The element holding the breakpoints data.
@@ -28,26 +29,32 @@ function getBreakpointElement() {
 
 /**
  * Get the current breakpoint.
- * @returns {string}
+ * @returns {string|null}
  */
 function getBreakpoint() {
-  return window
-    .getComputedStyle(getBreakpointElement(), '::before')
-    .getPropertyValue('content')
-    .replaceAll('"', '');
+  return getBreakpointElement()
+    ? window
+        .getComputedStyle(getBreakpointElement(), '::before')
+        .getPropertyValue('content')
+        .replaceAll('"', '')
+    : undefined;
 }
 
 /**
  * Get all breakpoints.
- * @returns {Array}
+ * @returns {string[]}
  */
 function getBreakpoints() {
-  const breakpoints = window
+  if (!getBreakpointElement() || breakpoints.length) {
+    return breakpoints;
+  }
+  breakpoints = window
     .getComputedStyle(getBreakpointElement(), '::after')
     .getPropertyValue('content')
-    .replaceAll('"', '');
+    .replaceAll('"', '')
+    .split(',');
 
-  return breakpoints.split(',');
+  return breakpoints;
 }
 
 /**
@@ -73,14 +80,6 @@ function createResizeService() {
       props.orientation = 'portrait';
     }
 
-    if (getBreakpointElement()) {
-      props.breakpoint = getBreakpoint();
-      props.breakpoints = getBreakpoints();
-    } else {
-      props.breakpoint = undefined;
-      props.breakpoints = undefined;
-    }
-
     return props;
   }
 
@@ -92,13 +91,17 @@ function createResizeService() {
     /**
      * @type {ResizeServiceProps}
      */
-    initialProps: {
+    props: {
       width: window.innerWidth,
       height: window.innerHeight,
       ratio: window.innerWidth / window.innerHeight,
       orientation: 'square',
-      breakpoint: getBreakpoint(),
-      breakpoints: getBreakpoints(),
+      get breakpoint() {
+        return getBreakpoint();
+      },
+      get breakpoints() {
+        return getBreakpoints();
+      },
     },
     init() {
       window.addEventListener('resize', onResize);

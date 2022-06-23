@@ -15,6 +15,7 @@ Array [
   "useRaf",
   "useResize",
   "useScroll",
+  "useService",
   "withBreakpointManager",
   "withBreakpointObserver",
   "withDrag",

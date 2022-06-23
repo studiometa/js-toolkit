@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { useService } from './useService.js';
+import { useService } from './service.js';
 
 /**
  * @typedef {import('./index').ServiceInterface<PointerServiceProps>} PointerService
@@ -110,7 +110,7 @@ function createPointerService() {
     /**
      * @type {PointerServiceProps}
      */
-    initialProps: {
+    props: {
       event: null,
       isDown: false,
       x: window.innerWidth / 2,
