@@ -5,7 +5,7 @@ import useScroll from '../../services/scroll.js';
 import useKey from '../../services/key.js';
 import useLoad from '../../services/load.js';
 import AbstractManager from './AbstractManager.js';
-import { hasMethod } from '../utils.js';
+import { noop, isFunction } from '../../utils/index.js';
 
 /**
  * @typedef {import('../index').default} Base
@@ -59,7 +59,7 @@ export default class ServicesManager extends AbstractManager {
   has(service) {
     if (
       !(
-        (hasMethod(this.__base, service) ||
+        (isFunction(this.__base[service]) ||
           // @ts-ignore
           this.__base.__hasEvent(service)) &&
         this.__services[service]
@@ -94,10 +94,10 @@ export default class ServicesManager extends AbstractManager {
 
     if (
       // @ts-ignore
-      !(hasMethod(this.__base, service) || this.__base.__hasEvent(service)) ||
+      !(isFunction(this.__base[service]) || this.__base.__hasEvent(service)) ||
       !this.__services[service]
     ) {
-      return function noop() {};
+      return noop;
     }
     const { add } = this.__services[service]();
     const self = this;

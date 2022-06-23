@@ -5,6 +5,7 @@ export { default as usePointer } from './pointer.js';
 export { default as useRaf } from './raf.js';
 export { default as useResize } from './resize.js';
 export { default as useScroll } from './scroll.js';
+export { useService } from './service.js';
 
 /**
  * @template T

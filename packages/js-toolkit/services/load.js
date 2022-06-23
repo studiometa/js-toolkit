@@ -1,100 +1,60 @@
-import Service from './Service.js';
+import { useService } from './service.js';
 
 /**
  * @typedef {import('./index').ServiceInterface<LoadServiceProps>} LoadService
- */
-
-/**
  * @typedef {Object} LoadServiceProps
  * @property {DOMHighResTimeStamp} time
  */
 
 /**
- * Load service
+ * Get load service.
+ * @returns {LoadService}
  */
-class Load extends Service {
+function createLoadService() {
   /**
-   * Props.
-   * @type {LoadServiceProps}
+   * Trigger on load
+   * @returns {void}
    */
-  props = {
-    time: window.performance.now(),
+  function onLoad() {
+    // eslint-disable-next-line no-use-before-define
+    props.time = window.performance.now();
+    // eslint-disable-next-line no-use-before-define
+    trigger(props);
+  }
+
+  const { add, remove, has, props, trigger } = useService({
+    /**
+     * @type {LoadServiceProps}
+     */
+    props: {
+      time: performance.now(),
+    },
+    init() {
+      window.addEventListener('load', onLoad);
+    },
+    kill() {
+      window.removeEventListener('load', onLoad);
+    },
+  });
+
+  return {
+    add,
+    remove,
+    has,
+    props: () => props,
   };
-
-  /**
-   * Start the requestAnimationFrame loop.
-   *
-   * @returns {void}
-   */
-  init() {
-    window.addEventListener('load', this);
-  }
-
-  /**
-   * Handle events.
-   * @returns {void}
-   */
-  handleEvent() {
-    this.updateProps();
-    this.trigger(this.props);
-  }
-
-  /**
-   * Stop the requestAnimationFrame loop.
-   *
-   * @returns {void}
-   */
-  kill() {
-    window.removeEventListener('load', this);
-  }
-
-  /**
-   * Get raf props.
-   *
-   * @todo Return elapsed time / index?
-   * @returns {this['props']}
-   */
-  updateProps() {
-    this.props.time = window.performance.now();
-    return this.props;
-  }
 }
 
-/**
- * @type {Load}
- */
-let instance;
-
-/**
- * @type {LoadService}
- */
 let load;
 
 /**
  * Use the load service.
  *
- * ```js
- * import { useLoad } from '@studiometa/js/services';
- * const { add, remove, props } = useRag();
- * add(id, (props) => {});
- * remove(id);
- * props();
- * ```
- *
  * @returns {LoadService}
  */
 export default function useLoad() {
   if (!load) {
-    if (!instance) {
-      instance = new Load();
-    }
-
-    load = {
-      add: instance.add.bind(instance),
-      remove: instance.remove.bind(instance),
-      has: instance.has.bind(instance),
-      props: instance.updateProps.bind(instance),
-    };
+    load = createLoadService();
   }
 
   return load;

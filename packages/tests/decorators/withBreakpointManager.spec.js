@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 import { Base } from '@studiometa/js-toolkit';
 import withBreakpointManager from '@studiometa/js-toolkit/decorators/withBreakpointManager';
 import resizeWindow from '../__utils__/resizeWindow';
+import { mockBreakpoints, unmockBreakpoints } from '../__setup__/mockBreakpoints';
 
 const withName = (BaseClass, name) =>
   class extends BaseClass {
@@ -92,6 +93,7 @@ describe('The withBreakpointManager decorator', () => {
   });
 
   it('should throw when breakpoints are not availabe', () => {
+    unmockBreakpoints();
     expect(() => {
       document.body.innerHTML = '<div></div>';
       // eslint-disable-next-line no-unused-vars
@@ -100,5 +102,6 @@ describe('The withBreakpointManager decorator', () => {
         ['l', withName(Base, 'BozDesktop')],
       ]) {}
     }).toThrow(/requires breakpoints/);
+    mockBreakpoints();
   });
 });
