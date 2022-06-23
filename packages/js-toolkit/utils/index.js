@@ -20,3 +20,6 @@ export * from './math/index.js';
 export * from './string/index.js';
 export * from './scheduler.js';
 export * from './noop.js';
+
+// eslint-disable-next-line no-undef
+export const isDev = typeof __DEV__ !== 'undefined' && __DEV__;

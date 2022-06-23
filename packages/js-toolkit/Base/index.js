@@ -4,12 +4,9 @@ import RefsManager from './managers/RefsManager.js';
 import ServicesManager from './managers/ServicesManager.js';
 import EventsManager from './managers/EventsManager.js';
 import OptionsManager from './managers/OptionsManager.js';
-import { noop } from '../utils/noop.js';
+import { noop, isDev } from '../utils/index.js';
 
 let id = 0;
-
-// eslint-disable-next-line no-undef
-const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 
 /**
  * Test if the managers' instances implement the default manager.
@@ -47,7 +44,7 @@ function createAndTestManagers(instance) {
     },
   ].forEach(({ prop, constructorName, constructor }) => {
     instance[prop] = new instance.__managers[constructorName](instance);
-    if (!(instance[prop] instanceof constructor)) {
+    if (isDev && !(instance[prop] instanceof constructor)) {
       throw new Error(
         `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`
       );
@@ -347,13 +344,19 @@ export default class Base extends EventTarget {
     super();
 
     if (!element) {
-      throw new Error('The root element must be defined.');
+      if (isDev) {
+        throw new Error('The root element must be defined.');
+      }
+      return;
     }
 
     const { __config } = this;
 
     if (__config.name === 'Base') {
-      throw new Error('The `config.name` property is required.');
+      if (isDev) {
+        throw new Error('The `config.name` property is required.');
+      }
+      return;
     }
 
     this.$id = `${__config.name}-${id}`;
@@ -609,9 +612,11 @@ export default class Base extends EventTarget {
    */
   static $factory(nameOrSelector) {
     if (!nameOrSelector) {
-      throw new Error(
-        'The $factory method requires a component’s name or selector to be specified.'
-      );
+      if (isDev) {
+        throw new Error(
+          'The $factory method requires a component’s name or selector to be specified.'
+        );
+      }
     }
 
     return getComponentElements(nameOrSelector).map((el) => new this(el).$mount());

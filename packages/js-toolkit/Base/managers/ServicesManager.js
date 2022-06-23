@@ -5,7 +5,7 @@ import useScroll from '../../services/scroll.js';
 import useKey from '../../services/key.js';
 import useLoad from '../../services/load.js';
 import AbstractManager from './AbstractManager.js';
-import { noop, isFunction } from '../../utils/index.js';
+import { noop, isFunction, isDev } from '../../utils/index.js';
 
 /**
  * @typedef {import('../index').default} Base
@@ -204,7 +204,10 @@ export default class ServicesManager extends AbstractManager {
    */
   unregister(name) {
     if (SERVICE_NAMES.includes(name)) {
-      throw new Error(`[ServicesManager] The \`${name}\` core service can not be unregistered.`);
+      if (isDev) {
+        throw new Error(`[ServicesManager] The \`${name}\` core service can not be unregistered.`);
+      }
+      return;
     }
     // @ts-ignore
     this.__base.__removeEmits(name);
