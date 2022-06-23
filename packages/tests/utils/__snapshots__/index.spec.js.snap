@@ -55,6 +55,8 @@ Array [
   "nextFrame",
   "nextMicrotask",
   "nextTick",
+  "noop",
+  "noopValue",
   "objectToURLSearchParams",
   "removeClass",
   "removeStyle",
