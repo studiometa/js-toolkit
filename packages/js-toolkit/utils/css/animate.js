@@ -4,10 +4,10 @@ import isDefined from '../isDefined.js';
 import transform, { TRANSFORM_PROPS } from './transform.js';
 import useRaf from '../../services/raf.js';
 import { domScheduler as scheduler } from '../scheduler.js';
+import { noop, noopValue } from '../noop.js';
 
 let id = 0;
 const running = new WeakMap();
-const noop = () => {};
 const PROGRESS_PRECISION = 0.0001;
 
 const CSSUnitConverter = {
@@ -37,24 +37,13 @@ function getAnimationStepValue(val, getSizeRef) {
 }
 
 /**
- * Linear easing.
- *
- * @template {number} T
- * @param   {T} value
- * @returns {T}
- */
-function linear(value) {
-  return value;
-}
-
-/**
  * Normalize a easing function with default fallbacks.
  * @param   {((p:number) => number)|[number,number,number,number]} ease
  * @returns {(p:number) => number}
  */
 function normalizeEase(ease) {
   if (!isDefined(ease)) {
-    return linear;
+    return noopValue;
   }
 
   if (Array.isArray(ease)) {

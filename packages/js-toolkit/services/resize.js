@@ -1,11 +1,9 @@
-import Service from './Service.js';
+/* eslint-disable no-use-before-define */
+import { useService } from './service.js';
 import debounce from '../utils/debounce.js';
 
 /**
  * @typedef {import('./index').ServiceInterface<ResizeServiceProps>} ResizeService
- */
-
-/**
  * @typedef {Object} ResizeServiceProps
  * @property {number} width
  * @property {number} height
@@ -15,161 +13,122 @@ import debounce from '../utils/debounce.js';
  * @property {string[]} [breakpoints]
  */
 
+let breakpointElement;
+let breakpoints = [];
+
 /**
- * Resize service
- *
- * ```
- * import { useResize } from '@studiometa/js/services';
- * const { add, remove, props } = useResize();
- * add(key, (props) => {});
- * remove(key);
- * props();
- * ```
+ * The element holding the breakpoints data.
+ * @returns {HTMLElement}
  */
-class Resize extends Service {
-  /**
-   * Props.
-   * @type {ResizeServiceProps}
-   */
-  props = {
-    width: window.innerWidth,
-    height: window.innerHeight,
-    ratio: window.innerWidth / window.innerHeight,
-    orientation: 'square',
-  };
-
-  /**
-   * @type {() => void}
-   */
-  handler;
-
-  /**
-   * Bind the handler to the resize event.
-   *
-   * @returns {this}
-   */
-  init() {
-    this.handler = debounce(() => {
-      this.updateProps();
-      this.trigger(this.props);
-    }).bind(this);
-
-    window.addEventListener('resize', this.handler);
-
-    return this;
+function getBreakpointElement() {
+  if (!breakpointElement) {
+    breakpointElement = document.querySelector('[data-breakpoint]');
   }
-
-  /**
-   * Unbind the handler from the resize event.
-   *
-   * @returns {void}
-   */
-  kill() {
-    window.removeEventListener('resize', this.handler);
-  }
-
-  /**
-   * Get resize props.
-   *
-   * @returns {ResizeServiceProps}
-   */
-  updateProps() {
-    this.props.width = window.innerWidth;
-    this.props.height = window.innerHeight;
-    this.props.ratio = window.innerWidth / window.innerHeight;
-    this.props.orientation = 'square';
-
-    if (this.props.ratio > 1) {
-      this.props.orientation = 'landscape';
-    }
-
-    if (this.props.ratio < 1) {
-      this.props.orientation = 'portrait';
-    }
-
-    if (this.breakpointElement) {
-      this.props.breakpoint = this.breakpoint;
-      this.props.breakpoints = this.breakpoints;
-    } else {
-      this.props.breakpoint = undefined;
-      this.props.breakpoints = undefined;
-    }
-
-    return this.props;
-  }
-
-  /**
-   * The element holding the breakpoints data.
-   * @returns {HTMLElement}
-   */
-  get breakpointElement() {
-    return document.querySelector('[data-breakpoint]');
-  }
-
-  /**
-   * Get the current breakpoint.
-   * @returns {string}
-   */
-  get breakpoint() {
-    return window
-      .getComputedStyle(this.breakpointElement, '::before')
-      .getPropertyValue('content')
-      .replaceAll('"', '');
-  }
-
-  /**
-   * Get all breakpoints.
-   * @returns {Array}
-   */
-  get breakpoints() {
-    const breakpoints = window
-      .getComputedStyle(this.breakpointElement, '::after')
-      .getPropertyValue('content')
-      .replaceAll('"', '');
-
-    return breakpoints.split(',');
-  }
+  return breakpointElement;
 }
 
 /**
- * @type {Resize}
+ * Get the current breakpoint.
+ * @returns {string|null}
  */
-let instance;
+function getBreakpoint() {
+  return getBreakpointElement()
+    ? window
+        .getComputedStyle(getBreakpointElement(), '::before')
+        .getPropertyValue('content')
+        .replaceAll('"', '')
+    : undefined;
+}
 
 /**
- * @type {ResizeService}
+ * Get all breakpoints.
+ * @returns {string[]}
  */
+function getBreakpoints() {
+  if (!getBreakpointElement() || breakpoints.length) {
+    return breakpoints;
+  }
+  breakpoints = window
+    .getComputedStyle(getBreakpointElement(), '::after')
+    .getPropertyValue('content')
+    .replaceAll('"', '')
+    .split(',');
+
+  return breakpoints;
+}
+
+/**
+ * Get resize service.
+ * @returns {ResizeService}
+ */
+function createResizeService() {
+  /**
+   * Update props.
+   * @returns {ResizeServiceProps}
+   */
+  function updateProps() {
+    props.width = window.innerWidth;
+    props.height = window.innerHeight;
+    props.ratio = window.innerWidth / window.innerHeight;
+    props.orientation = 'square';
+
+    if (props.ratio > 1) {
+      props.orientation = 'landscape';
+    }
+
+    if (props.ratio < 1) {
+      props.orientation = 'portrait';
+    }
+
+    return props;
+  }
+
+  const onResize = debounce(() => {
+    trigger(updateProps());
+  });
+
+  const { add, remove, has, trigger, props } = useService({
+    /**
+     * @type {ResizeServiceProps}
+     */
+    props: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      ratio: window.innerWidth / window.innerHeight,
+      orientation: 'square',
+      get breakpoint() {
+        return getBreakpoint();
+      },
+      get breakpoints() {
+        return getBreakpoints();
+      },
+    },
+    init() {
+      window.addEventListener('resize', onResize);
+    },
+    kill() {
+      window.removeEventListener('resize', onResize);
+    },
+  });
+
+  return {
+    add,
+    remove,
+    has,
+    props: () => props,
+  };
+}
+
 let resize;
 
 /**
  * Use the resize service.
  *
- * ```js
- * import useResize from '@studiometa/js-toolkit/services/resize';
- * const { add, remove, props } = useResize();
- * add(key, (props) => {});
- * remove(key);
- * props();
- * ```
  * @returns {ResizeService}
  */
 export default function useResize() {
   if (!resize) {
-    if (!instance) {
-      instance = new Resize();
-    }
-
-    const add = instance.add.bind(instance);
-    const remove = instance.remove.bind(instance);
-    const has = instance.has.bind(instance);
-    const props = instance.updateProps.bind(instance);
-
-    resize = {
-      add,
-      remove,
-      has,
-      props,
-    };
+    resize = createResizeService();
   }
 
   return resize;

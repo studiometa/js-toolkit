@@ -69,14 +69,12 @@ Select an easing function below to see how it will transform the given progress 
   const name = ref('linear');
   const linear = (progress) => progress;
   const fn = computed(() => (name.value === 'linear' ? linear : easingFunctions.value[name.value]));
-  const count = 100;
+  const count = 90;
 
   onMounted(() => {
     import('@studiometa/js-toolkit/utils').then((mod) => {
-      for (const [key, value] of Object.entries(mod)) {
-        if (key.startsWith('ease')) {
-          easingFunctions.value[key] = value;
-        }
+      for (const [key, value] of Object.entries(mod.ease)) {
+        easingFunctions.value[key] = value;
       }
     });
   })
@@ -106,9 +104,10 @@ Select an easing function below to see how it will transform the given progress 
     </div>
     <div
       v-for="i in count"
-      :key="i"
-      class="absolute top-full h-full -mt-1 -ml-1 transform transition"
-      :style="{ left: (i / count) * 100 + '%', '--tw-translate-y': fn(i / count) * -100 + '%' }"
+      :key="`${i}`"
+      :data-key="i"
+      class="absolute bottom-0 flex items-end h-full transition"
+      :style="{ left: `${((i - 1) / count) * 100}%`, transform: `translateY(${fn((i - 1) / count) * -192}px` }"
     >
       <div class="w-0.5 h-0.5 bg-black rounded-full" />
     </div>
