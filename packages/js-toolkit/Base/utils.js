@@ -3,17 +3,6 @@
  */
 
 /**
- * Test if an object has a method.
- *
- * @param  {Object}  obj  The object to test
- * @param  {string}  name The method's name
- * @returns {boolean}
- */
-export function hasMethod(obj, name) {
-  return typeof obj[name] === 'function';
-}
-
-/**
  * Get a list of elements based on the name of a component.
  *
  * @param {string} nameOrSelector
