@@ -3,6 +3,7 @@ import { Base } from '@studiometa/js-toolkit';
 import withBreakpointObserver from '@studiometa/js-toolkit/decorators/withBreakpointObserver';
 import useResize from '@studiometa/js-toolkit/services/resize.js';
 import resizeWindow from '../__utils__/resizeWindow';
+import { unmockBreakpoints, mockBreakpoints } from '../__setup__/mockBreakpoints';
 
 /**
  * With name decorator.
@@ -212,8 +213,8 @@ describe('The withBreakpointObserver decorator', () => {
   });
 
   it('should throw when breakpoints are not availabe', () => {
+    unmockBreakpoints();
     expect(() => {
-      document.body.innerHTML = '<div></div>';
       class Bar extends withBreakpointObserver(Base) {
         static config = {
           name: 'Bar',
@@ -226,5 +227,6 @@ describe('The withBreakpointObserver decorator', () => {
       // eslint-disable-next-line no-new
       new Bar(document.body).$mount();
     }).toThrow(/requires breakpoints/);
+    mockBreakpoints();
   });
 });

@@ -23,9 +23,13 @@ describe('useKey', () => {
   });
 
   test('callbacks with the same key are not allowed', () => {
-    expect(() => {
-      add('useKey', () => {});
-    }).toThrow('A callback with the key `useKey` has already been registered.');
+    const warnMock = jest.spyOn(console, 'warn');
+    warnMock.mockImplementation(() => null);
+    add('useKey', () => {});
+    expect(warnMock).toHaveBeenCalledWith(
+      'The key `useKey` has already been added.'
+    );
+    warnMock.mockRestore();
   });
 
   test('callback should be triggered on keydown', () => {

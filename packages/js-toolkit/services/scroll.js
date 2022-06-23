@@ -1,11 +1,9 @@
-import Service from './Service.js';
+/* eslint-disable no-use-before-define */
+import { useService } from './service.js';
 import debounce from '../utils/debounce.js';
 
 /**
  * @typedef {import('./index').ServiceInterface<ScrollServiceProps>} ScrollService
- */
-
-/**
  * @typedef {Object} ScrollServiceProps
  * @property {number} x
  * @property {number} y
@@ -18,141 +16,107 @@ import debounce from '../utils/debounce.js';
  */
 
 /**
- * Scroll service
+ * Create scroll service.
+ * @returns {ScrollService}
  */
-class Scroll extends Service {
+function createScrollService() {
   /**
-   * Service's props.
-   * @type {ScrollServiceProps}
-   */
-  props = {
-    x: window.pageXOffset,
-    y: window.pageYOffset,
-    changed: {
-      x: false,
-      y: false,
-    },
-    last: {
-      x: window.pageXOffset,
-      y: window.pageYOffset,
-    },
-    delta: {
-      x: 0,
-      y: 0,
-    },
-    max: {
-      x: (document.scrollingElement || document.body).scrollWidth - window.innerWidth,
-      y: (document.scrollingElement || document.body).scrollHeight - window.innerHeight,
-    },
-    progress: {
-      x: 0,
-      y: 0,
-    },
-    direction: {
-      x: 'NONE',
-      y: 'NONE',
-    },
-  };
-
-  /**
-   * Bind the handler to the scroll event.
-   *
-   * @returns {Scroll}
-   */
-  init() {
-    this.updateProps();
-    document.addEventListener('scroll', this, { passive: true, capture: true });
-    return this;
-  }
-
-  /**
-   * Debounced handler.
-   *
-   * @returns {() => void}
-   */
-  get debouncedHandler() {
-    const debounced = debounce(() => {
-      this.updateProps();
-      this.trigger(this.props);
-    }, 100);
-
-    // Define property to avoid multiple call to the getter
-    Object.defineProperty(this, 'debouncedHandler', {
-      value: debounced,
-    });
-
-    return debounced;
-  }
-
-  /**
-   * Scroll event handler.
-   *
-   * @returns {void}
-   */
-  handleEvent() {
-    this.updateProps();
-    this.trigger(this.props);
-    this.debouncedHandler();
-  }
-
-  /**
-   * Unbind the handler from the scroll event.
-   *
-   * @returns {Scroll}
-   */
-  kill() {
-    document.removeEventListener('scroll', this);
-    return this;
-  }
-
-  /**
-   * Get scroll props.
-   *
+   * Update props.
    * @returns {ScrollServiceProps}
    */
-  updateProps() {
-    const yLast = this.props.y;
-    const xLast = this.props.x;
+  function updateProps() {
+    const yLast = props.y;
+    const xLast = props.x;
 
     // Check scroll Y
-    if (window.pageYOffset !== this.props.y) {
-      this.props.y = window.pageYOffset;
+    if (window.pageYOffset !== props.y) {
+      props.y = window.pageYOffset;
     }
 
     // Check scroll x
-    if (window.pageXOffset !== this.props.x) {
-      this.props.x = window.pageXOffset;
+    if (window.pageXOffset !== props.x) {
+      props.x = window.pageXOffset;
     }
 
-    this.props.changed.x = this.props.x !== xLast;
-    this.props.changed.y = this.props.y !== yLast;
-    this.props.last.x = xLast;
-    this.props.last.y = yLast;
-    this.props.delta.x = this.props.x - xLast;
-    this.props.delta.y = this.props.y - yLast;
-    this.props.max.x = (document.scrollingElement || document.body).scrollWidth - window.innerWidth;
-    this.props.max.y =
-      (document.scrollingElement || document.body).scrollHeight - window.innerHeight;
-    this.props.progress.x = this.props.max.x === 0 ? 1 : this.props.x / this.props.max.x;
-    this.props.progress.y = this.props.max.y === 0 ? 1 : this.props.y / this.props.max.y;
+    props.changed.x = props.x !== xLast;
+    props.changed.y = props.y !== yLast;
+    props.last.x = xLast;
+    props.last.y = yLast;
+    props.delta.x = props.x - xLast;
+    props.delta.y = props.y - yLast;
+    props.max.x = (document.scrollingElement || document.body).scrollWidth - window.innerWidth;
+    props.max.y = (document.scrollingElement || document.body).scrollHeight - window.innerHeight;
+    props.progress.x = props.max.x === 0 ? 1 : props.x / props.max.x;
+    props.progress.y = props.max.y === 0 ? 1 : props.y / props.max.y;
     /* eslint-disable no-nested-ternary */
-    this.props.direction.x =
-      this.props.x > xLast ? 'RIGHT' : this.props.x < xLast ? 'LEFT' : 'NONE';
-    this.props.direction.y = this.props.y > yLast ? 'DOWN' : this.props.y < yLast ? 'UP' : 'NONE';
+    props.direction.x = props.x > xLast ? 'RIGHT' : props.x < xLast ? 'LEFT' : 'NONE';
+    props.direction.y = props.y > yLast ? 'DOWN' : props.y < yLast ? 'UP' : 'NONE';
     /* eslint-enable no-nested-ternary */
 
-    return this.props;
+    return props;
   }
+
+  const onScrollDebounced = debounce(() => {
+    trigger(updateProps());
+  }, 100);
+
+  /**
+   * Scroll handler.
+   * @returns {void}
+   */
+  function onScroll() {
+    trigger(updateProps());
+    onScrollDebounced();
+  }
+
+  const { add, remove, has, props, trigger } = useService({
+    /**
+     * @type {ScrollServiceProps}
+     */
+    props: {
+      x: window.pageXOffset,
+      y: window.pageYOffset,
+      changed: {
+        x: false,
+        y: false,
+      },
+      last: {
+        x: window.pageXOffset,
+        y: window.pageYOffset,
+      },
+      delta: {
+        x: 0,
+        y: 0,
+      },
+      max: {
+        x: (document.scrollingElement || document.body).scrollWidth - window.innerWidth,
+        y: (document.scrollingElement || document.body).scrollHeight - window.innerHeight,
+      },
+      progress: {
+        x: 0,
+        y: 0,
+      },
+      direction: {
+        x: 'NONE',
+        y: 'NONE',
+      },
+    },
+    init() {
+      document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    },
+    kill() {
+      document.removeEventListener('scroll', onScroll);
+    },
+  });
+
+  return {
+    add,
+    remove,
+    has,
+    props: () => props,
+  };
 }
 
-/**
- * @type {Scroll}
- */
-let instance;
-
-/**
- * @type {ScrollService}
- */
 let scroll;
 
 /**
@@ -170,18 +134,7 @@ let scroll;
  */
 export default function useScroll() {
   if (!scroll) {
-    if (!instance) {
-      instance = new Scroll();
-    }
-
-    scroll = {
-      add: instance.add.bind(instance),
-      remove: instance.remove.bind(instance),
-      has: instance.has.bind(instance),
-      props() {
-        return instance.props;
-      },
-    };
+    scroll = createScrollService();
   }
 
   return scroll;
