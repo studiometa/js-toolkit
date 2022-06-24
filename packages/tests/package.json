@@ -7,14 +7,14 @@
     "test": "NODE_NO_WARNINGS=1 NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "dependencies": {
-    "@jest/globals": "^28.1.0",
-    "babel-jest": "^28.1.0",
+    "@jest/globals": "^28.1.1",
+    "babel-jest": "^28.1.1",
     "htl": "^0.3.1",
     "html-loader-jest": "^0.2.1",
-    "jest": "^28.1.0",
-    "jest-environment-jsdom": "^28.1.0"
+    "jest": "^28.1.1",
+    "jest-environment-jsdom": "^28.1.1"
   },
   "devDependencies": {
-    "@jest/types": "^28.1.0"
+    "@jest/types": "^28.1.1"
   }
 }
