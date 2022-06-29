@@ -1,5 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { getComponentElements } from '../Base/utils.js';
+import { isString, isArray } from '../utils/index.js';
 
 /**
  * Get the target elements for the lazy import helper functions.
@@ -11,11 +12,11 @@ import { getComponentElements } from '../Base/utils.js';
  * @returns {HTMLElement[]} A normalized list of elements.
  */
 export function getTargetElements(nameOrSelectorOrElement, context) {
-  if (typeof nameOrSelectorOrElement === 'string') {
+  if (isString(nameOrSelectorOrElement)) {
     return getComponentElements(nameOrSelectorOrElement, context);
   }
 
-  if (!Array.isArray(nameOrSelectorOrElement)) {
+  if (!isArray(nameOrSelectorOrElement)) {
     return [nameOrSelectorOrElement];
   }
 

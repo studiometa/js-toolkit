@@ -5,7 +5,7 @@ import useScroll from '../../services/scroll.js';
 import useKey from '../../services/key.js';
 import useLoad from '../../services/load.js';
 import AbstractManager from './AbstractManager.js';
-import { noop, isFunction, isDev } from '../../utils/index.js';
+import { noop, isFunction, isDefined, isDev } from '../../utils/index.js';
 
 /**
  * @typedef {import('../index').default} Base
@@ -167,7 +167,7 @@ export default class ServicesManager extends AbstractManager {
    * @returns {void}
    */
   toggle(service, force) {
-    if (typeof force !== 'undefined') {
+    if (isDefined(force)) {
       if (force && !this.has(service)) {
         this.enable(service);
       }

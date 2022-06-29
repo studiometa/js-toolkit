@@ -1,4 +1,4 @@
-import { isDev } from '../utils/index.js';
+import { isDev, isFunction } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base').default} Base
@@ -56,7 +56,7 @@ export default (BaseClass, Vue) => {
         return;
       }
 
-      if (typeof vueConfig.render !== 'function') {
+      if (!isFunction(vueConfig.render)) {
         if (isDev) {
           throw new Error('[withVue] You must define a `render` function in vueConfig.');
         }

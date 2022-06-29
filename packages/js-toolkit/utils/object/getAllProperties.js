@@ -1,3 +1,5 @@
+import { isFunction } from '../is.js';
+
 /**
  * Gets all non-builtin properties up the prototype chain.
  *
@@ -17,7 +19,7 @@ export default function getAllProperties(object, props = [], testFn = null) {
 
   let foundProps = Object.getOwnPropertyNames(proto);
 
-  if (typeof testFn === 'function') {
+  if (isFunction(testFn)) {
     foundProps = foundProps.filter((name) => testFn(name, proto));
   }
 

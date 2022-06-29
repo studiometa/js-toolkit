@@ -1,5 +1,5 @@
 import useResize from '../services/resize.js';
-import { isDev } from '../utils/index.js';
+import { isDev, isArray } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base').default} Base
@@ -50,7 +50,7 @@ const instances = new WeakMap();
  * @returns {T}
  */
 export default function withBreakpointManager(BaseClass, breakpoints) {
-  if (!Array.isArray(breakpoints)) {
+  if (!isArray(breakpoints)) {
     if (isDev) {
       throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
     }
@@ -115,7 +115,7 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
      * @returns {this}
      */
     $destroy() {
-      if (Array.isArray(instances.get(this))) {
+      if (isArray(instances.get(this))) {
         instances.get(this).forEach(([, instance]) => {
           instance.$destroy();
         });

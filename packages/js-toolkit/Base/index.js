@@ -4,7 +4,7 @@ import RefsManager from './managers/RefsManager.js';
 import ServicesManager from './managers/ServicesManager.js';
 import EventsManager from './managers/EventsManager.js';
 import OptionsManager from './managers/OptionsManager.js';
-import { noop, isDev } from '../utils/index.js';
+import { noop, isDev, isFunction, isArray } from '../utils/index.js';
 
 let id = 0;
 
@@ -312,7 +312,7 @@ export default class Base extends EventTarget {
     this.$emit(method, ...args);
 
     // We always emit an event, but we do not call the method if it does not exist
-    if (typeof this[method] !== 'function') {
+    if (!isFunction(this[method])) {
       return null;
     }
 
@@ -477,7 +477,7 @@ export default class Base extends EventTarget {
    * @returns {void}
    */
   __testEventIsDefined(event) {
-    if (!(Array.isArray(this.__config.emits) && this.__config.emits.includes(event))) {
+    if (!(isArray(this.__config.emits) && this.__config.emits.includes(event))) {
       console.warn(
         `[${this.__config.name}]`,
         `The "${event}" event is missing from the configuration.`
@@ -494,7 +494,7 @@ export default class Base extends EventTarget {
    */
   __addEmits(event) {
     const ctor = this.__ctor;
-    if (Array.isArray(ctor.config.emits)) {
+    if (isArray(ctor.config.emits)) {
       ctor.config.emits.push(event);
     } else {
       ctor.config.emits = [event];
