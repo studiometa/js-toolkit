@@ -1,4 +1,4 @@
-import isDefined from '../isDefined.js';
+import { isDefined } from '../is.js';
 
 /**
  * @typedef {Partial<{

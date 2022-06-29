@@ -1,4 +1,5 @@
 import getAllProperties from '../../utils/object/getAllProperties.js';
+import { isArray } from '../../utils/index.js';
 import AbstractManager from './AbstractManager.js';
 import { normalizeRefName } from './RefsManager.js';
 
@@ -225,7 +226,7 @@ export default class EventsManager extends AbstractManager {
       const method = `on${normalizedRefName}${normalizedEventName}`;
 
       let index = 0;
-      if (Array.isArray(this.__base.$refs[refName])) {
+      if (isArray(this.__base.$refs[refName])) {
         index = this.__base.$refs[refName].indexOf(ref);
       }
 
@@ -264,7 +265,7 @@ export default class EventsManager extends AbstractManager {
       const normalizedEventName = normalizeName(event.type);
       const method = `on${normalizedRefName}${normalizedEventName}`;
 
-      const args = Array.isArray(event.detail) ? event.detail : [];
+      const args = isArray(event.detail) ? event.detail : [];
       this.__base[method](...args, index, event);
     },
   };

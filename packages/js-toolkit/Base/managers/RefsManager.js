@@ -1,5 +1,5 @@
 import AbstractManager from './AbstractManager.js';
-import { isDev } from '../../utils/index.js';
+import { isDev, isArray } from '../../utils/index.js';
 
 /**
  * Normalize the name of ref.
@@ -93,7 +93,7 @@ function __register(that, refName) {
  */
 function __unregister(that, refName) {
   const propName = normalizeRefName(refName);
-  const refs = Array.isArray(that[propName]) ? that[propName] : [that[propName]];
+  const refs = isArray(that[propName]) ? that[propName] : [that[propName]];
   that.__eventsManager.unbindRef(refName, refs);
 }
 

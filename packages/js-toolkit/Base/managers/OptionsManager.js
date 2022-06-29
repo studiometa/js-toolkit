@@ -1,7 +1,6 @@
 import deepmerge from 'deepmerge';
 import AbstractManager from './AbstractManager.js';
-import isObject from '../../utils/object/isObject.js';
-import { isDev } from '../../utils/index.js';
+import { isDev, isFunction, isDefined, isBoolean, isArray, isObject } from '../../utils/index.js';
 
 /**
  * @typedef {import('deepmerge').Options} DeepmergeOptions
@@ -56,17 +55,6 @@ const __defaultValues = {
 };
 
 /**
- * Test if the element has a given property.
- *
- * @param  {OptionsManager} that
- * @param  {string} prop
- * @returns {boolean}
- */
-function __hasProperty(that, prop) {
-  return typeof that.__element.dataset[prop] !== 'undefined';
-}
-
-/**
  * Property name cache.
  * @type {Map}
  * @private
@@ -114,7 +102,7 @@ function __register(that, name, config) {
 
   config.default = config.default ?? __defaultValues[config.type.name];
 
-  if ((config.type === Array || config.type === Object) && typeof config.default !== 'function') {
+  if ((config.type === Array || config.type === Object) && !isFunction(config.default)) {
     if (isDev) {
       throw new Error(
         `The default value for options of type "${config.type.name}" must be returned by a function.`
@@ -208,12 +196,12 @@ export default class OptionsManager extends AbstractManager {
   get(name, config) {
     const { type, default: defaultValue } = config;
     const propertyName = __getPropertyName(name);
-    const hasProperty = __hasProperty(this, propertyName);
+    const hasProperty = isDefined(this[propertyName]);
 
     if (type === Boolean) {
       if (defaultValue) {
         const negatedPropertyName = __getPropertyName(name, 'No');
-        const hasNegatedProperty = __hasProperty(this, negatedPropertyName);
+        const hasNegatedProperty = isDefined(this[negatedPropertyName]);
 
         return !hasNegatedProperty;
       }
@@ -235,11 +223,10 @@ export default class OptionsManager extends AbstractManager {
       if (!this.__values[name]) {
         let val = hasProperty ? JSON.parse(value) : config.default();
 
-        if (typeof config.merge !== 'undefined') {
-          val =
-            typeof config.merge === 'boolean'
-              ? deepmerge(config.default(), val)
-              : deepmerge(config.default(), val, config.merge);
+        if (isDefined(config.merge)) {
+          val = isBoolean(config.merge)
+            ? deepmerge(config.default(), val)
+            : deepmerge(config.default(), val, config.merge);
         }
 
         this.__values[name] = val;
@@ -264,7 +251,7 @@ export default class OptionsManager extends AbstractManager {
 
     if (value.constructor.name !== type.name) {
       if (isDev) {
-        const val = Array.isArray(value) || isObject(value) ? JSON.stringify(value) : value;
+        const val = isArray(value) || isObject(value) ? JSON.stringify(value) : value;
         throw new TypeError(
           `The "${val}" value for the "${name}" option must be of type "${type.name}"`
         );
