@@ -1,26 +1,14 @@
-import { usePointer, useRaf, useResize, useScroll, useKey, useLoad } from '../../services/index.js';
+import { AbstractManager } from './AbstractManager.js';
+import { noop, isFunction, isDefined } from '../../utils/index.js';
 import type {
-  PointerServiceInterface,
-  RafServiceInterface,
-  ResizeServiceInterface,
+  ServiceInterface,
   ScrollServiceInterface,
+  ResizeServiceInterface,
+  RafServiceInterface,
+  PointerServiceInterface,
   KeyServiceInterface,
   LoadServiceInterface,
-  ServiceInterface,
 } from '../../services/index.js';
-import { AbstractManager } from './AbstractManager.js';
-import { noop, isFunction, isDefined, isDev } from '../../utils/index.js';
-
-const SERVICES_MAP = {
-  scrolled: useScroll,
-  resized: useResize,
-  ticked: useRaf,
-  moved: usePointer,
-  keyed: useKey,
-  loaded: useLoad,
-};
-
-const SERVICE_NAMES = Object.keys(SERVICES_MAP);
 
 type Services = {
   scrolled: ScrollServiceInterface;
@@ -48,10 +36,7 @@ export class ServicesManager extends AbstractManager {
    * Get registered services.
    */
   get __services() {
-    return {
-      ...this.__customServices,
-      ...SERVICES_MAP,
-    };
+    return { ...this.__customServices };
   }
 
   /**
@@ -174,14 +159,8 @@ export class ServicesManager extends AbstractManager {
    * @param {string} name
    *   The name of the service hook.
    */
-  unregister(name: string) {
-    if (SERVICE_NAMES.includes(name)) {
-      if (isDev) {
-        throw new Error(`[ServicesManager] The \`${name}\` core service can not be unregistered.`);
-      }
-      return;
-    }
-
+  unregister(name) {
+    // @ts-ignore
     this.__base.__removeEmits(name);
     delete this.__customServices[name];
   }

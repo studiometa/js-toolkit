@@ -10,3 +10,4 @@ export * from './withMountWhenPrefersMotion.js';
 export * from './withRelativePointer.js';
 export * from './withResponsiveOptions.js';
 export * from './withScrolledInView/index.js';
+export * from './withServices';
