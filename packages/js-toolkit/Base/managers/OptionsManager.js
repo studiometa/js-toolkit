@@ -201,7 +201,7 @@ export default class OptionsManager extends AbstractManager {
     if (type === Boolean) {
       if (defaultValue) {
         const negatedPropertyName = __getPropertyName(name, 'No');
-        const hasNegatedProperty = isDefined(this[negatedPropertyName]);
+        const hasNegatedProperty = isDefined(this.__element.dataset[negatedPropertyName]);
 
         return !hasNegatedProperty;
       }
