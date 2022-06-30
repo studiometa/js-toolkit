@@ -9,6 +9,7 @@ import clamp from './clamp.js';
  * @returns {number} The next value.
  */
 export default function inertiaFinalValue(initialValue, initialDelta, dampFactor = 0.85) {
+  // eslint-disable-next-line no-param-reassign
   dampFactor = clamp(dampFactor, 0.00001, 0.99999);
   let delta = initialDelta;
   let finalValue = initialValue;
