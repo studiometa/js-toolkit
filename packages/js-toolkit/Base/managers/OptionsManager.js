@@ -196,7 +196,7 @@ export default class OptionsManager extends AbstractManager {
   get(name, config) {
     const { type, default: defaultValue } = config;
     const propertyName = __getPropertyName(name);
-    const hasProperty = isDefined(this[propertyName]);
+    const hasProperty = isDefined(this.__element.dataset[propertyName]);
 
     if (type === Boolean) {
       if (defaultValue) {
