@@ -1,11 +1,5 @@
-import usePointer from '../../services/pointer.js';
-import useRaf from '../../services/raf.js';
-import useResize from '../../services/resize.js';
-import useScroll from '../../services/scroll.js';
-import useKey from '../../services/key.js';
-import useLoad from '../../services/load.js';
 import AbstractManager from './AbstractManager.js';
-import { noop, isFunction, isDefined, isDev } from '../../utils/index.js';
+import { noop, isFunction, isDefined } from '../../utils/index.js';
 
 /**
  * @typedef {import('../index').Base} Base
@@ -13,20 +7,9 @@ import { noop, isFunction, isDefined, isDev } from '../../utils/index.js';
  * @typedef {import('../../services').ServiceInterface<any>} ServiceInterface
  */
 
-const SERVICES_MAP = {
-  scrolled: useScroll,
-  resized: useResize,
-  ticked: useRaf,
-  moved: usePointer,
-  keyed: useKey,
-  loaded: useLoad,
-};
-
-const SERVICE_NAMES = Object.keys(SERVICES_MAP);
-
 /**
- * @typedef {typeof SERVICES_MAP & Record<string, () => ServiceInterface>} Services
- * @typedef {keyof SERVICES_MAP|string} ServiceName
+ * @typedef {Record<string, () => ServiceInterface>} Services
+ * @typedef {string} ServiceName
  */
 
 /**
@@ -44,10 +27,7 @@ export default class ServicesManager extends AbstractManager {
    * @returns {Record<string, () => ServiceInterface>}
    */
   get __services() {
-    return {
-      ...this.__customServices,
-      ...SERVICES_MAP,
-    };
+    return { ...this.__customServices };
   }
 
   /**
@@ -203,12 +183,6 @@ export default class ServicesManager extends AbstractManager {
    *   The name of the service hook.
    */
   unregister(name) {
-    if (SERVICE_NAMES.includes(name)) {
-      if (isDev) {
-        throw new Error(`[ServicesManager] The \`${name}\` core service can not be unregistered.`);
-      }
-      return;
-    }
     // @ts-ignore
     this.__base.__removeEmits(name);
     delete this.__customServices[name];
