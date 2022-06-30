@@ -1,5 +1,5 @@
 import AbstractManager from './AbstractManager.js';
-import { isDev, isArray } from '../../utils/index.js';
+import { isDev, isArray, isDefined } from '../../utils/index.js';
 
 /**
  * Normalize the name of ref.
@@ -22,7 +22,7 @@ export function normalizeRefName(name) {
 function __filterRefsBelongingToInstance(that, ref) {
   let ancestor = ref.parentElement;
 
-  while (ancestor && ancestor.dataset.component === undefined) {
+  while (ancestor && !isDefined(ancestor.dataset.component)) {
     ancestor = ancestor.parentElement;
   }
 
@@ -50,18 +50,16 @@ function __register(that, refName) {
     (ref) => __filterRefsBelongingToInstance(that, ref)
   );
 
-  if (!isMultiple && refs.length > 1) {
-    if (isDev) {
-      console.warn(
-        // @ts-ignore
-        `[${that.__base.$options.name}]`,
-        `The "${refName}" ref has been found multiple times.`,
-        'Did you forgot to add the `[]` suffix to its name?'
-      );
-    }
+  if (isDev && !isMultiple && refs.length > 1) {
+    console.warn(
+      // @ts-ignore
+      `[${that.__base.$options.name}]`,
+      `The "${refName}" ref has been found multiple times.`,
+      'Did you forgot to add the `[]` suffix to its name?'
+    );
   }
 
-  if (!isMultiple && refs.length <= 1 && refs[0] === undefined) {
+  if (!isMultiple && refs.length <= 1 && !isDefined(refs[0])) {
     if (isDev) {
       console.warn(
         // @ts-ignore
