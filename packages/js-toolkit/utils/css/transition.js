@@ -158,19 +158,18 @@ function end(element, classesOrStyles, mode = 'remove') {
  */
 export default async function transition(element, name, endMode = 'remove') {
   /** @type {TransitionStyles} */
-  const classesOrStyles =
-    isString(name)
-      ? {
-          from: `${name}-from`,
-          active: `${name}-active`,
-          to: `${name}-to`,
-        }
-      : {
-          from: '',
-          active: '',
-          to: '',
-          ...name,
-        };
+  const classesOrStyles = isString(name)
+    ? {
+        from: `${name}-from`,
+        active: `${name}-active`,
+        to: `${name}-to`,
+      }
+    : {
+        from: '',
+        active: '',
+        to: '',
+        ...name,
+      };
 
   const trs = Transition.getInstance(element);
   // End any previous transition running on the element.

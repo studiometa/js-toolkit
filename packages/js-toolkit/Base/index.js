@@ -611,12 +611,10 @@ export default class Base extends EventTarget {
    * @returns {Array<Base>}                A list of the created instance.
    */
   static $factory(nameOrSelector) {
-    if (!nameOrSelector) {
-      if (isDev) {
-        throw new Error(
-          'The $factory method requires a component’s name or selector to be specified.'
-        );
-      }
+    if (isDev && !nameOrSelector) {
+      throw new Error(
+        'The $factory method requires a component’s name or selector to be specified.'
+      );
     }
 
     return getComponentElements(nameOrSelector).map((el) => new this(el).$mount());
