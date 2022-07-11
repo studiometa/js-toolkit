@@ -1,10 +1,10 @@
-import { getComponentElements } from './utils.js';
+import { getComponentElements, getEventTarget } from './utils.js';
 import ChildrenManager from './managers/ChildrenManager.js';
 import RefsManager from './managers/RefsManager.js';
 import ServicesManager from './managers/ServicesManager.js';
 import EventsManager from './managers/EventsManager.js';
 import OptionsManager from './managers/OptionsManager.js';
-import { noop, isDev, isFunction, isArray, isDefined } from '../utils/index.js';
+import { noop, isDev, isFunction, isArray } from '../utils/index.js';
 
 let id = 0;
 
@@ -50,37 +50,6 @@ function createAndTestManagers(instance) {
       );
     }
   });
-}
-
-/**
- * Get the target of a given event.
- *
- * @param   {Base} instance
- * @param   {string} event
- * @param   {BaseConfig} config
- * @returns {Base|Base['$el']}
- */
-function getEventTarget(instance, event, config) {
-  const eventIsDefinedInConfig = isArray(config.emits) && config.emits.includes(event);
-
-  if (eventIsDefinedInConfig) {
-    return instance;
-  }
-
-  const eventIsNativeEvent = isDefined(instance.$el[`on${event}`]);
-  if (eventIsNativeEvent) {
-    return instance.$el;
-  }
-
-  if (isDev) {
-    console.warn(
-      `[${config.name}]`,
-      `The "${event}" event is missing from the configuration and is not a native`,
-      `event for the root element of type \`${instance.$el.constructor.name}\`.`
-    );
-  }
-
-  return instance;
 }
 
 /**

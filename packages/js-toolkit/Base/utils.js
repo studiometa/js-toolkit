@@ -1,3 +1,5 @@
+import { isArray, isDefined, isDev } from '../utils/index.js';
+
 /**
  * @typedef {import('./index.js').default} Base
  */
@@ -27,4 +29,54 @@ export function getComponentElements(nameOrSelector, element = document) {
   }
 
   return elements;
+}
+
+/**
+ * Test if an event is defined in the given config.
+ *
+ * @param   {string} event
+ * @param   {import('./index.js').BaseConfig} config
+ * @returns {boolean}
+ */
+export function eventIsDefinedInConfig(event, config) {
+  return isArray(config.emits) && config.emits.includes(event);
+}
+
+/**
+ * Test if an event can be used on the given element.
+ *
+ * @param   {string} event
+ * @param   {HTMLElement} element
+ * @returns {boolean}
+ */
+export function eventIsNative(event, element) {
+  return isDefined(element[`on${event}`]);
+}
+
+/**
+ * Get the target of a given event.
+ *
+ * @param   {Base} instance
+ * @param   {string} event
+ * @param   {import('./index.js').BaseConfig} config
+ * @returns {Base|Base['$el']}
+ */
+export function getEventTarget(instance, event, config) {
+  if (eventIsDefinedInConfig(event, config)) {
+    return instance;
+  }
+
+  if (eventIsNative(event, instance.$el)) {
+    return instance.$el;
+  }
+
+  if (isDev) {
+    console.warn(
+      `[${config.name}]`,
+      `The "${event}" event is missing from the configuration and is not a native`,
+      `event for the root element of type \`${instance.$el.constructor.name}\`.`
+    );
+  }
+
+  return instance;
 }
