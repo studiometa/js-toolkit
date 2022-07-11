@@ -10,16 +10,17 @@ export default class ParentNativeEvent extends Base {
    */
   static config = {
     name: 'ParentNativeEvent',
+    log: true,
     components: {
       Child,
     },
   };
 
   onChildClick(...args) {
-    console.log(this.$id, 'onChildClick', ...args);
+    this.$log(this.$id, 'onChildClick', ...args);
   }
 
   onChildDede(...args) {
-    console.log(this.$id, 'onChildDede', ...args);
+    this.$log(this.$id, 'onChildDede', ...args);
   }
 }
