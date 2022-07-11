@@ -15,6 +15,7 @@ import ResponsiveOptions from './components/ResponsiveOptions.js';
 import AnimateTest from './components/AnimateTest.js';
 import AnimateScrollTest from './components/AnimateScrollTest.js';
 import AnimateTestMultiple from './components/AnimateTestMultiple.js';
+import ParentNativeEvent from './components/ParentNativeEvent/index.js';
 
 /**
  * App class.
@@ -28,6 +29,7 @@ class App extends Base {
     refs: ['modal'],
     log: false,
     components: {
+      ParentNativeEvent,
       AnimateTest,
       AnimateScrollTest,
       AnimateTestMultiple,
