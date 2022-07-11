@@ -245,25 +245,22 @@ export default class EventsManager extends AbstractManager {
      * @returns {void}
      */
     handleEvent: (event) => {
-      const child = /** @type {Base} */ (event.currentTarget);
-      let childName;
-      let index = 0;
-
       const childrenManager = this.__base.$children;
 
-      childrenManager.registeredNames.find((name) => {
-        if (childrenManager[name].includes(child)) {
-          childName = name;
-          index = childrenManager[name].indexOf(child);
-          return true;
-        }
+      const { name, child: resolvedChild } = childrenManager.registeredNames
+        .map((childName) => ({
+          name: childName,
+          child: childrenManager[childName].find(
+            (instance) => instance === event.currentTarget || instance.$el === event.currentTarget
+          ),
+        }))
+        .find(({ child }) => child);
 
-        return false;
-      });
-
-      const normalizedRefName = normalizeName(childName);
+      const normalizedChildName = normalizeName(name);
       const normalizedEventName = normalizeName(event.type);
-      const method = `on${normalizedRefName}${normalizedEventName}`;
+      const method = `on${normalizedChildName}${normalizedEventName}`;
+
+      const index = childrenManager[name].indexOf(resolvedChild);
 
       const args = isArray(event.detail) ? event.detail : [];
       this.__base[method](...args, index, event);

@@ -4,7 +4,7 @@ import RefsManager from './managers/RefsManager.js';
 import ServicesManager from './managers/ServicesManager.js';
 import EventsManager from './managers/EventsManager.js';
 import OptionsManager from './managers/OptionsManager.js';
-import { noop, isDev, isFunction, isArray } from '../utils/index.js';
+import { noop, isDev, isFunction, isArray, isDefined } from '../utils/index.js';
 
 let id = 0;
 
@@ -50,6 +50,37 @@ function createAndTestManagers(instance) {
       );
     }
   });
+}
+
+/**
+ * Get the target of a given event.
+ *
+ * @param   {Base} instance
+ * @param   {string} event
+ * @param   {BaseConfig} config
+ * @returns {Base|Base['$el']}
+ */
+function getEventTarget(instance, event, config) {
+  const eventIsDefinedInConfig = isArray(config.emits) && config.emits.includes(event);
+
+  if (eventIsDefinedInConfig) {
+    return instance;
+  }
+
+  const eventIsNativeEvent = isDefined(instance.$el[`on${event}`]);
+  if (eventIsNativeEvent) {
+    return instance.$el;
+  }
+
+  if (isDev) {
+    console.warn(
+      `[${config.name}]`,
+      `The "${event}" event is missing from the configuration and is not a native`,
+      `event for the root element of type \`${instance.$el.constructor.name}\`.`
+    );
+  }
+
+  return instance;
 }
 
 /**
@@ -470,22 +501,6 @@ export default class Base extends EventTarget {
   }
 
   /**
-   * Test if the given event is configured and warn otherwise.
-   *
-   * @private
-   * @param   {string} event The event name.
-   * @returns {void}
-   */
-  __testEventIsDefined(event) {
-    if (!(isArray(this.__config.emits) && this.__config.emits.includes(event))) {
-      console.warn(
-        `[${this.__config.name}]`,
-        `The "${event}" event is missing from the configuration.`
-      );
-    }
-  }
-
-  /**
    * Add an emitted event.
    *
    * @private
@@ -541,10 +556,6 @@ export default class Base extends EventTarget {
       this.__debug('$on', event, listener, options);
     }
 
-    if (isDev) {
-      this.__testEventIsDefined(event);
-    }
-
     let set = this.__eventHandlers.get(event);
 
     if (!set) {
@@ -553,7 +564,9 @@ export default class Base extends EventTarget {
     }
 
     set.add(listener);
-    this.addEventListener(event, listener, options);
+
+    const target = getEventTarget(this, event, this.__config);
+    target.addEventListener(event, listener, options);
 
     return () => {
       this.$off(event, listener, options);
@@ -576,12 +589,10 @@ export default class Base extends EventTarget {
       this.__debug('$off', event, listener);
     }
 
-    if (isDev) {
-      this.__testEventIsDefined(event);
-    }
-
     this.__eventHandlers.get(event).delete(listener);
-    this.removeEventListener(event, listener, options);
+
+    const target = getEventTarget(this, event, this.__config);
+    target.removeEventListener(event, listener, options);
   }
 
   /**
@@ -595,10 +606,6 @@ export default class Base extends EventTarget {
   $emit(event, ...args) {
     if (isDev) {
       this.__debug('$emit', event, args);
-    }
-
-    if (isDev) {
-      this.__testEventIsDefined(event);
     }
 
     this.dispatchEvent(new CustomEvent(event, { detail: args }));
