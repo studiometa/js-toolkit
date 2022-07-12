@@ -1,4 +1,5 @@
 import keyCodes from './keyCodes.js';
+import { isFunction } from './is.js';
 
 const FOCUSABLE_ELEMENTS = [
   'a[href]:not([tabindex^="-"]):not([inert])',
@@ -75,7 +76,7 @@ export function trap(element, event) {
  * Untrap the tab navigation.
  */
 export function untrap() {
-  if (focusedBefore && typeof focusedBefore.focus === 'function') {
+  if (focusedBefore && isFunction(focusedBefore.focus)) {
     focusedBefore.focus();
     focusedBefore = null;
   }

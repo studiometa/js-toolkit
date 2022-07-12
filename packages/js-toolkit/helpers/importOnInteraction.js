@@ -1,4 +1,5 @@
 import { getTargetElements } from './utils.js';
+import { isString } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base/index.js').BaseConstructor} BaseConstructor
@@ -20,7 +21,7 @@ import { getTargetElements } from './utils.js';
  * @returns {Promise<T>}
  */
 export default function importOnInteraction(fn, nameOrSelectorOrElement, events, parent) {
-  const normalizedEvents = typeof events === 'string' ? [events] : events;
+  const normalizedEvents = isString(events) ? [events] : events;
 
   let ResolvedClass;
 

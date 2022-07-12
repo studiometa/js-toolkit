@@ -58,6 +58,10 @@ describe('The EventsManager class', () => {
       componentFn(...args);
     }
 
+    onComponentClick(...args) {
+      componentFn(...args);
+    }
+
     onAsyncComponentMounted(...args) {
       asyncComponentFn(...args);
     }
@@ -156,6 +160,8 @@ describe('The EventsManager class', () => {
       0,
       expect.objectContaining({ type: 'custom-event', detail: null })
     );
+    app.$children.Component[0].$el.click();
+    expect(componentFn).toHaveBeenLastCalledWith(0, expect.objectContaining({ type: 'click' }));
   });
 
   it('can unbind and rebind event methods from children', () => {

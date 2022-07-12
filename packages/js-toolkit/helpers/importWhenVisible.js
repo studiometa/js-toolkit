@@ -1,4 +1,5 @@
 import { getTargetElements } from './utils.js';
+import { isFunction } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base/index.js').default} Base
@@ -32,7 +33,7 @@ export default function importWhenVisible(
       ResolvedClass = 'default' in module ? module.default : module;
       resolve(ResolvedClass);
 
-      if (typeof cb === 'function') {
+      if (isFunction(cb)) {
         cb();
       }
     });

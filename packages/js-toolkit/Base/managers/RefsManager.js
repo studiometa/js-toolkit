@@ -1,4 +1,5 @@
 import AbstractManager from './AbstractManager.js';
+import { isDev, isArray, isDefined } from '../../utils/index.js';
 
 /**
  * Normalize the name of ref.
@@ -21,7 +22,7 @@ export function normalizeRefName(name) {
 function __filterRefsBelongingToInstance(that, ref) {
   let ancestor = ref.parentElement;
 
-  while (ancestor && ancestor.dataset.component === undefined) {
+  while (ancestor && !isDefined(ancestor.dataset.component)) {
     ancestor = ancestor.parentElement;
   }
 
@@ -49,7 +50,7 @@ function __register(that, refName) {
     (ref) => __filterRefsBelongingToInstance(that, ref)
   );
 
-  if (!isMultiple && refs.length > 1) {
+  if (isDev && !isMultiple && refs.length > 1) {
     console.warn(
       // @ts-ignore
       `[${that.__base.$options.name}]`,
@@ -58,13 +59,15 @@ function __register(that, refName) {
     );
   }
 
-  if (!isMultiple && refs.length <= 1 && refs[0] === undefined) {
-    console.warn(
-      // @ts-ignore
-      `[${that.__base.$options.name}]`,
-      `The "${refName}" ref is missing.`,
-      `Is there an \`[data-ref="${refName}"]\` element in the component's scope?`
-    );
+  if (!isMultiple && refs.length <= 1 && !isDefined(refs[0])) {
+    if (isDev) {
+      console.warn(
+        // @ts-ignore
+        `[${that.__base.$options.name}]`,
+        `The "${refName}" ref is missing.`,
+        `Is there an \`[data-ref="${refName}"]\` element in the component's scope?`
+      );
+    }
 
     return;
   }
@@ -88,7 +91,7 @@ function __register(that, refName) {
  */
 function __unregister(that, refName) {
   const propName = normalizeRefName(refName);
-  const refs = Array.isArray(that[propName]) ? that[propName] : [that[propName]];
+  const refs = isArray(that[propName]) ? that[propName] : [that[propName]];
   that.__eventsManager.unbindRef(refName, refs);
 }
 

@@ -1,4 +1,5 @@
 import getAllProperties from './getAllProperties.js';
+import { isString, isFunction } from '../is.js';
 
 /**
  * Auto-bind methods to an instance.
@@ -12,7 +13,7 @@ import getAllProperties from './getAllProperties.js';
 export default function autoBind(instance, options) {
   const { exclude, include } = options || {};
   const filter = (key) => {
-    const match = (pattern) => (typeof pattern === 'string' ? key === pattern : pattern.test(key));
+    const match = (pattern) => (isString(pattern) ? key === pattern : pattern.test(key));
 
     if (include) {
       return include.some(match);
@@ -29,7 +30,7 @@ export default function autoBind(instance, options) {
     .filter(([key]) => key !== 'constructor' && filter(key))
     .forEach(([key, object]) => {
       const descriptor = Object.getOwnPropertyDescriptor(object, key);
-      if (descriptor && typeof descriptor.value === 'function') {
+      if (descriptor && isFunction(descriptor.value)) {
         instance[key] = instance[key].bind(instance);
       }
     });

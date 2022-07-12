@@ -1,5 +1,5 @@
 import { Base } from '@studiometa/js-toolkit';
-import { animate, ease } from '@studiometa/js-toolkit/utils';
+import { animate, ease, domScheduler } from '@studiometa/js-toolkit/utils';
 
 /**
  * AnimateTest class.
@@ -35,7 +35,9 @@ export default class AnimateTest extends Base {
         duration: this.$options.duration,
         easing: ease[this.$options.easing],
         onProgress: (progress) => {
-          this.$refs.progress.value = progress;
+          domScheduler.write(() => {
+            this.$refs.progress.value = progress;
+          });
         },
       }
     );

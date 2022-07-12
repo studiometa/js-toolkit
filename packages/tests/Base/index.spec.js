@@ -419,10 +419,8 @@ describe('The Base class event methods', () => {
     const app = new App(document.createElement('div')).$mount();
     const warnMock = jest.spyOn(console, 'warn');
     warnMock.mockImplementation(() => undefined);
-    app.$emit('event');
-    expect(warnMock).toHaveBeenCalled();
     app.$on('other-event');
-    expect(warnMock).toHaveBeenCalledTimes(2);
+    expect(warnMock).toHaveBeenCalledTimes(1);
     warnMock.mockRestore();
   });
 });
