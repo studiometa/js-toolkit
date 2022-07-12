@@ -2,7 +2,7 @@
 import { useService } from './service.js';
 import { getRaf as getRequestAnimationFrame } from '../utils/nextFrame.js';
 import { useScheduler } from '../utils/scheduler.js';
-import isFunction from '../utils/isFunction.js';
+import { isFunction } from '../utils/is.js';
 
 const scheduler = useScheduler(['update', 'render']);
 

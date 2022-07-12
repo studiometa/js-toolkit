@@ -1,3 +1,5 @@
+import { isDev, isFunction } from '../utils/index.js';
+
 /**
  * @typedef {import('../Base').default} Base
  * @typedef {import('../Base').BaseConstructor} BaseConstructor
@@ -48,11 +50,17 @@ export default (BaseClass, Vue) => {
         this.vueConfig ?? /** @type {typeof WithVue2} */ (this.constructor).vueConfig;
 
       if (!vueConfig) {
-        throw new Error('[withVue] You must define a `vueConfig` object.');
+        if (isDev) {
+          throw new Error('[withVue] You must define a `vueConfig` object.');
+        }
+        return;
       }
 
-      if (typeof vueConfig.render !== 'function') {
-        throw new Error('[withVue] You must define a `render` function in vueConfig.');
+      if (!isFunction(vueConfig.render)) {
+        if (isDev) {
+          throw new Error('[withVue] You must define a `render` function in vueConfig.');
+        }
+        return;
       }
 
       this.$vue = new Vue(vueConfig);

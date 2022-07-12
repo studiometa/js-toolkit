@@ -1,3 +1,5 @@
+import clamp from './clamp.js';
+
 /**
  * Get the final damped value for a given factor.
  *
@@ -7,12 +9,8 @@
  * @returns {number} The next value.
  */
 export default function inertiaFinalValue(initialValue, initialDelta, dampFactor = 0.85) {
-  if (dampFactor >= 1 || dampFactor <= 0) {
-    throw new Error(
-      `The \`factor\` parameter must be a number greater than 0 and smaller than 1, \`${dampFactor}\` given.`
-    );
-  }
-
+  // eslint-disable-next-line no-param-reassign
+  dampFactor = clamp(dampFactor, 0.00001, 0.99999);
   let delta = initialDelta;
   let finalValue = initialValue;
 

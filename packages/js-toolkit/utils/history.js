@@ -1,4 +1,5 @@
-import isObject from './object/isObject.js';
+import { isArray, isObject } from './is.js';
+import { hasWindow } from './has.js';
 
 /**
  * @typedef {Object} HistoryOptions
@@ -22,7 +23,7 @@ function updateUrlSearchParam(params, name, value) {
     return params;
   }
 
-  if (Array.isArray(value)) {
+  if (isArray(value)) {
     value.forEach((val, index) => {
       const arrayName = `${name}[${index}]`;
       updateUrlSearchParam(params, arrayName, val);
@@ -51,7 +52,7 @@ function updateUrlSearchParam(params, name, value) {
  */
 export function objectToURLSearchParams(
   obj,
-  defaultSearch = typeof window === 'undefined' ? '' : window.location.search
+  defaultSearch = hasWindow() ? window.location.search : ''
 ) {
   return Object.entries(obj).reduce(
     (urlSearchParams, [name, value]) => updateUrlSearchParam(urlSearchParams, name, value),

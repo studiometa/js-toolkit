@@ -1,6 +1,6 @@
 import { cubicBezier } from '@motionone/easing';
 import { lerp, map, clamp01 } from '../math/index.js';
-import isDefined from '../isDefined.js';
+import { isDefined, isNumber, isArray } from '../is.js';
 import transform, { TRANSFORM_PROPS } from './transform.js';
 import useRaf from '../../services/raf.js';
 import { domScheduler as scheduler } from '../scheduler.js';
@@ -25,7 +25,7 @@ const CSSUnitConverter = {
  * @returns {number}
  */
 function getAnimationStepValue(val, getSizeRef) {
-  if (typeof val === 'number') {
+  if (isNumber(val)) {
     return val;
   }
 
@@ -46,7 +46,7 @@ function normalizeEase(ease) {
     return noopValue;
   }
 
-  if (Array.isArray(ease)) {
+  if (isArray(ease)) {
     return cubicBezier(...ease);
   }
 
@@ -215,7 +215,7 @@ export function animate(element, keyframes, options = {}) {
    * @returns {number}
    */
   function progress(newProgress) {
-    if (typeof newProgress === 'undefined') {
+    if (!isDefined(newProgress)) {
       return progressValue;
     }
 
