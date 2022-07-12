@@ -160,22 +160,22 @@ export function animate(element, keyframes, options = {}) {
   /**
    * Set the progress value.
    *
-   * @param {number} p The progress value.
+   * @param {number} progress The progress value.
    */
-  function progress(p) {
+  function callback(progress) {
     let toIndex = 0;
     while (
       normalizedKeyframes[toIndex] &&
-      normalizedKeyframes[toIndex].offset <= p &&
+      normalizedKeyframes[toIndex].offset <= progress &&
       normalizedKeyframes[toIndex].offset !== 1
     ) {
       toIndex += 1;
     }
 
-    render(element, normalizedKeyframes[toIndex - 1], normalizedKeyframes[toIndex], p);
+    render(element, normalizedKeyframes[toIndex - 1], normalizedKeyframes[toIndex], progress);
   }
 
-  const tw = tween(progress, {
+  const controls = tween(callback, {
     ...options,
     onStart() {
       if (isFunction(options.onStart)) {
@@ -187,10 +187,10 @@ export function animate(element, keyframes, options = {}) {
         runningPause();
         runningKeys.delete(runningKey);
       });
-      runningKeys.set(key, tw.pause);
+      runningKeys.set(key, controls.pause);
       running.set(element, runningKeys);
     },
   });
 
-  return tw;
+  return controls;
 }
