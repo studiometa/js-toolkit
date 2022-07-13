@@ -16,7 +16,7 @@ module.exports = {
     removeDeprecatedGapUtilities: true,
     purgeLayersByDefault: true,
   },
-  darkMode: 'dark',
+  darkMode: 'class',
   theme: {
     extend: {
       cursor: {
@@ -28,6 +28,7 @@ module.exports = {
           'text-1': 'var(--vp-c-text-1)',
           bg: 'var(--vp-c-bg)',
           'bg-alt': 'var(--vp-c-bg-alt)',
+          'code-block-bg': 'var(--vp-code-block-bg)',
         },
         brand: {
           DEFAULT: '#3eaf7c',
