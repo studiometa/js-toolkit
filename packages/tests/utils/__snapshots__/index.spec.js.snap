@@ -73,6 +73,7 @@ Array [
   "toggleClass",
   "transform",
   "transition",
+  "tween",
   "useScheduler",
   "withLeadingCharacters",
   "withLeadingSlash",
