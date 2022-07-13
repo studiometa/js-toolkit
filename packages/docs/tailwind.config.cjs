@@ -28,7 +28,9 @@ module.exports = {
           'text-1': 'var(--vp-c-text-1)',
           bg: 'var(--vp-c-bg)',
           'bg-alt': 'var(--vp-c-bg-alt)',
+          'bg-soft': 'var(--vp-c-bg-soft)',
           'code-block-bg': 'var(--vp-code-block-bg)',
+          'c-indigo': 'var(--vp-c-indigo)',
         },
         brand: {
           DEFAULT: '#3eaf7c',

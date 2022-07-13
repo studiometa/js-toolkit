@@ -9,6 +9,7 @@ export default defineConfig({
   lang: 'en-US',
   title: 'JS Toolkit',
   description: 'A set of useful little bits of JavaScript to boost your project! 🚀',
+  lastUpdated: true,
   head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
   themeConfig: {
     logo: '/logo.png',
