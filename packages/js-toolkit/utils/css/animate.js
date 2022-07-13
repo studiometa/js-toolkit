@@ -1,14 +1,11 @@
-import { cubicBezier } from '@motionone/easing';
-import { lerp, map, clamp01 } from '../math/index.js';
-import { isDefined, isNumber, isArray } from '../is.js';
+import { lerp, map } from '../math/index.js';
+import { isDefined, isFunction, isNumber } from '../is.js';
 import transform, { TRANSFORM_PROPS } from './transform.js';
-import useRaf from '../../services/raf.js';
 import { domScheduler as scheduler } from '../scheduler.js';
-import { noop, noopValue } from '../noop.js';
+import { tween, normalizeEase } from '../tween.js';
 
 let id = 0;
 const running = new WeakMap();
-const PROGRESS_PRECISION = 0.0001;
 
 const CSSUnitConverter = {
   '%': (value, getSizeRef) => (value * getSizeRef()) / 100,
@@ -34,23 +31,6 @@ function getAnimationStepValue(val, getSizeRef) {
   }
 
   return CSSUnitConverter[val[1]](val[0], getSizeRef);
-}
-
-/**
- * Normalize a easing function with default fallbacks.
- * @param   {((p:number) => number)|[number,number,number,number]} ease
- * @returns {(p:number) => number}
- */
-function normalizeEase(ease) {
-  if (!isDefined(ease)) {
-    return noopValue;
-  }
-
-  if (isArray(ease)) {
-    return cubicBezier(...ease);
-  }
-
-  return ease;
 }
 
 const generateTranslateRenderStrategy = (sizeRef) => (element, fromValue, toValue, progress) =>
@@ -133,11 +113,10 @@ function render(element, from, to, progress) {
 
 /**
  * @typedef {import('./transform.js').TransformProps} TransformProps
- * @typedef {[number, number, number, number]} BezierCurve
  * @typedef {TransformProps & {
  *   opacity?: number;
  *   transformOrigin?: string;
- *   easing?: import('../math/createEases.js').EasingFunction|BezierCurve;
+ *   easing?: import('../math/createEases.js').EasingFunction|import('../tween.js').BezierCurve;
  *   offset?: number;
  * }} Keyframe
  * @typedef {Keyframe & {
@@ -157,37 +136,10 @@ function render(element, from, to, progress) {
  * Animate an element.
  * @param   {HTMLElement} element
  * @param   {Keyframe[]} keyframes
- * @param   {{
- *   duration?: number;
- *   easing?: import('../math/createEases.js').EasingFunction|BezierCurve;
- *   onProgress?: (progress: number, easedProgress: number) => void;
- *   onFinish?: (progress: number, easedProgress: number) => void;
- *  }} [options]
+ * @param   {import('../tween.js').TweenOptions} [options]
  * @returns {Animate}
  */
 export function animate(element, keyframes, options = {}) {
-  const raf = useRaf();
-
-  let progressValue = 0;
-  let easedProgress = 0;
-
-  if (!running.has(element)) {
-    running.set(element, new Map());
-  }
-
-  const ease = normalizeEase(options.easing);
-  let duration = options.duration ?? 1;
-  duration *= 1000;
-
-  let startTime = performance.now();
-  let endTime = startTime + duration;
-
-  const key = `animate-${id}`;
-  id += 1;
-
-  const { onProgress = noop, onFinish = noop } = options;
-  let isRunning = false;
-
   const keyframesCount = keyframes.length - 1;
   const normalizedKeyframes = keyframes.map(
     (keyframe, index) =>
@@ -198,114 +150,47 @@ export function animate(element, keyframes, options = {}) {
       })
   );
 
-  /**
-   * Pause the animation.
-   *
-   * @returns {void}
-   */
-  function pause() {
-    isRunning = false;
-    raf.remove(key);
+  if (!running.has(element)) {
+    running.set(element, new Map());
   }
+
+  const key = `animate-${id}`;
+  id += 1;
 
   /**
    * Set the progress value.
    *
-   * @param {number} newProgress The new progress value.
-   * @returns {number}
+   * @param {number} progress The progress value.
    */
-  function progress(newProgress) {
-    if (!isDefined(newProgress)) {
-      return progressValue;
-    }
-
-    progressValue = newProgress;
-
-    // Stop when reaching precision
-    if (Math.abs(1 - progressValue) < PROGRESS_PRECISION) {
-      progressValue = 1;
-      pause();
-      scheduler.afterWrite(() => onFinish(progressValue, easedProgress));
-    }
-
-    easedProgress = ease(progressValue);
-
+  function callback(progress) {
     let toIndex = 0;
     while (
       normalizedKeyframes[toIndex] &&
-      normalizedKeyframes[toIndex].offset <= easedProgress &&
+      normalizedKeyframes[toIndex].offset <= progress &&
       normalizedKeyframes[toIndex].offset !== 1
     ) {
       toIndex += 1;
     }
 
-    render(element, normalizedKeyframes[toIndex - 1], normalizedKeyframes[toIndex], easedProgress);
-    onProgress(progressValue, easedProgress);
-
-    return progressValue;
+    render(element, normalizedKeyframes[toIndex - 1], normalizedKeyframes[toIndex], progress);
   }
 
-  /**
-   * Loop for rendering the animation.
-   *
-   * @param   {Object} props
-   * @param   {number} props.time
-   * @returns {void}
-   */
-  function tick(props) {
-    if (!isRunning) {
-      raf.remove(key);
-      return;
-    }
+  const controls = tween(callback, {
+    ...options,
+    onStart() {
+      if (isFunction(options.onStart)) {
+        options.onStart();
+      }
+      // Stop running instances
+      const runningKeys = running.get(element);
+      runningKeys.forEach((runningPause, runningKey) => {
+        runningPause();
+        runningKeys.delete(runningKey);
+      });
+      runningKeys.set(key, controls.pause);
+      running.set(element, runningKeys);
+    },
+  });
 
-    progress(clamp01(map(props.time, startTime, endTime, 0, 1)));
-  }
-
-  /**
-   * Play the animation.
-   *
-   * @returns {void}
-   */
-  function start() {
-    // Stop running instances
-    const runningKeys = running.get(element);
-    runningKeys.forEach((runningPause, runningKey) => {
-      runningPause();
-      runningKeys.delete(runningKey);
-    });
-    runningKeys.set(key, pause);
-    running.set(element, runningKeys);
-
-    startTime = performance.now();
-    endTime = startTime + duration;
-    progressValue = 0;
-    easedProgress = 0;
-    isRunning = true;
-
-    raf.add(key, tick);
-  }
-
-  /**
-   * Play a paused animation.
-   * @returns {void}
-   */
-  function play() {
-    if (isRunning) {
-      return;
-    }
-
-    startTime = performance.now() - lerp(0, duration, progressValue);
-    endTime = startTime + duration;
-    isRunning = true;
-
-    raf.add(key, tick);
-  }
-
-  return {
-    start,
-    finish: () => progress(1),
-    pause,
-    play,
-    progress,
-  };
+  return controls;
 }

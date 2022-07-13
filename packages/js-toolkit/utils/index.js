@@ -20,3 +20,4 @@ export * from './math/index.js';
 export * from './string/index.js';
 export * from './scheduler.js';
 export * from './noop.js';
+export { tween } from './tween.js';

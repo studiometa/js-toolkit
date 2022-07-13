@@ -9,8 +9,10 @@ export default defineConfig({
   lang: 'en-US',
   title: 'JS Toolkit',
   description: 'A set of useful little bits of JavaScript to boost your project! 🚀',
+  lastUpdated: true,
   head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
   themeConfig: {
+    logo: '/logo.png',
     version: pkg.version,
     repo: 'studiometa/js-toolkit',
     docsDir: 'packages/docs',
@@ -18,12 +20,22 @@ export default defineConfig({
     editLinks: true,
     editLinkText: 'Edit this page on GitHub',
     sidebarDepth: 3,
+    footer: {
+      message: 'MIT Licensed',
+      copyright: 'Copyright © 2020–present Studio Meta',
+    },
+    socialLinks: [{ icon: 'github', link: 'https://github.com/studiometa/js-toolkit' }],
     nav: [
       { text: 'Guide', link: '/guide/' },
       { text: 'API Reference', link: '/api/' },
       { text: 'Utils Reference', link: '/utils/' },
-      { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
-      { text: 'Release Notes', link: 'https://github.com/studiometa/js-toolkit/releases' },
+      {
+        text: `v${pkg.version}`,
+        items: [
+          { text: 'Release Notes', link: 'https://github.com/studiometa/js-toolkit/releases' },
+          { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
+        ],
+      },
     ],
     sidebar: {
       '/guide/': getGuideSidebar(),
@@ -40,7 +52,7 @@ function getGuideSidebar() {
   return [
     {
       text: 'Introduction',
-      children: [
+      items: [
         { text: 'Getting started', link: '/guide/' },
         { text: 'Managing components', link: '/guide/introduction/managing-components.html' },
         { text: 'Managing refs', link: '/guide/introduction/managing-refs.html' },
@@ -52,7 +64,7 @@ function getGuideSidebar() {
     },
     {
       text: 'Going further',
-      children: [
+      items: [
         { text: 'Using decorators', link: '/guide/going-further/using-decorators.html' },
         { text: 'Lazy imports', link: '/guide/going-further/lazy-imports.html' },
         {
@@ -63,7 +75,7 @@ function getGuideSidebar() {
     },
     {
       text: 'Recipes',
-      children: [
+      items: [
         {
           text: 'Counter component',
           link: '/guide/recipes/counter-component/',
@@ -80,7 +92,7 @@ function getGuideSidebar() {
     },
     {
       text: 'Migration guide',
-      children: [
+      items: [
         {
           text: 'v1 → v2',
           link: '/guide/migration/v1-to-v2.html',
@@ -95,22 +107,22 @@ function getApiSidebar({ expanded = 'api' } = {}) {
     {
       text: 'Base class',
       link: '/api/',
-      children: expanded === 'api' ? getBaseSidebar() : getBaseSidebar(),
+      items: expanded === 'api' ? getBaseSidebar() : getBaseSidebar(),
     },
     {
       text: 'Helpers',
       link: '/api/helpers/',
-      children: expanded === 'helpers' ? getHelpersSidebar() : getHelpersSidebar(),
+      items: expanded === 'helpers' ? getHelpersSidebar() : getHelpersSidebar(),
     },
     {
       text: 'Services',
       link: '/api/services/',
-      children: expanded === 'services' ? getServicesSidebar() : getServicesSidebar(),
+      items: expanded === 'services' ? getServicesSidebar() : getServicesSidebar(),
     },
     {
       text: 'Decorators',
       link: '/api/decorators/',
-      children: expanded === 'decorators' ? getDecoratorsSidebar() : getDecoratorsSidebar(),
+      items: expanded === 'decorators' ? getDecoratorsSidebar() : getDecoratorsSidebar(),
     },
   ];
 }
@@ -198,7 +210,7 @@ function getUtilsSidebar() {
     {
       text: 'Utils',
       link: '/utils/',
-      children: [
+      items: [
         { text: 'debounce', link: '/utils/debounce.html' },
         { text: 'focusTrap', link: '/utils/focusTrap.html' },
         { text: 'keyCodes', link: '/utils/keyCodes.html' },
@@ -208,13 +220,14 @@ function getUtilsSidebar() {
         { text: 'nextTick', link: '/utils/nextTick.html' },
         { text: 'scrollTo', link: '/utils/scrollTo.html' },
         { text: 'throttle', link: '/utils/throttle.html' },
+        { text: 'tween', link: '/utils/tween.html' },
         { text: 'useScheduler', link: '/utils/useScheduler.html' },
       ],
     },
     {
       text: 'Collision utils',
       link: '/utils/collision/',
-      children: [
+      items: [
         { text: 'boundingRectToCircle', link: '/utils/collision/boundingRectToCircle.html' },
         { text: 'collideCircleCircle', link: '/utils/collision/collideCircleCircle.html' },
         { text: 'collideCircleRect', link: '/utils/collision/collideCircleRect.html' },
@@ -226,7 +239,7 @@ function getUtilsSidebar() {
     {
       text: 'CSS utils',
       // link: '/utils/css/',
-      children: [
+      items: [
         { text: 'addClass', link: '/utils/css/addClass.html' },
         { text: 'addStyle', link: '/utils/css/addStyle.html' },
         { text: 'animate', link: '/utils/css/animate.html' },
@@ -242,7 +255,7 @@ function getUtilsSidebar() {
     {
       text: 'History utils',
       link: '/utils/history/',
-      children: [
+      items: [
         { text: 'historyPush', link: '/utils/history/historyPush.html' },
         { text: 'historyReplace', link: '/utils/history/historyReplace.html' },
         { text: 'objectToURLSearchParams', link: '/utils/history/objectToURLSearchParams.html' },
@@ -251,7 +264,7 @@ function getUtilsSidebar() {
     {
       text: 'Math utils',
       // link: '/utils/math/',
-      children: [
+      items: [
         { text: 'clamp', link: '/utils/math/clamp.html' },
         { text: 'clamp01', link: '/utils/math/clamp01.html' },
         { text: 'createEaseInOut', link: '/utils/math/createEaseInOut.html' },
@@ -267,7 +280,7 @@ function getUtilsSidebar() {
     {
       text: 'String utils',
       link: '/utils/string/',
-      children: [
+      items: [
         { text: 'withLeadingCharacters', link: '/utils/string/withLeadingCharacters.html' },
         { text: 'withLeadingSlash', link: '/utils/string/withLeadingSlash.html' },
         { text: 'withoutLeadingCharacters', link: '/utils/string/withoutLeadingCharacters.html' },

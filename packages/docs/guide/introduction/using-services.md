@@ -152,5 +152,6 @@ Learn more on the service manager in the [API Reference](/api/instance-propertie
 ## Services hooks diagram
 
 <div class="my-16 block-full-width">
-  <img class="block mx-auto" src="../../assets/services-hooks.svg" width="960" height="689" alt="Services hooks diagram">
+  <img class="block dark:hidden mx-auto" src="../../assets/services-hooks.svg" width="960" height="689" alt="Services hooks diagram">
+  <img class="hidden dark:block mx-auto" src="../../assets/services-hooks-dark.svg" width="960" height="689" alt="Services hooks diagram">
 </div>
