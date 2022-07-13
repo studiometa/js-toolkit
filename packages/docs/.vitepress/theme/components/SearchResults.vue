@@ -37,7 +37,7 @@
         :rel="item.id.startsWith('/') ? undefined : 'noopener'"
         @click="clickHandler($event, item)"
         class="flex justify-between items-center px-4 py-4 leading-none"
-        :class="{ 'bg-gray-100': active }"
+        :class="{ 'bg-vp-bg-alt': active }"
       >
         {{ item.link.text }}
         <span v-if="active">⏎</span>

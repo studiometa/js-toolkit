@@ -1,0 +1,85 @@
+# tween
+
+Execute a function while tweening a value between 0 and 1.
+
+## Usage
+
+```js
+import { tween, easeInOutExpo } from '@studiometa/js-toolkit/utils';
+
+const tw = tween(
+  (progress) => {
+    document.body.innerHTML = progress;
+  },
+  {
+    duration: 10,
+    easing: easeInOutExpo,
+  }
+);
+
+tw.start();
+```
+
+### Parameters
+
+- `callback` (`(progress:number) => void`): the function called for each frame
+- `options` (`Options`): options for the animation
+
+### Return value
+
+The `tween` function returns an object with methods to control the animation:
+
+#### `start()`
+
+Use this method to start the animation which does not start automatically.
+
+#### `pause()`
+
+Use this method to pause an animation and commit its styles to the element.
+
+#### `play()`
+
+Use this method to unpause a paused animation.
+
+#### `finish()`
+
+Use this method to go to the end of the animation. This is an alias for `animation.progress(1)`.
+
+#### `progress(value)`
+
+Use this method to get or set the progress (`0–1` range) of the animation.
+
+```js
+import { tween } from '@studiometa/js-toolkit/utils';
+
+const tw = tween((progress) => {
+  document.body.innerHTML = progress;
+});
+
+console.log(tw.progress()); // 0
+tw.progress(1);
+console.log(tw.progress()); // 1
+console.log(document.body.innerHTML); // '1'
+```
+
+### Types
+
+```ts
+type EasingFunction = (value:number) => number;
+type BezierCurve = [number, number, number, number];
+
+interface Options {
+  duration?: number;
+  easing?: EasingFunction|BezierCurve;
+  onProgress?: (progress: number, easedProgress: number) => void;
+  onFinish?: (progress: number, easedProgress: number) => void;
+}
+
+tween((progress:number) => void,  options?: Options): {
+  start: () => void;
+  pause: () => void;
+  play: () => void;
+  finish: () => void;
+  progress: (value?: number) => number;
+};
+```
