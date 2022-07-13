@@ -7,7 +7,9 @@
 
 <template>
   <div class="my-4 rounded-md overflow-hidden">
-    <div class="flex bg-vp-code-block-bg border-0 border-b-2 border-solid border-white border-opacity-20 transition duration-500">
+    <div
+      class="flex bg-vp-code-block-bg border-0 border-b-2 border-solid border-white border-opacity-20 transition duration-500"
+    >
       <div v-for="(item, index) in items" :key="item.label">
         <button
           :class="{
@@ -28,7 +30,12 @@
         </button>
       </div>
     </div>
-    <div class="tabs__content" v-for="(item, index) in items" :key="item.label + 'content'" v-show="index === selectedIndex">
+    <div
+      class="tabs__content"
+      v-for="(item, index) in items"
+      :key="item.label + 'content'"
+      v-show="index === selectedIndex"
+    >
       <slot :name="`content-${index + 1}`" />
     </div>
   </div>
