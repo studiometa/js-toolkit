@@ -16,6 +16,7 @@ module.exports = {
     removeDeprecatedGapUtilities: true,
     purgeLayersByDefault: true,
   },
+  darkMode: 'dark',
   theme: {
     extend: {
       cursor: {
@@ -23,6 +24,11 @@ module.exports = {
         grabbing: 'grabbing',
       },
       colors: {
+        vp: {
+          'text-1': 'var(--vp-c-text-1)',
+          bg: 'var(--vp-c-bg)',
+          'bg-alt': 'var(--vp-c-bg-alt)',
+        },
         brand: {
           DEFAULT: '#3eaf7c',
           light: '#42d392',
