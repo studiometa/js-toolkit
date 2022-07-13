@@ -26,11 +26,8 @@ h3 + h4 {
   width: 100%;
 
   @media (min-width: 720px) {
-    --width: 90vw;
-    position: relative;
-    left: 50%;
-    width: max(calc(var(--width) - var(--sidebar-width)), 100%);
-    transform: translateX(-50%);
+    width: 110%;
+    margin-left: -5%;
   }
 }
 

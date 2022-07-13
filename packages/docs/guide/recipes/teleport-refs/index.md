@@ -7,21 +7,25 @@ We can make sure that the moved refs are still accessible by saving the original
 ### Modal component example
 
 <script setup>
-  import ModalRaw from './Modal.js?raw';
-  import ModalHtmlRaw from './Modal.html?raw';
-
   const tabs = [
     {
       label: 'Modal.js',
-      lang: 'js',
-      content: ModalRaw,
     },
     {
       label: 'Modal.html',
-      lang: 'html',
-      content: ModalHtmlRaw,
     },
   ];
 </script>
 
-<Tabs :items="tabs" />
+<Tabs :items="tabs">
+  <template #content-1>
+
+<<< ./guide/recipes/teleport-refs/Modal.js
+
+  </template>
+  <template #content-2>
+
+<<< ./guide/recipes/teleport-refs/Modal.html
+
+  </template>
+</Tabs>

@@ -21,11 +21,9 @@ export default defineConfig({
     sidebarDepth: 3,
     footer: {
       message: 'MIT Licensed',
-      copyright: 'Copyright © 2020–present Studio Meta'
+      copyright: 'Copyright © 2020–present Studio Meta',
     },
-    socialLinks: [
-      { icon: 'github', link: 'https://github.com/studiometa/js-toolkit' },
-    ],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/studiometa/js-toolkit' }],
     nav: [
       { text: 'Guide', link: '/guide/' },
       { text: 'API Reference', link: '/api/' },

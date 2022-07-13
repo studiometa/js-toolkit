@@ -1,26 +1,13 @@
 <script setup>
   import { ref, unref, computed } from 'vue';
-  import Prism from 'prismjs';
   const { items } = defineProps({ items: Array });
 
   const selectedIndex = ref(0);
-  const selectedItem = computed(() => items[unref(selectedIndex)]);
-
-  const renderedContent = computed(() => {
-    const item = unref(selectedItem);
-
-    if (!item.lang) {
-      return item.content;
-    }
-
-    const language = Prism.languages[item.lang];
-    return Prism.highlight(item.content, language, item.lang);
-  });
 </script>
 
 <template>
   <div class="my-4 rounded-md overflow-hidden">
-    <div class="flex bg-code-bg border-0 border-b-2 border-solid border-white border-opacity-20">
+    <div class="flex bg-vp-code-block-bg border-0 border-b-2 border-solid border-white border-opacity-20 transition duration-500">
       <div v-for="(item, index) in items" :key="item.label">
         <button
           :class="{
@@ -41,15 +28,15 @@
         </button>
       </div>
     </div>
-    <div :class="`language-${selectedItem.lang}`">
-      <pre><code v-html="renderedContent"></code></pre>
+    <div class="tabs__content" v-for="(item, index) in items" :key="item.label + 'content'" v-show="index === selectedIndex">
+      <slot :name="`content-${index + 1}`" />
     </div>
   </div>
 </template>
 
-<style scoped>
-  div[class*='language-'] {
-    margin: 0;
+<style>
+  .tabs__content div[class*='language-'] {
+    margin: 0 !important;
     border-radius: 0;
   }
 </style>
