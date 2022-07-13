@@ -23,6 +23,7 @@ export default defineConfig({
   resolve: {
     alias: {
       './VPNavBarTitle.vue': path.resolve('.vitepress/theme/components/NavBarTitle.vue'),
+      './VPNavBarSearch.vue': path.resolve('.vitepress/theme/components/SearchBtn.vue'),
     },
   },
 });
