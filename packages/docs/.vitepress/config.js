@@ -28,8 +28,13 @@ export default defineConfig({
       { text: 'Guide', link: '/guide/' },
       { text: 'API Reference', link: '/api/' },
       { text: 'Utils Reference', link: '/utils/' },
-      { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
-      { text: 'Release Notes', link: 'https://github.com/studiometa/js-toolkit/releases' },
+      {
+        text: `v${pkg.version}`,
+        items: [
+          { text: 'Release Notes', link: 'https://github.com/studiometa/js-toolkit/releases' },
+          { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
+        ],
+      },
     ],
     sidebar: {
       '/guide/': getGuideSidebar(),
