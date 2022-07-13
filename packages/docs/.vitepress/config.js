@@ -220,6 +220,7 @@ function getUtilsSidebar() {
         { text: 'nextTick', link: '/utils/nextTick.html' },
         { text: 'scrollTo', link: '/utils/scrollTo.html' },
         { text: 'throttle', link: '/utils/throttle.html' },
+        { text: 'tween', link: '/utils/tween.html' },
         { text: 'useScheduler', link: '/utils/useScheduler.html' },
       ],
     },
