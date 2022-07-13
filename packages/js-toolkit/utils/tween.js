@@ -1,7 +1,7 @@
 import { cubicBezier } from '@motionone/easing';
 import { lerp, map, clamp01 } from './math/index.js';
 import { isDefined, isArray } from './is.js';
-import { noop } from './noop.js';
+import { noop, noopValue as linear } from './noop.js';
 import useRaf from '../services/raf.js';
 
 let id = 0;
@@ -17,17 +17,6 @@ const PROGRESS_PRECISION = 0.0001;
  *   onFinish?: (progress: number, easedProgress: number) => void;
  *  }} TweenOptions
  */
-
-/**
- * Linear easing.
- *
- * @template {number} T
- * @param   {T} value
- * @returns {T}
- */
-export function linear(value) {
-  return value;
-}
 
 /**
  * Normalize a easing function with default fallbacks.
@@ -65,7 +54,7 @@ export function tween(callback, options = {}) {
   let startTime = performance.now();
   let endTime = startTime + duration;
 
-  const key = `tween-${id}`;
+  const key = `tw-${id}`;
   id += 1;
 
   const { onStart = noop, onProgress = noop, onFinish = noop } = options;
