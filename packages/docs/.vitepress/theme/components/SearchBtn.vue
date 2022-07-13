@@ -13,7 +13,12 @@
 <template>
   <div class="VPNavBarSearch">
     <div id="docsearch">
-      <button type="button" class="DocSearch DocSearch-Button" aria-label="Search" @click="handler.show">
+      <button
+        type="button"
+        class="DocSearch DocSearch-Button"
+        aria-label="Search"
+        @click="handler.show"
+      >
         <span class="DocSearch-Button-Container">
           <svg class="DocSearch-Search-Icon" width="20" height="20" viewBox="0 0 20 20">
             <path
@@ -25,9 +30,7 @@
               stroke-linejoin="round"
             />
           </svg>
-          <span class="DocSearch-Button-Placeholder">
-            Search
-          </span>
+          <span class="DocSearch-Button-Placeholder">Search</span>
         </span>
         <span class="DocSearch-Button-Keys">
           <kbd class="DocSearch-Button-Key" ref="metaKey">⌘</kbd>
