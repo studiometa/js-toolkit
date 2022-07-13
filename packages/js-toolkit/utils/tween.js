@@ -84,15 +84,18 @@ export function tween(callback, options = {}) {
     progressValue = newProgress;
     easedProgress = ease(progressValue);
 
-    callback(easedProgress);
-    onProgress(progressValue, easedProgress);
-
     // Stop when reaching precision
     if (Math.abs(1 - easedProgress) < PROGRESS_PRECISION) {
       progressValue = 1;
       easedProgress = 1;
+    }
+
+    callback(easedProgress);
+    onProgress(progressValue, easedProgress);
+
+    if (easedProgress === 1) {
       pause();
-      onFinish(progressValue, easedProgress);
+      requestAnimationFrame(() => onFinish(progressValue, easedProgress));
     }
 
     return progressValue;
