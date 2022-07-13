@@ -1,5 +1,5 @@
 import { Base } from '@studiometa/js-toolkit';
-import { map, damp, matrix } from '@studiometa/js-toolkit/utils';
+import { map, damp, transform } from '@studiometa/js-toolkit/utils';
 
 export default class ScrollLinkedAnimation extends Base {
   static config = {
@@ -36,6 +36,7 @@ export default class ScrollLinkedAnimation extends Base {
   }
 
   ticked() {
+    // Read from the DOM and compute values in the method body
     this.dampedScrollDeltaY = damp(this.scrollDeltaY, this.dampedScrollDeltaY, 0.05, 0.0001);
 
     this.dampedScrollProgressY = damp(
@@ -45,8 +46,8 @@ export default class ScrollLinkedAnimation extends Base {
       0.0001
     );
 
-    this.$refs.cols.forEach((col, index) => {
-      const skewY = index % 2 ? this.dampedScrollDeltaY * -0.005 : this.dampedScrollDeltaY * 0.005;
+    const items = this.$refs.cols.map((col, index) => {
+      const skewY = index % 2 ? this.dampedScrollDeltaY * -0.25 : this.dampedScrollDeltaY * 0.25;
 
       let translateY;
       if (index % 2 === 0) {
@@ -59,12 +60,20 @@ export default class ScrollLinkedAnimation extends Base {
         );
       }
 
-      col.style.transform = matrix({ skewY, translateY });
+      return { col, skewY, translateY };
     });
 
     // Disable service when animation has ended
     if (this.dampedScrollDeltaY === this.scrollDeltaY) {
       this.$services.disable('ticked');
     }
+
+    // Update and write to the DOM in the returned function to improve performance
+    // and avoid layout trashing.
+    return () => {
+      items.forEach((item) => {
+        transform(item.col, { skewY: item.skewY, y: item.translateY });
+      });
+    };
   }
 }
