@@ -1,46 +1,65 @@
 <script setup lang="ts">
-  import { withBase, useData } from 'vitepress';
+  import { useData } from 'vitepress';
+  import { useSidebar } from 'vitepress/client/theme-default/composables/sidebar.js';
+  import VPImage from 'vitepress/client/theme-default/components/VPImage.vue';
   import Badge from './Badge.vue';
 
-  const { site, theme, localePath } = useData();
+  const { site, theme } = useData();
+  const { hasSidebar } = useSidebar();
 </script>
 
 <template>
-  <div class="flex">
-    <a class="nav-bar-title" :href="localePath" :aria-label="`${site.title}, back to home`">
-      <img v-if="theme.logo" class="logo" :src="withBase(theme.logo)" alt="Logo" />
-      {{ site.title }}
+  <div class="VPNavBarTitle" :class="{ 'has-sidebar': hasSidebar }">
+    <a class="title" :href="site.base">
+      <slot name="nav-bar-title-before" />
+      <VPImage class="logo" :image="theme.logo" />
+      <template v-if="theme.siteTitle">{{ theme.siteTitle }}</template>
+      <template v-else-if="theme.siteTitle === undefined">{{ site.title }}</template>
+      <slot name="nav-bar-title-after" />
     </a>
-    <Badge class="nav-bar-badge">v{{ theme.version }}</Badge>
+    <Badge class="ml-4">v{{ theme.version }}</Badge>
   </div>
 </template>
 
 <style scoped>
-  .flex {
+  .VPNavBarTitle {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+    border-bottom: 1px solid transparent;
   }
 
-  .nav-bar-title {
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--c-text);
+  @media (min-width: 960px) {
+    .VPNavBarTitle.has-sidebar {
+      margin-right: 32px;
+      width: calc(var(--vp-sidebar-width) - 64px);
+      border-bottom-color: var(--vp-c-divider-light);
+      background-color: var(--vp-c-bg-alt);
+    }
+  }
+
+  .title {
     display: inline-flex;
-    justify-content: center;
     align-items: center;
+    height: var(--vp-nav-height);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--vp-c-text-1);
+    transition: opacity 0.25s;
   }
 
-  .nav-bar-title:hover {
-    text-decoration: none;
+  .title:hover {
+    opacity: 0.6;
   }
 
-  .logo {
-    margin-right: 0.75rem;
-    height: 1.3rem;
-    vertical-align: bottom;
+  @media (min-width: 960px) {
+    .title {
+      flex-shrink: 0;
+    }
   }
 
-  .nav-bar-badge {
-    margin-left: 10px;
+  :deep(.logo) {
+    margin-right: 8px;
+    height: 24px;
   }
 </style>

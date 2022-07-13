@@ -1,5 +1,5 @@
 <script setup>
-  import Theme from 'vitepress/dist/client/theme-default';
+  import Theme from 'vitepress/client/theme-default';
   import { useKBarHandler } from '@bytebase/vue-kbar';
 
   const { Layout } = Theme;

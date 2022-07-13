@@ -1,16 +1,22 @@
 ---
-home: true
-heroText: JS Toolkit
-heroImage: /logo.png
-tagline: Useful little bits of JavaScript to boost your project! 🚀
-actionText: Get Started →
-actionLink: /guide/
+layout: home
+sidebar: false
+hero:
+  name: JS Toolkit
+  text: A data-attributes driven micro framework
+  tagline: And plenty of useful little bits of JavaScript to boost your project! 🚀
+  actions:
+    - theme: brand
+      text: Get Started
+      link: /guide/
+    - theme: alt
+      text: View on GitHub
+      link: https://github.com/studiometa/js-toolkit
 features:
-  - title: Framework
+  - title: A micro-framework
     details: An abstract class to help you write small and efficient JavaScript classes as well as orchestrate them.
-  - title: Services
+  - title: Useful services
     details: Services will help you implement common tasks by abstracting their tedious parts.
-  - title: Utils
+  - title: Plenty of utilities
     details: Functions to help you manipulate the DOM, use math calculations, use the history API and more.
-footer: MIT Licensed | Copyright © 2020–present Studio Meta
 ---
