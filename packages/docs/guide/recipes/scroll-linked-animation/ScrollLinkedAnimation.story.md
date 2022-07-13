@@ -1,7 +1,7 @@
 ---
 sidebar: false
 navbar: false
-customLayout: true
+layout: page
 ---
 
 <script setup>
@@ -20,9 +20,19 @@ customLayout: true
 </script>
 
 <div class="rounded bg-gray-100 text-center" v-html="ScrollLinkedAnimationHtmlRaw"></div>
+<p class="text-gray-400 text-xs text-center p-10">Pictures from <a href="https://picsum.photos">picsum.photos</a></p>
 
 <style>
-  html {
+  body {
     @apply bg-gray-100;
+  }
+
+  .VPNav,
+  .VPFooter {
+    display: none !important;
+  }
+
+  .VPContent {
+    padding: 2rem !important;
   }
 </style>
