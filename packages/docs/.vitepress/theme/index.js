@@ -1,4 +1,4 @@
-import DefaultTheme from 'vitepress/dist/client/theme-default';
+import DefaultTheme from 'vitepress/client/theme-default';
 import Badge from './components/Badge.vue';
 import Tabs from './components/Tabs.vue';
 import PreviewIframe from './components/PreviewIframe.vue';

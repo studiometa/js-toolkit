@@ -7,8 +7,8 @@ export { default as nextTick } from './nextTick.js';
 export { default as nextMicrotask } from './nextMicrotask.js';
 export { default as throttle } from './throttle.js';
 export { default as scrollTo } from './scrollTo.js';
-export { default as isDefined } from './isDefined.js';
-export { default as isFunction } from './isFunction.js';
+export * from './is.js';
+export * from './has.js';
 export * from './css/index.js';
 export {
   objectToURLSearchParams,
@@ -20,3 +20,4 @@ export * from './math/index.js';
 export * from './string/index.js';
 export * from './scheduler.js';
 export * from './noop.js';
+export { tween } from './tween.js';

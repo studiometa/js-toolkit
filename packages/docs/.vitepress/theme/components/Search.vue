@@ -154,9 +154,10 @@
   <KBarProvider :actions="actions" :options="{ placeholder: 'Search docs' }">
     <ClientOnly>
       <KBarPortal>
-        <KBarPositioner class="z-goku bg-gray-300 bg-opacity-80">
+        <KBarPositioner class="z-goku">
+          <div class="z-under absolute inset-0 bg-vp-text-1 dark:bg-vp-bg-soft opacity-80"></div>
           <KBarAnimator
-            class="bg-white shadow-lg rounded-lg w-full h-full max-w-lg max-h-lg overflow-hidden divide-y"
+            class="bg-vp-bg shadow-lg rounded-lg w-full h-full max-w-lg max-h-lg overflow-hidden divide-y"
           >
             <KBarSearch class="p-4 text-lg w-full box-border outline-none border-none" />
             <SearchResults />

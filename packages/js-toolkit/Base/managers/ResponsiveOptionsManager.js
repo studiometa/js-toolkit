@@ -1,5 +1,6 @@
 import OptionsManager, { __getPropertyName } from './OptionsManager.js';
 import { useResize } from '../../services/index.js';
+import { isDev } from '../../utils/index.js';
 
 /**
  * @typedef {import('./OptionsManager.js').OptionObject} OptionObject
@@ -70,6 +71,8 @@ export default class ResponsiveOptionsManager extends OptionsManager {
       return;
     }
 
-    console.warn(`[${this.__config.name}]`, 'Responsive options are read-only.');
+    if (isDev) {
+      console.warn(`[${this.__config.name}]`, 'Responsive options are read-only.');
+    }
   }
 }

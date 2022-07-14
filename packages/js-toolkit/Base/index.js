@@ -1,15 +1,12 @@
-import { getComponentElements } from './utils.js';
+import { getComponentElements, getEventTarget } from './utils.js';
 import ChildrenManager from './managers/ChildrenManager.js';
 import RefsManager from './managers/RefsManager.js';
 import ServicesManager from './managers/ServicesManager.js';
 import EventsManager from './managers/EventsManager.js';
 import OptionsManager from './managers/OptionsManager.js';
-import { noop } from '../utils/noop.js';
+import { noop, isDev, isFunction, isArray } from '../utils/index.js';
 
 let id = 0;
-
-// eslint-disable-next-line no-undef
-const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 
 /**
  * Test if the managers' instances implement the default manager.
@@ -47,7 +44,7 @@ function createAndTestManagers(instance) {
     },
   ].forEach(({ prop, constructorName, constructor }) => {
     instance[prop] = new instance.__managers[constructorName](instance);
-    if (!(instance[prop] instanceof constructor)) {
+    if (isDev && !(instance[prop] instanceof constructor)) {
       throw new Error(
         `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`
       );
@@ -315,7 +312,7 @@ export default class Base extends EventTarget {
     this.$emit(method, ...args);
 
     // We always emit an event, but we do not call the method if it does not exist
-    if (typeof this[method] !== 'function') {
+    if (!isFunction(this[method])) {
       return null;
     }
 
@@ -347,13 +344,19 @@ export default class Base extends EventTarget {
     super();
 
     if (!element) {
-      throw new Error('The root element must be defined.');
+      if (isDev) {
+        throw new Error('The root element must be defined.');
+      }
+      return;
     }
 
     const { __config } = this;
 
     if (__config.name === 'Base') {
-      throw new Error('The `config.name` property is required.');
+      if (isDev) {
+        throw new Error('The `config.name` property is required.');
+      }
+      return;
     }
 
     this.$id = `${__config.name}-${id}`;
@@ -467,22 +470,6 @@ export default class Base extends EventTarget {
   }
 
   /**
-   * Test if the given event is configured and warn otherwise.
-   *
-   * @private
-   * @param   {string} event The event name.
-   * @returns {void}
-   */
-  __testEventIsDefined(event) {
-    if (!(Array.isArray(this.__config.emits) && this.__config.emits.includes(event))) {
-      console.warn(
-        `[${this.__config.name}]`,
-        `The "${event}" event is missing from the configuration.`
-      );
-    }
-  }
-
-  /**
    * Add an emitted event.
    *
    * @private
@@ -491,7 +478,7 @@ export default class Base extends EventTarget {
    */
   __addEmits(event) {
     const ctor = this.__ctor;
-    if (Array.isArray(ctor.config.emits)) {
+    if (isArray(ctor.config.emits)) {
       ctor.config.emits.push(event);
     } else {
       ctor.config.emits = [event];
@@ -538,10 +525,6 @@ export default class Base extends EventTarget {
       this.__debug('$on', event, listener, options);
     }
 
-    if (isDev) {
-      this.__testEventIsDefined(event);
-    }
-
     let set = this.__eventHandlers.get(event);
 
     if (!set) {
@@ -550,7 +533,9 @@ export default class Base extends EventTarget {
     }
 
     set.add(listener);
-    this.addEventListener(event, listener, options);
+
+    const target = getEventTarget(this, event, this.__config);
+    target.addEventListener(event, listener, options);
 
     return () => {
       this.$off(event, listener, options);
@@ -573,12 +558,10 @@ export default class Base extends EventTarget {
       this.__debug('$off', event, listener);
     }
 
-    if (isDev) {
-      this.__testEventIsDefined(event);
-    }
-
     this.__eventHandlers.get(event).delete(listener);
-    this.removeEventListener(event, listener, options);
+
+    const target = getEventTarget(this, event, this.__config);
+    target.removeEventListener(event, listener, options);
   }
 
   /**
@@ -594,10 +577,6 @@ export default class Base extends EventTarget {
       this.__debug('$emit', event, args);
     }
 
-    if (isDev) {
-      this.__testEventIsDefined(event);
-    }
-
     this.dispatchEvent(new CustomEvent(event, { detail: args }));
   }
 
@@ -608,7 +587,7 @@ export default class Base extends EventTarget {
    * @returns {Array<Base>}                A list of the created instance.
    */
   static $factory(nameOrSelector) {
-    if (!nameOrSelector) {
+    if (isDev && !nameOrSelector) {
       throw new Error(
         'The $factory method requires a component’s name or selector to be specified.'
       );

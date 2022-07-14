@@ -72,6 +72,7 @@ export default class MyVueComponent extends withVue2(Base, Vue) {
 ```
 
 ### Advanced usage
+
 Use component `$options` as a props using `vueConfig`.
 
 ```html

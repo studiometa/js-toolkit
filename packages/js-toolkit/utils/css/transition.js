@@ -1,6 +1,8 @@
 import { nextFrame } from '../nextFrame.js';
 import * as classes from './classes.js';
 import * as styles from './styles.js';
+import { isArray, isString } from '../is.js';
+import { hasWindow } from '../has.js';
 
 /** WeakMap to hold the transition instances. */
 const cache = new WeakMap();
@@ -58,7 +60,7 @@ class Transition {
  * @param {'add'|'remove'}  method          The method to use, one of `add` or `remove`.
  */
 export function setClassesOrStyles(element, classesOrStyles, method = 'add') {
-  if (typeof classesOrStyles === 'string' || Array.isArray(classesOrStyles)) {
+  if (isString(classesOrStyles) || isArray(classesOrStyles)) {
     classes[method](element, classesOrStyles);
   } else {
     styles[method](element, classesOrStyles);
@@ -72,7 +74,7 @@ export function setClassesOrStyles(element, classesOrStyles, method = 'add') {
  * @returns {boolean}             The result of the test.
  */
 function testTransition(element) {
-  if (typeof window === 'undefined') {
+  if (!hasWindow()) {
     return false;
   }
 
@@ -156,19 +158,18 @@ function end(element, classesOrStyles, mode = 'remove') {
  */
 export default async function transition(element, name, endMode = 'remove') {
   /** @type {TransitionStyles} */
-  const classesOrStyles =
-    typeof name === 'string'
-      ? {
-          from: `${name}-from`,
-          active: `${name}-active`,
-          to: `${name}-to`,
-        }
-      : {
-          from: '',
-          active: '',
-          to: '',
-          ...name,
-        };
+  const classesOrStyles = isString(name)
+    ? {
+        from: `${name}-from`,
+        active: `${name}-active`,
+        to: `${name}-to`,
+      }
+    : {
+        from: '',
+        active: '',
+        to: '',
+        ...name,
+      };
 
   const trs = Transition.getInstance(element);
   // End any previous transition running on the element.

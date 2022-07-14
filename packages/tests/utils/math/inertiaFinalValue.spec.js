@@ -1,12 +1,6 @@
 import inertiaFinalValue from '@studiometa/js-toolkit/utils/math/inertiaFinalValue';
 
 describe('The inertiaFinalValue function', () => {
-  it('should throw an error if the factor is not correct', () => {
-    [0, 1, 10, -10].forEach((factor) => {
-      expect(() => inertiaFinalValue(100, 10, factor)).toThrow();
-    });
-  });
-
   it('should have a minium theshold of 0.1', () => {
     const value = inertiaFinalValue(100, 0.01, 0.5);
     expect(value).toBe(100);

@@ -4,38 +4,17 @@ Find below the JavaScript and HTML implementation of a counter component.
 
 <script setup>
   import { onMounted, onUnmounted, nextTick } from 'vue';
-  import CounterRaw from './Counter.js?raw';
   import CounterHtmlRaw from './Counter.html?raw';
 
   const tabs = [
     {
       label: 'Counter.js',
-      lang: 'js',
-      content: CounterRaw,
     },
     {
       label: 'Counter.html',
-      lang: 'html',
-      content: CounterHtmlRaw,
     },
     {
       label: 'app.js',
-      lang: 'js',
-      content: `
-import { Base, createApp } from '@studiometa/js-toolkit';
-import Counter from './Counter.js';
-
-class App extends Base {
-  static config = {
-    name: 'App',
-    components: {
-      Counter,
-    },
-  };
-}
-
-export default createApp(App, document.body);
-`
     },
   ];
   let counter;
@@ -49,6 +28,36 @@ export default createApp(App, document.body);
   });
 </script>
 
-<div class="my-4 p-10 rounded bg-gray-100 text-center" v-html="CounterHtmlRaw"></div>
+<div class="my-4 p-10 rounded bg-vp-bg-alt text-center" v-html="CounterHtmlRaw"></div>
 
-<Tabs :items="tabs" />
+<Tabs :items="tabs">
+  <template #content-1>
+
+<<< ./guide/recipes/counter-component/Counter.js
+
+  </template>
+  <template #content-2>
+
+<<< ./guide/recipes/counter-component/Counter.html
+
+  </template>
+  <template #content-3>
+
+```js
+import { Base, createApp } from '@studiometa/js-toolkit';
+import Counter from './Counter.js';
+
+class App extends Base {
+  static config = {
+    name: 'App',
+    components: {
+      Counter,
+    },
+  };
+}
+
+export default createApp(App, document.body);
+```
+
+  </template>
+</Tabs>
