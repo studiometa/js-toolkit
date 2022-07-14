@@ -12,6 +12,7 @@ describe('The EventsManager class', () => {
   const singleRefFn = jest.fn();
   const multipleRefFn = jest.fn();
   const componentFn = jest.fn();
+  const componentInnerFn = jest.fn();
   const asyncComponentFn = jest.fn();
 
   class Component extends Base {
@@ -19,6 +20,10 @@ describe('The EventsManager class', () => {
       name: 'Component',
       emits: ['custom-event'],
     };
+
+    onCustomEvent(...args) {
+      componentInnerFn(...args);
+    }
   }
 
   class AsyncComponent extends Base {
@@ -155,9 +160,17 @@ describe('The EventsManager class', () => {
       0,
       expect.objectContaining({ type: 'custom-event', detail: [1, 2] })
     );
+    expect(componentInnerFn).toHaveBeenLastCalledWith(
+      1,
+      2,
+      expect.objectContaining({ type: 'custom-event', detail: [1, 2] })
+    );
     app.$children.Component[0].dispatchEvent(new CustomEvent('custom-event'));
     expect(componentFn).toHaveBeenLastCalledWith(
       0,
+      expect.objectContaining({ type: 'custom-event', detail: null })
+    );
+    expect(componentInnerFn).toHaveBeenLastCalledWith(
       expect.objectContaining({ type: 'custom-event', detail: null })
     );
     app.$children.Component[0].$el.click();
@@ -176,6 +189,11 @@ describe('The EventsManager class', () => {
       1,
       2,
       0,
+      expect.objectContaining({ type: 'custom-event', detail: [1, 2] })
+    );
+    expect(componentInnerFn).toHaveBeenLastCalledWith(
+      1,
+      2,
       expect.objectContaining({ type: 'custom-event', detail: [1, 2] })
     );
     app.$destroy();
