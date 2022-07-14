@@ -1,4 +1,6 @@
 import getAllProperties from '../../utils/object/getAllProperties.js';
+import { isArray } from '../../utils/index.js';
+import { getEventTarget, eventIsNative, eventIsDefinedInConfig } from '../utils.js';
 import AbstractManager from './AbstractManager.js';
 import { normalizeRefName } from './RefsManager.js';
 
@@ -79,13 +81,12 @@ function getRegex(regex) {
 /**
  * Get the event name from the given method and its tied ref or children name.
  *
- * @param {EventsManager} that
  * @param {string} method
  * @param {string} name
  * @returns {string}
  * @private
  */
-function __getEventNameByMethod(that, method, name = '') {
+function getEventNameByMethod(method, name = '') {
   const regex = getRegex(`^on${normalizeName(name)}([A-Z].*)$`);
   const [, event] = method.match(regex);
   return normalizeEventName(event);
@@ -99,7 +100,7 @@ function __getEventNameByMethod(that, method, name = '') {
  * @returns {string[]}
  * @private
  */
-function __getEventMethodsByName(that, name = '') {
+function getEventMethodsByName(that, name = '') {
   const regex = getRegex(`^on${normalizeName(name)}[A-Z].*$`);
   const key = regex.toString();
 
@@ -132,11 +133,11 @@ function __getEventMethodsByName(that, name = '') {
  * @returns {void}
  * @private
  */
-function __manageRef(that, name, elements, mode = 'add') {
+function manageRef(that, name, elements, mode = 'add') {
   const action = `${mode}EventListener`;
-  const methods = __getEventMethodsByName(that, name);
+  const methods = getEventMethodsByName(that, name);
   methods.forEach((method) => {
-    const event = __getEventNameByMethod(that, method, name);
+    const event = getEventNameByMethod(method, name);
     elements.forEach((element) => element[action](event, that.__refsHandler));
   });
 }
@@ -153,11 +154,11 @@ function __manageRef(that, name, elements, mode = 'add') {
  * @returns {void}
  * @private
  */
-function __manageChild(that, name, instance, mode = 'add') {
+function manageChild(that, name, instance, mode = 'add') {
   const action = mode === 'add' ? '$on' : '$off';
-  const methods = __getEventMethodsByName(that, name);
+  const methods = getEventMethodsByName(that, name);
   methods.forEach((method) => {
-    const event = __getEventNameByMethod(that, method, name);
+    const event = getEventNameByMethod(method, name);
     instance[action](event, that.__childrenHandler);
   });
 }
@@ -170,19 +171,19 @@ function __manageChild(that, name, instance, mode = 'add') {
  * @returns {void}
  * @private
  */
-function __manageRootElement(that, mode = 'add') {
+function manageRootElement(that, mode = 'add') {
   const modeMethod = `${mode}EventListener`;
-  const methods = __getEventMethodsByName(that);
+  const methods = getEventMethodsByName(that);
 
-  // @ts-ignore
-  const { emits = [] } = that.__base.__config;
+  const { __base: base, __config: config } = that;
 
-  methods.forEach((method) => {
-    const event = __getEventNameByMethod(that, method);
-    // @ts-ignore
-    const target = emits.includes(event) ? that.__base : that.__element;
-    target[modeMethod](event, that.__rootElementHandler);
-  });
+  methods
+    .map((method) => getEventNameByMethod(method))
+    .filter((event) => eventIsDefinedInConfig(event, config) || eventIsNative(event, base.$el))
+    .forEach((event) => {
+      const target = getEventTarget(base, event, config);
+      target[modeMethod](event, that.__rootElementHandler);
+    });
 }
 
 /**
@@ -202,11 +203,19 @@ export default class EventsManager extends AbstractManager {
    * @type {EventListenerObject}
    */
   __rootElementHandler = {
+    /**
+     * @param   {Event|CustomEvent} event
+     * @returns {void}
+     */
     handleEvent: (event) => {
       const normalizedEventName = normalizeName(event.type);
       const method = `on${normalizedEventName}`;
 
-      this.__base[method](event);
+      if (event instanceof CustomEvent && isArray(event.detail) && event.detail.length) {
+        this.__base[method](...event.detail, event);
+      } else {
+        this.__base[method](event);
+      }
     },
   };
 
@@ -225,7 +234,7 @@ export default class EventsManager extends AbstractManager {
       const method = `on${normalizedRefName}${normalizedEventName}`;
 
       let index = 0;
-      if (Array.isArray(this.__base.$refs[refName])) {
+      if (isArray(this.__base.$refs[refName])) {
         index = this.__base.$refs[refName].indexOf(ref);
       }
 
@@ -244,27 +253,24 @@ export default class EventsManager extends AbstractManager {
      * @returns {void}
      */
     handleEvent: (event) => {
-      const child = /** @type {Base} */ (event.currentTarget);
-      let childName;
-      let index = 0;
-
       const childrenManager = this.__base.$children;
 
-      childrenManager.registeredNames.find((name) => {
-        if (childrenManager[name].includes(child)) {
-          childName = name;
-          index = childrenManager[name].indexOf(child);
-          return true;
-        }
+      const { name, child: resolvedChild } = childrenManager.registeredNames
+        .map((childName) => ({
+          name: childName,
+          child: childrenManager[childName].find(
+            (instance) => instance === event.currentTarget || instance.$el === event.currentTarget
+          ),
+        }))
+        .find(({ child }) => child);
 
-        return false;
-      });
-
-      const normalizedRefName = normalizeName(childName);
+      const normalizedChildName = normalizeName(name);
       const normalizedEventName = normalizeName(event.type);
-      const method = `on${normalizedRefName}${normalizedEventName}`;
+      const method = `on${normalizedChildName}${normalizedEventName}`;
 
-      const args = Array.isArray(event.detail) ? event.detail : [];
+      const index = childrenManager[name].indexOf(resolvedChild);
+
+      const args = isArray(event.detail) ? event.detail : [];
       this.__base[method](...args, index, event);
     },
   };
@@ -295,7 +301,7 @@ export default class EventsManager extends AbstractManager {
    * @returns {void}
    */
   bindRef(name, elements) {
-    __manageRef(this, name, elements);
+    manageRef(this, name, elements);
   }
 
   /**
@@ -308,7 +314,7 @@ export default class EventsManager extends AbstractManager {
    * @returns {void}
    */
   unbindRef(name, elements) {
-    __manageRef(this, name, elements, 'remove');
+    manageRef(this, name, elements, 'remove');
   }
 
   /**
@@ -321,7 +327,7 @@ export default class EventsManager extends AbstractManager {
    * @returns {void}
    */
   bindChild(name, instance) {
-    __manageChild(this, name, instance);
+    manageChild(this, name, instance);
   }
 
   /**
@@ -334,7 +340,7 @@ export default class EventsManager extends AbstractManager {
    * @returns {void}
    */
   unbindChild(name, instance) {
-    __manageChild(this, name, instance, 'remove');
+    manageChild(this, name, instance, 'remove');
   }
 
   /**
@@ -343,7 +349,7 @@ export default class EventsManager extends AbstractManager {
    * @returns {void}
    */
   bindRootElement() {
-    __manageRootElement(this);
+    manageRootElement(this);
   }
 
   /**
@@ -352,6 +358,6 @@ export default class EventsManager extends AbstractManager {
    * @returns {void}
    */
   unbindRootElement() {
-    __manageRootElement(this, 'remove');
+    manageRootElement(this, 'remove');
   }
 }

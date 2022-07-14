@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "2.2.3",
+  "version": "2.3.0",
   "description": "A set of useful little bits of JavaScript to boost your project! 🚀",
   "publishConfig": {
     "access": "public"
@@ -41,5 +41,8 @@
   "dependencies": {
     "@motionone/easing": "^10.9.0",
     "deepmerge": "^4.2.2"
+  },
+  "devDependencies": {
+    "vue": "2.6"
   }
 }

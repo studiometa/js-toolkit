@@ -1,4 +1,4 @@
-import isObject from '../object/isObject.js';
+import { isObject } from '../is.js';
 
 /**
  * Manage a list of style properties on an element.

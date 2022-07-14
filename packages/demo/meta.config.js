@@ -6,9 +6,16 @@ module.exports = {
   webpack(config, isDev) {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
-      vue$: 'vue/dist/vue.esm.js',
       '@studiometa/js-toolkit': path.resolve(__dirname, '../js-toolkit'),
     };
+
+    // Remove Vue loader and plugin.
+    config.plugins = config.plugins.filter((plugin) => {
+      return plugin.constructor.name !== 'VueLoaderPlugin';
+    });
+    config.module.rules = config.module.rules.filter((rule) => {
+      return !(rule.use && rule.use.includes('vue-loader'));
+    });
 
     config.plugins.push(
       new webpack.DefinePlugin({
