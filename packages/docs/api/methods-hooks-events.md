@@ -10,19 +10,22 @@ Methods following this pattern will be executed when the event is triggered on t
 
 **Example**
 
-```js {8-9,11-12}
+```js {10-11,15}
 import { Base } from '@studiometa/js-toolkit';
 
 class Foo extends Base {
   static config = {
     name: 'Foo',
+    emits: ['custom-event'],
   };
 
   // Will be triggered when clicking on `this.$el`
-  onClick(event) {}
+  onClick(event) {
+    this.$emit('custom-event', 'arg1', 'arg2');
+  }
 
-  // Will be triggered when emitting the `customEvent` or `custom-event` event
-  onCustomEvent(arg1, arg2) {}
+  // Will be triggered when emitting the `custom-event` event
+  onCustomEvent(arg1, arg2, event) {}
 }
 ```
 
@@ -32,25 +35,27 @@ Methods following this pattern will be executed when the corresponding event is 
 
 **Arguments**
 
-- `event|...args` ([`Event`](https://developer.mozilla.org/en-US/docs/Web/API/Event) or `any[]`): The event object when triggered from a native DOM event, the event arguments when triggered by a component.
-- `index` (`Number`): The index of the ref triggering the event when multiple refs exists.
+- `[...args]` (`any[]`)
+- `event` ([`Event`](https://developer.mozilla.org/en-US/docs/Web/API/Event) or [`CustomEvent`](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent)): The event object.
+- `index` (`number`): The index of the ref triggering the event when multiple refs exists.
 
-:::warning
-Native DOM events will only be binded to ref elements and component's events to child components.
+:::tip
+Native DOM events registered on a child component will be binded to the child root element if it supports the event. See the second example below with the `<form>` element.
 :::
 
 **Examples**
 
-```html{2-3,14-17}
+```html{2-3,13-16}
 <div data-component="Foo">
-  <button data-ref="btn">Open</btn>
-  <button data-ref="btn">Close</btn>
+  <button data-ref="btn[]">Open</btn>
+  <button data-ref="btn[]">Close</btn>
 </div>
 
 <script>
   class Foo extends Base {
     static config = {
       name: 'Foo',
+      refs: ['btn[]']
     };
 
     // Will be triggered when clicking on one of `this.$refs.btn`
@@ -63,9 +68,9 @@ Native DOM events will only be binded to ref elements and component's events to 
 </script>
 ```
 
-```html{2,18-20,24-25}
+```html{2,20-21,23-24}
 <div data-component="Foo">
-  <div data-component="Baz"></div>
+  <form data-component="Baz"></form>
 </div>
 
 <script>
@@ -84,7 +89,10 @@ Native DOM events will only be binded to ref elements and component's events to 
     };
 
     // Will be triggered when the component emits the `mounted` event
-    onBazMounted() {}
+    onBazMounted(event) {}
+
+    // Will be triggered when the `<form>` element is submitted
+    onBazSubmit(event) {}
   }
 
   new Foo(document.querySelector('[data-component="Foo"]'));
