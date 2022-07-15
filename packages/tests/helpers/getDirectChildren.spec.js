@@ -16,6 +16,7 @@ class Parent extends Base {
     name: 'Parent',
     components: {
       Child,
+      OtherChild: Child,
       Parent,
     },
   };
@@ -39,6 +40,11 @@ parent.$mount();
 const directChildren = getDirectChildren(parent, 'Parent', 'Child');
 
 describe('The `getDirectChildren` helper function', () => {
+  it('should return an empty array if no children components where found', () => {
+    expect(getDirectChildren(parent, 'Parent', 'OtherChild')).toEqual([]);
+    expect(getDirectChildren(parent, 'Parent', 'UndefinedChild')).toEqual([]);
+  });
+
   it('should return first-child components', () => {
     expect(directChildren).toHaveLength(1);
     expect(directChildren).toEqual([getInstanceFromElement(firstChild, Child)]);
@@ -46,6 +52,19 @@ describe('The `getDirectChildren` helper function', () => {
 
   it('should not return grand-child components', () => {
     expect(getDirectChildren(parent, 'Parent', 'Child')).not.toContain(grandChild);
+  });
+
+  it('should return all children if there is no nested parent', () => {
+    const el = document.createElement('div');
+    el.innerHTML = `
+      <div data-component="Parent">
+        <div data-component="Child"></div>
+        <div data-component="Child"></div>
+      </div>
+    `;
+    const instance = new Parent(el.firstElementChild);
+    instance.$mount();
+    expect(getDirectChildren(instance, 'Parent', 'Child')).toHaveLength(2);
   });
 });
 
