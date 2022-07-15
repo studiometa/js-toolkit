@@ -4,10 +4,12 @@ exports[`The package exports should export helpers and the Base class 1`] = `
 Array [
   "Base",
   "createApp",
+  "getDirectChildren",
   "getInstanceFromElement",
   "importOnInteraction",
   "importWhenIdle",
   "importWhenVisible",
+  "isDirectChild",
   "useDrag",
   "useKey",
   "useLoad",
