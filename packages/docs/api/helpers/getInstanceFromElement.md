@@ -14,7 +14,7 @@ const componentInstance = getInstanceFromElement(document.body, Component);
 **Parameters**
 
 - `element` (`HTMLElement`): the target element
-- `BaseConstructor`: (`BaseConstructor`): the class (constructor) of the component to look for
+- `BaseConstructor` (`BaseConstructor`): the class (constructor) of the component to look for
 
 **Return value**
 
