@@ -1,3 +1,5 @@
+import { isArray } from '../utils/index.js';
+
 /**
  * @typedef {import('../Base/index.js').default} Base
  */
@@ -12,21 +14,24 @@
  * @returns {Array<T>}
  */
 export function getDirectChildren(parentInstance, parentName, childrenName) {
-  if (!parentInstance.$children[childrenName]) {
+  const children = parentInstance.$children[childrenName];
+  const nestedParents = parentInstance.$children[parentName];
+
+  if (!isArray(children)) {
     return [];
   }
 
-  if (!parentInstance.$children[parentName]) {
-    return parentInstance.$children[childrenName];
+  if (!isArray(nestedParents) || nestedParents.length <= 0) {
+    return children;
   }
 
-  return parentInstance.$children[childrenName].filter((child) =>
-    parentInstance.$children[parentName].every((nestedParent) =>
-      nestedParent.$children[childrenName]
-        ? !nestedParent.$children[childrenName].includes(child)
-        : true
-    )
-  );
+  return children.filter((child) => {
+    return nestedParents.every((nestedParent) => {
+      const nestedChildren = nestedParent.$children[childrenName];
+      /* istanbul ignore next */
+      return isArray(nestedChildren) ? !nestedChildren.includes(child) : true;
+    });
+  });
 }
 
 /**
