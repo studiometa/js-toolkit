@@ -1,4 +1,8 @@
 /**
+ * @typedef {import('../Base/index.js').default} Base
+ */
+
+/**
  * Get direct children from a parent when working with nested components.
  *
  * @template {Base} T
@@ -7,7 +11,7 @@
  * @param   {string} childrenName
  * @returns {Array<T>}
  */
-export default function getDirectChildren(parentInstance, parentName, childrenName) {
+export function getDirectChildren(parentInstance, parentName, childrenName) {
   if (!parentInstance.$children[childrenName]) {
     return [];
   }
@@ -23,4 +27,17 @@ export default function getDirectChildren(parentInstance, parentName, childrenNa
         : true
     )
   );
+}
+
+/**
+ * Test if a component instance is a direct child from the given component.
+ *
+ * @param   {Base}    parentInstance
+ * @param   {string}  parentName
+ * @param   {Base}    childInstance
+ * @param   {string}  childrenName
+ * @returns {boolean}
+ */
+export function isDirectChild(parentInstance, parentName, childInstance, childrenName) {
+  return getDirectChildren(parentInstance, parentName, childrenName).includes(childInstance);
 }
