@@ -1,4 +1,5 @@
 export { default as createApp } from './createApp.js';
+export * from './getDirectChildren.js';
 export { default as getInstanceFromElement } from './getInstanceFromElement.js';
 export { default as importOnInteraction } from './importOnInteraction.js';
 export { default as importWhenIdle } from './importWhenIdle.js';
