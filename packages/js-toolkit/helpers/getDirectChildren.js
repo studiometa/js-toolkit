@@ -39,10 +39,10 @@ export function getDirectChildren(parentInstance, parentName, childrenName) {
  *
  * @param   {Base}    parentInstance
  * @param   {string}  parentName
- * @param   {Base}    childInstance
  * @param   {string}  childrenName
+ * @param   {Base}    childInstance
  * @returns {boolean}
  */
-export function isDirectChild(parentInstance, parentName, childInstance, childrenName) {
+export function isDirectChild(parentInstance, parentName, childrenName, childInstance) {
   return getDirectChildren(parentInstance, parentName, childrenName).includes(childInstance);
 }

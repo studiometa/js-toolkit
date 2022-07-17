@@ -71,13 +71,13 @@ describe('The `getDirectChildren` helper function', () => {
 describe('The `isDirectChild` helper function', () => {
   it('should return true when a component is a direct child', () => {
     expect(
-      isDirectChild(parent, 'Parent', getInstanceFromElement(firstChild, Child), 'Child')
+      isDirectChild(parent, 'Parent', 'Child', getInstanceFromElement(firstChild, Child))
     ).toBe(true);
   });
 
   it('should return false when a component is a grand child', () => {
     expect(
-      isDirectChild(parent, 'Parent', getInstanceFromElement(grandChild, Child), 'Child')
+      isDirectChild(parent, 'Parent', 'Child', getInstanceFromElement(grandChild, Child))
     ).toBe(false);
   });
 });

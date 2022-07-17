@@ -20,7 +20,7 @@ class Parent extends Base {
   onChildClick(index, event) {
     const childInstance = this.$children.Child[index];
 
-    if (isDirectChild(this, 'Parent', childInstance, 'Child')) {
+    if (isDirectChild(this, 'Parent', 'Child', childInstance)) {
       event.preventDefault();
     }
   }
@@ -31,8 +31,8 @@ class Parent extends Base {
 
 - `parentInstance` (`Base`): the parent instance.
 - `parentName` (`string`): the name of the recursive parent as specified in the `config.components` object.
-- `childInstance` (`Base`): the child instance.
 - `childName` (`string`): the name of the child component as specified in the `config.components` object.
+- `childInstance` (`Base`): the child instance.
 
 **Return value**
 
