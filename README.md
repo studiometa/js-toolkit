@@ -5,7 +5,7 @@
 [![Dependency Status](https://img.shields.io/librariesio/release/npm/@studiometa/js-toolkit?style=flat-square)](https://david-dm.org/studiometa/js-toolkit)
 ![Codecov](https://img.shields.io/codecov/c/github/studiometa/js-toolkit?style=flat-square)
 
-> A set of useful little bits of JavaScript to boost your project! 🚀
+> A JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.
 
 ## Installation
 
@@ -15,9 +15,9 @@ Install the latest version via NPM:
 npm install @studiometa/js-toolkit
 ```
 
-## Documentation
+## What is it?
 
-This project contains a JavaScript micro-framework and its utility functions whose main objectives are:
+This project is a JavaScript micro-framework (along with its utility functions) whose main objectives are:
 
 - Enforcing best-practice and consistency between projects
 - Using elements from the DOM easily
