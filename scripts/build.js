@@ -12,7 +12,7 @@ const defaultOptions = {
   entryPoints,
   write: true,
   outdir,
-  target: 'es2022',
+  target: 'es2019',
 };
 
 /**
