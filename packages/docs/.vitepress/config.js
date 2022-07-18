@@ -7,8 +7,8 @@ const pkg = JSON.parse(
 
 export default defineConfig({
   lang: 'en-US',
-  title: 'JS Toolkit',
-  description: 'A set of useful little bits of JavaScript to boost your project! 🚀',
+  title: 'A JavaScript data-attributes driven micro-framework',
+  description: 'The JS Toolkit by Studio Meta is a JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.',
   lastUpdated: true,
   head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
   themeConfig: {
