@@ -207,8 +207,15 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
       return;
     }
 
-    const x = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
-    const y = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
+    const isMouse = event instanceof MouseEvent;
+
+    // Only works when clicking the main button (left click).
+    if (isMouse && event.button !== 0) {
+      return;
+    }
+
+    const x = isMouse ? event.clientX : event.touches[0].clientX;
+    const y = isMouse ? event.clientY : event.touches[0].clientY;
     start(x, y);
   }
 
