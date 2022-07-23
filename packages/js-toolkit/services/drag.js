@@ -122,6 +122,7 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
    */
   function stop() {
     useRaf().remove(id);
+    props.isGrabbing = false;
     props.hasInertia = false;
     props.mode = MODES.STOP;
     trigger(props);
@@ -186,6 +187,11 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
    * @param {MouseEvent|TouchEvent|DragEvent} event
    */
   function handleEvent(event) {
+    if (event.type === 'blur') {
+      stop();
+      return;
+    }
+
     if (event.type === 'dragstart') {
       event.preventDefault();
       return;
@@ -240,6 +246,7 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
       props.target.addEventListener('touchstart', handleEvent, options);
       props.target.addEventListener('dragstart', handleEvent, { capture: true });
       props.target.addEventListener('click', handleEvent, { capture: true });
+      window.addEventListener('blur', handleEvent);
 
       const pointer = usePointer();
       pointer.add(id, pointerHandler);
@@ -249,6 +256,7 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
       props.target.removeEventListener('touchstart', handleEvent);
       props.target.removeEventListener('dragstart', handleEvent);
       props.target.removeEventListener('click', handleEvent);
+      window.removeEventListener('blur', handleEvent);
 
       const pointer = usePointer();
       pointer.remove(id);
