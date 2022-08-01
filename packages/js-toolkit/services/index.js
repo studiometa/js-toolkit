@@ -19,3 +19,13 @@ export { useService } from './service.js';
  * @property {() => T} props
  *   Get the service's props.
  */
+
+/**
+ * @typedef {import('./drag').DragServiceProps} DragServiceProps
+ * @typedef {import('./key').KeyServiceProps} KeyServiceProps
+ * @typedef {import('./load').LoadServiceProps} LoadServiceProps
+ * @typedef {import('./pointer').PointerServiceProps} PointerServiceProps
+ * @typedef {import('./raf').RafServiceProps} RafServiceProps
+ * @typedef {import('./resize').ResizeServiceProps} ResizeServiceProps
+ * @typedef {import('./scroll').ScrollServiceProps} ScrollServiceProps
+ */
