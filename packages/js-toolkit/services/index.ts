@@ -30,7 +30,7 @@ export type KeyServiceInterface = ServiceInterface<KeyServiceProps>;
 export type LoadServiceInterface = ServiceInterface<LoadServiceProps>;
 export type PointerServiceInterface = ServiceInterface<PointerServiceProps>;
 export type RafServiceInterface = ServiceInterface<RafServiceProps>;
-export type ResizeServiceInterface = ServiceInterface<ResizeServiceProps>;
+export type ResizeServiceInterface<T extends Record<string, string>> = ServiceInterface<ResizeServiceProps<T>>;
 export type ScrollServiceInterface = ServiceInterface<ScrollServiceProps>;
 
 export type {
