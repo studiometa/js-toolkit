@@ -1,68 +1,28 @@
 /* eslint-disable no-use-before-define, @typescript-eslint/no-use-before-define */
 import { useService } from './service.js';
 import debounce from '../utils/debounce.js';
-import type { ServiceInterface } from './index.js';
+import type { ResizeServiceInterface } from './index.js';
 
-export type ResizeService = ServiceInterface<ResizeServiceProps>;
-
-export interface ResizeServiceProps {
+export interface ResizeServiceProps<U extends Record<string, string>> {
   width: number;
   height: number;
   ratio: number;
   orientation: 'square' | 'landscape' | 'portrait';
   breakpoint?: string;
   breakpoints?: string[];
-}
-
-let breakpointElement;
-let breakpoints = [];
-
-/**
- * The element holding the breakpoints data.
- */
-function getBreakpointElement(): HTMLElement {
-  if (!breakpointElement) {
-    breakpointElement = document.querySelector('[data-breakpoint]');
-  }
-  return breakpointElement;
-}
-
-/**
- * Get the current breakpoint.
- */
-function getBreakpoint(): string | null {
-  return getBreakpointElement()
-    ? window
-        .getComputedStyle(getBreakpointElement(), '::before')
-        .getPropertyValue('content')
-        .replaceAll('"', '')
-    : undefined;
-}
-
-/**
- * Get all breakpoints.
- */
-function getBreakpoints(): string[] {
-  if (!getBreakpointElement() || breakpoints.length) {
-    return breakpoints;
-  }
-  breakpoints = window
-    .getComputedStyle(getBreakpointElement(), '::after')
-    .getPropertyValue('content')
-    .replaceAll('"', '')
-    .split(',');
-
-  return breakpoints;
+  activeBreakpoints?: Record<keyof U, boolean>;
 }
 
 /**
  * Get resize service.
  */
-function createResizeService(): ResizeService {
+function createResizeService<T extends Record<string, string>>(
+  screens: Partial<T> = {},
+): ResizeServiceInterface<T> {
   /**
    * Update props.
    */
-  function updateProps(): ResizeServiceProps {
+  function updateProps(): ResizeServiceProps<T> {
     props.width = window.innerWidth;
     props.height = window.innerHeight;
     props.ratio = window.innerWidth / window.innerHeight;
@@ -90,12 +50,20 @@ function createResizeService(): ResizeService {
       ratio: window.innerWidth / window.innerHeight,
       orientation: 'square',
       get breakpoint() {
-        return getBreakpoint();
+        return Object.keys(this.activeBreakpoints).find((name) => this.activeBreakpoints[name]);
       },
       get breakpoints() {
-        return getBreakpoints();
+        return Object.keys(this.activeBreakpoints);
       },
-    } as ResizeServiceProps,
+      get activeBreakpoints() {
+        return Object.fromEntries(
+          Object.entries(screens).map(([name, breakpoint]) => [
+            name,
+            window.matchMedia(`(min-width: ${breakpoint})`).matches,
+          ]),
+        ) as Record<keyof T, boolean>;
+      },
+    } as ResizeServiceProps<T>,
     init() {
       window.addEventListener('resize', onResize);
     },
@@ -117,9 +85,11 @@ let resize;
 /**
  * Use the resize service.
  */
-export default function useResize(): ResizeService {
+export default function useResize<T extends Record<string, string>>(
+  screens: Partial<T> = {},
+): ResizeServiceInterface<T> {
   if (!resize) {
-    resize = createResizeService();
+    resize = createResizeService(screens);
   }
 
   return resize;
