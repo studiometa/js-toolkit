@@ -6,6 +6,9 @@ import AbstractManager from './AbstractManager.js';
 import { normalizeRefName } from './RefsManager.js';
 
 const names = new Map();
+const normalizeRegex1 = /[A-Z]([A-Z].*)/g;
+const normalizeRegex2 = /[^a-zA-Z\d\s:]/g;
+const normalizeRegex3 = /(^\w|\s+\w)/g;
 
 /**
  * Normalize the given name to PascalCase, such as:
@@ -32,10 +35,10 @@ export function normalizeName(name: string): string {
     names.set(
       name,
       name
-        .replace(/[A-Z]([A-Z].*)/g, (c) => c.toLowerCase())
-        .replace(/[^a-zA-Z\d\s:]/g, ' ')
-        .replace(/(^\w|\s+\w)/g, (c) => c.trim().toUpperCase())
-        .trim(),
+        .replace(normalizeRegex1, (c) => c.toLowerCase())
+        .replace(normalizeRegex2, ' ')
+        .replace(normalizeRegex3, (c) => c.trim().toUpperCase())
+        .trim()
     );
   }
 
@@ -44,6 +47,8 @@ export function normalizeName(name: string): string {
 
 const eventNames = new Map();
 
+const normalizeEventRegex1 = /[A-Z]/g;
+const normalizeEventRegex2 = /^-/;
 /**
  * Normalize the event names from PascalCase to kebab-case.
  *
@@ -52,7 +57,12 @@ const eventNames = new Map();
  */
 export function normalizeEventName(name: string): string {
   if (!eventNames.has(name)) {
-    eventNames.set(name, name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`).replace(/^-/, ''));
+    eventNames.set(
+      name,
+      name
+        .replace(normalizeEventRegex1, (c) => `-${c.toLowerCase()}`)
+        .replace(normalizeEventRegex2, '')
+    );
   }
 
   return eventNames.get(name);
