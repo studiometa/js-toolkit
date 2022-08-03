@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # createApp
 
 Use the `createApp` function to instantiate your application on page load while being able to use the instance in other files.
@@ -23,7 +27,7 @@ The second parameter can either be one of the following:
 2. `options` (`Object`): an object to configure more advanced options
     - `options.root` (`HTMLElement`): the root element for your app, defaults to `document.body`
     - `options.breakpoints` (`Record<string, string>`): a list of breakpoints to confgure the [`useResize` service](/api/services/useResize)
-    - `options.state` (`'interactive'|'complete'`): the loading state when the app should be mounted, defaults to `complete` (see [the `document.readyState` documentation](https://developer.mozilla.org/en-US/docs/Web/API/Document/readyState) for more details)
+    - `options.mountState` (`'interactive'|'complete'`): the loading state when the app should be mounted, defaults to `complete` (see [the `document.readyState` documentation](https://developer.mozilla.org/en-US/docs/Web/API/Document/readyState) for more details)
 
 **Return value**
 
@@ -31,7 +35,7 @@ The second parameter can either be one of the following:
 
 ## Examples
 
-### Simple
+### Basic usage
 
 Use the `createApp` function to export your app:
 
@@ -79,11 +83,11 @@ export default createApp(App, {
 
 ### Configure when the app is mounted
 
-By default, the app will be mounted when the `document.readyState` property is `complete` (just before the load event is fired). You can configure this by specifying the `state` option:
+By default, the app will be mounted when the `document.readyState` property is `complete` (just before the load event is fired). You can configure this by specifying the `mountState` option:
 
 ```js
 export default createApp(App, {
-  state: 'interactive',
+  mountState: 'interactive',
 });
 ```
 In `interactive` mode, the app will be mounted when the DOM has finished loading and the document has been parsed.
