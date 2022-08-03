@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # importOnInteraction
 
 Use the `importOnInteraction` function to import component when the user interacts with an element.
