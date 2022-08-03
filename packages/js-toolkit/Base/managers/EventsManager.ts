@@ -215,7 +215,6 @@ function manageRootElement(that:EventsManager, mode:'add' | 'remove' = 'add') {
     } else if (methodIsGlobal(method)) {
       event = getEventNameByMethod(method, methodIsDocument(method) ? 'document' : 'window');
       const target = getGlobalEventTarget(method);
-      console.log('method is global', { method, event, target });
       target[modeMethod](
         event,
         methodIsDocument(method) ? that.__documentHandler : that.__windowHandler
