@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # Pointer service
 
 The pointer service will help you manage your cursor. It merges the mouse and touch `move`, `up` and `down` events. If the `usePointer` function is given an `HTMLElement`, the positionnal props (`x`, `y`, etc.) will be relative to this element sizes. By default, positions are based on the viewport's sizes.

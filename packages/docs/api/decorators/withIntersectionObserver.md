@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # withIntersectionObserver
 
 Use this decorator to create a class that will have the capacity to trigger an `intersected` method when the component's root element is in view.

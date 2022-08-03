@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # getDirectChildren
 
 Use the `getDirectChildren` function to get a list components which are direct descendants of the given parent instance. This function is helpful when working with nested components which declare themselves as children.

@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # withDrag
 
 Use this decorator to add the `dragged(props)` hook from the [drag](/api/services/useDrag.html) service.
