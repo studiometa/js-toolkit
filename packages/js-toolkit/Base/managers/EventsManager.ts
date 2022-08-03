@@ -182,6 +182,14 @@ function manageChild(
     instance[action](event, that.__childrenHandler);
   });
 }
+
+const isDocumentRegex = /^onDocument[A-Z][a-z]+/;
+const isWindowRegex = /^onWindow[A-Z][a-z]+/;
+const methodIsDocument = (method) => isDocumentRegex.test(method);
+const methodIsWindow = (method) => isWindowRegex.test(method);
+const methodIsGlobal = (method) => methodIsWindow(method) || methodIsDocument(method);
+const getGlobalEventTarget = (method) => (methodIsDocument(method) ? document : window);
+
 /**
  * Manage event methods on the root element.
  *
@@ -198,13 +206,22 @@ function manageRootElement(that:EventsManager, mode:'add' | 'remove' = 'add') {
 
   const { __base: base, __config: config } = that;
 
-  methods
-    .map((method) => getEventNameByMethod(method))
-    .filter((event) => eventIsDefinedInConfig(event, config) || eventIsNative(event, base.$el))
-    .forEach((event) => {
+  methods.forEach((method) => {
+    let event = getEventNameByMethod(method);
+
+    if (eventIsDefinedInConfig(event, config) || eventIsNative(event, base.$el)) {
       const target = getEventTarget(base, event, config);
       target[modeMethod](event, that.__rootElementHandler);
-    });
+    } else if (methodIsGlobal(method)) {
+      event = getEventNameByMethod(method, methodIsDocument(method) ? 'document' : 'window');
+      const target = getGlobalEventTarget(method);
+      console.log('method is global', { method, event, target });
+      target[modeMethod](
+        event,
+        methodIsDocument(method) ? that.__documentHandler : that.__windowHandler
+      );
+    }
+  });
 }
 
 /**
@@ -228,6 +245,42 @@ export default class EventsManager extends AbstractManager {
       } else {
         this.__base[method](event);
       }
+    },
+  };
+
+  /**
+   * Event listener object for the root element.
+   *
+   * @type {EventListenerObject}
+   */
+  __documentHandler = {
+    /**
+     * @param   {Event|CustomEvent} event
+     * @returns {void}
+     */
+    handleEvent: (event) => {
+      const normalizedEventName = normalizeName(event.type);
+      const method = `onDocument${normalizedEventName}`;
+
+      this.__base[method](event);
+    },
+  };
+
+  /**
+   * Event listener object for the root element.
+   *
+   * @type {EventListenerObject}
+   */
+  __windowHandler = {
+    /**
+     * @param   {Event|CustomEvent} event
+     * @returns {void}
+     */
+    handleEvent: (event) => {
+      const normalizedEventName = normalizeName(event.type);
+      const method = `onWindow${normalizedEventName}`;
+
+      this.__base[method](event);
     },
   };
 
