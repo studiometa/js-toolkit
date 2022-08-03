@@ -1,5 +1,6 @@
 /* eslint-disable no-use-before-define, @typescript-eslint/no-use-before-define */
 import { useService } from './service.js';
+import { features } from '../Base/features.js';
 import debounce from '../utils/debounce.js';
 import type { ResizeServiceInterface } from './index.js';
 
@@ -86,7 +87,7 @@ let resize;
  * Use the resize service.
  */
 export default function useResize<T extends Record<string, string>>(
-  screens: Partial<T> = {},
+  screens: Partial<T> = features.get('screens'),
 ): ResizeServiceInterface<T> {
   if (!resize) {
     resize = createResizeService(screens);
