@@ -68,36 +68,56 @@ const transformRenderStrategies = {
  * Render an element style based on 2 keyframes and a progress value.
  *
  * @param   {HTMLElement} element
- * @param   {NormalizedKeyframe} from
- * @param   {NormalizedKeyframe} to
+ * @param   {NormalizedKeyframe} keyframe
+ * @param   {number} fromIndex
+ * @param   {number} toIndex
  * @param   {number} progress
  * @returns {void}
  */
-function render(element, from, to, progress) {
-  const stepProgress = to.easing(map(progress, from.offset, to.offset, 0, 1));
+function render(element, keyframe, fromIndex, toIndex, progress) {
+  const stepProgress = keyframe.easing[toIndex](
+    map(progress, keyframe.offset[fromIndex], keyframe.offset[toIndex], 0, 1)
+  );
 
   scheduler.read(function renderRead() {
     /** @type {false|number|string} */
     let opacity = false;
-    if (isDefined(from.opacity) || isDefined(to.opacity)) {
-      opacity = map(stepProgress, 0, 1, from.opacity ?? 1, to.opacity ?? 1);
+    if (isDefined(keyframe[fromIndex]?.opacity) || isDefined(keyframe[toIndex]?.opacity)) {
+      opacity = map(
+        stepProgress,
+        0,
+        1,
+        keyframe[fromIndex].opacity ?? 1,
+        keyframe[toIndex].opacity ?? 1
+      );
     } else if (element.style.opacity) {
       opacity = '';
     }
 
     /** @type {false|string} */
     let transformOrigin = false;
-    if (isDefined(to.transformOrigin)) {
-      transformOrigin = to.transformOrigin;
+    if (isDefined(keyframe[toIndex]?.transformOrigin)) {
+      transformOrigin = keyframe[toIndex].transformOrigin;
     } else if (element.style.transformOrigin) {
       transformOrigin = '';
     }
 
     const props = Object.fromEntries(
-      TRANSFORM_PROPS.filter((name) => isDefined(from[name]) || isDefined(to[name])).map((name) => {
-        return [name, transformRenderStrategies[name](element, from[name], to[name], stepProgress)];
+      TRANSFORM_PROPS.filter(
+        (name) => isDefined(keyframe[name]?.[fromIndex]) || isDefined(keyframe[name]?.[toIndex])
+      ).map((name) => {
+        return [
+          name,
+          transformRenderStrategies[name](
+            element,
+            keyframe[name][fromIndex],
+            keyframe[name][toIndex],
+            stepProgress
+          ),
+        ];
       })
     );
+
     scheduler.write(function renderWrite() {
       if (opacity !== false) {
         // @ts-ignore
@@ -112,17 +132,24 @@ function render(element, from, to, progress) {
 }
 
 /**
+ * @template Type
+ * @typedef {{
+ *   [Property in keyof Type]: Array<null|Type[Property]>;
+ * }} MapTypeToArray
+ */
+
+/**
  * @typedef {import('./transform.js').TransformProps} TransformProps
  * @typedef {TransformProps & {
  *   opacity?: number;
  *   transformOrigin?: string;
  *   easing?: import('../math/createEases.js').EasingFunction|import('../tween.js').BezierCurve;
  *   offset?: number;
- * }} Keyframe
- * @typedef {Keyframe & {
+ * }} SingleKeyframe
+ * @typedef {MapTypeToArray<SingleKeyframe & {
  *   easing: import('../math/createEases.js').EasingFunction;
  *   offset: number;
- * }} NormalizedKeyframe
+ * }>} NormalizedKeyframe
  * @typedef {{
  *   start: () => void;
  *   pause: () => void;
@@ -133,22 +160,43 @@ function render(element, from, to, progress) {
  */
 
 /**
+ * Normalize keyframes to the object format.
+ * @param   {SingleKeyframe[] | NormalizedKeyframe} keyframes [description]
+ * @returns {NormalizedKeyframe}
+ */
+function normalizeKeyframesFormat(keyframes) {
+  if (!Array.isArray(keyframes)) {
+    return keyframes;
+  }
+
+  const keyframesCount = keyframes.length - 1;
+  const keys = Array.from(new Set(keyframes.flatMap((keyframe) => Object.keys(keyframe))));
+  const normalized = /** @type {NormalizedKeyframe} */ (
+    Object.fromEntries(keys.map((key) => [key, []]))
+  );
+  normalized.offset = [];
+  normalized.easing = [];
+
+  keyframes.forEach((keyframe, index) => {
+    keys.forEach((key) => {
+      normalized[key][index] = keyframe[key] ?? null;
+    });
+    normalized.offset[index] = keyframe.offset ?? index / keyframesCount;
+    normalized.easing[index] = normalizeEase(keyframe.easing);
+  });
+
+  return normalized;
+}
+
+/**
  * Animate an element.
  * @param   {HTMLElement} element
- * @param   {Keyframe[]} keyframes
+ * @param   {SingleKeyframe[] | NormalizedKeyframe} keyframes
  * @param   {import('../tween.js').TweenOptions} [options]
  * @returns {Animate}
  */
 export function animate(element, keyframes, options = {}) {
-  const keyframesCount = keyframes.length - 1;
-  const normalizedKeyframes = keyframes.map(
-    (keyframe, index) =>
-      /** @type {NormalizedKeyframe} */ ({
-        ...keyframe,
-        offset: keyframe.offset ?? index / keyframesCount,
-        easing: normalizeEase(keyframe.easing),
-      })
-  );
+  const normalizedKeyframes = normalizeKeyframesFormat(keyframes);
 
   if (!running.has(element)) {
     running.set(element, new Map());
@@ -165,14 +213,13 @@ export function animate(element, keyframes, options = {}) {
   function callback(progress) {
     let toIndex = 0;
     while (
-      normalizedKeyframes[toIndex] &&
-      normalizedKeyframes[toIndex].offset <= progress &&
-      normalizedKeyframes[toIndex].offset !== 1
+      normalizedKeyframes.offset[toIndex] <= progress &&
+      normalizedKeyframes.offset[toIndex] !== 1
     ) {
       toIndex += 1;
     }
 
-    render(element, normalizedKeyframes[toIndex - 1], normalizedKeyframes[toIndex], progress);
+    render(element, normalizedKeyframes, toIndex - 1, toIndex, progress);
   }
 
   const controls = tween(callback, {
