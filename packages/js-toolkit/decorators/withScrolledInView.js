@@ -7,8 +7,43 @@ const scheduler = useScheduler(['update', 'render']);
  * @typedef {import('../Base').default} Base
  * @typedef {import('../Base').BaseConstructor} BaseConstructor
  * @typedef {import('../Base').BaseConfig} BaseConfig
+ * @typedef {{
+ *   start: {
+ *     x: number,
+ *     y: number,
+ *   },
+ *   end: {
+ *     x: number,
+ *     y: number,
+ *   },
+ *   current: {
+ *     x: number,
+ *     y: number,
+ *   },
+ *   dampedCurrent: {
+ *     x: number,
+ *     y: number,
+ *   },
+ *   progress: {
+ *     x: number,
+ *     y: number,
+ *   },
+ *   dampedProgress: {
+ *     x: number,
+ *     y: number,
+ *   },
+ * }} ScrollInViewProps
  */
 
+/**
+ * Update props on tick.
+ *
+ * @param   {ScrollInViewProps} props
+ * @param   {number} dampFactor
+ * @param   {number} dampPrecision
+ * @param   {'x'|'y'} axis
+ * @returns {void}
+ */
 function updateProps(props, dampFactor, dampPrecision, axis = 'x') {
   props.current[axis] = clamp(
     axis === 'x' ? window.pageXOffset : window.pageYOffset,
@@ -50,6 +85,7 @@ export default function withScrolledInView(BaseClass, options = {}) {
     };
 
     /**
+     * @type {ScrollInViewProps}
      * @private
      */
     __props = {
@@ -237,10 +273,26 @@ export default function withScrolledInView(BaseClass, options = {}) {
       this.__props.end.y = yEnd;
       this.__props.current.x = xCurrent;
       this.__props.current.y = yCurrent;
+      this.__props.dampedCurrent.x = damp(
+        xCurrent,
+        this.__props.dampedCurrent.x,
+        this.dampFactor,
+        this.dampPrecision
+      );
+      this.__props.dampedCurrent.y = damp(
+        yCurrent,
+        this.__props.dampedCurrent.y,
+        this.dampFactor,
+        this.dampPrecision
+      );
       this.__props.progress.x = xProgress;
       this.__props.progress.y = yProgress;
-      this.__props.dampedProgress.x = damp(xProgress, this.__props.dampedProgress.x);
-      this.__props.dampedProgress.y = damp(yProgress, this.__props.dampedProgress.y);
+      this.__props.dampedProgress.x = clamp01(
+        (this.__props.dampedCurrent.x - xStart) / (xEnd - xStart)
+      );
+      this.__props.dampedProgress.y = clamp01(
+        (this.__props.dampedCurrent.y - yStart) / (yEnd - yStart)
+      );
     }
   };
 }
