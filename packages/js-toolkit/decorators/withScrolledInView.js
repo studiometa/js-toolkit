@@ -9,6 +9,26 @@ const scheduler = useScheduler(['update', 'render']);
  * @typedef {import('../Base').BaseConfig} BaseConfig
  */
 
+function updateProps(props, dampFactor, dampPrecision, axis = 'x') {
+  props.current[axis] = clamp(
+    axis === 'x' ? window.pageXOffset : window.pageYOffset,
+    props.start[axis],
+    props.end[axis]
+  );
+  props.dampedCurrent[axis] = damp(
+    props.current[axis],
+    props.dampedCurrent[axis],
+    dampFactor,
+    dampPrecision
+  );
+  props.progress[axis] = clamp01(
+    (props.current[axis] - props.start[axis]) / (props.end[axis] - props.start[axis])
+  );
+  props.dampedProgress[axis] = clamp01(
+    (props.dampedCurrent[axis] - props.start[axis]) / (props.end[axis] - props.start[axis])
+  );
+}
+
 /**
  * Add scrolled in view capabilities to a component.
  *
@@ -91,47 +111,8 @@ export default function withScrolledInView(BaseClass, options = {}) {
           }
         },
         ticked: () => {
-          // X axis
-          this.__props.current.x = clamp(
-            window.pageXOffset,
-            this.__props.start.x,
-            this.__props.end.x
-          );
-          this.__props.dampedCurrent.x = damp(
-            this.__props.current.x,
-            this.__props.dampedCurrent.x,
-            this.dampFactor,
-            this.dampPrecision
-          );
-          this.__props.progress.x = clamp01(
-            (this.__props.current.x - this.__props.start.x) /
-              (this.__props.end.x - this.__props.start.x)
-          );
-          this.__props.dampedProgress.x = clamp01(
-            (this.__props.dampedCurrent.x - this.__props.start.x) /
-              (this.__props.end.x - this.__props.start.x)
-          );
-
-          // Y axis
-          this.__props.current.y = clamp(
-            window.pageYOffset,
-            this.__props.start.y,
-            this.__props.end.y
-          );
-          this.__props.dampedCurrent.y = damp(
-            this.__props.current.y,
-            this.__props.dampedCurrent.y,
-            this.dampFactor,
-            this.dampPrecision
-          );
-          this.__props.progress.y = clamp01(
-            (this.__props.current.y - this.__props.start.y) /
-              (this.__props.end.y - this.__props.start.y)
-          );
-          this.__props.dampedProgress.y = clamp01(
-            (this.__props.dampedCurrent.y - this.__props.start.y) /
-              (this.__props.end.y - this.__props.start.y)
-          );
+          updateProps(this.__props, this.dampFactor, this.dampPrecision, 'x');
+          updateProps(this.__props, this.dampFactor, this.dampPrecision, 'y');
 
           if (
             this.__props.dampedCurrent.x === this.__props.current.x &&
