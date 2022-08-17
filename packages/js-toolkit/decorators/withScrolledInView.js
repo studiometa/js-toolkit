@@ -45,6 +45,10 @@ export default function withScrolledInView(BaseClass, options = {}) {
         x: 0,
         y: 0,
       },
+      dampedCurrent: {
+        x: 0,
+        y: 0,
+      },
       progress: {
         x: 0,
         y: 0,
@@ -93,15 +97,19 @@ export default function withScrolledInView(BaseClass, options = {}) {
             this.__props.start.x,
             this.__props.end.x
           );
+          this.__props.dampedCurrent.x = damp(
+            this.__props.current.x,
+            this.__props.dampedCurrent.x,
+            this.dampFactor,
+            this.dampPrecision
+          );
           this.__props.progress.x = clamp01(
             (this.__props.current.x - this.__props.start.x) /
               (this.__props.end.x - this.__props.start.x)
           );
-          this.__props.dampedProgress.x = damp(
-            this.__props.progress.x,
-            this.__props.dampedProgress.x,
-            this.dampFactor,
-            this.dampPrecision
+          this.__props.dampedProgress.x = clamp01(
+            (this.__props.dampedCurrent.x - this.__props.start.x) /
+              (this.__props.end.x - this.__props.start.x)
           );
 
           // Y axis
@@ -110,20 +118,24 @@ export default function withScrolledInView(BaseClass, options = {}) {
             this.__props.start.y,
             this.__props.end.y
           );
+          this.__props.dampedCurrent.y = damp(
+            this.__props.current.y,
+            this.__props.dampedCurrent.y,
+            this.dampFactor,
+            this.dampPrecision
+          );
           this.__props.progress.y = clamp01(
             (this.__props.current.y - this.__props.start.y) /
               (this.__props.end.y - this.__props.start.y)
           );
-          this.__props.dampedProgress.y = damp(
-            this.__props.progress.y,
-            this.__props.dampedProgress.y,
-            this.dampFactor,
-            this.dampPrecision
+          this.__props.dampedProgress.y = clamp01(
+            (this.__props.dampedCurrent.y - this.__props.start.y) /
+              (this.__props.end.y - this.__props.start.y)
           );
 
           if (
-            this.__props.dampedProgress.x === this.__props.progress.x &&
-            this.__props.dampedProgress.y === this.__props.progress.y
+            this.__props.dampedCurrent.x === this.__props.current.x &&
+            this.__props.dampedCurrent.y === this.__props.current.y
           ) {
             this.$services.disable('ticked');
           }
