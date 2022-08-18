@@ -2,7 +2,7 @@
 
 Find below functions that can help you in your projects.
 
-### Misc.
+## Misc.
 
 - [debounce](/utils/debounce.html)
 - [focusTrap](/utils/focusTrap.html)
@@ -12,7 +12,7 @@ Find below functions that can help you in your projects.
 - [scrollTo](/utils/scrollTo.html)
 - [throttle](/utils/throttle.html)
 
-### Collision
+## Collision
 
 - [boundingRectToCircle](/utils/collision/boundingRectToCircle.html)
 - [collideCircleCircle](/utils/collision/collideCircleCircle.html)
@@ -21,18 +21,18 @@ Find below functions that can help you in your projects.
 - [collidePointRect](/utils/collision/collidePointRect.html)
 - [collideRectRect](/utils/collision/collideRectRect.html)
 
-### CSS
+## CSS
 
 - [matrix](/utils/css/matrix.html)
 - [transition](/utils/css/transition.html)
 
-### History
+## History
 
 - [historyPush](/utils/history/historyPush.html)
 - [historyReplace](/utils/history/historyReplace.html)
 - [objectToURLSearchParams](/utils/history/objectToURLSearchParams.html)
 
-### Math
+## Math
 
 - [clamp](/utils/math/clamp.html)
 - [clamp01](/utils/math/clamp01.html)
@@ -42,7 +42,7 @@ Find below functions that can help you in your projects.
 - [map](/utils/math/map.html)
 - [round](/utils/math/round.html)
 
-### String
+## String
 
 - [withLeadingCharacters](/utils/string/withLeadingCharacters.html)
 - [withLeadingSlash](/utils/string/withLeadingSlash.html)

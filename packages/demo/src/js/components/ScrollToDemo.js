@@ -1,5 +1,5 @@
 import { Base } from '@studiometa/js-toolkit';
-import scrollTo from '@studiometa/js-toolkit/utils/scrollTo';
+import { scrollTo } from '@studiometa/js-toolkit/utils';
 
 export default class ScrollToDemo extends Base {
   static config = {

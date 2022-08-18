@@ -87,6 +87,7 @@ The `scrolledInView` class method will be triggered for each frame of the compon
   - `props.start` (`{ x: number, y: number }`): The scroll position were the element starts to be visible.
   - `props.end` (`{ x: number, y: number }`): The scroll position were the element is not visible anymore.
   - `props.current` (`{ x: number, y: number }`): The current scroll position, clamped in the `props.start` and `props.end` range.
+  - `props.dampedCurrent` (`{ x: number, y: number }`): The current values smoothed with the [`damp` function](/utils/math/damp.md)
   - `props.progress` (`{ x: number, y: number }`): The progress of the element between `props.start` and `props.end` mapped to a `0–1` range.
   - `props.dampedProgress` (`{ x: number, y: number }`): The progress values smoothed with the [`damp` function](/utils/math/damp.md).
 
