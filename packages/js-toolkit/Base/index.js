@@ -53,11 +53,6 @@ function createAndTestManagers(instance) {
 }
 
 /**
- * @template {Record<string, any>} Type
- * @typedef {{ [Property in keyof Type]: Type[Property] }} ConcreteType
- */
-
-/**
  * @typedef {typeof Base} BaseConstructor
  * @typedef {(Base) => Promise<BaseConstructor | { default: BaseConstructor }>} BaseAsyncConstructor
  * @typedef {OptionsManager & { [name:string]: any }} BaseOptions
@@ -90,7 +85,7 @@ function createAndTestManagers(instance) {
 
 /**
  * Base class.
- * @template {{ $options: BaseOptions, $refs: BaseRefs, $children: BaseChildren }} Params
+ * @template {{ $options: BaseOptions, $refs: BaseRefs, $children: BaseChildren }} BaseInterface
  */
 export default class Base extends EventTarget {
   /**
@@ -222,39 +217,39 @@ export default class Base extends EventTarget {
   }
 
   /**
-   * @type {RefsManager & ConcreteType<Params['$refs']>}
+   * @type {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] }}
    * @private
    */
   __refs;
 
   /**
-   * @returns {RefsManager & ConcreteType<Params['$refs']>}
+   * @returns {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] }}
    */
   get $refs() {
     return this.__refs;
   }
 
   /**
-   * @type {BaseOptions & ConcreteType<Params['$options']>}
+   * @type {BaseOptions & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] }}
    * @private
    */
   __options;
 
   /**
-   * @returns {BaseOptions & ConcreteType<Params['$options']>}
+   * @returns {BaseOptions & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] }}
    */
   get $options() {
     return this.__options;
   }
 
   /**
-   * @type {ChildrenManager & ConcreteType<Params['$children']>}
+   * @type {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> }}
    * @private
    */
   __children;
 
   /**
-   * @returns {ChildrenManager & ConcreteType<Params['$children']>}
+   * @returns {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> }}
    */
   get $children() {
     return this.__children;
