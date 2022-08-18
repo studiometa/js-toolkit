@@ -134,6 +134,18 @@ export default function withScrolledInView(BaseClass, options = {}) {
     constructor(element) {
       super(element);
 
+      const render = () => {
+        scheduler.update(() => {
+          // @ts-ignore
+          const renderFn = this.__callMethod('scrolledInView', this.__props);
+          if (isFunction(renderFn)) {
+            scheduler.render(() => {
+              renderFn(this.__props);
+            });
+          }
+        });
+      };
+
       const delegate = {
         handleEvent(event) {
           delegate[event.type](event.detail[0]);
@@ -157,15 +169,7 @@ export default function withScrolledInView(BaseClass, options = {}) {
             this.$services.disable('ticked');
           }
 
-          scheduler.update(() => {
-            // @ts-ignore
-            const renderFn = this.__callMethod('scrolledInView', this.__props);
-            if (isFunction(renderFn)) {
-              scheduler.render(() => {
-                renderFn(this.__props);
-              });
-            }
-          });
+          render();
         },
       };
 
@@ -183,6 +187,13 @@ export default function withScrolledInView(BaseClass, options = {}) {
         this.$off('resized', delegate);
         this.$off('scrolled', delegate);
         this.$off('ticked', delegate);
+
+        // Clamp damped values to their final value and trigger one last render on destroy
+        this.__props.dampedCurrent.x = this.__props.current.x;
+        this.__props.dampedCurrent.y = this.__props.current.y;
+        this.__props.dampedProgress.x = this.__props.progress.x;
+        this.__props.dampedProgress.y = this.__props.progress.y;
+        render();
       });
     }
 
