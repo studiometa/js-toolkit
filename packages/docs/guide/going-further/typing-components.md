@@ -7,7 +7,7 @@ outline: deep
 To improve DX and autocompletion of a components' properties, it is possible to type the `$options`, `$refs` and `$children` properties either with JSDoc comments or directly in TypeScript. The `Base` class type accepts a [type parameter](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes-func.html#type-parameters) with the following format:
 
 ```ts
-class Base<Params extends {
+class Base<BaseInterface extends {
   $options: BaseOptions;
   $refs: BaseRefs;
   $children: BaseChildren;
