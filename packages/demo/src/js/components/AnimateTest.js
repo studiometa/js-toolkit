@@ -3,6 +3,20 @@ import { animate, ease, domScheduler } from '@studiometa/js-toolkit/utils';
 
 /**
  * AnimateTest class.
+ * @typedef {{
+ *   target: HTMLElement,
+ *   start: HTMLButtonElement,
+ *   pause: HTMLButtonElement,
+ *   play: HTMLButtonElement,
+ *   finish: HTMLButtonElement,
+ *   progress: HTMLInputElement,
+ * }} AnimateTestRefs
+ * @typedef {{
+ *   steps: Parameters<animate>[1],
+ *   duration: number,
+ *   easing: string,
+ * }} AnimateTestOptions
+ * @augments {Base<{ $refs: AnimateTestRefs, $options: AnimateTestOptions }>}
  */
 export default class AnimateTest extends Base {
   /**
