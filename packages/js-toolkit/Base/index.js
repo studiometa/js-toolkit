@@ -53,6 +53,11 @@ function createAndTestManagers(instance) {
 }
 
 /**
+ * @template {Record<string, any>} Type
+ * @typedef {{ [Property in keyof Type]: Type[Property] }} ConcreteType
+ */
+
+/**
  * @typedef {typeof Base} BaseConstructor
  * @typedef {(Base) => Promise<BaseConstructor | { default: BaseConstructor }>} BaseAsyncConstructor
  * @typedef {OptionsManager & { [name:string]: any }} BaseOptions
@@ -85,6 +90,7 @@ function createAndTestManagers(instance) {
 
 /**
  * Base class.
+ * @template {{ $options: BaseOptions, $refs: BaseRefs, $children: BaseChildren }} Params
  */
 export default class Base extends EventTarget {
   /**
@@ -216,39 +222,39 @@ export default class Base extends EventTarget {
   }
 
   /**
-   * @type {RefsManager}
+   * @type {RefsManager & ConcreteType<Params['$refs']>}
    * @private
    */
   __refs;
 
   /**
-   * @returns {RefsManager}
+   * @returns {RefsManager & ConcreteType<Params['$refs']>}
    */
   get $refs() {
     return this.__refs;
   }
 
   /**
-   * @type {BaseOptions}
+   * @type {BaseOptions & ConcreteType<Params['$options']>}
    * @private
    */
   __options;
 
   /**
-   * @returns {BaseOptions}
+   * @returns {BaseOptions & ConcreteType<Params['$options']>}
    */
   get $options() {
     return this.__options;
   }
 
   /**
-   * @type {ChildrenManager}
+   * @type {ChildrenManager & ConcreteType<Params['$children']>}
    * @private
    */
   __children;
 
   /**
-   * @returns {ChildrenManager}
+   * @returns {ChildrenManager & ConcreteType<Params['$children']>}
    */
   get $children() {
     return this.__children;
