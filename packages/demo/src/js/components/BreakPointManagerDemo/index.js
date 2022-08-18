@@ -1,5 +1,4 @@
-import { Base } from '@studiometa/js-toolkit';
-import { withBreakpointManager } from '@studiometa/js-toolkit/decorators';
+import { Base, withBreakpointManager } from '@studiometa/js-toolkit';
 import BreakpointManagerDemoMobile from './BreakpointManagerDemoMobile.js';
 import BreakpointManagerDemoTablet from './BreakpointManagerDemoTablet.js';
 import BreakpointManagerDemoDesktop from './BreakpointManagerDemoDesktop.js';
