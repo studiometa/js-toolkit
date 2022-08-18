@@ -96,6 +96,7 @@ describe('The withScrolledInView decorator', () => {
     await wait(50);
     const [last] = fn.mock.calls.pop();
     delete last.dampedProgress;
+    delete last.dampedCurrent;
     expect(last).toMatchSnapshot();
     scrollHeightSpy.mockRestore();
     scrollWidthSpy.mockRestore();
@@ -150,8 +151,49 @@ describe('The withScrolledInView decorator', () => {
     await wait(50);
     const [last] = fn.mock.calls.pop();
     delete last.dampedProgress;
+    delete last.dampedCurrent;
     expect(last).toMatchSnapshot();
     scrollHeightSpy.mockRestore();
     scrollWidthSpy.mockRestore();
+  });
+
+  it('should reset the damped values when destroyed', async () => {
+    // @todo test if dampedCurrent and dampedProgress values are reset to their min or max on destroy.
+    class Foo extends withScrolledInView(Base) {
+      static config = {
+        name: 'Foo',
+      };
+
+      scrolledInView(props) {
+        fn(props);
+      }
+    }
+    const foo = new Foo(div);
+
+    mockIsIntersecting(div, true);
+    expect(foo.$isMounted).toBe(true);
+
+    const scrollHeightSpy = jest.spyOn(document.body, 'scrollHeight', 'get');
+    scrollHeightSpy.mockImplementation(() => window.innerHeight * 2);
+    const scrollWidthSpy = jest.spyOn(document.body, 'scrollWidth', 'get');
+    scrollWidthSpy.mockImplementation(() => window.innerWidth * 2);
+    document.dispatchEvent(new Event('scroll'));
+    window.pageYOffset = 10;
+    window.pageXOffset = 10;
+    document.dispatchEvent(new Event('scroll'));
+    window.pageYOffset = 1000;
+    window.pageXOffset = 1000;
+
+    await wait(10);
+
+    mockIsIntersecting(div, false);
+
+    await wait(50);
+
+    expect(foo.$isMounted).toBe(false);
+    expect(foo.__props.dampedCurrent.x).toBe(foo.__props.current.x);
+    expect(foo.__props.dampedCurrent.y).toBe(foo.__props.current.y);
+    expect(foo.__props.dampedProgress.x).toBe(foo.__props.progress.x);
+    expect(foo.__props.dampedProgress.y).toBe(foo.__props.progress.y);
   });
 });

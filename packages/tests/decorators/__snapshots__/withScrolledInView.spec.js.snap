@@ -6,10 +6,6 @@ Object {
     "x": 600,
     "y": 600,
   },
-  "dampedCurrent": Object {
-    "x": 162.6,
-    "y": 162.6,
-  },
   "end": Object {
     "x": 600,
     "y": 600,
@@ -30,10 +26,6 @@ Object {
   "current": Object {
     "x": 600,
     "y": 600,
-  },
-  "dampedCurrent": Object {
-    "x": 162.6,
-    "y": 162.6,
   },
   "end": Object {
     "x": 600,
