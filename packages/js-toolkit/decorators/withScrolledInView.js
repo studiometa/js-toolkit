@@ -7,7 +7,62 @@ const scheduler = useScheduler(['update', 'render']);
  * @typedef {import('../Base').default} Base
  * @typedef {import('../Base').BaseConstructor} BaseConstructor
  * @typedef {import('../Base').BaseConfig} BaseConfig
+ * @typedef {{
+ *   start: {
+ *     x: number,
+ *     y: number,
+ *   },
+ *   end: {
+ *     x: number,
+ *     y: number,
+ *   },
+ *   current: {
+ *     x: number,
+ *     y: number,
+ *   },
+ *   dampedCurrent: {
+ *     x: number,
+ *     y: number,
+ *   },
+ *   progress: {
+ *     x: number,
+ *     y: number,
+ *   },
+ *   dampedProgress: {
+ *     x: number,
+ *     y: number,
+ *   },
+ * }} ScrollInViewProps
  */
+
+/**
+ * Update props on tick.
+ *
+ * @param   {ScrollInViewProps} props
+ * @param   {number} dampFactor
+ * @param   {number} dampPrecision
+ * @param   {'x'|'y'} axis
+ * @returns {void}
+ */
+function updateProps(props, dampFactor, dampPrecision, axis = 'x') {
+  props.current[axis] = clamp(
+    axis === 'x' ? window.pageXOffset : window.pageYOffset,
+    props.start[axis],
+    props.end[axis]
+  );
+  props.dampedCurrent[axis] = damp(
+    props.current[axis],
+    props.dampedCurrent[axis],
+    dampFactor,
+    dampPrecision
+  );
+  props.progress[axis] = clamp01(
+    (props.current[axis] - props.start[axis]) / (props.end[axis] - props.start[axis])
+  );
+  props.dampedProgress[axis] = clamp01(
+    (props.dampedCurrent[axis] - props.start[axis]) / (props.end[axis] - props.start[axis])
+  );
+}
 
 /**
  * Add scrolled in view capabilities to a component.
@@ -30,6 +85,7 @@ export default function withScrolledInView(BaseClass, options = {}) {
     };
 
     /**
+     * @type {ScrollInViewProps}
      * @private
      */
     __props = {
@@ -42,6 +98,10 @@ export default function withScrolledInView(BaseClass, options = {}) {
         y: 0,
       },
       current: {
+        x: 0,
+        y: 0,
+      },
+      dampedCurrent: {
         x: 0,
         y: 0,
       },
@@ -74,6 +134,18 @@ export default function withScrolledInView(BaseClass, options = {}) {
     constructor(element) {
       super(element);
 
+      const render = () => {
+        scheduler.update(() => {
+          // @ts-ignore
+          const renderFn = this.__callMethod('scrolledInView', this.__props);
+          if (isFunction(renderFn)) {
+            scheduler.render(() => {
+              renderFn(this.__props);
+            });
+          }
+        });
+      };
+
       const delegate = {
         handleEvent(event) {
           delegate[event.type](event.detail[0]);
@@ -87,56 +159,17 @@ export default function withScrolledInView(BaseClass, options = {}) {
           }
         },
         ticked: () => {
-          // X axis
-          this.__props.current.x = clamp(
-            window.pageXOffset,
-            this.__props.start.x,
-            this.__props.end.x
-          );
-          this.__props.progress.x = clamp01(
-            (this.__props.current.x - this.__props.start.x) /
-              (this.__props.end.x - this.__props.start.x)
-          );
-          this.__props.dampedProgress.x = damp(
-            this.__props.progress.x,
-            this.__props.dampedProgress.x,
-            this.dampFactor,
-            this.dampPrecision
-          );
-
-          // Y axis
-          this.__props.current.y = clamp(
-            window.pageYOffset,
-            this.__props.start.y,
-            this.__props.end.y
-          );
-          this.__props.progress.y = clamp01(
-            (this.__props.current.y - this.__props.start.y) /
-              (this.__props.end.y - this.__props.start.y)
-          );
-          this.__props.dampedProgress.y = damp(
-            this.__props.progress.y,
-            this.__props.dampedProgress.y,
-            this.dampFactor,
-            this.dampPrecision
-          );
+          updateProps(this.__props, this.dampFactor, this.dampPrecision, 'x');
+          updateProps(this.__props, this.dampFactor, this.dampPrecision, 'y');
 
           if (
-            this.__props.dampedProgress.x === this.__props.progress.x &&
-            this.__props.dampedProgress.y === this.__props.progress.y
+            this.__props.dampedCurrent.x === this.__props.current.x &&
+            this.__props.dampedCurrent.y === this.__props.current.y
           ) {
             this.$services.disable('ticked');
           }
 
-          scheduler.update(() => {
-            // @ts-ignore
-            const renderFn = this.__callMethod('scrolledInView', this.__props);
-            if (isFunction(renderFn)) {
-              scheduler.render(() => {
-                renderFn(this.__props);
-              });
-            }
-          });
+          render();
         },
       };
 
@@ -154,6 +187,13 @@ export default function withScrolledInView(BaseClass, options = {}) {
         this.$off('resized', delegate);
         this.$off('scrolled', delegate);
         this.$off('ticked', delegate);
+
+        // Clamp damped values to their final value and trigger one last render on destroy
+        this.__props.dampedCurrent.x = this.__props.current.x;
+        this.__props.dampedCurrent.y = this.__props.current.y;
+        this.__props.dampedProgress.x = this.__props.progress.x;
+        this.__props.dampedProgress.y = this.__props.progress.y;
+        render();
       });
     }
 
@@ -244,10 +284,26 @@ export default function withScrolledInView(BaseClass, options = {}) {
       this.__props.end.y = yEnd;
       this.__props.current.x = xCurrent;
       this.__props.current.y = yCurrent;
+      this.__props.dampedCurrent.x = damp(
+        xCurrent,
+        this.__props.dampedCurrent.x,
+        this.dampFactor,
+        this.dampPrecision
+      );
+      this.__props.dampedCurrent.y = damp(
+        yCurrent,
+        this.__props.dampedCurrent.y,
+        this.dampFactor,
+        this.dampPrecision
+      );
       this.__props.progress.x = xProgress;
       this.__props.progress.y = yProgress;
-      this.__props.dampedProgress.x = damp(xProgress, this.__props.dampedProgress.x);
-      this.__props.dampedProgress.y = damp(yProgress, this.__props.dampedProgress.y);
+      this.__props.dampedProgress.x = clamp01(
+        (this.__props.dampedCurrent.x - xStart) / (xEnd - xStart)
+      );
+      this.__props.dampedProgress.y = clamp01(
+        (this.__props.dampedCurrent.y - yStart) / (yEnd - yStart)
+      );
     }
   };
 }
