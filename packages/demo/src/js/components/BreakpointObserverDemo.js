@@ -1,5 +1,4 @@
-import { Base } from '@studiometa/js-toolkit';
-import { withBreakpointObserver } from '@studiometa/js-toolkit/decorators';
+import { Base, withBreakpointObserver } from '@studiometa/js-toolkit';
 
 export default class BreakpointObserverDemo extends withBreakpointObserver(Base) {
   static config = {
