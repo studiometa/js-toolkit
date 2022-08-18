@@ -85,6 +85,7 @@ function createAndTestManagers(instance) {
 
 /**
  * Base class.
+ * @template {{ $options: BaseOptions, $refs: BaseRefs, $children: BaseChildren }} BaseInterface
  */
 export default class Base extends EventTarget {
   /**
@@ -216,39 +217,39 @@ export default class Base extends EventTarget {
   }
 
   /**
-   * @type {RefsManager}
+   * @type {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] }}
    * @private
    */
   __refs;
 
   /**
-   * @returns {RefsManager}
+   * @returns {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] }}
    */
   get $refs() {
     return this.__refs;
   }
 
   /**
-   * @type {BaseOptions}
+   * @type {BaseOptions & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] }}
    * @private
    */
   __options;
 
   /**
-   * @returns {BaseOptions}
+   * @returns {BaseOptions & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] }}
    */
   get $options() {
     return this.__options;
   }
 
   /**
-   * @type {ChildrenManager}
+   * @type {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> }}
    * @private
    */
   __children;
 
   /**
-   * @returns {ChildrenManager}
+   * @returns {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> }}
    */
   get $children() {
     return this.__children;

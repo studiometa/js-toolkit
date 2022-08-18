@@ -1,6 +1,13 @@
-import { Base } from '@studiometa/js-toolkit';
-import { withIntersectionObserver } from '@studiometa/js-toolkit/decorators';
-import transition, { setClassesOrStyles } from '@studiometa/js-toolkit/utils/css/transition';
+import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
+import { transition, isString, isArray, addClass, addStyle } from '@studiometa/js-toolkit/utils';
+
+function setClassesOrStyles(element, classesOrStyles) {
+  if (isString(classesOrStyles) || isArray(classesOrStyles)) {
+    addClass(element, classesOrStyles);
+  } else {
+    addStyle(element, classesOrStyles);
+  }
+}
 
 export default class Lazyload extends withIntersectionObserver(Base) {
   static config = {

@@ -8,7 +8,8 @@ const pkg = JSON.parse(
 export default defineConfig({
   lang: 'en-US',
   title: 'JS Toolkit',
-  description: 'The JS Toolkit by Studio Meta is a JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.',
+  description:
+    'The JS Toolkit by Studio Meta is a JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.',
   lastUpdated: true,
   head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
   themeConfig: {
@@ -65,6 +66,7 @@ function getGuideSidebar() {
     {
       text: 'Going further',
       items: [
+        { text: 'Typing components', link: '/guide/going-further/typing-components.html' },
         { text: 'Using decorators', link: '/guide/going-further/using-decorators.html' },
         { text: 'Lazy imports', link: '/guide/going-further/lazy-imports.html' },
         {
@@ -107,21 +109,25 @@ function getApiSidebar({ expanded = 'api' } = {}) {
     {
       text: 'Base class',
       link: '/api/',
+      collapsible: true,
       items: expanded === 'api' ? getBaseSidebar() : getBaseSidebar(),
     },
     {
       text: 'Helpers',
       link: '/api/helpers/',
+      collapsible: true,
       items: expanded === 'helpers' ? getHelpersSidebar() : getHelpersSidebar(),
     },
     {
       text: 'Services',
       link: '/api/services/',
+      collapsible: true,
       items: expanded === 'services' ? getServicesSidebar() : getServicesSidebar(),
     },
     {
       text: 'Decorators',
       link: '/api/decorators/',
+      collapsible: true,
       items: expanded === 'decorators' ? getDecoratorsSidebar() : getDecoratorsSidebar(),
     },
   ];
@@ -212,6 +218,7 @@ function getUtilsSidebar() {
     {
       text: 'Utils',
       link: '/utils/',
+      collapsible: true,
       items: [
         { text: 'debounce', link: '/utils/debounce.html' },
         { text: 'focusTrap', link: '/utils/focusTrap.html' },
@@ -229,6 +236,7 @@ function getUtilsSidebar() {
     {
       text: 'Collision utils',
       link: '/utils/collision/',
+      collapsible: true,
       items: [
         { text: 'boundingRectToCircle', link: '/utils/collision/boundingRectToCircle.html' },
         { text: 'collideCircleCircle', link: '/utils/collision/collideCircleCircle.html' },
@@ -241,6 +249,7 @@ function getUtilsSidebar() {
     {
       text: 'CSS utils',
       // link: '/utils/css/',
+      collapsible: true,
       items: [
         { text: 'addClass', link: '/utils/css/addClass.html' },
         { text: 'addStyle', link: '/utils/css/addStyle.html' },
@@ -257,6 +266,7 @@ function getUtilsSidebar() {
     {
       text: 'History utils',
       link: '/utils/history/',
+      collapsible: true,
       items: [
         { text: 'historyPush', link: '/utils/history/historyPush.html' },
         { text: 'historyReplace', link: '/utils/history/historyReplace.html' },
@@ -266,6 +276,7 @@ function getUtilsSidebar() {
     {
       text: 'Math utils',
       // link: '/utils/math/',
+      collapsible: true,
       items: [
         { text: 'clamp', link: '/utils/math/clamp.html' },
         { text: 'clamp01', link: '/utils/math/clamp01.html' },
@@ -282,6 +293,7 @@ function getUtilsSidebar() {
     {
       text: 'String utils',
       link: '/utils/string/',
+      collapsible: true,
       items: [
         { text: 'withLeadingCharacters', link: '/utils/string/withLeadingCharacters.html' },
         { text: 'withLeadingSlash', link: '/utils/string/withLeadingSlash.html' },
