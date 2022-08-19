@@ -55,7 +55,7 @@ function createAndTestManagers(instance) {
 /**
  * @typedef {typeof Base} BaseConstructor
  * @typedef {(Base) => Promise<BaseConstructor | { default: BaseConstructor }>} BaseAsyncConstructor
- * @typedef {OptionsManager & { [name:string]: any }} BaseOptions
+ * @typedef {{ [name:string]: any }} BaseOptions
  * @typedef {{ [name:string]: HTMLElement | HTMLElement[] }} BaseRefs
  * @typedef {{ [nameOrSelector:string]: Base[] | Promise<Base>[] }} BaseChildren
  * @typedef {{ [nameOrSelector:string]: BaseConstructor | BaseAsyncConstructor }} BaseConfigComponents
@@ -75,6 +75,15 @@ function createAndTestManagers(instance) {
  */
 
 /**
+ * @typedef {{
+ *   $el?: HTMLElement,
+ *   $options?: BaseOptions,
+ *   $refs?: BaseRefs,
+ *   $children?: { [name:string]: Base | Promise<Base> },
+ * }} BaseTypeParameter
+ */
+
+/**
  * @typedef {Object} Managers
  * @property {typeof ChildrenManager} ChildrenManager
  * @property {typeof EventsManager} EventsManager
@@ -85,7 +94,7 @@ function createAndTestManagers(instance) {
 
 /**
  * Base class.
- * @template {{ $options: BaseOptions, $refs: BaseRefs, $children: BaseChildren }} BaseInterface
+ * @template {BaseTypeParameter} [BaseInterface={ $el: HTMLElement, $options: BaseOptions, $refs: BaseRefs, $children: { [name:string]: Base | Promise<Base> } }]
  */
 export default class Base extends EventTarget {
   /**
@@ -109,7 +118,7 @@ export default class Base extends EventTarget {
 
   /**
    * The root element.
-   * @type {HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> }}
+   * @type {BaseInterface['$el'] & HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> }}
    */
   $el;
 
@@ -217,39 +226,39 @@ export default class Base extends EventTarget {
   }
 
   /**
-   * @type {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] }}
+   * @type {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] } & BaseRefs}
    * @private
    */
   __refs;
 
   /**
-   * @returns {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] }}
+   * @returns {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] } & BaseRefs}
    */
   get $refs() {
     return this.__refs;
   }
 
   /**
-   * @type {BaseOptions & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] }}
+   * @type {OptionsManager & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] } & BaseOptions}
    * @private
    */
   __options;
 
   /**
-   * @returns {BaseOptions & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] }}
+   * @returns {OptionsManager & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] } & BaseOptions}
    */
   get $options() {
     return this.__options;
   }
 
   /**
-   * @type {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> }}
+   * @type {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> } & BaseChildren}
    * @private
    */
   __children;
 
   /**
-   * @returns {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> }}
+   * @returns {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> } & BaseChildren}
    */
   get $children() {
     return this.__children;
