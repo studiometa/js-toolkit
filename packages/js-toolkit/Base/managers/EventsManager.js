@@ -235,7 +235,7 @@ export default class EventsManager extends AbstractManager {
 
       let index = 0;
       if (isArray(this.__base.$refs[refName])) {
-        index = this.__base.$refs[refName].indexOf(ref);
+        index = /** @type {HTMLElement[]} **/ (this.__base.$refs[refName]).indexOf(ref);
       }
 
       this.__base[method](event, index);
@@ -259,6 +259,7 @@ export default class EventsManager extends AbstractManager {
         .map((childName) => ({
           name: childName,
           child: childrenManager[childName].find(
+            // @ts-ignore
             (instance) => instance === event.currentTarget || instance.$el === event.currentTarget
           ),
         }))
