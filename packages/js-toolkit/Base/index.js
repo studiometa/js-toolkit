@@ -131,7 +131,6 @@ export default class Base extends EventTarget {
   /**
    * Store the event handlers.
    *
-   * @private
    * @type {Map<string, Set<EventListenerOrEventListenerObject>>}
    */
   __eventHandlers = new Map();
@@ -163,7 +162,6 @@ export default class Base extends EventTarget {
    * Merge configuration with the parents' configurations.
    *
    * @returns {BaseConfig}
-   * @private
    */
   get __config() {
     let proto = Object.getPrototypeOf(this);
@@ -214,7 +212,6 @@ export default class Base extends EventTarget {
 
   /**
    * @type {ServicesManager}
-   * @private
    */
   __services;
 
@@ -226,26 +223,24 @@ export default class Base extends EventTarget {
   }
 
   /**
-   * @type {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] } & BaseRefs}
-   * @private
+   * @type {RefsManager & BaseInterface['$refs'] & BaseRefs}
    */
   __refs;
 
   /**
-   * @returns {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] } & BaseRefs}
+   * @returns {RefsManager & BaseInterface['$refs'] & BaseRefs}
    */
   get $refs() {
     return this.__refs;
   }
 
   /**
-   * @type {OptionsManager & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] } & BaseOptions}
-   * @private
+   * @type {OptionsManager & BaseInterface['$options'] & BaseOptions}
    */
   __options;
 
   /**
-   * @returns {OptionsManager & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] } & BaseOptions}
+   * @returns {OptionsManager & BaseInterface['$options'] & BaseOptions}
    */
   get $options() {
     return this.__options;
@@ -253,7 +248,6 @@ export default class Base extends EventTarget {
 
   /**
    * @type {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> } & BaseChildren}
-   * @private
    */
   __children;
 
@@ -266,7 +260,6 @@ export default class Base extends EventTarget {
 
   /**
    * @type {EventsManager}
-   * @private
    */
   __events;
 
@@ -282,7 +275,6 @@ export default class Base extends EventTarget {
   /**
    * Small helper to debug information.
    *
-   * @private
    * @returns {(...args:any) => void}
    */
   get __debug() {
@@ -309,7 +301,6 @@ export default class Base extends EventTarget {
   /**
    * Call an instance method and emit corresponding events.
    *
-   * @private
    * @param {string} method
    * @param {any[]} args
    * @returns {any}
@@ -336,7 +327,6 @@ export default class Base extends EventTarget {
   /**
    * Test if the given event has been bound to the instance.
    *
-   * @private
    * @param  {string} event The event's name.
    * @returns {boolean}      Wether the given event has been bound or not.
    */
@@ -482,7 +472,6 @@ export default class Base extends EventTarget {
   /**
    * Add an emitted event.
    *
-   * @private
    * @param   {string} event The event name.
    * @returns {void}
    */
@@ -498,7 +487,6 @@ export default class Base extends EventTarget {
   /**
    * Remove an emitted event.
    *
-   * @private
    * @param   {string} event The event name.
    * @returns {void}
    */
@@ -511,7 +499,6 @@ export default class Base extends EventTarget {
   /**
    * Get the instance constructor.
    *
-   * @private
    * @returns {BaseConstructor}
    */
   get __ctor() {
