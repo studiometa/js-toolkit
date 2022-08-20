@@ -1,14 +1,14 @@
 module.exports = {
   extends: '@studiometa/eslint-config',
   rules: {
-    'import/extensions': [ 'error', 'always', { ignorePackages: true }],
+    'import/extensions': ['error', 'always', { ignorePackages: true }],
     'no-underscore-dangle': 'off',
     'jsdoc/valid-types': 'off',
   },
   overrides: [
     {
-      files: [ '**/*.spec.js', '**/spec.js', 'packages/tests/**/*.js' ],
-      extends: [ 'plugin:jest/recommended', 'plugin:jest/style' ],
+      files: ['**/*.spec.js', '**/spec.js', 'packages/tests/**/*.js'],
+      extends: ['plugin:jest/recommended', 'plugin:jest/style'],
       rules: {
         'max-classes-per-file': 'off',
         'jest/no-test-callback': 'off',
@@ -16,13 +16,19 @@ module.exports = {
       },
     },
     {
-      files: [ '**/*.ts' ],
+      files: ['**/*.ts', 'packages/js-toolkit/**/*.ts'],
       parser: '@typescript-eslint/parser',
-      plugins: [ '@typescript-eslint' ],
-      extends: [ 'eslint:recommended', 'plugin:@typescript-eslint/recommended' ],
+      plugins: ['@typescript-eslint'],
+      extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
+      rules: {
+        '@typescript-eslint/ban-ts-comment': 'off',
+        'require-jsdoc': 'off',
+        'jsdoc/require-returns': 'off',
+        'jsdoc/require-param': 'off',
+      },
     },
     {
-      files: [ 'packages/docs/**/*.js' ],
+      files: ['packages/docs/**/*.js'],
       rules: {
         'require-jsdoc': 'off',
       },
