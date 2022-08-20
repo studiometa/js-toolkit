@@ -1,40 +1,24 @@
-/**
- * @typedef {import('../Base').default} Base
- * @typedef {import('../Base').BaseOptions} BaseOptions
- * @typedef {import('../Base').BaseConstructor} BaseConstructor
- */
+import type { BaseTypeParameter, BaseConfig } from '../Base/index.js';
+import Base from '../Base/index.js';
 
-/**
- * @typedef {Object} WithMountWhenInViewOptions
- * @property {IntersectionObserverInit} intersectionObserver
- */
-
-/**
- * @typedef {Object} WithMountWhenInViewInterface
- * @property {() => void} terminated
- * @property {WithMountWhenInViewOptions & BaseOptions} $options
- */
+type WithMountWhenInViewInterface = {
+  $options: {
+    intersectionObserver: IntersectionObserverInit;
+  };
+};
 
 /**
  * IntersectionObserver decoration.
- *
- * @template {BaseConstructor} T
- * @param {T} BaseClass The Base class to extend.
- * @param {IntersectionObserverInit} [defaultOptions] The options for the IntersectionObserver instance.
- * @returns {T}
  */
-export default function withMountWhenInView(
-  BaseClass,
+export default function withMountWhenInView<T extends BaseTypeParameter = BaseTypeParameter>(
+  BaseClass: typeof Base,
   // eslint-disable-next-line unicorn/no-object-as-default-parameter
-  defaultOptions = { threshold: [0, 1] }
+  defaultOptions: IntersectionObserverInit = { threshold: [0, 1] }
 ) {
-  // @ts-ignore
-  return class extends BaseClass {
-    /**
-     * Class config.
-     * @type {Object}
-     */
-    static config = {
+  return class WithMountWhenInView<U extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<
+    WithMountWhenInViewInterface & T & U
+  > {
+    static config:BaseConfig = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithMountWhenInView`,
       options: {
@@ -45,24 +29,20 @@ export default function withMountWhenInView(
 
     /**
      * Is the component visible?
-     * @private
-     * @type {boolean}
      */
     __isVisible = false;
 
     /**
      * The component's observer.
-     * @private
-     * @type {IntersectionObserver}
      */
-    __observer;
+    __observer: IntersectionObserver;
 
     /**
      * Create an observer when the class in instantiated.
      *
      * @param {HTMLElement} element The component's root element.
      */
-    constructor(element) {
+    constructor(element: HTMLElement) {
       super(element);
 
       this.__observer = new IntersectionObserver(
@@ -90,8 +70,6 @@ export default function withMountWhenInView(
 
     /**
      * Override the mounting of the component.
-     *
-     * @returns {this}
      */
     $mount() {
       if (this.__isVisible) {
