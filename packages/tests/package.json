@@ -12,7 +12,9 @@
     "htl": "^0.3.1",
     "html-loader-jest": "^0.2.1",
     "jest": "^28.1.3",
-    "jest-environment-jsdom": "^28.1.3"
+    "jest-environment-jsdom": "^28.1.3",
+    "jest-esbuild": "^0.2.9",
+    "ts-jest-resolver": "^2.0.0"
   },
   "devDependencies": {
     "@jest/types": "^28.1.3",
