@@ -1,29 +1,20 @@
+import type Base from '../Base/index.js';
+import type { BaseTypeParameter, BaseConstructor } from '../Base/index.js';
+import type { DragServiceOptions } from '../services/drag.js';
 import useDrag from '../services/drag.js';
 
-/**
- * @typedef {import('../Base').default} Base
- * @typedef {import('../Base').BaseConstructor} BaseConstructor
- * @typedef {import('../services/drag').DragServiceOptions} DragServiceOptions
- */
-
-/**
- * @typedef {DragServiceOptions & { target?: (this:Base, Base) => HTMLElement }} DragDecoratorOptions
- */
+type DragDecoratorOptions = DragServiceOptions & {
+  target?: (this: Base, instance: Base) => HTMLElement;
+};
 
 /**
  * Add dragging capabilities to a component.
- *
- * @template {BaseConstructor} T
- * @param {T} BaseClass
- * @param {DragDecoratorOptions} options
- * @returns {T}
  */
-export default function withDrag(
-  BaseClass,
-  { target = (instance) => instance.$el, ...options } = {}
+export default function withDrag<T extends BaseTypeParameter = BaseTypeParameter>(
+  BaseClass: BaseConstructor,
+  { target = (instance) => instance.$el, ...options }: DragDecoratorOptions = {}
 ) {
-  // @ts-ignore
-  return class extends BaseClass {
+  return class WithDrag<U extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<T & U> {
     static config = {
       name: `${BaseClass.config.name}WithDrag`,
       emits: ['dragged'],
@@ -49,5 +40,5 @@ export default function withDrag(
         this.$services.unregister('dragged');
       });
     }
-  };
+  }
 }
