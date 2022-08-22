@@ -1,26 +1,23 @@
+import type { BaseConstructor, BaseTypeParameter } from '../Base/index.js';
 import { isDev, isFunction } from '../utils/index.js';
 
-/**
- * @typedef {import('../Base').default} Base
- * @typedef {import('../Base').BaseConstructor} BaseConstructor
- */
-
-/**
- * @typedef {Object} WithVue2Refs
- * @property {HTMLElement} vue
- */
+interface WithVue2Interface {
+  $refs: {
+    vue: HTMLElement;
+  };
+}
 
 /**
  * withVue decorator.
- *
- * @template {BaseConstructor} T
- * @param {T} BaseClass
- * @param {import('vue').VueConstructor} Vue
- * @returns {T}
  */
-export default (BaseClass, Vue) => {
+export default function withVue2<T extends BaseTypeParameter = BaseTypeParameter>(
+  BaseClass: BaseConstructor,
+  Vue
+) {
   // @ts-ignore
-  return class WithVue2 extends BaseClass {
+  return class WithVue2<U extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<
+    WithVue2Interface & T & U
+  > {
     static config = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithVue`,
@@ -45,9 +42,8 @@ export default (BaseClass, Vue) => {
     constructor(element) {
       super(element);
 
-      // const { vueConfig } = /** @type {typeof WithVue2} */ (this.constructor);
-      const vueConfig =
-        this.vueConfig ?? /** @type {typeof WithVue2} */ (this.constructor).vueConfig;
+      // @ts-ignore
+      const vueConfig = this.vueConfig ?? this.constructor.vueConfig;
 
       if (!vueConfig) {
         if (isDev) {
@@ -78,4 +74,4 @@ export default (BaseClass, Vue) => {
       });
     }
   };
-};
+}
