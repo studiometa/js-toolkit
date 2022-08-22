@@ -1,10 +1,6 @@
 import merge from 'deepmerge';
-
-/**
- * @typedef {import('deepmerge').Options} DeepmergeOptions
- * @typedef {import('../Base').BaseConfig} BaseConfig
- * @typedef {import('../Base').BaseConstructor} BaseConstructor
- */
+import type { Options as DeepmergeOptions } from 'deepmerge';
+import type { BaseTypeParameter, BaseConstructor, BaseConfig } from '../Base/index.js';
 
 /**
  * Extends the configuration of an existing class.
@@ -13,17 +9,19 @@ import merge from 'deepmerge';
  * @param {T} BaseClass The Base class to extend.
  * @param {Partial<BaseConfig>} config Extra configuration to merge.
  * @param {DeepmergeOptions} options Options for the `deepmerge` function. {@link https://github.com/TehShrike/deepmerge#options}
- * @returns {T}
  */
-export default function withExtraConfig(BaseClass, config, options = {}) {
+export default function withExtraConfig<T extends BaseTypeParameter = BaseTypeParameter>(
+  BaseClass: BaseConstructor,
+  config: Partial<BaseConfig>,
+  options: DeepmergeOptions = {}
+) {
   const newConfig = merge(BaseClass.config, config, options);
 
   if (newConfig.name === BaseClass.config.name) {
     newConfig.name = `${BaseClass.config.name}WithExtraConfig`;
   }
 
-  // @ts-ignore
-  return class extends BaseClass {
+  return class WithExtraConfig<U extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<T & U> {
     /**
      * Class config.
      * @type {BaseConfig}
