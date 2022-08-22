@@ -6,7 +6,7 @@ import ResponsiveOptionsManager from '../Base/managers/ResponsiveOptionsManager.
  */
 export default function withResponsiveOptions<T extends BaseTypeParameter = BaseTypeParameter>(BaseClass: BaseConstructor) {
   // @ts-ignore
-  return class<U extends BaseTypeParameters = BaseTypeParameter> extends BaseClass<U & T> {
+  return class WithResponsiveOptions<U extends BaseTypeParameters = BaseTypeParameter> extends BaseClass<U & T> {
     /**
      * Get managers.
      */

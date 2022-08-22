@@ -29,11 +29,13 @@ export default function withMountWhenInView<T extends BaseTypeParameter = BaseTy
 
     /**
      * Is the component visible?
+     * @private
      */
     __isVisible = false;
 
     /**
      * The component's observer.
+     * @private
      */
     __observer: IntersectionObserver;
 

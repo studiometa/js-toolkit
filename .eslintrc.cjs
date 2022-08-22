@@ -5,6 +5,9 @@ module.exports = {
     'no-underscore-dangle': 'off',
     'jsdoc/valid-types': 'off',
   },
+  settings: {
+    'import/extensions': ['.js', '.mjs', '.jsx', '.ts', '.mts'],
+  },
   overrides: [
     {
       files: ['**/*.spec.js', '**/spec.js', 'packages/tests/**/*.js'],
@@ -25,6 +28,7 @@ module.exports = {
         'require-jsdoc': 'off',
         'jsdoc/require-returns': 'off',
         'jsdoc/require-param': 'off',
+        'import/extensions': 'off',
       },
     },
     {

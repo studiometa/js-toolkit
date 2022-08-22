@@ -1,17 +1,12 @@
+import type Base from '../Base/index.js';
+import type { BaseConstructor, BaseTypeParameter } from '../Base/index.js';
 import useResize from '../services/resize.js';
 import { isDev, isArray } from '../utils/index.js';
 
 /**
- * @typedef {import('../Base').default} Base
- * @typedef {import('../Base').BaseConstructor} BaseConstructor
- */
-
-/**
  * Test the breakpoins of the given Base instance and return the hook to call.
- *
- * @param  {Array<[string[], Base]>} breakpoints The breakpoints's data.
  */
-function testBreakpoints(breakpoints) {
+function testBreakpoints(breakpoints: Array<[string[], Base]>) {
   const { breakpoint } = useResize().props();
   breakpoints.forEach(([breakpointKeys, instance]) => {
     if (breakpointKeys.includes(breakpoint) && !instance.$isMounted) {
@@ -24,11 +19,11 @@ function testBreakpoints(breakpoints) {
 
 /**
  * Prepare the components.
- * @param {Base} instance
- * @param {Array<[string, BaseConstructor]>} breakpoints
- * @returns {Array<[string, Base]>}
  */
-function mountComponents(instance, breakpoints) {
+function mountComponents(
+  instance: Base,
+  breakpoints: Array<[string, BaseConstructor]>
+): Array<[string, Base]> {
   return breakpoints.map(([bk, ComponentClass]) => {
     const child = new ComponentClass(instance.$el);
     Object.defineProperty(child, '$parent', { get: () => instance.$parent });
@@ -44,12 +39,11 @@ const instances = new WeakMap();
 
 /**
  * BreakpointManager class.
- * @template {BaseConstructor} T
- * @param {T} BaseClass
- * @param {Array<[string, BaseConstructor]>} breakpoints
- * @returns {T}
  */
-export default function withBreakpointManager(BaseClass, breakpoints) {
+export default function withBreakpointManager<T extends BaseTypeParameter = BaseTypeParameter>(
+  BaseClass: BaseConstructor,
+  breakpoints:Array<[string, BaseConstructor]>
+) {
   if (!isArray(breakpoints)) {
     if (isDev) {
       throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
@@ -75,8 +69,9 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
     return BaseClass;
   }
 
-  // @ts-ignore
-  return class extends BaseClass {
+  return class WithBreakpointManager<
+    U extends BaseTypeParameter = BaseTypeParameter
+  > extends BaseClass<T & U> {
     /**
      * Watch for the document resize to test the breakpoints.
      * @param {HTMLElement} element The component's root element.
@@ -91,8 +86,6 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
       add(`BreakpointManager-${this.$id}`, () => {
         testBreakpoints(instances.get(this));
       });
-
-      this.instances = instances.get(this);
     }
 
     /**
