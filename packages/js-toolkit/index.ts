@@ -9,3 +9,7 @@ export type {
   BaseAsyncConstructor,
   BaseConfig,
 } from './Base/index.js';
+
+export type {
+  BaseInterface
+} from './Base/types.js';

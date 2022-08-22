@@ -94,7 +94,7 @@ function createAndTestManagers(instance) {
 
 /**
  * Base class.
- * @template {BaseTypeParameter} [BaseInterface={ $el: HTMLElement, $options: BaseOptions, $refs: BaseRefs, $children: { [name:string]: Base | Promise<Base> } }]
+ * @template {BaseTypeParameter} [T={ $el: HTMLElement, $options: BaseOptions, $refs: BaseRefs, $children: { [name:string]: Base | Promise<Base> } }]
  */
 export default class Base extends EventTarget {
   /**
@@ -118,7 +118,7 @@ export default class Base extends EventTarget {
 
   /**
    * The root element.
-   * @type {BaseInterface['$el'] & HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> }}
+   * @type {T['$el'] & HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> }}
    */
   $el;
 
@@ -223,36 +223,36 @@ export default class Base extends EventTarget {
   }
 
   /**
-   * @type {RefsManager & BaseInterface['$refs'] & BaseRefs}
+   * @type {RefsManager & T['$refs'] & BaseRefs}
    */
   __refs;
 
   /**
-   * @returns {RefsManager & BaseInterface['$refs'] & BaseRefs}
+   * @returns {RefsManager & T['$refs'] & BaseRefs}
    */
   get $refs() {
     return this.__refs;
   }
 
   /**
-   * @type {OptionsManager & BaseInterface['$options'] & BaseOptions}
+   * @type {OptionsManager & T['$options'] & BaseOptions}
    */
   __options;
 
   /**
-   * @returns {OptionsManager & BaseInterface['$options'] & BaseOptions}
+   * @returns {OptionsManager & T['$options'] & BaseOptions}
    */
   get $options() {
     return this.__options;
   }
 
   /**
-   * @type {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> } & BaseChildren}
+   * @type {ChildrenManager & { [key in keyof T['$children']]: Array<T['$children'][key]> } & BaseChildren}
    */
   __children;
 
   /**
-   * @returns {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> } & BaseChildren}
+   * @returns {ChildrenManager & { [key in keyof T['$children']]: Array<T['$children'][key]> } & BaseChildren}
    */
   get $children() {
     return this.__children;
