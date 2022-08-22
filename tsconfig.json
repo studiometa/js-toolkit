@@ -16,8 +16,14 @@
     "packages/global.d.ts",
     "packages/js-toolkit/abstracts/**/*.js",
     "packages/js-toolkit/decorators/**/*.js",
+    "packages/js-toolkit/helpers/**/*.js",
     "packages/js-toolkit/services/**/*.js",
     "packages/js-toolkit/utils/**/*.js",
-    "packages/js-toolkit/index.js"
+    "packages/js-toolkit/abstracts/**/*.ts",
+    "packages/js-toolkit/decorators/**/*.ts",
+    "packages/js-toolkit/helpers/**/*.ts",
+    "packages/js-toolkit/services/**/*.ts",
+    "packages/js-toolkit/utils/**/*.ts",
+    "packages/js-toolkit/index.ts"
   ]
 }

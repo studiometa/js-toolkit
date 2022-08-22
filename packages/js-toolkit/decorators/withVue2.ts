@@ -1,3 +1,5 @@
+import type Vue from 'vue';
+import type { ComponentOptions, VueConstructor } from 'vue';
 import type { BaseConstructor, BaseTypeParameter } from '../Base/index.js';
 import { isDev, isFunction } from '../utils/index.js';
 
@@ -10,11 +12,14 @@ interface WithVue2Interface {
 /**
  * withVue decorator.
  */
-export default function withVue2<T extends BaseTypeParameter = BaseTypeParameter>(
-  BaseClass: BaseConstructor,
-  Vue
-) {
-  // @ts-ignore
+export default function withVue2<
+  T extends BaseTypeParameter = BaseTypeParameter,
+  VueTypeParameter extends Vue = Vue
+>(BaseClass: BaseConstructor, VueCtor: VueConstructor) {
+  type VueConfig = ComponentOptions<VueTypeParameter> & {
+    render: ComponentOptions<VueTypeParameter>['render'];
+  };
+
   return class WithVue2<U extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<
     WithVue2Interface & T & U
   > {
@@ -24,26 +29,18 @@ export default function withVue2<T extends BaseTypeParameter = BaseTypeParameter
       refs: [...(BaseClass.config?.refs ?? []), 'vue'],
     };
 
-    /**
-     * @type {Vue}
-     */
-    $vue;
+    $vue: Vue;
 
     /**
-     * @typedef {import('vue').ComponentOptions} ComponentOptions
-     * @type {ComponentOptions & { render: ComponentOptions['render'] }}
+     * Vue app configuration.
      */
-    static vueConfig;
+    static vueConfig: VueConfig;
 
-    /**
-     * @param {HTMLElement} element The component's root element.
-     * @this {WithVue2 & { $refs: WithVue2Refs }}
-     */
-    constructor(element) {
+    constructor(element: HTMLElement) {
       super(element);
 
       // @ts-ignore
-      const vueConfig = this.vueConfig ?? this.constructor.vueConfig;
+      const vueConfig:VueConfig = this.vueConfig ?? this.constructor.vueConfig;
 
       if (!vueConfig) {
         if (isDev) {
@@ -59,7 +56,7 @@ export default function withVue2<T extends BaseTypeParameter = BaseTypeParameter
         return;
       }
 
-      this.$vue = new Vue(vueConfig);
+      this.$vue = new VueCtor(vueConfig);
 
       this.$on('mounted', () => {
         if (!(this.$refs.vue instanceof HTMLElement)) {
