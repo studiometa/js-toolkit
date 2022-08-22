@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const index = path.resolve(__dirname, '../packages/js-toolkit/index.js');
+const index = path.resolve(__dirname, '../packages/js-toolkit/index.ts');
 
 const content = `import Base from './Base/index.js';
 import * as DECORATORS from './decorators/index.js';
