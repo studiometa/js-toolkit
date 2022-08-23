@@ -153,7 +153,7 @@ function end(element, classesOrStyles, mode = 'remove') {
  * @param  {string}                  endMode Whether to remove or keep the `to` classes/styles
  * @returns {Promise<void>}                   A promise resolving at the end of the transition.
  */
-export default async function transition(element, name, endMode = 'remove') {
+async function singleTransition(element, name, endMode = 'remove') {
   /** @type {TransitionStyles} */
   const classesOrStyles = isString(name)
     ? {
@@ -178,4 +178,23 @@ export default async function transition(element, name, endMode = 'remove') {
   await next(element, classesOrStyles);
   end(element, classesOrStyles, endMode);
   return Promise.resolve();
+}
+
+/**
+ * Manage CSS transition with class.
+ *
+ * @param  {HTMLElement|HTMLElement[]|NodeList} elementOrElements The target element or elements.
+ * @param  {string|TransitionStyles}            name    The name of the transition or an object with the hooks classesOrStyles.
+ * @param  {string}                             endMode Whether to remove or keep the `to` classes/styles
+ * @returns {Promise<void>}                             A promise resolving at the end of the transition.
+ */
+export default async function transition(elementOrElements, name, endMode = 'remove') {
+  const elements =
+    isArray(elementOrElements) || elementOrElements instanceof NodeList
+      ? Array.from(elementOrElements)
+      : [elementOrElements];
+
+  await Promise.all(
+    elements.map((element) => singleTransition(/** @type {HTMLElement} */ (element), name, endMode))
+  );
 }
