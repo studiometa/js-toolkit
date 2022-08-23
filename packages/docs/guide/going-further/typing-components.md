@@ -111,9 +111,43 @@ export default class Component extends Base<ComponentInterface> {
 }
 ```
 
+## Class method types
+
+If you want to have autocompletion for a component's method, you can use the `BaseInterface` interface.
+
+### With JSDoc comments
+
+```js
+import { Base } from '@studiometa/js-toolkit';
+
+/**
+ * @implements {import('@studiometa/js-toolkit').BaseInterface}
+ */
+export default class Component extends Base {
+  scrolled(props) {
+    props.y; // number
+    props.changed; // { x: number, y: number }
+  }
+}
+```
+
+### With TypeScript
+
+```ts
+import { Base } from '@studiometa/js-toolkit';
+import type { BaseInterface } from '@studiometa/js-toolkit';
+
+export default class Component extends Base implements BaseInterface {
+  scrolled(props) {
+    props.y; // number
+    props.changed; // { x: number, y: number }
+  }
+}
+```
+
 ## Typing for extensibility
 
-If you create a component that can be extended by other component, you will need to define a type parameter for it.
+If you create a component that can be extended by other component, you will need to define a type parameter for it and specify that the static `config` property is of type `BaseConfig` (there might be some conflicts otherwise).
 
 ### With JSDoc comments
 
@@ -122,6 +156,7 @@ You will need to declare types in a separate comment from the class and import t
 ```js {2,10,11}
 /**
  * @typedef {import('@studiometa/js-toolkit').BaseTypeParameter} BaseTypeParameter
+ * @typedef {import('@studiometa/js-toolkit').BaseConfig} BaseConfig
  * @typedef {{ name: string, lazy: boolean }} ComponentOptions
  * @typedef {{ btn: HTMLButtonElement, items: HTMLElement[] }} ComponentRefs
  * @typedef {{ Figure: Figure, LazyComponent: Promise<LazyComponent> }} ComponentChildren
@@ -129,10 +164,18 @@ You will need to declare types in a separate comment from the class and import t
  */
 
 /**
- * @template {BaseTypeParameter} [Interface={}]
- * @extends {Base<Interface & ComponentInterface>}
+ * @template {BaseTypeParameter} [T=BaseTypeParameter]
+ * @extends {Base<T & ComponentInterface>}
  */
 export default class Component extends Base {
+  /**
+   * @type {BaseConfig}
+   */
+  static config = {
+    name: 'Component',
+    // ...
+  };
+
   // ...
 }
 ```
@@ -154,11 +197,19 @@ export default class ChildComponent extends Component {
 
 ```ts
 import { Base } from '@studiometa/js-toolkit';
-import type { BaseTypeParameter } from '@studiometa/js-toolkit';
+import type { BaseTypeParameter, BaseConfig } from '@studiometa/js-toolkit';
 
-export default class Component<Interface extends BaseTypeParameter = {}> extends Base<
-  Interface & ComponentInterface
+interface ComponentInterface {
+  // ...
+}
+
+export default class Component<T extends BaseTypeParameter = BaseTypeParameter> extends Base<
+  T & ComponentInterface
 > {
+  static config: BaseConfig = {
+    name: 'Component',
+  };
+
   // ...
 }
 ```
