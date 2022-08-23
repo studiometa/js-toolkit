@@ -1,5 +1,5 @@
 import { lerp, map } from '../math/index.js';
-import { isDefined, isFunction, isNumber } from '../is.js';
+import { isDefined, isFunction, isNumber, isArray } from '../is.js';
 import transform, { TRANSFORM_PROPS } from './transform.js';
 import { domScheduler as scheduler } from '../scheduler.js';
 import { tween, normalizeEase } from '../tween.js';
@@ -128,7 +128,7 @@ function render(element, from, to, progress) {
  *   pause: () => void;
  *   play: () => void;
  *   finish: () => void;
- *   progress: (value: number?) => number
+ *   progress: (value?: number) => number
  * }} Animate
  */
 
@@ -139,7 +139,7 @@ function render(element, from, to, progress) {
  * @param   {import('../tween.js').TweenOptions} [options]
  * @returns {Animate}
  */
-export function animate(element, keyframes, options = {}) {
+function singleAnimate(element, keyframes, options = {}) {
   const keyframesCount = keyframes.length - 1;
   const normalizedKeyframes = keyframes.map(
     (keyframe, index) =>
@@ -193,4 +193,43 @@ export function animate(element, keyframes, options = {}) {
   });
 
   return controls;
+}
+
+/**
+ * Animate one or more elements.
+ * @param   {HTMLElement|HTMLElement[]|NodeList} elementOrElements
+ * @param   {Keyframe[]} keyframes
+ * @param   {import('../tween.js').TweenOptions} [options]
+ * @returns {Animate}
+ */
+export function animate(elementOrElements, keyframes, options = {}) {
+  const elements =
+    isArray(elementOrElements) || elementOrElements instanceof NodeList
+      ? Array.from(elementOrElements)
+      : [elementOrElements];
+
+  const controls = elements.map((element) =>
+    singleAnimate(/** @type {HTMLElement} */ (element), keyframes, options)
+  );
+
+  const delegate = (key) => {
+    // eslint-disable-next-line consistent-return
+    return (...args) => {
+      if (key === 'progress' && args.length === 0) {
+        return controls[0][key]();
+      }
+
+      controls.forEach((control) => {
+        control[key](...args);
+      });
+    };
+  };
+
+  return {
+    start: delegate('start'),
+    pause: delegate('pause'),
+    finish: delegate('finish'),
+    play: delegate('play'),
+    progress: delegate('progress'),
+  };
 }
