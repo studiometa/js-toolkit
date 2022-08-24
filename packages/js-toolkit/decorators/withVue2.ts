@@ -1,5 +1,6 @@
 import type Vue from 'vue';
 import type { ComponentOptions, VueConstructor } from 'vue';
+import type Base from '../Base/index.js';
 import type { BaseConstructor, BaseTypeParameter } from '../Base/index.js';
 import { isDev, isFunction } from '../utils/index.js';
 
@@ -13,16 +14,16 @@ interface WithVue2Interface {
  * withVue decorator.
  */
 export default function withVue2<
+  S extends BaseConstructor<Base>,
   T extends BaseTypeParameter = BaseTypeParameter,
   VueTypeParameter extends Vue = Vue
->(BaseClass: BaseConstructor, VueCtor: VueConstructor) {
+>(BaseClass: S, VueCtor: VueConstructor) {
   type VueConfig = ComponentOptions<VueTypeParameter> & {
     render: ComponentOptions<VueTypeParameter>['render'];
   };
 
-  return class WithVue2<U extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<
-    WithVue2Interface & T & U
-  > {
+  // @ts-ignore
+  class WithVue2 extends BaseClass {
     static config = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithVue`,
@@ -70,5 +71,11 @@ export default function withVue2<
         this.$vue.$destroy();
       });
     }
-  };
+  }
+
+  return WithVue2 as BaseConstructor<WithVue2> &
+    Pick<typeof WithVue2, keyof typeof WithVue2> &
+    S &
+    BaseConstructor<Base<T & WithVue2Interface>> &
+    Pick<typeof Base, keyof typeof Base>;
 }

@@ -50,10 +50,14 @@ function createAndTestManagers(instance: Base): void {
   });
 }
 
-export type BaseConstructor = typeof Base;
-export type BaseAsyncConstructor = (
+export type BaseConstructor<T extends Base = Base> = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  new (...args: any[]): T;
+  prototype: Base;
+} & Pick<typeof Base, keyof typeof Base>;
+export type BaseAsyncConstructor<T extends Base = Base> = (
   Base
-) => Promise<BaseConstructor | { default: BaseConstructor }>;
+) => Promise<BaseConstructor<T> | { default: BaseConstructor<T> }>;
 export type BaseOptions = { [name: string]: unknown };
 export type BaseRefs = { [name: string]: HTMLElement | HTMLElement[] };
 export type BaseChildren = { [nameOrSelector: string]: Base[] | Promise<Base>[] };
@@ -75,7 +79,7 @@ export type BaseTypeParameter = {
   $el?: HTMLElement;
   $options?: BaseOptions;
   $refs?: BaseRefs;
-  $children?: { [name: string]: Base | Promise<Base> };
+  $children?: BaseChildren;
 };
 
 export type Managers = {
@@ -207,13 +211,9 @@ export default class Base<T extends BaseTypeParameter = BaseTypeParameter> exten
     return this.__options;
   }
 
-  __children: ChildrenManager & {
-    [key in keyof T['$children']]: Array<T['$children'][key]>;
-  } & BaseChildren;
+  __children: ChildrenManager & T['$children'] & BaseChildren;
 
-  get $children(): ChildrenManager & {
-    [key in keyof T['$children']]: Array<T['$children'][key]>;
-  } & BaseChildren {
+  get $children(): ChildrenManager & T['$children'] & BaseChildren {
     return this.__children;
   }
 

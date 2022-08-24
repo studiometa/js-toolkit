@@ -1,3 +1,4 @@
+import type Base from '../Base/index.js';
 import type { BaseConstructor, BaseTypeParameter } from '../Base/index.js';
 
 interface WithIntersectionObserverInterface {
@@ -18,14 +19,16 @@ function createArrayOfNumber(length: number): number[] {
 /**
  * IntersectionObserver decoration.
  */
-export default function withIntersectionObserver<T extends BaseTypeParameter = BaseTypeParameter>(
-  BaseClass: BaseConstructor,
+export default function withIntersectionObserver<
+  S extends BaseConstructor<Base>,
+  T extends BaseTypeParameter = BaseTypeParameter
+>(
+  BaseClass: S,
   // eslint-disable-next-line unicorn/no-object-as-default-parameter
   defaultOptions: IntersectionObserverInit = { threshold: createArrayOfNumber(100) }
 ) {
-  return class WithIntersectionObserver<
-    U extends BaseTypeParameter = BaseTypeParameter
-  > extends BaseClass<WithIntersectionObserverInterface & T & U> {
+  // @ts-ignore
+  class WithIntersectionObserver extends BaseClass {
     static config = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithIntersectionObserver`,
@@ -53,7 +56,7 @@ export default function withIntersectionObserver<T extends BaseTypeParameter = B
         },
         {
           ...defaultOptions,
-          ...this.$options.intersectionObserver,
+          ...this.$options.intersectionObserver as IntersectionObserverInit,
         }
       );
 
@@ -65,5 +68,11 @@ export default function withIntersectionObserver<T extends BaseTypeParameter = B
         this.$observer.unobserve(this.$el);
       });
     }
-  };
+  }
+
+  return WithIntersectionObserver as BaseConstructor<WithIntersectionObserver> &
+    Pick<typeof WithIntersectionObserver, keyof typeof WithIntersectionObserver> &
+    S &
+    BaseConstructor<Base<WithIntersectionObserverInterface & T>> &
+    Pick<typeof Base, keyof typeof Base>;
 }

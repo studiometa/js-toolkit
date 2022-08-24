@@ -1,4 +1,7 @@
+import type { BaseInterface } from 'Base/types.js';
+import type Base from '../Base/index.js';
 import type { BaseTypeParameter, BaseConstructor, BaseConfig } from '../Base/index.js';
+import type { RafServiceProps, ScrollServiceProps, ResizeServiceProps } from '../services/index.js';
 import withMountWhenInView from './withMountWhenInView.js';
 import { damp, clamp, clamp01, getOffsetSizes, isFunction, useScheduler } from '../utils/index.js';
 
@@ -66,21 +69,22 @@ function updateProps(
 /**
  * Add scrolled in view capabilities to a component.
  */
-export default function withScrolledInView<T extends BaseTypeParameter = BaseTypeParameter>(
-  BaseClass: BaseConstructor,
-  options: withScrolledInViewOptions = {}
-) {
-  const WithMountWhenInView = withMountWhenInView<T>(BaseClass, options);
-  return class WithScrolledInView<U extends BaseTypeParameter = BaseTypeParameter> extends WithMountWhenInView<U> {
+export default function withScrolledInView<
+  S extends BaseConstructor<Base>,
+  T extends BaseTypeParameter = BaseTypeParameter
+>(BaseClass: S, options: withScrolledInViewOptions = {}) {
+  const WithMountWhenInView = withMountWhenInView<S, T>(BaseClass, options);
+
+  class WithScrolledInView extends WithMountWhenInView implements BaseInterface {
     /**
      * Config.
      */
-    static config:BaseConfig = {
+    static config: BaseConfig = {
       name: `${BaseClass.config.name}WithMountWhenInView`,
       emits: ['scrolledInView'],
     };
 
-    __props:ScrollInViewProps = {
+    __props: ScrollInViewProps = {
       start: {
         x: 0,
         y: 0,
@@ -119,9 +123,8 @@ export default function withScrolledInView<T extends BaseTypeParameter = BaseTyp
 
     /**
      * Bind listeners.
-     * @param   {HTMLElement} element
      */
-    constructor(element) {
+    constructor(element: HTMLElement) {
       super(element);
 
       const render = () => {
@@ -189,8 +192,6 @@ export default function withScrolledInView<T extends BaseTypeParameter = BaseTyp
 
     /**
      * Mounted hook.
-     *
-     * @returns {void}
      */
     mounted() {
       // @ts-ignore
@@ -202,11 +203,8 @@ export default function withScrolledInView<T extends BaseTypeParameter = BaseTyp
 
     /**
      * Resized hook.
-     *
-     * @param   {import('../services/resize').ResizeServiceProps} props
-     * @returns {void}
      */
-    resized(props) {
+    resized(props: ResizeServiceProps) {
       // @ts-ignore
       if (isFunction(super.resized)) {
         // @ts-ignore
@@ -216,11 +214,8 @@ export default function withScrolledInView<T extends BaseTypeParameter = BaseTyp
 
     /**
      * Scrolled hook.
-     *
-     * @param   {import('../services/scroll').ScrollServiceProps} props
-     * @returns {void}
      */
-    scrolled(props) {
+    scrolled(props: ScrollServiceProps) {
       // @ts-ignore
       if (isFunction(super.scrolled)) {
         // @ts-ignore
@@ -230,11 +225,8 @@ export default function withScrolledInView<T extends BaseTypeParameter = BaseTyp
 
     /**
      * Ticked hook.
-     *
-     * @param   {import('../services/raf').RafServiceProps} props
-     * @returns {void}
      */
-    ticked(props) {
+    ticked(props: RafServiceProps) {
       // @ts-ignore
       if (isFunction(super.ticked)) {
         // @ts-ignore
@@ -244,8 +236,6 @@ export default function withScrolledInView<T extends BaseTypeParameter = BaseTyp
 
     /**
      * Destroyed hook.
-     *
-     * @returns {void}
      */
     destroyed() {
       // @ts-ignore
@@ -257,8 +247,6 @@ export default function withScrolledInView<T extends BaseTypeParameter = BaseTyp
 
     /**
      * Set the decorator props.
-     *
-     * @returns {void}
      */
     __setProps() {
       const sizes = options.useOffsetSizes
@@ -304,5 +292,11 @@ export default function withScrolledInView<T extends BaseTypeParameter = BaseTyp
         (this.__props.dampedCurrent.y - yStart) / (yEnd - yStart)
       );
     }
-  };
+  }
+
+  return WithScrolledInView as BaseConstructor<WithScrolledInView> &
+    Pick<typeof WithScrolledInView, keyof typeof WithScrolledInView> &
+    S &
+    BaseConstructor<Base<T>> &
+    Pick<typeof Base, keyof typeof Base>;
 }

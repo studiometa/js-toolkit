@@ -1,5 +1,6 @@
 import merge from 'deepmerge';
 import type { Options as DeepmergeOptions } from 'deepmerge';
+import type Base from '../Base/index.js';
 import type { BaseTypeParameter, BaseConstructor, BaseConfig } from '../Base/index.js';
 
 /**
@@ -10,22 +11,27 @@ import type { BaseTypeParameter, BaseConstructor, BaseConfig } from '../Base/ind
  * @param {Partial<BaseConfig>} config Extra configuration to merge.
  * @param {DeepmergeOptions} options Options for the `deepmerge` function. {@link https://github.com/TehShrike/deepmerge#options}
  */
-export default function withExtraConfig<T extends BaseTypeParameter = BaseTypeParameter>(
-  BaseClass: BaseConstructor,
-  config: Partial<BaseConfig>,
-  options: DeepmergeOptions = {}
-) {
+export default function withExtraConfig<
+  S extends BaseConstructor<Base>,
+  T extends BaseTypeParameter = BaseTypeParameter
+>(BaseClass: S, config: Partial<BaseConfig>, options: DeepmergeOptions = {}) {
   const newConfig = merge(BaseClass.config, config, options);
 
   if (newConfig.name === BaseClass.config.name) {
     newConfig.name = `${BaseClass.config.name}WithExtraConfig`;
   }
 
-  return class WithExtraConfig<U extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<T & U> {
+  class WithExtraConfig extends BaseClass {
     /**
      * Class config.
      * @type {BaseConfig}
      */
     static config = newConfig;
-  };
+  }
+
+  return WithExtraConfig as BaseConstructor<WithExtraConfig> &
+    Pick<typeof WithExtraConfig, keyof typeof WithExtraConfig> &
+    S &
+    BaseConstructor<Base<T>> &
+    Pick<typeof Base, keyof typeof Base>;
 }
