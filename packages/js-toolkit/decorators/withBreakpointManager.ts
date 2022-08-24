@@ -40,10 +40,10 @@ const instances = new WeakMap();
 /**
  * BreakpointManager class.
  */
-export default function withBreakpointManager<T extends BaseTypeParameter = BaseTypeParameter>(
-  BaseClass: BaseConstructor,
-  breakpoints:Array<[string, BaseConstructor]>
-) {
+export default function withBreakpointManager<
+  S extends BaseConstructor<Base>,
+  T extends BaseTypeParameter = BaseTypeParameter
+>(BaseClass: S, breakpoints: Array<[string, BaseConstructor<Base>]>) {
   if (!isArray(breakpoints)) {
     if (isDev) {
       throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
@@ -69,9 +69,8 @@ export default function withBreakpointManager<T extends BaseTypeParameter = Base
     return BaseClass;
   }
 
-  return class WithBreakpointManager<
-    U extends BaseTypeParameter = BaseTypeParameter
-  > extends BaseClass<T & U> {
+  // @ts-ignore
+  class WithBreakpointManager extends BaseClass {
     /**
      * Watch for the document resize to test the breakpoints.
      * @param {HTMLElement} element The component's root element.
@@ -117,4 +116,10 @@ export default function withBreakpointManager<T extends BaseTypeParameter = Base
       return super.$destroy();
     }
   };
+
+  return WithBreakpointManager as BaseConstructor<WithBreakpointManager> &
+    Pick<typeof WithBreakpointManager, keyof typeof WithBreakpointManager> &
+    S &
+    BaseConstructor<Base<T>> &
+    Pick<typeof Base, keyof typeof Base>;
 }

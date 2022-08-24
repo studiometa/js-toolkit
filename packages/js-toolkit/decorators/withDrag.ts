@@ -10,11 +10,15 @@ type DragDecoratorOptions = DragServiceOptions & {
 /**
  * Add dragging capabilities to a component.
  */
-export default function withDrag<T extends BaseTypeParameter = BaseTypeParameter>(
-  BaseClass: BaseConstructor,
+export default function withDrag<
+  S extends BaseConstructor<Base>,
+  T extends BaseTypeParameter = BaseTypeParameter
+>(
+  BaseClass: S,
   { target = (instance) => instance.$el, ...options }: DragDecoratorOptions = {}
 ) {
-  return class WithDrag<U extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<T & U> {
+  // @ts-ignore
+  class WithDrag extends BaseClass {
     static config = {
       name: `${BaseClass.config.name}WithDrag`,
       emits: ['dragged'],
@@ -41,4 +45,10 @@ export default function withDrag<T extends BaseTypeParameter = BaseTypeParameter
       });
     }
   }
+
+  return WithDrag as BaseConstructor<WithDrag> &
+    Pick<typeof WithDrag, keyof typeof WithDrag> &
+    S &
+    BaseConstructor<Base<T>> &
+    Pick<typeof Base, keyof typeof Base>;
 }

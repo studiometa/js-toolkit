@@ -92,12 +92,12 @@ function addToResize(key, instance) {
 /**
  * BreakpointObserver class.
  */
-export default function withBreakpointObserver<T extends BaseTypeParameter = BaseTypeParameter>(
-  BaseClass: BaseConstructor
-) {
-  return class WithBreakpointObserver<
-    U extends BaseTypeParameter = BaseTypeParameter
-  > extends BaseClass<T & U> {
+export default function withBreakpointObserver<
+  S extends BaseConstructor<Base>,
+  T extends BaseTypeParameter = BaseTypeParameter
+>(BaseClass: S) {
+  // @ts-ignore
+  class WithBreakpointObserver extends BaseClass {
     static config = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithBreakpointObserver`,
@@ -178,5 +178,11 @@ export default function withBreakpointObserver<T extends BaseTypeParameter = Bas
 
       return this;
     }
-  };
+  }
+
+  return WithBreakpointObserver as BaseConstructor<WithBreakpointObserver> &
+    Pick<typeof WithBreakpointObserver, keyof typeof WithBreakpointObserver> &
+    S &
+    BaseConstructor<Base<T & WithBreakpointObserverInterface>> &
+    Pick<typeof Base, keyof typeof Base>;
 }

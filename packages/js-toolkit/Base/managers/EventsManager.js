@@ -6,6 +6,7 @@ import { normalizeRefName } from './RefsManager.js';
 
 /**
  * @typedef {import('../index.js').default} Base
+ * @typedef {import('../index.js').BaseChildren} BaseChildren
  * @typedef {import('./ChildrenManager.js').default} ChildrenManager
  */
 
@@ -255,10 +256,11 @@ export default class EventsManager extends AbstractManager {
     handleEvent: (event) => {
       const childrenManager = this.__base.$children;
 
+      // @todo handle async child components
       const { name, child: resolvedChild } = childrenManager.registeredNames
         .map((childName) => ({
           name: childName,
-          child: childrenManager[childName].find(
+          child: [...childrenManager[childName]].find(
             // @ts-ignore
             (instance) => instance === event.currentTarget || instance.$el === event.currentTarget
           ),
@@ -269,7 +271,7 @@ export default class EventsManager extends AbstractManager {
       const normalizedEventName = normalizeName(event.type);
       const method = `on${normalizedChildName}${normalizedEventName}`;
 
-      const index = childrenManager[name].indexOf(resolvedChild);
+      const index = [...childrenManager[name]].indexOf(resolvedChild);
 
       const args = isArray(event.detail) ? event.detail : [];
       this.__base[method](...args, index, event);

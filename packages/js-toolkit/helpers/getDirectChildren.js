@@ -26,8 +26,8 @@ export function getDirectChildren(parentInstance, parentName, childrenName) {
   }
 
   return /** @type {T[]} */ (
-    children.filter((child) => {
-      return nestedParents.every((nestedParent) => {
+    [...children].filter((child) => {
+      return [...nestedParents].every((nestedParent) => {
         // @ts-ignore
         const nestedChildren = nestedParent.$children[childrenName];
         /* istanbul ignore next */
