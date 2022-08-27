@@ -1,7 +1,8 @@
-/**
- * @typedef {import('../Base/index.js').BaseConstructor} BaseConstructor
- * @typedef {{ timeout?: number }} ImportWhenIdleOptions
- */
+import type { BaseConstructor } from '../Base/index.js';
+
+type ImportWhenIdleOptions = {
+  timeout?: number;
+};
 
 /**
  * Import a component when user is idle.
@@ -13,7 +14,10 @@
  *   The time to wait before triggering the callback if never idle.
  * @returns {Promise<T>}
  */
-export default function importWhenIdle(fn, options) {
+export default function importWhenIdle<T extends BaseConstructor = BaseConstructor>(
+  fn: () => Promise<T | { default: T }>,
+  { timeout = 1 }: ImportWhenIdleOptions = {}
+):Promise<T> {
   let ResolvedClass;
 
   const resolver = (resolve) => {
@@ -24,8 +28,6 @@ export default function importWhenIdle(fn, options) {
   };
 
   return new Promise((resolve) => {
-    const timeout = options?.timeout ?? 1;
-
     if (!('requestIdleCallback' in window)) {
       setTimeout(() => {
         resolver(resolve);
@@ -37,7 +39,7 @@ export default function importWhenIdle(fn, options) {
             resolver(resolve);
           }, 0);
         },
-        { timeout: options?.timeout }
+        { timeout }
       );
     }
   });

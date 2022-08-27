@@ -223,14 +223,14 @@ export class Base<T extends BaseTypeParameter = BaseTypeParameter> extends Event
   /**
    * Small helper to log stuff.
    */
-  get $log(): (...args: any) => void {
+  get $log(): (...args: unknown[]) => void {
     return this.__options.log ? window.console.log.bind(window, `[${this.__config.name}]`) : noop;
   }
 
   /**
    * Small helper to debug information.
    */
-  get __debug(): (...args: any) => void {
+  get __debug(): (...args: unknown[]) => void {
     return isDev && this.__options.debug
       ? window.console.log.bind(window, `[debug] [${this.$id}]`)
       : noop;

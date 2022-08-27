@@ -1,15 +1,11 @@
+import type { Base, BaseConstructor } from '../Base/index.js';
 import { getTargetElements } from './utils.js';
 import { isString } from '../utils/index.js';
 
 /**
- * @typedef {import('../Base/index.js').BaseConstructor} BaseConstructor
- * @typedef {import('../Base/index.js').Base} Base
- */
-
-/**
  * Import a component on an interaction.
  *
- * @template {BaseConstructor} T
+ * @template {BaseConstructor} [T=BaseConstructor]
  * @param {() => Promise<T|{default:T}>} fn
  *   The import function.
  * @param {string|HTMLElement|HTMLElement[]} nameOrSelectorOrElement
@@ -18,9 +14,14 @@ import { isString } from '../utils/index.js';
  *   The events to listen to to trigger the import.
  * @param {Base} [parent]
  *   The parent component.
- * @returns {Promise<T>}
+ * @returns {Promise<InstanceType<T>>}
  */
-export default function importOnInteraction(fn, nameOrSelectorOrElement, events, parent) {
+export default function importOnInteraction<T extends BaseConstructor = BaseConstructor>(
+  fn: () => Promise<T|{default:T}>,
+  nameOrSelectorOrElement:string|HTMLElement|HTMLElement[],
+  events:string|string[],
+  parent: Base
+):Promise<T> {
   const normalizedEvents = isString(events) ? [events] : events;
 
   let ResolvedClass;

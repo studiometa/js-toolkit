@@ -114,7 +114,7 @@ export default function withBreakpointManager<
 
       return super.$destroy();
     }
-  };
+  }
 
   return WithBreakpointManager as BaseConstructor<WithBreakpointManager> &
     Pick<typeof WithBreakpointManager, keyof typeof WithBreakpointManager> &
