@@ -1,6 +1,5 @@
 import type { BaseInterface } from 'Base/types.js';
-import type Base from '../Base/index.js';
-import type { BaseTypeParameter, BaseConstructor, BaseConfig } from '../Base/index.js';
+import type { Base, BaseTypeParameter, BaseConstructor, BaseConfig } from '../Base/index.js';
 import type { RafServiceProps, ScrollServiceProps, ResizeServiceProps } from '../services/index.js';
 import withMountWhenInView from './withMountWhenInView.js';
 import { damp, clamp, clamp01, getOffsetSizes, isFunction, useScheduler } from '../utils/index.js';

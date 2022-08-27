@@ -1,5 +1,4 @@
-import type Base from '../Base/index.js';
-import type { BaseConstructor, BaseTypeParameter } from '../Base/index.js';
+import type { Base, BaseConstructor, BaseTypeParameter } from '../Base/index.js';
 import useResize from '../services/resize.js';
 import { isDev } from '../utils/index.js';
 

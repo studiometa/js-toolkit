@@ -1,6 +1,5 @@
 import { isArray, isDefined, isDev } from '../utils/index.js';
-import type Base from './index.js';
-import type { BaseConfig } from './index.js';
+import type { Base, BaseConfig } from './index.js';
 
 /**
  * Get a list of elements based on the name of a component.

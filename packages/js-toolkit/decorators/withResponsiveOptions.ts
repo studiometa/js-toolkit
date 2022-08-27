@@ -1,5 +1,4 @@
-import type Base from '../Base/index.js';
-import type { BaseTypeParameter, BaseConstructor, Managers } from '../Base/index.js';
+import type { Base, BaseTypeParameter, BaseConstructor, Managers } from '../Base/index.js';
 import ResponsiveOptionsManager from '../Base/managers/ResponsiveOptionsManager.js';
 
 /**

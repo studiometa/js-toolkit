@@ -1,5 +1,4 @@
-import type Base from '../Base/index.js';
-import type { BaseTypeParameter, BaseConstructor } from '../Base/index.js';
+import type { Base, BaseTypeParameter, BaseConstructor } from '../Base/index.js';
 import type { DragServiceOptions } from '../services/drag.js';
 import useDrag from '../services/drag.js';
 

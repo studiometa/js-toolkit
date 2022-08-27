@@ -4,7 +4,7 @@ import { isDev, isFunction, isDefined, isBoolean, isArray, isObject } from '../.
 
 /**
  * @typedef {import('deepmerge').Options} DeepmergeOptions
- * @typedef {import('../index.js').default} Base
+ * @typedef {import('../index.js').Base} Base
  * @typedef {import('../index.js').BaseConfig} BaseConfig
  * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
  * @typedef {{

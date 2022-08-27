@@ -5,7 +5,7 @@ import AbstractManager from './AbstractManager.js';
 import { normalizeRefName } from './RefsManager.js';
 
 /**
- * @typedef {import('../index.js').default} Base
+ * @typedef {import('../index.js').Base} Base
  * @typedef {import('../index.js').BaseChildren} BaseChildren
  * @typedef {import('./ChildrenManager.js').default} ChildrenManager
  */
