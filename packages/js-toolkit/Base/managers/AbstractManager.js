@@ -1,5 +1,5 @@
 /**
- * @typedef {import('../index.js').default} Base
+ * @typedef {import('../index.js').Base} Base
  * @typedef {import('../index.js').BaseConfig} BaseConfig
  * @typedef {import('./EventsManager.js').default} EventsManager
  */

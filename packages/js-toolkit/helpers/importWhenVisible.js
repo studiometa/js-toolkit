@@ -2,7 +2,7 @@ import { getTargetElements } from './utils.js';
 import { isFunction } from '../utils/index.js';
 
 /**
- * @typedef {import('../Base/index.js').default} Base
+ * @typedef {import('../Base/index.js').Base} Base
  * @typedef {import('../Base/index.js').BaseConstructor} BaseConstructor
  */
 

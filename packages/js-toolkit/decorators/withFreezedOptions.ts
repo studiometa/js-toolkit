@@ -1,5 +1,4 @@
-import type Base from '../Base/index.js';
-import type { BaseConstructor, BaseTypeParameter } from '../Base/index.js';
+import type { Base, BaseConstructor, BaseTypeParameter } from '../Base/index.js';
 
 /**
  * Freeze the `$options` property to improve performance.

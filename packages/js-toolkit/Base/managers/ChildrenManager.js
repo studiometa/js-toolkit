@@ -2,7 +2,7 @@ import AbstractManager from './AbstractManager.js';
 import { getComponentElements } from '../utils.js';
 
 /**
- * @typedef {import('../index.js').default} Base
+ * @typedef {import('../index.js').Base} Base
  * @typedef {import('../index.js').BaseConstructor} BaseConstructor
  * @typedef {import('../index.js').BaseAsyncConstructor} BaseAsyncConstructor
  * @typedef {import('../index.js').BaseConfigComponents} BaseConfigComponents

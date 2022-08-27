@@ -1,5 +1,4 @@
-import type Base from '../Base/index.js';
-import type { BaseTypeParameter, BaseConfig, BaseConstructor } from '../Base/index.js';
+import type { Base, BaseTypeParameter, BaseConfig, BaseConstructor } from '../Base/index.js';
 
 type WithMountWhenInViewInterface = {
   $options: {

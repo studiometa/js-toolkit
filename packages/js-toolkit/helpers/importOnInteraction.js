@@ -3,7 +3,7 @@ import { isString } from '../utils/index.js';
 
 /**
  * @typedef {import('../Base/index.js').BaseConstructor} BaseConstructor
- * @typedef {import('../Base/index.js').default} Base
+ * @typedef {import('../Base/index.js').Base} Base
  */
 
 /**

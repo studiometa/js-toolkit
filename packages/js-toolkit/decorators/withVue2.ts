@@ -1,7 +1,6 @@
 import type Vue from 'vue';
 import type { ComponentOptions, VueConstructor } from 'vue';
-import type Base from '../Base/index.js';
-import type { BaseConstructor, BaseTypeParameter } from '../Base/index.js';
+import type { Base, BaseConstructor, BaseTypeParameter } from '../Base/index.js';
 import { isDev, isFunction } from '../utils/index.js';
 
 interface WithVue2Interface {

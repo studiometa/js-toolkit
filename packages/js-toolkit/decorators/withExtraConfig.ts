@@ -1,7 +1,6 @@
 import merge from 'deepmerge';
 import type { Options as DeepmergeOptions } from 'deepmerge';
-import type Base from '../Base/index.js';
-import type { BaseTypeParameter, BaseConstructor, BaseConfig } from '../Base/index.js';
+import type { Base, BaseTypeParameter, BaseConstructor, BaseConfig } from '../Base/index.js';
 
 /**
  * Extends the configuration of an existing class.

@@ -50,6 +50,7 @@ function createAndTestManagers(instance: Base): void {
   });
 }
 
+export type BaseEl = HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> };
 export type BaseConstructor<T extends Base = Base> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new (...args: any[]): T;
@@ -93,7 +94,7 @@ export type Managers = {
 /**
  * Base class.
  */
-export default class Base<T extends BaseTypeParameter = BaseTypeParameter> extends EventTarget {
+export class Base<T extends BaseTypeParameter = BaseTypeParameter> extends EventTarget {
   /**
    * This is a Base instance.
    */
@@ -112,7 +113,7 @@ export default class Base<T extends BaseTypeParameter = BaseTypeParameter> exten
   /**
    * The root element.
    */
-  $el: T['$el'] & HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> };
+  $el: T['$el'] & BaseEl;
 
   /**
    * The state of the component.
