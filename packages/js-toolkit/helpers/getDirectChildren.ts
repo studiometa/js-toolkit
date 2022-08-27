@@ -1,8 +1,5 @@
+import { Base, BaseTypeParameter } from '../Base/index.js';
 import { isArray } from '../utils/index.js';
-
-/**
- * @typedef {import('../Base/index.js').default} Base
- */
 
 /**
  * Get direct children from a parent when working with nested components.
@@ -13,28 +10,29 @@ import { isArray } from '../utils/index.js';
  * @param   {string} childrenName
  * @returns {T[]}
  */
-export function getDirectChildren(parentInstance, parentName, childrenName) {
-  const children = parentInstance.$children[childrenName];
-  const nestedParents = parentInstance.$children[parentName];
+export function getDirectChildren<T extends Base = Base>(
+  parentInstance: Base,
+  parentName: string,
+  childrenName: string
+): T[] {
+  const children = parentInstance.$children[childrenName] as Base<BaseTypeParameter>[];
+  const nestedParents = parentInstance.$children[parentName] as Base<BaseTypeParameter>[];
 
   if (!isArray(children)) {
     return [];
   }
 
   if (!isArray(nestedParents) || nestedParents.length <= 0) {
-    return /** @type {T[]} */ (children);
+    return children as T[];
   }
 
-  return /** @type {T[]} */ (
-    [...children].filter((child) => {
-      return [...nestedParents].every((nestedParent) => {
-        // @ts-ignore
-        const nestedChildren = nestedParent.$children[childrenName];
-        /* istanbul ignore next */
-        return isArray(nestedChildren) ? !nestedChildren.includes(child) : true;
-      });
+  return [...children].filter((child) =>
+    [...nestedParents].every((nestedParent) => {
+      const nestedChildren = nestedParent.$children[childrenName] as Base<BaseTypeParameter>[];
+      /* istanbul ignore next */
+      return isArray(nestedChildren) ? !nestedChildren.includes(child) : true;
     })
-  );
+  ) as T[];
 }
 
 /**
