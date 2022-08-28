@@ -1,14 +1,9 @@
+import type { Base } from '../index.js';
 import getAllProperties from '../../utils/object/getAllProperties.js';
 import { isArray } from '../../utils/index.js';
 import { getEventTarget, eventIsNative, eventIsDefinedInConfig } from '../utils.js';
 import AbstractManager from './AbstractManager.js';
 import { normalizeRefName } from './RefsManager.js';
-
-/**
- * @typedef {import('../index.js').Base} Base
- * @typedef {import('../index.js').BaseChildren} BaseChildren
- * @typedef {import('./ChildrenManager.js').default} ChildrenManager
- */
 
 const names = new Map();
 
@@ -32,7 +27,7 @@ const names = new Map();
  * @param {string} name
  * @returns {string}
  */
-export function normalizeName(name) {
+export function normalizeName(name: string): string {
   if (!names.has(name)) {
     names.set(
       name,
@@ -55,7 +50,7 @@ const eventNames = new Map();
  * @param {string} name
  * @returns {string}
  */
-export function normalizeEventName(name) {
+export function normalizeEventName(name: string): string {
   if (!eventNames.has(name)) {
     eventNames.set(name, name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`).replace(/^-/, ''));
   }
@@ -71,7 +66,7 @@ const regexes = new Map();
  * @param   {string} regex
  * @returns {RegExp}
  */
-function getRegex(regex) {
+function getRegex(regex: string): RegExp {
   if (!regexes.has(regex)) {
     regexes.set(regex, new RegExp(regex));
   }
@@ -87,7 +82,7 @@ function getRegex(regex) {
  * @returns {string}
  * @private
  */
-function getEventNameByMethod(method, name = '') {
+function getEventNameByMethod(method: string, name = ''): string {
   const regex = getRegex(`^on${normalizeName(name)}([A-Z].*)$`);
   const [, event] = method.match(regex);
   return normalizeEventName(event);
@@ -101,7 +96,8 @@ function getEventNameByMethod(method, name = '') {
  * @returns {string[]}
  * @private
  */
-function getEventMethodsByName(that, name = '') {
+// eslint-disable-next-line no-use-before-define
+function getEventMethodsByName(that: EventsManager, name = ''): string[] {
   const regex = getRegex(`^on${normalizeName(name)}[A-Z].*$`);
   const key = regex.toString();
 
@@ -109,12 +105,11 @@ function getEventMethodsByName(that, name = '') {
 
   if (!methods) {
     methods = Array.from(
-      // @ts-ignore
       getAllProperties(that.__base, [], (method) => regex.test(method)).reduce(
         (set, [method]) => set.add(method),
         new Set()
       )
-    );
+    ) as string[];
     that.__methodsCache.set(key, methods);
   }
 
@@ -134,7 +129,13 @@ function getEventMethodsByName(that, name = '') {
  * @returns {void}
  * @private
  */
-function manageRef(that, name, elements, mode = 'add') {
+function manageRef(
+  // eslint-disable-next-line no-use-before-define
+  that: EventsManager,
+  name: string,
+  elements: HTMLElement[],
+  mode: 'add' | 'remove' = 'add'
+) {
   const action = `${mode}EventListener`;
   const methods = getEventMethodsByName(that, name);
   methods.forEach((method) => {
@@ -155,7 +156,13 @@ function manageRef(that, name, elements, mode = 'add') {
  * @returns {void}
  * @private
  */
-function manageChild(that, name, instance, mode = 'add') {
+function manageChild(
+  // eslint-disable-next-line no-use-before-define
+  that: EventsManager,
+  name: string,
+  instance: Base,
+  mode: 'add' | 'remove' = 'add'
+) {
   const action = mode === 'add' ? '$on' : '$off';
   const methods = getEventMethodsByName(that, name);
   methods.forEach((method) => {
@@ -172,7 +179,8 @@ function manageChild(that, name, instance, mode = 'add') {
  * @returns {void}
  * @private
  */
-function manageRootElement(that, mode = 'add') {
+// eslint-disable-next-line no-use-before-define
+function manageRootElement(that:EventsManager, mode:'add'|'remove' = 'add') {
   const modeMethod = `${mode}EventListener`;
   const methods = getEventMethodsByName(that);
 
@@ -193,22 +201,13 @@ function manageRootElement(that, mode = 'add') {
  * @todo Use event delegation?
  */
 export default class EventsManager extends AbstractManager {
-  /**
-   * @type {WeakMap}
-   */
-  __methodsCache = new Map();
+  __methodsCache:Map<string, string[]> = new Map();
 
   /**
    * Event listener object for the root element.
-   *
-   * @type {EventListenerObject}
    */
-  __rootElementHandler = {
-    /**
-     * @param   {Event|CustomEvent} event
-     * @returns {void}
-     */
-    handleEvent: (event) => {
+  __rootElementHandler:EventListenerObject = {
+    handleEvent: (event:Event|CustomEvent) => {
       const normalizedEventName = normalizeName(event.type);
       const method = `on${normalizedEventName}`;
 
@@ -222,12 +221,10 @@ export default class EventsManager extends AbstractManager {
 
   /**
    * Event listener object for the refs.
-   *
-   * @type {EventListenerObject}
    */
-  __refsHandler = {
+  __refsHandler:EventListenerObject = {
     handleEvent: (event) => {
-      const ref = /** @type {HTMLElement} */ (event.currentTarget);
+      const ref = event.currentTarget as HTMLElement;
       const refName = normalizeRefName(ref.dataset.ref);
 
       const normalizedRefName = normalizeName(refName);
@@ -236,7 +233,7 @@ export default class EventsManager extends AbstractManager {
 
       let index = 0;
       if (isArray(this.__base.$refs[refName])) {
-        index = /** @type {HTMLElement[]} */ (this.__base.$refs[refName]).indexOf(ref);
+        index = (this.__base.$refs[refName] as HTMLElement[]).indexOf(ref);
       }
 
       this.__base[method](event, index);
@@ -245,15 +242,9 @@ export default class EventsManager extends AbstractManager {
 
   /**
    * Event listener object for the children.
-   *
-   * @type {EventListenerObject}
    */
-  __childrenHandler = {
-    /**
-     * @param {CustomEvent} event
-     * @returns {void}
-     */
-    handleEvent: (event) => {
+  __childrenHandler:EventListenerObject = {
+    handleEvent: (event:CustomEvent) => {
       const childrenManager = this.__base.$children;
 
       // @todo handle async child components
@@ -280,10 +271,8 @@ export default class EventsManager extends AbstractManager {
 
   /**
    * Class constructor.
-   *
-   * @param {Base} base
    */
-  constructor(base) {
+  constructor(base:Base) {
     super(base);
 
     this.__hideProperties([
@@ -303,7 +292,7 @@ export default class EventsManager extends AbstractManager {
    *   The elements of the ref.
    * @returns {void}
    */
-  bindRef(name, elements) {
+  bindRef(name:string, elements:HTMLElement[]) {
     manageRef(this, name, elements);
   }
 
@@ -316,7 +305,7 @@ export default class EventsManager extends AbstractManager {
    *   The elements of the ref.
    * @returns {void}
    */
-  unbindRef(name, elements) {
+  unbindRef(name:string, elements:HTMLElement[]) {
     manageRef(this, name, elements, 'remove');
   }
 
@@ -329,7 +318,7 @@ export default class EventsManager extends AbstractManager {
    *   A base instance.
    * @returns {void}
    */
-  bindChild(name, instance) {
+  bindChild(name:string, instance:Base) {
     manageChild(this, name, instance);
   }
 
@@ -342,7 +331,7 @@ export default class EventsManager extends AbstractManager {
    *   A base instance.
    * @returns {void}
    */
-  unbindChild(name, instance) {
+  unbindChild(name:string, instance:Base) {
     manageChild(this, name, instance, 'remove');
   }
 

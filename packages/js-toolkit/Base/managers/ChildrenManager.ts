@@ -1,12 +1,11 @@
+import type {
+  Base,
+  BaseConstructor,
+  BaseAsyncConstructor,
+  BaseEl,
+} from '../index.js';
 import AbstractManager from './AbstractManager.js';
 import { getComponentElements } from '../utils.js';
-
-/**
- * @typedef {import('../index.js').Base} Base
- * @typedef {import('../index.js').BaseConstructor} BaseConstructor
- * @typedef {import('../index.js').BaseAsyncConstructor} BaseAsyncConstructor
- * @typedef {import('../index.js').BaseConfigComponents} BaseConfigComponents
- */
 
 /**
  * Get a child component's instance.
@@ -18,21 +17,25 @@ import { getComponentElements } from '../utils.js';
  *   A Base class or a Promise for async components.
  * @param {string} name
  *   The name of the child component.
- * @returns {Base|Promise|'terminated'}
+ * @returns {Base|Promise<Base | 'terminated'>|'terminated'}
  *   A Base instance or a Promise resolving to a Base instance.
  * @private
  */
-function __getChild(that, el, ComponentClass, name) {
-  const asyncComponentPromise = that.__asyncComponentPromises.get(
-    /** @type {BaseAsyncConstructor} */ (ComponentClass)
-  );
+function __getChild(
+  // eslint-disable-next-line no-use-before-define
+  that: ChildrenManager,
+  el: BaseEl,
+  ComponentClass: BaseConstructor | BaseAsyncConstructor,
+  name: string
+): Base | Promise<Base | 'terminated'> | 'terminated' {
+  const asyncComponentPromise = that.__asyncComponentPromises.get(ComponentClass as BaseAsyncConstructor);
 
   // Test if we have a constructor and not a promise or if the promise has been resolved
   if (
     '$isBase' in ComponentClass ||
     (asyncComponentPromise && asyncComponentPromise.status === 'resolved')
   ) {
-    let ctor = /** @type {BaseConstructor} */ (ComponentClass);
+    let ctor = ComponentClass as BaseConstructor;
 
     // Get resolved constructor from weakmap.
     // Only test for existence as the status was checked before.
@@ -89,7 +92,12 @@ function __getChild(that, el, ComponentClass, name) {
  *   A Base class or a Promise for async components.
  * @private
  */
-function __register(that, name, component) {
+function __register(
+  // eslint-disable-next-line no-use-before-define
+  that: ChildrenManager,
+  name: string,
+  component: BaseConstructor | BaseAsyncConstructor
+) {
   Object.defineProperty(that, name, {
     enumerable: true,
     configurable: true,
@@ -116,7 +124,13 @@ function __register(that, name, component) {
  * @param {string} name The name of the component.
  * @private
  */
-function __triggerHook(that, hook, instance, name) {
+function __triggerHook(
+  // eslint-disable-next-line no-use-before-define
+  that: ChildrenManager,
+  hook: '$mount' | '$update' | '$destroy',
+  instance: Base,
+  name: string
+) {
   if (hook === '$update' && !instance.$isMounted) {
     // eslint-disable-next-line no-param-reassign
     hook = '$mount';
@@ -140,7 +154,8 @@ function __triggerHook(that, hook, instance, name) {
  * @param {'$mount'|'$update'|'$destroy'} hook The hook to execute.
  * @private
  */
-function __triggerHookForAll(that, hook) {
+// eslint-disable-next-line no-use-before-define
+function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' | '$destroy') {
   that.registeredNames.forEach((name) => {
     that[name].forEach((instance) => {
       if (instance instanceof Promise) {
@@ -159,15 +174,17 @@ export default class ChildrenManager extends AbstractManager {
   /**
    * Store async component promises to avoid calling them multiple times and
    * waiting for them when they are already resolved.
-   *
-   * @type {WeakMap<BaseAsyncConstructor, { promise: ReturnType<BaseAsyncConstructor>, status: 'pending'|'resolved', ctor?: BaseConstructor }>}
    */
-  __asyncComponentPromises = new WeakMap();
+  __asyncComponentPromises: WeakMap<
+    BaseAsyncConstructor,
+    {
+      promise: ReturnType<BaseAsyncConstructor>;
+      status: 'pending' | 'resolved';
+      ctor?: BaseConstructor;
+    }
+  > = new WeakMap();
 
-  /**
-   * @returns {string[]}
-   */
-  get registeredNames() {
+  get registeredNames():string[] {
     return Object.keys(this).filter((key) => !key.startsWith('__'));
   }
 
