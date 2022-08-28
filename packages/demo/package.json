@@ -12,7 +12,7 @@
     "@studiometa/stylelint-config": "^2.0.0",
     "@studiometa/tailwind-config": "^1.1.0",
     "@studiometa/ui": "^0.2.11",
-    "@studiometa/webpack-config": "^3.1.2",
+    "@studiometa/webpack-config": "^4.0.0-alpha.3",
     "eslint": "^8.22.0",
     "postcss": "^8.4.16",
     "prettier": "^2.7.1",
