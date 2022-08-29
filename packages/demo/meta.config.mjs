@@ -5,7 +5,7 @@ import { prototyping } from '@studiometa/webpack-config/presets';
 const { pathname } = new URL(import.meta.url);
 
 export default defineConfig({
-  presets: [prototyping()],
+  presets: [prototyping({ ts: true })],
   webpack(config) {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
