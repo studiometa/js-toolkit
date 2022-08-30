@@ -20,7 +20,7 @@ export default function importOnInteraction<T extends BaseConstructor = BaseCons
   fn: () => Promise<T|{default:T}>,
   nameOrSelectorOrElement:string|HTMLElement|HTMLElement[],
   events:string|string[],
-  parent: Base
+  parent?: Base
 ):Promise<T> {
   const normalizedEvents = isString(events) ? [events] : events;
 
