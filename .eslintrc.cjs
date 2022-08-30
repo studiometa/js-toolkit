@@ -22,7 +22,11 @@ module.exports = {
       files: ['**/*.ts', 'packages/js-toolkit/**/*.ts'],
       parser: '@typescript-eslint/parser',
       plugins: ['@typescript-eslint'],
-      extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
+      extends: [
+        'eslint:recommended',
+        'plugin:@typescript-eslint/recommended',
+        'eslint-config-airbnb-typescript/base',
+      ],
       rules: {
         '@typescript-eslint/ban-ts-comment': 'off',
         'require-jsdoc': 'off',
