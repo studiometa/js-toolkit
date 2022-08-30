@@ -6,7 +6,7 @@ import { damp, clamp, clamp01, getOffsetSizes, isFunction, useScheduler } from '
 
 const scheduler = useScheduler(['update', 'render']);
 
-type ScrollInViewProps = {
+export type ScrollInViewProps = {
   start: {
     x: number;
     y: number;
@@ -68,7 +68,7 @@ function updateProps(
 /**
  * Add scrolled in view capabilities to a component.
  */
-export default function withScrolledInView<
+export function withScrolledInView<
   S extends BaseConstructor<Base>,
   T extends BaseTypeParameter = BaseTypeParameter
 >(BaseClass: S, options: withScrolledInViewOptions = {}) {
@@ -113,12 +113,16 @@ export default function withScrolledInView<
     /**
      * Factor used for the `dampedProgress` props.
      */
-    dampFactor = 0.1;
+    get dampFactor():number {
+      return 0.1;
+    }
 
     /**
      * Precision for the `dampedProgress` props.
      */
-    dampPrecision = 0.001;
+    get dampPrecision():number {
+      return 0.001;
+    }
 
     /**
      * Bind listeners.
