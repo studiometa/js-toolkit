@@ -6,6 +6,13 @@ import { damp, clamp, clamp01, getOffsetSizes, isFunction, useScheduler } from '
 
 const scheduler = useScheduler(['update', 'render']);
 
+export interface WithScrolledInViewInterface extends BaseTypeParameter {
+  $options: {
+    dampFactor: number;
+    dampPrecision: number;
+  };
+}
+
 export type ScrollInViewProps = {
   start: {
     x: number;
@@ -72,7 +79,7 @@ export function withScrolledInView<
   S extends BaseConstructor<Base>,
   T extends BaseTypeParameter = BaseTypeParameter
 >(BaseClass: S, options: withScrolledInViewOptions = {}) {
-  const WithMountWhenInView = withMountWhenInView<S, T>(BaseClass, options);
+  const WithMountWhenInView = withMountWhenInView<S, T & WithScrolledInViewInterface>(BaseClass, options);
 
   class WithScrolledInView extends WithMountWhenInView implements BaseInterface {
     /**
@@ -81,6 +88,16 @@ export function withScrolledInView<
     static config: BaseConfig = {
       name: `${BaseClass.config.name}WithMountWhenInView`,
       emits: ['scrolledInView'],
+      options: {
+        dampFactor: {
+          type: Number,
+          default: 0.1,
+        },
+        dampPrecision: {
+          type: Number,
+          default: 0.001,
+        },
+      },
     };
 
     __props: ScrollInViewProps = {
@@ -112,17 +129,17 @@ export function withScrolledInView<
 
     /**
      * Factor used for the `dampedProgress` props.
+     * @deprecated
+     * @todo v3 delete in favor of option API
      */
-    get dampFactor():number {
-      return 0.1;
-    }
+    dampFactor?: number = null;
 
     /**
      * Precision for the `dampedProgress` props.
+     * @deprecated
+     * @todo v3 delete in favor of option API
      */
-    get dampPrecision():number {
-      return 0.001;
-    }
+    dampPrecision?: number = null;
 
     /**
      * Bind listeners.
@@ -155,8 +172,11 @@ export function withScrolledInView<
           }
         },
         ticked: () => {
-          updateProps(this.__props, this.dampFactor, this.dampPrecision, 'x');
-          updateProps(this.__props, this.dampFactor, this.dampPrecision, 'y');
+          const dampFactor = this.dampFactor ?? this.$options.dampFactor;
+          const dampPrecision = this.dampFactor ?? this.$options.dampFactor;
+
+          updateProps(this.__props, dampFactor, dampPrecision, 'x');
+          updateProps(this.__props, dampFactor, dampPrecision, 'y');
 
           if (
             this.__props.dampedCurrent.x === this.__props.current.x &&
