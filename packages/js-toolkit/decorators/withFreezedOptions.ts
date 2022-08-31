@@ -1,13 +1,20 @@
-import type { Base, BaseConstructor, BaseTypeParameter } from '../Base/index.js';
+import type { BaseDecorator, BaseInterface } from '../Base/types.js';
+import type { Base, BaseTypeParameter } from '../Base/index.js';
+
+export interface WithFreezedOptionsInterface extends BaseInterface {
+  readonly $options: this['$options'];
+}
 
 /**
  * Freeze the `$options` property to improve performance.
  */
-export default function withFreezedOptions<
-  S extends BaseConstructor<Base>,
-  T extends BaseTypeParameter = BaseTypeParameter
->(BaseClass: S) {
-  class WithFreezedOptions extends BaseClass {
+export function withFreezedOptions<S extends Base>(
+  BaseClass: typeof Base,
+): BaseDecorator<WithFreezedOptionsInterface, S> {
+  /**
+   * Class.
+   */
+  class WithFreezedOptions<T extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<T> {
     /**
      * Hold freezed options
      * @private
@@ -31,9 +38,6 @@ export default function withFreezedOptions<
     }
   }
 
-  return WithFreezedOptions as BaseConstructor<WithFreezedOptions> &
-    Pick<typeof WithFreezedOptions, keyof typeof WithFreezedOptions> &
-    S &
-    BaseConstructor<Base<T>> &
-    Pick<typeof Base, keyof typeof Base>;
+  // @ts-ignore
+  return WithFreezedOptions;
 }

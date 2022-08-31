@@ -1,24 +1,29 @@
-import type { Base, BaseConstructor, BaseTypeParameter } from '../Base/index.js';
-import useResize from '../services/resize.js';
+import type { BaseDecorator, BaseInterface } from '../Base/types.js';
+import type { Base, BaseTypeParameter, BaseConfig } from '../Base/index.js';
+import { useResize } from '../services/index.js';
 import { isDev } from '../utils/index.js';
 
-interface WithBreakpointObserverInterface {
+export interface WithBreakpointObserverTypeParameter extends BaseTypeParameter {
   $options: {
     activeBreakpoints?: string;
     inactiveBreakpoints?: string;
   };
 }
 
+export interface WithBreakpointObserverInterface extends BaseInterface {
+  $mount():this;
+}
+
 /**
  * Test the breakpoins of the given Base instance and return the hook to call.
  *
- * @param   {Base<WithBreakpointObserverInterface>} instance The component's instance.
+ * @param   {Base<WithBreakpointObserverTypeParameter>} instance The component's instance.
  * @param   {string} [breakpoint] The breakpoint to test.
  * @returns {string} The action to trigger.
  */
 function testBreakpoints(
-  instance: Base<WithBreakpointObserverInterface>,
-  breakpoint: string = useResize().props().breakpoint
+  instance: Base<WithBreakpointObserverTypeParameter>,
+  breakpoint: string = useResize().props().breakpoint,
 ): string {
   const { activeBreakpoints, inactiveBreakpoints } = instance.$options;
   const isInActiveBreakpoint =
@@ -38,26 +43,26 @@ function testBreakpoints(
 
 /**
  * Test if the given instance is configured for breakpoints.
- * @param  {Base<WithBreakpointObserverInterface>} instance A Base class instance.
+ * @param  {Base<WithBreakpointObserverTypeParameter>} instance A Base class instance.
  * @returns {boolean} True if configured correctly, false otherwise.
  */
-function hasBreakpointConfiguration(instance: Base<WithBreakpointObserverInterface>): boolean {
+function hasBreakpointConfiguration(instance: Base<WithBreakpointObserverTypeParameter>): boolean {
   const { activeBreakpoints, inactiveBreakpoints } = instance.$options;
   return Boolean(activeBreakpoints || inactiveBreakpoints);
 }
 
 /**
  * Test if the given instance has a conflicting configuration for breakpoints.
- * @param  {Base<WithBreakpointObserverInterface>} instance A Base class instance.
+ * @param  {Base<WithBreakpointObserverTypeParameter>} instance A Base class instance.
  * @returns {void}
  */
 function testConflictingBreakpointConfiguration(
-  instance: Base<WithBreakpointObserverInterface>
+  instance: Base<WithBreakpointObserverTypeParameter>,
 ): void {
   const { activeBreakpoints, inactiveBreakpoints, name } = instance.$options;
   if (activeBreakpoints && inactiveBreakpoints) {
     throw new Error(
-      `[${name}] Incorrect configuration: the \`activeBreakpoints\` and \`inactiveBreakpoints\` are not compatible.`
+      `[${name}] Incorrect configuration: the \`activeBreakpoints\` and \`inactiveBreakpoints\` are not compatible.`,
     );
   }
 }
@@ -91,13 +96,19 @@ function addToResize(key, instance) {
 /**
  * BreakpointObserver class.
  */
-export default function withBreakpointObserver<
-  S extends BaseConstructor<Base>,
-  T extends BaseTypeParameter = BaseTypeParameter
->(BaseClass: S) {
-  // @ts-ignore
-  class WithBreakpointObserver extends BaseClass {
-    static config = {
+export function withBreakpointObserver<S extends Base>(
+  BaseClass: typeof Base,
+): BaseDecorator<WithBreakpointObserverInterface, S> {
+  /**
+   * Class.
+   */
+  class WithBreakpointObserver<T extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<
+    T & WithBreakpointObserverTypeParameter
+  > {
+    /**
+     * Config.
+     */
+    static config:BaseConfig = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithBreakpointObserver`,
       options: {
@@ -109,10 +120,8 @@ export default function withBreakpointObserver<
 
     /**
      * Watch for the document resize to test the breakpoints.
-     *
-     * @param  {HTMLElement} element The component's root element.
      */
-    constructor(element) {
+    constructor(element:HTMLElement) {
       super(element);
 
       const { remove, props } = useResize();
@@ -123,7 +132,7 @@ export default function withBreakpointObserver<
       if (!props().breakpoint) {
         if (isDev) {
           throw new Error(
-            `[${name}] The \`BreakpointObserver\` class requires breakpoints to be defined.`
+            `[${name}] The \`BreakpointObserver\` class requires breakpoints to be defined.`,
           );
         }
         return;
@@ -161,10 +170,8 @@ export default function withBreakpointObserver<
     /**
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
-     *
-     * @returns {this}
      */
-    $mount() {
+    $mount():this {
       // Execute normal behavior when no breakpoint configuration given.
       if (!hasBreakpointConfiguration(this)) {
         return super.$mount();
@@ -179,9 +186,6 @@ export default function withBreakpointObserver<
     }
   }
 
-  return WithBreakpointObserver as BaseConstructor<WithBreakpointObserver> &
-    Pick<typeof WithBreakpointObserver, keyof typeof WithBreakpointObserver> &
-    S &
-    BaseConstructor<Base<T & WithBreakpointObserverInterface>> &
-    Pick<typeof Base, keyof typeof Base>;
+  // @ts-ignore
+  return WithBreakpointObserver;
 }

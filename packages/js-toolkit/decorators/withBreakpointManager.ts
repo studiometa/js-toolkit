@@ -1,5 +1,6 @@
+import type { BaseDecorator, BaseInterface } from '../Base/types.js';
 import type { Base, BaseConstructor, BaseTypeParameter } from '../Base/index.js';
-import useResize from '../services/resize.js';
+import { useResize } from '../services/index.js';
 import { isDev, isArray } from '../utils/index.js';
 
 /**
@@ -21,7 +22,7 @@ function testBreakpoints(breakpoints: Array<[string[], Base]>) {
  */
 function mountComponents(
   instance: Base,
-  breakpoints: Array<[string, BaseConstructor]>
+  breakpoints: Array<[string, BaseConstructor]>,
 ): Array<[string, Base]> {
   return breakpoints.map(([bk, ComponentClass]) => {
     const child = new ComponentClass(instance.$el);
@@ -32,21 +33,22 @@ function mountComponents(
 
 /**
  * A cache object to hold each Base sub-instances.
- * @type {Object}
  */
-const instances = new WeakMap();
+const instances:WeakMap<Base, ReturnType<typeof mountComponents>> = new WeakMap();
 
 /**
  * BreakpointManager class.
  */
-export default function withBreakpointManager<
-  S extends BaseConstructor<Base>,
-  T extends BaseTypeParameter = BaseTypeParameter
->(BaseClass: S, breakpoints: Array<[string, BaseConstructor<Base>]>) {
+export function withBreakpointManager<S extends Base>(
+  BaseClass: typeof Base,
+  breakpoints: Array<[string, BaseConstructor<Base>]>,
+): BaseDecorator<BaseInterface, S> {
   if (!isArray(breakpoints)) {
     if (isDev) {
       throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
     }
+
+    // @ts-ignore
     return BaseClass;
   }
 
@@ -54,6 +56,8 @@ export default function withBreakpointManager<
     if (isDev) {
       throw new Error('[withBreakpointManager] You must define at least 2 breakpoints.');
     }
+
+    // @ts-ignore
     return BaseClass;
   }
 
@@ -63,18 +67,23 @@ export default function withBreakpointManager<
   // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
   if (!props().breakpoint) {
     if (isDev) {
-      throw new Error(`The \`BreakpointManager\` class requires breakpoints to be defined.`);
+      throw new Error('The `BreakpointManager` class requires breakpoints to be defined.');
     }
+
+    // @ts-ignore
     return BaseClass;
   }
 
-  // @ts-ignore
-  class WithBreakpointManager extends BaseClass {
+  /**
+   * Class.
+   */
+  class WithBreakpointManager<
+    T extends BaseTypeParameter = BaseTypeParameter,
+  > extends BaseClass<T> {
     /**
      * Watch for the document resize to test the breakpoints.
-     * @param {HTMLElement} element The component's root element.
      */
-    constructor(element) {
+    constructor(element: HTMLElement) {
       super(element);
 
       if (!instances.has(this)) {
@@ -89,10 +98,8 @@ export default function withBreakpointManager<
     /**
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
-     *
-     * @returns {this}
      */
-    $mount() {
+    $mount(): this {
       super.$mount();
 
       testBreakpoints(instances.get(this));
@@ -102,10 +109,8 @@ export default function withBreakpointManager<
 
     /**
      * Destroy all instances when the main one is destroyed.
-     *
-     * @returns {this}
      */
-    $destroy() {
+    $destroy():this {
       if (isArray(instances.get(this))) {
         instances.get(this).forEach(([, instance]) => {
           instance.$destroy();
@@ -116,9 +121,6 @@ export default function withBreakpointManager<
     }
   }
 
-  return WithBreakpointManager as BaseConstructor<WithBreakpointManager> &
-    Pick<typeof WithBreakpointManager, keyof typeof WithBreakpointManager> &
-    S &
-    BaseConstructor<Base<T>> &
-    Pick<typeof Base, keyof typeof Base>;
+  // @ts-ignore
+  return WithBreakpointManager;
 }
