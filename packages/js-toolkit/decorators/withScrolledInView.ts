@@ -40,7 +40,7 @@ export type ScrollInViewProps = {
   };
 };
 
-type withScrolledInViewOptions = IntersectionObserverInit & {
+export type withScrolledInViewOptions = IntersectionObserverInit & {
   useOffsetSizes?: boolean;
 };
 
@@ -72,16 +72,37 @@ function updateProps(
   );
 }
 
+export interface WithScrolledInViewInterface extends BaseInterface {
+  /**
+   * @private
+   * @type {ScrollInViewProps}
+   */
+  __props: ScrollInViewProps;
+  dampFactor?: number;
+  dampPrecision?: number;
+  mounted(): void;
+  resized(props: ResizeServiceProps): void;
+  scrolled(props: ScrollServiceProps): void;
+  ticked(props: RafServiceProps): void;
+  destroyed(): void;
+  __setProps(): void;
+}
+
 /**
  * Add scrolled in view capabilities to a component.
  */
-export function withScrolledInView<
-  S extends BaseConstructor<Base>,
-  T extends BaseTypeParameter = BaseTypeParameter
->(BaseClass: S, options: withScrolledInViewOptions = {}) {
-  const WithMountWhenInView = withMountWhenInView<S, T & WithScrolledInViewInterface>(BaseClass, options);
-
-  class WithScrolledInView extends WithMountWhenInView implements BaseInterface {
+export function withScrolledInView<S extends Base>(
+  BaseClass: typeof Base,
+  options: withScrolledInViewOptions = {}
+): {
+  new <W extends BaseTypeParameter = BaseTypeParameter>(
+    ...args: unknown[]
+  ): WithScrolledInViewInterface & S & Base<W>;
+} & Partial<Pick<S, keyof S>> {
+  class WithScrolledInView<T extends BaseTypeParameter = BaseTypeParameter>
+    extends withMountWhenInView(BaseClass, options)<T & WithScrolledInViewInterface>
+    implements BaseInterface, WithScrolledInView
+  {
     /**
      * Config.
      */
@@ -317,9 +338,6 @@ export function withScrolledInView<
     }
   }
 
-  return WithScrolledInView as BaseConstructor<WithScrolledInView> &
-    Pick<typeof WithScrolledInView, keyof typeof WithScrolledInView> &
-    S &
-    BaseConstructor<Base<T>> &
-    Pick<typeof Base, keyof typeof Base>;
+  // @ts-ignore
+  return WithScrolledInView;
 }
