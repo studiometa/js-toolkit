@@ -1,11 +1,16 @@
-import type { Base, BaseConstructor, BaseTypeParameter } from '../Base/index.js';
+import type { BaseDecorator, BaseInterface } from '../Base/types.js';
+import type { Base, BaseConstructor, BaseTypeParameter, BaseConfig } from '../Base/index.js';
 
-interface WithIntersectionObserverInterface {
+interface WithIntersectionObserverTypeParameter extends BaseTypeParameter {
   $options: {
     intersectionObserver: IntersectionObserverInit;
   };
   $observer: IntersectionObserver;
   intersected(entries: IntersectionObserverEntry[]): void;
+}
+
+interface WithIntersectionObserverInterface extends BaseInterface {
+  $observer: IntersectionObserver;
 }
 
 /**
@@ -18,17 +23,21 @@ function createArrayOfNumber(length: number): number[] {
 /**
  * IntersectionObserver decoration.
  */
-export default function withIntersectionObserver<
-  S extends BaseConstructor<Base>,
-  T extends BaseTypeParameter = BaseTypeParameter
->(
-  BaseClass: S,
+export function withIntersectionObserver<S extends Base>(
+  BaseClass: typeof Base,
   // eslint-disable-next-line unicorn/no-object-as-default-parameter
-  defaultOptions: IntersectionObserverInit = { threshold: createArrayOfNumber(100) }
-) {
-  // @ts-ignore
-  class WithIntersectionObserver extends BaseClass {
-    static config = {
+  defaultOptions: IntersectionObserverInit = { threshold: createArrayOfNumber(100) },
+): BaseDecorator<WithIntersectionObserverInterface, S> {
+  /**
+   * Class.
+   */
+  class WithIntersectionObserver<T extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<
+    T & WithIntersectionObserverTypeParameter
+  > {
+    /**
+     * Config
+     */
+    static config: BaseConfig = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithIntersectionObserver`,
       options: {
@@ -55,8 +64,8 @@ export default function withIntersectionObserver<
         },
         {
           ...defaultOptions,
-          ...this.$options.intersectionObserver as IntersectionObserverInit,
-        }
+          ...(this.$options.intersectionObserver as IntersectionObserverInit),
+        },
       );
 
       this.$on('mounted', () => {
@@ -69,9 +78,6 @@ export default function withIntersectionObserver<
     }
   }
 
-  return WithIntersectionObserver as BaseConstructor<WithIntersectionObserver> &
-    Pick<typeof WithIntersectionObserver, keyof typeof WithIntersectionObserver> &
-    S &
-    BaseConstructor<Base<WithIntersectionObserverInterface & T>> &
-    Pick<typeof Base, keyof typeof Base>;
+  // @ts-ignore
+  return WithIntersectionObserver;
 }

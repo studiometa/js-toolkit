@@ -1,24 +1,41 @@
-import type { Base, BaseTypeParameter, BaseConfig, BaseConstructor } from '../Base/index.js';
+import { BaseInterface, BaseDecorator } from '../Base/types.js';
+import type { Base, BaseTypeParameter, BaseConfig } from '../Base/index.js';
 
-type WithMountWhenInViewInterface = {
+export interface WithMountWhenInViewTypeParameter extends BaseTypeParameter {
   $options: {
     intersectionObserver: IntersectionObserverInit;
   };
-};
+}
+
+export interface WithMountWhenInViewInterface extends BaseInterface {
+  /**
+   * @private
+   */
+  __isVisible: boolean;
+  /**
+   * @private
+   */
+  __observer: IntersectionObserver;
+  $mount():this;
+}
 
 /**
  * IntersectionObserver decoration.
  */
-export default function withMountWhenInView<
-  S extends BaseConstructor<Base>,
-  T extends BaseTypeParameter = BaseTypeParameter
->(
-  BaseClass: S,
+export function withMountWhenInView<S extends Base = Base>(
+  BaseClass: typeof Base,
   // eslint-disable-next-line unicorn/no-object-as-default-parameter
-  defaultOptions: IntersectionObserverInit = { threshold: [0, 1] }
-) {
-  // @ts-ignore
-  class WithMountWhenInView extends BaseClass {
+  defaultOptions: IntersectionObserverInit = { threshold: [0, 1] },
+):BaseDecorator<WithMountWhenInViewInterface, S> {
+  /**
+   * Class.
+   */
+  class WithMountWhenInView<T extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<
+    T & WithMountWhenInViewTypeParameter
+  > {
+    /**
+     * Config.
+     */
     static config: BaseConfig = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithMountWhenInView`,
@@ -63,9 +80,9 @@ export default function withMountWhenInView<
         },
         {
           ...defaultOptions,
-          ...(this.$options as typeof this.$options & WithMountWhenInViewInterface['$options'])
+          ...(this.$options as typeof this.$options & WithMountWhenInViewTypeParameter['$options'])
             .intersectionObserver,
-        }
+        },
       );
 
       this.__observer.observe(this.$el);
@@ -87,9 +104,6 @@ export default function withMountWhenInView<
     }
   }
 
-  return WithMountWhenInView as BaseConstructor<WithMountWhenInView> &
-    Pick<typeof WithMountWhenInView, keyof typeof WithMountWhenInView> &
-    S &
-    BaseConstructor<Base<T & WithMountWhenInViewInterface>> &
-    Pick<typeof Base, keyof typeof Base>;
+  // @ts-ignore
+  return WithMountWhenInView;
 }

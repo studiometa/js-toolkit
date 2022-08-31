@@ -1,29 +1,35 @@
 import type Vue from 'vue';
 import type { ComponentOptions, VueConstructor } from 'vue';
-import type { Base, BaseConstructor, BaseTypeParameter } from '../Base/index.js';
+import type { BaseDecorator, BaseInterface } from '../Base/types.js';
+import type { Base, BaseConfig, BaseTypeParameter } from '../Base/index.js';
 import { isDev, isFunction } from '../utils/index.js';
 
-interface WithVue2Interface {
+export interface WithVue2TypeParameter extends BaseTypeParameter {
   $refs: {
     vue: HTMLElement;
   };
 }
 
+export interface WithVue2Interface extends BaseInterface {
+  $vue: Vue;
+}
+
 /**
  * withVue decorator.
  */
-export default function withVue2<
-  S extends BaseConstructor<Base>,
-  T extends BaseTypeParameter = BaseTypeParameter,
-  VueTypeParameter extends Vue = Vue
->(BaseClass: S, VueCtor: VueConstructor) {
+export function withVue2<S extends Base, VueTypeParameter extends Vue = Vue>(
+  BaseClass: typeof Base,
+  VueCtor: VueConstructor,
+): BaseDecorator<WithVue2Interface, S> {
   type VueConfig = ComponentOptions<VueTypeParameter> & {
     render: ComponentOptions<VueTypeParameter>['render'];
   };
 
-  // @ts-ignore
+  /**
+   * Class.
+   */
   class WithVue2 extends BaseClass {
-    static config = {
+    static config:BaseConfig = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithVue`,
       refs: [...(BaseClass.config?.refs ?? []), 'vue'],
@@ -40,7 +46,7 @@ export default function withVue2<
       super(element);
 
       // @ts-ignore
-      const vueConfig:VueConfig = this.vueConfig ?? this.constructor.vueConfig;
+      const vueConfig: VueConfig = this.vueConfig ?? this.constructor.vueConfig;
 
       if (!vueConfig) {
         if (isDev) {
@@ -72,9 +78,6 @@ export default function withVue2<
     }
   }
 
-  return WithVue2 as BaseConstructor<WithVue2> &
-    Pick<typeof WithVue2, keyof typeof WithVue2> &
-    S &
-    BaseConstructor<Base<T & WithVue2Interface>> &
-    Pick<typeof Base, keyof typeof Base>;
+  // @ts-ignore
+  return WithVue2;
 }

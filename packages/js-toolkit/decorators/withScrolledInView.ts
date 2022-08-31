@@ -1,12 +1,12 @@
-import type { BaseInterface } from 'Base/types.js';
-import type { Base, BaseTypeParameter, BaseConstructor, BaseConfig } from '../Base/index.js';
+import type { BaseInterface, BaseDecorator } from '../Base/types.js';
+import type { Base, BaseTypeParameter, BaseConfig } from '../Base/index.js';
 import type { RafServiceProps, ScrollServiceProps, ResizeServiceProps } from '../services/index.js';
 import withMountWhenInView from './withMountWhenInView.js';
 import { damp, clamp, clamp01, getOffsetSizes, isFunction, useScheduler } from '../utils/index.js';
 
 const scheduler = useScheduler(['update', 'render']);
 
-export interface WithScrolledInViewInterface extends BaseTypeParameter {
+export interface WithScrolledInViewTypeParameter extends BaseTypeParameter {
   $options: {
     dampFactor: number;
     dampPrecision: number;
@@ -40,7 +40,7 @@ export type ScrollInViewProps = {
   };
 };
 
-export type withScrolledInViewOptions = IntersectionObserverInit & {
+export type WithScrolledInViewOptions = IntersectionObserverInit & {
   useOffsetSizes?: boolean;
 };
 
@@ -51,24 +51,24 @@ function updateProps(
   props: ScrollInViewProps,
   dampFactor: number,
   dampPrecision: number,
-  axis: 'x' | 'y' = 'x'
+  axis: 'x' | 'y' = 'x',
 ): void {
   props.current[axis] = clamp(
     axis === 'x' ? window.pageXOffset : window.pageYOffset,
     props.start[axis],
-    props.end[axis]
+    props.end[axis],
   );
   props.dampedCurrent[axis] = damp(
     props.current[axis],
     props.dampedCurrent[axis],
     dampFactor,
-    dampPrecision
+    dampPrecision,
   );
   props.progress[axis] = clamp01(
-    (props.current[axis] - props.start[axis]) / (props.end[axis] - props.start[axis])
+    (props.current[axis] - props.start[axis]) / (props.end[axis] - props.start[axis]),
   );
   props.dampedProgress[axis] = clamp01(
-    (props.dampedCurrent[axis] - props.start[axis]) / (props.end[axis] - props.start[axis])
+    (props.dampedCurrent[axis] - props.start[axis]) / (props.end[axis] - props.start[axis]),
   );
 }
 
@@ -85,24 +85,25 @@ export interface WithScrolledInViewInterface extends BaseInterface {
   scrolled(props: ScrollServiceProps): void;
   ticked(props: RafServiceProps): void;
   destroyed(): void;
+  /**
+   * @private
+   */
   __setProps(): void;
 }
 
 /**
  * Add scrolled in view capabilities to a component.
  */
-export function withScrolledInView<S extends Base>(
+export function withScrolledInView<S extends Base = Base>(
   BaseClass: typeof Base,
-  options: withScrolledInViewOptions = {}
-): {
-  new <W extends BaseTypeParameter = BaseTypeParameter>(
-    ...args: unknown[]
-  ): WithScrolledInViewInterface & S & Base<W>;
-} & Partial<Pick<S, keyof S>> {
-  class WithScrolledInView<T extends BaseTypeParameter = BaseTypeParameter>
-    extends withMountWhenInView(BaseClass, options)<T & WithScrolledInViewInterface>
-    implements BaseInterface, WithScrolledInView
-  {
+  options: WithScrolledInViewOptions = {},
+): BaseDecorator<WithScrolledInViewInterface, S> {
+  /**
+   * Class.
+   */
+  class WithScrolledInView<
+    T extends BaseTypeParameter = BaseTypeParameter,
+  > extends withMountWhenInView<S>(BaseClass, options)<T & WithScrolledInViewTypeParameter> {
     /**
      * Config.
      */
@@ -319,21 +320,21 @@ export function withScrolledInView<S extends Base>(
         xCurrent,
         this.__props.dampedCurrent.x,
         this.dampFactor,
-        this.dampPrecision
+        this.dampPrecision,
       );
       this.__props.dampedCurrent.y = damp(
         yCurrent,
         this.__props.dampedCurrent.y,
         this.dampFactor,
-        this.dampPrecision
+        this.dampPrecision,
       );
       this.__props.progress.x = xProgress;
       this.__props.progress.y = yProgress;
       this.__props.dampedProgress.x = clamp01(
-        (this.__props.dampedCurrent.x - xStart) / (xEnd - xStart)
+        (this.__props.dampedCurrent.x - xStart) / (xEnd - xStart),
       );
       this.__props.dampedProgress.y = clamp01(
-        (this.__props.dampedCurrent.y - yStart) / (yEnd - yStart)
+        (this.__props.dampedCurrent.y - yStart) / (yEnd - yStart),
       );
     }
   }
