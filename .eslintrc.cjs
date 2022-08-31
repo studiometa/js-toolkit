@@ -21,6 +21,9 @@ module.exports = {
     {
       files: ['**/*.ts', 'packages/js-toolkit/**/*.ts'],
       parser: '@typescript-eslint/parser',
+      parserOptions: {
+        project: './tsconfig.json',
+      },
       plugins: ['@typescript-eslint'],
       extends: [
         'eslint:recommended',
@@ -29,6 +32,8 @@ module.exports = {
       ],
       rules: {
         '@typescript-eslint/ban-ts-comment': 'off',
+        '@typescript-eslint/indent': 'off',
+        '@typescript-eslint/brace-style': 'off',
         'require-jsdoc': 'off',
         'jsdoc/require-returns': 'off',
         'jsdoc/require-param': 'off',
