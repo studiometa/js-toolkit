@@ -65,8 +65,8 @@ export default class AbstractManager {
             writable: false,
             value: this[property],
           },
-        ])
-      )
+        ]),
+      ),
     );
   }
 }

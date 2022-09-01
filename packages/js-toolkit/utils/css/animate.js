@@ -37,7 +37,7 @@ const generateTranslateRenderStrategy = (sizeRef) => (element, fromValue, toValu
   lerp(
     getAnimationStepValue(fromValue ?? 0, () => element[sizeRef]),
     getAnimationStepValue(toValue ?? 0, () => element[sizeRef]),
-    progress
+    progress,
   );
 const widthBasedTranslateRenderStrategy = generateTranslateRenderStrategy('offsetWidth');
 const heightBasedTranslateRenderStrategy = generateTranslateRenderStrategy('offsetHeight');
@@ -96,7 +96,7 @@ function render(element, from, to, progress) {
     const props = Object.fromEntries(
       TRANSFORM_PROPS.filter((name) => isDefined(from[name]) || isDefined(to[name])).map((name) => {
         return [name, transformRenderStrategies[name](element, from[name], to[name], stepProgress)];
-      })
+      }),
     );
     scheduler.write(function renderWrite() {
       if (opacity !== false) {
@@ -147,7 +147,7 @@ export function animate(element, keyframes, options = {}) {
         ...keyframe,
         offset: keyframe.offset ?? index / keyframesCount,
         easing: normalizeEase(keyframe.easing),
-      })
+      }),
   );
 
   if (!running.has(element)) {

@@ -11,7 +11,7 @@ import type { Base, BaseConfig } from './index.js';
  * @returns {Array<HTMLElement>}
  *   A list of elements on which the component should be mounted.
  */
-export function getComponentElements(nameOrSelector:string, element:HTMLElement|Document = document):HTMLElement[] {
+export function getComponentElements(nameOrSelector:string, element:HTMLElement | Document = document):HTMLElement[] {
   const selector = `[data-component="${nameOrSelector}"]`;
   let elements = [];
 
@@ -45,7 +45,7 @@ export function eventIsNative(event:string, element:HTMLElement):boolean {
 /**
  * Get the target of a given event.
  */
-export function getEventTarget(instance:Base, event:string, config:BaseConfig):Base|Base['$el'] {
+export function getEventTarget(instance:Base, event:string, config:BaseConfig):Base | Base['$el'] {
   if (eventIsDefinedInConfig(event, config)) {
     return instance;
   }
@@ -58,7 +58,7 @@ export function getEventTarget(instance:Base, event:string, config:BaseConfig):B
     console.warn(
       `[${config.name}]`,
       `The "${event}" event is missing from the configuration and is not a native`,
-      `event for the root element of type \`${instance.$el.constructor.name}\`.`
+      `event for the root element of type \`${instance.$el.constructor.name}\`.`,
     );
   }
 

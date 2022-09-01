@@ -13,7 +13,7 @@ import { isArray } from '../utils/index.js';
 export function getDirectChildren<T extends Base = Base>(
   parentInstance: Base,
   parentName: string,
-  childrenName: string
+  childrenName: string,
 ): T[] {
   const children = parentInstance.$children[childrenName] as Base<BaseTypeParameter>[];
   const nestedParents = parentInstance.$children[parentName] as Base<BaseTypeParameter>[];
@@ -31,7 +31,7 @@ export function getDirectChildren<T extends Base = Base>(
       const nestedChildren = nestedParent.$children[childrenName] as Base<BaseTypeParameter>[];
       /* istanbul ignore next */
       return isArray(nestedChildren) ? !nestedChildren.includes(child) : true;
-    })
+    }),
   ) as T[];
 }
 

@@ -26,7 +26,7 @@ function __getChild(
   that: ChildrenManager,
   el: BaseEl,
   ComponentClass: BaseConstructor | BaseAsyncConstructor,
-  name: string
+  name: string,
 ): Base | Promise<Base | 'terminated'> | 'terminated' {
   const asyncComponentPromise = that.__asyncComponentPromises.get(ComponentClass as BaseAsyncConstructor);
 
@@ -96,7 +96,7 @@ function __register(
   // eslint-disable-next-line no-use-before-define
   that: ChildrenManager,
   name: string,
-  component: BaseConstructor | BaseAsyncConstructor
+  component: BaseConstructor | BaseAsyncConstructor,
 ) {
   Object.defineProperty(that, name, {
     enumerable: true,
@@ -129,7 +129,7 @@ function __triggerHook(
   that: ChildrenManager,
   hook: '$mount' | '$update' | '$destroy',
   instance: Base,
-  name: string
+  name: string,
 ) {
   if (hook === '$update' && !instance.$isMounted) {
     // eslint-disable-next-line no-param-reassign
@@ -193,7 +193,7 @@ export default class ChildrenManager extends AbstractManager {
    */
   registerAll() {
     Object.entries(this.__config.components).forEach(([name, component]) =>
-      __register(this, name, component)
+      __register(this, name, component),
     );
   }
 

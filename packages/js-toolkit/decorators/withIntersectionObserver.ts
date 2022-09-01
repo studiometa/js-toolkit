@@ -1,5 +1,5 @@
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseConstructor, BaseTypeParameter, BaseConfig } from '../Base/index.js';
+import type { Base, BaseTypeParameter, BaseConfig } from '../Base/index.js';
 
 interface WithIntersectionObserverTypeParameter extends BaseTypeParameter {
   $options: {

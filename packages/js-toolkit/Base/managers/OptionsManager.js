@@ -94,7 +94,7 @@ function __register(that, name, config) {
   if (!types.has(config.type)) {
     if (isDev) {
       throw new Error(
-        `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`
+        `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`,
       );
     }
     return;
@@ -105,7 +105,7 @@ function __register(that, name, config) {
   if ((config.type === Array || config.type === Object) && !isFunction(config.default)) {
     if (isDev) {
       throw new Error(
-        `The default value for options of type "${config.type.name}" must be returned by a function.`
+        `The default value for options of type "${config.type.name}" must be returned by a function.`,
       );
     }
     return;
@@ -181,7 +181,7 @@ export default class OptionsManager extends AbstractManager {
         name,
         types.has(/** @type {OptionType} */ (config))
           ? /** @type {OptionObject} */ ({ type: config })
-          : /** @type {OptionObject} */ (config)
+          : /** @type {OptionObject} */ (config),
       );
     });
   }
@@ -253,7 +253,7 @@ export default class OptionsManager extends AbstractManager {
       if (isDev) {
         const val = isArray(value) || isObject(value) ? JSON.stringify(value) : value;
         throw new TypeError(
-          `The "${val}" value for the "${name}" option must be of type "${type.name}"`
+          `The "${val}" value for the "${name}" option must be of type "${type.name}"`,
         );
       }
       return;

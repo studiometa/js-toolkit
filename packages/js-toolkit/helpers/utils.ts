@@ -13,7 +13,7 @@ import { isString, isArray } from '../utils/index.js';
  */
 export function getTargetElements(
   nameOrSelectorOrElement: string | HTMLElement | HTMLElement[],
-  context: HTMLElement
+  context: HTMLElement,
 ): HTMLElement[] {
   if (isString(nameOrSelectorOrElement)) {
     return getComponentElements(nameOrSelectorOrElement, context);

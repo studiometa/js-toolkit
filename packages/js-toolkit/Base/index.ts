@@ -44,7 +44,7 @@ function createAndTestManagers(instance: Base): void {
     instance[prop] = new instance.__managers[constructorName](instance);
     if (isDev && !(instance[prop] instanceof constructor)) {
       throw new Error(
-        `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`
+        `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`,
       );
     }
   });
@@ -461,7 +461,7 @@ export class Base<T extends BaseTypeParameter = BaseTypeParameter> extends Event
   $on(
     event: string,
     listener: EventListenerOrEventListenerObject,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): () => void {
     if (isDev) {
       this.__debug('$on', event, listener, options);
@@ -498,7 +498,7 @@ export class Base<T extends BaseTypeParameter = BaseTypeParameter> extends Event
   $off(
     event: string,
     listener: EventListenerOrEventListenerObject,
-    options?: boolean | EventListenerOptions
+    options?: boolean | EventListenerOptions,
   ) {
     if (isDev) {
       this.__debug('$off', event, listener);
@@ -531,7 +531,7 @@ export class Base<T extends BaseTypeParameter = BaseTypeParameter> extends Event
   static $factory(nameOrSelector: string): Base[] {
     if (isDev && !nameOrSelector) {
       throw new Error(
-        'The $factory method requires a component’s name or selector to be specified.'
+        'The $factory method requires a component’s name or selector to be specified.',
       );
     }
 
