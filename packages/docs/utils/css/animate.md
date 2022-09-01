@@ -17,7 +17,7 @@ const animation = animate(
   {
     duration: 10,
     easing: easeInOutExpo,
-  }
+  },
 );
 
 animation.start();

@@ -14,7 +14,7 @@ export default defineConfig({
         if (viteConfig.format === 'cjs' && viteConfig.esModule) {
           fs.writeFileSync(
             path.join(viteConfig.dir, 'package.json'),
-            JSON.stringify({ type: 'commonjs' })
+            JSON.stringify({ type: 'commonjs' }),
           );
         }
       },

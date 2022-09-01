@@ -94,12 +94,12 @@
     createHeaderLink(
       '$on(event, callback[, options])',
       'on-event-callback-options',
-      parents.instanceMethods
+      parents.instanceMethods,
     ),
     createHeaderLink(
       '$off(event, callback[, options])',
       'off-event-callback-options',
-      parents.instanceMethods
+      parents.instanceMethods,
     ),
     createHeaderLink('$emit(event[, ...args])', 'emit-event-args', parents.instanceMethods),
     createHeaderLink('$mount()', 'mount', parents.instanceMethods),
@@ -145,7 +145,7 @@
                 }
               }
             : () => (window.location.href = link.link),
-        })
+        }),
       );
   });
 </script>

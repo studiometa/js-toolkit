@@ -14,7 +14,7 @@ const tw = tween(
   {
     duration: 10,
     easing: easeInOutExpo,
-  }
+  },
 );
 
 tw.start();
