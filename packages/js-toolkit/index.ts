@@ -4,7 +4,7 @@ export * from './helpers/index.js';
 export * from './services/index.js';
 
 export type {
-  BaseTypeParameter,
+  BaseProps,
   BaseConstructor,
   BaseAsyncConstructor,
   BaseConfig,

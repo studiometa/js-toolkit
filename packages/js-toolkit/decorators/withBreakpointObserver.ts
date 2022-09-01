@@ -1,9 +1,9 @@
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseTypeParameter, BaseConfig } from '../Base/index.js';
+import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
 import { useResize } from '../services/index.js';
 import { isDev } from '../utils/index.js';
 
-export interface WithBreakpointObserverTypeParameter extends BaseTypeParameter {
+export interface WithBreakpointObserverProps extends BaseProps {
   $options: {
     activeBreakpoints?: string;
     inactiveBreakpoints?: string;
@@ -17,12 +17,12 @@ export interface WithBreakpointObserverInterface extends BaseInterface {
 /**
  * Test the breakpoins of the given Base instance and return the hook to call.
  *
- * @param   {Base<WithBreakpointObserverTypeParameter>} instance The component's instance.
+ * @param   {Base<WithBreakpointObserverProps>} instance The component's instance.
  * @param   {string} [breakpoint] The breakpoint to test.
  * @returns {string} The action to trigger.
  */
 function testBreakpoints(
-  instance: Base<WithBreakpointObserverTypeParameter>,
+  instance: Base<WithBreakpointObserverProps>,
   breakpoint: string = useResize().props().breakpoint,
 ): string {
   const { activeBreakpoints, inactiveBreakpoints } = instance.$options;
@@ -43,21 +43,21 @@ function testBreakpoints(
 
 /**
  * Test if the given instance is configured for breakpoints.
- * @param  {Base<WithBreakpointObserverTypeParameter>} instance A Base class instance.
+ * @param  {Base<WithBreakpointObserverProps>} instance A Base class instance.
  * @returns {boolean} True if configured correctly, false otherwise.
  */
-function hasBreakpointConfiguration(instance: Base<WithBreakpointObserverTypeParameter>): boolean {
+function hasBreakpointConfiguration(instance: Base<WithBreakpointObserverProps>): boolean {
   const { activeBreakpoints, inactiveBreakpoints } = instance.$options;
   return Boolean(activeBreakpoints || inactiveBreakpoints);
 }
 
 /**
  * Test if the given instance has a conflicting configuration for breakpoints.
- * @param  {Base<WithBreakpointObserverTypeParameter>} instance A Base class instance.
+ * @param  {Base<WithBreakpointObserverProps>} instance A Base class instance.
  * @returns {void}
  */
 function testConflictingBreakpointConfiguration(
-  instance: Base<WithBreakpointObserverTypeParameter>,
+  instance: Base<WithBreakpointObserverProps>,
 ): void {
   const { activeBreakpoints, inactiveBreakpoints, name } = instance.$options;
   if (activeBreakpoints && inactiveBreakpoints) {
@@ -102,8 +102,8 @@ export function withBreakpointObserver<S extends Base>(
   /**
    * Class.
    */
-  class WithBreakpointObserver<T extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<
-    T & WithBreakpointObserverTypeParameter
+  class WithBreakpointObserver<T extends BaseProps = BaseProps> extends BaseClass<
+    T & WithBreakpointObserverProps
   > {
     /**
      * Config.

@@ -1,5 +1,5 @@
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseConstructor, BaseTypeParameter } from '../Base/index.js';
+import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
 import { useResize } from '../services/index.js';
 import { isDev, isArray } from '../utils/index.js';
 
@@ -78,7 +78,7 @@ export function withBreakpointManager<S extends Base>(
    * Class.
    */
   class WithBreakpointManager<
-    T extends BaseTypeParameter = BaseTypeParameter,
+    T extends BaseProps = BaseProps,
   > extends BaseClass<T> {
     /**
      * Watch for the document resize to test the breakpoints.

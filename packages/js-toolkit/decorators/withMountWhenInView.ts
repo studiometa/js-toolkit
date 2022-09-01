@@ -1,7 +1,7 @@
 import { BaseInterface, BaseDecorator } from '../Base/types.js';
-import type { Base, BaseTypeParameter, BaseConfig } from '../Base/index.js';
+import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
 
-export interface WithMountWhenInViewTypeParameter extends BaseTypeParameter {
+export interface WithMountWhenInViewProps extends BaseProps {
   $options: {
     intersectionObserver: IntersectionObserverInit;
   };
@@ -30,8 +30,8 @@ export function withMountWhenInView<S extends Base = Base>(
   /**
    * Class.
    */
-  class WithMountWhenInView<T extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<
-    T & WithMountWhenInViewTypeParameter
+  class WithMountWhenInView<T extends BaseProps = BaseProps> extends BaseClass<
+    T & WithMountWhenInViewProps
   > {
     /**
      * Config.
@@ -80,7 +80,7 @@ export function withMountWhenInView<S extends Base = Base>(
         },
         {
           ...defaultOptions,
-          ...(this.$options as typeof this.$options & WithMountWhenInViewTypeParameter['$options'])
+          ...(this.$options as typeof this.$options & WithMountWhenInViewProps['$options'])
             .intersectionObserver,
         },
       );

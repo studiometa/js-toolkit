@@ -1,7 +1,7 @@
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseTypeParameter, BaseConfig } from '../Base/index.js';
+import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
 
-interface WithIntersectionObserverTypeParameter extends BaseTypeParameter {
+export interface WithIntersectionObserverProps extends BaseProps {
   $options: {
     intersectionObserver: IntersectionObserverInit;
   };
@@ -9,7 +9,7 @@ interface WithIntersectionObserverTypeParameter extends BaseTypeParameter {
   intersected(entries: IntersectionObserverEntry[]): void;
 }
 
-interface WithIntersectionObserverInterface extends BaseInterface {
+export interface WithIntersectionObserverInterface extends BaseInterface {
   $observer: IntersectionObserver;
 }
 
@@ -31,8 +31,8 @@ export function withIntersectionObserver<S extends Base>(
   /**
    * Class.
    */
-  class WithIntersectionObserver<T extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<
-    T & WithIntersectionObserverTypeParameter
+  class WithIntersectionObserver<T extends BaseProps = BaseProps> extends BaseClass<
+    T & WithIntersectionObserverProps
   > {
     /**
      * Config

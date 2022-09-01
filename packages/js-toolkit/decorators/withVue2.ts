@@ -1,10 +1,10 @@
 import type Vue from 'vue';
 import type { ComponentOptions, VueConstructor } from 'vue';
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseConfig, BaseTypeParameter } from '../Base/index.js';
+import type { Base, BaseConfig, BaseProps } from '../Base/index.js';
 import { isDev, isFunction } from '../utils/index.js';
 
-export interface WithVue2TypeParameter extends BaseTypeParameter {
+export interface WithVue2Props extends BaseProps {
   $refs: {
     vue: HTMLElement;
   };
@@ -17,12 +17,12 @@ export interface WithVue2Interface extends BaseInterface {
 /**
  * withVue decorator.
  */
-export function withVue2<S extends Base, VueTypeParameter extends Vue = Vue>(
+export function withVue2<S extends Base, T extends Vue = Vue>(
   BaseClass: typeof Base,
   VueCtor: VueConstructor,
 ): BaseDecorator<WithVue2Interface, S> {
-  type VueConfig = ComponentOptions<VueTypeParameter> & {
-    render: ComponentOptions<VueTypeParameter>['render'];
+  type VueConfig = ComponentOptions<T> & {
+    render: ComponentOptions<T>['render'];
   };
 
   /**

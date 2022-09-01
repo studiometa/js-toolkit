@@ -1,4 +1,4 @@
-import type { Base, BaseTypeParameter } from './index.js';
+import type { Base, BaseProps } from './index.js';
 import type {
   KeyServiceProps,
   LoadServiceProps,
@@ -52,5 +52,5 @@ export interface BaseInterface {
 }
 
 export type BaseDecorator<S extends BaseInterface, T extends Base> = {
-  new <W extends BaseTypeParameter = BaseTypeParameter>(...args: unknown[]): S & T & Base<W>;
+  new <W extends BaseProps = BaseProps>(...args: unknown[]): S & T & Base<W>;
 } & Partial<Pick<T, keyof T>>;

@@ -1,7 +1,7 @@
 import merge from 'deepmerge';
 import type { Options as DeepmergeOptions } from 'deepmerge';
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseTypeParameter, BaseConfig } from '../Base/index.js';
+import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
 
 /**
  * Extends the configuration of an existing class.
@@ -20,7 +20,7 @@ export function withExtraConfig<S extends Base>(
   /**
    * Class.
    */
-  class WithExtraConfig<T extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<T> {
+  class WithExtraConfig<T extends BaseProps = BaseProps> extends BaseClass<T> {
     /**
      * Config.
      */

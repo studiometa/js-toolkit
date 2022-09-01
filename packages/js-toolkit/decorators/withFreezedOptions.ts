@@ -1,5 +1,5 @@
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseTypeParameter } from '../Base/index.js';
+import type { Base, BaseProps } from '../Base/index.js';
 
 export interface WithFreezedOptionsInterface extends BaseInterface {
   readonly $options: this['$options'];
@@ -14,7 +14,7 @@ export function withFreezedOptions<S extends Base>(
   /**
    * Class.
    */
-  class WithFreezedOptions<T extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<T> {
+  class WithFreezedOptions<T extends BaseProps = BaseProps> extends BaseClass<T> {
     /**
      * Hold freezed options
      * @private
