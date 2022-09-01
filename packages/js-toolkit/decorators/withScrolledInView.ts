@@ -1,7 +1,7 @@
 import type { BaseInterface, BaseDecorator } from '../Base/types.js';
 import type { Base, BaseTypeParameter, BaseConfig } from '../Base/index.js';
 import type { RafServiceProps, ScrollServiceProps, ResizeServiceProps } from '../services/index.js';
-import withMountWhenInView from './withMountWhenInView.js';
+import { withMountWhenInView } from './withMountWhenInView.js';
 import { damp, clamp, clamp01, getOffsetSizes, isFunction, useScheduler } from '../utils/index.js';
 
 const scheduler = useScheduler(['update', 'render']);
@@ -103,7 +103,7 @@ export function withScrolledInView<S extends Base = Base>(
    */
   class WithScrolledInView<
     T extends BaseTypeParameter = BaseTypeParameter,
-  > extends withMountWhenInView<S>(BaseClass, options)<T & WithScrolledInViewTypeParameter> {
+  > extends withMountWhenInView(BaseClass, options)<T & WithScrolledInViewTypeParameter> {
     /**
      * Config.
      */

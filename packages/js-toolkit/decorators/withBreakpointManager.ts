@@ -23,18 +23,18 @@ function testBreakpoints(breakpoints: Array<[string[], Base]>) {
 function mountComponents(
   instance: Base,
   breakpoints: Array<[string, BaseConstructor]>,
-): Array<[string, Base]> {
+): Array<[string[], Base]> {
   return breakpoints.map(([bk, ComponentClass]) => {
     const child = new ComponentClass(instance.$el);
     Object.defineProperty(child, '$parent', { get: () => instance.$parent });
-    return [bk, child];
+    return [bk.split(' '), child];
   });
 }
 
 /**
  * A cache object to hold each Base sub-instances.
  */
-const instances:WeakMap<Base, ReturnType<typeof mountComponents>> = new WeakMap();
+const instances:WeakMap<Base, Array<[string[], Base]>> = new WeakMap();
 
 /**
  * BreakpointManager class.
