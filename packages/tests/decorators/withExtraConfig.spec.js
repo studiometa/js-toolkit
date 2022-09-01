@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals';
-import { Base } from '@studiometa/js-toolkit';
-import withExtraConfig from '@studiometa/js-toolkit/decorators/withExtraConfig';
+import { Base, withExtraConfig } from '@studiometa/js-toolkit';
 
 describe('The `withExtraConfig` decorator', () => {
   it('should merge config of a given class', () => {

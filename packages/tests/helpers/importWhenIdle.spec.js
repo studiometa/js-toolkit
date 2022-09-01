@@ -1,8 +1,6 @@
 import { jest } from '@jest/globals';
 import { html } from 'htl';
-import { Base } from '@studiometa/js-toolkit';
-import withExtraConfig from '@studiometa/js-toolkit/decorators/withExtraConfig';
-import importWhenIdle from '@studiometa/js-toolkit/helpers/importWhenIdle';
+import { Base, withExtraConfig, importWhenIdle, } from '@studiometa/js-toolkit';
 import wait from '../__utils__/wait';
 import { mockRequestIdleCallback } from '../__setup__/mockRequestIdleCallback';
 
