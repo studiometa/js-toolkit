@@ -21,7 +21,7 @@
  */
 export default function memoize(
   fn,
-  { maxAge = Number.POSITIVE_INFINITY, cacheKey = JSON.stringify, cache = new Map() } = {}
+  { maxAge = Number.POSITIVE_INFINITY, cacheKey = JSON.stringify, cache = new Map() } = {},
 ) {
   return function memoized(...args) {
     const key = cacheKey(args);

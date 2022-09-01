@@ -35,7 +35,7 @@ export function normalizeName(name: string): string {
         .replace(/[A-Z]([A-Z].*)/g, (c) => c.toLowerCase())
         .replace(/[^a-zA-Z\d\s:]/g, ' ')
         .replace(/(^\w|\s+\w)/g, (c) => c.trim().toUpperCase())
-        .trim()
+        .trim(),
     );
   }
 
@@ -107,8 +107,8 @@ function getEventMethodsByName(that: EventsManager, name = ''): string[] {
     methods = Array.from(
       getAllProperties(that.__base, [], (method) => regex.test(method)).reduce(
         (set, [method]) => set.add(method),
-        new Set()
-      )
+        new Set(),
+      ),
     ) as string[];
     that.__methodsCache.set(key, methods);
   }
@@ -134,7 +134,7 @@ function manageRef(
   that: EventsManager,
   name: string,
   elements: HTMLElement[],
-  mode: 'add' | 'remove' = 'add'
+  mode: 'add' | 'remove' = 'add',
 ) {
   const action = `${mode}EventListener`;
   const methods = getEventMethodsByName(that, name);
@@ -161,7 +161,7 @@ function manageChild(
   that: EventsManager,
   name: string,
   instance: Base,
-  mode: 'add' | 'remove' = 'add'
+  mode: 'add' | 'remove' = 'add',
 ) {
   const action = mode === 'add' ? '$on' : '$off';
   const methods = getEventMethodsByName(that, name);
@@ -180,7 +180,7 @@ function manageChild(
  * @private
  */
 // eslint-disable-next-line no-use-before-define
-function manageRootElement(that:EventsManager, mode:'add'|'remove' = 'add') {
+function manageRootElement(that:EventsManager, mode:'add' | 'remove' = 'add') {
   const modeMethod = `${mode}EventListener`;
   const methods = getEventMethodsByName(that);
 
@@ -207,7 +207,7 @@ export default class EventsManager extends AbstractManager {
    * Event listener object for the root element.
    */
   __rootElementHandler:EventListenerObject = {
-    handleEvent: (event:Event|CustomEvent) => {
+    handleEvent: (event:Event | CustomEvent) => {
       const normalizedEventName = normalizeName(event.type);
       const method = `on${normalizedEventName}`;
 
@@ -253,7 +253,7 @@ export default class EventsManager extends AbstractManager {
           name: childName,
           child: [...childrenManager[childName]].find(
             // @ts-ignore
-            (instance) => instance === event.currentTarget || instance.$el === event.currentTarget
+            (instance) => instance === event.currentTarget || instance.$el === event.currentTarget,
           ),
         }))
         .find(({ child }) => child);

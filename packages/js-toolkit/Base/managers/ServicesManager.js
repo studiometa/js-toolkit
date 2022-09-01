@@ -127,7 +127,7 @@ export default class ServicesManager extends AbstractManager {
        * @param {ServiceName} serviceName
        * @returns {() => void}
        */
-      (serviceName) => this.enable(serviceName)
+      (serviceName) => this.enable(serviceName),
     );
   }
 
@@ -141,7 +141,7 @@ export default class ServicesManager extends AbstractManager {
       /** @param {ServiceName} serviceName */
       (serviceName) => {
         this.disable(serviceName);
-      }
+      },
     );
   }
 

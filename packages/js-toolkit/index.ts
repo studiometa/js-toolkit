@@ -11,5 +11,5 @@ export type {
 } from './Base/index.js';
 
 export type {
-  BaseInterface
+  BaseInterface,
 } from './Base/types.js';

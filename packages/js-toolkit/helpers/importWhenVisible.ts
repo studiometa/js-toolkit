@@ -20,7 +20,7 @@ export default function importWhenVisible<T extends BaseConstructor = BaseConstr
   fn: () => Promise<T | { default: T }>,
   nameOrSelectorOrElement: string | HTMLElement | HTMLElement[],
   parent?: Base,
-  observerOptions: IntersectionObserverInit = {}
+  observerOptions: IntersectionObserverInit = {},
 ): Promise<T> {
   let ResolvedClass;
 

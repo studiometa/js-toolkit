@@ -5,8 +5,8 @@ import type { BaseConstructor, BaseEl } from '../Base/index.js';
  */
 export default function getInstanceFromElement<T extends BaseConstructor>(
   element: BaseEl,
-  Constructor: T
-):InstanceType<T>|null {
+  Constructor: T,
+):InstanceType<T> | null {
   if (!element.__base__ || !element.__base__.has(Constructor)) {
     return null;
   }

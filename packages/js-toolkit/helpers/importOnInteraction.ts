@@ -17,10 +17,10 @@ import { isString } from '../utils/index.js';
  * @returns {Promise<InstanceType<T>>}
  */
 export default function importOnInteraction<T extends BaseConstructor = BaseConstructor>(
-  fn: () => Promise<T|{default:T}>,
-  nameOrSelectorOrElement:string|HTMLElement|HTMLElement[],
-  events:string|string[],
-  parent?: Base
+  fn: () => Promise<T | { default:T }>,
+  nameOrSelectorOrElement:string | HTMLElement | HTMLElement[],
+  events:string | string[],
+  parent?: Base,
 ):Promise<T> {
   const normalizedEvents = isString(events) ? [events] : events;
 
