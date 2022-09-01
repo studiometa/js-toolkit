@@ -10,6 +10,4 @@ export type {
   BaseConfig,
 } from './Base/index.js';
 
-export type {
-  BaseInterface,
-} from './Base/types.js';
+export type { BaseInterface, BaseDecorator } from './Base/types.js';
