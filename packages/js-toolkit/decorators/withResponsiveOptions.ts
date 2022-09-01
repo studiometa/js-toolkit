@@ -1,5 +1,5 @@
 import type { BaseInterface, BaseDecorator } from '../Base/types.js';
-import type { Base, BaseTypeParameter, Managers } from '../Base/index.js';
+import type { Base, BaseProps, Managers } from '../Base/index.js';
 import ResponsiveOptionsManager from '../Base/managers/ResponsiveOptionsManager.js';
 
 /**
@@ -12,7 +12,7 @@ export function withResponsiveOptions<S extends Base>(
    * Class.
    */
   class WithResponsiveOptions<
-    T extends BaseTypeParameter = BaseTypeParameter,
+    T extends BaseProps = BaseProps,
   > extends BaseClass<T> {
     /**
      * Get managers.

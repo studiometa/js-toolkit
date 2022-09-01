@@ -1,4 +1,4 @@
-import type { Base, BaseConstructor, BaseTypeParameter } from '../Base/index.js';
+import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
 
 /**
  * Instantiate and mount the given component on the given root element when the page has been loaded
@@ -6,7 +6,7 @@ import type { Base, BaseConstructor, BaseTypeParameter } from '../Base/index.js'
  */
 export default function createApp<
   S extends BaseConstructor<Base>,
-  T extends BaseTypeParameter = BaseTypeParameter,
+  T extends BaseProps = BaseProps,
 >(App: S, rootElement: HTMLElement = document.body): () => Promise<S & Base<T>> {
   let isLoaded = document.readyState === 'complete';
   let app: S & Base<T>;

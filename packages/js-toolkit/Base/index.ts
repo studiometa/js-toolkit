@@ -76,11 +76,12 @@ export type BaseConfig = {
   options?: import('./managers/OptionsManager').OptionsSchema;
 };
 
-export type BaseTypeParameter = {
+export type BaseProps = {
   $el?: HTMLElement;
   $options?: BaseOptions;
   $refs?: BaseRefs;
   $children?: BaseChildren;
+  $parent?: Base;
 };
 
 export type Managers = {
@@ -94,7 +95,7 @@ export type Managers = {
 /**
  * Base class.
  */
-export class Base<T extends BaseTypeParameter = BaseTypeParameter> extends EventTarget {
+export class Base<T extends BaseProps = BaseProps> extends EventTarget {
   /**
    * This is a Base instance.
    */
@@ -103,7 +104,7 @@ export class Base<T extends BaseTypeParameter = BaseTypeParameter> extends Event
   /**
    * The instance parent.
    */
-  $parent: Base = null;
+  $parent: T['$parent'] & Base = null;
 
   /**
    * The instance id.

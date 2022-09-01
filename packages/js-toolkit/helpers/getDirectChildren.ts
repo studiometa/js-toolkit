@@ -1,4 +1,4 @@
-import { Base, BaseTypeParameter } from '../Base/index.js';
+import { Base, BaseProps } from '../Base/index.js';
 import { isArray } from '../utils/index.js';
 
 /**
@@ -15,8 +15,8 @@ export function getDirectChildren<T extends Base = Base>(
   parentName: string,
   childrenName: string,
 ): T[] {
-  const children = parentInstance.$children[childrenName] as Base<BaseTypeParameter>[];
-  const nestedParents = parentInstance.$children[parentName] as Base<BaseTypeParameter>[];
+  const children = parentInstance.$children[childrenName] as Base<BaseProps>[];
+  const nestedParents = parentInstance.$children[parentName] as Base<BaseProps>[];
 
   if (!isArray(children)) {
     return [];
@@ -28,7 +28,7 @@ export function getDirectChildren<T extends Base = Base>(
 
   return [...children].filter((child) =>
     [...nestedParents].every((nestedParent) => {
-      const nestedChildren = nestedParent.$children[childrenName] as Base<BaseTypeParameter>[];
+      const nestedChildren = nestedParent.$children[childrenName] as Base<BaseProps>[];
       /* istanbul ignore next */
       return isArray(nestedChildren) ? !nestedChildren.includes(child) : true;
     }),

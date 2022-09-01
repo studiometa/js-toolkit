@@ -1,5 +1,5 @@
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseTypeParameter, BaseConfig } from '../Base/index.js';
+import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
 import type { DragServiceOptions, DragServiceProps } from '../services/drag.js';
 import { useDrag } from '../services/index.js';
 
@@ -7,7 +7,7 @@ export type DragDecoratorOptions = DragServiceOptions & {
   target?: (this: Base, instance: Base) => HTMLElement;
 };
 
-export interface WithDragInterfacd extends BaseInterface {
+export interface WithDragInterface extends BaseInterface {
   dragged?(props:DragServiceProps):void;
 }
 
@@ -21,7 +21,7 @@ export function withDrag<S extends Base>(
   /**
    * Class.
    */
-  class WithDrag<T extends BaseTypeParameter = BaseTypeParameter> extends BaseClass<T> {
+  class WithDrag<T extends BaseProps = BaseProps> extends BaseClass<T & WithDragInterface> {
     /**
      * Config.
      */
