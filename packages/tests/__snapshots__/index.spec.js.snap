@@ -27,7 +27,6 @@ Array [
   "withMountWhenInView",
   "withResponsiveOptions",
   "withScrolledInView",
-  "withType",
   "withVue2",
 ]
 `;
