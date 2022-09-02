@@ -27,7 +27,7 @@ export function withIntersectionObserver<S extends Base>(
   BaseClass: typeof Base,
   // eslint-disable-next-line unicorn/no-object-as-default-parameter
   defaultOptions: IntersectionObserverInit = { threshold: createArrayOfNumber(100) },
-): BaseDecorator<WithIntersectionObserverInterface, S> {
+): BaseDecorator<WithIntersectionObserverInterface, S, WithIntersectionObserverProps> {
   /**
    * Class.
    */

@@ -26,7 +26,7 @@ export function withMountWhenInView<S extends Base = Base>(
   BaseClass: typeof Base,
   // eslint-disable-next-line unicorn/no-object-as-default-parameter
   defaultOptions: IntersectionObserverInit = { threshold: [0, 1] },
-):BaseDecorator<WithMountWhenInViewInterface, S> {
+):BaseDecorator<WithMountWhenInViewInterface, S, WithMountWhenInViewProps> {
   /**
    * Class.
    */

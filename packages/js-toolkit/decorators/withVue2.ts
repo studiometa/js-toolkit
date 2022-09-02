@@ -20,7 +20,7 @@ export interface WithVue2Interface extends BaseInterface {
 export function withVue2<S extends Base, T extends Vue = Vue>(
   BaseClass: typeof Base,
   VueCtor: VueConstructor,
-): BaseDecorator<WithVue2Interface, S> {
+): BaseDecorator<WithVue2Interface, S, WithVue2Props> {
   type VueConfig = ComponentOptions<T> & {
     render: ComponentOptions<T>['render'];
   };
