@@ -98,7 +98,7 @@ function addToResize(key, instance) {
  */
 export function withBreakpointObserver<S extends Base>(
   BaseClass: typeof Base,
-): BaseDecorator<WithBreakpointObserverInterface, S> {
+): BaseDecorator<WithBreakpointObserverInterface, S, WithBreakpointObserverProps> {
   /**
    * Class.
    */

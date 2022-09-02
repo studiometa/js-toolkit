@@ -97,7 +97,7 @@ export interface WithScrolledInViewInterface extends BaseInterface {
 export function withScrolledInView<S extends Base = Base>(
   BaseClass: typeof Base,
   options: WithScrolledInViewOptions = {},
-): BaseDecorator<WithScrolledInViewInterface, S> {
+): BaseDecorator<WithScrolledInViewInterface, S, WithScrolledInViewProps> {
   /**
    * Class.
    */
