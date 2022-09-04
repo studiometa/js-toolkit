@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import { getComponentElements, getEventTarget } from './utils.js';
 import ChildrenManager from './managers/ChildrenManager.js';
 import RefsManager from './managers/RefsManager.js';
@@ -10,12 +11,9 @@ let id = 0;
 
 /**
  * Test if the managers' instances implement the default manager.
- *
  * @throws
- * @param   {Base} instance The instance to test.
- * @returns {void}
  */
-function createAndTestManagers(instance) {
+function createAndTestManagers(instance: Base): void {
   [
     {
       prop: '__options',
@@ -46,101 +44,92 @@ function createAndTestManagers(instance) {
     instance[prop] = new instance.__managers[constructorName](instance);
     if (isDev && !(instance[prop] instanceof constructor)) {
       throw new Error(
-        `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`
+        `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`,
       );
     }
   });
 }
 
-/**
- * @typedef {typeof Base} BaseConstructor
- * @typedef {(Base) => Promise<BaseConstructor | { default: BaseConstructor }>} BaseAsyncConstructor
- * @typedef {{ [name:string]: any }} BaseOptions
- * @typedef {{ [name:string]: HTMLElement | HTMLElement[] }} BaseRefs
- * @typedef {{ [nameOrSelector:string]: Base[] | Promise<Base>[] }} BaseChildren
- * @typedef {{ [nameOrSelector:string]: BaseConstructor | BaseAsyncConstructor }} BaseConfigComponents
- * @typedef {import('./managers/OptionsManager').OptionsSchema} BaseConfigOptions
- * @typedef {import('./managers/ServicesManager.js').ServiceName} ServiceName
- */
+export type BaseEl = HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> };
+export type BaseConstructor<T extends Base = Base> = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  new (...args: any[]): T;
+  prototype: Base;
+} & Pick<typeof Base, keyof typeof Base>;
+export type BaseAsyncConstructor<T extends Base = Base> = (
+  Base
+) => Promise<BaseConstructor<T> | { default: BaseConstructor<T> }>;
+export type BaseOptions = { [name: string]: unknown };
+export type BaseRefs = { [name: string]: HTMLElement | HTMLElement[] };
+export type BaseChildren = { [nameOrSelector: string]: Base[] | Promise<Base>[] };
+export type BaseConfigComponents = {
+  [nameOrSelector: string]: BaseConstructor | BaseAsyncConstructor;
+};
 
-/**
- * @typedef {Object} BaseConfig
- * @property {string} name
- * @property {boolean} [debug]
- * @property {boolean} [log]
- * @property {string[]} [refs]
- * @property {string[]} [emits]
- * @property {BaseConfigComponents} [components]
- * @property {BaseConfigOptions} [options]
- */
+export type BaseConfig = {
+  name: string;
+  debug?: boolean;
+  log?: boolean;
+  refs?: string[];
+  emits?: string[];
+  components?: BaseConfigComponents;
+  options?: import('./managers/OptionsManager').OptionsSchema;
+};
 
-/**
- * @typedef {{
- *   $el?: HTMLElement,
- *   $options?: BaseOptions,
- *   $refs?: BaseRefs,
- *   $children?: { [name:string]: Base | Promise<Base> },
- * }} BaseTypeParameter
- */
+export type BaseProps = {
+  $el?: HTMLElement;
+  $options?: BaseOptions;
+  $refs?: BaseRefs;
+  $children?: BaseChildren;
+  $parent?: Base;
+};
 
-/**
- * @typedef {Object} Managers
- * @property {typeof ChildrenManager} ChildrenManager
- * @property {typeof EventsManager} EventsManager
- * @property {typeof OptionsManager} OptionsManager
- * @property {typeof RefsManager} RefsManager
- * @property {typeof ServicesManager} ServicesManager
- */
+export type Managers = {
+  ChildrenManager: typeof ChildrenManager;
+  EventsManager: typeof EventsManager;
+  OptionsManager: typeof OptionsManager;
+  RefsManager: typeof RefsManager;
+  ServicesManager: typeof ServicesManager;
+};
 
 /**
  * Base class.
- * @template {BaseTypeParameter} [BaseInterface={ $el: HTMLElement, $options: BaseOptions, $refs: BaseRefs, $children: { [name:string]: Base | Promise<Base> } }]
  */
-export default class Base extends EventTarget {
+export class Base<T extends BaseProps = BaseProps> extends EventTarget {
   /**
    * This is a Base instance.
-   * @type {boolean}
-   * @readonly
    */
-  static $isBase = true;
+  static readonly $isBase = true as const;
 
   /**
    * The instance parent.
-   * @type {Base}
    */
-  $parent = null;
+  $parent: T['$parent'] & Base = null;
 
   /**
    * The instance id.
-   * @type {string}
    */
-  $id;
+  $id: string;
 
   /**
    * The root element.
-   * @type {BaseInterface['$el'] & HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> }}
    */
-  $el;
+  $el: T['$el'] & BaseEl;
 
   /**
    * The state of the component.
-   * @type {boolean}
    */
   $isMounted = false;
 
   /**
    * Store the event handlers.
-   *
-   * @private
-   * @type {Map<string, Set<EventListenerOrEventListenerObject>>}
    */
-  __eventHandlers = new Map();
+  __eventHandlers: Map<string, Set<EventListenerOrEventListenerObject>> = new Map();
 
   /**
    * Get the root instance of the app.
-   * @returns {Base}
    */
-  get $root() {
+  get $root(): Base {
     if (!this.$parent) {
       return this;
     }
@@ -161,11 +150,8 @@ export default class Base extends EventTarget {
 
   /**
    * Merge configuration with the parents' configurations.
-   *
-   * @returns {BaseConfig}
-   * @private
    */
-  get __config() {
+  get __config(): BaseConfig {
     let proto = Object.getPrototypeOf(this);
     let { config } = proto.constructor;
 
@@ -190,10 +176,7 @@ export default class Base extends EventTarget {
     return config;
   }
 
-  /**
-   * @type {BaseConfig}
-   */
-  static config = {
+  static config: BaseConfig = {
     name: 'Base',
     emits: [
       // hook events
@@ -212,80 +195,43 @@ export default class Base extends EventTarget {
     ],
   };
 
-  /**
-   * @type {ServicesManager}
-   * @private
-   */
-  __services;
+  __services: ServicesManager;
 
-  /**
-   * @type {ServicesManager}
-   */
-  get $services() {
+  get $services(): ServicesManager {
     return this.__services;
   }
 
-  /**
-   * @type {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] } & BaseRefs}
-   * @private
-   */
-  __refs;
+  __refs: RefsManager & T['$refs'] & BaseRefs;
 
-  /**
-   * @returns {RefsManager & { [key in keyof BaseInterface['$refs']]: BaseInterface['$refs'][key] } & BaseRefs}
-   */
-  get $refs() {
+  get $refs(): RefsManager & T['$refs'] & BaseRefs {
     return this.__refs;
   }
 
-  /**
-   * @type {OptionsManager & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] } & BaseOptions}
-   * @private
-   */
-  __options;
+  __options: OptionsManager & T['$options'] & BaseOptions;
 
-  /**
-   * @returns {OptionsManager & { [key in keyof BaseInterface['$options']]: BaseInterface['$options'][key] } & BaseOptions}
-   */
-  get $options() {
+  get $options(): OptionsManager & T['$options'] & BaseOptions {
     return this.__options;
   }
 
-  /**
-   * @type {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> } & BaseChildren}
-   * @private
-   */
-  __children;
+  __children: ChildrenManager & T['$children'] & BaseChildren;
 
-  /**
-   * @returns {ChildrenManager & { [key in keyof BaseInterface['$children']]: Array<BaseInterface['$children'][key]> } & BaseChildren}
-   */
-  get $children() {
+  get $children(): ChildrenManager & T['$children'] & BaseChildren {
     return this.__children;
   }
 
-  /**
-   * @type {EventsManager}
-   * @private
-   */
-  __events;
+  __events: EventsManager;
 
   /**
    * Small helper to log stuff.
-   *
-   * @returns {(...args: any) => void}
    */
-  get $log() {
+  get $log(): (...args: unknown[]) => void {
     return this.__options.log ? window.console.log.bind(window, `[${this.__config.name}]`) : noop;
   }
 
   /**
    * Small helper to debug information.
-   *
-   * @private
-   * @returns {(...args:any) => void}
    */
-  get __debug() {
+  get __debug(): (...args: unknown[]) => void {
     return isDev && this.__options.debug
       ? window.console.log.bind(window, `[debug] [${this.$id}]`)
       : noop;
@@ -293,10 +239,8 @@ export default class Base extends EventTarget {
 
   /**
    * Get manager constructors.
-   *
-   * @returns {Managers}
    */
-  get __managers() {
+  get __managers(): Managers {
     return {
       ChildrenManager,
       EventsManager,
@@ -308,13 +252,8 @@ export default class Base extends EventTarget {
 
   /**
    * Call an instance method and emit corresponding events.
-   *
-   * @private
-   * @param {string} method
-   * @param {any[]} args
-   * @returns {any}
    */
-  __callMethod(method, ...args) {
+  __callMethod(method: string, ...args: unknown[]): unknown {
     if (isDev) {
       this.__debug('callMethod', method, ...args);
     }
@@ -336,11 +275,10 @@ export default class Base extends EventTarget {
   /**
    * Test if the given event has been bound to the instance.
    *
-   * @private
-   * @param  {string} event The event's name.
+   * @param   {string} event The event's name.
    * @returns {boolean}      Wether the given event has been bound or not.
    */
-  __hasEvent(event) {
+  __hasEvent(event: string): boolean {
     const eventHandlers = this.__eventHandlers.get(event);
     return eventHandlers && eventHandlers.size > 0;
   }
@@ -350,7 +288,7 @@ export default class Base extends EventTarget {
    *
    * @param {HTMLElement} element The component's root element dd.
    */
-  constructor(element) {
+  constructor(element: HTMLElement) {
     super();
 
     if (!element) {
@@ -389,9 +327,8 @@ export default class Base extends EventTarget {
 
   /**
    * Trigger the `mounted` callback.
-   * @returns {this}
    */
-  $mount() {
+  $mount(): this {
     if (this.$isMounted) {
       return this;
     }
@@ -415,9 +352,8 @@ export default class Base extends EventTarget {
 
   /**
    * Update the instance children.
-   * @returns {this}
    */
-  $update() {
+  $update(): this {
     if (isDev) {
       this.__debug('$update');
     }
@@ -440,9 +376,8 @@ export default class Base extends EventTarget {
 
   /**
    * Trigger the `destroyed` callback.
-   * @returns {this}
    */
-  $destroy() {
+  $destroy(): this {
     if (!this.$isMounted) {
       return this;
     }
@@ -462,9 +397,8 @@ export default class Base extends EventTarget {
 
   /**
    * Terminate a child instance when it is not needed anymore.
-   * @returns {void}
    */
-  $terminate() {
+  $terminate(): void {
     if (isDev) {
       this.__debug('$terminate');
     }
@@ -482,11 +416,10 @@ export default class Base extends EventTarget {
   /**
    * Add an emitted event.
    *
-   * @private
    * @param   {string} event The event name.
    * @returns {void}
    */
-  __addEmits(event) {
+  __addEmits(event: string): void {
     const ctor = this.__ctor;
     if (isArray(ctor.config.emits)) {
       ctor.config.emits.push(event);
@@ -498,11 +431,10 @@ export default class Base extends EventTarget {
   /**
    * Remove an emitted event.
    *
-   * @private
    * @param   {string} event The event name.
    * @returns {void}
    */
-  __removeEmits(event) {
+  __removeEmits(event: string): void {
     const ctor = this.__ctor;
     const index = ctor.config.emits.indexOf(event);
     ctor.config.emits.splice(index, 1);
@@ -510,12 +442,9 @@ export default class Base extends EventTarget {
 
   /**
    * Get the instance constructor.
-   *
-   * @private
-   * @returns {BaseConstructor}
    */
-  get __ctor() {
-    return /** @type {BaseConstructor} */ (this.constructor);
+  get __ctor(): BaseConstructor {
+    return this.constructor as BaseConstructor;
   }
 
   /**
@@ -530,7 +459,11 @@ export default class Base extends EventTarget {
    * @returns {() => void}
    *   A function to unbind the listener.
    */
-  $on(event, listener, options) {
+  $on(
+    event: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions,
+  ): () => void {
     if (isDev) {
       this.__debug('$on', event, listener, options);
     }
@@ -563,7 +496,11 @@ export default class Base extends EventTarget {
    *   Options for the `removeEventListener` method.
    * @returns {void}
    */
-  $off(event, listener, options) {
+  $off(
+    event: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions,
+  ) {
     if (isDev) {
       this.__debug('$off', event, listener);
     }
@@ -577,12 +514,11 @@ export default class Base extends EventTarget {
   /**
    * Emits an event.
    *
-   * @param  {string} event
-   *   Name of the event.
-   * @param  {any[]}        args  The arguments to apply to the functions bound to this event.
+   * @param  {string} event Name of the event.
+   * @param  {any[]}  args  The arguments to apply to the functions bound to this event.
    * @returns {void}
    */
-  $emit(event, ...args) {
+  $emit(event: string, ...args: unknown[]) {
     if (isDev) {
       this.__debug('$emit', event, args);
     }
@@ -592,14 +528,11 @@ export default class Base extends EventTarget {
 
   /**
    * Factory method to generate multiple instance of the class.
-   *
-   * @param  {string}      nameOrSelector The selector on which to mount each instance.
-   * @returns {Array<Base>}                A list of the created instance.
    */
-  static $factory(nameOrSelector) {
+  static $factory(nameOrSelector: string): Base[] {
     if (isDev && !nameOrSelector) {
       throw new Error(
-        'The $factory method requires a component’s name or selector to be specified.'
+        'The $factory method requires a component’s name or selector to be specified.',
       );
     }
 

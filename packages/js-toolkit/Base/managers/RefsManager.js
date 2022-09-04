@@ -47,7 +47,7 @@ function __register(that, refName) {
      * @param {HTMLElement} ref
      * @returns {boolean}
      */
-    (ref) => __filterRefsBelongingToInstance(that, ref)
+    (ref) => __filterRefsBelongingToInstance(that, ref),
   );
 
   if (isDev && !isMultiple && refs.length > 1) {
@@ -55,7 +55,7 @@ function __register(that, refName) {
       // @ts-ignore
       `[${that.__base.$options.name}]`,
       `The "${refName}" ref has been found multiple times.`,
-      'Did you forgot to add the `[]` suffix to its name?'
+      'Did you forgot to add the `[]` suffix to its name?',
     );
   }
 
@@ -65,7 +65,7 @@ function __register(that, refName) {
         // @ts-ignore
         `[${that.__base.$options.name}]`,
         `The "${refName}" ref is missing.`,
-        `Is there an \`[data-ref="${refName}"]\` element in the component's scope?`
+        `Is there an \`[data-ref="${refName}"]\` element in the component's scope?`,
       );
     }
 

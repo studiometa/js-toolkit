@@ -43,7 +43,7 @@ export default class ScrollLinkedAnimation extends Base {
       this.scrollProgressY,
       this.dampedScrollProgressY,
       0.25,
-      0.0001
+      0.0001,
     );
 
     const items = this.$refs.cols.map((col, index) => {
@@ -56,7 +56,7 @@ export default class ScrollLinkedAnimation extends Base {
           0,
           1,
           this.parallaxOffsetHeight,
-          this.parallaxOffsetHeight * -1
+          this.parallaxOffsetHeight * -1,
         );
       }
 

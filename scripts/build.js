@@ -2,9 +2,12 @@ const path = require('path');
 const glob = require('fast-glob');
 const esbuild = require('esbuild');
 
-const entryPoints = glob.sync(['packages/js-toolkit/**/*.js', '!**/node_modules/**'], {
-  cwd: path.resolve(__dirname, '..'),
-});
+const entryPoints = glob.sync(
+  ['packages/js-toolkit/**/*.js', 'packages/js-toolkit/**/*.ts', '!**/node_modules/**'],
+  {
+    cwd: path.resolve(__dirname, '..'),
+  }
+);
 
 const outdir = path.resolve(__dirname, '../dist');
 
@@ -43,7 +46,7 @@ build({
   outExtension: { '.js': '.cjs' },
   footer: {
     // Fix `export default {}` assigned to `module.exports.default`
-    js: 'if (module.exports.default) module.exports = module.exports.default;'
+    js: 'if (module.exports.default) module.exports = module.exports.default;',
   },
   plugins: [
     // @see https://github.com/evanw/esbuild/issues/622#issuecomment-769462611

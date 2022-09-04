@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals';
-import { Base } from '@studiometa/js-toolkit';
-import withIntersectionObserver from '@studiometa/js-toolkit/decorators/withIntersectionObserver';
+import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 import {
   beforeAllCallback,
   afterEachCallback,

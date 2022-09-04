@@ -1,94 +1,128 @@
-import withMountWhenInView from './withMountWhenInView.js';
+import type { BaseInterface, BaseDecorator } from '../Base/types.js';
+import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
+import type { RafServiceProps, ScrollServiceProps, ResizeServiceProps } from '../services/index.js';
+import { withMountWhenInView } from './withMountWhenInView.js';
 import { damp, clamp, clamp01, getOffsetSizes, isFunction, useScheduler } from '../utils/index.js';
 
 const scheduler = useScheduler(['update', 'render']);
 
-/**
- * @typedef {import('../Base').default} Base
- * @typedef {import('../Base').BaseConstructor} BaseConstructor
- * @typedef {import('../Base').BaseConfig} BaseConfig
- * @typedef {{
- *   start: {
- *     x: number,
- *     y: number,
- *   },
- *   end: {
- *     x: number,
- *     y: number,
- *   },
- *   current: {
- *     x: number,
- *     y: number,
- *   },
- *   dampedCurrent: {
- *     x: number,
- *     y: number,
- *   },
- *   progress: {
- *     x: number,
- *     y: number,
- *   },
- *   dampedProgress: {
- *     x: number,
- *     y: number,
- *   },
- * }} ScrollInViewProps
- */
+export interface WithScrolledInViewProps extends BaseProps {
+  $options: {
+    dampFactor: number;
+    dampPrecision: number;
+  };
+}
+
+export type ScrollInViewProps = {
+  start: {
+    x: number;
+    y: number;
+  };
+  end: {
+    x: number;
+    y: number;
+  };
+  current: {
+    x: number;
+    y: number;
+  };
+  dampedCurrent: {
+    x: number;
+    y: number;
+  };
+  progress: {
+    x: number;
+    y: number;
+  };
+  dampedProgress: {
+    x: number;
+    y: number;
+  };
+};
+
+export type WithScrolledInViewOptions = IntersectionObserverInit & {
+  useOffsetSizes?: boolean;
+};
 
 /**
  * Update props on tick.
- *
- * @param   {ScrollInViewProps} props
- * @param   {number} dampFactor
- * @param   {number} dampPrecision
- * @param   {'x'|'y'} axis
- * @returns {void}
  */
-function updateProps(props, dampFactor, dampPrecision, axis = 'x') {
+function updateProps(
+  props: ScrollInViewProps,
+  dampFactor: number,
+  dampPrecision: number,
+  axis: 'x' | 'y' = 'x',
+): void {
   props.current[axis] = clamp(
     axis === 'x' ? window.pageXOffset : window.pageYOffset,
     props.start[axis],
-    props.end[axis]
+    props.end[axis],
   );
   props.dampedCurrent[axis] = damp(
     props.current[axis],
     props.dampedCurrent[axis],
     dampFactor,
-    dampPrecision
+    dampPrecision,
   );
   props.progress[axis] = clamp01(
-    (props.current[axis] - props.start[axis]) / (props.end[axis] - props.start[axis])
+    (props.current[axis] - props.start[axis]) / (props.end[axis] - props.start[axis]),
   );
   props.dampedProgress[axis] = clamp01(
-    (props.dampedCurrent[axis] - props.start[axis]) / (props.end[axis] - props.start[axis])
+    (props.dampedCurrent[axis] - props.start[axis]) / (props.end[axis] - props.start[axis]),
   );
+}
+
+export interface WithScrolledInViewInterface extends BaseInterface {
+  /**
+   * @private
+   * @type {ScrollInViewProps}
+   */
+  __props: ScrollInViewProps;
+  dampFactor?: number;
+  dampPrecision?: number;
+  mounted(): void;
+  resized(props: ResizeServiceProps): void;
+  scrolled(props: ScrollServiceProps): void;
+  ticked(props: RafServiceProps): void;
+  destroyed(): void;
+  /**
+   * @private
+   */
+  __setProps(): void;
 }
 
 /**
  * Add scrolled in view capabilities to a component.
- *
- * @template {BaseConstructor} T
- * @param {T} BaseClass
- * @param {IntersectionObserverInit & { useOffsetSizes?: boolean }} options
- * @returns {T}
  */
-export default function withScrolledInView(BaseClass, options = {}) {
-  // @ts-ignore
-  return class extends withMountWhenInView(BaseClass, options) {
+export function withScrolledInView<S extends Base = Base>(
+  BaseClass: typeof Base,
+  options: WithScrolledInViewOptions = {},
+): BaseDecorator<WithScrolledInViewInterface, S, WithScrolledInViewProps> {
+  /**
+   * Class.
+   */
+  class WithScrolledInView<
+    T extends BaseProps = BaseProps,
+  > extends withMountWhenInView(BaseClass, options)<T & WithScrolledInViewProps> {
     /**
      * Config.
-     * @type {BaseConfig}
      */
-    static config = {
+    static config: BaseConfig = {
       name: `${BaseClass.config.name}WithMountWhenInView`,
       emits: ['scrolledInView'],
+      options: {
+        dampFactor: {
+          type: Number,
+          default: 0.1,
+        },
+        dampPrecision: {
+          type: Number,
+          default: 0.001,
+        },
+      },
     };
 
-    /**
-     * @type {ScrollInViewProps}
-     * @private
-     */
-    __props = {
+    __props: ScrollInViewProps = {
       start: {
         x: 0,
         y: 0,
@@ -117,21 +151,22 @@ export default function withScrolledInView(BaseClass, options = {}) {
 
     /**
      * Factor used for the `dampedProgress` props.
-     * @type {number}
+     * @deprecated
+     * @todo v3 delete in favor of option API
      */
-    dampFactor = 0.1;
+    dampFactor?: number = null;
 
     /**
      * Precision for the `dampedProgress` props.
-     * @type {number}
+     * @deprecated
+     * @todo v3 delete in favor of option API
      */
-    dampPrecision = 0.001;
+    dampPrecision?: number = null;
 
     /**
      * Bind listeners.
-     * @param   {HTMLElement} element
      */
-    constructor(element) {
+    constructor(element: HTMLElement) {
       super(element);
 
       const render = () => {
@@ -159,8 +194,11 @@ export default function withScrolledInView(BaseClass, options = {}) {
           }
         },
         ticked: () => {
-          updateProps(this.__props, this.dampFactor, this.dampPrecision, 'x');
-          updateProps(this.__props, this.dampFactor, this.dampPrecision, 'y');
+          const dampFactor = this.dampFactor ?? this.$options.dampFactor;
+          const dampPrecision = this.dampFactor ?? this.$options.dampFactor;
+
+          updateProps(this.__props, dampFactor, dampPrecision, 'x');
+          updateProps(this.__props, dampFactor, dampPrecision, 'y');
 
           if (
             this.__props.dampedCurrent.x === this.__props.current.x &&
@@ -199,67 +237,61 @@ export default function withScrolledInView(BaseClass, options = {}) {
 
     /**
      * Mounted hook.
-     *
-     * @deprecated
-     * @returns {void}
      */
     mounted() {
       // @ts-ignore
-      if (isFunction(super.mounted)) super.mounted();
+      if (isFunction(super.mounted)) {
+        // @ts-ignore
+        super.mounted();
+      }
     }
 
     /**
      * Resized hook.
-     *
-     * @deprecated
-     * @param   {import('../services/resize').ResizeServiceProps} props
-     * @returns {void}
      */
-    resized(props) {
+    resized(props: ResizeServiceProps) {
       // @ts-ignore
-      if (isFunction(super.resized)) super.resized(props);
+      if (isFunction(super.resized)) {
+        // @ts-ignore
+        super.resized(props);
+      }
     }
 
     /**
      * Scrolled hook.
-     *
-     * @deprecated
-     * @param   {import('../services/scroll').ScrollServiceProps} props
-     * @returns {void}
      */
-    scrolled(props) {
+    scrolled(props: ScrollServiceProps) {
       // @ts-ignore
-      if (isFunction(super.scrolled)) super.scrolled(props);
+      if (isFunction(super.scrolled)) {
+        // @ts-ignore
+        super.scrolled(props);
+      }
     }
 
     /**
      * Ticked hook.
-     *
-     * @deprecated
-     * @param   {import('../services/raf').RafServiceProps} props
-     * @returns {void}
      */
-    ticked(props) {
+    ticked(props: RafServiceProps) {
       // @ts-ignore
-      if (isFunction(super.ticked)) super.ticked(props);
+      if (isFunction(super.ticked)) {
+        // @ts-ignore
+        super.ticked(props);
+      }
     }
 
     /**
      * Destroyed hook.
-     *
-     * @deprecated
-     * @returns {void}
      */
     destroyed() {
       // @ts-ignore
-      if (isFunction(super.destroyed)) super.destroyed();
+      if (isFunction(super.destroyed)) {
+        // @ts-ignore
+        super.destroyed();
+      }
     }
 
     /**
      * Set the decorator props.
-     *
-     * @private
-     * @returns {void}
      */
     __setProps() {
       const sizes = options.useOffsetSizes
@@ -288,22 +320,25 @@ export default function withScrolledInView(BaseClass, options = {}) {
         xCurrent,
         this.__props.dampedCurrent.x,
         this.dampFactor,
-        this.dampPrecision
+        this.dampPrecision,
       );
       this.__props.dampedCurrent.y = damp(
         yCurrent,
         this.__props.dampedCurrent.y,
         this.dampFactor,
-        this.dampPrecision
+        this.dampPrecision,
       );
       this.__props.progress.x = xProgress;
       this.__props.progress.y = yProgress;
       this.__props.dampedProgress.x = clamp01(
-        (this.__props.dampedCurrent.x - xStart) / (xEnd - xStart)
+        (this.__props.dampedCurrent.x - xStart) / (xEnd - xStart),
       );
       this.__props.dampedProgress.y = clamp01(
-        (this.__props.dampedCurrent.y - yStart) / (yEnd - yStart)
+        (this.__props.dampedCurrent.y - yStart) / (yEnd - yStart),
       );
     }
-  };
+  }
+
+  // @ts-ignore
+  return WithScrolledInView;
 }
