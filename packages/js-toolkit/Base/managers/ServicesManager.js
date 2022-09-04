@@ -8,7 +8,7 @@ import AbstractManager from './AbstractManager.js';
 import { noop, isFunction, isDefined, isDev } from '../../utils/index.js';
 
 /**
- * @typedef {import('../index').default} Base
+ * @typedef {import('../index').Base} Base
  * @typedef {import('../index').BaseConstructor} BaseConstructor
  * @typedef {import('../../services').ServiceInterface<any>} ServiceInterface
  */
@@ -127,7 +127,7 @@ export default class ServicesManager extends AbstractManager {
        * @param {ServiceName} serviceName
        * @returns {() => void}
        */
-      (serviceName) => this.enable(serviceName)
+      (serviceName) => this.enable(serviceName),
     );
   }
 
@@ -141,7 +141,7 @@ export default class ServicesManager extends AbstractManager {
       /** @param {ServiceName} serviceName */
       (serviceName) => {
         this.disable(serviceName);
-      }
+      },
     );
   }
 

@@ -1,17 +1,12 @@
-import useResize from '../services/resize.js';
+import type { BaseDecorator, BaseInterface } from '../Base/types.js';
+import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
+import { useResize } from '../services/index.js';
 import { isDev, isArray } from '../utils/index.js';
 
 /**
- * @typedef {import('../Base').default} Base
- * @typedef {import('../Base').BaseConstructor} BaseConstructor
- */
-
-/**
  * Test the breakpoins of the given Base instance and return the hook to call.
- *
- * @param  {Array<[string[], Base]>} breakpoints The breakpoints's data.
  */
-function testBreakpoints(breakpoints) {
+function testBreakpoints(breakpoints: Array<[string[], Base]>) {
   const { breakpoint } = useResize().props();
   breakpoints.forEach(([breakpointKeys, instance]) => {
     if (breakpointKeys.includes(breakpoint) && !instance.$isMounted) {
@@ -24,36 +19,36 @@ function testBreakpoints(breakpoints) {
 
 /**
  * Prepare the components.
- * @param {Base} instance
- * @param {Array<[string, BaseConstructor]>} breakpoints
- * @returns {Array<[string, Base]>}
  */
-function mountComponents(instance, breakpoints) {
+function mountComponents(
+  instance: Base,
+  breakpoints: Array<[string, BaseConstructor]>,
+): Array<[string[], Base]> {
   return breakpoints.map(([bk, ComponentClass]) => {
     const child = new ComponentClass(instance.$el);
     Object.defineProperty(child, '$parent', { get: () => instance.$parent });
-    return [bk, child];
+    return [bk.split(' '), child];
   });
 }
 
 /**
  * A cache object to hold each Base sub-instances.
- * @type {Object}
  */
-const instances = new WeakMap();
+const instances:WeakMap<Base, Array<[string[], Base]>> = new WeakMap();
 
 /**
  * BreakpointManager class.
- * @template {BaseConstructor} T
- * @param {T} BaseClass
- * @param {Array<[string, BaseConstructor]>} breakpoints
- * @returns {T}
  */
-export default function withBreakpointManager(BaseClass, breakpoints) {
+export function withBreakpointManager<S extends Base>(
+  BaseClass: typeof Base,
+  breakpoints: Array<[string, BaseConstructor<Base>]>,
+): BaseDecorator<BaseInterface, S> {
   if (!isArray(breakpoints)) {
     if (isDev) {
       throw new Error('[withBreakpointManager] The `breakpoints` parameter must be an array.');
     }
+
+    // @ts-ignore
     return BaseClass;
   }
 
@@ -61,6 +56,8 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
     if (isDev) {
       throw new Error('[withBreakpointManager] You must define at least 2 breakpoints.');
     }
+
+    // @ts-ignore
     return BaseClass;
   }
 
@@ -70,18 +67,23 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
   // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
   if (!props().breakpoint) {
     if (isDev) {
-      throw new Error(`The \`BreakpointManager\` class requires breakpoints to be defined.`);
+      throw new Error('The `BreakpointManager` class requires breakpoints to be defined.');
     }
+
+    // @ts-ignore
     return BaseClass;
   }
 
-  // @ts-ignore
-  return class extends BaseClass {
+  /**
+   * Class.
+   */
+  class WithBreakpointManager<
+    T extends BaseProps = BaseProps,
+  > extends BaseClass<T> {
     /**
      * Watch for the document resize to test the breakpoints.
-     * @param {HTMLElement} element The component's root element.
      */
-    constructor(element) {
+    constructor(element: HTMLElement) {
       super(element);
 
       if (!instances.has(this)) {
@@ -91,17 +93,13 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
       add(`BreakpointManager-${this.$id}`, () => {
         testBreakpoints(instances.get(this));
       });
-
-      this.instances = instances.get(this);
     }
 
     /**
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
-     *
-     * @returns {this}
      */
-    $mount() {
+    $mount(): this {
       super.$mount();
 
       testBreakpoints(instances.get(this));
@@ -111,10 +109,8 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
 
     /**
      * Destroy all instances when the main one is destroyed.
-     *
-     * @returns {this}
      */
-    $destroy() {
+    $destroy():this {
       if (isArray(instances.get(this))) {
         instances.get(this).forEach(([, instance]) => {
           instance.$destroy();
@@ -123,5 +119,8 @@ export default function withBreakpointManager(BaseClass, breakpoints) {
 
       return super.$destroy();
     }
-  };
+  }
+
+  // @ts-ignore
+  return WithBreakpointManager;
 }

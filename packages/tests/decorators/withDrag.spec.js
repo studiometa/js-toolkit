@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals';
-import { Base } from '@studiometa/js-toolkit';
-import withDrag from '@studiometa/js-toolkit/decorators/withDrag';
+import { Base, withDrag } from '@studiometa/js-toolkit';
 
 describe('The `withDrag` decorator', () => {
   it('should add a `dragged` hook', () => {
