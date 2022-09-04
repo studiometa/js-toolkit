@@ -52,11 +52,11 @@ function updateUrlSearchParam(params, name, value) {
  */
 export function objectToURLSearchParams(
   obj,
-  defaultSearch = hasWindow() ? window.location.search : ''
+  defaultSearch = hasWindow() ? window.location.search : '',
 ) {
   return Object.entries(obj).reduce(
     (urlSearchParams, [name, value]) => updateUrlSearchParam(urlSearchParams, name, value),
-    new URLSearchParams(defaultSearch)
+    new URLSearchParams(defaultSearch),
   );
 }
 

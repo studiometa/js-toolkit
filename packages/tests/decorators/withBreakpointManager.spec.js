@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals';
-import { Base } from '@studiometa/js-toolkit';
-import withBreakpointManager from '@studiometa/js-toolkit/decorators/withBreakpointManager';
+import { Base, withBreakpointManager } from '@studiometa/js-toolkit';
 import resizeWindow from '../__utils__/resizeWindow';
 import { mockBreakpoints, unmockBreakpoints } from '../__setup__/mockBreakpoints';
 

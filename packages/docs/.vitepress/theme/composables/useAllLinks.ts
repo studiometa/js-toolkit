@@ -1,18 +1,20 @@
 import type { Ref } from 'vue';
 import { ref, unref } from 'vue';
-import { useData } from 'vitepress';
+import { useData, useRoute, useRouter } from 'vitepress';
 
 interface Link {
   text: string;
   link: string;
   parent?: Link;
   root?: Link;
+  keywords?: string[];
 }
 
 interface VitepressLink {
   text: string;
   link?: string;
   items?: VitepressLink[];
+  keywords?: string[]
 }
 
 /**
@@ -26,11 +28,11 @@ function addLinks(
   root?: VitepressLink,
 ) {
   if (item.link) {
-    let { text, link } = item;
+    let { text, link, keywords = [] } = item;
 
     if (!linksSet.has(link)) {
       const newLink:Link = {
-        text, link
+        text, link, keywords
       };
 
       if (parent) {

@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "2.4.3",
+  "version": "2.4.4-alpha.9",
   "description": "A set of useful little bits of JavaScript to boost your project! 🚀",
   "publishConfig": {
     "access": "public"
@@ -17,12 +17,12 @@
   "homepage": "https://github.com/studiometa/js-toolkit#readme",
   "type": "module",
   "sideEffects": false,
-  "main": "./index.js",
-  "module": "./index.js",
+  "main": "./index.ts",
+  "module": "./index.ts",
   "types": "./index.d.ts",
   "exports": {
     ".": {
-      "import": "./index.js",
+      "import": "./index.ts",
       "require": "./index.cjs",
       "types": "./index.d.ts"
     },

@@ -12,6 +12,6 @@ export default async function nextTick(fn) {
     // eslint-disable-next-line no-promise-executor-return
     setTimeout(() => {
       resolve(isFunction(fn) && fn());
-    }, 0)
+    }, 0),
   );
 }

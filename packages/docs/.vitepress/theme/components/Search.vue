@@ -9,6 +9,7 @@
     defineAction,
   } from '@bytebase/vue-kbar';
   import { useRouter, useRoute } from 'vitepress';
+  import * as vp from 'vitepress';
   import { useAllLinks } from '../composables/useAllLinks.ts';
   import SearchResults from './SearchResults.vue';
 
@@ -94,12 +95,12 @@
     createHeaderLink(
       '$on(event, callback[, options])',
       'on-event-callback-options',
-      parents.instanceMethods
+      parents.instanceMethods,
     ),
     createHeaderLink(
       '$off(event, callback[, options])',
       'off-event-callback-options',
-      parents.instanceMethods
+      parents.instanceMethods,
     ),
     createHeaderLink('$emit(event[, ...args])', 'emit-event-args', parents.instanceMethods),
     createHeaderLink('$mount()', 'mount', parents.instanceMethods),
@@ -127,7 +128,7 @@
       .map((link) =>
         defineAction({
           id: link.link,
-          name: [link.text, link.parent?.text ?? '', link.root?.text ?? ''].join(' '),
+          name: [link?.keywords ?? '', link.text, link.parent?.text ?? '', link.root?.text ?? ''].flat().join(' '),
           link,
           section: link.parent
             ? link.root
@@ -145,7 +146,7 @@
                 }
               }
             : () => (window.location.href = link.link),
-        })
+        }),
       );
   });
 </script>
