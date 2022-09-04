@@ -66,7 +66,11 @@ function getGuideSidebar() {
     {
       text: 'Going further',
       items: [
-        { text: 'Typing components', link: '/guide/going-further/typing-components.html' },
+        {
+          text: 'Typing components',
+          link: '/guide/going-further/typing-components.html',
+          keywords: ['types', 'typings', 'typescript', 'jsdoc'],
+        },
         { text: 'Using decorators', link: '/guide/going-further/using-decorators.html' },
         { text: 'Lazy imports', link: '/guide/going-further/lazy-imports.html' },
         {
