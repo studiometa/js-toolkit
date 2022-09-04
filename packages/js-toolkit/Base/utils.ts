@@ -1,8 +1,5 @@
 import { isArray, isDefined, isDev } from '../utils/index.js';
-
-/**
- * @typedef {import('./index.js').default} Base
- */
+import type { Base, BaseConfig } from './index.js';
 
 /**
  * Get a list of elements based on the name of a component.
@@ -14,7 +11,7 @@ import { isArray, isDefined, isDev } from '../utils/index.js';
  * @returns {Array<HTMLElement>}
  *   A list of elements on which the component should be mounted.
  */
-export function getComponentElements(nameOrSelector, element = document) {
+export function getComponentElements(nameOrSelector:string, element:HTMLElement | Document = document):HTMLElement[] {
   const selector = `[data-component="${nameOrSelector}"]`;
   let elements = [];
 
@@ -33,35 +30,22 @@ export function getComponentElements(nameOrSelector, element = document) {
 
 /**
  * Test if an event is defined in the given config.
- *
- * @param   {string} event
- * @param   {import('./index.js').BaseConfig} config
- * @returns {boolean}
  */
-export function eventIsDefinedInConfig(event, config) {
+export function eventIsDefinedInConfig(event:string, config: BaseConfig):boolean {
   return isArray(config.emits) && config.emits.includes(event);
 }
 
 /**
  * Test if an event can be used on the given element.
- *
- * @param   {string} event
- * @param   {HTMLElement} element
- * @returns {boolean}
  */
-export function eventIsNative(event, element) {
+export function eventIsNative(event:string, element:HTMLElement):boolean {
   return isDefined(element[`on${event}`]);
 }
 
 /**
  * Get the target of a given event.
- *
- * @param   {Base} instance
- * @param   {string} event
- * @param   {import('./index.js').BaseConfig} config
- * @returns {Base|Base['$el']}
  */
-export function getEventTarget(instance, event, config) {
+export function getEventTarget(instance:Base, event:string, config:BaseConfig):Base | Base['$el'] {
   if (eventIsDefinedInConfig(event, config)) {
     return instance;
   }
@@ -74,7 +58,7 @@ export function getEventTarget(instance, event, config) {
     console.warn(
       `[${config.name}]`,
       `The "${event}" event is missing from the configuration and is not a native`,
-      `event for the root element of type \`${instance.$el.constructor.name}\`.`
+      `event for the root element of type \`${instance.$el.constructor.name}\`.`,
     );
   }
 

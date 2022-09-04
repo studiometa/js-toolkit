@@ -43,7 +43,7 @@ transition(
     active: 'transition duration-500',
     to: 'opacity-50',
   },
-  'keep'
+  'keep',
 );
 ```
 

@@ -11,7 +11,10 @@ import { isString, isArray } from '../utils/index.js';
  *   The optional context to use to query for elements.
  * @returns {HTMLElement[]} A normalized list of elements.
  */
-export function getTargetElements(nameOrSelectorOrElement, context) {
+export function getTargetElements(
+  nameOrSelectorOrElement: string | HTMLElement | HTMLElement[],
+  context: HTMLElement,
+): HTMLElement[] {
   if (isString(nameOrSelectorOrElement)) {
     return getComponentElements(nameOrSelectorOrElement, context);
   }

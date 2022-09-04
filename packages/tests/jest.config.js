@@ -11,8 +11,11 @@ export default {
   collectCoverageFrom: ['<rootDir>/js-toolkit/**/*.js'],
   rootDir: '..',
   transform: {
+    '^.+\\.ts$': ['jest-esbuild', { format: 'esm' }],
     '^.+\\.html?$': 'html-loader-jest',
   },
+  extensionsToTreatAsEsm: ['.ts'],
+  resolver: 'ts-jest-resolver',
   moduleNameMapper: {
     '^@studiometa/js-toolkit(.*)': '<rootDir>/js-toolkit$1',
   },

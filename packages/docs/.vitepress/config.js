@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress';
 import fs from 'fs';
 
 const pkg = JSON.parse(
-  fs.readFileSync(new URL('../package.json', import.meta.url), { encoding: 'utf8' })
+  fs.readFileSync(new URL('../package.json', import.meta.url), { encoding: 'utf8' }),
 );
 
 export default defineConfig({
@@ -66,7 +66,11 @@ function getGuideSidebar() {
     {
       text: 'Going further',
       items: [
-        { text: 'Typing components', link: '/guide/going-further/typing-components.html' },
+        {
+          text: 'Typing components',
+          link: '/guide/going-further/typing-components.html',
+          keywords: ['types', 'typings', 'typescript', 'jsdoc'],
+        },
         { text: 'Using decorators', link: '/guide/going-further/using-decorators.html' },
         { text: 'Lazy imports', link: '/guide/going-further/lazy-imports.html' },
         {

@@ -1,8 +1,6 @@
 import { jest } from '@jest/globals';
 import { html } from 'htl';
-import { Base } from '@studiometa/js-toolkit';
-import withExtraConfig from '@studiometa/js-toolkit/decorators/withExtraConfig';
-import importOnInteraction from '@studiometa/js-toolkit/helpers/importOnInteraction';
+import { Base, withExtraConfig, importOnInteraction } from '@studiometa/js-toolkit';
 import wait from '../__utils__/wait';
 
 class App extends Base {

@@ -1,1 +1,4 @@
-module.exports = require('@studiometa/prettier-config');
+module.exports = {
+  ...require('@studiometa/prettier-config'),
+  trailingComma: 'all',
+};

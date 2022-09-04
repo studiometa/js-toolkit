@@ -1,40 +1,42 @@
-/**
- * @typedef {import('../Base').default} Base
- * @typedef {import('../Base').BaseOptions} BaseOptions
- * @typedef {import('../Base').BaseConstructor} BaseConstructor
- */
+import { BaseInterface, BaseDecorator } from '../Base/types.js';
+import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
 
-/**
- * @typedef {Object} WithMountWhenInViewOptions
- * @property {IntersectionObserverInit} intersectionObserver
- */
+export interface WithMountWhenInViewProps extends BaseProps {
+  $options: {
+    intersectionObserver: IntersectionObserverInit;
+  };
+}
 
-/**
- * @typedef {Object} WithMountWhenInViewInterface
- * @property {() => void} terminated
- * @property {WithMountWhenInViewOptions & BaseOptions} $options
- */
+export interface WithMountWhenInViewInterface extends BaseInterface {
+  /**
+   * @private
+   */
+  __isVisible: boolean;
+  /**
+   * @private
+   */
+  __observer: IntersectionObserver;
+  $mount():this;
+}
 
 /**
  * IntersectionObserver decoration.
- *
- * @template {BaseConstructor} T
- * @param {T} BaseClass The Base class to extend.
- * @param {IntersectionObserverInit} [defaultOptions] The options for the IntersectionObserver instance.
- * @returns {T}
  */
-export default function withMountWhenInView(
-  BaseClass,
+export function withMountWhenInView<S extends Base = Base>(
+  BaseClass: typeof Base,
   // eslint-disable-next-line unicorn/no-object-as-default-parameter
-  defaultOptions = { threshold: [0, 1] }
-) {
-  // @ts-ignore
-  return class extends BaseClass {
+  defaultOptions: IntersectionObserverInit = { threshold: [0, 1] },
+):BaseDecorator<WithMountWhenInViewInterface, S, WithMountWhenInViewProps> {
+  /**
+   * Class.
+   */
+  class WithMountWhenInView<T extends BaseProps = BaseProps> extends BaseClass<
+    T & WithMountWhenInViewProps
+  > {
     /**
-     * Class config.
-     * @type {Object}
+     * Config.
      */
-    static config = {
+    static config: BaseConfig = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithMountWhenInView`,
       options: {
@@ -46,23 +48,21 @@ export default function withMountWhenInView(
     /**
      * Is the component visible?
      * @private
-     * @type {boolean}
      */
     __isVisible = false;
 
     /**
      * The component's observer.
      * @private
-     * @type {IntersectionObserver}
      */
-    __observer;
+    __observer: IntersectionObserver;
 
     /**
      * Create an observer when the class in instantiated.
      *
      * @param {HTMLElement} element The component's root element.
      */
-    constructor(element) {
+    constructor(element: HTMLElement) {
       super(element);
 
       this.__observer = new IntersectionObserver(
@@ -78,7 +78,11 @@ export default function withMountWhenInView(
             }
           }
         },
-        { ...defaultOptions, ...this.$options.intersectionObserver }
+        {
+          ...defaultOptions,
+          ...(this.$options as typeof this.$options & WithMountWhenInViewProps['$options'])
+            .intersectionObserver,
+        },
       );
 
       this.__observer.observe(this.$el);
@@ -90,8 +94,6 @@ export default function withMountWhenInView(
 
     /**
      * Override the mounting of the component.
-     *
-     * @returns {this}
      */
     $mount() {
       if (this.__isVisible) {
@@ -100,5 +102,8 @@ export default function withMountWhenInView(
 
       return this;
     }
-  };
+  }
+
+  // @ts-ignore
+  return WithMountWhenInView;
 }

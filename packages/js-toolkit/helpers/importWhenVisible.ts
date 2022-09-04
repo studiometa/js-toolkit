@@ -1,10 +1,6 @@
+import type { Base, BaseConstructor } from '../Base/index.js';
 import { getTargetElements } from './utils.js';
 import { isFunction } from '../utils/index.js';
-
-/**
- * @typedef {import('../Base/index.js').default} Base
- * @typedef {import('../Base/index.js').BaseConstructor} BaseConstructor
- */
 
 /**
  * Import a component when it is visible.
@@ -20,12 +16,12 @@ import { isFunction } from '../utils/index.js';
  *   Options for the `IntersectionObserver` instance.
  * @returns {Promise<T>}
  */
-export default function importWhenVisible(
-  fn,
-  nameOrSelectorOrElement,
-  parent,
-  observerOptions = {}
-) {
+export default function importWhenVisible<T extends BaseConstructor = BaseConstructor>(
+  fn: () => Promise<T | { default: T }>,
+  nameOrSelectorOrElement: string | HTMLElement | HTMLElement[],
+  parent?: Base,
+  observerOptions: IntersectionObserverInit = {},
+): Promise<T> {
   let ResolvedClass;
 
   const resolver = (resolve, cb) => {

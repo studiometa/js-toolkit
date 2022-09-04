@@ -16,7 +16,7 @@ import { animate, ease, domScheduler } from '@studiometa/js-toolkit/utils';
  *   duration: number,
  *   easing: string,
  * }} AnimateTestOptions
- * @augments {Base<{ $refs: AnimateTestRefs, $options: AnimateTestOptions }>}
+ * @extends {Base<{ $refs: AnimateTestRefs, $options: AnimateTestOptions }>}
  */
 export default class AnimateTest extends Base {
   /**
