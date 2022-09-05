@@ -140,7 +140,9 @@ function manageRef(
   const methods = getEventMethodsByName(that, name);
   methods.forEach((method) => {
     const event = getEventNameByMethod(method, name);
-    elements.forEach((element) => element[action](event, that.__refsHandler));
+    elements
+      .filter((element) => element)
+      .forEach((element) => element[action](event, that.__refsHandler));
   });
 }
 /**
