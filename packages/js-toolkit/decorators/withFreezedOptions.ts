@@ -1,8 +1,8 @@
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseProps } from '../Base/index.js';
+import type { Base, BaseProps, BaseOptions } from '../Base/index.js';
 
 export interface WithFreezedOptionsInterface extends BaseInterface {
-  readonly $options: this['$options'];
+  readonly $options: Readonly<BaseOptions>;
 }
 
 /**
@@ -23,7 +23,6 @@ export function withFreezedOptions<S extends Base>(
 
     /**
      * Lazyly freeze the `$options` property.
-     * @returns {Readonly<this['$options']>}
      */
     get $options() {
       if (!this.__freezedOptions) {
