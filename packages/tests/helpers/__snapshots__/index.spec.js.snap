@@ -3,6 +3,7 @@
 exports[`helpers exports 1`] = `
 Array [
   "createApp",
+  "getClosestParent",
   "getDirectChildren",
   "getInstanceFromElement",
   "importOnInteraction",
