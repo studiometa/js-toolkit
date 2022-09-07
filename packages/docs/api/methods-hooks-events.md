@@ -104,6 +104,7 @@ Native DOM events registered on a child component will be binded to the child ro
 Methods following this pattern will be triggered when the `event` event is dispatched on the `document`.
 
 **Arguments**
+
 - `event` (`Event`): The event object
 
 **Examples**
@@ -135,6 +136,7 @@ class Dropdown extends Base {
 Methods following this pattern will be triggered when the `event` event is dispatched on the `window`.
 
 **Arguments**
+
 - `event` (`Event`): The event object
 
 **Examples**
