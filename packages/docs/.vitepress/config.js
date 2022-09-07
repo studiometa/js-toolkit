@@ -208,6 +208,7 @@ function getDecoratorsSidebar() {
 function getHelpersSidebar() {
   return [
     { text: 'createApp', link: '/api/helpers/createApp.html' },
+    { text: 'getClosestParent', link: '/api/helpers/getClosestParent.html' },
     { text: 'getDirectChildren', link: '/api/helpers/getDirectChildren.html' },
     { text: 'getInstanceFromElement', link: '/api/helpers/getInstanceFromElement.html' },
     { text: 'importOnInteraction', link: '/api/helpers/importOnInteraction.html' },
