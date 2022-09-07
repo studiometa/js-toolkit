@@ -38,7 +38,7 @@ export function normalizeName(name: string): string {
         .replace(normalizeRegex1, (c) => c.toLowerCase())
         .replace(normalizeRegex2, ' ')
         .replace(normalizeRegex3, (c) => c.trim().toUpperCase())
-        .trim()
+        .trim(),
     );
   }
 
@@ -61,7 +61,7 @@ export function normalizeEventName(name: string): string {
       name,
       name
         .replace(normalizeEventRegex1, (c) => `-${c.toLowerCase()}`)
-        .replace(normalizeEventRegex2, '')
+        .replace(normalizeEventRegex2, ''),
     );
   }
 
@@ -200,7 +200,7 @@ const getGlobalEventTarget = (method) => (methodIsDocument(method) ? document : 
  * @private
  */
 // eslint-disable-next-line no-use-before-define
-function manageRootElement(that:EventsManager, mode:'add' | 'remove' = 'add') {
+function manageRootElement(that: EventsManager, mode: 'add' | 'remove' = 'add') {
   const modeMethod = `${mode}EventListener`;
   const methods = getEventMethodsByName(that);
 
@@ -217,7 +217,7 @@ function manageRootElement(that:EventsManager, mode:'add' | 'remove' = 'add') {
       const target = getGlobalEventTarget(method);
       target[modeMethod](
         event,
-        methodIsDocument(method) ? that.__documentHandler : that.__windowHandler
+        methodIsDocument(method) ? that.__documentHandler : that.__windowHandler,
       );
     }
   });
@@ -229,13 +229,13 @@ function manageRootElement(that:EventsManager, mode:'add' | 'remove' = 'add') {
  * @todo Use event delegation?
  */
 export default class EventsManager extends AbstractManager {
-  __methodsCache:Map<string, string[]> = new Map();
+  __methodsCache: Map<string, string[]> = new Map();
 
   /**
    * Event listener object for the root element.
    */
-  __rootElementHandler:EventListenerObject = {
-    handleEvent: (event:Event | CustomEvent) => {
+  __rootElementHandler: EventListenerObject = {
+    handleEvent: (event: Event | CustomEvent) => {
       const normalizedEventName = normalizeName(event.type);
       const method = `on${normalizedEventName}`;
 
@@ -286,7 +286,7 @@ export default class EventsManager extends AbstractManager {
   /**
    * Event listener object for the refs.
    */
-  __refsHandler:EventListenerObject = {
+  __refsHandler: EventListenerObject = {
     handleEvent: (event) => {
       const ref = event.currentTarget as HTMLElement;
       const refName = normalizeRefName(ref.dataset.ref);
@@ -307,8 +307,8 @@ export default class EventsManager extends AbstractManager {
   /**
    * Event listener object for the children.
    */
-  __childrenHandler:EventListenerObject = {
-    handleEvent: (event:CustomEvent) => {
+  __childrenHandler: EventListenerObject = {
+    handleEvent: (event: CustomEvent) => {
       const childrenManager = this.__base.$children;
 
       // @todo handle async child components
@@ -336,7 +336,7 @@ export default class EventsManager extends AbstractManager {
   /**
    * Class constructor.
    */
-  constructor(base:Base) {
+  constructor(base: Base) {
     super(base);
 
     this.__hideProperties([
@@ -344,6 +344,8 @@ export default class EventsManager extends AbstractManager {
       '__rootElementHandler',
       '__refsHandler',
       '__childrenHandler',
+      '__documentHandler',
+      '__windowHandler',
     ]);
   }
 
@@ -356,7 +358,7 @@ export default class EventsManager extends AbstractManager {
    *   The elements of the ref.
    * @returns {void}
    */
-  bindRef(name:string, elements:HTMLElement[]) {
+  bindRef(name: string, elements: HTMLElement[]) {
     manageRef(this, name, elements);
   }
 
@@ -369,7 +371,7 @@ export default class EventsManager extends AbstractManager {
    *   The elements of the ref.
    * @returns {void}
    */
-  unbindRef(name:string, elements:HTMLElement[]) {
+  unbindRef(name: string, elements: HTMLElement[]) {
     manageRef(this, name, elements, 'remove');
   }
 
@@ -382,7 +384,7 @@ export default class EventsManager extends AbstractManager {
    *   A base instance.
    * @returns {void}
    */
-  bindChild(name:string, instance:Base) {
+  bindChild(name: string, instance: Base) {
     manageChild(this, name, instance);
   }
 
@@ -395,7 +397,7 @@ export default class EventsManager extends AbstractManager {
    *   A base instance.
    * @returns {void}
    */
-  unbindChild(name:string, instance:Base) {
+  unbindChild(name: string, instance: Base) {
     manageChild(this, name, instance, 'remove');
   }
 
