@@ -98,3 +98,61 @@ Native DOM events registered on a child component will be binded to the child ro
   new Foo(document.querySelector('[data-component="Foo"]'));
 </script>
 ```
+
+## `onDocument<Event>`
+
+Methods following this pattern will be triggered when the `event` event is dispatched on the `document`.
+
+**Arguments**
+
+- `event` (`Event`): The event object
+
+**Examples**
+
+Implement a click-outside behaviour:
+
+```js {14-16}
+import { Base } from '@studiometa/js-toolkit';
+
+class Dropdown extends Base {
+  static config = {
+    name: 'Dropdown',
+    refs: ['btn'],
+  };
+
+  onBtnClick(event) {
+    event.stopPropagation();
+    this.open();
+  }
+
+  onDocumentClick() {
+    this.close();
+  }
+}
+```
+
+## `onWindow<Event>`
+
+Methods following this pattern will be triggered when the `event` event is dispatched on the `window`.
+
+**Arguments**
+
+- `event` (`Event`): The event object
+
+**Examples**
+
+Watch the page hash:
+
+```js {8-10}
+import { Base } from '@studiometa/js-toolkit';
+
+class Component extends Base {
+  static config = {
+    name: 'Component',
+  };
+
+  onWindowHashchange(event) {
+    // do something with the new hash...
+  }
+}
+```
