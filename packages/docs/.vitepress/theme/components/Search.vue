@@ -128,7 +128,9 @@
       .map((link) =>
         defineAction({
           id: link.link,
-          name: [link?.keywords ?? '', link.text, link.parent?.text ?? '', link.root?.text ?? ''].flat().join(' '),
+          name: [link?.keywords ?? '', link.text, link.parent?.text ?? '', link.root?.text ?? '']
+            .flat()
+            .join(' '),
           link,
           section: link.parent
             ? link.root
