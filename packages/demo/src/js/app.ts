@@ -26,7 +26,7 @@ class App extends Base {
   static config = {
     name: 'App',
     refs: ['modal'],
-    log: false,
+    log: true,
     components: {
       ParentNativeEvent,
       AnimateTest,
@@ -128,6 +128,14 @@ class App extends Base {
 
   resized(props) {
     this.$log('resized', props);
+  }
+
+  onDocumentClick(event) {
+    console.log('onDocumentClick', event);
+  }
+
+  onWindowResize(event) {
+    console.log('onWindowResize', event);
   }
 }
 
