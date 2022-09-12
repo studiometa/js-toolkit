@@ -24,12 +24,14 @@
     ".": {
       "import": "./index.ts",
       "require": "./index.cjs",
-      "types": "./index.d.ts"
+      "types": "./index.d.ts",
+      "default": "./index.ts"
     },
     "./utils": {
       "import": "./utils/index.js",
       "require": "./utils/index.cjs",
-      "types": "./utils/index.d.ts"
+      "types": "./utils/index.d.ts",
+      "default": "./utils/index.js"
     }
   },
   "keywords": [
