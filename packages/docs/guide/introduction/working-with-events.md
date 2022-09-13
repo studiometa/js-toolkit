@@ -24,3 +24,7 @@ Handlers can be unbounded from an event with the [`$off(event, handler)`](/api/i
 ### on\<Refname>\<Event>
 
 ### on\<Childname>\<Event>
+
+### onDocument\<Event>
+
+### onWindow\<Event>

@@ -9,6 +9,8 @@ import wait from '../../__utils__/wait';
 
 describe('The EventsManager class', () => {
   const rootElementFn = jest.fn();
+  const documentFn = jest.fn();
+  const windowFn = jest.fn();
   const singleRefFn = jest.fn();
   const multipleRefFn = jest.fn();
   const componentFn = jest.fn();
@@ -45,6 +47,14 @@ describe('The EventsManager class', () => {
 
     onClick(...args) {
       rootElementFn(...args);
+    }
+
+    onDocumentClick(...args) {
+      documentFn(...args);
+    }
+
+    onWindowClick(...args) {
+      windowFn(...args);
     }
 
     onSingleClick(...args) {
@@ -94,12 +104,16 @@ describe('The EventsManager class', () => {
 
   const app = new App(tpl);
 
+  const clickEvent = new Event('click');
+
   beforeEach(() => {
     rootElementFn.mockClear();
     singleRefFn.mockClear();
     multipleRefFn.mockClear();
     componentFn.mockClear();
     asyncComponentFn.mockClear();
+    documentFn.mockClear();
+    windowFn.mockClear();
   });
 
   it('can bind event methods to the root element', () => {
@@ -114,6 +128,34 @@ describe('The EventsManager class', () => {
     app.$destroy();
     tpl.click();
     expect(rootElementFn).not.toHaveBeenCalled();
+  });
+
+  it('can bind event methods to the document', () => {
+    document.dispatchEvent(clickEvent);
+    expect(documentFn).not.toHaveBeenCalled();
+    app.$mount();
+    document.dispatchEvent(clickEvent);
+    expect(documentFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('can unbind event methods from the document', () => {
+    app.$destroy();
+    document.dispatchEvent(clickEvent);
+    expect(documentFn).not.toHaveBeenCalled();
+  });
+
+  it('can bind event methods to the window', () => {
+    window.dispatchEvent(clickEvent);
+    expect(windowFn).not.toHaveBeenCalled();
+    app.$mount();
+    window.dispatchEvent(clickEvent);
+    expect(windowFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('can unbind event methods from the window', () => {
+    app.$destroy();
+    window.dispatchEvent(clickEvent);
+    expect(windowFn).not.toHaveBeenCalled();
   });
 
   it('can bind event methods to single refs', () => {
@@ -158,20 +200,20 @@ describe('The EventsManager class', () => {
       1,
       2,
       0,
-      expect.objectContaining({ type: 'custom-event', detail: [1, 2] })
+      expect.objectContaining({ type: 'custom-event', detail: [1, 2] }),
     );
     expect(componentInnerFn).toHaveBeenLastCalledWith(
       1,
       2,
-      expect.objectContaining({ type: 'custom-event', detail: [1, 2] })
+      expect.objectContaining({ type: 'custom-event', detail: [1, 2] }),
     );
     app.$children.Component[0].dispatchEvent(new CustomEvent('custom-event'));
     expect(componentFn).toHaveBeenLastCalledWith(
       0,
-      expect.objectContaining({ type: 'custom-event', detail: null })
+      expect.objectContaining({ type: 'custom-event', detail: null }),
     );
     expect(componentInnerFn).toHaveBeenLastCalledWith(
-      expect.objectContaining({ type: 'custom-event', detail: null })
+      expect.objectContaining({ type: 'custom-event', detail: null }),
     );
     app.$children.Component[0].$el.click();
     expect(componentFn).toHaveBeenLastCalledWith(0, expect.objectContaining({ type: 'click' }));
@@ -189,12 +231,12 @@ describe('The EventsManager class', () => {
       1,
       2,
       0,
-      expect.objectContaining({ type: 'custom-event', detail: [1, 2] })
+      expect.objectContaining({ type: 'custom-event', detail: [1, 2] }),
     );
     expect(componentInnerFn).toHaveBeenLastCalledWith(
       1,
       2,
-      expect.objectContaining({ type: 'custom-event', detail: [1, 2] })
+      expect.objectContaining({ type: 'custom-event', detail: [1, 2] }),
     );
     app.$destroy();
   });
