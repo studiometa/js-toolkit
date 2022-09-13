@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 import { useDrag } from '@studiometa/js-toolkit';
 import wait from '../__utils__/wait.js';
 
-function createEvent(type, data, options) {
+function createEvent(type, data = {}, options = {}) {
   const event = new Event(type, options);
   Object.entries(data).forEach(([name, value]) => {
     event[name] = value;
@@ -31,12 +31,20 @@ describe('The drag service', () => {
       final: { x: 0, y: 0 },
       origin: { x: 0, y: 0 },
     });
+    expect(props().mode).toBe('start');
 
     const clientX = 10;
     const clientY = 10;
     document.dispatchEvent(createEvent('mousemove', { clientX, clientY }));
     expect(fn).toHaveBeenLastCalledWith(props());
     expect(fn.mock.calls).toMatchSnapshot();
+    expect(props().mode).toBe('drag');
+
+    // Test double start prevention
+    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
+    expect(props().mode).toBe('drag');
+    div.dispatchEvent(createEvent('pointerup'));
+    expect(props().mode).toBe('drop');
   });
 
   it('should run with inertia and stop', async () => {
