@@ -17,8 +17,8 @@ Array [
         "y": 394,
       },
       "hasInertia": false,
-      "isGrabbing": false,
-      "mode": "stop",
+      "isGrabbing": true,
+      "mode": "drag",
       "origin": Object {
         "x": 0,
         "y": 0,
@@ -43,86 +43,8 @@ Array [
         "y": 394,
       },
       "hasInertia": false,
-      "isGrabbing": false,
-      "mode": "stop",
-      "origin": Object {
-        "x": 0,
-        "y": 0,
-      },
-      "target": <div />,
-      "x": 522,
-      "y": 394,
-    },
-  ],
-  Array [
-    Object {
-      "delta": Object {
-        "x": 0,
-        "y": 0,
-      },
-      "distance": Object {
-        "x": 522,
-        "y": 394,
-      },
-      "final": Object {
-        "x": 522,
-        "y": 394,
-      },
-      "hasInertia": false,
-      "isGrabbing": false,
-      "mode": "stop",
-      "origin": Object {
-        "x": 0,
-        "y": 0,
-      },
-      "target": <div />,
-      "x": 522,
-      "y": 394,
-    },
-  ],
-  Array [
-    Object {
-      "delta": Object {
-        "x": 0,
-        "y": 0,
-      },
-      "distance": Object {
-        "x": 522,
-        "y": 394,
-      },
-      "final": Object {
-        "x": 522,
-        "y": 394,
-      },
-      "hasInertia": false,
-      "isGrabbing": false,
-      "mode": "stop",
-      "origin": Object {
-        "x": 0,
-        "y": 0,
-      },
-      "target": <div />,
-      "x": 522,
-      "y": 394,
-    },
-  ],
-  Array [
-    Object {
-      "delta": Object {
-        "x": 0,
-        "y": 0,
-      },
-      "distance": Object {
-        "x": 522,
-        "y": 394,
-      },
-      "final": Object {
-        "x": 522,
-        "y": 394,
-      },
-      "hasInertia": false,
-      "isGrabbing": false,
-      "mode": "stop",
+      "isGrabbing": true,
+      "mode": "drag",
       "origin": Object {
         "x": 0,
         "y": 0,
@@ -140,79 +62,53 @@ Array [
   Array [
     Object {
       "delta": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "distance": Object {
         "x": 10,
         "y": 10,
       },
-      "distance": Object {
-        "x": 522,
-        "y": 394,
-      },
       "final": Object {
-        "x": 588.068175718056,
-        "y": 460.0681757180558,
+        "x": 10,
+        "y": 10,
       },
-      "hasInertia": true,
-      "isGrabbing": false,
-      "mode": "drop",
+      "hasInertia": false,
+      "isGrabbing": true,
+      "mode": "drag",
       "origin": Object {
         "x": 0,
         "y": 0,
       },
       "target": <div />,
-      "x": 522,
-      "y": 394,
+      "x": 10,
+      "y": 10,
     },
   ],
   Array [
     Object {
       "delta": Object {
+        "x": 0,
+        "y": 0,
+      },
+      "distance": Object {
         "x": 10,
         "y": 10,
       },
-      "distance": Object {
-        "x": 522,
-        "y": 394,
-      },
       "final": Object {
-        "x": 588.068175718056,
-        "y": 460.0681757180558,
+        "x": 10,
+        "y": 10,
       },
-      "hasInertia": true,
-      "isGrabbing": false,
-      "mode": "drop",
+      "hasInertia": false,
+      "isGrabbing": true,
+      "mode": "drag",
       "origin": Object {
         "x": 0,
         "y": 0,
       },
       "target": <div />,
-      "x": 522,
-      "y": 394,
-    },
-  ],
-  Array [
-    Object {
-      "delta": Object {
-        "x": 10,
-        "y": 10,
-      },
-      "distance": Object {
-        "x": 522,
-        "y": 394,
-      },
-      "final": Object {
-        "x": 588.068175718056,
-        "y": 460.0681757180558,
-      },
-      "hasInertia": true,
-      "isGrabbing": false,
-      "mode": "drop",
-      "origin": Object {
-        "x": 0,
-        "y": 0,
-      },
-      "target": <div />,
-      "x": 522,
-      "y": 394,
+      "x": 10,
+      "y": 10,
     },
   ],
 ]
