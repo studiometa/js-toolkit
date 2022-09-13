@@ -1,6 +1,15 @@
 import { jest } from '@jest/globals';
-import useDrag from '@studiometa/js-toolkit/services/drag';
+import { useDrag } from '@studiometa/js-toolkit';
 import wait from '../__utils__/wait.js';
+
+function createEvent(type, data = {}, options = {}) {
+  const event = new Event(type, options);
+  Object.entries(data).forEach(([name, value]) => {
+    event[name] = value;
+  });
+
+  return event;
+}
 
 describe('The drag service', () => {
   it('should start, drag and drop', () => {
@@ -9,7 +18,7 @@ describe('The drag service', () => {
     const { add, props } = useDrag(div, { factor: 0.1 });
 
     add('key', fn);
-    div.dispatchEvent(new MouseEvent('mousedown'));
+    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
     expect(fn).toHaveBeenCalledWith({
       target: div,
       mode: 'start',
@@ -22,12 +31,20 @@ describe('The drag service', () => {
       final: { x: 0, y: 0 },
       origin: { x: 0, y: 0 },
     });
+    expect(props().mode).toBe('start');
 
-    const clientX = window.innerWidth / 2 + 10;
-    const clientY = window.innerHeight / 2 + 10;
-    document.dispatchEvent(new MouseEvent('mousemove', { clientX, clientY }));
+    const clientX = 10;
+    const clientY = 10;
+    document.dispatchEvent(createEvent('mousemove', { clientX, clientY }));
     expect(fn).toHaveBeenLastCalledWith(props());
     expect(fn.mock.calls).toMatchSnapshot();
+    expect(props().mode).toBe('drag');
+
+    // Test double start prevention
+    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
+    expect(props().mode).toBe('drag');
+    div.dispatchEvent(createEvent('pointerup'));
+    expect(props().mode).toBe('drop');
   });
 
   it('should run with inertia and stop', async () => {
@@ -35,10 +52,10 @@ describe('The drag service', () => {
     const div = document.createElement('div');
     const { add } = useDrag(div, { factor: 0.2 });
     add('key', fn);
-    div.dispatchEvent(new MouseEvent('mousedown'));
+    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
     const clientX = window.innerWidth / 2 + 10;
     const clientY = window.innerHeight / 2 + 10;
-    document.dispatchEvent(new MouseEvent('mousemove', { clientX, clientY }));
+    document.dispatchEvent(createEvent('mousemove', { clientX, clientY }));
     await wait(100);
     expect(fn.mock.calls).toMatchSnapshot();
   });
@@ -61,10 +78,10 @@ describe('The drag service', () => {
     const { add, remove } = useDrag(div, { factor: 0.2 });
 
     add('key', fn);
-    div.dispatchEvent(new MouseEvent('mousedown'));
+    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
     expect(fn).toHaveBeenCalledTimes(1);
     remove('key');
-    div.dispatchEvent(new MouseEvent('mousedown'));
+    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
@@ -77,9 +94,9 @@ describe('The drag service', () => {
 
     add('key', () => ({}));
     div.firstElementChild.addEventListener('click', fn);
-    div.dispatchEvent(new MouseEvent('mousedown'));
-    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
-    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 11, clientY: 11 }));
+    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
+    document.dispatchEvent(createEvent('mousemove', { clientX: 0, clientY: 0 }));
+    document.dispatchEvent(createEvent('mousemove', { clientX: 11, clientY: 11 }));
     await wait(100);
     div.firstElementChild.dispatchEvent(new Event('click'));
     expect(fn).not.toHaveBeenCalled();
