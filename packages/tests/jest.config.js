@@ -8,10 +8,10 @@ export default {
     pretendToBeVisual: true,
   },
   collectCoverage: false,
-  collectCoverageFrom: ['<rootDir>/js-toolkit/**/*.js'],
+  collectCoverageFrom: ['<rootDir>/js-toolkit/**/*.js', '<rootDir>/js-toolkit/**/*.ts'],
   rootDir: '..',
   transform: {
-    '^.+\\.ts$': ['jest-esbuild', { format: 'esm' }],
+    '^.+\\.ts$': ['esbuild-jest', { format: 'esm', sourcemap: true }],
     '^.+\\.html?$': 'html-loader-jest',
   },
   extensionsToTreatAsEsm: ['.ts'],

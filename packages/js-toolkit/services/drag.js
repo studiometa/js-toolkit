@@ -1,8 +1,8 @@
 /* eslint-disable no-use-before-define */
 import { useService } from './service.js';
-import usePointer from './pointer.js';
 import useRaf from './raf.js';
 import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
+import { isDefined } from '../utils/index.js';
 
 /**
  * @typedef {import('./index').ServiceInterface<DragServiceProps>} DragService
@@ -46,6 +46,22 @@ const MODES = {
 };
 
 let count = 0;
+const events = ['pointerdown', 'pointerup'];
+const passiveEventOptions = { passive: true };
+
+/**
+ * Get the client value for the given axis.
+ * @param   {MouseEvent|TouchEvent} event
+ * @returns {{ x: number, y: number }}
+ */
+function getEventPosition(event) {
+  // @ts-ignore
+  const eventOrTouch = isDefined(event.touches) ? event.touches[0] : event;
+  return {
+    x: eventOrTouch.clientX,
+    y: eventOrTouch.clientY,
+  };
+}
 
 /**
  * Get drag service.
@@ -58,6 +74,7 @@ let count = 0;
 function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}) {
   count += 1;
   const id = `drag-${count}`;
+  let previousEvent;
 
   /**
    * Test if we should allow click on links and buttons.
@@ -76,6 +93,10 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
    * @returns {void}
    */
   function start(x, y) {
+    if (props.isGrabbing) {
+      return;
+    }
+
     // Reset state
     props.x = x;
     props.y = y;
@@ -94,6 +115,9 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
     props.isGrabbing = true;
 
     trigger(props);
+
+    document.addEventListener('touchmove', handleEvent, passiveEventOptions);
+    document.addEventListener('mousemove', handleEvent, passiveEventOptions);
   }
 
   /**
@@ -101,6 +125,8 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
    * @returns {void}
    */
   function drop() {
+    document.removeEventListener('touchmove', handleEvent);
+    document.removeEventListener('mousemove', handleEvent);
     props.isGrabbing = false;
     props.mode = MODES.DROP;
 
@@ -122,6 +148,7 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
    */
   function stop() {
     useRaf().remove(id);
+    props.isGrabbing = false;
     props.hasInertia = false;
     props.mode = MODES.STOP;
     trigger(props);
@@ -155,17 +182,23 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
 
   /**
    * Pointer service handler.
-   * @param {PointerServiceProps} pointerProps
+   * @param {TouchEvent|MouseEvent} event
    * @returns {void}
    */
-  function pointerHandler(pointerProps) {
+  function drag(event) {
     if (props.isGrabbing) {
-      props.x = pointerProps.x;
-      props.y = pointerProps.y;
-      props.delta.x = pointerProps.delta.x;
-      props.delta.y = pointerProps.delta.y;
-      props.final.x = pointerProps.x;
-      props.final.y = pointerProps.y;
+      const position = getEventPosition(event);
+      props.x = position.x;
+      props.y = position.y;
+
+      if (previousEvent) {
+        const previousPosition = getEventPosition(previousEvent);
+        props.delta.x = position.x - previousPosition.x;
+        props.delta.y = position.y - previousPosition.y;
+      }
+
+      props.final.x = position.x;
+      props.final.y = position.y;
       props.distance.x = props.x - props.origin.x;
       props.distance.y = props.y - props.origin.y;
 
@@ -174,36 +207,38 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
       }
 
       trigger(props);
-
-      if (!pointerProps.isDown) {
-        drop();
-      }
+      previousEvent = event;
     }
   }
 
   /**
    * Handle any event.
-   * @param {MouseEvent|TouchEvent|DragEvent} event
+   * @param {MouseEvent|PointerEvent|DragEvent} event
    */
   function handleEvent(event) {
-    if (event.type === 'dragstart') {
-      event.preventDefault();
-      return;
-    }
-
-    if (event.type === 'click') {
-      if (shouldPreventClick()) {
-        event.stopImmediatePropagation();
-        event.stopPropagation();
+    switch (event.type) {
+      case 'dragstart':
         event.preventDefault();
-      }
-
-      return;
+        break;
+      case 'click':
+        if (shouldPreventClick()) {
+          event.stopImmediatePropagation();
+          event.stopPropagation();
+          event.preventDefault();
+        }
+        break;
+      case 'pointerup':
+        drop();
+        break;
+      case 'touchmove':
+      case 'mousemove':
+        drag(event);
+        break;
+      default:
+        if (event.button === 0) {
+          start(event.x, event.y);
+        }
     }
-
-    const x = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
-    const y = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
-    start(x, y);
   }
 
   const { add, remove, has, trigger, props } = useService({
@@ -235,23 +270,18 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
       },
     },
     init() {
-      const options = { passive: true };
-      props.target.addEventListener('mousedown', handleEvent, options);
-      props.target.addEventListener('touchstart', handleEvent, options);
-      props.target.addEventListener('dragstart', handleEvent, { capture: true });
-      props.target.addEventListener('click', handleEvent, { capture: true });
-
-      const pointer = usePointer();
-      pointer.add(id, pointerHandler);
+      events.forEach((event) => {
+        target.addEventListener(event, handleEvent, passiveEventOptions);
+      });
+      target.addEventListener('dragstart', handleEvent, { capture: true });
+      target.addEventListener('click', handleEvent, { capture: true });
     },
     kill() {
-      props.target.removeEventListener('mousedown', handleEvent);
-      props.target.removeEventListener('touchstart', handleEvent);
-      props.target.removeEventListener('dragstart', handleEvent);
-      props.target.removeEventListener('click', handleEvent);
-
-      const pointer = usePointer();
-      pointer.remove(id);
+      events.forEach((event) => {
+        target.removeEventListener(event, handleEvent);
+      });
+      target.removeEventListener('dragstart', handleEvent);
+      target.removeEventListener('click', handleEvent);
     },
   });
 

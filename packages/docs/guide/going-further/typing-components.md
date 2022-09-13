@@ -12,9 +12,9 @@ interface BaseProps {
   $options: Record<string, any>;
   $refs: Record<string, HTMLElement | HTMLElement[]>;
   $children: Record<string, Base | Promise<Base>>;
-};
+}
 
-declare class Base<T extends BaseProps = BaseProps> {};
+declare class Base<T extends BaseProps = BaseProps> {}
 ```
 
 See below for an example of how to define the type parameter in JSDoc or in TypeScript.
@@ -89,7 +89,6 @@ export default class Component extends Base {
   resized(props) {
     this.$log(props.orientation); // 'square' | 'portrait' | 'landscape'
   }
-
 }
 ```
 
@@ -115,7 +114,7 @@ interface ComponentProps extends BaseProps {
     Figure: Figure;
     LazyComponent: Promise<LazyComponent>;
   };
-};
+}
 
 export default class Component extends Base<ComponentProps> {
   static config: BaseConfig = {
@@ -141,7 +140,7 @@ export default class Component extends Base<ComponentProps> {
     this.$children.LazyComponent; // Promise<LazyComponent>[]
   }
 
-  resized(props:ResizeServiceProps) {
+  resized(props: ResizeServiceProps) {
     this.$log(props.orientation); // 'square' | 'portrait' | 'landscape'
   }
 }
@@ -211,7 +210,7 @@ With TypeScript, you can directly use the type parameter on the returned value o
 
 ```ts
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
-import type { BaseProps } from '@studiometa/js-toolkit'
+import type { BaseProps } from '@studiometa/js-toolkit';
 import Component from './Component.js';
 
 export interface ChildComponentProps extends BaseProps {
@@ -220,7 +219,9 @@ export interface ChildComponentProps extends BaseProps {
   };
 }
 
-export class ChildComponent<T extends BaseProps = BaseProps> extends withIntersectionObserver<Component>(Component)<T & ChildComponentProps> {
+export class ChildComponent<
+  T extends BaseProps = BaseProps,
+> extends withIntersectionObserver<Component>(Component)<T & ChildComponentProps> {
   mounted() {
     this.$log(this.$observer); // IntersectionObserver
     this.$log(this.$options.intersectionObserver); // IntersectionObserverInit
@@ -293,9 +294,7 @@ export interface ComponentProps extends BaseProps {
   // ...
 }
 
-export class Component<T extends BaseProps = BaseProps> extends Base<
-  T & ComponentProps
-> {
+export class Component<T extends BaseProps = BaseProps> extends Base<T & ComponentProps> {
   static config: BaseConfig = {
     name: 'Component',
   };
