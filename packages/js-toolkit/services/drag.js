@@ -217,9 +217,6 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
    */
   function handleEvent(event) {
     switch (event.type) {
-      case 'blur':
-        stop();
-        break;
       case 'dragstart':
         event.preventDefault();
         break;
@@ -278,7 +275,6 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
       });
       target.addEventListener('dragstart', handleEvent, { capture: true });
       target.addEventListener('click', handleEvent, { capture: true });
-      window.addEventListener('blur', handleEvent);
     },
     kill() {
       events.forEach((event) => {
@@ -286,7 +282,6 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
       });
       target.removeEventListener('dragstart', handleEvent);
       target.removeEventListener('click', handleEvent);
-      window.removeEventListener('blur', handleEvent);
     },
   });
 
