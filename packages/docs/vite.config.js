@@ -26,6 +26,10 @@ export default defineConfig({
           return path.join(path.dirname(importer), 'utils.ts');
         }
 
+        if (importer.includes('packages/js-toolkit/services/') && id === '../utils/index.js') {
+          return path.resolve(path.dirname(importer), '../utils/index.ts');
+        }
+
         return null;
       },
     },
