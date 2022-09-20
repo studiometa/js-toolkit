@@ -41,7 +41,7 @@ export const TRANSFORM_PROPS = [
 /**
  * Generate a CSS transform.
  *
- * @param   {HTMLElement|HTMLElement[]|NodeList} elementOrElements
+ * @param   {HTMLElement|HTMLElement[]|NodeListOf<HTMLElement>} elementOrElements
  * @param   {TransformProps} props
  * @returns {string}
  */

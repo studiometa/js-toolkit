@@ -1,8 +1,8 @@
-export function eachElements<T = void>(
-  elementOrElements: HTMLElement | HTMLElement[] | NodeList,
-  callback: (element: HTMLElement, index?: number, elements?: HTMLElement[]) => T,
+export function eachElements<S extends Node = Node, T = void>(
+  elementOrElements: S | S[] | NodeListOf<S>,
+  callback: (element: S, index?: number, elements?: S[]) => T,
 ): T[] {
-  if (elementOrElements instanceof HTMLElement) {
+  if (elementOrElements instanceof Node) {
     return [callback(elementOrElements)];
   }
 

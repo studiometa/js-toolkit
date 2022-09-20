@@ -4,6 +4,7 @@ import wait from '../../__utils__/wait.js';
 
 describe('The `animate` utility function', () => {
   it('should animate an element', () => {
+    const fn = jest.fn();
     return new Promise((resolve) => {
       const div = document.createElement('div');
       animate(
@@ -15,15 +16,27 @@ describe('The `animate` utility function', () => {
         ],
         {
           duration: 0.1,
+          onStart: () => {
+            fn();
+          },
           onFinish: () => {
+            expect(fn).toHaveBeenCalledTimes(1);
             expect(div.style.opacity).toBe('0');
             expect(div.style.transform).toBe('translate3d(100px, 0px, 0px) scaleX(1) ');
             expect(div.style.transformOrigin).toBe('top left');
             resolve();
           },
-        }
+        },
       ).start();
     });
+  });
+
+  it('should work without options', async () => {
+    const div = document.createElement('div');
+    const controls = animate(div, [{ opacity: 1 }, { opacity: 0 }]);
+    controls.play();
+    await wait(1100);
+    expect(div.style.opacity).toBe('0');
   });
 
   it('should default to sane values when they are not defined in a `to` keyframe', async () => {
@@ -55,7 +68,7 @@ describe('The `animate` utility function', () => {
             },
           }).start();
         });
-      })
+      }),
     );
   });
 
@@ -126,7 +139,7 @@ describe('The `animate` utility function', () => {
             },
           }).start();
         });
-      })
+      }),
     );
   });
 
