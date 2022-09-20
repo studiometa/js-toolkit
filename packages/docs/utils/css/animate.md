@@ -25,7 +25,7 @@ animation.start();
 
 ### Parameters
 
-- `element` (`HTMLElement`): the target HTML element
+- `element` (`HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>`): the target HTML element
 - `keyframes` (`KeyFrame[]`): array of objects describing the key frames of the animation
   `options` (`Options`): options for the animation
 
