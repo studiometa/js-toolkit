@@ -3,6 +3,8 @@ import * as classes from './classes.js';
 import * as styles from './styles.js';
 import { isArray, isString } from '../is.js';
 import { hasWindow } from '../has.js';
+// eslint-disable-next-line import/extensions
+import { eachElements } from './utils.js';
 
 /** WeakMap to hold the transition instances. */
 const cache = new WeakMap();
@@ -153,7 +155,7 @@ function end(element, classesOrStyles, mode = 'remove') {
  * @param  {string}                  endMode Whether to remove or keep the `to` classes/styles
  * @returns {Promise<void>}                   A promise resolving at the end of the transition.
  */
-export default async function transition(element, name, endMode = 'remove') {
+async function singleTransition(element, name, endMode = 'remove') {
   /** @type {TransitionStyles} */
   const classesOrStyles = isString(name)
     ? {
@@ -178,4 +180,18 @@ export default async function transition(element, name, endMode = 'remove') {
   await next(element, classesOrStyles);
   end(element, classesOrStyles, endMode);
   return Promise.resolve();
+}
+
+/**
+ * Manage CSS transition with class.
+ *
+ * @param  {HTMLElement|HTMLElement[]|NodeListOf<HTMLElement>} elementOrElements The target element or elements.
+ * @param  {string|TransitionStyles}            name    The name of the transition or an object with the hooks classesOrStyles.
+ * @param  {string}                             endMode Whether to remove or keep the `to` classes/styles
+ * @returns {Promise<void>}                             A promise resolving at the end of the transition.
+ */
+export default async function transition(elementOrElements, name, endMode = 'remove') {
+  await Promise.all(
+    eachElements(elementOrElements, (element) => singleTransition(element, name, endMode)),
+  );
 }
