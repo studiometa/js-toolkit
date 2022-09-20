@@ -1,50 +1,54 @@
 import deepmerge from 'deepmerge';
-import AbstractManager from './AbstractManager.js';
+import type { Options as DeepmergeOptions } from 'deepmerge';
+import { AbstractManager } from './AbstractManager.js';
 import { isDev, isFunction, isDefined, isBoolean, isArray, isObject } from '../../utils/index.js';
+import type { Base } from '../index.js';
 
-/**
- * @typedef {import('deepmerge').Options} DeepmergeOptions
- * @typedef {import('../index.js').Base} Base
- * @typedef {import('../index.js').BaseConfig} BaseConfig
- * @typedef {StringConstructor|NumberConstructor|BooleanConstructor|ArrayConstructor|ObjectConstructor} OptionType
- * @typedef {{
- *   type: ArrayConstructor,
- *   default?: () => any[],
- *   merge?: boolean,
- * }} ArrayOption
- * @typedef {{
- *   type: ObjectConstructor,
- *   default?: () => any,
- *   merge?: boolean,
- * }} ObjectOption
- * @typedef {{
- *   type: StringConstructor,
- *   default?: string,
- * }} StringOption
- * @typedef {{
- *   type: NumberConstructor,
- *   default?: number,
- * }} NumberOption
- * @typedef {{
- *   type: BooleanConstructor,
- *   default?: boolean,
- * }} BooleanOption
- * @typedef {ArrayOption | ObjectOption | StringOption | NumberOption | BooleanOption} OptionObject
- * @typedef {{ [name:string]: OptionType | OptionObject }} OptionsSchema
- * @typedef {{ [optionName:string]: any }} OptionsInterface
- */
+type OptionType =
+  | StringConstructor
+  | NumberConstructor
+  | BooleanConstructor
+  | ArrayConstructor
+  | ObjectConstructor;
+
+type ArrayOption = {
+  type: ArrayConstructor;
+  default?: () => unknown[];
+  merge?: boolean | DeepmergeOptions;
+};
+
+type ObjectOption = {
+  type: ObjectConstructor;
+  default?: () => unknown;
+  merge?: boolean | DeepmergeOptions;
+};
+
+type StringOption = {
+  type: StringConstructor;
+  default?: string;
+};
+
+type NumberOption = {
+  type: NumberConstructor;
+  default?: number;
+};
+
+type BooleanOption = {
+  type: BooleanConstructor;
+  default?: boolean;
+};
+
+export type OptionObject = ArrayOption | ObjectOption | StringOption | NumberOption | BooleanOption;
+export type OptionsSchema = { [name: string]: OptionType | OptionObject };
+export type OptionsInterface = { [optionName: string]: unknown };
 
 /**
  * List of allowed types.
- * @type {Set<OptionType>}
- * @private
  */
-const types = new Set([String, Number, Boolean, Array, Object]);
+const types: Set<OptionType> = new Set([String, Number, Boolean, Array, Object]);
 
 /**
  * The default values to return for each available type.
- * @type {Object}
- * @private
  */
 const __defaultValues = {
   String: '',
@@ -56,20 +60,13 @@ const __defaultValues = {
 
 /**
  * Property name cache.
- * @type {Map}
- * @private
  */
-const __propertyNameCache = new Map();
+const __propertyNameCache: Map<string, string> = new Map();
 
 /**
  * Get a property name.
- *
- * @param  {string} name
- * @param  {string} [prefix]
- * @returns {string}
- * @protected
  */
-export function __getPropertyName(name, prefix = '') {
+export function __getPropertyName(name: string, prefix = '') {
   const key = name + prefix;
 
   if (__propertyNameCache.has(key)) {
@@ -90,7 +87,7 @@ export function __getPropertyName(name, prefix = '') {
  * @returns {void}
  * @private
  */
-function __register(that, name, config) {
+function __register(that: OptionsManager, name: string, config: OptionObject) {
   if (!types.has(config.type)) {
     if (isDev) {
       throw new Error(
@@ -112,9 +109,7 @@ function __register(that, name, config) {
   }
 
   Object.defineProperty(that, name, {
-    get: () => {
-      return that.get(name, config);
-    },
+    get: () => that.get(name, config),
     set: (value) => {
       that.set(name, value, config);
     },
@@ -127,42 +122,36 @@ function __register(that, name, config) {
  *
  * @todo Use `MutationObserver` to update values? Might be more performant.
  */
-export default class OptionsManager extends AbstractManager {
+export class OptionsManager extends AbstractManager {
   /**
    * An object to store Array and Object values for reference.
-   * @type {Object}
    * @private
    */
   __values = {};
 
   /**
    * Default value for the name property.
-   * @type {string}
    */
   name = 'Base';
 
   /**
    * Default value for the debug property.
-   * @type {boolean}
    */
   debug = false;
 
   /**
    * Default value for the log property.
-   * @type {boolean}
    */
   log = false;
 
   /**
    * Class constructor.
-   *
-   * @param   {Base} base
    */
-  constructor(base) {
+  constructor(base: Base) {
     super(base);
 
     this.__hideProperties(['__values', '__defaultValues']);
-    const schema = this.__config.options || {};
+    const schema: OptionsSchema = this.__config.options || {};
     this.name = this.__config.name;
 
     schema.debug = {
@@ -179,21 +168,17 @@ export default class OptionsManager extends AbstractManager {
       __register(
         this,
         name,
-        types.has(/** @type {OptionType} */ (config))
-          ? /** @type {OptionObject} */ ({ type: config })
-          : /** @type {OptionObject} */ (config),
+        types.has(config as OptionType)
+          ? ({ type: config as OptionType } as OptionObject)
+          : (config as OptionObject),
       );
     });
   }
 
   /**
    * Get an option value.
-   *
-   * @param   {string} name The option name.
-   * @param   {OptionObject} config The option config.
-   * @returns {any}
    */
-  get(name, config) {
+  get(name: string, config: OptionObject) {
     const { type, default: defaultValue } = config;
     const propertyName = __getPropertyName(name);
     const hasProperty = isDefined(this.__element.dataset[propertyName]);
@@ -217,8 +202,7 @@ export default class OptionsManager extends AbstractManager {
 
     if (type === Array || type === Object) {
       // eslint-disable-next-line no-param-reassign
-      config =
-        type === Array ? /** @type {ArrayOption} */ (config) : /** @type {ObjectOption} */ (config);
+      config = type === Array ? (config as ArrayOption) : (config as ObjectOption);
 
       if (!this.__values[name]) {
         let val = hasProperty ? JSON.parse(value) : config.default();
@@ -240,12 +224,8 @@ export default class OptionsManager extends AbstractManager {
 
   /**
    * Set an option value.
-   *
-   * @param {string} name The option name.
-   * @param {any} value The new value for this option.
-   * @param {OptionObject} config The option config.
    */
-  set(name, value, config) {
+  set(name: string, value: unknown, config: OptionObject) {
     const { type, default: defaultValue } = config;
     const propertyName = __getPropertyName(name);
 
@@ -280,7 +260,7 @@ export default class OptionsManager extends AbstractManager {
         this.__values[name] = value;
         break;
       default:
-        this.__element.dataset[propertyName] = value;
+        this.__element.dataset[propertyName] = value as string;
     }
   }
 }
