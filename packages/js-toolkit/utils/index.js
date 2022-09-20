@@ -9,6 +9,7 @@ export { default as throttle } from './throttle.js';
 export { default as scrollTo } from './scrollTo.js';
 export * from './is.js';
 export * from './has.js';
+// eslint-disable-next-line import/extensions
 export * from './css/index.js';
 export {
   objectToURLSearchParams,

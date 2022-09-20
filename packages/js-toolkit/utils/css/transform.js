@@ -1,4 +1,5 @@
 import { isDefined } from '../is.js';
+// eslint-disable-next-line import/extensions
 import { eachElements } from './utils.js';
 
 /**

@@ -12,7 +12,7 @@
     "docs:build": "cd packages/docs && npm install && rm -rf node_modules/.vite && npm run build",
     "test": "npm run test --workspace=@studiometa/js-toolkit-tests",
     "lint": "npm run lint:eslint && npm run lint:types && npm run lint:docs",
-    "lint:eslint": "eslint packages/js-toolkit",
+    "lint:eslint": "eslint packages/js-toolkit --ext=.js,.ts",
     "lint:docs": "prettier --check 'packages/docs/**/*.{md,js,html,vue}'",
     "lint:types": "tsc --build tsconfig.lint.json",
     "fix:docs": "prettier --write 'packages/docs/**/*.{md,js,html,vue}'",
