@@ -1,21 +1,16 @@
-/**
- * @typedef {import('../index.js').Base} Base
- * @typedef {import('../index.js').BaseConfig} BaseConfig
- * @typedef {import('./EventsManager.js').default} EventsManager
- */
+import type { Base } from '../index.js';
 
 /**
  * AbstractManager class.
  */
-export default class AbstractManager {
+export class AbstractManager {
   /**
-   * @type {Base}
+   * Base instance.
    */
-  __base;
+  __base: Base;
 
   /**
    * Get the base instance root element.
-   * @returns {HTMLElement}
    */
   get __element() {
     return this.__base.$el;
@@ -23,28 +18,22 @@ export default class AbstractManager {
 
   /**
    * Get the base instance config.
-   * @returns {BaseConfig}
    */
   get __config() {
-    // @ts-ignore
     return this.__base.__config;
   }
 
   /**
    * Get the events manager.
-   * @returns {EventsManager}
    */
   get __eventsManager() {
-    // @ts-ignore
     return this.__base.__events;
   }
 
   /**
    * Class constructor.
-   *
-   * @param   {Base} base
    */
-  constructor(base) {
+  constructor(base: Base) {
     this.__base = base;
     this.__hideProperties(['__base']);
   }
@@ -54,7 +43,7 @@ export default class AbstractManager {
    * @param   {string[]} properties
    * @returns {void}
    */
-  __hideProperties(properties) {
+  __hideProperties(properties: string[]) {
     Object.defineProperties(
       this,
       Object.fromEntries(

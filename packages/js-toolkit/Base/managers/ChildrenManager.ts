@@ -4,7 +4,7 @@ import type {
   BaseAsyncConstructor,
   BaseEl,
 } from '../index.js';
-import AbstractManager from './AbstractManager.js';
+import { AbstractManager } from './AbstractManager.js';
 import { getComponentElements } from '../utils.js';
 
 /**
@@ -170,7 +170,7 @@ function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' |
 /**
  * Children manager.
  */
-export default class ChildrenManager extends AbstractManager {
+export class ChildrenManager extends AbstractManager {
   /**
    * Store async component promises to avoid calling them multiple times and
    * waiting for them when they are already resolved.

@@ -11,11 +11,21 @@ transform(document.body, {
   x: 100,
   scale: 0.5,
 });
+
+transform([document.body, document.documentElement], {
+  x: 100,
+  scale: 0.5,
+});
+
+transform(document.querySelectorAll('div'), {
+  x: 100,
+  scale: 0.5,
+});
 ```
 
 ### Parameters
 
-- `element` (`HTMLElement`): the target HTML element
+- `element` (`HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>`): the target HTML element
 - `props` ([`TransformProps`](#types)): an object describing the transformations to apply
 
 ### Return value

@@ -24,6 +24,11 @@ describe('classes methods', () => {
     expect(Array.from(element.classList)).toEqual([]);
   });
 
+  it('should work with array of classes', () => {
+    add(element, ['foo', 'bar']);
+    expect(Array.from(element.classList)).toEqual(['foo', 'bar']);
+  });
+
   it('should fail silently', () => {
     expect(add(element)).toBeUndefined();
     expect(add()).toBeUndefined();
