@@ -1,8 +1,10 @@
 import { lerp, map } from '../math/index.js';
-import { isDefined, isFunction, isNumber, isArray } from '../is.js';
+import { isDefined, isFunction, isNumber } from '../is.js';
 import transform, { TRANSFORM_PROPS } from './transform.js';
 import { domScheduler as scheduler } from '../scheduler.js';
 import { tween, normalizeEase } from '../tween.js';
+// eslint-disable-next-line import/extensions
+import { eachElements } from './utils.js';
 
 let id = 0;
 const running = new WeakMap();
@@ -203,13 +205,8 @@ function singleAnimate(element, keyframes, options = {}) {
  * @returns {Animate}
  */
 export function animate(elementOrElements, keyframes, options = {}) {
-  const elements =
-    isArray(elementOrElements) || elementOrElements instanceof NodeList
-      ? Array.from(elementOrElements)
-      : [elementOrElements];
-
-  const controls = elements.map((element) =>
-    singleAnimate(/** @type {HTMLElement} */ (element), keyframes, options)
+  const controls = eachElements(elementOrElements, (element) =>
+    singleAnimate(element, keyframes, options),
   );
 
   const delegate = (key) => {

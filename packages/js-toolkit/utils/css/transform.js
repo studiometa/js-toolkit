@@ -1,4 +1,5 @@
 import { isDefined } from '../is.js';
+import { eachElements } from './utils.js';
 
 /**
  * @typedef {Partial<{
@@ -39,11 +40,11 @@ export const TRANSFORM_PROPS = [
 /**
  * Generate a CSS transform.
  *
- * @param   {HTMLElement} element
+ * @param   {HTMLElement|HTMLElement[]|NodeList} elementOrElements
  * @param   {TransformProps} props
  * @returns {string}
  */
-export default function transform(element, props) {
+export default function transform(elementOrElements, props) {
   let value = '';
 
   if (isDefined(props.x) || isDefined(props.y) || isDefined(props.z)) {
@@ -94,6 +95,8 @@ export default function transform(element, props) {
     }
   }
 
-  element.style.transform = value;
+  eachElements(elementOrElements, (element) => {
+    element.style.transform = value;
+  });
   return value;
 }

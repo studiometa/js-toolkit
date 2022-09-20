@@ -1,4 +1,5 @@
 import { isArray } from '../is.js';
+import { eachElements } from './utils.js';
 
 /**
  * Manage a list of classes as string on an element.
@@ -16,9 +17,11 @@ function setClasses(element, classNames, method, forceToggle) {
   const normalizedClassNames = isArray(classNames) ? classNames : classNames.split(' ');
 
   if (method !== 'toggle') {
-    element.classList[method](...normalizedClassNames);
+    eachElements(element, (el) => el.classList[method](...normalizedClassNames));
   } else {
-    normalizedClassNames.forEach((className) => element.classList[method](className, forceToggle));
+    normalizedClassNames.forEach((className) =>
+      eachElements(element, (el) => el.classList[method](className, forceToggle)),
+    );
   }
 }
 
