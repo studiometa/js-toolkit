@@ -185,7 +185,7 @@ async function singleTransition(element, name, endMode = 'remove') {
 /**
  * Manage CSS transition with class.
  *
- * @param  {HTMLElement|HTMLElement[]|NodeList} elementOrElements The target element or elements.
+ * @param  {HTMLElement|HTMLElement[]|NodeListOf<HTMLElement>} elementOrElements The target element or elements.
  * @param  {string|TransitionStyles}            name    The name of the transition or an object with the hooks classesOrStyles.
  * @param  {string}                             endMode Whether to remove or keep the `to` classes/styles
  * @returns {Promise<void>}                             A promise resolving at the end of the transition.

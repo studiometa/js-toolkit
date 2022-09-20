@@ -37,7 +37,11 @@ function getAnimationStepValue(val, getSizeRef) {
 
 const generateTranslateRenderStrategy = (sizeRef) => (element, fromValue, toValue, progress) =>
   lerp(
-    getAnimationStepValue(fromValue ?? 0, () => element[sizeRef]),
+    getAnimationStepValue(
+      fromValue ?? 0,
+      /* istanbul ignore next */
+      () => element[sizeRef],
+    ),
     getAnimationStepValue(toValue ?? 0, () => element[sizeRef]),
     progress,
   );
@@ -199,7 +203,7 @@ function singleAnimate(element, keyframes, options = {}) {
 
 /**
  * Animate one or more elements.
- * @param   {HTMLElement|HTMLElement[]|NodeList} elementOrElements
+ * @param   {HTMLElement|HTMLElement[]|NodeListOf<HTMLElement>} elementOrElements
  * @param   {Keyframe[]} keyframes
  * @param   {import('../tween.js').TweenOptions} [options]
  * @returns {Animate}
