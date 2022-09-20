@@ -1,25 +1,18 @@
-import AbstractManager from './AbstractManager.js';
+import { AbstractManager } from './AbstractManager.js';
 import { isDev, isArray, isDefined } from '../../utils/index.js';
 
+const NORMALIZE_REF_NAME_REGEX = /\[\]$/;
 /**
  * Normalize the name of ref.
- *
- * @param {string} name The original name.
- * @returns {string}     The normalized name.
  */
-export function normalizeRefName(name) {
-  return name.endsWith('[]') ? name.replace(/\[\]$/, '') : name;
+export function normalizeRefName(name: string) {
+  return name.endsWith('[]') ? name.replace(NORMALIZE_REF_NAME_REGEX, '') : name;
 }
 
 /**
  * Filter refs belonging to the related Base instance.
- *
- * @param {RefsManager} that
- * @param {HTMLElement} ref The ref to test.
- * @returns {boolean}
- * @private
  */
-function __filterRefsBelongingToInstance(that, ref) {
+function __filterRefsBelongingToInstance(that: RefsManager, ref: HTMLElement) {
   let ancestor = ref.parentElement;
 
   while (ancestor && !isDefined(ancestor.dataset.component)) {
@@ -36,19 +29,13 @@ function __filterRefsBelongingToInstance(that, ref) {
  * @param {string} refName The ref name.
  * @private
  */
-function __register(that, refName) {
+function __register(that: RefsManager, refName: string) {
   const isMultiple = refName.endsWith('[]');
   const propName = normalizeRefName(refName);
 
-  const refs = /** @type {HTMLElement[]} */ (
-    Array.from(that.__element.querySelectorAll(`[data-ref="${refName}"]`))
-  ).filter(
-    /**
-     * @param {HTMLElement} ref
-     * @returns {boolean}
-     */
-    (ref) => __filterRefsBelongingToInstance(that, ref),
-  );
+  const refs = Array.from(
+    that.__element.querySelectorAll<HTMLElement>(`[data-ref="${refName}"]`),
+  ).filter((ref) => __filterRefsBelongingToInstance(that, ref));
 
   if (isDev && !isMultiple && refs.length > 1) {
     console.warn(
@@ -84,12 +71,8 @@ function __register(that, refName) {
 
 /**
  * Unregister one ref.
- *
- * @param {RefsManager} that
- * @param {string} refName The ref name.
- * @private
  */
-function __unregister(that, refName) {
+function __unregister(that:RefsManager, refName:string) {
   const propName = normalizeRefName(refName);
   const refs = isArray(that[propName]) ? that[propName] : [that[propName]];
   that.__eventsManager.unbindRef(refName, refs);
@@ -100,10 +83,9 @@ function __unregister(that, refName) {
  *
  * @todo Use `MutationObserver` to automatically update refs?
  */
-export default class RefsManager extends AbstractManager {
+export class RefsManager extends AbstractManager {
   /**
    * Get refs configuration.
-   * @returns {string[]}
    */
   get __refs() {
     return this.__config.refs ?? [];
@@ -111,8 +93,6 @@ export default class RefsManager extends AbstractManager {
 
   /**
    * Register all refs.
-   *
-   * @returns {void}
    */
   registerAll() {
     this.__refs.forEach((refName) => __register(this, refName));
@@ -120,8 +100,6 @@ export default class RefsManager extends AbstractManager {
 
   /**
    * Unregister all refs.
-   *
-   * @returns {void}
    */
   unregisterAll() {
     this.__refs.forEach((refName) => __unregister(this, refName));
