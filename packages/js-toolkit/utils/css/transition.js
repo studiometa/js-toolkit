@@ -3,6 +3,8 @@ import * as classes from './classes.js';
 import * as styles from './styles.js';
 import { isArray, isString } from '../is.js';
 import { hasWindow } from '../has.js';
+// eslint-disable-next-line import/extensions
+import { eachElements } from './utils.js';
 
 /** WeakMap to hold the transition instances. */
 const cache = new WeakMap();
@@ -189,12 +191,7 @@ async function singleTransition(element, name, endMode = 'remove') {
  * @returns {Promise<void>}                             A promise resolving at the end of the transition.
  */
 export default async function transition(elementOrElements, name, endMode = 'remove') {
-  const elements =
-    isArray(elementOrElements) || elementOrElements instanceof NodeList
-      ? Array.from(elementOrElements)
-      : [elementOrElements];
-
   await Promise.all(
-    elements.map((element) => singleTransition(/** @type {HTMLElement} */ (element), name, endMode))
+    eachElements(elementOrElements, (element) => singleTransition(element, name, endMode)),
   );
 }
