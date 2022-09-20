@@ -2,9 +2,9 @@
 import { jest } from '@jest/globals';
 import { Base } from '@studiometa/js-toolkit';
 import { html } from 'htl';
-import ChildrenManager from '@studiometa/js-toolkit/Base/managers/ChildrenManager';
-import OptionsManager from '@studiometa/js-toolkit/Base/managers/OptionsManager';
-import RefsManager from '@studiometa/js-toolkit/Base/managers/RefsManager';
+import { ChildrenManager } from '@studiometa/js-toolkit/Base/managers/ChildrenManager';
+import { OptionsManager } from '@studiometa/js-toolkit/Base/managers/OptionsManager';
+import { RefsManager } from '@studiometa/js-toolkit/Base/managers/RefsManager';
 import wait from '../__utils__/wait';
 
 describe('The abstract Base class', () => {
