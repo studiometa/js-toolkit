@@ -1,6 +1,6 @@
 import type { BaseInterface, BaseDecorator } from '../Base/types.js';
 import type { Base, BaseProps, Managers } from '../Base/index.js';
-import ResponsiveOptionsManager from '../Base/managers/ResponsiveOptionsManager.js';
+import { ResponsiveOptionsManager } from '../Base/managers/ResponsiveOptionsManager.js';
 
 /**
  * Extends the configuration of an existing class.

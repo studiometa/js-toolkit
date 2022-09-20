@@ -1,11 +1,9 @@
-import OptionsManager, { __getPropertyName } from './OptionsManager.js';
+import { OptionsManager, __getPropertyName } from './OptionsManager.js';
+import type { OptionObject } from './OptionsManager.js';
 import { useResize } from '../../services/index.js';
 import { isDev } from '../../utils/index.js';
 
-/**
- * @typedef {import('./OptionsManager.js').OptionObject} OptionObject
- * @typedef {OptionObject & { responsive?: boolean }} ResponsiveOptionObject
- */
+export type ResponsiveOptionObject = OptionObject & { responsive?: boolean };
 
 /**
  * Get the currently active responsive name of an option.
@@ -14,7 +12,7 @@ import { isDev } from '../../utils/index.js';
  * @param   {string} name The default name of the option.
  * @returns {string}      The responsive name if one matches the current breakpoint, the default name otherwise.
  */
-function __getResponsiveName(that, name) {
+function __getResponsiveName(that: ResponsiveOptionsManager, name: string) {
   const { breakpoint } = useResize().props();
 
   if (!breakpoint) {
@@ -25,7 +23,6 @@ function __getResponsiveName(that, name) {
   const propertyName = __getPropertyName(name);
   const regex = new RegExp(`${propertyName}:(.+)$`);
 
-  // @ts-ignore
   Object.keys(that.__element.dataset)
     .filter((optionName) => regex.test(optionName))
     .forEach((optionName) => {
@@ -42,7 +39,7 @@ function __getResponsiveName(that, name) {
 /**
  * Class options to manage options as data attributes on an HTML element.
  */
-export default class ResponsiveOptionsManager extends OptionsManager {
+export class ResponsiveOptionsManager extends OptionsManager {
   /**
    * Get an option value.
    *
@@ -50,7 +47,7 @@ export default class ResponsiveOptionsManager extends OptionsManager {
    * @param   {ResponsiveOptionObject} config The option configuration.
    * @returns {any}
    */
-  get(name, config) {
+  get(name: string, config: ResponsiveOptionObject) {
     if (!config.responsive) {
       return super.get(name, config);
     }
@@ -65,7 +62,7 @@ export default class ResponsiveOptionsManager extends OptionsManager {
    * @param {any} value The new value.
    * @param {ResponsiveOptionObject} config The option configuration.
    */
-  set(name, value, config) {
+  set(name: string, value: unknown, config: ResponsiveOptionObject) {
     if (!config.responsive) {
       super.set(name, value, config);
       return;

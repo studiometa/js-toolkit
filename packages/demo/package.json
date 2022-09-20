@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-demo",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "private": true,
   "type": "commonjs",
   "scripts": {
@@ -12,7 +12,7 @@
     "@studiometa/stylelint-config": "^2.0.0",
     "@studiometa/tailwind-config": "^1.1.0",
     "@studiometa/ui": "^0.2.11",
-    "@studiometa/webpack-config": "^4.0.0",
+    "@studiometa/webpack-config": "^4.0.3",
     "eslint": "^8.22.0",
     "postcss": "^8.4.16",
     "prettier": "^2.7.1",
