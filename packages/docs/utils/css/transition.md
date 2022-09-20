@@ -62,7 +62,7 @@ transition(document.querySelectorAll('.should-fade'), 'fade');
 
 ### Parameters
 
-- `element` (`HTMLElement | HTMLElement[] | NodeList`): the target DOM element
+- `element` (`HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>`): the target DOM element
 - `name` (`String|Object`): the name of the transition or an object of classes or styles to apply
 - `endMode = 'remove'` (`String`): whether or not the transition keeps its final state or not, can be `remove` or `keep`, defaults to `remove`.
 
