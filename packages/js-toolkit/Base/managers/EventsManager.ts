@@ -2,7 +2,7 @@ import type { Base } from '../index.js';
 import getAllProperties from '../../utils/object/getAllProperties.js';
 import { isArray } from '../../utils/index.js';
 import { getEventTarget, eventIsNative, eventIsDefinedInConfig } from '../utils.js';
-import AbstractManager from './AbstractManager.js';
+import { AbstractManager } from './AbstractManager.js';
 import { normalizeRefName } from './RefsManager.js';
 
 const names = new Map();
@@ -228,8 +228,8 @@ function manageRootElement(that: EventsManager, mode: 'add' | 'remove' = 'add') 
  * @todo Prevent binding of `onChildOrRefEvent` to the root element
  * @todo Use event delegation?
  */
-export default class EventsManager extends AbstractManager {
-  __methodsCache: Map<string, string[]> = new Map();
+export class EventsManager extends AbstractManager {
+  __methodsCache:Map<string, string[]> = new Map();
 
   /**
    * Event listener object for the root element.
