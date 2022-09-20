@@ -2,6 +2,7 @@
 import { useService } from './service.js';
 import useRaf from './raf.js';
 import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
+// eslint-disable-next-line import/extensions
 import { isDefined } from '../utils/index.js';
 
 /**
