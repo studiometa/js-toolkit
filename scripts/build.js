@@ -6,7 +6,7 @@ const entryPoints = glob.sync(
   ['packages/js-toolkit/**/*.js', 'packages/js-toolkit/**/*.ts', '!**/node_modules/**'],
   {
     cwd: path.resolve(__dirname, '..'),
-  }
+  },
 );
 
 const outdir = path.resolve(__dirname, '../dist');
@@ -15,7 +15,8 @@ const defaultOptions = {
   entryPoints,
   write: true,
   outdir,
-  target: 'es2019',
+  target: 'esnext',
+  sourcemap: true,
 };
 
 /**
