@@ -15,7 +15,9 @@ function setClasses(element, classNames, method, forceToggle) {
     return;
   }
 
-  const normalizedClassNames = isArray(classNames) ? classNames : classNames.split(' ');
+  const normalizedClassNames = isArray(classNames)
+    ? classNames
+    : classNames.split(' ').filter((className) => className);
 
   if (method !== 'toggle') {
     eachElements(element, (el) => el.classList[method](...normalizedClassNames));
