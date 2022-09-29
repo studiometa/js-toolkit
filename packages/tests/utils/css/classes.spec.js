@@ -12,6 +12,11 @@ describe('classes methods', () => {
     expect(Array.from(element.classList)).toEqual(['foo', 'bar']);
   });
 
+  it('should add classes to an element when empty spaces are added to the class parameter', () => {
+    add(element, 'foo  bar');
+    expect(Array.from(element.classList)).toEqual(['foo', 'bar']);
+  });
+
   it('should remove classes from an element', () => {
     remove(element, 'foo bar');
     expect(Array.from(element.classList)).toEqual([]);
