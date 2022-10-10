@@ -45,6 +45,6 @@
     "deepmerge": "^4.2.2"
   },
   "devDependencies": {
-    "vue": "2.6"
+    "vue": "3.2.40"
   }
 }
