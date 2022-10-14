@@ -1,10 +1,10 @@
 diff --git a/node_modules/@bytebase/vue-kbar/package.json b/node_modules/@bytebase/vue-kbar/package.json
-index 5f5188f..3b811e8 100644
+index 7f82920..ea4242f 100644
 --- a/node_modules/@bytebase/vue-kbar/package.json
 +++ b/node_modules/@bytebase/vue-kbar/package.json
 @@ -3,8 +3,9 @@
-   "version": "0.1.7",
-   "author": "Jim Liu <lj@bytebase.com>",
+   "version": "0.1.8",
+   "author": "Jim Liu <lj@bytebase.com>, Steven Li <sl@bytebase.com>",
    "license": "SEE LICENSE IN LICENSE.md",
 +  "type": "module",
    "module": "dist/index.es.js",
@@ -12,4 +12,4 @@ index 5f5188f..3b811e8 100644
 +  "main": "dist/index.es.js",
    "typings": "dist_types/index.d.ts",
    "scripts": {
-     "dev": "vitepress dev docs",
+     "dev": "vitepress dev docs --port=4000",
