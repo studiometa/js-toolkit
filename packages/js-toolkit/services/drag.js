@@ -67,7 +67,7 @@ function getEventPosition(event) {
 /**
  * Get drag service.
  * @param   {HTMLElement} target
- * @param   {Object} [options]
+ * @param   {Object} options
  * @param   {number} [options.dampFactor]
  * @param   {number} [options.dragTreshold]
  * @returns {DragService}
