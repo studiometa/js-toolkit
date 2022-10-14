@@ -101,9 +101,7 @@ export class ServicesManager extends AbstractManager {
     }
     const serviceInstance = this.__services[service]();
 
-    serviceInstance.add(this.__base.$id, (...args) => {
-      this.__base.__callMethod(service, ...args);
-    });
+    serviceInstance.add(this.__base.$id, (...args) => this.__base.__callMethod(service, ...args));
 
     return this.disable.bind(this, service);
   }
