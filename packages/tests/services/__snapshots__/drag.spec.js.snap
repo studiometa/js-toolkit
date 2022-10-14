@@ -1,25 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`The drag service should run with inertia and stop 1`] = `
-Array [
-  Array [
-    Object {
-      "delta": Object {
+[
+  [
+    {
+      "delta": {
         "x": 0,
         "y": 0,
       },
-      "distance": Object {
+      "distance": {
         "x": 522,
         "y": 394,
       },
-      "final": Object {
+      "final": {
         "x": 522,
         "y": 394,
       },
       "hasInertia": false,
       "isGrabbing": true,
       "mode": "drag",
-      "origin": Object {
+      "origin": {
         "x": 0,
         "y": 0,
       },
@@ -28,24 +28,24 @@ Array [
       "y": 394,
     },
   ],
-  Array [
-    Object {
-      "delta": Object {
+  [
+    {
+      "delta": {
         "x": 0,
         "y": 0,
       },
-      "distance": Object {
+      "distance": {
         "x": 522,
         "y": 394,
       },
-      "final": Object {
+      "final": {
         "x": 522,
         "y": 394,
       },
       "hasInertia": false,
       "isGrabbing": true,
       "mode": "drag",
-      "origin": Object {
+      "origin": {
         "x": 0,
         "y": 0,
       },
@@ -58,25 +58,25 @@ Array [
 `;
 
 exports[`The drag service should start, drag and drop 1`] = `
-Array [
-  Array [
-    Object {
-      "delta": Object {
+[
+  [
+    {
+      "delta": {
         "x": 0,
         "y": 0,
       },
-      "distance": Object {
+      "distance": {
         "x": 10,
         "y": 10,
       },
-      "final": Object {
+      "final": {
         "x": 10,
         "y": 10,
       },
       "hasInertia": false,
       "isGrabbing": true,
       "mode": "drag",
-      "origin": Object {
+      "origin": {
         "x": 0,
         "y": 0,
       },
@@ -85,24 +85,24 @@ Array [
       "y": 10,
     },
   ],
-  Array [
-    Object {
-      "delta": Object {
+  [
+    {
+      "delta": {
         "x": 0,
         "y": 0,
       },
-      "distance": Object {
+      "distance": {
         "x": 10,
         "y": 10,
       },
-      "final": Object {
+      "final": {
         "x": 10,
         "y": 10,
       },
       "hasInertia": false,
       "isGrabbing": true,
       "mode": "drag",
-      "origin": Object {
+      "origin": {
         "x": 0,
         "y": 0,
       },
