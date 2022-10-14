@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`helpers exports 1`] = `
-Array [
+[
   "createApp",
   "getClosestParent",
   "getDirectChildren",

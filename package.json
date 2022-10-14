@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-workspace",
-  "version": "2.6.1",
+  "version": "2.6.2",
   "private": true,
   "workspaces": [
     "packages/*"
@@ -26,21 +26,21 @@
   "devDependencies": {
     "@studiometa/eslint-config": "^3.0.5",
     "@studiometa/prettier-config": "^2.1.1",
-    "@studiometa/stylelint-config": "^2.0.0",
-    "@types/estree": "^0.0.52",
-    "@types/jest": "^27.5.2",
-    "@types/node": "^17.0.45",
-    "@typescript-eslint/eslint-plugin": "^5.36.0",
-    "@typescript-eslint/parser": "^5.36.0",
-    "eslint": "^8.22.0",
+    "@studiometa/stylelint-config": "^3.0.0",
+    "@types/estree": "^1.0.0",
+    "@types/jest": "^29.1.2",
+    "@types/node": "^18.11.0",
+    "@typescript-eslint/eslint-plugin": "^5.40.0",
+    "@typescript-eslint/parser": "^5.40.0",
+    "eslint": "^8.25.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
-    "eslint-plugin-jest": "^26.8.3",
+    "eslint-plugin-jest": "^27.1.1",
     "prettier": "^2.7.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.8.4"
   },
   "dependencies": {
-    "esbuild": "^0.15.5",
-    "fast-glob": "^3.2.11",
+    "esbuild": "^0.15.11",
+    "fast-glob": "^3.2.12",
     "patch-package": "^6.4.7"
   }
 }

@@ -157,8 +157,8 @@
   <KBarProvider :actions="actions" :options="{ placeholder: 'Search docs' }">
     <ClientOnly>
       <KBarPortal>
-        <KBarPositioner class="z-goku">
-          <div class="z-under absolute inset-0 bg-vp-text-1 dark:bg-vp-bg-soft opacity-80"></div>
+        <KBarPositioner class="z-50">
+          <div class="z-[-1] absolute inset-0 bg-vp-text-1 dark:bg-vp-bg-soft opacity-80"></div>
           <KBarAnimator
             class="bg-vp-bg shadow-lg rounded-lg w-full h-full max-w-lg max-h-lg overflow-hidden divide-y"
           >
