@@ -11,7 +11,7 @@ exports[`The \`withVue\` decorator should destroy the vue component 1`] = `
 exports[`The \`withVue\` decorator should instantiate the vue component 1`] = `
 "
     <div>
-      <div data-ref=\\"vue\\"></div>
+      <div data-ref="vue"></div>
     </div>
   "
 `;

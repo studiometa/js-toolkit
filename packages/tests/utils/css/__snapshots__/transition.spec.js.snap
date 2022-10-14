@@ -1,23 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`transition method should work with an object parameter 1`] = `
-Array [
-  Array [
+[
+  [
     "0",
   ],
-  Array [
+  [
     "",
   ],
 ]
 `;
 
 exports[`transition method should work with an object parameter 2`] = `
-Array [
-  Array [
+[
+  [
     "transition",
     "duration-500",
   ],
-  Array [
+  [
     "transform",
     "scale-50",
   ],
@@ -25,12 +25,12 @@ Array [
 `;
 
 exports[`transition method should work with an object parameter 3`] = `
-Array [
-  Array [
+[
+  [
     "transform",
     "scale-50",
   ],
-  Array [
+  [
     "transition",
     "duration-500",
   ],
