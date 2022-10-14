@@ -4,7 +4,7 @@ import damp from './math/damp.js';
  * Handler for the click event on anchor links
  *
  * @param {HTMLElement|string} selectorElement The target element.
- * @param {{ offset?: number, dampFactor?: number }} [options] Options for the scroll.
+ * @param {{ offset?: number, dampFactor?: number }} options Options for the scroll.
  * @returns {Promise<number>} A promising resolving with the target scroll position.
  */
 export default function scrollTo(selectorElement, { offset = 0, dampFactor = 0.2 } = {}) {
