@@ -47,7 +47,7 @@ const MODES = {
 };
 
 let count = 0;
-const events = ['pointerdown', 'pointerup'];
+const events = ['pointerdown', 'pointerup', 'touchend'];
 const passiveEventOptions = { passive: true };
 
 /**
@@ -229,6 +229,7 @@ function createDragService(target, { dampFactor = 0.85, dragTreshold = 10 } = {}
         }
         break;
       case 'pointerup':
+      case 'touchend':
         drop();
         break;
       case 'touchmove':
