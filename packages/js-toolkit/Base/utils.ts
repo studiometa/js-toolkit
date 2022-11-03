@@ -44,6 +44,7 @@ export function eventIsNative(event:string, element:HTMLElement):boolean {
 
 /**
  * Get the target of a given event.
+ * @todo Return false in v3 if event is not defined or not native to prevent adding a listener.
  */
 export function getEventTarget(instance:Base, event:string, config:BaseConfig):Base | Base['$el'] {
   if (eventIsDefinedInConfig(event, config)) {
@@ -62,5 +63,6 @@ export function getEventTarget(instance:Base, event:string, config:BaseConfig):B
     );
   }
 
+  // @todo v3 return false or null
   return instance;
 }
