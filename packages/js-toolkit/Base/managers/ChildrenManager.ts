@@ -1,6 +1,7 @@
 import type { Base, BaseConstructor, BaseAsyncConstructor, BaseEl } from '../index.js';
 import { AbstractManager } from './AbstractManager.js';
 import { getComponentElements } from '../utils.js';
+import { nextTick } from '../../utils/index.js';
 
 /**
  * Get a child component's instance.
@@ -153,13 +154,19 @@ function __triggerHook(
  */
 // eslint-disable-next-line no-use-before-define
 function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' | '$destroy') {
-  that.registeredNames.forEach((name) => {
-    that[name].forEach((instance) => {
-      if (instance instanceof Promise) {
-        instance.then((resolvedInstance) => __triggerHook(that, hook, resolvedInstance, name));
-      } else {
-        __triggerHook(that, hook, instance, name);
-      }
+  nextTick(() => {
+    that.registeredNames.forEach((name) => {
+      nextTick(() => {
+        that[name].forEach((instance) => {
+          if (instance instanceof Promise) {
+            instance.then((resolvedInstance) =>
+              nextTick(() => __triggerHook(that, hook, resolvedInstance, name)),
+            );
+          }
+
+          nextTick(() => __triggerHook(that, hook, instance, name));
+        });
+      });
     });
   });
 }
@@ -190,7 +197,7 @@ export class ChildrenManager extends AbstractManager {
    */
   registerAll() {
     Object.entries(this.__config.components).forEach(([name, component]) =>
-      __register(this, name, component),
+      nextTick(() => __register(this, name, component)),
     );
   }
 
