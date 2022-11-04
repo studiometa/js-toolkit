@@ -6,6 +6,7 @@ import {
   importWhenVisible,
   importOnInteraction,
   withBreakpointObserver,
+  withExtraConfig,
 } from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
@@ -15,6 +16,9 @@ import AnimateTest from './components/AnimateTest.js';
 import AnimateScrollTest from './components/AnimateScrollTest.js';
 import AnimateTestMultiple from './components/AnimateTestMultiple.js';
 import ParentNativeEvent from './components/ParentNativeEvent/index.js';
+
+const TestDeepNested = withExtraConfig(Base, { name: 'TestDeepNested', debug: true });
+TestDeepNested.config.components = { TestDeepNested };
 
 /**
  * App class.
@@ -28,6 +32,7 @@ class App extends Base {
     refs: ['modal'],
     log: true,
     components: {
+      TestDeepNested,
       ParentNativeEvent,
       AnimateTest,
       AnimateScrollTest,
