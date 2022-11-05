@@ -343,7 +343,6 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
     this.$refs.registerAll();
     this.__events.bindRootElement();
     this.$services.enableAll();
-    this.$children.mountAll();
 
     this.__callMethod('mounted');
 

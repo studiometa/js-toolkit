@@ -50,6 +50,9 @@ function __getChild(
     // eslint-disable-next-line new-cap
     const child = new ctor(el);
     Object.defineProperty(child, '$parent', { get: () => that.__base });
+    nextTick(() => {
+      __triggerHook(that, '$mount', child, name);
+    });
     return child;
   }
 
@@ -96,20 +99,17 @@ function __register(
   name: string,
   component: BaseConstructor | BaseAsyncConstructor,
 ) {
+  const elements = getComponentElements(name, that.__element);
+
+
+
+      const value = elements
+        .map((element) => __getChild(that, element, component, name))
+        .filter((instance) => instance !== 'terminated');
   Object.defineProperty(that, name, {
     enumerable: true,
     configurable: true,
-    get: () => {
-      const elements = getComponentElements(name, that.__element);
-
-      if (elements.length === 0) {
-        return [];
-      }
-
-      return elements
-        .map((element) => __getChild(that, element, component, name))
-        .filter((instance) => instance !== 'terminated');
-    },
+    value,
   });
 }
 
@@ -171,6 +171,22 @@ function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' |
   });
 }
 
+// @todo delete this when tests are satisfying
+function slow__triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' | '$destroy') {
+  that.registeredNames.forEach((name) => {
+    that[name].forEach((instance) => {
+      if (instance instanceof Promise) {
+        instance.then((resolvedInstance) => {
+          __triggerHook(that, hook, resolvedInstance, name);
+        });
+        return;
+      }
+
+      __triggerHook(that, hook, instance, name);
+    });
+  });
+}
+
 /**
  * Children manager.
  */
@@ -196,9 +212,11 @@ export class ChildrenManager extends AbstractManager {
    * Register instances of all children components.
    */
   registerAll() {
-    Object.entries(this.__config.components).forEach(([name, component]) =>
-      nextTick(() => __register(this, name, component)),
-    );
+    nextTick(() => {
+      Object.entries(this.__config.components).forEach(([name, component]) => {
+        nextTick(() => __register(this, name, component));
+      });
+    });
   }
 
   /**
