@@ -34,7 +34,7 @@ function mountComponents(
 /**
  * A cache object to hold each Base sub-instances.
  */
-const instances:WeakMap<Base, Array<[string[], Base]>> = new WeakMap();
+const instances: WeakMap<Base, Array<[string[], Base]>> = new WeakMap();
 
 /**
  * BreakpointManager class.
@@ -77,9 +77,7 @@ export function withBreakpointManager<S extends Base>(
   /**
    * Class.
    */
-  class WithBreakpointManager<
-    T extends BaseProps = BaseProps,
-  > extends BaseClass<T> {
+  class WithBreakpointManager<T extends BaseProps = BaseProps> extends BaseClass<T> {
     /**
      * Watch for the document resize to test the breakpoints.
      */
@@ -110,7 +108,7 @@ export function withBreakpointManager<S extends Base>(
     /**
      * Destroy all instances when the main one is destroyed.
      */
-    $destroy():this {
+    $destroy(): this {
       if (isArray(instances.get(this))) {
         instances.get(this).forEach(([, instance]) => {
           instance.$destroy();

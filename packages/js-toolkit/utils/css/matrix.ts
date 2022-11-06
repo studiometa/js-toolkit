@@ -24,7 +24,7 @@ type MatrixTransform = {
  * // matrix(0.5, 0, 0, 0.5, 0, 0)
  * ```
  */
-export default function matrix(transform:MatrixTransform):string {
+export default function matrix(transform: MatrixTransform): string {
   // eslint-disable-next-line no-param-reassign
   transform = transform || {};
   return `matrix(${transform.scaleX ?? 1}, ${transform.skewY ?? 0}, ${transform.skewX ?? 0}, ${

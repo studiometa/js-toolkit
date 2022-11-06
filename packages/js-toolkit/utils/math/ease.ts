@@ -4,7 +4,7 @@ import { createEaseOut, createEaseInOut } from './createEases.js';
  * @param  {number} progress Progress value betwen 0 and 1.
  * @returns {number}          Eased value between 0 and 1.
  */
-export function easeInQuad(progress:number) {
+export function easeInQuad(progress: number) {
   return progress ** 2;
 }
 
@@ -17,7 +17,7 @@ export const easeInOutQuad = createEaseInOut(easeInQuad);
  * @param  {number} progress Progress value betwen 0 and 1.
  * @returns {number}          Eased value between 0 and 1.
  */
-export function easeInCubic(progress:number) {
+export function easeInCubic(progress: number) {
   return progress ** 3;
 }
 
@@ -30,7 +30,7 @@ export const easeInOutCubic = createEaseInOut(easeInCubic);
  * @param  {number} progress Progress value betwen 0 and 1.
  * @returns {number}          Eased value between 0 and 1.
  */
-export function easeInQuart(progress:number) {
+export function easeInQuart(progress: number) {
   return progress ** 4;
 }
 
@@ -43,7 +43,7 @@ export const easeInOutQuart = createEaseInOut(easeInQuart);
  * @param  {number} progress Progress value betwen 0 and 1.
  * @returns {number}          Eased value between 0 and 1.
  */
-export function easeInQuint(progress:number) {
+export function easeInQuint(progress: number) {
   return progress ** 5;
 }
 
@@ -56,7 +56,7 @@ export const easeInOutQuint = createEaseInOut(easeInQuint);
  * @param  {number} progress Progress value betwen 0 and 1.
  * @returns {number}          Eased value between 0 and 1.
  */
-export function easeInSine(progress:number) {
+export function easeInSine(progress: number) {
   return progress === 1 ? 1 : -Math.cos((progress * Math.PI) / 2) + 1;
 }
 
@@ -69,7 +69,7 @@ export const easeInOutSine = createEaseInOut(easeInSine);
  * @param  {number} progress Progress value betwen 0 and 1.
  * @returns {number}          Eased value between 0 and 1.
  */
-export function easeInCirc(progress:number) {
+export function easeInCirc(progress: number) {
   return -(Math.sqrt(1 - progress * progress) - 1);
 }
 
@@ -82,7 +82,7 @@ export const easeInOutCirc = createEaseInOut(easeInCirc);
  * @param  {number} progress Progress value betwen 0 and 1.
  * @returns {number}          Eased value between 0 and 1.
  */
-export function easeInExpo(progress:number) {
+export function easeInExpo(progress: number) {
   return 2 ** (10 * (progress - 1));
 }
 

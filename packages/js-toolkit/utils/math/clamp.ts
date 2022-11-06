@@ -5,7 +5,7 @@
  * @param {number} max
  * @returns {number}
  */
-export default function clamp(value:number, min:number, max:number) {
+export default function clamp(value: number, min: number, max: number) {
   /* eslint-disable no-nested-ternary */
   return min < max
     ? value < min

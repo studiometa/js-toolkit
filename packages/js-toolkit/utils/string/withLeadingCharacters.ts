@@ -7,6 +7,6 @@ import withoutLeadingCharacters from './withoutLeadingCharacters.js';
  * @param   {string} characters The characters to add to the start.
  * @returns {string}
  */
-export default function withLeadingCharacters(string:string, characters:string):string {
+export default function withLeadingCharacters(string: string, characters: string): string {
   return `${characters}${withoutLeadingCharacters(string, characters)}`;
 }

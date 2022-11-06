@@ -143,7 +143,11 @@ function end(
  * @param  {string}                  endMode Whether to remove or keep the `to` classes/styles
  * @returns {Promise<void>}                   A promise resolving at the end of the transition.
  */
-async function singleTransition(element:HTMLElement, name:string | TransitionStyles, endMode:'keep' | 'remove' = 'remove') :Promise<void> {
+async function singleTransition(
+  element: HTMLElement,
+  name: string | TransitionStyles,
+  endMode: 'keep' | 'remove' = 'remove',
+): Promise<void> {
   /** @type {TransitionStyles} */
   const classesOrStyles = isString(name)
     ? {
@@ -178,7 +182,11 @@ async function singleTransition(element:HTMLElement, name:string | TransitionSty
  * @param  {string}                                            endMode           Whether to remove or keep the `to` classes/styles
  * @returns {Promise<void>}                                                      A promise resolving at the end of the transition.
  */
-export default async function transition(elementOrElements:HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>, name:string | TransitionStyles, endMode:'keep' | 'remove' = 'remove') {
+export default async function transition(
+  elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
+  name: string | TransitionStyles,
+  endMode: 'keep' | 'remove' = 'remove',
+) {
   await Promise.all(
     eachElements(elementOrElements, (element) => singleTransition(element, name, endMode)),
   );

@@ -17,7 +17,7 @@ type ImportWhenIdleOptions = {
 export default function importWhenIdle<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
   { timeout = 1 }: ImportWhenIdleOptions = {},
-):Promise<T> {
+): Promise<T> {
   let ResolvedClass;
 
   const resolver = (resolve) => {

@@ -101,9 +101,10 @@ export function withScrolledInView<S extends Base = Base>(
   /**
    * Class.
    */
-  class WithScrolledInView<
-    T extends BaseProps = BaseProps,
-  > extends withMountWhenInView(BaseClass, options)<T & WithScrolledInViewProps> {
+  class WithScrolledInView<T extends BaseProps = BaseProps> extends withMountWhenInView(
+    BaseClass,
+    options,
+  )<T & WithScrolledInViewProps> {
     /**
      * Config.
      */
