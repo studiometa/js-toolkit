@@ -1,9 +1,4 @@
-import type {
-  Base,
-  BaseConstructor,
-  BaseAsyncConstructor,
-  BaseEl,
-} from '../index.js';
+import type { Base, BaseConstructor, BaseAsyncConstructor, BaseEl } from '../index.js';
 import { AbstractManager } from './AbstractManager.js';
 import { getComponentElements } from '../utils.js';
 
@@ -28,7 +23,9 @@ function __getChild(
   ComponentClass: BaseConstructor | BaseAsyncConstructor,
   name: string,
 ): Base | Promise<Base | 'terminated'> | 'terminated' {
-  const asyncComponentPromise = that.__asyncComponentPromises.get(ComponentClass as BaseAsyncConstructor);
+  const asyncComponentPromise = that.__asyncComponentPromises.get(
+    ComponentClass as BaseAsyncConstructor,
+  );
 
   // Test if we have a constructor and not a promise or if the promise has been resolved
   if (
@@ -184,7 +181,7 @@ export class ChildrenManager extends AbstractManager {
     }
   > = new WeakMap();
 
-  get registeredNames():string[] {
+  get registeredNames(): string[] {
     return Object.keys(this).filter((key) => !key.startsWith('__'));
   }
 

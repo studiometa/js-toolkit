@@ -24,7 +24,10 @@ function walkAncestorsWhile(
 /**
  * Get the closest parent of a component.
  */
-export default function getClosestParent<T extends BaseConstructor>(childInstance:Base, ParentConstructor:T) {
+export default function getClosestParent<T extends BaseConstructor>(
+  childInstance: Base,
+  ParentConstructor: T,
+) {
   const parentEl = walkAncestorsWhile(
     childInstance.$el,
     (element) => !getInstanceFromElement(element, ParentConstructor),

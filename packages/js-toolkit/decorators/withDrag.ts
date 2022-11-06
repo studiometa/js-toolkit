@@ -8,7 +8,7 @@ export type DragDecoratorOptions = DragServiceOptions & {
 };
 
 export interface WithDragInterface extends BaseInterface {
-  dragged?(props:DragServiceProps):void;
+  dragged?(props: DragServiceProps): void;
 }
 
 /**
@@ -33,7 +33,7 @@ export function withDrag<S extends Base>(
     /**
      * Class constructor.
      */
-    constructor(element:HTMLElement) {
+    constructor(element: HTMLElement) {
       super(element);
 
       this.$on('mounted', () => {
