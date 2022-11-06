@@ -72,7 +72,7 @@ function __register(that: RefsManager, refName: string) {
 /**
  * Unregister one ref.
  */
-function __unregister(that:RefsManager, refName:string) {
+function __unregister(that: RefsManager, refName: string) {
   const propName = normalizeRefName(refName);
   const refs = isArray(that[propName]) ? that[propName] : [that[propName]];
   that.__eventsManager.unbindRef(refName, refs);

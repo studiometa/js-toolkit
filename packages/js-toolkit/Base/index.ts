@@ -57,7 +57,7 @@ export type BaseConstructor<T extends Base = Base> = {
   prototype: Base;
 } & Pick<typeof Base, keyof typeof Base>;
 export type BaseAsyncConstructor<T extends Base = Base> = (
-  Base
+  Base,
 ) => Promise<BaseConstructor<T> | { default: BaseConstructor<T> }>;
 export type BaseOptions = { [name: string]: unknown };
 export type BaseRefs = { [name: string]: HTMLElement | HTMLElement[] };

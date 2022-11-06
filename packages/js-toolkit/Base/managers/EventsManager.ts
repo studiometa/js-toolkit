@@ -229,7 +229,7 @@ function manageRootElement(that: EventsManager, mode: 'add' | 'remove' = 'add') 
  * @todo Use event delegation?
  */
 export class EventsManager extends AbstractManager {
-  __methodsCache:Map<string, string[]> = new Map();
+  __methodsCache: Map<string, string[]> = new Map();
 
   /**
    * Event listener object for the root element.
