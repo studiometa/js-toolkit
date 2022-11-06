@@ -51,6 +51,11 @@ export interface BaseInterface {
   scrolled?(props: ScrollServiceProps): void;
 }
 
-export type BaseDecorator<S extends BaseInterface, T extends Base, U extends BaseProps = BaseProps> = {
+export type BaseDecorator<
+  S extends BaseInterface,
+  T extends Base,
+  U extends BaseProps = BaseProps,
+> = {
   new <W extends BaseProps = BaseProps>(...args: unknown[]): S & T & Base<W & U>;
-} & Partial<Pick<T, keyof T>> & Pick<typeof Base, keyof typeof Base>;
+} & Partial<Pick<T, keyof T>> &
+  Pick<typeof Base, keyof typeof Base>;

@@ -10,28 +10,28 @@ export const isFunction = (value: unknown): value is Function => typeof value ==
 /**
  * Test if a value is defined or not.
  */
-export const isDefined = (value:unknown):boolean => typeof value !== 'undefined';
+export const isDefined = (value: unknown): boolean => typeof value !== 'undefined';
 
 /**
  * Test if value is a string.
  */
-export const isString = (value:unknown):value is string => typeof value === 'string';
+export const isString = (value: unknown): value is string => typeof value === 'string';
 
 /**
  * Test if the given value is an object.
  */
-export const isObject = (value:unknown):boolean =>
+export const isObject = (value: unknown): boolean =>
   typeof value === 'object' && !!value && value.toString() === '[object Object]';
 
 /**
  * Test if a given value is a number.
  */
-export const isNumber = (value:unknown): value is number => typeof value === 'number';
+export const isNumber = (value: unknown): value is number => typeof value === 'number';
 
 /**
  * Test if a given value is a boolean.
  */
-export const isBoolean = (value:unknown): value is boolean => typeof value === 'boolean';
+export const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
 
 // eslint-disable-next-line prefer-destructuring
 export const isArray = Array.isArray;

@@ -8,6 +8,12 @@
  * @param  {number} outputMax The output's maximum value.
  * @returns {number}           The input value mapped to the output range.
  */
-export default function map(value:number, inputMin:number, inputMax:number, outputMin:number, outputMax:number) {
+export default function map(
+  value: number,
+  inputMin: number,
+  inputMax: number,
+  outputMin: number,
+  outputMax: number,
+) {
   return ((value - inputMin) * (outputMax - outputMin)) / (inputMax - inputMin) + outputMin;
 }

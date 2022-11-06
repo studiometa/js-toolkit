@@ -7,7 +7,10 @@ import withoutLeadingCharacters from './withoutLeadingCharacters.js';
  * @param   {string} characters The characters to add to the start.
  * @returns {string}
  */
-export default function withoutLeadingCharactersRecursive(string:string, characters:string):string {
+export default function withoutLeadingCharactersRecursive(
+  string: string,
+  characters: string,
+): string {
   let str = withoutLeadingCharacters(string, characters);
   const regex = new RegExp(`^${characters}`);
 

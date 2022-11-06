@@ -6,6 +6,6 @@ import withoutTrailingCharacters from './withoutTrailingCharacters.js';
  * @param {string} string The string to modify.
  * @returns {string} The string without trailing slash.
  */
-export default function withoutTrailingSlash(string:string):string {
+export default function withoutTrailingSlash(string: string): string {
   return withoutTrailingCharacters(string, '/');
 }

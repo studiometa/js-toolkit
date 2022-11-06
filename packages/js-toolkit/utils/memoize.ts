@@ -1,7 +1,7 @@
 export interface MemoizeCache<T> {
   has: (key: unknown) => boolean;
-  set: (key: unknown, value: { data: T, date: number }) => this;
-  get: (key: unknown) => { data: T, date: number };
+  set: (key: unknown, value: { data: T; date: number }) => this;
+  get: (key: unknown) => { data: T; date: number };
 }
 
 export interface MemoizeOptions<T> {
@@ -34,7 +34,7 @@ export default function memoize<T extends (...args: unknown[]) => unknown>(
     }
 
     // @ts-ignore
-    const data:ReturnType<T> = fn(...args);
+    const data: ReturnType<T> = fn(...args);
 
     cache.set(key, {
       data,

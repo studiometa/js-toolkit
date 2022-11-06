@@ -13,7 +13,9 @@
  * @returns {Circle} Circle object that can be used in collides functions
  */
 export default function boundingRectToCircle({ x, y, width, height }, force = false) {
-  if (width !== height && !force) { throw new Error('Initial DOMElement is not a square. Please use the force mode.'); }
+  if (width !== height && !force) {
+    throw new Error('Initial DOMElement is not a square. Please use the force mode.');
+  }
   return {
     x: x + width / 2,
     y: y + height / 2,

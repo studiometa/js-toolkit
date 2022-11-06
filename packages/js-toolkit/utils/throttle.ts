@@ -5,7 +5,10 @@
  * @param {number} [delay] The delay in ms
  * @returns {Function} The throttled function.
  */
-export default function throttle(fn: (...args: unknown[]) => void, delay = 16):(...args:unknown[]) => void {
+export default function throttle(
+  fn: (...args: unknown[]) => void,
+  delay = 16,
+): (...args: unknown[]) => void {
   let lastCall = 0;
   return function throttled(...args) {
     const now = Date.now();

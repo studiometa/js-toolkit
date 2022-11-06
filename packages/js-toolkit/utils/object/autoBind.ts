@@ -15,7 +15,7 @@ export interface AutoBindOptions {
  * @param  {Array<string | RegExp>} [options.exclude] Methods to exclude.
  * @returns {Object}                                 The instance.
  */
-export default function autoBind<T>(instance:T, options:AutoBindOptions):T {
+export default function autoBind<T>(instance: T, options: AutoBindOptions): T {
   const { exclude, include } = options || {};
   const filter = (key) => {
     const match = (pattern) => (isString(pattern) ? key === pattern : pattern.test(key));

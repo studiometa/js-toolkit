@@ -66,7 +66,7 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
   /**
    * Set the progress value.
    */
-  function progress(newProgress:number) {
+  function progress(newProgress: number) {
     if (typeof newProgress === 'undefined') {
       return easedProgress;
     }
@@ -94,7 +94,7 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
   /**
    * Loop for rendering the animation.
    */
-  function tick(props: { time:number }) {
+  function tick(props: { time: number }) {
     if (!isRunning) {
       raf.remove(key);
       return;

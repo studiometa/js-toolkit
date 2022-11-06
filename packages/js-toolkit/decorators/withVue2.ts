@@ -29,7 +29,7 @@ export function withVue2<S extends Base, T extends Vue = Vue>(
    * Class.
    */
   class WithVue2 extends BaseClass {
-    static config:BaseConfig = {
+    static config: BaseConfig = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithVue`,
       refs: [...(BaseClass.config?.refs ?? []), 'vue'],

@@ -5,6 +5,6 @@ import clamp from './clamp.js';
  * @param {number} value
  * @returns {number}
  */
-export default function clamp01(value:number) {
+export default function clamp01(value: number) {
   return clamp(value, 0, 1);
 }

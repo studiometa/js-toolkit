@@ -29,7 +29,7 @@ export function saveActiveElement() {
  * @param {HTMLElement} element The element in which to trap the tabulations.
  * @param {KeyboardEvent} event The keydown or keyup event.
  */
-export function trap(element:HTMLElement, event:KeyboardEvent) {
+export function trap(element: HTMLElement, event: KeyboardEvent) {
   if (event.keyCode !== keyCodes.TAB) {
     return;
   }
@@ -39,7 +39,9 @@ export function trap(element:HTMLElement, event:KeyboardEvent) {
     focusedBefore = document.activeElement;
   }
 
-  const focusableChildren:HTMLElement[] = Array.from(element.querySelectorAll(FOCUSABLE_ELEMENTS.join(', ')));
+  const focusableChildren: HTMLElement[] = Array.from(
+    element.querySelectorAll(FOCUSABLE_ELEMENTS.join(', ')),
+  );
   const focusedItemIndex =
     document.activeElement instanceof HTMLElement
       ? focusableChildren.indexOf(document.activeElement)
