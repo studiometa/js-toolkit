@@ -2,6 +2,7 @@
 import { getComponentElements, getEventTarget } from './utils.js';
 import {
   ChildrenManager,
+  AsyncChildrenManager,
   RefsManager,
   ServicesManager,
   EventsManager,
@@ -243,8 +244,9 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
    * Get manager constructors.
    */
   get __managers(): Managers {
+    const params = new URLSearchParams(window.location.search);
     return {
-      ChildrenManager,
+      ChildrenManager: params.has('async') ? AsyncChildrenManager : ChildrenManager,
       EventsManager,
       OptionsManager,
       RefsManager,
