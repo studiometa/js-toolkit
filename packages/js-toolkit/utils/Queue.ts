@@ -29,7 +29,7 @@ export class Queue {
    * @param {(cb: (...args:unknown[]) => unknown) => unknown} waiter Scheduler for the next batch execution.
    */
   constructor(
-    concurrency:number,
+    concurrency: number,
     waiter: (cb: (...args: unknown[]) => unknown) => unknown = (cb) => cb(),
   ) {
     this.concurrency = concurrency;
@@ -39,7 +39,7 @@ export class Queue {
   /**
    * Add a task to the queue.
    */
-  add(task:(...args:unknown[]) => unknown) {
+  add(task: (...args: unknown[]) => unknown) {
     this.tasks.push(task);
     this.scheduleFlush();
   }
@@ -71,7 +71,7 @@ export class Queue {
   /**
    * Run the queue.
    */
-  run(tasks:Array<(...args:unknown[]) => unknown>) {
+  run(tasks: Array<(...args: unknown[]) => unknown>) {
     let task;
     // eslint-disable-next-line no-cond-assign
     while ((task = tasks.shift())) {
