@@ -22,4 +22,4 @@ export * from './string/index.js';
 export * from './scheduler.js';
 export * from './noop.js';
 export { tween } from './tween.js';
-export { Queue } from './queue.js';
+export { Queue } from './Queue.js';
