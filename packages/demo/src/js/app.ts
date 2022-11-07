@@ -7,6 +7,7 @@ import {
   importOnInteraction,
   withBreakpointObserver,
   withExtraConfig,
+  importOnMedia,
 } from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
@@ -79,6 +80,14 @@ class App extends Base {
       ParentNativeEvent,
       AnimateTest,
       AnimateScrollTest,
+      AnimateScrollTestMedia: () =>
+        importOnMedia(
+          async () => {
+            const AnimateScrollTest = await import('./components/AnimateScrollTest');
+            return AnimateScrollTest;
+          },
+          'not (prefers-reduced-motion)',
+        ),
       AnimateTestMultiple,
       ResponsiveOptions,
       ScrolledInViewOffset,

@@ -46,6 +46,18 @@
           { scaleX: 0, transformOrigin: 'top right', '--red': 0 }
         ]
       } %}
+      <p>Runs only if the following media query is true:</p>
+      <code>not (prefers-reduced-motion)</code>
+      {% include '@components/animate-test.twig' with {
+        name: 'AnimateScrollTestMedia',
+        target_class: 'w-full',
+        container_class: 'overflow-hidden',
+        steps: [
+          { scaleX: 0 },
+          { scaleX: 1, transformOrigin: 'top left' },
+          { scaleX: 0, transformOrigin: 'top right' }
+        ]
+      } %}
       <!-- BEGIN BreakpointManagerDemo -->
       <div
         data-component="BreakpointManagerDemo"
