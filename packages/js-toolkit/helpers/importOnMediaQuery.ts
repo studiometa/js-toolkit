@@ -1,4 +1,4 @@
-import type { Base, BaseConstructor } from '../Base/index.js';
+import type { BaseConstructor } from '../Base/index.js';
 
 /**
  * Import a component when given media query is true.
@@ -10,7 +10,7 @@ import type { Base, BaseConstructor } from '../Base/index.js';
  *   The media query name and value (see https://developer.mozilla.org/en-US/docs/Web/CSS/@media#media_features)
  * @returns {Promise<T>}
  */
-export default function importOnMedia<T extends BaseConstructor = BaseConstructor>(
+export default function importOnMediaQuery<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
   media: string,
 ): Promise<T> {
