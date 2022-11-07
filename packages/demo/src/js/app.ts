@@ -17,8 +17,51 @@ import AnimateScrollTest from './components/AnimateScrollTest.js';
 import AnimateTestMultiple from './components/AnimateTestMultiple.js';
 import ParentNativeEvent from './components/ParentNativeEvent/index.js';
 
-const TestDeepNested = withExtraConfig(Base, { name: 'TestDeepNested', debug: true });
-TestDeepNested.config.components = { TestDeepNested };
+let numberOfTick = 0;
+let time = performance.now();
+let interval = setInterval(() => {
+  const newTime = performance.now();
+  numberOfTick += 1;
+  console.log('#%d blocking time: %d ms', numberOfTick, newTime - time);
+  time = newTime;
+
+  if (numberOfTick > total * 2) {
+    clearInterval(interval)
+  }
+}, 0)
+
+let count = 0;
+const total = 66;
+
+function getDeepNestedComponentName(index) {
+  return `TestDeepNested${index}`
+}
+
+function makeDeepNestedComponent(index) {
+  return class extends withExtraConfig(Base, { name: getDeepNestedComponentName(index), components: {} }) {
+    mounted() {
+      console.log(this.$id);
+    }
+  };
+}
+
+const TestDeepNested = makeDeepNestedComponent(0);
+let CurrentClass = TestDeepNested;
+while (count < total) {
+  count += 1;
+  const NewClass = makeDeepNestedComponent(count);
+  // @ts-ignore
+  CurrentClass.config.components[NewClass.config.name] = NewClass;
+
+  CurrentClass = NewClass;
+}
+
+
+const TestManyInstance = class extends withExtraConfig(Base, { name: 'TestManyInstance', debug: false }) {
+  mounted() {
+    console.log(this.$id);
+  }
+};
 
 /**
  * App class.
@@ -32,12 +75,13 @@ class App extends Base {
     refs: ['modal'],
     log: true,
     components: {
-      TestDeepNested,
       ParentNativeEvent,
       AnimateTest,
       AnimateScrollTest,
       AnimateTestMultiple,
       ResponsiveOptions,
+      TestDeepNested,
+      TestManyInstance,
       Accordion: (app) =>
         importWhenVisible(
           async () => {
