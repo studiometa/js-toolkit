@@ -32,6 +32,8 @@ export class AsyncChildrenManager extends ChildrenManager {
         } else if (childOrPromise !== 'terminated') {
           this.__triggerHook('$mount', childOrPromise, name);
         }
+
+        return childOrPromise;
       }),
     });
   }
@@ -47,6 +49,6 @@ export class AsyncChildrenManager extends ChildrenManager {
    * do not need to do anything in the `mountAll` method.
    */
   mountAll(): void {
-      // silence is golden
+    // silence is golden
   }
 }
