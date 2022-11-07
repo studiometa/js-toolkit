@@ -8,6 +8,7 @@ import {
   withBreakpointObserver,
   withExtraConfig,
   importOnMedia,
+  importOnMediaQuery,
 } from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
@@ -81,7 +82,7 @@ class App extends Base {
       AnimateTest,
       AnimateScrollTest,
       AnimateScrollTestMedia: () =>
-        importOnMedia(
+        importOnMediaQuery(
           async () => {
             const AnimateScrollTest = await import('./components/AnimateScrollTest');
             return AnimateScrollTest;
