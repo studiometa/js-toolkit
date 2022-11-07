@@ -3,7 +3,7 @@ import type { Base, BaseConstructor, BaseAsyncConstructor } from '../index.js';
 import { ChildrenManager } from './ChildrenManager.js';
 import { Queue, nextTick } from '../../utils/index.js';
 
-const queue = new Queue(20, nextTick);
+const queue = new Queue(10, nextTick);
 
 /**
  * Children manager.
@@ -40,5 +40,13 @@ export class AsyncChildrenManager extends ChildrenManager {
     queue.add(() => {
       super.__triggerHook(hook, instance, name);
     });
+  }
+
+  /**
+   * Children are mounted right after they are registered in this AsyncChildrenManager class, so we
+   * do not need to do anything in the `mountAll` method.
+   */
+  mountAll(): void {
+      // silence is golden
   }
 }
