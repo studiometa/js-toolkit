@@ -9,8 +9,8 @@ export function mockMatchMediaPositive() {
     matches: true,
     media: '',
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
   }));
 }
 
@@ -19,7 +19,7 @@ export function mockMatchMediaNegative() {
     matches: false,
     media: '',
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
   }));
 }
