@@ -7,6 +7,7 @@ exports[`helpers exports 1`] = `
   "getDirectChildren",
   "getInstanceFromElement",
   "importOnInteraction",
+  "importOnMediaQuery",
   "importWhenIdle",
   "importWhenVisible",
   "isDirectChild",
