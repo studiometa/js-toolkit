@@ -9,6 +9,7 @@ exports[`helpers exports 1`] = `
   "importOnInteraction",
   "importOnMediaQuery",
   "importWhenIdle",
+  "importWhenPrefersMotion",
   "importWhenVisible",
   "isDirectChild",
 ]
