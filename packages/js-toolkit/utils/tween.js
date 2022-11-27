@@ -5,7 +5,7 @@ import { noop, noopValue as linear } from './noop.js';
 import useRaf from '../services/raf.js';
 
 let id = 0;
-const PROGRESS_PRECISION = 0.0001;
+const PROGRESS_PRECISION = 0.01;
 
 /**
  * @typedef {[number, number, number, number]} BezierCurve
