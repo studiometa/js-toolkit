@@ -6,12 +6,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
-## v2.6.5
+## v2.6.5 (2022-11-30)
 
 ### Fixed
 
-- Fix tween never triggering the `onFinish` callback (5f4632b)
+- Fix tween never triggering the `onFinish` callback ([5f4632b](https://github.com/studiometa/js-toolkit/commit/5f4632b))
 
 ### Changed
 
-- Release notes are now keep in a CHANGELOG.md file
+- Release notes are now keep in a [CHANGELOG.md](https://github.com/studiometa/js-toolkit/blob/develop/CHANGELOG.md) file
