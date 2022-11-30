@@ -6,7 +6,7 @@ import useRaf from '../services/raf.js';
 import type { EasingFunction } from './math/createEases.js';
 
 let id = 0;
-const PROGRESS_PRECISION = 0.0001;
+const PROGRESS_PRECISION = 0.01;
 
 export type BezierCurve = [number, number, number, number];
 
