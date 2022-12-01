@@ -1,5 +1,6 @@
 /* eslint-disable no-use-before-define */
 import { getComponentElements, getEventTarget } from './utils.js';
+import { features } from './features.js';
 import {
   ChildrenManager,
   AsyncChildrenManager,
@@ -244,9 +245,8 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
    * Get manager constructors.
    */
   get __managers(): Managers {
-    const params = new URLSearchParams(window.location.search);
     return {
-      ChildrenManager: params.has('async') ? AsyncChildrenManager : ChildrenManager,
+      ChildrenManager: features.get('asyncChildren') ? AsyncChildrenManager : ChildrenManager,
       EventsManager,
       OptionsManager,
       RefsManager,
