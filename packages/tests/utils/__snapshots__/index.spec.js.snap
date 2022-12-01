@@ -2,6 +2,7 @@
 
 exports[`@studiometa/js-toolkit/utils exports should export all scripts 1`] = `
 [
+  "Queue",
   "addClass",
   "addStyle",
   "animate",

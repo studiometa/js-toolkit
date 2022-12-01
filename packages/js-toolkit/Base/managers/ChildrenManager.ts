@@ -80,71 +80,6 @@ function __getChild(
 }
 
 /**
- * Register instance of a child component.
- *
- * @param {ChildrenManager} that
- * @param {string} name
- *   The name of the child component.
- * @param {BaseConstructor|BaseAsyncConstructor} component
- *   A Base class or a Promise for async components.
- * @private
- */
-function __register(
-  // eslint-disable-next-line no-use-before-define
-  that: ChildrenManager,
-  name: string,
-  component: BaseConstructor | BaseAsyncConstructor,
-) {
-  Object.defineProperty(that, name, {
-    enumerable: true,
-    configurable: true,
-    get: () => {
-      const elements = getComponentElements(name, that.__element);
-
-      if (elements.length === 0) {
-        return [];
-      }
-
-      return elements
-        .map((element) => __getChild(that, element, component, name))
-        .filter((instance) => instance !== 'terminated');
-    },
-  });
-}
-
-/**
- * Execute the given hook for the given instance.
- *
- * @param {ChildrenManager} that
- * @param {'$mount'|'$update'|'$destroy'} hook The hook to trigger.
- * @param {Base} instance The target instance.
- * @param {string} name The name of the component.
- * @private
- */
-function __triggerHook(
-  // eslint-disable-next-line no-use-before-define
-  that: ChildrenManager,
-  hook: '$mount' | '$update' | '$destroy',
-  instance: Base,
-  name: string,
-) {
-  if (hook === '$update' && !instance.$isMounted) {
-    // eslint-disable-next-line no-param-reassign
-    hook = '$mount';
-  }
-
-  if (hook === '$update' || hook === '$destroy') {
-    that.__eventsManager.unbindChild(name, instance);
-  }
-
-  if (hook === '$update' || hook === '$mount') {
-    that.__eventsManager.bindChild(name, instance);
-  }
-
-  instance[hook]();
-}
-
-/**
  * Execute the given hook for all children instances.
  *
  * @param {ChildrenManager} that
@@ -156,9 +91,9 @@ function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' |
   that.registeredNames.forEach((name) => {
     that[name].forEach((instance) => {
       if (instance instanceof Promise) {
-        instance.then((resolvedInstance) => __triggerHook(that, hook, resolvedInstance, name));
+        instance.then((resolvedInstance) => that.__triggerHook(hook, resolvedInstance, name));
       } else {
-        __triggerHook(that, hook, instance, name);
+        that.__triggerHook(hook, instance, name);
       }
     });
   });
@@ -190,7 +125,7 @@ export class ChildrenManager extends AbstractManager {
    */
   registerAll() {
     Object.entries(this.__config.components).forEach(([name, component]) =>
-      __register(this, name, component),
+      this.__register(name, component),
     );
   }
 
@@ -213,5 +148,59 @@ export class ChildrenManager extends AbstractManager {
    */
   destroyAll() {
     __triggerHookForAll(this, '$destroy');
+  }
+
+  /**
+   * Execute the given hook for the given instance.
+   *
+   * @param {'$mount'|'$update'|'$destroy'} hook The hook to trigger.
+   * @param {Base} instance The target instance.
+   * @param {string} name The name of the component.
+   * @private
+   */
+  __triggerHook(hook: '$mount' | '$update' | '$destroy', instance: Base, name: string) {
+    if (hook === '$update' && !instance.$isMounted) {
+      // eslint-disable-next-line no-param-reassign
+      hook = '$mount';
+    }
+
+    if (hook === '$update' || hook === '$destroy') {
+      this.__eventsManager.unbindChild(name, instance);
+    }
+
+    if (hook === '$update' || hook === '$mount') {
+      this.__eventsManager.bindChild(name, instance);
+    }
+
+    instance[hook]();
+  }
+
+  /**
+   * Register instance of a child component.
+   *
+   * @param {string} name
+   *   The name of the child component.
+   * @param {BaseConstructor|BaseAsyncConstructor} component
+   *   A Base class or a Promise for async components.
+   * @private
+   */
+  __register(name: string, component: BaseConstructor | BaseAsyncConstructor) {
+    Object.defineProperty(this, name, {
+      enumerable: true,
+      configurable: true,
+      get: () => this.__getValue(name, component),
+    });
+  }
+
+  __getValue(name: string, component: BaseConstructor | BaseAsyncConstructor) {
+    const elements = getComponentElements(name, this.__element);
+
+    if (elements.length === 0) {
+      return [];
+    }
+
+    return elements
+      .map((element) => __getChild(this, element, component, name))
+      .filter((instance) => instance !== 'terminated');
   }
 }
