@@ -19,7 +19,7 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
   let app: S & Base<T>;
   const options =
     rootElement instanceof HTMLElement
-      ? { root: HTMLElement, features: undefined }
+      ? { root: rootElement, features: undefined }
       : { root: document.body, ...rootElement };
 
   if (isDefined(options.features)) {
@@ -29,10 +29,22 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
   }
 
   const p: Promise<S & Base<T>> = new Promise((resolve) => {
-    setTimeout(() => {
-      app = (new App(options.root) as S & Base<T>).$mount();
-      resolve(app);
-    }, 0);
+    const callback = () => {
+      setTimeout(() => {
+        app = (new App(options.root) as S & Base<T>).$mount();
+        resolve(app);
+      }, 0);
+    };
+
+    if (features.get('asyncChildren') || document.readyState === 'complete') {
+      callback();
+    } else {
+      document.addEventListener('readystatechange', () => {
+        if (document.readyState === 'complete') {
+          callback();
+        }
+      });
+    }
   });
 
   return function useApp() {
