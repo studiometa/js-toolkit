@@ -188,4 +188,9 @@ class App extends Base {
   }
 }
 
-export default createApp(App, document.body);
+export default createApp(App, {
+  root: document.body,
+  features: {
+    asyncChildren: true,
+  },
+});
