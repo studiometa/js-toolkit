@@ -24,7 +24,7 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
 
   if (isDefined(options.features)) {
     Object.entries(options.features).forEach(([feature, value]) => {
-      features.set(feature, value);
+      features.set(feature as keyof Features, value);
     });
   }
 
