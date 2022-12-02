@@ -1,61 +1,47 @@
-/**
- * Generate a scheduler.
- */
-function getScheduler<T extends string>(steps: T[]): Record<T, (fn: () => unknown) => void> {
-  const stepsFns = {} as Record<T, Array<() => void>>;
-  const api = {} as Record<T, (fn: () => void) => void>;
+import { Queue } from './Queue.js';
+import type { Task } from './Queue.js';
 
-  let isScheduled = false;
+const resolvedPromise = Promise.resolve();
+function waiter(cb) {
+  return resolvedPromise.then(cb);
+}
 
-  const resolvedPromise = Promise.resolve();
+class Scheduler extends Queue {
+  steps: Record<string, Array<Task>>;
 
-  /**
-   * Execute the given list of tasks.
-   */
-  function run(tasks: Array<() => void>) {
-    let task;
-    // eslint-disable-next-line no-cond-assign
-    while ((task = tasks.shift())) {
-      task();
-    }
+  stepNames: string[];
+
+  constructor(steps) {
+    super(waiter)
+    this.stepNames = steps;
+    this.steps = Object.fromEntries(steps.map(step => [step, []]));
+
+    steps.forEach(step => {
+      this[step] = function add(task:Task) {
+        this.addToStep(step, task);
+      }
+    });
+  }
+
+  addToStep(step:string, task: (...args: unknown[]) => unknown) {
+    this.steps[step].push(task);
+    this.scheduleFlush();
   }
 
   /**
    * Flush registered tasks and schedule the next run if needed.
    */
-  function flush() {
-    steps.forEach((step) => {
-      run(stepsFns[step]);
+  flush() {
+    this.stepNames.forEach((step) => {
+      this.run(this.steps[step]);
     });
-    isScheduled = false;
+    this.isScheduled = false;
 
-    if (steps.reduce((length, step) => length + stepsFns[step].length, 0) > 0) {
+    if (this.stepNames.reduce((length, step) => length + this.steps[step].length, 0) > 0) {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define, no-use-before-define
-      scheduleFlush();
+      this.scheduleFlush();
     }
   }
-
-  /**
-   * Schedule the next flush of tasks.
-   */
-  function scheduleFlush() {
-    if (isScheduled) {
-      return;
-    }
-
-    isScheduled = true;
-    resolvedPromise.then(flush);
-  }
-
-  steps.forEach((step) => {
-    stepsFns[step] = [];
-    api[step] = function add(fn) {
-      stepsFns[step].push(fn);
-      scheduleFlush();
-    };
-  });
-
-  return api;
 }
 
 const instances = new Map();
@@ -67,16 +53,17 @@ const domSchedulerSteps = ['read', 'write', 'afterWrite'];
  */
 export function useScheduler<T extends string>(
   steps: T[] = domSchedulerSteps as T[],
-): ReturnType<typeof getScheduler<T>> {
+): Scheduler & Record<T, (task: Task) => void> {
   const key = steps.join('-');
 
   if (instances.has(key)) {
     return instances.get(key);
   }
 
-  const scheduler = getScheduler(steps);
+  const scheduler = new Scheduler(steps);
   instances.set(key, scheduler);
 
+  // @ts-ignore
   return scheduler;
 }
 

@@ -25,12 +25,12 @@ export class Queue {
   /**
    * Constructor.
    *
-   * @param {number} concurrency Number of tasks running in a single batch.
    * @param {(cb: (...args:unknown[]) => unknown) => unknown} waiter Scheduler for the next batch execution.
+   * @param {number} concurrency Number of tasks running in a single batch.
    */
   constructor(
-    concurrency: number,
     waiter: (cb: (...args: unknown[]) => unknown) => unknown = (cb) => cb(),
+    concurrency = 10,
   ) {
     this.concurrency = concurrency;
     this.waiter = waiter;
