@@ -31,6 +31,7 @@ module.exports = {
         'eslint-config-airbnb-typescript/base',
       ],
       rules: {
+        'import/prefer-default-export': 'off',
         '@typescript-eslint/ban-ts-comment': 'off',
         '@typescript-eslint/indent': 'off',
         '@typescript-eslint/brace-style': 'off',

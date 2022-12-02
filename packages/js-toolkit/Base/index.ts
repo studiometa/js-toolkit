@@ -1,10 +1,14 @@
 /* eslint-disable no-use-before-define */
 import { getComponentElements, getEventTarget } from './utils.js';
-import { ChildrenManager } from './managers/ChildrenManager.js';
-import { RefsManager } from './managers/RefsManager.js';
-import { ServicesManager } from './managers/ServicesManager.js';
-import { EventsManager } from './managers/EventsManager.js';
-import { OptionsManager } from './managers/OptionsManager.js';
+import { features } from './features.js';
+import {
+  ChildrenManager,
+  AsyncChildrenManager,
+  RefsManager,
+  ServicesManager,
+  EventsManager,
+  OptionsManager,
+} from './managers/index.js';
 import { noop, isDev, isFunction, isArray } from '../utils/index.js';
 
 let id = 0;
@@ -57,7 +61,7 @@ export type BaseConstructor<T extends Base = Base> = {
   prototype: Base;
 } & Pick<typeof Base, keyof typeof Base>;
 export type BaseAsyncConstructor<T extends Base = Base> = (
-  Base
+  Base,
 ) => Promise<BaseConstructor<T> | { default: BaseConstructor<T> }>;
 export type BaseOptions = { [name: string]: unknown };
 export type BaseRefs = { [name: string]: HTMLElement | HTMLElement[] };
@@ -242,7 +246,7 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
    */
   get __managers(): Managers {
     return {
-      ChildrenManager,
+      ChildrenManager: features.get('asyncChildren') ? AsyncChildrenManager : ChildrenManager,
       EventsManager,
       OptionsManager,
       RefsManager,

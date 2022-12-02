@@ -11,7 +11,10 @@ import type { Base, BaseConfig } from './index.js';
  * @returns {Array<HTMLElement>}
  *   A list of elements on which the component should be mounted.
  */
-export function getComponentElements(nameOrSelector:string, element:HTMLElement | Document = document):HTMLElement[] {
+export function getComponentElements(
+  nameOrSelector: string,
+  element: HTMLElement | Document = document,
+): HTMLElement[] {
   const selector = `[data-component="${nameOrSelector}"]`;
   let elements = [];
 
@@ -31,21 +34,26 @@ export function getComponentElements(nameOrSelector:string, element:HTMLElement 
 /**
  * Test if an event is defined in the given config.
  */
-export function eventIsDefinedInConfig(event:string, config: BaseConfig):boolean {
+export function eventIsDefinedInConfig(event: string, config: BaseConfig): boolean {
   return isArray(config.emits) && config.emits.includes(event);
 }
 
 /**
  * Test if an event can be used on the given element.
  */
-export function eventIsNative(event:string, element:HTMLElement):boolean {
+export function eventIsNative(event: string, element: HTMLElement): boolean {
   return isDefined(element[`on${event}`]);
 }
 
 /**
  * Get the target of a given event.
+ * @todo Return false in v3 if event is not defined or not native to prevent adding a listener.
  */
-export function getEventTarget(instance:Base, event:string, config:BaseConfig):Base | Base['$el'] {
+export function getEventTarget(
+  instance: Base,
+  event: string,
+  config: BaseConfig,
+): Base | Base['$el'] {
   if (eventIsDefinedInConfig(event, config)) {
     return instance;
   }
@@ -62,5 +70,6 @@ export function getEventTarget(instance:Base, event:string, config:BaseConfig):B
     );
   }
 
+  // @todo v3 return false or null
   return instance;
 }
