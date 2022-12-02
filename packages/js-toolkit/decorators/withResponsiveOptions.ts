@@ -11,9 +11,7 @@ export function withResponsiveOptions<S extends Base>(
   /**
    * Class.
    */
-  class WithResponsiveOptions<
-    T extends BaseProps = BaseProps,
-  > extends BaseClass<T> {
+  class WithResponsiveOptions<T extends BaseProps = BaseProps> extends BaseClass<T> {
     /**
      * Get managers.
      */

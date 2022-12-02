@@ -11,7 +11,7 @@ export interface WithBreakpointObserverProps extends BaseProps {
 }
 
 export interface WithBreakpointObserverInterface extends BaseInterface {
-  $mount():this;
+  $mount(): this;
 }
 
 /**
@@ -56,9 +56,7 @@ function hasBreakpointConfiguration(instance: Base<WithBreakpointObserverProps>)
  * @param  {Base<WithBreakpointObserverProps>} instance A Base class instance.
  * @returns {void}
  */
-function testConflictingBreakpointConfiguration(
-  instance: Base<WithBreakpointObserverProps>,
-): void {
+function testConflictingBreakpointConfiguration(instance: Base<WithBreakpointObserverProps>): void {
   const { activeBreakpoints, inactiveBreakpoints, name } = instance.$options;
   if (activeBreakpoints && inactiveBreakpoints) {
     throw new Error(
@@ -108,7 +106,7 @@ export function withBreakpointObserver<S extends Base>(
     /**
      * Config.
      */
-    static config:BaseConfig = {
+    static config: BaseConfig = {
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithBreakpointObserver`,
       options: {
@@ -121,7 +119,7 @@ export function withBreakpointObserver<S extends Base>(
     /**
      * Watch for the document resize to test the breakpoints.
      */
-    constructor(element:HTMLElement) {
+    constructor(element: HTMLElement) {
       super(element);
 
       const { remove, props } = useResize();
@@ -171,7 +169,7 @@ export function withBreakpointObserver<S extends Base>(
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
      */
-    $mount():this {
+    $mount(): this {
       // Execute normal behavior when no breakpoint configuration given.
       if (!hasBreakpointConfiguration(this)) {
         return super.$mount();
