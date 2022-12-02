@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v2.7.0](https://github.com/studiometa/js-toolkit/compare/2.6.5..2.7.0) (2022-12-02)
+
 ### Added
 
 - Add support for feature flags ([dbb865a](https://github.com/studiometa/js-toolkit/commit/dbb865a))
