@@ -1,6 +1,8 @@
 import { isArray, isDefined, isDev } from '../utils/index.js';
 import type { Base, BaseConfig } from './index.js';
 
+const selectors = new Map();
+
 /**
  * Get a list of elements based on the name of a component.
  *
@@ -15,7 +17,14 @@ export function getComponentElements(
   nameOrSelector: string,
   element: HTMLElement | Document = document,
 ): HTMLElement[] {
-  const selector = `[data-component="${nameOrSelector}"]`;
+  if (!selectors.has(nameOrSelector)) {
+    selectors.set(
+      nameOrSelector,
+      `[data-component="${nameOrSelector}"],[data-component*=",${nameOrSelector},"],[data-component$=",${nameOrSelector}"],[data-component^="${nameOrSelector},"]`,
+    );
+  }
+
+  const selector = selectors.get(nameOrSelector);
   let elements = [];
 
   try {
