@@ -10,9 +10,9 @@ import { animate, easeInOutExpo } from '@studiometa/js-toolkit/utils';
 const animation = animate(
   document.body,
   [
-    { x: 0 }, // from
-    { x: 100, scale: 0.5, opacity: 0.5, easing: [0, 1, 0, 1] },
-    { x: 0 }, // to
+    { x: 0, '--red': 0 }, // from
+    { x: 100, scale: 0.5, opacity: 0.5, '--red': 255, easing: [0, 1, 0, 1] },
+    { x: 0, '--red': 0 }, // to
   ],
   {
     duration: 10,
@@ -27,7 +27,7 @@ animation.start();
 
 - `element` (`HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>`): the target HTML element
 - `keyframes` (`KeyFrame[]`): array of objects describing the key frames of the animation
-  `options` (`Options`): options for the animation
+- `options` (`Options`): options for the animation, see [types](#types) below for more details
 
 ### Return value
 
@@ -71,12 +71,14 @@ import { TransformProps } from '@studiometa/js-toolkit/utils';
 
 type EasingFunction = (value:number) => number;
 type BezierCurve = [number, number, number, number];
+type CSSCustomPropertyName = `--${string}`;
 
 interface KeyFrame extends TransformProps {
   opacity?: number;
   transformOrigin?: string;
   easing?: EasingFunction|BezierCurve;
   offset?: number;
+  [key:CSSCustomPropertyName]: number;
 }
 
 interface Options {
