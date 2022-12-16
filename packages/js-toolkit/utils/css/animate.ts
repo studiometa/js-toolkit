@@ -9,11 +9,14 @@ import type { TransformProps } from './transform.js';
 import type { EasingFunction } from '../math/index.js';
 import type { BezierCurve, TweenOptions } from '../tween.js';
 
+export type CSSCustomPropertyName = `--${string}`;
+
 export type Keyframe = TransformProps & {
   opacity?: number;
   transformOrigin?: string;
   easing?: EasingFunction | BezierCurve;
   offset?: number;
+  [key: CSSCustomPropertyName]: number;
 };
 
 export type NormalizedKeyframe = Keyframe & {
@@ -145,7 +148,7 @@ function render(
       }
       if (customProperties !== false) {
         customProperties.forEach((customProperty) => {
-          element.style.setProperty(customProperty[0], customProperty[1]);
+          element.style.setProperty(customProperty[0], customProperty[1].toString());
         });
       }
       transform(element, props);
