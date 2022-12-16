@@ -41,9 +41,9 @@
         target_class: 'w-full',
         container_class: 'overflow-hidden',
         steps: [
-          { scaleX: 0 },
-          { scaleX: 1, transformOrigin: 'top left' },
-          { scaleX: 0, transformOrigin: 'top right' }
+          { scaleX: 0, '--red': 0 },
+          { scaleX: 1, transformOrigin: 'top left', '--red': 255 },
+          { scaleX: 0, transformOrigin: 'top right', '--red': 0 }
         ]
       } %}
       <!-- BEGIN BreakpointManagerDemo -->
