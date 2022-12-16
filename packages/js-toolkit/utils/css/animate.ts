@@ -19,6 +19,7 @@ export type Keyframe = TransformProps & {
 export type NormalizedKeyframe = Keyframe & {
   easing: EasingFunction;
   offset: number;
+  vars: string[];
 };
 
 export type Animate = {
@@ -116,6 +117,18 @@ function render(
       transformOrigin = '';
     }
 
+    let customProperties: false | [string, number][] = false;
+    if (isDefined(from.vars) && isDefined(to.vars)) {
+      customProperties = from.vars.map((customPropertyName) => {
+        const customPropertyValue = lerp(
+          from[customPropertyName],
+          to[customPropertyName],
+          stepProgress,
+        );
+        return [customPropertyName, customPropertyValue];
+      });
+    }
+
     const props = Object.fromEntries(
       TRANSFORM_PROPS.filter((name) => isDefined(from[name]) || isDefined(to[name])).map((name) => [
         name,
@@ -129,6 +142,11 @@ function render(
       }
       if (transformOrigin !== false) {
         element.style.transformOrigin = transformOrigin;
+      }
+      if (customProperties !== false) {
+        customProperties.forEach((customProperty) => {
+          element.style.setProperty(customProperty[0], customProperty[1]);
+        });
       }
       transform(element, props);
     });
@@ -145,10 +163,11 @@ function singleAnimate(
 ): Animate {
   const keyframesCount = keyframes.length - 1;
   const normalizedKeyframes = keyframes.map(
-    (keyframe, index) => /** @type {NormalizedKeyframe} */ ({
+    (keyframe, index): NormalizedKeyframe => ({
       ...keyframe,
       offset: keyframe.offset ?? index / keyframesCount,
       easing: normalizeEase(keyframe.easing),
+      vars: Object.keys(keyframe).filter((key) => key.startsWith('--')),
     }),
   );
 
