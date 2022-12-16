@@ -1,9 +1,9 @@
 {% set easing = easing|default('easeInOutExpo') %}
 
 {% set steps = steps|default([
-  {},
-  { x: [50, '%'], rotate: 180, scale: 0.5, opacity: 0.5 },
-  { x: [100, '%'], rotate: 360 }
+  { '--red': 0 },
+  { x: [50, '%'], rotate: 180, scale: 0.5, opacity: 0.5, '--red': 255 },
+  { x: [100, '%'], rotate: 360, '--red': 0 }
 ]) %}
 
 {% set target_class = target_class|default('w-1/2') %}
@@ -40,7 +40,7 @@
   </div>
   <div class="w-96 rounded-xl bg-gray-200 {{ container_class }}">
     {% block target %}
-      <div data-ref="target" class="{{ target_class }} h-48 rounded-xl bg-black"></div>
+      <div data-ref="target" style="background-color: rgb(var(--red, 0), 0, 0);" class="{{ target_class }} h-48 rounded-xl bg-black"></div>
     {% endblock %}
   </div>
 </div>
