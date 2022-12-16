@@ -4,12 +4,17 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- **animate:** add support for animating CSS Custom Properties ([#332](https://github.com/studiometa/js-toolkit/pull/332))
+
 ## [v2.7.0](https://github.com/studiometa/js-toolkit/compare/2.6.5..2.7.0) (2022-12-02)
 
 ### Added
 
 - Add support for feature flags ([dbb865a](https://github.com/studiometa/js-toolkit/commit/dbb865a))
 - Add an `AsyncChildrenManager` to improve performance of initial app creation ([#309](https://github.com/studiometa/js-toolkit/pull/309))
+
 ```js
 createApp(App, { features: { asyncChildren: true } });
 ```
