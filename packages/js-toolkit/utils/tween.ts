@@ -6,13 +6,14 @@ import useRaf from '../services/raf.js';
 import type { EasingFunction } from './math/createEases.js';
 
 let id = 0;
-const PROGRESS_PRECISION = 0.01;
+const DEFAULT_PROGRESS_PRECISION = 0.0001;
 
 export type BezierCurve = [number, number, number, number];
 
 export interface TweenOptions {
   duration?: number;
   easing?: EasingFunction | BezierCurve;
+  precision?: number;
   onStart?: () => void;
   onProgress?: (progress: number, easedProgress: number) => void;
   onFinish?: (progress: number, easedProgress: number) => void;
@@ -42,6 +43,7 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
   let progressValue = 0;
   let easedProgress = 0;
 
+  const precision = options.precision ?? DEFAULT_PROGRESS_PRECISION;
   const ease = normalizeEase(options.easing);
   let duration = options.duration ?? 1;
   duration *= 1000;
@@ -75,7 +77,7 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
     easedProgress = ease(progressValue);
 
     // Stop when reaching precision
-    if (Math.abs(1 - easedProgress) < PROGRESS_PRECISION) {
+    if (Math.abs(1 - easedProgress) < precision) {
       progressValue = 1;
       easedProgress = 1;
     }
