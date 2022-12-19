@@ -5,17 +5,17 @@ describe('The `getComponentElements` function', () => {
     const div = document.createElement('div');
     div.innerHTML = `
       <div data-component="Foo"></div>
-      <div data-component="Foo,Bar"></div>
-      <div data-component="Bar,Foo"></div>
-      <div data-component="Bar,Foo,Baz"></div>
+      <div data-component="Foo Bar"></div>
+      <div data-component="Bar Foo"></div>
+      <div data-component="Bar Foo Baz"></div>
       <div data-component="Baz"></div>
+      <!-- The following should not be found -->
+      <div data-component="FooBaz"></div>
+      <div data-component="FooBaz BarFoo"></div>
     `;
 
-    const foo = getComponentElements('Foo', div);
-    const bar = getComponentElements('Bar', div);
-    const baz = getComponentElements('Baz', div);
-    expect(foo).toHaveLength(4);
-    expect(bar).toHaveLength(3);
-    expect(baz).toHaveLength(2);
+    expect(getComponentElements('Foo', div)).toHaveLength(4);
+    expect(getComponentElements('Bar', div)).toHaveLength(3);
+    expect(getComponentElements('Baz', div)).toHaveLength(2);
   });
-})
+});
