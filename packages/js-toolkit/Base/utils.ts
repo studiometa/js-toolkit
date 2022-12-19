@@ -1,6 +1,32 @@
 import { isArray, isDefined, isDev } from '../utils/index.js';
 import type { Base, BaseConfig } from './index.js';
 
+const selectors = new Map();
+
+// Separator used for multi-component declaration in `data-component` attributeS.
+const separator = ' ';
+
+/**
+ * Get the selector for a given component.
+ */
+function getSelector(nameOrSelector: string): string {
+  if (!selectors.has(nameOrSelector)) {
+    const parts = [
+      // Single selector
+      `[data-component="${nameOrSelector}"]`,
+      // Selector in the middle of a list of selectors
+      `[data-component*="${separator}${nameOrSelector}${separator}"]`,
+      // Selector at the end of a list of selectors
+      `[data-component$="${separator}${nameOrSelector}"]`,
+      // Selector at the beginning of a list of selectors
+      `[data-component^="${nameOrSelector}${separator}"]`,
+    ];
+    selectors.set(nameOrSelector, parts.join(','));
+  }
+
+  return selectors.get(nameOrSelector);
+}
+
 /**
  * Get a list of elements based on the name of a component.
  *
@@ -15,7 +41,7 @@ export function getComponentElements(
   nameOrSelector: string,
   element: HTMLElement | Document = document,
 ): HTMLElement[] {
-  const selector = `[data-component="${nameOrSelector}"]`;
+  const selector = getSelector(nameOrSelector);
   let elements = [];
 
   try {
