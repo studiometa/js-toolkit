@@ -43,6 +43,7 @@ export default defineConfig({
       '/api/services/': getApiSidebar({ expanded: 'services' }),
       '/api/decorators/': getApiSidebar({ expanded: 'decorators' }),
       '/api/helpers/': getApiSidebar({ expanded: 'helpers' }),
+      '/api/html/': getApiSidebar({ expanded: 'html' }),
       '/api/': getApiSidebar({ expanded: 'api' }),
       '/utils/': getUtilsSidebar(),
     },
@@ -117,6 +118,12 @@ function getApiSidebar({ expanded = 'api' } = {}) {
       items: expanded === 'api' ? getBaseSidebar() : getBaseSidebar(),
     },
     {
+      text: 'HTML',
+      link: '/api/html/',
+      collapsible: true,
+      items: expanded === 'html' ? getHtmlSidebar() : getHtmlSidebar(),
+    },
+    {
       text: 'Helpers',
       link: '/api/helpers/',
       collapsible: true,
@@ -175,6 +182,14 @@ function getBaseSidebar() {
       text: 'Static methods',
       link: '/api/static-methods.html',
     },
+  ];
+}
+
+function getHtmlSidebar() {
+  return [
+    { text: 'data-component', link: '/api/html/data-component.html' },
+    { text: 'data-ref', link: '/api/html/data-ref.html' },
+    { text: 'data-option-<​name>', link: '/api/html/data-option.html' },
   ];
 }
 

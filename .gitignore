@@ -25,7 +25,7 @@ yarn-error.log*
 # Build files
 dist/
 demo/dist/
-docs/.vuepress/dist/
+/packages/docs/.vitepress/cache
 coverage/
 /full.d.ts
 /index.d.ts
