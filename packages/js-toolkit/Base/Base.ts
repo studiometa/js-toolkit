@@ -231,6 +231,13 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
   }
 
   /**
+   * Small helper to make warning easier.
+   */
+  get $warn(): (...args: unknown[]) => void {
+    return this.__options.log ? window.console.warn.bind(window, `[${this.__config.name}]`) : noop;
+  }
+
+  /**
    * Small helper to debug information.
    */
   get __debug(): (...args: unknown[]) => void {
