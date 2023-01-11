@@ -45,7 +45,7 @@ export default class Component extends Base {
   };
 
   mounted() {
-    this.$warn('Warning !');
+    this.$warn('Warning!'); // [Component-1] Warning!
   }
 }
 ```
