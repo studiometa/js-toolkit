@@ -6,7 +6,9 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
-- **Base:** add support for multiple component declaration in data-component attributes ([#330](https://github.com/studiometa/js-toolkit/pull/330))
+- **Base:**
+  - add support for multiple component declaration in data-component attributes ([#330](https://github.com/studiometa/js-toolkit/pull/330))
+  - add support for refs with prefix ([#339](https://github.com/studiometa/js-toolkit/pull/339))
 - **animate:** add support for animating CSS Custom Properties ([#332](https://github.com/studiometa/js-toolkit/pull/332))
 
 ## [v2.7.0](https://github.com/studiometa/js-toolkit/compare/2.6.5..2.7.0) (2022-12-02)
