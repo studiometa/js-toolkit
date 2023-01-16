@@ -1,7 +1,8 @@
 import { AbstractManager } from './AbstractManager.js';
-import { isDev, isArray, isDefined } from '../../utils/index.js';
+import { isDev, isArray, isDefined, getAncestorWhereUntil } from '../../utils/index.js';
 
 const NORMALIZE_REF_NAME_REGEX = /\[\]$/;
+
 /**
  * Normalize the name of ref.
  */
@@ -12,14 +13,18 @@ export function normalizeRefName(name: string) {
 /**
  * Filter refs belonging to the related Base instance.
  */
-function __filterRefsBelongingToInstance(that: RefsManager, ref: HTMLElement) {
-  let ancestor = ref.parentElement;
+function refBelongToInstance(ref: HTMLElement, rootElement: HTMLElement, name: string) {
+  const isPrefixed = ref.dataset.ref.startsWith(name);
+  const firstComponentAncestor = getAncestorWhereUntil(
+    ref,
+    (el) =>
+      el &&
+      (isPrefixed ? el.dataset.component === name && el : isDefined(el.dataset.component)) &&
+      el !== rootElement,
+    (el) => el === rootElement,
+  );
 
-  while (ancestor && !isDefined(ancestor.dataset.component)) {
-    ancestor = ancestor.parentElement;
-  }
-
-  return ancestor === null || ancestor === that.__element;
+  return firstComponentAncestor === rootElement;
 }
 
 /**
@@ -32,10 +37,13 @@ function __filterRefsBelongingToInstance(that: RefsManager, ref: HTMLElement) {
 function __register(that: RefsManager, refName: string) {
   const isMultiple = refName.endsWith('[]');
   const propName = normalizeRefName(refName);
+  const { name } = that.__base.$options;
 
   const refs = Array.from(
-    that.__element.querySelectorAll<HTMLElement>(`[data-ref="${refName}"]`),
-  ).filter((ref) => __filterRefsBelongingToInstance(that, ref));
+    that.__element.querySelectorAll<HTMLElement>(
+      `[data-ref="${refName}"],[data-ref="${name}.${refName}"]`,
+    ),
+  ).filter((ref) => refBelongToInstance(ref, that.__element, name));
 
   if (isDev && !isMultiple && refs.length > 1) {
     console.warn(
