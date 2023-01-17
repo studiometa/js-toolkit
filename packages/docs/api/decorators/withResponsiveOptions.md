@@ -102,7 +102,7 @@ export default class Component extends withResponsiveOptions(Base) {
 
 Resizing the browser's window from the `l` to `m` then `s` breakpoint will log the following to the console:
 
-```txt
+```
 'l', 'I am the default label'
 'm', 'I am the default label'
 's', 'You are on a small screen'
@@ -125,7 +125,7 @@ With the same breakpoins and component as before, but with a different markup, w
 
 With these attributes, the console will log:
 
-```txt
+```
 'l', 'You are on a large screen'
 'm', 'You are on a medium screen'
 's', 'You are on a small screen'
@@ -147,7 +147,7 @@ Breakpoints can be combined to use the same value multiple times:
 
 The result in the console would be:
 
-```txt
+```
 'l', 'You are on a large screen'
 'm', 'You are on a small or medium screen'
 's', 'You are on a small or medium screen'

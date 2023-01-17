@@ -47,6 +47,7 @@ describe('The `getInstanceFromElement` helper function', () => {
 
   it('should return the closest parent', () => {
     expect(getClosestParent(firstChild, Parent)).toBe(parent);
+    expect(getClosestParent(secondChild, Parent)).not.toBeNull();
     expect(getClosestParent(secondChild, Parent)).toBe(nestedParent);
   });
 

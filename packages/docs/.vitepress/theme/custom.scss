@@ -6,10 +6,16 @@ h3 + h4 {
 
 :root {
   --sidebar-width: 16.4rem;
+  --vp-code-line-height: 1.5;
+  --vp-c-divider-light: var(--vp-c-divider);
 
   @media (min-width: 960px) {
     --sidebar-width: 24rem;
   }
+}
+
+.curtain {
+  display: none !important;
 }
 
 .page.page {
@@ -57,3 +63,4 @@ body {
 .VPHomeHero .text {
   max-width: 12em;
 }
+
