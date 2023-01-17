@@ -1,7 +1,5 @@
 ---
 sidebar: true
-prev: /api/
-next: /decorators/
 ---
 
 # Helpers
