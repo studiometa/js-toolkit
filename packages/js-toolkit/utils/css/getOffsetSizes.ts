@@ -14,7 +14,7 @@ export default function getOffsetSizes(element: HTMLElement) {
   }
 
   const width = element.offsetWidth;
-  const height = element.offsetWidth;
+  const height = element.offsetHeight;
 
   return {
     x,

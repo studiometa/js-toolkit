@@ -1,8 +1,20 @@
-import type { BaseInterface, BaseDecorator } from '../Base/types.js';
-import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
-import type { RafServiceProps, ScrollServiceProps, ResizeServiceProps } from '../services/index.js';
-import { withMountWhenInView } from './withMountWhenInView.js';
-import { damp, clamp, clamp01, getOffsetSizes, isFunction, useScheduler } from '../utils/index.js';
+import type { BaseInterface, BaseDecorator } from '../../Base/types.js';
+import type { Base, BaseProps, BaseConfig } from '../../Base/index.js';
+import type {
+  RafServiceProps,
+  ScrollServiceProps,
+  ResizeServiceProps,
+} from '../../services/index.js';
+import { withMountWhenInView } from '../withMountWhenInView.js';
+import {
+  damp,
+  clamp,
+  clamp01,
+  getOffsetSizes,
+  isFunction,
+  useScheduler,
+} from '../../utils/index.js';
+import { normalizeOffset, getEdges } from './utils.js';
 
 const scheduler = useScheduler(['update', 'render']);
 
@@ -10,6 +22,7 @@ export interface WithScrolledInViewProps extends BaseProps {
   $options: {
     dampFactor: number;
     dampPrecision: number;
+    offset: string;
   };
 }
 
@@ -120,6 +133,10 @@ export function withScrolledInView<S extends Base = Base>(
           type: Number,
           default: 0.001,
         },
+        offset: {
+          type: String,
+          default: 'start end / end start',
+        },
       },
     };
 
@@ -196,7 +213,7 @@ export function withScrolledInView<S extends Base = Base>(
         },
         ticked: () => {
           const dampFactor = this.dampFactor ?? this.$options.dampFactor;
-          const dampPrecision = this.dampFactor ?? this.$options.dampFactor;
+          const dampPrecision = this.dampPrecision ?? this.$options.dampPrecision;
 
           updateProps(this.__props, dampFactor, dampPrecision, 'x');
           updateProps(this.__props, dampFactor, dampPrecision, 'y');
@@ -295,19 +312,28 @@ export function withScrolledInView<S extends Base = Base>(
      * Set the decorator props.
      */
     __setProps() {
-      const sizes = options.useOffsetSizes
+      const targetSizes = options.useOffsetSizes
         ? getOffsetSizes(this.$el)
         : this.$el.getBoundingClientRect();
 
+      targetSizes.y += window.pageYOffset;
+      targetSizes.x += window.pageXOffset;
+
+      const containerSizes = {
+        x: 0,
+        y: 0,
+        height: window.innerHeight,
+        width: window.innerWidth,
+      };
+
+      const offset = normalizeOffset(this.$options.offset);
+
       // Y axis
-      const yEnd = sizes.y + window.pageYOffset + sizes.height;
-      const yStart = yEnd - window.innerHeight - sizes.height;
+      const [yStart, yEnd] = getEdges('y', targetSizes, containerSizes, offset);
       const yCurrent = clamp(window.pageYOffset, yStart, yEnd);
       const yProgress = clamp01((yCurrent - yStart) / (yEnd - yStart));
-
       // X axis
-      const xEnd = sizes.x + window.pageXOffset + sizes.width;
-      const xStart = xEnd - window.innerWidth - sizes.width;
+      const [xStart, xEnd] = getEdges('x', targetSizes, containerSizes, offset);
       const xCurrent = clamp(window.pageXOffset, xStart, xEnd);
       const xProgress = clamp01((xCurrent - xStart) / (xEnd - xStart));
 

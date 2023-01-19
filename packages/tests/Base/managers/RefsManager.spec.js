@@ -67,6 +67,43 @@ describe('The refs resolution', () => {
     expect(app.$refs.bar).toEqual([]);
   });
 
+  it('should resolve nested ref with component’s name prefix', () => {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div>
+        <div data-ref="foo"></div>
+        <div data-component="Component">
+          <div data-ref="App.bar[]"></div>
+        </div>
+      </div>
+    `;
+    const app = new App(div).$mount();
+    expect(app.$refs.bar).toHaveLength(1);
+  });
+
+  it('should not resolve nested ref with component’s name prefix inside nested component', () => {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div>
+        <div data-ref="foo"></div>
+        <div data-direct data-ref="bar[]"></div>
+        <div data-direct data-prefixed data-ref="App.bar[]"></div>
+        <div data-component="Component">
+          <div data-prefixed data-ref="App.bar[]"></div>
+          <div data-component="App">
+            <div data-nested data-ref="App.bar[]"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    const app = new App(div).$mount();
+    expect(app.$refs.bar).toHaveLength(3);
+    expect(app.$refs.bar[0].dataset.direct).toBeDefined();
+    expect(app.$refs.bar[1].dataset.direct).toBeDefined();
+    expect(app.$refs.bar[1].dataset.prefixed).toBeDefined();
+    expect(app.$refs.bar[2].dataset.prefixed).toBeDefined();
+  });
+
   it('should be able to resolve multiple refs as array with a warning', () => {
     const div = document.createElement('div');
     div.innerHTML = `

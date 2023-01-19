@@ -183,5 +183,19 @@ describe('The `animate` utility function', () => {
     expect(animation2.progress()).toBe(1);
   });
 
+  it('should animate CSS custom properties',async () => {
+    const div = document.createElement('div');
+    const animation = animate(div, [{'--var': 0}, {'--var': 1}]);
+    animation.progress(0);
+    await wait();
+    expect(div.style.getPropertyValue('--var')).toBe('0');
+    animation.progress(0.5);
+    await wait();
+    expect(div.style.getPropertyValue('--var')).toBe('0.5');
+    animation.progress(1);
+    await wait();
+    expect(div.style.getPropertyValue('--var')).toBe('1');
+  });
+
   // should be able to specify offset
 });

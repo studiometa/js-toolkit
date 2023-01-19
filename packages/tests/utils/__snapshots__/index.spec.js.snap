@@ -42,6 +42,8 @@ exports[`@studiometa/js-toolkit/utils exports should export all scripts 1`] = `
   "easeOutQuint",
   "easeOutSine",
   "focusTrap",
+  "getAncestorWhere",
+  "getAncestorWhereUntil",
   "getOffsetSizes",
   "hasWindow",
   "historyPush",
