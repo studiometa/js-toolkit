@@ -31,6 +31,8 @@ module.exports = {
           'bg-soft': 'var(--vp-c-bg-soft)',
           'code-block-bg': 'var(--vp-code-block-bg)',
           'c-indigo': 'var(--vp-c-indigo)',
+          'sidebar-bg': 'var(--vp-sidebar-bg-color)',
+          divider: 'var(--vp-c-divider)',
         },
         brand: {
           DEFAULT: '#3eaf7c',
