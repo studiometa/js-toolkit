@@ -26,7 +26,7 @@ export const isObject = (value: unknown): boolean =>
 /**
  * Test if a given value is a number.
  */
-export const isNumber = (value: unknown): value is number => typeof value === 'number';
+export const isNumber = (value: unknown): value is number => typeof value === 'number' && !Number.isNaN(value);
 
 /**
  * Test if a given value is a boolean.
