@@ -1,20 +1,20 @@
-import { parseNamedOffset, getPointWithOffset, normalizeOffset } from '@studiometa/js-toolkit/decorators/withScrolledInView/utils.js';
+import { parseNamedOffset, getEdgeWithOffset, normalizeOffset } from '@studiometa/js-toolkit/decorators/withScrolledInView/utils.js';
 
 describe('The `normalizeOffset` function', () => {
   it('should normalize the offset', () => {
-    expect(normalizeOffset(['start start', 'start start'])).toEqual([
+    expect(normalizeOffset('start start / start start')).toEqual([
       ['start', 'start'],
       ['start', 'start'],
     ]);
-    expect(normalizeOffset(['end end', 'end end'])).toEqual([
+    expect(normalizeOffset('end end / end end')).toEqual([
       ['end', 'end'],
       ['end', 'end'],
     ]);
-    expect(normalizeOffset(['center center', 'center center'])).toEqual([
+    expect(normalizeOffset('center center / center center')).toEqual([
       ['center', 'center'],
       ['center', 'center'],
     ]);
-    expect(normalizeOffset(['0 1', '0 1'])).toEqual([
+    expect(normalizeOffset('0 1 / 0 1')).toEqual([
       ['0', '1'],
       ['0', '1'],
     ]);
@@ -53,50 +53,50 @@ describe('The `parseNamedOffset` function', () => {
   });
 });
 
-describe('The `getPointWithOffset` function', () => {
+describe('The `getEdgeWithOffset` function', () => {
   it('should return the start value if the offset is neither a string nor a number', () => {
-    expect(getPointWithOffset(0, 100, null)).toBe(0);
-    expect(getPointWithOffset(0, 100, undefined)).toBe(0);
-    expect(getPointWithOffset(0, 100, {})).toBe(0);
-    expect(getPointWithOffset(0, 100, [])).toBe(0);
+    expect(getEdgeWithOffset(0, 100, null)).toBe(0);
+    expect(getEdgeWithOffset(0, 100, undefined)).toBe(0);
+    expect(getEdgeWithOffset(0, 100, {})).toBe(0);
+    expect(getEdgeWithOffset(0, 100, [])).toBe(0);
   });
 
   it('should return the given start value if the offset is 0', () => {
-    expect(getPointWithOffset(0, 100, 0)).toBe(0);
-    expect(getPointWithOffset(0, 100, '0')).toBe(0);
-    expect(getPointWithOffset(0, 100, '0%')).toBe(0);
-    expect(getPointWithOffset(0, 100, 'start')).toBe(0);
+    expect(getEdgeWithOffset(0, 100, 0)).toBe(0);
+    expect(getEdgeWithOffset(0, 100, '0')).toBe(0);
+    expect(getEdgeWithOffset(0, 100, '0%')).toBe(0);
+    expect(getEdgeWithOffset(0, 100, 'start')).toBe(0);
   });
 
   it('should return the given start value plus the size if the offset is 1', () => {
-    expect(getPointWithOffset(0, 100, 1)).toBe(100);
-    expect(getPointWithOffset(0, 100, '1')).toBe(100);
-    expect(getPointWithOffset(0, 100, '100%')).toBe(100);
-    expect(getPointWithOffset(0, 100, 'end')).toBe(100);
+    expect(getEdgeWithOffset(0, 100, 1)).toBe(100);
+    expect(getEdgeWithOffset(0, 100, '1')).toBe(100);
+    expect(getEdgeWithOffset(0, 100, '100%')).toBe(100);
+    expect(getEdgeWithOffset(0, 100, 'end')).toBe(100);
   });
 
   it('should return the given start value plus half the size if the offset is 0.5', () => {
-    expect(getPointWithOffset(0, 100, 0.5)).toBe(50);
-    expect(getPointWithOffset(0, 100, '0.5')).toBe(50);
-    expect(getPointWithOffset(0, 100, '50%')).toBe(50);
-    expect(getPointWithOffset(0, 100, 'center')).toBe(50);
+    expect(getEdgeWithOffset(0, 100, 0.5)).toBe(50);
+    expect(getEdgeWithOffset(0, 100, '0.5')).toBe(50);
+    expect(getEdgeWithOffset(0, 100, '50%')).toBe(50);
+    expect(getEdgeWithOffset(0, 100, 'center')).toBe(50);
   });
 
   it('should return the given start value plus the given offset if it is expressed in pixelx', () => {
-    expect(getPointWithOffset(0, 100, '10px')).toBe(10);
-    expect(getPointWithOffset(0, 100, '-10px')).toBe(-10);
+    expect(getEdgeWithOffset(0, 100, '10px')).toBe(10);
+    expect(getEdgeWithOffset(0, 100, '-10px')).toBe(-10);
   });
 
   it('should return the given start value plus the given offset if it is expressed in viewport units', () => {
     window.innerWidth = 1000;
     window.innerHeight = 1000;
-    expect(getPointWithOffset(0, 100, '10vw')).toBe(0.1 * window.innerWidth);
-    expect(getPointWithOffset(0, 100, '-10vw')).toBe(-0.1 * window.innerWidth);
-    expect(getPointWithOffset(0, 100, '10vh')).toBe(0.1 * window.innerHeight);
-    expect(getPointWithOffset(0, 100, '-10vh')).toBe(-0.1 * window.innerHeight);
-    expect(getPointWithOffset(0, 100, '10vmin')).toBe(0.1 * Math.min(window.innerWidth, window.innerHeight));
-    expect(getPointWithOffset(0, 100, '-10vmin')).toBe(-0.1 * Math.min(window.innerWidth, window.innerHeight));
-    expect(getPointWithOffset(0, 100, '10vmax')).toBe(0.1 * Math.max(window.innerWidth, window.innerHeight));
-    expect(getPointWithOffset(0, 100, '-10vmax')).toBe(-0.1 * Math.max(window.innerWidth, window.innerHeight));
+    expect(getEdgeWithOffset(0, 100, '10vw')).toBe(0.1 * window.innerWidth);
+    expect(getEdgeWithOffset(0, 100, '-10vw')).toBe(-0.1 * window.innerWidth);
+    expect(getEdgeWithOffset(0, 100, '10vh')).toBe(0.1 * window.innerHeight);
+    expect(getEdgeWithOffset(0, 100, '-10vh')).toBe(-0.1 * window.innerHeight);
+    expect(getEdgeWithOffset(0, 100, '10vmin')).toBe(0.1 * Math.min(window.innerWidth, window.innerHeight));
+    expect(getEdgeWithOffset(0, 100, '-10vmin')).toBe(-0.1 * Math.min(window.innerWidth, window.innerHeight));
+    expect(getEdgeWithOffset(0, 100, '10vmax')).toBe(0.1 * Math.max(window.innerWidth, window.innerHeight));
+    expect(getEdgeWithOffset(0, 100, '-10vmax')).toBe(-0.1 * Math.max(window.innerWidth, window.innerHeight));
   });
 });
