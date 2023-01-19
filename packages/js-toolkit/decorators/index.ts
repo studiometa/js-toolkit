@@ -6,5 +6,5 @@ export * from './withFreezedOptions.js';
 export * from './withIntersectionObserver.js';
 export * from './withMountWhenInView.js';
 export * from './withResponsiveOptions.js';
-export * from './withScrolledInView.js';
+export * from './withScrolledInView/index.js';
 export * from './withVue2.js';

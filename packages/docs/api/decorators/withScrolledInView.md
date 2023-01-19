@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # withScrolledInView
 
 Use this decorator to create a component with a hook to easily create animation based on the vertical scroll position.
@@ -34,6 +38,45 @@ This decorator uses the [`withMountWhenInView`](./withMountWhenInView.html) deco
 - `BaseConstructor`: A child class of the given class which will be mounted when visible and destroyed when invisible and trigger a `scrolledInView` hook
 
 ## API
+
+### Options
+
+Options available through the HTML API with `data-option-*` attributes.
+
+#### `dampFactor`
+
+- Type: `number`
+- Default: `0.1`
+
+See the [`dampFactor`](#dampFactor-1) instance property below.
+
+#### `dampPrecision`
+
+- Type: `number`
+- Default: `0.001`
+
+See the [`dampPrecision`](#dampPrecision-1) instance property below.
+
+#### `offset`
+
+- Type: `string`
+- Default: `start end / end start`
+
+Defines the limits used to calculate the progress of the scroll. The value is a string composed of two parts separated by a slash (`/`). Each part defines the point on which the progress calculation should be based.
+
+```
+<targetStart> <viewportStart> / <targetEnd> <viewportEnd>
+```
+
+The default value `start end / end start` could be read as : calculate the progress of the target from when the **start** of the target crosses the **end** of the viewport to when the **end** of the target crosses the **start** of the viewport.
+
+Each point accepts the following values:
+
+- A **number** between `0` and `1`
+- A **named string**, either `start`, `end` or `center` which will be mapped to values between `0` and `1`
+- A **string** representing a CSS value with one of the following unit: `%`, `px`, `vw`, `vh`, `vmin`, `vmax`
+
+<PreviewIframe src="./withScrolledInView/demo.html" />
 
 ### Instance properties
 
