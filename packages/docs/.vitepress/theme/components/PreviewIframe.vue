@@ -10,6 +10,11 @@
   const isLoading = ref(true);
   const iframe = ref();
 
+  function onLoad() {
+    isLoading.value = false;
+    iframe.value.contentDocument.documentElement.classList.add('story');
+  }
+
   onMounted(() => {
     const { observe, cleanup } = useObserver((mutations) => {
       mutations
@@ -48,7 +53,7 @@
     <Loader v-if="isLoading" />
     <iframe
       ref="iframe"
-      @load="isLoading = false"
+      @load="onLoad"
       class="block border-0 bg-vp-sidebar-bg transition duration-300"
       :class="{ 'opacity-0': isLoading }"
       :src="src"

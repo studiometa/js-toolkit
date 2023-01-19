@@ -39,7 +39,10 @@ layout: false
 </script>
 
 <style>
-  body { width: 350vw !important; height: auto !important; background: var(--vp-sidebar-bg-color); }
+  .story body {
+    width: 350vw !important;
+    background: var(--vp-sidebar-bg-color);
+  }
 </style>
 
 <div class="z-10 fixed top-1/4 left-0 w-full h-px pl-1 bg-gray-400 dark:bg-gray-600">
