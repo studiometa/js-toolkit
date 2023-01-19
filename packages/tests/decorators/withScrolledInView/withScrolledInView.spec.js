@@ -4,8 +4,8 @@ import {
   beforeAllCallback,
   afterEachCallback,
   mockIsIntersecting,
-} from '../__setup__/mockIntersectionObserver.js';
-import wait from '../__utils__/wait.js';
+} from '../../__setup__/mockIntersectionObserver.js';
+import wait from '../../__utils__/wait.js';
 
 beforeAll(() => beforeAllCallback());
 
