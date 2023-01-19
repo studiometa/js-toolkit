@@ -3,8 +3,10 @@
 Use `data-option-<name>` attributes to configure the options of components from your HTML.
 
 :::tip READ MORE
+
 - [Configuration: `config.options`](/api/configuration.html#config-options)
 - [Guide: managing options](/guide/introduction/managing-options.html)
+
 :::
 
 ## data-option-no-<​name>

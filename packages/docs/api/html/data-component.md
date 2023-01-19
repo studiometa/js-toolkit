@@ -3,8 +3,10 @@
 Use the `data-component` in HTML to bind a JavaScript class to an element.
 
 :::tip READ MORE
+
 - [Configuration: `config.components`](/api/configuration.html#config-components)
 - [Guide: managing components](/guide/introduction/managing-components.html)
+
 :::
 
 ## Simple usage
@@ -34,8 +36,8 @@ export default createApp(App);
 ```html
 <html>
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>App</title>
   </head>
   <body>
@@ -54,8 +56,8 @@ In the following example, both components from our previous app will be mounted 
 ```html
 <html>
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>App</title>
   </head>
   <body>
