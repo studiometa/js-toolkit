@@ -1,4 +1,4 @@
-# withVue2
+# withVue2 <Badge type="warn" vertical="middle" text="deprecated" />
 
 Use this decorator to create a component which will mount on a given `ref` a [`Vue`](https://vuejs.org/v2/guide/) app and update this latter when the component's lifecycle hooks (`mounted`, `updated` and `destroyed`) are fired.
 
