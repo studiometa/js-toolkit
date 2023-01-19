@@ -10,6 +10,12 @@ const units = {
   percent: '%',
 };
 
+const namedOffsets = {
+  start: 0,
+  center: 0.5,
+  end: 1,
+};
+
 /**
  * Normalize offset input.
  */
@@ -27,13 +33,8 @@ export function parseNamedOffset(offset: string | number): string | number {
     return offset;
   }
 
-  switch (offset) {
-    case 'start':
-      return 0;
-    case 'center':
-      return 0.5;
-    case 'end':
-      return 1;
+  if (isNumber(namedOffsets[offset])) {
+    return namedOffsets[offset];
   }
 
   if (isNumber(Number(offset))) {
@@ -41,7 +42,7 @@ export function parseNamedOffset(offset: string | number): string | number {
   }
 
   if (isString(offset) && offset.endsWith(units.percent)) {
-    return parseFloat(offset) / 100;
+    return Number.parseFloat(offset) / 100;
   }
 
   return offset;
@@ -61,26 +62,26 @@ export function getEdgeWithOffset(start: number, size: number, offset: string | 
   }
 
   if (isString(parsedNamedOffset)) {
-    const parsedOffset = parseFloat(parsedNamedOffset);
+    const parsedOffset = Number.parseFloat(parsedNamedOffset);
 
     if (parsedNamedOffset.endsWith(units.px)) {
       return start + parsedOffset;
     }
 
     if (parsedNamedOffset.endsWith(units.vh)) {
-      return start + (parsedOffset * innerHeight) / 100;
+      return start + (parsedOffset * window.innerHeight) / 100;
     }
 
     if (parsedNamedOffset.endsWith(units.vw)) {
-      return start + (parsedOffset * innerWidth) / 100;
+      return start + (parsedOffset * window.innerWidth) / 100;
     }
 
     if (parsedNamedOffset.endsWith(units.vmin)) {
-      return start + (parsedOffset * Math.min(innerWidth, innerHeight)) / 100;
+      return start + (parsedOffset * Math.min(window.innerWidth, window.innerHeight)) / 100;
     }
 
     if (parsedNamedOffset.endsWith(units.vmax)) {
-      return start + (parsedOffset * Math.max(innerWidth, innerHeight)) / 100;
+      return start + (parsedOffset * Math.max(window.innerWidth, window.innerHeight)) / 100;
     }
   }
 

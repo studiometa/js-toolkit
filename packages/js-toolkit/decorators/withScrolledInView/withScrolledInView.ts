@@ -13,17 +13,10 @@ import {
   getOffsetSizes,
   isFunction,
   useScheduler,
-  isNumber,
-  isString,
 } from '../../utils/index.js';
 import { normalizeOffset, getEdges } from './utils.js';
 
 const scheduler = useScheduler(['update', 'render']);
-
-const DEFAULT_OFFSET = [
-  [0, 1],
-  [1, 0],
-];
 
 export interface WithScrolledInViewProps extends BaseProps {
   $options: {
