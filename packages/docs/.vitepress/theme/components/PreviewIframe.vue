@@ -10,7 +10,7 @@
 </script>
 
 <template>
-  <div class="relative my-4 rounded bg-gray-100 overflow-hidden">
+  <div class="relative my-4 rounded bg-gray-100 overflow-hidden" style="height: 60vh; border: 1px solid var(--vp-c-divider);">
     <Loader v-if="isLoading" />
     <iframe
       @load="isLoading = false"
@@ -18,7 +18,7 @@
       :class="{ 'opacity-0': isLoading }"
       :src="src"
       width="100%"
-      style="height: 60vh"
+      style="width: calc(100% * 1.5); height: calc(60vh * 1.5); transform-origin: top left; transform: scale(0.6666)"
     />
   </div>
 </template>
