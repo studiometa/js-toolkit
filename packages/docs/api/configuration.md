@@ -124,7 +124,7 @@ Define the refs of the components by specifying their name in the configuration.
     <li data-ref="otherItems[]">#2</li>
   </ul>
   <!-- Refs can be prefixed by the name of their component (in HTML only)  -->
-  <input data-ref="Component.input" type="text">
+  <input data-ref="Component.input" type="text" />
 </div>
 ```
 

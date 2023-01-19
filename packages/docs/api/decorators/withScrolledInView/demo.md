@@ -42,24 +42,24 @@ layout: false
   body { width: 350vw !important; height: auto !important; background: var(--vp-sidebar-bg-color); }
 </style>
 
-<div class="z-10 fixed top-1/4 left-0 w-full h-px pl-1 bg-red-800">
+<div class="z-10 fixed top-1/4 left-0 w-full h-px pl-1 bg-gray-400 dark:bg-gray-600">
   0.25
 </div>
-<div class="z-10 fixed top-3/4 left-0 w-full h-px pl-1 bg-red-800">
+<div class="z-10 fixed top-3/4 left-0 w-full h-px pl-1 bg-gray-400 dark:bg-gray-600">
   0.75
 </div>
-<div class="z-10 fixed left-1/4 top-0 w-px h-full pt-1 bg-red-800">
+<div class="z-10 fixed left-1/4 top-0 w-px h-full pt-1 bg-gray-400 dark:bg-gray-600">
   &nbsp;0.25
 </div>
-<div class="z-10 fixed left-3/4 top-0 w-px h-full pt-1 bg-red-800">
+<div class="z-10 fixed left-3/4 top-0 w-px h-full pt-1 bg-gray-400 dark:bg-gray-600">
   &nbsp;0.75
 </div>
 
-<div class="absolute top-0 left-0 flex items-center justify-center w-screen h-[75vh]">
+<div class="absolute top-0 left-0 flex items-center justify-center w-screen h-[90vh]">
   Scroll right and/or down.
 </div>
 
-<div class="flex items-center justify-center w-full h-[75vh]">
+<div class="flex items-center justify-center w-full h-[90vh]">
   Scroll down.
 </div>
 <div class="flex items-center justify-between w-full">
@@ -69,7 +69,7 @@ layout: false
   <div class="flex flex-wrap items-center justify-center gap-20">
     <div data-component="ScrolledInViewOffset"
       data-option-offset="start end / end start"
-      class="flex items-center w-48 h-48 text-center rounded bg-red-400">
+      class="flex items-center w-48 h-48 text-center rounded bg-red-400 dark:bg-red-700 dark:bg-opacity-75">
       <div class="w-full">
         <div>
           start end
@@ -84,7 +84,7 @@ layout: false
     </div>
     <div data-component="ScrolledInViewOffset"
       data-option-offset="end end / start start"
-      class="flex items-center w-48 h-48 text-center rounded bg-green-400">
+      class="flex items-center w-48 h-48 text-center rounded bg-green-400 dark:bg-green-700 dark:bg-opacity-75">
       <div class="w-full">
         <div>
           end end
@@ -99,7 +99,7 @@ layout: false
     </div>
     <div data-component="ScrolledInViewOffset"
       data-option-offset="end 0.75 / start 0.25"
-      class="flex items-center w-48 h-48 text-center rounded bg-blue-400">
+      class="flex items-center w-48 h-48 text-center rounded bg-blue-400 dark:bg-blue-700 dark:bg-opacity-75">
       <div class="w-full">
         <div>
           end 0.75
@@ -114,7 +114,7 @@ layout: false
     </div>
     <div data-component="ScrolledInViewOffset"
       data-option-offset="start 0.25 / end 0.75"
-      class="flex items-center w-48 h-48 text-center rounded bg-purple-400">
+      class="flex items-center w-48 h-48 text-center rounded bg-purple-400 dark:bg-purple-700 dark:bg-opacity-75">
       <div class="w-full">
         <div>
           start 0.25
@@ -129,7 +129,7 @@ layout: false
     </div>
     <div data-component="ScrolledInViewOffset"
       data-option-offset="0.5 0.75 / 0.5 0.25"
-      class="flex items-center w-48 h-48 text-center rounded bg-orange-400">
+      class="flex items-center w-48 h-48 text-center rounded bg-orange-400 dark:bg-orange-700 dark:bg-opacity-75">
       <div class="w-full">
         <div>
           0.5 0.75
@@ -144,11 +144,11 @@ layout: false
     </div>
     <div data-component="ScrolledInViewOffset"
       data-option-offset="25px 0.75 / 25px 0.25"
-      class="relative flex items-center w-48 h-48 text-center rounded bg-emerald-400">
-      <div class="absolute top-[25px] left-0 w-full h-px pl-1 bg-red-800 text-left text-sm">
+      class="relative flex items-center w-48 h-48 text-center rounded bg-emerald-400 dark:bg-emerald-700 dark:bg-opacity-75">
+      <div class="absolute top-[25px] left-0 w-full h-px pl-1 bg-gray-400 dark:bg-gray-600 text-left text-sm">
         25px
       </div>
-      <div class="absolute left-[25px] top-0 w-px h-full pt-1 bg-red-800 text-left text-sm">
+      <div class="absolute left-[25px] top-0 w-px h-full pt-1 bg-gray-400 dark:bg-gray-600 text-left text-sm">
         &nbsp;25px
       </div>
       <div class="w-full">
@@ -165,11 +165,11 @@ layout: false
     </div>
     <div data-component="ScrolledInViewOffset"
       data-option-offset="-25px 0.75 / -25px 0.25"
-      class="relative flex items-center w-48 h-48 text-center rounded bg-cyan-400">
-      <div class="absolute top-[-25px] left-0 w-full h-px pl-1 bg-red-800 text-left text-sm">
+      class="relative flex items-center w-48 h-48 text-center rounded bg-cyan-400 dark:bg-cyan-700 dark:bg-opacity-75">
+      <div class="absolute top-[-25px] left-0 w-full h-px pl-1 bg-gray-400 dark:bg-gray-600 text-left text-sm">
         -25px
       </div>
-      <div class="absolute left-[-25px] top-0 w-px h-full pt-1 bg-red-800 text-left text-sm">
+      <div class="absolute left-[-25px] top-0 w-px h-full pt-1 bg-gray-400 dark:bg-gray-600 text-left text-sm">
         &nbsp;-25px
       </div>
       <div class="w-full">
@@ -189,6 +189,6 @@ layout: false
     Scroll left.
   </div>
 </div>
-<div class="flex items-center justify-center w-full h-[75vh]">
+<div class="flex items-center justify-center w-full h-[90vh]">
   Scroll up.
 </div>
