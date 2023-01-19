@@ -16,6 +16,7 @@ import AnimateTest from './components/AnimateTest.js';
 import AnimateScrollTest from './components/AnimateScrollTest.js';
 import AnimateTestMultiple from './components/AnimateTestMultiple.js';
 import ParentNativeEvent from './components/ParentNativeEvent/index.js';
+import ScrolledInViewOffset from './components/ScrolledInViewOffset.js';
 
 let numberOfTick = 0;
 let time = performance.now();
@@ -80,6 +81,7 @@ class App extends Base {
       AnimateScrollTest,
       AnimateTestMultiple,
       ResponsiveOptions,
+      ScrolledInViewOffset,
       TestDeepNested,
       TestManyInstance,
       Accordion: (app) =>
