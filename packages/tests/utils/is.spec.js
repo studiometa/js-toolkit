@@ -22,3 +22,10 @@ Object.entries(is)
       });
     });
   });
+
+describe('The "isNumber" utility function', () => {
+  it('should return false for NaN', () => {
+    expect(is.isNumber(Number.NaN)).toBe(false);
+    expect(is.isNumber(Number('100px'))).toBe(false);
+  });
+})
