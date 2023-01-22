@@ -24,3 +24,4 @@ export * from './noop.js';
 export { tween } from './tween.js';
 export { Queue } from './Queue.js';
 export * from './dom/index.js';
+export * from './wait.js';
