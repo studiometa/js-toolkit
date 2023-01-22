@@ -1,9 +1,7 @@
 /* eslint-disable no-use-before-define */
-import { getComponentElements, getEventTarget } from './utils.js';
-import { features } from './features.js';
+import { getComponentElements, getEventTarget, addToQueue } from './utils.js';
 import {
   ChildrenManager,
-  AsyncChildrenManager,
   RefsManager,
   ServicesManager,
   EventsManager,
@@ -246,7 +244,7 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
    */
   get __managers(): Managers {
     return {
-      ChildrenManager: features.get('asyncChildren') ? AsyncChildrenManager : ChildrenManager,
+      ChildrenManager,
       EventsManager,
       OptionsManager,
       RefsManager,
@@ -339,17 +337,22 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
 
     this.$emit('before-mounted');
 
-    this.$isMounted = true;
     if (isDev) {
       this.__debug('$mount');
     }
-    this.$children.registerAll();
-    this.$refs.registerAll();
-    this.__events.bindRootElement();
-    this.$services.enableAll();
-    this.$children.mountAll();
 
-    this.__callMethod('mounted');
+    [
+      () => this.$children.registerAll(),
+      () => this.$refs.registerAll(),
+      () => this.__events.bindRootElement(),
+      () => this.$services.enableAll(),
+      () => this.$children.mountAll(),
+      // eslint-disable-next-line prettier/prettier
+      () => {
+        this.$isMounted = true;
+      },
+      () => this.__callMethod('mounted'),
+    ].forEach(addToQueue);
 
     return this;
   }
@@ -362,19 +365,19 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       this.__debug('$update');
     }
 
-    // Undo
-    this.$refs.unregisterAll();
-    this.$services.disableAll();
+    [
+      // Undo
+      () => this.$refs.unregisterAll(),
+      () => this.$services.disableAll(),
+      // Redo
+      () => this.$children.registerAll(),
+      () => this.$refs.registerAll(),
+      () => this.$services.enableAll(),
+      // Update
+      () => this.$children.updateAll(),
+      () => this.__callMethod('updated'),
+    ].forEach(addToQueue);
 
-    // Redo
-    this.$children.registerAll();
-    this.$refs.registerAll();
-    this.$services.enableAll();
-
-    // Update
-    this.$children.updateAll();
-
-    this.__callMethod('updated');
     return this;
   }
 
@@ -386,15 +389,21 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       return this;
     }
 
-    this.$isMounted = false;
     if (isDev) {
       this.__debug('$destroy');
     }
-    this.__events.unbindRootElement();
-    this.$refs.unregisterAll();
-    this.$services.disableAll();
-    this.$children.destroyAll();
-    this.__callMethod('destroyed');
+
+    [
+      // eslint-disable-next-line prettier/prettier
+      () => {
+        this.$isMounted = false;
+      },
+      () => this.__events.unbindRootElement(),
+      () => this.$refs.unregisterAll(),
+      () => this.$services.disableAll(),
+      () => this.$children.destroyAll(),
+      () => this.__callMethod('destroyed'),
+    ].forEach(addToQueue);
 
     return this;
   }
@@ -407,14 +416,14 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       this.__debug('$terminate');
     }
 
-    // First, destroy the component.
-    this.$destroy();
-
-    // Execute the `terminated` hook if it exists
-    this.__callMethod('terminated');
-
-    // Delete instance
-    this.$el.__base__.set(this.__ctor, 'terminated');
+    [
+      // First, destroy the component.
+      () => this.$destroy(),
+      // Execute the `terminated` hook if it exists
+      () => this.__callMethod('terminated'),
+      // Delete instance
+      () => this.$el.__base__.set(this.__ctor, 'terminated'),
+    ].forEach(addToQueue);
   }
 
   /**
