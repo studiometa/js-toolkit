@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "demo:dev": "npm run dev --workspace=@studiometa/js-toolkit-demo",
+    "demo:watch": "npm run watch --workspace=@studiometa/js-toolkit-demo",
     "demo:build": "npm run build --workspace=@studiometa/js-toolkit-demo",
     "docs:dev": "npm run dev --workspace=@studiometa/js-toolkit-docs",
     "docs:build": "cd packages/docs && npm install && rm -rf node_modules/.vite && npm run build",
