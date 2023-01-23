@@ -1,4 +1,7 @@
-import { getComponentElements } from '@studiometa/js-toolkit/Base/utils.js';
+import { jest } from '@jest/globals';
+import { getComponentElements, addToQueue } from '@studiometa/js-toolkit/Base/utils.js';
+import { features } from '@studiometa/js-toolkit/Base/features.js';
+import { nextTick } from '@studiometa/js-toolkit/utils';
 
 describe('The `getComponentElements` function', () => {
   it('should find components with multiple declarations', () => {
@@ -17,5 +20,17 @@ describe('The `getComponentElements` function', () => {
     expect(getComponentElements('Foo', div)).toHaveLength(4);
     expect(getComponentElements('Bar', div)).toHaveLength(3);
     expect(getComponentElements('Baz', div)).toHaveLength(2);
+  });
+});
+
+describe('The `addToQueue` function', () => {
+  it('should delay given tasks if the `asyncChildren` feature is enabled', async () => {
+    features.set('asyncChildren', true);
+    const fn = jest.fn();
+
+    addToQueue(fn);
+    expect(fn).not.toHaveBeenCalled();
+    await nextTick();
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 });

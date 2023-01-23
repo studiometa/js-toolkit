@@ -9,13 +9,22 @@ exports[`nextTick method should execute in order 1`] = `
     "end",
   ],
   [
-    "nextMicrotask",
+    "nextMicrotask #1",
   ],
   [
-    "nextTick",
+    "nextMicrotask #2",
   ],
   [
-    "nextFrame",
+    "nextTick #1",
+  ],
+  [
+    "nextTick #2",
+  ],
+  [
+    "nextFrame #1",
+  ],
+  [
+    "nextFrame #2",
   ],
 ]
 `;

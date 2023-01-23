@@ -1,5 +1,24 @@
-import { isArray, isDefined, isDev } from '../utils/index.js';
+import { isArray, isDefined, isDev, SmartQueue } from '../utils/index.js';
 import type { Base, BaseConfig } from './index.js';
+import { features } from './features.js';
+
+let queue: SmartQueue;
+
+/**
+ * Add a task to the main queue.
+ */
+export function addToQueue(fn: () => unknown): void {
+  if (!features.get('asyncChildren')) {
+    fn();
+    return;
+  }
+
+  if (!queue) {
+    queue = new SmartQueue();
+  }
+
+  queue.add(fn);
+}
 
 const selectors = new Map();
 

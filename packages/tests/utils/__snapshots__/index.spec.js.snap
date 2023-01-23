@@ -3,6 +3,7 @@
 exports[`@studiometa/js-toolkit/utils exports should export all scripts 1`] = `
 [
   "Queue",
+  "SmartQueue",
   "addClass",
   "addStyle",
   "animate",
@@ -78,6 +79,7 @@ exports[`@studiometa/js-toolkit/utils exports should export all scripts 1`] = `
   "transition",
   "tween",
   "useScheduler",
+  "wait",
   "withLeadingCharacters",
   "withLeadingSlash",
   "withTrailingCharacters",

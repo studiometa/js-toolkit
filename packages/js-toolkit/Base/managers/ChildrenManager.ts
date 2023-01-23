@@ -1,6 +1,6 @@
 import type { Base, BaseConstructor, BaseAsyncConstructor, BaseEl } from '../index.js';
 import { AbstractManager } from './AbstractManager.js';
-import { getComponentElements } from '../utils.js';
+import { getComponentElements, addToQueue } from '../utils.js';
 
 /**
  * Get a child component's instance.
@@ -88,13 +88,17 @@ function __getChild(
  */
 // eslint-disable-next-line no-use-before-define
 function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' | '$destroy') {
-  that.registeredNames.forEach((name) => {
-    that[name].forEach((instance) => {
-      if (instance instanceof Promise) {
-        instance.then((resolvedInstance) => that.__triggerHook(hook, resolvedInstance, name));
-      } else {
-        that.__triggerHook(hook, instance, name);
-      }
+  addToQueue(() => {
+    that.registeredNames.forEach((name) => {
+      that[name].forEach((instance) => {
+        if (instance instanceof Promise) {
+          instance.then((resolvedInstance) => {
+            addToQueue(() => that.__triggerHook(hook, resolvedInstance, name));
+          });
+        } else {
+          addToQueue(() => that.__triggerHook(hook, instance, name));
+        }
+      });
     });
   });
 }

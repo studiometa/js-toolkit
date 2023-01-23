@@ -1,5 +1,4 @@
 export { AbstractManager } from './AbstractManager.js';
-export { AsyncChildrenManager } from './AsyncChildrenManager.js';
 export { ChildrenManager } from './ChildrenManager.js';
 export { EventsManager } from './EventsManager.js';
 export { OptionsManager } from './OptionsManager.js';
