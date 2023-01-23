@@ -23,5 +23,6 @@ export * from './scheduler.js';
 export * from './noop.js';
 export { tween } from './tween.js';
 export { Queue } from './Queue.js';
+export { SmartQueue } from './SmartQueue.js';
 export * from './dom/index.js';
 export * from './wait.js';
