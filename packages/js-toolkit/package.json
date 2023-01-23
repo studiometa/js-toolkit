@@ -28,7 +28,7 @@
       "default": "./index.ts"
     },
     "./utils": {
-      "import": "./utils/index.js",
+      "import": "./utils/index.ts",
       "require": "./utils/index.cjs",
       "types": "./utils/index.d.ts",
       "default": "./utils/index.js"
