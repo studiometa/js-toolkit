@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "demo:dev": "npm run dev --workspace=@studiometa/js-toolkit-demo",
+    "demo:watch": "npm run watch --workspace=@studiometa/js-toolkit-demo",
     "demo:build": "npm run build --workspace=@studiometa/js-toolkit-demo",
     "docs:dev": "npm run dev --workspace=@studiometa/js-toolkit-docs",
     "docs:build": "cd packages/docs && npm install && rm -rf node_modules/.vite && npm run build",
@@ -37,6 +38,7 @@
     "@typescript-eslint/parser": "^5.45.1",
     "eslint": "^8.30.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-import-resolver-exports": "^1.0.0-beta.4",
     "eslint-plugin-jest": "^27.1.7",
     "prettier": "^2.8.1",
     "typescript": "^4.9.4"

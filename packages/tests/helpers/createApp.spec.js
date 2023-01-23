@@ -1,7 +1,8 @@
 import { jest } from '@jest/globals';
 import { Base } from '@studiometa/js-toolkit';
+import { wait } from '@studiometa/js-toolkit/utils';
 import createApp from '@studiometa/js-toolkit/helpers/createApp';
-import wait from '../__utils__/wait';
+import { features } from '@studiometa/js-toolkit/Base/features.js';
 
 describe('The `createApp` function', () => {
   const fn = jest.fn();
@@ -24,6 +25,13 @@ describe('The `createApp` function', () => {
     expect(fn).toHaveBeenCalledTimes(1);
     const app = await useApp();
     expect(app).toBeInstanceOf(App);
+  });
+
+  it('should instantiate the app on `document.body` if no root element given', async () => {
+    const useApp = createApp(App);
+    await wait(1);
+    const app = await useApp();
+    expect(app.$el).toBe(document.body);
   });
 
   it('should instantiate the app on page load', async () => {
@@ -49,5 +57,15 @@ describe('The `createApp` function', () => {
     await wait(1);
     expect(fn).toHaveBeenCalledTimes(1);
     expect(await app).toBeInstanceOf(App);
+  });
+
+  it('should enable given features', () => {
+    expect(features.get('asyncChildren')).toBe(false);
+    createApp(App, {
+      features: {
+        asyncChildren: true,
+      },
+    });
+    expect(features.get('asyncChildren')).toBe(true);
   });
 });
