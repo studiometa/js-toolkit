@@ -3,11 +3,11 @@
 exports[`A Base instance config should have a working debug method when active in dev mode 1`] = `
 [
   [
-    "[debug] [Foo-37]",
+    "[debug] [Foo-39]",
     "constructor",
     Foo {
       "$el": <div />,
-      "$id": "Foo-37",
+      "$id": "Foo-39",
       "$isMounted": true,
       "$parent": null,
       "__children": ChildrenManager {
@@ -27,22 +27,22 @@ exports[`A Base instance config should have a working debug method when active i
     },
   ],
   [
-    "[debug] [Foo-37]",
+    "[debug] [Foo-39]",
     "$emit",
     "before-mounted",
     [],
   ],
   [
-    "[debug] [Foo-37]",
+    "[debug] [Foo-39]",
     "$mount",
   ],
   [
-    "[debug] [Foo-37]",
+    "[debug] [Foo-39]",
     "callMethod",
     "mounted",
   ],
   [
-    "[debug] [Foo-37]",
+    "[debug] [Foo-39]",
     "$emit",
     "mounted",
     [],

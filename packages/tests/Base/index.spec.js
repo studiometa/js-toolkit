@@ -463,6 +463,37 @@ describe('A Base instance config', () => {
     spy.mockRestore();
   });
 
+  it('should have a working $warn method when active', () => {
+    class Foo extends Base {
+      static config = {
+        name: 'Foo',
+        log: true,
+      };
+    }
+    const spy = jest.spyOn(window.console, 'warn');
+    spy.mockImplementation(() => true);
+    const foo = new Foo(element).$mount();
+    expect(foo.$options.log).toBe(true);
+    foo.$warn('bar');
+    expect(spy).toHaveBeenCalledWith('[Foo]', 'bar');
+    spy.mockRestore();
+  });
+
+  it('should have a silent $warn method when not active', () => {
+    class Foo extends Base {
+      static config = {
+        name: 'Foo',
+        log: false,
+      };
+    }
+    const spy = jest.spyOn(window.console, 'warn');
+    const foo = new Foo(element).$mount();
+    expect(foo.$options.log).toBe(false);
+    foo.$warn('bar');
+    expect(spy).toHaveBeenCalledTimes(0);
+    spy.mockRestore();
+  });
+
   it('should have a working debug method when active in dev mode', () => {
     class Foo extends Base {
       static config = {
