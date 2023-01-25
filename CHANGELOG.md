@@ -10,8 +10,7 @@ All notable changes to this project will be documented in this file. The format 
 - **Base:** add a `$warn()` helper ([#335](https://github.com/studiometa/js-toolkit/pull/335))
 
 ### Fixed
-- **Base**
-  - Improve the async children feature ([#328](https://github.com/studiometa/js-toolkit/pull/328), [79f295f](https://github.com/studiometa/js-toolkit/commit/79f295f))
+- **Base:** fix and improve the async children feature ([#328](https://github.com/studiometa/js-toolkit/pull/328), [79f295f](https://github.com/studiometa/js-toolkit/commit/79f295f))
 
 ### Changed
 - Improve the `nextTick` utility function ([ca35e6b](https://github.com/studiometa/js-toolkit/commit/ca35e6b))
