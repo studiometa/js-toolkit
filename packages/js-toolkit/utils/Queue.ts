@@ -39,9 +39,12 @@ export class Queue {
   /**
    * Add a task to the queue.
    */
-  add(task: (...args: unknown[]) => unknown) {
-    this.tasks.push(task);
+  add(task: () => unknown) {
+    const p = new Promise((resolve) => {
+      this.tasks.push(() => resolve(task()));
+    });
     this.scheduleFlush();
+    return p;
   }
 
   /**
