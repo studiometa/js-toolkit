@@ -27,4 +27,14 @@ describe('The `Queue` class', () => {
     queue.add(spy);
     expect(spy).toHaveBeenCalledTimes(3);
   });
+
+  it('should return a promise when adding a task', async () => {
+    const queue = new Queue(1, nextTick);
+    const spy = jest.fn();
+    const p = queue.add(spy);
+    expect(p).toBeInstanceOf(Promise);
+    expect(spy).toHaveBeenCalledTimes(0);
+    await p;
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
 });
