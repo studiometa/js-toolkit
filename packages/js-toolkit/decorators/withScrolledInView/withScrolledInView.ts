@@ -87,10 +87,9 @@ function updateProps(
 
 export interface WithScrolledInViewInterface extends BaseInterface {
   /**
-   * @private
    * @type {ScrollInViewProps}
    */
-  __props: ScrollInViewProps;
+  readonly props: ScrollInViewProps;
   dampFactor?: number;
   dampPrecision?: number;
   mounted(): void;
@@ -98,10 +97,6 @@ export interface WithScrolledInViewInterface extends BaseInterface {
   scrolled(props: ScrollServiceProps): void;
   ticked(props: RafServiceProps): void;
   destroyed(): void;
-  /**
-   * @private
-   */
-  __setProps(): void;
 }
 
 /**
@@ -167,6 +162,53 @@ export function withScrolledInView<S extends Base = Base>(
       },
     };
 
+    shouldEvaluateProps = true;
+
+    get props() {
+      if (this.shouldEvaluateProps) {
+        this.shouldEvaluateProps = false;
+        const targetSizes = options.useOffsetSizes
+          ? getOffsetSizes(this.$el)
+          : this.$el.getBoundingClientRect();
+
+        targetSizes.y += window.pageYOffset;
+        targetSizes.x += window.pageXOffset;
+
+        const containerSizes = {
+          x: 0,
+          y: 0,
+          height: window.innerHeight,
+          width: window.innerWidth,
+        };
+
+        const offset = normalizeOffset(this.$options.offset);
+
+        // Y axis
+        const [yStart, yEnd] = getEdges('y', targetSizes, containerSizes, offset);
+        const yCurrent = clamp(window.pageYOffset, yStart, yEnd);
+        const yProgress = clamp01((yCurrent - yStart) / (yEnd - yStart));
+        // X axis
+        const [xStart, xEnd] = getEdges('x', targetSizes, containerSizes, offset);
+        const xCurrent = clamp(window.pageXOffset, xStart, xEnd);
+        const xProgress = clamp01((xCurrent - xStart) / (xEnd - xStart));
+
+        this.__props.start.x = xStart;
+        this.__props.start.y = yStart;
+        this.__props.end.x = xEnd;
+        this.__props.end.y = yEnd;
+        this.__props.current.x = xCurrent;
+        this.__props.current.y = yCurrent;
+        this.__props.dampedCurrent.x = xCurrent;
+        this.__props.dampedCurrent.y = yCurrent;
+        this.__props.progress.x = xProgress;
+        this.__props.progress.y = yProgress;
+        this.__props.dampedProgress.x = xProgress;
+        this.__props.dampedProgress.y = yProgress;
+      }
+
+      return this.__props;
+    }
+
     /**
      * Factor used for the `dampedProgress` props.
      * @deprecated
@@ -190,7 +232,7 @@ export function withScrolledInView<S extends Base = Base>(
       const render = () => {
         scheduler.update(() => {
           // @ts-ignore
-          const renderFn = this.__callMethod('scrolledInView', this.__props);
+          const renderFn = this.__callMethod('scrolledInView', this.props);
           if (isFunction(renderFn)) {
             scheduler.render(() => {
               renderFn(this.__props);
@@ -204,7 +246,8 @@ export function withScrolledInView<S extends Base = Base>(
           delegate[event.type](event.detail[0]);
         },
         resized: () => {
-          this.__setProps();
+          this.shouldEvaluateProps = true;
+          render();
         },
         scrolled: (props) => {
           if ((!this.$services.has('ticked') && props.changed.y) || props.changed.x) {
@@ -214,7 +257,6 @@ export function withScrolledInView<S extends Base = Base>(
         ticked: () => {
           const dampFactor = this.dampFactor ?? this.$options.dampFactor;
           const dampPrecision = this.dampPrecision ?? this.$options.dampPrecision;
-
           updateProps(this.__props, dampFactor, dampPrecision, 'x');
           updateProps(this.__props, dampFactor, dampPrecision, 'y');
 
@@ -233,10 +275,6 @@ export function withScrolledInView<S extends Base = Base>(
         this.$on('resized', delegate);
         this.$on('scrolled', delegate);
         this.$on('ticked', delegate);
-      });
-
-      this.$on('mounted', () => {
-        this.__setProps();
       });
 
       this.$on('destroyed', () => {
@@ -306,63 +344,6 @@ export function withScrolledInView<S extends Base = Base>(
         // @ts-ignore
         super.destroyed();
       }
-    }
-
-    /**
-     * Set the decorator props.
-     */
-    __setProps() {
-      const targetSizes = options.useOffsetSizes
-        ? getOffsetSizes(this.$el)
-        : this.$el.getBoundingClientRect();
-
-      targetSizes.y += window.pageYOffset;
-      targetSizes.x += window.pageXOffset;
-
-      const containerSizes = {
-        x: 0,
-        y: 0,
-        height: window.innerHeight,
-        width: window.innerWidth,
-      };
-
-      const offset = normalizeOffset(this.$options.offset);
-
-      // Y axis
-      const [yStart, yEnd] = getEdges('y', targetSizes, containerSizes, offset);
-      const yCurrent = clamp(window.pageYOffset, yStart, yEnd);
-      const yProgress = clamp01((yCurrent - yStart) / (yEnd - yStart));
-      // X axis
-      const [xStart, xEnd] = getEdges('x', targetSizes, containerSizes, offset);
-      const xCurrent = clamp(window.pageXOffset, xStart, xEnd);
-      const xProgress = clamp01((xCurrent - xStart) / (xEnd - xStart));
-
-      this.__props.start.x = xStart;
-      this.__props.start.y = yStart;
-      this.__props.end.x = xEnd;
-      this.__props.end.y = yEnd;
-      this.__props.current.x = xCurrent;
-      this.__props.current.y = yCurrent;
-      this.__props.dampedCurrent.x = damp(
-        xCurrent,
-        this.__props.dampedCurrent.x,
-        this.dampFactor,
-        this.dampPrecision,
-      );
-      this.__props.dampedCurrent.y = damp(
-        yCurrent,
-        this.__props.dampedCurrent.y,
-        this.dampFactor,
-        this.dampPrecision,
-      );
-      this.__props.progress.x = xProgress;
-      this.__props.progress.y = yProgress;
-      this.__props.dampedProgress.x = clamp01(
-        (this.__props.dampedCurrent.x - xStart) / (xEnd - xStart),
-      );
-      this.__props.dampedProgress.y = clamp01(
-        (this.__props.dampedCurrent.y - yStart) / (yEnd - yStart),
-      );
     }
   }
 
