@@ -3,20 +3,20 @@
 exports[`The withScrolledInView decorator should trigger the \`scrolledInView\` hook when in view 1`] = `
 {
   "current": {
-    "x": 600,
-    "y": 600,
+    "x": 2560,
+    "y": 2560,
   },
   "end": {
-    "x": 600,
-    "y": 600,
+    "x": 3160,
+    "y": 3160,
   },
   "progress": {
-    "x": 1,
-    "y": 1,
+    "x": 0.46619217081850534,
+    "y": 0.3087557603686636,
   },
   "start": {
-    "x": -524,
-    "y": -268,
+    "x": 2036,
+    "y": 2292,
   },
 }
 `;
