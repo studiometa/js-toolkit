@@ -25,6 +25,31 @@ export default class Component extends Base {
 }
 ```
 
+## `$warn(...content)`
+
+Can be used to handle a warning to the console when the `instance.$options.log` options is set to true, either via the `config` getter or via the `data-options` attribute.
+
+**Parameters**
+
+- `...args` (`any[]`): The content to warn
+
+**Example**
+
+```js {6,10}
+import { Base } from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+    log: true,
+  };
+
+  mounted() {
+    this.$warn('Warning!'); // [Component-1] Warning!
+  }
+}
+```
+
 ## `$on(event, callback[, options])`
 
 Bind a callback function to an event emitted by the instance. Returns a function to unbind the callback from the event.

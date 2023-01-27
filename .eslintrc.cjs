@@ -7,6 +7,10 @@ module.exports = {
   },
   settings: {
     'import/extensions': ['.js', '.mjs', '.jsx', '.ts', '.mts'],
+    'import/resolver': {
+      typescript: {},
+      exports: {},
+    },
   },
   overrides: [
     {

@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "description": "A set of useful little bits of JavaScript to boost your project! 🚀",
   "publishConfig": {
     "access": "public"
@@ -28,7 +28,7 @@
       "default": "./index.ts"
     },
     "./utils": {
-      "import": "./utils/index.js",
+      "import": "./utils/index.ts",
       "require": "./utils/index.cjs",
       "types": "./utils/index.d.ts",
       "default": "./utils/index.js"

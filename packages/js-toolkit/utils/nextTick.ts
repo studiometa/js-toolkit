@@ -1,4 +1,5 @@
 import { isFunction } from './is.js';
+import { wait } from './wait.js';
 
 /**
  * Wait for the next tick.
@@ -7,9 +8,5 @@ import { isFunction } from './is.js';
 export default async function nextTick<T extends () => any>(
   fn?: T,
 ): Promise<T extends void ? void : ReturnType<T>> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(isFunction(fn) && (fn() as ReturnType<T>));
-    }, 0);
-  });
+  return wait().then(isFunction(fn) && (fn as ReturnType<T>));
 }
