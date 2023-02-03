@@ -57,6 +57,20 @@ export type WithScrolledInViewOptions = IntersectionObserverInit & {
   useOffsetSizes?: boolean;
 };
 
+function updateProgress(
+  props: ScrollInViewProps,
+  axis: 'x' | 'y',
+  progressKey: 'progress' | 'dampedProgress',
+  currentKey: 'current' | 'dampedCurrent',
+) {
+  props[progressKey][axis] =
+    props.start[axis] === props.end[axis]
+      ? 0
+      : clamp01(
+          (props[currentKey][axis] - props.start[axis]) / (props.end[axis] - props.start[axis]),
+        );
+}
+
 /**
  * Update props on tick.
  */
@@ -77,12 +91,8 @@ function updateProps(
     dampFactor,
     dampPrecision,
   );
-  props.progress[axis] = clamp01(
-    (props.current[axis] - props.start[axis]) / (props.end[axis] - props.start[axis]),
-  );
-  props.dampedProgress[axis] = clamp01(
-    (props.dampedCurrent[axis] - props.start[axis]) / (props.end[axis] - props.start[axis]),
-  );
+  updateProgress(props, axis, 'progress', 'current');
+  updateProgress(props, axis, 'dampedProgress', 'dampedCurrent');
 }
 
 export interface WithScrolledInViewInterface extends BaseInterface {
@@ -186,11 +196,11 @@ export function withScrolledInView<S extends Base = Base>(
         // Y axis
         const [yStart, yEnd] = getEdges('y', targetSizes, containerSizes, offset);
         const yCurrent = clamp(window.pageYOffset, yStart, yEnd);
-        const yProgress = clamp01((yCurrent - yStart) / (yEnd - yStart));
+        const yProgress = yStart === yEnd ? 0 : clamp01((yCurrent - yStart) / (yEnd - yStart));
         // X axis
         const [xStart, xEnd] = getEdges('x', targetSizes, containerSizes, offset);
         const xCurrent = clamp(window.pageXOffset, xStart, xEnd);
-        const xProgress = clamp01((xCurrent - xStart) / (xEnd - xStart));
+        const xProgress = xStart === xEnd ? 0 : clamp01((xCurrent - xStart) / (xEnd - xStart));
 
         this.__props.start.x = xStart;
         this.__props.start.y = yStart;
