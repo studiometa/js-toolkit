@@ -66,7 +66,8 @@ const MODES: Record<Uppercase<DragLifecycle>, DragLifecycle> = {
 };
 
 let count = 0;
-const events = ['pointerdown', 'pointerup', 'touchend'];
+const targetEvents = ['pointerdown'];
+const windowEvents = ['pointerup', 'touchend'];
 const passiveEventOptions = { passive: true };
 
 /**
@@ -276,15 +277,21 @@ function createDragService(
       },
     } as DragServiceProps,
     init() {
-      events.forEach((event) => {
+      targetEvents.forEach((event) => {
         target.addEventListener(event, handleEvent, passiveEventOptions);
+      });
+      windowEvents.forEach((event) => {
+        window.addEventListener(event, handleEvent, passiveEventOptions);
       });
       target.addEventListener('dragstart', handleEvent, { capture: true });
       target.addEventListener('click', handleEvent, { capture: true });
     },
     kill() {
-      events.forEach((event) => {
+      targetEvents.forEach((event) => {
         target.removeEventListener(event, handleEvent);
+      });
+      windowEvents.forEach((event) => {
+        window.removeEventListener(event, handleEvent);
       });
       target.removeEventListener('dragstart', handleEvent);
       target.removeEventListener('click', handleEvent);
