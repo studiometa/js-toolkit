@@ -7,7 +7,7 @@ export default function getInstanceFromElement<T extends BaseConstructor>(
   element: BaseEl,
   Constructor: T,
 ): InstanceType<T> | null {
-  if (!element.__base__ || !element.__base__.has(Constructor)) {
+  if (!element || !element.__base__ || !element.__base__.has(Constructor)) {
     return null;
   }
 
