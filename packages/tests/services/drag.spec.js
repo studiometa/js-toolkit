@@ -43,7 +43,7 @@ describe('The drag service', () => {
     // Test double start prevention
     div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
     expect(props().mode).toBe('drag');
-    div.dispatchEvent(createEvent('pointerup'));
+    window.dispatchEvent(createEvent('pointerup'));
     expect(props().mode).toBe('drop');
   });
 
