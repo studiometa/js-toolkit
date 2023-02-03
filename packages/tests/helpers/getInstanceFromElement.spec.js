@@ -7,6 +7,10 @@ describe('The `getInstanceFromElement` helper function', () => {
     };
   }
 
+  it('should return `null` if element not given', () => {
+    expect(getInstanceFromElement(null, Foo)).toBeNull();
+  });
+
   it('should return `null` when instance not found', () => {
     const div = document.createElement('div');
     expect(getInstanceFromElement(div, Foo)).toBeNull();
