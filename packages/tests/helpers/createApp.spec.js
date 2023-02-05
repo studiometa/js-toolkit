@@ -6,18 +6,27 @@ import { features } from '@studiometa/js-toolkit/Base/features.js';
 
 describe('The `createApp` function', () => {
   const fn = jest.fn();
+  const ctorFn = jest.fn();
 
   class App extends Base {
     static config = {
       name: 'App',
     };
 
+    constructor(...args) {
+      super(...args);
+      ctorFn();
+    }
+
     mounted() {
       fn();
     }
   }
 
-  beforeEach(() => fn.mockRestore());
+  beforeEach(() => {
+    fn.mockRestore();
+    ctorFn.mockRestore();
+  });
 
   it('should instantiate the app directly if the page is alreay loaded', async () => {
     const useApp = createApp(App, document.createElement('div'));
@@ -67,5 +76,16 @@ describe('The `createApp` function', () => {
       },
     });
     expect(features.get('asyncChildren')).toBe(true);
+  });
+
+  it('should instantiate directly when the asynChildren feature is enabled', async () => {
+    const useApp = createApp(App, {
+      features: {
+        asyncChildren: true,
+      },
+    });
+    expect(ctorFn).toHaveBeenCalledTimes(1);
+    expect(useApp()).toBeInstanceOf(Promise);
+    expect(await useApp()).toBeInstanceOf(App);
   });
 });
