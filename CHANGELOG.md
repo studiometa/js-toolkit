@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file. The format 
 - **getInstanceFromElement:** fix getting an instance from a falsy element ([#349](https://github.com/studiometa/js-toolkit/pull/349))
 - **withScrolledInView:** fix division by 0 resulting in `NaN` progress value ([#350](https://github.com/studiometa/js-toolkit/pull/350))
 
+### Changed
+
+- **createApp**: improve timing of app instanciation when using the `asyncChildren` feature ([#351](https://github.com/studiometa/js-toolkit/pull/351))
+
 ## [v2.9.0](https://github.com/studiometa/js-toolkit/compare/2.8.0..2.9.0) (2023-01-28)
 
 ### Added
