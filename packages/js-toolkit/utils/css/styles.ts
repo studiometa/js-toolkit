@@ -40,3 +40,13 @@ export function remove(
 ) {
   setStyles(elementOrElements, styles, 'remove');
 }
+
+/**
+ * Push styles to an element.
+ */
+export function push(
+  elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
+  styles: Partial<CSSStyleDeclaration>,
+) {
+  // @todo implement pushing styles on each elementOrElements without overriding existing ones
+}
