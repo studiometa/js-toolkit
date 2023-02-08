@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v2.9.1](https://github.com/studiometa/js-toolkit/compare/2.9.0..2.9.1) (2023-02-08)
+
 ### Fixed
 
 - **useDrag:** listen for drop events on the window instead of the target element ([#348](https://github.com/studiometa/js-toolkit/pull/348))
