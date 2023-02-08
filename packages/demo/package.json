@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-demo",
-  "version": "2.9.0",
+  "version": "2.9.1",
   "private": true,
   "type": "commonjs",
   "scripts": {
@@ -14,9 +14,9 @@
     "@studiometa/tailwind-config": "^2.0.2",
     "@studiometa/ui": "^0.2.23",
     "@studiometa/webpack-config": "^4.1.2",
-    "eslint": "^8.30.0",
-    "postcss": "^8.4.19",
-    "prettier": "^2.8.1",
+    "eslint": "^8.32.0",
+    "postcss": "^8.4.21",
+    "prettier": "^2.8.3",
     "stylefire": "^7.0.3",
     "stylelint": "^14.16.1",
     "tailwindcss": "^3.2.4"

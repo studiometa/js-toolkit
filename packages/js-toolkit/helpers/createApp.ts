@@ -23,31 +23,33 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
       : { root: document.body, ...rootElement };
 
   if (isDefined(options.features)) {
-    Object.entries(options.features).forEach(([feature, value]) => {
+    Object.entries(options.features as Features).forEach(([feature, value]) => {
       features.set(feature as keyof Features, value);
     });
   }
 
-  const p: Promise<S & Base<T>> = new Promise((resolve) => {
-    const callback = () => {
-      setTimeout(() => {
-        app = (new App(options.root) as S & Base<T>).$mount();
-        resolve(app);
-      }, 0);
-    };
+  function init() {
+    app = (new App(options.root) as S & Base<T>).$mount();
+    return app;
+  }
 
-    if (features.get('asyncChildren') || document.readyState === 'complete') {
-      callback();
-    } else {
-      document.addEventListener('readystatechange', () => {
-        if (document.readyState === 'complete') {
-          callback();
-        }
-      });
-    }
-  });
+  let p: Promise<S & Base<T>>;
 
-  return function useApp() {
-    return p;
-  };
+  if (features.get('asyncChildren')) {
+    p = Promise.resolve(init());
+  } else {
+    p = new Promise<S & Base<T>>((resolve) => {
+      if (document.readyState === 'complete') {
+        resolve(init());
+      } else {
+        document.addEventListener('readystatechange', () => {
+          if (document.readyState === 'complete') {
+            resolve(init());
+          }
+        });
+      }
+    });
+  }
+
+  return () => p;
 }
