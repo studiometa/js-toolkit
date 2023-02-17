@@ -83,7 +83,7 @@ export const easeInOutCirc = createEaseInOut(easeInCirc);
  * @returns {number}          Eased value between 0 and 1.
  */
 export function easeInExpo(progress: number) {
-  return 2 ** (10 * (progress - 1));
+  return progress === 0 ? 0 : 2 ** (10 * (progress - 1));
 }
 
 export const easeOutExpo = createEaseOut(easeInExpo);
