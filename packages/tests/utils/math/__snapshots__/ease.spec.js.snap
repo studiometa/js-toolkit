@@ -40,7 +40,7 @@ exports[`ease methods the easeInCubic method should give the correct value 9`] =
 
 exports[`ease methods the easeInCubic method should give the correct value 10`] = `1`;
 
-exports[`ease methods the easeInExpo method should give the correct value 1`] = `0.0009765625`;
+exports[`ease methods the easeInExpo method should give the correct value 1`] = `0`;
 
 exports[`ease methods the easeInExpo method should give the correct value 2`] = `0.002109491677524035`;
 
@@ -338,7 +338,7 @@ exports[`ease methods the easeOutExpo method should give the correct value 8`] =
 
 exports[`ease methods the easeOutExpo method should give the correct value 9`] = `0.9978905083224759`;
 
-exports[`ease methods the easeOutExpo method should give the correct value 10`] = `0.9990234375`;
+exports[`ease methods the easeOutExpo method should give the correct value 10`] = `1`;
 
 exports[`ease methods the easeOutQuad method should give the correct value 1`] = `0`;
 
