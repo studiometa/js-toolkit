@@ -1,6 +1,6 @@
 import type { Base, BaseConstructor } from '../Base/index.js';
 import { getTargetElements } from './utils.js';
-import { isString } from '../utils/index.js';
+import { isString, getComponentResolver } from '../utils/index.js';
 
 /**
  * Import a component on an interaction.
@@ -24,14 +24,7 @@ export default function importOnInteraction<T extends BaseConstructor = BaseCons
 ): Promise<T> {
   const normalizedEvents = isString(events) ? [events] : events;
 
-  let ResolvedClass;
-
-  const resolver = (resolve) => {
-    fn().then((module) => {
-      ResolvedClass = 'default' in module ? module.default : module;
-      resolve(ResolvedClass);
-    });
-  };
+  const resolver = getComponentResolver(fn);
 
   return new Promise((resolve) => {
     const elements = getTargetElements(nameOrSelectorOrElement, parent?.$el);

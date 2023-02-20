@@ -1,4 +1,5 @@
 import type { BaseConstructor } from '../Base/index.js';
+import { getComponentResolver } from '../utils/index.js';
 
 /**
  * Import a component if user does not reduce motion.
@@ -10,14 +11,8 @@ import type { BaseConstructor } from '../Base/index.js';
 export default function importWhenPrefersMotion<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
 ): Promise<T> {
-  let ResolvedClass;
+  const resolver = getComponentResolver(fn);
 
-  const resolver = (resolve) => {
-    fn().then((module) => {
-      ResolvedClass = 'default' in module ? module.default : module;
-      resolve(ResolvedClass);
-    });
-  };
   return new Promise((resolve) => {
     const { matches } = window.matchMedia('not (prefers-reduced-motion)');
 

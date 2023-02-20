@@ -1,6 +1,6 @@
 import type { Base, BaseConstructor } from '../Base/index.js';
 import { getTargetElements } from './utils.js';
-import { isFunction } from '../utils/index.js';
+import { getComponentResolver } from '../utils/index.js';
 
 /**
  * Import a component when it is visible.
@@ -22,18 +22,7 @@ export default function importWhenVisible<T extends BaseConstructor = BaseConstr
   parent?: Base,
   observerOptions: IntersectionObserverInit = {},
 ): Promise<T> {
-  let ResolvedClass;
-
-  const resolver = (resolve, cb) => {
-    fn().then((module) => {
-      ResolvedClass = 'default' in module ? module.default : module;
-      resolve(ResolvedClass);
-
-      if (isFunction(cb)) {
-        cb();
-      }
-    });
-  };
+  const resolver = getComponentResolver(fn);
 
   return new Promise((resolve) => {
     const observer = new IntersectionObserver((entries) => {

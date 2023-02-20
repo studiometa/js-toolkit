@@ -1,4 +1,5 @@
 import type { BaseConstructor } from '../Base/index.js';
+import { getComponentResolver } from '../utils';
 
 /**
  * Import a component when given media query is true.
@@ -14,14 +15,7 @@ export default function importOnMediaQuery<T extends BaseConstructor = BaseConst
   fn: () => Promise<T | { default: T }>,
   media: string,
 ): Promise<T> {
-  let ResolvedClass;
-
-  const resolver = (resolve) => {
-    fn().then((module) => {
-      ResolvedClass = 'default' in module ? module.default : module;
-      resolve(ResolvedClass);
-    });
-  };
+  const resolver = getComponentResolver(fn);
 
   return new Promise((resolve) => {
     const mediaQueryList = window.matchMedia(media);
@@ -30,8 +24,10 @@ export default function importOnMediaQuery<T extends BaseConstructor = BaseConst
       if (event.matches) {
         setTimeout(() => {
           // Remove listener and mount the component
-          mediaQueryList.removeEventListener('change', changeHandler);
-          resolver(resolve);
+          resolver(
+            resolve,
+            () => mediaQueryList.removeEventListener('change', changeHandler),
+          );
         }, 0);
       }
     };
