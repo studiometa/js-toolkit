@@ -2,7 +2,6 @@
 
 Use this function to import components when the user accepts motion.
 
-
 ## Usage
 
 ```js

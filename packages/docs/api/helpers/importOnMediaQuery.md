@@ -2,7 +2,6 @@
 
 Use this function to import components according to a specified [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/@media#media_features).
 
-
 ## Usage
 
 ```js{6}
