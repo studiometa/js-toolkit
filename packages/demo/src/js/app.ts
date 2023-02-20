@@ -7,7 +7,6 @@ import {
   importOnInteraction,
   withBreakpointObserver,
   withExtraConfig,
-  importOnMedia,
   importOnMediaQuery,
 } from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils';
