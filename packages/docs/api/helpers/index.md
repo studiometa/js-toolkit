@@ -19,3 +19,5 @@ Some components might not need to be imported and instantiated immediately on pa
 - [importOnInteraction](./importOnInteraction.html)
 - [importWhenIdle](./importWhenIdle.html)
 - [importWhenVisible](./importWhenVisible.html)
+- [importOnMediaQuery](./importOnMediaQuery.html)
+- [importWhenPrefersMotion](./importWhenPrefersMotion.html)

@@ -9,4 +9,6 @@ Decorators are used to add extra functionalities to a Base class. The following 
 - [withFreezedOptions](./withFreezedOptions.html)
 - [withIntersectionObserver](./withIntersectionObserver.html)
 - [withMountWhenInView](./withMountWhenInView.html)
+- [withMountOnMediaQuery](./withMountOnMediaQuery.html)
+- [withMountWhenPrefersMotion](./withMountWhenPrefersMotion.html)
 - [withVue2](./withVue2.html)
