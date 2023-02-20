@@ -10,10 +10,10 @@ export default class MediaQueryDemo extends withMountOnMediaQuery(
   };
 
   mounted() {
-    this.$log('mounted');
+    this.$log('Mounted! The user accepts motion.');
   }
 
   destroyed() {
-    this.$log('destroyed');
+    this.$log('Destroyed! The user prefers reduced motion.');
   }
 }
