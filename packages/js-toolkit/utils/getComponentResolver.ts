@@ -1,13 +1,12 @@
-import { isFunction } from './index.js';
+import { isFunction } from './is.js';
 
 /**
  * Default component resolver
  *
- * @param fn
- * @returns
+ * @param {Function} fn
+ * @returns {Function}
  */
 export default function getComponentResolver(fn) {
-  console.log('getComponentResolver');
   return (resolve, cb?: () => unknown) => {
     fn().then((module) => {
       const ResolvedClass = 'default' in module ? module.default : module;
