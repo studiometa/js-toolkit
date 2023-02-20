@@ -12,10 +12,6 @@ export interface withMountOnMediaQueryInterface extends BaseInterface {
    * @private
    */
   __matches: boolean;
-  /**
-   * @private
-   */
-  __mediaQueryList: MediaQueryList;
   $mount(): this;
 }
 
@@ -51,12 +47,6 @@ export function withMountOnMediaQuery<S extends Base = Base>(
      __matches = false;
 
     /**
-     * The component's MediaQueryList object.
-     * @private
-     */
-    __mediaQueryList: MediaQueryList;
-
-    /**
      * Listen for media query changes when the class in instantiated.
      *
      * @param {HTMLElement} element The component's root element.
@@ -69,10 +59,10 @@ export function withMountOnMediaQuery<S extends Base = Base>(
         return;
       }
 
-      this.__mediaQueryList = window.matchMedia(this.$options.media || media);
+     const mediaQueryList = window.matchMedia(this.$options.media || media);
 
       // Set initial value
-      this.__matches = this.__mediaQueryList.matches;
+      this.__matches = mediaQueryList.matches;
 
       if (this.__matches) {
         this.$mount();
@@ -91,10 +81,10 @@ export function withMountOnMediaQuery<S extends Base = Base>(
       };
 
       // Start listening for changes
-      this.__mediaQueryList.addEventListener('change', changeHandler);
+      mediaQueryList.addEventListener('change', changeHandler);
 
       this.$on('terminated', () => {
-        this.__mediaQueryList.removeEventListener('change', changeHandler);
+        mediaQueryList.removeEventListener('change', changeHandler);
       });
     }
 

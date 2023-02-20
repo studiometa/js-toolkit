@@ -22,13 +22,21 @@ export default function importOnMediaQuery<T extends BaseConstructor = BaseConst
       resolve(ResolvedClass);
     });
   };
-  return new Promise((resolve) => {
-    const { matches } = window.matchMedia(media);
 
-    if (matches) {
-      setTimeout(() => {
-        resolver(resolve);
-      }, 0);
-    }
+  return new Promise((resolve) => {
+    const mediaQueryList = window.matchMedia(media);
+
+    const changeHandler = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setTimeout(() => {
+          // Remove listener and mount the component
+          mediaQueryList.removeEventListener('change', changeHandler);
+          resolver(resolve);
+        }, 0);
+      }
+    };
+
+    // Start listening for changes
+    mediaQueryList.addEventListener('change', changeHandler);
   });
 }
