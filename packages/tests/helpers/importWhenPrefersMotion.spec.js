@@ -54,8 +54,8 @@ describe('The `importWhenPrefersMotion` lazy import helper', () => {
 
   it('should not import a component when user prefers reduced motion', async () => {
     const fn = jest.fn();
-    const mediaQuery = '(prefers-reduced-motion)';
-    matchMedia.useMediaQuery(mediaQuery);
+    const mediaQuery = 'not (prefers-reduced-motion)';
+    matchMedia.useMediaQuery('(prefers-reduced-motion)');
 
     const div = html`<div>
         <div data-component="Component"></div>
@@ -72,7 +72,7 @@ describe('The `importWhenPrefersMotion` lazy import helper', () => {
 
     new AppOverride(div).$mount();
     await wait(0);
-    expect(fn).toHaveBeenCalledTimes(1);
-    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
+    expect(fn).toHaveBeenCalledTimes(0);
+    expect(div.firstElementChild.__base__).toBeUndefined();
   });
 });
