@@ -9,7 +9,7 @@ import { isFunction } from './is.js';
 export default function getComponentResolver(fn) {
   return (resolve, cb?: () => unknown) => {
     fn().then((module) => {
-      const ResolvedClass = 'default' in module ? module.default : module;
+      const ResolvedClass = module.default ?? module;
       resolve(ResolvedClass);
 
       if (isFunction(cb)) {

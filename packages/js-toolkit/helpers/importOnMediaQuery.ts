@@ -20,14 +20,15 @@ export default function importOnMediaQuery<T extends BaseConstructor = BaseConst
   return new Promise((resolve) => {
     const mediaQueryList = window.matchMedia(media);
 
+    if (mediaQueryList.matches) {
+      resolver(resolve);
+    }
+
     const changeHandler = (event: MediaQueryListEvent) => {
       if (event.matches) {
         setTimeout(() => {
           // Remove listener and mount the component
-          resolver(
-            resolve,
-            () => mediaQueryList.removeEventListener('change', changeHandler),
-          );
+          resolver(resolve, () => mediaQueryList.removeEventListener('change', changeHandler));
         }, 0);
       }
     };

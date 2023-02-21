@@ -1,11 +1,15 @@
 import { Base, withMountOnMediaQuery } from '@studiometa/js-toolkit';
-import { mockMatchMediaPositive, mockMatchMediaNegative } from '../__setup__/mockMediaQuery.js';
+import MatchMediaMock from 'jest-matchmedia-mock';
 
-class Foo extends withMountOnMediaQuery(Base, 'not (prefers-reduced-motion)') {
+const mediaQuery = 'not (prefers-reduced-motion)';
+
+class Foo extends withMountOnMediaQuery(Base, mediaQuery) {
   static config = {
     name: 'Foo',
   };
 }
+
+let matchMedia;
 
 function mountComponent() {
   const div = document.createElement('div');
@@ -16,14 +20,23 @@ function mountComponent() {
 }
 
 describe('The withMountOnMediaQuery decorator', () => {
+  beforeAll(() => {
+    // eslint-disable-next-line new-cap
+    matchMedia = new MatchMediaMock.default();
+  });
+
+  afterEach(() => {
+    matchMedia.clear();
+  });
+
   it('should mount the component when user prefers motion', () => {
-    mockMatchMediaPositive();
+    matchMedia.useMediaQuery(mediaQuery);
     const instance = mountComponent();
     expect(instance.$isMounted).toBe(true);
   });
 
   it('should not mount the component when user prefers reduced motion', () => {
-    mockMatchMediaNegative();
+    matchMedia.useMediaQuery('(prefers-reduced-motion)');
     const instance = mountComponent();
     expect(instance.$isMounted).toBe(false);
   });
