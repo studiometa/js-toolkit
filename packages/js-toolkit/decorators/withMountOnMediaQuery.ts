@@ -44,7 +44,7 @@ export function withMountOnMediaQuery<S extends Base = Base>(
      * Is the media query matches?
      * @private
      */
-     __matches = false;
+    __matches = false;
 
     /**
      * Listen for media query changes when the class in instantiated.
@@ -55,11 +55,13 @@ export function withMountOnMediaQuery<S extends Base = Base>(
       super(element);
 
       if (!this.$options.media && !media) {
-        this.$log('Missing either "$options.media" or "media" argument in withMountOnMediaQuery decorator.');
+        this.$log(
+          'Missing either "$options.media" or "media" argument in withMountOnMediaQuery decorator.',
+        );
         return;
       }
 
-     const mediaQueryList = window.matchMedia(this.$options.media || media);
+      const mediaQueryList = window.matchMedia(this.$options.media || media);
 
       // Set initial value
       this.__matches = mediaQueryList.matches;
