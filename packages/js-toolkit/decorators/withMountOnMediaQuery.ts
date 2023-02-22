@@ -1,5 +1,6 @@
 import { BaseInterface, BaseDecorator } from '../Base/types.js';
 import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
+import { isDev } from '../utils/is.js';
 
 export interface withMountOnMediaQueryProps extends BaseProps {
   $options: {
@@ -54,8 +55,8 @@ export function withMountOnMediaQuery<S extends Base = Base>(
     constructor(element: HTMLElement) {
       super(element);
 
-      if (!this.$options.media && !media) {
-        this.$log(
+      if (isDev && !this.$options.media && !media) {
+        this.$warn(
           'Missing either "$options.media" or "media" argument in withMountOnMediaQuery decorator.',
         );
         return;
@@ -66,18 +67,18 @@ export function withMountOnMediaQuery<S extends Base = Base>(
       // Set initial value
       this.__matches = mediaQueryList.matches;
 
-      if (this.__matches) {
+      if (this.__matches && !this.$isMounted) {
         this.$mount();
-      } else {
+      } else if (this.$isMounted) {
         setTimeout(() => this.$destroy());
       }
 
       const changeHandler = (event: MediaQueryListEvent) => {
         this.__matches = event.matches;
 
-        if (event.matches) {
+        if (event.matches && !this.$isMounted) {
           this.$mount();
-        } else {
+        } else if (this.$isMounted) {
           setTimeout(() => this.$destroy());
         }
       };
