@@ -67,12 +67,6 @@ export function withMountOnMediaQuery<S extends Base = Base>(
       // Set initial value
       this.__matches = mediaQueryList.matches;
 
-      if (this.__matches && !this.$isMounted) {
-        this.$mount();
-      } else if (this.$isMounted) {
-        setTimeout(() => this.$destroy());
-      }
-
       const changeHandler = (event: MediaQueryListEvent) => {
         this.__matches = event.matches;
 
