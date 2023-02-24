@@ -8,10 +8,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
-- Add a **importOnMediaQuery** helper function to import a component based on a provided media query. ([#241](https://github.com/studiometa/js-toolkit/pull/313))
-- Add a **importWhenPrefersMotion** helper function to import a component when user accepts motion. ([#241](https://github.com/studiometa/js-toolkit/pull/313))
-- Add a **withMountOnMediaQuery** decorator that mounts a component based on a provided media query. ([#241](https://github.com/studiometa/js-toolkit/pull/313))
-- Add a **withMountWhenPrefersMotion** decorator that mounts a component when user accepts motion. ([#241](https://github.com/studiometa/js-toolkit/pull/313))
+- Add an `importOnMediaQuery` helper function to import a component based on a provided media query ([#313](https://github.com/studiometa/js-toolkit/pull/313))
+- Add an `importWhenPrefersMotion` helper function to import a component when the user accepts motion ([#313](https://github.com/studiometa/js-toolkit/pull/313))
+- Add a `withMountOnMediaQuery` decorator that mounts a component based on a provided media query ([#313](https://github.com/studiometa/js-toolkit/pull/313))
+- Add a `withMountWhenPrefersMotion` decorator that mounts a component when the user accepts motion ([#313](https://github.com/studiometa/js-toolkit/pull/313))
 
 ## [v2.9.1](https://github.com/studiometa/js-toolkit/compare/2.9.0..2.9.1) (2023-02-08)
 
