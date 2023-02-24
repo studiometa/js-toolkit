@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file. The format 
 
 - **easeInExpo**: fix the expo easing functions never reaching 0 or 1 ([#353](https://github.com/studiometa/js-toolkit/pull/353))
 
+### Added
+
+- Add a **importOnMediaQuery** helper function to import a component based on a provided media query. ([#241](https://github.com/studiometa/js-toolkit/pull/313))
+- Add a **importWhenPrefersMotion** helper function to import a component when user accepts motion. ([#241](https://github.com/studiometa/js-toolkit/pull/313))
+- Add a **withMountOnMediaQuery** decorator that mounts a component based on a provided media query. ([#241](https://github.com/studiometa/js-toolkit/pull/313))
+- Add a **withMountWhenPrefersMotion** decorator that mounts a component when user accepts motion. ([#241](https://github.com/studiometa/js-toolkit/pull/313))
+
 ## [v2.9.1](https://github.com/studiometa/js-toolkit/compare/2.9.0..2.9.1) (2023-02-08)
 
 ### Fixed
