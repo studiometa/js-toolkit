@@ -1,4 +1,5 @@
 import type { BaseConstructor } from '../Base/index.js';
+import { getComponentResolver } from '../utils/index.js';
 
 type ImportWhenIdleOptions = {
   timeout?: number;
@@ -18,14 +19,7 @@ export default function importWhenIdle<T extends BaseConstructor = BaseConstruct
   fn: () => Promise<T | { default: T }>,
   { timeout = 1 }: ImportWhenIdleOptions = {},
 ): Promise<T> {
-  let ResolvedClass;
-
-  const resolver = (resolve) => {
-    fn().then((module) => {
-      ResolvedClass = 'default' in module ? module.default : module;
-      resolve(ResolvedClass);
-    });
-  };
+  const resolver = getComponentResolver(fn);
 
   return new Promise((resolve) => {
     if (!('requestIdleCallback' in window)) {
