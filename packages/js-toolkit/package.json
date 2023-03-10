@@ -42,7 +42,7 @@
   ],
   "dependencies": {
     "@motionone/easing": "^10.15.1",
-    "deepmerge": "^4.2.2"
+    "deepmerge": "^4.3.0"
   },
   "peerDependencies": {
     "vue": "^2.6"
