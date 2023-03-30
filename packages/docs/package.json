@@ -5,11 +5,17 @@
   "private": true,
   "scripts": {
     "dev": "vitepress dev .",
-    "build": "vitepress build ."
+    "build": "vitepress build .",
+    "postbuild": "npm run pagefind",
+    "pagefind": "npm run pagefind:prepare && npm run pagefind:create && npm run pagefind:clean",
+    "pagefind:prepare": "find .vitepress/dist -name '*.html' | xargs sed -i bak 's/<main class=\"main\" /<main data-pagefind-body class=\"main\" /'",
+    "pagefind:create": "pagefind --source .vitepress/dist",
+    "pagefind:clean": "find .vitepress/dist -name '*.htmlbak' -exec rm {} +"
   },
   "dependencies": {
     "@bytebase/vue-kbar": "^0.1.8",
     "@studiometa/tailwind-config": "^2.0.2",
+    "pagefind": "^0.12.0",
     "tailwindcss": "^3.2.7",
     "vitepress": "^1.0.0-alpha.51"
   }

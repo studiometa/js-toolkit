@@ -11,7 +11,11 @@ export default defineConfig({
   description:
     'The JS Toolkit by Studio Meta is a JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.',
   lastUpdated: true,
-  head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
+  head: [
+    ['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }],
+    ['link', { rel: 'stylesheet', href: '/_pagefind/pagefind-ui.css' }],
+    ['script', { type: 'text/javascript', src: '/_pagefind/pagefind-ui.js' }],
+  ],
   themeConfig: {
     logo: '/logo.png',
     version: pkg.version,
