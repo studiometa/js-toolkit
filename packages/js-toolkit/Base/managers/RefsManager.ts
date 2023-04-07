@@ -7,7 +7,17 @@ const NORMALIZE_REF_NAME_REGEX = /\[\]$/;
  * Normalize the name of ref.
  */
 export function normalizeRefName(name: string) {
-  return name.endsWith('[]') ? name.replace(NORMALIZE_REF_NAME_REGEX, '') : name;
+  let nameFormatted = name;
+
+  if (name.endsWith('[]')) {
+    nameFormatted = nameFormatted.replace(NORMALIZE_REF_NAME_REGEX, '');
+  }
+
+  if (nameFormatted.includes('.')) {
+    return nameFormatted.split('.').pop();
+  }
+
+  return nameFormatted;
 }
 
 /**
