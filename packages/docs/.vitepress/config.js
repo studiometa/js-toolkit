@@ -25,6 +25,9 @@ export default defineConfig({
       message: 'MIT Licensed',
       copyright: 'Copyright © 2020–present Studio Meta',
     },
+    search: {
+      provider: 'local',
+    },
     socialLinks: [{ icon: 'github', link: 'https://github.com/studiometa/js-toolkit' }],
     nav: [
       { text: 'Guide', link: '/guide/' },

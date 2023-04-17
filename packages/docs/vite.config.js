@@ -39,7 +39,6 @@ export default defineConfig({
       '@studiometa/js-toolkit/utils': path.resolve('../js-toolkit/utils/index.ts'),
       '@studiometa/js-toolkit': path.resolve('../js-toolkit/index.ts'),
       './VPNavBarTitle.vue': path.resolve('.vitepress/theme/components/NavBarTitle.vue'),
-      './VPNavBarSearch.vue': path.resolve('.vitepress/theme/components/SearchBtn.vue'),
     },
   },
 });
