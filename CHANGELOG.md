@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v2.10.0](https://github.com/studiometa/js-toolkit/compare/2.9.1..2.10.0) (2023-04-17)
+
 - **easeInExpo**: fix the expo easing functions never reaching 0 or 1 ([#353](https://github.com/studiometa/js-toolkit/pull/353))
 
 ### Added
