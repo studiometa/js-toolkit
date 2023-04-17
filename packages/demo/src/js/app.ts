@@ -7,6 +7,7 @@ import {
   importOnInteraction,
   withBreakpointObserver,
   withExtraConfig,
+  importOnMediaQuery,
 } from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
@@ -17,6 +18,7 @@ import AnimateScrollTest from './components/AnimateScrollTest.js';
 import AnimateTestMultiple from './components/AnimateTestMultiple.js';
 import ParentNativeEvent from './components/ParentNativeEvent/index.js';
 import ScrolledInViewOffset from './components/ScrolledInViewOffset.js';
+import MediaQueryDemo from './components/MediaQueryDemo.js';
 
 let numberOfTick = 0;
 let time = performance.now();
@@ -79,6 +81,14 @@ class App extends Base {
       ParentNativeEvent,
       AnimateTest,
       AnimateScrollTest,
+      AnimateScrollTestMedia: () =>
+        importOnMediaQuery(
+          async () => {
+            const AnimateScrollTest = await import('./components/AnimateScrollTest');
+            return AnimateScrollTest;
+          },
+          'not (prefers-reduced-motion)',
+        ),
       AnimateTestMultiple,
       ResponsiveOptions,
       ScrolledInViewOffset,
@@ -159,6 +169,7 @@ class App extends Base {
         ),
       ScrollToDemo,
       Parallax,
+      MediaQueryDemo,
     },
   };
 

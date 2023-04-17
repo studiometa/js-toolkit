@@ -20,8 +20,6 @@ This example demonstrate the usage of the [`scrolled` service](/api/methods-hook
 
   let scrollLinkedAnimations;
   onMounted(async () => {
-    document.documentElement.classList.add('story');
-
     const { default: ScrollLinkedAnimation } = await import('./ScrollLinkedAnimation.js');
     await nextTick();
     scrollLinkedAnimations = ScrollLinkedAnimation.$factory('ScrollLinkedAnimation');

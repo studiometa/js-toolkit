@@ -105,7 +105,7 @@ export default class Component extends withIntersectionObserver(Base, {
 }
 ```
 
-Or at the instance level in the `data-option-intersection-observer` attribute of the rool element:
+Or at the instance level in the `data-option-intersection-observer` attribute of the root element:
 
 ```html{3-5}
 <div

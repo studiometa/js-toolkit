@@ -5,3 +5,5 @@ export { default as getInstanceFromElement } from './getInstanceFromElement.js';
 export { default as importOnInteraction } from './importOnInteraction.js';
 export { default as importWhenIdle } from './importWhenIdle.js';
 export { default as importWhenVisible } from './importWhenVisible.js';
+export { default as importOnMediaQuery } from './importOnMediaQuery.js';
+export { default as importWhenPrefersMotion } from './importWhenPrefersMotion';
