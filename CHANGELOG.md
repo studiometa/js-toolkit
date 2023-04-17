@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
-- **easeInExpo**: fix the expo easing functions never reaching 0 or 1 ([#353](https://github.com/studiometa/js-toolkit/pull/353))
+## [v2.10.0](https://github.com/studiometa/js-toolkit/compare/2.9.1..2.10.0) (2023-04-17)
 
 ### Added
 
@@ -13,15 +13,16 @@ All notable changes to this project will be documented in this file. The format 
 - Add a `withMountOnMediaQuery` decorator that mounts a component based on a provided media query ([#313](https://github.com/studiometa/js-toolkit/pull/313))
 - Add a `withMountWhenPrefersMotion` decorator that mounts a component when the user accepts motion ([#313](https://github.com/studiometa/js-toolkit/pull/313))
 
+### Fixed
+
+- **easeInExpo**: fix the expo easing functions never reaching 0 or 1 ([#353](https://github.com/studiometa/js-toolkit/pull/353))
+- Fix doc layout being broken on some pages ([3c88cbc](https://github.com/studiometa/js-toolkit/commit/3c88cbc))
+
 ### Changed
 
 - Use VitePress native local search ([84d3e44](https://github.com/studiometa/js-toolkit/commit/84d3e44))
 - Change Vue from a dev to a peer dependency ([ecffe63](https://github.com/studiometa/js-toolkit/commit/ecffe63))
 - Update NPM dependencies ([#355](https://github.com/studiometa/js-toolkit/pull/355), [#358](https://github.com/studiometa/js-toolkit/pull/358), [5701a4c](https://github.com/studiometa/js-toolkit/commit/5701a4c), [d0bfa0c](https://github.com/studiometa/js-toolkit/commit/d0bfa0c))
-
-### Fixed
-
-- Fix doc layout being broken on some pages ([3c88cbc](https://github.com/studiometa/js-toolkit/commit/3c88cbc))
 
 ## [v2.9.1](https://github.com/studiometa/js-toolkit/compare/2.9.0..2.9.1) (2023-02-08)
 
