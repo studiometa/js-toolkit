@@ -25,6 +25,9 @@ export default defineConfig({
       message: 'MIT Licensed',
       copyright: 'Copyright © 2020–present Studio Meta',
     },
+    search: {
+      provider: 'local',
+    },
     socialLinks: [{ icon: 'github', link: 'https://github.com/studiometa/js-toolkit' }],
     nav: [
       { text: 'Guide', link: '/guide/' },
@@ -217,6 +220,8 @@ function getDecoratorsSidebar() {
     { text: 'withResponsiveOptions', link: '/api/decorators/withResponsiveOptions.html' },
     { text: 'withScrolledInView', link: '/api/decorators/withScrolledInView.html' },
     { text: 'withVue2', link: '/api/decorators/withVue2.html' },
+    { text: 'withMountOnMediaQuery', link: '/api/decorators/withMountOnMediaQuery.html' },
+    { text: 'withMountWhenPrefersMotion', link: '/api/decorators/withMountWhenPrefersMotion.html' },
   ];
 }
 
@@ -229,6 +234,8 @@ function getHelpersSidebar() {
     { text: 'importOnInteraction', link: '/api/helpers/importOnInteraction.html' },
     { text: 'importWhenIdle', link: '/api/helpers/importWhenIdle.html' },
     { text: 'importWhenVisible', link: '/api/helpers/importWhenVisible.html' },
+    { text: 'importOnMediaQuery', link: '/api/helpers/importOnMediaQuery.html' },
+    { text: 'importWhenPrefersMotion', link: '/api/helpers/importWhenPrefersMotion.html' },
     { text: 'isDirectChild', link: '/api/helpers/isDirectChild.html' },
   ];
 }

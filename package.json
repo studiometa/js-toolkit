@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-workspace",
-  "version": "2.9.1",
+  "version": "2.10.0",
   "private": true,
   "workspaces": [
     "packages/*"
@@ -10,7 +10,7 @@
     "demo:watch": "npm run watch --workspace=@studiometa/js-toolkit-demo",
     "demo:build": "npm run build --workspace=@studiometa/js-toolkit-demo",
     "docs:dev": "npm run dev --workspace=@studiometa/js-toolkit-docs",
-    "docs:build": "cd packages/docs && npm install && rm -rf node_modules/.vite && npm run build",
+    "docs:build": "npm run build --workspace=@studiometa/js-toolkit-docs",
     "test": "npm run test --workspace=@studiometa/js-toolkit-tests",
     "lint": "npm run lint:eslint && npm run lint:types && npm run lint:docs",
     "lint:eslint": "eslint packages/js-toolkit --ext=.js,.ts",
@@ -24,28 +24,26 @@
     "build:cp-files": "cp packages/js-toolkit/package.json dist/ && sed -i '' 's/index\\.ts/index\\.js/' dist/package.json && cat dist/package.json && cp LICENSE dist/ && cp README.md dist",
     "build:types": "tsc --build tsconfig.build.json",
     "build:pkg": "node scripts/build.js",
-    "build-for-export-size": "node scripts/add-utils-export.js && rm -rf dist && npm run build:pkg && npm run build:cp-files",
-    "postinstall": "patch-package"
+    "build-for-export-size": "node scripts/add-utils-export.js && rm -rf dist && npm run build:pkg && npm run build:cp-files"
   },
   "devDependencies": {
     "@studiometa/eslint-config": "^3.1.1",
     "@studiometa/prettier-config": "^2.1.1",
     "@studiometa/stylelint-config": "^3.0.0",
     "@types/estree": "^1.0.0",
-    "@types/jest": "^29.4.0",
-    "@types/node": "^18.11.18",
-    "@typescript-eslint/eslint-plugin": "^5.49.0",
-    "@typescript-eslint/parser": "^5.49.0",
-    "eslint": "^8.32.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^18.15.11",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "eslint": "^8.37.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
-    "eslint-import-resolver-exports": "^1.0.0-beta.4",
+    "eslint-import-resolver-exports": "^1.0.0-beta.5",
     "eslint-plugin-jest": "^27.2.1",
-    "prettier": "^2.8.3",
-    "typescript": "^4.9.4"
+    "prettier": "^2.8.7",
+    "typescript": "^4.9.5"
   },
   "dependencies": {
     "esbuild": "^0.15.18",
-    "fast-glob": "^3.2.12",
-    "patch-package": "^6.5.1"
+    "fast-glob": "^3.2.12"
   }
 }

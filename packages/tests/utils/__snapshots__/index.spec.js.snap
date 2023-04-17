@@ -45,6 +45,7 @@ exports[`@studiometa/js-toolkit/utils exports should export all scripts 1`] = `
   "focusTrap",
   "getAncestorWhere",
   "getAncestorWhereUntil",
+  "getComponentResolver",
   "getOffsetSizes",
   "hasWindow",
   "historyPush",
