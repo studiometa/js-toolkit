@@ -20,6 +20,8 @@
     "fix": "npm run fix:docs && npm run fix:md",
     "fix:docs": "prettier --write 'packages/docs/**/*.{md,js,html,vue}'",
     "fix:md": "prettier --write '*.md'",
+    "version": "npm version -ws --include-workspace-root",
+    "postversion": "node scripts/update-version.js",
     "build": "rm -rf dist && npm run build:pkg && npm run build:types && npm run build:cp-files",
     "build:cp-files": "cp packages/js-toolkit/package.json dist/ && sed -i '' 's/index\\.ts/index\\.js/' dist/package.json && cat dist/package.json && cp LICENSE dist/ && cp README.md dist",
     "build:types": "tsc --build tsconfig.build.json",

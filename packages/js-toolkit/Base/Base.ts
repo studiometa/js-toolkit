@@ -104,6 +104,11 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
   static readonly $isBase = true as const;
 
   /**
+   * Package version.
+   */
+  static readonly $version = __VERSION__;
+
+  /**
    * The instance parent.
    */
   $parent: T['$parent'] & Base = null;

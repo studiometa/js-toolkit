@@ -10,6 +10,8 @@ const entryPoints = glob.sync(
 );
 
 const outdir = path.resolve(__dirname, '../dist');
+// eslint-disable-next-line import/no-dynamic-require
+const pkg = require(path.resolve(__dirname, '../package.json'));
 
 const defaultOptions = {
   entryPoints,
@@ -17,6 +19,9 @@ const defaultOptions = {
   outdir,
   target: 'esnext',
   sourcemap: true,
+  define: {
+    __VERSION__: `"${pkg.version}"`,
+  },
 };
 
 /**
