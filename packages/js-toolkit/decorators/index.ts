@@ -9,4 +9,4 @@ export * from './withResponsiveOptions.js';
 export * from './withScrolledInView/index.js';
 export * from './withVue2.js';
 export * from './withMountOnMediaQuery.js';
-export * from './withMountWhenPrefersMotion';
+export * from './withMountWhenPrefersMotion.js';
