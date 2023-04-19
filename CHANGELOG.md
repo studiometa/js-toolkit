@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v2.10.2](https://github.com/studiometa/js-toolkit/compare/2.10.1..2.10.2) (2023-04-19)
+
+### Fixed
+
+- Fix missing extension throwing error in ESM ([3c08d58](https://github.com/studiometa/js-toolkit/commit/3c08d58))
+
 ## [v2.10.1](https://github.com/studiometa/js-toolkit/compare/2.10.0..2.10.1) (2023-04-19)
 
 ### Fixed
