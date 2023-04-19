@@ -1,5 +1,5 @@
 import type { BaseConstructor } from '../Base/index.js';
-import { getComponentResolver } from '../utils';
+import { getComponentResolver } from '../utils/index.js';
 
 /**
  * Import a component when given media query is true.
