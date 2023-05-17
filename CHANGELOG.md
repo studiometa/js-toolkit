@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v2.10.3](https://github.com/studiometa/js-toolkit/compare/2.10.2..2.10.3) (2023-05-17)
+
+### Changed
+
+- Loosen the Vue version constraint ([da22e8a](https://github.com/studiometa/js-toolkit/commit/da22e8a))
+
 ## [v2.10.2](https://github.com/studiometa/js-toolkit/compare/2.10.1..2.10.2) (2023-04-19)
 
 ### Fixed
