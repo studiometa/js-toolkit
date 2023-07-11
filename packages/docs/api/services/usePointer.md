@@ -1,6 +1,6 @@
 # Pointer service
 
-The pointer service will help you manage your cursor. It merges the mouse and touch `move`, `up` and `down` events.
+The pointer service will help you manage your cursor. It merges the mouse and touch `move`, `up` and `down` events. If the `usePointer` function is given an `HTMLElement`, the positionnal props (`x`, `y`, etc.) will be relative to this element sizes. By default, positions are based on the viewport's sizes.
 
 ## Usage
 
@@ -22,6 +22,14 @@ console.log(props());
 // Remove the callback
 remove('custom-id');
 ```
+
+## Parameters
+
+### `target`
+
+- Type : `HTMLElement | undefined`
+
+The target element to use to compute the positionnal props.
 
 ## Props
 
@@ -70,13 +78,13 @@ The difference between the last position and the current one.
 The position on both axis mapped to a `0` to `1` range.
 
 ::: tip Examples
-If the cursor is in the **middle of the viewport**, the value of this prop will be:
+If the cursor is in the **middle of the viewport or the target element**, the value of this prop will be:
 
 ```js
 { x: 0.5, y: 0.5 }
 ```
 
-If the cursor is in the **top left corner of the viewport**, the value of this prop will be:
+If the cursor is in the **top left corner of the viewport or the target element**, the value of this prop will be:
 
 ```js
 { x: 0, y: 0 }
@@ -89,4 +97,4 @@ If the cursor is in the **top left corner of the viewport**, the value of this p
 - Type: `Object`
 - Interface: `{ x: number, y: number }`
 
-The maximum value the pointer can reach. It will always be `window.innerWidth` and `window.innerHeight`.
+The maximum value the pointer can reach. The values of `window.innerWidth` and `window.innerHeight` by default, the widht and height of the element when the service is used with a target element.
