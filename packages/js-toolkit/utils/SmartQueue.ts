@@ -5,6 +5,7 @@ import nextTick from './nextTick.js';
  * A task is considered long if it blocks the main thread for more thant 50ms.
  * By using 40ms as a limit, we make the bet that we can avoid long running
  * tasks by dispatching small tasks smartly.
+ *
  * @see https://developer.mozilla.org/en-US/docs/Glossary/Long_task
  */
 const LONG_TASK_DURATION = 40;

@@ -10,11 +10,13 @@ export interface LoadServiceProps {
 
 /**
  * Get load service.
+ *
  * @returns {LoadService}
  */
 function createLoadService() {
   /**
    * Trigger on load
+   *
    * @returns {void}
    */
   function onLoad() {

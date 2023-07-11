@@ -17,6 +17,7 @@ export function withFreezedOptions<S extends Base>(
   class WithFreezedOptions<T extends BaseProps = BaseProps> extends BaseClass<T> {
     /**
      * Hold freezed options
+     *
      * @private
      */
     __freezedOptions;

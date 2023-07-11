@@ -43,6 +43,7 @@ function testBreakpoints(
 
 /**
  * Test if the given instance is configured for breakpoints.
+ *
  * @param  {Base<WithBreakpointObserverProps>} instance A Base class instance.
  * @returns {boolean} True if configured correctly, false otherwise.
  */
@@ -53,6 +54,7 @@ function hasBreakpointConfiguration(instance: Base<WithBreakpointObserverProps>)
 
 /**
  * Test if the given instance has a conflicting configuration for breakpoints.
+ *
  * @param  {Base<WithBreakpointObserverProps>} instance A Base class instance.
  * @returns {void}
  */
@@ -67,6 +69,7 @@ function testConflictingBreakpointConfiguration(instance: Base<WithBreakpointObs
 
 /**
  * Add the current instance to the resize service.
+ *
  * @param {string} key      The key for the resize service callback.
  * @param {Base}   instance The instance to observe.
  */

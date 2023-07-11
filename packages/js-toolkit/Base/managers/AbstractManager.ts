@@ -40,6 +40,7 @@ export class AbstractManager {
 
   /**
    * Prevent a list of properties from being enumerable and writable.
+   *
    * @param   {string[]} properties
    * @returns {void}
    */

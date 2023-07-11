@@ -3,6 +3,7 @@ import { hasWindow } from './has.js';
 
 /**
  * RequestAnimation frame polyfill.
+ *
  * @see  https://github.com/vuejs/vue/blob/ec78fc8b6d03e59da669be1adf4b4b5abf670a34/dist/vue.runtime.esm.js#L7355
  */
 // eslint-disable-next-line @typescript-eslint/ban-types

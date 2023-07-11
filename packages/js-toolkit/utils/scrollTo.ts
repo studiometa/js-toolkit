@@ -2,6 +2,7 @@ import damp from './math/damp.js';
 
 /**
  * Handler for the click event on anchor links
+ *
  * @returns {Promise<number>} A promising resolving with the target scroll position.
  */
 export default function scrollTo(
@@ -54,6 +55,7 @@ export default function scrollTo(
 
     /**
      * Scroll animation's loop
+     *
      * @returns {void|number}
      */
     function loop() {
@@ -73,6 +75,7 @@ export default function scrollTo(
 
     /**
      * Start the scroll animation
+     *
      * @param {number} target The target scroll
      */
     function start(target) {
