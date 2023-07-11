@@ -93,6 +93,8 @@ function createPointerService(target: HTMLElement | undefined): PointerService {
 
   /**
    * Handle events.
+   *
+   * @todo handle scroll as well
    */
   function handleEvent(event: MouseEvent | TouchEvent) {
     // eslint-disable-next-line default-case
