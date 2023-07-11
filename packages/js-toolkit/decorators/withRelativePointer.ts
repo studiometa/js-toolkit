@@ -8,7 +8,7 @@ export type RelativePointerDecoratorOptions = {
 };
 
 export interface RelativePointerInterface extends BaseInterface {
-  movedRelatively?(props: PointerServiceProps): void;
+  movedrelative?(props: PointerServiceProps): void;
 }
 
 /**
@@ -17,13 +17,11 @@ export interface RelativePointerInterface extends BaseInterface {
 export function withRelativePointer<S extends Base>(
   BaseClass: typeof Base,
   { target = (instance) => instance.$el }: RelativePointerDecoratorOptions = {},
-): BaseDecorator<BaseInterface, S> {
+): BaseDecorator<RelativePointerInterface, S> {
   /**
    * Class.
    */
-  class WithRelativePointer<T extends BaseProps = BaseProps> extends BaseClass<
-    T & RelativePointerInterface
-  > {
+  class WithRelativePointer<T extends BaseProps = BaseProps> extends BaseClass<T> {
     /**
      * Config.
      */
