@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Changed
+
+- Update dependencies ([#378](https://github.com/studiometa/js-toolkit/pull/378))
+
 ## [v2.10.3](https://github.com/studiometa/js-toolkit/compare/2.10.2..2.10.3) (2023-05-17)
 
 ### Changed

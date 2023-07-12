@@ -35,9 +35,9 @@ export function normalizeName(name: string): string {
     names.set(
       name,
       name
-        .replace(normalizeRegex1, (c) => c.toLowerCase())
-        .replace(normalizeRegex2, ' ')
-        .replace(normalizeRegex3, (c) => c.trim().toUpperCase())
+        .replaceAll(normalizeRegex1, (c) => c.toLowerCase())
+        .replaceAll(normalizeRegex2, ' ')
+        .replaceAll(normalizeRegex3, (c) => c.trim().toUpperCase())
         .trim(),
     );
   }
@@ -60,7 +60,7 @@ export function normalizeEventName(name: string): string {
     eventNames.set(
       name,
       name
-        .replace(normalizeEventRegex1, (c) => `-${c.toLowerCase()}`)
+        .replaceAll(normalizeEventRegex1, (c) => `-${c.toLowerCase()}`)
         .replace(normalizeEventRegex2, ''),
     );
   }
@@ -225,6 +225,7 @@ function manageRootElement(that: EventsManager, mode: 'add' | 'remove' = 'add') 
 
 /**
  * Event management class.
+ *
  * @todo Prevent binding of `onChildOrRefEvent` to the root element
  * @todo Use event delegation?
  */

@@ -13,6 +13,7 @@ let id = 0;
 
 /**
  * Test if the managers' instances implement the default manager.
+ *
  * @throws
  */
 function createAndTestManagers(instance: Base): void {
