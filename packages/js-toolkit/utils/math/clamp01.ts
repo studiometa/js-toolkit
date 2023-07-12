@@ -2,6 +2,7 @@ import clamp from './clamp.js';
 
 /**
  * Clamp a value in the 0–1 range.
+ *
  * @param {number} value
  * @returns {number}
  */

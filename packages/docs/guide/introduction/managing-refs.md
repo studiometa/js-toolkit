@@ -132,6 +132,7 @@ Visit the [Working with events](/guide/introduction/working-with-events.html) se
 
 By default, refs are resolved within the component's scope determined by the `data-component` attribute. In the following example, the parent component will only have one element in its `this.$refs.items` property.
 
+<!-- prettier-ignore-start -->
 ```html
 <div data-component="Parent"> <─────────┐
   <div data-ref="items[]">direct</div> ─┘
@@ -140,6 +141,7 @@ By default, refs are resolved within the component's scope determined by the `da
   </div>
 </div>
 ```
+<!-- prettier-ignore-end -->
 
 ```js
 import { Base } from '@studiometa/js-toolkit';
@@ -167,6 +169,7 @@ class Parent extends Base {
 
 If you need to access to nested refs, you can prefix the refs name with the component's name as defined in the static `config` property of the class.
 
+<!-- prettier-ignore-start -->
 ```html {4}
 <div data-component="Parent"> <─────────┐────────┐
   <div data-ref="items[]">direct</div> ─┘        │
@@ -175,6 +178,7 @@ If you need to access to nested refs, you can prefix the refs name with the comp
   </div>
 </div>
 ```
+<!-- prettier-ignore-end -->
 
 ```js
 import { Base } from '@studiometa/js-toolkit';
@@ -204,6 +208,8 @@ class Parent extends Base {
 
 :::warning Nested refs and nested components
 The resolution scope of nested refs will be limited in case of nested components.
+
+<!-- prettier-ignore-start -->
 ```html
 <div data-component="Parent"> <─────────┐
   <div data-ref="items[]">direct</div> ─┘
@@ -214,4 +220,6 @@ The resolution scope of nested refs will be limited in case of nested components
   </div>
 </div>
 ```
+<!-- prettier-ignore-end -->
+
 :::

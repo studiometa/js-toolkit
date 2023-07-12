@@ -9,6 +9,7 @@ export interface HistoryOptions {
 
 /**
  * Set a param in a URLSearchParam instance.
+ *
  * @param   {URLSearchParams}                    params The params to update.
  * @param   {string}                             name   The name of the param to update.
  * @param   {string|number|boolean|Array|Object} value  The value for this param.
@@ -66,6 +67,7 @@ export function objectToURLSearchParams(
 
 /**
  * Update the history with a new state.
+ *
  * @param   {string}         mode
  * @param   {HistoryOptions} options
  * @param   {Object}         [data]
