@@ -30,6 +30,7 @@ exports[`The package exports should export helpers and the Base class 1`] = `
   "withMountOnMediaQuery",
   "withMountWhenInView",
   "withMountWhenPrefersMotion",
+  "withRelativePointer",
   "withResponsiveOptions",
   "withScrolledInView",
   "withVue2",

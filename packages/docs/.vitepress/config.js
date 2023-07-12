@@ -216,12 +216,13 @@ function getDecoratorsSidebar() {
     { text: 'withExtraConfig', link: '/api/decorators/withExtraConfig.html' },
     { text: 'withFreezedOptions', link: '/api/decorators/withFreezedOptions.html' },
     { text: 'withIntersectionObserver', link: '/api/decorators/withIntersectionObserver.html' },
+    { text: 'withMountOnMediaQuery', link: '/api/decorators/withMountOnMediaQuery.html' },
     { text: 'withMountWhenInView', link: '/api/decorators/withMountWhenInView.html' },
+    { text: 'withMountWhenPrefersMotion', link: '/api/decorators/withMountWhenPrefersMotion.html' },
+    { text: 'withRelativePointer', link: '/api/decorators/withRelativePointer.html' },
     { text: 'withResponsiveOptions', link: '/api/decorators/withResponsiveOptions.html' },
     { text: 'withScrolledInView', link: '/api/decorators/withScrolledInView.html' },
     { text: 'withVue2', link: '/api/decorators/withVue2.html' },
-    { text: 'withMountOnMediaQuery', link: '/api/decorators/withMountOnMediaQuery.html' },
-    { text: 'withMountWhenPrefersMotion', link: '/api/decorators/withMountWhenPrefersMotion.html' },
   ];
 }
 

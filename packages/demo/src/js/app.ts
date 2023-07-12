@@ -19,6 +19,7 @@ import AnimateTestMultiple from './components/AnimateTestMultiple.js';
 import ParentNativeEvent from './components/ParentNativeEvent/index.js';
 import ScrolledInViewOffset from './components/ScrolledInViewOffset.js';
 import MediaQueryDemo from './components/MediaQueryDemo.js';
+import PointerProps from './components/PointerProps.js';
 
 let numberOfTick = 0;
 let time = performance.now();
@@ -78,6 +79,7 @@ class App extends Base {
     refs: ['modal'],
     log: true,
     components: {
+      PointerProps,
       ParentNativeEvent,
       AnimateTest,
       AnimateScrollTest,
