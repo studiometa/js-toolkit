@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v2.11.1](https://github.com/studiometa/js-toolkit/compare/2.11.0..2.11.1) (2023-07-13)
+
+### Changed
+
+- Update `package-lock.json` ([0eac343](https://github.com/studiometa/js-toolkit/commit/0eac3438fedcd72a3500fdfc14494dc07ef93f46))
+- Bump node version in CI ([8100481](https://github.com/studiometa/js-toolkit/commit/8100481cac3e44cf7533964a8a3fb82786f788e5))
+
 ## [v2.11.0](https://github.com/studiometa/js-toolkit/compare/2.10.3..2.11.0) (2023-07-13)
 
 ### Added
