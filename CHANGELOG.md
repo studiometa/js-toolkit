@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v2.11.0](https://github.com/studiometa/js-toolkit/compare/2.10.3..2.11.0) (2023-07-13)
+
 ### Added
 
 - **usePointer:** add support for props relative to an element ([#377](https://github.com/studiometa/js-toolkit/pull/377))
