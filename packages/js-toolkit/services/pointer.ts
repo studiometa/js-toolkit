@@ -1,6 +1,7 @@
 /* eslint-disable no-use-before-define, @typescript-eslint/no-use-before-define */
 import { useService } from './service.js';
 import type { ServiceInterface } from './index.js';
+import { isDefined } from '../utils/index.js';
 
 export type PointerService = ServiceInterface<PointerServiceProps>;
 
@@ -28,7 +29,18 @@ const events = ['mousemove', 'touchmove', 'mousedown', 'touchstart', 'mouseup', 
 /**
  * Get pointer service.
  */
-function createPointerService(): PointerService {
+function createPointerService(target: HTMLElement | undefined): PointerService {
+  function getTargetSize() {
+    return isDefined(target)
+      ? target.getBoundingClientRect()
+      : {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          x: 0,
+          y: 0,
+        };
+  }
+
   /**
    * Update the pointer positions.
    */
@@ -37,12 +49,15 @@ function createPointerService(): PointerService {
     const yLast = props.y;
     const xLast = props.x;
 
+    const targetSize = getTargetSize();
+
     // Check pointer Y
     // We either get data from a touch event `event.touches[0].clientY` or from
     // a mouse event `event.clientY`.
-    const y = isTouchEvent(event)
+    let y = isTouchEvent(event)
       ? (event as TouchEvent).touches[0]?.clientY
       : (event as MouseEvent).clientY;
+    y -= targetSize.y;
     if (y !== props.y) {
       props.y = y;
     }
@@ -50,9 +65,10 @@ function createPointerService(): PointerService {
     // Check pointer X
     // We either get data from a touch event `event.touches[0].clientX` or from
     // a mouse event `event.clientX`.
-    const x = isTouchEvent(event)
+    let x = isTouchEvent(event)
       ? (event as TouchEvent).touches[0]?.clientX
       : (event as MouseEvent).clientX;
+    x -= targetSize.x;
     if (x !== props.x) {
       props.x = x;
     }
@@ -66,8 +82,8 @@ function createPointerService(): PointerService {
     props.delta.x = props.x - xLast;
     props.delta.y = props.y - yLast;
 
-    props.max.x = window.innerWidth;
-    props.max.y = window.innerHeight;
+    props.max.x = targetSize.width;
+    props.max.y = targetSize.height;
 
     props.progress.x = props.x / props.max.x;
     props.progress.y = props.y / props.max.y;
@@ -77,6 +93,8 @@ function createPointerService(): PointerService {
 
   /**
    * Handle events.
+   *
+   * @todo handle scroll as well
    */
   function handleEvent(event: MouseEvent | TouchEvent) {
     // eslint-disable-next-line default-case
@@ -99,19 +117,20 @@ function createPointerService(): PointerService {
     }
   }
 
+  const targetSize = getTargetSize();
   const { add, remove, has, trigger, props } = useService({
     props: {
       event: null,
       isDown: false,
-      x: window.innerWidth / 2,
-      y: window.innerHeight / 2,
+      x: targetSize.x / 2,
+      y: targetSize.y / 2,
       changed: {
         x: false,
         y: false,
       },
       last: {
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2,
+        x: targetSize.x / 2,
+        y: targetSize.y / 2,
       },
       delta: {
         x: 0,
@@ -122,8 +141,8 @@ function createPointerService(): PointerService {
         y: 0.5,
       },
       max: {
-        x: window.innerWidth,
-        y: window.innerHeight,
+        x: targetSize.width,
+        y: targetSize.height,
       },
     } as PointerServiceProps,
     init() {
@@ -152,16 +171,14 @@ function createPointerService(): PointerService {
   };
 }
 
-let pointer;
+const instances = new Map<HTMLElement | Window, PointerService>();
 
 /**
  * Use the pointer service.
- *
- * @todo Add element as parameter to get the pointer position relatively from.
  */
-export default function usePointer(): PointerService {
-  if (!pointer) {
-    pointer = createPointerService();
+export default function usePointer(target: HTMLElement | undefined): PointerService {
+  if (!instances.has(target)) {
+    instances.set(target, createPointerService(target));
   }
-  return pointer;
+  return instances.get(target);
 }

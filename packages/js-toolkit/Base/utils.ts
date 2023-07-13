@@ -92,6 +92,7 @@ export function eventIsNative(event: string, element: HTMLElement): boolean {
 
 /**
  * Get the target of a given event.
+ *
  * @todo Return false in v3 if event is not defined or not native to prevent adding a listener.
  */
 export function getEventTarget(

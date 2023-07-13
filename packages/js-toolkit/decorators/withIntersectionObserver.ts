@@ -17,7 +17,7 @@ export interface WithIntersectionObserverInterface extends BaseInterface {
  * Create an array of number between 0 and 1 from the given length.
  */
 function createArrayOfNumber(length: number): number[] {
-  return [...new Array(length + 1)].map((val, index) => index / length);
+  return new Array(length + 1).fill(length).map((val, index) => index / length);
 }
 
 /**

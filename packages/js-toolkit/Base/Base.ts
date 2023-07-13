@@ -13,6 +13,7 @@ let id = 0;
 
 /**
  * Test if the managers' instances implement the default manager.
+ *
  * @throws
  */
 function createAndTestManagers(instance: Base): void {
@@ -59,7 +60,7 @@ export type BaseConstructor<T extends Base = Base> = {
   prototype: Base;
 } & Pick<typeof Base, keyof typeof Base>;
 export type BaseAsyncConstructor<T extends Base = Base> = (
-  Base,
+  instance: Base,
 ) => Promise<BaseConstructor<T> | { default: BaseConstructor<T> }>;
 export type BaseOptions = { [name: string]: unknown };
 export type BaseRefs = { [name: string]: HTMLElement | HTMLElement[] };

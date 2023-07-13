@@ -40,6 +40,7 @@ class Transition {
 
   /**
    * Get the transition class attached to the given element.
+   *
    * @param  {HTMLElement} element The HTML element concerned by the transition.
    * @returns {Transition}          The transition instance tied to the given element.
    */

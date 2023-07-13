@@ -102,6 +102,7 @@ function createDragService(
 
   /**
    * Start the drag.
+   *
    * @param {number} x The initial horizontal position.
    * @param {number} y The initial vertical position.
    * @returns {void}

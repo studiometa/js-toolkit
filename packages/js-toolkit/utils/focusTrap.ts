@@ -26,6 +26,7 @@ export function saveActiveElement() {
 
 /**
  * Trap tab navigation inside the given element.
+ *
  * @param {HTMLElement} element The element in which to trap the tabulations.
  * @param {KeyboardEvent} event The keydown or keyup event.
  */
