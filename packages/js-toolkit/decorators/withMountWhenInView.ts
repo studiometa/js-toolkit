@@ -47,12 +47,14 @@ export function withMountWhenInView<S extends Base = Base>(
 
     /**
      * Is the component visible?
+     *
      * @private
      */
     __isVisible = false;
 
     /**
      * The component's observer.
+     *
      * @private
      */
     __observer: IntersectionObserver;

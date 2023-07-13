@@ -125,6 +125,7 @@ function __register(that: OptionsManager, name: string, config: OptionObject) {
 export class OptionsManager extends AbstractManager {
   /**
    * An object to store Array and Object values for reference.
+   *
    * @private
    */
   __values = {};

@@ -43,6 +43,7 @@ export function withMountOnMediaQuery<S extends Base = Base>(
 
     /**
      * Is the media query matches?
+     *
      * @private
      */
     __matches = false;

@@ -221,6 +221,7 @@ export function withScrolledInView<S extends Base = Base>(
 
     /**
      * Factor used for the `dampedProgress` props.
+     *
      * @deprecated
      * @todo v3 delete in favor of option API
      */
@@ -228,6 +229,7 @@ export function withScrolledInView<S extends Base = Base>(
 
     /**
      * Precision for the `dampedProgress` props.
+     *
      * @deprecated
      * @todo v3 delete in favor of option API
      */

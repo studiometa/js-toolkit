@@ -4,6 +4,8 @@ module.exports = {
     'import/extensions': ['error', 'always', { ignorePackages: true }],
     'no-underscore-dangle': 'off',
     'jsdoc/valid-types': 'off',
+    'jsdoc/check-types': 'off',
+    'jsdoc/tag-lines': ['warn', 'always', { count: 0, startLines: 1 }],
   },
   settings: {
     'import/extensions': ['.js', '.mjs', '.jsx', '.ts', '.mts'],

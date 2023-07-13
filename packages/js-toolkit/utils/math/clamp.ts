@@ -1,5 +1,6 @@
 /**
  * Clamp a value in a given range.
+ *
  * @param {number} value
  * @param {number} min
  * @param {number} max
