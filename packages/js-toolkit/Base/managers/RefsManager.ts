@@ -2,22 +2,29 @@ import { AbstractManager } from './AbstractManager.js';
 import { isDev, isArray, isDefined, getAncestorWhereUntil } from '../../utils/index.js';
 
 const NORMALIZE_REF_NAME_REGEX = /\[\]$/;
+const NAMESPACED_REF_REGEX = /^(.*\.)/;
+const normalizedRefNamesCache = new Map();
 
 /**
  * Normalize the name of ref.
  */
 export function normalizeRefName(name: string) {
-  let nameFormatted = name;
+  if (normalizedRefNamesCache.has(name)) {
+    return normalizedRefNamesCache.get(name);
+  }
+
+  let normalizedName = name;
 
   if (name.endsWith('[]')) {
-    nameFormatted = nameFormatted.replace(NORMALIZE_REF_NAME_REGEX, '');
+    normalizedName = normalizedName.replace(NORMALIZE_REF_NAME_REGEX, '');
   }
 
-  if (nameFormatted.includes('.')) {
-    return nameFormatted.split('.').pop();
+  if (normalizedName.includes('.')) {
+    return normalizedName.replace(NAMESPACED_REF_REGEX, '');
   }
 
-  return nameFormatted;
+  normalizedRefNamesCache.set(name, normalizedName);
+  return normalizedName;
 }
 
 /**
