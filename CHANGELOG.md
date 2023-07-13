@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file. The format 
 - **usePointer:** add support for props relative to an element ([#377](https://github.com/studiometa/js-toolkit/pull/377))
 - Add a `withRelativePointer` decorator ([#377](https://github.com/studiometa/js-toolkit/pull/377))
 
+### Fixed
+
+- Fix refs name normalization when used with prefix ([#361](https://github.com/studiometa/js-toolkit/pull/361))
+
 ### Changed
 
 - Update dependencies ([#378](https://github.com/studiometa/js-toolkit/pull/378))

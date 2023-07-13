@@ -13,6 +13,7 @@ describe('The EventsManager class', () => {
   const windowFn = jest.fn();
   const singleRefFn = jest.fn();
   const multipleRefFn = jest.fn();
+  const prefixedRefFn = jest.fn();
   const componentFn = jest.fn();
   const componentInnerFn = jest.fn();
   const asyncComponentFn = jest.fn();
@@ -38,7 +39,7 @@ describe('The EventsManager class', () => {
   class App extends Base {
     static config = {
       name: 'App',
-      refs: ['single', 'multiple[]'],
+      refs: ['single', 'multiple[]', 'prefixed'],
       components: {
         Component,
         AsyncComponent: () => Promise.resolve(AsyncComponent),
@@ -84,6 +85,10 @@ describe('The EventsManager class', () => {
     onAsyncComponentCustomEvent(...args) {
       asyncComponentFn(...args);
     }
+
+    onPrefixedClick(...args) {
+      prefixedRefFn(...args);
+    }
   }
 
   const tpl = html`
@@ -94,10 +99,12 @@ describe('The EventsManager class', () => {
       <div data-component="Component"></div>
       <div data-component="Component"></div>
       <div data-component="AsyncComponent"></div>
+      <div data-ref="App.prefixed"></div>
     </div>
   `;
 
   const single = tpl.querySelector('[data-ref="single"]');
+  const prefixed = tpl.querySelector('[data-ref="App.prefixed"]');
   const multiple = Array.from(tpl.querySelectorAll('[data-ref="multiple[]"]'));
   const component = tpl.querySelector('[data-component="Component"]');
   const asyncComponent = tpl.querySelector('[data-component="AsyncComponent"]');
@@ -114,6 +121,7 @@ describe('The EventsManager class', () => {
     asyncComponentFn.mockClear();
     documentFn.mockClear();
     windowFn.mockClear();
+    prefixedRefFn.mockClear();
   });
 
   it('can bind event methods to the root element', () => {
@@ -284,5 +292,21 @@ describe('The EventsManager class', () => {
     ];
 
     names.forEach(([input, output]) => expect(normalizeEventName(input)).toBe(output));
+  });
+
+  it('can bind event methods to prefixed refs', () => {
+    prefixed.click();
+    expect(prefixedRefFn).not.toHaveBeenCalled();
+    app.$mount();
+    prefixed.click();
+    expect(prefixedRefFn).toHaveBeenCalledTimes(1);
+    expect(prefixedRefFn.mock.calls[0][0]).toBeInstanceOf(MouseEvent);
+    expect(prefixedRefFn.mock.calls[0][1]).toBe(0);
+  });
+
+  it('can unbind event methods from prefixed refs', () => {
+    app.$destroy();
+    prefixed.click();
+    expect(prefixedRefFn).not.toHaveBeenCalled();
   });
 });
