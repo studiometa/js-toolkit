@@ -19,6 +19,6 @@
   },
   "devDependencies": {
     "@jest/types": "^29.6.1",
-    "vue": "^2.6"
+    "vue": "^3.3.4"
   }
 }
