@@ -9,7 +9,8 @@ type OptionType =
   | NumberConstructor
   | BooleanConstructor
   | ArrayConstructor
-  | ObjectConstructor;
+  | ObjectConstructor
+  | RegExpConstructor;
 
 type ArrayOption = {
   type: ArrayConstructor;
@@ -38,14 +39,19 @@ type BooleanOption = {
   default?: boolean;
 };
 
-export type OptionObject = ArrayOption | ObjectOption | StringOption | NumberOption | BooleanOption;
+type RegExpOption = {
+  type: RegExpConstructor;
+  default?: string;
+}
+
+export type OptionObject = ArrayOption | ObjectOption | StringOption | NumberOption | BooleanOption | RegExpOption;
 export type OptionsSchema = { [name: string]: OptionType | OptionObject };
 export type OptionsInterface = { [optionName: string]: unknown };
 
 /**
  * List of allowed types.
  */
-const types: Set<OptionType> = new Set([String, Number, Boolean, Array, Object]);
+const types: Set<OptionType> = new Set([String, Number, Boolean, Array, Object, RegExp]);
 
 /**
  * The default values to return for each available type.
@@ -56,6 +62,7 @@ const __defaultValues = {
   Boolean: false,
   Array: () => [],
   Object: () => ({}),
+  RegExp: /.*/,
 };
 
 /**
@@ -199,6 +206,10 @@ export class OptionsManager extends AbstractManager {
 
     if (type === Number) {
       return hasProperty ? Number(value) : defaultValue;
+    }
+
+    if (type === RegExp) {
+      return hasProperty ? new RegExp(value) : defaultValue;
     }
 
     if (type === Array || type === Object) {
