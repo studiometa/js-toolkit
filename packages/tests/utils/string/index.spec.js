@@ -9,7 +9,7 @@ import {
   withoutTrailingSlash,
   withTrailingCharacters,
   withTrailingSlash,
-} from '@studiometa/js-toolkit/utils/string/index.js';
+} from '@studiometa/js-toolkit/utils';
 
 describe('The trailing slash utilities', () => {
   it('should add a trailing slash', () => {

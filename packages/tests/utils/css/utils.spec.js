@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+// eslint-disable-next-line import/no-unresolved
 import { eachElements } from '@studiometa/js-toolkit/utils/css/utils.js';
 
 describe('The `eachElements` function', () => {
