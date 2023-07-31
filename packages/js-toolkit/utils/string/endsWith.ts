@@ -18,5 +18,5 @@ export function endsWith(str: string, search: string): boolean {
   }
 
   // eslint-disable-next-line unicorn/prefer-string-slice
-  return str.substring(str.length, length * -1) === search;
+  return str.substring(str.length - search.length) === search;
 }
