@@ -1,4 +1,4 @@
-import { isNumber, isString } from '../../utils/index.js';
+import { isNumber, isString, endsWith } from '../../utils/index.js';
 import type { NormalizedOffset } from './types.js';
 
 const units = {
@@ -41,7 +41,7 @@ export function parseNamedOffset(offset: string | number): string | number {
     return Number(offset);
   }
 
-  if (isString(offset) && offset.endsWith(units.percent)) {
+  if (isString(offset) && endsWith(offset, units.percent)) {
     return Number.parseFloat(offset) / 100;
   }
 
@@ -64,23 +64,23 @@ export function getEdgeWithOffset(start: number, size: number, offset: string | 
   if (isString(parsedNamedOffset)) {
     const parsedOffset = Number.parseFloat(parsedNamedOffset);
 
-    if (parsedNamedOffset.endsWith(units.px)) {
+    if (endsWith(parsedNamedOffset, units.px)) {
       return start + parsedOffset;
     }
 
-    if (parsedNamedOffset.endsWith(units.vh)) {
+    if (endsWith(parsedNamedOffset, units.vh)) {
       return start + (parsedOffset * window.innerHeight) / 100;
     }
 
-    if (parsedNamedOffset.endsWith(units.vw)) {
+    if (endsWith(parsedNamedOffset, units.vw)) {
       return start + (parsedOffset * window.innerWidth) / 100;
     }
 
-    if (parsedNamedOffset.endsWith(units.vmin)) {
+    if (endsWith(parsedNamedOffset, units.vmin)) {
       return start + (parsedOffset * Math.min(window.innerWidth, window.innerHeight)) / 100;
     }
 
-    if (parsedNamedOffset.endsWith(units.vmax)) {
+    if (endsWith(parsedNamedOffset, units.vmax)) {
       return start + (parsedOffset * Math.max(window.innerWidth, window.innerHeight)) / 100;
     }
   }
