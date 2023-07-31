@@ -1,6 +1,7 @@
 import type { Base, BaseConstructor, BaseAsyncConstructor, BaseEl } from '../index.js';
 import { AbstractManager } from './AbstractManager.js';
 import { getComponentElements, addToQueue } from '../utils.js';
+import { startsWith } from '../../utils/index.js';
 
 /**
  * Get a child component's instance.
@@ -121,7 +122,7 @@ export class ChildrenManager extends AbstractManager {
   > = new WeakMap();
 
   get registeredNames(): string[] {
-    return Object.keys(this).filter((key) => !key.startsWith('__'));
+    return Object.keys(this).filter((key) => !startsWith(key, '__'));
   }
 
   /**
