@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unresolved
 import * as is from '@studiometa/js-toolkit/utils/is.js';
 
 const types = {

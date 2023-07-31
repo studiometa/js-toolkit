@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unresolved
 import * as ease from '@studiometa/js-toolkit/utils/math/ease';
 
 const values = Array(10)
