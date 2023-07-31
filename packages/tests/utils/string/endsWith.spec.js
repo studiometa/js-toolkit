@@ -15,4 +15,9 @@ describe('The endsWith function', () => {
     expect(endsWith('foo', 'foo')).toBe(true);
     expect(endsWith('foo', 'bar')).toBe(false);
   });
+
+  it('should work with special characters', () => {
+    expect(endsWith('foo[]', '[]')).toBe(true);
+    expect(endsWith('foo', '[]')).toBe(false);
+  });
 });
