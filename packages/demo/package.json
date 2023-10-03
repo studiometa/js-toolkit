@@ -15,7 +15,7 @@
     "@studiometa/ui": "^0.2.33",
     "@studiometa/webpack-config": "^4.2.6",
     "eslint": "^8.44.0",
-    "postcss": "^8.4.25",
+    "postcss": "^8.4.31",
     "prettier": "^2.8.8",
     "stylefire": "^7.0.3",
     "stylelint": "^15.10.1",
