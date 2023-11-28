@@ -148,12 +148,11 @@ function manageRef(
 ) {
   const action = `${mode}EventListener`;
   const methods = getEventMethodsByName(that, name);
-  methods.forEach((method) => {
+  for (const method of methods) {
     const event = getEventNameByMethod(method, name);
-    elements
-      .filter((element) => element)
-      .forEach((element) => element[action](event, that.__refsHandler));
-  });
+    for (const element of elements.filter((element) => element))
+      element[action](event, that.__refsHandler);
+  }
 }
 /**
  * Manage event methods to the given child instance.
@@ -177,10 +176,10 @@ function manageChild(
 ) {
   const action = mode === 'add' ? '$on' : '$off';
   const methods = getEventMethodsByName(that, name);
-  methods.forEach((method) => {
+  for (const method of methods) {
     const event = getEventNameByMethod(method, name);
     instance[action](event, that.__childrenHandler);
-  });
+  }
 }
 
 const isDocumentRegex = /^onDocument[A-Z][a-z]+/;
@@ -206,7 +205,7 @@ function manageRootElement(that: EventsManager, mode: 'add' | 'remove' = 'add') 
 
   const { __base: base, __config: config } = that;
 
-  methods.forEach((method) => {
+  for (const method of methods) {
     let event = getEventNameByMethod(method);
 
     if (eventIsDefinedInConfig(event, config) || eventIsNative(event, base.$el)) {
@@ -220,7 +219,7 @@ function manageRootElement(that: EventsManager, mode: 'add' | 'remove' = 'add') 
         methodIsDocument(method) ? that.__documentHandler : that.__windowHandler,
       );
     }
-  });
+  }
 }
 
 /**

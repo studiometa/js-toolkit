@@ -37,10 +37,10 @@ export default function importOnInteraction<T extends BaseConstructor = BaseCons
       resolver(resolve);
     };
 
-    elements.forEach((element) => {
-      normalizedEvents.forEach((event) => {
+    for (const element of elements) {
+      for (const event of normalizedEvents) {
         element.addEventListener(event, handler, eventListenerOptions);
-      });
-    });
+      }
+    }
   });
 }

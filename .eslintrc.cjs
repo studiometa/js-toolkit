@@ -6,6 +6,8 @@ module.exports = {
     'jsdoc/valid-types': 'off',
     'jsdoc/check-types': 'off',
     'jsdoc/tag-lines': ['warn', 'always', { count: 0, startLines: 1 }],
+    'unicorn/no-array-for-each': 'warn',
+    'no-restricted-syntax': 'off',
   },
   settings: {
     'import/extensions': ['.js', '.mjs', '.jsx', '.ts', '.mts'],

@@ -24,7 +24,7 @@ function createRafService(): RafService {
    * Trigger callbacks.
    */
   function trigger(props: RafServiceProps) {
-    callbacks.forEach((callback) => {
+    for (const callback of callbacks) {
       scheduler.update(() => {
         const render = callback(props) as (() => unknown) | void;
         if (isFunction(render)) {
@@ -34,7 +34,7 @@ function createRafService(): RafService {
           });
         }
       });
-    });
+    }
   }
 
   /**

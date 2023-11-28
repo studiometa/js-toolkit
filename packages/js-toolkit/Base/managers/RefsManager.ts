@@ -120,13 +120,13 @@ export class RefsManager extends AbstractManager {
    * Register all refs.
    */
   registerAll() {
-    this.__refs.forEach((refName) => __register(this, refName));
+    for (const refName of this.__refs) __register(this, refName);
   }
 
   /**
    * Unregister all refs.
    */
   unregisterAll() {
-    this.__refs.forEach((refName) => __unregister(this, refName));
+    for (const refName of this.__refs) __unregister(this, refName);
   }
 }

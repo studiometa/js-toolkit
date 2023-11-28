@@ -17,7 +17,7 @@ let id = 0;
  * @throws
  */
 function createAndTestManagers(instance: Base): void {
-  [
+  for (const { prop, constructorName, constructor } of [
     {
       prop: '__options',
       constructorName: 'OptionsManager',
@@ -43,14 +43,14 @@ function createAndTestManagers(instance: Base): void {
       constructorName: 'ChildrenManager',
       constructor: ChildrenManager,
     },
-  ].forEach(({ prop, constructorName, constructor }) => {
+  ]) {
     instance[prop] = new instance.__managers[constructorName](instance);
     if (isDev && !(instance[prop] instanceof constructor)) {
       throw new Error(
         `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`,
       );
     }
-  });
+  }
 }
 
 export type BaseEl = HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> };

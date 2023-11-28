@@ -35,6 +35,6 @@ export default function importWhenVisible<T extends BaseConstructor = BaseConstr
     }, observerOptions);
 
     const elements = getTargetElements(nameOrSelectorOrElement, parent?.$el);
-    elements.forEach((element) => observer.observe(element));
+    for (const element of elements) observer.observe(element);
   });
 }
