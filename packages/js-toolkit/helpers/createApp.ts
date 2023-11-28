@@ -23,9 +23,9 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
       : { root: document.body, ...rootElement };
 
   if (isDefined(options.features)) {
-    Object.entries(options.features as Features).forEach(([feature, value]) => {
+    for (const [feature, value] of Object.entries(options.features as Features)) {
       features.set(feature as keyof Features, value);
-    });
+    }
   }
 
   function init() {

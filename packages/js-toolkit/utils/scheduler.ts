@@ -24,9 +24,9 @@ function getScheduler<T extends string>(steps: T[]): Record<T, (fn: () => unknow
    * Flush registered tasks and schedule the next run if needed.
    */
   function flush() {
-    steps.forEach((step) => {
+    for (const step of steps) {
       run(stepsFns[step]);
-    });
+    }
     isScheduled = false;
 
     if (steps.reduce((length, step) => length + stepsFns[step].length, 0) > 0) {
@@ -47,13 +47,13 @@ function getScheduler<T extends string>(steps: T[]): Record<T, (fn: () => unknow
     resolvedPromise.then(flush);
   }
 
-  steps.forEach((step) => {
+  for (const step of steps) {
     stepsFns[step] = [];
     api[step] = function add(fn) {
       stepsFns[step].push(fn);
       scheduleFlush();
     };
-  });
+  }
 
   return api;
 }

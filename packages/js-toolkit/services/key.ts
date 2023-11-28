@@ -43,9 +43,9 @@ function createKeyService(): KeyService {
   function updateProps(event: KeyboardEvent): KeyServiceProps {
     props.event = event;
 
-    Object.entries(keyCodes).forEach(([name, code]) => {
+    for (const [name, code] of Object.entries(keyCodes)) {
       props[name] = code === event.keyCode;
-    });
+    }
 
     if (!previousEvent) {
       props.triggered = 0;
