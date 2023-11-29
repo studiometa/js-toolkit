@@ -23,13 +23,13 @@ function __getResponsiveName(that: ResponsiveOptionsManager, name: string) {
   const propertyName = __getPropertyName(name);
   const regex = new RegExp(`${propertyName}:(.+)$`);
 
-  for (const optionName of Object.keys(that.__element.dataset).filter((optionName) =>
-    regex.test(optionName),
-  )) {
-    const [, breakpoints] = optionName.match(regex);
-    const isInBreakpoint = breakpoints.split(':').includes(breakpoint);
-    if (isInBreakpoint) {
-      responsiveName = optionName.replace(/^option/, '');
+  for (const optionName of Object.keys(that.__element.dataset)) {
+    if (regex.test(optionName)) {
+      const [, breakpoints] = optionName.match(regex);
+      const isInBreakpoint = breakpoints.split(':').includes(breakpoint);
+      if (isInBreakpoint) {
+        responsiveName = optionName.replace(/^option/, '');
+      }
     }
   }
 
