@@ -72,7 +72,7 @@ export function useService<T>(options: ServiceOptions<T>): UseServiceInterface<T
    * Trigger all service callbacks with service props.
    */
   function trigger(p: T) {
-    for (const callback of callbacks) {
+    for (const callback of callbacks.values()) {
       callback(p);
     }
   }
