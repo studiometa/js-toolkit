@@ -30,20 +30,13 @@ Find below the JavaScript and HTML implementation of a counter component.
 
 <div class="my-4 p-10 rounded bg-vp-bg-alt text-center" v-html="CounterHtmlRaw"></div>
 
-<Tabs :items="tabs">
-  <template #content-1>
+::: code-group
 
-<<< ./guide/recipes/counter-component/Counter.js
+<<< ./Counter.js
 
-  </template>
-  <template #content-2>
+<<< ./Counter.html
 
-<<< ./guide/recipes/counter-component/Counter.html
-
-  </template>
-  <template #content-3>
-
-```js
+```js [app.js]
 import { Base, createApp } from '@studiometa/js-toolkit';
 import Counter from './Counter.js';
 
@@ -56,8 +49,7 @@ class App extends Base {
   };
 }
 
-export default createApp(App, document.body);
+export default createApp(App);
 ```
 
-  </template>
-</Tabs>
+:::
