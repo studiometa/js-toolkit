@@ -33,6 +33,5 @@ exports[`The package exports should export helpers and the Base class 1`] = `
   "withRelativePointer",
   "withResponsiveOptions",
   "withScrolledInView",
-  "withVue2",
 ]
 `;
