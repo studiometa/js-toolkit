@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
-import useResize from '@studiometa/js-toolkit/services/resize';
-import resizeWindow from '../__utils__/resizeWindow';
+import { useResize } from '@studiometa/js-toolkit';
+import resizeWindow from '../__utils__/resizeWindow.js';
 
 describe('useResize', () => {
   const { add, remove, props } = useResize();

@@ -1,4 +1,4 @@
-import { collideCircleRect } from '@studiometa/js-toolkit/utils/collide';
+import { collideCircleRect } from '@studiometa/js-toolkit/utils';
 
 describe('collideCircleRect method', () => {
   it('should be true when the circle and the rectangle are colliding from top left', () => {

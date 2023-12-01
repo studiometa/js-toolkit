@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
-import scrollTo from '@studiometa/js-toolkit/utils/scrollTo';
-import wait from '../__utils__/wait';
+import { scrollTo } from '@studiometa/js-toolkit/utils';
+import wait from '../__utils__/wait.js';
 
 describe('The `scrollTo` function', () => {
   const fn = jest.fn(({ top }) => {
@@ -17,7 +17,7 @@ describe('The `scrollTo` function', () => {
     top: 5000,
   }));
 
-  document.body.appendChild(element);
+  document.body.append(element);
 
   afterAll(() => {
     delete window.scrollTo;

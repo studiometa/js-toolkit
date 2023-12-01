@@ -1,4 +1,4 @@
-import { add, remove } from '@studiometa/js-toolkit/utils/css/styles';
+import { addStyle as add, removeStyle as remove } from '@studiometa/js-toolkit/utils';
 
 describe('styles methods', () => {
   const element = document.createElement('div');

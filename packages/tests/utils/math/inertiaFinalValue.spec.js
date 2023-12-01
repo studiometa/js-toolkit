@@ -1,4 +1,4 @@
-import inertiaFinalValue from '@studiometa/js-toolkit/utils/math/inertiaFinalValue';
+import { inertiaFinalValue } from '@studiometa/js-toolkit/utils';
 
 describe('The inertiaFinalValue function', () => {
   it('should have a minium theshold of 0.1', () => {

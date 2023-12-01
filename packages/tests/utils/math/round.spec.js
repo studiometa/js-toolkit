@@ -1,4 +1,4 @@
-import round from '@studiometa/js-toolkit/utils/math/round';
+import { round } from '@studiometa/js-toolkit/utils';
 
 describe('round method', () => {
   const number = 50.23456789;

@@ -1,4 +1,4 @@
-import autoBind from '@studiometa/js-toolkit/utils/object/autoBind';
+import autoBind from '@studiometa/js-toolkit/utils/object/autoBind.js';
 
 describe('autoBind method', () => {
   it('should bind methods', () => {

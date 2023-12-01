@@ -1,4 +1,4 @@
-import { collideCircleCircle } from '@studiometa/js-toolkit/utils/collide';
+import { collideCircleCircle } from '@studiometa/js-toolkit/utils';
 
 describe('collideCircleCircle method', () => {
   it('should be true when circles are colliding', () => {

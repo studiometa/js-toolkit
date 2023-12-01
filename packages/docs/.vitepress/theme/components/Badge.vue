@@ -27,7 +27,7 @@
     border-radius: 0.25em;
     padding: 0.5em 0.75em;
     color: #fff;
-    background-color: var(--vp-c-brand);
+    background-color: var(--vp-button-brand-bg);
     white-space: nowrap;
   }
 

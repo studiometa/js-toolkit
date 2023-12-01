@@ -1,4 +1,4 @@
-import map from '@studiometa/js-toolkit/utils/math/map';
+import { map } from '@studiometa/js-toolkit/utils';
 
 describe('map method', () => {
   it('should map values', () => {
