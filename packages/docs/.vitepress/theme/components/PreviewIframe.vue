@@ -48,8 +48,7 @@
 <template>
   <div
     class="relative my-4 rounded bg-vp-sidebar-bg overflow-hidden"
-    style="height: 60vh; border: 1px solid var(--vp-c-divider)"
-  >
+    style="height: 60vh; border: 1px solid var(--vp-c-divider)">
     <Loader v-if="isLoading" />
     <iframe
       ref="iframe"
@@ -63,7 +62,6 @@
         height: calc(60vh * 1.5);
         transform-origin: top left;
         transform: scale(0.6666);
-      "
-    />
+      " />
   </div>
 </template>
