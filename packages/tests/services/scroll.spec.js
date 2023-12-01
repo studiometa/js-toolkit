@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals';
-import useScroll from '@studiometa/js-toolkit/services/scroll';
-import resizeWindow from '../__utils__/resizeWindow';
+import { useScroll } from '@studiometa/js-toolkit';
 
 describe('useScroll', () => {
   const { add, remove, props } = useScroll();

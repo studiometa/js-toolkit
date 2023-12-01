@@ -278,22 +278,22 @@ function createDragService(
       },
     } as DragServiceProps,
     init() {
-      targetEvents.forEach((event) => {
+      for (const event of targetEvents) {
         target.addEventListener(event, handleEvent, passiveEventOptions);
-      });
-      windowEvents.forEach((event) => {
+      }
+      for (const event of windowEvents) {
         window.addEventListener(event, handleEvent, passiveEventOptions);
-      });
+      }
       target.addEventListener('dragstart', handleEvent, { capture: true });
       target.addEventListener('click', handleEvent, { capture: true });
     },
     kill() {
-      targetEvents.forEach((event) => {
+      for (const event of targetEvents) {
         target.removeEventListener(event, handleEvent);
-      });
-      windowEvents.forEach((event) => {
+      }
+      for (const event of windowEvents) {
         window.removeEventListener(event, handleEvent);
-      });
+      }
       target.removeEventListener('dragstart', handleEvent);
       target.removeEventListener('click', handleEvent);
     },

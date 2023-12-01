@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unresolved
 import * as is from '@studiometa/js-toolkit/utils/is.js';
 
 const types = {
@@ -28,4 +29,4 @@ describe('The "isNumber" utility function', () => {
     expect(is.isNumber(Number.NaN)).toBe(false);
     expect(is.isNumber(Number('100px'))).toBe(false);
   });
-})
+});

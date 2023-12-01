@@ -8,3 +8,5 @@ export { default as withoutTrailingCharactersRecursive } from './withoutTrailing
 export { default as withoutTrailingSlash } from './withoutTrailingSlash.js';
 export { default as withTrailingCharacters } from './withTrailingCharacters.js';
 export { default as withTrailingSlash } from './withTrailingSlash.js';
+export * from './startsWith.js';
+export * from './endsWith.js';

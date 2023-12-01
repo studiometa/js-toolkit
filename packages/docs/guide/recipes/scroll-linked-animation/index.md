@@ -34,20 +34,13 @@ This example demonstrate the usage of the [`scrolled` service](/api/methods-hook
   <p class="text-gray-400 text-xs text-center p-10 mt-10">Pictures from <a href="https://picsum.photos">picsum.photos</a></p>
 </div>
 
-<Tabs :items="tabs">
-  <template #content-1>
+::: code-group
 
-<<< ./guide/recipes/scroll-linked-animation/ScrollLinkedAnimation.js
+<<< ./ScrollLinkedAnimation.js
 
-  </template>
-  <template #content-2>
+<<< ./ScrollLinkedAnimation.html
 
-<<< ./guide/recipes/scroll-linked-animation/ScrollLinkedAnimation.html
-
-  </template>
-  <template #content-3>
-
-```js
+```js [app.js]
 import { Base, createApp } from '@studiometa/js-toolkit';
 import ScrollLinkedAnimation from './ScrollLinkedAnimation.js';
 
@@ -60,8 +53,7 @@ class App extends Base {
   };
 }
 
-export default createApp(App, document.body);
+export default createApp(App);
 ```
 
-  </template>
-</Tabs>
+:::

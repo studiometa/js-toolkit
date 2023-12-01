@@ -31,14 +31,14 @@ export default function autoBind<T>(instance: T, options: AutoBindOptions): T {
     return true;
   };
 
-  getAllProperties(instance)
-    .filter(([key]) => key !== 'constructor' && filter(key))
-    .forEach(([key, object]) => {
+  for (const [key, object] of getAllProperties(instance)) {
+    if (key !== 'constructor' && filter(key)) {
       const descriptor = Object.getOwnPropertyDescriptor(object, key);
       if (descriptor && isFunction(descriptor.value)) {
         instance[key] = instance[key].bind(instance);
       }
-    });
+    }
+  }
 
   return instance;
 }

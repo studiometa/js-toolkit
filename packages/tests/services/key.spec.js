@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import useKey from '@studiometa/js-toolkit/services/key';
+import { useKey } from '@studiometa/js-toolkit';
 
 describe('useKey', () => {
   const keydown = new KeyboardEvent('keydown', { keyCode: 27 });

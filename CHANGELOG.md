@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v2.12.0](https://github.com/studiometa/js-toolkit/compare/2.11.2..2.12.0) (2023-12-01)
+
+### Added
+
+- Add `startsWith` and `endsWith` utils ([#389](https://github.com/studiometa/js-toolkit/pull/389))
+
+### Changed
+
+- Improve performance by migrating from `forEach` to `for…of` for loops ([#391](https://github.com/studiometa/js-toolkit/pull/391))
+- Update NPM dependencies ([#392](https://github.com/studiometa/js-toolkit/pull/392))
+
 ## [v2.11.2](https://github.com/studiometa/js-toolkit/compare/2.11.1..2.11.2) (2023-07-13)
 
 ### Fixed

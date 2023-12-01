@@ -1,6 +1,7 @@
 import type { Base, BaseConstructor, BaseAsyncConstructor, BaseEl } from '../index.js';
 import { AbstractManager } from './AbstractManager.js';
 import { getComponentElements, addToQueue } from '../utils.js';
+import { startsWith } from '../../utils/index.js';
 
 /**
  * Get a child component's instance.
@@ -89,8 +90,8 @@ function __getChild(
 // eslint-disable-next-line no-use-before-define
 function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' | '$destroy') {
   addToQueue(() => {
-    that.registeredNames.forEach((name) => {
-      that[name].forEach((instance) => {
+    for (const name of that.registeredNames) {
+      for (const instance of that[name]) {
         if (instance instanceof Promise) {
           instance.then((resolvedInstance) => {
             addToQueue(() => that.__triggerHook(hook, resolvedInstance, name));
@@ -98,8 +99,8 @@ function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' |
         } else {
           addToQueue(() => that.__triggerHook(hook, instance, name));
         }
-      });
-    });
+      }
+    }
   });
 }
 
@@ -121,16 +122,15 @@ export class ChildrenManager extends AbstractManager {
   > = new WeakMap();
 
   get registeredNames(): string[] {
-    return Object.keys(this).filter((key) => !key.startsWith('__'));
+    return Object.keys(this).filter((key) => !startsWith(key, '__'));
   }
 
   /**
    * Register instances of all children components.
    */
   registerAll() {
-    Object.entries(this.__config.components).forEach(([name, component]) =>
-      this.__register(name, component),
-    );
+    for (const [name, component] of Object.entries(this.__config.components))
+      this.__register(name, component);
   }
 
   /**
