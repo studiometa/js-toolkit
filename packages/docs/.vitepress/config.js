@@ -107,6 +107,10 @@ function getGuideSidebar() {
           text: 'v1 → v2',
           link: '/guide/migration/v1-to-v2.html',
         },
+        {
+          text: 'v2 → v3',
+          link: '/guide/migration/v2-to-v3.html',
+        },
       ],
     },
   ];
@@ -222,7 +226,6 @@ function getDecoratorsSidebar() {
     { text: 'withRelativePointer', link: '/api/decorators/withRelativePointer.html' },
     { text: 'withResponsiveOptions', link: '/api/decorators/withResponsiveOptions.html' },
     { text: 'withScrolledInView', link: '/api/decorators/withScrolledInView.html' },
-    { text: 'withVue2', link: '/api/decorators/withVue2.html' },
   ];
 }
 
