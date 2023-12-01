@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add `startsWith` and `endsWith` utils ([#389](https://github.com/studiometa/js-toolkit/pull/389))
+
 ### Changed
 
 - Improve performance by migrating from `forEach` to `for…of` for loops ([#391](https://github.com/studiometa/js-toolkit/pull/391))
