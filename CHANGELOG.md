@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Removed
+
+- ⚠️ Remove CJS files from the package ([#394](https://github.com/studiometa/js-toolkit/pull/394))
+
 ## [v2.12.0](https://github.com/studiometa/js-toolkit/compare/2.11.2..2.12.0) (2023-12-01)
 
 ### Added
