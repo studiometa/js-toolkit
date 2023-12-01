@@ -107,6 +107,10 @@ function getGuideSidebar() {
           text: 'v1 → v2',
           link: '/guide/migration/v1-to-v2.html',
         },
+        {
+          text: 'v2 → v3',
+          link: '/guide/migration/v2-to-v3.html',
+        },
       ],
     },
   ];
