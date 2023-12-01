@@ -222,7 +222,6 @@ function getDecoratorsSidebar() {
     { text: 'withRelativePointer', link: '/api/decorators/withRelativePointer.html' },
     { text: 'withResponsiveOptions', link: '/api/decorators/withResponsiveOptions.html' },
     { text: 'withScrolledInView', link: '/api/decorators/withScrolledInView.html' },
-    { text: 'withVue2', link: '/api/decorators/withVue2.html' },
   ];
 }
 
