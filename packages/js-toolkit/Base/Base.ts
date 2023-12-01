@@ -17,7 +17,7 @@ let id = 0;
  * @throws
  */
 function createAndTestManagers(instance: Base): void {
-  [
+  for (const { prop, constructorName, constructor } of [
     {
       prop: '__options',
       constructorName: 'OptionsManager',
@@ -43,14 +43,14 @@ function createAndTestManagers(instance: Base): void {
       constructorName: 'ChildrenManager',
       constructor: ChildrenManager,
     },
-  ].forEach(({ prop, constructorName, constructor }) => {
+  ]) {
     instance[prop] = new instance.__managers[constructorName](instance);
     if (isDev && !(instance[prop] instanceof constructor)) {
       throw new Error(
         `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`,
       );
     }
-  });
+  }
 }
 
 export type BaseEl = HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> };
@@ -349,18 +349,14 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       this.__debug('$mount');
     }
 
-    [
-      () => this.$children.registerAll(),
-      () => this.$refs.registerAll(),
-      () => this.__events.bindRootElement(),
-      () => this.$services.enableAll(),
-      () => this.$children.mountAll(),
-      // eslint-disable-next-line prettier/prettier
-      () => {
-        this.$isMounted = true;
-      },
-      () => this.__callMethod('mounted'),
-    ].forEach(addToQueue);
+    addToQueue(() => this.$children.registerAll());
+    addToQueue(() => this.$refs.registerAll());
+    addToQueue(() => this.__events.bindRootElement());
+    addToQueue(() => this.$services.enableAll());
+    addToQueue(() => this.$children.mountAll());
+    // eslint-disable-next-line no-return-assign
+    addToQueue(() => (this.$isMounted = true));
+    addToQueue(() => this.__callMethod('mounted'));
 
     return this;
   }
@@ -373,18 +369,16 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       this.__debug('$update');
     }
 
-    [
-      // Undo
-      () => this.$refs.unregisterAll(),
-      () => this.$services.disableAll(),
-      // Redo
-      () => this.$children.registerAll(),
-      () => this.$refs.registerAll(),
-      () => this.$services.enableAll(),
-      // Update
-      () => this.$children.updateAll(),
-      () => this.__callMethod('updated'),
-    ].forEach(addToQueue);
+    // Undo
+    addToQueue(() => this.$refs.unregisterAll());
+    addToQueue(() => this.$services.disableAll());
+    // Redo
+    addToQueue(() => this.$children.registerAll());
+    addToQueue(() => this.$refs.registerAll());
+    addToQueue(() => this.$services.enableAll());
+    // Update
+    addToQueue(() => this.$children.updateAll());
+    addToQueue(() => this.__callMethod('updated'));
 
     return this;
   }
@@ -401,17 +395,13 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       this.__debug('$destroy');
     }
 
-    [
-      // eslint-disable-next-line prettier/prettier
-      () => {
-        this.$isMounted = false;
-      },
-      () => this.__events.unbindRootElement(),
-      () => this.$refs.unregisterAll(),
-      () => this.$services.disableAll(),
-      () => this.$children.destroyAll(),
-      () => this.__callMethod('destroyed'),
-    ].forEach(addToQueue);
+    // eslint-disable-next-line no-return-assign
+    addToQueue(() => (this.$isMounted = false));
+    addToQueue(() => this.__events.unbindRootElement());
+    addToQueue(() => this.$refs.unregisterAll());
+    addToQueue(() => this.$services.disableAll());
+    addToQueue(() => this.$children.destroyAll());
+    addToQueue(() => this.__callMethod('destroyed'));
 
     return this;
   }
@@ -424,14 +414,12 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       this.__debug('$terminate');
     }
 
-    [
-      // First, destroy the component.
-      () => this.$destroy(),
-      // Execute the `terminated` hook if it exists
-      () => this.__callMethod('terminated'),
-      // Delete instance
-      () => this.$el.__base__.set(this.__ctor, 'terminated'),
-    ].forEach(addToQueue);
+    // First, destroy the component.
+    addToQueue(() => this.$destroy());
+    // Execute the `terminated` hook if it exists
+    addToQueue(() => this.__callMethod('terminated'));
+    // Delete instance
+    addToQueue(() => this.$el.__base__.set(this.__ctor, 'terminated'));
   }
 
   /**

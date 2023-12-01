@@ -89,8 +89,8 @@ function __getChild(
 // eslint-disable-next-line no-use-before-define
 function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' | '$destroy') {
   addToQueue(() => {
-    that.registeredNames.forEach((name) => {
-      that[name].forEach((instance) => {
+    for (const name of that.registeredNames) {
+      for (const instance of that[name]) {
         if (instance instanceof Promise) {
           instance.then((resolvedInstance) => {
             addToQueue(() => that.__triggerHook(hook, resolvedInstance, name));
@@ -98,8 +98,8 @@ function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' |
         } else {
           addToQueue(() => that.__triggerHook(hook, instance, name));
         }
-      });
-    });
+      }
+    }
   });
 }
 
@@ -128,9 +128,8 @@ export class ChildrenManager extends AbstractManager {
    * Register instances of all children components.
    */
   registerAll() {
-    Object.entries(this.__config.components).forEach(([name, component]) =>
-      this.__register(name, component),
-    );
+    for (const [name, component] of Object.entries(this.__config.components))
+      this.__register(name, component);
   }
 
   /**

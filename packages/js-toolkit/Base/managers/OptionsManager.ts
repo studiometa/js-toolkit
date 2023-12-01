@@ -165,7 +165,7 @@ export class OptionsManager extends AbstractManager {
       default: this.__config.log ?? false,
     };
 
-    Object.entries(schema).forEach(([name, config]) => {
+    for (const [name, config] of Object.entries(schema)) {
       __register(
         this,
         name,
@@ -173,7 +173,7 @@ export class OptionsManager extends AbstractManager {
           ? ({ type: config as OptionType } as OptionObject)
           : (config as OptionObject),
       );
-    });
+    }
   }
 
   /**

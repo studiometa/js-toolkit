@@ -28,18 +28,18 @@ function updateUrlSearchParam(
   }
 
   if (isArray(value)) {
-    value.forEach((val, index) => {
+    for (const [index, val] of value.entries()) {
       const arrayName = `${name}[${index}]`;
       updateUrlSearchParam(params, arrayName, val);
-    });
+    }
     return params;
   }
 
   if (isObject(value)) {
-    Object.entries(value).forEach(([key, val]) => {
+    for (const [key, val] of Object.entries(value)) {
       const objectName = `${name}[${key}]`;
       updateUrlSearchParam(params, objectName, val);
-    });
+    }
     return params;
   }
 

@@ -147,9 +147,9 @@ function render(
         element.style.transformOrigin = transformOrigin;
       }
       if (customProperties !== false) {
-        customProperties.forEach((customProperty) => {
+        for (const customProperty of customProperties) {
           element.style.setProperty(customProperty[0], customProperty[1].toString());
-        });
+        }
       }
       transform(element, props);
     });
@@ -205,10 +205,10 @@ function singleAnimate(
       }
       // Stop running instances
       const runningKeys = running.get(element);
-      runningKeys.forEach((runningPause, runningKey) => {
+      for (const [runningKey, runningPause] of runningKeys.entries()) {
         runningPause();
         runningKeys.delete(runningKey);
-      });
+      }
       runningKeys.set(key, controls.pause);
       running.set(element, runningKeys);
     },
@@ -237,9 +237,9 @@ export function animate(
         return controls[0][key]();
       }
 
-      controls.forEach((control) => {
+      for (const control of controls) {
         control[key](...args);
-      });
+      }
     };
 
   return {

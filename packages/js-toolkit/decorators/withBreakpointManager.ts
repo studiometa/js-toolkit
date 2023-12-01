@@ -8,13 +8,13 @@ import { isDev, isArray } from '../utils/index.js';
  */
 function testBreakpoints(breakpoints: Array<[string[], Base]>) {
   const { breakpoint } = useResize().props();
-  breakpoints.forEach(([breakpointKeys, instance]) => {
+  for (const [breakpointKeys, instance] of breakpoints) {
     if (breakpointKeys.includes(breakpoint) && !instance.$isMounted) {
       setTimeout(() => instance.$mount(), 0);
     } else if (!breakpointKeys.includes(breakpoint) && instance.$isMounted) {
       instance.$destroy();
     }
-  });
+  }
 }
 
 /**
@@ -110,9 +110,9 @@ export function withBreakpointManager<S extends Base>(
      */
     $destroy(): this {
       if (isArray(instances.get(this))) {
-        instances.get(this).forEach(([, instance]) => {
+        for (const [, instance] of instances.get(this)) {
           instance.$destroy();
-        });
+        }
       }
 
       return super.$destroy();

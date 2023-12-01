@@ -22,9 +22,8 @@ function setClasses(
   if (method !== 'toggle') {
     eachElements(element, (el) => el.classList[method](...normalizedClassNames));
   } else {
-    normalizedClassNames.forEach((className) =>
-      eachElements(element, (el) => el.classList[method](className, forceToggle)),
-    );
+    for (const className of normalizedClassNames)
+      eachElements(element, (el) => el.classList[method](className, forceToggle));
   }
 }
 
