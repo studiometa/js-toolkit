@@ -323,6 +323,8 @@ function getUtilsSidebar() {
       link: '/utils/string/',
       collapsible: true,
       items: [
+        { text: 'startsWith', link: '/utils/string/startsWith.html' },
+        { text: 'endsWith', link: '/utils/string/endsWith.html' },
         { text: 'withLeadingCharacters', link: '/utils/string/withLeadingCharacters.html' },
         { text: 'withLeadingSlash', link: '/utils/string/withLeadingSlash.html' },
         { text: 'withoutLeadingCharacters', link: '/utils/string/withoutLeadingCharacters.html' },

@@ -1,7 +1,7 @@
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
 import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
 import { useResize } from '../services/index.js';
-import { isDev } from '../utils/index.js';
+import { isDev, startsWith } from '../utils/index.js';
 
 export interface WithBreakpointObserverProps extends BaseProps {
   $options: {
@@ -146,7 +146,7 @@ export function withBreakpointObserver<S extends Base>(
         if (
           mutation.type === 'attributes' &&
           (mutation.attributeName === 'data-options' ||
-            mutation.attributeName.startsWith('data-option-'))
+            startsWith(mutation.attributeName, 'data-option-'))
         ) {
           // Stop here silently when no breakpoint configuration given.
           if (!hasBreakpointConfiguration(this)) {
