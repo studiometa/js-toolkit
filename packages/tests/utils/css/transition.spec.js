@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import transition from '@studiometa/js-toolkit/utils/css/transition';
+import { transition } from '@studiometa/js-toolkit/utils';
 
 describe('transition method', () => {
   let el;

@@ -28,4 +28,4 @@ describe('The "isNumber" utility function', () => {
     expect(is.isNumber(Number.NaN)).toBe(false);
     expect(is.isNumber(Number('100px'))).toBe(false);
   });
-})
+});

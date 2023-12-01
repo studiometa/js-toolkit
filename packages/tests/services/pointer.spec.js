@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import usePointer from '@studiometa/js-toolkit/services/pointer';
+import { usePointer } from '@studiometa/js-toolkit';
 
 describe('usePointer', () => {
   const { add, remove, props } = usePointer();

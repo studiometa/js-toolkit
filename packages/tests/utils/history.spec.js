@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { push, replace } from '@studiometa/js-toolkit/utils/history';
+import { historyPush as push, historyReplace as replace } from '@studiometa/js-toolkit/utils';
 
 beforeEach(() => {
   window.history.replaceState({}, '', '/');

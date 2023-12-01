@@ -1,4 +1,4 @@
-import lerp from '@studiometa/js-toolkit/utils/math/lerp';
+import { lerp } from '@studiometa/js-toolkit/utils';
 
 describe('lerp method', () => {
   it('should return the correct number', () => {
