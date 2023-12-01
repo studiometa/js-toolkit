@@ -1,5 +1,12 @@
 import { AbstractManager } from './AbstractManager.js';
-import { isDev, isArray, isDefined, getAncestorWhereUntil } from '../../utils/index.js';
+import {
+  isDev,
+  isArray,
+  isDefined,
+  getAncestorWhereUntil,
+  endsWith,
+  startsWith,
+} from '../../utils/index.js';
 
 const NORMALIZE_REF_NAME_REGEX = /\[\]$/;
 const NAMESPACED_REF_REGEX = /^(.*\.)/;
@@ -15,7 +22,7 @@ export function normalizeRefName(name: string) {
 
   let normalizedName = name;
 
-  if (name.endsWith('[]')) {
+  if (endsWith(name, '[]')) {
     normalizedName = normalizedName.replace(NORMALIZE_REF_NAME_REGEX, '');
   }
 
@@ -31,7 +38,7 @@ export function normalizeRefName(name: string) {
  * Filter refs belonging to the related Base instance.
  */
 function refBelongToInstance(ref: HTMLElement, rootElement: HTMLElement, name: string) {
-  const isPrefixed = ref.dataset.ref.startsWith(name);
+  const isPrefixed = startsWith(ref.dataset.ref, name);
   const firstComponentAncestor = getAncestorWhereUntil(
     ref,
     (el) =>
@@ -52,7 +59,7 @@ function refBelongToInstance(ref: HTMLElement, rootElement: HTMLElement, name: s
  * @private
  */
 function __register(that: RefsManager, refName: string) {
-  const isMultiple = refName.endsWith('[]');
+  const isMultiple = endsWith(refName, '[]');
   const propName = normalizeRefName(refName);
   const { name } = that.__base.$options;
 
@@ -120,13 +127,13 @@ export class RefsManager extends AbstractManager {
    * Register all refs.
    */
   registerAll() {
-    this.__refs.forEach((refName) => __register(this, refName));
+    for (const refName of this.__refs) __register(this, refName);
   }
 
   /**
    * Unregister all refs.
    */
   unregisterAll() {
-    this.__refs.forEach((refName) => __unregister(this, refName));
+    for (const refName of this.__refs) __unregister(this, refName);
   }
 }

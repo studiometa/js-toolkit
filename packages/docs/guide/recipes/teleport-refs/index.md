@@ -17,15 +17,10 @@ We can make sure that the moved refs are still accessible by saving the original
   ];
 </script>
 
-<Tabs :items="tabs">
-  <template #content-1>
+::: code-group
 
-<<< ./guide/recipes/teleport-refs/Modal.js
+<<< ./Modal.js
 
-  </template>
-  <template #content-2>
+<<< ./Modal.html
 
-<<< ./guide/recipes/teleport-refs/Modal.html
-
-  </template>
-</Tabs>
+:::

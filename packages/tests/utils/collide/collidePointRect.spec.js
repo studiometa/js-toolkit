@@ -1,4 +1,4 @@
-import { collidePointRect } from '@studiometa/js-toolkit/utils/collide';
+import { collidePointRect } from '@studiometa/js-toolkit/utils';
 
 describe('collidePointRect method', () => {
   it('should be true when the point is inside the rectangle', () => {

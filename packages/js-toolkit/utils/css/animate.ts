@@ -5,6 +5,7 @@ import { domScheduler as scheduler } from '../scheduler.js';
 import { tween, normalizeEase } from '../tween.js';
 // eslint-disable-next-line import/extensions
 import { eachElements } from './utils.js';
+import { startsWith } from '../string/index.js';
 import type { TransformProps } from './transform.js';
 import type { EasingFunction } from '../math/index.js';
 import type { BezierCurve, TweenOptions } from '../tween.js';
@@ -147,9 +148,9 @@ function render(
         element.style.transformOrigin = transformOrigin;
       }
       if (customProperties !== false) {
-        customProperties.forEach((customProperty) => {
+        for (const customProperty of customProperties) {
           element.style.setProperty(customProperty[0], customProperty[1].toString());
-        });
+        }
       }
       transform(element, props);
     });
@@ -170,7 +171,7 @@ function singleAnimate(
       ...keyframe,
       offset: keyframe.offset ?? index / keyframesCount,
       easing: normalizeEase(keyframe.easing),
-      vars: Object.keys(keyframe).filter((key) => key.startsWith('--')),
+      vars: Object.keys(keyframe).filter((key) => startsWith(key, '--')),
     }),
   );
 
@@ -205,10 +206,10 @@ function singleAnimate(
       }
       // Stop running instances
       const runningKeys = running.get(element);
-      runningKeys.forEach((runningPause, runningKey) => {
+      for (const [runningKey, runningPause] of runningKeys.entries()) {
         runningPause();
         runningKeys.delete(runningKey);
-      });
+      }
       runningKeys.set(key, controls.pause);
       running.set(element, runningKeys);
     },
@@ -237,9 +238,9 @@ export function animate(
         return controls[0][key]();
       }
 
-      controls.forEach((control) => {
+      for (const control of controls) {
         control[key](...args);
-      });
+      }
     };
 
   return {

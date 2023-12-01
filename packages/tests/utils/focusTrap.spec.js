@@ -1,6 +1,6 @@
-import useFocusTrap from '@studiometa/js-toolkit/utils/focusTrap';
+import { focusTrap } from '@studiometa/js-toolkit/utils';
 
-const { saveActiveElement, trap, untrap } = useFocusTrap();
+const { saveActiveElement, trap, untrap } = focusTrap();
 
 describe('The `focusTrap` utility', () => {
   document.body.innerHTML = `

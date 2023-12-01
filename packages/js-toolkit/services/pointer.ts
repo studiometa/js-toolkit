@@ -152,14 +152,14 @@ function createPointerService(target: HTMLElement | undefined): PointerService {
       });
 
       const options = { passive: true, capture: true };
-      events.forEach((event) => {
+      for (const event of events) {
         document.addEventListener(event, handleEvent, options);
-      });
+      }
     },
     kill() {
-      events.forEach((event) => {
+      for (const event of events) {
         document.removeEventListener(event, handleEvent);
-      });
+      }
     },
   });
 

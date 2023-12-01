@@ -15,9 +15,9 @@ function setStyles(
   }
 
   eachElements(elementOrElements, (el) => {
-    Object.entries(styles).forEach(([prop, value]) => {
+    for (const [prop, value] of Object.entries(styles)) {
       el.style[prop] = method === 'add' ? value : '';
-    });
+    }
   });
 }
 

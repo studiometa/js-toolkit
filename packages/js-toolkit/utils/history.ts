@@ -1,11 +1,14 @@
 import { isArray, isObject } from './is.js';
 import { hasWindow } from './has.js';
+import { startsWith } from './string/index.js';
 
 export interface HistoryOptions {
   path?: string;
   search?: URLSearchParams | { [key: string]: unknown };
   hash?: string;
 }
+
+type SearchParamValue = string | number | boolean;
 
 /**
  * Set a param in a URLSearchParam instance.
@@ -18,7 +21,7 @@ export interface HistoryOptions {
 function updateUrlSearchParam(
   params: URLSearchParams,
   name: string,
-  value: string | number | boolean | Array<unknown> | Record<string, unknown>,
+  value: SearchParamValue | Array<SearchParamValue> | Record<string, SearchParamValue>,
 ): URLSearchParams {
   if (value === '' || value === null || value === undefined) {
     if (params.has(name)) {
@@ -28,18 +31,18 @@ function updateUrlSearchParam(
   }
 
   if (isArray(value)) {
-    value.forEach((val, index) => {
+    for (const [index, val] of value.entries()) {
       const arrayName = `${name}[${index}]`;
       updateUrlSearchParam(params, arrayName, val);
-    });
+    }
     return params;
   }
 
   if (isObject(value)) {
-    Object.entries(value).forEach(([key, val]) => {
+    for (const [key, val] of Object.entries(value)) {
       const objectName = `${name}[${key}]`;
       updateUrlSearchParam(params, objectName, val);
-    });
+    }
     return params;
   }
 
@@ -100,7 +103,7 @@ function updateHistory(
   }
 
   if (hash) {
-    if (hash.startsWith('#')) {
+    if (startsWith(hash, '#')) {
       url += hash;
     } else {
       url += `#${hash}`;

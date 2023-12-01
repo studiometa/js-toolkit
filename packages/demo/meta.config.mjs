@@ -1,6 +1,6 @@
 import { resolve, dirname } from 'node:path';
 import { defineConfig } from '@studiometa/webpack-config';
-import { prototyping } from '@studiometa/webpack-config/presets';
+import { prototyping } from '@studiometa/webpack-config-preset-prototyping';
 
 const { pathname } = new URL(import.meta.url);
 

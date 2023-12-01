@@ -1,4 +1,4 @@
-import { collideRectRect } from '@studiometa/js-toolkit/utils/collide';
+import { collideRectRect } from '@studiometa/js-toolkit/utils';
 
 describe('collideRectRect method', () => {
   it('should be true when the rectangle 1 has the same position as the rectangle 2', () => {

@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+// eslint-disable-next-line import/no-unresolved
 import { nextFrame, getCancelRaf, getRaf } from '@studiometa/js-toolkit/utils/nextFrame';
 
 describe('nextFrame method', () => {

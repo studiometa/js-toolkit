@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import useRaf from '@studiometa/js-toolkit/services/raf';
+import { useRaf } from '@studiometa/js-toolkit';
 import wait from '../__utils__/wait.js';
 
 describe('useRaf', () => {

@@ -1,4 +1,4 @@
-import clamp01 from '@studiometa/js-toolkit/utils/math/clamp01';
+import { clamp01 } from '@studiometa/js-toolkit/utils';
 
 describe('clamp01 method', () => {
   it('should clamp a value between 0 and 1', () => {

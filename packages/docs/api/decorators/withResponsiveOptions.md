@@ -34,8 +34,7 @@ export default class Component extends withResponsiveOptions(Base) {
   data-component="Component"
   data-option-label:xxs="Small Mobile"
   data-option-label:xs:s="Large Mobile And Tablet"
-  data-option-label="Other devices"
->
+  data-option-label="Other devices">
   ...
 </div>
 ```
@@ -94,8 +93,7 @@ export default class Component extends withResponsiveOptions(Base) {
 <div
   data-component="Component"
   data-option-label:s="You are on a small screen"
-  data-option-label="I am the default label"
->
+  data-option-label="I am the default label">
   ...
 </div>
 ```
@@ -117,8 +115,7 @@ With the same breakpoins and component as before, but with a different markup, w
   data-component="Component"
   data-option-label:s="You are on a small screen"
   data-option-label:m="You are on a medium screen"
-  data-option-label:l="You are on a large screen"
->
+  data-option-label:l="You are on a large screen">
   ...
 </div>
 ```
@@ -139,8 +136,7 @@ Breakpoints can be combined to use the same value multiple times:
 <div
   data-component="Component"
   data-option-label:s:m="You are on a small or medium screen"
-  data-option-label:l="You are on a large screen"
->
+  data-option-label:l="You are on a large screen">
   ...
 </div>
 ```
