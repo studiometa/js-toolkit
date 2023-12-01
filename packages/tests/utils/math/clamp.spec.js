@@ -1,4 +1,4 @@
-import clamp from '@studiometa/js-toolkit/utils/math/clamp';
+import { clamp } from '@studiometa/js-toolkit/utils';
 
 describe('clamp method', () => {
   it('should clamp a value between the given range', () => {

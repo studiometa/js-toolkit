@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import debounce from '@studiometa/js-toolkit/utils/debounce';
+import { debounce } from '@studiometa/js-toolkit/utils';
 
 describe('debounce method', () => {
   beforeAll(() => {

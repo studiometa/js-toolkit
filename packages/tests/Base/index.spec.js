@@ -2,10 +2,10 @@
 import { jest } from '@jest/globals';
 import { Base } from '@studiometa/js-toolkit';
 import { html } from 'htl';
-import { ChildrenManager } from '@studiometa/js-toolkit/Base/managers/ChildrenManager';
-import { OptionsManager } from '@studiometa/js-toolkit/Base/managers/OptionsManager';
-import { RefsManager } from '@studiometa/js-toolkit/Base/managers/RefsManager';
-import wait from '../__utils__/wait';
+import { ChildrenManager } from '@studiometa/js-toolkit/Base/managers/ChildrenManager.js';
+import { OptionsManager } from '@studiometa/js-toolkit/Base/managers/OptionsManager.js';
+import { RefsManager } from '@studiometa/js-toolkit/Base/managers/RefsManager.js';
+import wait from '../__utils__/wait.js';
 
 describe('The abstract Base class', () => {
   it('must be extended', () => {
