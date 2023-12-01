@@ -1,5 +1,6 @@
 import { isArray, isObject } from './is.js';
 import { hasWindow } from './has.js';
+import { startsWith } from './string/index.js';
 
 export interface HistoryOptions {
   path?: string;
@@ -102,7 +103,7 @@ function updateHistory(
   }
 
   if (hash) {
-    if (hash.startsWith('#')) {
+    if (startsWith(hash, '#')) {
       url += hash;
     } else {
       url += `#${hash}`;

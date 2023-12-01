@@ -5,6 +5,7 @@ import { domScheduler as scheduler } from '../scheduler.js';
 import { tween, normalizeEase } from '../tween.js';
 // eslint-disable-next-line import/extensions
 import { eachElements } from './utils.js';
+import { startsWith } from '../string/index.js';
 import type { TransformProps } from './transform.js';
 import type { EasingFunction } from '../math/index.js';
 import type { BezierCurve, TweenOptions } from '../tween.js';
@@ -170,7 +171,7 @@ function singleAnimate(
       ...keyframe,
       offset: keyframe.offset ?? index / keyframesCount,
       easing: normalizeEase(keyframe.easing),
-      vars: Object.keys(keyframe).filter((key) => key.startsWith('--')),
+      vars: Object.keys(keyframe).filter((key) => startsWith(key, '--')),
     }),
   );
 
