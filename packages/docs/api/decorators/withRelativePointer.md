@@ -12,7 +12,7 @@ export default class RelativePointer extends withRelativePointer(Base, {
 }) {
   static config = {
     name: 'RelativePointer',
-    refs: ['item']
+    refs: ['item'],
   };
 
   movedrelative(props) {
@@ -46,7 +46,7 @@ The `movedrelative` class method will be triggered when moving the pointer.
 
 ### Move a ref element
 
-This decorator can be used to easily use the pointer position relative from the component's root element. The following example will scale a ref based on the position of the pointer *inside* the component's root element.
+This decorator can be used to easily use the pointer position relative from the component's root element. The following example will scale a ref based on the position of the pointer _inside_ the component's root element.
 
 ```js
 import { Base, withRelativePointer } from '@studiometa/js-toolkit';

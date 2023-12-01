@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Changed
+
+- Improve performance by migrating from `forEach` to `for…of` for loops ([#391](https://github.com/studiometa/js-toolkit/pull/391))
+
 ## [v2.11.2](https://github.com/studiometa/js-toolkit/compare/2.11.1..2.11.2) (2023-07-13)
 
 ### Fixed

@@ -119,9 +119,9 @@ export class ServicesManager extends AbstractManager {
    * @returns {void}
    */
   disableAll() {
-    Object.keys(this.__services).forEach((serviceName) => {
+    for (const serviceName of Object.keys(this.__services)) {
       this.disable(serviceName);
-    });
+    }
   }
 
   /**
