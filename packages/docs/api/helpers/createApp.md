@@ -25,9 +25,9 @@ The second parameter can either be one of the following:
 
 1. `rootElement` (`HTMLElement`): the root element for your app, defaults to `document.body`
 2. `options` (`Object`): an object to configure more advanced options
-    - `options.root` (`HTMLElement`): the root element for your app, defaults to `document.body`
-    - `options.breakpoints` (`Record<string, string>`): a list of breakpoints to confgure the [`useResize` service](/api/services/useResize)
-    - `options.mountState` (`'interactive'|'complete'`): the loading state when the app should be mounted, defaults to `complete` (see [the `document.readyState` documentation](https://developer.mozilla.org/en-US/docs/Web/API/Document/readyState) for more details)
+   - `options.root` (`HTMLElement`): the root element for your app, defaults to `document.body`
+   - `options.breakpoints` (`Record<string, string>`): a list of breakpoints to confgure the [`useResize` service](/api/services/useResize)
+   - `options.mountState` (`'interactive'|'complete'`): the loading state when the app should be mounted, defaults to `complete` (see [the `document.readyState` documentation](https://developer.mozilla.org/en-US/docs/Web/API/Document/readyState) for more details)
 
 **Return value**
 
@@ -90,4 +90,5 @@ export default createApp(App, {
   mountState: 'interactive',
 });
 ```
+
 In `interactive` mode, the app will be mounted when the DOM has finished loading and the document has been parsed.

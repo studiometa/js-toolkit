@@ -17,6 +17,3 @@ The `withVue2` decorator is removed, along with the package's dependency to the 
 If your project is using this decorator, you can copy the [latest version](https://github.com/studiometa/js-toolkit/blob/support/2.x/packages/js-toolkit/decorators/withVue2.ts) from the package in your project and keep using it.
 
 See pull-request [#395](https://github.com/studiometa/js-toolkit/pull/395) for more details.
-
-
-
