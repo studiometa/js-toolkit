@@ -2,6 +2,7 @@
   "name": "@studiometa/js-toolkit-workspace",
   "version": "2.12.0",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*"
   ],
