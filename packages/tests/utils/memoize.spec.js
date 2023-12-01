@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import memoize from '@studiometa/js-toolkit/utils/memoize';
+import { memoize } from '@studiometa/js-toolkit/utils';
 
 describe('The `memoize` function', () => {
   it('should cache results', () => {

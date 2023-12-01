@@ -1,8 +1,7 @@
 import { jest } from '@jest/globals';
-import throttle from '@studiometa/js-toolkit/utils/throttle';
+import { throttle } from '@studiometa/js-toolkit/utils';
 
 describe('throttle method', () => {
-
   beforeAll(() => {
     jest.useFakeTimers();
   });

@@ -16,29 +16,29 @@ describe('The `transform` utility function', () => {
     expect(div.style.transform).toBe(result);
   });
 
-  [
-    ['x', 100, 'translate3d(100px, 0px, 0px) '],
-    ['y', 100, 'translate3d(0px, 100px, 0px) '],
-    ['z', 100, 'translate3d(0px, 0px, 100px) '],
-    ['scale', 0.5, 'scale(0.5) '],
-    ['scaleX', 0.5, 'scaleX(0.5) '],
-    ['scaleY', 0.5, 'scaleY(0.5) '],
-    ['scaleZ', 0.5, 'scaleZ(0.5) '],
-    ['rotate', 45, 'rotate(45deg) '],
-    ['rotateX', 45, 'rotateX(45deg) '],
-    ['rotateY', 45, 'rotateY(45deg) '],
-    ['rotateZ', 45, 'rotateZ(45deg) '],
-    ['skew', 10, 'skew(10deg) '],
-    ['skewX', 10, 'skewX(10deg) '],
-    ['skewY', 10, 'skewY(10deg) '],
-  ].forEach(([name, value, result]) => {
+  for (const [name, value, result] of [
+    ['x', 100, 'translate3d(100px, 0px, 0px)'],
+    ['y', 100, 'translate3d(0px, 100px, 0px)'],
+    ['z', 100, 'translate3d(0px, 0px, 100px)'],
+    ['scale', 0.5, 'scale(0.5)'],
+    ['scaleX', 0.5, 'scaleX(0.5)'],
+    ['scaleY', 0.5, 'scaleY(0.5)'],
+    ['scaleZ', 0.5, 'scaleZ(0.5)'],
+    ['rotate', 45, 'rotate(45deg)'],
+    ['rotateX', 45, 'rotateX(45deg)'],
+    ['rotateY', 45, 'rotateY(45deg)'],
+    ['rotateZ', 45, 'rotateZ(45deg)'],
+    ['skew', 10, 'skew(10deg)'],
+    ['skewX', 10, 'skewX(10deg)'],
+    ['skewY', 10, 'skewY(10deg)'],
+  ]) {
     it(`should set the \`${name}\` property`, () => {
       const div = document.createElement('div');
       const props = {};
       props[name] = value;
       const transformValue = transform(div, props);
-      expect(transformValue).toBe(result);
-      expect(div.style.transform).toBe(result);
+      expect(transformValue.trim()).toBe(result);
+      expect(div.style.transform.trim()).toBe(result);
     });
-  });
+  }
 });

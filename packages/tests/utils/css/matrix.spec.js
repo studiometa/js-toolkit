@@ -1,4 +1,4 @@
-import matrix from '@studiometa/js-toolkit/utils/css/matrix';
+import { matrix } from '@studiometa/js-toolkit/utils';
 
 describe('matrix method', () => {
   it('should work without arguments', () => {

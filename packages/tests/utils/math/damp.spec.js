@@ -1,4 +1,4 @@
-import damp from '@studiometa/js-toolkit/utils/math/damp';
+import { damp } from '@studiometa/js-toolkit/utils';
 
 describe('damp method', () => {
   it('should give the correct value', () => {
