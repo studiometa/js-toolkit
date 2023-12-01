@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v2.12.0](https://github.com/studiometa/js-toolkit/compare/2.11.2..2.12.0) (2023-12-01)
+
 ### Added
 
 - Add `startsWith` and `endsWith` utils ([#389](https://github.com/studiometa/js-toolkit/pull/389))
