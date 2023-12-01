@@ -7,6 +7,8 @@ export interface HistoryOptions {
   hash?: string;
 }
 
+type SearchParamValue = string | number | boolean;
+
 /**
  * Set a param in a URLSearchParam instance.
  *
@@ -18,7 +20,7 @@ export interface HistoryOptions {
 function updateUrlSearchParam(
   params: URLSearchParams,
   name: string,
-  value: string | number | boolean | Array<unknown> | Record<string, unknown>,
+  value: SearchParamValue | Array<SearchParamValue> | Record<string, SearchParamValue>,
 ): URLSearchParams {
   if (value === '' || value === null || value === undefined) {
     if (params.has(name)) {
