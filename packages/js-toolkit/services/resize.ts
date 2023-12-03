@@ -1,10 +1,11 @@
 /* eslint-disable no-use-before-define, @typescript-eslint/no-use-before-define */
 import { useService } from './service.js';
 import { features } from '../Base/features.js';
+import type { Features } from '../Base/features.js';
 import debounce from '../utils/debounce.js';
 import type { ResizeServiceInterface } from './index.js';
 
-export interface ResizeServiceProps<U extends Record<string, string>> {
+export interface ResizeServiceProps<U extends Features['screens'] = Features['screens']> {
   width: number;
   height: number;
   ratio: number;
@@ -17,9 +18,11 @@ export interface ResizeServiceProps<U extends Record<string, string>> {
 /**
  * Get resize service.
  */
-function createResizeService<T extends Record<string, string>>(
-  screens: Partial<T> = {},
+function createResizeService<T extends Features['screens'] = Features['screens']>(
+  screens?: T,
 ): ResizeServiceInterface<T> {
+  const finalScreens = screens ?? features.get('screens');
+
   /**
    * Update props.
    */
@@ -58,7 +61,7 @@ function createResizeService<T extends Record<string, string>>(
       },
       get activeBreakpoints() {
         return Object.fromEntries(
-          Object.entries(screens).map(([name, breakpoint]) => [
+          Object.entries(finalScreens).map(([name, breakpoint]) => [
             name,
             window.matchMedia(`(min-width: ${breakpoint})`).matches,
           ]),
@@ -81,17 +84,19 @@ function createResizeService<T extends Record<string, string>>(
   };
 }
 
-let resize;
+const instances: Map<string, ResizeServiceInterface | undefined> = new Map();
 
 /**
  * Use the resize service.
  */
-export default function useResize<T extends Record<string, string>>(
-  screens: Partial<T> = features.get('screens'),
+export default function useResize<T extends Features['screens'] = Features['screens']>(
+  screens?: T,
 ): ResizeServiceInterface<T> {
-  if (!resize) {
-    resize = createResizeService(screens);
+  const key = JSON.stringify(screens);
+
+  if (!instances.has(key)) {
+    instances.set(key, createResizeService(screens));
   }
 
-  return resize;
+  return (instances as Map<string, ResizeServiceInterface<T>>).get(key);
 }
