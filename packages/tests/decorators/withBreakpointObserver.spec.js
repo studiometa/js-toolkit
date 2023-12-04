@@ -1,14 +1,10 @@
 import { jest } from '@jest/globals';
-import { Base, withBreakpointObserver, useResize } from '@studiometa/js-toolkit';
-import resizeWindow from '../__utils__/resizeWindow';
-import { unmockBreakpoints, mockBreakpoints } from '../__setup__/mockBreakpoints';
+import { Base, withBreakpointObserver } from '@studiometa/js-toolkit';
+import resizeWindow from '../__utils__/resizeWindow.js';
+import { matchMedia } from '../__utils__/matchMedia.js';
 
-/**
- * With name decorator.
- * @param  {Base}   BaseClass A Base class to extend from
- * @param  {String} name      The name of the new class
- * @return {Base}             A class extending Base with a default config
- */
+matchMedia.useMediaQuery('(min-width: 80rem)');
+
 const withName = (BaseClass, name) =>
   class extends BaseClass {
     static config = {
@@ -45,83 +41,71 @@ let foo;
 let fooResponsive;
 
 describe('The withBreakpointObserver decorator', () => {
-  beforeAll(() => {
-    jest.useFakeTimers();
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
+  afterEach(() => {
+    matchMedia.clear();
   });
 
   beforeEach(() => {
     document.body.innerHTML = template;
     app = new App(document.body).$mount();
-    foo = document.querySelector('[data-component="Foo"]');
-    fooResponsive = document.querySelectorAll('[data-component="FooResponsive"]');
+    [foo] = app.$children.Foo;
+    fooResponsive = app.$children.FooResponsive;
   });
 
-  it('should mount', () => {
-    resizeWindow({ width: 1200 });
-    jest.runAllTimers();
+  it('should mount', async () => {
+    matchMedia.useMediaQuery('(min-width: 80rem)');
+    await resizeWindow({ width: 1280 });
     expect(app.$isMounted).toBe(true);
-    expect(foo.__base__.get(Foo).$isMounted).toBe(true);
-    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(true);
+    expect(foo.$isMounted).toBe(true);
+    expect(fooResponsive[0].$isMounted).toBe(true);
   });
 
   it('should disable the decorated component', async () => {
-    resizeWindow({ width: 480 });
-    jest.runAllTimers();
+    matchMedia.useMediaQuery('(min-width: 48rem)');
+    await resizeWindow({ width: 768 });
 
-    expect(window.innerWidth).toBe(480);
-    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(true);
-    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(true);
-    expect(fooResponsive[2].__base__.get(FooResponsive).$isMounted).toBe(false);
-    expect(fooResponsive[3].__base__.get(FooResponsive).$isMounted).toBe(false);
-    resizeWindow({ width: 800 });
-    jest.runAllTimers();
+    expect(window.innerWidth).toBe(768);
+    expect(fooResponsive[0].$isMounted).toBe(true);
+    expect(fooResponsive[1].$isMounted).toBe(true);
+    expect(fooResponsive[2].$isMounted).toBe(false);
+    expect(fooResponsive[3].$isMounted).toBe(false);
+    matchMedia.useMediaQuery('(min-width: 80rem)');
+    await resizeWindow({ width: 1280 });
 
-    expect(window.innerWidth).toBe(800);
-    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(true);
-    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(false);
-    expect(fooResponsive[2].__base__.get(FooResponsive).$isMounted).toBe(true);
-    expect(fooResponsive[3].__base__.get(FooResponsive).$isMounted).toBe(false);
-    resizeWindow({ width: 1200 });
-    jest.runAllTimers();
+    expect(window.innerWidth).toBe(1280);
+    expect(fooResponsive[0].$isMounted).toBe(true);
+    expect(fooResponsive[1].$isMounted).toBe(false);
+    expect(fooResponsive[2].$isMounted).toBe(true);
+    expect(fooResponsive[3].$isMounted).toBe(false);
 
-    expect(window.innerWidth).toBe(1200);
-    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(true);
-    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(false);
-    expect(fooResponsive[2].__base__.get(FooResponsive).$isMounted).toBe(true);
-    expect(fooResponsive[3].__base__.get(FooResponsive).$isMounted).toBe(false);
+    fooResponsive[0].$options.inactiveBreakpoints = 's m';
 
-    fooResponsive[0].__base__.get(FooResponsive).$options.inactiveBreakpoints = 's m';
-    // We need the real timers to wait for the MutationObserver to work correctly.
-    jest.useRealTimers();
-    await resizeWindow({ width: 800 });
+    matchMedia.useMediaQuery('(min-width: 48rem)');
+    await resizeWindow({ width: 768 });
 
-    expect(window.innerWidth).toBe(800);
-    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(false);
+    expect(window.innerWidth).toBe(768);
+    expect(fooResponsive[0].$isMounted).toBe(false);
 
-    await resizeWindow({ width: 1200 });
-    expect(fooResponsive[0].__base__.get(FooResponsive).$isMounted).toBe(true);
-
-    jest.useFakeTimers();
+    matchMedia.useMediaQuery('(min-width: 80rem)');
+    await resizeWindow({ width: 1280 });
+    expect(fooResponsive[0].$isMounted).toBe(true);
   });
 
-  it('should re-mount component when deleting both breakpoint options', () => {
-    resizeWindow({ width: 400 });
-    jest.runAllTimers();
+  it('should re-mount component when deleting both breakpoint options', async () => {
+    matchMedia.useMediaQuery('(min-width: 48rem)');
+    await resizeWindow({ width: 768 });
 
-    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(true);
-    resizeWindow({ width: 800 });
-    jest.runAllTimers();
+    expect(fooResponsive[1].$isMounted).toBe(true);
+    matchMedia.useMediaQuery('(min-width: 64rem)');
+    await resizeWindow({ width: 1024 });
 
-    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(false);
-    fooResponsive[1].dataset.options = '{}';
-    resizeWindow({ width: 400 });
-    jest.runAllTimers();
+    expect(fooResponsive[1].$isMounted).toBe(false);
+    delete fooResponsive[1].$el.dataset.optionActiveBreakpoints;
+    delete fooResponsive[1].$el.dataset.optionInActiveBreakpoints;
+    matchMedia.useMediaQuery('(min-width: 48rem)');
+    await resizeWindow({ width: 768 });
 
-    expect(fooResponsive[1].__base__.get(FooResponsive).$isMounted).toBe(true);
+    expect(fooResponsive[1].$isMounted).toBe(true);
   });
 
   it('should throw when configuring both breakpoint options', () => {
@@ -142,9 +126,9 @@ describe('The withBreakpointObserver decorator', () => {
     }).toThrow(/Incorrect configuration/);
   });
 
-  it('should destroy components before mounting the others', () => {
-    resizeWindow({ width: 800 });
-    jest.runAllTimers();
+  it('should destroy components before mounting the others', async () => {
+    matchMedia.useMediaQuery('(min-width: 48rem)');
+    await resizeWindow({ width: 768 });
 
     const fn = jest.fn();
 
@@ -182,7 +166,7 @@ describe('The withBreakpointObserver decorator', () => {
       }
     }
 
-    class App extends Base {
+    class App1 extends Base {
       static config = {
         name: 'App',
         components: { Mobile, Desktop },
@@ -196,35 +180,19 @@ describe('The withBreakpointObserver decorator', () => {
       </div>
     `;
 
-    const app = new App(document.body).$mount();
+    matchMedia.useMediaQuery('(min-width: 64rem)');
+    await resizeWindow({ width: 1024 });
+    new App1(document.body).$mount();
     expect(fn).toHaveBeenCalledWith('Desktop', 'mounted');
-    resizeWindow({ width: 400 });
-    jest.runAllTimers();
+    matchMedia.useMediaQuery('(min-width: 48rem)');
+    await resizeWindow({ width: 768 });
 
     expect(fn).toHaveBeenNthCalledWith(2, 'Desktop', 'destroyed');
     expect(fn).toHaveBeenNthCalledWith(3, 'Mobile', 'mounted');
-    resizeWindow({ width: 800 });
-    jest.runAllTimers();
+    matchMedia.useMediaQuery('(min-width: 64rem)');
+    await resizeWindow({ width: 1024 });
 
     expect(fn).toHaveBeenNthCalledWith(4, 'Mobile', 'destroyed');
     expect(fn).toHaveBeenNthCalledWith(5, 'Desktop', 'mounted');
-  });
-
-  it('should throw when breakpoints are not availabe', () => {
-    unmockBreakpoints();
-    expect(() => {
-      class Bar extends withBreakpointObserver(Base) {
-        static config = {
-          name: 'Bar',
-          options: {
-            inactiveBreakpoints: { type: String, default: 'm' },
-          },
-        };
-      }
-
-      // eslint-disable-next-line no-new
-      new Bar(document.body).$mount();
-    }).toThrow(/requires breakpoints/);
-    mockBreakpoints();
   });
 });

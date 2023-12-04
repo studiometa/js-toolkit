@@ -1,5 +1,7 @@
 import { jest } from '@jest/globals';
 import { useResize } from '@studiometa/js-toolkit';
+import { features } from '@studiometa/js-toolkit/Base/features.js';
+import { matchMedia } from '../__utils__/matchMedia.js';
 import resizeWindow from '../__utils__/resizeWindow.js';
 
 describe('useResize', () => {
@@ -22,17 +24,15 @@ describe('useResize', () => {
   });
 
   it('should have breakpoints props', async () => {
-    expect(props().breakpoints).toEqual([]);
-    expect(props().breakpoint).toBeUndefined();
+    expect(props().breakpoints.length).toBeGreaterThan(0);
 
-    document.body.innerHTML = '<div data-breakpoint></div>';
-    await resizeWindow({ width: 1000 });
-    expect(props().breakpoints).toEqual(['s', 'm', 'l']);
-    await resizeWindow({ width: 600 });
-    expect(props().breakpoint).toBe('s');
-    await resizeWindow({ width: 800 });
-    expect(props().breakpoint).toBe('m');
-    await resizeWindow({ width: 1200 });
-    expect(props().breakpoint).toBe('l');
+    const screens = features.get('screens');
+    expect(props().breakpoints).toEqual(Object.keys(screens));
+
+    for (const [key, value] of Object.entries(screens)) {
+      matchMedia.useMediaQuery(`(min-width: ${value})`);
+      expect(props().breakpoint).toBe(key);
+      expect(props().activeBreakpoints[key]).toBe(true);
+    }
   });
 });
