@@ -423,6 +423,13 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
   }
 
   /**
+   * Add a function to the queue.
+   */
+  $queue(fn: () => unknown): void {
+    addToQueue(fn);
+  }
+
+  /**
    * Add an emitted event.
    *
    * @param   {string} event The event name.
