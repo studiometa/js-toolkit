@@ -10,9 +10,9 @@ export interface ResizeServiceProps<U extends Features['screens'] = Features['sc
   height: number;
   ratio: number;
   orientation: 'square' | 'landscape' | 'portrait';
-  breakpoint?: string;
-  breakpoints?: string[];
-  activeBreakpoints?: Record<keyof U, boolean>;
+  breakpoint: string;
+  breakpoints: string[];
+  activeBreakpoints: Record<keyof U, boolean>;
 }
 
 /**
@@ -22,7 +22,6 @@ function createResizeService<T extends Features['screens'] = Features['screens']
   screens?: T,
 ): ResizeServiceInterface<T> {
   const finalScreens = screens ?? features.get('screens');
-
   /**
    * Update props.
    */
