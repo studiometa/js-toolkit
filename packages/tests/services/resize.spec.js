@@ -26,10 +26,10 @@ describe('useResize', () => {
   it('should have breakpoints props', async () => {
     expect(props().breakpoints.length).toBeGreaterThan(0);
 
-    const screens = features.get('screens');
-    expect(props().breakpoints).toEqual(Object.keys(screens));
+    const breakpoints = features.get('breakpoints');
+    expect(props().breakpoints).toEqual(Object.keys(breakpoints));
 
-    for (const [key, value] of Object.entries(screens)) {
+    for (const [key, value] of Object.entries(breakpoints)) {
       matchMedia.useMediaQuery(`(min-width: ${value})`);
       expect(props().breakpoint).toBe(key);
       expect(props().activeBreakpoints[key]).toBe(true);

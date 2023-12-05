@@ -6,7 +6,7 @@ import { isDefined } from '../utils/index.js';
 export type CreateAppOptions = {
   root: HTMLElement;
   features: Features;
-  screens?: Record<string, string>;
+  breakpoints?: Record<string, string>;
 };
 
 /**

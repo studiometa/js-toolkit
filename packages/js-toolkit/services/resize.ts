@@ -5,7 +5,7 @@ import type { Features } from '../Base/features.js';
 import debounce from '../utils/debounce.js';
 import type { ResizeServiceInterface } from './index.js';
 
-export interface ResizeServiceProps<U extends Features['screens'] = Features['screens']> {
+export interface ResizeServiceProps<U extends Features['breakpoints'] = Features['breakpoints']> {
   width: number;
   height: number;
   ratio: number;
@@ -18,10 +18,10 @@ export interface ResizeServiceProps<U extends Features['screens'] = Features['sc
 /**
  * Get resize service.
  */
-function createResizeService<T extends Features['screens'] = Features['screens']>(
-  screens?: T,
+function createResizeService<T extends Features['breakpoints'] = Features['breakpoints']>(
+  breakpoints?: T,
 ): ResizeServiceInterface<T> {
-  const finalScreens = screens ?? features.get('screens');
+  const finalScreens = breakpoints ?? features.get('breakpoints');
   /**
    * Update props.
    */
@@ -88,13 +88,13 @@ const instances: Map<string, ResizeServiceInterface | undefined> = new Map();
 /**
  * Use the resize service.
  */
-export default function useResize<T extends Features['screens'] = Features['screens']>(
-  screens?: T,
+export default function useResize<T extends Features['breakpoints'] = Features['breakpoints']>(
+  breakpoints?: T,
 ): ResizeServiceInterface<T> {
-  const key = JSON.stringify(screens);
+  const key = JSON.stringify(breakpoints);
 
   if (!instances.has(key)) {
-    instances.set(key, createResizeService(screens));
+    instances.set(key, createResizeService(breakpoints));
   }
 
   return (instances as Map<string, ResizeServiceInterface<T>>).get(key);
