@@ -1,5 +1,5 @@
 import { Base, withMountWhenPrefersMotion } from '@studiometa/js-toolkit';
-import MatchMediaMock from 'jest-matchmedia-mock';
+import { matchMedia } from '../__utils__/matchMedia.js';
 
 const mediaQuery = 'not (prefers-reduced-motion)';
 
@@ -8,8 +8,6 @@ class Foo extends withMountWhenPrefersMotion(Base, mediaQuery) {
     name: 'Foo',
   };
 }
-
-let matchMedia;
 
 function mountComponent() {
   const div = document.createElement('div');
@@ -20,11 +18,6 @@ function mountComponent() {
 }
 
 describe('The withMountWhenPrefersMotion decorator', () => {
-  beforeAll(() => {
-    // eslint-disable-next-line new-cap
-    matchMedia = new MatchMediaMock.default();
-  });
-
   afterEach(() => {
     matchMedia.clear();
   });

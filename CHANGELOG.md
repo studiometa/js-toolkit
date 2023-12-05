@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add support for defining breakpoints when using the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
+
+### Changed
+
+- ⚠️ Refactor definition of breakpoints for the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
+
 ### Removed
 
 - ⚠️ Remove the `withVue2` decorator ([#395](https://github.com/studiometa/js-toolkit/pull/395))

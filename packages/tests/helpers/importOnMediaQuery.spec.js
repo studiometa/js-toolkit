@@ -1,10 +1,8 @@
 import { jest } from '@jest/globals';
 import { html } from 'htl';
 import { Base, withExtraConfig, importOnMediaQuery } from '@studiometa/js-toolkit';
-import MatchMediaMock from 'jest-matchmedia-mock';
+import { matchMedia } from '../__utils__/matchMedia.js';
 import wait from '../__utils__/wait';
-
-let matchMedia;
 
 class App extends Base {
   static config = {
@@ -19,11 +17,6 @@ class Component extends Base {
 }
 
 describe('The `importOnMediaQuery` lazy import helper', () => {
-  beforeAll(() => {
-    // eslint-disable-next-line new-cap
-    matchMedia = new MatchMediaMock.default();
-  });
-
   afterEach(() => {
     matchMedia.clear();
   });
