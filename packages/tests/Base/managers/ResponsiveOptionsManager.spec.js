@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 import { Base, withExtraConfig, withResponsiveOptions } from '@studiometa/js-toolkit';
+import { matchMedia } from '../../__utils__/matchMedia.js';
 import { mockBreakpoints, unmockBreakpoints } from '../../__setup__/mockBreakpoints.js';
 
 class Foo extends withResponsiveOptions(Base) {
@@ -18,6 +19,7 @@ function componentWithOptions(content, options) {
 }
 
 beforeAll(() => {
+  matchMedia.useMediaQuery('(min-width: 80rem)');
   document.body.dataset.breakpoint = '';
 });
 
@@ -34,7 +36,7 @@ describe('The ResponsiveOptionsManager class', () => {
       {
         str: { type: String, responsive: true },
         foo: String,
-      }
+      },
     );
 
     expect(instance.$options.str).toBe('bar');
@@ -47,7 +49,7 @@ describe('The ResponsiveOptionsManager class', () => {
       {
         str: { type: String, responsive: true },
         foo: String,
-      }
+      },
     );
 
     const warnMock = jest.spyOn(console, 'warn');
@@ -55,24 +57,10 @@ describe('The ResponsiveOptionsManager class', () => {
     instance.$options.str = 'baz';
     expect(warnMock).toHaveBeenCalledWith(
       '[BaseWithExtraConfig]',
-      'Responsive options are read-only.'
+      'Responsive options are read-only.',
     );
     instance.$options.foo = 'foo';
     expect(warnMock).toHaveBeenCalledTimes(1);
     warnMock.mockRestore();
-  });
-
-  it('should fail silently when no breakpoint are defined', () => {
-    const instance = componentWithOptions(
-      '<div data-option-str="foo" data-option-str:l="bar"></div>',
-      {
-        str: { type: String, responsive: true },
-        foo: String,
-      }
-    );
-
-    unmockBreakpoints();
-    expect(instance.$options.str).toBe('foo');
-    mockBreakpoints();
   });
 });

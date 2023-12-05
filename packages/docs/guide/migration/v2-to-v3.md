@@ -18,5 +18,22 @@ If your project is using this decorator, you can copy the [latest version](https
 
 See pull-request [#395](https://github.com/studiometa/js-toolkit/pull/395) for more details.
 
+## Breakpoints are no longer read from the DOM
 
+In the previous versions, breakpoints values for the [resize service](/api/services/useResize.html) were read from the DOM by looking for a `[data-breakpoint]` element. In v3, this is no longer supported, breakpoints should be defined when creating your app with [the `createApp()` function](/api/helpers/createApp.html).
 
+```diff
+- <div data-breakpoint>…</div>
+```
+
+```diff
+- export default createApp(App, document.body);
++ export default createApp(App, {
++   root: document.body,
++   screens: {
++     s: '30rem',
++     m: '60rem',
++     l: '90rem',
++   },
++ });
+```

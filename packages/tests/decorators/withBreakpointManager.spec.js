@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 import { Base, withBreakpointManager } from '@studiometa/js-toolkit';
-import resizeWindow from '../__utils__/resizeWindow';
-import { mockBreakpoints, unmockBreakpoints } from '../__setup__/mockBreakpoints';
+import { matchMedia } from '../__utils__/matchMedia.js';
+import resizeWindow from '../__utils__/resizeWindow.js';
 
 const withName = (BaseClass, name) =>
   class extends BaseClass {
@@ -9,6 +9,8 @@ const withName = (BaseClass, name) =>
   };
 
 async function setupTest() {
+  matchMedia.useMediaQuery('(min-width: 64rem)');
+
   document.body.innerHTML = `
     <div data-breakpoint>
       <div data-component="Foo">
@@ -45,7 +47,6 @@ async function setupTest() {
     };
   }
 
-  await resizeWindow({ width: 800 });
   const app = new App(document.body).$mount();
   const foo = document.querySelector('[data-component="Foo"]').__base__.get(Foo);
 
@@ -53,6 +54,14 @@ async function setupTest() {
 }
 
 describe('The withBreakpointManager decorator', () => {
+  beforeEach(() => {
+    matchMedia.useMediaQuery('(min-width: 1280px)');
+  });
+
+  afterEach(() => {
+    matchMedia.clear();
+  });
+
   it('should mount', async () => {
     const { app, foo, fn } = await setupTest();
     expect(app.$isMounted).toBe(true);
@@ -61,19 +70,23 @@ describe('The withBreakpointManager decorator', () => {
   });
 
   it('should mount and destroy components', async () => {
-    const { app, foo, fn } = await setupTest();
-    await resizeWindow({ width: 1200 });
+    const { app, fn } = await setupTest();
+    matchMedia.useMediaQuery('(min-width: 80rem)');
+    await resizeWindow({ width: 1280 });
     expect(fn).toHaveBeenLastCalledWith('FooDesktop', 'mounted');
     fn.mockReset();
-    await resizeWindow({ width: 400 });
+    matchMedia.useMediaQuery('(min-width: 48rem)');
+    await resizeWindow({ width: 768 });
     expect(fn).toHaveBeenNthCalledWith(1, 'FooDesktop', 'destroyed');
     expect(fn).toHaveBeenNthCalledWith(2, 'FooMobile', 'mounted');
     fn.mockReset();
-    await resizeWindow({ width: 800 });
+    matchMedia.useMediaQuery('(min-width: 64rem)');
+    await resizeWindow({ width: 1024 });
     expect(fn).toHaveBeenLastCalledWith('FooMobile', 'destroyed');
     fn.mockReset();
 
-    await resizeWindow({ width: 1200 });
+    matchMedia.useMediaQuery('(min-width: 80rem)');
+    await resizeWindow({ width: 1280 });
     fn.mockReset();
     app.$destroy();
     expect(fn).toHaveBeenNthCalledWith(1, 'FooDesktop', 'destroyed');
@@ -89,18 +102,5 @@ describe('The withBreakpointManager decorator', () => {
       // eslint-disable-next-line no-unused-vars
       class Bar extends withBreakpointManager(withName(Base, 'Bar'), [[]]) {}
     }).toThrow(/at least 2/);
-  });
-
-  it('should throw when breakpoints are not availabe', () => {
-    unmockBreakpoints();
-    expect(() => {
-      document.body.innerHTML = '<div></div>';
-      // eslint-disable-next-line no-unused-vars
-      class Boz extends withBreakpointManager(withName(Base, 'Boz'), [
-        ['s', withName(Base, 'BozMobile')],
-        ['l', withName(Base, 'BozDesktop')],
-      ]) {}
-    }).toThrow(/requires breakpoints/);
-    mockBreakpoints();
   });
 });

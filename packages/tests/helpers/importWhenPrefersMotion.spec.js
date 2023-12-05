@@ -1,10 +1,8 @@
 import { jest } from '@jest/globals';
 import { html } from 'htl';
 import { Base, withExtraConfig, importWhenPrefersMotion } from '@studiometa/js-toolkit';
-import MatchMediaMock from 'jest-matchmedia-mock';
+import { matchMedia } from '../__utils__/matchMedia.js';
 import wait from '../__utils__/wait';
-
-let matchMedia;
 
 class App extends Base {
   static config = {
@@ -19,11 +17,6 @@ class Component extends Base {
 }
 
 describe('The `importWhenPrefersMotion` lazy import helper', () => {
-  beforeAll(() => {
-    // eslint-disable-next-line new-cap
-    matchMedia = new MatchMediaMock.default();
-  });
-
   afterEach(() => {
     matchMedia.clear();
   });
@@ -33,40 +26,48 @@ describe('The `importWhenPrefersMotion` lazy import helper', () => {
     const mediaQuery = 'not (prefers-reduced-motion)';
     matchMedia.useMediaQuery(mediaQuery);
 
-    const div = html`<div>
+    const div = html`
+      <div>
         <div data-component="Component"></div>
-      </div>`;
+      </div>
+    `;
 
     const AppOverride = withExtraConfig(App, {
       components: {
-        Component: () => importWhenPrefersMotion(() => {
-          fn();
-          return Promise.resolve(Component)
-        }, mediaQuery),
+        Component: () =>
+          importWhenPrefersMotion(() => {
+            fn();
+            return Promise.resolve(Component);
+          }, mediaQuery),
       },
     });
 
-    new AppOverride(div).$mount();
+    const app = new AppOverride(div);
+    app.$mount();
     await wait(0);
     expect(fn).toHaveBeenCalledTimes(1);
-    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
+    expect(app.$children.Component).toHaveLength(1);
+    expect(app.$children.Component[0]).toBeInstanceOf(Component);
   });
 
   it('should not import a component when user prefers reduced motion', async () => {
     const fn = jest.fn();
-    const mediaQuery = 'not (prefers-reduced-motion)';
-    matchMedia.useMediaQuery('(prefers-reduced-motion)');
+    const mediaQuery = '(prefers-reduced-motion)';
+    matchMedia.useMediaQuery(mediaQuery);
 
-    const div = html`<div>
+    const div = html`
+      <div>
         <div data-component="Component"></div>
-      </div>`;
+      </div>
+    `;
 
     const AppOverride = withExtraConfig(App, {
       components: {
-        Component: () => importWhenPrefersMotion(() => {
-          fn();
-          return Promise.resolve(Component)
-        }, mediaQuery),
+        Component: () =>
+          importWhenPrefersMotion(() => {
+            fn();
+            return Promise.resolve(Component);
+          }, mediaQuery),
       },
     });
 
