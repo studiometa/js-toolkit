@@ -8,7 +8,7 @@ matchMedia.useMediaQuery('(min-width: 80rem)');
 const withName = (BaseClass, name) =>
   class extends BaseClass {
     static config = {
-      ...(BaseClass.config || {}),
+      ...BaseClass.config,
       name,
     };
   };
