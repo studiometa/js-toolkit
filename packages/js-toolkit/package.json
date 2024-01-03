@@ -39,7 +39,7 @@
     "toolkit"
   ],
   "dependencies": {
-    "@motionone/easing": "^10.15.1",
+    "@motionone/easing": "^10.16.3",
     "deepmerge": "^4.3.1"
   }
 }
