@@ -58,15 +58,3 @@ jobs:
         fail_ci_if_error: false
         path_to_write_report: ./codecov_report.txt
         verbose: false
-
-  Export-Size:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: '0'
-      - uses: titouanmathis/export-size-action@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          build_script: npm run build-for-export-size
-          paths: dist
