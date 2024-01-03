@@ -32,19 +32,19 @@
     "@studiometa/prettier-config": "^3.0.0",
     "@studiometa/stylelint-config": "^3.0.2",
     "@types/estree": "^1.0.5",
-    "@types/jest": "^29.5.10",
-    "@types/node": "^20.10.1",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.6",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
-    "eslint": "^8.54.0",
+    "eslint": "^8.56.0",
     "eslint-config-airbnb-typescript": "^17.1.0",
     "eslint-import-resolver-exports": "^1.0.0-beta.5",
-    "eslint-plugin-jest": "^27.6.0",
+    "eslint-plugin-jest": "^27.6.1",
     "prettier": "^2.8.8",
-    "typescript": "^5.3.2"
+    "typescript": "^5.3.3"
   },
   "dependencies": {
-    "esbuild": "^0.19.8",
+    "esbuild": "^0.19.11",
     "fast-glob": "^3.3.2"
   }
 }
