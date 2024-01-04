@@ -121,31 +121,31 @@ function getApiSidebar({ expanded = 'api' } = {}) {
     {
       text: 'Base class',
       link: '/api/',
-      collapsible: true,
+      collapsed: true,
       items: expanded === 'api' ? getBaseSidebar() : getBaseSidebar(),
     },
     {
       text: 'HTML',
       link: '/api/html/',
-      collapsible: true,
+      collapsed: true,
       items: expanded === 'html' ? getHtmlSidebar() : getHtmlSidebar(),
     },
     {
       text: 'Helpers',
       link: '/api/helpers/',
-      collapsible: true,
+      collapsed: true,
       items: expanded === 'helpers' ? getHelpersSidebar() : getHelpersSidebar(),
     },
     {
       text: 'Services',
       link: '/api/services/',
-      collapsible: true,
+      collapsed: true,
       items: expanded === 'services' ? getServicesSidebar() : getServicesSidebar(),
     },
     {
       text: 'Decorators',
       link: '/api/decorators/',
-      collapsible: true,
+      collapsed: true,
       items: expanded === 'decorators' ? getDecoratorsSidebar() : getDecoratorsSidebar(),
     },
   ];
@@ -249,7 +249,7 @@ function getUtilsSidebar() {
     {
       text: 'Utils',
       link: '/utils/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'debounce', link: '/utils/debounce.html' },
         { text: 'focusTrap', link: '/utils/focusTrap.html' },
@@ -265,9 +265,24 @@ function getUtilsSidebar() {
       ],
     },
     {
+      text: 'Value utils',
+      link: '/utils/is/',
+      collapsed: true,
+      items: [
+        { text: 'isArray', link: '/utils/is/isArray.html' },
+        { text: 'isBoolean', link: '/utils/is/isBoolean.html' },
+        { text: 'isDefined', link: '/utils/is/isDefined.html' },
+        { text: 'isDev', link: '/utils/is/isDev.html' },
+        { text: 'isFunction', link: '/utils/is/isFunction.html' },
+        { text: 'isNumber', link: '/utils/is/isNumber.html' },
+        { text: 'isObject', link: '/utils/is/isObject.html' },
+        { text: 'isString', link: '/utils/is/isString.html' },
+      ],
+    },
+    {
       text: 'Collision utils',
       link: '/utils/collision/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'boundingRectToCircle', link: '/utils/collision/boundingRectToCircle.html' },
         { text: 'collideCircleCircle', link: '/utils/collision/collideCircleCircle.html' },
@@ -280,7 +295,7 @@ function getUtilsSidebar() {
     {
       text: 'CSS utils',
       // link: '/utils/css/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'addClass', link: '/utils/css/addClass.html' },
         { text: 'addStyle', link: '/utils/css/addStyle.html' },
@@ -297,7 +312,7 @@ function getUtilsSidebar() {
     {
       text: 'History utils',
       link: '/utils/history/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'historyPush', link: '/utils/history/historyPush.html' },
         { text: 'historyReplace', link: '/utils/history/historyReplace.html' },
@@ -307,7 +322,7 @@ function getUtilsSidebar() {
     {
       text: 'Math utils',
       // link: '/utils/math/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'clamp', link: '/utils/math/clamp.html' },
         { text: 'clamp01', link: '/utils/math/clamp01.html' },
@@ -324,7 +339,7 @@ function getUtilsSidebar() {
     {
       text: 'String utils',
       link: '/utils/string/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'startsWith', link: '/utils/string/startsWith.html' },
         { text: 'endsWith', link: '/utils/string/endsWith.html' },

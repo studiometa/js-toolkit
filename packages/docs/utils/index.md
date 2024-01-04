@@ -4,13 +4,28 @@ Find below functions that can help you in your projects.
 
 ## Misc.
 
-- [debounce](/utils/debounce.html)
-- [focusTrap](/utils/focusTrap.html)
-- [keyCodes](/utils/keyCodes.html)
-- [memoize](/utils/memoize.html)
-- [nextFrame](/utils/nextFrame.html)
-- [scrollTo](/utils/scrollTo.html)
-- [throttle](/utils/throttle.html)
+- [debounce](./debounce.html)
+- [focusTrap](./focusTrap.html)
+- [keyCodes](./keyCodes.html)
+- [memoize](./memoize.html)
+- [nextFrame](./nextFrame.html)
+- [nextMicrotask](./nextMicrotask.html)
+- [nextTick](./nextTick.html)
+- [scrollTo](./scrollTo.html)
+- [throttle](./throttle.html)
+- [tween](./tween.html)
+- [useScheduler](./useScheduler.html)
+
+## Value
+
+- [isDev](./isDev.html)
+- [isFunction](./isFunction.html)
+- [isDefined](./isDefined.html)
+- [isString](./isString.html)
+- [isObject](./isObject.html)
+- [isNumber](./isNumber.html)
+- [isBoolean](./isBoolean.html)
+- [isArray](./isArray.html)
 
 ## Collision
 
