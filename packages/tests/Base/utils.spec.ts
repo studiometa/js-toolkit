@@ -21,6 +21,17 @@ describe('The `getComponentElements` function', () => {
     expect(getComponentElements('Bar', div)).toHaveLength(3);
     expect(getComponentElements('Baz', div)).toHaveLength(2);
   });
+
+  it('should not find DOM elements with the same name as a defined component', () => {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <figure></figure>
+      <button></button>
+    `;
+
+    expect(getComponentElements('Figure', div)).toHaveLength(0);
+    expect(getComponentElements('Button', div)).toHaveLength(0);
+  });
 });
 
 describe('The `addToQueue` function', () => {
