@@ -163,4 +163,532 @@ createApp(App, { features: { asyncChildren: true } });
 
 ### Changed
 
-- Release notes are now keep in a [CHANGELOG.md](https://github.com/studiometa/js-toolkit/blob/develop/CHANGELOG.md) file
+- Release notes are now kept in a [CHANGELOG.md](https://github.com/studiometa/js-toolkit/blob/develop/CHANGELOG.md) file
+
+## v2.6.4 (2022-11-02)
+
+### Fixed
+
+- **service(drag):** fix drag service on chrome when using touch by adding touchend event (#306)
+
+## v2.6.3 (2022-10-15)
+
+### Fixed
+
+- Fix types (#305, 0b0137e)
+
+## v2.6.2 (2022-10-15)
+
+### Fixed
+
+- Fix return function of the `useRaf` service not executing (#304, 22d92d7)
+
+### Changed
+
+- Update NPM dependencies (#304, dbbd1a9)
+
+## v2.6.1 (2022-09-29)
+
+### Fixed
+
+- **addClass, removeClass, toggleClass:** fix a bug where empty classes could be used (#298, fix ##283)
+
+### Changed
+
+- Ship ESNext JavaScript (#296)
+- Add sourcemaps (#296)
+
+## v2.6.0 (2022-09-20)
+
+### Added
+
+- Add support for multiple target for the following utilities (#282):
+  - `transition`
+  - `animate`
+  - `transform`
+  - `addStyle`
+  - `removeStyle`
+  - `addClass`
+  - `removeClass`
+  - `toggleClass`
+
+## v2.5.0 (2022-09-13)
+
+### Added
+
+- Add support for `onDocument…` and `onWindow…` hook methods (#265)
+- Add a `getClosestParent` helper (#260)
+
+### Fixed
+
+- Fix drag service with touch events (#290)
+- Limit drag service to left-click (#263)
+
+## v2.4.7 (2022-09-12)
+
+### Fixed
+
+- Fix exports definition (d4efde9)
+
+## v2.4.6 (2022-09-05)
+
+### Fixed
+
+- Fix a recursive type definition (90fdf96, #280)
+- Fix a bug where refs could be undefined (#279, fixes #278)
+
+## v2.4.5 (2022-09-05)
+
+### Fixed
+
+- Fix release GitHub Action (20998cf)
+
+## v2.4.4 (2022-09-05)
+
+### Changed
+
+- Improve types (#275, closes #273)
+
+## v2.4.3 (2022-08-19)
+
+### Changed
+
+- Improve new types introduced in v2.4.2 (1df4452)
+
+## v2.4.2 (2022-08-18)
+
+### Fixed
+
+- **withScrolledInView**
+  - Use damping on the current value instead of the progress (dd51924, #270)
+  - Fix a bug where damped values were not updated on destroy (ba93c1b, #270)
+- **transition**
+  - Fix transition utility waiting too long between updates (74db79a)
+
+### Changed
+
+- **Types**
+  - Improve types definition for components (#271)
+  - Add service props types to the main entrypoint (23b6fe2)
+- Update NPM dependencies (1e5fdfa, f6b0e52)
+
+## v2.4.1 (2022-07-18)
+
+### Fixed
+
+- Fix docs title (b4709e2)
+
+## v2.4.0 (2022-07-18)
+
+### Added
+
+- Add a `getDirectChildren(parentInstance, parentName, childrenName)` helper function (#253, c89e123)
+- Add a `isDirectChild(parentInstance, parentName, childInstance, childName)` helper function (#253, 04693b0)
+
+### Fixed
+
+- Revert "Change build target to ES2022" (c51f580)
+
+## v2.3.0 (2022-07-14)
+
+### Added
+
+- Add a `tween` utility function (#249)
+- Add support for native event methods on child components (fix #248, #247, 3b6026d)
+- Add `is...` utility functions: `isObject`, `isBoolean`, `isString`, `isNumber`, `isArray` and `hasWindow` (#247)
+- Add an export of the `isDev` constant (#247)
+
+### Changed
+
+- Limit errors and warnings to dev environements (presence of a `__DEV__` global var) (#247)
+- Refactor `is...` and `has...` test functions (#247)
+- Change build target to ES2022 (fa4ebd6)
+
+### Fixed
+
+- Add missing support for access to the `event.detail` data when working with CustomEvent with the event hooks (#250)
+- Only bind event methods to the root element for defined or native events (#247, 0e202c4)
+
+## v2.2.3 (2022-06-23)
+
+### Changed
+
+- Refactor services (#244)
+- Export `noop`, `noopValue` and `useService` internal functions (#244)
+- Reduce log messages lengths (#244, 8492038)
+
+## v2.2.2 (2022-06-14)
+
+### Fixed
+
+- Fix usage of the package server-side (#240, 88fa448)
+- Fix a circular type reference (#240, cf487e8)
+
+### Documentation
+
+- Add example on how to pass a component option as a prop `withVue2` decorator (#238)
+
+## v2.2.1 (2022-06-13)
+
+### Fixed
+
+- Fix `ease` export to contain only easing functions (#239, d6720f9)
+
+## v2.2.0 (2022-05-26)
+
+### Added
+
+- Add a `useScheduler` utility function to create schedulers (#232)
+- Add a `domScheduler` utility scheduler object to group read and write DOM interactions (#232)
+- Add support for scheduled actions for the `useRaf` service by returning a function inside callbacks (#232)
+
+### Changed
+
+- Improve performance of the animate function (#232)
+- Improve `EventsManager` performance by caching function results (#235)
+
+## v2.1.0 (2022-05-16)
+
+### Added
+
+- Add a `withResponsiveOptions` decorator (#225)
+- Add an `animate(el, keyframes[, options])` utility function (#230)
+- Add a `transform(el, props)` utility function (#230)
+- Add a before-mounted internal event (#230)
+
+### Fixed
+
+- Fix overriding methods with the `withScrolledInView` decorator (#230)
+
+## v2.0.1 (2022-04-07)
+
+### Fixed
+
+- Fix usage of the scroll service props (8d34ecf)
+- Fix transition failing to add the active classes (63f4476)
+
+### Changed
+
+- Allow overriding options with the `withFreezedOptions` decorator (f1fd094)
+
+## v2.0.0 (2022-04-01)
+
+### Added
+
+- Add support for accessing registered services' props (#220)
+- Add a `getInstanceFromElement` helper (4b034a0)
+
+### Changed
+
+- Update dependencies (#221, 88a36a7, 17690cd, 1672157, 818ad6d)
+
+## v2.0.0-rc.2 (2022-03-22)
+
+### Fixed
+
+- Add support for `vueConfig` as getter (#190, #217, ebfa90d)
+- Allow configuration of the freezed options (#217, a01daf3)
+- Fix release of RC version with the next tag (#217, 4a459a5)
+
+## v1.7.4 (2022-03-22)
+
+### Fixed
+
+- Override deployment of `2.0.0-rc.1` to the latest tag on NPM
+
+## v2.0.0-rc.1 (2022-03-21)
+
+### Added
+
+- Add a `withFreezedOptions` decorator to make the `$options` property read-only (#215)
+- Add support for control over `Array` and `Object` options mergeability (#214)
+
+## v2.0.0-beta.18 (2022-02-24)
+
+### Added
+
+- Add support for multiple instance on a single HTML element (#206)
+- Add support for optional root element for the `createApp` helper (4bee699)
+- Add `nextTick` schedule utility function (#207)
+- Add `nextMicrotask` schedule utility function (#207)
+- Add exports for the class and style utility functions (#208)
+- Add support for array of classes for the transition function object parameter (#208)
+
+### Changed
+
+- `nextFrame` waits only for one frame instead of chaining two `requestAnimationFrame` calls (#207)
+- Improve types of the `transition` function (#208)
+
+## v2.0.0-beta.17 (2022-02-15)
+
+### Fixed
+
+- **Services (drag):** remove a forbidden `preventDefault()` call (the event is passive) (a275700)
+
+## v2.0.0-beta.16 (2022-02-14)
+
+### Fixed
+
+- Fix links and images usage in drag element (5c42eb5, #203)
+
+### Added
+
+- Add the `dragTreshold` option to the `useDrag` service (da7c20b, #203)
+
+## v2.0.0-beta.15 (2022-01-24)
+
+### Changed
+
+- Allow usage of the `withIntersectionObserver` decorator without defining the intersected method (#197)
+
+### Fixed
+
+- Remove the obsolete `@babel/runtime` dependency (d814c38)
+- Lower the build target to es2019 (4032a5e)
+
+## v2.0.0-beta.14 (2022-01-21)
+
+### Fixed
+
+- Fix CJS build (c7c7d46)
+
+## v2.0.0-beta.13 (2022-01-21)
+
+### Fixed
+
+- Fix extensions of built files in CJS format (56a6ee5)
+
+## v2.0.0-beta.12 (2022-01-21)
+
+### Added
+
+- Add support for CommonJS usage (#193)
+
+### Changed
+
+- Improve docs (#168)
+
+### Fixed
+
+- Add a missing export (213f4ce)
+
+## v2.0.0-beta.11 (2022-01-20)
+
+### Fixed
+
+- Fix the calculation of the scroll target offsets (1e072a1)
+
+## v2.0.0-beta.10 (2022-01-14)
+
+### Added
+
+- Add a search bar to the doc with `vue-kbar` (#188)
+
+## v2.0.0-beta.9 (2022-01-13)
+
+### Added
+
+- Add easing functions (#184)
+
+### Fixed
+
+- Add support for custom `IntersectionObserver` options for the `withScrolledInView` decorator (#185)
+- Add missing doc for decorators
+- Fix a bug where refs could be undefined (#183, #186, 9e891bf)
+- Add a missing event definition (#183, #186, fc8ef57)
+
+## v2.0.0-beta.8 (2022-01-10)
+
+### Fixed
+
+- Fix types (b28a39e)
+
+## v2.0.0-beta.7 (2022-01-10)
+
+### Changed
+
+- Improve `withScrolledInView` decorator performance (#180)
+
+## v2.0.0-beta.6 (2022-01-08)
+
+### Changed
+
+- Improve services performances (#176)
+- Breaking: Events emitted by a component must be configured (#178)
+
+```diff
+  class Foo extends Base {
+    static config = {
+      name: 'Foo',
++     emits: ['open', 'close'],
+    };
+
+    open() {
+      this.$emit('open');
+    }
+
+    close() {
+      this.$emit('close);
+    }
+  }
+```
+
+- Update NPM dependencies (#177)
+
+### Removed
+
+- Breaking: Remove `get:...` events to alter `$refs`, `$options`, `$services` and `$children` getters (4e29610)
+  The getters should be overwritten in child classes to alter their value:
+
+```js
+class Foo extends Base {
+  static config = {
+    name: 'Foo',
+  };
+
+  get $refs() {
+    const $refs = super.$refs;
+    $refs.myCustomRef = document.querySelector('.my-custom-ref');
+    return $refs;
+  }
+}
+```
+
+## v2.0.0-beta.5 (2021-12-13)
+
+### Fixed
+
+- Fix the `scrollTo` utility calculations (8c03043)
+
+### Changed
+
+- Update NPM dependencies (#171)
+
+## v2.0.0-beta.4 (2021-11-23)
+
+### Fixed
+
+- Bump version number in `package.json` files (b25cd3f)
+
+## v2.0.0-beta.3 (2021-11-23)
+
+### Fixed
+
+- Fix changelog generation in release action (8226d9a)
+
+### Changed
+
+- Improve GitHub actions performances (746c4d4)
+
+## v2.0.0-beta.2 (2021-11-23)
+
+### Fixed
+
+- Fix release action (f8895e7)
+
+## v2.0.0-beta.1 (2021-11-22)
+
+### Added
+
+- **Doc:** Add a migration guide from v1 to v2 (#164)
+
+### Fixed
+
+- **Doc:** Fix a broken link (#163)
+
+## v2.0.0-beta.0 (2021-11-16)
+
+### Changed
+
+- Breaking: Refs are searched from the ones defined in the config only
+
+```html
+<div data-component="Foo">
+  <div data-ref="defined"></div>
+  <div data-ref="undefined"></div>
+</div>
+
+<script>
+  class Foo extends Base {
+    static config = {
+      name: 'Foo',
+      refs: ['defined'],
+    };
+
+    mounted() {
+      console.log(this.$refs); // Before: { defined: HTMLElement, undefined: HTMLElement }
+      console.log(this.$refs); // After: { defined: HTMLElement }
+    }
+  }
+</script>
+```
+
+- Breaking: Refs are no longer resolved to the element's attached Base instance if it exists
+
+```html
+<div data-component="Foo">
+  <div data-ref="bar" data-component="Bar"></div>
+</div>
+
+<script>
+  class Bar extends Base {
+    static config = { name: 'Bar' };
+  }
+
+  class Foo extends Base {
+    static config = {
+      name: 'Foo',
+      refs: ['bar'],
+      components: { Bar },
+    };
+
+    mounted() {
+      console.log(this.$refs); // Before: { bar: Bar }
+      console.log(this.$refs); // After: { bar: HTMLElement }
+    }
+  }
+</script>
+```
+
+- Breaking: Refs are only resolved when the component is mounted (#137)
+- Breaking: Children components are only resolved when the component is mounted (#137)
+- Improve typings (2642ab5, #137)
+- Improve `Accordion` component tests (08bc1f2, #137)
+- Breaking: remove the autobind of all methods (21d24e3, #137)
+- Breaking: change build target to browsers supporting ESM (359cd84, #137)
+- Breaking: Replace default export with named export (3a0a22c, #137)
+- Breaking: Refactor `OptionsManager` to not update the DOM when setting `Array` or `Object` options (56ffe0b, #137)
+- Improve `withBreakpointManager` decorator (633d2c5, #137)
+- Refactor `EventsManager` to use `EventListener` objects (8c0644c, #137)
+- Refactor the debug method (977b5d3, #137)
+- Replace private properties by public properties prefixed by `__` (5d0d064, #137)
+- Breaking: Refactor the config and options management (7556c2f, #137)
+- Breaking: Refactor the events' management (b37bc9c, #137)
+- Refactor the `Service` abstract class (b0eeb1e, #137)
+- Refactor child components management (05f9040, #137)
+- Breaking: Flatten the exports of the `@studiometa/js-toolkit/utils` path (#154)
+- Breaking: Rename the `push` and `replace` function from the history utils to `historyPush` and `historyReplace` (#154)
+
+### Added
+
+- Add a `memoize(fn)` utility (cb6848d, db6bb74, b62deb8, #137)
+- Add helpers exports to the main entry point (0e7407b, #137)
+- Add support for negated boolean options with `data-option-no-...` (#143)
+- Add a `withVue2` decorator (#148)
+- Add a `withScrolledInView` decorator (#156)
+- Add a `scrollTo` utility (#135)
+
+### Removed
+
+- Breaking: remove legacy helpers (bbbd9cc, #137)
+- Breaking: Remove the `$once()` method (aee1acc, #137)
+- Breaking: Remove the full build (13af657, #137)
+- Breaking: Delete an obsolete folder level (3aeebb8, #137)
+- Breaking: Remove the legacy options management (d9806a1, #137)
+- Remove an obsolete import/export (02a1979, #137)
+- Breaking: Remove refs resolution to component instance (131c20d, #137)
+
+### Fixed
+
+- Fix a bug where the `withBreakpointManager` was mixing its child instances (8875db6, #137)
+- Fix a bug where the resize event was triggered by an infinite loop (9006fc2, #137)
