@@ -18,14 +18,14 @@ Find below functions that can help you in your projects.
 
 ## Value
 
-- [isDev](./isDev.html)
-- [isFunction](./isFunction.html)
-- [isDefined](./isDefined.html)
-- [isString](./isString.html)
-- [isObject](./isObject.html)
-- [isNumber](./isNumber.html)
-- [isBoolean](./isBoolean.html)
-- [isArray](./isArray.html)
+- [isDev](./is/isDev.html)
+- [isFunction](./is/isFunction.html)
+- [isDefined](./is/isDefined.html)
+- [isString](./is/isString.html)
+- [isObject](./is/isObject.html)
+- [isNumber](./is/isNumber.html)
+- [isBoolean](./is/isBoolean.html)
+- [isArray](./is/isArray.html)
 
 ## Collision
 
