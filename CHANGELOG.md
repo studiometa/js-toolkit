@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Changed
 
 - ⚠️ Refactor definition of breakpoints for the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
+- ⚠️ Refactor `focusTrap` for simpler exports ([#406](https://github.com/studiometa/js-toolkit/pull/406))
 
 ### Removed
 
