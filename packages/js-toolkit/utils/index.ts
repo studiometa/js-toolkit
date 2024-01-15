@@ -1,5 +1,5 @@
 export { default as debounce } from './debounce.js';
-export { default as focusTrap } from './focusTrap.js';
+export * from './trapFocus.js';
 export { default as keyCodes } from './keyCodes.js';
 export { default as memoize } from './memoize.js';
 export { nextFrame } from './nextFrame.js';
