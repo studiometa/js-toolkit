@@ -30,7 +30,7 @@ export function saveActiveElement() {
  * @param {HTMLElement} element The element in which to trap the tabulations.
  * @param {KeyboardEvent} event The keydown or keyup event.
  */
-export function trap(element: HTMLElement, event: KeyboardEvent) {
+export function trapFocus(element: HTMLElement, event: KeyboardEvent) {
   if (event.keyCode !== keyCodes.TAB) {
     return;
   }
@@ -42,7 +42,7 @@ export function trap(element: HTMLElement, event: KeyboardEvent) {
 
   const focusableChildren: HTMLElement[] = Array.from(
     element.querySelectorAll(FOCUSABLE_ELEMENTS.join(', ')),
-  );
+  ) as HTMLElement[];
   const focusedItemIndex =
     document.activeElement instanceof HTMLElement
       ? focusableChildren.indexOf(document.activeElement)
@@ -77,16 +77,9 @@ export function trap(element: HTMLElement, event: KeyboardEvent) {
 /**
  * Untrap the tab navigation.
  */
-export function untrap() {
+export function untrapFocus() {
   if (focusedBefore && isFunction(focusedBefore.focus)) {
     focusedBefore.focus();
     focusedBefore = null;
   }
-}
-
-/**
- * Use a trap/untrap tabs logic.
- */
-export default function useFocusTrap() {
-  return { trap, untrap, saveActiveElement };
 }
