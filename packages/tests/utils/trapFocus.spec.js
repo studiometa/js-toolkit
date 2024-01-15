@@ -1,8 +1,6 @@
-import { focusTrap } from '@studiometa/js-toolkit/utils';
+import { trapFocus, untrapFocus, saveActiveElement } from '@studiometa/js-toolkit/utils';
 
-const { saveActiveElement, trap, untrap } = focusTrap();
-
-describe('The `focusTrap` utility', () => {
+describe('The `trapFocus` utility', () => {
   document.body.innerHTML = `
       <button class="outside" type="button">Button</button>
       <div id="trap">
@@ -16,7 +14,7 @@ describe('The `focusTrap` utility', () => {
   const input = document.querySelector('input');
 
   document.addEventListener('keydown', (event) => {
-    trap(element, event);
+    trapFocus(element, event);
   });
 
   // Restore focus before each test
@@ -37,7 +35,7 @@ describe('The `focusTrap` utility', () => {
     saveActiveElement();
     document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 9, shiftKey: false }));
     expect(document.activeElement).toBe(insideBtn);
-    untrap();
+    untrapFocus();
     expect(document.activeElement).toBe(outsideBtn);
   });
 

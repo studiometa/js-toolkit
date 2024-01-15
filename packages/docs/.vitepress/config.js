@@ -252,7 +252,7 @@ function getUtilsSidebar() {
       collapsed: true,
       items: [
         { text: 'debounce', link: '/utils/debounce.html' },
-        { text: 'focusTrap', link: '/utils/focusTrap.html' },
+        { text: 'trapFocus', link: '/utils/trapFocus.html' },
         { text: 'keyCodes', link: '/utils/keyCodes.html' },
         { text: 'memoize', link: '/utils/memoize.html' },
         { text: 'nextFrame', link: '/utils/nextFrame.html' },

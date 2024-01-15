@@ -5,7 +5,7 @@ Find below functions that can help you in your projects.
 ## Misc.
 
 - [debounce](./debounce.html)
-- [focusTrap](./focusTrap.html)
+- [trapFocus](./trapFocus.html)
 - [keyCodes](./keyCodes.html)
 - [memoize](./memoize.html)
 - [nextFrame](./nextFrame.html)
