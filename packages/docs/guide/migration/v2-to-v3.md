@@ -37,3 +37,20 @@ In the previous versions, breakpoints values for the [resize service](/api/servi
 +   },
 + });
 ```
+
+## The `focusTrap` export has been refactored
+
+In v2 you had to import the `focusTrap` function and then execute it to get the `trap` and `untrap` functions.
+
+The `trap` and `untrap` functions are now exported directly as `trapFocus` and `untrapFocus`.
+
+```diff
+- import { trapFocus } from '@studiometa/js-toolkit/utils';
++ import { trapFocus, untrapFocus } from '@studiometa/js-toolkit/utils';
+
+- const { trap, untrap } = trapFocus();
+- trap(element, event);
+- untrap();
++ trapFocus(element, event);
++ untrapFocus();
+```
