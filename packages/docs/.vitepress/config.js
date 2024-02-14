@@ -58,7 +58,8 @@ function getGuideSidebar() {
     {
       text: 'Introduction',
       items: [
-        { text: 'Getting started', link: '/guide/' },
+        { text: 'What is the JS Toolkit', link: '/guide/' },
+        { text: 'Getting started', link: '/guide/introduction/getting-started.html' },
         { text: 'Managing components', link: '/guide/introduction/managing-components.html' },
         { text: 'Managing refs', link: '/guide/introduction/managing-refs.html' },
         { text: 'Managing options', link: '/guide/introduction/managing-options.html' },
