@@ -1,3 +1,5 @@
+import { useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from './faketimers.js';
+
 /**
  * Resize the jsdom window to the given size.
  *
@@ -6,12 +8,14 @@
  * @param  {Number}  [options.height=window.innerHeight] The new height.
  * @return {Promise}                A promise waiting longer than the debounced event from the resize service.
  */
-export default function resizeWindow({
+export default async function resizeWindow({
   width = window.innerWidth,
   height = window.innerHeight,
 } = {}) {
+  useFakeTimers();
   window.innerWidth = width;
   window.innerHeight = height;
   window.dispatchEvent(new Event('resize'));
-  return new Promise((resolve) => setTimeout(resolve, 400));
+  await advanceTimersByTimeAsync(400);
+  useRealTimers();
 }
