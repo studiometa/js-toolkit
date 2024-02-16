@@ -36,3 +36,8 @@ export const isBoolean = (value: unknown): value is boolean => typeof value === 
 
 // eslint-disable-next-line prefer-destructuring
 export const isArray = Array.isArray;
+
+/**
+ * Test if a given value is an empty string.
+ */
+export const isEmptyString = (value: unknown): boolean => isString(value) && value.length > 0;
