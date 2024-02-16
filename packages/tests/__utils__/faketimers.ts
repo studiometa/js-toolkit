@@ -26,7 +26,3 @@ export async function advanceTimersByTimeAsync(msToRun: number) {
 export function runAllTimers() {
   fakeTimers.runAllTimers();
 }
-
-export function runAllTicks() {
-  fakeTimers.runAllTicks();
-}
