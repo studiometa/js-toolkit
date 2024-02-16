@@ -18,6 +18,10 @@
     "ts-jest-resolver": "^2.0.1"
   },
   "devDependencies": {
-    "@jest/types": "^29.6.3"
+    "@happy-dom/global-registrator": "^13.3.8",
+    "@jest/fake-timers": "^29.7.0",
+    "@jest/types": "^29.6.3",
+    "bun": "^1.0.26",
+    "happy-dom": "^13.3.8"
   }
 }
