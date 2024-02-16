@@ -1,4 +1,5 @@
-import { parseNamedOffset, getEdgeWithOffset, normalizeOffset } from '@studiometa/js-toolkit/decorators/withScrolledInView/utils.js';
+import { describe, it, expect, jest, beforeAll } from 'bun:test';
+import { parseNamedOffset, getEdgeWithOffset, normalizeOffset } from '../../../js-toolkit/decorators/withScrolledInView/utils.js';
 
 describe('The `normalizeOffset` function', () => {
   it('should normalize the offset', () => {
