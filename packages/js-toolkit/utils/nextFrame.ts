@@ -13,6 +13,10 @@ export function getRaf(): (handler: Function) => number {
     : setTimeout;
 }
 
+export function raf(handler: (time: number) => unknown): number {
+  return getRaf()(handler);
+}
+
 /**
  * Get a function to cancel the method returned by `getRaf()`.
  */
@@ -20,6 +24,10 @@ export function getCancelRaf(): (id: number) => void {
   return hasWindow() && window.cancelAnimationFrame
     ? window.cancelAnimationFrame.bind(window)
     : clearTimeout;
+}
+
+export function cancelRaf(id: number) {
+  getCancelRaf()(id);
 }
 
 /**
