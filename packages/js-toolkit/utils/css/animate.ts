@@ -1,6 +1,6 @@
 import { lerp, map } from '../math/index.js';
 import { isDefined, isFunction, isNumber } from '../is.js';
-import transform, { TRANSFORM_PROPS } from './transform.js';
+import { transform, TRANSFORM_PROPS } from './transform.js';
 import { domScheduler as scheduler } from '../scheduler.js';
 import { tween, normalizeEase } from '../tween.js';
 // eslint-disable-next-line import/extensions
@@ -12,13 +12,19 @@ import type { BezierCurve, TweenOptions } from '../tween.js';
 
 export type CSSCustomPropertyName = `--${string}`;
 
-export type Keyframe = TransformProps & {
-  opacity?: number;
-  transformOrigin?: string;
-  easing?: EasingFunction | BezierCurve;
-  offset?: number;
-  [key: CSSCustomPropertyName]: number;
+type KeyframeTransforms<Type> = {
+  [Property in keyof Type]: number | [number, string];
 };
+
+export type Keyframe = Partial<
+  KeyframeTransforms<TransformProps> & {
+    opacity: number;
+    transformOrigin: string;
+    easing: EasingFunction | BezierCurve;
+    offset: number;
+    [key: CSSCustomPropertyName]: number;
+  }
+>;
 
 export type NormalizedKeyframe = Keyframe & {
   easing: EasingFunction;

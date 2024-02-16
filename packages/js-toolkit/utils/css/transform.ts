@@ -39,7 +39,7 @@ export const TRANSFORM_PROPS = [
 /**
  * Generate a CSS transform.
  */
-export default function transform(
+export function transform(
   elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
   props: TransformProps,
 ): string {
