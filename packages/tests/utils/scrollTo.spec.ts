@@ -1,33 +1,51 @@
-import { describe, it, expect, jest } from 'bun:test';
+import { describe, it, expect, jest, afterEach, beforeEach } from 'bun:test';
 import { scrollTo, wait } from '@studiometa/js-toolkit/utils';
 
 describe('The `scrollTo` function', () => {
-  const fn = jest.fn(({ top }) => {
-    window.pageYOffset = top;
-  });
-  window.scrollTo = fn;
-
-  const scrollHeightSpy = jest.spyOn(document.documentElement, 'scrollHeight', 'get');
-  scrollHeightSpy.mockImplementation(() => 10000);
-
-  const element = document.createElement('div');
-  const elementSpy = jest.spyOn(element, 'getBoundingClientRect');
-  elementSpy.mockImplementation(() => ({
-    top: 5000,
-  }));
-
-  document.body.append(element);
-
-  afterAll(() => {
-    delete window.scrollTo;
-    scrollHeightSpy.mockRestore();
-    elementSpy.mockRestore();
-    document.body.innerHTML = '';
-  });
+  let fn;
+  let element;
+  let elementSpy;
+  const { scrollHeight } = document.documentElement;
 
   beforeEach(() => {
-    fn.mockClear();
-    window.pageYOffset = 0;
+    fn = jest.fn(({ top }) => {
+      Object.defineProperty(window, 'pageYOffset', {
+        value: top,
+      });
+    });
+    window.scrollTo = fn;
+
+    const scrollHeightSpy = jest.fn(() => 10000);
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      configurable: true,
+      get() {
+        return scrollHeightSpy();
+      },
+    });
+
+    element = document.createElement('div');
+    elementSpy = jest.spyOn(element, 'getBoundingClientRect');
+    elementSpy.mockImplementation(() => ({
+      top: 5000,
+    }));
+
+    document.body.innerHTML = '';
+    document.body.append(element);
+
+    Object.defineProperty(window, 'pageYOffset', {
+      value: 0,
+    });
+  });
+
+  afterEach(() => {
+    delete window.scrollTo;
+    elementSpy.mockRestore();
+    document.body.innerHTML = '';
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      get() {
+        return scrollHeight;
+      },
+    });
   });
 
   it('should scroll to a selector', async () => {

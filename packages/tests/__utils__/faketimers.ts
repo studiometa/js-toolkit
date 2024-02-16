@@ -19,6 +19,14 @@ export function advanceTimersByTime(msToRun: number) {
   fakeTimers.advanceTimersByTime(msToRun);
 }
 
+export async function advanceTimersByTimeAsync(msToRun: number) {
+  await fakeTimers.advanceTimersByTimeAsync(msToRun);
+}
+
 export function runAllTimers() {
   fakeTimers.runAllTimers();
+}
+
+export function runAllTicks() {
+  fakeTimers.runAllTicks();
 }
