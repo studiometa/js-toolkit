@@ -2,7 +2,7 @@ export { default as debounce } from './debounce.js';
 export * from './trapFocus.js';
 export { default as keyCodes } from './keyCodes.js';
 export { default as memoize } from './memoize.js';
-export { nextFrame } from './nextFrame.js';
+export { nextFrame, raf, cancelRaf } from './nextFrame.js';
 export { default as nextTick } from './nextTick.js';
 export { default as nextMicrotask } from './nextMicrotask.js';
 export { default as throttle } from './throttle.js';
