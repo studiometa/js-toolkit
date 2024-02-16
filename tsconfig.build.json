@@ -5,5 +5,10 @@
     "declaration": true,
     "outDir": "dist/",
     "emitDeclarationOnly": true
-  }
+  },
+  "include": [
+    "packages/global.d.ts",
+    "packages/js-toolkit/**/*.ts",
+    "packages/tests/**/*.ts"
+  ]
 }
