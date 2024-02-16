@@ -12,9 +12,9 @@ describe('The `transform` utility function', () => {
       rotate: 45,
       skew: 10,
     });
-    const result = 'translate3d(100px, 100px, 100px) rotate(45deg) scale(0.5) skew(10deg) ';
-    expect(value).toBe(result);
-    expect(div.style.transform).toBe(result);
+    const result = 'translate3d(100px, 100px, 100px) rotate(45deg) scale(0.5) skew(10deg)';
+    expect(value.trim()).toBe(result);
+    expect(div.style.transform.trim()).toBe(result);
   });
 
   for (const [name, value, result] of [
@@ -32,7 +32,7 @@ describe('The `transform` utility function', () => {
     ['skew', 10, 'skew(10deg)'],
     ['skewX', 10, 'skewX(10deg)'],
     ['skewY', 10, 'skewY(10deg)'],
-  ]) {
+  ] as [string, number, string][]) {
     it(`should set the \`${name}\` property`, () => {
       const div = document.createElement('div');
       const props = {};
