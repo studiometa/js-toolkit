@@ -1,0 +1,30 @@
+// Bun Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`nextTick method should execute in order 1`] = `
+[
+  [
+    "start",
+  ],
+  [
+    "end",
+  ],
+  [
+    "nextMicrotask #1",
+  ],
+  [
+    "nextMicrotask #2",
+  ],
+  [
+    "nextFrame #2",
+  ],
+  [
+    "nextFrame #1",
+  ],
+  [
+    "nextTick #1",
+  ],
+  [
+    "nextTick #2",
+  ],
+]
+`;

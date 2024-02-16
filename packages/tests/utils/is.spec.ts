@@ -1,5 +1,7 @@
-// eslint-disable-next-line import/no-unresolved
-import * as is from '@studiometa/js-toolkit/utils/is.js';
+import { describe, test as it, expect } from 'bun:test';
+import * as utils from '@studiometa/js-toolkit/utils';
+
+const is = Object.fromEntries(Object.entries(utils).filter(([name]) => name.startsWith('is')));
 
 const types = {
   boolean: true,

@@ -97,3 +97,17 @@ exports[`The "isString" utility function should work with value of type "object"
 exports[`The "isString" utility function should work with value of type "string" 1`] = `true`;
 
 exports[`The "isString" utility function should work with value of type "undefined" 1`] = `false`;
+
+exports[`The "isEmptyString" utility function should work with value of type "boolean" 1`] = `false`;
+
+exports[`The "isEmptyString" utility function should work with value of type "string" 1`] = `true`;
+
+exports[`The "isEmptyString" utility function should work with value of type "number" 1`] = `false`;
+
+exports[`The "isEmptyString" utility function should work with value of type "fn" 1`] = `false`;
+
+exports[`The "isEmptyString" utility function should work with value of type "array" 1`] = `false`;
+
+exports[`The "isEmptyString" utility function should work with value of type "object" 1`] = `false`;
+
+exports[`The "isEmptyString" utility function should work with value of type "undefined" 1`] = `false`;
