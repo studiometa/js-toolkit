@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'bun:test';
 import * as toolkit from '@studiometa/js-toolkit';
 
 describe('The package exports', () => {
