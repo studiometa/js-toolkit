@@ -1,12 +1,12 @@
 import { describe, it, expect, jest, beforeEach, afterEach, beforeAll } from 'bun:test';
 import { Base, withMountWhenInView } from '@studiometa/js-toolkit';
+import { wait } from '@studiometa/js-toolkit/utils';
 import {
   beforeAllCallback,
   afterEachCallback,
   mockIsIntersecting,
   intersectionMockInstance,
 } from '../__setup__/mockIntersectionObserver';
-import wait from '../__utils__/wait.js';
 
 beforeAll(() => beforeAllCallback());
 

@@ -32,5 +32,6 @@ describe('The `addToQueue` function', () => {
     expect(fn).not.toHaveBeenCalled();
     await nextTick();
     expect(fn).toHaveBeenCalledTimes(1);
+    features.set('asyncChildren', false);
   });
 });

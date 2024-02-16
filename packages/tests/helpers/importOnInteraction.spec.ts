@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'bun:test';
 import { html } from 'htl';
 import { Base, withExtraConfig, importOnInteraction } from '@studiometa/js-toolkit';
-import wait from '../__utils__/wait';
+import { wait } from '@studiometa/js-toolkit/utils';
 
 class App extends Base {
   static config = {

@@ -2,8 +2,8 @@
 import { describe, it, expect, jest, afterEach } from 'bun:test';
 import { html } from 'htl';
 import { Base, withExtraConfig, importWhenPrefersMotion } from '@studiometa/js-toolkit';
+import { wait } from '@studiometa/js-toolkit/utils';
 import { matchMedia } from '../__utils__/matchMedia.js';
-import wait from '../__utils__/wait';
 
 class App extends Base {
   static config = {

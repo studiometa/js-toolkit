@@ -38,3 +38,299 @@ exports[`A Base instance should inherit from parent config 1`] = `
 `;
 
 exports[`A Base instance config should have a working debug method when active in dev mode 1`] = `[]`;
+
+exports[`A Base instance should inherit from parent config 2`] = `
+{
+  "components": {},
+  "emits": [
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+  ],
+  "log": false,
+  "name": "D",
+  "options": {
+    "color": [class Boolean],
+    "title": [class String],
+  },
+  "refs": [],
+}
+`;
+
+exports[`A Base instance should inherit from parent config 3`] = `
+{
+  "components": {},
+  "emits": [
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+  ],
+  "log": false,
+  "name": "D",
+  "options": {
+    "color": [class Boolean],
+    "title": [class String],
+  },
+  "refs": [],
+}
+`;
+
+exports[`A Base instance should inherit from parent config 4`] = `
+{
+  "components": {},
+  "emits": [
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+  ],
+  "log": false,
+  "name": "D",
+  "options": {
+    "color": [class Boolean],
+    "title": [class String],
+  },
+  "refs": [],
+}
+`;
+
+exports[`A Base instance should inherit from parent config 5`] = `
+{
+  "components": {},
+  "emits": [
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+  ],
+  "log": false,
+  "name": "D",
+  "options": {
+    "color": [class Boolean],
+    "title": [class String],
+  },
+  "refs": [],
+}
+`;
+
+exports[`A Base instance should inherit from parent config 6`] = `
+{
+  "components": {},
+  "emits": [
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+  ],
+  "log": false,
+  "name": "D",
+  "options": {
+    "color": [class Boolean],
+    "title": [class String],
+  },
+  "refs": [],
+}
+`;
+
+exports[`A Base instance should inherit from parent config 7`] = `
+{
+  "components": {},
+  "emits": [
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+  ],
+  "log": false,
+  "name": "D",
+  "options": {
+    "color": [class Boolean],
+    "title": [class String],
+  },
+  "refs": [],
+}
+`;
+
+exports[`A Base instance should inherit from parent config 8`] = `
+{
+  "components": {},
+  "emits": [
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+  ],
+  "log": false,
+  "name": "D",
+  "options": {
+    "color": [class Boolean],
+    "title": [class String],
+  },
+  "refs": [],
+}
+`;
+
+exports[`A Base instance should inherit from parent config 9`] = `
+{
+  "components": {},
+  "emits": [
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+  ],
+  "log": false,
+  "name": "D",
+  "options": {
+    "color": [class Boolean],
+    "title": [class String],
+  },
+  "refs": [],
+}
+`;

@@ -1,12 +1,12 @@
 /* eslint-disable no-new, require-jsdoc, max-classes-per-file */
 import { describe, it, expect, jest, beforeAll, beforeEach, afterEach } from 'bun:test';
 import { Base, withScrolledInView } from '@studiometa/js-toolkit';
+import { wait } from '@studiometa/js-toolkit/utils';
 import {
   beforeAllCallback,
   afterEachCallback,
   mockIsIntersecting,
 } from '../../__setup__/mockIntersectionObserver.js';
-import wait from '../../__utils__/wait.js';
 
 beforeAll(() => beforeAllCallback());
 
