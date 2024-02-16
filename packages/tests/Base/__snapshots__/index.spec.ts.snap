@@ -1,0 +1,40 @@
+// Bun Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`A Base instance should inherit from parent config 1`] = `
+{
+  "components": {},
+  "emits": [
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+  ],
+  "log": false,
+  "name": "D",
+  "options": {
+    "color": [class Boolean],
+    "title": [class String],
+  },
+  "refs": [],
+}
+`;
+
+exports[`A Base instance config should have a working debug method when active in dev mode 1`] = `[]`;
