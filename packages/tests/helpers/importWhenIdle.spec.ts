@@ -2,7 +2,7 @@
 import { describe, it, expect, jest, beforeAll } from 'bun:test';
 import { html } from 'htl';
 import { Base, withExtraConfig, importWhenIdle, } from '@studiometa/js-toolkit';
-import wait from '../__utils__/wait';
+import { wait } from '@studiometa/js-toolkit/utils';
 import { mockRequestIdleCallback } from '../__setup__/mockRequestIdleCallback';
 
 class App extends Base {

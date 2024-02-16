@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll, afterEach } from 'bun:test';
 import { html } from 'htl';
 import { Base, withExtraConfig, importWhenVisible } from '@studiometa/js-toolkit';
-import wait from '../__utils__/wait';
+import { wait } from '@studiometa/js-toolkit/utils';
 import {
   beforeAllCallback,
   afterEachCallback,

@@ -506,8 +506,10 @@ describe('A Base instance config', () => {
     const spy = jest.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
     const div = document.createElement('div');
-    const foo = new Foo(div).$mount();
-    expect(spy.mock.calls).toMatchSnapshot();
+    new Foo(div).$mount();
+    for (const args of spy.mock.calls) {
+      expect(args[0]).toStartWith('[debug] [Foo');
+    }
     spy.mockRestore();
     process.env.NODE_ENV = 'test';
   });

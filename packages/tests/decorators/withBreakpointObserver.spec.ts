@@ -37,6 +37,7 @@ const template = `
   </div>
 `;
 
+let root;
 let app;
 let foo;
 let fooResponsive;
@@ -47,8 +48,13 @@ describe('The withBreakpointObserver decorator', () => {
   });
 
   beforeEach(() => {
-    document.body.innerHTML = template;
-    app = new App(document.body).$mount();
+    root = document.createElement('div');
+    root.innerHTML = template;
+    app = new App(root);
+    app.$mount();
+    if (!app.$children.Foo) {
+      console.log(Object.keys(app.$children))
+    }
     [foo] = app.$children.Foo;
     fooResponsive = app.$children.FooResponsive;
   });
@@ -174,7 +180,7 @@ describe('The withBreakpointObserver decorator', () => {
       };
     }
 
-    document.body.innerHTML = `
+    root.innerHTML = `
       <div data-breakpoint>
         <div data-component="Mobile"></div>
         <div data-component="Desktop"></div>
@@ -183,7 +189,7 @@ describe('The withBreakpointObserver decorator', () => {
 
     matchMedia.useMediaQuery('(min-width: 64rem)');
     await resizeWindow({ width: 1024 });
-    new App1(document.body).$mount();
+    new App1(root).$mount();
     expect(fn).toHaveBeenCalledWith('Desktop', 'mounted');
     matchMedia.useMediaQuery('(min-width: 48rem)');
     await resizeWindow({ width: 768 });
