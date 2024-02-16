@@ -1,0 +1,67 @@
+import { describe, it, expect, jest, beforeEach } from 'bun:test';
+import { transition } from '@studiometa/js-toolkit/utils';
+import { useRealTimers } from '../../__utils__/faketimers.js';
+
+describe('transition method', () => {
+  let el;
+  let spyAdd;
+  let spyRemove;
+  let spyStyle;
+
+  beforeEach(() => {
+    useRealTimers();
+    document.body.innerHTML = `
+      <div class="w-16 h-16 m-10 bg-black"></div>
+    `;
+    el = document.body.firstElementChild;
+    spyAdd = jest.spyOn(el.classList, 'add');
+    spyRemove = jest.spyOn(el.classList, 'remove');
+    spyStyle = jest.spyOn(el.style, 'opacity', 'set');
+  });
+
+  it('should work server side', async () => {
+    // Mock window === undefined
+    // @see https://stackoverflow.com/a/56999581
+    const windowSpy = jest.spyOn(globalThis, 'window', 'get');
+    windowSpy.mockImplementation(() => {});
+    await transition(el, 'name');
+    expect(spyAdd).toHaveBeenCalledWith('name-from');
+    windowSpy.mockRestore();
+  });
+
+  it('should work with a string parameter', async () => {
+    el.style.transitionDuration = '0.1s';
+    setTimeout(() => {
+      el.dispatchEvent(new CustomEvent('transitionend'));
+    }, 100);
+    await transition(el, 'name');
+    expect(spyAdd).toHaveBeenNthCalledWith(1, 'name-from');
+    expect(spyAdd).toHaveBeenNthCalledWith(2, 'name-active');
+    expect(spyAdd).toHaveBeenNthCalledWith(3, 'name-to');
+    expect(spyRemove).toHaveBeenNthCalledWith(1, 'name-from');
+    expect(spyRemove).toHaveBeenNthCalledWith(2, 'name-to');
+    expect(spyRemove).toHaveBeenNthCalledWith(3, 'name-active');
+  });
+
+  it('should work with an object parameter', async () => {
+    await transition(el, {
+      from: { opacity: '0' },
+      active: 'transition duration-500',
+      to: 'transform scale-50',
+    });
+    expect(spyStyle.mock.calls).toMatchSnapshot();
+    expect(spyAdd.mock.calls).toMatchSnapshot();
+    expect(spyRemove.mock.calls).toMatchSnapshot();
+  });
+
+  it('should stop any previous transition', async () => {
+    el.style.transitionDuration = '1s';
+    setTimeout(() => {
+      el.dispatchEvent(new CustomEvent('transitionend'));
+    }, 100);
+    transition(el, 'name');
+    await transition(el, 'name');
+    expect(spyRemove).toHaveBeenNthCalledWith(1, 'name-to');
+    expect(spyRemove).toHaveBeenNthCalledWith(2, 'name-active');
+  });
+});
