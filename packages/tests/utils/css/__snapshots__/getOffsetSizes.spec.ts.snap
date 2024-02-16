@@ -51,3 +51,42 @@ exports[`The `getOffsetSizes` method should return a DOMRect like object without
   "y": -2440,
 }
 `;
+
+exports[`The `getOffsetSizes` method should return a DOMRect like object without transforms 1`] = `
+{
+  "bottom": -2440,
+  "height": 0,
+  "left": 0,
+  "right": 0,
+  "top": -2440,
+  "width": 0,
+  "x": 0,
+  "y": -2440,
+}
+`;
+
+exports[`The `getOffsetSizes` method should return a DOMRect like object without transforms 1`] = `
+{
+  "bottom": -2440,
+  "height": 0,
+  "left": 0,
+  "right": 0,
+  "top": -2440,
+  "width": 0,
+  "x": 0,
+  "y": -2440,
+}
+`;
+
+exports[`The `getOffsetSizes` method should return a DOMRect like object without transforms 1`] = `
+{
+  "bottom": -2440,
+  "height": 0,
+  "left": 0,
+  "right": 0,
+  "top": -2440,
+  "width": 0,
+  "x": 0,
+  "y": -2440,
+}
+`;
