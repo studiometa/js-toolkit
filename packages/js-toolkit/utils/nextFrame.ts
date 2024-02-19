@@ -2,32 +2,22 @@ import { isFunction } from './is.js';
 import { hasWindow } from './has.js';
 
 /**
- * RequestAnimation frame polyfill.
- *
- * @see  https://github.com/vuejs/vue/blob/ec78fc8b6d03e59da669be1adf4b4b5abf670a34/dist/vue.runtime.esm.js#L7355
+ * Alias for the `requestAnimationFrame` function with a polyfill
+ * with `setTimeout` if the function is not available.
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
-export function getRaf(): (handler: Function) => number {
+export function raf(callback: FrameRequestCallback) {
   return hasWindow() && window.requestAnimationFrame
-    ? window.requestAnimationFrame.bind(window)
-    : setTimeout;
-}
-
-export function raf(handler: (time: number) => unknown): number {
-  return getRaf()(handler);
+    ? window.requestAnimationFrame(callback)
+    : Number(setTimeout(callback, 16));
 }
 
 /**
- * Get a function to cancel the method returned by `getRaf()`.
+ * Cancel a request for the animation frame.
  */
-export function getCancelRaf(): (id: number) => void {
-  return hasWindow() && window.cancelAnimationFrame
-    ? window.cancelAnimationFrame.bind(window)
-    : clearTimeout;
-}
-
 export function cancelRaf(id: number) {
-  getCancelRaf()(id);
+  return hasWindow() && window.cancelAnimationFrame
+    ? window.cancelAnimationFrame(id)
+    : clearTimeout(id);
 }
 
 /**
@@ -49,6 +39,6 @@ export function nextFrame<T extends () => unknown>(
 ): Promise<T extends () => unknown ? ReturnType<T> : void> {
   return new Promise((resolve) => {
     // @ts-ignore
-    getRaf()(() => resolve(isFunction(fn) && fn()));
+    raf(() => resolve(isFunction(fn) && fn()));
   });
 }
