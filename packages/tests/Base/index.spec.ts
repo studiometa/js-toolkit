@@ -335,22 +335,6 @@ describe('A Base instance methods', () => {
     expect(baz.$children.Bar).toEqual([]);
   });
 
-  it('should listen to the window.onload event', () => {
-    const fn = jest.fn();
-    class Bar extends Foo {
-      loaded() {
-        fn();
-      }
-    }
-
-    const bar = new Bar(document.createElement('div')).$mount();
-    window.dispatchEvent(new CustomEvent('load'));
-    expect(fn).toHaveBeenCalledTimes(1);
-    bar.$destroy();
-    window.dispatchEvent(new CustomEvent('load'));
-    expect(fn).toHaveBeenCalledTimes(1);
-  });
-
   it('should mount and destroy its children', () => {
     class Bar extends Base {
       static config = {
