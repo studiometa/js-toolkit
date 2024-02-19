@@ -31,7 +31,6 @@ The following service hooks and events are available:
 - `ticked` for the `useRaf` service
 - `moved` for the `usePointer` service
 - `keyed` for the `useKey` service
-- `loaded` for the `useLoad` service
 
 The [services hooks diagram](#services-hooks-diagram) below present in greater detail what action will trigger a service method.
 
