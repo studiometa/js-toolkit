@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. The format 
 
 - Add support for defining breakpoints when using the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
 
+### Fixed
+
+- Fix component resolution strategy (close [#403](https://github.com/studiometa/js-toolkit/issues/403), [#404](https://github.com/studiometa/js-toolkit/pull/404))
+
 ### Changed
 
 - ⚠️ Refactor definition of breakpoints for the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
