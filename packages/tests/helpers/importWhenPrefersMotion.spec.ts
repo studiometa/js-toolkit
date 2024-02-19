@@ -45,7 +45,7 @@ describe('The `importWhenPrefersMotion` lazy import helper', () => {
 
     const app = new AppOverride(div);
     app.$mount();
-    await wait(0);
+    await wait();
     expect(fn).toHaveBeenCalledTimes(1);
     expect(app.$children.Component).toHaveLength(1);
     expect(app.$children.Component[0]).toBeInstanceOf(Component);
@@ -73,7 +73,7 @@ describe('The `importWhenPrefersMotion` lazy import helper', () => {
     });
 
     new AppOverride(div).$mount();
-    await wait(0);
+    await wait();
     expect(fn).toHaveBeenCalledTimes(0);
     expect(div.firstElementChild.__base__).toBeUndefined();
   });

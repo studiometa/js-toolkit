@@ -38,7 +38,7 @@ describe('The `importWhenIdle` lazy import helper', () => {
 
     expect(getInstanceFromElement(component, Component)).toBeNull();
     mockRequestIdleCallback();
-    await wait(0);
+    await wait();
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
