@@ -1,6 +1,6 @@
 # nextFrame
 
-Execute a given function in the next window frame. This function is a promisified version of the [`raf` function](./raf.md).
+Execute a given function in the next window frame. This function is a promisified version of the [`requestAnimationFrame` function](https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame).
 
 ## Usage
 
