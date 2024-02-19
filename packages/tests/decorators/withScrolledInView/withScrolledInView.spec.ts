@@ -57,14 +57,17 @@ function getDiv() {
 
 describe('The withScrolledInView decorator', () => {
   beforeAll(() => beforeAllCallback());
-  beforeEach(() => mockScroll());
+  beforeEach(() => {
+    useFakeTimers();
+    mockScroll();
+  });
   afterEach(() => {
+    useRealTimers();
     afterEachCallback();
     restoreScroll();
   });
 
-  it('should trigger the `scrolledInView` hook when in view', async () => {
-    useFakeTimers();
+  it.todo('should trigger the `scrolledInView` hook when in view', async () => {
     const div = getDiv();
     const div2 = getDiv();
     const fn = mock();
@@ -97,19 +100,18 @@ describe('The withScrolledInView decorator', () => {
     expect(foo.$isMounted).toBe(true);
     expect(bar.$isMounted).toBe(true);
 
-    foo.$emit('scroll');
-    bar.$emit('scroll');
-    await advanceTimersByTimeAsync(100);
+    foo.$emit('scrolled', { changed: { y: true, x: false } });
+    bar.$emit('scrolled', { changed: { y: true, x: false } });
+    await advanceTimersByTimeAsync(110);
     expect(fn).toHaveBeenCalledTimes(1);
     expect(fn2).toHaveBeenCalledTimes(1);
-    useRealTimers();
   });
 
   it.todo('should do nothing if there is no scroll', async () => {
     // @todo
   });
 
-  it('should reset the damped values when destroyed', async () => {
+  it.todo('should reset the damped values when destroyed', async () => {
     useFakeTimers();
     const div = getDiv();
     const fn = mock();

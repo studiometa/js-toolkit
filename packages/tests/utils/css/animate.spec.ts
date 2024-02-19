@@ -6,15 +6,16 @@ import {
   useRealTimers,
   advanceTimersByTimeAsync,
 } from '../../__utils__/faketimers.js';
-
-beforeEach(() => useFakeTimers());
-afterEach(() => useRealTimers());
+import { h } from '../../__utils__/h.js';
 
 describe('The `animate` utility function', () => {
+  beforeEach(() => useFakeTimers());
+  afterEach(() => useRealTimers());
+
   it('should animate an element', async () => {
     const fn = jest.fn();
 
-    const div = document.createElement('div');
+    const div = h('div');
     animate(
       div,
       [
@@ -27,7 +28,7 @@ describe('The `animate` utility function', () => {
       },
     ).start();
 
-    await advanceTimersByTimeAsync(10000);
+    await advanceTimersByTimeAsync(1100);
 
     expect(fn).toHaveBeenCalledTimes(1);
     expect(div.style.opacity).toBe('0');
@@ -36,10 +37,10 @@ describe('The `animate` utility function', () => {
   });
 
   it('should work without options', async () => {
-    const div = document.createElement('div');
+    const div = h('div');
     const controls = animate(div, [{ opacity: 1 }, { opacity: 0 }]);
-    controls.play();
-    await advanceTimersByTimeAsync(2000);
+    controls.start();
+    await advanceTimersByTimeAsync(1100);
     expect(div.style.opacity).toBe('0');
   });
 
