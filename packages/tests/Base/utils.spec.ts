@@ -1,11 +1,12 @@
 import { describe, it, expect, jest } from 'bun:test';
+import { nextTick } from '@studiometa/js-toolkit/utils';
 import { getComponentElements, addToQueue } from '../../js-toolkit/Base/utils.js';
 import { features } from '../../js-toolkit/Base/features.js';
-import { nextTick } from '@studiometa/js-toolkit/utils';
+import { h } from '../__utils__/h.js';
 
 describe('The `getComponentElements` function', () => {
   it('should find components with multiple declarations', () => {
-    const div = document.createElement('div');
+    const div = h('div');
     div.innerHTML = `
       <div data-component="Foo"></div>
       <div data-component="Foo Bar"></div>
@@ -23,11 +24,7 @@ describe('The `getComponentElements` function', () => {
   });
 
   it('should not find DOM elements with the same name as a defined component', () => {
-    const div = document.createElement('div');
-    div.innerHTML = `
-      <figure></figure>
-      <button></button>
-    `;
+    const div = h('div', [h('figure'), h('button')]);
 
     expect(getComponentElements('Figure', div)).toHaveLength(0);
     expect(getComponentElements('Button', div)).toHaveLength(0);
