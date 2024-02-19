@@ -1,6 +1,5 @@
 /* eslint-disable no-use-before-define, @typescript-eslint/no-use-before-define */
 import { useService } from './service.js';
-import { raf as requestAnimationFrame } from '../utils/nextFrame.js';
 import { useScheduler } from '../utils/scheduler.js';
 import { isFunction } from '../utils/is.js';
 import type { ServiceInterface } from './index.js';

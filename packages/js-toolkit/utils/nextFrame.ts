@@ -1,43 +1,17 @@
 import { isFunction } from './is.js';
 import { hasWindow } from './has.js';
 
-/**
- * Alias for the `requestAnimationFrame` function with a polyfill
- * with `setTimeout` if the function is not available.
- */
-export function raf(callback: FrameRequestCallback) {
-  return hasWindow() && window.requestAnimationFrame
-    ? window.requestAnimationFrame(callback)
-    : Number(setTimeout(callback, 16));
-}
-
-/**
- * Cancel a request for the animation frame.
- */
-export function cancelRaf(id: number) {
-  return hasWindow() && window.cancelAnimationFrame
-    ? window.cancelAnimationFrame(id)
-    : clearTimeout(id);
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Callback = (time?: DOMHighResTimeStamp) => any;
 
 /**
  * Wait for the next frame to execute a function.
- *
- * @template {() => any} T
- * @param    {T} [callback] The callback function to execute.
- * @returns  {Promise<T extends Function ? ReturnType<T> : undefined>} A Promise resolving when the next frame is reached.
- * @example
- * ```js
- * nextFrame(() => console.log('hello world'));
- *
- * await nextFrame();
- * console.log('hello world');
- * ```
  */
-export function nextFrame<T extends (time: DOMHighResTimeStamp) => unknown>(
-  callback?: T,
-): Promise<T extends () => unknown ? ReturnType<T> : void> {
+export function nextFrame(): Promise<DOMHighResTimeStamp>;
+export function nextFrame<T extends Callback>(callback?: T): Promise<ReturnType<T>>;
+export function nextFrame<T extends Callback>(callback?: T): Promise<ReturnType<T>> {
+  const fn = hasWindow() ? window?.requestAnimationFrame ?? setTimeout : setTimeout;
   return new Promise((resolve) => {
-    raf((time) => resolve(isFunction(callback) && callback(time)));
+    fn((time) => resolve(isFunction(callback) ? callback(time) : time));
   });
 }

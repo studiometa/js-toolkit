@@ -1,5 +1,5 @@
 import { Queue } from './Queue.js';
-import nextTick from './nextTick.js';
+import { nextTick } from './nextTick.js';
 
 /**
  * A task is considered long if it blocks the main thread for more thant 50ms.
