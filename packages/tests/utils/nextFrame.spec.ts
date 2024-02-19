@@ -38,25 +38,25 @@ describe('nextFrame method', () => {
   });
 
   it('should work server-side', () => {
-    // Mock window === undefined
-    // @see https://stackoverflow.com/a/56999581
-    const windowSpy = jest.spyOn(globalThis, 'window', 'get');
+    const { requestAnimationFrame, cancelAnimationFrame} = window;
+    delete window.requestAnimationFrame;
+    delete window.cancelAnimationFrame;
     const fn = jest.fn();
-    windowSpy.mockImplementation(() => undefined);
 
     nextFrame(fn);
     expect(fn).toHaveBeenCalledTimes(0);
-    advanceTimersByTime(1);
-    advanceTimersByTime(1);
+    advanceTimersByTime(16);
+    advanceTimersByTime(16);
     expect(fn).toHaveBeenCalledTimes(1);
 
     fn.mockClear();
     const frame = raf(() => fn());
     expect(fn).toHaveBeenCalledTimes(0);
     cancelRaf(frame);
-    advanceTimersByTime(0);
+    advanceTimersByTime(16);
     expect(fn).toHaveBeenCalledTimes(0);
 
-    windowSpy.mockRestore();
+    window.requestAnimationFrame = requestAnimationFrame;
+    window.cancelAnimationFrame = cancelAnimationFrame;
   });
 });
