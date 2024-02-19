@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file. The format 
 
 - ⚠️ Refactor definition of breakpoints for the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
 - ⚠️ Refactor `focusTrap` for simpler exports ([#406](https://github.com/studiometa/js-toolkit/pull/406))
+- Migrate tests from Jest to Bun ([#411](https://github.com/studiometa/js-toolkit/pull/411))
+- Refactor the requestAnimationFrame polyfill ([#411](https://github.com/studiometa/js-toolkit/pull/411), [dfd62b6](https://github.com/studiometa/js-toolkit/commit/dfd62b6), [34bb2c5](https://github.com/studiometa/js-toolkit/commit/34bb2c5))
+- Improve raf service usage ([#411](https://github.com/studiometa/js-toolkit/pull/411), [352f509](https://github.com/studiometa/js-toolkit/commit/352f509))
 
 ### Removed
 
