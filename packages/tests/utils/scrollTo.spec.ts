@@ -10,9 +10,7 @@ describe('The `scrollTo` function', () => {
 
   beforeEach(() => {
     fn = jest.fn(({ top }) => {
-      Object.defineProperty(window, 'pageYOffset', {
-        value: top,
-      });
+      window.pageYOffset = top;
     });
     window.scrollTo = fn;
 
@@ -26,14 +24,10 @@ describe('The `scrollTo` function', () => {
 
     document.body.innerHTML = '';
     document.body.append(element);
-
-    Object.defineProperty(window, 'pageYOffset', {
-      value: 0,
-    });
   });
 
   afterEach(() => {
-    delete window.scrollTo;
+    window.pageYOffset = 0;
     elementSpy.mockRestore();
     document.body.innerHTML = '';
     restoreScroll();

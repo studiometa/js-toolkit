@@ -6,8 +6,9 @@ import {
   getInstanceFromElement,
   isDirectChild,
 } from '@studiometa/js-toolkit';
+import { h } from '../__utils__/h.js';
 
-describe('The `getDirectChildren` helper function', () => {
+function createContext() {
   class Child extends Base {
     static config = {
       name: 'Child',
@@ -25,22 +26,21 @@ describe('The `getDirectChildren` helper function', () => {
     };
   }
 
-  const div = document.createElement('div');
-  div.innerHTML = `
-  <div data-component="Parent">
-    <div data-component="Child" id="first-child"></div>
-    <div data-component="Parent">
-      <div data-component="Child" id="grand-child"></div>
-    </div>
-  </div>
-`;
-  const firstChild = div.querySelector('#first-child');
-  const grandChild = div.querySelector('#grand-child');
+  const firstChild = h('div', { dataComponent: 'Child', id: 'first-child' });
+  const grandChild = h('div', { dataComponent: 'Child', id: 'grand-child' });
+  const innerParent = h('div', { dataComponent: 'Parent' }, [grandChild]);
+  const div = h('div', { dataComponent: 'Parent' }, [firstChild, innerParent]);
 
-  const parent = new Parent(div.firstElementChild);
+  const parent = new Parent(div);
   parent.$mount();
 
   const directChildren = getDirectChildren(parent, 'Parent', 'Child');
+
+  return { parent, firstChild, grandChild, directChildren, Parent, Child };
+}
+
+describe('The `getDirectChildren` helper function', () => {
+  const { parent, directChildren, firstChild, grandChild, Child, Parent } = createContext();
 
   it('should return an empty array if no children components where found', () => {
     expect(getDirectChildren(parent, 'Parent', 'OtherChild')).toEqual([]);
@@ -57,20 +57,17 @@ describe('The `getDirectChildren` helper function', () => {
   });
 
   it('should return all children if there is no nested parent', () => {
-    const el = document.createElement('div');
-    el.innerHTML = `
-      <div data-component="Parent">
-        <div data-component="Child"></div>
-        <div data-component="Child"></div>
-      </div>
-    `;
-    const instance = new Parent(el.firstElementChild);
+    const instance = new Parent(
+      h('div', { dataComponent: 'Parent' }, [firstChild.cloneNode(), firstChild.cloneNode()]),
+    );
     instance.$mount();
     expect(getDirectChildren(instance, 'Parent', 'Child')).toHaveLength(2);
   });
 });
 
 describe('The `isDirectChild` helper function', () => {
+  const { parent, firstChild, grandChild, Child } = createContext();
+
   it('should return true when a component is a direct child', () => {
     expect(
       isDirectChild(parent, 'Parent', 'Child', getInstanceFromElement(firstChild, Child)),
