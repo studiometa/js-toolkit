@@ -36,7 +36,7 @@ describe('The `importOnInteraction` lazy import helper', () => {
 
     expect(getInstanceFromElement(div.firstElementChild as HTMLElement, Component)).toBeNull();
     component.click();
-    await wait(0);
+    await wait();
     expect(getInstanceFromElement(div.firstElementChild as HTMLElement, Component)).toBeInstanceOf(
       Component,
     );
@@ -60,7 +60,7 @@ describe('The `importOnInteraction` lazy import helper', () => {
 
     expect(getInstanceFromElement(component, Component)).toBeNull();
     btn2.click();
-    await wait(0);
+    await wait();
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
@@ -79,7 +79,7 @@ describe('The `importOnInteraction` lazy import helper', () => {
 
     expect(getInstanceFromElement(component, Component)).toBeNull();
     component.click();
-    await wait(0);
+    await wait();
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
@@ -99,7 +99,7 @@ describe('The `importOnInteraction` lazy import helper', () => {
 
     expect(getInstanceFromElement(component, Component)).toBeNull();
     btn.click();
-    await wait(0);
+    await wait();
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 });

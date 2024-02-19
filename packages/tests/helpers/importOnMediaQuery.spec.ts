@@ -43,7 +43,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
     expect(fn).not.toHaveBeenCalled();
     expect(div.firstElementChild.__base__).toBeUndefined();
     matchMedia.useMediaQuery(mediaQuery);
-    await wait(0);
+    await wait();
     expect(fn).toHaveBeenCalledTimes(1);
     expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
   });
@@ -67,7 +67,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
     });
 
     new AppOverride(div).$mount();
-    await wait(0);
+    await wait();
     expect(fn).toHaveBeenCalledTimes(1);
     expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
   });
@@ -90,7 +90,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
     });
 
     new AppOverride(div).$mount();
-    await wait(0);
+    await wait();
     expect(fn).toHaveBeenCalledTimes(0);
     expect(div.firstElementChild.__base__).toBeUndefined();
   });

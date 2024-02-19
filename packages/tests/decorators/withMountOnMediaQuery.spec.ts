@@ -32,7 +32,7 @@ describe('The withMountOnMediaQuery decorator', () => {
     // @TODO: Test unmount on media query change
     // @see https://github.com/dyakovk/jest-matchmedia-mock/issues/3
     // matchMedia.useMediaQuery('(prefers-reduced-motion)');
-    // await wait(0);
+    // await wait();
     // expect(instance.$isMounted).toBe(false);
   });
 
@@ -42,7 +42,7 @@ describe('The withMountOnMediaQuery decorator', () => {
     expect(instance.$isMounted).toBe(false);
 
     matchMedia.useMediaQuery(mediaQuery);
-    await wait(0);
+    await wait();
     expect(instance.$isMounted).toBe(true);
   });
 });
