@@ -3,7 +3,17 @@ import { getOffsetSizes } from '@studiometa/js-toolkit/utils';
 
 describe('The `getOffsetSizes` method', () => {
   it('should return a DOMRect like Object', () => {
-    expect(getOffsetSizes(document.body)).toMatchSnapshot();
+    const div = document.createElement('div');
+    expect(getOffsetSizes(div)).toEqual({
+      bottom: 0,
+      height: 0,
+      left: 0,
+      right: 0,
+      top: 0,
+      width: 0,
+      x: 0,
+      y: 0,
+    });
   });
 
   it('should return the same values a `getBoundingClientRect()` when no transform is applied', () => {
@@ -21,6 +31,15 @@ describe('The `getOffsetSizes` method', () => {
     const div = document.createElement('div');
     div.style.transform = 'translateX(10px) rotate(45deg) scale(0.5)';
     div.style.marginLeft = '10px';
-    expect(getOffsetSizes(div)).toMatchSnapshot();
+    expect(getOffsetSizes(div)).toEqual({
+      bottom: 0,
+      height: 0,
+      left: 0,
+      right: 0,
+      top: 0,
+      width: 0,
+      x: 0,
+      y: 0,
+    });
   });
 });

@@ -1,7 +1,39 @@
-import { describe, test as it, expect, beforeEach, beforeAll, afterAll, jest } from 'bun:test';
+import { describe, test as it, expect, beforeEach, jest } from 'bun:test';
 import { historyPush as push, historyReplace as replace } from '@studiometa/js-toolkit/utils';
 
+const keys = [
+  'href',
+  'origin',
+  'protocol',
+  'host',
+  'hostname',
+  'port',
+  'pathname',
+  'search',
+  'hash',
+];
+
+function updateLocation(url) {
+  const newUrl = new URL(url, 'http://localhost');
+  for (const key of keys) {
+    Object.defineProperty(window.location, key, {
+      configurable: true,
+      value: newUrl[key],
+    });
+  }
+}
+
 beforeEach(() => {
+  Object.defineProperties(window.history, {
+    replaceState: {
+      configurable: true,
+      value: (data, title, url) => updateLocation(url),
+    },
+    pushState: {
+      configurable: true,
+      value: (data, title, url) => updateLocation(url),
+    },
+  });
   window.history.replaceState({}, '', '/');
 });
 
@@ -14,8 +46,12 @@ describe('The history `push` method', () => {
 
   it('should remove search params when their value is null, undefined or an empty string', () => {
     window.history.replaceState({}, '', '/?query=foo&nullish=foo&notDefined=foo&false=true');
-    expect(window.location.href).toBe('http://localhost/?query=foo&nullish=foo&notDefined=foo&false=true');
-    push({ search: { query: '', notPresent: '', nullish: null, notDefined: undefined, false: false } });
+    expect(window.location.href).toBe(
+      'http://localhost/?query=foo&nullish=foo&notDefined=foo&false=true',
+    );
+    push({
+      search: { query: '', notPresent: '', nullish: null, notDefined: undefined, false: false },
+    });
     expect(window.location.href).toBe('http://localhost/?false=false');
   });
 
@@ -28,8 +64,9 @@ describe('The history `push` method', () => {
 
   it('should convert arrays and objects to valid PHP $_GET params', () => {
     push({ search: { array: [1, 2, { obj: true }], object: { foo: 'foo', bar: { baz: 'bar' } } } });
-    console.log(window.location);
-    expect(decodeURI(window.location.href)).toBe('http://localhost/?array[0]=1&array[1]=2&array[2][obj]=true&object[foo]=foo&object[bar][baz]=bar');
+    expect(decodeURI(window.location.href)).toBe(
+      'http://localhost/?array[0]=1&array[1]=2&array[2][obj]=true&object[foo]=foo&object[bar][baz]=bar',
+    );
   });
 
   it('should fail silently when the history API is not supported', () => {

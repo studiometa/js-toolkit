@@ -7,10 +7,10 @@ import {
   advanceTimersByTimeAsync,
 } from '../../__utils__/faketimers.js';
 
-describe('The `animate` utility function', () => {
-  beforeEach(() => useFakeTimers());
-  afterEach(() => useRealTimers());
+beforeEach(() => useFakeTimers());
+afterEach(() => useRealTimers());
 
+describe('The `animate` utility function', () => {
   it('should animate an element', async () => {
     const fn = jest.fn();
 
