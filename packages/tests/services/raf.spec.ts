@@ -47,7 +47,7 @@ describe('useRaf', () => {
         remove('fn2');
       };
     });
-    await wait();
+    await wait(16);
     expect(fn2).toHaveBeenCalledTimes(2);
     expect(fn2.mock.calls).toEqual([['update'], ['render']]);
   });
