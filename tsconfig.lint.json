@@ -2,5 +2,10 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true,
+    "types": []
   },
+  "include": [
+    "packages/global.d.ts",
+    "packages/js-toolkit/**/*.ts"
+  ]
 }
