@@ -1,5 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from 'bun:test';
 import { usePointer } from '@studiometa/js-toolkit';
+import { createEvent } from '../__utils__/event.js';
 
 describe('usePointer', () => {
   const { add, remove, props } = usePointer();
@@ -21,10 +22,10 @@ describe('usePointer', () => {
   });
 
   it('should trigger the callbacks on mousedown and mouseup', () => {
-    document.dispatchEvent(new MouseEvent('mousedown'));
+    document.dispatchEvent(createEvent('mousedown'));
     expect(fn).toHaveBeenCalledTimes(1);
     expect(pointerProps.isDown).toBe(true);
-    document.dispatchEvent(new MouseEvent('mouseup'));
+    document.dispatchEvent(createEvent('mouseup'));
     expect(fn).toHaveBeenCalledTimes(2);
     expect(pointerProps.isDown).toBe(false);
   });
@@ -41,47 +42,49 @@ describe('usePointer', () => {
   it('should trigger multiple callbacks', () => {
     const otherFn = jest.fn();
     add('otherUsePointer', otherFn);
-    document.dispatchEvent(new MouseEvent('mouseup'));
+    document.dispatchEvent(createEvent('mouseup'));
     expect(fn).toHaveBeenCalledTimes(1);
     expect(otherFn).toHaveBeenCalledTimes(1);
   });
 
   it('should not trigger callbacks after removal', () => {
     remove('usePointer');
-    document.dispatchEvent(new MouseEvent('mouseup'));
-    document.dispatchEvent(new MouseEvent('mousedown'));
-    document.dispatchEvent(new MouseEvent('mousemove'));
-    document.dispatchEvent(new TouchEvent('touchstart'));
-    document.dispatchEvent(new TouchEvent('touchend'));
-    document.dispatchEvent(new TouchEvent('touchmove'));
+    const options = { clientX: 0, clientY: 0 };
+    const touchOptions = { touches: [{ clientX: 0, clientY: 0 }] };
+    document.dispatchEvent(createEvent('mouseup', options));
+    document.dispatchEvent(createEvent('mousedown', options));
+    document.dispatchEvent(createEvent('mousemove', options));
+    document.dispatchEvent(createEvent('touchstart', touchOptions));
+    document.dispatchEvent(createEvent('touchend', touchOptions));
+    document.dispatchEvent(createEvent('touchmove', touchOptions));
     expect(fn).toHaveBeenCalledTimes(0);
     add('usePointer', fn);
   });
 
   it('should trigger the callbacks on mousemove', () => {
-    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 0, clientY: 0 }));
+    document.dispatchEvent(createEvent('mousemove', { clientX: 0, clientY: 0 }));
     const progress = 0.1;
     const x = Math.round(window.innerWidth * progress);
     const y = Math.round(window.innerHeight * progress);
 
-    const event = new MouseEvent('mousemove', {  clientX: x, clientY: y });
+    const event = createEvent('mousemove', { clientX: x, clientY: y });
     document.dispatchEvent(event);
 
     expect(fn).toHaveBeenLastCalledWith(props());
 
     const newX = x + 10;
-    document.dispatchEvent(new MouseEvent('mousemove', { clientX: newX, clientY: y }));
+    document.dispatchEvent(createEvent('mousemove', { clientX: newX, clientY: y }));
     expect(fn).toHaveBeenLastCalledWith(props());
   });
 
   it('should trigger the callbacks on touchmove', () => {
-    document.dispatchEvent(new TouchEvent('touchmove', { touches: [{ clientX: 0, clientY: 0 }] }));
+    document.dispatchEvent(createEvent('touchmove', { touches: [{ clientX: 0, clientY: 0 }] }));
 
     const progress = 0.1;
     const x = Math.round(window.innerWidth * progress);
     const y = Math.round(window.innerHeight * progress);
 
-    const event = new TouchEvent('touchmove', { touches: [{ clientX: x, clientY: y }] });
+    const event = createEvent('touchmove', { touches: [{ clientX: x, clientY: y }] });
     document.dispatchEvent(event);
 
     expect(fn).toHaveBeenLastCalledWith({
@@ -112,7 +115,7 @@ describe('usePointer', () => {
     });
 
     const newX = x + 10;
-    const otherEvent = new TouchEvent('touchmove', { touches: [{ clientX: newX, clientY: y }] });
+    const otherEvent = createEvent('touchmove', { touches: [{ clientX: newX, clientY: y }] });
     document.dispatchEvent(otherEvent);
     expect(fn).toHaveBeenLastCalledWith({
       event: otherEvent,
