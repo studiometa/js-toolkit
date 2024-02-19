@@ -24,7 +24,7 @@ export function cancelRaf(id: number) {
  * Wait for the next frame to execute a function.
  *
  * @template {() => any} T
- * @param    {T} [fn] The callback function to execute.
+ * @param    {T} [callback] The callback function to execute.
  * @returns  {Promise<T extends Function ? ReturnType<T> : undefined>} A Promise resolving when the next frame is reached.
  * @example
  * ```js
@@ -34,11 +34,10 @@ export function cancelRaf(id: number) {
  * console.log('hello world');
  * ```
  */
-export function nextFrame<T extends () => unknown>(
-  fn?: T,
+export function nextFrame<T extends (time: DOMHighResTimeStamp) => unknown>(
+  callback?: T,
 ): Promise<T extends () => unknown ? ReturnType<T> : void> {
   return new Promise((resolve) => {
-    // @ts-ignore
-    raf(() => resolve(isFunction(fn) && fn()));
+    raf((time) => resolve(isFunction(callback) && callback(time)));
   });
 }
