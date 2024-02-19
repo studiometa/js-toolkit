@@ -34,4 +34,3 @@ The `untrapFocus` function does not need any argument.
 ## Return value
 
 Both functions return nothing.
-
