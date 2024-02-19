@@ -54,3 +54,27 @@ The `trap` and `untrap` functions are now exported directly as `trapFocus` and `
 + trapFocus(element, event);
 + untrapFocus();
 ```
+
+## The `loaded` hook has been removed
+
+In the previous versions, a `loaded` hook was present on any component extending the `Base` class. It was triggered by the `load` event on the `window`. Due to its ease of implementation and its low usage, it has been removed.
+
+```diff
+  import { Base } from '@studiometa/js-toolkit';}
+
+  class Component extends Base {
+    static config = {
+      name: 'Component',
+    };
+
+-   loaded() {
+-     console.log('page is loaded')
++   mounted() {
++     window.addEventListener('load', () => {
++       console.log('page is loaded');
++     });
+    }
+  }
+```
+
+You can still use the [`useLoad` service](/api/services/useLoad.html) as a replacement if needed, as it handles the possibility of the `load` event having been fired already.

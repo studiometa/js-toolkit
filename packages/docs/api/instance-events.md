@@ -96,24 +96,6 @@ app.$on('keyed', () => {
 });
 ```
 
-### `loaded`
-
-```js
-import { Base } from '@studiometa/js-toolkit';
-
-class App extends Base {
-  static config = {
-    name: 'App',
-  };
-}
-
-const app = new App(document.body);
-
-app.$on('loaded', () => {
-  console.log('App is loaded');
-});
-```
-
 ### `moved`
 
 ```js
