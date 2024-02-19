@@ -7,6 +7,7 @@
     "packages/*"
   ],
   "scripts": {
+    "postinstall": "patch-package",
     "demo:dev": "npm run dev --workspace=@studiometa/js-toolkit-demo",
     "demo:watch": "npm run watch --workspace=@studiometa/js-toolkit-demo",
     "demo:build": "npm run build --workspace=@studiometa/js-toolkit-demo",
@@ -41,6 +42,7 @@
     "eslint-config-airbnb-typescript": "^17.1.0",
     "eslint-import-resolver-exports": "^1.0.0-beta.5",
     "eslint-plugin-jest": "^27.6.1",
+    "patch-package": "^8.0.0",
     "prettier": "^2.8.8",
     "typescript": "^5.3.3"
   },
