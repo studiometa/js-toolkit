@@ -57,7 +57,7 @@ The root instance of the application when the current instance has been mounted 
 
 ## `$services`
 
-A [Service](https://github.com/studiometa/js-toolkit/blob/master/src/abstracts/Base/classes/Services.js) instance to manage the [`scrolled`](#scrolled-props), [`resized`](#resized-props), [`ticked`](#ticked-props), [`moved`](#moved-props), [`keyed`](#keyed-props), [`loaded`](#loaded) services hooks.
+A [Service](https://github.com/studiometa/js-toolkit/blob/master/src/abstracts/Base/classes/Services.js) instance to manage the [`scrolled`](#scrolled-props), [`resized`](#resized-props), [`ticked`](#ticked-props), [`moved`](#moved-props), [`keyed`](#keyed-props) services hooks.
 
 The following methods are available:
 

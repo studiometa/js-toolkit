@@ -1,11 +1,10 @@
-import { usePointer, useRaf, useResize, useScroll, useKey, useLoad } from '../../services/index.js';
+import { usePointer, useRaf, useResize, useScroll, useKey } from '../../services/index.js';
 import type {
   PointerServiceInterface,
   RafServiceInterface,
   ResizeServiceInterface,
   ScrollServiceInterface,
   KeyServiceInterface,
-  LoadServiceInterface,
   ServiceInterface,
 } from '../../services/index.js';
 import { AbstractManager } from './AbstractManager.js';
@@ -17,7 +16,6 @@ const SERVICES_MAP = {
   ticked: useRaf,
   moved: usePointer,
   keyed: useKey,
-  loaded: useLoad,
 };
 
 const SERVICE_NAMES = Object.keys(SERVICES_MAP);
@@ -28,7 +26,6 @@ type Services = {
   ticked: RafServiceInterface;
   moved: PointerServiceInterface;
   keyed: KeyServiceInterface;
-  loaded: LoadServiceInterface;
 } & Record<string, ServiceInterface<unknown>>;
 
 type ServiceNames = keyof Services;
