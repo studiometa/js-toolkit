@@ -14,7 +14,6 @@
   },
   "include": [
     "packages/global.d.ts",
-    "packages/js-toolkit/**/*.ts",
-    "packages/tests/**/*.ts"
+    "packages/js-toolkit/**/*.ts"
   ]
 }
