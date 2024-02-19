@@ -1,14 +1,6 @@
 import { describe, it, expect, jest } from 'bun:test';
 import { Base, withDrag } from '@studiometa/js-toolkit';
-
-function createEvent(type, data, options) {
-  const event = new Event(type, options);
-  Object.entries(data).forEach(([name, value]) => {
-    event[name] = value;
-  });
-
-  return event;
-}
+import { createEvent } from '../__utils__/event.js';
 
 describe('The `withDrag` decorator', () => {
   it('should add a `dragged` hook', () => {
