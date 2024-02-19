@@ -1,11 +1,12 @@
 import { describe, it, expect, jest, afterEach, beforeEach } from 'bun:test';
 import { scrollTo, wait } from '@studiometa/js-toolkit/utils';
+import { mockScroll, restoreScroll } from '../__utils__/scroll.js';
 
 describe('The `scrollTo` function', () => {
   let fn;
   let element;
   let elementSpy;
-  const { scrollHeight } = document.documentElement;
+  let scrollHeightSpy;
 
   beforeEach(() => {
     fn = jest.fn(({ top }) => {
@@ -15,13 +16,7 @@ describe('The `scrollTo` function', () => {
     });
     window.scrollTo = fn;
 
-    const scrollHeightSpy = jest.fn(() => 10000);
-    Object.defineProperty(document.documentElement, 'scrollHeight', {
-      configurable: true,
-      get() {
-        return scrollHeightSpy();
-      },
-    });
+    scrollHeightSpy = mockScroll({ height: 10000 }).scrollHeightSpy;
 
     element = document.createElement('div');
     elementSpy = jest.spyOn(element, 'getBoundingClientRect');
@@ -41,11 +36,7 @@ describe('The `scrollTo` function', () => {
     delete window.scrollTo;
     elementSpy.mockRestore();
     document.body.innerHTML = '';
-    Object.defineProperty(document.documentElement, 'scrollHeight', {
-      get() {
-        return scrollHeight;
-      },
-    });
+    restoreScroll();
   });
 
   it('should scroll to a selector', async () => {

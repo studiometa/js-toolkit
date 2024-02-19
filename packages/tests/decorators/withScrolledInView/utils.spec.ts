@@ -1,5 +1,10 @@
 import { describe, it, expect, jest, beforeAll } from 'bun:test';
-import { parseNamedOffset, getEdgeWithOffset, normalizeOffset } from '../../../js-toolkit/decorators/withScrolledInView/utils.js';
+import {
+  parseNamedOffset,
+  getEdgeWithOffset,
+  normalizeOffset,
+  getEdges,
+} from '../../../js-toolkit/decorators/withScrolledInView/utils.js';
 
 describe('The `normalizeOffset` function', () => {
   it('should normalize the offset', () => {
@@ -95,9 +100,41 @@ describe('The `getEdgeWithOffset` function', () => {
     expect(getEdgeWithOffset(0, 100, '-10vw')).toBe(-0.1 * window.innerWidth);
     expect(getEdgeWithOffset(0, 100, '10vh')).toBe(0.1 * window.innerHeight);
     expect(getEdgeWithOffset(0, 100, '-10vh')).toBe(-0.1 * window.innerHeight);
-    expect(getEdgeWithOffset(0, 100, '10vmin')).toBe(0.1 * Math.min(window.innerWidth, window.innerHeight));
-    expect(getEdgeWithOffset(0, 100, '-10vmin')).toBe(-0.1 * Math.min(window.innerWidth, window.innerHeight));
-    expect(getEdgeWithOffset(0, 100, '10vmax')).toBe(0.1 * Math.max(window.innerWidth, window.innerHeight));
-    expect(getEdgeWithOffset(0, 100, '-10vmax')).toBe(-0.1 * Math.max(window.innerWidth, window.innerHeight));
+    expect(getEdgeWithOffset(0, 100, '10vmin')).toBe(
+      0.1 * Math.min(window.innerWidth, window.innerHeight),
+    );
+    expect(getEdgeWithOffset(0, 100, '-10vmin')).toBe(
+      -0.1 * Math.min(window.innerWidth, window.innerHeight),
+    );
+    expect(getEdgeWithOffset(0, 100, '10vmax')).toBe(
+      0.1 * Math.max(window.innerWidth, window.innerHeight),
+    );
+    expect(getEdgeWithOffset(0, 100, '-10vmax')).toBe(
+      -0.1 * Math.max(window.innerWidth, window.innerHeight),
+    );
+  });
+});
+
+describe('The `getEdges` function', () => {
+  it('should work for the x axis', () => {
+    const [start, end] = getEdges(
+      'x',
+      { x: 0, width: 100 },
+      { x: 0, width: 100 },
+      normalizeOffset('start start / start start'),
+    );
+    expect(start).toBe(0);
+    expect(end).toBe(0);
+  });
+
+  it('should work for the x axis', () => {
+    const [start, end] = getEdges(
+      'y',
+      { y: 0, height: 100 },
+      { y: 0, height: 100 },
+      normalizeOffset('start start / start start'),
+    );
+    expect(start).toBe(0);
+    expect(end).toBe(0);
   });
 });

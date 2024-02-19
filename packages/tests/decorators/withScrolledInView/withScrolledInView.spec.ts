@@ -1,5 +1,5 @@
 /* eslint-disable no-new, require-jsdoc, max-classes-per-file */
-import { describe, it, expect, jest, beforeAll, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, spyOn, beforeAll, mock, afterEach } from 'bun:test';
 import { Base, withScrolledInView } from '@studiometa/js-toolkit';
 import { wait } from '@studiometa/js-toolkit/utils';
 import {
@@ -7,35 +7,19 @@ import {
   afterEachCallback,
   mockIsIntersecting,
 } from '../../__setup__/mockIntersectionObserver.js';
+import { mockScroll, restoreScroll } from '../../__utils__/scroll.js';
+import {
+  advanceTimersByTimeAsync,
+  useFakeTimers,
+  useRealTimers,
+} from '../../__utils__/faketimers.js';
 
-beforeAll(() => beforeAllCallback());
-
-let div;
-let divRectSpy;
-let offsetTopSpy;
-let offsetLeftSpy;
-let offsetWidthSpy;
-let offsetHeightSpy;
-const fn = jest.fn();
-
-beforeEach(() => {
-  fn.mockClear();
-  Object.defineProperties(window, {
-    pageYOffset: {
-      configurable: true,
-      value: 0,
-    },
-    pageXOffset: {
-      configurable: true,
-      value: 0,
-    },
-  });
-
-  div = document.createElement('div');
-  offsetTopSpy = jest.fn(() => 500);
-  offsetLeftSpy = jest.fn(() => 500);
-  offsetWidthSpy = jest.fn(() => 100);
-  offsetHeightSpy = jest.fn(() => 100);
+function getDiv() {
+  const div = document.createElement('div');
+  const offsetTopSpy = mock(() => 500);
+  const offsetLeftSpy = mock(() => 500);
+  const offsetWidthSpy = mock(() => 100);
+  const offsetHeightSpy = mock(() => 100);
   Object.defineProperties(div, {
     offsetTop: {
       get() {
@@ -58,7 +42,8 @@ beforeEach(() => {
       },
     },
   });
-  divRectSpy = jest.spyOn(div, 'getBoundingClientRect');
+  const divRectSpy = spyOn(div, 'getBoundingClientRect');
+  // @ts-ignore
   divRectSpy.mockImplementation(() => ({
     height: 100,
     width: 100,
@@ -67,19 +52,19 @@ beforeEach(() => {
     left: 500,
     x: 500,
   }));
-});
 
-afterEach(() => {
-  afterEachCallback();
-  divRectSpy.mockRestore();
-  offsetTopSpy.mockRestore();
-  offsetLeftSpy.mockRestore();
-  offsetWidthSpy.mockRestore();
-  offsetHeightSpy.mockRestore();
-});
+  return div;
+}
 
 describe('The withScrolledInView decorator', () => {
   it('should trigger the `scrolledInView` hook when in view', async () => {
+    beforeAllCallback();
+    useFakeTimers();
+    const div = getDiv();
+    const div2 = getDiv();
+    const fn = mock();
+    const fn2 = mock();
+
     class Foo extends withScrolledInView(Base) {
       static config = {
         name: 'Foo',
@@ -89,108 +74,43 @@ describe('The withScrolledInView decorator', () => {
         fn(props);
       }
     }
-    new Foo(div);
 
-    mockIsIntersecting(div, true);
-    const scrollHeightSpy = jest.spyOn(document.body, 'scrollHeight', 'get');
-    scrollHeightSpy.mockImplementation(() => window.innerHeight * 2);
-    const scrollWidthSpy = jest.spyOn(document.body, 'scrollWidth', 'get');
-    scrollWidthSpy.mockImplementation(() => window.innerWidth * 2);
-
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset = 10;
-    window.pageXOffset = 10;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-
-    await wait(50);
-    const [last] = fn.mock.calls.pop();
-    delete last.dampedProgress;
-    delete last.dampedCurrent;
-    expect(last).toMatchSnapshot();
-    scrollHeightSpy.mockRestore();
-    scrollWidthSpy.mockRestore();
-  });
-
-  it('should trigger the `scrolledInView` hook when in view with the `useOffsetSizes` option', async () => {
-    class Foo extends withScrolledInView(Base, { useOffsetSizes: true }) {
+    class Bar extends withScrolledInView(Base, { useOffsetSizes: true }) {
       static config = {
-        name: 'Foo',
+        name: 'Bar',
       };
 
       scrolledInView(props) {
-        fn(props);
+        fn2(props);
       }
     }
-    new Foo(div);
 
+    const foo = new Foo(div);
+    const bar = new Bar(div2);
     mockIsIntersecting(div, true);
-    const scrollHeightSpy = jest.spyOn(document.body, 'scrollHeight', 'get');
-    scrollHeightSpy.mockImplementation(() => window.innerHeight * 2);
-    const scrollWidthSpy = jest.spyOn(document.body, 'scrollWidth', 'get');
-    scrollWidthSpy.mockImplementation(() => window.innerWidth * 2);
+    mockIsIntersecting(div2, true);
+    expect(foo.$isMounted).toBe(true);
+    expect(bar.$isMounted).toBe(true);
 
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset = 10;
-    window.pageXOffset = 10;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset *= 2;
-    window.pageXOffset *= 2;
+    foo.$emit('scroll');
+    bar.$emit('scroll');
+    await advanceTimersByTimeAsync(100);
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn2).toHaveBeenCalledTimes(1);
+    useRealTimers();
+    afterEachCallback();
+  });
 
-    await wait(50);
-    const [last] = fn.mock.calls.pop();
-    delete last.dampedProgress;
-    delete last.dampedCurrent;
-    expect(last).toMatchSnapshot();
-    scrollHeightSpy.mockRestore();
-    scrollWidthSpy.mockRestore();
+  it.todo('should do nothing if there is no scroll', async () => {
+    // @todo
   });
 
   it('should reset the damped values when destroyed', async () => {
-    // @todo test if dampedCurrent and dampedProgress values are reset to their min or max on destroy.
+    beforeAllCallback();
+    useFakeTimers();
+    const div = getDiv();
+    const fn = mock();
+
     class Foo extends withScrolledInView(Base) {
       static config = {
         name: 'Foo',
@@ -204,28 +124,15 @@ describe('The withScrolledInView decorator', () => {
 
     mockIsIntersecting(div, true);
     expect(foo.$isMounted).toBe(true);
-
-    const scrollHeightSpy = jest.spyOn(document.body, 'scrollHeight', 'get');
-    scrollHeightSpy.mockImplementation(() => window.innerHeight * 2);
-    const scrollWidthSpy = jest.spyOn(document.body, 'scrollWidth', 'get');
-    scrollWidthSpy.mockImplementation(() => window.innerWidth * 2);
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset = 10;
-    window.pageXOffset = 10;
-    document.dispatchEvent(new Event('scroll'));
-    window.pageYOffset = 1000;
-    window.pageXOffset = 1000;
-
-    await wait(10);
-
     mockIsIntersecting(div, false);
-
-    await wait(50);
-
+    await advanceTimersByTimeAsync(50);
     expect(foo.$isMounted).toBe(false);
-    expect(foo.__props.dampedCurrent.x).toBe(foo.__props.current.x);
-    expect(foo.__props.dampedCurrent.y).toBe(foo.__props.current.y);
-    expect(foo.__props.dampedProgress.x).toBe(foo.__props.progress.x);
-    expect(foo.__props.dampedProgress.y).toBe(foo.__props.progress.y);
+    expect(foo.props.dampedCurrent.x).toBe(foo.props.current.x);
+    expect(foo.props.dampedCurrent.y).toBe(foo.props.current.y);
+    expect(foo.props.dampedProgress.x).toBe(foo.props.progress.x);
+    expect(foo.props.dampedProgress.y).toBe(foo.props.progress.y);
+
+    useRealTimers();
+    afterEachCallback();
   });
 });

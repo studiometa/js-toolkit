@@ -1,10 +1,17 @@
 import { jest } from '@jest/globals';
 
+type Item = {
+  callback: IntersectionObserverCallback;
+  elements: Set<Element>;
+  created: number;
+};
+
 /**
  * Thanks to the react-intersecton-observer package for this IntersectionObserver mock!
+ *
  * @see https://github.com/thebuilder/react-intersection-observer/blob/master/src/test-utils.ts
  */
-const observers = new Map();
+const observers: Map<IntersectionObserver, Item> = new Map();
 
 export function beforeAllCallback() {
   /**
@@ -12,42 +19,50 @@ export function beforeAllCallback() {
    * We keep track of the elements being observed, so when `mockAllIsIntersecting` is triggered it will
    * know which elements to trigger the event on.
    */
-  globalThis.IntersectionObserver = jest.fn((cb, options = {}) => {
-    const item = {
-      callback: cb,
-      elements: new Set(),
-      created: Date.now(),
-    };
-    const instance = {
-      thresholds: Array.isArray(options.threshold) ? options.threshold : [options.threshold ?? 0],
-      root: options.root ?? null,
-      rootMargin: options.rootMargin ?? '',
-      observe: jest.fn(element => {
-        item.elements.add(element);
-      }),
-      unobserve: jest.fn(element => {
-        item.elements.delete(element);
-      }),
-      disconnect: jest.fn(() => {
-        observers.delete(instance);
-      }),
-      takeRecords: jest.fn(),
-    };
+  globalThis.IntersectionObserver = jest.fn(
+    (cb: IntersectionObserverCallback, options: IntersectionObserverInit = {}) => {
+      const item: Item = {
+        callback: cb,
+        elements: new Set(),
+        created: Date.now(),
+      };
+      const instance: IntersectionObserver = {
+        thresholds: Array.isArray(options.threshold) ? options.threshold : [options.threshold ?? 0],
+        root: options.root ?? null,
+        rootMargin: options.rootMargin ?? '',
+        observe: jest.fn((element: Element) => {
+          item.elements.add(element);
+        }),
+        unobserve: jest.fn((element: Element) => {
+          item.elements.delete(element);
+        }),
+        disconnect: jest.fn(() => {
+          observers.delete(instance);
+        }),
+        takeRecords: jest.fn(),
+      };
 
-    observers.set(instance, item);
+      observers.set(instance, item);
 
-    return instance;
-  });
+      return instance;
+    },
+  );
 }
 
 export function afterEachCallback() {
+  // @ts-ignore
   globalThis.IntersectionObserver.mockClear();
   observers.clear();
 }
 
-function triggerIntersection(elements, isIntersecting, observer, item) {
+function triggerIntersection(
+  elements,
+  isIntersecting: boolean,
+  observer: IntersectionObserver,
+  item,
+) {
   const entries = [];
-  elements.forEach(element => {
+  for (const element of elements) {
     entries.push({
       boundingClientRect: element.getBoundingClientRect(),
       intersectionRatio: isIntersecting ? 1 : 0,
@@ -69,7 +84,7 @@ function triggerIntersection(elements, isIntersecting, observer, item) {
       target: element,
       time: Date.now() - item.created,
     });
-  });
+  }
 
   // Trigger the IntersectionObserver callback with all the entries
   item.callback(entries, observer);
@@ -77,23 +92,19 @@ function triggerIntersection(elements, isIntersecting, observer, item) {
 
 /**
  * Set the `isIntersecting` on all current IntersectionObserver instances
- * @param isIntersecting {boolean}
  */
-export function mockAllIsIntersecting(isIntersecting) {
-  Object.entries(observers).forEach(([observer, item]) => {
+export function mockAllIsIntersecting(isIntersecting: boolean) {
+  for (const [observer, item] of observers) {
     triggerIntersection(Array.from(item.elements), isIntersecting, observer, item);
-  });
+  }
 }
 
 /**
  * Call the `intersectionMockInstance` method with an element, to get the (mocked)
  * `IntersectionObserver` instance. You can use this to spy on the `observe` and
  * `unobserve` methods.
- * @param element {Element}
- * @return IntersectionObserver
  */
-export function intersectionMockInstance(element) {
-  // eslint-disable-next-line no-restricted-syntax
+export function intersectionMockInstance(element: Element): IntersectionObserver {
   for (const [observer, item] of observers) {
     if (item.elements.has(element)) {
       return observer;
@@ -105,14 +116,12 @@ export function intersectionMockInstance(element) {
 
 /**
  * Set the `isIntersecting` for the IntersectionObserver of a specific element.
- * @param element {Element}
- * @param isIntersecting {boolean}
  */
-export function mockIsIntersecting(element, isIntersecting) {
+export function mockIsIntersecting(element: Element, isIntersecting: boolean) {
   const observer = intersectionMockInstance(element);
   if (!observer) {
     throw new Error(
-      'No IntersectionObserver instance found for element. Is it still mounted in the DOM?'
+      'No IntersectionObserver instance found for element. Is it still mounted in the DOM?',
     );
   }
   const item = observers.get(observer);
