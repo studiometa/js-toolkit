@@ -259,8 +259,6 @@ function getUtilsSidebar() {
         { text: 'keyCodes', link: '/utils/keyCodes.html' },
         { text: 'memoize', link: '/utils/memoize.html' },
         { text: 'nextFrame', link: '/utils/nextFrame.html' },
-        { text: 'raf', link: '/utils/raf.html' },
-        { text: 'cancelRaf', link: '/utils/cancelRaf.html' },
         { text: 'nextMicrotask', link: '/utils/nextMicrotask.html' },
         { text: 'nextTick', link: '/utils/nextTick.html' },
         { text: 'scrollTo', link: '/utils/scrollTo.html' },
