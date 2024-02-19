@@ -36,7 +36,10 @@ export default defineConfig({
       {
         text: `v${pkg.version}`,
         items: [
-          { text: 'Release Notes', link: 'https://github.com/studiometa/js-toolkit/blob/master/CHANGELOG.md' },
+          {
+            text: 'Release Notes',
+            link: 'https://github.com/studiometa/js-toolkit/blob/master/CHANGELOG.md',
+          },
           { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
         ],
       },

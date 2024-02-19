@@ -262,7 +262,7 @@ export function withScrolledInView<S extends Base = Base>(
           render();
         },
         scrolled: (props) => {
-          if ((!this.$services.has('ticked') && props.changed.y) || props.changed.x) {
+          if (props.changed.y || props.changed.x) {
             this.$services.enable('ticked');
           }
         },

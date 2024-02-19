@@ -88,10 +88,28 @@ export function getEdgeWithOffset(start: number, size: number, offset: string | 
   return start;
 }
 
+type HorizontalOnlyRect = {
+  x: number;
+  width: number;
+};
+
+type VerticalOnlyRect = {
+  y: number;
+  height: number;
+};
+
+type HorizontalRect = HorizontalOnlyRect & Partial<VerticalOnlyRect>;
+type VerticalRect = Partial<HorizontalOnlyRect> & VerticalOnlyRect;
+
 /**
  * Get starting and ending edges for a given axis, a target sizings, a container sizings and their offset.
  */
-export function getEdges(axis: 'x' | 'y', targetSizes, containerSizes, offset): [number, number] {
+export function getEdges<T extends 'x' | 'y'>(
+  axis: T,
+  targetSizes: T extends 'x' ? HorizontalRect : VerticalRect,
+  containerSizes: T extends 'x' ? HorizontalRect : VerticalRect,
+  offset: NormalizedOffset,
+): [number, number] {
   const sizeKey = axis === 'x' ? 'width' : 'height';
   const targetStart = getEdgeWithOffset(targetSizes[axis], targetSizes[sizeKey], offset[0][0]);
   const containerStart = getEdgeWithOffset(0, containerSizes[sizeKey], offset[0][1]);

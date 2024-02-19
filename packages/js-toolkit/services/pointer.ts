@@ -176,9 +176,9 @@ const instances = new Map<HTMLElement | Window, PointerService>();
 /**
  * Use the pointer service.
  */
-export default function usePointer(target: HTMLElement | undefined): PointerService {
-  if (!instances.has(target)) {
-    instances.set(target, createPointerService(target));
+export default function usePointer(target?: HTMLElement): PointerService {
+  if (!instances.has(target ?? window)) {
+    instances.set(target ?? window, createPointerService(target));
   }
-  return instances.get(target);
+  return instances.get(target ?? window) as PointerService;
 }
