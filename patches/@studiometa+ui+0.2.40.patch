@@ -1,0 +1,13 @@
+diff --git a/node_modules/@studiometa/ui/molecules/Modal/Modal.js b/node_modules/@studiometa/ui/molecules/Modal/Modal.js
+index 7867b5b..81b3e81 100644
+--- a/node_modules/@studiometa/ui/molecules/Modal/Modal.js
++++ b/node_modules/@studiometa/ui/molecules/Modal/Modal.js
+@@ -1,6 +1,6 @@
+ import { Base } from "@studiometa/js-toolkit";
+-import { transition, focusTrap } from "@studiometa/js-toolkit/utils";
+-const { trap, untrap, saveActiveElement } = focusTrap();
++import { transition, trapFocus as trap, untrapFocus as untrap, saveActiveElement } from "@studiometa/js-toolkit/utils";
++
+ class Modal extends Base {
+   /**
+    * Config.

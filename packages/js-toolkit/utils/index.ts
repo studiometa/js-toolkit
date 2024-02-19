@@ -3,14 +3,13 @@ export * from './trapFocus.js';
 export { default as keyCodes } from './keyCodes.js';
 export { default as memoize } from './memoize.js';
 export { nextFrame } from './nextFrame.js';
-export { default as nextTick } from './nextTick.js';
-export { default as nextMicrotask } from './nextMicrotask.js';
+export { nextTick } from './nextTick.js';
+export { nextMicrotask } from './nextMicrotask.js';
 export { default as throttle } from './throttle.js';
 export { default as scrollTo } from './scrollTo.js';
 export { default as getComponentResolver } from './getComponentResolver.js';
 export * from './is.js';
 export * from './has.js';
-// eslint-disable-next-line import/extensions
 export * from './css/index.js';
 export {
   objectToURLSearchParams,

@@ -1,0 +1,22 @@
+// Bun Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`The withScrolledInView decorator should trigger the `scrolledInView` hook when in view with the `useOffsetSizes` option 1`] = `
+{
+  "current": {
+    "x": 600,
+    "y": 600,
+  },
+  "end": {
+    "x": 600,
+    "y": 600,
+  },
+  "progress": {
+    "x": 1,
+    "y": 1,
+  },
+  "start": {
+    "x": -524,
+    "y": -268,
+  },
+}
+`;
