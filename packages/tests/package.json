@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "bun test **/*.spec.ts"
+    "test": "bun test"
   },
   "dependencies": {
     "@jest/globals": "^29.7.0",

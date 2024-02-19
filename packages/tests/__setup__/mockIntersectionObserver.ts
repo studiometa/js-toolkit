@@ -91,15 +91,6 @@ function triggerIntersection(
 }
 
 /**
- * Set the `isIntersecting` on all current IntersectionObserver instances
- */
-export function mockAllIsIntersecting(isIntersecting: boolean) {
-  for (const [observer, item] of observers) {
-    triggerIntersection(Array.from(item.elements), isIntersecting, observer, item);
-  }
-}
-
-/**
  * Call the `intersectionMockInstance` method with an element, to get the (mocked)
  * `IntersectionObserver` instance. You can use this to spy on the `observe` and
  * `unobserve` methods.
