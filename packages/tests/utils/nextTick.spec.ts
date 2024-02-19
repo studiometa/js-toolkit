@@ -9,8 +9,8 @@ describe('nextTick method', () => {
     const promises = [
       nextTick(() => fn('nextTick #1')),
       nextTick().then(() => fn('nextTick #2')),
-      nextFrame().then(() => fn('nextFrame #2')),
       nextFrame(() => fn('nextFrame #1')),
+      nextFrame().then(() => fn('nextFrame #2')),
       nextMicrotask().then(() => fn('nextMicrotask #2')),
       nextMicrotask(() => fn('nextMicrotask #1')),
     ];
@@ -18,7 +18,17 @@ describe('nextTick method', () => {
 
     await Promise.all(promises);
 
-    expect(fn.mock.calls).toMatchSnapshot();
+    console.log(fn.mock.calls);
+    expect(fn.mock.calls).toEqual([
+      ['start'],
+      ['end'],
+      ['nextMicrotask #1'],
+      ['nextMicrotask #2'],
+      ['nextTick #1'],
+      ['nextTick #2'],
+      ['nextFrame #1'],
+      ['nextFrame #2'],
+    ]);
     expect(fn).toHaveBeenCalledTimes(8);
   });
 });

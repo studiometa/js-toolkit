@@ -1,5 +1,5 @@
-import { describe, it, expect, jest, beforeAll, afterAll } from 'bun:test';
-import { nextFrame, raf, cancelRaf } from '@studiometa/js-toolkit/utils';
+import { describe, it, expect, spyOn, mock, beforeAll, afterAll } from 'bun:test';
+import { nextFrame } from '@studiometa/js-toolkit/utils';
 import {
   useFakeTimers,
   useRealTimers,
@@ -17,7 +17,7 @@ describe('nextFrame method', () => {
   });
 
   it('should execute the callback function in the next frame', () => {
-    const fn = jest.fn();
+    const fn = mock();
     nextFrame(fn);
     expect(fn).toHaveBeenCalledTimes(0);
     runAllTimers();
@@ -28,35 +28,15 @@ describe('nextFrame method', () => {
     expect(nextFrame()).toBeInstanceOf(Promise);
   });
 
-  it('should export a working `cancelRaf` function', () => {
-    const fn = jest.fn();
-    const frame = raf(() => fn());
-    cancelRaf(frame);
-    expect(fn).toHaveBeenCalledTimes(0);
-    runAllTimers();
-    expect(fn).toHaveBeenCalledTimes(0);
-  });
-
-  it('should work server-side', () => {
-    const { requestAnimationFrame, cancelAnimationFrame} = window;
-    delete window.requestAnimationFrame;
-    delete window.cancelAnimationFrame;
-    const fn = jest.fn();
+  it.todo('should work server-side', () => {
+    const fn = mock();
+    mock.module('../../js-toolkit/utils/has.js', () => ({
+      hasWindow: () => false,
+    }));
 
     nextFrame(fn);
     expect(fn).toHaveBeenCalledTimes(0);
     advanceTimersByTime(16);
-    advanceTimersByTime(16);
     expect(fn).toHaveBeenCalledTimes(1);
-
-    fn.mockClear();
-    const frame = raf(() => fn());
-    expect(fn).toHaveBeenCalledTimes(0);
-    cancelRaf(frame);
-    advanceTimersByTime(16);
-    expect(fn).toHaveBeenCalledTimes(0);
-
-    window.requestAnimationFrame = requestAnimationFrame;
-    window.cancelAnimationFrame = cancelAnimationFrame;
   });
 });

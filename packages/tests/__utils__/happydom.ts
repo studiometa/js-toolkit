@@ -15,4 +15,11 @@ Object.defineProperties(window, {
       y = Number(value);
     },
   },
+  requestAnimationFrame: {
+    value(callback) {
+      return setTimeout(() => {
+        callback(performance.now());
+      }, 16);
+    },
+  },
 });
