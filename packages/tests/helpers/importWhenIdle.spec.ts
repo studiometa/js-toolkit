@@ -1,50 +1,55 @@
 /* eslint-disable require-jsdoc, max-classes-per-file */
-import { describe, it, expect, jest, beforeAll } from 'bun:test';
-import { html } from 'htl';
-import { Base, withExtraConfig, importWhenIdle, } from '@studiometa/js-toolkit';
+import { describe, it, expect } from 'bun:test';
+import {
+  Base,
+  withExtraConfig,
+  importWhenIdle,
+  getInstanceFromElement,
+} from '@studiometa/js-toolkit';
 import { wait } from '@studiometa/js-toolkit/utils';
 import { mockRequestIdleCallback } from '../__setup__/mockRequestIdleCallback';
-
-class App extends Base {
-  static config = {
-    name: 'App',
-  };
-}
-
-class Component extends Base {
-  static config = {
-    name: 'Component',
-  };
-}
+import { h } from '../__utils__/h.js';
+import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '../__utils__/faketimers';
 
 describe('The `importWhenIdle` lazy import helper', () => {
+  class App extends Base {
+    static config = {
+      name: 'App',
+    };
+  }
+
+  class Component extends Base {
+    static config = {
+      name: 'Component',
+    };
+  }
+
   it('should import a component when idle', async () => {
-    const div = html`<div>
-      <div data-component="Component"></div>
-    </div>`;
+    const component = h('div', { dataComponent: 'Component' });
+    const div = h('div', {}, [component]);
 
     const AppOverride = withExtraConfig(App, {
       components: {
-        Component: (app) => importWhenIdle(() => Promise.resolve(Component)),
+        Component: () => importWhenIdle(() => Promise.resolve(Component)),
       },
     });
 
     new AppOverride(div).$mount();
 
-    expect(div.firstElementChild.__base__).toBeUndefined();
+    expect(getInstanceFromElement(component, Component)).toBeNull();
     mockRequestIdleCallback();
     await wait(0);
-    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
+    expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
   it('should import a component in the next macrotask when `requestIdleCallback` is not supported', async () => {
-    const div = html`<div>
-      <div data-component="Component"></div>
-    </div>`;
+    useFakeTimers();
+    const component = h('div', { dataComponent: 'Component' });
+    const div = h('div', {}, [component]);
 
     const AppOverride = withExtraConfig(App, {
       components: {
-        Component: (app) => importWhenIdle(() => Promise.resolve(Component), { timeout: 100 }),
+        Component: () => importWhenIdle(() => Promise.resolve(Component), { timeout: 100 }),
       },
     });
 
@@ -53,10 +58,11 @@ describe('The `importWhenIdle` lazy import helper', () => {
 
     new AppOverride(div).$mount();
 
-    expect(div.firstElementChild.__base__).toBeUndefined();
-    await wait(101);
-    expect(div.firstElementChild.__base__.get(Component)).toBeInstanceOf(Component);
+    expect(getInstanceFromElement(component, Component)).toBeNull();
+    await advanceTimersByTimeAsync(101);
+    expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
 
     globalThis.requestIdleCallback = requestIdleCallback;
+    useRealTimers();
   });
 });

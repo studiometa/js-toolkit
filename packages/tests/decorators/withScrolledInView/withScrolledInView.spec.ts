@@ -1,7 +1,6 @@
 /* eslint-disable no-new, require-jsdoc, max-classes-per-file */
-import { describe, it, expect, spyOn, beforeAll, mock, afterEach } from 'bun:test';
+import { describe, it, expect, spyOn, beforeAll, mock, afterEach, beforeEach } from 'bun:test';
 import { Base, withScrolledInView } from '@studiometa/js-toolkit';
-import { wait } from '@studiometa/js-toolkit/utils';
 import {
   beforeAllCallback,
   afterEachCallback,
@@ -57,8 +56,14 @@ function getDiv() {
 }
 
 describe('The withScrolledInView decorator', () => {
+  beforeAll(() => beforeAllCallback());
+  beforeEach(() => mockScroll());
+  afterEach(() => {
+    afterEachCallback();
+    restoreScroll();
+  });
+
   it('should trigger the `scrolledInView` hook when in view', async () => {
-    beforeAllCallback();
     useFakeTimers();
     const div = getDiv();
     const div2 = getDiv();
@@ -98,7 +103,6 @@ describe('The withScrolledInView decorator', () => {
     expect(fn).toHaveBeenCalledTimes(1);
     expect(fn2).toHaveBeenCalledTimes(1);
     useRealTimers();
-    afterEachCallback();
   });
 
   it.todo('should do nothing if there is no scroll', async () => {
@@ -106,7 +110,6 @@ describe('The withScrolledInView decorator', () => {
   });
 
   it('should reset the damped values when destroyed', async () => {
-    beforeAllCallback();
     useFakeTimers();
     const div = getDiv();
     const fn = mock();
@@ -133,6 +136,5 @@ describe('The withScrolledInView decorator', () => {
     expect(foo.props.dampedProgress.y).toBe(foo.props.progress.y);
 
     useRealTimers();
-    afterEachCallback();
   });
 });

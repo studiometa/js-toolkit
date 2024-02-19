@@ -1,6 +1,5 @@
 /* eslint-disable require-jsdoc, max-classes-per-file */
 import { describe, it, expect } from 'bun:test';
-import { html } from 'htl';
 import {
   Base,
   withExtraConfig,
@@ -8,6 +7,7 @@ import {
   getInstanceFromElement,
 } from '@studiometa/js-toolkit';
 import { wait } from '@studiometa/js-toolkit/utils';
+import { h } from '../__utils__/h.js';
 
 describe('The `importOnInteraction` lazy import helper', () => {
   class App extends Base {
@@ -22,10 +22,8 @@ describe('The `importOnInteraction` lazy import helper', () => {
     };
   }
   it('should import a component given one event', async () => {
-    const div = document.createElement('div');
-    const component = document.createElement('div');
-    component.dataset.component = 'Component';
-    div.append(component);
+    const component = h('div', { dataComponent: 'Component' });
+    const div = h('div', {}, [component]);
 
     const AppOverride = withExtraConfig(App, {
       components: {
@@ -45,13 +43,10 @@ describe('The `importOnInteraction` lazy import helper', () => {
   });
 
   it('should import a component given a ref as target', async () => {
-    const div = document.createElement('div');
-    const component = document.createElement('div');
-    component.dataset.component = 'Component';
-    const btn = document.createElement('btn');
-    btn.dataset.ref = 'btn[]';
-    const btn2 = btn.cloneNode() as HTMLButtonElement;
-    div.append(component, btn, btn2);
+    const btn = h('button', { dataRef: 'btn[]' });
+    const btn2 = h('button', { dataRef: 'btn[]' });
+    const component = h('div', { dataComponent: 'Component' });
+    const div = h('div', {}, [component, btn, btn2]);
 
     const AppOverride = withExtraConfig(App, {
       refs: ['btn[]'],
@@ -70,10 +65,8 @@ describe('The `importOnInteraction` lazy import helper', () => {
   });
 
   it('should import a component given an array of events', async () => {
-    const div = document.createElement('div');
-    const component = document.createElement('div');
-    component.dataset.component = 'Component';
-    div.append(component);
+    const component = h('div', { dataComponent: 'Component' });
+    const div = h('div', {}, [component]);
 
     const AppOverride = withExtraConfig(App, {
       components: {
@@ -90,14 +83,11 @@ describe('The `importOnInteraction` lazy import helper', () => {
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
-  it.todo('should import a component given a selector outside the parent context', async () => {
-    const div = document.createElement('div');
-    const component = document.createElement('div');
-    component.dataset.component = 'Component';
-    div.append(component);
-    const btn = document.createElement('btn');
-    const doc = document.createElement('div');
-    doc.append(div, btn);
+  it('should import a component given a selector outside the parent context', async () => {
+    const component = h('div', { dataComponent: 'Component' });
+    const div = h('div', {}, [component]);
+    const btn = h('button', { id: 'btn' });
+    document.body.append(div, btn);
 
     const AppOverride = withExtraConfig(App, {
       components: {

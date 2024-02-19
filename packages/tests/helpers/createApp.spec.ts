@@ -2,6 +2,7 @@ import { describe, it, expect, jest, beforeEach } from 'bun:test';
 import { Base, createApp } from '@studiometa/js-toolkit';
 import { wait } from '@studiometa/js-toolkit/utils';
 import { features } from '../../js-toolkit/Base/features.js';
+import { h } from '../__utils__/h.js';
 
 describe('The `createApp` function', () => {
   const fn = jest.fn();
@@ -28,7 +29,7 @@ describe('The `createApp` function', () => {
   });
 
   it('should instantiate the app directly if the page is alreay loaded', async () => {
-    const useApp = createApp(App, document.createElement('div'));
+    const useApp = createApp(App, h('div'));
     await wait(1);
     expect(fn).toHaveBeenCalledTimes(1);
     const app = await useApp();
@@ -87,6 +88,7 @@ describe('The `createApp` function', () => {
       },
     });
     expect(features.get('asyncChildren')).toBe(true);
+    features.set('asyncChildren', false);
   });
 
   it('should instantiate directly when the asynChildren feature is enabled', async () => {
@@ -98,5 +100,6 @@ describe('The `createApp` function', () => {
     expect(ctorFn).toHaveBeenCalledTimes(1);
     expect(useApp()).toBeInstanceOf(Promise);
     expect(await useApp()).toBeInstanceOf(App);
+    features.set('asyncChildren', false);
   });
 });
