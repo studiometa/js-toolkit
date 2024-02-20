@@ -60,7 +60,7 @@ export const isEmpty = (value?) => {
   }
 
   if (isObject(value)) {
-    return Object.keys(value).length === 0;
+    return value.constructor === Object && Object.keys(value).length === 0;
   }
 
   return false;
