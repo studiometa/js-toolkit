@@ -148,4 +148,3 @@ export default class Component extends Base {
 :::tip Tip
 See the [`useRaf` service](/api/services/useRaf.html) for more details.
 :::
-

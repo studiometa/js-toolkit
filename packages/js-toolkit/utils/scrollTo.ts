@@ -18,13 +18,13 @@ export default function scrollTo(
   }
 
   if (!targetElement) {
-    return Promise.resolve(window.pageYOffset);
+    return Promise.resolve(window.scrollY);
   }
 
   const sizes = targetElement.getBoundingClientRect();
   const scrollMargin = getComputedStyle(targetElement).scrollMarginTop || '0';
   const max = document.documentElement.scrollHeight - window.innerHeight;
-  let scrollTarget = sizes.top + window.pageYOffset - Number.parseInt(scrollMargin, 10) - offset;
+  let scrollTarget = sizes.top + window.scrollY - Number.parseInt(scrollMargin, 10) - offset;
 
   // Make sure to not scroll more than the max scroll allowed
   if (scrollTarget > max) {
@@ -33,8 +33,8 @@ export default function scrollTo(
 
   return new Promise((resolve) => {
     let isScrolling = false;
-    let scroll = window.pageYOffset;
-    let dampScroll = window.pageYOffset;
+    let scroll = window.scrollY;
+    let dampScroll = window.scrollY;
 
     /**
      * Handler for the wheel event
@@ -50,7 +50,7 @@ export default function scrollTo(
     function end() {
       window.removeEventListener('wheel', eventHandler);
       window.removeEventListener('touchmove', eventHandler);
-      resolve(window.pageYOffset);
+      resolve(window.scrollY);
     }
 
     /**
@@ -81,7 +81,7 @@ export default function scrollTo(
     function start(target) {
       // Update vars
       isScrolling = true;
-      dampScroll = window.pageYOffset;
+      dampScroll = window.scrollY;
       scroll = target;
 
       // Bind wheel event to stop the animation if
