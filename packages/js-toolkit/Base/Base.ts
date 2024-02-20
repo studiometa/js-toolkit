@@ -11,48 +11,6 @@ import { noop, isDev, isFunction, isArray } from '../utils/index.js';
 
 let id = 0;
 
-/**
- * Test if the managers' instances implement the default manager.
- *
- * @throws
- */
-function createAndTestManagers(instance: Base): void {
-  for (const { prop, constructorName, constructor } of [
-    {
-      prop: '__options',
-      constructorName: 'OptionsManager',
-      constructor: OptionsManager,
-    },
-    {
-      prop: '__services',
-      constructorName: 'ServicesManager',
-      constructor: ServicesManager,
-    },
-    {
-      prop: '__events',
-      constructorName: 'EventsManager',
-      constructor: EventsManager,
-    },
-    {
-      prop: '__refs',
-      constructorName: 'RefsManager',
-      constructor: RefsManager,
-    },
-    {
-      prop: '__children',
-      constructorName: 'ChildrenManager',
-      constructor: ChildrenManager,
-    },
-  ]) {
-    instance[prop] = new instance.__managers[constructorName](instance);
-    if (isDev && !(instance[prop] instanceof constructor)) {
-      throw new Error(
-        `The \`$managers.${constructorName}\` must extend the \`${constructorName}\` class.`,
-      );
-    }
-  }
-}
-
 export type BaseEl = HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> };
 export type BaseConstructor<T extends Base = Base> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -328,7 +286,9 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
 
     this.$el.__base__.set(this.__ctor, this);
 
-    createAndTestManagers(this);
+    for (const service of ['Options', 'Services', 'Events', 'Refs', 'Children']) {
+      this[`__${service.toLowerCase()}`] = new this.__managers[`${service}Manager`](this);
+    }
 
     if (isDev) {
       this.__debug('constructor', this);
