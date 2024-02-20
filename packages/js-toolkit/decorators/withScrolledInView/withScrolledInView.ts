@@ -220,22 +220,6 @@ export function withScrolledInView<S extends Base = Base>(
     }
 
     /**
-     * Factor used for the `dampedProgress` props.
-     *
-     * @deprecated
-     * @todo v3 delete in favor of option API
-     */
-    dampFactor?: number = null;
-
-    /**
-     * Precision for the `dampedProgress` props.
-     *
-     * @deprecated
-     * @todo v3 delete in favor of option API
-     */
-    dampPrecision?: number = null;
-
-    /**
      * Bind listeners.
      */
     constructor(element: HTMLElement) {
@@ -267,8 +251,7 @@ export function withScrolledInView<S extends Base = Base>(
           }
         },
         ticked: () => {
-          const dampFactor = this.dampFactor ?? this.$options.dampFactor;
-          const dampPrecision = this.dampPrecision ?? this.$options.dampPrecision;
+          const { dampFactor, dampPrecision } = this.$options;
           updateProps(this.__props, dampFactor, dampPrecision, 'x');
           updateProps(this.__props, dampFactor, dampPrecision, 'y');
 
@@ -301,61 +284,6 @@ export function withScrolledInView<S extends Base = Base>(
         this.__props.dampedProgress.y = this.__props.progress.y;
         render();
       });
-    }
-
-    /**
-     * Mounted hook.
-     */
-    mounted() {
-      // @ts-ignore
-      if (isFunction(super.mounted)) {
-        // @ts-ignore
-        super.mounted();
-      }
-    }
-
-    /**
-     * Resized hook.
-     */
-    resized(props: ResizeServiceProps) {
-      // @ts-ignore
-      if (isFunction(super.resized)) {
-        // @ts-ignore
-        super.resized(props);
-      }
-    }
-
-    /**
-     * Scrolled hook.
-     */
-    scrolled(props: ScrollServiceProps) {
-      // @ts-ignore
-      if (isFunction(super.scrolled)) {
-        // @ts-ignore
-        super.scrolled(props);
-      }
-    }
-
-    /**
-     * Ticked hook.
-     */
-    ticked(props: RafServiceProps) {
-      // @ts-ignore
-      if (isFunction(super.ticked)) {
-        // @ts-ignore
-        super.ticked(props);
-      }
-    }
-
-    /**
-     * Destroyed hook.
-     */
-    destroyed() {
-      // @ts-ignore
-      if (isFunction(super.destroyed)) {
-        // @ts-ignore
-        super.destroyed();
-      }
     }
   }
 
