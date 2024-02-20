@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file. The format 
 
 - Add support for defining breakpoints when using the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
 - Add `randomInt` and `randomItem` utility functions ([#398](https://github.com/studiometa/js-toolkit/pull/398))
+- Add `isNull` and `isEmpty` utility functions ([#320](https://github.com/studiometa/js-toolkit/pull/320))
+- Add an `isEmptyString` utility function ([9f8a9f5](https://github.com/studiometa/js-toolkit/commit/9f8a9f5), [9be5528](https://github.com/studiometa/js-toolkit/commit/9be5528))
 
 ### Fixed
 
