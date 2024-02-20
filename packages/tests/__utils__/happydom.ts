@@ -7,7 +7,7 @@ window.__DEV__ = true;
 let y = 0;
 
 Object.defineProperties(window, {
-  pageYOffset: {
+  scrollY: {
     get: () => {
       return y;
     },
