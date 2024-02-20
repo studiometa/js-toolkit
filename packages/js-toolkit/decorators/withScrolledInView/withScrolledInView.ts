@@ -81,7 +81,7 @@ function updateProps(
   axis: 'x' | 'y' = 'x',
 ): void {
   props.current[axis] = clamp(
-    axis === 'x' ? window.pageXOffset : window.pageYOffset,
+    axis === 'x' ? window.scrollX : window.scrollY,
     props.start[axis],
     props.end[axis],
   );
@@ -181,8 +181,8 @@ export function withScrolledInView<S extends Base = Base>(
           ? getOffsetSizes(this.$el)
           : this.$el.getBoundingClientRect();
 
-        targetSizes.y += window.pageYOffset;
-        targetSizes.x += window.pageXOffset;
+        targetSizes.y += window.scrollY;
+        targetSizes.x += window.scrollX;
 
         const containerSizes = {
           x: 0,
@@ -195,11 +195,11 @@ export function withScrolledInView<S extends Base = Base>(
 
         // Y axis
         const [yStart, yEnd] = getEdges('y', targetSizes, containerSizes, offset);
-        const yCurrent = clamp(window.pageYOffset, yStart, yEnd);
+        const yCurrent = clamp(window.scrollY, yStart, yEnd);
         const yProgress = yStart === yEnd ? 0 : clamp01((yCurrent - yStart) / (yEnd - yStart));
         // X axis
         const [xStart, xEnd] = getEdges('x', targetSizes, containerSizes, offset);
-        const xCurrent = clamp(window.pageXOffset, xStart, xEnd);
+        const xCurrent = clamp(window.scrollX, xStart, xEnd);
         const xProgress = xStart === xEnd ? 0 : clamp01((xCurrent - xStart) / (xEnd - xStart));
 
         this.__props.start.x = xStart;
