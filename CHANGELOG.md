@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file. The format 
 - ⚠️ Remove CJS files from the package ([#394](https://github.com/studiometa/js-toolkit/pull/394))
 - ⚠️ Remove the `loaded` hook ([#412](https://github.com/studiometa/js-toolkit/pull/412))
 - Remove unnecessary manager instance type check ([#414](https://github.com/studiometa/js-toolkit/pull/414))
+- ⚠️ Remove deprecated methods from the `withScrolledInView` decorator ([#415](https://github.com/studiometa/js-toolkit/pull/415))
 
 ## [v2.12.0](https://github.com/studiometa/js-toolkit/compare/2.11.2..2.12.0) (2023-12-01)
 
