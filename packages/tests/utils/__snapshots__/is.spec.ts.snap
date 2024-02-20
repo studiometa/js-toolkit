@@ -1,106 +1,72 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`The "isArray" utility function should work with value of type "array" 1`] = `true`;
+// Bun Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`The "isArray" utility function should work with value of type "boolean" 1`] = `false`;
 
-exports[`The "isArray" utility function should work with value of type "fn" 1`] = `false`;
+exports[`The "isArray" utility function should work with value of type "string" 1`] = `false`;
 
 exports[`The "isArray" utility function should work with value of type "number" 1`] = `false`;
 
-exports[`The "isArray" utility function should work with value of type "object" 1`] = `false`;
+exports[`The "isArray" utility function should work with value of type "fn" 1`] = `false`;
 
-exports[`The "isArray" utility function should work with value of type "string" 1`] = `false`;
+exports[`The "isArray" utility function should work with value of type "array" 1`] = `true`;
+
+exports[`The "isArray" utility function should work with value of type "object" 1`] = `false`;
 
 exports[`The "isArray" utility function should work with value of type "undefined" 1`] = `false`;
 
-exports[`The "isBoolean" utility function should work with value of type "array" 1`] = `false`;
+exports[`The "isArray" utility function should work with value of type "null" 1`] = `false`;
 
 exports[`The "isBoolean" utility function should work with value of type "boolean" 1`] = `true`;
 
-exports[`The "isBoolean" utility function should work with value of type "fn" 1`] = `false`;
+exports[`The "isBoolean" utility function should work with value of type "string" 1`] = `false`;
 
 exports[`The "isBoolean" utility function should work with value of type "number" 1`] = `false`;
 
-exports[`The "isBoolean" utility function should work with value of type "object" 1`] = `false`;
+exports[`The "isBoolean" utility function should work with value of type "fn" 1`] = `false`;
 
-exports[`The "isBoolean" utility function should work with value of type "string" 1`] = `false`;
+exports[`The "isBoolean" utility function should work with value of type "array" 1`] = `false`;
+
+exports[`The "isBoolean" utility function should work with value of type "object" 1`] = `false`;
 
 exports[`The "isBoolean" utility function should work with value of type "undefined" 1`] = `false`;
 
-exports[`The "isDefined" utility function should work with value of type "array" 1`] = `true`;
+exports[`The "isBoolean" utility function should work with value of type "null" 1`] = `false`;
 
 exports[`The "isDefined" utility function should work with value of type "boolean" 1`] = `true`;
 
-exports[`The "isDefined" utility function should work with value of type "fn" 1`] = `true`;
+exports[`The "isDefined" utility function should work with value of type "string" 1`] = `true`;
 
 exports[`The "isDefined" utility function should work with value of type "number" 1`] = `true`;
 
-exports[`The "isDefined" utility function should work with value of type "object" 1`] = `true`;
+exports[`The "isDefined" utility function should work with value of type "fn" 1`] = `true`;
 
-exports[`The "isDefined" utility function should work with value of type "string" 1`] = `true`;
+exports[`The "isDefined" utility function should work with value of type "array" 1`] = `true`;
+
+exports[`The "isDefined" utility function should work with value of type "object" 1`] = `true`;
 
 exports[`The "isDefined" utility function should work with value of type "undefined" 1`] = `false`;
 
-exports[`The "isFunction" utility function should work with value of type "array" 1`] = `false`;
+exports[`The "isDefined" utility function should work with value of type "null" 1`] = `true`;
 
-exports[`The "isFunction" utility function should work with value of type "boolean" 1`] = `false`;
+exports[`The "isEmpty" utility function should work with value of type "boolean" 1`] = `false`;
 
-exports[`The "isFunction" utility function should work with value of type "fn" 1`] = `true`;
+exports[`The "isEmpty" utility function should work with value of type "string" 1`] = `false`;
 
-exports[`The "isFunction" utility function should work with value of type "number" 1`] = `false`;
+exports[`The "isEmpty" utility function should work with value of type "number" 1`] = `false`;
 
-exports[`The "isFunction" utility function should work with value of type "object" 1`] = `false`;
+exports[`The "isEmpty" utility function should work with value of type "fn" 1`] = `false`;
 
-exports[`The "isFunction" utility function should work with value of type "string" 1`] = `false`;
+exports[`The "isEmpty" utility function should work with value of type "array" 1`] = `true`;
 
-exports[`The "isFunction" utility function should work with value of type "undefined" 1`] = `false`;
+exports[`The "isEmpty" utility function should work with value of type "object" 1`] = `true`;
 
-exports[`The "isNumber" utility function should work with value of type "array" 1`] = `false`;
+exports[`The "isEmpty" utility function should work with value of type "undefined" 1`] = `true`;
 
-exports[`The "isNumber" utility function should work with value of type "boolean" 1`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "fn" 1`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "number" 1`] = `true`;
-
-exports[`The "isNumber" utility function should work with value of type "object" 1`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "string" 1`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "undefined" 1`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "array" 1`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "boolean" 1`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "fn" 1`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "number" 1`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "object" 1`] = `true`;
-
-exports[`The "isObject" utility function should work with value of type "string" 1`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "undefined" 1`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "array" 1`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "boolean" 1`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "fn" 1`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "number" 1`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "object" 1`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "string" 1`] = `true`;
-
-exports[`The "isString" utility function should work with value of type "undefined" 1`] = `false`;
+exports[`The "isEmpty" utility function should work with value of type "null" 1`] = `true`;
 
 exports[`The "isEmptyString" utility function should work with value of type "boolean" 1`] = `false`;
 
-exports[`The "isEmptyString" utility function should work with value of type "string" 1`] = `true`;
+exports[`The "isEmptyString" utility function should work with value of type "string" 1`] = `false`;
 
 exports[`The "isEmptyString" utility function should work with value of type "number" 1`] = `false`;
 
@@ -112,898 +78,104 @@ exports[`The "isEmptyString" utility function should work with value of type "ob
 
 exports[`The "isEmptyString" utility function should work with value of type "undefined" 1`] = `false`;
 
-exports[`The "isArray" utility function should work with value of type "boolean" 2`] = `false`;
+exports[`The "isEmptyString" utility function should work with value of type "null" 1`] = `false`;
 
-exports[`The "isArray" utility function should work with value of type "string" 2`] = `false`;
+exports[`The "isFunction" utility function should work with value of type "boolean" 1`] = `false`;
 
-exports[`The "isArray" utility function should work with value of type "number" 2`] = `false`;
+exports[`The "isFunction" utility function should work with value of type "string" 1`] = `false`;
 
-exports[`The "isArray" utility function should work with value of type "fn" 2`] = `false`;
+exports[`The "isFunction" utility function should work with value of type "number" 1`] = `false`;
 
-exports[`The "isArray" utility function should work with value of type "array" 2`] = `true`;
+exports[`The "isFunction" utility function should work with value of type "fn" 1`] = `true`;
 
-exports[`The "isArray" utility function should work with value of type "object" 2`] = `false`;
+exports[`The "isFunction" utility function should work with value of type "array" 1`] = `false`;
 
-exports[`The "isArray" utility function should work with value of type "undefined" 2`] = `false`;
+exports[`The "isFunction" utility function should work with value of type "object" 1`] = `false`;
 
-exports[`The "isBoolean" utility function should work with value of type "boolean" 2`] = `true`;
+exports[`The "isFunction" utility function should work with value of type "undefined" 1`] = `false`;
 
-exports[`The "isBoolean" utility function should work with value of type "string" 2`] = `false`;
+exports[`The "isFunction" utility function should work with value of type "null" 1`] = `false`;
 
-exports[`The "isBoolean" utility function should work with value of type "number" 2`] = `false`;
+exports[`The "isNull" utility function should work with value of type "boolean" 1`] = `false`;
 
-exports[`The "isBoolean" utility function should work with value of type "fn" 2`] = `false`;
+exports[`The "isNull" utility function should work with value of type "string" 1`] = `false`;
 
-exports[`The "isBoolean" utility function should work with value of type "array" 2`] = `false`;
+exports[`The "isNull" utility function should work with value of type "number" 1`] = `false`;
 
-exports[`The "isBoolean" utility function should work with value of type "object" 2`] = `false`;
+exports[`The "isNull" utility function should work with value of type "fn" 1`] = `false`;
 
-exports[`The "isBoolean" utility function should work with value of type "undefined" 2`] = `false`;
+exports[`The "isNull" utility function should work with value of type "array" 1`] = `false`;
 
-exports[`The "isDefined" utility function should work with value of type "boolean" 2`] = `true`;
+exports[`The "isNull" utility function should work with value of type "object" 1`] = `false`;
 
-exports[`The "isDefined" utility function should work with value of type "string" 2`] = `true`;
+exports[`The "isNull" utility function should work with value of type "undefined" 1`] = `false`;
 
-exports[`The "isDefined" utility function should work with value of type "number" 2`] = `true`;
+exports[`The "isNull" utility function should work with value of type "null" 1`] = `true`;
 
-exports[`The "isDefined" utility function should work with value of type "fn" 2`] = `true`;
+exports[`The "isNumber" utility function should work with value of type "boolean" 1`] = `false`;
 
-exports[`The "isDefined" utility function should work with value of type "array" 2`] = `true`;
+exports[`The "isNumber" utility function should work with value of type "string" 1`] = `false`;
 
-exports[`The "isDefined" utility function should work with value of type "object" 2`] = `true`;
+exports[`The "isNumber" utility function should work with value of type "number" 1`] = `true`;
 
-exports[`The "isDefined" utility function should work with value of type "undefined" 2`] = `false`;
+exports[`The "isNumber" utility function should work with value of type "fn" 1`] = `false`;
 
-exports[`The "isEmptyString" utility function should work with value of type "boolean" 2`] = `false`;
+exports[`The "isNumber" utility function should work with value of type "array" 1`] = `false`;
 
-exports[`The "isEmptyString" utility function should work with value of type "string" 2`] = `true`;
+exports[`The "isNumber" utility function should work with value of type "object" 1`] = `false`;
 
-exports[`The "isEmptyString" utility function should work with value of type "number" 2`] = `false`;
+exports[`The "isNumber" utility function should work with value of type "undefined" 1`] = `false`;
 
-exports[`The "isEmptyString" utility function should work with value of type "fn" 2`] = `false`;
+exports[`The "isNumber" utility function should work with value of type "null" 1`] = `false`;
 
-exports[`The "isEmptyString" utility function should work with value of type "array" 2`] = `false`;
+exports[`The "isObject" utility function should work with value of type "boolean" 1`] = `false`;
 
-exports[`The "isEmptyString" utility function should work with value of type "object" 2`] = `false`;
+exports[`The "isObject" utility function should work with value of type "string" 1`] = `false`;
 
-exports[`The "isEmptyString" utility function should work with value of type "undefined" 2`] = `false`;
+exports[`The "isObject" utility function should work with value of type "number" 1`] = `false`;
 
-exports[`The "isFunction" utility function should work with value of type "boolean" 2`] = `false`;
+exports[`The "isObject" utility function should work with value of type "fn" 1`] = `false`;
 
-exports[`The "isFunction" utility function should work with value of type "string" 2`] = `false`;
+exports[`The "isObject" utility function should work with value of type "array" 1`] = `false`;
 
-exports[`The "isFunction" utility function should work with value of type "number" 2`] = `false`;
+exports[`The "isObject" utility function should work with value of type "object" 1`] = `true`;
 
-exports[`The "isFunction" utility function should work with value of type "fn" 2`] = `true`;
+exports[`The "isObject" utility function should work with value of type "undefined" 1`] = `false`;
 
-exports[`The "isFunction" utility function should work with value of type "array" 2`] = `false`;
+exports[`The "isObject" utility function should work with value of type "null" 1`] = `false`;
 
-exports[`The "isFunction" utility function should work with value of type "object" 2`] = `false`;
+exports[`The "isString" utility function should work with value of type "boolean" 1`] = `false`;
 
-exports[`The "isFunction" utility function should work with value of type "undefined" 2`] = `false`;
+exports[`The "isString" utility function should work with value of type "string" 1`] = `true`;
 
-exports[`The "isNumber" utility function should work with value of type "boolean" 2`] = `false`;
+exports[`The "isString" utility function should work with value of type "number" 1`] = `false`;
 
-exports[`The "isNumber" utility function should work with value of type "string" 2`] = `false`;
+exports[`The "isString" utility function should work with value of type "fn" 1`] = `false`;
 
-exports[`The "isNumber" utility function should work with value of type "number" 2`] = `true`;
+exports[`The "isString" utility function should work with value of type "array" 1`] = `false`;
 
-exports[`The "isNumber" utility function should work with value of type "fn" 2`] = `false`;
+exports[`The "isString" utility function should work with value of type "object" 1`] = `false`;
 
-exports[`The "isNumber" utility function should work with value of type "array" 2`] = `false`;
+exports[`The "isString" utility function should work with value of type "undefined" 1`] = `false`;
 
-exports[`The "isNumber" utility function should work with value of type "object" 2`] = `false`;
+exports[`The "isString" utility function should work with value of type "null" 1`] = `false`;
 
-exports[`The "isNumber" utility function should work with value of type "undefined" 2`] = `false`;
+exports[`The "isArray" utility function should work with value of type "emptyString" 1`] = `false`;
 
-exports[`The "isObject" utility function should work with value of type "boolean" 2`] = `false`;
+exports[`The "isBoolean" utility function should work with value of type "emptyString" 1`] = `false`;
 
-exports[`The "isObject" utility function should work with value of type "string" 2`] = `false`;
+exports[`The "isDefined" utility function should work with value of type "emptyString" 1`] = `true`;
 
-exports[`The "isObject" utility function should work with value of type "number" 2`] = `false`;
+exports[`The "isEmpty" utility function should work with value of type "emptyString" 1`] = `true`;
 
-exports[`The "isObject" utility function should work with value of type "fn" 2`] = `false`;
+exports[`The "isEmptyString" utility function should work with value of type "emptyString" 1`] = `true`;
 
-exports[`The "isObject" utility function should work with value of type "array" 2`] = `false`;
+exports[`The "isFunction" utility function should work with value of type "emptyString" 1`] = `false`;
 
-exports[`The "isObject" utility function should work with value of type "object" 2`] = `true`;
+exports[`The "isNull" utility function should work with value of type "emptyString" 1`] = `false`;
 
-exports[`The "isObject" utility function should work with value of type "undefined" 2`] = `false`;
+exports[`The "isNumber" utility function should work with value of type "emptyString" 1`] = `false`;
 
-exports[`The "isString" utility function should work with value of type "boolean" 2`] = `false`;
+exports[`The "isObject" utility function should work with value of type "emptyString" 1`] = `false`;
 
-exports[`The "isString" utility function should work with value of type "string" 2`] = `true`;
-
-exports[`The "isString" utility function should work with value of type "number" 2`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "fn" 2`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "array" 2`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "object" 2`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "undefined" 2`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "boolean" 3`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "string" 3`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "number" 3`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "fn" 3`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "array" 3`] = `true`;
-
-exports[`The "isArray" utility function should work with value of type "object" 3`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "undefined" 3`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "boolean" 3`] = `true`;
-
-exports[`The "isBoolean" utility function should work with value of type "string" 3`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "number" 3`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "fn" 3`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "array" 3`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "object" 3`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "undefined" 3`] = `false`;
-
-exports[`The "isDefined" utility function should work with value of type "boolean" 3`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "string" 3`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "number" 3`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "fn" 3`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "array" 3`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "object" 3`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "undefined" 3`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "boolean" 3`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "string" 3`] = `true`;
-
-exports[`The "isEmptyString" utility function should work with value of type "number" 3`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "fn" 3`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "array" 3`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "object" 3`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "undefined" 3`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "boolean" 3`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "string" 3`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "number" 3`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "fn" 3`] = `true`;
-
-exports[`The "isFunction" utility function should work with value of type "array" 3`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "object" 3`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "undefined" 3`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "boolean" 3`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "string" 3`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "number" 3`] = `true`;
-
-exports[`The "isNumber" utility function should work with value of type "fn" 3`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "array" 3`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "object" 3`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "undefined" 3`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "boolean" 3`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "string" 3`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "number" 3`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "fn" 3`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "array" 3`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "object" 3`] = `true`;
-
-exports[`The "isObject" utility function should work with value of type "undefined" 3`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "boolean" 3`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "string" 3`] = `true`;
-
-exports[`The "isString" utility function should work with value of type "number" 3`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "fn" 3`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "array" 3`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "object" 3`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "undefined" 3`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "boolean" 4`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "string" 4`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "number" 4`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "fn" 4`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "array" 4`] = `true`;
-
-exports[`The "isArray" utility function should work with value of type "object" 4`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "undefined" 4`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "boolean" 4`] = `true`;
-
-exports[`The "isBoolean" utility function should work with value of type "string" 4`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "number" 4`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "fn" 4`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "array" 4`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "object" 4`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "undefined" 4`] = `false`;
-
-exports[`The "isDefined" utility function should work with value of type "boolean" 4`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "string" 4`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "number" 4`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "fn" 4`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "array" 4`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "object" 4`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "undefined" 4`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "boolean" 4`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "string" 4`] = `true`;
-
-exports[`The "isEmptyString" utility function should work with value of type "number" 4`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "fn" 4`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "array" 4`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "object" 4`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "undefined" 4`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "boolean" 4`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "string" 4`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "number" 4`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "fn" 4`] = `true`;
-
-exports[`The "isFunction" utility function should work with value of type "array" 4`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "object" 4`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "undefined" 4`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "boolean" 4`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "string" 4`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "number" 4`] = `true`;
-
-exports[`The "isNumber" utility function should work with value of type "fn" 4`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "array" 4`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "object" 4`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "undefined" 4`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "boolean" 4`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "string" 4`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "number" 4`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "fn" 4`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "array" 4`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "object" 4`] = `true`;
-
-exports[`The "isObject" utility function should work with value of type "undefined" 4`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "boolean" 4`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "string" 4`] = `true`;
-
-exports[`The "isString" utility function should work with value of type "number" 4`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "fn" 4`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "array" 4`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "object" 4`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "undefined" 4`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "boolean" 5`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "string" 5`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "number" 5`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "fn" 5`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "array" 5`] = `true`;
-
-exports[`The "isArray" utility function should work with value of type "object" 5`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "undefined" 5`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "boolean" 5`] = `true`;
-
-exports[`The "isBoolean" utility function should work with value of type "string" 5`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "number" 5`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "fn" 5`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "array" 5`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "object" 5`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "undefined" 5`] = `false`;
-
-exports[`The "isDefined" utility function should work with value of type "boolean" 5`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "string" 5`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "number" 5`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "fn" 5`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "array" 5`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "object" 5`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "undefined" 5`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "boolean" 5`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "string" 5`] = `true`;
-
-exports[`The "isEmptyString" utility function should work with value of type "number" 5`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "fn" 5`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "array" 5`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "object" 5`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "undefined" 5`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "boolean" 5`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "string" 5`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "number" 5`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "fn" 5`] = `true`;
-
-exports[`The "isFunction" utility function should work with value of type "array" 5`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "object" 5`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "undefined" 5`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "boolean" 5`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "string" 5`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "number" 5`] = `true`;
-
-exports[`The "isNumber" utility function should work with value of type "fn" 5`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "array" 5`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "object" 5`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "undefined" 5`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "boolean" 5`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "string" 5`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "number" 5`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "fn" 5`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "array" 5`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "object" 5`] = `true`;
-
-exports[`The "isObject" utility function should work with value of type "undefined" 5`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "boolean" 5`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "string" 5`] = `true`;
-
-exports[`The "isString" utility function should work with value of type "number" 5`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "fn" 5`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "array" 5`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "object" 5`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "undefined" 5`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "boolean" 6`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "string" 6`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "number" 6`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "fn" 6`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "array" 6`] = `true`;
-
-exports[`The "isArray" utility function should work with value of type "object" 6`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "undefined" 6`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "boolean" 6`] = `true`;
-
-exports[`The "isBoolean" utility function should work with value of type "string" 6`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "number" 6`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "fn" 6`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "array" 6`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "object" 6`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "undefined" 6`] = `false`;
-
-exports[`The "isDefined" utility function should work with value of type "boolean" 6`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "string" 6`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "number" 6`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "fn" 6`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "array" 6`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "object" 6`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "undefined" 6`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "boolean" 6`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "string" 6`] = `true`;
-
-exports[`The "isEmptyString" utility function should work with value of type "number" 6`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "fn" 6`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "array" 6`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "object" 6`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "undefined" 6`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "boolean" 6`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "string" 6`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "number" 6`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "fn" 6`] = `true`;
-
-exports[`The "isFunction" utility function should work with value of type "array" 6`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "object" 6`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "undefined" 6`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "boolean" 6`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "string" 6`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "number" 6`] = `true`;
-
-exports[`The "isNumber" utility function should work with value of type "fn" 6`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "array" 6`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "object" 6`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "undefined" 6`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "boolean" 6`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "string" 6`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "number" 6`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "fn" 6`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "array" 6`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "object" 6`] = `true`;
-
-exports[`The "isObject" utility function should work with value of type "undefined" 6`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "boolean" 6`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "string" 6`] = `true`;
-
-exports[`The "isString" utility function should work with value of type "number" 6`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "fn" 6`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "array" 6`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "object" 6`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "undefined" 6`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "boolean" 7`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "string" 7`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "number" 7`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "fn" 7`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "array" 7`] = `true`;
-
-exports[`The "isArray" utility function should work with value of type "object" 7`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "undefined" 7`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "boolean" 7`] = `true`;
-
-exports[`The "isBoolean" utility function should work with value of type "string" 7`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "number" 7`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "fn" 7`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "array" 7`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "object" 7`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "undefined" 7`] = `false`;
-
-exports[`The "isDefined" utility function should work with value of type "boolean" 7`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "string" 7`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "number" 7`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "fn" 7`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "array" 7`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "object" 7`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "undefined" 7`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "boolean" 7`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "string" 7`] = `true`;
-
-exports[`The "isEmptyString" utility function should work with value of type "number" 7`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "fn" 7`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "array" 7`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "object" 7`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "undefined" 7`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "boolean" 7`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "string" 7`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "number" 7`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "fn" 7`] = `true`;
-
-exports[`The "isFunction" utility function should work with value of type "array" 7`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "object" 7`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "undefined" 7`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "boolean" 7`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "string" 7`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "number" 7`] = `true`;
-
-exports[`The "isNumber" utility function should work with value of type "fn" 7`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "array" 7`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "object" 7`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "undefined" 7`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "boolean" 7`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "string" 7`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "number" 7`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "fn" 7`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "array" 7`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "object" 7`] = `true`;
-
-exports[`The "isObject" utility function should work with value of type "undefined" 7`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "boolean" 7`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "string" 7`] = `true`;
-
-exports[`The "isString" utility function should work with value of type "number" 7`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "fn" 7`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "array" 7`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "object" 7`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "undefined" 7`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "boolean" 8`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "string" 8`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "number" 8`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "fn" 8`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "array" 8`] = `true`;
-
-exports[`The "isArray" utility function should work with value of type "object" 8`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "undefined" 8`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "boolean" 8`] = `true`;
-
-exports[`The "isBoolean" utility function should work with value of type "string" 8`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "number" 8`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "fn" 8`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "array" 8`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "object" 8`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "undefined" 8`] = `false`;
-
-exports[`The "isDefined" utility function should work with value of type "boolean" 8`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "string" 8`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "number" 8`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "fn" 8`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "array" 8`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "object" 8`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "undefined" 8`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "boolean" 8`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "string" 8`] = `true`;
-
-exports[`The "isEmptyString" utility function should work with value of type "number" 8`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "fn" 8`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "array" 8`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "object" 8`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "undefined" 8`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "boolean" 8`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "string" 8`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "number" 8`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "fn" 8`] = `true`;
-
-exports[`The "isFunction" utility function should work with value of type "array" 8`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "object" 8`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "undefined" 8`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "boolean" 8`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "string" 8`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "number" 8`] = `true`;
-
-exports[`The "isNumber" utility function should work with value of type "fn" 8`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "array" 8`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "object" 8`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "undefined" 8`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "boolean" 8`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "string" 8`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "number" 8`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "fn" 8`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "array" 8`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "object" 8`] = `true`;
-
-exports[`The "isObject" utility function should work with value of type "undefined" 8`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "boolean" 8`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "string" 8`] = `true`;
-
-exports[`The "isString" utility function should work with value of type "number" 8`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "fn" 8`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "array" 8`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "object" 8`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "undefined" 8`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "boolean" 9`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "string" 9`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "number" 9`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "fn" 9`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "array" 9`] = `true`;
-
-exports[`The "isArray" utility function should work with value of type "object" 9`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "undefined" 9`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "boolean" 9`] = `true`;
-
-exports[`The "isBoolean" utility function should work with value of type "string" 9`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "number" 9`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "fn" 9`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "array" 9`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "object" 9`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "undefined" 9`] = `false`;
-
-exports[`The "isDefined" utility function should work with value of type "boolean" 9`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "string" 9`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "number" 9`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "fn" 9`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "array" 9`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "object" 9`] = `true`;
-
-exports[`The "isDefined" utility function should work with value of type "undefined" 9`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "boolean" 9`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "string" 9`] = `true`;
-
-exports[`The "isEmptyString" utility function should work with value of type "number" 9`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "fn" 9`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "array" 9`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "object" 9`] = `false`;
-
-exports[`The "isEmptyString" utility function should work with value of type "undefined" 9`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "boolean" 9`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "string" 9`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "number" 9`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "fn" 9`] = `true`;
-
-exports[`The "isFunction" utility function should work with value of type "array" 9`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "object" 9`] = `false`;
-
-exports[`The "isFunction" utility function should work with value of type "undefined" 9`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "boolean" 9`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "string" 9`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "number" 9`] = `true`;
-
-exports[`The "isNumber" utility function should work with value of type "fn" 9`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "array" 9`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "object" 9`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "undefined" 9`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "boolean" 9`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "string" 9`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "number" 9`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "fn" 9`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "array" 9`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "object" 9`] = `true`;
-
-exports[`The "isObject" utility function should work with value of type "undefined" 9`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "boolean" 9`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "string" 9`] = `true`;
-
-exports[`The "isString" utility function should work with value of type "number" 9`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "fn" 9`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "array" 9`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "object" 9`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "undefined" 9`] = `false`;
+exports[`The "isString" utility function should work with value of type "emptyString" 1`] = `true`;
