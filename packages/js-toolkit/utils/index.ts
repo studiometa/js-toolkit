@@ -26,3 +26,4 @@ export { Queue } from './Queue.js';
 export { SmartQueue } from './SmartQueue.js';
 export * from './dom/index.js';
 export * from './wait.js';
+export * from './random.js';
