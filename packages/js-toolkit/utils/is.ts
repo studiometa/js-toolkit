@@ -45,7 +45,7 @@ export const isArray = Array.isArray;
 /**
  * Test if a given value is an empty string.
  */
-export const isEmptyString = (value: unknown): boolean => isString(value) && value.length > 0;
+export const isEmptyString = (value?: unknown): boolean => isString(value) && value.length === 0;
 
 /**
  * Test if the given value is empty.
