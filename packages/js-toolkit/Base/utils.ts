@@ -120,3 +120,13 @@ export function getEventTarget(
   // @todo v3 return false or null
   return instance;
 }
+
+const instances = new Map<typeof Base, Set<Base>>();
+
+export function getInstances(ctor) {
+  return instances.get(ctor) ?? new Set();
+}
+
+export function registerInstance(instance) {
+  instances.set(instance.constructor, getInstances(instance.constructor).add(instance));
+}

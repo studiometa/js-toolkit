@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { getComponentElements, getEventTarget, addToQueue } from './utils.js';
+import { getComponentElements, getEventTarget, addToQueue, getInstances } from './utils.js';
 import {
   ChildrenManager,
   RefsManager,
@@ -61,6 +61,13 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
    * This is a Base instance.
    */
   static readonly $isBase = true as const;
+
+  /**
+   * Get all instances of the component.
+   */
+  static get $instances() {
+    return getInstances(this);
+  }
 
   /**
    * The instance parent.
