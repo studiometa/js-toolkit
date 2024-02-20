@@ -38,12 +38,19 @@ describe('The "isEmpty" utility function', () => {
   });
 
   it('should return false when the given value is not empty', () => {
+    expect(is.isEmpty(Number.NaN)).toBeFalse();
+    expect(is.isEmpty(1)).toBeFalse();
+    expect(is.isEmpty(0)).toBeFalse();
     expect(is.isEmpty('foo')).toBeFalse();
     expect(is.isEmpty(true)).toBeFalse();
     expect(is.isEmpty(false)).toBeFalse();
     expect(is.isEmpty([1, 2])).toBeFalse();
     expect(is.isEmpty({ foo: 'foo' })).toBeFalse();
     expect(is.isEmpty(/regex/)).toBeFalse();
+
+    class Foo {}
+    const foo = new Foo();
+    expect(is.isEmpty(foo)).toBeFalse();
   });
 });
 
