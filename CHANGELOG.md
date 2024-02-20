@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Added
 
 - Add support for defining breakpoints when using the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
+- Add `randomInt` and `randomItem` utility functions ([#398](https://github.com/studiometa/js-toolkit/pull/398))
 
 ### Fixed
 
