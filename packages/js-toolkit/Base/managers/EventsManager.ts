@@ -49,6 +49,7 @@ const eventNames = new Map();
 
 const normalizeEventRegex1 = /[A-Z]/g;
 const normalizeEventRegex2 = /^-/;
+
 /**
  * Normalize the event names from PascalCase to kebab-case.
  *
@@ -242,11 +243,8 @@ export class EventsManager extends AbstractManager {
       const normalizedEventName = normalizeName(event.type);
       const method = `on${normalizedEventName}`;
 
-      if (event instanceof CustomEvent && isArray(event.detail) && event.detail.length) {
-        this.__base[method](...event.detail, event);
-      } else {
-        this.__base[method](event);
-      }
+      const args = event instanceof CustomEvent ? event.detail ?? [] : [];
+      this.__base[method](...args, { event, target: this.__element });
     },
   };
 
@@ -264,7 +262,7 @@ export class EventsManager extends AbstractManager {
       const normalizedEventName = normalizeName(event.type);
       const method = `onDocument${normalizedEventName}`;
 
-      this.__base[method](event);
+      this.__base[method]({ event, target: document });
     },
   };
 
@@ -282,7 +280,7 @@ export class EventsManager extends AbstractManager {
       const normalizedEventName = normalizeName(event.type);
       const method = `onWindow${normalizedEventName}`;
 
-      this.__base[method](event);
+      this.__base[method]({ event, target: window });
     },
   };
 
@@ -303,7 +301,7 @@ export class EventsManager extends AbstractManager {
         index = (this.__base.$refs[refName] as HTMLElement[]).indexOf(ref);
       }
 
-      this.__base[method](event, index);
+      this.__base[method]({ event, target: ref, index });
     },
   };
 
@@ -332,7 +330,7 @@ export class EventsManager extends AbstractManager {
       const index = [...childrenManager[name]].indexOf(resolvedChild);
 
       const args = isArray(event.detail) ? event.detail : [];
-      this.__base[method](...args, index, event);
+      this.__base[method](...args, { event, target: resolvedChild, index });
     },
   };
 
