@@ -3,8 +3,8 @@
  */
 export default function getOffsetSizes(element: HTMLElement) {
   let parent = element;
-  let x = -window.pageXOffset;
-  let y = -window.pageYOffset;
+  let x = -window.scrollX;
+  let y = -window.scrollY;
 
   while (parent) {
     x += parent.offsetLeft;
