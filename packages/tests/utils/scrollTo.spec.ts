@@ -1,21 +1,25 @@
 import { describe, it, expect, mock, spyOn, afterEach, beforeEach } from 'bun:test';
-import { scrollTo, wait } from '@studiometa/js-toolkit/utils';
+import { scrollTo } from '@studiometa/js-toolkit/utils';
 import { mockScroll, restoreScroll } from '../__utils__/scroll.js';
-import { useFakeTimers, useRealTimers, runAllTimers, advanceTimersByTimeAsync } from '../__utils__/faketimers.js';
+import {
+  useFakeTimers,
+  useRealTimers,
+  runAllTimers,
+  advanceTimersByTimeAsync,
+} from '../__utils__/faketimers.js';
 
 describe('The `scrollTo` function', () => {
   let fn;
   let element;
   let elementSpy;
-  let scrollHeightSpy;
 
   beforeEach(() => {
     fn = mock(({ top }) => {
-      window.pageYOffset = top;
+      window.scrollY = top;
     });
     window.scrollTo = fn;
 
-    scrollHeightSpy = mockScroll({ height: 10000 }).scrollHeightSpy;
+    mockScroll({ height: 10000 });
 
     element = document.createElement('div');
     elementSpy = spyOn(element, 'getBoundingClientRect');
@@ -28,7 +32,7 @@ describe('The `scrollTo` function', () => {
   });
 
   afterEach(() => {
-    window.pageYOffset = 0;
+    window.scrollY = 0;
     elementSpy.mockRestore();
     document.body.innerHTML = '';
     restoreScroll();
