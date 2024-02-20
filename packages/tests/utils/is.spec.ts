@@ -9,6 +9,7 @@ const is = Object.fromEntries(
 const types = {
   boolean: true,
   string: 'string',
+  emptyString: '',
   number: 0,
   fn: () => {},
   array: [],
