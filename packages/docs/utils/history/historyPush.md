@@ -26,7 +26,7 @@ historyPush({ hash: 'hello-world' });
 historyPush({ hash: '' });
 // Old URL: /#hello-world
 // New URL: /
-historyPush({ search: { query: false } });
+historyPush({ search: { query: null } });
 // Old URL: /?query=foo&page=10#hello-world
 // New URL: /?page=10#hello-world
 
