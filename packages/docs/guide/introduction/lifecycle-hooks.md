@@ -1,6 +1,6 @@
 # Lifecycle hooks
 
-## What are lifeycle hooks
+## What are lifecyle hooks
 
 Lifecycle hooks are key moments in the life of a component. This framework exposes some basics hooks which can be extended with decorators.
 
