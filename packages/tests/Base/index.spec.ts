@@ -254,26 +254,29 @@ describe('A Base instance methods', () => {
     expect(fn).toHaveBeenCalledTimes(3);
   });
 
-  it('should implement the $factory method', () => {
+  it('should implement the $register method', () => {
     class Bar extends Foo {}
     class Baz extends Foo {}
     class Boz extends Foo {}
     document.body.innerHTML = `
+      <div data-component="Foo"></div>
       <div data-component="Bar"></div>
       <div data-component="Bar"></div>
       <div class="custom-selector"></div>
       <div class="custom-selector"></div>
     `;
 
-    const barInstances = Bar.$factory('Bar');
-    const bazInstances = Baz.$factory('.custom-selector');
-    const bozInstances = Boz.$factory('Boz');
+    const fooInstances = Bar.$register();
+    const barInstances = Bar.$register('Bar');
+    const bazInstances = Baz.$register('.custom-selector');
+    const bozInstances = Boz.$register('Boz');
+    expect(fooInstances).toHaveLength(1);
+    expect(fooInstances[0].$el.dataset.component).toBe('Foo');
     expect(barInstances).toHaveLength(2);
     expect(barInstances[0] instanceof Bar).toBe(true);
     expect(bazInstances).toHaveLength(2);
     expect(bazInstances[0] instanceof Baz).toBe(true);
     expect(bozInstances).toHaveLength(0);
-    expect(Baz.$factory).toThrow(/\$factory method/);
   });
 
   it('should be able to be terminated', () => {
