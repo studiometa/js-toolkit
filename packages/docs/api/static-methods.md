@@ -1,12 +1,12 @@
 # Static methods
 
-## `$factory(nameOrSelector)`
+## `$register(nameOrSelector?: string)`
 
-Use the `$factory` method to instantiate a class on each element matching the given component's name or CSS selector. This methods works like the [child component resolution](#components).
+Use the `$register` method to instantiate a class on each element matching the given component's name or CSS selector. This methods uses the [child component resolution](#components) to find components.
 
 **Parameters**
 
-- `nameOrSelector` (`String`): the name of the component or a CSS selector
+- `nameOrSelector` (`string`): the name of the component or a CSS selector
 
 **Return value**
 
