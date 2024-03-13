@@ -1,8 +1,7 @@
-# Getting started
+# What is the JS Toolkit
 
-## What is the `Base` class?
-
-The `Base` class is born from our needs and practices with JavaScript as a team at [Studio Meta](https://www.studiometa.fr).
+## Why we created it
+The JS Toolkit is born from our needs and practices with JavaScript as a team at [Studio Meta](https://www.studiometa.fr).
 
 Its purposes are:
 
@@ -45,26 +44,3 @@ Toggle.$factory('Toggle');
 ```
 
 The class created by extending the `Base` class are components and can be used to achieve the above mentioned purposes.
-
-## Creating an app
-
-To manage your components, it is recommend to use a single entry point which will import them. Dynamic imports can be used to only load components when they are needed.
-
-```js
-import { Base, createApp } from '@studiometa/js-toolkit';
-import Component from './components/Component.js';
-
-class App extends Base {
-  static config = {
-    name: 'App',
-    components: {
-      Component,
-      AsyncComponent: () => import('./components/AsyncComponent.js'),
-    },
-  };
-}
-
-export default createApp(App, document.body);
-```
-
-The [`createApp`](/api/helpers/createApp.html) helper will instantiate your app when the window has been loaded to avoid blocking anything.
