@@ -50,7 +50,8 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
   const precision = options.precision ?? DEFAULT_PROGRESS_PRECISION;
   const ease = normalizeEase(options.easing);
 
-  const delay = options.delay ?? 0;
+  let delay = options.delay ?? 0;
+  delay *= 1000;
   let duration = options.duration ?? 1;
   duration *= 1000;
 
@@ -114,7 +115,7 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
   }
 
   function getStartTime() {
-    return performance.now() + delay * 1000;
+    return performance.now() + delay;
   }
 
   function getEndTime(time) {
