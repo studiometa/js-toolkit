@@ -1,6 +1,6 @@
 import { cubicBezier } from '@motionone/easing';
-import { lerp, map, clamp01 } from './math/index.js';
-import { isDefined, isArray } from './is.js';
+import { lerp, map, clamp01, damp, inertiaFinalValue } from './math/index.js';
+import { isDefined, isArray, isNumber } from './is.js';
 import { noop, noopValue as linear } from './noop.js';
 import useRaf from '../services/raf.js';
 import type { EasingFunction } from './math/createEases.js';
@@ -13,6 +13,7 @@ export type BezierCurve = [number, number, number, number];
 export interface TweenOptions {
   duration?: number;
   easing?: EasingFunction | BezierCurve;
+  smooth?: true | number;
   precision?: number;
   onStart?: () => void;
   onProgress?: (progress: number, easedProgress: number) => void;
@@ -43,6 +44,8 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
   let progressValue = 0;
   let easedProgress = 0;
 
+  const isSmooth = isDefined(options.smooth) && (isNumber(options.smooth) || options.smooth);
+  const smoothFactor = isNumber(options.smooth) ? options.smooth : 0.1;
   const precision = options.precision ?? DEFAULT_PROGRESS_PRECISION;
   const ease = normalizeEase(options.easing);
   let duration = options.duration ?? 1;
@@ -74,7 +77,9 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
     }
 
     progressValue = newProgress;
-    easedProgress = ease(progressValue);
+    easedProgress = isSmooth
+      ? damp(progressValue, easedProgress, smoothFactor, precision)
+      : ease(progressValue);
 
     // Stop when reaching precision
     if (Math.abs(1 - easedProgress) < precision) {
@@ -105,13 +110,17 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
     progress(clamp01(map(props.time, startTime, endTime, 0, 1)));
   }
 
+  function getEndTime(time) {
+    return isSmooth ? inertiaFinalValue(time, 1) : time + duration;
+  }
+
   /**
    * Play the animation.
    */
   function start() {
     onStart();
     startTime = performance.now();
-    endTime = startTime + duration;
+    endTime = getEndTime(startTime);
     progressValue = 0;
     easedProgress = 0;
     isRunning = true;
@@ -128,7 +137,7 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
     }
 
     startTime = performance.now() - lerp(0, duration, progressValue);
-    endTime = startTime + duration;
+    endTime = getEndTime(startTime);
     isRunning = true;
 
     raf.add(key, tick);
