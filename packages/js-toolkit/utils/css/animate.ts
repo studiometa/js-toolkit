@@ -32,6 +32,10 @@ export type NormalizedKeyframe = Keyframe & {
   vars: string[];
 };
 
+export interface AnimateOptions extends TweenOptions {
+  stagger?: number | ((target: HTMLElement, index: number) => number);
+}
+
 export type Animate = {
   start: () => void;
   pause: () => void;
@@ -230,11 +234,13 @@ function singleAnimate(
 export function animate(
   elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
   keyframes: Keyframe[],
-  options: TweenOptions = {},
+  options: AnimateOptions = {},
 ): Animate {
-  const controls = eachElements(elementOrElements, (element) =>
-    singleAnimate(element, keyframes, options),
-  );
+  const stagger = options.stagger ?? 0;
+  const controls = eachElements(elementOrElements, (element, index) => {
+    const delay = isFunction(stagger) ? stagger(element, index) : stagger * index;
+    return singleAnimate(element, keyframes, { ...options, delay });
+  });
 
   const delegate =
     (key) =>
