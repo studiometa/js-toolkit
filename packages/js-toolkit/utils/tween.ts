@@ -12,6 +12,7 @@ export type BezierCurve = [number, number, number, number];
 
 export interface TweenOptions {
   duration?: number;
+  delay?: number;
   easing?: EasingFunction | BezierCurve;
   smooth?: true | number;
   precision?: number;
@@ -48,6 +49,8 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
   const smoothFactor = isNumber(options.smooth) ? options.smooth : 0.1;
   const precision = options.precision ?? DEFAULT_PROGRESS_PRECISION;
   const ease = normalizeEase(options.easing);
+
+  const delay = options.delay ?? 0;
   let duration = options.duration ?? 1;
   duration *= 1000;
 
@@ -110,6 +113,10 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
     progress(clamp01(map(props.time, startTime, endTime, 0, 1)));
   }
 
+  function getStartTime() {
+    return performance.now() + delay * 1000;
+  }
+
   function getEndTime(time) {
     return isSmooth ? inertiaFinalValue(time, 1) : time + duration;
   }
@@ -119,7 +126,7 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
    */
   function start() {
     onStart();
-    startTime = performance.now();
+    startTime = getStartTime();
     endTime = getEndTime(startTime);
     progressValue = 0;
     easedProgress = 0;
@@ -136,7 +143,7 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
       return;
     }
 
-    startTime = performance.now() - lerp(0, duration, progressValue);
+    startTime = getStartTime() - lerp(0, duration, progressValue);
     endTime = getEndTime(startTime);
     isRunning = true;
 
