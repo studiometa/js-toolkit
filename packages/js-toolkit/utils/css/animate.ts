@@ -32,7 +32,8 @@ export type NormalizedKeyframe = Keyframe & {
   vars: string[];
 };
 
-export interface AnimateOptions extends TweenOptions {
+export interface AnimateOptions extends Omit<TweenOptions, 'duration'> {
+  duration?: number | ((target: HTMLElement, index: number) => number);
   stagger?: number | ((target: HTMLElement, index: number) => number);
 }
 
@@ -237,9 +238,18 @@ export function animate(
   options: AnimateOptions = {},
 ): Animate {
   const stagger = options.stagger ?? 0;
+  const staggerIsFunction = isFunction(stagger);
+  const durationFn = isFunction(options.duration) ? options.duration : null;
+
   const controls = eachElements(elementOrElements, (element, index) => {
-    const delay = isFunction(stagger) ? stagger(element, index) : stagger * index;
-    return singleAnimate(element, keyframes, { ...options, delay });
+    const delay = staggerIsFunction ? stagger(element, index) : stagger * index;
+    const itemOptions = { ...options, delay } as TweenOptions;
+
+    if (durationFn) {
+      itemOptions.duration = durationFn(element, index);
+    }
+
+    return singleAnimate(element, keyframes, itemOptions);
   });
 
   const delegate =
@@ -247,7 +257,7 @@ export function animate(
     // eslint-disable-next-line consistent-return
     (...args) => {
       if (key === 'progress' && args.length === 0) {
-        return controls[0][key]();
+        return lerp(controls[0][key](), controls.at(-1)[key](), 0.5);
       }
 
       for (const control of controls) {
