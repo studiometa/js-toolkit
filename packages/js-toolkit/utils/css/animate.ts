@@ -8,7 +8,7 @@ import { eachElements } from './utils.js';
 import { startsWith } from '../string/index.js';
 import type { TransformProps } from './transform.js';
 import type { EasingFunction } from '../math/index.js';
-import type { BezierCurve, TweenOptions } from '../tween.js';
+import type { BezierCurve, Tween, TweenOptions } from '../tween.js';
 
 export type CSSCustomPropertyName = `--${string}`;
 
@@ -33,17 +33,27 @@ export type NormalizedKeyframe = Keyframe & {
 };
 
 export interface AnimateOptions extends Omit<TweenOptions, 'duration'> {
+  /**
+   * The duration of the tween, in seconds.
+   * When using multiple targets, it can be a function which will be
+   * called with the current target and its index and should return
+   * the duration in seconds for this element.
+   *
+   * Defaults to `1`.
+   */
   duration?: number | ((target: HTMLElement, index: number) => number);
+  /**
+   * Delay between the start of each target animation, in seconds.
+   * When using multiple targets, it can be a function which will be called
+   * with the current target and its index and should return the delay
+   * in seconds for this element's tween.
+   *
+   * Defaults to `0`.
+   */
   stagger?: number | ((target: HTMLElement, index: number) => number);
 }
 
-export type Animate = {
-  start: () => void;
-  pause: () => void;
-  play: () => void;
-  finish: () => void;
-  progress: (value?: number) => number;
-};
+export type Animate = Tween;
 
 let id = 0;
 const running = new WeakMap();
