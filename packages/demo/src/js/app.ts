@@ -9,7 +9,7 @@ import {
   withExtraConfig,
   importOnMediaQuery,
 } from '@studiometa/js-toolkit';
-import { matrix } from '@studiometa/js-toolkit/utils';
+import { animate, matrix, tween } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
 import Parallax from './components/Parallax.js';
 import ResponsiveOptions from './components/ResponsiveOptions.js';
@@ -21,12 +21,15 @@ import ScrolledInViewOffset from './components/ScrolledInViewOffset.js';
 import MediaQueryDemo from './components/MediaQueryDemo.js';
 import PointerProps from './components/PointerProps.js';
 
+window.tween = tween;
+window.animate = animate;
+
 let numberOfTick = 0;
 let time = performance.now();
 let interval = setInterval(() => {
   const newTime = performance.now();
   numberOfTick += 1;
-  console.log('#%d blocking time: %d ms', numberOfTick, newTime - time);
+  // console.log('#%d blocking time: %d ms', numberOfTick, newTime - time);
   time = newTime;
 
   if (numberOfTick > total * 2) {
@@ -44,7 +47,7 @@ function getDeepNestedComponentName(index) {
 function makeDeepNestedComponent(index) {
   return class extends withExtraConfig(Base, { name: getDeepNestedComponentName(index), components: {} }) {
     mounted() {
-      console.log(this.$id);
+      // console.log(this.$id);
     }
   };
 }
@@ -63,7 +66,7 @@ while (count < total) {
 
 const TestManyInstance = class extends withExtraConfig(Base, { name: 'TestManyInstance', debug: false }) {
   mounted() {
-    console.log(this.$id);
+    // console.log(this.$id);
   }
 };
 
