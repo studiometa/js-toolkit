@@ -146,11 +146,10 @@ function render(
     if (isDefined(from.vars) && isDefined(to.vars)) {
       customProperties = [];
       for (const customPropertyName of from.vars) {
-        customProperties[customPropertyName] = lerp(
-          from[customPropertyName],
-          to[customPropertyName],
-          stepProgress,
-        );
+        customProperties.push([
+          customPropertyName,
+          lerp(from[customPropertyName], to[customPropertyName], stepProgress),
+        ]);
       }
     }
 
