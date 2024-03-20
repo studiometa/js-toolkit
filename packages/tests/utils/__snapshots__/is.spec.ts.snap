@@ -4,6 +4,8 @@ exports[`The "isArray" utility function should work with value of type "boolean"
 
 exports[`The "isArray" utility function should work with value of type "string" 1`] = `false`;
 
+exports[`The "isArray" utility function should work with value of type "emptyString" 1`] = `false`;
+
 exports[`The "isArray" utility function should work with value of type "number" 1`] = `false`;
 
 exports[`The "isArray" utility function should work with value of type "fn" 1`] = `false`;
@@ -19,6 +21,8 @@ exports[`The "isArray" utility function should work with value of type "null" 1`
 exports[`The "isBoolean" utility function should work with value of type "boolean" 1`] = `true`;
 
 exports[`The "isBoolean" utility function should work with value of type "string" 1`] = `false`;
+
+exports[`The "isBoolean" utility function should work with value of type "emptyString" 1`] = `false`;
 
 exports[`The "isBoolean" utility function should work with value of type "number" 1`] = `false`;
 
@@ -36,6 +40,8 @@ exports[`The "isDefined" utility function should work with value of type "boolea
 
 exports[`The "isDefined" utility function should work with value of type "string" 1`] = `true`;
 
+exports[`The "isDefined" utility function should work with value of type "emptyString" 1`] = `true`;
+
 exports[`The "isDefined" utility function should work with value of type "number" 1`] = `true`;
 
 exports[`The "isDefined" utility function should work with value of type "fn" 1`] = `true`;
@@ -51,6 +57,8 @@ exports[`The "isDefined" utility function should work with value of type "null" 
 exports[`The "isEmpty" utility function should work with value of type "boolean" 1`] = `false`;
 
 exports[`The "isEmpty" utility function should work with value of type "string" 1`] = `false`;
+
+exports[`The "isEmpty" utility function should work with value of type "emptyString" 1`] = `true`;
 
 exports[`The "isEmpty" utility function should work with value of type "number" 1`] = `false`;
 
@@ -68,6 +76,8 @@ exports[`The "isEmptyString" utility function should work with value of type "bo
 
 exports[`The "isEmptyString" utility function should work with value of type "string" 1`] = `false`;
 
+exports[`The "isEmptyString" utility function should work with value of type "emptyString" 1`] = `true`;
+
 exports[`The "isEmptyString" utility function should work with value of type "number" 1`] = `false`;
 
 exports[`The "isEmptyString" utility function should work with value of type "fn" 1`] = `false`;
@@ -83,6 +93,8 @@ exports[`The "isEmptyString" utility function should work with value of type "nu
 exports[`The "isFunction" utility function should work with value of type "boolean" 1`] = `false`;
 
 exports[`The "isFunction" utility function should work with value of type "string" 1`] = `false`;
+
+exports[`The "isFunction" utility function should work with value of type "emptyString" 1`] = `false`;
 
 exports[`The "isFunction" utility function should work with value of type "number" 1`] = `false`;
 
@@ -100,6 +112,8 @@ exports[`The "isNull" utility function should work with value of type "boolean" 
 
 exports[`The "isNull" utility function should work with value of type "string" 1`] = `false`;
 
+exports[`The "isNull" utility function should work with value of type "emptyString" 1`] = `false`;
+
 exports[`The "isNull" utility function should work with value of type "number" 1`] = `false`;
 
 exports[`The "isNull" utility function should work with value of type "fn" 1`] = `false`;
@@ -115,6 +129,8 @@ exports[`The "isNull" utility function should work with value of type "null" 1`]
 exports[`The "isNumber" utility function should work with value of type "boolean" 1`] = `false`;
 
 exports[`The "isNumber" utility function should work with value of type "string" 1`] = `false`;
+
+exports[`The "isNumber" utility function should work with value of type "emptyString" 1`] = `false`;
 
 exports[`The "isNumber" utility function should work with value of type "number" 1`] = `true`;
 
@@ -132,6 +148,8 @@ exports[`The "isObject" utility function should work with value of type "boolean
 
 exports[`The "isObject" utility function should work with value of type "string" 1`] = `false`;
 
+exports[`The "isObject" utility function should work with value of type "emptyString" 1`] = `false`;
+
 exports[`The "isObject" utility function should work with value of type "number" 1`] = `false`;
 
 exports[`The "isObject" utility function should work with value of type "fn" 1`] = `false`;
@@ -148,6 +166,8 @@ exports[`The "isString" utility function should work with value of type "boolean
 
 exports[`The "isString" utility function should work with value of type "string" 1`] = `true`;
 
+exports[`The "isString" utility function should work with value of type "emptyString" 1`] = `true`;
+
 exports[`The "isString" utility function should work with value of type "number" 1`] = `false`;
 
 exports[`The "isString" utility function should work with value of type "fn" 1`] = `false`;
@@ -159,23 +179,3 @@ exports[`The "isString" utility function should work with value of type "object"
 exports[`The "isString" utility function should work with value of type "undefined" 1`] = `false`;
 
 exports[`The "isString" utility function should work with value of type "null" 1`] = `false`;
-
-exports[`The "isArray" utility function should work with value of type "emptyString" 1`] = `false`;
-
-exports[`The "isBoolean" utility function should work with value of type "emptyString" 1`] = `false`;
-
-exports[`The "isDefined" utility function should work with value of type "emptyString" 1`] = `true`;
-
-exports[`The "isEmpty" utility function should work with value of type "emptyString" 1`] = `true`;
-
-exports[`The "isEmptyString" utility function should work with value of type "emptyString" 1`] = `true`;
-
-exports[`The "isFunction" utility function should work with value of type "emptyString" 1`] = `false`;
-
-exports[`The "isNull" utility function should work with value of type "emptyString" 1`] = `false`;
-
-exports[`The "isNumber" utility function should work with value of type "emptyString" 1`] = `false`;
-
-exports[`The "isObject" utility function should work with value of type "emptyString" 1`] = `false`;
-
-exports[`The "isString" utility function should work with value of type "emptyString" 1`] = `true`;
