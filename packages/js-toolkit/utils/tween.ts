@@ -17,8 +17,8 @@ export interface TweenOptions {
   smooth?: true | number;
   precision?: number;
   onStart?: () => void;
-  onProgress?: (progress: number, easedProgress: number) => void;
-  onFinish?: (progress: number, easedProgress: number) => void;
+  onProgress?: (progress: number) => void;
+  onFinish?: (progress: number) => void;
 }
 
 /**
@@ -55,8 +55,10 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
   let duration = options.duration ?? 1;
   duration *= 1000;
 
-  let startTime = performance.now();
-  let endTime = startTime + duration;
+  /* eslint-disable @typescript-eslint/no-use-before-define */
+  let startTime = getStartTime();
+  let endTime = getEndTime(startTime);
+  /* eslint-enable @typescript-eslint/no-use-before-define */
 
   const key = `tw-${id}`;
   id += 1;
@@ -76,14 +78,11 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
    * Set the progress value.
    */
   function progress(newProgress: number) {
-    if (typeof newProgress === 'undefined') {
+    if (!isDefined(newProgress)) {
       return easedProgress;
     }
 
-    progressValue = newProgress;
-    easedProgress = isSmooth
-      ? damp(progressValue, easedProgress, smoothFactor, precision)
-      : ease(progressValue);
+    easedProgress = newProgress;
 
     // Stop when reaching precision
     if (Math.abs(1 - easedProgress) < precision) {
@@ -92,14 +91,14 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
     }
 
     callback(easedProgress);
-    onProgress(progressValue, easedProgress);
+    onProgress(easedProgress);
 
     if (easedProgress === 1) {
       pause();
-      requestAnimationFrame(() => onFinish(progressValue, easedProgress));
+      requestAnimationFrame(() => onFinish(easedProgress));
     }
 
-    return progressValue;
+    return easedProgress;
   }
 
   /**
@@ -111,14 +110,18 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
       return;
     }
 
-    progress(clamp01(map(props.time, startTime, endTime, 0, 1)));
+    progressValue = clamp01(map(props.time, startTime, endTime, 0, 1));
+
+    progress(
+      isSmooth ? damp(progressValue, easedProgress, smoothFactor, precision) : ease(progressValue),
+    );
   }
 
   function getStartTime() {
     return performance.now() + delay;
   }
 
-  function getEndTime(time) {
+  function getEndTime(time: number) {
     return isSmooth ? inertiaFinalValue(time, 1) : time + duration;
   }
 
