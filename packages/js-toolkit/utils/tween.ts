@@ -10,14 +10,68 @@ const DEFAULT_PROGRESS_PRECISION = 0.0001;
 
 export type BezierCurve = [number, number, number, number];
 
+/**
+ * Controls for a tween.
+ */
+export interface Tween {
+  /**
+   * Start the tween from the beginning.
+   */
+  start: () => void;
+  /**
+   * Finish the tween and set its state to the end.
+   */
+  finish: () => void;
+  /**
+   * Pause the tween.
+   */
+  pause: () => void;
+  /**
+   * Start the tween from the current paused progress.
+   */
+  play: () => void;
+  /**
+   * Set and get the tween's progress.
+   */
+  progress: (progress?: number) => number;
+}
+
 export interface TweenOptions {
+  /**
+   * The duration, in seconds.
+   * Defaults to `1`.
+   */
   duration?: number;
+  /**
+   * The delay, in seconds.
+   * Defaults to `0`.
+   */
   delay?: number;
+  /**
+   * The easing function or bezier curve to use.
+   * Defaults to a linear easing function.
+   */
   easing?: EasingFunction | BezierCurve;
+  /**
+   * The smooth factor. Setting this option to `true` or a `number` will disable the `duration` option.
+   */
   smooth?: true | number;
+  /**
+   * The precision for when to consider the tween finished.
+   * Defaults to `0.0001`.
+   */
   precision?: number;
+  /**
+   * A callback executed on start.
+   */
   onStart?: () => void;
+  /**
+   * A callback executed each time the progress is updated.
+   */
   onProgress?: (progress: number) => void;
+  /**
+   * A callback executed when the tween is finished.
+   */
   onFinish?: (progress: number) => void;
 }
 
@@ -39,7 +93,7 @@ export function normalizeEase(ease: EasingFunction | BezierCurve): EasingFunctio
 /**
  * Tween from 0 to 1.
  */
-export function tween(callback: (progress: number) => unknown, options: TweenOptions = {}) {
+export function tween(callback: (progress: number) => unknown, options: TweenOptions = {}): Tween {
   const raf = useRaf();
 
   let progressValue = 0;
