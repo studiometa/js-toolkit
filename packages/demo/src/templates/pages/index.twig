@@ -12,6 +12,7 @@
       {% include '@components/animate-test.twig' %}
       {% include '@components/animate-test.twig' with {
         easing: ' ',
+        smooth: '0.05',
         steps: [
           {},
           { x: [50, '%'], skewY: -20, rotate: 180, scale: 0.5, opacity: 0.5, easing: [0.6, -0.28, 0.735, 0.045] },
