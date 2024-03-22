@@ -43,7 +43,7 @@ Use this method to unpause a paused animation.
 
 #### `finish()`
 
-Use this method to go to the end of the animation. This is an alias for `animation.progress(1)`.
+Use this method to go to the end of the animation. This is an alias for `tween.progress(1)`.
 
 #### `progress(value)`
 
@@ -70,16 +70,24 @@ type BezierCurve = [number, number, number, number];
 
 interface Options {
   duration?: number;
-  easing?: EasingFunction|BezierCurve;
-  onProgress?: (progress: number, easedProgress: number) => void;
-  onFinish?: (progress: number, easedProgress: number) => void;
+  delay?: number;
+  smooth?: true | number;
+  easing?: EasingFunction | BezierCurve;
+  onStart?: (progress: number) => void;
+  onProgress?: (progress: number) => void;
+  onFinish?: (progress: number) => void;
 }
 
-tween((progress:number) => void,  options?: Options): {
+interface Tween {
   start: () => void;
   pause: () => void;
   play: () => void;
   finish: () => void;
   progress: (value?: number) => number;
-};
+}
+
+function tween(
+  callback: (progress: number) => void,
+  options?: Options
+): Tween;
 ```
