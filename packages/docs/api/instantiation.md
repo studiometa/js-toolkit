@@ -24,7 +24,7 @@ component.$mount();
 Returns an instance of the class not yet mounted.
 
 :::tip
-Use the [`$factory(nameOrSelector)`](./static-methods.html#factory-nameorselector) static method to instantiate multiple instances on elements matching a name (e.g. `[data-component="<name>"]`) or a CSS selector.
+Use the [`$register(nameOrSelector?: string)`](./static-methods.html#factory-nameorselector) static method to instantiate multiple instances on elements matching a name (e.g. `[data-component="<name>"]`) or a CSS selector.
 :::
 
 :::tip
