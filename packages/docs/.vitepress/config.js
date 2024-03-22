@@ -13,6 +13,7 @@ export default defineConfig({
   lastUpdated: true,
   head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
   themeConfig: {
+    outline: 'deep',
     logo: '/logo.png',
     version: pkg.version,
     repo: 'studiometa/js-toolkit',
@@ -341,6 +342,7 @@ function getUtilsSidebar() {
         { text: 'inertiaFinalValue', link: '/utils/math/inertiaFinalValue.html' },
         { text: 'lerp', link: '/utils/math/lerp.html' },
         { text: 'map', link: '/utils/math/map.html' },
+        { text: 'mean', link: '/utils/math/mean.html' },
         { text: 'round', link: '/utils/math/round.html' },
       ],
     },
