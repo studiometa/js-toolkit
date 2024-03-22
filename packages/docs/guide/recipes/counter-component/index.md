@@ -21,7 +21,7 @@ Find below the JavaScript and HTML implementation of a counter component.
   onMounted(async () => {
     const { default: Counter } = await import('./Counter.js');
     await nextTick();
-    [counter] = Counter.$factory('Counter');
+    [counter] = Counter.$register();
   });
   onUnmounted(() => {
     counter.$destroy();

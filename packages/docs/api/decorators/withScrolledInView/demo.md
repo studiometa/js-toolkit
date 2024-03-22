@@ -30,7 +30,7 @@ layout: false
       }
     }
 
-    const instances = ScrolledInViewOffset.$factory('ScrolledInViewOffset');
+    const instances = ScrolledInViewOffset.$register();
   });
 
   onBeforeUnmount(() => {

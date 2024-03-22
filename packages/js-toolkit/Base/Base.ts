@@ -496,15 +496,11 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
   }
 
   /**
-   * Factory method to generate multiple instance of the class.
+   * Register and mount all instances of the component.
    */
-  static $factory(nameOrSelector: string): Base[] {
-    if (isDev && !nameOrSelector) {
-      throw new Error(
-        'The $factory method requires a component’s name or selector to be specified.',
-      );
-    }
-
-    return getComponentElements(nameOrSelector).map((el) => new this(el).$mount());
+  static $register(nameOrSelector?: string): Base[] {
+    return getComponentElements(nameOrSelector ?? this.config.name).map((el) =>
+      new this(el).$mount(),
+    );
   }
 }
