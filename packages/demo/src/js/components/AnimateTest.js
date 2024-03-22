@@ -27,6 +27,10 @@ export default class AnimateTest extends Base {
     refs: ['target', 'start', 'pause', 'play', 'finish', 'progress'],
     options: {
       steps: Array,
+      smooth: {
+        type: Number,
+        default: undefined,
+      },
       duration: {
         type: Number,
         default: 2,
@@ -34,6 +38,16 @@ export default class AnimateTest extends Base {
       easing: String,
     },
   };
+
+  get $options() {
+    const { smooth, ...options } = super.$options;
+
+    if (smooth === 0) {
+      return options;
+    }
+
+    return super.$options;
+  }
 
   mounted() {
     this.animate = animate(
@@ -47,19 +61,22 @@ export default class AnimateTest extends Base {
       }),
       {
         duration: this.$options.duration,
+        smooth: this.$options.smooth,
         easing: ease[this.$options.easing],
         onProgress: (progress) => {
           domScheduler.write(() => {
             this.$refs.progress.value = progress;
           });
         },
-      }
+      },
     );
 
-    this.animate.progress(0.45);
+    this.$refs.progress.value = 0.5;
+    this.animate.progress(this.$refs.progress.valueAsNumber);
   }
 
   onStartClick() {
+    console.log(this.animate)
     this.animate.start();
   }
 
@@ -76,6 +93,7 @@ export default class AnimateTest extends Base {
   }
 
   onProgressInput() {
+    console.log('onProgressInput');
     this.animate.progress(this.$refs.progress.valueAsNumber);
   }
 }

@@ -66,6 +66,7 @@ exports[`@studiometa/js-toolkit/utils exports should export all scripts 1`] = `
   "lerp",
   "map",
   "matrix",
+  "mean",
   "memoize",
   "nextFrame",
   "nextMicrotask",

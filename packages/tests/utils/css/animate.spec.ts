@@ -24,13 +24,14 @@ describe('The `animate` utility function', () => {
         { opacity: 0, x: 100, transformOrigin: 'top left' },
       ],
       {
-        onStart: fn(),
+        onStart: (p) => fn(p),
       },
     ).start();
 
     await advanceTimersByTimeAsync(1100);
 
     expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledWith(0);
     expect(div.style.opacity).toBe('0');
     expect(div.style.transform.trim()).toBe('translate3d(100px, 0px, 0px) scaleX(1)');
     expect(div.style.transformOrigin).toBe('top left');
@@ -64,7 +65,7 @@ describe('The `animate` utility function', () => {
     ] as [string, number, string][];
 
     for await (const [prop, value, result] of stubs) {
-      const div = document.createElement('div');
+      const div = h('div');
       animate(div, [{ [prop]: value }, {}]).start();
       await advanceTimersByTimeAsync(2000);
       expect(div.style[prop === 'opacity' ? 'opacity' : 'transform'].trim()).toBe(result.trim());
@@ -72,7 +73,7 @@ describe('The `animate` utility function', () => {
   });
 
   it('should be able to be paused and play', async () => {
-    const div = document.createElement('div');
+    const div = h('div');
     const animation = animate(div, [{}, { scale: 2 }, {}, {}], {
       duration: 1,
     });
@@ -90,7 +91,7 @@ describe('The `animate` utility function', () => {
   });
 
   it('should be able to set the progress', async () => {
-    const div = document.createElement('div');
+    const div = h('div');
     const animation = animate(div, [{}, { opacity: 0, transformOrigin: 'top left' }, {}, {}]);
     animation.progress(0.25);
     await advanceTimersByTimeAsync(16);
@@ -102,7 +103,7 @@ describe('The `animate` utility function', () => {
 
   it('should be able to resolve relative values', async () => {
     const getDiv = () => {
-      const div = document.createElement('div');
+      const div = h('div');
       Object.defineProperties(div, {
         offsetWidth: {
           get() {
@@ -146,7 +147,7 @@ describe('The `animate` utility function', () => {
   });
 
   it('should be able to be finished', async () => {
-    const div = document.createElement('div');
+    const div = h('div');
     const fn = jest.fn();
     const animation = animate(div, [{ x: 0 }, { x: 100 }], { duration: 1, onFinish: fn });
     animation.start();
@@ -159,7 +160,7 @@ describe('The `animate` utility function', () => {
   });
 
   it('should implement easing functions and bezier curves', async () => {
-    const div = document.createElement('div');
+    const div = h('div');
     const fn = jest.fn();
     const animation = animate(div, [{ x: 0 }, { x: 100, easing: [0, 0, 1, 1] }], {
       duration: 1,
@@ -169,25 +170,12 @@ describe('The `animate` utility function', () => {
       },
     });
     animation.start();
-    await advanceTimersByTimeAsync(1000);
+    await advanceTimersByTimeAsync(1016);
     expect(fn).toHaveBeenCalled();
   });
 
-  it('should stop previous animations', async () => {
-    const div = document.createElement('div');
-    const animation1 = animate(div, [{ x: 0 }, { x: 100 }], { duration: 0.4 });
-    const animation2 = animate(div, [{ y: 100 }, {}], { duration: 0.3 });
-    animation1.start();
-    await advanceTimersByTimeAsync(10);
-    const p1 = animation1.progress();
-    animation2.start();
-    await advanceTimersByTimeAsync(10);
-    const p2 = animation1.progress();
-    expect(p1).toEqual(p2);
-  });
-
   it('should animate CSS custom properties', async () => {
-    const div = document.createElement('div');
+    const div = h('div');
     const animation = animate(div, [{ '--var': 0 }, { '--var': 1 }]);
     animation.progress(0);
     await advanceTimersByTimeAsync(1);
@@ -200,5 +188,67 @@ describe('The `animate` utility function', () => {
     expect(div.style.getPropertyValue('--var')).toBe('1');
   });
 
-  // should be able to specify offset
+  it('should be able to animate multiple elements', async () => {
+    const div1 = h('div');
+    const div2 = h('div');
+
+    const animation = animate([div1, div2], [{ opacity: 0 }, { opacity: 1 }]);
+    animation.start();
+    await advanceTimersByTimeAsync(1016);
+    expect(div1.style.opacity).toBe('1');
+    expect(div2.style.opacity).toBe('1');
+  });
+
+  it('should be able to define duration and stagger as a function when animating multiple elements', () => {
+    const div1 = h('div');
+    const div2 = h('div');
+    const fn = jest.fn();
+    const fn2 = jest.fn();
+
+    animate([div1, div2], [{ opacity: 0 }, { opacity: 1 }], {
+      duration(el, index) {
+        fn(el, index);
+        return 1;
+      },
+      stagger(el, index) {
+        fn2(el, index);
+        return 0;
+      },
+    });
+
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(fn).toHaveBeenNthCalledWith(1, div1, 0);
+    expect(fn).toHaveBeenNthCalledWith(2, div2, 1);
+    expect(fn2).toHaveBeenCalledTimes(2);
+    expect(fn2).toHaveBeenNthCalledWith(1, div1, 0);
+    expect(fn2).toHaveBeenNthCalledWith(2, div2, 1);
+  });
+
+  it('should map progress to single progress when animating multiple elements', async () => {
+    const div1 = h('div');
+    const div2 = h('div');
+
+    const animation = animate([div1, div2], [{ opacity: 0 }, { opacity: 1 }], { stagger: 1 });
+    animation.progress(0.5);
+    await advanceTimersByTimeAsync(16);
+    expect(div1.style.opacity).toBe('1');
+    expect(div2.style.opacity).toBe('0');
+    animation.progress(1);
+    await advanceTimersByTimeAsync(16);
+    expect(div1.style.opacity).toBe('1');
+    expect(div2.style.opacity).toBe('1');
+  });
+
+  it('should stop previous animations', async () => {
+    const div = h('div');
+    const animation1 = animate(div, [{ x: 0 }, { x: 100 }], { duration: 0.4 });
+    const animation2 = animate(div, [{ y: 100 }, {}], { duration: 0.3 });
+    animation1.start();
+    await advanceTimersByTimeAsync(10);
+    const p1 = animation1.progress();
+    animation2.start();
+    await advanceTimersByTimeAsync(10);
+    const p2 = animation1.progress();
+    expect(p1).toEqual(p2);
+  });
 });
