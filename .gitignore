@@ -30,3 +30,4 @@ demo/dist/
 coverage/
 /full.d.ts
 /index.d.ts
+/lcov.info
