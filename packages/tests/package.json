@@ -7,12 +7,12 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@happy-dom/global-registrator": "^13.3.8",
+    "@happy-dom/global-registrator": "^13.10.1",
     "@jest/fake-timers": "^29.7.0",
     "@jest/types": "^29.6.3",
-    "@types/bun": "^1.0.5",
-    "bun": "^1.0.27",
-    "happy-dom": "^13.3.8",
+    "@types/bun": "^1.0.10",
+    "bun": "^1.0.33",
+    "happy-dom": "^13.10.1",
     "htl": "^0.3.1",
     "jest-matchmedia-mock": "^1.1.0"
   }
