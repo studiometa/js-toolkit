@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file. The format 
 - Refactor the requestAnimationFrame polyfill ([#411](https://github.com/studiometa/js-toolkit/pull/411), [dfd62b6](https://github.com/studiometa/js-toolkit/commit/dfd62b6), [34bb2c5](https://github.com/studiometa/js-toolkit/commit/34bb2c5))
 - Improve raf service usage ([#411](https://github.com/studiometa/js-toolkit/pull/411), [352f509](https://github.com/studiometa/js-toolkit/commit/352f509))
 - Migrate legacy `pageXOffset` and `pageYOffset` to their equivalent `scrollX` and `scrollY` ([#413](https://github.com/studiometa/js-toolkit/pull/413))
+- Update dependencies ([#422](https://github.com/studiometa/js-toolkit/pull/422))
 
 ### Removed
 
