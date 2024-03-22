@@ -37,9 +37,9 @@ export default class AnimateTestMultiple extends AnimateTest {
 
     this.animate = animate(this.$refs.targets, steps, {
       ...options,
-      // onProgress: (progress) => {
-      //   this.$refs.progress.value = progress;
-      // },
+      onProgress: (progress) => {
+        this.$refs.progress.value = progress;
+      },
     });
     this.animate.progress(this.$refs.progress.valueAsNumber);
   }
