@@ -64,7 +64,7 @@ export interface TweenOptions {
   /**
    * A callback executed on start.
    */
-  onStart?: () => void;
+  onStart?: (progress: number) => void;
   /**
    * A callback executed each time the progress is updated.
    */
@@ -159,11 +159,6 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
    * Loop for rendering the animation.
    */
   function tick(props: { time: number }) {
-    if (!isRunning) {
-      raf.remove(key);
-      return;
-    }
-
     progressValue = clamp01(map(props.time, startTime, endTime, 0, 1));
 
     progress(
@@ -183,7 +178,7 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
    * Play the animation.
    */
   function start() {
-    onStart();
+    onStart(0);
     startTime = getStartTime();
     endTime = getEndTime(startTime);
     progressValue = 0;

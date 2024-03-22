@@ -222,9 +222,9 @@ function singleAnimate(
 
   const controls = tween(callback, {
     ...options,
-    onStart() {
+    onStart(progress) {
       if (isFunction(options.onStart)) {
-        options.onStart();
+        options.onStart(progress);
       }
       // Stop running instances
       const runningKeys = running.get(element);
@@ -253,7 +253,12 @@ export function animate(
   options: AnimateOptions = {},
 ): Animate {
   if (elementOrElements instanceof HTMLElement) {
-    return singleAnimate(elementOrElements, keyframes, options);
+    return singleAnimate(elementOrElements, keyframes, {
+      ...options,
+      duration: isFunction(options.duration)
+        ? options.duration(elementOrElements, 0)
+        : options.duration,
+    });
   }
 
   const stagger = options.stagger ?? 0;
@@ -271,6 +276,8 @@ export function animate(
 
     if (durationFn) {
       itemOptions.duration = durationFn(element, index);
+    } else if (!isDefined(itemOptions.duration)) {
+      itemOptions.duration = 1;
     }
 
     timings[index] = [itemOptions.duration, delay, itemOptions.duration + delay];
