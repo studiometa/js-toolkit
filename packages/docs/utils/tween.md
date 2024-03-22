@@ -65,7 +65,7 @@ console.log(document.body.innerHTML); // '1'
 ### Types
 
 ```ts
-type EasingFunction = (value:number) => number;
+type EasingFunction = (value: number) => number;
 type BezierCurve = [number, number, number, number];
 
 interface Options {
@@ -86,8 +86,5 @@ interface Tween {
   progress: (value?: number) => number;
 }
 
-function tween(
-  callback: (progress: number) => void,
-  options?: Options
-): Tween;
+function tween(callback: (progress: number) => void, options?: Options): Tween;
 ```
