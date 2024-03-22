@@ -10,6 +10,11 @@ All notable changes to this project will be documented in this file. The format 
 - Add `randomInt` and `randomItem` utility functions ([#398](https://github.com/studiometa/js-toolkit/pull/398))
 - Add `isNull` and `isEmpty` utility functions ([#320](https://github.com/studiometa/js-toolkit/pull/320))
 - Add an `isEmptyString` utility function ([9f8a9f5](https://github.com/studiometa/js-toolkit/commit/9f8a9f5), [9be5528](https://github.com/studiometa/js-toolkit/commit/9be5528))
+- Add support for a `smooth` option for `tween` and `animate` ([#419](https://github.com/studiometa/js-toolkit/pull/419))
+- Add support for a `delay` option for `tween` ([#419](https://github.com/studiometa/js-toolkit/pull/419))
+- Add support for a `stagger` option for `animate` ([#419](https://github.com/studiometa/js-toolkit/pull/419))
+- Add support for `duration` and `stagger` options as functions for `animate` ([#419](https://github.com/studiometa/js-toolkit/pull/419))
+- Add a `mean` utility function ([#419](https://github.com/studiometa/js-toolkit/pull/419))
 
 ### Fixed
 
