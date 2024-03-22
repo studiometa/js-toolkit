@@ -49,12 +49,13 @@ Find below functions that can help you in your projects.
 
 ## Math
 
-- [clamp](/utils/math/clamp.html)
 - [clamp01](/utils/math/clamp01.html)
+- [clamp](/utils/math/clamp.html)
 - [damp](/utils/math/damp.html)
 - [inertiaFinalValue](/utils/math/inertiaFinalValue.html)
 - [lerp](/utils/math/lerp.html)
 - [map](/utils/math/map.html)
+- [mean](/utils/math/mean.html)
 - [round](/utils/math/round.html)
 
 ## String
