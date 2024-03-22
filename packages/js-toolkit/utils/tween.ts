@@ -136,7 +136,10 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
       return easedProgress;
     }
 
-    easedProgress = newProgress;
+    progressValue = newProgress;
+    easedProgress = isSmooth
+      ? damp(progressValue, easedProgress, smoothFactor, precision)
+      : ease(progressValue);
 
     // Stop when reaching precision
     if (Math.abs(1 - easedProgress) < precision) {
@@ -159,11 +162,7 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
    * Loop for rendering the animation.
    */
   function tick(props: { time: number }) {
-    progressValue = clamp01(map(props.time, startTime, endTime, 0, 1));
-
-    progress(
-      isSmooth ? damp(progressValue, easedProgress, smoothFactor, precision) : ease(progressValue),
-    );
+    progress(clamp01(map(props.time, startTime, endTime, 0, 1)));
   }
 
   function getStartTime() {
