@@ -82,17 +82,26 @@ interface KeyFrame extends TransformProps {
 }
 
 interface Options {
-  duration?: number;
-  easing?: EasingFunction|BezierCurve;
-  onProgress?: (progress: number, easedProgress: number) => void;
-  onFinish?: (progress: number, easedProgress: number) => void;
+  duration?: number | (element: HTMLElement, index: number) => number;
+  stagger?: number | (element: HTMLElement, index: number) => number;
+  smooth?: true | number;
+  easing?: EasingFunction | BezierCurve;
+  onStart?: (progress: number) => void;
+  onProgress?: (progress: number) => void;
+  onFinish?: (progress: number) => void;
 }
 
-animate(element:HTMLElement, keyframes: KeyFrame[], options?: Options): {
+interface Animate : {
   start: () => void;
   pause: () => void;
   play: () => void;
   finish: () => void;
   progress: (value?: number) => number;
-};
+}
+
+function animate(
+  element:HTMLElement,
+  keyframes: KeyFrame[],
+  options?: Options
+): Animate;
 ```
