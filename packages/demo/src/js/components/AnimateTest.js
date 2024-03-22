@@ -71,7 +71,8 @@ export default class AnimateTest extends Base {
       },
     );
 
-    this.animate.progress(0.45);
+    this.$refs.progress.value = 0.5;
+    this.animate.progress(this.$refs.progress.valueAsNumber);
   }
 
   onStartClick() {
