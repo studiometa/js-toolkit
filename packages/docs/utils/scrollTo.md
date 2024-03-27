@@ -28,6 +28,14 @@ type BezierCurve = [number, number, number, number];
 
 interface ScrollToOptions {
   /**
+   * Root element that will be scrolled.
+   */
+  rootElement?: HTMLElement;
+  /**
+   * Scroll direction.
+   */
+  axis?: 'X' | 'Y' | 'BOTH';
+  /**
    * Distance from the target.
    */
   offset?: number;
