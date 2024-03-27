@@ -69,5 +69,8 @@ interface ScrollToOptions {
   onFinish?: (progress: number) => void;
 }
 
-function scrollTo(selectorElement: HTMLElement | string, options?: ScrollToOptions): Promise<number>;
+function scrollTo(
+  selectorElement: HTMLElement | string,
+  options?: ScrollToOptions,
+): Promise<number>;
 ```
