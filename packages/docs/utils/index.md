@@ -2,7 +2,7 @@
 
 Find below functions that can help you in your projects.
 
-## Misc.
+## Misc
 
 - [debounce](./debounce.html)
 - [trapFocus](./trapFocus.html)

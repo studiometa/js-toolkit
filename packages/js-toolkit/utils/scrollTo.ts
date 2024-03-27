@@ -1,4 +1,13 @@
-import damp from './math/damp.js';
+import { TweenOptions, tween } from './tween.js';
+import { isFunction } from './is.js';
+import { lerp } from './math/index.js';
+
+export type ScrollToOptions = TweenOptions & {
+  /**
+   * Distance from the target.
+   */
+  offset?: number;
+};
 
 /**
  * Handler for the click event on anchor links
@@ -7,9 +16,10 @@ import damp from './math/damp.js';
  */
 export default function scrollTo(
   selectorElement: HTMLElement | string,
-  { offset = 0, dampFactor = 0.2 } = {},
+  { offset = 0, ...tweenOptions }: ScrollToOptions = {},
 ): Promise<number> {
   let targetElement = null;
+  const scroll = window.scrollY;
 
   if (selectorElement instanceof HTMLElement) {
     targetElement = selectorElement;
@@ -18,13 +28,13 @@ export default function scrollTo(
   }
 
   if (!targetElement) {
-    return Promise.resolve(window.scrollY);
+    return Promise.resolve(scroll);
   }
 
   const sizes = targetElement.getBoundingClientRect();
   const scrollMargin = getComputedStyle(targetElement).scrollMarginTop || '0';
   const max = document.documentElement.scrollHeight - window.innerHeight;
-  let scrollTarget = sizes.top + window.scrollY - Number.parseInt(scrollMargin, 10) - offset;
+  let scrollTarget = sizes.top + scroll - Number.parseInt(scrollMargin, 10) - offset;
 
   // Make sure to not scroll more than the max scroll allowed
   if (scrollTarget > max) {
@@ -32,68 +42,39 @@ export default function scrollTo(
   }
 
   return new Promise((resolve) => {
-    let isScrolling = false;
-    let scroll = window.scrollY;
-    let dampScroll = window.scrollY;
+    let tw = null;
 
-    /**
-     * Handler for the wheel event
-     * Is used to cancel the programmatic scroll animation
-     */
-    function eventHandler() {
-      isScrolling = false;
-    }
+    const eventHandler = () => {
+      tw.pause();
 
-    /**
-     * Scroll animation end's hook
-     */
-    function end() {
       window.removeEventListener('wheel', eventHandler);
       window.removeEventListener('touchmove', eventHandler);
+
       resolve(window.scrollY);
-    }
+    };
 
-    /**
-     * Scroll animation's loop
-     *
-     * @returns {void|number}
-     */
-    function loop() {
-      if (!isScrolling) {
-        return end();
-      }
+    tw = tween(
+      (progress) => {
+        window.scrollTo(0, lerp(scroll, scrollTarget, progress));
+      },
+      {
+        ...tweenOptions,
+        onFinish(progress) {
+          window.removeEventListener('wheel', eventHandler);
+          window.removeEventListener('touchmove', eventHandler);
 
-      dampScroll = damp(scroll, dampScroll, dampFactor);
-      window.scrollTo({ top: dampScroll });
+          if (isFunction(tweenOptions.onFinish)) {
+            tweenOptions.onFinish(progress);
+          }
 
-      if (dampScroll === scroll) {
-        isScrolling = false;
-      }
+          resolve(window.scrollY);
+        },
+      },
+    );
 
-      return requestAnimationFrame(loop);
-    }
+    window.addEventListener('wheel', eventHandler, { passive: true });
+    window.addEventListener('touchmove', eventHandler, { passive: true });
 
-    /**
-     * Start the scroll animation
-     *
-     * @param {number} target The target scroll
-     */
-    function start(target) {
-      // Update vars
-      isScrolling = true;
-      dampScroll = window.scrollY;
-      scroll = target;
-
-      // Bind wheel event to stop the animation if
-      // the user wants to scroll manually
-      window.addEventListener('wheel', eventHandler, { passive: true });
-      window.addEventListener('touchmove', eventHandler, { passive: true });
-
-      // Init the loop
-      loop();
-    }
-
-    // Start the scroll
-    start(scrollTarget);
+    tw.start();
   });
 }
