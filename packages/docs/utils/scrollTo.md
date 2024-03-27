@@ -9,22 +9,29 @@ import { scrollTo } from '@studiometa/js-toolkit/utils';
 
 await scrollTo('#target');
 await scrollTo(document.querySelector('#target'));
+await scrollTo(800);
+await scrollTo({ left: 200 });
 ```
 
 ### Parameters
 
-- `selectorElement` (`string|HTMLElement`): the target of the scroll
+- `selectorOrElementOrValueOrValues` (`string|HTMLElement|number|ScrollPosition`): the target of the scroll
 - `options` (`ScrollToOptions`): options for the scroll (offset + [tween options](./tween.html))
 
 ### Return value
 
-This function returns a `Promise` resolving to the target scroll position, even when stopped by use interaction.
+This function returns a `Promise` resolving to the scroll position, even when stopped by use interaction.
 
 ### Types
 
 ```ts
 type EasingFunction = (value: number) => number;
 type BezierCurve = [number, number, number, number];
+
+interface ScrollPosition {
+  left?: number;
+  top?: number;
+}
 
 interface ScrollToOptions {
   /**
