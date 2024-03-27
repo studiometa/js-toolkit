@@ -44,6 +44,18 @@ describe('The `scrollTo` function', () => {
     expect(fn).toHaveBeenLastCalledWith({ left: 0, top: 5000 });
   });
 
+  it('should scroll to a numeric value', async () => {
+    expect(fn).not.toHaveBeenCalled();
+    await scrollTo(800);
+    expect(fn).toHaveBeenLastCalledWith({ left: 0, top: 800 });
+  });
+
+  it('should scroll to a specific top numeric value', async () => {
+    expect(fn).not.toHaveBeenCalled();
+    await scrollTo({ top: 1600 });
+    expect(fn).toHaveBeenLastCalledWith({ left: 0, top: 1600 });
+  });
+
   it('should not scroll to an inexistant element', async () => {
     expect(fn).not.toHaveBeenCalled();
     const scrollY = await scrollTo('span');

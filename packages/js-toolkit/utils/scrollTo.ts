@@ -1,9 +1,12 @@
 import { TweenOptions, tween } from './tween.js';
-import { isFunction } from './is.js';
+import { isString, isNumber, isObject, isFunction } from './is.js';
 import { lerp } from './math/index.js';
 
-// Rename ScrollToOptions type to ScrollPosition to be more understandable.
-type ScrollPosition = ScrollToOptions;
+// Set the type of ScrollPosition.
+type ScrollPosition = {
+  left?: number;
+  top?: number;
+};
 
 // Set the type of TweenScrollToOptions options.
 export type TweenScrollToOptions = TweenOptions & {
@@ -27,7 +30,7 @@ export type TweenScrollToOptions = TweenOptions & {
  * @returns {Promise<ScrollPosition>} A promising resolving with the scroll position.
  */
 export default function scrollTo(
-  selectorElement: HTMLElement | string,
+  selectorOrElementOrValueOrValues: string | HTMLElement | number | ScrollPosition,
   { rootElement = null, axis = 'Y', offset = 0, ...tweenOptions }: TweenScrollToOptions = {},
 ): Promise<ScrollPosition> {
   /**
@@ -50,30 +53,74 @@ export default function scrollTo(
   // Save the current scroll position.
   const initialScrollPosition = getCurrentScrollPosition();
 
-  // Init the target element.
-  let targetElement = null;
+  // Set the target scroll position.
+  const targetScrollPosition = {
+    left: initialScrollPosition.left,
+    top: initialScrollPosition.top,
+  } as ScrollPosition;
 
-  // Check if the given element is a selector or already a HTMLElement.
-  if (selectorElement instanceof HTMLElement) {
-    targetElement = selectorElement;
-  } else {
-    targetElement = document.querySelector(selectorElement);
+  if (
+    selectorOrElementOrValueOrValues instanceof HTMLElement ||
+    isString(selectorOrElementOrValueOrValues)
+  ) {
+    // Init the target element.
+    let targetElement = null;
+
+    // Check if the given element is a selector or already a HTMLElement.
+    if (selectorOrElementOrValueOrValues instanceof HTMLElement) {
+      targetElement = selectorOrElementOrValueOrValues;
+    } else {
+      targetElement = document.querySelector(selectorOrElementOrValueOrValues);
+    }
+
+    // Resolve the promise if there is no target element.
+    if (!targetElement) {
+      return Promise.resolve(initialScrollPosition);
+    }
+
+    // Get the size of the target element.
+    const sizes = targetElement.getBoundingClientRect();
+
+    // Get the scroll margins of the target element.
+    const targetElementComputedStyle = getComputedStyle(targetElement);
+    const scrollMargin = {
+      left: Number.parseInt(targetElementComputedStyle.scrollMarginLeft || '0', 10),
+      top: Number.parseInt(targetElementComputedStyle.scrollMarginTop || '0', 10),
+    };
+
+    // Set the scroll position of the target element.
+    targetScrollPosition.left =
+      sizes.left + initialScrollPosition.left - scrollMargin.left - offset;
+    targetScrollPosition.top = sizes.top + initialScrollPosition.top - scrollMargin.top - offset;
   }
 
-  // Resolve the promise if there is no target element.
-  if (!targetElement) {
+  // Set the top target scroll position to the specified value.
+  if (isNumber(selectorOrElementOrValueOrValues)) {
+    if (axis === 'X' || axis === 'BOTH') {
+      targetScrollPosition.left = selectorOrElementOrValueOrValues - offset;
+    }
+    if (axis === 'Y' || axis === 'BOTH') {
+      targetScrollPosition.top = selectorOrElementOrValueOrValues - offset;
+    }
+  }
+
+  // Set the target scroll positions to the specified values.
+  if (
+    isObject(selectorOrElementOrValueOrValues) &&
+    ((selectorOrElementOrValueOrValues as ScrollPosition).left ||
+      (selectorOrElementOrValueOrValues as ScrollPosition).top)
+  ) {
+    targetScrollPosition.left = (selectorOrElementOrValueOrValues as ScrollPosition).left - offset;
+    targetScrollPosition.top = (selectorOrElementOrValueOrValues as ScrollPosition).top - offset;
+  }
+
+  // Resolve the promise if there is no target scroll position.
+  if (
+    targetScrollPosition.left === initialScrollPosition.left &&
+    targetScrollPosition.top === initialScrollPosition.top
+  ) {
     return Promise.resolve(initialScrollPosition);
   }
-
-  // Get the size of the target element.
-  const sizes = targetElement.getBoundingClientRect();
-
-  // Get the scroll margins of the target element.
-  const targetElementComputedStyle = getComputedStyle(targetElement);
-  const scrollMargin = {
-    left: Number.parseInt(targetElementComputedStyle.scrollMarginLeft || '0', 10),
-    top: Number.parseInt(targetElementComputedStyle.scrollMarginTop || '0', 10),
-  };
 
   // Get the maximum scroll of the root element or of the window.
   const max = rootElement
@@ -86,11 +133,9 @@ export default function scrollTo(
         top: document.documentElement.scrollHeight - window.innerHeight,
       };
 
-  // Get the scroll position (or maximum scroll) of the target element.
-  const targetElementScrollPosition = {
-    left: Math.min(sizes.left + initialScrollPosition.left - scrollMargin.left - offset, max.left),
-    top: Math.min(sizes.top + initialScrollPosition.top - scrollMargin.top - offset, max.top),
-  };
+  // Make sure to not scroll more than the max scroll allowed
+  targetScrollPosition.left = Math.min(targetScrollPosition.left, max.left);
+  targetScrollPosition.top = Math.min(targetScrollPosition.top, max.top);
 
   // Create the final promise.
   return new Promise((resolve) => {
@@ -122,11 +167,11 @@ export default function scrollTo(
         (rootElement ?? window).scrollTo({
           left:
             axis === 'X' || axis === 'BOTH'
-              ? lerp(initialScrollPosition.left, targetElementScrollPosition.left, progress)
+              ? lerp(initialScrollPosition.left, targetScrollPosition.left, progress)
               : initialScrollPosition.left,
           top:
             axis === 'Y' || axis === 'BOTH'
-              ? lerp(initialScrollPosition.top, targetElementScrollPosition.top, progress)
+              ? lerp(initialScrollPosition.top, targetScrollPosition.top, progress)
               : initialScrollPosition.top,
         });
       },
