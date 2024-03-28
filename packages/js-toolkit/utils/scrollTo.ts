@@ -142,11 +142,20 @@ export default function scrollTo(
     // Init tween.
     let tw = null;
 
+    // Init stop function.
+    let stop = () => {};
+
     // Set the event handler.
     const eventHandler = () => {
       // Pause the tween animation.
       tw.pause();
 
+      // Run stop function.
+      stop();
+    };
+
+    // Set stop function.
+    stop = () => {
       // Remove the event listeners.
       if (rootElement) {
         rootElement.removeEventListener('wheel', eventHandler);
@@ -156,7 +165,7 @@ export default function scrollTo(
         window.removeEventListener('touchmove', eventHandler);
       }
 
-      // Resolve the promise if the user interact with wheel or touchmove.
+      // Resolve the promise on animation finish.
       resolve(getCurrentScrollPosition());
     };
 
@@ -181,22 +190,13 @@ export default function scrollTo(
 
         // Set finish actions.
         onFinish(progress) {
-          // Remove the event listeners.
-          if (rootElement) {
-            rootElement.removeEventListener('wheel', eventHandler);
-            rootElement.removeEventListener('touchmove', eventHandler);
-          } else {
-            window.removeEventListener('wheel', eventHandler);
-            window.removeEventListener('touchmove', eventHandler);
-          }
-
           // Run onFinish function passed in options.
           if (isFunction(tweenOptions.onFinish)) {
             tweenOptions.onFinish(progress);
           }
 
-          // Resolve the promise on animation finish.
-          resolve(getCurrentScrollPosition());
+          // Run stop function.
+          stop();
         },
       },
     );
