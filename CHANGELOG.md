@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Changed
 
 - ⚠️ Enable the `asyncChildren` feature by default ([#423](https://github.com/studiometa/js-toolkit/pull/423))
-- ⚠️ Rename the static $factory to $register and make its single argument optional ([#416](https://github.com/studiometa/js-toolkit/pull/416))
+- ⚠️ Rename the static `$factory` method to `$register` and make its single argument optional ([#416](https://github.com/studiometa/js-toolkit/pull/416))
 - ⚠️ Refactor definition of breakpoints for the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
 - ⚠️ Refactor `focusTrap` for simpler exports ([#406](https://github.com/studiometa/js-toolkit/pull/406))
 - Migrate tests from Jest to Bun ([#411](https://github.com/studiometa/js-toolkit/pull/411))
