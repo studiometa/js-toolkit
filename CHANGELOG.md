@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. The format 
 - Add support for a `stagger` option for `animate` ([#419](https://github.com/studiometa/js-toolkit/pull/419))
 - Add support for `duration` and `stagger` options as functions for `animate` ([#419](https://github.com/studiometa/js-toolkit/pull/419))
 - Add a `mean` utility function ([#419](https://github.com/studiometa/js-toolkit/pull/419))
+- Add support for custom duration and easing function for `scrollTo` ([#418](https://github.com/studiometa/js-toolkit/pull/418))
 
 ### Fixed
 
@@ -30,6 +31,7 @@ All notable changes to this project will be documented in this file. The format 
 - Improve raf service usage ([#411](https://github.com/studiometa/js-toolkit/pull/411), [352f509](https://github.com/studiometa/js-toolkit/commit/352f509))
 - Migrate legacy `pageXOffset` and `pageYOffset` to their equivalent `scrollX` and `scrollY` ([#413](https://github.com/studiometa/js-toolkit/pull/413))
 - Update dependencies ([#422](https://github.com/studiometa/js-toolkit/pull/422))
+- ⚠️ Change the return value from `scrollTo` from `Promise<number>` to `Promise<{ left: number, top: number }>` ([#418](https://github.com/studiometa/js-toolkit/pull/418))
 
 ### Removed
 
