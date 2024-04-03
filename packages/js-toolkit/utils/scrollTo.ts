@@ -1,99 +1,182 @@
-import damp from './math/damp.js';
+import { tween } from './tween.js';
+import type { TweenOptions } from './tween.js';
+import { isString, isNumber, isFunction, isDefined } from './is.js';
+import { lerp } from './math/index.js';
+
+export interface ScrollPosition {
+  left: number;
+  top: number;
+}
+
+export type ScrollTarget = string | HTMLElement | number | Partial<ScrollPosition>;
+
+export interface ScrollToOptions extends TweenOptions {
+  /**
+   * Root element that will be scrolled.
+   */
+  rootElement?: HTMLElement | typeof window;
+  /**
+   * Scroll direction.
+   */
+  axis?: (typeof scrollTo.axis)[keyof typeof scrollTo.axis];
+  /**
+   * Distance from the target.
+   */
+  offset?: number;
+}
+
+const xAxis = Symbol(0);
+const yAxis = Symbol(1);
+const bothAxis = Symbol(2);
+
+function isHtmlElement(rootElement: ScrollToOptions['rootElement']): rootElement is HTMLElement {
+  return rootElement instanceof HTMLElement;
+}
 
 /**
- * Handler for the click event on anchor links
- *
- * @returns {Promise<number>} A promising resolving with the target scroll position.
+ * Get the current root element or window scroll position.
  */
-export default function scrollTo(
-  selectorElement: HTMLElement | string,
-  { offset = 0, dampFactor = 0.2 } = {},
-): Promise<number> {
-  let targetElement = null;
+function getCurrentScrollPosition(rootElement: ScrollToOptions['rootElement']): ScrollPosition {
+  return {
+    left: isHtmlElement(rootElement) ? rootElement.scrollTop : rootElement.scrollX,
+    top: isHtmlElement(rootElement) ? rootElement.scrollLeft : rootElement.scrollY,
+  };
+}
 
-  if (selectorElement instanceof HTMLElement) {
-    targetElement = selectorElement;
+/**
+ * Get the maximum scroll position values.
+ */
+function getMaxScrollPosition(rootElement?: ScrollToOptions['rootElement']): ScrollPosition {
+  return {
+    left: isHtmlElement(rootElement)
+      ? rootElement.scrollWidth - rootElement.offsetWidth
+      : document.documentElement.scrollWidth - window.innerWidth,
+    top: isHtmlElement(rootElement)
+      ? rootElement.scrollHeight - rootElement.offsetHeight
+      : document.documentElement.scrollHeight - window.innerHeight,
+  };
+}
+
+/**
+ * Get the target scroll position.
+ */
+function getTargetScrollPosition(
+  initialScrollPosition: ScrollPosition,
+  maxScrollPosition: ScrollPosition,
+  target: ScrollTarget,
+  axis: ScrollToOptions['axis'],
+  offset: number,
+): ScrollPosition {
+  let { top, left } = initialScrollPosition;
+
+  if (target instanceof HTMLElement || isString(target)) {
+    const targetElement = target instanceof HTMLElement ? target : document.querySelector(target);
+
+    if (!targetElement) {
+      return { top, left };
+    }
+
+    const sizes = targetElement.getBoundingClientRect();
+    const styles = getComputedStyle(targetElement);
+    const scrollMargin = {
+      left: Number.parseInt(styles.scrollMarginLeft || '0', 10),
+      top: Number.parseInt(styles.scrollMarginTop || '0', 10),
+    };
+
+    // Set the scroll position of the target element.
+    left = sizes.left + initialScrollPosition.left - scrollMargin.left;
+    top = sizes.top + initialScrollPosition.top - scrollMargin.top;
+  } else if (isNumber(target)) {
+    left = target;
+    top = target;
   } else {
-    targetElement = document.querySelector(selectorElement);
+    left = target.left ?? left;
+    top = target.top ?? top;
   }
 
-  if (!targetElement) {
-    return Promise.resolve(window.scrollY);
+  left -= offset;
+  top -= offset;
+
+  if (axis !== bothAxis) {
+    if (axis !== xAxis && !isDefined((target as Partial<ScrollPosition>).left)) {
+      left = initialScrollPosition.left;
+    }
+
+    if (axis !== yAxis) {
+      top = initialScrollPosition.top;
+    }
   }
 
-  const sizes = targetElement.getBoundingClientRect();
-  const scrollMargin = getComputedStyle(targetElement).scrollMarginTop || '0';
-  const max = document.documentElement.scrollHeight - window.innerHeight;
-  let scrollTarget = sizes.top + window.scrollY - Number.parseInt(scrollMargin, 10) - offset;
+  return {
+    left: Math.min(left, maxScrollPosition.left),
+    top: Math.min(top, maxScrollPosition.top),
+  };
+}
 
-  // Make sure to not scroll more than the max scroll allowed
-  if (scrollTarget > max) {
-    scrollTarget = max;
-  }
+/**
+ * Scroll to an element.
+ *
+ * @returns {Promise<ScrollPosition>} A promising resolving with the scroll position.
+ */
+export function scrollTo(
+  target: string | HTMLElement | number | Partial<ScrollPosition>,
+  { rootElement = window, axis = yAxis, offset = 0, ...tweenOptions }: ScrollToOptions = {},
+): Promise<ScrollPosition> {
+  const initialScrollPosition = getCurrentScrollPosition(rootElement);
+  const maxScrollPosition = getMaxScrollPosition(rootElement);
+  const targetScrollPosition = getTargetScrollPosition(
+    initialScrollPosition,
+    maxScrollPosition,
+    target,
+    axis,
+    offset,
+  );
 
   return new Promise((resolve) => {
-    let isScrolling = false;
-    let scroll = window.scrollY;
-    let dampScroll = window.scrollY;
-
-    /**
-     * Handler for the wheel event
-     * Is used to cancel the programmatic scroll animation
-     */
     function eventHandler() {
-      isScrolling = false;
+      /* eslint-disable @typescript-eslint/no-use-before-define */
+      tw.pause();
+      stop();
+      /* eslint-enable @typescript-eslint/no-use-before-define */
     }
 
-    /**
-     * Scroll animation end's hook
-     */
-    function end() {
-      window.removeEventListener('wheel', eventHandler);
-      window.removeEventListener('touchmove', eventHandler);
-      resolve(window.scrollY);
+    function stop() {
+      rootElement.removeEventListener('wheel', eventHandler);
+      rootElement.removeEventListener('touchmove', eventHandler);
+
+      // Resolve the promise on animation finish.
+      resolve(getCurrentScrollPosition(rootElement));
     }
 
-    /**
-     * Scroll animation's loop
-     *
-     * @returns {void|number}
-     */
-    function loop() {
-      if (!isScrolling) {
-        return end();
-      }
+    // Setup tween.
+    const tw = tween(
+      (progress) => {
+        rootElement.scrollTo({
+          left: lerp(initialScrollPosition.left, targetScrollPosition.left, progress),
+          top: lerp(initialScrollPosition.top, targetScrollPosition.top, progress),
+        });
+      },
+      {
+        smooth: 0.2,
+        ...tweenOptions,
+        onFinish(progress) {
+          if (isFunction(tweenOptions.onFinish)) {
+            tweenOptions.onFinish(progress);
+          }
 
-      dampScroll = damp(scroll, dampScroll, dampFactor);
-      window.scrollTo({ top: dampScroll });
+          stop();
+        },
+      },
+    );
 
-      if (dampScroll === scroll) {
-        isScrolling = false;
-      }
-
-      return requestAnimationFrame(loop);
-    }
-
-    /**
-     * Start the scroll animation
-     *
-     * @param {number} target The target scroll
-     */
-    function start(target) {
-      // Update vars
-      isScrolling = true;
-      dampScroll = window.scrollY;
-      scroll = target;
-
-      // Bind wheel event to stop the animation if
-      // the user wants to scroll manually
-      window.addEventListener('wheel', eventHandler, { passive: true });
-      window.addEventListener('touchmove', eventHandler, { passive: true });
-
-      // Init the loop
-      loop();
-    }
-
-    // Start the scroll
-    start(scrollTarget);
+    rootElement.addEventListener('wheel', eventHandler, { passive: true });
+    rootElement.addEventListener('touchmove', eventHandler, { passive: true });
+    tw.start();
   });
 }
+
+scrollTo.axis = {
+  x: xAxis,
+  y: yAxis,
+  both: bothAxis,
+};
