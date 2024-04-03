@@ -9,7 +9,7 @@ interface FeaturesMap extends Map<keyof Features, Features[keyof Features]> {
 }
 
 export const features = new Map<keyof Features, Features[keyof Features]>([
-  ['asyncChildren', true],
+  ['asyncChildren', false],
   [
     'breakpoints',
     {
