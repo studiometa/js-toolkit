@@ -67,6 +67,13 @@ describe('The `scrollTo` function', () => {
     expect(fn).toHaveBeenLastCalledWith({ left: 0, top: 1600 });
   });
 
+  it('should scroll to a specific left numeric value', async () => {
+    expect(fn).not.toHaveBeenCalled();
+    scrollTo({ left: 1600 });
+    await advanceTimersByTimeAsync(2000);
+    expect(fn).toHaveBeenLastCalledWith({ left: 1600, top: 0 });
+  });
+
   it('should scroll to a left and top numeric value', async () => {
     expect(fn).not.toHaveBeenCalled();
     scrollTo({ left: 1600, top: 1600 }, { axis: scrollTo.axis.both });
