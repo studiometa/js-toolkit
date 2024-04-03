@@ -81,7 +81,7 @@ function updateProps(
   axis: 'x' | 'y' = 'x',
 ): void {
   props.current[axis] = clamp(
-    axis === 'x' ? window.pageXOffset : window.pageYOffset,
+    axis === 'x' ? window.scrollX : window.scrollY,
     props.start[axis],
     props.end[axis],
   );
@@ -181,8 +181,8 @@ export function withScrolledInView<S extends Base = Base>(
           ? getOffsetSizes(this.$el)
           : this.$el.getBoundingClientRect();
 
-        targetSizes.y += window.pageYOffset;
-        targetSizes.x += window.pageXOffset;
+        targetSizes.y += window.scrollY;
+        targetSizes.x += window.scrollX;
 
         const containerSizes = {
           x: 0,
@@ -195,11 +195,11 @@ export function withScrolledInView<S extends Base = Base>(
 
         // Y axis
         const [yStart, yEnd] = getEdges('y', targetSizes, containerSizes, offset);
-        const yCurrent = clamp(window.pageYOffset, yStart, yEnd);
+        const yCurrent = clamp(window.scrollY, yStart, yEnd);
         const yProgress = yStart === yEnd ? 0 : clamp01((yCurrent - yStart) / (yEnd - yStart));
         // X axis
         const [xStart, xEnd] = getEdges('x', targetSizes, containerSizes, offset);
-        const xCurrent = clamp(window.pageXOffset, xStart, xEnd);
+        const xCurrent = clamp(window.scrollX, xStart, xEnd);
         const xProgress = xStart === xEnd ? 0 : clamp01((xCurrent - xStart) / (xEnd - xStart));
 
         this.__props.start.x = xStart;
@@ -218,22 +218,6 @@ export function withScrolledInView<S extends Base = Base>(
 
       return this.__props;
     }
-
-    /**
-     * Factor used for the `dampedProgress` props.
-     *
-     * @deprecated
-     * @todo v3 delete in favor of option API
-     */
-    dampFactor?: number = null;
-
-    /**
-     * Precision for the `dampedProgress` props.
-     *
-     * @deprecated
-     * @todo v3 delete in favor of option API
-     */
-    dampPrecision?: number = null;
 
     /**
      * Bind listeners.
@@ -262,13 +246,12 @@ export function withScrolledInView<S extends Base = Base>(
           render();
         },
         scrolled: (props) => {
-          if ((!this.$services.has('ticked') && props.changed.y) || props.changed.x) {
+          if (props.changed.y || props.changed.x) {
             this.$services.enable('ticked');
           }
         },
         ticked: () => {
-          const dampFactor = this.dampFactor ?? this.$options.dampFactor;
-          const dampPrecision = this.dampPrecision ?? this.$options.dampPrecision;
+          const { dampFactor, dampPrecision } = this.$options;
           updateProps(this.__props, dampFactor, dampPrecision, 'x');
           updateProps(this.__props, dampFactor, dampPrecision, 'y');
 
@@ -301,61 +284,6 @@ export function withScrolledInView<S extends Base = Base>(
         this.__props.dampedProgress.y = this.__props.progress.y;
         render();
       });
-    }
-
-    /**
-     * Mounted hook.
-     */
-    mounted() {
-      // @ts-ignore
-      if (isFunction(super.mounted)) {
-        // @ts-ignore
-        super.mounted();
-      }
-    }
-
-    /**
-     * Resized hook.
-     */
-    resized(props: ResizeServiceProps) {
-      // @ts-ignore
-      if (isFunction(super.resized)) {
-        // @ts-ignore
-        super.resized(props);
-      }
-    }
-
-    /**
-     * Scrolled hook.
-     */
-    scrolled(props: ScrollServiceProps) {
-      // @ts-ignore
-      if (isFunction(super.scrolled)) {
-        // @ts-ignore
-        super.scrolled(props);
-      }
-    }
-
-    /**
-     * Ticked hook.
-     */
-    ticked(props: RafServiceProps) {
-      // @ts-ignore
-      if (isFunction(super.ticked)) {
-        // @ts-ignore
-        super.ticked(props);
-      }
-    }
-
-    /**
-     * Destroyed hook.
-     */
-    destroyed() {
-      // @ts-ignore
-      if (isFunction(super.destroyed)) {
-        // @ts-ignore
-        super.destroyed();
-      }
     }
   }
 

@@ -1,0 +1,21 @@
+name: Export size
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+
+jobs:
+
+  Export-Size:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
+      - uses: titouanmathis/export-size-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          build_script: npm run build-for-export-size
+          paths: dist

@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # importWhenVisible
 
 Use this function to import component when an element is visible.

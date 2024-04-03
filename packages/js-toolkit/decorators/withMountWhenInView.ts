@@ -40,7 +40,7 @@ export function withMountWhenInView<S extends Base = Base>(
       ...BaseClass.config,
       name: `${BaseClass.config.name}WithMountWhenInView`,
       options: {
-        ...(BaseClass.config?.options || {}),
+        ...BaseClass.config?.options,
         intersectionObserver: Object,
       },
     };

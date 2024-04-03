@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # withExtraConfig
 
 Use this decorator to quickly create variants of an existing class.

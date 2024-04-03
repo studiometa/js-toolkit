@@ -1,0 +1,262 @@
+// Bun Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`nextTick method should execute in order 1`] = `
+[
+  [
+    "start",
+  ],
+  [
+    "end",
+  ],
+  [
+    "nextMicrotask #1",
+  ],
+  [
+    "nextMicrotask #2",
+  ],
+  [
+    "nextFrame #2",
+  ],
+  [
+    "nextFrame #1",
+  ],
+  [
+    "nextTick #1",
+  ],
+  [
+    "nextTick #2",
+  ],
+]
+`;
+
+exports[`nextTick method should execute in order 2`] = `
+[
+  [
+    "start",
+  ],
+  [
+    "end",
+  ],
+  [
+    "nextMicrotask #1",
+  ],
+  [
+    "nextMicrotask #2",
+  ],
+  [
+    "nextFrame #2",
+  ],
+  [
+    "nextFrame #1",
+  ],
+  [
+    "nextTick #1",
+  ],
+  [
+    "nextTick #2",
+  ],
+]
+`;
+
+exports[`nextTick method should execute in order 3`] = `
+[
+  [
+    "start",
+  ],
+  [
+    "end",
+  ],
+  [
+    "nextMicrotask #1",
+  ],
+  [
+    "nextMicrotask #2",
+  ],
+  [
+    "nextFrame #2",
+  ],
+  [
+    "nextFrame #1",
+  ],
+  [
+    "nextTick #1",
+  ],
+  [
+    "nextTick #2",
+  ],
+]
+`;
+
+exports[`nextTick method should execute in order 4`] = `
+[
+  [
+    "start",
+  ],
+  [
+    "end",
+  ],
+  [
+    "nextMicrotask #1",
+  ],
+  [
+    "nextMicrotask #2",
+  ],
+  [
+    "nextFrame #2",
+  ],
+  [
+    "nextFrame #1",
+  ],
+  [
+    "nextTick #1",
+  ],
+  [
+    "nextTick #2",
+  ],
+]
+`;
+
+exports[`nextTick method should execute in order 5`] = `
+[
+  [
+    "start",
+  ],
+  [
+    "end",
+  ],
+  [
+    "nextMicrotask #1",
+  ],
+  [
+    "nextMicrotask #2",
+  ],
+  [
+    "nextFrame #2",
+  ],
+  [
+    "nextFrame #1",
+  ],
+  [
+    "nextTick #1",
+  ],
+  [
+    "nextTick #2",
+  ],
+]
+`;
+
+exports[`nextTick method should execute in order 6`] = `
+[
+  [
+    "start",
+  ],
+  [
+    "end",
+  ],
+  [
+    "nextMicrotask #1",
+  ],
+  [
+    "nextMicrotask #2",
+  ],
+  [
+    "nextFrame #2",
+  ],
+  [
+    "nextFrame #1",
+  ],
+  [
+    "nextTick #1",
+  ],
+  [
+    "nextTick #2",
+  ],
+]
+`;
+
+exports[`nextTick method should execute in order 7`] = `
+[
+  [
+    "start",
+  ],
+  [
+    "end",
+  ],
+  [
+    "nextMicrotask #1",
+  ],
+  [
+    "nextMicrotask #2",
+  ],
+  [
+    "nextFrame #2",
+  ],
+  [
+    "nextFrame #1",
+  ],
+  [
+    "nextTick #1",
+  ],
+  [
+    "nextTick #2",
+  ],
+]
+`;
+
+exports[`nextTick method should execute in order 8`] = `
+[
+  [
+    "start",
+  ],
+  [
+    "end",
+  ],
+  [
+    "nextMicrotask #1",
+  ],
+  [
+    "nextMicrotask #2",
+  ],
+  [
+    "nextFrame #2",
+  ],
+  [
+    "nextFrame #1",
+  ],
+  [
+    "nextTick #1",
+  ],
+  [
+    "nextTick #2",
+  ],
+]
+`;
+
+exports[`nextTick method should execute in order 9`] = `
+[
+  [
+    "start",
+  ],
+  [
+    "end",
+  ],
+  [
+    "nextMicrotask #1",
+  ],
+  [
+    "nextMicrotask #2",
+  ],
+  [
+    "nextFrame #2",
+  ],
+  [
+    "nextFrame #1",
+  ],
+  [
+    "nextTick #1",
+  ],
+  [
+    "nextTick #2",
+  ],
+]
+`;
