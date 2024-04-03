@@ -2,15 +2,30 @@
 
 Find below functions that can help you in your projects.
 
-## Misc.
+## Misc
 
-- [debounce](/utils/debounce.html)
-- [focusTrap](/utils/focusTrap.html)
-- [keyCodes](/utils/keyCodes.html)
-- [memoize](/utils/memoize.html)
-- [nextFrame](/utils/nextFrame.html)
-- [scrollTo](/utils/scrollTo.html)
-- [throttle](/utils/throttle.html)
+- [debounce](./debounce.html)
+- [trapFocus](./trapFocus.html)
+- [keyCodes](./keyCodes.html)
+- [memoize](./memoize.html)
+- [nextFrame](./nextFrame.html)
+- [nextMicrotask](./nextMicrotask.html)
+- [nextTick](./nextTick.html)
+- [scrollTo](./scrollTo.html)
+- [throttle](./throttle.html)
+- [tween](./tween.html)
+- [useScheduler](./useScheduler.html)
+
+## Value
+
+- [isDev](./is/isDev.html)
+- [isFunction](./is/isFunction.html)
+- [isDefined](./is/isDefined.html)
+- [isString](./is/isString.html)
+- [isObject](./is/isObject.html)
+- [isNumber](./is/isNumber.html)
+- [isBoolean](./is/isBoolean.html)
+- [isArray](./is/isArray.html)
 
 ## Collision
 
@@ -34,12 +49,13 @@ Find below functions that can help you in your projects.
 
 ## Math
 
-- [clamp](/utils/math/clamp.html)
 - [clamp01](/utils/math/clamp01.html)
+- [clamp](/utils/math/clamp.html)
 - [damp](/utils/math/damp.html)
 - [inertiaFinalValue](/utils/math/inertiaFinalValue.html)
 - [lerp](/utils/math/lerp.html)
 - [map](/utils/math/map.html)
+- [mean](/utils/math/mean.html)
 - [round](/utils/math/round.html)
 
 ## String

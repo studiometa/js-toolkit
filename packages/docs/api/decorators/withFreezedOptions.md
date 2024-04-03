@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # withFreezedOptions
 
 Use this decorator to transfrom the `$options` property to be read only. This can help improve performance when accessing options in the [`ticked` service method](/api/methods-hooks-services.html#ticked).

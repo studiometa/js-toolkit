@@ -1,17 +1,21 @@
 {
   "name": "@studiometa/js-toolkit-workspace",
-  "version": "2.12.0",
+  "version": "3.0.0-alpha.0",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
+    "postinstall": "patch-package",
     "demo:dev": "npm run dev --workspace=@studiometa/js-toolkit-demo",
     "demo:watch": "npm run watch --workspace=@studiometa/js-toolkit-demo",
     "demo:build": "npm run build --workspace=@studiometa/js-toolkit-demo",
     "docs:dev": "npm run dev --workspace=@studiometa/js-toolkit-docs",
     "docs:build": "npm run build --workspace=@studiometa/js-toolkit-docs",
+    "docs:preview": "npm run preview --workspace=@studiometa/js-toolkit-docs",
     "test": "npm run test --workspace=@studiometa/js-toolkit-tests",
+    "test:coverage": "bun run scripts/generate-lcov-report.ts",
     "lint": "npm run lint:eslint && npm run lint:types && npm run lint:docs",
     "lint:eslint": "eslint packages/js-toolkit --ext=.js,.ts --cache",
     "lint:docs": "prettier --check 'packages/docs/**/*.{md,js,html,vue}' --cache",
@@ -31,19 +35,21 @@
     "@studiometa/prettier-config": "^3.0.0",
     "@studiometa/stylelint-config": "^3.0.2",
     "@types/estree": "^1.0.5",
-    "@types/jest": "^29.5.10",
-    "@types/node": "^20.10.1",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.12.3",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
-    "eslint": "^8.54.0",
+    "bun": "^1.1.0",
+    "eslint": "^8.57.0",
     "eslint-config-airbnb-typescript": "^17.1.0",
     "eslint-import-resolver-exports": "^1.0.0-beta.5",
-    "eslint-plugin-jest": "^27.6.0",
+    "eslint-plugin-jest": "^27.9.0",
+    "patch-package": "^8.0.0",
     "prettier": "^2.8.8",
-    "typescript": "^5.3.2"
+    "typescript": "^5.4.3"
   },
   "dependencies": {
-    "esbuild": "^0.19.8",
+    "esbuild": "^0.20.2",
     "fast-glob": "^3.3.2"
   }
 }

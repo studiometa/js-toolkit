@@ -1,0 +1,6 @@
+[test]
+preload = "./__utils__/happydom.ts"
+coverageSkipTestFiles = true
+
+[loader]
+".html" = "text"

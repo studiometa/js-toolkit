@@ -10,12 +10,50 @@
   <body>
     <main data-breakpoint class="relative p-10">
       {% embed '@components/animate-test.twig' with {
-        name: 'AnimateTestMultiple',
-        easing: ' ',
-        container_class: 'w-full flex flex-wrap items-center justify-between gap-10 p-10',
+        attr: {
+          data_component: 'AnimateTestMultiple',
+        },
+        container_class: 'w-full flex flex-wrap items-center justify-between gap-10 p-10 overflow-hidden',
         steps: [
           {},
-          { x: 50, skewY: -20, rotate: 180, scale: 0.5, opacity: 0.5, easing: [0.6, -0.28, 0.735, 0.045] },
+          {
+            x: 100,
+            skewY: 0,
+            rotate: 180,
+            scale: 0.5,
+            opacity: 0.5,
+            easing: [0.6, -0.28, 0.735, 0.045]
+          },
+          {
+            x: 0,
+            rotate: 360,
+            easing: [0.175, 0.885, 0.32, 1.275]
+          }
+        ]
+      } %}
+        {% block target %}
+          {% for index in 0..200 %}
+            <div data-ref="targets[]" class="w-6 h-6 rounded bg-black"></div>
+          {% endfor %}
+        {% endblock %}
+      {% endembed %}
+      {% embed '@components/animate-test.twig' with {
+        attr: {
+          data_component: 'AnimateTestMultiple',
+          data_option_smooth: 0.01,
+          data_option_stagger: 0.01,
+        },
+        container_class: 'w-full flex flex-wrap items-center justify-between gap-10 p-10 overflow-hidden',
+        steps: [
+          {},
+          {
+            x: 100,
+            skewY: 0,
+            rotate: 180,
+            scale: 0.5,
+            opacity: 0.5,
+            easing: [0.6, -0.28, 0.735, 0.045]
+          },
           {
             x: 0,
             rotate: 360,

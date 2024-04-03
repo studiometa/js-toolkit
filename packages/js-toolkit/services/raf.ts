@@ -1,6 +1,5 @@
 /* eslint-disable no-use-before-define, @typescript-eslint/no-use-before-define */
 import { useService } from './service.js';
-import { getRaf as getRequestAnimationFrame } from '../utils/nextFrame.js';
 import { useScheduler } from '../utils/scheduler.js';
 import { isFunction } from '../utils/is.js';
 import type { ServiceInterface } from './index.js';
@@ -18,7 +17,6 @@ export interface RafServiceProps {
  */
 function createRafService(): RafService {
   let isTicking = false;
-  const RAF = getRequestAnimationFrame();
 
   /**
    * Trigger callbacks.
@@ -49,7 +47,7 @@ function createRafService(): RafService {
       return;
     }
 
-    RAF(loop);
+    requestAnimationFrame(loop);
   }
 
   const { add, remove, has, props, callbacks } = useService({
@@ -58,7 +56,7 @@ function createRafService(): RafService {
     } as RafServiceProps,
     init() {
       isTicking = true;
-      RAF(loop);
+      requestAnimationFrame(loop);
     },
     kill() {
       isTicking = false;

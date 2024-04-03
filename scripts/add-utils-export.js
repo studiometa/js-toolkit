@@ -1,7 +1,10 @@
-const path = require('path');
-const fs = require('fs');
+import { resolve, dirname } from 'node:path';
+import { writeFileSync } from 'node:fs';
 
-const index = path.resolve(__dirname, '../packages/js-toolkit/index.ts');
+const index = resolve(
+  dirname(new URL(import.meta.url).pathname),
+  '../packages/js-toolkit/index.ts',
+);
 
 const content = `import { Base } from './Base/index.js';
 import * as DECORATORS from './decorators/index.js';
@@ -29,4 +32,4 @@ export const ALL = {
 };
 `;
 
-fs.writeFileSync(index, content, { encoding: 'UTF-8' });
+writeFileSync(index, content, { encoding: 'UTF-8' });

@@ -4,6 +4,11 @@
     "noEmit": false,
     "declaration": true,
     "outDir": "dist/",
-    "emitDeclarationOnly": true
-  }
+    "emitDeclarationOnly": true,
+    "types": []
+  },
+  "include": [
+    "packages/global.d.ts",
+    "packages/js-toolkit/**/*.ts"
+  ]
 }

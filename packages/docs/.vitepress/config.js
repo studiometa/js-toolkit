@@ -13,6 +13,7 @@ export default defineConfig({
   lastUpdated: true,
   head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
   themeConfig: {
+    outline: 'deep',
     logo: '/logo.png',
     version: pkg.version,
     repo: 'studiometa/js-toolkit',
@@ -36,7 +37,10 @@ export default defineConfig({
       {
         text: `v${pkg.version}`,
         items: [
-          { text: 'Release Notes', link: 'https://github.com/studiometa/js-toolkit/releases' },
+          {
+            text: 'Release Notes',
+            link: 'https://github.com/studiometa/js-toolkit/blob/master/CHANGELOG.md',
+          },
           { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
         ],
       },
@@ -107,6 +111,10 @@ function getGuideSidebar() {
           text: 'v1 → v2',
           link: '/guide/migration/v1-to-v2.html',
         },
+        {
+          text: 'v2 → v3',
+          link: '/guide/migration/v2-to-v3.html',
+        },
       ],
     },
   ];
@@ -117,31 +125,31 @@ function getApiSidebar({ expanded = 'api' } = {}) {
     {
       text: 'Base class',
       link: '/api/',
-      collapsible: true,
+      collapsed: true,
       items: expanded === 'api' ? getBaseSidebar() : getBaseSidebar(),
     },
     {
       text: 'HTML',
       link: '/api/html/',
-      collapsible: true,
+      collapsed: true,
       items: expanded === 'html' ? getHtmlSidebar() : getHtmlSidebar(),
     },
     {
       text: 'Helpers',
       link: '/api/helpers/',
-      collapsible: true,
+      collapsed: true,
       items: expanded === 'helpers' ? getHelpersSidebar() : getHelpersSidebar(),
     },
     {
       text: 'Services',
       link: '/api/services/',
-      collapsible: true,
+      collapsed: true,
       items: expanded === 'services' ? getServicesSidebar() : getServicesSidebar(),
     },
     {
       text: 'Decorators',
       link: '/api/decorators/',
-      collapsible: true,
+      collapsed: true,
       items: expanded === 'decorators' ? getDecoratorsSidebar() : getDecoratorsSidebar(),
     },
   ];
@@ -222,7 +230,6 @@ function getDecoratorsSidebar() {
     { text: 'withRelativePointer', link: '/api/decorators/withRelativePointer.html' },
     { text: 'withResponsiveOptions', link: '/api/decorators/withResponsiveOptions.html' },
     { text: 'withScrolledInView', link: '/api/decorators/withScrolledInView.html' },
-    { text: 'withVue2', link: '/api/decorators/withVue2.html' },
   ];
 }
 
@@ -246,25 +253,45 @@ function getUtilsSidebar() {
     {
       text: 'Utils',
       link: '/utils/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'debounce', link: '/utils/debounce.html' },
-        { text: 'focusTrap', link: '/utils/focusTrap.html' },
         { text: 'keyCodes', link: '/utils/keyCodes.html' },
         { text: 'memoize', link: '/utils/memoize.html' },
         { text: 'nextFrame', link: '/utils/nextFrame.html' },
         { text: 'nextMicrotask', link: '/utils/nextMicrotask.html' },
         { text: 'nextTick', link: '/utils/nextTick.html' },
+        { text: 'randomInt', link: '/utils/randomInt.html' },
+        { text: 'randomItem', link: '/utils/randomItem.html' },
         { text: 'scrollTo', link: '/utils/scrollTo.html' },
         { text: 'throttle', link: '/utils/throttle.html' },
+        { text: 'trapFocus', link: '/utils/trapFocus.html' },
         { text: 'tween', link: '/utils/tween.html' },
         { text: 'useScheduler', link: '/utils/useScheduler.html' },
       ],
     },
     {
+      text: 'Value utils',
+      link: '/utils/is/',
+      collapsed: true,
+      items: [
+        { text: 'isArray', link: '/utils/is/isArray.html' },
+        { text: 'isBoolean', link: '/utils/is/isBoolean.html' },
+        { text: 'isDefined', link: '/utils/is/isDefined.html' },
+        { text: 'isEmpty', link: '/utils/is/isEmpty.html' },
+        { text: 'isEmptyString', link: '/utils/is/isEmptyString.html' },
+        { text: 'isNull', link: '/utils/is/isNull.html' },
+        { text: 'isDev', link: '/utils/is/isDev.html' },
+        { text: 'isFunction', link: '/utils/is/isFunction.html' },
+        { text: 'isNumber', link: '/utils/is/isNumber.html' },
+        { text: 'isObject', link: '/utils/is/isObject.html' },
+        { text: 'isString', link: '/utils/is/isString.html' },
+      ],
+    },
+    {
       text: 'Collision utils',
       link: '/utils/collision/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'boundingRectToCircle', link: '/utils/collision/boundingRectToCircle.html' },
         { text: 'collideCircleCircle', link: '/utils/collision/collideCircleCircle.html' },
@@ -277,7 +304,7 @@ function getUtilsSidebar() {
     {
       text: 'CSS utils',
       // link: '/utils/css/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'addClass', link: '/utils/css/addClass.html' },
         { text: 'addStyle', link: '/utils/css/addStyle.html' },
@@ -294,7 +321,7 @@ function getUtilsSidebar() {
     {
       text: 'History utils',
       link: '/utils/history/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'historyPush', link: '/utils/history/historyPush.html' },
         { text: 'historyReplace', link: '/utils/history/historyReplace.html' },
@@ -304,7 +331,7 @@ function getUtilsSidebar() {
     {
       text: 'Math utils',
       // link: '/utils/math/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'clamp', link: '/utils/math/clamp.html' },
         { text: 'clamp01', link: '/utils/math/clamp01.html' },
@@ -315,13 +342,14 @@ function getUtilsSidebar() {
         { text: 'inertiaFinalValue', link: '/utils/math/inertiaFinalValue.html' },
         { text: 'lerp', link: '/utils/math/lerp.html' },
         { text: 'map', link: '/utils/math/map.html' },
+        { text: 'mean', link: '/utils/math/mean.html' },
         { text: 'round', link: '/utils/math/round.html' },
       ],
     },
     {
       text: 'String utils',
       link: '/utils/string/',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: 'startsWith', link: '/utils/string/startsWith.html' },
         { text: 'endsWith', link: '/utils/string/endsWith.html' },

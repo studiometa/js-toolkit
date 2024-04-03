@@ -48,25 +48,15 @@ jobs:
     - name: Install modules
       run: npm install
     - name: Run tests
-      run: npm run test -- -- --coverage --runInBand --ci || npm run test -- -- --coverage --runInBand --ci
+      run: npm run test -- -- --coverage
+    - name: Generate coverage report
+      run: npm run test:coverage
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v4
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        directory: ./packages/coverage
+        files: ./lcov.info
         flags: unittests
         fail_ci_if_error: false
-        path_to_write_report: ./codecov_report.txt
-        verbose: false
-
-  Export-Size:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: '0'
-      - uses: titouanmathis/export-size-action@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          build_script: npm run build-for-export-size
-          paths: dist
+        verbose: true
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

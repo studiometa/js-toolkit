@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # importWhenIdle
 
 Use this function to import components when the [`requestIdleCallback`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback) function is called.

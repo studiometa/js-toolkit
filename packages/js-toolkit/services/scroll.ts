@@ -28,13 +28,13 @@ function createScrollService(): ScrollService {
     const xLast = props.x;
 
     // Check scroll Y
-    if (window.pageYOffset !== props.y) {
-      props.y = window.pageYOffset;
+    if (window.scrollY !== props.y) {
+      props.y = window.scrollY;
     }
 
     // Check scroll x
-    if (window.pageXOffset !== props.x) {
-      props.x = window.pageXOffset;
+    if (window.scrollX !== props.x) {
+      props.x = window.scrollX;
     }
 
     props.changed.x = props.x !== xLast;
@@ -69,15 +69,15 @@ function createScrollService(): ScrollService {
 
   const { add, remove, has, props, trigger } = useService({
     props: {
-      x: window.pageXOffset,
-      y: window.pageYOffset,
+      x: window.scrollX,
+      y: window.scrollY,
       changed: {
         x: false,
         y: false,
       },
       last: {
-        x: window.pageXOffset,
-        y: window.pageYOffset,
+        x: window.scrollX,
+        y: window.scrollY,
       },
       delta: {
         x: 0,

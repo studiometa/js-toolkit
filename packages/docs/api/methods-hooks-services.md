@@ -148,30 +148,3 @@ export default class Component extends Base {
 :::tip Tip
 See the [`useRaf` service](/api/services/useRaf.html) for more details.
 :::
-
-## `loaded`
-
-Called when the page is loaded.
-
-**Arguments**
-
-The [raf service](/api/services/useRaf.html#props) does not have any props.
-
-**Example**
-
-```js
-export default class Component extends Base {
-  static config = {
-    name: 'Component',
-    log: true,
-  };
-
-  loaded() {
-    this.$log('Loaded');
-  }
-}
-```
-
-:::tip Tip
-See the [`useLoad` service](/api/services/useLoad.html) for more details.
-:::

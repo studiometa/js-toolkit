@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "2.12.0",
+  "version": "3.0.0-alpha.0",
   "description": "A set of useful little bits of JavaScript to boost your project! 🚀",
   "publishConfig": {
     "access": "public"
@@ -23,13 +23,11 @@
   "exports": {
     ".": {
       "import": "./index.ts",
-      "require": "./index.cjs",
       "types": "./index.d.ts",
       "default": "./index.ts"
     },
     "./utils": {
       "import": "./utils/index.ts",
-      "require": "./utils/index.cjs",
       "types": "./utils/index.d.ts",
       "default": "./utils/index.js"
     }
@@ -41,13 +39,7 @@
     "toolkit"
   ],
   "dependencies": {
-    "@motionone/easing": "^10.15.1",
+    "@motionone/easing": "^10.17.0",
     "deepmerge": "^4.3.1"
-  },
-  "devDependencies": {
-    "vue": "^2.6.0"
-  },
-  "peerDependencies": {
-    "vue": "^2.6.0 || ^3.0"
   }
 }

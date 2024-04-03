@@ -14,7 +14,7 @@ export default class ScrollToDemo extends Base {
 
   async onBtnClick() {
     this.$log('start scroll');
-    await scrollTo(this.$refs.text);
+    await scrollTo(this.$refs.text, { duration: 2, easing: [1, 0, 0, 1] });
     this.$log('end scroll');
   }
 }

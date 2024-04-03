@@ -41,7 +41,7 @@ class Toggle extends Base {
   }
 }
 
-Toggle.$factory('Toggle');
+Toggle.$register();
 ```
 
 The class created by extending the `Base` class are components and can be used to achieve the above mentioned purposes.

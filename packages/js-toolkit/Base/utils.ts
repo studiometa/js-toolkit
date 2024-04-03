@@ -68,8 +68,9 @@ export function getComponentElements(
     // eslint-disable-next-line no-empty
   } catch {}
 
-  // If no child component found with the default selector, try a classic DOM selector
-  if (elements.length === 0) {
+  // If no child component found with the default selector, and if the selector does not
+  // start with an uppercase letter, matching a component's name, try a classic DOM selector.
+  if (elements.length === 0 && nameOrSelector[0] === nameOrSelector[0].toLowerCase()) {
     elements = Array.from(element.querySelectorAll(nameOrSelector));
   }
 

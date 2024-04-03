@@ -22,7 +22,7 @@ This example demonstrate the usage of the [`scrolled` service](/api/methods-hook
   onMounted(async () => {
     const { default: ScrollLinkedAnimation } = await import('./ScrollLinkedAnimation.js');
     await nextTick();
-    scrollLinkedAnimations = ScrollLinkedAnimation.$factory('ScrollLinkedAnimation');
+    scrollLinkedAnimations = ScrollLinkedAnimation.$register();
   });
   onUnmounted(() => {
     scrollLinkedAnimations.forEach(instance => instance.$destroy());

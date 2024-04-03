@@ -2,6 +2,11 @@
 export const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 
 /**
+ * Test is the given value is null.
+ */
+export const isNull = (value: unknown): value is null => value === null;
+
+/**
  * Test if the given value is a function.
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -36,3 +41,27 @@ export const isBoolean = (value: unknown): value is boolean => typeof value === 
 
 // eslint-disable-next-line prefer-destructuring
 export const isArray = Array.isArray;
+
+/**
+ * Test if a given value is an empty string.
+ */
+export const isEmptyString = (value?: unknown): boolean => isString(value) && value.length === 0;
+
+/**
+ * Test if the given value is empty.
+ */
+export const isEmpty = (value?) => {
+  if (isNull(value) || !isDefined(value)) {
+    return true;
+  }
+
+  if (isString(value) || isArray(value)) {
+    return value.length === 0;
+  }
+
+  if (isObject(value)) {
+    return value.constructor === Object && Object.keys(value).length === 0;
+  }
+
+  return false;
+};
