@@ -1,16 +1,16 @@
 import { tween } from './tween.js';
 import type { TweenOptions } from './tween.js';
-import { isString, isNumber, isFunction } from './is.js';
+import { isString, isNumber, isFunction, isDefined } from './is.js';
 import { lerp } from './math/index.js';
 
-export type ScrollPosition = {
+export interface ScrollPosition {
   left: number;
   top: number;
-};
+}
 
 export type ScrollTarget = string | HTMLElement | number | Partial<ScrollPosition>;
 
-export type ScrollToOptions = TweenOptions & {
+export interface ScrollToOptions extends TweenOptions {
   /**
    * Root element that will be scrolled.
    */
@@ -23,7 +23,7 @@ export type ScrollToOptions = TweenOptions & {
    * Distance from the target.
    */
   offset?: number;
-};
+}
 
 const xAxis = Symbol(0);
 const yAxis = Symbol(1);
@@ -98,7 +98,7 @@ function getTargetScrollPosition(
   top -= offset;
 
   if (axis !== bothAxis) {
-    if (axis !== xAxis) {
+    if (axis !== xAxis && !isDefined((target as Partial<ScrollPosition>).left)) {
       left = initialScrollPosition.left;
     }
 
@@ -134,10 +134,10 @@ export function scrollTo(
 
   return new Promise((resolve) => {
     function eventHandler() {
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      /* eslint-disable @typescript-eslint/no-use-before-define */
       tw.pause();
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       stop();
+      /* eslint-enable @typescript-eslint/no-use-before-define */
     }
 
     function stop() {
@@ -157,6 +157,7 @@ export function scrollTo(
         });
       },
       {
+        smooth: 0.2,
         ...tweenOptions,
         onFinish(progress) {
           if (isFunction(tweenOptions.onFinish)) {
