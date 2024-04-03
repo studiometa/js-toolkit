@@ -2,6 +2,7 @@ import { describe, it, expect, mock, spyOn, afterEach, beforeEach } from 'bun:te
 import { scrollTo } from '@studiometa/js-toolkit/utils';
 import { mockScroll, restoreScroll } from '../__utils__/scroll.js';
 import { useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '../__utils__/faketimers.js';
+import { h } from '../__utils__/h.js';
 
 describe('The `scrollTo` function', () => {
   let fn;
@@ -131,5 +132,21 @@ describe('The `scrollTo` function', () => {
     scrollTo(0);
     await advanceTimersByTimeAsync(2000);
     expect(window.scrollY).toBe(0);
+  });
+
+  it('should scroll on the given rootElement', async () => {
+    const div = h('div');
+    mockScroll({ height: 5000, width: 5000, element: div, left: 200 });
+    expect(div.scrollHeight).toBe(5000);
+    scrollTo(1000, { rootElement: div });
+    await advanceTimersByTimeAsync(2000);
+    expect(div.scrollTop).toBe(1000);
+    scrollTo(1000, { rootElement: div, axis: scrollTo.axis.x });
+    await advanceTimersByTimeAsync(2000);
+    expect(div.scrollLeft).toBe(1000);
+    scrollTo(2000, { rootElement: div, axis: scrollTo.axis.both });
+    await advanceTimersByTimeAsync(2000);
+    expect(div.scrollTop).toBe(2000);
+    expect(div.scrollLeft).toBe(2000);
   });
 });
