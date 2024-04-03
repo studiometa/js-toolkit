@@ -6,7 +6,7 @@ export { nextFrame } from './nextFrame.js';
 export { nextTick } from './nextTick.js';
 export { nextMicrotask } from './nextMicrotask.js';
 export { default as throttle } from './throttle.js';
-export { default as scrollTo } from './scrollTo.js';
+export { scrollTo } from './scrollTo.js';
 export { default as getComponentResolver } from './getComponentResolver.js';
 export * from './is.js';
 export * from './has.js';
