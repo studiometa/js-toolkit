@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.0](https://github.com/studiometa/js-toolkit/compare/2.12.0..3.0.0-alpha.0) (2023-04-03)
+
 ### Added
 
 - Add support for defining breakpoints when using the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
