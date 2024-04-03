@@ -1,21 +1,40 @@
 # scrollTo
 
-Scroll vertically using [tween](./tween.html) to a given target, be it a selector or an element, without blocking user interaction.
+Scroll to a given target without blocking user interaction. The target can be a selector, an element, a number or a scroll position object.
+
+If the target is a selector or an element, the `scroll-margin` CSS values will be respected when calculating the final scroll position.
+
+The `scrollTo` function uses the [tween](./tween.html) function under the hood, inheriting from its options.
 
 ## Usage
 
 ```js
-import { scrollTo } from '@studiometa/js-toolkit/utils';
+import { scrollTo, easeOutExpo } from '@studiometa/js-toolkit/utils';
 
 await scrollTo('#target');
 await scrollTo(document.querySelector('#target'));
 await scrollTo(800);
-await scrollTo({ left: 200 });
+await scrollTo({ top: 300, left: 200 });
+
+// Custom axis
+await scrollTo(800, { axis: scrollTo.axis.y }); // default
+await scrollTo(800, { axis: scrollTo.axis.x });
+await scrollTo(800, { axis: scrollTo.axis.both });
+
+// With offset
+await scrollTo('#target', { offset: 100 }); // stop at 100px from the target
+
+// With a different scrolling element
+await scrollTo(800, { rootElement: document.body });
+
+// With custom easing and duration
+await scrollTo(800, { duration: 2, easing: easeOutExpo });
+await scrollTo(800, { smooth: 0.5 }); // custom smooth factor
 ```
 
 ### Parameters
 
-- `selectorOrElementOrValueOrValues` (`string|HTMLElement|number|ScrollPosition`): the target of the scroll
+- `target` (`string | HTMLElement | number | ScrollPosition`): the target of the scroll
 - `options` (`ScrollToOptions`): options for the scroll (offset + [tween options](./tween.html))
 
 ### Return value
@@ -25,67 +44,30 @@ This function returns a `Promise` resolving to the scroll position, even when st
 ### Types
 
 ```ts
-type EasingFunction = (value: number) => number;
-type BezierCurve = [number, number, number, number];
-
 interface ScrollPosition {
-  left?: number;
-  top?: number;
+  left: number;
+  top: number;
 }
 
-interface ScrollToOptions {
+type ScrollTarget = string | HTMLElement | number | Partial<ScrollPosition>;
+
+interface ScrollToOptions extends TweenOptions {
   /**
    * Root element that will be scrolled.
    */
-  rootElement?: HTMLElement;
+  rootElement?: HTMLElement | typeof window;
   /**
-   * Scroll direction.
+   * Scroll direction, available values are:
+   * - scrollTo.axis.x (enabled if target is an object with a `left` key)
+   * - scrollTo.axis.y (default)
+   * - scrollTo.axis.both
    */
-  axis?: 'X' | 'Y' | 'BOTH';
+  axis?: (typeof scrollTo.axis)[keyof typeof scrollTo.axis];
   /**
    * Distance from the target.
    */
   offset?: number;
-  /**
-   * The duration, in seconds.
-   * Defaults to `1`.
-   */
-  duration?: number;
-  /**
-   * The delay, in seconds.
-   * Defaults to `0`.
-   */
-  delay?: number;
-  /**
-   * The easing function or bezier curve to use.
-   * Defaults to a linear easing function.
-   */
-  easing?: EasingFunction | BezierCurve;
-  /**
-   * The smooth factor. Setting this option to `true` or a `number` will disable the `duration` option.
-   */
-  smooth?: true | number;
-  /**
-   * The precision for when to consider the tween finished.
-   * Defaults to `0.0001`.
-   */
-  precision?: number;
-  /**
-   * A callback executed on start.
-   */
-  onStart?: (progress: number) => void;
-  /**
-   * A callback executed each time the progress is updated.
-   */
-  onProgress?: (progress: number) => void;
-  /**
-   * A callback executed when the tween is finished.
-   */
-  onFinish?: (progress: number) => void;
 }
 
-function scrollTo(
-  selectorElement: HTMLElement | string,
-  options?: ScrollToOptions,
-): Promise<number>;
+function scrollTo(target: ScrollTarget, options?: ScrollToOptions): Promise<ScrollPosition>;
 ```
