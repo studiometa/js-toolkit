@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.0](https://github.com/studiometa/js-toolkit/compare/2.12.0..3.0.0-alpha.0) (2023-04-03)
+
 ### Added
 
 - Add support for defining breakpoints when using the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
@@ -23,7 +25,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
-- ⚠️ Rename the static $factory to $register and make its single argument optional ([#416](https://github.com/studiometa/js-toolkit/pull/416))
+- ⚠️ Rename the static `$factory` method to `$register` and make its single argument optional ([#416](https://github.com/studiometa/js-toolkit/pull/416))
 - ⚠️ Refactor definition of breakpoints for the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
 - ⚠️ Refactor `focusTrap` for simpler exports ([#406](https://github.com/studiometa/js-toolkit/pull/406))
 - Migrate tests from Jest to Bun ([#411](https://github.com/studiometa/js-toolkit/pull/411))
