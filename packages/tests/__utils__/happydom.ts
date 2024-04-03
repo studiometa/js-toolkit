@@ -5,6 +5,7 @@ GlobalRegistrator.register();
 window.__DEV__ = true;
 
 let y = 0;
+let x = 0;
 
 Object.defineProperties(window, {
   scrollY: {
@@ -13,6 +14,14 @@ Object.defineProperties(window, {
     },
     set: (value) => {
       y = Number(value);
+    },
+  },
+  scrollX: {
+    get: () => {
+      return x;
+    },
+    set: (value) => {
+      x = Number(value);
     },
   },
   requestAnimationFrame: {
