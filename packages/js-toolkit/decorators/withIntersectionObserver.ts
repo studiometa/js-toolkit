@@ -1,5 +1,6 @@
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
 import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
+import { createRange } from '../utils/index.js';
 
 export interface WithIntersectionObserverProps extends BaseProps {
   $options: {
@@ -14,19 +15,12 @@ export interface WithIntersectionObserverInterface extends BaseInterface {
 }
 
 /**
- * Create an array of number between 0 and 1 from the given length.
- */
-function createArrayOfNumber(length: number): number[] {
-  return new Array(length + 1).fill(length).map((val, index) => index / length);
-}
-
-/**
  * IntersectionObserver decoration.
  */
 export function withIntersectionObserver<S extends Base>(
   BaseClass: typeof Base,
   // eslint-disable-next-line unicorn/no-object-as-default-parameter
-  defaultOptions: IntersectionObserverInit = { threshold: createArrayOfNumber(100) },
+  defaultOptions: IntersectionObserverInit = { threshold: createRange(0, 1, 0.01) },
 ): BaseDecorator<WithIntersectionObserverInterface, S, WithIntersectionObserverProps> {
   /**
    * Class.
