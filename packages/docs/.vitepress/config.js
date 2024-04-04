@@ -337,6 +337,7 @@ function getUtilsSidebar() {
         { text: 'clamp01', link: '/utils/math/clamp01.html' },
         { text: 'createEaseInOut', link: '/utils/math/createEaseInOut.html' },
         { text: 'createEaseOut', link: '/utils/math/createEaseOut.html' },
+        { text: 'createRange', link: '/utils/math/createRange.html' },
         { text: 'damp', link: '/utils/math/damp.html' },
         { text: 'ease', link: '/utils/math/ease.html' },
         { text: 'inertiaFinalValue', link: '/utils/math/inertiaFinalValue.html' },
