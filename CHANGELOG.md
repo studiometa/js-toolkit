@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.1](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.0..3.0.0-alpha.1) (2023-04-04)
+
+### Added
+
+- Add an `easeLinear` function ([#425](https://github.com/studiometa/js-toolkit/pull/425))
+
+### Fixed
+
+- Fix `ease...` tests ([#425](https://github.com/studiometa/js-toolkit/pull/425))
+
 ## [v3.0.0-alpha.0](https://github.com/studiometa/js-toolkit/compare/2.12.0..3.0.0-alpha.0) (2023-04-03)
 
 ### Added

@@ -1,5 +1,7 @@
 import { createEaseOut, createEaseInOut } from './createEases.js';
 
+export { noopValue as easeLinear } from '../noop.js';
+
 /**
  * @param  {number} progress Progress value betwen 0 and 1.
  * @returns {number}          Eased value between 0 and 1.
