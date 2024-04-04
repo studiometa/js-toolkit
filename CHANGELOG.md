@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.2](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.1..3.0.0-alpha.2) (2023-04-04)
+
+### Added
+
+- Add a `createRange` utility function ([#426](https://github.com/studiometa/js-toolkit/pull/426), [2cb2bac](https://github.com/studiometa/js-toolkit/commit/2cb2bac))
+
+### Fixed
+
+- Fix an import path ([#426](https://github.com/studiometa/js-toolkit/pull/426), [9722d74](https://github.com/studiometa/js-toolkit/commit/9722d74))
+
 ## [v3.0.0-alpha.1](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.0..3.0.0-alpha.1) (2023-04-04)
 
 ### Added

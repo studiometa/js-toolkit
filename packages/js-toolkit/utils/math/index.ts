@@ -1,6 +1,7 @@
 export * as ease from './ease.js';
 export * from './createEases.js';
 export * from './ease.js';
+export { createRange } from './createRange.js';
 export { default as clamp } from './clamp.js';
 export { default as clamp01 } from './clamp01.js';
 export { default as damp } from './damp.js';
