@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-demo",
-  "version": "3.0.0-alpha.1",
+  "version": "3.0.0-alpha.2",
   "private": true,
   "type": "commonjs",
   "scripts": {
