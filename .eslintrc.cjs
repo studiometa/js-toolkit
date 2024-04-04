@@ -46,7 +46,6 @@ module.exports = {
         'require-jsdoc': 'off',
         'jsdoc/require-returns': 'off',
         'jsdoc/require-param': 'off',
-        'import/extensions': 'off',
         '@typescript-eslint/naming-convention': [
           'warn',
           {
