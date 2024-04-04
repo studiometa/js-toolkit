@@ -3,7 +3,7 @@ import { randomInt, randomItem } from '@studiometa/js-toolkit/utils';
 
 describe('randomInt method', () => {
   it('should return a random integer between bounds values', () => {
-    for (const [a, b] of new Array(10).fill([10, 20])) {
+    for (const [a, b] of Array.from({ length: 10 }).map(() => [10, 20])) {
       const result1 = randomInt(a);
       expect(result1).toBeGreaterThanOrEqual(0);
       expect(result1).toBeLessThanOrEqual(a);
