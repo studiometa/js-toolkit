@@ -1,4 +1,4 @@
-import { isArray, isString } from './is';
+import { isArray, isString } from './is.js';
 
 /**
  * Get a random integer between bounds
