@@ -6,6 +6,8 @@ Functions to get the eased version of a progress value in the 0–1 range and he
 
 ```js
 import {
+  // linear
+  easeLinear,
   // in
   easeInCirc,
   easeInCubic,
@@ -61,14 +63,17 @@ Select an easing function below to see how it will transform the given progress 
   const names = computed(() =>
     Object.keys(easingFunctions.value).filter((name) => name.startsWith('ease'))
   );
+  const easeLinear = computed(() =>
+    unref(names).filter((name) => name === 'easeLinear')
+  );
   const easeIn = computed(() =>
     unref(names).filter((name) => name.startsWith('easeIn') && !name.startsWith('easeInOut'))
   );
   const easeOut = computed(() => unref(names).filter((name) => name.startsWith('easeOut')));
   const easeInOut = computed(() => unref(names).filter((name) => name.startsWith('easeInOut')));
-  const name = ref('linear');
-  const linear = (progress) => progress;
-  const fn = computed(() => (name.value === 'linear' ? linear : easingFunctions.value[name.value]));
+  const name = ref('easeLinear');
+
+  const fn = computed(() => easingFunctions.value[name.value] ??((v) => v));
   const count = 90;
 
   onMounted(() => {
@@ -80,23 +85,23 @@ Select an easing function below to see how it will transform the given progress 
   })
 </script>
 
-<div class="p-10 rounded bg-gray-100">
-  <select v-model="name" class="mb-10">
-    <option value="linear">linear</option>
+<div class="p-10 rounded" style="background-color: var(--vp-sidebar-bg-color);">
+  <select v-model="name" class="mb-10 p-2 rounded">
+    <option value="easeLinear">easeLinear</option>
     <option :value="name" v-for="name in easeIn">{{ name }}</option>
     <option :value="name" v-for="name in easeOut">{{ name }}</option>
     <option :value="name" v-for="name in easeInOut">{{ name }}</option>
   </select>
   <div class="relative w-full h-48 pointer-events-none">
     <div
-      class="absolute top-0 left-0 flex flex-col items-end justify-between w-px h-full bg-gray-400 text-xs"
+      class="absolute top-0 left-0 flex flex-col items-end justify-between w-px h-full bg-gray-400 text-xs opacity-80"
     >
       <div class="mr-2">1</div>
-      <div class="mr-1 transform rotate-180" style="writing-mode: vertical-lr">progress</div>
+      <div class="mr-1 transform -rotate-180" style="writing-mode: vertical-lr">progress</div>
       <div class="mr-2">0</div>
     </div>
     <div
-      class="absolute bottom-0 left-0 flex items-start justify-between w-full h-px bg-gray-400 text-xs"
+      class="absolute bottom-0 left-0 flex items-start justify-between w-full h-px bg-gray-400 text-xs opacity-80"
     >
       <div class="mt-2">0</div>
       <div class="mt-2">time</div>
@@ -109,7 +114,7 @@ Select an easing function below to see how it will transform the given progress 
       class="absolute bottom-0 flex items-end h-full transition"
       :style="{ left: `${((i - 1) / count) * 100}%`, transform: `translateY(${fn((i - 1) / count) * -192}px` }"
     >
-      <div class="w-0.5 h-0.5 bg-black rounded-full" />
+      <div class="w-0.5 h-0.5 bg-current rounded-full" />
     </div>
   </div>
 </div>
