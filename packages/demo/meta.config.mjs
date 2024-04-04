@@ -8,12 +8,12 @@ export default defineConfig({
   presets: [prototyping({ ts: true })],
   webpack(config) {
     config.resolve.alias = {
-      ...(config.resolve.alias || {}),
+      ...config.resolve.alias,
       '@studiometa/js-toolkit': resolve(dirname(pathname), '../js-toolkit'),
     };
 
     config.cache = {
-      ...(config.cache || {}),
+      ...config.cache,
       buildDependencies: {
         config: [pathname],
         toolkit: [resolve(dirname(pathname), '../js-toolkit')],

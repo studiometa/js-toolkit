@@ -2,71 +2,21 @@
 
 Find below functions that can help you in your projects.
 
-## Misc
+<script setup>
+  import { useData } from 'vitepress';
 
-- [debounce](./debounce.html)
-- [trapFocus](./trapFocus.html)
-- [keyCodes](./keyCodes.html)
-- [memoize](./memoize.html)
-- [nextFrame](./nextFrame.html)
-- [nextMicrotask](./nextMicrotask.html)
-- [nextTick](./nextTick.html)
-- [scrollTo](./scrollTo.html)
-- [throttle](./throttle.html)
-- [tween](./tween.html)
-- [useScheduler](./useScheduler.html)
+  const { theme } = useData();
+  const sidebar = theme.value.sidebar['/utils/'];
+</script>
 
-## Value
+<template v-for="section in sidebar">
 
-- [isDev](./is/isDev.html)
-- [isFunction](./is/isFunction.html)
-- [isDefined](./is/isDefined.html)
-- [isString](./is/isString.html)
-- [isObject](./is/isObject.html)
-- [isNumber](./is/isNumber.html)
-- [isBoolean](./is/isBoolean.html)
-- [isArray](./is/isArray.html)
+## {{ section.text }}
 
-## Collision
+<ul>
+  <li v-for="link in section.items" :key="link.link">
+    <a :href="link.link">{{ link.text }}</a>
+  </li>
+</ul>
 
-- [boundingRectToCircle](/utils/collision/boundingRectToCircle.html)
-- [collideCircleCircle](/utils/collision/collideCircleCircle.html)
-- [collideCircleRect](/utils/collision/collideCircleRect.html)
-- [collidePointCircle](/utils/collision/collidePointCircle.html)
-- [collidePointRect](/utils/collision/collidePointRect.html)
-- [collideRectRect](/utils/collision/collideRectRect.html)
-
-## CSS
-
-- [matrix](/utils/css/matrix.html)
-- [transition](/utils/css/transition.html)
-
-## History
-
-- [historyPush](/utils/history/historyPush.html)
-- [historyReplace](/utils/history/historyReplace.html)
-- [objectToURLSearchParams](/utils/history/objectToURLSearchParams.html)
-
-## Math
-
-- [clamp01](/utils/math/clamp01.html)
-- [clamp](/utils/math/clamp.html)
-- [damp](/utils/math/damp.html)
-- [inertiaFinalValue](/utils/math/inertiaFinalValue.html)
-- [lerp](/utils/math/lerp.html)
-- [map](/utils/math/map.html)
-- [mean](/utils/math/mean.html)
-- [round](/utils/math/round.html)
-
-## String
-
-- [withLeadingCharacters](/utils/string/withLeadingCharacters.html)
-- [withLeadingSlash](/utils/string/withLeadingSlash.html)
-- [withoutLeadingCharacters](/utils/string/withoutLeadingCharacters.html)
-- [withoutLeadingCharactersRecursive](/utils/string/withoutLeadingCharactersRecursive.html)
-- [withoutLeadingSlash](/utils/string/withoutLeadingSlash.html)
-- [withoutTrailingCharacters](/utils/string/withoutTrailingCharacters.html)
-- [withoutTrailingCharactersRecursive](/utils/string/withoutTrailingCharactersRecursive.html)
-- [withoutTrailingSlash](/utils/string/withoutTrailingSlash.html)
-- [withTrailingCharacters](/utils/string/withTrailingCharacters.html)
-- [withTrailingSlash](/utils/string/withTrailingSlash.html)
+</template>

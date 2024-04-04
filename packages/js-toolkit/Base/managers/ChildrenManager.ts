@@ -11,8 +11,6 @@ import { startsWith } from '../../utils/index.js';
  *   The root element of the child component.
  * @param {BaseConstructor|BaseAsyncConstructor} ComponentClass
  *   A Base class or a Promise for async components.
- * @param {string} name
- *   The name of the child component.
  * @returns {Base|Promise<Base | 'terminated'>|'terminated'}
  *   A Base instance or a Promise resolving to a Base instance.
  * @private
@@ -22,7 +20,6 @@ function __getChild(
   that: ChildrenManager,
   el: BaseEl,
   ComponentClass: BaseConstructor | BaseAsyncConstructor,
-  name: string,
 ): Base | Promise<Base | 'terminated'> | 'terminated' {
   const asyncComponentPromise = that.__asyncComponentPromises.get(
     ComponentClass as BaseAsyncConstructor,
@@ -76,7 +73,7 @@ function __getChild(
       ctor,
     });
 
-    return __getChild(that, el, ctor, name);
+    return __getChild(that, el, ctor);
   });
 }
 
@@ -204,7 +201,7 @@ export class ChildrenManager extends AbstractManager {
     }
 
     return elements
-      .map((element) => __getChild(this, element, component, name))
+      .map((element) => __getChild(this, element, component))
       .filter((instance) => instance !== 'terminated');
   }
 }
