@@ -72,8 +72,9 @@ export default class Counter extends Base {
     name: 'Counter';
   }
 }
+
 ```
-Add your newly created componant to the app file to mount it:
+Add your newly created component to the app file to mount it:
 
 ```js
 
@@ -91,6 +92,11 @@ class App extends Base {
 
 export default createApp(App);
 ```
+
+::: tip 📖 Check out the docs
+See the [managing components](guide/introduction/managing-components.html) section to learn more.
+:::
+
 
 ### Add the refs
 
@@ -126,7 +132,7 @@ Then, add to your HTML the data attribute to the targeted DOM elements:
 
 ### Add logic
 
-Now that everything is connected we can start playing around, by adding method:
+Now that everything is connected we can start playing around, by adding methods:
 
 ``` js
 import { Base } from '@studiometa/js-toolkit';

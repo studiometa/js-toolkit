@@ -30,10 +30,10 @@ export default createApp(App, document.body);
 
 The [`createApp`](/api/helpers/createApp.html) helper will instantiate your app when the window has been loaded to avoid blocking anything.
 
-Once you are set up, let's look at practical recipes:
+## Next steps
 
-1. A [`counter`](/guide/recipes/counter-component/)
-2. A [`scroll linked animation`](/guide/recipes/scroll-linked-animation/)
-2. [`Teleport refs`](/guide/recipes/teleport-refs/)
+Once you are set up, you can go to the next page [`Managing Components`](/guide/introduction/managing-components/) or have a look at practical recipes:
 
-
+1. [`counter recipe`](/guide/recipes/counter-component/) level easy
+2. [`teleport refs`](/guide/recipes/teleport-refs/) level pro
+3. [`scroll linked animation`](/guide/recipes/scroll-linked-animation/) level expert

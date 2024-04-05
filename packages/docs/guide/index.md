@@ -44,3 +44,7 @@ Toggle.$factory('Toggle');
 ```
 
 The class created by extending the `Base` class are components and can be used to achieve the above mentioned purposes.
+
+## Ready to get started ?
+
+To learn more how to handle and begin with the js-toolkjit you can head to the next page [`getting started`](/guide/introduction/getting-started/) or if you are already familiar with the js-toolkit and want to go deaper you can head to the [`API reference`](/guide/recipes/api/) for more specific documentation.
