@@ -73,7 +73,7 @@ class Component extends Base {
 - Type: `Object`
 - Default: `{}`
 
-The children components of the current one that will automatically be mounted and destroyed accordion to the state of the current component. Children components can be defined like the following:
+The children components of the current one that will automatically be mounted and destroyed according to the state of the current component. Children components can be defined like the following:
 
 ```js
 import ComponentOne from './ComponentOne';
