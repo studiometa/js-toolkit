@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { mock } from 'bun:test';
 
 type Item = {
   callback: IntersectionObserverCallback;
@@ -19,7 +19,7 @@ export function beforeAllCallback() {
    * We keep track of the elements being observed, so when `mockAllIsIntersecting` is triggered it will
    * know which elements to trigger the event on.
    */
-  globalThis.IntersectionObserver = jest.fn(
+  globalThis.IntersectionObserver = mock(
     (cb: IntersectionObserverCallback, options: IntersectionObserverInit = {}) => {
       const item: Item = {
         callback: cb,
@@ -30,16 +30,16 @@ export function beforeAllCallback() {
         thresholds: Array.isArray(options.threshold) ? options.threshold : [options.threshold ?? 0],
         root: options.root ?? null,
         rootMargin: options.rootMargin ?? '',
-        observe: jest.fn((element: Element) => {
+        observe: mock((element: Element) => {
           item.elements.add(element);
         }),
-        unobserve: jest.fn((element: Element) => {
+        unobserve: mock((element: Element) => {
           item.elements.delete(element);
         }),
-        disconnect: jest.fn(() => {
+        disconnect: mock(() => {
           observers.delete(instance);
         }),
-        takeRecords: jest.fn(),
+        takeRecords: mock(),
       };
 
       observers.set(instance, item);
@@ -80,7 +80,7 @@ function triggerIntersection(
             toJSON() {},
           },
       isIntersecting,
-      rootBounds: observer.root ? observer.root.getBoundingClientRect() : null,
+      rootBounds: observer.root ? (observer.root as Element).getBoundingClientRect() : null,
       target: element,
       time: Date.now() - item.created,
     });
@@ -102,7 +102,7 @@ export function intersectionMockInstance(element: Element): IntersectionObserver
     }
   }
 
-  throw new Error('Failed to find IntersectionObserver for element. Is it being observer?');
+  throw new Error('Failed to find IntersectionObserver for element. Is it being observed?');
 }
 
 /**

@@ -1,12 +1,11 @@
 /* eslint-disable require-jsdoc, max-classes-per-file */
-import { describe, it, expect, beforeAll, afterEach } from 'bun:test';
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'bun:test';
 import {
   Base,
   withExtraConfig,
   importWhenVisible,
   getInstanceFromElement,
 } from '@studiometa/js-toolkit';
-import { wait } from '@studiometa/js-toolkit/utils';
 import {
   beforeAllCallback,
   afterEachCallback,
@@ -15,8 +14,18 @@ import {
 import { h } from '../__utils__/h.js';
 import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '../__utils__/faketimers';
 
-beforeAll(() => beforeAllCallback());
-afterEach(() => afterEachCallback());
+beforeAll(() => {
+  beforeAllCallback();
+});
+
+beforeEach(() => {
+  useFakeTimers();
+});
+
+afterEach(() => {
+  afterEachCallback();
+  useRealTimers();
+});
 
 class App extends Base {
   static config = {
@@ -43,13 +52,12 @@ describe('The `importWhenVisible` lazy import helper', () => {
 
     new AppOverride(div).$mount();
 
+    await advanceTimersByTimeAsync(1);
     expect(getInstanceFromElement(component, Component)).toBeNull();
     mockIsIntersecting(component, false);
     expect(getInstanceFromElement(component, Component)).toBeNull();
-    useFakeTimers();
     mockIsIntersecting(component, true);
     await advanceTimersByTimeAsync(1);
-    useRealTimers();
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
@@ -67,13 +75,12 @@ describe('The `importWhenVisible` lazy import helper', () => {
 
     new AppOverride(div).$mount();
 
+    await advanceTimersByTimeAsync(1);
     expect(getInstanceFromElement(component, Component)).toBeNull();
     mockIsIntersecting(btn, false);
     expect(getInstanceFromElement(component, Component)).toBeNull();
-    useFakeTimers();
     mockIsIntersecting(btn, true);
     await advanceTimersByTimeAsync(1);
-    useRealTimers();
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
@@ -89,11 +96,10 @@ describe('The `importWhenVisible` lazy import helper', () => {
 
     new AppOverride(div).$mount();
 
+    await advanceTimersByTimeAsync(1);
     expect(getInstanceFromElement(component, Component)).toBeNull();
-    useFakeTimers();
     mockIsIntersecting(document.body, true);
     await advanceTimersByTimeAsync(1);
-    useRealTimers();
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 });
