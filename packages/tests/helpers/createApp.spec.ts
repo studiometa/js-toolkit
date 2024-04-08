@@ -81,25 +81,25 @@ describe('The `createApp` function', () => {
   });
 
   it('should enable given features', () => {
-    expect(features.get('asyncChildren')).toBe(false);
+    expect(features.get('asyncChildren')).toBe(true);
     createApp(App, {
       features: {
-        asyncChildren: true,
+        asyncChildren: false,
       },
     });
-    expect(features.get('asyncChildren')).toBe(true);
-    features.set('asyncChildren', false);
+    expect(features.get('asyncChildren')).toBe(false);
+    features.set('asyncChildren', true);
   });
 
   it('should instantiate directly when the asynChildren feature is enabled', async () => {
     const useApp = createApp(App, {
       features: {
-        asyncChildren: true,
+        asyncChildren: false,
       },
     });
     expect(ctorFn).toHaveBeenCalledTimes(1);
     expect(useApp()).toBeInstanceOf(Promise);
     expect(await useApp()).toBeInstanceOf(App);
-    features.set('asyncChildren', false);
+    features.set('asyncChildren', true);
   });
 });
