@@ -58,6 +58,12 @@ module.exports = {
       },
     },
     {
+      files: ['packages/tests/**/*.ts'],
+      rules: {
+        'import/extensions': 'off',
+      },
+    },
+    {
       files: ['packages/docs/**/*.js'],
       rules: {
         'require-jsdoc': 'off',
