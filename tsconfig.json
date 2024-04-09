@@ -10,7 +10,11 @@
     "noImplicitThis": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "baseUrl": "./packages/js-toolkit/"
+    "baseUrl": "./packages/js-toolkit/",
+    "paths": {
+      "#private/*": ["./*"],
+      "#utils": ["../tests/__utils__/index.ts"]
+    }
   },
   "include": [
     "packages/global.d.ts",
