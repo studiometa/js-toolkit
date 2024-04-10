@@ -1,12 +1,12 @@
 import { describe, it, expect, mock, afterEach, beforeEach } from 'bun:test';
 import { Base, withBreakpointObserver, withName } from '@studiometa/js-toolkit';
 import {
-  resizeWindow,
-  matchMedia,
   advanceTimersByTimeAsync,
-  useFakeTimers,
-  useRealTimers,
   h,
+  resizeWindow,
+  useFakeTimers,
+  useMatchMedia,
+  useRealTimers,
 } from '#test-utils';
 
 beforeEach(() => {
@@ -14,7 +14,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  matchMedia.clear();
   useRealTimers();
 });
 
@@ -53,17 +52,20 @@ async function getContext() {
   const foo = app.$children.Foo[0];
   const fooResponsive = app.$children.FooResponsive;
 
+  const matchMedia = useMatchMedia();
+
   return {
     root,
     app,
     foo,
     fooResponsive,
+    matchMedia,
   };
 }
 
 describe('The withBreakpointObserver decorator', () => {
   it('should mount', async () => {
-    const { app, foo, fooResponsive } = await getContext();
+    const { app, foo, fooResponsive, matchMedia } = await getContext();
     matchMedia.useMediaQuery('(min-width: 80rem)');
     await resizeWindow({ width: 1280 });
     await advanceTimersByTimeAsync(1);
@@ -73,7 +75,7 @@ describe('The withBreakpointObserver decorator', () => {
   });
 
   it('should disable the decorated component', async () => {
-    const { fooResponsive } = await getContext();
+    const { fooResponsive, matchMedia } = await getContext();
     matchMedia.useMediaQuery('(min-width: 48rem)');
     await resizeWindow({ width: 768 });
     await advanceTimersByTimeAsync(1);
@@ -109,7 +111,7 @@ describe('The withBreakpointObserver decorator', () => {
   });
 
   it('should re-mount component when deleting both breakpoint options', async () => {
-    const { fooResponsive } = await getContext();
+    const { fooResponsive, matchMedia } = await getContext();
     matchMedia.useMediaQuery('(min-width: 48rem)');
     await resizeWindow({ width: 768 });
     await advanceTimersByTimeAsync(1);
@@ -148,7 +150,7 @@ describe('The withBreakpointObserver decorator', () => {
   });
 
   it('should destroy components before mounting the others', async () => {
-    const { root } = await getContext();
+    const { root, matchMedia } = await getContext();
     matchMedia.useMediaQuery('(min-width: 48rem)');
     await resizeWindow({ width: 768 });
 

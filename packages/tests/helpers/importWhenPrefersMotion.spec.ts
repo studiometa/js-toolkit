@@ -1,13 +1,18 @@
 import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { Base, withExtraConfig, importWhenPrefersMotion } from '@studiometa/js-toolkit';
-import { matchMedia, useFakeTimers, useRealTimers, advanceTimersByTimeAsync, h } from '#test-utils';
+import {
+  useMatchMedia,
+  useFakeTimers,
+  useRealTimers,
+  advanceTimersByTimeAsync,
+  h,
+} from '#test-utils';
 
 beforeEach(() => {
   useFakeTimers();
 });
 
 afterEach(() => {
-  matchMedia.clear();
   useRealTimers();
 });
 
@@ -26,8 +31,7 @@ class Component extends Base {
 describe('The `importWhenPrefersMotion` lazy import helper', () => {
   it('should import a component when user prefers motion', async () => {
     const fn = mock();
-    const mediaQuery = 'not (prefers-reduced-motion)';
-    matchMedia.useMediaQuery(mediaQuery);
+    useMatchMedia('not (prefers-reduced-motion)');
 
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);
@@ -52,8 +56,7 @@ describe('The `importWhenPrefersMotion` lazy import helper', () => {
 
   it('should not import a component when user prefers reduced motion', async () => {
     const fn = mock();
-    const mediaQuery = '(prefers-reduced-motion)';
-    matchMedia.useMediaQuery(mediaQuery);
+    useMatchMedia('(prefers-reduced-motion)');
 
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);

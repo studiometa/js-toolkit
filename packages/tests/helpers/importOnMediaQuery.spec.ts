@@ -5,14 +5,19 @@ import {
   importOnMediaQuery,
   getInstanceFromElement,
 } from '@studiometa/js-toolkit';
-import { matchMedia, h, useRealTimers, useFakeTimers, advanceTimersByTimeAsync } from '#test-utils';
+import {
+  h,
+  useMatchMedia,
+  useRealTimers,
+  useFakeTimers,
+  advanceTimersByTimeAsync,
+} from '#test-utils';
 
 beforeEach(() => {
   useFakeTimers();
 });
 
 afterEach(() => {
-  matchMedia.clear();
   useRealTimers();
 });
 
@@ -32,6 +37,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
   it('should import a component when user changes prefers motion media query', async () => {
     const fn = jest.fn();
     const mediaQuery = 'not (prefers-reduced-motion)';
+    const matchMedia = useMatchMedia(mediaQuery);
 
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);
@@ -60,7 +66,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
   it('should import a component when user prefers motion', async () => {
     const fn = jest.fn();
     const mediaQuery = 'not (prefers-reduced-motion)';
-    matchMedia.useMediaQuery(mediaQuery);
+    useMatchMedia(mediaQuery);
 
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);
@@ -83,7 +89,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
 
   it('should not import a component when user prefers reduced motion', async () => {
     const fn = jest.fn();
-    matchMedia.useMediaQuery('(prefers-reduced-motion)');
+    useMatchMedia('(prefers-reduced-motion)');
 
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);
