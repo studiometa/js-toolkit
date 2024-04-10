@@ -1,7 +1,6 @@
 import { describe, it, expect, mock, beforeEach } from 'bun:test';
 import { Base, createApp } from '@studiometa/js-toolkit';
 import { wait } from '@studiometa/js-toolkit/utils';
-import { features } from '#private/Base/features.js';
 import { h } from '#test-utils';
 
 describe('The `createApp` function', () => {
@@ -80,18 +79,20 @@ describe('The `createApp` function', () => {
     });
   });
 
-  it.todo('should enable given features', () => {
-    expect(features.get('asyncChildren')).toBe(true);
+  it('should enable given features', () => {
+    const map = new Map([['asyncChildren', true]]);
+    mock.module('#private/Base/features.js', () => ({ features: map }));
     createApp(App, {
       features: {
         asyncChildren: false,
       },
     });
-    expect(features.get('asyncChildren')).toBe(false);
-    features.set('asyncChildren', true);
+    expect(map.get('asyncChildren')).toBe(false);
   });
 
-  it.todo('should instantiate directly when the asynChildren feature is enabled', async () => {
+  it('should instantiate directly when the asynChildren feature is enabled', async () => {
+    const map = new Map([['asyncChildren', true]]);
+    mock.module('#private/Base/features.js', () => ({ features: map }));
     const useApp = createApp(App, {
       features: {
         asyncChildren: false,
@@ -100,6 +101,5 @@ describe('The `createApp` function', () => {
     expect(ctorFn).toHaveBeenCalledTimes(1);
     expect(useApp()).toBeInstanceOf(Promise);
     expect(await useApp()).toBeInstanceOf(App);
-    features.set('asyncChildren', true);
   });
 });
