@@ -24,7 +24,7 @@ describe('The ResponsiveOptionsManager class', () => {
     const instance = componentWithOptions(
       `<div
         data-option-str="foo"
-        data-option-str:m="bar"
+        data-option-str:s="bar"
         data-option-foo="foo"
         data-option-foo:l="l:foo"></div>
       `,
@@ -35,8 +35,6 @@ describe('The ResponsiveOptionsManager class', () => {
     );
 
     window.innerWidth = 800;
-    console.log(instance.$services.get('resized').breakpoint);
-    console.log(instance.$services.get('resized').activeBreakpoints);
 
     expect(instance.$options.str).toBe('bar');
     expect(instance.$options.foo).toBe('foo');

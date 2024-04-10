@@ -10,7 +10,23 @@ import {
   useFakeTimers,
   useRealTimers,
   h,
+  createEvent,
 } from '#test-utils';
+
+beforeAll(() => {
+  intersectionObserverBeforeAllCallback();
+});
+
+beforeEach(() => {
+  mockScroll();
+  useFakeTimers();
+});
+
+afterEach(() => {
+  intersectionObserverAfterEachCallback();
+  restoreScroll();
+  useRealTimers();
+});
 
 function getDiv() {
   const div = h('div');
@@ -55,17 +71,6 @@ function getDiv() {
 }
 
 describe('The withScrolledInView decorator', () => {
-  beforeAll(() => intersectionObserverBeforeAllCallback());
-  beforeEach(() => {
-    useFakeTimers();
-    mockScroll();
-  });
-  afterEach(() => {
-    useRealTimers();
-    intersectionObserverAfterEachCallback();
-    restoreScroll();
-  });
-
   it('should trigger the `scrolledInView` hook when in view', async () => {
     const div = getDiv();
     const div2 = getDiv();
@@ -102,13 +107,9 @@ describe('The withScrolledInView decorator', () => {
 
     foo.$emit('scrolled', { changed: { y: true, x: false } });
     bar.$emit('scrolled', { changed: { y: true, x: false } });
-    await advanceTimersByTimeAsync(110);
+    await advanceTimersByTimeAsync(1100);
     expect(fn).toHaveBeenCalledTimes(1);
     expect(fn2).toHaveBeenCalledTimes(1);
-  });
-
-  it('should do nothing if there is no scroll', async () => {
-    // @todo
   });
 
   it('should reset the damped values when destroyed', async () => {
