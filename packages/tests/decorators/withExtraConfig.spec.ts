@@ -1,11 +1,10 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
 import { describe, it, expect, jest } from 'bun:test';
-import { Base, withExtraConfig } from '@studiometa/js-toolkit';
+import { Base, BaseConfig, withExtraConfig } from '@studiometa/js-toolkit';
 
 describe('The `withExtraConfig` decorator', () => {
   it('should merge config of a given class', () => {
     class Foo extends Base {
-      static config = {
+      static config: BaseConfig = {
         name: 'Foo',
         log: true,
         debug: true,

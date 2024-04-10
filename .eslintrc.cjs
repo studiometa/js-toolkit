@@ -61,12 +61,16 @@ module.exports = {
       files: ['packages/tests/**/*.ts'],
       rules: {
         'import/extensions': 'off',
+        'require-jsdoc': 'off',
+        'max-classes-per-file': 'off',
+        'no-new': 'off',
       },
     },
     {
       files: ['packages/docs/**/*.js'],
       rules: {
         'require-jsdoc': 'off',
+        'max-classes-per-file': 'off',
       },
     },
   ],

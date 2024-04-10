@@ -1,20 +1,28 @@
-import { describe, it, expect, jest } from 'bun:test';
+import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { Base, withRelativePointer } from '@studiometa/js-toolkit';
+import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '#test-utils';
 
-function createEvent(type, data, options) {
+beforeEach(() => useFakeTimers());
+afterEach(() => useRealTimers());
+
+function createEvent(type: string, data: Record<string, unknown> = {}, options?: EventInit) {
   const event = new Event(type, options);
-  Object.entries(data).forEach(([name, value]) => {
+  for (const [name, value] of Object.entries(data)) {
     event[name] = value;
-  });
+  }
 
   return event;
 }
 
 describe('The `withRelativePointer` decorator', () => {
-  it('should add a `movedrelative` hook', () => {
-    const fn = jest.fn();
+  it('should add a `movedrelative` hook', async () => {
+    const fn = mock();
+
     class Foo extends withRelativePointer(Base) {
-      static config = { name: 'Foo', emits: ['foo'] };
+      static config = {
+        name: 'Foo',
+        emits: ['foo'],
+      };
 
       movedrelative(props) {
         fn(props);
@@ -23,9 +31,11 @@ describe('The `withRelativePointer` decorator', () => {
 
     const foo = new Foo(document.createElement('div'));
     foo.$mount();
+    await advanceTimersByTimeAsync(1);
     document.dispatchEvent(createEvent('mousemove', { button: 0, clientX: 0, clientY: 0 }));
     expect(fn).toHaveBeenCalledTimes(1);
     foo.$destroy();
+    await advanceTimersByTimeAsync(1);
     document.dispatchEvent(createEvent('mousemove', { button: 0, clientX: 0, clientY: 0 }));
     expect(fn).toHaveBeenCalledTimes(1);
   });

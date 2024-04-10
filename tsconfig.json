@@ -13,7 +13,7 @@
     "baseUrl": "./packages/js-toolkit/",
     "paths": {
       "#private/*": ["./*"],
-      "#utils": ["../tests/__utils__/index.ts"]
+      "#test-utils": ["../tests/__utils__/index.ts"]
     }
   },
   "include": [

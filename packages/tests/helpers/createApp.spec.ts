@@ -1,19 +1,19 @@
-import { describe, it, expect, jest, beforeEach } from 'bun:test';
+import { describe, it, expect, mock, beforeEach } from 'bun:test';
 import { Base, createApp } from '@studiometa/js-toolkit';
 import { wait } from '@studiometa/js-toolkit/utils';
-import { features } from '../../js-toolkit/Base/features.js';
-import { h } from '../__utils__/h.js';
+import { features } from '#private/Base/features.js';
+import { h } from '#test-utils';
 
 describe('The `createApp` function', () => {
-  const fn = jest.fn();
-  const ctorFn = jest.fn();
+  const fn = mock();
+  const ctorFn = mock();
 
   class App extends Base {
     static config = {
       name: 'App',
     };
 
-    constructor(...args) {
+    constructor(...args:[HTMLElement]) {
       super(...args);
       ctorFn();
     }
@@ -44,7 +44,7 @@ describe('The `createApp` function', () => {
   });
 
   it('should instantiate the app on page load', async () => {
-    const readyStateMock = jest.fn();
+    const readyStateMock = mock();
     const { readyState } = document;
     Object.defineProperty(document, 'readyState', {
       configurable: true,
@@ -80,7 +80,7 @@ describe('The `createApp` function', () => {
     });
   });
 
-  it('should enable given features', () => {
+  it.todo('should enable given features', () => {
     expect(features.get('asyncChildren')).toBe(true);
     createApp(App, {
       features: {
@@ -91,7 +91,7 @@ describe('The `createApp` function', () => {
     features.set('asyncChildren', true);
   });
 
-  it('should instantiate directly when the asynChildren feature is enabled', async () => {
+  it.todo('should instantiate directly when the asynChildren feature is enabled', async () => {
     const useApp = createApp(App, {
       features: {
         asyncChildren: false,

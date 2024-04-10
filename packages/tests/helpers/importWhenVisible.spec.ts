@@ -1,4 +1,3 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'bun:test';
 import {
   Base,
@@ -7,15 +6,17 @@ import {
   getInstanceFromElement,
 } from '@studiometa/js-toolkit';
 import {
-  beforeAllCallback,
-  afterEachCallback,
+  h,
+  intersectionObserverBeforeAllCallback,
+  intersectionObserverAfterEachCallback,
   mockIsIntersecting,
-} from '../__setup__/mockIntersectionObserver';
-import { h } from '../__utils__/h.js';
-import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '../__utils__/faketimers';
+  advanceTimersByTimeAsync,
+  useFakeTimers,
+  useRealTimers,
+} from '#test-utils';
 
 beforeAll(() => {
-  beforeAllCallback();
+  intersectionObserverBeforeAllCallback();
 });
 
 beforeEach(() => {
@@ -23,7 +24,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  afterEachCallback();
+  intersectionObserverAfterEachCallback();
   useRealTimers();
 });
 

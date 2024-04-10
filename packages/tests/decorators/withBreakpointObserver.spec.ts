@@ -1,58 +1,42 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
 import { describe, it, expect, mock, afterEach, beforeEach } from 'bun:test';
+import { Base, withBreakpointObserver, withName } from '@studiometa/js-toolkit';
 import {
-  Base,
-  BaseDecorator,
-  BaseInterface,
-  BaseProps,
-  withBreakpointObserver,
-} from '@studiometa/js-toolkit';
-import { resizeWindow } from '../__utils__/resizeWindow.js';
-import { matchMedia } from '../__utils__/matchMedia.js';
-import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '../__utils__/faketimers.js';
-import { h } from '../__utils__/h.js';
+  resizeWindow,
+  matchMedia,
+  advanceTimersByTimeAsync,
+  useFakeTimers,
+  useRealTimers,
+  h,
+} from '#test-utils';
 
 beforeEach(() => {
   useFakeTimers();
 });
 
 afterEach(() => {
-  useRealTimers();
   matchMedia.clear();
+  useRealTimers();
 });
 
-function withName<S extends Base = Base>(
-  BaseClass: typeof Base,
-  name: string,
-): BaseDecorator<BaseInterface, S, BaseProps> {
-  // @ts-ignore
-  return class extends BaseClass {
-    static config = {
-      ...BaseClass.config,
-      name,
-    };
-  };
-}
-
-class Foo extends withBreakpointObserver(withName(Base, 'Foo')) {}
-class FooResponsive extends withBreakpointObserver(withName(Base, 'FooResponsive')) {}
-
-class App extends Base<{
-  $children: {
-    Foo: Foo[];
-    FooResponsive: FooResponsive[];
-  };
-}> {
-  static config = {
-    name: 'App',
-    components: {
-      Foo,
-      FooResponsive,
-    },
-  };
-}
-
 async function getContext() {
+  class Foo extends withBreakpointObserver(withName(Base, 'Foo')) {}
+  class FooResponsive extends withBreakpointObserver(withName(Base, 'FooResponsive')) {}
+
+  class App extends Base<{
+    $children: {
+      Foo: Foo[];
+      FooResponsive: FooResponsive[];
+    };
+  }> {
+    static config = {
+      name: 'App',
+      components: {
+        Foo,
+        FooResponsive,
+      },
+    };
+  }
+
   const root = h('div');
   root.innerHTML = `
     <div data-breakpoint>
