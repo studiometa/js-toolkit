@@ -6,7 +6,7 @@ import {
   withName,
 } from '@studiometa/js-toolkit';
 import {
-  matchMedia,
+  useMatchMedia,
   resizeWindow,
   useFakeTimers,
   useRealTimers,
@@ -15,16 +15,14 @@ import {
 
 beforeEach(() => {
   useFakeTimers();
-  matchMedia.useMediaQuery('(min-width: 1280px)');
 });
 
 afterEach(() => {
-  matchMedia.clear();
   useRealTimers();
 });
 
 async function setupTest() {
-  matchMedia.useMediaQuery('(min-width: 64rem)');
+  const matchMedia = useMatchMedia('(min-width: 64rem)');
 
   document.body.innerHTML = `
     <div data-breakpoint>
@@ -66,7 +64,7 @@ async function setupTest() {
   await advanceTimersByTimeAsync(1);
   const foo = getInstanceFromElement(document.querySelector('[data-component="Foo"]'), Foo);
 
-  return { app, foo, fn };
+  return { app, foo, fn, matchMedia };
 }
 
 describe('The withBreakpointManager decorator', () => {
@@ -78,7 +76,7 @@ describe('The withBreakpointManager decorator', () => {
   });
 
   it('should mount and destroy components', async () => {
-    const { app, fn } = await setupTest();
+    const { app, fn, matchMedia } = await setupTest();
     matchMedia.useMediaQuery('(min-width: 80rem)');
     await resizeWindow({ width: 1280 });
     await advanceTimersByTimeAsync(1);

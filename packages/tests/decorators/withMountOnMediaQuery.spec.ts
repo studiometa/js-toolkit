@@ -1,37 +1,41 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Base, withMountOnMediaQuery } from '@studiometa/js-toolkit';
-import { advanceTimersByTimeAsync, matchMedia, useFakeTimers, useRealTimers } from '#test-utils';
+import {
+  h,
+  advanceTimersByTimeAsync,
+  useMatchMedia,
+  useFakeTimers,
+  useRealTimers,
+} from '#test-utils';
 
 beforeEach(() => {
   useFakeTimers();
 });
 
 afterEach(() => {
-  matchMedia.clear();
   useRealTimers();
 });
 
-const mediaQuery = 'not (prefers-reduced-motion)';
+async function mountComponent(mediaQuery = 'not (prefers-reduced-motion)') {
+  const matchMedia = useMatchMedia(mediaQuery);
 
-async function mountComponent() {
-  class Foo extends withMountOnMediaQuery(Base, mediaQuery) {
+  class Foo extends withMountOnMediaQuery(Base, 'not (prefers-reduced-motion)') {
     static config = {
       name: 'Foo',
     };
   }
 
-  const div = document.createElement('div');
+  const div = h('div');
   const instance = new Foo(div);
   instance.$mount();
   await advanceTimersByTimeAsync(1);
 
-  return instance;
+  return { instance, matchMedia };
 }
 
 describe('The withMountOnMediaQuery decorator', () => {
   it('should mount the component when user prefers motion', async () => {
-    matchMedia.useMediaQuery(mediaQuery);
-    const instance = await mountComponent();
+    const { instance } = await mountComponent();
     expect(instance.$isMounted).toBe(true);
 
     // @TODO: Test unmount on media query change
@@ -43,11 +47,10 @@ describe('The withMountOnMediaQuery decorator', () => {
   });
 
   it('should not mount the component when user prefers reduced motion', async () => {
-    matchMedia.useMediaQuery('(prefers-reduced-motion)');
-    const instance = await mountComponent();
+    const { instance, matchMedia } = await mountComponent('(prefers-reduced-motion)');
     expect(instance.$isMounted).toBe(false);
 
-    matchMedia.useMediaQuery(mediaQuery);
+    matchMedia.useMediaQuery('not (prefers-reduced-motion)');
     await advanceTimersByTimeAsync(1);
     expect(instance.$isMounted).toBe(true);
   });
