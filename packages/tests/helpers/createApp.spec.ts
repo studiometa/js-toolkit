@@ -13,7 +13,7 @@ describe('The `createApp` function', () => {
       name: 'App',
     };
 
-    constructor(...args:[HTMLElement]) {
+    constructor(...args: [HTMLElement]) {
       super(...args);
       ctorFn();
     }

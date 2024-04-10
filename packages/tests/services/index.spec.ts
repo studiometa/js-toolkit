@@ -1,6 +1,6 @@
 import { test, expect } from 'bun:test';
 import * as toolkit from '@studiometa/js-toolkit';
-import getFilenamesInFolder from '../__utils__/getFilenamesInFolder.js';
+import { getFilenamesInFolder } from '#test-utils';
 
 const services = Object.fromEntries(
   Object.entries(toolkit).filter(([name]) => name.startsWith('use')),

@@ -5,8 +5,7 @@ import {
   getInstanceFromElement,
   isDirectChild,
 } from '@studiometa/js-toolkit';
-import { h } from '../__utils__/h.js';
-import { useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '../__utils__/faketimers.js';
+import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync  } from '#test-utils';
 
 beforeEach(() => useFakeTimers());
 afterEach(() => useRealTimers());
@@ -36,7 +35,7 @@ async function createContext() {
 
   const parent = new Parent(div);
   parent.$mount();
-  await advanceTimersByTimeAsync(1000);
+  await advanceTimersByTimeAsync(1);
 
   const directChildren = getDirectChildren(parent, 'Parent', 'Child');
 

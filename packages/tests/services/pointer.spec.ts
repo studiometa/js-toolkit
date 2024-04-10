@@ -1,6 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from 'bun:test';
 import { usePointer } from '@studiometa/js-toolkit';
-import { createEvent } from '../__utils__/event.js';
+import { createEvent } from '#test-utils';
 
 describe('usePointer', () => {
   const { add, remove, props } = usePointer();

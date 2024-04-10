@@ -1,18 +1,17 @@
-import { describe, test, expect, jest, beforeEach } from 'bun:test';
+import { describe, test, expect, mock, spyOn, beforeEach } from 'bun:test';
 import { useKey } from '@studiometa/js-toolkit';
+import { createEvent } from '#test-utils';
 
 describe('useKey', () => {
-  const keydown = new KeyboardEvent('keydown', { keyCode: 27 });
-  keydown.keyCode = 27;
-  const keyup = new KeyboardEvent('keyup', { keyCode: 27 });
-  keyup.keyCode = 27;
+  const keydown = createEvent('keydown', { keyCode: 27 });
+  const keyup = createEvent('keyup', { keyCode: 27 });
   const { add, remove, props } = useKey();
   let keyProps;
   let fn;
 
   beforeEach(() => {
     remove('useKey');
-    fn = jest.fn((p) => {
+    fn = mock((p) => {
       keyProps = p;
     });
     add('useKey', fn);
@@ -25,7 +24,7 @@ describe('useKey', () => {
   });
 
   test('callbacks with the same key are not allowed', () => {
-    const warnMock = jest.spyOn(console, 'warn');
+    const warnMock = spyOn(console, 'warn');
     warnMock.mockImplementation(() => null);
     add('useKey', () => {});
     expect(warnMock).toHaveBeenCalledWith('The key `useKey` has already been added.');

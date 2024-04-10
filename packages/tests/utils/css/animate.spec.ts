@@ -1,12 +1,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from 'bun:test';
 import { animate } from '@studiometa/js-toolkit/utils';
 import type { TransformProps } from '@studiometa/js-toolkit/utils';
-import {
-  useFakeTimers,
-  useRealTimers,
-  advanceTimersByTimeAsync,
-} from '../../__utils__/faketimers.js';
-import { h } from '../../__utils__/h.js';
+import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
 
 describe('The `animate` utility function', () => {
   beforeEach(() => useFakeTimers());

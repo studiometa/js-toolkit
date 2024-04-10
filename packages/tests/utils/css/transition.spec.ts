@@ -1,6 +1,6 @@
-import { describe, it, expect, jest, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, spyOn, mock, beforeEach, afterEach } from 'bun:test';
 import { transition } from '@studiometa/js-toolkit/utils';
-import { useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '../../__utils__/faketimers.js';
+import { useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
 
 describe('transition method', () => {
   let el;
@@ -14,9 +14,9 @@ describe('transition method', () => {
       <div class="w-16 h-16 m-10 bg-black"></div>
     `;
     el = document.body.firstElementChild;
-    spyAdd = jest.spyOn(el.classList, 'add');
-    spyRemove = jest.spyOn(el.classList, 'remove');
-    spyStyle = jest.fn();
+    spyAdd = spyOn(el.classList, 'add');
+    spyRemove = spyOn(el.classList, 'remove');
+    spyStyle = mock();
     Object.defineProperty(el.style, 'opacity', {
       configurable: true,
       set(value) {
