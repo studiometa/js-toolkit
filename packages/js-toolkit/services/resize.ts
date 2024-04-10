@@ -53,7 +53,9 @@ function createResizeService<T extends Features['breakpoints'] = Features['break
       ratio: window.innerWidth / window.innerHeight,
       orientation: 'square',
       get breakpoint() {
-        return Object.keys(this.activeBreakpoints).find((name) => this.activeBreakpoints[name]);
+        return Object.keys(this.activeBreakpoints)
+          .toReversed()
+          .find((name) => this.activeBreakpoints[name]);
       },
       get breakpoints() {
         return Object.keys(this.activeBreakpoints);
