@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'bun:test';
 import { trapFocus, untrapFocus, saveActiveElement } from '@studiometa/js-toolkit/utils';
+import { createEvent } from '#test-utils';
 
 describe('The `trapFocus` utility', () => {
   document.body.innerHTML = `
@@ -10,7 +11,7 @@ describe('The `trapFocus` utility', () => {
       </div>
     `;
 
-  const element = document.querySelector('#trap');
+  const element = document.querySelector('#trap') as HTMLElement;
   const [outsideBtn, insideBtn] = Array.from(document.querySelectorAll('button'));
   const input = document.querySelector('input');
 
@@ -23,10 +24,8 @@ describe('The `trapFocus` utility', () => {
     outsideBtn.focus();
   });
 
-  const tabEvent = new KeyboardEvent('keydown', { keyCode: 9, shiftKey: false });
-  tabEvent.keyCode = 9;
-  const shiftTabEvent = new KeyboardEvent('keydown', { keyCode: 9, shiftKey: true });
-  shiftTabEvent.keyCode = 9;
+  const tabEvent = createEvent('keydown', { keyCode: 9, shiftKey: false });
+  const shiftTabEvent = createEvent('keydown', { keyCode: 9, shiftKey: true });
 
   it('should trap the focus inside the given element', () => {
     document.dispatchEvent(tabEvent);
