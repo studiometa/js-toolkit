@@ -1,4 +1,3 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import {
   Base,
@@ -6,9 +5,13 @@ import {
   importWhenIdle,
   getInstanceFromElement,
 } from '@studiometa/js-toolkit';
-import { mockRequestIdleCallback } from '../__setup__/mockRequestIdleCallback';
-import { h } from '../__utils__/h.js';
-import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '../__utils__/faketimers';
+import {
+  h,
+  advanceTimersByTimeAsync,
+  useFakeTimers,
+  useRealTimers,
+  mockRequestIdleCallback,
+} from '#test-utils';
 
 beforeEach(() => {
   useFakeTimers();

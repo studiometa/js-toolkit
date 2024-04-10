@@ -1,4 +1,3 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import {
   Base,

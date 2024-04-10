@@ -1,16 +1,17 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
 import { describe, it, expect, jest, beforeAll, beforeEach, afterEach } from 'bun:test';
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 import {
-  beforeAllCallback,
-  afterEachCallback,
+  intersectionObserverBeforeAllCallback,
+  intersectionObserverAfterEachCallback,
   mockIsIntersecting,
   intersectionMockInstance,
-} from '../__setup__/mockIntersectionObserver';
-import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '../__utils__/faketimers';
+  advanceTimersByTimeAsync,
+  useFakeTimers,
+  useRealTimers,
+} from '#test-utils';
 
 beforeAll(() => {
-  beforeAllCallback();
+  intersectionObserverBeforeAllCallback();
 });
 
 beforeEach(() => {
@@ -19,7 +20,7 @@ beforeEach(() => {
 
 afterEach(() => {
   useRealTimers();
-  afterEachCallback();
+  intersectionObserverAfterEachCallback();
 });
 
 describe('The withIntersectionObserver decorator', () => {

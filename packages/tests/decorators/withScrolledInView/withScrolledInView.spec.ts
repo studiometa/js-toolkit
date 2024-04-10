@@ -1,20 +1,19 @@
-/* eslint-disable no-new, require-jsdoc, max-classes-per-file */
 import { describe, it, expect, spyOn, beforeAll, mock, afterEach, beforeEach } from 'bun:test';
 import { Base, withScrolledInView } from '@studiometa/js-toolkit';
 import {
-  beforeAllCallback,
-  afterEachCallback,
+  intersectionObserverBeforeAllCallback,
+  intersectionObserverAfterEachCallback,
   mockIsIntersecting,
-} from '../../__setup__/mockIntersectionObserver.js';
-import { mockScroll, restoreScroll } from '../../__utils__/scroll.js';
-import {
+  mockScroll,
+  restoreScroll,
   advanceTimersByTimeAsync,
   useFakeTimers,
   useRealTimers,
-} from '../../__utils__/faketimers.js';
+  h,
+} from '#test-utils';
 
 function getDiv() {
-  const div = document.createElement('div');
+  const div = h('div');
   const offsetTopSpy = mock(() => 500);
   const offsetLeftSpy = mock(() => 500);
   const offsetWidthSpy = mock(() => 100);
@@ -56,18 +55,18 @@ function getDiv() {
 }
 
 describe('The withScrolledInView decorator', () => {
-  beforeAll(() => beforeAllCallback());
+  beforeAll(() => intersectionObserverBeforeAllCallback());
   beforeEach(() => {
     useFakeTimers();
     mockScroll();
   });
   afterEach(() => {
     useRealTimers();
-    afterEachCallback();
+    intersectionObserverAfterEachCallback();
     restoreScroll();
   });
 
-  it.todo('should trigger the `scrolledInView` hook when in view', async () => {
+  it('should trigger the `scrolledInView` hook when in view', async () => {
     const div = getDiv();
     const div2 = getDiv();
     const fn = mock();
@@ -97,6 +96,7 @@ describe('The withScrolledInView decorator', () => {
     const bar = new Bar(div2);
     mockIsIntersecting(div, true);
     mockIsIntersecting(div2, true);
+    await advanceTimersByTimeAsync(1);
     expect(foo.$isMounted).toBe(true);
     expect(bar.$isMounted).toBe(true);
 
@@ -107,11 +107,11 @@ describe('The withScrolledInView decorator', () => {
     expect(fn2).toHaveBeenCalledTimes(1);
   });
 
-  it.todo('should do nothing if there is no scroll', async () => {
+  it('should do nothing if there is no scroll', async () => {
     // @todo
   });
 
-  it.todo('should reset the damped values when destroyed', async () => {
+  it('should reset the damped values when destroyed', async () => {
     useFakeTimers();
     const div = getDiv();
     const fn = mock();
@@ -128,6 +128,7 @@ describe('The withScrolledInView decorator', () => {
     const foo = new Foo(div);
 
     mockIsIntersecting(div, true);
+    await advanceTimersByTimeAsync(50);
     expect(foo.$isMounted).toBe(true);
     mockIsIntersecting(div, false);
     await advanceTimersByTimeAsync(50);

@@ -13,7 +13,7 @@ type Item = {
  */
 const observers: Map<IntersectionObserver, Item> = new Map();
 
-export function beforeAllCallback() {
+export function intersectionObserverBeforeAllCallback() {
   /**
    * Create a custom IntersectionObserver mock, allowing us to intercept the observe and unobserve calls.
    * We keep track of the elements being observed, so when `mockAllIsIntersecting` is triggered it will
@@ -49,7 +49,7 @@ export function beforeAllCallback() {
   );
 }
 
-export function afterEachCallback() {
+export function intersectionObserverAfterEachCallback() {
   // @ts-ignore
   globalThis.IntersectionObserver.mockClear();
   observers.clear();
