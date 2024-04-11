@@ -1,8 +1,8 @@
-import { describe, it, expect, jest } from 'bun:test';
+import { describe, it, expect, mock } from 'bun:test';
 import { nextTick } from '@studiometa/js-toolkit/utils';
-import { getComponentElements, addToQueue } from '../../js-toolkit/Base/utils.js';
-import { features } from '../../js-toolkit/Base/features.js';
-import { h } from '../__utils__/h.js';
+import { getComponentElements, addToQueue } from '#private/Base/utils.js';
+import { features } from '#private/Base/features.js';
+import { h } from '#test-utils';
 
 describe('The `getComponentElements` function', () => {
   it('should find components with multiple declarations', () => {
@@ -33,13 +33,13 @@ describe('The `getComponentElements` function', () => {
 
 describe('The `addToQueue` function', () => {
   it('should delay given tasks if the `asyncChildren` feature is enabled', async () => {
-    features.set('asyncChildren', true);
-    const fn = jest.fn();
+    const map = new Map([['asyncChildren', true]]);
+    mock.module('#private/Base/features.js', () => ({ features: map }));
+    const fn = mock();
 
     addToQueue(fn);
     expect(fn).not.toHaveBeenCalled();
     await nextTick();
     expect(fn).toHaveBeenCalledTimes(1);
-    features.set('asyncChildren', false);
   });
 });
