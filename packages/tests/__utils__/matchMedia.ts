@@ -9,7 +9,6 @@ export function useMatchMedia(mediaQuery = defaultMediaQuery) {
 
   afterEach(() => {
     matchMedia.useMediaQuery(defaultMediaQuery);
-    matchMedia.destroy();
   });
 
   return matchMedia;
