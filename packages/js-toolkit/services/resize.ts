@@ -21,7 +21,6 @@ export interface ResizeServiceProps<U extends Features['breakpoints'] = Features
 function createResizeService<T extends Features['breakpoints'] = Features['breakpoints']>(
   breakpoints?: T,
 ): ResizeServiceInterface<T> {
-  const finalScreens = breakpoints ?? features.get('breakpoints');
   /**
    * Update props.
    */
@@ -62,7 +61,7 @@ function createResizeService<T extends Features['breakpoints'] = Features['break
       },
       get activeBreakpoints() {
         return Object.fromEntries(
-          Object.entries(finalScreens).map(([name, breakpoint]) => [
+          Object.entries(breakpoints ?? features.get('breakpoints')).map(([name, breakpoint]) => [
             name,
             window.matchMedia(`(min-width: ${breakpoint})`).matches,
           ]),

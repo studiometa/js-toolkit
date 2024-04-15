@@ -1,9 +1,25 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
+import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { Base, createApp } from '@studiometa/js-toolkit';
 import { wait } from '@studiometa/js-toolkit/utils';
-import { h } from '#test-utils';
+import {
+  h,
+  useFakeTimers,
+  useRealTimers,
+  advanceTimersByTimeAsync,
+  mockFeatures,
+} from '#test-utils';
 
-describe('The `createApp` function', () => {
+beforeEach(() => {
+  useFakeTimers();
+});
+
+afterEach(() => {
+  useRealTimers();
+});
+
+function getContext({ asyncChildren = true } = {}) {
+  const { features } = mockFeatures({ asyncChildren });
+
   const fn = mock();
   const ctorFn = mock();
 
@@ -22,27 +38,29 @@ describe('The `createApp` function', () => {
     }
   }
 
-  beforeEach(() => {
-    fn.mockRestore();
-    ctorFn.mockRestore();
-  });
+  return { App, fn, ctorFn, features };
+}
 
+describe('The `createApp` function', () => {
   it('should instantiate the app directly if the page is alreay loaded', async () => {
+    const { App, fn } = getContext();
     const useApp = createApp(App, h('div'));
-    await wait(1);
+    await advanceTimersByTimeAsync(10);
     expect(fn).toHaveBeenCalledTimes(1);
     const app = await useApp();
     expect(app).toBeInstanceOf(App);
   });
 
   it('should instantiate the app on `document.body` if no root element given', async () => {
+    const { App } = getContext();
     const useApp = createApp(App);
-    await wait(1);
+    await advanceTimersByTimeAsync(1);
     const app = await useApp();
     expect(app.$el).toBe(document.body);
   });
 
   it('should instantiate the app on page load', async () => {
+    const { App, fn } = getContext();
     const readyStateMock = mock();
     const { readyState } = document;
     Object.defineProperty(document, 'readyState', {
@@ -69,7 +87,7 @@ describe('The `createApp` function', () => {
     // Complete state
     readyStateMock.mockImplementation(() => 'complete');
     document.dispatchEvent(new CustomEvent('readystatechange'));
-    await wait(1);
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenCalledTimes(1);
     expect(await app).toBeInstanceOf(App);
 
@@ -80,19 +98,17 @@ describe('The `createApp` function', () => {
   });
 
   it('should enable given features', () => {
-    const map = new Map([['asyncChildren', true]]);
-    mock.module('#private/Base/features.js', () => ({ features: map }));
+    const { App, fn, features } = getContext();
     createApp(App, {
       features: {
         asyncChildren: false,
       },
     });
-    expect(map.get('asyncChildren')).toBe(false);
+    expect(features.get('asyncChildren')).toBe(false);
   });
 
   it('should instantiate directly when the asynChildren feature is enabled', async () => {
-    const map = new Map([['asyncChildren', true]]);
-    mock.module('#private/Base/features.js', () => ({ features: map }));
+    const { App, ctorFn } = getContext();
     const useApp = createApp(App, {
       features: {
         asyncChildren: false,

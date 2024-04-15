@@ -1,8 +1,9 @@
 import { describe, it, expect, spyOn } from 'bun:test';
 import { Base, withResponsiveOptions } from '@studiometa/js-toolkit';
-import { h } from '#test-utils';
+import { h, mockFeatures } from '#test-utils';
 
 function componentWithOptions(content, options) {
+  mockFeatures();
   const div = h('div');
   div.innerHTML = content;
   const element = div.firstElementChild;
@@ -24,7 +25,7 @@ describe('The ResponsiveOptionsManager class', () => {
     const instance = componentWithOptions(
       `<div
         data-option-str="foo"
-        data-option-str:s="bar"
+        data-option-str:l="bar"
         data-option-foo="foo"
         data-option-foo:l="l:foo"></div>
       `,
@@ -33,8 +34,6 @@ describe('The ResponsiveOptionsManager class', () => {
         foo: String,
       },
     );
-
-    window.innerWidth = 800;
 
     expect(instance.$options.str).toBe('bar');
     expect(instance.$options.foo).toBe('foo');
