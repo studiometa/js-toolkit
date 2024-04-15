@@ -8,7 +8,7 @@ afterEach(() => useRealTimers());
 
 async function getContext() {
   class Foo<T extends BaseProps = BaseProps> extends Base<T> {
-    static config = {
+    static config: BaseConfig = {
       name: 'Foo',
     };
   }
@@ -457,87 +457,65 @@ describe('The Base class event methods', () => {
 });
 
 describe('A Base instance config', () => {
-  let element;
+  it('should have a working $log method when active', async () => {
+    const { Foo } = await getContext();
+    Foo.config.log = true;
 
-  beforeEach(() => {
-    element = h('div');
-  });
-
-  it('should have a working $log method when active', () => {
-    class Foo extends Base {
-      static config = {
-        name: 'Foo',
-        log: true,
-      };
-    }
     const spy = spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
-    const foo = new Foo(element).$mount();
+    const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(true);
     foo.$log('bar');
     expect(spy).toHaveBeenCalledWith('[Foo]', 'bar');
     spy.mockRestore();
   });
 
-  it('should have a silent $log method when not active', () => {
-    class Foo extends Base {
-      static config = {
-        name: 'Foo',
-        log: false,
-      };
-    }
+  it('should have a silent $log method when not active', async () => {
+    const { Foo } = await getContext();
+    Foo.config.log = false;
+
     const spy = spyOn(window.console, 'log');
-    const foo = new Foo(element).$mount();
+    const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(false);
     foo.$log('bar');
     expect(spy).toHaveBeenCalledTimes(0);
     spy.mockRestore();
   });
 
-  it('should have a working $warn method when active', () => {
-    class Foo extends Base {
-      static config = {
-        name: 'Foo',
-        log: true,
-      };
-    }
+  it('should have a working $warn method when active', async () => {
+    const { Foo } = await getContext();
+    Foo.config.log = true;
+
     const spy = spyOn(window.console, 'warn');
     spy.mockImplementation(() => true);
-    const foo = new Foo(element).$mount();
+    const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(true);
     foo.$warn('bar');
     expect(spy).toHaveBeenCalledWith('[Foo]', 'bar');
     spy.mockRestore();
   });
 
-  it('should have a silent $warn method when not active', () => {
-    class Foo extends Base {
-      static config = {
-        name: 'Foo',
-        log: false,
-      };
-    }
+  it('should have a silent $warn method when not active', async () => {
+    const { Foo } = await getContext();
+    Foo.config.log = false;
+
     const spy = spyOn(window.console, 'warn');
-    const foo = new Foo(element).$mount();
+    const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(false);
     foo.$warn('bar');
     expect(spy).toHaveBeenCalledTimes(0);
     spy.mockRestore();
   });
 
-  it('should have a working debug method when active in dev mode', () => {
-    class Foo extends Base {
-      static config = {
-        name: 'Foo',
-        debug: true,
-      };
-    }
+  it('should have a working debug method when active in dev mode', async () => {
+    const { Foo } = await getContext();
+    Foo.config.debug = true;
+
     globalThis.__DEV__ = true;
     process.env.NODE_ENV = 'development';
     const spy = spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
-    const div = document.createElement('div');
-    new Foo(div).$mount();
+    const foo = new Foo(h('div'));
     for (const args of spy.mock.calls) {
       expect(args[0]).toStartWith('[debug] [Foo');
     }
