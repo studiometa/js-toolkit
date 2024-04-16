@@ -8,7 +8,7 @@ let queue: SmartQueue;
  * Add a task to the main queue.
  */
 export function addToQueue(fn: () => unknown): void {
-  if (!features.get('asyncChildren')) {
+  if (features.get('blocking')) {
     fn();
     return;
   }

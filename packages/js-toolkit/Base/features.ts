@@ -1,5 +1,5 @@
 export type Features = {
-  asyncChildren: boolean;
+  blocking: boolean;
   breakpoints: Record<string, string>;
 };
 
@@ -9,7 +9,7 @@ interface FeaturesMap extends Map<keyof Features, Features[keyof Features]> {
 }
 
 export const features = new Map<keyof Features, Features[keyof Features]>([
-  ['asyncChildren', true],
+  ['blocking', false],
   [
     'breakpoints',
     {
