@@ -64,7 +64,7 @@ class App extends Base {
   };
 }
 
-export default createApp(App, document.body);
+export default createApp(App);
 ```
 
 The [`createApp`](/api/helpers/createApp.html) helper will instantiate your app when the window has been loaded to avoid blocking anything.
