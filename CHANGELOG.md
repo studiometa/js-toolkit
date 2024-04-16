@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Changed
+
+- ⚠️ Enable the `asyncChildren` feature by default ([#427](https://github.com/studiometa/js-toolkit/pull/427))
+
 ## [v3.0.0-alpha.2](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.1..3.0.0-alpha.2) (2023-04-04)
 
 ### Added

@@ -1,16 +1,28 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
 import { describe, it, expect, jest, beforeEach, afterEach } from 'bun:test';
-import { Base, withBreakpointManager } from '@studiometa/js-toolkit';
-import { matchMedia } from '../__utils__/matchMedia.js';
-import resizeWindow from '../__utils__/resizeWindow.js';
+import {
+  Base,
+  getInstanceFromElement,
+  withBreakpointManager,
+  withName,
+} from '@studiometa/js-toolkit';
+import {
+  useMatchMedia,
+  resizeWindow,
+  useFakeTimers,
+  useRealTimers,
+  advanceTimersByTimeAsync,
+} from '#test-utils';
 
-const withName = (BaseClass, name) =>
-  class extends BaseClass {
-    static config = { name };
-  };
+beforeEach(() => {
+  useFakeTimers();
+});
+
+afterEach(() => {
+  useRealTimers();
+});
 
 async function setupTest() {
-  matchMedia.useMediaQuery('(min-width: 64rem)');
+  const matchMedia = useMatchMedia('(min-width: 64rem)');
 
   document.body.innerHTML = `
     <div data-breakpoint>
@@ -19,7 +31,7 @@ async function setupTest() {
     </div>
   `;
   const fn = jest.fn();
-  const withMock = (BaseClass, name) =>
+  const withMock = (BaseClass: typeof Base, name) =>
     withName(
       class extends BaseClass {
         mounted() {
@@ -30,7 +42,7 @@ async function setupTest() {
           fn(name, 'destroyed');
         }
       },
-      name
+      name,
     );
   class FooMobile extends withMock(Base, 'FooMobile') {}
   class FooDesktop extends withMock(Base, 'FooDesktop') {}
@@ -49,20 +61,13 @@ async function setupTest() {
   }
 
   const app = new App(document.body).$mount();
-  const foo = document.querySelector('[data-component="Foo"]').__base__.get(Foo);
+  await advanceTimersByTimeAsync(1);
+  const foo = getInstanceFromElement(document.querySelector('[data-component="Foo"]'), Foo);
 
-  return { app, foo, fn };
+  return { app, foo, fn, matchMedia };
 }
 
 describe('The withBreakpointManager decorator', () => {
-  beforeEach(() => {
-    matchMedia.useMediaQuery('(min-width: 1280px)');
-  });
-
-  afterEach(() => {
-    matchMedia.clear();
-  });
-
   it('should mount', async () => {
     const { app, foo, fn } = await setupTest();
     expect(app.$isMounted).toBe(true);
@@ -71,25 +76,30 @@ describe('The withBreakpointManager decorator', () => {
   });
 
   it('should mount and destroy components', async () => {
-    const { app, fn } = await setupTest();
+    const { app, fn, matchMedia } = await setupTest();
     matchMedia.useMediaQuery('(min-width: 80rem)');
     await resizeWindow({ width: 1280 });
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenLastCalledWith('FooDesktop', 'mounted');
     fn.mockReset();
     matchMedia.useMediaQuery('(min-width: 48rem)');
     await resizeWindow({ width: 768 });
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenNthCalledWith(1, 'FooDesktop', 'destroyed');
     expect(fn).toHaveBeenNthCalledWith(2, 'FooMobile', 'mounted');
     fn.mockReset();
     matchMedia.useMediaQuery('(min-width: 64rem)');
     await resizeWindow({ width: 1024 });
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenLastCalledWith('FooMobile', 'destroyed');
     fn.mockReset();
 
     matchMedia.useMediaQuery('(min-width: 80rem)');
     await resizeWindow({ width: 1280 });
+    await advanceTimersByTimeAsync(1);
     fn.mockReset();
     app.$destroy();
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenNthCalledWith(1, 'FooDesktop', 'destroyed');
     expect(fn).toHaveBeenNthCalledWith(2, 'Foo', 'destroyed');
   });

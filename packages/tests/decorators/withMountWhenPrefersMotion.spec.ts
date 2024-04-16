@@ -1,37 +1,34 @@
-import { describe, it, expect, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Base, withMountWhenPrefersMotion } from '@studiometa/js-toolkit';
-import { matchMedia } from '../__utils__/matchMedia.js';
+import { advanceTimersByTimeAsync, useMatchMedia, useFakeTimers, useRealTimers } from '#test-utils';
 
-const mediaQuery = 'not (prefers-reduced-motion)';
+beforeEach(() => useFakeTimers());
+afterEach(() => useRealTimers());
 
-class Foo extends withMountWhenPrefersMotion(Base, mediaQuery) {
-  static config = {
-    name: 'Foo',
-  };
-}
+async function mountComponent(mediaQuery = 'not (prefers-reduced-motion)') {
+  const matchMedia = useMatchMedia(mediaQuery);
+  class Foo extends withMountWhenPrefersMotion(Base) {
+    static config = {
+      name: 'Foo',
+    };
+  }
 
-function mountComponent() {
   const div = document.createElement('div');
   const instance = new Foo(div);
   instance.$mount();
+  await advanceTimersByTimeAsync(1);
 
-  return instance;
+  return { instance, matchMedia };
 }
 
 describe('The withMountWhenPrefersMotion decorator', () => {
-  afterEach(() => {
-    matchMedia.clear();
-  });
-
-  it('should mount the component when user prefers motion', () => {
-    matchMedia.useMediaQuery(mediaQuery);
-    const instance = mountComponent();
+  it('should mount the component when user prefers motion', async () => {
+    const { instance } = await mountComponent();
     expect(instance.$isMounted).toBe(true);
   });
 
-  it('should not mount the component when user prefers reduced motion', () => {
-    matchMedia.useMediaQuery('(prefers-reduced-motion)');
-    const instance = mountComponent();
+  it('should not mount the component when user prefers reduced motion', async () => {
+    const { instance } = await mountComponent('(prefers-reduced-motion)');
     expect(instance.$isMounted).toBe(false);
   });
 });

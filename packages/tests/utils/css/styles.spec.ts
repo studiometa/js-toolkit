@@ -10,9 +10,9 @@ describe('styles methods', () => {
   });
 
   it('should remove styles from an element', () => {
-    remove(element, { display: 'block' }, 'remove');
+    remove(element, { display: 'block' });
     expect(element.style.cssText).toBe('width: 100px;');
-    remove(element, { width: '100px' }, 'remove');
+    remove(element, { width: '100px' });
     expect(element.style.cssText).toBe('');
   });
 

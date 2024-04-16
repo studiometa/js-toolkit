@@ -1,21 +1,11 @@
-import { describe, it, expect, spyOn, mock, beforeAll, afterAll } from 'bun:test';
+import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { nextFrame } from '@studiometa/js-toolkit/utils';
-import {
-  useFakeTimers,
-  useRealTimers,
-  runAllTimers,
-  advanceTimersByTime,
-} from '../__utils__/faketimers.js';
+import { useFakeTimers, useRealTimers, runAllTimers, advanceTimersByTime } from '#test-utils';
+
+beforeEach(() => useFakeTimers());
+afterEach(() => useRealTimers());
 
 describe('nextFrame method', () => {
-  beforeAll(() => {
-    useFakeTimers();
-  });
-
-  afterAll(() => {
-    useRealTimers();
-  });
-
   it('should execute the callback function in the next frame', () => {
     const fn = mock();
     nextFrame(fn);

@@ -1,6 +1,6 @@
-import fs from 'fs';
+import fs from 'node:fs';
 
-export default function getFilenamesInFolder(path, base) {
+export function getFilenamesInFolder(path, base) {
   return fs
     .readdirSync(new URL(path, base).pathname)
     .filter((file) => file !== 'index.js' && file !== 'index.ts')

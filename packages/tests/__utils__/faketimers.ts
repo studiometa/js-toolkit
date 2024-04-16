@@ -7,12 +7,20 @@ const fakeTimers = new ModernFakeTimers({
   config: {},
 });
 
+let isUsingFakeTimers = false;
+
+export function isFakeTime() {
+  return isUsingFakeTimers;
+}
+
 export function useFakeTimers(fakeTimersConfig?: Config.FakeTimersConfig) {
   fakeTimers.useFakeTimers(fakeTimersConfig);
+  isUsingFakeTimers = true;
 }
 
 export function useRealTimers() {
   fakeTimers.useRealTimers();
+  isUsingFakeTimers = false;
 }
 
 export function advanceTimersByTime(msToRun: number) {

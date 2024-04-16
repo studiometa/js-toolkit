@@ -1,18 +1,13 @@
-import { describe, it, expect, beforeAll, afterAll, jest } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { throttle } from '@studiometa/js-toolkit/utils';
-import { useFakeTimers, useRealTimers, advanceTimersByTime } from '../__utils__/faketimers.js';
+import { useFakeTimers, useRealTimers, advanceTimersByTime } from '#test-utils';
+
+beforeEach(() => useFakeTimers());
+afterEach(() => useRealTimers());
 
 describe('throttle method', () => {
-  beforeAll(() => {
-    useFakeTimers();
-  });
-
-  afterAll(() => {
-    useRealTimers();
-  });
-
   it('should call the given function only once in the given delay', async () => {
-    const fn = jest.fn(() => true);
+    const fn = mock(() => true);
     const throttled = throttle(fn, 300);
 
     throttled();
@@ -34,7 +29,7 @@ describe('throttle method', () => {
   });
 
   it('should call the callback after 16ms when no delay provided', async () => {
-    const fn = jest.fn(() => true);
+    const fn = mock(() => true);
     const throttled = throttle(fn);
 
     throttled();
