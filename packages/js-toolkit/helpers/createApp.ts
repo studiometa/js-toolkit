@@ -1,7 +1,7 @@
 import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
 import type { Features } from '../Base/features.js';
 import { features } from '../Base/features.js';
-import { isBoolean, isDefined, isObject } from '../utils/index.js';
+import { isBoolean, isObject } from '../utils/index.js';
 
 export type CreateAppOptions = Partial<Features> & {
   root?: HTMLElement;

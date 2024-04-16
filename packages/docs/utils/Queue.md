@@ -16,5 +16,3 @@ queue.add(() => console.log('2'));
 
 - `concurrency` (`Number`): the number of tasks to execute at the same time, defaults to `10`
 - `waiter` (`(cb: (...args:unknown[]) => unknown) => unknown`): a scheduler function for the next batch execution, defaults to an immediately invoked function `(cb) => cb()`
-
-
