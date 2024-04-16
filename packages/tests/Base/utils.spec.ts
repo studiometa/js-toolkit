@@ -32,8 +32,8 @@ describe('The `getComponentElements` function', () => {
 });
 
 describe('The `addToQueue` function', () => {
-  it('should delay given tasks if the `asyncChildren` feature is enabled', async () => {
-    const map = new Map([['asyncChildren', true]]);
+  it('should delay given tasks if the `blocking` feature is disabled', async () => {
+    const map = new Map([['blocking', false]]);
     mock.module('#private/Base/features.js', () => ({ features: map }));
     const fn = mock();
 

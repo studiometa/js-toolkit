@@ -17,8 +17,8 @@ afterEach(() => {
   useRealTimers();
 });
 
-function getContext({ asyncChildren = true } = {}) {
-  const { features } = mockFeatures({ asyncChildren });
+function getContext({ blocking = false } = {}) {
+  const { features } = mockFeatures({ blocking });
 
   const fn = mock();
   const ctorFn = mock();
@@ -99,20 +99,17 @@ describe('The `createApp` function', () => {
 
   it('should enable given features', () => {
     const { App, fn, features } = getContext();
+    expect(features.get('blocking')).toBe(false);
     createApp(App, {
-      features: {
-        asyncChildren: false,
-      },
+      blocking: true,
     });
-    expect(features.get('asyncChildren')).toBe(false);
+    expect(features.get('blocking')).toBe(true);
   });
 
-  it('should instantiate directly when the asynChildren feature is enabled', async () => {
+  it('should instantiate directly when the blocking feature is enabled', async () => {
     const { App, ctorFn } = getContext();
     const useApp = createApp(App, {
-      features: {
-        asyncChildren: false,
-      },
+      blocking: true,
     });
     expect(ctorFn).toHaveBeenCalledTimes(1);
     expect(useApp()).toBeInstanceOf(Promise);
