@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'bun:test';
 import { Base, withResponsiveOptions } from '@studiometa/js-toolkit';
-import { ResponsiveOptionsManager } from '../../js-toolkit/Base/managers/ResponsiveOptionsManager.js';
+import { ResponsiveOptionsManager } from '#private/Base/managers/ResponsiveOptionsManager.js';
 
 describe('The `withResponsiveOptions` decorator', () => {
   it('should use the `ResponsiveOptionsManager', () => {
@@ -11,7 +11,7 @@ describe('The `withResponsiveOptions` decorator', () => {
     }
 
     expect(new Foo(document.createElement('div')).$options).toBeInstanceOf(
-      ResponsiveOptionsManager
+      ResponsiveOptionsManager,
     );
   });
 });

@@ -1,48 +1,57 @@
-import { describe, it, expect, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { Base, withMountOnMediaQuery } from '@studiometa/js-toolkit';
-import { wait } from '@studiometa/js-toolkit/utils';
-import { matchMedia } from '../__utils__/matchMedia.js';
+import {
+  h,
+  advanceTimersByTimeAsync,
+  useMatchMedia,
+  useFakeTimers,
+  useRealTimers,
+} from '#test-utils';
 
-const mediaQuery = 'not (prefers-reduced-motion)';
+beforeEach(() => {
+  useFakeTimers();
+});
 
-class Foo extends withMountOnMediaQuery(Base, mediaQuery) {
-  static config = {
-    name: 'Foo',
-  };
-}
+afterEach(() => {
+  useRealTimers();
+});
 
-function mountComponent() {
-  const div = document.createElement('div');
+async function mountComponent(mediaQuery = 'not (prefers-reduced-motion)') {
+  const matchMedia = useMatchMedia(mediaQuery);
+
+  class Foo extends withMountOnMediaQuery(Base, 'not (prefers-reduced-motion)') {
+    static config = {
+      name: 'Foo',
+    };
+  }
+
+  const div = h('div');
   const instance = new Foo(div);
   instance.$mount();
+  await advanceTimersByTimeAsync(1);
 
-  return instance;
+  return { instance, matchMedia };
 }
 
 describe('The withMountOnMediaQuery decorator', () => {
-  afterEach(() => {
-    matchMedia.clear();
-  });
-
   it('should mount the component when user prefers motion', async () => {
-    matchMedia.useMediaQuery(mediaQuery);
-    const instance = mountComponent();
+    const { instance } = await mountComponent();
     expect(instance.$isMounted).toBe(true);
 
     // @TODO: Test unmount on media query change
     // @see https://github.com/dyakovk/jest-matchmedia-mock/issues/3
     // matchMedia.useMediaQuery('(prefers-reduced-motion)');
-    // await wait();
+    // await advanceTimersByTimeAsync(1);
+
     // expect(instance.$isMounted).toBe(false);
   });
 
   it('should not mount the component when user prefers reduced motion', async () => {
-    matchMedia.useMediaQuery('(prefers-reduced-motion)');
-    const instance = mountComponent();
+    const { instance, matchMedia } = await mountComponent('(prefers-reduced-motion)');
     expect(instance.$isMounted).toBe(false);
 
-    matchMedia.useMediaQuery(mediaQuery);
-    await wait();
+    matchMedia.useMediaQuery('not (prefers-reduced-motion)');
+    await advanceTimersByTimeAsync(1);
     expect(instance.$isMounted).toBe(true);
   });
 });

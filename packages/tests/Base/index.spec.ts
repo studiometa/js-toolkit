@@ -1,11 +1,23 @@
-/* eslint-disable no-new, require-jsdoc, max-classes-per-file */
-import { describe, it, expect, jest, beforeEach } from 'bun:test';
-import { Base } from '@studiometa/js-toolkit';
-import { wait } from '@studiometa/js-toolkit/utils';
-import { html } from 'htl';
-import { ChildrenManager } from '../../js-toolkit/Base/managers/ChildrenManager.js';
-import { OptionsManager } from '../../js-toolkit/Base/managers/OptionsManager.js';
-import { RefsManager } from '../../js-toolkit/Base/managers/RefsManager.js';
+import { describe, it, expect, spyOn, mock, beforeEach, afterEach } from 'bun:test';
+import { Base, BaseConfig, BaseProps, getInstanceFromElement } from '@studiometa/js-toolkit';
+import { ChildrenManager, OptionsManager, RefsManager } from '#private/Base/managers/index.js';
+import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
+
+beforeEach(() => useFakeTimers());
+afterEach(() => useRealTimers());
+
+async function getContext() {
+  class Foo<T extends BaseProps = BaseProps> extends Base<T> {
+    static config: BaseConfig = {
+      name: 'Foo',
+    };
+  }
+  const element = h('div');
+  const foo = new Foo(element).$mount();
+  await advanceTimersByTimeAsync(1);
+
+  return { Foo, element, foo };
+}
 
 describe('The abstract Base class', () => {
   it('must be extended', () => {
@@ -38,45 +50,45 @@ describe('The abstract Base class', () => {
 });
 
 describe('A Base instance', () => {
-  class Foo extends Base {
-    static config = {
-      name: 'Foo',
-    };
-  }
-  const element = document.createElement('div');
-  const foo = new Foo(element).$mount();
-
-  it('should have an `$id` property', () => {
+  it('should have an `$id` property', async () => {
+    const { foo } = await getContext();
     expect(foo.$id).toBeDefined();
   });
 
-  it('should have an `$isMounted` property', () => {
+  it('should have an `$isMounted` property', async () => {
+    const { foo } = await getContext();
     expect(foo.$isMounted).toBe(true);
   });
 
-  it('should have a `$refs` property', () => {
+  it('should have a `$refs` property', async () => {
+    const { foo } = await getContext();
     expect(foo.$refs).toBeInstanceOf(RefsManager);
   });
 
-  it('should have a `$children` property', () => {
+  it('should have a `$children` property', async () => {
+    const { foo } = await getContext();
     expect(foo.$children).toBeInstanceOf(ChildrenManager);
   });
 
-  it('should have an `$options` property', () => {
+  it('should have an `$options` property', async () => {
+    const { foo } = await getContext();
     expect(foo.$options).toBeInstanceOf(OptionsManager);
     expect(foo.$options.name).toBe('Foo');
   });
 
-  it('should be able to set any `$options` property', () => {
+  it('should be able to set any `$options` property', async () => {
+    const { foo } = await getContext();
     foo.$options.log = true;
     expect(foo.$options.log).toBe(true);
   });
 
-  it('should have an `$el` property', () => {
+  it('should have an `$el` property', async () => {
+    const { foo, element } = await getContext();
     expect(foo.$el).toBe(element);
   });
 
-  it('should have a `__base__` property', () => {
+  it('should have a `__base__` property', async () => {
+    const { foo, Foo } = await getContext();
     // @ts-ignore
     expect(foo.$el.__base__).toBeInstanceOf(WeakMap);
     expect(foo.$el.__base__.get(Foo)).toBe(foo);
@@ -116,38 +128,36 @@ describe('A Base instance', () => {
       };
     }
 
-    const d = new D(document.createElement('div'));
+    const d = new D(h('div'));
     expect(d.__config).toMatchSnapshot();
   });
 
-  it('should have a `$root` property', () => {
+  it('should have a `$root` property', async () => {
     class ChildComponent extends Base {
-      static config = {
+      static config: BaseConfig = {
         name: 'ChildComponent',
       };
     }
 
-    class Component extends Base {
-      static config = {
+    class Component extends Base<{ $children: { ChildComponent: ChildComponent[] } }> {
+      static config: BaseConfig = {
         name: 'Component',
         components: { ChildComponent },
       };
     }
 
-    class App extends Base {
-      static config = {
+    class App extends Base<{ $children: { Component: Component[] } }> {
+      static config: BaseConfig = {
         name: 'App',
         components: { Component },
       };
     }
 
-    const tpl = html`<div>
-      <div data-component="Component">
-        <div data-component="ChildComponent"></div>
-      </div>
-    </div>`;
-    const app = new App(tpl).$mount();
-
+    const div = h('div', {}, [
+      h('div', { dataComponent: 'Component' }, [h('div', { dataComponent: 'ChildComponent' })]),
+    ]);
+    const app = new App(div).$mount();
+    await advanceTimersByTimeAsync(1);
     expect(app.$root).toBe(app);
     expect(app.$children.Component[0].$root).toBe(app);
     expect(app.$children.Component[0].$children.ChildComponent[0].$root).toBe(app);
@@ -155,63 +165,66 @@ describe('A Base instance', () => {
 });
 
 describe('A Base instance methods', () => {
-  class Foo extends Base {
-    static config = {
-      name: 'Foo',
-    };
-  }
-
-  let element;
-  let foo;
-
-  beforeEach(() => {
-    element = document.createElement('div');
-    foo = new Foo(element).$mount();
-  });
-
-  it('should emit a mounted event', () => {
-    const fn = jest.fn();
+  it('should emit a mounted event', async () => {
+    const { foo } = await getContext();
+    const fn = mock();
     foo.$on('mounted', fn);
     foo.$destroy();
+    await advanceTimersByTimeAsync(1);
     foo.$mount();
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenCalledTimes(1);
     foo.$mount();
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it('should emit a destroyed event', () => {
-    const fn = jest.fn();
+  it('should emit a destroyed event', async () => {
+    const { foo } = await getContext();
+    const fn = mock();
     foo.$on('destroyed', fn);
     foo.$destroy();
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenCalledTimes(1);
     foo.$destroy();
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
   it('should be able to update its child components.', async () => {
-    const div = document.createElement('div');
+    const { Foo } = await getContext();
+
+    const div = h('div');
     div.innerHTML = `
       <div data-component="Bar"></div>
       <div data-component="Bar"></div>
     `;
 
-    const fn = jest.fn();
+    const fn = mock();
+
     class Bar extends Foo {}
     class Baz extends Base {
-      static config = { name: 'Baz' };
+      static config: BaseConfig = { name: 'Baz' };
+
       updated() {
         fn(this.$id);
       }
     }
 
     class AsyncBaz extends Baz {
-      static config = {
+      static config: BaseConfig = {
         name: 'AsyncBaz',
       };
     }
 
-    class App extends Base {
-      static config = {
+    class App extends Base<{
+      $children: {
+        Bar: Bar[];
+        Baz: Baz[];
+        AsyncBaz: Promise<AsyncBaz>[];
+      };
+    }> {
+      static config: BaseConfig = {
         name: 'App',
         components: {
           Bar,
@@ -222,6 +235,7 @@ describe('A Base instance methods', () => {
     }
 
     const app = new App(div).$mount();
+    await advanceTimersByTimeAsync(1);
     expect(app.$children.Bar).toHaveLength(2);
     expect(app.$children.Bar[0].$isMounted).toBe(true);
     div.innerHTML = `
@@ -231,6 +245,7 @@ describe('A Base instance methods', () => {
     `;
 
     app.$update();
+    await advanceTimersByTimeAsync(1);
 
     expect(app.$children.Bar).toEqual([]);
     expect(app.$children.Baz).toHaveLength(2);
@@ -238,23 +253,24 @@ describe('A Base instance methods', () => {
     const asyncBaz = await app.$children.AsyncBaz[0];
     expect(asyncBaz.$isMounted).toBe(true);
 
-    const id = div.firstElementChild.__base__.get(Baz).$id;
+    const id = getInstanceFromElement(div.firstElementChild as HTMLElement, Baz).$id;
     expect(id).toBe(app.$children.Baz[0].$id);
 
     const child = document.createElement('div');
-    child.setAttribute('data-component', 'Baz');
-    div.appendChild(child);
+    child.dataset.component = 'Baz';
+    div.append(child);
     expect(id).toBe(app.$children.Baz[0].$id);
 
     app.$update();
+    await advanceTimersByTimeAsync(1);
 
-    // Wait for the async component to update
-    await wait(1);
     expect(id).toBe(app.$children.Baz[0].$id);
     expect(fn).toHaveBeenCalledTimes(3);
   });
 
-  it('should implement the $register method', () => {
+  it('should implement the $register method', async () => {
+    const { Foo } = await getContext();
+
     class Bar extends Foo {}
     class Baz extends Foo {}
     class Boz extends Foo {}
@@ -270,6 +286,7 @@ describe('A Base instance methods', () => {
     const barInstances = Bar.$register('Bar');
     const bazInstances = Baz.$register('.custom-selector');
     const bozInstances = Boz.$register('Boz');
+    await advanceTimersByTimeAsync(1);
     expect(fooInstances).toHaveLength(1);
     expect(fooInstances[0].$el.dataset.component).toBe('Foo');
     expect(barInstances).toHaveLength(2);
@@ -279,118 +296,143 @@ describe('A Base instance methods', () => {
     expect(bozInstances).toHaveLength(0);
   });
 
-  it('should be able to be terminated', () => {
-    const fn = jest.fn();
-    class Bar extends Foo {
+  it('should be able to be terminated', async () => {
+    const fn = mock();
+
+    class Bar extends Base {
+      static config: BaseConfig = {
+        name: 'Bar',
+      };
+
       terminated() {
         fn('method');
       }
     }
 
-    const div = document.createElement('div');
-    const bar = new Bar(div).$mount();
-    expect(bar).toEqual(div.__base__.get(Bar));
+    const div = h('div');
+    const bar = new Bar(div);
+    bar.$mount();
+    await advanceTimersByTimeAsync(1);
+    expect(bar).toEqual(getInstanceFromElement(div, Bar));
     bar.$on('terminated', () => fn('event'));
     bar.$terminate();
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenCalledTimes(2);
     expect(fn).toHaveBeenNthCalledWith(1, 'event');
     expect(fn).toHaveBeenNthCalledWith(2, 'method');
   });
 
-  it('should not find children if none provided', () => {
+  it('should not find children if none provided', async () => {
+    const { foo } = await getContext();
+
     class Bar extends Base {
-      static config = {
+      static config: BaseConfig = {
         name: 'Bar',
       };
     }
 
-    class Baz extends Base {
-      static config = {
+    class Baz extends Base<{ $children: { Bar: Bar[] } }> {
+      static config: BaseConfig = {
         name: 'Baz',
         components: { Bar },
       };
     }
+
     expect(foo.$children.registeredNames).toEqual([]);
-    expect(new Baz(document.createElement('div')).$mount().$children.Bar).toEqual([]);
-  });
-
-  it('should not find terminated children', () => {
-    class Bar extends Base {
-      static config = {
-        name: 'Bar',
-      };
-    }
-
-    class Baz extends Base {
-      static config = {
-        name: 'Baz',
-        components: { Bar },
-      };
-    }
-
-    const div = document.createElement('div');
-    div.innerHTML = `
-      <div data-component="Bar"></div>
-    `;
-    const baz = new Baz(div).$mount();
-    expect(baz.$children.Bar).toEqual([div.firstElementChild.__base__.get(Bar)]);
-    div.firstElementChild.__base__.get(Bar).$terminate();
+    const baz = new Baz(h('div'));
+    baz.$mount();
+    await advanceTimersByTimeAsync(1);
     expect(baz.$children.Bar).toEqual([]);
   });
 
-  it('should mount and destroy its children', () => {
+  it('should not find terminated children', async () => {
     class Bar extends Base {
       static config = {
         name: 'Bar',
       };
     }
-    class Baz extends Foo {
+
+    class Baz extends Base {
       static config = {
         name: 'Baz',
         components: { Bar },
       };
     }
 
-    document.body.innerHTML = `<div data-component="Bar"></div>`;
-    const baz = new Baz(document.body).$mount();
-    const barElement = document.querySelector('[data-component="Bar"]');
+    const div = h('div');
+    div.innerHTML = '<div data-component="Bar"></div>';
+
+    const baz = new Baz(div);
+    baz.$mount();
+    await advanceTimersByTimeAsync(1);
+    const bar = getInstanceFromElement(div.firstElementChild as HTMLElement, Bar);
+    expect(baz.$children.Bar).toEqual([bar]);
+    bar.$terminate();
+    await advanceTimersByTimeAsync(1);
+    expect(baz.$children.Bar).toEqual([]);
+  });
+
+  it('should mount and destroy its children', async () => {
+    const { Foo } = await getContext();
+    class Bar extends Base {
+      static config: BaseConfig = {
+        name: 'Bar',
+      };
+    }
+    class Baz extends Foo<{ $children: { Bar: Bar[] } }> {
+      static config: BaseConfig = {
+        name: 'Baz',
+        components: { Bar },
+      };
+    }
+
+    document.body.innerHTML = '<div data-component="Bar"></div>';
+    const baz = new Baz(document.body);
+    baz.$mount();
+    await advanceTimersByTimeAsync(1);
+    const barElement = document.querySelector('[data-component="Bar"]') as HTMLElement;
     expect(baz.$isMounted).toBe(true);
-    expect(barElement.__base__.get(Bar).$isMounted).toBe(true);
+    expect(getInstanceFromElement(barElement, Bar).$isMounted).toBe(true);
     baz.$destroy();
+    await advanceTimersByTimeAsync(1);
     expect(baz.$isMounted).toBe(false);
-    expect(barElement.__base__.get(Bar).$isMounted).toBe(false);
+    expect(getInstanceFromElement(barElement, Bar).$isMounted).toBe(false);
   });
 });
 
 describe('The Base class event methods', () => {
-  it('should bind handlers to events', () => {
+  it('should bind handlers to events', async () => {
     class App extends Base {
-      static config = {
+      static config: BaseConfig = {
         name: 'A',
         emits: ['foo'],
       };
     }
 
-    const app = new App(document.createElement('div')).$mount();
-    const fn = jest.fn();
+    const app = new App(document.createElement('div'));
+    app.$mount();
+    await advanceTimersByTimeAsync(1);
+    const fn = mock();
     const off = app.$on('foo', fn);
     app.$emit('foo', { foo: true });
     expect(fn).toHaveBeenCalledTimes(1);
     expect(fn).toHaveBeenLastCalledWith(
-      expect.objectContaining({ type: 'foo', detail: [{ foo: true }] })
+      expect.objectContaining({ type: 'foo', detail: [{ foo: true }] }),
     );
     off();
     app.$emit('foo', { foo: true });
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it('should store event handlers', () => {
+  it('should store event handlers', async () => {
     class App extends Base {
       static config = { name: 'App', emits: ['event'] };
     }
 
-    const app = new App(document.createElement('div')).$mount();
-    const fn = jest.fn();
+    const app = new App(h('div'));
+    app.$mount();
+    await advanceTimersByTimeAsync(1);
+    const fn = mock();
     app.$on('event', fn);
     expect(app.__hasEvent('event')).toBe(true);
     expect(app.__eventHandlers.get('event')).toEqual(new Set([fn]));
@@ -398,102 +440,82 @@ describe('The Base class event methods', () => {
     expect(app.__eventHandlers.get('event')).toEqual(new Set());
   });
 
-  it('should warn when an event is not configured', () => {
+  it('should warn when an event is not configured', async () => {
     class App extends Base {
       static config = { name: 'App' };
     }
 
-    const app = new App(document.createElement('div')).$mount();
-    const warnMock = jest.spyOn(console, 'warn');
-    warnMock.mockImplementation(() => undefined);
-    app.$on('other-event');
+    const app = new App(document.createElement('div'));
+    app.$mount();
+    await advanceTimersByTimeAsync(1);
+    const warnMock = spyOn(console, 'warn');
+    warnMock.mockImplementation(() => {});
+    app.$on('other-event', () => {});
     expect(warnMock).toHaveBeenCalledTimes(1);
     warnMock.mockRestore();
   });
 });
 
 describe('A Base instance config', () => {
-  let element;
+  it('should have a working $log method when active', async () => {
+    const { Foo } = await getContext();
+    Foo.config.log = true;
 
-  beforeEach(() => {
-    element = document.createElement('div');
-  });
-
-  it('should have a working $log method when active', () => {
-    class Foo extends Base {
-      static config = {
-        name: 'Foo',
-        log: true,
-      };
-    }
-    const spy = jest.spyOn(window.console, 'log');
+    const spy = spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
-    const foo = new Foo(element).$mount();
+    const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(true);
     foo.$log('bar');
     expect(spy).toHaveBeenCalledWith('[Foo]', 'bar');
     spy.mockRestore();
   });
 
-  it('should have a silent $log method when not active', () => {
-    class Foo extends Base {
-      static config = {
-        name: 'Foo',
-        log: false,
-      };
-    }
-    const spy = jest.spyOn(window.console, 'log');
-    const foo = new Foo(element).$mount();
+  it('should have a silent $log method when not active', async () => {
+    const { Foo } = await getContext();
+    Foo.config.log = false;
+
+    const spy = spyOn(window.console, 'log');
+    const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(false);
     foo.$log('bar');
     expect(spy).toHaveBeenCalledTimes(0);
     spy.mockRestore();
   });
 
-  it('should have a working $warn method when active', () => {
-    class Foo extends Base {
-      static config = {
-        name: 'Foo',
-        log: true,
-      };
-    }
-    const spy = jest.spyOn(window.console, 'warn');
+  it('should have a working $warn method when active', async () => {
+    const { Foo } = await getContext();
+    Foo.config.log = true;
+
+    const spy = spyOn(window.console, 'warn');
     spy.mockImplementation(() => true);
-    const foo = new Foo(element).$mount();
+    const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(true);
     foo.$warn('bar');
     expect(spy).toHaveBeenCalledWith('[Foo]', 'bar');
     spy.mockRestore();
   });
 
-  it('should have a silent $warn method when not active', () => {
-    class Foo extends Base {
-      static config = {
-        name: 'Foo',
-        log: false,
-      };
-    }
-    const spy = jest.spyOn(window.console, 'warn');
-    const foo = new Foo(element).$mount();
+  it('should have a silent $warn method when not active', async () => {
+    const { Foo } = await getContext();
+    Foo.config.log = false;
+
+    const spy = spyOn(window.console, 'warn');
+    const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(false);
     foo.$warn('bar');
     expect(spy).toHaveBeenCalledTimes(0);
     spy.mockRestore();
   });
 
-  it('should have a working debug method when active in dev mode', () => {
-    class Foo extends Base {
-      static config = {
-        name: 'Foo',
-        debug: true,
-      };
-    }
+  it('should have a working debug method when active in dev mode', async () => {
+    const { Foo } = await getContext();
+    Foo.config.debug = true;
+
     globalThis.__DEV__ = true;
     process.env.NODE_ENV = 'development';
-    const spy = jest.spyOn(window.console, 'log');
+    const spy = spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
-    const div = document.createElement('div');
-    new Foo(div).$mount();
+    const foo = new Foo(h('div'));
     for (const args of spy.mock.calls) {
       expect(args[0]).toStartWith('[debug] [Foo');
     }

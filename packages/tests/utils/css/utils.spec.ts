@@ -1,6 +1,5 @@
 import { describe, it, expect, jest } from 'bun:test';
-// eslint-disable-next-line import/no-relative-packages
-import { eachElements } from '../../../js-toolkit/utils/css/utils.js';
+import { eachElements } from '#private/utils/css/utils.js';
 
 describe('The `eachElements` function', () => {
   it('should accept a single element', () => {

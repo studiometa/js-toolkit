@@ -1,33 +1,30 @@
-import { describe, it, expect, jest, beforeAll } from 'bun:test';
-import { Base, withExtraConfig, withResponsiveOptions } from '@studiometa/js-toolkit';
-import { matchMedia } from '../../__utils__/matchMedia.js';
-
-class Foo extends withResponsiveOptions(Base) {
-  static config = {
-    name: 'Base',
-  };
-}
+import { describe, it, expect, spyOn } from 'bun:test';
+import { Base, withResponsiveOptions } from '@studiometa/js-toolkit';
+import { h, mockFeatures } from '#test-utils';
 
 function componentWithOptions(content, options) {
-  const div = document.createElement('div');
+  mockFeatures();
+  const div = h('div');
   div.innerHTML = content;
   const element = div.firstElementChild;
-  return new (withExtraConfig(Foo, {
-    options,
-  }))(element);
-}
 
-beforeAll(() => {
-  matchMedia.useMediaQuery('(min-width: 80rem)');
-  document.body.dataset.breakpoint = '';
-});
+  class Foo extends withResponsiveOptions(Base) {
+    static config = {
+      name: 'Foo',
+      options,
+    };
+  }
+
+  const instance = new Foo(element);
+
+  return instance;
+}
 
 describe('The ResponsiveOptionsManager class', () => {
   it('should return the values for the active breakpoint', () => {
     const instance = componentWithOptions(
       `<div
         data-option-str="foo"
-        data-option-str:s="baz"
         data-option-str:l="bar"
         data-option-foo="foo"
         data-option-foo:l="l:foo"></div>
@@ -51,13 +48,10 @@ describe('The ResponsiveOptionsManager class', () => {
       },
     );
 
-    const warnMock = jest.spyOn(console, 'warn');
+    const warnMock = spyOn(console, 'warn');
     warnMock.mockImplementation(() => null);
     instance.$options.str = 'baz';
-    expect(warnMock).toHaveBeenCalledWith(
-      '[BaseWithExtraConfig]',
-      'Responsive options are read-only.',
-    );
+    expect(warnMock).toHaveBeenCalledWith('[Foo]', 'Responsive options are read-only.');
     instance.$options.foo = 'foo';
     expect(warnMock).toHaveBeenCalledTimes(1);
     warnMock.mockRestore();
