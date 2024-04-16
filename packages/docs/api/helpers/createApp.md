@@ -8,18 +8,18 @@ Use the `createApp` function to instantiate your application on page load while 
 
 ## Usage
 
-```js{1,4,6}
+```js {1,4,6}
 import { createApp } from '@studiometa/js-toolkit';
-import App from './app.js';
+import App from './App.js';
 
-const useApp = createApp(App, document.body);
+const useApp = createApp(App);
 
 useApp().then(app => /* ... */);
 ```
 
 **Parameters**
 
-- `App` (`typeof Base`): the class for your app
+- `App` (`typeof Base`): the root class for your app
 
 The second parameter can either be one of the following:
 
@@ -27,7 +27,7 @@ The second parameter can either be one of the following:
 2. `options` (`Object`): an object to configure more advanced options
    - `options.root` (`HTMLElement`): the root element for your app, defaults to `document.body`
    - `options.breakpoints` (`Record<string, string>`): a list of breakpoints to confgure the [`useResize` service](/api/services/useResize)
-   - `options.mountState` (`'interactive'|'complete'`): the loading state when the app should be mounted, defaults to `complete` (see [the `document.readyState` documentation](https://developer.mozilla.org/en-US/docs/Web/API/Document/readyState) for more details)
+   - `options.blocking` (`boolean`): wether to enable the queue mechanism for the internals of the framework or not, defaults to `false`
 
 **Return value**
 
@@ -39,7 +39,7 @@ The second parameter can either be one of the following:
 
 Use the `createApp` function to export your app:
 
-```js{1,9}
+```js {1,9}
 import { Base, createApp } from '@studiometa/js-toolkit';
 
 class App extends Base {
@@ -48,18 +48,18 @@ class App extends Base {
   };
 }
 
-export default createApp(App, document.body);
+export default createApp(App);
 ```
 
 And import it in other files to access your app instance when it is mounted:
 
-```js{1,4-5}
+```js {1,4-5}
 import useApp from './app.js';
 
 (async () => {
   const app = await useApp();
   console.log(app.$el); // document.body
-})()
+})();
 ```
 
 ### Configure breakpoints
@@ -81,14 +81,14 @@ export default createApp(App, {
 });
 ```
 
-### Configure when the app is mounted
+### Configure the queue mechanism of the app
 
-By default, the app will be mounted when the `document.readyState` property is `complete` (just before the load event is fired). You can configure this by specifying the `mountState` option:
+By default, the app will be created with a queue mechanism based on the [`SmartQueue` class](/utils/SmartQueue.html). This queue helps reduce JavaScript's blocking time when instantiating the application and all of its children by releasing the current loop every 40 ms.
+
+If you wish to use a blocking strategy, you can disable the queue by passing the `blocking` option to `true`:
 
 ```js
 export default createApp(App, {
-  mountState: 'interactive',
+  blocking: true,
 });
 ```
-
-In `interactive` mode, the app will be mounted when the DOM has finished loading and the document has been parsed.
