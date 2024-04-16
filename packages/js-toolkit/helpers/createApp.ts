@@ -1,12 +1,10 @@
 import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
 import type { Features } from '../Base/features.js';
 import { features } from '../Base/features.js';
-import { isDefined } from '../utils/index.js';
+import { isBoolean, isDefined, isObject } from '../utils/index.js';
 
-export type CreateAppOptions = {
-  root: HTMLElement;
-  features: Partial<Features>;
-  breakpoints?: Record<string, string>;
+export type CreateAppOptions = Partial<Features> & {
+  root?: HTMLElement;
 };
 
 /**
@@ -15,28 +13,31 @@ export type CreateAppOptions = {
  */
 export default function createApp<S extends BaseConstructor<Base>, T extends BaseProps = BaseProps>(
   App: S,
-  rootElement: HTMLElement | Partial<CreateAppOptions> = document.body,
+  options: HTMLElement | CreateAppOptions = {},
 ): () => Promise<S & Base<T>> {
   let app: S & Base<T>;
-  const options =
-    rootElement instanceof HTMLElement
-      ? { root: rootElement, features: undefined }
-      : { root: document.body, ...rootElement };
+  const {
+    root = document.body,
+    breakpoints = null,
+    blocking = null,
+  } = options instanceof HTMLElement ? { root: options } : options;
 
-  if (isDefined(options.features)) {
-    for (const [feature, value] of Object.entries(options.features as Features)) {
-      features.set(feature as keyof Features, value);
-    }
+  if (isObject(breakpoints)) {
+    features.set('breakpoints', breakpoints);
+  }
+
+  if (isBoolean(blocking)) {
+    features.set('blocking', blocking);
   }
 
   function init() {
-    app = (new App(options.root) as S & Base<T>).$mount();
+    app = (new App(root) as S & Base<T>).$mount();
     return app;
   }
 
   let p: Promise<S & Base<T>>;
 
-  if (features.get('asyncChildren')) {
+  if (features.get('blocking')) {
     p = Promise.resolve(init());
   } else {
     p = new Promise<S & Base<T>>((resolve) => {
