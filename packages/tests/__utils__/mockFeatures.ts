@@ -1,7 +1,7 @@
 import { mock } from 'bun:test';
 
 type Features = {
-  asyncChildren: boolean;
+  blocking: boolean;
   breakpoints: Record<string, string>;
 };
 
@@ -11,7 +11,7 @@ interface FeaturesMap extends Map<keyof Features, Features[keyof Features]> {
 }
 
 export function mockFeatures({
-  asyncChildren = true,
+  blocking = true,
   breakpoints = {
     xxs: '0rem',
     xs: '30rem', // 480px
@@ -24,7 +24,7 @@ export function mockFeatures({
   },
 } = {}) {
   const features = new Map<keyof Features, Features[keyof Features]>([
-    ['asyncChildren', asyncChildren],
+    ['blocking', blocking],
     ['breakpoints', breakpoints],
   ]) as FeaturesMap;
 
