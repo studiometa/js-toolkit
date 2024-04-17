@@ -43,4 +43,8 @@ function off(...args: [EventTarget, string, EventListenerOrEventListenerObject])
   event('remove', ...args);
 }
 
+export function emit(target: EventTarget, event: Event): void {
+  target.dispatchEvent(event);
+}
+
 export { on, off };
