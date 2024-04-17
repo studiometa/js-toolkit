@@ -426,7 +426,7 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
    * @param  {EventListenerOrEventListenerObject} listener
    *   Function to be called.
    * @param {boolean|AddEventListenerOptions} [options]
-   *   Options for the `removeEventListener` method.
+   *   Options for the `addEventListener` method.
    * @returns {() => void}
    *   A function to unbind the listener.
    */
