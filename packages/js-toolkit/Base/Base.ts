@@ -7,7 +7,7 @@ import {
   EventsManager,
   OptionsManager,
 } from './managers/index.js';
-import { noop, isDev, isFunction, isArray, on, off } from '../utils/index.js';
+import { noop, isDev, isFunction, isArray, on, off, emit } from '../utils/index.js';
 
 let id = 0;
 
@@ -494,7 +494,7 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       this.__debug('$emit', event, args);
     }
 
-    this.dispatchEvent(new CustomEvent(event, { detail: args }));
+    emit(this, new CustomEvent(event, { detail: args }));
   }
 
   /**
