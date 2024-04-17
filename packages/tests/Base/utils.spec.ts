@@ -1,7 +1,12 @@
 import { describe, it, expect, mock } from 'bun:test';
+import { Base, withName } from '@studiometa/js-toolkit';
 import { nextTick } from '@studiometa/js-toolkit/utils';
-import { getComponentElements, addToQueue } from '#private/Base/utils.js';
-import { features } from '#private/Base/features.js';
+import {
+  getComponentElements,
+  addToQueue,
+  registerInstance,
+  getInstances,
+} from '#private/Base/utils.js';
 import { h } from '#test-utils';
 
 describe('The `getComponentElements` function', () => {
@@ -41,5 +46,22 @@ describe('The `addToQueue` function', () => {
     expect(fn).not.toHaveBeenCalled();
     await nextTick();
     expect(fn).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('The instance helpers', () => {
+  it('should save and get instances for a given constructor', () => {
+    const Foo = withName(Base, 'Foo');
+    const instances = getInstances(Foo);
+
+    expect(instances).toBeInstanceOf(Set);
+    expect(getInstances(Foo) === instances).toBe(true);
+    expect(instances).toHaveLength(0);
+
+    const foo = new Foo(h('div'));
+
+    expect(Array.from(instances)[0]).toBe(foo);
+    expect(instances).toHaveLength(1);
+    expect(instances.has(foo)).toBe(true);
   });
 });
