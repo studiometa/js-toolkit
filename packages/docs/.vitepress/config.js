@@ -239,6 +239,7 @@ function getHelpersSidebar() {
     { text: 'getClosestParent', link: '/api/helpers/getClosestParent.html' },
     { text: 'getDirectChildren', link: '/api/helpers/getDirectChildren.html' },
     { text: 'getInstanceFromElement', link: '/api/helpers/getInstanceFromElement.html' },
+    { text: 'getInstances', link: '/api/helpers/getInstances.html' },
     { text: 'importOnInteraction', link: '/api/helpers/importOnInteraction.html' },
     { text: 'importWhenIdle', link: '/api/helpers/importWhenIdle.html' },
     { text: 'importWhenVisible', link: '/api/helpers/importWhenVisible.html' },
