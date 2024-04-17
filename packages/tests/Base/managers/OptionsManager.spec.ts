@@ -1,20 +1,23 @@
 /* eslint-disable unicorn/prefer-dom-node-dataset */
 import { describe, it, expect } from 'bun:test';
-import { Base, withExtraConfig } from '@studiometa/js-toolkit';
-
-class Foo extends Base {
-  static config = {
-    name: 'Base',
-  };
-}
+import { Base, BaseConfig, withExtraConfig } from '@studiometa/js-toolkit';
+import { h } from '#test-utils';
 
 function componentWithOptions(content, options) {
-  const div = document.createElement('div');
+  const div = h('div');
   div.innerHTML = content;
   const element = div.firstElementChild;
-  return new (withExtraConfig(Foo, {
-    options,
-  }))(element);
+
+  class Foo extends Base {
+    static config: BaseConfig = {
+      name: 'Foo',
+      options,
+    };
+  }
+
+  const instance = new Foo(element);
+
+  return instance;
 }
 
 describe('The Options class', () => {
@@ -86,7 +89,6 @@ describe('The Options class', () => {
       {
         foo: Boolean,
       },
-      { name: 'Test' }
     );
 
     expect(instance.$options.foo).toBe(true);
@@ -173,7 +175,7 @@ describe('The Options class', () => {
       objectWithDefault: { type: Object, default: () => ({ foo: 'foo' }) },
     });
 
-    expect(instance.$options.name).toBe('BaseWithExtraConfig');
+    expect(instance.$options.name).toBe('Foo');
     expect(instance.$options.string).toBe('');
     expect(instance.$options.number).toBe(0);
     expect(instance.$options.boolean).toBe(false);

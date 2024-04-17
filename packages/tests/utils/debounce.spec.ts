@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, jest } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, jest } from 'bun:test';
 import { debounce } from '@studiometa/js-toolkit/utils';
-import { useFakeTimers, useRealTimers, advanceTimersByTime } from '../__utils__/faketimers.js';
+import { useFakeTimers, useRealTimers, advanceTimersByTime } from '#test-utils';
+
+beforeEach(() => useFakeTimers());
+afterEach(() => useRealTimers());
 
 describe('debounce method', () => {
-  beforeAll(() => useFakeTimers());
-  afterAll(() => useRealTimers());
-
   it('should wait the given delay to call given function', async () => {
     const fn = jest.fn(() => true);
     const debounced = debounce(fn, 400);

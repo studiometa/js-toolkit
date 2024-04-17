@@ -1,9 +1,11 @@
 # JS Toolkit
 
-[![NPM Version](https://img.shields.io/npm/v/@studiometa/js-toolkit.svg?style=flat-square)](https://www.npmjs.com/package/@studiometa/js-toolkit/)
-[![Size](https://img.shields.io/bundlephobia/minzip/@studiometa/js-toolkit?label=size&style=flat-square)](https://bundlephobia.com/package/@studiometa/js-toolkit)
-[![Dependency Status](https://img.shields.io/librariesio/release/npm/@studiometa/js-toolkit?style=flat-square)](https://david-dm.org/studiometa/js-toolkit)
-![Codecov](https://img.shields.io/codecov/c/github/studiometa/js-toolkit?style=flat-square)
+[![NPM Version](https://img.shields.io/npm/v/@studiometa/js-toolkit.svg?style=flat&colorB=3e63dd&colorA=414853)](https://www.npmjs.com/package/@studiometa/js-toolkit/)
+[![NPM Next Version](https://img.shields.io/npm/v/@studiometa/js-toolkit/next?style=flat&colorB=3e63dd&colorA=414853)](https://www.npmjs.com/package/@studiometa/js-toolkit/v/next)
+[![Downloads](https://img.shields.io/npm/dm/@studiometa/js-toolkit?style=flat&colorB=3e63dd&colorA=414853)](https://www.npmjs.com/package/@studiometa/js-toolkit/)
+[![Size](https://img.shields.io/bundlephobia/minzip/@studiometa/js-toolkit?style=flat&colorB=3e63dd&colorA=414853&label=size)](https://bundlephobia.com/package/@studiometa/js-toolkit)
+[![Dependency Status](https://img.shields.io/librariesio/release/npm/@studiometa/js-toolkit?style=flat&colorB=3e63dd&colorA=414853)](https://david-dm.org/studiometa/js-toolkit)
+![Codecov](https://img.shields.io/codecov/c/github/studiometa/js-toolkit?style=flat&colorB=3e63dd&colorA=414853)
 
 > A JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.
 

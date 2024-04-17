@@ -1,8 +1,13 @@
 import { describe, it, expect, mock, spyOn, afterEach, beforeEach } from 'bun:test';
 import { scrollTo } from '@studiometa/js-toolkit/utils';
-import { mockScroll, restoreScroll } from '../__utils__/scroll.js';
-import { useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '../__utils__/faketimers.js';
-import { h } from '../__utils__/h.js';
+import {
+  mockScroll,
+  restoreScroll,
+  useFakeTimers,
+  useRealTimers,
+  advanceTimersByTimeAsync,
+  h,
+} from '#test-utils';
 
 describe('The `scrollTo` function', () => {
   let fn;

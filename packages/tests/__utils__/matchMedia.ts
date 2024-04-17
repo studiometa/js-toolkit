@@ -1,9 +1,15 @@
-import { jest } from 'bun:test';
+import { afterEach } from 'bun:test';
 import MatchMediaMock from 'jest-matchmedia-mock';
 
-global.jest = jest;
+const defaultMediaQuery = '(min-width: 80rem)';
 
-// eslint-disable-next-line new-cap
-export const matchMedia = new MatchMediaMock();
+export function useMatchMedia(mediaQuery = defaultMediaQuery) {
+  const matchMedia = new MatchMediaMock();
+  matchMedia.useMediaQuery(mediaQuery);
 
-matchMedia.useMediaQuery('(min-width: 80rem)');
+  afterEach(() => {
+    matchMedia.useMediaQuery(defaultMediaQuery);
+  });
+
+  return matchMedia;
+}

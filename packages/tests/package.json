@@ -1,18 +1,18 @@
 {
   "name": "@studiometa/js-toolkit-tests",
-  "version": "3.0.0-alpha.2",
+  "version": "3.0.0-alpha.3",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "bun test"
   },
   "dependencies": {
-    "@happy-dom/global-registrator": "^14.3.10",
+    "@happy-dom/global-registrator": "^14.7.1",
     "@jest/fake-timers": "^29.7.0",
     "@jest/types": "^29.6.3",
-    "@types/bun": "^1.0.12",
-    "bun": "^1.1.0",
-    "happy-dom": "^14.3.10",
+    "@types/bun": "^1.1.0",
+    "bun": "^1.1.4",
+    "happy-dom": "^14.7.1",
     "htl": "^0.3.1",
     "jest-matchmedia-mock": "^1.1.0"
   }

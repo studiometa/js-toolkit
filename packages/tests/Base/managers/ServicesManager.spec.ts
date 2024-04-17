@@ -1,7 +1,6 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
 import { describe, it, expect, jest, beforeEach } from 'bun:test';
 import { Base } from '@studiometa/js-toolkit';
-import { useFakeTimers, useRealTimers, runAllTimers } from '../../__utils__/faketimers.js';
+import { useFakeTimers, useRealTimers, runAllTimers } from '#test-utils';
 
 describe('The ServicesManager', () => {
   const fn = jest.fn();

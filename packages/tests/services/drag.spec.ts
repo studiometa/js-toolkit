@@ -1,6 +1,6 @@
 import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { useDrag } from '@studiometa/js-toolkit';
-import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '../__utils__/faketimers';
+import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '#test-utils';
 
 function createEvent(type, data = {}, options = {}) {
   const event = new Event(type, options);

@@ -8,7 +8,7 @@ let queue: SmartQueue;
  * Add a task to the main queue.
  */
 export function addToQueue(fn: () => unknown): void {
-  if (!features.get('asyncChildren')) {
+  if (features.get('blocking')) {
     fn();
     return;
   }
@@ -119,4 +119,18 @@ export function getEventTarget(
 
   // @todo v3 return false or null
   return instance;
+}
+
+const instances = new Map<typeof Base, Set<Base>>();
+
+export function getInstances<T extends typeof Base = typeof Base>(ctor: T): Set<InstanceType<T>> {
+  if (!instances.has(ctor)) {
+    instances.set(ctor, new Set<InstanceType<T>>());
+  }
+
+  return instances.get(ctor) as Set<InstanceType<T>>;
+}
+
+export function registerInstance(instance) {
+  getInstances(instance.constructor).add(instance);
 }

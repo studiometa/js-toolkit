@@ -1,19 +1,34 @@
-import { describe, it, expect, jest, beforeEach } from 'bun:test';
+import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { Base, createApp } from '@studiometa/js-toolkit';
 import { wait } from '@studiometa/js-toolkit/utils';
-import { features } from '../../js-toolkit/Base/features.js';
-import { h } from '../__utils__/h.js';
+import {
+  h,
+  useFakeTimers,
+  useRealTimers,
+  advanceTimersByTimeAsync,
+  mockFeatures,
+} from '#test-utils';
 
-describe('The `createApp` function', () => {
-  const fn = jest.fn();
-  const ctorFn = jest.fn();
+beforeEach(() => {
+  useFakeTimers();
+});
+
+afterEach(() => {
+  useRealTimers();
+});
+
+function getContext({ blocking = false } = {}) {
+  const { features } = mockFeatures({ blocking });
+
+  const fn = mock();
+  const ctorFn = mock();
 
   class App extends Base {
     static config = {
       name: 'App',
     };
 
-    constructor(...args) {
+    constructor(...args: [HTMLElement]) {
       super(...args);
       ctorFn();
     }
@@ -23,28 +38,30 @@ describe('The `createApp` function', () => {
     }
   }
 
-  beforeEach(() => {
-    fn.mockRestore();
-    ctorFn.mockRestore();
-  });
+  return { App, fn, ctorFn, features };
+}
 
+describe('The `createApp` function', () => {
   it('should instantiate the app directly if the page is alreay loaded', async () => {
+    const { App, fn } = getContext();
     const useApp = createApp(App, h('div'));
-    await wait(1);
+    await advanceTimersByTimeAsync(10);
     expect(fn).toHaveBeenCalledTimes(1);
     const app = await useApp();
     expect(app).toBeInstanceOf(App);
   });
 
   it('should instantiate the app on `document.body` if no root element given', async () => {
+    const { App } = getContext();
     const useApp = createApp(App);
-    await wait(1);
+    await advanceTimersByTimeAsync(1);
     const app = await useApp();
     expect(app.$el).toBe(document.body);
   });
 
   it('should instantiate the app on page load', async () => {
-    const readyStateMock = jest.fn();
+    const { App, fn } = getContext();
+    const readyStateMock = mock();
     const { readyState } = document;
     Object.defineProperty(document, 'readyState', {
       configurable: true,
@@ -70,7 +87,7 @@ describe('The `createApp` function', () => {
     // Complete state
     readyStateMock.mockImplementation(() => 'complete');
     document.dispatchEvent(new CustomEvent('readystatechange'));
-    await wait(1);
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenCalledTimes(1);
     expect(await app).toBeInstanceOf(App);
 
@@ -81,25 +98,21 @@ describe('The `createApp` function', () => {
   });
 
   it('should enable given features', () => {
-    expect(features.get('asyncChildren')).toBe(false);
+    const { App, fn, features } = getContext();
+    expect(features.get('blocking')).toBe(false);
     createApp(App, {
-      features: {
-        asyncChildren: true,
-      },
+      blocking: true,
     });
-    expect(features.get('asyncChildren')).toBe(true);
-    features.set('asyncChildren', false);
+    expect(features.get('blocking')).toBe(true);
   });
 
-  it('should instantiate directly when the asynChildren feature is enabled', async () => {
+  it('should instantiate directly when the blocking feature is enabled', async () => {
+    const { App, ctorFn } = getContext();
     const useApp = createApp(App, {
-      features: {
-        asyncChildren: true,
-      },
+      blocking: true,
     });
     expect(ctorFn).toHaveBeenCalledTimes(1);
     expect(useApp()).toBeInstanceOf(Promise);
     expect(await useApp()).toBeInstanceOf(App);
-    features.set('asyncChildren', false);
   });
 });

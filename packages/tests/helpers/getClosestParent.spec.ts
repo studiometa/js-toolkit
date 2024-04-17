@@ -1,16 +1,19 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
-import { describe, it, expect } from 'bun:test';
-import { Base, getClosestParent } from '@studiometa/js-toolkit';
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { Base, BaseConfig, getClosestParent } from '@studiometa/js-toolkit';
+import { advanceTimersByTimeAsync, h, useFakeTimers, useRealTimers } from '#test-utils';
 
-describe('The `getInstanceFromElement` helper function', () => {
+beforeEach(() => useFakeTimers());
+afterEach(() => useRealTimers());
+
+async function getContext() {
   class GrandChild extends Base {
-    static config = {
+    static config: BaseConfig = {
       name: 'GrandChild',
     };
   }
 
-  class Child extends Base {
-    static config = {
+  class Child extends Base<{ $children: { GrandChild: GrandChild[] } }> {
+    static config: BaseConfig = {
       name: 'Child',
       components: {
         GrandChild,
@@ -18,8 +21,13 @@ describe('The `getInstanceFromElement` helper function', () => {
     };
   }
 
-  class Parent extends Base {
-    static config = {
+  class Parent extends Base<{
+    $children: {
+      Child: Child[];
+      Parent: Parent[];
+    };
+  }> {
+    static config: BaseConfig = {
       name: 'Parent',
       components: {
         Child,
@@ -28,7 +36,7 @@ describe('The `getInstanceFromElement` helper function', () => {
     };
   }
 
-  const div = document.createElement('div');
+  const div = h('div');
   div.innerHTML = `
     <div data-component="Parent">
       <div data-component="Child">
@@ -42,18 +50,31 @@ describe('The `getInstanceFromElement` helper function', () => {
       </div>
     </div>
   `;
-  const parent = new Parent(div.firstElementChild);
+  const parent = new Parent(div.firstElementChild as HTMLElement);
   parent.$mount();
+  await advanceTimersByTimeAsync(1);
   const [firstChild, secondChild] = parent.$children.Child;
   const [nestedParent] = parent.$children.Parent;
 
-  it('should return the closest parent', () => {
+  return {
+    Parent,
+    parent,
+    firstChild,
+    secondChild,
+    nestedParent,
+  };
+}
+
+describe('The `getInstanceFromElement` helper function', () => {
+  it('should return the closest parent', async () => {
+    const { Parent, firstChild, secondChild, parent, nestedParent } = await getContext();
     expect(getClosestParent(firstChild, Parent)).toBe(parent);
     expect(getClosestParent(secondChild, Parent)).not.toBeNull();
     expect(getClosestParent(secondChild, Parent)).toBe(nestedParent);
   });
 
-  it('should return null when no parent has been found', () => {
+  it('should return null when no parent has been found', async () => {
+    const { firstChild } = await getContext();
     class Foo extends Base {
       static config = {
         name: 'Foo',

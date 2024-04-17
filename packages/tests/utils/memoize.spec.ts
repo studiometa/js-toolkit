@@ -1,6 +1,6 @@
 import { describe, it, expect, jest } from 'bun:test';
 import { memoize } from '@studiometa/js-toolkit/utils';
-import { useFakeTimers, useRealTimers, runAllTimers } from '../__utils__/faketimers.js';
+import { useFakeTimers, useRealTimers, runAllTimers } from '#test-utils';
 
 describe('The `memoize` function', () => {
   it('should cache results', () => {
