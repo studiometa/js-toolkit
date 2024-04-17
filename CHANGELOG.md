@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add a `getInstances` helper function ([#428](https://github.com/studiometa/js-toolkit/pull/428))
+
 ### Changed
 
 - ⚠️ Enable the `asyncChildren` feature by default ([#427](https://github.com/studiometa/js-toolkit/pull/427))
