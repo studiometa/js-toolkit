@@ -33,7 +33,7 @@ jobs:
     - name: Install modules
       run: npm install
     - name: Run code quality tests
-      run: npm run lint:eslint -- --format=compact
+      run: npm run lint:oxlint
     - name: Run types tests
       run: npm run lint:types
 
