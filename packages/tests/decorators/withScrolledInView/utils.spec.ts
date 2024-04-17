@@ -1,10 +1,10 @@
-import { describe, it, expect, jest, beforeAll } from 'bun:test';
+import { describe, it, expect } from 'bun:test';
 import {
   parseNamedOffset,
   getEdgeWithOffset,
   normalizeOffset,
   getEdges,
-} from '../../../js-toolkit/decorators/withScrolledInView/utils.js';
+} from '#private/decorators/withScrolledInView/utils.js';
 
 describe('The `normalizeOffset` function', () => {
   it('should normalize the offset', () => {
@@ -53,9 +53,9 @@ describe('The `parseNamedOffset` function', () => {
   });
 
   it('should return the given value is it does not match a parser', () => {
-    ['100px', '100vh', '100vw', '100vmin', '100vmax'].forEach((value) => {
+    for (const value of ['100px', '100vh', '100vw', '100vmin', '100vmax']) {
       expect(parseNamedOffset(value)).toBe(value);
-    });
+    }
   });
 });
 

@@ -18,7 +18,6 @@ describe('nextTick method', () => {
 
     await Promise.all(promises);
 
-    console.log(fn.mock.calls);
     expect(fn.mock.calls).toEqual([
       ['start'],
       ['end'],

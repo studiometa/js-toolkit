@@ -1,14 +1,25 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
-import { describe, it, expect, jest, afterEach } from 'bun:test';
+import { describe, it, expect, jest, beforeEach, afterEach } from 'bun:test';
 import {
   Base,
   withExtraConfig,
   importOnMediaQuery,
   getInstanceFromElement,
 } from '@studiometa/js-toolkit';
-import { wait } from '@studiometa/js-toolkit/utils';
-import { matchMedia } from '../__utils__/matchMedia.js';
-import { h } from '../__utils__/h.js';
+import {
+  h,
+  useMatchMedia,
+  useRealTimers,
+  useFakeTimers,
+  advanceTimersByTimeAsync,
+} from '#test-utils';
+
+beforeEach(() => {
+  useFakeTimers();
+});
+
+afterEach(() => {
+  useRealTimers();
+});
 
 class App extends Base {
   static config = {
@@ -23,13 +34,10 @@ class Component extends Base {
 }
 
 describe('The `importOnMediaQuery` lazy import helper', () => {
-  afterEach(() => {
-    matchMedia.clear();
-  });
-
   it('should import a component when user changes prefers motion media query', async () => {
     const fn = jest.fn();
     const mediaQuery = 'not (prefers-reduced-motion)';
+    const matchMedia = useMatchMedia(mediaQuery);
 
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);
@@ -46,10 +54,11 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
 
     matchMedia.useMediaQuery('(prefers-reduced-motion)');
     new AppOverride(div).$mount();
+    await advanceTimersByTimeAsync(1);
     expect(fn).not.toHaveBeenCalled();
     expect(getInstanceFromElement(component, Component)).toBeNull();
     matchMedia.useMediaQuery(mediaQuery);
-    await wait();
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenCalledTimes(1);
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
@@ -57,7 +66,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
   it('should import a component when user prefers motion', async () => {
     const fn = jest.fn();
     const mediaQuery = 'not (prefers-reduced-motion)';
-    matchMedia.useMediaQuery(mediaQuery);
+    useMatchMedia(mediaQuery);
 
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);
@@ -73,14 +82,14 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
     });
 
     new AppOverride(div).$mount();
-    await wait();
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenCalledTimes(1);
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
   it('should not import a component when user prefers reduced motion', async () => {
     const fn = jest.fn();
-    matchMedia.useMediaQuery('(prefers-reduced-motion)');
+    useMatchMedia('(prefers-reduced-motion)');
 
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);
@@ -96,7 +105,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
     });
 
     new AppOverride(div).$mount();
-    await wait();
+    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenCalledTimes(0);
     expect(getInstanceFromElement(component, Component)).toBeNull();
   });

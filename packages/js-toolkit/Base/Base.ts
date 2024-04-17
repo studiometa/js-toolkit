@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { getComponentElements, getEventTarget, addToQueue } from './utils.js';
+import { getComponentElements, getEventTarget, addToQueue, registerInstance } from './utils.js';
 import {
   ChildrenManager,
   RefsManager,
@@ -274,6 +274,8 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       }
       return;
     }
+
+    registerInstance(this);
 
     this.$id = `${__config.name}-${id}`;
     id += 1;

@@ -1,26 +1,20 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import {
   Base,
   withExtraConfig,
   importOnInteraction,
   getInstanceFromElement,
+  withName,
 } from '@studiometa/js-toolkit';
-import { wait } from '@studiometa/js-toolkit/utils';
-import { h } from '../__utils__/h.js';
+import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
+
+beforeEach(() => useFakeTimers());
+afterEach(() => useRealTimers());
 
 describe('The `importOnInteraction` lazy import helper', () => {
-  class App extends Base {
-    static config = {
-      name: 'App',
-    };
-  }
+  const App = withName(Base, 'App');
+  const Component = withName(Base, 'Component');
 
-  class Component extends Base {
-    static config = {
-      name: 'Component',
-    };
-  }
   it('should import a component given one event', async () => {
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);
@@ -33,10 +27,11 @@ describe('The `importOnInteraction` lazy import helper', () => {
     });
 
     new AppOverride(div).$mount();
+    await advanceTimersByTimeAsync(1);
 
     expect(getInstanceFromElement(div.firstElementChild as HTMLElement, Component)).toBeNull();
     component.click();
-    await wait();
+    await advanceTimersByTimeAsync(1);
     expect(getInstanceFromElement(div.firstElementChild as HTMLElement, Component)).toBeInstanceOf(
       Component,
     );
@@ -57,10 +52,11 @@ describe('The `importOnInteraction` lazy import helper', () => {
     });
 
     new AppOverride(div).$mount();
+    await advanceTimersByTimeAsync(1);
 
     expect(getInstanceFromElement(component, Component)).toBeNull();
     btn2.click();
-    await wait();
+    await advanceTimersByTimeAsync(1);
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
@@ -76,10 +72,11 @@ describe('The `importOnInteraction` lazy import helper', () => {
     });
 
     new AppOverride(div).$mount();
+    await advanceTimersByTimeAsync(1);
 
     expect(getInstanceFromElement(component, Component)).toBeNull();
     component.click();
-    await wait();
+    await advanceTimersByTimeAsync(1);
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
@@ -96,10 +93,11 @@ describe('The `importOnInteraction` lazy import helper', () => {
     });
 
     new AppOverride(div).$mount();
+    await advanceTimersByTimeAsync(1);
 
     expect(getInstanceFromElement(component, Component)).toBeNull();
     btn.click();
-    await wait();
+    await advanceTimersByTimeAsync(1);
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 });

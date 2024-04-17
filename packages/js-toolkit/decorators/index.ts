@@ -7,6 +7,7 @@ export * from './withIntersectionObserver.js';
 export * from './withMountOnMediaQuery.js';
 export * from './withMountWhenInView.js';
 export * from './withMountWhenPrefersMotion.js';
+export * from './withName.js';
 export * from './withRelativePointer.js';
 export * from './withResponsiveOptions.js';
 export * from './withScrolledInView/index.js';

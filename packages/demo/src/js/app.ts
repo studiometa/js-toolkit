@@ -8,6 +8,7 @@ import {
   withBreakpointObserver,
   withExtraConfig,
   importOnMediaQuery,
+  BaseConfig,
 } from '@studiometa/js-toolkit';
 import { animate, matrix, tween } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
@@ -20,9 +21,6 @@ import ParentNativeEvent from './components/ParentNativeEvent/index.js';
 import ScrolledInViewOffset from './components/ScrolledInViewOffset.js';
 import MediaQueryDemo from './components/MediaQueryDemo.js';
 import PointerProps from './components/PointerProps.js';
-
-window.tween = tween;
-window.animate = animate;
 
 let numberOfTick = 0;
 let time = performance.now();
@@ -77,7 +75,7 @@ class App extends Base {
   /**
    * Config.
    */
-  static config = {
+  static config: BaseConfig = {
     name: 'App',
     refs: ['modal'],
     log: true,
@@ -206,9 +204,4 @@ class App extends Base {
   }
 }
 
-export default createApp(App, {
-  root: document.body,
-  features: {
-    asyncChildren: true,
-  },
-});
+export default createApp(App);

@@ -1,15 +1,27 @@
-/* eslint-disable require-jsdoc, max-classes-per-file */
-import { describe, it, expect, jest, beforeAll, afterEach } from 'bun:test';
+import { describe, it, expect, jest, beforeAll, beforeEach, afterEach } from 'bun:test';
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 import {
-  beforeAllCallback,
-  afterEachCallback,
+  intersectionObserverBeforeAllCallback,
+  intersectionObserverAfterEachCallback,
   mockIsIntersecting,
   intersectionMockInstance,
-} from '../__setup__/mockIntersectionObserver';
+  advanceTimersByTimeAsync,
+  useFakeTimers,
+  useRealTimers,
+} from '#test-utils';
 
-beforeAll(() => beforeAllCallback());
-afterEach(() => afterEachCallback());
+beforeAll(() => {
+  intersectionObserverBeforeAllCallback();
+});
+
+beforeEach(() => {
+  useFakeTimers();
+});
+
+afterEach(() => {
+  useRealTimers();
+  intersectionObserverAfterEachCallback();
+});
 
 describe('The withIntersectionObserver decorator', () => {
   it('should start when mounted and stop when destroyed', async () => {
@@ -26,19 +38,22 @@ describe('The withIntersectionObserver decorator', () => {
 
     const div = document.createElement('div');
     const foo = new Foo(div).$mount();
+    await advanceTimersByTimeAsync(1);
     const observer = intersectionMockInstance(div);
     expect(foo.$observer).not.toBeUndefined();
     expect(observer.observe).toHaveBeenCalledTimes(1);
     mockIsIntersecting(div, true);
     expect(fn).toHaveBeenCalledTimes(1);
     foo.$destroy();
+    await advanceTimersByTimeAsync(1);
     expect(observer.unobserve).toHaveBeenCalledTimes(1);
     expect(fn).toHaveBeenCalledTimes(1);
     foo.$mount();
+    await advanceTimersByTimeAsync(1);
     expect(observer.observe).toHaveBeenCalledTimes(2);
   });
 
-  it('should be able to be used without the `intersected` method', () => {
+  it('should be able to be used without the `intersected` method', async () => {
     const fn = jest.fn();
     class Foo extends Base {
       static config = {
@@ -56,6 +71,7 @@ describe('The withIntersectionObserver decorator', () => {
     const div = document.createElement('div');
     div.innerHTML = '<div data-component="Detector"></div>';
     new Foo(div).$mount();
+    await advanceTimersByTimeAsync(1);
     mockIsIntersecting(div.firstElementChild, true);
     expect(fn).toHaveBeenCalledTimes(1);
     mockIsIntersecting(div.firstElementChild, true);
