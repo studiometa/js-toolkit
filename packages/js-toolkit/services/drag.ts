@@ -2,7 +2,7 @@
 import { useService } from './service.js';
 import useRaf from './raf.js';
 import inertiaFinalValue from '../utils/math/inertiaFinalValue.js';
-import { isDefined } from '../utils/index.js';
+import { isDefined, on, off } from '../utils/index.js';
 import type { ServiceInterface } from './index.js';
 
 export type DragService = ServiceInterface<DragServiceProps>;
@@ -131,16 +131,16 @@ function createDragService(
 
     trigger(props);
 
-    document.addEventListener('touchmove', handleEvent, passiveEventOptions);
-    document.addEventListener('mousemove', handleEvent, passiveEventOptions);
+    on(document, 'touchmove', handleEvent, passiveEventOptions);
+    on(document, 'mousemove', handleEvent, passiveEventOptions);
   }
 
   /**
    * Stop the drag, or drop.
    */
   function drop() {
-    document.removeEventListener('touchmove', handleEvent);
-    document.removeEventListener('mousemove', handleEvent);
+    off(document, 'touchmove', handleEvent);
+    off(document, 'mousemove', handleEvent);
     props.isGrabbing = false;
     props.mode = MODES.DROP;
 
@@ -279,23 +279,23 @@ function createDragService(
     } as DragServiceProps,
     init() {
       for (const event of targetEvents) {
-        target.addEventListener(event, handleEvent, passiveEventOptions);
+        on(target, event, handleEvent, passiveEventOptions);
       }
       for (const event of windowEvents) {
-        window.addEventListener(event, handleEvent, passiveEventOptions);
+        on(window, event, handleEvent, passiveEventOptions);
       }
-      target.addEventListener('dragstart', handleEvent, { capture: true });
-      target.addEventListener('click', handleEvent, { capture: true });
+      on(target, 'dragstart', handleEvent, { capture: true });
+      on(target, 'click', handleEvent, { capture: true });
     },
     kill() {
       for (const event of targetEvents) {
-        target.removeEventListener(event, handleEvent);
+        off(target, event, handleEvent);
       }
       for (const event of windowEvents) {
-        window.removeEventListener(event, handleEvent);
+        off(window, event, handleEvent);
       }
-      target.removeEventListener('dragstart', handleEvent);
-      target.removeEventListener('click', handleEvent);
+      off(target, 'dragstart', handleEvent);
+      off(target, 'click', handleEvent);
     },
   });
 

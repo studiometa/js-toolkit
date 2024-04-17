@@ -1,7 +1,7 @@
 /* eslint-disable no-use-before-define, @typescript-eslint/no-use-before-define */
 import { useService } from './service.js';
 import type { ServiceInterface } from './index.js';
-import { isDefined } from '../utils/index.js';
+import { isDefined, on, off } from '../utils/index.js';
 
 export type PointerService = ServiceInterface<PointerServiceProps>;
 
@@ -146,19 +146,19 @@ function createPointerService(target: HTMLElement | undefined): PointerService {
       },
     } as PointerServiceProps,
     init() {
-      document.documentElement.addEventListener('mouseenter', handleEvent, {
+      on(document.documentElement, 'mouseenter', handleEvent, {
         once: true,
         capture: true,
       });
 
       const options = { passive: true, capture: true };
       for (const event of events) {
-        document.addEventListener(event, handleEvent, options);
+        on(document, event, handleEvent, options);
       }
     },
     kill() {
       for (const event of events) {
-        document.removeEventListener(event, handleEvent);
+        off(document, event, handleEvent);
       }
     },
   });

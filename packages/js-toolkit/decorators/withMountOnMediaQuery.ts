@@ -1,6 +1,6 @@
 import { BaseInterface, BaseDecorator } from '../Base/types.js';
 import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
-import { isDev } from '../utils/is.js';
+import { isDev, on, off } from '../utils/index.js';
 
 export interface withMountOnMediaQueryProps extends BaseProps {
   $options: {
@@ -79,10 +79,10 @@ export function withMountOnMediaQuery<S extends Base = Base>(
       };
 
       // Start listening for changes
-      mediaQueryList.addEventListener('change', changeHandler);
+      on(mediaQueryList,'change', changeHandler);
 
       this.$on('terminated', () => {
-        mediaQueryList.removeEventListener('change', changeHandler);
+        off(mediaQueryList, 'change', changeHandler);
       });
     }
 

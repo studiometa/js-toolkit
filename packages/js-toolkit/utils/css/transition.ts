@@ -5,6 +5,7 @@ import { isArray, isString } from '../is.js';
 import { hasWindow } from '../has.js';
 // eslint-disable-next-line import/extensions
 import { eachElements } from './utils.js';
+import { on, off } from '../dom/index.js';
 
 /** WeakMap to hold the transition instances. */
 const cache = new WeakMap();
@@ -104,7 +105,7 @@ async function next(element: HTMLElement, classesOrStyles: TransitionStyles): Pr
     if (hasTransition) {
       const trs = Transition.getInstance(element);
       trs.transitionEndHandler = () => resolve();
-      element.addEventListener('transitionend', trs.transitionEndHandler, false);
+      on(element, 'transitionend', trs.transitionEndHandler, false);
     }
     setClassesOrStyles(element, classesOrStyles.from, 'remove');
     setClassesOrStyles(element, classesOrStyles.to);
@@ -124,7 +125,7 @@ function end(
   mode: 'keep' | 'remove' = 'remove',
 ) {
   const trs = Transition.getInstance(element);
-  element.removeEventListener('transitionend', trs.transitionEndHandler, false);
+  off(element, 'transitionend', trs.transitionEndHandler, false);
   if (mode === 'remove') {
     setClassesOrStyles(element, classesOrStyles.to, 'remove');
   }

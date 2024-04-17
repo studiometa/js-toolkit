@@ -1,5 +1,5 @@
 import type { BaseConstructor } from '../Base/index.js';
-import { getComponentResolver } from '../utils/index.js';
+import { getComponentResolver, on, off } from '../utils/index.js';
 
 /**
  * Import a component when given media query is true.
@@ -28,12 +28,12 @@ export default function importOnMediaQuery<T extends BaseConstructor = BaseConst
       if (event.matches) {
         setTimeout(() => {
           // Remove listener and mount the component
-          resolver(resolve, () => mediaQueryList.removeEventListener('change', changeHandler));
+          resolver(resolve, () => off(mediaQueryList, 'change', changeHandler));
         }, 0);
       }
     };
 
     // Start listening for changes
-    mediaQueryList.addEventListener('change', changeHandler);
+    on(mediaQueryList, 'change', changeHandler);
   });
 }

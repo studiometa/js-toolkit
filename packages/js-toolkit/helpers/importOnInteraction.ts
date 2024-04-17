@@ -1,6 +1,6 @@
 import type { Base, BaseConstructor } from '../Base/index.js';
 import { getTargetElements } from './utils.js';
-import { isString, getComponentResolver } from '../utils/index.js';
+import { isString, getComponentResolver, on } from '../utils/index.js';
 
 /**
  * Import a component on an interaction.
@@ -39,7 +39,7 @@ export default function importOnInteraction<T extends BaseConstructor = BaseCons
 
     for (const element of elements) {
       for (const event of normalizedEvents) {
-        element.addEventListener(event, handler, eventListenerOptions);
+        on(element, event, handler, eventListenerOptions);
       }
     }
   });

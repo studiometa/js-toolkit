@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define, @typescript-eslint/no-use-before-define */
 import { useService } from './service.js';
-import keyCodes from '../utils/keyCodes.js';
+import { keyCodes, on, off } from '../utils/index.js';
 import type { ServiceInterface } from './index.js';
 
 /**
@@ -83,12 +83,12 @@ function createKeyService(): KeyService {
       ...getInitialKeyCodes(),
     } as KeyServiceProps,
     init() {
-      document.addEventListener('keydown', onKey);
-      document.addEventListener('keyup', onKey);
+      on(document, 'keydown', onKey);
+      on(document, 'keyup', onKey);
     },
     kill() {
-      document.removeEventListener('keydown', onKey);
-      document.removeEventListener('keyup', onKey);
+      off(document, 'keydown', onKey);
+      off(document, 'keyup', onKey);
     },
   });
 

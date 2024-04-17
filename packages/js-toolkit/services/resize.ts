@@ -2,7 +2,7 @@
 import { useService } from './service.js';
 import { features } from '../Base/features.js';
 import type { Features } from '../Base/features.js';
-import debounce from '../utils/debounce.js';
+import { debounce, on, off } from '../utils/index.js';
 import type { ResizeServiceInterface } from './index.js';
 
 export interface ResizeServiceProps<U extends Features['breakpoints'] = Features['breakpoints']> {
@@ -69,10 +69,10 @@ function createResizeService<T extends Features['breakpoints'] = Features['break
       },
     } as ResizeServiceProps<T>,
     init() {
-      window.addEventListener('resize', onResize);
+      on(window, 'resize', onResize);
     },
     kill() {
-      window.removeEventListener('resize', onResize);
+      off(window, 'resize', onResize);
     },
   });
 

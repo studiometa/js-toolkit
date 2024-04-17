@@ -2,6 +2,7 @@ import { tween } from './tween.js';
 import type { TweenOptions } from './tween.js';
 import { isString, isNumber, isFunction, isDefined } from './is.js';
 import { lerp } from './math/index.js';
+import { on, off } from './dom/index.js';
 
 export interface ScrollPosition {
   left: number;
@@ -141,8 +142,8 @@ export function scrollTo(
     }
 
     function stop() {
-      rootElement.removeEventListener('wheel', eventHandler);
-      rootElement.removeEventListener('touchmove', eventHandler);
+      off(rootElement, 'wheel', eventHandler);
+      off(rootElement, 'touchmove', eventHandler);
 
       // Resolve the promise on animation finish.
       resolve(getCurrentScrollPosition(rootElement));
@@ -169,8 +170,8 @@ export function scrollTo(
       },
     );
 
-    rootElement.addEventListener('wheel', eventHandler, { passive: true });
-    rootElement.addEventListener('touchmove', eventHandler, { passive: true });
+    on(rootElement, 'wheel', eventHandler, { passive: true });
+    on(rootElement, 'touchmove', eventHandler, { passive: true });
     tw.start();
   });
 }

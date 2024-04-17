@@ -1,7 +1,7 @@
 import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
 import type { Features } from '../Base/features.js';
 import { features } from '../Base/features.js';
-import { isBoolean, isObject } from '../utils/index.js';
+import { isBoolean, isObject, on } from '../utils/index.js';
 
 export type CreateAppOptions = Partial<Features> & {
   root?: HTMLElement;
@@ -17,7 +17,7 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
 ): () => Promise<S & Base<T>> {
   let app: S & Base<T>;
   const {
-    root = document.body,
+    root = null,
     breakpoints = null,
     blocking = null,
   } = options instanceof HTMLElement ? { root: options } : options;
@@ -31,27 +31,23 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
   }
 
   function init() {
-    app = (new App(root) as S & Base<T>).$mount();
+    app = (new App(root ?? document.body) as S & Base<T>).$mount();
     return app;
   }
 
-  let p: Promise<S & Base<T>>;
+  const targetStates = features.get('blocking') ? ['interactive', 'complete'] : ['complete'];
 
-  if (features.get('blocking')) {
-    p = Promise.resolve(init());
-  } else {
-    p = new Promise<S & Base<T>>((resolve) => {
-      if (document.readyState === 'complete') {
-        resolve(init());
-      } else {
-        document.addEventListener('readystatechange', () => {
-          if (document.readyState === 'complete') {
-            resolve(init());
-          }
-        });
-      }
-    });
-  }
+  const promise: Promise<S & Base<T>> = new Promise<S & Base<T>>((resolve) => {
+    if (targetStates.includes(document.readyState)) {
+      resolve(init());
+    } else {
+      on(document, 'readystatechange', () => {
+        if (targetStates.includes(document.readyState)) {
+          resolve(init());
+        }
+      });
+    }
+  });
 
-  return () => p;
+  return () => promise;
 }

@@ -7,7 +7,7 @@ import {
   EventsManager,
   OptionsManager,
 } from './managers/index.js';
-import { noop, isDev, isFunction, isArray } from '../utils/index.js';
+import { noop, isDev, isFunction, isArray, on, off } from '../utils/index.js';
 
 let id = 0;
 
@@ -449,7 +449,7 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
     set.add(listener);
 
     const target = getEventTarget(this, event, this.__config);
-    target.addEventListener(event, listener, options);
+    on(target, event, listener, options);
 
     return () => {
       this.$off(event, listener, options);
@@ -479,7 +479,7 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
     this.__eventHandlers.get(event).delete(listener);
 
     const target = getEventTarget(this, event, this.__config);
-    target.removeEventListener(event, listener, options);
+    off(target, event, listener, options);
   }
 
   /**

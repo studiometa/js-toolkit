@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define, @typescript-eslint/no-use-before-define */
 import { useService } from './service.js';
-import debounce from '../utils/debounce.js';
+import { debounce, on, off } from '../utils/index.js';
 import type { ServiceInterface } from './index.js';
 
 export type ScrollService = ServiceInterface<ScrollServiceProps>;
@@ -97,10 +97,10 @@ function createScrollService(): ScrollService {
       },
     } as ScrollServiceProps,
     init() {
-      document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+      on(document, 'scroll', onScroll, { passive: true, capture: true });
     },
     kill() {
-      document.removeEventListener('scroll', onScroll);
+      off(document, 'scroll', onScroll);
     },
   });
 

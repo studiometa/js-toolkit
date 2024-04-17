@@ -1,6 +1,7 @@
 /* eslint-disable no-use-before-define, @typescript-eslint/no-use-before-define */
 import { useService } from './service.js';
 import type { ServiceInterface } from './index.js';
+import { on, off } from '../utils/index.js';
 
 export type LoadService = ServiceInterface<LoadServiceProps>;
 
@@ -34,10 +35,10 @@ function createLoadService() {
       time: performance.now(),
     },
     init() {
-      window.addEventListener('load', onLoad);
+      on(window, 'load', onLoad);
     },
     kill() {
-      window.removeEventListener('load', onLoad);
+      off(window, 'load', onLoad);
     },
   });
 
