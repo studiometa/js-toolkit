@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add shorthand props on the scroll service for easier destructuring ([#432](https://github.com/studiometa/js-toolkit/pull/432))
+
 ## [v3.0.0-alpha.3](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.2..3.0.0-alpha.3) (2023-04-17)
 
 ### Added
