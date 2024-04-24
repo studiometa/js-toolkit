@@ -27,6 +27,7 @@ exports[`The package exports should export helpers and the Base class 1`] = `
   "withExtraConfig",
   "withFreezedOptions",
   "withIntersectionObserver",
+  "withKeepUnmounted",
   "withMountOnMediaQuery",
   "withMountWhenInView",
   "withMountWhenPrefersMotion",
