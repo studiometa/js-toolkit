@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix code coverage reports ([#474](https://github.com/studiometa/js-toolkit/pull/474))
+
 ### Added
 
 - Add shorthand props on the scroll service for easier destructuring ([#432](https://github.com/studiometa/js-toolkit/pull/432))
