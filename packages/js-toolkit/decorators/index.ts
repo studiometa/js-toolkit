@@ -4,6 +4,7 @@ export * from './withDrag.js';
 export * from './withExtraConfig.js';
 export * from './withFreezedOptions.js';
 export * from './withIntersectionObserver.js';
+export * from './withKeepUnmounted.js';
 export * from './withMountOnMediaQuery.js';
 export * from './withMountWhenInView.js';
 export * from './withMountWhenPrefersMotion.js';
