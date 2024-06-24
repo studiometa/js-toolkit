@@ -1,76 +1,78 @@
-import { describe, it, expect, } from 'bun:test';
-import { Base, createApp, withKeepUnmounted } from '@studiometa/js-toolkit';
-import { h } from '#test-utils';
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { Base, BaseConfig, withKeepUnmounted } from '@studiometa/js-toolkit';
+import { advanceTimersByTimeAsync, h, useFakeTimers, useRealTimers } from '#test-utils';
 
-function initApp(
-  callback:Function,
-  options?:{
-    template?:string,
-    autoMount?:boolean
-  },
-) {
-    const div = h('div');
+async function getContext(options?: { template?: string; autoMount?: boolean }) {
+  const div = h('div');
 
-    div.innerHTML = options?.template ?? '<div data-component="Component"></div>';
+  div.innerHTML = options?.template ?? '<div data-component="Component"></div>';
 
-    class Component extends withKeepUnmounted(Base, options?.autoMount ?? true) {
-      static config = {
-        name: 'Component',
-      };
-    }
+  class Component extends withKeepUnmounted(Base, options?.autoMount ?? true) {
+    static config = {
+      name: 'Component',
+    };
+  }
 
-    class App extends Base {
-      static config = {
-        name: 'App',
-        components: {
-          Component,
-        },
-      };
+  type AppProps = {
+    $children: { Component: Component[] };
+  };
 
-      mounted() {
-        const instance = this.$children.Component[0];
-        callback(instance);
-      }
-    }
+  class App extends Base<AppProps> {
+    static config: BaseConfig = {
+      name: 'App',
+      components: {
+        Component,
+      },
+    };
+  }
 
-    createApp(App, div);
+  const app = new App(div);
+  app.$mount();
+  await advanceTimersByTimeAsync(100);
+  const [component] = app.$children.Component;
+  return { app, div, component };
 }
 
+beforeEach(() => {
+  useFakeTimers();
+});
+
+afterEach(() => {
+  useRealTimers();
+});
+
 describe('The withKeepUnmounted decorator', () => {
-  it('should not mount the component if it is not enabled', () => {
-    initApp((instance) => {
-      expect(instance.$isMounted).toBe(false);
-    });
+  it('should not mount the component if it is not enabled', async () => {
+    const { component } = await getContext();
+    expect(component.$isMounted).toBe(false);
   });
 
   it('should mount the component if it is enabled', async () => {
-    initApp(
-      (instance) => {
-        expect(instance.$isMounted).toBe(true);
-      },
-      {
-        template: '<div data-component="Component" data-option-enabled></div>',
-      }
-    );
+    const { component } = await getContext({
+      template: '<div data-component="Component" data-option-enabled></div>',
+    });
+    expect(component.$isMounted).toBe(true);
   });
 
   it('should mount the component automatically after enabling', async () => {
-    initApp((instance) => {
-      expect(instance.$isMounted).toBe(false);
-      instance.$options.enabled = true;
-      expect(instance.$isMounted).toBe(true);
-    });
+    const { component } = await getContext();
+    expect(component.$isMounted).toBe(false);
+    component.$options.enabled = true;
+    await advanceTimersByTimeAsync(100);
+    expect(component.$isMounted).toBe(true);
   });
 
   it('should not mount the component automatically after enabling if autoMount is not active', async () => {
-    initApp((instance) => {
-      expect(instance.$isMounted).toBe(false);
-      instance.$options.enabled = true;
-      expect(instance.$isMounted).toBe(false);
-      instance.$mount();
-      expect(instance.$isMounted).toBe(true);
-    }, {
+    const { component } = await getContext({
       autoMount: false,
     });
+
+    expect(component.$isMounted).toBe(false);
+    component.$options.enabled = true;
+    await advanceTimersByTimeAsync(100);
+    expect(component.$isMounted).toBe(false);
+    component.$mount();
+    await advanceTimersByTimeAsync(100);
+    expect(component.$isMounted).toBe(true);
   });
 });
