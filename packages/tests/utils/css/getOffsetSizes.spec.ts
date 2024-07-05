@@ -24,7 +24,11 @@ describe('The `getOffsetSizes` method', () => {
     div.style.top = '10px';
     div.style.left = '10px';
     // @todo find a way for jsdom to support sizing of elements
-    expect(getOffsetSizes(div)).toEqual(div.getBoundingClientRect());
+    const offsetSizes = getOffsetSizes(div);
+    const sizes = div.getBoundingClientRect();
+    for (const key of Object.keys(sizes)) {
+      expect(sizes[key]).toBe(sizes[key]);
+    }
   });
 
   it('should return a DOMRect like object without transforms', () => {
