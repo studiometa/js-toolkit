@@ -30,13 +30,25 @@ class Component extends Base {
     options: {
       stringOption: String, // default to ''
       stringWithDefault: { type: String, default: 'Default value' },
+      stringWithDefaultAsAFunction: {
+        type: String,
+        default: (component) => component.$el.id,
+      },
       numberOption: Number, // default to 0
       numberWithDefault: { type: Number, default: 10 },
+      numberWithDefaultAsAFunction: {
+        type: Number,
+        default: (component) => component.$el.childElementCount,
+      },
       booleanOption: Boolean, // default to false
       // default to true, can be negated with the `data-option-no-boolean-with-default` attribute
       booleanWithDefault: {
         type: Boolean,
         default: true,
+      },
+      booleanWithDefaultAsAFunction: {
+        type: Boolean,
+        default: (component) => component.$el.classList.has('bool'),
       },
       arrayOption: Array, // default to []
       arrayWithDefault: { type: Array, default: () => [1, 2] },

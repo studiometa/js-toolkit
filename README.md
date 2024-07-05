@@ -67,7 +67,7 @@ And its accompanying HTML would be sprinkled with `data-…` attributes to bind 
 <div data-component="Counter">
   <button data-ref="add">Add</button>
   <button data-ref="remove">Remove</button>
-  <input data-ref="count" type="number" value="0">
+  <input data-ref="count" type="number" value="0" />
 </div>
 ```
 
@@ -128,7 +128,6 @@ export default createApp(App);
 ```
 
 Visit our ["Getting Started" guide](https://js-toolkit.studiometa.dev/guide/) to learn more and try the above component by visiting [the playground](https://ui.studiometa.dev/-/play/#script=eNqVkjFPwzAQhff%2BijcguRVtEGurSpTuDKyIwdiXYprYkX2pQFX%2BO7bjlg6A1EiJndO97873bNrOecYRjzLQHMqTZNp0HQbU3rUQD4F7bVxLLO8%2BwoKda%2FaGxWoyUY0MAVvXWyYP%2BmSyOmQOjhMgsGSjoJytzQ7rHAOsbGkJUVRinoOe6rDEi5BaizmEp9YdKO1UShOvY5br2DgbE0dSqkDdzx%2FAX11kP%2FXtG%2FlRkh5NtewbXuL%2BFBvGzRC%2FQzwHsCOOfeaOprMC9MS9t%2BB3E6qb1GCVM6qDbHrahLHKKiESIVwQcsYJ87s%2BjiOvZ72zG623jVH7cwNZWZi4XRdSGUKVzn6hfs4j%2Bwew%2BBsQEaOVyfbrbIyKYqFy8SJZsnzhTzG5TDstcdyp2umSTeM7W30DtazCdQ%3D%3D&html=eNptjkEKwyAQRfc9hcw%2BpHStQukNegOTmYJQZ8SOQm9fUzcJZPX5vLd4FmMzGDRMq6QsTKwOHlJZqcAAkjUKTx%2Bl7OAG%2FmKMXaqq8OCFXg4CIvg7op0HOrcKJWkE%2Fvnfgxs5V92p69YARr%2BZHHBNy9bTwrv2e%2B0Rdu7l%2Fgd%2BLEBJ&style=eNpLyk%2BpVKjmUlAoSExJycxLt1IwLErNteaqBQBpsgf8).
-
 
 ## Contributing
 
