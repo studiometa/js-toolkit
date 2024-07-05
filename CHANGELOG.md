@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.4](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.3..3.0.0-alpha.4) (2023-07-05)
+
 ### Added
 
 - Add support for defining an option default value with a function ([#478](https://github.com/studiometa/js-toolkit/pull/478))
