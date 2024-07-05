@@ -13,29 +13,29 @@ type OptionType =
 
 type ArrayOption = {
   type: ArrayConstructor;
-  default?: () => unknown[];
+  default?: (instance: Base) => unknown[];
   merge?: boolean | DeepmergeOptions;
 };
 
 type ObjectOption = {
   type: ObjectConstructor;
-  default?: () => unknown;
+  default?: (instance: Base) => unknown;
   merge?: boolean | DeepmergeOptions;
 };
 
 type StringOption = {
   type: StringConstructor;
-  default?: string;
+  default?: string | ((instance: Base) => string);
 };
 
 type NumberOption = {
   type: NumberConstructor;
-  default?: number;
+  default?: number | ((instance: Base) => number);
 };
 
 type BooleanOption = {
   type: BooleanConstructor;
-  default?: boolean;
+  default?: boolean | ((instance: Base) => boolean);
 };
 
 export type OptionObject = ArrayOption | ObjectOption | StringOption | NumberOption | BooleanOption;
@@ -180,7 +180,8 @@ export class OptionsManager extends AbstractManager {
    * Get an option value.
    */
   get(name: string, config: OptionObject) {
-    const { type, default: defaultValue } = config;
+    const { type } = config;
+    const defaultValue = isFunction(config.default) ? config.default(this.__base) : config.default;
     const propertyName = __getPropertyName(name);
     const hasProperty = isDefined(this.__element.dataset[propertyName]);
 
@@ -206,12 +207,12 @@ export class OptionsManager extends AbstractManager {
       config = type === Array ? (config as ArrayOption) : (config as ObjectOption);
 
       if (!this.__values[name]) {
-        let val = hasProperty ? JSON.parse(value) : config.default();
+        let val = hasProperty ? JSON.parse(value) : defaultValue;
 
         if (isDefined(config.merge)) {
           val = isBoolean(config.merge)
-            ? deepmerge(config.default(), val)
-            : deepmerge(config.default(), val, config.merge);
+            ? deepmerge(defaultValue, val)
+            : deepmerge(defaultValue, val, config.merge);
         }
 
         this.__values[name] = val;
