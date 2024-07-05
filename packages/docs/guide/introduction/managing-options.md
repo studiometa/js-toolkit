@@ -72,6 +72,33 @@ class VideoPlayer extends Base {
 }
 ```
 
+You can also use a callback function for the default value, it will be called with the current instance as only parameter:
+
+```js {9-18}
+import { Base } from '@studiometa/js-toolkit';
+
+class Player extends Base {
+  static config = {
+    name: 'Player',
+    options: {
+      type: {
+        type: String,
+        default(player) {
+          switch (player.$el.constructor) {
+            case HTMLVideoElement:
+              return 'video';
+            case HTMLAudioElement:
+              return 'audio';
+            default:
+              return 'unknown';
+          }
+        },
+      },
+    },
+  };
+}
+```
+
 ### Merging options
 
 When working with `Array` or `Object` as option type, it can be useful to merge the values from the `data-option-...` attribute with the default ones. You can use the `merge` property to enable merge with [`deepmerge`](https://github.com/TehShrike/deepmerge):

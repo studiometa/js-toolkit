@@ -27,7 +27,7 @@ describe('The Options class', () => {
         foo: Map,
       });
     }).toThrow(
-      'The "foo" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.'
+      'The "foo" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.',
     );
   });
 
@@ -84,12 +84,9 @@ describe('The Options class', () => {
   });
 
   it('should get and set boolean options', () => {
-    const instance = componentWithOptions(
-      '<div data-option-foo></div>',
-      {
-        foo: Boolean,
-      },
-    );
+    const instance = componentWithOptions('<div data-option-foo></div>', {
+      foo: Boolean,
+    });
 
     expect(instance.$options.foo).toBe(true);
     instance.$options.foo = false;
@@ -154,7 +151,7 @@ describe('The Options class', () => {
           default: () => [1, 2],
           merge: true,
         },
-      }
+      },
     );
 
     expect(instance.$options.foo).toEqual({ foo: 'foo', key: 'key' });
@@ -169,9 +166,13 @@ describe('The Options class', () => {
       array: Array,
       object: Object,
       stringWithDefault: { type: String, default: 'foo' },
+      stringWithDefaultFn: { type: String, default: (i) => i.$id },
       numberWithDefault: { type: Number, default: 10 },
+      numberWithDefaultFn: { type: Number, default: () => 10 },
       booleanWithDefault: { type: Boolean, default: true },
+      booleanWithDefaultFn: { type: Boolean, default: (i) => i.$isMounted },
       arrayWithDefault: { type: Array, default: () => [1, 2, 3] },
+      arrayWithDefaultFn: { type: Array, default: (i) => i.$options.arrayWithDefault },
       objectWithDefault: { type: Object, default: () => ({ foo: 'foo' }) },
     });
 
@@ -183,10 +184,14 @@ describe('The Options class', () => {
     expect(instance.$options.object).toEqual({});
 
     expect(instance.$options.stringWithDefault).toBe('foo');
+    expect(instance.$options.stringWithDefaultFn).toBe(instance.$id);
     expect(instance.$options.numberWithDefault).toBe(10);
+    expect(instance.$options.numberWithDefaultFn).toBe(10);
     expect(instance.$options.booleanWithDefault).toBe(true);
+    expect(instance.$options.booleanWithDefaultFn).toBe(instance.$isMounted);
     expect(instance.$el.hasAttribute('data-option-boolean-with-default')).toBe(false);
     expect(instance.$options.arrayWithDefault).toEqual([1, 2, 3]);
+    expect(instance.$options.arrayWithDefaultFn).toEqual(instance.$options.arrayWithDefault);
     expect(instance.$options.objectWithDefault).toEqual({ foo: 'foo' });
   });
 
@@ -194,7 +199,7 @@ describe('The Options class', () => {
     expect(() =>
       componentWithOptions('<div></div>', {
         array: { type: Array, default: [1, 2, 3] },
-      })
+      }),
     ).toThrow('The default value for options of type "Array" must be returned by a function.');
   });
 });
