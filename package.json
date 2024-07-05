@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-workspace",
-  "version": "3.0.0-alpha.3",
+  "version": "3.0.0-alpha.4",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -15,7 +15,6 @@
     "docs:build": "npm run build --workspace=@studiometa/js-toolkit-docs",
     "docs:preview": "npm run preview --workspace=@studiometa/js-toolkit-docs",
     "test": "npm run test --workspace=@studiometa/js-toolkit-tests",
-    "test:coverage": "bun run scripts/generate-lcov-report.ts",
     "lint": "npm run lint:oxlint && npm run lint:types && npm run lint:docs",
     "lint:oxlint": "oxlint .",
     "lint:docs": "prettier --check 'packages/docs/**/*.{md,js,html,vue}' --cache",
@@ -31,19 +30,18 @@
     "build-for-export-size": "node scripts/add-utils-export.js && rm -rf dist && npm run build:pkg && npm run build:cp-files"
   },
   "devDependencies": {
-    "@studiometa/prettier-config": "^4.0.0",
-    "@studiometa/stylelint-config": "^4.0.0",
-    "@types/estree": "^1.0.5",
-    "@types/jest": "^29.5.12",
-    "@types/node": "^20.12.7",
-    "bun": "^1.1.4",
-    "oxlint": "^0.2.17",
-    "patch-package": "^8.0.0",
-    "prettier": "^3.2.5",
-    "typescript": "^5.4.5"
+    "@studiometa/prettier-config": "4.1.0",
+    "@studiometa/stylelint-config": "4.0.0",
+    "@types/estree": "1.0.5",
+    "@types/jest": "29.5.12",
+    "@types/node": "20.14.9",
+    "oxlint": "0.5.0",
+    "patch-package": "8.0.0",
+    "prettier": "3.3.2",
+    "typescript": "5.5.2"
   },
   "dependencies": {
-    "esbuild": "^0.20.2",
+    "esbuild": "^0.21.0",
     "fast-glob": "^3.3.2"
   },
   "prettier": "@studiometa/prettier-config"

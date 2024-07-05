@@ -10,7 +10,7 @@ export default class Cursor extends Base {
     let transform = `translate3d(${x}px, ${y}px, 0)`;
 
     if (isDown) {
-      transform += ` scale(0.75)`;
+      transform += ' scale(0.75)';
     }
 
     this.$el.style.transform = transform;
