@@ -41,7 +41,7 @@
     "typescript": "5.5.2"
   },
   "dependencies": {
-    "esbuild": "^0.21.0",
+    "esbuild": "^0.23.0",
     "fast-glob": "^3.3.2"
   },
   "prettier": "@studiometa/prettier-config"
