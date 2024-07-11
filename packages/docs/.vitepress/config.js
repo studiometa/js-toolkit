@@ -42,6 +42,7 @@ export default defineConfig({
             link: 'https://github.com/studiometa/js-toolkit/blob/master/CHANGELOG.md',
           },
           { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
+          { text: 'v2.x', link: 'https://support-2-x--studiometa-js-toolkit.netlify.app/' },
         ],
       },
     ],
