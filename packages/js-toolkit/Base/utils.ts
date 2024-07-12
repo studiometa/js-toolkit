@@ -1,5 +1,5 @@
 import { isArray, isDefined, isDev, SmartQueue } from '../utils/index.js';
-import type { Base, BaseConfig } from './index.js';
+import type { Base, BaseConfig, BaseConstructor } from './index.js';
 import { features } from './features.js';
 
 let queue: SmartQueue;
@@ -121,16 +121,28 @@ export function getEventTarget(
   return instance;
 }
 
-const instances = new Map<typeof Base, Set<Base>>();
+const instances = new Set<Base>();
 
-export function getInstances<T extends typeof Base = typeof Base>(ctor: T): Set<InstanceType<T>> {
-  if (!instances.has(ctor)) {
-    instances.set(ctor, new Set<InstanceType<T>>());
+export function getInstances(): Set<Base>;
+export function getInstances<T extends BaseConstructor = BaseConstructor>(ctor: T): Set<InstanceType<T>>;
+export function getInstances<T extends BaseConstructor = BaseConstructor>(ctor?: T): Set<InstanceType<T>> | Set<Base> {
+  if (isDefined(ctor)) {
+    const filteredInstances = new Set<InstanceType<T>>();
+    for (const instance of instances) {
+      if (instance instanceof ctor) {
+        filteredInstances.add(instance as InstanceType<T>);
+      }
+    }
+    return filteredInstances;
+  } else {
+    return new Set(instances);
   }
-
-  return instances.get(ctor) as Set<InstanceType<T>>;
 }
 
-export function registerInstance(instance) {
-  getInstances(instance.constructor).add(instance);
+export function addInstance(instance: Base) {
+  instances.add(instance);
+}
+
+export function deleteInstance(instance: Base) {
+  instances.delete(instance);
 }
