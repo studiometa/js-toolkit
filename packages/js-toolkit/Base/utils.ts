@@ -123,6 +123,9 @@ export function getEventTarget(
 
 const instances = new Set<Base>();
 
+/**
+ * Get all mounted instances or the ones from a given component.
+ */
 export function getInstances(): Set<Base>;
 export function getInstances<T extends BaseConstructor = BaseConstructor>(ctor: T): Set<InstanceType<T>>;
 export function getInstances<T extends BaseConstructor = BaseConstructor>(ctor?: T): Set<InstanceType<T>> | Set<Base> {

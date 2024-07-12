@@ -1,7 +1,7 @@
 import { describe, it, expect, mock } from 'bun:test';
-import { Base, withName } from '@studiometa/js-toolkit';
+import { Base, withName, getInstances } from '@studiometa/js-toolkit';
 import { nextTick } from '@studiometa/js-toolkit/utils';
-import { getComponentElements, addToQueue, getInstances } from '#private/Base/utils.js';
+import { getComponentElements, addToQueue } from '#private/Base/utils.js';
 import { h } from '#test-utils';
 
 describe('The `getComponentElements` function', () => {
