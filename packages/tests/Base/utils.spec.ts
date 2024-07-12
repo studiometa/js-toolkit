@@ -1,12 +1,7 @@
 import { describe, it, expect, mock } from 'bun:test';
 import { Base, withName } from '@studiometa/js-toolkit';
 import { nextTick } from '@studiometa/js-toolkit/utils';
-import {
-  getComponentElements,
-  addToQueue,
-  registerInstance,
-  getInstances,
-} from '#private/Base/utils.js';
+import { getComponentElements, addToQueue, getInstances } from '#private/Base/utils.js';
 import { h } from '#test-utils';
 
 describe('The `getComponentElements` function', () => {
@@ -52,16 +47,27 @@ describe('The `addToQueue` function', () => {
 describe('The instance helpers', () => {
   it('should save and get instances for a given constructor', () => {
     const Foo = withName(Base, 'Foo');
-    const instances = getInstances(Foo);
+    const Bar = withName(Base, 'Bar');
 
-    expect(instances).toBeInstanceOf(Set);
-    expect(getInstances(Foo) === instances).toBe(true);
-    expect(instances).toHaveLength(0);
+    expect(getInstances(Foo)).toHaveLength(0);
+    expect(getInstances(Bar)).toHaveLength(0);
 
     const foo = new Foo(h('div'));
+    new Bar(h('div'));
+    foo.dispatchEvent(new CustomEvent('mounted'));
 
-    expect(Array.from(instances)[0]).toBe(foo);
-    expect(instances).toHaveLength(1);
-    expect(instances.has(foo)).toBe(true);
+    expect(getInstances(Foo)).toHaveLength(1);
+    expect(getInstances(Bar)).toHaveLength(0);
+    expect(getInstances(Foo).has(foo)).toBe(true);
+  });
+
+  it('should return a set with all instances if no constructor given', () => {
+    const Foo = withName(Base, 'Foo');
+    const foo = new Foo(h('div'));
+    const instances = getInstances();
+    expect(instances).toBeInstanceOf(Set);
+    expect(getInstances().has(foo)).toBe(false);
+    foo.dispatchEvent(new CustomEvent('mounted'));
+    expect(getInstances().has(foo)).toBe(true);
   });
 });
