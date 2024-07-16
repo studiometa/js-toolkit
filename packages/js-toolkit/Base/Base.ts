@@ -1,5 +1,11 @@
 /* eslint-disable no-use-before-define */
-import { getComponentElements, getEventTarget, addToQueue, registerInstance } from './utils.js';
+import {
+  getComponentElements,
+  getEventTarget,
+  addToQueue,
+  addInstance,
+  deleteInstance,
+} from './utils.js';
 import {
   ChildrenManager,
   RefsManager,
@@ -275,8 +281,6 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       return;
     }
 
-    registerInstance(this);
-
     this.$id = `${__config.name}-${id}`;
     id += 1;
 
@@ -291,6 +295,13 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
     for (const service of ['Options', 'Services', 'Events', 'Refs', 'Children']) {
       this[`__${service.toLowerCase()}`] = new this.__managers[`${service}Manager`](this);
     }
+
+    this.$on('mounted', () => {
+      addInstance(this);
+    });
+    this.$on('destroyed', () => {
+      deleteInstance(this);
+    });
 
     if (isDev) {
       this.__debug('constructor', this);
