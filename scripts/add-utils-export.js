@@ -6,21 +6,23 @@ const index = resolve(
   '../packages/js-toolkit/index.ts',
 );
 
-const content = `import { Base } from './Base/index.js';
+const content = `
+import * as BASE from './base/index.js';
 import * as DECORATORS from './decorators/index.js';
 import * as HELPERS from './helpers/index.js';
 import * as SERVICES from './services/index.js';
 import * as UTILS from './utils/index.js';
 
+export * from './Base/index.js';
 export * from './decorators/index.js';
 export * from './helpers/index.js';
 export * from './services/index.js';
 export * from './utils/index.js';
 
-export { Base, DECORATORS, HELPERS, SERVICES, UTILS };
+export { BASE, DECORATORS, HELPERS, SERVICES, UTILS };
 
 export const FRAMEWORK = {
-  Base,
+  BASE,
   DECORATORS,
   HELPERS,
   SERVICES,

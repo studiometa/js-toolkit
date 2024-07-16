@@ -38,7 +38,7 @@ jobs:
           if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' || $VERSION =~ 'rc' ]]; then
             TAG='next'
           fi
-          npm publish --tag $TAG
+          npm publish --provenance --tag $TAG
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
       # @see https://github.com/actions/create-release/issues/38#issuecomment-715327220
