@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.5](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.4..3.0.0-alpha.5) (2023-07-16)
+
 ### Changed
 
 - Change behaviour of the `getInstances` helper ([#484](https://github.com/studiometa/js-toolkit/pull/484))
