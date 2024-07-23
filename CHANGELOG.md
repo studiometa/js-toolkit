@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v2.12.1](https://github.com/studiometa/js-toolkit/compare/2.12.0..2.12.1) (2024-07-23)
+
+### Fixed
+
+- Fix the publish action ([#493](https://github.com/studiometa/js-toolkit/pull/493), [32cc4fe](https://github.com/studiometa/js-toolkit/commits/32cc4fe))
+
 ## [v2.12.0](https://github.com/studiometa/js-toolkit/compare/2.11.2..2.12.0) (2023-12-01)
 
 ### Added
