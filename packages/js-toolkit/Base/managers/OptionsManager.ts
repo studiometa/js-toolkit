@@ -62,6 +62,7 @@ const __defaultValues = {
  * Property name cache.
  */
 const __propertyNameCache: Map<string, string> = new Map();
+const matchUppercaseRegexp = /([A-Z])/g;
 
 /**
  * Get a property name.
@@ -73,7 +74,8 @@ export function __getPropertyName(name: string, prefix = '') {
     return __propertyNameCache.get(key);
   }
 
-  const propertyName = `option${prefix}${name.replace(/^\w/, (c) => c.toUpperCase())}`;
+  const normalizedName = name.replace(matchUppercaseRegexp, '-$1');
+  const propertyName = `data-option${prefix ? `-${prefix}` : ''}-${normalizedName}`;
   __propertyNameCache.set(key, propertyName);
   return propertyName;
 }
@@ -183,12 +185,12 @@ export class OptionsManager extends AbstractManager {
     const { type } = config;
     const defaultValue = isFunction(config.default) ? config.default(this.__base) : config.default;
     const propertyName = __getPropertyName(name);
-    const hasProperty = isDefined(this.__element.dataset[propertyName]);
+    const hasProperty = this.__element.hasAttribute(propertyName);
 
     if (type === Boolean) {
       if (defaultValue) {
-        const negatedPropertyName = __getPropertyName(name, 'No');
-        const hasNegatedProperty = isDefined(this.__element.dataset[negatedPropertyName]);
+        const negatedPropertyName = __getPropertyName(name, 'no');
+        const hasNegatedProperty = this.__element.hasAttribute(negatedPropertyName);
 
         return !hasNegatedProperty;
       }
@@ -196,7 +198,7 @@ export class OptionsManager extends AbstractManager {
       return hasProperty || defaultValue;
     }
 
-    const value = this.__element.dataset[propertyName];
+    const value = this.__element.getAttribute(propertyName);
 
     if (type === Number) {
       return hasProperty ? Number(value) : defaultValue;
@@ -244,17 +246,17 @@ export class OptionsManager extends AbstractManager {
     switch (type) {
       case Boolean:
         if (defaultValue) {
-          const negatedPropertyName = __getPropertyName(name, 'No');
+          const negatedPropertyName = __getPropertyName(name, 'no');
 
           if (value) {
-            delete this.__element.dataset[negatedPropertyName];
+            this.__element.removeAttribute(negatedPropertyName);
           } else {
-            this.__element.dataset[negatedPropertyName] = '';
+            this.__element.setAttribute(negatedPropertyName, '');
           }
         } else if (value) {
-          this.__element.dataset[propertyName] = '';
+          this.__element.setAttribute(propertyName, '');
         } else {
-          delete this.__element.dataset[propertyName];
+          this.__element.removeAttribute(propertyName);
         }
         break;
       case Array:
@@ -262,7 +264,7 @@ export class OptionsManager extends AbstractManager {
         this.__values[name] = value;
         break;
       default:
-        this.__element.dataset[propertyName] = value as string;
+        this.__element.setAttribute(propertyName, value as string);
     }
   }
 }
