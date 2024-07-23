@@ -38,12 +38,14 @@ export function normalizeRefName(name: string) {
  * Filter refs belonging to the related Base instance.
  */
 function refBelongToInstance(ref: HTMLElement, rootElement: HTMLElement, name: string) {
-  const isPrefixed = startsWith(ref.dataset.ref, name);
+  const isPrefixed = startsWith(ref.getAttribute('data-ref'), name);
   const firstComponentAncestor = getAncestorWhereUntil(
     ref,
     (el) =>
       el &&
-      (isPrefixed ? el.dataset.component === name && el : isDefined(el.dataset.component)) &&
+      (isPrefixed
+        ? el.getAttribute('data-component') === name && el
+        : el.getAttribute('data-component')) &&
       el !== rootElement,
     (el) => el === rootElement,
   );

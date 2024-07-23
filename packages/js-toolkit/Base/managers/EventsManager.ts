@@ -292,7 +292,7 @@ export class EventsManager extends AbstractManager {
   __refsHandler: EventListenerObject = {
     handleEvent: (event) => {
       const ref = event.currentTarget as HTMLElement;
-      const refName = normalizeRefName(ref.dataset.ref);
+      const refName = normalizeRefName(ref.getAttribute('data-ref'));
 
       const normalizedRefName = normalizeName(refName);
       const normalizedEventName = normalizeName(event.type);
