@@ -8,6 +8,9 @@ on:
 jobs:
   release:
     runs-on: macos-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,7 +41,7 @@ jobs:
           if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' || $VERSION =~ 'rc' ]]; then
             TAG='next'
           fi
-          npm publish --provenance --tag $TAG
+          npm publish --tag $TAG --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
       # @see https://github.com/actions/create-release/issues/38#issuecomment-715327220
