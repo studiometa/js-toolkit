@@ -5,6 +5,8 @@ import { isDev } from '../../utils/index.js';
 
 export type ResponsiveOptionObject = OptionObject & { responsive?: boolean };
 
+const dataOptionRegExp = /^data-option-/;
+
 /**
  * Get the currently active responsive name of an option.
  *
@@ -23,12 +25,12 @@ function __getResponsiveName(that: ResponsiveOptionsManager, name: string) {
   const propertyName = __getPropertyName(name);
   const regex = new RegExp(`${propertyName}:(.+)$`);
 
-  for (const optionName of Object.keys(that.__element.dataset)) {
+  for (const optionName of that.__element.getAttributeNames()) {
     if (regex.test(optionName)) {
       const [, breakpoints] = optionName.match(regex);
       const isInBreakpoint = breakpoints.split(':').includes(breakpoint);
       if (isInBreakpoint) {
-        responsiveName = optionName.replace(/^option/, '');
+        responsiveName = optionName.replace(dataOptionRegExp, '');
       }
     }
   }
