@@ -20,6 +20,7 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
     root = document.body,
     breakpoints = null,
     blocking = null,
+    attributes = null,
   } = options instanceof HTMLElement ? { root: options } : options;
 
   if (isObject(breakpoints)) {
@@ -28,6 +29,10 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
 
   if (isBoolean(blocking)) {
     features.set('blocking', blocking);
+  }
+
+  if (isObject(attributes)) {
+    features.set('attributes', attributes);
   }
 
   function init() {

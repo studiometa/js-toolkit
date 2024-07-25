@@ -3,6 +3,7 @@ import type { Options as DeepmergeOptions } from 'deepmerge';
 import { AbstractManager } from './AbstractManager.js';
 import { isDev, isFunction, isDefined, isBoolean, isArray, isObject } from '../../utils/index.js';
 import type { Base } from '../index.js';
+import { features } from '../features.js';
 
 type OptionType =
   | StringConstructor
@@ -74,8 +75,9 @@ export function __getPropertyName(name: string, prefix = '') {
     return __propertyNameCache.get(key);
   }
 
+  const attributes = features.get('attributes');
   const normalizedName = name.replace(matchUppercaseRegexp, '-$1');
-  const propertyName = `data-option${prefix ? `-${prefix}` : ''}-${normalizedName}`;
+  const propertyName = `${attributes.option}${prefix ? `-${prefix}` : ''}-${normalizedName}`;
   __propertyNameCache.set(key, propertyName);
   return propertyName;
 }

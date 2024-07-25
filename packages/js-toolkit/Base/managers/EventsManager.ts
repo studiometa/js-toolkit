@@ -4,6 +4,7 @@ import { isArray } from '../../utils/index.js';
 import { getEventTarget, eventIsNative, eventIsDefinedInConfig } from '../utils.js';
 import { AbstractManager } from './AbstractManager.js';
 import { normalizeRefName } from './RefsManager.js';
+import { features } from '../features.js';
 
 const names = new Map();
 const normalizeRegex1 = /[A-Z]([A-Z].*)/g;
@@ -292,7 +293,8 @@ export class EventsManager extends AbstractManager {
   __refsHandler: EventListenerObject = {
     handleEvent: (event) => {
       const ref = event.currentTarget as HTMLElement;
-      const refName = normalizeRefName(ref.getAttribute('data-ref'));
+      const attributes = features.get('attributes');
+      const refName = normalizeRefName(ref.getAttribute(attributes.ref));
 
       const normalizedRefName = normalizeName(refName);
       const normalizedEventName = normalizeName(event.type);
