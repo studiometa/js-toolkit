@@ -30,15 +30,16 @@ const separator = ' ';
  */
 function getSelector(nameOrSelector: string): string {
   if (!selectors.has(nameOrSelector)) {
+    const { component } = features.get('attributes')
     const parts = [
       // Single selector
-      `[data-component="${nameOrSelector}"]`,
+      `[${component}="${nameOrSelector}"]`,
       // Selector in the middle of a list of selectors
-      `[data-component*="${separator}${nameOrSelector}${separator}"]`,
+      `[${component}*="${separator}${nameOrSelector}${separator}"]`,
       // Selector at the end of a list of selectors
-      `[data-component$="${separator}${nameOrSelector}"]`,
+      `[${component}$="${separator}${nameOrSelector}"]`,
       // Selector at the beginning of a list of selectors
-      `[data-component^="${nameOrSelector}${separator}"]`,
+      `[${component}^="${nameOrSelector}${separator}"]`,
     ];
     selectors.set(nameOrSelector, parts.join(','));
   }
