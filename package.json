@@ -32,8 +32,6 @@
   "devDependencies": {
     "@studiometa/prettier-config": "4.1.0",
     "@studiometa/stylelint-config": "4.0.0",
-    "@types/estree": "1.0.5",
-    "@types/jest": "29.5.12",
     "@types/node": "20.14.12",
     "oxlint": "0.6.1",
     "patch-package": "8.0.0",

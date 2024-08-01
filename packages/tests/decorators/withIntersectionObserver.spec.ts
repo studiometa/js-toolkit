@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, beforeAll, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 import {
   intersectionObserverBeforeAllCallback,
@@ -25,7 +25,7 @@ afterEach(() => {
 
 describe('The withIntersectionObserver decorator', () => {
   it('should start when mounted and stop when destroyed', async () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     class Foo extends withIntersectionObserver(Base) {
       static config = {
         name: 'Foo',
@@ -54,7 +54,7 @@ describe('The withIntersectionObserver decorator', () => {
   });
 
   it('should be able to be used without the `intersected` method', async () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     class Foo extends Base {
       static config = {
         name: 'Foo',

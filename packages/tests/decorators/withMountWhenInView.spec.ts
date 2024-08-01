@@ -1,4 +1,4 @@
-import { describe, it, expect, spyOn, beforeEach, afterEach, beforeAll } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
 import { Base, withMountWhenInView } from '@studiometa/js-toolkit';
 import {
   intersectionObserverBeforeAllCallback,
@@ -65,7 +65,7 @@ describe('The withMountWhenInView decorator', () => {
   it('should disconnect the observer when terminated', async () => {
     const { div, instance } = await getContext();
     const observer = intersectionMockInstance(div);
-    const disconnect = spyOn(observer, 'disconnect');
+    const disconnect = vi.spyOn(observer, 'disconnect');
     instance.$terminate();
     await advanceTimersByTimeAsync(1);
     expect(disconnect).toHaveBeenCalledTimes(1);

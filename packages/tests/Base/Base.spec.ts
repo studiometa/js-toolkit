@@ -1,4 +1,4 @@
-import { describe, it, expect, spyOn, mock, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Base, BaseConfig, BaseProps, getInstanceFromElement } from '@studiometa/js-toolkit';
 import { ChildrenManager, OptionsManager, RefsManager } from '#private/Base/managers/index.js';
 import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
@@ -96,14 +96,14 @@ describe('A Base instance', () => {
 
   it('should inherit from parent config', () => {
     class A extends Base {
-      static config = {
+      static config: BaseConfig = {
         name: 'A',
         log: true,
       };
     }
 
     class B extends A {
-      static config = {
+      static config: BaseConfig = {
         name: 'B',
         options: {
           title: String,
@@ -113,7 +113,7 @@ describe('A Base instance', () => {
     }
 
     class C extends B {
-      static config = {
+      static config: BaseConfig = {
         name: 'C',
         options: {
           color: Boolean,
@@ -122,7 +122,7 @@ describe('A Base instance', () => {
     }
 
     class D extends C {
-      static config = {
+      static config: BaseConfig = {
         name: 'D',
         log: false,
       };
@@ -167,7 +167,7 @@ describe('A Base instance', () => {
 describe('A Base instance methods', () => {
   it('should emit a mounted event', async () => {
     const { foo } = await getContext();
-    const fn = mock();
+    const fn = vi.fn();
     foo.$on('mounted', fn);
     foo.$destroy();
     await advanceTimersByTimeAsync(1);
@@ -181,7 +181,7 @@ describe('A Base instance methods', () => {
 
   it('should emit a destroyed event', async () => {
     const { foo } = await getContext();
-    const fn = mock();
+    const fn = vi.fn();
     foo.$on('destroyed', fn);
     foo.$destroy();
     await advanceTimersByTimeAsync(1);
@@ -200,7 +200,7 @@ describe('A Base instance methods', () => {
       <div data-component="Bar"></div>
     `;
 
-    const fn = mock();
+    const fn = vi.fn();
 
     class Bar extends Foo {}
     class Baz extends Base {
@@ -297,7 +297,7 @@ describe('A Base instance methods', () => {
   });
 
   it('should be able to be terminated', async () => {
-    const fn = mock();
+    const fn = vi.fn();
 
     class Bar extends Base {
       static config: BaseConfig = {
@@ -412,7 +412,7 @@ describe('The Base class event methods', () => {
     const app = new App(document.createElement('div'));
     app.$mount();
     await advanceTimersByTimeAsync(1);
-    const fn = mock();
+    const fn = vi.fn();
     const off = app.$on('foo', fn);
     app.$emit('foo', { foo: true });
     expect(fn).toHaveBeenCalledTimes(1);
@@ -432,7 +432,7 @@ describe('The Base class event methods', () => {
     const app = new App(h('div'));
     app.$mount();
     await advanceTimersByTimeAsync(1);
-    const fn = mock();
+    const fn = vi.fn();
     app.$on('event', fn);
     expect(app.__hasEvent('event')).toBe(true);
     expect(app.__eventHandlers.get('event')).toEqual(new Set([fn]));
@@ -448,7 +448,7 @@ describe('The Base class event methods', () => {
     const app = new App(document.createElement('div'));
     app.$mount();
     await advanceTimersByTimeAsync(1);
-    const warnMock = spyOn(console, 'warn');
+    const warnMock = vi.spyOn(console, 'warn');
     warnMock.mockImplementation(() => {});
     app.$on('other-event', () => {});
     expect(warnMock).toHaveBeenCalledTimes(1);
@@ -461,7 +461,7 @@ describe('A Base instance config', () => {
     const { Foo } = await getContext();
     Foo.config.log = true;
 
-    const spy = spyOn(window.console, 'log');
+    const spy = vi.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
     const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(true);
@@ -474,7 +474,7 @@ describe('A Base instance config', () => {
     const { Foo } = await getContext();
     Foo.config.log = false;
 
-    const spy = spyOn(window.console, 'log');
+    const spy = vi.spyOn(window.console, 'log');
     const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(false);
     foo.$log('bar');
@@ -486,7 +486,7 @@ describe('A Base instance config', () => {
     const { Foo } = await getContext();
     Foo.config.log = true;
 
-    const spy = spyOn(window.console, 'warn');
+    const spy = vi.spyOn(window.console, 'warn');
     spy.mockImplementation(() => true);
     const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(true);
@@ -499,7 +499,7 @@ describe('A Base instance config', () => {
     const { Foo } = await getContext();
     Foo.config.log = false;
 
-    const spy = spyOn(window.console, 'warn');
+    const spy = vi.spyOn(window.console, 'warn');
     const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(false);
     foo.$warn('bar');
@@ -513,11 +513,11 @@ describe('A Base instance config', () => {
 
     globalThis.__DEV__ = true;
     process.env.NODE_ENV = 'development';
-    const spy = spyOn(window.console, 'log');
+    const spy = vi.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
     const foo = new Foo(h('div'));
     for (const args of spy.mock.calls) {
-      expect(args[0]).toStartWith('[debug] [Foo');
+      expect(args[0].startsWith('[debug] [Foo')).toBe(true);
     }
     spy.mockRestore();
     process.env.NODE_ENV = 'test';

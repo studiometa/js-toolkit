@@ -1,9 +1,9 @@
-import { describe, it, expect, jest, beforeEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Base } from '@studiometa/js-toolkit';
 import { useFakeTimers, useRealTimers, runAllTimers } from '#test-utils';
 
 describe('The ServicesManager', () => {
-  const fn = jest.fn();
+  const fn = vi.fn();
 
   class App extends Base {
     static config = {
@@ -95,15 +95,15 @@ describe('The ServicesManager', () => {
 
   it('should be able to register new services', () => {
     let handler;
-    const add = jest.fn();
+    const add = vi.fn();
     const service = {
       add: (id, cb) => {
         add();
         handler = cb;
       },
-      remove: jest.fn(),
-      props: jest.fn(),
-      has: jest.fn(),
+      remove: vi.fn(),
+      props: vi.fn(),
+      has: vi.fn(),
     };
 
     app.$services.register('customService', () => service);

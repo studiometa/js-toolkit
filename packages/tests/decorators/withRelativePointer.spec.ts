@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Base, withRelativePointer } from '@studiometa/js-toolkit';
 import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '#test-utils';
 
@@ -16,7 +16,7 @@ function createEvent(type: string, data: Record<string, unknown> = {}, options?:
 
 describe('The `withRelativePointer` decorator', () => {
   it('should add a `movedrelative` hook', async () => {
-    const fn = mock();
+    const fn = vi.fn();
 
     class Foo extends withRelativePointer(Base) {
       static config = {
