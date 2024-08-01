@@ -1,4 +1,4 @@
-import { mock } from 'bun:test';
+import { jest } from '@jest/globals';
 
 const map = new Map<HTMLElement, [number, number, number, number]>();
 
@@ -15,11 +15,11 @@ export function mockScroll({
     element.scrollTop,
     element.scrollLeft,
   ]);
-  const scrollHeightSpy = mock(() => height);
-  const scrollWidthSpy = mock(() => width);
+  const scrollHeightSpy = jest.fn(() => height);
+  const scrollWidthSpy = jest.fn(() => width);
   const scroll = { left, top };
-  const scrollLeftSpy = mock(() => scroll.left);
-  const scrollTopSpy = mock(() => scroll.top);
+  const scrollLeftSpy = jest.fn(() => scroll.left);
+  const scrollTopSpy = jest.fn(() => scroll.top);
   Object.defineProperties(element, {
     scrollHeight: {
       configurable: true,

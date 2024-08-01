@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, spyOn, afterEach, beforeEach } from 'bun:test';
+import { describe, it, expect, jest, afterEach, beforeEach } from '@jest/globals';
 import { scrollTo } from '@studiometa/js-toolkit/utils';
 import {
   mockScroll,
@@ -15,7 +15,7 @@ describe('The `scrollTo` function', () => {
   let elementSpy;
 
   beforeEach(() => {
-    fn = mock(({ top, left }) => {
+    fn = jest.fn(({ top, left }) => {
       window.scrollY = top;
       window.scrollX = left;
     });
@@ -24,7 +24,7 @@ describe('The `scrollTo` function', () => {
     mockScroll({ height: 10000, width: 10000 });
 
     element = document.createElement('div');
-    elementSpy = spyOn(element, 'getBoundingClientRect');
+    elementSpy = jest.spyOn(element, 'getBoundingClientRect');
     elementSpy.mockImplementation(() => ({
       top: 5000,
       left: 5000,
@@ -110,7 +110,7 @@ describe('The `scrollTo` function', () => {
 
   it('should stop scrolling with wheel event', async () => {
     expect(fn).not.toHaveBeenCalled();
-    const fn2 = mock();
+    const fn2 = jest.fn();
     scrollTo(element).then(fn2);
     await advanceTimersByTimeAsync(100);
     window.dispatchEvent(new Event('wheel'));
@@ -122,7 +122,7 @@ describe('The `scrollTo` function', () => {
 
   it('should stop scrolling with touchmove event', async () => {
     expect(fn).not.toHaveBeenCalled();
-    const fn2 = mock();
+    const fn2 = jest.fn();
     scrollTo(element).then(fn2);
     await advanceTimersByTimeAsync(100);
     window.dispatchEvent(new Event('touchmove'));
@@ -133,7 +133,7 @@ describe('The `scrollTo` function', () => {
   });
 
   it('should execute the given `onFinish` callback', async () => {
-    const fn2 = mock();
+    const fn2 = jest.fn();
     scrollTo(800, { onFinish: fn2 });
     await advanceTimersByTimeAsync(2000);
     expect(fn2).toHaveBeenCalledWith(1);

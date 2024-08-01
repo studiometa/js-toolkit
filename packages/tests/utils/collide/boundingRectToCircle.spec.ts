@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from '@jest/globals';
 import { boundingRectToCircle } from '@studiometa/js-toolkit/utils';
 
 describe('boundingRectToCircle method', () => {

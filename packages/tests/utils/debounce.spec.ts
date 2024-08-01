@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, jest } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { debounce } from '@studiometa/js-toolkit/utils';
 import { useFakeTimers, useRealTimers, advanceTimersByTime } from '#test-utils';
 

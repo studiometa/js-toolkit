@@ -1,4 +1,4 @@
-import { describe, it, expect, jest } from 'bun:test';
+import { describe, it, expect, jest } from '@jest/globals';
 import { Queue, nextTick } from '@studiometa/js-toolkit/utils';
 
 describe('The `Queue` class', () => {

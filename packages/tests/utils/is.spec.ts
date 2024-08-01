@@ -1,4 +1,4 @@
-import { describe, test as it, expect } from 'bun:test';
+import { describe, test as it, expect } from '@jest/globals';
 import * as utils from '@studiometa/js-toolkit/utils';
 import { isFunction } from '@studiometa/js-toolkit/utils';
 
@@ -31,27 +31,27 @@ for (const [name, fn] of Object.entries(is)) {
 
 describe('The "isEmpty" utility function', () => {
   it('should return true when the given value is empty', () => {
-    expect(is.isEmpty()).toBeTrue();
-    expect(is.isEmpty('')).toBeTrue();
-    expect(is.isEmpty(null)).toBeTrue();
-    expect(is.isEmpty([])).toBeTrue();
-    expect(is.isEmpty({})).toBeTrue();
+    expect(is.isEmpty()).toBe(true);
+    expect(is.isEmpty('')).toBe(true);
+    expect(is.isEmpty(null)).toBe(true);
+    expect(is.isEmpty([])).toBe(true);
+    expect(is.isEmpty({})).toBe(true);
   });
 
   it('should return false when the given value is not empty', () => {
-    expect(is.isEmpty(Number.NaN)).toBeFalse();
-    expect(is.isEmpty(1)).toBeFalse();
-    expect(is.isEmpty(0)).toBeFalse();
-    expect(is.isEmpty('foo')).toBeFalse();
-    expect(is.isEmpty(true)).toBeFalse();
-    expect(is.isEmpty(false)).toBeFalse();
-    expect(is.isEmpty([1, 2])).toBeFalse();
-    expect(is.isEmpty({ foo: 'foo' })).toBeFalse();
-    expect(is.isEmpty(/regex/)).toBeFalse();
+    expect(is.isEmpty(Number.NaN)).toBe(false);
+    expect(is.isEmpty(1)).toBe(false);
+    expect(is.isEmpty(0)).toBe(false);
+    expect(is.isEmpty('foo')).toBe(false);
+    expect(is.isEmpty(true)).toBe(false);
+    expect(is.isEmpty(false)).toBe(false);
+    expect(is.isEmpty([1, 2])).toBe(false);
+    expect(is.isEmpty({ foo: 'foo' })).toBe(false);
+    expect(is.isEmpty(/regex/)).toBe(false);
 
     class Foo {}
     const foo = new Foo();
-    expect(is.isEmpty(foo)).toBeFalse();
+    expect(is.isEmpty(foo)).toBe(false);
   });
 });
 

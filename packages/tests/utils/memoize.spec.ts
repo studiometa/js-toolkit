@@ -1,4 +1,4 @@
-import { describe, it, expect, jest } from 'bun:test';
+import { describe, it, expect, jest } from '@jest/globals';
 import { memoize } from '@studiometa/js-toolkit/utils';
 import { useFakeTimers, useRealTimers, runAllTimers } from '#test-utils';
 

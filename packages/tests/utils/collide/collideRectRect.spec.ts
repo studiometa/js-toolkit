@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from '@jest/globals';
 import { collideRectRect } from '@studiometa/js-toolkit/utils';
 
 describe('collideRectRect method', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from '@jest/globals';
 import { inertiaFinalValue } from '@studiometa/js-toolkit/utils';
 
 describe('The inertiaFinalValue function', () => {

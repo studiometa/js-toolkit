@@ -1,4 +1,4 @@
-import { mock } from 'bun:test';
+import { jest } from '@jest/globals';
 
 type Features = {
   blocking: boolean;
@@ -23,12 +23,12 @@ export function mockFeatures({
     xxxl: '160rem', // 2560px
   },
 } = {}) {
-  const features = new Map<keyof Features, Features[keyof Features]>([
-    ['blocking', blocking],
-    ['breakpoints', breakpoints],
-  ]) as FeaturesMap;
-
-  mock.module('#private/Base/features.js', () => ({ features }));
-
-  return { features };
+  return jest.unstable_mockModule('#private/Base/features.js', () => {
+    return {
+      features: new Map<keyof Features, Features[keyof Features]>([
+        ['blocking', blocking],
+        ['breakpoints', breakpoints],
+      ]) as FeaturesMap,
+    };
+  });
 }

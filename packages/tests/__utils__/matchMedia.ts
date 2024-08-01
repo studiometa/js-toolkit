@@ -1,10 +1,10 @@
-import { afterEach } from 'bun:test';
-import MatchMediaMock from 'jest-matchmedia-mock';
+import { afterEach } from '@jest/globals';
+import MatchMedia from 'jest-matchmedia-mock';
 
 const defaultMediaQuery = '(min-width: 80rem)';
 
 export function useMatchMedia(mediaQuery = defaultMediaQuery) {
-  const matchMedia = new MatchMediaMock();
+  const matchMedia = new MatchMedia();
   matchMedia.useMediaQuery(mediaQuery);
 
   afterEach(() => {

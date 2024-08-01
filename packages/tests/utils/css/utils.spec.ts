@@ -1,4 +1,4 @@
-import { describe, it, expect, jest } from 'bun:test';
+import { describe, it, expect, jest } from '@jest/globals';
 import { eachElements } from '#private/utils/css/utils.js';
 
 describe('The `eachElements` function', () => {

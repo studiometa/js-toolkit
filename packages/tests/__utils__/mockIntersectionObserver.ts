@@ -1,4 +1,4 @@
-import { mock } from 'bun:test';
+import { jest } from '@jest/globals';
 
 type Item = {
   callback: IntersectionObserverCallback;
@@ -19,7 +19,7 @@ export function intersectionObserverBeforeAllCallback() {
    * We keep track of the elements being observed, so when `mockAllIsIntersecting` is triggered it will
    * know which elements to trigger the event on.
    */
-  globalThis.IntersectionObserver = mock(
+  globalThis.IntersectionObserver = jest.fn(
     (cb: IntersectionObserverCallback, options: IntersectionObserverInit = {}) => {
       const item: Item = {
         callback: cb,
@@ -30,16 +30,16 @@ export function intersectionObserverBeforeAllCallback() {
         thresholds: Array.isArray(options.threshold) ? options.threshold : [options.threshold ?? 0],
         root: options.root ?? null,
         rootMargin: options.rootMargin ?? '',
-        observe: mock((element: Element) => {
+        observe: jest.fn((element: Element) => {
           item.elements.add(element);
         }),
-        unobserve: mock((element: Element) => {
+        unobserve: jest.fn((element: Element) => {
           item.elements.delete(element);
         }),
-        disconnect: mock(() => {
+        disconnect: jest.fn(() => {
           observers.delete(instance);
         }),
-        takeRecords: mock(),
+        takeRecords: jest.fn(),
       };
 
       observers.set(instance, item);
