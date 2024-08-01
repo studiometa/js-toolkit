@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import { collideRectRect } from '@studiometa/js-toolkit/utils';
 
 describe('collideRectRect method', () => {

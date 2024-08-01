@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { throttle } from '@studiometa/js-toolkit/utils';
 import { useFakeTimers, useRealTimers, advanceTimersByTime } from '#test-utils';
 
@@ -7,7 +7,7 @@ afterEach(() => useRealTimers());
 
 describe('throttle method', () => {
   it('should call the given function only once in the given delay', async () => {
-    const fn = jest.fn(() => true);
+    const fn = vi.fn(() => true);
     const throttled = throttle(fn, 300);
 
     throttled();
@@ -29,7 +29,7 @@ describe('throttle method', () => {
   });
 
   it('should call the callback after 16ms when no delay provided', async () => {
-    const fn = jest.fn(() => true);
+    const fn = vi.fn(() => true);
     const throttled = throttle(fn);
 
     throttled();

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { Base, withResponsiveOptions } from '@studiometa/js-toolkit';
 import { ResponsiveOptionsManager } from '#private/Base/managers/ResponsiveOptionsManager.js';
 

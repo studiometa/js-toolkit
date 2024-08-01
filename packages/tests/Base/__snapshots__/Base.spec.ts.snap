@@ -1,4 +1,41 @@
-// Bun Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`A Base instance > should inherit from parent config 1`] = `
+{
+  "components": {},
+  "emits": [
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+    "before-mounted",
+    "mounted",
+    "updated",
+    "destroyed",
+    "terminated",
+    "ticked",
+    "scrolled",
+    "resized",
+    "moved",
+    "loaded",
+    "keyed",
+  ],
+  "log": false,
+  "name": "D",
+  "options": {
+    "color": [Function],
+    "title": [Function],
+  },
+  "refs": [],
+}
+`;
 
 exports[`A Base instance should inherit from parent config 1`] = `
 {

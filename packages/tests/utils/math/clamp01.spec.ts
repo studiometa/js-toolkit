@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import { clamp01 } from '@studiometa/js-toolkit/utils';
 
 describe('clamp01 method', () => {

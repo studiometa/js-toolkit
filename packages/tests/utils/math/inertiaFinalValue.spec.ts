@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import { inertiaFinalValue } from '@studiometa/js-toolkit/utils';
 
 describe('The inertiaFinalValue function', () => {

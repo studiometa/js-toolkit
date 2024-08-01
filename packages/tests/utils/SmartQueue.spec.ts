@@ -1,4 +1,4 @@
-import { describe, it, expect, jest } from '@jest/globals';
+import { describe, it, expect, vi } from 'vitest';
 import { SmartQueue, nextTick } from '@studiometa/js-toolkit/utils';
 
 function task(duration = 1) {
@@ -12,7 +12,7 @@ function task(duration = 1) {
 describe('The `SmartQueue` class', () => {
   it('should run multiple functions in queue without triggering long tasks', async () => {
     const queue = new SmartQueue();
-    const spy = jest.fn(task);
+    const spy = vi.fn(task);
 
     queue.add(() => spy(15));
     queue.add(() => spy(15));

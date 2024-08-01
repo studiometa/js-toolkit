@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import {
   Base,
   withExtraConfig,

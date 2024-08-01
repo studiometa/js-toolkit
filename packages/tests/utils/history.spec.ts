@@ -1,4 +1,4 @@
-import { describe, test as it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, test as it, expect, beforeEach, vi } from 'vitest';
 import { historyPush as push, historyReplace as replace } from '@studiometa/js-toolkit/utils';
 
 const keys = [
@@ -20,7 +20,7 @@ function updateLocation(url) {
 }
 
 beforeEach(() => {
-  const spy = jest.spyOn(window, 'location', 'get');
+  const spy = vi.spyOn(window, 'location', 'get');
   spy.mockImplementation(() => location)
   Object.defineProperties(window.history, {
     replaceState: {
@@ -68,7 +68,7 @@ describe('The history `push` method', () => {
   });
 
   it.skip('should fail silently when the history API is not supported', () => {
-    const historyMock = jest.spyOn(window, 'history', 'get');
+    const historyMock = vi.spyOn(window, 'history', 'get');
     historyMock.mockImplementation(() => undefined);
     const { href } = window.location;
     push({ path: 'baz' });
@@ -77,7 +77,7 @@ describe('The history `push` method', () => {
   });
 
   it.skip('should pass the data and title to the history API', () => {
-    const pushMock = jest.spyOn(window.history, 'pushState');
+    const pushMock = vi.spyOn(window.history, 'pushState');
     push({ path: '/foo' }, { data: 'foo' }, 'title');
     expect(pushMock).toHaveBeenCalledWith({ data: 'foo' }, 'title', '/foo');
     push({ path: '/bar' });

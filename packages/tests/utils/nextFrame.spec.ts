@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { nextFrame } from '@studiometa/js-toolkit/utils';
 import { useFakeTimers, useRealTimers, runAllTimers, advanceTimersByTime } from '#test-utils';
 
@@ -7,7 +7,7 @@ afterEach(() => useRealTimers());
 
 describe('nextFrame method', () => {
   it('should execute the callback function in the next frame', () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     nextFrame(fn);
     expect(fn).toHaveBeenCalledTimes(0);
     runAllTimers();
@@ -19,8 +19,8 @@ describe('nextFrame method', () => {
   });
 
   it('should work server-side', () => {
-    const fn = jest.fn();
-    jest.unstable_mockModule('../../js-toolkit/utils/has.js', () => ({
+    const fn = vi.fn();
+    vi.mock('../../js-toolkit/utils/has.js', () => ({
       hasWindow: () => false,
     }));
 

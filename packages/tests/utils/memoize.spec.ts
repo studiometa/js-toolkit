@@ -1,10 +1,10 @@
-import { describe, it, expect, jest } from '@jest/globals';
+import { describe, it, expect, vi } from 'vitest';
 import { memoize } from '@studiometa/js-toolkit/utils';
 import { useFakeTimers, useRealTimers, runAllTimers } from '#test-utils';
 
 describe('The `memoize` function', () => {
   it('should cache results', () => {
-    const fn = jest.fn((a, b) => a + b);
+    const fn = vi.fn((a, b) => a + b);
     const memFn = memoize(fn);
     expect(memFn(1, 2)).toBe(3);
     expect(memFn(1, 2)).toBe(3);
@@ -13,7 +13,7 @@ describe('The `memoize` function', () => {
   });
 
   it('should cache results of async functions', () => {
-    const fn = jest.fn((arg) => {
+    const fn = vi.fn((arg) => {
       return new Promise((resolve) => {
         setTimeout(() => resolve(arg), 500);
       });
@@ -27,7 +27,7 @@ describe('The `memoize` function', () => {
   });
 
   it('should return new data if `maxAge` is reached', () => {
-    const fn = jest.fn((a, b) => a + b);
+    const fn = vi.fn((a, b) => a + b);
     const memFn = memoize(fn, { maxAge: 0 });
     expect(memFn(1, 2)).toBe(3);
     expect(memFn(1, 2)).toBe(3);

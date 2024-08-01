@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 type Item = {
   callback: IntersectionObserverCallback;
@@ -19,7 +19,7 @@ export function intersectionObserverBeforeAllCallback() {
    * We keep track of the elements being observed, so when `mockAllIsIntersecting` is triggered it will
    * know which elements to trigger the event on.
    */
-  globalThis.IntersectionObserver = jest.fn(
+  globalThis.IntersectionObserver = vi.fn(
     (cb: IntersectionObserverCallback, options: IntersectionObserverInit = {}) => {
       const item: Item = {
         callback: cb,
@@ -30,16 +30,16 @@ export function intersectionObserverBeforeAllCallback() {
         thresholds: Array.isArray(options.threshold) ? options.threshold : [options.threshold ?? 0],
         root: options.root ?? null,
         rootMargin: options.rootMargin ?? '',
-        observe: jest.fn((element: Element) => {
+        observe: vi.fn((element: Element) => {
           item.elements.add(element);
         }),
-        unobserve: jest.fn((element: Element) => {
+        unobserve: vi.fn((element: Element) => {
           item.elements.delete(element);
         }),
-        disconnect: jest.fn(() => {
+        disconnect: vi.fn(() => {
           observers.delete(instance);
         }),
-        takeRecords: jest.fn(),
+        takeRecords: vi.fn(),
       };
 
       observers.set(instance, item);

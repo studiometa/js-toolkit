@@ -1,15 +1,15 @@
-import { describe, it, expect, jest } from '@jest/globals';
+import { describe, it, expect, vi } from 'vitest';
 import { eachElements } from '#private/utils/css/utils.js';
 
 describe('The `eachElements` function', () => {
   it('should accept a single element', () => {
-    const fn = jest.fn(() => true);
+    const fn = vi.fn(() => true);
     const result = eachElements(document.body, fn);
     expect(result).toEqual([true]);
   });
 
   it('should accept an array of elements', () => {
-    const fn = jest.fn((element) => element);
+    const fn = vi.fn((element) => element);
     const div1 = document.createElement('div');
     const div2 = document.createElement('div');
     const result = eachElements([div1, div2], fn);
@@ -20,7 +20,7 @@ describe('The `eachElements` function', () => {
   });
 
   it('should accept a NodeList', () => {
-    const fn = jest.fn((element) => element);
+    const fn = vi.fn((element) => element);
     const div = document.createElement('div');
     const div1 = document.createElement('div');
     const div2 = document.createElement('div');

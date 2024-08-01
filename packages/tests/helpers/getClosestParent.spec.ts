@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Base, BaseConfig, getClosestParent } from '@studiometa/js-toolkit';
 import { advanceTimersByTimeAsync, h, useFakeTimers, useRealTimers } from '#test-utils';
 

@@ -1,4 +1,4 @@
-import { describe, test as it, expect } from '@jest/globals';
+import { describe, test as it, expect } from 'vitest';
 import * as utils from '@studiometa/js-toolkit/utils';
 import { isFunction } from '@studiometa/js-toolkit/utils';
 

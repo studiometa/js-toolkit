@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { trapFocus, untrapFocus, saveActiveElement } from '@studiometa/js-toolkit/utils';
 import { createEvent } from '#test-utils';
 

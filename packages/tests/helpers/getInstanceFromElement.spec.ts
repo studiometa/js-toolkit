@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { Base, getInstanceFromElement } from '@studiometa/js-toolkit';
 import { h } from '#test-utils';
 

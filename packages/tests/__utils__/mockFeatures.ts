@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 type Features = {
   blocking: boolean;
@@ -23,12 +23,14 @@ export function mockFeatures({
     xxxl: '160rem', // 2560px
   },
 } = {}) {
-  return jest.unstable_mockModule('#private/Base/features.js', () => {
-    return {
-      features: new Map<keyof Features, Features[keyof Features]>([
-        ['blocking', blocking],
-        ['breakpoints', breakpoints],
-      ]) as FeaturesMap,
-    };
+  const features = new Map<keyof Features, Features[keyof Features]>([
+    ['blocking', blocking],
+    ['breakpoints', breakpoints],
+  ]) as FeaturesMap;
+
+  vi.mock('#private/Base/features.js', () => {
+    return { features };
   });
+
+  return { features };
 }

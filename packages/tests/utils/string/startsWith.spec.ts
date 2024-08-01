@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import { startsWith } from '@studiometa/js-toolkit/utils';
 
 describe('The startsWith function', () => {

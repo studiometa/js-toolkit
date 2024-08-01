@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import { transform } from '@studiometa/js-toolkit/utils';
 
 describe('The `transform` utility function', () => {

@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 const map = new Map<HTMLElement, [number, number, number, number]>();
 
@@ -15,11 +15,11 @@ export function mockScroll({
     element.scrollTop,
     element.scrollLeft,
   ]);
-  const scrollHeightSpy = jest.fn(() => height);
-  const scrollWidthSpy = jest.fn(() => width);
+  const scrollHeightSpy = vi.fn(() => height);
+  const scrollWidthSpy = vi.fn(() => width);
   const scroll = { left, top };
-  const scrollLeftSpy = jest.fn(() => scroll.left);
-  const scrollTopSpy = jest.fn(() => scroll.top);
+  const scrollLeftSpy = vi.fn(() => scroll.left);
+  const scrollTopSpy = vi.fn(() => scroll.top);
   Object.defineProperties(element, {
     scrollHeight: {
       configurable: true,
