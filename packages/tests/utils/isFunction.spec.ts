@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { isFunction } from '@studiometa/js-toolkit/utils';
 
 describe('The `isFunction` utility function', () => {

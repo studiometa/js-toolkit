@@ -1,18 +1,18 @@
-import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Base, BaseConfig } from '@studiometa/js-toolkit';
 import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
 import { normalizeEventName, normalizeName } from '#private/Base/managers/EventsManager.js';
 
 function getContext() {
-  const rootElementFn = mock();
-  const documentFn = mock();
-  const windowFn = mock();
-  const singleRefFn = mock();
-  const multipleRefFn = mock();
-  const prefixedRefFn = mock();
-  const componentFn = mock();
-  const componentInnerFn = mock();
-  const asyncComponentFn = mock();
+  const rootElementFn = vi.fn();
+  const documentFn = vi.fn();
+  const windowFn = vi.fn();
+  const singleRefFn = vi.fn();
+  const multipleRefFn = vi.fn();
+  const prefixedRefFn = vi.fn();
+  const componentFn = vi.fn();
+  const componentInnerFn = vi.fn();
+  const asyncComponentFn = vi.fn();
 
   class Component extends Base {
     static config = {

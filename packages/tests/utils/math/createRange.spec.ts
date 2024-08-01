@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { createRange } from '@studiometa/js-toolkit/utils';
 
 describe('The `createRange` function', () => {

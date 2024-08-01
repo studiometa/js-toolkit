@@ -1,6 +1,6 @@
-// Bun Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`A Base instance should inherit from parent config 1`] = `
+exports[`A Base instance > should inherit from parent config 1`] = `
 {
   "components": {},
   "emits": [
@@ -30,8 +30,8 @@ exports[`A Base instance should inherit from parent config 1`] = `
   "log": false,
   "name": "D",
   "options": {
-    "color": [class Boolean],
-    "title": [class String],
+    "color": [Function],
+    "title": [Function],
   },
   "refs": [],
 }

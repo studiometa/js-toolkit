@@ -1,8 +1,22 @@
-import { test, expect } from 'bun:test';
+import { test, expect } from 'vitest';
 import * as decorators from '#private/decorators/index.js';
-import { getFilenamesInFolder } from '#test-utils';
 
 test('decorators exports', () => {
-  const names = getFilenamesInFolder('../../js-toolkit/decorators/', import.meta.url);
-  expect(Object.keys(decorators).toSorted()).toEqual(names.toSorted());
+  expect(Object.keys(decorators).toSorted()).toMatchInlineSnapshot(`
+    [
+      "withBreakpointManager",
+      "withBreakpointObserver",
+      "withDrag",
+      "withExtraConfig",
+      "withFreezedOptions",
+      "withIntersectionObserver",
+      "withMountOnMediaQuery",
+      "withMountWhenInView",
+      "withMountWhenPrefersMotion",
+      "withName",
+      "withRelativePointer",
+      "withResponsiveOptions",
+      "withScrolledInView",
+    ]
+  `);
 });

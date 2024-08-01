@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useDrag } from '@studiometa/js-toolkit';
 import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '#test-utils';
 
@@ -16,7 +16,7 @@ describe('The drag service', () => {
   afterEach(() => useRealTimers());
 
   it('should start, drag and drop', () => {
-    const fn = mock();
+    const fn = vi.fn();
     const div = document.createElement('div');
     const { add, props } = useDrag(div, { dampFactor: 0.1 });
 
@@ -50,7 +50,7 @@ describe('The drag service', () => {
   });
 
   it('should run with inertia and stop', async () => {
-    const fn = mock();
+    const fn = vi.fn();
     const div = document.createElement('div');
     const { add, props } = useDrag(div, { dampFactor: 0.2 });
     add('key', fn);
@@ -63,7 +63,7 @@ describe('The drag service', () => {
   });
 
   it('should prevent native drag', () => {
-    const fn = mock();
+    const fn = vi.fn();
     const div = document.createElement('div');
     div.innerHTML = '<div></div>';
     const { add } = useDrag(div, { dampFactor: 0.1 });
@@ -75,7 +75,7 @@ describe('The drag service', () => {
   });
 
   it('should not trigger the callback when stopped', () => {
-    const fn = mock();
+    const fn = vi.fn();
     const div = document.createElement('div');
     const { add, remove } = useDrag(div, { dampFactor: 0.2 });
 
@@ -90,7 +90,7 @@ describe('The drag service', () => {
   // This test fails when run along the othe one in `drag.spec.js`
   it('should prevent click on child elements while dragging', async () => {
     let event;
-    const fn = mock((e) => (event = e));
+    const fn = vi.fn((e) => (event = e));
     const div = document.createElement('div');
     div.innerHTML = '<div></div>';
     const { add } = useDrag(div, { dampFactor: 0.1 });
@@ -103,6 +103,6 @@ describe('The drag service', () => {
     await advanceTimersByTimeAsync(100);
     div.firstElementChild?.dispatchEvent(new Event('click'));
     expect(fn).toHaveBeenCalledTimes(1);
-    expect(event.defaultPrevented).toBeTrue();
+    expect(event.defaultPrevented).toBe(true);
   });
 });
