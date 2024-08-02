@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.6](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.5..3.0.0-alpha.6) (2023-08-02)
+
 ### Changed
 
 - Refactor attributes handling with methods ([#494](https://github.com/studiometa/js-toolkit/pull/494), [5c5c3ae](https://github.com/studiometa/js-toolkit/commits/5c5c3ae))
