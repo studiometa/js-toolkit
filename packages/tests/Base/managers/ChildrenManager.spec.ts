@@ -1,15 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Base, BaseConfig } from '@studiometa/js-toolkit';
 import { getComponentElements } from '#private/Base/utils.js';
-import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
+import { h } from '#test-utils';
 
 beforeEach(() => {
   document.body.innerHTML = '';
-  useFakeTimers();
-});
-
-afterEach(() => {
-  useRealTimers();
 });
 
 describe('The component resolution', () => {
@@ -72,8 +67,7 @@ describe('The component resolution', () => {
     }
 
     const component = new Component(div);
-    component.$mount();
-    await advanceTimersByTimeAsync(1);
+    await component.$mount();
     const asyncInstances = await Promise.all(component.$children.AsyncComponent);
     expect(asyncInstances[0]).toBeInstanceOf(Base);
     expect(fn).toHaveBeenCalledTimes(1);

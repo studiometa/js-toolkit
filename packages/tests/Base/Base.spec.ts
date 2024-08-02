@@ -1,10 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Base, BaseConfig, BaseProps, getInstanceFromElement } from '@studiometa/js-toolkit';
 import { ChildrenManager, OptionsManager, RefsManager } from '#private/Base/managers/index.js';
-import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
-
-beforeEach(() => useFakeTimers());
-afterEach(() => useRealTimers());
+import { h, advanceTimersByTimeAsync } from '#test-utils';
 
 async function getContext() {
   class Foo<T extends BaseProps = BaseProps> extends Base<T> {
@@ -13,8 +10,8 @@ async function getContext() {
     };
   }
   const element = h('div');
-  const foo = new Foo(element).$mount();
-  await advanceTimersByTimeAsync(1);
+  const foo = new Foo(element)
+  await foo.$mount();
 
   return { Foo, element, foo };
 }
@@ -156,8 +153,8 @@ describe('A Base instance', () => {
     const div = h('div', {}, [
       h('div', { dataComponent: 'Component' }, [h('div', { dataComponent: 'ChildComponent' })]),
     ]);
-    const app = new App(div).$mount();
-    await advanceTimersByTimeAsync(1);
+    const app = new App(div)
+    await app.$mount();
     expect(app.$root).toBe(app);
     expect(app.$children.Component[0].$root).toBe(app);
     expect(app.$children.Component[0].$children.ChildComponent[0].$root).toBe(app);
@@ -169,13 +166,10 @@ describe('A Base instance methods', () => {
     const { foo } = await getContext();
     const fn = vi.fn();
     foo.$on('mounted', fn);
-    foo.$destroy();
-    await advanceTimersByTimeAsync(1);
-    foo.$mount();
-    await advanceTimersByTimeAsync(1);
+    await foo.$destroy();
+    await foo.$mount();
     expect(fn).toHaveBeenCalledTimes(1);
-    foo.$mount();
-    await advanceTimersByTimeAsync(1);
+    await foo.$mount();
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
@@ -183,11 +177,9 @@ describe('A Base instance methods', () => {
     const { foo } = await getContext();
     const fn = vi.fn();
     foo.$on('destroyed', fn);
-    foo.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await foo.$destroy();
     expect(fn).toHaveBeenCalledTimes(1);
-    foo.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await foo.$destroy();
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
@@ -234,8 +226,8 @@ describe('A Base instance methods', () => {
       };
     }
 
-    const app = new App(div).$mount();
-    await advanceTimersByTimeAsync(1);
+    const app = new App(div)
+    await app.$mount();
     expect(app.$children.Bar).toHaveLength(2);
     expect(app.$children.Bar[0].$isMounted).toBe(true);
     div.innerHTML = `
@@ -244,8 +236,7 @@ describe('A Base instance methods', () => {
       <div data-component="AsyncBaz"></div>
     `;
 
-    app.$update();
-    await advanceTimersByTimeAsync(1);
+    await app.$update();
 
     expect(app.$children.Bar).toEqual([]);
     expect(app.$children.Baz).toHaveLength(2);
@@ -261,8 +252,7 @@ describe('A Base instance methods', () => {
     div.append(child);
     expect(id).toBe(app.$children.Baz[0].$id);
 
-    app.$update();
-    await advanceTimersByTimeAsync(1);
+    await app.$update();
 
     expect(id).toBe(app.$children.Baz[0].$id);
     expect(fn).toHaveBeenCalledTimes(3);
@@ -282,11 +272,11 @@ describe('A Base instance methods', () => {
       <div class="custom-selector"></div>
     `;
 
-    const fooInstances = Bar.$register();
-    const barInstances = Bar.$register('Bar');
-    const bazInstances = Baz.$register('.custom-selector');
-    const bozInstances = Boz.$register('Boz');
-    await advanceTimersByTimeAsync(1);
+    const fooInstances = await Promise.all(Bar.$register());
+    const barInstances = await Promise.all(Bar.$register('Bar'));
+    const bazInstances = await Promise.all(Baz.$register('.custom-selector'));
+    const bozInstances = await Promise.all(Boz.$register('Boz'));
+
     expect(fooInstances).toHaveLength(1);
     expect(fooInstances[0].$el.dataset.component).toBe('Foo');
     expect(barInstances).toHaveLength(2);
@@ -311,12 +301,10 @@ describe('A Base instance methods', () => {
 
     const div = h('div');
     const bar = new Bar(div);
-    bar.$mount();
-    await advanceTimersByTimeAsync(1);
+    await bar.$mount();
     expect(bar).toEqual(getInstanceFromElement(div, Bar));
     bar.$on('terminated', () => fn('event'));
-    bar.$terminate();
-    await advanceTimersByTimeAsync(1);
+    await bar.$terminate();
     expect(fn).toHaveBeenCalledTimes(2);
     expect(fn).toHaveBeenNthCalledWith(1, 'event');
     expect(fn).toHaveBeenNthCalledWith(2, 'method');
@@ -340,8 +328,7 @@ describe('A Base instance methods', () => {
 
     expect(foo.$children.registeredNames).toEqual([]);
     const baz = new Baz(h('div'));
-    baz.$mount();
-    await advanceTimersByTimeAsync(1);
+    await baz.$mount();
     expect(baz.$children.Bar).toEqual([]);
   });
 
@@ -363,12 +350,10 @@ describe('A Base instance methods', () => {
     div.innerHTML = '<div data-component="Bar"></div>';
 
     const baz = new Baz(div);
-    baz.$mount();
-    await advanceTimersByTimeAsync(1);
+    await baz.$mount();
     const bar = getInstanceFromElement(div.firstElementChild as HTMLElement, Bar);
     expect(baz.$children.Bar).toEqual([bar]);
-    bar.$terminate();
-    await advanceTimersByTimeAsync(1);
+    await bar.$terminate();
     expect(baz.$children.Bar).toEqual([]);
   });
 
@@ -388,13 +373,11 @@ describe('A Base instance methods', () => {
 
     document.body.innerHTML = '<div data-component="Bar"></div>';
     const baz = new Baz(document.body);
-    baz.$mount();
-    await advanceTimersByTimeAsync(1);
+    await baz.$mount();
     const barElement = document.querySelector('[data-component="Bar"]') as HTMLElement;
     expect(baz.$isMounted).toBe(true);
     expect(getInstanceFromElement(barElement, Bar).$isMounted).toBe(true);
-    baz.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await baz.$destroy();
     expect(baz.$isMounted).toBe(false);
     expect(getInstanceFromElement(barElement, Bar).$isMounted).toBe(false);
   });
@@ -410,8 +393,7 @@ describe('The Base class event methods', () => {
     }
 
     const app = new App(document.createElement('div'));
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
+    await app.$mount();
     const fn = vi.fn();
     const off = app.$on('foo', fn);
     app.$emit('foo', { foo: true });
@@ -430,8 +412,7 @@ describe('The Base class event methods', () => {
     }
 
     const app = new App(h('div'));
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
+    await app.$mount();
     const fn = vi.fn();
     app.$on('event', fn);
     expect(app.__hasEvent('event')).toBe(true);
@@ -446,8 +427,7 @@ describe('The Base class event methods', () => {
     }
 
     const app = new App(document.createElement('div'));
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
+    await app.$mount();
     const warnMock = vi.spyOn(console, 'warn');
     warnMock.mockImplementation(() => {});
     app.$on('other-event', () => {});
