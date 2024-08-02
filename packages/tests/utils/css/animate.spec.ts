@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { animate } from '@studiometa/js-toolkit/utils';
 import type { TransformProps } from '@studiometa/js-toolkit/utils';
 import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
@@ -9,7 +9,7 @@ afterEach(() => useRealTimers());
 describe('The `animate` utility function', () => {
 
   it('should animate an element', async () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     const div = h('div');
     animate(
@@ -144,7 +144,7 @@ describe('The `animate` utility function', () => {
 
   it('should be able to be finished', async () => {
     const div = h('div');
-    const fn = jest.fn();
+    const fn = vi.fn();
     const animation = animate(div, [{ x: 0 }, { x: 100 }], { duration: 1, onFinish: fn });
     animation.start();
     await advanceTimersByTimeAsync(500);
@@ -157,7 +157,7 @@ describe('The `animate` utility function', () => {
 
   it('should implement easing functions and bezier curves', async () => {
     const div = h('div');
-    const fn = jest.fn();
+    const fn = vi.fn();
     const animation = animate(div, [{ x: 0 }, { x: 100, easing: [0, 0, 1, 1] }], {
       duration: 1,
       easing: (value) => {
@@ -198,8 +198,8 @@ describe('The `animate` utility function', () => {
   it('should be able to define duration and stagger as a function when animating multiple elements', () => {
     const div1 = h('div');
     const div2 = h('div');
-    const fn = jest.fn();
-    const fn2 = jest.fn();
+    const fn = vi.fn();
+    const fn2 = vi.fn();
 
     animate([div1, div2], [{ opacity: 0 }, { opacity: 1 }], {
       duration(el, index) {
@@ -235,7 +235,7 @@ describe('The `animate` utility function', () => {
     expect(div2.style.opacity).toBe('1');
   });
 
-  it.todo('should stop previous animations', async () => {
+  it('should stop previous animations', async () => {
     const div = h('div');
     const animation1 = animate(div, [{ x: 0 }, { x: 100 }], { duration: 0.4 });
     const animation2 = animate(div, [{ y: 100 }, {}], { duration: 0.3 });

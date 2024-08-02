@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useRaf } from '@studiometa/js-toolkit';
 import { useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
 
@@ -8,7 +8,7 @@ afterEach(() => useRealTimers());
 describe('useRaf', () => {
   const { add, remove, props } = useRaf();
   let rafProps;
-  const fn = jest.fn((p) => {
+  const fn = vi.fn((p) => {
     rafProps = p;
   });
 
@@ -42,7 +42,7 @@ describe('useRaf', () => {
   });
 
   it('should trigger the returned function after', async () => {
-    const fn2 = jest.fn();
+    const fn2 = vi.fn();
     add('fn2', () => {
       fn2('update');
       return () => {

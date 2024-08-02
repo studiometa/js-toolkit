@@ -1,10 +1,10 @@
-import { describe, it, expect, jest } from 'bun:test';
+import { describe, it, expect, vi } from 'vitest';
 import { Queue, nextTick } from '@studiometa/js-toolkit/utils';
 
 describe('The `Queue` class', () => {
   it('should run multiple functions in queue', async () => {
     const queue = new Queue(1, nextTick);
-    const spy = jest.fn();
+    const spy = vi.fn();
 
     queue.add(spy);
     queue.add(spy);
@@ -20,7 +20,7 @@ describe('The `Queue` class', () => {
 
   it('should default to an immediate waiter', () => {
     const queue = new Queue(1);
-    const spy = jest.fn();
+    const spy = vi.fn();
 
     queue.add(spy);
     queue.add(spy);
@@ -30,7 +30,7 @@ describe('The `Queue` class', () => {
 
   it('should return a promise when adding a task', async () => {
     const queue = new Queue(1, nextTick);
-    const spy = jest.fn();
+    const spy = vi.fn();
     const p = queue.add(spy);
     expect(p).toBeInstanceOf(Promise);
     expect(spy).toHaveBeenCalledTimes(0);

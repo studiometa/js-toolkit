@@ -1,4 +1,4 @@
-import { mock } from 'bun:test';
+import { vi } from 'vitest';
 
 type Features = {
   blocking: boolean;
@@ -28,7 +28,9 @@ export function mockFeatures({
     ['breakpoints', breakpoints],
   ]) as FeaturesMap;
 
-  mock.module('#private/Base/features.js', () => ({ features }));
+  vi.mock('#private/Base/features.js', () => {
+    return { features };
+  });
 
   return { features };
 }

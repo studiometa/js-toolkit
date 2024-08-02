@@ -1,10 +1,6 @@
-import { describe, test as it, expect } from 'bun:test';
-import * as utils from '@studiometa/js-toolkit/utils';
+import { describe, it, expect } from 'vitest';
+import * as is from '#private/utils/is.js';
 import { isFunction } from '@studiometa/js-toolkit/utils';
-
-const is = Object.fromEntries(
-  Object.entries(utils).filter(([name, fn]) => name.startsWith('is') && isFunction(fn)),
-);
 
 const types = {
   boolean: true,
@@ -14,44 +10,60 @@ const types = {
   fn: () => {},
   array: [],
   object: {},
-  // eslint-disable-next-line object-shorthand
   undefined: undefined,
   null: null,
 };
+const fns:Array<[string, string | string[]]> = [
+  ['isArray', 'array'],
+  ['isBoolean', 'boolean'],
+  ['isDefined', ['boolean', 'string', 'emptyString', 'number', 'fn', 'array', 'object', 'null']],
+  ['isEmptyString', 'emptyString'],
+  ['isFunction', 'fn'],
+  ['isNull', 'null'],
+  ['isNumber', 'number'],
+  ['isObject', 'object'],
+  ['isString', ['string','emptyString']],
+];
 
-for (const [name, fn] of Object.entries(is)) {
+for (const [name, trueType] of fns) {
   describe(`The "${name}" utility function`, () => {
-    for (const [type, value] of Object.entries(types)) {
-      it(`should work with value of type "${type}"`, () => {
-        expect(fn(value)).toMatchSnapshot();
-      });
-    }
+    it(`should be true with value of type "${trueType}"`, () => {
+      for (const [type, value] of Object.entries(types)) {
+        expect(is[name](value)).toBe(trueType.includes(type));
+      }
+    });
+    it(`should be false with value different from type "${trueType}"`, () => {
+      for (const [type, value] of Object.entries(types)) {
+        expect(is[name](value)).toBe(trueType.includes(type));
+      }
+    });
+
   });
 }
 
 describe('The "isEmpty" utility function', () => {
   it('should return true when the given value is empty', () => {
-    expect(is.isEmpty()).toBeTrue();
-    expect(is.isEmpty('')).toBeTrue();
-    expect(is.isEmpty(null)).toBeTrue();
-    expect(is.isEmpty([])).toBeTrue();
-    expect(is.isEmpty({})).toBeTrue();
+    expect(is.isEmpty()).toBe(true);
+    expect(is.isEmpty('')).toBe(true);
+    expect(is.isEmpty(null)).toBe(true);
+    expect(is.isEmpty([])).toBe(true);
+    expect(is.isEmpty({})).toBe(true);
   });
 
   it('should return false when the given value is not empty', () => {
-    expect(is.isEmpty(Number.NaN)).toBeFalse();
-    expect(is.isEmpty(1)).toBeFalse();
-    expect(is.isEmpty(0)).toBeFalse();
-    expect(is.isEmpty('foo')).toBeFalse();
-    expect(is.isEmpty(true)).toBeFalse();
-    expect(is.isEmpty(false)).toBeFalse();
-    expect(is.isEmpty([1, 2])).toBeFalse();
-    expect(is.isEmpty({ foo: 'foo' })).toBeFalse();
-    expect(is.isEmpty(/regex/)).toBeFalse();
+    expect(is.isEmpty(Number.NaN)).toBe(false);
+    expect(is.isEmpty(1)).toBe(false);
+    expect(is.isEmpty(0)).toBe(false);
+    expect(is.isEmpty('foo')).toBe(false);
+    expect(is.isEmpty(true)).toBe(false);
+    expect(is.isEmpty(false)).toBe(false);
+    expect(is.isEmpty([1, 2])).toBe(false);
+    expect(is.isEmpty({ foo: 'foo' })).toBe(false);
+    expect(is.isEmpty(/regex/)).toBe(false);
 
     class Foo {}
     const foo = new Foo();
-    expect(is.isEmpty(foo)).toBeFalse();
+    expect(is.isEmpty(foo)).toBe(false);
   });
 });
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Base, withMountWhenPrefersMotion } from '@studiometa/js-toolkit';
 import { advanceTimersByTimeAsync, useMatchMedia, useFakeTimers, useRealTimers } from '#test-utils';
 
