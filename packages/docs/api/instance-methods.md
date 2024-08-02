@@ -160,7 +160,7 @@ Mount the component and its children, will trigger the `mounted` lifecycle metho
 
 **Return value**
 
-- `this`: Returns the current instance
+- `Promise<this>`: returns the current instance when all children components are mounted
 
 ## `$update()`
 
@@ -168,7 +168,7 @@ Update the children list from the DOM, and mount the new ones. This method can b
 
 **Return value**
 
-- `this`: Returns the current instance
+- `Promise<this>`: returns the current instance when all children components are updated
 
 ## `$destroy()`
 
@@ -176,11 +176,15 @@ Destroy the component and its children, will trigger the `destroyed` lifecycle m
 
 **Return value**
 
-- `this`: Returns the current instance
+- `Promise<this>`: returns the current instance when all children components are destroyed
 
 ## `$terminate()`
 
 Terminate the component, its instance is made available to garbage collection.
+
+**Return value**
+
+- `Promise<void>`: returns a promise resolving when all children components are terminated
 
 :::warning
 A terminated component can not be re-mounted, use with precaution.
