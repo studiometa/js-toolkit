@@ -11,9 +11,7 @@ export interface WithBreakpointObserverProps extends BaseProps {
   };
 }
 
-export interface WithBreakpointObserverInterface extends BaseInterface {
-  $mount(): this;
-}
+export interface WithBreakpointObserverInterface extends BaseInterface {}
 
 /**
  * Test the breakpoins of the given Base instance and return the hook to call.
@@ -173,7 +171,7 @@ export function withBreakpointObserver<S extends Base>(
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
      */
-    $mount(): this {
+    async $mount() {
       // Execute normal behavior when no breakpoint configuration given.
       if (!hasBreakpointConfiguration(this)) {
         return super.$mount();

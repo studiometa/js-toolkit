@@ -89,9 +89,9 @@ export function withMountOnMediaQuery<S extends Base = Base>(
     /**
      * Override the mounting of the component.
      */
-    $mount() {
+    async $mount() {
       if (this.__matches) {
-        super.$mount();
+        return super.$mount();
       }
 
       return this;

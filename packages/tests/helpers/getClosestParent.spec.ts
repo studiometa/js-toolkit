@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Base, BaseConfig, getClosestParent } from '@studiometa/js-toolkit';
-import { advanceTimersByTimeAsync, h, useFakeTimers, useRealTimers } from '#test-utils';
-
-beforeEach(() => useFakeTimers());
-afterEach(() => useRealTimers());
+import { h } from '#test-utils';
 
 async function getContext() {
   class GrandChild extends Base {
@@ -51,8 +48,7 @@ async function getContext() {
     </div>
   `;
   const parent = new Parent(div.firstElementChild as HTMLElement);
-  parent.$mount();
-  await advanceTimersByTimeAsync(1);
+  await parent.$mount();
   const [firstChild, secondChild] = parent.$children.Child;
   const [nestedParent] = parent.$children.Parent;
 

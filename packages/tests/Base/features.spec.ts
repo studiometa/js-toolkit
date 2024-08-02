@@ -52,10 +52,7 @@ describe('The configurable features', () => {
     }
 
     const app = new App(div);
-    useFakeTimers();
-    app.$mount();
-    await advanceTimersByTimeAsync(100);
-    useRealTimers();
+    await app.$mount();
     expect(app.$options.foo).toBe(div.getAttribute('tk-opt-foo'));
     expect(app.$refs.btn).toBe(ref);
     expect(app.$children.Foo[0].$el).toBe(component);
