@@ -9,20 +9,10 @@ import type { Base as BaseType } from '@studiometa/js-toolkit';
 import {
   useMatchMedia,
   resizeWindow,
-  useFakeTimers,
-  useRealTimers,
   advanceTimersByTimeAsync,
 } from '#test-utils';
 
-beforeEach(() => {
-  useFakeTimers();
-});
-
-afterEach(() => {
-  useRealTimers();
-});
-
-async function setupTest() {
+async function getContext() {
   const matchMedia = useMatchMedia('(min-width: 64rem)');
 
   document.body.innerHTML = `
@@ -61,8 +51,8 @@ async function setupTest() {
     };
   }
 
-  const app = new App(document.body).$mount();
-  await advanceTimersByTimeAsync(1);
+  const app = new App(document.body)
+  await app.$mount();
   const foo = getInstanceFromElement(document.querySelector('[data-component="Foo"]'), Foo);
 
   return { app, foo, fn, matchMedia };
@@ -70,37 +60,32 @@ async function setupTest() {
 
 describe('The withBreakpointManager decorator', () => {
   it('should mount', async () => {
-    const { app, foo, fn } = await setupTest();
+    const { app, foo, fn } = await getContext();
     expect(app.$isMounted).toBe(true);
     expect(foo.$isMounted).toBe(true);
     expect(fn).toHaveBeenLastCalledWith('Foo', 'mounted');
   });
 
   it('should mount and destroy components', async () => {
-    const { app, fn, matchMedia } = await setupTest();
+    const { app, fn, matchMedia } = await getContext();
     matchMedia.useMediaQuery('(min-width: 80rem)');
     await resizeWindow({ width: 1280 });
-    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenLastCalledWith('FooDesktop', 'mounted');
     fn.mockReset();
     matchMedia.useMediaQuery('(min-width: 48rem)');
     await resizeWindow({ width: 768 });
-    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenNthCalledWith(1, 'FooDesktop', 'destroyed');
     expect(fn).toHaveBeenNthCalledWith(2, 'FooMobile', 'mounted');
     fn.mockReset();
     matchMedia.useMediaQuery('(min-width: 64rem)');
     await resizeWindow({ width: 1024 });
-    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenLastCalledWith('FooMobile', 'destroyed');
     fn.mockReset();
 
     matchMedia.useMediaQuery('(min-width: 80rem)');
     await resizeWindow({ width: 1280 });
-    await advanceTimersByTimeAsync(1);
     fn.mockReset();
-    app.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await app.$destroy();
     expect(fn).toHaveBeenNthCalledWith(1, 'FooDesktop', 'destroyed');
     expect(fn).toHaveBeenNthCalledWith(2, 'Foo', 'destroyed');
   });

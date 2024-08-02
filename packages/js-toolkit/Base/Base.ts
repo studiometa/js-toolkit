@@ -311,7 +311,7 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
   /**
    * Trigger the `mounted` callback.
    */
-  $mount(): this {
+  async $mount(): Promise<this> {
     if (this.$isMounted) {
       return this;
     }
@@ -322,14 +322,15 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       this.__debug('$mount');
     }
 
-    addToQueue(() => this.$children.registerAll());
-    addToQueue(() => this.$refs.registerAll());
-    addToQueue(() => this.__events.bindRootElement());
-    addToQueue(() => this.$services.enableAll());
-    addToQueue(() => this.$children.mountAll());
-    // eslint-disable-next-line no-return-assign
-    addToQueue(() => (this.$isMounted = true));
-    addToQueue(() => this.__callMethod('mounted'));
+    await Promise.all([
+      addToQueue(() => this.$children.registerAll()),
+      addToQueue(() => this.$refs.registerAll()),
+      addToQueue(() => this.__events.bindRootElement()),
+      addToQueue(() => this.$services.enableAll()),
+      addToQueue(() => this.$children.mountAll()),
+      addToQueue(() => (this.$isMounted = true)),
+      addToQueue(() => this.__callMethod('mounted')),
+    ]);
 
     return this;
   }
@@ -337,21 +338,23 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
   /**
    * Update the instance children.
    */
-  $update(): this {
+  async $update(): Promise<this> {
     if (isDev) {
       this.__debug('$update');
     }
 
-    // Undo
-    addToQueue(() => this.$refs.unregisterAll());
-    addToQueue(() => this.$services.disableAll());
-    // Redo
-    addToQueue(() => this.$children.registerAll());
-    addToQueue(() => this.$refs.registerAll());
-    addToQueue(() => this.$services.enableAll());
-    // Update
-    addToQueue(() => this.$children.updateAll());
-    addToQueue(() => this.__callMethod('updated'));
+    await Promise.all([
+      // Undo
+      addToQueue(() => this.$refs.unregisterAll()),
+      addToQueue(() => this.$services.disableAll()),
+      // Redo
+      addToQueue(() => this.$children.registerAll()),
+      addToQueue(() => this.$refs.registerAll()),
+      addToQueue(() => this.$services.enableAll()),
+      // Update
+      addToQueue(() => this.$children.updateAll()),
+      addToQueue(() => this.__callMethod('updated')),
+    ]);
 
     return this;
   }
@@ -359,7 +362,7 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
   /**
    * Trigger the `destroyed` callback.
    */
-  $destroy(): this {
+  async $destroy(): Promise<this> {
     if (!this.$isMounted) {
       return this;
     }
@@ -368,13 +371,14 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
       this.__debug('$destroy');
     }
 
-    // eslint-disable-next-line no-return-assign
-    addToQueue(() => (this.$isMounted = false));
-    addToQueue(() => this.__events.unbindRootElement());
-    addToQueue(() => this.$refs.unregisterAll());
-    addToQueue(() => this.$services.disableAll());
-    addToQueue(() => this.$children.destroyAll());
-    addToQueue(() => this.__callMethod('destroyed'));
+    await Promise.all([
+      addToQueue(() => (this.$isMounted = false)),
+      addToQueue(() => this.__events.unbindRootElement()),
+      addToQueue(() => this.$refs.unregisterAll()),
+      addToQueue(() => this.$services.disableAll()),
+      addToQueue(() => this.$children.destroyAll()),
+      addToQueue(() => this.__callMethod('destroyed')),
+    ]);
 
     return this;
   }
@@ -382,17 +386,19 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
   /**
    * Terminate a child instance when it is not needed anymore.
    */
-  $terminate(): void {
+  async $terminate(): Promise<void> {
     if (isDev) {
       this.__debug('$terminate');
     }
 
-    // First, destroy the component.
-    addToQueue(() => this.$destroy());
-    // Execute the `terminated` hook if it exists
-    addToQueue(() => this.__callMethod('terminated'));
-    // Delete instance
-    addToQueue(() => this.$el.__base__.set(this.__ctor, 'terminated'));
+    await Promise.all([
+      // First, destroy the component.
+      addToQueue(() => this.$destroy()),
+      // Execute the `terminated` hook if it exists
+      addToQueue(() => this.__callMethod('terminated')),
+      // Delete instance
+      addToQueue(() => this.$el.__base__.set(this.__ctor, 'terminated')),
+    ]);
   }
 
   /**
@@ -511,7 +517,7 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
   /**
    * Register and mount all instances of the component.
    */
-  static $register(nameOrSelector?: string): Base[] {
+  static $register(nameOrSelector?: string): Array<Promise<Base>> {
     return getComponentElements(nameOrSelector ?? this.config.name).map((el) =>
       new this(el).$mount(),
     );

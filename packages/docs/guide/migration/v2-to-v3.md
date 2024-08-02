@@ -129,3 +129,14 @@ class Component extends Base {
     target.doSomething()
   }
 }
+```
+
+## Lifecycle methods are now async
+
+The `$mount`, `$update`, `$destroy` and `$terminate` methods are now async and can be awaited. This should not have a big impact on existing projects, but in case you are trying to access a newly mounted child component after calling the `$update()` method, you should await its result to be sure the component is mounted.
+
+```js
+this.$update(); // [!code --]
+await this.$update(); // [!code ++]
+this.$children.Component[0].toggle();
+```

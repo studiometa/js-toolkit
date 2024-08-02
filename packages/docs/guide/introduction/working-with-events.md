@@ -22,7 +22,7 @@ class App extends Base {
     refs: ['btn'],
     components: {
       Child,
-    }
+    },
   };
 
   // Will be triggered when `this.$el` is clicked
