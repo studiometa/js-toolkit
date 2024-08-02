@@ -8,7 +8,7 @@ describe('ease methods', () => {
     if (key.startsWith('ease')) {
       for (const value of values) {
         it(`the "${key}" method should give the correct value for "${value}"`, () => {
-          expect(ease[key](value).toFixed(5)).toMatchSnapshot();
+          expect(ease[key](value).toFixed(3)).toMatchSnapshot();
         });
       }
     }

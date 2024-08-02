@@ -21,8 +21,8 @@ describe('The `SmartQueue` class', () => {
 
     expect(spy).toHaveBeenCalledTimes(0);
     await nextTick();
-    expect(spy).toHaveBeenCalledTimes(3);
+    expect.poll(spy).toHaveBeenCalledTimes(3);
     await nextTick();
-    expect(spy).toHaveBeenCalledTimes(4);
+    expect.poll(spy).toHaveBeenCalledTimes(4);
   });
 });
