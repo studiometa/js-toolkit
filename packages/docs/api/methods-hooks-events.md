@@ -1,12 +1,37 @@
 # Event hooks
 
+Event hooks are methods of a class prefixed by `on` which will be executed when the given event will be dispatched on the given target. All methods receives a single parameter `ctx` whose type is:
+
+```ts
+type EventHooksCallbackParams = {
+  /**
+   * The event emitted
+   */
+  event: Event;
+  /**
+   * If the event is emitted on a component, given arguments
+   * can be accessed with the `args` property.
+   */
+  args: Array<any>;
+  /**
+   * If the event is emitted on multiple refs or children, the `index`
+   * property will be the index of the current target.
+   */
+  index: number;
+  /**
+   * The target that emitted the event.
+   */
+  target: Element | Base | Promise<Base> | typeof window | typeof document;
+};
+```
+
 ## `on<Event>`
 
 Methods following this pattern will be executed when the event is triggered on the instance's `$el` element.
 
 **Arguments**
 
-- `event|...args` ([`Event`](https://developer.mozilla.org/en-US/docs/Web/API/Event) or `any[]`): The event object when triggered from a native DOM event, the event arguments when triggered by a component.
+- `ctx` (`EventHooksCallbackParams`): the context of the event
 
 **Example**
 
@@ -20,12 +45,16 @@ class Foo extends Base {
   };
 
   // Will be triggered when clicking on `this.$el`
-  onClick(event) {
-    this.$emit('custom-event', 'arg1', 'arg2');
+  onClick({ event }) {
+    event.preventDefault();
+    this.$emit('custom-event', 'foo', 'bar');
   }
 
   // Will be triggered when emitting the `custom-event` event
-  onCustomEvent(arg1, arg2, event) {}
+  onCustomEvent({ event, args: [arg1, arg2] }) {
+    console.log(arg1); // 'foo'
+    console.log(arg2); // 'bar'
+  }
 }
 ```
 
@@ -35,9 +64,7 @@ Methods following this pattern will be executed when the corresponding event is 
 
 **Arguments**
 
-- `[...args]` (`any[]`)
-- `event` ([`Event`](https://developer.mozilla.org/en-US/docs/Web/API/Event) or [`CustomEvent`](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent)): The event object.
-- `index` (`number`): The index of the ref triggering the event when multiple refs exists.
+- `ctx` (`EventHooksCallbackParams`): the context of the event
 
 :::tip
 Native DOM events registered on a child component will be binded to the child root element if it supports the event. See the second example below with the `<form>` element.
@@ -61,7 +88,8 @@ Native DOM events registered on a child component will be binded to the child ro
     // Will be triggered when clicking on one of `this.$refs.btn`
     // `event` is the click event's object
     // `index` is the index of the ref that triggered the event
-    onBtnClick(event, index) {}
+    // `target` is the DOM element
+    onBtnClick({ event, index, target }) {}
   }
 
   new Foo(document.querySelector('[data-component="Foo"]'));
@@ -89,10 +117,10 @@ Native DOM events registered on a child component will be binded to the child ro
     };
 
     // Will be triggered when the component emits the `mounted` event
-    onBazMounted(event) {}
+    onBazMounted({ event }) {}
 
     // Will be triggered when the `<form>` element is submitted
-    onBazSubmit(event) {}
+    onBazSubmit({ event }) {}
   }
 
   new Foo(document.querySelector('[data-component="Foo"]'));
@@ -105,7 +133,7 @@ Methods following this pattern will be triggered when the `event` event is dispa
 
 **Arguments**
 
-- `event` (`Event`): The event object
+- `ctx` (`EventHooksCallbackParams`): the context of the event
 
 **Examples**
 
@@ -120,7 +148,7 @@ class Dropdown extends Base {
     refs: ['btn'],
   };
 
-  onBtnClick(event) {
+  onBtnClick({ event }) {
     event.stopPropagation();
     this.open();
   }
@@ -137,7 +165,7 @@ Methods following this pattern will be triggered when the `event` event is dispa
 
 **Arguments**
 
-- `event` (`Event`): The event object
+- `ctx` (`EventHooksCallbackParams`): the context of the event
 
 **Examples**
 
@@ -151,7 +179,7 @@ class Component extends Base {
     name: 'Component',
   };
 
-  onWindowHashchange(event) {
+  onWindowHashchange({ event }) {
     // do something with the new hash...
   }
 }
