@@ -1,30 +1,71 @@
 # Working with events
 
-The `Base` class helps you manage event handler with automatic binding of a class methods following a naming convention.
+The `Base` class helps you manage event handler with automatic binding of all class methods prefixed with `on`. These methods can listen to events on different targets:
 
-There are two types of events:
+- the component itself with `on<CustomEventName>`
+- the root element of the component with `on<NativeEventName>`
+- the global `window` object with `onWindow<NativeEventName>`
+- the global `document` object with `onDocument<NativeEventName>`
+- any refs defined with `on<RefName><NativeEventName>`
+- any child component with `on<ChildName><CustomEventName>`
 
-- native events: click, mouseenter, submit, etc.
-- framework events
+The following methods can be used:
 
-## Emitting and listening to events
+```js
+import { Base } from '@studiometa/js-toolkit';
+import Child from './Child.js';
 
-Events can be emitted from a class instance with the [`$emit(event, ...args)`](/api/instance-methods.html#emit-event-args) method.
+class App extends Base {
+  static config = {
+    name: 'App',
+    emits: ['custom-event'],
+    refs: ['btn'],
+    components: {
+      Child,
+    }
+  };
 
-Handlers can be bounded to an event with the [`$on(event, handler)`](/api/instance-methods.html#on-event-callback) method.
+  // Will be triggered when `this.$el` is clicked
+  onClick({ event, index, target, args }) {}
 
-Handlers can be unbounded from an event with the [`$off(event, handler)`](/api/instance-methods.html#off-event-callback) method.
+  // Will be triggered when the `custom-event` is emitted on the instance
+  onCustomEvent({ event, index, target, args }) {}
 
-## Naming convention for event handlers binding
+  // Will be triggered when the `window` is clicked
+  onWindowClick({ event, index, target, args }) {}
 
-![Events diagram](../../assets/events-diagram.png)
+  // Will be triggered when the `document` is clicked
+  onDocumentClick({ event, index, target, args }) {}
 
-### on\<Event>
+  // Will be triggered when the `btn` ref is clicked
+  onBtnClick({ event, index, target, args }) {}
 
-### on\<Refname>\<Event>
+  // Will be triggered when any `Child` component is clicked
+  onChildClick({ event, index, target, args }) {}
+}
+```
 
-### on\<Childname>\<Event>
+All methods will be given the same unique `context` parameter when called. This parameter is an object of type:
 
-### onDocument\<Event>
-
-### onWindow\<Event>
+```ts
+type EventHooksCallbackParams = {
+  /**
+   * The event emitted
+   */
+  event: Event;
+  /**
+   * If the event is emitted on a component, given arguments
+   * can be accessed with the `args` property.
+   */
+  args: Array<any>;
+  /**
+   * If the event is emitted on multiple refs or children, the `index`
+   * property will be the index of the current target.
+   */
+  index: number;
+  /**
+   * The target that emitted the event.
+   */
+  target: Element | Base | Promise<Base> | typeof window | typeof document;
+};
+```
