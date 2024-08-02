@@ -1,19 +1,21 @@
 {
   "name": "@studiometa/js-toolkit-tests",
-  "version": "3.0.0-alpha.5",
+  "version": "3.0.0-alpha.6",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "bun test"
+    "test": "vitest"
   },
   "dependencies": {
     "@happy-dom/global-registrator": "^14.7.1",
     "@jest/fake-timers": "^29.7.0",
     "@jest/types": "^29.6.3",
-    "@types/bun": "^1.1.0",
-    "bun": "^1.1.16",
+    "@vitest/coverage-v8": "^2.0.5",
     "happy-dom": "^14.7.1",
-    "htl": "^0.3.1",
-    "jest-matchmedia-mock": "^1.1.0"
+    "vitest": "2.0.5"
+  },
+  "imports": {
+    "#test-utils": "./__utils__/index.ts",
+    "#private/*": "../js-toolkit/*"
   }
 }

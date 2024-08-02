@@ -1,27 +1,18 @@
-import { describe, it, expect, jest, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   Base,
   getInstanceFromElement,
   withBreakpointManager,
   withName,
 } from '@studiometa/js-toolkit';
+import type { Base as BaseType } from '@studiometa/js-toolkit';
 import {
   useMatchMedia,
   resizeWindow,
-  useFakeTimers,
-  useRealTimers,
   advanceTimersByTimeAsync,
 } from '#test-utils';
 
-beforeEach(() => {
-  useFakeTimers();
-});
-
-afterEach(() => {
-  useRealTimers();
-});
-
-async function setupTest() {
+async function getContext() {
   const matchMedia = useMatchMedia('(min-width: 64rem)');
 
   document.body.innerHTML = `
@@ -30,8 +21,8 @@ async function setupTest() {
       </div>
     </div>
   `;
-  const fn = jest.fn();
-  const withMock = (BaseClass: typeof Base, name) =>
+  const fn = vi.fn();
+  const withMock = (BaseClass: typeof BaseType, name) =>
     withName(
       class extends BaseClass {
         mounted() {
@@ -60,8 +51,8 @@ async function setupTest() {
     };
   }
 
-  const app = new App(document.body).$mount();
-  await advanceTimersByTimeAsync(1);
+  const app = new App(document.body)
+  await app.$mount();
   const foo = getInstanceFromElement(document.querySelector('[data-component="Foo"]'), Foo);
 
   return { app, foo, fn, matchMedia };
@@ -69,37 +60,32 @@ async function setupTest() {
 
 describe('The withBreakpointManager decorator', () => {
   it('should mount', async () => {
-    const { app, foo, fn } = await setupTest();
+    const { app, foo, fn } = await getContext();
     expect(app.$isMounted).toBe(true);
     expect(foo.$isMounted).toBe(true);
     expect(fn).toHaveBeenLastCalledWith('Foo', 'mounted');
   });
 
   it('should mount and destroy components', async () => {
-    const { app, fn, matchMedia } = await setupTest();
+    const { app, fn, matchMedia } = await getContext();
     matchMedia.useMediaQuery('(min-width: 80rem)');
     await resizeWindow({ width: 1280 });
-    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenLastCalledWith('FooDesktop', 'mounted');
     fn.mockReset();
     matchMedia.useMediaQuery('(min-width: 48rem)');
     await resizeWindow({ width: 768 });
-    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenNthCalledWith(1, 'FooDesktop', 'destroyed');
     expect(fn).toHaveBeenNthCalledWith(2, 'FooMobile', 'mounted');
     fn.mockReset();
     matchMedia.useMediaQuery('(min-width: 64rem)');
     await resizeWindow({ width: 1024 });
-    await advanceTimersByTimeAsync(1);
     expect(fn).toHaveBeenLastCalledWith('FooMobile', 'destroyed');
     fn.mockReset();
 
     matchMedia.useMediaQuery('(min-width: 80rem)');
     await resizeWindow({ width: 1280 });
-    await advanceTimersByTimeAsync(1);
     fn.mockReset();
-    app.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await app.$destroy();
     expect(fn).toHaveBeenNthCalledWith(1, 'FooDesktop', 'destroyed');
     expect(fn).toHaveBeenNthCalledWith(2, 'Foo', 'destroyed');
   });
@@ -108,10 +94,10 @@ describe('The withBreakpointManager decorator', () => {
     expect(() => {
       // eslint-disable-next-line no-unused-vars
       class Bar extends withBreakpointManager(withName(Base, 'Bar'), {}) {}
-    }).toThrow(/must be an array/);
+    }).toThrowError(/must be an array/);
     expect(() => {
       // eslint-disable-next-line no-unused-vars
       class Bar extends withBreakpointManager(withName(Base, 'Bar'), [[]]) {}
-    }).toThrow(/at least 2/);
+    }).toThrowError(/at least 2/);
   });
 });

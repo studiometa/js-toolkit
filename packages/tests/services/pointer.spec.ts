@@ -1,33 +1,30 @@
-import { describe, it, expect, jest, afterEach } from 'bun:test';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { PointerServiceProps, usePointer } from '@studiometa/js-toolkit';
 import { createEvent } from '#test-utils';
 
+const key = 'usePointer';
+const { add, remove, props } = usePointer();
+
+afterEach(() => {
+  remove(key);
+});
+
 function getContext() {
-  const { add, remove, props } = usePointer();
   let pointerProps: PointerServiceProps;
-  const fn = jest.fn((p) => {
+  const fn = vi.fn((p) => {
     pointerProps = p;
   });
 
-  const key = 'usePointer';
   add(key, fn);
-
-  afterEach(() => {
-    remove(key);
-  });
 
   return {
     fn,
-    add,
-    remove,
-    props,
     pointerProps: () => pointerProps,
   };
 }
 
 describe('usePointer', () => {
   it('should export the `add`, `remove` and `props` methods', () => {
-    const { add, remove, props } = getContext();
     expect(typeof add).toBe('function');
     expect(typeof remove).toBe('function');
     expect(typeof props).toBe('function');
@@ -54,8 +51,8 @@ describe('usePointer', () => {
   });
 
   it('should trigger multiple callbacks', () => {
-    const { fn, add, remove } = getContext();
-    const otherFn = jest.fn();
+    const { fn } = getContext();
+    const otherFn = vi.fn();
     add('otherUsePointer', otherFn);
     document.dispatchEvent(createEvent('mouseup'));
     expect(fn).toHaveBeenCalledTimes(1);
@@ -64,7 +61,7 @@ describe('usePointer', () => {
   });
 
   it('should not trigger callbacks after removal', () => {
-    const { fn, remove } = getContext();
+    const { fn } = getContext();
     remove('usePointer');
     const options = { clientX: 0, clientY: 0 };
     const touchOptions = { touches: [{ clientX: 0, clientY: 0 }] };
@@ -78,7 +75,7 @@ describe('usePointer', () => {
   });
 
   it('should trigger the callbacks on mousemove', () => {
-    const { fn, props } = getContext();
+    const { fn } = getContext();
     document.dispatchEvent(createEvent('mousemove', { clientX: 0, clientY: 0 }));
     const progress = 0.1;
     const x = Math.round(window.innerWidth * progress);

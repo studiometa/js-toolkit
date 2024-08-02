@@ -20,6 +20,7 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
     root = document.body,
     breakpoints = null,
     blocking = null,
+    attributes = null,
   } = options instanceof HTMLElement ? { root: options } : options;
 
   if (isObject(breakpoints)) {
@@ -30,15 +31,20 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
     features.set('blocking', blocking);
   }
 
-  function init() {
-    app = (new App(root) as S & Base<T>).$mount();
+  if (isObject(attributes)) {
+    features.set('attributes', attributes);
+  }
+
+  async function init() {
+    app = (new App(root) as S & Base<T>)
+    await app.$mount();
     return app;
   }
 
   let p: Promise<S & Base<T>>;
 
   if (features.get('blocking')) {
-    p = Promise.resolve(init());
+    p = init();
   } else {
     p = new Promise<S & Base<T>>((resolve) => {
       if (document.readyState === 'complete') {

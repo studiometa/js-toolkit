@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.6](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.5..3.0.0-alpha.6) (2023-08-02)
+
+### Changed
+
+- Refactor attributes handling with methods ([#494](https://github.com/studiometa/js-toolkit/pull/494), [5c5c3ae](https://github.com/studiometa/js-toolkit/commits/5c5c3ae))
+- Migrate tests to Vitest ([#501](https://github.com/studiometa/js-toolkit/pull/501), [70e1b52](https://github.com/studiometa/js-toolkit/commit/70e1b52))
+- Make the HTML attributes configurable ([#495](https://github.com/studiometa/js-toolkit/pull/495), [823da97](https://github.com/studiometa/js-toolkit/commit/823da97))
+- ⚠️ Refactor event callbacks parameters ([#499](https://github.com/studiometa/js-toolkit/pull/499), [06df6b0](https://github.com/studiometa/js-toolkit/commit/06df6b0))
+- ⚠️ Make the lifecycle methods async ([#502](https://github.com/studiometa/js-toolkit/pull/502), [1e0d9ac](https://github.com/studiometa/js-toolkit/commit/1e0d9ac))
+
+### Fixed
+
+- Fix a bug where refs could be undefined ([c11eb49](https://github.com/studiometa/js-toolkit/commit/c11eb49))
+
 ## [v3.0.0-alpha.5](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.4..3.0.0-alpha.5) (2023-07-16)
 
 ### Changed

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, jest } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { debounce } from '@studiometa/js-toolkit/utils';
 import { useFakeTimers, useRealTimers, advanceTimersByTime } from '#test-utils';
 
@@ -7,7 +7,7 @@ afterEach(() => useRealTimers());
 
 describe('debounce method', () => {
   it('should wait the given delay to call given function', async () => {
-    const fn = jest.fn(() => true);
+    const fn = vi.fn(() => true);
     const debounced = debounce(fn, 400);
 
     debounced();
@@ -25,7 +25,7 @@ describe('debounce method', () => {
   });
 
   it('should wait for 300ms when used without the delay parameter', async () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     const debounced = debounce(fn);
 
     debounced();

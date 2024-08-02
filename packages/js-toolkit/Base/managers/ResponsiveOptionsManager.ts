@@ -2,6 +2,7 @@ import { OptionsManager, __getPropertyName } from './OptionsManager.js';
 import type { OptionObject } from './OptionsManager.js';
 import { useResize } from '../../services/index.js';
 import { isDev } from '../../utils/index.js';
+import { features } from '../features.js';
 
 export type ResponsiveOptionObject = OptionObject & { responsive?: boolean };
 
@@ -22,13 +23,15 @@ function __getResponsiveName(that: ResponsiveOptionsManager, name: string) {
   let responsiveName = name;
   const propertyName = __getPropertyName(name);
   const regex = new RegExp(`${propertyName}:(.+)$`);
+  const attributes = features.get('attributes');
+  const dataOptionRegExp = new RegExp(`^${attributes.option}-`);
 
-  for (const optionName of Object.keys(that.__element.dataset)) {
+  for (const optionName of that.__element.getAttributeNames()) {
     if (regex.test(optionName)) {
       const [, breakpoints] = optionName.match(regex);
       const isInBreakpoint = breakpoints.split(':').includes(breakpoint);
       if (isInBreakpoint) {
-        responsiveName = optionName.replace(/^option/, '');
+        responsiveName = optionName.replace(dataOptionRegExp, '');
       }
     }
   }

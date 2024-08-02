@@ -1,6 +1,5 @@
 export * from './event.js';
 export * from './faketimers.js';
-export * from './getFilenamesInFolder.js';
 export * from './h.js';
 export * from './matchMedia.js';
 export * from './mockFeatures.js';

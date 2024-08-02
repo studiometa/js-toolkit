@@ -1,4 +1,4 @@
-import { describe, it, expect, jest } from 'bun:test';
+import { describe, it, expect, vi } from 'vitest';
 import { Base, BaseConfig, withExtraConfig } from '@studiometa/js-toolkit';
 
 describe('The `withExtraConfig` decorator', () => {
@@ -26,7 +26,7 @@ describe('The `withExtraConfig` decorator', () => {
       };
     }
 
-    const fn = jest.fn();
+    const fn = vi.fn();
     const Bar = withExtraConfig(Foo, { refs: ['one'] }, { arrayMerge: fn });
     expect(fn).toHaveBeenCalledTimes(1);
   });

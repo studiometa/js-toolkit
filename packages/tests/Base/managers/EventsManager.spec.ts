@@ -1,18 +1,18 @@
-import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Base, BaseConfig } from '@studiometa/js-toolkit';
-import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
+import { h } from '#test-utils';
 import { normalizeEventName, normalizeName } from '#private/Base/managers/EventsManager.js';
 
 function getContext() {
-  const rootElementFn = mock();
-  const documentFn = mock();
-  const windowFn = mock();
-  const singleRefFn = mock();
-  const multipleRefFn = mock();
-  const prefixedRefFn = mock();
-  const componentFn = mock();
-  const componentInnerFn = mock();
-  const asyncComponentFn = mock();
+  const rootElementFn = vi.fn();
+  const documentFn = vi.fn();
+  const windowFn = vi.fn();
+  const singleRefFn = vi.fn();
+  const multipleRefFn = vi.fn();
+  const prefixedRefFn = vi.fn();
+  const componentFn = vi.fn();
+  const componentInnerFn = vi.fn();
+  const asyncComponentFn = vi.fn();
 
   class Component extends Base {
     static config = {
@@ -21,6 +21,10 @@ function getContext() {
     };
 
     onCustomEvent(...args) {
+      componentInnerFn(...args);
+    }
+
+    onClick(...args) {
       componentInnerFn(...args);
     }
   }
@@ -135,26 +139,16 @@ function getContext() {
   };
 }
 
-beforeEach(() => {
-  useFakeTimers();
-});
-
-afterEach(() => {
-  useRealTimers();
-});
-
 describe('The EventsManager class', () => {
   it('can bind and unbind event methods to the root element', async () => {
     const { tpl, rootElementFn, app } = getContext();
     tpl.click();
     expect(rootElementFn).not.toHaveBeenCalled();
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
+    await app.$mount();
     tpl.click();
     expect(rootElementFn).toHaveBeenCalledTimes(1);
     rootElementFn.mockClear();
-    app.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await app.$destroy();
     tpl.click();
     expect(rootElementFn).not.toHaveBeenCalled();
   });
@@ -163,13 +157,11 @@ describe('The EventsManager class', () => {
     const { clickEvent, documentFn, app } = getContext();
     document.dispatchEvent(clickEvent);
     expect(documentFn).not.toHaveBeenCalled();
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
+    await app.$mount();
     document.dispatchEvent(clickEvent);
     expect(documentFn).toHaveBeenCalledTimes(1);
     documentFn.mockClear();
-    app.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await app.$destroy();
     document.dispatchEvent(clickEvent);
     expect(documentFn).not.toHaveBeenCalled();
   });
@@ -178,47 +170,51 @@ describe('The EventsManager class', () => {
     const { clickEvent, windowFn, app } = getContext();
     window.dispatchEvent(clickEvent);
     expect(windowFn).not.toHaveBeenCalled();
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
+    await app.$mount();
     window.dispatchEvent(clickEvent);
     expect(windowFn).toHaveBeenCalledTimes(1);
     windowFn.mockClear();
-    app.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await app.$destroy();
     window.dispatchEvent(clickEvent);
     expect(windowFn).not.toHaveBeenCalled();
   });
 
   it('can bind and unbind event methods to single refs', async () => {
     const { single, singleRefFn, app } = getContext();
-    single.click();
+    const event = new PointerEvent('click');
+    single.dispatchEvent(event);
     expect(singleRefFn).not.toHaveBeenCalled();
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
-    single.click();
+    await app.$mount();
+    single.dispatchEvent(event);
     expect(singleRefFn).toHaveBeenCalledTimes(1);
-    expect(singleRefFn.mock.calls[0][0]).toBeInstanceOf(MouseEvent);
-    expect(singleRefFn.mock.calls[0][1]).toBe(0);
+    expect(singleRefFn).toHaveBeenLastCalledWith({
+      event,
+      args: [],
+      index: 0,
+      target: single,
+    });
     singleRefFn.mockClear();
-    app.$destroy();
-    await advanceTimersByTimeAsync(1);
-    single.click();
+    await app.$destroy();
+    single.dispatchEvent(event);
     expect(singleRefFn).not.toHaveBeenCalled();
   });
 
   it('can bind and unbind event methods to multiple refs', async () => {
     const { multiple, multipleRefFn, app } = getContext();
-    multiple[1].click();
+    const event = new PointerEvent('click');
+    multiple[1].dispatchEvent(event);
     expect(multipleRefFn).not.toHaveBeenCalled();
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
-    multiple[1].click();
+    await app.$mount();
+    multiple[1].dispatchEvent(event);
     expect(multipleRefFn).toHaveBeenCalledTimes(1);
-    expect(multipleRefFn.mock.calls[0][0]).toBeInstanceOf(MouseEvent);
-    expect(multipleRefFn.mock.calls[0][1]).toBe(1);
+    expect(multipleRefFn).toHaveBeenLastCalledWith({
+      event,
+      args: [],
+      index: 1,
+      target: multiple[1],
+    });
     multipleRefFn.mockClear();
-    app.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await app.$destroy();
     multiple[0].click();
     expect(multipleRefFn).not.toHaveBeenCalled();
   });
@@ -226,70 +222,85 @@ describe('The EventsManager class', () => {
   it('can bind, unbind and rebind event methods to children', async () => {
     const { componentFn, componentInnerFn, app } = getContext();
     expect(componentFn).not.toHaveBeenCalled();
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
+    await app.$mount();
     expect(componentFn).toHaveBeenCalledTimes(2);
-    app.$children.Component[0].$emit('custom-event', 1, 2);
+    const event = new CustomEvent('custom-event', { detail: [1, 2] });
+    app.$children.Component[0].dispatchEvent(event);
     expect(componentFn).toHaveBeenCalledTimes(3);
-    expect(componentFn).toHaveBeenLastCalledWith(
-      1,
-      2,
-      0,
-      expect.objectContaining({ type: 'custom-event', detail: [1, 2] }),
-    );
-    expect(componentInnerFn).toHaveBeenLastCalledWith(
-      1,
-      2,
-      expect.objectContaining({ type: 'custom-event', detail: [1, 2] }),
-    );
-    app.$children.Component[0].dispatchEvent(new CustomEvent('custom-event'));
-    expect(componentFn).toHaveBeenLastCalledWith(
-      0,
-      expect.objectContaining({ type: 'custom-event', detail: null }),
-    );
-    expect(componentInnerFn).toHaveBeenLastCalledWith(
-      expect.objectContaining({ type: 'custom-event', detail: null }),
-    );
-    app.$children.Component[0].$el.click();
-    expect(componentFn).toHaveBeenLastCalledWith(0, expect.objectContaining({ type: 'click' }));
+    expect(componentFn).toHaveBeenLastCalledWith({
+      event,
+      args: [1, 2],
+      index: 0,
+      target: app.$children.Component[0],
+    });
+    expect(componentInnerFn).toHaveBeenLastCalledWith({
+      event,
+      args: [1, 2],
+      index: 0,
+      target: app.$children.Component[0],
+    });
+    const event2 = new CustomEvent('custom-event');
+    app.$children.Component[0].dispatchEvent(event2);
+    expect(componentFn).toHaveBeenLastCalledWith({
+      event: event2,
+      args: [],
+      index: 0,
+      target: app.$children.Component[0],
+    });
+    expect(componentInnerFn).toHaveBeenLastCalledWith({
+      event: event2,
+      args: [],
+      index: 0,
+      target: app.$children.Component[0],
+    });
+    const event3 = new PointerEvent('click');
+    app.$children.Component[0].$el.dispatchEvent(event3);
+    expect(componentFn).toHaveBeenLastCalledWith({
+      event: event3,
+      args: [],
+      index: 0,
+      target: app.$children.Component[0],
+    });
+    expect(componentInnerFn).toHaveBeenLastCalledWith({
+      event: event3,
+      args: [],
+      index: 0,
+      target: app.$children.Component[0].$el,
+    });
     componentFn.mockClear();
     expect(componentFn).not.toHaveBeenCalled();
-    app.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await app.$destroy();
     expect(componentFn).not.toHaveBeenCalled();
-    app.$children.Component[0].$emit('custom-event', 1, 2);
+    app.$children.Component[0].dispatchEvent(event);
     expect(componentFn).not.toHaveBeenCalled();
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
-    app.$children.Component[0].$emit('custom-event', 1, 2);
-    expect(componentFn).toHaveBeenLastCalledWith(
-      1,
-      2,
-      0,
-      expect.objectContaining({ type: 'custom-event', detail: [1, 2] }),
-    );
-    expect(componentInnerFn).toHaveBeenLastCalledWith(
-      1,
-      2,
-      expect.objectContaining({ type: 'custom-event', detail: [1, 2] }),
-    );
-    app.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await app.$mount();
+    app.$children.Component[0].dispatchEvent(event);
+    expect(componentFn).toHaveBeenLastCalledWith({
+      event,
+      args: [1, 2],
+      index: 0,
+      target: app.$children.Component[0],
+    });
+    expect(componentInnerFn).toHaveBeenLastCalledWith({
+      event,
+      args: [1, 2],
+      index: 0,
+      target: app.$children.Component[0],
+    });
+    await app.$destroy();
   });
 
   it('can bind and unbind event methods to async children', async () => {
     const { asyncComponentFn, app } = getContext();
     expect(asyncComponentFn).not.toHaveBeenCalled();
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
+    await app.$mount();
     expect(asyncComponentFn).toHaveBeenCalledTimes(1);
     const instances = await Promise.all(app.$children.AsyncComponent);
     instances[0].$emit('custom-event', 1, 2);
     expect(asyncComponentFn).toHaveBeenCalledTimes(2);
     asyncComponentFn.mockClear();
     expect(asyncComponentFn).not.toHaveBeenCalled();
-    app.$destroy();
-    await advanceTimersByTimeAsync(1);
+    await app.$destroy();
     expect(asyncComponentFn).not.toHaveBeenCalled();
     const instances1 = await Promise.all(app.$children.AsyncComponent);
     instances1[0].$emit('custom-event', 1, 2);
@@ -329,18 +340,21 @@ describe('The EventsManager class', () => {
 
   it('can bind event methods to prefixed refs', async () => {
     const { prefixed, prefixedRefFn, app } = getContext();
-    prefixed.click();
+    const event = new PointerEvent('click');
+    prefixed.dispatchEvent(event);
     expect(prefixedRefFn).not.toHaveBeenCalled();
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
-    prefixed.click();
+    await app.$mount();
+    prefixed.dispatchEvent(event);
     expect(prefixedRefFn).toHaveBeenCalledTimes(1);
-    expect(prefixedRefFn.mock.calls[0][0]).toBeInstanceOf(MouseEvent);
-    expect(prefixedRefFn.mock.calls[0][1]).toBe(0);
+    expect(prefixedRefFn).toHaveBeenLastCalledWith({
+      event,
+      args: [],
+      index: 0,
+      target: prefixed,
+    });
     prefixedRefFn.mockClear();
-    app.$destroy();
-    await advanceTimersByTimeAsync(1);
-    prefixed.click();
+    await app.$destroy();
+    prefixed.dispatchEvent(event);
     expect(prefixedRefFn).not.toHaveBeenCalled();
   });
 });

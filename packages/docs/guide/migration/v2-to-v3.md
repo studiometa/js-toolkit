@@ -89,3 +89,54 @@ import { scrollTo } from '@studiometa/js-toolkit/utils';
 const scrollY = await scrollTo('#target'); // [!code --]
 const { left: scrollY } = await scrollTo('#target'); // [!code ++]
 ```
+
+## The `on...` method arguments have been refactored
+
+The number of arguments passed to the `on...` methods and their order were different for each type of target: a child component, a ref, the current instance, etc. In v3, all `on...` methods receive a single `context` argument of the following type:
+
+```ts
+type EventHooksCallbackParams = {
+  event: Event;
+  args: Array<any>;
+  index: number;
+  target: Element | Base | Promise<Base> | typeof window | typeof document;
+};
+```
+
+To migrate from v2 to v3, update the arguments of all your `on...` methods:
+
+```js
+class Component extends Base {
+  onClick(event) { // [!code --]
+  onClick({ event }) { // [!code ++]
+    event.preventDefault();
+  }
+
+  onCustomEvent(event, arg1, arg2) { // [!code --]
+  onCustomEvent({ args: [arg1, arg2] }) { // [!code ++]
+    console.log(arg1, arg2);
+  }
+
+  onRefClick(event, index) { // [!code --]
+  onRefClick({ target }) { // [!code ++]
+    const target = this.$refs.Ref[index]; // [!code --]
+    target.classList.toggle('is-active');
+  }
+
+  onChildCustomEvent(event, arg1, index) { // [!code --]
+  onChildCustomEvent({ target }) { // [!code ++]
+    const target = this.$children.Child[index]; // [!code --]
+    target.doSomething()
+  }
+}
+```
+
+## Lifecycle methods are now async
+
+The `$mount`, `$update`, `$destroy` and `$terminate` methods are now async and can be awaited. This should not have a big impact on existing projects, but in case you are trying to access a newly mounted child component after calling the `$update()` method, you should await its result to be sure the component is mounted.
+
+```js
+this.$update(); // [!code --]
+await this.$update(); // [!code ++]
+this.$children.Component[0].toggle();
+```

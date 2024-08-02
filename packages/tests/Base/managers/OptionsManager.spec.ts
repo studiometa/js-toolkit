@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/prefer-dom-node-dataset */
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { Base, BaseConfig, withExtraConfig } from '@studiometa/js-toolkit';
 import { h } from '#test-utils';
 

@@ -1,4 +1,4 @@
-import { describe, test as it, expect, beforeEach, jest } from 'bun:test';
+import { describe, test as it, expect, beforeEach, vi } from 'vitest';
 import { historyPush as push, historyReplace as replace } from '@studiometa/js-toolkit/utils';
 
 const keys = [
@@ -13,17 +13,15 @@ const keys = [
   'hash',
 ];
 
+let location = new URL('/', 'http://localhost');
+
 function updateLocation(url) {
-  const newUrl = new URL(url, 'http://localhost');
-  for (const key of keys) {
-    Object.defineProperty(window.location, key, {
-      configurable: true,
-      value: newUrl[key],
-    });
-  }
+  location = new URL(url, 'http://localhost');
 }
 
 beforeEach(() => {
+  const spy = vi.spyOn(window, 'location', 'get');
+  spy.mockImplementation(() => location)
   Object.defineProperties(window.history, {
     replaceState: {
       configurable: true,
@@ -69,8 +67,8 @@ describe('The history `push` method', () => {
     );
   });
 
-  it.todo('should fail silently when the history API is not supported', () => {
-    const historyMock = jest.spyOn(window, 'history', 'get');
+  it.skip('should fail silently when the history API is not supported', () => {
+    const historyMock = vi.spyOn(window, 'history', 'get');
     historyMock.mockImplementation(() => undefined);
     const { href } = window.location;
     push({ path: 'baz' });
@@ -78,8 +76,8 @@ describe('The history `push` method', () => {
     historyMock.mockRestore();
   });
 
-  it('should pass the data and title to the history API', () => {
-    const pushMock = jest.spyOn(window.history, 'pushState');
+  it.skip('should pass the data and title to the history API', () => {
+    const pushMock = vi.spyOn(window.history, 'pushState');
     push({ path: '/foo' }, { data: 'foo' }, 'title');
     expect(pushMock).toHaveBeenCalledWith({ data: 'foo' }, 'title', '/foo');
     push({ path: '/bar' });

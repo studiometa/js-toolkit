@@ -4,6 +4,7 @@ import { isArray } from '../../utils/index.js';
 import { getEventTarget, eventIsNative, eventIsDefinedInConfig } from '../utils.js';
 import { AbstractManager } from './AbstractManager.js';
 import { normalizeRefName } from './RefsManager.js';
+import { features } from '../features.js';
 
 const names = new Map();
 const normalizeRegex1 = /[A-Z]([A-Z].*)/g;
@@ -225,6 +226,28 @@ function manageRootElement(that: EventsManager, mode: 'add' | 'remove' = 'add') 
   }
 }
 
+export type EventManagerCallbackParams = {
+  event: Event | null;
+  args: Array<any>;
+  index: number;
+  target: Element | Base | Promise<Base> | typeof window | typeof document | null;
+};
+
+/**
+ * Normalize `on...` method params.
+ */
+function normalizeParams(
+  params: Partial<EventManagerCallbackParams> = {},
+): EventManagerCallbackParams {
+  return {
+    event: null,
+    args: [],
+    index: 0,
+    target: null,
+    ...params,
+  };
+}
+
 /**
  * Event management class.
  *
@@ -241,12 +264,15 @@ export class EventsManager extends AbstractManager {
     handleEvent: (event: Event | CustomEvent) => {
       const normalizedEventName = normalizeName(event.type);
       const method = `on${normalizedEventName}`;
+      const isCustomEvent = event instanceof CustomEvent;
 
-      if (event instanceof CustomEvent && isArray(event.detail) && event.detail.length) {
-        this.__base[method](...event.detail, event);
-      } else {
-        this.__base[method](event);
-      }
+      this.__base[method](
+        normalizeParams({
+          event,
+          args: isCustomEvent ? event.detail ?? [] : [],
+          target: isCustomEvent ? this.__base : this.__element,
+        }),
+      );
     },
   };
 
@@ -264,7 +290,7 @@ export class EventsManager extends AbstractManager {
       const normalizedEventName = normalizeName(event.type);
       const method = `onDocument${normalizedEventName}`;
 
-      this.__base[method](event);
+      this.__base[method](normalizeParams({ event, target: document }));
     },
   };
 
@@ -282,7 +308,7 @@ export class EventsManager extends AbstractManager {
       const normalizedEventName = normalizeName(event.type);
       const method = `onWindow${normalizedEventName}`;
 
-      this.__base[method](event);
+      this.__base[method](normalizeParams({ event, target: window }));
     },
   };
 
@@ -292,7 +318,8 @@ export class EventsManager extends AbstractManager {
   __refsHandler: EventListenerObject = {
     handleEvent: (event) => {
       const ref = event.currentTarget as HTMLElement;
-      const refName = normalizeRefName(ref.dataset.ref);
+      const attributes = features.get('attributes');
+      const refName = normalizeRefName(ref.getAttribute(attributes.ref));
 
       const normalizedRefName = normalizeName(refName);
       const normalizedEventName = normalizeName(event.type);
@@ -303,7 +330,7 @@ export class EventsManager extends AbstractManager {
         index = (this.__base.$refs[refName] as HTMLElement[]).indexOf(ref);
       }
 
-      this.__base[method](event, index);
+      this.__base[method](normalizeParams({ event, index, target: ref }));
     },
   };
 
@@ -332,7 +359,7 @@ export class EventsManager extends AbstractManager {
       const index = [...childrenManager[name]].indexOf(resolvedChild);
 
       const args = isArray(event.detail) ? event.detail : [];
-      this.__base[method](...args, index, event);
+      this.__base[method](normalizeParams({ event, index, args, target: resolvedChild }));
     },
   };
 

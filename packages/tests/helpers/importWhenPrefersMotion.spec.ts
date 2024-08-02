@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Base, withExtraConfig, importWhenPrefersMotion } from '@studiometa/js-toolkit';
 import {
   useMatchMedia,
@@ -30,7 +30,7 @@ class Component extends Base {
 
 describe('The `importWhenPrefersMotion` lazy import helper', () => {
   it('should import a component when user prefers motion', async () => {
-    const fn = mock();
+    const fn = vi.fn();
     useMatchMedia('not (prefers-reduced-motion)');
 
     const component = h('div', { dataComponent: 'Component' });
@@ -55,7 +55,7 @@ describe('The `importWhenPrefersMotion` lazy import helper', () => {
   });
 
   it('should not import a component when user prefers reduced motion', async () => {
-    const fn = mock();
+    const fn = vi.fn();
     useMatchMedia('(prefers-reduced-motion)');
 
     const component = h('div', { dataComponent: 'Component' });
