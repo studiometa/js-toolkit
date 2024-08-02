@@ -74,29 +74,18 @@ function __register(that: RefsManager, refName: string) {
     ),
   ).filter((ref) => refBelongToInstance(ref, that.__element, name));
 
+  /* v8 ignore next 7 */
   if (isDev && !isMultiple && refs.length > 1) {
     console.warn(
-      // @ts-ignore
-      `[${that.__base.$options.name}]`,
+      `[${that.__base.$id}]`,
       `The "${refName}" ref has been found multiple times.`,
       'Did you forgot to add the `[]` suffix to its name?',
     );
   }
 
-  if (!isMultiple && refs.length <= 1 && !isDefined(refs[0])) {
-    if (isDev) {
-      console.warn(
-        // @ts-ignore
-        `[${that.__base.$options.name}]`,
-        `The "${refName}" ref is missing.`,
-        `Is there an \`[${attributes.ref}="${refName}"]\` element in the component's scope?`,
-      );
-    }
-
-    return;
+  if (refs.length) {
+    that.__eventsManager.bindRef(refName, refs);
   }
-
-  that.__eventsManager.bindRef(refName, refs);
 
   Object.defineProperty(that, propName, {
     // @todo remove usage of non-multiple refs as array
