@@ -85,19 +85,23 @@ function __getChild(
  * @private
  */
 // eslint-disable-next-line no-use-before-define
-function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' | '$destroy') {
-  addToQueue(() => {
+async function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' | '$destroy') {
+  return addToQueue(() => {
+    const promises = [];
     for (const name of that.registeredNames) {
       for (const instance of that[name]) {
         if (instance instanceof Promise) {
-          instance.then((resolvedInstance) => {
-            addToQueue(() => that.__triggerHook(hook, resolvedInstance, name));
-          });
+          promises.push(
+            instance.then((resolvedInstance) =>
+              addToQueue(() => that.__triggerHook(hook, resolvedInstance, name)),
+            ),
+          );
         } else {
-          addToQueue(() => that.__triggerHook(hook, instance, name));
+          promises.push(addToQueue(() => that.__triggerHook(hook, instance, name)));
         }
       }
     }
+    return Promise.all(promises);
   });
 }
 
@@ -125,30 +129,35 @@ export class ChildrenManager extends AbstractManager {
   /**
    * Register instances of all children components.
    */
-  registerAll() {
-    for (const [name, component] of Object.entries(this.__config.components))
-      this.__register(name, component);
+  async registerAll() {
+    const promises = [];
+
+    for (const [name, component] of Object.entries(this.__config.components)) {
+      promises.push(this.__register(name, component));
+    }
+
+    await Promise.all(promises);
   }
 
   /**
    * Mount all child component instances.
    */
-  mountAll() {
-    __triggerHookForAll(this, '$mount');
+  async mountAll() {
+    await __triggerHookForAll(this, '$mount');
   }
 
   /**
    * Update all child component instances.
    */
-  updateAll() {
-    __triggerHookForAll(this, '$update');
+  async updateAll() {
+    await __triggerHookForAll(this, '$update');
   }
 
   /**
    * Destroy all child component instances.
    */
-  destroyAll() {
-    __triggerHookForAll(this, '$destroy');
+  async destroyAll() {
+    await __triggerHookForAll(this, '$destroy');
   }
 
   /**
@@ -159,7 +168,7 @@ export class ChildrenManager extends AbstractManager {
    * @param {string} name The name of the component.
    * @private
    */
-  __triggerHook(hook: '$mount' | '$update' | '$destroy', instance: Base, name: string) {
+  async __triggerHook(hook: '$mount' | '$update' | '$destroy', instance: Base, name: string) {
     if (hook === '$update' && !instance.$isMounted) {
       // eslint-disable-next-line no-param-reassign
       hook = '$mount';
@@ -173,7 +182,7 @@ export class ChildrenManager extends AbstractManager {
       this.__eventsManager.bindChild(name, instance);
     }
 
-    instance[hook]();
+    await instance[hook]();
   }
 
   /**
