@@ -33,13 +33,14 @@ describe('The `getComponentElements` function', () => {
 
 describe('The `addToQueue` function', () => {
   it('should delay given tasks if the `blocking` feature is disabled', async () => {
-    mockFeatures({ blocking: false })
+    const { unmock } = mockFeatures({ blocking: false })
     const fn = vi.fn();
 
     addToQueue(fn);
     expect(fn).not.toHaveBeenCalled();
     await nextTick();
     expect(fn).toHaveBeenCalledTimes(1);
+    unmock();
   });
 });
 

@@ -29,21 +29,24 @@ const separator = ' ';
  * Get the selector for a given component.
  */
 function getSelector(nameOrSelector: string): string {
-  if (!selectors.has(nameOrSelector)) {
+  const { component } = features.get('attributes');
+  const key = component + nameOrSelector;
+
+  if (!selectors.has(key)) {
     const parts = [
       // Single selector
-      `[data-component="${nameOrSelector}"]`,
+      `[${component}="${nameOrSelector}"]`,
       // Selector in the middle of a list of selectors
-      `[data-component*="${separator}${nameOrSelector}${separator}"]`,
+      `[${component}*="${separator}${nameOrSelector}${separator}"]`,
       // Selector at the end of a list of selectors
-      `[data-component$="${separator}${nameOrSelector}"]`,
+      `[${component}$="${separator}${nameOrSelector}"]`,
       // Selector at the beginning of a list of selectors
-      `[data-component^="${nameOrSelector}${separator}"]`,
+      `[${component}^="${nameOrSelector}${separator}"]`,
     ];
-    selectors.set(nameOrSelector, parts.join(','));
+    selectors.set(key, parts.join(','));
   }
 
-  return selectors.get(nameOrSelector);
+  return selectors.get(key);
 }
 
 /**
@@ -127,8 +130,12 @@ const instances = new Set<Base>();
  * Get all mounted instances or the ones from a given component.
  */
 export function getInstances(): Set<Base>;
-export function getInstances<T extends BaseConstructor = BaseConstructor>(ctor: T): Set<InstanceType<T>>;
-export function getInstances<T extends BaseConstructor = BaseConstructor>(ctor?: T): Set<InstanceType<T>> | Set<Base> {
+export function getInstances<T extends BaseConstructor = BaseConstructor>(
+  ctor: T,
+): Set<InstanceType<T>>;
+export function getInstances<T extends BaseConstructor = BaseConstructor>(
+  ctor?: T,
+): Set<InstanceType<T>> | Set<Base> {
   if (isDefined(ctor)) {
     const filteredInstances = new Set<InstanceType<T>>();
     for (const instance of instances) {
