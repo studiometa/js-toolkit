@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { nextFrame } from '@studiometa/js-toolkit/utils';
 import { useFakeTimers, useRealTimers, runAllTimers, advanceTimersByTime } from '#test-utils';
 
@@ -7,7 +7,7 @@ afterEach(() => useRealTimers());
 
 describe('nextFrame method', () => {
   it('should execute the callback function in the next frame', () => {
-    const fn = mock();
+    const fn = vi.fn();
     nextFrame(fn);
     expect(fn).toHaveBeenCalledTimes(0);
     runAllTimers();
@@ -18,9 +18,9 @@ describe('nextFrame method', () => {
     expect(nextFrame()).toBeInstanceOf(Promise);
   });
 
-  it.todo('should work server-side', () => {
-    const fn = mock();
-    mock.module('../../js-toolkit/utils/has.js', () => ({
+  it('should work server-side', () => {
+    const fn = vi.fn();
+    vi.mock('../../js-toolkit/utils/has.js', () => ({
       hasWindow: () => false,
     }));
 

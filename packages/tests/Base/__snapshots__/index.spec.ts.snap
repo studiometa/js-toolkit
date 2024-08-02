@@ -1,8 +1,0 @@
-// Bun Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`Base/index.js exports should export a specific list of things 1`] = `
-[
-  "Base",
-  "getInstances",
-]
-`;

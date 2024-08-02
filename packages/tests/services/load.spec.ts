@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { useLoad } from '@studiometa/js-toolkit';
 
 describe('The `useLoad` service', () => {

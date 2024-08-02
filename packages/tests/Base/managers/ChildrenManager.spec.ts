@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Base, BaseConfig } from '@studiometa/js-toolkit';
 import { getComponentElements } from '#private/Base/utils.js';
 import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
@@ -50,7 +50,7 @@ describe('The component resolution', () => {
     const async = h('div', { dataComponent: 'AsyncComponent' });
     const div = h('div', {}, [async]);
 
-    const fn = mock();
+    const fn = vi.fn();
     class AsyncComponent extends Base {
       static config = {
         name: 'AsyncComponent',

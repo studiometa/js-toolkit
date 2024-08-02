@@ -1,4 +1,4 @@
-import { describe, it, expect, spyOn, beforeAll, mock, afterEach, beforeEach } from 'bun:test';
+import { describe, it, expect, vi, beforeAll, afterEach, beforeEach } from 'vitest';
 import { Base, withScrolledInView } from '@studiometa/js-toolkit';
 import {
   intersectionObserverBeforeAllCallback,
@@ -30,10 +30,10 @@ afterEach(() => {
 
 function getDiv() {
   const div = h('div');
-  const offsetTopSpy = mock(() => 500);
-  const offsetLeftSpy = mock(() => 500);
-  const offsetWidthSpy = mock(() => 100);
-  const offsetHeightSpy = mock(() => 100);
+  const offsetTopSpy = vi.fn(() => 500);
+  const offsetLeftSpy = vi.fn(() => 500);
+  const offsetWidthSpy = vi.fn(() => 100);
+  const offsetHeightSpy = vi.fn(() => 100);
   Object.defineProperties(div, {
     offsetTop: {
       get() {
@@ -56,7 +56,7 @@ function getDiv() {
       },
     },
   });
-  const divRectSpy = spyOn(div, 'getBoundingClientRect');
+  const divRectSpy = vi.spyOn(div, 'getBoundingClientRect');
   // @ts-ignore
   divRectSpy.mockImplementation(() => ({
     height: 100,
@@ -74,8 +74,8 @@ describe('The withScrolledInView decorator', () => {
   it('should trigger the `scrolledInView` hook when in view', async () => {
     const div = getDiv();
     const div2 = getDiv();
-    const fn = mock();
-    const fn2 = mock();
+    const fn = vi.fn();
+    const fn2 = vi.fn();
 
     class Foo extends withScrolledInView(Base) {
       static config = {
@@ -115,7 +115,7 @@ describe('The withScrolledInView decorator', () => {
   it('should reset the damped values when destroyed', async () => {
     useFakeTimers();
     const div = getDiv();
-    const fn = mock();
+    const fn = vi.fn();
 
     class Foo extends withScrolledInView(Base) {
       static config = {

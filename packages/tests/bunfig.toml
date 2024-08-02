@@ -1,8 +1,0 @@
-[test]
-preload = "./__utils__/happydom.ts"
-coverageSkipTestFiles = true
-coverageReporter = ["text", "lcov"]
-coverageDir = "../../coverage"
-
-[loader]
-".html" = "text"
