@@ -28,6 +28,7 @@ The second parameter can either be one of the following:
    - `options.root` (`HTMLElement`): the root element for your app, defaults to `document.body`
    - `options.breakpoints` (`Record<string, string>`): a list of breakpoints to confgure the [`useResize` service](/api/services/useResize)
    - `options.blocking` (`boolean`): wether to enable the queue mechanism for the internals of the framework or not, defaults to `false`
+   - `options.attributes` (`{ component: string, option: string, ref: string }`): the HTML attributes to use for the [HTML API](/api/html/), defaults to `data-component`, `data-option` and `data-ref`
 
 **Return value**
 
@@ -92,3 +93,21 @@ export default createApp(App, {
   blocking: true,
 });
 ```
+
+### Configure the HTML API attributes
+
+The default attributes used to interact with the DOM are `data-component`, `data-option-...` and `data-ref`. These can be configured by specifying the `attributes` property of the options parameter:
+
+```js
+createApp(App, {
+  attributes: {
+    component: 'tk-is',
+    option: 'tk-opt',
+    ref: 'tk-ref',
+  },
+});
+```
+
+::: warning W3C validation
+Be aware that using other attributes than `data-...` attributes will probably make your HTML fail W3C validation tests.
+:::
