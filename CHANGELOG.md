@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Changed
 
 - Refactor attributes handling with methods ([#494](https://github.com/studiometa/js-toolkit/pull/494), [5c5c3ae](https://github.com/studiometa/js-toolkit/commits/5c5c3ae))
+- Migrate tests to Vitest ([#501](https://github.com/studiometa/js-toolkit/pull/501), [70e1b52](https://github.com/studiometa/js-toolkit/commit/70e1b52))
 
 ## [v3.0.0-alpha.5](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.4..3.0.0-alpha.5) (2023-07-16)
 
