@@ -97,8 +97,8 @@ export function withBreakpointManager<S extends Base>(
      * Override the default $mount method to prevent component's from being
      * mounted when they should not.
      */
-    $mount(): this {
-      super.$mount();
+    async $mount() {
+      await super.$mount();
 
       testBreakpoints(instances.get(this));
 
@@ -108,12 +108,15 @@ export function withBreakpointManager<S extends Base>(
     /**
      * Destroy all instances when the main one is destroyed.
      */
-    $destroy(): this {
+    async $destroy() {
+      const promises = [];
       if (isArray(instances.get(this))) {
         for (const [, instance] of instances.get(this)) {
-          instance.$destroy();
+          promises.push(instance.$destroy());
         }
       }
+
+      await Promise.all(promises);
 
       return super.$destroy();
     }

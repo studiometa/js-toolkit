@@ -7,7 +7,7 @@ let queue: SmartQueue;
 /**
  * Add a task to the main queue.
  */
-export function addToQueue(fn: () => unknown): void {
+export function addToQueue(fn: () => unknown) {
   if (features.get('blocking')) {
     fn();
     return;
@@ -17,7 +17,7 @@ export function addToQueue(fn: () => unknown): void {
     queue = new SmartQueue();
   }
 
-  queue.add(fn);
+  return queue.add(fn);
 }
 
 const selectors = new Map();
