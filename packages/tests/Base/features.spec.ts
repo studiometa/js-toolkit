@@ -1,13 +1,12 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { Base, createApp } from '@studiometa/js-toolkit';
 import {
-  advanceTimersByTimeAsync,
   h,
+  mockFeatures,
+  advanceTimersByTimeAsync,
   useFakeTimers,
   useRealTimers,
-  mockFeatures,
 } from '#test-utils';
-import { features } from '#private/Base/features';
 
 describe('The configurable features', () => {
   it('should allow configuration of different attributes', async () => {

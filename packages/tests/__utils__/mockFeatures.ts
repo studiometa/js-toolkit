@@ -1,19 +1,5 @@
 import { vi } from 'vitest';
-
-type Features = {
-  blocking: boolean;
-  breakpoints: Record<string, string>;
-  attributes: {
-    component: string;
-    option: string;
-    ref: string;
-  };
-};
-
-interface FeaturesMap extends Map<keyof Features, Features[keyof Features]> {
-  get<T extends keyof Features>(key: T): Features[T];
-  set<T extends keyof Features>(key: T, value: Features[T]): this;
-}
+import { features } from '#private/Base/features';
 
 const defaultBreakpoints = {
   xxs: '0rem',
@@ -37,15 +23,9 @@ export function mockFeatures({
   breakpoints = defaultBreakpoints,
   attributes = defaultAttributes,
 } = {}) {
-  const features = new Map<keyof Features, Features[keyof Features]>([
-    ['blocking', blocking],
-    ['breakpoints', breakpoints],
-    ['attributes', attributes],
-  ]) as FeaturesMap;
-
-  vi.mock('#private/Base/features.js', () => {
-    return { features };
-  });
+  features.set('blocking', blocking);
+  features.set('breakpoints', breakpoints);
+  features.set('attributes', attributes);
 
   function unmock() {
     features.set('blocking', false);
