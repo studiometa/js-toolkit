@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. The format 
 - Refactor attributes handling with methods ([#494](https://github.com/studiometa/js-toolkit/pull/494), [5c5c3ae](https://github.com/studiometa/js-toolkit/commits/5c5c3ae))
 - Migrate tests to Vitest ([#501](https://github.com/studiometa/js-toolkit/pull/501), [70e1b52](https://github.com/studiometa/js-toolkit/commit/70e1b52))
 - Make the HTML attributes configurable ([#495](https://github.com/studiometa/js-toolkit/pull/495), [823da97](https://github.com/studiometa/js-toolkit/commit/823da97))
+- ⚠️ Refactor event callbacks parameters ([#499](https://github.com/studiometa/js-toolkit/pull/499), [06df6b0](https://github.com/studiometa/js-toolkit/commit/06df6b0))
 
 ### Fixed
 
