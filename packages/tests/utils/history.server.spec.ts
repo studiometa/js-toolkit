@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { objectToURLSearchParams } from '@studiometa/js-toolkit/utils';
 
 describe('The `objectToURLSearchParams` method', () => {

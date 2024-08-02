@@ -1,8 +1,9 @@
-import { describe, it, expect, spyOn } from 'bun:test';
+import { describe, it, expect, vi } from 'vitest';
 import { Base, withResponsiveOptions } from '@studiometa/js-toolkit';
-import { h, mockFeatures } from '#test-utils';
+import { h, mockFeatures, useMatchMedia } from '#test-utils';
 
 function componentWithOptions(content, options) {
+  useMatchMedia();
   mockFeatures();
   const div = h('div');
   div.innerHTML = content;
@@ -34,7 +35,6 @@ describe('The ResponsiveOptionsManager class', () => {
         foo: String,
       },
     );
-
     expect(instance.$options.str).toBe('bar');
     expect(instance.$options.foo).toBe('foo');
   });
@@ -48,7 +48,7 @@ describe('The ResponsiveOptionsManager class', () => {
       },
     );
 
-    const warnMock = spyOn(console, 'warn');
+    const warnMock = vi.spyOn(console, 'warn');
     warnMock.mockImplementation(() => null);
     instance.$options.str = 'baz';
     expect(warnMock).toHaveBeenCalledWith('[Foo]', 'Responsive options are read-only.');

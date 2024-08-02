@@ -1,14 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   Base,
   getDirectChildren,
   getInstanceFromElement,
   isDirectChild,
 } from '@studiometa/js-toolkit';
-import { h, useFakeTimers, useRealTimers, advanceTimersByTimeAsync  } from '#test-utils';
-
-beforeEach(() => useFakeTimers());
-afterEach(() => useRealTimers());
+import { h } from '#test-utils';
 
 async function createContext() {
   class Child extends Base {
@@ -34,8 +31,7 @@ async function createContext() {
   const div = h('div', { dataComponent: 'Parent' }, [firstChild, innerParent]);
 
   const parent = new Parent(div);
-  parent.$mount();
-  await advanceTimersByTimeAsync(1);
+  await parent.$mount();
 
   const directChildren = getDirectChildren(parent, 'Parent', 'Child');
 
@@ -65,8 +61,7 @@ describe('The `getDirectChildren` helper function', () => {
     const instance = new Parent(
       h('div', { dataComponent: 'Parent' }, [firstChild.cloneNode(), firstChild.cloneNode()]),
     );
-    instance.$mount();
-    await advanceTimersByTimeAsync(1);
+    await instance.$mount();
     expect(getDirectChildren(instance, 'Parent', 'Child')).toHaveLength(2);
   });
 });

@@ -1,9 +1,9 @@
-import { describe, it, expect, jest, beforeEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Base } from '@studiometa/js-toolkit';
 import { useFakeTimers, useRealTimers, runAllTimers } from '#test-utils';
 
-describe('The ServicesManager', () => {
-  const fn = jest.fn();
+async function getContext() {
+  const fn = vi.fn();
 
   class App extends Base {
     static config = {
@@ -19,17 +19,20 @@ describe('The ServicesManager', () => {
     }
   }
 
-  const app = new App(document.createElement('div')).$mount();
+  const app = new App(document.createElement('div'));
+  await app.$mount();
 
-  beforeEach(() => {
-    fn.mockClear();
-  });
+  return { app, App, fn };
+}
 
-  it('should return false if the service does not exists', () => {
+describe('The ServicesManager', () => {
+  it('should return false if the service does not exists', async () => {
+    const { app } = await getContext();
     expect(app.$services.has('foo')).toBe(false);
   });
 
-  it('should not enable a service twice', () => {
+  it('should not enable a service twice', async () => {
+    const { app, fn } = await getContext();
     useFakeTimers();
     app.$services.disable('resized');
     app.$services.enable('resized');
@@ -40,11 +43,13 @@ describe('The ServicesManager', () => {
     useRealTimers();
   });
 
-  it('should not disable a service that does not exist', () => {
+  it('should not disable a service that does not exist', async () => {
+    const { app } = await getContext();
     expect(app.$services.disable('foo')).toBeUndefined();
   });
 
-  it('should be able to toggle services', () => {
+  it('should be able to toggle services', async () => {
+    const { app, fn } = await getContext();
     useFakeTimers();
     app.$services.toggle('resized', false);
     window.dispatchEvent(new CustomEvent('resize'));
@@ -65,45 +70,34 @@ describe('The ServicesManager', () => {
     useRealTimers();
   });
 
-  it('should enable a service when it is used via event handlers', () => {
+  it('should enable a service when it is used via event handlers', async () => {
+    const { fn } = await getContext();
     useFakeTimers();
-
-    class Test extends Base {
-      static config = {
-        name: 'Test',
-      };
-
-      constructor(element) {
-        super(element);
-
-        this.$on('resized', fn);
-      }
-    }
-
-    const test = new Test(document.createElement('div'));
     window.dispatchEvent(new CustomEvent('resize'));
     runAllTimers();
     expect(fn).toHaveBeenCalledTimes(1);
     useRealTimers();
   });
 
-  it('should be able to unregister custom services but not core services', () => {
+  it('should be able to unregister custom services but not core services', async () => {
+    const { app } = await getContext();
     expect(() => app.$services.unregister('resized')).toThrow(
-      /core service can not be unregistered/
+      /core service can not be unregistered/,
     );
   });
 
-  it('should be able to register new services', () => {
+  it('should be able to register new services', async () => {
+    const { app, fn } = await getContext();
     let handler;
-    const add = jest.fn();
+    const add = vi.fn();
     const service = {
       add: (id, cb) => {
         add();
         handler = cb;
       },
-      remove: jest.fn(),
-      props: jest.fn(),
-      has: jest.fn(),
+      remove: vi.fn(),
+      props: vi.fn(),
+      has: vi.fn(),
     };
 
     app.$services.register('customService', () => service);
@@ -116,7 +110,8 @@ describe('The ServicesManager', () => {
     app.$services.unregister('customService');
   });
 
-  it('should expose each services props', () => {
+  it('should expose each services props', async () => {
+    const { app } = await getContext();
     expect(app.$services.get('ticked')).toHaveProperty('time');
   });
 });

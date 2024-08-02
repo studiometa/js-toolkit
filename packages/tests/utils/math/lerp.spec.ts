@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { lerp } from '@studiometa/js-toolkit/utils';
 
 describe('lerp method', () => {

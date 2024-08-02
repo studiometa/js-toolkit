@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { collideCircleCircle } from '@studiometa/js-toolkit/utils';
 
 describe('collideCircleCircle method', () => {

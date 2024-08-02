@@ -1,4 +1,4 @@
-import { describe, it, expect, spyOn, mock, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { transition } from '@studiometa/js-toolkit/utils';
 import { useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
 
@@ -14,9 +14,9 @@ describe('transition method', () => {
       <div class="w-16 h-16 m-10 bg-black"></div>
     `;
     el = document.body.firstElementChild;
-    spyAdd = spyOn(el.classList, 'add');
-    spyRemove = spyOn(el.classList, 'remove');
-    spyStyle = mock();
+    spyAdd = vi.spyOn(el.classList, 'add');
+    spyRemove = vi.spyOn(el.classList, 'remove');
+    spyStyle = vi.fn();
     Object.defineProperty(el.style, 'opacity', {
       configurable: true,
       set(value) {
@@ -58,7 +58,7 @@ describe('transition method', () => {
     expect(spyRemove.mock.calls[1]).toEqual(['transition', 'duration-500']);
   });
 
-  it.todo('should stop any previous transition', async () => {
+  it('should stop any previous transition', async () => {
     // review the way the previous transition is stopped, as the `end` function
     // is called with the new transition options instead of the old ones
     el.style.transitionDuration = '1s';
@@ -69,7 +69,7 @@ describe('transition method', () => {
     await advanceTimersByTimeAsync(50);
     transition(el, 'name-2');
     await advanceTimersByTimeAsync(200);
-    expect(spyRemove).toHaveBeenNthCalledWith(1, 'name-to');
-    expect(spyRemove).toHaveBeenNthCalledWith(2, 'name-active');
+    expect(spyRemove).toHaveBeenNthCalledWith(1, 'name-1-from');
+    expect(spyRemove).toHaveBeenNthCalledWith(2, 'name-2-to');
   });
 });

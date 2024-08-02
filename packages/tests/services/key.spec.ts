@@ -1,4 +1,4 @@
-import { describe, test, expect, mock, spyOn, beforeEach } from 'bun:test';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { useKey } from '@studiometa/js-toolkit';
 import { createEvent } from '#test-utils';
 
@@ -11,7 +11,7 @@ describe('useKey', () => {
 
   beforeEach(() => {
     remove('useKey');
-    fn = mock((p) => {
+    fn = vi.fn((p) => {
       keyProps = p;
     });
     add('useKey', fn);
@@ -24,7 +24,7 @@ describe('useKey', () => {
   });
 
   test('callbacks with the same key are not allowed', () => {
-    const warnMock = spyOn(console, 'warn');
+    const warnMock = vi.spyOn(console, 'warn');
     warnMock.mockImplementation(() => null);
     add('useKey', () => {});
     expect(warnMock).toHaveBeenCalledWith('The key `useKey` has already been added.');

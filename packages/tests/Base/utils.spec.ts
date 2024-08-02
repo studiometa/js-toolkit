@@ -1,8 +1,8 @@
-import { describe, it, expect, mock } from 'bun:test';
+import { describe, it, expect, vi } from 'vitest';
 import { Base, withName, getInstances } from '@studiometa/js-toolkit';
 import { nextTick } from '@studiometa/js-toolkit/utils';
 import { getComponentElements, addToQueue } from '#private/Base/utils.js';
-import { h } from '#test-utils';
+import { h, mockFeatures } from '#test-utils';
 
 describe('The `getComponentElements` function', () => {
   it('should find components with multiple declarations', () => {
@@ -33,14 +33,14 @@ describe('The `getComponentElements` function', () => {
 
 describe('The `addToQueue` function', () => {
   it('should delay given tasks if the `blocking` feature is disabled', async () => {
-    const map = new Map([['blocking', false]]);
-    mock.module('#private/Base/features.js', () => ({ features: map }));
-    const fn = mock();
+    const { unmock } = mockFeatures({ blocking: false })
+    const fn = vi.fn();
 
     addToQueue(fn);
     expect(fn).not.toHaveBeenCalled();
     await nextTick();
     expect(fn).toHaveBeenCalledTimes(1);
+    unmock();
   });
 });
 

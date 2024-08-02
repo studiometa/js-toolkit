@@ -1,9 +1,9 @@
-import { describe, it, expect, jest } from 'bun:test';
+import { describe, it, expect, vi } from 'vitest';
 import { nextTick, nextFrame, nextMicrotask } from '@studiometa/js-toolkit/utils';
 
 describe('nextTick method', () => {
   it('should execute in order', async () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
 
     fn('start');
     const promises = [

@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, afterEach, beforeEach } from 'bun:test';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { Base, withBreakpointObserver, withName } from '@studiometa/js-toolkit';
 import {
   advanceTimersByTimeAsync,
@@ -36,6 +36,7 @@ async function getContext() {
     };
   }
 
+  const matchMedia = useMatchMedia();
   const root = h('div');
   root.innerHTML = `
     <div data-breakpoint>
@@ -47,12 +48,12 @@ async function getContext() {
     </div>
   `;
   const app = new App(root);
+
   app.$mount();
-  await advanceTimersByTimeAsync(1);
+  await advanceTimersByTimeAsync(100);
   const foo = app.$children.Foo[0];
   const fooResponsive = app.$children.FooResponsive;
 
-  const matchMedia = useMatchMedia();
 
   return {
     root,
@@ -143,10 +144,9 @@ describe('The withBreakpointObserver decorator', () => {
         };
       }
 
-      const div = document.createElement('div');
       // eslint-disable-next-line no-new
-      new Bar(div).$mount();
-    }).toThrow(/Incorrect configuration/);
+      new Bar(h('div')).$mount();
+    }).toThrowError(/Incorrect configuration/);
   });
 
   it('should destroy components before mounting the others', async () => {
@@ -154,7 +154,7 @@ describe('The withBreakpointObserver decorator', () => {
     matchMedia.useMediaQuery('(min-width: 48rem)');
     await resizeWindow({ width: 768 });
 
-    const fn = mock();
+    const fn = vi.fn();
 
     class Mobile extends withBreakpointObserver(Base) {
       static config = {
@@ -206,9 +206,9 @@ describe('The withBreakpointObserver decorator', () => {
 
     matchMedia.useMediaQuery('(min-width: 64rem)');
     await resizeWindow({ width: 1024 });
-    await advanceTimersByTimeAsync(1);
+    await advanceTimersByTimeAsync(100);
     new App1(root).$mount();
-    await advanceTimersByTimeAsync(1);
+    await advanceTimersByTimeAsync(100);
     expect(fn).toHaveBeenCalledWith('Desktop', 'mounted');
     matchMedia.useMediaQuery('(min-width: 48rem)');
     await resizeWindow({ width: 768 });

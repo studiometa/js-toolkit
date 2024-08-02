@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   Base,
   withExtraConfig,
@@ -35,7 +35,7 @@ class Component extends Base {
 
 describe('The `importOnMediaQuery` lazy import helper', () => {
   it('should import a component when user changes prefers motion media query', async () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     const mediaQuery = 'not (prefers-reduced-motion)';
     const matchMedia = useMatchMedia(mediaQuery);
 
@@ -64,7 +64,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
   });
 
   it('should import a component when user prefers motion', async () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     const mediaQuery = 'not (prefers-reduced-motion)';
     useMatchMedia(mediaQuery);
 
@@ -88,7 +88,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
   });
 
   it('should not import a component when user prefers reduced motion', async () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     useMatchMedia('(prefers-reduced-motion)');
 
     const component = h('div', { dataComponent: 'Component' });
