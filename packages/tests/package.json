@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "bun test",
+    "bun": "bun test",
     "jest": "NODE_NO_WARNINGS=1 NODE_OPTIONS=--experimental-vm-modules jest",
-    "vitest": "vitest"
+    "test": "vitest"
   },
   "dependencies": {
     "@happy-dom/global-registrator": "^14.7.1",
