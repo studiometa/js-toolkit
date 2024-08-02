@@ -97,13 +97,33 @@ describe('The `createApp` function', () => {
     });
   });
 
-  it.skip('should enable given features', () => {
+  it('should enable given features', () => {
     const { App, fn, features } = getContext();
     expect(features.get('blocking')).toBe(false);
     createApp(App, {
       blocking: true,
+      attributes: {
+        component: 'tk-is',
+        option: 'tk-opt',
+        ref: 'tk-ref',
+      },
+      breakpoints: {
+        s: '0rem',
+        m: '80rem',
+        l: '120rem',
+      },
     });
     expect(features.get('blocking')).toBe(true);
+    expect(features.get('attributes')).toEqual({
+      component: 'tk-is',
+      option: 'tk-opt',
+      ref: 'tk-ref',
+    });
+    expect(features.get('breakpoints')).toEqual({
+      s: '0rem',
+      m: '80rem',
+      l: '120rem',
+    });
   });
 
   it('should instantiate directly when the blocking feature is enabled', async () => {
