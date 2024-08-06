@@ -10,3 +10,4 @@ export { default as withTrailingCharacters } from './withTrailingCharacters.js';
 export { default as withTrailingSlash } from './withTrailingSlash.js';
 export * from './startsWith.js';
 export * from './endsWith.js';
+export * from './changeCase.js';

@@ -6,7 +6,7 @@ import { h } from '#test-utils';
 function componentWithOptions(content, options) {
   const div = h('div');
   div.innerHTML = content;
-  const element = div.firstElementChild;
+  const element = div.firstElementChild as HTMLElement;
 
   class Foo extends Base {
     static config: BaseConfig = {
@@ -14,6 +14,7 @@ function componentWithOptions(content, options) {
       options,
     };
   }
+
 
   const instance = new Foo(element);
 
