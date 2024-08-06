@@ -25,17 +25,17 @@ describe('The ResponsiveOptionsManager class', () => {
   it('should return the values for the active breakpoint', () => {
     const instance = componentWithOptions(
       `<div
-        data-option-str="foo"
-        data-option-str:l="bar"
+        data-option-str-str="foo"
+        data-option-str-str:l="bar"
         data-option-foo="foo"
         data-option-foo:l="l:foo"></div>
       `,
       {
-        str: { type: String, responsive: true },
+        strStr: { type: String, responsive: true },
         foo: String,
       },
     );
-    expect(instance.$options.str).toBe('bar');
+    expect(instance.$options.strStr).toBe('bar');
     expect(instance.$options.foo).toBe('foo');
   });
 
