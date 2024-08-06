@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add `camelCase`, `pascalCase`, `snakeCase` and `dashCase` functions ([#506](https://github.com/studiometa/js-toolkit/pull/506), [c753a16](https://github.com/studiometa/js-toolkit/commit/c753a16))
+- Add a `memo` function as a simpler and smaller `memoize` alternative ([#506](https://github.com/studiometa/js-toolkit/pull/506), [980a0b3](https://github.com/studiometa/js-toolkit/commit/980a0b3))
+
+### Changed
+
+- Convert ref names to camelCase ([#338](https://github.com/studiometa/js-toolkit/issues/338), [#506](https://github.com/studiometa/js-toolkit/pull/506), [1f5dbd9](https://github.com/studiometa/js-toolkit/commit/1f5dbd9))
+
 ## [v3.0.0-alpha.6](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.5..3.0.0-alpha.6) (2024-08-02)
 
 ### Changed
@@ -18,7 +27,6 @@ All notable changes to this project will be documented in this file. The format 
 
 - Fix a bug where refs could be undefined ([c11eb49](https://github.com/studiometa/js-toolkit/commit/c11eb49))
 - ⚠️ Fix listening to unconfigured events ([#505](https://github.com/studiometa/js-toolkit/pull/505), [a1e8dc9](https://github.com/studiometa/js-toolkit/commit/a1e8dc9))
-
 
 ## [v3.0.0-alpha.5](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.4..3.0.0-alpha.5) (2024-07-16)
 
