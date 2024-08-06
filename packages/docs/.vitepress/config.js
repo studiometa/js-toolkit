@@ -259,6 +259,7 @@ function getUtilsSidebar() {
       items: [
         { text: 'debounce', link: '/utils/debounce.html' },
         { text: 'keyCodes', link: '/utils/keyCodes.html' },
+        { text: 'memo', link: '/utils/memo.html' },
         { text: 'memoize', link: '/utils/memoize.html' },
         { text: 'nextFrame', link: '/utils/nextFrame.html' },
         { text: 'nextMicrotask', link: '/utils/nextMicrotask.html' },
@@ -356,6 +357,12 @@ function getUtilsSidebar() {
       link: '/utils/string/',
       collapsed: true,
       items: [
+        { text: 'camelCase', link: '/utils/string/camelCase.html' },
+        { text: 'dashCase', link: '/utils/string/dashCase.html' },
+        { text: 'pascalCase', link: '/utils/string/pascalCase.html' },
+        { text: 'snakeCase', link: '/utils/string/snakeCase.html' },
+        { text: 'lowerCase', link: '/utils/string/lowerCase.html' },
+        { text: 'upperCase', link: '/utils/string/upperCase.html' },
         { text: 'startsWith', link: '/utils/string/startsWith.html' },
         { text: 'endsWith', link: '/utils/string/endsWith.html' },
         { text: 'withLeadingCharacters', link: '/utils/string/withLeadingCharacters.html' },

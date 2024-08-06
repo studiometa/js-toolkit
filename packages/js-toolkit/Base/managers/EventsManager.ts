@@ -1,73 +1,10 @@
 import type { Base } from '../index.js';
 import getAllProperties from '../../utils/object/getAllProperties.js';
-import { isArray } from '../../utils/index.js';
+import { dashCase, isArray, pascalCase } from '../../utils/index.js';
 import { getEventTarget, eventIsNative, eventIsDefinedInConfig } from '../utils.js';
 import { AbstractManager } from './AbstractManager.js';
 import { normalizeRefName } from './RefsManager.js';
 import { features } from '../features.js';
-
-const names = new Map();
-const normalizeRegex1 = /[A-Z]([A-Z].*)/g;
-const normalizeRegex2 = /[^a-zA-Z\d\s:]/g;
-const normalizeRegex3 = /(^\w|\s+\w)/g;
-
-/**
- * Normalize the given name to PascalCase, such as:
- *
- * ```
- * sentence case          => SentenceCase
- * lowercase              => Lowercase
- * UPPERCASE              => Uppercase
- * kebab-case             => KebabCase
- * snake_case             => SnakeCase
- * camelCase              => CamelCase
- * PascalCase             => PascalCase
- * .class-selector        => ClassSelector
- * .bem__selector         => BemSelector
- * __id-selector          => IdSelector
- * .complex[class^ ="__"] => ComplexClass
- * ```
- *
- * @param {string} name
- * @returns {string}
- */
-export function normalizeName(name: string): string {
-  if (!names.has(name)) {
-    names.set(
-      name,
-      name
-        .replaceAll(normalizeRegex1, (c) => c.toLowerCase())
-        .replaceAll(normalizeRegex2, ' ')
-        .replaceAll(normalizeRegex3, (c) => c.trim().toUpperCase())
-        .trim(),
-    );
-  }
-
-  return names.get(name);
-}
-
-const eventNames = new Map();
-
-const normalizeEventRegex1 = /[A-Z]/g;
-const normalizeEventRegex2 = /^-/;
-/**
- * Normalize the event names from PascalCase to kebab-case.
- *
- * @param {string} name
- * @returns {string}
- */
-export function normalizeEventName(name: string): string {
-  if (!eventNames.has(name)) {
-    eventNames.set(
-      name,
-      name
-        .replaceAll(normalizeEventRegex1, (c) => `-${c.toLowerCase()}`)
-        .replace(normalizeEventRegex2, ''),
-    );
-  }
-
-  return eventNames.get(name);
-}
 
 const regexes = new Map();
 
@@ -94,9 +31,9 @@ function getRegex(regex: string): RegExp {
  * @private
  */
 function getEventNameByMethod(method: string, name = ''): string {
-  const regex = getRegex(`^on${normalizeName(name)}([A-Z].*)$`);
+  const regex = getRegex(`^on${pascalCase(name)}([A-Z].*)$`);
   const [, event] = method.match(regex);
-  return normalizeEventName(event);
+  return dashCase(event);
 }
 
 /**
@@ -109,7 +46,7 @@ function getEventNameByMethod(method: string, name = ''): string {
  */
 // eslint-disable-next-line no-use-before-define
 function getEventMethodsByName(that: EventsManager, name = ''): string[] {
-  const regex = getRegex(`^on${normalizeName(name)}[A-Z].*$`);
+  const regex = getRegex(`^on${pascalCase(name)}[A-Z].*$`);
   const key = regex.toString();
 
   let methods = that.__methodsCache.get(key);
@@ -265,7 +202,7 @@ export class EventsManager extends AbstractManager {
    */
   __rootElementHandler: EventListenerObject = {
     handleEvent: (event: Event | CustomEvent) => {
-      const normalizedEventName = normalizeName(event.type);
+      const normalizedEventName = pascalCase(event.type);
       const method = `on${normalizedEventName}`;
       const isCustomEvent = event instanceof CustomEvent;
 
@@ -290,7 +227,7 @@ export class EventsManager extends AbstractManager {
      * @returns {void}
      */
     handleEvent: (event) => {
-      const normalizedEventName = normalizeName(event.type);
+      const normalizedEventName = pascalCase(event.type);
       const method = `onDocument${normalizedEventName}`;
 
       this.__base[method](normalizeParams({ event, target: document }));
@@ -308,7 +245,7 @@ export class EventsManager extends AbstractManager {
      * @returns {void}
      */
     handleEvent: (event) => {
-      const normalizedEventName = normalizeName(event.type);
+      const normalizedEventName = pascalCase(event.type);
       const method = `onWindow${normalizedEventName}`;
 
       this.__base[method](normalizeParams({ event, target: window }));
@@ -324,8 +261,8 @@ export class EventsManager extends AbstractManager {
       const attributes = features.get('attributes');
       const refName = normalizeRefName(ref.getAttribute(attributes.ref));
 
-      const normalizedRefName = normalizeName(refName);
-      const normalizedEventName = normalizeName(event.type);
+      const normalizedRefName = pascalCase(refName);
+      const normalizedEventName = pascalCase(event.type);
       const method = `on${normalizedRefName}${normalizedEventName}`;
 
       let index = 0;
@@ -355,8 +292,8 @@ export class EventsManager extends AbstractManager {
         }))
         .find(({ child }) => child);
 
-      const normalizedChildName = normalizeName(name);
-      const normalizedEventName = normalizeName(event.type);
+      const normalizedChildName = pascalCase(name);
+      const normalizedEventName = pascalCase(event.type);
       const method = `on${normalizedChildName}${normalizedEventName}`;
 
       const index = [...childrenManager[name]].indexOf(resolvedChild);
