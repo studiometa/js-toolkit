@@ -1,7 +1,15 @@
 import deepmerge from 'deepmerge';
 import type { Options as DeepmergeOptions } from 'deepmerge';
 import { AbstractManager } from './AbstractManager.js';
-import { isDev, isFunction, isDefined, isBoolean, isArray, isObject } from '../../utils/index.js';
+import {
+  isDev,
+  isFunction,
+  isDefined,
+  isBoolean,
+  isArray,
+  isObject,
+  memo,
+} from '../../utils/index.js';
 import type { Base } from '../index.js';
 import { features } from '../features.js';
 
@@ -59,28 +67,16 @@ const __defaultValues = {
   Object: () => ({}),
 };
 
-/**
- * Property name cache.
- */
-const __propertyNameCache: Map<string, string> = new Map();
-const matchUppercaseRegexp = /([A-Z])/g;
+const UPPERCASE_REGEX = /([A-Z])/g;
 
 /**
  * Get a property name.
  */
-export function __getPropertyName(name: string, prefix = '') {
-  const key = name + prefix;
-
-  if (__propertyNameCache.has(key)) {
-    return __propertyNameCache.get(key);
-  }
-
+export const __getPropertyName = memo(function __getPropertyName(name: string, prefix = '') {
   const attributes = features.get('attributes');
-  const normalizedName = name.replace(matchUppercaseRegexp, '-$1');
-  const propertyName = `${attributes.option}${prefix ? `-${prefix}` : ''}-${normalizedName}`;
-  __propertyNameCache.set(key, propertyName);
+  const propertyName = `${attributes.option}${prefix ? `-${prefix}` : ''}-${name.replaceAll(UPPERCASE_REGEX, '-$1')}`;
   return propertyName;
-}
+});
 
 /**
  * Register an option.
