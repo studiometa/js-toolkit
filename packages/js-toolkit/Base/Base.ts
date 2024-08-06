@@ -466,7 +466,17 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
     set.add(listener);
 
     const target = getEventTarget(this, event, this.__config);
-    target.addEventListener(event, listener, options);
+    target?.addEventListener(event, listener, options);
+
+    if (isDev) {
+      if (!target) {
+        console.warn(
+          `[${this.$id}]`,
+          `The "${event}" event is missing from the configuration and is not a native`,
+          `event for the root element of type \`${this.$el.constructor.name}\`.`,
+        );
+      }
+    }
 
     return () => {
       this.$off(event, listener, options);
@@ -496,7 +506,7 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
     this.__eventHandlers.get(event).delete(listener);
 
     const target = getEventTarget(this, event, this.__config);
-    target.removeEventListener(event, listener, options);
+    target?.removeEventListener(event, listener, options);
   }
 
   /**
