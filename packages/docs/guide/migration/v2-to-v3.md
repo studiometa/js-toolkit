@@ -140,3 +140,26 @@ this.$update(); // [!code --]
 await this.$update(); // [!code ++]
 this.$children.Component[0].toggle();
 ```
+
+## Unconfigured events are not listenable anymore
+
+In v2, custom events that were not configured via the [static `config` property](/api/configuration.html) were still taken in consideration when adding event listeners with the [`$on` method](/api/instance-methods.html#on-event-callback-options) or the [`on...` event hooks](/api/methods-hooks-events.html). This behavior is removed in v3, meaning that each component must define the events it will emit.
+
+To migrate, make sure to add the events that will be emitted to the static `config` object with the `emits` property.
+
+```js
+class MyComponent extends Base {
+  static config = {
+    name: 'MyComponent',
+    emits: ['custom-event'], // [!code ++]
+  };
+
+  mounted() {
+    this.$emit('custom-event');
+  }
+
+  onCustomEvent() {
+    // ...
+  }
+}
+```
