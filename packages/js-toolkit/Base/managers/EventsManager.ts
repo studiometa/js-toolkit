@@ -180,9 +180,12 @@ function manageChild(
 ) {
   const action = mode === 'add' ? '$on' : '$off';
   const methods = getEventMethodsByName(that, name);
+  const config = instance.__config;
   for (const method of methods) {
     const event = getEventNameByMethod(method, name);
-    instance[action](event, that.__childrenHandler);
+    if (getEventTarget(instance, event, config)) {
+      instance[action](event, that.__childrenHandler);
+    }
   }
 }
 
@@ -212,16 +215,16 @@ function manageRootElement(that: EventsManager, mode: 'add' | 'remove' = 'add') 
   for (const method of methods) {
     let event = getEventNameByMethod(method);
 
-    if (eventIsDefinedInConfig(event, config) || eventIsNative(event, base.$el)) {
-      const target = getEventTarget(base, event, config);
-      target[modeMethod](event, that.__rootElementHandler);
-    } else if (methodIsGlobal(method)) {
+    if (methodIsGlobal(method)) {
       event = getEventNameByMethod(method, methodIsDocument(method) ? 'document' : 'window');
       const target = getGlobalEventTarget(method);
       target[modeMethod](
         event,
         methodIsDocument(method) ? that.__documentHandler : that.__windowHandler,
       );
+    } else {
+      const target = getEventTarget(base, event, config);
+      target?.[modeMethod](event, that.__rootElementHandler);
     }
   }
 }
