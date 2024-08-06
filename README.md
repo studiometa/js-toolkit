@@ -1,4 +1,4 @@
-# JS Toolkit
+# @studiometa/js-toolkit
 
 [![NPM Version](https://img.shields.io/npm/v/@studiometa/js-toolkit.svg?style=flat&colorB=3e63dd&colorA=414853)](https://www.npmjs.com/package/@studiometa/js-toolkit/)
 [![NPM Next Version](https://img.shields.io/npm/v/@studiometa/js-toolkit/next?style=flat&colorB=3e63dd&colorA=414853)](https://www.npmjs.com/package/@studiometa/js-toolkit/v/next)
@@ -28,7 +28,7 @@ This project is a JavaScript micro-framework (along with its utility functions) 
 - Initializing components in the right place at the right time
 - Defining dependencies between components
 
-Visit [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) to learn more.
+Visit [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) to learn more, or jump directly to [ui.studiometa.dev](https://ui.studiometa.dev) to discover existing components.
 
 ## Quick overview
 
@@ -127,7 +127,7 @@ class App extends Base {
 export default createApp(App);
 ```
 
-Visit our ["Getting Started" guide](https://js-toolkit.studiometa.dev/guide/) to learn more and try the above component by visiting [the playground](https://ui.studiometa.dev/-/play/#script=eNqVkjFPwzAQhff%2BijcguRVtEGurSpTuDKyIwdiXYprYkX2pQFX%2BO7bjlg6A1EiJndO97873bNrOecYRjzLQHMqTZNp0HQbU3rUQD4F7bVxLLO8%2BwoKda%2FaGxWoyUY0MAVvXWyYP%2BmSyOmQOjhMgsGSjoJytzQ7rHAOsbGkJUVRinoOe6rDEi5BaizmEp9YdKO1UShOvY5br2DgbE0dSqkDdzx%2FAX11kP%2FXtG%2FlRkh5NtewbXuL%2BFBvGzRC%2FQzwHsCOOfeaOprMC9MS9t%2BB3E6qb1GCVM6qDbHrahLHKKiESIVwQcsYJ87s%2BjiOvZ72zG623jVH7cwNZWZi4XRdSGUKVzn6hfs4j%2Bwew%2BBsQEaOVyfbrbIyKYqFy8SJZsnzhTzG5TDstcdyp2umSTeM7W30DtazCdQ%3D%3D&html=eNptjkEKwyAQRfc9hcw%2BpHStQukNegOTmYJQZ8SOQm9fUzcJZPX5vLd4FmMzGDRMq6QsTKwOHlJZqcAAkjUKTx%2Bl7OAG%2FmKMXaqq8OCFXg4CIvg7op0HOrcKJWkE%2Fvnfgxs5V92p69YARr%2BZHHBNy9bTwrv2e%2B0Rdu7l%2Fgd%2BLEBJ&style=eNpLyk%2BpVKjmUlAoSExJycxLt1IwLErNteaqBQBpsgf8).
+Visit our ["Getting Started" guide](https://js-toolkit.studiometa.dev/guide/) to learn more and try the above component by visiting [the playground](https://ui.studiometa.dev/-/play/#script=eNqVkjFPwzAQhff%2BijcguRVtEGurSpTuDKyIwdiXYprYkX2pQFX%2BO7bjlg6A1EiJndO97873bNrOecYRjzLQHMqTZNp0HQbU3rUQD4F7bVxLLO8%2BwoKda%2FaGxWoyUY0MAVvXWyYP%2BmSyOmQOjhMgsGSjoJytzQ7rHAOsbGkJUVRinoOe6rDEi5BaizmEp9YdKO1UShOvY5br2DgbE0dSqkDdzx%2FAX11kP%2FXtG%2FlRkh5NtewbXuL%2BFBvGzRC%2FQzwHsCOOfeaOprMC9MS9t%2BB3E6qb1GCVM6qDbHrahLHKKiESIVwQcsYJ87s%2BjiOvZ72zG623jVH7cwNZWZi4XRdSGUKVzn6hfs4j%2Bwew%2BBsQEaOVyfbrbIyKYqFy8SJZsnzhTzG5TDstcdyp2umSTeM7W30DtazCdQ%3D%3D&html=eNqFkEsKwzAMRPc9hdDe5EOXcaD0Br2BEyvBkMjGkUN7%2Byb1ogkUupJAmjfMNNatYI0Y1fs5eCYWjXefWChiPvggzrNahILGGqGfzLJoDOoKw0RPGM22YnsBaLok4jnLIg0ajbUHQQ3dqLopkarKEuLmYslie7O2KbL0NyXS7Ff6D3p8%2Fk4sxyHJAdXv0RDkFUgjp7nbY65mQ2ksTw7R8aiqPBwvJF%2BfS1NstbVv4jxoZA%3D%3D&style=eNpLyk%2BpVKjmUlAoSExJycxLt1IwLErNteaqBQBpsgf8). Discover our existing library of components by checking out the [@studiometa/ui](https://github.com/studiometa/ui) package.
 
 ## Contributing
 
