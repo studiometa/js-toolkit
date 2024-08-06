@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.7](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.6..3.0.0-alpha.7) (2024-08-06)
+
 ### Added
 
 - Add `camelCase`, `pascalCase`, `snakeCase` and `dashCase` functions ([#506](https://github.com/studiometa/js-toolkit/pull/506), [c753a16](https://github.com/studiometa/js-toolkit/commit/c753a16))
