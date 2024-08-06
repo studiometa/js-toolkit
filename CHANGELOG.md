@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file. The format 
 ### Fixed
 
 - Fix a bug where refs could be undefined ([c11eb49](https://github.com/studiometa/js-toolkit/commit/c11eb49))
+- ⚠️ Fix listening to unconfigured events ([#505](https://github.com/studiometa/js-toolkit/pull/505), [a1e8dc9](https://github.com/studiometa/js-toolkit/commit/a1e8dc9))
+
 
 ## [v3.0.0-alpha.5](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.4..3.0.0-alpha.5) (2024-07-16)
 
