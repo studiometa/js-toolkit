@@ -6,21 +6,18 @@ import {
   getAncestorWhereUntil,
   endsWith,
   startsWith,
+  memo,
+  camelCase,
 } from '../../utils/index.js';
 import { features } from '../features.js';
 
 const NORMALIZE_REF_NAME_REGEX = /\[\]$/;
 const NAMESPACED_REF_REGEX = /^(.*\.)/;
-const normalizedRefNamesCache = new Map();
 
 /**
  * Normalize the name of ref.
  */
-export function normalizeRefName(name: string) {
-  if (normalizedRefNamesCache.has(name)) {
-    return normalizedRefNamesCache.get(name);
-  }
-
+export const normalizeRefName = memo(function normalizeRefName(name: string) {
   let normalizedName = name;
 
   if (endsWith(name, '[]')) {
@@ -31,9 +28,8 @@ export function normalizeRefName(name: string) {
     return normalizedName.replace(NAMESPACED_REF_REGEX, '');
   }
 
-  normalizedRefNamesCache.set(name, normalizedName);
   return normalizedName;
-}
+});
 
 /**
  * Filter refs belonging to the related Base instance.
@@ -87,7 +83,7 @@ function __register(that: RefsManager, refName: string) {
     that.__eventsManager.bindRef(refName, refs);
   }
 
-  Object.defineProperty(that, propName, {
+  Object.defineProperty(that, camelCase(propName), {
     // @todo remove usage of non-multiple refs as array
     value: isMultiple || refs.length > 1 ? refs : refs[0],
     enumerable: true,
