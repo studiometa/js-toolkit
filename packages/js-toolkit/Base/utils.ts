@@ -111,17 +111,6 @@ export function getEventTarget(
   if (eventIsNative(event, instance.$el)) {
     return instance.$el;
   }
-
-  if (isDev) {
-    console.warn(
-      `[${config.name}]`,
-      `The "${event}" event is missing from the configuration and is not a native`,
-      `event for the root element of type \`${instance.$el.constructor.name}\`.`,
-    );
-  }
-
-  // @todo v3 return false or null
-  return instance;
 }
 
 const instances = new Set<Base>();

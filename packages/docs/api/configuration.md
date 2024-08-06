@@ -123,7 +123,7 @@ The [lazy import helpers](/api/helpers/#lazy-import-helpers) can be used to mana
 - Type : `Array<String>`
 - Default : `[]`
 
-Define the refs of the components by specifying their name in the configuration. Multiple refs should be suffixed with `[]`.
+Define the refs of the components by specifying their name in the configuration. Multiple refs should be suffixed with `[]`. Refs names can be configured and used in HTML following the `dash-case` pattern, and will be available in the `this.$refs` object following the `camelCase` pattern.
 
 ```html
 <div data-component="Component">
@@ -132,8 +132,8 @@ Define the refs of the components by specifying their name in the configuration.
     <li data-ref="items[]">#1</li>
   </ul>
   <ul>
-    <li data-ref="otherItems[]">#1</li>
-    <li data-ref="otherItems[]">#2</li>
+    <li data-ref="other-items[]">#1</li>
+    <li data-ref="other-items[]">#2</li>
   </ul>
   <!-- Refs can be prefixed by the name of their component (in HTML only)  -->
   <input data-ref="Component.input" type="text" />
@@ -144,13 +144,13 @@ Define the refs of the components by specifying their name in the configuration.
 class Component extends Base {
   static config = {
     name: 'Component',
-    refs: ['btn', 'items[]', 'otherItems[]'],
+    refs: ['btn', 'items[]', 'other-items[]'],
   };
 
   mounted() {
     this.$refs.btn; // <button data-ref="btn">Click me</button>
     this.$refs.items; // [<li data-ref="items[]">#1</li>]
-    this.$refs.otherItems; // [<li data-ref="otherItems[]">#1</li>, <li data-ref="otherItems[]">#2</li>]
+    this.$refs.otherItems; // [<li data-ref="other-items[]">#1</li>, <li data-ref="other-items[]">#2</li>]
   }
 }
 ```
@@ -203,11 +203,11 @@ The debug logs are conditionnally rendered base on a `__DEV__` global variable w
 **Example Webpack configuration**
 
 ```js
-const { DefinePlugin } = require('webpack');
+import webpack from 'webpack';
 
-module.exports = {
+export default {
   plugins: [
-    new DefinePlugin({
+    new webpack.DefinePlugin({
       __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
     }),
   ],

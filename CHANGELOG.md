@@ -4,7 +4,18 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
-## [v3.0.0-alpha.6](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.5..3.0.0-alpha.6) (2023-08-02)
+## [v3.0.0-alpha.7](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.6..3.0.0-alpha.7) (2024-08-06)
+
+### Added
+
+- Add `camelCase`, `pascalCase`, `snakeCase` and `dashCase` functions ([#506](https://github.com/studiometa/js-toolkit/pull/506), [c753a16](https://github.com/studiometa/js-toolkit/commit/c753a16))
+- Add a `memo` function as a simpler and smaller `memoize` alternative ([#506](https://github.com/studiometa/js-toolkit/pull/506), [980a0b3](https://github.com/studiometa/js-toolkit/commit/980a0b3))
+
+### Changed
+
+- Convert ref names to camelCase ([#338](https://github.com/studiometa/js-toolkit/issues/338), [#506](https://github.com/studiometa/js-toolkit/pull/506), [1f5dbd9](https://github.com/studiometa/js-toolkit/commit/1f5dbd9))
+
+## [v3.0.0-alpha.6](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.5..3.0.0-alpha.6) (2024-08-02)
 
 ### Changed
 
@@ -17,14 +28,15 @@ All notable changes to this project will be documented in this file. The format 
 ### Fixed
 
 - Fix a bug where refs could be undefined ([c11eb49](https://github.com/studiometa/js-toolkit/commit/c11eb49))
+- ⚠️ Fix listening to unconfigured events ([#505](https://github.com/studiometa/js-toolkit/pull/505), [a1e8dc9](https://github.com/studiometa/js-toolkit/commit/a1e8dc9))
 
-## [v3.0.0-alpha.5](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.4..3.0.0-alpha.5) (2023-07-16)
+## [v3.0.0-alpha.5](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.4..3.0.0-alpha.5) (2024-07-16)
 
 ### Changed
 
 - Change behaviour of the `getInstances` helper ([#484](https://github.com/studiometa/js-toolkit/pull/484))
 
-## [v3.0.0-alpha.4](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.3..3.0.0-alpha.4) (2023-07-05)
+## [v3.0.0-alpha.4](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.3..3.0.0-alpha.4) (2024-07-05)
 
 ### Added
 
@@ -35,7 +47,7 @@ All notable changes to this project will be documented in this file. The format 
 
 - Fix code coverage reports ([#474](https://github.com/studiometa/js-toolkit/pull/474))
 
-## [v3.0.0-alpha.3](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.2..3.0.0-alpha.3) (2023-04-17)
+## [v3.0.0-alpha.3](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.2..3.0.0-alpha.3) (2024-04-17)
 
 ### Added
 
@@ -46,7 +58,7 @@ All notable changes to this project will be documented in this file. The format 
 - ⚠️ Enable the `asyncChildren` feature by default ([#427](https://github.com/studiometa/js-toolkit/pull/427))
 - ⚠️ Rename the `asyncChildren` feature to `blocking` ([#427](https://github.com/studiometa/js-toolkit/pull/427))
 
-## [v3.0.0-alpha.2](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.1..3.0.0-alpha.2) (2023-04-04)
+## [v3.0.0-alpha.2](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.1..3.0.0-alpha.2) (2024-04-04)
 
 ### Added
 
@@ -56,7 +68,7 @@ All notable changes to this project will be documented in this file. The format 
 
 - Fix an import path ([#426](https://github.com/studiometa/js-toolkit/pull/426), [9722d74](https://github.com/studiometa/js-toolkit/commit/9722d74))
 
-## [v3.0.0-alpha.1](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.0..3.0.0-alpha.1) (2023-04-04)
+## [v3.0.0-alpha.1](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.0..3.0.0-alpha.1) (2024-04-04)
 
 ### Added
 
@@ -66,7 +78,7 @@ All notable changes to this project will be documented in this file. The format 
 
 - Fix `ease...` tests ([#425](https://github.com/studiometa/js-toolkit/pull/425))
 
-## [v3.0.0-alpha.0](https://github.com/studiometa/js-toolkit/compare/2.12.0..3.0.0-alpha.0) (2023-04-03)
+## [v3.0.0-alpha.0](https://github.com/studiometa/js-toolkit/compare/2.12.0..3.0.0-alpha.0) (2024-04-03)
 
 ### Added
 

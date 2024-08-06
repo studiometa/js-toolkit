@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Base, BaseConfig } from '@studiometa/js-toolkit';
+import { dashCase, pascalCase } from '@studiometa/js-toolkit/utils';
 import { h } from '#test-utils';
-import { normalizeEventName, normalizeName } from '#private/Base/managers/EventsManager.js';
 
 function getContext() {
   const rootElementFn = vi.fn();
@@ -323,7 +323,7 @@ describe('The EventsManager class', () => {
     ];
 
     for (const [input, output] of names) {
-      expect(normalizeName(input)).toBe(output);
+      expect(pascalCase(input)).toBe(output);
     }
   });
 
@@ -334,7 +334,7 @@ describe('The EventsManager class', () => {
     ];
 
     for (const [input, output] of names) {
-      expect(normalizeEventName(input)).toBe(output);
+      expect(dashCase(input)).toBe(output);
     }
   });
 

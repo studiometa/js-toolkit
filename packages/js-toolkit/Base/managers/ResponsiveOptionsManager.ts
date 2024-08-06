@@ -21,8 +21,8 @@ function __getResponsiveName(that: ResponsiveOptionsManager, name: string) {
   }
 
   let responsiveName = name;
-  const propertyName = __getPropertyName(name);
-  const regex = new RegExp(`${propertyName}:(.+)$`);
+  const propertyName = __getPropertyName(name).toLowerCase();
+  const regex = new RegExp(`${propertyName}:(.+)$`, 'i');
   const attributes = features.get('attributes');
   const dataOptionRegExp = new RegExp(`^${attributes.option}-`);
 
