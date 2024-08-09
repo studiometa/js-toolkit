@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Changed
+
+- Dispatch custom events on the root element ([#509](https://github.com/studiometa/js-toolkit/pull/509), [3cdc607](https://github.com/studiometa/js-toolkit/commit/3cdc607))
+
 ## [v3.0.0-alpha.7](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.6..3.0.0-alpha.7) (2024-08-06)
 
 ### Added
