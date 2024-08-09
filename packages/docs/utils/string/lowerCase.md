@@ -17,4 +17,3 @@ lowerCase('Some String Content'); // some string content
 ### Return value
 
 - `string`: The transformed string.
-

@@ -54,7 +54,7 @@ describe('The instance helpers', () => {
 
     const foo = new Foo(h('div'));
     new Bar(h('div'));
-    foo.dispatchEvent(new CustomEvent('mounted'));
+    foo.$emit(new CustomEvent('mounted'));
 
     expect(getInstances(Foo)).toHaveLength(1);
     expect(getInstances(Bar)).toHaveLength(0);
@@ -67,7 +67,7 @@ describe('The instance helpers', () => {
     const instances = getInstances();
     expect(instances).toBeInstanceOf(Set);
     expect(getInstances().has(foo)).toBe(false);
-    foo.dispatchEvent(new CustomEvent('mounted'));
+    foo.$emit(new CustomEvent('mounted'));
     expect(getInstances().has(foo)).toBe(true);
   });
 });

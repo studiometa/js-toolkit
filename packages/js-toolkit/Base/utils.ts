@@ -101,12 +101,8 @@ export function getEventTarget(
   instance: Base,
   event: string,
   config: BaseConfig,
-): Base | Base['$el'] {
-  if (eventIsDefinedInConfig(event, config)) {
-    return instance;
-  }
-
-  if (eventIsNative(event, instance.$el)) {
+): Base['$el'] {
+  if (eventIsDefinedInConfig(event, config) || eventIsNative(event, instance.$el)) {
     return instance.$el;
   }
 }

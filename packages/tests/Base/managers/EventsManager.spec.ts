@@ -225,7 +225,7 @@ describe('The EventsManager class', () => {
     await app.$mount();
     expect(componentFn).toHaveBeenCalledTimes(2);
     const event = new CustomEvent('custom-event', { detail: [1, 2] });
-    app.$children.Component[0].dispatchEvent(event);
+    app.$children.Component[0].$emit(event);
     expect(componentFn).toHaveBeenCalledTimes(3);
     expect(componentFn).toHaveBeenLastCalledWith({
       event,
@@ -240,7 +240,7 @@ describe('The EventsManager class', () => {
       target: app.$children.Component[0],
     });
     const event2 = new CustomEvent('custom-event');
-    app.$children.Component[0].dispatchEvent(event2);
+    app.$children.Component[0].$emit(event2);
     expect(componentFn).toHaveBeenLastCalledWith({
       event: event2,
       args: [],
@@ -271,10 +271,10 @@ describe('The EventsManager class', () => {
     expect(componentFn).not.toHaveBeenCalled();
     await app.$destroy();
     expect(componentFn).not.toHaveBeenCalled();
-    app.$children.Component[0].dispatchEvent(event);
+    app.$children.Component[0].$emit(event);
     expect(componentFn).not.toHaveBeenCalled();
     await app.$mount();
-    app.$children.Component[0].dispatchEvent(event);
+    app.$children.Component[0].$emit(event);
     expect(componentFn).toHaveBeenLastCalledWith({
       event,
       args: [1, 2],
