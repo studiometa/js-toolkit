@@ -17,4 +17,3 @@ snakeCase('Some String Content'); // some_string_content
 ### Return value
 
 - `string`: The transformed string.
-

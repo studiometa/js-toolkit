@@ -1,1 +1,6 @@
 @import 'tailwindcss/utilities';
+
+.VPHomeHero .name,
+.VPHomeHero .text {
+  max-width: none !important;
+}
