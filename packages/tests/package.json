@@ -1,17 +1,17 @@
 {
   "name": "@studiometa/js-toolkit-tests",
-  "version": "3.0.0-alpha.7",
+  "version": "3.0.0-alpha.8",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "vitest"
   },
   "dependencies": {
-    "@happy-dom/global-registrator": "^14.7.1",
+    "@happy-dom/global-registrator": "^14.12.3",
     "@jest/fake-timers": "^29.7.0",
     "@jest/types": "^29.6.3",
     "@vitest/coverage-v8": "^2.0.5",
-    "happy-dom": "^14.7.1",
+    "happy-dom": "^14.12.3",
     "vitest": "2.0.5"
   },
   "imports": {

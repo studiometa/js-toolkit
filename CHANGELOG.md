@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.8](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.7..3.0.0-alpha.8) (2024-08-21)
+
+### Changed
+
+- ⚠️ Dispatch custom events on the root element ([#509](https://github.com/studiometa/js-toolkit/pull/509), [3cdc607](https://github.com/studiometa/js-toolkit/commit/3cdc607))
+- Update NPM dependencies ([6ee2d3f](https://github.com/studiometa/js-toolkit/commit/6ee2d3f))
+
 ## [v3.0.0-alpha.7](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.6..3.0.0-alpha.7) (2024-08-06)
 
 ### Added

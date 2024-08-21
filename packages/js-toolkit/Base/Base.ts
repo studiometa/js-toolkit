@@ -62,7 +62,7 @@ export type Managers = {
 /**
  * Base class.
  */
-export class Base<T extends BaseProps = BaseProps> extends EventTarget {
+export class Base<T extends BaseProps = BaseProps> {
   /**
    * This is a Base instance.
    */
@@ -263,8 +263,6 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
    * @param {HTMLElement} element The component's root element dd.
    */
   constructor(element: HTMLElement) {
-    super();
-
     if (!element) {
       if (isDev) {
         throw new Error('The root element must be defined.');
@@ -516,12 +514,12 @@ export class Base<T extends BaseProps = BaseProps> extends EventTarget {
    * @param  {any[]}  args  The arguments to apply to the functions bound to this event.
    * @returns {void}
    */
-  $emit(event: string, ...args: unknown[]) {
+  $emit(event: string | Event, ...args: unknown[]) {
     if (isDev) {
       this.__debug('$emit', event, args);
     }
 
-    this.dispatchEvent(new CustomEvent(event, { detail: args }));
+    this.$el.dispatchEvent(event instanceof Event ? event : new CustomEvent(event, { detail: args }));
   }
 
   /**

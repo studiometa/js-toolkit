@@ -129,11 +129,11 @@ export default class Component extends Base {
 
 ## `$emit(event[, ...args])`
 
-Emit an event from the current instance, with optional custom arguments.
+Emit an event from the current instance, with optional custom arguments. The event will be dispatched on the instance root element, allowing other components or scripts to listen to it.
 
 **Parameters**
 
-- `event` (`string`): The name of the event.
+- `event` (`string | Event`): The name of the event or an `Event` instance.
 - `...args` (`any[]`): The data to send with the event.
 
 **Example**
