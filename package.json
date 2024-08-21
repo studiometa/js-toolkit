@@ -7,7 +7,6 @@
     "packages/*"
   ],
   "scripts": {
-    "postinstall": "patch-package",
     "demo:dev": "npm run dev --workspace=@studiometa/js-toolkit-demo",
     "demo:watch": "npm run watch --workspace=@studiometa/js-toolkit-demo",
     "demo:build": "npm run build --workspace=@studiometa/js-toolkit-demo",
@@ -31,15 +30,13 @@
   },
   "devDependencies": {
     "@studiometa/prettier-config": "4.1.0",
-    "@studiometa/stylelint-config": "4.0.0",
     "@types/node": "20.14.12",
     "oxlint": "0.6.1",
-    "patch-package": "8.0.0",
     "prettier": "3.3.3",
     "typescript": "5.5.4"
   },
   "dependencies": {
-    "esbuild": "^0.23.0",
+    "esbuild": "^0.23.1",
     "fast-glob": "^3.3.2"
   },
   "prettier": "@studiometa/prettier-config"
