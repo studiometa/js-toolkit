@@ -163,3 +163,12 @@ class MyComponent extends Base {
   }
 }
 ```
+
+## Custom events are now emitted on the root element
+
+In v2, events defined on an instance were dispatched on the instance itself. With v3, the custom events defined in the [`config.emits` configuration](/api/configuration.html#config-emits) are now dispatched on the instance root element.
+
+This is considered a breaking change for the following reason:
+
+- The `Base` class no longer extends the `EventTarget` class
+- Custom event emitted might conflict with native events

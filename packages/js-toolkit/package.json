@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit",
-  "version": "3.0.0-alpha.7",
+  "version": "3.0.0-alpha.8",
   "description": "A set of useful little bits of JavaScript to boost your project! 🚀",
   "publishConfig": {
     "access": "public"
@@ -39,7 +39,7 @@
     "toolkit"
   ],
   "dependencies": {
-    "@motionone/easing": "^10.17.0",
+    "@motionone/easing": "^10.18.0",
     "deepmerge": "^4.3.1"
   }
 }
