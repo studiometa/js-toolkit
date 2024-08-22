@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.9](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.8..3.0.0-alpha.9) (2024-08-22)
+
+### Fixed
+
+- Fix a bug where unexisting methods were called on event dispatch ([#512](https://github.com/studiometa/js-toolkit/pull/512), [fe65d3d](https://github.com/studiometa/js-toolkit/commit/fe65d3d))
+
 ## [v3.0.0-alpha.8](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.7..3.0.0-alpha.8) (2024-08-21)
 
 ### Changed

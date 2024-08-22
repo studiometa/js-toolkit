@@ -209,8 +209,15 @@ export class ChildrenManager extends AbstractManager {
       return [];
     }
 
-    return elements
-      .map((element) => __getChild(this, element, component))
-      .filter((instance) => instance !== 'terminated');
+
+    const children = [];
+    for (const element of elements) {
+      const child = __getChild(this, element, component);
+      if (child !== 'terminated') {
+        children.push(child);
+      }
+    }
+
+    return children;
   }
 }
