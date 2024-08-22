@@ -26,13 +26,21 @@ export function getDirectChildren<T extends Base = Base>(
     return children as T[];
   }
 
-  return [...children].filter((child) =>
-    [...nestedParents].every((nestedParent) => {
+  const directChildren = [];
+
+  for (const child of children) {
+    for (const nestedParent of nestedParents) {
       const nestedChildren = nestedParent.$children[childrenName] as Base<BaseProps>[];
-      /* istanbul ignore next */
-      return isArray(nestedChildren) ? !nestedChildren.includes(child) : true;
-    }),
-  ) as T[];
+
+      if (isArray(nestedChildren) && nestedChildren.includes(child)) {
+        continue;
+      }
+
+      directChildren.push(child);
+    }
+  }
+
+  return directChildren;
 }
 
 /**

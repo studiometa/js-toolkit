@@ -63,12 +63,14 @@ function __register(that: RefsManager, refName: string) {
   const propName = normalizeRefName(refName);
   const { name } = that.__base.$options;
   const attributes = features.get('attributes');
+  const refs = [] as HTMLElement[];
+  const selector = `[${attributes.ref}="${refName}"],[${attributes.ref}="${name}.${refName}"]`;
 
-  const refs = Array.from(
-    that.__element.querySelectorAll<HTMLElement>(
-      `[${attributes.ref}="${refName}"],[${attributes.ref}="${name}.${refName}"]`,
-    ),
-  ).filter((ref) => refBelongToInstance(ref, that.__element, name));
+  for (const ref of that.__element.querySelectorAll<HTMLElement>(selector)) {
+    if (refBelongToInstance(ref, that.__element, name)) {
+      refs.push(ref);
+    }
+  }
 
   /* v8 ignore next 7 */
   if (isDev && !isMultiple && refs.length > 1) {
