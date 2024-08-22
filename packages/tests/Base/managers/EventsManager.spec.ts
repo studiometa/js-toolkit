@@ -357,4 +357,44 @@ describe('The EventsManager class', () => {
     prefixed.dispatchEvent(event);
     expect(prefixedRefFn).not.toHaveBeenCalled();
   });
+
+  it('should not call undefined `on...` methods', async () => {
+    const fn = vi.fn();
+
+    class Foo extends Base {
+      static config = {
+        name: 'Foo',
+        emits: ['custom-event'],
+      };
+    }
+
+    class Bar extends Base {
+      static config = {
+        name: 'Bar',
+      };
+    }
+
+    class App extends Base<{ $children: { Foo: Foo[], Bar: Bar[] } }> {
+      static config = {
+        name: 'App',
+        components: {
+          Bar,
+          Foo,
+        },
+      };
+
+      onFooCustomEvent() {
+        fn();
+      }
+    }
+
+    const div = h('div', [h('div', { dataComponent: 'Foo Bar' })]);
+    const app = new App(div);
+    await app.$mount();
+
+    const event = new CustomEvent('custom-event');
+    const [foo] = app.$children.Foo;
+    foo.$emit(event)
+    expect(fn).toHaveBeenCalledOnce();
+  });
 });

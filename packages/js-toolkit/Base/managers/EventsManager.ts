@@ -1,4 +1,4 @@
-import type { Base } from '../index.js';
+import type { Base, BaseProps } from '../index.js';
 import getAllProperties from '../../utils/object/getAllProperties.js';
 import { dashCase, isArray, pascalCase } from '../../utils/index.js';
 import { getEventTarget, eventIsNative, eventIsDefinedInConfig } from '../utils.js';
@@ -209,7 +209,7 @@ export class EventsManager extends AbstractManager {
       this.__base[method](
         normalizeParams({
           event,
-          args: isCustomEvent ? event.detail ?? [] : [],
+          args: isCustomEvent ? (event.detail ?? []) : [],
           target: isCustomEvent ? this.__base : this.__element,
         }),
       );
@@ -281,25 +281,25 @@ export class EventsManager extends AbstractManager {
     handleEvent: (event: CustomEvent) => {
       const childrenManager = this.__base.$children;
 
-      // @todo handle async child components
-      const { name, child: resolvedChild } = childrenManager.registeredNames
-        .map((childName) => ({
-          name: childName,
-          child: [...childrenManager[childName]].find(
-            // @ts-ignore
-            (instance) => instance === event.currentTarget || instance.$el === event.currentTarget,
-          ),
-        }))
-        .find(({ child }) => child);
+      for (const childName of childrenManager.registeredNames) {
+        let index = -1;
 
-      const normalizedChildName = pascalCase(name);
-      const normalizedEventName = pascalCase(event.type);
-      const method = `on${normalizedChildName}${normalizedEventName}`;
+        for (const child of childrenManager[childName] as Base<BaseProps>[]) {
+          index++;
 
-      const index = [...childrenManager[name]].indexOf(resolvedChild);
-
-      const args = isArray(event.detail) ? event.detail : [];
-      this.__base[method](normalizeParams({ event, index, args, target: resolvedChild }));
+          if (
+            child.$el === event.target &&
+            (eventIsNative(event.type, child.$el) ||
+              eventIsDefinedInConfig(event.type, child.__config))
+          ) {
+            const normalizedEventName = pascalCase(event.type);
+            const normalizedChildName = pascalCase(childName);
+            const method = `on${normalizedChildName}${normalizedEventName}`;
+            const args = isArray(event.detail) ? event.detail : [];
+            this.__base[method](normalizeParams({ event, index, args, target: child }));
+          }
+        }
+      }
     },
   };
 
