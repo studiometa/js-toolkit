@@ -1,7 +1,7 @@
 import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
 import type { Features } from '../Base/features.js';
 import { features } from '../Base/features.js';
-import { isBoolean, isObject } from '../utils/index.js';
+import { isBoolean, isObject, isString } from '../utils/index.js';
 
 export type CreateAppOptions = Partial<Features> & {
   root?: HTMLElement;
@@ -20,6 +20,7 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
     root = document.body,
     breakpoints = null,
     blocking = null,
+    prefix = null,
     attributes = null,
   } = options instanceof HTMLElement ? { root: options } : options;
 
@@ -31,12 +32,16 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
     features.set('blocking', blocking);
   }
 
+  if (isString(prefix)) {
+    features.set('prefix', prefix);
+  }
+
   if (isObject(attributes)) {
     features.set('attributes', attributes);
   }
 
   async function init() {
-    app = (new App(root) as S & Base<T>)
+    app = new App(root) as S & Base<T>;
     await app.$mount();
     return app;
   }
