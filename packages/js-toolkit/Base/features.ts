@@ -32,7 +32,7 @@ export const features = new Map<keyof Features, Features[keyof Features]>([
   [
     'attributes',
     {
-      prefix: 'js',
+      prefix: 'tk',
       component: 'data-component',
       option: 'data-option',
       ref: 'data-ref'
