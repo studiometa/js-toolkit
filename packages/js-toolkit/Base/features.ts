@@ -2,6 +2,7 @@ export type Features = {
   blocking: boolean;
   breakpoints: Record<string, string>;
   attributes: {
+    prefix: string;
     component: string;
     option: string;
     ref: string;
@@ -31,6 +32,7 @@ export const features = new Map<keyof Features, Features[keyof Features]>([
   [
     'attributes',
     {
+      prefix: 'js',
       component: 'data-component',
       option: 'data-option',
       ref: 'data-ref'
