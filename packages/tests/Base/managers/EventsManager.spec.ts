@@ -11,6 +11,7 @@ function getContext() {
   const multipleRefFn = vi.fn();
   const prefixedRefFn = vi.fn();
   const componentFn = vi.fn();
+  const onComponentPointerdown = vi.fn();
   const componentInnerFn = vi.fn();
   const asyncComponentFn = vi.fn();
 
@@ -88,6 +89,10 @@ function getContext() {
       componentFn(...args);
     }
 
+    onComponentPointerdown(...args) {
+      onComponentPointerdown(...args);
+    }
+
     onAsyncComponentMounted(...args) {
       asyncComponentFn(...args);
     }
@@ -107,7 +112,7 @@ function getContext() {
     <div data-ref="single"></div>
     <div data-ref="multiple[]"></div>
     <div data-ref="multiple[]"></div>
-    <div data-component="Component"></div>
+    <div data-component="Component"><span></span></div>
     <div data-component="Component"></div>
     <div data-component="AsyncComponent"></div>
     <div data-ref="App.prefixed"></div>
@@ -117,6 +122,7 @@ function getContext() {
   const single = tpl.querySelector('[data-ref="single"]') as HTMLElement;
   const prefixed = tpl.querySelector('[data-ref="App.prefixed"]') as HTMLElement;
   const multiple = Array.from(tpl.querySelectorAll('[data-ref="multiple[]"]')) as HTMLElement[];
+  const component = tpl.querySelector('[data-component="Component"]') as HTMLElement;
   const app = new App(tpl);
   const clickEvent = new Event('click');
 
@@ -131,6 +137,8 @@ function getContext() {
     singleRefFn,
     multipleRefFn,
     componentFn,
+    component,
+    onComponentPointerdown,
     componentInnerFn,
     asyncComponentFn,
     documentFn,
@@ -288,6 +296,13 @@ describe('The EventsManager class', () => {
       target: app.$children.Component[0],
     });
     await app.$destroy();
+  });
+
+  it('can listen to event dispatched from nested DOM children (bubbling up)', async () => {
+    const { onComponentPointerdown, component, app } = getContext();
+    await app.$mount()
+    component.firstElementChild.dispatchEvent(new PointerEvent('pointerdown', { bubbles:true }));
+    expect(onComponentPointerdown).toHaveBeenCalledTimes(1);
   });
 
   it('can bind and unbind event methods to async children', async () => {
