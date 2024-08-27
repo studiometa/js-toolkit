@@ -288,7 +288,7 @@ export class EventsManager extends AbstractManager {
           index++;
 
           if (
-            child.$el === event.target &&
+            child.$el === event.currentTarget &&
             (eventIsNative(event.type, child.$el) ||
               eventIsDefinedInConfig(event.type, child.__config))
           ) {
