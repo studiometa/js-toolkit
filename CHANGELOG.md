@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.10](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.9..3.0.0-alpha.10) (2024-08-27)
+
 ### Fixed
 
 - Fix triggering of event hook with bubbling events ([#515](https://github.com/studiometa/js-toolkit/issues/515), [#516](https://github.com/studiometa/js-toolkit/pull/516), [016b305](https://github.com/studiometa/js-toolkit/commit/016b305))
