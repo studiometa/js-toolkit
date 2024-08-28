@@ -1,8 +1,19 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Base, withName, getInstances } from '@studiometa/js-toolkit';
 import { nextTick } from '@studiometa/js-toolkit/utils';
-import { getComponentElements, addToQueue } from '#private/Base/utils.js';
+import { getComponentElements, addToQueue, getSelector } from '#private/Base/utils.js';
 import { h, mockFeatures } from '#test-utils';
+
+describe('The `getSelector` function', () => {
+  it('should return a list of selectors', () => {
+    expect(getSelector('Foo')).toMatchInlineSnapshot(
+      `"tk-foo,[data-component="Foo"],[data-component*=" Foo "],[data-component$=" Foo"],[data-component^="Foo "]"`,
+    );
+    expect(getSelector('FooBar')).toMatchInlineSnapshot(
+      `"tk-foo-bar,[data-component="FooBar"],[data-component*=" FooBar "],[data-component$=" FooBar"],[data-component^="FooBar "]"`,
+    );
+  });
+});
 
 describe('The `getComponentElements` function', () => {
   it('should find components with multiple declarations', () => {
@@ -33,7 +44,7 @@ describe('The `getComponentElements` function', () => {
 
 describe('The `addToQueue` function', () => {
   it('should delay given tasks if the `blocking` feature is disabled', async () => {
-    const { unmock } = mockFeatures({ blocking: false })
+    const { unmock } = mockFeatures({ blocking: false });
     const fn = vi.fn();
 
     addToQueue(fn);
