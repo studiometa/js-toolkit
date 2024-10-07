@@ -13,7 +13,7 @@ import {
 import type { Base } from '../index.js';
 import { features } from '../features.js';
 
-type OptionType =
+export type OptionType =
   | StringConstructor
   | NumberConstructor
   | BooleanConstructor
