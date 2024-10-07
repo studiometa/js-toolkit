@@ -13,8 +13,8 @@
     "lint:prettier": "prettier --cache ./src/**/*.twig"
   },
   "dependencies": {
-    "@studiometa/ui": "^1.0.0-alpha.5",
-    "tailwindcss": "^3.4.10"
+    "@studiometa/ui": "^1.0.0-alpha.7",
+    "tailwindcss": "^3.4.12"
   },
   "devDependencies": {
     "@studiometa/eslint-config": "^4.1.0",
@@ -23,9 +23,9 @@
     "@studiometa/tailwind-config": "^2.1.0",
     "@studiometa/webpack-config": "^6.1.0",
     "@studiometa/webpack-config-preset-prototyping": "^6.1.0",
-    "eslint": "^9.9.0",
+    "eslint": "^9.11.0",
     "prettier": "^3.3.3",
-    "stylelint": "^16.8.2"
+    "stylelint": "^16.9.0"
   },
   "prettier": "@studiometa/prettier-config",
   "stylelint": {
