@@ -1,18 +1,6 @@
 import { describe, test as it, expect, beforeEach, vi } from 'vitest';
 import { historyPush as push, historyReplace as replace } from '@studiometa/js-toolkit/utils';
 
-const keys = [
-  'href',
-  'origin',
-  'protocol',
-  'host',
-  'hostname',
-  'port',
-  'pathname',
-  'search',
-  'hash',
-];
-
 let location = new URL('/', 'http://localhost');
 
 function updateLocation(url) {

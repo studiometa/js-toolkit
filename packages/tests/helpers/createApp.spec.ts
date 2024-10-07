@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Base, createApp } from '@studiometa/js-toolkit';
-import { wait } from '@studiometa/js-toolkit/utils';
 import {
   h,
   useFakeTimers,
@@ -98,7 +97,7 @@ describe('The `createApp` function', () => {
   });
 
   it('should enable given features', () => {
-    const { App, fn, features } = getContext();
+    const { App, features } = getContext();
     expect(features.get('blocking')).toBe(false);
     createApp(App, {
       blocking: true,

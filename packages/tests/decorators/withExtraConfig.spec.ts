@@ -27,7 +27,7 @@ describe('The `withExtraConfig` decorator', () => {
     }
 
     const fn = vi.fn();
-    const Bar = withExtraConfig(Foo, { refs: ['one'] }, { arrayMerge: fn });
+    withExtraConfig(Foo, { refs: ['one'] }, { arrayMerge: fn });
     expect(fn).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,4 +1,4 @@
-import { isArray, isDefined, isDev, SmartQueue } from '../utils/index.js';
+import { isArray, isDefined, SmartQueue } from '../utils/index.js';
 import type { Base, BaseConfig, BaseConstructor } from './index.js';
 import { features } from './features.js';
 

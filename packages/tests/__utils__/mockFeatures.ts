@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import { features } from '#private/Base/features';
 
 const defaultBreakpoints = {
