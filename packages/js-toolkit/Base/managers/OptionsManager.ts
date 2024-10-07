@@ -72,10 +72,8 @@ const UPPERCASE_REGEX = /([A-Z])/g;
 /**
  * Get a property name.
  */
-export const __getPropertyName = memo(function __getPropertyName(name: string, prefix = '') {
-  const attributes = features.get('attributes');
-  const propertyName = `${attributes.option}${prefix ? `-${prefix}` : ''}-${name.replaceAll(UPPERCASE_REGEX, '-$1')}`;
-  return propertyName;
+export const __getPropertyName = memo(function __getPropertyName(name: string, prefix = '', optionAttribute = features.get('attributes').option) {
+  return `${optionAttribute}${prefix ? `-${prefix}` : ''}-${name.replaceAll(UPPERCASE_REGEX, '-$1')}`;
 });
 
 /**
