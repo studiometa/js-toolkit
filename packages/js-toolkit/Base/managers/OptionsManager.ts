@@ -72,10 +72,8 @@ const UPPERCASE_REGEX = /([A-Z])/g;
 /**
  * Get a property name.
  */
-export const __getPropertyName = memo(function __getPropertyName(name: string, prefix = '') {
-  const attributes = features.get('attributes');
-  const propertyName = `${attributes.option}${prefix ? `-${prefix}` : ''}-${name.replaceAll(UPPERCASE_REGEX, '-$1')}`;
-  return propertyName;
+export const __getPropertyName = memo(function __getPropertyName(name: string, prefix = '', optionAttribute = features.get('attributes').option) {
+  return `${optionAttribute}${prefix ? `-${prefix}` : ''}-${name.replaceAll(UPPERCASE_REGEX, '-$1')}`;
 });
 
 /**
@@ -182,12 +180,13 @@ export class OptionsManager extends AbstractManager {
   get(name: string, config: OptionObject) {
     const { type } = config;
     const defaultValue = isFunction(config.default) ? config.default(this.__base) : config.default;
-    const propertyName = __getPropertyName(name);
+    const attributes = features.get('attributes');
+    const propertyName = __getPropertyName(name, '', attributes.option);
     const hasProperty = this.__element.hasAttribute(propertyName);
 
     if (type === Boolean) {
       if (defaultValue) {
-        const negatedPropertyName = __getPropertyName(name, 'no');
+        const negatedPropertyName = __getPropertyName(name, 'no', attributes.option);
         const hasNegatedProperty = this.__element.hasAttribute(negatedPropertyName);
 
         return !hasNegatedProperty;
@@ -229,7 +228,8 @@ export class OptionsManager extends AbstractManager {
    */
   set(name: string, value: unknown, config: OptionObject) {
     const { type, default: defaultValue } = config;
-    const propertyName = __getPropertyName(name);
+    const attributes = features.get('attributes');
+    const propertyName = __getPropertyName(name, '', attributes.option);
 
     if (value.constructor.name !== type.name) {
       if (isDev) {
@@ -244,7 +244,7 @@ export class OptionsManager extends AbstractManager {
     switch (type) {
       case Boolean:
         if (defaultValue) {
-          const negatedPropertyName = __getPropertyName(name, 'no');
+          const negatedPropertyName = __getPropertyName(name, 'no', attributes.option);
 
           if (value) {
             this.__element.removeAttribute(negatedPropertyName);
