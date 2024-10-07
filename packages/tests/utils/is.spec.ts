@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import * as is from '#private/utils/is.js';
-import { isFunction } from '@studiometa/js-toolkit/utils';
 
 const types = {
   boolean: true,

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   Base,
   getInstanceFromElement,
@@ -6,11 +6,7 @@ import {
   withName,
 } from '@studiometa/js-toolkit';
 import type { Base as BaseType } from '@studiometa/js-toolkit';
-import {
-  useMatchMedia,
-  resizeWindow,
-  advanceTimersByTimeAsync,
-} from '#test-utils';
+import { useMatchMedia, resizeWindow } from '#test-utils';
 
 async function getContext() {
   const matchMedia = useMatchMedia('(min-width: 64rem)');
@@ -51,7 +47,7 @@ async function getContext() {
     };
   }
 
-  const app = new App(document.body)
+  const app = new App(document.body);
   await app.$mount();
   const foo = getInstanceFromElement(document.querySelector('[data-component="Foo"]'), Foo);
 
