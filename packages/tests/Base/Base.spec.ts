@@ -446,7 +446,7 @@ describe('A Base instance config', () => {
     const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(true);
     foo.$log('bar');
-    expect(spy).toHaveBeenCalledWith('[Foo]', 'bar');
+    expect(spy).toHaveBeenCalledWith(`[${foo.$id}]`, 'bar');
     spy.mockRestore();
   });
 
@@ -471,7 +471,7 @@ describe('A Base instance config', () => {
     const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(true);
     foo.$warn('bar');
-    expect(spy).toHaveBeenCalledWith('[Foo]', 'bar');
+    expect(spy).toHaveBeenCalledWith(`[${foo.$id}]`, 'bar');
     spy.mockRestore();
   });
 
