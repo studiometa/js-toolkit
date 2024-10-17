@@ -74,10 +74,3 @@ export function loadLink(src: string, options?: LoadElementsOptions) {
 export function loadScript(src: string, options?: LoadElementsOptions) {
   return loadElement(src, 'script', { appendTo: document.head, ...options });
 }
-
-/**
- * Load the given source as a `<style>` element.
- */
-export function loadStyle(src: string, options?: LoadElementsOptions) {
-  return loadElement(src, 'style', options);
-}
