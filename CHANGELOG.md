@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Changed
+
+- Test breakpoint on attribute change for the withBreakpointObserver ([#523](https://github.com/studiometa/js-toolkit/pull/523), [bc45db0](https://github.com/studiometa/js-toolkit/commit/bc45db0))
+- Refactor ref event listener binding ([#523](https://github.com/studiometa/js-toolkit/pull/523), [5f3fe04](https://github.com/studiometa/js-toolkit/commit/5f3fe04))
+- Update happy-dom dependencies ([#523](https://github.com/studiometa/js-toolkit/pull/523), [2391e4a](https://github.com/studiometa/js-toolkit/commit/2391e4a))
+
 ## [v3.0.0-alpha.10](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.9..3.0.0-alpha.10) (2024-08-27)
 
 ### Fixed
