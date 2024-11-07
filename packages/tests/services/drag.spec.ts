@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useDrag } from '@studiometa/js-toolkit';
-import { advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '#test-utils';
+import { h, advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '#test-utils';
 
 function createEvent(type, data = {}, options = {}) {
   const event = new Event(type, options);
@@ -89,20 +89,19 @@ describe('The drag service', () => {
 
   // This test fails when run along the othe one in `drag.spec.js`
   it('should prevent click on child elements while dragging', async () => {
-    let event;
-    const fn = vi.fn((e) => (event = e));
-    const div = document.createElement('div');
-    div.innerHTML = '<div></div>';
+    const span = h('span');
+    const div = h('div', [span]);
     const { add } = useDrag(div, { dampFactor: 0.1 });
 
     add('key', () => ({}));
-    div.firstElementChild?.addEventListener('click', fn);
     div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
     document.dispatchEvent(createEvent('mousemove', { clientX: 0, clientY: 0 }));
     document.dispatchEvent(createEvent('mousemove', { clientX: 11, clientY: 11 }));
     await advanceTimersByTimeAsync(100);
-    div.firstElementChild?.dispatchEvent(new Event('click'));
-    expect(fn).toHaveBeenCalledTimes(1);
-    expect(event.defaultPrevented).toBe(true);
+    const event = new Event('click');
+    const eventSpy = vi.spyOn(event, 'preventDefault');
+    span.dispatchEvent(event);
+    expect(eventSpy).toHaveBeenCalledTimes(1);
+    eventSpy.mockRestore();
   });
 });
