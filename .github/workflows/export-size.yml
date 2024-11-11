@@ -1,4 +1,4 @@
-name: Export size
+name: export-size
 
 on:
   pull_request:
@@ -7,8 +7,7 @@ on:
       - develop
 
 jobs:
-
-  Export-Size:
+  export-size:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
