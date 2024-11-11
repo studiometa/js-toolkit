@@ -30,10 +30,10 @@
   },
   "devDependencies": {
     "@studiometa/prettier-config": "4.1.0",
-    "@types/node": "20.14.12",
-    "oxlint": "0.11.0",
+    "@types/node": "22.9.0",
+    "oxlint": "0.11.1",
     "prettier": "3.3.3",
-    "typescript": "5.5.4"
+    "typescript": "5.6.3"
   },
   "dependencies": {
     "esbuild": "^0.24.0",
