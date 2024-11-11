@@ -3,9 +3,7 @@ export type LoadableElements = {
   iframe: HTMLIFrameElement;
   img: HTMLImageElement;
   link: HTMLLinkElement;
-  object: HTMLObjectElement;
   script: HTMLScriptElement;
-  style: HTMLStyleElement;
   track: HTMLTrackElement;
 };
 
