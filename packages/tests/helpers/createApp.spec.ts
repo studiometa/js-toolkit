@@ -101,6 +101,7 @@ describe('The `createApp` function', () => {
     expect(features.get('blocking')).toBe(false);
     createApp(App, {
       blocking: true,
+      prefix: 'w',
       attributes: {
         component: 'tk-is',
         option: 'tk-opt',
@@ -113,6 +114,7 @@ describe('The `createApp` function', () => {
       },
     });
     expect(features.get('blocking')).toBe(true);
+    expect(features.get('prefix')).toBe('w');
     expect(features.get('attributes')).toEqual({
       component: 'tk-is',
       option: 'tk-opt',

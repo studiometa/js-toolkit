@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Added
 
 - Add loading helpers ([#520](https://github.com/studiometa/js-toolkit/pull/520), [c52bbab](https://github.com/studiometa/js-toolkit/commit/c52bbab))
+- Add support for custom DOM element name to register components ([#514](https://github.com/studiometa/js-toolkit/pull/514), [fe3518a](https://github.com/studiometa/js-toolkit/commit/fe3518a))
 
 ### Changed
 
