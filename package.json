@@ -38,6 +38,5 @@
   "dependencies": {
     "esbuild": "^0.24.0",
     "fast-glob": "^3.3.2"
-  },
-  "prettier": "@studiometa/prettier-config"
+  }
 }
