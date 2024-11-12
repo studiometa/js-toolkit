@@ -1,25 +1,12 @@
-import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import { Base, withBreakpointObserver, withName } from '@studiometa/js-toolkit';
-import {
-  advanceTimersByTimeAsync,
-  h,
-  resizeWindow,
-  useFakeTimers,
-  useMatchMedia,
-  useRealTimers,
-} from '#test-utils';
-
-beforeEach(() => {
-  useFakeTimers();
-});
-
-afterEach(() => {
-  useRealTimers();
-});
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { Base, withBreakpointObserver, withName } from "@studiometa/js-toolkit";
+import { h, resizeWindow, useMatchMedia } from "#test-utils";
 
 async function getContext() {
-  class Foo extends withBreakpointObserver(withName(Base, 'Foo')) {}
-  class FooResponsive extends withBreakpointObserver(withName(Base, 'FooResponsive')) {}
+  class Foo extends withBreakpointObserver(withName(Base, "Foo")) {}
+  class FooResponsive extends withBreakpointObserver(
+    withName(Base, "FooResponsive"),
+  ) {}
 
   class App extends Base<{
     $children: {
@@ -28,7 +15,7 @@ async function getContext() {
     };
   }> {
     static config = {
-      name: 'App',
+      name: "App",
       components: {
         Foo,
         FooResponsive,
@@ -37,7 +24,7 @@ async function getContext() {
   }
 
   const matchMedia = useMatchMedia();
-  const root = h('div');
+  const root = h("div");
   root.innerHTML = `
     <div data-breakpoint>
       <div data-component="Foo"></div>
@@ -49,11 +36,9 @@ async function getContext() {
   `;
   const app = new App(root);
 
-  app.$mount();
-  await advanceTimersByTimeAsync(100);
+  await app.$mount();
   const foo = app.$children.Foo[0];
   const fooResponsive = app.$children.FooResponsive;
-
 
   return {
     root,
@@ -64,31 +49,28 @@ async function getContext() {
   };
 }
 
-describe('The withBreakpointObserver decorator', () => {
-  it('should mount', async () => {
+describe("The withBreakpointObserver decorator", () => {
+  it("should mount", async () => {
     const { app, foo, fooResponsive, matchMedia } = await getContext();
-    matchMedia.useMediaQuery('(min-width: 80rem)');
+    matchMedia.useMediaQuery("(min-width: 80rem)");
     await resizeWindow({ width: 1280 });
-    await advanceTimersByTimeAsync(1);
     expect(app.$isMounted).toBe(true);
     expect(foo.$isMounted).toBe(true);
     expect(fooResponsive[0].$isMounted).toBe(true);
   });
 
-  it('should disable the decorated component', async () => {
+  it("should disable the decorated component", async () => {
     const { fooResponsive, matchMedia } = await getContext();
-    matchMedia.useMediaQuery('(min-width: 48rem)');
+    matchMedia.useMediaQuery("(min-width: 48rem)");
     await resizeWindow({ width: 768 });
-    await advanceTimersByTimeAsync(1);
 
     expect(window.innerWidth).toBe(768);
     expect(fooResponsive[0].$isMounted).toBe(true);
     expect(fooResponsive[1].$isMounted).toBe(true);
     expect(fooResponsive[2].$isMounted).toBe(false);
     expect(fooResponsive[3].$isMounted).toBe(false);
-    matchMedia.useMediaQuery('(min-width: 80rem)');
+    matchMedia.useMediaQuery("(min-width: 80rem)");
     await resizeWindow({ width: 1280 });
-    await advanceTimersByTimeAsync(1);
 
     expect(window.innerWidth).toBe(1280);
     expect(fooResponsive[0].$isMounted).toBe(true);
@@ -96,103 +78,99 @@ describe('The withBreakpointObserver decorator', () => {
     expect(fooResponsive[2].$isMounted).toBe(true);
     expect(fooResponsive[3].$isMounted).toBe(false);
 
-    fooResponsive[0].$options.inactiveBreakpoints = 's m';
+    fooResponsive[0].$options.inactiveBreakpoints = "s m";
 
-    matchMedia.useMediaQuery('(min-width: 48rem)');
+    matchMedia.useMediaQuery("(min-width: 48rem)");
     await resizeWindow({ width: 768 });
-    await advanceTimersByTimeAsync(1);
 
     expect(window.innerWidth).toBe(768);
     expect(fooResponsive[0].$isMounted).toBe(false);
 
-    matchMedia.useMediaQuery('(min-width: 80rem)');
+    matchMedia.useMediaQuery("(min-width: 80rem)");
     await resizeWindow({ width: 1280 });
-    await advanceTimersByTimeAsync(1);
+
     expect(fooResponsive[0].$isMounted).toBe(true);
   });
 
-  it('should re-mount component when deleting both breakpoint options', async () => {
+  it("should re-mount component when deleting both breakpoint options", async () => {
     const { fooResponsive, matchMedia } = await getContext();
-    matchMedia.useMediaQuery('(min-width: 48rem)');
+    matchMedia.useMediaQuery("(min-width: 48rem)");
     await resizeWindow({ width: 768 });
-    await advanceTimersByTimeAsync(1);
 
     expect(fooResponsive[1].$isMounted).toBe(true);
-    matchMedia.useMediaQuery('(min-width: 64rem)');
+    matchMedia.useMediaQuery("(min-width: 64rem)");
     await resizeWindow({ width: 1024 });
-    await advanceTimersByTimeAsync(1);
 
     expect(fooResponsive[1].$isMounted).toBe(false);
-    delete fooResponsive[1].$el.dataset.optionActiveBreakpoints;
-    delete fooResponsive[1].$el.dataset.optionInActiveBreakpoints;
-    matchMedia.useMediaQuery('(min-width: 48rem)');
+    fooResponsive[1].$el.removeAttribute('data-option-active-breakpoints');
+    fooResponsive[1].$el.removeAttribute('data-option-inactive-breakpoints');
+    matchMedia.useMediaQuery("(min-width: 48rem)");
     await resizeWindow({ width: 768 });
-    await advanceTimersByTimeAsync(1);
 
     expect(fooResponsive[1].$isMounted).toBe(true);
   });
 
-  it('should throw when configuring both breakpoint options', () => {
+  it("should throw when configuring both breakpoint options", () => {
     expect(() => {
       class Bar extends withBreakpointObserver(Base) {
         static config = {
-          name: 'Bar',
+          name: "Bar",
           options: {
-            activeBreakpoints: { type: String, default: 's' },
-            inactiveBreakpoints: { type: String, default: 'm' },
+            activeBreakpoints: { type: String, default: "s" },
+            inactiveBreakpoints: { type: String, default: "m" },
           },
         };
       }
 
       // eslint-disable-next-line no-new
-      new Bar(h('div')).$mount();
+      new Bar(h("div")).$mount();
     }).toThrowError(/Incorrect configuration/);
   });
 
-  it('should destroy components before mounting the others', async () => {
+  it("should destroy components before mounting the others", async () => {
     const { root, matchMedia } = await getContext();
-    matchMedia.useMediaQuery('(min-width: 48rem)');
+    matchMedia.useMediaQuery("(min-width: 48rem)");
     await resizeWindow({ width: 768 });
 
     const fn = vi.fn();
 
     class Mobile extends withBreakpointObserver(Base) {
       static config = {
-        name: 'Mobile',
+        name: "Mobile",
         options: {
-          inactiveBreakpoints: { type: String, default: 'm' },
+          inactiveBreakpoints: { type: String, default: "m" },
         },
       };
 
       mounted() {
-        fn('Mobile', 'mounted');
+        fn("Mobile", "mounted");
       }
 
       destroyed() {
-        fn('Mobile', 'destroyed');
+        fn("Mobile", "destroyed");
       }
     }
 
     class Desktop extends withBreakpointObserver(Base) {
       static config = {
-        name: 'Desktop',
+        name: "Desktop",
         options: {
-          activeBreakpoints: { type: String, default: 'm' },
+          activeBreakpoints: { type: String, default: "m" },
         },
       };
 
       mounted() {
-        fn('Desktop', 'mounted');
+        fn("Desktop", "mounted");
       }
 
       destroyed() {
-        fn('Desktop', 'destroyed');
+        fn("Desktop", "destroyed");
       }
     }
 
     class App1 extends Base {
       static config = {
-        name: 'App',
+        name: "App",
         components: { Mobile, Desktop },
       };
     }
@@ -204,23 +182,21 @@ describe('The withBreakpointObserver decorator', () => {
       </div>
     `;
 
-    matchMedia.useMediaQuery('(min-width: 64rem)');
+    matchMedia.useMediaQuery("(min-width: 64rem)");
     await resizeWindow({ width: 1024 });
-    await advanceTimersByTimeAsync(100);
-    new App1(root).$mount();
-    await advanceTimersByTimeAsync(100);
-    expect(fn).toHaveBeenCalledWith('Desktop', 'mounted');
-    matchMedia.useMediaQuery('(min-width: 48rem)');
+
+    await new App1(root).$mount();
+
+    expect(fn).toHaveBeenCalledWith("Desktop", "mounted");
+    matchMedia.useMediaQuery("(min-width: 48rem)");
     await resizeWindow({ width: 768 });
-    await advanceTimersByTimeAsync(1);
 
-    expect(fn).toHaveBeenNthCalledWith(2, 'Desktop', 'destroyed');
-    expect(fn).toHaveBeenNthCalledWith(3, 'Mobile', 'mounted');
-    matchMedia.useMediaQuery('(min-width: 64rem)');
+    expect(fn).toHaveBeenNthCalledWith(2, "Desktop", "destroyed");
+    expect(fn).toHaveBeenNthCalledWith(3, "Mobile", "mounted");
+    matchMedia.useMediaQuery("(min-width: 64rem)");
     await resizeWindow({ width: 1024 });
-    await advanceTimersByTimeAsync(1);
 
-    expect(fn).toHaveBeenNthCalledWith(4, 'Mobile', 'destroyed');
-    expect(fn).toHaveBeenNthCalledWith(5, 'Desktop', 'mounted');
+    expect(fn).toHaveBeenNthCalledWith(4, "Mobile", "destroyed");
+    expect(fn).toHaveBeenNthCalledWith(5, "Desktop", "mounted");
   });
 });
