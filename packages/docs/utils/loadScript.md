@@ -11,7 +11,7 @@ const src = '/path/to/my/script.js';
 const { event, element } = await loadScript(src);
 
 if (event.type === 'error') {
-  console.log(`Failed to load ${src}: ${event.message}`)
+  console.log(`Failed to load ${src}: ${event.message}`);
 } else {
   console.log(`${src} has been loaded!`);
 }
