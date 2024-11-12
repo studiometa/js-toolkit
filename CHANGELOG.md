@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.11](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.10..3.0.0-alpha.11) (2024-11-12)
+
 ### Added
 
 - Add loading helpers ([#520](https://github.com/studiometa/js-toolkit/pull/520), [c52bbab](https://github.com/studiometa/js-toolkit/commit/c52bbab))
