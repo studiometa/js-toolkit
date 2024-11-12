@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add loading helpers ([#520](https://github.com/studiometa/js-toolkit/pull/520), [c52bbab](https://github.com/studiometa/js-toolkit/commit/c52bbab))
+
 ### Changed
 
 - Test breakpoint on attribute change for the withBreakpointObserver ([#523](https://github.com/studiometa/js-toolkit/pull/523), [bc45db0](https://github.com/studiometa/js-toolkit/commit/bc45db0))

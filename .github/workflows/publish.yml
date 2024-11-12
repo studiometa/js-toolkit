@@ -1,4 +1,4 @@
-name: release
+name: publish-and-release
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - '*.*.*'
 
 jobs:
-  release:
+  publish-and-release:
     runs-on: macos-latest
     permissions:
       contents: write
