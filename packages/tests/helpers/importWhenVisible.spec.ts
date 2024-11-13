@@ -91,7 +91,7 @@ describe('The `importWhenVisible` lazy import helper', () => {
 
     const AppOverride = withExtraConfig(App, {
       components: {
-        Component: (app) => importWhenVisible(() => Promise.resolve(Component), 'body'),
+        Component: () => importWhenVisible(() => Promise.resolve(Component), 'body'),
       },
     });
 

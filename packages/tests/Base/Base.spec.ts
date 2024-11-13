@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Base, BaseConfig, BaseProps, getInstanceFromElement } from '@studiometa/js-toolkit';
 import { ChildrenManager, OptionsManager, RefsManager } from '#private/Base/managers/index.js';
-import { h, advanceTimersByTimeAsync } from '#test-utils';
+import { h } from '#test-utils';
 
 async function getContext() {
   class Foo<T extends BaseProps = BaseProps> extends Base<T> {
@@ -446,7 +446,7 @@ describe('A Base instance config', () => {
     const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(true);
     foo.$log('bar');
-    expect(spy).toHaveBeenCalledWith('[Foo]', 'bar');
+    expect(spy).toHaveBeenCalledWith(`[${foo.$id}]`, 'bar');
     spy.mockRestore();
   });
 
@@ -471,7 +471,7 @@ describe('A Base instance config', () => {
     const foo = new Foo(h('div'));
     expect(foo.$options.log).toBe(true);
     foo.$warn('bar');
-    expect(spy).toHaveBeenCalledWith('[Foo]', 'bar');
+    expect(spy).toHaveBeenCalledWith(`[${foo.$id}]`, 'bar');
     spy.mockRestore();
   });
 
@@ -495,7 +495,7 @@ describe('A Base instance config', () => {
     process.env.NODE_ENV = 'development';
     const spy = vi.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
-    const foo = new Foo(h('div'));
+    new Foo(h('div'));
     for (const args of spy.mock.calls) {
       expect(args[0].startsWith('[debug] [Foo')).toBe(true);
     }

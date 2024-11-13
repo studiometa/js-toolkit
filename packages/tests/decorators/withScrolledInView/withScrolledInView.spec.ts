@@ -10,7 +10,6 @@ import {
   useFakeTimers,
   useRealTimers,
   h,
-  createEvent,
 } from '#test-utils';
 
 beforeAll(() => {

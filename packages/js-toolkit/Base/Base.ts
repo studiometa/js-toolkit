@@ -192,14 +192,14 @@ export class Base<T extends BaseProps = BaseProps> {
    * Small helper to log stuff.
    */
   get $log(): (...args: unknown[]) => void {
-    return this.__options.log ? window.console.log.bind(window, `[${this.__config.name}]`) : noop;
+    return this.__options.log ? window.console.log.bind(window, `[${this.$id}]`) : noop;
   }
 
   /**
    * Small helper to make warning easier.
    */
   get $warn(): (...args: unknown[]) => void {
-    return this.__options.log ? window.console.warn.bind(window, `[${this.__config.name}]`) : noop;
+    return this.__options.log ? window.console.warn.bind(window, `[${this.$id}]`) : noop;
   }
 
   /**

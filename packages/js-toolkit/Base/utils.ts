@@ -1,4 +1,4 @@
-import { isArray, isDefined, isDev, SmartQueue } from '../utils/index.js';
+import { isArray, isDefined, SmartQueue, dashCase } from '../utils/index.js';
 import type { Base, BaseConfig, BaseConstructor } from './index.js';
 import { features } from './features.js';
 
@@ -28,12 +28,15 @@ const separator = ' ';
 /**
  * Get the selector for a given component.
  */
-function getSelector(nameOrSelector: string): string {
+export function getSelector(nameOrSelector: string): string {
   const { component } = features.get('attributes');
-  const key = component + nameOrSelector;
+  const prefix = features.get('prefix');
+  const key = prefix + component + nameOrSelector;
 
   if (!selectors.has(key)) {
     const parts = [
+      // Tag select
+      `${prefix}-${dashCase(nameOrSelector)}`,
       // Single selector
       `[${component}="${nameOrSelector}"]`,
       // Selector in the middle of a list of selectors

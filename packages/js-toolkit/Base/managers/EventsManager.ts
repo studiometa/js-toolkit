@@ -89,9 +89,7 @@ function manageRef(
   for (const method of methods) {
     const event = getEventNameByMethod(method, name);
     for (const element of elements) {
-      if (element instanceof EventTarget) {
-        element[action](event, that.__refsHandler);
-      }
+      element?.[action](event, that.__refsHandler);
     }
   }
 }

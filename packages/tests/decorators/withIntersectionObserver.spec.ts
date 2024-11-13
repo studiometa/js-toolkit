@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 import {
   intersectionObserverBeforeAllCallback,

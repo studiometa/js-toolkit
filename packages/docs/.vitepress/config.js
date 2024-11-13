@@ -258,6 +258,11 @@ function getUtilsSidebar() {
       items: [
         { text: 'debounce', link: '/utils/debounce.html' },
         { text: 'keyCodes', link: '/utils/keyCodes.html' },
+        { text: 'loadElement', link: '/utils/loadElement.html' },
+        { text: 'loadImage', link: '/utils/loadImage.html' },
+        { text: 'loadIframe', link: '/utils/loadIframe.html' },
+        { text: 'loadLink', link: '/utils/loadLink.html' },
+        { text: 'loadScript', link: '/utils/loadScript.html' },
         { text: 'memo', link: '/utils/memo.html' },
         { text: 'memoize', link: '/utils/memoize.html' },
         { text: 'nextFrame', link: '/utils/nextFrame.html' },
