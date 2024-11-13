@@ -1,5 +1,5 @@
 import type { BaseInterface, BaseDecorator } from '../Base/types.js';
-import type { Base, BaseConfig, BaseProps, Managers } from '../Base/index.js';
+import type { Base, BaseProps, Managers } from '../Base/index.js';
 import type { OptionObject, OptionType } from '../Base/managers/OptionsManager.js';
 import {
   ResponsiveOptionsManager,
