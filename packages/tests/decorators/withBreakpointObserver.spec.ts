@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { Base, withBreakpointObserver, withName } from "@studiometa/js-toolkit";
 import { h, resizeWindow, useMatchMedia } from "#test-utils";
 
