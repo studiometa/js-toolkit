@@ -31,3 +31,4 @@ coverage/
 /full.d.ts
 /index.d.ts
 /lcov.info
+/tsconfig.lint.tsbuildinfo
