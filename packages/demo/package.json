@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-demo",
-  "version": "3.0.0-alpha.10",
+  "version": "3.0.0-alpha.11",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,19 +13,19 @@
     "lint:prettier": "prettier --cache ./src/**/*.twig"
   },
   "dependencies": {
-    "@studiometa/ui": "^1.0.0-alpha.5",
-    "tailwindcss": "^3.4.10"
+    "@studiometa/ui": "^1.0.0-alpha.12",
+    "tailwindcss": "^3.4.14"
   },
   "devDependencies": {
-    "@studiometa/eslint-config": "^4.1.0",
-    "@studiometa/prettier-config": "^4.1.0",
-    "@studiometa/stylelint-config": "^4.0.0",
-    "@studiometa/tailwind-config": "^2.1.0",
-    "@studiometa/webpack-config": "^6.1.0",
-    "@studiometa/webpack-config-preset-prototyping": "^6.1.0",
-    "eslint": "^9.9.0",
-    "prettier": "^3.3.3",
-    "stylelint": "^16.8.2"
+    "@studiometa/eslint-config": "4.1.0",
+    "@studiometa/prettier-config": "4.1.0",
+    "@studiometa/stylelint-config": "4.0.0",
+    "@studiometa/tailwind-config": "2.1.0",
+    "@studiometa/webpack-config": "6.2.2",
+    "@studiometa/webpack-config-preset-prototyping": "6.2.2",
+    "eslint": "9.14.0",
+    "prettier": "3.3.3",
+    "stylelint": "16.10.0"
   },
   "prettier": "@studiometa/prettier-config",
   "stylelint": {

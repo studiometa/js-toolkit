@@ -1,11 +1,12 @@
 export type Features = {
   blocking: boolean;
   breakpoints: Record<string, string>;
+  prefix: string;
   attributes: {
     component: string;
     option: string;
     ref: string;
-  }
+  };
 };
 
 interface FeaturesMap extends Map<keyof Features, Features[keyof Features]> {
@@ -28,12 +29,13 @@ export const features = new Map<keyof Features, Features[keyof Features]>([
       xxxl: '160rem', // 2560px
     },
   ],
+  ['prefix', 'tk'],
   [
     'attributes',
     {
       component: 'data-component',
       option: 'data-option',
-      ref: 'data-ref'
-    }
-  ]
+      ref: 'data-ref',
+    },
+  ],
 ]) as FeaturesMap;

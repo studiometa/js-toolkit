@@ -28,6 +28,7 @@ The second parameter can either be one of the following:
    - `options.root` (`HTMLElement`): the root element for your app, defaults to `document.body`
    - `options.breakpoints` (`Record<string, string>`): a list of breakpoints to confgure the [`useResize` service](/api/services/useResize)
    - `options.blocking` (`boolean`): wether to enable the queue mechanism for the internals of the framework or not, defaults to `false`
+   - `options.prefix` (`string`): customize the prefix used to search for components with custom element tag names, defaults to `tk`
    - `options.attributes` (`{ component: string, option: string, ref: string }`): the HTML attributes to use for the [HTML API](/api/html/), defaults to `data-component`, `data-option` and `data-ref`
 
 **Return value**

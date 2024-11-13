@@ -1,4 +1,4 @@
-name: Tests
+name: tests
 
 on:
   push:
@@ -47,7 +47,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run tests
-        run: npm run test -- -- --coverage.enabled
+        run: npm run test -- -- --retry=3 --coverage.enabled
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

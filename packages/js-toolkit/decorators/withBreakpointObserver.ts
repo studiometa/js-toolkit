@@ -1,6 +1,7 @@
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
 import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
 import { useResize } from '../services/index.js';
+import type { ResizeServiceProps } from '../services/index.js';
 import { isDev, startsWith } from '../utils/index.js';
 import { features } from '../Base/features.js';
 
@@ -67,6 +68,24 @@ function testConflictingBreakpointConfiguration(instance: Base<WithBreakpointObs
 }
 
 /**
+ * Callback triggered when the window is resized.
+ */
+function createResizeCallback(
+  instance: Base<WithBreakpointObserverProps>,
+): (resizeProps: ResizeServiceProps) => void {
+  return ({ breakpoint }) => {
+    const action = testBreakpoints(instance, breakpoint);
+
+    // Always destroy before mounting
+    if (action === '$destroy' && instance.$isMounted) {
+      instance[action]();
+    } else if (action === '$mount' && !instance.$isMounted) {
+      setTimeout(() => instance[action](), 0);
+    }
+  };
+}
+
+/**
  * Add the current instance to the resize service.
  *
  * @param {string} key      The key for the resize service callback.
@@ -77,19 +96,12 @@ function addToResize(key, instance) {
     testConflictingBreakpointConfiguration(instance);
   }
 
-  const { add, has } = useResize();
+  const { add, has, props } = useResize();
 
   if (!has(key)) {
-    add(key, ({ breakpoint }) => {
-      const action = testBreakpoints(instance, breakpoint);
-
-      // Always destroy before mounting
-      if (action === '$destroy' && instance.$isMounted) {
-        instance[action]();
-      } else if (action === '$mount' && !instance.$isMounted) {
-        setTimeout(() => instance[action](), 0);
-      }
-    });
+    const callback = createResizeCallback(instance);
+    add(key, callback);
+    callback(props());
   }
 }
 

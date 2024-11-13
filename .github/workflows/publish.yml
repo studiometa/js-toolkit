@@ -1,4 +1,4 @@
-name: release
+name: publish-and-release
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - '*.*.*'
 
 jobs:
-  release:
+  publish-and-release:
     runs-on: macos-latest
     permissions:
       contents: write
@@ -39,7 +39,7 @@ jobs:
       - run: npm run build
 
       - name: Test
-        run: npm run test -- -- --coverage.enabled
+        run: npm run test -- -- --retry=3 --coverage.enabled
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

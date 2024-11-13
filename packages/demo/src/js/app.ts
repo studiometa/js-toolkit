@@ -10,7 +10,7 @@ import {
   importOnMediaQuery,
   BaseConfig,
 } from '@studiometa/js-toolkit';
-import { animate, matrix, tween } from '@studiometa/js-toolkit/utils';
+import { matrix } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
 import Parallax from './components/Parallax.js';
 import ResponsiveOptions from './components/ResponsiveOptions.js';
@@ -27,7 +27,7 @@ let time = performance.now();
 let interval = setInterval(() => {
   const newTime = performance.now();
   numberOfTick += 1;
-  // console.log('#%d blocking time: %d ms', numberOfTick, newTime - time);
+  console.log('#%d blocking time: %d ms', numberOfTick, newTime - time);
   time = newTime;
 
   if (numberOfTick > total * 2) {

@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.11](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.10..3.0.0-alpha.11) (2024-11-12)
+
+### Added
+
+- Add loading helpers ([#520](https://github.com/studiometa/js-toolkit/pull/520), [c52bbab](https://github.com/studiometa/js-toolkit/commit/c52bbab))
+- Add support for custom DOM element name to register components ([#514](https://github.com/studiometa/js-toolkit/pull/514), [fe3518a](https://github.com/studiometa/js-toolkit/commit/fe3518a))
+- **withResponsiveOptions:** add support for defining responsive options in the decorator ([e6543c4](https://github.com/studiometa/js-toolkit/commit/e6543c4))
+
+### Changed
+
+- **withBreakpointObserver:** test breakpoint on attribute change ([#523](https://github.com/studiometa/js-toolkit/pull/523), [bc45db0](https://github.com/studiometa/js-toolkit/commit/bc45db0))
+- Refactor ref event listener binding ([#523](https://github.com/studiometa/js-toolkit/pull/523), [5f3fe04](https://github.com/studiometa/js-toolkit/commit/5f3fe04))
+- Update happy-dom dependencies ([#523](https://github.com/studiometa/js-toolkit/pull/523), [2391e4a](https://github.com/studiometa/js-toolkit/commit/2391e4a))
+
+### Fixed
+
+- Fix caching of options property names ([d1822c0](https://github.com/studiometa/js-toolkit/commit/d1822c0))
+
 ## [v3.0.0-alpha.10](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.9..3.0.0-alpha.10) (2024-08-27)
 
 ### Fixed
