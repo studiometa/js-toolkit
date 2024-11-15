@@ -6,6 +6,14 @@ describe('The package exports', () => {
     expect(Object.keys(toolkit).toSorted()).toMatchInlineSnapshot(`
       [
         "Base",
+        "DragService",
+        "KeyService",
+        "LoadService",
+        "PointerService",
+        "RafService",
+        "ResizeService",
+        "ScrollService",
+        "Service",
         "createApp",
         "getClosestParent",
         "getDirectChildren",
@@ -24,7 +32,6 @@ describe('The package exports', () => {
         "useRaf",
         "useResize",
         "useScroll",
-        "useService",
         "withBreakpointManager",
         "withBreakpointObserver",
         "withDrag",
