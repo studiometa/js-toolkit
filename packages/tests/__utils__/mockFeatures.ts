@@ -17,11 +17,21 @@ const defaultAttributes = {
   ref: 'data-ref',
 };
 
+type MockFeaturesOptions = Partial<{
+  blocking: boolean;
+  breakpoints: Record<string, string>;
+  attributes: {
+    component: string;
+    option: string;
+    ref: string;
+  };
+}>;
+
 export function mockFeatures({
   blocking = true,
   breakpoints = defaultBreakpoints,
   attributes = defaultAttributes,
-} = {}) {
+}: MockFeaturesOptions = {}) {
   features.set('blocking', blocking);
   features.set('breakpoints', breakpoints);
   features.set('attributes', attributes);
