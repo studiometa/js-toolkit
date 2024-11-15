@@ -104,4 +104,32 @@ describe('The drag service', () => {
     expect(eventSpy).toHaveBeenCalledTimes(1);
     eventSpy.mockRestore();
   });
+
+  it('should reset delta props correctly', () => {
+    const fn = vi.fn();
+    const div = h('div');
+    const { add, props } = useDrag(div, { dampFactor: 0.1 });
+
+    add('key', fn);
+
+    // First drag
+    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
+    expect(props().delta).toEqual({ x: 0, y: 0 });
+    document.dispatchEvent(createEvent('mousemove', { clientX: 0, clientY: 0 }));
+    expect(props().delta).toEqual({ x: 0, y: 0 });
+    document.dispatchEvent(createEvent('mousemove', { clientX: 10, clientY: 10 }));
+    expect(props().delta).toEqual({ x: 10, y: 10 });
+    window.dispatchEvent(createEvent('pointerup'));
+    expect(props().mode).toBe('drop');
+
+    // Second drag
+    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
+    expect(props().delta).toEqual({ x: 0, y: 0 });
+    document.dispatchEvent(createEvent('mousemove', { clientX: 0, clientY: 0 }));
+    expect(props().delta).toEqual({ x: 0, y: 0 });
+    document.dispatchEvent(createEvent('mousemove', { clientX: 20, clientY: 20 }));
+    expect(props().delta).toEqual({ x: 20, y: 20 });
+    window.dispatchEvent(createEvent('pointerup'));
+    expect(props().mode).toBe('drop');
+  });
 });
