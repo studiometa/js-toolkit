@@ -1,15 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useDrag } from '@studiometa/js-toolkit';
-import { h, advanceTimersByTimeAsync, useFakeTimers, useRealTimers } from '#test-utils';
-
-function createEvent(type, data = {}, options = {}) {
-  const event = new Event(type, options);
-  for (const [name, value] of Object.entries(data)) {
-    event[name] = value;
-  }
-
-  return event;
-}
+import { h, advanceTimersByTimeAsync, useFakeTimers, useRealTimers, dispatch } from '#test-utils';
 
 describe('The drag service', () => {
   beforeEach(() => useFakeTimers());
@@ -17,11 +8,11 @@ describe('The drag service', () => {
 
   it('should start, drag and drop', () => {
     const fn = vi.fn();
-    const div = document.createElement('div');
+    const div = h('div');
     const { add, props } = useDrag(div, { dampFactor: 0.1 });
 
     add('key', fn);
-    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
+    dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
     expect(fn).toHaveBeenCalledWith({
       target: div,
       mode: 'start',
@@ -38,33 +29,38 @@ describe('The drag service', () => {
 
     const clientX = 10;
     const clientY = 10;
-    document.dispatchEvent(createEvent('mousemove', { clientX, clientY }));
+    dispatch(document, 'mousemove', { clientX, clientY });
     expect(fn).toHaveBeenLastCalledWith(props());
     expect(props().mode).toBe('drag');
 
     // Test double start prevention
-    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
+    dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
     expect(props().mode).toBe('drag');
-    window.dispatchEvent(createEvent('pointerup'));
+    dispatch(window, 'pointerup');
     expect(props().mode).toBe('drop');
   });
 
   it('should run with inertia and stop', async () => {
     const fn = vi.fn();
-    const div = document.createElement('div');
+    const div = h('div');
     const { add, props } = useDrag(div, { dampFactor: 0.2 });
     add('key', fn);
-    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
-    const clientX = window.innerWidth / 2 + 10;
-    const clientY = window.innerHeight / 2 + 10;
-    document.dispatchEvent(createEvent('mousemove', { clientX, clientY }));
+    dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
+    let clientX = window.innerWidth / 2 + 10;
+    let clientY = window.innerHeight / 2 + 10;
+    dispatch(document, 'mousemove', { clientX, clientY });
     await advanceTimersByTimeAsync(100);
-    expect(fn).toHaveBeenLastCalledWith(props());
+    clientX += 100;
+    clientY += 100;
+    dispatch(window, 'pointerup', { clientX, clientY });
+    expect(props().mode).toBe('drop');
+    await advanceTimersByTimeAsync(100);
+    expect(props().mode).toBe('stop');
   });
 
   it('should prevent native drag', () => {
     const fn = vi.fn();
-    const div = document.createElement('div');
+    const div = h('div');
     div.innerHTML = '<div></div>';
     const { add } = useDrag(div, { dampFactor: 0.1 });
 
@@ -76,14 +72,14 @@ describe('The drag service', () => {
 
   it('should not trigger the callback when stopped', () => {
     const fn = vi.fn();
-    const div = document.createElement('div');
+    const div = h('div');
     const { add, remove } = useDrag(div, { dampFactor: 0.2 });
 
     add('key', fn);
-    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
+    dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
     expect(fn).toHaveBeenCalledTimes(1);
     remove('key');
-    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
+    dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
@@ -94,9 +90,9 @@ describe('The drag service', () => {
     const { add } = useDrag(div, { dampFactor: 0.1 });
 
     add('key', () => ({}));
-    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
-    document.dispatchEvent(createEvent('mousemove', { clientX: 0, clientY: 0 }));
-    document.dispatchEvent(createEvent('mousemove', { clientX: 11, clientY: 11 }));
+    dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
+    dispatch(document, 'mousemove', { clientX: 0, clientY: 0 });
+    dispatch(document, 'mousemove', { clientX: 0, clientY: 11 });
     await advanceTimersByTimeAsync(100);
     const event = new Event('click');
     const eventSpy = vi.spyOn(event, 'preventDefault');
@@ -113,23 +109,23 @@ describe('The drag service', () => {
     add('key', fn);
 
     // First drag
-    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
+    dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
     expect(props().delta).toEqual({ x: 0, y: 0 });
-    document.dispatchEvent(createEvent('mousemove', { clientX: 0, clientY: 0 }));
+    dispatch(document, 'touchmove', { touches: [{ clientX: 0, clientY: 0 }] });
     expect(props().delta).toEqual({ x: 0, y: 0 });
-    document.dispatchEvent(createEvent('mousemove', { clientX: 10, clientY: 10 }));
+    dispatch(document, 'touchmove', { touches: [{ clientX: 10, clientY: 10 }] });
     expect(props().delta).toEqual({ x: 10, y: 10 });
-    window.dispatchEvent(createEvent('pointerup'));
+    dispatch(window, 'pointerup');
     expect(props().mode).toBe('drop');
 
     // Second drag
-    div.dispatchEvent(createEvent('pointerdown', { x: 0, y: 0, button: 0 }));
+    dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
     expect(props().delta).toEqual({ x: 0, y: 0 });
-    document.dispatchEvent(createEvent('mousemove', { clientX: 0, clientY: 0 }));
+    dispatch(document, 'touchmove', { touches: [{ clientX: 0, clientY: 0 }] });
     expect(props().delta).toEqual({ x: 0, y: 0 });
-    document.dispatchEvent(createEvent('mousemove', { clientX: 20, clientY: 20 }));
+    dispatch(document, 'touchmove', { touches: [{ clientX: 20, clientY: 20 }] });
     expect(props().delta).toEqual({ x: 20, y: 20 });
-    window.dispatchEvent(createEvent('pointerup'));
+    dispatch(window, 'pointerup');
     expect(props().mode).toBe('drop');
   });
 });
