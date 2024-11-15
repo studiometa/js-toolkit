@@ -23,14 +23,6 @@ describe('useKey', () => {
     expect(typeof props).toBe('function');
   });
 
-  test('callbacks with the same key are not allowed', () => {
-    const warnMock = vi.spyOn(console, 'warn');
-    warnMock.mockImplementation(() => null);
-    add('useKey', () => {});
-    expect(warnMock).toHaveBeenCalledWith('The key `useKey` has already been added.');
-    warnMock.mockRestore();
-  });
-
   test('callback should be triggered on keydown', () => {
     document.dispatchEvent(keydown);
     expect(fn).toHaveBeenCalledTimes(1);

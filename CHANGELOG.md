@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Changed
+
+- Refactor services to classes ([#535](https://github.com/studiometa/js-toolkit/pull/535), [258bb590](https://github.com/studiometa/js-toolkit/commit/258bb590))
+
 ## [v3.0.0-alpha.12](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.11..3.0.0-alpha.12) (2024-11-15)
 
 ### Fixed
