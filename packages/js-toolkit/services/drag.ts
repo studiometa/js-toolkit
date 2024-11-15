@@ -148,6 +148,8 @@ function createDragService(
     props.final.x = inertiaFinalValue(props.x, props.delta.x, dampFactor);
     props.final.y = inertiaFinalValue(props.y, props.delta.y, dampFactor);
 
+    previousEvent = null;
+
     trigger(props);
 
     setTimeout(() => {
