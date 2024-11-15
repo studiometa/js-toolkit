@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-alpha.12](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.11..3.0.0-alpha.12) (2024-11-15)
+
 ### Fixed
 
 - **useDrag:** fix the delta props on multiple drag actions ([#532](https://github.com/studiometa/js-toolkit/issues/532), [#533](https://github.com/studiometa/js-toolkit/pull/533), [c97a8a51](https://github.com/studiometa/js-toolkit/commit/c97a8a51))
