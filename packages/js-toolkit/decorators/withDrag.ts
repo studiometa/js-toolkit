@@ -1,6 +1,6 @@
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
 import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
-import type { DragServiceOptions, DragServiceProps } from '../services/drag.js';
+import type { DragServiceOptions, DragServiceProps } from '../services/index.js';
 import { useDrag } from '../services/index.js';
 
 export type DragDecoratorOptions = DragServiceOptions & {
