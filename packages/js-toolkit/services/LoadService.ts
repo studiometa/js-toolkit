@@ -28,9 +28,7 @@ export class LoadService extends Service<LoadServiceProps> {
 
 /**
  * Use the load service.
- *
- * @returns {LoadService}
  */
-export function useLoad() {
+export function useLoad(): LoadServiceInterface {
   return LoadService.getInstance();
 }
