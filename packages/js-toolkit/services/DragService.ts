@@ -330,11 +330,11 @@ export class DragService extends Service<DragServiceProps> {
  *
  * ```js
  * import { useDrag } from '@studiometa/js-toolkit/services';
- * const { add, remove, props } = useDrag();
- * const draggableElement = document.querySelector('.draggable');
- * add(draggableElement, (props) => {}, { factor: 0.8 });
- * remove(draggableElement);
- * props(draggableElement);
+ * const element = document.querySelector('.draggable');
+ * const { add, remove, props } = useDrag(element, { dampFactor: 0.5 });
+ * add('key', (props) => console.log(props));
+ * remove('key');
+ * props();
  * ```
  */
 export function useDrag(target: HTMLElement, options: DragServiceOptions): DragServiceInterface {

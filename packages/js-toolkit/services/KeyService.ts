@@ -85,6 +85,6 @@ export class KeyService extends Service<KeyServiceProps> {
 /**
  * Use the keyboard service.
  */
-export function useKey(): KeyService {
+export function useKey(): KeyServiceInterface {
   return KeyService.getInstance();
 }
