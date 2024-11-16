@@ -172,3 +172,47 @@ This is considered a breaking change for the following reason:
 
 - The `Base` class no longer extends the `EventTarget` class
 - Custom event emitted might conflict with native events
+
+## The `useService` export has been deleted
+
+The services implementation have been refactored as classes instead of the previous functional style. The `useService` function that could be used to create additional services has been removed in favor of the `AbstractService` class.
+
+::: code-group
+
+```js [v2]
+import { useService } from '@studiometa/js-tookit';
+
+export function useCustomService() {
+  const { add, remove, has, get } = useService({
+    props: {},
+    init() {},
+    kill() {},
+  });
+
+  return {
+    add,
+    remove,
+    has,
+    get,
+    props: () => props,
+  };
+}
+```
+
+```js [v3]
+import { AbstractService } from '@studiometa/js-tookit';
+
+class CustomService extends AbstractService {
+  props = {};
+
+  init() {}
+
+  kill() {}
+}
+
+export function useCustomService() {
+  return CustomService.getInstance();
+}
+```
+
+:::
