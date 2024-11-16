@@ -32,14 +32,14 @@ export class KeyService extends AbstractService<KeyServiceProps> {
 
   previousEvent: Event | null = null;
 
-  props = {
+  props: KeyServiceProps = {
     event: null,
     triggered: 0,
     isUp: false,
     isDown: false,
     direction: 'none',
     ...getInitialKeyCodes(),
-  } as KeyServiceProps;
+  };
 
   updateProps(event: KeyboardEvent): KeyServiceProps {
     const { props } = this;
