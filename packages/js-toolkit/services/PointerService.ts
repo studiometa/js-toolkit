@@ -34,7 +34,7 @@ export class PointerService extends AbstractService<PointerServiceProps> {
 
   target: HTMLElement | Window | undefined;
 
-  props = {
+  props: PointerServiceProps = {
     event: null,
     isDown: false,
     x: 0,
@@ -59,7 +59,7 @@ export class PointerService extends AbstractService<PointerServiceProps> {
       x: 0,
       y: 0,
     },
-  } as PointerServiceProps;
+  };
 
   constructor(target: HTMLElement | undefined) {
     super();
