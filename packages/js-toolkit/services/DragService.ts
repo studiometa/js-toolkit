@@ -67,6 +67,24 @@ export class DragService extends AbstractService<DragServiceProps> {
     STOP: 'stop',
   };
 
+  static config: ServiceConfig = [
+    [
+      (instance) => (instance as DragService).props.target,
+      [
+        ['dragstart', CAPTURE_EVENT_OPTIONS],
+        ['click', CAPTURE_EVENT_OPTIONS],
+        ['pointerdown', PASSIVE_EVENT_OPTIONS],
+      ],
+    ],
+    [
+      window,
+      [
+        ['pointerup', PASSIVE_EVENT_OPTIONS],
+        ['touchend', PASSIVE_EVENT_OPTIONS],
+      ],
+    ],
+  ];
+
   id: string;
 
   dampFactor = 0.85;
@@ -122,24 +140,6 @@ export class DragService extends AbstractService<DragServiceProps> {
     this.props.target = target;
   }
 
-  static config: ServiceConfig = [
-    [
-      (instance) => (instance as DragService).props.target,
-      [
-        ['dragstart', CAPTURE_EVENT_OPTIONS],
-        ['click', CAPTURE_EVENT_OPTIONS],
-        ['pointerdown', PASSIVE_EVENT_OPTIONS],
-      ],
-    ],
-    [
-      window,
-      [
-        ['pointerup', PASSIVE_EVENT_OPTIONS],
-        ['touchend', PASSIVE_EVENT_OPTIONS],
-      ],
-    ],
-  ];
-
   /**
    * Get the client value for the given axis.
    */
@@ -157,7 +157,6 @@ export class DragService extends AbstractService<DragServiceProps> {
    *
    * @param {number} x The initial horizontal position.
    * @param {number} y The initial vertical position.
-   * @returns {void}
    */
   start(x: number, y: number) {
     const { props } = this;
@@ -166,20 +165,11 @@ export class DragService extends AbstractService<DragServiceProps> {
     }
 
     // Reset state
-    props.x = x;
-    props.y = y;
-    props.origin.x = x;
-    props.origin.y = y;
-    props.delta.x = 0;
-    props.delta.y = 0;
-    props.distance.x = 0;
-    props.distance.y = 0;
-    props.final.x = x;
-    props.final.y = y;
-
+    props.x = props.origin.x = props.final.x = x;
+    props.y = props.origin.y = props.final.y = y;
+    props.delta.x = props.distance.x = 0;
+    props.delta.y = props.distance.y = 0;
     props.mode = DragService.MODES.START;
-
-    // Enable grabbing
     props.isGrabbing = true;
 
     this.trigger(props);
@@ -194,16 +184,18 @@ export class DragService extends AbstractService<DragServiceProps> {
   drop() {
     const { props, dampFactor, id } = this;
 
+    if (!props.isGrabbing) {
+      return;
+    }
+
     document.removeEventListener('touchmove', this);
     document.removeEventListener('mousemove', this);
 
     props.isGrabbing = false;
     props.mode = DragService.MODES.DROP;
-
     props.hasInertia = true;
     props.final.x = inertiaFinalValue(props.x, props.delta.x, dampFactor);
     props.final.y = inertiaFinalValue(props.y, props.delta.y, dampFactor);
-
     this.previousEvent = null;
 
     this.trigger(props);
@@ -212,7 +204,7 @@ export class DragService extends AbstractService<DragServiceProps> {
       const raf = useRaf();
       raf.remove(id);
       raf.add(id, () => this.rafHandler());
-    }, 0);
+    });
   }
 
   /**
@@ -225,6 +217,7 @@ export class DragService extends AbstractService<DragServiceProps> {
     props.isGrabbing = false;
     props.hasInertia = false;
     props.mode = DragService.MODES.STOP;
+
     this.trigger(props);
   }
 
@@ -239,13 +232,9 @@ export class DragService extends AbstractService<DragServiceProps> {
       props.y += props.delta.y;
       props.distance.x = props.x - props.origin.x;
       props.distance.y = props.y - props.origin.y;
-
       props.delta.x *= dampFactor;
       props.delta.y *= dampFactor;
-
-      if (props.mode !== DragService.MODES.INERTIA) {
-        props.mode = DragService.MODES.INERTIA;
-      }
+      props.mode = DragService.MODES.INERTIA;
 
       this.trigger(props);
 
@@ -276,10 +265,7 @@ export class DragService extends AbstractService<DragServiceProps> {
       props.final.y = position.y;
       props.distance.x = props.x - props.origin.x;
       props.distance.y = props.y - props.origin.y;
-
-      if (props.mode !== DragService.MODES.DRAG) {
-        props.mode = DragService.MODES.DRAG;
-      }
+      props.mode = DragService.MODES.DRAG;
 
       this.trigger(props);
       this.previousEvent = event;

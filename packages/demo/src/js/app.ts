@@ -9,6 +9,8 @@ import {
   withExtraConfig,
   importOnMediaQuery,
   BaseConfig,
+  withDrag,
+  withName,
 } from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
@@ -80,6 +82,7 @@ class App extends Base {
     refs: ['modal'],
     log: true,
     components: {
+      Draggable: withDrag(withName(Base, 'Draggable')),
       PointerProps,
       ParentNativeEvent,
       AnimateTest,

@@ -134,6 +134,7 @@ export class AbstractService<PropsType = any> {
     }
   }
 
+  /* v8 ignore next 6 */
   /**
    * Implements the EventListenerObject interface.
    */
