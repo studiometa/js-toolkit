@@ -128,4 +128,15 @@ describe('The drag service', () => {
     dispatch(window, 'pointerup');
     expect(props().mode).toBe('drop');
   });
+
+  it('should not trigger the drop mode when no drag', () => {
+    const fn = vi.fn();
+    const div = h('div');
+    const service = useDrag(div, { dampFactor: 0.1 });
+    service.add('key', fn);
+    dispatch(window, 'pointerup');
+    expect(service.props().mode).not.toBe('drop');
+    expect(fn).not.toHaveBeenCalled();
+    service.remove('key');
+  });
 });
