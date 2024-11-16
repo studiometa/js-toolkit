@@ -1,4 +1,4 @@
-import type { ServiceInterface } from './AbstractService.js';
+import type { ServiceConfig, ServiceInterface } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
 import type { Features } from '../Base/features.js';
 import { features } from '../Base/features.js';
@@ -20,6 +20,8 @@ export type ResizeServiceInterface<U extends Features['breakpoints'] = Features[
 export class ResizeService<
   T extends Features['breakpoints'] = Features['breakpoints'],
 > extends AbstractService<ResizeServiceProps> {
+  static config: ServiceConfig = [[window, [['resize']]]];
+
   breakpoints: T;
 
   props: ResizeServiceProps<T> = {
@@ -85,14 +87,6 @@ export class ResizeService<
 
   handleEvent() {
     this.onResizeDebounce();
-  }
-
-  init() {
-    window.addEventListener('resize', this);
-  }
-
-  kill() {
-    window.removeEventListener('resize', this);
   }
 }
 
