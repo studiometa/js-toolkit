@@ -1,5 +1,5 @@
-import { Service } from './Service.js';
-import type { ServiceInterface } from './index.js';
+import type { ServiceInterface } from './AbstractService.js';
+import { AbstractService } from './AbstractService.js';
 
 export interface LoadServiceProps {
   time: DOMHighResTimeStamp;
@@ -7,7 +7,7 @@ export interface LoadServiceProps {
 
 export type LoadServiceInterface = ServiceInterface<LoadServiceProps>;
 
-export class LoadService extends Service<LoadServiceProps> {
+export class LoadService extends AbstractService<LoadServiceProps> {
   props = {
     time: performance.now(),
   } as LoadServiceProps;

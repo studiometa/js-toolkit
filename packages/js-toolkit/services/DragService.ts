@@ -1,7 +1,7 @@
-import { Service } from './Service.js';
+import type { ServiceInterface } from './AbstractService.js';
+import { AbstractService } from './AbstractService.js';
 import { useRaf } from './RafService.js';
 import { isDefined, inertiaFinalValue } from '../utils/index.js';
-import type { ServiceInterface } from './index.js';
 
 type DragLifecycle = 'start' | 'drag' | 'drop' | 'inertia' | 'stop';
 
@@ -57,7 +57,7 @@ export interface DragServiceOptions {
 
 let count = 0;
 
-export class DragService extends Service<DragServiceProps> {
+export class DragService extends AbstractService<DragServiceProps> {
   static targetEvents = ['pointerdown'];
   static windowEvents = ['pointerup', 'touchend'];
   static passiveEventOptions = { passive: true };

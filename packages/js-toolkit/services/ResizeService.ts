@@ -1,8 +1,8 @@
-import { Service } from './Service.js';
-import { features } from '../Base/features.js';
+import type { ServiceInterface } from './AbstractService.js';
+import { AbstractService } from './AbstractService.js';
 import type { Features } from '../Base/features.js';
+import { features } from '../Base/features.js';
 import debounce from '../utils/debounce.js';
-import type { ServiceInterface } from './Service.js';
 
 export interface ResizeServiceProps<U extends Features['breakpoints'] = Features['breakpoints']> {
   width: number;
@@ -19,7 +19,7 @@ export type ResizeServiceInterface<U extends Features['breakpoints'] = Features[
 
 export class ResizeService<
   T extends Features['breakpoints'] = Features['breakpoints'],
-> extends Service<ResizeServiceProps> {
+> extends AbstractService<ResizeServiceProps> {
   breakpoints: T;
 
   props: ResizeServiceProps<T> = {

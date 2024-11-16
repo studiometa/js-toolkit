@@ -1,6 +1,6 @@
-import { Service } from './Service.js';
+import type { ServiceInterface } from './AbstractService.js';
+import { AbstractService } from './AbstractService.js';
 import keyCodes from '../utils/keyCodes.js';
-import type { ServiceInterface } from './index.js';
 
 function getInitialKeyCodes(): Record<keyof typeof keyCodes, false> {
   return Object.fromEntries(Object.keys(keyCodes).map((key) => [key, false])) as Record<
@@ -27,7 +27,7 @@ export interface KeyServiceProps {
 
 export type KeyServiceInterface = ServiceInterface<KeyServiceProps>;
 
-export class KeyService extends Service<KeyServiceProps> {
+export class KeyService extends AbstractService<KeyServiceProps> {
   previousEvent: Event | null = null;
 
   props = {

@@ -5,6 +5,7 @@ describe('The package exports', () => {
   it('should export helpers and the Base class', () => {
     expect(Object.keys(toolkit).toSorted()).toMatchInlineSnapshot(`
       [
+        "AbstractService",
         "Base",
         "DragService",
         "KeyService",
@@ -13,7 +14,6 @@ describe('The package exports', () => {
         "RafService",
         "ResizeService",
         "ScrollService",
-        "Service",
         "createApp",
         "getClosestParent",
         "getDirectChildren",

@@ -1,5 +1,5 @@
-import { Service } from './Service.js';
-import type { ServiceInterface } from './index.js';
+import type { ServiceInterface } from './AbstractService.js';
+import { AbstractService } from './AbstractService.js';
 
 export interface PointerServiceProps {
   event: MouseEvent | TouchEvent;
@@ -15,7 +15,7 @@ export interface PointerServiceProps {
 
 export type PointerServiceInterface = ServiceInterface<PointerServiceProps>;
 
-export class PointerService extends Service<PointerServiceProps> {
+export class PointerService extends AbstractService<PointerServiceProps> {
   static events = ['mousemove', 'touchmove', 'mousedown', 'touchstart', 'mouseup', 'touchend'];
 
   target: HTMLElement | Window | undefined;

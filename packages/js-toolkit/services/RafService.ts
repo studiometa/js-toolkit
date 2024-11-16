@@ -1,7 +1,7 @@
-import { Service } from './Service.js';
+import type { ServiceInterface } from './AbstractService.js';
+import { AbstractService } from './AbstractService.js';
 import { useScheduler } from '../utils/scheduler.js';
 import { isFunction } from '../utils/is.js';
-import type { ServiceInterface } from './index.js';
 
 export interface RafServiceProps {
   time: DOMHighResTimeStamp;
@@ -9,7 +9,7 @@ export interface RafServiceProps {
 
 export type RafServiceInterface = ServiceInterface<RafServiceProps>;
 
-export class RafService extends Service<RafServiceProps> {
+export class RafService extends AbstractService<RafServiceProps> {
   isTicking = false;
   scheduler = useScheduler(['update', 'render']);
 
