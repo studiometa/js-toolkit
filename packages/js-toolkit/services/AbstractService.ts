@@ -1,3 +1,5 @@
+import { isFunction } from '../utils/index.js';
+
 export interface ServiceInterface<T> {
   /**
    * Remove a function from the resize service by its key.
@@ -17,10 +19,65 @@ export interface ServiceInterface<T> {
   props(): T;
 }
 
-export class AbstractService<PropsType> {
-  isInit = false;
+/**
+ * Service configuration of events to be attached to targets.
+ */
+export type ServiceConfig = [
+  EventTarget | ((instance: AbstractService) => EventTarget),
+  [string, AddEventListenerOptions?][],
+][];
+
+/**
+ * AbstractService class.
+ */
+export class AbstractService<PropsType = any> {
+  /**
+   * Used to type `this.constructor` correctly
+   * @see https://github.com/microsoft/TypeScript/issues/3841#issuecomment-2381594311
+   */
+  declare ['constructor']: typeof AbstractService;
+
+  /**
+   * Service configuration.
+   */
+  static config: ServiceConfig = [];
+
+  /**
+   * Cache for the created instances.
+   */
+  static __instances = new Map();
+
+  /**
+   * Get a service instance as a singleton based on the given key.
+   */
+  static getInstance<T extends ServiceInterface<any>>(key: any = this, ...args: any[]) {
+    if (!this.__instances.has(key)) {
+      // @ts-ignore
+      const instance = new this(...args);
+      this.__instances.set(key, {
+        add: (key, callback) => instance.add(key, callback),
+        remove: (key) => instance.remove(key),
+        has: (key) => instance.has(key),
+        props: () => instance.props,
+      } as T);
+    }
+
+    return this.__instances.get(key);
+  }
+
+  /**
+   * Is the service active or not?
+   */
+  __isInit = false;
+
+  /**
+   * Props for the service.
+   */
   props = {};
 
+  /**
+   * Holds all the callbacks that will be triggered.
+   */
   callbacks: Map<string, (props: PropsType) => unknown> = new Map();
 
   /**
@@ -47,9 +104,9 @@ export class AbstractService<PropsType> {
     }
 
     // Initialize the service when we add the first callback
-    if (this.callbacks.size === 0 && !this.isInit) {
+    if (this.callbacks.size === 0 && !this.__isInit) {
       this.init();
-      this.isInit = true;
+      this.__isInit = true;
     }
 
     this.callbacks.set(key, callback);
@@ -62,9 +119,9 @@ export class AbstractService<PropsType> {
     this.callbacks.delete(key);
 
     // Kill the service when we remove the last callback
-    if (this.callbacks.size === 0 && this.isInit) {
+    if (this.callbacks.size === 0 && this.__isInit) {
       this.kill();
-      this.isInit = false;
+      this.__isInit = false;
     }
   }
 
@@ -77,31 +134,36 @@ export class AbstractService<PropsType> {
     }
   }
 
-  init() {
-    throw new Error('The init method must be implemented.');
+  /**
+   * Implements the EventListenerObject interface.
+   */
+  handleEvent(event: Event) {
+    // Should be implemented.
   }
-
-  kill() {
-    throw new Error('The kill method must be implemented');
-  }
-
-  static __instances = new Map();
 
   /**
-   * Get a service instance as a singleton based on the given key.
+   * Add or remove event listeners based on the static `config` property.
    */
-  static getInstance<T extends ServiceInterface<any>>(key: any = this, ...args: any[]) {
-    if (!this.__instances.has(key)) {
-      // @ts-ignore
-      const instance = new this(...args);
-      this.__instances.set(key, {
-        add: (key, callback) => instance.add(key, callback),
-        remove: (key) => instance.remove(key),
-        has: (key) => instance.has(key),
-        props: () => instance.props,
-      } as T);
+  __manageEvents(mode: 'add' | 'remove') {
+    for (const [target, events] of this.constructor.config) {
+      const resolvedTarget = isFunction(target) ? target(this) : target;
+      for (const [type, options] of events) {
+        resolvedTarget[`${mode}EventListener`](type, this, options);
+      }
     }
+  }
 
-    return this.__instances.get(key);
+  /**
+   * Triggered when the service is initialized.
+   */
+  init() {
+    this.__manageEvents('add');
+  }
+
+  /**
+   * Triggered when the service is killed.
+   */
+  kill() {
+    this.__manageEvents('remove');
   }
 }
