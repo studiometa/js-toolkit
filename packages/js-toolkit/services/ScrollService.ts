@@ -1,6 +1,6 @@
-import { Service } from './Service.js';
+import type { ServiceInterface } from './AbstractService.js';
+import { AbstractService } from './AbstractService.js';
 import debounce from '../utils/debounce.js';
-import type { ServiceInterface } from './index.js';
 
 export interface ScrollServiceProps {
   x: number;
@@ -29,7 +29,7 @@ export interface ScrollServiceProps {
 
 export type ScrollServiceInterface = ServiceInterface<ScrollServiceProps>;
 
-export class ScrollService extends Service<ScrollServiceProps> {
+export class ScrollService extends AbstractService<ScrollServiceProps> {
   props: ScrollServiceProps = {
     x: window.scrollX,
     y: window.scrollY,

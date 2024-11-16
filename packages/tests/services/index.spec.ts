@@ -4,6 +4,7 @@ import * as services from '#private/services';
 test('components exports', () => {
   expect(Object.keys(services).toSorted()).toMatchInlineSnapshot(`
     [
+      "AbstractService",
       "DragService",
       "KeyService",
       "LoadService",
@@ -11,7 +12,6 @@ test('components exports', () => {
       "RafService",
       "ResizeService",
       "ScrollService",
-      "Service",
       "useDrag",
       "useKey",
       "useLoad",

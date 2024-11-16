@@ -17,7 +17,7 @@ export interface ServiceInterface<T> {
   props(): T;
 }
 
-export class Service<PropsType> {
+export class AbstractService<PropsType> {
   isInit = false;
   props = {};
 

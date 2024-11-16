@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Service } from '@studiometa/js-toolkit';
+import { AbstractService } from '@studiometa/js-toolkit';
 
 function getContext() {
   const props = {};
   const fn = vi.fn();
 
-  class TestService extends Service<any> {
+  class TestService extends AbstractService<any> {
     props = props;
 
     init() {
@@ -28,7 +28,7 @@ function getContext() {
 
 describe('The `Service` class', () => {
   it('should throw if the init or kill method are not implemented', () => {
-    const service = new Service();
+    const service = new AbstractService();
     expect(() => service.init()).toThrow();
     expect(() => service.kill()).toThrow();
   });
