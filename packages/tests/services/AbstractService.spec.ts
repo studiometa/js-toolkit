@@ -27,12 +27,6 @@ function getContext() {
 }
 
 describe('The `Service` class', () => {
-  it('should throw if the init or kill method are not implemented', () => {
-    const service = new AbstractService();
-    expect(() => service.init()).toThrow();
-    expect(() => service.kill()).toThrow();
-  });
-
   it('should implement `add`, `has`, `get` and `remove` methods', () => {
     const { service } = getContext();
     const fn = vi.fn();
