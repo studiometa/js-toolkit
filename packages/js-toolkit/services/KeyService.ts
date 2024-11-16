@@ -1,4 +1,4 @@
-import type { ServiceInterface } from './AbstractService.js';
+import type { ServiceConfig, ServiceInterface } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
 import keyCodes from '../utils/keyCodes.js';
 
@@ -28,16 +28,18 @@ export interface KeyServiceProps {
 export type KeyServiceInterface = ServiceInterface<KeyServiceProps>;
 
 export class KeyService extends AbstractService<KeyServiceProps> {
+  static config: ServiceConfig = [[document, [['keydown'], ['keyup']]]];
+
   previousEvent: Event | null = null;
 
-  props = {
+  props: KeyServiceProps = {
     event: null,
     triggered: 0,
     isUp: false,
     isDown: false,
     direction: 'none',
     ...getInitialKeyCodes(),
-  } as KeyServiceProps;
+  };
 
   updateProps(event: KeyboardEvent): KeyServiceProps {
     const { props } = this;
@@ -69,16 +71,6 @@ export class KeyService extends AbstractService<KeyServiceProps> {
 
   handleEvent(event: KeyboardEvent) {
     this.trigger(this.updateProps(event));
-  }
-
-  init() {
-    document.addEventListener('keydown', this);
-    document.addEventListener('keyup', this);
-  }
-
-  kill() {
-    document.removeEventListener('keydown', this);
-    document.removeEventListener('keyup', this);
   }
 }
 

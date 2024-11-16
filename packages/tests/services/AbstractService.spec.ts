@@ -27,12 +27,6 @@ function getContext() {
 }
 
 describe('The `Service` class', () => {
-  it('should throw if the init or kill method are not implemented', () => {
-    const service = new AbstractService();
-    expect(() => service.init()).toThrow();
-    expect(() => service.kill()).toThrow();
-  });
-
   it('should implement `add`, `has`, `get` and `remove` methods', () => {
     const { service } = getContext();
     const fn = vi.fn();
@@ -46,10 +40,10 @@ describe('The `Service` class', () => {
   it('should init and kill itself when adding or removing a callback', () => {
     const { service, fn } = getContext();
     service.add('key', () => fn('callback'));
-    expect(service.isInit).toBe(true);
+    expect(service.__isInit).toBe(true);
     expect(fn).toHaveBeenLastCalledWith('init');
     service.remove('key');
-    expect(service.isInit).toBe(false);
+    expect(service.__isInit).toBe(false);
     expect(fn).toHaveBeenLastCalledWith('kill');
   });
 
