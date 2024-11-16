@@ -1,6 +1,7 @@
-import type { ServiceInterface } from './AbstractService.js';
+import type { ServiceConfig, ServiceInterface } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
 import debounce from '../utils/debounce.js';
+import { PASSIVE_CAPTURE_EVENT_OPTIONS } from './utils.js';
 
 export interface ScrollServiceProps {
   x: number;
@@ -30,6 +31,8 @@ export interface ScrollServiceProps {
 export type ScrollServiceInterface = ServiceInterface<ScrollServiceProps>;
 
 export class ScrollService extends AbstractService<ScrollServiceProps> {
+  static config: ServiceConfig = [[document, [['scroll', PASSIVE_CAPTURE_EVENT_OPTIONS]]]];
+
   props: ScrollServiceProps = {
     x: window.scrollX,
     y: window.scrollY,
@@ -112,13 +115,6 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
   handleEvent() {
     this.trigger(this.updateProps());
     this.onScrollDebounced();
-  }
-
-  init() {
-    document.addEventListener('scroll', this, { passive: true, capture: true });
-  }
-  kill() {
-    document.removeEventListener('scroll', this);
   }
 }
 

@@ -1,5 +1,6 @@
-import type { ServiceInterface } from './AbstractService.js';
+import type { ServiceConfig, ServiceInterface } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
+import { ONCE_CAPTURE_EVENT_OPTIONS, PASSIVE_CAPTURE_EVENT_OPTIONS } from './utils.js';
 
 export interface PointerServiceProps {
   event: MouseEvent | TouchEvent;
@@ -16,7 +17,20 @@ export interface PointerServiceProps {
 export type PointerServiceInterface = ServiceInterface<PointerServiceProps>;
 
 export class PointerService extends AbstractService<PointerServiceProps> {
-  static events = ['mousemove', 'touchmove', 'mousedown', 'touchstart', 'mouseup', 'touchend'];
+  static config: ServiceConfig = [
+    [
+      document,
+      [
+        ['mouseenter', ONCE_CAPTURE_EVENT_OPTIONS],
+        ['mousemove', PASSIVE_CAPTURE_EVENT_OPTIONS],
+        ['touchmove', PASSIVE_CAPTURE_EVENT_OPTIONS],
+        ['mousedown', PASSIVE_CAPTURE_EVENT_OPTIONS],
+        ['touchstart', PASSIVE_CAPTURE_EVENT_OPTIONS],
+        ['mouseup', PASSIVE_CAPTURE_EVENT_OPTIONS],
+        ['touchend', PASSIVE_CAPTURE_EVENT_OPTIONS],
+      ],
+    ],
+  ];
 
   target: HTMLElement | Window | undefined;
 
@@ -148,24 +162,6 @@ export class PointerService extends AbstractService<PointerServiceProps> {
         this.props.isDown = false;
         this.trigger(this.props);
         break;
-    }
-  }
-
-  init() {
-    document.documentElement.addEventListener('mouseenter', this, {
-      once: true,
-      capture: true,
-    });
-
-    const options = { passive: true, capture: true };
-    for (const event of PointerService.events) {
-      document.addEventListener(event, this, options);
-    }
-  }
-
-  kill() {
-    for (const event of PointerService.events) {
-      document.removeEventListener(event, this);
     }
   }
 }

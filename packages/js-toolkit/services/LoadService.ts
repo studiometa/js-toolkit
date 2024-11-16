@@ -1,4 +1,4 @@
-import type { ServiceInterface } from './AbstractService.js';
+import type { ServiceInterface, ServiceConfig } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
 
 export interface LoadServiceProps {
@@ -8,6 +8,8 @@ export interface LoadServiceProps {
 export type LoadServiceInterface = ServiceInterface<LoadServiceProps>;
 
 export class LoadService extends AbstractService<LoadServiceProps> {
+  static config: ServiceConfig = [[window, [['load']]]];
+
   props = {
     time: performance.now(),
   } as LoadServiceProps;
@@ -15,14 +17,6 @@ export class LoadService extends AbstractService<LoadServiceProps> {
   handleEvent() {
     this.props.time = window.performance.now();
     this.trigger(this.props);
-  }
-
-  init() {
-    window.addEventListener('load', this);
-  }
-
-  kill() {
-    window.removeEventListener('load', this);
   }
 }
 

@@ -1,7 +1,8 @@
-import type { ServiceInterface } from './AbstractService.js';
+import type { ServiceConfig, ServiceInterface } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
 import { useRaf } from './RafService.js';
 import { isDefined, inertiaFinalValue } from '../utils/index.js';
+import { PASSIVE_EVENT_OPTIONS, CAPTURE_EVENT_OPTIONS } from './utils.js';
 
 type DragLifecycle = 'start' | 'drag' | 'drop' | 'inertia' | 'stop';
 
@@ -58,9 +59,6 @@ export interface DragServiceOptions {
 let count = 0;
 
 export class DragService extends AbstractService<DragServiceProps> {
-  static targetEvents = ['pointerdown'];
-  static windowEvents = ['pointerup', 'touchend'];
-  static passiveEventOptions = { passive: true };
   static MODES: Record<Uppercase<DragLifecycle>, DragLifecycle> = {
     START: 'start',
     DRAG: 'drag',
@@ -124,31 +122,23 @@ export class DragService extends AbstractService<DragServiceProps> {
     this.props.target = target;
   }
 
-  init() {
-    const { target } = this.props;
-
-    for (const event of DragService.targetEvents) {
-      target.addEventListener(event, this, DragService.passiveEventOptions);
-    }
-    for (const event of DragService.windowEvents) {
-      window.addEventListener(event, this, DragService.passiveEventOptions);
-    }
-    target.addEventListener('dragstart', this, { capture: true });
-    target.addEventListener('click', this, { capture: true });
-  }
-
-  kill() {
-    const { target } = this.props;
-
-    for (const event of DragService.targetEvents) {
-      target.removeEventListener(event, this);
-    }
-    for (const event of DragService.windowEvents) {
-      window.removeEventListener(event, this);
-    }
-    target.removeEventListener('dragstart', this);
-    target.removeEventListener('click', this);
-  }
+  static config: ServiceConfig = [
+    [
+      (instance) => (instance as DragService).props.target,
+      [
+        ['dragstart', CAPTURE_EVENT_OPTIONS],
+        ['click', CAPTURE_EVENT_OPTIONS],
+        ['pointerdown', PASSIVE_EVENT_OPTIONS],
+      ],
+    ],
+    [
+      window,
+      [
+        ['pointerup', PASSIVE_EVENT_OPTIONS],
+        ['touchend', PASSIVE_EVENT_OPTIONS],
+      ],
+    ],
+  ];
 
   /**
    * Get the client value for the given axis.
@@ -194,8 +184,8 @@ export class DragService extends AbstractService<DragServiceProps> {
 
     this.trigger(props);
 
-    document.addEventListener('touchmove', this, DragService.passiveEventOptions);
-    document.addEventListener('mousemove', this, DragService.passiveEventOptions);
+    document.addEventListener('touchmove', this, PASSIVE_EVENT_OPTIONS);
+    document.addEventListener('mousemove', this, PASSIVE_EVENT_OPTIONS);
   }
 
   /**
@@ -203,8 +193,10 @@ export class DragService extends AbstractService<DragServiceProps> {
    */
   drop() {
     const { props, dampFactor, id } = this;
+
     document.removeEventListener('touchmove', this);
     document.removeEventListener('mousemove', this);
+
     props.isGrabbing = false;
     props.mode = DragService.MODES.DROP;
 
