@@ -117,3 +117,14 @@ export function createEvent<T extends keyof GlobalEventHandlersEventMap>(
 
   return event as GlobalEventHandlersEventMap[T];
 }
+
+export function dispatch<T extends keyof GlobalEventHandlersEventMap>(
+  element: EventTarget,
+  eventType: T,
+  data = {},
+  options = {},
+): GlobalEventHandlersEventMap[T] {
+  const event = createEvent(eventType, data, options);
+  element.dispatchEvent(event);
+  return event as GlobalEventHandlersEventMap[T];
+}

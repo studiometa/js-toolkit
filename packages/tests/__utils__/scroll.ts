@@ -1,6 +1,14 @@
 import { vi } from 'vitest';
 
-const map = new Map<HTMLElement, [number, number, number, number]>();
+const map = new Map<HTMLElement | Window, [number, number, number, number]>();
+
+type Params = Partial<{
+  height: number;
+  width: number;
+  left: number;
+  top: number;
+  element: HTMLElement | Window;
+}>
 
 export function mockScroll({
   height = 0,
@@ -8,7 +16,7 @@ export function mockScroll({
   left = 0,
   top = 0,
   element = document.documentElement,
-} = {}) {
+}: Params = {}) {
   map.set(element, [
     element.scrollHeight,
     element.scrollWidth,
@@ -33,7 +41,15 @@ export function mockScroll({
       configurable: true,
       get: () => scrollLeftSpy(),
     },
+    scrollX: {
+      configurable: true,
+      get: () => scrollLeftSpy(),
+    },
     scrollTop: {
+      configurable: true,
+      get: () => scrollTopSpy(),
+    },
+    scrollY: {
       configurable: true,
       get: () => scrollTopSpy(),
     },

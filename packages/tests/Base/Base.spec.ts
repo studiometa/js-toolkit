@@ -3,6 +3,27 @@ import { Base, BaseConfig, BaseProps, getInstanceFromElement } from '@studiometa
 import { ChildrenManager, OptionsManager, RefsManager } from '#private/Base/managers/index.js';
 import { h } from '#test-utils';
 
+let mockedIsDev = true;
+
+vi.mock(import('#private/utils/is.js'), async (importOriginal) => {
+  const mod = await importOriginal();
+  return {
+    ...mod,
+    get isDev() {
+      return mockedIsDev;
+    },
+  };
+});
+
+function mockIsDev(value: boolean) {
+  const prev = mockedIsDev;
+  mockedIsDev = value;
+
+  return () => {
+    mockedIsDev = prev;
+  };
+}
+
 async function getContext() {
   class Foo<T extends BaseProps = BaseProps> extends Base<T> {
     static config: BaseConfig = {
@@ -10,7 +31,7 @@ async function getContext() {
     };
   }
   const element = h('div');
-  const foo = new Foo(element)
+  const foo = new Foo(element);
   await foo.$mount();
 
   return { Foo, element, foo };
@@ -23,7 +44,7 @@ describe('The abstract Base class', () => {
     }).toThrow();
   });
 
-  it('should throw an error when extended without proper configuration', () => {
+  it('should throw an error when extended without proper configuration in dev mode', () => {
     expect(() => {
       // @ts-ignore
       class Foo extends Base {
@@ -33,7 +54,7 @@ describe('The abstract Base class', () => {
     }).toThrow('The `config.name` property is required.');
   });
 
-  it('should throw an error if instantiated without a root element.', () => {
+  it('should throw an error if instantiated without a root element in dev mode', () => {
     expect(() => {
       class Foo extends Base {
         static config = {
@@ -43,6 +64,20 @@ describe('The abstract Base class', () => {
       // @ts-ignore
       new Foo();
     }).toThrow('The root element must be defined.');
+  });
+
+  it('should fail silently in production mode', () => {
+    const unmock = mockIsDev(false);
+
+    class Foo extends Base {}
+
+    const foo = new Foo(h('div'));
+    expect(foo.$id).toBeUndefined();
+
+    const foo2 = new Foo();
+    expect(foo2.$id).toBeUndefined();
+
+    unmock();
   });
 });
 
@@ -153,7 +188,7 @@ describe('A Base instance', () => {
     const div = h('div', {}, [
       h('div', { dataComponent: 'Component' }, [h('div', { dataComponent: 'ChildComponent' })]),
     ]);
-    const app = new App(div)
+    const app = new App(div);
     await app.$mount();
     expect(app.$root).toBe(app);
     expect(app.$children.Component[0].$root).toBe(app);
@@ -226,7 +261,7 @@ describe('A Base instance methods', () => {
       };
     }
 
-    const app = new App(div)
+    const app = new App(div);
     await app.$mount();
     expect(app.$children.Bar).toHaveLength(2);
     expect(app.$children.Bar[0].$isMounted).toBe(true);
@@ -491,7 +526,9 @@ describe('A Base instance config', () => {
     const { Foo } = await getContext();
     Foo.config.debug = true;
 
-    globalThis.__DEV__ = true;
+    const devModeSpy = vi.spyOn(globalThis, '__DEV__', 'get');
+    devModeSpy.mockImplementation(() => true);
+
     process.env.NODE_ENV = 'development';
     const spy = vi.spyOn(window.console, 'log');
     spy.mockImplementation(() => true);
@@ -500,6 +537,7 @@ describe('A Base instance config', () => {
       expect(args[0].startsWith('[debug] [Foo')).toBe(true);
     }
     spy.mockRestore();
+    devModeSpy.mockRestore();
     process.env.NODE_ENV = 'test';
   });
 });
