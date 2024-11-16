@@ -14,6 +14,10 @@ All notable changes to this project will be documented in this file. The format 
 
 - **useDrag:** prevent drop when not dragging ([#538](https://github.com/studiometa/js-toolkit/issues/538), [#539](https://github.com/studiometa/js-toolkit/pull/539), [63ba2350](https://github.com/studiometa/js-toolkit/commit/63ba2350))
 
+### Removed
+
+- ⚠️ Remove the `useService` export in favor of the `AbstractService` class ([#535](https://github.com/studiometa/js-toolkit/pull/535))
+
 ## [v3.0.0-alpha.12](https://github.com/studiometa/js-toolkit/compare/3.0.0-alpha.11..3.0.0-alpha.12) (2024-11-15)
 
 ### Fixed
