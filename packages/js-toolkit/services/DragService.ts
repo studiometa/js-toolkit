@@ -194,6 +194,10 @@ export class DragService extends AbstractService<DragServiceProps> {
   drop() {
     const { props, dampFactor, id } = this;
 
+    if (!props.isGrabbing) {
+      return;
+    }
+
     document.removeEventListener('touchmove', this);
     document.removeEventListener('mousemove', this);
 
