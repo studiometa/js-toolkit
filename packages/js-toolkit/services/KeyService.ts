@@ -28,7 +28,7 @@ export interface KeyServiceProps {
 export type KeyServiceInterface = ServiceInterface<KeyServiceProps>;
 
 export class KeyService extends AbstractService<KeyServiceProps> {
-  static config: ServiceConfig = [[document, [['keydown'], ['keyup']]]];
+  static config: ServiceConfig = [[() => document, [['keydown'], ['keyup']]]];
 
   previousEvent: Event | null = null;
 

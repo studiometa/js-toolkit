@@ -20,7 +20,7 @@ export type ResizeServiceInterface<U extends Features['breakpoints'] = Features[
 export class ResizeService<
   T extends Features['breakpoints'] = Features['breakpoints'],
 > extends AbstractService<ResizeServiceProps> {
-  static config: ServiceConfig = [[window, [['resize']]]];
+  static config: ServiceConfig = [[() => window, [['resize']]]];
 
   breakpoints: T;
 
