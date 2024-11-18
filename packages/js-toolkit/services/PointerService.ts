@@ -19,7 +19,7 @@ export type PointerServiceInterface = ServiceInterface<PointerServiceProps>;
 export class PointerService extends AbstractService<PointerServiceProps> {
   static config: ServiceConfig = [
     [
-      document,
+      () => document,
       [
         ['mouseenter', ONCE_CAPTURE_EVENT_OPTIONS],
         ['mousemove', PASSIVE_CAPTURE_EVENT_OPTIONS],

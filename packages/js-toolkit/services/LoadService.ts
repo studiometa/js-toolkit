@@ -8,7 +8,7 @@ export interface LoadServiceProps {
 export type LoadServiceInterface = ServiceInterface<LoadServiceProps>;
 
 export class LoadService extends AbstractService<LoadServiceProps> {
-  static config: ServiceConfig = [[window, [['load']]]];
+  static config: ServiceConfig = [[() => window, [['load']]]];
 
   props: LoadServiceProps = {
     time: performance.now(),

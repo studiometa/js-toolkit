@@ -1,5 +1,3 @@
-import { isFunction } from '../utils/index.js';
-
 export interface ServiceInterface<T> {
   /**
    * Remove a function from the resize service by its key.
@@ -23,7 +21,7 @@ export interface ServiceInterface<T> {
  * Service configuration of events to be attached to targets.
  */
 export type ServiceConfig = [
-  EventTarget | ((instance: AbstractService) => EventTarget),
+  ((instance: AbstractService) => EventTarget),
   [string, AddEventListenerOptions?][],
 ][];
 
@@ -147,7 +145,7 @@ export class AbstractService<PropsType = any> {
    */
   __manageEvents(mode: 'add' | 'remove') {
     for (const [target, events] of this.constructor.config) {
-      const resolvedTarget = isFunction(target) ? target(this) : target;
+      const resolvedTarget = target(this);
       for (const [type, options] of events) {
         resolvedTarget[`${mode}EventListener`](type, this, options);
       }
