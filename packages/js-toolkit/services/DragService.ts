@@ -77,7 +77,7 @@ export class DragService extends AbstractService<DragServiceProps> {
       ],
     ],
     [
-      window,
+      () => window,
       [
         ['pointerup', PASSIVE_EVENT_OPTIONS],
         ['touchend', PASSIVE_EVENT_OPTIONS],
