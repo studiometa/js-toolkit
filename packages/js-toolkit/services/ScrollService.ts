@@ -31,7 +31,7 @@ export interface ScrollServiceProps {
 export type ScrollServiceInterface = ServiceInterface<ScrollServiceProps>;
 
 export class ScrollService extends AbstractService<ScrollServiceProps> {
-  static config: ServiceConfig = [[document, [['scroll', PASSIVE_CAPTURE_EVENT_OPTIONS]]]];
+  static config: ServiceConfig = [[() => document, [['scroll', PASSIVE_CAPTURE_EVENT_OPTIONS]]]];
 
   props: ScrollServiceProps = {
     x: window.scrollX,
