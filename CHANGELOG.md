@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-beta.1](https://github.com/studiometa/js-toolkit/compare/3.0.0-beta.0..3.0.0-beta.1) (2024-11-18)
+
 ### Fixed
 
 - Fix importing the services in SSR context ([#540](https://github.com/studiometa/js-toolkit/pull/540), [69c8d2b9](https://github.com/studiometa/js-toolkit/commit/69c8d2b9))
