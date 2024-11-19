@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Changed
+
+- **loadElement :** add examples on how to use the memo function with the loadElement function ([1bc3363a](https://github.com/studiometa/js-toolkit/commit/1bc3363a))
+
 ## [v3.0.0-beta.1](https://github.com/studiometa/js-toolkit/compare/3.0.0-beta.0..3.0.0-beta.1) (2024-11-18)
 
 ### Fixed
