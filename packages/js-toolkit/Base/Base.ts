@@ -337,9 +337,12 @@ export class Base<T extends BaseProps = BaseProps> {
       addToQueue(() => this.__events.bindRootElement()),
       addToQueue(() => this.__services.enableAll()),
       addToQueue(() => this.__children.mountAll()),
-      addToQueue(() => (this.$isMounted = true)),
-      addToQueue(() => this.__callMethod('mounted')),
     ]);
+
+    await addToQueue(() => {
+      this.$isMounted = true;
+      this.__callMethod('mounted');
+    });
 
     return this;
   }
@@ -362,8 +365,9 @@ export class Base<T extends BaseProps = BaseProps> {
       addToQueue(() => this.__services.enableAll()),
       // Update
       addToQueue(() => this.__children.updateAll()),
-      addToQueue(() => this.__callMethod('updated')),
     ]);
+
+    await addToQueue(() => this.__callMethod('updated'));
 
     return this;
   }
@@ -380,14 +384,16 @@ export class Base<T extends BaseProps = BaseProps> {
       this.__debug('$destroy');
     }
 
+    this.$isMounted = false;
+
     await Promise.all([
-      addToQueue(() => (this.$isMounted = false)),
       addToQueue(() => this.__events.unbindRootElement()),
       addToQueue(() => this.__refs.unregisterAll()),
       addToQueue(() => this.__services.disableAll()),
       addToQueue(() => this.__children.destroyAll()),
-      addToQueue(() => this.__callMethod('destroyed')),
     ]);
+
+    await addToQueue(() => this.__callMethod('destroyed'));
 
     return this;
   }
@@ -523,7 +529,9 @@ export class Base<T extends BaseProps = BaseProps> {
       this.__debug('$emit', event, args);
     }
 
-    this.$el.dispatchEvent(event instanceof Event ? event : new CustomEvent(event, { detail: args }));
+    this.$el.dispatchEvent(
+      event instanceof Event ? event : new CustomEvent(event, { detail: args }),
+    );
   }
 
   /**
