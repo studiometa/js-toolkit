@@ -21,7 +21,7 @@ export interface ServiceInterface<T> {
  * Service configuration of events to be attached to targets.
  */
 export type ServiceConfig = [
-  ((instance: AbstractService) => EventTarget),
+  (instance: AbstractService) => EventTarget,
   [string, AddEventListenerOptions?][],
 ][];
 

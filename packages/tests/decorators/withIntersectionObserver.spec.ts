@@ -60,7 +60,7 @@ describe('The withIntersectionObserver decorator', () => {
 
     const div = document.createElement('div');
     div.innerHTML = '<div data-component="Detector"></div>';
-    const foo = new Foo(div)
+    const foo = new Foo(div);
     await foo.$mount();
     mockIsIntersecting(div.firstElementChild, true);
     expect(fn).toHaveBeenCalledTimes(1);
