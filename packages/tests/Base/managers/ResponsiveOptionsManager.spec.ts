@@ -51,7 +51,7 @@ describe('The ResponsiveOptionsManager class', () => {
     const warnMock = vi.spyOn(console, 'warn');
     warnMock.mockImplementation(() => null);
     instance.$options.str = 'baz';
-    expect(warnMock).toHaveBeenCalledWith('[Foo]', 'Responsive options are read-only.');
+    expect(warnMock).toHaveBeenCalledWith(`[${instance.$id}]`, 'Responsive options are read-only.');
     instance.$options.foo = 'foo';
     expect(warnMock).toHaveBeenCalledTimes(1);
     warnMock.mockRestore();

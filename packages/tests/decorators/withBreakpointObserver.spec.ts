@@ -185,18 +185,48 @@ describe("The withBreakpointObserver decorator", () => {
     matchMedia.useMediaQuery("(min-width: 64rem)");
     await resizeWindow({ width: 1024 });
 
-    await new App1(root).$mount();
+    await (new App1(root)).$mount();
+    expect(fn.mock.calls).toMatchInlineSnapshot(`
+      [
+        [
+          "Desktop",
+          "mounted",
+        ],
+      ]
+    `);
+    fn.mockClear();
 
-    expect(fn).toHaveBeenCalledWith("Desktop", "mounted");
     matchMedia.useMediaQuery("(min-width: 48rem)");
     await resizeWindow({ width: 768 });
 
-    expect(fn).toHaveBeenNthCalledWith(2, "Desktop", "destroyed");
-    expect(fn).toHaveBeenNthCalledWith(3, "Mobile", "mounted");
+    expect(fn.mock.calls).toMatchInlineSnapshot(`
+      [
+        [
+          "Desktop",
+          "destroyed",
+        ],
+        [
+          "Mobile",
+          "mounted",
+        ],
+      ]
+    `)
+    fn.mockClear();
+
     matchMedia.useMediaQuery("(min-width: 64rem)");
     await resizeWindow({ width: 1024 });
 
-    expect(fn).toHaveBeenNthCalledWith(4, "Mobile", "destroyed");
-    expect(fn).toHaveBeenNthCalledWith(5, "Desktop", "mounted");
+    expect(fn.mock.calls).toMatchInlineSnapshot(`
+      [
+        [
+          "Mobile",
+          "destroyed",
+        ],
+        [
+          "Desktop",
+          "mounted",
+        ],
+      ]
+    `)
   });
 });

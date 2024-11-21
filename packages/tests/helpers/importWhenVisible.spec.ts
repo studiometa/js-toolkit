@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 import {
   Base,
   withExtraConfig,
@@ -10,22 +10,15 @@ import {
   intersectionObserverBeforeAllCallback,
   intersectionObserverAfterEachCallback,
   mockIsIntersecting,
-  advanceTimersByTimeAsync,
-  useFakeTimers,
-  useRealTimers,
 } from '#test-utils';
+import { wait } from '#private/utils';
 
 beforeAll(() => {
   intersectionObserverBeforeAllCallback();
 });
 
-beforeEach(() => {
-  useFakeTimers();
-});
-
 afterEach(() => {
   intersectionObserverAfterEachCallback();
-  useRealTimers();
 });
 
 class App extends Base {
@@ -51,14 +44,12 @@ describe('The `importWhenVisible` lazy import helper', () => {
       },
     });
 
-    new AppOverride(div).$mount();
-
-    await advanceTimersByTimeAsync(1);
+    await (new AppOverride(div)).$mount();
     expect(getInstanceFromElement(component, Component)).toBeNull();
     mockIsIntersecting(component, false);
     expect(getInstanceFromElement(component, Component)).toBeNull();
     mockIsIntersecting(component, true);
-    await advanceTimersByTimeAsync(1);
+    await wait(1);
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
@@ -74,14 +65,13 @@ describe('The `importWhenVisible` lazy import helper', () => {
       },
     });
 
-    new AppOverride(div).$mount();
+    await (new AppOverride(div)).$mount();
 
-    await advanceTimersByTimeAsync(1);
     expect(getInstanceFromElement(component, Component)).toBeNull();
     mockIsIntersecting(btn, false);
     expect(getInstanceFromElement(component, Component)).toBeNull();
     mockIsIntersecting(btn, true);
-    await advanceTimersByTimeAsync(1);
+    await wait(1);
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 
@@ -95,12 +85,10 @@ describe('The `importWhenVisible` lazy import helper', () => {
       },
     });
 
-    new AppOverride(div).$mount();
-
-    await advanceTimersByTimeAsync(1);
+    await (new AppOverride(div)).$mount();
     expect(getInstanceFromElement(component, Component)).toBeNull();
     mockIsIntersecting(document.body, true);
-    await advanceTimersByTimeAsync(1);
+    await wait(1);
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
 });
