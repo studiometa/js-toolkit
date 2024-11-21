@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-beta.2](https://github.com/studiometa/js-toolkit/compare/3.0.0-beta.1..3.0.0-beta.2) (2024-11-21)
+
 ### Added
 
 - **Base:** add a `$config` getter to access the resolved configuration ([#543](https://github.com/studiometa/js-toolkit/pull/543), [e4b0fe4d](https://github.com/studiometa/js-toolkit/commit/e4b0fe4d))
