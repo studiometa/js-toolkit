@@ -1,20 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Base, withExtraConfig, importWhenPrefersMotion } from '@studiometa/js-toolkit';
-import {
-  useMatchMedia,
-  useFakeTimers,
-  useRealTimers,
-  advanceTimersByTimeAsync,
-  h,
-} from '#test-utils';
-
-beforeEach(() => {
-  useFakeTimers();
-});
-
-afterEach(() => {
-  useRealTimers();
-});
+import { useMatchMedia, h } from '#test-utils';
+import { wait } from '#private/utils';
 
 class App extends Base {
   static config = {
@@ -47,8 +34,7 @@ describe('The `importWhenPrefersMotion` lazy import helper', () => {
     });
 
     const app = new AppOverride(div);
-    app.$mount();
-    await advanceTimersByTimeAsync(1);
+    await app.$mount();
     expect(fn).toHaveBeenCalledTimes(1);
     expect(app.$children.Component).toHaveLength(1);
     expect(app.$children.Component[0]).toBeInstanceOf(Component);
@@ -71,8 +57,8 @@ describe('The `importWhenPrefersMotion` lazy import helper', () => {
       },
     });
 
-    new AppOverride(div).$mount();
-    await advanceTimersByTimeAsync(1);
+    await new AppOverride(div).$mount();
+    await wait(1);
     expect(fn).toHaveBeenCalledTimes(0);
     expect(div.firstElementChild.__base__).toBeUndefined();
   });

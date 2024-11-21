@@ -300,8 +300,8 @@ describe('The EventsManager class', () => {
 
   it('can listen to event dispatched from nested DOM children (bubbling up)', async () => {
     const { onComponentPointerdown, component, app } = getContext();
-    await app.$mount()
-    component.firstElementChild.dispatchEvent(new PointerEvent('pointerdown', { bubbles:true }));
+    await app.$mount();
+    component.firstElementChild.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     expect(onComponentPointerdown).toHaveBeenCalledTimes(1);
   });
 
@@ -389,7 +389,7 @@ describe('The EventsManager class', () => {
       };
     }
 
-    class App extends Base<{ $children: { Foo: Foo[], Bar: Bar[] } }> {
+    class App extends Base<{ $children: { Foo: Foo[]; Bar: Bar[] } }> {
       static config = {
         name: 'App',
         components: {
@@ -409,7 +409,7 @@ describe('The EventsManager class', () => {
 
     const event = new CustomEvent('custom-event');
     const [foo] = app.$children.Foo;
-    foo.$emit(event)
+    foo.$emit(event);
     expect(fn).toHaveBeenCalledOnce();
   });
 });

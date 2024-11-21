@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Base } from '@studiometa/js-toolkit';
-import {
-  h,
-  mockFeatures,
-} from '#test-utils';
+import { h, mockFeatures } from '#test-utils';
 
 describe('The configurable features', () => {
   it('should allow configuration of different attributes', async () => {

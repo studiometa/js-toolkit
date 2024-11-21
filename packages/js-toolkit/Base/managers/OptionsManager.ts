@@ -72,55 +72,22 @@ const UPPERCASE_REGEX = /([A-Z])/g;
 /**
  * Get a property name.
  */
-export const __getPropertyName = memo(function __getPropertyName(name: string, prefix = '', optionAttribute = features.get('attributes').option) {
+export const __getPropertyName = memo(function __getPropertyName(
+  name: string,
+  prefix = '',
+  optionAttribute = features.get('attributes').option,
+) {
   return `${optionAttribute}${prefix ? `-${prefix}` : ''}-${name.replaceAll(UPPERCASE_REGEX, '-$1')}`;
 });
-
-/**
- * Register an option.
- *
- * @param  {OptionsManager} that
- * @param  {string} name
- * @param  {OptionObject} config
- * @returns {void}
- * @private
- */
-function __register(that: OptionsManager, name: string, config: OptionObject) {
-  if (!types.has(config.type)) {
-    if (isDev) {
-      throw new Error(
-        `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`,
-      );
-    }
-    return;
-  }
-
-  config.default = config.default ?? __defaultValues[config.type.name];
-
-  if ((config.type === Array || config.type === Object) && !isFunction(config.default)) {
-    if (isDev) {
-      throw new Error(
-        `The default value for options of type "${config.type.name}" must be returned by a function.`,
-      );
-    }
-    return;
-  }
-
-  Object.defineProperty(that, name, {
-    get: () => that.get(name, config),
-    set: (value) => {
-      that.set(name, value, config);
-    },
-    enumerable: true,
-  });
-}
 
 /**
  * Class options to manage options as data attributes on an HTML element.
  *
  * @todo Use `MutationObserver` to update values? Might be more performant.
  */
-export class OptionsManager extends AbstractManager {
+export class OptionsManager<T> extends AbstractManager<
+  T & { name: string; debug: boolean; log: boolean }
+> {
   /**
    * An object to store Array and Object values for reference.
    *
@@ -129,29 +96,21 @@ export class OptionsManager extends AbstractManager {
   __values = {};
 
   /**
-   * Default value for the name property.
+   * Default props.
    */
-  name = 'Base';
-
-  /**
-   * Default value for the debug property.
-   */
-  debug = false;
-
-  /**
-   * Default value for the log property.
-   */
-  log = false;
+  __props = {
+    name: 'Base',
+    debug: false,
+    log: false,
+  } as T & { name: string; debug: boolean; log: boolean };
 
   /**
    * Class constructor.
    */
   constructor(base: Base) {
     super(base);
-
-    this.__hideProperties(['__values', '__defaultValues']);
     const schema: OptionsSchema = this.__config.options || {};
-    this.name = this.__config.name;
+    this.props.name = this.__config.name;
 
     schema.debug = {
       type: Boolean,
@@ -164,8 +123,7 @@ export class OptionsManager extends AbstractManager {
     };
 
     for (const [name, config] of Object.entries(schema)) {
-      __register(
-        this,
+      this.__register(
         name,
         types.has(config as OptionType)
           ? ({ type: config as OptionType } as OptionObject)
@@ -238,6 +196,7 @@ export class OptionsManager extends AbstractManager {
           `The "${val}" value for the "${name}" option must be of type "${type.name}"`,
         );
       }
+      /* v8 ignore next 2 */
       return;
     }
 
@@ -264,5 +223,41 @@ export class OptionsManager extends AbstractManager {
       default:
         this.__element.setAttribute(propertyName, value as string);
     }
+  }
+
+  /**
+   * Register an option.
+   * @private
+   */
+  __register(name: string, config: OptionObject) {
+    if (!types.has(config.type)) {
+      if (isDev) {
+        throw new Error(
+          `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`,
+        );
+      }
+      /* v8 ignore next 2 */
+      return;
+    }
+
+    config.default = config.default ?? __defaultValues[config.type.name];
+
+    if ((config.type === Array || config.type === Object) && !isFunction(config.default)) {
+      if (isDev) {
+        throw new Error(
+          `The default value for options of type "${config.type.name}" must be returned by a function.`,
+        );
+      }
+      /* v8 ignore next 2 */
+      return;
+    }
+
+    Object.defineProperty(this.props, name, {
+      get: () => this.get(name, config),
+      set: (value) => {
+        this.set(name, value, config);
+      },
+      enumerable: true,
+    });
   }
 }

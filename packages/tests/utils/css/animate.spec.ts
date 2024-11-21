@@ -7,7 +7,6 @@ beforeEach(() => useFakeTimers());
 afterEach(() => useRealTimers());
 
 describe('The `animate` utility function', () => {
-
   it('should animate an element', async () => {
     const fn = vi.fn();
 

@@ -10,7 +10,7 @@ type Callback = (time?: DOMHighResTimeStamp) => any;
 export function nextFrame(): Promise<DOMHighResTimeStamp>;
 export function nextFrame<T extends Callback>(callback?: T): Promise<ReturnType<T>>;
 export function nextFrame<T extends Callback>(callback?: T): Promise<ReturnType<T>> {
-  const fn = hasWindow() ? window?.requestAnimationFrame ?? setTimeout : setTimeout;
+  const fn = hasWindow() ? (window?.requestAnimationFrame ?? setTimeout) : setTimeout;
   return new Promise((resolve) => {
     fn((time) => resolve(isFunction(callback) ? callback(time) : time));
   });

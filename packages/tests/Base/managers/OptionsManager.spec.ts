@@ -15,7 +15,6 @@ function componentWithOptions(content, options) {
     };
   }
 
-
   const instance = new Foo(element);
 
   return instance;
