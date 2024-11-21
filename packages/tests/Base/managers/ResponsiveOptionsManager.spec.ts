@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { Base, withResponsiveOptions } from '@studiometa/js-toolkit';
 import { h, mockFeatures, useMatchMedia } from '#test-utils';
 
-function componentWithOptions(content, options) {
+function componentWithOptions(content, options, mock?: any) {
   useMatchMedia();
-  mockFeatures();
+  const { unmock } = mockFeatures(mock);
   const div = h('div');
   div.innerHTML = content;
   const element = div.firstElementChild;
@@ -18,12 +18,12 @@ function componentWithOptions(content, options) {
 
   const instance = new Foo(element);
 
-  return instance;
+  return { instance, unmock };
 }
 
 describe('The ResponsiveOptionsManager class', () => {
   it('should return the values for the active breakpoint', () => {
-    const instance = componentWithOptions(
+    const { instance } = componentWithOptions(
       `<div
         data-option-str-str="foo"
         data-option-str-str:l="bar"
@@ -40,7 +40,7 @@ describe('The ResponsiveOptionsManager class', () => {
   });
 
   it('should warn when trying to set the value of a responsive option.', () => {
-    const instance = componentWithOptions(
+    const { instance } = componentWithOptions(
       '<div data-option-str="foo" data-option-str:l="bar"></div>',
       {
         str: { type: String, responsive: true },
@@ -55,5 +55,20 @@ describe('The ResponsiveOptionsManager class', () => {
     instance.$options.foo = 'foo';
     expect(warnMock).toHaveBeenCalledTimes(1);
     warnMock.mockRestore();
+  });
+
+  it('should return the original value when no breakpoint', () => {
+    const { instance, unmock } = componentWithOptions(
+      `<div data-option-foo="foo" data-option-foo:l="bar"></div>`,
+      {
+        foo: { type: String, responsive: true },
+      },
+      {
+        breakpoints: {},
+      },
+    );
+
+    expect(instance.$options.foo).toBe('foo');
+    unmock();
   });
 });

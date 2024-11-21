@@ -194,6 +194,7 @@ export class OptionsManager<T> extends AbstractManager<T & { name: string; debug
           `The "${val}" value for the "${name}" option must be of type "${type.name}"`,
         );
       }
+      /* v8 ignore next 2 */
       return;
     }
 
@@ -233,6 +234,7 @@ export class OptionsManager<T> extends AbstractManager<T & { name: string; debug
           `The "${name}" option has an invalid type. The allowed types are: String, Number, Boolean, Array and Object.`,
         );
       }
+      /* v8 ignore next 2 */
       return;
     }
 
@@ -244,6 +246,7 @@ export class OptionsManager<T> extends AbstractManager<T & { name: string; debug
           `The default value for options of type "${config.type.name}" must be returned by a function.`,
         );
       }
+      /* v8 ignore next 2 */
       return;
     }
 

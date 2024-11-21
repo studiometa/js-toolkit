@@ -91,6 +91,11 @@ describe('A Base instance', () => {
     expect(foo.$isMounted).toBe(true);
   });
 
+  it('should have a `$config` property', async () => {
+    const { foo } = await getContext();
+    expect(foo.$config).toEqual(foo.__config);
+  });
+
   it('should have a `$refs` property', async () => {
     const { foo } = await getContext();
     expect(foo.$refs).toBe(foo.__refs.props);
