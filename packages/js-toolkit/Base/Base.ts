@@ -64,6 +64,12 @@ export type Managers = {
  */
 export class Base<T extends BaseProps = BaseProps> {
   /**
+   * Declare the `this.constructor` type
+   * @see https://github.com/microsoft/TypeScript/issues/3841#issuecomment-2381594311
+   */
+  declare ['constructor']: BaseConstructor;
+
+  /**
    * This is a Base instance.
    */
   static readonly $isBase = true as const;
@@ -293,7 +299,7 @@ export class Base<T extends BaseProps = BaseProps> {
       this.$el.__base__ = new WeakMap();
     }
 
-    this.$el.__base__.set(this.__ctor, this);
+    this.$el.__base__.set(this.constructor, this);
 
     for (const service of ['Options', 'Services', 'Events', 'Refs', 'Children']) {
       this[`__${service.toLowerCase()}`] = new this.__managers[`${service}Manager`](this);
@@ -400,7 +406,7 @@ export class Base<T extends BaseProps = BaseProps> {
       // Execute the `terminated` hook if it exists
       addToQueue(() => this.__callMethod('terminated')),
       // Delete instance
-      addToQueue(() => this.$el.__base__.set(this.__ctor, 'terminated')),
+      addToQueue(() => this.$el.__base__.set(this.constructor, 'terminated')),
     ]);
   }
 
@@ -411,7 +417,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * @returns {void}
    */
   __addEmits(event: string): void {
-    const ctor = this.__ctor;
+    const ctor = this.constructor;
     if (isArray(ctor.config.emits)) {
       ctor.config.emits.push(event);
     } else {
@@ -426,16 +432,9 @@ export class Base<T extends BaseProps = BaseProps> {
    * @returns {void}
    */
   __removeEmits(event: string): void {
-    const ctor = this.__ctor;
+    const ctor = this.constructor;
     const index = ctor.config.emits.indexOf(event);
     ctor.config.emits.splice(index, 1);
-  }
-
-  /**
-   * Get the instance constructor.
-   */
-  get __ctor(): BaseConstructor {
-    return this.constructor as BaseConstructor;
   }
 
   /**
