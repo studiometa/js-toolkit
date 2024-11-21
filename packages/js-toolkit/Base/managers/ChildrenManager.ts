@@ -1,114 +1,11 @@
 import type { Base, BaseConstructor, BaseAsyncConstructor, BaseEl } from '../index.js';
 import { AbstractManager } from './AbstractManager.js';
 import { getComponentElements, addToQueue } from '../utils.js';
-import { startsWith } from '../../utils/index.js';
-
-/**
- * Get a child component's instance.
- *
- * @param {ChildrenManager} that
- * @param {HTMLElement & { __base__?: WeakMap<BaseConstructor, Base> }} el
- *   The root element of the child component.
- * @param {BaseConstructor|BaseAsyncConstructor} ComponentClass
- *   A Base class or a Promise for async components.
- * @returns {Base|Promise<Base | 'terminated'>|'terminated'}
- *   A Base instance or a Promise resolving to a Base instance.
- * @private
- */
-function __getChild(
-  // eslint-disable-next-line no-use-before-define
-  that: ChildrenManager,
-  el: BaseEl,
-  ComponentClass: BaseConstructor | BaseAsyncConstructor,
-): Base | Promise<Base | 'terminated'> | 'terminated' {
-  const asyncComponentPromise = that.__asyncComponentPromises.get(
-    ComponentClass as BaseAsyncConstructor,
-  );
-
-  // Test if we have a constructor and not a promise or if the promise has been resolved
-  if (
-    '$isBase' in ComponentClass ||
-    (asyncComponentPromise && asyncComponentPromise.status === 'resolved')
-  ) {
-    let ctor = ComponentClass as BaseConstructor;
-
-    // Get resolved constructor from weakmap.
-    // Only test for existence as the status was checked before.
-    if (asyncComponentPromise) {
-      ctor = asyncComponentPromise.ctor;
-    }
-
-    // Return existing instance if it exists
-    if (el.__base__ && el.__base__.has(ctor)) {
-      return el.__base__.get(ctor);
-    }
-
-    // Return a new instance if the component class is a child of the Base class
-    // eslint-disable-next-line new-cap
-    const child = new ctor(el);
-    Object.defineProperty(child, '$parent', { get: () => that.__base });
-    return child;
-  }
-
-  const promise = asyncComponentPromise
-    ? asyncComponentPromise.promise
-    : ComponentClass(that.__base);
-
-  if (!asyncComponentPromise) {
-    that.__asyncComponentPromises.set(ComponentClass, {
-      promise,
-      status: 'pending',
-      ctor: undefined,
-    });
-  }
-
-  // Resolve async components
-  return promise.then((module) => {
-    // @ts-ignore
-    const ctor = module.default ?? module;
-
-    that.__asyncComponentPromises.set(ComponentClass, {
-      promise,
-      status: 'resolved',
-      ctor,
-    });
-
-    return __getChild(that, el, ctor);
-  });
-}
-
-/**
- * Execute the given hook for all children instances.
- *
- * @param {ChildrenManager} that
- * @param {'$mount'|'$update'|'$destroy'} hook The hook to execute.
- * @private
- */
-// eslint-disable-next-line no-use-before-define
-async function __triggerHookForAll(that: ChildrenManager, hook: '$mount' | '$update' | '$destroy') {
-  return addToQueue(() => {
-    const promises = [];
-    for (const name of that.registeredNames) {
-      for (const instance of that[name]) {
-        if (instance instanceof Promise) {
-          promises.push(
-            instance.then((resolvedInstance) =>
-              addToQueue(() => that.__triggerHook(hook, resolvedInstance, name)),
-            ),
-          );
-        } else {
-          promises.push(addToQueue(() => that.__triggerHook(hook, instance, name)));
-        }
-      }
-    }
-    return Promise.all(promises);
-  });
-}
 
 /**
  * Children manager.
  */
-export class ChildrenManager extends AbstractManager {
+export class ChildrenManager<T> extends AbstractManager<T> {
   /**
    * Store async component promises to avoid calling them multiple times and
    * waiting for them when they are already resolved.
@@ -123,41 +20,37 @@ export class ChildrenManager extends AbstractManager {
   > = new WeakMap();
 
   get registeredNames(): string[] {
-    return Object.keys(this).filter((key) => !startsWith(key, '__'));
+    return Object.keys(this.props);
   }
 
   /**
    * Register instances of all children components.
    */
   async registerAll() {
-    const promises = [];
-
     for (const [name, component] of Object.entries(this.__config.components)) {
-      promises.push(this.__register(name, component));
+      this.__register(name, component);
     }
-
-    await Promise.all(promises);
   }
 
   /**
    * Mount all child component instances.
    */
   async mountAll() {
-    await __triggerHookForAll(this, '$mount');
+    await this.__triggerHookForAll('$mount');
   }
 
   /**
    * Update all child component instances.
    */
   async updateAll() {
-    await __triggerHookForAll(this, '$update');
+    await this.__triggerHookForAll('$update');
   }
 
   /**
    * Destroy all child component instances.
    */
   async destroyAll() {
-    await __triggerHookForAll(this, '$destroy');
+    await this.__triggerHookForAll('$destroy');
   }
 
   /**
@@ -195,13 +88,17 @@ export class ChildrenManager extends AbstractManager {
    * @private
    */
   __register(name: string, component: BaseConstructor | BaseAsyncConstructor) {
-    Object.defineProperty(this, name, {
+    Object.defineProperty(this.props, name, {
       enumerable: true,
       configurable: true,
       get: () => this.__getValue(name, component),
     });
   }
 
+  /**
+   * Get children.
+   * @private
+   */
   __getValue(name: string, component: BaseConstructor | BaseAsyncConstructor) {
     const elements = getComponentElements(name, this.__element);
 
@@ -209,15 +106,111 @@ export class ChildrenManager extends AbstractManager {
       return [];
     }
 
-
     const children = [];
     for (const element of elements) {
-      const child = __getChild(this, element, component);
+      const child = this.__getChild(element, component);
       if (child !== 'terminated') {
         children.push(child);
       }
     }
 
     return children;
+  }
+
+  /**
+   * Get a child component's instance.
+   *
+   * @param {HTMLElement & { __base__?: WeakMap<BaseConstructor, Base> }} el
+   *   The root element of the child component.
+   * @param {BaseConstructor|BaseAsyncConstructor} ComponentClass
+   *   A Base class or a Promise for async components.
+   * @returns {Base|Promise<Base | 'terminated'>|'terminated'}
+   *   A Base instance or a Promise resolving to a Base instance.
+   * @private
+   */
+  __getChild(
+    el: BaseEl,
+    ComponentClass: BaseConstructor | BaseAsyncConstructor,
+  ): Base | Promise<Base | 'terminated'> | 'terminated' {
+    const asyncComponentPromise = this.__asyncComponentPromises.get(
+      ComponentClass as BaseAsyncConstructor,
+    );
+
+    // Test if we have a constructor and not a promise or if the promise has been resolved
+    if (
+      '$isBase' in ComponentClass ||
+      (asyncComponentPromise && asyncComponentPromise.status === 'resolved')
+    ) {
+      let ctor = ComponentClass as BaseConstructor;
+
+      // Get resolved constructor from weakmap.
+      // Only test for existence as the status was checked before.
+      if (asyncComponentPromise) {
+        ctor = asyncComponentPromise.ctor;
+      }
+
+      // Return existing instance if it exists
+      if (el.__base__ && el.__base__.has(ctor)) {
+        return el.__base__.get(ctor);
+      }
+
+      // Return a new instance if the component class is a child of the Base class
+      // eslint-disable-next-line new-cap
+      const child = new ctor(el);
+      Object.defineProperty(child, '$parent', { get: () => this.__base });
+      return child;
+    }
+
+    const promise = asyncComponentPromise
+      ? asyncComponentPromise.promise
+      : ComponentClass(this.__base);
+
+    if (!asyncComponentPromise) {
+      this.__asyncComponentPromises.set(ComponentClass, {
+        promise,
+        status: 'pending',
+        ctor: undefined,
+      });
+    }
+
+    // Resolve async components
+    return promise.then((module) => {
+      // @ts-ignore
+      const ctor = module.default ?? module;
+
+      this.__asyncComponentPromises.set(ComponentClass, {
+        promise,
+        status: 'resolved',
+        ctor,
+      });
+
+      return this.__getChild(el, ctor);
+    });
+  }
+
+  /**
+   * Execute the given hook for all children instances.
+   *
+   * @param {'$mount'|'$update'|'$destroy'} hook The hook to execute.
+   * @private
+   */
+  async __triggerHookForAll(hook: '$mount' | '$update' | '$destroy') {
+    return addToQueue(() => {
+      const promises = [];
+      for (const name of this.registeredNames) {
+        for (const instance of this.props[name]) {
+          if (instance instanceof Promise) {
+            promises.push(
+              instance.then((resolvedInstance) =>
+                addToQueue(() => this.__triggerHook(hook, resolvedInstance, name)),
+              ),
+            );
+          } else {
+            promises.push(addToQueue(() => this.__triggerHook(hook, instance, name)));
+          }
+        }
+      }
+      return Promise.all(promises);
+    });
   }
 }

@@ -179,22 +179,22 @@ export class Base<T extends BaseProps = BaseProps> {
     return this.__services;
   }
 
-  __refs: RefsManager & T['$refs'] & BaseRefs;
+  __refs: RefsManager<T['$refs']>;
 
-  get $refs(): RefsManager & T['$refs'] & BaseRefs {
-    return this.__refs;
+  get $refs(): T['$refs'] & BaseRefs {
+    return this.__refs.props;
   }
 
-  __options: OptionsManager & T['$options'] & BaseOptions;
+  __options: OptionsManager<T['$options']>;
 
-  get $options(): OptionsManager & T['$options'] & BaseOptions {
-    return this.__options;
+  get $options(): T['$options'] & BaseOptions {
+    return this.__options.props;
   }
 
-  __children: ChildrenManager & T['$children'] & BaseChildren;
+  __children: ChildrenManager<T['$children']>;
 
-  get $children(): ChildrenManager & T['$children'] & BaseChildren {
-    return this.__children;
+  get $children(): T['$children'] & BaseChildren {
+    return this.__children.props;
   }
 
   __events: EventsManager;
@@ -203,21 +203,21 @@ export class Base<T extends BaseProps = BaseProps> {
    * Small helper to log stuff.
    */
   get $log(): (...args: unknown[]) => void {
-    return this.__options.log ? window.console.log.bind(window, `[${this.$id}]`) : noop;
+    return this.$options.log ? window.console.log.bind(window, `[${this.$id}]`) : noop;
   }
 
   /**
    * Small helper to make warning easier.
    */
   get $warn(): (...args: unknown[]) => void {
-    return this.__options.log ? window.console.warn.bind(window, `[${this.$id}]`) : noop;
+    return this.$options.log ? window.console.warn.bind(window, `[${this.$id}]`) : noop;
   }
 
   /**
    * Small helper to debug information.
    */
   get __debug(): (...args: unknown[]) => void {
-    return isDev && this.__options.debug
+    return isDev && this.$options.debug
       ? window.console.log.bind(window, `[debug] [${this.$id}]`)
       : noop;
   }
@@ -332,11 +332,11 @@ export class Base<T extends BaseProps = BaseProps> {
     }
 
     await Promise.all([
-      addToQueue(() => this.$children.registerAll()),
-      addToQueue(() => this.$refs.registerAll()),
+      addToQueue(() => this.__children.registerAll()),
+      addToQueue(() => this.__refs.registerAll()),
       addToQueue(() => this.__events.bindRootElement()),
-      addToQueue(() => this.$services.enableAll()),
-      addToQueue(() => this.$children.mountAll()),
+      addToQueue(() => this.__services.enableAll()),
+      addToQueue(() => this.__children.mountAll()),
       addToQueue(() => (this.$isMounted = true)),
       addToQueue(() => this.__callMethod('mounted')),
     ]);
@@ -354,14 +354,14 @@ export class Base<T extends BaseProps = BaseProps> {
 
     await Promise.all([
       // Undo
-      addToQueue(() => this.$refs.unregisterAll()),
-      addToQueue(() => this.$services.disableAll()),
+      addToQueue(() => this.__refs.unregisterAll()),
+      addToQueue(() => this.__services.disableAll()),
       // Redo
-      addToQueue(() => this.$children.registerAll()),
-      addToQueue(() => this.$refs.registerAll()),
-      addToQueue(() => this.$services.enableAll()),
+      addToQueue(() => this.__children.registerAll()),
+      addToQueue(() => this.__refs.registerAll()),
+      addToQueue(() => this.__services.enableAll()),
       // Update
-      addToQueue(() => this.$children.updateAll()),
+      addToQueue(() => this.__children.updateAll()),
       addToQueue(() => this.__callMethod('updated')),
     ]);
 
@@ -383,9 +383,9 @@ export class Base<T extends BaseProps = BaseProps> {
     await Promise.all([
       addToQueue(() => (this.$isMounted = false)),
       addToQueue(() => this.__events.unbindRootElement()),
-      addToQueue(() => this.$refs.unregisterAll()),
-      addToQueue(() => this.$services.disableAll()),
-      addToQueue(() => this.$children.destroyAll()),
+      addToQueue(() => this.__refs.unregisterAll()),
+      addToQueue(() => this.__services.disableAll()),
+      addToQueue(() => this.__children.destroyAll()),
       addToQueue(() => this.__callMethod('destroyed')),
     ]);
 
