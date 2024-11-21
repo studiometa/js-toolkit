@@ -117,6 +117,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Merge configuration with the parents' configurations.
+   * @private
    */
   get __config(): BaseConfig {
     let proto = Object.getPrototypeOf(this);
@@ -141,6 +142,10 @@ export class Base<T extends BaseProps = BaseProps> {
     config.components = config.components ?? {};
 
     return config;
+  }
+
+  get $config() {
+    return this.__config;
   }
 
   static config: BaseConfig = {
