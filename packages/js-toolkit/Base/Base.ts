@@ -95,7 +95,14 @@ export class Base<T extends BaseProps = BaseProps> {
   $isMounted = false;
 
   /**
+   * Is the component currently mounting itself and its children?
+   * @private
+   */
+  __isMounting = false;
+
+  /**
    * Store the event handlers.
+   * @private
    */
   __eventHandlers: Map<string, Set<EventListenerOrEventListenerObject>> = new Map();
 
@@ -321,10 +328,11 @@ export class Base<T extends BaseProps = BaseProps> {
    * Trigger the `mounted` callback.
    */
   async $mount(): Promise<this> {
-    if (this.$isMounted) {
+    if (this.$isMounted || this.__isMounting) {
       return this;
     }
 
+    this.__isMounting = true;
     this.$emit('before-mounted');
 
     if (isDev) {
@@ -343,6 +351,8 @@ export class Base<T extends BaseProps = BaseProps> {
       this.$isMounted = true;
       this.__callMethod('mounted');
     });
+
+    this.__isMounting = false;
 
     return this;
   }
