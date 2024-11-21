@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
-- **Base:** refactor manager dynamic properties ([#543](https://github.com/studiometa/js-toolkit/pull/543), [926738ee](https://github.com/studiometa/js-toolkit/commit/926738ee))
+- ⚠️ **Base:** refactor manager dynamic properties ([#543](https://github.com/studiometa/js-toolkit/pull/543), [926738ee](https://github.com/studiometa/js-toolkit/commit/926738ee))
 - **Base:** refactor constructor access ([#543](https://github.com/studiometa/js-toolkit/pull/543), [e445e2f0](https://github.com/studiometa/js-toolkit/commit/e445e2f0))
 - **loadElement :** add examples on how to use the memo function with the loadElement function ([1bc3363a](https://github.com/studiometa/js-toolkit/commit/1bc3363a))
 
