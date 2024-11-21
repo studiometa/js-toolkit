@@ -9,7 +9,7 @@ function updateLocation(url) {
 
 beforeEach(() => {
   const spy = vi.spyOn(window, 'location', 'get');
-  spy.mockImplementation(() => location)
+  spy.mockImplementation(() => location);
   Object.defineProperties(window.history, {
     replaceState: {
       configurable: true,

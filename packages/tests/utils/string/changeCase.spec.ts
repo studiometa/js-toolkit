@@ -18,12 +18,12 @@ const fns = {
 };
 
 type Specs = {
-  camelCase: string,
-  dashCase: string,
-  lowerCase: string,
-  pascalCase: string,
-  snakeCase: string,
-  upperCase: string,
+  camelCase: string;
+  dashCase: string;
+  lowerCase: string;
+  pascalCase: string;
+  snakeCase: string;
+  upperCase: string;
 };
 
 const tests = [

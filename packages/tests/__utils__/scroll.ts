@@ -8,7 +8,7 @@ type Params = Partial<{
   left: number;
   top: number;
   element: HTMLElement | Window;
-}>
+}>;
 
 export function mockScroll({
   height = 0,

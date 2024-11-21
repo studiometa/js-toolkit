@@ -216,3 +216,17 @@ export function useCustomService() {
 ```
 
 :::
+
+## Managers instances are no longer public
+
+The `$refs`, `$options` and `$children` properties were previously returning the instance of their respective manager: `RefsManager`, `OptionsManager` and `ChildrenManager`. These instances are no longer exposed and the getters now only returns objects.
+
+No replacement is available, direct access to an instance's managers is now private.
+
+```js
+class Component extends Base {
+  mounted() {
+    this.$children.registerAll(); // [!code --]
+  }
+}
+```

@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-beta.2](https://github.com/studiometa/js-toolkit/compare/3.0.0-beta.1..3.0.0-beta.2) (2024-11-21)
+
 ### Added
 
 - **Base:** add a `$config` getter to access the resolved configuration ([#543](https://github.com/studiometa/js-toolkit/pull/543), [e4b0fe4d](https://github.com/studiometa/js-toolkit/commit/e4b0fe4d))
@@ -11,12 +13,12 @@ All notable changes to this project will be documented in this file. The format 
 ### Fixed
 
 - **Base:** prevent callling the `$mount` method multiple times ([#543](https://github.com/studiometa/js-toolkit/pull/543), [da1fa92a](https://github.com/studiometa/js-toolkit/commit/da1fa92a))
-- **Base:** fix `$mount` and `$update` method never resolving ([#542]((https://github.com/studiometa/js-toolkit/issues/542), [#543](https://github.com/studiometa/js-toolkit/pull/543), [c2749610](https://github.com/studiometa/js-toolkit/commit/c2749610))
-- **Base:** fix order of component lifecycle hooks ([#542]((https://github.com/studiometa/js-toolkit/issues/542), [#543](https://github.com/studiometa/js-toolkit/pull/543), [b4dfc4d5](https://github.com/studiometa/js-toolkit/commit/b4dfc4d5))
+- **Base:** fix `$mount` and `$update` method never resolving ([#542](https://github.com/studiometa/js-toolkit/issues/542), [#543](https://github.com/studiometa/js-toolkit/pull/543), [c2749610](https://github.com/studiometa/js-toolkit/commit/c2749610))
+- **Base:** fix order of component lifecycle hooks ([#542](https://github.com/studiometa/js-toolkit/issues/542), [#543](https://github.com/studiometa/js-toolkit/pull/543), [b4dfc4d5](https://github.com/studiometa/js-toolkit/commit/b4dfc4d5))
 
 ### Changed
 
-- **Base:** refactor manager dynamic properties ([#543](https://github.com/studiometa/js-toolkit/pull/543), [926738ee](https://github.com/studiometa/js-toolkit/commit/926738ee))
+- ⚠️ **Base:** refactor manager dynamic properties ([#543](https://github.com/studiometa/js-toolkit/pull/543), [926738ee](https://github.com/studiometa/js-toolkit/commit/926738ee))
 - **Base:** refactor constructor access ([#543](https://github.com/studiometa/js-toolkit/pull/543), [e445e2f0](https://github.com/studiometa/js-toolkit/commit/e445e2f0))
 - **loadElement :** add examples on how to use the memo function with the loadElement function ([1bc3363a](https://github.com/studiometa/js-toolkit/commit/1bc3363a))
 
