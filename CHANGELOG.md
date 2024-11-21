@@ -13,8 +13,8 @@ All notable changes to this project will be documented in this file. The format 
 ### Fixed
 
 - **Base:** prevent callling the `$mount` method multiple times ([#543](https://github.com/studiometa/js-toolkit/pull/543), [da1fa92a](https://github.com/studiometa/js-toolkit/commit/da1fa92a))
-- **Base:** fix `$mount` and `$update` method never resolving ([#542]((https://github.com/studiometa/js-toolkit/issues/542), [#543](https://github.com/studiometa/js-toolkit/pull/543), [c2749610](https://github.com/studiometa/js-toolkit/commit/c2749610))
-- **Base:** fix order of component lifecycle hooks ([#542]((https://github.com/studiometa/js-toolkit/issues/542), [#543](https://github.com/studiometa/js-toolkit/pull/543), [b4dfc4d5](https://github.com/studiometa/js-toolkit/commit/b4dfc4d5))
+- **Base:** fix `$mount` and `$update` method never resolving ([#542](https://github.com/studiometa/js-toolkit/issues/542), [#543](https://github.com/studiometa/js-toolkit/pull/543), [c2749610](https://github.com/studiometa/js-toolkit/commit/c2749610))
+- **Base:** fix order of component lifecycle hooks ([#542](https://github.com/studiometa/js-toolkit/issues/542), [#543](https://github.com/studiometa/js-toolkit/pull/543), [b4dfc4d5](https://github.com/studiometa/js-toolkit/commit/b4dfc4d5))
 
 ### Changed
 
