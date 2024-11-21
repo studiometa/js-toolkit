@@ -57,7 +57,7 @@ describe('The `importWhenPrefersMotion` lazy import helper', () => {
       },
     });
 
-    await (new AppOverride(div)).$mount();
+    await new AppOverride(div).$mount();
     await wait(1);
     expect(fn).toHaveBeenCalledTimes(0);
     expect(div.firstElementChild.__base__).toBeUndefined();

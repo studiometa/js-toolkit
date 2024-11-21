@@ -85,7 +85,9 @@ export const __getPropertyName = memo(function __getPropertyName(
  *
  * @todo Use `MutationObserver` to update values? Might be more performant.
  */
-export class OptionsManager<T> extends AbstractManager<T & { name: string; debug: boolean; log: boolean }> {
+export class OptionsManager<T> extends AbstractManager<
+  T & { name: string; debug: boolean; log: boolean }
+> {
   /**
    * An object to store Array and Object values for reference.
    *

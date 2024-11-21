@@ -40,7 +40,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
     });
 
     matchMedia.useMediaQuery('(prefers-reduced-motion)');
-    await (new AppOverride(div)).$mount();
+    await new AppOverride(div).$mount();
     expect(fn).not.toHaveBeenCalled();
     expect(getInstanceFromElement(component, Component)).toBeNull();
     matchMedia.useMediaQuery(mediaQuery);
@@ -67,7 +67,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
       },
     });
 
-    await (new AppOverride(div)).$mount();
+    await new AppOverride(div).$mount();
     expect(fn).toHaveBeenCalledTimes(1);
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
@@ -89,7 +89,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
       },
     });
 
-    await (new AppOverride(div)).$mount();
+    await new AppOverride(div).$mount();
     expect(fn).toHaveBeenCalledTimes(0);
     expect(getInstanceFromElement(component, Component)).toBeNull();
   });

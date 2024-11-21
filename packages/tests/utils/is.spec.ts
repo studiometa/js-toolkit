@@ -12,7 +12,7 @@ const types = {
   undefined: undefined,
   null: null,
 };
-const fns:Array<[string, string | string[]]> = [
+const fns: Array<[string, string | string[]]> = [
   ['isArray', 'array'],
   ['isBoolean', 'boolean'],
   ['isDefined', ['boolean', 'string', 'emptyString', 'number', 'fn', 'array', 'object', 'null']],
@@ -21,7 +21,7 @@ const fns:Array<[string, string | string[]]> = [
   ['isNull', 'null'],
   ['isNumber', 'number'],
   ['isObject', 'object'],
-  ['isString', ['string','emptyString']],
+  ['isString', ['string', 'emptyString']],
 ];
 
 for (const [name, trueType] of fns) {
@@ -36,7 +36,6 @@ for (const [name, trueType] of fns) {
         expect(is[name](value)).toBe(trueType.includes(type));
       }
     });
-
   });
 }
 

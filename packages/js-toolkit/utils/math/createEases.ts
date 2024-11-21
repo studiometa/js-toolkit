@@ -23,8 +23,8 @@ export function createEaseInOut(easeIn: EasingFunction): EasingFunction {
     progress === 0
       ? 0
       : progress === 1
-      ? 1
-      : progress < 0.5
-      ? easeIn(progress * 2) / 2
-      : 1 - easeIn((1 - progress) * 2) / 2;
+        ? 1
+        : progress < 0.5
+          ? easeIn(progress * 2) / 2
+          : 1 - easeIn((1 - progress) * 2) / 2;
 }

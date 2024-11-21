@@ -44,7 +44,7 @@ describe('The `importWhenVisible` lazy import helper', () => {
       },
     });
 
-    await (new AppOverride(div)).$mount();
+    await new AppOverride(div).$mount();
     expect(getInstanceFromElement(component, Component)).toBeNull();
     mockIsIntersecting(component, false);
     expect(getInstanceFromElement(component, Component)).toBeNull();
@@ -65,7 +65,7 @@ describe('The `importWhenVisible` lazy import helper', () => {
       },
     });
 
-    await (new AppOverride(div)).$mount();
+    await new AppOverride(div).$mount();
 
     expect(getInstanceFromElement(component, Component)).toBeNull();
     mockIsIntersecting(btn, false);
@@ -85,7 +85,7 @@ describe('The `importWhenVisible` lazy import helper', () => {
       },
     });
 
-    await (new AppOverride(div)).$mount();
+    await new AppOverride(div).$mount();
     expect(getInstanceFromElement(component, Component)).toBeNull();
     mockIsIntersecting(document.body, true);
     await wait(1);
