@@ -64,6 +64,12 @@ export type Managers = {
  */
 export class Base<T extends BaseProps = BaseProps> {
   /**
+   * Declare the `this.constructor` type
+   * @see https://github.com/microsoft/TypeScript/issues/3841#issuecomment-2381594311
+   */
+  declare ['constructor']: BaseConstructor;
+
+  /**
    * This is a Base instance.
    */
   static readonly $isBase = true as const;
@@ -89,7 +95,14 @@ export class Base<T extends BaseProps = BaseProps> {
   $isMounted = false;
 
   /**
+   * Is the component currently mounting itself and its children?
+   * @private
+   */
+  __isMounting = false;
+
+  /**
    * Store the event handlers.
+   * @private
    */
   __eventHandlers: Map<string, Set<EventListenerOrEventListenerObject>> = new Map();
 
@@ -117,6 +130,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Merge configuration with the parents' configurations.
+   * @private
    */
   get __config(): BaseConfig {
     let proto = Object.getPrototypeOf(this);
@@ -141,6 +155,10 @@ export class Base<T extends BaseProps = BaseProps> {
     config.components = config.components ?? {};
 
     return config;
+  }
+
+  get $config() {
+    return this.__config;
   }
 
   static config: BaseConfig = {
@@ -168,22 +186,22 @@ export class Base<T extends BaseProps = BaseProps> {
     return this.__services;
   }
 
-  __refs: RefsManager & T['$refs'] & BaseRefs;
+  __refs: RefsManager<T['$refs']>;
 
-  get $refs(): RefsManager & T['$refs'] & BaseRefs {
-    return this.__refs;
+  get $refs(): T['$refs'] & BaseRefs {
+    return this.__refs.props;
   }
 
-  __options: OptionsManager & T['$options'] & BaseOptions;
+  __options: OptionsManager<T['$options']>;
 
-  get $options(): OptionsManager & T['$options'] & BaseOptions {
-    return this.__options;
+  get $options(): T['$options'] & BaseOptions {
+    return this.__options.props;
   }
 
-  __children: ChildrenManager & T['$children'] & BaseChildren;
+  __children: ChildrenManager<T['$children']>;
 
-  get $children(): ChildrenManager & T['$children'] & BaseChildren {
-    return this.__children;
+  get $children(): T['$children'] & BaseChildren {
+    return this.__children.props;
   }
 
   __events: EventsManager;
@@ -192,21 +210,21 @@ export class Base<T extends BaseProps = BaseProps> {
    * Small helper to log stuff.
    */
   get $log(): (...args: unknown[]) => void {
-    return this.__options.log ? window.console.log.bind(window, `[${this.$id}]`) : noop;
+    return this.$options.log ? window.console.log.bind(window, `[${this.$id}]`) : noop;
   }
 
   /**
    * Small helper to make warning easier.
    */
   get $warn(): (...args: unknown[]) => void {
-    return this.__options.log ? window.console.warn.bind(window, `[${this.$id}]`) : noop;
+    return this.$options.log ? window.console.warn.bind(window, `[${this.$id}]`) : noop;
   }
 
   /**
    * Small helper to debug information.
    */
   get __debug(): (...args: unknown[]) => void {
-    return isDev && this.__options.debug
+    return isDev && this.$options.debug
       ? window.console.log.bind(window, `[debug] [${this.$id}]`)
       : noop;
   }
@@ -288,7 +306,7 @@ export class Base<T extends BaseProps = BaseProps> {
       this.$el.__base__ = new WeakMap();
     }
 
-    this.$el.__base__.set(this.__ctor, this);
+    this.$el.__base__.set(this.constructor, this);
 
     for (const service of ['Options', 'Services', 'Events', 'Refs', 'Children']) {
       this[`__${service.toLowerCase()}`] = new this.__managers[`${service}Manager`](this);
@@ -310,10 +328,11 @@ export class Base<T extends BaseProps = BaseProps> {
    * Trigger the `mounted` callback.
    */
   async $mount(): Promise<this> {
-    if (this.$isMounted) {
+    if (this.$isMounted || this.__isMounting) {
       return this;
     }
 
+    this.__isMounting = true;
     this.$emit('before-mounted');
 
     if (isDev) {
@@ -321,14 +340,19 @@ export class Base<T extends BaseProps = BaseProps> {
     }
 
     await Promise.all([
-      addToQueue(() => this.$children.registerAll()),
-      addToQueue(() => this.$refs.registerAll()),
+      addToQueue(() => this.__children.registerAll()),
+      addToQueue(() => this.__refs.registerAll()),
       addToQueue(() => this.__events.bindRootElement()),
-      addToQueue(() => this.$services.enableAll()),
-      addToQueue(() => this.$children.mountAll()),
-      addToQueue(() => (this.$isMounted = true)),
-      addToQueue(() => this.__callMethod('mounted')),
+      addToQueue(() => this.__services.enableAll()),
+      addToQueue(() => this.__children.mountAll()),
     ]);
+
+    await addToQueue(() => {
+      this.$isMounted = true;
+      this.__callMethod('mounted');
+    });
+
+    this.__isMounting = false;
 
     return this;
   }
@@ -343,16 +367,17 @@ export class Base<T extends BaseProps = BaseProps> {
 
     await Promise.all([
       // Undo
-      addToQueue(() => this.$refs.unregisterAll()),
-      addToQueue(() => this.$services.disableAll()),
+      addToQueue(() => this.__refs.unregisterAll()),
+      addToQueue(() => this.__services.disableAll()),
       // Redo
-      addToQueue(() => this.$children.registerAll()),
-      addToQueue(() => this.$refs.registerAll()),
-      addToQueue(() => this.$services.enableAll()),
+      addToQueue(() => this.__children.registerAll()),
+      addToQueue(() => this.__refs.registerAll()),
+      addToQueue(() => this.__services.enableAll()),
       // Update
-      addToQueue(() => this.$children.updateAll()),
-      addToQueue(() => this.__callMethod('updated')),
+      addToQueue(() => this.__children.updateAll()),
     ]);
+
+    await addToQueue(() => this.__callMethod('updated'));
 
     return this;
   }
@@ -369,14 +394,16 @@ export class Base<T extends BaseProps = BaseProps> {
       this.__debug('$destroy');
     }
 
+    this.$isMounted = false;
+
     await Promise.all([
-      addToQueue(() => (this.$isMounted = false)),
       addToQueue(() => this.__events.unbindRootElement()),
-      addToQueue(() => this.$refs.unregisterAll()),
-      addToQueue(() => this.$services.disableAll()),
-      addToQueue(() => this.$children.destroyAll()),
-      addToQueue(() => this.__callMethod('destroyed')),
+      addToQueue(() => this.__refs.unregisterAll()),
+      addToQueue(() => this.__services.disableAll()),
+      addToQueue(() => this.__children.destroyAll()),
     ]);
+
+    await addToQueue(() => this.__callMethod('destroyed'));
 
     return this;
   }
@@ -395,7 +422,7 @@ export class Base<T extends BaseProps = BaseProps> {
       // Execute the `terminated` hook if it exists
       addToQueue(() => this.__callMethod('terminated')),
       // Delete instance
-      addToQueue(() => this.$el.__base__.set(this.__ctor, 'terminated')),
+      addToQueue(() => this.$el.__base__.set(this.constructor, 'terminated')),
     ]);
   }
 
@@ -406,7 +433,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * @returns {void}
    */
   __addEmits(event: string): void {
-    const ctor = this.__ctor;
+    const ctor = this.constructor;
     if (isArray(ctor.config.emits)) {
       ctor.config.emits.push(event);
     } else {
@@ -421,16 +448,9 @@ export class Base<T extends BaseProps = BaseProps> {
    * @returns {void}
    */
   __removeEmits(event: string): void {
-    const ctor = this.__ctor;
+    const ctor = this.constructor;
     const index = ctor.config.emits.indexOf(event);
     ctor.config.emits.splice(index, 1);
-  }
-
-  /**
-   * Get the instance constructor.
-   */
-  get __ctor(): BaseConstructor {
-    return this.constructor as BaseConstructor;
   }
 
   /**
@@ -519,7 +539,9 @@ export class Base<T extends BaseProps = BaseProps> {
       this.__debug('$emit', event, args);
     }
 
-    this.$el.dispatchEvent(event instanceof Event ? event : new CustomEvent(event, { detail: args }));
+    this.$el.dispatchEvent(
+      event instanceof Event ? event : new CustomEvent(event, { detail: args }),
+    );
   }
 
   /**

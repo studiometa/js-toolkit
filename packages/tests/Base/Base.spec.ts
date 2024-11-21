@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Base, BaseConfig, BaseProps, getInstanceFromElement } from '@studiometa/js-toolkit';
-import { ChildrenManager, OptionsManager, RefsManager } from '#private/Base/managers/index.js';
 import { h } from '#test-utils';
 
 let mockedIsDev = true;
@@ -92,19 +91,24 @@ describe('A Base instance', () => {
     expect(foo.$isMounted).toBe(true);
   });
 
+  it('should have a `$config` property', async () => {
+    const { foo } = await getContext();
+    expect(foo.$config).toEqual(foo.__config);
+  });
+
   it('should have a `$refs` property', async () => {
     const { foo } = await getContext();
-    expect(foo.$refs).toBeInstanceOf(RefsManager);
+    expect(foo.$refs).toBe(foo.__refs.props);
   });
 
   it('should have a `$children` property', async () => {
     const { foo } = await getContext();
-    expect(foo.$children).toBeInstanceOf(ChildrenManager);
+    expect(foo.$children).toBe(foo.__children.props);
   });
 
   it('should have an `$options` property', async () => {
     const { foo } = await getContext();
-    expect(foo.$options).toBeInstanceOf(OptionsManager);
+    expect(foo.$options).toBe(foo.__options.props);
     expect(foo.$options.name).toBe('Foo');
   });
 
@@ -361,7 +365,7 @@ describe('A Base instance methods', () => {
       };
     }
 
-    expect(foo.$children.registeredNames).toEqual([]);
+    expect(Object.keys(foo.$children)).toEqual([]);
     const baz = new Baz(h('div'));
     await baz.$mount();
     expect(baz.$children.Bar).toEqual([]);

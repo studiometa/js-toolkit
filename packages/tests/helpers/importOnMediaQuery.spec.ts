@@ -1,25 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   Base,
   withExtraConfig,
   importOnMediaQuery,
   getInstanceFromElement,
 } from '@studiometa/js-toolkit';
-import {
-  h,
-  useMatchMedia,
-  useRealTimers,
-  useFakeTimers,
-  advanceTimersByTimeAsync,
-} from '#test-utils';
-
-beforeEach(() => {
-  useFakeTimers();
-});
-
-afterEach(() => {
-  useRealTimers();
-});
+import { h, useMatchMedia } from '#test-utils';
+import { wait } from '#private/utils';
 
 class App extends Base {
   static config = {
@@ -53,12 +40,11 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
     });
 
     matchMedia.useMediaQuery('(prefers-reduced-motion)');
-    new AppOverride(div).$mount();
-    await advanceTimersByTimeAsync(1);
+    await (new AppOverride(div)).$mount();
     expect(fn).not.toHaveBeenCalled();
     expect(getInstanceFromElement(component, Component)).toBeNull();
     matchMedia.useMediaQuery(mediaQuery);
-    await advanceTimersByTimeAsync(1);
+    await wait(1);
     expect(fn).toHaveBeenCalledTimes(1);
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
@@ -81,8 +67,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
       },
     });
 
-    new AppOverride(div).$mount();
-    await advanceTimersByTimeAsync(1);
+    await (new AppOverride(div)).$mount();
     expect(fn).toHaveBeenCalledTimes(1);
     expect(getInstanceFromElement(component, Component)).toBeInstanceOf(Component);
   });
@@ -104,8 +89,7 @@ describe('The `importOnMediaQuery` lazy import helper', () => {
       },
     });
 
-    new AppOverride(div).$mount();
-    await advanceTimersByTimeAsync(1);
+    await (new AppOverride(div)).$mount();
     expect(fn).toHaveBeenCalledTimes(0);
     expect(getInstanceFromElement(component, Component)).toBeNull();
   });

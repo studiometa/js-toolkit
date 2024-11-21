@@ -11,7 +11,7 @@ describe('The `withResponsiveOptions` decorator', () => {
       };
     }
 
-    expect(new Foo(h('div')).$options).toBeInstanceOf(ResponsiveOptionsManager);
+    expect(new Foo(h('div')).__options).toBeInstanceOf(ResponsiveOptionsManager);
   });
 
   it('should configure responsive options', () => {

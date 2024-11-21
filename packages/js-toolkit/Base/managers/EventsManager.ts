@@ -277,12 +277,12 @@ export class EventsManager extends AbstractManager {
    */
   __childrenHandler: EventListenerObject = {
     handleEvent: (event: CustomEvent) => {
-      const childrenManager = this.__base.$children;
+      const children = this.__base.$children;
 
-      for (const childName of childrenManager.registeredNames) {
+      for (const childName of Object.keys(children)) {
         let index = -1;
 
-        for (const child of childrenManager[childName] as Base<BaseProps>[]) {
+        for (const child of children[childName] as Base<BaseProps>[]) {
           index++;
 
           if (
@@ -306,15 +306,6 @@ export class EventsManager extends AbstractManager {
    */
   constructor(base: Base) {
     super(base);
-
-    this.__hideProperties([
-      '__methodsCache',
-      '__rootElementHandler',
-      '__refsHandler',
-      '__childrenHandler',
-      '__documentHandler',
-      '__windowHandler',
-    ]);
   }
 
   /**
