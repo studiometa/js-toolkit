@@ -7,7 +7,6 @@ import {
   loadScript,
   memo,
 } from '@studiometa/js-toolkit/utils';
-import type { LoadableElementsNames } from '@studiometa/js-toolkit/utils';
 import { h, mockElementLoad } from '#test-utils';
 
 const items = [

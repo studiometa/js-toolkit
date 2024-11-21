@@ -3,7 +3,7 @@ import type { Base } from '../index.js';
 /**
  * AbstractManager class.
  */
-export class AbstractManager {
+export class AbstractManager<T extends any = any> {
   /**
    * Base instance.
    */
@@ -30,33 +30,16 @@ export class AbstractManager {
     return this.__base.__events;
   }
 
+  __props: T = {} as any;
+
+  get props() {
+    return this.__props;
+  }
+
   /**
    * Class constructor.
    */
   constructor(base: Base) {
     this.__base = base;
-    this.__hideProperties(['__base']);
-  }
-
-  /**
-   * Prevent a list of properties from being enumerable and writable.
-   *
-   * @param   {string[]} properties
-   * @returns {void}
-   */
-  __hideProperties(properties: string[]) {
-    Object.defineProperties(
-      this,
-      Object.fromEntries(
-        properties.map((property) => [
-          property,
-          {
-            enumerable: false,
-            writable: false,
-            value: this[property],
-          },
-        ]),
-      ),
-    );
   }
 }

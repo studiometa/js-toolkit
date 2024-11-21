@@ -51,64 +51,14 @@ function refBelongToInstance(ref: HTMLElement, rootElement: HTMLElement, name: s
 }
 
 /**
- * Register one ref.
- *
- * @param {RefsManager} that
- * @param {string} refName The ref name.
- * @private
- */
-function __register(that: RefsManager, refName: string) {
-  const isMultiple = endsWith(refName, '[]');
-  const propName = normalizeRefName(refName);
-  const { name } = that.__base.$options;
-  const attributes = features.get('attributes');
-  const refs = [] as HTMLElement[];
-  const selector = `[${attributes.ref}="${refName}"],[${attributes.ref}="${name}.${refName}"]`;
-
-  for (const ref of that.__element.querySelectorAll<HTMLElement>(selector)) {
-    if (refBelongToInstance(ref, that.__element, name)) {
-      refs.push(ref);
-    }
-  }
-
-  /* v8 ignore next 7 */
-  if (isDev && !isMultiple && refs.length > 1) {
-    console.warn(
-      `[${that.__base.$id}]`,
-      `The "${refName}" ref has been found multiple times.`,
-      'Did you forgot to add the `[]` suffix to its name?',
-    );
-  }
-
-  if (refs.length) {
-    that.__eventsManager.bindRef(refName, refs);
-  }
-
-  Object.defineProperty(that, camelCase(propName), {
-    // @todo remove usage of non-multiple refs as array
-    value: isMultiple || refs.length > 1 ? refs : refs[0],
-    enumerable: true,
-    configurable: true,
-  });
-}
-
-/**
- * Unregister one ref.
- */
-function __unregister(that: RefsManager, refName: string) {
-  const propName = normalizeRefName(refName);
-  const refs = isArray(that[propName]) ? that[propName] : [that[propName]];
-  that.__eventsManager.unbindRef(refName, refs);
-}
-
-/**
  * Refs Manager
  *
  * @todo Use `MutationObserver` to automatically update refs?
  */
-export class RefsManager extends AbstractManager {
+export class RefsManager<T> extends AbstractManager<T> {
   /**
    * Get refs configuration.
+   * @private
    */
   get __refs() {
     return this.__config.refs ?? [];
@@ -118,13 +68,65 @@ export class RefsManager extends AbstractManager {
    * Register all refs.
    */
   registerAll() {
-    for (const refName of this.__refs) __register(this, refName);
+    for (const refName of this.__refs) {
+      this.__register(refName);
+    }
   }
 
   /**
    * Unregister all refs.
    */
   unregisterAll() {
-    for (const refName of this.__refs) __unregister(this, refName);
+    for (const refName of this.__refs) {
+      this.__unregister(refName);
+    }
+  }
+
+  /**
+   * Register one ref.
+   * @private
+   */
+  __register(refName: string) {
+    const isMultiple = endsWith(refName, '[]');
+    const propName = normalizeRefName(refName);
+    const { name } = this.__base.__config;
+    const attributes = features.get('attributes');
+    const refs = [] as HTMLElement[];
+    const selector = `[${attributes.ref}="${refName}"],[${attributes.ref}="${name}.${refName}"]`;
+
+    for (const ref of this.__element.querySelectorAll<HTMLElement>(selector)) {
+      if (refBelongToInstance(ref, this.__element, name)) {
+        refs.push(ref);
+      }
+    }
+
+    /* v8 ignore next 7 */
+    if (isDev && !isMultiple && refs.length > 1) {
+      console.warn(
+        `[${this.__base.$id}]`,
+        `The "${refName}" ref has been found multiple times.`,
+        'Did you forgot to add the `[]` suffix to its name?',
+      );
+    }
+
+    if (refs.length) {
+      this.__eventsManager.bindRef(refName, refs);
+    }
+
+    Object.defineProperty(this.props, camelCase(propName), {
+      // @todo remove usage of non-multiple refs as array
+      value: isMultiple || refs.length > 1 ? refs : refs[0],
+      enumerable: true,
+      configurable: true,
+    });
+  }
+
+  /**
+   * Unregister one ref.
+   */
+  __unregister(refName: string) {
+    const propName = normalizeRefName(refName);
+    const refs = this.props[propName];
+    this.__eventsManager.unbindRef(refName, isArray(refs) ? refs : [refs]);
   }
 }

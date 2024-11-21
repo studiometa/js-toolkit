@@ -47,6 +47,10 @@ interface ChildrenInterface {
 }
 ```
 
+## `$config`
+
+The resolved configuration based on the current class [static `config` property](/api/configuration.html) merged with its ancestors properties.
+
 ## `$parent`
 
 The parent instance when the current instance has been mounted as a [child component](#components), defaults to `null` if the component as been instantiated as a stand-alone component.
