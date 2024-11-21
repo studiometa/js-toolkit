@@ -28,6 +28,8 @@ type Services = {
   keyed: KeyServiceInterface;
 } & Record<string, ServiceInterface<unknown>>;
 
+type ServiceProps = typeof SERVICES_MAP & Record<string, <T>() => ServiceInterface<T>>;
+
 type ServiceNames = keyof Services;
 
 /**
@@ -35,21 +37,14 @@ type ServiceNames = keyof Services;
  *
  * @todo Add support for disabled services on mount when the method is defined.
  */
-export class ServicesManager extends AbstractManager {
+export class ServicesManager extends AbstractManager<ServiceProps> {
   /**
-   * Holder for custom services.
+   * Custom props
+   * @private
    */
-  __customServices: Record<string, <T>() => ServiceInterface<T>> = {};
-
-  /**
-   * Get registered services.
-   */
-  get __services() {
-    return {
-      ...this.__customServices,
-      ...SERVICES_MAP,
-    };
-  }
+  __props = {
+    ...SERVICES_MAP,
+  } as ServiceProps;
 
   /**
    * Test if the given service is registered.
@@ -60,13 +55,13 @@ export class ServicesManager extends AbstractManager {
         (isFunction(this.__base[service]) ||
           // @ts-ignore
           this.__base.__hasEvent(service)) &&
-        this.__services[service]
+        this.props[service]
       )
     ) {
       return false;
     }
 
-    const { has } = this.__services[service]();
+    const { has } = this.props[service]();
     return has(this.__base.$id);
   }
 
@@ -75,7 +70,7 @@ export class ServicesManager extends AbstractManager {
    */
   get<S extends ServiceNames | string>(service: S): ReturnType<Services[S]['props']> {
     // @ts-ignore
-    return this.__services[service]().props();
+    return this.props[service]().props();
   }
 
   /**
@@ -92,11 +87,11 @@ export class ServicesManager extends AbstractManager {
     if (
       // @ts-ignore
       !(isFunction(this.__base[service]) || this.__base.__hasEvent(service)) ||
-      !this.__services[service]
+      !this.props[service]
     ) {
       return noop;
     }
-    const serviceInstance = this.__services[service]();
+    const serviceInstance = this.props[service]();
 
     serviceInstance.add(this.__base.$id, (...args) => this.__base.__callMethod(service, ...args));
 
@@ -107,7 +102,7 @@ export class ServicesManager extends AbstractManager {
    * Enable all services and return methods to disable them.
    */
   enableAll() {
-    return Object.keys(this.__services).map((serviceName) => this.enable(serviceName));
+    return Object.keys(this.props).map((serviceName) => this.enable(serviceName));
   }
 
   /**
@@ -116,7 +111,7 @@ export class ServicesManager extends AbstractManager {
    * @returns {void}
    */
   disableAll() {
-    for (const serviceName of Object.keys(this.__services)) {
+    for (const serviceName of Object.keys(this.props)) {
       this.disable(serviceName);
     }
   }
@@ -125,11 +120,11 @@ export class ServicesManager extends AbstractManager {
    * Disable a service.
    */
   disable(service: ServiceNames) {
-    if (!this.__services[service]) {
+    if (!this.props[service]) {
       return;
     }
 
-    const { remove } = this.__services[service]();
+    const { remove } = this.props[service]();
     remove(this.__base.$id);
   }
 
@@ -161,7 +156,7 @@ export class ServicesManager extends AbstractManager {
    *   The `use...` function for the service.
    */
   register(name: string, useFunction: <T>(...args: unknown[]) => ServiceInterface<T>) {
-    this.__customServices[name] = useFunction;
+    this.props[name] = useFunction;
     this.__base.__addEmits(name);
   }
 
@@ -180,6 +175,6 @@ export class ServicesManager extends AbstractManager {
     }
 
     this.__base.__removeEmits(name);
-    delete this.__customServices[name];
+    delete this.props[name];
   }
 }

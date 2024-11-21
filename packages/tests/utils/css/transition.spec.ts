@@ -35,7 +35,7 @@ describe('transition method', () => {
       el.dispatchEvent(new CustomEvent('transitionend'));
     }, 100);
     transition(el, 'name');
-    await advanceTimersByTimeAsync(200)
+    await advanceTimersByTimeAsync(200);
     expect(spyAdd).toHaveBeenNthCalledWith(1, 'name-from');
     expect(spyAdd).toHaveBeenNthCalledWith(2, 'name-active');
     expect(spyAdd).toHaveBeenNthCalledWith(3, 'name-to');

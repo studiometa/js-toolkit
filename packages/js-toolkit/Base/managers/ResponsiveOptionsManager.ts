@@ -7,42 +7,9 @@ import { features } from '../features.js';
 export type ResponsiveOptionObject = OptionObject & { responsive?: boolean };
 
 /**
- * Get the currently active responsive name of an option.
- *
- * @param   {ResponsiveOptionsManager} that
- * @param   {string} name The default name of the option.
- * @returns {string}      The responsive name if one matches the current breakpoint, the default name otherwise.
- */
-function __getResponsiveName(that: ResponsiveOptionsManager, name: string) {
-  const { breakpoint } = useResize().props();
-
-  if (!breakpoint) {
-    return name;
-  }
-
-  let responsiveName = name;
-  const propertyName = __getPropertyName(name).toLowerCase();
-  const regex = new RegExp(`${propertyName}:(.+)$`, 'i');
-  const attributes = features.get('attributes');
-  const dataOptionRegExp = new RegExp(`^${attributes.option}-`);
-
-  for (const optionName of that.__element.getAttributeNames()) {
-    if (regex.test(optionName)) {
-      const [, breakpoints] = optionName.match(regex);
-      const isInBreakpoint = breakpoints.split(':').includes(breakpoint);
-      if (isInBreakpoint) {
-        responsiveName = optionName.replace(dataOptionRegExp, '');
-      }
-    }
-  }
-
-  return responsiveName;
-}
-
-/**
  * Class options to manage options as data attributes on an HTML element.
  */
-export class ResponsiveOptionsManager extends OptionsManager {
+export class ResponsiveOptionsManager<T> extends OptionsManager<T> {
   /**
    * Get an option value.
    *
@@ -55,7 +22,7 @@ export class ResponsiveOptionsManager extends OptionsManager {
       return super.get(name, config);
     }
 
-    return super.get(__getResponsiveName(this, name), config);
+    return super.get(this.__getResponsiveName(name), config);
   }
 
   /**
@@ -72,7 +39,40 @@ export class ResponsiveOptionsManager extends OptionsManager {
     }
 
     if (isDev) {
-      console.warn(`[${this.__config.name}]`, 'Responsive options are read-only.');
+      console.warn(`[${this.__base.$id}]`, 'Responsive options are read-only.');
     }
+  }
+
+  /**
+   * Get the currently active responsive name of an option.
+   *
+   * @param   {ResponsiveOptionsManager} that
+   * @param   {string} name The default name of the option.
+   * @returns {string}      The responsive name if one matches the current breakpoint, the default name otherwise.
+   */
+  __getResponsiveName(name: string) {
+    const { breakpoint } = useResize().props();
+
+    if (!breakpoint) {
+      return name;
+    }
+
+    let responsiveName = name;
+    const propertyName = __getPropertyName(name).toLowerCase();
+    const regex = new RegExp(`${propertyName}:(.+)$`, 'i');
+    const attributes = features.get('attributes');
+    const dataOptionRegExp = new RegExp(`^${attributes.option}-`);
+
+    for (const optionName of this.__element.getAttributeNames()) {
+      if (regex.test(optionName)) {
+        const [, breakpoints] = optionName.match(regex);
+        const isInBreakpoint = breakpoints.split(':').includes(breakpoint);
+        if (isInBreakpoint) {
+          responsiveName = optionName.replace(dataOptionRegExp, '');
+        }
+      }
+    }
+
+    return responsiveName;
   }
 }

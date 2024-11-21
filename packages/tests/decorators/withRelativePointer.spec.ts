@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Base, withRelativePointer } from '@studiometa/js-toolkit';
 
-
 function createEvent(type: string, data: Record<string, unknown> = {}, options?: EventInit) {
   const event = new Event(type, options);
   for (const [name, value] of Object.entries(data)) {
