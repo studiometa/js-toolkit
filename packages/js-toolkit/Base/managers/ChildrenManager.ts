@@ -200,10 +200,8 @@ export class ChildrenManager<T> extends AbstractManager<T> {
       for (const name of this.registeredNames) {
         for (const instance of this.props[name]) {
           if (instance instanceof Promise) {
-            promises.push(
-              instance.then((resolvedInstance) =>
-                addToQueue(() => this.__triggerHook(hook, resolvedInstance, name)),
-              ),
+            instance.then((resolvedInstance) =>
+              addToQueue(() => this.__triggerHook(hook, resolvedInstance, name)),
             );
           } else {
             promises.push(addToQueue(() => this.__triggerHook(hook, instance, name)));
