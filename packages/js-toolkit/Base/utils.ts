@@ -100,11 +100,7 @@ export function eventIsNative(event: string, element: HTMLElement): boolean {
 /**
  * Get the target of a given event.
  */
-export function getEventTarget(
-  instance: Base,
-  event: string,
-  config: BaseConfig,
-): Base['$el'] {
+export function getEventTarget(instance: Base, event: string, config: BaseConfig): Base['$el'] {
   if (eventIsDefinedInConfig(event, config) || eventIsNative(event, instance.$el)) {
     return instance.$el;
   }
