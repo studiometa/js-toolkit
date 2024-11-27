@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add a createElement function ([#548](https://github.com/studiometa/js-toolkit/pull/548), [a6417f2f](https://github.com/studiometa/js-toolkit/commit/a6417f2f))
+
 ## [v3.0.0-beta.2](https://github.com/studiometa/js-toolkit/compare/3.0.0-beta.1..3.0.0-beta.2) (2024-11-21)
 
 ### Added

@@ -256,11 +256,12 @@ function getUtilsSidebar() {
       link: '/utils/',
       collapsed: true,
       items: [
+        { text: 'createElement', link: '/utils/createElement.html' },
         { text: 'debounce', link: '/utils/debounce.html' },
         { text: 'keyCodes', link: '/utils/keyCodes.html' },
         { text: 'loadElement', link: '/utils/loadElement.html' },
-        { text: 'loadImage', link: '/utils/loadImage.html' },
         { text: 'loadIframe', link: '/utils/loadIframe.html' },
+        { text: 'loadImage', link: '/utils/loadImage.html' },
         { text: 'loadLink', link: '/utils/loadLink.html' },
         { text: 'loadScript', link: '/utils/loadScript.html' },
         { text: 'memo', link: '/utils/memo.html' },
