@@ -21,6 +21,7 @@ describe('@studiometa/js-toolkit/utils exports', () => {
         "collideRectRect",
         "createEaseInOut",
         "createEaseOut",
+        "createElement",
         "createRange",
         "damp",
         "dashCase",
