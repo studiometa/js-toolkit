@@ -183,7 +183,7 @@ async function singleTransition(
  * @param  {string}                                            endMode           Whether to remove or keep the `to` classes/styles
  * @returns {Promise<void>}                                                      A promise resolving at the end of the transition.
  */
-export default async function transition(
+export async function transition(
   elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
   name: string | TransitionStyles,
   endMode: 'keep' | 'remove' = 'remove',

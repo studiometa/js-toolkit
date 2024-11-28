@@ -1,4 +1,4 @@
-import clamp from './clamp.js';
+import { clamp } from './clamp.js';
 
 /**
  * Clamp a value in the 0–1 range.
@@ -6,6 +6,6 @@ import clamp from './clamp.js';
  * @param {number} value
  * @returns {number}
  */
-export default function clamp01(value: number) {
+export function clamp01(value: number) {
   return clamp(value, 0, 1);
 }

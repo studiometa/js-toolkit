@@ -1,4 +1,4 @@
-export default {
+export const keyCodes = {
   ENTER: 13,
   SPACE: 32,
   TAB: 9,

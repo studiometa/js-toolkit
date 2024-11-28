@@ -2,7 +2,7 @@ import type { ServiceConfig, ServiceInterface } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
 import type { Features } from '../Base/features.js';
 import { features } from '../Base/features.js';
-import debounce from '../utils/debounce.js';
+import { debounce } from '../utils/debounce.js';
 
 export interface ResizeServiceProps<U extends Features['breakpoints'] = Features['breakpoints']> {
   width: number;

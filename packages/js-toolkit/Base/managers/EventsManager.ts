@@ -1,5 +1,5 @@
 import type { Base, BaseProps } from '../index.js';
-import getAllProperties from '../../utils/object/getAllProperties.js';
+import { getAllProperties } from '../../utils/object/getAllProperties.js';
 import { dashCase, isArray, pascalCase } from '../../utils/index.js';
 import { getEventTarget, eventIsNative, eventIsDefinedInConfig } from '../utils.js';
 import { AbstractManager } from './AbstractManager.js';

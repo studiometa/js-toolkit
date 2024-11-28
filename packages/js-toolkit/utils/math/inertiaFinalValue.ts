@@ -1,4 +1,4 @@
-import clamp from './clamp.js';
+import { clamp } from './clamp.js';
 
 /**
  * Get the final damped value for a given factor.
@@ -8,11 +8,7 @@ import clamp from './clamp.js';
  * @param   {number} [dampFactor=0.85] The speed to reach the target value.
  * @returns {number} The next value.
  */
-export default function inertiaFinalValue(
-  initialValue: number,
-  initialDelta: number,
-  dampFactor = 0.85,
-) {
+export function inertiaFinalValue(initialValue: number, initialDelta: number, dampFactor = 0.85) {
   // eslint-disable-next-line no-param-reassign
   dampFactor = clamp(dampFactor, 0.00001, 0.99999);
   let delta = initialDelta;

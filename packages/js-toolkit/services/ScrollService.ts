@@ -1,6 +1,6 @@
 import type { ServiceConfig, ServiceInterface } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
-import debounce from '../utils/debounce.js';
+import { debounce } from '../utils/debounce.js';
 import { PASSIVE_CAPTURE_EVENT_OPTIONS } from './utils.js';
 
 export interface ScrollServiceProps {

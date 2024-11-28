@@ -1,5 +1,5 @@
 import type { BaseConstructor } from '../Base/index.js';
-import importOnMediaQuery from './importOnMediaQuery.js';
+import { importOnMediaQuery } from './importOnMediaQuery.js';
 
 /**
  * Import a component if user does not reduce motion.
@@ -8,7 +8,7 @@ import importOnMediaQuery from './importOnMediaQuery.js';
  * @param {() => Promise<T|{default:T}>} fn
  * @returns {Promise<T>}
  */
-export default function importWhenPrefersMotion<T extends BaseConstructor = BaseConstructor>(
+export function importWhenPrefersMotion<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
 ): Promise<T> {
   return importOnMediaQuery(fn, 'not (prefers-reduced-motion)');

@@ -1,4 +1,4 @@
-import withoutLeadingCharacters from './withoutLeadingCharacters.js';
+import { withoutLeadingCharacters } from './withoutLeadingCharacters.js';
 
 /**
  * Remove the leading slash from a string.
@@ -6,6 +6,6 @@ import withoutLeadingCharacters from './withoutLeadingCharacters.js';
  * @param {string} string The string to modify.
  * @returns {string} The string without leading slash.
  */
-export default function withoutLeadingSlash(string: string): string {
+export function withoutLeadingSlash(string: string): string {
   return withoutLeadingCharacters(string, '/');
 }
