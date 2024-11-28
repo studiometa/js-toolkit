@@ -26,7 +26,7 @@ export function withRelativePointer<S extends Base>(
      * Config.
      */
     static config: BaseConfig = {
-      name: `${BaseClass.config.name}WithRelativePointer`,
+      ...BaseClass.config,
       emits: ['movedrelative'],
     };
 
