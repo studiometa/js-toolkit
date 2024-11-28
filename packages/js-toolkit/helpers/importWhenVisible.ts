@@ -16,7 +16,7 @@ import { getComponentResolver } from '../utils/index.js';
  *   Options for the `IntersectionObserver` instance.
  * @returns {Promise<T>}
  */
-export default function importWhenVisible<T extends BaseConstructor = BaseConstructor>(
+export function importWhenVisible<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
   nameOrSelectorOrElement: string | HTMLElement | HTMLElement[],
   parent?: Base,

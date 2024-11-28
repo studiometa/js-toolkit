@@ -7,7 +7,7 @@
  * @param   {number} [precision=0.01] The precision used to calculate the latest value.
  * @returns {number} The next value.
  */
-export default function damp(
+export function damp(
   targetValue: number,
   currentValue: number,
   factor = 0.5,

@@ -1,13 +1,13 @@
-export { default as debounce } from './debounce.js';
+export { debounce } from './debounce.js';
 export * from './trapFocus.js';
-export { default as keyCodes } from './keyCodes.js';
-export { default as memoize } from './memoize.js';
+export { keyCodes } from './keyCodes.js';
+export { memoize } from './memoize.js';
 export { nextFrame } from './nextFrame.js';
 export { nextTick } from './nextTick.js';
 export { nextMicrotask } from './nextMicrotask.js';
-export { default as throttle } from './throttle.js';
+export { throttle } from './throttle.js';
 export { scrollTo } from './scrollTo.js';
-export { default as getComponentResolver } from './getComponentResolver.js';
+export { getComponentResolver } from './getComponentResolver.js';
 export * from './is.js';
 export * from './has.js';
 export * from './css/index.js';

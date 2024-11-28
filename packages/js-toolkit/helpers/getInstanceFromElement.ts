@@ -3,7 +3,7 @@ import type { BaseConstructor, BaseEl } from '../Base/index.js';
 /**
  * Get a component instance from a DOM element.
  */
-export default function getInstanceFromElement<T extends BaseConstructor>(
+export function getInstanceFromElement<T extends BaseConstructor>(
   element: BaseEl,
   Constructor: T,
 ): InstanceType<T> | null {

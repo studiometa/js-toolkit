@@ -19,7 +19,7 @@
  * @param {Circle} circle Circle
  * @returns {boolean} Is the point inside the circle's bounds ?
  */
-export default function collidePointCircle(point, circle) {
+export function collidePointCircle(point, circle) {
   // get distance between the point and circle's center
   // using the Pythagorean Theorem
   const distX = point.x - circle.x;

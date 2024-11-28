@@ -13,7 +13,7 @@ export interface MemoizeOptions<T> {
 /**
  * Memoize the output of a function.
  */
-export default function memoize<T extends (...args: unknown[]) => unknown>(
+export function memoize<T extends (...args: unknown[]) => unknown>(
   fn: T,
   {
     maxAge = Number.POSITIVE_INFINITY,

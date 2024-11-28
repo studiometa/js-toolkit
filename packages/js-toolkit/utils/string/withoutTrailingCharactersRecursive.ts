@@ -1,4 +1,4 @@
-import withoutTrailingCharacters from './withoutTrailingCharacters.js';
+import { withoutTrailingCharacters } from './withoutTrailingCharacters.js';
 
 /**
  * Remove the given characters to the start of the given string recursively.
@@ -7,10 +7,7 @@ import withoutTrailingCharacters from './withoutTrailingCharacters.js';
  * @param   {string} characters The characters to add to the start.
  * @returns {string}
  */
-export default function withoutTrailingCharactersRecursive(
-  string: string,
-  characters: string,
-): string {
+export function withoutTrailingCharactersRecursive(string: string, characters: string): string {
   let str = withoutTrailingCharacters(string, characters);
   const regex = new RegExp(`${characters}$`);
 

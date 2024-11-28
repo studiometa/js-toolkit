@@ -14,7 +14,7 @@
  * @param {Rect} rect2 Rectangle 2
  * @returns {boolean} Are the sides of one rectangle touching the other ?
  */
-export default function collideRectRect(rect1, rect2) {
+export function collideRectRect(rect1, rect2) {
   return (
     rect1.x + rect1.width >= rect2.x && // rect1 right edge past rect2 left AND
     rect1.x <= rect2.x + rect2.width && // rect1 left edge past rect2 right AND
