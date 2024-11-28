@@ -127,7 +127,7 @@ export function withScrolledInView<S extends Base = Base>(
      * Config.
      */
     static config: BaseConfig = {
-      name: `${BaseClass.config.name}WithMountWhenInView`,
+      ...BaseClass.config,
       emits: ['scrolledInView'],
       options: {
         dampFactor: {

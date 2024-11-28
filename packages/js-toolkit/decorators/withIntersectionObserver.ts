@@ -33,9 +33,7 @@ export function withIntersectionObserver<S extends Base>(
      */
     static config: BaseConfig = {
       ...BaseClass.config,
-      name: `${BaseClass.config.name}WithIntersectionObserver`,
       options: {
-        ...BaseClass.config?.options,
         intersectionObserver: Object,
       },
       emits: ['intersected'],
