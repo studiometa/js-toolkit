@@ -122,9 +122,7 @@ export function withBreakpointObserver<S extends Base>(
      */
     static config: BaseConfig = {
       ...BaseClass.config,
-      name: `${BaseClass.config.name}WithBreakpointObserver`,
       options: {
-        ...BaseClass.config?.options,
         activeBreakpoints: String,
         inactiveBreakpoints: String,
       },

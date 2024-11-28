@@ -34,9 +34,7 @@ export function withMountOnMediaQuery<S extends Base = Base>(
      */
     static config: BaseConfig = {
       ...BaseClass.config,
-      name: `${BaseClass.config.name}withMountOnMediaQuery`,
       options: {
-        ...BaseClass.config?.options,
         media: String,
       },
     };
