@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
-import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
+import { Base, withIntersectionObserver, withName } from '@studiometa/js-toolkit';
 import {
   intersectionObserverBeforeAllCallback,
   intersectionObserverAfterEachCallback,
   mockIsIntersecting,
   intersectionMockInstance,
+  h,
 } from '#test-utils';
 
 beforeAll(() => {
@@ -28,7 +29,7 @@ describe('The withIntersectionObserver decorator', () => {
       }
     }
 
-    const div = document.createElement('div');
+    const div = h('div');
     const foo = new Foo(div);
     await foo.$mount();
     const observer = intersectionMockInstance(div);
@@ -49,7 +50,7 @@ describe('The withIntersectionObserver decorator', () => {
       static config = {
         name: 'Foo',
         components: {
-          Detector: withIntersectionObserver(Base),
+          Detector: withIntersectionObserver(withName(Base, 'Detector')),
         },
       };
 
@@ -58,7 +59,7 @@ describe('The withIntersectionObserver decorator', () => {
       }
     }
 
-    const div = document.createElement('div');
+    const div = h('div');
     div.innerHTML = '<div data-component="Detector"></div>';
     const foo = new Foo(div);
     await foo.$mount();
