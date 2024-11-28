@@ -1,4 +1,4 @@
-import keyCodes from './keyCodes.js';
+import { keyCodes } from './keyCodes.js';
 import { isFunction } from './is.js';
 
 const FOCUSABLE_ELEMENTS = [

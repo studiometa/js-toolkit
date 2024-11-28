@@ -15,7 +15,7 @@ type ImportWhenIdleOptions = {
  *   The time to wait before triggering the callback if never idle.
  * @returns {Promise<T>}
  */
-export default function importWhenIdle<T extends BaseConstructor = BaseConstructor>(
+export function importWhenIdle<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
   { timeout = 1 }: ImportWhenIdleOptions = {},
 ): Promise<T> {

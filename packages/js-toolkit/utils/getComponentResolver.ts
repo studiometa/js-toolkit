@@ -6,7 +6,7 @@ import { isFunction } from './is.js';
  * @param {Function} fn
  * @returns {Function}
  */
-export default function getComponentResolver(fn) {
+export function getComponentResolver(fn) {
   return (resolve, cb?: () => unknown) => {
     fn().then((module) => {
       const ResolvedClass = module.default ?? module;

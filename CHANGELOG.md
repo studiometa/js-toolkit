@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Changed
 
 - Refactor decorators to not override the name config ([#549](https://github.com/studiometa/js-toolkit/issues/549), [#550](https://github.com/studiometa/js-toolkit/pull/550), [6436ef7d](https://github.com/studiometa/js-toolkit/commit/6436ef7d))
+- Refactor all exports to be named exports ([#551](https://github.com/studiometa/js-toolkit/pull/551), [2e046016](https://github.com/studiometa/js-toolkit/commit/2e046016))
 
 ## [v3.0.0-beta.2](https://github.com/studiometa/js-toolkit/compare/3.0.0-beta.1..3.0.0-beta.2) (2024-11-21)
 
