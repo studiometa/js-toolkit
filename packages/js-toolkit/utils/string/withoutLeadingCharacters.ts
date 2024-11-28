@@ -5,6 +5,6 @@
  * @param   {string} characters The characters to remove from the start.
  * @returns {string}
  */
-export default function withoutLeadingCharacters(string: string, characters: string): string {
+export function withoutLeadingCharacters(string: string, characters: string): string {
   return string.replace(new RegExp(`^${characters}`), '');
 }

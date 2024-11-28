@@ -13,7 +13,7 @@
  * @param {Circle} circle2 Circle 2
  * @returns {boolean} Are the sides of one circle touching the other ?
  */
-export default function collideCircleCircle(circle1, circle2) {
+export function collideCircleCircle(circle1, circle2) {
   // get distance between the circle's centers
   // use the Pythagorean Theorem to compute the distance
   const distX = circle1.x - circle2.x;

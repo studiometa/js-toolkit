@@ -5,7 +5,7 @@
  * @param {number} [delay] The delay in ms
  * @returns {Function} The throttled function.
  */
-export default function throttle(
+export function throttle(
   fn: (...args: unknown[]) => void,
   delay = 16,
 ): (...args: unknown[]) => void {

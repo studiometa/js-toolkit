@@ -10,7 +10,7 @@ import { isFunction } from '../is.js';
  * @param {(name:string, proto:any) => boolean} testFn
  * @returns {Array<[string, Object]>} An array of properties and the prototype they belong to.
  */
-export default function getAllProperties(
+export function getAllProperties(
   object: unknown,
   props: Array<[string, unknown]> = [],
   testFn: (name: string, proto: unknown) => boolean = null,

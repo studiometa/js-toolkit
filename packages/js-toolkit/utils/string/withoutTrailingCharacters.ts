@@ -5,6 +5,6 @@
  * @param   {string} characters The characters to remove from the end.
  * @returns {string}
  */
-export default function withoutTrailingCharacters(string: string, characters: string): string {
+export function withoutTrailingCharacters(string: string, characters: string): string {
   return string.replace(new RegExp(`${characters}$`), '');
 }
