@@ -38,9 +38,7 @@ export function withMountWhenInView<S extends Base = Base>(
      */
     static config: BaseConfig = {
       ...BaseClass.config,
-      name: `${BaseClass.config.name}WithMountWhenInView`,
       options: {
-        ...BaseClass.config?.options,
         intersectionObserver: Object,
       },
     };
