@@ -1,3 +1,5 @@
+import { cache } from '../utils/cache.js';
+
 export interface ServiceInterface<T> {
   /**
    * Remove a function from the resize service by its key.
@@ -48,19 +50,17 @@ export class AbstractService<PropsType = any> {
   /**
    * Get a service instance as a singleton based on the given key.
    */
-  static getInstance<T extends ServiceInterface<any>>(key: any = this, ...args: any[]) {
-    if (!this.__instances.has(key)) {
+  static getInstance<T extends ServiceInterface<any>>(keys: any = [this], ...args: any[]) {
+    return cache(keys, () => {
       // @ts-ignore
       const instance = new this(...args);
-      this.__instances.set(key, {
+      return {
         add: (key, callback) => instance.add(key, callback),
         remove: (key) => instance.remove(key),
         has: (key) => instance.has(key),
         props: () => instance.props,
-      } as T);
-    }
-
-    return this.__instances.get(key);
+      } as T;
+    });
   }
 
   /**

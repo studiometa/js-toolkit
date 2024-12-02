@@ -170,5 +170,5 @@ export class PointerService extends AbstractService<PointerServiceProps> {
  * Use the pointer service.
  */
 export function usePointer(target: HTMLElement | Window = window): PointerServiceInterface {
-  return PointerService.getInstance(target, target);
+  return PointerService.getInstance([target], target);
 }

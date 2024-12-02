@@ -96,5 +96,5 @@ export class ResizeService<
 export function useResize<T extends Features['breakpoints'] = Features['breakpoints']>(
   breakpoints?: T,
 ): ResizeServiceInterface<T> {
-  return ResizeService.getInstance(breakpoints, breakpoints);
+  return ResizeService.getInstance([breakpoints], breakpoints);
 }
