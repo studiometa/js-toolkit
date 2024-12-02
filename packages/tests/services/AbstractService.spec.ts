@@ -37,6 +37,17 @@ describe('The `Service` class', () => {
     expect(service.has('key')).toBe(false);
   });
 
+  it('should accept Symbol as key', () => {
+    const { service } = getContext();
+    const fn = vi.fn();
+    const key = Symbol('key');
+    service.add(key, fn);
+    expect(service.has(key)).toBe(true);
+    expect(service.get(key)).toBe(fn);
+    service.remove(key);
+    expect(service.has(key)).toBe(false);
+  });
+
   it('should init and kill itself when adding or removing a callback', () => {
     const { service, fn } = getContext();
     service.add('key', () => fn('callback'));
