@@ -20,7 +20,7 @@
  * @param {Rect} rect Rectangle
  * @returns {boolean} Is the point inside the rectangle's bounds ?
  */
-export default function collidePointRect(point, rect) {
+export function collidePointRect(point, rect) {
   return (
     point.x >= rect.x && // right of the left edge AND
     point.x <= rect.x + rect.width && // left of the right edge AND

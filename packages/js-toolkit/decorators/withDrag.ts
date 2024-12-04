@@ -26,7 +26,7 @@ export function withDrag<S extends Base>(
      * Config.
      */
     static config: BaseConfig = {
-      name: `${BaseClass.config.name}WithDrag`,
+      ...BaseClass.config,
       emits: ['dragged'],
     };
 

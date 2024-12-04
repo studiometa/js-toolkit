@@ -16,7 +16,7 @@ import { isString, getComponentResolver } from '../utils/index.js';
  *   The parent component.
  * @returns {Promise<InstanceType<T>>}
  */
-export default function importOnInteraction<T extends BaseConstructor = BaseConstructor>(
+export function importOnInteraction<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
   nameOrSelectorOrElement: string | HTMLElement | HTMLElement[],
   events: string | string[],

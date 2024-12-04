@@ -11,7 +11,7 @@ import { getComponentResolver } from '../utils/index.js';
  *   The media query name and value (see https://developer.mozilla.org/en-US/docs/Web/CSS/@media#media_features)
  * @returns {Promise<T>}
  */
-export default function importOnMediaQuery<T extends BaseConstructor = BaseConstructor>(
+export function importOnMediaQuery<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
   media: string,
 ): Promise<T> {

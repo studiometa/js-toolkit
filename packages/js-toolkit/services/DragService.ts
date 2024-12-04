@@ -316,5 +316,9 @@ export class DragService extends AbstractService<DragServiceProps> {
  * ```
  */
 export function useDrag(target: HTMLElement, options: DragServiceOptions): DragServiceInterface {
-  return DragService.getInstance<DragServiceInterface>(target, target, options);
+  return DragService.getInstance<DragServiceInterface>(
+    [target, JSON.stringify(options)],
+    target,
+    options,
+  );
 }

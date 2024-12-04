@@ -1,6 +1,6 @@
 import type { ServiceConfig, ServiceInterface } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
-import keyCodes from '../utils/keyCodes.js';
+import { keyCodes } from '../utils/keyCodes.js';
 
 function getInitialKeyCodes(): Record<keyof typeof keyCodes, false> {
   return Object.fromEntries(Object.keys(keyCodes).map((key) => [key, false])) as Record<

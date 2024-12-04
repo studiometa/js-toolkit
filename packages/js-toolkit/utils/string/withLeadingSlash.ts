@@ -1,4 +1,4 @@
-import withLeadingCharacters from './withLeadingCharacters.js';
+import { withLeadingCharacters } from './withLeadingCharacters.js';
 
 /**
  * Add a leading slash to a string.
@@ -6,6 +6,6 @@ import withLeadingCharacters from './withLeadingCharacters.js';
  * @param {string} string The string to modify.
  * @returns {string} The string with a leading slash.
  */
-export default function withLeadingSlash(string: string): string {
+export function withLeadingSlash(string: string): string {
   return withLeadingCharacters(string, '/');
 }
