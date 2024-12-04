@@ -6,10 +6,15 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
-- Add a createElement function ([#548](https://github.com/studiometa/js-toolkit/pull/548), [a6417f2f](https://github.com/studiometa/js-toolkit/commit/a6417f2f))
+- Add support for `Symbol` as service keys ([#559](https://github.com/studiometa/js-toolkit/pull/559), [7ce96a41](https://github.com/studiometa/js-toolkit/commit/7ce96a41))
+- Add a `withMutation` decorator ([#559](https://github.com/studiometa/js-toolkit/pull/559), [fdce27a2](https://github.com/studiometa/js-toolkit/commit/fdce27a2))
+- Add a `useMutation` service ([#559](https://github.com/studiometa/js-toolkit/pull/559), [0c804b79](https://github.com/studiometa/js-toolkit/commit/0c804b79))
+- Add a `cache` utility function ([#559](https://github.com/studiometa/js-toolkit/pull/559), [b3fe8080](https://github.com/studiometa/js-toolkit/commit/b3fe8080))
+- Add a `createElement` function ([#548](https://github.com/studiometa/js-toolkit/pull/548), [a6417f2f](https://github.com/studiometa/js-toolkit/commit/a6417f2f))
 
 ### Changed
 
+- Refactor service instances cache handling ([#559](https://github.com/studiometa/js-toolkit/pull/559), [e87dca16](https://github.com/studiometa/js-toolkit/commit/e87dca16))
 - Refactor decorators to not override the name config ([#549](https://github.com/studiometa/js-toolkit/issues/549), [#550](https://github.com/studiometa/js-toolkit/pull/550), [6436ef7d](https://github.com/studiometa/js-toolkit/commit/6436ef7d))
 - Refactor all exports to be named exports ([#551](https://github.com/studiometa/js-toolkit/pull/551), [2e046016](https://github.com/studiometa/js-toolkit/commit/2e046016))
 
