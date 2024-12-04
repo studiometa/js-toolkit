@@ -1,6 +1,8 @@
 import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
 import type { Features } from '../Base/features.js';
+import { getInstances } from '../Base/index.js';
 import { features } from '../Base/features.js';
+import { useMutation } from '../services/index.js';
 import { isBoolean, isObject, isString } from '../utils/index.js';
 
 export type CreateAppOptions = Partial<Features> & {
@@ -11,7 +13,7 @@ export type CreateAppOptions = Partial<Features> & {
  * Instantiate and mount the given component on the given root element when the page has been loaded
  * and return a function to use the app instance when it is ready.
  */
-export default function createApp<S extends BaseConstructor<Base>, T extends BaseProps = BaseProps>(
+export function createApp<S extends BaseConstructor<Base>, T extends BaseProps = BaseProps>(
   App: S,
   options: HTMLElement | CreateAppOptions = {},
 ): () => Promise<S & Base<T>> {
@@ -39,6 +41,25 @@ export default function createApp<S extends BaseConstructor<Base>, T extends Bas
   if (isObject(attributes)) {
     features.set('attributes', attributes);
   }
+
+  // Terminate components whose root element has been removed from the DOM
+  const service = useMutation(document.documentElement, { childList: true, subtree: true });
+  const symbol = Symbol('createApp');
+  service.add(symbol, (props) => {
+    for (const mutation of props.mutations) {
+      if (mutation.type === 'childList') {
+        for (const node of mutation.removedNodes) {
+          if (!node.isConnected) {
+            for (const instance of getInstances()) {
+              if (node === instance.$el || node.contains(instance.$el)) {
+                instance.$terminate();
+              }
+            }
+          }
+        }
+      }
+    }
+  });
 
   async function init() {
     app = new App(root) as S & Base<T>;

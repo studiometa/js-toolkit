@@ -1,4 +1,4 @@
-import withoutTrailingCharacters from './withoutTrailingCharacters.js';
+import { withoutTrailingCharacters } from './withoutTrailingCharacters.js';
 
 /**
  * Add the given characters to the end of the given string.
@@ -7,6 +7,6 @@ import withoutTrailingCharacters from './withoutTrailingCharacters.js';
  * @param   {string} characters The characters to add to the end.
  * @returns {string}
  */
-export default function withTrailingCharacters(string: string, characters: string): string {
+export function withTrailingCharacters(string: string, characters: string): string {
   return `${withoutTrailingCharacters(string, characters)}${characters}`;
 }

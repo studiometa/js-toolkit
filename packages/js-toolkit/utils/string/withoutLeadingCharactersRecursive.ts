@@ -1,4 +1,4 @@
-import withoutLeadingCharacters from './withoutLeadingCharacters.js';
+import { withoutLeadingCharacters } from './withoutLeadingCharacters.js';
 
 /**
  * Remove the given characters to the start of the given string recursively.
@@ -7,10 +7,7 @@ import withoutLeadingCharacters from './withoutLeadingCharacters.js';
  * @param   {string} characters The characters to add to the start.
  * @returns {string}
  */
-export default function withoutLeadingCharactersRecursive(
-  string: string,
-  characters: string,
-): string {
+export function withoutLeadingCharactersRecursive(string: string, characters: string): string {
   let str = withoutLeadingCharacters(string, characters);
   const regex = new RegExp(`^${characters}`);
 

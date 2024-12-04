@@ -7,7 +7,7 @@
  * @param   {number} [delay=300] The delay in ms to wait before calling the function.
  * @returns {(...args:unknown[]) => void} The debounced function.
  */
-export default function debounce(
+export function debounce(
   fn: (...args: unknown[]) => void,
   delay = 300,
 ): (...args: unknown[]) => void {

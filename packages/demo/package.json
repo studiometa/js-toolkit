@@ -1,12 +1,14 @@
 {
   "name": "@studiometa/js-toolkit-demo",
-  "version": "3.0.0-beta.2",
+  "version": "3.0.0-beta.3",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "meta dev",
     "watch": "meta watch",
     "build": "meta build",
+    "prepreview": "meta build",
+    "preview": "http-server ./dist -o",
     "lint": "npm run lint:eslint && npm run lint:stylelint && npm run lint:prettier",
     "lint:eslint": "eslint --cache ./src/js",
     "lint:stytelint": "stylelint --cache ./src/**/*.{scss,vue}",
@@ -23,7 +25,8 @@
     "@studiometa/tailwind-config": "2.1.0",
     "@studiometa/webpack-config": "6.2.2",
     "@studiometa/webpack-config-preset-prototyping": "6.2.2",
-    "eslint": "9.14.0",
+    "eslint": "9.15.0",
+    "http-server": "14.1.1",
     "prettier": "3.3.3",
     "stylelint": "16.10.0"
   },

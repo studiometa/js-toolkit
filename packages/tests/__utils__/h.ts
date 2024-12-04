@@ -1,34 +1,13 @@
+import { createElement } from '@studiometa/js-toolkit/utils';
+
 /**
- * Functional DOM node creation.
+ * Create an HTMLElement and connect it to a document.
  */
-export function h<T extends keyof HTMLElementTagNameMap = 'div'>(
-  tag: T,
-  children?: (string | Node)[],
-): HTMLElementTagNameMap[T];
-export function h<T extends keyof HTMLElementTagNameMap = 'div'>(
-  tag: T,
-  attributes?: Record<string, string>,
-  children?: (string | Node)[],
-): HTMLElementTagNameMap[T];
-export function h<T extends keyof HTMLElementTagNameMap = 'div'>(
-  tag: T,
-  attributes: Record<string, string> = {},
-  children?: (string | Node)[],
-): HTMLElementTagNameMap[T] {
-  const el = document.createElement(tag);
+export const hConnected: typeof createElement = (...args) => {
+  const element = createElement(...args);
+  const doc = new Document();
+  doc.append(element);
+  return element;
+};
 
-  if (Array.isArray(attributes) && typeof children === 'undefined') {
-    children = attributes;
-    attributes = {};
-  }
-
-  for (const [name, value] of Object.entries(attributes)) {
-    el.setAttribute(name.replaceAll(/([a-z])([A-Z])/g, '$1-$2').toLowerCase(), value);
-  }
-
-  if (children) {
-    el.append(...children);
-  }
-
-  return el;
-}
+export { createElement as h };

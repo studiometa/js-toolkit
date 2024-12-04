@@ -3,7 +3,6 @@ import { isDefined, isFunction, isNumber } from '../is.js';
 import { transform, TRANSFORM_PROPS } from './transform.js';
 import { domScheduler as scheduler } from '../scheduler.js';
 import { tween, normalizeEase } from '../tween.js';
-// eslint-disable-next-line import/extensions
 import { eachElements } from './utils.js';
 import { startsWith } from '../string/index.js';
 import type { TransformProps } from './transform.js';
