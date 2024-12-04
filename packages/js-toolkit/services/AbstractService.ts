@@ -4,15 +4,15 @@ export interface ServiceInterface<T> {
   /**
    * Remove a function from the resize service by its key.
    */
-  remove(key: string): void;
+  remove(key: string | symbol): void;
   /**
    * Add a callback to the service. The callback will receive the current service props as parameter.
    */
-  add(key: string, callback: (props: T) => void): void;
+  add(key: string | symbol, callback: (props: T) => void): void;
   /**
    * Test if the service has alreaydy a callback for the given key.
    */
-  has(key: string): boolean;
+  has(key: string | symbol): boolean;
   /**
    * Get the service's props.
    */
