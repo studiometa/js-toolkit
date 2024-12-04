@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0-beta.3](https://github.com/studiometa/js-toolkit/compare/3.0.0-beta.2..3.0.0-beta.3) (2024-12-04)
+
 ### Added
 
 - Add support for `Symbol` as service keys ([#559](https://github.com/studiometa/js-toolkit/pull/559), [7ce96a41](https://github.com/studiometa/js-toolkit/commit/7ce96a41))
