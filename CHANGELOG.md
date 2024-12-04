@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
+- Terminate instances whose root element has been removed from the DOM ([#552](https://github.com/studiometa/js-toolkit/issues/552), [#560](https://github.com/studiometa/js-toolkit/pull/560), [93e5607b](https://github.com/studiometa/js-toolkit/commit/93e5607b))
 - Refactor service instances cache handling ([#559](https://github.com/studiometa/js-toolkit/pull/559), [e87dca16](https://github.com/studiometa/js-toolkit/commit/e87dca16))
 - Refactor decorators to not override the name config ([#549](https://github.com/studiometa/js-toolkit/issues/549), [#550](https://github.com/studiometa/js-toolkit/pull/550), [6436ef7d](https://github.com/studiometa/js-toolkit/commit/6436ef7d))
 - Refactor all exports to be named exports ([#551](https://github.com/studiometa/js-toolkit/pull/551), [2e046016](https://github.com/studiometa/js-toolkit/commit/2e046016))
