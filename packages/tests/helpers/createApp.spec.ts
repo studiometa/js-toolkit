@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { Base, createApp } from '@studiometa/js-toolkit';
+import {
+  Base,
+  BaseConfig,
+  createApp,
+  getInstanceFromElement,
+  getInstances,
+} from '@studiometa/js-toolkit';
 import {
   h,
   useFakeTimers,
@@ -135,5 +141,71 @@ describe('The `createApp` function', () => {
     expect(ctorFn).toHaveBeenCalledTimes(1);
     expect(useApp()).toBeInstanceOf(Promise);
     expect(await useApp()).toBeInstanceOf(App);
+  });
+
+  it('should terminate instances whose root element has been removed from the DOM', async () => {
+    class Component extends Base {
+      static config = {
+        name: 'Component',
+      };
+    }
+
+    class App extends Base {
+      static config: BaseConfig = {
+        name: 'App',
+        components: {
+          Component,
+        },
+      };
+    }
+
+    const componentEl = h('div', { dataComponent: 'Component' });
+    document.body.append(componentEl);
+    const app = await createApp(App)();
+    const component = getInstanceFromElement(componentEl, Component);
+    expect(app.$children.Component[0]).toBe(component);
+    expect(component.$isMounted).toBe(true);
+    expect(getInstances(Component)).toHaveLength(1);
+    expect(componentEl.isConnected).toBe(true);
+
+    document.body.innerHTML = '';
+    await advanceTimersByTimeAsync(100);
+    expect(componentEl.isConnected).toBe(false);
+    expect(component.$isMounted).toBe(false);
+    expect(getInstances(Component)).toHaveLength(0);
+  });
+
+  it('should not terminate instances whose root element has been moved in the DOM', async () => {
+    class Component extends Base {
+      static config = {
+        name: 'Component',
+      };
+    }
+
+    class App extends Base {
+      static config: BaseConfig = {
+        name: 'App',
+        components: {
+          Component,
+        },
+      };
+    }
+
+    const componentEl = h('div', { dataComponent: 'Component' });
+    const div = h('div', componentEl);
+    document.body.append(div);
+
+    const app = await createApp(App)();
+    const component = getInstanceFromElement(componentEl, Component);
+    expect(app.$children.Component[0]).toBe(component);
+    expect(component.$isMounted).toBe(true);
+    expect(getInstances(Component)).toHaveLength(1);
+
+    document.body.append(componentEl);
+    await advanceTimersByTimeAsync(100);
+    expect(componentEl.isConnected).toBe(true);
+
+    expect(component.$isMounted).toBe(true);
+    expect(getInstances(Component)).toHaveLength(1);
   });
 });
