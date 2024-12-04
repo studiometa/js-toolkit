@@ -209,6 +209,7 @@ function getServicesSidebar() {
     { text: 'useDrag', link: '/api/services/useDrag.html' },
     { text: 'useKey', link: '/api/services/useKey.html' },
     { text: 'useLoad', link: '/api/services/useLoad.html' },
+    { text: 'useMutation', link: '/api/services/useMutation.html' },
     { text: 'usePointer', link: '/api/services/usePointer.html' },
     { text: 'useRaf', link: '/api/services/useRaf.html' },
     { text: 'useResize', link: '/api/services/useResize.html' },
@@ -227,6 +228,7 @@ function getDecoratorsSidebar() {
     { text: 'withMountOnMediaQuery', link: '/api/decorators/withMountOnMediaQuery.html' },
     { text: 'withMountWhenInView', link: '/api/decorators/withMountWhenInView.html' },
     { text: 'withMountWhenPrefersMotion', link: '/api/decorators/withMountWhenPrefersMotion.html' },
+    { text: 'withMutation', link: '/api/decorators/withMutation.html' },
     { text: 'withRelativePointer', link: '/api/decorators/withRelativePointer.html' },
     { text: 'withResponsiveOptions', link: '/api/decorators/withResponsiveOptions.html' },
     { text: 'withScrolledInView', link: '/api/decorators/withScrolledInView.html' },
@@ -256,6 +258,7 @@ function getUtilsSidebar() {
       link: '/utils/',
       collapsed: true,
       items: [
+        { text: 'cache', link: '/utils/cache.html' },
         { text: 'createElement', link: '/utils/createElement.html' },
         { text: 'debounce', link: '/utils/debounce.html' },
         { text: 'keyCodes', link: '/utils/keyCodes.html' },

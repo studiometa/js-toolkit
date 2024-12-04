@@ -13,6 +13,7 @@ test('decorators exports', () => {
       "withMountOnMediaQuery",
       "withMountWhenInView",
       "withMountWhenPrefersMotion",
+      "withMutation",
       "withName",
       "withRelativePointer",
       "withResponsiveOptions",

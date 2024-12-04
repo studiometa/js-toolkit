@@ -11,6 +11,7 @@ describe('@studiometa/js-toolkit/utils exports', () => {
         "addStyle",
         "animate",
         "boundingRectToCircle",
+        "cache",
         "camelCase",
         "clamp",
         "clamp01",

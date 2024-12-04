@@ -29,3 +29,4 @@ export * from './wait.js';
 export * from './random.js';
 export * from './memo.js';
 export * from './loadElement.js';
+export * from './cache.js';

@@ -1,3 +1,5 @@
+import { cache } from '../utils/cache.js';
+
 export interface ServiceInterface<T> {
   /**
    * Remove a function from the resize service by its key.
@@ -48,19 +50,17 @@ export class AbstractService<PropsType = any> {
   /**
    * Get a service instance as a singleton based on the given key.
    */
-  static getInstance<T extends ServiceInterface<any>>(key: any = this, ...args: any[]) {
-    if (!this.__instances.has(key)) {
+  static getInstance<T extends ServiceInterface<any>>(keys: any = [this], ...args: any[]) {
+    return cache(keys, () => {
       // @ts-ignore
       const instance = new this(...args);
-      this.__instances.set(key, {
+      return {
         add: (key, callback) => instance.add(key, callback),
         remove: (key) => instance.remove(key),
         has: (key) => instance.has(key),
         props: () => instance.props,
-      } as T);
-    }
-
-    return this.__instances.get(key);
+      } as T;
+    });
   }
 
   /**
@@ -76,28 +76,28 @@ export class AbstractService<PropsType = any> {
   /**
    * Holds all the callbacks that will be triggered.
    */
-  callbacks: Map<string, (props: PropsType) => unknown> = new Map();
+  callbacks: Map<string | symbol, (props: PropsType) => unknown> = new Map();
 
   /**
    * Does the service has the given key?
    */
-  has(key: string): boolean {
+  has(key: string | symbol): boolean {
     return this.callbacks.has(key);
   }
 
   /**
    * Get a service callback by its key.
    */
-  get(key: string): (props: PropsType) => unknown {
+  get(key: string | symbol): (props: PropsType) => unknown {
     return this.callbacks.get(key);
   }
 
   /**
    * Add a callback to the service.
    */
-  add(key: string, callback: (props: PropsType) => unknown) {
+  add(key: string | symbol, callback: (props: PropsType) => unknown) {
     if (this.has(key)) {
-      console.warn(`The key \`${key}\` has already been added.`);
+      console.warn(`The key \`${String(key)}\` has already been added.`);
       return;
     }
 
@@ -113,7 +113,7 @@ export class AbstractService<PropsType = any> {
   /**
    * Remove a callback from the service by its key.
    */
-  remove(key: string) {
+  remove(key: string | symbol) {
     this.callbacks.delete(key);
 
     // Kill the service when we remove the last callback

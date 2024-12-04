@@ -2,6 +2,7 @@ export * from './AbstractService.js';
 export * from './DragService.js';
 export * from './KeyService.js';
 export * from './LoadService.js';
+export * from './MutationService.js';
 export * from './PointerService.js';
 export * from './RafService.js';
 export * from './ResizeService.js';
