@@ -10,6 +10,7 @@
     "demo:dev": "npm run dev --workspace=@studiometa/js-toolkit-demo",
     "demo:watch": "npm run watch --workspace=@studiometa/js-toolkit-demo",
     "demo:build": "npm run build --workspace=@studiometa/js-toolkit-demo",
+    "demo:preview": "npm run preview --workspace=@studiometa/js-toolkit-demo",
     "docs:dev": "npm run dev --workspace=@studiometa/js-toolkit-docs",
     "docs:build": "npm run build --workspace=@studiometa/js-toolkit-docs",
     "docs:preview": "npm run preview --workspace=@studiometa/js-toolkit-docs",
