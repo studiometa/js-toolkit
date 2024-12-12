@@ -1,10 +1,10 @@
-/* eslint-disable no-use-before-define */
 import {
   getComponentElements,
   getEventTarget,
   addToQueue,
   addInstance,
   deleteInstance,
+  getInstances,
 } from './utils.js';
 import {
   ChildrenManager,
@@ -13,6 +13,7 @@ import {
   EventsManager,
   OptionsManager,
 } from './managers/index.js';
+import { useMutation } from '../services/MutationService.js';
 import { noop, isDev, isFunction, isArray } from '../utils/index.js';
 
 let id = 0;
@@ -73,6 +74,8 @@ export class Base<T extends BaseProps = BaseProps> {
    * This is a Base instance.
    */
   static readonly $isBase = true as const;
+
+  static __mutationSymbol = Symbol('mutation');
 
   /**
    * The instance parent.
@@ -310,6 +313,38 @@ export class Base<T extends BaseProps = BaseProps> {
 
     for (const service of ['Options', 'Services', 'Events', 'Refs', 'Children']) {
       this[`__${service.toLowerCase()}`] = new this.__managers[`${service}Manager`](this);
+    }
+
+    const service = useMutation(document.documentElement, { childList: true, subtree: true });
+    const key = this.constructor.__mutationSymbol;
+    if (!service.has(key)) {
+      service.add(key, (props) => {
+        for (const mutation of props.mutations) {
+          if (mutation.type !== 'childList') continue;
+
+          // Terminate components whose root element has been removed from the DOM
+          for (const node of mutation.removedNodes) {
+            if (node.isConnected) continue;
+
+            for (const instance of getInstances()) {
+              if (node === instance.$el || node.contains(instance.$el)) {
+                console.log(instance.$id, 'terminating');
+                instance.$terminate();
+              }
+            }
+          }
+
+          // Update components whose children have been updated
+          for (const node of mutation.addedNodes) {
+            for (const instance of getInstances()) {
+              if (instance.$el.contains(node)) {
+                console.log(instance.$id, 'updating');
+                instance.$update();
+              }
+            }
+          }
+        }
+      });
     }
 
     this.$on('mounted', () => {
