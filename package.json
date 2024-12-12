@@ -32,7 +32,7 @@
   "devDependencies": {
     "@studiometa/prettier-config": "4.1.0",
     "@types/node": "22.9.1",
-    "oxlint": "0.13.2",
+    "oxlint": "0.14.1",
     "prettier": "3.3.3",
     "typescript": "5.6.3"
   },
