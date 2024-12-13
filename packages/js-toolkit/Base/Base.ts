@@ -319,6 +319,9 @@ export class Base<T extends BaseProps = BaseProps> {
     const key = this.constructor.__mutationSymbol;
     if (!service.has(key)) {
       service.add(key, (props) => {
+        const updates = new Map<Base, () => any>();
+        const terminations = new Map<Base, () => any>();
+
         for (const mutation of props.mutations) {
           if (mutation.type !== 'childList') continue;
 
@@ -327,22 +330,28 @@ export class Base<T extends BaseProps = BaseProps> {
             if (node.isConnected) continue;
 
             for (const instance of getInstances()) {
-              if (node === instance.$el || node.contains(instance.$el)) {
-                console.log(instance.$id, 'terminating');
-                instance.$terminate();
+              if (!terminations.has(instance) && (node === instance.$el || node.contains(instance.$el))) {
+                terminations.set(instance, () => instance.$terminate());
               }
             }
           }
 
-          // Update components whose children have been updated
+          // Update components whose children have been terminationd
           for (const node of mutation.addedNodes) {
             for (const instance of getInstances()) {
-              if (instance.$el.contains(node)) {
-                console.log(instance.$id, 'updating');
-                instance.$update();
+              if (!updates.has(instance) && instance.$el.contains(node)) {
+                updates.set(instance, () => instance.$update());
               }
             }
           }
+        }
+
+        for (const update of updates.values()) {
+          update();
+        }
+
+        for (const termination of terminations.values()) {
+          termination();
         }
       });
     }
