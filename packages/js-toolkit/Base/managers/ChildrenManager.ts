@@ -5,7 +5,9 @@ import { getComponentElements, addToQueue } from '../utils.js';
 /**
  * Children manager.
  */
-export class ChildrenManager<T> extends AbstractManager<T> {
+export class ChildrenManager<
+  T extends Record<string, Base[] | Promise<Base>[]>,
+> extends AbstractManager<T> {
   /**
    * Store async component promises to avoid calling them multiple times and
    * waiting for them when they are already resolved.
@@ -27,8 +29,31 @@ export class ChildrenManager<T> extends AbstractManager<T> {
    * Register instances of all children components.
    */
   async registerAll() {
+    const previousProps = { ...this.__children };
+
     for (const [name, component] of Object.entries(this.__config.components)) {
       this.__register(name, component);
+    }
+
+    let childrenToDestroy = new Set<Base>();
+    for (const [previousName, previousChildren] of Object.entries(previousProps)) {
+      if (!this.props[previousName]) {
+        childrenToDestroy = childrenToDestroy.union(new Set(previousChildren));
+        continue;
+      }
+
+      const previousChildrenSet = new Set(previousChildren);
+      const childrenSet = new Set(this.props[previousName]);
+      const diff = previousChildrenSet.difference(childrenSet);
+      childrenToDestroy = childrenToDestroy.union(diff);
+    }
+
+    for (const child of childrenToDestroy) {
+      if (child instanceof Promise) {
+        child.then(instance => instance.$destroy())
+      } else {
+        child.$destroy();
+      }
     }
   }
 
@@ -78,6 +103,8 @@ export class ChildrenManager<T> extends AbstractManager<T> {
     await instance[hook]();
   }
 
+  __children: T = {} as T;
+
   /**
    * Register instance of a child component.
    *
@@ -113,6 +140,12 @@ export class ChildrenManager<T> extends AbstractManager<T> {
         children.push(child);
       }
     }
+
+    Object.defineProperty(this.__children, name, {
+      enumerable: true,
+      configurable: true,
+      value: children,
+    });
 
     return children;
   }

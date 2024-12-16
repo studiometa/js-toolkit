@@ -10,6 +10,7 @@ import {
   BaseConfig,
   withDrag,
   withName,
+  getInstances,
 } from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
@@ -22,58 +23,6 @@ import ParentNativeEvent from './components/ParentNativeEvent/index.js';
 import ScrolledInViewOffset from './components/ScrolledInViewOffset.js';
 import MediaQueryDemo from './components/MediaQueryDemo.js';
 import PointerProps from './components/PointerProps.js';
-
-let numberOfTick = 0;
-let time = performance.now();
-const interval = setInterval(() => {
-  const newTime = performance.now();
-  numberOfTick += 1;
-  console.log('#%d blocking time: %d ms', numberOfTick, newTime - time);
-  time = newTime;
-
-  if (numberOfTick > total * 2) {
-    clearInterval(interval);
-  }
-}, 0);
-
-let count = 0;
-const total = 66;
-
-function getDeepNestedComponentName(index) {
-  return `TestDeepNested${index}`;
-}
-
-function makeDeepNestedComponent(index) {
-  return class extends withExtraConfig(Base, {
-    name: getDeepNestedComponentName(index),
-    components: {},
-  }) {
-    mounted() {
-      // console.log(this.$id);
-    }
-  };
-}
-
-const TestDeepNested = makeDeepNestedComponent(0);
-let CurrentClass = TestDeepNested;
-while (count < total) {
-  count += 1;
-  const NewClass = makeDeepNestedComponent(count);
-  if (CurrentClass.config.components) {
-    CurrentClass.config.components[NewClass.config.name] = NewClass;
-  }
-
-  CurrentClass = NewClass;
-}
-
-const TestManyInstance = class extends withExtraConfig(Base, {
-  name: 'TestManyInstance',
-  debug: false,
-}) {
-  mounted() {
-    // console.log(this.$id);
-  }
-};
 
 /**
  * App class.
@@ -100,8 +49,8 @@ class App extends Base {
       AnimateTestMultiple,
       ResponsiveOptions,
       ScrolledInViewOffset,
-      TestDeepNested,
-      TestManyInstance,
+      // TestDeepNested,
+      // TestManyInstance,
       Accordion: (app) =>
         importWhenVisible(
           async () => {
@@ -185,6 +134,7 @@ class App extends Base {
    * @inheritdoc
    */
   mounted() {
+    window.APP = this;
     this.$log('Mounted 🎉');
   }
 
@@ -200,13 +150,9 @@ class App extends Base {
     this.$log('resized', props);
   }
 
-  onDocumentClick(event) {
-    console.log('onDocumentClick', event);
-  }
-
   onWindowResize(event) {
     console.log('onWindowResize', event);
   }
 }
 
-export default createApp(App);
+export default createApp(App, { root: document.querySelector('main') });

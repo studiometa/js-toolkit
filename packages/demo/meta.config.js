@@ -4,6 +4,9 @@ import { prototyping } from '@studiometa/webpack-config-preset-prototyping';
 
 export default defineConfig({
   presets: [prototyping({ ts: true })],
+  server(config) {
+    config.snippet = false;
+  },
   webpack(config) {
     config.resolve.alias = {
       ...config.resolve.alias,

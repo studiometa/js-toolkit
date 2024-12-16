@@ -1,4 +1,5 @@
 import { Base } from '@studiometa/js-toolkit';
+import { createElement } from '@studiometa/js-toolkit/utils';
 import Child from './Child.js';
 
 /**
@@ -11,22 +12,27 @@ export default class ParentNativeEvent extends Base {
   static config = {
     name: 'ParentNativeEvent',
     log: true,
+    debug: false,
     components: {
       Child,
     },
   };
 
-  /**
-   *
-   */
-  onChildClick(...args) {
-    this.$log(this.$id, 'onChildClick', ...args);
+  updated() {
+    this.$log(this.$children.Child);
   }
 
-  /**
-   *
-   */
-  onChildDede(...args) {
-    this.$log(this.$id, 'onChildDede', ...args);
+  onDocumentClick({ event }) {
+    if (event.metaKey) {
+      this.$el.firstElementChild.remove();
+    } else if (event.altKey) {
+      this.$children.Child[0].$el.dataset.component = '';
+    } else {
+      this.$el.append(
+        createElement('button', {
+          dataComponent: 'Child',
+        }),
+      );
+    }
   }
 }
