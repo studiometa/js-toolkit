@@ -15,6 +15,7 @@ import {
 } from './managers/index.js';
 import { useMutation } from '../services/MutationService.js';
 import { noop, isDev, isFunction, isArray } from '../utils/index.js';
+import { features } from './features.js';
 
 let id = 0;
 
@@ -315,43 +316,64 @@ export class Base<T extends BaseProps = BaseProps> {
       this[`__${service.toLowerCase()}`] = new this.__managers[`${service}Manager`](this);
     }
 
-    const service = useMutation(document.documentElement, { childList: true, subtree: true });
+    const service = useMutation(document.querySelector('main'), {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: [features.get('attributes').component],
+    });
     const key = this.constructor.__mutationSymbol;
     if (!service.has(key)) {
       service.add(key, (props) => {
-        const updates = new Map<Base, () => any>();
-        const terminations = new Map<Base, () => any>();
+        const actions = new Map<any, () => any>();
+        const instances = getInstances();
 
         for (const mutation of props.mutations) {
-          if (mutation.type !== 'childList') continue;
-
-          // Terminate components whose root element has been removed from the DOM
+          // Update parent instance when an instance node has been removed from the DOM.
           for (const node of mutation.removedNodes) {
-            if (node.isConnected) continue;
+            if (node.nodeType !== Node.ELEMENT_NODE) continue;
 
-            for (const instance of getInstances()) {
-              if (!terminations.has(instance) && (node === instance.$el || node.contains(instance.$el))) {
-                terminations.set(instance, () => instance.$terminate());
-              }
+            for (const instance of instances) {
+              if (actions.has(instance.$parent ?? instance)) continue;
+              if (instance.$el.isConnected) continue;
+              if (!node.contains(instance.$el)) continue;
+
+              actions.set(instance.$parent ?? instance, () => {
+                if (instance.$parent) {
+                  instance.$update();
+                } else {
+                  instance.$destroy();
+                }
+              });
             }
           }
 
-          // Update components whose children have been terminationd
+          // Update instances whose child DOM has changed
           for (const node of mutation.addedNodes) {
-            for (const instance of getInstances()) {
-              if (!updates.has(instance) && instance.$el.contains(node)) {
-                updates.set(instance, () => instance.$update());
+            if (node.nodeType !== Node.ELEMENT_NODE) continue;
+            if (actions.has(node)) continue;
+
+            for (const instance of instances) {
+              if (instance.$el.contains(node)) {
+                actions.set(node, () => instance.$update());
+              }
+            }
+          }
+
+          // Update instances when a data-component attribute has changed
+          if (mutation.type === 'attributes') {
+            for (const instance of instances) {
+              if (actions.has(instance)) continue;
+
+              if (instance.$el.contains(mutation.target)) {
+                actions.set(instance, () => instance.$update());
               }
             }
           }
         }
 
-        for (const update of updates.values()) {
+        for (const update of actions.values()) {
           update();
-        }
-
-        for (const termination of terminations.values()) {
-          termination();
         }
       });
     }
