@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix a circular dependency ([#573](https://github.com/studiometa/js-toolkit/pull/573), [93791018](https://github.com/studiometa/js-toolkit/commit/93791018))
+
 ## [v3.0.0-beta.3](https://github.com/studiometa/js-toolkit/compare/3.0.0-beta.2..3.0.0-beta.3) (2024-12-04)
 
 ### Added
