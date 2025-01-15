@@ -1,7 +1,8 @@
 import type { ServiceConfig, ServiceInterface } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
 import { useRaf } from './RafService.js';
-import { isDefined, inertiaFinalValue } from '../utils/index.js';
+import { isDefined } from '../utils/is.js';
+import { inertiaFinalValue } from '../utils/math/index.js';
 import { PASSIVE_EVENT_OPTIONS, CAPTURE_EVENT_OPTIONS } from './utils.js';
 
 type DragLifecycle = 'start' | 'drag' | 'drop' | 'inertia' | 'stop';

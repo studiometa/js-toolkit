@@ -2,7 +2,7 @@ import { cubicBezier } from '@motionone/easing';
 import { lerp, map, clamp01, damp, inertiaFinalValue } from './math/index.js';
 import { isDefined, isArray, isNumber } from './is.js';
 import { noop, noopValue as linear } from './noop.js';
-import { useRaf } from '../services/index.js';
+import { useRaf } from '../services/RafService.js';
 import type { EasingFunction } from './math/createEases.js';
 
 let id = 0;
