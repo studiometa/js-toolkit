@@ -4,6 +4,96 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.0](https://github.com/studiometa/js-toolkit/compare/2.12.0..3.0.0) (2025-01-16)
+
+After 9 months of development, v3.0 is finally here! It is packed with more stability, capabilities and without previously deprecated APIs. Make sure to read the [migration guide](https://js-toolkit.studiometa.dev/guide/migration/v2-to-v3.html) to learn more about all the changes and how to upgrade, as you will need to edit some parts of existing components.
+
+### Added
+
+- **Base:** add a `$config` getter to access the resolved configuration ([#543](https://github.com/studiometa/js-toolkit/pull/543), [e4b0fe4d](https://github.com/studiometa/js-toolkit/commit/e4b0fe4d))
+- Add loading helpers ([#520](https://github.com/studiometa/js-toolkit/pull/520), [c52bbab](https://github.com/studiometa/js-toolkit/commit/c52bbab))
+- Add support for custom DOM element name to register components ([#514](https://github.com/studiometa/js-toolkit/pull/514), [fe3518a](https://github.com/studiometa/js-toolkit/commit/fe3518a))
+- **withResponsiveOptions:** add support for defining responsive options in the decorator ([e6543c4](https://github.com/studiometa/js-toolkit/commit/e6543c4))
+- Add `camelCase`, `pascalCase`, `snakeCase` and `dashCase` functions ([#506](https://github.com/studiometa/js-toolkit/pull/506), [c753a16](https://github.com/studiometa/js-toolkit/commit/c753a16))
+- Add a `memo` function as a simpler and smaller `memoize` alternative ([#506](https://github.com/studiometa/js-toolkit/pull/506), [980a0b3](https://github.com/studiometa/js-toolkit/commit/980a0b3))
+- Add support for defining an option default value with a function ([#478](https://github.com/studiometa/js-toolkit/pull/478))
+- Add shorthand props on the scroll service for easier destructuring ([#432](https://github.com/studiometa/js-toolkit/pull/432))
+- Add a `getInstances` helper function ([#428](https://github.com/studiometa/js-toolkit/pull/428))
+- Add a `createRange` utility function ([#426](https://github.com/studiometa/js-toolkit/pull/426), [2cb2bac](https://github.com/studiometa/js-toolkit/commit/2cb2bac))
+- Add an `easeLinear` function ([#425](https://github.com/studiometa/js-toolkit/pull/425))
+- Add support for `Symbol` as service keys ([#559](https://github.com/studiometa/js-toolkit/pull/559), [7ce96a41](https://github.com/studiometa/js-toolkit/commit/7ce96a41))
+- Add a `withMutation` decorator ([#559](https://github.com/studiometa/js-toolkit/pull/559), [fdce27a2](https://github.com/studiometa/js-toolkit/commit/fdce27a2))
+- Add a `useMutation` service ([#559](https://github.com/studiometa/js-toolkit/pull/559), [0c804b79](https://github.com/studiometa/js-toolkit/commit/0c804b79))
+- Add a `cache` utility function ([#559](https://github.com/studiometa/js-toolkit/pull/559), [b3fe8080](https://github.com/studiometa/js-toolkit/commit/b3fe8080))
+- Add a `createElement` function ([#548](https://github.com/studiometa/js-toolkit/pull/548), [a6417f2f](https://github.com/studiometa/js-toolkit/commit/a6417f2f))
+- Add support for defining breakpoints when using the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
+- Add `randomInt` and `randomItem` utility functions ([#398](https://github.com/studiometa/js-toolkit/pull/398))
+- Add `isNull` and `isEmpty` utility functions ([#320](https://github.com/studiometa/js-toolkit/pull/320))
+- Add an `isEmptyString` utility function ([9f8a9f5](https://github.com/studiometa/js-toolkit/commit/9f8a9f5), [9be5528](https://github.com/studiometa/js-toolkit/commit/9be5528))
+- Add support for a `smooth` option for `tween` and `animate` ([#419](https://github.com/studiometa/js-toolkit/pull/419))
+- Add support for a `delay` option for `tween` ([#419](https://github.com/studiometa/js-toolkit/pull/419))
+- Add support for a `stagger` option for `animate` ([#419](https://github.com/studiometa/js-toolkit/pull/419))
+- Add support for `duration` and `stagger` options as functions for `animate` ([#419](https://github.com/studiometa/js-toolkit/pull/419))
+- Add a `mean` utility function ([#419](https://github.com/studiometa/js-toolkit/pull/419))
+- Add support for custom duration and easing function for `scrollTo` ([#418](https://github.com/studiometa/js-toolkit/pull/418))
+
+### Fixed
+
+- Fix a circular dependency ([#573](https://github.com/studiometa/js-toolkit/pull/573), [93791018](https://github.com/studiometa/js-toolkit/commit/93791018))
+- **Base:** prevent callling the `$mount` method multiple times ([#543](https://github.com/studiometa/js-toolkit/pull/543), [da1fa92a](https://github.com/studiometa/js-toolkit/commit/da1fa92a))
+- **Base:** fix `$mount` and `$update` method never resolving ([#542](https://github.com/studiometa/js-toolkit/issues/542), [#543](https://github.com/studiometa/js-toolkit/pull/543), [c2749610](https://github.com/studiometa/js-toolkit/commit/c2749610))
+- **Base:** fix order of component lifecycle hooks ([#542](https://github.com/studiometa/js-toolkit/issues/542), [#543](https://github.com/studiometa/js-toolkit/pull/543), [b4dfc4d5](https://github.com/studiometa/js-toolkit/commit/b4dfc4d5))
+- **useDrag:** prevent drop when not dragging ([#538](https://github.com/studiometa/js-toolkit/issues/538), [#539](https://github.com/studiometa/js-toolkit/pull/539), [63ba2350](https://github.com/studiometa/js-toolkit/commit/63ba2350))
+- **useDrag:** fix the delta props on multiple drag actions ([#532](https://github.com/studiometa/js-toolkit/issues/532), [#533](https://github.com/studiometa/js-toolkit/pull/533), [c97a8a51](https://github.com/studiometa/js-toolkit/commit/c97a8a51))
+- Fix caching of options property names ([d1822c0](https://github.com/studiometa/js-toolkit/commit/d1822c0))
+- Fix triggering of event hook with bubbling events ([#515](https://github.com/studiometa/js-toolkit/issues/515), [#516](https://github.com/studiometa/js-toolkit/pull/516), [016b305](https://github.com/studiometa/js-toolkit/commit/016b305))
+- Fix a bug where unexisting methods were called on event dispatch ([#512](https://github.com/studiometa/js-toolkit/pull/512), [fe65d3d](https://github.com/studiometa/js-toolkit/commit/fe65d3d))
+- Fix a bug where refs could be undefined ([c11eb49](https://github.com/studiometa/js-toolkit/commit/c11eb49))
+- ⚠️ Fix listening to unconfigured events ([#505](https://github.com/studiometa/js-toolkit/pull/505), [a1e8dc9](https://github.com/studiometa/js-toolkit/commit/a1e8dc9))
+- Fix component resolution strategy (close [#403](https://github.com/studiometa/js-toolkit/issues/403), [#404](https://github.com/studiometa/js-toolkit/pull/404))
+
+### Changed
+
+- Terminate instances whose root element has been removed from the DOM ([#552](https://github.com/studiometa/js-toolkit/issues/552), [#560](https://github.com/studiometa/js-toolkit/pull/560), [93e5607b](https://github.com/studiometa/js-toolkit/commit/93e5607b))
+- Refactor service instances cache handling ([#559](https://github.com/studiometa/js-toolkit/pull/559), [e87dca16](https://github.com/studiometa/js-toolkit/commit/e87dca16))
+- Refactor decorators to not override the name config ([#549](https://github.com/studiometa/js-toolkit/issues/549), [#550](https://github.com/studiometa/js-toolkit/pull/550), [6436ef7d](https://github.com/studiometa/js-toolkit/commit/6436ef7d))
+- Refactor all exports to be named exports ([#551](https://github.com/studiometa/js-toolkit/pull/551), [2e046016](https://github.com/studiometa/js-toolkit/commit/2e046016))
+- ⚠️ **Base:** refactor manager dynamic properties ([#543](https://github.com/studiometa/js-toolkit/pull/543), [926738ee](https://github.com/studiometa/js-toolkit/commit/926738ee))
+- **Base:** refactor constructor access ([#543](https://github.com/studiometa/js-toolkit/pull/543), [e445e2f0](https://github.com/studiometa/js-toolkit/commit/e445e2f0))
+- Refactor services to classes ([#535](https://github.com/studiometa/js-toolkit/pull/535), [#537](https://github.com/studiometa/js-toolkit/pull/537))
+- **withBreakpointObserver:** test breakpoint on attribute change ([#523](https://github.com/studiometa/js-toolkit/pull/523), [bc45db0](https://github.com/studiometa/js-toolkit/commit/bc45db0))
+- Refactor ref event listener binding ([#523](https://github.com/studiometa/js-toolkit/pull/523), [5f3fe04](https://github.com/studiometa/js-toolkit/commit/5f3fe04))
+- ⚠️ Dispatch custom events on the root element ([#509](https://github.com/studiometa/js-toolkit/pull/509), [3cdc607](https://github.com/studiometa/js-toolkit/commit/3cdc607))
+- Convert ref names to camelCase ([#338](https://github.com/studiometa/js-toolkit/issues/338), [#506](https://github.com/studiometa/js-toolkit/pull/506), [1f5dbd9](https://github.com/studiometa/js-toolkit/commit/1f5dbd9))
+- Refactor attributes handling with methods ([#494](https://github.com/studiometa/js-toolkit/pull/494), [5c5c3ae](https://github.com/studiometa/js-toolkit/commits/5c5c3ae))
+- Migrate tests to Vitest ([#501](https://github.com/studiometa/js-toolkit/pull/501), [70e1b52](https://github.com/studiometa/js-toolkit/commit/70e1b52))
+- Make the HTML attributes configurable ([#495](https://github.com/studiometa/js-toolkit/pull/495), [823da97](https://github.com/studiometa/js-toolkit/commit/823da97))
+- ⚠️ Refactor event callbacks parameters ([#499](https://github.com/studiometa/js-toolkit/pull/499), [06df6b0](https://github.com/studiometa/js-toolkit/commit/06df6b0))
+- ⚠️ Make the lifecycle methods async ([#502](https://github.com/studiometa/js-toolkit/pull/502), [1e0d9ac](https://github.com/studiometa/js-toolkit/commit/1e0d9ac))
+- Change behaviour of the `getInstances` helper ([#484](https://github.com/studiometa/js-toolkit/pull/484))
+- ⚠️ Enable the `asyncChildren` feature by default ([#427](https://github.com/studiometa/js-toolkit/pull/427))
+- ⚠️ Rename the `asyncChildren` feature to `blocking` ([#427](https://github.com/studiometa/js-toolkit/pull/427))
+- ⚠️ Rename the static `$factory` method to `$register` and make its single argument optional ([#416](https://github.com/studiometa/js-toolkit/pull/416))
+- ⚠️ Refactor definition of breakpoints for the resize service ([#323](https://github.com/studiometa/js-toolkit/pull/323))
+- ⚠️ Refactor `focusTrap` for simpler exports ([#406](https://github.com/studiometa/js-toolkit/pull/406))
+- Migrate tests from Jest to Bun ([#411](https://github.com/studiometa/js-toolkit/pull/411))
+- Refactor the requestAnimationFrame polyfill ([#411](https://github.com/studiometa/js-toolkit/pull/411), [dfd62b6](https://github.com/studiometa/js-toolkit/commit/dfd62b6), [34bb2c5](https://github.com/studiometa/js-toolkit/commit/34bb2c5))
+- Improve raf service usage ([#411](https://github.com/studiometa/js-toolkit/pull/411), [352f509](https://github.com/studiometa/js-toolkit/commit/352f509))
+- Migrate legacy `pageXOffset` and `pageYOffset` to their equivalent `scrollX` and `scrollY` ([#413](https://github.com/studiometa/js-toolkit/pull/413))
+- Update dependencies ([#422](https://github.com/studiometa/js-toolkit/pull/422))
+- ⚠️ Change the return value from `scrollTo` from `Promise<number>` to `Promise<{ left: number, top: number }>` ([#418](https://github.com/studiometa/js-toolkit/pull/418))
+
+### Removed
+
+- ⚠️ Remove the `useService` export in favor of the `AbstractService` class ([#535](https://github.com/studiometa/js-toolkit/pull/535))
+- ⚠️ Remove the `withVue2` decorator ([#395](https://github.com/studiometa/js-toolkit/pull/395))
+- ⚠️ Remove the `vue` dependency ([#395](https://github.com/studiometa/js-toolkit/pull/395))
+- ⚠️ Remove CJS files from the package ([#394](https://github.com/studiometa/js-toolkit/pull/394))
+- ⚠️ Remove the `loaded` hook ([#412](https://github.com/studiometa/js-toolkit/pull/412))
+- Remove unnecessary manager instance type check ([#414](https://github.com/studiometa/js-toolkit/pull/414))
+- ⚠️ Remove deprecated methods from the `withScrolledInView` decorator ([#415](https://github.com/studiometa/js-toolkit/pull/415))
+
+
 ## [v3.0.0-beta.4](https://github.com/studiometa/js-toolkit/compare/3.0.0-beta.3..3.0.0-beta.4) (2025-01-15)
 
 ### Fixed
