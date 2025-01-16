@@ -24,7 +24,7 @@
     "@studiometa/stylelint-config": "4.0.0",
     "@studiometa/tailwind-config": "2.1.0",
     "@studiometa/webpack-config": "6.3.2",
-    "@studiometa/webpack-config-preset-prototyping": "6.2.2",
+    "@studiometa/webpack-config-preset-prototyping": "6.3.2",
     "eslint": "9.17.0",
     "http-server": "14.1.1",
     "prettier": "3.4.2",
