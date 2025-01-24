@@ -250,6 +250,7 @@ export function withScrolledInView<S extends Base = Base>(
             this.$services.enable('ticked');
           }
         },
+        mounted: () => render(),
         ticked: () => {
           const { dampFactor, dampPrecision } = this.$options;
           updateProps(this.__props, dampFactor, dampPrecision, 'x');
@@ -267,12 +268,14 @@ export function withScrolledInView<S extends Base = Base>(
       };
 
       this.$on('before-mounted', () => {
+        this.$on('mounted', delegate);
         this.$on('resized', delegate);
         this.$on('scrolled', delegate);
         this.$on('ticked', delegate);
       });
 
       this.$on('destroyed', () => {
+        this.$off('mounted', delegate);
         this.$off('resized', delegate);
         this.$off('scrolled', delegate);
         this.$off('ticked', delegate);
