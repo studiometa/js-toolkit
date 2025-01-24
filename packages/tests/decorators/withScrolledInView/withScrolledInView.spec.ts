@@ -103,12 +103,14 @@ describe('The withScrolledInView decorator', () => {
     await advanceTimersByTimeAsync(1);
     expect(foo.$isMounted).toBe(true);
     expect(bar.$isMounted).toBe(true);
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn2).toHaveBeenCalledTimes(1);
 
     foo.$emit('scrolled', { changed: { y: true, x: false } });
     bar.$emit('scrolled', { changed: { y: true, x: false } });
     await advanceTimersByTimeAsync(1100);
-    expect(fn).toHaveBeenCalledTimes(1);
-    expect(fn2).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(fn2).toHaveBeenCalledTimes(2);
   });
 
   it('should reset the damped values when destroyed', async () => {
