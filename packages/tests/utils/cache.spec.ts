@@ -7,4 +7,10 @@ describe('cache function', () => {
     const callback = () => new Map();
     expect(cache(keys, callback)).toBe(cache(keys, callback))
   });
+
+  it('caches values with single key', async () => {
+    const key = 'one';
+    const callback = () => new Map();
+    expect(cache(key, callback)).toBe(cache(key, callback))
+  });
 });
