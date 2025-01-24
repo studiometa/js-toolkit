@@ -238,14 +238,14 @@ export function withScrolledInView<S extends Base = Base>(
       };
 
       const delegate = {
-        handleEvent(event) {
+        handleEvent(event: CustomEvent) {
           delegate[event.type](event.detail[0]);
         },
         resized: () => {
           this.shouldEvaluateProps = true;
           render();
         },
-        scrolled: (props) => {
+        scrolled: (props: ScrollServiceProps) => {
           if (props.changed.y || props.changed.x) {
             this.$services.enable('ticked');
           }
