@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file. The format 
 
 - **withScrolledInView:** fix `scrolledInView` method not being triggered on mount ([#584](https://github.com/studiometa/js-toolkit/pull/584), [244f1c57](https://github.com/studiometa/js-toolkit/commit/244f1c57))
 
+### Changed
+
+- **useResize:** improve breakpoint retrieval performance ([#589](https://github.com/studiometa/js-toolkit/pull/589), [a35ee52e](https://github.com/studiometa/js-toolkit/commit/a35ee52e))
+
 ## [v3.0.0](https://github.com/studiometa/js-toolkit/compare/2.12.0..3.0.0) (2025-01-16)
 
 After 9 months of development, v3.0 is finally here! It is packed with more stability, capabilities and without previously deprecated APIs. Make sure to read the [migration guide](https://js-toolkit.studiometa.dev/guide/migration/v2-to-v3.html) to learn more about all the changes and how to upgrade, as you will need to edit some parts of existing components.
