@@ -12,5 +12,10 @@ export default defineConfig({
       provider: 'v8',
       include: ['js-toolkit/**'],
     },
+    browser: {
+      provider: 'playwright',
+      enabled: true,
+      instances: [{ browser: 'chromium' }],
+    },
   },
 });
