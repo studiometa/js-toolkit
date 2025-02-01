@@ -1,11 +1,4 @@
-import type { Config } from '@jest/types';
-import { ModernFakeTimers } from '@jest/fake-timers';
-
-const fakeTimers = new ModernFakeTimers({
-  global,
-  // @ts-ignore
-  config: {},
-});
+import { vi } from 'vitest';
 
 let isUsingFakeTimers = false;
 
@@ -13,24 +6,24 @@ export function isFakeTime() {
   return isUsingFakeTimers;
 }
 
-export function useFakeTimers(fakeTimersConfig?: Config.FakeTimersConfig) {
-  fakeTimers.useFakeTimers(fakeTimersConfig);
+export function useFakeTimers(fakeTimersConfig?: Parameters<typeof vi.useFakeTimers>[0]) {
+  vi.useFakeTimers(fakeTimersConfig)
   isUsingFakeTimers = true;
 }
 
 export function useRealTimers() {
-  fakeTimers.useRealTimers();
+  vi.useRealTimers();
   isUsingFakeTimers = false;
 }
 
 export function advanceTimersByTime(msToRun: number) {
-  fakeTimers.advanceTimersByTime(msToRun);
+  vi.advanceTimersByTime(msToRun);
 }
 
 export async function advanceTimersByTimeAsync(msToRun: number) {
-  return fakeTimers.advanceTimersByTimeAsync(msToRun);
+  return vi.advanceTimersByTimeAsync(msToRun);
 }
 
 export function runAllTimers() {
-  fakeTimers.runAllTimers();
+  vi.runAllTimers();
 }
