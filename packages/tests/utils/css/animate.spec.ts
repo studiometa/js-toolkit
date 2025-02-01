@@ -29,7 +29,7 @@ describe('The `animate` utility function', () => {
     expect(fn).toHaveBeenCalledWith(0);
     expect(div.style.opacity).toBe('0');
     expect(div.style.transform.trim()).toBe('translate3d(100px, 0px, 0px) scaleX(1)');
-    expect(div.style.transformOrigin).toBe('top left');
+    expect(div.style.transformOrigin).toBe('left top');
   });
 
   it('should work without options', async () => {
