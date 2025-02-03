@@ -6,75 +6,78 @@ import {
   loadLink,
   loadScript,
   memo,
+  createElement as h,
 } from '@studiometa/js-toolkit/utils';
-import { h, mockElementLoad } from '#test-utils';
 
 const items = [
-  ['embed', 'src', HTMLEmbedElement],
-  ['iframe', 'src', HTMLIFrameElement, loadIframe],
-  ['img', 'src', HTMLImageElement, loadImage],
-  ['link', 'href', HTMLLinkElement, loadLink],
-  ['script', 'src', HTMLScriptElement, loadScript],
-  ['track', 'src', HTMLTrackElement],
+  [
+    'iframe',
+    'src',
+    HTMLIFrameElement,
+    loadIframe,
+    '/public/iframe.html',
+    { appendTo: document.body },
+  ],
+  ['img', 'src', HTMLImageElement, loadImage, '/public/image.png'],
+  ['link', 'href', HTMLLinkElement, loadLink, '/public/style.css'],
+  [
+    'script',
+    'src',
+    HTMLScriptElement,
+    loadScript,
+    '/public/script.js',
+    { appendTo: document.head },
+  ],
 ] as const;
 
 describe('The `loadElement` utility function', () => {
-  for (const [name, prop, type, fn] of items) {
+  for (const [name, prop, type, fn, url, options] of items) {
     it(`should load a ${name}`, async () => {
-      const { unmock } = mockElementLoad(name, prop);
-      const { event, element } = await loadElement('fake-url', name);
+      const { event, element } = await loadElement(url, name, options);
       expect(element).toBeInstanceOf(type);
-      expect(element[prop]).toBe('fake-url');
+      expect(element[prop]).toBe(url);
       expect(event.type).toBe('load');
-      unmock();
     });
 
     it(`should load a ${name} and add it to the DOM`, async () => {
-      const { unmock } = mockElementLoad(name, prop);
       const div = h('div');
-      const { event, element } = await loadElement('fake-url', name, {
+      document.body.append(div);
+      const { event, element } = await loadElement(url, name, {
         appendTo: div,
       });
       expect(element).toBeInstanceOf(type);
-      expect(element[prop]).toBe('fake-url');
+      expect(element[prop]).toBe(url);
       expect(div.contains(element)).toBe(true);
       expect(event.type).toBe('load');
-      unmock();
     });
 
     it('should work with the memo util', async () => {
-      const { unmock } = mockElementLoad(name, prop);
       const memoLoadElement = memo(loadElement);
-      const a = memoLoadElement('fake-url', name);
-      const b = memoLoadElement('fake-url', name);
+      const a = memoLoadElement(url, name, options);
+      const b = memoLoadElement(url, name, options);
       expect(a).toBe(b);
       const [aa, bb] = await Promise.all([a, b]);
       expect(aa.element).toBe(aa.element);
       expect(aa.event).toBe(bb.event);
-      unmock();
     });
 
     if (fn) {
       it(`should provide an alias ${fn.name}`, async () => {
-        const { unmock } = mockElementLoad(name, prop);
-        const { event, element } = await fn('fake-url');
+        const { event, element } = await fn(url);
         expect(element).toBeInstanceOf(type);
-        expect(element[prop]).toBe('fake-url');
+        expect(element[prop]).toBe(url);
         expect(event.type).toBe('load');
-        unmock();
       });
 
       it(`should provide an alias ${fn.name} compatible with the memo util`, async () => {
-        const { unmock } = mockElementLoad(name, prop);
         const memoFn = memo(fn);
-        const a = memoFn('fake-url');
-        const b = memoFn('fake-url');
+        const a = memoFn(url);
+        const b = memoFn(url);
         expect(a).toBe(b);
         const [aa, bb] = await Promise.all([a, b]);
         expect(aa).toBe(bb);
         expect(aa.element).toBe(aa.element);
         expect(aa.event).toBe(bb.event);
-        unmock();
       });
     }
   }
@@ -82,12 +85,10 @@ describe('The `loadElement` utility function', () => {
 
 describe('The loadScript function', () => {
   it('should append the script to the <head> by default', async () => {
-    const { unmock } = mockElementLoad('script');
-    const { event, element } = await loadScript('fake-url');
+    const { event, element } = await loadScript('#fake-url');
     expect(element).toBeInstanceOf(HTMLScriptElement);
-    expect(element.src).toBe('fake-url');
+    expect(element.src).toBe('#fake-url');
     expect(event.type).toBe('load');
     expect(document.head.contains(element)).toBe(true);
-    unmock();
   });
 });

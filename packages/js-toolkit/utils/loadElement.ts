@@ -34,8 +34,15 @@ export function loadElement<T extends LoadableElementsNames>(
     const eventOptions = { once: true };
     const prop = type === 'link' ? 'href' : 'src';
     const element = document.createElement(type);
-    element.addEventListener('load', (event) => resolve({ event, element }), eventOptions);
-    element.addEventListener('error', (event) => reject({ event, element }), eventOptions);
+    console.log(element, eventOptions, prop, { appendTo })
+    element.addEventListener('load', (event) => {
+      console.log('load', src)
+      resolve({ event, element });
+    }, eventOptions);
+    element.addEventListener('error', (event) => {
+      console.log('error', src)
+      reject({ event, element });
+    }, eventOptions);
     element[prop] = src;
     if (appendTo) {
       appendTo.append(element);
@@ -54,7 +61,8 @@ export function loadImage(src: string, options?: LoadElementsOptions) {
  * Load the given source as an `<iframe>` element.
  */
 export function loadIframe(src: string, options?: LoadElementsOptions) {
-  return loadElement(src, 'iframe', options);
+  console.log('loadIframe');
+  return loadElement(src, 'iframe', { appendTo: document.body, ...options });
 }
 
 /**
