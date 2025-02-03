@@ -28,7 +28,7 @@
     "eslint": "9.18.0",
     "http-server": "14.1.1",
     "prettier": "3.4.2",
-    "stylelint": "16.13.2"
+    "stylelint": "16.14.1"
   },
   "stylelint": {
     "extends": "@studiometa/stylelint-config"
