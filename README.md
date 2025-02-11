@@ -27,7 +27,7 @@ This project is a JavaScript micro-framework (along with its utility functions) 
 - Initializing components in the right place at the right time
 - Defining dependencies between components
 
-Visit [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) to learn more, or jump directly to [ui.studiometa.dev](https://ui.studiometa.dev) to discover existing components.
+Visit [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) to learn more, jump directly to [ui.studiometa.dev](https://ui.studiometa.dev) to discover existing components, or open [the playground](https://ui.studiometa.dev/-/play/) to test it live.
 
 ## Quick overview
 

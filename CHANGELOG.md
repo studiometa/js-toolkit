@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.1](https://github.com/studiometa/js-toolkit/compare/3.0.0..3.0.1) (2025-02-11)
+
+### Added
+
+- **cache:** add support for single key ([#583](https://github.com/studiometa/js-toolkit/pull/583), [13e8bf28](https://github.com/studiometa/js-toolkit/commit/13e8bf28))
+
+### Fixed
+
+- **withScrolledInView:** fix `scrolledInView` method not being triggered on mount ([#584](https://github.com/studiometa/js-toolkit/pull/584), [244f1c57](https://github.com/studiometa/js-toolkit/commit/244f1c57))
+- **Base:** fix types ([c83219b0](https://github.com/studiometa/js-toolkit/commit/c83219b0))
+
 ## [v3.0.0](https://github.com/studiometa/js-toolkit/compare/2.12.0..3.0.0) (2025-01-16)
 
 After 9 months of development, v3.0 is finally here! It is packed with more stability, capabilities and without previously deprecated APIs. Make sure to read the [migration guide](https://js-toolkit.studiometa.dev/guide/migration/v2-to-v3.html) to learn more about all the changes and how to upgrade, as you will need to edit some parts of existing components.
@@ -92,7 +103,6 @@ After 9 months of development, v3.0 is finally here! It is packed with more stab
 - ⚠️ Remove the `loaded` hook ([#412](https://github.com/studiometa/js-toolkit/pull/412))
 - Remove unnecessary manager instance type check ([#414](https://github.com/studiometa/js-toolkit/pull/414))
 - ⚠️ Remove deprecated methods from the `withScrolledInView` decorator ([#415](https://github.com/studiometa/js-toolkit/pull/415))
-
 
 ## [v3.0.0-beta.4](https://github.com/studiometa/js-toolkit/compare/3.0.0-beta.3..3.0.0-beta.4) (2025-01-15)
 
