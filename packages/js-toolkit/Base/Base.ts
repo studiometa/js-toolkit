@@ -186,19 +186,19 @@ export class Base<T extends BaseProps = BaseProps> {
     return this.__services;
   }
 
-  __refs: RefsManager<T['$refs']>;
+  __refs: RefsManager<T['$refs'] & BaseRefs>;
 
   get $refs(): T['$refs'] & BaseRefs {
     return this.__refs.props;
   }
 
-  __options: OptionsManager<T['$options']>;
+  __options: OptionsManager<T['$options'] & BaseOptions>;
 
   get $options(): T['$options'] & BaseOptions {
     return this.__options.props;
   }
 
-  __children: ChildrenManager<T['$children']>;
+  __children: ChildrenManager<T['$children'] & BaseChildren>;
 
   get $children(): T['$children'] & BaseChildren {
     return this.__children.props;

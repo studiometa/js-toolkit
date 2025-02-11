@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-workspace",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -31,10 +31,10 @@
   },
   "devDependencies": {
     "@studiometa/prettier-config": "4.1.0",
-    "@types/node": "22.10.5",
-    "oxlint": "0.15.5",
+    "@types/node": "22.10.10",
+    "oxlint": "0.15.10",
     "prettier": "3.4.2",
-    "typescript": "5.7.2"
+    "typescript": "5.7.3"
   },
   "dependencies": {
     "esbuild": "^0.24.0",
