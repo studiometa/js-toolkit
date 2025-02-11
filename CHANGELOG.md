@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Fixed
 
 - **withScrolledInView:** fix `scrolledInView` method not being triggered on mount ([#584](https://github.com/studiometa/js-toolkit/pull/584), [244f1c57](https://github.com/studiometa/js-toolkit/commit/244f1c57))
+- **Base:** fix types ([c83219b0](https://github.com/studiometa/js-toolkit/commit/c83219b0))
 
 ## [v3.0.0](https://github.com/studiometa/js-toolkit/compare/2.12.0..3.0.0) (2025-01-16)
 
