@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.1](https://github.com/studiometa/js-toolkit/compare/3.0.0..3.0.1) (2025-02-11)
+
 ### Added
 
 - **cache:** add support for single key ([#583](https://github.com/studiometa/js-toolkit/pull/583), [13e8bf28](https://github.com/studiometa/js-toolkit/commit/13e8bf28))
