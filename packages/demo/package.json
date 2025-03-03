@@ -27,7 +27,7 @@
     "@studiometa/webpack-config-preset-prototyping": "6.3.3",
     "eslint": "9.19.0",
     "http-server": "14.1.1",
-    "prettier": "3.4.2",
+    "prettier": "3.5.2",
     "stylelint": "16.14.1"
   },
   "stylelint": {
