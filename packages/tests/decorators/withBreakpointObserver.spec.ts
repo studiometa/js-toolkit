@@ -93,7 +93,7 @@ describe('The withBreakpointObserver decorator', () => {
   it('should re-mount component when deleting both breakpoint options', async () => {
     const { fooResponsive, matchMedia } = await getContext();
     matchMedia.useMediaQuery('(min-width: 48rem)');
-    await resizeWindow({ width: 768 });
+    await resizeWindow({ width: 766 });
 
     expect(fooResponsive[1].$isMounted).toBe(true);
     matchMedia.useMediaQuery('(min-width: 64rem)');
@@ -103,7 +103,7 @@ describe('The withBreakpointObserver decorator', () => {
     fooResponsive[1].$el.removeAttribute('data-option-active-breakpoints');
     fooResponsive[1].$el.removeAttribute('data-option-inactive-breakpoints');
     matchMedia.useMediaQuery('(min-width: 48rem)');
-    await resizeWindow({ width: 768 });
+    await resizeWindow({ width: 766 });
 
     expect(fooResponsive[1].$isMounted).toBe(true);
   });
@@ -181,7 +181,7 @@ describe('The withBreakpointObserver decorator', () => {
     `;
 
     matchMedia.useMediaQuery('(min-width: 64rem)');
-    await resizeWindow({ width: 1024 });
+    await resizeWindow({ width: 1025 });
 
     await new App1(root).$mount();
     expect(fn.mock.calls).toMatchInlineSnapshot(`
@@ -195,7 +195,7 @@ describe('The withBreakpointObserver decorator', () => {
     fn.mockClear();
 
     matchMedia.useMediaQuery('(min-width: 48rem)');
-    await resizeWindow({ width: 768 });
+    await resizeWindow({ width: 769 });
 
     expect(fn.mock.calls).toMatchInlineSnapshot(`
       [
@@ -212,7 +212,7 @@ describe('The withBreakpointObserver decorator', () => {
     fn.mockClear();
 
     matchMedia.useMediaQuery('(min-width: 64rem)');
-    await resizeWindow({ width: 1024 });
+    await resizeWindow({ width: 1025 });
 
     expect(fn.mock.calls).toMatchInlineSnapshot(`
       [
