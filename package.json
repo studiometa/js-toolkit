@@ -31,13 +31,13 @@
   },
   "devDependencies": {
     "@studiometa/prettier-config": "4.1.0",
-    "@types/node": "22.13.9",
-    "oxlint": "0.15.13",
+    "@types/node": "22.14.0",
+    "oxlint": "0.16.5",
     "prettier": "3.5.3",
-    "typescript": "5.8.2"
+    "typescript": "5.8.3"
   },
   "dependencies": {
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.25.2",
     "fast-glob": "^3.3.3"
   }
 }
