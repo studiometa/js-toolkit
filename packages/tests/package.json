@@ -7,12 +7,12 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@happy-dom/global-registrator": "^17.2.2",
+    "@happy-dom/global-registrator": "^17.4.4",
     "@jest/fake-timers": "^29.7.0",
     "@jest/types": "^29.6.3",
-    "@vitest/coverage-v8": "^3.0.7",
-    "happy-dom": "^17.2.2",
-    "vitest": "3.0.7"
+    "@vitest/coverage-v8": "^3.1.1",
+    "happy-dom": "^17.4.4",
+    "vitest": "3.1.1"
   },
   "imports": {
     "#test-utils": "./__utils__/index.ts",
