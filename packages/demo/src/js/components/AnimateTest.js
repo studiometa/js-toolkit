@@ -16,7 +16,7 @@ import { animate, ease, domScheduler } from '@studiometa/js-toolkit/utils';
  *   duration: number,
  *   easing: string,
  * }} AnimateTestOptions
- * @extends {Base<{ $refs: AnimateTestRefs, $options: AnimateTestOptions }>}
+ * @augments {Base<{ $refs: AnimateTestRefs, $options: AnimateTestOptions }>}
  */
 export default class AnimateTest extends Base {
   /**
@@ -39,6 +39,9 @@ export default class AnimateTest extends Base {
     },
   };
 
+  /**
+   *
+   */
   get $options() {
     const { smooth, ...options } = super.$options;
 
@@ -49,6 +52,9 @@ export default class AnimateTest extends Base {
     return super.$options;
   }
 
+  /**
+   *
+   */
   mounted() {
     this.animate = animate(
       this.$refs.target,
@@ -75,23 +81,38 @@ export default class AnimateTest extends Base {
     this.animate.progress(this.$refs.progress.valueAsNumber);
   }
 
+  /**
+   *
+   */
   onStartClick() {
-    console.log(this.animate)
+    console.log(this.animate);
     this.animate.start();
   }
 
+  /**
+   *
+   */
   onPauseClick() {
     this.animate.pause();
   }
 
+  /**
+   *
+   */
   onPlayClick() {
     this.animate.play();
   }
 
+  /**
+   *
+   */
   onFinishClick() {
     this.animate.finish();
   }
 
+  /**
+   *
+   */
   onProgressInput() {
     console.log('onProgressInput');
     this.animate.progress(this.$refs.progress.valueAsNumber);

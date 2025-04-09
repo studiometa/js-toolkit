@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * Determines if an object is freed
  * @param obj is the object of interest

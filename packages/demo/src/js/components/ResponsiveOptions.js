@@ -41,7 +41,7 @@ export default class ResponsiveOptions extends withResponsiveOptions(Base) {
     this.$el.innerHTML = `${this.$services.get('resized').breakpoint}<br>${JSON.stringify(
       this.$options,
       null,
-      2
+      2,
     )}`;
   }
 }
