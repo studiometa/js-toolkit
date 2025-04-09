@@ -1,13 +1,14 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { defineConfig } from 'vite';
 import fs from 'node:fs';
 import path from 'node:path';
+import llmstxt from 'vitepress-plugin-llms'
 
 export default defineConfig({
   optimizeDeps: {
     include: ['@studiometa/js-toolkit'],
   },
   plugins: [
+    llmstxt(),
     {
       name: 'add-common-js-package-plugin',
       writeBundle(viteConfig) {
