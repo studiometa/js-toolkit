@@ -1,5 +1,6 @@
 ---
 layout: false
+title: Demo for the withScrolledInView decorator
 ---
 
 <script setup>
