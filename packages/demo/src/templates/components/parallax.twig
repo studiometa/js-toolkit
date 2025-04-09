@@ -11,7 +11,7 @@
   data-option-speed="{{ speed }}"
   {{
   html_attributes({
-    data_option_debug: debug
+    data_option_debug: debug ?? false
   })
   }}>
   <div data-ref="target" class="w-48 h-48 rounded bg-black"></div>
