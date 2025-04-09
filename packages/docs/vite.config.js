@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import fs from 'node:fs';
 import path from 'node:path';
-import llmstxt from 'vitepress-plugin-llms'
+import llmstxt from 'vitepress-plugin-llms';
 
 export default defineConfig({
   optimizeDeps: {
