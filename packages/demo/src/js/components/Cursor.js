@@ -1,11 +1,17 @@
 import { Base } from '@studiometa/js-toolkit';
 
+/**
+ *
+ */
 export default class Cursor extends Base {
   static config = {
     name: 'Cursor',
     refs: ['inner'],
   };
 
+  /**
+   *
+   */
   moved({ x, y, delta, isDown }) {
     let transform = `translate3d(${x}px, ${y}px, 0)`;
 

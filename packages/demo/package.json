@@ -11,8 +11,12 @@
     "preview": "http-server ./dist -o",
     "lint": "npm run lint:eslint && npm run lint:stylelint && npm run lint:prettier",
     "lint:eslint": "eslint --cache ./src/js",
-    "lint:stytelint": "stylelint --cache ./src/**/*.{scss,vue}",
-    "lint:prettier": "prettier --cache ./src/**/*.twig"
+    "lint:stylelint": "stylelint --cache ./src/**/*.{scss,vue}",
+    "lint:prettier": "prettier -c --cache ./src/**/*.twig",
+    "fix": "npm run fix:eslint && npm run fix:stylelint && npm run fix:prettier",
+    "fix:eslint": "npm run lint:eslint -- --fix",
+    "fix:stylelint": "npm run lint:stylelint -- --fix",
+    "fix:prettier": "npm run lint:prettier -- --write"
   },
   "dependencies": {
     "@studiometa/ui": "^1.0.0-beta.0",

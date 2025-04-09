@@ -1,103 +1,59 @@
 {% extends '@layouts/base.twig' %}
 
 {% block main %}
-  <style>
-    main { width: 300vw !important; height: auto !important; }
-  </style>
-  <div class="z-10 fixed top-1/4 left-0 w-full h-px pl-1 bg-red-800">
-    0.25
-  </div>
-  <div class="z-10 fixed top-3/4 left-0 w-full h-px pl-1 bg-red-800">
-    0.75
-  </div>
-  <div class="z-10 fixed left-1/4 top-0 w-px h-full pt-1 bg-red-800">
-    &nbsp;0.25
-  </div>
-  <div class="z-10 fixed left-3/4 top-0 w-px h-full pt-1 bg-red-800">
-    &nbsp;0.75
-  </div>
+  <style>main { width: 300vw !important; height: auto !important; }</style>
+  <div class="z-10 fixed top-1/4 left-0 w-full h-px pl-1 bg-red-800">0.25</div>
+  <div class="z-10 fixed top-3/4 left-0 w-full h-px pl-1 bg-red-800">0.75</div>
+  <div class="z-10 fixed left-1/4 top-0 w-px h-full pt-1 bg-red-800">&nbsp;0.25</div>
+  <div class="z-10 fixed left-3/4 top-0 w-px h-full pt-1 bg-red-800">&nbsp;0.75</div>
 
-  <div class="flex items-center justify-center w-full h-[75vh]">
-    Scroll down.
-  </div>
+  <div class="flex items-center justify-center w-full h-[75vh]">Scroll down.</div>
   <div class="flex items-center justify-between w-full">
-    <div class="w-[75vw] text-center">
-      Scroll right.
-    </div>
+    <div class="w-[75vw] text-center">Scroll right.</div>
     <div class="flex flex-wrap items-center justify-center gap-20">
       <div data-component="ScrolledInViewOffset"
         data-option-offset="start end / end start"
         class="flex items-center w-48 h-48 text-center rounded bg-red-400">
         <div class="w-full">
-          <div>
-            start end
-          </div>
-          <div>
-            end start
-          </div>
-          <div data-ref="progress">
-            0
-          </div>
+          <div>start end</div>
+          <div>end start</div>
+          <div data-ref="progress">0</div>
         </div>
       </div>
       <div data-component="ScrolledInViewOffset"
         data-option-offset="end end / start start"
         class="flex items-center w-48 h-48 text-center rounded bg-green-400">
         <div class="w-full">
-          <div>
-            end end
-          </div>
-          <div>
-            start start
-          </div>
-          <div data-ref="progress">
-            0
-          </div>
+          <div>end end</div>
+          <div>start start</div>
+          <div data-ref="progress">0</div>
         </div>
       </div>
       <div data-component="ScrolledInViewOffset"
         data-option-offset="end 0.75 / start 0.25"
         class="flex items-center w-48 h-48 text-center rounded bg-blue-400">
         <div class="w-full">
-          <div>
-            end 0.75
-          </div>
-          <div>
-            start 0.25
-          </div>
-          <div data-ref="progress">
-            0
-          </div>
+          <div>end 0.75</div>
+          <div>start 0.25</div>
+          <div data-ref="progress">0</div>
         </div>
       </div>
       <div data-component="ScrolledInViewOffset"
         data-option-offset="start 0.25 / end 0.75"
         class="flex items-center w-48 h-48 text-center rounded bg-purple-400">
         <div class="w-full">
-          <div>
-            start 0.25
-          </div>
-          <div>
-            end 0.75
-          </div>
-          <div data-ref="progress">
-            0
-          </div>
+          <div>start 0.25</div>
+          <div>end 0.75</div>
+          <div data-ref="progress">0</div>
         </div>
       </div>
       <div data-component="ScrolledInViewOffset"
         data-option-offset="0.5 0.75 / 0.5 0.25"
         class="flex items-center w-48 h-48 text-center rounded bg-orange-400">
         <div class="w-full">
-          <div>
-            0.5 0.75
-          </div>
-          <div>
-            0.5 0.25
-          </div>
-          <div data-ref="progress">
-            0
-          </div>
+          <div>0.5 0.75</div>
+          <div>0.5 0.25</div>
+          <div data-ref="progress">0</div>
         </div>
       </div>
       <div data-component="ScrolledInViewOffset"
@@ -110,15 +66,9 @@
           &nbsp;25px
         </div>
         <div class="w-full">
-          <div>
-            25px 0.75
-          </div>
-          <div>
-            25px 0.25
-          </div>
-          <div data-ref="progress">
-            0
-          </div>
+          <div>25px 0.75</div>
+          <div>25px 0.25</div>
+          <div data-ref="progress">0</div>
         </div>
       </div>
       <div data-component="ScrolledInViewOffset"
@@ -131,23 +81,13 @@
           &nbsp;-25px
         </div>
         <div class="w-full">
-          <div>
-            -25px 0.75
-          </div>
-          <div>
-            -25px 0.25
-          </div>
-          <div data-ref="progress">
-            0
-          </div>
+          <div>-25px 0.75</div>
+          <div>-25px 0.25</div>
+          <div data-ref="progress">0</div>
         </div>
       </div>
     </div>
-    <div class="w-[75vw] text-center">
-      Scroll left.
-    </div>
+    <div class="w-[75vw] text-center">Scroll left.</div>
   </div>
-  <div class="flex items-center justify-center w-full h-[75vh]">
-    Scroll up.
-  </div>
+  <div class="flex items-center justify-center w-full h-[75vh]">Scroll up.</div>
 {% endblock %}

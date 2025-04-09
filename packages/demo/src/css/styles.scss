@@ -16,7 +16,7 @@ main {
   transition: opacity 1s ease-out;
 }
 
-.accordion-item__container[aria-hidden="true"] {
+.accordion-item__container[aria-hidden='true'] {
   display: none;
 }
 
@@ -29,25 +29,24 @@ main {
 }
 
 [data-breakpoint]::after {
-  content: "s,m,l";
+  content: 's,m,l';
 }
 
 [data-breakpoint]::before {
-  content: "s";
+  content: 's';
 }
 
 @media (min-width: 768px) {
   [data-breakpoint]::before {
-    content: "m";
+    content: 'm';
   }
 }
 
 @media (min-width: 1280px) {
   [data-breakpoint]::before {
-    content: "l";
+    content: 'l';
   }
 }
-
 
 .cursor-grab {
   cursor: grab;
