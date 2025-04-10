@@ -17,6 +17,9 @@ export default class AnimateTestMultiple extends AnimateTest {
     },
   };
 
+  /**
+   *
+   */
   mounted() {
     const steps = this.$options.steps.map((step) => {
       if (typeof step.easing === 'string') {
