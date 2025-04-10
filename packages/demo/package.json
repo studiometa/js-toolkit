@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-demo",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,11 +11,15 @@
     "preview": "http-server ./dist -o",
     "lint": "npm run lint:eslint && npm run lint:stylelint && npm run lint:prettier",
     "lint:eslint": "eslint --cache ./src/js",
-    "lint:stytelint": "stylelint --cache ./src/**/*.{scss,vue}",
-    "lint:prettier": "prettier --cache ./src/**/*.twig"
+    "lint:stylelint": "stylelint --cache ./src/**/*.{scss,vue}",
+    "lint:prettier": "prettier -c --cache ./src/**/*.twig",
+    "fix": "npm run fix:eslint && npm run fix:stylelint && npm run fix:prettier",
+    "fix:eslint": "npm run lint:eslint -- --fix",
+    "fix:stylelint": "npm run lint:stylelint -- --fix",
+    "fix:prettier": "npm run lint:prettier -- --write"
   },
   "dependencies": {
-    "@studiometa/ui": "^1.0.0-alpha.12",
+    "@studiometa/ui": "^1.0.0-beta.0",
     "tailwindcss": "^3.4.14"
   },
   "devDependencies": {
@@ -25,10 +29,10 @@
     "@studiometa/tailwind-config": "2.1.0",
     "@studiometa/webpack-config": "6.3.3",
     "@studiometa/webpack-config-preset-prototyping": "6.3.3",
-    "eslint": "9.19.0",
+    "eslint": "9.24.0",
     "http-server": "14.1.1",
-    "prettier": "3.4.2",
-    "stylelint": "16.14.1"
+    "prettier": "3.5.3",
+    "stylelint": "16.18.0"
   },
   "stylelint": {
     "extends": "@studiometa/stylelint-config"

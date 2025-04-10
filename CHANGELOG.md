@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.2](https://github.com/studiometa/js-toolkit/compare/3.0.1..3.0.2) (2025-04-09)
+
+### Changed
+
+- Add support for llms.txt file in VitePress ([40ab786a](https://github.com/studiometa/js-toolkit/commit/40ab786a))
+- Update dependencies ([0232d7ef](https://github.com/studiometa/js-toolkit/commit/0232d7ef))
+- Fix tests ([#601](https://github.com/studiometa/js-toolkit/pull/601), [7f6d88f1](https://github.com/studiometa/js-toolkit/commit/7f6d88f1))
+- Update test dependencies ([#601](https://github.com/studiometa/js-toolkit/pull/601), [df3ec8e2](https://github.com/studiometa/js-toolkit/commit/df3ec8e2))
+- Update root dependencies ([#601](https://github.com/studiometa/js-toolkit/pull/601), [7dfe5079](https://github.com/studiometa/js-toolkit/commit/7dfe5079))
+- Update demo dependencies ([#601](https://github.com/studiometa/js-toolkit/pull/601), [d82112b2](https://github.com/studiometa/js-toolkit/commit/d82112b2))
+- Update docs dependencies ([#601](https://github.com/studiometa/js-toolkit/pull/601), [05a36b71](https://github.com/studiometa/js-toolkit/commit/05a36b71))
+
 ## [v3.0.1](https://github.com/studiometa/js-toolkit/compare/3.0.0..3.0.1) (2025-02-11)
 
 ### Added

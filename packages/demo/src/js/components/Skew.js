@@ -21,17 +21,26 @@ scroll.add('Skew.js', (props) => {
   }
 });
 
+/**
+ *
+ */
 export default class Skew extends withMountWhenInView(Base) {
   static config = {
     name: 'Skew',
   };
 
+  /**
+   *
+   */
   scrolled(props) {
     if (props.changed.y && !this.$services.has('ticked')) {
       this.$services.enable('ticked');
     }
   }
 
+  /**
+   *
+   */
   ticked() {
     if (dampedSkewY === skewY) {
       this.$services.disable('ticked');

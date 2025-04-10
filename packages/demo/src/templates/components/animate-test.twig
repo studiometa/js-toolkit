@@ -1,50 +1,66 @@
 {% set easing = easing|default('easeInOutExpo') %}
 
-{% set steps = steps|default([
-  { '--red': 0 },
-  { x: [50, '%'], rotate: 180, scale: 0.5, opacity: 0.5, '--red': 255 },
-  { x: [100, '%'], rotate: 360, '--red': 0 }
-]) %}
+{% set steps =
+  steps|default(
+    [
+      {
+        '--red': 0
+      },
+      {
+        x: [50, '%'],
+        rotate: 180,
+        scale: 0.5,
+        opacity: 0.5,
+        '--red': 255
+      },
+      {
+        x: [100, '%'],
+        rotate: 360,
+        '--red': 0
+      }
+    ]
+  )
+%}
 
 {% set target_class = target_class|default('w-1/2') %}
 {% set container_class = container_class|default('') %}
 
-{% set attributes = merge_html_attributes(attr ?? null, {
-  data_component: name ?? 'AnimateTest',
-  data_option_duration: 2,
-  data_option_easing: easing ?? false,
-}, {
-  data_option_steps: steps,
-  class: 'my-10',
-}) %}
+{% set attributes =
+  merge_html_attributes(
+    attr ?? null,
+    {
+      data_component: name ?? 'AnimateTest',
+      data_option_duration: 2,
+      data_option_easing: easing ?? false
+    },
+    {
+      data_option_steps: steps,
+      class: 'my-10'
+    }
+  )
+%}
 
 <div {{ html_attributes(attributes) }}>
   <div class="space-x-4 mb-4">
-    <button
-      data-ref="start"
-      class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+    <button data-ref="start" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
       Start
     </button>
-    <button
-      data-ref="pause"
-      class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+    <button data-ref="pause" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
       Pause
     </button>
-    <button
-      data-ref="play"
-      class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+    <button data-ref="play" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
       Play
     </button>
-    <button
-      data-ref="finish"
-      class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+    <button data-ref="finish" class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
       Finish
     </button>
-    <input type="range" step="0.001" min="0" max="1" value="0" data-ref="progress">
+    <input type="range" step="0.001" min="0" max="1" value="0" data-ref="progress" />
   </div>
   <div class="w-96 rounded-xl bg-gray-200 {{ container_class }}">
     {% block target %}
-      <div data-ref="target" style="background-color: rgb(var(--red, 0), 0, 0);" class="{{ target_class }} h-48 rounded-xl bg-black"></div>
+      <div data-ref="target"
+        style="background-color: rgb(var(--red, 0), 0, 0);"
+        class="{{ target_class }} h-48 rounded-xl bg-black"></div>
     {% endblock %}
   </div>
 </div>

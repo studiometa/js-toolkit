@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-workspace",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -31,13 +31,13 @@
   },
   "devDependencies": {
     "@studiometa/prettier-config": "4.1.0",
-    "@types/node": "22.10.10",
-    "oxlint": "0.15.10",
-    "prettier": "3.4.2",
-    "typescript": "5.7.3"
+    "@types/node": "22.14.0",
+    "oxlint": "0.16.5",
+    "prettier": "3.5.3",
+    "typescript": "5.8.3"
   },
   "dependencies": {
-    "esbuild": "^0.24.0",
-    "fast-glob": "^3.3.2"
+    "esbuild": "^0.25.2",
+    "fast-glob": "^3.3.3"
   }
 }

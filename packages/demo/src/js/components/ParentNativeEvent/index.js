@@ -16,10 +16,16 @@ export default class ParentNativeEvent extends Base {
     },
   };
 
+  /**
+   *
+   */
   onChildClick(...args) {
     this.$log(this.$id, 'onChildClick', ...args);
   }
 
+  /**
+   *
+   */
   onChildDede(...args) {
     this.$log(this.$id, 'onChildDede', ...args);
   }

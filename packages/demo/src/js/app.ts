@@ -1,4 +1,3 @@
-/* eslint-disable max-classes-per-file */
 import {
   Base,
   createApp,
@@ -26,26 +25,29 @@ import PointerProps from './components/PointerProps.js';
 
 let numberOfTick = 0;
 let time = performance.now();
-let interval = setInterval(() => {
+const interval = setInterval(() => {
   const newTime = performance.now();
   numberOfTick += 1;
   console.log('#%d blocking time: %d ms', numberOfTick, newTime - time);
   time = newTime;
 
   if (numberOfTick > total * 2) {
-    clearInterval(interval)
+    clearInterval(interval);
   }
-}, 0)
+}, 0);
 
 let count = 0;
 const total = 66;
 
 function getDeepNestedComponentName(index) {
-  return `TestDeepNested${index}`
+  return `TestDeepNested${index}`;
 }
 
 function makeDeepNestedComponent(index) {
-  return class extends withExtraConfig(Base, { name: getDeepNestedComponentName(index), components: {} }) {
+  return class extends withExtraConfig(Base, {
+    name: getDeepNestedComponentName(index),
+    components: {},
+  }) {
     mounted() {
       // console.log(this.$id);
     }
@@ -57,14 +59,17 @@ let CurrentClass = TestDeepNested;
 while (count < total) {
   count += 1;
   const NewClass = makeDeepNestedComponent(count);
-  // @ts-ignore
-  CurrentClass.config.components[NewClass.config.name] = NewClass;
+  if (CurrentClass.config.components) {
+    CurrentClass.config.components[NewClass.config.name] = NewClass;
+  }
 
   CurrentClass = NewClass;
 }
 
-
-const TestManyInstance = class extends withExtraConfig(Base, { name: 'TestManyInstance', debug: false }) {
+const TestManyInstance = class extends withExtraConfig(Base, {
+  name: 'TestManyInstance',
+  debug: false,
+}) {
   mounted() {
     // console.log(this.$id);
   }
@@ -88,13 +93,10 @@ class App extends Base {
       AnimateTest,
       AnimateScrollTest,
       AnimateScrollTestMedia: () =>
-        importOnMediaQuery(
-          async () => {
-            const AnimateScrollTest = await import('./components/AnimateScrollTest');
-            return AnimateScrollTest;
-          },
-          'not (prefers-reduced-motion)',
-        ),
+        importOnMediaQuery(async () => {
+          const AnimateScrollTest = await import('./components/AnimateScrollTest');
+          return AnimateScrollTest;
+        }, 'not (prefers-reduced-motion)'),
       AnimateTestMultiple,
       ResponsiveOptions,
       ScrolledInViewOffset,
@@ -109,14 +111,14 @@ class App extends Base {
             return Accordion;
           },
           'Accordion',
-          app
+          app,
         ),
       BreakpointManagerDemo: (app) =>
         importOnInteraction(
           () => import('./components/BreakPointManagerDemo/index.js'),
           '#import-breakpoint-manager-demo',
           'click',
-          app
+          app,
         ),
       BreakpointObserverDemo: () =>
         importWhenIdle(() => import('./components/BreakpointObserverDemo.js')),
@@ -143,7 +145,7 @@ class App extends Base {
             };
           },
           document.documentElement,
-          ['mousemove']
+          ['mousemove'],
         ),
       Draggable: (app) =>
         importWhenVisible(
@@ -152,7 +154,7 @@ class App extends Base {
             return Draggable;
           },
           'Draggable',
-          app
+          app,
         ),
       Skew: (app) => importWhenVisible(() => import('./components/Skew.js'), 'Skew', app),
       '[data-src]': (app) =>
@@ -165,13 +167,13 @@ class App extends Base {
             return withBreakpointObserver(Modal);
           },
           'Modal',
-          app
+          app,
         ),
       Tabs: (app) =>
         importWhenVisible(
           () => import('@studiometa/ui').then((module) => module.Tabs),
           'Tabs',
-          app
+          app,
         ),
       ScrollToDemo,
       Parallax,

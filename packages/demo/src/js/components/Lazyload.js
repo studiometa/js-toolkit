@@ -1,6 +1,9 @@
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 import { transition, isString, isArray, addClass, addStyle } from '@studiometa/js-toolkit/utils';
 
+/**
+ *
+ */
 function setClassesOrStyles(element, classesOrStyles) {
   if (isString(classesOrStyles) || isArray(classesOrStyles)) {
     addClass(element, classesOrStyles);
@@ -9,6 +12,9 @@ function setClassesOrStyles(element, classesOrStyles) {
   }
 }
 
+/**
+ *
+ */
 export default class Lazyload extends withIntersectionObserver(Base) {
   static config = {
     name: 'Lazyload',
@@ -25,16 +31,25 @@ export default class Lazyload extends withIntersectionObserver(Base) {
     },
   };
 
+  /**
+   *
+   */
   mounted() {
     setClassesOrStyles(this.$el, this.$options.styles.unloaded);
   }
 
+  /**
+   *
+   */
   intersected([entry]) {
     if (entry.isIntersecting) {
       this.load();
     }
   }
 
+  /**
+   *
+   */
   load() {
     const { unloaded, active, loaded } = this.$options.styles;
     const { src } = this.$el.dataset;
