@@ -17,11 +17,11 @@
           {},
           {
             x: [50, '%'],
-            skewY: - 20,
+            skewY: 0 - 20,
             rotate: 180,
             scale: 0.5,
             opacity: 0.5,
-            easing: [0.6, - 0.28, 0.735, 0.045]
+            easing: [0.6, 0 - 0.28, 0.735, 0.045]
           },
           {
             x: [100, '%'],
@@ -160,7 +160,7 @@
           modal: {
             active: 'transition-all duration-500'
           }
-        }|json_encode }}"
+        }|json_encode|escape('html_attr')|escape('html_attr') }}"
         class="text-center">
         <!-- 
             Modal opening trigger.
@@ -230,7 +230,7 @@
               active: 'transition-all duration-500 ease-out-expo'
             }
           }
-        }|json_encode }}">
+        }|json_encode|escape('html_attr') }}">
         <div data-component="AccordionItem" class="border -mb-px" data-option-is-open>
           <button data-ref="btn" class="block w-full p-4 text-left cursor-pointer">
             Lorem ipsum
@@ -284,7 +284,7 @@
               open: 'transform rotate-180',
               active: 'transition duration-500 ease-out-expo'
             }
-          }|json_encode }}">
+          }|json_encode|escape('html_attr') }}">
           <button data-ref="btn" class="flex justify-between w-full p-4 text-left cursor-pointer">
             Show image #1
             <span class="inline-block" data-ref="icon">▼</span>
@@ -309,7 +309,7 @@
               open: 'transform rotate-180',
               active: 'transition duration-500 ease-out-expo'
             }
-          }|json_encode }}">
+          }|json_encode|escape('html_attr') }}">
           <button data-ref="btn" class="flex justify-between w-full p-4 text-left cursor-pointer">
             Show image #2
             <span class="inline-block" data-ref="icon">▼</span>
@@ -330,7 +330,7 @@
               open: 'transform rotate-180',
               active: 'transition duration-500 ease-out-expo'
             }
-          }|json_encode }}">
+          }|json_encode|escape('html_attr') }}">
           <button data-ref="btn" class="flex justify-between w-full p-4 text-left cursor-pointer">
             Show image #3
             <span class="inline-block" data-ref="icon">▼</span>
@@ -355,7 +355,7 @@
               borderBottomColor: '#fff'
             }
           }
-        }|json_encode }}">
+        }|json_encode|escape('html_attr') }}">
         <div class="flex px-4 border-b">
           <button data-ref="btn[]" class="-mb-px -ml-px p-4 border">Tab #1</button>
           <button data-ref="btn[]" class="-mb-px -ml-px p-4 border">Tab #2</button>
