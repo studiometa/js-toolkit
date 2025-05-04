@@ -153,6 +153,7 @@ export class Base<T extends BaseProps = BaseProps> {
     config.options = config.options ?? {};
     config.refs = config.refs ?? [];
     config.components = config.components ?? {};
+    config.emits = Array.from(new Set(config.emits));
 
     return config;
   }
