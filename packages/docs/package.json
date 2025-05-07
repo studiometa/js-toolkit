@@ -12,6 +12,6 @@
     "@studiometa/tailwind-config": "^2.1.0",
     "tailwindcss": "^3.4.14",
     "vitepress": "^1.6.3",
-    "vitepress-plugin-llms": "1.1.1"
+    "vitepress-plugin-llms": "1.1.3"
   }
 }
