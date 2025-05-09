@@ -4,7 +4,7 @@ Load a given source as a link.
 
 ## Usage
 
-```js
+```js twoslash
 import { loadLink } from '@studiometa/js-toolkit/utils';
 
 const src = '/path/to/my/styles.css';
@@ -33,7 +33,7 @@ if (event.type === 'error') {
 
 You can combine the `loadLink` function with the [`memo` function](/utils/memo.html) to add an in memory cache layer. This will make the generated function always return the same generated element.
 
-```js
+```js twoslash
 import { loadLink, memo } from '@studiometa/js-toolkit';
 
 const loadLinkWithCache = memo(loadLink);
@@ -50,7 +50,7 @@ console.assert(result === result2);
 ::: warning Cache invalidation
 Be aware that the [`memo` function](/utils/memo.html) will use a simple `arguments.join('')` call to generate the cache key, thus ignoring any change in the options parameter of the `loadLink` function.
 
-```js
+```js twoslash
 const loadLinkWithCache = memo(loadLink);
 
 const result = await loadLinkWithCache('style.css', { appendTo: document.head });
@@ -58,8 +58,8 @@ const result2 = await loadLinkWithCache('style.css', { appendTo: document.body }
 
 console.assert(result === result2); // true
 
-console.log(result.element.parentElement): // document.head
-console.log(result2.element.parentElement): // document.head
+console.log(result.element.parentElement); // document.head
+console.log(result2.element.parentElement); // document.head
 ```
 
 :::

@@ -8,7 +8,7 @@ Use the `getInstanceFromElement` function to get a class instance attached to a 
 
 ## Usage
 
-```js{1,4,6}
+```js {1,4,6} twoslash
 import { getInstanceFromElement } from '@studiometa/js-toolkit';
 import Component from './Component.js';
 

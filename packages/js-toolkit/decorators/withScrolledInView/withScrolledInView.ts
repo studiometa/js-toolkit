@@ -12,11 +12,9 @@ import {
   clamp01,
   getOffsetSizes,
   isFunction,
-  useScheduler,
+  domScheduler as scheduler,
 } from '../../utils/index.js';
 import { normalizeOffset, getEdges } from './utils.js';
-
-const scheduler = useScheduler(['update', 'render']);
 
 export interface WithScrolledInViewProps extends BaseProps {
   $options: {
@@ -226,11 +224,11 @@ export function withScrolledInView<S extends Base = Base>(
       super(element);
 
       const render = () => {
-        scheduler.update(() => {
+        scheduler.read(() => {
           // @ts-ignore
           const renderFn = this.__callMethod('scrolledInView', this.props);
           if (isFunction(renderFn)) {
-            scheduler.render(() => {
+            scheduler.write(() => {
               renderFn(this.__props);
             });
           }

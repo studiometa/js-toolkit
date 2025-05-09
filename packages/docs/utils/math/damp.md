@@ -4,7 +4,7 @@ Get the next damped value for a given target and factor.
 
 ## Usage
 
-```js
+```js twoslash
 import { damp } from '@studiometa/js-toolkit/utils';
 
 const targetValue = 10;

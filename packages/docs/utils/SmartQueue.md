@@ -4,7 +4,7 @@ Manage tasks in a smart queue. Tasks will be automatically batch-called inside a
 
 ## Usage
 
-```js
+```js twoslash
 import { SmartQueue } from '@studiometa/js-toolkit/utils';
 
 const queue = new SmartQueue();

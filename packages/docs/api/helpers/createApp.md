@@ -8,13 +8,13 @@ Use the `createApp` function to instantiate your application on page load while 
 
 ## Usage
 
-```js {1,4,6}
+```js {1,4,6} twoslash
 import { createApp } from '@studiometa/js-toolkit';
 import App from './App.js';
 
 const useApp = createApp(App);
 
-useApp().then(app => /* ... */);
+useApp().then((app) => console.log(app));
 ```
 
 **Parameters**
@@ -41,7 +41,7 @@ The second parameter can either be one of the following:
 
 Use the `createApp` function to export your app:
 
-```js {1,9}
+```js {1,9} twoslash
 import { Base, createApp } from '@studiometa/js-toolkit';
 
 class App extends Base {
@@ -68,7 +68,10 @@ import useApp from './app.js';
 
 You can configure the breakpoints used by your application by passing an options object as second parameter:
 
-```js
+```js twoslash
+import { createApp } from '@studiometa/js-toolkit';
+import App from './App.js';
+
 export default createApp(App, {
   breakpoints: {
     xxs: '0px',
@@ -89,7 +92,9 @@ By default, the app will be created with a queue mechanism based on the [`SmartQ
 
 If you wish to use a blocking strategy, you can disable the queue by passing the `blocking` option to `true`:
 
-```js
+```js twoslash
+import { createApp } from '@studiometa/js-toolkit';
+
 export default createApp(App, {
   blocking: true,
 });
@@ -99,8 +104,11 @@ export default createApp(App, {
 
 The default attributes used to interact with the DOM are `data-component`, `data-option-...` and `data-ref`. These can be configured by specifying the `attributes` property of the options parameter:
 
-```js
-createApp(App, {
+```js twoslash
+import { createApp } from '@studiometa/js-toolkit';
+import App from './App.js';
+
+export default createApp(App, {
   attributes: {
     component: 'tk-is',
     option: 'tk-opt',

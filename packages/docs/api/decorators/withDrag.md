@@ -8,7 +8,7 @@ Use this decorator to add the `dragged(props)` hook from the [drag](/api/service
 
 ## Usage
 
-```js
+```js twoslash
 import { Base, withDrag } from '@studiometa/js-toolkit';
 
 export default class Draggable extends withDrag(Base, {
@@ -19,6 +19,9 @@ export default class Draggable extends withDrag(Base, {
     name: 'Draggable',
   };
 
+  /**
+   * @param {import('@studiometa/js-toolkit').DragServiceProps} props
+   */
   dragged(props) {
     this.$el.style.transform = `translate(${props.x}px, ${props.y}px)`;
   }
@@ -52,7 +55,7 @@ The `dragged` class method will be triggered when dragging the target element.
 
 This decorator can be used to easily add drag capabilities to the root element of a component.
 
-```js
+```js twoslash
 import { Base, withDrag } from '@studiometa/js-toolkit';
 
 export default class Draggable extends withDrag(Base) {
@@ -60,6 +63,9 @@ export default class Draggable extends withDrag(Base) {
     name: 'Draggable',
   };
 
+  /**
+   * @param {import('@studiometa/js-toolkit').DragServiceProps} props
+   */
   dragged(props) {
     this.$el.style.transform = `translate(${props.x}px, ${props.y}px)`;
   }
@@ -67,25 +73,31 @@ export default class Draggable extends withDrag(Base) {
 ```
 
 :::tip
-We recommend using [stylefire](https://popmotion.io/stylefire/) to update the root element position, see the [`Draggable`](https://github.com/studiometa/ui/blob/master/packages/ui/Draggable.js) component source for more details.
+We recommend using the [`domScheduler` utility](/utils/domScheduler.md) to update the root element position, see the [`Draggable`](https://github.com/studiometa/ui/blob/master/packages/ui/Draggable/Draggable.ts) component source for more details.
 :::
 
 ### Move a ref element
 
-```js{5,9,12-14}
+```js {4,8,14-16} twoslash
 import { Base, withDrag } from '@studiometa/js-toolkit';
 
-export default class Draggable extends withDrag(
-  Base,
-  { target: (instance) => instance.$refs.draggbale }
-) {
+export default class Draggable extends withDrag(Base, {
+  target: (instance) => instance.$refs.draggbale,
+}) {
   static config = {
     name: 'Draggable',
     refs: ['draggable'],
   };
 
+  /**
+   * @param {import('@studiometa/js-toolkit').DragServiceProps} props
+   */
   dragged(props) {
     this.$refs.draggable.style.transform = `translate(${props.x}px, ${props.y}px)`;
   }
 }
 ```
+
+::: tip
+You can use the [`transform(element, transforms)` function](/utils/css/transform.md) to apply transform to an element.
+:::

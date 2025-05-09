@@ -2,7 +2,7 @@
 
 ## Usage
 
-```js
+```js twoslash
 import { withTrailingSlash } from '@studiometa/js-toolkit/utils';
 
 withTrailingSlash('string'); // "string/"

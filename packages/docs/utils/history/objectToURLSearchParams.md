@@ -4,7 +4,7 @@ Transform an object into an URLSearchParams instance to match with PHP implement
 
 ## Usage
 
-```js
+```js twoslash
 import { objectToURLSearchParams } from '@studiometa/js-toolkit/utils';
 
 const params = {

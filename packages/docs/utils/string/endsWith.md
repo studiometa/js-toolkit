@@ -4,7 +4,7 @@ A [more performant](https://jsbench.me/1hlkqqd0ff/1) way than `String.prototype.
 
 ## Usage
 
-```js
+```js twoslash
 import { endsWith } from '@studiometa/js-toolkit/utils';
 
 endsWith('string', 'ing'); // true

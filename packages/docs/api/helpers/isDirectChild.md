@@ -8,7 +8,7 @@ Use the `isDirectChild` function to test if a child component instance is a dire
 
 ## Usage
 
-```js {1,9,16}
+```js {1,9,14} twoslash
 import { Base, isDirectChild } from '@studiometa/js-toolkit';
 import Child from './Child.js';
 
@@ -21,10 +21,8 @@ class Parent extends Base {
     },
   };
 
-  onChildClick(index, event) {
-    const childInstance = this.$children.Child[index];
-
-    if (isDirectChild(this, 'Parent', 'Child', childInstance)) {
+  onChildClick({ target, event }) {
+    if (isDirectChild(this, 'Parent', 'Child', target)) {
       event.preventDefault();
     }
   }

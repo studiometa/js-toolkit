@@ -4,7 +4,7 @@ This method will remove one or more classes to an HTML element.
 
 ## Usage
 
-```js
+```js twoslash
 import { removeClass } from '@studiometa/js-toolkit/utils';
 
 removeClass(document.body, 'is-locked');

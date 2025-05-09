@@ -29,11 +29,12 @@ describe('The `useResize` service', () => {
     expect(fn).not.toHaveBeenCalled();
   });
 
-  it('should return the current active breakpoint', () => {
-    const service = useResize({ s: '0px', m: '1024px', l: '2048px' });
+  it('should return the current active breakpoint', async () => {
+    const service = useResize({ s: '0px', m: '1025px', l: '2048px' });
     expect(service.props().breakpoints).toEqual(['s', 'm', 'l']);
 
-    useMatchMedia('(min-width: 1024px)');
+    await resizeWindow({ width: 1025 });
+    useMatchMedia('(min-width: 1025px)');
     expect(service.props().activeBreakpoints).toEqual({
       s: false,
       m: true,
@@ -41,6 +42,7 @@ describe('The `useResize` service', () => {
     });
     expect(service.props().breakpoint).toBe('m');
 
+    await resizeWindow({ width: 2048 });
     useMatchMedia('(min-width: 2048px)');
     expect(service.props().activeBreakpoints).toEqual({
       s: false,

@@ -4,7 +4,7 @@ This method will toggle one or more classes to an HTML element.
 
 ## Usage
 
-```js
+```js twoslash
 import { toggleClass } from '@studiometa/js-toolkit/utils';
 
 toggleClass(document.body, 'is-locked');

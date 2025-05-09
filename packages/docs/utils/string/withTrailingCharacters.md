@@ -2,7 +2,7 @@
 
 ## Usage
 
-```js
+```js twoslash
 import { withTrailingCharacters } from '@studiometa/js-toolkit/utils';
 
 withTrailingCharacters('string', '__'); // "string__"

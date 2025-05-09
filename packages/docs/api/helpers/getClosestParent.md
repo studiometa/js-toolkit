@@ -4,7 +4,7 @@ Use the `getClosestParent` function to get the closest instance of a given paren
 
 ## Usage
 
-```js {1,9,15}
+```js {1,9,15} twoslash
 import { Base, getClosestParent } from '@studiometa/js-toolkit';
 import Child from './Child.js';
 

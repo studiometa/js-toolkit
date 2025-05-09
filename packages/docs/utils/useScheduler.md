@@ -7,7 +7,7 @@ This can be useful to avoid layout trashing when working with the DOM, find out 
 ## Usage
 
 ```js
-import { useScheduler, domScheduler } from '@studiometa/js-toolkit/utils';
+import { useScheduler } from '@studiometa/js-toolkit/utils';
 
 const { before, after } = useScheduler(['before', 'after']);
 
@@ -21,16 +21,6 @@ after(() => console.log('after'));
 // before
 // after
 // after
-
-// Use the predefined `domScheduler` export to work with read/write to the DOM
-const { read, write } = domScheduler;
-read(() => {
-  const size = document.body.offsetWidth;
-
-  write(() => {
-    document.body.style.transform = `translateX(${size * 0.1}px)`;
-  });
-});
 ```
 
 ### Parameters

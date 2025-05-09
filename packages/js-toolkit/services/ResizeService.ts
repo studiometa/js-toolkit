@@ -3,14 +3,15 @@ import { AbstractService } from './AbstractService.js';
 import type { Features } from '../Base/features.js';
 import { features } from '../Base/features.js';
 import { debounce } from '../utils/debounce.js';
+import { cache } from '../utils/cache.js';
 
 export interface ResizeServiceProps<U extends Features['breakpoints'] = Features['breakpoints']> {
   width: number;
   height: number;
   ratio: number;
   orientation: 'square' | 'landscape' | 'portrait';
-  breakpoint: string;
-  breakpoints: string[];
+  breakpoint: keyof U;
+  breakpoints: Array<keyof U>;
   activeBreakpoints: Record<keyof U, boolean>;
 }
 
@@ -19,7 +20,7 @@ export type ResizeServiceInterface<U extends Features['breakpoints'] = Features[
 
 export class ResizeService<
   T extends Features['breakpoints'] = Features['breakpoints'],
-> extends AbstractService<ResizeServiceProps> {
+> extends AbstractService<ResizeServiceProps<T>> {
   static config: ServiceConfig = [[() => window, [['resize']]]];
 
   breakpoints: T;
@@ -51,7 +52,10 @@ export class ResizeService<
         for (const [name, breakpoint] of Object.entries(
           this.breakpoints ?? features.get('breakpoints'),
         )) {
-          activeBreakpoints[name] = window.matchMedia(`(min-width: ${breakpoint})`).matches;
+          activeBreakpoints[name] = cache(
+            [this, window.innerWidth, window.innerHeight, breakpoint],
+            () => window.matchMedia(`(min-width: ${breakpoint})`).matches,
+          );
         }
 
         return activeBreakpoints as Record<keyof T, boolean>;
