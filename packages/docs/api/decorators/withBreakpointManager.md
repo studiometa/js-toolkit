@@ -8,7 +8,7 @@ Use this decorator to create a component that will have the capacity to switch c
 
 ## Usage
 
-```js{5-8}
+```js {5-8} twoslash
 import { Base, withBreakpointManager } from '@studiometa/js-toolkit';
 import MenuMobile from './MenuMobile';
 import MenuDesktop from './MenuDesktop';
@@ -40,7 +40,7 @@ In the following example, the `MenuMobile` class will be mounted along the `Menu
 
 The root element `this.$el` of each class will be the same.
 
-```js{5-8}
+```js {5-8} twoslash
 import { Base, withBreakpointManager } from '@studiometa/js-toolkit';
 import MenuMobile from './MenuMobile';
 import MenuDesktop from './MenuDesktop';

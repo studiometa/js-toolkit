@@ -15,7 +15,7 @@ When using the `config.components` property, the framework will find components 
 
 In the following example, both of the imported components will be mounted. One with the name `Component`, mounted on `[data-component="Component"]` elements found in the DOM. The other with the name `CustomName`, mounted on `[data-component="CustomName"]` elements.
 
-```js
+```js twoslash
 import { Base, createApp } from '@studiometa/js-toolkit';
 import Component from './Component.js';
 import OtherComponent from './OtherComponent.js';

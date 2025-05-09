@@ -4,7 +4,7 @@ Replace the current history state.
 
 ## Usage
 
-```js
+```js twoslash
 import { historyReplace } from '@studiometa/js-toolkit/utils';
 
 // Push a new state

@@ -10,8 +10,8 @@ Called after the instance has been mounted.
 
 **Example**
 
-```js {9-12}
-import Base from '@studiometa/js-toolkit';
+```js {9-12} twoslash
+import { Base } from '@studiometa/js-toolkit';
 
 export default class Component extends Base {
   static config = {
@@ -36,8 +36,8 @@ Called after the instance has been updated.
 
 **Example**
 
-```js {9-12}
-import Base from '@studiometa/js-toolkit';
+```js {9-12} twoslash
+import { Base } from '@studiometa/js-toolkit';
 
 export default class Component extends Base {
   static config = {
@@ -62,8 +62,8 @@ Called when the component is being destroyed.
 
 **Example**
 
-```js {9-12}
-import Base from '@studiometa/js-toolkit';
+```js {9-12} twoslash
+import { Base } from '@studiometa/js-toolkit';
 
 export default class Component extends Base {
   static config = {
@@ -88,8 +88,8 @@ Called when the component is being terminated.
 
 **Example**
 
-```js {9-12}
-import Base from '@studiometa/js-toolkit';
+```js {9-12} twoslash
+import { Base } from '@studiometa/js-toolkit';
 
 export default class Component extends Base {
   static config = {

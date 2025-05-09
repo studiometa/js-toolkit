@@ -47,6 +47,36 @@ interface ChildrenInterface {
 }
 ```
 
+**Example usage**
+
+```js twoslash
+import { Base } from '@studiometa/js-toolkit';
+import { Figure, Slider } from '@studiometa/ui';
+
+/**
+ * @extends {Base<{ $children: { Figure: Figure[], Slider: Slider[] } }>}
+ */
+class App extends Base {
+  static config = {
+    name: 'App',
+    components: {
+      Figure,
+      Slider,
+    },
+  };
+
+  mounted() {
+    for (const figure of this.$children.Figure) {
+      console.log(figure.$id);
+    }
+
+    for (const slider of this.$children.Slider) {
+      console.log(slider.$id);
+    }
+  }
+}
+```
+
 ## `$config`
 
 The resolved configuration based on the current class [static `config` property](/api/configuration.html) merged with its ancestors properties.
@@ -75,7 +105,9 @@ The following methods are available:
 
 **Example**
 
-```js
+```js twoslash
+import { Base } from '@studiometa/js-toolkit';
+
 class Component extends Base {
   static config = {
     name: 'Component',

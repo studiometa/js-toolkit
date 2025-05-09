@@ -4,7 +4,7 @@ Generate an in-out easing function given an ease-in function.
 
 ## Usage
 
-```js
+```js twoslash
 import { easeInCirc, createEaseInOut } from '@studiometa/js-toolkit/utils';
 
 const easeIntOutCirc = createEaseInOut(easeInCirc);

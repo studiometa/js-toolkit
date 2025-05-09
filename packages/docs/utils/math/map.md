@@ -4,7 +4,7 @@ Map a value from one interval to another.
 
 ## Usage
 
-```js
+```js twoslash
 import { map } from '@studiometa/js-toolkit/utils';
 
 map(5, 0, 10, 0, 20); // 10

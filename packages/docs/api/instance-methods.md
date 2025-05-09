@@ -10,7 +10,7 @@ Can be used to log content to the console when the `instance.$options.log` optio
 
 **Example**
 
-```js {6,10}
+```js {6,10} twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 export default class Component extends Base {
@@ -35,7 +35,7 @@ Can be used to handle a warning to the console when the `instance.$options.log` 
 
 **Example**
 
-```js {6,10}
+```js {6,10} twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 export default class Component extends Base {
@@ -66,7 +66,7 @@ Bind a callback function to an event emitted by the instance. Returns a function
 
 **Example**
 
-```js {10-15}
+```js {10-15} twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 export default class Component extends Base {
@@ -107,7 +107,7 @@ Unbind a callback function from an event emitted by the instance. If no callback
 
 **Example**
 
-```js {10-15}
+```js {10-15} twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 export default class Component extends Base {
@@ -138,7 +138,7 @@ Emit an event from the current instance, with optional custom arguments. The eve
 
 **Example**
 
-```js {10-11}
+```js {10-11} twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 export default class Component extends Base {

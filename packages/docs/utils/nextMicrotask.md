@@ -4,7 +4,7 @@ Execute a given function in the next microtask.
 
 ## Usage
 
-```js
+```js twoslash
 import { nextMicrotask } from '@studiometa/js-toolkit/utils';
 
 // Callback APIs

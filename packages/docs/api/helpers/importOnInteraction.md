@@ -8,7 +8,7 @@ Use the `importOnInteraction` function to import component when the user interac
 
 ## Usage
 
-```js
+```js twoslash
 import { importOnInteraction } from '@studiometa/js-toolkit';
 
 importOnInteraction(() => import('./components/Component.js'), 'Component', 'click');
@@ -29,57 +29,51 @@ importOnInteraction(() => import('./components/Component.js'), 'Component', 'cli
 
 Import the class when clicking on the root element of the component:
 
-```js{1,7-12}
+```js {1,7-8} twoslash
 import { Base, importOnInteraction } from '@studiometa/js-toolkit';
 
 class App extends Base {
   static config = {
     name: 'App',
     components: {
-      Component: (app) => importOnInteraction(
-        () => import('./components/Component.js'),
-        'Component',
-        'click',
-        app
-      ),
-    }
-  }
+      Component: (app) =>
+        importOnInteraction(() => import('./components/Component.js'), 'Component', 'click', app),
+    },
+  };
 }
 ```
 
 Import the class when clicking on the `#import-component-trigger` element which can be anywhere in the DOM:
 
-```js{1,7-11}
+```js {1,7-12} twoslash
 import { Base, importOnInteraction } from '@studiometa/js-toolkit';
 
 class App extends Base {
   static config = {
     name: 'App',
     components: {
-      Component: () => importOnInteraction(
-        () => import('./components/Component.js'),
-        '#import-component-trigger',
-        'click',
-      ),
-    }
-  }
+      Component: () =>
+        importOnInteraction(
+          () => import('./components/Component.js'),
+          '#import-component-trigger',
+          'click',
+        ),
+    },
+  };
 }
 ```
 
 Import the class when clicking on the app's `btn` ref:
 
-```js{1,7-11}
+```js {1,7-8} twoslash
 import { Base, importOnInteraction } from '@studiometa/js-toolkit';
 
 class App extends Base {
   static config = {
     name: 'App',
     components: {
-      Component: (app) => importOnInteraction(
-        () => import('./components/Component.js'),
-        app.$refs.btn,
-        'click'
-      ),
+      Component: (app) =>
+        importOnInteraction(() => import('./components/Component.js'), app.$refs.btn, 'click'),
     },
     refs: ['btn'],
   };

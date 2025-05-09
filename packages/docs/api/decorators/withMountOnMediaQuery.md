@@ -4,11 +4,14 @@ Use this decorator to create a component which will mount and destroy itself bas
 
 ## Usage
 
-```js
+```js twoslash
 import { Base, withMountOnMediaQuery } from '@studiometa/js-toolkit';
 import Component from './Component.js';
 
-export default withMountOnMediaQuery(Component, 'not (prefers-reduced-motion)');
+export default withMountOnMediaQuery(
+  Component,
+  'not (prefers-reduced-motion)',
+);
 ```
 
 ### Parameters
@@ -28,7 +31,7 @@ This decorator does not expose a specific API.
 
 ### Simple usage
 
-```js{1,5,13,17}
+```js {1,3-6,13,17} twoslash
 import { Base, withMountOnMediaQuery } from '@studiometa/js-toolkit';
 
 export default class Component extends withMountOnMediaQuery(
@@ -52,7 +55,7 @@ export default class Component extends withMountOnMediaQuery(
 
 ### With data option
 
-```html{3}
+```html {3}
 <div
   data-component="Component"
   data-option-media="not (prefers-reduced-motion)">

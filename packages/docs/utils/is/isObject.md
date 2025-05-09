@@ -4,7 +4,7 @@ Test if a value is an object.
 
 ## Usage
 
-```js
+```js twoslash
 import { isObject } from '@studiometa/js-toolkit/utils';
 
 isObject({}); // true

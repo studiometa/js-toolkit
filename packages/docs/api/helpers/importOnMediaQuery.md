@@ -4,14 +4,11 @@ Use this function to import components according to a specified [media query](ht
 
 ## Usage
 
-```js{6}
+```js {6} twoslash
 import { importOnMediaQuery } from '@studiometa/js-toolkit';
 
 // Import Component.js if the device is in portrait.
-importOnMediaQuery(
-  () => import('./components/Component.js'),
-  '(orientation: portrait)',
-);
+importOnMediaQuery(() => import('./components/Component.js'), '(orientation: portrait)');
 ```
 
 **Parameters**
@@ -25,17 +22,15 @@ importOnMediaQuery(
 
 ## Example
 
-```js{1,7,9}
+```js {1,7-8} twoslash
 import { Base, importOnMediaQuery } from '@studiometa/js-toolkit';
 
 class App extends Base {
   static config = {
     name: 'App',
     components: {
-      Component: () => importOnMediaQuery(
-        () => import('./components/Component.js'),
-        '(orientation: portrait)',
-      ),
+      Component: () =>
+        importOnMediaQuery(() => import('./components/Component.js'), '(orientation: portrait)'),
     },
   };
 }

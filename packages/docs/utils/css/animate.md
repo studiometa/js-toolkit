@@ -4,7 +4,7 @@ Use this function to animate the `transform` and `opacity` properties of an elem
 
 ## Usage
 
-```js
+```js twoslash
 import { animate, easeInOutExpo } from '@studiometa/js-toolkit/utils';
 
 const animation = animate(
@@ -53,7 +53,7 @@ Use this method to go to the end of the animation. This is an alias for `animati
 
 Use this method to get or set the progress (`0–1` range) of the animation.
 
-```js
+```js twoslash
 import { animate } from '@studiometa/js-toolkit/utils';
 
 const animation = animate(document.body, [{ opacity: 1 }, { opacity: 0 }]);
