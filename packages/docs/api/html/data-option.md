@@ -13,7 +13,12 @@ Use `data-option-<name>` attributes to configure the options of components from 
 
 When using a boolean option, you can negate its value by prefixing its name with `no-`.
 
-```js
+```js twoslash
+import { Base } from '@studiometa/js-toolkit';
+
+/**
+ * @extends {Base<{ $options: { open: boolean } }>}
+ */
 class Component extends Base {
   static config = {
     name: 'Component',

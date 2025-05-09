@@ -8,7 +8,7 @@ Use this decorator to create a component which will mount and destroy itself bas
 
 ## Usage
 
-```js
+```js twoslash
 import { Base, withMountWhenInView } from '@studiometa/js-toolkit';
 import Component from './Component.js';
 
@@ -32,7 +32,7 @@ This decorator does not expose a specific API.
 
 ### Simple usage
 
-```js{1,3,10,14}
+```js {1,3,10,14} twoslash
 import { Base, withMountWhenInView } from '@studiometa/js-toolkit';
 
 export default class Component extends withMountWhenInView(Base) {
@@ -42,7 +42,7 @@ export default class Component extends withMountWhenInView(Base) {
   };
 
   mounted() {
-    this.$log('I am visible!')
+    this.$log('I am visible!');
   }
 
   destroyed() {
@@ -55,18 +55,18 @@ export default class Component extends withMountWhenInView(Base) {
 
 You can pass custom options for the `IntersectionObserver` instance by passing a second parameter to the `withMountWhenInView` function:
 
-```js{1,3-5}
+```js {1,3-5} twoslash
 import { Base, withMountWhenInView } from '@studiometa/js-toolkit';
 
 export default class Component extends withMountWhenInView(Base, {
   threshold: 0.5,
 }) {
   static config = {
-    name: "Component",
+    name: 'Component',
   };
 
   mounted() {
-    this.$log('I am visible!')
+    this.$log('I am visible!');
   }
 
   destroyed() {
@@ -77,7 +77,7 @@ export default class Component extends withMountWhenInView(Base, {
 
 Or at the instance level in the `data-option-intersection-observer` attribute of the root element:
 
-```html{3-5}
+```html {3-5}
 <div
   data-component="Component"
   data-option-intersection-observer='{

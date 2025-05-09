@@ -4,7 +4,7 @@ A constant which is `true` in dev mode (if a global `__DEV__` variable is set an
 
 ## Usage
 
-```js
+```js twoslash
 import { isDev } from '@studiometa/js-toolkit/utils';
 
 if (isDev) {

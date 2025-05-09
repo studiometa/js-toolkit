@@ -4,7 +4,7 @@ Test if a value is an empty string.
 
 ## Usage
 
-```js
+```js twoslash
 import { isEmptyString } from '@studiometa/js-toolkit/utils';
 
 isEmptyString(''); // true

@@ -8,7 +8,7 @@ Use this function to import components when the [`requestIdleCallback`](https://
 
 ## Usage
 
-```js
+```js twoslash
 import { importWhenIdle } from '@studiometa/js-toolkit';
 
 importWhenIdle(() => import('./components/Component.js'), { timeout: 1000 });
@@ -25,7 +25,7 @@ importWhenIdle(() => import('./components/Component.js'), { timeout: 1000 });
 
 ## Example
 
-```js{1,7}
+```js {1,7} twoslash
 import { Base, importWhenIdle } from '@studiometa/js-toolkit';
 
 class App extends Base {

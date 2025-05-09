@@ -4,7 +4,7 @@ Transform a string to `UPPERCASE`. This function is an alias of `String.prototyp
 
 ## Usage
 
-```js
+```js twoslash
 import { upperCase } from '@studiometa/js-toolkit/utils';
 
 upperCase('Some String Content'); // SOME STRING CONTENT

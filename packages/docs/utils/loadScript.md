@@ -4,7 +4,7 @@ Load a given script.
 
 ## Usage
 
-```js
+```js twoslash
 import { loadScript } from '@studiometa/js-toolkit/utils';
 
 const src = '/path/to/my/script.js';
@@ -33,33 +33,33 @@ if (event.type === 'error') {
 
 You can combine the `loadScript` function with the [`memo` function](/utils/memo.html) to add an in memory cache layer. This will make the generated function always return the same generated element.
 
-```js
+```js twoslash
 import { loadScript, memo } from '@studiometa/js-toolkit';
 
 const loadScriptWithCache = memo(loadScript);
 const promise = loadScriptWithCache('script.js');
 const promise2 = loadScriptWithCache('script.js');
 
-console.assert(promise === promise2); // true
+console.log(promise === promise2); // true
 
 const [result, result2] = await Promise.all([promise, promise2]);
 
-console.assert(result === result2);
+console.log(result === result2);
 ```
 
 ::: warning Cache invalidation
 Be aware that the [`memo` function](/utils/memo.html) will use a simple `arguments.join('')` call to generate the cache key, thus ignoring any change in the options parameter of the `loadScript` function.
 
-```js
+```js twoslash
 const loadScriptWithCache = memo(loadScript);
 
 const result = await loadScriptWithCache('script.js', { appendTo: document.head });
 const result2 = await loadScriptWithCache('script.js', { appendTo: document.body });
 
-console.assert(result === result2); // true
+console.log(result === result2); // true
 
-console.log(result.element.parentElement): // document.head
-console.log(result2.element.parentElement): // document.head
+console.log(result.element.parentElement); // document.head
+console.log(result2.element.parentElement); // document.head
 ```
 
 :::

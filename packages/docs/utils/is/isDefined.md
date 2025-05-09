@@ -4,7 +4,7 @@ Test if a value is defined.
 
 ## Usage
 
-```js
+```js twoslash
 import { isDefined } from '@studiometa/js-toolkit/utils';
 
 isDefined('foo'); // true

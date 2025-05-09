@@ -4,7 +4,7 @@ Use the `getInstances` function to retrieve all mounted instances of every compo
 
 ## Usage
 
-```js
+```js twoslash
 import { Base, getInstances } from '@studiometa/js-toolkit';
 import Component from './Component.js';
 

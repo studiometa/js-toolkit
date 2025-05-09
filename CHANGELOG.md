@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Changed
+
+- **useResize:** improve types ([4ee26087](https://github.com/studiometa/js-toolkit/commit/4ee26087))
+- **useDrag:** refactor MODES to the service props ([#618](https://github.com/studiometa/js-toolkit/pull/618), [88c8bb54](https://github.com/studiometa/js-toolkit/commit/88c8bb54))
+
 ## [v3.0.2](https://github.com/studiometa/js-toolkit/compare/3.0.1..3.0.2) (2025-04-09)
 
 ### Changed

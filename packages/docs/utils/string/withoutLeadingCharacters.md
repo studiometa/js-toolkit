@@ -2,7 +2,7 @@
 
 ## Usage
 
-```js
+```js twoslash
 import { withoutLeadingCharacters } from '@studiometa/js-toolkit/utils';
 
 withoutLeadingCharacters('__string', '__'); // "string"

@@ -1,9 +1,6 @@
 import { defineConfig } from 'vitepress';
-import fs from 'fs';
-
-const pkg = JSON.parse(
-  fs.readFileSync(new URL('../package.json', import.meta.url), { encoding: 'utf8' }),
-);
+import { transformerTwoslash } from '@shikijs/vitepress-twoslash';
+import pkg from '../package.json' with { type: 'json' };
 
 export default defineConfig({
   lang: 'en-US',
@@ -12,6 +9,11 @@ export default defineConfig({
     'The JS Toolkit by Studio Meta is a JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.',
   lastUpdated: true,
   head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
+  markdown: {
+    codeTransformers: [transformerTwoslash()],
+    // Explicitly load these languages for types hightlighting
+    languages: ['js', 'jsx', 'ts', 'tsx'],
+  },
   themeConfig: {
     outline: 'deep',
     version: pkg.version,
@@ -243,10 +245,10 @@ function getHelpersSidebar() {
     { text: 'getInstanceFromElement', link: '/api/helpers/getInstanceFromElement.html' },
     { text: 'getInstances', link: '/api/helpers/getInstances.html' },
     { text: 'importOnInteraction', link: '/api/helpers/importOnInteraction.html' },
-    { text: 'importWhenIdle', link: '/api/helpers/importWhenIdle.html' },
-    { text: 'importWhenVisible', link: '/api/helpers/importWhenVisible.html' },
     { text: 'importOnMediaQuery', link: '/api/helpers/importOnMediaQuery.html' },
+    { text: 'importWhenIdle', link: '/api/helpers/importWhenIdle.html' },
     { text: 'importWhenPrefersMotion', link: '/api/helpers/importWhenPrefersMotion.html' },
+    { text: 'importWhenVisible', link: '/api/helpers/importWhenVisible.html' },
     { text: 'isDirectChild', link: '/api/helpers/isDirectChild.html' },
   ];
 }
@@ -261,6 +263,7 @@ function getUtilsSidebar() {
         { text: 'cache', link: '/utils/cache.html' },
         { text: 'createElement', link: '/utils/createElement.html' },
         { text: 'debounce', link: '/utils/debounce.html' },
+        { text: 'domScheduler', link: '/utils/domScheduler.html' },
         { text: 'keyCodes', link: '/utils/keyCodes.html' },
         { text: 'loadElement', link: '/utils/loadElement.html' },
         { text: 'loadIframe', link: '/utils/loadIframe.html' },

@@ -17,7 +17,7 @@ Use this decorator to enable responsive options definition in your HTML.
 
 ## Usage
 
-```js {1,3,7-10}
+```js {1,3,7-10} twoslash
 import { Base, withResponsiveOptions } from '@studiometa/js-toolkit';
 
 export default class Component extends withResponsiveOptions(Base) {
@@ -73,7 +73,7 @@ This decorator adds support for one or more suffix to define breakpoints in whic
 
 Given three breakpoints `s`, `m` and `l`, the following component and its markup:
 
-```js
+```js twoslash
 import { Base, withResponsiveOptions } from '@studiometa/js-toolkit';
 
 export default class Component extends withResponsiveOptions(Base) {

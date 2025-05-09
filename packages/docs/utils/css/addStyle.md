@@ -4,7 +4,7 @@ This method will add styles to an HTML element.
 
 ## Usage
 
-```js
+```js twoslash
 import { addStyle } from '@studiometa/js-toolkit/utils';
 
 addStyle(document.body, { display: 'block' });

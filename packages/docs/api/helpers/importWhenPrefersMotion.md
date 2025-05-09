@@ -4,7 +4,7 @@ Use this function to import components when the user accepts motion.
 
 ## Usage
 
-```js
+```js twoslash
 import { importWhenPrefersMotion } from '@studiometa/js-toolkit';
 
 // Import Component.js if the user accepts motion.
@@ -21,7 +21,7 @@ importWhenPrefersMotion(() => import('./components/Component.js'));
 
 ## Example
 
-```js{1,7}
+```js {1,7} twoslash
 import { Base, importWhenPrefersMotion } from '@studiometa/js-toolkit';
 
 class App extends Base {
