@@ -4,7 +4,7 @@ Use this decorator to add a `mutated(props)` hook managed by the [mutation](/api
 
 ## Usage
 
-```js
+```js twoslash
 import { Base, withMutation } from '@studiometa/js-toolkit';
 
 export default class Component extends withMutation(Base, {
@@ -14,6 +14,9 @@ export default class Component extends withMutation(Base, {
     name: 'Component',
   };
 
+  /**
+   * @param {MutationRecord[]} props
+   */
   mutated(props) {
     for (const mutation of props.mutations) {
       console.log(mutation); // MutationRecord
@@ -49,7 +52,7 @@ The `mutated` class method will be triggered when a DOM mutation occurs on the g
 
 This decorator can be used to update a component when its inner HTML has changed to rebind refs and child components.
 
-```js
+```js twoslash
 import { Base, withMutation } from '@studiometa/js-toolkit';
 
 export default class Component extends withMutation(Base, {
@@ -60,6 +63,9 @@ export default class Component extends withMutation(Base, {
     name: 'Component',
   };
 
+  /**
+   * @param {MutationRecord[]} props
+   */
   mutated(props) {
     this.$update();
   }

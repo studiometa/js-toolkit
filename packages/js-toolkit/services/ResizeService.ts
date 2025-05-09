@@ -9,8 +9,8 @@ export interface ResizeServiceProps<U extends Features['breakpoints'] = Features
   height: number;
   ratio: number;
   orientation: 'square' | 'landscape' | 'portrait';
-  breakpoint: string;
-  breakpoints: string[];
+  breakpoint: keyof U;
+  breakpoints: Array<keyof U>;
   activeBreakpoints: Record<keyof U, boolean>;
 }
 
@@ -19,7 +19,7 @@ export type ResizeServiceInterface<U extends Features['breakpoints'] = Features[
 
 export class ResizeService<
   T extends Features['breakpoints'] = Features['breakpoints'],
-> extends AbstractService<ResizeServiceProps> {
+> extends AbstractService<ResizeServiceProps<T>> {
   static config: ServiceConfig = [[() => window, [['resize']]]];
 
   breakpoints: T;

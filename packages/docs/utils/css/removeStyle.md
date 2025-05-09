@@ -4,7 +4,7 @@ This method will remove styles from an HTML element.
 
 ## Usage
 
-```js
+```js twoslash
 import { removeStyle } from '@studiometa/js-toolkit/utils';
 
 removeStyle(document.body, { display: 'block' });

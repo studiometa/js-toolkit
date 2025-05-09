@@ -10,15 +10,17 @@ Called when the user is scrolling.
 
 **Example**
 
-```js
+```js twoslash
+import { Base } from '@studiometa/js-toolkit';
+
 export default class Component extends Base {
   static config = {
     name: 'Component',
     log: true,
   };
 
-  scrolled({ x, y, changed, last, delta, progress, max, direction }) {
-    this.$log('Scrolling');
+  scrolled(props) {
+    this.$log('scrolling', props);
   }
 }
 ```
@@ -37,15 +39,17 @@ Called when the document has been resized.
 
 **Example**
 
-```js
+```js twoslash
+import { Base } from '@studiometa/js-toolkit';
+
 export default class Component extends Base {
   static config = {
     name: 'Component',
     log: true,
   };
 
-  resized({ width, height, ratio, orientation, breakpoint, breakpoints }) {
-    this.$log('Resized');
+  resized(props) {
+    this.$log('resized', props);
   }
 }
 ```
@@ -64,29 +68,17 @@ Called when the user is typing.
 
 **Example**
 
-```js
+```js twoslash
+import { Base } from '@studiometa/js-toolkit';
+
 export default class Component extends Base {
   static config = {
     name: 'Component',
     log: true,
   };
 
-  keyed({
-    event,
-    direction,
-    isUp,
-    isDown,
-    triggered,
-    ENTER,
-    SPACE,
-    TAB,
-    ESC,
-    LEFT,
-    UP,
-    RIGHT,
-    DOWN,
-  }) {
-    this.$log('Keyed');
+  keyed(props) {
+    this.$log('keyed', props);
   }
 }
 ```
@@ -105,15 +97,17 @@ Called when the user is moving their cursor.
 
 **Example**
 
-```js
+```js twoslash
+import { Base } from '@studiometa/js-toolkit';
+
 export default class Component extends Base {
   static config = {
     name: 'Component',
     log: true,
   };
 
-  moved({ event, isDown, x, y, changed, last, delta, progress, max }) {
-    this.$log('Moved');
+  moved(props) {
+    this.$log('moved', props);
   }
 }
 ```
@@ -124,7 +118,7 @@ See the [`usePointer` service](/api/services/usePointer.html) for more details.
 
 ## `ticked`
 
-Creates a render loop with `requestAnimationFrame`.
+Executed on every frame with `requestAnimationFrame`.
 
 **Arguments**
 
@@ -132,15 +126,17 @@ Creates a render loop with `requestAnimationFrame`.
 
 **Example**
 
-```js
+```js twoslash
+import { Base } from '@studiometa/js-toolkit';
+
 export default class Component extends Base {
   static config = {
     name: 'Component',
     log: true,
   };
 
-  ticked({ time }) {
-    this.$log('Ticked');
+  ticked(props) {
+    this.$log('ticked', props);
   }
 }
 ```

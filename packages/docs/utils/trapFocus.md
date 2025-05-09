@@ -8,7 +8,7 @@ To understand the "tab trap" usage, read [Using JavaScript to trap focus in an e
 
 ## Usage
 
-```js
+```js twoslash
 import { trapFocus, untrapFocus } from '@studiometa/js-toolkit/utils';
 
 // Limit the tab navigation to focusable children of the document's body

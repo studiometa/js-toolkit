@@ -2,7 +2,7 @@
 
 ## Usage
 
-```js{9}
+```js {9-10} twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class Component extends Base {
@@ -35,9 +35,11 @@ Use the [`createApp(Base, rootElement)`](./helpers/createApp.html) function to i
 
 Create an app using a custom component and instantiate it:
 
-```js
+::: code-group
+
+```js twoslash [app.js]
 import { Base } from '@studiometa/js-toolkit';
-import Component from './components/Component';
+import Component from './Component.js';
 
 class App extends Base {
   static config = {
@@ -53,3 +55,17 @@ app.$mount();
 
 export default app;
 ```
+
+```js twoslash [Component.js]
+import { Base } from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+  };
+}
+```
+
+::: tip
+Usage of the [`createApp` helper function](./helpers/createApp.md) is recommended instead of directly mounting the root component manually.
+:::

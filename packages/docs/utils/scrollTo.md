@@ -8,7 +8,7 @@ The `scrollTo` function uses the [tween](./tween.html) function under the hood, 
 
 ## Usage
 
-```js
+```js twoslash
 import { scrollTo, easeOutExpo } from '@studiometa/js-toolkit/utils';
 
 await scrollTo('#target');

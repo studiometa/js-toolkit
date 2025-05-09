@@ -4,7 +4,7 @@ Get a random integer between bounds.
 
 ## Usage
 
-```js
+```js twoslash
 import { randomInt } from '@studiometa/js-toolkit/utils';
 
 randomInt(10); // an integer between 0 and 10

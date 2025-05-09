@@ -4,7 +4,7 @@ Test if a circle collides with a rectangle.
 
 ## Usage
 
-```js
+```js twoslash
 import { collideCircleRect } from '@studiometa/js-toolkit/utils';
 
 const circle = {

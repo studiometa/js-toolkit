@@ -4,7 +4,7 @@ Get a random item of an array or a random character of a string.
 
 ## Usage
 
-```js
+```js twoslash
 import { randomItem } from '@studiometa/js-toolkit/utils';
 
 const items = ['a', 'b', 'c', 'd', 'e', 'f'];

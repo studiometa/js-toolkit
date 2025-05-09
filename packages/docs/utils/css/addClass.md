@@ -4,7 +4,7 @@ This method will add one or more classes to an HTML element.
 
 ## Usage
 
-```js
+```js twoslash
 import { addClass } from '@studiometa/js-toolkit/utils';
 
 addClass(document.body, 'is-locked');

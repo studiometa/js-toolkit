@@ -4,7 +4,7 @@ Transform a string to `PascalCase`.
 
 ## Usage
 
-```js
+```js twoslash
 import { pascalCase } from '@studiometa/js-toolkit/utils';
 
 pascalCase('Some String Content'); // SomeStringContent

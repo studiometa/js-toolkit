@@ -8,7 +8,7 @@ Use this decorator to create a class that will have the capacity to trigger an `
 
 ## Usage
 
-```js {1,3,8-10}
+```js {1,3,11-13} twoslash
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 
 class Component extends withIntersectionObserver(Base, { rootMargin: '100%' }) {
@@ -16,8 +16,11 @@ class Component extends withIntersectionObserver(Base, { rootMargin: '100%' }) {
     name: 'Component',
   };
 
+  /**
+   * @param {IntersectionObserverEntry[]} entries
+   */
   intersected(entries) {
-    // do something with `entries`
+    console.log(entries);
   }
 }
 ```
@@ -67,17 +70,17 @@ Emitted when the [`intersected`](#intersected) class method is triggered.
 
 ### Simple usage
 
-```js{1,3,8-16}
+```js {1,3,8-16} twoslash
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 
 export default class Component extends withIntersectionObserver(Base) {
   static config = {
     name: 'Component',
-  }
+  };
 
   /**
    * Triggered when the root element of the component is intersecting.
-   * @param {Array<IntersectionObserverEntry>} entries
+   * @param {IntersectionObserverEntry[]} entries
    */
   intersected(entries) {
     if (entries[0].isIntersecting) {
@@ -91,16 +94,19 @@ export default class Component extends withIntersectionObserver(Base) {
 
 You can pass custom options for the `IntersectionObserver` instance by passing a second parameter to the `withIntersectionObserver` function:
 
-```js{3-5}
+```js {3-5} twoslash
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 
 export default class Component extends withIntersectionObserver(Base, {
   threshold: 0.5,
 }) {
   static config = {
-    name: "Component",
+    name: 'Component',
   };
 
+  /**
+   * @param {IntersectionObserverEntry[]} entries
+   */
   intersected(entries) {
     if (entries[0].isIntersecting) {
       this.isVisible = true;
@@ -111,7 +117,7 @@ export default class Component extends withIntersectionObserver(Base, {
 
 Or at the instance level in the `data-option-intersection-observer` attribute of the root element:
 
-```html{3-5}
+```html {3-5}
 <div
   data-component="Component"
   data-option-intersection-observer='{

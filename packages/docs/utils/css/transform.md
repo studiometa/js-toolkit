@@ -4,7 +4,7 @@ Use this function to apply transforms to an element.
 
 ## Usage
 
-```js
+```js twoslash
 import { transform } from '@studiometa/js-toolkit/utils';
 
 transform(document.body, {

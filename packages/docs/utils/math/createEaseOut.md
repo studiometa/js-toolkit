@@ -4,7 +4,7 @@ Generate a reversed easing function from a given easing function.
 
 ## Usage
 
-```js
+```js twoslash
 import { easeInCirc, createEaseOut } from '@studiometa/js-toolkit/utils';
 
 const easeOutCirc = createEaseOut(easeInCirc);

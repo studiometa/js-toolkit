@@ -4,7 +4,7 @@ Transform a string to `lowercase`. This function is an alias of `String.prototyp
 
 ## Usage
 
-```js
+```js twoslash
 import { lowerCase } from '@studiometa/js-toolkit/utils';
 
 lowerCase('Some String Content'); // some string content

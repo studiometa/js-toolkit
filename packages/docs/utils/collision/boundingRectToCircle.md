@@ -8,7 +8,7 @@ To enable it for non-square elements, use the second parameter to force the calc
 
 ## Usage
 
-```js
+```js twoslash
 import { boundingRectToCircle } from '@studiometa/js-toolkit/utils';
 
 const clientRect1 = { x: 0, y: 0, width: 100, height: 100 };
