@@ -12,7 +12,7 @@ If you need to only check if an instance is a direct descendant of another insta
 
 ## Usage
 
-```js {1,9,16}
+```js {1,9,16} twoslash
 import { Base, getDirectChildren } from '@studiometa/js-toolkit';
 import Child from './Child.js';
 
@@ -25,11 +25,10 @@ class Parent extends Base {
     },
   };
 
-  onChildClick(index, event) {
-    const childInstance = this.$children.Child[index];
+  onChildClick({ target, event }) {
     const directChildren = getDirectChildren(this, 'Parent', 'Child');
 
-    if (directChildren.includes(childInstance)) {
+    if (directChildren.includes(target)) {
       event.preventDefault();
     }
   }

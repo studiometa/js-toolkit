@@ -4,7 +4,7 @@ Transform a string to `snake_case`.
 
 ## Usage
 
-```js
+```js twoslash
 import { snakeCase } from '@studiometa/js-toolkit/utils';
 
 snakeCase('Some String Content'); // some_string_content

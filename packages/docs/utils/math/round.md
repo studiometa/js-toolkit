@@ -4,7 +4,7 @@ Round a number to the given decimals.
 
 ## Usage
 
-```js
+```js twoslash
 import { round } from '@studiometa/js-toolkit/utils';
 
 round(10.5); // 10

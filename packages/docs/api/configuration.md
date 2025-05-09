@@ -8,7 +8,9 @@ The static `config` property is required on each class extending the `Base` clas
 
 The **required** name of the component.
 
-```js{3}
+```js {3} twoslash
+import { Base } from '@studiometa/js-toolkit';
+// ---cut---
 class Component extends Base {
   static config = {
     name: 'Component',
@@ -23,7 +25,9 @@ class Component extends Base {
 
 Define values configurable with `data-option-...` attributes for the component.
 
-```js
+```js twoslash
+import { Base } from '@studiometa/js-toolkit';
+// ---cut---
 class Component extends Base {
   static config = {
     name: 'Component',
@@ -87,35 +91,45 @@ class Component extends Base {
 
 The children components of the current one that will automatically be mounted and destroyed accordion to the state of the current component. Children components can be defined like the following:
 
-```js
-import ComponentOne from './ComponentOne';
-import ComponentThree from './ComponentThree';
+::: code-group
+
+```js twoslash [app.js]
+import { Base } from '@studiometa/js-toolkit';
+import { Figure, PrefetchWhenOver } from '@studiometa/ui';
 
 class App extends Base {
   static config = {
-    return {
-      name: 'App',
-      components: {
-        // Direct reference, ComponentOne instances will be mounted
-        // on every `[data-component="ComponentOne"]` elements.
-        ComponentOne,
-        // Async loading, the ComponentTwo component will be loaded only if there
-        // is one or more `[data-component="ComponentTwo"]` element in the DOM.
-        ComponentTwo: () => import('./ComponentTwo'),
-        // Custom selector, ComponentThree instances will be mounted
-        // on every `.custom-selector` elements.
-        '.custom-selector': ComponentThree,
-        // Custom selector with async loading, the ComponentFour component will be loaded
-        // only if there is one or more `.other-custom-selector` element in the DOM.
-        '.other-custom-selector': () => import('./ComponentFour'),
-      },
-    };
-  }
+    name: 'App',
+    components: {
+      // Direct reference, Figure instances will be mounted
+      // on every `[data-component="Figure"]` elements.
+      Figure,
+      // Async loading, the Slider component will be loaded only if there
+      // is one or more `[data-component="Slider"]` element in the DOM.
+      Slider: () => import('@studiometa/ui').then(({ Slider }) => Slider),
+      // Custom selector, ComponentThree instances will be mounted
+      // on every `a[href]` elements.
+      'a[href]': PrefetchWhenOver,
+      // Custom selector with async loading, the Component component will be loaded
+      // only if there is one or more `.other-custom-selector` element in the DOM.
+      '.other-custom-selector': () => import('./Component.js'),
+    },
+  };
+}
+```
+
+```js twoslash [Component.js]
+import { Base } from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+  };
 }
 ```
 
 ::: tip
-The [lazy import helpers](/api/helpers/#lazy-import-helpers) can be used to manage more precisely the components' imports.
+The [lazy import helpers](/api/helpers/#lazy-import-helpers) can be used for more fine-grained imports.
 :::
 
 ## `config.refs`
@@ -140,7 +154,9 @@ Define the refs of the components by specifying their name in the configuration.
 </div>
 ```
 
-```js
+```js twoslash
+import { Base } from '@studiometa/js-toolkit';
+// ---cut---
 class Component extends Base {
   static config = {
     name: 'Component',
@@ -162,7 +178,9 @@ class Component extends Base {
 
 Define the events emitted by the component by specifying their name.
 
-```js
+```js twoslash
+import { Base } from '@studiometa/js-toolkit';
+// ---cut---
 class Component extends Base {
   static config = {
     name: 'Component',
@@ -202,7 +220,7 @@ The debug logs are conditionnally rendered base on a `__DEV__` global variable w
 
 **Example Webpack configuration**
 
-```js
+```js twoslash
 import webpack from 'webpack';
 
 export default {

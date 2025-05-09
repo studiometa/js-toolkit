@@ -4,7 +4,7 @@ Test if a value is a number.
 
 ## Usage
 
-```js
+```js twoslash
 import { isNumber } from '@studiometa/js-toolkit/utils';
 
 isNumber(10); // true

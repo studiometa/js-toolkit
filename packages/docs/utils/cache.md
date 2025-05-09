@@ -4,7 +4,7 @@ Cache the result of a function with a single key or a list of keys.
 
 ## Usage
 
-```js
+```js twoslash
 import { cache } from '@studiometa/js-toolkit/utils';
 
 const keys = [document.body, Symbol('key')];

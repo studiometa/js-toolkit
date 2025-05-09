@@ -8,11 +8,11 @@ Use this decorator to transfrom the `$options` property to be read only. This ca
 
 ## Usage
 
-```js
+```js twoslash
 import { withFreezedOptions } from '@studiometa/js-toolkit';
-import Component from './Component.js';
+import { Slider } from '@studiometa/ui';
 
-export default class ComponentWithFreezedOptions extends withFreezedOptions(Component);
+export default class SliderWithFreezedOptions extends withFreezedOptions(Slider) {}
 ```
 
 ### Parameters

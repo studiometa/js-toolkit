@@ -8,7 +8,7 @@ The key service will help you manage your keyboard events. It merges the `keydow
 
 ## Usage
 
-```js
+```js twoslash
 import { useKey } from '@studiometa/js-toolkit';
 
 const { add, remove, props } = useKey();

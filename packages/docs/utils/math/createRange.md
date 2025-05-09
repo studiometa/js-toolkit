@@ -4,7 +4,7 @@ Create an array of number between a given range and incremental step.
 
 ## Usage
 
-```js
+```js twoslash
 import { createRange } from '@studiometa/js-toolkit/utils';
 
 createRange(0, 10, 2); // [0, 2, 4, 6, 8, 10]

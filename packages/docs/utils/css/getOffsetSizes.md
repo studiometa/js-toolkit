@@ -4,7 +4,7 @@ This function will return a `DOMRect` like object representing the position of t
 
 ## Usage
 
-```js
+```js twoslash
 import { getOffsetSizes } from '@studiometa/js-toolkit/utils';
 
 const sizes = getOffsetSizes(document.body);

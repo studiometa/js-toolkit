@@ -8,7 +8,7 @@ The pointer service will help you manage your cursor. It merges the mouse and to
 
 ## Usage
 
-```js
+```js twoslash
 import { usePointer } from '@studiometa/js-toolkit';
 
 const { add, remove, props } = usePointer();

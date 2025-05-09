@@ -4,7 +4,7 @@ Transform a string to `dash-case`.
 
 ## Usage
 
-```js
+```js twoslash
 import { dashCase } from '@studiometa/js-toolkit/utils';
 
 dashCase('Some String Content'); // some-string-content

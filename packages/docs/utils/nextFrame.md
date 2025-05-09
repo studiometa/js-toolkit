@@ -4,7 +4,7 @@ Execute a given function in the next window frame. This function is a promisifie
 
 ## Usage
 
-```js
+```js twoslash
 import { nextFrame } from '@studiometa/js-toolkit/utils';
 
 // Callback API

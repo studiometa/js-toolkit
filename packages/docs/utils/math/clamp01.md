@@ -4,7 +4,7 @@ Clamp a value in the 0–1 range.
 
 ## Usage
 
-```js
+```js twoslash
 import { clamp01 } from '@studiometa/js-toolkit/utils';
 
 clamp01(0.5); // 0.5

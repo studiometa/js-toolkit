@@ -4,7 +4,7 @@ Execute a given function in the next window tick.
 
 ## Usage
 
-```js
+```js twoslash
 import { nextTick } from '@studiometa/js-toolkit/utils';
 
 // Callback API

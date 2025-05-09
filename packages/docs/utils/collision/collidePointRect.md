@@ -4,7 +4,7 @@ Test if a point collides with a rectangle.
 
 ## Usage
 
-```js
+```js twoslash
 import { collidePointRect } from '@studiometa/js-toolkit/utils';
 
 const point = {

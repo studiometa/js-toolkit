@@ -245,10 +245,10 @@ function getHelpersSidebar() {
     { text: 'getInstanceFromElement', link: '/api/helpers/getInstanceFromElement.html' },
     { text: 'getInstances', link: '/api/helpers/getInstances.html' },
     { text: 'importOnInteraction', link: '/api/helpers/importOnInteraction.html' },
-    { text: 'importWhenIdle', link: '/api/helpers/importWhenIdle.html' },
-    { text: 'importWhenVisible', link: '/api/helpers/importWhenVisible.html' },
     { text: 'importOnMediaQuery', link: '/api/helpers/importOnMediaQuery.html' },
+    { text: 'importWhenIdle', link: '/api/helpers/importWhenIdle.html' },
     { text: 'importWhenPrefersMotion', link: '/api/helpers/importWhenPrefersMotion.html' },
+    { text: 'importWhenVisible', link: '/api/helpers/importWhenVisible.html' },
     { text: 'isDirectChild', link: '/api/helpers/isDirectChild.html' },
   ];
 }
@@ -263,6 +263,7 @@ function getUtilsSidebar() {
         { text: 'cache', link: '/utils/cache.html' },
         { text: 'createElement', link: '/utils/createElement.html' },
         { text: 'debounce', link: '/utils/debounce.html' },
+        { text: 'domScheduler', link: '/utils/domScheduler.html' },
         { text: 'keyCodes', link: '/utils/keyCodes.html' },
         { text: 'loadElement', link: '/utils/loadElement.html' },
         { text: 'loadIframe', link: '/utils/loadIframe.html' },

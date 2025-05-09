@@ -4,7 +4,7 @@ This method will format a matrix CSS transform function.
 
 ## Usage
 
-```js
+```js twoslash
 import { matrix } from '@studiometa/js-toolkit/utils';
 
 document.body.style.transform = matrix({ scaleX: 0.5, scaleY: 0.5 });
