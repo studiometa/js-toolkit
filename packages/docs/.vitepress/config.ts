@@ -1,9 +1,6 @@
 import { defineConfig } from 'vitepress';
-import fs from 'fs';
-
-const pkg = JSON.parse(
-  fs.readFileSync(new URL('../package.json', import.meta.url), { encoding: 'utf8' }),
-);
+import { transformerTwoslash } from '@shikijs/vitepress-twoslash';
+import pkg from '../package.json' with { type: 'json' };
 
 export default defineConfig({
   lang: 'en-US',
@@ -12,6 +9,11 @@ export default defineConfig({
     'The JS Toolkit by Studio Meta is a JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.',
   lastUpdated: true,
   head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
+  markdown: {
+    codeTransformers: [transformerTwoslash()],
+    // Explicitly load these languages for types hightlighting
+    languages: ['js', 'jsx', 'ts', 'tsx'],
+  },
   themeConfig: {
     outline: 'deep',
     version: pkg.version,
