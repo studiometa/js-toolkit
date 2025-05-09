@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.3](https://github.com/studiometa/js-toolkit/compare/3.0.2..3.0.3) (2025-05-09)
+
 ### Changed
 
 - **useResize:**
