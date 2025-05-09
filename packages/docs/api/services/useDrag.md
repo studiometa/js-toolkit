@@ -8,7 +8,7 @@ The drag service will help you manage draggable elements.
 
 ## Usage
 
-```js
+```js twoslash
 import { useDrag } from '@studiometa/js-toolkit';
 
 const target = document.querySelector('.draggable');
@@ -16,6 +16,7 @@ const { add, remove, props } = useDrag(target, { dampFactor: 0.5, dragTreshold: 
 
 add('custom-id', (props) => {
   console.log(props.mode); // 'start', 'drag', 'drop', 'inertia' or 'stop'
+  console.log(props.MODES); // an object of all available modes
   console.log(props.isGrabbing); // true if the target element is grabbed
   console.log(props.x); // horizontal position of the cursor in the viewport
   console.log(props.y); // vertical position of the cursor in the viewport
@@ -49,6 +50,22 @@ Options for the drag behavior. The `dampFactor` option is used for the inertia, 
 - Type: `'start'|'drag'|'drop'|'inertia'|'stop'`
 
 The current mode of the dragging logic.
+
+### `MODES`
+
+- Type: `{ START: 'start', DRAG: 'drag', DROP: 'drop', INERTIA: 'inertia', STOP: 'stop' }`
+
+An object representing the different mode of the draggin logic. Use it to match against the current mode:
+
+```js twoslash {2}
+import { useDrag } from '@studiometa/js-toolkit';
+// ---cut---
+useDrag(target).add('key', (props) => {
+  if (props.mode === props.MODES.START) {
+    console.log('drag is starting');
+  }
+});
+```
 
 ### `target`
 

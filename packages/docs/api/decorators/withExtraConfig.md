@@ -30,8 +30,8 @@ export default withExtraConfig(Component, { log: true });
 
 This decorator can be used to easily add a new ref to an existing component.
 
-```js
-import Modal from '@studiometa/ui/Modal';
+```js twoslash
+import { Modal } from '@studiometa/ui/Modal';
 import { withExtraConfig } from '@studiometa/js-toolkit';
 
 export default withExtraConfig(Modal, { refs: ['toggle'] });
@@ -41,8 +41,8 @@ export default withExtraConfig(Modal, { refs: ['toggle'] });
 
 Components can define default values for their options, this decorator can be used to change them without the hassle of re-writing the whole configuration.
 
-```js
-import Modal from '@studiometa/ui/Modal';
+```js twoslash
+import { Modal } from '@studiometa/ui/Modal';
 import { withExtraConfig } from '@studiometa/js-toolkit';
 
 export default withExtraConfig(Modal, {
@@ -60,9 +60,9 @@ export default withExtraConfig(Modal, {
 
 This decorator can be used to quickly enable debug for an external component.
 
-```js{9}
+```js {9} twoslash
 import { Base, withExtraConfig } from '@studiometa/js-toolkit';
-import Modal from '@studiometa/ui/Modal';
+import { Modal } from '@studiometa/ui/Modal';
 
 class App extends Base {
   static config = {
@@ -78,9 +78,9 @@ class App extends Base {
 
 This decorator uses [`deepmerge`](https://github.com/TehShrike/deepmerge) to merge the `config` properties, you can pass [options](https://github.com/TehShrike/deepmerge#options) to it with the third parameter:
 
-```js{7}
+```js {7} twoslash
 import { withExtraConfig } from '@studiometa/js-toolkit';
-import Modal from '@studiometa/ui/Modal';
+import { Modal } from '@studiometa/ui/Modal';
 
 export default withExtraConfig(Modal, {
   refs: ['toggle']

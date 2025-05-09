@@ -4,7 +4,7 @@ Memorize the output of a function in the memory cache.
 
 ## Usage
 
-```js
+```js twoslash
 import { memoize } from '@studiometa/js-toolkit/utils';
 
 function heavyFunction(param) {

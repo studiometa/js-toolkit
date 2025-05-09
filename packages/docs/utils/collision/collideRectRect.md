@@ -4,7 +4,7 @@ Test if a rectangle collides with another rectangle.
 
 ## Usage
 
-```js
+```js twoslash
 import { collideRectRect } from '@studiometa/js-toolkit/utils';
 
 const rect1 = {

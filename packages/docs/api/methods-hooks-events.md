@@ -35,7 +35,7 @@ Methods following this pattern will be executed when the event is triggered on t
 
 **Example**
 
-```js {10-11,15}
+```js {10-11,16} twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class Foo extends Base {
@@ -72,7 +72,7 @@ Native DOM events registered on a child component will be binded to the child ro
 
 **Examples**
 
-```html{2-3,13-16}
+```html {2-3,13-16}
 <div data-component="Foo">
   <button data-ref="btn[]">Open</btn>
   <button data-ref="btn[]">Close</btn>
@@ -96,7 +96,7 @@ Native DOM events registered on a child component will be binded to the child ro
 </script>
 ```
 
-```html{2,20-21,23-24}
+```html {2,20-21,23-24}
 <div data-component="Foo">
   <form data-component="Baz"></form>
 </div>
@@ -139,7 +139,7 @@ Methods following this pattern will be triggered when the `event` event is dispa
 
 Implement a click-outside behaviour:
 
-```js {14-16}
+```js {14-16} twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class Dropdown extends Base {
@@ -171,7 +171,7 @@ Methods following this pattern will be triggered when the `event` event is dispa
 
 Watch the page hash:
 
-```js {8-10}
+```js {8-10} twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class Component extends Base {

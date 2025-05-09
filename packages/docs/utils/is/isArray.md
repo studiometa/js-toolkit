@@ -4,7 +4,7 @@ Test if a value is an array.
 
 ## Usage
 
-```js
+```js twoslash
 import { isArray } from '@studiometa/js-toolkit/utils';
 
 isArray([]); // true

@@ -4,7 +4,7 @@ Execute a function while tweening a value between 0 and 1.
 
 ## Usage
 
-```js
+```js twoslash
 import { tween, easeInOutExpo } from '@studiometa/js-toolkit/utils';
 
 const tw = tween(
@@ -49,7 +49,7 @@ Use this method to go to the end of the animation. This is an alias for `tween.p
 
 Use this method to get or set the progress (`0–1` range) of the animation.
 
-```js
+```js twoslash
 import { tween } from '@studiometa/js-toolkit/utils';
 
 const tw = tween((progress) => {

@@ -4,7 +4,7 @@ Use this decorator to add a `movedrelative(props)` hook from the [pointer](/api/
 
 ## Usage
 
-```js
+```js twoslash
 import { Base, withRelativePointer } from '@studiometa/js-toolkit';
 
 export default class RelativePointer extends withRelativePointer(Base, {
@@ -15,6 +15,9 @@ export default class RelativePointer extends withRelativePointer(Base, {
     refs: ['item'],
   };
 
+  /**
+   * @param {import('@studiometa/js-toolkit').PointerServiceProps} props
+   */
   movedrelative(props) {
     this.$refs.item.style.transform = `translate(${props.x}px, ${props.y}px)`;
   }
@@ -48,7 +51,7 @@ The `movedrelative` class method will be triggered when moving the pointer.
 
 This decorator can be used to easily use the pointer position relative from the component's root element. The following example will scale a ref based on the position of the pointer _inside_ the component's root element.
 
-```js
+```js twoslash
 import { Base, withRelativePointer } from '@studiometa/js-toolkit';
 
 export default class RelativePointer extends withRelativePointer(Base) {
@@ -57,6 +60,9 @@ export default class RelativePointer extends withRelativePointer(Base) {
     refs: ['item'],
   };
 
+  /**
+   * @param {import('@studiometa/js-toolkit').PointerServiceProps} props
+   */
   movedrelative(props) {
     this.$refs.item.style.transform = `scale(${props.progress.x}, ${props.progress.y})`;
   }

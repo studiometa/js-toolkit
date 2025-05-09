@@ -4,7 +4,7 @@ Limit the execution of a function one time for the given delay in milliseconds.
 
 ## Usage
 
-```js
+```js twoslash
 import { throttle } from '@studiometa/js-toolkit/utils';
 
 const throttledFn = throttle(() => {

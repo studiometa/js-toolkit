@@ -2,7 +2,7 @@
 
 Create components with ease by extending the `Base` class.
 
-```js
+```js twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class Component extends Base {

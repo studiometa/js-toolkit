@@ -1,10 +1,14 @@
 # cache
 
-Cache the result of a function with a single key or a list of keys.
+Cache the result of a function with a single key or a list of keys in nested maps.
+
+::: warning
+The `cache` function is global, meaning that keys are share across all `cache` calls in different files for the same runtime. Make sure to use a local context variable as the first key to avoid sharing cache between unrelated contexts.
+:::
 
 ## Usage
 
-```js
+```js twoslash
 import { cache } from '@studiometa/js-toolkit/utils';
 
 const keys = [document.body, Symbol('key')];

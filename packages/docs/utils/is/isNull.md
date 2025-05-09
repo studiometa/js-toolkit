@@ -4,7 +4,7 @@ Test if a value is `null`.
 
 ## Usage
 
-```js
+```js twoslash
 import { isNull } from '@studiometa/js-toolkit/utils';
 
 isNull(null); // true

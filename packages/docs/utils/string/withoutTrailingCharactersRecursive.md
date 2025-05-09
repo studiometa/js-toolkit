@@ -2,7 +2,7 @@
 
 ## Usage
 
-```js
+```js twoslash
 import { withoutTrailingCharactersRecursive } from '@studiometa/js-toolkit/utils';
 
 withoutLeadingCharactersRecursive('string///', '/'); // "string"

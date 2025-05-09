@@ -4,7 +4,7 @@ Get the mean value from an array of numbers.
 
 ## Usage
 
-```js
+```js twoslash
 import { mean } from '@studiometa/js-toolkit/utils';
 
 mean([5, 0, 10]); // 5

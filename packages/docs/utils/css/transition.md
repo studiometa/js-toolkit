@@ -4,7 +4,7 @@ This method implements the same logic as the [`<transition>` component](https://
 
 ## Usage
 
-```js
+```js twoslash
 import { transition } from '@studiometa/js-toolkit/utils';
 
 // Will apply and remove the following classes sequentially:

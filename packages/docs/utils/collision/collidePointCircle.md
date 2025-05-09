@@ -4,7 +4,7 @@ Test if a point is inside a circle.
 
 ## Usage
 
-```js
+```js twoslash
 import { collidePointCircle } from '@studiometa/js-toolkit/utils';
 
 const point = {

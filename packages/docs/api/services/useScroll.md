@@ -8,7 +8,7 @@ The scroll service will help you manage your actions when the page is scrolled.
 
 ## Usage
 
-```js
+```js twoslash
 import { useScroll } from '@studiometa/js-toolkit';
 
 const { add, remove, props } = useScroll();
@@ -27,7 +27,7 @@ remove('custom-id');
 ```
 
 ::: warning IMPORTANT
-A throttle of 32ms is configured to limit the execution of each scroll callback to a minimum. If you need 60fps animation, use the [`raf`](./useRaf.html) service along this one.
+A throttle of 100 ms is configured to limit the execution of each scroll callback to a minimum. If you need 60 FPS animations, use the [`raf`](./useRaf.html) service.
 :::
 
 ## Props

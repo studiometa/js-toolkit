@@ -16,6 +16,13 @@ describe('The drag service', () => {
     expect(fn).toHaveBeenCalledWith({
       target: div,
       mode: 'start',
+      MODES: {
+        START: 'start',
+        DRAG: 'drag',
+        DROP: 'drop',
+        INERTIA: 'inertia',
+        STOP: 'stop',
+      },
       hasInertia: false,
       isGrabbing: true,
       x: 0,

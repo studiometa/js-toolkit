@@ -4,7 +4,7 @@ The mutation service can be used to observe DOM mutations on a component with th
 
 ## Usage
 
-```js
+```js twoslash
 import { useMutation } from '@studiometa/js-toolkit';
 
 const { add, remove } = useMutation();

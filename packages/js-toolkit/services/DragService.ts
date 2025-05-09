@@ -5,13 +5,21 @@ import { isDefined } from '../utils/is.js';
 import { inertiaFinalValue } from '../utils/math/index.js';
 import { PASSIVE_EVENT_OPTIONS, CAPTURE_EVENT_OPTIONS } from './utils.js';
 
-type DragLifecycle = 'start' | 'drag' | 'drop' | 'inertia' | 'stop';
-
 export interface DragServiceProps {
   /**
    * The current mode of the dragging logic.
    */
-  mode: DragLifecycle;
+  mode: 'start' | 'drag' | 'drop' | 'inertia' | 'stop';
+  /**
+   * Available modes.
+   */
+  MODES: {
+    START: 'start';
+    DRAG: 'drag';
+    DROP: 'drop';
+    INERTIA: 'inertia';
+    STOP: 'stop';
+  };
   /**
    * The target element of the drag.
    */
@@ -60,14 +68,6 @@ export interface DragServiceOptions {
 let count = 0;
 
 export class DragService extends AbstractService<DragServiceProps> {
-  static MODES: Record<Uppercase<DragLifecycle>, DragLifecycle> = {
-    START: 'start',
-    DRAG: 'drag',
-    DROP: 'drop',
-    INERTIA: 'inertia',
-    STOP: 'stop',
-  };
-
   static config: ServiceConfig = [
     [
       (instance) => (instance as DragService).props.target,
@@ -97,6 +97,13 @@ export class DragService extends AbstractService<DragServiceProps> {
   props = {
     target: null,
     mode: undefined,
+    MODES: {
+      START: 'start',
+      DRAG: 'drag',
+      DROP: 'drop',
+      INERTIA: 'inertia',
+      STOP: 'stop',
+    },
     isGrabbing: false,
     hasInertia: false,
     x: 0,
@@ -170,7 +177,7 @@ export class DragService extends AbstractService<DragServiceProps> {
     props.y = props.origin.y = props.final.y = y;
     props.delta.x = props.distance.x = 0;
     props.delta.y = props.distance.y = 0;
-    props.mode = DragService.MODES.START;
+    props.mode = props.MODES.START;
     props.isGrabbing = true;
 
     this.trigger(props);
@@ -193,7 +200,7 @@ export class DragService extends AbstractService<DragServiceProps> {
     document.removeEventListener('mousemove', this);
 
     props.isGrabbing = false;
-    props.mode = DragService.MODES.DROP;
+    props.mode = props.MODES.DROP;
     props.hasInertia = true;
     props.final.x = inertiaFinalValue(props.x, props.delta.x, dampFactor);
     props.final.y = inertiaFinalValue(props.y, props.delta.y, dampFactor);
@@ -217,7 +224,7 @@ export class DragService extends AbstractService<DragServiceProps> {
     useRaf().remove(id);
     props.isGrabbing = false;
     props.hasInertia = false;
-    props.mode = DragService.MODES.STOP;
+    props.mode = props.MODES.STOP;
 
     this.trigger(props);
   }
@@ -235,7 +242,7 @@ export class DragService extends AbstractService<DragServiceProps> {
       props.distance.y = props.y - props.origin.y;
       props.delta.x *= dampFactor;
       props.delta.y *= dampFactor;
-      props.mode = DragService.MODES.INERTIA;
+      props.mode = props.MODES.INERTIA;
 
       this.trigger(props);
 
@@ -266,7 +273,7 @@ export class DragService extends AbstractService<DragServiceProps> {
       props.final.y = position.y;
       props.distance.x = props.x - props.origin.x;
       props.distance.y = props.y - props.origin.y;
-      props.mode = DragService.MODES.DRAG;
+      props.mode = props.MODES.DRAG;
 
       this.trigger(props);
       this.previousEvent = event;

@@ -4,7 +4,7 @@ Use this decorator to create a component which will mount and destroy itself bas
 
 ## Usage
 
-```js
+```js twoslash
 import { Base, withMountWhenPrefersMotion } from '@studiometa/js-toolkit';
 import Component from './Component.js';
 
@@ -27,7 +27,7 @@ This decorator does not expose a specific API.
 
 ### Simple usage
 
-```js{1,3,10,14}
+```js {1,3,10,14} twoslash
 import { Base, withMountWhenPrefersMotion } from '@studiometa/js-toolkit';
 
 export default class Component extends withMountWhenPrefersMotion(Base) {

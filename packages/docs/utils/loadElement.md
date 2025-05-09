@@ -4,7 +4,7 @@ Load a given source for a given type of element.
 
 ## Usage
 
-```js
+```js twoslash
 import { loadElement } from '@studiometa/js-toolkit/utils';
 
 const src = '/path/to/my/src.js';
@@ -34,7 +34,7 @@ if (event.type === 'error') {
 
 You can combine the `loadElement` function with the [`memo` function](/utils/memo.html) to add an in memory cache layer. This will make the generated function always return the same generated element.
 
-```js
+```js twoslash
 import { loadElement, memo } from '@studiometa/js-toolkit';
 
 const loadElementWithCache = memo(loadElement);
@@ -51,7 +51,7 @@ console.assert(result === result2);
 ::: warning Cache invalidation
 Be aware that the [`memo` function](/utils/memo.html) will use a simple `arguments.join('')` call to generate the cache key, thus ignoring any change in the options parameter of the `loadElement` function.
 
-```js
+```js twoslash
 const loadElementWithCache = memo(loadElement);
 
 const result = await loadElementWithCache('script.js', 'script', { appendTo: document.head });
@@ -59,7 +59,8 @@ const result2 = await loadElementWithCache('script.js', 'script', { appendTo: do
 
 console.assert(result === result2); // true
 
-console.log(result.element.parentElement): // document.head
-console.log(result2.element.parentElement): // document.head
+console.log(result.element.parentElement); // document.head
+console.log(result2.element.parentElement); // document.head
 ```
+
 :::

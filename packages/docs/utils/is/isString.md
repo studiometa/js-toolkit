@@ -4,7 +4,7 @@ Test if a value is a string.
 
 ## Usage
 
-```js
+```js twoslash
 import { isString } from '@studiometa/js-toolkit/utils';
 
 isString('foo'); // true

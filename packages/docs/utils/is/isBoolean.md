@@ -4,7 +4,7 @@ Test if a value is a boolean.
 
 ## Usage
 
-```js
+```js twoslash
 import { isBoolean } from '@studiometa/js-toolkit/utils';
 
 isBoolean(true); // true

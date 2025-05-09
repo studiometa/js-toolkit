@@ -4,7 +4,7 @@ Calculate the final value for an inertia effect given inital value and velocity.
 
 ## Usage
 
-```js
+```js twoslash
 import { inertiaFinalValue } from '@studiometa/js-toolkit/utils';
 
 inertiaFinalValue(0, 10);

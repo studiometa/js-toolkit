@@ -8,7 +8,7 @@ Use this decorator to create a component with a hook to easily create animation 
 
 ## Usage
 
-```js {1,3,8-10}
+```js {1,3,11-13} twoslash
 import { Base, withScrolledInView } from '@studiometa/js-toolkit';
 
 class Component extends withScrolledInView(Base, { rootMargin: '100%' }) {
@@ -16,8 +16,11 @@ class Component extends withScrolledInView(Base, { rootMargin: '100%' }) {
     name: 'Component',
   };
 
+  /**
+   * @param {import('@studiometa/js-toolkit').ScrollInViewProps} props
+   */
   scrolledInView(props) {
-    // do something with `props.progress.y`
+    console.log(props.progress.y);
   }
 }
 ```
@@ -87,7 +90,7 @@ Each point accepts the following values:
 
 The factor used by the [`damp` function](/utils/math/damp.md) for the `dampedProgress` values. It can be configured by defining a `dampFactor` property in the class using this decorator:
 
-```js {8}
+```js {8} twoslash
 import { Base, withScrolledInView } from '@studiometa/js-toolkit';
 
 class Component extends withScrolledInView(Base) {
@@ -106,7 +109,7 @@ class Component extends withScrolledInView(Base) {
 
 The precision used by the [`damp` function](/utils/math/damp.md) for the `dampedProgress` values.
 
-```js {8}
+```js {8} twoslash
 import { Base, withScrolledInView } from '@studiometa/js-toolkit';
 
 class Component extends withScrolledInView(Base) {
@@ -138,9 +141,9 @@ The `scrolledInView` class method will be triggered for each frame of the compon
 
 ### Implement parallax
 
-```js {13-16}
+```js {16-19} twoslash
 import { Base, withScrolledInView } from '@studiometa/js-toolkit';
-import { map } from '@studiometa/js-toolkit/utils';
+import { map, transform } from '@studiometa/js-toolkit/utils';
 
 export default class Parallax extends withScrolledInView(Base) {
   static config = {
@@ -151,9 +154,12 @@ export default class Parallax extends withScrolledInView(Base) {
     refs: ['target'],
   };
 
+  /**
+   * @param {import('@studiometa/js-toolkit').ScrollInViewProps} props
+   */
   scrolledInView({ progress }) {
     const y = map(progress.y, 0, 1, -100, 100) * this.$options.speed;
-    this.$refs.target.style.transform = `translateY(${y}px)`;
+    transform(this.$refs.target, { y });
   }
 }
 ```

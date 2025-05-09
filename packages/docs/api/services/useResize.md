@@ -8,7 +8,7 @@ The resize service will help you manage your actions when the window is resized.
 
 ## Usage
 
-```js
+```js twoslash
 import { useResize } from '@studiometa/js-toolkit';
 
 const { add, remove, props } = useResize();
@@ -38,7 +38,9 @@ A debounce of 300ms is configured to limit the execution of each resize callback
 
 The `useResize()` service accepts an object defining breakpoints as parameter.
 
-```js
+```js twoslash
+import { useResize } from '@studiometa/js-toolkit';
+// ---cut---
 const { props } = useResize({
   s: '0px',
   m: '600px',
@@ -46,9 +48,9 @@ const { props } = useResize({
 });
 
 console.log(window.innerWidth === 768); // true
-console.log(props.breakpoint); // 'm'
-console.log(props.breakpoints); // ['s', 'm', 'l']
-console.log(props.activeBreakpoints); // { s: true, m: true, l: false }
+console.log(props().breakpoint); // 'm'
+console.log(props().breakpoints); // ['s', 'm', 'l']
+console.log(props().activeBreakpoints); // { s: true, m: true, l: false }
 ```
 
 Custom breakpoints values will be used to define `(min-width)` media queries to manage responsive features such as [responsive options](/api/decorators/withResponsiveOptions.html), breakpoint [manager](/api/decorators/withBreakpointManager.html) and [observer](/api/decorators/withBreakpointObserver.html) for components.

@@ -4,7 +4,7 @@ Interpolate a ratio between a given interval.
 
 ## Usage
 
-```js
+```js twoslash
 import { lerp } from '@studiometa/js-toolkit/utils';
 
 lerp(0, 10, 0.5); // 5

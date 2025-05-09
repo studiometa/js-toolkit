@@ -4,7 +4,7 @@ Test if two circles collide with one another.
 
 ## Usage
 
-```js
+```js twoslash
 import { collideCircleCircle } from '@studiometa/js-toolkit/utils';
 
 const circle1 = {

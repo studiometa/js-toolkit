@@ -4,7 +4,7 @@ Load a given URL as an iframe.
 
 ## Usage
 
-```js
+```js twoslash
 import { loadIframe } from '@studiometa/js-toolkit/utils';
 
 const src = '/path/to/my/iframe.html';
@@ -33,7 +33,7 @@ if (event.type === 'error') {
 
 You can combine the `loadIframe` function with the [`memo` function](/utils/memo.html) to add an in memory cache layer. This will make the generated function always return the same generated element.
 
-```js
+```js twoslash
 import { loadIframe, memo } from '@studiometa/js-toolkit';
 
 const loadIframeWithCache = memo(loadIframe);
@@ -50,7 +50,7 @@ console.assert(result === result2);
 ::: warning Cache invalidation
 Be aware that the [`memo` function](/utils/memo.html) will use a simple `arguments.join('')` call to generate the cache key, thus ignoring any change in the options parameter of the `loadIframe` function.
 
-```js
+```js twoslash
 const loadIframeWithCache = memo(loadIframe);
 
 const result = await loadIframeWithCache('iframe.html', { appendTo: document.head });
@@ -58,7 +58,7 @@ const result2 = await loadIframeWithCache('iframe.html', { appendTo: document.bo
 
 console.assert(result === result2); // true
 
-console.log(result.element.parentElement): // document.head
-console.log(result2.element.parentElement): // document.head
+console.log(result.element.parentElement); // document.head
+console.log(result2.element.parentElement); // document.head
 ```
 :::

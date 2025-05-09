@@ -4,7 +4,7 @@ Transform a string to `camelCase`.
 
 ## Usage
 
-```js
+```js twoslash
 import { camelCase } from '@studiometa/js-toolkit/utils';
 
 camelCase('Some String Content'); // someStringContent

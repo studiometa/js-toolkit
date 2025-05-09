@@ -8,7 +8,7 @@ The RAF (short for `requestAnimationFrame`) service will help you manage your re
 
 ## Usage
 
-```js
+```js twoslash
 import { useRaf } from '@studiometa/js-toolkit';
 
 const { add, remove, props } = useRaf();

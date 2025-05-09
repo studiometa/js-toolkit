@@ -6,7 +6,7 @@
 
 Emitted when the instance is mounted.
 
-```js
+```js twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class App extends Base {
@@ -24,7 +24,7 @@ app.$on('mounted', () => {
 
 ### `updated`
 
-```js
+```js twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class App extends Base {
@@ -42,7 +42,7 @@ app.$on('updated', () => {
 
 ### `destroyed`
 
-```js
+```js twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class App extends Base {
@@ -60,7 +60,7 @@ app.$on('destroyed', () => {
 
 ### `terminated`
 
-```js
+```js twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class App extends Base {
@@ -80,7 +80,7 @@ app.$on('terminated', () => {
 
 ### `keyed`
 
-```js
+```js twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class App extends Base {
@@ -98,7 +98,7 @@ app.$on('keyed', () => {
 
 ### `moved`
 
-```js
+```js twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class App extends Base {
@@ -116,7 +116,7 @@ app.$on('moved', () => {
 
 ### `resized`
 
-```js
+```js twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class App extends Base {
@@ -134,7 +134,7 @@ app.$on('resized', () => {
 
 ### `scrolled`
 
-```js
+```js twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class App extends Base {
@@ -152,7 +152,7 @@ app.$on('scrolled', () => {
 
 ### `ticked`
 
-```js
+```js twoslash
 import { Base } from '@studiometa/js-toolkit';
 
 class App extends Base {

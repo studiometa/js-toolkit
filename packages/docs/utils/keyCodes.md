@@ -4,7 +4,7 @@ Map of keyboard keycodes and their human readable name.
 
 ## Usage
 
-```js
+```js twoslash
 import { keyCodes } from '@studiometa/js-toolkit/utils';
 
 document.addEventListener('keydown', (e) => {

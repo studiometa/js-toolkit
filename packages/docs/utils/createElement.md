@@ -4,7 +4,7 @@ A function for creating HTML elements.
 
 ## Usage
 
-```js
+```js twoslash
 import { createElement } from '@studiometa/js-toolkit/utils';
 
 const div = createElement('div', 'hello world');

@@ -4,7 +4,7 @@ Push a new history state.
 
 ## Usage
 
-```js
+```js twoslash
 import { historyPush } from '@studiometa/js-toolkit/utils';
 
 // Push a new state

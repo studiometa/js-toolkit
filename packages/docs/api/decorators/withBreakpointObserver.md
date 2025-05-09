@@ -8,7 +8,7 @@ Use this decorator to create a class that will have the capacity to be mounted o
 
 ## Usage
 
-```js{1,3,7-10}
+```js {1,3,7-10} twoslash
 import { Base, withBreakpointObserver } from '@studiometa/js-toolkit';
 
 export default class MobileComponent extends withBreakpointObserver(Base) {
@@ -38,7 +38,7 @@ export default class MobileComponent extends withBreakpointObserver(Base) {
 
 In the following example, the `MobileComponent` class will self mount on devices matching any of the breakpoint defined in the `activeBreakpoints` property, and self destroy on all others:
 
-```js{1,3,7-10}
+```js {1,3,7-10} twoslash
 import { Base, withBreakpointObserver } from '@studiometa/js-toolkit';
 
 export default class MobileComponent extends withBreakpointObserver(Base) {
@@ -58,7 +58,7 @@ export default class MobileComponent extends withBreakpointObserver(Base) {
 
 The same behaviour as before can be achieved by specifying all the other breakpoints in the `inactiveBreakpoints` property instead:
 
-```js{1,3,7-10}
+```js {1,3,7-10} twoslash
 import { Base, withBreakpointObserver } from '@studiometa/js-toolkit';
 
 export default class MobileComponent extends withBreakpointObserver(Base) {
@@ -78,12 +78,12 @@ export default class MobileComponent extends withBreakpointObserver(Base) {
 
 You can add the `BreakpointObserver` behaviour on an existing component by wrapping it with the `withBreakpointObserver` function:
 
-```js{1,9}
+```js {1,9} twoslash
 import { Base, withBreakpointObserver } from '@studiometa/js-toolkit';
-import Modal from '@studiometa/ui/Modal';
+import { Modal } from '@studiometa/ui';
 
 class App extends Base {
-  staitc config = {
+  static config = {
     name: 'App',
     components: {
       Modal,

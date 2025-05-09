@@ -8,7 +8,7 @@ You can read [Debounce vs throttle](https://redd.one/blog/debounce-vs-throttle) 
 
 ## Usage
 
-```js
+```js twoslash
 import { debounce } from '@studiometa/js-toolkit/utils';
 
 const debouncedFn = debounce(() => {

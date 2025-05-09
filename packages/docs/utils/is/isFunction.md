@@ -4,7 +4,7 @@ Test if a value is a function.
 
 ## Usage
 
-```js
+```js twoslash
 import { isFunction } from '@studiometa/js-toolkit/utils';
 
 isFunction(() => 'foo'); // true

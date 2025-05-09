@@ -4,7 +4,7 @@ Functions to get the eased version of a progress value in the 0–1 range and he
 
 ## Usage
 
-```js
+```js twoslash
 import {
   // linear
   easeLinear,

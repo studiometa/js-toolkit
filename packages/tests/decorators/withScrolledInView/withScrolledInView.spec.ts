@@ -10,6 +10,7 @@ import {
   useFakeTimers,
   useRealTimers,
   h,
+  resizeWindow,
 } from '#test-utils';
 
 beforeAll(() => {
@@ -74,6 +75,7 @@ describe('The withScrolledInView decorator', () => {
     const div = getDiv();
     const div2 = getDiv();
     const fn = vi.fn();
+    const fnCb = vi.fn();
     const fn2 = vi.fn();
 
     class Foo extends withScrolledInView(Base) {
@@ -83,6 +85,8 @@ describe('The withScrolledInView decorator', () => {
 
       scrolledInView(props) {
         fn(props);
+
+        return fnCb;
       }
     }
 
@@ -104,13 +108,42 @@ describe('The withScrolledInView decorator', () => {
     expect(foo.$isMounted).toBe(true);
     expect(bar.$isMounted).toBe(true);
     expect(fn).toHaveBeenCalledTimes(1);
+    expect(fnCb).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenLastCalledWith(foo.props);
+    expect(fnCb).toHaveBeenLastCalledWith(foo.props);
     expect(fn2).toHaveBeenCalledTimes(1);
 
     foo.$emit('scrolled', { changed: { y: true, x: false } });
     bar.$emit('scrolled', { changed: { y: true, x: false } });
     await advanceTimersByTimeAsync(1100);
     expect(fn).toHaveBeenCalledTimes(2);
+    expect(fnCb).toHaveBeenCalledTimes(2);
     expect(fn2).toHaveBeenCalledTimes(2);
+  });
+
+  it('should trigger the `scrolledInView` hook on resize', async () => {
+    useFakeTimers();
+    const div = getDiv();
+    const fn = vi.fn();
+
+    class Foo extends withScrolledInView(Base) {
+      static config = {
+        name: 'Foo',
+      };
+
+      scrolledInView(props) {
+        fn(props);
+      }
+    }
+
+    const foo = new Foo(div);
+    mockIsIntersecting(div, true);
+    await advanceTimersByTimeAsync(50);
+    expect(foo.$isMounted).toBe(true);
+    expect(fn).toHaveBeenCalledTimes(2);
+    await resizeWindow({ width: 1280 });
+    expect(fn).toHaveBeenCalledTimes(3);
+    useRealTimers();
   });
 
   it('should reset the damped values when destroyed', async () => {

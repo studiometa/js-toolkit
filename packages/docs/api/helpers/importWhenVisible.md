@@ -8,7 +8,7 @@ Use this function to import component when an element is visible.
 
 ## Usage
 
-```js
+```js twoslash
 import { importWhenVisible } from '@studiometa/js-toolkit';
 
 importWhenVisible(() => import('./components/Component.js'), 'Component');
@@ -29,44 +29,39 @@ importWhenVisible(() => import('./components/Component.js'), 'Component');
 
 Import the class when the root element of the component is visible:
 
-```js{1,7-11}
+```js {1,7-8} twoslash
 import { Base, importWhenVisible } from '@studiometa/js-toolkit';
 
 class App extends Base {
   static config = {
     name: 'App',
     components: {
-      Component: (app) => importWhenVisible(
-        () => import('./components/Component.js'),
-        'Component',
-        app
-      ),
-    }
-  }
+      Component: (app) =>
+        importWhenVisible(() => import('./components/Component.js'), 'Component', app),
+    },
+  };
 }
 ```
 
 Import the class when the `#import-component-trigger` element, which can be anywhere in the DOM, is visible:
 
-```js{1,7-10}
+```js {1,7-8} twoslash
 import { Base, importWhenVisible } from '@studiometa/js-toolkit';
 
 class App extends Base {
   static config = {
     name: 'App',
     components: {
-      Component: () => importWhenVisible(
-        () => import('./components/Component.js'),
-        '#import-component-trigger'
-      ),
-    }
-  }
+      Component: () =>
+        importWhenVisible(() => import('./components/Component.js'), '#import-component-trigger'),
+    },
+  };
 }
 ```
 
 Import the class when the app's `btn` ref is visible:
 
-```js{1,8-11}
+```js {1,8-9} twoslash
 import { Base, importWhenVisible } from '@studiometa/js-toolkit';
 
 class App extends Base {
@@ -74,10 +69,8 @@ class App extends Base {
     name: 'App',
     refs: ['btn'],
     components: {
-      Component: (app) => importWhenVisible(
-        () => import('./components/Component.js'),
-        app.$refs.btn
-      ),
+      Component: (app) =>
+        importWhenVisible(() => import('./components/Component.js'), app.$refs.btn),
     },
   };
 }

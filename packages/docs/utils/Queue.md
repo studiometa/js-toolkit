@@ -4,7 +4,7 @@ Create a class instance to dispatch functions in a queue.
 
 ## Usage
 
-```js
+```js twoslash
 import { Queue } from '@studiometa/js-toolkit/utils';
 
 const queue = new Queue();

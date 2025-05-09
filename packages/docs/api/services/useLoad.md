@@ -8,7 +8,7 @@ The load service will help you manage actions that should run on `window` load e
 
 ## Usage
 
-```js
+```js twoslash
 import { useLoad } from '@studiometa/js-toolkit';
 
 const { add, remove } = useLoad();
