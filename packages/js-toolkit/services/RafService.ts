@@ -1,6 +1,6 @@
 import type { ServiceInterface } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
-import { useScheduler } from '../utils/scheduler.js';
+import { domScheduler } from '../utils/scheduler.js';
 import { isFunction } from '../utils/is.js';
 
 export interface RafServiceProps {
@@ -10,8 +10,15 @@ export interface RafServiceProps {
 export type RafServiceInterface = ServiceInterface<RafServiceProps>;
 
 export class RafService extends AbstractService<RafServiceProps> {
+  /**
+   * @private
+   */
   isTicking = false;
-  scheduler = useScheduler(['update', 'render']);
+
+  /**
+   * @private
+   */
+  scheduler = domScheduler;
 
   props: RafServiceProps = {
     time: performance.now(),
@@ -19,10 +26,10 @@ export class RafService extends AbstractService<RafServiceProps> {
 
   trigger(props: RafServiceProps) {
     for (const callback of this.callbacks.values()) {
-      this.scheduler.update(() => {
+      this.scheduler.read(() => {
         const render = callback(props) as (() => unknown) | void;
         if (isFunction(render)) {
-          this.scheduler.render(() => {
+          this.scheduler.write(() => {
             // @ts-ignore
             render(props);
           });
@@ -46,6 +53,7 @@ export class RafService extends AbstractService<RafServiceProps> {
     this.isTicking = true;
     requestAnimationFrame(() => this.loop());
   }
+
   kill() {
     this.isTicking = false;
   }
