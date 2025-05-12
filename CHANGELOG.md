@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Changed
+
+- **useDrag:** enable static access to the drag service modes ([#628](https://github.com/studiometa/js-toolkit/pull/628), [8253e4c9](https://github.com/studiometa/js-toolkit/commit/8253e4c9))
+
 ## [v3.0.3](https://github.com/studiometa/js-toolkit/compare/3.0.2..3.0.3) (2025-05-09)
 
 ### Changed

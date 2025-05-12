@@ -68,6 +68,14 @@ export interface DragServiceOptions {
 let count = 0;
 
 export class DragService extends AbstractService<DragServiceProps> {
+  static MODES = {
+    START: 'start',
+    DRAG: 'drag',
+    DROP: 'drop',
+    INERTIA: 'inertia',
+    STOP: 'stop',
+  } as const;
+
   static config: ServiceConfig = [
     [
       (instance) => (instance as DragService).props.target,
@@ -97,13 +105,7 @@ export class DragService extends AbstractService<DragServiceProps> {
   props = {
     target: null,
     mode: undefined,
-    MODES: {
-      START: 'start',
-      DRAG: 'drag',
-      DROP: 'drop',
-      INERTIA: 'inertia',
-      STOP: 'stop',
-    },
+    MODES: DragService.MODES,
     isGrabbing: false,
     hasInertia: false,
     x: 0,
