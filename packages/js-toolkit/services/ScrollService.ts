@@ -2,6 +2,7 @@ import type { ServiceConfig, ServiceInterface } from './AbstractService.js';
 import { AbstractService } from './AbstractService.js';
 import { debounce } from '../utils/debounce.js';
 import { PASSIVE_CAPTURE_EVENT_OPTIONS } from './utils.js';
+import { nextTick } from '../utils/nextTick.js';
 
 export interface ScrollServiceProps {
   x: number;
@@ -105,15 +106,19 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
     return props;
   }
 
+  update() {
+    nextTick(() => this.updateProps()).then(() => this.trigger(this.props));
+  }
+
   onScrollDebounced = debounce(() => {
-    this.trigger(this.updateProps());
+    this.update();
   }, 100);
 
   /**
    * Scroll handler.
    */
   handleEvent() {
-    this.trigger(this.updateProps());
+    this.update();
     this.onScrollDebounced();
   }
 }
