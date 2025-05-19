@@ -9,7 +9,7 @@
     "preview": "vitepress preview ."
   },
   "devDependencies": {
-    "@shikijs/vitepress-twoslash": "3.4.0",
+    "@shikijs/vitepress-twoslash": "3.4.2",
     "@studiometa/tailwind-config": "2.1.0",
     "tailwindcss": "3.4.17",
     "vitepress": "1.6.3",
