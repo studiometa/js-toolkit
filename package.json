@@ -30,10 +30,10 @@
     "build-for-export-size": "node scripts/add-utils-export.js && rm -rf dist && npm run build:pkg && npm run build:cp-files"
   },
   "devDependencies": {
-    "@studiometa/prettier-config": "4.1.0",
-    "@types/node": "22.15.31",
+    "@studiometa/prettier-config": "4.2.0",
+    "@types/node": "22.16.0",
     "oxlint": "0.18.1",
-    "prettier": "3.5.3",
+    "prettier": "3.6.2",
     "typescript": "5.8.3"
   },
   "dependencies": {
