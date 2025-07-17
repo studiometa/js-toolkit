@@ -5,6 +5,7 @@ import type {
   ScrollServiceProps,
   ResizeServiceProps,
 } from '../../services/index.js';
+import { useScroll } from '../../services/index.js';
 import { withMountWhenInView } from '../withMountWhenInView.js';
 import {
   damp,
@@ -78,11 +79,7 @@ function updateProps(
   dampPrecision: number,
   axis: 'x' | 'y' = 'x',
 ): void {
-  props.current[axis] = clamp(
-    axis === 'x' ? window.scrollX : window.scrollY,
-    props.start[axis],
-    props.end[axis],
-  );
+  props.current[axis] = clamp(useScroll().props()[axis], props.start[axis], props.end[axis]);
   props.dampedCurrent[axis] = damp(
     props.current[axis],
     props.dampedCurrent[axis],
