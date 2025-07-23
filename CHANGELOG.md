@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.0.5](https://github.com/studiometa/js-toolkit/compare/3.0.4..3.0.5) (2025-07-23)
+
 ### Changed
 
 - **withScrolledInView:** improve performance ([#645](https://github.com/studiometa/js-toolkit/pull/645), [83b65f16](https://github.com/studiometa/js-toolkit/commit/83b65f16))
