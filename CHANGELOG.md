@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file. The format 
 - **withScrolledInView:** improve performance ([#645](https://github.com/studiometa/js-toolkit/pull/645), [83b65f16](https://github.com/studiometa/js-toolkit/commit/83b65f16))
 - **useScroll:** avoid layout thrashing ([#645](https://github.com/studiometa/js-toolkit/pull/645), [158d0b66](https://github.com/studiometa/js-toolkit/commit/158d0b66))
 
+### Fixed
+
+- **scrollTo:** fix scroll to be always instant ([#644](https://github.com/studiometa/js-toolkit/pull/644), [6e018553](https://github.com/studiometa/js-toolkit/commit/6e018553))
+
 ## [v3.0.4](https://github.com/studiometa/js-toolkit/compare/3.0.3..3.0.4) (2025-05-12)
 
 ### Changed

@@ -154,6 +154,7 @@ export function scrollTo(
         rootElement.scrollTo({
           left: lerp(initialScrollPosition.left, targetScrollPosition.left, progress),
           top: lerp(initialScrollPosition.top, targetScrollPosition.top, progress),
+          behavior: 'instant',
         });
       },
       {
