@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { useScroll } from '@studiometa/js-toolkit';
 import { advanceTimersByTime, dispatch, useFakeTimers, useRealTimers } from '#test-utils';
+import { wait } from '#private/utils';
 
 describe('The `useScroll` service', () => {
   it('should expose a single instance', () => {
@@ -57,11 +58,12 @@ describe('The `useScroll` service', () => {
     `);
   });
 
-  it('should trigger on scroll', () => {
+  it('should trigger on scroll', async () => {
     const service = useScroll();
     const fn = vi.fn();
     service.add('key', fn);
     dispatch(document, 'scroll');
+    await wait(1);
     expect(fn).toHaveBeenLastCalledWith(service.props());
     fn.mockRestore();
     service.remove('key');
@@ -69,7 +71,7 @@ describe('The `useScroll` service', () => {
     expect(fn).not.toHaveBeenCalled();
   });
 
-  it('should trigger after debounce', () => {
+  it('should trigger after debounce', async () => {
     const service = useScroll();
     const fn = vi.fn();
     service.add('key', fn);
@@ -77,11 +79,12 @@ describe('The `useScroll` service', () => {
     dispatch(document, 'scroll');
     advanceTimersByTime(101);
     useRealTimers();
+    await wait();
     expect(fn).toHaveBeenCalledTimes(2);
     service.remove('key');
   });
 
-  it('should always have a progress of 1 if the page is not scrollable', () => {
+  it('should always have a progress of 1 if the page is not scrollable', async () => {
     const spyWidth = vi.spyOn(document.scrollingElement, 'scrollWidth', 'get');
     spyWidth.mockImplementation(() => window.innerWidth);
     const spyHeight = vi.spyOn(document.scrollingElement, 'scrollHeight', 'get');
@@ -90,12 +93,13 @@ describe('The `useScroll` service', () => {
     const fn = vi.fn();
     service.add('key', fn);
     dispatch(document, 'scroll');
+    await wait();
     expect(service.props().maxX).toBe(0);
     expect(service.props().maxY).toBe(0);
     service.remove('key');
   });
 
-  it('should update the direction accordingly', () => {
+  it('should update the direction accordingly', async () => {
     const spyWidth = vi.spyOn(document.scrollingElement, 'scrollWidth', 'get');
     spyWidth.mockImplementation(() => window.innerWidth * 2);
     const spyHeight = vi.spyOn(document.scrollingElement, 'scrollHeight', 'get');
@@ -111,22 +115,26 @@ describe('The `useScroll` service', () => {
     scrollXSpy.mockImplementation(() => 0);
     scrollYSpy.mockImplementation(() => 0);
     dispatch(document, 'scroll');
+    await wait();
     expect(service.props().direction.x).toBe('NONE');
     expect(service.props().direction.y).toBe('NONE');
 
     scrollXSpy.mockImplementation(() => 10);
     scrollYSpy.mockImplementation(() => 10);
     dispatch(document, 'scroll');
+    await wait();
     expect(service.props().direction.x).toBe('RIGHT');
     expect(service.props().direction.y).toBe('DOWN');
 
     scrollXSpy.mockImplementation(() => 0);
     scrollYSpy.mockImplementation(() => 0);
     dispatch(document, 'scroll');
+    await wait();
     expect(service.props().direction.x).toBe('LEFT');
     expect(service.props().direction.y).toBe('UP');
 
     dispatch(document, 'scroll');
+    await wait();
     expect(service.props().direction.x).toBe('NONE');
     expect(service.props().direction.y).toBe('NONE');
 
