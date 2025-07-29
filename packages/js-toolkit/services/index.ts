@@ -7,3 +7,4 @@ export * from './PointerService.js';
 export * from './RafService.js';
 export * from './ResizeService.js';
 export * from './ScrollService.js';
+export * from './WheelService.js';
