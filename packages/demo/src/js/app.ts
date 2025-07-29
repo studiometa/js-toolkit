@@ -10,6 +10,7 @@ import {
   BaseConfig,
   withDrag,
   withName,
+  useWheel,
 } from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
@@ -186,6 +187,8 @@ class App extends Base {
    */
   mounted() {
     this.$log('Mounted 🎉');
+
+    useWheel().add(this.$id, (props) => console.log('wheel', props));
   }
 
   onModalOpen(...args) {
