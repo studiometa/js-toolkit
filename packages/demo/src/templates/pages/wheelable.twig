@@ -1,0 +1,21 @@
+{% extends '@layouts/base.twig' %}
+
+{% block main %}
+  <div class="fixed inset-0 flex gap-10 p-10 overflow-hidden">
+    <div data-component="Wheelable" data-option-fit-bounds class="w-96 h-96">
+      <div data-ref="target" class="w-full h-full bg-blue-400 rounded"></div>
+    </div>
+
+    <div data-component="Wheelable" data-option-fit-bounds class="w-96 h-96">
+      <div data-ref="target" class="w-full h-full">
+        <div data-component="Draggable" data-option-fit-bounds class="w-full h-full">
+          <div data-ref="target" class="w-full h-full bg-green-400 rounded"></div>
+        </div>
+      </div>
+    </div>
+
+    <div data-component="Draggable" data-option-fit-bounds class="w-96 h-96">
+      <div data-ref="target" class="w-full h-full bg-blue-400 rounded"></div>
+    </div>
+  </div>
+{% endblock %}

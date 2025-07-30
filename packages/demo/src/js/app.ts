@@ -88,7 +88,7 @@ class App extends Base {
     refs: ['modal'],
     log: true,
     components: {
-      Draggable: withDrag(withName(Base, 'Draggable')),
+      // Draggable: withDrag(withName(Base, 'Draggable')),
       PointerProps,
       ParentNativeEvent,
       AnimateTest,
@@ -103,6 +103,8 @@ class App extends Base {
       ScrolledInViewOffset,
       TestDeepNested,
       TestManyInstance,
+      Wheelable: () => import('./components/Wheelable.js'),
+      Draggable: () => import('./components/Draggable.js'),
       Accordion: (app) =>
         importWhenVisible(
           async () => {
@@ -148,15 +150,15 @@ class App extends Base {
           document.documentElement,
           ['mousemove'],
         ),
-      Draggable: (app) =>
-        importWhenVisible(
-          async () => {
-            const { Draggable } = await import('@studiometa/ui');
-            return Draggable;
-          },
-          'Draggable',
-          app,
-        ),
+      // Draggable: (app) =>
+      //   importWhenVisible(
+      //     async () => {
+      //       const { Draggable } = await import('@studiometa/ui');
+      //       return Draggable;
+      //     },
+      //     'Draggable',
+      //     app,
+      //   ),
       Skew: (app) => importWhenVisible(() => import('./components/Skew.js'), 'Skew', app),
       '[data-src]': (app) =>
         importWhenVisible(() => import('./components/Lazyload.js'), '[data-src]', app),
@@ -187,8 +189,6 @@ class App extends Base {
    */
   mounted() {
     this.$log('Mounted 🎉');
-
-    useWheel().add(this.$id, (props) => console.log('wheel', props));
   }
 
   onModalOpen(...args) {
