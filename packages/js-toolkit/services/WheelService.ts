@@ -5,8 +5,15 @@ import { PASSIVE_CAPTURE_EVENT_OPTIONS } from './utils.js';
 
 type WheelServiceDirectionX = 'LEFT' | 'RIGHT' | 'NONE';
 type WheelServiceDirectionY = 'UP' | 'DOWN' | 'NONE';
+type WheelServiceMode = 'START' | 'WHEEL' | 'END';
 
 export interface WheelServiceProps {
+  MODES: {
+    START: 'START';
+    WHEEL: 'WHEEL';
+    END: 'END';
+  };
+  mode: WheelServiceMode;
   event: WheelEvent;
   x: number;
   y: number;
@@ -32,6 +39,12 @@ export class WheelService extends AbstractService<WheelServiceProps> {
   shouldReset = true;
 
   props: WheelServiceProps = {
+    MODES: {
+      START: 'START',
+      WHEEL: 'WHEEL',
+      END: 'END',
+    },
+    mode: 'START',
     event: null,
     x: 0,
     y: 0,
@@ -81,6 +94,7 @@ export class WheelService extends AbstractService<WheelServiceProps> {
   }
 
   onWheelDebounced = debounce((event: WheelEvent) => {
+    this.props.mode = 'END';
     this.update(event);
     this.shouldReset = true;
   }, 100);
@@ -91,24 +105,26 @@ export class WheelService extends AbstractService<WheelServiceProps> {
   handleEvent(event: WheelEvent) {
     if (this.shouldReset) {
       this.shouldReset = false;
-      this.props = {
-        event,
-        x: 0,
-        y: 0,
-        changedX: false,
-        changedY: false,
-        lastX: 0,
-        lastY: 0,
-        deltaX: 0,
-        deltaY: 0,
-        directionX: 'NONE',
-        directionY: 'NONE',
-        isUp: false,
-        isRight: false,
-        isDown: false,
-        isLeft: false,
-      };
+      this.props.mode = 'START';
+      this.props.event = event;
+      this.props.x = 0;
+      this.props.y = 0;
+      this.props.changedX = false;
+      this.props.changedY = false;
+      this.props.lastX = 0;
+      this.props.lastY = 0;
+      this.props.deltaX = 0;
+      this.props.deltaY = 0;
+      this.props.directionX = 'NONE';
+      this.props.directionY = 'NONE';
+      this.props.isUp = false;
+      this.props.isRight = false;
+      this.props.isDown = false;
+      this.props.isLeft = false;
+      this.trigger(this.props);
     }
+
+    this.props.mode = 'WHEEL';
     this.update(event);
     this.onWheelDebounced(event);
   }
