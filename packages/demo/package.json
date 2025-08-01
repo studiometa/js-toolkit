@@ -29,10 +29,10 @@
     "@studiometa/tailwind-config": "2.1.0",
     "@studiometa/webpack-config": "6.3.6",
     "@studiometa/webpack-config-preset-prototyping": "6.3.6",
-    "eslint": "9.30.1",
+    "eslint": "9.32.0",
     "http-server": "14.1.1",
     "prettier": "3.6.2",
-    "stylelint": "16.21.1"
+    "stylelint": "16.23.0"
   },
   "stylelint": {
     "extends": "@studiometa/stylelint-config"
