@@ -64,20 +64,21 @@ export function getSelector(nameOrSelector: string): string {
  */
 export function getComponentElements(
   nameOrSelector: string,
-  element: HTMLElement | Document = document,
+  element: HTMLElement | HTMLTemplateElement | Document = document,
 ): HTMLElement[] {
   const selector = getSelector(nameOrSelector);
+  const el = element instanceof HTMLTemplateElement ? element.content : element;
   let elements = [];
 
   try {
-    elements = Array.from(element.querySelectorAll(selector));
+    elements = Array.from(el.querySelectorAll(selector));
     // eslint-disable-next-line no-empty
   } catch {}
 
   // If no child component found with the default selector, and if the selector does not
   // start with an uppercase letter, matching a component's name, try a classic DOM selector.
   if (elements.length === 0 && nameOrSelector[0] === nameOrSelector[0].toLowerCase()) {
-    elements = Array.from(element.querySelectorAll(nameOrSelector));
+    elements = Array.from(el.querySelectorAll(nameOrSelector));
   }
 
   return elements;
