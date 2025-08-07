@@ -40,7 +40,8 @@ export function createElement<T extends keyof AnyHTMLElementTagNameMap = 'div'>(
 
   if (children) {
     children = isArray(children) ? children : [children];
-    el.append(...children);
+    const target = el instanceof HTMLTemplateElement ? el.content : el;
+    target.append(...children);
   }
 
   return el;
