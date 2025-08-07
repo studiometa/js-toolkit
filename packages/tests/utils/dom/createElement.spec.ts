@@ -6,11 +6,20 @@ describe('The createElement function', () => {
     expect(createElement().outerHTML).toMatchInlineSnapshot(`"<div></div>"`);
   });
 
-  it('should create give elements', () => {
+  it('should create given elements', () => {
     expect(createElement('a').outerHTML).toMatchInlineSnapshot(`"<a></a>"`);
     expect(createElement('custom-element').outerHTML).toMatchInlineSnapshot(
       `"<custom-element></custom-element>"`,
     );
+  });
+
+  it('should create template elements', () => {
+    expect(createElement('template').outerHTML).toMatchInlineSnapshot(`"<template></template>"`);
+    const div = createElement();
+    const nested = createElement('template', div);
+    expect(nested.outerHTML).toMatchInlineSnapshot(`"<template><div></div></template>"`);
+    expect(nested.querySelector('div')).toBeNull();
+    expect(nested.content.querySelector('div')).toBe(div);
   });
 
   it('should accept attributes as second parameter', () => {
@@ -63,8 +72,8 @@ describe('The createElement function', () => {
       </a>
     `);
 
-
-    expect(createElement('a', { href: '#' }, ['hello world', createElement('span')])).toMatchInlineSnapshot(`
+    expect(createElement('a', { href: '#' }, ['hello world', createElement('span')]))
+      .toMatchInlineSnapshot(`
       <a
         href="#"
       >
