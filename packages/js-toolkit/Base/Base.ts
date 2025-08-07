@@ -13,6 +13,7 @@ import {
   EventsManager,
   OptionsManager,
 } from './managers/index.js';
+import type { OptionsSchema } from './managers/OptionsManager.js';
 import { noop, isDev, isFunction, isArray } from '../utils/index.js';
 
 let id = 0;
@@ -40,7 +41,7 @@ export type BaseConfig = {
   refs?: string[];
   emits?: string[];
   components?: BaseConfigComponents;
-  options?: import('./managers/OptionsManager').OptionsSchema;
+  options?: OptionsSchema;
 };
 
 export type BaseProps = {
