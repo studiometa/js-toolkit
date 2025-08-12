@@ -8,12 +8,20 @@ Push a new history state.
 import { historyPush } from '@studiometa/js-toolkit/utils';
 
 // Push a new state
-historyPush({ path: '/foo', search: { query: 'hello world' }, hash: 'results' });
+historyPush({
+  path: '/foo',
+  search: { query: 'hello world' },
+  hash: 'results',
+});
 // Old URL: /
 // New URL: /foo?query=hello world#results
 
 // Replace the current state
-historyPush({ path: '/foo', search: { query: 'hello world' }, hash: 'results' });
+historyPush({
+  path: '/foo',
+  search: { query: 'hello world' },
+  hash: 'results',
+});
 // Old URL: /
 // New URL: /foo?query=hello world#results
 

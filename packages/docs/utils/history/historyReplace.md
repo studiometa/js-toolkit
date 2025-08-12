@@ -8,12 +8,20 @@ Replace the current history state.
 import { historyReplace } from '@studiometa/js-toolkit/utils';
 
 // Push a new state
-historyReplace({ path: '/foo', search: { query: 'hello world' }, hash: 'results' });
+historyReplace({
+  path: '/foo',
+  search: { query: 'hello world' },
+  hash: 'results',
+});
 // Old URL: /
 // New URL: /foo?query=hello world#results
 
 // Replace the current state
-historyReplace({ path: '/foo', search: { query: 'hello world' }, hash: 'results' });
+historyReplace({
+  path: '/foo',
+  search: { query: 'hello world' },
+  hash: 'results',
+});
 // Old URL: /
 // New URL: /foo?query=hello world#results
 

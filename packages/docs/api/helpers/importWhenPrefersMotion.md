@@ -28,7 +28,8 @@ class App extends Base {
   static config = {
     name: 'App',
     components: {
-      Component: () => importWhenPrefersMotion(() => import('./components/Component.js')),
+      Component: () =>
+        importWhenPrefersMotion(() => import('./components/Component.js')),
     },
   };
 }

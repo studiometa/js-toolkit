@@ -32,7 +32,8 @@ class App extends Base {
   static config = {
     name: 'App',
     components: {
-      Component: () => importWhenIdle(() => import('./components/Component.js')),
+      Component: () =>
+        importWhenIdle(() => import('./components/Component.js')),
     },
   };
 }
