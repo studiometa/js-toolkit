@@ -82,9 +82,15 @@ This decorator uses [`deepmerge`](https://github.com/TehShrike/deepmerge) to mer
 import { withExtraConfig } from '@studiometa/js-toolkit';
 import { Modal } from '@studiometa/ui/Modal';
 
-export default withExtraConfig(Modal, {
-  refs: ['toggle']
-}, {
-  arrayMerge(target, source, options) { /* ... */ }
-})
+export default withExtraConfig(
+  Modal,
+  {
+    refs: ['toggle'],
+  },
+  {
+    arrayMerge(target, source, options) {
+      /* ... */
+    },
+  },
+);
 ```

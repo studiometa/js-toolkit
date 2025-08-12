@@ -53,12 +53,17 @@ Be aware that the [`memo` function](/utils/memo.html) will use a simple `argumen
 ```js twoslash
 const loadIframeWithCache = memo(loadIframe);
 
-const result = await loadIframeWithCache('iframe.html', { appendTo: document.head });
-const result2 = await loadIframeWithCache('iframe.html', { appendTo: document.body });
+const result = await loadIframeWithCache('iframe.html', {
+  appendTo: document.head,
+});
+const result2 = await loadIframeWithCache('iframe.html', {
+  appendTo: document.body,
+});
 
 console.assert(result === result2); // true
 
 console.log(result.element.parentElement); // document.head
 console.log(result2.element.parentElement); // document.head
 ```
+
 :::

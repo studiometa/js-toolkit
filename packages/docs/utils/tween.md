@@ -86,5 +86,8 @@ interface Tween {
   progress: (value?: number) => number;
 }
 
-function tween(callback: (progress: number) => void, options?: Options): Tween;
+function tween(
+  callback: (progress: number) => void,
+  options?: Options,
+): Tween;
 ```

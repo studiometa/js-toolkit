@@ -12,7 +12,10 @@ The drag service will help you manage draggable elements.
 import { useDrag } from '@studiometa/js-toolkit';
 
 const target = document.querySelector('.draggable');
-const { add, remove, props } = useDrag(target, { dampFactor: 0.5, dragTreshold: 10 });
+const { add, remove, props } = useDrag(target, {
+  dampFactor: 0.5,
+  dragTreshold: 10,
+});
 
 add('custom-id', (props) => {
   console.log(props.mode); // 'start', 'drag', 'drop', 'inertia' or 'stop'
