@@ -10,6 +10,7 @@ import {
   BaseConfig,
   withDrag,
   withName,
+  logTree,
 } from '@studiometa/js-toolkit';
 import { matrix } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
@@ -126,15 +127,6 @@ class App extends Base {
         importOnInteraction(() => import('./components/Cursor.js'), document.documentElement, [
           'mousemove',
         ]),
-      Draggable: (app) =>
-        importWhenVisible(
-          async () => {
-            const { Draggable } = await import('@studiometa/ui');
-            return Draggable;
-          },
-          'Draggable',
-          app,
-        ),
       Skew: (app) => importWhenVisible(() => import('./components/Skew.js'), 'Skew', app),
       '[data-src]': (app) =>
         importWhenVisible(() => import('./components/Lazyload.js'), '[data-src]', app),
@@ -165,6 +157,7 @@ class App extends Base {
    */
   mounted() {
     this.$log('Mounted 🎉');
+    globalThis.$logTree = () => logTree(this);
   }
 
   onModalOpen(...args) {
