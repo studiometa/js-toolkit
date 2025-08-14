@@ -12,3 +12,4 @@ export * from './withName.js';
 export * from './withRelativePointer.js';
 export * from './withResponsiveOptions.js';
 export * from './withScrolledInView/index.js';
+export * from './withGroup.js';
