@@ -30,6 +30,47 @@ describe('useRaf', () => {
     expect(typeof rafProps.time).toBe('number');
   });
 
+  it('should have a `delta` prop', async () => {
+    await advanceTimersByTimeAsync(16);
+    expect(typeof props().delta).toBe('number');
+    expect(typeof rafProps.delta).toBe('number');
+  });
+
+  it('should initialize delta to 0', () => {
+    expect(props().delta).toBe(0);
+  });
+
+  it('should provide delta in callback props', async () => {
+    await advanceTimersByTimeAsync(16);
+    expect(rafProps).toHaveProperty('delta');
+    expect(typeof rafProps.delta).toBe('number');
+  });
+
+  it('should update delta representing time between frames', async () => {
+    let firstTime, firstDelta, secondTime, secondDelta;
+    
+    const trackValues = vi.fn((p) => {
+      if (!firstTime) {
+        firstTime = p.time;
+        firstDelta = p.delta;
+      } else if (!secondTime) {
+        secondTime = p.time;
+        secondDelta = p.delta;
+      }
+    });
+    
+    add('trackValues', trackValues);
+    
+    await advanceTimersByTimeAsync(16);
+    await advanceTimersByTimeAsync(16);
+    
+    expect(firstDelta).toBeGreaterThanOrEqual(0);
+    expect(secondDelta).toBeGreaterThan(0);
+    expect(secondDelta).toBe(secondTime - firstTime);
+    
+    remove('trackValues');
+  });
+
   it('should trigger the callbacks', async () => {
     await advanceTimersByTimeAsync(16);
     expect(fn).toHaveBeenCalled();
