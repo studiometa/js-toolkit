@@ -43,6 +43,8 @@ export function transform(
   elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
   props: TransformProps,
 ): string {
+  if (!elementOrElements) return
+
   let value = '';
 
   if (isDefined(props.x) || isDefined(props.y) || isDefined(props.z)) {
