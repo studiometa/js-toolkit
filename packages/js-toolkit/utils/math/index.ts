@@ -11,3 +11,5 @@ export { lerp } from './lerp.js';
 export { map } from './map.js';
 export { round } from './round.js';
 export { mean } from './mean.js';
+export { smoothTo } from './smoothTo.js';
+export { wrap } from './wrap.js';
