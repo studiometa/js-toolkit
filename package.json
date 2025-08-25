@@ -15,6 +15,7 @@
     "docs:build": "npm run build --workspace=@studiometa/js-toolkit-docs",
     "docs:preview": "npm run preview --workspace=@studiometa/js-toolkit-docs",
     "test": "npm run test --workspace=@studiometa/js-toolkit-tests",
+    "test:watch": "npm run test:watch --workspace=@studiometa/js-toolkit-tests",
     "lint": "npm run lint:oxlint && npm run lint:types && npm run lint:docs",
     "lint:oxlint": "oxlint .",
     "lint:docs": "prettier --check 'packages/docs/**/*.{md,js,html,vue}' --cache",
