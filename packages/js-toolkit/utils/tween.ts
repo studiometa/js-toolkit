@@ -1,12 +1,12 @@
 import { cubicBezier } from '@motionone/easing';
-import { lerp, map, clamp01, damp, inertiaFinalValue } from './math/index.js';
+import { lerp, map, clamp01, damp, inertiaFinalValue, spring } from './math/index.js';
 import { isDefined, isArray, isNumber } from './is.js';
 import { noop, noopValue as linear } from './noop.js';
 import { useRaf } from '../services/RafService.js';
 import type { EasingFunction } from './math/createEases.js';
 
 let id = 0;
-const DEFAULT_PROGRESS_PRECISION = 0.0001;
+const DEFAULT_PROGRESS_PRECISION = 1 / 1e4;
 
 export type BezierCurve = [number, number, number, number];
 
@@ -57,8 +57,17 @@ export interface TweenOptions {
    */
   smooth?: true | number;
   /**
+   * Enable spring transition. Setting this option to `true` or a `number` will disable the `duration` option.
+   * If `true`, a default stiffness of 0.1 will be used, if a `number` is given, it will be used instead.
+   */
+  spring?: true | number;
+  /**
+   * When spring physics are enabled, use the mass option to make the object heavier or lighter. Defaults to `1`.
+   */
+  mass?: number;
+  /**
    * The precision for when to consider the tween finished.
-   * Defaults to `0.0001`.
+   * Defaults to `0.00001`.
    */
   precision?: number;
   /**
@@ -98,9 +107,13 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
 
   let progressValue = 0;
   let easedProgress = 0;
+  let velocity = 0;
 
   const isSmooth = isDefined(options.smooth) && (isNumber(options.smooth) || options.smooth);
-  const smoothFactor = isNumber(options.smooth) ? options.smooth : 0.1;
+  const isSpring = isDefined(options.spring) && (isNumber(options.spring) || options.spring);
+  const stiffness = isNumber(options.spring) ? options.spring : 0.1;
+  const mass = isNumber(options.mass) ? options.mass : 1;
+  const damping = isNumber(options.smooth) ? options.smooth : 0.1;
   const precision = options.precision ?? DEFAULT_PROGRESS_PRECISION;
   const ease = normalizeEase(options.easing);
 
@@ -136,21 +149,36 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
       return easedProgress;
     }
 
+    let shouldStop = false;
+
     progressValue = newProgress;
-    easedProgress = isSmooth
-      ? damp(progressValue, easedProgress, smoothFactor, precision)
-      : ease(progressValue);
+    if (isSpring) {
+      [easedProgress, velocity] = spring(
+        progressValue,
+        easedProgress,
+        velocity,
+        stiffness,
+        damping,
+        mass,
+        precision,
+      );
+    } else {
+      easedProgress = isSmooth
+        ? damp(progressValue, easedProgress, damping, precision)
+        : ease(progressValue);
+    }
 
     // Stop when reaching precision
     if (Math.abs(1 - easedProgress) < precision) {
       progressValue = 1;
       easedProgress = 1;
+      shouldStop = true;
     }
 
     callback(easedProgress);
     onProgress(easedProgress);
 
-    if (easedProgress === 1) {
+    if (shouldStop) {
       pause();
       requestAnimationFrame(() => onFinish(easedProgress));
     }
