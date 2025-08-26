@@ -12,7 +12,25 @@
       {% include '@components/animate-test.twig' %}
       {% include '@components/animate-test.twig' with {
         easing: ' ',
-        smooth: '0.05',
+        attr: {
+          data_option_spring: 0.1,
+          data_option_smooth: 0.6,
+        },
+        steps: [
+          {},
+          {
+            scale: 1.5,
+          },
+          {
+            scale: 1,
+          }
+        ]
+      } %}
+      {% include '@components/animate-test.twig' with {
+        easing: ' ',
+        attr: {
+          data_option_smooth: 0.1,
+        },
         steps: [
           {},
           {
