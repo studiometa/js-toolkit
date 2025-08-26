@@ -29,7 +29,11 @@ export default class AnimateTest extends Base {
       steps: Array,
       smooth: {
         type: Number,
-        default: undefined,
+        default: false,
+      },
+      spring: {
+        type: Number,
+        default: false,
       },
       duration: {
         type: Number,
@@ -68,6 +72,7 @@ export default class AnimateTest extends Base {
       {
         duration: this.$options.duration,
         smooth: this.$options.smooth,
+        spring: this.$options.spring,
         easing: ease[this.$options.easing],
         onProgress: (progress) => {
           domScheduler.write(() => {
