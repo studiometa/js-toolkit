@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- Add a `smoothTo` utility function ([#660](https://github.com/studiometa/js-toolkit/pull/660), [f4d7b349](https://github.com/studiometa/js-toolkit/commit/f4d7b349))
+- Add a `wrap` utility function ([#660](https://github.com/studiometa/js-toolkit/pull/660), [866ed3a4](https://github.com/studiometa/js-toolkit/commit/866ed3a4))
+- Add a `spring` function ([#660](https://github.com/studiometa/js-toolkit/pull/660), [1e06f792](https://github.com/studiometa/js-toolkit/commit/1e06f792))
+- **tween:** add support for spring physics ([#660](https://github.com/studiometa/js-toolkit/pull/660), [fe079359](https://github.com/studiometa/js-toolkit/commit/fe079359))
+- **animate:** add support for spring physics ([#660](https://github.com/studiometa/js-toolkit/pull/660), [fe079359](https://github.com/studiometa/js-toolkit/commit/fe079359))
 - **useRaf:** add a `delta` property to the props ([#657](https://github.com/studiometa/js-toolkit/pull/657), [ca9fe570](https://github.com/studiometa/js-toolkit/commit/ca9fe570))
 
 ### Fixed
