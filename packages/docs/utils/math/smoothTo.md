@@ -103,7 +103,10 @@ interface SmoothToFunction {
   spring: (val?: boolean) => boolean;
 }
 
-function smoothTo(start?: number, options?: SmoothToOptions): SmoothToFunction;
+function smoothTo(
+  start?: number,
+  options?: SmoothToOptions,
+): SmoothToFunction;
 ```
 
 ## Examples
@@ -133,7 +136,7 @@ const springValue = smoothTo(0, {
   spring: true,
   stiffness: 0.2,
   damping: 0.8,
-  mass: 1.5
+  mass: 1.5,
 });
 
 springValue.subscribe((value) => {
