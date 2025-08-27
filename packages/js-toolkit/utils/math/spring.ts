@@ -1,6 +1,5 @@
 /**
  * Get the next spring value using velocity and spring physics.
- *
  * @param   {number} targetValue The final value.
  * @param   {number} currentValue The current value.
  * @param   {number} currentVelocity The current velocity.
@@ -9,6 +8,7 @@
  * @param   {number} [mass=1] The mass factor affecting acceleration, defaults to 1.
  * @param   {number} [precision=1/1e4] The precision used to calculate the latest value, defaults to 1/1e4.
  * @returns {[number, number]} The next value and velocity.
+ * @see https://js-toolkit.studiometa.dev/utils/math/spring.html
  */
 export function spring(
   targetValue: number,

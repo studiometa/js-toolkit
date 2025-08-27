@@ -101,6 +101,7 @@ export function normalizeEase(ease: EasingFunction | BezierCurve): EasingFunctio
 
 /**
  * Tween from 0 to 1.
+ * @see https://js-toolkit.studiometa.dev/utils/tween.html
  */
 export function tween(callback: (progress: number) => unknown, options: TweenOptions = {}): Tween {
   const raf = useRaf();
