@@ -17,8 +17,8 @@ const targetValue = 100;
   currentVelocity,
   0.1, // stiffness
   0.6, // damping
-  1,   // mass
-  0.01 // precision
+  1, // mass
+  0.01, // precision
 );
 
 console.log(currentValue, currentVelocity);
@@ -39,6 +39,7 @@ console.log(currentValue, currentVelocity);
 - `[number, number]`: A tuple containing the next value and velocity
 
 The function returns a tuple where:
+
 - First element: The next position value
 - Second element: The next velocity (set to `0` when the target is reached)
 

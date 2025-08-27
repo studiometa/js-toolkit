@@ -25,8 +25,9 @@ wrap(10, 0, 3); // 1
 ### Behavior
 
 The `wrap` function ensures that:
+
 - Values above `max` wrap around to the beginning of the range
-- Values below `min` wrap around to the end of the range  
+- Values below `min` wrap around to the end of the range
 - If `min` equals `max`, the function returns `min`
 - The result is always within `[min, max)` (inclusive of min, exclusive of max)
 
