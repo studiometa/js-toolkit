@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- **useRaf:** add a `delta` property to the props ([#657](https://github.com/studiometa/js-toolkit/pull/657), [ca9fe570](https://github.com/studiometa/js-toolkit/commit/ca9fe570))
+
 ## [v3.0.5](https://github.com/studiometa/js-toolkit/compare/3.0.4..3.0.5) (2025-07-23)
 
 ### Changed
