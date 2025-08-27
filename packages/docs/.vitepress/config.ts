@@ -279,6 +279,7 @@ function getUtilsSidebar() {
         { text: 'nextMicrotask', link: '/utils/nextMicrotask.html' },
         { text: 'nextTick', link: '/utils/nextTick.html' },
         { text: 'Queue', link: '/utils/Queue.html' },
+        { text: 'random', link: '/utils/random.html' },
         { text: 'randomInt', link: '/utils/randomInt.html' },
         { text: 'randomItem', link: '/utils/randomItem.html' },
         { text: 'scrollTo', link: '/utils/scrollTo.html' },

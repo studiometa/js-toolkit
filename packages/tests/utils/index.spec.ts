@@ -91,6 +91,7 @@ describe('@studiometa/js-toolkit/utils exports', () => {
         "noopValue",
         "objectToURLSearchParams",
         "pascalCase",
+        "random",
         "randomInt",
         "randomItem",
         "removeClass",
