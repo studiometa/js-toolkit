@@ -32,3 +32,13 @@ Object.defineProperties(window, {
     },
   },
 });
+
+Object.defineProperties(globalThis, {
+  requestAnimationFrame: {
+    value(callback) {
+      return setTimeout(() => {
+        callback(performance.now());
+      }, 16);
+    },
+  },
+});
