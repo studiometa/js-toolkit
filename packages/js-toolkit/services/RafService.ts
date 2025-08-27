@@ -5,6 +5,7 @@ import { isFunction } from '../utils/is.js';
 
 export interface RafServiceProps {
   time: DOMHighResTimeStamp;
+  delta: number;
 }
 
 export type RafServiceInterface = ServiceInterface<RafServiceProps>;
@@ -22,6 +23,7 @@ export class RafService extends AbstractService<RafServiceProps> {
 
   props: RafServiceProps = {
     time: performance.now(),
+    delta: 0,
   };
 
   trigger(props: RafServiceProps) {
@@ -39,7 +41,9 @@ export class RafService extends AbstractService<RafServiceProps> {
   }
 
   loop() {
-    this.props.time = performance.now();
+    const time = performance.now();
+    this.props.delta = time - this.props.time;
+    this.props.time = time;
     this.trigger(this.props);
 
     if (!this.isTicking) {
