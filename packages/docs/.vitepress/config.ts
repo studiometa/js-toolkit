@@ -361,6 +361,9 @@ function getUtilsSidebar() {
         { text: 'map', link: '/utils/math/map.html' },
         { text: 'mean', link: '/utils/math/mean.html' },
         { text: 'round', link: '/utils/math/round.html' },
+        { text: 'smoothTo', link: '/utils/math/smoothTo.html' },
+        { text: 'spring', link: '/utils/math/spring.html' },
+        { text: 'wrap', link: '/utils/math/wrap.html' },
       ],
     },
     {
