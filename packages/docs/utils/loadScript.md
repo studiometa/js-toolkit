@@ -53,8 +53,12 @@ Be aware that the [`memo` function](/utils/memo.html) will use a simple `argumen
 ```js twoslash
 const loadScriptWithCache = memo(loadScript);
 
-const result = await loadScriptWithCache('script.js', { appendTo: document.head });
-const result2 = await loadScriptWithCache('script.js', { appendTo: document.body });
+const result = await loadScriptWithCache('script.js', {
+  appendTo: document.head,
+});
+const result2 = await loadScriptWithCache('script.js', {
+  appendTo: document.body,
+});
 
 console.log(result === result2); // true
 

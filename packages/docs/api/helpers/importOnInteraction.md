@@ -11,7 +11,11 @@ Use the `importOnInteraction` function to import component when the user interac
 ```js twoslash
 import { importOnInteraction } from '@studiometa/js-toolkit';
 
-importOnInteraction(() => import('./components/Component.js'), 'Component', 'click');
+importOnInteraction(
+  () => import('./components/Component.js'),
+  'Component',
+  'click',
+);
 ```
 
 **Parameters**
@@ -37,7 +41,12 @@ class App extends Base {
     name: 'App',
     components: {
       Component: (app) =>
-        importOnInteraction(() => import('./components/Component.js'), 'Component', 'click', app),
+        importOnInteraction(
+          () => import('./components/Component.js'),
+          'Component',
+          'click',
+          app,
+        ),
     },
   };
 }
@@ -73,7 +82,11 @@ class App extends Base {
     name: 'App',
     components: {
       Component: (app) =>
-        importOnInteraction(() => import('./components/Component.js'), app.$refs.btn, 'click'),
+        importOnInteraction(
+          () => import('./components/Component.js'),
+          app.$refs.btn,
+          'click',
+        ),
     },
     refs: ['btn'],
   };

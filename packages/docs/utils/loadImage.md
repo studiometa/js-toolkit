@@ -53,8 +53,12 @@ Be aware that the [`memo` function](/utils/memo.html) will use a simple `argumen
 ```js twoslash
 const loadImageWithCache = memo(loadImage);
 
-const result = await loadImageWithCache('image.webp', { appendTo: document.head });
-const result2 = await loadImageWithCache('image.webp', { appendTo: document.body });
+const result = await loadImageWithCache('image.webp', {
+  appendTo: document.head,
+});
+const result2 = await loadImageWithCache('image.webp', {
+  appendTo: document.body,
+});
 
 console.assert(result === result2); // true
 

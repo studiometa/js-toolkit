@@ -8,7 +8,10 @@ Use this function to import components according to a specified [media query](ht
 import { importOnMediaQuery } from '@studiometa/js-toolkit';
 
 // Import Component.js if the device is in portrait.
-importOnMediaQuery(() => import('./components/Component.js'), '(orientation: portrait)');
+importOnMediaQuery(
+  () => import('./components/Component.js'),
+  '(orientation: portrait)',
+);
 ```
 
 **Parameters**
@@ -30,7 +33,10 @@ class App extends Base {
     name: 'App',
     components: {
       Component: () =>
-        importOnMediaQuery(() => import('./components/Component.js'), '(orientation: portrait)'),
+        importOnMediaQuery(
+          () => import('./components/Component.js'),
+          '(orientation: portrait)',
+        ),
     },
   };
 }

@@ -96,7 +96,11 @@ export default class Component extends Base {
 
 ```ts
 import { Base } from '@studiometa/js-toolkit';
-import type { BaseProps, BaseConfig, ResizeServiceProps } from '@studiometa/js-toolkit';
+import type {
+  BaseProps,
+  BaseConfig,
+  ResizeServiceProps,
+} from '@studiometa/js-toolkit';
 import { Figure } from '@studiometa/ui';
 import type LazyComponent from './LazyComponent.js';
 
@@ -158,7 +162,10 @@ This feature does not work with JSDoc comments.
 
 ```ts
 import { Base } from '@studiometa/js-toolkit';
-import type { BaseInterface, ScrollServiceProps } from '@studiometa/js-toolkit';
+import type {
+  BaseInterface,
+  ScrollServiceProps,
+} from '@studiometa/js-toolkit';
 
 export default class Component extends Base implements BaseInterface {
   scrolled(props: ScrollServiceProps) {
@@ -221,7 +228,9 @@ export interface ChildComponentProps extends BaseProps {
 
 export class ChildComponent<
   T extends BaseProps = BaseProps,
-> extends withIntersectionObserver<Component>(Component)<T & ChildComponentProps> {
+> extends withIntersectionObserver<Component>(Component)<
+  T & ChildComponentProps
+> {
   mounted() {
     this.$log(this.$observer); // IntersectionObserver
     this.$log(this.$options.intersectionObserver); // IntersectionObserverInit
@@ -294,7 +303,9 @@ export interface ComponentProps extends BaseProps {
   // ...
 }
 
-export class Component<T extends BaseProps = BaseProps> extends Base<T & ComponentProps> {
+export class Component<T extends BaseProps = BaseProps> extends Base<
+  T & ComponentProps
+> {
   static config: BaseConfig = {
     name: 'Component',
   };
