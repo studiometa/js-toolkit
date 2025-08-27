@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. The format 
 
 - **useRaf:** add a `delta` property to the props ([#657](https://github.com/studiometa/js-toolkit/pull/657), [ca9fe570](https://github.com/studiometa/js-toolkit/commit/ca9fe570))
 
+### Fixed
+
+- **transform:** do not throw when element is not defined ([#658](https://github.com/studiometa/js-toolkit/issues/658), [#659](https://github.com/studiometa/js-toolkit/pull/659), [11f49a17](https://github.com/studiometa/js-toolkit/commit/11f49a17))
+
 ## [v3.0.5](https://github.com/studiometa/js-toolkit/compare/3.0.4..3.0.5) (2025-07-23)
 
 ### Changed
