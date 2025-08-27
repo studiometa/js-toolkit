@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/js-toolkit-workspace",
-  "version": "3.0.5",
+  "version": "3.1.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -28,7 +28,8 @@
     "build:cp-files": "cp packages/js-toolkit/package.json dist/ && sed -i '' 's/index\\.ts/index\\.js/' dist/package.json && cat dist/package.json && cp LICENSE dist/ && cp README.md dist",
     "build:types": "tsc --build tsconfig.build.json",
     "build:pkg": "node scripts/build.js",
-    "build-for-export-size": "node scripts/add-utils-export.js && rm -rf dist && npm run build:pkg && npm run build:cp-files"
+    "build-for-export-size": "node scripts/add-utils-export.js && rm -rf dist && npm run build:pkg && npm run build:cp-files",
+    "postversion": "npm version -ws $npm_package_version"
   },
   "devDependencies": {
     "@studiometa/prettier-config": "4.3.0",
