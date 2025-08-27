@@ -8,10 +8,10 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@happy-dom/global-registrator": "^17.4.4",
-    "@vitest/coverage-v8": "^3.1.1",
-    "happy-dom": "^17.4.4",
-    "vitest": "3.1.1"
+    "@happy-dom/global-registrator": "17.6.3",
+    "@vitest/coverage-v8": "3.2.4",
+    "happy-dom": "17.6.3",
+    "vitest": "3.2.4"
   },
   "imports": {
     "#test-utils": "./__utils__/index.ts",
