@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.1.0](https://github.com/studiometa/js-toolkit/compare/3.0.5..3.1.0) (2025-08-27)
+
 ### Added
 
 - Add a `random` utility function ([#662](https://github.com/studiometa/js-toolkit/pull/662), [a25247a5](https://github.com/studiometa/js-toolkit/commit/a25247a5))
