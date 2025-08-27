@@ -12,14 +12,17 @@ export default defineConfig({
   markdown: {
     codeTransformers: [transformerTwoslash()],
     // Explicitly load these languages for types hightlighting
-    languages: ['js', 'jsx', 'ts', 'tsx'],
+    languages: ['js', 'jsx', 'ts', 'tsx', 'bash'],
   },
   themeConfig: {
     outline: 'deep',
+    // @ts-expect-error
     version: pkg.version,
     repo: 'studiometa/js-toolkit',
     docsDir: 'packages/docs',
-    lastUpdated: 'Last updated',
+    lastUpdated: {
+      text: 'Last updated',
+    },
     editLinks: true,
     editLinkText: 'Edit this page on GitHub',
     sidebarDepth: 3,
