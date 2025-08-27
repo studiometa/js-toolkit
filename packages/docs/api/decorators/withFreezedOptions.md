@@ -12,7 +12,9 @@ Use this decorator to transfrom the `$options` property to be read only. This ca
 import { withFreezedOptions } from '@studiometa/js-toolkit';
 import { Slider } from '@studiometa/ui';
 
-export default class SliderWithFreezedOptions extends withFreezedOptions(Slider) {}
+export default class SliderWithFreezedOptions extends withFreezedOptions(
+  Slider,
+) {}
 ```
 
 ### Parameters

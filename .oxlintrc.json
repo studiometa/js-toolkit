@@ -1,0 +1,10 @@
+{
+  "rules": {
+    "typescript/no-this-alias": [
+      "error",
+      {
+        "allowDestructuring": true
+      }
+    ]
+  }
+}

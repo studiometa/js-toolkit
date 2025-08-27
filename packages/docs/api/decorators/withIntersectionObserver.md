@@ -11,7 +11,9 @@ Use this decorator to create a class that will have the capacity to trigger an `
 ```js {1,3,11-13} twoslash
 import { Base, withIntersectionObserver } from '@studiometa/js-toolkit';
 
-class Component extends withIntersectionObserver(Base, { rootMargin: '100%' }) {
+class Component extends withIntersectionObserver(Base, {
+  rootMargin: '100%',
+}) {
   static config = {
     name: 'Component',
   };

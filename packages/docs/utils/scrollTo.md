@@ -69,5 +69,8 @@ interface ScrollToOptions extends TweenOptions {
   offset?: number;
 }
 
-function scrollTo(target: ScrollTarget, options?: ScrollToOptions): Promise<ScrollPosition>;
+function scrollTo(
+  target: ScrollTarget,
+  options?: ScrollToOptions,
+): Promise<ScrollPosition>;
 ```

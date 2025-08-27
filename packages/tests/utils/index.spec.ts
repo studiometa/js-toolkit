@@ -91,6 +91,7 @@ describe('@studiometa/js-toolkit/utils exports', () => {
         "noopValue",
         "objectToURLSearchParams",
         "pascalCase",
+        "random",
         "randomInt",
         "randomItem",
         "removeClass",
@@ -98,7 +99,9 @@ describe('@studiometa/js-toolkit/utils exports', () => {
         "round",
         "saveActiveElement",
         "scrollTo",
+        "smoothTo",
         "snakeCase",
+        "spring",
         "startsWith",
         "throttle",
         "toggleClass",
@@ -120,6 +123,7 @@ describe('@studiometa/js-toolkit/utils exports', () => {
         "withoutTrailingCharacters",
         "withoutTrailingCharactersRecursive",
         "withoutTrailingSlash",
+        "wrap",
       ]
     `);
   });

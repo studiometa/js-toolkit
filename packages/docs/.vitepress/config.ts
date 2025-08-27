@@ -12,14 +12,17 @@ export default defineConfig({
   markdown: {
     codeTransformers: [transformerTwoslash()],
     // Explicitly load these languages for types hightlighting
-    languages: ['js', 'jsx', 'ts', 'tsx'],
+    languages: ['js', 'jsx', 'ts', 'tsx', 'bash'],
   },
   themeConfig: {
     outline: 'deep',
+    // @ts-expect-error
     version: pkg.version,
     repo: 'studiometa/js-toolkit',
     docsDir: 'packages/docs',
-    lastUpdated: 'Last updated',
+    lastUpdated: {
+      text: 'Last updated',
+    },
     editLinks: true,
     editLinkText: 'Edit this page on GitHub',
     sidebarDepth: 3,
@@ -276,6 +279,7 @@ function getUtilsSidebar() {
         { text: 'nextMicrotask', link: '/utils/nextMicrotask.html' },
         { text: 'nextTick', link: '/utils/nextTick.html' },
         { text: 'Queue', link: '/utils/Queue.html' },
+        { text: 'random', link: '/utils/random.html' },
         { text: 'randomInt', link: '/utils/randomInt.html' },
         { text: 'randomItem', link: '/utils/randomItem.html' },
         { text: 'scrollTo', link: '/utils/scrollTo.html' },
@@ -361,6 +365,9 @@ function getUtilsSidebar() {
         { text: 'map', link: '/utils/math/map.html' },
         { text: 'mean', link: '/utils/math/mean.html' },
         { text: 'round', link: '/utils/math/round.html' },
+        { text: 'smoothTo', link: '/utils/math/smoothTo.html' },
+        { text: 'spring', link: '/utils/math/spring.html' },
+        { text: 'wrap', link: '/utils/math/wrap.html' },
       ],
     },
     {

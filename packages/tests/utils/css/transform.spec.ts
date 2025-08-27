@@ -17,6 +17,13 @@ describe('The `transform` utility function', () => {
     expect(div.style.transform.trim()).toBe(result);
   });
 
+  it('should not throw if element is not defined', () => {
+    expect(() => {
+      // @ts-expect-error null is ok here
+      transform(null, { x: 100 });
+    }).not.toThrow();
+  });
+
   for (const [name, value, result] of [
     ['x', 100, 'translate3d(100px, 0px, 0px)'],
     ['y', 100, 'translate3d(0px, 100px, 0px)'],

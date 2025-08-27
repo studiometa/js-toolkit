@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.1.0](https://github.com/studiometa/js-toolkit/compare/3.0.5..3.1.0) (2025-08-27)
+
+### Added
+
+- Add a `random` utility function ([#662](https://github.com/studiometa/js-toolkit/pull/662), [a25247a5](https://github.com/studiometa/js-toolkit/commit/a25247a5))
+- Add a `smoothTo` utility function ([#660](https://github.com/studiometa/js-toolkit/pull/660), [f4d7b349](https://github.com/studiometa/js-toolkit/commit/f4d7b349))
+- Add a `wrap` utility function ([#660](https://github.com/studiometa/js-toolkit/pull/660), [866ed3a4](https://github.com/studiometa/js-toolkit/commit/866ed3a4))
+- Add a `spring` function ([#660](https://github.com/studiometa/js-toolkit/pull/660), [1e06f792](https://github.com/studiometa/js-toolkit/commit/1e06f792))
+- **tween:** add support for spring physics ([#660](https://github.com/studiometa/js-toolkit/pull/660), [fe079359](https://github.com/studiometa/js-toolkit/commit/fe079359))
+- **animate:** add support for spring physics ([#660](https://github.com/studiometa/js-toolkit/pull/660), [fe079359](https://github.com/studiometa/js-toolkit/commit/fe079359))
+- **useRaf:** add a `delta` property to the props ([#657](https://github.com/studiometa/js-toolkit/pull/657), [ca9fe570](https://github.com/studiometa/js-toolkit/commit/ca9fe570))
+
+### Fixed
+
+- **transform:** do not throw when element is not defined ([#658](https://github.com/studiometa/js-toolkit/issues/658), [#659](https://github.com/studiometa/js-toolkit/pull/659), [11f49a17](https://github.com/studiometa/js-toolkit/commit/11f49a17))
+
 ## [v3.0.5](https://github.com/studiometa/js-toolkit/compare/3.0.4..3.0.5) (2025-07-23)
 
 ### Changed

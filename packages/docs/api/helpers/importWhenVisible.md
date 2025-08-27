@@ -37,7 +37,11 @@ class App extends Base {
     name: 'App',
     components: {
       Component: (app) =>
-        importWhenVisible(() => import('./components/Component.js'), 'Component', app),
+        importWhenVisible(
+          () => import('./components/Component.js'),
+          'Component',
+          app,
+        ),
     },
   };
 }
@@ -53,7 +57,10 @@ class App extends Base {
     name: 'App',
     components: {
       Component: () =>
-        importWhenVisible(() => import('./components/Component.js'), '#import-component-trigger'),
+        importWhenVisible(
+          () => import('./components/Component.js'),
+          '#import-component-trigger',
+        ),
     },
   };
 }
@@ -70,7 +77,10 @@ class App extends Base {
     refs: ['btn'],
     components: {
       Component: (app) =>
-        importWhenVisible(() => import('./components/Component.js'), app.$refs.btn),
+        importWhenVisible(
+          () => import('./components/Component.js'),
+          app.$refs.btn,
+        ),
     },
   };
 }

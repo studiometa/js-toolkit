@@ -10,7 +10,11 @@ import { toggleClass } from '@studiometa/js-toolkit/utils';
 toggleClass(document.body, 'is-locked');
 toggleClass(document.body, 'is-locked', true);
 toggleClass([document.body, document.documentElement], 'is-locked', true);
-toggleClass(document.querySelectorAll('.should-be-locked'), 'is-locked', true);
+toggleClass(
+  document.querySelectorAll('.should-be-locked'),
+  'is-locked',
+  true,
+);
 toggleClass(document.body, ['is-locked', 'has-pointer']);
 toggleClass(document.body, ['is-locked', 'has-pointer'], true);
 ```
