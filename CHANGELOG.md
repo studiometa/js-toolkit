@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Changed
+
+- **smoothTo:** refactor to reduce export size ([#665](https://github.com/studiometa/js-toolkit/pull/665), [a8bda8f7](https://github.com/studiometa/js-toolkit/commit/a8bda8f7))
+
 ## [v3.1.0](https://github.com/studiometa/js-toolkit/compare/3.0.5..3.1.0) (2025-08-27)
 
 ### Added
