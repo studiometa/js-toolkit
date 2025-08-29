@@ -21,25 +21,27 @@ describe('smoothTo method', () => {
 
   it('should return raw target value', () => {
     const smooth = smoothTo(0);
+    expect(smooth.raw()).toBe(0);
+    expect(smooth()).toBe(0);
     smooth(10);
     expect(smooth.raw()).toBe(10);
-    expect(smooth()).toBe(0);
+    expect(smooth()).toBe(6);
   });
 
   it('should subscribe and unsubscribe to value updates', () => {
     const smooth = smoothTo(0);
     const callback = vi.fn();
-    
+
     const unsubscribe = smooth.subscribe(callback);
     expect(typeof unsubscribe).toBe('function');
-    
+
     expect(smooth.unsubscribe(callback)).toBe(true);
     expect(smooth.unsubscribe(callback)).toBe(false);
   });
 
   it('should allow changing options dynamically', () => {
     const smooth = smoothTo(0);
-    
+
     expect(smooth.damping(0.8)).toBe(0.8);
     expect(smooth.damping()).toBe(0.8);
     expect(smooth.precision(0.001)).toBe(0.001);
@@ -52,7 +54,7 @@ describe('smoothTo method', () => {
 
   it('should ignore non-function subscribers', () => {
     const smooth = smoothTo(0);
-    
+
     expect(() => {
       smooth.subscribe(null as any);
       smooth.subscribe(undefined as any);
@@ -63,7 +65,7 @@ describe('smoothTo method', () => {
   it('should return false when unsubscribing non-existent callback', () => {
     const smooth = smoothTo(0);
     const nonExistentFn = vi.fn();
-    
+
     expect(smooth.unsubscribe(nonExistentFn)).toBe(false);
   });
 
@@ -75,17 +77,28 @@ describe('smoothTo method', () => {
 
   it('should update target value and return smoothed value', () => {
     const smooth = smoothTo(0);
-    
+
     const result = smooth(10);
     expect(smooth.raw()).toBe(10);
     expect(typeof result).toBe('number');
+  });
+
+  it('should increment target value with the `add` function', () => {
+    const smooth = smoothTo(0, { damping: 1 });
+
+    const result1 = smooth.add(10);
+    expect(smooth.raw()).toBe(10);
+    expect(result1).toBe(10);
+    const result2 = smooth.add(-10);
+    expect(smooth.raw()).toBe(0);
+    expect(result2).toBe(0);
   });
 
   it('should support different starting values', () => {
     const smooth1 = smoothTo();
     const smooth2 = smoothTo(100);
     const smooth3 = smoothTo(-50);
-    
+
     expect(smooth1()).toBe(0);
     expect(smooth2()).toBe(100);
     expect(smooth3()).toBe(-50);
@@ -96,7 +109,7 @@ describe('smoothTo method', () => {
     const smooth2 = smoothTo(0, { spring: true });
     const smooth3 = smoothTo(0, { precision: 0.01 });
     const smooth4 = smoothTo(0, { stiffness: 0.2 });
-    
+
     expect(typeof smooth1).toBe('function');
     expect(typeof smooth2).toBe('function');
     expect(typeof smooth3).toBe('function');
@@ -107,13 +120,13 @@ describe('smoothTo method', () => {
     const smooth = smoothTo(0);
     const callback1 = vi.fn();
     const callback2 = vi.fn();
-    
+
     const unsubscribe1 = smooth.subscribe(callback1);
     const unsubscribe2 = smooth.subscribe(callback2);
-    
+
     expect(typeof unsubscribe1).toBe('function');
     expect(typeof unsubscribe2).toBe('function');
-    
+
     unsubscribe1();
     unsubscribe2();
   });
@@ -136,13 +149,13 @@ describe('smoothTo method', () => {
   });
 
   it('should work with complex option combinations', () => {
-    const smooth = smoothTo(0, { 
-      damping: 0.7, 
-      spring: true, 
-      stiffness: 0.3, 
-      precision: 0.001 
+    const smooth = smoothTo(0, {
+      damping: 0.7,
+      spring: true,
+      stiffness: 0.3,
+      precision: 0.001,
     });
-    
+
     expect(smooth.damping(0.5)).toBe(0.5);
     expect(smooth.spring(false)).toBe(false);
     expect(smooth.stiffness(0.4)).toBe(0.4);
