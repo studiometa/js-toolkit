@@ -123,30 +123,9 @@ class App extends Base {
       BreakpointObserverDemo: () =>
         importWhenIdle(() => import('./components/BreakpointObserverDemo.js')),
       Cursor: () =>
-        importOnInteraction(
-          async () => {
-            const { Cursor } = await import('@studiometa/ui');
-            return class extends Cursor {
-              static config = {
-                ...Cursor.config,
-                refs: ['inner'],
-              };
-
-              render({ x, y, scale }) {
-                this.$el.style.transform = `translateZ(0) ${matrix({
-                  translateX: x,
-                  translateY: y,
-                })}`;
-                this.$refs.inner.style.transform = `translateZ(0) ${matrix({
-                  scaleX: scale,
-                  scaleY: scale,
-                })}`;
-              }
-            };
-          },
-          document.documentElement,
-          ['mousemove'],
-        ),
+        importOnInteraction(() => import('./components/Cursor.js'), document.documentElement, [
+          'mousemove',
+        ]),
       Draggable: (app) =>
         importWhenVisible(
           async () => {
