@@ -3,7 +3,8 @@ import type { Features } from '../Base/features.js';
 import { getInstances } from '../Base/index.js';
 import { features } from '../Base/features.js';
 import { useMutation } from '../services/index.js';
-import { isBoolean, isObject, isString } from '../utils/index.js';
+import { isBoolean, isObject, isString, isDev } from '../utils/index.js';
+import { logTree } from './logTree.js';
 
 export type CreateAppOptions = Partial<Features> & {
   root?: HTMLElement;
@@ -64,6 +65,9 @@ export function createApp<S extends BaseConstructor<Base>, T extends BaseProps =
   async function init() {
     app = new App(root) as S & Base<T>;
     await app.$mount();
+    if (isDev) {
+      logTree(app);
+    }
     return app;
   }
 
