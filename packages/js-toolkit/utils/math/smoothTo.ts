@@ -1,4 +1,3 @@
-import { useRaf } from '../../services/RafService.js';
 import { damp } from './damp.js';
 import { spring } from './spring.js';
 import { isFunction, isDefined } from '../is.js';
@@ -39,8 +38,6 @@ export type SmoothToOptions = Partial<{
  * ```
  */
 export function smoothTo(start = 0, options: SmoothToOptions = {}) {
-  const { add, has, remove } = useRaf();
-  const key = Symbol();
   const fns = new Set<(value: number) => any>();
 
   let damping = options.damping ?? 0.6;
@@ -67,7 +64,7 @@ export function smoothTo(start = 0, options: SmoothToOptions = {}) {
       fn(smoothed);
     }
 
-    if (smoothed === value) remove(key);
+    if (smoothed !== value) requestAnimationFrame(tick);
   }
 
   /**
@@ -98,9 +95,7 @@ export function smoothTo(start = 0, options: SmoothToOptions = {}) {
 
     value = newValue;
 
-    if (!has(key)) {
-      add(key, tick);
-    }
+    tick();
 
     return smoothed;
   }
@@ -119,6 +114,12 @@ export function smoothTo(start = 0, options: SmoothToOptions = {}) {
    * Get the raw target value.
    */
   update.raw = () => value;
+
+  /**
+   * Add the given value to the current raw value.
+   */
+  update.add = (val: number) => update(value + val);
+
   /**
    * Get or set the damping factor.
    */
