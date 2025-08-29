@@ -21,9 +21,11 @@ describe('smoothTo method', () => {
 
   it('should return raw target value', () => {
     const smooth = smoothTo(0);
+    expect(smooth.raw()).toBe(0);
+    expect(smooth()).toBe(0);
     smooth(10);
     expect(smooth.raw()).toBe(10);
-    expect(smooth()).toBe(0);
+    expect(smooth()).toBe(6);
   });
 
   it('should subscribe and unsubscribe to value updates', () => {
