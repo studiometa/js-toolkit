@@ -12,7 +12,6 @@ import {
   withName,
   logTree,
 } from '@studiometa/js-toolkit';
-import { matrix } from '@studiometa/js-toolkit/utils';
 import ScrollToDemo from './components/ScrollToDemo.js';
 import Parallax from './components/Parallax.js';
 import ResponsiveOptions from './components/ResponsiveOptions.js';
