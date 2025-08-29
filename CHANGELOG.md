@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- **smoothTo:** add an `add(value)` method to the controls ([#666](https://github.com/studiometa/js-toolkit/pull/666), [b8cda690](https://github.com/studiometa/js-toolkit/commit/b8cda690))
+
 ### Changed
 
 - **smoothTo:** refactor to reduce export size ([#665](https://github.com/studiometa/js-toolkit/pull/665), [a8bda8f7](https://github.com/studiometa/js-toolkit/commit/a8bda8f7))
