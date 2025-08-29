@@ -2,6 +2,8 @@ import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
 import type { Features } from '../Base/features.js';
 import { features } from '../Base/features.js';
 import { defineFeatures } from './defineFeatures.js';
+import { isDev } from '../utils/index.js';
+import { logTree } from './logTree.js';
 
 export type CreateAppOptions = Partial<Features> & {
   root?: HTMLElement;
@@ -27,6 +29,9 @@ export function createApp<S extends BaseConstructor<Base>, T extends BaseProps =
   async function init() {
     app = new App(root) as S & Base<T>;
     await app.$mount();
+    if (isDev) {
+      logTree(app);
+    }
     return app;
   }
 
