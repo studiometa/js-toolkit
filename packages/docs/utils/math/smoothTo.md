@@ -29,7 +29,7 @@ x(100); // Smoothly transition from 0 to 100
 
 The `smoothTo` function returns a function with the following methods:
 
-#### `(newValue)`
+#### `smooth(newValue)`
 
 Call the function with a new value to start transitioning to it, or without arguments to get the current smoothed value.
 
@@ -39,6 +39,20 @@ import { smoothTo } from '@studiometa/js-toolkit/utils';
 const smooth = smoothTo(0);
 smooth(100); // Start transition to 100
 console.log(smooth()); // Get current smoothed value
+```
+
+### `add(value)`
+
+Add the given value to the current raw value.
+
+```js twoslash
+import { smoothTo } from '@studiometa/js-toolkit/utils';
+
+const smooth = smoothTo(0);
+smooth.add(10); // Add 10
+console.log(smooth.raw()); // 10
+smooth.add(-2); // Substract 2
+console.log(smooth.raw()); // 8
 ```
 
 #### `subscribe(callback)`

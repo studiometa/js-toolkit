@@ -114,6 +114,12 @@ export function smoothTo(start = 0, options: SmoothToOptions = {}) {
    * Get the raw target value.
    */
   update.raw = () => value;
+
+  /**
+   * Add the given value to the current raw value.
+   */
+  update.add = (val: number) => update(value + val);
+
   /**
    * Get or set the damping factor.
    */
