@@ -7,3 +7,4 @@ export * from './importOnMediaQuery.js';
 export * from './importWhenIdle.js';
 export * from './importWhenPrefersMotion.js';
 export * from './importWhenVisible.js';
+export { QueryOptions, queryComponent, queryComponentAll, closestComponent } from './queryComponent.js';
