@@ -8,3 +8,4 @@ export * from './mockLoad.js';
 export * from './mockRequestIdleCallback.js';
 export * from './resizeWindow.js';
 export * from './scroll.js';
+export * from './lifecycle.js';

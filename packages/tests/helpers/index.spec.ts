@@ -4,6 +4,7 @@ import * as helpers from '#private/helpers/index.js';
 test('helpers exports', () => {
   expect(Object.keys(helpers).toSorted()).toMatchInlineSnapshot(`
     [
+      "closestComponent",
       "createApp",
       "getClosestParent",
       "getDirectChildren",
@@ -14,6 +15,8 @@ test('helpers exports', () => {
       "importWhenPrefersMotion",
       "importWhenVisible",
       "isDirectChild",
+      "queryComponent",
+      "queryComponentAll",
     ]
   `);
 });
