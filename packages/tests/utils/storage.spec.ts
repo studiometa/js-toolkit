@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   useLocalStorage,
   useSessionStorage,
@@ -19,179 +19,206 @@ describe('Storage utilities', () => {
   });
 
   describe('useLocalStorage', () => {
-    it('should initialize with stored value', () => {
-      localStorage.setItem('test-key', JSON.stringify('stored-value'));
-      const storage = useLocalStorage('test-key', 'default');
-      expect(storage.value).toBe('stored-value');
+    it('should handle multiple keys in same instance', () => {
+      type Storage = {
+        theme: string;
+        user: { name: string };
+      };
+
+      const storage = useLocalStorage<Storage>();
+
+      storage.set('theme', 'dark');
+      storage.set('user', { name: 'John' });
+
+      expect(storage.get('theme')).toBe('dark');
+      expect(storage.get('user')).toEqual({ name: 'John' });
+      expect(localStorage.getItem('theme')).toBe(JSON.stringify('dark'));
+      expect(localStorage.getItem('user')).toBe(JSON.stringify({ name: 'John' }));
     });
 
-    it('should initialize with default value when no stored value exists', () => {
-      const storage = useLocalStorage('test-key', 'default');
-      expect(storage.value).toBe('default');
+    it('should return null for non-existent keys', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>();
+      expect(storage.get('theme')).toBeNull();
     });
 
-    it('should update storage when value changes', () => {
-      const storage = useLocalStorage('test-key', 'initial');
-      storage.value = 'updated';
-      expect(localStorage.getItem('test-key')).toBe(JSON.stringify('updated'));
+    it('should remove key when set to null', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>();
+
+      storage.set('theme', 'dark');
+      expect(storage.get('theme')).toBe('dark');
+
+      storage.set('theme', null);
+      expect(storage.get('theme')).toBeNull();
+      expect(localStorage.getItem('theme')).toBeNull();
     });
 
-    it('should remove storage when value is set to null', () => {
-      const storage = useLocalStorage('test-key', 'initial');
-      storage.value = null;
-      expect(localStorage.getItem('test-key')).toBeNull();
+    it('should trigger subscribers for specific keys', () => {
+      type Storage = {
+        theme: string;
+        lang: string;
+      };
+
+      const storage = useLocalStorage<Storage>();
+      const themeCallback = vi.fn();
+      const langCallback = vi.fn();
+
+      storage.subscribe('theme', themeCallback);
+      storage.subscribe('lang', langCallback);
+
+      storage.set('theme', 'dark');
+      expect(themeCallback).toHaveBeenCalledWith('dark');
+      expect(langCallback).not.toHaveBeenCalled();
+
+      storage.set('lang', 'fr');
+      expect(langCallback).toHaveBeenCalledWith('fr');
+      expect(themeCallback).toHaveBeenCalledTimes(1);
     });
 
-    it('should work with complex objects', () => {
-      const storage = useLocalStorage<{ name: string; age: number }>('user', {
-        name: 'John',
-        age: 30,
-      });
-      expect(storage.value).toEqual({ name: 'John', age: 30 });
-      storage.value = { name: 'Jane', age: 25 };
-      expect(JSON.parse(localStorage.getItem('user')!)).toEqual({ name: 'Jane', age: 25 });
-    });
-
-    it('should trigger onChange callback when value changes', () => {
-      const onChange = vi.fn();
-      const storage = useLocalStorage('test-key', 'initial', { onChange });
-      storage.value = 'updated';
-      expect(onChange).toHaveBeenCalledWith('updated');
-    });
-
-    it('should support subscribe method', () => {
-      const storage = useLocalStorage('test-key', 'initial');
+    it('should unsubscribe correctly', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>();
       const callback = vi.fn();
-      const unsubscribe = storage.subscribe(callback);
 
-      storage.value = 'updated';
-      expect(callback).toHaveBeenCalledWith('updated');
+      const unsubscribe = storage.subscribe('theme', callback);
+      storage.set('theme', 'dark');
+      expect(callback).toHaveBeenCalledWith('dark');
 
       unsubscribe();
-      storage.value = 'another';
+      storage.set('theme', 'light');
       expect(callback).toHaveBeenCalledTimes(1);
     });
 
+    it('should use custom serializer', () => {
+      type Storage = { count: string };
+      const serializer = {
+        serialize: (value: any) => `custom:${value}`,
+        deserialize: (value: string) => value.replace('custom:', ''),
+      };
+
+      const storage = useLocalStorage<Storage>({ serializer });
+      storage.set('count', '5');
+      expect(localStorage.getItem('count')).toBe('custom:5');
+      expect(storage.get('count')).toBe('5');
+    });
+
     it('should clean up event listeners on destroy', () => {
-      const storage = useLocalStorage('test-key', 'initial');
+      const storage = useLocalStorage();
       const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
       storage.destroy();
       expect(removeEventListenerSpy).toHaveBeenCalledWith('storage', expect.any(Function));
       removeEventListenerSpy.mockRestore();
     });
-
-    it('should use custom serializer', () => {
-      const serializer = {
-        serialize: (value: string) => `custom:${value}`,
-        deserialize: (value: string) => value.replace('custom:', ''),
-      };
-      const storage = useLocalStorage('test-key', 'initial', { serializer });
-      storage.value = 'test';
-      expect(localStorage.getItem('test-key')).toBe('custom:test');
-    });
   });
 
   describe('useSessionStorage', () => {
-    it('should initialize with stored value', () => {
-      sessionStorage.setItem('test-key', JSON.stringify('stored-value'));
-      const storage = useSessionStorage('test-key', 'default');
-      expect(storage.value).toBe('stored-value');
+    it('should handle multiple keys in same instance', () => {
+      type Storage = {
+        token: string;
+        expires: number;
+      };
+
+      const storage = useSessionStorage<Storage>();
+
+      storage.set('token', 'abc123');
+      storage.set('expires', 3600);
+
+      expect(storage.get('token')).toBe('abc123');
+      expect(storage.get('expires')).toBe(3600);
     });
 
-    it('should initialize with default value when no stored value exists', () => {
-      const storage = useSessionStorage('test-key', 'default');
-      expect(storage.value).toBe('default');
-    });
+    it('should trigger subscribers for specific keys', () => {
+      type Storage = {
+        token: string;
+        expires: number;
+      };
 
-    it('should update storage when value changes', () => {
-      const storage = useSessionStorage('test-key', 'initial');
-      storage.value = 'updated';
-      expect(sessionStorage.getItem('test-key')).toBe(JSON.stringify('updated'));
-    });
+      const storage = useSessionStorage<Storage>();
+      const tokenCallback = vi.fn();
 
-    it('should remove storage when value is set to null', () => {
-      const storage = useSessionStorage('test-key', 'initial');
-      storage.value = null;
-      expect(sessionStorage.getItem('test-key')).toBeNull();
-    });
-
-    it('should trigger onChange callback when value changes', () => {
-      const onChange = vi.fn();
-      const storage = useSessionStorage('test-key', 'initial', { onChange });
-      storage.value = 'updated';
-      expect(onChange).toHaveBeenCalledWith('updated');
+      storage.subscribe('token', tokenCallback);
+      storage.set('token', 'abc123');
+      expect(tokenCallback).toHaveBeenCalledWith('abc123');
     });
   });
 
   describe('useUrlSearchParams', () => {
-    it('should initialize with default value when no URL param exists', () => {
-      const storage = useUrlSearchParams('test-key', 'default');
-      expect(storage.value).toBe('default');
-    });
+    it('should handle multiple keys in same instance', () => {
+      type Storage = {
+        page: number;
+        sort: string;
+      };
 
-    it('should trigger onChange callback when value changes', () => {
-      const onChange = vi.fn();
-      const storage = useUrlSearchParams('test-key', 'initial', { onChange });
-      storage.value = 'updated';
-      expect(onChange).toHaveBeenCalledWith('updated');
-    });
-
-    it('should call provider set method when value changes', () => {
+      const storage = useUrlSearchParams<Storage>();
       const setSpy = vi.spyOn(urlSearchParamsProvider, 'set');
-      const storage = useUrlSearchParams('test-key', 'initial');
-      storage.value = 'updated';
-      expect(setSpy).toHaveBeenCalledWith('test-key', JSON.stringify('updated'));
+
+      storage.set('page', 1);
+      storage.set('sort', 'name');
+
+      expect(setSpy).toHaveBeenCalledWith('page', JSON.stringify(1));
+      expect(setSpy).toHaveBeenCalledWith('sort', JSON.stringify('name'));
+
       setSpy.mockRestore();
     });
 
-    it('should call provider remove method when value is null', () => {
-      const removeSpy = vi.spyOn(urlSearchParamsProvider, 'remove');
-      const storage = useUrlSearchParams('test-key', 'initial');
-      storage.value = null;
-      expect(removeSpy).toHaveBeenCalledWith('test-key');
-      removeSpy.mockRestore();
+    it('should trigger subscribers for specific keys', () => {
+      type Storage = {
+        page: number;
+        sort: string;
+      };
+
+      const storage = useUrlSearchParams<Storage>();
+      const pageCallback = vi.fn();
+
+      storage.subscribe('page', pageCallback);
+      storage.set('page', 2);
+      expect(pageCallback).toHaveBeenCalledWith(2);
+    });
+
+    it('should listen to popstate events', () => {
+      const addEventListener = vi.spyOn(window, 'addEventListener');
+      const storage = useUrlSearchParams();
+      expect(addEventListener).toHaveBeenCalledWith('popstate', expect.any(Function));
+      addEventListener.mockRestore();
     });
   });
 
   describe('useUrlSearchParamsInHash', () => {
-    it('should initialize with hash param value', () => {
-      window.location.hash = '#test-key=%22hash-value%22';
-      const storage = useUrlSearchParamsInHash('test-key', 'default');
-      expect(storage.value).toBe('hash-value');
+    it('should handle multiple keys in same instance', () => {
+      type Storage = {
+        tab: string;
+        view: string;
+      };
+
+      const storage = useUrlSearchParamsInHash<Storage>();
+
+      storage.set('tab', 'settings');
+      storage.set('view', 'grid');
+
+      expect(storage.get('tab')).toBe('settings');
+      expect(storage.get('view')).toBe('grid');
     });
 
-    it('should initialize with default value when no hash param exists', () => {
-      const storage = useUrlSearchParamsInHash('test-key', 'default');
-      expect(storage.value).toBe('default');
+    it('should trigger subscribers for specific keys', () => {
+      type Storage = {
+        tab: string;
+        view: string;
+      };
+
+      const storage = useUrlSearchParamsInHash<Storage>();
+      const tabCallback = vi.fn();
+
+      storage.subscribe('tab', tabCallback);
+      storage.set('tab', 'profile');
+      expect(tabCallback).toHaveBeenCalledWith('profile');
     });
 
-    it('should update hash when value changes', () => {
-      const storage = useUrlSearchParamsInHash('test-key', 'initial');
-      storage.value = 'updated';
-      const params = new URLSearchParams(window.location.hash.slice(1));
-      expect(params.get('test-key')).toBe(JSON.stringify('updated'));
-    });
-
-    it('should remove param from hash when value is set to null', () => {
-      const storage = useUrlSearchParamsInHash('test-key', 'value');
-      storage.value = null;
-      const params = new URLSearchParams(window.location.hash.slice(1));
-      expect(params.has('test-key')).toBe(false);
-    });
-
-    it('should call provider set method when value changes', () => {
-      const setSpy = vi.spyOn(urlSearchParamsInHashProvider, 'set');
-      const storage = useUrlSearchParamsInHash('test-key', 'initial');
-      storage.value = 'updated';
-      expect(setSpy).toHaveBeenCalledWith('test-key', JSON.stringify('updated'));
-      setSpy.mockRestore();
-    });
-
-    it('should trigger onChange callback when value changes', () => {
-      const onChange = vi.fn();
-      const storage = useUrlSearchParamsInHash('test-key', 'initial', { onChange });
-      storage.value = 'updated';
-      expect(onChange).toHaveBeenCalledWith('updated');
+    it('should listen to hashchange events', () => {
+      const addEventListener = vi.spyOn(window, 'addEventListener');
+      const storage = useUrlSearchParamsInHash();
+      expect(addEventListener).toHaveBeenCalledWith('hashchange', expect.any(Function));
+      addEventListener.mockRestore();
     });
   });
 
@@ -236,56 +263,37 @@ describe('Storage utilities', () => {
 
   describe('Event synchronization', () => {
     it('should sync localStorage changes from storage events', () => {
-      const storage = useLocalStorage('test-key', 'initial');
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>();
       const callback = vi.fn();
-      storage.subscribe(callback);
+      storage.subscribe('theme', callback);
 
       // Simulate storage event from another tab
       const event = new StorageEvent('storage', {
-        key: 'test-key',
-        newValue: JSON.stringify('from-another-tab'),
+        key: 'theme',
+        newValue: JSON.stringify('dark'),
         storageArea: localStorage,
       });
       window.dispatchEvent(event);
 
-      expect(storage.value).toBe('from-another-tab');
-      expect(callback).toHaveBeenCalledWith('from-another-tab');
+      expect(callback).toHaveBeenCalledWith('dark');
     });
 
     it('should sync sessionStorage changes from storage events', () => {
-      const storage = useSessionStorage('test-key', 'initial');
+      type Storage = { token: string };
+      const storage = useSessionStorage<Storage>();
       const callback = vi.fn();
-      storage.subscribe(callback);
+      storage.subscribe('token', callback);
 
       // Simulate storage event from another tab
       const event = new StorageEvent('storage', {
-        key: 'test-key',
-        newValue: JSON.stringify('from-another-tab'),
+        key: 'token',
+        newValue: JSON.stringify('new-token'),
         storageArea: sessionStorage,
       });
       window.dispatchEvent(event);
 
-      expect(storage.value).toBe('from-another-tab');
-      expect(callback).toHaveBeenCalledWith('from-another-tab');
-    });
-
-    it('should listen to popstate events', () => {
-      const addEventListener = vi.spyOn(window, 'addEventListener');
-      const storage = useUrlSearchParams('test-key', 'initial');
-      expect(addEventListener).toHaveBeenCalledWith('popstate', expect.any(Function));
-      addEventListener.mockRestore();
-    });
-
-    it('should sync hash params on hashchange event', () => {
-      const storage = useUrlSearchParamsInHash('test-key', 'initial');
-      const callback = vi.fn();
-      storage.subscribe(callback);
-
-      window.location.hash = '#test-key=%22hash-value%22';
-      window.dispatchEvent(new HashChangeEvent('hashchange'));
-
-      expect(storage.value).toBe('hash-value');
-      expect(callback).toHaveBeenCalledWith('hash-value');
+      expect(callback).toHaveBeenCalledWith('new-token');
     });
   });
 });
