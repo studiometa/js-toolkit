@@ -86,6 +86,38 @@ export const urlSearchParamsProvider: StorageProvider = {
   },
 };
 
+function getParamsFromHash(): URLSearchParams | null {
+  if (typeof window === 'undefined') return null;
+  const hash = window.location.hash.slice(1); // Remove the '#'
+  return new URLSearchParams(hash);
+}
+
+/**
+ * URLSearchParams in hash provider
+ */
+export const urlSearchParamsInHashProvider: StorageProvider = {
+  get(key: string): string | null {
+    return getParamsFromHash()?.get(key);
+  },
+  set(key: string, value: string): void {
+    const params = getParamsFromHash();
+    if (!params) return;
+    params.set(key, value);
+    const newHash = params.toString();
+    window.location.hash = newHash;
+  },
+  remove(key: string): void {
+    const params = getParamsFromHash();
+    if (!params) return;
+    params.delete(key);
+    const newHash = params.toString();
+    window.location.hash = newHash;
+  },
+  has(key: string): boolean {
+    return getParamsFromHash()?.has(key) ?? false;
+  },
+};
+
 /**
  * Storage options
  */
@@ -97,6 +129,7 @@ export interface StorageOptions<T> {
     serialize: (value: T) => string;
     deserialize: (value: string) => T;
   };
+  onChange?: (value: T | null) => void;
 }
 
 /**
@@ -116,6 +149,7 @@ export function createStorage<T = string>(options: StorageOptions<T>): Signal<T 
     provider = localStorageProvider,
     initialValue = null as T | null,
     serializer = jsonSerializer,
+    onChange,
   } = options;
 
   // Get initial value from storage or use provided initial value
@@ -125,7 +159,7 @@ export function createStorage<T = string>(options: StorageOptions<T>): Signal<T 
   // Create signal with initial value
   const storageSignal = signal<T | null>(parsedValue);
 
-  // Create effect to sync signal changes to storage
+  // Create effect to sync signal changes to storage and trigger callbacks
   effect(() => {
     const value = storageSignal();
     if (value === null) {
@@ -133,10 +167,14 @@ export function createStorage<T = string>(options: StorageOptions<T>): Signal<T 
     } else {
       provider.set(key, serializer.serialize(value));
     }
+    onChange?.(value);
   });
 
   // Listen to storage events (for localStorage/sessionStorage cross-tab sync)
-  if (typeof window !== 'undefined' && (provider === localStorageProvider || provider === sessionStorageProvider)) {
+  if (
+    typeof window !== 'undefined' &&
+    (provider === localStorageProvider || provider === sessionStorageProvider)
+  ) {
     window.addEventListener('storage', (event) => {
       if (event.key === key) {
         const newValue = event.newValue ? serializer.deserialize(event.newValue) : null;
@@ -154,6 +192,15 @@ export function createStorage<T = string>(options: StorageOptions<T>): Signal<T 
     });
   }
 
+  // Listen to hashchange events (for URLSearchParams in hash navigation)
+  if (typeof window !== 'undefined' && provider === urlSearchParamsInHashProvider) {
+    window.addEventListener('hashchange', () => {
+      const value = provider.get(key);
+      const newValue = value ? serializer.deserialize(value) : null;
+      storageSignal(newValue);
+    });
+  }
+
   return storageSignal;
 }
 
@@ -163,9 +210,18 @@ export function createStorage<T = string>(options: StorageOptions<T>): Signal<T 
 export function useLocalStorage<T = string>(
   key: string,
   initialValue?: T,
-  serializer = jsonSerializer
+  options?: {
+    serializer?: StorageOptions<T>['serializer'];
+    onChange?: (value: T | null) => void;
+  },
 ): Signal<T | null> {
-  return createStorage({ key, provider: localStorageProvider, initialValue, serializer });
+  return createStorage({
+    key,
+    provider: localStorageProvider,
+    initialValue,
+    serializer: options?.serializer ?? jsonSerializer,
+    onChange: options?.onChange,
+  });
 }
 
 /**
@@ -174,9 +230,18 @@ export function useLocalStorage<T = string>(
 export function useSessionStorage<T = string>(
   key: string,
   initialValue?: T,
-  serializer = jsonSerializer
+  options?: {
+    serializer?: StorageOptions<T>['serializer'];
+    onChange?: (value: T | null) => void;
+  },
 ): Signal<T | null> {
-  return createStorage({ key, provider: sessionStorageProvider, initialValue, serializer });
+  return createStorage({
+    key,
+    provider: sessionStorageProvider,
+    initialValue,
+    serializer: options?.serializer ?? jsonSerializer,
+    onChange: options?.onChange,
+  });
 }
 
 /**
@@ -185,7 +250,36 @@ export function useSessionStorage<T = string>(
 export function useUrlSearchParams<T = string>(
   key: string,
   initialValue?: T,
-  serializer = jsonSerializer
+  options?: {
+    serializer?: StorageOptions<T>['serializer'];
+    onChange?: (value: T | null) => void;
+  },
 ): Signal<T | null> {
-  return createStorage({ key, provider: urlSearchParamsProvider, initialValue, serializer });
+  return createStorage({
+    key,
+    provider: urlSearchParamsProvider,
+    initialValue,
+    serializer: options?.serializer ?? jsonSerializer,
+    onChange: options?.onChange,
+  });
+}
+
+/**
+ * Create URLSearchParams in hash utility
+ */
+export function useUrlSearchParamsInHash<T = string>(
+  key: string,
+  initialValue?: T,
+  options?: {
+    serializer?: StorageOptions<T>['serializer'];
+    onChange?: (value: T | null) => void;
+  },
+): Signal<T | null> {
+  return createStorage({
+    key,
+    provider: urlSearchParamsInHashProvider,
+    initialValue,
+    serializer: options?.serializer ?? jsonSerializer,
+    onChange: options?.onChange,
+  });
 }
