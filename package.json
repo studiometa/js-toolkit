@@ -39,7 +39,6 @@
     "typescript": "5.9.2"
   },
   "dependencies": {
-    "alien-signals": "3.0.0",
     "esbuild": "^0.25.9",
     "fast-glob": "^3.3.3"
   }
