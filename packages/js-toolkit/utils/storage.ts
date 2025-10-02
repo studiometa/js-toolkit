@@ -117,27 +117,27 @@ export const urlSearchParamsInHashProvider: StorageProvider = {
 };
 
 /**
- * Storage instance interface
+ * Storage instance interface for multi-key storage
  */
-export interface StorageInstance<T> {
-  get value(): T | null;
-  set value(newValue: T | null);
-  subscribe(callback: (value: T | null) => void): () => void;
+export interface StorageInstance<T = any> {
+  get<K extends keyof T>(key: K): T[K] | null;
+  set<K extends keyof T>(key: K, value: T[K] | null): void;
+  subscribe<K extends keyof T>(
+    key: K,
+    callback: (value: T[K] | null) => void,
+  ): () => void;
   destroy(): void;
 }
 
 /**
  * Storage options
  */
-export interface StorageOptions<T> {
-  key: string;
+export interface StorageOptions<T = any> {
   provider?: StorageProvider;
-  initialValue?: T;
   serializer?: {
-    serialize: (value: T) => string;
-    deserialize: (value: string) => T;
+    serialize: (value: any) => string;
+    deserialize: (value: string) => any;
   };
-  onChange?: (value: T | null) => void;
 }
 
 /**
@@ -149,52 +149,36 @@ const jsonSerializer = {
 };
 
 /**
- * Create a storage utility
+ * Create a multi-key storage instance
  */
-export function createStorage<T = string>(options: StorageOptions<T>): StorageInstance<T> {
-  const {
-    key,
-    provider = localStorageProvider,
-    initialValue = null as T | null,
-    serializer = jsonSerializer,
-    onChange,
-  } = options;
+export function createStorage<T extends Record<string, any> = Record<string, any>>(
+  options: StorageOptions<T> = {},
+): StorageInstance<T> {
+  const { provider = localStorageProvider, serializer = jsonSerializer } = options;
 
-  // Get initial value from storage or use provided initial value
-  const storedValue = provider.get(key);
-  let currentValue: T | null = storedValue ? serializer.deserialize(storedValue) : initialValue;
-
-  const listeners = new Set<(value: T | null) => void>();
-
-  // Add initial onChange callback if provided
-  if (onChange) {
-    listeners.add(onChange);
-  }
-
-  const notify = (value: T | null) => {
-    listeners.forEach((listener) => listener(value));
-  };
-
+  const listeners = new Map<keyof T, Set<(value: any) => void>>();
   const storageHandler = (event: StorageEvent) => {
-    if (event.key === key) {
+    const key = event.key as keyof T;
+    if (listeners.has(key)) {
       const newValue = event.newValue ? serializer.deserialize(event.newValue) : null;
-      currentValue = newValue;
-      notify(newValue);
+      listeners.get(key)?.forEach((callback) => callback(newValue));
     }
   };
 
   const popstateHandler = () => {
-    const value = provider.get(key);
-    const newValue = value ? serializer.deserialize(value) : null;
-    currentValue = newValue;
-    notify(newValue);
+    listeners.forEach((callbacks, key) => {
+      const value = provider.get(key as string);
+      const newValue = value ? serializer.deserialize(value) : null;
+      callbacks.forEach((callback) => callback(newValue));
+    });
   };
 
   const hashchangeHandler = () => {
-    const value = provider.get(key);
-    const newValue = value ? serializer.deserialize(value) : null;
-    currentValue = newValue;
-    notify(newValue);
+    listeners.forEach((callbacks, key) => {
+      const value = provider.get(key as string);
+      const newValue = value ? serializer.deserialize(value) : null;
+      callbacks.forEach((callback) => callback(newValue));
+    });
   };
 
   // Listen to storage events (for localStorage/sessionStorage cross-tab sync)
@@ -216,25 +200,37 @@ export function createStorage<T = string>(options: StorageOptions<T>): StorageIn
   }
 
   return {
-    get value() {
-      return currentValue;
+    get<K extends keyof T>(key: K): T[K] | null {
+      const storedValue = provider.get(key as string);
+      return storedValue ? serializer.deserialize(storedValue) : null;
     },
-    set value(newValue: T | null) {
-      currentValue = newValue;
-      if (newValue === null) {
-        provider.remove(key);
+
+    set<K extends keyof T>(key: K, value: T[K] | null): void {
+      if (value === null) {
+        provider.remove(key as string);
       } else {
-        provider.set(key, serializer.serialize(newValue));
+        provider.set(key as string, serializer.serialize(value));
       }
-      notify(newValue);
+
+      // Notify listeners
+      listeners.get(key)?.forEach((callback) => callback(value));
     },
-    subscribe(callback: (value: T | null) => void) {
-      listeners.add(callback);
+
+    subscribe<K extends keyof T>(key: K, callback: (value: T[K] | null) => void): () => void {
+      if (!listeners.has(key)) {
+        listeners.set(key, new Set());
+      }
+      listeners.get(key)!.add(callback);
+
       return () => {
-        listeners.delete(callback);
+        listeners.get(key)?.delete(callback);
+        if (listeners.get(key)?.size === 0) {
+          listeners.delete(key);
+        }
       };
     },
-    destroy() {
+
+    destroy(): void {
       listeners.clear();
       if (typeof window !== 'undefined') {
         if (provider === localStorageProvider || provider === sessionStorageProvider) {
@@ -254,79 +250,35 @@ export function createStorage<T = string>(options: StorageOptions<T>): StorageIn
 /**
  * Create localStorage utility
  */
-export function useLocalStorage<T = string>(
-  key: string,
-  initialValue?: T,
-  options?: {
-    serializer?: StorageOptions<T>['serializer'];
-    onChange?: (value: T | null) => void;
-  },
+export function useLocalStorage<T extends Record<string, any> = Record<string, any>>(
+  options?: StorageOptions<T>,
 ): StorageInstance<T> {
-  return createStorage({
-    key,
-    provider: localStorageProvider,
-    initialValue,
-    serializer: options?.serializer ?? jsonSerializer,
-    onChange: options?.onChange,
-  });
+  return createStorage({ ...options, provider: localStorageProvider });
 }
 
 /**
  * Create sessionStorage utility
  */
-export function useSessionStorage<T = string>(
-  key: string,
-  initialValue?: T,
-  options?: {
-    serializer?: StorageOptions<T>['serializer'];
-    onChange?: (value: T | null) => void;
-  },
+export function useSessionStorage<T extends Record<string, any> = Record<string, any>>(
+  options?: StorageOptions<T>,
 ): StorageInstance<T> {
-  return createStorage({
-    key,
-    provider: sessionStorageProvider,
-    initialValue,
-    serializer: options?.serializer ?? jsonSerializer,
-    onChange: options?.onChange,
-  });
+  return createStorage({ ...options, provider: sessionStorageProvider });
 }
 
 /**
  * Create URLSearchParams utility
  */
-export function useUrlSearchParams<T = string>(
-  key: string,
-  initialValue?: T,
-  options?: {
-    serializer?: StorageOptions<T>['serializer'];
-    onChange?: (value: T | null) => void;
-  },
+export function useUrlSearchParams<T extends Record<string, any> = Record<string, any>>(
+  options?: StorageOptions<T>,
 ): StorageInstance<T> {
-  return createStorage({
-    key,
-    provider: urlSearchParamsProvider,
-    initialValue,
-    serializer: options?.serializer ?? jsonSerializer,
-    onChange: options?.onChange,
-  });
+  return createStorage({ ...options, provider: urlSearchParamsProvider });
 }
 
 /**
  * Create URLSearchParams in hash utility
  */
-export function useUrlSearchParamsInHash<T = string>(
-  key: string,
-  initialValue?: T,
-  options?: {
-    serializer?: StorageOptions<T>['serializer'];
-    onChange?: (value: T | null) => void;
-  },
+export function useUrlSearchParamsInHash<T extends Record<string, any> = Record<string, any>>(
+  options?: StorageOptions<T>,
 ): StorageInstance<T> {
-  return createStorage({
-    key,
-    provider: urlSearchParamsInHashProvider,
-    initialValue,
-    serializer: options?.serializer ?? jsonSerializer,
-    onChange: options?.onChange,
-  });
+  return createStorage({ ...options, provider: urlSearchParamsInHashProvider });
 }
