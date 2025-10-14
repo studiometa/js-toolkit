@@ -26,6 +26,7 @@ describe('The package exports', () => {
         "importWhenPrefersMotion",
         "importWhenVisible",
         "isDirectChild",
+        "registerComponent",
         "useDrag",
         "useKey",
         "useLoad",
