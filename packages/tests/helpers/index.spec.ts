@@ -14,6 +14,7 @@ test('helpers exports', () => {
       "importWhenPrefersMotion",
       "importWhenVisible",
       "isDirectChild",
+      "registerComponent",
     ]
   `);
 });
