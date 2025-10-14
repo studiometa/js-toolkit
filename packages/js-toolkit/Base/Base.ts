@@ -13,6 +13,7 @@ import {
   EventsManager,
   OptionsManager,
 } from './managers/index.js';
+import { getInstanceFromElement } from '../helpers/getInstanceFromElement.js';
 import { noop, isDev, isFunction, isArray } from '../utils/index.js';
 
 let id = 0;
@@ -547,9 +548,13 @@ export class Base<T extends BaseProps = BaseProps> {
   /**
    * Register and mount all instances of the component.
    */
-  static $register(nameOrSelector?: string): Array<Promise<Base>> {
-    return getComponentElements(nameOrSelector ?? this.config.name).map((el) =>
-      new this(el).$mount(),
+  static $register<T extends BaseProps = BaseProps, U extends typeof Base<T> = typeof Base<T>>(
+    this: U,
+    nameOrSelector?: string,
+  ): Promise<InstanceType<U>>[] {
+    return getComponentElements(nameOrSelector ?? this.config.name).map(
+      async (el) =>
+        getInstanceFromElement(el, this) ?? (new this(el).$mount() as Promise<InstanceType<U>>),
     );
   }
 }
