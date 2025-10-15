@@ -120,7 +120,7 @@ export class ChildrenManager<T> extends AbstractManager<T> {
   /**
    * Get a child component's instance.
    *
-   * @param {HTMLElement & { __base__?: WeakMap<BaseConstructor, Base> }} el
+   * @param {BaseEl} el
    *   The root element of the child component.
    * @param {BaseConstructor|BaseAsyncConstructor} ComponentClass
    *   A Base class or a Promise for async components.
@@ -150,8 +150,8 @@ export class ChildrenManager<T> extends AbstractManager<T> {
       }
 
       // Return existing instance if it exists
-      if (el.__base__ && el.__base__.has(ctor)) {
-        return el.__base__.get(ctor);
+      if (el.__base__ && el.__base__.has(ctor.config.name)) {
+        return el.__base__.get(ctor.config.name);
       }
 
       // Return a new instance if the component class is a child of the Base class
