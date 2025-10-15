@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add a `registerComponent` helper function ([#672](https://github.com/studiometa/js-toolkit/pull/672), [7a51eac1](https://github.com/studiometa/js-toolkit/commit/7a51eac1))
+
+### Fixed
+
+- Fix calling the `$register` static method multiple times ([#672](https://github.com/studiometa/js-toolkit/pull/672), [409115f7](https://github.com/studiometa/js-toolkit/commit/409115f7))
+
+### Changed
+
+- Refactor reference to components' instances on the root element ([#672](https://github.com/studiometa/js-toolkit/pull/672), [9c0227ac](https://github.com/studiometa/js-toolkit/commit/9c0227ac))
+
 ## [v3.1.1](https://github.com/studiometa/js-toolkit/compare/3.1.0..3.1.1) (2025-08-29)
 
 ### Added
