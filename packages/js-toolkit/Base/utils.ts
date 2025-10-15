@@ -106,7 +106,14 @@ export function getEventTarget(instance: Base, event: string, config: BaseConfig
   }
 }
 
-const instances = new Set<Base>();
+/**
+ * Get the global instance storage.
+ * We attach it to `globalThis` so it can be shared between different
+ * instances of the framework.
+ */
+function getInstancesStorage(): Set<Base> {
+  return globalThis.__js_toolkit_instances__ ??= new Set<Base>();
+}
 
 /**
  * Get all mounted instances or the ones from a given component.
@@ -120,21 +127,21 @@ export function getInstances<T extends BaseConstructor = BaseConstructor>(
 ): Set<InstanceType<T>> | Set<Base> {
   if (isDefined(ctor)) {
     const filteredInstances = new Set<InstanceType<T>>();
-    for (const instance of instances) {
+    for (const instance of getInstancesStorage()) {
       if (instance instanceof ctor) {
         filteredInstances.add(instance as InstanceType<T>);
       }
     }
     return filteredInstances;
   } else {
-    return new Set(instances);
+    return new Set(getInstancesStorage());
   }
 }
 
 export function addInstance(instance: Base) {
-  instances.add(instance);
+  getInstancesStorage().add(instance);
 }
 
 export function deleteInstance(instance: Base) {
-  instances.delete(instance);
+  getInstancesStorage().delete(instance);
 }

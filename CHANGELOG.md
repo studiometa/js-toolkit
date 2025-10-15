@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Fixed
 
 - Fix calling the `$register` static method multiple times ([#672](https://github.com/studiometa/js-toolkit/pull/672), [409115f7](https://github.com/studiometa/js-toolkit/commit/409115f7))
+- Improve instances storage ([#673](https://github.com/studiometa/js-toolkit/pull/673), [42380a73](https://github.com/studiometa/js-toolkit/commit/42380a73))
 
 ### Changed
 
