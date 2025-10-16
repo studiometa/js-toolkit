@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. The format 
 
 - Fix calling the `$register` static method multiple times ([#672](https://github.com/studiometa/js-toolkit/pull/672), [409115f7](https://github.com/studiometa/js-toolkit/commit/409115f7))
 - Improve instances storage ([#673](https://github.com/studiometa/js-toolkit/pull/673), [42380a73](https://github.com/studiometa/js-toolkit/commit/42380a73))
+- **useDrag:** do not drag when touch has multiple touches ([studiometa/ui#437](https://github.com/studiometa/ui/issues/437), [#674](https://github.com/studiometa/js-toolkit/pull/674), [6ec11f96](https://github.com/studiometa/js-toolkit/commit/6ec11f96))
 
 ### Changed
 
