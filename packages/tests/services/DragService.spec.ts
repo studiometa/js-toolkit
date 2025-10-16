@@ -36,7 +36,7 @@ describe('The drag service', () => {
 
     const clientX = 10;
     const clientY = 10;
-    dispatch(document, 'mousemove', { clientX, clientY });
+    dispatch(document, 'mousemove', { clientX, clientY, buttons: 1 });
     expect(fn).toHaveBeenLastCalledWith(props());
     expect(props().mode).toBe('drag');
 
@@ -55,7 +55,7 @@ describe('The drag service', () => {
     dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
     let clientX = window.innerWidth / 2 + 10;
     let clientY = window.innerHeight / 2 + 10;
-    dispatch(document, 'mousemove', { clientX, clientY });
+    dispatch(document, 'mousemove', { clientX, clientY, buttons: 1 });
     await advanceTimersByTimeAsync(100);
     clientX += 100;
     clientY += 100;
@@ -98,8 +98,8 @@ describe('The drag service', () => {
 
     add('key', () => ({}));
     dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
-    dispatch(document, 'mousemove', { clientX: 0, clientY: 0 });
-    dispatch(document, 'mousemove', { clientX: 0, clientY: 11 });
+    dispatch(document, 'mousemove', { clientX: 0, clientY: 0, buttons: 1 });
+    dispatch(document, 'mousemove', { clientX: 0, clientY: 11, buttons: 1 });
     await advanceTimersByTimeAsync(100);
     const event = new Event('click');
     const eventSpy = vi.spyOn(event, 'preventDefault');
@@ -145,5 +145,29 @@ describe('The drag service', () => {
     expect(service.props().mode).not.toBe('drop');
     expect(fn).not.toHaveBeenCalled();
     service.remove('key');
+  });
+
+  it('should drop when dragging without main button pressed', () => {
+    const fn = vi.fn();
+    const div = h('div');
+    const service = useDrag(div, { dampFactor: 0.1 });
+    service.add('key', fn);
+    dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
+    dispatch(document, 'mousemove', { clientX: 10, clientY: 10, buttons: 1 });
+    expect(service.props().mode).toBe('drag');
+    dispatch(document, 'mousemove', { clientX: 10, clientY: 10, buttons: 0 });
+    expect(service.props().mode).toBe('drop');
+  });
+
+  it('should drop when dragging with more than one finger', () => {
+    const fn = vi.fn();
+    const div = h('div');
+    const service = useDrag(div, { dampFactor: 0.1 });
+    service.add('key', fn);
+    dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
+    dispatch(document, 'touchmove', { clientX: 10, clientY: 10, touches: [{}] });
+    expect(service.props().mode).toBe('drag');
+    dispatch(document, 'touchmove', { clientX: 10, clientY: 10, buttons: [{},{}] });
+    expect(service.props().mode).toBe('drop');
   });
 });
