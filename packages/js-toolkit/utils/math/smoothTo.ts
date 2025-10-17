@@ -29,7 +29,7 @@ export type SmoothToOptions = Partial<{
  * Create a smoothing function that will smoothly tween between two values.
  * @param {number} [start] The initial value.
  * @param {SmoothToOptions} [options] Options for the transition.
- * @see https://js-toolkit.studiometa.dev/utils/math/smoothTo.html
+ * @link https://js-toolkit.studiometa.dev/utils/math/smoothTo.html
  * @example
  * ```js
  * const x = smoothTo(0);

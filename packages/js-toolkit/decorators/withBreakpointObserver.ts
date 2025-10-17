@@ -138,7 +138,7 @@ export function withBreakpointObserver<S extends Base>(
       const { name } = this.$options;
 
       // Do nothing if no breakpoint has been defined.
-      // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
+      // @link https://js-toolkit.studiometa.dev/api/services/useResize.html#breakpoint
       if (!props().breakpoint) {
         if (isDev) {
           throw new Error(

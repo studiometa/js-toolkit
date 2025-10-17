@@ -66,7 +66,7 @@ export type Managers = {
 export class Base<T extends BaseProps = BaseProps> {
   /**
    * Declare the `this.constructor` type
-   * @see https://github.com/microsoft/TypeScript/issues/3841#issuecomment-2381594311
+   * @link https://github.com/microsoft/TypeScript/issues/3841#issuecomment-2381594311
    */
   declare ['constructor']: BaseConstructor;
 

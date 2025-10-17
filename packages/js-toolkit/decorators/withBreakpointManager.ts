@@ -64,7 +64,7 @@ export function withBreakpointManager<S extends Base>(
   const { add, props } = useResize();
 
   // Do nothing if no breakpoint has been defined.
-  // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
+  // @link https://js-toolkit.studiometa.dev/api/services/useResize.html#breakpoint
   if (!props().breakpoint) {
     if (isDev) {
       throw new Error('The `BreakpointManager` class requires breakpoints to be defined.');
