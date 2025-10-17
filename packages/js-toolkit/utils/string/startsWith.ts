@@ -3,7 +3,7 @@
  *
  * This is a more performant version of the `String.prototype.startsWith` method.
  *
- * @see https://jsbench.me/1hlkqqd0ff/1
+ * @link https://jsbench.me/1hlkqqd0ff/1
  */
 export function startsWith(string: string, search: string): boolean {
   if (search.length === 0) {

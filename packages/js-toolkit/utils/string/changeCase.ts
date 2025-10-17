@@ -7,7 +7,7 @@ const SPLIT_REPLACE_VALUE = '$1\0$2';
 
 /**
  * Split function from the `change-case` package.
- * @see https://github.com/blakeembrey/change-case
+ * @link https://github.com/blakeembrey/change-case
  */
 function split(value: string) {
   let result = value.trim();

@@ -33,7 +33,7 @@ export type ServiceConfig = [
 export class AbstractService<PropsType = any> {
   /**
    * Used to type `this.constructor` correctly
-   * @see https://github.com/microsoft/TypeScript/issues/3841#issuecomment-2381594311
+   * @link https://github.com/microsoft/TypeScript/issues/3841#issuecomment-2381594311
    */
   declare ['constructor']: typeof AbstractService;
 
