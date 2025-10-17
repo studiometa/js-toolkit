@@ -13,10 +13,10 @@ type SearchParamValue = string | number | boolean;
 /**
  * Set a param in a URLSearchParam instance.
  *
- * @param   {URLSearchParams}                    params The params to update.
- * @param   {string}                             name   The name of the param to update.
- * @param   {string|number|boolean|Array|Object} value  The value for this param.
- * @returns {URLSearchParams}                           The updated URLSearchParams instance.
+ * @param  {URLSearchParams}                    params The params to update.
+ * @param  {string}                             name   The name of the param to update.
+ * @param  {string|number|boolean|Array|Object} value  The value for this param.
+ * @return {URLSearchParams}                           The updated URLSearchParams instance.
  */
 function updateUrlSearchParam(
   params: URLSearchParams,
@@ -53,10 +53,11 @@ function updateUrlSearchParam(
 /**
  * Transform an object to an URLSearchParams instance.
  *
- * @param   {Object}          obj           The object to convert.
- * @param   {string}          defaultSearch A string of defaults search params.
- * @returns {URLSearchParams}
- */
+ * @param  {Object}          obj           The object to convert.
+ * @param  {string}          defaultSearch A string of defaults search params.
+ * @return {URLSearchParams}
+ * @link https://js-toolkit.studiometa.dev/utils/history/objectToURLSearchParams.html
+*/
 export function objectToURLSearchParams(
   obj: unknown,
   defaultSearch = hasWindow() ? window.location.search : '',
@@ -71,11 +72,11 @@ export function objectToURLSearchParams(
 /**
  * Update the history with a new state.
  *
- * @param   {string}         mode
- * @param   {HistoryOptions} options
- * @param   {Object}         [data]
- * @param   {string}         [title]
- * @returns {void}
+ * @param  {string}         mode
+ * @param  {HistoryOptions} options
+ * @param  {Object}         [data]
+ * @param  {string}         [title]
+ * @return {void}
  */
 function updateHistory(
   mode: 'push' | 'replace',
@@ -117,11 +118,12 @@ function updateHistory(
 /**
  * Push a new state.
  *
- * @param   {HistoryOptions} options The new state.
- * @param   {Object}         [data]  The data for the new state.
- * @param   {string}         [title] The title for the new state.
- * @returns {void}
- */
+ * @param  {HistoryOptions} options The new state.
+ * @param  {Object}         [data]  The data for the new state.
+ * @param  {string}         [title] The title for the new state.
+ * @return {void}
+ * @link https://js-toolkit.studiometa.dev/utils/history/historyPush.html
+*/
 export function push(options: HistoryOptions, data: unknown = {}, title = '') {
   updateHistory('push', options, data, title);
 }
@@ -129,11 +131,12 @@ export function push(options: HistoryOptions, data: unknown = {}, title = '') {
 /**
  * Replace a new state.
  *
- * @param   {HistoryOptions} options The new state.
- * @param   {Object}         [data]  The data for the new state.
- * @param   {string}         [title] The title for the new state.
- * @returns {void}
- */
+ * @param  {HistoryOptions} options The new state.
+ * @param  {Object}         [data]  The data for the new state.
+ * @param  {string}         [title] The title for the new state.
+ * @return {void}
+ * @link https://js-toolkit.studiometa.dev/utils/history/historyReplace.html
+*/
 export function replace(options: HistoryOptions, data: unknown = {}, title = '') {
   updateHistory('replace', options, data, title);
 }

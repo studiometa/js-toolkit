@@ -13,7 +13,8 @@ export interface WithDragInterface extends BaseInterface {
 
 /**
  * Add dragging capabilities to a component.
- */
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withDrag.html
+*/
 export function withDrag<S extends Base>(
   BaseClass: typeof Base,
   { target = (instance) => instance.$el, ...options }: DragDecoratorOptions = {},

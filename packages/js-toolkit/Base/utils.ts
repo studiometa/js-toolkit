@@ -59,7 +59,7 @@ export function getSelector(nameOrSelector: string): string {
  *   The name or selector to used for this component.
  * @param {HTMLElement|Document} element
  *   The root element on which to query the selector, defaults to `document`.
- * @returns {Array<HTMLElement>}
+ * @return {Array<HTMLElement>}
  *   A list of elements on which the component should be mounted.
  */
 export function getComponentElements(
@@ -117,7 +117,8 @@ function getInstancesStorage(): Set<Base> {
 
 /**
  * Get all mounted instances or the ones from a given component.
- */
+ * @link https://js-toolkit.studiometa.dev/api/helpers/getInstances.html
+*/
 export function getInstances(): Set<Base>;
 export function getInstances<T extends BaseConstructor = BaseConstructor>(
   ctor: T,

@@ -116,8 +116,9 @@ function getTargetScrollPosition(
 /**
  * Scroll to an element.
  *
- * @returns {Promise<ScrollPosition>} A promising resolving with the scroll position.
- */
+ * @return {Promise<ScrollPosition>} A promising resolving with the scroll position.
+ * @link https://js-toolkit.studiometa.dev/utils/scrollTo.html
+*/
 export function scrollTo(
   target: string | HTMLElement | number | Partial<ScrollPosition>,
   { rootElement = window, axis = yAxis, offset = 0, ...tweenOptions }: ScrollToOptions = {},

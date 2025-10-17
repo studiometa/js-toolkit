@@ -5,7 +5,8 @@ import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
 
 /**
  * Extends the configuration of an existing class.
- */
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withExtraConfig.html
+*/
 export function withExtraConfig<S extends Base>(
   BaseClass: typeof Base,
   config: Partial<BaseConfig>,

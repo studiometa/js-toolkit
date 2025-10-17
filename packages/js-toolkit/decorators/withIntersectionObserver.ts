@@ -16,7 +16,8 @@ export interface WithIntersectionObserverInterface extends BaseInterface {
 
 /**
  * IntersectionObserver decoration.
- */
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withIntersectionObserver.html
+*/
 export function withIntersectionObserver<S extends Base>(
   BaseClass: typeof Base,
   // eslint-disable-next-line unicorn/no-object-as-default-parameter

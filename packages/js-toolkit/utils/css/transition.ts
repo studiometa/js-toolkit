@@ -42,7 +42,7 @@ class Transition {
    * Get the transition class attached to the given element.
    *
    * @param  {HTMLElement} element The HTML element concerned by the transition.
-   * @returns {Transition}          The transition instance tied to the given element.
+   * @return {Transition}          The transition instance tied to the given element.
    */
   static getInstance(element: HTMLElement): Transition {
     let instance = cache.get(element);
@@ -142,7 +142,7 @@ function end(
  * @param  {HTMLElement}             element The target element.
  * @param  {string|TransitionStyles} name    The name of the transition or an object with the hooks classesOrStyles.
  * @param  {string}                  endMode Whether to remove or keep the `to` classes/styles
- * @returns {Promise<void>}                   A promise resolving at the end of the transition.
+ * @return {Promise<void>}                   A promise resolving at the end of the transition.
  */
 async function singleTransition(
   element: HTMLElement,
@@ -181,8 +181,9 @@ async function singleTransition(
  * @param  {HTMLElement|HTMLElement[]|NodeListOf<HTMLElement>} elementOrElements The target element or elements.
  * @param  {string|TransitionStyles}                           name              The name of the transition or an object with the hooks classesOrStyles.
  * @param  {string}                                            endMode           Whether to remove or keep the `to` classes/styles
- * @returns {Promise<void>}                                                      A promise resolving at the end of the transition.
- */
+ * @return {Promise<void>}                                                      A promise resolving at the end of the transition.
+ * @link https://js-toolkit.studiometa.dev/utils/css/transition.html
+*/
 export async function transition(
   elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
   name: string | TransitionStyles,

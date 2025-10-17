@@ -106,7 +106,8 @@ export interface WithScrolledInViewInterface extends BaseInterface {
 
 /**
  * Add scrolled in view capabilities to a component.
- */
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withScrolledInView.html
+*/
 export function withScrolledInView<S extends Base = Base>(
   BaseClass: typeof Base,
   options: WithScrolledInViewOptions = {},

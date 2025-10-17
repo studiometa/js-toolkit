@@ -6,8 +6,9 @@ import { importOnMediaQuery } from './importOnMediaQuery.js';
  *
  * @template {BaseConstructor} T
  * @param {() => Promise<T|{default:T}>} fn
- * @returns {Promise<T>}
- */
+ * @return {Promise<T>}
+ * @link https://js-toolkit.studiometa.dev/api/helpers/importWhenPrefersMotion.html
+*/
 export function importWhenPrefersMotion<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
 ): Promise<T> {

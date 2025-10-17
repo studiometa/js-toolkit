@@ -38,7 +38,8 @@ const instances: WeakMap<Base, Array<[string[], Base]>> = new WeakMap();
 
 /**
  * BreakpointManager class.
- */
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withBreakpointManager.html
+*/
 export function withBreakpointManager<S extends Base>(
   BaseClass: typeof Base,
   breakpoints: Array<[string, BaseConstructor<Base>]>,

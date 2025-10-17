@@ -268,8 +268,8 @@ export class Base<T extends BaseProps = BaseProps> {
   /**
    * Test if the given event has been bound to the instance.
    *
-   * @param   {string} event The event's name.
-   * @returns {boolean}      Wether the given event has been bound or not.
+   * @param  {string} event The event's name.
+   * @return {boolean}      Wether the given event has been bound or not.
    */
   __hasEvent(event: string): boolean {
     const eventHandlers = this.__eventHandlers.get(event);
@@ -430,8 +430,8 @@ export class Base<T extends BaseProps = BaseProps> {
   /**
    * Add an emitted event.
    *
-   * @param   {string} event The event name.
-   * @returns {void}
+   * @param  {string} event The event name.
+   * @return {void}
    */
   __addEmits(event: string): void {
     const ctor = this.constructor;
@@ -445,8 +445,8 @@ export class Base<T extends BaseProps = BaseProps> {
   /**
    * Remove an emitted event.
    *
-   * @param   {string} event The event name.
-   * @returns {void}
+   * @param  {string} event The event name.
+   * @return {void}
    */
   __removeEmits(event: string): void {
     const ctor = this.constructor;
@@ -463,7 +463,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *   Function to be called.
    * @param {boolean|AddEventListenerOptions} [options]
    *   Options for the `removeEventListener` method.
-   * @returns {() => void}
+   * @return {() => void}
    *   A function to unbind the listener.
    */
   $on(
@@ -511,7 +511,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *   Function to be removed.
    * @param {boolean|EventListenerOptions} [options]
    *   Options for the `removeEventListener` method.
-   * @returns {void}
+   * @return {void}
    */
   $off(
     event: string,
@@ -533,7 +533,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *
    * @param  {string} event Name of the event.
    * @param  {any[]}  args  The arguments to apply to the functions bound to this event.
-   * @returns {void}
+   * @return {void}
    */
   $emit(event: string | Event, ...args: unknown[]) {
     if (isDev) {

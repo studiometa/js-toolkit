@@ -76,7 +76,8 @@ export class KeyService extends AbstractService<KeyServiceProps> {
 
 /**
  * Use the keyboard service.
- */
+ * @link https://js-toolkit.studiometa.dev/api/services/useKey.html
+*/
 export function useKey(): KeyServiceInterface {
   return KeyService.getInstance();
 }

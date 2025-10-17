@@ -29,7 +29,8 @@ export function saveActiveElement() {
  *
  * @param {HTMLElement} element The element in which to trap the tabulations.
  * @param {KeyboardEvent} event The keydown or keyup event.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/trapFocus.html
+*/
 export function trapFocus(element: HTMLElement, event: KeyboardEvent) {
   if (event.keyCode !== keyCodes.TAB) {
     return;
@@ -76,7 +77,8 @@ export function trapFocus(element: HTMLElement, event: KeyboardEvent) {
 
 /**
  * Untrap the tab navigation.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/trapFocus.html
+*/
 export function untrapFocus() {
   if (focusedBefore && isFunction(focusedBefore.focus)) {
     focusedBefore.focus();

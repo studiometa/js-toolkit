@@ -13,7 +13,8 @@ export interface RelativePointerInterface extends BaseInterface {
 
 /**
  * Add dragging capabilities to a component.
- */
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withRelativePointer.html
+*/
 export function withRelativePointer<S extends Base>(
   BaseClass: typeof Base,
   { target = (instance) => instance.$el }: RelativePointerDecoratorOptions = {},

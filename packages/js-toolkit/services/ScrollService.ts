@@ -133,7 +133,8 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
  * remove(key);
  * props();
  * ```
- */
+ * @link https://js-toolkit.studiometa.dev/api/services/useScroll.html
+*/
 export function useScroll(): ScrollServiceInterface {
   return ScrollService.getInstance();
 }

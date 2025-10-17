@@ -124,7 +124,7 @@ export class ChildrenManager<T> extends AbstractManager<T> {
    *   The root element of the child component.
    * @param {BaseConstructor|BaseAsyncConstructor} ComponentClass
    *   A Base class or a Promise for async components.
-   * @returns {Base|Promise<Base | 'terminated'>|'terminated'}
+   * @return {Base|Promise<Base | 'terminated'>|'terminated'}
    *   A Base instance or a Promise resolving to a Base instance.
    * @private
    */

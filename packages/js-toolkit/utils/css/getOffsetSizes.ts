@@ -1,6 +1,7 @@
 /**
  * Get a `DOMRect` like `Object` for an element, without its transforms.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/css/getOffsetSizes.html
+*/
 export function getOffsetSizes(element: HTMLElement) {
   let parent = element;
   let x = -window.scrollX;

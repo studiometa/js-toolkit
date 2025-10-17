@@ -1,3 +1,6 @@
+/**
+ * @link https://js-toolkit.studiometa.dev/utils/keyCodes.html
+ */
 export const keyCodes = {
   ENTER: 13,
   SPACE: 32,

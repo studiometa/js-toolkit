@@ -13,8 +13,9 @@ type ImportWhenIdleOptions = {
  *   The import function.
  * @param {ImportWhenIdleOptions} [options]
  *   The time to wait before triggering the callback if never idle.
- * @returns {Promise<T>}
- */
+ * @return {Promise<T>}
+ * @link https://js-toolkit.studiometa.dev/api/helpers/importWhenIdle.html
+*/
 export function importWhenIdle<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
   { timeout = 1 }: ImportWhenIdleOptions = {},

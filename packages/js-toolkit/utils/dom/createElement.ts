@@ -9,7 +9,8 @@ type CreateElementChildren = string | Node | Array<string | Node>;
 
 /**
  * Functional DOM Element creation.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/createElement.html
+*/
 export function createElement<T extends keyof AnyHTMLElementTagNameMap = 'div'>(
   tag?: T,
   children?: CreateElementChildren,

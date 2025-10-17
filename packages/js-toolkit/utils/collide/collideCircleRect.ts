@@ -19,8 +19,9 @@
  *
  * @param {Circle} circle Circle
  * @param {Rect} rect Rectangle
- * @returns {boolean} Are the sides of the circle touching the rectangle ?
- */
+ * @return {boolean} Are the sides of the circle touching the rectangle ?
+ * @link https://js-toolkit.studiometa.dev/utils/collision/collideCircleRect.html
+*/
 export function collideCircleRect(circle, rect) {
   // temporary variables to set edges for testing
   let testX = circle.x;
