@@ -1,3 +1,6 @@
+/**
+ * @link https://js-toolkit.studiometa.dev/utils/math/mean.html
+ */
 export function mean(numbers: number[]) {
   if (numbers.length === 0) {
     return 0;

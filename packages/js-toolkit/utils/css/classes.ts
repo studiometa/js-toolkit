@@ -29,7 +29,8 @@ function setClasses(
 
 /**
  * Add class names to an element.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/css/addClass.html
+*/
 export function add(
   element: Element | Element[] | NodeListOf<Element>,
   classNames: string | string[],
@@ -39,7 +40,8 @@ export function add(
 
 /**
  * Remove class names from an element.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/css/removeClass.html
+*/
 export function remove(
   element: Element | Element[] | NodeListOf<Element>,
   classNames: string | string[],
@@ -49,7 +51,8 @@ export function remove(
 
 /**
  * Toggle class names from an element.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/css/toggleClass.html
+*/
 export function toggle(
   element: Element | Element[] | NodeListOf<Element>,
   classNames: string | string[],

@@ -21,7 +21,8 @@ export interface WithMountWhenInViewInterface extends BaseInterface {
 
 /**
  * IntersectionObserver decoration.
- */
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withMountWhenInView.html
+*/
 export function withMountWhenInView<S extends Base = Base>(
   BaseClass: typeof Base,
   // eslint-disable-next-line unicorn/no-object-as-default-parameter

@@ -13,7 +13,8 @@ export interface WithMutationInterface extends BaseInterface {
 
 /**
  * Add a mutation observer to a component.
- */
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withMutation.html
+*/
 export function withMutation<S extends Base>(
   BaseClass: typeof Base,
   { target = (instance) => instance.$el, ...options }: MutationDecoratorOptions = {},

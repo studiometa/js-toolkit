@@ -9,7 +9,7 @@ import { isString, isArray } from '../utils/index.js';
  *   The original selector or element, or list of elements.
  * @param {HTMLElement} [context]
  *   The optional context to use to query for elements.
- * @returns {HTMLElement[]} A normalized list of elements.
+ * @return {HTMLElement[]} A normalized list of elements.
  */
 export function getTargetElements(
   nameOrSelectorOrElement: string | HTMLElement | HTMLElement[],

@@ -8,7 +8,7 @@ import { isFunction } from '../is.js';
  * @param {Array} [props=[]]
  *   The already existing properties.
  * @param {(name:string, proto:any) => boolean} testFn
- * @returns {Array<[string, Object]>} An array of properties and the prototype they belong to.
+ * @return {Array<[string, Object]>} An array of properties and the prototype they belong to.
  */
 export function getAllProperties(
   object: unknown,

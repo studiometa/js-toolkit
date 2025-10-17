@@ -39,21 +39,24 @@ function delimitedCase(string: string, delimiter: string): string {
 }
 /**
  * Convert a string to lowercase.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/string/lowerCase.html
+*/
 export function lowerCase(string: string): string {
   return string.toLowerCase();
 }
 
 /**
  * Convert a string to UPPERCASE.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/string/upperCase.html
+*/
 export function upperCase(string: string): string {
   return string.toUpperCase();
 }
 
 /**
  * Convert a string to camelCase.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/string/camelCase.html
+*/
 export const camelCase = memo(function camelCase(string: string): string {
   const result = pascalCase(string);
   return lowerCase(result[0]) + result.slice(1);
@@ -61,7 +64,8 @@ export const camelCase = memo(function camelCase(string: string): string {
 
 /**
  * Convert a string to PascalCase.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/string/pascalCase.html
+*/
 export const pascalCase = memo(function pascalCase(string: string): string {
   return split(string)
     .map((word) => upperCase(word[0]) + lowerCase(word.slice(1)))
@@ -70,14 +74,16 @@ export const pascalCase = memo(function pascalCase(string: string): string {
 
 /**
  * Convert a string to snake_case.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/string/snakeCase.html
+*/
 export const snakeCase = memo(function snakeCase(string: string): string {
   return delimitedCase(string, '_');
 });
 
 /**
  * Convert a string to dash-case.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/string/dashCase.html
+*/
 export const dashCase = memo(function dashCase(string: string): string {
   return delimitedCase(string, '-');
 });

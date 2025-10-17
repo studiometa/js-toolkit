@@ -11,8 +11,8 @@ const regexes = new Map();
 /**
  * Get a regex with a cache;
  *
- * @param   {string} regex
- * @returns {RegExp}
+ * @param  {string} regex
+ * @return {RegExp}
  */
 function getRegex(regex: string): RegExp {
   if (!regexes.has(regex)) {
@@ -27,7 +27,7 @@ function getRegex(regex: string): RegExp {
  *
  * @param {string} method
  * @param {string} name
- * @returns {string}
+ * @return {string}
  * @private
  */
 function getEventNameByMethod(method: string, name = ''): string {
@@ -41,7 +41,7 @@ function getEventNameByMethod(method: string, name = ''): string {
  *
  * @param {EventsManager} that
  * @param {string} [name]
- * @returns {string[]}
+ * @return {string[]}
  * @private
  */
 // eslint-disable-next-line no-use-before-define
@@ -74,7 +74,7 @@ function getEventMethodsByName(that: EventsManager, name = ''): string[] {
  *   The elements of the ref.
  * @param  {'add'|'remove'} [mode]
  *   The action to perform: add or remove the event listeners.
- * @returns {void}
+ * @return {void}
  * @private
  */
 function manageRef(
@@ -103,7 +103,7 @@ function manageRef(
  *   A base instance.
  * @param {'add'|'remove'} [mode]
  *   The action to perform: add or remove the event listeners.
- * @returns {void}
+ * @return {void}
  * @private
  */
 function manageChild(
@@ -137,7 +137,7 @@ const getGlobalEventTarget = (method) => (methodIsDocument(method) ? document : 
  * @param {EventsManager} that
  * @param {'add'|'remove'} [mode]
  *   The action to perform: add or remove the event listeners, defaults to 'add'.
- * @returns {void}
+ * @return {void}
  * @private
  */
 // eslint-disable-next-line no-use-before-define
@@ -221,8 +221,8 @@ export class EventsManager extends AbstractManager {
    */
   __documentHandler = {
     /**
-     * @param   {Event|CustomEvent} event
-     * @returns {void}
+     * @param  {Event|CustomEvent} event
+     * @return {void}
      */
     handleEvent: (event) => {
       const normalizedEventName = pascalCase(event.type);
@@ -239,8 +239,8 @@ export class EventsManager extends AbstractManager {
    */
   __windowHandler = {
     /**
-     * @param   {Event|CustomEvent} event
-     * @returns {void}
+     * @param  {Event|CustomEvent} event
+     * @return {void}
      */
     handleEvent: (event) => {
       const normalizedEventName = pascalCase(event.type);
@@ -315,7 +315,7 @@ export class EventsManager extends AbstractManager {
    *   The name of the ref.
    * @param {HTMLElement[]} elements
    *   The elements of the ref.
-   * @returns {void}
+   * @return {void}
    */
   bindRef(name: string, elements: HTMLElement[]) {
     manageRef(this, name, elements);
@@ -328,7 +328,7 @@ export class EventsManager extends AbstractManager {
    *   The name of the ref.
    * @param {HTMLElement[]} elements
    *   The elements of the ref.
-   * @returns {void}
+   * @return {void}
    */
   unbindRef(name: string, elements: HTMLElement[]) {
     manageRef(this, name, elements, 'remove');
@@ -341,7 +341,7 @@ export class EventsManager extends AbstractManager {
    *   The name of the ref.
    * @param {Base} instance
    *   A base instance.
-   * @returns {void}
+   * @return {void}
    */
   bindChild(name: string, instance: Base) {
     manageChild(this, name, instance);
@@ -354,7 +354,7 @@ export class EventsManager extends AbstractManager {
    *   The name of the ref.
    * @param {Base} instance
    *   A base instance.
-   * @returns {void}
+   * @return {void}
    */
   unbindChild(name: string, instance: Base) {
     manageChild(this, name, instance, 'remove');
@@ -363,7 +363,7 @@ export class EventsManager extends AbstractManager {
   /**
    * Bind event methods on the root element.
    *
-   * @returns {void}
+   * @return {void}
    */
   bindRootElement() {
     manageRootElement(this);
@@ -372,7 +372,7 @@ export class EventsManager extends AbstractManager {
   /**
    * Unbind event method from the root element.
    *
-   * @returns {void}
+   * @return {void}
    */
   unbindRootElement() {
     manageRootElement(this, 'remove');

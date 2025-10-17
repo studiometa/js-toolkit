@@ -7,7 +7,8 @@ export interface WithFreezedOptionsInterface extends BaseInterface {
 
 /**
  * Freeze the `$options` property to improve performance.
- */
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withFreezedOptions.html
+*/
 export function withFreezedOptions<S extends Base>(
   BaseClass: typeof Base,
 ): BaseDecorator<WithFreezedOptionsInterface, S> {
