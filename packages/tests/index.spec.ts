@@ -35,6 +35,7 @@ describe('The package exports', () => {
         "useRaf",
         "useResize",
         "useScroll",
+        "version",
         "withBreakpointManager",
         "withBreakpointObserver",
         "withDrag",

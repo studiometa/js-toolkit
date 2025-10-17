@@ -1,3 +1,5 @@
+export const version = '__VERSION__' as const;
+
 export * from './Base/index.js';
 export * from './Base/types.js';
 export * from './decorators/index.js';
