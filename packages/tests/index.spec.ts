@@ -41,6 +41,7 @@ describe('The package exports', () => {
         "withDrag",
         "withExtraConfig",
         "withFreezedOptions",
+        "withGroup",
         "withIntersectionObserver",
         "withMountOnMediaQuery",
         "withMountWhenInView",
