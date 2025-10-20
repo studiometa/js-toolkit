@@ -62,6 +62,8 @@ export type Managers = {
 
 /**
  * Base class.
+ *
+ * @link https://js-toolkit.studiometa.dev/api/
  */
 export class Base<T extends BaseProps = BaseProps> {
   /**
