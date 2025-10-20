@@ -13,6 +13,7 @@ When using the `registerComponent` function to load and mount components, the [`
 ```js twoslash
 import { registerComponent, importWhenVisible } from '@studiometa/js-toolkit';
 import Component from './Component.js';
+import Link from './Link.js';
 
 // Sync
 registerComponent(Component);
@@ -24,11 +25,15 @@ registerComponent(import('./AsyncComponent.js'));
 registerComponent(
   importWhenVisible(() => import('./LazyComponent.js'), 'LazyComponent'),
 );
+
+// Custom selector
+registerComponent(Link, 'a[href^="https"]');
 ```
 
 **Parameters**
 
 - `ctor` (`typeof Base | Promise<typeof Base>`): a component class
+- `nameOrSelector` (`string`): an optional name or selector to use to find components in the DOM instead of the `config.name` property
 
 **Return value**
 
