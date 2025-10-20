@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
-- Add a `registerComponent` helper function ([#672](https://github.com/studiometa/js-toolkit/pull/672), [7a51eac1](https://github.com/studiometa/js-toolkit/commit/7a51eac1))
+- Add a `registerComponent` helper function ([#672](https://github.com/studiometa/js-toolkit/pull/672), [7a51eac1](https://github.com/studiometa/js-toolkit/commit/7a51eac1), [#676](https://github.com/studiometa/js-toolkit/pull/676), [bf0957cd](https://github.com/studiometa/js-toolkit/commit/bf0957cd))
 
 ### Fixed
 
