@@ -20,6 +20,8 @@ function groups(): Map<string, Set<Base>> {
 
 /**
  * Add group features to easily bind multiple components together.
+ *
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withGroup.html
  */
 export function withGroup<S extends Base = Base>(
   BaseClass: typeof Base,
