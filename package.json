@@ -32,11 +32,11 @@
     "postversion": "npm version -ws $npm_package_version"
   },
   "devDependencies": {
-    "@studiometa/prettier-config": "4.3.0",
-    "@types/node": "22.17.2",
-    "oxlint": "1.13.0",
+    "@studiometa/prettier-config": "4.4.0",
+    "@types/node": "22.18.11",
+    "oxlint": "1.23.0",
     "prettier": "3.6.2",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   },
   "dependencies": {
     "esbuild": "^0.25.9",
