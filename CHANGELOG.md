@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file. The format 
 ### Added
 
 - Add a `registerComponent` helper function ([#672](https://github.com/studiometa/js-toolkit/pull/672), [7a51eac1](https://github.com/studiometa/js-toolkit/commit/7a51eac1), [#676](https://github.com/studiometa/js-toolkit/pull/676), [bf0957cd](https://github.com/studiometa/js-toolkit/commit/bf0957cd))
+- Add a `withGroup` decorator ([#655](https://github.com/studiometa/js-toolkit/pull/655), [ec57d5a4](https://github.com/studiometa/js-toolkit/commit/ec57d5a4))
+- **createElement:** add support for data attributes as objects ([d6dbb337](https://github.com/studiometa/js-toolkit/commit/d6dbb337))
 
 ### Fixed
 
