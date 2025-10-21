@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en" data-component="App">
   <head>
-    <title>@studiometa/js-toolkit demo</title>
+    <title>
+      @studiometa/js-toolkit demo
+    </title>
     <meta name="description" content="Demo of the @studiometa/js-toolkit components." />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
@@ -14,22 +16,22 @@
         easing: ' ',
         attr: {
           data_option_spring: 0.1,
-          data_option_smooth: 0.6,
+          data_option_smooth: 0.6
         },
         steps: [
           {},
           {
-            scale: 1.5,
+            scale: 1.5
           },
           {
-            scale: 1,
+            scale: 1
           }
         ]
       } %}
       {% include '@components/animate-test.twig' with {
         easing: ' ',
         attr: {
-          data_option_smooth: 0.1,
+          data_option_smooth: 0.1
         },
         steps: [
           {},
@@ -107,7 +109,9 @@
           }
         ]
       } %}
-      <p>Imports the component only if the following media query is true:</p>
+      <p>
+        Imports the component only if the following media query is true:
+      </p>
       <code>not (prefers-reduced-motion)</code>
       {% include '@components/animate-test.twig' with {
         name: 'AnimateScrollTestMedia',
@@ -128,13 +132,15 @@
         ]
       } %}
       <!-- BEGIN BreakpointManagerDemo -->
-      <div data-component="BreakpointManagerDemo"
+      <div
+        data-component="BreakpointManagerDemo"
         class="relative flex items-center justify-center w-full h-32 mb-10 text-white">
         <div class="z-under absolute inset-0 opacity-75 bg-black rounded"></div>
         <span data-ref="content">BreakpointManagerDemo</span>
       </div>
       <div class="mb-10 text-center">
-        <button type="button"
+        <button
+          type="button"
           id="import-breakpoint-manager-demo"
           class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
           Import BreakpointManagerDemo
@@ -143,7 +149,8 @@
       <!-- END BreakpointManagerDemo -->
 
       <!-- BEGIN BreakpointObserverDemo -->
-      <div data-component="BreakpointObserverDemo"
+      <div
+        data-component="BreakpointObserverDemo"
         data-option-debug
         data-option-name="BreakpointObserverDemoTable"
         data-option-active-breakpoints="m"
@@ -158,7 +165,8 @@
       <!-- END BreakpointObserverDemo -->
 
       <!-- BEGIN BreakpointObserverDemo -->
-      <div data-component="BreakpointObserverDemo"
+      <div
+        data-component="BreakpointObserverDemo"
         data-option-name="BreakpointObserverDemoMobileDesktop"
         data-option-inactive-breakpoints="m"
         class="relative flex items-center justify-center w-full h-32 mb-10 text-white text-center">
@@ -171,60 +179,69 @@
       </div>
       <!-- END BreakpointObserverDemo -->
 
-      <div data-ref="modal"
+      <div
+        data-ref="modal"
         data-component="Modal"
         data-option-active-breakpoints="m l"
         data-option-styles="{{ {
           modal: {
             active: 'transition-all duration-500'
           }
-        }|json_encode|escape('html_attr')|escape('html_attr') }}"
+        }
+          |json_encode
+          |escape('html_attr')
+          |escape('html_attr') }}"
         class="text-center">
-        <!-- 
+        <!--
             Modal opening trigger.
             This ref will be used to open the modal on click.
-           -->
-        <button data-ref="open"
+              -->
+        <button
+          data-ref="open"
           type="button"
           class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
           Open
         </button>
         <!-- Modal element -->
-        <div data-ref="modal"
+        <div
+          data-ref="modal"
           role="dialog"
           aria-modal="true"
           aria-hidden="true"
           style="opacity: 0; pointer-events: none; visibility: hidden"
           class="z-goku fixed inset-0">
-          <!-- 
+          <!--
               Modal overlay
               The `tabindex="-"` attribute is required.
-             -->
-          <div data-ref="overlay"
+                -->
+          <div
+            data-ref="overlay"
             tabindex="-1"
             class="z-under absolute inset-0 bg-black opacity-75"></div>
           <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <!-- 
+            <!--
                 Modal container
                 This is the element in which the user can scroll
                 if the content of the modal is too long.
-               -->
-            <div data-ref="container"
+                  -->
+            <div
+              data-ref="container"
               class="z-above relative max-h-full overflox-x-hidden overflow-y-auto bg-white rounded shadow-l pointer-events-auto">
-              <!-- 
+              <!--
                   Modal close button
                   This will be used to close the modal on click.
-                 -->
-              <button data-ref="close"
+                    -->
+              <button
+                data-ref="close"
                 type="button"
                 class="absolute top-0 right-0 m-2 py-2 px-4 text-white rounded bg-black focus:opacity-50">
                 Close
               </button>
-              <!-- 
+              <!--
                   Modal content
                   The content displayed in the modal.
                   The `max-w-3xl` class defines the modal width.
-                 -->
+                    -->
               <div class="max-w-3xl p-10 pt-16" data-ref="content">
                 Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae laudantium sint
                 culpa sequi enim <a href="#" autofocus class="border-b">quaerat</a> itaque possimus at
@@ -240,7 +257,8 @@
       <br />
       <br />
       <!-- BEGIN Accordion component -->
-      <div data-component="Accordion"
+      <div
+        data-component="Accordion"
         data-option-autoclose
         data-option-item="{{ {
           styles: {
@@ -248,7 +266,9 @@
               active: 'transition-all duration-500 ease-out-expo'
             }
           }
-        }|json_encode|escape('html_attr') }}">
+        }
+          |json_encode
+          |escape('html_attr') }}">
         <div data-component="AccordionItem" class="border -mb-px" data-option-is-open>
           <button data-ref="btn" class="block w-full p-4 text-left cursor-pointer">
             Lorem ipsum
@@ -292,7 +312,8 @@
 
       <!-- BEGIN Accordion component -->
       <div class="accordion" data-component="Accordion">
-        <div data-component="AccordionItem"
+        <div
+          data-component="AccordionItem"
           class="border -mb-px"
           data-option-styles="{{ {
             container: {
@@ -302,14 +323,17 @@
               open: 'transform rotate-180',
               active: 'transition duration-500 ease-out-expo'
             }
-          }|json_encode|escape('html_attr') }}">
+          }
+            |json_encode
+            |escape('html_attr') }}">
           <button data-ref="btn" class="flex justify-between w-full p-4 text-left cursor-pointer">
             Show image #1
             <span class="inline-block" data-ref="icon">▼</span>
           </button>
           <div data-ref="container" class="relative overflow-hidden">
             <div data-ref="content" class="w-full p-4 pt-0">
-              <img data-option-log
+              <img
+                data-option-log
                 data-src="https://picsum.photos/200/100"
                 width="200"
                 height="100"
@@ -317,7 +341,8 @@
             </div>
           </div>
         </div>
-        <div data-component="AccordionItem"
+        <div
+          data-component="AccordionItem"
           class="border -mb-px"
           data-option-styles="{{ {
             container: {
@@ -327,7 +352,9 @@
               open: 'transform rotate-180',
               active: 'transition duration-500 ease-out-expo'
             }
-          }|json_encode|escape('html_attr') }}">
+          }
+            |json_encode
+            |escape('html_attr') }}">
           <button data-ref="btn" class="flex justify-between w-full p-4 text-left cursor-pointer">
             Show image #2
             <span class="inline-block" data-ref="icon">▼</span>
@@ -338,7 +365,8 @@
             </div>
           </div>
         </div>
-        <div data-component="AccordionItem"
+        <div
+          data-component="AccordionItem"
           class="border -mb-px"
           data-option-styles="{{ {
             container: {
@@ -348,7 +376,9 @@
               open: 'transform rotate-180',
               active: 'transition duration-500 ease-out-expo'
             }
-          }|json_encode|escape('html_attr') }}">
+          }
+            |json_encode
+            |escape('html_attr') }}">
           <button data-ref="btn" class="flex justify-between w-full p-4 text-left cursor-pointer">
             Show image #3
             <span class="inline-block" data-ref="icon">▼</span>
@@ -366,14 +396,17 @@
 
       <!-- BEGIN Tabs component -->
       <h2 id="components-tabs" class="text-lg mb-4">Tabs</h2>
-      <div data-component="Tabs"
+      <div
+        data-component="Tabs"
         data-option-styles="{{ {
           btn: {
             open: {
               borderBottomColor: '#fff'
             }
           }
-        }|json_encode|escape('html_attr') }}">
+        }
+          |json_encode
+          |escape('html_attr') }}">
         <div class="flex px-4 border-b">
           <button data-ref="btn[]" class="-mb-px -ml-px p-4 border">Tab #1</button>
           <button data-ref="btn[]" class="-mb-px -ml-px p-4 border">Tab #2</button>
@@ -394,7 +427,8 @@
             est odio, efficitur vitae lacus id, eleifend maximus felis.
           </div>
           <div data-ref="content[]" aria-hidden="true">
-            <img data-src="https://picsum.photos/299/299"
+            <img
+              data-src="https://picsum.photos/299/299"
               src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
               loading="lazy"
               width="300"
@@ -409,24 +443,36 @@
 
       <!-- BEGIN Draggable component -->
       <div class="flex items-center justify-center">
-        <div data-component="Draggable"
-          class="z-goku relative w-48 h-48 rounded-full cursor-grab overflow-hidden"
-          data-option-move>
-          <img loading="lazy" src="https://picsum.photos/200/200" width="200" height="200" alt="" />
+        <div data-component="Draggable">
+          <div
+            data-ref="target"
+            class="w-48 h-48 rounded-full cursor-grab active:cursor-grabbing overflow-hidden">
+            <img
+              loading="lazy"
+              src="https://picsum.photos/200/200"
+              width="200"
+              height="200"
+              alt="" />
+          </div>
         </div>
-        <div data-component="Draggable"
-          class="z-goku relative flex items-center justify-center w-48 h-48 rounded-full bg-black bg-opacity-50 cursor-grab overflow-hidden"
-          data-option-move>
-          <button onclick="console.log('click', performance.now())"
-            type="button"
-            class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
-            Button
-          </button>
+        <div data-component="Draggable">
+          <div
+            data-ref="target"
+            class="flex items-center justify-center w-48 h-48 rounded-full bg-black bg-opacity-50 cursor-grab active:cursor-grabbing overflow-hidden">
+            <button
+              onclick="console.log('click', performance.now())"
+              type="button"
+              class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
+              Button
+            </button>
+          </div>
         </div>
-        <div data-component="Draggable"
-          class="z-goku relative flex items-center justify-center w-48 h-48 rounded-full bg-black bg-opacity-50 cursor-grab overflow-hidden"
-          data-option-move>
-          <input type="text" />
+        <div data-component="Draggable">
+          <div
+            data-ref="target"
+            class="flex items-center justify-center w-48 h-48 rounded-full bg-black bg-opacity-50 cursor-grab active:cursor-grabbing overflow-hidden">
+            ><input type="text" />
+          </div>
         </div>
       </div>
       <!-- END Draggable component -->
@@ -449,7 +495,8 @@
 
       <div class="flex flex-wrap">
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/500/500"
             class="lazyload"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
@@ -459,7 +506,8 @@
             alt="" />
         </div>
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/510/510"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             loading="lazy"
@@ -468,7 +516,8 @@
             alt="" />
         </div>
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/520/520"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             loading="lazy"
@@ -477,7 +526,8 @@
             alt="" />
         </div>
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/530/530"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             loading="lazy"
@@ -486,7 +536,8 @@
             alt="" />
         </div>
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/540/540"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             loading="lazy"
@@ -495,7 +546,8 @@
             alt="" />
         </div>
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/550/550"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             loading="lazy"
@@ -504,7 +556,8 @@
             alt="" />
         </div>
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/560/560"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             loading="lazy"
@@ -513,7 +566,8 @@
             alt="" />
         </div>
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/570/570"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             loading="lazy"
@@ -522,7 +576,8 @@
             alt="" />
         </div>
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/580/580"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             loading="lazy"
@@ -531,7 +586,8 @@
             alt="" />
         </div>
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/590/590"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             loading="lazy"
@@ -540,7 +596,8 @@
             alt="" />
         </div>
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/600/600"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             loading="lazy"
@@ -549,7 +606,8 @@
             alt="" />
         </div>
         <div class="w-1/3 p-10" data-component="Skew">
-          <img class="w-full transition duration-100 ease-out lazyload"
+          <img
+            class="w-full transition duration-100 ease-out lazyload"
             data-src="https://picsum.photos/610/610"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             loading="lazy"
@@ -565,7 +623,8 @@
       <!-- - BEGIN ScrollToDemo component -->
       <div data-component="ScrollToDemo">
         <h2 class="text-lg mb-4">Scroll to</h2>
-        <button type="button"
+        <button
+          type="button"
           data-ref="btn"
           class="py-4 px-8 text-white rounded bg-black focus:opacity-50">
           Click on me
@@ -573,17 +632,22 @@
 
         <div class="w-full h-screen"></div>
 
-        <div class="border-black border p-10 text-center" data-ref="text">You scrolled to me</div>
+        <div class="border-black border p-10 text-center" data-ref="text">
+          You scrolled to me
+        </div>
       </div>
       <!-- END ScrollToDemo component -->
 
       <hr class="my-10" />
 
-      <div class="left-0 right-0 bottom-0 mb-10 p-10 bg-gray-200">Bottom</div>
+      <div class="left-0 right-0 bottom-0 mb-10 p-10 bg-gray-200">
+        Bottom
+      </div>
       <div data-component="MediaQueryDemo"></div>
     </main>
     <!-- BEGIN Cursor component -->
-    <div data-component="Cursor"
+    <div
+      data-component="Cursor"
       class="z-goku fixed top-0 left-0 flex items-center justify-center w-8 h-8 -mt-4 -ml-4 rounded-full border pointer-events-none transform -translate-x-16 -translate-y-16">
       <div class="w-2 h-2 rounded-full bg-black"></div>
     </div>

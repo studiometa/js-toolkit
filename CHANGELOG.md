@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.2.0](https://github.com/studiometa/js-toolkit/compare/3.1.1..3.2.0) (2025-10-21)
+
 ### Added
 
 - Add a `registerComponent` helper function ([#672](https://github.com/studiometa/js-toolkit/pull/672), [7a51eac1](https://github.com/studiometa/js-toolkit/commit/7a51eac1), [#676](https://github.com/studiometa/js-toolkit/pull/676), [bf0957cd](https://github.com/studiometa/js-toolkit/commit/bf0957cd))
