@@ -5,11 +5,12 @@ import { isArray } from '../utils/index.js';
  * Get direct children from a parent when working with nested components.
  *
  * @template {Base} T
- * @param   {Base} parentInstance
- * @param   {string} parentName
- * @param   {string} childrenName
- * @returns {T[]}
- */
+ * @param  {Base} parentInstance
+ * @param  {string} parentName
+ * @param  {string} childrenName
+ * @return {T[]}
+ * @link https://js-toolkit.studiometa.dev/api/helpers/getDirectChildren.html
+*/
 export function getDirectChildren<T extends Base = Base>(
   parentInstance: Base,
   parentName: string,
@@ -46,12 +47,13 @@ export function getDirectChildren<T extends Base = Base>(
 /**
  * Test if a component instance is a direct child from the given component.
  *
- * @param   {Base}    parentInstance
- * @param   {string}  parentName
- * @param   {string}  childrenName
- * @param   {Base}    childInstance
- * @returns {boolean}
- */
+ * @param  {Base}    parentInstance
+ * @param  {string}  parentName
+ * @param  {string}  childrenName
+ * @param  {Base}    childInstance
+ * @return {boolean}
+ * @link https://js-toolkit.studiometa.dev/api/helpers/isDirectChild.html
+*/
 export function isDirectChild(parentInstance, parentName, childrenName, childInstance) {
   return getDirectChildren(parentInstance, parentName, childrenName).includes(childInstance);
 }

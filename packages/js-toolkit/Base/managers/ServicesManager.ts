@@ -77,7 +77,7 @@ export class ServicesManager extends AbstractManager<ServiceProps> {
    * Init the given service and bind it to the given instance.
    *
    * @param  {ServiceNames} service The name of the service.
-   * @returns {() => void}          A function to unbind the service.
+   * @return {() => void}          A function to unbind the service.
    */
   enable(service: ServiceNames): () => void {
     if (this.has(service)) {
@@ -108,7 +108,7 @@ export class ServicesManager extends AbstractManager<ServiceProps> {
   /**
    * Disable all services.
    *
-   * @returns {void}
+   * @return {void}
    */
   disableAll() {
     for (const serviceName of Object.keys(this.props)) {

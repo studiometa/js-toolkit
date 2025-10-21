@@ -38,7 +38,8 @@ const instances: WeakMap<Base, Array<[string[], Base]>> = new WeakMap();
 
 /**
  * BreakpointManager class.
- */
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withBreakpointManager.html
+*/
 export function withBreakpointManager<S extends Base>(
   BaseClass: typeof Base,
   breakpoints: Array<[string, BaseConstructor<Base>]>,
@@ -64,7 +65,7 @@ export function withBreakpointManager<S extends Base>(
   const { add, props } = useResize();
 
   // Do nothing if no breakpoint has been defined.
-  // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
+  // @link https://js-toolkit.studiometa.dev/api/services/useResize.html#breakpoint
   if (!props().breakpoint) {
     if (isDev) {
       throw new Error('The `BreakpointManager` class requires breakpoints to be defined.');

@@ -285,7 +285,7 @@ export class DragService extends AbstractService<DragServiceProps> {
   /**
    * Handle any event.
    */
-  handleEvent(event: MouseEvent | PointerEvent | DragEvent) {
+  handleEvent(event: TouchEvent | MouseEvent | PointerEvent | DragEvent) {
     switch (event.type) {
       case 'dragstart':
         event.preventDefault();
@@ -303,11 +303,15 @@ export class DragService extends AbstractService<DragServiceProps> {
         break;
       case 'touchmove':
       case 'mousemove':
-        this.drag(event);
+        if ((event as MouseEvent).buttons === 1 || (event as TouchEvent).touches?.length === 1) {
+          this.drag(event);
+        } else {
+          this.drop();
+        }
         break;
       default:
-        if (event.button === 0) {
-          this.start(event.x, event.y);
+        if ((event as PointerEvent).button === 0) {
+          this.start((event as PointerEvent).x, (event as PointerEvent).y);
         }
     }
   }
@@ -324,7 +328,8 @@ export class DragService extends AbstractService<DragServiceProps> {
  * remove('key');
  * props();
  * ```
- */
+ * @link https://js-toolkit.studiometa.dev/api/services/useDrag.html
+*/
 export function useDrag(target: HTMLElement, options: DragServiceOptions): DragServiceInterface {
   return DragService.getInstance<DragServiceInterface>(
     [target, JSON.stringify(options)],

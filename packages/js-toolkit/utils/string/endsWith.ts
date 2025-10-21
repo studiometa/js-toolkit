@@ -3,7 +3,8 @@
  *
  * This is a more performant version of the `String.prototype.endsWith` method.
  *
- * @see https://jsbench.me/1hlkqqd0ff/2
+ * @link https://jsbench.me/1hlkqqd0ff/2
+ * @link https://js-toolkit.studiometa.dev/utils/string/endsWith.html
  */
 export function endsWith(string: string, search: string): boolean {
   if (search.length === 0) {

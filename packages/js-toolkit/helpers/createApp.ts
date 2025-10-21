@@ -12,7 +12,8 @@ export type CreateAppOptions = Partial<Features> & {
 /**
  * Instantiate and mount the given component on the given root element when the page has been loaded
  * and return a function to use the app instance when it is ready.
- */
+ * @link https://js-toolkit.studiometa.dev/api/helpers/createApp.html
+*/
 export function createApp<S extends BaseConstructor<Base>, T extends BaseProps = BaseProps>(
   App: S,
   options: HTMLElement | CreateAppOptions = {},

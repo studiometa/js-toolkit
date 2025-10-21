@@ -13,9 +13,9 @@ export class ResponsiveOptionsManager<T> extends OptionsManager<T> {
   /**
    * Get an option value.
    *
-   * @param   {string} name The option name.
-   * @param   {ResponsiveOptionObject} config The option configuration.
-   * @returns {any}
+   * @param  {string} name The option name.
+   * @param  {ResponsiveOptionObject} config The option configuration.
+   * @return {any}
    */
   get(name: string, config: ResponsiveOptionObject) {
     if (!config.responsive) {
@@ -46,9 +46,9 @@ export class ResponsiveOptionsManager<T> extends OptionsManager<T> {
   /**
    * Get the currently active responsive name of an option.
    *
-   * @param   {ResponsiveOptionsManager} that
-   * @param   {string} name The default name of the option.
-   * @returns {string}      The responsive name if one matches the current breakpoint, the default name otherwise.
+   * @param  {ResponsiveOptionsManager} that
+   * @param  {string} name The default name of the option.
+   * @return {string}      The responsive name if one matches the current breakpoint, the default name otherwise.
    */
   __getResponsiveName(name: string) {
     const { breakpoint } = useResize().props();

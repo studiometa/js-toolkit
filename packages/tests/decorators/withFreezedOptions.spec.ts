@@ -38,7 +38,7 @@ describe('The `withFreezedOptions` decorator', () => {
     expect(foo.$isMounted).toBe(false);
     foo.$terminate();
     await advanceTimersByTimeAsync(1);
-    expect(foo.$el.__base__.get(Foo)).toBe('terminated');
+    expect(foo.$el.__base__.get(Foo.config.name)).toBe('terminated');
   });
 
   it('should still allow child class $option definition', () => {

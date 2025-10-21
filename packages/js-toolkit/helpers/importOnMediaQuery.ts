@@ -9,8 +9,9 @@ import { getComponentResolver } from '../utils/index.js';
  *   The import function.
  * @param {string} media
  *   The media query name and value (see https://developer.mozilla.org/en-US/docs/Web/CSS/@media#media_features)
- * @returns {Promise<T>}
- */
+ * @return {Promise<T>}
+ * @link https://js-toolkit.studiometa.dev/api/helpers/importOnMediaQuery.html
+*/
 export function importOnMediaQuery<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
   media: string,

@@ -229,6 +229,7 @@ function getDecoratorsSidebar() {
     { text: 'withDrag', link: '/api/decorators/withDrag.html' },
     { text: 'withExtraConfig', link: '/api/decorators/withExtraConfig.html' },
     { text: 'withFreezedOptions', link: '/api/decorators/withFreezedOptions.html' },
+    { text: 'withGroup', link: '/api/decorators/withGroup.html' },
     { text: 'withIntersectionObserver', link: '/api/decorators/withIntersectionObserver.html' },
     { text: 'withMountOnMediaQuery', link: '/api/decorators/withMountOnMediaQuery.html' },
     { text: 'withMountWhenInView', link: '/api/decorators/withMountWhenInView.html' },
@@ -253,6 +254,7 @@ function getHelpersSidebar() {
     { text: 'importWhenPrefersMotion', link: '/api/helpers/importWhenPrefersMotion.html' },
     { text: 'importWhenVisible', link: '/api/helpers/importWhenVisible.html' },
     { text: 'isDirectChild', link: '/api/helpers/isDirectChild.html' },
+    { text: 'registerComponent', link: '/api/helpers/registerComponent.html' },
   ];
 }
 

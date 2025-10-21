@@ -24,7 +24,8 @@ export type LoadElementsReturnType<T extends LoadableElementsNames> = Promise<{
 /**
  * Load the given source for the given type of element.
  * @todo manage memo
- */
+ * @link https://js-toolkit.studiometa.dev/utils/loadElement.html
+*/
 export function loadElement<T extends LoadableElementsNames>(
   src: string,
   type: T,
@@ -45,21 +46,24 @@ export function loadElement<T extends LoadableElementsNames>(
 
 /**
  * Load the given source as an `<img>` element.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/loadImage.html
+*/
 export function loadImage(src: string, options?: LoadElementsOptions) {
   return loadElement(src, 'img', options);
 }
 
 /**
  * Load the given source as an `<iframe>` element.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/loadIframe.html
+*/
 export function loadIframe(src: string, options?: LoadElementsOptions) {
   return loadElement(src, 'iframe', options);
 }
 
 /**
  * Load the given source as a `<link>` element.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/loadLink.html
+*/
 export function loadLink(src: string, options?: LoadElementsOptions) {
   return loadElement(src, 'link', options);
 }
@@ -68,7 +72,8 @@ export function loadLink(src: string, options?: LoadElementsOptions) {
  * Load the given source as a `<script>` element. The generated element is
  * appended to `document.head` by default, as a script element needs
  * to be inserted in the DOM to load.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/loadScript.html
+*/
 export function loadScript(src: string, options?: LoadElementsOptions) {
   return loadElement(src, 'script', { appendTo: document.head, ...options });
 }

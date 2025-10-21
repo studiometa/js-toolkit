@@ -4,7 +4,7 @@ import { isFunction } from './is.js';
  * Default component resolver
  *
  * @param {Function} fn
- * @returns {Function}
+ * @return {Function}
  */
 export function getComponentResolver(fn) {
   return (resolve, cb?: () => unknown) => {

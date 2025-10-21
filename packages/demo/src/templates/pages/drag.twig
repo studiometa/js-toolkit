@@ -2,6 +2,10 @@
 
 {% block main %}
   <div class="p-10">
-    <div data-component="Draggable" data-option-debug class="w-96 h-96 bg-blue-400 rounded"></div>
+    <div data-component="Draggable" data-option-debug class="relative w-96 h-96 ring rounded-lg">
+      <div
+        data-ref="target"
+        class="absolute inset-0 bg-blue-400 rounded-lg cursor-grab active:cursor-grabbing"></div>
+    </div>
   </div>
 {% endblock %}

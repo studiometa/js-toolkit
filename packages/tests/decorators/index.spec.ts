@@ -9,6 +9,7 @@ test('decorators exports', () => {
       "withDrag",
       "withExtraConfig",
       "withFreezedOptions",
+      "withGroup",
       "withIntersectionObserver",
       "withMountOnMediaQuery",
       "withMountWhenInView",

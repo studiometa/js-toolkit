@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.2.0](https://github.com/studiometa/js-toolkit/compare/3.1.1..3.2.0) (2025-10-21)
+
+### Added
+
+- Add a `registerComponent` helper function ([#672](https://github.com/studiometa/js-toolkit/pull/672), [7a51eac1](https://github.com/studiometa/js-toolkit/commit/7a51eac1), [#676](https://github.com/studiometa/js-toolkit/pull/676), [bf0957cd](https://github.com/studiometa/js-toolkit/commit/bf0957cd))
+- Add a `withGroup` decorator ([#655](https://github.com/studiometa/js-toolkit/pull/655), [ec57d5a4](https://github.com/studiometa/js-toolkit/commit/ec57d5a4))
+- **createElement:** add support for data attributes as objects ([d6dbb337](https://github.com/studiometa/js-toolkit/commit/d6dbb337))
+
+### Fixed
+
+- Fix calling the `$register` static method multiple times ([#672](https://github.com/studiometa/js-toolkit/pull/672), [409115f7](https://github.com/studiometa/js-toolkit/commit/409115f7))
+- Improve instances storage ([#673](https://github.com/studiometa/js-toolkit/pull/673), [42380a73](https://github.com/studiometa/js-toolkit/commit/42380a73))
+- **useDrag:** do not drag when touch has multiple touches ([studiometa/ui#437](https://github.com/studiometa/ui/issues/437), [#674](https://github.com/studiometa/js-toolkit/pull/674), [6ec11f96](https://github.com/studiometa/js-toolkit/commit/6ec11f96))
+
+### Changed
+
+- Refactor reference to components' instances on the root element ([#672](https://github.com/studiometa/js-toolkit/pull/672), [9c0227ac](https://github.com/studiometa/js-toolkit/commit/9c0227ac))
+
 ## [v3.1.1](https://github.com/studiometa/js-toolkit/compare/3.1.0..3.1.1) (2025-08-29)
 
 ### Added

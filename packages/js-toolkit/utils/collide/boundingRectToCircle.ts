@@ -10,8 +10,9 @@
  *
  * @param {Partial<DOMRect>} domRect DOMRect of a square DOMElement
  * @param {boolean} force Force usage of non-square DOMElements
- * @returns {Circle} Circle object that can be used in collides functions
- */
+ * @return {Circle} Circle object that can be used in collides functions
+ * @link https://js-toolkit.studiometa.dev/utils/collision/boundingRectToCircle.html
+*/
 export function boundingRectToCircle({ x, y, width, height }, force = false) {
   if (width !== height && !force) {
     throw new Error('Initial DOMElement is not a square. Please use the force mode.');

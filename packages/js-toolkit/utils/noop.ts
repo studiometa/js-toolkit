@@ -1,7 +1,7 @@
 /**
  * No operation function.
  *
- * @returns {void}
+ * @return {void}
  */
 export function noop() {}
 
