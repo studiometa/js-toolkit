@@ -13,11 +13,12 @@ import {
   EventsManager,
   OptionsManager,
 } from './managers/index.js';
+import { getInstanceFromElement } from '../helpers/getInstanceFromElement.js';
 import { noop, isDev, isFunction, isArray } from '../utils/index.js';
 
 let id = 0;
 
-export type BaseEl = HTMLElement & { __base__?: WeakMap<BaseConstructor, Base | 'terminated'> };
+export type BaseEl = HTMLElement & { __base__?: Map<string, Base | 'terminated'> };
 export type BaseConstructor<T extends Base = Base> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new (...args: any[]): T;
@@ -61,11 +62,13 @@ export type Managers = {
 
 /**
  * Base class.
+ *
+ * @link https://js-toolkit.studiometa.dev/api/
  */
 export class Base<T extends BaseProps = BaseProps> {
   /**
    * Declare the `this.constructor` type
-   * @see https://github.com/microsoft/TypeScript/issues/3841#issuecomment-2381594311
+   * @link https://github.com/microsoft/TypeScript/issues/3841#issuecomment-2381594311
    */
   declare ['constructor']: BaseConstructor;
 
@@ -267,8 +270,8 @@ export class Base<T extends BaseProps = BaseProps> {
   /**
    * Test if the given event has been bound to the instance.
    *
-   * @param   {string} event The event's name.
-   * @returns {boolean}      Wether the given event has been bound or not.
+   * @param  {string} event The event's name.
+   * @return {boolean}      Wether the given event has been bound or not.
    */
   __hasEvent(event: string): boolean {
     const eventHandlers = this.__eventHandlers.get(event);
@@ -288,25 +291,25 @@ export class Base<T extends BaseProps = BaseProps> {
       return;
     }
 
-    const { __config } = this;
+    const { $config } = this;
 
-    if (__config.name === 'Base') {
+    if ($config.name === 'Base') {
       if (isDev) {
         throw new Error('The `config.name` property is required.');
       }
       return;
     }
 
-    this.$id = `${__config.name}-${id}`;
+    this.$id = `${$config.name}-${id}`;
     id += 1;
 
     this.$el = element;
 
     if (!this.$el.__base__) {
-      this.$el.__base__ = new WeakMap();
+      this.$el.__base__ = new Map();
     }
 
-    this.$el.__base__.set(this.constructor, this);
+    this.$el.__base__.set($config.name, this);
 
     for (const service of ['Options', 'Services', 'Events', 'Refs', 'Children']) {
       this[`__${service.toLowerCase()}`] = new this.__managers[`${service}Manager`](this);
@@ -422,15 +425,15 @@ export class Base<T extends BaseProps = BaseProps> {
       // Execute the `terminated` hook if it exists
       addToQueue(() => this.__callMethod('terminated')),
       // Delete instance
-      addToQueue(() => this.$el.__base__.set(this.constructor, 'terminated')),
+      addToQueue(() => this.$el.__base__.set(this.$config.name, 'terminated')),
     ]);
   }
 
   /**
    * Add an emitted event.
    *
-   * @param   {string} event The event name.
-   * @returns {void}
+   * @param  {string} event The event name.
+   * @return {void}
    */
   __addEmits(event: string): void {
     const ctor = this.constructor;
@@ -444,8 +447,8 @@ export class Base<T extends BaseProps = BaseProps> {
   /**
    * Remove an emitted event.
    *
-   * @param   {string} event The event name.
-   * @returns {void}
+   * @param  {string} event The event name.
+   * @return {void}
    */
   __removeEmits(event: string): void {
     const ctor = this.constructor;
@@ -462,7 +465,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *   Function to be called.
    * @param {boolean|AddEventListenerOptions} [options]
    *   Options for the `removeEventListener` method.
-   * @returns {() => void}
+   * @return {() => void}
    *   A function to unbind the listener.
    */
   $on(
@@ -510,7 +513,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *   Function to be removed.
    * @param {boolean|EventListenerOptions} [options]
    *   Options for the `removeEventListener` method.
-   * @returns {void}
+   * @return {void}
    */
   $off(
     event: string,
@@ -532,7 +535,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *
    * @param  {string} event Name of the event.
    * @param  {any[]}  args  The arguments to apply to the functions bound to this event.
-   * @returns {void}
+   * @return {void}
    */
   $emit(event: string | Event, ...args: unknown[]) {
     if (isDev) {
@@ -547,9 +550,13 @@ export class Base<T extends BaseProps = BaseProps> {
   /**
    * Register and mount all instances of the component.
    */
-  static $register(nameOrSelector?: string): Array<Promise<Base>> {
-    return getComponentElements(nameOrSelector ?? this.config.name).map((el) =>
-      new this(el).$mount(),
+  static $register<T extends BaseProps = BaseProps, U extends typeof Base<T> = typeof Base<T>>(
+    this: U,
+    nameOrSelector?: string,
+  ): Promise<InstanceType<U>>[] {
+    return getComponentElements(nameOrSelector ?? this.config.name).map(
+      async (el) =>
+        getInstanceFromElement(el, this) ?? (new this(el).$mount() as Promise<InstanceType<U>>),
     );
   }
 }

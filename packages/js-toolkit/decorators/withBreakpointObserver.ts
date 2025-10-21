@@ -17,9 +17,9 @@ export interface WithBreakpointObserverInterface extends BaseInterface {}
 /**
  * Test the breakpoins of the given Base instance and return the hook to call.
  *
- * @param   {Base<WithBreakpointObserverProps>} instance The component's instance.
- * @param   {string} [breakpoint] The breakpoint to test.
- * @returns {string} The action to trigger.
+ * @param  {Base<WithBreakpointObserverProps>} instance The component's instance.
+ * @param  {string} [breakpoint] The breakpoint to test.
+ * @return {string} The action to trigger.
  */
 function testBreakpoints(
   instance: Base<WithBreakpointObserverProps>,
@@ -45,7 +45,7 @@ function testBreakpoints(
  * Test if the given instance is configured for breakpoints.
  *
  * @param  {Base<WithBreakpointObserverProps>} instance A Base class instance.
- * @returns {boolean} True if configured correctly, false otherwise.
+ * @return {boolean} True if configured correctly, false otherwise.
  */
 function hasBreakpointConfiguration(instance: Base<WithBreakpointObserverProps>): boolean {
   const { activeBreakpoints, inactiveBreakpoints } = instance.$options;
@@ -56,7 +56,7 @@ function hasBreakpointConfiguration(instance: Base<WithBreakpointObserverProps>)
  * Test if the given instance has a conflicting configuration for breakpoints.
  *
  * @param  {Base<WithBreakpointObserverProps>} instance A Base class instance.
- * @returns {void}
+ * @return {void}
  */
 function testConflictingBreakpointConfiguration(instance: Base<WithBreakpointObserverProps>): void {
   const { activeBreakpoints, inactiveBreakpoints, name } = instance.$options;
@@ -107,7 +107,8 @@ function addToResize(key, instance) {
 
 /**
  * BreakpointObserver class.
- */
+ * @link https://js-toolkit.studiometa.dev/api/decorators/withBreakpointObserver.html
+*/
 export function withBreakpointObserver<S extends Base>(
   BaseClass: typeof Base,
 ): BaseDecorator<WithBreakpointObserverInterface, S, WithBreakpointObserverProps> {
@@ -138,7 +139,7 @@ export function withBreakpointObserver<S extends Base>(
       const { name } = this.$options;
 
       // Do nothing if no breakpoint has been defined.
-      // @see https://js-toolkit.meta.fr/services/resize.html#breakpoint
+      // @link https://js-toolkit.studiometa.dev/api/services/useResize.html#breakpoint
       if (!props().breakpoint) {
         if (isDev) {
           throw new Error(

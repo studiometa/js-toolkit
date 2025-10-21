@@ -245,7 +245,8 @@ type DurationWithDelay = number;
 
 /**
  * Animate one or more elements.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/css/animate.html
+*/
 export function animate(
   elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
   keyframes: Keyframe[],

@@ -126,8 +126,8 @@ describe('A Base instance', () => {
   it('should have a `__base__` property', async () => {
     const { foo, Foo } = await getContext();
     // @ts-ignore
-    expect(foo.$el.__base__).toBeInstanceOf(WeakMap);
-    expect(foo.$el.__base__.get(Foo)).toBe(foo);
+    expect(foo.$el.__base__).toBeInstanceOf(Map);
+    expect(foo.$el.__base__.get(Foo.config.name)).toBe(foo);
   });
 
   it('should inherit from parent config', () => {

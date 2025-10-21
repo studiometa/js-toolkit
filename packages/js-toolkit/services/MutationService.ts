@@ -43,7 +43,8 @@ export class MutationService extends AbstractService<MutationServiceProps> {
 
 /**
  * Use the mutation service.
- */
+ * @link https://js-toolkit.studiometa.dev/api/services/useMutation.html
+*/
 export function useMutation(
   target?: Node,
   options?: MutationObserverInit,

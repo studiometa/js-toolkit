@@ -11,8 +11,9 @@
  *
  * @param {Circle} circle1 Circle 1
  * @param {Circle} circle2 Circle 2
- * @returns {boolean} Are the sides of one circle touching the other ?
- */
+ * @return {boolean} Are the sides of one circle touching the other ?
+ * @link https://js-toolkit.studiometa.dev/utils/collision/collideCircleCircle.html
+*/
 export function collideCircleCircle(circle1, circle2) {
   // get distance between the circle's centers
   // use the Pythagorean Theorem to compute the distance

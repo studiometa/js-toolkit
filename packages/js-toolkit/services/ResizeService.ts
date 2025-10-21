@@ -96,7 +96,8 @@ export class ResizeService<
 
 /**
  * Use the resize service.
- */
+ * @link https://js-toolkit.studiometa.dev/api/services/useResize.html
+*/
 export function useResize<T extends Features['breakpoints'] = Features['breakpoints']>(
   breakpoints?: T,
 ): ResizeServiceInterface<T> {

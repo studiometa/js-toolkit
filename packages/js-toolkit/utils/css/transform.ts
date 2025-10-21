@@ -38,7 +38,8 @@ export const TRANSFORM_PROPS = [
 
 /**
  * Generate a CSS transform.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/css/transform.html
+*/
 export function transform(
   elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
   props: TransformProps,

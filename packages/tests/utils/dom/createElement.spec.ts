@@ -6,7 +6,7 @@ describe('The createElement function', () => {
     expect(createElement().outerHTML).toMatchInlineSnapshot(`"<div></div>"`);
   });
 
-  it('should create give elements', () => {
+  it('should create given elements', () => {
     expect(createElement('a').outerHTML).toMatchInlineSnapshot(`"<a></a>"`);
     expect(createElement('custom-element').outerHTML).toMatchInlineSnapshot(
       `"<custom-element></custom-element>"`,
@@ -25,6 +25,15 @@ describe('The createElement function', () => {
     expect(createElement('a', { dataOptionFoo: '#' })).toMatchInlineSnapshot(`
       <a
         data-option-foo="#"
+      />
+    `);
+  });
+
+  it('should accept data as an object', () => {
+    expect(createElement('div', { data: { optionFoo: 'foo', option_bar: 'bar' } }, [])).toMatchInlineSnapshot(`
+      <div
+        data-option-bar="bar"
+        data-option-foo="foo"
       />
     `);
   });

@@ -17,8 +17,9 @@
  *
  * @param {Point} point Point
  * @param {Circle} circle Circle
- * @returns {boolean} Is the point inside the circle's bounds ?
- */
+ * @return {boolean} Is the point inside the circle's bounds ?
+ * @link https://js-toolkit.studiometa.dev/utils/collision/collidePointCircle.html
+*/
 export function collidePointCircle(point, circle) {
   // get distance between the point and circle's center
   // using the Pythagorean Theorem

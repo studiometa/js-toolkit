@@ -6,7 +6,8 @@ type Callback = (...args: any[]) => any;
 
 /**
  * Wait for the next tick.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/nextTick.html
+*/
 export async function nextTick(): Promise<void>;
 export async function nextTick<T extends Callback>(callback?: T): Promise<ReturnType<T>>;
 export async function nextTick<T extends Callback>(callback?: T): Promise<ReturnType<T>> {

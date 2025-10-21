@@ -6,7 +6,8 @@ type Callback = (time?: DOMHighResTimeStamp) => any;
 
 /**
  * Wait for the next frame to execute a function.
- */
+ * @link https://js-toolkit.studiometa.dev/utils/nextFrame.html
+*/
 export function nextFrame(): Promise<DOMHighResTimeStamp>;
 export function nextFrame<T extends Callback>(callback?: T): Promise<ReturnType<T>>;
 export function nextFrame<T extends Callback>(callback?: T): Promise<ReturnType<T>> {

@@ -22,7 +22,8 @@ export class LoadService extends AbstractService<LoadServiceProps> {
 
 /**
  * Use the load service.
- */
+ * @link https://js-toolkit.studiometa.dev/api/services/useLoad.html
+*/
 export function useLoad(): LoadServiceInterface {
   return LoadService.getInstance();
 }
