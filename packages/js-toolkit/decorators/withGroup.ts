@@ -25,6 +25,7 @@ function groups<T extends Base = Base>(): Map<string, Set<T>> {
  */
 export function withGroup<S extends Base = Base>(
   BaseClass: typeof Base,
+  namespace = '',
 ): BaseDecorator<WithGroupInterface, S, WithGroupProps> {
   // @ts-expect-error Decorators can not be typed.
   return class WithGroup<T extends BaseProps = BaseProps> extends BaseClass<T & WithGroupProps> {
@@ -39,7 +40,7 @@ export function withGroup<S extends Base = Base>(
      * Get the group set.
      */
     get $group() {
-      const { group } = this.$options;
+      const group = `${namespace}${this.$options.group}`;
       return groups<this>().get(group) ?? groups<this>().set(group, new Set()).get(group);
     }
 
