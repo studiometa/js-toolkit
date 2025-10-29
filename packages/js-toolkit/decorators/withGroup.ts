@@ -14,8 +14,8 @@ export interface WithGroupInterface extends BaseInterface {
 /**
  * Get global groups map.
  */
-function groups(): Map<string, Set<Base>> {
-  return (globalThis.__JS_TOOLKIT_GROUPS__ ??= new Map<string, Set<Base>>());
+function groups<T extends Base = Base>(): Map<string, Set<T>> {
+  return (globalThis.__JS_TOOLKIT_GROUPS__ ??= new Map<string, Set<T>>());
 }
 
 /**
@@ -25,6 +25,7 @@ function groups(): Map<string, Set<Base>> {
  */
 export function withGroup<S extends Base = Base>(
   BaseClass: typeof Base,
+  namespace = '',
 ): BaseDecorator<WithGroupInterface, S, WithGroupProps> {
   // @ts-expect-error Decorators can not be typed.
   return class WithGroup<T extends BaseProps = BaseProps> extends BaseClass<T & WithGroupProps> {
@@ -39,8 +40,16 @@ export function withGroup<S extends Base = Base>(
      * Get the group set.
      */
     get $group() {
-      const { group } = this.$options;
-      return groups().get(group) ?? groups().set(group, new Set()).get(group);
+      const group = `${namespace}${this.$options.group}`;
+      const instances = groups<this>().get(group) ?? groups<this>().set(group, new Set()).get(group);
+
+      for (const instance of instances) {
+        if (!instance.$el.isConnected) {
+          instances.delete(instance);
+        }
+      }
+
+      return instances;
     }
 
     constructor(element: HTMLElement) {
