@@ -41,7 +41,15 @@ export function withGroup<S extends Base = Base>(
      */
     get $group() {
       const group = `${namespace}${this.$options.group}`;
-      return groups<this>().get(group) ?? groups<this>().set(group, new Set()).get(group);
+      const instances = groups<this>().get(group) ?? groups<this>().set(group, new Set()).get(group);
+
+      for (const instance of instances) {
+        if (!instance.$el.isConnected) {
+          instances.delete(instance);
+        }
+      }
+
+      return instances;
     }
 
     constructor(element: HTMLElement) {
