@@ -523,7 +523,7 @@ export class Base<T extends BaseProps = BaseProps> {
       this.__debug('$off', event, listener);
     }
 
-    this.__eventHandlers.get(event).delete(listener);
+    this.__eventHandlers.get(event)?.delete(listener);
 
     const target = getEventTarget(this, event, this.__config);
     target?.removeEventListener(event, listener, options);
