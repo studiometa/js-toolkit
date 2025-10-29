@@ -1,0 +1,42 @@
+{% extends '@layouts/base.twig' %}
+
+{% block main %}
+  <div data-component="Frame" id="frame" data-option-history class="grid gap-10">
+    <nav data-component="FrameTarget" id="nav" data-option-mode="morph" class="flex gap-4">
+      <a data-option-debug data-component="FrameAnchor" href="/" class="underline">Home</a>
+      <a
+        data-option-debug
+        data-component="FrameAnchor"
+        href="/foo.html"
+        class="underline text-blue-600">
+        Foo
+      </a>
+    </nav>
+    <div
+      data-component="FrameTarget"
+      id="target"
+      class="grid gap-4 transition"
+      data-option-enter-from="opacity-0"
+      data-option-leave-to="opacity-0">
+      <h1 class="font-bold text-xl">Foo</h1>
+      <p class="max-w-xl">
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+        laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+        voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+        cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      </p>
+      {% include '@ui/Figure/Figure.twig' with {
+        src: 'https://picsum.photos/seed/foo/400/400',
+        width: 400,
+        height: 400,
+        attr: {
+          class: 'max-w-sm',
+          data_option_debug: true,
+          data_option_enter_from: 'scale-90 opacity-0',
+          data_option_enter_active: 'transition delay-100'
+        }
+      } %}
+    </div>
+  </div>
+{% endblock %}
