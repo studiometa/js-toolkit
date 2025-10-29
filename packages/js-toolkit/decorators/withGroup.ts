@@ -14,8 +14,8 @@ export interface WithGroupInterface extends BaseInterface {
 /**
  * Get global groups map.
  */
-function groups(): Map<string, Set<Base>> {
-  return (globalThis.__JS_TOOLKIT_GROUPS__ ??= new Map<string, Set<Base>>());
+function groups<T extends Base = Base>(): Map<string, Set<T>> {
+  return (globalThis.__JS_TOOLKIT_GROUPS__ ??= new Map<string, Set<T>>());
 }
 
 /**
@@ -40,7 +40,7 @@ export function withGroup<S extends Base = Base>(
      */
     get $group() {
       const { group } = this.$options;
-      return groups().get(group) ?? groups().set(group, new Set()).get(group);
+      return groups<this>().get(group) ?? groups<this>().set(group, new Set()).get(group);
     }
 
     constructor(element: HTMLElement) {
