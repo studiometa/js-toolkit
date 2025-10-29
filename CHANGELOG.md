@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.3.0](https://github.com/studiometa/js-toolkit/compare/3.2.0..3.3.0) (2025-10-29)
+
+### Added
+
+- **withGroup:** add support for namespaces ([#681](https://github.com/studiometa/js-toolkit/pull/681), [3e50e1f9](https://github.com/studiometa/js-toolkit/commit/3e50e1f9))
+
+### Changed
+
+- **withGroup:** improve types ([#681](https://github.com/studiometa/js-toolkit/pull/681), [fa723cfd](https://github.com/studiometa/js-toolkit/commit/fa723cfd))
+
+### Fixed
+
+- **withGroup:** do not include instances disconnected from the DOM in groups ([#680](https://github.com/studiometa/js-toolkit/issues/680), [#681](https://github.com/studiometa/js-toolkit/pull/681), [e214ba38](https://github.com/studiometa/js-toolkit/commit/e214ba38))
+
 ## [v3.2.0](https://github.com/studiometa/js-toolkit/compare/3.1.1..3.2.0) (2025-10-21)
 
 ### Added
