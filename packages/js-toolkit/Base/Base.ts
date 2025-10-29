@@ -5,6 +5,7 @@ import {
   addToQueue,
   addInstance,
   deleteInstance,
+  addToRegistry,
 } from './utils.js';
 import {
   ChildrenManager,
@@ -300,15 +301,13 @@ export class Base<T extends BaseProps = BaseProps> {
       return;
     }
 
+    addToRegistry($config.name, this.constructor);
+
     this.$id = `${$config.name}-${id}`;
     id += 1;
 
     this.$el = element;
-
-    if (!this.$el.__base__) {
-      this.$el.__base__ = new Map();
-    }
-
+    this.$el.__base__ ??= new Map();
     this.$el.__base__.set($config.name, this);
 
     for (const service of ['Options', 'Services', 'Events', 'Refs', 'Children']) {
@@ -554,6 +553,8 @@ export class Base<T extends BaseProps = BaseProps> {
     this: U,
     nameOrSelector?: string,
   ): Promise<InstanceType<U>>[] {
+    addToRegistry(nameOrSelector ?? this.config.name, this);
+
     return getComponentElements(nameOrSelector ?? this.config.name).map(
       async (el) =>
         getInstanceFromElement(el, this) ?? (new this(el).$mount() as Promise<InstanceType<U>>),

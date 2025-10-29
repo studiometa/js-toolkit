@@ -1,6 +1,8 @@
 import { isArray, isDefined, SmartQueue, dashCase } from '../utils/index.js';
 import type { Base, BaseConfig, BaseConstructor } from './index.js';
 import { features } from './features.js';
+import { useMutation } from '../services/MutationService.js';
+import { getInstanceFromElement } from '../helpers/getInstanceFromElement.js';
 
 let queue: SmartQueue;
 
@@ -112,13 +114,13 @@ export function getEventTarget(instance: Base, event: string, config: BaseConfig
  * instances of the framework.
  */
 function getInstancesStorage(): Set<Base> {
-  return globalThis.__js_toolkit_instances__ ??= new Set<Base>();
+  return (globalThis.__JS_TOOLKIT_INSTANCES__ ??= new Set<Base>());
 }
 
 /**
  * Get all mounted instances or the ones from a given component.
  * @link https://js-toolkit.studiometa.dev/api/helpers/getInstances.html
-*/
+ */
 export function getInstances(): Set<Base>;
 export function getInstances<T extends BaseConstructor = BaseConstructor>(
   ctor: T,
@@ -145,4 +147,43 @@ export function addInstance(instance: Base) {
 
 export function deleteInstance(instance: Base) {
   getInstancesStorage().delete(instance);
+}
+
+const registryKey = '__JS_TOOLKIT_REGISTRY__';
+
+function registry() {
+  return (globalThis[registryKey] ??= new Map<string, BaseConstructor>());
+}
+
+function mutationCallback() {
+  addToQueue(() => {
+    for (const [nameOrSelector, ctor] of registry()) {
+      for (const el of getComponentElements(nameOrSelector)) {
+        if (!getInstanceFromElement(el, ctor)) {
+          new ctor(el).$mount();
+        }
+      }
+    }
+  });
+
+  addToQueue(() => {
+    for (const instance of getInstances()) {
+      if (!instance.$el.isConnected) {
+        instance.$destroy();
+      }
+    }
+  });
+}
+
+export function addToRegistry(nameOrSelector: string, ctor: BaseConstructor) {
+  if (registry().has(nameOrSelector)) {
+    return;
+  }
+
+  registry().set(nameOrSelector, ctor);
+
+  const mutation = useMutation(document, { childList: true, subtree: true });
+  if (!mutation.has(registryKey)) {
+    mutation.add(registryKey, mutationCallback);
+  }
 }
