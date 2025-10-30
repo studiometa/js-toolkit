@@ -13,7 +13,7 @@ export function cache<T extends any>(keys: any | any[], callback: () => T): T {
 
   for (const key of normalizedKeys) {
     if (!value.has(key)) {
-      const newValue = index === keys.length ? callback() : new Map();
+      const newValue = index === normalizedKeys.length ? callback() : new Map();
       value.set(key, newValue);
     }
 
