@@ -1,7 +1,7 @@
 let callbacks:Array<MutationCallback> = [];
 let observer;
 
-function mainCallback(mutations, obs) {
+function mainCallback(mutations) {
   callbacks.forEach((callback) => {
     callback(mutations, observer);
   });

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { Base, BaseConfig, withGroup } from '@studiometa/js-toolkit';
 import { destroy, h, mount } from '#test-utils';
 
