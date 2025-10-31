@@ -12,10 +12,9 @@ beforeEach(() => useFakeTimers());
 afterEach(() => useRealTimers());
 
 describe('The `importOnInteraction` lazy import helper', () => {
-  const App = withName(Base, 'App');
-  const Component = withName(Base, 'Component');
-
   it('should import a component given one event', async () => {
+    const App = withName(Base, 'App');
+    const Component = withName(Base, 'Component');
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);
 
@@ -38,6 +37,8 @@ describe('The `importOnInteraction` lazy import helper', () => {
   });
 
   it('should import a component given a ref as target', async () => {
+    const App = withName(Base, 'App');
+    const Component = withName(Base, 'Component');
     const btn = h('button', { dataRef: 'btn[]' });
     const btn2 = h('button', { dataRef: 'btn[]' });
     const component = h('div', { dataComponent: 'Component' });
@@ -61,6 +62,8 @@ describe('The `importOnInteraction` lazy import helper', () => {
   });
 
   it('should import a component given an array of events', async () => {
+    const App = withName(Base, 'App');
+    const Component = withName(Base, 'Component');
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);
 
@@ -81,6 +84,8 @@ describe('The `importOnInteraction` lazy import helper', () => {
   });
 
   it('should import a component given a selector outside the parent context', async () => {
+    const App = withName(Base, 'App');
+    const Component = withName(Base, 'ComponentImportOnInteraction');
     const component = h('div', { dataComponent: 'Component' });
     const div = h('div', {}, [component]);
     const btn = h('button', { id: 'btn' });

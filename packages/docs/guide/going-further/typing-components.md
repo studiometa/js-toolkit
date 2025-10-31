@@ -154,9 +154,31 @@ export default class Component extends Base<ComponentProps> {
 
 If you want to have autocompletion for a component's method, you can use the `BaseInterface` interface.
 
-::: warning JSDoc
-This feature does not work with JSDoc comments.
+::: warning JS vs TS
+This feature works best with TypeScript, as it can enable autocompletion for whole method signatures. In JavaScript, only the method name will be autocompleted.
 :::
+
+### With JavaScript
+
+```js
+import { Base } from '@studiometa/js-toolkit';
+
+/**
+ * @import { BaseInterface, ScrollServiceProps } from '@studiometa/js-toolkit'
+ * @implements {BaseInterface}
+ */
+export default class Component extends Base {
+  /**
+   * @inheritdoc
+   * @param {ScrollServiceProps} props
+   * @returns {void}
+   */
+  scrolled(props) {
+    props.y; // number
+    props.changed; // { x: number, y: number }
+  }
+}
+```
 
 ### With TypeScript
 

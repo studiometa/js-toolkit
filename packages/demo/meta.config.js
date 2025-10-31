@@ -1,9 +1,19 @@
-import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { resolve, dirname } from 'node:path';
 import { defineConfig } from '@studiometa/webpack-config';
 import { prototyping } from '@studiometa/webpack-config-preset-prototyping';
 
 export default defineConfig({
-  presets: [prototyping({ ts: true })],
+  presets: [
+    prototyping({
+      ts: true,
+      twig: {
+        namespaces: {
+          ui: dirname(fileURLToPath(import.meta.resolve('@studiometa/ui'))),
+        },
+      },
+    }),
+  ],
   webpack(config) {
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -17,5 +27,6 @@ export default defineConfig({
         toolkit: [resolve('../js-toolkit')],
       },
     };
+    config.cache = false;
   },
 });

@@ -6,17 +6,13 @@ import {
   withName,
 } from '@studiometa/js-toolkit';
 import type { Base as BaseType } from '@studiometa/js-toolkit';
-import { useMatchMedia, resizeWindow } from '#test-utils';
+import { useMatchMedia, resizeWindow, h } from '#test-utils';
 
 async function getContext() {
   const matchMedia = useMatchMedia('(min-width: 64rem)');
 
-  document.body.innerHTML = `
-    <div data-breakpoint>
-      <div data-component="Foo">
-      </div>
-    </div>
-  `;
+  const fooEl = h('div', { data: { component: 'Foo' } });
+  const div = h('div', fooEl);
   const fn = vi.fn();
   const withMock = (BaseClass: typeof BaseType, name) =>
     withName(
@@ -47,9 +43,9 @@ async function getContext() {
     };
   }
 
-  const app = new App(document.body);
+  const app = new App(div);
   await app.$mount();
-  const foo = getInstanceFromElement(document.querySelector('[data-component="Foo"]'), Foo);
+  const foo = getInstanceFromElement(fooEl, Foo);
 
   return { app, foo, fn, matchMedia };
 }
