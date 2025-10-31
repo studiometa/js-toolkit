@@ -28,7 +28,7 @@ The example below is for a simple component which can toggle the visibility of i
 ```
 
 ```js
-import { Base } from '@studiometa/js-toolkit';
+import { Base, registerComponent } from '@studiometa/js-toolkit';
 
 class Toggle extends Base {
   static config = {
@@ -41,30 +41,26 @@ class Toggle extends Base {
   }
 }
 
-Toggle.$register();
+registerComponent(Toggle);
 ```
 
 The class created by extending the `Base` class are components and can be used to achieve the above mentioned purposes.
 
-## Creating an app
+::: tip
+Registered component will be automatically mounted on newly inserted DOM element, it is not necessary to register a component multiple times.
+:::
 
-To manage your components, it is recommend to use a single entry point which will import them. Dynamic imports can be used to only load components when they are needed.
+## Registering async component
+
+Components can be lazyly registered by using import helpers like [`importWhenVisible`](/packages/docs/api/helpers/importWhenVisible.md)
 
 ```js
-import { Base, createApp } from '@studiometa/js-toolkit';
+import { registerComponent, importWhenVisible } from '@studiometa/js-toolkit';
 import Component from './components/Component.js';
 
-class App extends Base {
-  static config = {
-    name: 'App',
-    components: {
-      Component,
-      AsyncComponent: () => import('./components/AsyncComponent.js'),
-    },
-  };
-}
-
-export default createApp(App);
+registerComponent(Component);
+registerComponent(import('./components/AsyncComponent.js'));
+registerComponent(importWhenVisible(() => import('./components/LazyComponent.js'), 'Lazy'));
 ```
 
-The [`createApp`](/api/helpers/createApp.html) helper will instantiate your app when the window has been loaded to avoid blocking anything.
+See the [`registerComponent` API](../api/helpers/registerComponent.md) to learn more.
