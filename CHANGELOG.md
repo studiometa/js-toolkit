@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add support for automatic detection of newly injected components ([#562](https://github.com/studiometa/js-toolkit/issues/562), [#683](https://github.com/studiometa/js-toolkit/pull/683), [7f8922b9](https://github.com/studiometa/js-toolkit/commit/7f8922b9))
+
+### Changed
+
+- Improve types for event hooks ([#683](https://github.com/studiometa/js-toolkit/pull/683), [6d25553d](https://github.com/studiometa/js-toolkit/commit/6d25553d))
+
+### Fixed
+
+- Fix a bug when trying to destroy already destroyed instances ([#683](https://github.com/studiometa/js-toolkit/pull/683), [b3686378](https://github.com/studiometa/js-toolkit/commit/b3686378))
+
 ## [v3.3.0](https://github.com/studiometa/js-toolkit/compare/3.2.0..3.3.0) (2025-10-29)
 
 ### Added
