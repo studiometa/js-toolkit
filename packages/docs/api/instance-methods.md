@@ -164,14 +164,14 @@ Mount the component and its children, will trigger the `mounted` lifecycle metho
 
 ## `$update()`
 
-Update the children list from the DOM, mount any unmounted component an re-bind [event hooks](/packages/docs/api/methods-hooks-events.md#onreforchildnameevent).
+Update the children list from the DOM, mount any unmounted component an re-bind [event hooks](./methods-hooks-events.md#onreforchildnameevent).
 
 **Return value**
 
 - `Promise<this>`: returns the current instance when all children components are updated
 
 ::: tip
-Already registered or mounted component will be re-mounted automatically on new injected elements. For now, the `$update()` method should still be used to re-bind [event hooks](/packages/docs/api/methods-hooks-events.md#onreforchildnameevent).
+Already registered or mounted component will be re-mounted automatically on new injected elements. For now, the `$update()` method should still be used to re-bind [event hooks](./methods-hooks-events.md#onreforchildnameevent).
 :::
 
 ## `$destroy()`

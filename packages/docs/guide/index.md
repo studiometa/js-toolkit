@@ -52,7 +52,7 @@ Registered component will be automatically mounted on newly inserted DOM element
 
 ## Registering async component
 
-Components can be lazyly registered by using import helpers like [`importWhenVisible`](/packages/docs/api/helpers/importWhenVisible.md)
+Components can be lazyly registered by using import helpers like [`importWhenVisible`](../api/helpers/importWhenVisible.md)
 
 ```js
 import { registerComponent, importWhenVisible } from '@studiometa/js-toolkit';
