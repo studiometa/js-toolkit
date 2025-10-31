@@ -60,7 +60,9 @@ import Component from './components/Component.js';
 
 registerComponent(Component);
 registerComponent(import('./components/AsyncComponent.js'));
-registerComponent(importWhenVisible(() => import('./components/LazyComponent.js'), 'Lazy'));
+registerComponent(
+  importWhenVisible(() => import('./components/LazyComponent.js'), 'Lazy'),
+);
 ```
 
 See the [`registerComponent` API](../api/helpers/registerComponent.md) to learn more.
