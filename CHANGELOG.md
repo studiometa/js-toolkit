@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.4.0](https://github.com/studiometa/js-toolkit/compare/3.3.0..3.4.0) (2025-11-03)
+
 ### Added
 
 - Add support for automatic detection of newly injected components ([#562](https://github.com/studiometa/js-toolkit/issues/562), [#683](https://github.com/studiometa/js-toolkit/pull/683), [7f8922b9](https://github.com/studiometa/js-toolkit/commit/7f8922b9))
