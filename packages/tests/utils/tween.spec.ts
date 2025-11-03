@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { tween } from '@studiometa/js-toolkit/utils';
-import { useFakeTimers, useRealTimers, advanceTimersByTimeAsync } from '#test-utils';
+import { useFakeTimers, useRealTimers } from '#test-utils';
 
 beforeEach(() => useFakeTimers());
 afterEach(() => useRealTimers());

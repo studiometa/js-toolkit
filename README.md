@@ -108,22 +108,13 @@ And then adjust it as you wish in your HTML:
   </div>
 ```
 
-The framework also offers a way to instantiate a root component as an application, with child components as dependencies:
+Like Web Components, components based on the `Base` class can be registered. Any matching component found in the DOM from the moment it is registered to any future change will be mounted.
 
 ```js
-import { Base, createApp } from '@studiometa/js-toolkit';
+import { registerComponent } from '@studiometa/js-toolkit';
 import Counter from './components/Counter.js';
 
-class App extends Base {
-  static config = {
-    name: 'App',
-    components: {
-      Counter,
-    },
-  };
-}
-
-export default createApp(App);
+registerComponent(Counter);
 ```
 
 Visit our ["Getting Started" guide](https://js-toolkit.studiometa.dev/guide/) to learn more and try the above component by visiting [the playground](https://ui.studiometa.dev/-/play/#script=eNqVkjFPwzAQhff%2BijcguRVtEGurSpTuDKyIwdiXYprYkX2pQFX%2BO7bjlg6A1EiJndO97873bNrOecYRjzLQHMqTZNp0HQbU3rUQD4F7bVxLLO8%2BwoKda%2FaGxWoyUY0MAVvXWyYP%2BmSyOmQOjhMgsGSjoJytzQ7rHAOsbGkJUVRinoOe6rDEi5BaizmEp9YdKO1UShOvY5br2DgbE0dSqkDdzx%2FAX11kP%2FXtG%2FlRkh5NtewbXuL%2BFBvGzRC%2FQzwHsCOOfeaOprMC9MS9t%2BB3E6qb1GCVM6qDbHrahLHKKiESIVwQcsYJ87s%2BjiOvZ72zG623jVH7cwNZWZi4XRdSGUKVzn6hfs4j%2Bwew%2BBsQEaOVyfbrbIyKYqFy8SJZsnzhTzG5TDstcdyp2umSTeM7W30DtazCdQ%3D%3D&html=eNqFkEsKwzAMRPc9hdDe5EOXcaD0Br2BEyvBkMjGkUN7%2Byb1ogkUupJAmjfMNNatYI0Y1fs5eCYWjXefWChiPvggzrNahILGGqGfzLJoDOoKw0RPGM22YnsBaLok4jnLIg0ajbUHQQ3dqLopkarKEuLmYslie7O2KbL0NyXS7Ff6D3p8%2Fk4sxyHJAdXv0RDkFUgjp7nbY65mQ2ksTw7R8aiqPBwvJF%2BfS1NstbVv4jxoZA%3D%3D&style=eNpLyk%2BpVKjmUlAoSExJycxLt1IwLErNteaqBQBpsgf8). Discover our existing library of components by checking out the [@studiometa/ui](https://github.com/studiometa/ui) package.

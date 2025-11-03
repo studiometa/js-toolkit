@@ -16,7 +16,6 @@ export interface WithMountWhenInViewInterface extends BaseInterface {
    * @private
    */
   __observer: IntersectionObserver;
-  $mount(): this;
 }
 
 /**

@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.4.0](https://github.com/studiometa/js-toolkit/compare/3.3.0..3.4.0) (2025-11-03)
+
+### Added
+
+- Add support for automatic detection of newly injected components ([#562](https://github.com/studiometa/js-toolkit/issues/562), [#683](https://github.com/studiometa/js-toolkit/pull/683), [7f8922b9](https://github.com/studiometa/js-toolkit/commit/7f8922b9))
+
+### Changed
+
+- Improve the `BaseInterface` types ([#683](https://github.com/studiometa/js-toolkit/pull/683), [6d25553d](https://github.com/studiometa/js-toolkit/commit/6d25553d), [0acafe51](https://github.com/studiometa/js-toolkit/commit/0acafe51))
+- **cache:** ensure the cache is shared globally between multiple instances of the package ([#684](https://github.com/studiometa/js-toolkit/pull/684), [8e726e8d](https://github.com/studiometa/js-toolkit/commit/8e726e8d))
+
+### Fixed
+
+- Fix a bug when trying to destroy already destroyed instances ([#683](https://github.com/studiometa/js-toolkit/pull/683), [b3686378](https://github.com/studiometa/js-toolkit/commit/b3686378))
+- **cache:** fix normalizing the key into an array ([#684](https://github.com/studiometa/js-toolkit/pull/684), [d7d7bcb9](https://github.com/studiometa/js-toolkit/commit/d7d7bcb9))
+
 ## [v3.3.0](https://github.com/studiometa/js-toolkit/compare/3.2.0..3.3.0) (2025-10-29)
 
 ### Added
