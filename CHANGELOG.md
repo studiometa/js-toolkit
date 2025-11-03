@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
-- Improve types for event hooks ([#683](https://github.com/studiometa/js-toolkit/pull/683), [6d25553d](https://github.com/studiometa/js-toolkit/commit/6d25553d))
+- Improve the `BaseInterface` types ([#683](https://github.com/studiometa/js-toolkit/pull/683), [6d25553d](https://github.com/studiometa/js-toolkit/commit/6d25553d), [0acafe51](https://github.com/studiometa/js-toolkit/commit/0acafe51))
 - **cache:** ensure the cache is shared globally between multiple instances of the package ([#684](https://github.com/studiometa/js-toolkit/pull/684), [8e726e8d](https://github.com/studiometa/js-toolkit/commit/8e726e8d))
 
 ### Fixed
