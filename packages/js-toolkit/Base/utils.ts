@@ -169,7 +169,7 @@ function mutationCallback() {
   addToQueue(() => {
     for (const instance of getInstances()) {
       if (!instance.$el.isConnected) {
-        instance.$destroy();
+        instance.$terminate();
       }
     }
   });
