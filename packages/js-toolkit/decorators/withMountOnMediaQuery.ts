@@ -13,7 +13,6 @@ export interface withMountOnMediaQueryInterface extends BaseInterface {
    * @private
    */
   __matches: boolean;
-  $mount(): this;
 }
 
 /**
