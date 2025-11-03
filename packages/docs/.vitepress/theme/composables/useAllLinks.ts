@@ -1,6 +1,6 @@
 import type { Ref } from 'vue';
 import { ref, unref } from 'vue';
-import { useData, useRoute, useRouter } from 'vitepress';
+import { useData } from 'vitepress';
 
 interface Link {
   text: string;

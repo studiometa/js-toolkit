@@ -164,8 +164,8 @@ function manageRootElement(that: EventsManager, mode: 'add' | 'remove' = 'add') 
   }
 }
 
-export type EventManagerCallbackParams = {
-  event: Event | null;
+export type EventManagerCallbackParams<T extends Event = Event> = {
+  event: T;
   args: Array<any>;
   index: number;
   target: Element | Base | Promise<Base> | typeof window | typeof document | null;
