@@ -19,34 +19,35 @@ export function intersectionObserverBeforeAllCallback() {
    * We keep track of the elements being observed, so when `mockAllIsIntersecting` is triggered it will
    * know which elements to trigger the event on.
    */
-  globalThis.IntersectionObserver = vi.fn(
-    (cb: IntersectionObserverCallback, options: IntersectionObserverInit = {}) => {
-      const item: Item = {
-        callback: cb,
-        elements: new Set(),
-        created: Date.now(),
-      };
-      const instance: IntersectionObserver = {
-        thresholds: Array.isArray(options.threshold) ? options.threshold : [options.threshold ?? 0],
-        root: options.root ?? null,
-        rootMargin: options.rootMargin ?? '',
-        observe: vi.fn((element: Element) => {
-          item.elements.add(element);
-        }),
-        unobserve: vi.fn((element: Element) => {
-          item.elements.delete(element);
-        }),
-        disconnect: vi.fn(() => {
-          observers.delete(instance);
-        }),
-        takeRecords: vi.fn(),
-      };
+  globalThis.IntersectionObserver = vi.fn(function (
+    cb: IntersectionObserverCallback,
+    options: IntersectionObserverInit = {},
+  ) {
+    const item: Item = {
+      callback: cb,
+      elements: new Set(),
+      created: Date.now(),
+    };
+    const instance: IntersectionObserver = {
+      thresholds: Array.isArray(options.threshold) ? options.threshold : [options.threshold ?? 0],
+      root: options.root ?? null,
+      rootMargin: options.rootMargin ?? '',
+      observe: vi.fn((element: Element) => {
+        item.elements.add(element);
+      }),
+      unobserve: vi.fn((element: Element) => {
+        item.elements.delete(element);
+      }),
+      disconnect: vi.fn(() => {
+        observers.delete(instance);
+      }),
+      takeRecords: vi.fn(),
+    };
 
-      observers.set(instance, item);
+    observers.set(instance, item);
 
-      return instance;
-    },
-  );
+    return instance;
+  });
 }
 
 export function intersectionObserverAfterEachCallback() {
