@@ -1,5 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
-import { Base, BaseConfig, BaseProps, getInstanceFromElement } from '@studiometa/js-toolkit';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {
+  Base,
+  BaseConfig,
+  BaseProps,
+  getInstanceFromElement,
+  withExtraConfig,
+  withName,
+} from '@studiometa/js-toolkit';
 import { h } from '#test-utils';
 
 let mockedIsDev = true;
@@ -35,6 +42,10 @@ async function getContext() {
 
   return { Foo, element, foo };
 }
+
+beforeEach(() => {
+  globalThis['__JS_TOOLKIT_REGISTRY__'] = new Map();
+});
 
 describe('The abstract Base class', () => {
   it('must be extended', () => {
@@ -347,6 +358,44 @@ describe('A Base instance methods', () => {
     expect(fn).toHaveBeenCalledTimes(2);
     expect(fn).toHaveBeenNthCalledWith(1, 'event');
     expect(fn).toHaveBeenNthCalledWith(2, 'method');
+  });
+
+  it('should register itself on instantiation', async () => {
+    const TestComponent = withName(Base, 'TestComponent');
+    const registry = globalThis.__JS_TOOLKIT_REGISTRY__;
+    const component = new TestComponent(h('div'));
+
+    expect(registry.has('TestComponent')).toBe(true);
+    expect(registry.get('TestComponent')).toBe(TestComponent);
+
+    registry.delete('TestComponent');
+  });
+
+  it('should register sync configured children components on instantiation', async () => {
+    const Child = withName(Base, 'Child');
+    const Parent = withExtraConfig(Base, {
+      name: 'Parent',
+      components: {
+        Child,
+        div: Child,
+        AsyncChild: () => new Promise(() => {}),
+      },
+    });
+
+    const registry = globalThis.__JS_TOOLKIT_REGISTRY__;
+    const component = new Parent(h('div'));
+
+    // Check that it's in the registry
+    expect(registry.has('Parent')).toBe(true);
+    expect(registry.get('Parent')).toBe(Parent);
+
+    expect(registry.has('Child')).toBe(true);
+    expect(registry.get('Child')).toBe(Child);
+
+    expect(registry.has('div')).toBe(true);
+    expect(registry.get('div')).toBe(Child);
+
+    expect(registry.has('AsyncChild')).toBe(false);
   });
 
   it('should not find children if none provided', async () => {
