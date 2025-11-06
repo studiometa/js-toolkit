@@ -18,4 +18,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           build_script: npm run build-for-export-size
           paths: dist
-          node-version: 22
+          node-version: 24
