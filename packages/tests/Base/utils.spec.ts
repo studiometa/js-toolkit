@@ -142,6 +142,24 @@ describe('The `addToRegistry` helper', () => {
     }
   });
 
+  it('should register child components', async () => {
+    const registry = (globalThis.__JS_TOOLKIT_REGISTRY__ ??= new Map());
+    const Child = withName(Base, 'Child');
+    const Parent = withName(Base, 'Parent');
+    Parent.config.components = { Child, div: Child };
+
+    addToRegistry('Parent', Parent);
+
+    expect(registry.has('Parent')).toBe(true);
+    expect(registry.get('Parent')).toBe(Parent);
+
+    expect(registry.has('Child')).toBe(true);
+    expect(registry.get('Child')).toBe(Child);
+
+    expect(registry.has('div')).toBe(true);
+    expect(registry.get('div')).toBe(Child);
+  });
+
   it('should mount components newly injected in the DOM', async () => {
     const DynamicComponent = withName(Base, 'DynamicComponent');
 

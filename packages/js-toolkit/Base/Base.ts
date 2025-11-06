@@ -301,6 +301,7 @@ export class Base<T extends BaseProps = BaseProps> {
       return;
     }
 
+    // Add current component to the registry
     addToRegistry($config.name, this.constructor);
 
     this.$id = `${$config.name}-${id}`;
