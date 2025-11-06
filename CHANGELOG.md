@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix registering child components ([#690](https://github.com/studiometa/js-toolkit/issues/690), [#692](https://github.com/studiometa/js-toolkit/pull/692), [3ee1cc3b](https://github.com/studiometa/js-toolkit/commit/3ee1cc3b))
+
 ## [v3.4.0](https://github.com/studiometa/js-toolkit/compare/3.3.0..3.4.0) (2025-11-03)
 
 ### Added
