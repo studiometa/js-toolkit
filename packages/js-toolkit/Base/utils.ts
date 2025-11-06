@@ -182,6 +182,15 @@ export function addToRegistry(nameOrSelector: string, ctor: BaseConstructor) {
 
   registry().set(nameOrSelector, ctor);
 
+  // Add children components to the registry
+  if (ctor.config?.components) {
+    for (const [selector, childConstructor] of Object.entries(ctor.config?.components)) {
+      if ('$isBase' in childConstructor && childConstructor.$isBase) {
+        addToRegistry(selector, childConstructor);
+      }
+    }
+  }
+
   const mutation = useMutation(document, { childList: true, subtree: true });
   if (!mutation.has(registryKey)) {
     mutation.add(registryKey, mutationCallback);
