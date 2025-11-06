@@ -301,7 +301,15 @@ export class Base<T extends BaseProps = BaseProps> {
       return;
     }
 
+    // Add current component to the registry
     addToRegistry($config.name, this.constructor);
+
+    // Add children components to the registry
+    for (const [selector, ctor] of Object.entries($config.components)) {
+      if ('$isBase' in ctor && ctor.$isBase) {
+        addToRegistry(selector, ctor);
+      }
+    }
 
     this.$id = `${$config.name}-${id}`;
     id += 1;
