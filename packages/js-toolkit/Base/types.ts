@@ -13,21 +13,25 @@ export type BaseEventHookParams<T extends Event = Event> = EventManagerCallbackP
 export interface BaseInterface {
   /**
    * Trigger the `mounted` callback.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#mount
    */
   $mount?(): Promise<this>
 
   /**
    * Update the instance children.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#update
    */
   $update?(): Promise<this>;
 
   /**
    * Trigger the `destroyed` callback.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#destroy
    */
   $destroy?(): Promise<this>;
 
   /**
    * Terminate a child instance when it is not needed anymore.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#terminate
    */
   $terminate?(): Promise<void>;
 
@@ -38,6 +42,7 @@ export interface BaseInterface {
    * @param listener Function to be called.
    * @param [options] Options for the `removeEventListener` method.
    * @return A function to unbind the listener.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#on-event-callback-options
    */
   $on(
     event: string,
@@ -51,6 +56,7 @@ export interface BaseInterface {
    * @param event Name of the event.
    * @param listener Function to be removed.
    * @param [options] Options for the `removeEventListener` method.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#off-event-callback-options
    */
   $off(
     event: string,
@@ -63,6 +69,7 @@ export interface BaseInterface {
    *
    * @param event Name of the event.
    * @param args The arguments to apply to the functions bound to this event.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#emit-event-args
    */
   $emit(event: string | Event, ...args: unknown[]): void;
 
