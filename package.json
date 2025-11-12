@@ -39,7 +39,7 @@
     "typescript": "5.9.3"
   },
   "dependencies": {
-    "esbuild": "^0.25.12",
+    "esbuild": "^0.27.0",
     "fast-glob": "^3.3.3"
   }
 }
