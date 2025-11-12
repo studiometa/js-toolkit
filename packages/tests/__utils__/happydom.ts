@@ -1,4 +1,11 @@
+import { beforeEach } from 'vitest';
 import { GlobalRegistrator } from '@happy-dom/global-registrator';
+
+beforeEach(() => {
+  globalThis.__JS_TOOLKIT_ELEMENTS__ = new Set();
+  globalThis.__JS_TOOLKIT_INSTANCES__ = new Set();
+  globalThis.__JS_TOOLKIT_REGISTRY__ = new Map();
+});
 
 GlobalRegistrator.register();
 
