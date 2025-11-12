@@ -6,6 +6,8 @@ import {
   addInstance,
   deleteInstance,
   addToRegistry,
+  getInstances,
+  findClosestInstance,
 } from './utils.js';
 import {
   ChildrenManager,
@@ -79,11 +81,6 @@ export class Base<T extends BaseProps = BaseProps> {
   static readonly $isBase = true as const;
 
   /**
-   * The instance parent.
-   */
-  $parent: T['$parent'] & Base = null;
-
-  /**
    * The instance id.
    */
   $id: string;
@@ -130,6 +127,25 @@ export class Base<T extends BaseProps = BaseProps> {
     }
 
     return root;
+  }
+
+  get $parent(): T['$parent'] & Base | null {
+    const parents = new Set<T['$parent'] & Base>();
+
+    for (const instance of getInstances()) {
+      if (!instance.$config.components) continue;
+
+      if (
+        Object.values(instance.$config.components).includes(this.constructor) &&
+        instance.$el.contains(this.$el)
+      ) {
+        parents.add(instance);
+      }
+    }
+
+    const closest = findClosestInstance(this.$el, parents);
+
+    return closest ?? null;
   }
 
   /**
