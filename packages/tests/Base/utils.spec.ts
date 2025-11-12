@@ -6,24 +6,26 @@ import {
   addToQueue,
   getSelector,
   addToRegistry,
+  getElements,
 } from '#private/Base/utils.js';
-import { h, mockFeatures } from '#test-utils';
+import { destroy, h, mockFeatures, mount } from '#test-utils';
 
-describe('The `getSelector` function', () => {
-  it('should return a list of selectors', () => {
-    expect(getSelector('Foo')).toMatchInlineSnapshot(
-      `"tk-foo,[data-component="Foo"],[data-component*=" Foo "],[data-component$=" Foo"],[data-component^="Foo "]"`,
-    );
-    expect(getSelector('FooBar')).toMatchInlineSnapshot(
-      `"tk-foo-bar,[data-component="FooBar"],[data-component*=" FooBar "],[data-component$=" FooBar"],[data-component^="FooBar "]"`,
-    );
+describe('The Base utils', () => {
+  describe('The `getSelector` function', () => {
+    it('should return a list of selectors', () => {
+      expect(getSelector('Foo')).toMatchInlineSnapshot(
+        `"tk-foo,[data-component="Foo"],[data-component*=" Foo "],[data-component$=" Foo"],[data-component^="Foo "]"`,
+      );
+      expect(getSelector('FooBar')).toMatchInlineSnapshot(
+        `"tk-foo-bar,[data-component="FooBar"],[data-component*=" FooBar "],[data-component$=" FooBar"],[data-component^="FooBar "]"`,
+      );
+    });
   });
-});
 
-describe('The `getComponentElements` function', () => {
-  it('should find components with multiple declarations', () => {
-    const div = h('div');
-    div.innerHTML = `
+  describe('The `getComponentElements` function', () => {
+    it('should find components with multiple declarations', () => {
+      const div = h('div');
+      div.innerHTML = `
       <div data-component="Foo"></div>
       <div data-component="Foo Bar"></div>
       <div data-component="Bar Foo"></div>
@@ -34,196 +36,211 @@ describe('The `getComponentElements` function', () => {
       <div data-component="FooBaz BarFoo"></div>
     `;
 
-    expect(getComponentElements('Foo', div)).toHaveLength(4);
-    expect(getComponentElements('Bar', div)).toHaveLength(3);
-    expect(getComponentElements('Baz', div)).toHaveLength(2);
+      expect(getComponentElements('Foo', div)).toHaveLength(4);
+      expect(getComponentElements('Bar', div)).toHaveLength(3);
+      expect(getComponentElements('Baz', div)).toHaveLength(2);
+    });
+
+    it('should not find DOM elements with the same name as a defined component', () => {
+      const div = h('div', [h('figure'), h('button')]);
+
+      expect(getComponentElements('Figure', div)).toHaveLength(0);
+      expect(getComponentElements('Button', div)).toHaveLength(0);
+    });
   });
 
-  it('should not find DOM elements with the same name as a defined component', () => {
-    const div = h('div', [h('figure'), h('button')]);
+  describe('The `addToQueue` function', () => {
+    it('should delay given tasks if the `blocking` feature is disabled', async () => {
+      const { unmock } = mockFeatures({ blocking: false });
+      const fn = vi.fn();
 
-    expect(getComponentElements('Figure', div)).toHaveLength(0);
-    expect(getComponentElements('Button', div)).toHaveLength(0);
-  });
-});
-
-describe('The `addToQueue` function', () => {
-  it('should delay given tasks if the `blocking` feature is disabled', async () => {
-    const { unmock } = mockFeatures({ blocking: false });
-    const fn = vi.fn();
-
-    addToQueue(fn);
-    expect(fn).not.toHaveBeenCalled();
-    await nextTick();
-    expect(fn).toHaveBeenCalledTimes(1);
-    unmock();
-  });
-});
-
-describe('The instance helpers', () => {
-  it('should save and get instances for a given constructor', () => {
-    const Foo = withName(Base, 'Foo');
-    const Bar = withName(Base, 'Bar');
-
-    expect(getInstances(Foo)).toHaveLength(0);
-    expect(getInstances(Bar)).toHaveLength(0);
-
-    const foo = new Foo(h('div'));
-    new Bar(h('div'));
-    foo.$emit(new CustomEvent('mounted'));
-
-    expect(getInstances(Foo)).toHaveLength(1);
-    expect(getInstances(Bar)).toHaveLength(0);
-    expect(getInstances(Foo).has(foo)).toBe(true);
+      addToQueue(fn);
+      expect(fn).not.toHaveBeenCalled();
+      await nextTick();
+      expect(fn).toHaveBeenCalledTimes(1);
+      unmock();
+    });
   });
 
-  it('should return a set with all instances if no constructor given', () => {
-    const Foo = withName(Base, 'Foo');
-    const foo = new Foo(h('div'));
-    const instances = getInstances();
-    expect(instances).toBeInstanceOf(Set);
-    expect(getInstances().has(foo)).toBe(false);
-    foo.$emit(new CustomEvent('mounted'));
-    expect(getInstances().has(foo)).toBe(true);
-  });
-});
+  describe('The instance helpers', () => {
+    it('should save and get instances for a given constructor', () => {
+      const Foo = withName(Base, 'Foo');
+      const Bar = withName(Base, 'Bar');
 
-describe('The `addToRegistry` helper', () => {
-  it('should not override an existing component', async () => {
-    const Foo = withName(Base, 'Foo');
-    const Bar = withName(Base, 'Bar');
+      expect(getInstances(Foo)).toHaveLength(0);
+      expect(getInstances(Bar)).toHaveLength(0);
 
-    // Register Foo as the component for the 'TestComponent' name
-    addToRegistry('TestComponent', Foo);
+      const foo = new Foo(h('div'));
+      new Bar(h('div'));
+      foo.$emit(new CustomEvent('mounted'));
 
-    // Try to register Bar with the same name
-    addToRegistry('TestComponent', Bar);
+      expect(getInstances(Foo)).toHaveLength(1);
+      expect(getInstances(Bar)).toHaveLength(0);
+      expect(getInstances(Foo).has(foo)).toBe(true);
+    });
 
-    // Create an element and mount it
-    const el = h('div', [h('div', { 'data-component': 'TestComponent' })]);
-    document.body.appendChild(el);
-
-    // Wait for the mutation observer to detect the change
-    await nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    // Get instances - should only find Foo instances, not Bar
-    const fooInstances = getInstances(Foo);
-    const barInstances = getInstances(Bar);
-
-    expect(fooInstances.size).toBe(1);
-    expect(barInstances.size).toBe(0);
-
-    // Clean up
-    el.remove();
-    await Promise.all(Array.from(fooInstances).map((i) => i.$destroy()));
+    it('should return a set with all instances if no constructor given', () => {
+      const Foo = withName(Base, 'Foo');
+      const foo = new Foo(h('div'));
+      const instances = getInstances();
+      expect(instances).toBeInstanceOf(Set);
+      expect(getInstances().has(foo)).toBe(false);
+      foo.$emit(new CustomEvent('mounted'));
+      expect(getInstances().has(foo)).toBe(true);
+    });
   });
 
-  it('should register new components', async () => {
-    const TestComponent = withName(Base, 'TestComponent');
-    const registryKey = '__JS_TOOLKIT_REGISTRY__';
+  describe('The getElements function', () => {
+    it('should return a set of elements having one or more instances attached to them', async () => {
+      const Foo = withName(Base, 'Foo');
+      const div = h('div');
+      const foo = new Foo(div);
+      expect(getElements()).toHaveLength(0);
+      await mount(foo);
+      expect(getElements()).toHaveLength(1);
+      expect(getElements()).toEqual(new Set([div]));
+      await destroy(foo);
+      expect(getElements()).toHaveLength(0);
+    });
+  });
 
-    // Clear the registry for this test
-    const registry = globalThis[registryKey];
-    const hadTestComponent = registry?.has('NewTestComponent');
-    registry?.delete('NewTestComponent');
+  describe('The `addToRegistry` helper', () => {
+    it('should not override an existing component', async () => {
+      const Foo = withName(Base, 'Foo');
+      const Bar = withName(Base, 'Bar');
 
-    // Register the component
-    addToRegistry('NewTestComponent', TestComponent);
+      // Register Foo as the component for the 'TestComponent' name
+      addToRegistry('TestComponent', Foo);
 
-    // Check that it's in the registry
-    expect(registry.has('NewTestComponent')).toBe(true);
-    expect(registry.get('NewTestComponent')).toBe(TestComponent);
+      // Try to register Bar with the same name
+      addToRegistry('TestComponent', Bar);
 
-    // Clean up
-    registry.delete('NewTestComponent');
-    if (!hadTestComponent) {
+      // Create an element and mount it
+      const el = h('div', [h('div', { 'data-component': 'TestComponent' })]);
+      document.body.appendChild(el);
+
+      // Wait for the mutation observer to detect the change
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Get instances - should only find Foo instances, not Bar
+      const fooInstances = getInstances(Foo);
+      const barInstances = getInstances(Bar);
+
+      expect(fooInstances.size).toBe(1);
+      expect(barInstances.size).toBe(0);
+
+      // Clean up
+      el.remove();
+      await Promise.all(Array.from(fooInstances).map((i) => i.$destroy()));
+    });
+
+    it('should register new components', async () => {
+      const TestComponent = withName(Base, 'TestComponent');
+      const registryKey = '__JS_TOOLKIT_REGISTRY__';
+
+      // Clear the registry for this test
+      const registry = globalThis[registryKey];
+      const hadTestComponent = registry?.has('NewTestComponent');
+      registry?.delete('NewTestComponent');
+
+      // Register the component
+      addToRegistry('NewTestComponent', TestComponent);
+
+      // Check that it's in the registry
+      expect(registry.has('NewTestComponent')).toBe(true);
+      expect(registry.get('NewTestComponent')).toBe(TestComponent);
+
+      // Clean up
       registry.delete('NewTestComponent');
-    }
-  });
+      if (!hadTestComponent) {
+        registry.delete('NewTestComponent');
+      }
+    });
 
-  it('should register child components', async () => {
-    const registry = (globalThis.__JS_TOOLKIT_REGISTRY__ ??= new Map());
-    const Child = withName(Base, 'Child');
-    const Parent = withName(Base, 'Parent');
-    Parent.config.components = { Child, div: Child };
+    it('should register child components', async () => {
+      const registry = (globalThis.__JS_TOOLKIT_REGISTRY__ ??= new Map());
+      const Child = withName(Base, 'Child');
+      const Parent = withName(Base, 'Parent');
+      Parent.config.components = { Child, div: Child };
 
-    addToRegistry('Parent', Parent);
+      addToRegistry('Parent', Parent);
 
-    expect(registry.has('Parent')).toBe(true);
-    expect(registry.get('Parent')).toBe(Parent);
+      expect(registry.has('Parent')).toBe(true);
+      expect(registry.get('Parent')).toBe(Parent);
 
-    expect(registry.has('Child')).toBe(true);
-    expect(registry.get('Child')).toBe(Child);
+      expect(registry.has('Child')).toBe(true);
+      expect(registry.get('Child')).toBe(Child);
 
-    expect(registry.has('div')).toBe(true);
-    expect(registry.get('div')).toBe(Child);
-  });
+      expect(registry.has('div')).toBe(true);
+      expect(registry.get('div')).toBe(Child);
+    });
 
-  it('should mount components newly injected in the DOM', async () => {
-    const DynamicComponent = withName(Base, 'DynamicComponent');
+    it('should mount components newly injected in the DOM', async () => {
+      const DynamicComponent = withName(Base, 'DynamicComponent');
 
-    // Register the component
-    addToRegistry('DynamicComponent', DynamicComponent);
+      // Register the component
+      addToRegistry('DynamicComponent', DynamicComponent);
 
-    // Create a container
-    const container = h('div');
-    document.body.appendChild(container);
+      // Create a container
+      const container = h('div');
+      document.body.appendChild(container);
 
-    // Dynamically add a component element to the DOM
-    const componentEl = h('div', { 'data-component': 'DynamicComponent' });
-    container.appendChild(componentEl);
+      // Dynamically add a component element to the DOM
+      const componentEl = h('div', { 'data-component': 'DynamicComponent' });
+      container.appendChild(componentEl);
 
-    // Wait for mutation observer and mounting
-    await nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 100));
+      // Wait for mutation observer and mounting
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Check that an instance was created and mounted
-    const instances = getInstances(DynamicComponent);
-    expect(instances.size).toBeGreaterThan(0);
+      // Check that an instance was created and mounted
+      const instances = getInstances(DynamicComponent);
+      expect(instances.size).toBeGreaterThan(0);
 
-    const instance = Array.from(instances)[0];
-    expect(instance.$el).toBe(componentEl);
-    expect(instance.$isMounted).toBe(true);
+      const instance = Array.from(instances)[0];
+      expect(instance.$el).toBe(componentEl);
+      expect(instance.$isMounted).toBe(true);
 
-    // Clean up
-    container.remove();
-    await Promise.all(Array.from(instances).map((i) => i.$destroy()));
-  });
+      // Clean up
+      container.remove();
+      await Promise.all(Array.from(instances).map((i) => i.$destroy()));
+    });
 
-  it('should destroy components whose root element has been removed from the DOM', async () => {
-    const DestructibleComponent = withName(Base, 'DestructibleComponent');
+    it('should destroy components whose root element has been removed from the DOM', async () => {
+      const DestructibleComponent = withName(Base, 'DestructibleComponent');
 
-    // Register the component
-    addToRegistry('DestructibleComponent', DestructibleComponent);
+      // Register the component
+      addToRegistry('DestructibleComponent', DestructibleComponent);
 
-    // Create a container and component element
-    const container = h('div');
-    document.body.appendChild(container);
+      // Create a container and component element
+      const container = h('div');
+      document.body.appendChild(container);
 
-    const componentEl = h('div', { 'data-component': 'DestructibleComponent' });
-    container.appendChild(componentEl);
+      const componentEl = h('div', { 'data-component': 'DestructibleComponent' });
+      container.appendChild(componentEl);
 
-    // Wait for mounting
-    await nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 100));
+      // Wait for mounting
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const instances = getInstances(DestructibleComponent);
-    const instance = Array.from(instances)[0];
+      const instances = getInstances(DestructibleComponent);
+      const instance = Array.from(instances)[0];
 
-    expect(instance.$isMounted).toBe(true);
+      expect(instance.$isMounted).toBe(true);
 
-    // Remove the component element from the DOM
-    componentEl.remove();
+      // Remove the component element from the DOM
+      componentEl.remove();
 
-    // Wait for mutation observer and destruction
-    await nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 100));
+      // Wait for mutation observer and destruction
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Check that the instance was destroyed
-    expect(instance.$isMounted).toBe(false);
+      // Check that the instance was destroyed
+      expect(instance.$isMounted).toBe(false);
 
-    // Clean up
-    container.remove();
+      // Clean up
+      container.remove();
+    });
   });
 });
