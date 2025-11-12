@@ -81,17 +81,43 @@ export class Base<T extends BaseProps = BaseProps> {
   static readonly $isBase = true as const;
 
   /**
+   * Config.
+   * @link https://js-toolkit.studiometa.dev/api/configuration.html
+   */
+  static config: BaseConfig = {
+    name: 'Base',
+    emits: [
+      // hook events
+      'before-mounted',
+      'mounted',
+      'updated',
+      'destroyed',
+      'terminated',
+      // default services' events
+      'ticked',
+      'scrolled',
+      'resized',
+      'moved',
+      'loaded',
+      'keyed',
+    ],
+  };
+
+  /**
    * The instance id.
+   * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#id
    */
   $id: string;
 
   /**
    * The root element.
+   * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#el
    */
   $el: T['$el'] & BaseEl;
 
   /**
    * The state of the component.
+   * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#isMounted
    */
   $isMounted = false;
 
@@ -109,6 +135,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Get the root instance of the app.
+   * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#root
    */
   get $root(): Base {
     if (!this.$parent) {
@@ -129,6 +156,10 @@ export class Base<T extends BaseProps = BaseProps> {
     return root;
   }
 
+  /**
+   * The parent instance if the current instance is registered as a child component in a parent component.
+   * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#parent
+   */
   get $parent(): T['$parent'] & Base | null {
     const parents = new Set<T['$parent'] & Base>();
 
@@ -177,49 +208,50 @@ export class Base<T extends BaseProps = BaseProps> {
     return config;
   }
 
+  /**
+   * The normalized config of the component.
+   * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#config
+   */
   get $config() {
     return this.__config;
   }
 
-  static config: BaseConfig = {
-    name: 'Base',
-    emits: [
-      // hook events
-      'before-mounted',
-      'mounted',
-      'updated',
-      'destroyed',
-      'terminated',
-      // default services' events
-      'ticked',
-      'scrolled',
-      'resized',
-      'moved',
-      'loaded',
-      'keyed',
-    ],
-  };
-
   __services: ServicesManager;
 
+  /**
+   * Services.
+   * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#services
+   */
   get $services(): ServicesManager {
     return this.__services;
   }
 
   __refs: RefsManager<T['$refs'] & BaseRefs>;
 
+  /**
+   * Refs.
+   * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#refs
+   */
   get $refs(): T['$refs'] & BaseRefs {
     return this.__refs.props;
   }
 
   __options: OptionsManager<T['$options'] & BaseOptions>;
 
+  /**
+   * Options.
+   * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#options
+   */
   get $options(): T['$options'] & BaseOptions {
     return this.__options.props;
   }
 
   __children: ChildrenManager<T['$children'] & BaseChildren>;
 
+  /**
+   * Children.
+   * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#children
+   */
   get $children(): T['$children'] & BaseChildren {
     return this.__children.props;
   }
@@ -228,6 +260,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Small helper to log stuff.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#log-content
    */
   get $log(): (...args: unknown[]) => void {
     return this.$options.log ? window.console.log.bind(window, `[${this.$id}]`) : noop;
@@ -235,6 +268,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Small helper to make warning easier.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#warn-content
    */
   get $warn(): (...args: unknown[]) => void {
     return this.$options.log ? window.console.warn.bind(window, `[${this.$id}]`) : noop;
@@ -242,6 +276,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Small helper to debug information.
+   * @internal
    */
   get __debug(): (...args: unknown[]) => void {
     return isDev && this.$options.debug
@@ -251,6 +286,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Get manager constructors.
+   * @internal
    */
   get __managers(): Managers {
     return {
@@ -264,6 +300,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Call an instance method and emit corresponding events.
+   * @internal
    */
   __callMethod(method: string, ...args: unknown[]): unknown {
     if (isDev) {
@@ -289,6 +326,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *
    * @param  {string} event The event's name.
    * @return {boolean}      Wether the given event has been bound or not.
+   * @internal
    */
   __hasEvent(event: string): boolean {
     const eventHandlers = this.__eventHandlers.get(event);
@@ -299,6 +337,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * Class constructor where all the magic takes place.
    *
    * @param {HTMLElement} element The component's root element dd.
+   * @link https://js-toolkit.studiometa.dev/api/instantiation.html
    */
   constructor(element: HTMLElement) {
     if (!element) {
@@ -345,6 +384,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Trigger the `mounted` callback.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#mount
    */
   async $mount(): Promise<this> {
     if (this.$isMounted || this.__isMounting) {
@@ -378,6 +418,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Update the instance children.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#update
    */
   async $update(): Promise<this> {
     if (isDev) {
@@ -403,6 +444,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Trigger the `destroyed` callback.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#destroy
    */
   async $destroy(): Promise<this> {
     if (!this.$isMounted) {
@@ -429,6 +471,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Terminate a child instance when it is not needed anymore.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#terminate
    */
   async $terminate(): Promise<void> {
     if (isDev) {
@@ -450,6 +493,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *
    * @param  {string} event The event name.
    * @return {void}
+   * @internal
    */
   __addEmits(event: string): void {
     const ctor = this.constructor;
@@ -465,6 +509,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *
    * @param  {string} event The event name.
    * @return {void}
+   * @internal
    */
   __removeEmits(event: string): void {
     const ctor = this.constructor;
@@ -483,6 +528,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *   Options for the `removeEventListener` method.
    * @return {() => void}
    *   A function to unbind the listener.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#on-event-callback-options
    */
   $on(
     event: string,
@@ -530,6 +576,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * @param {boolean|EventListenerOptions} [options]
    *   Options for the `removeEventListener` method.
    * @return {void}
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#off-event-callback-options
    */
   $off(
     event: string,
@@ -552,6 +599,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * @param  {string} event Name of the event.
    * @param  {any[]}  args  The arguments to apply to the functions bound to this event.
    * @return {void}
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#emit-event-args
    */
   $emit(event: string | Event, ...args: unknown[]) {
     if (isDev) {
@@ -565,6 +613,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Register and mount all instances of the component.
+   * @link https://js-toolkit.studiometa.dev/api/static-methods.html#register-nameorselector-string
    */
   static $register<T extends BaseProps = BaseProps, U extends typeof Base<T> = typeof Base<T>>(
     this: U,
