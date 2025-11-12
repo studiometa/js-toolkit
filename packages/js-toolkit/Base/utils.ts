@@ -196,3 +196,27 @@ export function addToRegistry(nameOrSelector: string, ctor: BaseConstructor) {
     mutation.add(registryKey, mutationCallback);
   }
 }
+
+/**
+ * Find the closest instance from the given element in the given set of Base instances.
+ */
+export function findClosestInstance<T extends Base = Base>(element: HTMLElement, instances: Set<T>): T {
+  let closest = null;
+  let minDepth = Infinity;
+
+  for (const instance of instances) {
+    let depth = 0;
+    let el = element;
+    while (el && el !== instance.$el) {
+      depth++;
+      el = el.parentElement;
+    }
+
+    if (depth < minDepth) {
+      minDepth = depth;
+      closest = instance;
+    }
+  }
+
+  return closest;
+}

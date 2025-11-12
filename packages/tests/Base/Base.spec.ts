@@ -7,7 +7,7 @@ import {
   withExtraConfig,
   withName,
 } from '@studiometa/js-toolkit';
-import { h } from '#test-utils';
+import { h, mount } from '#test-utils';
 
 let mockedIsDev = true;
 
@@ -177,6 +177,29 @@ describe('A Base instance', () => {
 
     const d = new D(h('div'));
     expect(d.__config).toMatchSnapshot();
+  });
+
+  it.only('should have a $parent property', async () => {
+    class ChildComponent extends Base {
+      static config: BaseConfig = {
+        name: 'ChildComponent',
+      };
+    }
+
+    class Component extends Base<{ $children: { ChildComponent: ChildComponent[] } }> {
+      static config: BaseConfig = {
+        name: 'Component',
+        components: { ChildComponent },
+      };
+    }
+
+    const child = h('div', { dataComponent: 'ChildComponent' });
+    const div = h('div', [child]);
+    const component = new Component(div);
+    await mount(component);
+
+    const childComponent = getInstanceFromElement(child, ChildComponent);
+    expect(childComponent.$parent).toBe(component);
   });
 
   it('should have a `$root` property', async () => {
