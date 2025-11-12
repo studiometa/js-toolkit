@@ -83,7 +83,30 @@ The resolved configuration based on the current class [static `config` property]
 
 ## `$parent`
 
-The parent instance when the current instance has been mounted as a [child component](#components), defaults to `null` if the component as been instantiated as a stand-alone component.
+The parent instance when the current instance component is registered as another [component child](./configuration.md#config-components), defaults to `null` otherwise.
+
+```ts twoslash {9}
+import { Base } from '@studiometa/js-toolkit';
+
+class Child extends Base {
+  static config = {
+    name: 'Child',
+  };
+
+  mounted() {
+    console.log(this.$parent instanceof Parent); // true
+  }
+}
+
+class Parent extends Base {
+  static config = {
+    name: 'Parent',
+    components: {
+      Child,
+    },
+  };
+}
+```
 
 ## `$root`
 
