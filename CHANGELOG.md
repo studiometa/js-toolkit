@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.4.3](https://github.com/studiometa/js-toolkit/compare/3.4.2..3.4.3) (2025-11-13)
+
 ### Fixed
 
 - Fix `$parent` property being `null` in a child `mounted` hook ([#702](https://github.com/studiometa/js-toolkit/pull/702), [bac5bfc6](https://github.com/studiometa/js-toolkit/commit/bac5bfc6))
