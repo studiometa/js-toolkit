@@ -157,7 +157,6 @@ export class ChildrenManager<T> extends AbstractManager<T> {
       // Return a new instance if the component class is a child of the Base class
       // eslint-disable-next-line new-cap
       const child = new ctor(el);
-      Object.defineProperty(child, '$parent', { get: () => this.__base });
       return child;
     }
 
