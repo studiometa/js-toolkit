@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.4.2](https://github.com/studiometa/js-toolkit/compare/3.4.1..3.4.2) (2025-11-13)
+
 ### Fixed
 
 - Fix resolving the `$parent` property ([#699](https://github.com/studiometa/js-toolkit/issues/699), [#700](https://github.com/studiometa/js-toolkit/pull/700), [c4dc45de](https://github.com/studiometa/js-toolkit/commit/c4dc45de))
