@@ -4,10 +4,11 @@ import {
   BaseConfig,
   BaseProps,
   getInstanceFromElement,
+  registerComponent,
   withExtraConfig,
   withName,
 } from '@studiometa/js-toolkit';
-import { h } from '#test-utils';
+import { h, mount } from '#test-utils';
 
 let mockedIsDev = true;
 
@@ -177,6 +178,120 @@ describe('A Base instance', () => {
 
     const d = new D(h('div'));
     expect(d.__config).toMatchSnapshot();
+  });
+
+  describe('The `$parent` getter', () => {
+    it('should return null when no parent', async () => {
+      class Component extends Base {
+        static config: BaseConfig = {
+          name: 'Component',
+        };
+      }
+
+      const component = new Component(h('div'));
+      await mount(component);
+      expect(component.$parent).toBeNull();
+    });
+
+    it('should return the configured parent', async () => {
+      class ChildComponent extends Base {
+        static config: BaseConfig = {
+          name: 'ChildComponent',
+        };
+      }
+
+      class Component extends Base<{ $children: { ChildComponent: ChildComponent[] } }> {
+        static config: BaseConfig = {
+          name: 'Component',
+          components: { ChildComponent },
+        };
+      }
+
+      const child = h('div', { dataComponent: 'ChildComponent' });
+      const div = h('div', [child]);
+      const component = new Component(div);
+      await mount(component);
+
+      const childComponent = getInstanceFromElement(child, ChildComponent);
+      expect(childComponent.$parent).toBe(component);
+    });
+
+    it('should return the closest parent instance as $parent', async () => {
+      class GrandChildComponent extends Base {
+        static config: BaseConfig = {
+          name: 'GrandChildComponent',
+        };
+      }
+
+      class ChildComponent extends Base {
+        static config: BaseConfig = {
+          name: 'ChildComponent',
+          components: {
+            GrandChildComponent,
+          },
+        };
+      }
+
+      class Component extends Base<{ $children: { ChildComponent: ChildComponent[] } }> {
+        static config: BaseConfig = {
+          name: 'Component',
+          components: {
+            ChildComponent,
+            GrandChildComponent,
+          },
+        };
+      }
+
+      const grandChild = h('div', { dataComponent: 'GrandChildComponent' });
+      const child = h('div', { dataComponent: 'ChildComponent' }, [grandChild]);
+      const div = h('div', [child]);
+      const component = new Component(div);
+      await mount(component);
+
+      const childComponent = getInstanceFromElement(child, ChildComponent);
+      const grandChildComponent = getInstanceFromElement(grandChild, GrandChildComponent);
+      expect(childComponent.$parent?.$id).toBe(component.$id);
+      expect(grandChildComponent.$parent?.$id).toBe(childComponent.$id);
+    });
+
+    it('should return the closest parent event if registered separately', async () => {
+      class GrandChildComponent extends Base {
+        static config: BaseConfig = {
+          name: 'GrandChildComponent',
+        };
+      }
+
+      class ChildComponent extends Base {
+        static config: BaseConfig = {
+          name: 'ChildComponent',
+          components: {
+            GrandChildComponent,
+          },
+        };
+      }
+
+      class Component extends Base<{ $children: { ChildComponent: ChildComponent[] } }> {
+        static config: BaseConfig = {
+          name: 'Component',
+          components: {
+            ChildComponent,
+            GrandChildComponent,
+          },
+        };
+      }
+
+      const grandChild = h('div', { dataComponent: 'GrandChildComponent' });
+      const child = h('div', { dataComponent: 'ChildComponent' }, [grandChild]);
+      const div = h('div', { dataComponent: 'Component' }, [child]);
+      document.body.append(div);
+      const [childComponent] = await registerComponent(ChildComponent);
+      const [component] = await registerComponent(Component);
+      const [grandChildComponent] = await registerComponent(GrandChildComponent);
+
+      expect(childComponent.$parent?.$id).toBe(component.$id);
+      expect(grandChildComponent.$parent?.$id).toBe(childComponent.$id);
+      div.remove();
+    });
   });
 
   it('should have a `$root` property', async () => {
