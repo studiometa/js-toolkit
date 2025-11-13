@@ -90,8 +90,11 @@ export class Base<T extends BaseProps = BaseProps> {
       // hook events
       'before-mounted',
       'mounted',
+      'after-mounted',
       'updated',
+      'before-destroyed',
       'destroyed',
+      'after-destroyed',
       'terminated',
       // default services' events
       'ticked',
@@ -370,10 +373,10 @@ export class Base<T extends BaseProps = BaseProps> {
       this[`__${service.toLowerCase()}`] = new this.__managers[`${service}Manager`](this);
     }
 
-    this.$on('mounted', () => {
+    this.$on('before-mounted', () => {
       addInstance(this);
     });
-    this.$on('destroyed', () => {
+    this.$on('after-destroyed', () => {
       deleteInstance(this);
     });
 
@@ -412,6 +415,7 @@ export class Base<T extends BaseProps = BaseProps> {
     });
 
     this.__isMounting = false;
+    this.$emit('after-mounted');
 
     return this;
   }
@@ -455,6 +459,7 @@ export class Base<T extends BaseProps = BaseProps> {
       this.__debug('$destroy');
     }
 
+    this.$emit('before-destroyed');
     this.$isMounted = false;
 
     await Promise.all([
@@ -465,6 +470,8 @@ export class Base<T extends BaseProps = BaseProps> {
     ]);
 
     await addToQueue(() => this.__callMethod('destroyed'));
+
+    this.$emit('after-destroyed');
 
     return this;
   }
