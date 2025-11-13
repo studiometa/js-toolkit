@@ -292,6 +292,33 @@ describe('A Base instance', () => {
       expect(grandChildComponent.$parent?.$id).toBe(childComponent.$id);
       div.remove();
     });
+
+    it('should be resolved in a child `mounted` hook', async () => {
+      let parent;
+      class ChildComponent extends Base {
+        static config: BaseConfig = {
+          name: 'ChildComponent',
+        };
+
+        mounted() {
+          parent = this.$parent;
+        }
+      }
+
+      class Component extends Base<{ $children: { ChildComponent: ChildComponent[] } }> {
+        static config: BaseConfig = {
+          name: 'Component',
+          components: { ChildComponent },
+        };
+      }
+
+      const child = h('div', { dataComponent: 'ChildComponent' });
+      const div = h('div', [child]);
+      const component = new Component(div);
+      await mount(component);
+
+      expect(parent).toBe(component);
+    });
   });
 
   it('should have a `$root` property', async () => {
