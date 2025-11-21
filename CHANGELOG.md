@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Modified
+
+- ⚠️ Update default breakpoints to match with our `@studiometa/tailwind-config` (a6ca69a8)
+
 ## [v3.4.3](https://github.com/studiometa/js-toolkit/compare/3.4.2..3.4.3) (2025-11-13)
 
 ### Fixed
