@@ -18,7 +18,7 @@ export default class MobileComponent extends withBreakpointObserver(Base) {
     options: {
       activeBreakpoints: {
         type: String,
-        default: 'xxs xs s',
+        default: '2xs xs s',
       },
     },
   };
@@ -49,7 +49,7 @@ export default class MobileComponent extends withBreakpointObserver(Base) {
     options: {
       activeBreakpoints: {
         type: String,
-        default: 'xxs xs s',
+        default: '2xs xs s',
       },
     },
   };
@@ -70,7 +70,7 @@ export default class MobileComponent extends withBreakpointObserver(Base) {
     options: {
       inactiveBreakpoints: {
         type: String,
-        default: 'm l xl xxl',
+        default: 'm l xl 2xl',
       },
     },
   };
