@@ -19,14 +19,14 @@ export const features = new Map<keyof Features, Features[keyof Features]>([
   [
     'breakpoints',
     {
-      xxs: '0rem',
+      '2xs': '0rem',
       xs: '30rem', // 480px
-      s: '48rem', // 768px
-      m: '64rem', // 1024px
-      l: '80rem', // 1280px
-      xl: '90rem', // 1440px
-      xxl: '120rem', // 1920px
-      xxxl: '160rem', // 2560px
+      s: '40rem', // 640px
+      m: '48rem', // 768px
+      l: '64rem', // 1024px
+      xl: '80rem', // 1280px
+      '2xl': '96rem', // 1440px
+      '3xl': '120rem', // 1920px
     },
   ],
   ['prefix', 'tk'],
