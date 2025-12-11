@@ -33,9 +33,9 @@
   },
   "devDependencies": {
     "@studiometa/prettier-config": "4.4.0",
-    "@types/node": "22.19.0",
-    "oxlint": "1.27.0",
-    "prettier": "3.6.2",
+    "@types/node": "22.19.2",
+    "oxlint": "1.32.0",
+    "prettier": "3.7.4",
     "typescript": "5.9.3"
   },
   "dependencies": {
