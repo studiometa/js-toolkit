@@ -1,10 +1,16 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { defineFeatures } from '@studiometa/js-toolkit';
 import { features } from '#private/Base/features';
 import { mockFeatures } from '#test-utils';
 
+let unmock: () => void;
+
+beforeEach(() => {
+  ({ unmock } = mockFeatures({ blocking: false }));
+});
+
 afterEach(() => {
-  mockFeatures({ blocking: false });
+  unmock();
 });
 
 describe('The `defineFeatures` function', () => {
@@ -22,8 +28,6 @@ describe('The `defineFeatures` function', () => {
   it('should set prefix', () => {
     defineFeatures({ prefix: 'app' });
     expect(features.get('prefix')).toBe('app');
-    // Reset
-    features.set('prefix', 'tk');
   });
 
   it('should set attributes', () => {
