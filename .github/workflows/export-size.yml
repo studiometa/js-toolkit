@@ -3,8 +3,7 @@ name: export-size
 on:
   pull_request:
     branches:
-      - master
-      - develop
+      - main
 
 jobs:
   export-size:
