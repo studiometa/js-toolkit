@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add `queryComponent`, `queryComponentAll` and `closestComponent` helper functions ([#629](https://github.com/studiometa/js-toolkit/issues/629), [#669](https://github.com/studiometa/js-toolkit/pull/669))
+
 ## [v3.4.3](https://github.com/studiometa/js-toolkit/compare/3.4.2..3.4.3) (2025-11-13)
 
 ### Fixed

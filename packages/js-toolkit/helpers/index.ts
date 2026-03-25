@@ -8,3 +8,9 @@ export * from './importWhenIdle.js';
 export * from './importWhenPrefersMotion.js';
 export * from './importWhenVisible.js';
 export * from './registerComponent.js';
+export {
+  type QueryOptions,
+  queryComponent,
+  queryComponentAll,
+  closestComponent,
+} from './queryComponent.js';

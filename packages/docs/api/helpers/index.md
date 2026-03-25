@@ -22,6 +22,13 @@ Some helpers can be used to work with instances.
 - [getInstances](./getInstances.html)
 - [isDirectChild](./isDirectChild.html)
 
+## Query helpers
+
+The following helpers let you find component instances by name, CSS selector, and state — without relying on parent/children relationships.
+
+- [queryComponent / queryComponentAll](./queryComponent.html)
+- [closestComponent](./closestComponent.html)
+
 ## Lazy import helpers
 
 Some components might not need to be imported and instantiated immediately on page load. The following functions will help you define custom scenarios for when to import these components.
