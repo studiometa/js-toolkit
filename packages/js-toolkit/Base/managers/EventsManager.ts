@@ -277,7 +277,7 @@ export class EventsManager extends AbstractManager {
    */
   __childrenHandler: EventListenerObject = {
     handleEvent: (event: CustomEvent) => {
-      const children = this.__base.$children;
+      const children = this.__base.__children.props;
 
       for (const childName of Object.keys(children)) {
         let index = -1;

@@ -26,7 +26,7 @@ function mountComponents(
 ): Array<[string[], Base]> {
   return breakpoints.map(([bk, ComponentClass]) => {
     const child = new ComponentClass(instance.$el);
-    Object.defineProperty(child, '$parent', { get: () => instance.$parent });
+    Object.defineProperty(child, '$parent', { get: () => instance.__parent });
     return [bk.split(' '), child];
   });
 }
