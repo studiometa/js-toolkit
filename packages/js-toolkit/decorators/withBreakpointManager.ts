@@ -26,7 +26,8 @@ function mountComponents(
 ): Array<[string[], Base]> {
   return breakpoints.map(([bk, ComponentClass]) => {
     const child = new ComponentClass(instance.$el);
-    Object.defineProperty(child, '$parent', { get: () => instance.$parent });
+    // @ts-expect-error Access internal property to avoid deprecation warning
+    Object.defineProperty(child, '$parent', { get: () => instance.__parent });
     return [bk.split(' '), child];
   });
 }

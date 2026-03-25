@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file. The format 
 - Add `$query(name)` and `$closest(name)` methods on `Base` ([#694](https://github.com/studiometa/js-toolkit/issues/694), [#711](https://github.com/studiometa/js-toolkit/pull/711))
 - Add `defineFeatures()` helper to configure features without `createApp` ([#691](https://github.com/studiometa/js-toolkit/issues/691), [#712](https://github.com/studiometa/js-toolkit/pull/712))
 
+### Deprecated
+
+- Deprecate `$parent`, `$children` and `$root` instance properties in favor of `$closest(name)` and `$query(name)` ([#694](https://github.com/studiometa/js-toolkit/issues/694))
+
 ## [v3.4.3](https://github.com/studiometa/js-toolkit/compare/3.4.2..3.4.3) (2025-11-13)
 
 ### Fixed
