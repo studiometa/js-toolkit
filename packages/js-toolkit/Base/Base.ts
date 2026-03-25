@@ -17,6 +17,7 @@ import {
   OptionsManager,
 } from './managers/index.js';
 import { getInstanceFromElement } from '../helpers/getInstanceFromElement.js';
+import { queryComponentAll, closestComponent } from '../helpers/queryComponent.js';
 import { noop, isDev, isFunction, isArray } from '../utils/index.js';
 
 let id = 0;
@@ -257,6 +258,24 @@ export class Base<T extends BaseProps = BaseProps> {
    */
   get $children(): T['$children'] & BaseChildren {
     return this.__children.props;
+  }
+
+  /**
+   * Get all descendant component instances matching the given query.
+   * Sugar for `queryComponentAll(query, { from: this.$el })`.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#query-query
+   */
+  $query<U extends Base = Base>(query: string): U[] {
+    return queryComponentAll<U>(query, { from: this.$el });
+  }
+
+  /**
+   * Get the closest ancestor component instance matching the given query.
+   * Sugar for `closestComponent(query, { from: this.$el })`.
+   * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#closest-query
+   */
+  $closest<U extends Base = Base>(query: string): U | undefined {
+    return closestComponent<U>(query, { from: this.$el });
   }
 
   __events: EventsManager;
