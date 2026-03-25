@@ -21,7 +21,7 @@ console.log('I will be executed in the next frame!');
 
 - `callback` (`(time:DOMHighResTimeStamp) => unknown`): the function to execute
 
-[Source](https://github.com/studiometa/js-toolkit/blob/master/src/utils/nextFrame.js)
+[Source](https://github.com/studiometa/js-toolkit/blob/main/src/utils/nextFrame.js)
 
 ### Return value
 
