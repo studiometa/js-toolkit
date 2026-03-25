@@ -6,6 +6,7 @@ test('helpers exports', () => {
     [
       "closestComponent",
       "createApp",
+      "defineFeatures",
       "getClosestParent",
       "getDirectChildren",
       "getInstanceFromElement",

@@ -11,6 +11,7 @@ The following helper functions can be used to achieve advanced setup of your app
 The following helpers can help you bootstrap the root class of your application:
 
 - [createApp](./createApp.html)
+- [defineFeatures](./defineFeatures.html)
 
 ## Instance helpers
 
