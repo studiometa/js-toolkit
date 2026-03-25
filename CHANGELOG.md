@@ -7,7 +7,8 @@ All notable changes to this project will be documented in this file. The format 
 ### Added
 
 - Add `queryComponent`, `queryComponentAll` and `closestComponent` helper functions ([#629](https://github.com/studiometa/js-toolkit/issues/629), [#669](https://github.com/studiometa/js-toolkit/pull/669))
-- Add `$query(name)` and `$closest(name)` methods on `Base` ([#694](https://github.com/studiometa/js-toolkit/issues/694))
+- Add `$query(name)` and `$closest(name)` methods on `Base` ([#694](https://github.com/studiometa/js-toolkit/issues/694), [#711](https://github.com/studiometa/js-toolkit/pull/711))
+- Add `defineFeatures()` helper to configure features without `createApp` ([#691](https://github.com/studiometa/js-toolkit/issues/691), [#712](https://github.com/studiometa/js-toolkit/pull/712))
 
 ## [v3.4.3](https://github.com/studiometa/js-toolkit/compare/3.4.2..3.4.3) (2025-11-13)
 

@@ -17,6 +17,7 @@ describe('The package exports', () => {
         "ScrollService",
         "closestComponent",
         "createApp",
+        "defineFeatures",
         "getClosestParent",
         "getDirectChildren",
         "getInstanceFromElement",
