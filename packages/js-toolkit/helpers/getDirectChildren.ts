@@ -16,10 +16,8 @@ export function getDirectChildren<T extends Base = Base>(
   parentName: string,
   childrenName: string,
 ): T[] {
-  // @ts-expect-error Access internal property to avoid deprecation warning
   const allChildren = parentInstance.__children.props;
   const children = allChildren[childrenName] as Base<BaseProps>[];
-  // @ts-expect-error Access internal property to avoid deprecation warning
   const nestedParents = allChildren[parentName] as Base<BaseProps>[];
 
   if (!isArray(children)) {
@@ -34,7 +32,6 @@ export function getDirectChildren<T extends Base = Base>(
 
   for (const child of children) {
     for (const nestedParent of nestedParents) {
-      // @ts-expect-error Access internal property to avoid deprecation warning
       const nestedChildren = nestedParent.__children.props[childrenName] as Base<BaseProps>[];
 
       if (isArray(nestedChildren) && nestedChildren.includes(child)) {
