@@ -1,4 +1,5 @@
 export * from './createApp.js';
+export * from './defineFeatures.js';
 export * from './getClosestParent.js';
 export * from './getDirectChildren.js';
 export * from './getInstanceFromElement.js';

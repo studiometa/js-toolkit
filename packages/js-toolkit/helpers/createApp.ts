@@ -1,7 +1,7 @@
 import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
 import type { Features } from '../Base/features.js';
 import { features } from '../Base/features.js';
-import { isBoolean, isObject, isString } from '../utils/index.js';
+import { defineFeatures } from './defineFeatures.js';
 
 export type CreateAppOptions = Partial<Features> & {
   root?: HTMLElement;
@@ -19,27 +19,10 @@ export function createApp<S extends BaseConstructor<Base>, T extends BaseProps =
   let app: S & Base<T>;
   const {
     root = document.body,
-    breakpoints = null,
-    blocking = null,
-    prefix = null,
-    attributes = null,
+    ...featureOptions
   } = options instanceof HTMLElement ? { root: options } : options;
 
-  if (isObject(breakpoints)) {
-    features.set('breakpoints', breakpoints);
-  }
-
-  if (isBoolean(blocking)) {
-    features.set('blocking', blocking);
-  }
-
-  if (isString(prefix)) {
-    features.set('prefix', prefix);
-  }
-
-  if (isObject(attributes)) {
-    features.set('attributes', attributes);
-  }
+  defineFeatures(featureOptions);
 
   async function init() {
     app = new App(root) as S & Base<T>;
