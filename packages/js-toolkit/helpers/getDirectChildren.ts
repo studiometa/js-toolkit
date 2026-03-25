@@ -16,8 +16,9 @@ export function getDirectChildren<T extends Base = Base>(
   parentName: string,
   childrenName: string,
 ): T[] {
-  const children = parentInstance.$children[childrenName] as Base<BaseProps>[];
-  const nestedParents = parentInstance.$children[parentName] as Base<BaseProps>[];
+  const allChildren = parentInstance.__children.props;
+  const children = allChildren[childrenName] as Base<BaseProps>[];
+  const nestedParents = allChildren[parentName] as Base<BaseProps>[];
 
   if (!isArray(children)) {
     return [];
@@ -31,7 +32,7 @@ export function getDirectChildren<T extends Base = Base>(
 
   for (const child of children) {
     for (const nestedParent of nestedParents) {
-      const nestedChildren = nestedParent.$children[childrenName] as Base<BaseProps>[];
+      const nestedChildren = nestedParent.__children.props[childrenName] as Base<BaseProps>[];
 
       if (isArray(nestedChildren) && nestedChildren.includes(child)) {
         continue;
