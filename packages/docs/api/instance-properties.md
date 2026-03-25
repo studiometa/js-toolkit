@@ -37,7 +37,11 @@ You can force a ref to be an `Array` even when only one corresponding element ex
 
 :::
 
-## `$children`
+## `$children` <Badge type="warning" text="deprecated" />
+
+::: warning Deprecated
+`$children` is deprecated and will be removed in v4. Use [`$query(name)`](./instance-methods.html#query-query) instead.
+:::
 
 An object containing references to all the children component instances, with each key being the name of the child component, and each value a list of its corresponding instances.
 
@@ -81,7 +85,11 @@ class App extends Base {
 
 The resolved configuration based on the current class [static `config` property](/api/configuration.html) merged with its ancestors properties.
 
-## `$parent`
+## `$parent` <Badge type="warning" text="deprecated" />
+
+::: warning Deprecated
+`$parent` is deprecated and will be removed in v4. Use [`$closest(name)`](./instance-methods.html#closest-query) instead.
+:::
 
 The parent instance when the current instance component is registered as another [component child](./configuration.md#config-components), defaults to `null` otherwise.
 
@@ -108,7 +116,11 @@ class Parent extends Base {
 }
 ```
 
-## `$root`
+## `$root` <Badge type="warning" text="deprecated" />
+
+::: warning Deprecated
+`$root` is deprecated and will be removed in v4. Use [`$closest(name)`](./instance-methods.html#closest-query) instead.
+:::
 
 The root instance of the application when the current instance has been mounted as a [child component](#components). Defaults to a self reference if the component is stand-alone.
 

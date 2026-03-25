@@ -139,22 +139,29 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Get the root instance of the app.
+   * @deprecated Use `$closest(name)` instead. Will be removed in v4.
    * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#root
    */
   get $root(): Base {
-    if (!this.$parent) {
+    if (isDev) {
+      console.warn(
+        `[${this.$id}] $root is deprecated and will be removed in v4. Use $closest(name) instead.`,
+      );
+    }
+
+    if (!this.__parent) {
       return this;
     }
 
-    let parent = this.$parent;
-    let root = this.$parent;
+    let parent = this.__parent;
+    let root = this.__parent;
 
     while (parent) {
-      if (!parent.$parent) {
+      if (!parent.__parent) {
         root = parent;
       }
 
-      parent = parent.$parent;
+      parent = parent.__parent;
     }
 
     return root;
@@ -162,9 +169,24 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * The parent instance if the current instance is registered as a child component in a parent component.
+   * @deprecated Use `$closest(name)` instead. Will be removed in v4.
    * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#parent
    */
   get $parent(): T['$parent'] & Base | null {
+    if (isDev) {
+      console.warn(
+        `[${this.$id}] $parent is deprecated and will be removed in v4. Use $closest(name) instead.`,
+      );
+    }
+
+    return this.__parent;
+  }
+
+  /**
+   * Internal parent resolution without deprecation warning.
+   * @internal
+   */
+  get __parent(): T['$parent'] & Base | null {
     const parents = new Set<T['$parent'] & Base>();
 
     for (const instance of getInstances()) {
@@ -254,9 +276,16 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Children.
+   * @deprecated Use `$query(name)` instead. Will be removed in v4.
    * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#children
    */
   get $children(): T['$children'] & BaseChildren {
+    if (isDev) {
+      console.warn(
+        `[${this.$id}] $children is deprecated and will be removed in v4. Use $query(name) instead.`,
+      );
+    }
+
     return this.__children.props;
   }
 
