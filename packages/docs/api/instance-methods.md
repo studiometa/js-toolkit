@@ -154,6 +154,71 @@ export default class Component extends Base {
 }
 ```
 
+## `$query(query)`
+
+Get all descendant component instances matching the given query. This is sugar for `queryComponentAll(query, { from: this.$el })`.
+
+**Parameters**
+
+- `query` (`string`): a query string in the format `ComponentName(.cssSelector):state` (see [queryComponent](./helpers/queryComponent.html))
+
+**Return value**
+
+- `Base[]`: an array of all matching descendant instances
+
+**Example**
+
+```js {12-14} twoslash
+import { Base } from '@studiometa/js-toolkit';
+import SliderItem from './SliderItem.js';
+
+class Slider extends Base {
+  static config = {
+    name: 'Slider',
+    components: {
+      SliderItem,
+    },
+  };
+
+  mounted() {
+    for (const item of this.$query('SliderItem')) {
+      this.$log(item.$id);
+    }
+  }
+}
+```
+
+## `$closest(query)`
+
+Get the closest ancestor component instance matching the given query. This is sugar for `closestComponent(query, { from: this.$el })`.
+
+**Parameters**
+
+- `query` (`string`): a query string in the format `ComponentName(.cssSelector):state` (see [closestComponent](./helpers/closestComponent.html))
+
+**Return value**
+
+- `Base | undefined`: the closest matching ancestor instance, or `undefined` if none found
+
+**Example**
+
+```js {9-11} twoslash
+import { Base } from '@studiometa/js-toolkit';
+
+class SliderItem extends Base {
+  static config = {
+    name: 'SliderItem',
+  };
+
+  mounted() {
+    const slider = this.$closest('Slider');
+    if (slider) {
+      this.$log('Inside slider:', slider.$id);
+    }
+  }
+}
+```
+
 ## `$mount()`
 
 Mount the component and its children, will trigger the `mounted` lifecycle method.
