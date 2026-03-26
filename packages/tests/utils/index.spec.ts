@@ -25,6 +25,8 @@ describe('@studiometa/js-toolkit/utils exports', () => {
         "createElement",
         "createRange",
         "createStorage",
+        "createUrlSearchParamsInHashProvider",
+        "createUrlSearchParamsProvider",
         "damp",
         "dashCase",
         "debounce",
