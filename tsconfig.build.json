@@ -3,6 +3,7 @@
   "compilerOptions": {
     "noEmit": false,
     "declaration": true,
+    "rootDir": "./packages/js-toolkit",
     "outDir": "dist/",
     "emitDeclarationOnly": true,
     "types": []
