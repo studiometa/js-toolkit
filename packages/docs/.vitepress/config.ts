@@ -341,6 +341,19 @@ function getUtilsSidebar() {
       ],
     },
     {
+      text: 'Storage utils',
+      link: '/utils/storage/',
+      collapsed: true,
+      items: [
+        { text: 'createStorage', link: '/utils/storage/createStorage.html' },
+        { text: 'useLocalStorage', link: '/utils/storage/useLocalStorage.html' },
+        { text: 'useSessionStorage', link: '/utils/storage/useSessionStorage.html' },
+        { text: 'useUrlSearchParams', link: '/utils/storage/useUrlSearchParams.html' },
+        { text: 'useUrlSearchParamsInHash', link: '/utils/storage/useUrlSearchParamsInHash.html' },
+        { text: 'Providers', link: '/utils/storage/providers.html' },
+      ],
+    },
+    {
       text: 'History utils',
       link: '/utils/history/',
       collapsed: true,
