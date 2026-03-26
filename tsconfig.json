@@ -9,11 +9,10 @@
     "noEmit": true,
     "noImplicitThis": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
-    "baseUrl": "./packages/js-toolkit/",
+    "moduleResolution": "bundler",
     "paths": {
-      "#private/*": ["./*"],
-      "#test-utils": ["../tests/__utils__/index.ts"]
+      "#private/*": ["./packages/js-toolkit/*"],
+      "#test-utils": ["./packages/tests/__utils__/index.ts"]
     }
   },
   "include": [
