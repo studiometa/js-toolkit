@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add browser storage utilities: `createStorage`, `useLocalStorage`, `useSessionStorage`, `useUrlSearchParams`, `useUrlSearchParamsInHash` ([#671](https://github.com/studiometa/js-toolkit/pull/671))
+
 ## [v3.5.0](https://github.com/studiometa/js-toolkit/compare/3.4.3..3.5.0) (2026-03-25)
 
 ### Added
