@@ -54,6 +54,19 @@ const cookieProvider: StorageProvider = {
   has(key: string): boolean {
     return this.get(key) !== null;
   },
+
+  keys(): string[] {
+    return document.cookie
+      .split('; ')
+      .filter(Boolean)
+      .map((c) => c.split('=')[0]);
+  },
+
+  clear(): void {
+    for (const key of this.keys()) {
+      this.remove(key);
+    }
+  },
 };
 
 const storage = createStorage({ provider: cookieProvider });
