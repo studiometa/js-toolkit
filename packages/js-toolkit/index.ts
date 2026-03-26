@@ -1,4 +1,4 @@
-export const version = '__VERSION__' as const;
+export const version = '3.5.0' as const;
 
 export * from './Base/index.js';
 export * from './Base/types.js';
