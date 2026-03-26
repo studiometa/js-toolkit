@@ -4,6 +4,9 @@ import {
   useSessionStorage,
   useUrlSearchParams,
   useUrlSearchParamsInHash,
+  createStorage,
+  createUrlSearchParamsProvider,
+  createUrlSearchParamsInHashProvider,
   localStorageProvider,
   sessionStorageProvider,
   urlSearchParamsProvider,
@@ -40,6 +43,19 @@ describe('Storage utilities', () => {
       type Storage = { theme: string };
       const storage = useLocalStorage<Storage>();
       expect(storage.get('theme')).toBeNull();
+    });
+
+    it('should return default value for non-existent keys', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>();
+      expect(storage.get('theme', 'light')).toBe('light');
+    });
+
+    it('should return stored value over default value', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>();
+      storage.set('theme', 'dark');
+      expect(storage.get('theme', 'light')).toBe('dark');
     });
 
     it('should remove key when set to null', () => {
@@ -128,6 +144,12 @@ describe('Storage utilities', () => {
       expect(storage.get('expires')).toBe(3600);
     });
 
+    it('should return default value for non-existent keys', () => {
+      type Storage = { token: string };
+      const storage = useSessionStorage<Storage>();
+      expect(storage.get('token', 'none')).toBe('none');
+    });
+
     it('should trigger subscribers for specific keys', () => {
       type Storage = {
         token: string;
@@ -151,7 +173,8 @@ describe('Storage utilities', () => {
       };
 
       const storage = useUrlSearchParams<Storage>();
-      const setSpy = vi.spyOn(urlSearchParamsProvider, 'set');
+      const provider = urlSearchParamsProvider;
+      const setSpy = vi.spyOn(provider, 'set');
 
       storage.set('page', 1);
       storage.set('sort', 'name');
@@ -181,6 +204,25 @@ describe('Storage utilities', () => {
       const storage = useUrlSearchParams();
       expect(addEventListener).toHaveBeenCalledWith('popstate', expect.any(Function));
       addEventListener.mockRestore();
+      storage.destroy();
+    });
+
+    it('should use replaceState when replace option is true', () => {
+      const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
+      const storage = useUrlSearchParams({ replace: true });
+      storage.set('page' as any, 1);
+      expect(replaceStateSpy).toHaveBeenCalled();
+      replaceStateSpy.mockRestore();
+      storage.destroy();
+    });
+
+    it('should use pushState by default', () => {
+      const pushStateSpy = vi.spyOn(window.history, 'pushState');
+      const storage = useUrlSearchParams();
+      storage.set('page' as any, 1);
+      expect(pushStateSpy).toHaveBeenCalled();
+      pushStateSpy.mockRestore();
+      storage.destroy();
     });
   });
 
@@ -219,6 +261,60 @@ describe('Storage utilities', () => {
       const storage = useUrlSearchParamsInHash();
       expect(addEventListener).toHaveBeenCalledWith('hashchange', expect.any(Function));
       addEventListener.mockRestore();
+      storage.destroy();
+    });
+
+    it('should use replaceState when replace option is true', () => {
+      const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
+      const storage = useUrlSearchParamsInHash({ replace: true });
+      storage.set('tab' as any, 'settings');
+      expect(replaceStateSpy).toHaveBeenCalled();
+      replaceStateSpy.mockRestore();
+      storage.destroy();
+    });
+  });
+
+  describe('Prefix / namespacing', () => {
+    it('should prefix keys in localStorage', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+
+      storage.set('theme', 'dark');
+      expect(localStorage.getItem('myapp:theme')).toBe(JSON.stringify('dark'));
+      expect(localStorage.getItem('theme')).toBeNull();
+      expect(storage.get('theme')).toBe('dark');
+    });
+
+    it('should isolate instances with different prefixes', () => {
+      type Storage = { theme: string };
+      const storageA = useLocalStorage<Storage>({ prefix: 'a:' });
+      const storageB = useLocalStorage<Storage>({ prefix: 'b:' });
+
+      storageA.set('theme', 'dark');
+      storageB.set('theme', 'light');
+
+      expect(storageA.get('theme')).toBe('dark');
+      expect(storageB.get('theme')).toBe('light');
+    });
+
+    it('should prefix keys in sessionStorage', () => {
+      type Storage = { token: string };
+      const storage = useSessionStorage<Storage>({ prefix: 'sess:' });
+
+      storage.set('token', 'abc');
+      expect(sessionStorage.getItem('sess:token')).toBe(JSON.stringify('abc'));
+      expect(storage.get('token')).toBe('abc');
+    });
+
+    it('should work with prefix on remove', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+
+      storage.set('theme', 'dark');
+      expect(localStorage.getItem('myapp:theme')).toBe(JSON.stringify('dark'));
+
+      storage.set('theme', null);
+      expect(localStorage.getItem('myapp:theme')).toBeNull();
     });
   });
 
@@ -232,6 +328,10 @@ describe('Storage utilities', () => {
       expect(localStorageProvider.has('test')).toBe(false);
     });
 
+    it('should have syncEvent on localStorage provider', () => {
+      expect(localStorageProvider.syncEvent).toBe('storage');
+    });
+
     it('should handle sessionStorage provider correctly', () => {
       expect(sessionStorageProvider.get('non-existent')).toBeNull();
       sessionStorageProvider.set('test', 'value');
@@ -239,6 +339,10 @@ describe('Storage utilities', () => {
       expect(sessionStorageProvider.has('test')).toBe(true);
       sessionStorageProvider.remove('test');
       expect(sessionStorageProvider.has('test')).toBe(false);
+    });
+
+    it('should have syncEvent on sessionStorage provider', () => {
+      expect(sessionStorageProvider.syncEvent).toBe('storage');
     });
 
     it('should handle urlSearchParams provider correctly', () => {
@@ -250,6 +354,10 @@ describe('Storage utilities', () => {
       setSpy.mockRestore();
     });
 
+    it('should have syncEvent on urlSearchParams provider', () => {
+      expect(urlSearchParamsProvider.syncEvent).toBe('popstate');
+    });
+
     it('should handle urlSearchParamsInHash provider correctly', () => {
       window.location.hash = '';
       expect(urlSearchParamsInHashProvider.get('non-existent')).toBeNull();
@@ -258,6 +366,72 @@ describe('Storage utilities', () => {
       expect(urlSearchParamsInHashProvider.has('test')).toBe(true);
       urlSearchParamsInHashProvider.remove('test');
       expect(urlSearchParamsInHashProvider.has('test')).toBe(false);
+    });
+
+    it('should have syncEvent on urlSearchParamsInHash provider', () => {
+      expect(urlSearchParamsInHashProvider.syncEvent).toBe('hashchange');
+    });
+  });
+
+  describe('createUrlSearchParamsProvider', () => {
+    it('should use pushState by default', () => {
+      const provider = createUrlSearchParamsProvider();
+      const pushSpy = vi.spyOn(window.history, 'pushState');
+      provider.set('key', 'value');
+      expect(pushSpy).toHaveBeenCalled();
+      pushSpy.mockRestore();
+    });
+
+    it('should use replaceState when replace is true', () => {
+      const provider = createUrlSearchParamsProvider({ replace: true });
+      const replaceSpy = vi.spyOn(window.history, 'replaceState');
+      provider.set('key', 'value');
+      expect(replaceSpy).toHaveBeenCalled();
+      replaceSpy.mockRestore();
+    });
+
+    it('should remove key and clean up URL', () => {
+      const provider = createUrlSearchParamsProvider();
+      const pushSpy = vi.spyOn(window.history, 'pushState');
+      provider.set('key', 'value');
+      provider.remove('key');
+      expect(pushSpy).toHaveBeenCalledTimes(2);
+      pushSpy.mockRestore();
+    });
+
+    it('should preserve hash when setting URL params', () => {
+      window.location.hash = 'section';
+      const provider = createUrlSearchParamsProvider();
+      const pushSpy = vi.spyOn(window.history, 'pushState');
+      provider.set('key', 'value');
+      const url = pushSpy.mock.calls[0][2] as string;
+      expect(url).toContain('#section');
+      pushSpy.mockRestore();
+    });
+  });
+
+  describe('createUrlSearchParamsInHashProvider', () => {
+    it('should use location.hash by default', () => {
+      const provider = createUrlSearchParamsInHashProvider();
+      provider.set('key', 'value');
+      expect(provider.get('key')).toBe('value');
+    });
+
+    it('should use replaceState when replace is true', () => {
+      const provider = createUrlSearchParamsInHashProvider({ replace: true });
+      const replaceSpy = vi.spyOn(window.history, 'replaceState');
+      provider.set('key', 'value');
+      expect(replaceSpy).toHaveBeenCalled();
+      replaceSpy.mockRestore();
+    });
+
+    it('should remove key with replaceState when replace is true', () => {
+      const provider = createUrlSearchParamsInHashProvider({ replace: true });
+      provider.set('key', 'value');
+      const replaceSpy = vi.spyOn(window.history, 'replaceState');
+      provider.remove('key');
+      expect(replaceSpy).toHaveBeenCalled();
+      replaceSpy.mockRestore();
     });
   });
 
@@ -277,6 +451,43 @@ describe('Storage utilities', () => {
       window.dispatchEvent(event);
 
       expect(callback).toHaveBeenCalledWith('dark');
+      storage.destroy();
+    });
+
+    it('should sync prefixed localStorage changes from storage events', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+      const callback = vi.fn();
+      storage.subscribe('theme', callback);
+
+      // Simulate storage event with prefixed key
+      const event = new StorageEvent('storage', {
+        key: 'myapp:theme',
+        newValue: JSON.stringify('dark'),
+        storageArea: localStorage,
+      });
+      window.dispatchEvent(event);
+
+      expect(callback).toHaveBeenCalledWith('dark');
+      storage.destroy();
+    });
+
+    it('should not react to storage events for non-matching prefixed keys', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+      const callback = vi.fn();
+      storage.subscribe('theme', callback);
+
+      // Simulate storage event without prefix
+      const event = new StorageEvent('storage', {
+        key: 'theme',
+        newValue: JSON.stringify('dark'),
+        storageArea: localStorage,
+      });
+      window.dispatchEvent(event);
+
+      expect(callback).not.toHaveBeenCalled();
+      storage.destroy();
     });
 
     it('should sync sessionStorage changes from storage events', () => {
@@ -294,6 +505,58 @@ describe('Storage utilities', () => {
       window.dispatchEvent(event);
 
       expect(callback).toHaveBeenCalledWith('new-token');
+      storage.destroy();
+    });
+
+    it('should handle storage event with null newValue (key removed)', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>();
+      const callback = vi.fn();
+      storage.subscribe('theme', callback);
+
+      const event = new StorageEvent('storage', {
+        key: 'theme',
+        newValue: null,
+        storageArea: localStorage,
+      });
+      window.dispatchEvent(event);
+
+      expect(callback).toHaveBeenCalledWith(null);
+      storage.destroy();
+    });
+  });
+
+  describe('Custom provider with syncEvent', () => {
+    it('should listen to custom syncEvent', () => {
+      const addEventSpy = vi.spyOn(window, 'addEventListener');
+      const customProvider = {
+        syncEvent: 'customevent',
+        get: () => null,
+        set: () => {},
+        remove: () => {},
+        has: () => false,
+      };
+
+      const storage = createStorage({ provider: customProvider });
+      expect(addEventSpy).toHaveBeenCalledWith('customevent', expect.any(Function));
+      addEventSpy.mockRestore();
+      storage.destroy();
+    });
+
+    it('should not add event listener if no syncEvent', () => {
+      const addEventSpy = vi.spyOn(window, 'addEventListener');
+      const callsBefore = addEventSpy.mock.calls.length;
+      const customProvider = {
+        get: () => null,
+        set: () => {},
+        remove: () => {},
+        has: () => false,
+      };
+
+      const storage = createStorage({ provider: customProvider });
+      expect(addEventSpy.mock.calls.length).toBe(callsBefore);
+      addEventSpy.mockRestore();
+      storage.destroy();
     });
   });
 });
