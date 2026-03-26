@@ -318,6 +318,146 @@ describe('Storage utilities', () => {
     });
   });
 
+  describe('has / keys / clear', () => {
+    it('should check if a key exists with has()', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>();
+
+      expect(storage.has('theme')).toBe(false);
+      storage.set('theme', 'dark');
+      expect(storage.has('theme')).toBe(true);
+      storage.set('theme', null);
+      expect(storage.has('theme')).toBe(false);
+    });
+
+    it('should check has() with prefix', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+
+      storage.set('theme', 'dark');
+      expect(storage.has('theme')).toBe(true);
+      // The raw key has prefix
+      expect(localStorage.getItem('myapp:theme')).not.toBeNull();
+    });
+
+    it('should list keys without prefix', () => {
+      const storage = useLocalStorage();
+
+      storage.set('a' as any, 1);
+      storage.set('b' as any, 2);
+
+      const keys = storage.keys();
+      expect(keys).toContain('a');
+      expect(keys).toContain('b');
+    });
+
+    it('should list keys filtering by prefix', () => {
+      // Set some keys directly without prefix
+      localStorage.setItem('other', 'value');
+
+      type Storage = { theme: string; lang: string };
+      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+
+      storage.set('theme', 'dark');
+      storage.set('lang', 'fr');
+
+      const keys = storage.keys();
+      expect(keys).toEqual(expect.arrayContaining(['theme', 'lang']));
+      expect(keys).not.toContain('other');
+      expect(keys).not.toContain('myapp:theme');
+    });
+
+    it('should clear all keys without prefix', () => {
+      const storage = useLocalStorage();
+      storage.set('a' as any, 1);
+      storage.set('b' as any, 2);
+
+      storage.clear();
+      expect(storage.get('a' as any)).toBeNull();
+      expect(storage.get('b' as any)).toBeNull();
+      expect(storage.keys()).toEqual([]);
+    });
+
+    it('should clear only prefixed keys', () => {
+      localStorage.setItem('other', 'keep');
+
+      type Storage = { theme: string; lang: string };
+      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+
+      storage.set('theme', 'dark');
+      storage.set('lang', 'fr');
+
+      storage.clear();
+      expect(storage.get('theme')).toBeNull();
+      expect(storage.get('lang')).toBeNull();
+      // Non-prefixed key should remain
+      expect(localStorage.getItem('other')).toBe('keep');
+    });
+
+    it('should notify subscribers on clear', () => {
+      type Storage = { theme: string; lang: string };
+      const storage = useLocalStorage<Storage>();
+      const themeCallback = vi.fn();
+      const langCallback = vi.fn();
+
+      storage.subscribe('theme', themeCallback);
+      storage.subscribe('lang', langCallback);
+
+      storage.set('theme', 'dark');
+      storage.set('lang', 'fr');
+
+      storage.clear();
+      expect(themeCallback).toHaveBeenLastCalledWith(null);
+      expect(langCallback).toHaveBeenLastCalledWith(null);
+    });
+
+    it('should work with sessionStorage', () => {
+      type Storage = { token: string };
+      const storage = useSessionStorage<Storage>();
+
+      storage.set('token', 'abc');
+      expect(storage.has('token')).toBe(true);
+      expect(storage.keys()).toContain('token');
+
+      storage.clear();
+      expect(storage.has('token')).toBe(false);
+      expect(storage.keys()).toEqual([]);
+    });
+
+    it('should work with URL search params', () => {
+      type Storage = { page: string; sort: string };
+      const storage = useUrlSearchParams<Storage>();
+
+      const replaceSpy = vi.spyOn(window.history, 'replaceState');
+      storage.set('page', '1');
+      storage.set('sort', 'name');
+
+      // Verify set calls replaceState
+      expect(replaceSpy).toHaveBeenCalledTimes(2);
+
+      // Clear should call replaceState with no query params
+      storage.clear();
+      const lastUrl = replaceSpy.mock.calls.at(-1)?.[2] as string;
+      expect(lastUrl).not.toContain('page');
+      expect(lastUrl).not.toContain('sort');
+      replaceSpy.mockRestore();
+    });
+
+    it('should work with URL hash params', () => {
+      type Storage = { tab: string; view: string };
+      const storage = useUrlSearchParamsInHash<Storage>();
+
+      storage.set('tab', 'settings');
+      storage.set('view', 'grid');
+
+      expect(storage.has('tab')).toBe(true);
+      expect(storage.keys().length).toBeGreaterThanOrEqual(2);
+
+      storage.clear();
+      expect(storage.has('tab')).toBe(false);
+    });
+  });
+
   describe('Storage providers', () => {
     it('should handle localStorage provider correctly', () => {
       expect(localStorageProvider.get('non-existent')).toBeNull();

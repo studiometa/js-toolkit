@@ -11,6 +11,10 @@ export interface StorageProvider<T = string> {
   set(key: string, value: T): void;
   remove(key: string): void;
   has(key: string): boolean;
+  /** Return all keys managed by this provider. */
+  keys(): string[];
+  /** Remove all entries managed by this provider. */
+  clear(): void;
   /**
    * The DOM event name to listen for external sync.
    * - `'storage'` for localStorage/sessionStorage (cross-tab sync)
@@ -41,6 +45,14 @@ export const localStorageProvider: StorageProvider = {
     if (!hasWindow()) return false;
     return localStorage.getItem(key) !== null;
   },
+  keys(): string[] {
+    if (!hasWindow()) return [];
+    return Object.keys(localStorage);
+  },
+  clear(): void {
+    if (!hasWindow()) return;
+    localStorage.clear();
+  },
 };
 
 /**
@@ -63,6 +75,14 @@ export const sessionStorageProvider: StorageProvider = {
   has(key: string): boolean {
     if (!hasWindow()) return false;
     return sessionStorage.getItem(key) !== null;
+  },
+  keys(): string[] {
+    if (!hasWindow()) return [];
+    return Object.keys(sessionStorage);
+  },
+  clear(): void {
+    if (!hasWindow()) return;
+    sessionStorage.clear();
   },
 };
 
@@ -116,11 +136,20 @@ export function createUrlSearchParamsProvider(
       const params = new URLSearchParams(window.location.search);
       return params.has(key);
     },
+    keys(): string[] {
+      if (!hasWindow()) return [];
+      return [...new URLSearchParams(window.location.search).keys()];
+    },
+    clear(): void {
+      if (!hasWindow()) return;
+      const newUrl = `${window.location.pathname}${window.location.hash}`;
+      window.history[method]({}, '', newUrl);
+    },
   };
 }
 
 /**
- * Default URLSearchParams provider (uses `pushState`).
+ * Default URLSearchParams provider (uses `replaceState`).
  */
 export const urlSearchParamsProvider: StorageProvider = createUrlSearchParamsProvider();
 
@@ -174,6 +203,18 @@ export function createUrlSearchParamsInHashProvider(
     has(key: string): boolean {
       return getParamsFromHash()?.has(key) ?? false;
     },
+    keys(): string[] {
+      const params = getParamsFromHash();
+      return params ? [...params.keys()] : [];
+    },
+    clear(): void {
+      if (!hasWindow()) return;
+      if (push) {
+        window.location.hash = '';
+      } else {
+        window.history.replaceState({}, '', `${window.location.pathname}${window.location.search}`);
+      }
+    },
   };
 }
 
@@ -189,6 +230,9 @@ export interface StorageInstance<T = any> {
   get<K extends keyof T>(key: K): T[K] | null;
   get<K extends keyof T>(key: K, defaultValue: T[K]): T[K];
   set<K extends keyof T>(key: K, value: T[K] | null): void;
+  has<K extends keyof T>(key: K): boolean;
+  keys(): (keyof T)[];
+  clear(): void;
   subscribe<K extends keyof T>(
     key: K,
     callback: (value: T[K] | null) => void,
@@ -300,6 +344,37 @@ export function createStorage<T extends Record<string, any> = Record<string, any
 
       // Notify listeners
       listeners.get(key)?.forEach((callback) => callback(value));
+    },
+
+    has<K extends keyof T>(key: K): boolean {
+      return provider.has(resolveKey(key as string));
+    },
+
+    keys(): (keyof T)[] {
+      const allKeys = provider.keys();
+      if (!prefix) {
+        return allKeys as (keyof T)[];
+      }
+      return allKeys
+        .filter((k) => k.startsWith(prefix))
+        .map((k) => k.slice(prefix.length) as keyof T);
+    },
+
+    clear(): void {
+      if (prefix) {
+        // Only clear keys matching our prefix
+        const keysToRemove = provider.keys().filter((k) => k.startsWith(prefix));
+        for (const key of keysToRemove) {
+          provider.remove(key);
+        }
+      } else {
+        provider.clear();
+      }
+
+      // Notify all listeners with null
+      listeners.forEach((callbacks) => {
+        callbacks.forEach((callback) => callback(null));
+      });
     },
 
     subscribe<K extends keyof T>(key: K, callback: (value: T[K] | null) => void): () => void {
