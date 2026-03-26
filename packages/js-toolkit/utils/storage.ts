@@ -71,10 +71,10 @@ export const sessionStorageProvider: StorageProvider = {
  */
 export interface UrlProviderOptions {
   /**
-   * Whether to use `replaceState` instead of `pushState`.
+   * Whether to use `pushState` instead of `replaceState`.
    * @default false
    */
-  replace?: boolean;
+  push?: boolean;
 }
 
 /**
@@ -86,8 +86,8 @@ export interface UrlProviderOptions {
 export function createUrlSearchParamsProvider(
   providerOptions: UrlProviderOptions = {},
 ): StorageProvider {
-  const { replace = false } = providerOptions;
-  const method = replace ? 'replaceState' : 'pushState';
+  const { push = false } = providerOptions;
+  const method = push ? 'pushState' : 'replaceState';
 
   return {
     syncEvent: 'popstate',
@@ -139,7 +139,7 @@ function getParamsFromHash(): URLSearchParams | null {
 export function createUrlSearchParamsInHashProvider(
   providerOptions: UrlProviderOptions = {},
 ): StorageProvider {
-  const { replace = false } = providerOptions;
+  const { push = false } = providerOptions;
 
   return {
     syncEvent: 'hashchange',
@@ -151,10 +151,10 @@ export function createUrlSearchParamsInHashProvider(
       if (!params) return;
       params.set(key, value);
       const newHash = params.toString();
-      if (replace) {
-        window.history.replaceState({}, '', `${window.location.pathname}${window.location.search}#${newHash}`);
-      } else {
+      if (push) {
         window.location.hash = newHash;
+      } else {
+        window.history.replaceState({}, '', `${window.location.pathname}${window.location.search}#${newHash}`);
       }
     },
     remove(key: string): void {
@@ -162,13 +162,13 @@ export function createUrlSearchParamsInHashProvider(
       if (!params) return;
       params.delete(key);
       const newHash = params.toString();
-      if (replace) {
+      if (push) {
+        window.location.hash = newHash;
+      } else {
         const url = newHash
           ? `${window.location.pathname}${window.location.search}#${newHash}`
           : `${window.location.pathname}${window.location.search}`;
         window.history.replaceState({}, '', url);
-      } else {
-        window.location.hash = newHash;
       }
     },
     has(key: string): boolean {
@@ -358,10 +358,10 @@ export function useSessionStorage<T extends Record<string, any> = Record<string,
 export function useUrlSearchParams<T extends Record<string, any> = Record<string, any>>(
   options?: Omit<StorageOptions<T>, 'provider'> & UrlProviderOptions,
 ): StorageInstance<T> {
-  const { replace, ...storageOptions } = options ?? {};
+  const { push, ...storageOptions } = options ?? {};
   return createStorage({
     ...storageOptions,
-    provider: replace ? createUrlSearchParamsProvider({ replace }) : urlSearchParamsProvider,
+    provider: push ? createUrlSearchParamsProvider({ push }) : urlSearchParamsProvider,
   });
 }
 
@@ -374,11 +374,11 @@ export function useUrlSearchParams<T extends Record<string, any> = Record<string
 export function useUrlSearchParamsInHash<T extends Record<string, any> = Record<string, any>>(
   options?: Omit<StorageOptions<T>, 'provider'> & UrlProviderOptions,
 ): StorageInstance<T> {
-  const { replace, ...storageOptions } = options ?? {};
+  const { push, ...storageOptions } = options ?? {};
   return createStorage({
     ...storageOptions,
-    provider: replace
-      ? createUrlSearchParamsInHashProvider({ replace })
+    provider: push
+      ? createUrlSearchParamsInHashProvider({ push })
       : urlSearchParamsInHashProvider,
   });
 }

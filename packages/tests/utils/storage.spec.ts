@@ -207,18 +207,18 @@ describe('Storage utilities', () => {
       storage.destroy();
     });
 
-    it('should use replaceState when replace option is true', () => {
+    it('should use replaceState by default', () => {
       const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
-      const storage = useUrlSearchParams({ replace: true });
+      const storage = useUrlSearchParams();
       storage.set('page' as any, 1);
       expect(replaceStateSpy).toHaveBeenCalled();
       replaceStateSpy.mockRestore();
       storage.destroy();
     });
 
-    it('should use pushState by default', () => {
+    it('should use pushState when push option is true', () => {
       const pushStateSpy = vi.spyOn(window.history, 'pushState');
-      const storage = useUrlSearchParams();
+      const storage = useUrlSearchParams({ push: true });
       storage.set('page' as any, 1);
       expect(pushStateSpy).toHaveBeenCalled();
       pushStateSpy.mockRestore();
@@ -264,9 +264,9 @@ describe('Storage utilities', () => {
       storage.destroy();
     });
 
-    it('should use replaceState when replace option is true', () => {
+    it('should use replaceState by default', () => {
       const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
-      const storage = useUrlSearchParamsInHash({ replace: true });
+      const storage = useUrlSearchParamsInHash();
       storage.set('tab' as any, 'settings');
       expect(replaceStateSpy).toHaveBeenCalled();
       replaceStateSpy.mockRestore();
@@ -348,7 +348,7 @@ describe('Storage utilities', () => {
     it('should handle urlSearchParams provider correctly', () => {
       window.history.replaceState({}, '', '/');
       expect(urlSearchParamsProvider.get('non-existent')).toBeNull();
-      const setSpy = vi.spyOn(window.history, 'pushState');
+      const setSpy = vi.spyOn(window.history, 'replaceState');
       urlSearchParamsProvider.set('test', 'value');
       expect(setSpy).toHaveBeenCalled();
       setSpy.mockRestore();
@@ -374,63 +374,64 @@ describe('Storage utilities', () => {
   });
 
   describe('createUrlSearchParamsProvider', () => {
-    it('should use pushState by default', () => {
+    it('should use replaceState by default', () => {
       const provider = createUrlSearchParamsProvider();
+      const replaceSpy = vi.spyOn(window.history, 'replaceState');
+      provider.set('key', 'value');
+      expect(replaceSpy).toHaveBeenCalled();
+      replaceSpy.mockRestore();
+    });
+
+    it('should use pushState when push is true', () => {
+      const provider = createUrlSearchParamsProvider({ push: true });
       const pushSpy = vi.spyOn(window.history, 'pushState');
       provider.set('key', 'value');
       expect(pushSpy).toHaveBeenCalled();
       pushSpy.mockRestore();
     });
 
-    it('should use replaceState when replace is true', () => {
-      const provider = createUrlSearchParamsProvider({ replace: true });
-      const replaceSpy = vi.spyOn(window.history, 'replaceState');
-      provider.set('key', 'value');
-      expect(replaceSpy).toHaveBeenCalled();
-      replaceSpy.mockRestore();
-    });
-
     it('should remove key and clean up URL', () => {
       const provider = createUrlSearchParamsProvider();
-      const pushSpy = vi.spyOn(window.history, 'pushState');
+      const replaceSpy = vi.spyOn(window.history, 'replaceState');
       provider.set('key', 'value');
       provider.remove('key');
-      expect(pushSpy).toHaveBeenCalledTimes(2);
-      pushSpy.mockRestore();
+      expect(replaceSpy).toHaveBeenCalledTimes(2);
+      replaceSpy.mockRestore();
     });
 
     it('should preserve hash when setting URL params', () => {
       window.location.hash = 'section';
       const provider = createUrlSearchParamsProvider();
-      const pushSpy = vi.spyOn(window.history, 'pushState');
+      const replaceSpy = vi.spyOn(window.history, 'replaceState');
       provider.set('key', 'value');
-      const url = pushSpy.mock.calls[0][2] as string;
+      const url = replaceSpy.mock.calls[0][2] as string;
       expect(url).toContain('#section');
-      pushSpy.mockRestore();
+      replaceSpy.mockRestore();
     });
   });
 
   describe('createUrlSearchParamsInHashProvider', () => {
-    it('should use location.hash by default', () => {
+    it('should use replaceState by default', () => {
       const provider = createUrlSearchParamsInHashProvider();
+      const replaceSpy = vi.spyOn(window.history, 'replaceState');
+      provider.set('key', 'value');
+      expect(replaceSpy).toHaveBeenCalled();
+      expect(provider.get('key')).toBe('value');
+      replaceSpy.mockRestore();
+    });
+
+    it('should use location.hash when push is true', () => {
+      const provider = createUrlSearchParamsInHashProvider({ push: true });
       provider.set('key', 'value');
       expect(provider.get('key')).toBe('value');
     });
 
-    it('should use replaceState when replace is true', () => {
-      const provider = createUrlSearchParamsInHashProvider({ replace: true });
+    it('should remove key with replaceState by default', () => {
+      const provider = createUrlSearchParamsInHashProvider();
       const replaceSpy = vi.spyOn(window.history, 'replaceState');
       provider.set('key', 'value');
-      expect(replaceSpy).toHaveBeenCalled();
-      replaceSpy.mockRestore();
-    });
-
-    it('should remove key with replaceState when replace is true', () => {
-      const provider = createUrlSearchParamsInHashProvider({ replace: true });
-      provider.set('key', 'value');
-      const replaceSpy = vi.spyOn(window.history, 'replaceState');
       provider.remove('key');
-      expect(replaceSpy).toHaveBeenCalled();
+      expect(replaceSpy).toHaveBeenCalledTimes(2);
       replaceSpy.mockRestore();
     });
   });
