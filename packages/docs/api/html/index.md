@@ -8,10 +8,12 @@ The following attributes can be used:
 
 ## Customizing the attributes
 
-These attributes can be configured with the [`createApp` helper](/api/helpers/createApp.html):
+These attributes can be configured with the [`defineFeatures` helper](/api/helpers/defineFeatures.html) or [`createApp`](/api/helpers/createApp.html):
 
 ```js
-createApp(App, {
+import { defineFeatures } from '@studiometa/js-toolkit';
+
+defineFeatures({
   attributes: {
     component: 'tk-is',
     option: 'tk-opt',
@@ -54,12 +56,12 @@ The attribute and element name API can be combined to attach multiple components
 <tk-component data-component="Figure">...</tk-component>
 ```
 
-The prefix is set to `tk` by default and can be configured with the [`createApp` helper](/api/helpers/createApp.html):
+The prefix is set to `tk` by default and can be configured with the [`defineFeatures` helper](/api/helpers/defineFeatures.html) or [`createApp`](/api/helpers/createApp.html):
 
 ```js
-createApp(App, {
-  prefix: 'w',
-});
+import { defineFeatures } from '@studiometa/js-toolkit';
+
+defineFeatures({ prefix: 'w' });
 ```
 
 ```diff

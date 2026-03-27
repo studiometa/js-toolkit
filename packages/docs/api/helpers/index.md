@@ -6,12 +6,13 @@ sidebar: true
 
 The following helper functions can be used to achieve advanced setup of your application.
 
-## App helper
+## Setup helpers
 
-The following helpers can help you bootstrap the root class of your application:
+The recommended way to register and mount components:
 
-- [createApp](./createApp.html)
-- [defineFeatures](./defineFeatures.html)
+- [registerComponent](./registerComponent.html) — register and mount components independently (recommended)
+- [defineFeatures](./defineFeatures.html) — configure global features (breakpoints, attributes, prefix)
+- [createApp](./createApp.html) — bootstrap a root App class (when you need a central app instance)
 
 ## Instance helpers
 
@@ -39,3 +40,7 @@ Some components might not need to be imported and instantiated immediately on pa
 - [importWhenVisible](./importWhenVisible.html)
 - [importOnMediaQuery](./importOnMediaQuery.html)
 - [importWhenPrefersMotion](./importWhenPrefersMotion.html)
+
+## Debug helpers
+
+- [logTree](./logTree.html) — log the component tree to the console

@@ -37,19 +37,10 @@ Find below the JavaScript and HTML implementation of a counter component.
 <<< ./Counter.html
 
 ```js [app.js]
-import { Base, createApp } from '@studiometa/js-toolkit';
+import { registerComponent } from '@studiometa/js-toolkit';
 import Counter from './Counter.js';
 
-class App extends Base {
-  static config = {
-    name: 'App',
-    components: {
-      Counter,
-    },
-  };
-}
-
-export default createApp(App);
+registerComponent(Counter);
 ```
 
 :::

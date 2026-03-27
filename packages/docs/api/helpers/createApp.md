@@ -4,7 +4,11 @@ outline: deep
 
 # createApp
 
-Use the `createApp` function to instantiate your application on page load while being able to use the instance in other files.
+Use the `createApp` function to instantiate your application on page load while being able to use the instance in other files. This function is useful when you need to configure global features (breakpoints, attributes, blocking) or access the root app instance from other files.
+
+:::tip Simpler alternative
+For most use cases, [`registerComponent`](./registerComponent.html) combined with [`defineFeatures`](./defineFeatures.html) is simpler and avoids the need for a monolithic App class. See the [registerComponent documentation](./registerComponent.html) for details.
+:::
 
 ## Usage
 
