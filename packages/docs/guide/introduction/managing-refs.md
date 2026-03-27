@@ -58,7 +58,7 @@ Then in the HTML template you must add a `data-ref` attribute with the same name
 
 If you want to iterate on multiple refs, you can append `[]` to the ref name. For example here `data-ref="items[]"` will yield an array of HTML elements.
 
-> Appending `[]` to a ref name will force the ref to an array even if there is only one occurence.
+> Appending `[]` to a ref name will force the ref to an array even if there is only one occurrence.
 
 ```js {4}
 class Component extends Base {

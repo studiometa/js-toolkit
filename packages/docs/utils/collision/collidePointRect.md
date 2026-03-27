@@ -29,4 +29,4 @@ collidePointRect(point, rect); // true
 
 ### Return value
 
-- `boolean`: wether the point and rectangle are colliding or not
+- `boolean`: whether the point and rectangle are colliding or not

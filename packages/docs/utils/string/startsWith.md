@@ -18,4 +18,4 @@ startsWith('string', 'no'); // false
 
 ### Return value
 
-- `boolean`: Wether the string starts with search or not.
+- `boolean`: whether the string starts with search or not.

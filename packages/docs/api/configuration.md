@@ -60,7 +60,7 @@ class Component extends Base {
       objectWithDefault: {
         type: Object,
         default: () => ({ foo: 'foo' }),
-        merge: true, // Optional, wether to merge values or not
+        merge: true, // Optional, whether to merge values or not
       },
     },
   };
@@ -216,7 +216,7 @@ Enable the `this.$log(...args)` method when `true`.
 When `true`, the lifecycle hooks and services hooks will be logged to the console.
 
 :::tip
-The debug logs are conditionnally rendered base on a `__DEV__` global variable which will default to `false`. To enable it in dev mode, you can use the [`DefinePlugin`](https://webpack.js.org/plugins/define-plugin/) with Webpack or the [`@rollup/plugin-replace`](https://github.com/rollup/plugins/tree/master/packages/replace) with Rollup.
+The debug logs are conditionally rendered based on a `__DEV__` global variable which will default to `false`. To enable it in dev mode, you can use the [`DefinePlugin`](https://webpack.js.org/plugins/define-plugin/) with Webpack or the [`@rollup/plugin-replace`](https://github.com/rollup/plugins/tree/master/packages/replace) with Rollup.
 
 **Example Webpack configuration**
 
