@@ -28,6 +28,7 @@ describe('The package exports', () => {
         "importWhenPrefersMotion",
         "importWhenVisible",
         "isDirectChild",
+        "logTree",
         "queryComponent",
         "queryComponentAll",
         "registerComponent",
