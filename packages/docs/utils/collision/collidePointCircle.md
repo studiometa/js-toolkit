@@ -28,4 +28,4 @@ collidePointCircle(point, circle); // true
 
 ### Return value
 
-- `boolean`: wether the point and circle are colliding or not
+- `boolean`: whether the point and circle are colliding or not

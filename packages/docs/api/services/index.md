@@ -22,6 +22,7 @@ The following services are available:
 - [useDrag](./useDrag.html) to implement drag features
 - [useKey](./useKey.html) to implement keyboard features
 - [useLoad](./useLoad.html) to implement window load features
+- [useMutation](./useMutation.html) to implement DOM mutation features
 - [usePointer](./usePointer.html) to implement mouse/touch features
 - [useRaf](./useRaf.html) to implement `requestAnimationFrame` features
 - [useResize](./useResize.html) to implement window resize features

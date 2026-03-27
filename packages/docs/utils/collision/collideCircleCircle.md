@@ -29,4 +29,4 @@ collideCircleCircle(circle1, circle2); // true
 
 ### Return value
 
-- `boolean`: wether the circles are colliding or not
+- `boolean`: whether the circles are colliding or not

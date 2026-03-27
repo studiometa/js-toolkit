@@ -18,4 +18,4 @@ endsWith('string', 'no'); // false
 
 ### Return value
 
-- `boolean`: Wether the string ends with search or not.
+- `boolean`: whether the string ends with search or not.

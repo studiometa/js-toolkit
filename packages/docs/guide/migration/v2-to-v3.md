@@ -34,7 +34,7 @@ In the previous versions, breakpoints values for the [resize service](/api/servi
 export default createApp(App, document.body); // [!code --]
 export default createApp(App, { // [!code ++]
   root: document.body, // [!code ++]
-  screens: { // [!code ++]
+  breakpoints: { // [!code ++]
     s: '30rem', // [!code ++]
     m: '60rem', // [!code ++]
     l: '90rem', // [!code ++]

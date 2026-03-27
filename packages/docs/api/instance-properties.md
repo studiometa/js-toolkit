@@ -2,11 +2,11 @@
 
 ## `$options`
 
-An object containing the full options of the instance as defined in [the `config.options` property](/api/configuration.html#config-options). Additionnally to the options defined in the config, the following properties are also available:
+An object containing the full options of the instance as defined in [the `config.options` property](/api/configuration.html#config-options). Additionally to the options defined in the config, the following properties are also available:
 
 - `$options.name` The name of the component
-- `$options.log` Wether the `$log` method is silent or not
-- `$options.debug` Wether the debug is active on this instance or not
+- `$options.log` whether the `$log` method is silent or not
+- `$options.debug` whether the debug is active on this instance or not
 
 The values for the `$options` object are read from and written to the `data-option-<option-name>` attribute of the root element.
 

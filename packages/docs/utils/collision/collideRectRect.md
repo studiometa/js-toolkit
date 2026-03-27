@@ -31,4 +31,4 @@ collideRectRect(rect1, rect2); // true
 
 ### Return value
 
-- `boolean`: wether the rectangles are colliding or not
+- `boolean`: whether the rectangles are colliding or not
