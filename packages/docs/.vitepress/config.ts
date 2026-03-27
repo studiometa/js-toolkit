@@ -191,7 +191,7 @@ function getBaseSidebar() {
       link: '/api/instance-methods.html',
     },
     {
-      text: 'Intance events',
+      text: 'Instance events',
       link: '/api/instance-events.html',
     },
     {

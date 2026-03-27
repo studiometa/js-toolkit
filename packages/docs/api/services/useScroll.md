@@ -156,7 +156,7 @@ Shorthand for `direction.y === 'UP'`.
 
 - Type: `boolean`
 
-Shorthand for `direction.x === 'LEFT'`.
+Shorthand for `direction.x === 'RIGHT'`.
 
 ### `isDown`
 
