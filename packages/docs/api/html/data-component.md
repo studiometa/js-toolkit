@@ -11,26 +11,15 @@ Use the `data-component` in HTML to bind a JavaScript class to an element.
 
 ## Simple usage
 
-When using the `config.components` property, the framework will find components by using a selector combining the `data-component` attribute and the key declared in the configuration.
-
-In the following example, both of the imported components will be mounted. One with the name `Component`, mounted on `[data-component="Component"]` elements found in the DOM. The other with the name `CustomName`, mounted on `[data-component="CustomName"]` elements.
+The framework will find and mount components on elements matching `[data-component="<Name>"]` where `<Name>` corresponds to the component's `config.name` or the name passed to `registerComponent`.
 
 ```js twoslash
-import { Base, createApp } from '@studiometa/js-toolkit';
+import { registerComponent } from '@studiometa/js-toolkit';
 import Component from './Component.js';
 import OtherComponent from './OtherComponent.js';
 
-class App extends Base {
-  static config = {
-    name: 'App',
-    components: {
-      Component,
-      CustomName: OtherComponent,
-    },
-  };
-}
-
-export default createApp(App);
+registerComponent(Component);
+registerComponent(OtherComponent, 'CustomName');
 ```
 
 ```html
