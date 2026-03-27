@@ -9,23 +9,28 @@ Components with children are displayed as collapsed groups. Each entry shows:
 
 ## Usage
 
+### From the console (zero config)
+
+When using `createApp`, a `$logTree()` function is automatically registered on `globalThis` in development mode. Just open your browser console and type:
+
+```js
+$logTree()
+```
+
+### Programmatic usage
+
+```js
+import { logTree } from '@studiometa/js-toolkit';
+
+// From any component
+logTree(this);
+```
+
 ```js
 import { createApp, logTree } from '@studiometa/js-toolkit';
 
 const useApp = createApp(App);
 useApp().then((app) => logTree(app));
-```
-
-You can also call it from the browser console if you expose the app instance:
-
-```js
-// In your app's mounted hook
-mounted() {
-  globalThis.$app = this;
-}
-
-// Then in the console
-logTree($app);
 ```
 
 ### Parameters
