@@ -146,4 +146,86 @@ describe('logTree', () => {
 
     await app.$destroy();
   });
+
+  it('should handle deeply nested components', async () => {
+    class GrandChild extends Base {
+      static config: BaseConfig = { name: 'GrandChild' };
+    }
+
+    class DeepParent extends Base {
+      static config: BaseConfig = {
+        name: 'DeepParent',
+        components: { GrandChild },
+      };
+    }
+
+    class DeepApp extends Base {
+      static config: BaseConfig = {
+        name: 'DeepApp',
+        components: { DeepParent },
+      };
+    }
+
+    const div = h('div', {}, [
+      h('div', { dataComponent: 'DeepParent' }, [
+        h('div', { dataComponent: 'GrandChild' }),
+      ]),
+    ]);
+
+    const app = new DeepApp(div);
+    await app.$mount();
+
+    const groupSpy = vi.spyOn(console, 'group').mockImplementation(() => {});
+    const groupCollapsedSpy = vi.spyOn(console, 'groupCollapsed').mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const groupEndSpy = vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
+
+    logTree(app);
+
+    // DeepParent should be a group (has GrandChild)
+    expect(groupCollapsedSpy.mock.calls.some((c) =>
+      typeof c[0] === 'string' && c[0].includes('DeepParent'),
+    )).toBe(true);
+
+    // GrandChild should be a leaf log
+    expect(logSpy.mock.calls.some((c) =>
+      typeof c[0] === 'string' && c[0].includes('GrandChild'),
+    )).toBe(true);
+
+    groupSpy.mockRestore();
+    groupCollapsedSpy.mockRestore();
+    logSpy.mockRestore();
+    groupEndSpy.mockRestore();
+
+    await app.$destroy();
+  });
+
+  it('should handle multiple siblings at the same level', async () => {
+    const div = h('div', {}, [
+      h('div', { dataComponent: 'Child' }),
+      h('div', { dataComponent: 'Child' }),
+      h('div', { dataComponent: 'Child' }),
+    ]);
+
+    const app = new App(div);
+    await app.$mount();
+
+    const groupSpy = vi.spyOn(console, 'group').mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const groupEndSpy = vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
+
+    logTree(app);
+
+    // All 3 children should be logged as leaves
+    const childLogs = logSpy.mock.calls.filter((c) =>
+      typeof c[0] === 'string' && c[0].includes('Child'),
+    );
+    expect(childLogs).toHaveLength(3);
+
+    groupSpy.mockRestore();
+    logSpy.mockRestore();
+    groupEndSpy.mockRestore();
+
+    await app.$destroy();
+  });
 });
