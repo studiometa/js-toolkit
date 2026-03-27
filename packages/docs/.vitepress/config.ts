@@ -254,6 +254,7 @@ function getHelpersSidebar() {
     { text: 'importWhenPrefersMotion', link: '/api/helpers/importWhenPrefersMotion.html' },
     { text: 'importWhenVisible', link: '/api/helpers/importWhenVisible.html' },
     { text: 'isDirectChild', link: '/api/helpers/isDirectChild.html' },
+    { text: 'logTree', link: '/api/helpers/logTree.html' },
     { text: 'registerComponent', link: '/api/helpers/registerComponent.html' },
   ];
 }

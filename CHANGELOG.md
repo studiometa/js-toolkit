@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Added
 
 - Add browser storage utilities: `createStorage`, `useLocalStorage`, `useSessionStorage`, `useUrlSearchParams`, `useUrlSearchParamsInHash` ([#671](https://github.com/studiometa/js-toolkit/pull/671))
+- Add `logTree` helper to inspect the component tree from the console ([#654](https://github.com/studiometa/js-toolkit/pull/654))
 
 ## [v3.5.0](https://github.com/studiometa/js-toolkit/compare/3.4.3..3.5.0) (2026-03-25)
 
