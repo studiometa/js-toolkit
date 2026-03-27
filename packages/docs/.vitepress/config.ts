@@ -67,6 +67,7 @@ function getGuideSidebar() {
     {
       text: 'Introduction',
       items: [
+        { text: 'Installation', link: '/guide/introduction/installation.html' },
         { text: 'Getting started', link: '/guide/' },
         { text: 'Managing components', link: '/guide/introduction/managing-components.html' },
         { text: 'Managing refs', link: '/guide/introduction/managing-refs.html' },
@@ -106,6 +107,14 @@ function getGuideSidebar() {
         {
           text: 'Teleport refs',
           link: '/guide/recipes/teleport-refs/',
+        },
+        {
+          text: 'Accordion',
+          link: '/guide/recipes/accordion/',
+        },
+        {
+          text: 'Lazy image',
+          link: '/guide/recipes/lazy-image/',
         },
       ],
     },

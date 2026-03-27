@@ -24,4 +24,13 @@ features:
   - title: Plenty of utilities
     icon: 📦
     details: Functions to help you manipulate the DOM, use math calculations, use the history API and more.
+  - title: Tree-shakeable
+    icon: 🌲
+    details: Import only what you need. Every utility and service is individually exported so your bundle stays lean.
 ---
+
+## Install
+
+```bash
+npm install @studiometa/js-toolkit
+```
