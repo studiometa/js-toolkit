@@ -23,37 +23,31 @@ component.$mount();
 
 Returns an instance of the class not yet mounted.
 
+:::tip Recommended
+Use the [`registerComponent(Component)`](./helpers/registerComponent.html) function to register and mount components independently — no need for a monolithic App class.
+:::
+
 :::tip
 Use the [`$register(nameOrSelector?: string)`](./static-methods.html#factory-nameorselector) static method to instantiate multiple instances on elements matching a name (e.g. `[data-component="<name>"]`) or a CSS selector.
 :::
 
 :::tip
-Use the [`createApp(Base, rootElement)`](./helpers/createApp.html) function to instantiate the root class of your app.
+Use the [`createApp(Base, rootElement)`](./helpers/createApp.html) function when you need to configure global features (breakpoints, attributes, blocking) or access the root app instance.
 :::
 
-## Example
+## Examples
 
-Create an app using a custom component and instantiate it:
+### Using `registerComponent` (recommended)
+
+Register and mount components independently:
 
 ::: code-group
 
 ```js twoslash [app.js]
-import { Base } from '@studiometa/js-toolkit';
+import { registerComponent } from '@studiometa/js-toolkit';
 import Component from './Component.js';
 
-class App extends Base {
-  static config = {
-    name: 'App',
-    components: {
-      Component,
-    },
-  };
-}
-
-const app = new App(document.body);
-app.$mount();
-
-export default app;
+registerComponent(Component);
 ```
 
 ```js twoslash [Component.js]
@@ -66,6 +60,38 @@ export default class Component extends Base {
 }
 ```
 
-::: tip
-Usage of the [`createApp` helper function](./helpers/createApp.md) is recommended instead of directly mounting the root component manually.
+:::
+
+### Using `createApp`
+
+Use `createApp` when you need to configure global features or access the root app instance:
+
+::: code-group
+
+```js twoslash [app.js]
+import { Base, createApp } from '@studiometa/js-toolkit';
+import Component from './Component.js';
+
+class App extends Base {
+  static config = {
+    name: 'App',
+    components: {
+      Component,
+    },
+  };
+}
+
+export default createApp(App);
+```
+
+```js twoslash [Component.js]
+import { Base } from '@studiometa/js-toolkit';
+
+export default class Component extends Base {
+  static config = {
+    name: 'Component',
+  };
+}
+```
+
 :::

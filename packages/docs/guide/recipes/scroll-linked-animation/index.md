@@ -41,19 +41,10 @@ This example demonstrate the usage of the [`scrolled` service](/api/methods-hook
 <<< ./ScrollLinkedAnimation.html
 
 ```js [app.js]
-import { Base, createApp } from '@studiometa/js-toolkit';
+import { registerComponent } from '@studiometa/js-toolkit';
 import ScrollLinkedAnimation from './ScrollLinkedAnimation.js';
 
-class App extends Base {
-  static config = {
-    name: 'App',
-    components: {
-      ScrollLinkedAnimation,
-    },
-  };
-}
-
-export default createApp(App);
+registerComponent(ScrollLinkedAnimation);
 ```
 
 :::
