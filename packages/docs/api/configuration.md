@@ -218,6 +218,19 @@ When `true`, the lifecycle hooks and services hooks will be logged to the consol
 :::tip
 The debug logs are conditionally rendered based on a `__DEV__` global variable which will default to `false`. To enable it in dev mode, you can use the [`DefinePlugin`](https://webpack.js.org/plugins/define-plugin/) with Webpack or the [`@rollup/plugin-replace`](https://github.com/rollup/plugins/tree/master/packages/replace) with Rollup.
 
+**Example Vite configuration**
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  define: {
+    __DEV__: JSON.stringify(process.env.NODE_ENV !== 'production'),
+  },
+});
+```
+
 **Example Webpack configuration**
 
 ```js twoslash
