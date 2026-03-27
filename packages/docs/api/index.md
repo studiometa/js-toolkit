@@ -21,5 +21,5 @@ Discover how to configure and use the `Base` class in the following sections:
 - [Instantiation](/api/instantiation.html)
 - [Instance properties](/api/instance-properties.html)
 - [Instance methods](/api/instance-methods.html)
-- [Intance events](/api/instance-events.html)
+- [Instance events](/api/instance-events.html)
 - [Static methods](/api/static-methods.html)

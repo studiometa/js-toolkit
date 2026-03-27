@@ -59,12 +59,12 @@ registerComponent(Component);
 
 ### Async components
 
-Register components asynchroneously by providing a dynamic import as parameter.
+Register components asynchronously by providing a dynamic import as parameter.
 
 ```js
 import { registerComponent } from '@studiometa/js-toolkit';
 
-importWhenVisible(import('./AsyncComponent.js'));
+registerComponent(import('./AsyncComponent.js'));
 ```
 
 ### Lazy components

@@ -30,4 +30,4 @@ collideCircleRect(circle, rect); // true
 
 ### Return value
 
-- `boolean`: wether the circle and rectangle are colliding
+- `boolean`: whether the circle and rectangle are colliding

@@ -2,7 +2,7 @@
 
 ## What are services?
 
-When developping components for a web page, we often need to implement trivial task in multiple places such a reacting to the resize of the window, reacting to the user scroll. Services were created to standardize and simplify how we implement such behaviours.
+When developing components for a web page, we often need to implement trivial task in multiple places such a reacting to the resize of the window, reacting to the user scroll. Services were created to standardize and simplify how we implement such behaviours.
 
 The following services are exported by the `@studiometa/js-toolkit` package:
 
