@@ -1,5 +1,9 @@
 # Installation
 
+::: tip New to js-toolkit?
+Read the [introduction](/guide/) first to understand what js-toolkit is and how it works.
+:::
+
 ## Package installation
 
 Install the package from npm:
@@ -36,17 +40,25 @@ registerComponent(MyComponent);
 
 ### Alternative: `defineFeatures`
 
-Use `defineFeatures` to explicitly configure which toolkit features are active in your app:
+Use `defineFeatures` to configure global settings like breakpoints or HTML attributes when using `registerComponent` instead of `createApp`:
 
 ```js
 import { defineFeatures } from '@studiometa/js-toolkit';
 
-defineFeatures({ features: ['pointer', 'scroll', 'resize', 'raf'] });
+defineFeatures({
+  breakpoints: {
+    s: '40rem',
+    m: '80rem',
+    l: '100rem',
+  },
+});
 ```
+
+Available options: `breakpoints`, `blocking`, `prefix`, and `attributes`. See the [`defineFeatures` API](/api/helpers/defineFeatures.html) for details.
 
 ### Advanced: `createApp`
 
-For more control over initialization (e.g. lazy loading, custom root), use `createApp`:
+For more control over initialization (e.g. custom root element, breakpoints, or accessing the app instance from other files), use `createApp`:
 
 ```js
 import { Base, createApp } from '@studiometa/js-toolkit';
@@ -59,8 +71,26 @@ class App extends Base {
   };
 }
 
-export default createApp(App, document.body);
+export default createApp(App, {
+  root: document.body,
+  breakpoints: {
+    s: '48rem',
+    m: '64rem',
+    l: '80rem',
+  },
+});
 ```
+
+`createApp` returns a function that resolves to the app instance, so you can use it in other files:
+
+```js
+import useApp from './app.js';
+
+const app = await useApp();
+console.log(app.$el); // document.body
+```
+
+See the [`createApp` API](/api/helpers/createApp.html) for all available options.
 
 ## Build tool configuration
 
