@@ -1,0 +1,31 @@
+/* Layers */
+/*@layer theme, preflight, legacy, base, components, utilities;*/
+
+@import '@shikijs/vitepress-twoslash/style.css';
+@import 'tailwindcss';
+@import '@studiometa/tailwind-config';
+
+/* VitePress uses .dark class, not media query */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-vp-text-1: var(--vp-c-text-1);
+  --color-vp-bg: var(--vp-c-bg);
+  --color-vp-bg-alt: var(--vp-c-bg-alt);
+  --color-vp-bg-soft: var(--vp-c-bg-soft);
+  --color-vp-code-block-bg: var(--vp-code-block-bg);
+  --color-vp-c-indigo: var(--vp-c-indigo);
+  --color-vp-sidebar-bg: var(--vp-sidebar-bg-color);
+  --color-vp-divider: var(--vp-c-divider);
+  --color-brand: #3eaf7c;
+  --color-brand-light: #42d392;
+  --color-code-bg: var(--code-bg-color);
+  --font-size-2xs: 0.625rem;
+  --font-size-2xs--line-height: 1;
+}
+
+.VPHomeHero .name,
+.VPHomeHero .text {
+  max-width: none !important;
+}
+

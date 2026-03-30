@@ -3,6 +3,11 @@ import { transformerTwoslash } from '@shikijs/vitepress-twoslash';
 import pkg from '../package.json' with { type: 'json' };
 
 export default defineConfig({
+  vite: {
+    build: {
+      chunkSizeWarningLimit: 600,
+    },
+  },
   lang: 'en-US',
   title: '@studiometa/js-toolkit',
   description:

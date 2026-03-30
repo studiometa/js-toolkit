@@ -1,7 +1,7 @@
-let callbacks:Array<MutationCallback> = [];
-let observer;
+let callbacks: Array<MutationCallback> = [];
+let observer: MutationObserver;
 
-function mainCallback(mutations) {
+function mainCallback(mutations: MutationRecord[]) {
   callbacks.forEach((callback) => {
     callback(mutations, observer);
   });
@@ -22,7 +22,7 @@ export default function useObserver(callback: MutationCallback) {
     callbacks = callbacks.filter((cb) => cb !== callback);
   }
 
-  function observe(element, options) {
+  function observe(element: Node, options: MutationObserverInit) {
     observer.observe(element, options);
   }
 

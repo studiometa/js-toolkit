@@ -32,11 +32,13 @@
     "postversion": "npm version --workspaces $npm_package_version"
   },
   "devDependencies": {
+    "focus-trap": "^7.8.0",
     "@studiometa/prettier-config": "4.4.0",
     "@types/node": "22.19.0",
+    "@typescript/native-preview": "7.0.0-dev.20260326.1",
     "oxlint": "1.57.0",
     "prettier": "3.8.1",
-    "@typescript/native-preview": "7.0.0-dev.20260326.1"
+    "vite": "8.0.3"
   },
   "dependencies": {
     "esbuild": "^0.27.0",
