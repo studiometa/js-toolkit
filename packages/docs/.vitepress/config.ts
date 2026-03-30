@@ -72,8 +72,8 @@ function getGuideSidebar() {
     {
       text: 'Introduction',
       items: [
+        { text: 'What is js-toolkit?', link: '/guide/' },
         { text: 'Installation', link: '/guide/introduction/installation.html' },
-        { text: 'Getting started', link: '/guide/' },
         { text: 'Managing components', link: '/guide/introduction/managing-components.html' },
         { text: 'Managing refs', link: '/guide/introduction/managing-refs.html' },
         { text: 'Managing options', link: '/guide/introduction/managing-options.html' },
@@ -257,6 +257,7 @@ function getDecoratorsSidebar() {
 
 function getHelpersSidebar() {
   return [
+    { text: 'closestComponent', link: '/api/helpers/closestComponent.html' },
     { text: 'createApp', link: '/api/helpers/createApp.html' },
     { text: 'getClosestParent', link: '/api/helpers/getClosestParent.html' },
     { text: 'getDirectChildren', link: '/api/helpers/getDirectChildren.html' },
@@ -269,6 +270,7 @@ function getHelpersSidebar() {
     { text: 'importWhenVisible', link: '/api/helpers/importWhenVisible.html' },
     { text: 'isDirectChild', link: '/api/helpers/isDirectChild.html' },
     { text: 'logTree', link: '/api/helpers/logTree.html' },
+    { text: 'queryComponent', link: '/api/helpers/queryComponent.html' },
     { text: 'registerComponent', link: '/api/helpers/registerComponent.html' },
   ];
 }
