@@ -1,6 +1,6 @@
-# Working with events
+# Events
 
-The `Base` class helps you manage event handler with automatic binding of all class methods prefixed with `on`. These methods can listen to events on different targets:
+js-toolkit automatically binds class methods that start with `on` as event handlers. The method name determines what event is listened to and on which target:
 
 - the component itself with `on<CustomEventName>`
 - the root element of the component with `on<NativeEventName>`
@@ -45,7 +45,10 @@ class App extends Base {
 }
 ```
 
-All methods will be given the same unique `context` parameter when called. This parameter is an object of type:
+All methods receive a single `context` parameter:
+
+<details>
+<summary>Event callback parameter type</summary>
 
 ```ts
 type EventHooksCallbackParams = {
@@ -69,3 +72,12 @@ type EventHooksCallbackParams = {
   target: Element | Base | Promise<Base> | typeof window | typeof document;
 };
 ```
+
+</details>
+
+---
+
+See also: [Event hooks](/api/methods-hooks-events.html) · [Instance events](/api/instance-events.html)
+
+---
+Next: [Services](/guide/introduction/using-services.html)

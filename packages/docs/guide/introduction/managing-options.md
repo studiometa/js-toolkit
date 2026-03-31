@@ -1,10 +1,6 @@
-# Managing options
+# Options
 
-## What are options?
-
-An option is a way to pass data to a component from the HTML template.
-
-Options are also a way to configure a component's behaviour at the instance level, since they are specific to each instance.
+Options let you pass configuration from HTML into your component. Each instance can receive different values via `data-option-*` attributes.
 
 ```js {12-13}
 class Foo extends Base {
@@ -166,7 +162,7 @@ class VideoPlayer extends Base {
 
 ## Updating options
 
-It is possible to update an option by reassigning its value but it is not recommended as they should be used as initialization parameters.
+You can update an option by reassigning `this.$options.name = value`, but treat options as initialization parameters — updating them at runtime is not recommended.
 
 ```js {15}
 import { Base } from '@studiometa/js-toolkit';
@@ -187,3 +183,10 @@ class VideoPlayer extends Base {
   }
 }
 ```
+
+---
+
+See also: [`data-option-*`](/api/html/data-option.html) · [Configuration — options](/api/configuration.html#config-options) · [`$options`](/api/instance-properties.html#options)
+
+---
+Next: [Lifecycle](/guide/introduction/lifecycle-hooks.html)

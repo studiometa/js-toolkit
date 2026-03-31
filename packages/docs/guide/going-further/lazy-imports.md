@@ -1,6 +1,10 @@
-# Lazy imports
+# Child Components
 
-## Why lazy import?
+This page covers advanced patterns for managing child components, with a focus on lazy imports.
+
+For the basics of parent–child relationships, see the [Components](/guide/introduction/managing-components.html) guide.
+
+## Lazy imports
 
 By default, all components are bundled together and loaded upfront. Lazy imports let you split your application into smaller chunks that are only fetched when actually needed — improving initial load time and reducing the amount of JavaScript parsed by the browser.
 

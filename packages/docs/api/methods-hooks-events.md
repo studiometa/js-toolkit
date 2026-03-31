@@ -1,5 +1,9 @@
 # Event hooks
 
+::: tip See also
+For an introduction to event handling in components, see the [Events guide](/guide/introduction/working-with-events.html).
+:::
+
 Event hooks are methods of a class prefixed by `on` which will be executed when the given event will be dispatched on the given target. All methods receives a single parameter `ctx` whose type is:
 
 ```ts

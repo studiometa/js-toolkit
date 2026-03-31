@@ -1,5 +1,9 @@
 # Configuration
 
+::: tip See also
+For a practical introduction, see the [Components guide](/guide/introduction/managing-components.html). For refs and options, see [Refs](/guide/introduction/managing-refs.html) and [Options](/guide/introduction/managing-options.html).
+:::
+
 The static `config` property is required on each class extending the `Base` class. It should be used to configure the class.
 
 ## `config.name`

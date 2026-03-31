@@ -1,5 +1,9 @@
 # Instance properties
 
+::: tip See also
+For practical usage of refs, options, and children, see the [Refs](/guide/introduction/managing-refs.html), [Options](/guide/introduction/managing-options.html), and [Components](/guide/introduction/managing-components.html) guides.
+:::
+
 ## `$options`
 
 An object containing the full options of the instance as defined in [the `config.options` property](/api/configuration.html#config-options). Additionally to the options defined in the config, the following properties are also available:

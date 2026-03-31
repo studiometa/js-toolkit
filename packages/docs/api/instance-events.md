@@ -1,5 +1,9 @@
 # Events
 
+::: tip See also
+For an introduction to event handling patterns, see the [Events guide](/guide/introduction/working-with-events.html).
+:::
+
 ## Lifecycle events
 
 ### `mounted`

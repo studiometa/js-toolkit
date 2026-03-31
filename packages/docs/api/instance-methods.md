@@ -1,5 +1,9 @@
 # Instance methods
 
+::: tip See also
+For practical examples of instance methods, see the [Components guide](/guide/introduction/managing-components.html) and [Lifecycle guide](/guide/introduction/lifecycle-hooks.html).
+:::
+
 ## `$log(...content)`
 
 Can be used to log content to the console when the `instance.$options.log` options is set to true, either via the `config` getter or via the `data-options` attribute.

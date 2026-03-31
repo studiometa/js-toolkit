@@ -343,3 +343,7 @@ export class ChildComponent extends Component<{ $el: HTMLButtonElement }> {
   // ...
 }
 ```
+
+::: tip API Reference
+See the [Configuration](/api/configuration.html) API for the full `BaseConfig` type, and [Instance properties](/api/instance-properties.html) for typed `$refs`, `$options`, and `$children`.
+:::
