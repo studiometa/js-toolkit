@@ -224,5 +224,3 @@ The resolution scope of nested refs will be limited in case of nested components
 
 See also: [`data-ref`](/api/html/data-ref.html) · [Configuration — refs](/api/configuration.html#config-refs) · [`$refs`](/api/instance-properties.html#refs)
 
----
-Next: [Options](/guide/introduction/managing-options.html)

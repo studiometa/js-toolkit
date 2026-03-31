@@ -24,8 +24,43 @@
   --font-size-2xs--line-height: 1;
 }
 
+:root {
+  --vp-home-hero-name-color: var(--vp-c-brand-2);
+}
+
 .VPHomeHero .name,
 .VPHomeHero .text {
   max-width: none !important;
+}
+
+.VPHomeHero .image-container .image-bg {
+  display: none !important;
+}
+
+.dark .VPHomeHero .image-container {
+	background-color: var(--vp-c-bg);
+}
+
+.VPHomeHero .image-src.dark {
+	mix-blend-mode: lighten;
+}
+
+@media (min-width: 960px) {
+  .VPHero.has-image .main {
+    max-width: 40rem !important;
+  }
+
+  .VPHomeHero .image-container {
+    position: absolute;
+    width: 550px !important;
+    height: 30rem !important;
+    transform: scale(1.2) translateY(-8%);
+    transform-origin: center center;
+  }
+
+  .VPHomeHero .image-src {
+    max-width: 500px !important;
+    max-height: 500px !important;
+  }
 }
 
