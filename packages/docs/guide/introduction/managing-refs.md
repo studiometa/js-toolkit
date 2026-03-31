@@ -2,19 +2,15 @@
 outline: deep
 ---
 
-# Managing refs
+# Refs
 
-## What are refs?
-
-A ref is a _reference_ to a DOM element. It allows to quickly access HTML elements. Define single or multiple refs to easily use them in a component without manually querying DOM elements.
-
-> No more `querySelector` and `querySelectorAll`!
+Refs let you access DOM elements from your component without manual `querySelector` calls. You declare them in the component config and access them via `this.$refs`.
 
 ## Defining refs
 
-The [`refs` property](/api/configuration.html#config-refs) of the static `config` object should be used to define what refs will be available in the component. This property requires an array of string that correspond to the refs names in the HTML code.
+Add ref names to the `config.refs` array. Each name corresponds to a `data-ref` attribute in your HTML.
 
-There is 2 type of refs:
+Refs come in two forms:
 
 - Single ref (example: `btn`)
 - Multiple refs (example: `items[]`)
@@ -125,7 +121,7 @@ class Component extends Base {
 ```
 
 ::: tip Attaching events to a ref
-Visit the [Working with events](/guide/introduction/working-with-events.html) section of the guide to learn how to handle events while using refs.
+Visit the [Events](/guide/introduction/working-with-events.html) page to learn how to handle events on refs.
 :::
 
 ### Nested refs
@@ -223,3 +219,10 @@ The resolution scope of nested refs will be limited in case of nested components
 <!-- prettier-ignore-end -->
 
 :::
+
+---
+
+See also: [`data-ref`](/api/html/data-ref.html) · [Configuration — refs](/api/configuration.html#config-refs) · [`$refs`](/api/instance-properties.html#refs)
+
+---
+Next: [Options](/guide/introduction/managing-options.html)

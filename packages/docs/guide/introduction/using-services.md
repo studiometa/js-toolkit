@@ -1,8 +1,6 @@
-# Using services
+# Services
 
-## What are services?
-
-When developing components for a web page, we often need to implement trivial task in multiple places such a reacting to the resize of the window, reacting to the user scroll. Services were created to standardize and simplify how we implement such behaviours.
+Components often need to react to browser events like scroll, resize, pointer movement, or keyboard input. Services provide a shared, optimized way to handle these — a single listener per event type, shared across all components that need it.
 
 The following services are exported by the `@studiometa/js-toolkit` package:
 
@@ -14,9 +12,7 @@ The following services are exported by the `@studiometa/js-toolkit` package:
 - [`useKey`](/api/services/useKey.html) to implement behaviour reacting on keyboard interaction
 - [`useLoad`](/api/services/useLoad.html) to implement behaviour on page load
 
-:::tip
-Find all natively available services and their API details in the [Services](/api/services/) section from the API Reference.
-:::
+
 
 ## Usage
 
@@ -144,9 +140,7 @@ class Component extends Base {
 }
 ```
 
-:::tip API Reference
-Learn more on the service manager in the [API Reference](/api/instance-properties.html#services).
-:::
+
 
 ## Services hooks diagram
 
@@ -154,3 +148,19 @@ Learn more on the service manager in the [API Reference](/api/instance-propertie
   <img class="block dark:hidden mx-auto" src="../../assets/services-hooks.svg" width="960" height="689" alt="Services hooks diagram">
   <img class="hidden dark:block mx-auto" src="../../assets/services-hooks-dark.svg" width="960" height="689" alt="Services hooks diagram">
 </div>
+
+---
+
+See also: [Service hooks](/api/methods-hooks-services.html) · [Services API](/api/services/) · [`$services`](/api/instance-properties.html#services)
+
+---
+
+## What's next
+
+You now know the fundamentals. Here are some paths to explore:
+
+- [Child Components](/guide/going-further/lazy-imports.html) — lazy loading and code splitting
+- [Decorators](/guide/going-further/using-decorators.html) — extend components with higher-order patterns
+- [TypeScript](/guide/going-further/typing-components.html) — type-safe components and refs
+- [Examples](/examples/) — real-world UI patterns
+- [Concepts](/guide/concepts/philosophy.html) — design philosophy and architecture

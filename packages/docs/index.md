@@ -10,7 +10,7 @@ hero:
   actions:
     - theme: brand
       text: Get Started
-      link: /guide/introduction/installation.html
+      link: /guide/
     - theme: alt
       text: View on GitHub
       link: https://github.com/studiometa/js-toolkit
@@ -28,6 +28,55 @@ features:
     icon: 🌲
     details: Import only what you need. Every utility and service is individually exported so your bundle stays lean.
 ---
+
+## See it in action
+
+Build interactive components by connecting HTML to JavaScript with data-attributes — no virtual DOM, no build step required for templating.
+
+**HTML**
+
+```html
+<div data-component="Counter">
+  <p data-ref="count">0</p>
+  <button data-ref="add">+1</button>
+  <button data-ref="reset">Reset</button>
+</div>
+```
+
+**JavaScript**
+
+```js
+import { Base, registerComponent } from '@studiometa/js-toolkit';
+
+class Counter extends Base {
+  static config = {
+    name: 'Counter',
+    refs: ['count', 'add', 'reset'],
+  };
+
+  get count() {
+    return Number(this.$refs.count.textContent);
+  }
+
+  onAddClick() {
+    this.$refs.count.textContent = this.count + 1;
+  }
+
+  onResetClick() {
+    this.$refs.count.textContent = 0;
+  }
+}
+
+registerComponent(Counter);
+```
+
+That's all it takes — define refs in HTML, handle events with naming conventions, and let js-toolkit wire everything together.
+
+<div class="mt-4">
+
+**[Get Started →](/guide/)** · **[Examples](/examples/)** · **[API Reference](/api/)**
+
+</div>
 
 ## Install
 

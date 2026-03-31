@@ -4,7 +4,7 @@ sidebar: true
 
 # Helpers
 
-The following helper functions can be used to achieve advanced setup of your application.
+The following helper functions can be used to achieve advanced setup of your application. For practical usage, see the [Getting Started guide](/guide/) and [Child Components](/guide/going-further/lazy-imports.html) for lazy import helpers.
 
 ## Setup helpers
 

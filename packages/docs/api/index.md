@@ -1,6 +1,6 @@
 # Base class
 
-Create components with ease by extending the `Base` class.
+Create components with ease by extending the `Base` class. For a step-by-step introduction, see the [Getting Started guide](/guide/).
 
 ```js twoslash
 import { Base } from '@studiometa/js-toolkit';

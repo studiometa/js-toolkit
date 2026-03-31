@@ -115,3 +115,7 @@ class WebSocketService extends AbstractService {
   }
 }
 ```
+
+::: tip API Reference
+See the [Services hooks](/api/methods-hooks-services.html) API for hook signatures, the [Services](/api/services/) section for built-in service APIs, and [`$services`](/api/instance-properties.html#services) for the service manager.
+:::

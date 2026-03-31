@@ -1,6 +1,8 @@
 # Decorators
 
-Decorators are used to add extra functionalities to a Base class. The following ones are available:
+Decorators are used to add extra functionalities to a Base class. For a practical introduction, see the [Decorators guide](/guide/going-further/using-decorators.html).
+
+The following ones are available:
 
 - [withBreakpointManager](./withBreakpointManager.html)
 - [withBreakpointObserver](./withBreakpointObserver.html)
