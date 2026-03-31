@@ -120,6 +120,3 @@ class List extends Base {
 
 See also: [Configuration](/api/configuration.html), [`data-component`](/api/html/data-component.html), [Instance methods](/api/instance-methods.html), and [Instantiation](/api/instantiation.html).
 
----
-
-Next: [Refs](/guide/introduction/managing-refs.html)
