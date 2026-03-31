@@ -54,7 +54,7 @@
     position: absolute;
     width: 550px !important;
     height: 30rem !important;
-    transform: scale(1.2) translateY(-8%);
+    transform: translateY(-8%);
     transform-origin: center center;
   }
 
