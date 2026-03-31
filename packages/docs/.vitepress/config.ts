@@ -2,7 +2,14 @@ import { defineConfig } from 'vitepress';
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash';
 import pkg from '../package.json' with { type: 'json' };
 
+const enableTwoslash = process.env.TWOSLASH === 'true';
+
 export default defineConfig({
+  vite: {
+    build: {
+      chunkSizeWarningLimit: 600,
+    },
+  },
   lang: 'en-US',
   title: '@studiometa/js-toolkit',
   description:
@@ -10,7 +17,7 @@ export default defineConfig({
   lastUpdated: true,
   head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
   markdown: {
-    codeTransformers: [transformerTwoslash()],
+    codeTransformers: enableTwoslash ? [transformerTwoslash()] : [],
     // Explicitly load these languages for types hightlighting
     languages: ['js', 'jsx', 'ts', 'tsx', 'bash'],
   },
@@ -38,6 +45,7 @@ export default defineConfig({
       { text: 'Guide', link: '/guide/' },
       { text: 'API Reference', link: '/api/' },
       { text: 'Utils Reference', link: '/utils/' },
+      { text: 'Examples', link: '/examples/' },
       {
         text: `<span class="VPBadge font-bold bg-[var(--vp-button-brand-bg)] text-[var(--vp-button-brand-text)]">v${pkg.version}</span>`,
         items: [
@@ -52,6 +60,7 @@ export default defineConfig({
     ],
     sidebar: {
       '/guide/': getGuideSidebar(),
+      '/examples/': getExamplesSidebar(),
       '/api/services/': getApiSidebar({ expanded: 'services' }),
       '/api/decorators/': getApiSidebar({ expanded: 'decorators' }),
       '/api/helpers/': getApiSidebar({ expanded: 'helpers' }),
@@ -64,62 +73,71 @@ export default defineConfig({
 
 function getGuideSidebar() {
   return [
-    {
-      text: 'Introduction',
-      items: [
-        { text: 'Getting started', link: '/guide/' },
-        { text: 'Managing components', link: '/guide/introduction/managing-components.html' },
-        { text: 'Managing refs', link: '/guide/introduction/managing-refs.html' },
-        { text: 'Managing options', link: '/guide/introduction/managing-options.html' },
-        { text: 'Lifecycle hooks', link: '/guide/introduction/lifecycle-hooks.html' },
-        { text: 'Using services', link: '/guide/introduction/using-services.html' },
-        { text: 'Working with events', link: '/guide/introduction/working-with-events.html' },
-      ],
-    },
+    { text: 'Getting Started', link: '/guide/' },
+    { text: 'Components', link: '/guide/introduction/managing-components.html' },
+    { text: 'Refs', link: '/guide/introduction/managing-refs.html' },
+    { text: 'Options', link: '/guide/introduction/managing-options.html' },
+    { text: 'Lifecycle', link: '/guide/introduction/lifecycle-hooks.html' },
+    { text: 'Events', link: '/guide/introduction/working-with-events.html' },
+    { text: 'Services', link: '/guide/introduction/using-services.html' },
     {
       text: 'Going further',
+      collapsed: true,
       items: [
+        { text: 'Child Components', link: '/guide/going-further/lazy-imports.html' },
+        { text: 'Decorators', link: '/guide/going-further/using-decorators.html' },
         {
-          text: 'Typing components',
+          text: 'TypeScript',
           link: '/guide/going-further/typing-components.html',
           keywords: ['types', 'typings', 'typescript', 'jsdoc'],
         },
-        { text: 'Using decorators', link: '/guide/going-further/using-decorators.html' },
-        { text: 'Lazy imports', link: '/guide/going-further/lazy-imports.html' },
-        {
-          text: 'Registering new services',
-          link: '/guide/going-further/registering-new-services.html',
-        },
+        { text: 'Custom Services', link: '/guide/going-further/registering-new-services.html' },
       ],
     },
     {
-      text: 'Recipes',
+      text: 'Concepts',
+      collapsed: true,
       items: [
-        {
-          text: 'Counter component',
-          link: '/guide/recipes/counter-component/',
-        },
-        {
-          text: 'Scroll linked animation',
-          link: '/guide/recipes/scroll-linked-animation/',
-        },
-        {
-          text: 'Teleport refs',
-          link: '/guide/recipes/teleport-refs/',
-        },
+        { text: 'Philosophy', link: '/guide/concepts/philosophy.html' },
+        { text: 'Component Tree', link: '/guide/concepts/component-tree.html' },
+        { text: 'Service Architecture', link: '/guide/concepts/service-architecture.html' },
       ],
     },
     {
-      text: 'Migration guide',
+      text: 'Migration',
+      collapsed: true,
       items: [
-        {
-          text: 'v1 → v2',
-          link: '/guide/migration/v1-to-v2.html',
-        },
-        {
-          text: 'v2 → v3',
-          link: '/guide/migration/v2-to-v3.html',
-        },
+        { text: 'v1 → v2', link: '/guide/migration/v1-to-v2.html' },
+        { text: 'v2 → v3', link: '/guide/migration/v2-to-v3.html' },
+      ],
+    },
+  ];
+}
+
+function getExamplesSidebar() {
+  return [
+    { text: 'Overview', link: '/examples/' },
+    {
+      text: 'Basics',
+      items: [
+        { text: 'Counter component', link: '/examples/counter-component/' },
+        { text: 'Accordion', link: '/examples/accordion/' },
+      ],
+    },
+    {
+      text: 'Patterns',
+      items: [
+        { text: 'Tabs', link: '/examples/tabs/' },
+        { text: 'Modal / Dialog', link: '/examples/modal/' },
+        { text: 'Form validation', link: '/examples/form-validation/' },
+      ],
+    },
+    {
+      text: 'Advanced',
+      items: [
+        { text: 'Scroll-linked animation', link: '/examples/scroll-linked-animation/' },
+        { text: 'Lazy image', link: '/examples/lazy-image/' },
+        { text: 'Teleport refs', link: '/examples/teleport-refs/' },
       ],
     },
   ];
@@ -243,6 +261,7 @@ function getDecoratorsSidebar() {
 
 function getHelpersSidebar() {
   return [
+    { text: 'closestComponent', link: '/api/helpers/closestComponent.html' },
     { text: 'createApp', link: '/api/helpers/createApp.html' },
     { text: 'getClosestParent', link: '/api/helpers/getClosestParent.html' },
     { text: 'getDirectChildren', link: '/api/helpers/getDirectChildren.html' },
@@ -255,6 +274,7 @@ function getHelpersSidebar() {
     { text: 'importWhenVisible', link: '/api/helpers/importWhenVisible.html' },
     { text: 'isDirectChild', link: '/api/helpers/isDirectChild.html' },
     { text: 'logTree', link: '/api/helpers/logTree.html' },
+    { text: 'queryComponent', link: '/api/helpers/queryComponent.html' },
     { text: 'registerComponent', link: '/api/helpers/registerComponent.html' },
   ];
 }

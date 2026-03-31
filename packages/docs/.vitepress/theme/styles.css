@@ -1,0 +1,66 @@
+/* Layers */
+/*@layer theme, preflight, legacy, base, components, utilities;*/
+
+@import '@shikijs/vitepress-twoslash/style.css';
+@import 'tailwindcss';
+@import '@studiometa/tailwind-config';
+
+/* VitePress uses .dark class, not media query */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-vp-text-1: var(--vp-c-text-1);
+  --color-vp-bg: var(--vp-c-bg);
+  --color-vp-bg-alt: var(--vp-c-bg-alt);
+  --color-vp-bg-soft: var(--vp-c-bg-soft);
+  --color-vp-code-block-bg: var(--vp-code-block-bg);
+  --color-vp-c-indigo: var(--vp-c-indigo);
+  --color-vp-sidebar-bg: var(--vp-sidebar-bg-color);
+  --color-vp-divider: var(--vp-c-divider);
+  --color-brand: #3eaf7c;
+  --color-brand-light: #42d392;
+  --color-code-bg: var(--code-bg-color);
+  --font-size-2xs: 0.625rem;
+  --font-size-2xs--line-height: 1;
+}
+
+:root {
+  --vp-home-hero-name-color: var(--vp-c-brand-2);
+}
+
+.VPHomeHero .name,
+.VPHomeHero .text {
+  max-width: none !important;
+}
+
+.VPHomeHero .image-container .image-bg {
+  display: none !important;
+}
+
+.dark .VPHomeHero .image-container {
+	background-color: var(--vp-c-bg);
+}
+
+.VPHomeHero .image-src.dark {
+	mix-blend-mode: lighten;
+}
+
+@media (min-width: 960px) {
+  .VPHero.has-image .main {
+    max-width: 40rem !important;
+  }
+
+  .VPHomeHero .image-container {
+    position: absolute;
+    width: 550px !important;
+    height: 30rem !important;
+    transform: scale(1.2) translateY(-8%);
+    transform-origin: center center;
+  }
+
+  .VPHomeHero .image-src {
+    max-width: 500px !important;
+    max-height: 500px !important;
+  }
+}
+

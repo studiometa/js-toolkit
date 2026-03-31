@@ -1,7 +1,0 @@
-@use '@shikijs/vitepress-twoslash/style.css';
-@use 'tailwindcss/utilities';
-
-.VPHomeHero .name,
-.VPHomeHero .text {
-  max-width: none !important;
-}

@@ -1,5 +1,9 @@
 # Services hooks
 
+::: tip See also
+For an introduction to using services in components, see the [Services guide](/guide/introduction/using-services.html). For the service architecture overview, see [Service Architecture](/guide/concepts/service-architecture.html).
+:::
+
 ## `scrolled`
 
 Called when the user is scrolling.

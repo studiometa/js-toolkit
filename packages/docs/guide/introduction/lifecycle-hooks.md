@@ -1,8 +1,6 @@
-# Lifecycle hooks
+# Lifecycle
 
-## What are lifecycle hooks
-
-Lifecycle hooks are key moments in the life of a component. This framework exposes some basics hooks which can be extended with decorators.
+Each component goes through a series of steps — being created, mounted into the DOM, updated, and destroyed. Lifecycle hooks let you run code at each of these stages.
 
 | Hook         | Timing                                                                                                                            |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,7 +13,7 @@ The [lifecycle hooks diagram](#lifecycle-hooks-diagram) below present in greater
 
 ## Using lifecycle hooks
 
-To use a lifecycle hook, declare it as a method of your class, the method will be executed by the internals of the framework at the right time.
+To use a lifecycle hook, declare it as a method of your class, the framework calls it automatically at the right time.
 
 ```js
 import { Base } from '@studiometa/js-toolkit';
@@ -44,10 +42,6 @@ export default class Component extends Base {
 }
 ```
 
-:::tip
-Find details for the lifecycle hooks APIs in the [Lifecycle hooks](/api/methods-hooks-lifecycle.html) section in the API Reference.
-:::
-
 When extending an existing component, do not forget to call the parent component hook methods via the `super` keyword:
 
 ```js {8-10}
@@ -72,3 +66,8 @@ export default class Child extends Parent {
 </div>
 
 <!-- FigJam file: https://www.figma.com/file/afha9583dXdRnbZZ9OSww2/Untitled?node-id=0%3A1 -->
+
+---
+
+See also: [Lifecycle hooks](/api/methods-hooks-lifecycle.html)
+

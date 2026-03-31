@@ -16,5 +16,8 @@
   "imports": {
     "#test-utils": "./__utils__/index.ts",
     "#private/*": "../js-toolkit/*"
+  },
+  "overrides": {
+    "vite": "npm:vite@8"
   }
 }

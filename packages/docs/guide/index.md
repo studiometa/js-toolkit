@@ -1,68 +1,58 @@
-# Getting started
+# Getting Started
 
-## What is the `Base` class?
+This guide will walk you through installing js-toolkit and building your first component.
 
-The `Base` class is born from our needs and practices with JavaScript as a team at [Studio Meta](https://www.studiometa.fr).
+`@studiometa/js-toolkit` is a data-attributes driven micro-framework for building JavaScript components. Write classes, add `data-*` attributes to your HTML, and let the framework handle the rest.
 
-Its purposes are:
+## Installation
 
-- Easily get elements from the DOM
-- Register custom behaviours on component initialization
-- Unregister these custom behaviours on component destruction
-- Adding custom behaviours on page load, scroll and resize
-- Adding custom behaviours on each frame with requestAnimationFrame
-- Initialize components in the right place at the right time
-- Define dependencies between components
+### npm
 
-## How it works
+```bash
+npm install @studiometa/js-toolkit
+```
 
-Write classes extending the `Base` classes, add some `data-*` attributes to your HTML and voilà!
-
-The example below is for a simple component which can toggle the visibility of its content.
+### CDN
 
 ```html
-<div data-component="Toggle">
-  <button data-ref="btn">Toggle content</button>
-  <div class="hidden" data-ref="content">Some content</div>
+<script type="module">
+  import { Base, registerComponent } from 'https://esm.sh/@studiometa/js-toolkit';
+</script>
+```
+
+## Hello World
+
+Create a component by extending the `Base` class:
+
+```html
+<!-- index.html -->
+<div data-component="Hello">
+  <button data-ref="btn">Say hello</button>
 </div>
+<script type="module" src="./main.js"></script>
 ```
 
 ```js
+// main.js
 import { Base, registerComponent } from '@studiometa/js-toolkit';
 
-class Toggle extends Base {
+class Hello extends Base {
   static config = {
-    name: 'Toggle',
-    refs: ['btn', 'content'],
+    name: 'Hello',
+    refs: ['btn'],
   };
 
   onBtnClick() {
-    this.$refs.content.classList.toggle('hidden');
+    alert('Hello, world!');
   }
 }
 
-registerComponent(Toggle);
+registerComponent(Hello);
 ```
 
-The class created by extending the `Base` class are components and can be used to achieve the above mentioned purposes.
+That's it — `registerComponent` finds all `[data-component="Hello"]` elements and mounts them automatically, including any added to the DOM later.
 
 ::: tip
-Registered component will be automatically mounted on newly inserted DOM element, it is not necessary to register a component multiple times.
+Using Vite or Webpack? Set the `__DEV__` global for debug logs. See [Installation](/guide/introduction/installation.html) for build tool setup.
 :::
 
-## Registering async component
-
-Components can be lazyly registered by using import helpers like [`importWhenVisible`](../api/helpers/importWhenVisible.md)
-
-```js
-import { registerComponent, importWhenVisible } from '@studiometa/js-toolkit';
-import Component from './components/Component.js';
-
-registerComponent(Component);
-registerComponent(import('./components/AsyncComponent.js'));
-registerComponent(
-  importWhenVisible(() => import('./components/LazyComponent.js'), 'Lazy'),
-);
-```
-
-See the [`registerComponent` API](../api/helpers/registerComponent.md) to learn more.
