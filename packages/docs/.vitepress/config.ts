@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress';
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash';
+import { createFileSystemTypesCache } from '@shikijs/vitepress-twoslash/cache-fs';
 import pkg from '../package.json' with { type: 'json' };
 
 const enableTwoslash = process.env.TWOSLASH === 'true';
@@ -17,7 +18,13 @@ export default defineConfig({
   lastUpdated: true,
   head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
   markdown: {
-    codeTransformers: enableTwoslash ? [transformerTwoslash()] : [],
+    codeTransformers: enableTwoslash
+      ? [
+          transformerTwoslash({
+            typesCache: createFileSystemTypesCache(),
+          }),
+        ]
+      : [],
     // Explicitly load these languages for types hightlighting
     languages: ['js', 'jsx', 'ts', 'tsx', 'bash'],
   },
