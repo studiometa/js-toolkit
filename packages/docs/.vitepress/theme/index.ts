@@ -1,7 +1,7 @@
 import DefaultTheme from 'vitepress/theme';
 import TwoslashFloatingVue from '@shikijs/vitepress-twoslash/client';
 import PreviewIframe from './components/PreviewIframe.vue';
-import './custom.scss';
+import './styles.css';
 
 /** @type {import('vitepress').Theme} */
 export default {

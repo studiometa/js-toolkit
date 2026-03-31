@@ -1,5 +1,9 @@
 # Instantiation
 
+::: tip See also
+For getting started with component setup, see the [Getting Started guide](/guide/) and [Components guide](/guide/introduction/managing-components.html).
+:::
+
 ## Usage
 
 ```js {9-10} twoslash

@@ -1,5 +1,7 @@
 # HTML API
 
+For a practical introduction to using these attributes, see the [Components](/guide/introduction/managing-components.html), [Refs](/guide/introduction/managing-refs.html), and [Options](/guide/introduction/managing-options.html) guides.
+
 The following attributes can be used:
 
 - [data-component](./data-component.md)

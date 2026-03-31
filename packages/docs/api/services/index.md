@@ -1,5 +1,9 @@
 # Services
 
+::: tip See also
+For an introduction to using services in components, see the [Services guide](/guide/introduction/using-services.html). For architecture details, see [Service Architecture](/guide/concepts/service-architecture.html).
+:::
+
 Services will help you implement common tasks by abstracting their tedious parts. A service will always have the following signature:
 
 ```ts

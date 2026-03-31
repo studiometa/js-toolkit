@@ -7,13 +7,20 @@ hero:
   name: '@studiometa/js-toolkit'
   text: A data-attributes driven micro framework
   tagline: Write JavaScript components as classes and bind them to the DOM with data-attributes
+  image:
+    light: /hero.webp
+    dark: /hero-dark.webp
+    alt: Abstract illustration of a developer toolkit with gears, wrenches and code brackets
   actions:
     - theme: brand
       text: Get Started
       link: /guide/
     - theme: alt
-      text: View on GitHub
-      link: https://github.com/studiometa/js-toolkit
+      text: Examples
+      link: /examples/
+    - theme: alt
+      text: API Reference
+      link: /api/
 features:
   - title: A micro-framework
     icon: 🔧
@@ -24,4 +31,7 @@ features:
   - title: Plenty of utilities
     icon: 📦
     details: Functions to help you manipulate the DOM, use math calculations, use the history API and more.
+  - title: Tree-shakeable
+    icon: 🌲
+    details: Import only what you need. Every utility and service is individually exported so your bundle stays lean.
 ---

@@ -1,5 +1,9 @@
 # Lifecycle hooks
 
+::: tip See also
+For an introduction to lifecycle hooks with examples, see the [Lifecycle guide](/guide/introduction/lifecycle-hooks.html).
+:::
+
 ## `mounted`
 
 Called after the instance has been mounted.

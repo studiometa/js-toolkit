@@ -1,6 +1,6 @@
-import { Base } from '@studiometa/js-toolkit';
+import { registerComponent, Base } from '@studiometa/js-toolkit';
 
-export default class Counter extends Base {
+class Counter extends Base {
   static config = {
     name: 'Counter',
     refs: ['add', 'remove', 'counter'],
@@ -22,3 +22,5 @@ export default class Counter extends Base {
     this.count -= 1;
   }
 }
+
+registerComponent(Counter);
