@@ -1,82 +1,79 @@
 import { defineConfig } from 'vitepress';
-import { transformerTwoslash } from '@shikijs/vitepress-twoslash';
 import { createFileSystemTypesCache } from '@shikijs/vitepress-twoslash/cache-fs';
+import { createTwoslashWithInlineCache } from '@shikijs/vitepress-twoslash/cache-inline';
 import pkg from '../package.json' with { type: 'json' };
 
-const enableTwoslash = process.env.TWOSLASH === 'true';
-
-export default defineConfig({
-  vite: {
-    build: {
-      chunkSizeWarningLimit: 600,
-    },
-  },
-  lang: 'en-US',
-  title: '@studiometa/js-toolkit',
-  description:
-    'The JS Toolkit by Studio Meta is a JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.',
-  lastUpdated: true,
-  head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
-  markdown: {
-    codeTransformers: enableTwoslash
-      ? [
-          transformerTwoslash({
-            typesCache: createFileSystemTypesCache(),
-          }),
-        ]
-      : [],
-    // Explicitly load these languages for types hightlighting
-    languages: ['js', 'jsx', 'ts', 'tsx', 'bash'],
-  },
-  themeConfig: {
-    outline: 'deep',
-    // @ts-expect-error
-    version: pkg.version,
-    repo: 'studiometa/js-toolkit',
-    docsDir: 'packages/docs',
-    lastUpdated: {
-      text: 'Last updated',
-    },
-    editLinks: true,
-    editLinkText: 'Edit this page on GitHub',
-    sidebarDepth: 3,
-    footer: {
-      message: 'MIT Licensed',
-      copyright: 'Copyright © 2020–present Studio Meta',
-    },
-    search: {
-      provider: 'local',
-    },
-    socialLinks: [{ icon: 'github', link: 'https://github.com/studiometa/js-toolkit' }],
-    nav: [
-      { text: 'Guide', link: '/guide/' },
-      { text: 'API Reference', link: '/api/' },
-      { text: 'Utils Reference', link: '/utils/' },
-      { text: 'Examples', link: '/examples/' },
-      {
-        text: `<span class="VPBadge font-bold bg-[var(--vp-button-brand-bg)] text-[var(--vp-button-brand-text)]">v${pkg.version}</span>`,
-        items: [
-          {
-            text: 'Release Notes',
-            link: 'https://github.com/studiometa/js-toolkit/blob/master/CHANGELOG.md',
-          },
-          { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
-          { text: 'v2.x', link: 'https://support-2-x--studiometa-js-toolkit.netlify.app/' },
-        ],
-      },
-    ],
-    sidebar: {
-      '/guide/': getGuideSidebar(),
-      '/examples/': getExamplesSidebar(),
-      '/api/services/': getApiSidebar({ expanded: 'services' }),
-      '/api/decorators/': getApiSidebar({ expanded: 'decorators' }),
-      '/api/helpers/': getApiSidebar({ expanded: 'helpers' }),
-      '/api/html/': getApiSidebar({ expanded: 'html' }),
-      '/api/': getApiSidebar({ expanded: 'api' }),
-      '/utils/': getUtilsSidebar(),
-    },
-  },
+const withTwoslashInlineCache = createTwoslashWithInlineCache({
+  typesCache: createFileSystemTypesCache(),
 });
+
+export default withTwoslashInlineCache(
+  defineConfig({
+    vite: {
+      build: {
+        chunkSizeWarningLimit: 600,
+      },
+    },
+    lang: 'en-US',
+    title: '@studiometa/js-toolkit',
+    description:
+      'The JS Toolkit by Studio Meta is a JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.',
+    lastUpdated: true,
+    head: [['link', { rel: 'icon', type: 'image/x-icon', href: '/logo.png' }]],
+    markdown: {
+      // Explicitly load these languages for types hightlighting
+      languages: ['js', 'jsx', 'ts', 'tsx', 'bash'],
+    },
+    themeConfig: {
+      outline: 'deep',
+      // @ts-expect-error
+      version: pkg.version,
+      repo: 'studiometa/js-toolkit',
+      docsDir: 'packages/docs',
+      lastUpdated: {
+        text: 'Last updated',
+      },
+      editLinks: true,
+      editLinkText: 'Edit this page on GitHub',
+      sidebarDepth: 3,
+      footer: {
+        message: 'MIT Licensed',
+        copyright: 'Copyright © 2020–present Studio Meta',
+      },
+      search: {
+        provider: 'local',
+      },
+      socialLinks: [{ icon: 'github', link: 'https://github.com/studiometa/js-toolkit' }],
+      nav: [
+        { text: 'Guide', link: '/guide/' },
+        { text: 'API Reference', link: '/api/' },
+        { text: 'Utils Reference', link: '/utils/' },
+        { text: 'Examples', link: '/examples/' },
+        {
+          text: `<span class="VPBadge font-bold bg-[var(--vp-button-brand-bg)] text-[var(--vp-button-brand-text)]">v${pkg.version}</span>`,
+          items: [
+            {
+              text: 'Release Notes',
+              link: 'https://github.com/studiometa/js-toolkit/blob/master/CHANGELOG.md',
+            },
+            { text: 'Demo', link: 'https://studiometa-js-toolkit-demo.netlify.app/' },
+            { text: 'v2.x', link: 'https://support-2-x--studiometa-js-toolkit.netlify.app/' },
+          ],
+        },
+      ],
+      sidebar: {
+        '/guide/': getGuideSidebar(),
+        '/examples/': getExamplesSidebar(),
+        '/api/services/': getApiSidebar({ expanded: 'services' }),
+        '/api/decorators/': getApiSidebar({ expanded: 'decorators' }),
+        '/api/helpers/': getApiSidebar({ expanded: 'helpers' }),
+        '/api/html/': getApiSidebar({ expanded: 'html' }),
+        '/api/': getApiSidebar({ expanded: 'api' }),
+        '/utils/': getUtilsSidebar(),
+      },
+    },
+  }),
+);
 
 function getGuideSidebar() {
   return [
