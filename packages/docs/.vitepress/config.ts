@@ -1,11 +1,8 @@
 import { defineConfig } from 'vitepress';
-import { createFileSystemTypesCache } from '@shikijs/vitepress-twoslash/cache-fs';
 import { createTwoslashWithInlineCache } from '@shikijs/vitepress-twoslash/cache-inline';
 import pkg from '../package.json' with { type: 'json' };
 
-const withTwoslashInlineCache = createTwoslashWithInlineCache({
-  typesCache: createFileSystemTypesCache(),
-});
+const withTwoslashInlineCache = createTwoslashWithInlineCache();
 
 export default withTwoslashInlineCache(
   defineConfig({
