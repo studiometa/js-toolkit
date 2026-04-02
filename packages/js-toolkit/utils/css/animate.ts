@@ -1,5 +1,5 @@
 import { clamp01, lerp, map, mean } from '../math/index.js';
-import { isDefined, isFunction, isNumber } from '../is.js';
+import { isFunction, isNumber } from '../is.js';
 import { transform, TRANSFORM_PROPS } from './transform.js';
 import { domScheduler as scheduler } from '../scheduler.js';
 import { tween, normalizeEase } from '../tween.js';
@@ -128,21 +128,21 @@ function render(
 
   scheduler.read(() => {
     let opacity: false | number | string = false;
-    if (isDefined(from.opacity) || isDefined(to.opacity)) {
+    if (from.opacity !== undefined || to.opacity !== undefined) {
       opacity = map(stepProgress, 0, 1, from.opacity ?? 1, to.opacity ?? 1);
     } else if (element.style.opacity) {
       opacity = '';
     }
 
     let transformOrigin: false | string = false;
-    if (isDefined(to.transformOrigin)) {
+    if (to.transformOrigin !== undefined) {
       transformOrigin = to.transformOrigin;
     } else if (element.style.transformOrigin) {
       transformOrigin = '';
     }
 
     let customProperties: false | [string, number][] = false;
-    if (isDefined(from.vars) && isDefined(to.vars)) {
+    if (from.vars !== undefined && to.vars !== undefined) {
       customProperties = [];
       for (const customPropertyName of from.vars) {
         customProperties.push([
@@ -155,7 +155,7 @@ function render(
     const props = {};
 
     for (const name of TRANSFORM_PROPS) {
-      if (isDefined(from[name]) || isDefined(to[name])) {
+      if (from[name] !== undefined || to[name] !== undefined) {
         props[name] = transformRenderStrategies[name](element, from[name], to[name], stepProgress);
       }
     }
@@ -276,7 +276,7 @@ export function animate(
 
     if (durationFn) {
       itemOptions.duration = durationFn(element, index);
-    } else if (!isDefined(itemOptions.duration)) {
+    } else if (itemOptions.duration === undefined) {
       itemOptions.duration = 1;
     }
 
