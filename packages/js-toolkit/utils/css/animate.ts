@@ -1,6 +1,6 @@
 import { clamp01, lerp, map } from '../math/index.js';
 import { isFunction, isNumber } from '../is.js';
-import { transform, TRANSFORM_PROPS } from './transform.js';
+import { TRANSFORM_PROPS } from './transform.js';
 import { domScheduler as scheduler } from '../scheduler.js';
 import { tween, normalizeEase } from '../tween.js';
 import { eachElements } from './utils.js';
@@ -156,11 +156,60 @@ function render(
       }
     }
 
-    const props = {};
+    // Build transform string directly to avoid object allocation and
+    // redundant property checks in transform()
+    let transformValue = '';
 
-    for (const name of TRANSFORM_PROPS) {
-      if (from[name] !== undefined || to[name] !== undefined) {
-        props[name] = transformRenderStrategies[name](element, from[name], to[name], stepProgress);
+    // translate3d
+    const hasX = from.x !== undefined || to.x !== undefined;
+    const hasY = from.y !== undefined || to.y !== undefined;
+    const hasZ = from.z !== undefined || to.z !== undefined;
+    if (hasX || hasY || hasZ) {
+      const x = hasX ? transformRenderStrategies.x(element, from.x, to.x, stepProgress) : 0;
+      const y = hasY ? transformRenderStrategies.y(element, from.y, to.y, stepProgress) : 0;
+      const z = hasZ ? transformRenderStrategies.z(element, from.z, to.z, stepProgress) : 0;
+      transformValue += `translate3d(${x}px, ${y}px, ${z}px) `;
+    }
+
+    // rotate
+    if (from.rotate !== undefined || to.rotate !== undefined) {
+      transformValue += `rotate(${transformRenderStrategies.rotate(element, from.rotate, to.rotate, stepProgress)}deg) `;
+    } else {
+      if (from.rotateX !== undefined || to.rotateX !== undefined) {
+        transformValue += `rotateX(${transformRenderStrategies.rotateX(element, from.rotateX, to.rotateX, stepProgress)}deg) `;
+      }
+      if (from.rotateY !== undefined || to.rotateY !== undefined) {
+        transformValue += `rotateY(${transformRenderStrategies.rotateY(element, from.rotateY, to.rotateY, stepProgress)}deg) `;
+      }
+      if (from.rotateZ !== undefined || to.rotateZ !== undefined) {
+        transformValue += `rotateZ(${transformRenderStrategies.rotateZ(element, from.rotateZ, to.rotateZ, stepProgress)}deg) `;
+      }
+    }
+
+    // scale
+    if (from.scale !== undefined || to.scale !== undefined) {
+      transformValue += `scale(${transformRenderStrategies.scale(element, from.scale, to.scale, stepProgress)}) `;
+    } else {
+      if (from.scaleX !== undefined || to.scaleX !== undefined) {
+        transformValue += `scaleX(${transformRenderStrategies.scaleX(element, from.scaleX, to.scaleX, stepProgress)}) `;
+      }
+      if (from.scaleY !== undefined || to.scaleY !== undefined) {
+        transformValue += `scaleY(${transformRenderStrategies.scaleY(element, from.scaleY, to.scaleY, stepProgress)}) `;
+      }
+      if (from.scaleZ !== undefined || to.scaleZ !== undefined) {
+        transformValue += `scaleZ(${transformRenderStrategies.scaleZ(element, from.scaleZ, to.scaleZ, stepProgress)}) `;
+      }
+    }
+
+    // skew
+    if (from.skew !== undefined || to.skew !== undefined) {
+      transformValue += `skew(${transformRenderStrategies.skew(element, from.skew, to.skew, stepProgress)}deg) `;
+    } else {
+      if (from.skewX !== undefined || to.skewX !== undefined) {
+        transformValue += `skewX(${transformRenderStrategies.skewX(element, from.skewX, to.skewX, stepProgress)}deg) `;
+      }
+      if (from.skewY !== undefined || to.skewY !== undefined) {
+        transformValue += `skewY(${transformRenderStrategies.skewY(element, from.skewY, to.skewY, stepProgress)}deg) `;
       }
     }
 
@@ -177,7 +226,7 @@ function render(
           element.style.setProperty(customProperty[0], customProperty[1].toString());
         }
       }
-      transform(element, props);
+      element.style.transform = transformValue;
     });
   });
 }
