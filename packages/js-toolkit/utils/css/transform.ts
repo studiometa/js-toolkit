@@ -1,4 +1,3 @@
-import { isDefined } from '../is.js';
 // eslint-disable-next-line import/extensions
 import { eachElements } from './utils.js';
 
@@ -48,50 +47,50 @@ export function transform(
 
   let value = '';
 
-  if (isDefined(props.x) || isDefined(props.y) || isDefined(props.z)) {
+  if (props.x !== undefined || props.y !== undefined || props.z !== undefined) {
     value += `translate3d(${props.x ?? 0}px, ${props.y ?? 0}px, ${props.z ?? 0}px) `;
   }
 
-  if (isDefined(props.rotate)) {
+  if (props.rotate !== undefined) {
     value += `rotate(${props.rotate}deg) `;
   } else {
-    if (isDefined(props.rotateX)) {
+    if (props.rotateX !== undefined) {
       value += `rotateX(${props.rotateX}deg) `;
     }
 
-    if (isDefined(props.rotateY)) {
+    if (props.rotateY !== undefined) {
       value += `rotateY(${props.rotateY}deg) `;
     }
 
-    if (isDefined(props.rotateZ)) {
+    if (props.rotateZ !== undefined) {
       value += `rotateZ(${props.rotateZ}deg) `;
     }
   }
 
-  if (isDefined(props.scale)) {
+  if (props.scale !== undefined) {
     value += `scale(${props.scale}) `;
   } else {
-    if (isDefined(props.scaleX)) {
+    if (props.scaleX !== undefined) {
       value += `scaleX(${props.scaleX}) `;
     }
 
-    if (isDefined(props.scaleY)) {
+    if (props.scaleY !== undefined) {
       value += `scaleY(${props.scaleY}) `;
     }
 
-    if (isDefined(props.scaleZ)) {
+    if (props.scaleZ !== undefined) {
       value += `scaleZ(${props.scaleZ}) `;
     }
   }
 
-  if (isDefined(props.skew)) {
+  if (props.skew !== undefined) {
     value += `skew(${props.skew}deg) `;
   } else {
-    if (isDefined(props.skewX)) {
+    if (props.skewX !== undefined) {
       value += `skewX(${props.skewX}deg) `;
     }
 
-    if (isDefined(props.skewY)) {
+    if (props.skewY !== undefined) {
       value += `skewY(${props.skewY}deg) `;
     }
   }
