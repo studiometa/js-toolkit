@@ -1,4 +1,4 @@
-import { clamp01, lerp, map, mean } from '../math/index.js';
+import { clamp01, lerp, map } from '../math/index.js';
 import { isFunction, isNumber } from '../is.js';
 import { transform, TRANSFORM_PROPS } from './transform.js';
 import { domScheduler as scheduler } from '../scheduler.js';
@@ -269,6 +269,8 @@ export function animate(
   const timings: [Duration, Delay, DurationWithDelay][] = [];
   let duration = 0;
   let previousTimings = [0, 0, 0];
+  let progressSum = 0;
+  let elementCount = 0;
 
   const controls = eachElements(elementOrElements, (element, index) => {
     const delay = staggerIsFunction ? stagger(element, index) : stagger * index;
@@ -290,10 +292,12 @@ export function animate(
     previousTimings = timings[index];
 
     progresses[index] = 0;
+    elementCount = index + 1;
     itemOptions.onProgress = (itemProgress) => {
+      progressSum += itemProgress - progresses[index];
       progresses[index] = itemProgress;
       if (progressFn) {
-        progressFn(mean(progresses));
+        progressFn(progressSum / elementCount);
       }
     };
 
@@ -316,7 +320,7 @@ export function animate(
           }
         }
 
-        return mean(progresses);
+        return progressSum / elementCount;
       }
 
       for (const control of controls) {
