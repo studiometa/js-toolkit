@@ -129,13 +129,13 @@ function getElementsStorage(): Set<HTMLElement & { __base__: Map<string, Base>}>
  * Get all mounted instances or the ones from a given component.
  * @link https://js-toolkit.studiometa.dev/api/helpers/getInstances.html
  */
-export function getInstances(): Set<Base>;
+export function getInstances(): ReadonlySet<Base>;
 export function getInstances<T extends BaseConstructor = BaseConstructor>(
   ctor: T,
 ): Set<InstanceType<T>>;
 export function getInstances<T extends BaseConstructor = BaseConstructor>(
   ctor?: T,
-): Set<InstanceType<T>> | Set<Base> {
+): ReadonlySet<InstanceType<T>> | ReadonlySet<Base> {
   if (isDefined(ctor)) {
     const filteredInstances = new Set<InstanceType<T>>();
     for (const instance of getInstancesStorage()) {
@@ -145,7 +145,7 @@ export function getInstances<T extends BaseConstructor = BaseConstructor>(
     }
     return filteredInstances;
   } else {
-    return new Set(getInstancesStorage());
+    return getInstancesStorage();
   }
 }
 
