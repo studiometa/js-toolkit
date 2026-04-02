@@ -32,7 +32,17 @@ export interface ScrollServiceProps {
 export type ScrollServiceInterface = ServiceInterface<ScrollServiceProps>;
 
 export class ScrollService extends AbstractService<ScrollServiceProps> {
-  static config: ServiceConfig = [[() => document, [['scroll', PASSIVE_CAPTURE_EVENT_OPTIONS]]]];
+  static config: ServiceConfig = [
+    [() => document, [['scroll', PASSIVE_CAPTURE_EVENT_OPTIONS]]],
+    [() => window, [['resize', PASSIVE_CAPTURE_EVENT_OPTIONS]]],
+  ];
+
+  /**
+   * Cached scroll max values, updated on resize and first scroll.
+   * @private
+   */
+  __maxX = -1;
+  __maxY = -1;
 
   props: ScrollServiceProps = {
     x: window.scrollX,
@@ -90,8 +100,11 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
     props.last.y = props.lastY = yLast;
     props.delta.x = props.deltaX = props.x - xLast;
     props.delta.y = props.deltaY = props.y - yLast;
-    props.max.x = props.maxX = document.scrollingElement.scrollWidth - window.innerWidth;
-    props.max.y = props.maxY = document.scrollingElement.scrollHeight - window.innerHeight;
+    if (this.__maxX < 0) {
+      this.__updateMaxValues();
+    }
+    props.max.x = props.maxX = this.__maxX;
+    props.max.y = props.maxY = this.__maxY;
     props.progress.x = props.progressX = props.max.x === 0 ? 1 : props.x / props.max.x;
     props.progress.y = props.progressY = props.max.y === 0 ? 1 : props.y / props.max.y;
     props.isUp = props.y < yLast;
@@ -115,11 +128,25 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
   }, 100);
 
   /**
-   * Scroll handler.
+   * Update cached max scroll values on resize.
+   * @private
    */
-  handleEvent() {
+  __updateMaxValues() {
+    this.__maxX = document.scrollingElement.scrollWidth - window.innerWidth;
+    this.__maxY = document.scrollingElement.scrollHeight - window.innerHeight;
+  }
+
+  /**
+   * Scroll and resize handler.
+   */
+  handleEvent(event: Event) {
+    if (event.type === 'resize') {
+      this.__updateMaxValues();
+    }
     this.update();
-    this.onScrollDebounced();
+    if (event.type === 'scroll') {
+      this.onScrollDebounced();
+    }
   }
 }
 
