@@ -1,6 +1,5 @@
 import { clamp01, lerp, map } from '../math/index.js';
 import { isFunction, isNumber } from '../is.js';
-import { TRANSFORM_PROPS } from './transform.js';
 import { domScheduler as scheduler } from '../scheduler.js';
 import { tween, normalizeEase } from '../tween.js';
 import { eachElements } from './utils.js';
@@ -31,6 +30,46 @@ export type NormalizedKeyframe = Keyframe & {
   vars: string[];
 };
 
+
+/**
+ * A pre-compiled segment between two keyframes.
+ * All constant parts (deltas, offsets, writers) are resolved once at creation.
+ * The render loop only does multiply-add and string concatenation.
+ */
+interface CompiledSegment {
+  fromOffset: number;
+  toOffset: number;
+  easing: EasingFunction;
+  /** Parallel arrays for transform properties (structure-of-arrays layout) */
+  transformStarts: number[];
+  transformDeltas: number[];
+  transformCssFunctions: string[];
+  transformUnits: string[];
+  /** Whether translate3d is needed */
+  hasTranslate: boolean;
+  /** Indices into transformStarts/transformDeltas for x, y, z axes */
+  translateAxisIndices: number[];
+  /** The index where non-translate transforms start in the parallel arrays */
+  simpleTransformStart: number;
+  /** Translate properties that need element size for CSS unit conversion at render time */
+  dynamicTranslates: Array<{
+    index: number;
+    from: number | [number, string];
+    to: number | [number, string];
+    sizeRef: string;
+  }>;
+  /** Opacity: pre-computed start and delta, or null if not animated */
+  opacityStart: number;
+  opacityDelta: number;
+  hasOpacity: boolean;
+  /** CSS custom properties: parallel arrays */
+  customPropertyNames: string[];
+  customPropertyStarts: number[];
+  customPropertyDeltas: number[];
+  /** Transform origin for this segment, or false */
+  transformOrigin: string | false;
+}
+
 export interface AnimateOptions extends Omit<TweenOptions, 'duration'> {
   /**
    * The duration of the tween, in seconds.
@@ -58,18 +97,18 @@ let id = 0;
 const running = new WeakMap();
 
 const CSSUnitConverter = {
-  '%': (value, getSizeRef) => (value * getSizeRef()) / 100,
-  vh: (value) => (value * window.innerHeight) / 100,
-  vw: (value) => (value * window.innerWidth) / 100,
-  vmin: (value) => (value * Math.min(window.innerWidth, window.innerHeight)) / 100,
-  vmax: (value) => (value * Math.max(window.innerWidth, window.innerHeight)) / 100,
+  '%': (value: number, size: number) => (value * size) / 100,
+  vh: (value: number) => (value * window.innerHeight) / 100,
+  vw: (value: number) => (value * window.innerWidth) / 100,
+  vmin: (value: number) => (value * Math.min(window.innerWidth, window.innerHeight)) / 100,
+  vmax: (value: number) => (value * Math.max(window.innerWidth, window.innerHeight)) / 100,
 };
 
 /**
- * Get the value from a step property.
+ * Resolve a keyframe value that may have a CSS unit (e.g. [50, '%']).
  */
-function getAnimationStepValue(val: number | [number, string], getSizeRef: () => number): number {
-  if (isNumber(val)) {
+function resolveUnitValue(val: number | [number, string], elementSize: number): number {
+  if (typeof val === 'number') {
     return val;
   }
 
@@ -77,153 +116,201 @@ function getAnimationStepValue(val: number | [number, string], getSizeRef: () =>
     return val[0];
   }
 
-  return CSSUnitConverter[val[1]](val[0], getSizeRef);
+  return CSSUnitConverter[val[1]](val[0], elementSize);
 }
 
-const generateTranslateRenderStrategy = (sizeRef) => (element, fromValue, toValue, progress) => {
-  const from = fromValue ?? 0;
-  const to = toValue ?? 0;
-  // Fast path: both values are plain numbers (no CSS units)
-  if (typeof from === 'number' && typeof to === 'number') {
-    return lerp(from, to, progress);
-  }
-  const getSizeRef = () => element[sizeRef];
-  return lerp(
-    getAnimationStepValue(from, getSizeRef),
-    getAnimationStepValue(to, getSizeRef),
-    progress,
-  );
-};
-const widthBasedTranslateRenderStrategy = generateTranslateRenderStrategy('offsetWidth');
-const heightBasedTranslateRenderStrategy = generateTranslateRenderStrategy('offsetHeight');
-
-const generateLerpRenderStrategy = (defaultValue) => (element, fromValue, toValue, progress) =>
-  lerp(fromValue ?? defaultValue, toValue ?? defaultValue, progress);
-const scaleRenderStrategy = generateLerpRenderStrategy(1);
-const degreesRenderStrategy = generateLerpRenderStrategy(0);
-
-const transformRenderStrategies = {
-  x: widthBasedTranslateRenderStrategy,
-  y: heightBasedTranslateRenderStrategy,
-  z: widthBasedTranslateRenderStrategy,
-  scale: scaleRenderStrategy,
-  scaleX: scaleRenderStrategy,
-  scaleY: scaleRenderStrategy,
-  scaleZ: scaleRenderStrategy,
-  skew: degreesRenderStrategy,
-  skewX: degreesRenderStrategy,
-  skewY: degreesRenderStrategy,
-  rotate: degreesRenderStrategy,
-  rotateX: degreesRenderStrategy,
-  rotateY: degreesRenderStrategy,
-  rotateZ: degreesRenderStrategy,
-};
+/**
+ * Non-translate transform property definitions: [keyframeProp, cssFn, unit, defaultValue].
+ */
+const SIMPLE_TRANSFORM_DEFS: ReadonlyArray<
+  readonly [string, string, string, number]
+> = [
+  ['rotate', 'rotate', 'deg', 0],
+  ['rotateX', 'rotateX', 'deg', 0],
+  ['rotateY', 'rotateY', 'deg', 0],
+  ['rotateZ', 'rotateZ', 'deg', 0],
+  ['scale', 'scale', '', 1],
+  ['scaleX', 'scaleX', '', 1],
+  ['scaleY', 'scaleY', '', 1],
+  ['scaleZ', 'scaleZ', '', 1],
+  ['skew', 'skew', 'deg', 0],
+  ['skewX', 'skewX', 'deg', 0],
+  ['skewY', 'skewY', 'deg', 0],
+];
 
 /**
- * Render an element style based on 2 keyframes and a progress value.
+ * Translate axis definitions: [keyframeProp, defaultValue, sizeRef].
+ * These are grouped into a single translate3d() call during rendering.
  */
-function render(
-  element: HTMLElement,
+const TRANSLATE_DEFS: ReadonlyArray<
+  readonly [string, number, string]
+> = [
+  ['x', 0, 'offsetWidth'],
+  ['y', 0, 'offsetHeight'],
+  ['z', 0, 'offsetWidth'],
+];
+
+/**
+ * Compile a pair of keyframes into a pre-computed segment.
+ * All constant work (deltas, property filtering) is done here once.
+ */
+function compileSegment(
   from: NormalizedKeyframe,
   to: NormalizedKeyframe,
+): CompiledSegment {
+  const transformStarts: number[] = [];
+  const transformDeltas: number[] = [];
+  const transformCssFunctions: string[] = [];
+  const transformUnits: string[] = [];
+  const dynamicTranslates: CompiledSegment['dynamicTranslates'] = [];
+
+  // Translate axes: grouped into translate3d(x, y, z) during rendering.
+  // We track indices into the parallel arrays for x, y, z.
+  let hasTranslate = false;
+  const translateAxisIndices: number[] = [];
+
+  for (const [prop, defaultValue, sizeRef] of TRANSLATE_DEFS) {
+    const propertyExists = from[prop] !== undefined || to[prop] !== undefined;
+    if (propertyExists) hasTranslate = true;
+
+    const fromValue = from[prop] ?? defaultValue;
+    const toValue = to[prop] ?? defaultValue;
+    const arrayIndex = transformStarts.length;
+    translateAxisIndices.push(arrayIndex);
+
+    // Placeholder CSS function/unit — not used for translate (special rendering)
+    transformCssFunctions.push('');
+    transformUnits.push('px');
+
+    if (typeof fromValue !== 'number' || typeof toValue !== 'number') {
+      transformStarts.push(0);
+      transformDeltas.push(0);
+      dynamicTranslates.push({ index: arrayIndex, from: fromValue, to: toValue, sizeRef });
+    } else {
+      transformStarts.push(fromValue);
+      transformDeltas.push(toValue - fromValue);
+    }
+  }
+
+  // Non-translate transforms: each gets its own CSS function
+  for (const [prop, cssFunction, unit, defaultValue] of SIMPLE_TRANSFORM_DEFS) {
+    if (from[prop] === undefined && to[prop] === undefined) continue;
+
+    const startValue = (from[prop] as number) ?? defaultValue;
+    transformCssFunctions.push(cssFunction);
+    transformUnits.push(unit);
+    transformStarts.push(startValue);
+    transformDeltas.push(((to[prop] as number) ?? defaultValue) - startValue);
+  }
+
+  // Opacity
+  const hasOpacity = from.opacity !== undefined || to.opacity !== undefined;
+  const opacityStart = hasOpacity ? (from.opacity ?? 1) : 0;
+  const opacityDelta = hasOpacity ? (to.opacity ?? 1) - opacityStart : 0;
+
+  // CSS custom properties
+  const customPropertyNames: string[] = [];
+  const customPropertyStarts: number[] = [];
+  const customPropertyDeltas: number[] = [];
+  if (from.vars && to.vars) {
+    for (const name of from.vars) {
+      const startValue = from[name] as number;
+      customPropertyNames.push(name);
+      customPropertyStarts.push(startValue);
+      customPropertyDeltas.push((to[name] as number) - startValue);
+    }
+  }
+
+  return {
+    fromOffset: from.offset,
+    toOffset: to.offset,
+    easing: to.easing,
+    transformStarts,
+    transformDeltas,
+    transformCssFunctions,
+    transformUnits,
+    hasTranslate,
+    translateAxisIndices,
+    simpleTransformStart: TRANSLATE_DEFS.length,
+    dynamicTranslates,
+    hasOpacity,
+    opacityStart,
+    opacityDelta,
+    customPropertyNames,
+    customPropertyStarts,
+    customPropertyDeltas,
+    transformOrigin: to.transformOrigin !== undefined ? to.transformOrigin : false,
+  };
+}
+
+/**
+ * Render an element using a pre-compiled segment and a progress value.
+ * The hot path: only multiply-add, string concatenation, and DOM writes.
+ */
+function renderSegment(
+  element: HTMLElement,
+  segment: CompiledSegment,
   progress: number,
 ) {
-  const stepProgress = to.easing(map(progress, from.offset, to.offset, 0, 1));
+  const easedProgress = segment.easing(
+    map(progress, segment.fromOffset, segment.toOffset, 0, 1),
+  );
 
   scheduler.read(() => {
+    // Resolve dynamic (CSS-unit) transforms that need element size
+    for (let i = 0; i < segment.dynamicTranslates.length; i++) {
+      const dynamic = segment.dynamicTranslates[i];
+      const elementSize = element[dynamic.sizeRef];
+      const startValue = resolveUnitValue(dynamic.from, elementSize);
+      segment.transformStarts[dynamic.index] = startValue;
+      segment.transformDeltas[dynamic.index] = resolveUnitValue(dynamic.to, elementSize) - startValue;
+    }
+
+    // Build transform string: translate3d grouped, then individual transforms
+    let transformValue = '';
+
+    if (segment.hasTranslate) {
+      const xIndex = segment.translateAxisIndices[0];
+      const yIndex = segment.translateAxisIndices[1];
+      const zIndex = segment.translateAxisIndices[2];
+      const x = segment.transformStarts[xIndex] + segment.transformDeltas[xIndex] * easedProgress;
+      const y = segment.transformStarts[yIndex] + segment.transformDeltas[yIndex] * easedProgress;
+      const z = segment.transformStarts[zIndex] + segment.transformDeltas[zIndex] * easedProgress;
+      transformValue += `translate3d(${x}px, ${y}px, ${z}px) `;
+    }
+
+    for (let i = segment.simpleTransformStart; i < segment.transformStarts.length; i++) {
+      const value = segment.transformStarts[i] + segment.transformDeltas[i] * easedProgress;
+      transformValue += `${segment.transformCssFunctions[i]}(${value}${segment.transformUnits[i]}) `;
+    }
+
+    // Compute opacity
     let opacity: false | number | string = false;
-    if (from.opacity !== undefined || to.opacity !== undefined) {
-      opacity = map(stepProgress, 0, 1, from.opacity ?? 1, to.opacity ?? 1);
+    if (segment.hasOpacity) {
+      opacity = segment.opacityStart + segment.opacityDelta * easedProgress;
     } else if (element.style.opacity) {
       opacity = '';
     }
 
-    let transformOrigin: false | string = false;
-    if (to.transformOrigin !== undefined) {
-      transformOrigin = to.transformOrigin;
-    } else if (element.style.transformOrigin) {
-      transformOrigin = '';
-    }
-
-    let customProperties: false | [string, number][] = false;
-    if (from.vars !== undefined && to.vars !== undefined) {
-      customProperties = [];
-      for (const customPropertyName of from.vars) {
-        customProperties.push([
-          customPropertyName,
-          lerp(from[customPropertyName], to[customPropertyName], stepProgress),
-        ]);
-      }
-    }
-
-    // Build transform string directly to avoid object allocation and
-    // redundant property checks in transform()
-    let transformValue = '';
-
-    // translate3d
-    const hasX = from.x !== undefined || to.x !== undefined;
-    const hasY = from.y !== undefined || to.y !== undefined;
-    const hasZ = from.z !== undefined || to.z !== undefined;
-    if (hasX || hasY || hasZ) {
-      const x = hasX ? transformRenderStrategies.x(element, from.x, to.x, stepProgress) : 0;
-      const y = hasY ? transformRenderStrategies.y(element, from.y, to.y, stepProgress) : 0;
-      const z = hasZ ? transformRenderStrategies.z(element, from.z, to.z, stepProgress) : 0;
-      transformValue += `translate3d(${x}px, ${y}px, ${z}px) `;
-    }
-
-    // rotate
-    if (from.rotate !== undefined || to.rotate !== undefined) {
-      transformValue += `rotate(${transformRenderStrategies.rotate(element, from.rotate, to.rotate, stepProgress)}deg) `;
-    } else {
-      if (from.rotateX !== undefined || to.rotateX !== undefined) {
-        transformValue += `rotateX(${transformRenderStrategies.rotateX(element, from.rotateX, to.rotateX, stepProgress)}deg) `;
-      }
-      if (from.rotateY !== undefined || to.rotateY !== undefined) {
-        transformValue += `rotateY(${transformRenderStrategies.rotateY(element, from.rotateY, to.rotateY, stepProgress)}deg) `;
-      }
-      if (from.rotateZ !== undefined || to.rotateZ !== undefined) {
-        transformValue += `rotateZ(${transformRenderStrategies.rotateZ(element, from.rotateZ, to.rotateZ, stepProgress)}deg) `;
-      }
-    }
-
-    // scale
-    if (from.scale !== undefined || to.scale !== undefined) {
-      transformValue += `scale(${transformRenderStrategies.scale(element, from.scale, to.scale, stepProgress)}) `;
-    } else {
-      if (from.scaleX !== undefined || to.scaleX !== undefined) {
-        transformValue += `scaleX(${transformRenderStrategies.scaleX(element, from.scaleX, to.scaleX, stepProgress)}) `;
-      }
-      if (from.scaleY !== undefined || to.scaleY !== undefined) {
-        transformValue += `scaleY(${transformRenderStrategies.scaleY(element, from.scaleY, to.scaleY, stepProgress)}) `;
-      }
-      if (from.scaleZ !== undefined || to.scaleZ !== undefined) {
-        transformValue += `scaleZ(${transformRenderStrategies.scaleZ(element, from.scaleZ, to.scaleZ, stepProgress)}) `;
-      }
-    }
-
-    // skew
-    if (from.skew !== undefined || to.skew !== undefined) {
-      transformValue += `skew(${transformRenderStrategies.skew(element, from.skew, to.skew, stepProgress)}deg) `;
-    } else {
-      if (from.skewX !== undefined || to.skewX !== undefined) {
-        transformValue += `skewX(${transformRenderStrategies.skewX(element, from.skewX, to.skewX, stepProgress)}deg) `;
-      }
-      if (from.skewY !== undefined || to.skewY !== undefined) {
-        transformValue += `skewY(${transformRenderStrategies.skewY(element, from.skewY, to.skewY, stepProgress)}deg) `;
-      }
-    }
+    // Compute CSS custom properties
+    const hasCustomProperties = segment.customPropertyNames.length > 0;
 
     scheduler.write(() => {
       if (opacity !== false) {
         // @ts-ignore
         element.style.opacity = opacity;
       }
-      if (transformOrigin !== false) {
-        element.style.transformOrigin = transformOrigin;
+      if (segment.transformOrigin !== false) {
+        element.style.transformOrigin = segment.transformOrigin;
+      } else if (element.style.transformOrigin) {
+        element.style.transformOrigin = '';
       }
-      if (customProperties !== false) {
-        for (const customProperty of customProperties) {
-          element.style.setProperty(customProperty[0], customProperty[1].toString());
+      if (hasCustomProperties) {
+        for (let i = 0; i < segment.customPropertyNames.length; i++) {
+          element.style.setProperty(
+            segment.customPropertyNames[i],
+            (segment.customPropertyStarts[i] + segment.customPropertyDeltas[i] * easedProgress).toString(),
+          );
         }
       }
       element.style.transform = transformValue;
@@ -249,6 +336,12 @@ function singleAnimate(
     }),
   );
 
+  // Compile keyframe pairs into pre-computed segments (stage 1: partial evaluation)
+  const segments: CompiledSegment[] = [];
+  for (let i = 1; i < normalizedKeyframes.length; i++) {
+    segments.push(compileSegment(normalizedKeyframes[i - 1], normalizedKeyframes[i]));
+  }
+
   if (!running.has(element)) {
     running.set(element, new Map());
   }
@@ -260,16 +353,16 @@ function singleAnimate(
    * Set the progress value.
    */
   function callback(progress: number) {
-    let toIndex = 0;
+    let segmentIndex = 0;
     while (
-      normalizedKeyframes[toIndex] &&
-      normalizedKeyframes[toIndex].offset <= progress &&
-      normalizedKeyframes[toIndex].offset !== 1
+      segmentIndex < segments.length - 1 &&
+      segments[segmentIndex].toOffset <= progress &&
+      segments[segmentIndex].toOffset !== 1
     ) {
-      toIndex += 1;
+      segmentIndex += 1;
     }
 
-    render(element, normalizedKeyframes[toIndex - 1], normalizedKeyframes[toIndex], progress);
+    renderSegment(element, segments[segmentIndex], progress);
   }
 
   const controls = tween(callback, {
