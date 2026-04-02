@@ -304,36 +304,31 @@ export function animate(
     return singleAnimate(element, keyframes, itemOptions);
   });
 
-  const delegate = (key) =>
-    // eslint-disable-next-line consistent-return
-    function delegated() {
-      if (key === 'progress') {
-        if (arguments.length === 1) {
-          // eslint-disable-next-line prefer-rest-params
-          const newProgress = arguments[0];
-          const newTime = lerp(0, duration, newProgress);
-          for (const [index, control] of controls.entries()) {
-            const controlProgress = clamp01(
-              map(newTime, timings[index][1], timings[index][2], 0, 1),
-            );
-            control.progress(controlProgress);
-          }
-        }
+  function forAll(key: string) {
+    for (const control of controls) {
+      control[key]();
+    }
+  }
 
-        return progressSum / elementCount;
+  function progress(newProgress?: number) {
+    if (newProgress !== undefined) {
+      const newTime = lerp(0, duration, newProgress);
+      for (let i = 0; i < controls.length; i++) {
+        const controlProgress = clamp01(
+          map(newTime, timings[i][1], timings[i][2], 0, 1),
+        );
+        controls[i].progress(controlProgress);
       }
+    }
 
-      for (const control of controls) {
-        // eslint-disable-next-line prefer-rest-params
-        control[key].call(null, arguments);
-      }
-    };
+    return progressSum / elementCount;
+  }
 
   return {
-    start: delegate('start'),
-    pause: delegate('pause'),
-    finish: delegate('finish'),
-    play: delegate('play'),
-    progress: delegate('progress'),
+    start: () => forAll('start'),
+    pause: () => forAll('pause'),
+    finish: () => forAll('finish'),
+    play: () => forAll('play'),
+    progress,
   };
 }
