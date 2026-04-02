@@ -80,16 +80,20 @@ function getAnimationStepValue(val: number | [number, string], getSizeRef: () =>
   return CSSUnitConverter[val[1]](val[0], getSizeRef);
 }
 
-const generateTranslateRenderStrategy = (sizeRef) => (element, fromValue, toValue, progress) =>
-  lerp(
-    getAnimationStepValue(
-      fromValue ?? 0,
-      /* istanbul ignore next */
-      () => element[sizeRef],
-    ),
-    getAnimationStepValue(toValue ?? 0, () => element[sizeRef]),
+const generateTranslateRenderStrategy = (sizeRef) => (element, fromValue, toValue, progress) => {
+  const from = fromValue ?? 0;
+  const to = toValue ?? 0;
+  // Fast path: both values are plain numbers (no CSS units)
+  if (typeof from === 'number' && typeof to === 'number') {
+    return lerp(from, to, progress);
+  }
+  const getSizeRef = () => element[sizeRef];
+  return lerp(
+    getAnimationStepValue(from, getSizeRef),
+    getAnimationStepValue(to, getSizeRef),
     progress,
   );
+};
 const widthBasedTranslateRenderStrategy = generateTranslateRenderStrategy('offsetWidth');
 const heightBasedTranslateRenderStrategy = generateTranslateRenderStrategy('offsetHeight');
 
