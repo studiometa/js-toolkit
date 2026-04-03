@@ -96,22 +96,23 @@ export function closestComponent<T extends Base = Base>(
 ): T | undefined {
   const { from } = options;
   const parsedQuery = parseQuery(query);
-  const instances = getInstances() as Set<T>;
-  let closestInstance = null;
+  let closestInstance: T | undefined;
 
   getAncestorWhere(from, (element) => {
     if (!element) return false;
-    if (parsedQuery.cssSelector && !element.matches(parsedQuery.cssSelector)) return false;
 
-    for (const instance of instances) {
-      if (instanceIsMatching(instance, parsedQuery)) {
-        closestInstance = instance;
-        return true;
-      }
+    // Use the element's __base__ map for O(1) lookup by component name
+    const baseMap = (element as import('../Base/index.js').BaseEl).__base__;
+    if (!baseMap) return false;
+
+    const instance = baseMap.get(parsedQuery.name) as T;
+    if (instance && instance !== ('terminated' as unknown) && instanceIsMatching(instance, parsedQuery)) {
+      closestInstance = instance;
+      return true;
     }
 
     return false;
   }) ?? undefined;
 
-  return closestInstance ?? undefined;
+  return closestInstance;
 }

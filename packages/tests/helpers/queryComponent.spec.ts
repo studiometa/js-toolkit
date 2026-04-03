@@ -142,4 +142,28 @@ describe('The `closestComponent` function', () => {
     expect(closestComponent(`${name}(#id)`, { from: grandchild })).toBe(instance);
     expect(closestComponent(`${randomName()}(#id)`, { from: grandchild })).toBeUndefined();
   });
+
+  it('should not return a non-ancestor instance that exists in the DOM', async () => {
+    const name = randomName();
+    // Create two sibling trees: ancestor -> child, and sibling (not an ancestor)
+    const child = h('div');
+    const ancestor = h('div', [child]);
+    const sibling = h('div');
+    document.body.append(ancestor, sibling);
+
+    const Comp = withName(Base, name);
+    const siblingInstance = new Comp(sibling);
+    await mount(siblingInstance);
+
+    // closestComponent from child should NOT return the sibling instance
+    expect(closestComponent(name, { from: child })).toBeUndefined();
+
+    // Now mount an ancestor instance — it should be found
+    const ancestorInstance = new Comp(ancestor);
+    await mount(ancestorInstance);
+    expect(closestComponent(name, { from: child })).toBe(ancestorInstance);
+
+    await destroy(siblingInstance);
+    await destroy(ancestorInstance);
+  });
 });
