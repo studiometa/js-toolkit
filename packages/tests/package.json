@@ -21,5 +21,8 @@
   },
   "overrides": {
     "vite": "npm:vite@8"
+  },
+  "devDependencies": {
+    "@codspeed/vitest-plugin": "^5.2.0"
   }
 }
