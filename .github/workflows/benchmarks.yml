@@ -5,6 +5,8 @@ on:
     branches:
       - main
   pull_request:
+  # `workflow_dispatch` allows CodSpeed to trigger backtest
+  # performance analysis in order to generate initial data.
   workflow_dispatch:
 
 permissions:
@@ -23,8 +25,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm install
-      - name: Run benchmarks
+      - name: Run the benchmarks
         uses: CodSpeedHQ/action@v4
         with:
           mode: simulation
-          run: npm run bench:run
+          run: cd packages/tests && npm exec vitest bench -- --config vitest.bench.config.ts --run
