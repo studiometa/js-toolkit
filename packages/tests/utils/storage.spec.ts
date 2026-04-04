@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
-  useLocalStorage,
-  useSessionStorage,
-  useUrlSearchParams,
-  useUrlSearchParamsInHash,
+  createLocalStorage,
+  createSessionStorage,
+  createUrlSearchParamsStorage,
+  createUrlSearchParamsInHashStorage,
   createStorage,
   createUrlSearchParamsProvider,
   createUrlSearchParamsInHashProvider,
@@ -21,14 +21,14 @@ describe('Storage utilities', () => {
     window.location.hash = '';
   });
 
-  describe('useLocalStorage', () => {
+  describe('createLocalStorage', () => {
     it('should handle multiple keys in same instance', () => {
       type Storage = {
         theme: string;
         user: { name: string };
       };
 
-      const storage = useLocalStorage<Storage>();
+      const storage = createLocalStorage<Storage>();
 
       storage.set('theme', 'dark');
       storage.set('user', { name: 'John' });
@@ -39,34 +39,34 @@ describe('Storage utilities', () => {
       expect(localStorage.getItem('user')).toBe(JSON.stringify({ name: 'John' }));
     });
 
-    it('should return null for non-existent keys', () => {
+    it('should return undefined for non-existent keys', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>();
-      expect(storage.get('theme')).toBeNull();
+      const storage = createLocalStorage<Storage>();
+      expect(storage.get('theme')).toBeUndefined();
     });
 
     it('should return default value for non-existent keys', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>();
+      const storage = createLocalStorage<Storage>();
       expect(storage.get('theme', 'light')).toBe('light');
     });
 
     it('should return stored value over default value', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>();
+      const storage = createLocalStorage<Storage>();
       storage.set('theme', 'dark');
       expect(storage.get('theme', 'light')).toBe('dark');
     });
 
     it('should remove key when set to null', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>();
+      const storage = createLocalStorage<Storage>();
 
       storage.set('theme', 'dark');
       expect(storage.get('theme')).toBe('dark');
 
       storage.set('theme', null);
-      expect(storage.get('theme')).toBeNull();
+      expect(storage.get('theme')).toBeUndefined();
       expect(localStorage.getItem('theme')).toBeNull();
     });
 
@@ -76,7 +76,7 @@ describe('Storage utilities', () => {
         lang: string;
       };
 
-      const storage = useLocalStorage<Storage>();
+      const storage = createLocalStorage<Storage>();
       const themeCallback = vi.fn();
       const langCallback = vi.fn();
 
@@ -94,7 +94,7 @@ describe('Storage utilities', () => {
 
     it('should unsubscribe correctly', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>();
+      const storage = createLocalStorage<Storage>();
       const callback = vi.fn();
 
       const unsubscribe = storage.subscribe('theme', callback);
@@ -113,14 +113,14 @@ describe('Storage utilities', () => {
         deserialize: (value: string) => value.replace('custom:', ''),
       };
 
-      const storage = useLocalStorage<Storage>({ serializer });
+      const storage = createLocalStorage<Storage>({ serializer });
       storage.set('count', '5');
       expect(localStorage.getItem('count')).toBe('custom:5');
       expect(storage.get('count')).toBe('5');
     });
 
     it('should clean up event listeners on destroy', () => {
-      const storage = useLocalStorage();
+      const storage = createLocalStorage();
       const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
       storage.destroy();
       expect(removeEventListenerSpy).toHaveBeenCalledWith('storage', expect.any(Function));
@@ -128,14 +128,14 @@ describe('Storage utilities', () => {
     });
   });
 
-  describe('useSessionStorage', () => {
+  describe('createSessionStorage', () => {
     it('should handle multiple keys in same instance', () => {
       type Storage = {
         token: string;
         expires: number;
       };
 
-      const storage = useSessionStorage<Storage>();
+      const storage = createSessionStorage<Storage>();
 
       storage.set('token', 'abc123');
       storage.set('expires', 3600);
@@ -146,7 +146,7 @@ describe('Storage utilities', () => {
 
     it('should return default value for non-existent keys', () => {
       type Storage = { token: string };
-      const storage = useSessionStorage<Storage>();
+      const storage = createSessionStorage<Storage>();
       expect(storage.get('token', 'none')).toBe('none');
     });
 
@@ -156,7 +156,7 @@ describe('Storage utilities', () => {
         expires: number;
       };
 
-      const storage = useSessionStorage<Storage>();
+      const storage = createSessionStorage<Storage>();
       const tokenCallback = vi.fn();
 
       storage.subscribe('token', tokenCallback);
@@ -165,14 +165,14 @@ describe('Storage utilities', () => {
     });
   });
 
-  describe('useUrlSearchParams', () => {
+  describe('createUrlSearchParamsStorage', () => {
     it('should handle multiple keys in same instance', () => {
       type Storage = {
         page: number;
         sort: string;
       };
 
-      const storage = useUrlSearchParams<Storage>();
+      const storage = createUrlSearchParamsStorage<Storage>();
       const provider = urlSearchParamsProvider;
       const setSpy = vi.spyOn(provider, 'set');
 
@@ -191,7 +191,7 @@ describe('Storage utilities', () => {
         sort: string;
       };
 
-      const storage = useUrlSearchParams<Storage>();
+      const storage = createUrlSearchParamsStorage<Storage>();
       const pageCallback = vi.fn();
 
       storage.subscribe('page', pageCallback);
@@ -201,7 +201,7 @@ describe('Storage utilities', () => {
 
     it('should listen to popstate events', () => {
       const addEventListener = vi.spyOn(window, 'addEventListener');
-      const storage = useUrlSearchParams();
+      const storage = createUrlSearchParamsStorage();
       expect(addEventListener).toHaveBeenCalledWith('popstate', expect.any(Function));
       addEventListener.mockRestore();
       storage.destroy();
@@ -209,7 +209,7 @@ describe('Storage utilities', () => {
 
     it('should use replaceState by default', () => {
       const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
-      const storage = useUrlSearchParams();
+      const storage = createUrlSearchParamsStorage();
       storage.set('page' as any, 1);
       expect(replaceStateSpy).toHaveBeenCalled();
       replaceStateSpy.mockRestore();
@@ -218,7 +218,7 @@ describe('Storage utilities', () => {
 
     it('should use pushState when push option is true', () => {
       const pushStateSpy = vi.spyOn(window.history, 'pushState');
-      const storage = useUrlSearchParams({ push: true });
+      const storage = createUrlSearchParamsStorage({ push: true });
       storage.set('page' as any, 1);
       expect(pushStateSpy).toHaveBeenCalled();
       pushStateSpy.mockRestore();
@@ -226,14 +226,14 @@ describe('Storage utilities', () => {
     });
   });
 
-  describe('useUrlSearchParamsInHash', () => {
+  describe('createUrlSearchParamsInHashStorage', () => {
     it('should handle multiple keys in same instance', () => {
       type Storage = {
         tab: string;
         view: string;
       };
 
-      const storage = useUrlSearchParamsInHash<Storage>();
+      const storage = createUrlSearchParamsInHashStorage<Storage>();
 
       storage.set('tab', 'settings');
       storage.set('view', 'grid');
@@ -248,7 +248,7 @@ describe('Storage utilities', () => {
         view: string;
       };
 
-      const storage = useUrlSearchParamsInHash<Storage>();
+      const storage = createUrlSearchParamsInHashStorage<Storage>();
       const tabCallback = vi.fn();
 
       storage.subscribe('tab', tabCallback);
@@ -258,7 +258,7 @@ describe('Storage utilities', () => {
 
     it('should listen to hashchange events', () => {
       const addEventListener = vi.spyOn(window, 'addEventListener');
-      const storage = useUrlSearchParamsInHash();
+      const storage = createUrlSearchParamsInHashStorage();
       expect(addEventListener).toHaveBeenCalledWith('hashchange', expect.any(Function));
       addEventListener.mockRestore();
       storage.destroy();
@@ -266,7 +266,7 @@ describe('Storage utilities', () => {
 
     it('should use replaceState by default', () => {
       const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
-      const storage = useUrlSearchParamsInHash();
+      const storage = createUrlSearchParamsInHashStorage();
       storage.set('tab' as any, 'settings');
       expect(replaceStateSpy).toHaveBeenCalled();
       replaceStateSpy.mockRestore();
@@ -277,7 +277,7 @@ describe('Storage utilities', () => {
   describe('Prefix / namespacing', () => {
     it('should prefix keys in localStorage', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+      const storage = createLocalStorage<Storage>({ prefix: 'myapp:' });
 
       storage.set('theme', 'dark');
       expect(localStorage.getItem('myapp:theme')).toBe(JSON.stringify('dark'));
@@ -287,8 +287,8 @@ describe('Storage utilities', () => {
 
     it('should isolate instances with different prefixes', () => {
       type Storage = { theme: string };
-      const storageA = useLocalStorage<Storage>({ prefix: 'a:' });
-      const storageB = useLocalStorage<Storage>({ prefix: 'b:' });
+      const storageA = createLocalStorage<Storage>({ prefix: 'a:' });
+      const storageB = createLocalStorage<Storage>({ prefix: 'b:' });
 
       storageA.set('theme', 'dark');
       storageB.set('theme', 'light');
@@ -299,7 +299,7 @@ describe('Storage utilities', () => {
 
     it('should prefix keys in sessionStorage', () => {
       type Storage = { token: string };
-      const storage = useSessionStorage<Storage>({ prefix: 'sess:' });
+      const storage = createSessionStorage<Storage>({ prefix: 'sess:' });
 
       storage.set('token', 'abc');
       expect(sessionStorage.getItem('sess:token')).toBe(JSON.stringify('abc'));
@@ -308,7 +308,7 @@ describe('Storage utilities', () => {
 
     it('should work with prefix on remove', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+      const storage = createLocalStorage<Storage>({ prefix: 'myapp:' });
 
       storage.set('theme', 'dark');
       expect(localStorage.getItem('myapp:theme')).toBe(JSON.stringify('dark'));
@@ -321,7 +321,7 @@ describe('Storage utilities', () => {
   describe('has / keys / clear', () => {
     it('should check if a key exists with has()', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>();
+      const storage = createLocalStorage<Storage>();
 
       expect(storage.has('theme')).toBe(false);
       storage.set('theme', 'dark');
@@ -332,7 +332,7 @@ describe('Storage utilities', () => {
 
     it('should check has() with prefix', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+      const storage = createLocalStorage<Storage>({ prefix: 'myapp:' });
 
       storage.set('theme', 'dark');
       expect(storage.has('theme')).toBe(true);
@@ -341,7 +341,7 @@ describe('Storage utilities', () => {
     });
 
     it('should list keys without prefix', () => {
-      const storage = useLocalStorage();
+      const storage = createLocalStorage();
 
       storage.set('a' as any, 1);
       storage.set('b' as any, 2);
@@ -356,7 +356,7 @@ describe('Storage utilities', () => {
       localStorage.setItem('other', 'value');
 
       type Storage = { theme: string; lang: string };
-      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+      const storage = createLocalStorage<Storage>({ prefix: 'myapp:' });
 
       storage.set('theme', 'dark');
       storage.set('lang', 'fr');
@@ -368,13 +368,13 @@ describe('Storage utilities', () => {
     });
 
     it('should clear all keys without prefix', () => {
-      const storage = useLocalStorage();
+      const storage = createLocalStorage();
       storage.set('a' as any, 1);
       storage.set('b' as any, 2);
 
       storage.clear();
-      expect(storage.get('a' as any)).toBeNull();
-      expect(storage.get('b' as any)).toBeNull();
+      expect(storage.get('a' as any)).toBeUndefined();
+      expect(storage.get('b' as any)).toBeUndefined();
       expect(storage.keys()).toEqual([]);
     });
 
@@ -382,21 +382,21 @@ describe('Storage utilities', () => {
       localStorage.setItem('other', 'keep');
 
       type Storage = { theme: string; lang: string };
-      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+      const storage = createLocalStorage<Storage>({ prefix: 'myapp:' });
 
       storage.set('theme', 'dark');
       storage.set('lang', 'fr');
 
       storage.clear();
-      expect(storage.get('theme')).toBeNull();
-      expect(storage.get('lang')).toBeNull();
+      expect(storage.get('theme')).toBeUndefined();
+      expect(storage.get('lang')).toBeUndefined();
       // Non-prefixed key should remain
       expect(localStorage.getItem('other')).toBe('keep');
     });
 
     it('should notify subscribers on clear', () => {
       type Storage = { theme: string; lang: string };
-      const storage = useLocalStorage<Storage>();
+      const storage = createLocalStorage<Storage>();
       const themeCallback = vi.fn();
       const langCallback = vi.fn();
 
@@ -407,13 +407,13 @@ describe('Storage utilities', () => {
       storage.set('lang', 'fr');
 
       storage.clear();
-      expect(themeCallback).toHaveBeenLastCalledWith(null);
-      expect(langCallback).toHaveBeenLastCalledWith(null);
+      expect(themeCallback).toHaveBeenLastCalledWith(undefined);
+      expect(langCallback).toHaveBeenLastCalledWith(undefined);
     });
 
     it('should work with sessionStorage', () => {
       type Storage = { token: string };
-      const storage = useSessionStorage<Storage>();
+      const storage = createSessionStorage<Storage>();
 
       storage.set('token', 'abc');
       expect(storage.has('token')).toBe(true);
@@ -426,7 +426,7 @@ describe('Storage utilities', () => {
 
     it('should work with URL search params', () => {
       type Storage = { page: string; sort: string };
-      const storage = useUrlSearchParams<Storage>();
+      const storage = createUrlSearchParamsStorage<Storage>();
 
       const replaceSpy = vi.spyOn(window.history, 'replaceState');
       storage.set('page', '1');
@@ -445,7 +445,7 @@ describe('Storage utilities', () => {
 
     it('should work with URL hash params', () => {
       type Storage = { tab: string; view: string };
-      const storage = useUrlSearchParamsInHash<Storage>();
+      const storage = createUrlSearchParamsInHashStorage<Storage>();
 
       storage.set('tab', 'settings');
       storage.set('view', 'grid');
@@ -481,8 +481,8 @@ describe('Storage utilities', () => {
       expect(sessionStorageProvider.has('test')).toBe(false);
     });
 
-    it('should have syncEvent on sessionStorage provider', () => {
-      expect(sessionStorageProvider.syncEvent).toBe('storage');
+    it('should not have syncEvent on sessionStorage provider (no cross-tab sync)', () => {
+      expect(sessionStorageProvider.syncEvent).toBeUndefined();
     });
 
     it('should handle urlSearchParams provider correctly', () => {
@@ -579,7 +579,7 @@ describe('Storage utilities', () => {
   describe('Event synchronization', () => {
     it('should sync localStorage changes from storage events', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>();
+      const storage = createLocalStorage<Storage>();
       const callback = vi.fn();
       storage.subscribe('theme', callback);
 
@@ -597,7 +597,7 @@ describe('Storage utilities', () => {
 
     it('should sync prefixed localStorage changes from storage events', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+      const storage = createLocalStorage<Storage>({ prefix: 'myapp:' });
       const callback = vi.fn();
       storage.subscribe('theme', callback);
 
@@ -615,7 +615,7 @@ describe('Storage utilities', () => {
 
     it('should not react to storage events for non-matching prefixed keys', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>({ prefix: 'myapp:' });
+      const storage = createLocalStorage<Storage>({ prefix: 'myapp:' });
       const callback = vi.fn();
       storage.subscribe('theme', callback);
 
@@ -631,13 +631,19 @@ describe('Storage utilities', () => {
       storage.destroy();
     });
 
-    it('should sync sessionStorage changes from storage events', () => {
+    it('should not sync sessionStorage via storage events (sessionStorage has no cross-tab sync)', () => {
       type Storage = { token: string };
-      const storage = useSessionStorage<Storage>();
+      const storage = createSessionStorage<Storage>();
+      const addEventSpy = vi.spyOn(window, 'addEventListener');
+
+      // sessionStorage provider should not register a storage event listener
+      const storageListenerCalls = addEventSpy.mock.calls.filter(
+        ([event]) => event === 'storage',
+      );
+      // Only localStorage instances should register storage listeners, not sessionStorage
       const callback = vi.fn();
       storage.subscribe('token', callback);
 
-      // Simulate storage event from another tab
       const event = new StorageEvent('storage', {
         key: 'token',
         newValue: JSON.stringify('new-token'),
@@ -645,13 +651,33 @@ describe('Storage utilities', () => {
       });
       window.dispatchEvent(event);
 
-      expect(callback).toHaveBeenCalledWith('new-token');
+      // Should NOT be called since sessionStorage has no syncEvent
+      expect(callback).not.toHaveBeenCalled();
+      addEventSpy.mockRestore();
+      storage.destroy();
+    });
+
+    it('should not react to sessionStorage events on a localStorage instance', () => {
+      type Storage = { theme: string };
+      const storage = createLocalStorage<Storage>();
+      const callback = vi.fn();
+      storage.subscribe('theme', callback);
+
+      // Simulate a storage event from sessionStorage — should be ignored
+      const event = new StorageEvent('storage', {
+        key: 'theme',
+        newValue: JSON.stringify('dark'),
+        storageArea: sessionStorage,
+      });
+      window.dispatchEvent(event);
+
+      expect(callback).not.toHaveBeenCalled();
       storage.destroy();
     });
 
     it('should handle storage event with null newValue (key removed)', () => {
       type Storage = { theme: string };
-      const storage = useLocalStorage<Storage>();
+      const storage = createLocalStorage<Storage>();
       const callback = vi.fn();
       storage.subscribe('theme', callback);
 
@@ -662,8 +688,27 @@ describe('Storage utilities', () => {
       });
       window.dispatchEvent(event);
 
-      expect(callback).toHaveBeenCalledWith(null);
+      expect(callback).toHaveBeenCalledWith(undefined);
       storage.destroy();
+    });
+  });
+
+  describe('JSON deserialize resilience', () => {
+    it('should return null for malformed JSON in storage', () => {
+      type Storage = { theme: string };
+      const storage = createLocalStorage<Storage>();
+
+      // Manually set invalid JSON
+      localStorage.setItem('theme', '{broken json');
+      expect(storage.get('theme')).toBeUndefined();
+    });
+
+    it('should return default value when stored JSON is malformed', () => {
+      type Storage = { theme: string };
+      const storage = createLocalStorage<Storage>();
+
+      localStorage.setItem('theme', '{broken json');
+      expect(storage.get('theme', 'light')).toBe('light');
     });
   });
 
@@ -676,6 +721,8 @@ describe('Storage utilities', () => {
         set: () => {},
         remove: () => {},
         has: () => false,
+        keys: () => [],
+        clear: () => {},
       };
 
       const storage = createStorage({ provider: customProvider });
@@ -692,6 +739,8 @@ describe('Storage utilities', () => {
         set: () => {},
         remove: () => {},
         has: () => false,
+        keys: () => [],
+        clear: () => {},
       };
 
       const storage = createStorage({ provider: customProvider });

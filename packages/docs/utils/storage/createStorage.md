@@ -66,11 +66,15 @@ storage.get('user'); // { name: string; id: number } | null
 
 A `StorageInstance<T>` with the following methods:
 
-- **`get(key)`** — Get the value for a key. Returns `null` if not set.
+- **`get(key)`** — Get the value for a key. Returns `undefined` if not set or if the stored value is corrupted.
 - **`get(key, defaultValue)`** — Get the value for a key, returning `defaultValue` if not set.
 - **`set(key, value)`** — Set a value. Pass `null` to remove the key.
 - **`has(key)`** — Check if a key exists in storage.
 - **`keys()`** — List all keys managed by this instance. When a `prefix` is set, only prefixed keys are returned (with the prefix stripped).
-- **`clear()`** — Remove all entries. When a `prefix` is set, only prefixed keys are cleared — other keys in the same provider are left untouched.
+- **`clear()`** — Remove all entries. When a `prefix` is set, only prefixed keys are cleared — other keys in the same provider are left untouched. Subscribers are notified with `undefined`.
 - **`subscribe(key, callback)`** — Subscribe to changes on a key. Returns an unsubscribe function. Listeners are notified on both local changes and external sync events (cross-tab, navigation).
 - **`destroy()`** — Clean up all listeners and event handlers.
+
+::: warning Cleanup
+Each `createStorage()` call registers a global event listener (when the provider has a `syncEvent`). Always call `destroy()` when the storage instance is no longer needed to avoid memory leaks — for example in a component's unmount/destroy lifecycle hook.
+:::
