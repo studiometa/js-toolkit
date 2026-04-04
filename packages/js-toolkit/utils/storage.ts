@@ -426,7 +426,7 @@ export function createStorage<T extends Record<string, any> = Record<string, any
  * @param   {StorageOptions} [options] Storage options (prefix, serializer).
  * @returns {StorageInstance}
  */
-export function useLocalStorage<T extends Record<string, any> = Record<string, any>>(
+export function createLocalStorage<T extends Record<string, any> = Record<string, any>>(
   options?: Omit<StorageOptions<T>, 'provider'>,
 ): StorageInstance<T> {
   return createStorage({ ...options, provider: localStorageProvider });
@@ -438,7 +438,7 @@ export function useLocalStorage<T extends Record<string, any> = Record<string, a
  * @param   {StorageOptions} [options] Storage options (prefix, serializer).
  * @returns {StorageInstance}
  */
-export function useSessionStorage<T extends Record<string, any> = Record<string, any>>(
+export function createSessionStorage<T extends Record<string, any> = Record<string, any>>(
   options?: Omit<StorageOptions<T>, 'provider'>,
 ): StorageInstance<T> {
   return createStorage({ ...options, provider: sessionStorageProvider });
@@ -450,7 +450,7 @@ export function useSessionStorage<T extends Record<string, any> = Record<string,
  * @param   {StorageOptions & UrlProviderOptions} [options] Storage and URL provider options.
  * @returns {StorageInstance}
  */
-export function useUrlSearchParams<T extends Record<string, any> = Record<string, any>>(
+export function createUrlSearchParamsStorage<T extends Record<string, any> = Record<string, any>>(
   options?: Omit<StorageOptions<T>, 'provider'> & UrlProviderOptions,
 ): StorageInstance<T> {
   const { push, ...storageOptions } = options ?? {};
@@ -466,7 +466,7 @@ export function useUrlSearchParams<T extends Record<string, any> = Record<string
  * @param   {StorageOptions & UrlProviderOptions} [options] Storage and URL provider options.
  * @returns {StorageInstance}
  */
-export function useUrlSearchParamsInHash<T extends Record<string, any> = Record<string, any>>(
+export function createUrlSearchParamsInHashStorage<T extends Record<string, any> = Record<string, any>>(
   options?: Omit<StorageOptions<T>, 'provider'> & UrlProviderOptions,
 ): StorageInstance<T> {
   const { push, ...storageOptions } = options ?? {};
