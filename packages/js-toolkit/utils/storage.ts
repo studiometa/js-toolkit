@@ -6,9 +6,9 @@ import { hasWindow } from './has.js';
  * Providers can declare `syncEvent` to indicate which DOM event
  * should be listened to for external changes (cross-tab, navigation, etc.).
  */
-export interface StorageProvider<T = string> {
-  get(key: string): T | null;
-  set(key: string, value: T): void;
+export interface StorageProvider {
+  get(key: string): string | null;
+  set(key: string, value: string): void;
   remove(key: string): void;
   has(key: string): boolean;
   /** Return all keys managed by this provider. */
@@ -17,11 +17,16 @@ export interface StorageProvider<T = string> {
   clear(): void;
   /**
    * The DOM event name to listen for external sync.
-   * - `'storage'` for localStorage/sessionStorage (cross-tab sync)
+   * - `'storage'` for localStorage (cross-tab sync)
    * - `'popstate'` for URL search params (back/forward navigation)
    * - `'hashchange'` for URL hash params (hash navigation)
    */
   syncEvent?: string;
+  /**
+   * The backing Storage object (localStorage or sessionStorage).
+   * Used to filter StorageEvents by storage area.
+   */
+  storageArea?: Storage;
 }
 
 /**
@@ -29,6 +34,7 @@ export interface StorageProvider<T = string> {
  */
 export const localStorageProvider: StorageProvider = {
   syncEvent: 'storage',
+  storageArea: hasWindow() ? localStorage : undefined,
   get(key: string): string | null {
     if (!hasWindow()) return null;
     return localStorage.getItem(key);
@@ -59,7 +65,7 @@ export const localStorageProvider: StorageProvider = {
  * sessionStorage provider.
  */
 export const sessionStorageProvider: StorageProvider = {
-  syncEvent: 'storage',
+  syncEvent: undefined,
   get(key: string): string | null {
     if (!hasWindow()) return null;
     return sessionStorage.getItem(key);
@@ -274,7 +280,13 @@ export interface StorageOptions<T = any> {
  */
 const jsonSerializer: StorageSerializer = {
   serialize: <T>(value: T): string => JSON.stringify(value),
-  deserialize: <T>(value: string): T => JSON.parse(value),
+  deserialize: <T>(value: string): T | null => {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  },
 };
 
 /**
@@ -300,6 +312,10 @@ export function createStorage<T extends Record<string, any> = Record<string, any
   const syncHandler = (event: Event) => {
     // For StorageEvent, only react to keys we're listening to
     if (event instanceof StorageEvent) {
+      // Filter by storage area to avoid cross-provider interference
+      if (provider.storageArea && event.storageArea !== provider.storageArea) {
+        return;
+      }
       const rawKey = event.key;
       // Find matching listener key (strip prefix)
       for (const [listenerKey, callbacks] of listeners) {
@@ -329,7 +345,11 @@ export function createStorage<T extends Record<string, any> = Record<string, any
     get<K extends keyof T>(key: K, defaultValue?: T[K]): T[K] | null {
       const storedValue = provider.get(resolveKey(key as string));
       if (storedValue !== null) {
-        return serializer.deserialize(storedValue);
+        const deserialized = serializer.deserialize(storedValue);
+        if (deserialized !== null) {
+          return deserialized;
+        }
+        // Deserialization failed (e.g. malformed JSON), fall through to default
       }
       return defaultValue !== undefined ? defaultValue : null;
     },

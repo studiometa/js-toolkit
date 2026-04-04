@@ -481,8 +481,8 @@ describe('Storage utilities', () => {
       expect(sessionStorageProvider.has('test')).toBe(false);
     });
 
-    it('should have syncEvent on sessionStorage provider', () => {
-      expect(sessionStorageProvider.syncEvent).toBe('storage');
+    it('should not have syncEvent on sessionStorage provider (no cross-tab sync)', () => {
+      expect(sessionStorageProvider.syncEvent).toBeUndefined();
     });
 
     it('should handle urlSearchParams provider correctly', () => {
@@ -631,13 +631,19 @@ describe('Storage utilities', () => {
       storage.destroy();
     });
 
-    it('should sync sessionStorage changes from storage events', () => {
+    it('should not sync sessionStorage via storage events (sessionStorage has no cross-tab sync)', () => {
       type Storage = { token: string };
       const storage = useSessionStorage<Storage>();
+      const addEventSpy = vi.spyOn(window, 'addEventListener');
+
+      // sessionStorage provider should not register a storage event listener
+      const storageListenerCalls = addEventSpy.mock.calls.filter(
+        ([event]) => event === 'storage',
+      );
+      // Only localStorage instances should register storage listeners, not sessionStorage
       const callback = vi.fn();
       storage.subscribe('token', callback);
 
-      // Simulate storage event from another tab
       const event = new StorageEvent('storage', {
         key: 'token',
         newValue: JSON.stringify('new-token'),
@@ -645,7 +651,27 @@ describe('Storage utilities', () => {
       });
       window.dispatchEvent(event);
 
-      expect(callback).toHaveBeenCalledWith('new-token');
+      // Should NOT be called since sessionStorage has no syncEvent
+      expect(callback).not.toHaveBeenCalled();
+      addEventSpy.mockRestore();
+      storage.destroy();
+    });
+
+    it('should not react to sessionStorage events on a localStorage instance', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>();
+      const callback = vi.fn();
+      storage.subscribe('theme', callback);
+
+      // Simulate a storage event from sessionStorage — should be ignored
+      const event = new StorageEvent('storage', {
+        key: 'theme',
+        newValue: JSON.stringify('dark'),
+        storageArea: sessionStorage,
+      });
+      window.dispatchEvent(event);
+
+      expect(callback).not.toHaveBeenCalled();
       storage.destroy();
     });
 
@@ -667,6 +693,25 @@ describe('Storage utilities', () => {
     });
   });
 
+  describe('JSON deserialize resilience', () => {
+    it('should return null for malformed JSON in storage', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>();
+
+      // Manually set invalid JSON
+      localStorage.setItem('theme', '{broken json');
+      expect(storage.get('theme')).toBeNull();
+    });
+
+    it('should return default value when stored JSON is malformed', () => {
+      type Storage = { theme: string };
+      const storage = useLocalStorage<Storage>();
+
+      localStorage.setItem('theme', '{broken json');
+      expect(storage.get('theme', 'light')).toBe('light');
+    });
+  });
+
   describe('Custom provider with syncEvent', () => {
     it('should listen to custom syncEvent', () => {
       const addEventSpy = vi.spyOn(window, 'addEventListener');
@@ -676,6 +721,8 @@ describe('Storage utilities', () => {
         set: () => {},
         remove: () => {},
         has: () => false,
+        keys: () => [],
+        clear: () => {},
       };
 
       const storage = createStorage({ provider: customProvider });
@@ -692,6 +739,8 @@ describe('Storage utilities', () => {
         set: () => {},
         remove: () => {},
         has: () => false,
+        keys: () => [],
+        clear: () => {},
       };
 
       const storage = createStorage({ provider: customProvider });
