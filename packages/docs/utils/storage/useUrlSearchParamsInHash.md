@@ -27,6 +27,10 @@ storage.subscribe('tab', (value) => {
 });
 ```
 
+::: tip Values are JSON-serialized
+All values are serialized with `JSON.stringify` before being written to the URL hash. This means string values will include quotes (e.g. `#tab=%22settings%22`). Use a custom `serializer` if you prefer raw strings.
+:::
+
 ## Parameters
 
 - `options` (`StorageOptions & UrlProviderOptions`): Optional configuration.

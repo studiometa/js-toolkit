@@ -74,3 +74,7 @@ A `StorageInstance<T>` with the following methods:
 - **`clear()`** — Remove all entries. When a `prefix` is set, only prefixed keys are cleared — other keys in the same provider are left untouched.
 - **`subscribe(key, callback)`** — Subscribe to changes on a key. Returns an unsubscribe function. Listeners are notified on both local changes and external sync events (cross-tab, navigation).
 - **`destroy()`** — Clean up all listeners and event handlers.
+
+::: warning Cleanup
+Each `createStorage()` call registers a global event listener (when the provider has a `syncEvent`). Always call `destroy()` when the storage instance is no longer needed to avoid memory leaks — for example in a component's unmount/destroy lifecycle hook.
+:::
