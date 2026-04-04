@@ -39,10 +39,10 @@ describe('Storage utilities', () => {
       expect(localStorage.getItem('user')).toBe(JSON.stringify({ name: 'John' }));
     });
 
-    it('should return null for non-existent keys', () => {
+    it('should return undefined for non-existent keys', () => {
       type Storage = { theme: string };
       const storage = createLocalStorage<Storage>();
-      expect(storage.get('theme')).toBeNull();
+      expect(storage.get('theme')).toBeUndefined();
     });
 
     it('should return default value for non-existent keys', () => {
@@ -66,7 +66,7 @@ describe('Storage utilities', () => {
       expect(storage.get('theme')).toBe('dark');
 
       storage.set('theme', null);
-      expect(storage.get('theme')).toBeNull();
+      expect(storage.get('theme')).toBeUndefined();
       expect(localStorage.getItem('theme')).toBeNull();
     });
 
@@ -373,8 +373,8 @@ describe('Storage utilities', () => {
       storage.set('b' as any, 2);
 
       storage.clear();
-      expect(storage.get('a' as any)).toBeNull();
-      expect(storage.get('b' as any)).toBeNull();
+      expect(storage.get('a' as any)).toBeUndefined();
+      expect(storage.get('b' as any)).toBeUndefined();
       expect(storage.keys()).toEqual([]);
     });
 
@@ -388,8 +388,8 @@ describe('Storage utilities', () => {
       storage.set('lang', 'fr');
 
       storage.clear();
-      expect(storage.get('theme')).toBeNull();
-      expect(storage.get('lang')).toBeNull();
+      expect(storage.get('theme')).toBeUndefined();
+      expect(storage.get('lang')).toBeUndefined();
       // Non-prefixed key should remain
       expect(localStorage.getItem('other')).toBe('keep');
     });
@@ -407,8 +407,8 @@ describe('Storage utilities', () => {
       storage.set('lang', 'fr');
 
       storage.clear();
-      expect(themeCallback).toHaveBeenLastCalledWith(null);
-      expect(langCallback).toHaveBeenLastCalledWith(null);
+      expect(themeCallback).toHaveBeenLastCalledWith(undefined);
+      expect(langCallback).toHaveBeenLastCalledWith(undefined);
     });
 
     it('should work with sessionStorage', () => {
@@ -688,7 +688,7 @@ describe('Storage utilities', () => {
       });
       window.dispatchEvent(event);
 
-      expect(callback).toHaveBeenCalledWith(null);
+      expect(callback).toHaveBeenCalledWith(undefined);
       storage.destroy();
     });
   });
@@ -700,7 +700,7 @@ describe('Storage utilities', () => {
 
       // Manually set invalid JSON
       localStorage.setItem('theme', '{broken json');
-      expect(storage.get('theme')).toBeNull();
+      expect(storage.get('theme')).toBeUndefined();
     });
 
     it('should return default value when stored JSON is malformed', () => {
