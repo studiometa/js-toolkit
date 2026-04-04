@@ -84,13 +84,13 @@ class LazyComponent extends Base {
 
 Available methods on `this.$services`:
 
-| Method | Description |
-|--------|-------------|
-| `enable(name)` | Start the service, returns a disable function |
-| `disable(name)` | Stop the service |
-| `toggle(name, force?)` | Toggle or force enable/disable |
-| `has(name)` | Check if the service is currently active |
-| `get(name)` | Get the current service props |
+| Method                 | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| `enable(name)`         | Start the service, returns a disable function |
+| `disable(name)`        | Stop the service                              |
+| `toggle(name, force?)` | Toggle or force enable/disable                |
+| `has(name)`            | Check if the service is currently active      |
+| `get(name)`            | Get the current service props                 |
 
 ## Standalone usage
 

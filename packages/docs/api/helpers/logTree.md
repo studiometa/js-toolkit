@@ -3,6 +3,7 @@
 Log the component tree to the browser console starting from a given instance. Uses the global instance registry and DOM containment to build the tree — does **not** rely on the deprecated `$children` API.
 
 Components with children are displayed as collapsed groups. Each entry shows:
+
 - **●** for mounted instances, **○** for unmounted
 - The instance `$id`
 - A reference to the DOM element
@@ -14,7 +15,7 @@ Components with children are displayed as collapsed groups. Each entry shows:
 When using `createApp`, a `$logTree()` function is automatically registered on `globalThis` in development mode. Just open your browser console and type:
 
 ```js
-$logTree()
+$logTree();
 ```
 
 ### Programmatic usage

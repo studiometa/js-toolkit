@@ -16,7 +16,10 @@ npm install @studiometa/js-toolkit
 
 ```html
 <script type="module">
-  import { Base, registerComponent } from 'https://esm.sh/@studiometa/js-toolkit';
+  import {
+    Base,
+    registerComponent,
+  } from 'https://esm.sh/@studiometa/js-toolkit';
 </script>
 ```
 
@@ -55,4 +58,3 @@ That's it — `registerComponent` finds all `[data-component="Hello"]` elements 
 ::: tip
 Using Vite or Webpack? Set the `__DEV__` global for debug logs. See [Installation](/guide/introduction/installation.html) for build tool setup.
 :::
-

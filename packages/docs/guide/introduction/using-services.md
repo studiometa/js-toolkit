@@ -12,8 +12,6 @@ The following services are exported by the `@studiometa/js-toolkit` package:
 - [`useKey`](/api/services/useKey.html) to implement behaviour reacting on keyboard interaction
 - [`useLoad`](/api/services/useLoad.html) to implement behaviour on page load
 
-
-
 ## Usage
 
 ### As class methods
@@ -139,8 +137,6 @@ class Component extends Base {
   }
 }
 ```
-
-
 
 ## Services hooks diagram
 

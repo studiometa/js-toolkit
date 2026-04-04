@@ -7,7 +7,7 @@ Each component goes through a series of steps — being created, mounted into th
 | `mounted`    | Executed when the component is mounted by a parent or via the [instance `$mount` method](/api/instance-methods.html#mount).       |
 | `destroyed`  | Executed when the component is destroyed by a parent or via the [instance `$destroy` method](/api/instance-methods.html#destroy). |
 | `updated`    | Executed when the component is updated by a parent or via the [instance `$update` method](/api/instance-methods.html#update).     |
-| `terminated` | Executed when the [instance `$terminate` method](/api/instance-methods.html#terminate) is called.                                    |
+| `terminated` | Executed when the [instance `$terminate` method](/api/instance-methods.html#terminate) is called.                                 |
 
 The [lifecycle hooks diagram](#lifecycle-hooks-diagram) below present in greater detail how theses hooks works with one another.
 
@@ -70,4 +70,3 @@ export default class Child extends Parent {
 ---
 
 See also: [Lifecycle hooks](/api/methods-hooks-lifecycle.html)
-

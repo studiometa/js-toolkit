@@ -18,8 +18,7 @@ The image element itself is the component root. The real URL is stored in `data-
 <img
   data-component="LazyImage"
   data-src="https://picsum.photos/800/600"
-  alt="Lazy loaded image"
-/>
+  alt="Lazy loaded image" />
 ```
 
 ## JavaScript component

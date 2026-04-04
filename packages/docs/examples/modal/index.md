@@ -25,8 +25,7 @@ The trigger button and the modal markup live inside the same component. The `bac
       data-ref="dialog"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="modal-title"
-    >
+      aria-labelledby="modal-title">
       <h2 id="modal-title">Modal Title</h2>
       <p>This is the modal content. Focus is trapped inside.</p>
       <button data-ref="closeBtn">Close</button>
@@ -48,7 +47,7 @@ Add some basic CSS to position the backdrop and dialog:
   z-index: 1000;
 }
 
-.modal-backdrop [role="dialog"] {
+.modal-backdrop [role='dialog'] {
   background: white;
   padding: 2rem;
   border-radius: 0.5rem;
@@ -122,7 +121,9 @@ export default class Modal extends Base {
     this.$refs.backdrop.hidden = false;
     // Focus the first focusable element inside the dialog
     this.$refs.dialog.focus?.() ||
-      this.$refs.dialog.querySelector('button, [href], input, select, textarea')?.focus();
+      this.$refs.dialog
+        .querySelector('button, [href], input, select, textarea')
+        ?.focus();
   }
 
   /**

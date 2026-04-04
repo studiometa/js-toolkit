@@ -11,18 +11,23 @@ A three-column image grid where columns skew based on scroll velocity and altern
 A grid of images split into three columns. Each column is a `cols[]` ref (the `[]` suffix creates an array ref). One image is also marked as `offsetItem` to measure the parallax offset:
 
 ```html
-<div data-component="ScrollLinkedAnimation" class="grid gap-10 grid-cols-3 p-10 my-10">
+<div
+  data-component="ScrollLinkedAnimation"
+  class="grid gap-10 grid-cols-3 p-10 my-10">
   <div data-ref="cols[]" class="grid gap-10">
-    <img src="https://picsum.photos/seed/01/400/500" alt="" data-ref="offsetItem">
-    <img src="https://picsum.photos/seed/02/400/500" alt="">
+    <img
+      src="https://picsum.photos/seed/01/400/500"
+      alt=""
+      data-ref="offsetItem" />
+    <img src="https://picsum.photos/seed/02/400/500" alt="" />
     <!-- more images... -->
   </div>
   <div data-ref="cols[]" class="grid gap-10">
-    <img src="https://picsum.photos/seed/11/400/500" alt="">
+    <img src="https://picsum.photos/seed/11/400/500" alt="" />
     <!-- more images... -->
   </div>
   <div data-ref="cols[]" class="grid gap-10">
-    <img src="https://picsum.photos/seed/21/400/500" alt="">
+    <img src="https://picsum.photos/seed/21/400/500" alt="" />
     <!-- more images... -->
   </div>
 </div>
@@ -66,20 +71,33 @@ export default class ScrollLinkedAnimation extends Base {
 
   ticked() {
     this.dampedScrollDeltaY = damp(
-      this.scrollDeltaY, this.dampedScrollDeltaY, 0.05, 0.0001
+      this.scrollDeltaY,
+      this.dampedScrollDeltaY,
+      0.05,
+      0.0001,
     );
     this.dampedScrollProgressY = damp(
-      this.scrollProgressY, this.dampedScrollProgressY, 0.25, 0.0001
+      this.scrollProgressY,
+      this.dampedScrollProgressY,
+      0.25,
+      0.0001,
     );
 
     const items = this.$refs.cols.map((col, index) => {
-      const skewY = index % 2
-        ? this.dampedScrollDeltaY * -0.25
-        : this.dampedScrollDeltaY * 0.25;
-      const translateY = index % 2 === 0
-        ? map(this.dampedScrollProgressY, 0, 1,
-            this.parallaxOffsetHeight, -this.parallaxOffsetHeight)
-        : undefined;
+      const skewY =
+        index % 2
+          ? this.dampedScrollDeltaY * -0.25
+          : this.dampedScrollDeltaY * 0.25;
+      const translateY =
+        index % 2 === 0
+          ? map(
+              this.dampedScrollProgressY,
+              0,
+              1,
+              this.parallaxOffsetHeight,
+              -this.parallaxOffsetHeight,
+            )
+          : undefined;
       return { col, skewY, translateY };
     });
 

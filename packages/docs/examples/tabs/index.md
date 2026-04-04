@@ -24,8 +24,7 @@ Each tab button is a `tabs[]` ref and each panel is a `panels[]` ref. ARIA attri
       aria-selected="true"
       aria-controls="panel-0"
       id="tab-0"
-      tabindex="0"
-    >
+      tabindex="0">
       Tab 1
     </button>
     <button
@@ -34,8 +33,7 @@ Each tab button is a `tabs[]` ref and each panel is a `panels[]` ref. ARIA attri
       aria-selected="false"
       aria-controls="panel-1"
       id="tab-1"
-      tabindex="-1"
-    >
+      tabindex="-1">
       Tab 2
     </button>
     <button
@@ -44,8 +42,7 @@ Each tab button is a `tabs[]` ref and each panel is a `panels[]` ref. ARIA attri
       aria-selected="false"
       aria-controls="panel-2"
       id="tab-2"
-      tabindex="-1"
-    >
+      tabindex="-1">
       Tab 3
     </button>
   </div>
@@ -54,8 +51,7 @@ Each tab button is a `tabs[]` ref and each panel is a `panels[]` ref. ARIA attri
     data-ref="panels[]"
     role="tabpanel"
     id="panel-0"
-    aria-labelledby="tab-0"
-  >
+    aria-labelledby="tab-0">
     <p>Content for Tab 1</p>
   </div>
   <div
@@ -63,8 +59,7 @@ Each tab button is a `tabs[]` ref and each panel is a `panels[]` ref. ARIA attri
     role="tabpanel"
     id="panel-1"
     aria-labelledby="tab-1"
-    hidden
-  >
+    hidden>
     <p>Content for Tab 2</p>
   </div>
   <div
@@ -72,8 +67,7 @@ Each tab button is a `tabs[]` ref and each panel is a `panels[]` ref. ARIA attri
     role="tabpanel"
     id="panel-2"
     aria-labelledby="tab-2"
-    hidden
-  >
+    hidden>
     <p>Content for Tab 3</p>
   </div>
 </div>
@@ -134,7 +128,10 @@ export default class Tabs extends Base {
       this.$refs.tabs[prevIndex].focus();
     }
 
-    if (event.keyCode === keyCodes.ENTER || event.keyCode === keyCodes.SPACE) {
+    if (
+      event.keyCode === keyCodes.ENTER ||
+      event.keyCode === keyCodes.SPACE
+    ) {
       event.preventDefault();
       this.activate(focusedIndex);
     }

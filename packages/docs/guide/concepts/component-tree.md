@@ -106,7 +106,10 @@ See [Instance methods — $query](/api/instance-methods.html#query-query) and [I
 When the DOM changes (elements added or removed), call `$update()` on the parent to re-evaluate the tree:
 
 ```js
-this.$el.insertAdjacentHTML('beforeend', '<div data-component="Child"></div>');
+this.$el.insertAdjacentHTML(
+  'beforeend',
+  '<div data-component="Child"></div>',
+);
 this.$update(); // Re-scans children, mounts new ones
 ```
 

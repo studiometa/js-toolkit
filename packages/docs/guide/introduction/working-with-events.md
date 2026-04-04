@@ -78,4 +78,3 @@ type EventHooksCallbackParams = {
 ---
 
 See also: [Event hooks](/api/methods-hooks-events.html) · [Instance events](/api/instance-events.html)
-

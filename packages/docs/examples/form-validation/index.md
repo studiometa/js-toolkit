@@ -20,8 +20,7 @@ Each field group includes an input and an error message element. Array refs (`fi
       type="text"
       name="name"
       required
-      data-rules="required|minLength:2"
-    />
+      data-rules="required|minLength:2" />
     <span data-ref="errors[]" class="error" aria-live="polite"></span>
   </div>
 
@@ -33,8 +32,7 @@ Each field group includes an input and an error message element. Array refs (`fi
       type="email"
       name="email"
       required
-      data-rules="required|email"
-    />
+      data-rules="required|email" />
     <span data-ref="errors[]" class="error" aria-live="polite"></span>
   </div>
 
@@ -45,8 +43,7 @@ Each field group includes an input and an error message element. Array refs (`fi
       id="message"
       name="message"
       required
-      data-rules="required|minLength:10"
-    ></textarea>
+      data-rules="required|minLength:10"></textarea>
     <span data-ref="errors[]" class="error" aria-live="polite"></span>
   </div>
 
@@ -158,7 +155,9 @@ export default class FormValidation extends Base {
 
       // Reset the form
       this.$el.reset();
-      this.$refs.errors.forEach((el) => { el.textContent = ''; });
+      this.$refs.errors.forEach((el) => {
+        el.textContent = '';
+      });
     }
   }
 }

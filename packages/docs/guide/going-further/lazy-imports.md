@@ -10,13 +10,13 @@ By default, all components are bundled together and loaded upfront. Lazy imports
 
 js-toolkit provides several helper functions to control exactly when a component's module is fetched:
 
-| Helper | Trigger |
-|---|---|
-| `importWhenVisible` | When the target element enters the viewport |
-| `importWhenIdle` | During browser idle time |
-| `importOnInteraction` | On a user interaction (e.g. `click`, `mouseover`) |
-| `importOnMediaQuery` | When a media query matches |
-| `importWhenPrefersMotion` | Only if the user hasn't disabled motion |
+| Helper                    | Trigger                                           |
+| ------------------------- | ------------------------------------------------- |
+| `importWhenVisible`       | When the target element enters the viewport       |
+| `importWhenIdle`          | During browser idle time                          |
+| `importOnInteraction`     | On a user interaction (e.g. `click`, `mouseover`) |
+| `importOnMediaQuery`      | When a media query matches                        |
+| `importWhenPrefersMotion` | Only if the user hasn't disabled motion           |
 
 ## Available strategies
 
@@ -68,7 +68,9 @@ class App extends Base {
     components: {
       // Import when the browser has spare cycles, with a 2 second deadline
       Analytics: () =>
-        importWhenIdle(() => import('./components/Analytics.js'), { timeout: 2000 }),
+        importWhenIdle(() => import('./components/Analytics.js'), {
+          timeout: 2000,
+        }),
     },
   };
 }
@@ -101,11 +103,10 @@ class App extends Base {
 Multiple events can be passed as an array:
 
 ```js
-importOnInteraction(
-  () => import('./components/Tooltip.js'),
-  '.has-tooltip',
-  ['mouseenter', 'focus'],
-);
+importOnInteraction(() => import('./components/Tooltip.js'), '.has-tooltip', [
+  'mouseenter',
+  'focus',
+]);
 ```
 
 ### `importOnMediaQuery`
@@ -142,7 +143,9 @@ class App extends Base {
     name: 'App',
     components: {
       ParallaxBackground: () =>
-        importWhenPrefersMotion(() => import('./components/ParallaxBackground.js')),
+        importWhenPrefersMotion(
+          () => import('./components/ParallaxBackground.js'),
+        ),
     },
   };
 }
