@@ -1,8 +1,8 @@
-import { describe, bench, beforeAll, afterAll } from 'vitest';
+import { describe, bench, afterAll } from 'vitest';
 import { Base } from '@studiometa/js-toolkit';
-import type { BaseProps, BaseConfig } from '@studiometa/js-toolkit';
+import type { BaseConfig } from '@studiometa/js-toolkit';
 import { getAllProperties } from '#private/utils/object/getAllProperties.js';
-import { getInstances, addInstance, deleteInstance, getComponentElements } from '#private/Base/utils.js';
+import { getInstances, addInstance, deleteInstance } from '#private/Base/utils.js';
 import { memo, memoize } from '@studiometa/js-toolkit/utils';
 import { SmartQueue } from '#private/utils/SmartQueue.js';
 

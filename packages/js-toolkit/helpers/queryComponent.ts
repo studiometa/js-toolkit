@@ -1,4 +1,4 @@
-import type { Base } from '../Base/index.js';
+import type { Base, BaseEl } from '../Base/index.js';
 import { getInstances } from '../Base/index.js';
 import { memo } from '../utils/memo.js';
 import { getAncestorWhere } from '../utils/dom/ancestors.js';
@@ -102,7 +102,7 @@ export function closestComponent<T extends Base = Base>(
     if (!element) return false;
 
     // Use the element's __base__ map for O(1) lookup by component name
-    const baseMap = (element as import('../Base/index.js').BaseEl).__base__;
+    const baseMap = (element as BaseEl).__base__;
     if (!baseMap) return false;
 
     const instance = baseMap.get(parsedQuery.name) as T;
@@ -112,7 +112,7 @@ export function closestComponent<T extends Base = Base>(
     }
 
     return false;
-  }) ?? undefined;
+  });
 
   return closestInstance;
 }

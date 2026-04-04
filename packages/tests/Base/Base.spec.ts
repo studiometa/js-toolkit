@@ -505,7 +505,7 @@ describe('A Base instance methods', () => {
   it('should register itself on instantiation', async () => {
     const TestComponent = withName(Base, 'TestComponent');
     const registry = globalThis.__JS_TOOLKIT_REGISTRY__;
-    const component = new TestComponent(h('div'));
+    new TestComponent(h('div'));
 
     expect(registry.has('TestComponent')).toBe(true);
     expect(registry.get('TestComponent')).toBe(TestComponent);
@@ -525,7 +525,7 @@ describe('A Base instance methods', () => {
     });
 
     const registry = globalThis.__JS_TOOLKIT_REGISTRY__;
-    const component = new Parent(h('div'));
+    new Parent(h('div'));
 
     // Check that it's in the registry
     expect(registry.has('Parent')).toBe(true);
