@@ -10,11 +10,11 @@ The core idea: your HTML is the source of truth. Components bind to it via `data
 
 Every concept in js-toolkit maps to a `data-*` attribute:
 
-| Concept | HTML attribute | Purpose |
-|---------|---------------|---------|
-| Component binding | `data-component="Name"` | Identifies which class manages this element |
-| Refs | `data-ref="name"` | Marks elements the component needs to access |
-| Options | `data-option-key="value"` | Passes configuration from HTML to JavaScript |
+| Concept           | HTML attribute            | Purpose                                      |
+| ----------------- | ------------------------- | -------------------------------------------- |
+| Component binding | `data-component="Name"`   | Identifies which class manages this element  |
+| Refs              | `data-ref="name"`         | Marks elements the component needs to access |
+| Options           | `data-option-key="value"` | Passes configuration from HTML to JavaScript |
 
 This approach has several advantages:
 
@@ -50,8 +50,10 @@ Alpine.js and Stimulus share js-toolkit's philosophy of enhancing server-rendere
 4. **TypeScript-first** — full type definitions for refs, options, children, and service props. Works with JSDoc too.
 
 ::: tip Further reading
+
 - [Getting Started](/guide/) — install and create your first component
 - [API Reference](/api/) — the complete `Base` class API
 - [Component Tree](/guide/concepts/component-tree.html) — how components are resolved and mounted
 - [Service Architecture](/guide/concepts/service-architecture.html) — the singleton service pattern
+
 :::

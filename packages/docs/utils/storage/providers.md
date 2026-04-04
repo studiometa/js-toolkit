@@ -4,12 +4,12 @@ Storage providers are the low-level adapters that read and write to a specific s
 
 ## Built-in providers
 
-| Provider | Backend | Sync event |
-|---|---|---|
-| `localStorageProvider` | `localStorage` | `storage` (cross-tab) |
-| `sessionStorageProvider` | `sessionStorage` | `storage` (cross-tab) |
-| `urlSearchParamsProvider` | URL search params | `popstate` |
-| `urlSearchParamsInHashProvider` | URL hash params | `hashchange` |
+| Provider                        | Backend           | Sync event            |
+| ------------------------------- | ----------------- | --------------------- |
+| `localStorageProvider`          | `localStorage`    | `storage` (cross-tab) |
+| `sessionStorageProvider`        | `sessionStorage`  | `storage` (cross-tab) |
+| `urlSearchParamsProvider`       | URL search params | `popstate`            |
+| `urlSearchParamsInHashProvider` | URL hash params   | `hashchange`          |
 
 ### Provider factories
 

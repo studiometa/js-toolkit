@@ -12,9 +12,7 @@ A custom service extends `AbstractService` and implements its own event handling
 import { AbstractService } from '@studiometa/js-toolkit/services';
 
 class OrientationService extends AbstractService {
-  static config = [
-    [() => window, [['deviceorientation']]],
-  ];
+  static config = [[() => window, [['deviceorientation']]]];
 
   props = {
     alpha: 0,
@@ -36,6 +34,7 @@ export function useOrientation() {
 ```
 
 The static `config` property defines which event listeners to attach. Each entry is a tuple of:
+
 1. A function returning the `EventTarget` (e.g. `window`, `document`, or any element)
 2. An array of `[eventName, options?]` tuples
 

@@ -187,4 +187,3 @@ class VideoPlayer extends Base {
 ---
 
 See also: [`data-option-*`](/api/html/data-option.html) · [Configuration — options](/api/configuration.html#config-options) · [`$options`](/api/instance-properties.html#options)
-
