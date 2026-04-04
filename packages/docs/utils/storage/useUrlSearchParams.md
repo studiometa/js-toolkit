@@ -37,6 +37,10 @@ import { useUrlSearchParams } from '@studiometa/js-toolkit/utils';
 const storage = useUrlSearchParams({ push: true });
 ```
 
+::: tip Values are JSON-serialized
+All values are serialized with `JSON.stringify` before being written to the URL. This means string values will include quotes in the URL (e.g. `?sort=%22price%22`). Use a custom `serializer` if you prefer raw strings in the URL.
+:::
+
 ## Parameters
 
 - `options` (`StorageOptions & UrlProviderOptions`): Optional configuration.
