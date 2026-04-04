@@ -136,7 +136,7 @@ export class AbstractService<PropsType = any> {
   /**
    * Implements the EventListenerObject interface.
    */
-  handleEvent(event: Event) {
+  handleEvent(_event: Event) {
     // Should be implemented.
   }
 

@@ -61,7 +61,6 @@ interface TreeNode {
  */
 function logNode(node: TreeNode): void {
   const { instance } = node;
-  const name = instance.$config.name;
   const mounted = instance.$isMounted;
   const status = mounted ? '●' : '○';
   const label = `${status} ${instance.$id}`;

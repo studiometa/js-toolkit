@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Base, withName } from '@studiometa/js-toolkit';
-import { h, mount, destroy } from '#test-utils';
+import { h, mount } from '#test-utils';
 
 describe('The `$query` method', () => {
   it('should return descendant instances matching the given query', async () => {
