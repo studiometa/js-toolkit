@@ -233,7 +233,7 @@ export const urlSearchParamsInHashProvider: StorageProvider = createUrlSearchPar
  * Storage instance interface for multi-key storage.
  */
 export interface StorageInstance<T = any> {
-  get<K extends keyof T>(key: K): T[K] | null;
+  get<K extends keyof T>(key: K): T[K] | undefined;
   get<K extends keyof T>(key: K, defaultValue: T[K]): T[K];
   set<K extends keyof T>(key: K, value: T[K] | null): void;
   has<K extends keyof T>(key: K): boolean;
@@ -241,7 +241,7 @@ export interface StorageInstance<T = any> {
   clear(): void;
   subscribe<K extends keyof T>(
     key: K,
-    callback: (value: T[K] | null) => void,
+    callback: (value: T[K] | undefined) => void,
   ): () => void;
   destroy(): void;
 }
@@ -280,11 +280,11 @@ export interface StorageOptions<T = any> {
  */
 const jsonSerializer: StorageSerializer = {
   serialize: <T>(value: T): string => JSON.stringify(value),
-  deserialize: <T>(value: string): T | null => {
+  deserialize: <T>(value: string): T | undefined => {
     try {
       return JSON.parse(value);
     } catch {
-      return null;
+      return undefined;
     }
   },
 };
@@ -320,7 +320,7 @@ export function createStorage<T extends Record<string, any> = Record<string, any
       // Find matching listener key (strip prefix)
       for (const [listenerKey, callbacks] of listeners) {
         if (resolveKey(listenerKey as string) === rawKey) {
-          const newValue = event.newValue ? serializer.deserialize(event.newValue) : null;
+          const newValue = event.newValue ? serializer.deserialize(event.newValue) : undefined;
           callbacks.forEach((callback) => callback(newValue));
           break;
         }
@@ -331,7 +331,7 @@ export function createStorage<T extends Record<string, any> = Record<string, any
     // For popstate/hashchange, re-read all listened keys from provider
     listeners.forEach((callbacks, key) => {
       const value = provider.get(resolveKey(key as string));
-      const newValue = value !== null ? serializer.deserialize(value) : null;
+      const newValue = value !== null ? serializer.deserialize(value) : undefined;
       callbacks.forEach((callback) => callback(newValue));
     });
   };
@@ -342,16 +342,15 @@ export function createStorage<T extends Record<string, any> = Record<string, any
   }
 
   return {
-    get<K extends keyof T>(key: K, defaultValue?: T[K]): T[K] | null {
+    get<K extends keyof T>(key: K, defaultValue?: T[K]): T[K] | undefined {
       const storedValue = provider.get(resolveKey(key as string));
       if (storedValue !== null) {
         const deserialized = serializer.deserialize(storedValue);
-        if (deserialized !== null) {
+        if (deserialized !== undefined) {
           return deserialized;
         }
-        // Deserialization failed (e.g. malformed JSON), fall through to default
       }
-      return defaultValue !== undefined ? defaultValue : null;
+      return defaultValue;
     },
 
     set<K extends keyof T>(key: K, value: T[K] | null): void {
@@ -391,13 +390,13 @@ export function createStorage<T extends Record<string, any> = Record<string, any
         provider.clear();
       }
 
-      // Notify all listeners with null
+      // Notify all listeners with undefined (keys removed)
       listeners.forEach((callbacks) => {
-        callbacks.forEach((callback) => callback(null));
+        callbacks.forEach((callback) => callback(undefined));
       });
     },
 
-    subscribe<K extends keyof T>(key: K, callback: (value: T[K] | null) => void): () => void {
+    subscribe<K extends keyof T>(key: K, callback: (value: T[K] | undefined) => void): () => void {
       if (!listeners.has(key)) {
         listeners.set(key, new Set());
       }
