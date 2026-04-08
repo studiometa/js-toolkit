@@ -7,7 +7,7 @@ Storage providers are the low-level adapters that read and write to a specific s
 | Provider                        | Backend           | Sync event            |
 | ------------------------------- | ----------------- | --------------------- |
 | `localStorageProvider`          | `localStorage`    | `storage` (cross-tab) |
-| `sessionStorageProvider`        | `sessionStorage`  | `storage` (cross-tab) |
+| `sessionStorageProvider`        | `sessionStorage`  | none                  |
 | `urlSearchParamsProvider`       | URL search params | `popstate`            |
 | `urlSearchParamsInHashProvider` | URL hash params   | `hashchange`          |
 
@@ -78,8 +78,8 @@ const storage = createStorage({ provider: cookieProvider });
 
 Providers can declare a `syncEvent` string to indicate which DOM event should trigger re-reading values for subscribed keys. When set, `createStorage` will automatically listen to this event on `window` and notify subscribers.
 
-- `'storage'` — for cross-tab sync (localStorage/sessionStorage)
+- `'storage'` — for cross-tab sync (`localStorage`)
 - `'popstate'` — for back/forward navigation (URL search params)
 - `'hashchange'` — for hash changes (URL hash params)
 - Any custom event name
-- `undefined` — no automatic sync
+- `undefined` — no automatic sync (used by `sessionStorageProvider`)

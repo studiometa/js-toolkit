@@ -52,7 +52,7 @@ const storage = createStorage<AppStorage>();
 storage.set('theme', 'dark'); // ✅ typed
 // @errors: 2345
 storage.set('theme', 'blue'); // ❌ type error
-storage.get('user'); // { name: string; id: number } | null
+storage.get('user'); // { name: string; id: number } | undefined
 ```
 
 ## Parameters
