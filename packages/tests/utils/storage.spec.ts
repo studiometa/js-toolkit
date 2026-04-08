@@ -58,14 +58,23 @@ describe('Storage utilities', () => {
       expect(storage.get('theme', 'light')).toBe('dark');
     });
 
-    it('should remove key when set to null', () => {
+    it('should support storing null as a value', () => {
+      type Storage = { theme: string | null };
+      const storage = createLocalStorage<Storage>();
+
+      storage.set('theme', null);
+      expect(storage.get('theme')).toBeNull();
+      expect(localStorage.getItem('theme')).toBe('null');
+    });
+
+    it('should remove key when delete() is called', () => {
       type Storage = { theme: string };
       const storage = createLocalStorage<Storage>();
 
       storage.set('theme', 'dark');
       expect(storage.get('theme')).toBe('dark');
 
-      storage.set('theme', null);
+      storage.delete('theme');
       expect(storage.get('theme')).toBeUndefined();
       expect(localStorage.getItem('theme')).toBeNull();
     });
@@ -104,6 +113,19 @@ describe('Storage utilities', () => {
       unsubscribe();
       storage.set('theme', 'light');
       expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should notify subscribers with undefined on delete()', () => {
+      type Storage = { theme: string | null };
+      const storage = createLocalStorage<Storage>();
+      const callback = vi.fn();
+
+      storage.subscribe('theme', callback);
+      storage.set('theme', null);
+      expect(callback).toHaveBeenCalledWith(null);
+
+      storage.delete('theme');
+      expect(callback).toHaveBeenLastCalledWith(undefined);
     });
 
     it('should use custom serializer', () => {
@@ -313,7 +335,7 @@ describe('Storage utilities', () => {
       storage.set('theme', 'dark');
       expect(localStorage.getItem('myapp:theme')).toBe(JSON.stringify('dark'));
 
-      storage.set('theme', null);
+      storage.delete('theme');
       expect(localStorage.getItem('myapp:theme')).toBeNull();
     });
   });
@@ -326,7 +348,7 @@ describe('Storage utilities', () => {
       expect(storage.has('theme')).toBe(false);
       storage.set('theme', 'dark');
       expect(storage.has('theme')).toBe(true);
-      storage.set('theme', null);
+      storage.delete('theme');
       expect(storage.has('theme')).toBe(false);
     });
 

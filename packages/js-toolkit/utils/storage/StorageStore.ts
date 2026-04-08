@@ -40,15 +40,15 @@ export class StorageStore<T extends Record<string, any> = Record<string, any>>
     return defaultValue;
   }
 
-  set<K extends keyof T>(key: K, value: T[K] | null): void {
+  set<K extends keyof T>(key: K, value: T[K]): void {
     const resolved = this.resolveKey(key as string);
-    if (value === null) {
-      this.provider.remove(resolved);
-    } else {
-      this.provider.set(resolved, this.serializer.serialize(value));
-    }
-
+    this.provider.set(resolved, this.serializer.serialize(value));
     this.listeners.get(key)?.forEach((callback) => callback(value));
+  }
+
+  delete<K extends keyof T>(key: K): void {
+    this.provider.remove(this.resolveKey(key as string));
+    this.listeners.get(key)?.forEach((callback) => callback(undefined));
   }
 
   has<K extends keyof T>(key: K): boolean {

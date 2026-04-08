@@ -12,7 +12,8 @@ export interface StorageProvider {
 export interface StorageInstance<T = any> {
   get<K extends keyof T>(key: K): T[K] | undefined;
   get<K extends keyof T>(key: K, defaultValue: T[K]): T[K];
-  set<K extends keyof T>(key: K, value: T[K] | null): void;
+  set<K extends keyof T>(key: K, value: T[K]): void;
+  delete<K extends keyof T>(key: K): void;
   has<K extends keyof T>(key: K): boolean;
   keys(): (keyof T)[];
   clear(): void;
