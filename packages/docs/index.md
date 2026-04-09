@@ -8,9 +8,9 @@ hero:
   text: A data-attributes driven micro framework
   tagline: Write JavaScript components as classes and bind them to the DOM with data-attributes
   image:
-    light: /hero.webp
-    dark: /hero-dark.webp
-    alt: Abstract illustration of a developer toolkit with gears, wrenches and code brackets
+    light: /hero-light.png
+    dark: /hero-dark.png
+    alt: Hero illustration for the JS Toolkit documentation
   actions:
     - theme: brand
       text: Get Started
