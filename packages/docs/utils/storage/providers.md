@@ -7,6 +7,7 @@ Storage providers are the low-level adapters that read and write to a specific s
 | Provider                        | Backend                     | Sync event            |
 | ------------------------------- | --------------------------- | --------------------- |
 | `localStorageProvider`          | `globalThis.localStorage`   | `storage` (cross-tab) |
+| `memoryStorageProvider`         | in-memory `Map`             | none                  |
 | `sessionStorageProvider`        | `globalThis.sessionStorage` | none                  |
 | `urlSearchParamsProvider`       | URL search params           | `popstate`            |
 | `urlSearchParamsInHashProvider` | URL hash params             | `hashchange`          |
@@ -19,6 +20,7 @@ All built-in providers also have factory functions:
 
 - `createNoopProvider()`
 - `createLocalStorageProvider()`
+- `createMemoryStorageProvider()`
 - `createSessionStorageProvider()`
 - `createUrlSearchParamsProvider(options?)`
 - `createUrlSearchParamsInHashProvider(options?)`
@@ -31,6 +33,7 @@ The URL-based factories accept a `push` option to customize navigation behavior.
 // @twoslash-cache: {"v":1,"hash":"90ef5b3acd98c5ace6e14b8466f5416ce19de7d1fba0875819c96dfe5a9a7b0b","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvEaRjMaAVVKsAynNIj8ABWalmAWzhbSxdrFKMsJombIB5LOMlwA/Il5LWx0+YdOwPO4qaBB6AOYw3jbmADpg7PpYoWjSsvIwnmq6mjp6hlG25FRQECIIiCAAwmk0vMweAEoAMlka2roGcLxWPmQAdJTUzGHlyMggWB36gz3R9o4SAbx+i138obxo+DDd1oUDALoU47JogqQBlGCCrKwHRyBwaLoMiACMb1SsMGBhW0gAJgAnFRnqQIq8QDI5IplK0clMjHtzIMOGBcO8qJoOmIyICAL4UdDYDEEYh40F0SEsDhcPhCUT+VIwjJw9QIvJwACSYAAElxtMiyJYhaQVs43B5lAVfAtnNwgiFwpFRXEEklSCloelMuz2pyefy4ILekUQCUynhqiy6o0Wnrcp1eOwpPgBbtTQNQcNRuNJnkZqLxUtg2sNlsdrN9iAjicYGcLggKNdbvcqE8XkgACxZr4/P74JAAZgArN7wfG8NrYaoHYjDQKZRSQGiMQCsW69LjyIgAYTiTg8IQSGaaPQq84UlhBMam6RFaFhirTQAeJ6kF1hAB8gwzmqQbwAHJ8W/n/u920MK5Dp7PRaiXRiAGwdnE0HtP/vUElD8mjqlMGwnA8MyOpstk+qdHOIqmqGkqeHOoYKrwwSLhEc5qokySgTW8KQfk97FKU5RVDUOz1AozR4Y6hgenMpBekMIxIGMExTIGsFyiGXFhqQmzbHR0axiApznJcyY3HcDx7q8bxAi+p6/OewLlhCVZkbqEE0UipoPuiSAKdiXbvoCbxfpgg4VMOzZjtSPQ4JqGB8AhQY8X0t74JKABGEAQN8zBSAAPrwwiwPwj5QIMFokQA6tsEZ8SEIVwDsAAGHnBOkqXOgENDMFAvAQPwvCpbIWCsMwIgwJlNCpYxzzMSg4xhcwNwMFQ/BsClMbSWCrwAgCh55kphaILmV5qRUHl6c+r7GXiiAlkW5k/lZf6DLZE65d0M74EaJr0QuypzmuaAbr8O7pn1gJZiCikFgeClgpNEy7ftc4zUgADsc2VSZiCfkS36WWSI4bQBFQ0sBfDVqytZafWfKNqKMH0XB7guZx/iBChSpLhh8RYZqOFw9RiPvYR5rEVaZG2pR9oI5yOW8G6xqCeY9U+ixfrsVQUaytjyw8QI4YCfz/QxscInxmJSYplJV2Zr2T5Dfd56lqplYVLDmltNpDZ3rpXyPt9v3doCJYrSD1n/uOkP2WQmDOdKrnY+5u3eb5/lBSFYBhRFUXUxUcXxtsiUQMlaUZc8tU5U8cgFUVJVlRVVU1TAdUbVzTXmjAnVtYMnWsN1aaPNdiBFgADAp3wjdmms3rtn2ID9UKdn9C1PstDwiNApLqthwBxLwJO6xyUGihQw+j+Bevk8jppT2A+ICCY+i8AA5AAAk8ghQBI+jxswAD0ABWcAALQhH5ADW7BoMfgjiMXG8ANxxHEx/Hx4KVdNH6RxzyonYqEZeAtTarwFOlVqoxxgHEXu20PJzl4AAXhnvDOenJoLAB2sadwZ1BA7HxNwd+ohJy4L2gveiqD0FkwNEjQ29FGA4I8vg0ghDeDENfoMQ+zwkCgCpD8OAiw8DnxAPifEQA=="}
 import {
   createLocalStorageProvider,
+  createMemoryStorageProvider,
   createNoopProvider,
   createSessionStorageProvider,
   createUrlSearchParamsProvider,
@@ -39,6 +42,7 @@ import {
 
 const noopProvider = createNoopProvider();
 const localProvider = createLocalStorageProvider();
+const memoryProvider = createMemoryStorageProvider();
 const sessionProvider = createSessionStorageProvider();
 
 // Uses pushState instead of the default replaceState

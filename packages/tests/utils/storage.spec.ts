@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   createLocalStorage,
+  createMemoryStorageProvider,
   createSessionStorage,
   createUrlSearchParamsStorage,
   createUrlSearchParamsInHashStorage,
@@ -8,6 +9,7 @@ import {
   createUrlSearchParamsProvider,
   createUrlSearchParamsInHashProvider,
   localStorageProvider,
+  memoryStorageProvider,
   sessionStorageProvider,
   urlSearchParamsProvider,
   urlSearchParamsInHashProvider,
@@ -510,6 +512,31 @@ describe('Storage utilities', () => {
 
     it('should not have syncEvent on sessionStorage provider (no cross-tab sync)', () => {
       expect(sessionStorageProvider.syncEvent).toBeUndefined();
+    });
+
+    it('should handle memoryStorage provider correctly', () => {
+      expect(memoryStorageProvider.get('non-existent')).toBeNull();
+      memoryStorageProvider.set('test', 'value');
+      expect(memoryStorageProvider.get('test')).toBe('value');
+      expect(memoryStorageProvider.has('test')).toBe(true);
+      expect(memoryStorageProvider.keys()).toEqual(['test']);
+      memoryStorageProvider.remove('test');
+      expect(memoryStorageProvider.has('test')).toBe(false);
+    });
+
+    it('should create isolated memory storage providers', () => {
+      const providerA = createMemoryStorageProvider();
+      const providerB = createMemoryStorageProvider();
+
+      providerA.set('test', 'a');
+      providerB.set('test', 'b');
+
+      expect(providerA.get('test')).toBe('a');
+      expect(providerB.get('test')).toBe('b');
+
+      providerA.clear();
+      expect(providerA.keys()).toEqual([]);
+      expect(providerB.keys()).toEqual(['test']);
     });
 
     it('should handle urlSearchParams provider correctly', () => {
