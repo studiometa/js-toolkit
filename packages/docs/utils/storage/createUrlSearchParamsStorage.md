@@ -2,6 +2,8 @@
 
 Create a storage instance backed by URL search params (`?key=value`). Useful for shareable UI state like filters, pagination, or sort order.
 
+This storage is browser-only: it requires `window.location` and `window.history`. The browser context is checked when the provider is created. In non-browser environments, it falls back to a no-op provider.
+
 By default, changes use `replaceState` to avoid polluting browser history. Use `{ push: true }` to create history entries instead.
 
 ## Usage
