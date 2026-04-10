@@ -8,11 +8,13 @@ export type {
 
 export {
   createLocalStorageProvider,
+  createMemoryStorageProvider,
   createNoopProvider,
   createSessionStorageProvider,
   createUrlSearchParamsInHashProvider,
   createUrlSearchParamsProvider,
   localStorageProvider,
+  memoryStorageProvider,
   sessionStorageProvider,
   urlSearchParamsInHashProvider,
   urlSearchParamsProvider,
