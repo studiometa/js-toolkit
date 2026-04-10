@@ -4,7 +4,7 @@ import { jsonSerializer } from './serializers.js';
 import type { StorageInstance, StorageOptions } from './types.js';
 
 export function createStorage<T extends Record<string, any> = Record<string, any>>(
-  options: StorageOptions<T> = {},
+  options: StorageOptions = {},
 ): StorageInstance<T> {
   const {
     provider = localStorageProvider,
