@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   createLocalStorage,
   createSessionStorage,
@@ -19,6 +19,11 @@ describe('Storage utilities', () => {
     sessionStorage.clear();
     window.history.replaceState({}, '', '/');
     window.location.hash = '';
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   describe('createLocalStorage', () => {
@@ -658,10 +663,6 @@ describe('Storage utilities', () => {
       const storage = createSessionStorage<Storage>();
       const addEventSpy = vi.spyOn(window, 'addEventListener');
 
-      // sessionStorage provider should not register a storage event listener
-      const storageListenerCalls = addEventSpy.mock.calls.filter(
-        ([event]) => event === 'storage',
-      );
       // Only localStorage instances should register storage listeners, not sessionStorage
       const callback = vi.fn();
       storage.subscribe('token', callback);
@@ -769,6 +770,62 @@ describe('Storage utilities', () => {
       expect(addEventSpy.mock.calls.length).toBe(callsBefore);
       addEventSpy.mockRestore();
       storage.destroy();
+    });
+  });
+
+  describe('provider environment detection', () => {
+    it('should resolve globalThis storage lazily', async () => {
+      const provider = (await import('#private/utils/storage/providers.ts')).localStorageProvider;
+      const getItem = vi.fn(() => 'value');
+      const setItem = vi.fn();
+      const removeItem = vi.fn();
+      const clear = vi.fn();
+      const fakeStorage = {
+        length: 1,
+        getItem,
+        setItem,
+        removeItem,
+        clear,
+        key: vi.fn((index: number) => (index === 0 ? 'theme' : null)),
+      } as unknown as Storage;
+
+      vi.stubGlobal('localStorage', fakeStorage);
+
+      expect(provider.get('theme')).toBe('value');
+      provider.set('theme', 'dark');
+      provider.remove('theme');
+      expect(provider.has('theme')).toBe(true);
+      expect(provider.keys()).toEqual(['theme']);
+      provider.clear();
+      expect(provider.storageArea).toBe(fakeStorage);
+      expect(setItem).toHaveBeenCalledWith('theme', 'dark');
+      expect(removeItem).toHaveBeenCalledWith('theme');
+      expect(clear).toHaveBeenCalled();
+    });
+
+    it('should no-op URL providers outside a browser context', async () => {
+      vi.stubGlobal('window', undefined);
+
+      const { createUrlSearchParamsProvider, createUrlSearchParamsInHashProvider } = await import(
+        '#private/utils/storage/providers.ts'
+      );
+
+      const searchProvider = createUrlSearchParamsProvider({ push: true });
+      const hashProvider = createUrlSearchParamsInHashProvider({ push: true });
+
+      expect(searchProvider.get('page')).toBeNull();
+      expect(searchProvider.has('page')).toBe(false);
+      expect(searchProvider.keys()).toEqual([]);
+      expect(() => searchProvider.set('page', '1')).not.toThrow();
+      expect(() => searchProvider.remove('page')).not.toThrow();
+      expect(() => searchProvider.clear()).not.toThrow();
+
+      expect(hashProvider.get('tab')).toBeNull();
+      expect(hashProvider.has('tab')).toBe(false);
+      expect(hashProvider.keys()).toEqual([]);
+      expect(() => hashProvider.set('tab', 'settings')).not.toThrow();
+      expect(() => hashProvider.remove('tab')).not.toThrow();
+      expect(() => hashProvider.clear()).not.toThrow();
     });
   });
 });
