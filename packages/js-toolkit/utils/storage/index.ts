@@ -7,6 +7,9 @@ export type {
 } from './types.js';
 
 export {
+  createLocalStorageProvider,
+  createNoopProvider,
+  createSessionStorageProvider,
   createUrlSearchParamsInHashProvider,
   createUrlSearchParamsProvider,
   localStorageProvider,
@@ -14,9 +17,10 @@ export {
   urlSearchParamsInHashProvider,
   urlSearchParamsProvider,
 } from './providers.js';
-export { createStorage } from './StorageStore.js';
+export { createStorage } from './createStorage.js';
 
 import type { StorageInstance, StorageOptions, UrlProviderOptions } from './types.js';
+import { createStorage } from './createStorage.js';
 import {
   createUrlSearchParamsInHashProvider,
   createUrlSearchParamsProvider,
@@ -25,7 +29,6 @@ import {
   urlSearchParamsInHashProvider,
   urlSearchParamsProvider,
 } from './providers.js';
-import { createStorage } from './StorageStore.js';
 
 export function createLocalStorage<T extends Record<string, any> = Record<string, any>>(
   options?: Omit<StorageOptions<T>, 'provider'>,
