@@ -1,6 +1,6 @@
 # createSessionStorage
 
-Create a storage instance backed by `sessionStorage`. Values persist for the duration of the page session.
+Create a storage instance backed by `globalThis.sessionStorage`. The underlying storage is resolved lazily from `globalThis` when the instance is used, so it can be imported before a browser-like global exists. Values persist for the duration of the page session when available.
 
 ## Usage
 

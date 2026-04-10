@@ -1,6 +1,6 @@
 # createLocalStorage
 
-Create a storage instance backed by `localStorage`. Values persist across page reloads and are synced across tabs via the `storage` event.
+Create a storage instance backed by `globalThis.localStorage`. The underlying storage is resolved lazily from `globalThis` when the instance is used, so it can be imported before a browser-like global exists. Values persist across page reloads and are synced across tabs via the `storage` event when available.
 
 ## Usage
 
