@@ -1,164 +1,200 @@
-import { hasWindow } from '../has.js';
 import type { StorageProvider, UrlProviderOptions } from './types.js';
+
+function getGlobalStorage(name: 'localStorage' | 'sessionStorage'): Storage | undefined {
+  return typeof globalThis !== 'undefined' && name in globalThis
+    ? globalThis[name]
+    : undefined;
+}
+
+function getStorageKeys(storage: Storage | undefined): string[] {
+  if (!storage) {
+    return [];
+  }
+
+  return Array.from({ length: storage.length }, (_, index) => storage.key(index)).filter(
+    (key): key is string => key !== null,
+  );
+}
+
+function createNoopProvider(): StorageProvider {
+  return {
+    get: () => null,
+    set: () => {},
+    remove: () => {},
+    has: () => false,
+    keys: () => [],
+    clear: () => {},
+  };
+}
+
+function getBrowserContext(): Pick<Window, 'location' | 'history'> | undefined {
+  if (typeof globalThis === 'undefined' || !('window' in globalThis)) {
+    return undefined;
+  }
+
+  const { window } = globalThis;
+
+  if (!window || !window.location || !window.history) {
+    return undefined;
+  }
+
+  return {
+    location: window.location,
+    history: window.history,
+  };
+}
 
 export const localStorageProvider: StorageProvider = {
   syncEvent: 'storage',
-  storageArea: hasWindow() ? localStorage : undefined,
+  get storageArea() {
+    return getGlobalStorage('localStorage');
+  },
   get(key: string): string | null {
-    if (!hasWindow()) return null;
-    return localStorage.getItem(key);
+    return getGlobalStorage('localStorage')?.getItem(key) ?? null;
   },
   set(key: string, value: string): void {
-    if (!hasWindow()) return;
-    localStorage.setItem(key, value);
+    getGlobalStorage('localStorage')?.setItem(key, value);
   },
   remove(key: string): void {
-    if (!hasWindow()) return;
-    localStorage.removeItem(key);
+    getGlobalStorage('localStorage')?.removeItem(key);
   },
   has(key: string): boolean {
-    if (!hasWindow()) return false;
-    return localStorage.getItem(key) !== null;
+    return getGlobalStorage('localStorage')?.getItem(key) !== null;
   },
   keys(): string[] {
-    if (!hasWindow()) return [];
-    return Object.keys(localStorage);
+    return getStorageKeys(getGlobalStorage('localStorage'));
   },
   clear(): void {
-    if (!hasWindow()) return;
-    localStorage.clear();
+    getGlobalStorage('localStorage')?.clear();
   },
 };
 
 export const sessionStorageProvider: StorageProvider = {
+  get storageArea() {
+    return getGlobalStorage('sessionStorage');
+  },
   get(key: string): string | null {
-    if (!hasWindow()) return null;
-    return sessionStorage.getItem(key);
+    return getGlobalStorage('sessionStorage')?.getItem(key) ?? null;
   },
   set(key: string, value: string): void {
-    if (!hasWindow()) return;
-    sessionStorage.setItem(key, value);
+    getGlobalStorage('sessionStorage')?.setItem(key, value);
   },
   remove(key: string): void {
-    if (!hasWindow()) return;
-    sessionStorage.removeItem(key);
+    getGlobalStorage('sessionStorage')?.removeItem(key);
   },
   has(key: string): boolean {
-    if (!hasWindow()) return false;
-    return sessionStorage.getItem(key) !== null;
+    return getGlobalStorage('sessionStorage')?.getItem(key) !== null;
   },
   keys(): string[] {
-    if (!hasWindow()) return [];
-    return Object.keys(sessionStorage);
+    return getStorageKeys(getGlobalStorage('sessionStorage'));
   },
   clear(): void {
-    if (!hasWindow()) return;
-    sessionStorage.clear();
+    getGlobalStorage('sessionStorage')?.clear();
   },
 };
 
 export function createUrlSearchParamsProvider(
   providerOptions: UrlProviderOptions = {},
 ): StorageProvider {
+  const browserContext = getBrowserContext();
+
+  if (!browserContext) {
+    return createNoopProvider();
+  }
+
   const { push = false } = providerOptions;
   const method = push ? 'pushState' : 'replaceState';
+  const { location, history } = browserContext;
 
   return {
     syncEvent: 'popstate',
     get(key: string): string | null {
-      if (!hasWindow()) return null;
-      return new URLSearchParams(window.location.search).get(key);
+      return new URLSearchParams(location.search).get(key);
     },
     set(key: string, value: string): void {
-      if (!hasWindow()) return;
-      const params = new URLSearchParams(window.location.search);
+      const params = new URLSearchParams(location.search);
       params.set(key, value);
-      const newUrl = `${window.location.pathname}?${params.toString()}${window.location.hash}`;
-      window.history[method]({}, '', newUrl);
+      const newUrl = `${location.pathname}?${params.toString()}${location.hash}`;
+      history[method]({}, '', newUrl);
     },
     remove(key: string): void {
-      if (!hasWindow()) return;
-      const params = new URLSearchParams(window.location.search);
+      const params = new URLSearchParams(location.search);
       params.delete(key);
       const search = params.toString();
-      const newUrl = `${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`;
-      window.history[method]({}, '', newUrl);
+      const newUrl = `${location.pathname}${search ? `?${search}` : ''}${location.hash}`;
+      history[method]({}, '', newUrl);
     },
     has(key: string): boolean {
-      if (!hasWindow()) return false;
-      return new URLSearchParams(window.location.search).has(key);
+      return new URLSearchParams(location.search).has(key);
     },
     keys(): string[] {
-      if (!hasWindow()) return [];
-      return [...new URLSearchParams(window.location.search).keys()];
+      return [...new URLSearchParams(location.search).keys()];
     },
     clear(): void {
-      if (!hasWindow()) return;
-      const newUrl = `${window.location.pathname}${window.location.hash}`;
-      window.history[method]({}, '', newUrl);
+      history[method]({}, '', `${location.pathname}${location.hash}`);
     },
   };
 }
 
 export const urlSearchParamsProvider: StorageProvider = createUrlSearchParamsProvider();
 
-function getParamsFromHash(): URLSearchParams | null {
-  if (!hasWindow()) return null;
-  return new URLSearchParams(window.location.hash.slice(1));
-}
-
 export function createUrlSearchParamsInHashProvider(
   providerOptions: UrlProviderOptions = {},
 ): StorageProvider {
+  const browserContext = getBrowserContext();
+
+  if (!browserContext) {
+    return createNoopProvider();
+  }
+
   const { push = false } = providerOptions;
+  const { location, history } = browserContext;
+
+  function getParamsFromHash(): URLSearchParams {
+    return new URLSearchParams(location.hash.slice(1));
+  }
 
   return {
     syncEvent: 'hashchange',
     get(key: string): string | null {
-      return getParamsFromHash()?.get(key) ?? null;
+      return getParamsFromHash().get(key);
     },
     set(key: string, value: string): void {
       const params = getParamsFromHash();
-      if (!params) return;
       params.set(key, value);
       const newHash = params.toString();
+
       if (push) {
-        window.location.hash = newHash;
+        location.hash = newHash;
       } else {
-        window.history.replaceState(
-          {},
-          '',
-          `${window.location.pathname}${window.location.search}#${newHash}`,
-        );
+        history.replaceState({}, '', `${location.pathname}${location.search}#${newHash}`);
       }
     },
     remove(key: string): void {
       const params = getParamsFromHash();
-      if (!params) return;
       params.delete(key);
       const newHash = params.toString();
+
       if (push) {
-        window.location.hash = newHash;
+        location.hash = newHash;
       } else {
         const url = newHash
-          ? `${window.location.pathname}${window.location.search}#${newHash}`
-          : `${window.location.pathname}${window.location.search}`;
-        window.history.replaceState({}, '', url);
+          ? `${location.pathname}${location.search}#${newHash}`
+          : `${location.pathname}${location.search}`;
+        history.replaceState({}, '', url);
       }
     },
     has(key: string): boolean {
-      return getParamsFromHash()?.has(key) ?? false;
+      return getParamsFromHash().has(key);
     },
     keys(): string[] {
-      const params = getParamsFromHash();
-      return params ? [...params.keys()] : [];
+      return [...getParamsFromHash().keys()];
     },
     clear(): void {
-      if (!hasWindow()) return;
       if (push) {
-        window.location.hash = '';
+        location.hash = '';
       } else {
-        window.history.replaceState({}, '', `${window.location.pathname}${window.location.search}`);
+        history.replaceState({}, '', `${location.pathname}${location.search}`);
       }
     },
   };
