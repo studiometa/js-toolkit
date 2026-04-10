@@ -51,10 +51,14 @@ The previous HTML example can be rewritten to:
     <title>App</title>
   </head>
   <body>
-    <div data-component="Component"></div> // [!code --]
-    <div data-component="CustomName"></div> // [!code --]
-    <tk-component></tk-component> // [!code ++]
-    <tk-custom-name></tk-custom-name> // [!code ++]
+    <div data-component="Component"></div>
+    // [!code --]
+    <div data-component="CustomName"></div>
+    // [!code --]
+    <tk-component></tk-component>
+    // [!code ++]
+    <tk-custom-name></tk-custom-name>
+    // [!code ++]
   </body>
 </html>
 ```
