@@ -31,19 +31,19 @@ import {
 } from './providers.js';
 
 export function createLocalStorage<T extends Record<string, any> = Record<string, any>>(
-  options?: Omit<StorageOptions<T>, 'provider'>,
+  options?: Omit<StorageOptions, 'provider'>,
 ): StorageInstance<T> {
   return createStorage({ ...options, provider: localStorageProvider });
 }
 
 export function createSessionStorage<T extends Record<string, any> = Record<string, any>>(
-  options?: Omit<StorageOptions<T>, 'provider'>,
+  options?: Omit<StorageOptions, 'provider'>,
 ): StorageInstance<T> {
   return createStorage({ ...options, provider: sessionStorageProvider });
 }
 
 export function createUrlSearchParamsStorage<T extends Record<string, any> = Record<string, any>>(
-  options?: Omit<StorageOptions<T>, 'provider'> & UrlProviderOptions,
+  options?: Omit<StorageOptions, 'provider'> & UrlProviderOptions,
 ): StorageInstance<T> {
   const { push, ...storageOptions } = options ?? {};
   return createStorage({
@@ -55,7 +55,7 @@ export function createUrlSearchParamsStorage<T extends Record<string, any> = Rec
 export function createUrlSearchParamsInHashStorage<
   T extends Record<string, any> = Record<string, any>,
 >(
-  options?: Omit<StorageOptions<T>, 'provider'> & UrlProviderOptions,
+  options?: Omit<StorageOptions, 'provider'> & UrlProviderOptions,
 ): StorageInstance<T> {
   const { push, ...storageOptions } = options ?? {};
   return createStorage({

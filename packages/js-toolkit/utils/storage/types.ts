@@ -29,7 +29,7 @@ export interface StorageSerializer {
   deserialize: (value: string) => any;
 }
 
-export interface StorageOptions<T = any> {
+export interface StorageOptions {
   provider?: StorageProvider;
   serializer?: StorageSerializer;
   prefix?: string;
