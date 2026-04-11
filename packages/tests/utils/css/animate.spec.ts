@@ -183,6 +183,49 @@ describe('The `animate` utility function', () => {
     expect(div.style.getPropertyValue('--var')).toBe('1');
   });
 
+  it('should use the latest progress value when progress is updated multiple times before flush', async () => {
+    const div = h('div');
+    const animation = animate(div, [{ opacity: 0 }, { opacity: 1 }]);
+
+    animation.progress(0.25);
+    animation.progress(0.75);
+    await advanceTimersByTimeAsync(16);
+
+    expect(div.style.opacity).toBe('0.75');
+  });
+
+  it('should resolve mixed dynamic translate units across multiple keyframe segments', async () => {
+    const div = h('div');
+    Object.defineProperties(div, {
+      offsetWidth: {
+        get() {
+          return 300;
+        },
+      },
+      offsetHeight: {
+        get() {
+          return 200;
+        },
+      },
+    });
+
+    const animation = animate(div, [
+      { x: 0, y: [0, '%'] },
+      { x: [100, '%'], y: 100, offset: 0.5 },
+      { x: [50, 'vw'], y: [100, '%'] },
+    ]);
+
+    animation.progress(0.25);
+    await advanceTimersByTimeAsync(16);
+    expect(div.style.transform.trim()).toBe('translate3d(150px, 50px, 0px)');
+
+    animation.progress(0.75);
+    await advanceTimersByTimeAsync(16);
+    expect(div.style.transform.trim()).toBe(
+      `translate3d(${(300 + window.innerWidth / 2) / 2}px, 150px, 0px)`,
+    );
+  });
+
   it('should be able to animate multiple elements', async () => {
     const div1 = h('div');
     const div2 = h('div');
