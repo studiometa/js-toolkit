@@ -44,6 +44,12 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
   __maxX = -1;
   __maxY = -1;
 
+  /**
+   * Observe scroll container size changes that do not trigger window resize.
+   * @private
+   */
+  __resizeObserver: ResizeObserver | null = null;
+
   props: ScrollServiceProps = {
     x: window.scrollX,
     y: window.scrollY,
@@ -147,6 +153,23 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
     if (event.type === 'scroll') {
       this.onScrollDebounced();
     }
+  }
+
+  init() {
+    super.init();
+
+    if (typeof ResizeObserver === 'function' && document.scrollingElement) {
+      this.__resizeObserver = new ResizeObserver(() => {
+        this.__updateMaxValues();
+      });
+      this.__resizeObserver.observe(document.scrollingElement);
+    }
+  }
+
+  kill() {
+    this.__resizeObserver?.disconnect();
+    this.__resizeObserver = null;
+    super.kill();
   }
 }
 
