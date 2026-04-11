@@ -234,6 +234,23 @@ describe('The `animate` utility function', () => {
     expect(div2.style.opacity).toBe('1');
   });
 
+  it('should use the maximum duration when mapping progress across multiple elements', async () => {
+    const div1 = h('div');
+    const div2 = h('div');
+    const div3 = h('div');
+
+    const animation = animate([div1, div2, div3], [{ opacity: 0 }, { opacity: 1 }], {
+      duration: (_el, index) => [3, 1, 2][index],
+    });
+
+    animation.progress(1);
+    await advanceTimersByTimeAsync(16);
+
+    expect(div1.style.opacity).toBe('1');
+    expect(div2.style.opacity).toBe('1');
+    expect(div3.style.opacity).toBe('1');
+  });
+
   it('should stop previous animations', async () => {
     const div = h('div');
     const animation1 = animate(div, [{ x: 0 }, { x: 100 }], { duration: 0.4 });
