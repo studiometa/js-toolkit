@@ -183,6 +183,23 @@ describe('The `animate` utility function', () => {
     expect(div.style.getPropertyValue('--var')).toBe('1');
   });
 
+  it('should keep custom properties stable when missing from the next keyframe', async () => {
+    const div = h('div');
+    const animation = animate(div, [
+      { '--var': 0, offset: 0 },
+      { '--var': 1, offset: 0.5 },
+      { opacity: 1, offset: 1 },
+    ]);
+
+    animation.progress(0.25);
+    await advanceTimersByTimeAsync(16);
+    expect(div.style.getPropertyValue('--var')).toBe('0.5');
+
+    animation.progress(0.75);
+    await advanceTimersByTimeAsync(16);
+    expect(div.style.getPropertyValue('--var')).toBe('1');
+  });
+
   it('should use the latest progress value when progress is updated multiple times before flush', async () => {
     const div = h('div');
     const animation = animate(div, [{ opacity: 0 }, { opacity: 1 }]);

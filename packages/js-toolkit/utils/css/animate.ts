@@ -215,9 +215,10 @@ function compileSegment(
   if (from.vars && to.vars) {
     for (const name of from.vars) {
       const startValue = from[name] as number;
+      const endValue = (to[name] as number | undefined) ?? startValue;
       customPropertyNames.push(name);
       customPropertyStarts.push(startValue);
-      customPropertyDeltas.push((to[name] as number) - startValue);
+      customPropertyDeltas.push(endValue - startValue);
     }
   }
 
