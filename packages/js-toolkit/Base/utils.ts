@@ -144,9 +144,9 @@ export function getInstances<T extends BaseConstructor = BaseConstructor>(
       }
     }
     return filteredInstances;
-  } else {
-    return getInstancesStorage();
   }
+
+  return new Set(getInstancesStorage());
 }
 
 export function getElements() {
