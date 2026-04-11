@@ -1,7 +1,14 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { useScroll } from '@studiometa/js-toolkit';
+import { ScrollService } from '#private/services/ScrollService.js';
 import { advanceTimersByTime, dispatch, useFakeTimers, useRealTimers } from '#test-utils';
 import { wait } from '#private/utils';
+
+const OriginalResizeObserver = globalThis.ResizeObserver;
+
+afterEach(() => {
+  globalThis.ResizeObserver = OriginalResizeObserver;
+});
 
 describe('The `useScroll` service', () => {
   it('should expose a single instance', () => {
@@ -139,5 +146,49 @@ describe('The `useScroll` service', () => {
     expect(service.props().direction.y).toBe('NONE');
 
     service.remove('key');
+  });
+
+  it('should update cached max values when the scrolling element size changes', async () => {
+    let resizeObserverCallback: (() => void) | undefined;
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+
+    globalThis.ResizeObserver = class ResizeObserver {
+      constructor(callback: () => void) {
+        resizeObserverCallback = callback;
+      }
+
+      observe = observe;
+      disconnect = disconnect;
+    } as unknown as typeof ResizeObserver;
+
+    let scrollHeight = window.innerHeight * 2;
+    let scrollWidth = window.innerWidth * 2;
+    const spyWidth = vi.spyOn(document.scrollingElement, 'scrollWidth', 'get');
+    spyWidth.mockImplementation(() => scrollWidth);
+    const spyHeight = vi.spyOn(document.scrollingElement, 'scrollHeight', 'get');
+    spyHeight.mockImplementation(() => scrollHeight);
+
+    const instance = new ScrollService();
+    instance.add('key', vi.fn());
+
+    expect(observe).toHaveBeenCalledWith(document.scrollingElement);
+
+    dispatch(document, 'scroll');
+    await wait();
+    expect(instance.props.maxY).toBe(window.innerHeight);
+    expect(instance.props.maxX).toBe(window.innerWidth);
+
+    scrollHeight = window.innerHeight * 3;
+    scrollWidth = window.innerWidth * 3;
+    resizeObserverCallback?.();
+
+    dispatch(document, 'scroll');
+    await wait();
+    expect(instance.props.maxY).toBe(window.innerHeight * 2);
+    expect(instance.props.maxX).toBe(window.innerWidth * 2);
+
+    instance.remove('key');
+    expect(disconnect).toHaveBeenCalledTimes(1);
   });
 });
