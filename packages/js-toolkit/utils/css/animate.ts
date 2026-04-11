@@ -414,7 +414,6 @@ export function animate(
   const progresses: number[] = [];
   const timings: [Duration, Delay, DurationWithDelay][] = [];
   let duration = 0;
-  let previousTimings = [0, 0, 0];
   let progressSum = 0;
   let elementCount = 0;
 
@@ -430,12 +429,10 @@ export function animate(
 
     timings[index] = [itemOptions.duration, delay, itemOptions.duration + delay];
 
-    if (timings[index][2] > previousTimings[2]) {
+    if (timings[index][2] > duration) {
       // eslint-disable-next-line prefer-destructuring
       duration = timings[index][2];
     }
-
-    previousTimings = timings[index];
 
     progresses[index] = 0;
     elementCount = index + 1;
