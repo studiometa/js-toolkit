@@ -96,14 +96,13 @@ describe('The `useScroll` service', () => {
     spyWidth.mockImplementation(() => window.innerWidth);
     const spyHeight = vi.spyOn(document.scrollingElement, 'scrollHeight', 'get');
     spyHeight.mockImplementation(() => window.innerHeight);
-    const service = useScroll();
-    const fn = vi.fn();
-    service.add('key', fn);
+    const instance = new ScrollService();
+    instance.add('key', vi.fn());
     dispatch(document, 'scroll');
     await wait();
-    expect(service.props().maxX).toBe(0);
-    expect(service.props().maxY).toBe(0);
-    service.remove('key');
+    expect(instance.props.maxX).toBe(0);
+    expect(instance.props.maxY).toBe(0);
+    instance.remove('key');
   });
 
   it('should update the direction accordingly', async () => {
@@ -190,5 +189,51 @@ describe('The `useScroll` service', () => {
 
     instance.remove('key');
     expect(disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not trigger scroll subscribers on resize', async () => {
+    const service = useScroll();
+    const fn = vi.fn();
+    service.add('key', fn);
+
+    dispatch(window, 'resize');
+    await wait();
+
+    expect(fn).not.toHaveBeenCalled();
+
+    service.remove('key');
+  });
+
+  it('should keep cached negative max values without recomputing on every scroll', async () => {
+    let scrollWidthReads = 0;
+    let scrollHeightReads = 0;
+
+    const spyWidth = vi.spyOn(document.scrollingElement, 'scrollWidth', 'get');
+    spyWidth.mockImplementation(() => {
+      scrollWidthReads += 1;
+      return window.innerWidth - 10;
+    });
+    const spyHeight = vi.spyOn(document.scrollingElement, 'scrollHeight', 'get');
+    spyHeight.mockImplementation(() => {
+      scrollHeightReads += 1;
+      return window.innerHeight - 10;
+    });
+
+    const instance = new ScrollService();
+    instance.add('key', vi.fn());
+
+    dispatch(document, 'scroll');
+    await wait();
+    const readsAfterFirstScroll = [scrollWidthReads, scrollHeightReads];
+
+    dispatch(document, 'scroll');
+    await wait();
+
+    expect(instance.props.maxX).toBe(-10);
+    expect(instance.props.maxY).toBe(-10);
+    expect(scrollWidthReads).toBe(readsAfterFirstScroll[0]);
+    expect(scrollHeightReads).toBe(readsAfterFirstScroll[1]);
+
+    instance.remove('key');
   });
 });

@@ -41,8 +41,8 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
    * Cached scroll max values, updated on resize and first scroll.
    * @private
    */
-  __maxX = -1;
-  __maxY = -1;
+  __maxX: number | null = null;
+  __maxY: number | null = null;
 
   /**
    * Observe scroll container size changes that do not trigger window resize.
@@ -106,7 +106,7 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
     props.last.y = props.lastY = yLast;
     props.delta.x = props.deltaX = props.x - xLast;
     props.delta.y = props.deltaY = props.y - yLast;
-    if (this.__maxX < 0) {
+    if (this.__maxX === null || this.__maxY === null) {
       this.__updateMaxValues();
     }
     props.max.x = props.maxX = this.__maxX;
@@ -125,8 +125,12 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
     return props;
   }
 
-  update() {
-    nextTick(() => this.updateProps()).then(() => this.trigger(this.props));
+  update(trigger = true) {
+    nextTick(() => this.updateProps()).then(() => {
+      if (trigger) {
+        this.trigger(this.props);
+      }
+    });
   }
 
   onScrollDebounced = debounce(() => {
@@ -148,11 +152,12 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
   handleEvent(event: Event) {
     if (event.type === 'resize') {
       this.__updateMaxValues();
+      this.update(false);
+      return;
     }
+
     this.update();
-    if (event.type === 'scroll') {
-      this.onScrollDebounced();
-    }
+    this.onScrollDebounced();
   }
 
   init() {
