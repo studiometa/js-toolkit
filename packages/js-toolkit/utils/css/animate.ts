@@ -293,6 +293,14 @@ function renderSegment(
       opacity = '';
     }
 
+    // Compute transform origin
+    let transformOrigin: false | string = false;
+    if (segment.transformOrigin !== false) {
+      transformOrigin = segment.transformOrigin;
+    } else if (element.style.transformOrigin) {
+      transformOrigin = '';
+    }
+
     // Compute CSS custom properties
     const hasCustomProperties = segment.customPropertyNames.length > 0;
 
@@ -301,10 +309,8 @@ function renderSegment(
         // @ts-ignore
         element.style.opacity = opacity;
       }
-      if (segment.transformOrigin !== false) {
-        element.style.transformOrigin = segment.transformOrigin;
-      } else if (element.style.transformOrigin) {
-        element.style.transformOrigin = '';
+      if (transformOrigin !== false) {
+        element.style.transformOrigin = transformOrigin;
       }
       if (hasCustomProperties) {
         for (let i = 0; i < segment.customPropertyNames.length; i++) {
