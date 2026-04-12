@@ -27,17 +27,24 @@ export class RafService extends AbstractService<RafServiceProps> {
   };
 
   trigger(props: RafServiceProps) {
-    for (const callback of this.callbacks.values()) {
-      this.scheduler.read(() => {
-        const render = callback(props) as (() => unknown) | void;
+    this.scheduler.read(() => {
+      const writeQueue: Array<(props: RafServiceProps) => unknown> = [];
+
+      for (const callback of this.callbacks.values()) {
+        const render = callback(props) as ((props: RafServiceProps) => unknown) | void;
         if (isFunction(render)) {
-          this.scheduler.write(() => {
-            // @ts-ignore
-            render(props);
-          });
+          writeQueue.push(render);
         }
-      });
-    }
+      }
+
+      if (writeQueue.length > 0) {
+        this.scheduler.write(() => {
+          for (let i = 0; i < writeQueue.length; i++) {
+            writeQueue[i](props);
+          }
+        });
+      }
+    });
   }
 
   loop() {

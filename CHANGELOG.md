@@ -8,6 +8,18 @@ All notable changes to this project will be documented in this file. The format 
 
 - Add browser storage utilities: `createStorage`, `useLocalStorage`, `useSessionStorage`, `useUrlSearchParams`, `useUrlSearchParamsInHash` ([#671](https://github.com/studiometa/js-toolkit/pull/671))
 - Add `logTree` helper to inspect the component tree from the console ([#654](https://github.com/studiometa/js-toolkit/pull/654))
+- Add performance benchmarks for tween, animate, transform, services and Base internals ([#722](https://github.com/studiometa/js-toolkit/pull/722))
+- Add CodSpeed CI integration for continuous performance tracking ([#723](https://github.com/studiometa/js-toolkit/pull/723))
+
+### Changed
+
+- **Performance**
+  - Improve `animate` progress updates by pre-computing keyframe deltas at creation time ([#721](https://github.com/studiometa/js-toolkit/pull/721), [ca72182c](https://github.com/studiometa/js-toolkit/commit/ca72182c))
+  - Improve `RafService.trigger` by batching scheduler calls, reducing closure creation from 2N to 2 per cycle ([#721](https://github.com/studiometa/js-toolkit/pull/721), [d4f96331](https://github.com/studiometa/js-toolkit/commit/d4f96331))
+  - Improve `ScrollService.updateProps` by caching scroll max values and updating on resize only ([#721](https://github.com/studiometa/js-toolkit/pull/721), [d5939211](https://github.com/studiometa/js-toolkit/commit/d5939211))
+  - Improve `transform` and `tween` by replacing `isDefined()` with inline `!== undefined` checks ([#721](https://github.com/studiometa/js-toolkit/pull/721), [e580bfee](https://github.com/studiometa/js-toolkit/commit/e580bfee), [1fc79012](https://github.com/studiometa/js-toolkit/commit/1fc79012))
+  - Improve `getAllProperties` by replacing O(n²) array spread with O(n) push ([#721](https://github.com/studiometa/js-toolkit/pull/721), [3dea1808](https://github.com/studiometa/js-toolkit/commit/3dea1808))
+  - Improve `getInstances` by returning storage Set directly instead of copying ([#721](https://github.com/studiometa/js-toolkit/pull/721), [221be81e](https://github.com/studiometa/js-toolkit/commit/221be81e))
 
 ### Fixed
 

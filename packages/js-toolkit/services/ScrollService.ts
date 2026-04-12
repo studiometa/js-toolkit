@@ -32,7 +32,23 @@ export interface ScrollServiceProps {
 export type ScrollServiceInterface = ServiceInterface<ScrollServiceProps>;
 
 export class ScrollService extends AbstractService<ScrollServiceProps> {
-  static config: ServiceConfig = [[() => document, [['scroll', PASSIVE_CAPTURE_EVENT_OPTIONS]]]];
+  static config: ServiceConfig = [
+    [() => document, [['scroll', PASSIVE_CAPTURE_EVENT_OPTIONS]]],
+    [() => window, [['resize', PASSIVE_CAPTURE_EVENT_OPTIONS]]],
+  ];
+
+  /**
+   * Cached scroll max values, updated on resize and first scroll.
+   * @private
+   */
+  __maxX: number | null = null;
+  __maxY: number | null = null;
+
+  /**
+   * Observe scroll container size changes that do not trigger window resize.
+   * @private
+   */
+  __resizeObserver: ResizeObserver | null = null;
 
   props: ScrollServiceProps = {
     x: window.scrollX,
@@ -90,8 +106,11 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
     props.last.y = props.lastY = yLast;
     props.delta.x = props.deltaX = props.x - xLast;
     props.delta.y = props.deltaY = props.y - yLast;
-    props.max.x = props.maxX = document.scrollingElement.scrollWidth - window.innerWidth;
-    props.max.y = props.maxY = document.scrollingElement.scrollHeight - window.innerHeight;
+    if (this.__maxX === null || this.__maxY === null) {
+      this.__updateMaxValues();
+    }
+    props.max.x = props.maxX = this.__maxX;
+    props.max.y = props.maxY = this.__maxY;
     props.progress.x = props.progressX = props.max.x === 0 ? 1 : props.x / props.max.x;
     props.progress.y = props.progressY = props.max.y === 0 ? 1 : props.y / props.max.y;
     props.isUp = props.y < yLast;
@@ -106,8 +125,12 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
     return props;
   }
 
-  update() {
-    nextTick(() => this.updateProps()).then(() => this.trigger(this.props));
+  update(trigger = true) {
+    nextTick(() => this.updateProps()).then(() => {
+      if (trigger) {
+        this.trigger(this.props);
+      }
+    });
   }
 
   onScrollDebounced = debounce(() => {
@@ -115,11 +138,43 @@ export class ScrollService extends AbstractService<ScrollServiceProps> {
   }, 100);
 
   /**
-   * Scroll handler.
+   * Update cached max scroll values on resize.
+   * @private
    */
-  handleEvent() {
+  __updateMaxValues() {
+    this.__maxX = document.scrollingElement.scrollWidth - window.innerWidth;
+    this.__maxY = document.scrollingElement.scrollHeight - window.innerHeight;
+  }
+
+  /**
+   * Scroll and resize handler.
+   */
+  handleEvent(event: Event) {
+    if (event.type === 'resize') {
+      this.__updateMaxValues();
+      this.update(false);
+      return;
+    }
+
     this.update();
     this.onScrollDebounced();
+  }
+
+  init() {
+    super.init();
+
+    if (typeof ResizeObserver === 'function' && document.scrollingElement) {
+      this.__resizeObserver = new ResizeObserver(() => {
+        this.__updateMaxValues();
+      });
+      this.__resizeObserver.observe(document.scrollingElement);
+    }
+  }
+
+  kill() {
+    this.__resizeObserver?.disconnect();
+    this.__resizeObserver = null;
+    super.kill();
   }
 }
 

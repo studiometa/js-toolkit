@@ -27,9 +27,9 @@ export function getAllProperties(
     foundProps = foundProps.filter((name) => testFn(name, proto));
   }
 
-  const formatedProps = foundProps
-    .map<[string, unknown]>((name) => [name, proto])
-    .reduce<Array<[string, unknown]>>((acc, val) => [...acc, val], props);
+  for (const name of foundProps) {
+    props.push([name, proto]);
+  }
 
-  return getAllProperties(proto, formatedProps, testFn);
+  return getAllProperties(proto, props, testFn);
 }
