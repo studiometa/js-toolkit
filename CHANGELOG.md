@@ -14,15 +14,17 @@ All notable changes to this project will be documented in this file. The format 
 ### Changed
 
 - **Performance**
-  - Improve `animate` progress updates by pre-computing keyframe deltas at creation time ([#721](https://github.com/studiometa/js-toolkit/pull/721), [ca72182c](https://github.com/studiometa/js-toolkit/commit/ca72182c))
-  - Improve `RafService.trigger` by batching scheduler calls, reducing closure creation from 2N to 2 per cycle ([#721](https://github.com/studiometa/js-toolkit/pull/721), [d4f96331](https://github.com/studiometa/js-toolkit/commit/d4f96331))
-  - Improve `ScrollService.updateProps` by caching scroll max values and updating on resize only ([#721](https://github.com/studiometa/js-toolkit/pull/721), [d5939211](https://github.com/studiometa/js-toolkit/commit/d5939211))
-  - Improve `transform` and `tween` by replacing `isDefined()` with inline `!== undefined` checks ([#721](https://github.com/studiometa/js-toolkit/pull/721), [e580bfee](https://github.com/studiometa/js-toolkit/commit/e580bfee), [1fc79012](https://github.com/studiometa/js-toolkit/commit/1fc79012))
-  - Improve `getAllProperties` by replacing O(n²) array spread with O(n) push ([#721](https://github.com/studiometa/js-toolkit/pull/721), [3dea1808](https://github.com/studiometa/js-toolkit/commit/3dea1808))
-  - Improve `getInstances` by returning storage Set directly instead of copying ([#721](https://github.com/studiometa/js-toolkit/pull/721), [221be81e](https://github.com/studiometa/js-toolkit/commit/221be81e))
+  - Improve `animate` progress updates by pre-computing keyframe deltas at creation time and optimizing progress aggregation and hot-path reads ([#721](https://github.com/studiometa/js-toolkit/pull/721), [b86c67b2](https://github.com/studiometa/js-toolkit/commit/b86c67b2), [893c2e84](https://github.com/studiometa/js-toolkit/commit/893c2e84), [7fd6d4ea](https://github.com/studiometa/js-toolkit/commit/7fd6d4ea), [051c8f53](https://github.com/studiometa/js-toolkit/commit/051c8f53), [3f1e449e](https://github.com/studiometa/js-toolkit/commit/3f1e449e), [9a155066](https://github.com/studiometa/js-toolkit/commit/9a155066))
+  - Improve `RafService.trigger` by batching scheduler calls, reducing closure creation from 2N to 2 per cycle ([#721](https://github.com/studiometa/js-toolkit/pull/721), [4704b1a8](https://github.com/studiometa/js-toolkit/commit/4704b1a8))
+  - Improve `ScrollService.updateProps` by caching scroll max values and refreshing them on resize and scrolling-element size changes ([#721](https://github.com/studiometa/js-toolkit/pull/721), [001fbbef](https://github.com/studiometa/js-toolkit/commit/001fbbef), [d7352b26](https://github.com/studiometa/js-toolkit/commit/d7352b26), [b8b6cc8e](https://github.com/studiometa/js-toolkit/commit/b8b6cc8e))
+  - Improve `transform` and `tween` by replacing `isDefined()` with inline `!== undefined` checks ([#721](https://github.com/studiometa/js-toolkit/pull/721), [cdb5db8b](https://github.com/studiometa/js-toolkit/commit/cdb5db8b), [f6276353](https://github.com/studiometa/js-toolkit/commit/f6276353))
+  - Improve `getAllProperties` by replacing O(n²) array spread with O(n) push ([#721](https://github.com/studiometa/js-toolkit/pull/721), [d52459f6](https://github.com/studiometa/js-toolkit/commit/d52459f6))
 
 ### Fixed
 
+- **Performance**
+  - Keep `getInstances()` defensive copy to avoid exposing internal mutable storage ([#721](https://github.com/studiometa/js-toolkit/pull/721), [104eee26](https://github.com/studiometa/js-toolkit/commit/104eee26))
+  - Fix `animate()` custom property compilation when a property is missing from the next keyframe ([#721](https://github.com/studiometa/js-toolkit/pull/721), [d16c334e](https://github.com/studiometa/js-toolkit/commit/d16c334e))
 - Fix `closestComponent` returning non-ancestor instances ([#724](https://github.com/studiometa/js-toolkit/pull/724), [e027c616](https://github.com/studiometa/js-toolkit/commit/e027c616))
 
 ## [v3.5.0](https://github.com/studiometa/js-toolkit/compare/3.4.3..3.5.0) (2026-03-25)
