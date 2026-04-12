@@ -55,7 +55,7 @@ export function queryComponent<T extends Base = Base>(
 ): T | undefined {
   const parsedQuery = parseQuery(query);
   const { from = document } = options;
-  const instances = getInstances() as Set<T>;
+  const instances = getInstances() as ReadonlySet<T>;
 
   for (const instance of instances) {
     if (!instanceIsMatching(instance, parsedQuery)) continue;
@@ -74,7 +74,7 @@ export function queryComponentAll<T extends Base = Base>(
 ): T[] {
   const parsedQuery = parseQuery(query);
   const { from = document } = options;
-  const instances = getInstances() as Set<T>;
+  const instances = getInstances() as ReadonlySet<T>;
   const selectedInstances = new Set<T>();
 
   for (const instance of instances) {

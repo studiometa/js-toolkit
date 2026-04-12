@@ -88,6 +88,17 @@ describe('The Base utils', () => {
       foo.$emit(new CustomEvent('before-mounted'));
       expect(getInstances().has(foo)).toBe(true);
     });
+
+    it('should return a defensive copy when no constructor is given', () => {
+      const Foo = withName(Base, 'Foo');
+      const foo = new Foo(h('div'));
+      foo.$emit(new CustomEvent('before-mounted'));
+
+      const instances = getInstances() as Set<Base>;
+      instances.clear();
+
+      expect(getInstances().has(foo)).toBe(true);
+    });
   });
 
   describe('The getElements function', () => {

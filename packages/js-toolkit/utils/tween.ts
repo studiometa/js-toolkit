@@ -1,6 +1,6 @@
 import { cubicBezier } from '@motionone/easing';
 import { lerp, map, clamp01, damp, inertiaFinalValue, spring } from './math/index.js';
-import { isDefined, isArray, isNumber } from './is.js';
+import { isArray, isNumber } from './is.js';
 import { noop, noopValue as linear } from './noop.js';
 import { useRaf } from '../services/RafService.js';
 import type { EasingFunction } from './math/createEases.js';
@@ -88,7 +88,7 @@ export interface TweenOptions {
  * Normalize a easing function with default fallbacks.
  */
 export function normalizeEase(ease: EasingFunction | BezierCurve): EasingFunction {
-  if (!isDefined(ease)) {
+  if (ease === undefined) {
     return linear;
   }
 
@@ -110,8 +110,8 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
   let easedProgress = 0;
   let velocity = 0;
 
-  const isSmooth = isDefined(options.smooth) && (isNumber(options.smooth) || options.smooth);
-  const isSpring = isDefined(options.spring) && (isNumber(options.spring) || options.spring);
+  const isSmooth = options.smooth !== undefined && (isNumber(options.smooth) || options.smooth);
+  const isSpring = options.spring !== undefined && (isNumber(options.spring) || options.spring);
   const stiffness = isNumber(options.spring) ? options.spring : 0.1;
   const mass = isNumber(options.mass) ? options.mass : 1;
   const damping = isNumber(options.smooth) ? options.smooth : 0.1;
@@ -146,7 +146,7 @@ export function tween(callback: (progress: number) => unknown, options: TweenOpt
    * Set the progress value.
    */
   function progress(newProgress: number) {
-    if (!isDefined(newProgress)) {
+    if (newProgress === undefined) {
       return easedProgress;
     }
 
