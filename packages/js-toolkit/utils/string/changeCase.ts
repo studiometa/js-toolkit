@@ -26,7 +26,7 @@ function split(value: string) {
   if (start === end) return [];
   while (result.charAt(end - 1) === '\0') end--;
 
-  return result.slice(start, end).split(/\0/g);
+  return result.slice(start, end).split('\0');
 }
 
 /**
