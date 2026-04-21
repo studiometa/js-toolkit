@@ -43,6 +43,7 @@ In addition to resolving components with the `data-component` attribute, the fra
 
 The previous HTML example can be rewritten to:
 
+<!-- prettier-ignore-start -->
 ```html
 <html>
   <head>
@@ -58,10 +59,11 @@ The previous HTML example can be rewritten to:
   </body>
 </html>
 ```
+<!-- prettier-ignore-end -->
 
 ## Multiple components on a single HTML element
 
-Mutliptle components can be declared on a single HTMLElement by declaring multiple names in the `data-component` attribute separated by a whitespace.
+Multiple components can be declared on a single HTMLElement by declaring multiple names in the `data-component` attribute separated by a whitespace.
 
 In the following example, both components from our previous app will be mounted on the same element.
 

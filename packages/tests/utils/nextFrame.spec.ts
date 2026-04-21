@@ -2,8 +2,25 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { nextFrame } from '@studiometa/js-toolkit/utils';
 import { useFakeTimers, useRealTimers, runAllTimers, advanceTimersByTime } from '#test-utils';
 
-beforeEach(() => useFakeTimers());
-afterEach(() => useRealTimers());
+let mockedHasWindow = true;
+
+vi.mock(import('#private/utils/has.js'), async (importOriginal) => {
+  const mod = await importOriginal();
+  return {
+    ...mod,
+    hasWindow: () => mockedHasWindow,
+  };
+});
+
+beforeEach(() => {
+  mockedHasWindow = true;
+  useFakeTimers();
+});
+
+afterEach(() => {
+  mockedHasWindow = true;
+  useRealTimers();
+});
 
 describe('nextFrame method', () => {
   it('should execute the callback function in the next frame', () => {
@@ -19,11 +36,9 @@ describe('nextFrame method', () => {
   });
 
   it('should work server-side', () => {
-    const fn = vi.fn();
-    vi.mock('../../js-toolkit/utils/has.js', () => ({
-      hasWindow: () => false,
-    }));
+    mockedHasWindow = false;
 
+    const fn = vi.fn();
     nextFrame(fn);
     expect(fn).toHaveBeenCalledTimes(0);
     advanceTimersByTime(16);
