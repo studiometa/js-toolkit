@@ -1,5 +1,5 @@
 import { clamp01, lerp, map } from '../math/index.js';
-import { isFunction, isNumber } from '../is.js';
+import { isFunction } from '../is.js';
 import { domScheduler as scheduler } from '../scheduler.js';
 import { tween, normalizeEase } from '../tween.js';
 import { eachElements } from './utils.js';
