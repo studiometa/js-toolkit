@@ -1,5 +1,11 @@
 # @studiometa/oxlint-plugin-js-toolkit
 
+[![NPM Version](https://img.shields.io/npm/v/@studiometa/oxlint-plugin-js-toolkit.svg?style=flat&colorB=3e63dd&colorA=414853)](https://www.npmjs.com/package/@studiometa/oxlint-plugin-js-toolkit/)
+[![Downloads](https://img.shields.io/npm/dm/@studiometa/oxlint-plugin-js-toolkit?style=flat&colorB=3e63dd&colorA=414853)](https://www.npmjs.com/package/@studiometa/oxlint-plugin-js-toolkit/)
+[![Size](https://img.shields.io/bundlephobia/minzip/@studiometa/oxlint-plugin-js-toolkit?style=flat&colorB=3e63dd&colorA=414853&label=size)](https://bundlephobia.com/package/@studiometa/js-toolkit)
+[![Dependency Status](https://img.shields.io/librariesio/release/npm/oxlint-plugin-js-toolkit?style=flat&colorB=3e63dd&colorA=414853)](https://david-dm.org/studiometa/js-toolkit)
+![Codecov](https://img.shields.io/codecov/c/github/studiometa/js-toolkit?style=flat&colorB=3e63dd&colorA=414853)
+
 Oxlint/ESLint plugin enforcing best practices for [@studiometa/js-toolkit](https://js-toolkit.studiometa.dev).
 
 ## Installation
