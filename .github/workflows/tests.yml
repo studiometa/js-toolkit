@@ -18,7 +18,7 @@ jobs:
           node-version: 24
           cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-progress --no-fund
       - name: Build
         run: npm run build
 
@@ -31,7 +31,7 @@ jobs:
           node-version: 24
           cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-progress --no-fund
       - name: Run code quality tests
         run: npm run lint:oxlint
       - name: Run types tests
@@ -61,7 +61,7 @@ jobs:
           node-version: 24
           cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-progress --no-fund
       - name: Run tests
         run: ${{ matrix.test-command }}
       - name: Upload coverage to Codecov
