@@ -3,7 +3,7 @@ import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext } from 
 const DEPRECATED = new Map([
   ['$parent', '$closest()'],
   ['$root', '$closest()'],
-  ['$children', '$query() or $queryAll()'],
+  ['$children', '$query()'],
 ]);
 
 export const noDeprecatedProperties = {
