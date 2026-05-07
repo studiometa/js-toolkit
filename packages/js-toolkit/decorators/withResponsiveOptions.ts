@@ -10,7 +10,7 @@ import { isDefined, isObject } from '../utils/index.js';
 /**
  * Extends the configuration of an existing class.
  * @link https://js-toolkit.studiometa.dev/api/decorators/withResponsiveOptions.html
-*/
+ */
 export function withResponsiveOptions<S extends Base>(
   BaseClass: typeof Base,
   { responsiveOptions = [] } = {},

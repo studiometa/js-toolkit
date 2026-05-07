@@ -2,7 +2,17 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "lib": ["ESNext", "dom", "dom.iterable", "ES2015", "ES2016", "ES2017", "ES2018", "ES2019", "ES2020"],
+    "lib": [
+      "ESNext",
+      "dom",
+      "dom.iterable",
+      "ES2015",
+      "ES2016",
+      "ES2017",
+      "ES2018",
+      "ES2019",
+      "ES2020"
+    ],
     "allowJs": true,
     "checkJs": true,
     "strict": false,
@@ -15,9 +25,5 @@
       "#test-utils": ["./packages/tests/__utils__/index.ts"]
     }
   },
-  "include": [
-    "packages/global.d.ts",
-    "packages/js-toolkit/**/*.ts",
-    "packages/tests/**/*.ts"
-  ]
+  "include": ["packages/global.d.ts", "packages/js-toolkit/**/*.ts", "packages/tests/**/*.ts"]
 }

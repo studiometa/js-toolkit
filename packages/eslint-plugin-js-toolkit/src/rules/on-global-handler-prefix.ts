@@ -1,4 +1,10 @@
-import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
+import {
+  isBaseSubclass,
+  findEnclosingClass,
+  type Node,
+  type RuleContext,
+  createRule,
+} from '../utils/ast.ts';
 
 // Events that only make sense on window/document, never on a DOM element.
 // Pointer, keyboard, and form events are intentionally excluded — they can all
@@ -33,7 +39,7 @@ export const onGlobalHandlerPrefix = createRule({
 
         const ancestors = context.getAncestors
           ? context.getAncestors()
-          : context.sourceCode?.getAncestors?.(node) ?? [];
+          : (context.sourceCode?.getAncestors?.(node) ?? []);
 
         const enclosingClass = findEnclosingClass(ancestors);
         if (!enclosingClass || !isBaseSubclass(enclosingClass, context)) return;

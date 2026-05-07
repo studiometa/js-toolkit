@@ -6,7 +6,7 @@
  * @param  ratio The ratio to get.
  * @return       The value between min and max corresponding to ratio.
  * @link https://js-toolkit.studiometa.dev/utils/math/lerp.html
-*/
+ */
 export function lerp(min: number, max: number, ratio: number) {
   return (1 - ratio) * min + ratio * max;
 }

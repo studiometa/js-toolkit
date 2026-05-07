@@ -8,7 +8,7 @@
  * @param  {number} outputMax The output's maximum value.
  * @return {number}           The input value mapped to the output range.
  * @link https://js-toolkit.studiometa.dev/utils/math/map.html
-*/
+ */
 export function map(
   value: number,
   inputMin: number,

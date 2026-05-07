@@ -15,7 +15,7 @@ export interface BaseInterface {
    * Trigger the `mounted` callback.
    * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#mount
    */
-  $mount?(): Promise<this>
+  $mount?(): Promise<this>;
 
   /**
    * Update the instance children.
@@ -62,7 +62,7 @@ export interface BaseInterface {
     event: string,
     listener: EventListenerOrEventListenerObject,
     options?: boolean | EventListenerOptions,
-  ): void
+  ): void;
 
   /**
    * Emits an event.
@@ -1231,7 +1231,9 @@ export interface BaseInterface {
    * Hook for the `securitypolicyviolation` event emitted on `document`.
    * @link https://js-toolkit.studiometa.dev/api/methods-hooks-events.html#on-event
    */
-  onDocumentSecuritypolicyviolation?(context: BaseEventHookParams<SecurityPolicyViolationEvent>): void;
+  onDocumentSecuritypolicyviolation?(
+    context: BaseEventHookParams<SecurityPolicyViolationEvent>,
+  ): void;
 
   /**
    * Hook for the `seeked` event emitted on `document`.
@@ -1389,7 +1391,7 @@ export interface BaseInterface {
    */
   onDocumentWheel?(context: BaseEventHookParams<WheelEvent>): void;
 
-     /**
+  /**
    * Hook for the `abort` event emitted on `window`.
    * @link https://js-toolkit.studiometa.dev/api/methods-hooks-events.html#on-event
    */
@@ -1861,7 +1863,9 @@ export interface BaseInterface {
    * Hook for the `securitypolicyviolation` event emitted on `window`.
    * @link https://js-toolkit.studiometa.dev/api/methods-hooks-events.html#on-event
    */
-  onWindowSecuritypolicyviolation?(context: BaseEventHookParams<SecurityPolicyViolationEvent>): void;
+  onWindowSecuritypolicyviolation?(
+    context: BaseEventHookParams<SecurityPolicyViolationEvent>,
+  ): void;
 
   /**
    * Hook for the `seeked` event emitted on `window`.

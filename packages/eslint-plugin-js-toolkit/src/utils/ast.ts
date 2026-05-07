@@ -51,8 +51,7 @@ export function isBaseSubclass(node: Node, context: RuleContext): boolean {
     return false;
   }
 
-  const superName =
-    node.superClass.type === 'Identifier' ? node.superClass.name : null;
+  const superName = node.superClass.type === 'Identifier' ? node.superClass.name : null;
 
   if (!superName) {
     return false;
@@ -76,10 +75,7 @@ export function isBaseSubclass(node: Node, context: RuleContext): boolean {
     if (node.source.value !== TOOLKIT_PACKAGE) continue;
 
     for (const specifier of node.specifiers) {
-      if (
-        specifier.type === 'ImportSpecifier' &&
-        specifier.local.name === superName
-      ) {
+      if (specifier.type === 'ImportSpecifier' && specifier.local.name === superName) {
         return true;
       }
     }

@@ -14,7 +14,7 @@ interface VitepressLink {
   text: string;
   link?: string;
   items?: VitepressLink[];
-  keywords?: string[]
+  keywords?: string[];
 }
 
 /**
@@ -31,21 +31,23 @@ function addLinks(
     let { text, link, keywords = [] } = item;
 
     if (!linksSet.has(link)) {
-      const newLink:Link = {
-        text, link, keywords
+      const newLink: Link = {
+        text,
+        link,
+        keywords,
       };
 
       if (parent) {
         newLink.parent = {
           text: parent.text,
-          link: parent.link
-        }
+          link: parent.link,
+        };
       }
 
       if (root) {
         newLink.root = {
           text: root.text,
-          link: root.link
+          link: root.link,
         };
       }
 
@@ -69,7 +71,7 @@ export function useAllLinks() {
   nav.forEach((item) => addLinks(links, linkSet, item));
 
   Object.entries(sidebar).forEach(([name, item]) => {
-    const parent = nav.find(item => name.startsWith(item.link));
+    const parent = nav.find((item) => name.startsWith(item.link));
     item.forEach((link) => addLinks(links, linkSet, link, parent));
   });
 

@@ -108,7 +108,7 @@ function addToResize(key, instance) {
 /**
  * BreakpointObserver class.
  * @link https://js-toolkit.studiometa.dev/api/decorators/withBreakpointObserver.html
-*/
+ */
 export function withBreakpointObserver<S extends Base>(
   BaseClass: typeof Base,
 ): BaseDecorator<WithBreakpointObserverInterface, S, WithBreakpointObserverProps> {

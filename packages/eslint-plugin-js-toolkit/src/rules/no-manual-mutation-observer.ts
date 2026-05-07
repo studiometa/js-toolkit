@@ -1,4 +1,10 @@
-import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
+import {
+  findEnclosingClass,
+  isBaseSubclass,
+  type Node,
+  type RuleContext,
+  createRule,
+} from '../utils/ast.ts';
 
 export const noManualMutationObserver = createRule({
   meta: {
@@ -8,8 +14,7 @@ export const noManualMutationObserver = createRule({
         'Disallow manual MutationObserver inside Base subclasses; use withMutation decorator instead',
     },
     messages: {
-      noManual:
-        'Avoid manual "new MutationObserver()". Use the "withMutation" decorator instead.',
+      noManual: 'Avoid manual "new MutationObserver()". Use the "withMutation" decorator instead.',
     },
   },
   createOnce(context: RuleContext) {
@@ -17,7 +22,8 @@ export const noManualMutationObserver = createRule({
       NewExpression(node: Node) {
         if (node.callee?.name !== 'MutationObserver') return;
 
-        const ancestors = context.getAncestors?.() ?? context.sourceCode?.getAncestors?.(node) ?? [];
+        const ancestors =
+          context.getAncestors?.() ?? context.sourceCode?.getAncestors?.(node) ?? [];
         const cls = findEnclosingClass(ancestors);
         if (!cls || !isBaseSubclass(cls, context)) return;
 

@@ -121,8 +121,10 @@ function getInstancesStorage(): Set<Base> {
  * Get the global elements storage.
  * It will hold reference to all elements with at least one component attached to it.
  */
-function getElementsStorage(): Set<HTMLElement & { __base__: Map<string, Base>}> {
-  return (globalThis.__JS_TOOLKIT_ELEMENTS__ ??= new Set<HTMLElement & { __base__: Map<string, Base>}>());
+function getElementsStorage(): Set<HTMLElement & { __base__: Map<string, Base> }> {
+  return (globalThis.__JS_TOOLKIT_ELEMENTS__ ??= new Set<
+    HTMLElement & { __base__: Map<string, Base> }
+  >());
 }
 
 /**
@@ -155,12 +157,12 @@ export function getElements() {
 
 export function addInstance(instance: Base) {
   getInstancesStorage().add(instance);
-  getElementsStorage().add(instance.$el as HTMLElement & { __base__: Map<string, Base>});
+  getElementsStorage().add(instance.$el as HTMLElement & { __base__: Map<string, Base> });
 }
 
 export function deleteInstance(instance: Base) {
   getInstancesStorage().delete(instance);
-  getElementsStorage().delete(instance.$el as HTMLElement & { __base__: Map<string, Base>});
+  getElementsStorage().delete(instance.$el as HTMLElement & { __base__: Map<string, Base> });
 }
 
 const registryKey = '__JS_TOOLKIT_REGISTRY__';
@@ -214,7 +216,10 @@ export function addToRegistry(nameOrSelector: string, ctor: BaseConstructor) {
 /**
  * Find the closest instance from the given element in the given set of Base instances.
  */
-export function findClosestInstance<T extends Base = Base>(element: HTMLElement, instances: Set<T>): T {
+export function findClosestInstance<T extends Base = Base>(
+  element: HTMLElement,
+  instances: Set<T>,
+): T {
   let closest = null;
   let minDepth = Infinity;
 

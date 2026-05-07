@@ -57,7 +57,7 @@ function updateUrlSearchParam(
  * @param  {string}          defaultSearch A string of defaults search params.
  * @return {URLSearchParams}
  * @link https://js-toolkit.studiometa.dev/utils/history/objectToURLSearchParams.html
-*/
+ */
 export function objectToURLSearchParams(
   obj: unknown,
   defaultSearch = hasWindow() ? window.location.search : '',
@@ -123,7 +123,7 @@ function updateHistory(
  * @param  {string}         [title] The title for the new state.
  * @return {void}
  * @link https://js-toolkit.studiometa.dev/utils/history/historyPush.html
-*/
+ */
 export function push(options: HistoryOptions, data: unknown = {}, title = '') {
   updateHistory('push', options, data, title);
 }
@@ -136,7 +136,7 @@ export function push(options: HistoryOptions, data: unknown = {}, title = '') {
  * @param  {string}         [title] The title for the new state.
  * @return {void}
  * @link https://js-toolkit.studiometa.dev/utils/history/historyReplace.html
-*/
+ */
 export function replace(options: HistoryOptions, data: unknown = {}, title = '') {
   updateHistory('replace', options, data, title);
 }

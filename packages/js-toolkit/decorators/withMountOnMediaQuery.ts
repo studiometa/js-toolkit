@@ -18,7 +18,7 @@ export interface withMountOnMediaQueryInterface extends BaseInterface {
 /**
  * IntersectionObserver decoration.
  * @link https://js-toolkit.studiometa.dev/api/decorators/withMountOnMediaQuery.html
-*/
+ */
 export function withMountOnMediaQuery<S extends Base = Base>(
   BaseClass: typeof Base,
   media,

@@ -4,10 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import llmstxt from 'vitepress-plugin-llms';
 
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    llmstxt(),
-  ],
+  plugins: [tailwindcss(), llmstxt()],
   resolve: {
     alias: {
       '@studiometa/js-toolkit/utils': resolve('../js-toolkit/utils/index.ts'),

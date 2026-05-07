@@ -4,8 +4,7 @@ export const noRedundantWithMountWhenInView = createRule({
   meta: {
     type: 'suggestion',
     docs: {
-      description:
-        'Disallow wrapping withMountWhenInView inside withScrolledInView (redundant)',
+      description: 'Disallow wrapping withMountWhenInView inside withScrolledInView (redundant)',
     },
     messages: {
       redundant:

@@ -1,4 +1,11 @@
-import { isBaseSubclass, LIFECYCLE_METHODS, findEnclosingClass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
+import {
+  isBaseSubclass,
+  LIFECYCLE_METHODS,
+  findEnclosingClass,
+  type Node,
+  type RuleContext,
+  createRule,
+} from '../utils/ast.ts';
 
 export const asyncLifecycleMethods = createRule({
   meta: {
@@ -20,7 +27,7 @@ export const asyncLifecycleMethods = createRule({
 
         const ancestors = context.getAncestors
           ? context.getAncestors()
-          : context.sourceCode?.getAncestors?.(node) ?? [];
+          : (context.sourceCode?.getAncestors?.(node) ?? []);
 
         const enclosingClass = findEnclosingClass(ancestors);
         if (!enclosingClass || !isBaseSubclass(enclosingClass, context)) return;

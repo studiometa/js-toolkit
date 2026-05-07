@@ -833,9 +833,8 @@ describe('Storage utilities', () => {
     it('should no-op URL providers outside a browser context', async () => {
       vi.stubGlobal('window', undefined);
 
-      const { createUrlSearchParamsProvider, createUrlSearchParamsInHashProvider } = await import(
-        '#private/utils/storage/providers.ts'
-      );
+      const { createUrlSearchParamsProvider, createUrlSearchParamsInHashProvider } =
+        await import('#private/utils/storage/providers.ts');
 
       const searchProvider = createUrlSearchParamsProvider({ push: true });
       const hashProvider = createUrlSearchParamsInHashProvider({ push: true });

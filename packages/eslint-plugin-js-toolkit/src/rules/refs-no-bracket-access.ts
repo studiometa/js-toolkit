@@ -16,8 +16,7 @@ export const refsNoBracketAccess = createRule({
       description: 'Disallow bracket access with [] suffix on this.$refs',
     },
     messages: {
-      noBracketAccess:
-        'Use "this.$refs.{{fixed}}" instead of "this.$refs[\'{{raw}}\']".',
+      noBracketAccess: 'Use "this.$refs.{{fixed}}" instead of "this.$refs[\'{{raw}}\']".',
     },
   },
   createOnce(context: RuleContext) {

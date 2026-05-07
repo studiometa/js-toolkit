@@ -7,7 +7,7 @@ import { withoutLeadingCharacters } from './withoutLeadingCharacters.js';
  * @param  {string} characters The characters to add to the start.
  * @return {string}
  * @link https://js-toolkit.studiometa.dev/utils/string/withoutLeadingCharactersRecursive.html
-*/
+ */
 export function withoutLeadingCharactersRecursive(string: string, characters: string): string {
   let str = withoutLeadingCharacters(string, characters);
   const regex = new RegExp(`^${characters}`);
