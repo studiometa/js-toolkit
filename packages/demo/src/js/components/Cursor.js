@@ -24,7 +24,7 @@ export default class Cursor extends Base {
    * Update position and scale based on pointer state.
    * @param {import('@studiometa/js-toolkit').PointerServiceProps} props
    */
-  moved({ x, y, isDown }) {
+  async moved({ x, y, isDown }) {
     this.x(x);
     this.y(y);
     this.scale(isDown ? 0.75 : 1);
@@ -35,7 +35,7 @@ export default class Cursor extends Base {
    * Update the element's transform on each frame.
    * @returns {() => void} A function to be executed on the "write" step of the DOM Scheduler
    */
-  ticked() {
+  async ticked() {
     return () => {
       transform(this.$el, { x: this.x(), y: this.y(), scale: this.scale() });
     };
