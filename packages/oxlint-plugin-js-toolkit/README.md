@@ -36,7 +36,14 @@ Add the plugin to your `.oxlintrc.json`:
     "js-toolkit/no-dispatch-event": "warn",
     "js-toolkit/no-shadow-dom": "error",
     "js-toolkit/no-create-app": "warn",
-    "js-toolkit/no-event-listener-methods": "error"
+    "js-toolkit/no-event-listener-methods": "error",
+    "js-toolkit/no-deep-utils-import": "error",
+    "js-toolkit/refs-no-bracket-access": "error",
+    "js-toolkit/no-redundant-with-mount-when-in-view": "warn",
+    "js-toolkit/prefer-ref-over-query-selector": "warn",
+    "js-toolkit/require-refs-declared-in-config": "error",
+    "js-toolkit/no-manual-intersection-observer": "warn",
+    "js-toolkit/no-manual-mutation-observer": "warn"
   }
 }
 ```
@@ -103,3 +110,15 @@ export default [
 | `js-toolkit/no-shadow-dom` | Disallows `attachShadow()` inside `Base` subclasses. The framework uses Light DOM only. | error | |
 | `js-toolkit/no-create-app` | Disallows `createApp()` (deprecated). Use `registerComponent()` instead. | warn | |
 | `js-toolkit/no-event-listener-methods` | Disallows `addEventListener()` and `removeEventListener()` inside `Base` subclasses. Define `on*` methods instead — the framework handles binding and cleanup automatically. | error | |
+| `js-toolkit/no-deep-utils-import` | Disallows deep imports from `@studiometa/js-toolkit/utils/*`. Use the public entrypoint `@studiometa/js-toolkit/utils` instead. | error | 🔧 |
+| `js-toolkit/no-redundant-with-mount-when-in-view` | Disallows wrapping `withMountWhenInView` inside `withScrolledInView` — the latter already includes the former internally. | warn | |
+| `js-toolkit/no-manual-intersection-observer` | Disallows `new IntersectionObserver()` inside `Base` subclasses. Use `withIntersectionObserver` or `withMountWhenInView` decorators instead. | warn | |
+| `js-toolkit/no-manual-mutation-observer` | Disallows `new MutationObserver()` inside `Base` subclasses. Use the `withMutation` decorator instead. | warn | |
+
+### Refs
+
+| Rule | Description | Recommended | Fixable |
+|------|-------------|-------------|---------|
+| `js-toolkit/refs-no-bracket-access` | Disallows bracket access with a `[]` suffix on `this.$refs` (e.g. `this.$refs['items[]']`). Rewrites to dot notation camelCase. | error | 🔧 |
+| `js-toolkit/prefer-ref-over-query-selector` | Warns when `this.$el.querySelector()` or `this.$el.querySelectorAll()` is used inside a `Base` subclass. Declare a ref in `static config` and use `this.$refs` instead. | warn | |
+| `js-toolkit/require-refs-declared-in-config` | Requires all `this.$refs.<name>` accesses to be declared in `static config.refs`. | error | |
