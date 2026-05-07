@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add `@studiometa/oxlint-plugin-js-toolkit` package with 20 rules enforcing best practices for `@studiometa/js-toolkit` projects ([#726](https://github.com/studiometa/js-toolkit/pull/726), [e2477e79](https://github.com/studiometa/js-toolkit/commit/e2477e79))
+
 ## [v3.6.0-beta.0](https://github.com/studiometa/js-toolkit/compare/3.5.0..3.6.0-beta.0) (2026-04-21)
 
 ### Added
