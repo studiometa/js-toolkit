@@ -19,17 +19,25 @@ describe('refs-camel-case', () => {
       invalid: [
         {
           code: `import { Base } from '@studiometa/js-toolkit';
-                 class Slider extends Base {
-                   static config = { name: 'Slider', refs: ['NextButton'] };
-                 }`,
+class Slider extends Base {
+  static config = { name: 'Slider', refs: ['NextButton'] };
+}`,
           errors: [{ messageId: 'notCamelCase' }],
+          output: `import { Base } from '@studiometa/js-toolkit';
+class Slider extends Base {
+  static config = { name: 'Slider', refs: ['nextButton'] };
+}`,
         },
         {
           code: `import { Base } from '@studiometa/js-toolkit';
-                 class Slider extends Base {
-                   static config = { name: 'Slider', refs: ['next-button'] };
-                 }`,
+class Slider extends Base {
+  static config = { name: 'Slider', refs: ['next-button'] };
+}`,
           errors: [{ messageId: 'notCamelCase' }],
+          output: `import { Base } from '@studiometa/js-toolkit';
+class Slider extends Base {
+  static config = { name: 'Slider', refs: ['nextButton'] };
+}`,
         },
       ],
     });

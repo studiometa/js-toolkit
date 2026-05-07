@@ -1,8 +1,9 @@
-import { isBaseSubclass, isPascalCase, type Node, type RuleContext } from '../utils/ast.js';
+import { isBaseSubclass, isPascalCase, toPascalCase, type Node, type RuleContext } from '../utils/ast.js';
 
 export const requireConfigNamePascalCase = {
   meta: {
     type: 'problem',
+    fixable: 'code',
     docs: {
       description: 'Require config.name to be PascalCase on classes extending Base',
     },
@@ -50,6 +51,7 @@ function check(node: Node, context: RuleContext) {
       node: nameProp.value,
       messageId: 'notPascalCase',
       data: { name: nameValue },
+      fix: (fixer: any) => fixer.replaceText(nameProp.value, `'${toPascalCase(nameValue)}'`),
     });
   }
 }

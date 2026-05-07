@@ -21,18 +21,27 @@ describe('async-lifecycle-methods', () => {
       invalid: [
         {
           code: `import { Base } from '@studiometa/js-toolkit';
-                 class Slider extends Base {
-                   mounted() {}
-                 }`,
+class Slider extends Base {
+  mounted() {}
+}`,
           errors: [{ messageId: 'notAsync' }],
+          output: `import { Base } from '@studiometa/js-toolkit';
+class Slider extends Base {
+  async mounted() {}
+}`,
         },
         {
           code: `import { Base } from '@studiometa/js-toolkit';
-                 class Slider extends Base {
-                   destroyed() {}
-                   scrolled() {}
-                 }`,
+class Slider extends Base {
+  destroyed() {}
+  scrolled() {}
+}`,
           errors: [{ messageId: 'notAsync' }, { messageId: 'notAsync' }],
+          output: `import { Base } from '@studiometa/js-toolkit';
+class Slider extends Base {
+  async destroyed() {}
+  async scrolled() {}
+}`,
         },
       ],
     });

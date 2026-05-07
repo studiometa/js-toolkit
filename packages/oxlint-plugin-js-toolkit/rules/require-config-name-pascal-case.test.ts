@@ -18,17 +18,25 @@ describe('require-config-name-pascal-case', () => {
       invalid: [
         {
           code: `import { Base } from '@studiometa/js-toolkit';
-                 class Slider extends Base {
-                   static config = { name: 'slider' };
-                 }`,
+class Slider extends Base {
+  static config = { name: 'slider' };
+}`,
           errors: [{ messageId: 'notPascalCase' }],
+          output: `import { Base } from '@studiometa/js-toolkit';
+class Slider extends Base {
+  static config = { name: 'Slider' };
+}`,
         },
         {
           code: `import { Base } from '@studiometa/js-toolkit';
-                 class Slider extends Base {
-                   static config = { name: 'my-slider' };
-                 }`,
+class Slider extends Base {
+  static config = { name: 'my-slider' };
+}`,
           errors: [{ messageId: 'notPascalCase' }],
+          output: `import { Base } from '@studiometa/js-toolkit';
+class Slider extends Base {
+  static config = { name: 'MySlider' };
+}`,
         },
       ],
     });

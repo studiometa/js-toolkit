@@ -1,8 +1,9 @@
-import { isBaseSubclass, isCamelCase, type Node, type RuleContext } from '../utils/ast.js';
+import { isBaseSubclass, isCamelCase, toCamelCase, type Node, type RuleContext } from '../utils/ast.js';
 
 export const refsCamelCase = {
   meta: {
     type: 'problem',
+    fixable: 'code',
     docs: {
       description: 'Require ref names in static config to be camelCase',
     },
@@ -49,10 +50,12 @@ function check(node: Node, context: RuleContext) {
     // Strip the multiple-ref suffix before checking casing
     const name = raw.endsWith('[]') ? raw.slice(0, -2) : raw;
     if (!isCamelCase(name)) {
+      const fixed = toCamelCase(name) + (raw.endsWith('[]') ? '[]' : '');
       context.report({
         node: element,
         messageId: 'notCamelCase',
         data: { name },
+        fix: (fixer: any) => fixer.replaceText(element, `'${fixed}'`),
       });
     }
   }
