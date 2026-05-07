@@ -67,33 +67,33 @@ export default [
 
 ### Class structure
 
-| Rule | Description | Fixable |
-|------|-------------|---------|
-| <span class="text-nowrap">`js-toolkit/require-config`</span> | Requires a `static config` property with a `name` on every class extending `Base`. | ❌ |
-| <span class="text-nowrap">`js-toolkit/require-config-name-pascal-case`</span> | Requires `config.name` to be PascalCase. | 🔧 |
-| <span class="text-nowrap">`js-toolkit/refs-camel-case`</span> | Requires ref names in `config.refs` to be camelCase. Supports the `[]` multiple-ref suffix. | 🔧 |
-| <span class="text-nowrap">`js-toolkit/refs-plural-multiple`</span> | Requires refs using the `[]` multiple-ref suffix to be pluralized (e.g. `links[]` not `link[]`). | ❌ |
-| <span class="text-nowrap">`js-toolkit/options-camel-case`</span> | Requires option keys in `config.options` to be camelCase. | 🔧 |
+| Rule                                                                          | Description                                                                                      | Fixable |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------- |
+| <span class="text-nowrap">`js-toolkit/require-config`</span>                  | Requires a `static config` property with a `name` on every class extending `Base`.               | ❌      |
+| <span class="text-nowrap">`js-toolkit/require-config-name-pascal-case`</span> | Requires `config.name` to be PascalCase.                                                         | 🔧      |
+| <span class="text-nowrap">`js-toolkit/refs-camel-case`</span>                 | Requires ref names in `config.refs` to be camelCase. Supports the `[]` multiple-ref suffix.      | 🔧      |
+| <span class="text-nowrap">`js-toolkit/refs-plural-multiple`</span>            | Requires refs using the `[]` multiple-ref suffix to be pluralized (e.g. `links[]` not `link[]`). | ❌      |
+| <span class="text-nowrap">`js-toolkit/options-camel-case`</span>              | Requires option keys in `config.options` to be camelCase.                                        | 🔧      |
 
 ### Lifecycle methods
 
-| Rule | Description | Fixable |
-|------|-------------|---------|
-| <span class="text-nowrap">`js-toolkit/async-lifecycle-methods`</span> | Requires lifecycle methods (`mounted`, `destroyed`, `updated`, `terminated`, `ticked`, `scrolled`, `resized`, `moved`, `loaded`, `keyed`) to be declared `async`. | 🔧 |
+| Rule                                                                  | Description                                                                                                                                                       | Fixable |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| <span class="text-nowrap">`js-toolkit/async-lifecycle-methods`</span> | Requires lifecycle methods (`mounted`, `destroyed`, `updated`, `terminated`, `ticked`, `scrolled`, `resized`, `moved`, `loaded`, `keyed`) to be declared `async`. | 🔧      |
 
 ### Event handlers
 
-| Rule | Description | Fixable |
-|------|-------------|---------|
-| <span class="text-nowrap">`js-toolkit/on-handler-naming`</span> | Requires event handler methods to follow the `onXxxYyy` camelCase convention. | ❌ |
-| <span class="text-nowrap">`js-toolkit/on-global-handler-prefix`</span> | Requires handlers for window-only events (e.g. `resize`) to use the `onWindow` or `onDocument` prefix. | ❌ |
+| Rule                                                                   | Description                                                                                            | Fixable |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------- |
+| <span class="text-nowrap">`js-toolkit/on-handler-naming`</span>        | Requires event handler methods to follow the `onXxxYyy` camelCase convention.                          | ❌      |
+| <span class="text-nowrap">`js-toolkit/on-global-handler-prefix`</span> | Requires handlers for window-only events (e.g. `resize`) to use the `onWindow` or `onDocument` prefix. | ❌      |
 
 ### Forbidden patterns
 
-| Rule | Description | Fixable |
-|------|-------------|---------|
-| <span class="text-nowrap">`js-toolkit/no-deprecated-properties`</span> | Disallows deprecated properties (`$parent`, `$root`, `$children`). Use `$closest()` or `$query()` instead. | ❌ |
-| <span class="text-nowrap">`js-toolkit/no-dispatch-event`</span> | Disallows `dispatchEvent()` inside `Base` subclasses. Use `this.$emit()` instead. | ❌ |
-| <span class="text-nowrap">`js-toolkit/no-shadow-dom`</span> | Disallows `attachShadow()` inside `Base` subclasses. The framework uses Light DOM only. | ❌ |
-| <span class="text-nowrap">`js-toolkit/no-create-app`</span> | Disallows `createApp()` (deprecated). Use `registerComponent()` instead. | ❌ |
-| <span class="text-nowrap">`js-toolkit/no-event-listener-methods`</span> | Disallows `addEventListener()` and `removeEventListener()` inside `Base` subclasses. Define `on*` methods instead — the framework handles binding and cleanup automatically. | ❌ |
+| Rule                                                                    | Description                                                                                                                                                                  | Fixable |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| <span class="text-nowrap">`js-toolkit/no-deprecated-properties`</span>  | Disallows deprecated properties (`$parent`, `$root`, `$children`). Use `$closest()` or `$query()` instead.                                                                   | ❌      |
+| <span class="text-nowrap">`js-toolkit/no-dispatch-event`</span>         | Disallows `dispatchEvent()` inside `Base` subclasses. Use `this.$emit()` instead.                                                                                            | ❌      |
+| <span class="text-nowrap">`js-toolkit/no-shadow-dom`</span>             | Disallows `attachShadow()` inside `Base` subclasses. The framework uses Light DOM only.                                                                                      | ❌      |
+| <span class="text-nowrap">`js-toolkit/no-create-app`</span>             | Disallows `createApp()` (deprecated). Use `registerComponent()` instead.                                                                                                     | ❌      |
+| <span class="text-nowrap">`js-toolkit/no-event-listener-methods`</span> | Disallows `addEventListener()` and `removeEventListener()` inside `Base` subclasses. Define `on*` methods instead — the framework handles binding and cleanup automatically. | ❌      |
