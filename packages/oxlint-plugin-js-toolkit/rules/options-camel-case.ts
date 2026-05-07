@@ -1,8 +1,9 @@
-import { isBaseSubclass, isCamelCase, type Node, type RuleContext } from '../utils/ast.js';
+import { isBaseSubclass, isCamelCase, toCamelCase, type Node, type RuleContext } from '../utils/ast.js';
 
 export const optionsCamelCase = {
   meta: {
     type: 'problem',
+    fixable: 'code',
     docs: {
       description: 'Require option keys in static config to be camelCase',
     },
@@ -47,10 +48,14 @@ function check(node: Node, context: RuleContext) {
     const name = prop.key?.name ?? prop.key?.value;
     if (typeof name !== 'string') continue;
     if (!isCamelCase(name)) {
+      const fixed = toCamelCase(name);
+      // Quoted key ('slides-to-show') vs identifier key (SlidesToShow)
+      const fixedText = prop.key.type === 'Literal' ? `'${fixed}'` : fixed;
       context.report({
         node: prop.key,
         messageId: 'notCamelCase',
         data: { name },
+        fix: (fixer: any) => fixer.replaceText(prop.key, fixedText),
       });
     }
   }

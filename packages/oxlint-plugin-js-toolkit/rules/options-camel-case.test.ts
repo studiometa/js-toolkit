@@ -14,17 +14,25 @@ describe('options-camel-case', () => {
       invalid: [
         {
           code: `import { Base } from '@studiometa/js-toolkit';
-                 class Slider extends Base {
-                   static config = { name: 'Slider', options: { 'slides-to-show': 3 } };
-                 }`,
+class Slider extends Base {
+  static config = { name: 'Slider', options: { 'slides-to-show': 3 } };
+}`,
           errors: [{ messageId: 'notCamelCase' }],
+          output: `import { Base } from '@studiometa/js-toolkit';
+class Slider extends Base {
+  static config = { name: 'Slider', options: { 'slidesToShow': 3 } };
+}`,
         },
         {
           code: `import { Base } from '@studiometa/js-toolkit';
-                 class Slider extends Base {
-                   static config = { name: 'Slider', options: { SlidesToShow: 3 } };
-                 }`,
+class Slider extends Base {
+  static config = { name: 'Slider', options: { SlidesToShow: 3 } };
+}`,
           errors: [{ messageId: 'notCamelCase' }],
+          output: `import { Base } from '@studiometa/js-toolkit';
+class Slider extends Base {
+  static config = { name: 'Slider', options: { slidesToShow: 3 } };
+}`,
         },
       ],
     });

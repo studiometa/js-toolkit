@@ -3,6 +3,7 @@ import { isBaseSubclass, LIFECYCLE_METHODS, findEnclosingClass, type Node, type 
 export const asyncLifecycleMethods = {
   meta: {
     type: 'problem',
+    fixable: 'code',
     docs: {
       description: 'Require lifecycle methods on Base subclasses to be async',
     },
@@ -28,6 +29,7 @@ export const asyncLifecycleMethods = {
           node,
           messageId: 'notAsync',
           data: { name },
+          fix: (fixer: any) => fixer.insertTextBefore(node.key, 'async '),
         });
       },
     };

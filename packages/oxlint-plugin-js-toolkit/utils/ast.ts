@@ -88,6 +88,24 @@ export function isPascalCase(value: string): boolean {
 }
 
 /**
+ * Converts a kebab-case, snake_case or PascalCase string to camelCase.
+ */
+export function toCamelCase(value: string): string {
+  return value
+    .replace(/[-_](.)/g, (_, c: string) => c.toUpperCase())
+    .replace(/^[A-Z]/, (c) => c.toLowerCase());
+}
+
+/**
+ * Converts a kebab-case, snake_case or camelCase string to PascalCase.
+ */
+export function toPascalCase(value: string): string {
+  return value
+    .replace(/[-_](.)/g, (_, c: string) => c.toUpperCase())
+    .replace(/^[a-z]/, (c) => c.toUpperCase());
+}
+
+/**
  * Walks up ancestor nodes to find the nearest class declaration/expression.
  */
 export function findEnclosingClass(ancestors: Node[]): Node | null {
