@@ -329,7 +329,7 @@ export class DragService extends AbstractService<DragServiceProps> {
  * props();
  * ```
  * @link https://js-toolkit.studiometa.dev/api/services/useDrag.html
-*/
+ */
 export function useDrag(target: HTMLElement, options: DragServiceOptions): DragServiceInterface {
   return DragService.getInstance<DragServiceInterface>(
     [target, JSON.stringify(options)],

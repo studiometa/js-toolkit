@@ -167,7 +167,7 @@ describe('The drag service', () => {
     dispatch(div, 'pointerdown', { x: 0, y: 0, button: 0 });
     dispatch(document, 'touchmove', { clientX: 10, clientY: 10, touches: [{}] });
     expect(service.props().mode).toBe('drag');
-    dispatch(document, 'touchmove', { clientX: 10, clientY: 10, buttons: [{},{}] });
+    dispatch(document, 'touchmove', { clientX: 10, clientY: 10, buttons: [{}, {}] });
     expect(service.props().mode).toBe('drop');
   });
 });

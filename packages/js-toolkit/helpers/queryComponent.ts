@@ -106,7 +106,11 @@ export function closestComponent<T extends Base = Base>(
     if (!baseMap) return false;
 
     const instance = baseMap.get(parsedQuery.name) as T;
-    if (instance && instance !== ('terminated' as unknown) && instanceIsMatching(instance, parsedQuery)) {
+    if (
+      instance &&
+      instance !== ('terminated' as unknown) &&
+      instanceIsMatching(instance, parsedQuery)
+    ) {
       closestInstance = instance;
       return true;
     }

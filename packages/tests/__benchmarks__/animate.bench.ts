@@ -24,7 +24,10 @@ describe('animate', () => {
     });
 
     bench('create with transform keyframes (x, y)', () => {
-      animate(el, [{ x: 0, y: 0 }, { x: 100, y: 100 }]);
+      animate(el, [
+        { x: 0, y: 0 },
+        { x: 100, y: 100 },
+      ]);
     });
 
     bench('create with multiple transforms', () => {
@@ -58,7 +61,10 @@ describe('animate', () => {
     bench('create with all options', () => {
       animate(
         el,
-        [{ x: 0, opacity: 1 }, { x: 100, opacity: 0 }],
+        [
+          { x: 0, opacity: 1 },
+          { x: 100, opacity: 0 },
+        ],
         {
           duration: 0.5,
           delay: 0.1,
@@ -73,7 +79,10 @@ describe('animate', () => {
 
   describe('progress updates (single element)', () => {
     const animOpacity = animate(el, [{ opacity: 0 }, { opacity: 1 }]);
-    const animTransform = animate(el, [{ x: 0, y: 0 }, { x: 100, y: 100 }]);
+    const animTransform = animate(el, [
+      { x: 0, y: 0 },
+      { x: 100, y: 100 },
+    ]);
     const animMultiTransform = animate(el, [
       { x: 0, y: 0, scale: 1, rotate: 0, skewX: 0 },
       { x: 100, y: 100, scale: 2, rotate: 360, skewX: 15 },
@@ -111,7 +120,10 @@ describe('animate', () => {
   });
 
   describe('progress updates (multiple elements)', () => {
-    const keyframes: Keyframe[] = [{ x: 0, opacity: 0 }, { x: 100, opacity: 1 }];
+    const keyframes: Keyframe[] = [
+      { x: 0, opacity: 0 },
+      { x: 100, opacity: 1 },
+    ];
     const anim5 = animate(els5, keyframes);
     const anim10 = animate(els10, keyframes);
     const anim50 = animate(els50, keyframes);
@@ -130,7 +142,10 @@ describe('animate', () => {
   });
 
   describe('staggered animations', () => {
-    const keyframes: Keyframe[] = [{ x: 0, opacity: 0 }, { x: 100, opacity: 1 }];
+    const keyframes: Keyframe[] = [
+      { x: 0, opacity: 0 },
+      { x: 100, opacity: 1 },
+    ];
     const animStaggerNum = animate(els10, keyframes, { stagger: 0.1 });
     const animStaggerFn = animate(els10, keyframes, { stagger: (_el, i) => i * 0.1 });
 

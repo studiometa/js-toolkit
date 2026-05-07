@@ -5,7 +5,7 @@
  * @param {number} [delay] The delay in ms
  * @return {Function} The throttled function.
  * @link https://js-toolkit.studiometa.dev/utils/throttle.html
-*/
+ */
 export function throttle(
   fn: (...args: unknown[]) => void,
   delay = 16,

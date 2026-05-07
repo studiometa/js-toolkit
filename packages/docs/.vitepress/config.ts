@@ -93,6 +93,7 @@ function getGuideSidebar() {
           keywords: ['types', 'typings', 'typescript', 'jsdoc'],
         },
         { text: 'Custom Services', link: '/guide/going-further/registering-new-services.html' },
+        { text: 'Linting', link: '/guide/going-further/linting.html' },
       ],
     },
     {
@@ -370,8 +371,14 @@ function getUtilsSidebar() {
         { text: 'createStorage', link: '/utils/storage/createStorage.html' },
         { text: 'createLocalStorage', link: '/utils/storage/createLocalStorage.html' },
         { text: 'createSessionStorage', link: '/utils/storage/createSessionStorage.html' },
-        { text: 'createUrlSearchParamsStorage', link: '/utils/storage/createUrlSearchParamsStorage.html' },
-        { text: 'createUrlSearchParamsInHashStorage', link: '/utils/storage/createUrlSearchParamsInHashStorage.html' },
+        {
+          text: 'createUrlSearchParamsStorage',
+          link: '/utils/storage/createUrlSearchParamsStorage.html',
+        },
+        {
+          text: 'createUrlSearchParamsInHashStorage',
+          link: '/utils/storage/createUrlSearchParamsInHashStorage.html',
+        },
         { text: 'Providers', link: '/utils/storage/providers.html' },
       ],
     },

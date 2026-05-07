@@ -12,7 +12,7 @@ export type EasingFunction = (progress: number) => number;
  * @param  {EasingFunction} easeIn The ease in function.
  * @return {EasingFunction}        The out function.
  * @link https://js-toolkit.studiometa.dev/utils/math/createEaseOut.html
-*/
+ */
 export function createEaseOut(easeIn: EasingFunction): EasingFunction {
   return (progress) => 1 - easeIn(1 - progress);
 }
@@ -23,7 +23,7 @@ export function createEaseOut(easeIn: EasingFunction): EasingFunction {
  * @param  {EasingFunction} easeIn The ease in function.
  * @return {EasingFunction}        The in-out function.
  * @link https://js-toolkit.studiometa.dev/utils/math/createEaseInOut.html
-*/
+ */
 export function createEaseInOut(easeIn: EasingFunction): EasingFunction {
   /* eslint-disable no-nested-ternary */
   // eslint-disable-next-line no-confusing-arrow

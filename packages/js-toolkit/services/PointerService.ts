@@ -169,7 +169,7 @@ export class PointerService extends AbstractService<PointerServiceProps> {
 /**
  * Use the pointer service.
  * @link https://js-toolkit.studiometa.dev/api/services/usePointer.html
-*/
+ */
 export function usePointer(target: HTMLElement | Window = window): PointerServiceInterface {
   return PointerService.getInstance([target], target);
 }

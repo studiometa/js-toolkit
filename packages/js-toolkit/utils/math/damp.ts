@@ -7,13 +7,8 @@
  * @param  {number} [precision=0.01] The precision used to calculate the latest value, defaults to `0.01`.
  * @return {number} The next value.
  * @link https://js-toolkit.studiometa.dev/utils/math/damp.html
-*/
-export function damp(
-  targetValue: number,
-  currentValue: number,
-  factor = 0.5,
-  precision = 0.01,
-) {
+ */
+export function damp(targetValue: number, currentValue: number, factor = 0.5, precision = 0.01) {
   return Math.abs(targetValue - currentValue) < precision
     ? targetValue
     : currentValue + (targetValue - currentValue) * factor;

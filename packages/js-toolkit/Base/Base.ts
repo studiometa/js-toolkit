@@ -172,7 +172,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * @deprecated Use `$closest(name)` instead. Will be removed in v4.
    * @link https://js-toolkit.studiometa.dev/api/instance-properties.html#parent
    */
-  get $parent(): T['$parent'] & Base | null {
+  get $parent(): (T['$parent'] & Base) | null {
     if (isDev) {
       console.warn(
         `[${this.$id}] $parent is deprecated and will be removed in v4. Use $closest(name) instead.`,
@@ -186,7 +186,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * Internal parent resolution without deprecation warning.
    * @internal
    */
-  get __parent(): T['$parent'] & Base | null {
+  get __parent(): (T['$parent'] & Base) | null {
     const parents = new Set<T['$parent'] & Base>();
 
     for (const instance of getInstances()) {

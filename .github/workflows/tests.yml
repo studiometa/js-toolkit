@@ -18,7 +18,7 @@ jobs:
           node-version: 24
           cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-progress --no-fund
       - name: Build
         run: npm run build
 
@@ -31,14 +31,31 @@ jobs:
           node-version: 24
           cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-progress --no-fund
       - name: Run code quality tests
-        run: npm run lint:oxlint
+        run: npm run lint:static
+      - name: Run format tests
+        run: npm run lint:fmt
       - name: Run types tests
         run: npm run lint:types
 
   unit:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - package: js-toolkit
+            working-directory: .
+            test-command: npm run test -- -- --retry=3 --coverage.enabled
+            coverage-file: ./packages/coverage/clover.xml
+          - package: eslint-plugin-js-toolkit
+            working-directory: packages/eslint-plugin-js-toolkit
+            test-command: npm test -- --retry=3 --coverage.enabled
+            coverage-file: packages/eslint-plugin-js-toolkit/coverage/clover.xml
+    name: unit (${{ matrix.package }})
+    defaults:
+      run:
+        working-directory: ${{ matrix.working-directory }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -46,14 +63,14 @@ jobs:
           node-version: 24
           cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-progress --no-fund
       - name: Run tests
-        run: npm run test -- -- --retry=3 --coverage.enabled
+        run: ${{ matrix.test-command }}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: ./packages/coverage/clover.xml
-          flags: unittests
+          files: ${{ matrix.coverage-file }}
+          flags: ${{ matrix.package }}
           fail_ci_if_error: false
           verbose: true
         env:

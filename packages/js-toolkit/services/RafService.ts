@@ -73,7 +73,7 @@ export class RafService extends AbstractService<RafServiceProps> {
 /**
  * Use the RequestAnimationFrame (raf) service.
  * @link https://js-toolkit.studiometa.dev/api/services/useRaf.html
-*/
+ */
 export function useRaf(): RafServiceInterface {
   return RafService.getInstance();
 }

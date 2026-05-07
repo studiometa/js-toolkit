@@ -8,8 +8,5 @@
     "emitDeclarationOnly": true,
     "types": []
   },
-  "include": [
-    "packages/global.d.ts",
-    "packages/js-toolkit/**/*.ts"
-  ]
+  "include": ["packages/global.d.ts", "packages/js-toolkit/**/*.ts"]
 }

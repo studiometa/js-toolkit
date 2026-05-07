@@ -56,14 +56,10 @@ export function createUrlSearchParamsStorage<T extends Record<string, any> = Rec
 
 export function createUrlSearchParamsInHashStorage<
   T extends Record<string, any> = Record<string, any>,
->(
-  options?: Omit<StorageOptions, 'provider'> & UrlProviderOptions,
-): StorageInstance<T> {
+>(options?: Omit<StorageOptions, 'provider'> & UrlProviderOptions): StorageInstance<T> {
   const { push, ...storageOptions } = options ?? {};
   return createStorage({
     ...storageOptions,
-    provider: push
-      ? createUrlSearchParamsInHashProvider({ push })
-      : urlSearchParamsInHashProvider,
+    provider: push ? createUrlSearchParamsInHashProvider({ push }) : urlSearchParamsInHashProvider,
   });
 }

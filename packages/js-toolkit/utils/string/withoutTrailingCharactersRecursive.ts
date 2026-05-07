@@ -7,7 +7,7 @@ import { withoutTrailingCharacters } from './withoutTrailingCharacters.js';
  * @param  {string} characters The characters to add to the start.
  * @return {string}
  * @link https://js-toolkit.studiometa.dev/utils/string/withoutTrailingCharactersRecursive.html
-*/
+ */
 export function withoutTrailingCharactersRecursive(string: string, characters: string): string {
   let str = withoutTrailingCharacters(string, characters);
   const regex = new RegExp(`${characters}$`);

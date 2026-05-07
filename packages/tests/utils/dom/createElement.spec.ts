@@ -30,7 +30,8 @@ describe('The createElement function', () => {
   });
 
   it('should accept data as an object', () => {
-    expect(createElement('div', { data: { optionFoo: 'foo', option_bar: 'bar' } }, [])).toMatchInlineSnapshot(`
+    expect(createElement('div', { data: { optionFoo: 'foo', option_bar: 'bar' } }, []))
+      .toMatchInlineSnapshot(`
       <div
         data-option-bar="bar"
         data-option-foo="foo"
@@ -72,8 +73,8 @@ describe('The createElement function', () => {
       </a>
     `);
 
-
-    expect(createElement('a', { href: '#' }, ['hello world', createElement('span')])).toMatchInlineSnapshot(`
+    expect(createElement('a', { href: '#' }, ['hello world', createElement('span')]))
+      .toMatchInlineSnapshot(`
       <a
         href="#"
       >

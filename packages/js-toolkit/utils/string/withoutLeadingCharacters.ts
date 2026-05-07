@@ -5,7 +5,7 @@
  * @param  {string} characters The characters to remove from the start.
  * @return {string}
  * @link https://js-toolkit.studiometa.dev/utils/string/withoutLeadingCharacters.html
-*/
+ */
 export function withoutLeadingCharacters(string: string, characters: string): string {
   return string.replace(new RegExp(`^${characters}`), '');
 }

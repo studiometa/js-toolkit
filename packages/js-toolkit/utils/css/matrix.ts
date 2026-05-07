@@ -24,7 +24,7 @@ type MatrixTransform = {
  * // matrix(0.5, 0, 0, 0.5, 0, 0)
  * ```
  * @link https://js-toolkit.studiometa.dev/utils/css/matrix.html
-*/
+ */
 export function matrix(transform?: MatrixTransform): string {
   // eslint-disable-next-line no-param-reassign
   transform = transform || {};

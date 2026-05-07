@@ -10,7 +10,7 @@ import { isArray } from '../utils/index.js';
  * @param  {string} childrenName
  * @return {T[]}
  * @link https://js-toolkit.studiometa.dev/api/helpers/getDirectChildren.html
-*/
+ */
 export function getDirectChildren<T extends Base = Base>(
   parentInstance: Base,
   parentName: string,
@@ -54,7 +54,7 @@ export function getDirectChildren<T extends Base = Base>(
  * @param  {Base}    childInstance
  * @return {boolean}
  * @link https://js-toolkit.studiometa.dev/api/helpers/isDirectChild.html
-*/
+ */
 export function isDirectChild(parentInstance, parentName, childrenName, childInstance) {
   return getDirectChildren(parentInstance, parentName, childrenName).includes(childInstance);
 }

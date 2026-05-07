@@ -17,10 +17,7 @@ export interface StorageInstance<T = any> {
   has<K extends keyof T>(key: K): boolean;
   keys(): (keyof T)[];
   clear(): void;
-  subscribe<K extends keyof T>(
-    key: K,
-    callback: (value: T[K] | undefined) => void,
-  ): () => void;
+  subscribe<K extends keyof T>(key: K, callback: (value: T[K] | undefined) => void): () => void;
   destroy(): void;
 }
 

@@ -3,7 +3,7 @@ import { isArray } from './is.js';
 /**
  * Cache the result of a callback in map instances.
  * @link https://js-toolkit.studiometa.dev/utils/cache.html
-*/
+ */
 export function cache<T extends any>(keys: any | any[], callback: () => T): T {
   const normalizedKeys = isArray(keys) ? keys : [keys];
   let value = (globalThis.__JS_TOOLKIT_CACHE__ ??= new Map());

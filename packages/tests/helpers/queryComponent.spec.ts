@@ -81,7 +81,7 @@ describe('The `queryComponent` function', () => {
   it('should return a single component matching the given query from the given root', async () => {
     const name = randomName();
     const div = h('div');
-    const middle = h('div', [div])
+    const middle = h('div', [div]);
     const root = h('div', [middle]);
     const instance = new (withName(Base, name))(div);
     await mount(instance);
