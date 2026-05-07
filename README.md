@@ -31,13 +31,13 @@ Visit [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) to learn mo
 
 ## Linting
 
-The [`@studiometa/oxlint-plugin-js-toolkit`](./packages/oxlint-plugin-js-toolkit/) package provides an Oxlint/ESLint plugin that enforces best practices when writing components with this framework.
+The [`@studiometa/eslint-plugin-js-toolkit`](./packages/eslint-plugin-js-toolkit/) package provides an Oxlint/ESLint plugin that enforces best practices when writing components with this framework.
 
 ```bash
-npm install --save-dev @studiometa/oxlint-plugin-js-toolkit
+npm install --save-dev @studiometa/eslint-plugin-js-toolkit
 ```
 
-See the [plugin README](./packages/oxlint-plugin-js-toolkit/README.md) or the [linting guide](https://js-toolkit.studiometa.dev/guide/going-further/linting.html) for configuration details.
+See the [plugin README](./packages/eslint-plugin-js-toolkit/README.md) or the [linting guide](https://js-toolkit.studiometa.dev/guide/going-further/linting.html) for configuration details.
 
 ## Quick overview
 

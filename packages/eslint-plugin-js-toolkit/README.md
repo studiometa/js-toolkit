@@ -1,9 +1,9 @@
-# @studiometa/oxlint-plugin-js-toolkit
+# @studiometa/eslint-plugin-js-toolkit
 
-[![NPM Version](https://img.shields.io/npm/v/@studiometa/oxlint-plugin-js-toolkit.svg?style=flat&colorB=3e63dd&colorA=414853)](https://www.npmjs.com/package/@studiometa/oxlint-plugin-js-toolkit/)
-[![Downloads](https://img.shields.io/npm/dm/@studiometa/oxlint-plugin-js-toolkit?style=flat&colorB=3e63dd&colorA=414853)](https://www.npmjs.com/package/@studiometa/oxlint-plugin-js-toolkit/)
-[![Size](https://img.shields.io/bundlephobia/minzip/@studiometa/oxlint-plugin-js-toolkit?style=flat&colorB=3e63dd&colorA=414853&label=size)](https://bundlephobia.com/package/@studiometa/js-toolkit)
-[![Dependency Status](https://img.shields.io/librariesio/release/npm/oxlint-plugin-js-toolkit?style=flat&colorB=3e63dd&colorA=414853)](https://david-dm.org/studiometa/js-toolkit)
+[![NPM Version](https://img.shields.io/npm/v/@studiometa/eslint-plugin-js-toolkit.svg?style=flat&colorB=3e63dd&colorA=414853)](https://www.npmjs.com/package/@studiometa/eslint-plugin-js-toolkit/)
+[![Downloads](https://img.shields.io/npm/dm/@studiometa/eslint-plugin-js-toolkit?style=flat&colorB=3e63dd&colorA=414853)](https://www.npmjs.com/package/@studiometa/eslint-plugin-js-toolkit/)
+[![Size](https://img.shields.io/bundlephobia/minzip/@studiometa/eslint-plugin-js-toolkit?style=flat&colorB=3e63dd&colorA=414853&label=size)](https://bundlephobia.com/package/@studiometa/js-toolkit)
+[![Dependency Status](https://img.shields.io/librariesio/release/npm/eslint-plugin-js-toolkit?style=flat&colorB=3e63dd&colorA=414853)](https://david-dm.org/studiometa/js-toolkit)
 ![Codecov](https://img.shields.io/codecov/c/github/studiometa/js-toolkit?style=flat&colorB=3e63dd&colorA=414853)
 
 Oxlint/ESLint plugin enforcing best practices for [@studiometa/js-toolkit](https://js-toolkit.studiometa.dev).
@@ -11,7 +11,7 @@ Oxlint/ESLint plugin enforcing best practices for [@studiometa/js-toolkit](https
 ## Installation
 
 ```bash
-npm install --save-dev @studiometa/oxlint-plugin-js-toolkit
+npm install --save-dev @studiometa/eslint-plugin-js-toolkit
 ```
 
 ## Configuration
@@ -22,7 +22,7 @@ Add the plugin to your `.oxlintrc.json`:
 
 ```json
 {
-  "jsPlugins": ["@studiometa/oxlint-plugin-js-toolkit"],
+  "jsPlugins": ["@studiometa/eslint-plugin-js-toolkit"],
   "rules": {
     "js-toolkit/require-config": "error",
     "js-toolkit/require-config-name-pascal-case": "error",
@@ -53,7 +53,7 @@ Add the plugin to your `.oxlintrc.json`:
 Add the recommended config to your `eslint.config.js` (ESLint v9 flat config):
 
 ```js
-import jsToolkit from '@studiometa/oxlint-plugin-js-toolkit';
+import jsToolkit from '@studiometa/eslint-plugin-js-toolkit';
 
 export default [
   jsToolkit.configs.recommended,
@@ -64,7 +64,7 @@ export default [
 To customise individual rule severities, add an override entry after the recommended config:
 
 ```js
-import jsToolkit from '@studiometa/oxlint-plugin-js-toolkit';
+import jsToolkit from '@studiometa/eslint-plugin-js-toolkit';
 
 export default [
   jsToolkit.configs.recommended,

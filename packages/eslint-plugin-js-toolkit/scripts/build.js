@@ -6,7 +6,7 @@ import esbuild from 'esbuild';
 const root = resolve(dirname(new URL(import.meta.url).pathname), '..');
 
 rmSync(resolve(root, 'dist'), { recursive: true, force: true });
-console.log('Building @studiometa/oxlint-plugin-js-toolkit...');
+console.log('Building @studiometa/eslint-plugin-js-toolkit...');
 
 const { errors, warnings } = await esbuild.build({
   entryPoints: [resolve(root, 'src/index.ts')],

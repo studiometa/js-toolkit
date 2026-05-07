@@ -1,11 +1,11 @@
 # Linting
 
-The [`@studiometa/oxlint-plugin-js-toolkit`](https://www.npmjs.com/package/@studiometa/oxlint-plugin-js-toolkit) package provides an Oxlint/ESLint plugin that enforces best practices when writing components with this framework.
+The [`@studiometa/eslint-plugin-js-toolkit`](https://www.npmjs.com/package/@studiometa/eslint-plugin-js-toolkit) package provides an Oxlint/ESLint plugin that enforces best practices when writing components with this framework.
 
 ## Installation
 
 ```bash
-npm install --save-dev @studiometa/oxlint-plugin-js-toolkit
+npm install --save-dev @studiometa/eslint-plugin-js-toolkit
 ```
 
 ## Configuration
@@ -16,7 +16,7 @@ Add the plugin to your `.oxlintrc.json`:
 
 ```json
 {
-  "jsPlugins": ["@studiometa/oxlint-plugin-js-toolkit"],
+  "jsPlugins": ["@studiometa/eslint-plugin-js-toolkit"],
   "rules": {
     "js-toolkit/require-config": "error",
     "js-toolkit/require-config-name-pascal-case": "error",
@@ -40,7 +40,7 @@ Add the plugin to your `.oxlintrc.json`:
 Add the recommended config to your `eslint.config.js` (ESLint v9 flat config):
 
 ```js
-import jsToolkit from '@studiometa/oxlint-plugin-js-toolkit';
+import jsToolkit from '@studiometa/eslint-plugin-js-toolkit';
 
 export default [
   jsToolkit.configs.recommended,
@@ -51,7 +51,7 @@ export default [
 To customise individual rule severities, add an override entry after the recommended config:
 
 ```js
-import jsToolkit from '@studiometa/oxlint-plugin-js-toolkit';
+import jsToolkit from '@studiometa/eslint-plugin-js-toolkit';
 
 export default [
   jsToolkit.configs.recommended,
