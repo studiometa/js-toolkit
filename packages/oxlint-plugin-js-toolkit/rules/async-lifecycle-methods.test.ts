@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { asyncLifecycleMethods } from './async-lifecycle-methods.js';
+import { tester } from '../utils/rule-tester.ts';
+import { asyncLifecycleMethods } from './async-lifecycle-methods.ts';
 
 describe('async-lifecycle-methods', () => {
   it('passes and fails correctly', () => {

@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { optionsCamelCase } from './options-camel-case.js';
+import { tester } from '../utils/rule-tester.ts';
+import { optionsCamelCase } from './options-camel-case.ts';
 
 describe('options-camel-case', () => {
   it('passes and fails correctly', () => {

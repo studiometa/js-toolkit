@@ -1,4 +1,4 @@
-import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext } from '../utils/ast.js';
+import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext } from '../utils/ast.ts';
 
 const FORBIDDEN = new Set(['addEventListener', 'removeEventListener']);
 

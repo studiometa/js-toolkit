@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { refsCamelCase } from './refs-camel-case.js';
+import { tester } from '../utils/rule-tester.ts';
+import { refsCamelCase } from './refs-camel-case.ts';
 
 describe('refs-camel-case', () => {
   it('passes and fails correctly', () => {

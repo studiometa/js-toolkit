@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { noEventListenerMethods } from './no-event-listener-methods.js';
+import { tester } from '../utils/rule-tester.ts';
+import { noEventListenerMethods } from './no-event-listener-methods.ts';
 
 describe('no-event-listener-methods', () => {
   it('passes and fails correctly', () => {

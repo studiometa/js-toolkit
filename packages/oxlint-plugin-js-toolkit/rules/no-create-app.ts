@@ -1,4 +1,4 @@
-import { type Node, type RuleContext } from '../utils/ast.js';
+import { type Node, type RuleContext } from '../utils/ast.ts';
 
 export const noCreateApp = {
   meta: {

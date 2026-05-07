@@ -1,4 +1,4 @@
-import { isBaseSubclass, isPascalCase, toPascalCase, type Node, type RuleContext } from '../utils/ast.js';
+import { isBaseSubclass, isPascalCase, toPascalCase, type Node, type RuleContext } from '../utils/ast.ts';
 
 export const requireConfigNamePascalCase = {
   meta: {

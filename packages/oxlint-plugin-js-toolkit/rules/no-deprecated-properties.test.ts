@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { noDeprecatedProperties } from './no-deprecated-properties.js';
+import { tester } from '../utils/rule-tester.ts';
+import { noDeprecatedProperties } from './no-deprecated-properties.ts';
 
 describe('no-deprecated-properties', () => {
   it('passes and fails correctly', () => {

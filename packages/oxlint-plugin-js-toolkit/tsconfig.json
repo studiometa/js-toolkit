@@ -5,7 +5,8 @@
     "outDir": "./dist",
     "noEmit": false,
     "emitDeclarationOnly": true,
-    "declaration": true
+    "declaration": true,
+    "allowImportingTsExtensions": true
   },
   "include": ["./**/*.ts"],
   "exclude": ["dist", "node_modules", "**/*.test.ts"]

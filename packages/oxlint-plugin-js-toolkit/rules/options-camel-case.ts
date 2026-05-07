@@ -1,4 +1,4 @@
-import { isBaseSubclass, isCamelCase, toCamelCase, type Node, type RuleContext } from '../utils/ast.js';
+import { isBaseSubclass, isCamelCase, toCamelCase, type Node, type RuleContext } from '../utils/ast.ts';
 
 export const optionsCamelCase = {
   meta: {

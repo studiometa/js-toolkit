@@ -1,4 +1,4 @@
-import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext } from '../utils/ast.js';
+import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext } from '../utils/ast.ts';
 
 const DEPRECATED = new Map([
   ['$parent', '$closest()'],

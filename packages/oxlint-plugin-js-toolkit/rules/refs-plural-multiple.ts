@@ -1,4 +1,4 @@
-import { isBaseSubclass, type Node, type RuleContext } from '../utils/ast.js';
+import { isBaseSubclass, type Node, type RuleContext } from '../utils/ast.ts';
 
 export const refsPluralMultiple = {
   meta: {

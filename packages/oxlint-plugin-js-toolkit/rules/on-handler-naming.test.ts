@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { onHandlerNaming } from './on-handler-naming.js';
+import { tester } from '../utils/rule-tester.ts';
+import { onHandlerNaming } from './on-handler-naming.ts';
 
 describe('on-handler-naming', () => {
   it('passes and fails correctly', () => {
