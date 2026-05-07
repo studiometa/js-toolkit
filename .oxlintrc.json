@@ -1,5 +1,5 @@
 {
-  "jsPlugins": [{ "name": "js-toolkit", "specifier": "./packages/oxlint-plugin-js-toolkit/index.ts" }],
+  "jsPlugins": [{ "name": "js-toolkit", "specifier": "./packages/oxlint-plugin-js-toolkit/src/index.ts" }],
   "rules": {
     "typescript/no-this-alias": [
       "error",
