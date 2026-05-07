@@ -1,19 +1,12 @@
 {% extends '@layouts/base.twig' %}
 
-{% block main %}
-  <div data-component="Frame" id="frame" data-option-history class="grid gap-10">
-    <nav data-component="FrameTarget" id="nav" data-option-mode="morph" class="flex gap-4">
-      <a data-option-debug data-component="FrameAnchor" href="/" class="underline text-blue-600">
-        Home
-      </a>
-      <a data-option-debug data-component="FrameAnchor" href="/foo.html" class="underline">Foo</a>
+{% block body %}
+  <div class="grid gap-10 max-w-xl mx-auto">
+    <nav id="nav" class="flex gap-4">
+      <span data-option-debug data-component="Fetch" data-option-history href="/" class="underline text-blue-600 cursor-default">Home</span>
+      <a data-option-debug data-component="Fetch" data-option-history href="/foo.html" class="underline">Foo</a>
     </nav>
-    <div
-      data-component="FrameTarget"
-      id="target"
-      class="grid gap-4 transition"
-      data-option-enter-from="opacity-0"
-      data-option-leave-to="opacity-0">
+    <div id="target" class="grid gap-4 transition">
       <h1 class="font-bold text-xl">Home</h1>
       <p class="max-w-xl">
         Praesent et eros quis justo ultrices luctus. Cras egestas ullamcorper quam, eget suscipit

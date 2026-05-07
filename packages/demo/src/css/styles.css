@@ -1,0 +1,4 @@
+@import 'tailwindcss';
+@import '@studiometa/tailwind-config';
+@source '../../node_modules/@studiometa/ui';
+@source '../../../../node_modules/@studiometa/ui';

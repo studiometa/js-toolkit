@@ -1,17 +1,10 @@
-<!DOCTYPE html>
-<html lang="en" data-component="App">
-  <head>
-    <title>@studiometa/js-toolkit demo</title>
-    <meta name="description" content="Demo of the @studiometa/js-toolkit components." />
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  </head>
+{% extends '@pkg-layouts/default.twig' %}
 
-  <body>
-    <main data-breakpoint class="relative p-10">
-      {% block main %}
-        Main.
-      {% endblock %}
-    </main>
-  </body>
-</html>
+{% set head = {
+  title: '@studiometa/js-toolkit demo',
+  description: 'Demo of the @studiometa/js-toolkit components.'
+} %}
+
+{% set body_attr = {
+  class: 'p-10'
+} %}
