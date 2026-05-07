@@ -95,5 +95,5 @@ export default [
 | `js-toolkit/no-deprecated-properties` | Disallows removed (`$parent`, `$root`) and deprecated (`$children`) properties. Use `$closest()` and `$query()`/`$queryAll()` instead. | error |
 | `js-toolkit/no-dispatch-event` | Disallows `dispatchEvent()` inside `Base` subclasses. Use `this.$emit()` instead. | warn |
 | `js-toolkit/no-shadow-dom` | Disallows `attachShadow()` inside `Base` subclasses. The framework uses Light DOM only. | error |
-| `js-toolkit/no-create-app` | Disallows `createApp()` (deprecated since v4). Use `registerComponent()` instead. | warn |
+| `js-toolkit/no-create-app` | Disallows `createApp()` (deprecated). Use `registerComponent()` instead. | warn |
 | `js-toolkit/no-event-listener-methods` | Disallows `addEventListener()` and `removeEventListener()` inside `Base` subclasses. Define `on*` methods instead — the framework handles binding and cleanup automatically. | error |
