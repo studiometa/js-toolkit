@@ -5,6 +5,7 @@ import { Base } from '@studiometa/js-toolkit';
  */
 export default class BreakpointManagerDemoBase extends Base {
   static config = {
+    name: 'BreakpointManagerDemoBase',
     log: false,
     refs: ['content'],
   };
@@ -12,7 +13,7 @@ export default class BreakpointManagerDemoBase extends Base {
   /**
    *
    */
-  mounted() {
+  async mounted() {
     this.$log('mounted');
     this.$refs.content.innerHTML = this.$options.name;
   }
@@ -20,7 +21,7 @@ export default class BreakpointManagerDemoBase extends Base {
   /**
    *
    */
-  destroyed() {
+  async destroyed() {
     this.$log('destroyed');
   }
 

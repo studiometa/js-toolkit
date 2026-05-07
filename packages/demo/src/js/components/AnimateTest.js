@@ -59,7 +59,7 @@ export default class AnimateTest extends Base {
   /**
    *
    */
-  mounted() {
+  async mounted() {
     this.animate = animate(
       this.$refs.target,
       this.$options.steps.map((step) => {

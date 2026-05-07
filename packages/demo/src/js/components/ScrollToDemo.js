@@ -14,7 +14,7 @@ export default class ScrollToDemo extends Base {
   /**
    *
    */
-  mounted() {
+  async mounted() {
     this.$log('mounted');
   }
 
