@@ -39,6 +39,21 @@ jobs:
 
   unit:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - package: js-toolkit
+            working-directory: .
+            test-command: npm run test -- -- --retry=3 --coverage.enabled
+            coverage-file: ./packages/coverage/clover.xml
+          - package: oxlint-plugin-js-toolkit
+            working-directory: packages/oxlint-plugin-js-toolkit
+            test-command: npm test -- --retry=3 --coverage.enabled
+            coverage-file: packages/oxlint-plugin-js-toolkit/coverage/clover.xml
+    name: unit (${{ matrix.package }})
+    defaults:
+      run:
+        working-directory: ${{ matrix.working-directory }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -48,12 +63,12 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run tests
-        run: npm run test -- -- --retry=3 --coverage.enabled
+        run: ${{ matrix.test-command }}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: ./packages/coverage/clover.xml
-          flags: unittests
+          files: ${{ matrix.coverage-file }}
+          flags: ${{ matrix.package }}
           fail_ci_if_error: false
           verbose: true
         env:
