@@ -1,6 +1,6 @@
-import { isBaseSubclass, type Node, type RuleContext } from '../utils/ast.ts';
+import { isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
-export const refsPluralMultiple = {
+export const refsPluralMultiple = createRule({
   meta: {
     type: 'problem',
     docs: {
@@ -10,7 +10,7 @@ export const refsPluralMultiple = {
       notPlural: 'Multiple ref "{{name}}" must be pluralized (e.g. "{{name}}s[]").',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       ClassDeclaration(node: Node) {
         check(node, context);
@@ -20,7 +20,7 @@ export const refsPluralMultiple = {
       },
     };
   },
-};
+});
 
 function check(node: Node, context: RuleContext) {
   if (!isBaseSubclass(node, context)) return;

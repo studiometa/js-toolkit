@@ -6,6 +6,21 @@
 export type Node = Record<string, any>;
 export type RuleContext = Record<string, any>;
 
+export type RuleMeta = {
+  type?: 'problem' | 'suggestion' | 'layout';
+  fixable?: 'code' | 'whitespace';
+  hasSuggestions?: boolean;
+  docs?: { description?: string };
+  messages?: Record<string, string>;
+};
+
+export function createRule<V extends Record<string, (node: Node) => unknown>>(rule: {
+  meta?: RuleMeta;
+  createOnce(context: RuleContext): V;
+}): { meta?: RuleMeta; createOnce(context: RuleContext): V } {
+  return rule;
+}
+
 export const LIFECYCLE_METHODS = new Set([
   'mounted',
   'destroyed',

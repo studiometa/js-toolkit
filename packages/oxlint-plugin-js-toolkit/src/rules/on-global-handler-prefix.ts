@@ -1,4 +1,4 @@
-import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext } from '../utils/ast.ts';
+import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
 // Events that only make sense on window/document, never on a DOM element.
 // Pointer, keyboard, and form events are intentionally excluded — they can all
@@ -6,7 +6,7 @@ import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext } from 
 // unambiguous mistake worth flagging automatically.
 const GLOBAL_ONLY_EVENTS = new Set(['Resize']);
 
-export const onGlobalHandlerPrefix = {
+export const onGlobalHandlerPrefix = createRule({
   meta: {
     type: 'suggestion',
     docs: {
@@ -18,7 +18,7 @@ export const onGlobalHandlerPrefix = {
         '"{{name}}" looks like a global event handler. Use "onWindow{{event}}" or "onDocument{{event}}" to bind to window/document events.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       MethodDefinition(node: Node) {
         const name = node.key?.name;
@@ -46,4 +46,4 @@ export const onGlobalHandlerPrefix = {
       },
     };
   },
-};
+});

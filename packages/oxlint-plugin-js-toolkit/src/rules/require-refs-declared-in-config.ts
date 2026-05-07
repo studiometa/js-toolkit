@@ -1,4 +1,4 @@
-import { isBaseSubclass, toCamelCase, type Node, type RuleContext } from '../utils/ast.ts';
+import { isBaseSubclass, toCamelCase, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
 function collectDeclaredRefs(classNode: Node): Set<string> {
   const body: Node[] = classNode.body?.body ?? [];
@@ -35,7 +35,7 @@ function isThisRefs(node: Node): boolean {
   );
 }
 
-export const requireRefsDeclaredInConfig = {
+export const requireRefsDeclaredInConfig = createRule({
   meta: {
     type: 'problem',
     docs: {
@@ -45,7 +45,7 @@ export const requireRefsDeclaredInConfig = {
       undeclared: 'Ref "{{name}}" is not declared in static config.refs.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       'ClassDeclaration, ClassExpression'(classNode: Node) {
         if (!isBaseSubclass(classNode, context)) return;
@@ -82,7 +82,7 @@ export const requireRefsDeclaredInConfig = {
       },
     };
   },
-};
+});
 
 function walkNode(node: Node, visit: (n: Node) => void) {
   if (!node || typeof node !== 'object') return;

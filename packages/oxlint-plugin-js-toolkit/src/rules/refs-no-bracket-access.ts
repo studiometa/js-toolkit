@@ -1,4 +1,4 @@
-import { toCamelCase, type Node, type RuleContext } from '../utils/ast.ts';
+import { toCamelCase, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
 function isThisRefs(node: Node): boolean {
   return (
@@ -8,7 +8,7 @@ function isThisRefs(node: Node): boolean {
   );
 }
 
-export const refsNoBracketAccess = {
+export const refsNoBracketAccess = createRule({
   meta: {
     type: 'problem',
     fixable: 'code',
@@ -20,7 +20,7 @@ export const refsNoBracketAccess = {
         'Use "this.$refs.{{fixed}}" instead of "this.$refs[\'{{raw}}\']".',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       MemberExpression(node: Node) {
         if (!isThisRefs(node.object)) return;
@@ -46,4 +46,4 @@ export const refsNoBracketAccess = {
       },
     };
   },
-};
+});

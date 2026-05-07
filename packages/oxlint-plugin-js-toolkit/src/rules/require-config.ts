@@ -1,6 +1,6 @@
-import { isBaseSubclass, type Node, type RuleContext } from '../utils/ast.ts';
+import { isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
-export const requireConfig = {
+export const requireConfig = createRule({
   meta: {
     type: 'problem',
     docs: {
@@ -11,7 +11,7 @@ export const requireConfig = {
       missingName: 'The static config must include a name property.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       ClassDeclaration(node: Node) {
         check(node, context);
@@ -21,7 +21,7 @@ export const requireConfig = {
       },
     };
   },
-};
+});
 
 function check(node: Node, context: RuleContext) {
   if (!isBaseSubclass(node, context)) return;

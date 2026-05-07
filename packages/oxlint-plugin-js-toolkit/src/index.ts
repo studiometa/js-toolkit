@@ -1,3 +1,4 @@
+import { eslintCompatPlugin } from '@oxlint/plugins';
 import {
   requireConfig,
   requireConfigNamePascalCase,
@@ -69,13 +70,14 @@ const recommendedRules: Record<string, string> = {
   [`${PLUGIN_NAME}/no-manual-mutation-observer`]: 'warn',
 };
 
-const plugin: { meta: object; rules: typeof rules; configs: Record<string, object> } = {
+const base = eslintCompatPlugin({
   meta: {
     name: '@studiometa/oxlint-plugin-js-toolkit',
   },
   rules,
-  configs: {},
-};
+});
+
+const plugin = Object.assign(base, { configs: {} as Record<string, object> });
 
 plugin.configs['recommended'] = {
   plugins: { [PLUGIN_NAME]: plugin },

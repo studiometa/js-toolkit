@@ -1,4 +1,4 @@
-import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext } from '../utils/ast.ts';
+import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
 const DEPRECATED = new Map([
   ['$parent', '$closest()'],
@@ -6,7 +6,7 @@ const DEPRECATED = new Map([
   ['$children', '$query()'],
 ]);
 
-export const noDeprecatedProperties = {
+export const noDeprecatedProperties = createRule({
   meta: {
     type: 'problem',
     docs: {
@@ -16,7 +16,7 @@ export const noDeprecatedProperties = {
       deprecated: '"{{name}}" is deprecated. Use {{replacement}} instead.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       MemberExpression(node: Node) {
         const prop = node.property?.name;
@@ -41,4 +41,4 @@ export const noDeprecatedProperties = {
       },
     };
   },
-};
+});

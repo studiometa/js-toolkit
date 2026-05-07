@@ -1,8 +1,8 @@
-import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext } from '../utils/ast.ts';
+import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
 const FORBIDDEN = new Set(['addEventListener', 'removeEventListener']);
 
-export const noEventListenerMethods = {
+export const noEventListenerMethods = createRule({
   meta: {
     type: 'problem',
     docs: {
@@ -15,7 +15,7 @@ export const noEventListenerMethods = {
         'Define an "on<Target><Event>()" method instead — the framework handles binding and cleanup automatically.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       CallExpression(node: Node) {
         const callee = node.callee;
@@ -42,4 +42,4 @@ export const noEventListenerMethods = {
       },
     };
   },
-};
+});

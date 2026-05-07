@@ -1,6 +1,6 @@
-import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext } from '../utils/ast.ts';
+import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
-export const noManualIntersectionObserver = {
+export const noManualIntersectionObserver = createRule({
   meta: {
     type: 'suggestion',
     docs: {
@@ -12,7 +12,7 @@ export const noManualIntersectionObserver = {
         'Avoid manual "new IntersectionObserver()". Use "withIntersectionObserver" or "withMountWhenInView" decorators instead.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       NewExpression(node: Node) {
         if (node.callee?.name !== 'IntersectionObserver') return;
@@ -25,4 +25,4 @@ export const noManualIntersectionObserver = {
       },
     };
   },
-};
+});

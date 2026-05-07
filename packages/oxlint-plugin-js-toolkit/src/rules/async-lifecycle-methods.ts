@@ -1,6 +1,6 @@
-import { isBaseSubclass, LIFECYCLE_METHODS, findEnclosingClass, type Node, type RuleContext } from '../utils/ast.ts';
+import { isBaseSubclass, LIFECYCLE_METHODS, findEnclosingClass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
-export const asyncLifecycleMethods = {
+export const asyncLifecycleMethods = createRule({
   meta: {
     type: 'problem',
     fixable: 'code',
@@ -11,7 +11,7 @@ export const asyncLifecycleMethods = {
       notAsync: 'Lifecycle method "{{name}}" must be declared as async.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       MethodDefinition(node: Node) {
         const name = node.key?.name;
@@ -34,4 +34,4 @@ export const asyncLifecycleMethods = {
       },
     };
   },
-};
+});
