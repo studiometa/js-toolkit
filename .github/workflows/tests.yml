@@ -48,10 +48,10 @@ jobs:
             working-directory: .
             test-command: npm run test -- -- --retry=3 --coverage.enabled
             coverage-file: ./packages/coverage/clover.xml
-          - package: oxlint-plugin-js-toolkit
-            working-directory: packages/oxlint-plugin-js-toolkit
+          - package: eslint-plugin-js-toolkit
+            working-directory: packages/eslint-plugin-js-toolkit
             test-command: npm test -- --retry=3 --coverage.enabled
-            coverage-file: packages/oxlint-plugin-js-toolkit/coverage/clover.xml
+            coverage-file: packages/eslint-plugin-js-toolkit/coverage/clover.xml
     name: unit (${{ matrix.package }})
     defaults:
       run:
