@@ -33,7 +33,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-progress --no-fund
       - name: Run code quality tests
-        run: npm run lint:oxlint
+        run: npm run lint:static
+      - name: Run format tests
+        run: npm run lint:fmt
       - name: Run types tests
         run: npm run lint:types
 
