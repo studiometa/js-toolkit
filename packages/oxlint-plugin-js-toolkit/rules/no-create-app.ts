@@ -4,7 +4,7 @@ export const noCreateApp = {
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Disallow createApp() — use registerComponent() instead (v4 migration)',
+      description: 'Disallow createApp() — use registerComponent() instead',
     },
     messages: {
       useRegister:
