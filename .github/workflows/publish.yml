@@ -38,6 +38,10 @@ jobs:
 
       - run: npm run build
 
+      - name: Build oxlint-plugin
+        run: npm run build
+        working-directory: packages/oxlint-plugin-js-toolkit
+
       - name: Test
         run: npm run test -- -- --retry=3 --coverage.enabled
 
@@ -45,8 +49,21 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: ./packages/coverage
-          flags: unittests
+          files: ./packages/coverage/clover.xml
+          flags: js-toolkit
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Test oxlint-plugin
+        run: npm test -- --retry=3 --coverage.enabled
+        working-directory: packages/oxlint-plugin-js-toolkit
+
+      - name: Upload oxlint-plugin coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: packages/oxlint-plugin-js-toolkit/coverage/clover.xml
+          flags: oxlint-plugin-js-toolkit
           fail_ci_if_error: false
           verbose: true
 
@@ -66,6 +83,13 @@ jobs:
         with:
           provenance: true
           package: dist/
+          tag: ${{ env.NPM_TAG }}
+          token: ${{ secrets.NPM_TOKEN }}
+
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          provenance: true
+          package: packages/oxlint-plugin-js-toolkit/
           tag: ${{ env.NPM_TAG }}
           token: ${{ secrets.NPM_TOKEN }}
 

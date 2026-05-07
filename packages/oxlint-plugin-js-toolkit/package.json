@@ -13,6 +13,11 @@
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,7 +31,8 @@
   "scripts": {
     "build": "node scripts/build.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint:types": "tsgo --build tsconfig.json"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "4.1.2",
