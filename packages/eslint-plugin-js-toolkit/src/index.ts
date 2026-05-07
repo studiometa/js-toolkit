@@ -72,7 +72,7 @@ const recommendedRules: Record<string, string> = {
 
 const base = eslintCompatPlugin({
   meta: {
-    name: '@studiometa/oxlint-plugin-js-toolkit',
+    name: '@studiometa/eslint-plugin-js-toolkit',
   },
   rules,
 });
