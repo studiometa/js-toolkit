@@ -1,4 +1,4 @@
-import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext } from '../utils/ast.ts';
+import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
 const QUERY_METHODS = new Set(['querySelector', 'querySelectorAll']);
 
@@ -10,7 +10,7 @@ function isThisEl(node: Node): boolean {
   );
 }
 
-export const preferRefOverQuerySelector = {
+export const preferRefOverQuerySelector = createRule({
   meta: {
     type: 'suggestion',
     docs: {
@@ -21,7 +21,7 @@ export const preferRefOverQuerySelector = {
         'Avoid "this.$el.{{method}}()". Declare a ref in static config and use "this.$refs" instead.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       CallExpression(node: Node) {
         const callee = node.callee;
@@ -38,4 +38,4 @@ export const preferRefOverQuerySelector = {
       },
     };
   },
-};
+});

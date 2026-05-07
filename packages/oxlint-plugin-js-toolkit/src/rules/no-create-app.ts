@@ -1,6 +1,6 @@
-import { type Node, type RuleContext } from '../utils/ast.ts';
+import { type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
-export const noCreateApp = {
+export const noCreateApp = createRule({
   meta: {
     type: 'suggestion',
     docs: {
@@ -11,7 +11,7 @@ export const noCreateApp = {
         'createApp() is deprecated. Use registerComponent() from @studiometa/js-toolkit instead.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       CallExpression(node: Node) {
         const callee = node.callee;
@@ -21,4 +21,4 @@ export const noCreateApp = {
       },
     };
   },
-};
+});

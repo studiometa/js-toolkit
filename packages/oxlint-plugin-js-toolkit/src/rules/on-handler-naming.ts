@@ -1,9 +1,9 @@
-import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext } from '../utils/ast.ts';
+import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
 // onXxxYyy — the part after "on" must start with an uppercase letter
 const ON_HANDLER_RE = /^on[A-Z][a-zA-Z0-9]*$/;
 
-export const onHandlerNaming = {
+export const onHandlerNaming = createRule({
   meta: {
     type: 'problem',
     docs: {
@@ -14,7 +14,7 @@ export const onHandlerNaming = {
         'Event handler "{{name}}" must follow the onXxxYyy camelCase convention (e.g. onClickButton).',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       MethodDefinition(node: Node) {
         // Skip getters, setters — those are not event handlers
@@ -37,4 +37,4 @@ export const onHandlerNaming = {
       },
     };
   },
-};
+});

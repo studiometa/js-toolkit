@@ -1,6 +1,6 @@
-import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext } from '../utils/ast.ts';
+import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
-export const noDispatchEvent = {
+export const noDispatchEvent = createRule({
   meta: {
     type: 'suggestion',
     docs: {
@@ -10,7 +10,7 @@ export const noDispatchEvent = {
       useEmit: 'Use this.$emit() instead of dispatchEvent() to emit events in a Base component.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       CallExpression(node: Node) {
         const callee = node.callee;
@@ -37,4 +37,4 @@ export const noDispatchEvent = {
       },
     };
   },
-};
+});

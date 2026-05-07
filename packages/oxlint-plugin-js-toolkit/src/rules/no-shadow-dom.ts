@@ -1,6 +1,6 @@
-import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext } from '../utils/ast.ts';
+import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
-export const noShadowDom = {
+export const noShadowDom = createRule({
   meta: {
     type: 'problem',
     docs: {
@@ -11,7 +11,7 @@ export const noShadowDom = {
         'Do not use attachShadow() in a Base component. @studiometa/js-toolkit uses Light DOM only.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       CallExpression(node: Node) {
         const callee = node.callee;
@@ -33,4 +33,4 @@ export const noShadowDom = {
       },
     };
   },
-};
+});

@@ -1,8 +1,8 @@
-import { type Node, type RuleContext } from '../utils/ast.ts';
+import { type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
 const DEEP_UTILS_RE = /^@studiometa\/js-toolkit\/utils\/.+/;
 
-export const noDeepUtilsImport = {
+export const noDeepUtilsImport = createRule({
   meta: {
     type: 'problem',
     fixable: 'code',
@@ -14,7 +14,7 @@ export const noDeepUtilsImport = {
         'Import from "{{source}}" should use the public entrypoint "@studiometa/js-toolkit/utils".',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       ImportDeclaration(node: Node) {
         const source: string = node.source.value;
@@ -48,4 +48,4 @@ export const noDeepUtilsImport = {
       },
     };
   },
-};
+});

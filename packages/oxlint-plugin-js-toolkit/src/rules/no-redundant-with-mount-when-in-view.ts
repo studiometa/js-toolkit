@@ -1,6 +1,6 @@
-import { type Node, type RuleContext } from '../utils/ast.ts';
+import { type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
-export const noRedundantWithMountWhenInView = {
+export const noRedundantWithMountWhenInView = createRule({
   meta: {
     type: 'suggestion',
     docs: {
@@ -12,14 +12,14 @@ export const noRedundantWithMountWhenInView = {
         'withScrolledInView already includes withMountWhenInView internally. Remove the inner withMountWhenInView call.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       'ClassDeclaration, ClassExpression'(node: Node) {
         check(node, context);
       },
     };
   },
-};
+});
 
 function check(node: Node, context: RuleContext) {
   const superClass = node.superClass;

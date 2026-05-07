@@ -1,6 +1,6 @@
-import { isBaseSubclass, isCamelCase, toCamelCase, type Node, type RuleContext } from '../utils/ast.ts';
+import { isBaseSubclass, isCamelCase, toCamelCase, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
-export const refsCamelCase = {
+export const refsCamelCase = createRule({
   meta: {
     type: 'problem',
     fixable: 'code',
@@ -11,7 +11,7 @@ export const refsCamelCase = {
       notCamelCase: 'Ref name "{{name}}" must be camelCase.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       ClassDeclaration(node: Node) {
         check(node, context);
@@ -21,7 +21,7 @@ export const refsCamelCase = {
       },
     };
   },
-};
+});
 
 function check(node: Node, context: RuleContext) {
   if (!isBaseSubclass(node, context)) return;

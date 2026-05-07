@@ -1,6 +1,6 @@
-import { isBaseSubclass, isPascalCase, toPascalCase, type Node, type RuleContext } from '../utils/ast.ts';
+import { isBaseSubclass, isPascalCase, toPascalCase, type Node, type RuleContext, createRule } from '../utils/ast.ts';
 
-export const requireConfigNamePascalCase = {
+export const requireConfigNamePascalCase = createRule({
   meta: {
     type: 'problem',
     fixable: 'code',
@@ -11,7 +11,7 @@ export const requireConfigNamePascalCase = {
       notPascalCase: 'config.name "{{name}}" must be PascalCase.',
     },
   },
-  create(context: RuleContext) {
+  createOnce(context: RuleContext) {
     return {
       ClassDeclaration(node: Node) {
         check(node, context);
@@ -21,7 +21,7 @@ export const requireConfigNamePascalCase = {
       },
     };
   },
-};
+});
 
 function check(node: Node, context: RuleContext) {
   if (!isBaseSubclass(node, context)) return;
