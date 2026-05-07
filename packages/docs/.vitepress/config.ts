@@ -93,6 +93,7 @@ function getGuideSidebar() {
           keywords: ['types', 'typings', 'typescript', 'jsdoc'],
         },
         { text: 'Custom Services', link: '/guide/going-further/registering-new-services.html' },
+        { text: 'Linting', link: '/guide/going-further/linting.html' },
       ],
     },
     {

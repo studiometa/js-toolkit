@@ -29,6 +29,16 @@ This project is a JavaScript micro-framework (along with its utility functions) 
 
 Visit [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) to learn more, jump directly to [ui.studiometa.dev](https://ui.studiometa.dev) to discover existing components, or open [the playground](https://ui.studiometa.dev/-/play/) to test it live.
 
+## Linting
+
+The [`@studiometa/oxlint-plugin-js-toolkit`](./packages/oxlint-plugin-js-toolkit/) package provides an Oxlint/ESLint plugin that enforces best practices when writing components with this framework.
+
+```bash
+npm install --save-dev @studiometa/oxlint-plugin-js-toolkit
+```
+
+See the [plugin README](./packages/oxlint-plugin-js-toolkit/README.md) or the [linting guide](https://js-toolkit.studiometa.dev/guide/going-further/linting.html) for configuration details.
+
 ## Quick overview
 
 This framework lets you define components as classes, and bind them to the DOM with `data-…` attributes. For example, here is how a `Counter` component would be defined in JavaScript:
