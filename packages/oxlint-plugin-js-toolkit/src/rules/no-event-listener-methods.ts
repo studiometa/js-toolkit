@@ -24,6 +24,13 @@ export const noEventListenerMethods = {
         const method = callee.property?.name;
         if (!method || !FORBIDDEN.has(method)) return;
 
+        // Only flag calls on `this.*`, `document`, or `window`
+        let root = callee.object;
+        while (root?.type === 'MemberExpression') root = root.object;
+        const isThis = root?.type === 'ThisExpression';
+        const isGlobal = root?.type === 'Identifier' && (root.name === 'document' || root.name === 'window');
+        if (!isThis && !isGlobal) return;
+
         const ancestors = context.getAncestors
           ? context.getAncestors()
           : context.sourceCode?.getAncestors?.(node) ?? [];

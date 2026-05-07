@@ -16,6 +16,14 @@ describe('no-event-listener-methods', () => {
            el.addEventListener('click', handler);
            el.removeEventListener('click', handler);
          }`,
+        // Non-this receiver inside a Base class — allowed (e.g. AbortSignal)
+        `import { Base } from '@studiometa/js-toolkit';
+         class Fetch extends Base {
+           mounted() {
+             const ctrl = new AbortController();
+             ctrl.signal.addEventListener('abort', () => {});
+           }
+         }`,
       ],
       invalid: [
         {
@@ -32,6 +40,24 @@ describe('no-event-listener-methods', () => {
                  class Slider extends Base {
                    async destroyed() {
                      this.$el.removeEventListener('click', this.onClick);
+                   }
+                 }`,
+          errors: [{ messageId: 'useOnMethod' }],
+        },
+        {
+          code: `import { Base } from '@studiometa/js-toolkit';
+                 class Slider extends Base {
+                   mounted() {
+                     document.addEventListener('click', this.onClick);
+                   }
+                 }`,
+          errors: [{ messageId: 'useOnMethod' }],
+        },
+        {
+          code: `import { Base } from '@studiometa/js-toolkit';
+                 class Slider extends Base {
+                   mounted() {
+                     window.addEventListener('resize', this.onResize);
                    }
                  }`,
           errors: [{ messageId: 'useOnMethod' }],
