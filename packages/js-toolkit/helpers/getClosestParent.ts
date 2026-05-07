@@ -5,7 +5,7 @@ import { getAncestorWhere } from '../utils/index.js';
 /**
  * Get the closest parent of a component.
  * @link https://js-toolkit.studiometa.dev/api/helpers/getClosestParent.html
-*/
+ */
 export function getClosestParent<T extends BaseConstructor>(
   childInstance: Base,
   ParentConstructor: T,

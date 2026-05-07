@@ -1,4 +1,10 @@
-import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
+import {
+  findEnclosingClass,
+  isBaseSubclass,
+  type Node,
+  type RuleContext,
+  createRule,
+} from '../utils/ast.ts';
 
 export const noShadowDom = createRule({
   meta: {
@@ -15,16 +21,13 @@ export const noShadowDom = createRule({
     return {
       CallExpression(node: Node) {
         const callee = node.callee;
-        if (
-          callee.type !== 'MemberExpression' ||
-          callee.property?.name !== 'attachShadow'
-        ) {
+        if (callee.type !== 'MemberExpression' || callee.property?.name !== 'attachShadow') {
           return;
         }
 
         const ancestors = context.getAncestors
           ? context.getAncestors()
-          : context.sourceCode?.getAncestors?.(node) ?? [];
+          : (context.sourceCode?.getAncestors?.(node) ?? []);
 
         const enclosingClass = findEnclosingClass(ancestors);
         if (!enclosingClass || !isBaseSubclass(enclosingClass, context)) return;

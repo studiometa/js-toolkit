@@ -1,4 +1,10 @@
-import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
+import {
+  findEnclosingClass,
+  isBaseSubclass,
+  type Node,
+  type RuleContext,
+  createRule,
+} from '../utils/ast.ts';
 
 export const noDispatchEvent = createRule({
   meta: {
@@ -21,14 +27,13 @@ export const noDispatchEvent = createRule({
             callee.object?.type === 'ThisExpression' &&
             callee.property?.name === 'dispatchEvent') ||
           // this.$el.dispatchEvent(...) or el.dispatchEvent(...)
-          (callee.type === 'MemberExpression' &&
-            callee.property?.name === 'dispatchEvent');
+          (callee.type === 'MemberExpression' && callee.property?.name === 'dispatchEvent');
 
         if (!isDispatchEvent) return;
 
         const ancestors = context.getAncestors
           ? context.getAncestors()
-          : context.sourceCode?.getAncestors?.(node) ?? [];
+          : (context.sourceCode?.getAncestors?.(node) ?? []);
 
         const enclosingClass = findEnclosingClass(ancestors);
         if (!enclosingClass || !isBaseSubclass(enclosingClass, context)) return;

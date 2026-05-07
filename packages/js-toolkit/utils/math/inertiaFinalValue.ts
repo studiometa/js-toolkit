@@ -8,7 +8,7 @@ import { clamp } from './clamp.js';
  * @param   [dampFactor=0.85] The speed to reach the target value, defaults to `0.85`.
  * @returns The next value.
  * @link https://js-toolkit.studiometa.dev/utils/math/inertiaFinalValue.html
-*/
+ */
 export function inertiaFinalValue(initialValue: number, initialDelta: number, dampFactor = 0.85) {
   // eslint-disable-next-line no-param-reassign
   dampFactor = clamp(dampFactor, 0.00001, 0.99999);

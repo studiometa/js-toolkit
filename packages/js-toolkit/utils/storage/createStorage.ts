@@ -6,11 +6,7 @@ import type { StorageInstance, StorageOptions } from './types.js';
 export function createStorage<T extends Record<string, any> = Record<string, any>>(
   options: StorageOptions = {},
 ): StorageInstance<T> {
-  const {
-    provider = localStorageProvider,
-    serializer = jsonSerializer,
-    prefix = '',
-  } = options;
+  const { provider = localStorageProvider, serializer = jsonSerializer, prefix = '' } = options;
 
   const listeners = new Map<keyof T, Set<(value: any) => void>>();
 

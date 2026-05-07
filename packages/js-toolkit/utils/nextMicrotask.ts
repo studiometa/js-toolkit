@@ -6,7 +6,7 @@ type Callback = (...args: any[]) => any;
 /**
  * Wait for the next microtask.
  * @link https://js-toolkit.studiometa.dev/utils/nextMicrotask.html
-*/
+ */
 export async function nextMicrotask(): Promise<void>;
 export async function nextMicrotask<T extends Callback>(callback?: T): Promise<ReturnType<T>>;
 export async function nextMicrotask<T extends Callback>(callback?: T): Promise<ReturnType<T>> {

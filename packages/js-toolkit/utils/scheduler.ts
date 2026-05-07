@@ -65,7 +65,7 @@ const domSchedulerSteps = ['read', 'write', 'afterWrite'];
 /**
  * Use a scheduler based on the given steps.
  * @link https://js-toolkit.studiometa.dev/utils/useScheduler.html
-*/
+ */
 export function useScheduler<T extends string>(
   steps: T[] = domSchedulerSteps as T[],
 ): ReturnType<typeof getScheduler<T>> {
@@ -84,5 +84,5 @@ export function useScheduler<T extends string>(
 /**
  * DOM-oriented scheduler using read/write/afterWrite steps.
  * @link https://js-toolkit.studiometa.dev/utils/domScheduler.html
-*/
+ */
 export const domScheduler = useScheduler(domSchedulerSteps as ['read', 'write', 'afterWrite']);

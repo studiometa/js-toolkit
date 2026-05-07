@@ -1,12 +1,15 @@
-import { isBaseSubclass, toCamelCase, type Node, type RuleContext, createRule } from '../utils/ast.ts';
+import {
+  isBaseSubclass,
+  toCamelCase,
+  type Node,
+  type RuleContext,
+  createRule,
+} from '../utils/ast.ts';
 
 function collectDeclaredRefs(classNode: Node): Set<string> {
   const body: Node[] = classNode.body?.body ?? [];
   const configProp = body.find(
-    (m: Node) =>
-      m.type === 'PropertyDefinition' &&
-      m.static === true &&
-      m.key?.name === 'config',
+    (m: Node) => m.type === 'PropertyDefinition' && m.static === true && m.key?.name === 'config',
   );
 
   if (!configProp?.value || configProp.value.type !== 'ObjectExpression') return new Set();

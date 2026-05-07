@@ -14,7 +14,7 @@
  * @param {Rect} rect2 Rectangle 2
  * @return {boolean} Are the sides of one rectangle touching the other ?
  * @link https://js-toolkit.studiometa.dev/utils/collision/collideRectRect.html
-*/
+ */
 export function collideRectRect(rect1, rect2) {
   return (
     rect1.x + rect1.width >= rect2.x && // rect1 right edge past rect2 left AND

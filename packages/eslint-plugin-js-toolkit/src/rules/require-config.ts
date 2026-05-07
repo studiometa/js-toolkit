@@ -45,8 +45,7 @@ function check(node: Node, context: RuleContext) {
   if (!value || value.type !== 'ObjectExpression') return;
 
   const hasName = value.properties?.some(
-    (prop: Node) =>
-      prop.type === 'Property' && prop.key?.name === 'name' && prop.value?.value,
+    (prop: Node) => prop.type === 'Property' && prop.key?.name === 'name' && prop.value?.value,
   );
 
   if (!hasName) {

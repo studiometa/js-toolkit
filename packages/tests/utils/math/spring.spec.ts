@@ -46,7 +46,7 @@ describe('spring method', () => {
     let currentValue = 0;
     let currentVelocity = 0;
     const targetValue = 10;
-    
+
     // First step
     const step1 = spring(targetValue, currentValue, currentVelocity, 0.2, 0.7);
     expect(step1[0]).toBeCloseTo(2, 5);

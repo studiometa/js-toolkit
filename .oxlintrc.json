@@ -1,5 +1,7 @@
 {
-  "jsPlugins": [{ "name": "js-toolkit", "specifier": "./packages/eslint-plugin-js-toolkit/src/index.ts" }],
+  "jsPlugins": [
+    { "name": "js-toolkit", "specifier": "./packages/eslint-plugin-js-toolkit/src/index.ts" }
+  ],
   "rules": {
     "typescript/no-this-alias": [
       "error",

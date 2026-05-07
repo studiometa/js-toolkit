@@ -16,7 +16,7 @@ import { getComponentResolver } from '../utils/index.js';
  *   Options for the `IntersectionObserver` instance.
  * @return {Promise<T>}
  * @link https://js-toolkit.studiometa.dev/api/helpers/importWhenVisible.html
-*/
+ */
 export function importWhenVisible<T extends BaseConstructor = BaseConstructor>(
   fn: () => Promise<T | { default: T }>,
   nameOrSelectorOrElement: string | HTMLElement | HTMLElement[],

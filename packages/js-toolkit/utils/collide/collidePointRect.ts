@@ -20,7 +20,7 @@
  * @param {Rect} rect Rectangle
  * @return {boolean} Is the point inside the rectangle's bounds ?
  * @link https://js-toolkit.studiometa.dev/utils/collision/collidePointRect.html
-*/
+ */
 export function collidePointRect(point, rect) {
   return (
     point.x >= rect.x && // right of the left edge AND

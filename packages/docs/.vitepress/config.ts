@@ -371,8 +371,14 @@ function getUtilsSidebar() {
         { text: 'createStorage', link: '/utils/storage/createStorage.html' },
         { text: 'createLocalStorage', link: '/utils/storage/createLocalStorage.html' },
         { text: 'createSessionStorage', link: '/utils/storage/createSessionStorage.html' },
-        { text: 'createUrlSearchParamsStorage', link: '/utils/storage/createUrlSearchParamsStorage.html' },
-        { text: 'createUrlSearchParamsInHashStorage', link: '/utils/storage/createUrlSearchParamsInHashStorage.html' },
+        {
+          text: 'createUrlSearchParamsStorage',
+          link: '/utils/storage/createUrlSearchParamsStorage.html',
+        },
+        {
+          text: 'createUrlSearchParamsInHashStorage',
+          link: '/utils/storage/createUrlSearchParamsInHashStorage.html',
+        },
         { text: 'Providers', link: '/utils/storage/providers.html' },
       ],
     },

@@ -1,4 +1,10 @@
-import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
+import {
+  findEnclosingClass,
+  isBaseSubclass,
+  type Node,
+  type RuleContext,
+  createRule,
+} from '../utils/ast.ts';
 
 const FORBIDDEN = new Set(['addEventListener', 'removeEventListener']);
 
@@ -28,12 +34,13 @@ export const noEventListenerMethods = createRule({
         let root = callee.object;
         while (root?.type === 'MemberExpression') root = root.object;
         const isThis = root?.type === 'ThisExpression';
-        const isGlobal = root?.type === 'Identifier' && (root.name === 'document' || root.name === 'window');
+        const isGlobal =
+          root?.type === 'Identifier' && (root.name === 'document' || root.name === 'window');
         if (!isThis && !isGlobal) return;
 
         const ancestors = context.getAncestors
           ? context.getAncestors()
-          : context.sourceCode?.getAncestors?.(node) ?? [];
+          : (context.sourceCode?.getAncestors?.(node) ?? []);
 
         const enclosingClass = findEnclosingClass(ancestors);
         if (!enclosingClass || !isBaseSubclass(enclosingClass, context)) return;

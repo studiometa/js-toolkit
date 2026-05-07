@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { randomInt, randomItem } from '@studiometa/js-toolkit/utils';
 
 describe('The random function', () => {
-  it ('should return a random number between bounds values', ()=> {
+  it('should return a random number between bounds values', () => {
     for (const [a, b] of Array.from({ length: 100 }).map(() => [0.5, 3.4])) {
       const result1 = randomInt(a);
       expect(result1).toBeGreaterThanOrEqual(0);
@@ -12,7 +12,7 @@ describe('The random function', () => {
       expect(result2).toBeGreaterThanOrEqual(a);
       expect(result2).toBeLessThanOrEqual(b);
     }
-  })
+  });
 });
 
 describe('The randomInt function,', () => {

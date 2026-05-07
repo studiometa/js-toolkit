@@ -13,7 +13,7 @@ export interface MemoizeOptions<T> {
 /**
  * Memoize the output of a function.
  * @link https://js-toolkit.studiometa.dev/utils/memoize.html
-*/
+ */
 export function memoize<T extends (...args: unknown[]) => unknown>(
   fn: T,
   {

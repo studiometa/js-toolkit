@@ -7,7 +7,7 @@ import { withoutTrailingCharacters } from './withoutTrailingCharacters.js';
  * @param  {string} characters The characters to add to the end.
  * @return {string}
  * @link https://js-toolkit.studiometa.dev/utils/string/withTrailingCharacters.html
-*/
+ */
 export function withTrailingCharacters(string: string, characters: string): string {
   return `${withoutTrailingCharacters(string, characters)}${characters}`;
 }

@@ -7,7 +7,7 @@
  * @param  {number} [delay=300] The delay in ms to wait before calling the function.
  * @return {(...args:unknown[]) => void} The debounced function.
  * @link https://js-toolkit.studiometa.dev/utils/debounce.html
-*/
+ */
 export function debounce(
   fn: (...args: unknown[]) => void,
   delay = 300,

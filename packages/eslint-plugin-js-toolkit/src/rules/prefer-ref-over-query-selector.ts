@@ -1,4 +1,10 @@
-import { findEnclosingClass, isBaseSubclass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
+import {
+  findEnclosingClass,
+  isBaseSubclass,
+  type Node,
+  type RuleContext,
+  createRule,
+} from '../utils/ast.ts';
 
 const QUERY_METHODS = new Set(['querySelector', 'querySelectorAll']);
 
@@ -30,7 +36,8 @@ export const preferRefOverQuerySelector = createRule({
         const method = callee.property?.name;
         if (!QUERY_METHODS.has(method)) return;
 
-        const ancestors = context.getAncestors?.() ?? context.sourceCode?.getAncestors?.(node) ?? [];
+        const ancestors =
+          context.getAncestors?.() ?? context.sourceCode?.getAncestors?.(node) ?? [];
         const cls = findEnclosingClass(ancestors);
         if (!cls || !isBaseSubclass(cls, context)) return;
 

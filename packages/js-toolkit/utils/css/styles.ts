@@ -24,7 +24,7 @@ function setStyles(
 /**
  * Add styles to an element.
  * @link https://js-toolkit.studiometa.dev/utils/css/addStyle.html
-*/
+ */
 export function add(
   elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
   styles: Partial<CSSStyleDeclaration>,
@@ -35,7 +35,7 @@ export function add(
 /**
  * Remove class names from an element.
  * @link https://js-toolkit.studiometa.dev/utils/css/removeStyle.html
-*/
+ */
 export function remove(
   elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
   styles: Partial<CSSStyleDeclaration>,

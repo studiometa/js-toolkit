@@ -1,4 +1,10 @@
-import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext, createRule } from '../utils/ast.ts';
+import {
+  isBaseSubclass,
+  findEnclosingClass,
+  type Node,
+  type RuleContext,
+  createRule,
+} from '../utils/ast.ts';
 
 // onXxxYyy — the part after "on" must start with an uppercase letter
 const ON_HANDLER_RE = /^on[A-Z][a-zA-Z0-9]*$/;
@@ -28,7 +34,7 @@ export const onHandlerNaming = createRule({
 
         const ancestors = context.getAncestors
           ? context.getAncestors()
-          : context.sourceCode?.getAncestors?.(node) ?? [];
+          : (context.sourceCode?.getAncestors?.(node) ?? []);
 
         const enclosingClass = findEnclosingClass(ancestors);
         if (!enclosingClass || !isBaseSubclass(enclosingClass, context)) return;

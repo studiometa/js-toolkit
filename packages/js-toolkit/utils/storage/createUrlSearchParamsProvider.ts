@@ -2,9 +2,7 @@ import { createNoopProvider } from './createNoopProvider.js';
 import { getBrowserContext } from './getBrowserContext.js';
 import type { StorageProvider, UrlProviderOptions } from './types.js';
 
-export function createUrlSearchParamsProvider(
-  options: UrlProviderOptions = {},
-): StorageProvider {
+export function createUrlSearchParamsProvider(options: UrlProviderOptions = {}): StorageProvider {
   const browserContext = getBrowserContext();
 
   if (!browserContext) {

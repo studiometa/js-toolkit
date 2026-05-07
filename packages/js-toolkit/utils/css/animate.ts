@@ -30,7 +30,6 @@ export type NormalizedKeyframe = Keyframe & {
   vars: string[];
 };
 
-
 /**
  * A pre-compiled segment between two keyframes.
  * All constant parts (deltas, offsets, writers) are resolved once at creation.
@@ -122,9 +121,7 @@ function resolveUnitValue(val: number | [number, string], elementSize: number): 
 /**
  * Non-translate transform property definitions: [keyframeProp, cssFn, unit, defaultValue].
  */
-const SIMPLE_TRANSFORM_DEFS: ReadonlyArray<
-  readonly [string, string, string, number]
-> = [
+const SIMPLE_TRANSFORM_DEFS: ReadonlyArray<readonly [string, string, string, number]> = [
   ['rotate', 'rotate', 'deg', 0],
   ['rotateX', 'rotateX', 'deg', 0],
   ['rotateY', 'rotateY', 'deg', 0],
@@ -142,9 +139,7 @@ const SIMPLE_TRANSFORM_DEFS: ReadonlyArray<
  * Translate axis definitions: [keyframeProp, defaultValue, sizeRef].
  * These are grouped into a single translate3d() call during rendering.
  */
-const TRANSLATE_DEFS: ReadonlyArray<
-  readonly [string, number, string]
-> = [
+const TRANSLATE_DEFS: ReadonlyArray<readonly [string, number, string]> = [
   ['x', 0, 'offsetWidth'],
   ['y', 0, 'offsetHeight'],
   ['z', 0, 'offsetWidth'],
@@ -154,10 +149,7 @@ const TRANSLATE_DEFS: ReadonlyArray<
  * Compile a pair of keyframes into a pre-computed segment.
  * All constant work (deltas, property filtering) is done here once.
  */
-function compileSegment(
-  from: NormalizedKeyframe,
-  to: NormalizedKeyframe,
-): CompiledSegment {
+function compileSegment(from: NormalizedKeyframe, to: NormalizedKeyframe): CompiledSegment {
   const transformStarts: number[] = [];
   const transformDeltas: number[] = [];
   const transformCssFunctions: string[] = [];
@@ -248,14 +240,8 @@ function compileSegment(
  * Render an element using a pre-compiled segment and a progress value.
  * The hot path: only multiply-add, string concatenation, and DOM writes.
  */
-function renderSegment(
-  element: HTMLElement,
-  segment: CompiledSegment,
-  progress: number,
-) {
-  const easedProgress = segment.easing(
-    map(progress, segment.fromOffset, segment.toOffset, 0, 1),
-  );
+function renderSegment(element: HTMLElement, segment: CompiledSegment, progress: number) {
+  const easedProgress = segment.easing(map(progress, segment.fromOffset, segment.toOffset, 0, 1));
 
   scheduler.read(() => {
     // Resolve dynamic (CSS-unit) transforms that need element size
@@ -264,7 +250,8 @@ function renderSegment(
       const elementSize = element[dynamic.sizeRef];
       const startValue = resolveUnitValue(dynamic.from, elementSize);
       segment.transformStarts[dynamic.index] = startValue;
-      segment.transformDeltas[dynamic.index] = resolveUnitValue(dynamic.to, elementSize) - startValue;
+      segment.transformDeltas[dynamic.index] =
+        resolveUnitValue(dynamic.to, elementSize) - startValue;
     }
 
     // Build transform string: translate3d grouped, then individual transforms
@@ -316,7 +303,10 @@ function renderSegment(
         for (let i = 0; i < segment.customPropertyNames.length; i++) {
           element.style.setProperty(
             segment.customPropertyNames[i],
-            (segment.customPropertyStarts[i] + segment.customPropertyDeltas[i] * easedProgress).toString(),
+            (
+              segment.customPropertyStarts[i] +
+              segment.customPropertyDeltas[i] * easedProgress
+            ).toString(),
           );
         }
       }
@@ -399,7 +389,7 @@ type DurationWithDelay = number;
 /**
  * Animate one or more elements.
  * @link https://js-toolkit.studiometa.dev/utils/css/animate.html
-*/
+ */
 export function animate(
   elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
   keyframes: Keyframe[],
@@ -464,9 +454,7 @@ export function animate(
     if (newProgress !== undefined) {
       const newTime = lerp(0, duration, newProgress);
       for (let i = 0; i < controls.length; i++) {
-        const controlProgress = clamp01(
-          map(newTime, timings[i][1], timings[i][2], 0, 1),
-        );
+        const controlProgress = clamp01(map(newTime, timings[i][1], timings[i][2], 0, 1));
         controls[i].progress(controlProgress);
       }
     }

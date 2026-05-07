@@ -48,7 +48,7 @@ describe('useRaf', () => {
 
   it('should update delta representing time between frames', async () => {
     let firstTime, firstDelta, secondTime, secondDelta;
-    
+
     const trackValues = vi.fn((p) => {
       if (!firstTime) {
         firstTime = p.time;
@@ -58,16 +58,16 @@ describe('useRaf', () => {
         secondDelta = p.delta;
       }
     });
-    
+
     add('trackValues', trackValues);
-    
+
     await advanceTimersByTimeAsync(16);
     await advanceTimersByTimeAsync(16);
-    
+
     expect(firstDelta).toBeGreaterThanOrEqual(0);
     expect(secondDelta).toBeGreaterThan(0);
     expect(secondDelta).toBe(secondTime - firstTime);
-    
+
     remove('trackValues');
   });
 

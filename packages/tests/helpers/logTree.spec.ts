@@ -66,9 +66,7 @@ describe('logTree', () => {
   });
 
   it('should show mounted status indicator', async () => {
-    const div = h('div', {}, [
-      h('div', { dataComponent: 'Child' }),
-    ]);
+    const div = h('div', {}, [h('div', { dataComponent: 'Child' })]);
 
     const app = new App(div);
     await app.$mount();
@@ -112,9 +110,7 @@ describe('logTree', () => {
 
   it('should nest components correctly based on DOM structure', async () => {
     const div = h('div', {}, [
-      h('div', { dataComponent: 'Parent' }, [
-        h('div', { dataComponent: 'Child' }),
-      ]),
+      h('div', { dataComponent: 'Parent' }, [h('div', { dataComponent: 'Child' })]),
     ]);
 
     const app = new App(div);
@@ -128,14 +124,14 @@ describe('logTree', () => {
     logTree(app);
 
     // Parent should be in a groupCollapsed (has children)
-    const parentCall = groupCollapsedSpy.mock.calls.find((c) =>
-      typeof c[0] === 'string' && c[0].includes('Parent'),
+    const parentCall = groupCollapsedSpy.mock.calls.find(
+      (c) => typeof c[0] === 'string' && c[0].includes('Parent'),
     );
     expect(parentCall).toBeDefined();
 
     // Child should be in a log (leaf node)
-    const childCall = logSpy.mock.calls.find((c) =>
-      typeof c[0] === 'string' && c[0].includes('Child'),
+    const childCall = logSpy.mock.calls.find(
+      (c) => typeof c[0] === 'string' && c[0].includes('Child'),
     );
     expect(childCall).toBeDefined();
 
@@ -167,9 +163,7 @@ describe('logTree', () => {
     }
 
     const div = h('div', {}, [
-      h('div', { dataComponent: 'DeepParent' }, [
-        h('div', { dataComponent: 'GrandChild' }),
-      ]),
+      h('div', { dataComponent: 'DeepParent' }, [h('div', { dataComponent: 'GrandChild' })]),
     ]);
 
     const app = new DeepApp(div);
@@ -183,14 +177,16 @@ describe('logTree', () => {
     logTree(app);
 
     // DeepParent should be a group (has GrandChild)
-    expect(groupCollapsedSpy.mock.calls.some((c) =>
-      typeof c[0] === 'string' && c[0].includes('DeepParent'),
-    )).toBe(true);
+    expect(
+      groupCollapsedSpy.mock.calls.some(
+        (c) => typeof c[0] === 'string' && c[0].includes('DeepParent'),
+      ),
+    ).toBe(true);
 
     // GrandChild should be a leaf log
-    expect(logSpy.mock.calls.some((c) =>
-      typeof c[0] === 'string' && c[0].includes('GrandChild'),
-    )).toBe(true);
+    expect(
+      logSpy.mock.calls.some((c) => typeof c[0] === 'string' && c[0].includes('GrandChild')),
+    ).toBe(true);
 
     groupSpy.mockRestore();
     groupCollapsedSpy.mockRestore();
@@ -217,8 +213,8 @@ describe('logTree', () => {
     logTree(app);
 
     // All 3 children should be logged as leaves
-    const childLogs = logSpy.mock.calls.filter((c) =>
-      typeof c[0] === 'string' && c[0].includes('Child'),
+    const childLogs = logSpy.mock.calls.filter(
+      (c) => typeof c[0] === 'string' && c[0].includes('Child'),
     );
     expect(childLogs).toHaveLength(3);
 

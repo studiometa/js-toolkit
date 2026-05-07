@@ -183,7 +183,7 @@ async function singleTransition(
  * @param  {string}                                            endMode           Whether to remove or keep the `to` classes/styles
  * @return {Promise<void>}                                                      A promise resolving at the end of the transition.
  * @link https://js-toolkit.studiometa.dev/utils/css/transition.html
-*/
+ */
 export async function transition(
   elementOrElements: HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>,
   name: string | TransitionStyles,
