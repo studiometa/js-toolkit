@@ -1,5 +1,19 @@
 {
+  "jsPlugins": [{ "name": "js-toolkit", "specifier": "./packages/oxlint-plugin-js-toolkit" }],
   "rules": {
+    "js-toolkit/require-config": "error",
+    "js-toolkit/require-config-name-pascal-case": "error",
+    "js-toolkit/refs-camel-case": "error",
+    "js-toolkit/refs-plural-multiple": "error",
+    "js-toolkit/options-camel-case": "error",
+    "js-toolkit/async-lifecycle-methods": "error",
+    "js-toolkit/on-handler-naming": "error",
+    "js-toolkit/on-global-handler-prefix": "warn",
+    "js-toolkit/no-deprecated-properties": "error",
+    "js-toolkit/no-dispatch-event": "warn",
+    "js-toolkit/no-shadow-dom": "error",
+    "js-toolkit/no-create-app": "warn",
+    "js-toolkit/no-event-listener-methods": "error",
     "typescript/no-this-alias": [
       "error",
       {

@@ -1,0 +1,35 @@
+import { isBaseSubclass, LIFECYCLE_METHODS, findEnclosingClass, type Node, type RuleContext } from '../utils/ast.js';
+
+export const asyncLifecycleMethods = {
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Require lifecycle methods on Base subclasses to be async',
+    },
+    messages: {
+      notAsync: 'Lifecycle method "{{name}}" must be declared as async.',
+    },
+  },
+  create(context: RuleContext) {
+    return {
+      MethodDefinition(node: Node) {
+        const name = node.key?.name;
+        if (!name || !LIFECYCLE_METHODS.has(name)) return;
+        if (node.value?.async) return;
+
+        const ancestors = context.getAncestors
+          ? context.getAncestors()
+          : context.sourceCode?.getAncestors?.(node) ?? [];
+
+        const enclosingClass = findEnclosingClass(ancestors);
+        if (!enclosingClass || !isBaseSubclass(enclosingClass, context)) return;
+
+        context.report({
+          node,
+          messageId: 'notAsync',
+          data: { name },
+        });
+      },
+    };
+  },
+};
