@@ -32,7 +32,7 @@ Add the plugin to your `.oxlintrc.json`:
     "js-toolkit/async-lifecycle-methods": "error",
     "js-toolkit/on-handler-naming": "error",
     "js-toolkit/on-global-handler-prefix": "warn",
-    "js-toolkit/no-deprecated-properties": "error",
+    "js-toolkit/no-deprecated-properties": "warn",
     "js-toolkit/no-dispatch-event": "warn",
     "js-toolkit/no-shadow-dom": "error",
     "js-toolkit/no-create-app": "warn",
@@ -70,7 +70,7 @@ export default [
   jsToolkit.configs.recommended,
   {
     rules: {
-      'js-toolkit/no-create-app': 'error',
+      'js-toolkit/no-create-app': 'error', // override the default 'warn'
     },
   },
 ];
@@ -105,7 +105,7 @@ export default [
 
 | Rule | Description | Recommended | Fixable |
 |------|-------------|-------------|---------|
-| `js-toolkit/no-deprecated-properties` | Disallows deprecated properties (`$parent`, `$root`, `$children`). Use `$closest()` or `$query()` instead. | error | |
+| `js-toolkit/no-deprecated-properties` | Disallows deprecated properties (`$parent`, `$root`, `$children`). Use `$closest()` or `$query()` instead. | warn | |
 | `js-toolkit/no-dispatch-event` | Disallows `dispatchEvent()` inside `Base` subclasses. Use `this.$emit()` instead. | warn | |
 | `js-toolkit/no-shadow-dom` | Disallows `attachShadow()` inside `Base` subclasses. The framework uses Light DOM only. | error | |
 | `js-toolkit/no-create-app` | Disallows `createApp()` (deprecated). Use `registerComponent()` instead. | warn | |
