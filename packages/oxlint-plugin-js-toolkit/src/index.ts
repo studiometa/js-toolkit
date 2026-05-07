@@ -55,7 +55,7 @@ const recommendedRules: Record<string, string> = {
   [`${PLUGIN_NAME}/async-lifecycle-methods`]: 'error',
   [`${PLUGIN_NAME}/on-handler-naming`]: 'error',
   [`${PLUGIN_NAME}/on-global-handler-prefix`]: 'warn',
-  [`${PLUGIN_NAME}/no-deprecated-properties`]: 'error',
+  [`${PLUGIN_NAME}/no-deprecated-properties`]: 'warn',
   [`${PLUGIN_NAME}/no-dispatch-event`]: 'warn',
   [`${PLUGIN_NAME}/no-shadow-dom`]: 'error',
   [`${PLUGIN_NAME}/no-create-app`]: 'warn',
