@@ -16,7 +16,7 @@ Add the plugin to your `.oxlintrc.json`:
 
 ```json
 {
-  "jsPlugins": ["@studiometa/eslint-plugin-js-toolkit"],
+  "jsPlugins": [{ "name": "js-toolkit", "specifier": "@studiometa/eslint-plugin-js-toolkit" }],
   "rules": {
     "js-toolkit/require-config": "error",
     "js-toolkit/require-config-name-pascal-case": "error",
