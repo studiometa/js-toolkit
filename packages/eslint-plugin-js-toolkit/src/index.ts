@@ -84,4 +84,5 @@ plugin.configs['recommended'] = {
   rules: recommendedRules,
 };
 
+export { plugin as jsToolkit };
 export default plugin;
