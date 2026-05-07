@@ -27,14 +27,14 @@ describe('no-deprecated-properties', () => {
                  class Slider extends Base {
                    mounted() { return this.$parent; }
                  }`,
-          errors: [{ messageId: 'removed' }],
+          errors: [{ messageId: 'deprecated' }],
         },
         {
           code: `import { Base } from '@studiometa/js-toolkit';
                  class Slider extends Base {
                    mounted() { return this.$root; }
                  }`,
-          errors: [{ messageId: 'removed' }],
+          errors: [{ messageId: 'deprecated' }],
         },
       ],
     });
