@@ -12,7 +12,7 @@ import {
   noCreateApp,
   noEventListenerMethods,
   refsPluralMultiple,
-} from './rules/index.js';
+} from './rules/index.ts';
 
 const PLUGIN_NAME = 'js-toolkit';
 

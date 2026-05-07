@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { onGlobalHandlerPrefix } from './on-global-handler-prefix.js';
+import { tester } from '../utils/rule-tester.ts';
+import { onGlobalHandlerPrefix } from './on-global-handler-prefix.ts';
 
 describe('on-global-handler-prefix', () => {
   it('passes and fails correctly', () => {

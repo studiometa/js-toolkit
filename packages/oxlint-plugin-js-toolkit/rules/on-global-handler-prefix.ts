@@ -1,4 +1,4 @@
-import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext } from '../utils/ast.js';
+import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext } from '../utils/ast.ts';
 
 // Events that only make sense on window/document, never on a DOM element.
 // Pointer, keyboard, and form events are intentionally excluded — they can all

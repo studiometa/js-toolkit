@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { requireConfigNamePascalCase } from './require-config-name-pascal-case.js';
+import { tester } from '../utils/rule-tester.ts';
+import { requireConfigNamePascalCase } from './require-config-name-pascal-case.ts';
 
 describe('require-config-name-pascal-case', () => {
   it('passes and fails correctly', () => {

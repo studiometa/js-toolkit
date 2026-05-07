@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { noCreateApp } from './no-create-app.js';
+import { tester } from '../utils/rule-tester.ts';
+import { noCreateApp } from './no-create-app.ts';
 
 describe('no-create-app', () => {
   it('passes and fails correctly', () => {

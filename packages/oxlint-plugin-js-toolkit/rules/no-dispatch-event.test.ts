@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { noDispatchEvent } from './no-dispatch-event.js';
+import { tester } from '../utils/rule-tester.ts';
+import { noDispatchEvent } from './no-dispatch-event.ts';
 
 describe('no-dispatch-event', () => {
   it('passes and fails correctly', () => {

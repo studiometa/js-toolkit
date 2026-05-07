@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { noShadowDom } from './no-shadow-dom.js';
+import { tester } from '../utils/rule-tester.ts';
+import { noShadowDom } from './no-shadow-dom.ts';
 
 describe('no-shadow-dom', () => {
   it('passes and fails correctly', () => {

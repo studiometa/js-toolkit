@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { requireConfig } from './require-config.js';
+import { tester } from '../utils/rule-tester.ts';
+import { requireConfig } from './require-config.ts';
 
 describe('require-config', () => {
   it('passes and fails correctly', () => {

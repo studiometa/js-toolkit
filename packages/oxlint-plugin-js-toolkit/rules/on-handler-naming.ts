@@ -1,4 +1,4 @@
-import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext } from '../utils/ast.js';
+import { isBaseSubclass, findEnclosingClass, type Node, type RuleContext } from '../utils/ast.ts';
 
 // onXxxYyy — the part after "on" must start with an uppercase letter
 const ON_HANDLER_RE = /^on[A-Z][a-zA-Z0-9]*$/;

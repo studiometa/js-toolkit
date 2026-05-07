@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { tester } from '../utils/rule-tester.js';
-import { refsPluralMultiple } from './refs-plural-multiple.js';
+import { tester } from '../utils/rule-tester.ts';
+import { refsPluralMultiple } from './refs-plural-multiple.ts';
 
 describe('refs-plural-multiple', () => {
   it('passes and fails correctly', () => {
