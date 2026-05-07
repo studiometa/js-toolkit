@@ -36,13 +36,14 @@ jobs:
 
       - run: npm install --no-audit --no-fund
 
-      - run: npm run build
+      - name: Build js-toolkit
+        run: npm run build
 
       - name: Build oxlint-plugin
         run: npm run build
         working-directory: packages/oxlint-plugin-js-toolkit
 
-      - name: Test
+      - name: Test js-toolkit
         run: npm run test -- -- --retry=3 --coverage.enabled
 
       - name: Upload coverage to Codecov
