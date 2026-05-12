@@ -52,8 +52,7 @@ export const componentsPascalCase = createRule({
       description: 'Require component keys in static config to be PascalCase',
     },
     messages: {
-      notPascalCase:
-        'Component key "{{name}}" must be PascalCase (e.g. "MyComponent").',
+      notPascalCase: 'Component key "{{name}}" must be PascalCase (e.g. "MyComponent").',
     },
   },
   createOnce(context: RuleContext) {

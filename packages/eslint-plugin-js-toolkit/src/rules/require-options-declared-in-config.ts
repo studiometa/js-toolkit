@@ -1,4 +1,10 @@
-import { isBaseSubclass, toCamelCase, type Node, type RuleContext, createRule } from '../utils/ast.ts';
+import {
+  isBaseSubclass,
+  toCamelCase,
+  type Node,
+  type RuleContext,
+  createRule,
+} from '../utils/ast.ts';
 
 function collectDeclaredOptions(classNode: Node): Set<string> {
   const body: Node[] = classNode.body?.body ?? [];

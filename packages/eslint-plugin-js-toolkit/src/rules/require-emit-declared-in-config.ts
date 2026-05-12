@@ -38,7 +38,8 @@ export const requireEmitDeclaredInConfig = createRule({
   meta: {
     type: 'problem',
     docs: {
-      description: 'Require all this.$emit() calls to use event names declared in static config.emits',
+      description:
+        'Require all this.$emit() calls to use event names declared in static config.emits',
     },
     messages: {
       undeclared: 'Emit "{{name}}" is not declared in static config.emits.',

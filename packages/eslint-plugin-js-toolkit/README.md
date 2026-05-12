@@ -123,19 +123,19 @@ export default [
 
 ### Emits
 
-| Rule                                          | Description                                                                                                                           | Recommended | Fixable |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------- |
-| `js-toolkit/emits-kebab-case`                 | Requires emit names in `config.emits` to be kebab-case (e.g. `content-change`).                                                       | error       | 🔧      |
-| `js-toolkit/emits-multi-word`                 | Requires emit names in `config.emits` to be multi-word to avoid collisions with native DOM events (e.g. `item-click` not `click`).    | error       |         |
-| `js-toolkit/require-emit-declared-in-config`  | Requires all `this.$emit('name')` calls to use event names declared in `static config.emits`.                                         | error       |         |
+| Rule                                         | Description                                                                                                                        | Recommended | Fixable |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------- |
+| `js-toolkit/emits-kebab-case`                | Requires emit names in `config.emits` to be kebab-case (e.g. `content-change`).                                                    | error       | 🔧      |
+| `js-toolkit/emits-multi-word`                | Requires emit names in `config.emits` to be multi-word to avoid collisions with native DOM events (e.g. `item-click` not `click`). | error       |         |
+| `js-toolkit/require-emit-declared-in-config` | Requires all `this.$emit('name')` calls to use event names declared in `static config.emits`.                                      | error       |         |
 
 ### Components
 
-| Rule                                                   | Description                                                                                              | Recommended | Fixable |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | ----------- | ------- |
-| `js-toolkit/components-pascal-case`                    | Requires component keys in `config.components` to be PascalCase.                                         | error       | 🔧      |
-| `js-toolkit/require-children-declared-in-config`       | Requires all `this.$children.<Name>` accesses to be declared in `static config.components`.              | error       |         |
-| `js-toolkit/require-options-declared-in-config`        | Requires all `this.$options.<name>` accesses to be declared in `static config.options`.                  | error       |         |
+| Rule                                             | Description                                                                                 | Recommended | Fixable |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------- | ----------- | ------- |
+| `js-toolkit/components-pascal-case`              | Requires component keys in `config.components` to be PascalCase.                            | error       | 🔧      |
+| `js-toolkit/require-children-declared-in-config` | Requires all `this.$children.<Name>` accesses to be declared in `static config.components`. | error       |         |
+| `js-toolkit/require-options-declared-in-config`  | Requires all `this.$options.<name>` accesses to be declared in `static config.options`.     | error       |         |
 
 ### Refs
 

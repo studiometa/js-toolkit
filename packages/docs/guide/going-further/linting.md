@@ -85,42 +85,42 @@ export default [
 
 ### Class structure
 
-| Rule                                                                          | Description                                                                                      | Fixable |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------- |
-| <span class="text-nowrap">`js-toolkit/require-config`</span>                  | Requires a `static config` property with a `name` on every class extending `Base`.               | ❌      |
-| <span class="text-nowrap">`js-toolkit/require-config-name-pascal-case`</span> | Requires `config.name` to be PascalCase.                                                         | 🔧      |
+| Rule                                                                          | Description                                                                        | Fixable |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------- |
+| <span class="text-nowrap">`js-toolkit/require-config`</span>                  | Requires a `static config` property with a `name` on every class extending `Base`. | ❌      |
+| <span class="text-nowrap">`js-toolkit/require-config-name-pascal-case`</span> | Requires `config.name` to be PascalCase.                                           | 🔧      |
 
 ### Refs
 
-| Rule                                                                              | Description                                                                                                                                                             | Fixable |
-| --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| <span class="text-nowrap">`js-toolkit/refs-camel-case`</span>                     | Requires ref names in `config.refs` to be camelCase. Supports the `[]` multiple-ref suffix.                                                                             | 🔧      |
-| <span class="text-nowrap">`js-toolkit/refs-plural-multiple`</span>                | Requires refs using the `[]` multiple-ref suffix to be pluralized (e.g. `links[]` not `link[]`).                                                                        | ❌      |
-| <span class="text-nowrap">`js-toolkit/refs-no-bracket-access`</span>              | Disallows bracket access with a `[]` suffix on `this.$refs` (e.g. `this.$refs['items[]']`). Rewrites to dot notation camelCase.                                         | 🔧      |
-| <span class="text-nowrap">`js-toolkit/require-refs-declared-in-config`</span>     | Requires all `this.$refs.<name>` accesses to be declared in `static config.refs`.                                                                                       | ❌      |
-| <span class="text-nowrap">`js-toolkit/prefer-ref-over-query-selector`</span>      | Warns when `this.$el.querySelector()` or `this.$el.querySelectorAll()` is used inside a `Base` subclass. Declare a ref in `static config` and use `this.$refs` instead. | ❌      |
+| Rule                                                                          | Description                                                                                                                                                             | Fixable |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| <span class="text-nowrap">`js-toolkit/refs-camel-case`</span>                 | Requires ref names in `config.refs` to be camelCase. Supports the `[]` multiple-ref suffix.                                                                             | 🔧      |
+| <span class="text-nowrap">`js-toolkit/refs-plural-multiple`</span>            | Requires refs using the `[]` multiple-ref suffix to be pluralized (e.g. `links[]` not `link[]`).                                                                        | ❌      |
+| <span class="text-nowrap">`js-toolkit/refs-no-bracket-access`</span>          | Disallows bracket access with a `[]` suffix on `this.$refs` (e.g. `this.$refs['items[]']`). Rewrites to dot notation camelCase.                                         | 🔧      |
+| <span class="text-nowrap">`js-toolkit/require-refs-declared-in-config`</span> | Requires all `this.$refs.<name>` accesses to be declared in `static config.refs`.                                                                                       | ❌      |
+| <span class="text-nowrap">`js-toolkit/prefer-ref-over-query-selector`</span>  | Warns when `this.$el.querySelector()` or `this.$el.querySelectorAll()` is used inside a `Base` subclass. Declare a ref in `static config` and use `this.$refs` instead. | ❌      |
 
 ### Options
 
-| Rule                                                                                | Description                                                                       | Fixable |
-| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------- |
-| <span class="text-nowrap">`js-toolkit/options-camel-case`</span>                    | Requires option keys in `config.options` to be camelCase.                         | 🔧      |
-| <span class="text-nowrap">`js-toolkit/require-options-declared-in-config`</span>    | Requires all `this.$options.<name>` accesses to be declared in `static config.options`. | ❌ |
+| Rule                                                                             | Description                                                                             | Fixable |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------- |
+| <span class="text-nowrap">`js-toolkit/options-camel-case`</span>                 | Requires option keys in `config.options` to be camelCase.                               | 🔧      |
+| <span class="text-nowrap">`js-toolkit/require-options-declared-in-config`</span> | Requires all `this.$options.<name>` accesses to be declared in `static config.options`. | ❌      |
 
 ### Emits
 
-| Rule                                                                                | Description                                                                                                                         | Fixable |
-| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| <span class="text-nowrap">`js-toolkit/emits-kebab-case`</span>                      | Requires emit names in `config.emits` to be kebab-case (e.g. `content-change`).                                                     | 🔧      |
-| <span class="text-nowrap">`js-toolkit/emits-multi-word`</span>                      | Requires emit names in `config.emits` to be multi-word to avoid collisions with native DOM events (e.g. `item-click` not `click`).  | ❌      |
-| <span class="text-nowrap">`js-toolkit/require-emit-declared-in-config`</span>       | Requires all `this.$emit('name')` calls to use event names declared in `static config.emits`.                                       | ❌      |
+| Rule                                                                          | Description                                                                                                                        | Fixable |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| <span class="text-nowrap">`js-toolkit/emits-kebab-case`</span>                | Requires emit names in `config.emits` to be kebab-case (e.g. `content-change`).                                                    | 🔧      |
+| <span class="text-nowrap">`js-toolkit/emits-multi-word`</span>                | Requires emit names in `config.emits` to be multi-word to avoid collisions with native DOM events (e.g. `item-click` not `click`). | ❌      |
+| <span class="text-nowrap">`js-toolkit/require-emit-declared-in-config`</span> | Requires all `this.$emit('name')` calls to use event names declared in `static config.emits`.                                      | ❌      |
 
 ### Components
 
-| Rule                                                                                | Description                                                                                            | Fixable |
-| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------- |
-| <span class="text-nowrap">`js-toolkit/components-pascal-case`</span>                | Requires component keys in `config.components` to be PascalCase.                                       | 🔧      |
-| <span class="text-nowrap">`js-toolkit/require-children-declared-in-config`</span>   | Requires all `this.$children.<Name>` accesses to be declared in `static config.components`.            | ❌      |
+| Rule                                                                              | Description                                                                                 | Fixable |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------- |
+| <span class="text-nowrap">`js-toolkit/components-pascal-case`</span>              | Requires component keys in `config.components` to be PascalCase.                            | 🔧      |
+| <span class="text-nowrap">`js-toolkit/require-children-declared-in-config`</span> | Requires all `this.$children.<Name>` accesses to be declared in `static config.components`. | ❌      |
 
 ### Lifecycle methods
 
