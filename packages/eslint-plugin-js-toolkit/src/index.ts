@@ -20,6 +20,12 @@ import {
   requireRefsDeclaredInConfig,
   noManualIntersectionObserver,
   noManualMutationObserver,
+  emitsKebabCase,
+  emitsMultiWord,
+  componentsPascalCase,
+  requireEmitDeclaredInConfig,
+  requireChildrenDeclaredInConfig,
+  requireOptionsDeclaredInConfig,
 } from './rules/index.ts';
 
 const PLUGIN_NAME = 'js-toolkit';
@@ -45,6 +51,12 @@ const rules = {
   'require-refs-declared-in-config': requireRefsDeclaredInConfig,
   'no-manual-intersection-observer': noManualIntersectionObserver,
   'no-manual-mutation-observer': noManualMutationObserver,
+  'emits-kebab-case': emitsKebabCase,
+  'emits-multi-word': emitsMultiWord,
+  'components-pascal-case': componentsPascalCase,
+  'require-emit-declared-in-config': requireEmitDeclaredInConfig,
+  'require-children-declared-in-config': requireChildrenDeclaredInConfig,
+  'require-options-declared-in-config': requireOptionsDeclaredInConfig,
 };
 
 const recommendedRules: Record<string, string> = {
@@ -68,6 +80,12 @@ const recommendedRules: Record<string, string> = {
   [`${PLUGIN_NAME}/require-refs-declared-in-config`]: 'error',
   [`${PLUGIN_NAME}/no-manual-intersection-observer`]: 'warn',
   [`${PLUGIN_NAME}/no-manual-mutation-observer`]: 'warn',
+  [`${PLUGIN_NAME}/emits-kebab-case`]: 'error',
+  [`${PLUGIN_NAME}/emits-multi-word`]: 'error',
+  [`${PLUGIN_NAME}/components-pascal-case`]: 'error',
+  [`${PLUGIN_NAME}/require-emit-declared-in-config`]: 'error',
+  [`${PLUGIN_NAME}/require-children-declared-in-config`]: 'error',
+  [`${PLUGIN_NAME}/require-options-declared-in-config`]: 'error',
 };
 
 const base = eslintCompatPlugin({

@@ -18,3 +18,9 @@ export { preferRefOverQuerySelector } from './prefer-ref-over-query-selector.ts'
 export { requireRefsDeclaredInConfig } from './require-refs-declared-in-config.ts';
 export { noManualIntersectionObserver } from './no-manual-intersection-observer.ts';
 export { noManualMutationObserver } from './no-manual-mutation-observer.ts';
+export { emitsKebabCase } from './emits-kebab-case.ts';
+export { emitsMultiWord } from './emits-multi-word.ts';
+export { componentsPascalCase } from './components-pascal-case.ts';
+export { requireEmitDeclaredInConfig } from './require-emit-declared-in-config.ts';
+export { requireChildrenDeclaredInConfig } from './require-children-declared-in-config.ts';
+export { requireOptionsDeclaredInConfig } from './require-options-declared-in-config.ts';
