@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- **ESLint Plugin:** add 6 new rules for emits, components and options ([#728](https://github.com/studiometa/js-toolkit/pull/728), [4a7d657f](https://github.com/studiometa/js-toolkit/commit/4a7d657f))
+
 ## [v3.6.0-beta.1](https://github.com/studiometa/js-toolkit/compare/3.5.0..3.6.0-beta.0) (2026-05-07)
 
 ### Added
