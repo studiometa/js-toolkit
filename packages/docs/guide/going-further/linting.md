@@ -58,7 +58,7 @@ Add the plugin to your `.oxlintrc.json`:
 Add the recommended config to your `eslint.config.js` (ESLint v9 flat config):
 
 ```js
-import jsToolkit from '@studiometa/eslint-plugin-js-toolkit';
+import { jsToolkit } from '@studiometa/eslint-plugin-js-toolkit';
 
 export default [
   jsToolkit.configs.recommended,
@@ -69,7 +69,7 @@ export default [
 To customise individual rule severities, add an override entry after the recommended config:
 
 ```js
-import jsToolkit from '@studiometa/eslint-plugin-js-toolkit';
+import { jsToolkit } from '@studiometa/eslint-plugin-js-toolkit';
 
 export default [
   jsToolkit.configs.recommended,
