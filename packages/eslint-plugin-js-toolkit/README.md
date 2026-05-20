@@ -49,7 +49,10 @@ Add the plugin to your `.oxlintrc.json`:
     "js-toolkit/components-pascal-case": "error",
     "js-toolkit/require-emit-declared-in-config": "error",
     "js-toolkit/require-children-declared-in-config": "error",
-    "js-toolkit/require-options-declared-in-config": "error"
+    "js-toolkit/require-options-declared-in-config": "error",
+    "js-toolkit/prefer-destructured-lookups": "warn",
+    "js-toolkit/no-dollar-prefix": "error",
+    "js-toolkit/require-destroyed-cleanup": "warn"
   }
 }
 ```
@@ -144,3 +147,11 @@ export default [
 | `js-toolkit/refs-no-bracket-access`          | Disallows bracket access with a `[]` suffix on `this.$refs` (e.g. `this.$refs['items[]']`). Rewrites to dot notation camelCase.                                         | error       | 🔧      |
 | `js-toolkit/prefer-ref-over-query-selector`  | Warns when `this.$el.querySelector()` or `this.$el.querySelectorAll()` is used inside a `Base` subclass. Declare a ref in `static config` and use `this.$refs` instead. | warn        |         |
 | `js-toolkit/require-refs-declared-in-config` | Requires all `this.$refs.<name>` accesses to be declared in `static config.refs`.                                                                                       | error       |         |
+
+### Best practices
+
+| Rule                                     | Description                                                                                                                                                      | Recommended | Fixable |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------- |
+| `js-toolkit/prefer-destructured-lookups` | Warns when `this.$refs`, `this.$options` or `this.$children` members are accessed more than once in the same method. Destructure into a local variable instead.  | warn        |         |
+| `js-toolkit/no-dollar-prefix`            | Disallows user-defined instance methods and properties prefixed with `$` in `Base` subclasses. The `$` prefix is reserved for framework-provided members.        | error       |         |
+| `js-toolkit/require-destroyed-cleanup`   | Requires a `destroyed()` method in `Base` subclasses that call `setTimeout`, `setInterval` or `requestAnimationFrame`, to clear timers and prevent memory leaks. | warn        |         |

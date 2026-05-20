@@ -26,6 +26,9 @@ import {
   requireEmitDeclaredInConfig,
   requireChildrenDeclaredInConfig,
   requireOptionsDeclaredInConfig,
+  preferDestructuredLookups,
+  noDollarPrefix,
+  requireDestroyedCleanup,
 } from './rules/index.ts';
 
 const PLUGIN_NAME = 'js-toolkit';
@@ -57,6 +60,9 @@ const rules = {
   'require-emit-declared-in-config': requireEmitDeclaredInConfig,
   'require-children-declared-in-config': requireChildrenDeclaredInConfig,
   'require-options-declared-in-config': requireOptionsDeclaredInConfig,
+  'prefer-destructured-lookups': preferDestructuredLookups,
+  'no-dollar-prefix': noDollarPrefix,
+  'require-destroyed-cleanup': requireDestroyedCleanup,
 };
 
 const recommendedRules: Record<string, string> = {
@@ -86,6 +92,9 @@ const recommendedRules: Record<string, string> = {
   [`${PLUGIN_NAME}/require-emit-declared-in-config`]: 'error',
   [`${PLUGIN_NAME}/require-children-declared-in-config`]: 'error',
   [`${PLUGIN_NAME}/require-options-declared-in-config`]: 'error',
+  [`${PLUGIN_NAME}/prefer-destructured-lookups`]: 'warn',
+  [`${PLUGIN_NAME}/no-dollar-prefix`]: 'error',
+  [`${PLUGIN_NAME}/require-destroyed-cleanup`]: 'warn',
 };
 
 const base = eslintCompatPlugin({

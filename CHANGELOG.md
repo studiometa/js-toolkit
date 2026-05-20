@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- **ESLint Plugin:** add `prefer-destructured-lookups` rule — warns when `this.$refs`, `this.$options` or `this.$children` members are accessed more than once in the same method without being destructured ([#729](https://github.com/studiometa/js-toolkit/pull/729))
+- **ESLint Plugin:** add `no-dollar-prefix` rule — disallows user-defined instance methods and properties prefixed with `$` in `Base` subclasses, as `$` is reserved for framework members ([#729](https://github.com/studiometa/js-toolkit/pull/729))
+- **ESLint Plugin:** add `require-destroyed-cleanup` rule — requires a `destroyed()` method in `Base` subclasses that use `setTimeout`, `setInterval` or `requestAnimationFrame` to prevent memory leaks ([#729](https://github.com/studiometa/js-toolkit/pull/729))
+
 ## [v3.6.0-beta.2](https://github.com/studiometa/js-toolkit/compare/3.6.0-beta.1..3.6.0-beta.2) (2026-05-12)
 
 ### Added
