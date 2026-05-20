@@ -24,3 +24,6 @@ export { componentsPascalCase } from './components-pascal-case.ts';
 export { requireEmitDeclaredInConfig } from './require-emit-declared-in-config.ts';
 export { requireChildrenDeclaredInConfig } from './require-children-declared-in-config.ts';
 export { requireOptionsDeclaredInConfig } from './require-options-declared-in-config.ts';
+export { preferDestructuredLookups } from './prefer-destructured-lookups.ts';
+export { noDollarPrefix } from './no-dollar-prefix.ts';
+export { requireDestroyedCleanup } from './require-destroyed-cleanup.ts';
