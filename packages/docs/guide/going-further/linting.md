@@ -48,7 +48,10 @@ Add the plugin to your `.oxlintrc.json`:
     "js-toolkit/no-redundant-with-mount-when-in-view": "warn",
     "js-toolkit/no-manual-intersection-observer": "warn",
     "js-toolkit/no-manual-mutation-observer": "warn",
-    "js-toolkit/prefer-ref-over-query-selector": "warn"
+    "js-toolkit/prefer-ref-over-query-selector": "warn",
+    "js-toolkit/prefer-destructured-lookups": "warn",
+    "js-toolkit/no-dollar-prefix": "error",
+    "js-toolkit/require-destroyed-cleanup": "warn"
   }
 }
 ```
@@ -254,3 +257,70 @@ Disallows `new IntersectionObserver()` inside `Base` subclasses. Use `withInters
 **Recommended:** warn
 
 Disallows `new MutationObserver()` inside `Base` subclasses. Use the `withMutation` decorator instead.
+
+### Best practices
+
+#### `js-toolkit/prefer-destructured-lookups`
+
+**Recommended:** warn
+
+Warns when `this.$refs`, `this.$options` or `this.$children` members are accessed more than once in the same method body. Destructure them into local variables at the top of the method to avoid repeated lookups.
+
+```js
+// ❌ Bad
+async mounted() {
+  this.$refs.input.focus();
+  this.$refs.input.value = '';
+}
+
+// ✅ Good
+async mounted() {
+  const { input } = this.$refs;
+  input.focus();
+  input.value = '';
+}
+```
+
+#### `js-toolkit/no-dollar-prefix`
+
+**Recommended:** error
+
+Disallows user-defined instance methods and properties prefixed with `$` in `Base` subclasses. The `$` prefix is reserved for framework-provided members (`$el`, `$refs`, `$emit`, `$options`, etc.).
+
+```js
+// ❌ Bad
+class Foo extends Base {
+  $helper() {}
+}
+
+// ✅ Good
+class Foo extends Base {
+  helper() {}
+}
+```
+
+#### `js-toolkit/require-destroyed-cleanup`
+
+**Recommended:** warn
+
+Requires a `destroyed()` lifecycle method in `Base` subclasses that call `setTimeout`, `setInterval` or `requestAnimationFrame`. Failing to clean up timers when a component is destroyed can cause memory leaks and hard-to-debug bugs.
+
+```js
+// ❌ Bad
+class Foo extends Base {
+  async mounted() {
+    this._timer = setTimeout(() => {}, 1000);
+  }
+}
+
+// ✅ Good
+class Foo extends Base {
+  async mounted() {
+    this._timer = setTimeout(() => {}, 1000);
+  }
+
+  async destroyed() {
+    clearTimeout(this._timer);
+  }
+}
+```

@@ -20,6 +20,11 @@ describe('no-dollar-prefix', () => {
          class Foo extends Base {
            static $config = {};
          }`,
+        // ClassExpression variant
+        `import { Base } from '@studiometa/js-toolkit';
+         const Foo = class extends Base {
+           mounted() {}
+         };`,
       ],
       invalid: [
         {
@@ -43,6 +48,14 @@ class Foo extends Base {
   $helper() {}
 }`,
           errors: [{ messageId: 'noDollarPrefix' }, { messageId: 'noDollarPrefix' }],
+        },
+        // ClassExpression variant
+        {
+          code: `import { Base } from '@studiometa/js-toolkit';
+const Foo = class extends Base {
+  $myMethod() {}
+};`,
+          errors: [{ messageId: 'noDollarPrefix' }],
         },
       ],
     });

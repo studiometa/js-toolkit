@@ -23,6 +23,12 @@ describe('prefer-destructured-lookups', () => {
          class Foo extends Base {
            mounted() { this.$refs.btn.focus(); this.$refs.input.value = ''; }
          }`,
+        // Lookup outside a method (e.g. in a property initializer) — no enclosing method, should not warn
+        `import { Base } from '@studiometa/js-toolkit';
+         class Foo extends Base {
+           x = this.$refs.btn;
+           y = this.$refs.btn;
+         }`,
       ],
       invalid: [
         {

@@ -24,6 +24,17 @@ describe('require-destroyed-cleanup', () => {
            mounted() { this._raf = requestAnimationFrame(() => {}); }
            destroyed() { cancelAnimationFrame(this._raf); }
          }`,
+        // ClassExpression with timers and destroyed — should pass
+        `import { Base } from '@studiometa/js-toolkit';
+         const Foo = class extends Base {
+           mounted() { this._timer = setTimeout(() => {}, 1000); }
+           destroyed() { clearTimeout(this._timer); }
+         };`,
+        // ClassExpression without timers — should pass
+        `import { Base } from '@studiometa/js-toolkit';
+         const Foo = class extends Base {
+           mounted() { this.$refs.btn.focus(); }
+         };`,
       ],
       invalid: [
         {
@@ -45,6 +56,14 @@ class Foo extends Base {
 class Foo extends Base {
   mounted() { this._raf = requestAnimationFrame(() => {}); }
 }`,
+          errors: [{ messageId: 'requireDestroyed' }],
+        },
+        // ClassExpression variant
+        {
+          code: `import { Base } from '@studiometa/js-toolkit';
+const Foo = class extends Base {
+  mounted() { this._timer = setTimeout(() => {}, 1000); }
+};`,
           errors: [{ messageId: 'requireDestroyed' }],
         },
       ],

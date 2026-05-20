@@ -52,7 +52,8 @@ export const preferDestructuredLookups = createRule({
         const match = isTrackedLookup(node);
         if (!match) return;
 
-        const ancestors = context.getAncestors?.() ?? context.sourceCode?.getAncestors?.(node) ?? [];
+        const ancestors =
+          context.getAncestors?.() ?? context.sourceCode?.getAncestors?.(node) ?? [];
         const method = findEnclosingMethod(ancestors);
         if (!method) return;
 

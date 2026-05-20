@@ -35,8 +35,7 @@ export const requireDestroyedCleanup = createRule({
         if (node.key?.name === 'destroyed') {
           // Find the enclosing class
           const sourceCode = context.sourceCode ?? context.getSourceCode?.();
-          const ancestors =
-            context.getAncestors?.() ?? sourceCode?.getAncestors?.(node) ?? [];
+          const ancestors = context.getAncestors?.() ?? sourceCode?.getAncestors?.(node) ?? [];
           for (let i = ancestors.length - 1; i >= 0; i--) {
             const a = ancestors[i];
             if (a.type === 'ClassDeclaration' || a.type === 'ClassExpression') {
@@ -52,8 +51,7 @@ export const requireDestroyedCleanup = createRule({
         if (!SETUP_CALLS.has(node.callee.name)) return;
 
         const sourceCode = context.sourceCode ?? context.getSourceCode?.();
-        const ancestors =
-          context.getAncestors?.() ?? sourceCode?.getAncestors?.(node) ?? [];
+        const ancestors = context.getAncestors?.() ?? sourceCode?.getAncestors?.(node) ?? [];
 
         for (let i = ancestors.length - 1; i >= 0; i--) {
           const a = ancestors[i];
