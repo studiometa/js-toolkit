@@ -200,8 +200,26 @@ export class Base<T extends BaseProps = BaseProps> {
           if (instance === 'terminated' || !hasInstance(instance)) continue;
 
           const { components } = instance.$config;
-          if (components && Object.values(components).includes(this.constructor)) {
-            return instance as T['$parent'] & Base;
+          if (components) {
+            for (const component of Object.values(components)) {
+              // Sync child: the declared value is the resolved constructor.
+              if (component === this.constructor) {
+                return instance as T['$parent'] & Base;
+              }
+
+              // Async/lazy child: the declared value is a loader function, so it
+              // never equals `this.constructor`. Its resolved constructor lives
+              // in the ancestor's own ChildrenManager, keyed by that same loader
+              // function — read it back to match by resolved identity.
+              if (isFunction(component) && !('$isBase' in component)) {
+                const resolved = instance.__children.__asyncComponentPromises.get(
+                  component as BaseAsyncConstructor,
+                );
+                if (resolved?.status === 'resolved' && resolved.ctor === this.constructor) {
+                  return instance as T['$parent'] & Base;
+                }
+              }
+            }
           }
         }
       }

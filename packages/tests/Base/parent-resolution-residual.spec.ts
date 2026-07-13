@@ -30,10 +30,14 @@ import { h, mount, useMatchMedia, resizeWindow, mockFeatures } from '#test-utils
  * window when the parent is *genuinely mounted* (its `before-mounted` fired)
  * before the child's `mounted()` runs. The scenarios here are the residual paths
  * where that precondition does not hold, or where gate #3 fails independently.
+ * Scenario C (async-declared children) is FIXED in #732; A, B and D remain
+ * expected behaviour (a suppressed/destroyed parent, a config identity mismatch,
+ * and an unconstructed parent, respectively).
  *
  * NOT reproduced deterministically (documented, intentionally omitted):
- *   - The plain independent-auto-mount case (child mounted alone, parent absent
- *     from the registry) is already pinned in `parent-resolution.spec.ts`.
+ *   - The plain independent-auto-mount case (a child mounted alone with its
+ *     parent absent from the registry) is a simpler variant of scenario D and is
+ *     not repeated here.
  *   - The MutationObserver batch with the parent's constructor REGISTERED
  *     (parent-first, child-first, `$update` injection, observer-only injection):
  *     #702 fully closes this window in both blocking modes — `$parent` and
@@ -286,35 +290,32 @@ describe('Scenario B — subclass name-collision mismatch', () => {
 });
 
 /**
- * SCENARIO C — Async / lazy declared child.
+ * SCENARIO C — Async / lazy declared child (FIXED in #732).
  *
  * A parent declares a child as a loader function
  * (`components: { AsyncChild: () => Promise.resolve(AsyncChild) }`). The parent
  * mounts parent-driven; the async child resolves and mounts a few ticks later.
  *
- * Root cause (structural, not timing): the `__parent` gate #3 tests
- * `Object.values(instance.$config.components).includes(this.constructor)`. For an
- * async child, `config.components` maps the name to the LOADER FUNCTION, never the
- * resolved class, while `this.constructor` is the resolved class — so the include
- * check is ALWAYS false and `$parent` is null PERMANENTLY, even after the parent
- * is fully mounted and a live DOM ancestor.
+ * Before #732, `__parent` tested `Object.values(instance.$config.components)
+ * .includes(this.constructor)`. For an async child, `config.components` maps the
+ * name to the LOADER FUNCTION, never the resolved class, so the identity check was
+ * ALWAYS false and `$parent` was null permanently — a regression vs the pre-#699
+ * `ChildrenManager` assignment, and inconsistent with a sync sibling.
  *
- * (Timing footnote: the async child mount is also fire-and-forget —
- * `ChildrenManager.__triggerHookForAll` does not push the child's mount promise
- * into the awaited set — but that only delays the child's `mounted()`; it is not
- * why `$parent` is null. A SYNC sibling of the same parent resolves `$parent`
- * fine, proving the null is specific to the async declaration form.)
+ * #732 fixes it: when a `components` value is a loader function, `__parent`
+ * resolves it through the ancestor's own `ChildrenManager.__asyncComponentPromises`
+ * WeakMap (keyed by that loader) and matches its resolved `ctor`. A parent-mounted
+ * async child now resolves `$parent` like a sync sibling — this is a read of the
+ * ancestor's already-populated cache, with no shared-config mutation (which would
+ * have defeated `addToRegistry`'s lazy-registration skip). `$closest` resolved by
+ * name already and is unchanged.
  *
- * Verdict: BUG — though in an API deprecated since 3.6.0 (`$parent` → `$closest`).
- * Pre-#699 the parent's ChildrenManager assigned `$parent` when it instantiated
- * the child regardless of sync/async form; the identity-based getter cannot, so a
- * parent-mounted async child that used to get a parent now never does. `$closest`
- * (the sanctioned replacement) resolves correctly, so the practical fix is to
- * migrate off `$parent`; the getter itself could also compare resolved
- * constructors rather than the raw `config.components` values.
+ * Note the mount timing: `registerAll` runs before `mountAll`, so the loader's
+ * WeakMap entry is `resolved` before the async child is constructed — hence
+ * `$parent` resolves during the child's own `mounted()`, not only afterwards.
  */
 describe('Scenario C — async/lazy declared child', () => {
-  it('async-declared child: $parent null permanently, $closest resolves; a sync sibling resolves (control)', async () => {
+  it('async-declared child: $parent resolves via the resolved-ctor lookup, like a sync sibling', async () => {
     let asyncParentDuringMounted: unknown = 'UNSET';
     let asyncClosestDuringMounted: unknown = 'UNSET';
     let asyncRan = false;
@@ -366,18 +367,96 @@ describe('Scenario C — async/lazy declared child', () => {
     // Control: the SYNC sibling (value === constructor) resolves its parent.
     expect(syncParentDuringMounted).toBe(parent);
 
-    // Async child: $parent null despite a live, mounted, ancestor parent.
-    expect(asyncParentDuringMounted).toBeNull();
-    // $closest resolves by name, ignoring the loader-vs-class mismatch.
+    // Async child: $parent resolves during its own mounted() — the loader is
+    // looked up via the ancestor's __asyncComponentPromises WeakMap.
+    expect(asyncParentDuringMounted).toBe(parent);
+    // $closest resolves by name too.
     expect(asyncClosestDuringMounted).toBe(parent);
 
-    // Permanence: still null after everything settled.
+    // Still resolved after everything settled.
     const asyncChild = (asyncChildEl as { __base__?: Map<string, Base> }).__base__!.get(
       'AsyncChild',
     ) as Base;
     expect(asyncChild.$isMounted).toBe(true);
-    expect(asyncChild.$parent).toBeNull();
+    expect(asyncChild.$parent).toBe(parent);
     expect(asyncChild.$closest('AsyncParent')).toBe(parent);
+  });
+
+  it('async child via a `{ default }` loader form resolves $parent', async () => {
+    let parentDuringMounted: unknown = 'UNSET';
+    let ran = false;
+
+    class AsyncChild extends Base {
+      static config: BaseConfig = { name: 'AsyncChild' };
+
+      mounted() {
+        ran = true;
+        parentDuringMounted = this.$parent;
+      }
+    }
+    class AsyncParent extends Base {
+      static config: BaseConfig = {
+        name: 'AsyncParent',
+        // Module-style loader — exercises `module.default ?? module`.
+        components: { AsyncChild: () => Promise.resolve({ default: AsyncChild }) },
+      };
+    }
+
+    const childEl = h('div', { dataComponent: 'AsyncChild' });
+    const parentEl = h('div', { dataComponent: 'AsyncParent' }, [childEl]);
+    document.body.append(parentEl);
+
+    const parent = new AsyncParent(parentEl);
+    await mount(parent);
+    for (let i = 0; i < 100 && !ran; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    expect(ran).toBe(true);
+    expect(parentDuringMounted).toBe(parent);
+  });
+
+  it('two parents each resolve their own async child (per-manager WeakMap, no cross-talk)', async () => {
+    const seen: Array<{ child: Base; parent: Base | null | undefined }> = [];
+
+    class AsyncChild extends Base {
+      static config: BaseConfig = { name: 'AsyncChild' };
+
+      mounted() {
+        seen.push({ child: this, parent: this.$parent });
+      }
+    }
+    class AsyncParent extends Base {
+      static config: BaseConfig = {
+        name: 'AsyncParent',
+        components: { AsyncChild: () => Promise.resolve(AsyncChild) },
+      };
+    }
+
+    const mkParent = () => {
+      const childEl = h('div', { dataComponent: 'AsyncChild' });
+      const parentEl = h('div', { dataComponent: 'AsyncParent' }, [childEl]);
+      document.body.append(parentEl);
+      return new AsyncParent(parentEl);
+    };
+
+    const a = mkParent();
+    const b = mkParent();
+    await mount(a, b);
+    for (let i = 0; i < 100 && seen.length < 2; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    expect(seen.length).toBe(2);
+    // Each async child resolved to its OWN parent — no cross-talk between the two
+    // per-manager WeakMaps.
+    for (const { child, parent } of seen) {
+      expect(parent).toBe(child.$closest('AsyncParent'));
+      expect([a, b]).toContain(parent);
+    }
+    expect(seen[0].parent).not.toBe(seen[1].parent);
   });
 });
 
