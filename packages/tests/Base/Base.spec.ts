@@ -314,6 +314,7 @@ describe('A Base instance', () => {
 
       const child = h('div', { dataComponent: 'ChildComponent' });
       const div = h('div', [child]);
+      document.body.append(div);
       const component = new Component(div);
       await mount(component);
 

@@ -165,6 +165,15 @@ export function deleteInstance(instance: Base) {
   getElementsStorage().delete(instance.$el as HTMLElement & { __base__: Map<string, Base> });
 }
 
+/**
+ * Test whether an instance is currently registered in the global storage.
+ * Membership is added on `before-mounted` and removed on `after-destroyed`,
+ * so this is an O(1) check for "is this instance live" without copying the Set.
+ */
+export function hasInstance(instance: Base): boolean {
+  return getInstancesStorage().has(instance);
+}
+
 const registryKey = '__JS_TOOLKIT_REGISTRY__';
 
 function registry() {
