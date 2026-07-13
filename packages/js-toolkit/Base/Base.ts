@@ -6,8 +6,7 @@ import {
   addInstance,
   deleteInstance,
   addToRegistry,
-  getInstances,
-  findClosestInstance,
+  hasInstance,
 } from './utils.js';
 import {
   ChildrenManager,
@@ -187,22 +186,30 @@ export class Base<T extends BaseProps = BaseProps> {
    * @internal
    */
   get __parent(): (T['$parent'] & Base) | null {
-    const parents = new Set<T['$parent'] & Base>();
+    // Walk up the DOM ancestors and resolve the closest mounted instance whose
+    // config declares this component as a child, using each element's `__base__`
+    // map for an O(1)-per-ancestor lookup. This is O(tree depth) instead of the
+    // O(N_instances) global scan (plus `Set` copy) it replaces.
+    let el = this.$el.parentElement;
 
-    for (const instance of getInstances()) {
-      if (!instance.$config.components) continue;
+    while (el) {
+      const baseMap = (el as BaseEl).__base__;
 
-      if (
-        Object.values(instance.$config.components).includes(this.constructor) &&
-        instance.$el.contains(this.$el)
-      ) {
-        parents.add(instance);
+      if (baseMap) {
+        for (const instance of baseMap.values()) {
+          if (instance === 'terminated' || !hasInstance(instance)) continue;
+
+          const { components } = instance.$config;
+          if (components && Object.values(components).includes(this.constructor)) {
+            return instance as T['$parent'] & Base;
+          }
+        }
       }
+
+      el = el.parentElement;
     }
 
-    const closest = findClosestInstance(this.$el, parents);
-
-    return closest ?? null;
+    return null;
   }
 
   /**
