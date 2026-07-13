@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file. The format 
 - Add `logTree` helper to inspect the component tree from the console ([#654](https://github.com/studiometa/js-toolkit/pull/654))
 - Add performance benchmarks for tween, animate, transform, services and Base internals ([#722](https://github.com/studiometa/js-toolkit/pull/722))
 - Add CodSpeed CI integration for continuous performance tracking ([#723](https://github.com/studiometa/js-toolkit/pull/723))
+- Add performance benchmarks for `__parent` resolution and component queries ([4112247e](https://github.com/studiometa/js-toolkit/commit/4112247e), [1ecf9d37](https://github.com/studiometa/js-toolkit/commit/1ecf9d37))
 
 ### Changed
 
@@ -39,6 +40,9 @@ All notable changes to this project will be documented in this file. The format 
   - Improve `ScrollService.updateProps` by caching scroll max values and refreshing them on resize and scrolling-element size changes ([#721](https://github.com/studiometa/js-toolkit/pull/721), [001fbbef](https://github.com/studiometa/js-toolkit/commit/001fbbef), [d7352b26](https://github.com/studiometa/js-toolkit/commit/d7352b26), [b8b6cc8e](https://github.com/studiometa/js-toolkit/commit/b8b6cc8e))
   - Improve `transform` and `tween` by replacing `isDefined()` with inline `!== undefined` checks ([#721](https://github.com/studiometa/js-toolkit/pull/721), [cdb5db8b](https://github.com/studiometa/js-toolkit/commit/cdb5db8b), [f6276353](https://github.com/studiometa/js-toolkit/commit/f6276353))
   - Improve `getAllProperties` by replacing O(n²) array spread with O(n) push ([#721](https://github.com/studiometa/js-toolkit/pull/721), [d52459f6](https://github.com/studiometa/js-toolkit/commit/d52459f6))
+  - Improve `$parent` and `$root` resolution by walking the DOM ancestors and reading each element's `__base__` map instead of scanning every instance, making it O(tree depth) instead of O(N instances) ([39895c51](https://github.com/studiometa/js-toolkit/commit/39895c51))
+  - Improve element-scoped `$query` and `$queryAll` (`queryComponent`/`queryComponentAll` with a `from` element) by resolving matches through a scoped DOM traversal instead of a global instance scan ([7f12b364](https://github.com/studiometa/js-toolkit/commit/7f12b364))
+- Element-scoped `queryComponent`/`queryComponentAll` now return results in DOM order instead of mount order, and return a single instance when several live components share the same name on the same element ([7f12b364](https://github.com/studiometa/js-toolkit/commit/7f12b364))
 
 ### Fixed
 
