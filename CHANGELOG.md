@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.6.0](https://github.com/studiometa/js-toolkit/compare/3.6.0-beta.2..3.6.0) (2026-07-13)
+
 ### Added
 
 - **ESLint Plugin:** add `prefer-destructured-lookups` rule — warns when `this.$refs`, `this.$options` or `this.$children` members are accessed more than once in the same method without being destructured ([#729](https://github.com/studiometa/js-toolkit/pull/729))
