@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.6.2](https://github.com/studiometa/js-toolkit/compare/3.6.1..3.6.2) (2026-07-13)
+
 ### Changed
 
 - Warn in development when a component is registered under a name already used by a different component, instead of silently ignoring it — registration stays first-writer-wins, mirroring `customElements.define` ([#736](https://github.com/studiometa/js-toolkit/pull/736))
