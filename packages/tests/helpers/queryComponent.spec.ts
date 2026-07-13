@@ -121,6 +121,78 @@ describe('The `queryComponentAll` function', () => {
   });
 });
 
+describe('The `queryComponent` / `queryComponentAll` __base__ resolution', () => {
+  it('returns detached elements with from=document (no attachment constraint)', async () => {
+    const name = randomName();
+    const div = h('div'); // detached, never appended to the global document
+    const instance = new (withName(Base, name))(div);
+    await mount(instance);
+    expect(div.isConnected).toBe(false);
+    expect(queryComponent(name)).toBe(instance);
+    expect(queryComponentAll(name)).toEqual([instance]);
+  });
+
+  it('matches the `from` element itself as well as its descendants', async () => {
+    const name = randomName();
+    const selfEl = h('div');
+    const childEl = h('div');
+    const root = h('div', [selfEl, childEl]);
+    const selfInstance = new (withName(Base, name))(selfEl);
+    const childInstance = new (withName(Base, name))(childEl);
+    await mount(selfInstance, childInstance);
+
+    // Self match: `from` IS the instance element (querySelectorAll excludes it).
+    expect(queryComponent(name, { from: selfEl })).toBe(selfInstance);
+    expect(queryComponentAll(name, { from: selfEl })).toEqual([selfInstance]);
+
+    // Descendants, in DOM order.
+    expect(queryComponentAll(name, { from: root })).toEqual([selfInstance, childInstance]);
+  });
+
+  it('resolves components on elements without a name-derived attribute', async () => {
+    const name = randomName();
+    const plain = h('div'); // no data-component attribute, no `w-name` tag
+    const root = h('div', [plain]);
+    const instance = new (withName(Base, name))(plain);
+    await mount(instance);
+
+    // A `getSelector`-based query would miss this element entirely; the
+    // `__base__` map lookup is keyed on config.name only, so it finds it.
+    expect(plain.getAttribute('data-component')).toBeNull();
+    expect(queryComponent(name, { from: root })).toBe(instance);
+    expect(queryComponentAll(name, { from: root })).toEqual([instance]);
+  });
+
+  it('honors :mounted and :destroyed state filters from an element root', async () => {
+    const name = randomName();
+    const div = h('div');
+    const root = h('div', [div]);
+    const instance = new (withName(Base, name))(div);
+    await mount(instance);
+
+    expect(queryComponent(`${name}:mounted`, { from: root })).toBe(instance);
+    expect(queryComponentAll(`${name}:mounted`, { from: root })).toEqual([instance]);
+    expect(queryComponent(`${name}:destroyed`, { from: root })).toBeUndefined();
+    expect(queryComponentAll(`${name}:destroyed`, { from: root })).toEqual([]);
+  });
+
+  it('skips terminated __base__ entries', async () => {
+    const name = randomName();
+    const div = h('div');
+    const root = h('div', [div]);
+    const instance = new (withName(Base, name))(div);
+    await mount(instance);
+    expect(queryComponent(name, { from: root })).toBe(instance);
+
+    await instance.$terminate();
+
+    // `$terminate` writes the literal `'terminated'` string in `__base__`.
+    expect((div as Base['$el']).__base__.get(name)).toBe('terminated');
+    expect(queryComponent(name, { from: root })).toBeUndefined();
+    expect(queryComponentAll(name, { from: root })).toEqual([]);
+  });
+});
+
 describe('The `closestComponent` function', () => {
   it('should return the closest instance matching the given query', async () => {
     const name = randomName();
