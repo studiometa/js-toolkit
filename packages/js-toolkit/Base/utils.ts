@@ -1,4 +1,4 @@
-import { isArray, isDefined, SmartQueue, dashCase } from '../utils/index.js';
+import { isArray, isDefined, SmartQueue, dashCase, isDev } from '../utils/index.js';
 import type { Base, BaseConfig, BaseConstructor } from './index.js';
 import { features } from './features.js';
 import { useMutation } from '../services/MutationService.js';
@@ -202,6 +202,14 @@ function mutationCallback() {
 
 export function addToRegistry(nameOrSelector: string, ctor: BaseConstructor) {
   if (registry().has(nameOrSelector)) {
+    if (isDev && registry().get(nameOrSelector) !== ctor) {
+      console.warn(
+        `[${nameOrSelector}] A different component is already registered under this name. ` +
+          'Registration is ignored — like `customElements.define`, a name maps to a single ' +
+          'component. Give this component a unique `config.name` (or use `withExtraConfig`, ' +
+          'which renames automatically).',
+      );
+    }
     return;
   }
 
