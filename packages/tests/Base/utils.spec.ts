@@ -146,6 +146,25 @@ describe('The Base utils', () => {
       await Promise.all(Array.from(fooInstances).map((i) => i.$destroy()));
     });
 
+    it('should warn in dev mode when a name is registered with a different component', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const Foo = withName(Base, 'Foo');
+      const Bar = withName(Base, 'Bar');
+
+      addToRegistry('CollisionName', Foo);
+      // Re-registering the SAME class is idempotent and must not warn.
+      addToRegistry('CollisionName', Foo);
+      expect(warn).not.toHaveBeenCalled();
+
+      // A DIFFERENT class under the same name stays register-once (ignored) but warns.
+      addToRegistry('CollisionName', Bar);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toContain('CollisionName');
+      expect(warn.mock.calls[0][0]).toContain('customElements.define');
+
+      warn.mockRestore();
+    });
+
     it('should register new components', async () => {
       const TestComponent = withName(Base, 'TestComponent');
       const registryKey = '__JS_TOOLKIT_REGISTRY__';
