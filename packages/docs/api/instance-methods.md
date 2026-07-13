@@ -198,6 +198,10 @@ class Slider extends Base {
 }
 ```
 
+::: tip See also
+`$query` is the sanctioned **parent → child** channel: a parent reads and drives its declared descendants. See [Data flow between components](/guide/concepts/component-tree.html#data-flow-between-components).
+:::
+
 ## `$closest(query)`
 
 Get the closest ancestor component instance matching the given query. This is sugar for `closestComponent(query, { from: this.$el })`.
@@ -229,6 +233,10 @@ class SliderItem extends Base {
   }
 }
 ```
+
+::: tip See also
+`$closest` resolves a dynamic ancestor from the DOM and returns `Base | undefined`. Always guard the result; never dereference it unguarded in `mounted()`. See [Data flow between components](/guide/concepts/component-tree.html#data-flow-between-components).
+:::
 
 ## `$mount()`
 
