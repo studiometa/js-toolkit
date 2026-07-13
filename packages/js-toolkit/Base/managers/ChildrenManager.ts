@@ -9,6 +9,11 @@ export class ChildrenManager<T> extends AbstractManager<T> {
   /**
    * Store async component promises to avoid calling them multiple times and
    * waiting for them when they are already resolved.
+   *
+   * Also read by `Base.__parent` (backing `$parent`/`$root`) to resolve an
+   * async/lazy-declared child to its parent: `config.components` holds the
+   * loader function, so `__parent` looks up its resolved `ctor` here to match by
+   * identity. Keep the `{ status, ctor }` shape in sync with that reader.
    */
   __asyncComponentPromises: WeakMap<
     BaseAsyncConstructor,
