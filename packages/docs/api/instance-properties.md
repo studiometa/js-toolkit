@@ -45,6 +45,10 @@ You can force a ref to be an `Array` even when only one corresponding element ex
 
 ::: warning Deprecated
 `$children` is deprecated and will be removed in v4. Use [`$query(name)`](./instance-methods.html#query-query) instead.
+
+Note that the two shapes differ: `$children` exposes a **name-keyed object** (`{ Figure: Figure[], Slider: Slider[] }`), whereas `$query(name)` returns a **flat `Base[]`** containing every matching descendant. Group by `$options.name` yourself if you need the name-keyed shape.
+
+See [Data flow between components](/guide/concepts/component-tree.html#data-flow-between-components).
 :::
 
 An object containing references to all the children component instances, with each key being the name of the child component, and each value a list of its corresponding instances.
@@ -94,6 +98,10 @@ The resolved configuration based on the current class [static `config` property]
 
 ::: warning Deprecated
 `$parent` is deprecated and will be removed in v4. Use [`$closest(name)`](./instance-methods.html#closest-query) instead.
+
+`$parent` is a **live getter** that walks up the DOM ancestors on every access. It resolves to `null` unless a **live** (mounting or mounted) ancestor both lists the current component in its [`config.components`](./configuration.md#config-components) and DOM-contains this instance. An ancestor that has not started mounting, has been terminated, or that reaches this instance through the DOM without declaring it in `config.components` will not be matched — hence the `null`. Because resolution is dynamic, never dereference `$parent` unguarded.
+
+See [Data flow between components](/guide/concepts/component-tree.html#data-flow-between-components).
 :::
 
 The parent instance when the current instance component is registered as another [component child](./configuration.md#config-components), defaults to `null` otherwise.
@@ -126,6 +134,10 @@ class Parent extends Base {
 
 ::: warning Deprecated
 `$root` is deprecated and will be removed in v4. Use [`$closest(name)`](./instance-methods.html#closest-query) instead.
+
+Unlike the old `$root`, the [`$closest(name)`](./instance-methods.html#closest-query) replacement resolves an ancestor dynamically from the DOM and returns `undefined` when no matching ancestor has been constructed — there is **no self-reference fallback**. Always guard the result; never dereference it unguarded in `mounted()`.
+
+See [Data flow between components](/guide/concepts/component-tree.html#data-flow-between-components).
 :::
 
 The root instance of the application when the current instance has been mounted as a [child component](#components). Defaults to a self reference if the component is stand-alone.
