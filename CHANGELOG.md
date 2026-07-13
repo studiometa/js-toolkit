@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.6.1](https://github.com/studiometa/js-toolkit/compare/3.6.0..3.6.1) (2026-07-13)
+
 ### Fixed
 
 - Fix `$parent`/`$root` returning `null` in a child's `mounted()` for async/lazy-declared components ([#732](https://github.com/studiometa/js-toolkit/issues/732))
