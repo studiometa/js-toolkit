@@ -1,8 +1,6 @@
 # Using decorators
 
-## What are decorators?
-
-Decorators are higher-order functions that wrap a `Base` class (or any class extending it) to add new behavior. Each decorator returns a new class with extra capabilities — lifecycle hooks, event listeners, observers — without modifying the original class.
+Decorators are higher-order functions that wrap a `Base` class (or any class extending it) and return a new class with extra behavior — lifecycle hooks, event listeners, or observers — without changing the original. For the design rationale, see [Concepts](/guide/concepts/philosophy.html).
 
 ## How to use a decorator
 

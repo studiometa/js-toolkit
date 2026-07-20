@@ -1,8 +1,6 @@
 # Registering new services
 
-## Why register a custom service?
-
-The built-in services (`scrolled`, `resized`, `ticked`, `moved`, `keyed`) cover common use cases, but you may need to react to other global events — geolocation changes, device orientation, WebSocket messages, etc. You can create a custom service and register it on any component to use it like a built-in service.
+The built-in services (`scrolled`, `resized`, `ticked`, `moved`, `keyed`) cover common cases. To react to other global events — geolocation changes, device orientation, WebSocket messages — create a custom service and register it on any component. It then works like a built-in service.
 
 ## Creating a custom service
 

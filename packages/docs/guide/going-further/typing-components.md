@@ -4,7 +4,7 @@ outline: deep
 
 # Typing components
 
-To improve DX and autocompletion of a components' properties, it is possible to type the `$el`, `$options`, `$refs` and `$children` properties either with JSDoc comments or directly in TypeScript. The `Base` class type accepts a [type parameter](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes-func.html#type-parameters) with the following format:
+To improve DX and autocompletion of a component's properties, type the `$el`, `$options`, `$refs`, and `$children` properties with JSDoc comments or directly in TypeScript. The `Base` class type accepts a [type parameter](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes-func.html#type-parameters) with the following format:
 
 ```ts
 interface BaseProps {
