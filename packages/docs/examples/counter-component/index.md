@@ -1,6 +1,6 @@
 # Counter component
 
-A simple reactive counter that increments and decrements a displayed number. This is the simplest possible js-toolkit component, making it a great starting point.
+A reactive counter that increments and decrements a number.
 
 ## What we're building
 
@@ -20,7 +20,7 @@ The HTML uses `data-component` to mark the root element and `data-ref` to expose
 
 ## JavaScript component
 
-The component declares its refs in `static config`. A getter/setter pair on `count` reads from and writes to the `counter` ref. Click handlers are auto-bound by naming them `on<Ref>Click`:
+The component declares its refs in `static config`. A getter/setter pair on `count` reads from and writes to the `counter` ref. js-toolkit auto-binds click handlers when you name them `on<Ref>Click`:
 
 ```js
 import { Base } from '@studiometa/js-toolkit';

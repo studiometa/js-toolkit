@@ -1,10 +1,10 @@
-# Modal / Dialog
+# Modal
 
-A modal dialog with open/close behaviour, backdrop overlay, focus trapping, and Escape to close. This example demonstrates refs, events, the `keyed` service hook, and the `trapFocus` / `untrapFocus` utilities.
+A modal with open/close behaviour, backdrop overlay, focus trapping, and Escape to close. This example demonstrates refs, events, the `keyed` service hook, and the `trapFocus` / `untrapFocus` utilities.
 
 ## What we're building
 
-A button that opens a modal dialog. When open, the modal:
+A button that opens a modal. When open, the modal:
 
 - Displays a backdrop overlay
 - Traps keyboard focus inside the dialog (Tab cycles through focusable elements)

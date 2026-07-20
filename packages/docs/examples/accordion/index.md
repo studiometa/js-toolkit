@@ -7,12 +7,12 @@ An expandable/collapsible content section toggled by a button click. This exampl
 A single accordion panel with a trigger button and a collapsible content area. Clicking the button shows or hides the content and keeps `aria-expanded` in sync for screen readers.
 
 ::: tip Production use
-For a fully-featured, accessible accordion with animations and keyboard navigation, the [`@studiometa/ui`](https://ui.studiometa.dev) package ships a ready-to-use `Accordion` component.
+For an accessible accordion with animations and keyboard navigation, the [`@studiometa/ui`](https://ui.studiometa.dev) package ships an `Accordion` component.
 :::
 
 ## HTML markup
 
-The root element is marked with `data-component`. Two refs — `btn` (the trigger) and `content` (the panel) — are declared with `data-ref`:
+The root element is marked with `data-component`. The component declares two refs with `data-ref`: `btn` (the trigger) and `content` (the panel):
 
 ```html
 <div data-component="Accordion">
@@ -25,7 +25,7 @@ The root element is marked with `data-component`. Two refs — `btn` (the trigge
 
 ## JavaScript component
 
-The component hides the content on mount and toggles visibility on button click. ARIA attributes are kept in sync:
+The component hides the content on mount and toggles visibility on button click. The component keeps the ARIA attributes in sync:
 
 ```js
 import { Base } from '@studiometa/js-toolkit';

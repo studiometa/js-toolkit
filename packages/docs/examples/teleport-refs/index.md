@@ -8,13 +8,13 @@ A modal component that teleports its content element to a different part of the 
 
 ## Why teleport?
 
-CSS stacking contexts can prevent elements like modals from appearing above other content. Common culprits:
+CSS stacking contexts can stop modals from appearing above other content. Common culprits:
 
 - **`z-index` conflicts** — a parent creates a stacking context, capping child z-index
 - **`overflow: hidden` on parents** — clips absolutely positioned children
 - **`transform`, `filter`, `opacity` on ancestors** — create new stacking contexts
 
-The solution: move the element to `<body>` so it escapes these constraints.
+Move the element to `<body>` to escape these constraints.
 
 ::: tip When to use this
 Only use this pattern when CSS `position: fixed` with a high `z-index` is not enough. For most cases, CSS alone is simpler.
@@ -25,7 +25,7 @@ Only use this pattern when CSS `position: fixed` with a high `z-index` is not en
 The `data-option-move` attribute tells the component where to teleport the content:
 
 ```html
-<div data-component="Modal" data-option-move="body">
+<div data-component="TeleportModal" data-option-move="body">
   <button data-ref="open">Open the modal</button>
   <div data-ref="content">Modal content goes here.</div>
 </div>
@@ -38,9 +38,9 @@ The key technique: save refs _before_ teleporting (while they are still inside `
 ```js
 import { Base } from '@studiometa/js-toolkit';
 
-export default class Modal extends Base {
+export default class TeleportModal extends Base {
   static config = {
-    name: 'Modal',
+    name: 'TeleportModal',
     refs: ['open', 'content'],
     options: {
       move: String,
@@ -84,9 +84,9 @@ export default class Modal extends Base {
 
 ```js
 import { registerComponent } from '@studiometa/js-toolkit';
-import Modal from './Modal.js';
+import TeleportModal from './TeleportModal.js';
 
-registerComponent(Modal);
+registerComponent(TeleportModal);
 ```
 
 ## Further reading
