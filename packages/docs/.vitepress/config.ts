@@ -408,6 +408,7 @@ function getUtilsSidebar() {
         { text: 'createRange', link: '/utils/math/createRange.html' },
         { text: 'damp', link: '/utils/math/damp.html' },
         { text: 'ease', link: '/utils/math/ease.html' },
+        { text: 'fold', link: '/utils/math/fold.html' },
         { text: 'inertiaFinalValue', link: '/utils/math/inertiaFinalValue.html' },
         { text: 'lerp', link: '/utils/math/lerp.html' },
         { text: 'map', link: '/utils/math/map.html' },

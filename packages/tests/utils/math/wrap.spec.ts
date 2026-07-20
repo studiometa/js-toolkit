@@ -40,4 +40,11 @@ describe('wrap method', () => {
     expect(wrap(1005, 0, 100)).toBe(5);
     expect(wrap(-995, 0, 100)).toBe(5);
   });
+
+  it('should return the value unchanged for non-finite ranges', () => {
+    expect(wrap(5, 0, Infinity)).toBe(5);
+    expect(wrap(-5, 0, Infinity)).toBe(-5);
+    expect(wrap(5, -Infinity, 0)).toBe(5);
+    expect(wrap(5, -Infinity, Infinity)).toBe(5);
+  });
 });

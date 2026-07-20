@@ -30,6 +30,7 @@ The `wrap` function ensures that:
 - Values above `max` wrap around to the beginning of the range
 - Values below `min` wrap around to the end of the range
 - If `min` equals `max`, the function returns `min`
+- If the range is not finite (e.g. `max` is `Infinity`), the value is returned unchanged
 - The result is always within `[min, max)` (inclusive of min, exclusive of max)
 
 ### Types
