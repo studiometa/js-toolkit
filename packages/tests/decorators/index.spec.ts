@@ -4,6 +4,7 @@ import * as decorators from '#private/decorators/index.js';
 test('decorators exports', () => {
   expect(Object.keys(decorators).toSorted()).toMatchInlineSnapshot(`
     [
+      "getScopedGroups",
       "withBreakpointManager",
       "withBreakpointObserver",
       "withDrag",

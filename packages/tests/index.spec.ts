@@ -22,6 +22,7 @@ describe('The package exports', () => {
         "getDirectChildren",
         "getInstanceFromElement",
         "getInstances",
+        "getScopedGroups",
         "importOnInteraction",
         "importOnMediaQuery",
         "importWhenIdle",

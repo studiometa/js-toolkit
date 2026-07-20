@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add optional scoped group resolution to the `withGroup` decorator via `getScope`/`getGroup` callbacks, with a new `getScopedGroups(scope)` helper to enumerate a scope's groups ([#739](https://github.com/studiometa/js-toolkit/issues/739), [#741](https://github.com/studiometa/js-toolkit/pull/741))
+
 ## [v3.6.2](https://github.com/studiometa/js-toolkit/compare/3.6.1..3.6.2) (2026-07-13)
 
 ### Changed
