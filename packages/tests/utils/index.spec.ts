@@ -63,6 +63,7 @@ describe('@studiometa/js-toolkit/utils exports', () => {
         "easeOutQuint",
         "easeOutSine",
         "endsWith",
+        "fold",
         "getAncestorWhere",
         "getAncestorWhereUntil",
         "getComponentResolver",

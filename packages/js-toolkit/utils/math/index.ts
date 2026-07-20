@@ -5,6 +5,7 @@ export { createRange } from './createRange.js';
 export { clamp } from './clamp.js';
 export { clamp01 } from './clamp01.js';
 export { damp } from './damp.js';
+export { fold } from './fold.js';
 export { spring } from './spring.js';
 export { inertiaFinalValue } from './inertiaFinalValue.js';
 export { lerp } from './lerp.js';
