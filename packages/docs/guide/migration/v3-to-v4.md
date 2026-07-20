@@ -10,9 +10,9 @@ Read through the following steps before upgrading from v3 to v4 of this package.
 
 The `$children` getter has been removed. Use [`$query(name)`](/api/instance-methods.html#query-query) instead.
 
-```diff
-- this.$children.SliderItem
-+ this.$query('SliderItem')
+```js
+this.$children.SliderItem; // [!code --]
+this.$query('SliderItem'); // [!code ++]
 ```
 
 `$query` does not return a keyed object like `$children` did — it returns a flat `Base[]` of **all** matching descendants, at any depth. It takes a query string in the format `ComponentName(.selector):state`, so update any code that indexed into `$children` by component name:
@@ -30,9 +30,9 @@ See [Component Tree — Data flow between components](/guide/concepts/component-
 
 The `$parent` getter has been removed. Use [`$closest(name)`](/api/instance-methods.html#closest-query) instead, naming the ancestor component you need.
 
-```diff
-- this.$parent.goTo(index)
-+ this.$closest('Parent')?.goTo(index)
+```js
+this.$parent.goTo(index); // [!code --]
+this.$closest('Parent')?.goTo(index); // [!code ++]
 ```
 
 ::: warning `$closest` is resolved dynamically — always guard it
@@ -45,9 +45,9 @@ Like `$parent` since 3.5.0, `$closest` is resolved dynamically on every access a
 
 The `$root` getter has been removed. Use [`$closest(name)`](/api/instance-methods.html#closest-query) with the name of your actual root component instead.
 
-```diff
-- this.$root.doSomething()
-+ this.$closest('App')?.doSomething()
+```js
+this.$root.doSomething(); // [!code --]
+this.$closest('App')?.doSomething(); // [!code ++]
 ```
 
 The old self-reference fallback — `$root` pointing at the current instance when it was stand-alone — is gone. Guard the result: `$closest` returns `undefined` when no matching ancestor has been constructed.
@@ -72,4 +72,4 @@ The removed properties encouraged instances to reach across the tree and assume 
 | Child subscribes via `$closest` in `mounted()` (silently skipped when the ancestor isn't constructed yet) | Two-sided handshake: parent subscribes children in its own `mounted()` |
 | State duplicated on parent and children                                                                   | Per-instance `createStorage` store both sides use                      |
 
-Why `$closest` can be `undefined`: it is resolved dynamically by walking the DOM ancestors and is empty only when no matching ancestor instance has been constructed — which happens when a child is auto-mounted independently of its ancestor (global registry, lazy import). It ignores `config.components` and still returns a destroyed or breakpoint-inactive ancestor, so use `$closest('Parent:mounted')` when you need a mounted one. A child that only subscribes through a guarded `$closest('Parent')?.subscribe(...)` in `mounted()` is **silently never subscribed** when the ancestor is unresolved — no error is thrown. See [Component Tree — Data flow between components](/guide/concepts/component-tree.html#data-flow-between-components) for the full store example, including the two-sided handshake that avoids this pitfall.
+A child that only subscribes through a guarded `$closest('Parent')?.subscribe(...)` in `mounted()` is **silently never subscribed** when the ancestor is unresolved (see the guard note above) — no error is thrown. See [Component Tree — Data flow between components](/guide/concepts/component-tree.html#data-flow-between-components) for the full store example, including the two-sided handshake that avoids this pitfall.

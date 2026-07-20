@@ -6,45 +6,46 @@ Apply the following steps to your project to ensure a smooth upgrade from v1 to 
 
 ## Update imports
 
-Exports have been simplified in the v2 version, there are now 2 main entry points: `@studiometa/js-toolkit` and `@studiometa/js-toolkit/utils`. Nested import can still be used but will certainly be removed in a later version, so use them with caution.
+Replace deep imports with the two entry points `@studiometa/js-toolkit` and `@studiometa/js-toolkit/utils`. (v2 simplified the exports.) Nested imports still work but may be removed in a later version, so avoid them.
 
-All deep nested imports can be rewritten to import the named exports from one of these two entrypoints. The `Base` class, the decorators, the services and the helpers can be imported from the root entry:
+Rewrite all deep nested imports to named exports from one of these two entry points. Import the `Base` class, the decorators, the services and the helpers from the root entry:
 
-```diff
-- import Base from '@studiometa/js-toolkit';
-- import { withMountWhenInView } from '@studiometa/js-toolkit/decorators';
-- import { useScroll } from '@studiometa/js-toolkit/services';
-- import { importWhenVisible } from '@studiometa/js-toolkit/helpers';
-+ import {
-+   Base,
-+   withMountWhenInView,
-+   useScroll,
-+   importWhenVisible
-+ } from '@studiometa/js-toolkit';
+```js
+import Base from '@studiometa/js-toolkit'; // [!code --]
+import { withMountWhenInView } from '@studiometa/js-toolkit/decorators'; // [!code --]
+import { useScroll } from '@studiometa/js-toolkit/services'; // [!code --]
+import { importWhenVisible } from '@studiometa/js-toolkit/helpers'; // [!code --]
+import {
+  // [!code ++]
+  Base, // [!code ++]
+  withMountWhenInView, // [!code ++]
+  useScroll, // [!code ++]
+  importWhenVisible, // [!code ++]
+} from '@studiometa/js-toolkit'; // [!code ++]
 ```
 
-All utilities can be imported from the `@studiometa/js-toolkit/utils` entry:
+Import all utilities from the `@studiometa/js-toolkit/utils` entry:
 
-```diff
-- import debounce from '@studiometa/js-toolkit/utils/debounce';
-- import throttle from '@studiometa/js-toolkit/utils/throttle';
-+ import { debounce, throttle } from '@studiometa/js-toolkit/utils';
+```js
+import debounce from '@studiometa/js-toolkit/utils/debounce'; // [!code --]
+import throttle from '@studiometa/js-toolkit/utils/throttle'; // [!code --]
+import { debounce, throttle } from '@studiometa/js-toolkit/utils'; // [!code ++]
 ```
 
 **math utilities**
 
-```diff
-- import damp from '@studiometa/js-toolkit/utils/math/damp';
-- import clamp01 from '@studiometa/js-toolkit/utils/math/clamp01';
-+ import { damp, clamp01 } from '@studiometa/js-toolkit/utils';
+```js
+import damp from '@studiometa/js-toolkit/utils/math/damp'; // [!code --]
+import clamp01 from '@studiometa/js-toolkit/utils/math/clamp01'; // [!code --]
+import { damp, clamp01 } from '@studiometa/js-toolkit/utils'; // [!code ++]
 ```
 
 **css utilities**
 
-```diff
-- import matrix from '@studiometa/js-toolkit/utils/css/matrix';
-- import transition from '@studiometa/js-toolkit/utils/css/transition';
-+ import { matrix, transition } from '@studiometa/js-toolkit/utils';
+```js
+import matrix from '@studiometa/js-toolkit/utils/css/matrix'; // [!code --]
+import transition from '@studiometa/js-toolkit/utils/css/transition'; // [!code --]
+import { matrix, transition } from '@studiometa/js-toolkit/utils'; // [!code ++]
 ```
 
 :::warning Deleted exports
@@ -59,20 +60,25 @@ The `autoBind`, `getAllProperties` and `isObject` exports of the `/utils/object`
 
 **history API utilities**
 
-```diff
-- import { push, replace, objectToURLSearchParams } from '@studiometa/js-toolkit/utils/history';
-+ import {
-+   historyPush,
-+   historyReplace,
-+   objectToURLSearchParams ,
-+ } from '@studiometa/js-toolkit/utils';
+```js
+import {
+  push,
+  replace,
+  objectToURLSearchParams,
+} from '@studiometa/js-toolkit/utils/history'; // [!code --]
+import {
+  // [!code ++]
+  historyPush, // [!code ++]
+  historyReplace, // [!code ++]
+  objectToURLSearchParams, // [!code ++]
+} from '@studiometa/js-toolkit/utils'; // [!code ++]
 ```
 
 ## Define all refs
 
 In the v1, all elements with a `data-ref="refName"` inside the scope of a `data-component` were registered as refs with the `config.refs` definition used to display warnings when a ref was found but not defined.
 
-The v2 is more strict and will only look up refs defined in [the `config.refs` property](/api/configuration.html#config-refs), without warning if some extra refs exists in the scope of the component.
+The v2 is stricter: it looks up only refs defined in [the `config.refs` property](/api/configuration.html#config-refs) and does not warn about extra refs in the component scope.
 
 **HTML**
 
@@ -113,31 +119,31 @@ class Foo extends Base {
 }
 ```
 
-To fix this issue, make sure to define all the refs used by a component:
+Define every ref used by the component:
 
-```diff
-  class Foo extends Base {
-    static config = {
-      name: 'Foo',
--     refs: ['one'],
-+     refs: ['one', 'two'],
-    };
+```js
+class Foo extends Base {
+  static config = {
+    name: 'Foo',
+    refs: ['one'], // [!code --]
+    refs: ['one', 'two'], // [!code ++]
+  };
 ```
 
 ## Update `$on` callbacks
 
-The `$on` instance method can be used to listen to events emitted by a component. The v2 uses the `EventTarget` API with `addEventListener` and `removeEventListener` to manage these events.
+The `$on` instance method listens to events emitted by a component. The v2 uses the `EventTarget` API with `addEventListener` and `removeEventListener` to manage these events.
 
-Custom data attached to an emitted event can now be found in the `event.detail` propery:
+Read custom data attached to an emitted event from the `event.detail` property:
 
-```diff
-- this.$on('event', (one, two) => {
-+ this.$on('event', (event) => {
-+   const [one, two] = event.detail;
-    console.log({ one, two })
-  });
+```js
+this.$on('event', (one, two) => { // [!code --]
+this.$on('event', (event) => { // [!code ++]
+  const [one, two] = event.detail; // [!code ++]
+  console.log({ one, two })
+});
 
-  this.$emit('event', 1, 2);
+this.$emit('event', 1, 2);
 ```
 
 :::tip Tip
@@ -146,14 +152,20 @@ When using the [Events Hooks API](/api/methods-hooks-events.html), the value of 
 
 ## Replace `$once`
 
-The `$once` instance method has been removed since the `EventTarget` API implements this functionnality by passing a `once` option to the `addEventListener` method.
+Replace `$once` with the `once` option of `addEventListener`. (The `$once` instance method has been removed because the `EventTarget` API covers it.)
 
-```diff
-- this.$once('event', () => {
-+ this.$on('event', () => {
-    // do something once.
-- })
-+ }, { once: true })
+```js
+this.$once(
+  'event',
+  () => {
+    // [!code --]
+    this.$on('event', () => {
+      // [!code ++]
+      // do something once.
+    }); // [!code --]
+  },
+  { once: true },
+); // [!code ++]
 ```
 
 ## Use `$children` instead of `$refs` to access child component instances
@@ -216,14 +228,14 @@ This should only have an impact on callback function use in the `$on(event, call
 this.$on('custom-event', this.handleCustomEvent);
 ```
 
-To fix this, you can bind the method to `this` before using it:
+Bind the method to `this` before using it:
 
-```diff
-+ this.handleCustomEvent = this.handleCustomEvent.bind(this);
-  this.$on('custom-event', this.handleCustomEvent);
+```js
+this.handleCustomEvent = this.handleCustomEvent.bind(this); // [!code ++]
+this.$on('custom-event', this.handleCustomEvent);
 ```
 
-Or, better, you can use the [`EventListener.handleEvent()` method](https://developer.mozilla.org/en-US/docs/Web/API/EventListener/handleEvent) and directly use `this` as the callback:
+Or use the [`EventListener.handleEvent()` method](https://developer.mozilla.org/en-US/docs/Web/API/EventListener/handleEvent) and pass `this` as the callback:
 
 ```js {7-8,12-13,16-20,22}
 class Component extends Base {
@@ -257,36 +269,41 @@ Make sure to read "[DOM handleEvent: a cross-platform standard since year 2000](
 
 ## Replace legacy config from getter to static
 
-Using a getter for the `config` was marked a legacy in the v1 and is not supported anymore in the v2.
+Replace the `config` getter with a static property. (The v1 marked the getter as legacy; the v2 no longer supports it.)
 
-```diff
-  class Component extends Base {
--   get config() {
--     return {
--       name: 'Component',
--     };
--   }
-+   static config = {
-+     name: 'Component',
-+   };
-  }
+```js
+class Component extends Base {
+  get config() {
+    // [!code --]
+    return {
+      // [!code --]
+      name: 'Component', // [!code --]
+    }; // [!code --]
+  } // [!code --]
+  static config = {
+    // [!code ++]
+    name: 'Component', // [!code ++]
+  }; // [!code ++]
+}
 ```
 
 ## Replace legacy `data-options` attribute
 
-Defining custom values for an instance options with a single `data-options="{}"` attribute has been marked as legacy in the v1 and is no longer supported in the v2. Custom values for options should be defined with `data-option-<option-name>​="value"` attributes.
+Define custom option values with `data-option-<option-name>​="value"` attributes. (The single `data-options="{}"` attribute was legacy in the v1 and is no longer supported in the v2.)
 
-```diff
-  <div
-    data-component="Component"
--   data-options="{ one: 1, two: 2 }">
-+   data-option-one="1"
-+   data-option-two="2">
+```html
+<div data-component="Component" data-options="{ one: 1, two: 2 }">
+  <!-- [!code --] -->
+  data-option-one="1"
+  <!-- [!code ++] -->
+  data-option-two="2">
+  <!-- [!code ++] -->
+</div>
 ```
 
 ## Replace `get:...` event handlers
 
-The internal `get:options`, `get:refs`, `get:children` and `get:services` events have been removed, they can be replaced with getters in child classes:
+Replace the internal `get:options`, `get:refs`, `get:children` and `get:services` events with getters in child classes. (These events have been removed.)
 
 **Before**
 
@@ -313,21 +330,21 @@ class Foo extends Base {
 
 ## Define emitted events
 
-Events emitted from a component must be defined in the static `config` property.
+Define every event emitted from a component in the static `config` property.
 
-```diff
-  class Component extends Base {
-    static config = {
-      name: 'Component'
-+     emits: ['open', 'close'],
-    }
+```js
+class Component extends Base {
+  static config = {
+    name: 'Component', // [!code ++]
+    emits: ['open', 'close'], // [!code ++]
+  };
 
-    open() {
-      this.$emit('open');
-    }
-
-    close() {
-      this.$emit('close');
-    }
+  open() {
+    this.$emit('open');
   }
+
+  close() {
+    this.$emit('close');
+  }
+}
 ```
