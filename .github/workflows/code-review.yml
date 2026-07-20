@@ -1,0 +1,31 @@
+name: code-review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: Review pull request
+    runs-on: ubuntu-latest
+    # Same-repo PRs only: fork PRs don't receive secrets on pull_request.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    # Provider creds (org secrets) + review settings (org variables). The
+    # CODE_REVIEW_ prefix on the credentials is de-prefixed to CLOUDFLARE_* by
+    # the CLI's env shim. Referenced directly here (not via a cross-org reusable
+    # workflow) because `secrets: inherit` does not carry org secrets across orgs.
+    env:
+      CODE_REVIEW_CLOUDFLARE_API_KEY: ${{ secrets.CODE_REVIEW_CLOUDFLARE_API_KEY }}
+      CODE_REVIEW_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CODE_REVIEW_CLOUDFLARE_ACCOUNT_ID }}
+      CODE_REVIEW_CLOUDFLARE_GATEWAY_ID: ${{ secrets.CODE_REVIEW_CLOUDFLARE_GATEWAY_ID }}
+      CODE_REVIEW_DEPTH: ${{ vars.CODE_REVIEW_DEPTH }}
+      CODE_REVIEW_THINKING_LEVEL: ${{ vars.CODE_REVIEW_THINKING_LEVEL }}
+      CODE_REVIEW_VERIFY_MODEL: ${{ vars.CODE_REVIEW_VERIFY_MODEL }}
+    steps:
+      # The composite action checks out the repo itself (checkout: true default).
+      - uses: weareikko/code-review@0.8.5
+        with:
+          model: ${{ vars.CODE_REVIEW_MODEL }}
