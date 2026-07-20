@@ -4,7 +4,7 @@ outline: deep
 
 # isDirectChild
 
-Use the `isDirectChild` function to test if a child component instance is a direct descendant of the given parent instance. This function is helpful when working with nested components which declare themselves as children.
+Tests whether a child component instance is a direct descendant of the given parent instance. It helps when working with nested components that declare themselves as children.
 
 ## Usage
 

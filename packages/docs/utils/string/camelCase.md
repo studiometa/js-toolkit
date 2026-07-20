@@ -11,7 +11,7 @@ import { camelCase } from '@studiometa/js-toolkit/utils';
 camelCase('Some String Content'); // someStringContent
 ```
 
-### Params
+### Parameters
 
 - `string` (`string`): The string to transform.
 

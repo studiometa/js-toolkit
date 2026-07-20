@@ -1,6 +1,6 @@
 # addStyle
 
-This method will add styles to an HTML element.
+Adds styles to an HTML element.
 
 ## Usage
 

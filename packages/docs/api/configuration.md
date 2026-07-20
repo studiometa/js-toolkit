@@ -4,7 +4,7 @@
 For a practical introduction, see the [Components guide](/guide/introduction/managing-components.html). For refs and options, see [Refs](/guide/introduction/managing-refs.html) and [Options](/guide/introduction/managing-options.html).
 :::
 
-The static `config` property is required on each class extending the `Base` class. It should be used to configure the class.
+The static `config` property is required on each class extending the `Base` class. Use it to configure the class.
 
 ## `config.name`
 
@@ -95,7 +95,7 @@ class Component extends Base {
 - Type: `Object`
 - Default: `{}`
 
-The children components of the current one that will automatically be mounted and destroyed accordion to the state of the current component. Children components can be defined like the following:
+The children components of the current one, mounted and destroyed automatically according to the state of the current component. Define children components like the following:
 
 ::: code-group
 
@@ -145,7 +145,7 @@ The [lazy import helpers](/api/helpers/#lazy-import-helpers) can be used for mor
 - Type : `Array<String>`
 - Default : `[]`
 
-Define the refs of the components by specifying their name in the configuration. Multiple refs should be suffixed with `[]`. Refs names can be configured and used in HTML following the `dash-case` pattern, and will be available in the `this.$refs` object following the `camelCase` pattern.
+Define the refs of the components by specifying their name in the configuration. Multiple refs should be suffixed with `[]`. Refs names can be configured and used in HTML following the `dash-case` pattern, and are available in the `this.$refs` object following the `camelCase` pattern.
 
 ```html
 <div data-component="Component">
@@ -223,10 +223,10 @@ Enable the `this.$log(...args)` method when `true`.
 - Type: `Boolean`
 - Default: `false`
 
-When `true`, the lifecycle hooks and services hooks will be logged to the console.
+When `true`, js-toolkit logs the lifecycle hooks and services hooks to the console.
 
 :::tip
-The debug logs are conditionally rendered based on a `__DEV__` global variable which will default to `false`. To enable it in dev mode, you can use the [`DefinePlugin`](https://webpack.js.org/plugins/define-plugin/) with Webpack or the [`@rollup/plugin-replace`](https://github.com/rollup/plugins/tree/master/packages/replace) with Rollup.
+The debug logs are conditionally rendered based on a `__DEV__` global variable which defaults to `false`. To enable it in dev mode, use the [`DefinePlugin`](https://webpack.js.org/plugins/define-plugin/) with Webpack or the [`@rollup/plugin-replace`](https://github.com/rollup/plugins/tree/master/packages/replace) with Rollup.
 
 **Example Vite configuration**
 

@@ -1,6 +1,6 @@
 # withMountWhenPrefersMotion
 
-Use this decorator to create a component which will mount and destroy itself based on the `(prefers-reduced-motion)` media query.
+Mounts and destroys a component based on the `(prefers-reduced-motion)` media query.
 
 ## Usage
 

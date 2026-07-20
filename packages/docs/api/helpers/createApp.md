@@ -4,7 +4,7 @@ outline: deep
 
 # createApp
 
-Use the `createApp` function to instantiate your application on page load while being able to use the instance in other files. This function is useful when you need to configure global features (breakpoints, attributes, blocking) or access the root app instance from other files.
+Instantiates your application on page load and returns a function to access the instance from other files. Use it to configure global features (breakpoints, attributes, blocking) or to access the root app instance from other files.
 
 :::tip Simpler alternative
 For most use cases, [`registerComponent`](./registerComponent.html) combined with [`defineFeatures`](./defineFeatures.html) is simpler and avoids the need for a monolithic App class. See the [registerComponent documentation](./registerComponent.html) for details.
@@ -31,7 +31,7 @@ The second parameter can either be one of the following:
 1. `rootElement` (`HTMLElement`): the root element for your app, defaults to `document.body`
 2. `options` (`Object`): an object to configure more advanced options
    - `options.root` (`HTMLElement`): the root element for your app, defaults to `document.body`
-   - `options.breakpoints` (`Record<string, string>`): a list of breakpoints to confgure the [`useResize` service](/api/services/useResize)
+   - `options.breakpoints` (`Record<string, string>`): a list of breakpoints to configure the [`useResize` service](/api/services/useResize)
    - `options.blocking` (`boolean`): whether to enable the queue mechanism for the internals of the framework or not, defaults to `false`
    - `options.prefix` (`string`): customize the prefix used to search for components with custom element tag names, defaults to `tk`
    - `options.attributes` (`{ component: string, option: string, ref: string }`): the HTML attributes to use for the [HTML API](/api/html/), defaults to `data-component`, `data-option` and `data-ref`

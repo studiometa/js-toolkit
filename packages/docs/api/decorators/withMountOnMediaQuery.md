@@ -1,6 +1,6 @@
 # withMountOnMediaQuery
 
-Use this decorator to create a component which will mount and destroy itself based on a specified media query.
+Mounts and destroys a component based on a media query.
 
 ## Usage
 

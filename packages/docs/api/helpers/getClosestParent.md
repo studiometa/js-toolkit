@@ -1,6 +1,6 @@
 # getClosestParent
 
-Use the `getClosestParent` function to get the closest instance of a given parent component.
+Returns the closest instance of a given parent component.
 
 ## Usage
 

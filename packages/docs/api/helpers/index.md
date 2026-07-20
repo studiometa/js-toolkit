@@ -4,7 +4,7 @@ sidebar: true
 
 # Helpers
 
-The following helper functions can be used to achieve advanced setup of your application. For practical usage, see the [Getting Started guide](/guide/) and [Child Components](/guide/going-further/lazy-imports.html) for lazy import helpers.
+The following helper functions can be used to achieve advanced setup of your application. For practical usage, see the [Getting Started guide](/guide/) and [Lazy imports](/guide/going-further/lazy-imports.html) for lazy import helpers.
 
 ## Setup helpers
 
@@ -33,7 +33,7 @@ The following helpers let you find component instances by name, CSS selector, an
 
 ## Lazy import helpers
 
-Some components might not need to be imported and instantiated immediately on page load. The following functions will help you define custom scenarios for when to import these components.
+Some components might not need to be imported and instantiated immediately on page load. The following functions let you define when to import these components.
 
 - [importOnInteraction](./importOnInteraction.html)
 - [importWhenIdle](./importWhenIdle.html)

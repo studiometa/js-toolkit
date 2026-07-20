@@ -4,7 +4,7 @@ outline: deep
 
 # withResponsiveOptions
 
-Use this decorator to enable responsive options definition in your HTML.
+Enables responsive option definitions in your HTML.
 
 :::warning
 

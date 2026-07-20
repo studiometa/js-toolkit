@@ -4,7 +4,7 @@ outline: deep
 
 # Resize service
 
-The resize service will help you manage your actions when the window is resized.
+The resize service runs registered callbacks on window resize.
 
 ## Usage
 

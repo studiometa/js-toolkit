@@ -4,7 +4,7 @@ For practical examples of components and registration, see the [Components guide
 
 ## `$register(nameOrSelector?: string)`
 
-Use the `$register` method to instantiate a class on each element matching the given component's name or CSS selector. This methods uses the [child component resolution](#components) to find components.
+Instantiates a class on each element matching the given component's name or CSS selector. This method uses the [child component resolution](#components) to find components.
 
 **Parameters**
 

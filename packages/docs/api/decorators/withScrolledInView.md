@@ -4,7 +4,7 @@ outline: deep
 
 # withScrolledInView
 
-Use this decorator to create a component with a hook to easily create animation based on the vertical scroll position.
+Adds a `scrolledInView` hook that runs each frame while the component is in view, for scroll-driven animations.
 
 ## Usage
 
@@ -124,11 +124,11 @@ class Component extends withScrolledInView(Base) {
 }
 ```
 
-### Custom hooks
+### Hooks
 
 #### `scrolledInView`
 
-The `scrolledInView` class method will be triggered for each frame of the component being in the viewport.
+The `scrolledInView` hook runs on each frame while the component is in the viewport.
 
 **Arguments**
 

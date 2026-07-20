@@ -4,7 +4,7 @@ outline: deep
 
 # importOnInteraction
 
-Use the `importOnInteraction` function to import component when the user interacts with an element.
+Imports a component when the user interacts with an element.
 
 ## Usage
 
@@ -26,7 +26,7 @@ importOnInteraction(
 - `events` (`string|string[]`): one or many events which should trigger the import
 - `parent` (`Base`): the parent Base instance used to query the `selector`, if not specified `selector` will be searched in the whole document.
 
-**Returns**
+**Return value**
 
 - `Promise<typeof Base>`: a promise resolving to the the component's class
 

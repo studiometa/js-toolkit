@@ -1,6 +1,6 @@
 # importWhenPrefersMotion
 
-Use this function to import components when the user accepts motion.
+Imports components when the user accepts motion.
 
 ## Usage
 
@@ -16,7 +16,7 @@ importWhenPrefersMotion(() => import('./components/Component.js'));
 
 - `importFn` (`() => Promise<Base>`): the function to import components
 
-**Returns**
+**Return value**
 
 - `Promise<Base>`: a promise resolving to the the component's class
 

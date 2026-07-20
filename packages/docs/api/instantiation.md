@@ -29,15 +29,15 @@ component.$mount();
 Returns an instance of the class not yet mounted.
 
 :::tip Recommended
-Use the [`registerComponent(Component)`](./helpers/registerComponent.html) function to register and mount components independently — no need for a monolithic App class.
+The [`registerComponent(Component)`](./helpers/registerComponent.html) function registers and mounts components independently — no need for a monolithic App class.
 :::
 
 :::tip
-Use the [`$register(nameOrSelector?: string)`](./static-methods.html#factory-nameorselector) static method to instantiate multiple instances on elements matching a name (e.g. `[data-component="<name>"]`) or a CSS selector.
+The [`$register(nameOrSelector?: string)`](./static-methods.html#factory-nameorselector) static method instantiates multiple instances on elements matching a name (e.g. `[data-component="<name>"]`) or a CSS selector.
 :::
 
 :::tip
-Use the [`createApp(Base, rootElement)`](./helpers/createApp.html) function when you need to configure global features (breakpoints, attributes, blocking) or access the root app instance.
+The [`createApp(Base, rootElement)`](./helpers/createApp.html) function configures global features (breakpoints, attributes, blocking) and gives access to the root app instance.
 :::
 
 ## Examples

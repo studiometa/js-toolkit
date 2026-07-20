@@ -11,7 +11,7 @@ import { lowerCase } from '@studiometa/js-toolkit/utils';
 lowerCase('Some String Content'); // some string content
 ```
 
-### Params
+### Parameters
 
 - `string` (`string`): The string to transform.
 

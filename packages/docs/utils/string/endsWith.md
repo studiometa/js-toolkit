@@ -12,7 +12,7 @@ endsWith('string', 'ing'); // true
 endsWith('string', 'no'); // false
 ```
 
-### Params
+### Parameters
 
 - `string` (`string`): The string to test.
 - `search` (`string`): The string to search for at the end.

@@ -4,7 +4,7 @@ outline: deep
 
 # defineFeatures
 
-Use the `defineFeatures` function to configure global features (breakpoints, attributes, etc.) without using `createApp`. This is useful when using `registerComponent` to mount components independently.
+Configures global features (breakpoints, attributes, and more) without `createApp`. Use it when mounting components independently with `registerComponent`.
 
 ## Usage
 

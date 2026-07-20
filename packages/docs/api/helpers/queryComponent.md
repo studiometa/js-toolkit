@@ -4,7 +4,7 @@ outline: deep
 
 # queryComponent
 
-Use the `queryComponent` function to get the first instance of a component matching a given query. Use `queryComponentAll` to get all matching instances.
+Returns the first instance of a component matching a given query. `queryComponentAll` returns all matching instances.
 
 ## Usage
 

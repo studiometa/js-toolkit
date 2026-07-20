@@ -4,7 +4,7 @@ outline: deep
 
 # Scroll service
 
-The scroll service will help you manage your actions when the page is scrolled.
+The scroll service runs registered callbacks on page scroll.
 
 ## Usage
 

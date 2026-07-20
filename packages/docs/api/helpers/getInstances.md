@@ -1,6 +1,6 @@
 # getInstances
 
-Use the `getInstances` function to retrieve all mounted instances of every components. You can get instances for a specific component by providing its constructor as first parameter of the function.
+Returns all mounted instances of every component. Pass a component constructor as the first parameter to get instances for a specific component only.
 
 ## Usage
 

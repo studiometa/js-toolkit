@@ -1,6 +1,6 @@
 # matrix
 
-This method will format a matrix CSS transform function.
+Formats a matrix CSS transform function.
 
 ## Usage
 

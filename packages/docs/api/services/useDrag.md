@@ -4,7 +4,7 @@ outline: deep
 
 # Drag service
 
-The drag service will help you manage draggable elements.
+The drag service runs registered callbacks on drag interactions with an element.
 
 ## Usage
 

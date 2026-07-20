@@ -4,7 +4,7 @@ outline: deep
 
 # Load service
 
-The load service will help you manage actions that should run on `window` load event.
+The load service runs registered callbacks on the `window` load event.
 
 ## Usage
 

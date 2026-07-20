@@ -1,6 +1,6 @@
 # addClass
 
-This method will add one or more classes to an HTML element.
+Adds one or more classes to an HTML element.
 
 ## Usage
 

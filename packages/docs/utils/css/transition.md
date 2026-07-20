@@ -1,6 +1,6 @@
 # transition
 
-This method implements the same logic as the [`<transition>` component](https://vuejs.org/v2/api/#transition) from Vue to apply CSS based transition to a DOM element.
+Implements the same logic as the [`<transition>` component](https://vuejs.org/v2/api/#transition) from Vue to apply CSS based transition to a DOM element.
 
 ## Usage
 

@@ -4,7 +4,7 @@ outline: deep
 
 # withBreakpointObserver
 
-Use this decorator to create a class that will have the capacity to be mounted or destroyed when the current breakpoint changes.
+Mounts or destroys a component when the active breakpoint changes.
 
 ## Usage
 

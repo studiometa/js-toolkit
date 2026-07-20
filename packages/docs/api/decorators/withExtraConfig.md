@@ -4,7 +4,7 @@ outline: deep
 
 # withExtraConfig
 
-Use this decorator to quickly create variants of an existing class.
+Creates variants of an existing class by merging in extra configuration.
 
 ## Usage
 
@@ -28,7 +28,7 @@ export default withExtraConfig(Component, { log: true });
 
 ### Add new refs
 
-This decorator can be used to easily add a new ref to an existing component.
+This decorator adds a new ref to an existing component.
 
 ```js twoslash
 // @twoslash-cache: {"v":1,"hash":"0c537c1ec299f48ae83db32c2fa19a689da001c6a3ac0c780aea0f66a4a3d3c2","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIBjVlzi8AstDYAeACq86NMFBEAhLjAAKpCFhEBeXqrgatOgHwAdMOwC2WCKTRiJrSiCgR+CRCHFQ2AoTg4ADpXNGYAcy9kZBAOMABrV3w0NB1EAHoMgFd2YLg0bKh2CGsYcODYIgz+UrswGDA0OAzfNgyQAF1OqgLmByQATipWRoi0fCQAVipw0gjyvDaXEfYGpAAGKn58fuZ+GnJEQYBfCnRsXG9CEnJZ+SY2Th5eADNssAOSsF4Ad3YJgBReikZgAYQgYFe7AikgAynJ6I0lAY1KZGIYYGDAnBELxMDgIK9UUYKAJIdCInj1P00JxWJJMRCoTDTGTtHTIXAAPx42AwLBleYwYIAeSwnLAPDxmIAIjBaqC0PZGWoAJJNMivfYwMlwixWWz2Rz/IEg8EUmGudyePDAhQoiYwcksiLZJXfXhE3jMH50dgFNYRALCUKzSLRWLxJJUFJpXFZABWcAAtMqIKwEgD8oViqVysxKjBqswsOwMrBFcxlaQWqb8PbQczKcEUtYXN1enMGIgpjM4mMJkgAIz9uYLHsgeuNi2u1zxK7D7a7UEHMhDM4XHB4G7r+70R4cLh8afm5sw1VGS/GbRwUzopk4vEEmDezFk2qu6m0+nX88RNkvQlb4eT5GABSFBYxWArluBlNR5SrGtrw1Q5tX4XUSRga9NFve9LBsOwHD+AEGzPS0ImtDwvBAe1kREJ0XUpd1q09b1fURAM6TAYNBFDMIIyQGI4jWGMCFSdIk1TdNM2zAoihKMoKiqDJS3LSt7Grew61Imd/1bNB2y6HoQD6AZEGHAAmLYBx4ocLLHfoJzwU80CbCj5zWK4AGZlz2NcjlHTdqEuHdiD3agHm8FgjxePigicPwGVkeR6Kw3CdF4fRMQyu8CKNYjlio21vGWEMgjDahBJQKNROSCSExyPJ5LzJTCxU2ojQaJoWmWDpO1M7sR28gA2EZB0mXtw2FScitWdZEF8kAdn8w4kG84dgpfMLbjCKKQEYLATDITA+FIGBXlA3gClIINkE6XgAB9eA+WBoQaKBXDMnthwAFn7UY7Mm37puc7xzsuzyFqWlbVzWxBfo2E4TNqWA8EI41eGARL/BON4tGsXgAHIAAEWsUgsmtaZwiYAbnyojHGx1z3NdXg8deAnibJ3MKfCDJkzTCAMyzNA6csSw6EZ3g3uYbJWBNXTyNdRhljJbGIdxXhkCJ5UIgiUYiYek5uFp1w2qQUBUqlb48GTEAThOIA=="}
@@ -58,7 +58,7 @@ export default withExtraConfig(Modal, {
 });
 ```
 
-### Enable debug or log easily
+### Enable debug or logging
 
 This decorator can be used to quickly enable debug for an external component.
 

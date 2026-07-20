@@ -11,7 +11,7 @@ import { pascalCase } from '@studiometa/js-toolkit/utils';
 pascalCase('Some String Content'); // SomeStringContent
 ```
 
-### Params
+### Parameters
 
 - `string` (`string`): The string to transform.
 

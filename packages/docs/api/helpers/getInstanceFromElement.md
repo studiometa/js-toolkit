@@ -4,7 +4,7 @@ outline: deep
 
 # getInstanceFromElement
 
-Use the `getInstanceFromElement` function to get a class instance attached to a DOM element.
+Returns the class instance attached to a DOM element.
 
 ## Usage
 

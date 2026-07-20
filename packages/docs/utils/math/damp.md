@@ -27,7 +27,7 @@ currentValue = damp(targetValue, currentValue, factor, precision); // 10
 - `targetValue` (`number`): The final value.
 - `currentValue` (`number`): The current value.
 - `factor` (`number`): The factor used to reach the target value, defaults to `0.5`.
-- `precision` (`number`): The factor used to reach the target value, defaults to `0.01`.
+- `precision` (`number`): The threshold below which the current value snaps to the target. Defaults to `0.01`.
 
 ### Return value
 

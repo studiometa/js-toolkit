@@ -1,6 +1,6 @@
 # toggleClass
 
-This method will toggle one or more classes to an HTML element.
+Toggles one or more classes on an HTML element.
 
 ## Usage
 

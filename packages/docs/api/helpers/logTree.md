@@ -1,6 +1,6 @@
 # logTree
 
-Log the component tree to the browser console starting from a given instance. Uses the global instance registry and DOM containment to build the tree — does **not** rely on the deprecated `$children` API.
+Logs the component tree to the browser console starting from a given instance. Uses the global instance registry and DOM containment to build the tree — does **not** rely on the deprecated `$children` API.
 
 Components with children are displayed as collapsed groups. Each entry shows:
 

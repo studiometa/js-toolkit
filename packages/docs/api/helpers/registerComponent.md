@@ -1,6 +1,6 @@
 # registerComponent
 
-Use the `registerComponent` function to register a component in the global registry and mount it on the current matching elements in the DOM. This function can be used to instantiate components without having to use the parent → child relationship of the [`config.components` configuration](/api/configuration.md#config-components).
+Registers a component in the global registry and mounts it on the matching elements in the DOM. Use it to instantiate components without the parent → child relationship of the [`config.components` configuration](/api/configuration.md#config-components).
 
 This function is inspired by the [`customElements.define()` function](https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry/define) of Web Components.
 

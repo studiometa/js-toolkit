@@ -10,7 +10,7 @@ withLeadingCharacters('string', '__'); // "__string"
 withLeadingCharacters('__string', '__'); // "__string"
 ```
 
-### Params
+### Parameters
 
 - `string` (`string`): The string to modify.
 - `characters` (`string`): The characters to add to the start of the string.

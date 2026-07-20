@@ -4,7 +4,7 @@ outline: deep
 
 # importWhenIdle
 
-Use this function to import components when the [`requestIdleCallback`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback) function is called.
+Imports components when the [`requestIdleCallback`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback) function runs.
 
 ## Usage
 
@@ -20,7 +20,7 @@ importWhenIdle(() => import('./components/Component.js'), { timeout: 1000 });
 - `importFn` (`() => Promise<Base>`): the function to import components
 - `options` (`{ timeout?: number }`): the time to wait in milliseconds before forcing the import to be made, defaults to `1`
 
-**Returns**
+**Return value**
 
 - `Promise<Base>`: a promise resolving to the the component's class
 

@@ -1,6 +1,6 @@
 # removeStyle
 
-This method will remove styles from an HTML element.
+Removes styles from an HTML element.
 
 ## Usage
 
