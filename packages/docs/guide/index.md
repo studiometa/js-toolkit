@@ -2,25 +2,12 @@
 
 This guide will walk you through installing js-toolkit and building your first component.
 
-`@studiometa/js-toolkit` is a data-attributes driven micro-framework for building JavaScript components. Write classes, add `data-*` attributes to your HTML, and let the framework handle the rest.
+`@studiometa/js-toolkit` is a data-attributes driven micro-framework for building JavaScript components. Write classes, add `data-*` attributes to your HTML, and let js-toolkit handle the rest.
 
 ## Installation
 
-### npm
-
 ```bash
 npm install @studiometa/js-toolkit
-```
-
-### CDN
-
-```html
-<script type="module">
-  import {
-    Base,
-    registerComponent,
-  } from 'https://esm.sh/@studiometa/js-toolkit';
-</script>
 ```
 
 ## Hello World
@@ -58,3 +45,5 @@ That's it — `registerComponent` finds all `[data-component="Hello"]` elements 
 ::: tip
 Using Vite or Webpack? Set the `__DEV__` global for debug logs. See [Installation](/guide/introduction/installation.html) for build tool setup.
 :::
+
+Next: [Components](/guide/introduction/managing-components.html)

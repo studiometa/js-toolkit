@@ -12,11 +12,24 @@ Install the package from npm:
 npm install @studiometa/js-toolkit
 ```
 
+### CDN
+
+Import js-toolkit directly from a CDN, without a build step:
+
+```html
+<script type="module">
+  import {
+    Base,
+    registerComponent,
+  } from 'https://esm.sh/@studiometa/js-toolkit';
+</script>
+```
+
 ## Quick setup
 
 ### Recommended: `registerComponent`
 
-The simplest way to get started is to use `registerComponent`, which automatically mounts your component on any matching DOM element:
+Use `registerComponent` to mount your component automatically on any matching DOM element:
 
 ```js
 import { Base, registerComponent } from '@studiometa/js-toolkit';
@@ -58,6 +71,10 @@ Available options: `breakpoints`, `blocking`, `prefix`, and `attributes`. See th
 
 ### Advanced: `createApp`
 
+::: tip Prefer `registerComponent`
+`createApp` is a legacy approach — the `js-toolkit/no-create-app` lint rule flags it. Prefer [`registerComponent`](/api/helpers/registerComponent.html) with [`defineFeatures`](/api/helpers/defineFeatures.html) for new projects.
+:::
+
 For more control over initialization (e.g. custom root element, breakpoints, or accessing the app instance from other files), use `createApp`:
 
 ```js
@@ -94,7 +111,7 @@ See the [`createApp` API](/api/helpers/createApp.html) for all available options
 
 ## Build tool configuration
 
-The toolkit uses a `__DEV__` global to conditionally enable debug logs. Set it in your build tool configuration:
+js-toolkit uses a `__DEV__` global to conditionally enable debug logs. Set it in your build tool configuration:
 
 ### Vite
 
@@ -125,7 +142,7 @@ export default {
 
 ## TypeScript
 
-The package ships with TypeScript types and works out of the box — no additional `@types` package needed.
+The package ships with TypeScript types and works without extra configuration — no separate `@types` package needed.
 
 ```ts
 import { Base, BaseConfig } from '@studiometa/js-toolkit';
@@ -137,36 +154,6 @@ class MyComponent extends Base {
 }
 ```
 
-## Hello World
+## Next steps
 
-A minimal example to verify everything is working:
-
-```html
-<!DOCTYPE html>
-<html>
-  <body>
-    <div data-component="Hello">
-      <button data-ref="btn">Say hello</button>
-    </div>
-    <script type="module" src="./main.js"></script>
-  </body>
-</html>
-```
-
-```js
-// main.js
-import { Base, registerComponent } from '@studiometa/js-toolkit';
-
-class Hello extends Base {
-  static config = {
-    name: 'Hello',
-    refs: ['btn'],
-  };
-
-  onBtnClick() {
-    alert('Hello, world!');
-  }
-}
-
-registerComponent(Hello);
-```
+Follow the [Getting Started tutorial](/guide/) to build your first component step by step.

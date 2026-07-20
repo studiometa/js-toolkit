@@ -2,10 +2,10 @@
 layout: home
 sidebar: false
 title: A data-attributes driven micro-framework
-description: The JS Toolkit by Studio Meta is a JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.
+description: The JS Toolkit by Studio Meta is a JavaScript data-attributes driven micro-framework shipped with a set of useful utility functions for your project.
 hero:
   name: '@studiometa/js-toolkit'
-  text: A data-attributes driven micro framework
+  text: A data-attributes driven micro-framework
   tagline: Write JavaScript components as classes and bind them to the DOM with data-attributes
   image:
     src: /hero.webp
