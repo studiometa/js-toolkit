@@ -70,5 +70,3 @@ export default class Child extends Parent {
 ---
 
 See also: [Lifecycle hooks](/api/methods-hooks-lifecycle.html)
-
-Next: [Events](/guide/introduction/working-with-events.html)

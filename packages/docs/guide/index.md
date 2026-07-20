@@ -45,5 +45,3 @@ That's it — `registerComponent` finds all `[data-component="Hello"]` elements 
 ::: tip
 Using Vite or Webpack? Set the `__DEV__` global for debug logs. See [Installation](/guide/introduction/installation.html) for build tool setup.
 :::
-
-Next: [Components](/guide/introduction/managing-components.html)
