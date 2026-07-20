@@ -51,9 +51,9 @@ registerComponent(MyComponent);
 <div data-component="MyComponent"></div>
 ```
 
-### Alternative: `defineFeatures`
+### Global settings: `defineFeatures`
 
-Use `defineFeatures` to configure global settings like breakpoints or HTML attributes when using `registerComponent` instead of `createApp`:
+Use `defineFeatures` to configure framework-wide settings such as breakpoints, attributes, prefix, and blocking. It works alongside `registerComponent`:
 
 ```js
 import { defineFeatures } from '@studiometa/js-toolkit';
