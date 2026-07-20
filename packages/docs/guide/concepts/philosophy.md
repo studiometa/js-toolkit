@@ -40,7 +40,7 @@ Alpine.js and Stimulus share js-toolkit's philosophy of enhancing server-rendere
 - **Class-based architecture** — js-toolkit uses ES classes with inheritance. Components are proper classes, making them easy to extend, type with TypeScript, and test.
 - **Built-in services** — scroll, resize, pointer, keyboard, RAF, and more — automatically tied to component lifecycle. No need to manually add/remove event listeners.
 - **Scoped resolution** — refs and child components are scoped to the nearest `data-component` boundary, preventing accidental cross-component access.
-- **Tree-shakeable utilities** — a rich set of DOM, math, CSS, string, and animation helpers you can import individually.
+- **Tree-shakeable utilities** — a set of DOM, math, CSS, string, and animation helpers you can import individually.
 
 ## Design principles
 
