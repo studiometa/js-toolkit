@@ -97,7 +97,7 @@ class App extends Base {
 The import is only triggered if a matching element exists in the DOM. If no `[data-component="HeavyWidget"]` is found, the chunk is never fetched.
 
 ::: tip Going further
-See [Child Components](/guide/going-further/lazy-imports.html) for advanced lazy import strategies like `importWhenVisible`, `importOnInteraction`, and more.
+See [Lazy imports](/guide/going-further/lazy-imports.html) for advanced lazy import strategies like `importWhenVisible`, `importOnInteraction`, and more.
 :::
 
 ## Updating the DOM
@@ -122,3 +122,5 @@ class List extends Base {
 ```
 
 See also: [Configuration](/api/configuration.html), [`data-component`](/api/html/data-component.html), [Instance methods](/api/instance-methods.html), and [Instantiation](/api/instantiation.html).
+
+Next: [Refs](/guide/introduction/managing-refs.html)

@@ -24,7 +24,7 @@ class Foo extends Base {
 
 The [`options` property](/api/configuration.html#config-options) of the static `config` object should be used to define what options will be available in the component.
 
-It is possible to define the type and the default value of the option, so that if your component expects a `number` it will automatically be parsed as a `number`.
+Define the type and default value of each option, so that if your component expects a `number` js-toolkit parses the value as a `number`.
 
 ### Available types
 
@@ -97,7 +97,7 @@ class Player extends Base {
 
 ### Merging options
 
-When working with `Array` or `Object` as option type, it can be useful to merge the values from the `data-option-...` attribute with the default ones. You can use the `merge` property to enable merge with [`deepmerge`](https://github.com/TehShrike/deepmerge):
+Merge the values from the `data-option-...` attribute with the default ones when the option type is `Array` or `Object`. Use the `merge` property to enable merge with [`deepmerge`](https://github.com/TehShrike/deepmerge):
 
 ```js {10}
 import { Base } from '@studiometa/js-toolkit';
@@ -131,7 +131,7 @@ The `merge` property will only have effect on options whose type is `Array` or `
 
 ## Using options
 
-Once it is defined in the component, it is possible to add the corresponding attribute to pass the data.
+Once the option is defined in the component, add the corresponding attribute to pass the data.
 
 - The format of the attribute is as follow: `data-option-<option-name>`. the `<option-name>` should be in kebab-case.
 - The variable name will automatically be converted in `camelCase` in the component. (`optionName`)
@@ -187,3 +187,5 @@ class VideoPlayer extends Base {
 ---
 
 See also: [`data-option-*`](/api/html/data-option.html) · [Configuration — options](/api/configuration.html#config-options) · [`$options`](/api/instance-properties.html#options)
+
+Next: [Lifecycle](/guide/introduction/lifecycle-hooks.html)

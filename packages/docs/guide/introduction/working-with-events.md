@@ -25,22 +25,22 @@ class App extends Base {
     },
   };
 
-  // Will be triggered when `this.$el` is clicked
+  // Runs when the user clicks `this.$el`
   onClick({ event, index, target, args }) {}
 
-  // Will be triggered when the `custom-event` is emitted on the instance
+  // Runs when the instance emits the `custom-event`
   onCustomEvent({ event, index, target, args }) {}
 
-  // Will be triggered when the `window` is clicked
+  // Runs when the user clicks the `window`
   onWindowClick({ event, index, target, args }) {}
 
-  // Will be triggered when the `document` is clicked
+  // Runs when the user clicks the `document`
   onDocumentClick({ event, index, target, args }) {}
 
-  // Will be triggered when the `btn` ref is clicked
+  // Runs when the user clicks the `btn` ref
   onBtnClick({ event, index, target, args }) {}
 
-  // Will be triggered when any `Child` component is clicked
+  // Runs when the user clicks any `Child` component
   onChildClick({ event, index, target, args }) {}
 }
 ```
@@ -78,3 +78,5 @@ type EventHooksCallbackParams = {
 ---
 
 See also: [Event hooks](/api/methods-hooks-events.html) · [Instance events](/api/instance-events.html)
+
+Next: [Services](/guide/introduction/using-services.html)
