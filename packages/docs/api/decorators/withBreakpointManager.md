@@ -4,7 +4,7 @@ outline: deep
 
 # withBreakpointManager
 
-Use this decorator to create a component that will have the capacity to switch components between different breakpoints.
+Switches between different child components based on the active breakpoint.
 
 ## Usage
 

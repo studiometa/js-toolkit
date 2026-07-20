@@ -1,6 +1,6 @@
 # withMutation
 
-Use this decorator to add a `mutated(props)` hook managed by the [mutation](/api/services/useMutation.html) service.
+Adds a `mutated(props)` hook managed by the [mutation](/api/services/useMutation.html) service.
 
 ## Usage
 
@@ -37,11 +37,11 @@ export default class Component extends withMutation(Base, {
 
 ## API
 
-### Class methods
+### Hooks
 
 #### `mutated`
 
-The `mutated` class method will be triggered when a DOM mutation occurs on the given target.
+The `mutated` hook runs when a DOM mutation occurs on the target.
 
 **Arguments**
 

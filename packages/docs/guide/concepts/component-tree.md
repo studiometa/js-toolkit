@@ -32,7 +32,7 @@ Child components are found using two selector strategies:
 1. **Attribute selector**: `[data-component="<KEY>"]` — matches elements with the exact component name
 2. **Tag selector**: `<prefix>-<dash-case-name>` — matches custom element tags (e.g. `<my-component>`)
 
-If no matching element is found, the child is simply not instantiated — no errors, no empty instances.
+If no matching element is found, the child is not instantiated — no errors, no empty instances.
 
 Multiple instances of the same child component are supported:
 
@@ -58,13 +58,13 @@ Components mount **depth-first, children before parents**. This guarantees that 
 7. App.mounted()
 ```
 
-The framework uses a queue internally to batch DOM reads and writes, avoiding layout thrashing during mount.
+js-toolkit uses a queue internally to batch DOM reads and writes, avoiding layout thrashing during mount.
 
 ::: warning Do not assume an ancestor exists while mounting
 The children-before-parents guarantee runs **one way**: it covers the children a parent mounts through its own `ChildrenManager` (declared in `config.components` and DOM-contained). Whether the **reverse** works — a child resolving its parent from its own `mounted()` — depends on **how the child was mounted**:
 
 - **Mounted by its parent** — the ancestor is already constructed and registered (from its `before-mounted`, before `mountAll()` runs), so [`$closest`](/api/instance-methods.html#closest-query) and `$parent` resolve, even though the parent is not yet `$isMounted`.
-- **Mounted independently** — globally registered components (`registerComponent` recursively registers declared children) are auto-mounted by a document-wide `MutationObserver`, and lazy/async children mount on their own schedule. On that path the ancestor may not exist yet and `$closest` returns `undefined`.
+- **Mounted independently** — globally registered components (`registerComponent` recursively registers declared children) are auto-mounted by a document-wide `MutationObserver`. Lazy and async children mount on their own schedule. On that path the ancestor may not exist yet and `$closest` returns `undefined`.
 
 Application code cannot tell which path mounted a given instance, so never rely on an ancestor in `mounted()`. Route communication through the channels in [Data flow between components](#data-flow-between-components).
 :::
@@ -115,7 +115,7 @@ See [Instance methods — $query](/api/instance-methods.html#query-query) and [I
 A component can't assume its parent exists while it is mounting (see [Mounting order](#mounting-order)). Both ancestor lookups are resolved dynamically — by walking the DOM ancestors on every access — but they differ:
 
 - **`$parent`** (deprecated) returns `null` unless a live ancestor both declares this component in its `config.components` and DOM-contains it.
-- **`$closest(name)`** returns any constructed ancestor with that name — including one not yet, or no longer, mounted (e.g. breakpoint-inactive) — and is `undefined` only when no such ancestor has been constructed. Add the `:mounted` state (`$closest('Slider:mounted')`) to require a mounted one, and always guard with `?.`.
+- **`$closest(name)`** returns any constructed ancestor with that name, including one not yet, or no longer, mounted (e.g. breakpoint-inactive). It is `undefined` only when no such ancestor has been constructed. Add the `:mounted` state (`$closest('Slider:mounted')`) to require a mounted one, and always guard with `?.`.
 
 Structure communication through the sanctioned channels below. `$closest` element-correctness and the store utilities below require `@studiometa/js-toolkit >= 3.6.0`.
 

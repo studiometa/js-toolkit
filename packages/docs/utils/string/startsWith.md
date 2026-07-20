@@ -12,7 +12,7 @@ startsWith('string', 'str'); // true
 startsWith('string', 'no'); // false
 ```
 
-### Params
+### Parameters
 
 - `string` (`string`): The string to test.
 - `search` (`string`): The string to search for at the begining.

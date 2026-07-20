@@ -1,6 +1,6 @@
 # withRelativePointer
 
-Use this decorator to add a `movedrelative(props)` hook from the [pointer](/api/services/usePointer.html) service with props relative to the components root element `$el`.
+Adds a `movedrelative(props)` hook from the [pointer](/api/services/usePointer.html) service, with props relative to the component's root element `$el`.
 
 ## Usage
 
@@ -36,11 +36,11 @@ export default class RelativePointer extends withRelativePointer(Base, {
 
 ## API
 
-### Class methods
+### Hooks
 
 #### `movedrelative`
 
-The `movedrelative` class method will be triggered when moving the pointer.
+The `movedrelative` hook runs when the user moves the pointer.
 
 **Arguments**
 
@@ -50,7 +50,7 @@ The `movedrelative` class method will be triggered when moving the pointer.
 
 ### Move a ref element
 
-This decorator can be used to easily use the pointer position relative from the component's root element. The following example will scale a ref based on the position of the pointer _inside_ the component's root element.
+This decorator gives you the pointer position relative to the component's root element. The following example scales a ref based on the pointer position _inside_ the component's root element.
 
 ```js twoslash
 // @twoslash-cache: {"v":1,"hash":"5e4db010355421fe78b209ba29466d14ad006de6eb0d23b3839f470ba2763a1d","data":"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"}

@@ -2,7 +2,7 @@
 
 Use this function to generate a scheduler in order to group the execution of some tasks in the specified steps.
 
-This can be useful to avoid layout trashing when working with the DOM, find out more by reading this [web.dev article](https://web.dev/avoid-large-complex-layouts-and-layout-thrashing).
+This avoids layout thrashing when working with the DOM. Read this [web.dev article](https://web.dev/avoid-large-complex-layouts-and-layout-thrashing) for details.
 
 ## Usage
 

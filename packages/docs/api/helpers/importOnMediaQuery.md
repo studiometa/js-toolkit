@@ -1,6 +1,6 @@
 # importOnMediaQuery
 
-Use this function to import components according to a specified [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/@media#media_features).
+Imports components according to a specified [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/@media#media_features).
 
 ## Usage
 
@@ -20,7 +20,7 @@ importOnMediaQuery(
 - `importFn` (`() => Promise<Base>`): the function to import components
 - `media` (`string`): a [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/@media#media_features)
 
-**Returns**
+**Return value**
 
 - `Promise<Base>`: a promise resolving to the the component's class
 

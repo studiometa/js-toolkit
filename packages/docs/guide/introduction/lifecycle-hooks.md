@@ -2,18 +2,18 @@
 
 Each component goes through a series of steps — being created, mounted into the DOM, updated, and destroyed. Lifecycle hooks let you run code at each of these stages.
 
-| Hook         | Timing                                                                                                                            |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| `mounted`    | Executed when the component is mounted by a parent or via the [instance `$mount` method](/api/instance-methods.html#mount).       |
-| `destroyed`  | Executed when the component is destroyed by a parent or via the [instance `$destroy` method](/api/instance-methods.html#destroy). |
-| `updated`    | Executed when the component is updated by a parent or via the [instance `$update` method](/api/instance-methods.html#update).     |
-| `terminated` | Executed when the [instance `$terminate` method](/api/instance-methods.html#terminate) is called.                                 |
+| Hook         | Timing                                                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `mounted`    | Runs when a parent mounts the component or calls the [instance `$mount` method](/api/instance-methods.html#mount).       |
+| `destroyed`  | Runs when a parent destroys the component or calls the [instance `$destroy` method](/api/instance-methods.html#destroy). |
+| `updated`    | Runs when a parent updates the component or calls the [instance `$update` method](/api/instance-methods.html#update).    |
+| `terminated` | Runs when code calls the [instance `$terminate` method](/api/instance-methods.html#terminate).                           |
 
-The [lifecycle hooks diagram](#lifecycle-hooks-diagram) below present in greater detail how theses hooks works with one another.
+The [lifecycle hooks diagram](#lifecycle-hooks-diagram) below presents in greater detail how these hooks work together.
 
 ## Using lifecycle hooks
 
-To use a lifecycle hook, declare it as a method of your class, the framework calls it automatically at the right time.
+To use a lifecycle hook, declare it as a method of your class. js-toolkit calls it automatically at the right time.
 
 ```js
 import { Base } from '@studiometa/js-toolkit';

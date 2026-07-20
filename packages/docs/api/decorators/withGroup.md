@@ -4,7 +4,7 @@ outline: deep
 
 # withGroup
 
-Use this decorator to group components together. It can become useful when a component needs to be aware of its siblings, for example to create a tabs system.
+Groups components together. Use this when a component needs to be aware of its siblings, for example to create a tabs system.
 
 This decorator adds a `data-option-group="<GROUPNAME>"` option which can be used to group components together from the DOM. An instance of a component will be present in a group, exposed with the `$group` getter, only when it is mounted.
 

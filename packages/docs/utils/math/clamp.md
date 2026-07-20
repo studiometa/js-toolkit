@@ -17,7 +17,7 @@ clamp(-5, 0, 10); // 0
 
 - `value` (`number`): The value to clamp.
 - `min` (`number`): The range minimum value.
-- `max` (`number`): The rande maximum value.
+- `max` (`number`): The range maximum value.
 
 ### Return value
 

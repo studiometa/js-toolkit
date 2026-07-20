@@ -1,6 +1,6 @@
 # Linting
 
-The [`@studiometa/eslint-plugin-js-toolkit`](https://www.npmjs.com/package/@studiometa/eslint-plugin-js-toolkit) package provides an Oxlint/ESLint plugin that enforces best practices when writing components with this framework.
+The [`@studiometa/eslint-plugin-js-toolkit`](https://www.npmjs.com/package/@studiometa/eslint-plugin-js-toolkit) package provides an Oxlint/ESLint plugin that enforces best practices when writing components with js-toolkit.
 
 ## Installation
 
@@ -220,7 +220,7 @@ Disallows `dispatchEvent()` inside `Base` subclasses. Use `this.$emit()` instead
 
 **Recommended:** error
 
-Disallows `attachShadow()` inside `Base` subclasses. The framework uses Light DOM only.
+Disallows `attachShadow()` inside `Base` subclasses. js-toolkit uses Light DOM only.
 
 #### `js-toolkit/no-create-app`
 
@@ -232,7 +232,7 @@ Disallows `createApp()` (deprecated). Use `registerComponent()` instead.
 
 **Recommended:** error
 
-Disallows `addEventListener()` and `removeEventListener()` inside `Base` subclasses. Define `on*` methods instead — the framework handles binding and cleanup automatically.
+Disallows `addEventListener()` and `removeEventListener()` inside `Base` subclasses. Define `on*` methods instead — js-toolkit handles binding and cleanup automatically.
 
 #### `js-toolkit/no-deep-utils-import`
 
@@ -285,7 +285,7 @@ async mounted() {
 
 **Recommended:** error
 
-Disallows user-defined instance methods and properties prefixed with `$` in `Base` subclasses. The `$` prefix is reserved for framework-provided members (`$el`, `$refs`, `$emit`, `$options`, etc.).
+Disallows user-defined instance methods and properties prefixed with `$` in `Base` subclasses. The `$` prefix is reserved for members that js-toolkit provides (`$el`, `$refs`, `$emit`, `$options`, etc.).
 
 ```js
 // ❌ Bad

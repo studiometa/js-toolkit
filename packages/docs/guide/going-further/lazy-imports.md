@@ -1,12 +1,12 @@
-# Child Components
+# Lazy imports
 
 This page covers advanced patterns for managing child components, with a focus on lazy imports.
 
 For the basics of parent–child relationships, see the [Components](/guide/introduction/managing-components.html) guide.
 
-## Lazy imports
+## Overview
 
-By default, all components are bundled together and loaded upfront. Lazy imports let you split your application into smaller chunks that are only fetched when actually needed — improving initial load time and reducing the amount of JavaScript parsed by the browser.
+By default, all components are bundled together and loaded upfront. Lazy imports split your application into smaller chunks that load only when needed. This improves initial load time and reduces the JavaScript the browser parses.
 
 js-toolkit provides several helper functions to control exactly when a component's module is fetched:
 
@@ -57,7 +57,7 @@ components: {
 
 ### `importWhenIdle`
 
-Loads the component during browser idle time using `requestIdleCallback`. Useful for non-critical components that shouldn't compete with the main thread.
+Loads the component during browser idle time using `requestIdleCallback`, for non-critical components that should not compete with the main thread.
 
 ```js
 import { Base, importWhenIdle } from '@studiometa/js-toolkit';
@@ -78,7 +78,7 @@ class App extends Base {
 
 ### `importOnInteraction`
 
-Loads the component when the user interacts with a specific element. Ideal for heavy widgets like modals, video players, or chat interfaces.
+Loads the component when the user interacts with a specific element. Use for heavy widgets like modals, video players, or chat interfaces.
 
 ```js
 import { Base, importOnInteraction } from '@studiometa/js-toolkit';

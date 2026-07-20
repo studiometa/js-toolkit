@@ -4,7 +4,7 @@ outline: deep
 
 # getDirectChildren
 
-Use the `getDirectChildren` function to get a list components which are direct descendants of the given parent instance. This function is helpful when working with nested components which declare themselves as children.
+Returns the list of components that are direct descendants of the given parent instance. It helps when working with nested components that declare themselves as children.
 
 :::tip
 If you need to only check if an instance is a direct descendant of another instance, prefer the [`isDirectChild` helper function](/api/helpers/isDirectChild.md) which will return a `boolean` directly.

@@ -4,7 +4,7 @@ outline: deep
 
 # withIntersectionObserver
 
-Use this decorator to create a class that will have the capacity to trigger an `intersected` method when the component's root element is in view.
+Creates a component that runs an `intersected` hook when its root element enters the viewport.
 
 ## Usage
 
@@ -39,11 +39,11 @@ class Component extends withIntersectionObserver(Base, {
 
 ## API
 
-### Interface methods
+### Hooks
 
 #### `intersected`
 
-The `intersected` class method will be used as the callback for the `IntersectionObserver` instance.
+The `intersected` hook runs as the callback for the `IntersectionObserver` instance.
 
 **Arguments**
 
@@ -63,7 +63,7 @@ The `$observer` instance property holds the instance of `IntersectionObserver`.
 
 #### `intersected`
 
-Emitted when the [`intersected`](#intersected) class method is triggered.
+Emitted when the [`intersected`](#intersected) hook runs.
 
 **Parameters**
 

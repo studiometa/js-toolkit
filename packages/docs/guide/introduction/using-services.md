@@ -26,7 +26,7 @@ The following service hooks and events are available:
 - `moved` for the `usePointer` service
 - `keyed` for the `useKey` service
 
-The [services hooks diagram](#services-hooks-diagram) below present in greater detail what action will trigger a service method.
+The [services hooks diagram](#services-hooks-diagram) below presents in greater detail what action triggers a service method.
 
 **Using a service via its reserved method name**
 
@@ -67,7 +67,7 @@ class Component extends Base {
 ```
 
 :::tip Best practice
-Services **should always be used via the method API**. The event API has been designed for library author.
+Services **should always be used via the method API**. The event API targets library authors.
 :::
 
 ### Standalone
@@ -75,7 +75,7 @@ Services **should always be used via the method API**. The event API has been de
 Services can be used outside of a `Base` class by importing the `use<Service>` functions from the package. Each `use<Service>` function will return an object containing the following:
 
 - an `add(key, callback)` function to add a new callback to the service
-- an `has(key)` function to test if the given key matches an added callback
+- a `has(key)` function to test if the given key matches an added callback
 - a `remove(key)` function to remove a callback by its key
 - a `props()` function returning the properties of the service
 
@@ -155,7 +155,7 @@ See also: [Service hooks](/api/methods-hooks-services.html) · [Services API](/a
 
 You now know the fundamentals. Here are some paths to explore:
 
-- [Child Components](/guide/going-further/lazy-imports.html) — lazy loading and code splitting
+- [Lazy imports](/guide/going-further/lazy-imports.html) — lazy loading and code splitting
 - [Decorators](/guide/going-further/using-decorators.html) — extend components with higher-order patterns
 - [TypeScript](/guide/going-further/typing-components.html) — type-safe components and refs
 - [Examples](/examples/) — real-world UI patterns

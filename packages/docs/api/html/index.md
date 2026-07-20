@@ -10,7 +10,7 @@ The following attributes can be used:
 
 ## Customizing the attributes
 
-These attributes can be configured with the [`defineFeatures` helper](/api/helpers/defineFeatures.html) or [`createApp`](/api/helpers/createApp.html):
+Configure these attributes with the [`defineFeatures` helper](/api/helpers/defineFeatures.html) or [`createApp`](/api/helpers/createApp.html):
 
 ```js
 import { defineFeatures } from '@studiometa/js-toolkit';
@@ -24,7 +24,7 @@ defineFeatures({
 });
 ```
 
-You will then be able to update your HTML templates:
+Then update your HTML templates:
 
 ```diff
   <div
@@ -42,7 +42,7 @@ You will then be able to update your HTML templates:
 
 ## Using prefixed HTML element names
 
-Components can also be defined by using a prefixed and dash-case formatted element name in HTML.
+js-toolkit also resolves components from a prefixed, dash-case element name in HTML.
 
 ```diff
 - <div data-component="Component">
@@ -52,13 +52,13 @@ Components can also be defined by using a prefixed and dash-case formatted eleme
 + </tk-component>
 ```
 
-The attribute and element name API can be combined to attach multiple components to a single element:
+Combine the attribute and element-name API to attach multiple components to a single element:
 
 ```html
 <tk-component data-component="Figure">...</tk-component>
 ```
 
-The prefix is set to `tk` by default and can be configured with the [`defineFeatures` helper](/api/helpers/defineFeatures.html) or [`createApp`](/api/helpers/createApp.html):
+The prefix defaults to `tk`. Configure it with the [`defineFeatures` helper](/api/helpers/defineFeatures.html) or [`createApp`](/api/helpers/createApp.html):
 
 ```js
 import { defineFeatures } from '@studiometa/js-toolkit';

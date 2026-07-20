@@ -4,7 +4,7 @@
 For an introduction to event handling in components, see the [Events guide](/guide/introduction/working-with-events.html).
 :::
 
-Event hooks are methods of a class prefixed by `on` which will be executed when the given event will be dispatched on the given target. All methods receives a single parameter `ctx` whose type is:
+Event hooks are methods of a class prefixed by `on`. Each one runs when the given event is dispatched on the given target. Every method receives a single parameter `ctx` whose type is:
 
 ```ts
 type EventHooksCallbackParams = {
@@ -31,9 +31,9 @@ type EventHooksCallbackParams = {
 
 ## `on<Event>`
 
-Methods following this pattern will be executed when the event is triggered on the instance's `$el` element.
+Methods following this pattern run when the event is triggered on the instance's `$el` element.
 
-**Arguments**
+**Parameters**
 
 - `ctx` (`EventHooksCallbackParams`): the context of the event
 
@@ -65,14 +65,14 @@ class Foo extends Base {
 
 ## `on<RefOrChildName><Event>`
 
-Methods following this pattern will be executed when the corresponding event is triggered on the corresponding ref or child element.
+Methods following this pattern run when the corresponding event is triggered on the corresponding ref or child element.
 
-**Arguments**
+**Parameters**
 
 - `ctx` (`EventHooksCallbackParams`): the context of the event
 
 :::tip
-Native DOM events registered on a child component will be binded to the child root element if it supports the event. See the second example below with the `<form>` element.
+Native DOM events registered on a child component bind to the child root element if it supports the event. See the second example below with the `<form>` element.
 :::
 
 **Examples**
@@ -134,9 +134,9 @@ Native DOM events registered on a child component will be binded to the child ro
 
 ## `onDocument<Event>`
 
-Methods following this pattern will be triggered when the `event` event is dispatched on the `document`.
+Methods following this pattern run when the `event` event is dispatched on the `document`.
 
-**Arguments**
+**Parameters**
 
 - `ctx` (`EventHooksCallbackParams`): the context of the event
 
@@ -167,9 +167,9 @@ class Dropdown extends Base {
 
 ## `onWindow<Event>`
 
-Methods following this pattern will be triggered when the `event` event is dispatched on the `window`.
+Methods following this pattern run when the `event` event is dispatched on the `window`.
 
-**Arguments**
+**Parameters**
 
 - `ctx` (`EventHooksCallbackParams`): the context of the event
 

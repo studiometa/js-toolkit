@@ -6,7 +6,7 @@ For practical examples of instance methods, see the [Components guide](/guide/in
 
 ## `$log(...content)`
 
-Can be used to log content to the console when the `instance.$options.log` options is set to true, either via the `config` getter or via the `data-options` attribute.
+Logs content to the console when the `instance.$options.log` option is set to `true`, either via the `config` getter or via the `data-options` attribute.
 
 **Parameters**
 
@@ -32,7 +32,7 @@ export default class Component extends Base {
 
 ## `$warn(...content)`
 
-Can be used to handle a warning to the console when the `instance.$options.log` options is set to true, either via the `config` getter or via the `data-options` attribute.
+Logs a warning to the console when the `instance.$options.log` option is set to `true`, either via the `config` getter or via the `data-options` attribute.
 
 **Parameters**
 
@@ -94,7 +94,7 @@ export default class Component extends Base {
 ```
 
 :::tip Tip
-Use the `options.once` parameter to run the callback only once.
+Set the `options.once` parameter to run the callback only once.
 
 ```js
 this.$on('updated', () => {}, { once: true });
@@ -104,7 +104,7 @@ this.$on('updated', () => {}, { once: true });
 
 ## `$off(event, callback[, options])`
 
-Unbind a callback function from an event emitted by the instance. If no callback function is provided, all previously binded callbacks will be removed.
+Unbind a callback function from an event emitted by the instance. If no callback function is provided, all previously bound callbacks are removed.
 
 **Parameters**
 
@@ -137,7 +137,7 @@ export default class Component extends Base {
 
 ## `$emit(event[, ...args])`
 
-Emit an event from the current instance, with optional custom arguments. The event will be dispatched on the instance root element, allowing other components or scripts to listen to it.
+Emit an event from the current instance, with optional custom arguments. The instance dispatches the event on its root element, so other components or scripts can listen to it.
 
 **Parameters**
 
@@ -240,7 +240,7 @@ class SliderItem extends Base {
 
 ## `$mount()`
 
-Mount the component and its children, will trigger the `mounted` lifecycle method.
+Mount the component and its children. Triggers the `mounted` lifecycle method.
 
 **Return value**
 
@@ -248,19 +248,19 @@ Mount the component and its children, will trigger the `mounted` lifecycle metho
 
 ## `$update()`
 
-Update the children list from the DOM, mount any unmounted component an re-bind [event hooks](./methods-hooks-events.md#onreforchildnameevent).
+Update the children list from the DOM, mount any unmounted components, and re-bind [event hooks](./methods-hooks-events.md#onreforchildnameevent).
 
 **Return value**
 
 - `Promise<this>`: returns the current instance when all children components are updated
 
 ::: tip
-Already registered or mounted component will be re-mounted automatically on new injected elements. For now, the `$update()` method should still be used to re-bind [event hooks](./methods-hooks-events.md#onreforchildnameevent).
+js-toolkit re-mounts already registered or mounted components automatically on newly injected elements. For now, call the `$update()` method to re-bind [event hooks](./methods-hooks-events.md#onreforchildnameevent).
 :::
 
 ## `$destroy()`
 
-Destroy the component and its children, will trigger the `destroyed` lifecycle method.
+Destroy the component and its children. Triggers the `destroyed` lifecycle method.
 
 **Return value**
 
@@ -268,7 +268,7 @@ Destroy the component and its children, will trigger the `destroyed` lifecycle m
 
 ## `$terminate()`
 
-Terminate the component, its instance is made available to garbage collection.
+Terminate the component. Its instance becomes available for garbage collection.
 
 **Return value**
 

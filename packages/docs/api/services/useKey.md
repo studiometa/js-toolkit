@@ -4,7 +4,7 @@ outline: deep
 
 # Key service
 
-The key service will help you manage your keyboard events. It merges the `keydown` and `keyup` events.
+The key service runs registered callbacks on keyboard events. It merges the `keydown` and `keyup` events.
 
 ## Usage
 

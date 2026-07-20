@@ -29,7 +29,7 @@ class Component extends Base {
 
 ### Single refs
 
-To declare a single ref you must add it to the refs array like so:
+Add the ref name to the `refs` array:
 
 ```js {6,10}
 import { Base } from '@studiometa/js-toolkit';
@@ -42,7 +42,7 @@ class Component extends Base {
 }
 ```
 
-Then in the HTML template you must add a `data-ref` attribute with the same name as above.
+Add a `data-ref` attribute with the same name.
 
 ```html {2,5-7}
 <div data-component="Component">
@@ -115,7 +115,7 @@ class Component extends Base {
    * Attaching a `click` event listener to the `btn` ref.
    */
   onBtnClick() {
-    console.log('Button has been clicked!');
+    console.log('The user clicked the button!');
   }
 }
 ```

@@ -11,7 +11,7 @@ import { snakeCase } from '@studiometa/js-toolkit/utils';
 snakeCase('Some String Content'); // some_string_content
 ```
 
-### Params
+### Parameters
 
 - `string` (`string`): The string to transform.
 

@@ -4,7 +4,7 @@ outline: deep
 
 # closestComponent
 
-Use the `closestComponent` function to get the closest ancestor component instance matching a given query. This traverses up the DOM tree from the given element, similar to how `Element.closest()` works for CSS selectors.
+Returns the closest ancestor component instance matching a given query. It traverses up the DOM tree from the given element, similar to how `Element.closest()` works for CSS selectors.
 
 ## Usage
 

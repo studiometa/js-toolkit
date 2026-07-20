@@ -4,7 +4,7 @@ outline: deep
 
 # importWhenVisible
 
-Use this function to import component when an element is visible.
+Imports a component when an element is visible.
 
 ## Usage
 
@@ -22,7 +22,7 @@ importWhenVisible(() => import('./components/Component.js'), 'Component');
 - `parent` (`Base?`): the parent Base instance used to query the `selector`, if not specified `selector` will be searched in the whole document.
 - `observerOptions` ([`IntersectionObserverInit?`](https://developer.mozilla.org/en-US/docs/Web/API/IntersectionObserver/IntersectionObserver)): options for the `IntersectionObserver` instance
 
-**Returns**
+**Return value**
 
 - `Promise<Base>`: a promise resolving to the the component's class
 

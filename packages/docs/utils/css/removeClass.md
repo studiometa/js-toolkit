@@ -1,6 +1,6 @@
 # removeClass
 
-This method will remove one or more classes to an HTML element.
+Removes one or more classes from an HTML element.
 
 ## Usage
 

@@ -2,11 +2,11 @@
 
 ## What are services?
 
-Services are shared, singleton event listeners that distribute browser events (scroll, resize, pointer movement, keyboard input, animation frames) to all subscribed components. Instead of each component adding its own `addEventListener`, a single listener is shared.
+Services are shared, singleton event listeners that distribute browser events (scroll, resize, pointer movement, keyboard input, animation frames) to all subscribed components. Instead of each component adding its own `addEventListener`, the service shares one listener.
 
 ## The singleton pattern
 
-Each service (e.g. `useScroll`, `useResize`, `useRaf`) creates **one instance** regardless of how many components use it. This is implemented via `AbstractService.getInstance()` which caches instances using a `WeakMap`-like pattern.
+Each service (e.g. `useScroll`, `useResize`, `useRaf`) creates **one instance** regardless of how many components use it. `AbstractService.getInstance()` implements this, caching instances with a `WeakMap`-like pattern.
 
 ```
 ┌─────────────────────────────────────┐
@@ -37,10 +37,10 @@ With services:
 
 ## Automatic lifecycle
 
-Services are automatically tied to the component lifecycle via the `ServicesManager`:
+The `ServicesManager` ties services to the component lifecycle automatically:
 
-1. **On mount** — if a component defines a `scrolled()`, `resized()`, `ticked()`, `moved()`, or `keyed()` method, the corresponding service is automatically enabled
-2. **On destroy** — all active services for that component are disabled
+1. **On mount** — if a component defines a `scrolled()`, `resized()`, `ticked()`, `moved()`, or `keyed()` method, js-toolkit enables the matching service
+2. **On destroy** — js-toolkit disables all active services for that component
 3. **On terminate** — full cleanup, including removing the callback from the singleton
 
 This means you never manually add or remove event listeners:
@@ -50,7 +50,7 @@ class Parallax extends Base {
   static config = { name: 'Parallax' };
 
   // Defining this method is enough — the scroll service
-  // activates on mount, deactivates on destroy
+  // enables on mount, disables on destroy
   scrolled({ y, changed }) {
     if (changed.y) {
       this.$el.style.transform = `translateY(${y * 0.5}px)`;
@@ -61,7 +61,7 @@ class Parallax extends Base {
 
 ## Manual service control
 
-You can programmatically enable, disable, or toggle services via `this.$services`:
+Enable, disable, or toggle services programmatically via `this.$services`:
 
 ```js
 class LazyComponent extends Base {
@@ -94,7 +94,7 @@ Available methods on `this.$services`:
 
 ## Standalone usage
 
-Services can also be used outside of components:
+Services also work outside of components:
 
 ```js
 import { useScroll } from '@studiometa/js-toolkit';
@@ -111,7 +111,7 @@ remove('my-key');
 
 ## Custom services
 
-You can create custom services by extending `AbstractService` and registering them with `$services.register()`. See [Custom Services](/guide/going-further/registering-new-services.html) for details.
+Create custom services by extending `AbstractService` and registering them with `$services.register()`. See [Custom Services](/guide/going-further/registering-new-services.html) for details.
 
 ::: tip API Reference
 See the [Services hooks](/api/methods-hooks-services.html) and individual service APIs in the [Services](/api/services/) section.

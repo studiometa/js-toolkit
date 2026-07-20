@@ -6,11 +6,11 @@ For an introduction to lifecycle hooks with examples, see the [Lifecycle guide](
 
 ## `mounted`
 
-Called after the instance has been mounted.
+Runs after the instance is mounted.
 
-**Arguments**
+**Parameters**
 
-> This method has no argument.
+> This method has no parameters.
 
 **Example**
 
@@ -33,11 +33,11 @@ export default class Component extends Base {
 
 ## `updated`
 
-Called after the instance has been updated.
+Runs after the instance is updated.
 
-**Arguments**
+**Parameters**
 
-> This method has no argument.
+> This method has no parameters.
 
 **Example**
 
@@ -60,11 +60,11 @@ export default class Component extends Base {
 
 ## `destroyed`
 
-Called when the component is being destroyed.
+Runs when the component is destroyed.
 
-**Arguments**
+**Parameters**
 
-> This method has no argument.
+> This method has no parameters.
 
 **Example**
 
@@ -87,11 +87,11 @@ export default class Component extends Base {
 
 ## `terminated`
 
-Called when the component is being terminated.
+Runs when the component is terminated.
 
-**Arguments**
+**Parameters**
 
-> This method has no argument.
+> This method has no parameters.
 
 **Example**
 

@@ -11,7 +11,7 @@ import { upperCase } from '@studiometa/js-toolkit/utils';
 upperCase('Some String Content'); // SOME STRING CONTENT
 ```
 
-### Params
+### Parameters
 
 - `string` (`string`): The string to transform.
 

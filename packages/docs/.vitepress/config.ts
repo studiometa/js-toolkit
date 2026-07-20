@@ -46,6 +46,7 @@ export default withTwoslashInlineCache(
         { text: 'API Reference', link: '/api/' },
         { text: 'Utils Reference', link: '/utils/' },
         { text: 'Examples', link: '/examples/' },
+        { text: 'Concepts', link: '/guide/concepts/philosophy.html' },
         {
           text: `<span class="VPBadge font-bold bg-[var(--vp-button-brand-bg)] text-[var(--vp-button-brand-text)]">v${pkg.version}</span>`,
           items: [
@@ -75,6 +76,7 @@ export default withTwoslashInlineCache(
 function getGuideSidebar() {
   return [
     { text: 'Getting Started', link: '/guide/' },
+    { text: 'Installation', link: '/guide/introduction/installation.html' },
     { text: 'Components', link: '/guide/introduction/managing-components.html' },
     { text: 'Refs', link: '/guide/introduction/managing-refs.html' },
     { text: 'Options', link: '/guide/introduction/managing-options.html' },
@@ -85,7 +87,7 @@ function getGuideSidebar() {
       text: 'Going further',
       collapsed: true,
       items: [
-        { text: 'Child Components', link: '/guide/going-further/lazy-imports.html' },
+        { text: 'Lazy imports', link: '/guide/going-further/lazy-imports.html' },
         { text: 'Decorators', link: '/guide/going-further/using-decorators.html' },
         {
           text: 'TypeScript',
@@ -98,7 +100,7 @@ function getGuideSidebar() {
     },
     {
       text: 'Concepts',
-      collapsed: true,
+      collapsed: false,
       items: [
         { text: 'Philosophy', link: '/guide/concepts/philosophy.html' },
         { text: 'Component Tree', link: '/guide/concepts/component-tree.html' },
@@ -151,32 +153,32 @@ function getApiSidebar({ expanded = 'api' } = {}) {
     {
       text: 'Base class',
       link: '/api/',
-      collapsed: true,
-      items: expanded === 'api' ? getBaseSidebar() : getBaseSidebar(),
+      collapsed: expanded !== 'api',
+      items: getBaseSidebar(),
     },
     {
       text: 'HTML',
       link: '/api/html/',
-      collapsed: true,
-      items: expanded === 'html' ? getHtmlSidebar() : getHtmlSidebar(),
+      collapsed: expanded !== 'html',
+      items: getHtmlSidebar(),
     },
     {
       text: 'Helpers',
       link: '/api/helpers/',
-      collapsed: true,
-      items: expanded === 'helpers' ? getHelpersSidebar() : getHelpersSidebar(),
+      collapsed: expanded !== 'helpers',
+      items: getHelpersSidebar(),
     },
     {
       text: 'Services',
       link: '/api/services/',
-      collapsed: true,
-      items: expanded === 'services' ? getServicesSidebar() : getServicesSidebar(),
+      collapsed: expanded !== 'services',
+      items: getServicesSidebar(),
     },
     {
       text: 'Decorators',
       link: '/api/decorators/',
-      collapsed: true,
-      items: expanded === 'decorators' ? getDecoratorsSidebar() : getDecoratorsSidebar(),
+      collapsed: expanded !== 'decorators',
+      items: getDecoratorsSidebar(),
     },
   ];
 }
@@ -266,6 +268,7 @@ function getHelpersSidebar() {
   return [
     { text: 'closestComponent', link: '/api/helpers/closestComponent.html' },
     { text: 'createApp', link: '/api/helpers/createApp.html' },
+    { text: 'defineFeatures', link: '/api/helpers/defineFeatures.html' },
     { text: 'getClosestParent', link: '/api/helpers/getClosestParent.html' },
     { text: 'getDirectChildren', link: '/api/helpers/getDirectChildren.html' },
     { text: 'getInstanceFromElement', link: '/api/helpers/getInstanceFromElement.html' },

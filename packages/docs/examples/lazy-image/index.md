@@ -23,7 +23,7 @@ The image element itself is the component root. The real URL is stored in `data-
 
 ## JavaScript component
 
-`withMountWhenInView` wraps the `Base` class and delays the `mounted()` hook until the element scrolls into view. Zero JavaScript runs for images that are never seen:
+`withMountWhenInView` wraps the `Base` class and delays the `mounted()` hook until the element scrolls into view. The component runs no JavaScript for images that never enter the viewport:
 
 ```js
 import { Base, withMountWhenInView } from '@studiometa/js-toolkit';

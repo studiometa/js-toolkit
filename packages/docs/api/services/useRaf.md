@@ -4,7 +4,7 @@ outline: deep
 
 # RAF service
 
-The RAF (short for `requestAnimationFrame`) service will help you manage your render loops.
+The RAF (short for `requestAnimationFrame`) service runs registered callbacks on every animation frame.
 
 ## Usage
 

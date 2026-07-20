@@ -26,8 +26,9 @@ See pull-request [#395](https://github.com/studiometa/js-toolkit/pull/395) for m
 
 In the previous versions, breakpoints values for the [resize service](/api/services/useResize.html) were read from the DOM by looking for a `[data-breakpoint]` element. In v3, this is no longer supported, breakpoints should be defined when creating your app with [the `createApp()` function](/api/helpers/createApp.html).
 
-```diff
-- <div data-breakpoint>…</div>
+```html
+<div data-breakpoint>…</div>
+<!-- [!code --] -->
 ```
 
 ```js
@@ -88,7 +89,7 @@ class Component extends Base {
 In the previous versions, a `loaded` hook was present on any component extending the `Base` class. It was triggered by the `load` event on the `window`. Due to its ease of implementation and its low usage, it has been removed.
 
 ```js
-import { Base } from '@studiometa/js-toolkit';}
+import { Base } from '@studiometa/js-toolkit';
 
 class Component extends Base {
   static config = {
@@ -105,11 +106,11 @@ class Component extends Base {
 }
 ```
 
-You can still use the [`useLoad` service](/api/services/useLoad.html) as a replacement if needed, as it handles the possibility of the `load` event having been fired already.
+Use the [`useLoad` service](/api/services/useLoad.html) as a replacement; it handles the case where the `load` event has already fired.
 
 ### Lifecycle methods are now async
 
-The `$mount`, `$update`, `$destroy` and `$terminate` methods are now async and can be awaited. This should not have a big impact on existing projects, but in case you are trying to access a newly mounted child component after calling the `$update()` method, you should await its result to be sure the component is mounted.
+The `$mount`, `$update`, `$destroy` and `$terminate` methods are now async and can be awaited. This should not have a big impact on existing projects, but if you access a newly mounted child component after calling `$update()`, await its result to be sure the component is mounted.
 
 ```js
 this.$update(); // [!code --]
@@ -121,7 +122,7 @@ this.$children.Component[0].toggle();
 
 In v2, custom events that were not configured via the [static `config` property](/api/configuration.html) were still taken in consideration when adding event listeners with the [`$on` method](/api/instance-methods.html#on-event-callback-options) or the [`on...` event hooks](/api/methods-hooks-events.html). This behavior has been removed in v3, meaning that each component must define the events it will emit.
 
-To migrate, make sure to add the events that will be emitted to the static `config` object with the `emits` property.
+Add the events the component emits to the static `config` object with the `emits` property.
 
 ```js
 class MyComponent extends Base {

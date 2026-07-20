@@ -1,6 +1,6 @@
 # Mutation service
 
-The mutation service can be used to observe DOM mutations on a component with the MutationObserver API.
+The mutation service observes DOM mutations on a component with the MutationObserver API.
 
 ## Usage
 
