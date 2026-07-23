@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add a `registerComponents(...ctors)` helper to register and mount several components at once, wrapping `registerComponent` and accepting the same component forms — components register independently, so one failure (e.g. a rejected dynamic import) does not block the others
+
+### Fixed
+
+- Fix `registerComponent` throwing on a dynamic `import(...)` — the module's `default` export is now unwrapped automatically, and a `() => import(...)` factory function is also accepted, matching how lazy child components are declared
+- `registerComponent` now mounts each matching element independently: an element that fails to mount is skipped and logged in development instead of rejecting the whole call
+
 ## [v3.7.0](https://github.com/studiometa/js-toolkit/compare/3.6.2..3.7.0) (2026-07-20)
 
 ### Added

@@ -282,6 +282,7 @@ function getHelpersSidebar() {
     { text: 'logTree', link: '/api/helpers/logTree.html' },
     { text: 'queryComponent', link: '/api/helpers/queryComponent.html' },
     { text: 'registerComponent', link: '/api/helpers/registerComponent.html' },
+    { text: 'registerComponents', link: '/api/helpers/registerComponents.html' },
   ];
 }
 
