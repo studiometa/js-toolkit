@@ -54,3 +54,18 @@ registerComponents(
 **Return value**
 
 - `instances` (`Promise<Base[]>`): a promise resolving to a flat array of the created instances
+
+## Error handling
+
+Components are registered independently. A single failure — such as a rejected dynamic `import(...)` — does not prevent the other components from being registered, and the returned array contains every instance that mounted successfully. Failed registrations are skipped and logged with `console.error` in development.
+
+```js
+import { registerComponents } from '@studiometa/js-toolkit';
+import Action from './Action.js';
+
+// `Action` is still registered even though the lazy import fails.
+const instances = await registerComponents(
+  Action,
+  () => import('./Missing.js'),
+);
+```

@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
-- Add a `registerComponents(...ctors)` helper to register and mount several components at once, wrapping `registerComponent` and accepting the same component forms
+- Add a `registerComponents(...ctors)` helper to register and mount several components at once, wrapping `registerComponent` and accepting the same component forms — components register independently, so one failure (e.g. a rejected dynamic import) does not block the others
 
 ### Fixed
 
