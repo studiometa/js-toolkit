@@ -26,10 +26,15 @@ export async function registerComponent<T extends BaseConstructor = BaseConstruc
     ctor = (ctor as BaseAsyncConstructor)(undefined as never) as Promise<T | { default: T }>;
   }
 
-  const resolved = ctor instanceof Promise ? await ctor : ctor;
-
-  // Unwrap the module namespace returned by a dynamic import (`{ default: Ctor }`).
-  const Ctor = ('default' in resolved ? resolved.default : resolved) as T;
+  let Ctor: T;
+  if (ctor instanceof Promise) {
+    // Unwrap the module namespace returned by a dynamic import (`{ default: Ctor }`),
+    // matching the resolution used for async child components.
+    const module = await ctor;
+    Ctor = ((module as { default?: T }).default ?? module) as T;
+  } else {
+    Ctor = ctor;
+  }
 
   const instances = await Promise.all(Ctor.$register(nameOrSelector));
   return instances;

@@ -99,4 +99,20 @@ describe('The `registerComponent` lazy import helper', () => {
     expect(instances).toHaveLength(1);
     expect(instances[0]).toBeInstanceOf(Component);
   });
+
+  it('should register a directly given class owning a static `default` member', async () => {
+    class Component extends Base {
+      static config = {
+        name: 'Component',
+      };
+
+      // A user-defined static member named `default` must not be mistaken for a
+      // module namespace when the class is passed directly.
+      static default = 'not a component';
+    }
+
+    const instances = await registerComponent(Component);
+    expect(instances).toHaveLength(1);
+    expect(instances[0]).toBeInstanceOf(Component);
+  });
 });
