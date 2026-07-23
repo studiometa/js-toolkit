@@ -53,6 +53,25 @@ describe('The `registerComponents` helper', () => {
     expect(instances.filter((instance) => instance instanceof Bar)).toHaveLength(2);
   });
 
+  it('should register a mix of constructors, factories and module namespaces', async () => {
+    class Foo extends Base {
+      static config = {
+        name: 'Foo',
+      };
+    }
+
+    class Bar extends Base {
+      static config = {
+        name: 'Bar',
+      };
+    }
+
+    const instances = await registerComponents(Foo, () => Promise.resolve({ default: Bar }));
+    expect(instances).toHaveLength(3);
+    expect(instances.filter((instance) => instance instanceof Foo)).toHaveLength(1);
+    expect(instances.filter((instance) => instance instanceof Bar)).toHaveLength(2);
+  });
+
   it('should return an empty array when called without components', async () => {
     const instances = await registerComponents();
     expect(instances).toEqual([]);

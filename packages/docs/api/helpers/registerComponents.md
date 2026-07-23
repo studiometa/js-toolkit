@@ -30,7 +30,7 @@ registerComponent(DataBind);
 registerComponent(Figure);
 ```
 
-Async and lazy components are supported too, since each argument is forwarded to `registerComponent`:
+Async, factory and lazy components are supported too, since each argument is forwarded to [`registerComponent`](./registerComponent.md):
 
 ```js
 import {
@@ -42,13 +42,14 @@ import Action from './Action.js';
 registerComponents(
   Action,
   import('./DataBind.js'),
+  () => import('./Table.js'),
   importWhenVisible(() => import('./Figure.js'), 'Figure'),
 );
 ```
 
 **Parameters**
 
-- `...ctors` (`(typeof Base | Promise<typeof Base>)[]`): a list of component classes, or promises resolving to them
+- `...ctors` (`(typeof Base | Promise<typeof Base | { default: typeof Base }> | (() => Promise<typeof Base | { default: typeof Base }>))[]`): a list of components, each accepting the same forms as [`registerComponent`](./registerComponent.md)'s `ctor` parameter
 
 **Return value**
 

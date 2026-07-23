@@ -33,7 +33,7 @@ registerComponent(Link, 'a[href^="https"]');
 
 **Parameters**
 
-- `ctor` (`typeof Base | Promise<typeof Base>`): a component class
+- `ctor` (`typeof Base | Promise<typeof Base | { default: typeof Base }> | (() => Promise<typeof Base | { default: typeof Base }>)`): a component class, a promise resolving to a component class or a module namespace (`import(...)`), or a factory function returning such a promise (`() => import(...)`)
 - `nameOrSelector` (`string`): an optional name or selector to use to find components in the DOM instead of the `config.name` property
 
 **Return value**
@@ -61,12 +61,20 @@ registerComponent(Component);
 
 ### Async components
 
-Register components asynchronously by providing a dynamic import as parameter.
+Register components asynchronously by providing a dynamic import as parameter. The module's `default` export is used automatically, so you can pass the `import(...)` promise directly.
 
 ```js
 import { registerComponent } from '@studiometa/js-toolkit';
 
 registerComponent(import('./AsyncComponent.js'));
+```
+
+You can also pass a factory function returning the import, mirroring how lazy [child components](/api/configuration.md#config-components) are declared. The import is triggered immediately.
+
+```js
+import { registerComponent } from '@studiometa/js-toolkit';
+
+registerComponent(() => import('./AsyncComponent.js'));
 ```
 
 ### Lazy components
