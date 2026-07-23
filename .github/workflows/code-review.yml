@@ -13,18 +13,25 @@ jobs:
     runs-on: ubuntu-latest
     # Same-repo PRs only: fork PRs don't receive secrets on pull_request.
     if: github.event.pull_request.head.repo.full_name == github.repository
-    # Provider creds (org secrets) + review settings (org variables). The
-    # CODE_REVIEW_ prefix on the credentials is de-prefixed to CLOUDFLARE_* by
-    # the CLI's env shim. Referenced directly here (not via a cross-org reusable
-    # workflow) because `secrets: inherit` does not carry org secrets across orgs.
-    env:
-      CODE_REVIEW_CLOUDFLARE_API_KEY: ${{ secrets.CODE_REVIEW_CLOUDFLARE_API_KEY }}
-      CODE_REVIEW_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CODE_REVIEW_CLOUDFLARE_ACCOUNT_ID }}
-      CODE_REVIEW_CLOUDFLARE_GATEWAY_ID: ${{ secrets.CODE_REVIEW_CLOUDFLARE_GATEWAY_ID }}
-      CODE_REVIEW_DEPTH: ${{ vars.CODE_REVIEW_DEPTH }}
-      CODE_REVIEW_THINKING_LEVEL: ${{ vars.CODE_REVIEW_THINKING_LEVEL }}
-      CODE_REVIEW_VERIFY_MODEL: ${{ vars.CODE_REVIEW_VERIFY_MODEL }}
     steps:
+      # Forward the whole CODE_REVIEW_* / OTEL_* namespace (review settings,
+      # provider credentials, OpenTelemetry) from org/repo variables + secrets.
+      # GitHub doesn't auto-inject org config as env (unlike GitLab CI); the
+      # composite action inherits whatever lands in $GITHUB_ENV. New options are
+      # configured purely at the org level with no change here. The CLI reads
+      # CODE_REVIEW_* directly and de-prefixes CODE_REVIEW_<PROVIDER>_* creds.
+      - name: Forward CODE_REVIEW_* / OTEL_* config
+        env:
+          CR_VARS: ${{ toJSON(vars) }}
+          CR_SECRETS: ${{ toJSON(secrets) }}
+        run: |
+          emit() {
+            jq -r 'to_entries[]
+                   | select(.key | test("^CODE_REVIEW_"; "i"))
+                   | "\(.key)<<CR_EOF\n\(.value)\nCR_EOF"' <<<"$1" >> "$GITHUB_ENV"
+          }
+          emit "$CR_VARS"
+          emit "$CR_SECRETS"
       # The composite action checks out the repo itself (checkout: true default).
       - uses: weareikko/code-review@0.8.5
         with:
