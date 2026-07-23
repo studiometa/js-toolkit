@@ -27,7 +27,7 @@ jobs:
         run: |
           emit() {
             jq -r 'to_entries[]
-                   | select(.key | test("^(CODE_REVIEW_|OTEL_)"; "i"))
+                   | select(.key | test("^CODE_REVIEW_"; "i"))
                    | "\(.key)<<CR_EOF\n\(.value)\nCR_EOF"' <<<"$1" >> "$GITHUB_ENV"
           }
           emit "$CR_VARS"
