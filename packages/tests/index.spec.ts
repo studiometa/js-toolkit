@@ -33,6 +33,7 @@ describe('The package exports', () => {
         "queryComponent",
         "queryComponentAll",
         "registerComponent",
+        "registerComponents",
         "useDrag",
         "useKey",
         "useLoad",

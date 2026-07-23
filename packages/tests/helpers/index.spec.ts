@@ -20,6 +20,7 @@ test('helpers exports', () => {
       "queryComponent",
       "queryComponentAll",
       "registerComponent",
+      "registerComponents",
     ]
   `);
 });
