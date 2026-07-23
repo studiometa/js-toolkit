@@ -1,5 +1,5 @@
 import { BaseConstructor, BaseAsyncConstructor } from '../Base/Base.js';
-import { isFunction } from '../utils/index.js';
+import { isDev, isFunction } from '../utils/index.js';
 
 /**
  * Register globally and mount a given component.
@@ -9,6 +9,10 @@ import { isFunction } from '../utils/index.js';
  * - a `Base` constructor;
  * - a promise resolving to a constructor or a module namespace (`import(...)`);
  * - a factory function returning such a promise (`() => import(...)`).
+ *
+ * Instances are mounted independently: an element that fails to mount is
+ * skipped (and logged in development) instead of failing the whole call, so
+ * the resolved array contains every instance that mounted successfully.
  *
  * @link https://js-toolkit.studiometa.dev/api/helpers/registerComponent.html
  * @param ctor The component constructor, or a way to resolve it.
@@ -28,14 +32,29 @@ export async function registerComponent<T extends BaseConstructor = BaseConstruc
 
   let Ctor: T;
   if (ctor instanceof Promise) {
-    // Unwrap the module namespace returned by a dynamic import (`{ default: Ctor }`),
-    // matching the resolution used for async child components.
     const module = await ctor;
-    Ctor = ((module as { default?: T }).default ?? module) as T;
+    // A resolved `Base` constructor is used as-is; only a module namespace is
+    // unwrapped. Keying on `$isBase` (like the async child resolution) avoids
+    // mistaking a user-defined static `default` member for a module namespace.
+    Ctor = ('$isBase' in module ? module : (module as { default: T }).default) as T;
   } else {
     Ctor = ctor;
   }
 
-  const instances = await Promise.all(Ctor.$register(nameOrSelector));
-  return instances;
+  const results = await Promise.allSettled(Ctor.$register(nameOrSelector));
+
+  return results.flatMap((result) => {
+    if (result.status === 'fulfilled') {
+      return [result.value];
+    }
+
+    if (isDev) {
+      console.error(
+        '[registerComponent] An instance failed to mount and was skipped.',
+        result.reason,
+      );
+    }
+
+    return [];
+  });
 }

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Base, registerComponent } from '@studiometa/js-toolkit';
 import { h } from '#test-utils';
 
@@ -8,9 +8,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  for (const childNode of document.body.childNodes) {
-    childNode.remove();
-  }
+  document.body.innerHTML = '';
 });
 
 describe('The `registerComponent` lazy import helper', () => {
@@ -114,5 +112,51 @@ describe('The `registerComponent` lazy import helper', () => {
     const instances = await registerComponent(Component);
     expect(instances).toHaveLength(1);
     expect(instances[0]).toBeInstanceOf(Component);
+  });
+
+  it('should register a resolved class owning a static `default` member', async () => {
+    class Component extends Base {
+      static config = {
+        name: 'Component',
+      };
+
+      // The `$isBase` marker, not the presence of a `default` member, tells a
+      // resolved constructor apart from a module namespace.
+      static default = 'not a component';
+    }
+
+    const instances = await registerComponent(Promise.resolve(Component));
+    expect(instances).toHaveLength(1);
+    expect(instances[0]).toBeInstanceOf(Component);
+  });
+
+  it('should mount the remaining instances when one element fails', async () => {
+    const failing = h('div', { dataComponent: 'Component' });
+    failing.setAttribute('data-fail', '');
+    document.body.append(failing);
+
+    class Component extends Base {
+      static config = {
+        name: 'Component',
+      };
+
+      constructor(el: HTMLElement) {
+        super(el);
+        if (el.hasAttribute('data-fail')) {
+          throw new Error('boom');
+        }
+      }
+    }
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // One of the two matching elements throws while mounting; the other must
+    // still be returned instead of failing the whole call.
+    const instances = await registerComponent(Component);
+    expect(instances).toHaveLength(1);
+    expect(instances[0]).toBeInstanceOf(Component);
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+
+    errorSpy.mockRestore();
   });
 });

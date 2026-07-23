@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Fixed
 
 - Fix `registerComponent` throwing on a dynamic `import(...)` — the module's `default` export is now unwrapped automatically, and a `() => import(...)` factory function is also accepted, matching how lazy child components are declared
+- `registerComponent` now mounts each matching element independently: an element that fails to mount is skipped and logged in development instead of rejecting the whole call
 
 ## [v3.7.0](https://github.com/studiometa/js-toolkit/compare/3.6.2..3.7.0) (2026-07-20)
 

@@ -38,7 +38,9 @@ registerComponent(Link, 'a[href^="https"]');
 
 **Return value**
 
-- `instances` (`Promise<Base>[]`): a list of promise resolving to the created instances of the component
+- `instances` (`Promise<Base[]>`): a promise resolving to the created instances of the component
+
+Instances are mounted independently: if an element fails to mount, it is skipped (and logged with `console.error` in development) instead of rejecting the whole call, so the resolved array contains every instance that mounted successfully.
 
 ## Examples
 

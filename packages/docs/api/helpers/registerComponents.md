@@ -57,7 +57,7 @@ registerComponents(
 
 ## Error handling
 
-Components are registered independently. A single failure — such as a rejected dynamic `import(...)` — does not prevent the other components from being registered, and the returned array contains every instance that mounted successfully. Failed registrations are skipped and logged with `console.error` in development.
+Components are registered independently, down to each instance. A failure — a rejected dynamic `import(...)`, or a single element that fails to mount — does not prevent the other components or instances from being registered, and the returned array contains every instance that mounted successfully. Failures are skipped and logged with `console.error` in development.
 
 ```js
 import { registerComponents } from '@studiometa/js-toolkit';
