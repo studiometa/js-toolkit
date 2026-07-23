@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.8.0](https://github.com/studiometa/js-toolkit/compare/3.7.0..3.8.0) (2026-07-23)
+
 ### Added
 
 - Add a `registerComponents(...ctors)` helper to register and mount several components at once, wrapping `registerComponent` and accepting the same component forms — components register independently, so one failure (e.g. a rejected dynamic import) does not block the others
