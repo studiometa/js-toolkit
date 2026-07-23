@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Add a `registerComponents(...ctors)` helper to register and mount several components at once, wrapping `registerComponent`
+
 ## [v3.7.0](https://github.com/studiometa/js-toolkit/compare/3.6.2..3.7.0) (2026-07-20)
 
 ### Added

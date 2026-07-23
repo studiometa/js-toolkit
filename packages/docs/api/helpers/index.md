@@ -11,6 +11,7 @@ The following helper functions can be used to achieve advanced setup of your app
 The recommended way to register and mount components:
 
 - [registerComponent](./registerComponent.html) — register and mount components independently (recommended)
+- [registerComponents](./registerComponents.html) — register and mount several components at once
 - [defineFeatures](./defineFeatures.html) — configure global features (breakpoints, attributes, prefix)
 - [createApp](./createApp.html) — bootstrap a root App class (when you need a central app instance)
 

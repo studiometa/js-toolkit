@@ -10,6 +10,7 @@ export * from './importWhenPrefersMotion.js';
 export * from './importWhenVisible.js';
 export * from './logTree.js';
 export * from './registerComponent.js';
+export * from './registerComponents.js';
 export {
   type QueryOptions,
   queryComponent,
