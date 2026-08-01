@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Base, withName, getInstances } from '@studiometa/js-toolkit';
+import { Base, BaseConfig, withName, getInstances } from '@studiometa/js-toolkit';
 import { nextTick } from '@studiometa/js-toolkit/utils';
 import {
   getComponentElements,
@@ -271,6 +271,73 @@ describe('The Base utils', () => {
 
       // Clean up
       container.remove();
+    });
+
+    it('should keep a terminated element permanent and only remount on replacement', async () => {
+      // A terminated component is permanent for its DOM element: re-inserting the
+      // very same node must NOT remount it, and the only supported way to mount
+      // again is to replace the element with a brand new node. This pins the
+      // contract that backs lazy/once components such as `withMountWhenInView`.
+      let mountedCount = 0;
+      class PermanentComponent extends Base {
+        static config: BaseConfig = { name: 'PermanentTerminatedComponent' };
+
+        mounted() {
+          mountedCount += 1;
+        }
+      }
+
+      addToRegistry('PermanentTerminatedComponent', PermanentComponent);
+
+      const container = h('div');
+      document.body.appendChild(container);
+
+      const el = h('div', { 'data-component': 'PermanentTerminatedComponent' });
+      container.appendChild(el);
+
+      // Wait for the mutation observer to mount the component.
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(getInstances(PermanentComponent).size).toBe(1);
+      expect(mountedCount).toBe(1);
+      const firstInstance = Array.from(getInstances(PermanentComponent))[0];
+
+      // Remove the element so the terminate scan runs and stamps the marker.
+      el.remove();
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // The instance is gone and the element is now marked `'terminated'`.
+      expect(getInstances(PermanentComponent).size).toBe(0);
+      expect((el as any).__base__.get('PermanentTerminatedComponent')).toBe('terminated');
+
+      // Re-insert the SAME element: it must stay terminated, no fresh mount.
+      container.appendChild(el);
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(getInstances(PermanentComponent).size).toBe(0);
+      expect(mountedCount).toBe(1);
+      expect((el as any).__base__.get('PermanentTerminatedComponent')).toBe('terminated');
+
+      // Replace it with a BRAND NEW element carrying the same `data-component`:
+      // this is the supported path to remount, so a fresh instance is created.
+      el.remove();
+      const freshEl = h('div', { 'data-component': 'PermanentTerminatedComponent' });
+      container.appendChild(freshEl);
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(getInstances(PermanentComponent).size).toBe(1);
+      expect(mountedCount).toBe(2);
+      const freshInstance = Array.from(getInstances(PermanentComponent))[0];
+      expect(freshInstance).not.toBe(firstInstance);
+      expect(freshInstance.$el).toBe(freshEl);
+
+      // Clean up
+      container.remove();
+      await Promise.all(Array.from(getInstances(PermanentComponent)).map((i) => i.$destroy()));
     });
   });
 });

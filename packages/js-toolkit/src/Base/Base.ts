@@ -549,7 +549,23 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Terminate a child instance when it is not needed anymore.
+   * Terminate a component instance when it is not needed anymore.
+   *
+   * Terminating is **permanent for the underlying DOM element**: the element's
+   * `__base__` entry is stamped with a `'terminated'` marker, and the
+   * document-wide mount scan (see `mutationCallback` in `Base/utils.ts`) reads
+   * that truthy marker as "already has an instance" and skips the element. As a
+   * result, re-inserting the very same node into the DOM does **not** remount it
+   * — the terminated state is one-shot per element by design. The only supported
+   * way to mount again is to replace the element with a brand new node (a fresh
+   * node has no `__base__` marker, so it mounts a fresh instance).
+   *
+   * This guarantee is intentional: it backs lazy/once components such as
+   * `withMountWhenInView`, which must trigger exactly once when their element
+   * first enters the viewport and must never re-trigger on the same element. Use
+   * `$destroy()` instead when the instance should be able to mount again on the
+   * same element.
+   *
    * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#terminate
    */
   async $terminate(): Promise<void> {

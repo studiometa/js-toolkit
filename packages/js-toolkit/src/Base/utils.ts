@@ -186,6 +186,13 @@ function mutationCallback() {
   addToQueue(() => {
     for (const [nameOrSelector, ctor] of registry()) {
       for (const el of getComponentElements(nameOrSelector)) {
+        // Mount scan. A `'terminated'` marker left by `$terminate()` is a truthy
+        // value, so `getInstanceFromElement()` returns it and the element is
+        // treated as already having an instance and skipped. This is intentional
+        // and permanent: a terminated element never remounts, even when it is
+        // re-inserted into the DOM. Replacing it with a brand new node (which
+        // has no `__base__` marker) is the supported way to mount a fresh
+        // instance. See `$terminate()` in `Base.ts`.
         if (!getInstanceFromElement(el, ctor)) {
           new ctor(el).$mount();
         }
