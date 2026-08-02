@@ -22,6 +22,21 @@ export function addToQueue(fn: () => unknown) {
   return queue.add(fn);
 }
 
+/**
+ * Report an error raised by a queued task.
+ *
+ * Queued work runs detached from its original call site — fire-and-forget
+ * mounts, mutation-driven auto-mounting, async children — so the returned
+ * promise is often discarded. When such a task fails, its promise rejects with
+ * no awaiter to observe it; routing it here keeps the failure visible instead
+ * of turning it into an unhandled rejection or, worse, silently swallowing an
+ * initialization error. It is reported unconditionally (not gated behind the
+ * `log` option) so a genuine failure is never lost in production.
+ */
+export function reportQueuedTaskError(error: unknown): void {
+  console.warn('[@studiometa/js-toolkit] A queued task failed:', error);
+}
+
 const selectors = new Map();
 
 // Separator used for multi-component declaration in `data-component` attributeS.
@@ -181,6 +196,10 @@ function registry() {
 }
 
 function mutationCallback() {
+  // Fire-and-forget: the returned promise is discarded, so route a rejection
+  // (a synchronously-throwing task) to the log instead of letting it become an
+  // unhandled rejection. `addToQueue` returns `undefined` in blocking mode,
+  // hence the optional chaining.
   addToQueue(() => {
     for (const [nameOrSelector, ctor] of registry()) {
       for (const el of getComponentElements(nameOrSelector)) {
@@ -189,7 +208,7 @@ function mutationCallback() {
         }
       }
     }
-  });
+  })?.catch(reportQueuedTaskError);
 
   addToQueue(() => {
     for (const instance of getInstances()) {
@@ -197,7 +216,7 @@ function mutationCallback() {
         instance.$terminate();
       }
     }
-  });
+  })?.catch(reportQueuedTaskError);
 }
 
 export function addToRegistry(nameOrSelector: string, ctor: BaseConstructor) {

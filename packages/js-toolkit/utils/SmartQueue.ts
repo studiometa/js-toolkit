@@ -32,11 +32,16 @@ export class SmartQueue extends Queue {
    * Flush current batch.
    */
   flush() {
-    this.run(this.tasks);
-    this.isScheduled = false;
+    try {
+      this.run(this.tasks);
+    } finally {
+      // Always reset the scheduling flag and re-arm the next flush, even when a
+      // task throws, so a single faulty task can not permanently wedge the queue.
+      this.isScheduled = false;
 
-    if (this.tasks.length > 0) {
-      this.scheduleFlush();
+      if (this.tasks.length > 0) {
+        this.scheduleFlush();
+      }
     }
   }
 
@@ -49,7 +54,17 @@ export class SmartQueue extends Queue {
     let now = start;
     // eslint-disable-next-line no-cond-assign
     while (now - start < LONG_TASK_DURATION && (task = tasks.shift())) {
-      task();
+      try {
+        task();
+      } catch (err) {
+        // Defence in depth: tasks pushed by `add()` already isolate their own
+        // errors (they reject the returned promise and never throw here), so
+        // this only catches an unexpected throw. Keep draining the batch and
+        // surface the error asynchronously instead of aborting the whole flush.
+        queueMicrotask(() => {
+          throw err;
+        });
+      }
       now = performance.now();
     }
   }

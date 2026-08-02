@@ -8,6 +8,7 @@ import {
   withExtraConfig,
   withName,
 } from '@studiometa/js-toolkit';
+import { nextTick } from '@studiometa/js-toolkit/utils';
 import { h, mount } from '#test-utils';
 
 let mockedIsDev = true;
@@ -735,5 +736,76 @@ describe('A Base instance config', () => {
     spy.mockRestore();
     devModeSpy.mockRestore();
     process.env.NODE_ENV = 'test';
+  });
+});
+
+describe('The Base lifecycle error boundaries', () => {
+  it('should not falsely mark the component mounted when a queued mount task fails', async () => {
+    class Foo extends Base {
+      static config: BaseConfig = {
+        name: 'Foo',
+      };
+    }
+
+    const foo = new Foo(h('div'));
+    const error = new Error('enable boom');
+    // Make a queued wiring task throw synchronously, mimicking e.g.
+    // `__services.enableAll()` failing during `$mount`.
+    vi.spyOn(foo.__services, 'enableAll').mockImplementation(() => {
+      throw error;
+    });
+
+    const afterMounted = vi.fn();
+    foo.$on('after-mounted', afterMounted);
+    const warn = vi.spyOn(window.console, 'warn').mockImplementation(() => {});
+
+    // `$mount` resolves (never rejects) so a fire-and-forget mount can not turn
+    // into an unhandled rejection.
+    await expect(foo.$mount()).resolves.toBe(foo);
+
+    // The component is left honestly unmounted...
+    expect(foo.$isMounted).toBe(false);
+    // ...`after-mounted` is not emitted as if init had completed...
+    expect(afterMounted).not.toHaveBeenCalled();
+    // ...and the failure is surfaced through the log, not swallowed.
+    expect(warn.mock.calls.some((args) => args.includes(error))).toBe(true);
+
+    warn.mockRestore();
+  });
+
+  it('should not produce an unhandled rejection when a fire-and-forget mount fails', async () => {
+    class Foo extends Base {
+      static config: BaseConfig = {
+        name: 'Foo',
+      };
+
+      mounted() {
+        throw new Error('mounted boom');
+      }
+    }
+
+    const warn = vi.spyOn(window.console, 'warn').mockImplementation(() => {});
+    const rejections: unknown[] = [];
+    const onRejection = (reason: unknown) => rejections.push(reason);
+    process.on('unhandledRejection', onRejection);
+
+    // Fire-and-forget: the returned promise is discarded, like `mutationCallback`.
+    new Foo(h('div')).$mount();
+
+    // Let the queued mount tasks flush across several ticks and give any
+    // rejection a chance to surface.
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await nextTick();
+    }
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    process.off('unhandledRejection', onRejection);
+
+    expect(rejections).toHaveLength(0);
+    // The failure is still surfaced through the log.
+    expect(warn).toHaveBeenCalled();
+
+    warn.mockRestore();
   });
 });

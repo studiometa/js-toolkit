@@ -7,6 +7,7 @@ import {
   deleteInstance,
   addToRegistry,
   hasInstance,
+  reportQueuedTaskError,
 } from './utils.js';
 import {
   ChildrenManager,
@@ -474,18 +475,31 @@ export class Base<T extends BaseProps = BaseProps> {
       this.__debug('$mount');
     }
 
-    await Promise.all([
-      addToQueue(() => this.__children.registerAll()),
-      addToQueue(() => this.__refs.registerAll()),
-      addToQueue(() => this.__events.bindRootElement()),
-      addToQueue(() => this.__services.enableAll()),
-      addToQueue(() => this.__children.mountAll()),
-    ]);
+    try {
+      await Promise.all([
+        addToQueue(() => this.__children.registerAll()),
+        addToQueue(() => this.__refs.registerAll()),
+        addToQueue(() => this.__events.bindRootElement()),
+        addToQueue(() => this.__services.enableAll()),
+        addToQueue(() => this.__children.mountAll()),
+      ]);
 
-    await addToQueue(() => {
-      this.$isMounted = true;
-      this.__callMethod('mounted');
-    });
+      await addToQueue(() => {
+        this.$isMounted = true;
+        this.__callMethod('mounted');
+      });
+    } catch (error) {
+      // A queued mount task failed. Leave the component in an honest state
+      // instead of emitting `after-mounted` as if init completed: `$isMounted`
+      // keeps whatever value it reached (still `false` when the failure happened
+      // during wiring), so the component is not falsely reported as mounted.
+      // The error is surfaced through the log rather than re-thrown — the queued
+      // task ran detached, and most callers ($mount is often fire-and-forget)
+      // would only turn a rejection into an unhandled rejection.
+      this.__isMounting = false;
+      reportQueuedTaskError(error);
+      return this;
+    }
 
     this.__isMounting = false;
     this.$emit('after-mounted');
@@ -502,19 +516,26 @@ export class Base<T extends BaseProps = BaseProps> {
       this.__debug('$update');
     }
 
-    await Promise.all([
-      // Undo
-      addToQueue(() => this.__refs.unregisterAll()),
-      addToQueue(() => this.__services.disableAll()),
-      // Redo
-      addToQueue(() => this.__children.registerAll()),
-      addToQueue(() => this.__refs.registerAll()),
-      addToQueue(() => this.__services.enableAll()),
-      // Update
-      addToQueue(() => this.__children.updateAll()),
-    ]);
+    try {
+      await Promise.all([
+        // Undo
+        addToQueue(() => this.__refs.unregisterAll()),
+        addToQueue(() => this.__services.disableAll()),
+        // Redo
+        addToQueue(() => this.__children.registerAll()),
+        addToQueue(() => this.__refs.registerAll()),
+        addToQueue(() => this.__services.enableAll()),
+        // Update
+        addToQueue(() => this.__children.updateAll()),
+      ]);
 
-    await addToQueue(() => this.__callMethod('updated'));
+      await addToQueue(() => this.__callMethod('updated'));
+    } catch (error) {
+      // Surface a failed queued update task instead of rejecting: `$update` is
+      // commonly called fire-and-forget, so a rejection would only produce an
+      // unhandled rejection.
+      reportQueuedTaskError(error);
+    }
 
     return this;
   }
@@ -535,14 +556,23 @@ export class Base<T extends BaseProps = BaseProps> {
     this.$emit('before-destroyed');
     this.$isMounted = false;
 
-    await Promise.all([
-      addToQueue(() => this.__events.unbindRootElement()),
-      addToQueue(() => this.__refs.unregisterAll()),
-      addToQueue(() => this.__services.disableAll()),
-      addToQueue(() => this.__children.destroyAll()),
-    ]);
+    try {
+      await Promise.all([
+        addToQueue(() => this.__events.unbindRootElement()),
+        addToQueue(() => this.__refs.unregisterAll()),
+        addToQueue(() => this.__services.disableAll()),
+        addToQueue(() => this.__children.destroyAll()),
+      ]);
 
-    await addToQueue(() => this.__callMethod('destroyed'));
+      await addToQueue(() => this.__callMethod('destroyed'));
+    } catch (error) {
+      // A queued teardown task failed. Do not emit `after-destroyed` (which
+      // removes the instance from the global storage) as if teardown completed;
+      // surface the error instead of re-throwing so fire-and-forget callers do
+      // not produce an unhandled rejection.
+      reportQueuedTaskError(error);
+      return this;
+    }
 
     this.$emit('after-destroyed');
 
@@ -558,14 +588,21 @@ export class Base<T extends BaseProps = BaseProps> {
       this.__debug('$terminate');
     }
 
-    await Promise.all([
-      // First, destroy the component.
-      addToQueue(() => this.$destroy()),
-      // Execute the `terminated` hook if it exists
-      addToQueue(() => this.__callMethod('terminated')),
-      // Delete instance
-      addToQueue(() => this.$el.__base__.set(this.$config.name, 'terminated')),
-    ]);
+    try {
+      await Promise.all([
+        // First, destroy the component.
+        addToQueue(() => this.$destroy()),
+        // Execute the `terminated` hook if it exists
+        addToQueue(() => this.__callMethod('terminated')),
+        // Delete instance
+        addToQueue(() => this.$el.__base__.set(this.$config.name, 'terminated')),
+      ]);
+    } catch (error) {
+      // Surface a failed queued termination task instead of rejecting:
+      // `$terminate` is called fire-and-forget (e.g. from `mutationCallback`),
+      // so a rejection would only produce an unhandled rejection.
+      reportQueuedTaskError(error);
+    }
   }
 
   /**

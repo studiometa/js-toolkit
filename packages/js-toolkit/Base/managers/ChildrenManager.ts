@@ -1,6 +1,6 @@
 import type { Base, BaseConstructor, BaseAsyncConstructor, BaseEl } from '../index.js';
 import { AbstractManager } from './AbstractManager.js';
-import { getComponentElements, addToQueue } from '../utils.js';
+import { getComponentElements, addToQueue, reportQueuedTaskError } from '../utils.js';
 
 /**
  * Children manager.
@@ -204,9 +204,15 @@ export class ChildrenManager<T> extends AbstractManager<T> {
       for (const name of this.registeredNames) {
         for (const instance of this.props[name]) {
           if (instance instanceof Promise) {
-            instance.then((resolvedInstance) =>
-              addToQueue(() => this.__triggerHook(hook, resolvedInstance, name)),
-            );
+            // Fire-and-forget: this branch does not push into `promises`, so its
+            // result is never awaited. Attach a `.catch()` so a failure in the
+            // async child resolution or its queued hook is logged instead of
+            // becoming an unhandled rejection.
+            instance
+              .then((resolvedInstance) =>
+                addToQueue(() => this.__triggerHook(hook, resolvedInstance, name)),
+              )
+              .catch(reportQueuedTaskError);
           } else {
             promises.push(addToQueue(() => this.__triggerHook(hook, instance, name)));
           }
