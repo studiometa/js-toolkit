@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.8.1](https://github.com/studiometa/js-toolkit/compare/3.8.0..3.8.1) (2026-08-05)
+
 ### Fixed
 
 - Replace `export *` barrel re-exports with explicit named re-exports so named imports keep resolving when the package is served through esm.sh — esm.sh externalizes internal modules shared across entry points and turns `export * from "<external>"` into a runtime merge that a static `import { name }` cannot see ([#752](https://github.com/studiometa/js-toolkit/pull/752))
