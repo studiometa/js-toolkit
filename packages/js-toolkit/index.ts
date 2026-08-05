@@ -1,4 +1,4 @@
-export const version = '3.6.0-beta.0' as const;
+export const version = '__VERSION__' as const;
 
 export {
   Base,

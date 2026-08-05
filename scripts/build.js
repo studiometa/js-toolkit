@@ -6,8 +6,6 @@ import { setVersion } from './utils/set-version.js';
 const root = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const { npm_package_version: version = 'dev' } = process.env;
 
-setVersion(version);
-
 console.log(`Building ${version}...`);
 const { errors, warnings } = await esbuild.build({
   entryPoints: glob.globSync(['packages/js-toolkit/**/*.ts', '!**/node_modules/**'], {
@@ -22,5 +20,8 @@ const { errors, warnings } = await esbuild.build({
 
 errors.forEach(console.error);
 warnings.forEach(console.warn);
+
+// Inject the version into the built output (not the tracked source).
+setVersion(version);
 
 console.log(`Done building!`);
