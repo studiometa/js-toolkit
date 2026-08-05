@@ -1,4 +1,11 @@
-export * from './animate.js';
+export {
+  animate,
+  type Animate,
+  type AnimateOptions,
+  type CSSCustomPropertyName,
+  type Keyframe,
+  type NormalizedKeyframe,
+} from './animate.js';
 export { add as addClass, remove as removeClass, toggle as toggleClass } from './classes.js';
 export { add as addStyle, remove as removeStyle } from './styles.js';
 export { getOffsetSizes } from './getOffsetSizes.js';

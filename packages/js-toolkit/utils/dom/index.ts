@@ -1,2 +1,2 @@
-export * from './ancestors.js';
-export * from './createElement.js';
+export { getAncestorWhere, getAncestorWhereUntil } from './ancestors.js';
+export { createElement } from './createElement.js';

@@ -1,6 +1,29 @@
 export * as ease from './ease.js';
-export * from './createEases.js';
-export * from './ease.js';
+export { createEaseInOut, createEaseOut, type EasingFunction } from './createEases.js';
+export {
+  easeInCirc,
+  easeInCubic,
+  easeInExpo,
+  easeInOutCirc,
+  easeInOutCubic,
+  easeInOutExpo,
+  easeInOutQuad,
+  easeInOutQuart,
+  easeInOutQuint,
+  easeInOutSine,
+  easeInQuad,
+  easeInQuart,
+  easeInQuint,
+  easeInSine,
+  easeLinear,
+  easeOutCirc,
+  easeOutCubic,
+  easeOutExpo,
+  easeOutQuad,
+  easeOutQuart,
+  easeOutQuint,
+  easeOutSine,
+} from './ease.js';
 export { createRange } from './createRange.js';
 export { clamp } from './clamp.js';
 export { clamp01 } from './clamp01.js';
