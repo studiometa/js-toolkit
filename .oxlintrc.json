@@ -1,4 +1,5 @@
 {
+  "ignorePatterns": ["packages/js-toolkit/subpaths/"],
   "jsPlugins": [
     { "name": "js-toolkit", "specifier": "./packages/eslint-plugin-js-toolkit/src/index.ts" }
   ],

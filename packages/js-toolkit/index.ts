@@ -1,8 +1,4 @@
-// `__VERSION__` is replaced with the real version at build time in both the
-// built `dist/index.js` and `dist/index.d.ts` (see `scripts/utils/set-version.js`),
-// so the placeholder stays in the tracked source while editors show the exact
-// published version through the `as const` literal type.
-export const version = '__VERSION__' as const;
+export { version } from './version.js';
 
 export {
   Base,
@@ -121,3 +117,31 @@ export {
   type ServiceConfig,
   type ServiceInterface,
 } from './services/index.js';
+export {
+  ComponentLoader,
+  DEFAULT_DIAGNOSTIC_PREFIX,
+  VISIBLE_ROOT_MARGIN,
+  IDLE_TIMEOUT,
+  autoload,
+  composeManifests,
+  registerManifest,
+  registerManifests,
+  readEagerTokens,
+  defineManifest,
+  fromMetaGlob,
+  fromWebpackContext,
+  type ComponentLoadStrategy,
+  type ComponentManifestEntry,
+  type ComponentManifest,
+  type LoaderDependencies,
+  type ComponentLoaderOptions,
+  type ComponentLoaderStartOptions,
+  type AutoloadOptions,
+  type AutoloadHandle,
+  type AutoloadRuntime,
+  type RegisterManifestOptions,
+  type ModuleRecord,
+  type ComponentOverride,
+  type DefineManifestOptions,
+  type WebpackContextLike,
+} from './autoload/index.js';
