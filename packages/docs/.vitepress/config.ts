@@ -65,6 +65,7 @@ export default withTwoslashInlineCache(
         '/api/services/': getApiSidebar({ expanded: 'services' }),
         '/api/decorators/': getApiSidebar({ expanded: 'decorators' }),
         '/api/helpers/': getApiSidebar({ expanded: 'helpers' }),
+        '/api/autoload/': getApiSidebar({ expanded: 'autoload' }),
         '/api/html/': getApiSidebar({ expanded: 'html' }),
         '/api/': getApiSidebar({ expanded: 'api' }),
         '/utils/': getUtilsSidebar(),
@@ -180,6 +181,19 @@ function getApiSidebar({ expanded = 'api' } = {}) {
       collapsed: expanded !== 'decorators',
       items: getDecoratorsSidebar(),
     },
+    {
+      text: 'Autoload',
+      link: '/api/autoload/',
+      collapsed: expanded !== 'autoload',
+      items: getAutoloadSidebar(),
+    },
+  ];
+}
+
+function getAutoloadSidebar() {
+  return [
+    { text: 'defineManifest', link: '/api/autoload/defineManifest.html' },
+    { text: 'registerManifests', link: '/api/autoload/registerManifests.html' },
   ];
 }
 

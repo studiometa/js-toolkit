@@ -26,6 +26,7 @@ yarn-error.log*
 
 # Build files
 dist/
+packages/js-toolkit/subpaths/
 demo/dist/
 /packages/docs/.vitepress/cache
 coverage/

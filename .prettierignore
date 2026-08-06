@@ -1,4 +1,5 @@
 dist/
+packages/js-toolkit/subpaths/
 packages/docs/guide/recipes/counter-component/Counter.html
 packages/docs/guide/recipes/scroll-linked-animation/ScrollLinkedAnimation.html
 packages/docs/.vitepress/cache

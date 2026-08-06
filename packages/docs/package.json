@@ -13,7 +13,7 @@
     "@studiometa/tailwind-config": "3.0.0",
     "@tailwindcss/vite": "4.2.2",
     "tailwindcss": "4.2.2",
-    "vitepress": "2.0.0-alpha.16",
+    "vitepress": "2.0.0-alpha.19",
     "vitepress-plugin-llms": "1.12.0"
   },
   "overrides": {
