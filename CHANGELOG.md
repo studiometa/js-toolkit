@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.8.2](https://github.com/studiometa/js-toolkit/compare/3.8.1..3.8.2) (2026-08-06)
+
+### Fixed
+
+- Fix the `version` export shipping the unresolved `__VERSION__` placeholder in its generated type declaration — the built `.d.ts` now carries the exact published version as a literal type, and the version is injected into both the JavaScript output and the type declaration at build time
+
 ## [v3.8.1](https://github.com/studiometa/js-toolkit/compare/3.8.0..3.8.1) (2026-08-05)
 
 ### Fixed
