@@ -89,6 +89,7 @@ function getGuideSidebar() {
       collapsed: true,
       items: [
         { text: 'Lazy imports', link: '/guide/going-further/lazy-imports.html' },
+        { text: 'Autoloading', link: '/guide/going-further/autoloading.html' },
         { text: 'Decorators', link: '/guide/going-further/using-decorators.html' },
         {
           text: 'TypeScript',
