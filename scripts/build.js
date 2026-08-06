@@ -1,7 +1,6 @@
 import { resolve, dirname } from 'node:path';
 import glob from 'fast-glob';
 import esbuild from 'esbuild';
-import { setVersion } from './utils/set-version.js';
 
 const root = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const { npm_package_version: version = 'dev' } = process.env;
@@ -20,8 +19,5 @@ const { errors, warnings } = await esbuild.build({
 
 errors.forEach(console.error);
 warnings.forEach(console.warn);
-
-// Inject the version into the built output (not the tracked source).
-setVersion(version);
 
 console.log(`Done building!`);

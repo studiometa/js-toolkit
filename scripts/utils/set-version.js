@@ -2,19 +2,22 @@ import { resolve, dirname } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
 
 /**
- * Inject the version into the built entry file.
+ * Replace the `__VERSION__` placeholder with the real version in the built
+ * entry files.
  *
- * The `version` export in `packages/js-toolkit/index.ts` holds a `__VERSION__`
- * placeholder. Replacing it in the built `dist/index.js` (instead of the
- * tracked source) keeps the placeholder in the repository, so a local build can
- * never commit a stale version string back into the source.
+ * This runs against `dist/` (not the tracked source), so the placeholder always
+ * stays in the repository and a local build can never commit a stale version
+ * string. Both the JavaScript output and the type declaration are patched, so
+ * the exact published version shows up at runtime and in editors.
  */
-export function setVersion(version) {
-  const index = resolve(dirname(new URL(import.meta.url).pathname), '../../dist/index.js');
+const version = process.env.npm_package_version ?? 'dev';
+const root = resolve(dirname(new URL(import.meta.url).pathname), '../..');
 
-  const content = readFileSync(index, { encoding: 'UTF-8' });
+for (const file of ['dist/index.js', 'dist/index.d.ts']) {
+  const path = resolve(root, file);
+  const content = readFileSync(path, { encoding: 'UTF-8' });
   if (!content.includes('__VERSION__')) {
-    throw new Error(`setVersion: could not find the '__VERSION__' placeholder in ${index}`);
+    throw new Error(`set-version: could not find the '__VERSION__' placeholder in ${file}`);
   }
-  writeFileSync(index, content.replace('__VERSION__', version), { encoding: 'UTF-8' });
+  writeFileSync(path, content.replaceAll('__VERSION__', version), { encoding: 'UTF-8' });
 }
