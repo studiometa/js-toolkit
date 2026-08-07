@@ -17,3 +17,30 @@ queue.add(() => console.log('2'));
 
 - `concurrency` (`Number`): the number of tasks to execute at the same time, defaults to `10`
 - `waiter` (`(cb: (...args:unknown[]) => unknown) => unknown`): a scheduler function for the next batch execution, defaults to an immediately invoked function `(cb) => cb()`
+
+## `add(task)`
+
+Add a task to the queue.
+
+**Return value**
+
+- `Promise<unknown>`: a promise resolving with the value returned by the task.
+
+The promise **rejects when the task fails**, whether it throws synchronously or returns a rejected promise. The failure is contained: the other tasks of the batch still run, and the queue keeps scheduling later batches.
+
+:::warning
+A task that can fail must have its rejection observed, otherwise it becomes an unhandled rejection.
+
+```js
+// Fire-and-forget is fine for a task that can not fail.
+queue.add(() => console.log('1'));
+
+// Otherwise, await the promise or attach a `catch`.
+try {
+  await queue.add(() => mightThrow());
+} catch (error) {
+  // Handle the failure.
+}
+```
+
+:::

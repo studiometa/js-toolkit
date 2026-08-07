@@ -277,3 +277,13 @@ Terminate the component. Its instance becomes available for garbage collection.
 :::warning
 A terminated component can not be re-mounted, use with precaution.
 :::
+
+## Error handling
+
+Lifecycle methods run their work through a shared task queue, and they are commonly called fire-and-forget (`$mount()` from the auto-mounting mutation observer, `$terminate()` when an element leaves the DOM). A rejection there would have no awaiter, so `$mount()`, `$update()`, `$destroy()` and `$terminate()` **resolve even when a lifecycle hook throws**.
+
+The error is not swallowed: it is re-thrown from a microtask, so it reaches `window.onerror` and any error monitor, wrapped in an error naming the instance and the failed lifecycle, with the original error as its `cause`.
+
+A failed lifecycle stops at the point of failure: `after-mounted` and `after-destroyed` are not emitted, and a component whose wiring failed stays unmounted. A component whose `mounted()` hook threw is wired, so `$isMounted` is `true` and `$destroy()` can still tear it down.
+
+With the [`blocking` feature](./helpers/createApp.md) enabled no queue is involved — the work runs synchronously in the caller's stack — so the lifecycle methods keep rejecting and `try { await createApp(App, { blocking: true }) } catch {}` still catches startup failures.
