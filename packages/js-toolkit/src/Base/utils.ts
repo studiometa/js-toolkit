@@ -188,11 +188,18 @@ function mutationCallback() {
       for (const el of getComponentElements(nameOrSelector)) {
         // Mount scan. A `'terminated'` marker left by `$terminate()` is a truthy
         // value, so `getInstanceFromElement()` returns it and the element is
-        // treated as already having an instance and skipped. This is intentional
-        // and permanent: a terminated element never remounts, even when it is
-        // re-inserted into the DOM. Replacing it with a brand new node (which
-        // has no `__base__` marker) is the supported way to mount a fresh
-        // instance. See `$terminate()` in `Base.ts`.
+        // treated as already having an instance and skipped. The marker is
+        // deliberate (commit `9bc6f838`): it keeps terminated elements excluded
+        // from `$children`, `$parent` and `queryComponent()` resolution.
+        //
+        // The consequence here is that THIS scan never mounts a terminated
+        // element again, even when the very same node is re-inserted into the
+        // DOM. It does not make the element unmountable: a brand new node (no
+        // `__base__` marker) mounts normally, and `new Ctor(el).$mount()`
+        // overwrites the marker and mounts the terminated node as well.
+        // Note that the terminate pass below auto-terminates any disconnected
+        // instance, so users reach this state without calling `$terminate()`.
+        // See `$terminate()` in `Base.ts`.
         if (!getInstanceFromElement(el, ctor)) {
           new ctor(el).$mount();
         }
