@@ -22,6 +22,40 @@ export function addToQueue(fn: () => unknown) {
   return queue.add(fn);
 }
 
+/**
+ * Surface an error raised by a queued task.
+ *
+ * Queued work runs detached from its original call site — fire-and-forget
+ * mounts, mutation-driven auto-mounting, async children — so the promise
+ * returned by `addToQueue` is usually discarded and a rejection would be lost.
+ * Re-throwing from a microtask puts the failure back on the global error
+ * channel (`window.onerror`, `uncaughtException`, error monitors) without
+ * wedging the queue or the caller's control flow. The original error is kept as
+ * the `cause`, so its stack and type survive; `context` adds the component
+ * identity a bare rejection can not carry.
+ */
+export function reportQueuedTaskError(error: unknown, context: string): void {
+  queueMicrotask(() => {
+    throw new Error(context, { cause: error });
+  });
+}
+
+/**
+ * Handle an error raised by a queued lifecycle task.
+ *
+ * In blocking mode `addToQueue` runs the task synchronously in the caller's own
+ * stack — no queue, nothing to wedge — so the error is re-thrown and the
+ * lifecycle promise rejects exactly as it always has. That keeps
+ * `try { await createApp(App, { blocking: true }) } catch` working.
+ */
+export function handleLifecycleError(instance: Base, phase: string, error: unknown): void {
+  if (features.get('blocking')) {
+    throw error;
+  }
+
+  reportQueuedTaskError(error, `[${instance.$id}] The \`${phase}\` lifecycle failed.`);
+}
+
 const selectors = new Map();
 
 // Separator used for multi-component declaration in `data-component` attributeS.
@@ -181,6 +215,11 @@ function registry() {
 }
 
 function mutationCallback() {
+  // Fire-and-forget: the returned promise is discarded, so route a rejection (a
+  // constructor throwing while auto-mounting, for instance) to the global error
+  // handler instead of letting it become an unhandled rejection. In blocking
+  // mode `addToQueue` runs the task synchronously and returns `undefined` — the
+  // throw propagates to the mutation observer, hence the optional chaining.
   addToQueue(() => {
     for (const [nameOrSelector, ctor] of registry()) {
       for (const el of getComponentElements(nameOrSelector)) {
@@ -189,7 +228,9 @@ function mutationCallback() {
         }
       }
     }
-  });
+  })?.catch((error) =>
+    reportQueuedTaskError(error, 'Auto-mounting components after a DOM mutation failed.'),
+  );
 
   addToQueue(() => {
     for (const instance of getInstances()) {
@@ -197,7 +238,9 @@ function mutationCallback() {
         instance.$terminate();
       }
     }
-  });
+  })?.catch((error) =>
+    reportQueuedTaskError(error, 'Auto-terminating components after a DOM mutation failed.'),
+  );
 }
 
 export function addToRegistry(nameOrSelector: string, ctor: BaseConstructor) {

@@ -159,4 +159,39 @@ describe('The `registerComponent` lazy import helper', () => {
 
     errorSpy.mockRestore();
   });
+
+  it('should skip an instance whose mount failed', async () => {
+    const failing = h('div', { dataComponent: 'Component' });
+    failing.setAttribute('data-fail', '');
+    document.body.append(failing);
+
+    class Component extends Base {
+      static config = {
+        name: 'Component',
+      };
+
+      constructor(el: HTMLElement) {
+        super(el);
+        if (el.hasAttribute('data-fail')) {
+          // Fail while wiring, so the instance never becomes mounted.
+          this.__services.enableAll = () => {
+            throw new Error('boom');
+          };
+        }
+      }
+    }
+
+    // `$mount()` resolves instead of rejecting, so the failure is reported on
+    // the global error channel. Intercept it here.
+    const microtask = vi.spyOn(globalThis, 'queueMicrotask').mockImplementation(() => {});
+
+    // A never-mounted instance must not be handed back as a successful
+    // registration.
+    const instances = await registerComponent(Component);
+    expect(instances).toHaveLength(1);
+    expect(instances[0].$el).not.toBe(failing);
+    expect(instances[0].$isMounted).toBe(true);
+
+    microtask.mockRestore();
+  });
 });

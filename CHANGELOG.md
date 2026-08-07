@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix a component whose lifecycle hook throws synchronously wedging the shared task queue and stopping every other component on the page from mounting — the batch was aborted, its remaining tasks orphaned and the scheduling flag left stuck, so no later batch was ever flushed ([#749](https://github.com/studiometa/js-toolkit/pull/749))
+- Fix `Queue.add()` never settling when its task throws synchronously — the returned promise now rejects with the error, exactly like an `async` task whose promise rejects ([#749](https://github.com/studiometa/js-toolkit/pull/749))
+- Fix `registerComponent()` returning an instance that failed to mount as a successful registration — instances that are not mounted are skipped again, as documented in v3.8.0 ([#749](https://github.com/studiometa/js-toolkit/pull/749))
+
+### Changed
+
+- `$mount()`, `$update()`, `$destroy()` and `$terminate()` no longer reject when a lifecycle hook fails: they run detached on a shared queue and are commonly called fire-and-forget, so a rejection had no awaiter. The error is re-thrown from a microtask instead, keeping it visible to `window.onerror` and error monitors, wrapped with the instance `$id` and the failed lifecycle and carrying the original error as its `cause`. `after-mounted` and `after-destroyed` are still not emitted on failure ([#749](https://github.com/studiometa/js-toolkit/pull/749))
+- With the `blocking` feature enabled the lifecycle methods keep rejecting — no queue is involved there, so `try { await createApp(App, { blocking: true }) } catch {}` still catches startup failures ([#749](https://github.com/studiometa/js-toolkit/pull/749))
+
 ## [v3.8.2](https://github.com/studiometa/js-toolkit/compare/3.8.1..3.8.2) (2026-08-06)
 
 ### Fixed
