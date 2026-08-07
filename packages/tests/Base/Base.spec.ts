@@ -742,6 +742,7 @@ describe('A Base instance config', () => {
 describe('The Base lifecycle error boundaries', () => {
   let reported: Error[];
   let microtask: MockInstance<typeof queueMicrotask>;
+  let restoreFeatures: (() => void) | undefined;
 
   beforeEach(() => {
     reported = [];
@@ -759,6 +760,8 @@ describe('The Base lifecycle error boundaries', () => {
 
   afterEach(() => {
     microtask.mockRestore();
+    restoreFeatures?.();
+    restoreFeatures = undefined;
   });
 
   /**
@@ -951,7 +954,7 @@ describe('The Base lifecycle error boundaries', () => {
   });
 
   it('should keep rejecting in blocking mode', async () => {
-    const { unmock } = mockFeatures({ blocking: true });
+    restoreFeatures = mockFeatures({ blocking: true }).unmock;
     const error = new Error('mounted boom');
 
     class Foo extends Base {
@@ -971,7 +974,5 @@ describe('The Base lifecycle error boundaries', () => {
     // working and the error is not deferred to a microtask.
     await expect(foo.$mount()).rejects.toBe(error);
     expect(reported).toHaveLength(0);
-
-    unmock();
   });
 });
