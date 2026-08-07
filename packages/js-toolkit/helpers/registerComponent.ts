@@ -11,8 +11,10 @@ import { isDev, isFunction } from '../utils/index.js';
  * - a factory function returning such a promise (`() => import(...)`).
  *
  * Instances are mounted independently: an element that fails to mount is
- * skipped (and logged in development) instead of failing the whole call, so
- * the resolved array contains every instance that mounted successfully.
+ * skipped instead of failing the whole call, so the resolved array contains
+ * every instance that mounted successfully. Mount failures reach the global
+ * error handler through `$mount`; a constructor that throws is logged in
+ * development.
  *
  * @link https://js-toolkit.studiometa.dev/api/helpers/registerComponent.html
  * @param ctor The component constructor, or a way to resolve it.
@@ -45,9 +47,16 @@ export async function registerComponent<T extends BaseConstructor = BaseConstruc
 
   return results.flatMap((result) => {
     if (result.status === 'fulfilled') {
-      return [result.value];
+      // `$mount()` resolves with the instance even when a queued mount task
+      // fails — the error goes to the global handler instead of rejecting, so a
+      // fire-and-forget mount can not become an unhandled rejection. Check the
+      // flag rather than the promise state to keep the documented contract:
+      // only instances that actually mounted are returned.
+      return result.value.$isMounted ? [result.value] : [];
     }
 
+    // The promise still rejects when the instance could not even be
+    // constructed, which no other channel reports.
     if (isDev) {
       console.error(
         '[registerComponent] An instance failed to mount and was skipped.',
