@@ -7,7 +7,7 @@ import {
   deleteInstance,
   addToRegistry,
   hasInstance,
-  reportQueuedTaskError,
+  handleLifecycleError,
 } from './utils.js';
 import {
   ChildrenManager,
@@ -489,15 +489,13 @@ export class Base<T extends BaseProps = BaseProps> {
         this.__callMethod('mounted');
       });
     } catch (error) {
-      // A queued mount task failed. Leave the component in an honest state
-      // instead of emitting `after-mounted` as if init completed: `$isMounted`
-      // keeps whatever value it reached (still `false` when the failure happened
-      // during wiring), so the component is not falsely reported as mounted.
-      // The error is surfaced through the log rather than re-thrown — the queued
-      // task ran detached, and most callers ($mount is often fire-and-forget)
-      // would only turn a rejection into an unhandled rejection.
+      // A queued mount task failed. Do not emit `after-mounted` as if init had
+      // completed, and leave `$isMounted` at whatever value it reached: `false`
+      // when the failure happened while wiring, `true` when the `mounted()` hook
+      // itself threw — the component is wired in that case, and `$destroy()`
+      // relies on the flag to tear it down.
       this.__isMounting = false;
-      reportQueuedTaskError(error);
+      handleLifecycleError(this, '$mount', error);
       return this;
     }
 
@@ -531,10 +529,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
       await addToQueue(() => this.__callMethod('updated'));
     } catch (error) {
-      // Surface a failed queued update task instead of rejecting: `$update` is
-      // commonly called fire-and-forget, so a rejection would only produce an
-      // unhandled rejection.
-      reportQueuedTaskError(error);
+      handleLifecycleError(this, '$update', error);
     }
 
     return this;
@@ -567,10 +562,9 @@ export class Base<T extends BaseProps = BaseProps> {
       await addToQueue(() => this.__callMethod('destroyed'));
     } catch (error) {
       // A queued teardown task failed. Do not emit `after-destroyed` (which
-      // removes the instance from the global storage) as if teardown completed;
-      // surface the error instead of re-throwing so fire-and-forget callers do
-      // not produce an unhandled rejection.
-      reportQueuedTaskError(error);
+      // removes the instance from the global storage) as if teardown had
+      // completed.
+      handleLifecycleError(this, '$destroy', error);
       return this;
     }
 
@@ -598,10 +592,7 @@ export class Base<T extends BaseProps = BaseProps> {
         addToQueue(() => this.$el.__base__.set(this.$config.name, 'terminated')),
       ]);
     } catch (error) {
-      // Surface a failed queued termination task instead of rejecting:
-      // `$terminate` is called fire-and-forget (e.g. from `mutationCallback`),
-      // so a rejection would only produce an unhandled rejection.
-      reportQueuedTaskError(error);
+      handleLifecycleError(this, '$terminate', error);
     }
   }
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from 'vitest';
 import {
   Base,
   BaseConfig,
@@ -9,7 +9,7 @@ import {
   withName,
 } from '@studiometa/js-toolkit';
 import { nextTick } from '@studiometa/js-toolkit/utils';
-import { h, mount } from '#test-utils';
+import { h, mount, mockFeatures } from '#test-utils';
 
 let mockedIsDev = true;
 
@@ -740,6 +740,38 @@ describe('A Base instance config', () => {
 });
 
 describe('The Base lifecycle error boundaries', () => {
+  let reported: Error[];
+  let microtask: MockInstance<typeof queueMicrotask>;
+
+  beforeEach(() => {
+    reported = [];
+    // A failed queued lifecycle task is re-thrown from a microtask so it reaches
+    // `window.onerror` and error monitors. Intercept that channel here, both to
+    // assert on it and to keep the re-throw from failing the test run.
+    microtask = vi.spyOn(globalThis, 'queueMicrotask').mockImplementation((callback) => {
+      try {
+        callback();
+      } catch (error) {
+        reported.push(error as Error);
+      }
+    });
+  });
+
+  afterEach(() => {
+    microtask.mockRestore();
+  });
+
+  /**
+   * Let the shared queue drain across a few ticks and give any pending
+   * rejection the chance to surface.
+   */
+  async function flushQueue() {
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await nextTick();
+    }
+  }
+
   it('should not falsely mark the component mounted when a queued mount task fails', async () => {
     class Foo extends Base {
       static config: BaseConfig = {
@@ -757,20 +789,136 @@ describe('The Base lifecycle error boundaries', () => {
 
     const afterMounted = vi.fn();
     foo.$on('after-mounted', afterMounted);
-    const warn = vi.spyOn(window.console, 'warn').mockImplementation(() => {});
 
     // `$mount` resolves (never rejects) so a fire-and-forget mount can not turn
     // into an unhandled rejection.
     await expect(foo.$mount()).resolves.toBe(foo);
 
-    // The component is left honestly unmounted...
+    // The wiring never completed, so the component stays unmounted...
     expect(foo.$isMounted).toBe(false);
     // ...`after-mounted` is not emitted as if init had completed...
     expect(afterMounted).not.toHaveBeenCalled();
-    // ...and the failure is surfaced through the log, not swallowed.
-    expect(warn.mock.calls.some((args) => args.includes(error))).toBe(true);
+    // ...and the failure reaches the global error handler, carrying the
+    // component identity and the original error as its cause.
+    expect(reported).toHaveLength(1);
+    expect(reported[0].message).toBe(`[${foo.$id}] The \`$mount\` lifecycle failed.`);
+    expect(reported[0].cause).toBe(error);
+  });
 
-    warn.mockRestore();
+  it('should keep mounting unrelated components after one component fails to mount', async () => {
+    class Failing extends Base {
+      static config: BaseConfig = {
+        name: 'Failing',
+      };
+
+      mounted() {
+        throw new Error('mounted boom');
+      }
+    }
+
+    class Working extends Base {
+      static config: BaseConfig = {
+        name: 'Working',
+      };
+    }
+
+    const failing = new Failing(h('div'));
+    const working = new Working(h('div'));
+
+    // Fire-and-forget, like `mutationCallback` does: the failing component's
+    // tasks are queued on the shared module-level queue first.
+    failing.$mount();
+    // The unrelated component is queued right after, so its tasks land in the
+    // same batch as the failing one.
+    const p = working.$mount();
+
+    await expect(p).resolves.toBe(working);
+    await flushQueue();
+
+    // The unrelated component mounted normally — one bad component no longer
+    // wedges the shared queue and orphans every other component on the page.
+    expect(working.$isMounted).toBe(true);
+    // And the queue keeps accepting work afterwards.
+    const late = new Working(h('div'));
+    await late.$mount();
+    expect(late.$isMounted).toBe(true);
+
+    // The failure was reported once, not swallowed.
+    expect(reported).toHaveLength(1);
+    expect(reported[0].message).toBe(`[${failing.$id}] The \`$mount\` lifecycle failed.`);
+  });
+
+  it('should not emit `after-destroyed` when the `destroyed` hook throws', async () => {
+    const error = new Error('destroyed boom');
+
+    class Foo extends Base {
+      static config: BaseConfig = {
+        name: 'Foo',
+      };
+
+      destroyed() {
+        throw error;
+      }
+    }
+
+    const foo = new Foo(h('div'));
+    await foo.$mount();
+
+    const afterDestroyed = vi.fn();
+    foo.$on('after-destroyed', afterDestroyed);
+
+    await expect(foo.$destroy()).resolves.toBe(foo);
+    expect(afterDestroyed).not.toHaveBeenCalled();
+
+    expect(reported).toHaveLength(1);
+    expect(reported[0].message).toBe(`[${foo.$id}] The \`$destroy\` lifecycle failed.`);
+    expect(reported[0].cause).toBe(error);
+  });
+
+  it('should resolve and report when the `updated` hook throws', async () => {
+    const error = new Error('updated boom');
+
+    class Foo extends Base {
+      static config: BaseConfig = {
+        name: 'Foo',
+      };
+
+      updated() {
+        throw error;
+      }
+    }
+
+    const foo = new Foo(h('div'));
+    await foo.$mount();
+
+    await expect(foo.$update()).resolves.toBe(foo);
+
+    expect(reported).toHaveLength(1);
+    expect(reported[0].message).toBe(`[${foo.$id}] The \`$update\` lifecycle failed.`);
+    expect(reported[0].cause).toBe(error);
+  });
+
+  it('should resolve and report when the `terminated` hook throws', async () => {
+    const error = new Error('terminated boom');
+
+    class Foo extends Base {
+      static config: BaseConfig = {
+        name: 'Foo',
+      };
+
+      terminated() {
+        throw error;
+      }
+    }
+
+    const foo = new Foo(h('div'));
+    await foo.$mount();
+
+    await expect(foo.$terminate()).resolves.toBeUndefined();
+
+    expect(reported).toHaveLength(1);
+    expect(reported[0].message).toBe(`[${foo.$id}] The \`$terminate\` lifecycle failed.`);
+    expect(reported[0].cause).toBe(error);
   });
 
   it('should not produce an unhandled rejection when a fire-and-forget mount fails', async () => {
@@ -784,7 +932,6 @@ describe('The Base lifecycle error boundaries', () => {
       }
     }
 
-    const warn = vi.spyOn(window.console, 'warn').mockImplementation(() => {});
     const rejections: unknown[] = [];
     const onRejection = (reason: unknown) => rejections.push(reason);
     process.on('unhandledRejection', onRejection);
@@ -792,20 +939,39 @@ describe('The Base lifecycle error boundaries', () => {
     // Fire-and-forget: the returned promise is discarded, like `mutationCallback`.
     new Foo(h('div')).$mount();
 
-    // Let the queued mount tasks flush across several ticks and give any
-    // rejection a chance to surface.
-    for (let i = 0; i < 5; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      await nextTick();
-    }
+    await flushQueue();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     process.off('unhandledRejection', onRejection);
 
+    // No unhandled rejection: the lifecycle promise resolves...
     expect(rejections).toHaveLength(0);
-    // The failure is still surfaced through the log.
-    expect(warn).toHaveBeenCalled();
+    // ...but the failure is still visible on the global error channel.
+    expect(reported).toHaveLength(1);
+  });
 
-    warn.mockRestore();
+  it('should keep rejecting in blocking mode', async () => {
+    const { unmock } = mockFeatures({ blocking: true });
+    const error = new Error('mounted boom');
+
+    class Foo extends Base {
+      static config: BaseConfig = {
+        name: 'Foo',
+      };
+
+      mounted() {
+        throw error;
+      }
+    }
+
+    const foo = new Foo(h('div'));
+
+    // No queue is involved in blocking mode: the task runs in the caller's own
+    // stack, so `try { await createApp(App, { blocking: true }) } catch` keeps
+    // working and the error is not deferred to a microtask.
+    await expect(foo.$mount()).rejects.toBe(error);
+    expect(reported).toHaveLength(0);
+
+    unmock();
   });
 });

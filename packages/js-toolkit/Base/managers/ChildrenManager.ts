@@ -206,13 +206,18 @@ export class ChildrenManager<T> extends AbstractManager<T> {
           if (instance instanceof Promise) {
             // Fire-and-forget: this branch does not push into `promises`, so its
             // result is never awaited. Attach a `.catch()` so a failure in the
-            // async child resolution or its queued hook is logged instead of
-            // becoming an unhandled rejection.
+            // async child resolution or its queued hook reaches the global error
+            // handler instead of becoming an unhandled rejection.
             instance
               .then((resolvedInstance) =>
                 addToQueue(() => this.__triggerHook(hook, resolvedInstance, name)),
               )
-              .catch(reportQueuedTaskError);
+              .catch((error) =>
+                reportQueuedTaskError(
+                  error,
+                  `[${this.__base.$id}] The \`${hook}\` hook failed for an async \`${name}\` child.`,
+                ),
+              );
           } else {
             promises.push(addToQueue(() => this.__triggerHook(hook, instance, name)));
           }
