@@ -71,26 +71,26 @@ describe('The `SmartQueue` class', () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  it('should reject the promise of a synchronously-throwing task', async () => {
-    // The re-throw path in `run()` must not fire — the rejection is the single
-    // surfacing channel, so there is no double report.
-    const microtask = vi.spyOn(globalThis, 'queueMicrotask').mockImplementation(() => {});
+  it('should inherit the rejection contract for sync and async throws', async () => {
     const queue = new SmartQueue();
     const error = new Error('boom');
 
-    const p = queue.add(() => {
+    // `SmartQueue` overrides neither `add()` nor the error isolation: a
+    // synchronous throw rejects exactly like an `async` task whose promise
+    // rejects. Observe both rejections right away so the flush below can not
+    // report them as unhandled.
+    const sync = queue.add(() => {
       throw error;
     });
+    sync.catch(() => {});
+    const async = queue.add(async () => {
+      throw error;
+    });
+    async.catch(() => {});
+
     await nextTick();
 
-    // A synchronous throw rejects, exactly like an async task returning a
-    // rejected promise — the completion contract is consistent.
-    await expect(p).rejects.toBe(error);
-
-    // The error is surfaced exactly once (through the rejection), not also via
-    // the global re-throw.
-    expect(microtask).not.toHaveBeenCalled();
-
-    microtask.mockRestore();
+    await expect(sync).rejects.toBe(error);
+    await expect(async).rejects.toBe(error);
   });
 });

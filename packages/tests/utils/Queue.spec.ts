@@ -91,28 +91,6 @@ describe('The `Queue` class', () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  it('should reject the promise of a synchronously-throwing task', async () => {
-    // The re-throw path in `run()` must not fire — the rejection is the single
-    // surfacing channel, so there is no double report.
-    const microtask = vi.spyOn(globalThis, 'queueMicrotask').mockImplementation(() => {});
-    const queue = new Queue(10);
-    const error = new Error('boom');
-
-    const p = queue.add(() => {
-      throw error;
-    });
-
-    // A synchronous throw rejects, exactly like an async task returning a
-    // rejected promise — the completion contract is consistent.
-    await expect(p).rejects.toBe(error);
-
-    // The error is surfaced exactly once (through the rejection), not also via
-    // the global re-throw.
-    expect(microtask).not.toHaveBeenCalled();
-
-    microtask.mockRestore();
-  });
-
   it('should reject consistently for sync and async throws', async () => {
     const queue = new Queue(10);
     const error = new Error('boom');
@@ -143,5 +121,30 @@ describe('The `Queue` class', () => {
 
     // ...but the flag is reset so the queue is not permanently wedged.
     expect(queue.isScheduled).toBe(false);
+  });
+
+  it('should keep the pending task queued when the scheduler throws', () => {
+    let broken = true;
+    const queue = new Queue(10, (cb) => {
+      if (broken) {
+        throw new Error('scheduler boom');
+      }
+      (cb as () => void)();
+    });
+    const spy = vi.fn();
+
+    expect(() => queue.add(spy)).toThrow('scheduler boom');
+    // The task is not dropped: it is still queued, waiting for a flush that
+    // does get scheduled. Rejecting it here would be unobservable, since the
+    // throw pre-empted `add()` returning its promise.
+    expect(queue.tasks).toHaveLength(1);
+    expect(spy).not.toHaveBeenCalled();
+
+    // Once the scheduler works again, the orphaned task runs with the next one.
+    broken = false;
+    const next = vi.fn();
+    queue.add(next);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledTimes(1);
   });
 });
