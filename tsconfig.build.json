@@ -4,7 +4,8 @@
     "noEmit": false,
     "declaration": true,
     "rootDir": "./packages/js-toolkit",
-    "outDir": "dist/",
+    "outDir": "dist/dist/",
+    "tsBuildInfoFile": "./tsconfig.build.tsbuildinfo",
     "emitDeclarationOnly": true,
     "types": []
   },
