@@ -32,6 +32,15 @@ describe('no-deep-utils-import', () => {
           code: `import { debounce } from '@studiometa/js-toolkit/utils/debounce.js';`,
           errors: [{ messageId: 'noDeepImport' }],
         },
+        // A file path is never a subpath key, whatever its extension.
+        {
+          code: `import { damp } from '@studiometa/js-toolkit/utils/damp.ts';`,
+          errors: [{ messageId: 'noDeepImport' }],
+        },
+        {
+          code: `import '@studiometa/js-toolkit/utils/foo.css';`,
+          errors: [{ messageId: 'noDeepImport' }],
+        },
       ],
     });
   });
