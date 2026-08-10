@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.9.0-beta.2](https://github.com/studiometa/js-toolkit/compare/3.9.0-beta.1..3.9.0-beta.2) (2026-08-10)
+
 ### Changed
 
 - Every per-symbol subpath and every internal import now resolves to the module declaring the symbol instead of going through a barrel, cutting the module graph of an entry point by 85% in both bytes and requests when served by a CDN — unchanged for bundled consumers, which tree-shook the difference away ([#757](https://github.com/studiometa/js-toolkit/pull/757))
