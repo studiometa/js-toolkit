@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Changed
+
+- Every per-symbol subpath and every internal import now resolves to the module declaring the symbol instead of going through a barrel, cutting the module graph of an entry point by 85% in both bytes and requests when served by a CDN — unchanged for bundled consumers, which tree-shook the difference away ([#757](https://github.com/studiometa/js-toolkit/pull/757))
+- `no-deep-utils-import` no longer reports the per-symbol util subpaths added in v3.9.0-beta.0, and no longer autofixes them to the `utils` barrel — only paths reaching into the package layout (`utils/math/damp.js`) are reported now ([#757](https://github.com/studiometa/js-toolkit/pull/757))
+
+### Added
+
+- Add a `no-internal-barrel-import` lint rule reporting relative barrel imports inside the package, not part of the recommended config ([#757](https://github.com/studiometa/js-toolkit/pull/757))
+- Add `npm run measure` reporting the module graph of every published entry point, with `--json` and `--compare` to diff two runs ([#757](https://github.com/studiometa/js-toolkit/pull/757))
+
 ## [v3.9.0-beta.1](https://github.com/studiometa/js-toolkit/compare/3.9.0-beta.0..3.9.0-beta.1) (2026-08-10)
 
 ### Fixed
