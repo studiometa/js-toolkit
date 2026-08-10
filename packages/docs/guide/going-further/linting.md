@@ -236,9 +236,36 @@ Disallows `addEventListener()` and `removeEventListener()` inside `Base` subclas
 
 #### `js-toolkit/no-deep-utils-import`
 
-**Recommended:** error &nbsp;·&nbsp; **Fixable** 🔧
+**Recommended:** error
 
-Disallows deep imports from `@studiometa/js-toolkit/utils/*`. Use the public entrypoint `@studiometa/js-toolkit/utils` instead.
+Disallows imports reaching into the package layout under `@studiometa/js-toolkit/utils/`. Use the public per-symbol subpath `@studiometa/js-toolkit/utils/<name>` for a single util, or the `@studiometa/js-toolkit/utils` barrel for several.
+
+```js
+// ❌ Bad — reaches into the package layout.
+import damp from '@studiometa/js-toolkit/utils/math/damp.js';
+
+// ✅ Good
+import { damp } from '@studiometa/js-toolkit/utils/damp';
+import { damp, lerp } from '@studiometa/js-toolkit/utils';
+```
+
+The rule has no autofix: the subpath key is the exported symbol name, which does not always match the module path (`utils/history.js` exports `push`, published as `utils/historyPush`), so a mechanical rewrite could produce a subpath that does not exist.
+
+#### `js-toolkit/no-internal-barrel-import`
+
+**Recommended:** not enabled
+
+Disallows relative imports of an internal barrel (`./utils/index.js`, `../Base/index.js`). Import the module declaring the symbol instead, so a consumer served by a CDN only downloads what it uses.
+
+```js
+// ❌ Bad
+import { Base } from '../Base/index.js';
+
+// ✅ Good
+import { Base } from '../Base/Base.js';
+```
+
+This rule targets libraries published as unbundled ES modules. It is not part of the recommended config — enable it explicitly when it fits your package.
 
 #### `js-toolkit/no-redundant-with-mount-when-in-view`
 

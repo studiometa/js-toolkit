@@ -12,12 +12,50 @@ Install the package from npm:
 npm install @studiometa/js-toolkit
 ```
 
+## Import paths
+
+Every export is reachable from the root barrel and from its own top-level subpath:
+
+```js
+// Barrel — one import for several symbols.
+import { Base, registerComponent } from '@studiometa/js-toolkit';
+
+// Subpath — one import per symbol.
+import { Base } from '@studiometa/js-toolkit/Base';
+import { registerComponent } from '@studiometa/js-toolkit/registerComponent';
+```
+
+Utils work the same way under the `utils` namespace:
+
+```js
+import { debounce } from '@studiometa/js-toolkit/utils';
+import { debounce } from '@studiometa/js-toolkit/utils/debounce';
+```
+
+Each subpath resolves as both the named and the default export, so `import Base from '@studiometa/js-toolkit/Base'` works too.
+
+The subpath key is the **exported symbol name**, not the file path — the history utils are published as `@studiometa/js-toolkit/utils/historyPush` and `@studiometa/js-toolkit/utils/historyReplace`. Paths reaching into the package layout (`utils/math/damp.js`) are not public API and are reported by the [`no-deep-utils-import`](/guide/going-further/linting.html) rule.
+
+::: tip Which one should I use?
+With a bundler, both cost the same — the barrel is tree-shaken away. Without a build step, prefer the subpath: it resolves to the module declaring the symbol, so the browser downloads that module instead of the whole barrel and everything it re-exports.
+:::
+
 ### CDN
 
-Import js-toolkit directly from a CDN, without a build step:
+Import js-toolkit directly from a CDN, without a build step. Use the per-symbol subpaths here:
 
 ```html
 <script type="module">
+  import { Base } from 'https://esm.sh/@studiometa/js-toolkit/Base';
+  import { registerComponent } from 'https://esm.sh/@studiometa/js-toolkit/registerComponent';
+</script>
+```
+
+The root barrel also works, but it pulls in the module graph of every symbol it names:
+
+```html
+<script type="module">
+  // Larger download: the whole barrel.
   import {
     Base,
     registerComponent,
