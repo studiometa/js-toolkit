@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v3.9.0](https://github.com/studiometa/js-toolkit/compare/3.8.2..3.9.0) (2026-08-10)
+
+### Added
+
+- Add a `no-internal-barrel-import` lint rule reporting relative barrel imports inside the package, not part of the recommended config ([#757](https://github.com/studiometa/js-toolkit/pull/757))
+- Add `npm run measure` reporting the module graph of every published entry point, with `--json` and `--compare` to diff two runs ([#757](https://github.com/studiometa/js-toolkit/pull/757))
+- Add per-symbol subpath exports: every root barrel export is now reachable at its own top-level subpath (`@studiometa/js-toolkit/Base`) and every util at `@studiometa/js-toolkit/utils/<name>`, each resolving as both the named and the default export, so a single symbol can be imported without going through a barrel ([#753](https://github.com/studiometa/js-toolkit/pull/753))
+- Add a framework-level autoload engine mounting components from a manifest on demand — `autoload`, `defineManifest`, `registerManifest`, `registerManifests`, `composeManifests`, `ComponentLoader`, and the `fromMetaGlob` / `fromWebpackContext` module adapters — with `eager`, `visible`, `idle` and `interaction` load strategies, overridable per element with the `data-load` attribute ([#753](https://github.com/studiometa/js-toolkit/pull/753))
+
+### Changed
+
+- Every per-symbol subpath and every internal import now resolves to the module declaring the symbol instead of going through a barrel, cutting the module graph of an entry point by 85% in both bytes and requests when served by a CDN — unchanged for bundled consumers, which tree-shook the difference away ([#757](https://github.com/studiometa/js-toolkit/pull/757))
+- `no-deep-utils-import` no longer reports the per-symbol util subpaths added in v3.9.0-beta.0, and no longer autofixes them to the `utils` barrel — only paths reaching into the package layout (`utils/math/damp.js`) are reported now ([#757](https://github.com/studiometa/js-toolkit/pull/757))
+
+### Fixed
+
+- Fix every entry point of the package failing to link when served through esm.sh — the per-symbol subpath keys differed from a real module path only by the extension (`./utils/debounce` vs `utils/debounce.js`), so esm.sh gave the same URL to the subpath stub and to the implementation it re-exports and the served module ended up importing itself; the emitted modules are now nested under `dist/` inside the published package, keeping the file paths disjoint from the subpath keys ([#755](https://github.com/studiometa/js-toolkit/pull/755))
+
 ## [v3.9.0-beta.2](https://github.com/studiometa/js-toolkit/compare/3.9.0-beta.1..3.9.0-beta.2) (2026-08-10)
 
 ### Changed
