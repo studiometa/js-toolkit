@@ -12,6 +12,7 @@ export { noCreateApp } from './no-create-app.ts';
 export { noEventListenerMethods } from './no-event-listener-methods.ts';
 export { refsPluralMultiple } from './refs-plural-multiple.ts';
 export { noDeepUtilsImport } from './no-deep-utils-import.ts';
+export { noInternalBarrelImport } from './no-internal-barrel-import.ts';
 export { refsNoBracketAccess } from './refs-no-bracket-access.ts';
 export { noRedundantWithMountWhenInView } from './no-redundant-with-mount-when-in-view.ts';
 export { preferRefOverQuerySelector } from './prefer-ref-over-query-selector.ts';
