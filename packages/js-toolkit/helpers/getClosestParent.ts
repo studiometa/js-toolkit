@@ -1,6 +1,6 @@
-import type { Base, BaseConstructor } from '../Base/index.js';
+import type { Base, BaseConstructor } from '../Base/Base.js';
+import { getAncestorWhere } from '../utils/dom/ancestors.js';
 import { getInstanceFromElement } from './getInstanceFromElement.js';
-import { getAncestorWhere } from '../utils/index.js';
 
 /**
  * Get the closest parent of a component.

@@ -1,5 +1,5 @@
-import { BaseConstructor, BaseAsyncConstructor } from '../Base/Base.js';
-import { isDev, isFunction } from '../utils/index.js';
+import { BaseAsyncConstructor, BaseConstructor } from '../Base/Base.js';
+import { isDev, isFunction } from '../utils/is.js';
 
 /**
  * Register globally and mount a given component.

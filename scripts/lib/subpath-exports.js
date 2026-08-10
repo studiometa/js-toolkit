@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve, dirname, relative, sep } from 'node:path';
 
 const pkgRoot = resolve(dirname(new URL(import.meta.url).pathname), '../../packages/js-toolkit');
 
@@ -40,29 +40,91 @@ function parseBarrel(file) {
 }
 
 /**
+ * Resolve a module specifier as written in the sources (always extension-ful and ESM-style, e.g.
+ * `'./Base/index.js'`) to the absolute path of the TypeScript file backing it.
+ *
+ * @param   {string} fromFile The absolute path of the importing file.
+ * @param   {string} specifier
+ * @returns {string}
+ */
+export function resolveSpecifier(fromFile, specifier) {
+  return resolve(dirname(fromFile), specifier).replace(/\.js$/, '.ts');
+}
+
+/**
+ * Follow the re-export chain of a symbol down to the module which actually declares it.
+ *
+ * A barrel routinely re-exports through other barrels — `damp` reaches the package through
+ * `utils/index.ts` → `utils/math/index.ts` → `utils/math/damp.ts`. Pointing a subpath stub at the
+ * first hop makes importing one symbol pull every sibling the intermediate barrel names, which no
+ * CDN can tree-shake away. Resolving to the leaf keeps the stub's graph down to what the symbol
+ * genuinely needs.
+ *
+ * Anything the walk cannot follow — a locally declared symbol, a namespace re-export
+ * (`export * as ease`), a missing file — stops it, and the last known module is used. That keeps the
+ * fallback identical to the previous behaviour instead of emitting a stub which cannot link.
+ *
+ * @param   {string} file The absolute path of the barrel to walk down from.
+ * @param   {string} name The symbol's name as exported by `file`.
+ * @returns {{ file: string, name: string }} The declaring module and the name it declares.
+ */
+export function resolveToLeaf(file, name) {
+  const onPath = new Set();
+  let current = { file, name };
+
+  while (!onPath.has(`${current.file}\0${current.name}`) && existsSync(current.file)) {
+    onPath.add(`${current.file}\0${current.name}`);
+
+    const entry = parseBarrel(current.file).find((symbol) => symbol.exported === current.name);
+    if (!entry) break;
+
+    const next = resolveSpecifier(current.file, entry.origin);
+    if (!existsSync(next)) break;
+
+    current = { file: next, name: entry.orig };
+  }
+
+  return current;
+}
+
+/**
+ * Build the specifier a stub uses to reach its leaf module, relative to the stub's own directory.
+ *
+ * @param   {string} stubDir The absolute directory the stub is emitted into.
+ * @param   {string} leafFile The absolute path of the declaring module.
+ * @returns {string}
+ */
+function specifierFrom(stubDir, leafFile) {
+  const path = relative(stubDir, leafFile).split(sep).join('/').replace(/\.ts$/, '.js');
+  return path.startsWith('.') ? path : `./${path}`;
+}
+
+/**
  * Enumerate every subpath-worthy symbol of the package.
  *
  * The root symbols come from the root barrel `index.ts` (Base, decorators, helpers, services,
  * autoload and `version`) and become top-level subpaths (`./<Name>`). The util symbols come from
- * `utils/index.ts` and become `./utils/<name>` subpaths. Both lists keep the origin module rewritten
- * relative to the generated stub's location under `subpaths/`.
+ * `utils/index.ts` and become `./utils/<name>` subpaths. Every symbol is then resolved through the
+ * intermediate barrels down to the module declaring it, so each stub imports one leaf instead of a
+ * barrel.
  *
  * @returns {{ root: Descriptor[], utils: Descriptor[] }}
  */
 export function enumerate() {
-  const rootSymbols = parseBarrel(resolve(pkgRoot, 'index.ts'));
-  const utilSymbols = parseBarrel(resolve(pkgRoot, 'utils/index.ts'));
+  const rootBarrel = resolve(pkgRoot, 'index.ts');
+  const utilsBarrel = resolve(pkgRoot, 'utils/index.ts');
+  // Stubs live in `subpaths/` and `subpaths/utils/`.
+  const rootStubDir = resolve(pkgRoot, 'subpaths');
+  const utilsStubDir = resolve(rootStubDir, 'utils');
 
-  const root = rootSymbols.map((symbol) => ({
-    ...symbol,
-    // Stubs live in `subpaths/`; the root barrel origins are relative to the package root.
-    from: symbol.origin.replace(/^\.\//, '../'),
-  }));
-  const utils = utilSymbols.map((symbol) => ({
-    ...symbol,
-    // Stubs live in `subpaths/utils/`; the utils barrel origins are relative to `utils/`.
-    from: symbol.origin.replace(/^\.\//, '../../utils/'),
-  }));
+  const root = parseBarrel(rootBarrel).map((symbol) => {
+    const leaf = resolveToLeaf(rootBarrel, symbol.exported);
+    return { ...symbol, orig: leaf.name, from: specifierFrom(rootStubDir, leaf.file) };
+  });
+  const utils = parseBarrel(utilsBarrel).map((symbol) => {
+    const leaf = resolveToLeaf(utilsBarrel, symbol.exported);
+    return { ...symbol, orig: leaf.name, from: specifierFrom(utilsStubDir, leaf.file) };
+  });
 
   assertUnique(root, 'root');
   assertUnique(utils, 'utils');

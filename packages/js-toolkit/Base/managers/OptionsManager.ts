@@ -1,16 +1,9 @@
 import deepmerge from 'deepmerge';
+import { isArray, isBoolean, isDefined, isDev, isFunction, isObject } from '../../utils/is.js';
+import { memo } from '../../utils/memo.js';
+import type { Base } from '../Base.js';
 import type { Options as DeepmergeOptions } from 'deepmerge';
 import { AbstractManager } from './AbstractManager.js';
-import {
-  isDev,
-  isFunction,
-  isDefined,
-  isBoolean,
-  isArray,
-  isObject,
-  memo,
-} from '../../utils/index.js';
-import type { Base } from '../index.js';
 import { features } from '../features.js';
 
 export type OptionType =

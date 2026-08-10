@@ -1,11 +1,11 @@
-import type { BaseInterface, BaseDecorator } from '../Base/types.js';
-import type { Base, BaseProps, Managers } from '../Base/index.js';
-import type { OptionObject, OptionType } from '../Base/managers/OptionsManager.js';
+import type { Base, BaseProps, Managers } from '../Base/Base.js';
 import {
-  ResponsiveOptionsManager,
   ResponsiveOptionObject,
+  ResponsiveOptionsManager,
 } from '../Base/managers/ResponsiveOptionsManager.js';
-import { isDefined, isObject } from '../utils/index.js';
+import type { BaseDecorator, BaseInterface } from '../Base/types.js';
+import { isDefined, isObject } from '../utils/is.js';
+import type { OptionObject, OptionType } from '../Base/managers/OptionsManager.js';
 
 /**
  * Extends the configuration of an existing class.

@@ -1,6 +1,7 @@
-import type { Base, BaseConstructor } from '../Base/index.js';
+import type { Base, BaseConstructor } from '../Base/Base.js';
+import { getComponentResolver } from '../utils/getComponentResolver.js';
+import { isString } from '../utils/is.js';
 import { getTargetElements } from './utils.js';
-import { isString, getComponentResolver } from '../utils/index.js';
 
 /**
  * Import a component on an interaction.

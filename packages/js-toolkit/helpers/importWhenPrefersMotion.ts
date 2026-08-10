@@ -1,4 +1,4 @@
-import type { BaseConstructor } from '../Base/index.js';
+import type { BaseConstructor } from '../Base/Base.js';
 import { importOnMediaQuery } from './importOnMediaQuery.js';
 
 /**

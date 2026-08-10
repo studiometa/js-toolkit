@@ -1,5 +1,5 @@
+import type { Base, BaseOptions, BaseProps } from '../Base/Base.js';
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseProps, BaseOptions } from '../Base/index.js';
 
 export interface WithFreezedOptionsInterface extends BaseInterface {
   readonly $options: Readonly<BaseOptions>;

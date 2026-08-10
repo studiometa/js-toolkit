@@ -1,4 +1,4 @@
-import type { Base } from '../index.js';
+import type { Base } from '../Base.js';
 
 /**
  * AbstractManager class.

@@ -1,7 +1,6 @@
+import type { Base, BaseConfig, BaseProps } from '../Base/Base.js';
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
-import type { PointerServiceProps } from '../services/index.js';
-import { usePointer } from '../services/index.js';
+import { type PointerServiceProps, usePointer } from '../services/PointerService.js';
 
 export type RelativePointerDecoratorOptions = {
   target?: (this: Base, instance: Base) => HTMLElement;

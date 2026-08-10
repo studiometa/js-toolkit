@@ -1,7 +1,10 @@
+import type { Base, BaseConfig, BaseProps } from '../Base/Base.js';
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
-import type { MutationServiceOptions, MutationServiceProps } from '../services/index.js';
-import { useMutation } from '../services/index.js';
+import {
+  type MutationServiceOptions,
+  type MutationServiceProps,
+  useMutation,
+} from '../services/MutationService.js';
 
 export type MutationDecoratorOptions = MutationServiceOptions & {
   target?: (this: Base, instance: Base) => Node;

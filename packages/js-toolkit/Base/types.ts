@@ -1,12 +1,10 @@
-import type { Base, BaseProps } from './index.js';
-import type {
-  KeyServiceProps,
-  PointerServiceProps,
-  RafServiceProps,
-  ResizeServiceProps,
-  ScrollServiceProps,
-} from '../services/index.js';
-import { type EventManagerCallbackParams } from './managers/EventsManager.js';
+import type { KeyServiceProps } from '../services/KeyService.js';
+import type { PointerServiceProps } from '../services/PointerService.js';
+import type { RafServiceProps } from '../services/RafService.js';
+import type { ResizeServiceProps } from '../services/ResizeService.js';
+import type { ScrollServiceProps } from '../services/ScrollService.js';
+import type { Base, BaseProps } from './Base.js';
+import type { EventManagerCallbackParams } from './managers/EventsManager.js';
 
 export type BaseEventHookParams<T extends Event = Event> = EventManagerCallbackParams<T>;
 

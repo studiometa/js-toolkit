@@ -9,22 +9,37 @@ describe('no-deep-utils-import', () => {
         `import { debounce } from '@studiometa/js-toolkit/utils';`,
         `import { Base } from '@studiometa/js-toolkit';`,
         `import debounce from 'lodash/debounce';`,
+        // Published per-symbol subpaths — public API since v3.9.0, and the cheapest import.
+        `import { debounce } from '@studiometa/js-toolkit/utils/debounce';`,
+        `import debounce from '@studiometa/js-toolkit/utils/debounce';`,
+        `import { damp } from '@studiometa/js-toolkit/utils/damp';`,
+        `import { historyPush } from '@studiometa/js-toolkit/utils/historyPush';`,
       ],
       invalid: [
         {
-          code: `import debounce from '@studiometa/js-toolkit/utils/debounce';`,
-          errors: [{ messageId: 'noDeepImport' }],
-          output: `import { debounce } from '@studiometa/js-toolkit/utils';`,
-        },
-        {
           code: `import { foo } from '@studiometa/js-toolkit/utils/dom/foo';`,
           errors: [{ messageId: 'noDeepImport' }],
-          output: `import { foo } from '@studiometa/js-toolkit/utils';`,
         },
         {
           code: `import { foo as bar } from '@studiometa/js-toolkit/utils/dom/foo';`,
           errors: [{ messageId: 'noDeepImport' }],
-          output: `import { foo as bar } from '@studiometa/js-toolkit/utils';`,
+        },
+        {
+          code: `import { damp } from '@studiometa/js-toolkit/utils/math/damp.js';`,
+          errors: [{ messageId: 'noDeepImport' }],
+        },
+        {
+          code: `import { debounce } from '@studiometa/js-toolkit/utils/debounce.js';`,
+          errors: [{ messageId: 'noDeepImport' }],
+        },
+        // A file path is never a subpath key, whatever its extension.
+        {
+          code: `import { damp } from '@studiometa/js-toolkit/utils/damp.ts';`,
+          errors: [{ messageId: 'noDeepImport' }],
+        },
+        {
+          code: `import '@studiometa/js-toolkit/utils/foo.css';`,
+          errors: [{ messageId: 'noDeepImport' }],
         },
       ],
     });

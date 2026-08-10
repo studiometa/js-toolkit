@@ -1,12 +1,13 @@
-import { clamp01, lerp, map } from '../math/index.js';
+import { clamp01 } from '../math/clamp01.js';
+import type { EasingFunction } from '../math/createEases.js';
+import { lerp } from '../math/lerp.js';
+import { map } from '../math/map.js';
+import { startsWith } from '../string/startsWith.js';
+import { type BezierCurve, normalizeEase, tween, type Tween, type TweenOptions } from '../tween.js';
 import { isFunction } from '../is.js';
 import { domScheduler as scheduler } from '../scheduler.js';
-import { tween, normalizeEase } from '../tween.js';
 import { eachElements } from './utils.js';
-import { startsWith } from '../string/index.js';
 import type { TransformProps } from './transform.js';
-import type { EasingFunction } from '../math/index.js';
-import type { BezierCurve, Tween, TweenOptions } from '../tween.js';
 
 export type CSSCustomPropertyName = `--${string}`;
 

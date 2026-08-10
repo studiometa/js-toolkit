@@ -1,9 +1,8 @@
-import type { ServiceConfig, ServiceInterface } from './AbstractService.js';
-import { AbstractService } from './AbstractService.js';
+import { inertiaFinalValue } from '../utils/math/inertiaFinalValue.js';
+import { AbstractService, type ServiceConfig, type ServiceInterface } from './AbstractService.js';
+import { CAPTURE_EVENT_OPTIONS, PASSIVE_EVENT_OPTIONS } from './utils.js';
 import { useRaf } from './RafService.js';
 import { isDefined } from '../utils/is.js';
-import { inertiaFinalValue } from '../utils/math/index.js';
-import { PASSIVE_EVENT_OPTIONS, CAPTURE_EVENT_OPTIONS } from './utils.js';
 
 export interface DragServiceProps {
   /**

@@ -13,6 +13,12 @@
   },
   "overrides": [
     {
+      "files": ["packages/js-toolkit/**/*.ts"],
+      "rules": {
+        "js-toolkit/no-internal-barrel-import": "error"
+      }
+    },
+    {
       "files": ["packages/js-toolkit/**/*.ts", "packages/demo/**/*.{ts,js}"],
       "rules": {
         "js-toolkit/require-config": "error",

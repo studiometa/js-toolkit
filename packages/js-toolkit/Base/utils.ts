@@ -1,5 +1,7 @@
-import { isArray, isDefined, SmartQueue, dashCase, isDev } from '../utils/index.js';
-import type { Base, BaseConfig, BaseConstructor } from './index.js';
+import { isArray, isDefined, isDev } from '../utils/is.js';
+import { SmartQueue } from '../utils/SmartQueue.js';
+import { dashCase } from '../utils/string/changeCase.js';
+import type { Base, BaseConfig, BaseConstructor } from './Base.js';
 import { features } from './features.js';
 import { useMutation } from '../services/MutationService.js';
 import { getInstanceFromElement } from '../helpers/getInstanceFromElement.js';

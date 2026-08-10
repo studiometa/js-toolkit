@@ -1,5 +1,5 @@
-import { BaseInterface, BaseDecorator } from '../Base/types.js';
-import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
+import type { Base, BaseConfig, BaseProps } from '../Base/Base.js';
+import { BaseDecorator, BaseInterface } from '../Base/types.js';
 import { isDev } from '../utils/is.js';
 
 export interface withMountOnMediaQueryProps extends BaseProps {

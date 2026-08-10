@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { getComponentElements } from '../Base/utils.js';
-import { isString, isArray } from '../utils/index.js';
+import { isArray, isString } from '../utils/is.js';
 
 /**
  * Get the target elements for the lazy import helper functions.
