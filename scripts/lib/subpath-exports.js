@@ -150,6 +150,19 @@ export function buildSourceExports() {
 }
 
 /**
+ * The directory every emitted module lives in inside the published package.
+ *
+ * Nesting the whole build keeps the file paths of the tarball disjoint from the subpath keys of the
+ * `exports` map: `./utils/debounce` resolves to `dist/subpaths/utils/debounce.js`, and the
+ * implementation it re-exports sits at `dist/utils/debounce.js`. Without that offset the two paths
+ * `utils/debounce` and `utils/debounce.js` differ only by the extension, and CDNs which name their
+ * build output after the requested subpath — esm.sh does — map the stub and its implementation to the
+ * same URL. The served module then imports itself and fails to link with
+ * `SyntaxError: Detected cycle while resolving name`.
+ */
+export const distDir = 'dist';
+
+/**
  * Build the `exports` map fragment for the published `dist/package.json` (object targets pointing at
  * the emitted `.js` module and its `.d.ts` declaration).
  *
@@ -160,14 +173,14 @@ export function buildDistExports() {
   const map = {};
   for (const { exported, fileBase } of root) {
     map[`./${exported}`] = {
-      types: `./subpaths/${fileBase}.d.ts`,
-      import: `./subpaths/${fileBase}.js`,
+      types: `./${distDir}/subpaths/${fileBase}.d.ts`,
+      import: `./${distDir}/subpaths/${fileBase}.js`,
     };
   }
   for (const { exported, fileBase } of utils) {
     map[`./utils/${exported}`] = {
-      types: `./subpaths/utils/${fileBase}.d.ts`,
-      import: `./subpaths/utils/${fileBase}.js`,
+      types: `./${distDir}/subpaths/utils/${fileBase}.d.ts`,
+      import: `./${distDir}/subpaths/utils/${fileBase}.js`,
     };
   }
   return map;
