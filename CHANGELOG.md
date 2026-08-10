@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix every entry point of the package failing to link when served through esm.sh — the per-symbol subpath keys differed from a real module path only by the extension (`./utils/debounce` vs `utils/debounce.js`), so esm.sh gave the same URL to the subpath stub and to the implementation it re-exports and the served module ended up importing itself; the emitted modules are now nested under `dist/` inside the published package, keeping the file paths disjoint from the subpath keys ([#755](https://github.com/studiometa/js-toolkit/pull/755))
+
 ## [v3.8.2](https://github.com/studiometa/js-toolkit/compare/3.8.1..3.8.2) (2026-08-06)
 
 ### Fixed
