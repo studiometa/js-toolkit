@@ -27,6 +27,7 @@
     "fix:fmt": "npm run lint:fmt -- --write",
     "build": "npm run build:subpaths && rm -rf dist && npm run build:pkg && npm run build:types && npm run build:cp-files && npm run build:version",
     "build:subpaths": "node scripts/generate-subpaths.js",
+    "measure": "node scripts/measure-graph.js",
     "build:version": "node scripts/utils/set-version.js",
     "build:cp-files": "node scripts/build-dist-pkg.js",
     "build:types": "tsgo --build tsconfig.build.json",

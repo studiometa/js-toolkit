@@ -28,6 +28,9 @@ yarn-error.log*
 dist/
 packages/js-toolkit/subpaths/
 demo/dist/
+
+# Module graph reports written by `npm run measure -- --json <file>`
+.measure-*.json
 /packages/docs/.vitepress/cache
 coverage/
 /full.d.ts
