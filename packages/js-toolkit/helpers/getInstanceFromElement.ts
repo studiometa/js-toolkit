@@ -1,4 +1,4 @@
-import type { BaseConstructor, BaseEl } from '../Base/index.js';
+import type { BaseConstructor, BaseEl } from '../Base/Base.js';
 
 /**
  * Get a component instance from a DOM element.

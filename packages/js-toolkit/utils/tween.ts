@@ -1,7 +1,12 @@
+import { clamp01 } from './math/clamp01.js';
+import { damp } from './math/damp.js';
+import { inertiaFinalValue } from './math/inertiaFinalValue.js';
+import { lerp } from './math/lerp.js';
+import { map } from './math/map.js';
+import { spring } from './math/spring.js';
+import { noopValue as linear, noop } from './noop.js';
 import { cubicBezier } from '@motionone/easing';
-import { lerp, map, clamp01, damp, inertiaFinalValue, spring } from './math/index.js';
 import { isArray, isNumber } from './is.js';
-import { noop, noopValue as linear } from './noop.js';
 import { useRaf } from '../services/RafService.js';
 import type { EasingFunction } from './math/createEases.js';
 

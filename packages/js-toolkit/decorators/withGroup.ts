@@ -1,5 +1,5 @@
+import type { Base, BaseConfig, BaseProps } from '../Base/Base.js';
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
 
 export interface WithGroupProps extends BaseProps {
   $options: {

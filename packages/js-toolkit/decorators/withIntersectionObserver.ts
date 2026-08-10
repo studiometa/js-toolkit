@@ -1,6 +1,6 @@
+import type { Base, BaseConfig, BaseProps } from '../Base/Base.js';
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
-import { createRange } from '../utils/index.js';
+import { createRange } from '../utils/math/createRange.js';
 
 export interface WithIntersectionObserverProps extends BaseProps {
   $options: {

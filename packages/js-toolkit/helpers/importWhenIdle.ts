@@ -1,5 +1,5 @@
-import type { BaseConstructor } from '../Base/index.js';
-import { getComponentResolver } from '../utils/index.js';
+import type { BaseConstructor } from '../Base/Base.js';
+import { getComponentResolver } from '../utils/getComponentResolver.js';
 
 type ImportWhenIdleOptions = {
   timeout?: number;

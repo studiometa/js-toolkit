@@ -1,8 +1,7 @@
-import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
-import type { Features } from '../Base/features.js';
-import { features } from '../Base/features.js';
+import type { Base, BaseConstructor, BaseProps } from '../Base/Base.js';
+import { features, type Features } from '../Base/features.js';
+import { isDev } from '../utils/is.js';
 import { defineFeatures } from './defineFeatures.js';
-import { isDev } from '../utils/index.js';
 import { logTree } from './logTree.js';
 
 export type CreateAppOptions = Partial<Features> & {

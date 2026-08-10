@@ -1,5 +1,5 @@
 import { BaseConstructor } from '../Base/Base.js';
-import { isDev } from '../utils/index.js';
+import { isDev } from '../utils/is.js';
 import { registerComponent } from './registerComponent.js';
 
 /**

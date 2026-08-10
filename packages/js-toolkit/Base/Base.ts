@@ -1,23 +1,22 @@
 /* eslint-disable no-use-before-define */
+import { closestComponent, queryComponentAll } from '../helpers/queryComponent.js';
+import { isArray, isDev, isFunction } from '../utils/is.js';
+import { noop } from '../utils/noop.js';
+import { ChildrenManager } from './managers/ChildrenManager.js';
+import { EventsManager } from './managers/EventsManager.js';
+import { OptionsManager } from './managers/OptionsManager.js';
+import { RefsManager } from './managers/RefsManager.js';
+import { ServicesManager } from './managers/ServicesManager.js';
 import {
+  addInstance,
+  addToQueue,
+  addToRegistry,
+  deleteInstance,
   getComponentElements,
   getEventTarget,
-  addToQueue,
-  addInstance,
-  deleteInstance,
-  addToRegistry,
   hasInstance,
 } from './utils.js';
-import {
-  ChildrenManager,
-  RefsManager,
-  ServicesManager,
-  EventsManager,
-  OptionsManager,
-} from './managers/index.js';
 import { getInstanceFromElement } from '../helpers/getInstanceFromElement.js';
-import { queryComponentAll, closestComponent } from '../helpers/queryComponent.js';
-import { noop, isDev, isFunction, isArray } from '../utils/index.js';
 
 let id = 0;
 

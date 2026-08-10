@@ -1,4 +1,5 @@
-import { isNumber, isString, endsWith } from '../../utils/index.js';
+import { isNumber, isString } from '../../utils/is.js';
+import { endsWith } from '../../utils/string/endsWith.js';
 import type { NormalizedOffset } from './types.js';
 
 const units = {

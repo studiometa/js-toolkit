@@ -1,13 +1,10 @@
+import { getAncestorWhereUntil } from '../../utils/dom/ancestors.js';
+import { isArray, isDev } from '../../utils/is.js';
+import { memo } from '../../utils/memo.js';
+import { camelCase } from '../../utils/string/changeCase.js';
+import { endsWith } from '../../utils/string/endsWith.js';
+import { startsWith } from '../../utils/string/startsWith.js';
 import { AbstractManager } from './AbstractManager.js';
-import {
-  isDev,
-  isArray,
-  getAncestorWhereUntil,
-  endsWith,
-  startsWith,
-  memo,
-  camelCase,
-} from '../../utils/index.js';
 import { features } from '../features.js';
 
 const NORMALIZE_REF_NAME_REGEX = /\[\]$/;

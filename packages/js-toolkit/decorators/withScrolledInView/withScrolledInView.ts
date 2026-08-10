@@ -1,21 +1,16 @@
-import type { BaseInterface, BaseDecorator } from '../../Base/types.js';
-import type { Base, BaseProps, BaseConfig } from '../../Base/index.js';
-import type {
-  RafServiceProps,
-  ScrollServiceProps,
-  ResizeServiceProps,
-} from '../../services/index.js';
-import { useScroll } from '../../services/index.js';
+import type { Base, BaseConfig, BaseProps } from '../../Base/Base.js';
+import type { BaseDecorator, BaseInterface } from '../../Base/types.js';
+import type { RafServiceProps } from '../../services/RafService.js';
+import type { ResizeServiceProps } from '../../services/ResizeService.js';
+import { type ScrollServiceProps, useScroll } from '../../services/ScrollService.js';
+import { getOffsetSizes } from '../../utils/css/getOffsetSizes.js';
+import { isFunction } from '../../utils/is.js';
+import { clamp } from '../../utils/math/clamp.js';
+import { clamp01 } from '../../utils/math/clamp01.js';
+import { damp } from '../../utils/math/damp.js';
+import { domScheduler as scheduler } from '../../utils/scheduler.js';
+import { getEdges, normalizeOffset } from './utils.js';
 import { withMountWhenInView } from '../withMountWhenInView.js';
-import {
-  damp,
-  clamp,
-  clamp01,
-  getOffsetSizes,
-  isFunction,
-  domScheduler as scheduler,
-} from '../../utils/index.js';
-import { normalizeOffset, getEdges } from './utils.js';
 
 export interface WithScrolledInViewProps extends BaseProps {
   $options: {

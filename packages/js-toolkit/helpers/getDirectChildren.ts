@@ -1,5 +1,5 @@
-import { Base, BaseProps } from '../Base/index.js';
-import { isArray } from '../utils/index.js';
+import { Base, BaseProps } from '../Base/Base.js';
+import { isArray } from '../utils/is.js';
 
 /**
  * Get direct children from a parent when working with nested components.

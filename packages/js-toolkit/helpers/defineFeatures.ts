@@ -1,6 +1,5 @@
-import type { Features } from '../Base/features.js';
-import { features } from '../Base/features.js';
-import { isBoolean, isObject, isString } from '../utils/index.js';
+import { features, type Features } from '../Base/features.js';
+import { isBoolean, isObject, isString } from '../utils/is.js';
 
 /**
  * Configure global features outside of `createApp`.

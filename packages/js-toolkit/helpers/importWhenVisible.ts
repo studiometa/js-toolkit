@@ -1,6 +1,6 @@
-import type { Base, BaseConstructor } from '../Base/index.js';
+import type { Base, BaseConstructor } from '../Base/Base.js';
+import { getComponentResolver } from '../utils/getComponentResolver.js';
 import { getTargetElements } from './utils.js';
-import { getComponentResolver } from '../utils/index.js';
 
 /**
  * Import a component when it is visible.

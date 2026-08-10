@@ -1,6 +1,6 @@
 import { isArray, isObject } from './is.js';
+import { startsWith } from './string/startsWith.js';
 import { hasWindow } from './has.js';
-import { startsWith } from './string/index.js';
 
 export interface HistoryOptions {
   path?: string;

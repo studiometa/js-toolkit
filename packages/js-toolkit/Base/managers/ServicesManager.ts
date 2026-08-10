@@ -1,14 +1,12 @@
-import { usePointer, useRaf, useResize, useScroll, useKey } from '../../services/index.js';
-import type {
-  PointerServiceInterface,
-  RafServiceInterface,
-  ResizeServiceInterface,
-  ScrollServiceInterface,
-  KeyServiceInterface,
-  ServiceInterface,
-} from '../../services/index.js';
+import type { ServiceInterface } from '../../services/AbstractService.js';
+import { type KeyServiceInterface, useKey } from '../../services/KeyService.js';
+import { type PointerServiceInterface, usePointer } from '../../services/PointerService.js';
+import { type RafServiceInterface, useRaf } from '../../services/RafService.js';
+import { type ResizeServiceInterface, useResize } from '../../services/ResizeService.js';
+import { type ScrollServiceInterface, useScroll } from '../../services/ScrollService.js';
+import { isDefined, isDev, isFunction } from '../../utils/is.js';
+import { noop } from '../../utils/noop.js';
 import { AbstractManager } from './AbstractManager.js';
-import { noop, isFunction, isDefined, isDev } from '../../utils/index.js';
 
 const SERVICES_MAP = {
   scrolled: useScroll,

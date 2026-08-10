@@ -1,7 +1,7 @@
+import type { Base, BaseConstructor, BaseProps } from '../Base/Base.js';
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseConstructor, BaseProps } from '../Base/index.js';
-import { useResize } from '../services/index.js';
-import { isDev, isArray } from '../utils/index.js';
+import { useResize } from '../services/ResizeService.js';
+import { isArray, isDev } from '../utils/is.js';
 
 /**
  * Test the breakpoins of the given Base instance and return the hook to call.

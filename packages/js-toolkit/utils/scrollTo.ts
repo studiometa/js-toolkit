@@ -1,7 +1,6 @@
-import { tween } from './tween.js';
-import type { TweenOptions } from './tween.js';
-import { isString, isNumber, isFunction, isDefined } from './is.js';
-import { lerp } from './math/index.js';
+import { isDefined, isFunction, isNumber, isString } from './is.js';
+import { lerp } from './math/lerp.js';
+import { tween, type TweenOptions } from './tween.js';
 
 export interface ScrollPosition {
   left: number;

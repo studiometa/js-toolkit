@@ -1,5 +1,5 @@
+import type { Base } from '../Base/Base.js';
 import { withMountOnMediaQuery } from './withMountOnMediaQuery.js';
-import type { Base } from '../Base/index.js';
 import { BaseDecorator, BaseInterface } from '../Base/types.js';
 
 /**

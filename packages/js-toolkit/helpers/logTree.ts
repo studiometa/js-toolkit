@@ -1,5 +1,5 @@
 import type { Base } from '../Base/Base.js';
-import { getInstances } from '../Base/index.js';
+import { getInstances } from '../Base/utils.js';
 
 /**
  * Build a tree structure from a flat set of instances using DOM containment.

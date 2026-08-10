@@ -1,5 +1,5 @@
+import type { BaseConstructor } from '../Base/Base.js';
 import { registerComponent } from '../helpers/registerComponent.js';
-import type { BaseConstructor } from '../Base/index.js';
 import type { ComponentLoadStrategy, ComponentManifest, ComponentManifestEntry } from './types.js';
 
 const COMPONENT_SELECTOR = '[data-component]';

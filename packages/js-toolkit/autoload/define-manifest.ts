@@ -1,4 +1,4 @@
-import type { BaseConstructor } from '../Base/index.js';
+import type { BaseConstructor } from '../Base/Base.js';
 import { DEFAULT_DIAGNOSTIC_PREFIX } from './loader.js';
 import type { ComponentLoadStrategy, ComponentManifest, ComponentManifestEntry } from './types.js';
 

@@ -1,4 +1,4 @@
-import type { BaseConstructor } from '../Base/index.js';
+import type { BaseConstructor } from '../Base/Base.js';
 
 /**
  * The load strategy that controls when a component's constructor is imported and registered.

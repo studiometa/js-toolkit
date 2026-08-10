@@ -1,8 +1,8 @@
+import type { Base, BaseConfig, BaseProps } from '../Base/Base.js';
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
-import { useResize } from '../services/index.js';
-import type { ResizeServiceProps } from '../services/index.js';
-import { isDev, startsWith } from '../utils/index.js';
+import { type ResizeServiceProps, useResize } from '../services/ResizeService.js';
+import { isDev } from '../utils/is.js';
+import { startsWith } from '../utils/string/startsWith.js';
 import { features } from '../Base/features.js';
 
 export interface WithBreakpointObserverProps extends BaseProps {

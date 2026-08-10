@@ -1,7 +1,8 @@
-import type { Base, BaseProps } from '../index.js';
+import { isArray } from '../../utils/is.js';
+import { dashCase, pascalCase } from '../../utils/string/changeCase.js';
+import type { Base, BaseProps } from '../Base.js';
+import { eventIsDefinedInConfig, eventIsNative, getEventTarget } from '../utils.js';
 import { getAllProperties } from '../../utils/object/getAllProperties.js';
-import { dashCase, isArray, pascalCase } from '../../utils/index.js';
-import { getEventTarget, eventIsNative, eventIsDefinedInConfig } from '../utils.js';
 import { AbstractManager } from './AbstractManager.js';
 import { normalizeRefName } from './RefsManager.js';
 import { features } from '../features.js';

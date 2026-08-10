@@ -1,6 +1,6 @@
-import type { Base, BaseConstructor, BaseAsyncConstructor, BaseEl } from '../index.js';
+import type { Base, BaseAsyncConstructor, BaseConstructor, BaseEl } from '../Base.js';
+import { addToQueue, getComponentElements } from '../utils.js';
 import { AbstractManager } from './AbstractManager.js';
-import { getComponentElements, addToQueue } from '../utils.js';
 
 /**
  * Children manager.

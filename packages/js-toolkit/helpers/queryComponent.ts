@@ -1,4 +1,4 @@
-import type { Base, BaseEl } from '../Base/index.js';
+import type { Base, BaseEl } from '../Base/Base.js';
 import { getInstances, hasInstance } from '../Base/utils.js';
 import { memo } from '../utils/memo.js';
 import { getAncestorWhere } from '../utils/dom/ancestors.js';

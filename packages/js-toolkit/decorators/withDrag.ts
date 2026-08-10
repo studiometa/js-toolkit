@@ -1,7 +1,10 @@
+import type { Base, BaseConfig, BaseProps } from '../Base/Base.js';
 import type { BaseDecorator, BaseInterface } from '../Base/types.js';
-import type { Base, BaseProps, BaseConfig } from '../Base/index.js';
-import type { DragServiceOptions, DragServiceProps } from '../services/index.js';
-import { useDrag } from '../services/index.js';
+import {
+  type DragServiceOptions,
+  type DragServiceProps,
+  useDrag,
+} from '../services/DragService.js';
 
 export type DragDecoratorOptions = DragServiceOptions & {
   target?: (this: Base, instance: Base) => HTMLElement;

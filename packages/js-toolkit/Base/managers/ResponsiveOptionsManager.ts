@@ -1,7 +1,6 @@
-import { OptionsManager, __getPropertyName } from './OptionsManager.js';
-import type { OptionObject } from './OptionsManager.js';
-import { useResize } from '../../services/index.js';
-import { isDev } from '../../utils/index.js';
+import { useResize } from '../../services/ResizeService.js';
+import { isDev } from '../../utils/is.js';
+import { __getPropertyName, type OptionObject, OptionsManager } from './OptionsManager.js';
 import { features } from '../features.js';
 
 export type ResponsiveOptionObject = OptionObject & { responsive?: boolean };
