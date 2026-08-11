@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>js-toolkit v4 — live demo</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script type="module" src="./main.ts"></script>
+  </head>
+  <body>
+    <h1>js-toolkit v4 prototype — live demo</h1>
+    <p>
+      Three components from
+      <code>@studiometa/ui</code>
+      , reimplemented on the v4 model: one registry, auto-mount on DOM insertion/ejection, bubbling
+      child events,
+      <code>$watchChildren</code>
+      , provide/inject.
+    </p>
+
+    <section class="todo" data-component="TodoList">
+      <h2>TodoList</h2>
+      <p>
+        Registry auto-mount (new items are plain DOM insertions), delegation (
+        <code>onTodoItemRemove</code>
+        ),
+        <code>$watchChildren</code>
+        , provide/inject for the count, native view transitions on add/remove.
+      </p>
+      <form>
+        <input data-ref="input" name="title" placeholder="Add an item…" autocomplete="off" />
+        <button>Add</button>
+      </form>
+      <ul data-ref="list">
+        <li data-component="TodoItem">
+          <span>Learn the v4 registry</span>
+          <button data-ref="remove" type="button" aria-label="Remove">×</button>
+        </li>
+        <li data-component="TodoItem">
+          <span>Ship the prototype</span>
+          <button data-ref="remove" type="button" aria-label="Remove">×</button>
+        </li>
+      </ul>
+      <p>
+        <strong data-component="TodoCount"></strong>
+        — from a provide/inject reactive signal.
+      </p>
+    </section>
+
+    <section class="accordion" data-component="Accordion" data-option-autoclose>
+      <h2>Accordion</h2>
+      <p>
+        Native
+        <code>&lt;details&gt;</code>
+        /
+        <code>&lt;summary&gt;</code>
+        — works without JavaScript. The components only add the
+        <code>autoclose</code>
+        coordination: items announce
+        <code>open</code>
+        with a bubbling
+        <code>$emit</code>
+        , the parent closes the others. Remove
+        <code>data-option-autoclose</code>
+        to disable.
+      </p>
+      <details data-component="AccordionItem">
+        <summary>First panel</summary>
+        <div>Content of the first panel.</div>
+      </details>
+      <details data-component="AccordionItem">
+        <summary>Second panel</summary>
+        <div>Content of the second panel.</div>
+      </details>
+      <details data-component="AccordionItem">
+        <summary>Third panel</summary>
+        <div>Content of the third panel — try opening several with and without autoclose.</div>
+      </details>
+    </section>
+
+    <section class="slider" data-component="Slider">
+      <h2>Slider</h2>
+      <p>
+        CSS scroll-snap does the scrolling.
+        <code>Slider</code>
+        provides
+        <code>{ index, total }</code>
+        as a reactive signal;
+        <code>SliderCount</code>
+        injects it — no handshake, no
+        <code>connectChildren</code>
+        . Buttons emit a bubbling
+        <code>slide</code>
+        event caught by delegation. Add a slide from the console:
+        <code>
+          document.querySelector('[data-ref=wrapper]').insertAdjacentHTML('beforeend', '&lt;div
+          data-component=SliderItem&gt;new&lt;/div&gt;')
+        </code>
+        — the count follows.
+      </p>
+      <div data-ref="wrapper">
+        <div data-component="SliderItem">1</div>
+        <div data-component="SliderItem">2</div>
+        <div data-component="SliderItem">3</div>
+        <div data-component="SliderItem">4</div>
+        <div data-component="SliderItem">5</div>
+      </div>
+      <nav>
+        <button data-component="SliderBtn" data-option-direction="-1" type="button">
+          ← Previous
+        </button>
+        <button data-component="SliderBtn" data-option-direction="1" type="button">Next →</button>
+        <span data-component="SliderCount"></span>
+      </nav>
+    </section>
+
+    <section class="reveal">
+      <h2>
+        Mount strategies —
+        <code>data-mount</code>
+      </h2>
+      <p>
+        The registry decides
+        <em>when</em>
+        each instance mounts.
+        <code>Reveal</code>
+        declares
+        <code>mountStrategy: 'in-view'</code>
+        in its config, so every pass through the viewport is a full mount/destroy cycle and the
+        <code>mounted()</code>
+        cleanup runs each time — watch the counters as you scroll. The last box overrides the
+        component default with
+        <code>data-mount="visible"</code>
+        : it mounts once, on first sight, and stays mounted.
+      </p>
+      <div data-component="Reveal">waiting…</div>
+      <div data-component="Reveal">waiting…</div>
+      <div data-component="Reveal" data-mount="visible">waiting — mounts once</div>
+    </section>
+  </body>
+</html>

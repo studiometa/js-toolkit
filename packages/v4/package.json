@@ -1,0 +1,27 @@
+{
+  "name": "@studiometa/js-toolkit-v4",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "v4 prototype — tested in a real browser through Vitest browser mode",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:debug": "vitest --browser.headless=false",
+    "dev": "vite demo --host",
+    "build": "vite build demo",
+    "preview": "vite preview demo --host",
+    "typecheck": "tsgo --noEmit"
+  },
+  "devDependencies": {
+    "@rollup/plugin-swc": "^0.4.1",
+    "@swc/core": "^1.15.47",
+    "@vitest/browser": "4.1.2",
+    "@vitest/browser-playwright": "^4.1.2",
+    "playwright": "^1.50.0",
+    "vitest": "4.1.2"
+  }
+}

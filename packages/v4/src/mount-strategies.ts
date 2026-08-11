@@ -1,0 +1,119 @@
+import { scheduler } from './scheduler.js';
+
+/**
+ * When an instance mounts, independently of when its class was loaded.
+ *
+ * One-shot strategies mount once and stay mounted; reversible ones mount
+ * and unmount as their condition flips, which the lifecycle already
+ * supports — `$destroy()` is the reversible inverse of `$mount()`, and the
+ * same instance comes back.
+ *
+ * | strategy      | mounts when                       | reversible |
+ * | ------------- | --------------------------------- | ---------- |
+ * | `eager`       | the element enters the DOM        | no         |
+ * | `visible`     | it first intersects the viewport  | no         |
+ * | `in-view`     | it intersects the viewport        | yes        |
+ * | `idle`        | the main thread goes idle         | no         |
+ * | `interaction` | the user first aims at it         | no         |
+ * | `media:<q>`   | the media query matches           | yes        |
+ *
+ * `visible` and `in-view` are deliberately separate: re-mounting is right
+ * for a scroll animation and destructive for a map, a video or a form.
+ */
+export type MountStrategy =
+  | 'eager'
+  | 'visible'
+  | 'in-view'
+  | 'idle'
+  | 'interaction'
+  | `media:${string}`;
+
+export const MOUNT_ATTRIBUTE = 'data-mount';
+
+/**
+ * Intent events, so a component is mounted before the interaction it was
+ * waiting for completes: `pointerdown` precedes `click`, `focusin`
+ * precedes typing.
+ *
+ * Note that `pointerenter` also fires when an element appears under a
+ * resting cursor, which mounts it without the user having moved. That is
+ * intent as far as the pointer is concerned — it is over the element — but
+ * it does mean an element inserted under the mouse mounts immediately.
+ */
+const INTENT_EVENTS = ['pointerenter', 'pointerdown', 'focusin'] as const;
+
+export interface MountStrategyHooks {
+  mount(): void;
+  destroy(): void;
+}
+
+/**
+ * Start applying a strategy to one element, returning its teardown.
+ *
+ * Strategies never construct anything themselves: they only decide *when*
+ * to call the hooks the registry passes in, so a single canonical
+ * constructor stays registered per component name (issue #751).
+ */
+export function applyMountStrategy(
+  el: HTMLElement,
+  strategy: MountStrategy,
+  { mount, destroy }: MountStrategyHooks,
+): () => void {
+  if (strategy === 'visible' || strategy === 'in-view') {
+    const isReversible = strategy === 'in-view';
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          if (!isReversible) {
+            observer.disconnect();
+          }
+          mount();
+        } else if (isReversible) {
+          destroy();
+        }
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }
+
+  if (strategy === 'idle') {
+    // `requestIdleCallback` is not available everywhere; the background
+    // lane is already budgeted, so it is a fair fallback.
+    if (typeof requestIdleCallback !== 'function') {
+      const task = scheduler.background(mount);
+      return () => task.cancel();
+    }
+    const handle = requestIdleCallback(() => mount());
+    return () => cancelIdleCallback(handle);
+  }
+
+  if (strategy === 'interaction') {
+    const onIntent = () => {
+      teardown();
+      mount();
+    };
+    const teardown = () => {
+      for (const type of INTENT_EVENTS) {
+        el.removeEventListener(type, onIntent);
+      }
+    };
+    for (const type of INTENT_EVENTS) {
+      el.addEventListener(type, onIntent, { once: true });
+    }
+    return teardown;
+  }
+
+  if (strategy.startsWith('media:')) {
+    const query = matchMedia(strategy.slice('media:'.length));
+    const sync = () => (query.matches ? mount() : destroy());
+    query.addEventListener('change', sync);
+    sync();
+    return () => query.removeEventListener('change', sync);
+  }
+
+  // `eager`, and anything unrecognised: mount as soon as the scheduler's
+  // background lane gets to it.
+  const task = scheduler.background(mount);
+  return () => task.cancel();
+}

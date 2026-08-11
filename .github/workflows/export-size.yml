@@ -4,17 +4,30 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - 'packages/js-toolkit/**'
+      - 'packages/v4/**'
+      - 'scripts/**'
+      - 'package-lock.json'
+      - '.github/workflows/export-size.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
-  export-size:
-    runs-on: macos-latest
+  export_size:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: weareikko/export-size@1
         with:
-          fetch-depth: '0'
-      - uses: titouanmathis/export-size-action@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          build_script: npm run build-for-export-size
-          paths: dist
-          node-version: 24
+          # The publishable v3 package is assembled at the repository root
+          # `dist/` by the build script; the v4 prototype is measured straight
+          # from its TypeScript sources (esbuild resolves them), so both
+          # packages appear in the same report and can be compared export by
+          # export.
+          packages: |
+            @studiometa/js-toolkit:dist
+            @studiometa/js-toolkit-v4:packages/v4
+          build: npm run build-for-export-size
