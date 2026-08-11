@@ -90,8 +90,31 @@ RegistryEntry = {
 ```
 
 - `registerComponent(Ctor)` registers an eager entry. `registerManifest(...)` registers lazy entries into the same map. The autoload package layer stays; its loader, observers, and scheduler become the registry's own.
-- This gives #751 its home: one canonical constructor per name, and the registry interprets `data-mount` per element when it schedules a mount. No constructor wrapping, no identity conflicts. The `withMountWhenInView`-style decorators can later delegate to the same scheduler.
 - One name → one entry, like `customElements.define`. Collisions warn and are ignored.
+
+### Mount strategies (#751) — implemented
+
+`mountStrategy` is the answer to #751, and it lives in the registry rather than in a decorator.
+
+| strategy          | mounts when                      | reversible |
+| ----------------- | -------------------------------- | ---------- |
+| `eager` (default) | the element enters the DOM       | no         |
+| `visible`         | it first intersects the viewport | no         |
+| `in-view`         | it intersects the viewport       | yes        |
+| `idle`            | the main thread goes idle        | no         |
+| `interaction`     | the user first aims at it        | no         |
+| `media:<query>`   | the query matches                | yes        |
+
+A component declares its default with `config.mountStrategy`; any element overrides it with `data-mount`.
+
+The issue's open questions, answered:
+
+- **One canonical constructor.** Strategies never construct anything — they only decide _when_ to call the mount/destroy hooks the registry passes in. Nothing wraps the class, so the identity conflicts the issue describes cannot arise. The `withMountWhenInView` decorator is deleted rather than kept: with the framework owning this, a constructor-wrapping version would model the anti-pattern.
+- **One-shot vs reversible are separate values.** `visible` mounts once and stays; `in-view` mounts and unmounts as the element crosses the viewport. Re-mounting is right for a scroll animation and destructive for a map, a video or a form, so the choice is explicit rather than inferred.
+- **`interaction` uses intent**, not replay: `pointerenter`, `pointerdown` and `focusin` all precede the interaction they lead to, so the component is mounted before the click lands.
+- **Several components on one element** share the element's `data-mount`; a component needing its own policy states it in its config.
+- **A waiting component has no instance yet.** Construction happens on first mount, not on discovery, so it is invisible to `$query`, `$closest` and `$watchChildren` and announces nothing — consistent with "an instance exists because it is mounted".
+- **Teardown follows the element.** Strategies are disposed when their element leaves the document. A _moved_ element is handed back to the registry by that teardown: its addition record is scanned while the old strategy is still pending and is therefore skipped, so without the hand-back a move would end as a removal (caught by the browser suite).
 
 ## 3. Auto-mount on DOM insertion/ejection
 
