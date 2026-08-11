@@ -34,6 +34,11 @@ export const MOUNT_ATTRIBUTE = 'data-mount';
  * Intent events, so a component is mounted before the interaction it was
  * waiting for completes: `pointerdown` precedes `click`, `focusin`
  * precedes typing.
+ *
+ * Note that `pointerenter` also fires when an element appears under a
+ * resting cursor, which mounts it without the user having moved. That is
+ * intent as far as the pointer is concerned — it is over the element — but
+ * it does mean an element inserted under the mouse mounts immediately.
  */
 const INTENT_EVENTS = ['pointerenter', 'pointerdown', 'focusin'] as const;
 

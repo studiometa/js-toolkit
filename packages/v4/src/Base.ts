@@ -1,4 +1,5 @@
 import { Signal, injectContext, provideContext, type ContextKey } from './context.js';
+import { domVersion } from './dom-version.js';
 import { scheduler, type ScheduledTask } from './scheduler.js';
 import type { MountStrategy } from './mount-strategies.js';
 import { kebabCase, pascalCase, selectorFor } from './utils.js';
@@ -229,11 +230,28 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
   for (const definition of instance.$config.refs ?? []) {
     const isList = definition.endsWith('[]');
     const name = isList ? definition.slice(0, -2) : definition;
+    // Re-querying on every access is what keeps refs live, and it is the
+    // one place v4 was measurably slower than v3's mount-time snapshot.
+    // The lookup is cached against the document version instead: still
+    // live, since any structural change invalidates it, but a repeated
+    // read is a property read again.
+    let cachedVersion = -1;
+    let cached: HTMLElement[] = [];
     Object.defineProperty(refs, name, {
       enumerable: true,
       get() {
-        const elements = queryRefs(instance.$el, name);
-        return isList ? elements : elements[0];
+        // A detached subtree produces no mutation records, so nothing
+        // would ever invalidate a cache built from it.
+        if (!instance.$el.isConnected) {
+          const elements = queryRefs(instance.$el, name);
+          return isList ? elements : elements[0];
+        }
+        const version = domVersion();
+        if (version !== cachedVersion) {
+          cachedVersion = version;
+          cached = queryRefs(instance.$el, name);
+        }
+        return isList ? cached : cached[0];
       },
     });
   }

@@ -128,7 +128,10 @@ describe('data-mount="in-view"', () => {
 describe('data-mount="interaction"', () => {
   it('waits for the user to aim at the element', async () => {
     const { name } = defineTracked();
-    const el = render(name, { 'data-mount': 'interaction' });
+    // Parked away from the pointer on purpose: `pointerenter` counts as
+    // intent, and it fires the moment an element appears under a resting
+    // cursor — which the top-left corner of the viewport often is.
+    const el = render(name, { 'data-mount': 'interaction' }, OFFSCREEN);
     await settle();
     expect(el.__base__?.get(name)).toBeUndefined();
 
