@@ -158,20 +158,26 @@ export class Scheduler {
       return;
     }
     this.#isScheduled = true;
-    requestAnimationFrame(() => this.#flush());
+    // The timestamp is carried through rather than re-read: it is the
+    // frame's own time, identical for every callback in that frame, and it
+    // is the clock the Web Animations API and `requestVideoFrameCallback`
+    // are expressed in. A `performance.now()` taken once the flush starts
+    // drifts against anything animating on `document.timeline`.
+    requestAnimationFrame((frameTime) => this.#flush(frameTime));
   }
 
-  #flush(): void {
+  #flush(frameTime: DOMHighResTimeStamp): void {
     this.#isScheduled = false;
+    // Wall time from the top of the flush, for the background budget only.
     const start = performance.now();
 
     if (this.#frameCallbacks.size > 0) {
       this.#phase = 'frame';
       const props: FrameProps = {
-        time: start,
-        delta: this.#lastFrameTime < 0 ? 0 : start - this.#lastFrameTime,
+        time: frameTime,
+        delta: this.#lastFrameTime < 0 ? 0 : frameTime - this.#lastFrameTime,
       };
-      this.#lastFrameTime = start;
+      this.#lastFrameTime = frameTime;
       for (const callback of this.#frameCallbacks) {
         try {
           callback(props);

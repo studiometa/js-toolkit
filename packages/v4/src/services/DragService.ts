@@ -1,5 +1,6 @@
 import { scheduler } from '../scheduler.js';
-import { createService, type Service } from './Service.js';
+import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
+import { createService, perTarget, type Service } from './Service.js';
 
 /**
  * Where a drag is in its cycle:
@@ -8,6 +9,10 @@ import { createService, type Service } from './Service.js';
  */
 export type DragMode = 'start' | 'drag' | 'drop' | 'inertia' | 'stop';
 
+/**
+ * Props are flat, one per axis, the same `<name>X`/`<name>Y` spelling the
+ * scroll and pointer services use.
+ */
 export interface DragProps {
   mode: DragMode;
   target: HTMLElement;
@@ -19,13 +24,17 @@ export interface DragProps {
   x: number;
   y: number;
   /** Movement since the previous update. */
-  delta: { x: number; y: number };
+  deltaX: number;
+  deltaY: number;
   /** Where the drag started. */
-  origin: { x: number; y: number };
-  /** Distance from `origin` to the current position. */
-  distance: { x: number; y: number };
+  originX: number;
+  originY: number;
+  /** Distance from the origin to the current position. */
+  distanceX: number;
+  distanceY: number;
   /** Position the inertia is heading to. */
-  final: { x: number; y: number };
+  finalX: number;
+  finalY: number;
 }
 
 export interface DragOptions {
@@ -62,10 +71,14 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
     hasInertia: false,
     x: 0,
     y: 0,
-    delta: { x: 0, y: 0 },
-    origin: { x: 0, y: 0 },
-    distance: { x: 0, y: 0 },
-    final: { x: 0, y: 0 },
+    deltaX: 0,
+    deltaY: 0,
+    originX: 0,
+    originY: 0,
+    distanceX: 0,
+    distanceY: 0,
+    finalX: 0,
+    finalY: 0,
   };
 
   return createService<DragProps>({
@@ -89,16 +102,16 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
       // The inertia runs on the scheduler's frame tick, like every other
       // continuous source in v4 — v3 borrowed the raf service for it.
       function tick() {
-        props.x += props.delta.x;
-        props.y += props.delta.y;
-        props.distance.x = props.x - props.origin.x;
-        props.distance.y = props.y - props.origin.y;
-        props.delta.x *= dampFactor;
-        props.delta.y *= dampFactor;
+        props.x += props.deltaX;
+        props.y += props.deltaY;
+        props.distanceX = props.x - props.originX;
+        props.distanceY = props.y - props.originY;
+        props.deltaX *= dampFactor;
+        props.deltaY *= dampFactor;
         props.mode = 'inertia';
         emit(props);
 
-        if (Math.abs(props.delta.x) < 0.1 && Math.abs(props.delta.y) < 0.1) {
+        if (Math.abs(props.deltaX) < 0.1 && Math.abs(props.deltaY) < 0.1) {
           stop();
         }
       }
@@ -108,10 +121,10 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
           return;
         }
         stopInertia();
-        props.x = props.origin.x = props.final.x = x;
-        props.y = props.origin.y = props.final.y = y;
-        props.delta.x = props.delta.y = 0;
-        props.distance.x = props.distance.y = 0;
+        props.x = props.originX = props.finalX = x;
+        props.y = props.originY = props.finalY = y;
+        props.deltaX = props.deltaY = 0;
+        props.distanceX = props.distanceY = 0;
         props.isGrabbing = true;
         props.hasInertia = false;
         props.mode = 'start';
@@ -120,12 +133,12 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
       }
 
       function drag(event: PointerEvent) {
-        props.delta.x = event.clientX - props.x;
-        props.delta.y = event.clientY - props.y;
-        props.x = props.final.x = event.clientX;
-        props.y = props.final.y = event.clientY;
-        props.distance.x = props.x - props.origin.x;
-        props.distance.y = props.y - props.origin.y;
+        props.deltaX = event.clientX - props.x;
+        props.deltaY = event.clientY - props.y;
+        props.x = props.finalX = event.clientX;
+        props.y = props.finalY = event.clientY;
+        props.distanceX = props.x - props.originX;
+        props.distanceY = props.y - props.originY;
         props.mode = 'drag';
         emit(props);
       }
@@ -138,8 +151,8 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
         props.isGrabbing = false;
         props.hasInertia = true;
         props.mode = 'drop';
-        props.final.x = inertiaFinalValue(props.x, props.delta.x, dampFactor);
-        props.final.y = inertiaFinalValue(props.y, props.delta.y, dampFactor);
+        props.finalX = inertiaFinalValue(props.x, props.deltaX, dampFactor);
+        props.finalY = inertiaFinalValue(props.y, props.deltaY, dampFactor);
         emit(props);
         unsubscribeFrames = scheduler.frame(tick);
       }
@@ -169,8 +182,8 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
 
       function onClick(event: Event) {
         if (
-          Math.abs(props.distance.x) > dragThreshold ||
-          Math.abs(props.distance.y) > dragThreshold
+          Math.abs(props.distanceX) > dragThreshold ||
+          Math.abs(props.distanceY) > dragThreshold
         ) {
           // Dragging a link or a button must not follow it. Captured and
           // stopped immediately, before any handler down the tree sees it.
@@ -210,15 +223,15 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
   });
 }
 
-const services = new WeakMap<HTMLElement, Service<DragProps>>();
+const dragServices = /* @__PURE__ */ perTarget(createDragService);
 
 /**
  * Use the drag service for an element.
  *
  * ```js
- * const unsubscribe = useDrag(el).add(({ mode, distance }) => {
+ * const unsubscribe = useDrag(el).add(({ mode, distanceX }) => {
  *   if (mode === 'drag') {
- *     el.style.setProperty('--x', `${distance.x}px`);
+ *     el.style.setProperty('--x', `${distanceX}px`);
  *   }
  * });
  * ```
@@ -228,10 +241,44 @@ const services = new WeakMap<HTMLElement, Service<DragProps>>();
  * apply.
  */
 export function useDrag(target: HTMLElement, options: DragOptions = {}): Service<DragProps> {
-  let service = services.get(target);
-  if (!service) {
-    service = createDragService(target, options);
-    services.set(target, service);
-  }
-  return service;
+  return dragServices(target, options);
 }
+
+/** The method `withDrag()` subscribes for the component. */
+export interface DragHook {
+  dragged?(props: DragProps): void;
+}
+
+export type DragMixinOptions = DragOptions & ServiceMixinOptions<HTMLElement>;
+
+/**
+ * Subscribe a component's `dragged()` method to the drag service, for its
+ * whole mount cycle:
+ *
+ * ```js
+ * class Card extends withDrag(Base) {
+ *   dragged({ mode, distanceX }) {
+ *     if (mode === 'drag') {
+ *       this.$el.style.setProperty('--x', `${distanceX}px`);
+ *     }
+ *   }
+ * }
+ *
+ * // A handle inside the component, and a gentler inertia.
+ * class Sheet extends withDrag(Base, {
+ *   target: (instance) => instance.$el.querySelector('.handle'),
+ *   dampFactor: 0.95,
+ * }) {
+ *   dragged(props) { … }
+ * }
+ * ```
+ *
+ * The component's root element is the default target — the one hook whose
+ * default is the host, as Lit's `ResizeController` does. The decorator form
+ * `@withDrag()` is the same thing with a build step.
+ */
+export const withDrag = /* @__PURE__ */ createServiceMixin<DragHook, HTMLElement, DragOptions>({
+  hook: 'dragged',
+  target: (instance) => instance.$el,
+  use: (target, options) => useDrag(target, options),
+});

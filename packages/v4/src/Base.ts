@@ -2,12 +2,6 @@ import { Signal, injectContext, provideContext, type ContextKey } from './contex
 import { domVersion } from './dom-version.js';
 import { scheduler, type ScheduledTask } from './scheduler.js';
 import type { MountStrategy } from './mount-strategies.js';
-import { useDrag, type DragProps } from './services/DragService.js';
-import { usePointer, type PointerProps } from './services/PointerService.js';
-import { useRaf, type RafProps, type RafRender } from './services/RafService.js';
-import { useResize, type ResizeProps } from './services/ResizeService.js';
-import { useScroll, type ScrollProps } from './services/ScrollService.js';
-import type { Service } from './services/Service.js';
 import { kebabCase, pascalCase, selectorFor } from './utils.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
 
@@ -365,56 +359,10 @@ function getHandlerNames(instance: Base): Set<string> {
 
 /**
  * `mounted()` may return one cleanup, several, nothing — or a promise of
- * those.
+ * those. The shape nests, so a subclass composes with what it extends
+ * without unpacking it: `return [super.mounted(), () => { … }]`.
  */
-export type MountedReturn =
-  | void
-  | (() => void)
-  | Array<() => void>
-  | Promise<void | (() => void) | Array<() => void>>;
-
-export type ServiceHook = 'ticked' | 'scrolled' | 'resized' | 'moved' | 'dragged';
-
-/**
- * The service each hook method subscribes to.
- *
- * Services are lazy and reference-counted, so this map is also what decides
- * when they run: a service starts with the first component declaring its
- * hook and stops with the last one — a page whose components never tick
- * requests no frame at all.
- */
-const SERVICE_HOOKS: Array<[ServiceHook, (instance: Base) => Service<unknown>]> = [
-  ['ticked', () => useRaf()],
-  ['scrolled', () => useScroll()],
-  ['resized', () => useResize()],
-  ['moved', () => usePointer()],
-  // The only per-element service: a component drags its own root.
-  ['dragged', (instance) => useDrag(instance.$el)],
-];
-
-/**
- * Service hooks. A component declaring one of these methods is subscribed to
- * the matching service on `$mount()` and unsubscribed on `$destroy()` —
- * nothing to enable, nothing to release.
- *
- * They are declared on a merged interface rather than on the class, because
- * a class property cannot be overridden by a method in a subclass (TS2425),
- * and a hook is written as a method. Nothing here exists at runtime: an
- * undeclared hook costs nothing, and a declared one is typed against the
- * props of its service.
- *
- * The members the merge adds are optional and never initialized, which is
- * the only thing the merge rule guards against; `T` goes unused, but a
- * merged interface has to repeat the class's type parameters exactly.
- */
-// oxlint-disable-next-line typescript/no-unsafe-declaration-merging, no-unused-vars
-export interface Base<T extends BaseProps = BaseProps> {
-  ticked?(props: RafProps): void | RafRender;
-  scrolled?(props: ScrollProps): void;
-  resized?(props: ResizeProps): void;
-  moved?(props: PointerProps): void;
-  dragged?(props: DragProps): void;
-}
+export type MountedReturn = void | (() => void) | MountedReturn[] | Promise<MountedReturn>;
 
 export class Base<T extends BaseProps = BaseProps> {
   static config: BaseConfig = { name: 'Base' };
@@ -481,6 +429,13 @@ export class Base<T extends BaseProps = BaseProps> {
    *       const signal = await this.$inject(SomeContext);
    *       return signal.subscribe((value) => { … });
    *     }
+   *
+   * A component extending a mixin returns what it extends along with its
+   * own, in any nesting:
+   *
+   *     mounted() {
+   *       return [super.mounted(), () => { … }];
+   *     }
    */
   mounted(): MountedReturn {}
 
@@ -499,7 +454,6 @@ export class Base<T extends BaseProps = BaseProps> {
       return this;
     }
     this.#bindHandlers();
-    this.#bindServices();
     this.#isMounted = true;
     this.#collectCleanup(this.mounted());
     // Announce existence to every ancestor (objective 5, layer 1).
@@ -739,10 +693,8 @@ export class Base<T extends BaseProps = BaseProps> {
       return;
     }
     if (Array.isArray(result)) {
-      for (const fn of result) {
-        if (typeof fn === 'function') {
-          this.#collectCleanup(fn);
-        }
+      for (const item of result) {
+        this.#collectCleanup(item);
       }
       return;
     }
@@ -750,27 +702,6 @@ export class Base<T extends BaseProps = BaseProps> {
       result
         .then((resolved) => this.#collectCleanup(resolved))
         .catch((error) => console.error('[base] `mounted()` failed:', error));
-    }
-  }
-
-  /**
-   * Subscribe the component to every service whose hook it declares.
-   *
-   * Per mount cycle, like `#bindHandlers()`: a destroyed instance leaves no
-   * subscription behind, and a remounted one — an element moved, an
-   * `in-view` component crossing the viewport — subscribes again. The
-   * services count their subscribers to decide whether to run at all, so an
-   * asymmetry here would keep a listener, an observer or the frame loop
-   * alive for a component that no longer exists.
-   */
-  #bindServices(): void {
-    const self = this as unknown as Record<string, ((props: unknown) => unknown) | undefined>;
-    for (const [hook, use] of SERVICE_HOOKS) {
-      const method = self[hook];
-      if (typeof method !== 'function') {
-        continue;
-      }
-      this.#destroyCallbacks.push(use(this).add((props) => method.call(this, props)));
     }
   }
 

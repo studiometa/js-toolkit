@@ -36,11 +36,11 @@ export interface ServiceDefinition<T> {
   /**
    * Start observing, returning the teardown.
    *
-   * `emit` fans the props out to every subscriber and returns what they
-   * returned, which is how `useRaf()` collects the render functions its
-   * callbacks send back.
+   * `emit` fans the props out to every subscriber. What a subscriber returns
+   * is between it and its service — `useRaf()` collects render functions
+   * that way — so nothing comes back here.
    */
-  start(emit: (props: T) => unknown[]): () => void;
+  start(emit: (props: T) => void): () => void;
 }
 
 /**
@@ -50,18 +50,16 @@ export function createService<T>({ props, start }: ServiceDefinition<T>): Servic
   const callbacks = new Set<ServiceCallback<T>>();
   let stop: (() => void) | null = null;
 
-  function emit(current: T): unknown[] {
-    const results: unknown[] = [];
+  function emit(current: T): void {
     for (const callback of callbacks) {
       try {
-        results.push(callback(current));
+        callback(current);
       } catch (error) {
         // One broken component must not deprive the others of the service,
         // which for a per-frame source would mean every frame from now on.
         console.error('[service] Subscriber failed:', error);
       }
     }
-    return results;
   }
 
   return {
@@ -78,5 +76,33 @@ export function createService<T>({ props, start }: ServiceDefinition<T>): Servic
         stop = null;
       };
     },
+  };
+}
+
+/**
+ * Key a service by what it observes: one instance per target, held in a
+ * `WeakMap` so a target and its service are collected together.
+ *
+ * The reason is lifecycle bookkeeping, not throughput. Reference counting
+ * only means something against a target: `useResize(a)` losing its last
+ * subscriber must disconnect the observer watching `a` and leave the one
+ * watching `b` alone, which a single shared observer could not do. Grouping
+ * targets behind one observer is measurably indifferent (`Service.bench.ts`),
+ * so nothing here tries to.
+ *
+ * Extra arguments are the ones of the first call for a target — a second
+ * caller joins the running service rather than reconfiguring it.
+ */
+export function perTarget<Target extends WeakKey, Args extends unknown[], T>(
+  create: (target: Target, ...args: Args) => Service<T>,
+): (target: Target, ...args: Args) => Service<T> {
+  const services = new WeakMap<Target, Service<T>>();
+  return (target, ...args) => {
+    let service = services.get(target);
+    if (!service) {
+      service = create(target, ...args);
+      services.set(target, service);
+    }
+    return service;
   };
 }

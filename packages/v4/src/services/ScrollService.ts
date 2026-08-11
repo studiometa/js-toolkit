@@ -1,62 +1,102 @@
 import { scheduler, type ScheduledTask } from '../scheduler.js';
-import { createService, type Service } from './Service.js';
+import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
+import { createService, perTarget, type Service } from './Service.js';
 
-export type ScrollDirectionX = 'LEFT' | 'RIGHT' | 'NONE';
-export type ScrollDirectionY = 'UP' | 'DOWN' | 'NONE';
+/** Anything that scrolls: the window, or an element with an overflow. */
+export type ScrollTarget = Element | Window;
 
+/**
+ * Props are flat, one per axis, with v3's spelling: a handler destructures
+ * what it needs (`{ deltaY, isDown }`) instead of reaching through a group.
+ */
 export interface ScrollProps {
   x: number;
   y: number;
+  /** Whether the axis moved in this update. */
+  changedX: boolean;
+  changedY: boolean;
   /** Position at the previous update. */
-  last: { x: number; y: number };
-  delta: { x: number; y: number };
+  lastX: number;
+  lastY: number;
+  deltaX: number;
+  deltaY: number;
   /** Furthest scrollable position, `0` when the axis does not scroll. */
-  max: { x: number; y: number };
-  /** Position over `max`, from `0` to `1`. */
-  progress: { x: number; y: number };
-  direction: { x: ScrollDirectionX; y: ScrollDirectionY };
+  maxX: number;
+  maxY: number;
+  /** Position over the maximum, from `0` to `1`. */
+  progressX: number;
+  progressY: number;
+  isUp: boolean;
+  isRight: boolean;
+  isDown: boolean;
+  isLeft: boolean;
 }
 
-function directionX(delta: number): ScrollDirectionX {
-  if (delta > 0) return 'RIGHT';
-  if (delta < 0) return 'LEFT';
-  return 'NONE';
+/**
+ * Where the target stands and how far it can go. The window scrolls the
+ * document, so its maximums come from the scrolling element rather than from
+ * the window itself.
+ */
+function measure(target: ScrollTarget) {
+  if (target instanceof Window) {
+    const scrollingElement = document.scrollingElement ?? document.documentElement;
+    return {
+      x: target.scrollX,
+      y: target.scrollY,
+      maxX: scrollingElement.scrollWidth - target.innerWidth,
+      maxY: scrollingElement.scrollHeight - target.innerHeight,
+    };
+  }
+  return {
+    x: target.scrollLeft,
+    y: target.scrollTop,
+    maxX: target.scrollWidth - target.clientWidth,
+    maxY: target.scrollHeight - target.clientHeight,
+  };
 }
 
-function directionY(delta: number): ScrollDirectionY {
-  if (delta > 0) return 'DOWN';
-  if (delta < 0) return 'UP';
-  return 'NONE';
-}
-
-function createScrollService(): Service<ScrollProps> {
+function createScrollService(target: ScrollTarget): Service<ScrollProps> {
+  const initial = measure(target);
   const props: ScrollProps = {
-    x: window.scrollX,
-    y: window.scrollY,
-    last: { x: window.scrollX, y: window.scrollY },
-    delta: { x: 0, y: 0 },
-    max: { x: 0, y: 0 },
-    progress: { x: 0, y: 0 },
-    direction: { x: 'NONE', y: 'NONE' },
+    x: initial.x,
+    y: initial.y,
+    changedX: false,
+    changedY: false,
+    lastX: initial.x,
+    lastY: initial.y,
+    deltaX: 0,
+    deltaY: 0,
+    maxX: initial.maxX,
+    maxY: initial.maxY,
+    progressX: initial.maxX === 0 ? 1 : initial.x / initial.maxX,
+    progressY: initial.maxY === 0 ? 1 : initial.y / initial.maxY,
+    isUp: false,
+    isRight: false,
+    isDown: false,
+    isLeft: false,
   };
 
   function update(): ScrollProps {
     const lastX = props.x;
     const lastY = props.y;
-    const scrollingElement = document.scrollingElement ?? document.documentElement;
+    const { x, y, maxX, maxY } = measure(target);
 
-    props.x = window.scrollX;
-    props.y = window.scrollY;
-    props.last.x = lastX;
-    props.last.y = lastY;
-    props.delta.x = props.x - lastX;
-    props.delta.y = props.y - lastY;
-    props.max.x = scrollingElement.scrollWidth - window.innerWidth;
-    props.max.y = scrollingElement.scrollHeight - window.innerHeight;
-    props.progress.x = props.max.x === 0 ? 1 : props.x / props.max.x;
-    props.progress.y = props.max.y === 0 ? 1 : props.y / props.max.y;
-    props.direction.x = directionX(props.delta.x);
-    props.direction.y = directionY(props.delta.y);
+    props.x = x;
+    props.y = y;
+    props.changedX = x !== lastX;
+    props.changedY = y !== lastY;
+    props.lastX = lastX;
+    props.lastY = lastY;
+    props.deltaX = x - lastX;
+    props.deltaY = y - lastY;
+    props.maxX = maxX;
+    props.maxY = maxY;
+    props.progressX = maxX === 0 ? 1 : x / maxX;
+    props.progressY = maxY === 0 ? 1 : y / maxY;
+    props.isUp = y < lastY;
+    props.isRight = x > lastX;
+    props.isDown = y > lastY;
+    props.isLeft = x < lastX;
 
     return props;
   }
@@ -76,37 +116,85 @@ function createScrollService(): Service<ScrollProps> {
       };
 
       // Refresh before the first subscriber reads `props()`, and pick up the
-      // scroll maximums of the document as it is now.
+      // maximums of the target as it is now.
       update();
-      // The window, not the document in the capture phase: the service
-      // reports the document scroll, so an inner scroller triggering it
-      // would only ever emit unchanged props.
-      window.addEventListener('scroll', onScroll, { passive: true });
+      // On the target itself: `scroll` does not bubble, so listening here
+      // reports this scroller and no other — an inner one would otherwise
+      // wake the service to emit unchanged props.
+      target.addEventListener('scroll', onScroll, { passive: true });
       // Resizing changes the maximums, and therefore the progress.
       window.addEventListener('resize', onScroll, { passive: true });
 
       return () => {
         task?.cancel();
         task = null;
-        window.removeEventListener('scroll', onScroll);
+        target.removeEventListener('scroll', onScroll);
         window.removeEventListener('resize', onScroll);
       };
     },
   });
 }
 
-let service: Service<ScrollProps> | undefined;
+const scrollServices = /* @__PURE__ */ perTarget(createScrollService);
 
 /**
- * Use the scroll service.
+ * Use the scroll service for a target, the window by default.
  *
  * ```js
- * const unsubscribe = useScroll().add(({ y, progress, direction }) => {
- *   el.classList.toggle('is-hidden', direction.y === 'DOWN');
+ * const unsubscribe = useScroll().add(({ y, progressY, isDown }) => {
+ *   el.classList.toggle('is-hidden', isDown);
  * });
+ *
+ * useScroll(panel).add(({ progressY }) => { … });
  * ```
+ *
+ * One service per target: the props describe that scroller, and its
+ * listeners are released when its own last subscriber leaves.
  */
-export function useScroll(): Service<ScrollProps> {
-  service ??= createScrollService();
-  return service;
+export function useScroll(target: ScrollTarget = window): Service<ScrollProps> {
+  return scrollServices(target);
 }
+
+/**
+ * Use the scroll service for the window — `useScroll()` named, the way
+ * VueUse splits `useScroll(el)` from `useWindowScroll()`.
+ */
+export function useWindowScroll(): Service<ScrollProps> {
+  return scrollServices(window);
+}
+
+/** The method `withScroll()` subscribes for the component. */
+export interface ScrollHook {
+  scrolled?(props: ScrollProps): void;
+}
+
+export type ScrollMixinOptions = ServiceMixinOptions<ScrollTarget>;
+
+/**
+ * Subscribe a component's `scrolled()` method to the scroll service, for
+ * its whole mount cycle:
+ *
+ * ```js
+ * class Header extends withScroll(Base) {
+ *   scrolled({ isDown }) {
+ *     this.$el.classList.toggle('is-hidden', isDown);
+ *   }
+ * }
+ *
+ * // Another scroller, another method name — stack one per subscription.
+ * class Panel extends withScroll(Base, {
+ *   hook: 'panelScrolled',
+ *   target: (instance) => instance.$el,
+ * }) {
+ *   panelScrolled({ progressY }) { … }
+ * }
+ * ```
+ *
+ * The window is the default target, as `useScroll()` with no argument. The
+ * decorator form `@withScroll()` is the same thing with a build step.
+ */
+export const withScroll = /* @__PURE__ */ createServiceMixin<ScrollHook, ScrollTarget>({
+  hook: 'scrolled',
+  target: () => window,
+  use: (target) => useScroll(target),
+});

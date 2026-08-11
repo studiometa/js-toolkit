@@ -16,8 +16,10 @@
  *    with cancelable handles, error isolation, and a `viewTransition` lane.
  *    It is also the clock: services subscribe to its frame tick instead of
  *    owning a `requestAnimationFrame` loop.
- * 7. Lazy, reference-counted services — `ticked`, `scrolled`, `resized`,
- *    `moved` and `dragged` hooks, subscribed per mount cycle.
+ * 7. Lazy, reference-counted services, one instance per observed target —
+ *    subscribed by hand, or through the `withRaf`/`withScroll`/`withResize`/
+ *    `withPointer`/`withDrag` mixins and their `ticked`, `scrolled`,
+ *    `resized`, `moved` and `dragged` hooks, per mount cycle.
  *
  * Lifecycle: destroy !== terminate !== disconnected.
  * - disconnected (DOM fact) → `$destroy()`: reversible, the instance stays
@@ -49,7 +51,6 @@ export {
   type OptionDefinition,
   type OptionType,
   type RefEvent,
-  type ServiceHook,
   type WatchChildrenCallbacks,
 } from './Base.js';
 export {
@@ -73,26 +74,59 @@ export {
 } from './scheduler.js';
 export {
   useDrag,
+  withDrag,
+  type DragHook,
+  type DragMixinOptions,
   type DragMode,
   type DragOptions,
   type DragProps,
 } from './services/DragService.js';
-export { usePointer, type PointerProps } from './services/PointerService.js';
-export { useRaf, type RafProps, type RafRender } from './services/RafService.js';
+export {
+  createServiceMixin,
+  type MixedClass,
+  type ServiceMixin,
+  type ServiceMixinDefinition,
+  type ServiceMixinOptions,
+} from './services/mixin.js';
+export {
+  usePointer,
+  withPointer,
+  type PointerHook,
+  type PointerMixinOptions,
+  type PointerProps,
+} from './services/PointerService.js';
+export {
+  useRaf,
+  withRaf,
+  type RafHook,
+  type RafMixinOptions,
+  type RafProps,
+  type RafRender,
+} from './services/RafService.js';
 export {
   BREAKPOINTS,
+  getBreakpoints,
+  setBreakpoints,
   useResize,
+  useWindowSize,
+  withResize,
+  type ResizeHook,
+  type ResizeMixinOptions,
   type ResizeOrientation,
   type ResizeProps,
 } from './services/ResizeService.js';
 export {
   useScroll,
-  type ScrollDirectionX,
-  type ScrollDirectionY,
+  useWindowScroll,
+  withScroll,
+  type ScrollHook,
+  type ScrollMixinOptions,
   type ScrollProps,
+  type ScrollTarget,
 } from './services/ScrollService.js';
 export {
   createService,
+  perTarget,
   type Service,
   type ServiceCallback,
   type ServiceDefinition,

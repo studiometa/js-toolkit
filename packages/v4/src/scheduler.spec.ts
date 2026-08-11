@@ -77,6 +77,32 @@ describe('scheduler.frame', () => {
     expect(props[1].time).toBeGreaterThan(props[0].time);
   });
 
+  it('reports the frame timestamp, shared by every subscriber', async () => {
+    // Nothing pending, so the first flush below belongs to the frame this
+    // test requests and to no earlier one.
+    await scheduler.whenIdle();
+    await nextFrame();
+
+    const seen: number[] = [];
+    const offOne = scheduler.frame(({ time }) => seen.push(time));
+    const offTwo = scheduler.frame(({ time }) => seen.push(time));
+    // Requested in the same task as the subscriptions, so this callback and
+    // the scheduler's flush are in the same frame batch — and every callback
+    // of a batch is handed the very same timestamp.
+    const rafTime = await new Promise<number>((resolve) => requestAnimationFrame(resolve));
+    offOne();
+    offTwo();
+
+    expect(seen.length).toBeGreaterThanOrEqual(2);
+    // Both subscribers observe one frame's time, not two readings of a clock.
+    expect(seen[0]).toBe(seen[1]);
+    // And it is the frame's own timestamp. Compared against rAF's rather
+    // than `performance.now()` on purpose: a `now()` read at the top of the
+    // flush would land a fraction of a millisecond away and pass any
+    // tolerance, while drifting against `document.timeline` all the same.
+    expect(seen[0]).toBe(rafTime);
+  });
+
   it('stops calling a callback once it unsubscribes', async () => {
     let ticks = 0;
     const unsubscribe = scheduler.frame(() => {

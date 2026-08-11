@@ -1,4 +1,5 @@
 import { scheduler, type FrameProps } from '../scheduler.js';
+import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
 import { createService, type Service } from './Service.js';
 
 /**
@@ -15,8 +16,12 @@ export type RafRender = (props: RafProps) => void;
 
 function createRafService(): Service<RafProps> {
   let props: RafProps = { time: performance.now(), delta: 0 };
+  // Collected here rather than through the fan-out: returning a value to the
+  // service is this service's own convention, not something the shared
+  // primitive knows about.
+  const renders: RafRender[] = [];
 
-  return createService<RafProps>({
+  const service = createService<RafProps>({
     props: () => props,
     start(emit) {
       return scheduler.frame((frameProps) => {
@@ -26,12 +31,13 @@ function createRafService(): Service<RafProps> {
         // full of animations costs one layout per frame instead of one per
         // component.
         scheduler.read(() => {
-          const renders = emit(frameProps).filter(
-            (result): result is RafRender => typeof result === 'function',
-          );
+          renders.length = 0;
+          emit(frameProps);
           if (renders.length > 0) {
+            const batch = [...renders];
+            renders.length = 0;
             scheduler.write(() => {
-              for (const render of renders) {
+              for (const render of batch) {
                 render(frameProps);
               }
             });
@@ -40,6 +46,18 @@ function createRafService(): Service<RafProps> {
       });
     },
   });
+
+  return {
+    props: service.props,
+    add(callback) {
+      return service.add((frameProps) => {
+        const render = callback(frameProps);
+        if (typeof render === 'function') {
+          renders.push(render as RafRender);
+        }
+      });
+    },
+  };
 }
 
 let service: Service<RafProps> | undefined;
@@ -64,3 +82,34 @@ export function useRaf(): Service<RafProps> {
   service ??= createRafService();
   return service;
 }
+
+/** The method `withRaf()` subscribes for the component. */
+export interface RafHook {
+  ticked?(props: RafProps): void | RafRender;
+}
+
+export type RafMixinOptions = ServiceMixinOptions<void>;
+
+/**
+ * Subscribe a component's `ticked()` method to the frame service, for its
+ * whole mount cycle:
+ *
+ * ```js
+ * class Marquee extends withRaf(Base) {
+ *   ticked({ delta }) {
+ *     const width = this.$el.offsetWidth; // read phase
+ *     return () => {                      // write phase
+ *       this.$el.style.setProperty('--x', `${(this.x += delta) % width}px`);
+ *     };
+ *   }
+ * }
+ * ```
+ *
+ * There is nothing to target: the frame is the framework's clock. The
+ * decorator form `@withRaf()` is the same thing with a build step.
+ */
+export const withRaf = /* @__PURE__ */ createServiceMixin<RafHook, void>({
+  hook: 'ticked',
+  target: () => undefined,
+  use: () => useRaf(),
+});
