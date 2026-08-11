@@ -236,40 +236,49 @@ v3.9 has four independent scheduling mechanisms: `domScheduler` (microtask flush
 
 ### v4 design
 
-One scheduler with four phases per frame:
+One scheduler with **three phases inside the frame — `tick` → `read` → `write` — and one off-frame lane, `background`**:
 
 ```
 frame start (rAF)
-  1. read        — measure: layout reads only
-  2. write       — mutate: DOM writes only
-  3. afterWrite  — follow-up work after mutations
-  4. background  — budgeted lane: mount/update lifecycle work, mutation-record
-                   processing, manifest loading (absorbs SmartQueue)
-paint
+  1. tick        — fan-out to the clock's subscribers
+  2. read        — measure: layout reads only
+  3. write       — mutate: DOM writes only
+style / layout / paint
+
+between frames, on its own turns
+  background     — time-sliced lane: mount/update lifecycle work,
+                   mutation-record processing, manifest loading
+                   (absorbs SmartQueue)
 ```
+
+**Naming.** `read` and `write` are kept exactly as they are — fastdom, framesync and Motion spell them the same way, and they say precisely what they do. `background` becomes _more_ accurate once the lane runs off-frame: it maps literally onto `scheduler.postTask({ priority: 'background' })`. `frame(callback)` is now **`tick(callback)`**, with `TickProps`/`TickCallback`: the component hook is already `ticked()` and GSAP's shared clock is `gsap.ticker`, so `tick` is the word the API and the field already use, while `frame` collided with the `nextFrame()` helper — which keeps its name, since awaiting one frame is exactly what it does.
+
+**`afterWrite` is removed.** It had no consumers — neither in v4 nor in @studiometa/ui — and its name promised something `requestAnimationFrame` cannot deliver: the flush runs in a rAF callback, which the HTML "update the rendering" steps place _before_ style, layout and paint, so nothing scheduled inside the frame can observe post-layout geometry. The only in-frame hook that observes it is a `ResizeObserver` callback, which those same steps run after layout. Anything else that needs post-layout geometry waits a frame and measures in the next `read`, or uses an observer. Renaming a phase nobody called would only have kept the confusion alive under a new spelling.
 
 Properties:
 
-- **Frame alignment.** One flush per frame, at rAF. All reads batch before all writes, once, before paint. `RafService` no longer owns a loop; it subscribes to the scheduler's frame tick. Its `callback` → returned-render-function pattern maps directly to read → write phases (unchanged for users).
+- **Frame alignment.** One flush per frame, at rAF. All reads batch before all writes, once, before paint. `RafService` no longer owns a loop; it subscribes to the scheduler's tick. Its `callback` → returned-render-function pattern maps directly to read → write phases (unchanged for users).
 - **Anti-thrashing by construction.** A `read` scheduled from a `write` runs next frame; a `write` scheduled from a `read` runs in the same frame (fastdom semantics).
+- **Bounded phases — double-buffered queues.** Each phase runs the batch it was handed and nothing else: the queue array is swapped for an empty one when the phase starts, so a task scheduled into the phase that is _currently running_ lands in the next frame's batch. Draining a phase until it was empty (`while (queue.shift())`) let a `read` scheduling a `read` re-enter without end — 100,000 chained reads in one frame, no paint, no yield. Motion's render steps double-buffer for the same reason; Theatre.js instead caps recursion (warn at 10, throw at 100), which was rejected because it needs a limit to tune, surfaces as warnings and throws in the caller's code, and aborts work instead of letting it progress. Swapping the array costs nothing and preserves the cross-phase rule for free: the `write` batch is taken _after_ the reads ran, so a `write` scheduled from a `read` is still in it.
 - **Task handles.** Scheduling returns a cancelable handle whose promise resolves with the task's return value: `const box = await scheduler.read(() => el.getBoundingClientRect())`.
 - **Instance ownership.** Base sugar (`this.$read(fn)` / `this.$write(fn)`) ties tasks to the instance; terminate cancels its pending tasks. This is what makes "lifecycle equals DOM presence" safe — no stale writes to detached elements.
-- **Budgeted background lane.** The `background` phase absorbs `SmartQueue`: time-sliced with a per-frame budget, yielding through `scheduler.yield()` / `scheduler.postTask()` where available, deadline checks (`performance.now()`) as fallback. Registry mount scheduling, mutation-record processing, and lazy-manifest resolution all run here, so heavy hydration never blocks a frame.
+- **The background lane runs outside the frame.** It absorbs `SmartQueue`, and it is _not_ a phase of the flush. rAF callbacks run before style, layout and paint, so non-rendering work placed there competes with the frame no matter what budget guards it — and a budget measured from the top of the flush is spent by the tick callbacks and the render phases before the lane is reached. Measured: one tick subscriber busy 10 ms per frame (one running animation) starved the lane completely — zero background tasks in 400 ms, so nothing mounted while the animation ran. The lane now posts its own turns through `scheduler.postTask({ priority: 'background' })`, falling back to a `MessageChannel` message (`setTimeout` clamps nested timeouts; React's scheduler moved to a message channel for exactly this reason, facebook/react#16214). Each turn runs a 5 ms slice measured from the start of _the drain_, then hands the thread back and posts the next turn, so the work drains across as many turns as it needs. `isInputPending` is deliberately not used — that recommendation has been retracted. Prior art: Motion runs a second batcher on `queueMicrotask`, outside rAF, rather than budgeting inside it. Consequences: background work alone never requests an animation frame, and `whenIdle()` — which still counts background tasks as queued work — now resolves at the end of a background drain as well as at the end of a flush.
+- **Clamped tick delta.** `TickProps.delta` is clamped to `[1, 40]` ms, and the first tick after the loop wakes reports `1000/60`. Raw wall time includes everything a frame is not — a backgrounded tab, a long task, an iOS scroll pause — and every subscriber integrating it jumps by the whole gap. Motion clamps to `[1, 40]`, framesync to 40, rafz to 64; GSAP's `lagSmoothing` is the same idea. `TickProps.time` stays raw on purpose: it is rAF's own timestamp, the clock the Web Animations API and `requestVideoFrameCallback` are expressed in.
 - **Error isolation.** try/catch per task; a throwing task is reported and dropped, the flush continues, the scheduler never deadlocks.
-- **Source compatibility.** `domScheduler.read/write/afterWrite` keeps its shape — all current consumers (Slider children, ScrollAnimation, Draggable, `withScrolledInView`, `animate`) keep working; only flush timing changes. `useScheduler` custom-steps stays for non-DOM use. A synchronous escape (`flushSync`, and the `blocking` feature for tests) remains available.
+- **Source compatibility.** `domScheduler.read/write` keeps its shape — all current consumers (Slider children, ScrollAnimation, Draggable, `withScrolledInView`, `animate`) keep working; only flush timing changes, and `afterWrite` had no consumers to keep. `useScheduler` custom-steps stays for non-DOM use. A synchronous escape (`flushSync`, and the `blocking` feature for tests) remains available.
 
-### Frame subscriptions — `scheduler.frame(callback)` — implemented
+### Tick subscriptions — `scheduler.tick(callback)` — implemented
 
-The clock needs one more verb than `read`/`write`/`afterWrite`/`background`, because a service is not a task: it does not run once, it runs _while somebody is listening_.
+The clock needs one more verb than `read`/`write`/`background`, because a service is not a task: it does not run once, it runs _while somebody is listening_.
 
 ```js
-const unsubscribe = scheduler.frame(({ time, delta }) => { … });
+const unsubscribe = scheduler.tick(({ time, delta }) => { … });
 ```
 
-- Frame callbacks run **at the start of the flush, before `read`**, so anything they schedule belongs to the same frame. That is what preserves v3's `RafService` contract without a second loop: the callback measures in `read`, the render function it returns mutates in `write`, once, before paint.
-- The subscription is the only handle — no keys, no `remove(key)` — and it is what keeps the loop alive. `#schedule()` is called again at the end of a flush when a queue is non-empty **or** a frame subscriber remains, so the rAF loop stops on its own once the last one leaves. This answers the "idle-frame behavior" open point below: there is no permanent loop.
-- Frame subscribers are **not queued work**, so `whenIdle()` ignores them. A page with a live scroll animation would otherwise never be idle, and the test helper `settle()` would never return.
-- A throwing frame callback is reported and skipped, never unsubscribed: the subscription belongs to whoever created it, not to the frame that broke.
+- Tick callbacks run **at the start of the flush, before `read`**, so anything they schedule belongs to the same frame. That is what preserves v3's `RafService` contract without a second loop: the callback measures in `read`, the render function it returns mutates in `write`, once, before paint.
+- The subscription is the only handle — no keys, no `remove(key)` — and it is what keeps the loop alive. `#schedule()` is called again at the end of a flush when an in-frame queue is non-empty **or** a tick subscriber remains, so the rAF loop stops on its own once the last one leaves. This answers the "idle-frame behavior" open point below: there is no permanent loop. Pending `background` work is deliberately not part of that condition — it drains on its own turns and never holds a frame open.
+- Tick subscribers are **not queued work**, so `whenIdle()` ignores them. A page with a live scroll animation would otherwise never be idle, and the test helper `settle()` would never return.
+- A throwing tick callback is reported and skipped, never unsubscribed: the subscription belongs to whoever created it, not to the frame that broke.
 
 ### Native View Transitions move into core
 
@@ -281,11 +290,17 @@ The `viewTransition(update)` helper and its batching scheduler currently live in
 - Base sugar: `this.$viewTransition(fn)`, instance-owned and cancel-aware like `$read`/`$write`.
 - @studiometa/ui keeps only the declarative `ViewTransition` component, rebuilt on the core helper; Toaster/Dialog/Frame consume it unchanged.
 
+### A known future slot: measurement between `read` and `write`
+
+Motion has a phase between read and write — `resolveKeyframes` — that owns the unavoidable write/read/write/read pass some animations need to resolve their keyframes, amortised across every animating component so the whole page pays one layout instead of one each. It is where Framer's measured 2.5–6× came from, and it is the right shape for measurement-heavy mounting.
+
+Nothing in v4 needs it today, so nothing implements it: this project does not add speculative abstractions. It is recorded here as the slot to fill if measurement-heavy mounting ever appears — between `read` and `write`, batched, never as a per-component escape hatch.
+
 ### Open points
 
-- `afterWrite` timing: same frame after `write` (current behavior) vs after paint (double rAF / `requestPostAnimationFrame`-style). Same-frame is the compatible default; an explicit `afterPaint` phase could be added instead of changing `afterWrite`.
-- ~~Idle-frame behavior~~ **Decided:** no permanent rAF loop. The scheduler wakes on the first scheduled task or frame subscription and stops when both are gone.
-- Whether the frame loop keeps ticking during a running view transition (rendering is frozen while the snapshot is captured; long transitions should not starve `background` work).
+- ~~`afterWrite` timing~~ **Decided:** removed. rAF runs before style and layout, so no in-frame phase can observe post-layout geometry; a `ResizeObserver` callback is the only in-frame hook that can, and everything else measures in the next frame's `read`. An "after paint" phase (double rAF / `requestPostAnimationFrame`-style) can be added later on its own merits, under a name that does not promise same-frame layout.
+- ~~Idle-frame behavior~~ **Decided:** no permanent rAF loop. The scheduler wakes on the first scheduled in-frame task or tick subscription and stops when both are gone.
+- Whether the frame loop keeps ticking during a running view transition (rendering is frozen while the snapshot is captured; long transitions should not starve `background` work — less pressing now that the lane runs off-frame).
 
 ## 8. Services — lazy, reference-counted — implemented
 
@@ -296,7 +311,7 @@ A service is a shared source of props components subscribe to: `ticked`, `scroll
 - **Scoped to a target.** `useScroll(target?)` takes an element or the window, `useResize(target?)` an element, `useDrag(el)` its element; `useWindowScroll()` and `useWindowSize()` name the default cases, the split VueUse, solid-primitives, react-use and runed all make. `useRaf()` and `usePointer()` have nothing to scope — the frame is the clock and the pointer is read from the window.
 - **One instance per target,** keyed in a `WeakMap` by `perTarget()`. This is lifecycle bookkeeping rather than throughput: reference counting only means something against a target, so the last subscriber of one element must release that element's observer and leave the others running. Sharing one observer across targets was measured indifferent — the widespread claim traces to a single 2017 measurement, and 500 idle observers now cost ~0.02 ms/frame in total — so nothing tries to group them.
 - **Bound per mount cycle, by a mixin.** `withRaf`/`withScroll`/`withResize`/`withPointer`/`withDrag` override `mounted()`, subscribe the component's `ticked`/`scrolled`/`resized`/`moved`/`dragged` method, and hand the unsubscribe back as a cleanup — so `$destroy()` releases it and a remount subscribes again, with `Base` knowing nothing about services. A hook is sugar for the default target; any other target is an option of the mixin (`target`, `hook`) or an explicit `useX(target).add(…)` in `mounted()`. The mixin is the primitive because it needs no build step; `@withScroll()` is the decorator sugar over it, and both are tree-shakeable: an unimported service cannot make a hook silently do nothing.
-- **No loops of their own.** `RafService` and the drag inertia subscribe to `scheduler.frame()`; `ScrollService` coalesces its events into one `read` per frame instead of debouncing; `ResizeService` is a `ResizeObserver`, which also means a subscriber is told the current size on subscribe rather than on the next resize. `RafService` collects the render functions its callbacks return itself — the shared primitive fans props out and expects nothing back.
+- **No loops of their own.** `RafService` and the drag inertia subscribe to `scheduler.tick()`; `ScrollService` coalesces its events into one `read` per frame instead of debouncing; `ResizeService` is a `ResizeObserver`, which also means a subscriber is told the current size on subscribe rather than on the next resize. `RafService` collects the render functions its callbacks return itself — the shared primitive fans props out and expects nothing back.
 - **Props are flat, one per axis.** `ScrollProps` is `x`/`y`, `changedX`/`changedY`, `lastX`/`lastY`, `deltaX`/`deltaY`, `maxX`/`maxY`, `progressX`/`progressY`, `isUp`/`isRight`/`isDown`/`isLeft` — v3's spelling exactly, so a ported handler reads identically. The grouped objects (`last`, `delta`, `max`, `progress`, `direction`, `changed`) are gone, and with them the `ScrollDirection*` unions: v3 shipped both shapes, v4 ships one. `PointerProps` and `DragProps` follow the same `<name>X`/`<name>Y` convention, which flattens `origin`, `distance` and `final` too. `ResizeProps` was already flat. A handler destructures what it uses — `scrolled({ deltaY, isDown })` — instead of reaching through a group.
 - **What the simplification dropped.** `PointerService` is pointer-events-only and viewport-relative (v3 branched on `TouchEvent` and took a target element); `ResizeService` keeps `width`/`height`/`ratio`/`orientation`/`breakpoint` and drops `breakpoints`/`activeBreakpoints`; `DragService` drops `props.MODES` (the `DragMode` union types it) and fixes the `dragTreshold` spelling.
 - **Breakpoints are configuration, not a constant.** `setBreakpoints()` replaces the named set — the values v3 ships are only the default — and the matching `MediaQueryList` objects are built once instead of once per breakpoint per resize, which measured 5.2× slower. When `defineFeatures` lands it carries the set; this setter is what it will call.

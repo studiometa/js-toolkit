@@ -12,10 +12,11 @@
  * 5. Children advertise their existence — bubbling `component:mounted` /
  *    `component:destroyed` announcements, packaged as `$watchChildren()`,
  *    plus a provide/inject context primitive for shared reactive state.
- * 6. One frame-aligned scheduler (read → write → afterWrite → background)
- *    with cancelable handles, error isolation, and a `viewTransition` lane.
- *    It is also the clock: services subscribe to its frame tick instead of
- *    owning a `requestAnimationFrame` loop.
+ * 6. One frame-aligned scheduler — three in-frame phases (tick → read →
+ *    write) plus an off-frame `background` lane — with cancelable handles,
+ *    error isolation, and a `viewTransition` lane. It is also the clock:
+ *    services subscribe to its tick instead of owning a
+ *    `requestAnimationFrame` loop.
  * 7. Lazy, reference-counted services, one instance per observed target —
  *    subscribed by hand, or through the `withRaf`/`withScroll`/`withResize`/
  *    `withPointer`/`withDrag` mixins and their `ticked`, `scrolled`,
@@ -67,10 +68,10 @@ export {
   nextFrame,
   Scheduler,
   scheduler,
-  type FrameCallback,
-  type FrameProps,
   type ScheduledTask,
   type SchedulerPhase,
+  type TickCallback,
+  type TickProps,
 } from './scheduler.js';
 export {
   useDrag,

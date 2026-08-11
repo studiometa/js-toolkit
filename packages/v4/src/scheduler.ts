@@ -1,22 +1,87 @@
 /**
- * Milliseconds of `background` work allowed per frame.
+ * Milliseconds of `background` work allowed per turn, measured from the
+ * start of the drain — never from the start of a frame, which would charge
+ * rendering work against the lane meant to run beside it.
  */
-const FRAME_BUDGET = 8;
-
-export type SchedulerPhase = 'idle' | 'frame' | 'read' | 'write' | 'afterWrite' | 'background';
-
-type QueueName = 'read' | 'write' | 'afterWrite' | 'background';
+const BACKGROUND_BUDGET = 5;
 
 /**
- * What every frame subscriber is given: the timestamp of the flush and the
- * time elapsed since the previous one.
+ * Bounds for `TickProps.delta`, in milliseconds.
+ *
+ * An unclamped delta is a wall-clock measurement, and wall clock includes
+ * everything a frame is not: a backgrounded tab, a long task, an iOS scroll
+ * pause. A subscriber integrating it — every animation does — jumps by the
+ * whole gap. Clamping trades exactness for continuity, which is what an
+ * animation wants; every comparable library makes the same trade (Motion
+ * `[1, 40]`, framesync `40`, rafz `64`, GSAP's `lagSmoothing`).
  */
-export interface FrameProps {
+const MIN_DELTA = 1;
+const MAX_DELTA = 40;
+
+/**
+ * The delta reported for the first tick after the loop wakes: there is no
+ * previous frame to measure against, and one 60 Hz frame is the honest
+ * guess. `0` would freeze anything that multiplies by it on its first tick.
+ */
+const DEFAULT_DELTA = 1000 / 60;
+
+export type SchedulerPhase = 'idle' | 'tick' | 'read' | 'write' | 'background';
+
+type QueueName = 'read' | 'write' | 'background';
+
+/**
+ * The queued phases flushed inside the animation frame, in order. `tick` is
+ * a fan-out to subscribers rather than a queue, so it is not one of them.
+ */
+const FRAME_PHASES = ['read', 'write'] as const;
+
+/**
+ * What every tick subscriber is given: the frame's own timestamp and the
+ * time elapsed since the previous frame, clamped to `[1, 40]` ms.
+ */
+export interface TickProps {
   time: DOMHighResTimeStamp;
   delta: number;
 }
 
-export type FrameCallback = (props: FrameProps) => void;
+export type TickCallback = (props: TickProps) => void;
+
+/** Pending background turns, and the port that runs them. */
+const turns: Array<() => void> = [];
+let channel: MessageChannel | undefined;
+
+/**
+ * Run a callback outside the animation frame, at the lowest priority the
+ * platform offers.
+ *
+ * `scheduler.postTask({ priority: 'background' })` is the native spelling.
+ * The fallback is a `MessageChannel` message rather than `setTimeout`,
+ * whose nested-timeout clamping (4 ms after five levels) would cap the lane
+ * at a couple of hundred turns per second — the reason React's scheduler
+ * moved off timers too (facebook/react#16214, "Yield many times per frame,
+ * no rAF"). `isInputPending` is deliberately not consulted: the guidance to
+ * use it has been retracted.
+ */
+function postBackgroundTask(run: () => void): void {
+  // The global `scheduler` object, not this module's export — hence the
+  // explicit `globalThis`.
+  const nativeScheduler = globalThis.scheduler;
+  if (typeof nativeScheduler?.postTask === 'function') {
+    nativeScheduler.postTask(run, { priority: 'background' }).catch((error: unknown) => {
+      console.error('[scheduler] Background turn failed:', error);
+    });
+    return;
+  }
+
+  // Opened on demand, never at module scope: importing the framework must
+  // not open a port.
+  if (!channel) {
+    channel = new MessageChannel();
+    channel.port1.onmessage = () => turns.shift()?.();
+  }
+  turns.push(run);
+  channel.port2.postMessage(null);
+}
 
 /**
  * Cancelable handle returned for every scheduled task. The promise resolves
@@ -35,25 +100,47 @@ interface QueueItem {
 }
 
 /**
- * Frame-aligned scheduler: the framework's clock. Each flush runs one
- * `frame` fan-out followed by four phases — read → write → afterWrite →
- * background (budgeted).
+ * Frame-aligned scheduler: the framework's clock.
+ *
+ * Three phases run inside the animation frame — **tick → read → write** —
+ * and one lane, **background**, runs between frames on its own turns.
+ *
+ * ```
+ * frame start (rAF)
+ *   tick   — fan-out to the clock's subscribers
+ *   read   — measure: layout reads only
+ *   write  — mutate: DOM writes only
+ * style / layout / paint
+ *
+ * between frames
+ *   background — time-sliced, off-frame lane
+ * ```
+ *
+ * There is no phase after `write`: the whole flush runs in a
+ * `requestAnimationFrame` callback, which the HTML "update the rendering"
+ * steps place *before* style, layout and paint, so nothing scheduled in the
+ * frame can observe post-layout geometry. The only in-frame hook that can
+ * is a `ResizeObserver` callback, which those steps run after layout;
+ * anything else measures in the next frame's `read`.
  *
  * - One flush per frame, at `requestAnimationFrame`.
- * - A task scheduled during its own phase runs in the same frame.
- * - A task scheduled for an already-flushed phase waits for the next frame,
- *   so a `read` requested from a `write` never forces synchronous layout.
+ * - A task scheduled for a phase that has not run yet in this flush runs in
+ *   the same frame: a `write` requested from a `read` mutates before paint.
+ * - A task scheduled for the phase that is currently running, or for one
+ *   already flushed, waits for the next frame — so a `read` requested from
+ *   a `write` never forces synchronous layout, and a phase can never
+ *   re-enter itself without end.
  * - Every task gets a cancelable handle whose promise resolves with the
  *   task's return value.
  * - A throwing task is reported and dropped; the flush continues.
  * - No frame is requested while there is nothing to do: the loop wakes on
- *   the first scheduled task or frame subscription and stops with the last.
+ *   the first scheduled render task or tick subscription and stops with the
+ *   last. Background work alone never requests a frame.
  */
 export class Scheduler {
   #queues: Record<QueueName, QueueItem[]> = {
     read: [],
     write: [],
-    afterWrite: [],
     background: [],
   };
 
@@ -61,11 +148,16 @@ export class Scheduler {
 
   #isScheduled = false;
 
+  #isBackgroundScheduled = false;
+
   #idleResolvers: Array<() => void> = [];
 
-  #frameCallbacks = new Set<FrameCallback>();
+  #tickCallbacks = new Set<TickCallback>();
 
-  /** `-1` while nothing is subscribed, so the first tick reports no delta. */
+  /**
+   * `-1` while nothing is subscribed, so the first tick after the loop wakes
+   * reports `DEFAULT_DELTA` instead of a measurement it cannot make.
+   */
   #lastFrameTime = -1;
 
   get phase(): SchedulerPhase {
@@ -73,27 +165,30 @@ export class Scheduler {
   }
 
   /**
-   * Subscribe to the frame tick — the clock every continuous service runs
-   * on, so none of them owns a `requestAnimationFrame` loop of its own.
+   * Subscribe to the tick — the clock every continuous service runs on, so
+   * none of them owns a `requestAnimationFrame` loop of its own. It is the
+   * verb the component hook (`ticked()`) and GSAP's shared clock
+   * (`gsap.ticker`) already use; `nextFrame()` keeps the word *frame*,
+   * because awaiting one frame is what it does.
    *
    * Callbacks run at the very start of the flush, before `read`, so work
    * they schedule lands in the same frame: a `useRaf()` callback measures in
    * `read` and its returned render function mutates in `write`, once, before
    * paint.
    *
-   * The loop runs only while it is subscribed to. Frame subscribers are not
+   * The loop runs only while it is subscribed to. Tick subscribers are not
    * queued work, so they never keep `whenIdle()` waiting.
    *
    * @returns Unsubscribe.
    */
-  frame(callback: FrameCallback): () => void {
-    if (this.#frameCallbacks.size === 0) {
+  tick(callback: TickCallback): () => void {
+    if (this.#tickCallbacks.size === 0) {
       this.#lastFrameTime = -1;
     }
-    this.#frameCallbacks.add(callback);
+    this.#tickCallbacks.add(callback);
     this.#schedule();
     return () => {
-      this.#frameCallbacks.delete(callback);
+      this.#tickCallbacks.delete(callback);
     };
   }
 
@@ -105,10 +200,17 @@ export class Scheduler {
     return this.#add('write', fn);
   }
 
-  afterWrite<T>(fn: () => T): ScheduledTask<T> {
-    return this.#add('afterWrite', fn);
-  }
-
+  /**
+   * Schedule low-priority work — mounting, teardown, hydration — on its own
+   * turn **between** frames, never inside one.
+   *
+   * A `requestAnimationFrame` callback runs before style, layout and paint,
+   * so non-rendering work placed there competes with the frame it is trying
+   * to stay out of the way of, whatever budget guards it. The lane posts
+   * itself through `scheduler.postTask({ priority: 'background' })`, or a
+   * `MessageChannel` message, and drains in time slices across as many
+   * turns as the work needs.
+   */
   background<T>(fn: () => T): ScheduledTask<T> {
     return this.#add('background', fn);
   }
@@ -124,7 +226,7 @@ export class Scheduler {
   }
 
   /**
-   * Idleness is about queued tasks only: a frame subscription keeps the loop
+   * Idleness is about queued tasks only: a tick subscription keeps the loop
    * running forever by design, and a live service must not make
    * `whenIdle()` wait for a queue that will never be the reason it resolves.
    */
@@ -144,7 +246,11 @@ export class Scheduler {
     promise.catch(() => {});
     const item: QueueItem = { fn, isCanceled: false, resolve, reject };
     this.#queues[queueName].push(item);
-    this.#schedule();
+    if (queueName === 'background') {
+      this.#scheduleBackground();
+    } else {
+      this.#schedule();
+    }
     return {
       promise: promise as Promise<T | undefined>,
       cancel() {
@@ -166,56 +272,107 @@ export class Scheduler {
     requestAnimationFrame((frameTime) => this.#flush(frameTime));
   }
 
+  #scheduleBackground(): void {
+    if (this.#isBackgroundScheduled) {
+      return;
+    }
+    this.#isBackgroundScheduled = true;
+    postBackgroundTask(() => this.#drainBackground());
+  }
+
+  /**
+   * One background turn: run tasks until the time slice runs out, then hand
+   * the thread back and post the next turn. The slice is measured from the
+   * start of the drain, so a busy frame cannot spend the lane's budget.
+   */
+  #drainBackground(): void {
+    this.#isBackgroundScheduled = false;
+    const start = performance.now();
+    const queue = this.#queues.background;
+
+    this.#phase = 'background';
+    while (queue.length > 0 && performance.now() - start < BACKGROUND_BUDGET) {
+      this.#run(queue.shift() as QueueItem);
+    }
+    this.#phase = 'idle';
+
+    if (queue.length > 0) {
+      this.#scheduleBackground();
+    }
+    this.#resolveIdle();
+  }
+
   #flush(frameTime: DOMHighResTimeStamp): void {
     this.#isScheduled = false;
-    // Wall time from the top of the flush, for the background budget only.
-    const start = performance.now();
 
-    if (this.#frameCallbacks.size > 0) {
-      this.#phase = 'frame';
-      const props: FrameProps = {
+    if (this.#tickCallbacks.size > 0) {
+      this.#phase = 'tick';
+      const props: TickProps = {
         time: frameTime,
-        delta: this.#lastFrameTime < 0 ? 0 : frameTime - this.#lastFrameTime,
+        delta: this.#clampDelta(frameTime),
       };
       this.#lastFrameTime = frameTime;
-      for (const callback of this.#frameCallbacks) {
+      for (const callback of this.#tickCallbacks) {
         try {
           callback(props);
         } catch (error) {
           // Reported and skipped, never unsubscribed: a subscription is
           // owned by whoever created it, not by the frame that broke.
-          console.error('[scheduler] Frame callback failed:', error);
+          console.error('[scheduler] Tick callback failed:', error);
         }
       }
     }
 
-    for (const phase of ['read', 'write', 'afterWrite'] as const) {
+    // Double-buffering, as Motion's render steps do it: each phase runs the
+    // batch it was handed and nothing else. A task scheduled into the phase
+    // that is running lands in the fresh queue and waits for the next
+    // frame, which is what bounds the flush — `while (queue.shift())` let a
+    // `read` scheduling a `read` re-enter without end, taking the page with
+    // it. Swapping the array (rather than counting recursion, as Theatre.js
+    // does) was chosen because it keeps the frame bounded without a limit
+    // to tune, without warnings or throws in the caller's code, and because
+    // the work still makes progress — one batch per frame — instead of
+    // being aborted. It also preserves the anti-thrashing rule for free:
+    // the `write` queue is taken *after* the reads have run, so a `write`
+    // scheduled from a `read` is still in it and runs in the same frame.
+    for (const phase of FRAME_PHASES) {
       this.#phase = phase;
-      const queue = this.#queues[phase];
-      let item;
-      while ((item = queue.shift())) {
+      const batch = this.#queues[phase];
+      this.#queues[phase] = [];
+      for (const item of batch) {
         this.#run(item);
       }
     }
 
-    this.#phase = 'background';
-    const backgroundQueue = this.#queues.background;
-    while (backgroundQueue.length > 0 && performance.now() - start < FRAME_BUDGET) {
-      this.#run(backgroundQueue.shift() as QueueItem);
-    }
-
     this.#phase = 'idle';
 
-    const isIdle = this.#isIdle();
-    if (!isIdle || this.#frameCallbacks.size > 0) {
+    // The rAF loop exists for rendering work only. A pending background
+    // task must not hold a frame open — it drains on its own turns.
+    if (this.#hasFrameWork() || this.#tickCallbacks.size > 0) {
       this.#schedule();
     }
-    if (isIdle && this.#idleResolvers.length > 0) {
-      const resolvers = this.#idleResolvers;
-      this.#idleResolvers = [];
-      for (const resolve of resolvers) {
-        resolve();
-      }
+    this.#resolveIdle();
+  }
+
+  #hasFrameWork(): boolean {
+    return FRAME_PHASES.some((phase) => this.#queues[phase].length > 0);
+  }
+
+  #clampDelta(frameTime: DOMHighResTimeStamp): number {
+    if (this.#lastFrameTime < 0) {
+      return DEFAULT_DELTA;
+    }
+    return Math.min(Math.max(frameTime - this.#lastFrameTime, MIN_DELTA), MAX_DELTA);
+  }
+
+  #resolveIdle(): void {
+    if (this.#idleResolvers.length === 0 || !this.#isIdle()) {
+      return;
+    }
+    const resolvers = this.#idleResolvers;
+    this.#idleResolvers = [];
+    for (const resolve of resolvers) {
+      resolve();
     }
   }
 

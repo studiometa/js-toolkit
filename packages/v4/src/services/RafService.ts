@@ -1,12 +1,12 @@
-import { scheduler, type FrameProps } from '../scheduler.js';
+import { scheduler, type TickProps } from '../scheduler.js';
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
 import { createService, type Service } from './Service.js';
 
 /**
- * The scheduler's frame props, verbatim: the raf service is a subscription
+ * The scheduler's tick props, verbatim: the raf service is a subscription
  * to the framework clock, not a source of its own.
  */
-export type RafProps = FrameProps;
+export type RafProps = TickProps;
 
 /**
  * What a `ticked()` callback may return: a function running in the same
@@ -15,7 +15,10 @@ export type RafProps = FrameProps;
 export type RafRender = (props: RafProps) => void;
 
 function createRafService(): Service<RafProps> {
-  let props: RafProps = { time: performance.now(), delta: 0 };
+  // Before the first tick there is nothing measured yet: report one 60 Hz
+  // frame, the same value the scheduler gives its first tick, rather than a
+  // zero outside the documented `[1, 40]` range.
+  let props: RafProps = { time: performance.now(), delta: 1000 / 60 };
   // Collected here rather than through the fan-out: returning a value to the
   // service is this service's own convention, not something the shared
   // primitive knows about.
@@ -24,21 +27,21 @@ function createRafService(): Service<RafProps> {
   const service = createService<RafProps>({
     props: () => props,
     start(emit) {
-      return scheduler.frame((frameProps) => {
-        props = frameProps;
+      return scheduler.tick((tickProps) => {
+        props = tickProps;
         // The read → write split v3 established: every callback measures
         // together, then every returned render mutates together, so a page
         // full of animations costs one layout per frame instead of one per
         // component.
         scheduler.read(() => {
           renders.length = 0;
-          emit(frameProps);
+          emit(tickProps);
           if (renders.length > 0) {
             const batch = [...renders];
             renders.length = 0;
             scheduler.write(() => {
               for (const render of batch) {
-                render(frameProps);
+                render(tickProps);
               }
             });
           }
@@ -50,8 +53,8 @@ function createRafService(): Service<RafProps> {
   return {
     props: service.props,
     add(callback) {
-      return service.add((frameProps) => {
-        const render = callback(frameProps);
+      return service.add((tickProps) => {
+        const render = callback(tickProps);
         if (typeof render === 'function') {
           renders.push(render as RafRender);
         }
@@ -75,7 +78,7 @@ let service: Service<RafProps> | undefined;
  * ```
  *
  * Unlike v3, this owns no `requestAnimationFrame` loop: it subscribes to the
- * scheduler's frame tick, so components ticking, scroll-driven animations
+ * scheduler's tick, so components ticking, scroll-driven animations
  * and lifecycle work share one flush per frame.
  */
 export function useRaf(): Service<RafProps> {

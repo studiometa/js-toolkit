@@ -84,11 +84,11 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
   return createService<DragProps>({
     props: () => props,
     start(emit) {
-      let unsubscribeFrames: (() => void) | null = null;
+      let unsubscribeTicks: (() => void) | null = null;
 
       function stopInertia() {
-        unsubscribeFrames?.();
-        unsubscribeFrames = null;
+        unsubscribeTicks?.();
+        unsubscribeTicks = null;
       }
 
       function stop() {
@@ -154,7 +154,7 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
         props.finalX = inertiaFinalValue(props.x, props.deltaX, dampFactor);
         props.finalY = inertiaFinalValue(props.y, props.deltaY, dampFactor);
         emit(props);
-        unsubscribeFrames = scheduler.frame(tick);
+        unsubscribeTicks = scheduler.tick(tick);
       }
 
       function onPointerMove(event: Event) {
