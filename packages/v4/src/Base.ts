@@ -78,19 +78,29 @@ const CAPTURED_EVENTS = new Set([
  * exists at runtime — declaring it costs no bytes:
  *
  *     class Slider extends Base<{
+ *       $el: HTMLFormElement;
  *       $refs: { wrapper: HTMLElement; slides: HTMLElement[] };
  *       $options: { autoplay: boolean };
  *       $emits: { slide: [index: number] };
  *     }> {}
  *
- * `$emits` documents what the component dispatches and types `$emit()`'s
- * arguments, replacing v3's runtime `config.emits` array.
+ * `$el` narrows the root element for a component that only makes sense on
+ * one tag — a `<details>`, a `<form>` — so its members are reachable
+ * without casting. `$emits` documents what the component dispatches and
+ * types `$emit()`'s arguments, replacing v3's runtime `config.emits` array.
+ *
+ * Each declaration is the author's assertion about their own markup: the
+ * registry mounts whatever element matched the selector, so a mismatch
+ * surfaces at runtime, not here.
  */
 export interface BaseProps {
+  $el?: HTMLElement;
   $refs?: Record<string, HTMLElement | HTMLElement[]>;
   $options?: Record<string, unknown>;
   $emits?: Record<string, unknown[]>;
 }
+
+type El<T extends BaseProps> = T['$el'] extends HTMLElement ? T['$el'] : HTMLElement;
 
 type Refs<T extends BaseProps> =
   T['$refs'] extends Record<string, unknown>
@@ -316,7 +326,7 @@ export type MountedReturn =
 export class Base<T extends BaseProps = BaseProps> {
   static config: BaseConfig = { name: 'Base' };
 
-  $el: HTMLElement;
+  $el: El<T>;
 
   /**
    * Live view over the component's `data-ref` elements: every access
@@ -354,7 +364,7 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   constructor(el: HTMLElement) {
-    this.$el = el;
+    this.$el = el as El<T>;
     el.__base__ ??= new Map();
     el.__base__.set(this.$config.name, this);
     // Both views resolve on access, so they are built once and stay correct

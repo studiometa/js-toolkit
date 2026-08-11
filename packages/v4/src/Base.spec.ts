@@ -79,6 +79,27 @@ describe('$options', () => {
   });
 });
 
+describe('$el', () => {
+  it('keeps the declared root element type at runtime', () => {
+    class Panel extends Base<{ $el: HTMLDetailsElement }> {
+      static config = { name: 'Panel' };
+
+      // Reads `open` straight off `$el`: no getter, no cast.
+      toggle(): boolean {
+        this.$el.open = !this.$el.open;
+        return this.$el.open;
+      }
+    }
+
+    const el = document.createElement('details');
+    const instance = new Panel(el).$mount();
+
+    expect(instance.$el).toBe(el);
+    expect(instance.toggle()).toBe(true);
+    expect(el.open).toBe(true);
+  });
+});
+
 describe('$refs', () => {
   it('resolves only the refs owned by the component', async () => {
     class Owner extends Base {

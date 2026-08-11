@@ -53,7 +53,9 @@ export class SliderCount extends Base {
   }
 }
 
-export class Slider extends Base {
+export class Slider extends Base<{
+  $refs: { wrapper: HTMLElement };
+}> {
   static config = {
     name: 'Slider',
     refs: ['wrapper'],
@@ -78,14 +80,10 @@ export class Slider extends Base {
    */
   #navigationTarget: number | null = null;
 
-  get wrapper(): HTMLElement {
-    return this.$refs.wrapper as HTMLElement;
-  }
-
   // `scroll` does not bubble, so the wrapper listener is bound per mount
   // cycle — the returned cleanup removes it on destroy.
   mounted() {
-    const { wrapper } = this;
+    const { wrapper } = this.$refs;
     const onScroll = () => this.syncFromScroll();
     const onScrollEnd = () => {
       this.#navigationTarget = null;
@@ -110,7 +108,7 @@ export class Slider extends Base {
     this.#scrollRead = this.$read(() => {
       // Rects, not offsetLeft: offsets are relative to the positioned
       // ancestor (the page), not to the scroll wrapper.
-      const wrapperRect = this.wrapper.getBoundingClientRect();
+      const wrapperRect = this.$refs.wrapper.getBoundingClientRect();
       const center = wrapperRect.left + wrapperRect.width / 2;
       let closest = this.index;
       let minDistance = Number.POSITIVE_INFINITY;

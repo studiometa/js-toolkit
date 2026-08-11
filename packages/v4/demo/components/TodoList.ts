@@ -35,7 +35,9 @@ export class TodoCount extends Base {
   }
 }
 
-export class TodoList extends Base {
+export class TodoList extends Base<{
+  $refs: { input: HTMLInputElement; list: HTMLElement };
+}> {
   static config = {
     name: 'TodoList',
     refs: ['input', 'list'],
@@ -63,8 +65,7 @@ export class TodoList extends Base {
 
   onSubmit(event: Event): void {
     event.preventDefault();
-    const input = this.$refs.input as HTMLInputElement;
-    const list = this.$refs.list as HTMLElement;
+    const { input, list } = this.$refs;
     const title = input.value.trim();
     if (!title) {
       return;

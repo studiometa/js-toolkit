@@ -20,33 +20,34 @@ import {
  *   `open` events through delegation (`onAccordionItemOpen`).
  * - `$watchChildren` replaces `$children.AccordionItem`.
  */
-export class AccordionItem extends Base {
+export class AccordionItem extends Base<{
+  // The component only makes sense on a <details>, so `open` is reachable
+  // straight off `$el` — no getter, no cast.
+  $el: HTMLDetailsElement;
+  $emits: { open: []; close: [] };
+}> {
   static config = { name: 'AccordionItem' };
 
-  get details(): HTMLDetailsElement {
-    return this.$el as HTMLDetailsElement;
-  }
-
   get isOpen(): boolean {
-    return this.details.open;
+    return this.$el.open;
   }
 
   // The bodies are DOM writes: @write runs them in the scheduler's write
   // phase, so several items closing in the same turn paint in one frame.
   @write
   open(): void {
-    this.details.open = true;
+    this.$el.open = true;
   }
 
   @write
   close(): void {
-    this.details.open = false;
+    this.$el.open = false;
   }
 
   // Native `toggle` fires on the <details> element itself (it does not
   // bubble) — own handlers bind directly on the root element, so this works.
   onToggle(): void {
-    this.$emit(this.details.open ? 'open' : 'close');
+    this.$emit(this.$el.open ? 'open' : 'close');
   }
 }
 
