@@ -1,20 +1,21 @@
 import { Base } from '../../src/index.js';
-import { withMountWhenInView } from '../decorators/withMountWhenInView.js';
 
 /**
- * Demo component for the `withMountWhenInView` decorator: each pass through
- * the viewport is one full mount/destroy cycle, so the `mounted()` returned
- * cleanup runs every time the element leaves the screen.
+ * Demo for the `in-view` mount strategy: each pass through the viewport is
+ * one full mount/destroy cycle, so the `mounted()` returned cleanup runs
+ * every time the element leaves the screen.
+ *
+ * The strategy is declared in the config, and any element may override it
+ * with `data-mount` — no decorator, no constructor wrapping, one canonical
+ * constructor registered under the name (issue #751).
  */
-class RevealBase extends Base {
-  static config = { name: 'Reveal' };
+export class Reveal extends Base {
+  static config = { name: 'Reveal', mountStrategy: 'in-view' as const };
 
   cycles = 0;
 
   mounted() {
     this.cycles += 1;
-    // Direct DOM writes: the cleanup below runs during `$destroy()`, after
-    // which the instance's pending `$write` tasks would be canceled.
     this.$el.classList.add('is-mounted');
     this.$el.textContent = `mounted — cycle ${this.cycles}`;
     return () => {
@@ -23,5 +24,3 @@ class RevealBase extends Base {
     };
   }
 }
-
-export const Reveal = withMountWhenInView(RevealBase, { threshold: 0.4 });

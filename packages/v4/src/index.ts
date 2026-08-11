@@ -56,6 +56,7 @@ export {
   type ContextKey,
 } from './context.js';
 export { children, component, inject, on, provide, read, write } from './decorators.js';
+export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
 export { registerComponent, registerComponents } from './registry.js';
 export {
   nextFrame,

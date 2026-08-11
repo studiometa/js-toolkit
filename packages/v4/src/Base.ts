@@ -1,5 +1,6 @@
 import { Signal, injectContext, provideContext, type ContextKey } from './context.js';
 import { scheduler, type ScheduledTask } from './scheduler.js';
+import type { MountStrategy } from './mount-strategies.js';
 import { kebabCase, pascalCase, selectorFor } from './utils.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
 
@@ -23,6 +24,11 @@ export interface BaseConfig {
   components?: Record<string, BaseConstructor>;
   refs?: string[];
   options?: Record<string, OptionDefinition>;
+  /**
+   * When instances of this component mount. Defaults to `eager`; an
+   * element's `data-mount` attribute overrides it.
+   */
+  mountStrategy?: MountStrategy;
 }
 
 /**

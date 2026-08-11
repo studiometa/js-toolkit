@@ -116,23 +116,26 @@
 
     <section class="reveal">
       <h2>
-        Decorator —
-        <code>withMountWhenInView</code>
+        Mount strategies —
+        <code>data-mount</code>
       </h2>
       <p>
-        The registry asks each
+        The registry decides
+        <em>when</em>
+        each instance mounts.
         <code>Reveal</code>
-        to mount; the decorator defers until the element is 40% visible. Leaving the viewport is a
-        plain
-        <code>$destroy()</code>
-        — the
+        declares
+        <code>mountStrategy: 'in-view'</code>
+        in its config, so every pass through the viewport is a full mount/destroy cycle and the
         <code>mounted()</code>
-        cleanup runs — and coming back remounts the same instance. Scroll up and down and watch the
-        cycle counters.
+        cleanup runs each time — watch the counters as you scroll. The last box overrides the
+        component default with
+        <code>data-mount="visible"</code>
+        : it mounts once, on first sight, and stays mounted.
       </p>
       <div data-component="Reveal">waiting…</div>
       <div data-component="Reveal">waiting…</div>
-      <div data-component="Reveal">waiting…</div>
+      <div data-component="Reveal" data-mount="visible">waiting — mounts once</div>
     </section>
   </body>
 </html>
