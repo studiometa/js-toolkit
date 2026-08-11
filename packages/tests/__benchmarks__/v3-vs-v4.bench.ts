@@ -2,19 +2,20 @@
  * v3 against the v4 prototype, on the operations the v4 design makes
  * claims about.
  *
- * Both sides do their work synchronously here: v3 runs with the
- * `blocking` feature so its SmartQueue does not schedule, and v4's
- * instances are mounted directly instead of through the registry's
- * background lane. What is compared is the work per operation, not each
- * version's scheduling — which is measured separately by the mutation
- * benchmark below.
+ * Setup mounts through each version's own path — v3's `$mount()` is
+ * awaited, v4's instances are mounted directly — so both sides really
+ * hold the same tree before anything is measured. What the benchmarks
+ * then compare is the work per operation.
+ *
+ * Nothing here may touch global framework state: `defineFeatures()` and
+ * friends mutate a module-level map, and these files share a process
+ * under CodSpeed, so a global set here would follow every other
+ * benchmark in the suite.
  */
 import { bench, describe } from 'vitest';
-import { Base as BaseV3, defineFeatures, type BaseConfig } from '@studiometa/js-toolkit';
+import { Base as BaseV3, type BaseConfig } from '@studiometa/js-toolkit';
 import { queryComponentAll, closestComponent } from '#private/helpers/queryComponent.js';
 import { Base as BaseV4 } from '../../v4/src/index.js';
-
-defineFeatures({ blocking: true });
 
 // --- v3 components -----------------------------------------------------
 
@@ -75,6 +76,23 @@ function createList(count: number): HTMLElement {
 
 const CHILDREN = 25;
 
+// v3 mounts asynchronously, so every v3 fixture is built once here with a
+// top-level await. Doing it in a hook is not an option: vitest does not run
+// `beforeAll` in benchmark mode, and forcing v3 to mount synchronously means
+// setting the global `blocking` feature, which would follow every other
+// benchmark in the suite.
+const refsListV3 = await new ListV3(createList(CHILDREN)).$mount();
+const queryListV3 = createList(CHILDREN);
+await new ListV3(queryListV3).$mount();
+const closestListV3 = createList(CHILDREN);
+await new ListV3(closestListV3).$mount();
+const closestFromV3 = closestListV3.querySelector<HTMLElement>('[data-component="Item"]')!;
+const emitListV3 = createList(1);
+await new ListV3(emitListV3).$mount();
+const itemV3 = emitListV3
+  .querySelector<HTMLElement>('[data-component="Item"]')!
+  .__base__?.get('Item') as ItemV3;
+
 /**
  * Mounting a whole tree costs milliseconds where everything else here
  * costs microseconds, so these two are sampled for a fixed short window.
@@ -126,8 +144,6 @@ describe('config access', () => {
 });
 
 describe('ref access', () => {
-  const elV3 = createList(CHILDREN);
-  const listV3 = new ListV3(elV3);
   const elV4 = createList(CHILDREN);
   const listV4 = new ListV4(elV4).$mount();
 
@@ -135,7 +151,7 @@ describe('ref access', () => {
   // re-reads the DOM to stay live through markup swaps. This is the cost
   // of dropping `$update()`.
   bench('v3 single ref', () => {
-    void listV3.$refs.title;
+    void refsListV3.$refs.title;
   });
 
   bench('v4 single ref', () => {
@@ -143,7 +159,7 @@ describe('ref access', () => {
   });
 
   bench('v3 ref list (25)', () => {
-    void listV3.$refs.rows;
+    void refsListV3.$refs.rows;
   });
 
   bench('v4 ref list (25)', () => {
@@ -155,8 +171,6 @@ describe('descendant resolution (25 children)', () => {
   // Both sides must really hold 25 mounted children, or the two queries
   // are not answering the same question. In blocking mode v3 mounts its
   // children as part of the parent; v4's are the registry's job.
-  const elV3 = createList(CHILDREN);
-  void new ListV3(elV3).$mount();
   const elV4 = createList(CHILDREN);
   const listV4 = new ListV4(elV4).$mount();
   for (const child of elV4.querySelectorAll<HTMLElement>('[data-component="Item"]')) {
@@ -164,7 +178,7 @@ describe('descendant resolution (25 children)', () => {
   }
 
   bench('v3 queryComponentAll', () => {
-    queryComponentAll('Item', { from: elV3 });
+    queryComponentAll('Item', { from: queryListV3 });
   });
 
   bench('v4 $query', () => {
@@ -173,17 +187,13 @@ describe('descendant resolution (25 children)', () => {
 });
 
 describe('ancestor resolution', () => {
-  const elV3 = createList(CHILDREN);
-  void new ListV3(elV3).$mount();
-  const firstV3 = elV3.querySelector<HTMLElement>('[data-component="Item"]')!;
-
   const elV4 = createList(CHILDREN);
   new ListV4(elV4).$mount();
   const firstV4 = elV4.querySelector<HTMLElement>('[data-component="Item"]')!;
   const itemV4 = new ItemV4(firstV4).$mount();
 
   bench('v3 closestComponent', () => {
-    closestComponent('List', { from: firstV3 });
+    closestComponent('List', { from: closestFromV3 });
   });
 
   bench('v4 $closest', () => {
@@ -192,11 +202,6 @@ describe('ancestor resolution', () => {
 });
 
 describe('event dispatch to a parent', () => {
-  const elV3 = createList(1);
-  void new ListV3(elV3).$mount();
-  const itemElV3 = elV3.querySelector<HTMLElement>('[data-component="Item"]')!;
-  const itemV3 = itemElV3.__base__?.get('Item') as ItemV3;
-
   const elV4 = createList(1);
   new ListV4(elV4).$mount();
   const itemElV4 = elV4.querySelector<HTMLElement>('[data-component="Item"]')!;
