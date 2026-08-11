@@ -88,15 +88,40 @@ function belongsTo(el: Element, root: Element): boolean {
   return parent === root;
 }
 
-function resolveRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> {
+/**
+ * The elements currently declaring `data-ref="<name>"` inside a component,
+ * skipping those owned by a nested component.
+ */
+function queryRefs(root: HTMLElement, name: string): HTMLElement[] {
+  return [...root.querySelectorAll<HTMLElement>(`[data-ref="${name}"]`)].filter((el) =>
+    belongsTo(el, root),
+  );
+}
+
+/**
+ * Build the live `$refs` view.
+ *
+ * Refs resolve on access rather than once at mount, so swapping a
+ * component's markup — a `Fetch`-style DOM replacement, a template render —
+ * never leaves `$refs` pointing at detached elements. There is nothing to
+ * refresh and no `$update()` to call: the DOM is the source of truth, the
+ * same way the registry treats it for components.
+ *
+ * A name declared as `name[]` always yields an array; a plain name yields
+ * the first match.
+ */
+function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> {
   const refs: Record<string, HTMLElement | HTMLElement[]> = {};
   for (const definition of instance.$config.refs ?? []) {
     const isList = definition.endsWith('[]');
     const name = isList ? definition.slice(0, -2) : definition;
-    const elements = [...instance.$el.querySelectorAll<HTMLElement>(`[data-ref="${name}"]`)].filter(
-      (el) => belongsTo(el, instance.$el),
-    );
-    refs[name] = isList ? elements : elements[0];
+    Object.defineProperty(refs, name, {
+      enumerable: true,
+      get() {
+        const elements = queryRefs(instance.$el, name);
+        return isList ? elements : elements[0];
+      },
+    });
   }
   return refs;
 }
@@ -215,6 +240,11 @@ export class Base {
 
   $el: HTMLElement;
 
+  /**
+   * Live view over the component's `data-ref` elements: every access
+   * re-reads the DOM, so replaced markup is picked up with nothing to
+   * refresh.
+   */
   $refs: Record<string, HTMLElement | HTMLElement[]> = {};
 
   $options: Record<string, unknown> = {};
@@ -249,7 +279,10 @@ export class Base {
     this.$el = el;
     el.__base__ ??= new Map();
     el.__base__.set(this.$config.name, this);
+    // Both views resolve on access, so they are built once and stay correct
+    // for the instance's whole life.
     this.$options = buildOptions(this);
+    this.$refs = buildRefs(this);
   }
 
   /**
@@ -278,7 +311,6 @@ export class Base {
     if (this.#isMounted || this.#isTerminated) {
       return this;
     }
-    this.$refs = resolveRefs(this);
     this.#bindHandlers();
     this.#isMounted = true;
     this.#collectCleanup(this.mounted());

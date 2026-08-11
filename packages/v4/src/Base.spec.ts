@@ -99,6 +99,30 @@ describe('$refs', () => {
     // The ref nested in another component does not belong to this one.
     expect(el.querySelectorAll('[data-ref="own"]')).toHaveLength(2);
   });
+
+  it('stays live when the markup is replaced', async () => {
+    class Swapped extends Base {
+      static config = { name: 'Swapped', refs: ['title', 'items[]'] };
+    }
+
+    const el = document.createElement('div');
+    el.innerHTML = '<h1 data-ref="title">before</h1><span data-ref="items"></span>';
+    const instance = new Swapped(el).$mount();
+    expect((instance.$refs.title as HTMLElement).textContent).toBe('before');
+    expect(instance.$refs.items).toHaveLength(1);
+
+    // A Fetch-style swap: brand new elements, no $update() call.
+    el.innerHTML =
+      '<h1 data-ref="title">after</h1><span data-ref="items"></span><span data-ref="items"></span>';
+    expect((instance.$refs.title as HTMLElement).textContent).toBe('after');
+    expect(instance.$refs.title).toBe(el.querySelector('[data-ref="title"]'));
+    expect(instance.$refs.items).toHaveLength(2);
+
+    // A ref that disappears reads as undefined rather than as a detached node.
+    el.innerHTML = '';
+    expect(instance.$refs.title).toBeUndefined();
+    expect(instance.$refs.items).toHaveLength(0);
+  });
 });
 
 describe('$query and $closest', () => {
