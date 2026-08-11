@@ -1,4 +1,4 @@
-import { Base, type DelegatedEvent } from '../../src/index';
+import { Base, type DelegatedEvent } from '../../src/index.js';
 
 /**
  * Reimplementation of @studiometa/ui's Accordion on the v4 model.

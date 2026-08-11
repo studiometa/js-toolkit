@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { kebabCase, selectorFor } from './utils';
+import { kebabCase, selectorFor } from './utils.js';
 
 describe('kebabCase', () => {
   it('converts PascalCase and camelCase', () => {

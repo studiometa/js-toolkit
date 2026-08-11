@@ -1,6 +1,6 @@
-import { Base, type BaseConstructor } from './Base';
-import { scheduler } from './scheduler';
-import { selectorFor } from './utils';
+import { Base, type BaseConstructor } from './Base.js';
+import { scheduler } from './scheduler.js';
+import { selectorFor } from './utils.js';
 
 const registry = new Map<string, BaseConstructor>();
 let observer: MutationObserver | null = null;
@@ -77,6 +77,8 @@ function destroyWithin(node: Node): void {
     if (!el.__base__) {
       continue;
     }
+    // Snapshot: terminating an instance removes it from the element's map.
+    // oxlint-disable-next-line no-useless-spread
     for (const instance of [...el.__base__.values()]) {
       instance.$destroy();
     }

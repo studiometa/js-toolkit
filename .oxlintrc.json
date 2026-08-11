@@ -19,6 +19,13 @@
       }
     },
     {
+      "files": ["packages/v4/**/*.ts"],
+      "plugins": ["import"],
+      "rules": {
+        "import/extensions": ["error", "always", { "ignorePackages": true }]
+      }
+    },
+    {
       "files": ["packages/js-toolkit/**/*.ts", "packages/demo/**/*.{ts,js}"],
       "rules": {
         "js-toolkit/require-config": "error",

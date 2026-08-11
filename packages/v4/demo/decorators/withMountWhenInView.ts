@@ -1,4 +1,4 @@
-import { Base, type BaseConfig } from '../../src/index';
+import { Base, type BaseConfig } from '../../src/index.js';
 
 /**
  * The classic mixin constraint: TypeScript only allows extending a generic

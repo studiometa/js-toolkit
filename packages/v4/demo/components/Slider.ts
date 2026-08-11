@@ -1,4 +1,4 @@
-import { Base, createContext, type DelegatedEvent, type ScheduledTask } from '../../src/index';
+import { Base, createContext, type DelegatedEvent, type ScheduledTask } from '../../src/index.js';
 
 /**
  * Slider-lite — a reimplementation of the @studiometa/ui Slider family on

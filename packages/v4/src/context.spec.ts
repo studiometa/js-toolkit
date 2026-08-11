@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { Base } from './Base';
-import { Cell, createContext, provideContext } from './context';
-import { registerComponent } from './registry';
-import { renderTodoList, resetDom, settle } from './test-utils';
+import { Base } from './Base.js';
+import { Cell, createContext, provideContext } from './context.js';
+import { registerComponent } from './registry.js';
+import { renderTodoList, resetDom, settle } from './test-utils.js';
 
 afterEach(resetDom);
 
@@ -67,7 +67,7 @@ describe('provide/inject', () => {
     provideContext(outer, Key, 'outer');
     provideContext(inner, Key, 'inner');
 
-    const { promise } = await import('./context').then(({ injectContext }) =>
+    const { promise } = await import('./context.js').then(({ injectContext }) =>
       injectContext(consumer, Key),
     );
     await expect(promise).resolves.toHaveProperty('value', 'inner');
@@ -83,7 +83,7 @@ describe('provide/inject', () => {
 
     provideContext(host, Other, 'nope');
 
-    const { injectContext } = await import('./context');
+    const { injectContext } = await import('./context.js');
     let resolved: unknown;
     injectContext(consumer, Wanted).promise.then((cell) => {
       resolved = cell.value;

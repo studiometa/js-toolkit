@@ -2,11 +2,11 @@
  * Shared fixtures and helpers for the colocated `*.spec.ts` files.
  * Not part of the public API.
  */
-import { Base } from './Base';
-import { createContext } from './context';
-import { registerComponent } from './registry';
-import { scheduler } from './scheduler';
-import type { DelegatedEvent } from './Base';
+import { Base } from './Base.js';
+import { createContext } from './context.js';
+import { registerComponent } from './registry.js';
+import { scheduler } from './scheduler.js';
+import type { DelegatedEvent } from './Base.js';
 
 /**
  * Wait for the MutationObserver microtask and every scheduler queue,

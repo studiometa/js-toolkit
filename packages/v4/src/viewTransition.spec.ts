@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { nextFrame } from './scheduler';
-import { resetDom } from './test-utils';
-import { viewTransition } from './viewTransition';
+import { nextFrame } from './scheduler.js';
+import { resetDom } from './test-utils.js';
+import { viewTransition } from './viewTransition.js';
 
 afterEach(resetDom);
 

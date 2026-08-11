@@ -1,4 +1,4 @@
-import { scheduler } from './scheduler';
+import { scheduler } from './scheduler.js';
 
 export type ViewTransitionUpdate = () => void | Promise<void>;
 

@@ -1,4 +1,4 @@
-import { Base, createContext, type DelegatedEvent } from '../../src/index';
+import { Base, createContext, type DelegatedEvent } from '../../src/index.js';
 
 /**
  * The TodoList demo from the playground: registry auto-mount, delegation,

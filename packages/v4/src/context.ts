@@ -104,6 +104,8 @@ export function provideContext<T>(
   // Late provider: replay pending requests from inside this subtree.
   // Requests are re-dispatched from the consumer, so the nearest provider
   // still wins.
+  // Snapshot: answering a request removes it from `pendingRequests`.
+  // oxlint-disable-next-line no-useless-spread
   for (const request of [...pendingRequests]) {
     if (request.key === key && el.contains(request.el)) {
       requestContext(request);

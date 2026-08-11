@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { Base } from './Base';
+import { Base } from './Base.js';
 import {
   getInstance,
   renderTodoList,
@@ -8,7 +8,7 @@ import {
   TodoCount,
   TodoItem,
   TodoList,
-} from './test-utils';
+} from './test-utils.js';
 
 afterEach(resetDom);
 

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { getInstance, renderTodoList, resetDom, settle, TodoList } from './test-utils';
+import { getInstance, renderTodoList, resetDom, settle, TodoList } from './test-utils.js';
 
 afterEach(resetDom);
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { scheduler } from './scheduler';
+import { scheduler } from './scheduler.js';
 
 describe('scheduler (real frames)', () => {
   it('runs reads before writes within one frame, regardless of scheduling order', async () => {

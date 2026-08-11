@@ -1,5 +1,5 @@
-import { Base } from '../../src/index';
-import { withMountWhenInView } from '../decorators/withMountWhenInView';
+import { Base } from '../../src/index.js';
+import { withMountWhenInView } from '../decorators/withMountWhenInView.js';
 
 /**
  * Demo component for the `withMountWhenInView` decorator: each pass through
