@@ -75,24 +75,40 @@ function createList(count: number): HTMLElement {
 
 const CHILDREN = 25;
 
-describe('mount a list of 25 children', () => {
-  bench('v3', async () => {
-    const el = createList(CHILDREN);
-    await new ListV3(el).$mount();
-    el.remove();
-  });
+/**
+ * Mounting a whole tree costs milliseconds where everything else here
+ * costs microseconds, so these two are sampled for a fixed short window.
+ * Left to run to the default duration they dominate the suite's wall time
+ * and, with files sampled in parallel, skew their neighbours.
+ */
+const HEAVY = { time: 200 };
 
-  bench('v4', () => {
-    const el = createList(CHILDREN);
-    // v4's children are the registry's job rather than the parent's, so
-    // they are mounted here too — otherwise this would compare a whole
-    // tree against a single component.
-    new ListV4(el).$mount();
-    for (const child of el.querySelectorAll<HTMLElement>('[data-component="Item"]')) {
-      new ItemV4(child).$mount();
-    }
-    el.remove();
-  });
+describe('mount a list of 25 children', () => {
+  bench(
+    'v3',
+    async () => {
+      const el = createList(CHILDREN);
+      await new ListV3(el).$mount();
+      el.remove();
+    },
+    HEAVY,
+  );
+
+  bench(
+    'v4',
+    () => {
+      const el = createList(CHILDREN);
+      // v4's children are the registry's job rather than the parent's, so
+      // they are mounted here too — otherwise this would compare a whole
+      // tree against a single component.
+      new ListV4(el).$mount();
+      for (const child of el.querySelectorAll<HTMLElement>('[data-component="Item"]')) {
+        new ItemV4(child).$mount();
+      }
+      el.remove();
+    },
+    HEAVY,
+  );
 });
 
 describe('config access', () => {
