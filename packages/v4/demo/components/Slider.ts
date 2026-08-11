@@ -4,11 +4,11 @@ import { Base, createContext, type DelegatedEvent, type ScheduledTask } from '..
  * Slider-lite — a reimplementation of the @studiometa/ui Slider family on
  * the v4 model. This is the component whose `createStorage` store and
  * two-sided `connectChildren`/`__connect` handshake motivated the whole
- * data-sharing design: here the shared state is one provided reactive cell.
+ * data-sharing design: here the shared state is one provided reactive signal.
  *
  * - Scrolling uses native CSS scroll-snap + `scrollIntoView` — no math.
  * - `Slider` provides `{ index, total }` through `SliderContext`.
- * - `SliderCount` injects the cell and subscribes: mount order does not
+ * - `SliderCount` injects the signal and subscribes: mount order does not
  *   matter, no handshake, no declaration.
  * - `SliderBtn` emits a bubbling `slide` event; `Slider` catches it through
  *   delegation (`onSliderBtnSlide`).
@@ -102,7 +102,7 @@ export class Slider extends Base {
   /**
    * Derive the current index from the scroll position: one frame-aligned
    * `$read` per frame (each scroll event cancels the previous pending task),
-   * measuring which item sits closest to the wrapper center. Keeps the cell
+   * measuring which item sits closest to the wrapper center. Keeps the signal
    * in sync for native scroll-snap swipes, not only for the buttons.
    */
   syncFromScroll(): void {

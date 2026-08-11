@@ -15,10 +15,10 @@ export function createContext<T = unknown>(description = 'context'): ContextKey<
 }
 
 /**
- * A minimal reactive value cell: read/write `value`, subscribe to changes.
+ * A minimal reactive value: read/write `value`, subscribe to changes.
  * The live reference is shared, never serialized.
  */
-export class Cell<T = unknown> {
+export class Signal<T = unknown> {
   #value: T;
 
   #subscribers = new Set<(value: T) => void>();
@@ -55,13 +55,13 @@ export class Cell<T = unknown> {
 
 interface ContextRequestDetail {
   key: symbol;
-  provide(cell: Cell<unknown>): void;
+  provide(signal: Signal<unknown>): void;
 }
 
 interface PendingRequest {
   el: Element;
   key: symbol;
-  resolve(cell: Cell<unknown>): void;
+  resolve(signal: Signal<unknown>): void;
 }
 
 const pendingRequests = new Set<PendingRequest>();
@@ -70,10 +70,10 @@ function requestContext(request: PendingRequest): boolean {
   let isAnswered = false;
   const detail: ContextRequestDetail = {
     key: request.key,
-    provide(cell) {
+    provide(signal) {
       isAnswered = true;
       pendingRequests.delete(request);
-      request.resolve(cell);
+      request.resolve(signal);
     },
   };
   request.el.dispatchEvent(new CustomEvent(CONTEXT_REQUEST, { bubbles: true, detail }));
@@ -88,16 +88,16 @@ function requestContext(request: PendingRequest): boolean {
 export function provideContext<T>(
   el: Element,
   key: ContextKey<T>,
-  value: T | Cell<T>,
-): { cell: Cell<T>; dispose: () => void } {
-  const cell = value instanceof Cell ? value : new Cell(value);
+  value: T | Signal<T>,
+): { signal: Signal<T>; dispose: () => void } {
+  const signal = value instanceof Signal ? value : new Signal(value);
   const onRequest = (event: Event) => {
     const { detail } = event as CustomEvent<ContextRequestDetail>;
     if (detail?.key !== key) {
       return;
     }
     event.stopPropagation();
-    detail.provide(cell as unknown as Cell<unknown>);
+    detail.provide(signal as unknown as Signal<unknown>);
   };
   el.addEventListener(CONTEXT_REQUEST, onRequest);
 
@@ -113,22 +113,22 @@ export function provideContext<T>(
   }
 
   return {
-    cell,
+    signal,
     dispose: () => el.removeEventListener(CONTEXT_REQUEST, onRequest),
   };
 }
 
 /**
- * Resolve the nearest provided cell for `key`, now or when a provider
+ * Resolve the nearest provided signal for `key`, now or when a provider
  * appears. Order-independent.
  */
 export function injectContext<T>(
   el: Element,
   key: ContextKey<T>,
-): { promise: Promise<Cell<T>>; cancel: () => void } {
+): { promise: Promise<Signal<T>>; cancel: () => void } {
   let request!: PendingRequest;
-  const promise = new Promise<Cell<T>>((resolve) => {
-    request = { el, key, resolve: resolve as unknown as (cell: Cell<unknown>) => void };
+  const promise = new Promise<Signal<T>>((resolve) => {
+    request = { el, key, resolve: resolve as unknown as (signal: Signal<unknown>) => void };
     if (!requestContext(request)) {
       pendingRequests.add(request);
     }

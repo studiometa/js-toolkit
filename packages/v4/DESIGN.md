@@ -48,8 +48,8 @@ Three distinct notions, kept distinct:
 ```js
 class TodoCount extends Base {
   async mounted() {
-    const cell = await this.$inject(CountContext);
-    return cell.subscribe((count) => { … });   // unsubscribed on destroy
+    const signal = await this.$inject(CountContext);
+    return signal.subscribe((count) => { … });   // unsubscribed on destroy
   }
 }
 ```
@@ -134,14 +134,14 @@ class Slider extends Base {
 
 This replaces Slider's per-instance store + two-sided `connectChildren`/`__connect` handshake, and it is the honest v4 successor of `$children` — pull plus push, instead of a lazy re-query getter.
 
-The initial sweep is deferred to a microtask: `$watchChildren` is typically called in a field initializer, and already-mounted children would otherwise fire `added` synchronously while the instance is half-constructed (found live: the Slider demo read `this.items` from an `added` callback before the field was assigned, and its provided state cell stayed at `total: 0`). The announcement listeners attach synchronously, so nothing mounting in between is missed — the internal `Set` deduplicates.
+The initial sweep is deferred to a microtask: `$watchChildren` is typically called in a field initializer, and already-mounted children would otherwise fire `added` synchronously while the instance is half-constructed (found live: the Slider demo read `this.items` from an `added` callback before the field was assigned, and its provided state signal stayed at `total: 0`). The announcement listeners attach synchronously, so nothing mounting in between is missed — the internal `Set` deduplicates.
 
 ### Shared state — provide/inject in core
 
 Advertisement solves "who is there", not "what is the current value". For continuous shared state, v4 ships a provide/inject primitive modeled on Vue:
 
 - Typed injection key (no string collisions).
-- Reactive value cell (live reference, never serialized).
+- Reactive value signal (live reference, never serialized).
 - Subtree scope with nearest-provider-wins shadowing.
 - Optionally exposes a curated owner surface (`expose` pattern) instead of the raw instance.
 

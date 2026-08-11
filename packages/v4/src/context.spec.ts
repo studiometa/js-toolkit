@@ -1,30 +1,30 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
-import { Cell, createContext, provideContext } from './context.js';
+import { Signal, createContext, provideContext } from './context.js';
 import { registerComponent } from './registry.js';
 import { renderTodoList, resetDom, settle } from './test-utils.js';
 
 afterEach(resetDom);
 
-describe('Cell', () => {
+describe('Signal', () => {
   it('notifies subscribers on change only', () => {
-    const cell = new Cell(1);
+    const signal = new Signal(1);
     const seen: number[] = [];
-    cell.subscribe((value) => seen.push(value), { immediate: true });
+    signal.subscribe((value) => seen.push(value), { immediate: true });
 
-    cell.value = 1; // same value, no notification
-    cell.value = 2;
+    signal.value = 1; // same value, no notification
+    signal.value = 2;
     expect(seen).toEqual([1, 2]);
   });
 
   it('stops notifying after unsubscribe', () => {
-    const cell = new Cell('a');
+    const signal = new Signal('a');
     const seen: string[] = [];
-    const unsubscribe = cell.subscribe((value) => seen.push(value));
+    const unsubscribe = signal.subscribe((value) => seen.push(value));
 
-    cell.value = 'b';
+    signal.value = 'b';
     unsubscribe();
-    cell.value = 'c';
+    signal.value = 'c';
     expect(seen).toEqual(['b']);
   });
 });
@@ -37,8 +37,8 @@ describe('provide/inject', () => {
     class LateConsumer extends Base {
       static config = { name: 'LateConsumer' };
       async mounted() {
-        const cell = await this.$inject(Key);
-        received.push(cell.value);
+        const signal = await this.$inject(Key);
+        received.push(signal.value);
       }
     }
     registerComponent(LateConsumer);
@@ -50,7 +50,7 @@ describe('provide/inject', () => {
     expect(received).toEqual([]);
 
     // The provider appears later, higher in the tree.
-    provideContext(wrapper, Key, new Cell('hello'));
+    provideContext(wrapper, Key, new Signal('hello'));
     await settle();
     expect(received).toEqual(['hello']);
   });
@@ -85,8 +85,8 @@ describe('provide/inject', () => {
 
     const { injectContext } = await import('./context.js');
     let resolved: unknown;
-    injectContext(consumer, Wanted).promise.then((cell) => {
-      resolved = cell.value;
+    injectContext(consumer, Wanted).promise.then((signal) => {
+      resolved = signal.value;
     });
     await settle();
     expect(resolved).toBeUndefined();
@@ -96,7 +96,7 @@ describe('provide/inject', () => {
     expect(resolved).toBe('yes');
   });
 
-  it('feeds a component through the provided cell', async () => {
+  it('feeds a component through the provided signal', async () => {
     const root = renderTodoList();
     await settle();
 

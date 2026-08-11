@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base, type ChildrenCollection, type DelegatedEvent } from './Base.js';
-import { Cell, createContext } from './context.js';
+import { Signal, createContext } from './context.js';
 import { children, component, inject, on, provide, read, write } from './decorators.js';
 import { registerComponents } from './registry.js';
 import { scheduler } from './scheduler.js';
@@ -11,7 +11,7 @@ const DecoContext = createContext<number>('deco-context');
 @component({ name: 'DecoChild' })
 class DecoChild extends Base {
   @inject(DecoContext)
-  accessor total: Cell<number> | undefined;
+  accessor total: Signal<number> | undefined;
 
   ping(): void {
     this.$emit('ping', 42);
@@ -22,7 +22,7 @@ class DecoChild extends Base {
 class DecoParent extends Base {
   // No `components` declaration: @on resolves the child name itself.
   @provide(DecoContext)
-  total = new Cell(0);
+  total = new Signal(0);
 
   @children<DecoChild>('DecoChild', {
     added() {
@@ -214,7 +214,7 @@ describe('@read / @write', () => {
 });
 
 describe('@provide / @inject', () => {
-  it('shares a cell down the subtree', async () => {
+  it('shares a signal down the subtree', async () => {
     const root = render(2);
     await settle();
 
@@ -226,7 +226,7 @@ describe('@provide / @inject', () => {
 
     // The @children callbacks published the count through @provide.
     expect(parent.total.value).toBe(2);
-    // The child resolved the same cell instance through @inject.
+    // The child resolved the same signal instance through @inject.
     expect(child.total).toBe(parent.total);
     expect(child.total?.value).toBe(2);
 

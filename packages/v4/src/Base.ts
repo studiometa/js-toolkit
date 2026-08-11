@@ -1,4 +1,4 @@
-import { Cell, injectContext, provideContext, type ContextKey } from './context.js';
+import { Signal, injectContext, provideContext, type ContextKey } from './context.js';
 import { scheduler, type ScheduledTask } from './scheduler.js';
 import { kebabCase, selectorFor } from './utils.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
@@ -218,8 +218,8 @@ export class Base {
    * async:
    *
    *     async mounted() {
-   *       const cell = await this.$inject(SomeContext);
-   *       return cell.subscribe((value) => { … });
+   *       const signal = await this.$inject(SomeContext);
+   *       return signal.subscribe((value) => { … });
    *     }
    */
   mounted(): MountedReturn {}
@@ -419,18 +419,18 @@ export class Base {
   }
 
   /**
-   * Provide a reactive cell to the subtree (nearest provider wins).
+   * Provide a reactive signal to the subtree (nearest provider wins).
    */
-  $provide<T>(key: ContextKey<T>, value: T | Cell<T>): Cell<T> {
-    const { cell, dispose } = provideContext(this.$el, key, value);
+  $provide<T>(key: ContextKey<T>, value: T | Signal<T>): Signal<T> {
+    const { signal, dispose } = provideContext(this.$el, key, value);
     this.#terminateCallbacks.push(dispose);
-    return cell;
+    return signal;
   }
 
   /**
-   * Resolve the nearest provided cell, now or when a provider appears.
+   * Resolve the nearest provided signal, now or when a provider appears.
    */
-  $inject<T>(key: ContextKey<T>): Promise<Cell<T>> {
+  $inject<T>(key: ContextKey<T>): Promise<Signal<T>> {
     const { promise, cancel } = injectContext(this.$el, key);
     this.#terminateCallbacks.push(cancel);
     return promise;

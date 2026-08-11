@@ -41,8 +41,8 @@ export class TodoCount extends Base {
   cleanupCalls = 0;
 
   async mounted() {
-    const cell = await this.$inject(CountContext);
-    const unsubscribe = cell.subscribe(
+    const signal = await this.$inject(CountContext);
+    const unsubscribe = signal.subscribe(
       (count) => {
         this.$el.textContent = String(count);
       },

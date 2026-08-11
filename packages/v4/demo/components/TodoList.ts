@@ -20,8 +20,8 @@ export class TodoCount extends Base {
   static config = { name: 'TodoCount' };
 
   async mounted() {
-    const cell = await this.$inject(CountContext);
-    return cell.subscribe(
+    const signal = await this.$inject(CountContext);
+    return signal.subscribe(
       (count) => {
         this.$write(() => {
           this.$el.textContent = `${count} item${count === 1 ? '' : 's'}`;

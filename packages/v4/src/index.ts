@@ -46,7 +46,13 @@ export {
   type OptionType,
   type WatchChildrenCallbacks,
 } from './Base.js';
-export { Cell, createContext, injectContext, provideContext, type ContextKey } from './context.js';
+export {
+  Signal,
+  createContext,
+  injectContext,
+  provideContext,
+  type ContextKey,
+} from './context.js';
 export { children, component, inject, on, provide, read, write } from './decorators.js';
 export { registerComponent, registerComponents } from './registry.js';
 export {

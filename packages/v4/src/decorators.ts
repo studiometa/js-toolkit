@@ -8,7 +8,7 @@ import {
   type HandlerRegistration,
   type WatchChildrenCallbacks,
 } from './Base.js';
-import { Cell, type ContextKey } from './context.js';
+import { Signal, type ContextKey } from './context.js';
 import { registerComponent } from './registry.js';
 
 /**
@@ -166,48 +166,48 @@ export function component(config: BaseConfig) {
 }
 
 /**
- * Provide the decorated cell to the subtree (nearest provider wins) — the
+ * Provide the decorated signal to the subtree (nearest provider wins) — the
  * field-decorator form of `$provide()`:
  *
  *     class Slider extends Base {
  *       @provide(SliderContext)
- *       state = new Cell({ index: 0, total: 0 });
+ *       state = new Signal({ index: 0, total: 0 });
  *     }
  *
- * A plain value is wrapped in a `Cell` automatically.
+ * A plain value is wrapped in a `Signal` automatically.
  */
-export function provide<T>(key: ContextKey<T>): ValueDecorator<Cell<T>> {
+export function provide<T>(key: ContextKey<T>): ValueDecorator<Signal<T>> {
   return function decorate<This extends Base>(
     _target: unknown,
-    context: ValueDecoratorContext<This, Cell<T>>,
+    context: ValueDecoratorContext<This, Signal<T>>,
   ) {
-    return withInitializer(context, function initialize(this: This, initial: Cell<T>) {
+    return withInitializer(context, function initialize(this: This, initial: Signal<T>) {
       return this.$provide(key, initial);
     });
-  } as ValueDecorator<Cell<T>>;
+  } as ValueDecorator<Signal<T>>;
 }
 
 /**
- * Resolve the nearest provided cell into the decorated field, now or when a
+ * Resolve the nearest provided signal into the decorated field, now or when a
  * provider appears — the field stays `undefined` until then (the
  * field-decorator form of `$inject()`, shaped like Lit's `@consume`):
  *
  *     class SliderCount extends Base {
  *       @inject(SliderContext)
- *       state?: Cell<SliderState>;
+ *       state?: Signal<SliderState>;
  *     }
  */
-export function inject<T>(key: ContextKey<T>): ValueObserver<Cell<T> | undefined> {
+export function inject<T>(key: ContextKey<T>): ValueObserver<Signal<T> | undefined> {
   return function decorate<This extends Base>(
     _target: unknown,
-    context: ValueDecoratorContext<This, Cell<T> | undefined>,
+    context: ValueDecoratorContext<This, Signal<T> | undefined>,
   ): void {
     context.addInitializer(function initialize(this: This) {
-      this.$inject(key).then((cell) => {
-        context.access.set(this, cell);
+      this.$inject(key).then((signal) => {
+        context.access.set(this, signal);
       });
     });
-  } as ValueObserver<Cell<T> | undefined>;
+  } as ValueObserver<Signal<T> | undefined>;
 }
 
 /**
