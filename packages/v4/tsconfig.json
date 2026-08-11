@@ -9,5 +9,5 @@
     "skipLibCheck": true,
     "types": []
   },
-  "include": ["src/**/*.ts", "demo/**/*.ts"]
+  "include": ["src/**/*.ts", "demo/**/*.ts", "migration/**/*.ts"]
 }
