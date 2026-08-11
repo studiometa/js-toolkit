@@ -1,7 +1,7 @@
-import { Cell, injectContext, provideContext, type ContextKey } from './context';
-import { scheduler, type ScheduledTask } from './scheduler';
-import { kebabCase, selectorFor } from './utils';
-import { viewTransition, type ViewTransitionUpdate } from './viewTransition';
+import { Cell, injectContext, provideContext, type ContextKey } from './context.js';
+import { scheduler, type ScheduledTask } from './scheduler.js';
+import { kebabCase, selectorFor } from './utils.js';
+import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
 
 export const SOURCE: unique symbol = Symbol('emitter');
 export const MOUNTED_EVENT = 'component:mounted';
@@ -51,6 +51,20 @@ export interface ChildrenCollection<T extends Base = Base> extends Iterable<T> {
 
 export interface LifecycleEventDetail {
   instance: Base;
+}
+
+/**
+ * Per-instance list of handlers declared with the `@on` decorator, filled by
+ * the decorator's initializers during construction and consumed by
+ * `#bindHandlers()` on every mount.
+ */
+export const HANDLER_REGISTRATIONS: unique symbol = Symbol('handler registrations');
+
+export interface HandlerRegistration {
+  /** Child component name for delegated handlers, `null` for own events. */
+  child: string | null;
+  type: string;
+  handler: (this: any, payload: any) => void;
 }
 
 declare global {
@@ -179,6 +193,9 @@ export class Base {
   #terminateCallbacks: Array<() => void> = [];
 
   #tasks = new Set<ScheduledTask<unknown>>();
+
+  /** Filled by the `@on` decorator's initializers, if any are used. */
+  declare [HANDLER_REGISTRATIONS]?: HandlerRegistration[];
 
   get $config(): BaseConfig {
     return (this.constructor as BaseConstructor).config;
@@ -483,25 +500,55 @@ export class Base {
     const childNames = Object.keys(this.$config.components ?? {}).sort(
       (a, b) => b.length - a.length,
     );
-    const delegated = new Map<string, Array<{ childName: string; method: string }>>();
+    const delegated = new Map<
+      string,
+      Array<{ childName: string; invoke: (payload: DelegatedEvent) => void }>
+    >();
+    const addDelegated = (
+      type: string,
+      childName: string,
+      invoke: (payload: DelegatedEvent) => void,
+    ) => {
+      if (!delegated.has(type)) {
+        delegated.set(type, []);
+      }
+      delegated.get(type)?.push({ childName, invoke });
+    };
+    const bindOwn = (type: string, invoke: (event: Event) => void) => {
+      const listener: EventListener = (event) => invoke(event);
+      this.$el.addEventListener(type, listener);
+      this.#listeners.push([type, listener, this.$el]);
+    };
 
+    // Handlers declared with the `@on` decorator: explicit child/type pairs,
+    // so no `config.components` lookup and no name parsing.
+    const registrations = this[HANDLER_REGISTRATIONS] ?? [];
+    const decorated = new Set(registrations.map(({ handler }) => handler));
+    for (const { child, type, handler } of registrations) {
+      if (child) {
+        addDelegated(type, child, (payload) => handler.call(this, payload));
+      } else {
+        bindOwn(type, (event) => handler.call(this, event));
+      }
+    }
+
+    // Magic `on<Child><Event>` / `on<Event>` method names — the no-build
+    // path. A method already bound through a decorator is skipped.
     for (const method of getHandlerNames(this)) {
+      if (decorated.has(self[method])) {
+        continue;
+      }
       const rest = method.slice(2);
       const childName = childNames.find(
         (name) => rest.startsWith(name) && rest.length > name.length,
       );
 
       if (childName) {
-        const type = kebabCase(rest.slice(childName.length));
-        if (!delegated.has(type)) {
-          delegated.set(type, []);
-        }
-        delegated.get(type)?.push({ childName, method });
+        addDelegated(kebabCase(rest.slice(childName.length)), childName, (payload) =>
+          self[method](payload),
+        );
       } else {
-        const type = kebabCase(rest);
-        const listener: EventListener = (event) => self[method](event);
-        this.$el.addEventListener(type, listener);
-        this.#listeners.push([type, listener, this.$el]);
+        bindOwn(kebabCase(rest), (event) => self[method](event));
       }
     }
 
@@ -511,19 +558,23 @@ export class Base {
         while (el && el !== this.$el) {
           const map = el.__base__;
           if (map) {
-            for (const { childName, method } of entries) {
+            let invoked = false;
+            for (const { childName, invoke } of entries) {
               const child = map.get(childName);
               if (child?.$isMounted) {
-                const payload: DelegatedEvent = {
+                invoke({
                   event,
                   target: child,
                   args: Array.isArray((event as CustomEvent).detail)
                     ? ((event as CustomEvent).detail as unknown[])
                     : [],
-                };
-                self[method](payload);
-                return;
+                });
+                invoked = true;
               }
+            }
+            // Nearest matching component wins; every handler for it fired.
+            if (invoked) {
+              return;
             }
           }
           el = el.parentElement;

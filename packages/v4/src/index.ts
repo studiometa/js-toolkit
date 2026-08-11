@@ -32,26 +32,29 @@
 export {
   Base,
   DESTROYED_EVENT,
+  HANDLER_REGISTRATIONS,
   MOUNTED_EVENT,
   SOURCE,
   type BaseConfig,
   type BaseConstructor,
   type ChildrenCollection,
   type DelegatedEvent,
+  type HandlerRegistration,
   type LifecycleEventDetail,
   type MountedReturn,
   type OptionDefinition,
   type OptionType,
   type WatchChildrenCallbacks,
-} from './Base';
-export { Cell, createContext, injectContext, provideContext, type ContextKey } from './context';
-export { registerComponent, registerComponents } from './registry';
+} from './Base.js';
+export { Cell, createContext, injectContext, provideContext, type ContextKey } from './context.js';
+export { children, component, inject, on, provide } from './decorators.js';
+export { registerComponent, registerComponents } from './registry.js';
 export {
   nextFrame,
   Scheduler,
   scheduler,
   type ScheduledTask,
   type SchedulerPhase,
-} from './scheduler';
-export { kebabCase } from './utils';
-export { viewTransition, type ViewTransitionUpdate } from './viewTransition';
+} from './scheduler.js';
+export { kebabCase } from './utils.js';
+export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
