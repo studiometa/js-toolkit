@@ -1,5 +1,11 @@
+import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
 import { createService, type Service } from './Service.js';
 
+/**
+ * Props are flat, one per axis, the same `<name>X`/`<name>Y` spelling the
+ * scroll service uses: a handler destructures what it needs (`{ progressX }`)
+ * instead of reaching through a group.
+ */
 export interface PointerProps {
   /** The event that produced these props, `null` before the first one. */
   event: PointerEvent | null;
@@ -7,12 +13,19 @@ export interface PointerProps {
   /** Position in the viewport. */
   x: number;
   y: number;
-  last: { x: number; y: number };
-  delta: { x: number; y: number };
+  /** Whether the axis moved in this update. */
+  changedX: boolean;
+  changedY: boolean;
+  lastX: number;
+  lastY: number;
+  deltaX: number;
+  deltaY: number;
   /** Viewport size. */
-  max: { x: number; y: number };
+  maxX: number;
+  maxY: number;
   /** Position over the viewport, from `0` to `1`. */
-  progress: { x: number; y: number };
+  progressX: number;
+  progressY: number;
 }
 
 /**
@@ -24,7 +37,7 @@ const EVENTS = ['pointermove', 'pointerdown', 'pointerup', 'pointercancel'] as c
 
 function createPointerService(): Service<PointerProps> {
   // Centered until the pointer says otherwise: a component reading
-  // `progress` before the first move gets the middle of the viewport rather
+  // `progressX` before the first move gets the middle of the viewport rather
   // than its top-left corner.
   const x = window.innerWidth / 2;
   const y = window.innerHeight / 2;
@@ -33,10 +46,16 @@ function createPointerService(): Service<PointerProps> {
     isDown: false,
     x,
     y,
-    last: { x, y },
-    delta: { x: 0, y: 0 },
-    max: { x: window.innerWidth, y: window.innerHeight },
-    progress: { x: 0.5, y: 0.5 },
+    changedX: false,
+    changedY: false,
+    lastX: x,
+    lastY: y,
+    deltaX: 0,
+    deltaY: 0,
+    maxX: window.innerWidth,
+    maxY: window.innerHeight,
+    progressX: 0.5,
+    progressY: 0.5,
   };
 
   function update(event: PointerEvent): PointerProps {
@@ -46,14 +65,16 @@ function createPointerService(): Service<PointerProps> {
     props.event = event;
     props.x = event.clientX;
     props.y = event.clientY;
-    props.last.x = lastX;
-    props.last.y = lastY;
-    props.delta.x = props.x - lastX;
-    props.delta.y = props.y - lastY;
-    props.max.x = window.innerWidth;
-    props.max.y = window.innerHeight;
-    props.progress.x = props.x / props.max.x;
-    props.progress.y = props.y / props.max.y;
+    props.changedX = props.x !== lastX;
+    props.changedY = props.y !== lastY;
+    props.lastX = lastX;
+    props.lastY = lastY;
+    props.deltaX = props.x - lastX;
+    props.deltaY = props.y - lastY;
+    props.maxX = window.innerWidth;
+    props.maxY = window.innerHeight;
+    props.progressX = props.x / props.maxX;
+    props.progressY = props.y / props.maxY;
 
     return props;
   }
@@ -93,8 +114,8 @@ let service: Service<PointerProps> | undefined;
  * Use the pointer service.
  *
  * ```js
- * const unsubscribe = usePointer().add(({ progress, isDown }) => {
- *   el.style.setProperty('--x', String(progress.x));
+ * const unsubscribe = usePointer().add(({ progressX, isDown }) => {
+ *   el.style.setProperty('--x', String(progressX));
  * });
  * ```
  *
@@ -106,3 +127,32 @@ export function usePointer(): Service<PointerProps> {
   service ??= createPointerService();
   return service;
 }
+
+/** The method `withPointer()` subscribes for the component. */
+export interface PointerHook {
+  moved?(props: PointerProps): void;
+}
+
+export type PointerMixinOptions = ServiceMixinOptions<void>;
+
+/**
+ * Subscribe a component's `moved()` method to the pointer service, for its
+ * whole mount cycle:
+ *
+ * ```js
+ * class Cursor extends withPointer(Base) {
+ *   moved({ progressX }) {
+ *     this.$el.style.setProperty('--x', String(progressX));
+ *   }
+ * }
+ * ```
+ *
+ * The pointer is read from the window, like VueUse's `usePointer()` and
+ * solid-primitives' `createMousePosition()`, so there is nothing to target.
+ * The decorator form `@withPointer()` is the same thing with a build step.
+ */
+export const withPointer = createServiceMixin<PointerHook, void>({
+  hook: 'moved',
+  target: () => undefined,
+  use: () => usePointer(),
+});

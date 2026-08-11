@@ -41,18 +41,21 @@ describe('useDrag', () => {
     // A steep damping so the inertia settles in a handful of frames.
     const unsubscribe = useDrag(el, { dampFactor: 0.1 }).add((props) => {
       modes.push(props.mode);
-      last.push({ ...props, distance: { ...props.distance }, delta: { ...props.delta } });
+      last.push({ ...props });
     });
 
     grab(el, 10, 10);
     expect(modes).toEqual(['start']);
-    expect(last[0].origin).toEqual({ x: 10, y: 10 });
+    expect(last[0].originX).toBe(10);
+    expect(last[0].originY).toBe(10);
     expect(last[0].isGrabbing).toBe(true);
 
     move(60, 30);
     expect(modes.at(-1)).toBe('drag');
-    expect(last.at(-1)?.delta).toEqual({ x: 50, y: 20 });
-    expect(last.at(-1)?.distance).toEqual({ x: 50, y: 20 });
+    expect(last.at(-1)?.deltaX).toBe(50);
+    expect(last.at(-1)?.deltaY).toBe(20);
+    expect(last.at(-1)?.distanceX).toBe(50);
+    expect(last.at(-1)?.distanceY).toBe(20);
 
     release();
     expect(modes.at(-1)).toBe('drop');
@@ -60,7 +63,7 @@ describe('useDrag', () => {
     expect(last.at(-1)?.hasInertia).toBe(true);
     // The final position is known at drop time, before the first inertia
     // frame runs.
-    expect(last.at(-1)?.final.x).toBeGreaterThan(60);
+    expect(last.at(-1)?.finalX).toBeGreaterThan(60);
 
     await frames(6);
     unsubscribe();

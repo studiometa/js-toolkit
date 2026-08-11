@@ -2,14 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { usePointer, type PointerProps } from './PointerService.js';
 
 function snapshot(props: PointerProps) {
-  return {
-    isDown: props.isDown,
-    x: props.x,
-    y: props.y,
-    last: { ...props.last },
-    delta: { ...props.delta },
-    progress: { ...props.progress },
-  };
+  return { ...props };
 }
 
 function move(x: number, y: number): void {
@@ -22,7 +15,8 @@ describe('usePointer', () => {
     // Read without subscribing: the service is not even running here.
     const props = usePointer().props();
     expect(props.x).toBe(window.innerWidth / 2);
-    expect(props.progress).toEqual({ x: 0.5, y: 0.5 });
+    expect(props.progressX).toBe(0.5);
+    expect(props.progressY).toBe(0.5);
   });
 
   it('follows the pointer and reports its delta and progress', () => {
@@ -36,10 +30,13 @@ describe('usePointer', () => {
     const [first, second] = seen;
     expect(first.x).toBe(100);
     expect(first.y).toBe(50);
-    expect(second.delta).toEqual({ x: 40, y: 40 });
-    expect(second.last).toEqual({ x: 100, y: 50 });
-    expect(second.progress.x).toBeCloseTo(140 / window.innerWidth, 5);
-    expect(second.progress.y).toBeCloseTo(90 / window.innerHeight, 5);
+    expect(second.deltaX).toBe(40);
+    expect(second.deltaY).toBe(40);
+    expect(second.lastX).toBe(100);
+    expect(second.lastY).toBe(50);
+    expect(second.changedX).toBe(true);
+    expect(second.progressX).toBeCloseTo(140 / window.innerWidth, 5);
+    expect(second.progressY).toBeCloseTo(90 / window.innerHeight, 5);
   });
 
   it('tracks the pressed state through pointerdown and pointerup', () => {
