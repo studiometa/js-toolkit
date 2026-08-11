@@ -258,6 +258,19 @@ Properties:
 - **Error isolation.** try/catch per task; a throwing task is reported and dropped, the flush continues, the scheduler never deadlocks.
 - **Source compatibility.** `domScheduler.read/write/afterWrite` keeps its shape — all current consumers (Slider children, ScrollAnimation, Draggable, `withScrolledInView`, `animate`) keep working; only flush timing changes. `useScheduler` custom-steps stays for non-DOM use. A synchronous escape (`flushSync`, and the `blocking` feature for tests) remains available.
 
+### Frame subscriptions — `scheduler.frame(callback)` — implemented
+
+The clock needs one more verb than `read`/`write`/`afterWrite`/`background`, because a service is not a task: it does not run once, it runs _while somebody is listening_.
+
+```js
+const unsubscribe = scheduler.frame(({ time, delta }) => { … });
+```
+
+- Frame callbacks run **at the start of the flush, before `read`**, so anything they schedule belongs to the same frame. That is what preserves v3's `RafService` contract without a second loop: the callback measures in `read`, the render function it returns mutates in `write`, once, before paint.
+- The subscription is the only handle — no keys, no `remove(key)` — and it is what keeps the loop alive. `#schedule()` is called again at the end of a flush when a queue is non-empty **or** a frame subscriber remains, so the rAF loop stops on its own once the last one leaves. This answers the "idle-frame behavior" open point below: there is no permanent loop.
+- Frame subscribers are **not queued work**, so `whenIdle()` ignores them. A page with a live scroll animation would otherwise never be idle, and the test helper `settle()` would never return.
+- A throwing frame callback is reported and skipped, never unsubscribed: the subscription belongs to whoever created it, not to the frame that broke.
+
 ### Native View Transitions move into core
 
 The `viewTransition(update)` helper and its batching scheduler currently live in @studiometa/ui (`ViewTransition/scheduler.ts`: microtask-batched updates flushed into a single `document.startViewTransition()`, batches serialized, synchronous fallback when unsupported). In v4 this becomes a lane of the core scheduler, because a view transition is a scheduling concern — `startViewTransition` snapshots the DOM, so its timing must coordinate with pending reads/writes:
@@ -271,12 +284,26 @@ The `viewTransition(update)` helper and its batching scheduler currently live in
 ### Open points
 
 - `afterWrite` timing: same frame after `write` (current behavior) vs after paint (double rAF / `requestPostAnimationFrame`-style). Same-frame is the compatible default; an explicit `afterPaint` phase could be added instead of changing `afterWrite`.
-- Idle-frame behavior: skip rAF scheduling entirely when all queues are empty (no permanent rAF loop), wake on first scheduled task.
+- ~~Idle-frame behavior~~ **Decided:** no permanent rAF loop. The scheduler wakes on the first scheduled task or frame subscription and stops when both are gone.
 - Whether the frame loop keeps ticking during a running view transition (rendering is frozen while the snapshot is captured; long transitions should not starve `background` work).
+
+## 8. Services — lazy, reference-counted — implemented
+
+A service is a shared source of props components subscribe to: `ticked`, `scrolled`, `resized`, `moved`, `dragged`. `KeyService` and `LoadService` are not ported — a `keydown` listener and `window.onload` need no service around them.
+
+- **Lazy and reference-counted.** `createService()` starts the definition on the first subscriber and tears it down on the last: no listener, no observer and no frame while nobody listens. This is the property the whole design leans on, since components mount and unmount constantly under `data-mount` strategies.
+- **Symmetric subscriptions.** `add(callback)` returns the unsubscribe, like `Signal.subscribe()`, `provideContext()` and the mount strategies. v3 keyed callbacks by instance id and exposed `add`/`remove`/`has`; a closure cannot fall out of sync with the thing it releases. `AbortSignal` was measured as the alternative and rejected: 17× the cost per subscription, and not what the ecosystem uses internally either.
+- **Scoped to a target.** `useScroll(target?)` takes an element or the window, `useResize(target?)` an element, `useDrag(el)` its element; `useWindowScroll()` and `useWindowSize()` name the default cases, the split VueUse, solid-primitives, react-use and runed all make. `useRaf()` and `usePointer()` have nothing to scope — the frame is the clock and the pointer is read from the window.
+- **One instance per target,** keyed in a `WeakMap` by `perTarget()`. This is lifecycle bookkeeping rather than throughput: reference counting only means something against a target, so the last subscriber of one element must release that element's observer and leave the others running. Sharing one observer across targets was measured indifferent — the widespread claim traces to a single 2017 measurement, and 500 idle observers now cost ~0.02 ms/frame in total — so nothing tries to group them.
+- **Bound per mount cycle, by a mixin.** `withRaf`/`withScroll`/`withResize`/`withPointer`/`withDrag` override `mounted()`, subscribe the component's `ticked`/`scrolled`/`resized`/`moved`/`dragged` method, and hand the unsubscribe back as a cleanup — so `$destroy()` releases it and a remount subscribes again, with `Base` knowing nothing about services. A hook is sugar for the default target; any other target is an option of the mixin (`target`, `hook`) or an explicit `useX(target).add(…)` in `mounted()`. The mixin is the primitive because it needs no build step; `@withScroll()` is the decorator sugar over it, and both are tree-shakeable: an unimported service cannot make a hook silently do nothing.
+- **No loops of their own.** `RafService` and the drag inertia subscribe to `scheduler.frame()`; `ScrollService` coalesces its events into one `read` per frame instead of debouncing; `ResizeService` is a `ResizeObserver`, which also means a subscriber is told the current size on subscribe rather than on the next resize. `RafService` collects the render functions its callbacks return itself — the shared primitive fans props out and expects nothing back.
+- **Props are flat, one per axis.** `ScrollProps` is `x`/`y`, `changedX`/`changedY`, `lastX`/`lastY`, `deltaX`/`deltaY`, `maxX`/`maxY`, `progressX`/`progressY`, `isUp`/`isRight`/`isDown`/`isLeft` — v3's spelling exactly, so a ported handler reads identically. The grouped objects (`last`, `delta`, `max`, `progress`, `direction`, `changed`) are gone, and with them the `ScrollDirection*` unions: v3 shipped both shapes, v4 ships one. `PointerProps` and `DragProps` follow the same `<name>X`/`<name>Y` convention, which flattens `origin`, `distance` and `final` too. `ResizeProps` was already flat. A handler destructures what it uses — `scrolled({ deltaY, isDown })` — instead of reaching through a group.
+- **What the simplification dropped.** `PointerService` is pointer-events-only and viewport-relative (v3 branched on `TouchEvent` and took a target element); `ResizeService` keeps `width`/`height`/`ratio`/`orientation`/`breakpoint` and drops `breakpoints`/`activeBreakpoints`; `DragService` drops `props.MODES` (the `DragMode` union types it) and fixes the `dragTreshold` spelling.
+- **Breakpoints are configuration, not a constant.** `setBreakpoints()` replaces the named set — the values v3 ships are only the default — and the matching `MediaQueryList` objects are built once instead of once per breakpoint per resize, which measured 5.2× slower. When `defineFeatures` lands it carries the set; this setter is what it will call.
 
 ## Kept from the existing #694 plan (unchanged)
 
-- Remove `LoadService`, `KeyService`; simplify `ResizeService`, `PointerService`; `MutationService` internal to the registry.
+- Remove `LoadService`, `KeyService`; simplify `ResizeService`, `PointerService`; `MutationService` internal to the registry. (Done — see section 8.)
 - Config merge strategy for refs/components (#627): merge by default.
 - Multiple option types (#651).
 - `ResponsiveOptionsManager` as default; breakpoints aligned with @studiometa/tailwind-config.

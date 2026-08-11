@@ -359,13 +359,10 @@ function getHandlerNames(instance: Base): Set<string> {
 
 /**
  * `mounted()` may return one cleanup, several, nothing — or a promise of
- * those.
+ * those. The shape nests, so a subclass composes with what it extends
+ * without unpacking it: `return [super.mounted(), () => { … }]`.
  */
-export type MountedReturn =
-  | void
-  | (() => void)
-  | Array<() => void>
-  | Promise<void | (() => void) | Array<() => void>>;
+export type MountedReturn = void | (() => void) | MountedReturn[] | Promise<MountedReturn>;
 
 export class Base<T extends BaseProps = BaseProps> {
   static config: BaseConfig = { name: 'Base' };
@@ -394,7 +391,7 @@ export class Base<T extends BaseProps = BaseProps> {
   /** Per-mount-cycle listeners, removed on every `$destroy()`. */
   #listeners: Array<[string, EventListener, EventTarget, boolean]> = [];
 
-  /** Per-mount-cycle cleanups (`mounted()` return values), run on `$destroy()`. */
+  /** Per-mount-cycle cleanups (service unsubscriptions, `mounted()` return values). */
   #destroyCallbacks: Array<() => void> = [];
 
   /** Instance-lifetime cleanups ($provide, $watchChildren…), run on `$terminate()`. */
@@ -432,6 +429,13 @@ export class Base<T extends BaseProps = BaseProps> {
    *       const signal = await this.$inject(SomeContext);
    *       return signal.subscribe((value) => { … });
    *     }
+   *
+   * A component extending a mixin returns what it extends along with its
+   * own, in any nesting:
+   *
+   *     mounted() {
+   *       return [super.mounted(), () => { … }];
+   *     }
    */
   mounted(): MountedReturn {}
 
@@ -460,9 +464,9 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Unmount the instance — the reversible inverse of `$mount()`. Removes the
-   * per-cycle listeners, runs the `mounted()` cleanups, cancels pending
-   * scheduler tasks and calls the `destroyed()` hook. The instance stays on
-   * its element and can mount again.
+   * per-cycle listeners, leaves the services, runs the `mounted()` cleanups,
+   * cancels pending scheduler tasks and calls the `destroyed()` hook. The
+   * instance stays on its element and can mount again.
    */
   $destroy(): this {
     if (!this.#isMounted) {
@@ -689,10 +693,8 @@ export class Base<T extends BaseProps = BaseProps> {
       return;
     }
     if (Array.isArray(result)) {
-      for (const fn of result) {
-        if (typeof fn === 'function') {
-          this.#collectCleanup(fn);
-        }
+      for (const item of result) {
+        this.#collectCleanup(item);
       }
       return;
     }

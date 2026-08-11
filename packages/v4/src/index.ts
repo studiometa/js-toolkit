@@ -14,6 +14,12 @@
  *    plus a provide/inject context primitive for shared reactive state.
  * 6. One frame-aligned scheduler (read → write → afterWrite → background)
  *    with cancelable handles, error isolation, and a `viewTransition` lane.
+ *    It is also the clock: services subscribe to its frame tick instead of
+ *    owning a `requestAnimationFrame` loop.
+ * 7. Lazy, reference-counted services, one instance per observed target —
+ *    subscribed by hand, or through the `withRaf`/`withScroll`/`withResize`/
+ *    `withPointer`/`withDrag` mixins and their `ticked`, `scrolled`,
+ *    `resized`, `moved` and `dragged` hooks, per mount cycle.
  *
  * Lifecycle: destroy !== terminate !== disconnected.
  * - disconnected (DOM fact) → `$destroy()`: reversible, the instance stays
@@ -22,9 +28,8 @@
  * - `$terminate()` is explicit and final: destroy + instance-lifetime
  *   teardown ($provide, $watchChildren) + `terminated()` hook.
  *
- * Not in this prototype: services, decorators, autoload manifests,
- * responsive options, `data-mount` strategies, non-bubbling child events
- * (mouseenter/mouseleave), refs/config merge strategies.
+ * Not in this prototype: autoload manifests, responsive options,
+ * non-bubbling child events (mouseenter/mouseleave).
  *
  * Zero dependencies.
  */
@@ -62,8 +67,69 @@ export {
   nextFrame,
   Scheduler,
   scheduler,
+  type FrameCallback,
+  type FrameProps,
   type ScheduledTask,
   type SchedulerPhase,
 } from './scheduler.js';
+export {
+  useDrag,
+  withDrag,
+  type DragHook,
+  type DragMixinOptions,
+  type DragMode,
+  type DragOptions,
+  type DragProps,
+} from './services/DragService.js';
+export {
+  createServiceMixin,
+  type MixedClass,
+  type ServiceMixin,
+  type ServiceMixinDefinition,
+  type ServiceMixinOptions,
+} from './services/mixin.js';
+export {
+  usePointer,
+  withPointer,
+  type PointerHook,
+  type PointerMixinOptions,
+  type PointerProps,
+} from './services/PointerService.js';
+export {
+  useRaf,
+  withRaf,
+  type RafHook,
+  type RafMixinOptions,
+  type RafProps,
+  type RafRender,
+} from './services/RafService.js';
+export {
+  BREAKPOINTS,
+  getBreakpoints,
+  setBreakpoints,
+  useResize,
+  useWindowSize,
+  withResize,
+  type ResizeHook,
+  type ResizeMixinOptions,
+  type ResizeOrientation,
+  type ResizeProps,
+} from './services/ResizeService.js';
+export {
+  useScroll,
+  useWindowScroll,
+  withScroll,
+  type ScrollHook,
+  type ScrollMixinOptions,
+  type ScrollProps,
+  type ScrollTarget,
+} from './services/ScrollService.js';
+export {
+  createService,
+  perTarget,
+  type Service,
+  type ServiceCallback,
+  type ServiceDefinition,
+} from './services/Service.js';
 export { kebabCase, pascalCase } from './utils.js';
 export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
