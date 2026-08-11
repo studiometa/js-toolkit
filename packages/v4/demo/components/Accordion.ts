@@ -1,4 +1,10 @@
-import { Base, type DelegatedEvent } from '../../src/index.js';
+import {
+  Base,
+  children,
+  on,
+  type ChildrenCollection,
+  type DelegatedEvent,
+} from '../../src/index.js';
 
 /**
  * Reimplementation of @studiometa/ui's Accordion on the v4 model.
@@ -50,10 +56,14 @@ export class Accordion extends Base {
     options: { autoclose: Boolean },
   };
 
-  items = this.$watchChildren<AccordionItem>('AccordionItem');
+  @children<AccordionItem>('AccordionItem')
+  accessor items!: ChildrenCollection<AccordionItem>;
 
   // `open` bubbles from any depth; one delegated listener, no rebinding.
-  onAccordionItemOpen({ target }: DelegatedEvent<AccordionItem>): void {
+  // The explicit @on pair frees the method name and needs no name parsing —
+  // the magic `onAccordionItemOpen()` form remains the no-build equivalent.
+  @on('AccordionItem', 'open')
+  autoclose({ target }: DelegatedEvent<AccordionItem>): void {
     if (!this.$options.autoclose) {
       return;
     }
