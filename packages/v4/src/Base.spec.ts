@@ -126,7 +126,9 @@ describe('$refs', () => {
 });
 
 describe('on<Ref><Event> handlers', () => {
-  class Form extends Base {
+  class Form extends Base<{
+    $refs: { input: HTMLInputElement; buttons: HTMLButtonElement[] };
+  }> {
     static config = { name: 'RefForm', refs: ['input', 'buttons[]'] };
 
     typed: string[] = [];

@@ -25,7 +25,18 @@ export interface BaseConfig {
   options?: Record<string, OptionDefinition>;
 }
 
-export type BaseConstructor = typeof Base;
+/**
+ * Any component class. Declared structurally rather than as `typeof Base`,
+ * so a component that types its props — `class Foo extends Base<{…}>` —
+ * still satisfies it.
+ */
+export interface BaseConstructor {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  new (el: HTMLElement): Base<any>;
+  config: BaseConfig;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly prototype: Base<any>;
+}
 
 /**
  * Payload given to delegated `on<Child><Event>` handlers.
@@ -61,6 +72,47 @@ const CAPTURED_EVENTS = new Set([
   'pointerenter',
   'pointerleave',
 ]);
+
+/**
+ * Type-level description of a component's public surface. Nothing here
+ * exists at runtime — declaring it costs no bytes:
+ *
+ *     class Slider extends Base<{
+ *       $refs: { wrapper: HTMLElement; slides: HTMLElement[] };
+ *       $options: { autoplay: boolean };
+ *       $emits: { slide: [index: number] };
+ *     }> {}
+ *
+ * `$emits` documents what the component dispatches and types `$emit()`'s
+ * arguments, replacing v3's runtime `config.emits` array.
+ */
+export interface BaseProps {
+  $refs?: Record<string, HTMLElement | HTMLElement[]>;
+  $options?: Record<string, unknown>;
+  $emits?: Record<string, unknown[]>;
+}
+
+type Refs<T extends BaseProps> =
+  T['$refs'] extends Record<string, unknown>
+    ? T['$refs']
+    : Record<string, HTMLElement | HTMLElement[]>;
+
+type Options<T extends BaseProps> =
+  T['$options'] extends Record<string, unknown> ? T['$options'] : Record<string, unknown>;
+
+/**
+ * A component that declares `$emits` may only emit those names; one that
+ * does not keeps the unrestricted signature.
+ */
+type EmitName<T extends BaseProps> =
+  T['$emits'] extends Record<string, unknown[]> ? keyof T['$emits'] & string : string;
+
+type EmitArgs<T extends BaseProps, K extends string> =
+  T['$emits'] extends Record<string, unknown[]>
+    ? K extends keyof T['$emits']
+      ? T['$emits'][K]
+      : never
+    : unknown[];
 
 export interface WatchChildrenCallbacks<T extends Base = Base> {
   added?(instance: T): void;
@@ -261,7 +313,7 @@ export type MountedReturn =
   | Array<() => void>
   | Promise<void | (() => void) | Array<() => void>>;
 
-export class Base {
+export class Base<T extends BaseProps = BaseProps> {
   static config: BaseConfig = { name: 'Base' };
 
   $el: HTMLElement;
@@ -271,9 +323,9 @@ export class Base {
    * re-reads the DOM, so replaced markup is picked up with nothing to
    * refresh.
    */
-  $refs: Record<string, HTMLElement | HTMLElement[]> = {};
+  $refs: Refs<T> = {} as Refs<T>;
 
-  $options: Record<string, unknown> = {};
+  $options: Options<T> = {} as Options<T>;
 
   #isMounted = false;
 
@@ -307,8 +359,8 @@ export class Base {
     el.__base__.set(this.$config.name, this);
     // Both views resolve on access, so they are built once and stay correct
     // for the instance's whole life.
-    this.$options = buildOptions(this);
-    this.$refs = buildRefs(this);
+    this.$options = buildOptions(this) as Options<T>;
+    this.$refs = buildRefs(this) as Refs<T>;
   }
 
   /**
@@ -403,8 +455,13 @@ export class Base {
    * Dispatch a native bubbling, cancelable event, annotated with the
    * emitting instance.
    *
+   * A component that declares `$emits` in its props gets its event names
+   * and payloads checked here — the declaration is types only, so nothing
+   * about it reaches the bundle.
+   *
    * @returns Check `defaultPrevented` on the returned event.
    */
+  $emit<K extends EmitName<T>>(event: K, ...args: EmitArgs<T, K>): CustomEvent<unknown[]>;
   $emit(event: string, ...args: unknown[]): CustomEvent<unknown[]> {
     const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail: args });
     (e as CustomEvent & { [SOURCE]?: Base })[SOURCE] = this;

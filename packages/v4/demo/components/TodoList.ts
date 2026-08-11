@@ -6,13 +6,16 @@ import { Base, createContext, type DelegatedEvent } from '../../src/index.js';
  */
 export const CountContext = createContext<number>('todo-count');
 
-export class TodoItem extends Base {
+export class TodoItem extends Base<{
+  $refs: { remove: HTMLButtonElement };
+  $emits: { remove: [] };
+}> {
   static config = { name: 'TodoItem', refs: ['remove'] };
 
-  onClick(event: Event): void {
-    if (event.target === this.$refs.remove) {
-      this.$emit('remove');
-    }
+  // Bound to the `remove` ref through delegation, so the handler no longer
+  // has to check the event target itself.
+  onRemoveClick(): void {
+    this.$emit('remove');
   }
 }
 

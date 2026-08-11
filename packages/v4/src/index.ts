@@ -37,6 +37,7 @@ export {
   SOURCE,
   type BaseConfig,
   type BaseConstructor,
+  type BaseProps,
   type ChildrenCollection,
   type DelegatedEvent,
   type HandlerRegistration,
@@ -44,6 +45,7 @@ export {
   type MountedReturn,
   type OptionDefinition,
   type OptionType,
+  type RefEvent,
   type WatchChildrenCallbacks,
 } from './Base.js';
 export {
@@ -62,5 +64,5 @@ export {
   type ScheduledTask,
   type SchedulerPhase,
 } from './scheduler.js';
-export { kebabCase } from './utils.js';
+export { kebabCase, pascalCase } from './utils.js';
 export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
