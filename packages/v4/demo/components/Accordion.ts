@@ -51,7 +51,9 @@ export class AccordionItem extends Base<{
   }
 }
 
-export class Accordion extends Base {
+export class Accordion extends Base<{
+  $options: { autoclose: boolean };
+}> {
   static config = {
     name: 'Accordion',
     components: { AccordionItem },

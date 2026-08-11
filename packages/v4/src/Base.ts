@@ -40,11 +40,16 @@ export interface BaseConstructor {
 
 /**
  * Payload given to delegated `on<Child><Event>` handlers.
+ *
+ * Naming the event as the second parameter types `args` from the child's
+ * `$emits` declaration, so a handler reads its payload without casting:
+ *
+ *     onSliderBtnSlide({ args: [direction] }: DelegatedEvent<SliderBtn, 'slide'>) {}
  */
-export interface DelegatedEvent<T extends Base = Base> {
+export interface DelegatedEvent<T extends Base = Base, K extends string = string> {
   event: Event;
   target: T;
-  args: unknown[];
+  args: EmitArgs<PropsOf<T>, K>;
 }
 
 /**
@@ -118,11 +123,26 @@ type EmitName<T extends BaseProps> =
   T['$emits'] extends Record<string, unknown[]> ? keyof T['$emits'] & string : string;
 
 type EmitArgs<T extends BaseProps, K extends string> =
-  T['$emits'] extends Record<string, unknown[]>
-    ? K extends keyof T['$emits']
-      ? T['$emits'][K]
-      : never
-    : unknown[];
+  // An un-narrowed `string` means the caller did not name the event, so
+  // there is nothing to look up.
+  string extends K
+    ? unknown[]
+    : T['$emits'] extends Record<string, unknown[]>
+      ? K extends keyof T['$emits']
+        ? T['$emits'][K]
+        : never
+      : unknown[];
+
+/**
+ * The props a component was declared with, read from the phantom carrier
+ * `Base` holds — inferring through `Base<infer P>` does not work, since the
+ * parameter only appears inside conditional types.
+ */
+type PropsOf<T> = T extends { __props?: infer P }
+  ? NonNullable<P> extends BaseProps
+    ? NonNullable<P>
+    : BaseProps
+  : BaseProps;
 
 export interface WatchChildrenCallbacks<T extends Base = Base> {
   added?(instance: T): void;
@@ -325,6 +345,12 @@ export type MountedReturn =
 
 export class Base<T extends BaseProps = BaseProps> {
   static config: BaseConfig = { name: 'Base' };
+
+  /**
+   * Phantom carrier for the props type: type-only, never assigned, so
+   * another component can read this one's declared surface.
+   */
+  declare readonly __props?: T;
 
   $el: El<T>;
 

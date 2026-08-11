@@ -26,7 +26,11 @@ export class SliderItem extends Base {
   static config = { name: 'SliderItem' };
 }
 
-export class SliderBtn extends Base {
+export class SliderBtn extends Base<{
+  $el: HTMLButtonElement;
+  $options: { direction: number };
+  $emits: { slide: [direction: number] };
+}> {
   static config = {
     name: 'SliderBtn',
     options: { direction: { type: Number, default: 1 } },
@@ -37,7 +41,7 @@ export class SliderBtn extends Base {
   }
 }
 
-export class SliderCount extends Base {
+export class SliderCount extends Base<{ $el: HTMLSpanElement }> {
   static config = { name: 'SliderCount' };
 
   async mounted() {
@@ -151,8 +155,8 @@ export class Slider extends Base<{
     this.state.value = { index: this.index, total };
   }
 
-  onSliderBtnSlide({ args }: DelegatedEvent<SliderBtn>): void {
-    const [direction] = args as [number];
+  // Naming the event types `args` from SliderBtn's own `$emits`.
+  onSliderBtnSlide({ args: [direction] }: DelegatedEvent<SliderBtn, 'slide'>): void {
     this.goTo(this.index + direction);
   }
 

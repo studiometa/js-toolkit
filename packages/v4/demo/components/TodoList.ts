@@ -19,7 +19,7 @@ export class TodoItem extends Base<{
   }
 }
 
-export class TodoCount extends Base {
+export class TodoCount extends Base<{ $el: HTMLElement }> {
   static config = { name: 'TodoCount' };
 
   async mounted() {
