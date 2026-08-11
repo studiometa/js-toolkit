@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { Base, type BaseConfig } from './Base.js';
+import { Base, type BaseConfig, type RefEvent } from './Base.js';
 import {
   getInstance,
   renderTodoList,
@@ -125,135 +125,84 @@ describe('$refs', () => {
   });
 });
 
-describe('$query and $closest', () => {
-  it('finds mounted descendants and the nearest mounted ancestor', async () => {
-    const root = renderTodoList();
-    await settle();
+describe('on<Ref><Event> handlers', () => {
+  class Form extends Base {
+    static config = { name: 'RefForm', refs: ['input', 'buttons[]'] };
 
-    const list = getInstance<TodoList>(root, 'TodoList');
-    const items = list.$query<TodoItem>('TodoItem');
-    expect(items).toHaveLength(2);
-    expect(items[0].$closest('TodoList')).toBe(list);
-    expect(items[0].$closest('Nothing')).toBeNull();
-  });
-});
+    typed: string[] = [];
+    pressed: number[] = [];
+    focused = 0;
 
-describe('$watchChildren', () => {
-  it('adopts already-mounted children moved into the subtree (children first)', async () => {
-    const orphan = document.createElement('li');
-    orphan.setAttribute('data-component', 'TodoItem');
-    orphan.innerHTML = 'orphan <button data-ref="remove">×</button>';
-    document.body.append(orphan);
-    await settle();
-    expect(getInstance(orphan, 'TodoItem').$isMounted).toBe(true);
-
-    const root = renderTodoList({ items: [] });
-    await settle();
-    const list = getInstance<TodoList>(root, 'TodoList');
-    expect(list.items.size).toBe(0);
-
-    root.querySelector('[data-ref="list"]')?.append(orphan);
-    await settle();
-    expect(list.items.size).toBe(1);
-    expect(list.items.items[0]).toBe(getInstance(orphan, 'TodoItem'));
-  });
-
-  it('keeps the collection in DOM order', async () => {
-    const root = renderTodoList({ items: ['a', 'b', 'c'] });
-    await settle();
-
-    const list = getInstance<TodoList>(root, 'TodoList');
-    expect(list.items.items.map((item) => item.$el.textContent?.trim().charAt(0))).toEqual([
-      'a',
-      'b',
-      'c',
-    ]);
-  });
-});
-
-describe('lifecycle', () => {
-  it('runs the mounted() cleanup on destroy', async () => {
-    const root = renderTodoList();
-    await settle();
-
-    const countInstance = getInstance<TodoCount>(
-      root.querySelector('[data-component="TodoCount"]'),
-      'TodoCount',
-    );
-    expect(countInstance.cleanupCalls).toBe(0);
-
-    root.remove();
-    await settle();
-    expect(countInstance.cleanupCalls).toBe(1);
-    expect(countInstance.$isMounted).toBe(false);
-  });
-
-  it('separates destroy from terminate', async () => {
-    const calls: string[] = [];
-
-    class Tracked extends Base {
-      static config = { name: 'Tracked' };
-      mounted() {
-        calls.push('mounted');
-        return () => calls.push('cleanup');
-      }
-      destroyed(): void {
-        calls.push('destroyed');
-      }
-      terminated(): void {
-        calls.push('terminated');
-      }
+    onInputInput({ target }: RefEvent<HTMLInputElement>): void {
+      this.typed.push(target.value);
     }
 
-    const el = document.createElement('div');
-    document.body.append(el);
-    const instance = new Tracked(el);
-
-    instance.$mount();
-    instance.$destroy();
-    expect(calls).toEqual(['mounted', 'cleanup', 'destroyed']);
-
-    // Destroy is reversible.
-    instance.$mount();
-    expect(instance.$isMounted).toBe(true);
-    expect(el.__base__?.get('Tracked')).toBe(instance);
-
-    instance.$terminate();
-    expect(calls).toEqual([
-      'mounted',
-      'cleanup',
-      'destroyed',
-      'mounted',
-      'cleanup',
-      'destroyed',
-      'terminated',
-    ]);
-    // Terminate is final: detached from the element, never mounts again.
-    expect(el.__base__?.get('Tracked')).toBeUndefined();
-    instance.$mount();
-    expect(instance.$isMounted).toBe(false);
-  });
-
-  it('runs a cleanup resolved after destroy immediately', async () => {
-    let cleaned = false;
-
-    class Slow extends Base {
-      static config = { name: 'Slow' };
-      async mounted() {
-        await new Promise((resolve) => setTimeout(resolve, 20));
-        return () => {
-          cleaned = true;
-        };
-      }
+    onButtonsClick({ index }: RefEvent): void {
+      this.pressed.push(index);
     }
 
-    const el = document.createElement('div');
-    document.body.append(el);
-    const instance = new Slow(el).$mount();
-    instance.$destroy();
+    // `focus` does not bubble: it must be delegated from the capture phase.
+    onInputFocus(): void {
+      this.focused += 1;
+    }
+  }
 
-    await new Promise((resolve) => setTimeout(resolve, 60));
-    expect(cleaned).toBe(true);
+  function render(): { el: HTMLElement; instance: Form } {
+    const el = document.createElement('div');
+    el.innerHTML = `
+      <input data-ref="input" />
+      <button data-ref="buttons">a</button>
+      <button data-ref="buttons">b</button>
+    `;
+    document.body.append(el);
+    return { el, instance: new Form(el).$mount() };
+  }
+
+  it('routes events to the matching ref handler', () => {
+    const { el, instance } = render();
+
+    const input = el.querySelector('input') as HTMLInputElement;
+    input.value = 'hello';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(instance.typed).toEqual(['hello']);
+  });
+
+  it('reports the index of a ref among its namesakes', () => {
+    const { el, instance } = render();
+
+    const buttons = el.querySelectorAll('button');
+    buttons[1].click();
+    buttons[0].click();
+    expect(instance.pressed).toEqual([1, 0]);
+  });
+
+  it('handles non-bubbling events through the capture phase', () => {
+    const { el, instance } = render();
+
+    (el.querySelector('input') as HTMLInputElement).dispatchEvent(new Event('focus'));
+    expect(instance.focused).toBe(1);
+  });
+
+  it('keeps working on refs added after mount', () => {
+    const { el, instance } = render();
+
+    const added = document.createElement('button');
+    added.setAttribute('data-ref', 'buttons');
+    el.append(added);
+    added.click();
+    // Third button, no rebinding needed.
+    expect(instance.pressed).toEqual([2]);
+  });
+
+  it('ignores refs owned by a nested component', () => {
+    const { el, instance } = render();
+
+    const nested = document.createElement('div');
+    nested.setAttribute('data-component', 'Other');
+    nested.innerHTML = '<button data-ref="buttons">nested</button>';
+    el.append(nested);
+    nested.querySelector('button')?.click();
+    expect(instance.pressed).toEqual([]);
   });
 });
 

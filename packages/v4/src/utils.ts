@@ -8,6 +8,14 @@ export function kebabCase(string: string): string {
 }
 
 /**
+ * Capitalize the first letter: a `data-ref="btn"` name becomes the `Btn` of
+ * an `onBtnClick` handler.
+ */
+export function pascalCase(string: string): string {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+/**
  * The registry selector for a component name.
  * `~=` gives whitespace-token matching, so `data-component="Action Dialog"`
  * declares several components on one element.

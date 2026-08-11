@@ -1,6 +1,6 @@
 import { Signal, injectContext, provideContext, type ContextKey } from './context.js';
 import { scheduler, type ScheduledTask } from './scheduler.js';
-import { kebabCase, selectorFor } from './utils.js';
+import { kebabCase, pascalCase, selectorFor } from './utils.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
 
 export const SOURCE: unique symbol = Symbol('emitter');
@@ -35,6 +35,32 @@ export interface DelegatedEvent<T extends Base = Base> {
   target: T;
   args: unknown[];
 }
+
+/**
+ * Payload given to `on<Ref><Event>` handlers. `index` is the ref's position
+ * among the same-named refs, so a list of buttons can be told apart.
+ */
+export interface RefEvent<T extends HTMLElement = HTMLElement> {
+  event: Event;
+  target: T;
+  index: number;
+}
+
+/**
+ * Events that do not bubble, so their delegated listener must be registered
+ * in the capture phase to be reached at all.
+ */
+const CAPTURED_EVENTS = new Set([
+  'blur',
+  'focus',
+  'load',
+  'error',
+  'scroll',
+  'mouseenter',
+  'mouseleave',
+  'pointerenter',
+  'pointerleave',
+]);
 
 export interface WatchChildrenCallbacks<T extends Base = Base> {
   added?(instance: T): void;
@@ -254,7 +280,7 @@ export class Base {
   #isTerminated = false;
 
   /** Per-mount-cycle listeners, removed on every `$destroy()`. */
-  #listeners: Array<[string, EventListener, EventTarget]> = [];
+  #listeners: Array<[string, EventListener, EventTarget, boolean]> = [];
 
   /** Per-mount-cycle cleanups (`mounted()` return values), run on `$destroy()`. */
   #destroyCallbacks: Array<() => void> = [];
@@ -331,8 +357,8 @@ export class Base {
       return this;
     }
     this.#isMounted = false;
-    for (const [type, listener, target] of this.#listeners) {
-      target.removeEventListener(type, listener);
+    for (const [type, listener, target, capture] of this.#listeners) {
+      target.removeEventListener(type, listener, capture);
     }
     this.#listeners = [];
     const callbacks = this.#destroyCallbacks;
@@ -561,64 +587,83 @@ export class Base {
   }
 
   /**
-   * Bind `on<Event>` methods to the root element and `on<Child><Event>`
-   * methods through event delegation (objective 4). One listener per event
-   * type; dynamically inserted children need no rebinding.
+   * Bind every handler the component declares (objective 4).
+   *
+   * `on<Event>` binds to the root element; `on<Child><Event>` and
+   * `on<Ref><Event>` are delegated — one listener per event type on the
+   * root, resolving the emitter by walking up from `event.target`. Nothing
+   * is bound per child or per ref, so elements inserted, removed or swapped
+   * later are handled with no rebinding.
    */
   #bindHandlers(): void {
     const self = this as unknown as Record<string, (payload: unknown) => void>;
     // Longest name first, so `onSliderDragStart` resolves to the declared
     // `SliderDrag` child, not to `Slider`.
-    const childNames = Object.keys(this.$config.components ?? {}).sort(
-      (a, b) => b.length - a.length,
-    );
-    const delegated = new Map<
-      string,
-      Array<{ childName: string; invoke: (payload: DelegatedEvent) => void }>
-    >();
-    const addDelegated = (
-      type: string,
-      childName: string,
-      invoke: (payload: DelegatedEvent) => void,
-    ) => {
+    const byLength = (a: string, b: string) => b.length - a.length;
+    const childNames = Object.keys(this.$config.components ?? {}).sort(byLength);
+    const refNames = (this.$config.refs ?? [])
+      .map((definition) => (definition.endsWith('[]') ? definition.slice(0, -2) : definition))
+      .sort(byLength);
+
+    type Entry =
+      | { kind: 'child'; name: string; invoke: (payload: DelegatedEvent) => void }
+      | { kind: 'ref'; name: string; invoke: (payload: RefEvent) => void };
+    const delegated = new Map<string, Entry[]>();
+    const addDelegated = (type: string, entry: Entry) => {
       if (!delegated.has(type)) {
         delegated.set(type, []);
       }
-      delegated.get(type)?.push({ childName, invoke });
+      delegated.get(type)?.push(entry);
     };
     const bindOwn = (type: string, invoke: (event: Event) => void) => {
       const listener: EventListener = (event) => invoke(event);
       this.$el.addEventListener(type, listener);
-      this.#listeners.push([type, listener, this.$el]);
+      this.#listeners.push([type, listener, this.$el, false]);
     };
 
-    // Handlers declared with the `@on` decorator: explicit child/type pairs,
-    // so no `config.components` lookup and no name parsing.
+    // Handlers declared with the `@on` decorator: explicit target/type
+    // pairs, so no name parsing and no config lookup to resolve them.
     const registrations = this[HANDLER_REGISTRATIONS] ?? [];
     const decorated = new Set(registrations.map(({ handler }) => handler));
     for (const { child, type, handler } of registrations) {
       if (child) {
-        addDelegated(type, child, (payload) => handler.call(this, payload));
+        const kind = refNames.includes(child) && !childNames.includes(child) ? 'ref' : 'child';
+        addDelegated(type, {
+          kind,
+          name: child,
+          invoke: (payload: DelegatedEvent | RefEvent) => handler.call(this, payload),
+        } as Entry);
       } else {
         bindOwn(type, (event) => handler.call(this, event));
       }
     }
 
-    // Magic `on<Child><Event>` / `on<Event>` method names — the no-build
-    // path. A method already bound through a decorator is skipped.
+    // Magic `on<Child><Event>` / `on<Ref><Event>` / `on<Event>` method
+    // names — the no-build path. A method already bound through a decorator
+    // is skipped. Children are matched before refs: a name declared as both
+    // resolves to the component.
     for (const method of getHandlerNames(this)) {
       if (decorated.has(self[method])) {
         continue;
       }
       const rest = method.slice(2);
-      const childName = childNames.find(
-        (name) => rest.startsWith(name) && rest.length > name.length,
-      );
+      const startsWith = (name: string) =>
+        rest.startsWith(pascalCase(name)) && rest.length > name.length;
+      const childName = childNames.find(startsWith);
+      const refName = childName ? undefined : refNames.find(startsWith);
 
       if (childName) {
-        addDelegated(kebabCase(rest.slice(childName.length)), childName, (payload) =>
-          self[method](payload),
-        );
+        addDelegated(kebabCase(rest.slice(childName.length)), {
+          kind: 'child',
+          name: childName,
+          invoke: (payload) => self[method](payload),
+        });
+      } else if (refName) {
+        addDelegated(kebabCase(rest.slice(refName.length)), {
+          kind: 'ref',
+          name: refName,
+          invoke: (payload) => self[method](payload),
+        });
       } else {
         bindOwn(kebabCase(rest), (event) => self[method](event));
       }
@@ -628,13 +673,12 @@ export class Base {
       const listener: EventListener = (event) => {
         let el = event.target instanceof Element ? event.target : null;
         while (el && el !== this.$el) {
-          const map = el.__base__;
-          if (map) {
-            let invoked = false;
-            for (const { childName, invoke } of entries) {
-              const child = map.get(childName);
+          let invoked = false;
+          for (const entry of entries) {
+            if (entry.kind === 'child') {
+              const child = el.__base__?.get(entry.name);
               if (child?.$isMounted) {
-                invoke({
+                entry.invoke({
                   event,
                   target: child,
                   args: Array.isArray((event as CustomEvent).detail)
@@ -643,17 +687,28 @@ export class Base {
                 });
                 invoked = true;
               }
+            } else if (el.getAttribute('data-ref') === entry.name && belongsTo(el, this.$el)) {
+              const target = el as HTMLElement;
+              entry.invoke({
+                event,
+                target,
+                index: queryRefs(this.$el, entry.name).indexOf(target),
+              });
+              invoked = true;
             }
-            // Nearest matching component wins; every handler for it fired.
-            if (invoked) {
-              return;
-            }
+          }
+          // Nearest matching target wins; every handler for it fired.
+          if (invoked) {
+            return;
           }
           el = el.parentElement;
         }
       };
-      this.$el.addEventListener(type, listener);
-      this.#listeners.push([type, listener, this.$el]);
+      // Non-bubbling events never reach the root during the bubble phase,
+      // so they are delegated from the capture phase instead.
+      const capture = CAPTURED_EVENTS.has(type);
+      this.$el.addEventListener(type, listener, capture);
+      this.#listeners.push([type, listener, this.$el, capture]);
     }
   }
 }
