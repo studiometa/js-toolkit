@@ -123,7 +123,7 @@ function createResizeService(target: Element): Service<ResizeProps> {
   });
 }
 
-const resizeServices = perTarget(createResizeService);
+const resizeServices = /* @__PURE__ */ perTarget(createResizeService);
 
 /**
  * Use the resize service for an element, the document element by default.
@@ -179,7 +179,7 @@ export type ResizeMixinOptions = ServiceMixinOptions<Element>;
  * argument. The decorator form `@withResize()` is the same thing with a
  * build step.
  */
-export const withResize = createServiceMixin<ResizeHook, Element>({
+export const withResize = /* @__PURE__ */ createServiceMixin<ResizeHook, Element>({
   hook: 'resized',
   target: () => document.documentElement,
   use: (target) => useResize(target),

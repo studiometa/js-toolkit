@@ -223,7 +223,7 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
   });
 }
 
-const dragServices = perTarget(createDragService);
+const dragServices = /* @__PURE__ */ perTarget(createDragService);
 
 /**
  * Use the drag service for an element.
@@ -277,7 +277,7 @@ export type DragMixinOptions = DragOptions & ServiceMixinOptions<HTMLElement>;
  * default is the host, as Lit's `ResizeController` does. The decorator form
  * `@withDrag()` is the same thing with a build step.
  */
-export const withDrag = createServiceMixin<DragHook, HTMLElement, DragOptions>({
+export const withDrag = /* @__PURE__ */ createServiceMixin<DragHook, HTMLElement, DragOptions>({
   hook: 'dragged',
   target: (instance) => instance.$el,
   use: (target, options) => useDrag(target, options),

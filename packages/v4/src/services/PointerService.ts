@@ -151,7 +151,7 @@ export type PointerMixinOptions = ServiceMixinOptions<void>;
  * solid-primitives' `createMousePosition()`, so there is nothing to target.
  * The decorator form `@withPointer()` is the same thing with a build step.
  */
-export const withPointer = createServiceMixin<PointerHook, void>({
+export const withPointer = /* @__PURE__ */ createServiceMixin<PointerHook, void>({
   hook: 'moved',
   target: () => undefined,
   use: () => usePointer(),

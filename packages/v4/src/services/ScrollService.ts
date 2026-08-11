@@ -135,7 +135,7 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
   });
 }
 
-const scrollServices = perTarget(createScrollService);
+const scrollServices = /* @__PURE__ */ perTarget(createScrollService);
 
 /**
  * Use the scroll service for a target, the window by default.
@@ -193,7 +193,7 @@ export type ScrollMixinOptions = ServiceMixinOptions<ScrollTarget>;
  * The window is the default target, as `useScroll()` with no argument. The
  * decorator form `@withScroll()` is the same thing with a build step.
  */
-export const withScroll = createServiceMixin<ScrollHook, ScrollTarget>({
+export const withScroll = /* @__PURE__ */ createServiceMixin<ScrollHook, ScrollTarget>({
   hook: 'scrolled',
   target: () => window,
   use: (target) => useScroll(target),

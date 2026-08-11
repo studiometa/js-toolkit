@@ -108,7 +108,7 @@ export type RafMixinOptions = ServiceMixinOptions<void>;
  * There is nothing to target: the frame is the framework's clock. The
  * decorator form `@withRaf()` is the same thing with a build step.
  */
-export const withRaf = createServiceMixin<RafHook, void>({
+export const withRaf = /* @__PURE__ */ createServiceMixin<RafHook, void>({
   hook: 'ticked',
   target: () => undefined,
   use: () => useRaf(),
