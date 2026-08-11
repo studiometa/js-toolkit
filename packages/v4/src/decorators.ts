@@ -106,6 +106,45 @@ export function on(childOrType: string, maybeType?: string) {
   };
 }
 
+type VoidMethod<This, Args extends unknown[]> = (this: This, ...args: Args) => void;
+
+function inPhase(phase: '$read' | '$write') {
+  return function decorate<This extends Base, Args extends unknown[]>(
+    value: VoidMethod<This, Args>,
+    _context: ClassMethodDecoratorContext<This, VoidMethod<This, Args>>,
+  ): VoidMethod<This, Args> {
+    return function scheduled(this: This, ...args: Args) {
+      this[phase](() => value.apply(this, args));
+    };
+  };
+}
+
+/**
+ * Run the method body in the scheduler's `read` phase, so its layout
+ * measurements batch with every other read of the frame:
+ *
+ *     @read
+ *     measure() { this.width = this.$el.getBoundingClientRect().width; }
+ *
+ * The call schedules and returns immediately; the task is canceled if the
+ * instance is destroyed first. Use `this.$read()` directly when the task
+ * handle or the return value is needed.
+ */
+export const read = inPhase('$read');
+
+/**
+ * Run the method body in the scheduler's `write` phase, so its DOM writes
+ * batch after every read of the frame:
+ *
+ *     @write
+ *     open() { this.$el.open = true; }
+ *
+ * The call schedules and returns immediately; the task is canceled if the
+ * instance is destroyed first. Use `this.$write()` directly when the task
+ * handle is needed.
+ */
+export const write = inPhase('$write');
+
 /**
  * Declare the component's config and register it with the registry as soon
  * as the class is defined — the decorator form of `static config` +

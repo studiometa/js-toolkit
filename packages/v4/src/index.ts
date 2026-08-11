@@ -47,7 +47,7 @@ export {
   type WatchChildrenCallbacks,
 } from './Base.js';
 export { Cell, createContext, injectContext, provideContext, type ContextKey } from './context.js';
-export { children, component, inject, on, provide } from './decorators.js';
+export { children, component, inject, on, provide, read, write } from './decorators.js';
 export { registerComponent, registerComponents } from './registry.js';
 export {
   nextFrame,

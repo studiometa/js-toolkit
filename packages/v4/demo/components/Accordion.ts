@@ -2,6 +2,7 @@ import {
   Base,
   children,
   on,
+  write,
   type ChildrenCollection,
   type DelegatedEvent,
 } from '../../src/index.js';
@@ -30,16 +31,16 @@ export class AccordionItem extends Base {
     return this.details.open;
   }
 
+  // The bodies are DOM writes: @write runs them in the scheduler's write
+  // phase, so several items closing in the same turn paint in one frame.
+  @write
   open(): void {
-    this.$write(() => {
-      this.details.open = true;
-    });
+    this.details.open = true;
   }
 
+  @write
   close(): void {
-    this.$write(() => {
-      this.details.open = false;
-    });
+    this.details.open = false;
   }
 
   // Native `toggle` fires on the <details> element itself (it does not

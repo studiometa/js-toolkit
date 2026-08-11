@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base, type ChildrenCollection, type DelegatedEvent } from './Base.js';
 import { Cell, createContext } from './context.js';
-import { children, component, inject, on, provide } from './decorators.js';
+import { children, component, inject, on, provide, read, write } from './decorators.js';
 import { registerComponents } from './registry.js';
+import { scheduler } from './scheduler.js';
 import { getInstance, resetDom, settle } from './test-utils.js';
 
 const DecoContext = createContext<number>('deco-context');
@@ -154,6 +155,61 @@ describe('@children', () => {
     root.querySelector('[data-component="DecoChild"]')?.remove();
     await settle();
     expect(parent.kids.size).toBe(1);
+  });
+});
+
+describe('@read / @write', () => {
+  it('defers the method body to its scheduler phase', async () => {
+    const order: string[] = [];
+
+    class Phased extends Base {
+      static config = { name: 'Phased' };
+
+      @write
+      paint(label: string): void {
+        order.push(`write:${label}`);
+      }
+
+      @read
+      measure(): void {
+        order.push('read');
+      }
+    }
+
+    const el = document.createElement('div');
+    document.body.append(el);
+    const instance = new Phased(el).$mount();
+
+    instance.paint('a');
+    instance.measure();
+    // Both scheduled, neither has run yet.
+    expect(order).toEqual([]);
+
+    await scheduler.whenIdle();
+    // Reads run before writes, whatever the call order.
+    expect(order).toEqual(['read', 'write:a']);
+  });
+
+  it('cancels a scheduled body when the instance is destroyed', async () => {
+    let ran = false;
+
+    class Late extends Base {
+      static config = { name: 'Late' };
+
+      @write
+      paint(): void {
+        ran = true;
+      }
+    }
+
+    const el = document.createElement('div');
+    document.body.append(el);
+    const instance = new Late(el).$mount();
+
+    instance.paint();
+    instance.$destroy();
+    await scheduler.whenIdle();
+    expect(ran).toBe(false);
   });
 });
 
