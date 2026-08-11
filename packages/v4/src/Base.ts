@@ -143,6 +143,46 @@ function buildOptions(instance: Base): Record<string, unknown> {
   return options;
 }
 
+const resolvedConfigs = new WeakMap<BaseConstructor, BaseConfig>();
+
+/**
+ * Merge a class's config with every config declared up its prototype chain,
+ * so extending a component never silently drops what the parent declared.
+ *
+ * `refs`, `options` and `components` merge (v3 merged only `options`, which
+ * is what issue #627 reports); scalar keys such as `name` are overridden by
+ * the most derived class. The result is cached per constructor.
+ */
+function resolveConfig(ctor: BaseConstructor): BaseConfig {
+  const cached = resolvedConfigs.get(ctor);
+  if (cached) {
+    return cached;
+  }
+
+  const chain: BaseConfig[] = [];
+  let current: BaseConstructor | null = ctor;
+  while (current?.config) {
+    if (Object.hasOwn(current, 'config')) {
+      chain.unshift(current.config);
+    }
+    current = Object.getPrototypeOf(current) as BaseConstructor | null;
+  }
+
+  const config = chain.reduce<BaseConfig>(
+    (merged, own) => ({
+      ...merged,
+      ...own,
+      refs: [...new Set([...(merged.refs ?? []), ...(own.refs ?? [])])],
+      options: { ...merged.options, ...own.options },
+      components: { ...merged.components, ...own.components },
+    }),
+    { name: ctor.name },
+  );
+
+  resolvedConfigs.set(ctor, config);
+  return config;
+}
+
 function getHandlerNames(instance: Base): Set<string> {
   const names = new Set<string>();
   let proto = Object.getPrototypeOf(instance);
@@ -198,7 +238,7 @@ export class Base {
   declare [HANDLER_REGISTRATIONS]?: HandlerRegistration[];
 
   get $config(): BaseConfig {
-    return (this.constructor as BaseConstructor).config;
+    return resolveConfig(this.constructor as BaseConstructor);
   }
 
   get $isMounted(): boolean {

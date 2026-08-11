@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { Base } from './Base.js';
+import { Base, type BaseConfig } from './Base.js';
 import {
   getInstance,
   renderTodoList,
@@ -98,6 +98,193 @@ describe('$refs', () => {
     expect(instance.$refs.many).toHaveLength(2);
     // The ref nested in another component does not belong to this one.
     expect(el.querySelectorAll('[data-ref="own"]')).toHaveLength(2);
+  });
+});
+
+describe('$query and $closest', () => {
+  it('finds mounted descendants and the nearest mounted ancestor', async () => {
+    const root = renderTodoList();
+    await settle();
+
+    const list = getInstance<TodoList>(root, 'TodoList');
+    const items = list.$query<TodoItem>('TodoItem');
+    expect(items).toHaveLength(2);
+    expect(items[0].$closest('TodoList')).toBe(list);
+    expect(items[0].$closest('Nothing')).toBeNull();
+  });
+});
+
+describe('$watchChildren', () => {
+  it('adopts already-mounted children moved into the subtree (children first)', async () => {
+    const orphan = document.createElement('li');
+    orphan.setAttribute('data-component', 'TodoItem');
+    orphan.innerHTML = 'orphan <button data-ref="remove">×</button>';
+    document.body.append(orphan);
+    await settle();
+    expect(getInstance(orphan, 'TodoItem').$isMounted).toBe(true);
+
+    const root = renderTodoList({ items: [] });
+    await settle();
+    const list = getInstance<TodoList>(root, 'TodoList');
+    expect(list.items.size).toBe(0);
+
+    root.querySelector('[data-ref="list"]')?.append(orphan);
+    await settle();
+    expect(list.items.size).toBe(1);
+    expect(list.items.items[0]).toBe(getInstance(orphan, 'TodoItem'));
+  });
+
+  it('keeps the collection in DOM order', async () => {
+    const root = renderTodoList({ items: ['a', 'b', 'c'] });
+    await settle();
+
+    const list = getInstance<TodoList>(root, 'TodoList');
+    expect(list.items.items.map((item) => item.$el.textContent?.trim().charAt(0))).toEqual([
+      'a',
+      'b',
+      'c',
+    ]);
+  });
+});
+
+describe('lifecycle', () => {
+  it('runs the mounted() cleanup on destroy', async () => {
+    const root = renderTodoList();
+    await settle();
+
+    const countInstance = getInstance<TodoCount>(
+      root.querySelector('[data-component="TodoCount"]'),
+      'TodoCount',
+    );
+    expect(countInstance.cleanupCalls).toBe(0);
+
+    root.remove();
+    await settle();
+    expect(countInstance.cleanupCalls).toBe(1);
+    expect(countInstance.$isMounted).toBe(false);
+  });
+
+  it('separates destroy from terminate', async () => {
+    const calls: string[] = [];
+
+    class Tracked extends Base {
+      static config = { name: 'Tracked' };
+      mounted() {
+        calls.push('mounted');
+        return () => calls.push('cleanup');
+      }
+      destroyed(): void {
+        calls.push('destroyed');
+      }
+      terminated(): void {
+        calls.push('terminated');
+      }
+    }
+
+    const el = document.createElement('div');
+    document.body.append(el);
+    const instance = new Tracked(el);
+
+    instance.$mount();
+    instance.$destroy();
+    expect(calls).toEqual(['mounted', 'cleanup', 'destroyed']);
+
+    // Destroy is reversible.
+    instance.$mount();
+    expect(instance.$isMounted).toBe(true);
+    expect(el.__base__?.get('Tracked')).toBe(instance);
+
+    instance.$terminate();
+    expect(calls).toEqual([
+      'mounted',
+      'cleanup',
+      'destroyed',
+      'mounted',
+      'cleanup',
+      'destroyed',
+      'terminated',
+    ]);
+    // Terminate is final: detached from the element, never mounts again.
+    expect(el.__base__?.get('Tracked')).toBeUndefined();
+    instance.$mount();
+    expect(instance.$isMounted).toBe(false);
+  });
+
+  it('runs a cleanup resolved after destroy immediately', async () => {
+    let cleaned = false;
+
+    class Slow extends Base {
+      static config = { name: 'Slow' };
+      async mounted() {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        return () => {
+          cleaned = true;
+        };
+      }
+    }
+
+    const el = document.createElement('div');
+    document.body.append(el);
+    const instance = new Slow(el).$mount();
+    instance.$destroy();
+
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    expect(cleaned).toBe(true);
+  });
+});
+
+describe('config inheritance', () => {
+  it('merges refs, options and components with the parent config', () => {
+    // An intermediate class annotates its config, so a subclass is free to
+    // declare a different shape (the same annotation v3 components use).
+    class Parent extends Base {
+      static config: BaseConfig = {
+        name: 'ConfigParent',
+        refs: ['one'],
+        options: { a: Number },
+        components: { TodoItem },
+      };
+    }
+
+    class Child extends Parent {
+      static config = {
+        name: 'ConfigChild',
+        refs: ['two'],
+        options: { b: String },
+        components: { TodoCount },
+      };
+    }
+
+    const el = document.createElement('div');
+    const child = new Child(el);
+
+    expect(child.$config.name).toBe('ConfigChild');
+    // Inherited from the parent instead of being dropped by the child.
+    expect(child.$config.refs).toEqual(['one', 'two']);
+    expect(Object.keys(child.$config.options ?? {})).toEqual(['a', 'b']);
+    expect(Object.keys(child.$config.components ?? {})).toEqual(['TodoItem', 'TodoCount']);
+
+    // The parent's own config is untouched.
+    expect(new Parent(document.createElement('div')).$config.refs).toEqual(['one']);
+  });
+
+  it('resolves a parent ref from a subclass that redeclares its own', () => {
+    class Greeter extends Base {
+      static config: BaseConfig = { name: 'Greeter', refs: ['label'] };
+      greet(): string {
+        return (this.$refs.label as HTMLElement).textContent ?? '';
+      }
+    }
+
+    class LoudGreeter extends Greeter {
+      static config = { name: 'LoudGreeter', refs: ['extra'] };
+    }
+
+    const el = document.createElement('div');
+    el.innerHTML = '<span data-ref="label">hi</span>';
+    const instance = new LoudGreeter(el).$mount();
+    // v3 threw here: the child config overrode the parent's refs.
+    expect(instance.greet()).toBe('hi');
   });
 });
 
