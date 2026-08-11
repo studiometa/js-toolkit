@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base, type BaseConfig, type RefEvent } from './Base.js';
+import { registerComponent } from './registry.js';
+import type { DragProps } from './services/DragService.js';
+import type { RafProps } from './services/RafService.js';
+import type { ResizeProps } from './services/ResizeService.js';
 import {
+  frames,
   getInstance,
   renderTodoList,
   resetDom,
@@ -327,6 +332,113 @@ describe('$watchChildren', () => {
       'b',
       'c',
     ]);
+  });
+});
+
+describe('service hooks', () => {
+  class Ticker extends Base {
+    static config = { name: 'Ticker' };
+
+    ticks = 0;
+    rendered = 0;
+
+    ticked({ delta }: RafProps) {
+      this.ticks += delta >= 0 ? 1 : 0;
+      return () => {
+        this.rendered += 1;
+      };
+    }
+  }
+
+  it('subscribes on mount and unsubscribes on destroy, once per cycle', async () => {
+    const el = document.createElement('div');
+    document.body.append(el);
+    const instance = new Ticker(el).$mount();
+
+    await frames(3);
+    expect(instance.ticks).toBeGreaterThan(0);
+    expect(instance.rendered).toBeGreaterThan(0);
+
+    instance.$destroy();
+    const frozen = instance.ticks;
+    await frames(3);
+    // Nothing left behind: the service does not know this component anymore.
+    expect(instance.ticks).toBe(frozen);
+
+    instance.$mount();
+    await frames(3);
+    expect(instance.ticks).toBeGreaterThan(frozen);
+
+    // And a second mount subscribed once, not twice: the count keeps rising
+    // one tick per frame.
+    const before = instance.ticks;
+    await frames(4);
+    expect(instance.ticks - before).toBeLessThanOrEqual(5);
+
+    instance.$terminate();
+  });
+
+  it('follows the registry: an element leaving the DOM leaves no subscription', async () => {
+    registerComponent(Ticker);
+    const el = document.createElement('div');
+    el.setAttribute('data-component', 'Ticker');
+    document.body.append(el);
+    await settle();
+
+    const instance = getInstance<Ticker>(el, 'Ticker');
+    await frames(3);
+    expect(instance.ticks).toBeGreaterThan(0);
+
+    el.remove();
+    await settle();
+    const frozen = instance.ticks;
+    await frames(3);
+    expect(instance.ticks).toBe(frozen);
+  });
+
+  it('gives each hook the props of its own service', async () => {
+    const sizes: ResizeProps[] = [];
+
+    class Responsive extends Base {
+      static config = { name: 'Responsive' };
+
+      resized(props: ResizeProps): void {
+        sizes.push({ ...props });
+      }
+    }
+
+    const el = document.createElement('div');
+    document.body.append(el);
+    const instance = new Responsive(el).$mount();
+    await settle();
+
+    expect(sizes.at(-1)?.width).toBe(window.innerWidth);
+    expect(sizes.at(-1)?.ratio).toBe(window.innerWidth / window.innerHeight);
+    instance.$destroy();
+  });
+
+  it('drags the component root element', () => {
+    const modes: string[] = [];
+
+    class Draggable extends Base {
+      static config = { name: 'Draggable' };
+
+      dragged({ mode, target }: DragProps): void {
+        modes.push(mode);
+        expect(target).toBe(this.$el);
+      }
+    }
+
+    const el = document.createElement('div');
+    document.body.append(el);
+    const instance = new Draggable(el).$mount();
+
+    el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
+    expect(modes).toEqual(['start']);
+
+    instance.$destroy();
+    el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
+    expect(modes).toEqual(['start']);
   });
 });
 

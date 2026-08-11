@@ -14,6 +14,10 @@
  *    plus a provide/inject context primitive for shared reactive state.
  * 6. One frame-aligned scheduler (read → write → afterWrite → background)
  *    with cancelable handles, error isolation, and a `viewTransition` lane.
+ *    It is also the clock: services subscribe to its frame tick instead of
+ *    owning a `requestAnimationFrame` loop.
+ * 7. Lazy, reference-counted services — `ticked`, `scrolled`, `resized`,
+ *    `moved` and `dragged` hooks, subscribed per mount cycle.
  *
  * Lifecycle: destroy !== terminate !== disconnected.
  * - disconnected (DOM fact) → `$destroy()`: reversible, the instance stays
@@ -22,9 +26,8 @@
  * - `$terminate()` is explicit and final: destroy + instance-lifetime
  *   teardown ($provide, $watchChildren) + `terminated()` hook.
  *
- * Not in this prototype: services, decorators, autoload manifests,
- * responsive options, `data-mount` strategies, non-bubbling child events
- * (mouseenter/mouseleave), refs/config merge strategies.
+ * Not in this prototype: autoload manifests, responsive options,
+ * non-bubbling child events (mouseenter/mouseleave).
  *
  * Zero dependencies.
  */
@@ -46,6 +49,7 @@ export {
   type OptionDefinition,
   type OptionType,
   type RefEvent,
+  type ServiceHook,
   type WatchChildrenCallbacks,
 } from './Base.js';
 export {
@@ -62,8 +66,36 @@ export {
   nextFrame,
   Scheduler,
   scheduler,
+  type FrameCallback,
+  type FrameProps,
   type ScheduledTask,
   type SchedulerPhase,
 } from './scheduler.js';
+export {
+  useDrag,
+  type DragMode,
+  type DragOptions,
+  type DragProps,
+} from './services/DragService.js';
+export { usePointer, type PointerProps } from './services/PointerService.js';
+export { useRaf, type RafProps, type RafRender } from './services/RafService.js';
+export {
+  BREAKPOINTS,
+  useResize,
+  type ResizeOrientation,
+  type ResizeProps,
+} from './services/ResizeService.js';
+export {
+  useScroll,
+  type ScrollDirectionX,
+  type ScrollDirectionY,
+  type ScrollProps,
+} from './services/ScrollService.js';
+export {
+  createService,
+  type Service,
+  type ServiceCallback,
+  type ServiceDefinition,
+} from './services/Service.js';
 export { kebabCase, pascalCase } from './utils.js';
 export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';

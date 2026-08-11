@@ -5,7 +5,7 @@
 import { Base } from './Base.js';
 import { createContext } from './context.js';
 import { registerComponent } from './registry.js';
-import { scheduler } from './scheduler.js';
+import { nextFrame, scheduler } from './scheduler.js';
 import type { DelegatedEvent } from './Base.js';
 
 /**
@@ -16,6 +16,15 @@ export async function settle(): Promise<void> {
   for (let i = 0; i < 5; i += 1) {
     await new Promise((resolve) => setTimeout(resolve, 10));
     await scheduler.whenIdle();
+  }
+}
+
+/**
+ * Let a few real frames go by, for everything that runs on the frame tick.
+ */
+export async function frames(count = 3): Promise<void> {
+  for (let i = 0; i < count; i += 1) {
+    await nextFrame();
   }
 }
 

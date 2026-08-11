@@ -3,9 +3,20 @@
  */
 const FRAME_BUDGET = 8;
 
-export type SchedulerPhase = 'idle' | 'read' | 'write' | 'afterWrite' | 'background';
+export type SchedulerPhase = 'idle' | 'frame' | 'read' | 'write' | 'afterWrite' | 'background';
 
-type QueueName = Exclude<SchedulerPhase, 'idle'>;
+type QueueName = 'read' | 'write' | 'afterWrite' | 'background';
+
+/**
+ * What every frame subscriber is given: the timestamp of the flush and the
+ * time elapsed since the previous one.
+ */
+export interface FrameProps {
+  time: DOMHighResTimeStamp;
+  delta: number;
+}
+
+export type FrameCallback = (props: FrameProps) => void;
 
 /**
  * Cancelable handle returned for every scheduled task. The promise resolves
@@ -24,8 +35,9 @@ interface QueueItem {
 }
 
 /**
- * Frame-aligned scheduler with four phases per frame:
- * read → write → afterWrite → background (budgeted).
+ * Frame-aligned scheduler: the framework's clock. Each flush runs one
+ * `frame` fan-out followed by four phases — read → write → afterWrite →
+ * background (budgeted).
  *
  * - One flush per frame, at `requestAnimationFrame`.
  * - A task scheduled during its own phase runs in the same frame.
@@ -34,6 +46,8 @@ interface QueueItem {
  * - Every task gets a cancelable handle whose promise resolves with the
  *   task's return value.
  * - A throwing task is reported and dropped; the flush continues.
+ * - No frame is requested while there is nothing to do: the loop wakes on
+ *   the first scheduled task or frame subscription and stops with the last.
  */
 export class Scheduler {
   #queues: Record<QueueName, QueueItem[]> = {
@@ -49,8 +63,38 @@ export class Scheduler {
 
   #idleResolvers: Array<() => void> = [];
 
+  #frameCallbacks = new Set<FrameCallback>();
+
+  /** `-1` while nothing is subscribed, so the first tick reports no delta. */
+  #lastFrameTime = -1;
+
   get phase(): SchedulerPhase {
     return this.#phase;
+  }
+
+  /**
+   * Subscribe to the frame tick — the clock every continuous service runs
+   * on, so none of them owns a `requestAnimationFrame` loop of its own.
+   *
+   * Callbacks run at the very start of the flush, before `read`, so work
+   * they schedule lands in the same frame: a `useRaf()` callback measures in
+   * `read` and its returned render function mutates in `write`, once, before
+   * paint.
+   *
+   * The loop runs only while it is subscribed to. Frame subscribers are not
+   * queued work, so they never keep `whenIdle()` waiting.
+   *
+   * @returns Unsubscribe.
+   */
+  frame(callback: FrameCallback): () => void {
+    if (this.#frameCallbacks.size === 0) {
+      this.#lastFrameTime = -1;
+    }
+    this.#frameCallbacks.add(callback);
+    this.#schedule();
+    return () => {
+      this.#frameCallbacks.delete(callback);
+    };
   }
 
   read<T>(fn: () => T): ScheduledTask<T> {
@@ -79,8 +123,13 @@ export class Scheduler {
     return new Promise((resolve) => this.#idleResolvers.push(resolve));
   }
 
+  /**
+   * Idleness is about queued tasks only: a frame subscription keeps the loop
+   * running forever by design, and a live service must not make
+   * `whenIdle()` wait for a queue that will never be the reason it resolves.
+   */
   #isIdle(): boolean {
-    return !this.#isScheduled && Object.values(this.#queues).every((queue) => queue.length === 0);
+    return Object.values(this.#queues).every((queue) => queue.length === 0);
   }
 
   #add<T>(queueName: QueueName, fn: () => T): ScheduledTask<T> {
@@ -116,6 +165,24 @@ export class Scheduler {
     this.#isScheduled = false;
     const start = performance.now();
 
+    if (this.#frameCallbacks.size > 0) {
+      this.#phase = 'frame';
+      const props: FrameProps = {
+        time: start,
+        delta: this.#lastFrameTime < 0 ? 0 : start - this.#lastFrameTime,
+      };
+      this.#lastFrameTime = start;
+      for (const callback of this.#frameCallbacks) {
+        try {
+          callback(props);
+        } catch (error) {
+          // Reported and skipped, never unsubscribed: a subscription is
+          // owned by whoever created it, not by the frame that broke.
+          console.error('[scheduler] Frame callback failed:', error);
+        }
+      }
+    }
+
     for (const phase of ['read', 'write', 'afterWrite'] as const) {
       this.#phase = phase;
       const queue = this.#queues[phase];
@@ -133,9 +200,11 @@ export class Scheduler {
 
     this.#phase = 'idle';
 
-    if (Object.values(this.#queues).some((queue) => queue.length > 0)) {
+    const isIdle = this.#isIdle();
+    if (!isIdle || this.#frameCallbacks.size > 0) {
       this.#schedule();
-    } else if (this.#idleResolvers.length > 0) {
+    }
+    if (isIdle && this.#idleResolvers.length > 0) {
       const resolvers = this.#idleResolvers;
       this.#idleResolvers = [];
       for (const resolve of resolvers) {
