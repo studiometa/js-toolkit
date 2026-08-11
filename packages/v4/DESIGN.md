@@ -68,6 +68,23 @@ v3 resolved `$refs` once per mount and offered `$update()` to redo it when a sub
 
 Non-bubbling events (`focus`, `blur`, `scroll`, `mouseenter`…) are delegated from the **capture** phase, where they are still observable — the same trick makes the `mouseenter`/`mouseleave` limitation noted in #694 disappear for refs.
 
+Resolving on every access was measurably expensive — the benchmark put a 25-element ref list ~26× behind v3's mount-time snapshot — so lookups are cached against a counter bumped by a MutationObserver. A repeated read is a property read again; any structural change invalidates it. That observer is separate from the registry's on purpose: reading the version drains its pending records with `takeRecords()`, which is what keeps the cache correct _within the same task_, and draining the registry's queue would cost it those mutations. Detached elements are never cached, since no observer can see them change.
+
+## Measurements
+
+Benchmarked against v3 in `packages/tests/__benchmarks__/v3-vs-v4.bench.ts`, both sides working synchronously so the comparison is work per operation rather than scheduling:
+
+| operation                        | result                             |
+| -------------------------------- | ---------------------------------- |
+| mount a list of 25 children      | v4 ~3.6× faster                    |
+| resolve descendants (`$query`)   | v4 ~7× faster                      |
+| resolve an ancestor (`$closest`) | v4 ~8.6× faster                    |
+| read `config`                    | v4 ~5.9× faster (cached per class) |
+| read a ref                       | v4 ~2.5× slower                    |
+| `$emit`                          | v4 ~1.8× slower                    |
+
+The two remaining regressions are understood rather than outstanding. `$emit` pays for dispatching a bubbling, cancelable event through the tree — that is the feature. Ref reads pay the version check that keeps them live, having started ~26× behind before the cache.
+
 ### `config` merges along the prototype chain
 
 `$config` walks the prototype chain and merges every config it finds, so extending a component keeps what its parents declared — the crash reported in #627. `refs`, `options` and `components` all merge (v3 merged only `options` and `emits`); scalar keys stay overridable by the most derived class. An intermediate class should annotate `static config: BaseConfig`, otherwise TypeScript infers a literal type its subclasses must match.
