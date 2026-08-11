@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "v4 prototype — single-file, tested in a real browser through Vitest browser mode",
+  "description": "v4 prototype — tested in a real browser through Vitest browser mode",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
