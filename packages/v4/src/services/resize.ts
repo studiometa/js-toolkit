@@ -110,15 +110,40 @@ function createResizeService(target: Element): Service<ResizeProps> {
   return createService<ResizeProps>({
     props: () => props,
     start(emit) {
-      // A `ResizeObserver` rather than the `resize` event: it reports the
-      // element's real box, so a zoom, a scrollbar appearing or a mobile
-      // toolbar sliding away are all seen — and it delivers the current
-      // size on `observe()`, so a subscriber learns where it stands without
-      // waiting for the first resize. No debounce is needed either: the
-      // observer already delivers at most once per frame.
-      const observer = new ResizeObserver(() => emit(update()));
+      // Both mechanisms, because neither sees what the other does.
+      //
+      // The `ResizeObserver` reports the element's real box, so a zoom or a
+      // scrollbar appearing — which changes the layout viewport with no
+      // `resize` event at all — is caught; and it delivers the current size
+      // on `observe()`, so a subscriber learns where it stands without
+      // waiting for a resize. No debounce is needed either: the observer
+      // already delivers at most once per frame.
+      //
+      // The `resize` event catches what the observer structurally cannot.
+      // For the root element, `clientWidth`/`clientHeight` are the *viewport*
+      // rather than the element's box, and on a page taller than the viewport
+      // the box does not move when the viewport height does — a mobile
+      // toolbar sliding away, the on-screen keyboard opening. Measured on a
+      // 3000 px document: the observer reports height 3000 while
+      // `clientHeight` is 896.
+      // Neither is a debounced version of the other, and a resize that both
+      // report is announced twice with the same values — cheap, and cheaper
+      // than a coalescing task that would delay the delivery `observe()`
+      // makes on subscribe.
+      const publish = () => emit(update());
+      const observer = new ResizeObserver(publish);
       observer.observe(target);
-      return () => observer.disconnect();
+      const isViewport = target === document.documentElement;
+      if (isViewport) {
+        window.addEventListener('resize', publish, { passive: true });
+      }
+
+      return () => {
+        observer.disconnect();
+        if (isViewport) {
+          window.removeEventListener('resize', publish);
+        }
+      };
     },
   });
 }

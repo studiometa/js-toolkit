@@ -70,6 +70,30 @@ describe('useResize', () => {
     unsubscribe();
   });
 
+  it('emits on a viewport resize the observer cannot see', async () => {
+    // The observer watches `documentElement`'s box, and for the root element
+    // `clientWidth`/`clientHeight` are the viewport instead. On a page taller
+    // than the viewport the two are decoupled — measured height 3000 against
+    // a `clientHeight` of 896 — so a viewport-only height change, a mobile
+    // toolbar sliding away, moves the props and fires no observer at all.
+    let calls = 0;
+    const unsubscribe = useResize().add(() => {
+      calls += 1;
+    });
+    await settle();
+    const initial = calls;
+
+    window.dispatchEvent(new Event('resize'));
+    await settle();
+    expect(calls).toBeGreaterThan(initial);
+
+    unsubscribe();
+    const frozen = calls;
+    window.dispatchEvent(new Event('resize'));
+    await settle();
+    expect(calls).toBe(frozen);
+  });
+
   it('stops observing when the last subscriber leaves', async () => {
     let calls = 0;
     const unsubscribe = useResize().add(() => {
