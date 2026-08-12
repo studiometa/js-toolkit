@@ -1,10 +1,4 @@
-import {
-  Base,
-  Signal,
-  createContext,
-  type DelegatedEvent,
-  type ScheduledTask,
-} from '../../src/index.js';
+import { Base, Signal, createContext, useScroll, type DelegatedEvent } from '../../src/index.js';
 
 /**
  * Slider-lite — a reimplementation of the @studiometa/ui Slider family on
@@ -114,30 +108,24 @@ export class Slider extends Base<{
     removed: () => this.refresh(),
   });
 
-  #scrollRead: ScheduledTask<void> | null = null;
-
   /**
    * Index a button navigation is scrolling toward. While set, scroll-driven
    * syncs are ignored so the smooth-scroll animation does not fight the
-   * already-updated count; the target measurement (or `scrollend`) clears it.
+   * already-updated count; reaching it, or the scroll settling, clears it.
    */
   #navigationTarget: number | null = null;
 
-  // `scroll` does not bubble, so the wrapper listener is bound per mount
-  // cycle — the returned cleanup removes it on destroy.
+  // The wrapper is its own scroll container, which is what `useScroll`
+  // takes a target for. The service coalesces the events into one read per
+  // frame and reports `isScrolling`, so there is nothing to bind, nothing
+  // to debounce, and no `scrollend` handling of our own.
   mounted() {
-    const { wrapper } = this.$refs;
-    const onScroll = () => this.syncFromScroll();
-    const onScrollEnd = () => {
-      this.#navigationTarget = null;
+    return useScroll(this.$refs.wrapper).add(({ isScrolling }) => {
+      if (!isScrolling) {
+        this.#navigationTarget = null;
+      }
       this.syncFromScroll();
-    };
-    wrapper.addEventListener('scroll', onScroll, { passive: true });
-    wrapper.addEventListener('scrollend', onScrollEnd);
-    return () => {
-      wrapper.removeEventListener('scroll', onScroll);
-      wrapper.removeEventListener('scrollend', onScrollEnd);
-    };
+    });
   }
 
   /**
@@ -147,8 +135,7 @@ export class Slider extends Base<{
    * in sync for native scroll-snap swipes, not only for the buttons.
    */
   syncFromScroll(): void {
-    this.#scrollRead?.cancel();
-    this.#scrollRead = this.$read(() => {
+    this.$read(() => {
       // Rects, not offsetLeft: offsets are relative to the positioned
       // ancestor (the page), not to the scroll wrapper.
       const wrapperRect = this.$refs.wrapper.getBoundingClientRect();
