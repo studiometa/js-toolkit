@@ -53,6 +53,33 @@ describe('usePointer', () => {
     expect(states).toEqual([true, false, true, false]);
   });
 
+  it('reads the position of a press, not the one of the last move', () => {
+    const seen: Array<ReturnType<typeof snapshot>> = [];
+    const unsubscribe = usePointer().add((props) => seen.push(snapshot(props)));
+
+    move(207, 300);
+    // A touch tap has no `pointermove` before it. Reading the position only
+    // on move reported wherever the pointer had last been seen.
+    document.dispatchEvent(new PointerEvent('pointerdown', { clientX: 42, clientY: 84 }));
+
+    const down = seen.at(-1);
+    expect(down?.isDown).toBe(true);
+    expect(down?.x).toBe(42);
+    expect(down?.y).toBe(84);
+    expect(down?.deltaX).toBe(42 - 207);
+    expect(down?.lastX).toBe(207);
+    expect(down?.changedX).toBe(true);
+
+    document.dispatchEvent(new PointerEvent('pointerup', { clientX: 50, clientY: 84 }));
+    const up = seen.at(-1);
+    expect(up?.isDown).toBe(false);
+    expect(up?.x).toBe(50);
+    expect(up?.deltaX).toBe(8);
+    expect(up?.changedY).toBe(false);
+
+    unsubscribe();
+  });
+
   it('stops listening when the last subscriber leaves', () => {
     let calls = 0;
     const unsubscribe = usePointer().add(() => {

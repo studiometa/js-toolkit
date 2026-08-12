@@ -84,13 +84,15 @@ function createPointerService(): Service<PointerProps> {
     start(emit) {
       const onPointer = (event: Event) => {
         const pointerEvent = event as PointerEvent;
-        if (pointerEvent.type === 'pointermove') {
-          emit(update(pointerEvent));
-          return;
+        // Every pointer event carries coordinates, and a press is the one
+        // that carries the *new* ones: a touch tap has no `pointermove`
+        // before it, so reading the position only on move reported wherever
+        // the pointer had last been seen — the middle of the viewport on the
+        // first tap of a page.
+        if (pointerEvent.type !== 'pointermove') {
+          props.isDown = pointerEvent.type === 'pointerdown';
         }
-        props.event = pointerEvent;
-        props.isDown = pointerEvent.type === 'pointerdown';
-        emit(props);
+        emit(update(pointerEvent));
       };
 
       // Capture, so a component reads the pointer even when something down
