@@ -94,11 +94,11 @@ const resizeServices = /* @__PURE__ */ perTarget(createResizeService);
  * Use the resize service for an element, the document element by default.
  *
  * ```js
- * const unsubscribe = useResize().add(({ width, orientation }) => {
+ * const unsubscribe = useResize().subscribe(({ width, orientation }) => {
  *   el.classList.toggle('is-narrow', width < 600);
  * });
  *
- * useResize(card).add(({ width }) => { … });
+ * useResize(card).subscribe(({ width }) => { … });
  * ```
  *
  * One service per element: the props describe that element's box, and its

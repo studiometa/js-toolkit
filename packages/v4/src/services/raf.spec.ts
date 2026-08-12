@@ -6,7 +6,7 @@ import { useRaf, type RafProps } from './raf.js';
 describe('useRaf', () => {
   it('ticks every frame with the elapsed time', async () => {
     const props: RafProps[] = [];
-    const unsubscribe = useRaf().add((frameProps) => props.push({ ...frameProps }));
+    const unsubscribe = useRaf().subscribe((frameProps) => props.push({ ...frameProps }));
     await frames(4);
     unsubscribe();
 
@@ -20,7 +20,7 @@ describe('useRaf', () => {
   it('measures in the read phase and renders in the write phase of the same frame', async () => {
     const phases: string[] = [];
     let time = 0;
-    const unsubscribe = useRaf().add((props) => {
+    const unsubscribe = useRaf().subscribe((props) => {
       phases.push(scheduler.phase);
       time = props.time;
       return (renderProps: RafProps) => {
@@ -41,10 +41,10 @@ describe('useRaf', () => {
     // Collected in `read`, run in `write` — with a whole fan-out in between,
     // which is long enough for the component that returned it to be
     // destroyed. Its cleanup has already run, so the write must not happen.
-    unsubscribeFirst = useRaf().add(() => () => {
+    unsubscribeFirst = useRaf().subscribe(() => () => {
       writes += 1;
     });
-    const unsubscribeSecond = useRaf().add(() => {
+    const unsubscribeSecond = useRaf().subscribe(() => {
       unsubscribeFirst();
     });
 
@@ -57,10 +57,10 @@ describe('useRaf', () => {
   it('shares one loop between subscribers and stops with the last of them', async () => {
     let first = 0;
     let second = 0;
-    const unsubscribeFirst = useRaf().add(() => {
+    const unsubscribeFirst = useRaf().subscribe(() => {
       first += 1;
     });
-    const unsubscribeSecond = useRaf().add(() => {
+    const unsubscribeSecond = useRaf().subscribe(() => {
       second += 1;
     });
     await frames(3);

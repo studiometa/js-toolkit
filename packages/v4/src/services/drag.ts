@@ -299,7 +299,7 @@ const dragServices = /* @__PURE__ */ perTarget(createDragService);
  * Use the drag service for an element.
  *
  * ```js
- * const unsubscribe = useDrag(el).add(({ mode, distanceX }) => {
+ * const unsubscribe = useDrag(el).subscribe(({ mode, distanceX }) => {
  *   if (mode === 'drag') {
  *     el.style.setProperty('--x', `${distanceX}px`);
  *   }

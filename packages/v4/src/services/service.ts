@@ -12,8 +12,9 @@
  * - **Symmetric.** Subscribing hands back the only thing needed to undo it,
  *   the same shape `Signal.subscribe()`, `provideContext()` and the mount
  *   strategies use. v3 keyed callbacks by an instance id and exposed
- *   `add`/`remove`/`has`; a closure is both smaller and impossible to
- *   desynchronize.
+ *   `add`/`remove`/`has`. It is spelled `subscribe` rather than v3's `add`
+ *   because the arity changed: v3's `add('id', callback)` would otherwise
+ *   have compiled here and subscribed the string.
  */
 export type ServiceCallback<T> = (props: T) => unknown;
 
@@ -23,7 +24,7 @@ export interface Service<T> {
    *
    * @returns Unsubscribe. The service stops with its last subscriber.
    */
-  add(callback: ServiceCallback<T>): () => void;
+  subscribe(callback: ServiceCallback<T>): () => void;
   /**
    * The current props, without subscribing. They are only kept up to date
    * while the service runs.
@@ -75,7 +76,7 @@ export function createService<T>({ props, start }: ServiceDefinition<T>): Servic
 
   return {
     props,
-    add(callback) {
+    subscribe(callback) {
       const subscription: Subscription<T> = { callback };
       subscriptions.add(subscription);
       stop ??= start(emit);

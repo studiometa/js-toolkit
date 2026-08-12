@@ -86,7 +86,7 @@ _Recommendation:_ ship the interpolator, keep the player separate. They are two 
 | `withMountWhenInView(BaseClass, options)` → `config.mountStrategy = 'in-view'`                          | mount strategies moved into the registry (#751). **Clean win.**          |
 | four `$on(…)` channels with a hand-built `handleEvent` → two service subscriptions returned as cleanups | services are subscribe/unsubscribe closures. ~40 lines deleted.          |
 | grouped `ScrollInViewProps` → flat (`startX`, `dampedProgressY`…)                                       | v4's service prop convention.                                            |
-| **`$services.enable('ticked')`/`disable` → a hand-held `useRaf().add()`**                               | **no v4 equivalent — gap 1.**                                            |
+| **`$services.enable('ticked')`/`disable` → a hand-held `useRaf().subscribe()`**                               | **no v4 equivalent — gap 1.**                                            |
 | final boundary render moved off `$read`/`$write` onto the global `scheduler`                            | **`$destroy()` cancels pending tasks right after the cleanups — gap 5.** |
 
 **Size:** components 193 → 136 (−30 %); infrastructure 879 → 441 (−50 %). **Verdict: components mechanical, infrastructure a rewrite that halves it.**

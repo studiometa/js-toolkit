@@ -63,7 +63,7 @@ describe('useDrag', () => {
     const modes: DragMode[] = [];
     const last: DragProps[] = [];
     // A steep damping so the inertia settles in a handful of frames.
-    const unsubscribe = useDrag(el, { dampFactor: 0.1 }).add((props) => {
+    const unsubscribe = useDrag(el, { dampFactor: 0.1 }).subscribe((props) => {
       modes.push(props.mode);
       last.push({ ...props });
     });
@@ -106,7 +106,7 @@ describe('useDrag', () => {
     // `pointerup` for 2.3 to 4.4 ms.
     const dampFactor = 0.99999;
     const drops: DragProps[] = [];
-    const unsubscribe = useDrag(el, { dampFactor }).add((props) => {
+    const unsubscribe = useDrag(el, { dampFactor }).subscribe((props) => {
       if (props.mode === 'drop') {
         drops.push({ ...props });
       }
@@ -125,7 +125,7 @@ describe('useDrag', () => {
   it('drops when the button is released outside the window', () => {
     const el = render();
     const modes: DragMode[] = [];
-    const unsubscribe = useDrag(el).add((props) => modes.push(props.mode));
+    const unsubscribe = useDrag(el).subscribe((props) => modes.push(props.mode));
 
     grab(el, 0, 0);
     // No button pressed anymore: the pointer came back without it.
@@ -147,7 +147,7 @@ describe('useDrag', () => {
     document.body.addEventListener('click', () => {
       clicks += 1;
     });
-    const unsubscribe = useDrag(el).add(() => {});
+    const unsubscribe = useDrag(el).subscribe(() => {});
 
     // Real input, because the guard only ever suppresses a click the browser
     // synthesized itself. Pressing on one child and releasing on another
@@ -171,7 +171,7 @@ describe('useDrag', () => {
     document.body.addEventListener('click', () => {
       clicks += 1;
     });
-    const unsubscribe = useDrag(el).add(() => {});
+    const unsubscribe = useDrag(el).subscribe(() => {});
 
     grab(el, 0, 0);
     move(100, 0);
@@ -198,7 +198,7 @@ describe('useDrag', () => {
     // Without it, a native pan wins the gesture on touch: the browser fires
     // `pointercancel`, which the service turns into an inertia fling from a
     // half-finished drag.
-    const unsubscribe = useDrag(el).add(() => {});
+    const unsubscribe = useDrag(el).subscribe(() => {});
     expect(el.style.touchAction).toBe('none');
     unsubscribe();
     expect(el.style.touchAction).toBe('');
@@ -206,7 +206,7 @@ describe('useDrag', () => {
     // Consumer CSS is deliberate, and wins.
     const styled = render();
     styled.style.touchAction = 'pan-y';
-    const unsubscribeStyled = useDrag(styled).add(() => {});
+    const unsubscribeStyled = useDrag(styled).subscribe(() => {});
     expect(styled.style.touchAction).toBe('pan-y');
     unsubscribeStyled();
     expect(styled.style.touchAction).toBe('pan-y');
@@ -219,7 +219,7 @@ describe('useDrag', () => {
     document.body.append(svg);
 
     const modes: DragMode[] = [];
-    const unsubscribe = useDrag(handle).add(({ mode }) => modes.push(mode));
+    const unsubscribe = useDrag(handle).subscribe(({ mode }) => modes.push(mode));
     handle.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
     unsubscribe();
 
@@ -234,7 +234,7 @@ describe('useDrag', () => {
     // resumes. Subscribing the inertia tick there left a frame loop running
     // for the life of the page, computing inertia into a dead service.
     let unsubscribe = (): void => {};
-    unsubscribe = useDrag(el, { dampFactor: 0.99 }).add(({ mode }) => {
+    unsubscribe = useDrag(el, { dampFactor: 0.99 }).subscribe(({ mode }) => {
       emits.push(mode);
       if (mode === 'drop') {
         unsubscribe();
@@ -256,7 +256,7 @@ describe('useDrag', () => {
     expect(useDrag(el)).not.toBe(useDrag(render()));
 
     let calls = 0;
-    const unsubscribe = useDrag(el).add(() => {
+    const unsubscribe = useDrag(el).subscribe(() => {
       calls += 1;
     });
     grab(el, 0, 0);

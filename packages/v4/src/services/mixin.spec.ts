@@ -187,7 +187,7 @@ describe('service mixins', () => {
       mounted() {
         return [
           super.mounted(),
-          useScroll(this.$el).add(({ y }: ScrollProps) => this.inner.push(y)),
+          useScroll(this.$el).subscribe(({ y }: ScrollProps) => this.inner.push(y)),
         ];
       }
     }

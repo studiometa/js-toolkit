@@ -194,7 +194,7 @@ function apply(
      * so the subscription itself is the switch.
      */
     startTicking(): void {
-      this.__unsubscribeFrame ??= useRaf().add(() => {
+      this.__unsubscribeFrame ??= useRaf().subscribe(() => {
         const props = this.__scrollInViewProps;
         const { dampFactor, dampPrecision } = this.$options as {
           dampFactor: number;
@@ -252,12 +252,12 @@ function apply(
 
       return [
         inherited,
-        useWindowScroll().add(({ changedX, changedY }) => {
+        useWindowScroll().subscribe(({ changedX, changedY }) => {
           if (changedX || changedY) {
             this.startTicking();
           }
         }),
-        useResize().add(() => {
+        useResize().subscribe(() => {
           this.__shouldMeasure = true;
           this.renderScrollInView();
         }),

@@ -15,8 +15,8 @@ describe('createService', () => {
     // Lazy: a service nobody listens to does nothing at all.
     expect(calls).toEqual([]);
 
-    const first = service.add(() => {});
-    const second = service.add(() => {});
+    const first = service.subscribe(() => {});
+    const second = service.subscribe(() => {});
     expect(calls).toEqual(['start']);
 
     first();
@@ -25,7 +25,7 @@ describe('createService', () => {
     expect(calls).toEqual(['start', 'stop']);
 
     // And it comes back for the next subscriber.
-    service.add(() => {});
+    service.subscribe(() => {});
     expect(calls).toEqual(['start', 'stop', 'start']);
   });
 
@@ -39,8 +39,8 @@ describe('createService', () => {
       },
     });
 
-    const unsubscribe = service.add(() => {});
-    const other = service.add(() => {});
+    const unsubscribe = service.subscribe(() => {});
+    const other = service.subscribe(() => {});
     unsubscribe();
     unsubscribe();
     // The second call must not be read as "the last subscriber left".
@@ -68,8 +68,8 @@ describe('createService', () => {
     const callback = () => {
       received += 1;
     };
-    const first = service.add(callback);
-    const second = service.add(callback);
+    const first = service.subscribe(callback);
+    const second = service.subscribe(callback);
 
     emit(1);
     expect(received).toBe(2);
@@ -95,10 +95,10 @@ describe('createService', () => {
     });
 
     const seen: string[] = [];
-    service.add((props) => seen.push(`first:${props}`));
+    service.subscribe((props) => seen.push(`first:${props}`));
     // What a subscriber returns is between it and its service — `useRaf()`
     // collects render functions that way — so nothing comes back here.
-    service.add((props) => {
+    service.subscribe((props) => {
       seen.push(`second:${props}`);
       return () => {};
     });
@@ -118,10 +118,10 @@ describe('createService', () => {
     });
 
     let reached = 0;
-    service.add(() => {
+    service.subscribe(() => {
       throw new Error('boom');
     });
-    service.add(() => {
+    service.subscribe(() => {
       reached += 1;
     });
 
@@ -172,8 +172,8 @@ describe('perTarget', () => {
     const first = document.createElement('div');
     const second = document.createElement('div');
 
-    const unsubscribeFirst = use(first, 'first').add(() => {});
-    const unsubscribeSecond = use(second, 'second').add(() => {});
+    const unsubscribeFirst = use(first, 'first').subscribe(() => {});
+    const unsubscribeSecond = use(second, 'second').subscribe(() => {});
     expect(calls).toEqual(['start:first', 'start:second']);
 
     // The last subscriber of one target leaving releases that target only.
@@ -188,9 +188,9 @@ describe('perTarget', () => {
     const { calls, use } = makeServices();
     const target = document.createElement('div');
 
-    const first = use(target, 'first').add(() => {});
+    const first = use(target, 'first').subscribe(() => {});
     // The second caller's arguments are ignored: the service is already up.
-    const second = use(target, 'second').add(() => {});
+    const second = use(target, 'second').subscribe(() => {});
     first();
     expect(calls).toEqual(['start:first']);
 

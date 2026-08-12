@@ -149,7 +149,7 @@ let service: Service<PointerProps> | undefined;
  * Use the pointer service.
  *
  * ```js
- * const unsubscribe = usePointer().add(({ progressX, isDown }) => {
+ * const unsubscribe = usePointer().subscribe(({ progressX, isDown }) => {
  *   el.style.setProperty('--x', String(progressX));
  * });
  * ```

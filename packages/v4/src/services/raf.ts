@@ -54,7 +54,7 @@ function createRafService(): Service<RafProps> {
 
   return {
     props: service.props,
-    add(callback) {
+    subscribe(callback) {
       // A render is cancelled with its subscription. The two phases of one
       // frame are far enough apart for a component to be destroyed between
       // them, and a destroyed component must not write to the DOM after its
@@ -62,7 +62,7 @@ function createRafService(): Service<RafProps> {
       // before it unsubscribes, which is the only case that can tell the
       // difference.
       let isSubscribed = true;
-      const unsubscribe = service.add((tickProps) => {
+      const unsubscribe = service.subscribe((tickProps) => {
         const render = callback(tickProps);
         if (typeof render === 'function') {
           renders.push(() => {
@@ -86,7 +86,7 @@ let service: Service<RafProps> | undefined;
  * Use the frame service.
  *
  * ```js
- * const unsubscribe = useRaf().add(({ time, delta }) => {
+ * const unsubscribe = useRaf().subscribe(({ time, delta }) => {
  *   const { width } = el.getBoundingClientRect(); // read phase
  *   return () => {                                // write phase
  *     el.style.setProperty('--width', `${width}px`);

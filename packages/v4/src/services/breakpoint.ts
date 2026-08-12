@@ -143,7 +143,7 @@ let service: Service<BreakpointProps> | undefined;
  * Use the breakpoint service.
  *
  * ```js
- * const unsubscribe = useBreakpoint().add(({ name }) => {
+ * const unsubscribe = useBreakpoint().subscribe(({ name }) => {
  *   el.hidden = name === 'xxs';
  * });
  * ```

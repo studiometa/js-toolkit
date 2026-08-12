@@ -68,7 +68,7 @@ export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> &
  * unsubscribe is the cleanup:
  *
  *     mounted() {
- *       return useScroll(this.$refs.panel).add((props) => { … });
+ *       return useScroll(this.$refs.panel).subscribe((props) => { … });
  *     }
  *
  * There is one method name per service, and it is the service's own: two
@@ -125,7 +125,7 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
           inherited,
           definition
             .use(target(this), options)
-            .add((props) => (method as (props: unknown) => unknown).call(this, props)),
+            .subscribe((props) => (method as (props: unknown) => unknown).call(this, props)),
         ];
       }
     };

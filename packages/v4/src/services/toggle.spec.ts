@@ -25,7 +25,7 @@ class Settler extends Base {
   ticks = 0;
 
   frame = toggle(() =>
-    useRaf().add(() => {
+    useRaf().subscribe(() => {
       this.ticks += 1;
     }),
   );

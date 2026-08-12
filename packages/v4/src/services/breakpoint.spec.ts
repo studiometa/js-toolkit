@@ -12,14 +12,14 @@ describe('useBreakpoint', () => {
     // sampled sources, which only know where they stand while they run.
     expect(Object.keys(BREAKPOINTS)).toContain(useBreakpoint().props().name);
 
-    const unsubscribe = useBreakpoint().add(() => {});
+    const unsubscribe = useBreakpoint().subscribe(() => {});
     expect(Object.keys(BREAKPOINTS)).toContain(useBreakpoint().props().name);
     unsubscribe();
   });
 
   it('says nothing when a resize crosses no breakpoint', async () => {
     let calls = 0;
-    const unsubscribe = useBreakpoint().add(() => {
+    const unsubscribe = useBreakpoint().subscribe(() => {
       calls += 1;
     });
 
@@ -38,7 +38,7 @@ describe('useBreakpoint', () => {
 
   it('re-emits at once when the set is replaced', () => {
     const seen: string[] = [];
-    const unsubscribe = useBreakpoint().add(({ name }) => seen.push(name));
+    const unsubscribe = useBreakpoint().subscribe(({ name }) => seen.push(name));
 
     // Every width matches, so the widest name wins whatever the viewport is.
     setBreakpoints({ small: '0rem', large: '0rem' });
@@ -56,7 +56,7 @@ describe('useBreakpoint', () => {
 
   it('stops listening when the last subscriber leaves', () => {
     const seen: string[] = [];
-    const unsubscribe = useBreakpoint().add(({ name }) => seen.push(name));
+    const unsubscribe = useBreakpoint().subscribe(({ name }) => seen.push(name));
     unsubscribe();
 
     setBreakpoints({ small: '0rem', large: '0rem' });

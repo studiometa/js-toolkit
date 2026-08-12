@@ -21,7 +21,7 @@ describe('usePointer', () => {
 
   it('follows the pointer and reports its delta and progress', () => {
     const seen: Array<ReturnType<typeof snapshot>> = [];
-    const unsubscribe = usePointer().add((props) => seen.push(snapshot(props)));
+    const unsubscribe = usePointer().subscribe((props) => seen.push(snapshot(props)));
 
     move(100, 50);
     move(140, 90);
@@ -41,7 +41,7 @@ describe('usePointer', () => {
 
   it('tracks the pressed state through pointerdown and pointerup', () => {
     const states: boolean[] = [];
-    const unsubscribe = usePointer().add((props) => states.push(props.isDown));
+    const unsubscribe = usePointer().subscribe((props) => states.push(props.isDown));
 
     document.dispatchEvent(new PointerEvent('pointerdown', { clientX: 10, clientY: 10 }));
     document.dispatchEvent(new PointerEvent('pointerup', { clientX: 10, clientY: 10 }));
@@ -55,7 +55,7 @@ describe('usePointer', () => {
 
   it('reads the position of a press, not the one of the last move', () => {
     const seen: Array<ReturnType<typeof snapshot>> = [];
-    const unsubscribe = usePointer().add((props) => seen.push(snapshot(props)));
+    const unsubscribe = usePointer().subscribe((props) => seen.push(snapshot(props)));
 
     move(207, 300);
     // A touch tap has no `pointermove` before it. Reading the position only
@@ -82,7 +82,7 @@ describe('usePointer', () => {
 
   it('follows one pointer at a time, so a second finger cannot end the gesture', () => {
     const states: boolean[] = [];
-    const unsubscribe = usePointer().add((props) => states.push(props.isDown));
+    const unsubscribe = usePointer().subscribe((props) => states.push(props.isDown));
 
     const press = (pointerId: number, x: number) =>
       document.dispatchEvent(
@@ -109,7 +109,7 @@ describe('usePointer', () => {
 
   it('stops listening when the last subscriber leaves', () => {
     let calls = 0;
-    const unsubscribe = usePointer().add(() => {
+    const unsubscribe = usePointer().subscribe(() => {
       calls += 1;
     });
 
@@ -125,7 +125,7 @@ describe('usePointer', () => {
     const el = document.createElement('div');
     document.body.append(el);
 
-    const unsubscribe = usePointer().add(() => {});
+    const unsubscribe = usePointer().subscribe(() => {});
     el.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: 5, clientY: 5 }));
     expect(usePointer().props().event?.target).toBe(el);
 

@@ -25,7 +25,7 @@ describe('useScroll', () => {
   it('reports the position, its delta, its progress and where it is going', async () => {
     makePage();
     const seen: Array<ReturnType<typeof snapshot>> = [];
-    const unsubscribe = useScroll().add((props) => seen.push(snapshot(props)));
+    const unsubscribe = useScroll().subscribe((props) => seen.push(snapshot(props)));
 
     window.scrollTo(0, 200);
     await settle();
@@ -56,7 +56,7 @@ describe('useScroll', () => {
   it('emits once per frame however many scroll events arrive', async () => {
     makePage();
     let calls = 0;
-    const unsubscribe = useScroll().add(() => {
+    const unsubscribe = useScroll().subscribe(() => {
       calls += 1;
     });
 
@@ -74,7 +74,7 @@ describe('useScroll', () => {
   it('stops listening when the last subscriber leaves', async () => {
     makePage();
     let calls = 0;
-    const unsubscribe = useScroll().add(() => {
+    const unsubscribe = useScroll().subscribe(() => {
       calls += 1;
     });
 
@@ -115,7 +115,7 @@ describe('useScroll(element)', () => {
   it('reports the element scroll rather than the page one', async () => {
     const el = makeScroller();
     const seen: Array<ReturnType<typeof snapshot>> = [];
-    const unsubscribe = useScroll(el).add((props) => seen.push(snapshot(props)));
+    const unsubscribe = useScroll(el).subscribe((props) => seen.push(snapshot(props)));
 
     el.scrollTop = 100;
     el.dispatchEvent(new Event('scroll'));
@@ -140,7 +140,7 @@ describe('useScroll(element)', () => {
 
     const service = useScroll(el);
     const seen: Array<ReturnType<typeof snapshot>> = [];
-    const unsubscribe = service.add((props) => seen.push(snapshot(props)));
+    const unsubscribe = service.subscribe((props) => seen.push(snapshot(props)));
     await settle();
     expect(service.props().maxY).toBe(400);
 
@@ -171,7 +171,7 @@ describe('useScroll(element)', () => {
     document.body.append(el);
 
     const service = useScroll(el);
-    const unsubscribe = service.add(() => {});
+    const unsubscribe = service.subscribe(() => {});
     await settle();
 
     // An axis with nowhere to go is at its start. Reporting `1` told an empty
@@ -191,7 +191,7 @@ describe('useScroll(element)', () => {
     document.body.append(el);
 
     const service = useScroll(el);
-    const unsubscribe = service.add(() => {});
+    const unsubscribe = service.subscribe(() => {});
     // Right to left, `scrollLeft` counts down from `0` at the right edge
     // while the maximum stays positive.
     el.scrollLeft = -500;
@@ -215,10 +215,10 @@ describe('useScroll(element)', () => {
 
     let firstCalls = 0;
     let secondCalls = 0;
-    const unsubscribeFirst = useScroll(first).add(() => {
+    const unsubscribeFirst = useScroll(first).subscribe(() => {
       firstCalls += 1;
     });
-    const unsubscribeSecond = useScroll(second).add(() => {
+    const unsubscribeSecond = useScroll(second).subscribe(() => {
       secondCalls += 1;
     });
 
@@ -245,7 +245,7 @@ describe('isScrolling', () => {
     document.body.append(el);
 
     const service = useScroll(el);
-    const off = service.add(() => {});
+    const off = service.subscribe(() => {});
     // A scroll with no `scrollend` behind it, which is what mid-gesture
     // looks like: a real jump starts and settles inside one frame, so the
     // coalesced read would only ever report the settled state.
@@ -264,7 +264,7 @@ describe('isScrolling', () => {
     document.body.append(el);
 
     const seen: boolean[] = [];
-    const off = useScroll(el).add(({ isScrolling }) => seen.push(isScrolling));
+    const off = useScroll(el).subscribe(({ isScrolling }) => seen.push(isScrolling));
 
     el.scrollTop = 200;
     // Long enough for `scrollend`, or for the quiet period standing in for
@@ -286,7 +286,7 @@ describe('isScrolling', () => {
     document.body.append(el);
 
     const service = useScroll(el);
-    const off = service.add(() => {});
+    const off = service.subscribe(() => {});
 
     // A resize re-measures the maximums, but nothing is moving — and no
     // `scrollend` follows to take the flag back down, so treating it as a
@@ -306,7 +306,7 @@ describe('isScrolling', () => {
     document.body.append(el);
 
     const service = useScroll(el);
-    const off = service.add(() => {});
+    const off = service.subscribe(() => {});
     el.scrollTop = 120;
     await new Promise((resolve) => setTimeout(resolve, 60));
     off();

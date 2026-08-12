@@ -102,7 +102,7 @@ describe('subscription overhead', () => {
   });
 
   bench('service add + unsubscribe', () => {
-    service.add(() => {})();
+    service.subscribe(() => {})();
   });
 
   // One AbortController *per subscription* — which is not the same thing
@@ -127,7 +127,7 @@ describe('fan-out to subscribers', () => {
       start: () => () => {},
     });
     for (let i = 0; i < count; i += 1) {
-      service.add(() => {});
+      service.subscribe(() => {});
     }
     // Reaching the private emit is not possible from outside, so this
     // mirrors its shape: a try/catch per subscriber, collecting returns.

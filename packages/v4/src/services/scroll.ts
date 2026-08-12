@@ -252,11 +252,11 @@ const scrollServices = /* @__PURE__ */ perTarget(createScrollService);
  * Use the scroll service for a target, the window by default.
  *
  * ```js
- * const unsubscribe = useScroll().add(({ y, progressY, isDown }) => {
+ * const unsubscribe = useScroll().subscribe(({ y, progressY, isDown }) => {
  *   el.classList.toggle('is-hidden', isDown);
  * });
  *
- * useScroll(panel).add(({ progressY }) => { … });
+ * useScroll(panel).subscribe(({ progressY }) => { … });
  * ```
  *
  * One service per target: the props describe that scroller, and its

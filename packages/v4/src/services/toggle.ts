@@ -21,7 +21,7 @@ export interface Toggle {
  * a component that needs the frame loop only while a value settles:
  *
  *     class SliderItem extends Base {
- *       #frame = toggle(() => useRaf().add(({ delta }) => this.follow(delta)));
+ *       #frame = toggle(() => useRaf().subscribe(({ delta }) => this.follow(delta)));
  *
  *       mounted() {
  *         return this.#frame.stop;   // bound, so it is a cleanup as it is

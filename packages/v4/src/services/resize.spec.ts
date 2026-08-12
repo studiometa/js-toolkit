@@ -29,7 +29,7 @@ function makeBox(width: string): HTMLElement {
 describe('useResize', () => {
   it('reports the viewport as soon as a subscriber arrives', async () => {
     const seen: ResizeProps[] = [];
-    const unsubscribe = useResize().add((props) => seen.push(snapshot(props)));
+    const unsubscribe = useResize().subscribe((props) => seen.push(snapshot(props)));
     await settle();
     unsubscribe();
 
@@ -48,7 +48,7 @@ describe('useResize', () => {
 
   it('emits again when the document is resized', async () => {
     let calls = 0;
-    const unsubscribe = useResize().add(() => {
+    const unsubscribe = useResize().subscribe(() => {
       calls += 1;
     });
     await settle();
@@ -68,7 +68,7 @@ describe('useResize', () => {
     // a `clientHeight` of 896 — so a viewport-only height change, a mobile
     // toolbar sliding away, moves the props and fires no observer at all.
     let calls = 0;
-    const unsubscribe = useResize().add(() => {
+    const unsubscribe = useResize().subscribe(() => {
       calls += 1;
     });
     await settle();
@@ -87,7 +87,7 @@ describe('useResize', () => {
 
   it('stops observing when the last subscriber leaves', async () => {
     let calls = 0;
-    const unsubscribe = useResize().add(() => {
+    const unsubscribe = useResize().subscribe(() => {
       calls += 1;
     });
     await settle();
@@ -109,7 +109,7 @@ describe('useResize(element)', () => {
   it('reports the element box rather than the viewport', async () => {
     const el = makeBox('120px');
     const seen: ResizeProps[] = [];
-    const unsubscribe = useResize(el).add((props) => seen.push(snapshot(props)));
+    const unsubscribe = useResize(el).subscribe((props) => seen.push(snapshot(props)));
     await settle();
 
     const props = seen.at(-1);
@@ -131,7 +131,7 @@ describe('useResize(element)', () => {
     document.body.append(el);
 
     const service = useResize(el);
-    const unsubscribe = service.add(() => {});
+    const unsubscribe = service.subscribe(() => {});
     await settle();
 
     // `Infinity` and `NaN` propagate through everything a subscriber
@@ -153,10 +153,10 @@ describe('useResize(element)', () => {
 
     let firstCalls = 0;
     let secondCalls = 0;
-    const unsubscribeFirst = useResize(first).add(() => {
+    const unsubscribeFirst = useResize(first).subscribe(() => {
       firstCalls += 1;
     });
-    const unsubscribeSecond = useResize(second).add(() => {
+    const unsubscribeSecond = useResize(second).subscribe(() => {
       secondCalls += 1;
     });
     await settle();
