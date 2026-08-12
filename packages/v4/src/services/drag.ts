@@ -285,7 +285,15 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         emit(props);
       }
 
-      function drop() {
+      /**
+       * `timeStamp` comes from the event that ended the gesture, on the same
+       * clock `measureVelocity()` sampled with. Reading `performance.now()`
+       * here instead mixed two clocks: they share a time origin for events
+       * from this document, but not for one dispatched from another — and the
+       * failure mode is not a small error, it is a negative idle, which runs
+       * the decay backwards and amplifies the throw.
+       */
+      function drop(timeStamp: number) {
         if (!isGrabbing()) {
           return;
         }
@@ -296,7 +304,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         // delta survived however long the pause was. Decayed by the law the
         // coast itself obeys rather than by a staleness threshold: a short
         // pause takes the edge off, a long one leaves nothing to throw.
-        const idle = velocityTime === 0 ? 0 : performance.now() - velocityTime;
+        const idle = velocityTime === 0 ? 0 : timeStamp - velocityTime;
         const idleDecay = inertiaDecay(dampFactor, idle);
         velocityX *= idleDecay;
         velocityY *= idleDecay;
@@ -319,7 +327,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         if (pointerEvent.buttons === 1) {
           drag(pointerEvent);
         } else {
-          drop();
+          drop(pointerEvent.timeStamp);
         }
       }
 
@@ -353,8 +361,8 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         event.preventDefault();
       }
 
-      function onPointerUp() {
-        drop();
+      function onPointerUp(event: Event) {
+        drop(event.timeStamp);
       }
 
       target.addEventListener('pointerdown', onPointerDown, { passive: true });

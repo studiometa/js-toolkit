@@ -61,6 +61,17 @@ describe('decayOver', () => {
     expect(decayOver(-2, INERTIA_FRAME)).toBe(0);
   });
 
+  it('treats a negative duration as no time at all', () => {
+    // Time runs one way. A negative elapsed does not decay less, it decays
+    // *backwards* — `0.9 ** -60` is an amplification, not a survival rate — so
+    // unguarded it turns a flick into a launch and makes `damp()` run away from
+    // its target. A negative elapsed means two clocks disagreed; retaining
+    // everything is the only reading that cannot make it worse.
+    expect(decayOver(0.9, -INERTIA_FRAME)).toBe(1);
+    expect(decayOver(0.9, -10_000)).toBe(1);
+    expect(decayOver(0.9, -0)).toBe(1);
+  });
+
   it('retains nothing rather than returning NaN', () => {
     // One `NaN` here would otherwise reach every value that touches the result.
     expect(decayOver(Number.NaN, INERTIA_FRAME)).toBe(0);
@@ -246,6 +257,13 @@ describe('damp', () => {
     expect(Number.isFinite(damp(100, 0, Number.NaN, INERTIA_FRAME))).toBe(true);
     expect(Number.isFinite(damp(100, 0, 0.1, Number.NaN))).toBe(true);
     expect(Number.isFinite(damp(100, 0, -1, INERTIA_FRAME))).toBe(true);
+  });
+
+  it('holds still rather than running away on a negative elapsed', () => {
+    // What the amplification did through `damp`: -11.11 for one backwards
+    // frame, and -5.55e4 for a second of it. Both moved away from the target.
+    expect(damp(100, 0, 0.1, -INERTIA_FRAME)).toBe(0);
+    expect(damp(100, 0, 0.1, -10_000)).toBe(0);
   });
 
   it('handles a frame long enough to have been a stall', () => {

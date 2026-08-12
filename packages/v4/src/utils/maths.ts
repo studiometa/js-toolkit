@@ -81,12 +81,20 @@ export function lerp(min: number, max: number, ratio: number): number {
  * A non-finite input yields `0` rather than `NaN`. Retaining nothing is the
  * safe reading: a caller lands on its target, or stops, instead of poisoning
  * every value that touches the result from then on.
+ *
+ * `elapsed` is floored at `0`, and that guard matters more than it looks. A
+ * negative duration does not decay — it runs the decay *backwards*, returning
+ * more than there was: `decayOver(0.9, -1000)` is `556`, an amplification. Fed
+ * to {@link damp} it moves away from the target instead of towards it, and fed
+ * to the inertia it turns a flick into a launch. Time only runs one way, so a
+ * negative elapsed means a caller's clocks disagree, and "no time passed" is
+ * the only reading that cannot make things worse.
  */
 export function decayOver(retained: number, elapsed: number): number {
   if (!Number.isFinite(retained) || !Number.isFinite(elapsed)) {
     return 0;
   }
-  return Math.min(Math.max(retained, 0), 1) ** (elapsed / INERTIA_FRAME);
+  return Math.min(Math.max(retained, 0), 1) ** (Math.max(elapsed, 0) / INERTIA_FRAME);
 }
 
 /**

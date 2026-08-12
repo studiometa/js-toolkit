@@ -202,6 +202,31 @@ describe('useDrag', () => {
     unsubscribe();
   });
 
+  it('does not amplify the throw when the release looks older than the move', async () => {
+    const el = render();
+    const seen: DragProps[] = [];
+    const unsubscribe = useDrag(el).subscribe((props) => {
+      seen.push({ ...props });
+    });
+
+    grab(el, 0, 0);
+    // Built now, dispatched after the move, so its `timeStamp` is *earlier*
+    // than the sample it will be compared against — which is what a mismatched
+    // clock looks like from inside the service. Unguarded, the negative idle
+    // ran the decay backwards and multiplied the velocity.
+    const staleRelease = new PointerEvent('pointerup');
+    move(120, 0);
+    window.dispatchEvent(staleRelease);
+    const drop = seen.at(-1) as DragProps;
+
+    expect(drop.mode).toBe(DRAG_MODES.DROP);
+    expect(Number.isFinite(drop.finalX)).toBe(true);
+    // A plausible throw for a 120 px move, not a launch.
+    expect(drop.finalX).toBeLessThan(drop.x + 2000);
+
+    unsubscribe();
+  });
+
   it('still flings when the pointer was moving as it let go', async () => {
     const el = render();
     const seen: DragProps[] = [];
