@@ -98,6 +98,17 @@ second service; `useDrag` excludes `SVGElement`, and our own documented
   then snaps the position onto it at `stop` so the drop's promise holds to the
   pixel. Velocity should be px/ms from `event.timeStamp` through an EMA, so a
   1000 Hz mouse and a 125 Hz trackpad throw the same flick.
+
+  **Done separately, and the agents' recipe was incomplete.** Landed on
+  `feature/v4-drag-inertia` rather than in the hardening PR, since it changes
+  behaviour rather than fixing a defect. All three specified exponential decay
+  and a closed-form settle, and none noticed that advancing by
+  `velocity · elapsed` is a left rectangle sum whose error scales with the
+  step: with the decay exponential but the integration by rectangles, 60 Hz and
+  120 Hz still land 4% apart and neither lands on the closed form. The step has
+  to integrate the decay too — `v · τ · (1 - decay)` — which telescopes exactly.
+  A test caught it; three independent implementations did not.
+
 - **Publishing is re-entrant, so guard after every emit.** Defect 16 is the
   general case: any code that emits and _then_ mutates its own state can be
   torn down inside the emit. A ran into it via its test suite; the fix is an
