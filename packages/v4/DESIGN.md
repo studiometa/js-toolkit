@@ -18,11 +18,11 @@ Five objectives structure the design:
 
 ## Decisions
 
-| Fork            | Decision                                                                                                                                                                                        |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mount primitive | **Observer-first**: `data-component` + one record-based MutationObserver. Tag matching (`<tk-foo>`) stays as selector sugar. No custom-element lifecycle, no separate directive system in core. |
-| Shared state    | **provide/inject ships in v4 core**, Vue-shaped, with context-protocol mechanics. The `Data*` components in ui rebuild on top of it.                                                            |
-| Child events    | **Keep `on<Child><Event>` magic methods**, resolved through delegation against names declared in `config.components`.                                                                           |
+| Fork            | Decision                                                                                                                                                                            |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mount primitive | **Observer-first**: `data-component` + one record-based MutationObserver. No tag or arbitrary-selector matching, no custom-element lifecycle, no separate directive system in core. |
+| Shared state    | **provide/inject ships in v4 core**, Vue-shaped, with context-protocol mechanics. The `Data*` components in ui rebuild on top of it.                                                |
+| Child events    | **Keep `on<Child><Event>` magic methods**, resolved through delegation against names declared in `config.components`.                                                               |
 
 ## 1. Independent components
 
@@ -68,7 +68,7 @@ v3 resolved `$refs` once per mount and offered `$update()` to redo it when a sub
 
 Non-bubbling events (`focus`, `blur`, `scroll`, `mouseenter`…) are delegated from the **capture** phase, where they are still observable — the same trick makes the `mouseenter`/`mouseleave` limitation noted in #694 disappear for refs.
 
-Resolving on every access was measurably expensive — the benchmark put a 25-element ref list ~26× behind v3's mount-time snapshot — so lookups are cached against a counter bumped by a MutationObserver. A repeated read is a property read again; any structural change invalidates it. That observer is separate from the registry's on purpose: reading the version drains its pending records with `takeRecords()`, which is what keeps the cache correct _within the same task_, and draining the registry's queue would cost it those mutations. Detached elements are never cached, since no observer can see them change.
+Resolving on every access was measurably expensive — the benchmark put a 25-element ref list ~26× behind v3's mount-time snapshot — so lookups are cached against a counter bumped by the framework's single MutationObserver. A repeated read is a property read again; any structural or `data-ref`/`data-component` boundary change invalidates it. Reading the version drains pending records with `takeRecords()`, which keeps the cache correct _within the same task_: the records enter the shared mutation queue before the read returns, so synchronous ref correctness never steals registry work. Detached elements are never cached, since no observer can see them change.
 
 ## Measurements
 
@@ -109,6 +109,19 @@ options: {
 - **The factory is lazy**: nothing is built for an option that is never read, and a component whose attribute is present never runs its factory at all.
 - Written without types (the no-build path), a literal object or array default is copied per instance rather than shared. A mutation of a value **parsed from an attribute** is not kept, on the other hand: the attribute is re-read and re-parsed on the next access, which is what keeps options live.
 
+### Setup-sensitive options are live effects
+
+Reading an option on demand is enough for values used inside handlers and insufficient for an option which chooses a subscription, target, or other mount-scoped resource. A declared method named `option<Name>Changed()` turns that option into a live effect:
+
+```js
+optionTargetChanged({ value, previousValue, initial }) {
+  const connection = connect(value);
+  return () => connection.dispose();
+}
+```
+
+The hook runs before `mounted()` on every mount cycle. Several writes in one mutation batch are coalesced from the first old raw value to the final DOM value. Before an update, the previous returned cleanup runs; all active option cleanups run on `$destroy()`, and remount starts each effect again with `initial: true`. Removing an attribute applies its declared default. Components without the convention pay no setup cost and continue to read their options directly.
+
 ## 2. One registry
 
 Today three mounting systems coexist: the global registry observer, `ChildrenManager`, and the autoload loader with its own observers. v4 merges them into a single registry where an entry is richer than a constructor:
@@ -147,16 +160,25 @@ The issue's open questions, answered:
 - **`interaction` uses intent**, not replay: `pointerenter`, `pointerdown` and `focusin` all precede the interaction they lead to, so the component is mounted before the click lands.
 - **Several components on one element** share the element's `data-mount`; a component needing its own policy states it in its config.
 - **A waiting component has no instance yet.** Construction happens on first mount, not on discovery, so it is invisible to `$query`, `$closest` and `$watchChildren` and announces nothing — consistent with "an instance exists because it is mounted".
-- **Teardown follows the element.** Strategies are disposed when their element leaves the document. A _moved_ element is handed back to the registry by that teardown: its addition record is scanned while the old strategy is still pending and is therefore skipped, so without the hand-back a move would end as a removal (caught by the browser suite).
+- **Teardown follows the element.** Strategies are disposed when their element leaves the document. A _moved_ element is handed back to the registry by that teardown, so a move ends as destroy + remount of the same instance (caught by the browser suite).
+- **The attribute is live.** Changing `data-mount` disposes the old strategy and applies the final declared or class-default strategy. A queued callback from a disposed strategy is guarded by controller identity and cannot mount or destroy its replacement.
 
-## 3. Auto-mount on DOM insertion/ejection
+## 3. One mutation engine drives the DOM
 
-The observer becomes precise instead of brute-force. v3.9 re-queries every registry entry and sweeps every live instance per mutation batch. v4 processes the mutation records:
+One internal engine owns one MutationObserver for component discovery, lifecycle, mount strategies, ref invalidation and declared options. Its `attributeFilter` contains the fixed framework attributes plus the option names accumulated from registered component configs, so unrelated `class`, `style` and ARIA writes create no records. It snapshots removed subtree membership when records enter its retained queue, before background processing, and processes each batch in a fixed order:
 
-- For each `addedNode` subtree: match registered selectors inside it, schedule mounts through the entry's `mountStrategy`.
-- For each `removedNode` subtree: terminate the instances stored in the `__base__` maps inside it.
+1. destroy removed subtrees and dispose their strategies;
+2. reconcile final `data-component` and `data-mount` attributes;
+3. deliver coalesced declared-option changes to retained mounted instances;
+4. scan added subtrees once and schedule their registered component tokens.
 
-Matching surface is unchanged from 3.x: `data-component="Name"` (space-separated lists supported), `<tk-name>` tags as sugar, plain CSS selectors for lowercase registrations. This keeps enhancement of native elements (`<form>`, `<a>`, `<details>`, table markup) and several components per element — both impossible with custom elements as the primitive.
+v3.9 re-queries every registry entry and sweeps every live instance per mutation batch. v4 reads `data-component` tokens from an inserted subtree in one pass and looks each token up in the registry.
+
+A disconnected element receives `$destroy()` and retains its instance for reinsertion. Removing one component token from a connected element is different: the DOM no longer declares that identity, so the registry calls `$terminate()`. Adding that token later creates a new instance. A moved node produces removal and addition records and deliberately completes a destroy/remount cycle with the same identity.
+
+`whenDOMSettled()` provides an explicit completion boundary for morphing and fetch-style updates. It drains pending records, follows mutation chains created by eager lifecycle work and resolves after eager mounts and teardown have run. It does not wait for visibility, interaction, idle or media conditions, and it does not await promises returned by `mounted()`.
+
+The matching surface is deliberately narrower than v3: only `data-component="Name"` declarations are discovered, with whitespace-separated tokens for several components on one element. v3's `<tk-name>` tag sugar and lowercase arbitrary-selector registrations are not kept. `data-component` still enhances native elements (`<form>`, `<a>`, `<details>`, table markup) and supports several components on one element — both impossible with custom elements as the primitive.
 
 ## 4. Parents listen to child events
 

@@ -1,5 +1,5 @@
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
-import { domVersion } from './dom-version.js';
+import { domVersion } from './dom-mutations.js';
 import { scheduler, type ScheduledTask } from './scheduler.js';
 import type { MountStrategy } from './mount-strategies.js';
 import { kebabCase, pascalCase, selectorFor } from './utils.js';
@@ -52,6 +52,17 @@ type TypedOptionDefinition<T extends OptionType = OptionType> = T extends Option
   : never;
 
 export type OptionDefinition = OptionType | TypedOptionDefinition;
+
+export interface OptionChange<T = unknown> {
+  name: string;
+  value: T;
+  previousValue: T | undefined;
+  rawValue: string | null;
+  previousRawValue: string | null;
+  initial: boolean;
+}
+
+export type OptionChangedReturn = void | (() => void);
 
 export interface BaseConfig {
   name: string;
@@ -300,8 +311,17 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
  * which is what makes `this.$options.list.push(x)` persist and what stops two
  * components from sharing — and corrupting — the same defaulted object.
  */
+interface OptionReader {
+  attribute: string;
+  read(raw: string | null): unknown;
+}
+
+const optionReaders = new WeakMap<Base, Map<string, OptionReader>>();
+
 function buildOptions(instance: Base): Record<string, unknown> {
   const options: Record<string, unknown> = {};
+  const readers = new Map<string, OptionReader>();
+  optionReaders.set(instance, readers);
   const el = instance.$el;
   for (const [name, definition] of Object.entries(instance.$config.options ?? {})) {
     const type = typeof definition === 'function' ? definition : definition.type;
@@ -340,35 +360,34 @@ function buildOptions(instance: Base): Record<string, unknown> {
       return undefined;
     };
 
+    const read = (raw: string | null): unknown => {
+      if (type === Boolean) {
+        return raw === null ? (defaultValue() ?? false) : raw !== 'false';
+      }
+      if (raw === null) {
+        const value = defaultValue();
+        if (value !== undefined) return value;
+        if (type === Number) return 0;
+        if (type === String) return '';
+        return undefined;
+      }
+      if (type === Number) {
+        return Number(raw);
+      }
+      if (type === Array || type === Object) {
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return defaultValue();
+        }
+      }
+      return raw;
+    };
+
+    readers.set(name, { attribute, read });
     Object.defineProperty(options, name, {
       enumerable: true,
-      get() {
-        if (type === Boolean) {
-          if (!el.hasAttribute(attribute)) {
-            return defaultValue() ?? false;
-          }
-          return el.getAttribute(attribute) !== 'false';
-        }
-        const raw = el.getAttribute(attribute);
-        if (raw === null) {
-          const value = defaultValue();
-          if (value !== undefined) return value;
-          if (type === Number) return 0;
-          if (type === String) return '';
-          return undefined;
-        }
-        if (type === Number) {
-          return Number(raw);
-        }
-        if (type === Array || type === Object) {
-          try {
-            return JSON.parse(raw);
-          } catch {
-            return defaultValue();
-          }
-        }
-        return raw;
-      },
+      get: () => read(el.getAttribute(attribute)),
     });
   }
   return options;
@@ -468,6 +487,12 @@ export class Base<T extends BaseProps = BaseProps> {
   /** Per-mount-cycle cleanups (service unsubscriptions, `mounted()` return values). */
   #destroyCallbacks: Array<() => void> = [];
 
+  /** Cleanup returned by each active `option<Name>Changed()` effect. */
+  #optionCleanups = new Map<string, () => void>();
+
+  /** Increments on mount so a reentrant effect cannot attach to a later cycle. */
+  #mountCycle = 0;
+
   /** Instance-lifetime cleanups ($provide, $watchChildren…), run on `$terminate()`. */
   #terminateCallbacks: Array<() => void> = [];
 
@@ -534,7 +559,13 @@ export class Base<T extends BaseProps = BaseProps> {
     }
     this.#bindHandlers();
     this.#isMounted = true;
-    this.#collectCleanup(this.mounted());
+    this.#mountCycle += 1;
+    this.#initializeOptionEffects();
+    try {
+      this.#collectCleanup(this.mounted());
+    } catch (error) {
+      console.error('[base] `mounted()` failed:', error);
+    }
     // Announce existence to every ancestor (objective 5, layer 1).
     const detail: LifecycleEventDetail = { instance: this };
     this.$el.dispatchEvent(new CustomEvent(MOUNTED_EVENT, { bubbles: true, detail }));
@@ -559,13 +590,22 @@ export class Base<T extends BaseProps = BaseProps> {
     const callbacks = this.#destroyCallbacks;
     this.#destroyCallbacks = [];
     for (const callback of callbacks) {
-      callback();
+      try {
+        callback();
+      } catch (error) {
+        console.error('[base] Mount cleanup failed:', error);
+      }
     }
+    this.#clearOptionEffects();
     for (const task of this.#tasks) {
       task.cancel();
     }
     this.#tasks.clear();
-    this.destroyed();
+    try {
+      this.destroyed();
+    } catch (error) {
+      console.error('[base] `destroyed()` failed:', error);
+    }
     // The element may already be detached, so a bubbling event would reach
     // nobody: announce from the document instead.
     const detail: LifecycleEventDetail = { instance: this };
@@ -587,9 +627,17 @@ export class Base<T extends BaseProps = BaseProps> {
     const callbacks = this.#terminateCallbacks;
     this.#terminateCallbacks = [];
     for (const callback of callbacks) {
-      callback();
+      try {
+        callback();
+      } catch (error) {
+        console.error('[base] Termination cleanup failed:', error);
+      }
     }
-    this.terminated();
+    try {
+      this.terminated();
+    } catch (error) {
+      console.error('[base] `terminated()` failed:', error);
+    }
     this.$el.__base__?.delete(this.$config.name);
     return this;
   }
@@ -771,6 +819,26 @@ export class Base<T extends BaseProps = BaseProps> {
     return injectContextSync(this.$el, key);
   }
 
+  /**
+   * Apply one live declared-option change. Called by the registry after it
+   * has reconciled component declarations for the mutation batch.
+   *
+   * The method convention is `option<Name>Changed()`. Its returned cleanup
+   * runs before the next value is applied and on destroy.
+   *
+   * @internal
+   */
+  $optionChanged(name: string, previousRawValue: string | null): void {
+    if (!this.#isMounted) {
+      return;
+    }
+    const reader = optionReaders.get(this)?.get(name);
+    if (!reader) {
+      return;
+    }
+    this.#runOptionEffect(name, reader, previousRawValue, false);
+  }
+
   /** Schedule a DOM read; canceled automatically when the instance unmounts. */
   $read<T>(fn: () => T): ScheduledTask<T> {
     return this.#track(scheduler.read(fn));
@@ -788,8 +856,82 @@ export class Base<T extends BaseProps = BaseProps> {
 
   #track<T>(task: ScheduledTask<T>): ScheduledTask<T> {
     this.#tasks.add(task);
-    task.promise.finally(() => this.#tasks.delete(task));
+    const finished = () => this.#tasks.delete(task);
+    void task.promise.then(finished, finished);
     return task;
+  }
+
+  #initializeOptionEffects(): void {
+    for (const [name, reader] of optionReaders.get(this) ?? []) {
+      this.#runOptionEffect(name, reader, null, true);
+    }
+  }
+
+  #runOptionEffect(
+    name: string,
+    reader: OptionReader,
+    previousRawValue: string | null,
+    initial: boolean,
+  ): void {
+    const previousCleanup = this.#optionCleanups.get(name);
+    this.#optionCleanups.delete(name);
+    if (previousCleanup) {
+      try {
+        previousCleanup();
+      } catch (error) {
+        console.error(`[base] Option "${name}" cleanup failed:`, error);
+      }
+    }
+    if (!this.#isMounted) {
+      return;
+    }
+
+    const method = `option${pascalCase(name)}Changed`;
+    const handler = (this as unknown as Record<string, unknown>)[method];
+    if (typeof handler !== 'function') {
+      return;
+    }
+
+    const cycle = this.#mountCycle;
+    let cleanup: OptionChangedReturn;
+    try {
+      const rawValue = this.$el.getAttribute(reader.attribute);
+      const change: OptionChange = {
+        name,
+        value: reader.read(rawValue),
+        previousValue: initial ? undefined : reader.read(previousRawValue),
+        rawValue,
+        previousRawValue,
+        initial,
+      };
+      cleanup = (handler as (change: OptionChange) => OptionChangedReturn).call(this, change);
+    } catch (error) {
+      console.error(`[base] \`${method}()\` failed:`, error);
+      return;
+    }
+    if (typeof cleanup === 'function') {
+      if (this.#isMounted && this.#mountCycle === cycle) {
+        this.#optionCleanups.set(name, cleanup);
+      } else {
+        try {
+          cleanup();
+        } catch (error) {
+          console.error(`[base] Option "${name}" cleanup failed:`, error);
+        }
+      }
+    }
+  }
+
+  #clearOptionEffects(): void {
+    const cleanups = this.#optionCleanups;
+    this.#optionCleanups = new Map();
+    for (const [name, cleanup] of cleanups) {
+      try {
+        cleanup();
+      } catch (error) {
+        console.error(`[base] Option "${name}" cleanup failed:`, error);
+      }
+    }
   }
 
   /**
@@ -804,7 +946,11 @@ export class Base<T extends BaseProps = BaseProps> {
       } else {
         // The instance was destroyed while an async `mounted()` was pending:
         // run the cleanup right away instead of leaking.
-        result();
+        try {
+          result();
+        } catch (error) {
+          console.error('[base] Late mount cleanup failed:', error);
+        }
       }
       return;
     }

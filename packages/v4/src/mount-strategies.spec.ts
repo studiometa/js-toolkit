@@ -188,6 +188,31 @@ describe('config.mountStrategy', () => {
 
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
   });
+
+  it('is restored when the element override is removed', async () => {
+    const { name } = defineTracked({ mountStrategy: 'visible' });
+    const el = render(name, { 'data-mount': 'interaction' }, OFFSCREEN);
+    await settle();
+    expect(el.__base__?.get(name)).toBeUndefined();
+
+    el.removeAttribute('data-mount');
+    el.setAttribute('style', ONSCREEN);
+    await observed();
+    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+  });
+});
+
+describe('dynamic data-mount', () => {
+  it('replaces a waiting strategy when the attribute changes', async () => {
+    const { name } = defineTracked();
+    const el = render(name, { 'data-mount': 'visible' }, OFFSCREEN);
+    await observed();
+    expect(el.__base__?.get(name)).toBeUndefined();
+
+    el.setAttribute('data-mount', 'eager');
+    await settle();
+    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+  });
 });
 
 describe('teardown', () => {
@@ -206,7 +231,8 @@ describe('teardown', () => {
   });
 
   it('re-schedules an element moved in a single batch', async () => {
-    const { name } = defineTracked();
+    const { name, Tracked } = defineTracked();
+    type Tracked = InstanceType<typeof Tracked>;
     const from = document.createElement('div');
     const to = document.createElement('div');
     document.body.append(from, to);
@@ -214,14 +240,18 @@ describe('teardown', () => {
     el.setAttribute('data-component', name);
     from.append(el);
     await observed();
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    const instance = instanceOf<Tracked>(el, name);
+    expect(instance?.$isMounted).toBe(true);
+    expect(instance?.mounts).toBe(1);
 
-    // A move is one removal record plus one addition record: the addition
-    // is scanned while the old strategy is still pending, so the teardown
-    // has to hand the element back to the registry.
+    // A move is one removal record plus one addition record. It ends one
+    // mount cycle and starts another without replacing the instance.
     to.append(el);
     await observed();
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(instanceOf(el, name)).toBe(instance);
+    expect(instance?.$isMounted).toBe(true);
+    expect(instance?.destroys).toBe(1);
+    expect(instance?.mounts).toBe(2);
     expect(el.parentElement).toBe(to);
   });
 

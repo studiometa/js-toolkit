@@ -50,6 +50,8 @@ export {
   type HandlerRegistration,
   type LifecycleEventDetail,
   type MountedReturn,
+  type OptionChange,
+  type OptionChangedReturn,
   type OptionDefinition,
   type OptionType,
   type RefEvent,
@@ -64,6 +66,7 @@ export {
   type ContextKey,
 } from './context.js';
 export { children, component, inject, on, provide, read, write } from './decorators.js';
+export { whenDOMSettled } from './dom-mutations.js';
 export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
 export { registerComponent, registerComponents } from './registry.js';
 export {

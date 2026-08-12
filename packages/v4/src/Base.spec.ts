@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { Base, type BaseConfig, type RefEvent } from './Base.js';
+import { Base, type BaseConfig, type OptionChange, type RefEvent } from './Base.js';
+import { registerComponent } from './registry.js';
 import {
   getInstance,
   renderTodoList,
@@ -163,6 +164,125 @@ describe('$options', () => {
     expect(second.$options.tween).toEqual({ id: 2 });
   });
 
+  it('runs option<Name>Changed as a live mount-scoped effect', async () => {
+    const calls: string[] = [];
+
+    class LiveOption extends Base<{ $options: { count: number } }> {
+      static config = {
+        name: 'LiveOptionEffect',
+        options: { count: { type: Number, default: 5 } },
+      };
+
+      optionCountChanged(change: OptionChange<number>) {
+        calls.push(
+          `${change.initial ? 'initial' : 'changed'}:${change.previousValue ?? 'none'}->${change.value}`,
+        );
+        return () => calls.push(`cleanup:${change.value}`);
+      }
+    }
+
+    registerComponent(LiveOption);
+    const el = document.createElement('div');
+    el.setAttribute('data-component', 'LiveOptionEffect');
+    el.setAttribute('data-option-count', '1');
+    document.body.append(el);
+    await settle();
+    expect(calls).toEqual(['initial:none->1']);
+
+    // Several writes in one task produce one effect update from the first
+    // old value to the final DOM value.
+    el.setAttribute('data-option-count', '2');
+    el.setAttribute('data-option-count', '3');
+    await settle();
+    expect(calls).toEqual(['initial:none->1', 'cleanup:1', 'changed:1->3']);
+
+    // Removing the attribute applies the declared default.
+    el.removeAttribute('data-option-count');
+    await settle();
+    expect(calls).toEqual([
+      'initial:none->1',
+      'cleanup:1',
+      'changed:1->3',
+      'cleanup:3',
+      'changed:3->5',
+    ]);
+
+    // A batch which ends on its initial raw value causes no update.
+    el.setAttribute('data-option-count', '7');
+    el.removeAttribute('data-option-count');
+    await settle();
+    expect(calls.at(-1)).toBe('changed:3->5');
+
+    el.remove();
+    await settle();
+    expect(calls.at(-1)).toBe('cleanup:5');
+
+    document.body.append(el);
+    await settle();
+    expect(calls.at(-1)).toBe('initial:none->5');
+  });
+
+  it('isolates option effect errors and reentrant cleanup', async () => {
+    const calls: string[] = [];
+    const error = console.error;
+    console.error = () => {};
+
+    class ResilientOptions extends Base {
+      static config = {
+        name: 'ResilientOptions',
+        options: { first: Number, second: Number },
+      };
+
+      optionFirstChanged({ initial }: OptionChange<number>) {
+        if (!initial) {
+          throw new Error('expected handler failure');
+        }
+        return () => {
+          throw new Error('expected cleanup failure');
+        };
+      }
+
+      optionSecondChanged({ value }: OptionChange<number>) {
+        calls.push(`second:${value}`);
+      }
+    }
+
+    class ReentrantOption extends Base {
+      static config = {
+        name: 'ReentrantOption',
+        options: { value: Number },
+      };
+
+      optionValueChanged({ initial }: OptionChange<number>) {
+        return initial ? () => this.$destroy() : undefined;
+      }
+    }
+
+    try {
+      registerComponent(ResilientOptions);
+      registerComponent(ReentrantOption);
+      const resilient = document.createElement('div');
+      resilient.setAttribute('data-component', 'ResilientOptions');
+      const reentrant = document.createElement('div');
+      reentrant.setAttribute('data-component', 'ReentrantOption');
+      document.body.append(resilient, reentrant);
+      await settle();
+
+      resilient.setAttribute('data-option-first', '1');
+      resilient.setAttribute('data-option-second', '2');
+      reentrant.setAttribute('data-option-value', '1');
+      await settle();
+
+      // A failed cleanup and handler do not block the later option update.
+      expect(calls).toEqual(['second:0', 'second:2']);
+      // Cleanup can destroy its own mount cycle without recursion or a stale
+      // replacement cleanup being retained.
+      expect(getInstance<ReentrantOption>(reentrant, 'ReentrantOption').$isMounted).toBe(false);
+    } finally {
+      console.error = error;
+    }
+  });
+
   it('keeps primitive defaults and attribute values as they were', () => {
     class Mixed extends Base<{
       $options: { speed: number; label: string; flag: boolean; list: unknown[] };
@@ -264,6 +384,30 @@ describe('$refs', () => {
     el.innerHTML = '';
     expect(instance.$refs.title).toBeUndefined();
     expect(instance.$refs.items).toHaveLength(0);
+  });
+
+  it('does not steal component records when read before observer delivery', async () => {
+    class Inserted extends Base {
+      static config = { name: 'RefReadInserted' };
+    }
+
+    class Owner extends Base {
+      static config = { name: 'RefReadOwner', refs: ['item'] };
+    }
+
+    registerComponent(Inserted);
+    const root = document.createElement('div');
+    document.body.append(root);
+    const owner = new Owner(root).$mount();
+
+    root.innerHTML = '<span data-ref="item"></span><span data-component="RefReadInserted"></span>';
+
+    // This drains `MutationObserver.takeRecords()` to make the lookup
+    // synchronous. The same records must remain available to the registry.
+    expect(owner.$refs.item).toBe(root.querySelector('[data-ref="item"]'));
+
+    await settle();
+    expect(getInstance(root.lastElementChild, 'RefReadInserted').$isMounted).toBe(true);
   });
 });
 
