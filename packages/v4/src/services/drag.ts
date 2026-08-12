@@ -72,6 +72,19 @@ export interface DragProps {
   readonly finalY: number;
 }
 
+/**
+ * Bounds on the interval between two velocity samples, in milliseconds, and
+ * the weight the newest sample carries in the average.
+ *
+ * The floor is half a reference frame: anything faster is coalesced moves or a
+ * synthetic event sharing a millisecond with the last, and dividing by it
+ * reports a speed nothing physical reached. The ceiling is where two samples
+ * stop describing one continuous movement.
+ */
+const MIN_SAMPLE = INERTIA_FRAME / 2;
+const MAX_SAMPLE = 100;
+const VELOCITY_SMOOTHING = 0.35;
+
 export interface DragOptions {
   /** How fast the inertia decays, from `0` (none) to `1` (endless). */
   dampFactor?: number;
@@ -130,6 +143,11 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
        */
       let velocityX = 0;
       let velocityY = 0;
+      /**
+       * When the velocity was last measured, on the same clock the events
+       * carry. `0` means no sample yet.
+       */
+      let velocityTime = 0;
 
       /** Held by the pointer: the two modes a gesture is alive in. */
       const isGrabbing = () => props.mode === DRAG_MODES.START || props.mode === DRAG_MODES.DRAG;
@@ -166,6 +184,35 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         emit(props);
         // `stop` is announced once; `idle` is what the props rest on.
         props.mode = DRAG_MODES.IDLE;
+      }
+
+      /**
+       * Velocity in pixels per millisecond, smoothed.
+       *
+       * Per millisecond and not per event: a 1000 Hz mouse reports many small
+       * deltas where a 125 Hz trackpad reports few large ones, so the same
+       * physical flick produced completely different numbers when the delta
+       * *was* the velocity.
+       *
+       * The interval is clamped to `[MIN_SAMPLE, MAX_SAMPLE]`. Below the floor
+       * the reading is not a speed — coalesced moves, or a synthetic event
+       * dispatched in the same millisecond as the last, divide by almost
+       * nothing and report an absurd one. Above the ceiling the samples are too
+       * far apart to be one gesture.
+       *
+       * Smoothed with an exponential moving average, because a single sample is
+       * noisy on a trackpad and at the sub-millisecond intervals a high-rate
+       * mouse delivers; the weight favours the newest sample so a deliberate
+       * change of direction is not averaged away.
+       */
+      function measureVelocity(timeStamp: number, deltaX: number, deltaY: number) {
+        const elapsed = velocityTime === 0 ? INERTIA_FRAME : timeStamp - velocityTime;
+        const interval = Math.min(Math.max(elapsed, MIN_SAMPLE), MAX_SAMPLE);
+        velocityTime = timeStamp;
+        const sampleX = deltaX / interval;
+        const sampleY = deltaY / interval;
+        velocityX = velocityX * (1 - VELOCITY_SMOOTHING) + sampleX * VELOCITY_SMOOTHING;
+        velocityY = velocityY * (1 - VELOCITY_SMOOTHING) + sampleY * VELOCITY_SMOOTHING;
       }
 
       // The inertia runs on the scheduler's frame tick, like every other
@@ -211,6 +258,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         props.deltaX = props.deltaY = 0;
         props.distanceX = props.distanceY = 0;
         velocityX = velocityY = 0;
+        velocityTime = 0;
         props.mode = DRAG_MODES.START;
         emit(props);
         if (!isRunning) {
@@ -222,12 +270,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       function drag(event: PointerEvent) {
         props.deltaX = event.clientX - props.x;
         props.deltaY = event.clientY - props.y;
-        // Still the per-event delta, read as one reference frame's worth of
-        // travel. That is what makes a 1000 Hz mouse and a 125 Hz trackpad
-        // throw differently, and it is measured properly in the next commit;
-        // the coast below is already time-driven either way.
-        velocityX = props.deltaX / INERTIA_FRAME;
-        velocityY = props.deltaY / INERTIA_FRAME;
+        measureVelocity(event.timeStamp, props.deltaX, props.deltaY);
         props.x = props.finalX = event.clientX;
         props.y = props.finalY = event.clientY;
         props.distanceX = props.x - props.originX;
@@ -248,6 +291,15 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         }
         document.removeEventListener('pointermove', onPointerMove);
         props.mode = DRAG_MODES.DROP;
+        // A velocity measured a moment ago is not the velocity now. Holding
+        // still and then letting go used to fling, because the last move's
+        // delta survived however long the pause was. Decayed by the law the
+        // coast itself obeys rather than by a staleness threshold: a short
+        // pause takes the edge off, a long one leaves nothing to throw.
+        const idle = velocityTime === 0 ? 0 : performance.now() - velocityTime;
+        const idleDecay = inertiaDecay(dampFactor, idle);
+        velocityX *= idleDecay;
+        velocityY *= idleDecay;
         props.finalX = inertiaFinalValue(props.x, velocityX, dampFactor);
         props.finalY = inertiaFinalValue(props.y, velocityY, dampFactor);
         emit(props);

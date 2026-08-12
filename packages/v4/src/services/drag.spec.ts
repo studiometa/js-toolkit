@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { userEvent } from '@vitest/browser/context';
 import { frames } from '../test-utils.js';
-import { inertiaTimeConstant, INERTIA_FRAME } from '../math.js';
 import { DRAG_MODES, useDrag, type DragMode, type DragProps } from './drag.js';
 
 function render(): HTMLElement {
@@ -117,28 +116,41 @@ describe('useDrag', () => {
     expect(last.at(-1)?.x).toBe(last.at(-1)?.finalX);
   });
 
-  it('computes the settle position in closed form', () => {
+  it('computes the settle position in closed form, and does not revise it', async () => {
     const el = render();
     // Barely any decay per frame, which is what made the old term-by-term
     // walk run ~690 000 iterations — twice per drop, blocking the
-    // `pointerup` for 2.3 to 4.4 ms.
+    // `pointerup` for 2.3 to 4.4 ms. A coast this slow never finishes, which
+    // is the point: the destination is known without travelling to it.
     const dampFactor = 0.99999;
-    const drops: DragProps[] = [];
+    const seen: DragProps[] = [];
     const unsubscribe = useDrag(el, { dampFactor }).subscribe((props) => {
-      if (props.mode === 'drop') {
-        drops.push({ ...props });
-      }
+      seen.push({ ...props });
     });
 
     grab(el, 0, 0);
     move(50, 0);
     release();
-    unsubscribe();
+    const drop = seen.at(-1) as DragProps;
 
-    // The integral of the decay, where walking it term by term stopped short
-    // of it. Timing is not asserted: the value is what proves the loop is gone.
-    const velocity = 50 / INERTIA_FRAME;
-    expect(drops[0].finalX).toBe(50 + velocity * inertiaTimeConstant(dampFactor));
+    // Finite and far away, where the walk would have blocked to reach it.
+    expect(Number.isFinite(drop.finalX)).toBe(true);
+    expect(drop.finalX).toBeGreaterThan(50);
+
+    await frames(5);
+    const coasting = seen.filter((props) => props.mode === DRAG_MODES.INERTIA);
+
+    // The invariant, asserted without assuming how the velocity was measured:
+    // every frame moves and none of them moves the destination. A walk that
+    // recomputed the sum as the delta shrank would drift instead.
+    expect(coasting.length).toBeGreaterThan(1);
+    for (const props of coasting) {
+      expect(props.finalX).toBe(drop.finalX);
+      expect(props.finalY).toBe(drop.finalY);
+    }
+    expect(coasting.at(-1)?.x).toBeGreaterThan(coasting[0].x);
+
+    unsubscribe();
   });
 
   it('coasts to the position announced at the drop, whatever the frames cost', async () => {
@@ -164,6 +176,47 @@ describe('useDrag', () => {
     expect(stopped.x).toBe(drop.finalX);
     expect(stopped.y).toBe(drop.finalY);
     expect(drop.finalX).toBeGreaterThan(40);
+
+    unsubscribe();
+  });
+
+  it('does not fling when the pointer held still before letting go', async () => {
+    const el = render();
+    const seen: DragProps[] = [];
+    const unsubscribe = useDrag(el).subscribe((props) => {
+      seen.push({ ...props });
+    });
+
+    grab(el, 0, 0);
+    move(120, 0);
+    // Held still. The last move's delta used to survive the pause intact, so
+    // letting go after thinking about it threw as hard as letting go mid-swipe.
+    await frames(25);
+    release();
+    const drop = seen.at(-1) as DragProps;
+
+    expect(drop.mode).toBe(DRAG_MODES.DROP);
+    // A couple of pixels of drift is fine; a fling is tens or hundreds.
+    expect(Math.abs(drop.finalX - drop.x)).toBeLessThan(5);
+
+    unsubscribe();
+  });
+
+  it('still flings when the pointer was moving as it let go', async () => {
+    const el = render();
+    const seen: DragProps[] = [];
+    const unsubscribe = useDrag(el).subscribe((props) => {
+      seen.push({ ...props });
+    });
+
+    grab(el, 0, 0);
+    move(60, 0);
+    move(120, 0);
+    release();
+    const drop = seen.at(-1) as DragProps;
+
+    // The other side of the same guard: a live gesture must still throw.
+    expect(drop.finalX).toBeGreaterThan(drop.x + 20);
 
     unsubscribe();
   });
