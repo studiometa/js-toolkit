@@ -18,11 +18,11 @@ Five objectives structure the design:
 
 ## Decisions
 
-| Fork            | Decision                                                                                                                                                                                        |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mount primitive | **Observer-first**: `data-component` + one record-based MutationObserver. Tag matching (`<tk-foo>`) stays as selector sugar. No custom-element lifecycle, no separate directive system in core. |
-| Shared state    | **provide/inject ships in v4 core**, Vue-shaped, with context-protocol mechanics. The `Data*` components in ui rebuild on top of it.                                                            |
-| Child events    | **Keep `on<Child><Event>` magic methods**, resolved through delegation against names declared in `config.components`.                                                                           |
+| Fork            | Decision                                                                                                                                                                            |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mount primitive | **Observer-first**: `data-component` + one record-based MutationObserver. No tag or arbitrary-selector matching, no custom-element lifecycle, no separate directive system in core. |
+| Shared state    | **provide/inject ships in v4 core**, Vue-shaped, with context-protocol mechanics. The `Data*` components in ui rebuild on top of it.                                                |
+| Child events    | **Keep `on<Child><Event>` magic methods**, resolved through delegation against names declared in `config.components`.                                                               |
 
 ## 1. Independent components
 
@@ -178,7 +178,7 @@ A disconnected element receives `$destroy()` and retains its instance for reinse
 
 `whenDOMSettled()` provides an explicit completion boundary for morphing and fetch-style updates. It drains pending records, follows mutation chains created by eager lifecycle work and resolves after eager mounts and teardown have run. It does not wait for visibility, interaction, idle or media conditions, and it does not await promises returned by `mounted()`.
 
-Matching surface is unchanged from 3.x: `data-component="Name"` (space-separated lists supported), `<tk-name>` tags as sugar, plain CSS selectors for lowercase registrations. This keeps enhancement of native elements (`<form>`, `<a>`, `<details>`, table markup) and several components per element — both impossible with custom elements as the primitive.
+The matching surface is deliberately narrower than v3: only `data-component="Name"` declarations are discovered, with whitespace-separated tokens for several components on one element. v3's `<tk-name>` tag sugar and lowercase arbitrary-selector registrations are not kept. `data-component` still enhances native elements (`<form>`, `<a>`, `<details>`, table markup) and supports several components on one element — both impossible with custom elements as the primitive.
 
 ## 4. Parents listen to child events
 
