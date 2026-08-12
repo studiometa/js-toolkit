@@ -127,6 +127,50 @@ export function provideContext<T>(
   };
 }
 
+/** One root provider per key, created on demand and kept for the page. */
+const rootProviders = new Map<symbol, unknown>();
+
+/**
+ * Provide a value for the whole document, creating it on first use.
+ *
+ * This is the outermost scope, not a second mechanism: the value is provided on
+ * `document.documentElement`, so a `context-request` from anywhere reaches it by
+ * bubbling and **any nearer provider still wins**. A page-wide default and a
+ * scoped override are the same primitive at different depths.
+ *
+ * It exists because provide/inject needs an ancestor to provide from, and some
+ * things have no ancestor to name. A control that binds to its peers by a group
+ * name is the case that forced it: give it a `DataScope`-shaped wrapper and the
+ * wrapper provides, but a bare one on a page has nothing above it, and v3
+ * answered that with a separate page-global registry keyed off `globalThis`.
+ * Two registries meant two sets of semantics for one channel — this makes the
+ * global case the outermost scope of the one that already exists.
+ *
+ *     // Scoped or page-wide, resolved the same way, nearest first.
+ *     const channels =
+ *       injectContextSync(el, DataChannels) ??
+ *       provideRootContext(DataChannels, () => new Map());
+ *
+ * `create` runs at most once per key: later callers join the value the first one
+ * made, which is what lets every peer ask without coordinating. Nothing is
+ * created at import time — a page that never asks never gets a listener.
+ *
+ * A root provider is deliberately not disposable and outlives any instance that
+ * happened to ask for it first: it is page state, and tying it to whichever
+ * consumer mounted earliest is the ordering dependency this whole primitive
+ * exists to remove. Tests stay isolated by making their own key with
+ * `createContext()`, which is what a module does anyway.
+ */
+export function provideRootContext<T>(key: ContextKey<T>, create: () => T): T {
+  if (rootProviders.has(key)) {
+    return rootProviders.get(key) as T;
+  }
+  const value = create();
+  rootProviders.set(key, value);
+  provideContext(document.documentElement, key, value);
+  return value;
+}
+
 /**
  * Resolve the nearest provided value for `key`, now or when a provider
  * appears. Order-independent.

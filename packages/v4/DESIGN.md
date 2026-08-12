@@ -18,11 +18,11 @@ Five objectives structure the design:
 
 ## Decisions
 
-| Fork            | Decision                                                                                                                                                                            |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mount primitive | **Observer-first**: `data-component` + one record-based MutationObserver. No tag or arbitrary-selector matching, no custom-element lifecycle, no separate directive system in core. |
-| Shared state    | **provide/inject ships in v4 core**, Vue-shaped, with context-protocol mechanics. The `Data*` components in ui rebuild on top of it.                                                |
-| Child events    | **Keep `on<Child><Event>` magic methods**, resolved through delegation against names declared in `config.components`.                                                               |
+| Fork            | Decision                                                                                                                                                                                                    |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mount primitive | **Observer-first**: `data-component` + one record-based MutationObserver. No tag or arbitrary-selector matching, no custom-element lifecycle, no separate directive system in core.                         |
+| Shared state    | **provide/inject ships in v4 core**, Vue-shaped, with context-protocol mechanics, plus `provideRootContext()` for the sibling case that has no ancestor. The `Data*` components in ui rebuild on top of it. |
+| Child events    | **Keep `on<Child><Event>` magic methods**, resolved through delegation against names declared in `config.components`.                                                                                       |
 
 ## 1. Independent components
 
@@ -258,7 +258,23 @@ Injection has two forms, and the difference is what the caller does about absenc
 
 Mechanics follow the WICG community context protocol: the consumer dispatches a bubbling `context-request` event with a key and callback; the nearest mounted provider answers, and replays to late requesters / re-announces on late provider mount. This fixes both criticals from the earlier `withStore` design: resolution goes through the DOM event path instead of attribute walking, and replay happens only after the provider is mounted and initialized.
 
-The `Data*` suite in @studiometa/ui (DataScope/DataBind/…) rebuilds on this primitive and drops its bespoke channel plumbing.
+The `Data*` suite in @studiometa/ui (DataScope/DataBind/…) rebuilds on this primitive and drops its bespoke channel plumbing — but only once the sibling case has somewhere to live, which needed one addition.
+
+#### The outermost scope — `provideRootContext()`
+
+Provide/inject needs an ancestor to provide from, and the sibling channel is the one case with nothing to name. `DataBind` is `withGroup(Base, { getScope: (i) => getDataScope(i.$el) })`, and `getDataScope` returns `undefined` when no `DataScope` is above it — at which point v3 fell back to a **page-global registry** hung off `globalThis`. So a bare `DataBind` binds by name across the document with no ancestor at all, and "rebuilds on provide/inject" was true for the scoped half and structurally impossible for the other.
+
+`provideRootContext(key, create)` closes it by making the page-wide case the **outermost scope of the mechanism that already exists**, rather than a second mechanism beside it. The value is provided on `document.documentElement`, so a `context-request` from anywhere reaches it by bubbling and any nearer provider still wins by `stopPropagation` — a page-wide default and a scoped override are one primitive at two depths. `create` runs at most once per key, so peers join rather than race, and nothing is created at import time: a page that never asks never gets a listener.
+
+```js
+// Scoped or page-wide, resolved the same way, nearest first.
+const channels =
+  injectContextSync(el, DataChannels) ?? provideRootContext(DataChannels, () => new Map());
+```
+
+Two consequences, both deliberate. A root provider is **not disposable** and outlives whichever instance asked first: it is page state, and tying its lifetime to the earliest consumer to mount is exactly the ordering dependency the primitive exists to remove. And `withGroup` is therefore **not ported** — its `$group` was a member `Set` with no value cell, which is why ui had to build `getDataChannel(this.$group)` on top of it; a provided registry of `Signal`s is that cell, owned by the provider, and it makes the two registries one.
+
+`context.spec.ts` carries the spike: bare peers on a name share a channel, scoped peers share a different one, names never collide, and the value is live.
 
 The reactive container is called `Signal` — the name the ecosystem settled on (Angular, Solid, Preact, the TC39 proposal), and the one @studiometa/ui already uses to describe its `Data*` suite.
 
