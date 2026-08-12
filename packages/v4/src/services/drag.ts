@@ -84,6 +84,14 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
   return createService<DragProps>({
     props: () => props,
     start(emit) {
+      /**
+       * Publishing is re-entrant: a subscriber that unsubscribes while it is
+       * being called can be the last one, and the service is then torn down
+       * *inside* the `emit()` it is still in. Anything that touches state
+       * after publishing has to ask whether the service it belongs to still
+       * exists — otherwise the teardown that already ran cannot release it.
+       */
+      let isRunning = true;
       let unsubscribeTicks: (() => void) | null = null;
 
       function stopInertia() {
@@ -111,7 +119,7 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
         props.mode = 'inertia';
         emit(props);
 
-        if (Math.abs(props.deltaX) < 0.1 && Math.abs(props.deltaY) < 0.1) {
+        if (isRunning && Math.abs(props.deltaX) < 0.1 && Math.abs(props.deltaY) < 0.1) {
           stop();
         }
       }
@@ -129,6 +137,9 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
         props.hasInertia = false;
         props.mode = 'start';
         emit(props);
+        if (!isRunning) {
+          return;
+        }
         document.addEventListener('pointermove', onPointerMove, { passive: true });
       }
 
@@ -154,6 +165,12 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
         props.finalX = inertiaFinalValue(props.x, props.deltaX, dampFactor);
         props.finalY = inertiaFinalValue(props.y, props.deltaY, dampFactor);
         emit(props);
+        // A component that unmounts on drop takes the last subscriber with
+        // it: subscribing the inertia here would start a frame loop nothing
+        // is left to release.
+        if (!isRunning) {
+          return;
+        }
         unsubscribeTicks = scheduler.tick(tick);
       }
 
@@ -205,6 +222,7 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
       window.addEventListener('pointercancel', onPointerUp, { passive: true });
 
       return () => {
+        isRunning = false;
         stopInertia();
         // Losing every subscriber mid-drag ends the drag: leaving
         // `isGrabbing` on would make the next `pointerdown` a no-op once a

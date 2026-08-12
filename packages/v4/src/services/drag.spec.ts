@@ -29,6 +29,29 @@ function release(): void {
   window.dispatchEvent(new PointerEvent('pointerup'));
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Count the frames the page requests over a real span of time. `frames()`
+ * requests its own, so a test watching for a leaked loop has to wait on a
+ * timer instead.
+ */
+async function countRequestedFrames(ms: number, run: () => void): Promise<number> {
+  const original = globalThis.requestAnimationFrame;
+  let calls = 0;
+  globalThis.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+    calls += 1;
+    return original.call(globalThis, callback);
+  }) as typeof requestAnimationFrame;
+  try {
+    run();
+    await sleep(ms);
+  } finally {
+    globalThis.requestAnimationFrame = original;
+  }
+  return calls;
+}
+
 afterEach(() => {
   document.body.innerHTML = '';
 });
@@ -109,6 +132,30 @@ describe('useDrag', () => {
     expect(clicks).toBe(1);
 
     unsubscribe();
+  });
+
+  it('starts no inertia when the drop takes the last subscriber with it', async () => {
+    const el = render();
+    const emits: DragMode[] = [];
+    // A component that unmounts on drop: the unsubscribe runs *inside* the
+    // `drop` update, so the service is already torn down when `drop()`
+    // resumes. Subscribing the inertia tick there left a frame loop running
+    // for the life of the page, computing inertia into a dead service.
+    let unsubscribe = (): void => {};
+    unsubscribe = useDrag(el, { dampFactor: 0.99 }).add(({ mode }) => {
+      emits.push(mode);
+      if (mode === 'drop') {
+        unsubscribe();
+      }
+    });
+
+    grab(el, 0, 0);
+    move(200, 0);
+
+    const requested = await countRequestedFrames(150, release);
+
+    expect(emits.at(-1)).toBe('drop');
+    expect(requested).toBe(0);
   });
 
   it('shares one service per element and releases it with the last subscriber', () => {
