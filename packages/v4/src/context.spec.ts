@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
-import { Signal, createContext, provideContext } from './context.js';
+import {
+  Signal,
+  createContext,
+  injectContext,
+  injectContextSync,
+  provideContext,
+  provideRootContext,
+} from './context.js';
 import { registerComponent } from './registry.js';
 import { getInstance, renderTodoList, resetDom, settle } from './test-utils.js';
 
@@ -238,5 +245,104 @@ describe('provide/inject', () => {
     root.querySelector<HTMLElement>('[data-ref="remove"]')?.click();
     await settle();
     expect(countEl?.textContent).toBe('1');
+  });
+});
+
+describe('provideRootContext', () => {
+  function render(html: string): HTMLElement {
+    const el = document.createElement('div');
+    el.innerHTML = html;
+    document.body.append(el);
+    return el;
+  }
+
+  it('reaches a consumer with no provider above it', () => {
+    const key = createContext<string>('root');
+    provideRootContext(key, () => 'page');
+    const el = render('<span></span>').querySelector('span') as Element;
+
+    // The case provide/inject could not express: nothing to name as an
+    // ancestor, so v3 answered it with a separate global registry.
+    expect(injectContextSync(el, key)).toBe('page');
+  });
+
+  it('is still beaten by a nearer provider', () => {
+    const key = createContext<string>('root');
+    provideRootContext(key, () => 'page');
+    const scope = render('<span></span>');
+    provideContext(scope, key, 'scoped');
+    const el = scope.querySelector('span') as Element;
+
+    // The whole point of option 2: page-wide is the outermost scope of the
+    // mechanism that already exists, not a second one with its own rules.
+    expect(injectContextSync(el, key)).toBe('scoped');
+  });
+
+  it('creates the value once, so peers join rather than compete', () => {
+    const key = createContext<{ id: number }>('root');
+    let created = 0;
+    const first = provideRootContext(key, () => ({ id: (created += 1) }));
+    const second = provideRootContext(key, () => ({ id: (created += 1) }));
+
+    expect(created).toBe(1);
+    expect(second).toBe(first);
+  });
+
+  it('answers a consumer that asked before it existed', async () => {
+    const key = createContext<string>('root');
+    const el = render('<span></span>').querySelector('span') as Element;
+
+    // Order independence has to hold for the root provider too: the consumer
+    // is already waiting when the value is created.
+    const { promise } = injectContext(el, key);
+    provideRootContext(key, () => 'late');
+
+    await expect(promise).resolves.toBe('late');
+  });
+
+  it('binds peers by name with or without a scope — the DataBind shape', () => {
+    // The spike this was built for. A control publishes and reads a value on a
+    // channel named by an option, sharing it with peers on the same name.
+    // v3 resolved that through `withGroup`: a scoped registry when a `DataScope`
+    // ancestor existed, a `globalThis` one when it did not.
+    type Channels = Map<string, Signal<string>>;
+    const DataChannels = createContext<Channels>('data-channels');
+
+    const channelFor = (el: Element, name: string): Signal<string> => {
+      const channels =
+        injectContextSync(el, DataChannels) ??
+        provideRootContext(DataChannels, () => new Map() as Channels);
+      let channel = channels.get(name);
+      if (!channel) {
+        channel = new Signal('');
+        channels.set(name, channel);
+      }
+      return channel;
+    };
+
+    const tree = render(`
+      <p id="bare-a"></p>
+      <p id="bare-b"></p>
+      <div id="scope">
+        <p id="scoped-a"></p>
+        <p id="scoped-b"></p>
+      </div>
+    `);
+    const at = (id: string) => tree.querySelector(`#${id}`) as Element;
+    provideContext(at('scope'), DataChannels, new Map() as Channels);
+
+    // Two bare peers, no ancestor anywhere: same name, same channel.
+    expect(channelFor(at('bare-a'), 'email')).toBe(channelFor(at('bare-b'), 'email'));
+    // Two scoped peers: same name, same channel, and *not* the page one.
+    expect(channelFor(at('scoped-a'), 'email')).toBe(channelFor(at('scoped-b'), 'email'));
+    expect(channelFor(at('scoped-a'), 'email')).not.toBe(channelFor(at('bare-a'), 'email'));
+    // Different names never collide.
+    expect(channelFor(at('bare-a'), 'name')).not.toBe(channelFor(at('bare-a'), 'email'));
+
+    // And the value is live, which is what `withGroup`'s member set never was.
+    const seen: string[] = [];
+    channelFor(at('bare-b'), 'email').subscribe((value) => seen.push(value));
+    channelFor(at('bare-a'), 'email').value = 'a@b.c';
+    expect(seen).toEqual(['a@b.c']);
   });
 });

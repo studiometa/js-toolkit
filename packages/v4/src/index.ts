@@ -63,6 +63,7 @@ export {
   injectContext,
   injectContextSync,
   provideContext,
+  provideRootContext,
   type ContextKey,
 } from './context.js';
 export { children, component, inject, on, provide, read, write } from './decorators.js';
