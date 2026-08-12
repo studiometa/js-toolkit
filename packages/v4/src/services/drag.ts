@@ -1,6 +1,6 @@
 import { clampDampFactor, DEFAULT_DAMP_FACTOR, inertiaFinalValue } from '../math.js';
 import { scheduler } from '../scheduler.js';
-import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
+import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
 /** Anything that can be grabbed: an HTML element, or an SVG one. */
@@ -349,7 +349,11 @@ export type DragMixinOptions = DragOptions & ServiceMixinOptions<DragTarget>;
  * default is the host, as Lit's `ResizeController` does. The decorator form
  * `@withDrag()` is the same thing with a build step.
  */
-export const withDrag = /* @__PURE__ */ createServiceMixin<DragHook, DragTarget, DragOptions>({
+export const withDrag = /* @__PURE__ */ createServiceMixin<
+  DragHook & ServiceHandles<'dragged'>,
+  DragTarget,
+  DragOptions
+>({
   hook: 'dragged',
   target: (instance) => instance.$el,
   use: (target, options) => useDrag(target, options),

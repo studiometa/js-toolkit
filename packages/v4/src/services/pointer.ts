@@ -1,4 +1,4 @@
-import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
+import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, type MutableProps, type Service } from './service.js';
 
 /**
@@ -177,7 +177,10 @@ export type PointerMixinOptions = ServiceMixinOptions<void>;
  * solid-primitives' `createMousePosition()`, so there is nothing to target.
  * The decorator form `@withPointer()` is the same thing with a build step.
  */
-export const withPointer = /* @__PURE__ */ createServiceMixin<PointerHook, void>({
+export const withPointer = /* @__PURE__ */ createServiceMixin<
+  PointerHook & ServiceHandles<'moved'>,
+  void
+>({
   hook: 'moved',
   target: () => undefined,
   use: () => usePointer(),

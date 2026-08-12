@@ -272,6 +272,141 @@ describe('service mixins', () => {
   });
 });
 
+describe('a manual hook', () => {
+  class Settler extends withRaf(Base, { manual: true }) {
+    static config = { name: 'Settler' };
+
+    ticks = 0;
+
+    ticked() {
+      this.ticks += 1;
+    }
+  }
+
+  it('is declared but not subscribed by mounting', async () => {
+    const instance = new Settler(render()).$mount();
+    await frames(3);
+
+    expect(instance.ticks).toBe(0);
+    expect(instance.$services.ticked.isActive).toBe(false);
+    instance.$terminate();
+  });
+
+  it('runs while the component wants it, and not after', async () => {
+    const instance = new Settler(render()).$mount();
+
+    instance.$services.ticked.start();
+    expect(instance.$services.ticked.isActive).toBe(true);
+    await frames(3);
+    const whileRunning = instance.ticks;
+    expect(whileRunning).toBeGreaterThan(0);
+
+    instance.$services.ticked.stop();
+    await frames(3);
+    // Released means released: the frame loop is not still calling it.
+    expect(instance.ticks).toBe(whileRunning);
+    expect(instance.$services.ticked.isActive).toBe(false);
+    instance.$terminate();
+  });
+
+  it('genuinely stops the frame loop, not just the callback', async () => {
+    const instance = new Settler(render()).$mount();
+    instance.$services.ticked.start();
+    await frames(2);
+
+    instance.$services.ticked.stop();
+    await frames(2);
+    // Nothing else is subscribed, so the service released its tick and the
+    // scheduler has no reason to ask for another frame. `frames()` awaits one
+    // itself, so its own four requests are the floor: anything above them is
+    // the loop still running.
+    let framesRequested = 0;
+    const request = window.requestAnimationFrame;
+    window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+      framesRequested += 1;
+      return request(callback);
+    }) as typeof window.requestAnimationFrame;
+    await frames(4);
+    window.requestAnimationFrame = request;
+
+    expect(framesRequested).toBe(4);
+    instance.$terminate();
+  });
+
+  it('start() is idempotent, so one stop() is enough', async () => {
+    const instance = new Settler(render()).$mount();
+    instance.$services.ticked.start();
+    instance.$services.ticked.start();
+    await frames(3);
+    expect(instance.ticks).toBeGreaterThan(0);
+
+    // If the two calls had produced two subscriptions, one would outlive this.
+    instance.$services.ticked.stop();
+    const atStop = instance.ticks;
+    await frames(3);
+
+    expect(instance.ticks).toBe(atStop);
+    instance.$terminate();
+  });
+
+  it('is released by the mount cycle whichever side started it', async () => {
+    const instance = new Settler(render()).$mount();
+    instance.$services.ticked.start();
+    await frames(2);
+
+    instance.$destroy();
+    expect(instance.$services.ticked.isActive).toBe(false);
+    const atDestroy = instance.ticks;
+    await frames(3);
+    expect(instance.ticks).toBe(atDestroy);
+    instance.$terminate();
+  });
+
+  it('does not subscribe on a terminated instance, which nothing would release', () => {
+    const instance = new Settler(render()).$mount();
+    instance.$terminate();
+
+    instance.$services.ticked.start();
+    expect(instance.$services.ticked.isActive).toBe(false);
+  });
+
+  it('releases a hook started before the first mount, on terminate', () => {
+    const instance = new Settler(render());
+    instance.$services.ticked.start();
+    expect(instance.$services.ticked.isActive).toBe(true);
+
+    instance.$terminate();
+    expect(instance.$services.ticked.isActive).toBe(false);
+  });
+
+  it('gives each stacked layer its own handle, under its own name', async () => {
+    class Both extends withScroll(withRaf(Base, { manual: true }), { manual: true }) {
+      static config = { name: 'Both' };
+
+      ticks = 0;
+      scrolls = 0;
+
+      ticked() {
+        this.ticks += 1;
+      }
+
+      scrolled() {
+        this.scrolls += 1;
+      }
+    }
+
+    const instance = new Both(render()).$mount();
+    instance.$services.ticked.start();
+    await frames(3);
+
+    // One handle per layer, reached by the name that layer owns.
+    expect(instance.ticks).toBeGreaterThan(0);
+    expect(instance.$services.ticked.isActive).toBe(true);
+    expect(instance.$services.scrolled.isActive).toBe(false);
+    instance.$terminate();
+  });
+});
+
 describe('service decorators', () => {
   it('is the mixin with a build step', async () => {
     @withRaf()

@@ -378,7 +378,19 @@ A service is a shared source of props components subscribe to: `ticked`, `scroll
   }
   ```
 
-  It replaces `{ manual: true }` plus `$enable(hook)`/`$disable(hook)` — ~40 lines of per-instance `hook → subscription` map behind a module symbol, reached by a string only a runtime `console.warn` could vet. `start()` is idempotent and `stop()` is safe to repeat, as the pair was, and it works on a `Signal`, on a bare listener, and outside a component, which the pair could not. Reference counting does the rest: a stopped service with no other subscriber genuinely stops, frame loop included (asserted in `toggle.spec.ts` by watching `requestAnimationFrame`).
+  `start()` is idempotent and `stop()` is safe to repeat, and it works on a `Signal`, on a bare listener, and outside a component, which a pair of instance methods could not. Reference counting does the rest: a stopped service with no other subscriber genuinely stops, frame loop included (asserted in `toggle.spec.ts` by watching `requestAnimationFrame`).
+
+- **A hook can be suspended too — `{ manual: true }` and `$services.<hook>`.** `toggle()` is the primitive, not a replacement for the hook: writing the subscription by hand to get a shorter span costs the thing the hook was for, which is that the behaviour reads as a method on the class. So `manual` stays, and the mixin puts a `Toggle` under the hook's own name:
+
+  ```js
+  class SliderItem extends withRaf(Base, { manual: true }) {
+    ticked({ delta }) { … }                        // declared, not running
+    onIndexChange() { this.$services.ticked.start(); }
+    onSettled() { this.$services.ticked.stop(); }
+  }
+  ```
+
+  This is v3's `$services.enable('ticked')` with the string taken out, and it is what deleting the `hook` option bought: with one fixed name per mixin, the property can be **declared in the type** — `ServiceHandles<'ticked'>` — so `$services.ticked` completes, and a renamed hook is `TS2551: Property 'onScrolled' does not exist… Did you mean 'scrolled'?` instead of the silence `$enable('onScrolled')` gave. Intersections merge, so stacked mixins accumulate their keys and each handle reaches its own layer. What is gone is the per-instance `hook → subscription` map behind a module symbol and the runtime `console.warn` that was the only thing vetting a string.
 
 - **No loops of their own.** The raf service and the drag inertia subscribe to `scheduler.tick()`; the scroll service coalesces its events into one `read` per frame instead of debouncing; the resize service is a `ResizeObserver`, which also means a subscriber is told the current size on subscribe rather than on the next resize. The raf service collects the render functions its callbacks return itself — the shared primitive fans props out and expects nothing back — and **cancels a render whose subscriber left between the two phases**: a destroyed component must not write to the DOM after its cleanup ran, and an animation that wants a last paint does that write before it unsubscribes.
 - **A `ResizeObserver` does not see the viewport.** It reports the observed element's box, which is what catches a zoom or a scrollbar appearing — a layout-viewport change with no `resize` event at all. But for the **root element** `clientWidth`/`clientHeight` report the viewport, and on a page taller than the viewport the two are decoupled: measured height 3000 against a `clientHeight` of 896. A mobile toolbar sliding away therefore fires no observer, so the viewport service keeps a `resize` listener beside it. Both mechanisms, because neither sees what the other does.

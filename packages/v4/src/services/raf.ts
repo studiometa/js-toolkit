@@ -1,5 +1,5 @@
 import { scheduler, type TickProps } from '../scheduler.js';
-import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
+import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, type Service } from './service.js';
 
 /**
@@ -136,8 +136,10 @@ export type RafMixinOptions = ServiceMixinOptions<void>;
  * There is nothing to target: the frame is the framework's clock. The
  * decorator form `@withRaf()` is the same thing with a build step.
  */
-export const withRaf = /* @__PURE__ */ createServiceMixin<RafHook, void>({
-  hook: 'ticked',
-  target: () => undefined,
-  use: () => useRaf(),
-});
+export const withRaf = /* @__PURE__ */ createServiceMixin<RafHook & ServiceHandles<'ticked'>, void>(
+  {
+    hook: 'ticked',
+    target: () => undefined,
+    use: () => useRaf(),
+  },
+);

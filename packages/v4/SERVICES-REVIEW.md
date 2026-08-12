@@ -152,9 +152,19 @@ ruling, not a fix.
 | One frame-aligned emission phase for **all** sources, not just raf | —        | ✓        | ✓        |
 
 D and E independently named the sub-mount-span helper **`toggle`**, with
-near-identical signatures — replacing `manual` + `$enable`/`$disable` + the
-symbol map (~40 lines) with a ~15-line source-agnostic wrapper that also works
-outside a component.
+near-identical signatures — replacing `$enable`/`$disable` + the symbol map
+(~40 lines) with a ~15-line source-agnostic wrapper that also works outside a
+component.
+
+**Amended after review.** Both designers went further and deleted the hook
+along with the machinery, which is where they overreached: writing the
+subscription by hand to get a shorter span costs the thing the hook exists for,
+which is that the behaviour reads as a method on the class. `manual` therefore
+stays, and the mixin exposes the toggle under the hook's own name —
+`this.$services.ticked.start()`. That is only typeable because the `hook`
+option is gone: one fixed name per mixin means the property can be declared
+(`ServiceHandles<'ticked'>`), so a renamed hook is a `TS2551` with a suggestion
+rather than the silence `$enable('onScrolled')` gave.
 
 ### The deepest argument against our mixin layer
 

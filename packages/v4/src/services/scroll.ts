@@ -1,5 +1,5 @@
 import { scheduler, type ScheduledTask } from '../scheduler.js';
-import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
+import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
 /** Anything that scrolls: the window, or an element with an overflow. */
@@ -311,7 +311,10 @@ export type ScrollMixinOptions = ServiceMixinOptions<ScrollTarget>;
  * The window is the default target, as `useScroll()` with no argument. The
  * decorator form `@withScroll()` is the same thing with a build step.
  */
-export const withScroll = /* @__PURE__ */ createServiceMixin<ScrollHook, ScrollTarget>({
+export const withScroll = /* @__PURE__ */ createServiceMixin<
+  ScrollHook & ServiceHandles<'scrolled'>,
+  ScrollTarget
+>({
   hook: 'scrolled',
   target: () => window,
   use: (target) => useScroll(target),

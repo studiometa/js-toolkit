@@ -1,4 +1,4 @@
-import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
+import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
 export type ResizeOrientation = 'square' | 'landscape' | 'portrait';
@@ -144,7 +144,10 @@ export type ResizeMixinOptions = ServiceMixinOptions<Element>;
  * argument. The decorator form `@withResize()` is the same thing with a
  * build step.
  */
-export const withResize = /* @__PURE__ */ createServiceMixin<ResizeHook, Element>({
+export const withResize = /* @__PURE__ */ createServiceMixin<
+  ResizeHook & ServiceHandles<'resized'>,
+  Element
+>({
   hook: 'resized',
   target: () => document.documentElement,
   use: (target) => useResize(target),

@@ -96,6 +96,7 @@ export {
 export {
   createServiceMixin,
   type MixedClass,
+  type ServiceHandles,
   type ServiceMixin,
   type ServiceMixinDefinition,
   type ServiceMixinOptions,
