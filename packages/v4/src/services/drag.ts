@@ -97,6 +97,14 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
        */
       let isRunning = true;
       let unsubscribeTicks: (() => void) | null = null;
+      /**
+       * Armed by a drag that went past the threshold, disarmed by the next
+       * `pointerdown`. The guard used to read `distance*` instead, which
+       * survives the gesture that produced it — so after any real drag it
+       * suppressed *every* later click on the target, for the life of the
+       * page.
+       */
+      let isClickSuppressed = false;
 
       function stopInertia() {
         unsubscribeTicks?.();
@@ -164,6 +172,12 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
         props.distanceX = props.x - props.originX;
         props.distanceY = props.y - props.originY;
         props.mode = 'drag';
+        if (
+          Math.abs(props.distanceX) > dragThreshold ||
+          Math.abs(props.distanceY) > dragThreshold
+        ) {
+          isClickSuppressed = true;
+        }
         emit(props);
       }
 
@@ -201,6 +215,9 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
       function onPointerDown(event: Event) {
         const pointerEvent = event as PointerEvent;
         if (pointerEvent.button === 0) {
+          // A new gesture: whatever the previous one did, this one has not
+          // dragged anywhere yet.
+          isClickSuppressed = false;
           startDrag(pointerEvent.clientX, pointerEvent.clientY);
         }
       }
@@ -211,15 +228,18 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
       }
 
       function onClick(event: Event) {
-        if (
-          Math.abs(props.distanceX) > dragThreshold ||
-          Math.abs(props.distanceY) > dragThreshold
-        ) {
-          // Dragging a link or a button must not follow it. Captured and
-          // stopped immediately, before any handler down the tree sees it.
-          event.stopImmediatePropagation();
-          event.preventDefault();
+        // Only the click the browser synthesizes at the end of the gesture
+        // this service just suppressed. A programmatic `.click()` is
+        // untrusted, and keyboard activation of a link inside the target
+        // arrives with `detail === 0` — neither is the tail of a drag, and
+        // swallowing them made a dragged card's links unreachable.
+        if (!isClickSuppressed || !event.isTrusted || (event as MouseEvent).detail === 0) {
+          return;
         }
+        // Dragging a link or a button must not follow it. Captured and
+        // stopped immediately, before any handler down the tree sees it.
+        event.stopImmediatePropagation();
+        event.preventDefault();
       }
 
       function onPointerUp() {
@@ -236,6 +256,7 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
 
       return () => {
         isRunning = false;
+        isClickSuppressed = false;
         stopInertia();
         // Losing every subscriber mid-drag ends the drag: leaving
         // `isGrabbing` on would make the next `pointerdown` a no-op once a

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { userEvent } from '@vitest/browser/context';
 import { frames } from '../test-utils.js';
 import { useDrag, type DragMode, type DragProps } from './drag.js';
 
@@ -136,8 +137,36 @@ describe('useDrag', () => {
     expect(modes).toEqual(['start', 'drop']);
   });
 
-  it('blocks the click that ends a real drag, not the one that ends a tap', () => {
+  it('blocks the click that ends a real drag, not the one that ends a tap', async () => {
     const el = render();
+    el.innerHTML =
+      '<span style="position:absolute;left:0;top:0;width:20px;height:20px"></span>' +
+      '<span style="position:absolute;left:70px;top:0;width:20px;height:20px"></span>';
+    const [from, to] = [...el.children] as HTMLElement[];
+    let clicks = 0;
+    document.body.addEventListener('click', () => {
+      clicks += 1;
+    });
+    const unsubscribe = useDrag(el).add(() => {});
+
+    // Real input, because the guard only ever suppresses a click the browser
+    // synthesized itself. Pressing on one child and releasing on another
+    // makes the browser fire that click on their common ancestor, which is
+    // the dragged element.
+    await userEvent.dragAndDrop(from, to);
+    expect(clicks).toBe(0);
+
+    // A press that never moved is a click, and stays one.
+    await userEvent.click(to);
+    expect(clicks).toBe(1);
+
+    unsubscribe();
+  });
+
+  it('never blocks a click it did not synthesize itself', () => {
+    const el = render();
+    el.innerHTML = '<a href="#target">link</a>';
+    const link = el.firstElementChild as HTMLElement;
     let clicks = 0;
     document.body.addEventListener('click', () => {
       clicks += 1;
@@ -147,14 +176,19 @@ describe('useDrag', () => {
     grab(el, 0, 0);
     move(100, 0);
     release();
-    el.click();
-    expect(clicks).toBe(0);
 
-    // A press that never moved is a click, and stays one.
+    // Keyboard activation of a link inside a dragged card, and every other
+    // programmatic click: the guard used to read the drag distance, which
+    // outlives its gesture, so all of them were cancelled from the first
+    // real drag onwards.
+    link.click();
+    expect(clicks).toBe(1);
+
+    // And a gesture later, with nothing dragged in between.
     grab(el, 0, 0);
     release();
-    el.click();
-    expect(clicks).toBe(1);
+    link.click();
+    expect(clicks).toBe(2);
 
     unsubscribe();
   });
