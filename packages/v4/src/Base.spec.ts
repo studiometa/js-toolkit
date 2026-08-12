@@ -222,6 +222,67 @@ describe('$options', () => {
     expect(calls.at(-1)).toBe('initial:none->5');
   });
 
+  it('isolates option effect errors and reentrant cleanup', async () => {
+    const calls: string[] = [];
+    const error = console.error;
+    console.error = () => {};
+
+    class ResilientOptions extends Base {
+      static config = {
+        name: 'ResilientOptions',
+        options: { first: Number, second: Number },
+      };
+
+      optionFirstChanged({ initial }: OptionChange<number>) {
+        if (!initial) {
+          throw new Error('expected handler failure');
+        }
+        return () => {
+          throw new Error('expected cleanup failure');
+        };
+      }
+
+      optionSecondChanged({ value }: OptionChange<number>) {
+        calls.push(`second:${value}`);
+      }
+    }
+
+    class ReentrantOption extends Base {
+      static config = {
+        name: 'ReentrantOption',
+        options: { value: Number },
+      };
+
+      optionValueChanged({ initial }: OptionChange<number>) {
+        return initial ? () => this.$destroy() : undefined;
+      }
+    }
+
+    try {
+      registerComponent(ResilientOptions);
+      registerComponent(ReentrantOption);
+      const resilient = document.createElement('div');
+      resilient.setAttribute('data-component', 'ResilientOptions');
+      const reentrant = document.createElement('div');
+      reentrant.setAttribute('data-component', 'ReentrantOption');
+      document.body.append(resilient, reentrant);
+      await settle();
+
+      resilient.setAttribute('data-option-first', '1');
+      resilient.setAttribute('data-option-second', '2');
+      reentrant.setAttribute('data-option-value', '1');
+      await settle();
+
+      // A failed cleanup and handler do not block the later option update.
+      expect(calls).toEqual(['second:0', 'second:2']);
+      // Cleanup can destroy its own mount cycle without recursion or a stale
+      // replacement cleanup being retained.
+      expect(getInstance<ReentrantOption>(reentrant, 'ReentrantOption').$isMounted).toBe(false);
+    } finally {
+      console.error = error;
+    }
+  });
+
   it('keeps primitive defaults and attribute values as they were', () => {
     class Mixed extends Base<{
       $options: { speed: number; label: string; flag: boolean; list: unknown[] };

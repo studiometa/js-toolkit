@@ -165,7 +165,7 @@ The issue's open questions, answered:
 
 ## 3. One mutation engine drives the DOM
 
-One internal engine owns one MutationObserver for component discovery, lifecycle, mount strategies, ref invalidation and declared options. It observes child and attribute mutations, immediately rejects unrelated attribute records, retains relevant records in one queue and processes each batch in a fixed order:
+One internal engine owns one MutationObserver for component discovery, lifecycle, mount strategies, ref invalidation and declared options. Its `attributeFilter` contains the fixed framework attributes plus the option names accumulated from registered component configs, so unrelated `class`, `style` and ARIA writes create no records. It snapshots removed subtree membership when records enter its retained queue, before background processing, and processes each batch in a fixed order:
 
 1. destroy removed subtrees and dispose their strategies;
 2. reconcile final `data-component` and `data-mount` attributes;

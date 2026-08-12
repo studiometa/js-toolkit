@@ -1,32 +1,63 @@
 import { scheduler, type ScheduledTask } from './scheduler.js';
 
-export type DOMMutationProcessor = (records: readonly MutationRecord[]) => void;
+export interface DOMMutationRecord {
+  record: MutationRecord;
+  /** Removed subtree membership at observer delivery, before background work. */
+  removedSubtrees: ReadonlyMap<Node, readonly Element[]>;
+}
 
+export type DOMMutationProcessor = (records: readonly DOMMutationRecord[]) => void;
+
+const observedAttributes = new Set(['data-component', 'data-mount', 'data-ref']);
 let observer: MutationObserver | null = null;
 let processor: DOMMutationProcessor | null = null;
 let processTask: ScheduledTask<void> | null = null;
 let version = 0;
-let records: MutationRecord[] = [];
+let records: DOMMutationRecord[] = [];
 const lifecycleWork = new Set<Promise<unknown>>();
 
 /**
  * Start the document's single mutation observer on demand.
  *
- * Attribute records are filtered during batch classification because
- * declared `data-option-*` names cannot be represented by a static
- * `attributeFilter`.
+ * The attribute filter grows from fixed framework attributes and the option
+ * names declared by registered components, so unrelated document writes do
+ * not create mutation records.
  */
 function observe(): MutationObserver {
   if (!observer) {
     observer = new MutationObserver(ingest);
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeOldValue: true,
-    });
+    observeDocument();
   }
   return observer;
+}
+
+function observeDocument(): void {
+  observer?.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeOldValue: true,
+    attributeFilter: [...observedAttributes],
+  });
+}
+
+/**
+ * Add declared option attributes to the one observer's precise filter.
+ * Existing records enter the queue before observation options change.
+ */
+export function registerDOMOptionAttributes(attributes: Iterable<string>): void {
+  let changed = false;
+  for (const attribute of attributes) {
+    if (!observedAttributes.has(attribute)) {
+      observedAttributes.add(attribute);
+      changed = true;
+    }
+  }
+  if (!changed || !observer) {
+    return;
+  }
+  ingest(observer.takeRecords());
+  observeDocument();
 }
 
 /**
@@ -62,7 +93,19 @@ function ingest(incoming: MutationRecord[]): void {
   if (!processor) {
     return;
   }
-  records.push(...relevant);
+  records.push(
+    ...relevant.map((record): DOMMutationRecord => {
+      const removedSubtrees = new Map<Node, readonly Element[]>();
+      if (record.type === 'childList') {
+        for (const node of record.removedNodes) {
+          if (node instanceof Element) {
+            removedSubtrees.set(node, [node, ...node.querySelectorAll('*')]);
+          }
+        }
+      }
+      return { record, removedSubtrees };
+    }),
+  );
   scheduleProcessing();
 }
 

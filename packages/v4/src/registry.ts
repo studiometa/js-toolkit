@@ -1,5 +1,10 @@
 import { Base, type BaseConstructor } from './Base.js';
-import { setDOMMutationProcessor, trackDOMLifecycleWork } from './dom-mutations.js';
+import {
+  registerDOMOptionAttributes,
+  setDOMMutationProcessor,
+  trackDOMLifecycleWork,
+  type DOMMutationRecord,
+} from './dom-mutations.js';
 import { applyMountStrategy, MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
 import { kebabCase, selectorFor } from './utils.js';
 
@@ -48,6 +53,7 @@ export function registerComponent(ComponentClass: BaseConstructor): void {
     }
   }
 
+  registerDOMOptionAttributes(optionAttributes(ComponentClass));
   setDOMMutationProcessor(processMutations);
   scanRegisteredName(document.documentElement, name);
 }
@@ -56,6 +62,18 @@ export function registerComponents(...classes: BaseConstructor[]): void {
   for (const ComponentClass of classes) {
     registerComponent(ComponentClass);
   }
+}
+
+function optionAttributes(ComponentClass: BaseConstructor): string[] {
+  const names = new Set<string>();
+  let current: BaseConstructor | null = ComponentClass;
+  while (current?.config) {
+    for (const name of Object.keys(current.config.options ?? {})) {
+      names.add(`data-option-${kebabCase(name)}`);
+    }
+    current = Object.getPrototypeOf(current) as BaseConstructor | null;
+  }
+  return [...names];
 }
 
 /**
@@ -103,8 +121,12 @@ function mountPair(
   if (!isCurrentPair(el, name, ComponentClass, controller)) {
     return;
   }
-  const instance = el.__base__?.get(name) ?? new ComponentClass(el);
-  instance.$mount();
+  try {
+    const instance = el.__base__?.get(name) ?? new ComponentClass(el);
+    instance.$mount();
+  } catch (error) {
+    console.error(`[registry] Failed to mount "${name}":`, error);
+  }
 }
 
 function destroyPair(
@@ -234,11 +256,11 @@ function scanRegisteredName(root: Element, name: string): void {
 // the old and the new ancestor stay correct. When the element never comes
 // back, element and instance are garbage-collected together. `$terminate()`
 // stays an explicit, final call.
-function destroyWithin(node: Node): void {
+function destroyWithin(node: Node, snapshot?: readonly Element[]): void {
   if (!(node instanceof Element)) {
     return;
   }
-  for (const el of [node, ...node.querySelectorAll<HTMLElement>('*')]) {
+  for (const el of snapshot ?? [node, ...node.querySelectorAll<HTMLElement>('*')]) {
     const pairs = controllers.get(el);
     if (pairs) {
       for (const name of pairs.keys()) {
@@ -252,22 +274,16 @@ function destroyWithin(node: Node): void {
       instance.$destroy();
     }
   }
-
-  // A moved element is connected again by the time the observer delivers
-  // its records. Hand it back after teardown so the move ends as destroy +
-  // remount rather than being mistaken for an unchanged connected node.
-  if (node.isConnected) {
-    scan(node);
-  }
 }
 
-function processMutations(records: readonly MutationRecord[]): void {
+function processMutations(records: readonly DOMMutationRecord[]): void {
   // Teardown first. A move must announce its old lifecycle end before the
-  // same node mounts below its new ancestor.
-  for (const record of records) {
+  // same node mounts below its new ancestor. Removed subtree membership was
+  // snapshotted at observer delivery, before this background task.
+  for (const { record, removedSubtrees } of records) {
     if (record.type === 'childList') {
       for (const node of record.removedNodes) {
-        destroyWithin(node);
+        destroyWithin(node, removedSubtrees.get(node));
       }
     }
   }
@@ -275,7 +291,7 @@ function processMutations(records: readonly MutationRecord[]): void {
   const declarations = new Set<HTMLElement>();
   const strategies = new Set<HTMLElement>();
   const options = new Map<HTMLElement, Map<string, string | null>>();
-  for (const record of records) {
+  for (const { record } of records) {
     if (record.type !== 'attributes' || !(record.target instanceof HTMLElement)) {
       continue;
     }
@@ -333,7 +349,7 @@ function processMutations(records: readonly MutationRecord[]): void {
     }
   }
 
-  for (const record of records) {
+  for (const { record } of records) {
     if (record.type === 'childList') {
       for (const node of record.addedNodes) {
         if (node.isConnected) {
