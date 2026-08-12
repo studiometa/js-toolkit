@@ -201,6 +201,26 @@ describe('isScrolling', () => {
     expect(seen.at(-1)).toBe(false);
   });
 
+  it('stays off when a resize refreshes the measurements', async () => {
+    const el = document.createElement('div');
+    el.style.cssText = 'width:100px;height:100px;overflow:auto';
+    el.innerHTML = '<div style="width:100px;height:1000px"></div>';
+    document.body.append(el);
+
+    const service = useScroll(el);
+    const off = service.add(() => {});
+
+    // A resize re-measures the maximums, but nothing is moving — and no
+    // `scrollend` follows to take the flag back down, so treating it as a
+    // scroll would leave the service stuck reporting a scroll forever.
+    window.dispatchEvent(new Event('resize'));
+    await settle();
+
+    expect(service.props().isScrolling).toBe(false);
+    off();
+    el.remove();
+  });
+
   it('is false again once the service is released', async () => {
     const el = document.createElement('div');
     el.style.cssText = 'width:100px;height:100px;overflow:auto';

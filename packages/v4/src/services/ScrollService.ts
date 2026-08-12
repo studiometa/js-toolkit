@@ -153,6 +153,11 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
         flush();
       };
 
+      // A resize changes the maximums, and therefore the progress — but
+      // nothing is moving, and no `scrollend` follows to take the flag back
+      // down. Re-measure without entering the scrolling state.
+      const onResize = () => flush();
+
       // Refresh before the first subscriber reads `props()`, and pick up the
       // maximums of the target as it is now.
       update();
@@ -163,8 +168,7 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
       if (supportsScrollEnd) {
         target.addEventListener('scrollend', onScrollEnd);
       }
-      // Resizing changes the maximums, and therefore the progress.
-      window.addEventListener('resize', onScroll, { passive: true });
+      window.addEventListener('resize', onResize, { passive: true });
 
       return () => {
         task?.cancel();
@@ -173,7 +177,7 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
         props.isScrolling = false;
         target.removeEventListener('scroll', onScroll);
         target.removeEventListener('scrollend', onScrollEnd);
-        window.removeEventListener('resize', onScroll);
+        window.removeEventListener('resize', onResize);
       };
     },
   });
