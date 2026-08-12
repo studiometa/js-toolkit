@@ -66,14 +66,43 @@ function createResizeService(target: Element): Service<ResizeProps> {
       // toolbar sliding away, the on-screen keyboard opening. Measured on a
       // 3000 px document: the observer reports height 3000 while
       // `clientHeight` is 896.
-      // Neither is a debounced version of the other, and a resize that both
-      // report is announced twice with the same values — cheap, and cheaper
-      // than a coalescing task that would delay the delivery `observe()`
-      // makes on subscribe.
-      const publish = () => emit(update());
-      const observer = new ResizeObserver(publish);
+      // Neither is a debounced version of the other, and the two are gated
+      // differently because they are trustworthy in different ways.
+      //
+      // A `resize` event is the browser stating that the viewport moved, so it
+      // publishes unconditionally.
+      //
+      // The observer is not a statement about the viewport at all: it reports
+      // changes to `documentElement`'s own box, which for the root element is
+      // the *document* height while `clientWidth`/`clientHeight` are the
+      // viewport. The two are decoupled in both directions. A lazy image, an
+      // accordion opening, an infinite scroll page or a font swap moves the box
+      // and moves nothing these props report — and that fired `resized()` on
+      // every component on the page, with identical values, which is why the
+      // observer publishes only on a change.
+      //
+      // The first publish of a run is the exception, and gating it away is the
+      // trap here, because it looks like a no-op: `props` was measured when the
+      // service was built, so the delivery `observe()` makes on subscribe
+      // carries the same values it already holds — and that delivery is how a
+      // new subscriber learns where it stands without waiting for a resize.
+      let hasPublished = false;
+      const observer = new ResizeObserver(() => {
+        const { width, height } = props;
+        update();
+        // `ratio` and `orientation` are functions of these two.
+        if (hasPublished && props.width === width && props.height === height) {
+          return;
+        }
+        hasPublished = true;
+        emit(props);
+      });
       observer.observe(target);
       const isViewport = target === document.documentElement;
+      const publish = () => {
+        hasPublished = true;
+        emit(update());
+      };
       if (isViewport) {
         window.addEventListener('resize', publish, { passive: true });
       }

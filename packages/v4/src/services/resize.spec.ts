@@ -46,7 +46,48 @@ describe('useResize', () => {
     );
   });
 
-  it('emits again when the document is resized', async () => {
+  it('stays quiet when the document grew but the viewport did not move', async () => {
+    const seen: ResizeProps[] = [];
+    const unsubscribe = useResize().subscribe((props) => seen.push(snapshot(props)));
+    await settle();
+    const onSubscribe = seen.length;
+
+    // The observer watches `documentElement`'s own box, which on the root
+    // element is the document height rather than the viewport. A lazy image,
+    // an accordion or an infinite scroll page moves it constantly, and none of
+    // it changes a single value these props report.
+    const spacer = document.createElement('div');
+    spacer.setAttribute('style', 'height:4000px');
+    document.body.append(spacer);
+    await settle();
+
+    expect(seen.length).toBe(onSubscribe);
+    spacer.remove();
+    await settle();
+    expect(seen.length).toBe(onSubscribe);
+    unsubscribe();
+  });
+
+  it('delivers again to the next subscriber after the service restarted', async () => {
+    const first: ResizeProps[] = [];
+    const off = useResize().subscribe((props) => first.push(snapshot(props)));
+    await settle();
+    expect(first.length).toBeGreaterThan(0);
+    // Last subscriber out: the service stops, so the change gate resets with
+    // it and the next subscriber is told where it stands rather than waiting
+    // for a resize that may never come.
+    off();
+
+    const second: ResizeProps[] = [];
+    const unsubscribe = useResize().subscribe((props) => second.push(snapshot(props)));
+    await settle();
+    unsubscribe();
+
+    expect(second.length).toBeGreaterThan(0);
+    expect(second.at(-1)?.width).toBe(window.innerWidth);
+  });
+
+  it('ignores a change to the root box that leaves the viewport alone', async () => {
     let calls = 0;
     const unsubscribe = useResize().subscribe(() => {
       calls += 1;
@@ -54,9 +95,15 @@ describe('useResize', () => {
     await settle();
     const initial = calls;
 
+    // This used to assert an emit, back when the observer published
+    // unconditionally. It reports nothing: `clientWidth` on the root element
+    // is the viewport, so narrowing `documentElement`'s own box moves the
+    // observed rect and leaves every value in the props exactly as it was.
+    // A real viewport resize is covered by the test below, through the
+    // `resize` event, which is the mechanism that can actually see one.
     resizeDocument('320px');
     await settle();
-    expect(calls).toBeGreaterThan(initial);
+    expect(calls).toBe(initial);
 
     unsubscribe();
   });
