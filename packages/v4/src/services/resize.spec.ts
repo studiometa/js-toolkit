@@ -1,13 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { settle } from '../test-utils.js';
-import {
-  BREAKPOINTS,
-  getBreakpoints,
-  setBreakpoints,
-  useResize,
-  useWindowSize,
-  type ResizeProps,
-} from './resize.js';
+import { useResize, useWindowSize, type ResizeProps } from './resize.js';
 
 function snapshot(props: ResizeProps): ResizeProps {
   return { ...props };
@@ -24,7 +17,6 @@ function resizeDocument(width: string): void {
 afterEach(() => {
   document.documentElement.style.width = '';
   document.body.innerHTML = '';
-  setBreakpoints(BREAKPOINTS);
 });
 
 function makeBox(width: string): HTMLElement {
@@ -52,7 +44,6 @@ describe('useResize', () => {
     expect(props?.orientation).toBe(
       window.innerWidth > window.innerHeight ? 'landscape' : 'portrait',
     );
-    expect(Object.keys(BREAKPOINTS)).toContain(props?.breakpoint);
   });
 
   it('emits again when the document is resized', async () => {
@@ -111,26 +102,6 @@ describe('useResize', () => {
   it('is the viewport service when no target is given', () => {
     expect(useResize()).toBe(useWindowSize());
     expect(useResize(document.documentElement)).toBe(useWindowSize());
-  });
-});
-
-describe('breakpoints', () => {
-  it('answers with the named set, and with the one that replaced it', async () => {
-    expect(getBreakpoints()).toEqual(BREAKPOINTS);
-
-    const unsubscribe = useResize().add(() => {});
-    await settle();
-    expect(Object.keys(BREAKPOINTS)).toContain(useResize().props().breakpoint);
-
-    // Every width matches, so the widest name wins whatever the viewport is.
-    setBreakpoints({ small: '0rem', large: '0rem' });
-    expect(getBreakpoints()).toEqual({ small: '0rem', large: '0rem' });
-
-    resizeDocument('320px');
-    await settle();
-    expect(useResize().props().breakpoint).toBe('large');
-
-    unsubscribe();
   });
 });
 

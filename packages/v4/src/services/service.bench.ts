@@ -6,7 +6,7 @@
  * design questions rather than guard against regressions.
  */
 import { bench, describe } from 'vitest';
-import { BREAKPOINTS } from './resize.js';
+import { BREAKPOINTS } from './breakpoint.js';
 import { createService } from './service.js';
 
 /** Keeps each result observable so no benchmark is optimised away. */

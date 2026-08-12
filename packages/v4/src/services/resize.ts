@@ -3,22 +3,6 @@ import { createService, perTarget, type Service } from './service.js';
 
 export type ResizeOrientation = 'square' | 'landscape' | 'portrait';
 
-/**
- * Named viewport widths, ascending. Values are the ones v3 ships, in `rem`
- * so they follow the root font size. They are the default set, not the only
- * one: `setBreakpoints()` replaces them.
- */
-export const BREAKPOINTS: Readonly<Record<string, string>> = {
-  xxs: '0rem',
-  xs: '30rem',
-  s: '48rem',
-  m: '64rem',
-  l: '80rem',
-  xl: '90rem',
-  xxl: '120rem',
-  xxxl: '160rem',
-};
-
 export interface ResizeProps {
   width: number;
   height: number;
@@ -29,45 +13,6 @@ export interface ResizeProps {
    */
   ratio: number;
   orientation: ResizeOrientation;
-  /**
-   * Name of the widest breakpoint the viewport currently matches. Media
-   * queries answer about the viewport, so this describes the page rather
-   * than the observed target.
-   */
-  breakpoint: string;
-}
-
-let breakpoints: Record<string, string> = { ...BREAKPOINTS };
-
-/**
- * Built on first use and kept — constructing a `MediaQueryList` per
- * breakpoint on every resize measured 5.2× the cost of querying lists made
- * once (`Service.bench.ts`). Dropped when the set changes.
- */
-let queries: Array<readonly [string, MediaQueryList]> | null = null;
-
-/**
- * Replace the named breakpoints, ascending. Takes effect on the next
- * update, for every running service.
- *
- * ```js
- * setBreakpoints({ mobile: '0rem', tablet: '48rem', desktop: '80rem' });
- * ```
- *
- * The design has `defineFeatures` carry these eventually; until it exists,
- * this is the whole configuration surface.
- */
-export function setBreakpoints(next: Record<string, string>): void {
-  breakpoints = { ...next };
-  queries = null;
-}
-
-/**
- * The breakpoints in use, the defaults until `setBreakpoints()` says
- * otherwise.
- */
-export function getBreakpoints(): Record<string, string> {
-  return { ...breakpoints };
 }
 
 /**
@@ -84,29 +29,12 @@ function ratioFor(width: number, height: number): number {
   return height === 0 ? 0 : width / height;
 }
 
-/**
- * The widest matching name. The set is ascending, so the last match wins.
- */
-function currentBreakpoint(): string {
-  queries ??= Object.entries(breakpoints).map(
-    ([name, value]) => [name, window.matchMedia(`(min-width: ${value})`)] as const,
-  );
-  let match = '';
-  for (const [name, query] of queries) {
-    if (query.matches) {
-      match = name;
-    }
-  }
-  return match;
-}
-
 function createResizeService(target: Element): Service<ResizeProps> {
   const props: ResizeProps = {
     width: target.clientWidth,
     height: target.clientHeight,
     ratio: ratioFor(target.clientWidth, target.clientHeight),
     orientation: orientationFor(target.clientWidth, target.clientHeight),
-    breakpoint: currentBreakpoint(),
   };
 
   function update(): ResizeProps {
@@ -116,7 +44,6 @@ function createResizeService(target: Element): Service<ResizeProps> {
     props.height = target.clientHeight;
     props.ratio = ratioFor(props.width, props.height);
     props.orientation = orientationFor(props.width, props.height);
-    props.breakpoint = currentBreakpoint();
     return props;
   }
 
@@ -167,8 +94,8 @@ const resizeServices = /* @__PURE__ */ perTarget(createResizeService);
  * Use the resize service for an element, the document element by default.
  *
  * ```js
- * const unsubscribe = useResize().add(({ width, orientation, breakpoint }) => {
- *   el.hidden = breakpoint === 'xxs';
+ * const unsubscribe = useResize().add(({ width, orientation }) => {
+ *   el.classList.toggle('is-narrow', width < 600);
  * });
  *
  * useResize(card).add(({ width }) => { … });
@@ -202,8 +129,8 @@ export type ResizeMixinOptions = ServiceMixinOptions<Element>;
  *
  * ```js
  * class Grid extends withResize(Base) {
- *   resized({ breakpoint }) {
- *     this.$el.dataset.breakpoint = breakpoint;
+ *   resized({ orientation }) {
+ *     this.$el.dataset.orientation = orientation;
  *   }
  * }
  *

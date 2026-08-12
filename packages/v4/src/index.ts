@@ -76,6 +76,13 @@ export {
   type TickProps,
 } from './scheduler.js';
 export {
+  BREAKPOINTS,
+  getBreakpoints,
+  setBreakpoints,
+  useBreakpoint,
+  type BreakpointProps,
+} from './services/breakpoint.js';
+export {
   useDrag,
   withDrag,
   type DragHook,
@@ -83,6 +90,7 @@ export {
   type DragMode,
   type DragOptions,
   type DragProps,
+  type DragTarget,
 } from './services/drag.js';
 export {
   createServiceMixin,
@@ -108,9 +116,6 @@ export {
   type RafRender,
 } from './services/raf.js';
 export {
-  BREAKPOINTS,
-  getBreakpoints,
-  setBreakpoints,
   useResize,
   useWindowSize,
   withResize,
