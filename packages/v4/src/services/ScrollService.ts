@@ -30,7 +30,25 @@ export interface ScrollProps {
   isRight: boolean;
   isDown: boolean;
   isLeft: boolean;
+  /**
+   * Whether the target is still moving. It turns off on `scrollend`, which
+   * covers momentum, smooth-scrolling and snap settling alike — a component
+   * waiting for a scroll to finish should read this rather than time out on
+   * its own.
+   */
+  isScrolling: boolean;
 }
+
+/**
+ * `scrollend` where it exists — Safari only gained it recently, and there is
+ * no polyfill worth the name, so a quiet period stands in for it. Long
+ * enough not to fire between two momentum frames, short enough to feel
+ * immediate.
+ */
+const SCROLL_END_FALLBACK_DELAY = 120;
+
+const supportsScrollEnd = /* @__PURE__ */ (() =>
+  typeof window !== 'undefined' && 'onscrollend' in window)();
 
 /**
  * Where the target stands and how far it can go. The window scrolls the
@@ -74,6 +92,7 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
     isRight: false,
     isDown: false,
     isLeft: false,
+    isScrolling: false,
   };
 
   function update(): ScrollProps {
@@ -105,7 +124,9 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
     props: () => props,
     start(emit) {
       let task: ScheduledTask<void> | null = null;
-      const onScroll = () => {
+      let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+
+      const flush = () => {
         // One update per frame, in the phase where measuring is free.
         // v3 debounced instead, which cost 100 ms before the final position
         // was announced; a coalesced read always ends on the last event.
@@ -115,6 +136,23 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
         });
       };
 
+      const onScrollEnd = () => {
+        props.isScrolling = false;
+        // Announced on its own, since the position has not changed: a
+        // component waiting for the scroll to settle would otherwise never
+        // hear about it.
+        flush();
+      };
+
+      const onScroll = () => {
+        props.isScrolling = true;
+        if (!supportsScrollEnd) {
+          clearTimeout(fallbackTimer);
+          fallbackTimer = setTimeout(onScrollEnd, SCROLL_END_FALLBACK_DELAY);
+        }
+        flush();
+      };
+
       // Refresh before the first subscriber reads `props()`, and pick up the
       // maximums of the target as it is now.
       update();
@@ -122,13 +160,19 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
       // reports this scroller and no other — an inner one would otherwise
       // wake the service to emit unchanged props.
       target.addEventListener('scroll', onScroll, { passive: true });
+      if (supportsScrollEnd) {
+        target.addEventListener('scrollend', onScrollEnd);
+      }
       // Resizing changes the maximums, and therefore the progress.
       window.addEventListener('resize', onScroll, { passive: true });
 
       return () => {
         task?.cancel();
         task = null;
+        clearTimeout(fallbackTimer);
+        props.isScrolling = false;
         target.removeEventListener('scroll', onScroll);
+        target.removeEventListener('scrollend', onScrollEnd);
         window.removeEventListener('resize', onScroll);
       };
     },

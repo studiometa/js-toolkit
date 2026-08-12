@@ -158,3 +158,62 @@ describe('useScroll(element)', () => {
     unsubscribeSecond();
   });
 });
+
+describe('isScrolling', () => {
+  it('turns on while the target is moving', async () => {
+    const el = document.createElement('div');
+    el.style.cssText = 'width:100px;height:100px;overflow:auto';
+    el.innerHTML = '<div style="width:100px;height:1000px"></div>';
+    document.body.append(el);
+
+    const service = useScroll(el);
+    const off = service.add(() => {});
+    // A scroll with no `scrollend` behind it, which is what mid-gesture
+    // looks like: a real jump starts and settles inside one frame, so the
+    // coalesced read would only ever report the settled state.
+    el.dispatchEvent(new Event('scroll'));
+    await settle();
+
+    expect(service.props().isScrolling).toBe(true);
+    off();
+    el.remove();
+  });
+
+  it('turns off once the target settles, and says so', async () => {
+    const el = document.createElement('div');
+    el.style.cssText = 'width:100px;height:100px;overflow:auto';
+    el.innerHTML = '<div style="width:100px;height:1000px"></div>';
+    document.body.append(el);
+
+    const seen: boolean[] = [];
+    const off = useScroll(el).add(({ isScrolling }) => seen.push(isScrolling));
+
+    el.scrollTop = 200;
+    // Long enough for `scrollend`, or for the quiet period standing in for
+    // it where the browser has no such event.
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    off();
+    el.remove();
+
+    // The settled state is announced even though the position did not
+    // change with it — that is the whole point of the flag.
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.at(-1)).toBe(false);
+  });
+
+  it('is false again once the service is released', async () => {
+    const el = document.createElement('div');
+    el.style.cssText = 'width:100px;height:100px;overflow:auto';
+    el.innerHTML = '<div style="width:100px;height:1000px"></div>';
+    document.body.append(el);
+
+    const service = useScroll(el);
+    const off = service.add(() => {});
+    el.scrollTop = 120;
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    off();
+
+    expect(service.props().isScrolling).toBe(false);
+    el.remove();
+  });
+});
