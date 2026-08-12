@@ -1,17 +1,28 @@
-import { Base, createContext, type DelegatedEvent, type ScheduledTask } from '../../src/index.js';
+import {
+  Base,
+  Signal,
+  createContext,
+  type DelegatedEvent,
+  type ScheduledTask,
+} from '../../src/index.js';
 
 /**
  * Slider-lite — a reimplementation of the @studiometa/ui Slider family on
  * the v4 model. This is the component whose `createStorage` store and
  * two-sided `connectChildren`/`__connect` handshake motivated the whole
- * data-sharing design: here the shared state is one provided reactive signal.
+ * data-sharing design: here the shared state and the commands travel through
+ * one provided owner surface.
  *
  * - Scrolling uses native CSS scroll-snap + `scrollIntoView` — no math.
- * - `Slider` provides `{ index, total }` through `SliderContext`.
- * - `SliderCount` injects the signal and subscribes: mount order does not
- *   matter, no handshake, no declaration.
+ * - `Slider` provides `{ state, goTo, goToItem }` through `SliderContext`:
+ *   a `Signal` for what changes, methods for what a control may ask for.
+ * - `SliderCount` injects the surface and subscribes to `state`: mount order
+ *   does not matter, no handshake, no declaration.
+ * - `SliderItem` calls `goToItem()` on click through `$injectSync` — a
+ *   command surface instead of a `$closest('Slider')` reach-back.
  * - `SliderBtn` emits a bubbling `slide` event; `Slider` catches it through
- *   delegation (`onSliderBtnSlide`).
+ *   delegation (`onSliderBtnSlide`). Both directions are legitimate: an
+ *   event says "this happened", a command says "do this".
  * - `SliderItem`s are tracked with `$watchChildren`: add or remove a slide
  *   in the DOM and the count updates.
  */
@@ -20,10 +31,26 @@ export interface SliderState {
   total: number;
 }
 
-export const SliderContext = createContext<SliderState>('slider-state');
+/**
+ * The curated surface the coordinator exposes — state to read, commands to
+ * call. Nothing else of the `Slider` is reachable through it.
+ */
+export interface SliderApi {
+  state: Signal<SliderState>;
+  goTo(index: number): void;
+  goToItem(item: SliderItem): void;
+}
+
+export const SliderContext = createContext<SliderApi>('slider');
 
 export class SliderItem extends Base {
   static config = { name: 'SliderItem' };
+
+  // A click must be answered now, so the surface is resolved synchronously:
+  // no provider above means no slider to drive, and nothing happens.
+  onClick(): void {
+    this.$injectSync(SliderContext)?.goToItem(this);
+  }
 }
 
 export class SliderBtn extends Base<{
@@ -45,7 +72,7 @@ export class SliderCount extends Base<{ $el: HTMLSpanElement }> {
   static config = { name: 'SliderCount' };
 
   async mounted() {
-    const state = await this.$inject(SliderContext);
+    const { state } = await this.$inject(SliderContext);
     return state.subscribe(
       ({ index, total }) => {
         this.$write(() => {
@@ -68,7 +95,19 @@ export class Slider extends Base<{
 
   index = 0;
 
-  state = this.$provide(SliderContext, { index: 0, total: 0 });
+  // The owner surface: one reactive Signal plus the commands a control is
+  // allowed to call. Provided verbatim, so a consumer gets this object and
+  // nothing more of the coordinator.
+  api = this.$provide<SliderApi>(SliderContext, {
+    state: new Signal<SliderState>({ index: 0, total: 0 }),
+    goTo: (index) => this.goTo(index),
+    goToItem: (item) => {
+      const index = this.items.items.indexOf(item);
+      if (index >= 0) {
+        this.goTo(index);
+      }
+    },
+  });
 
   items = this.$watchChildren<SliderItem>('SliderItem', {
     added: () => this.refresh(),
@@ -152,7 +191,7 @@ export class Slider extends Base<{
   update(): void {
     const total = this.items?.size ?? 0;
     this.index = Math.min(this.index, Math.max(0, total - 1));
-    this.state.value = { index: this.index, total };
+    this.api.state.value = { index: this.index, total };
   }
 
   // Naming the event types `args` from SliderBtn's own `$emits`.

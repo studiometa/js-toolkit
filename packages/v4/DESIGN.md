@@ -56,7 +56,7 @@ class TodoCount extends Base {
 
 - The cleanup lives in the same closure as the resource it releases: no instance fields, no paired `destroyed()` boilerplate, symmetry guaranteed per mount cycle — which matters once `data-mount` strategies remount the same instance repeatedly.
 - If an async `mounted()` resolves after the instance was destroyed, the cleanup runs immediately instead of leaking.
-- Two cleanup scopes follow from the lifecycle model: `mounted()` returns are **destroy-scoped** (per cycle); constructor-time registrations (`$provide`, `$watchChildren`, `$inject`) are **terminate-scoped** (instance lifetime).
+- Two cleanup scopes follow from the lifecycle model: `mounted()` returns are **destroy-scoped** (per cycle), and so is a pending `$inject()` request — `mounted()` re-runs on remount, which re-issues it, and a destroyed instance must not sit in the context module's pending set forever. Constructor-time registrations that outlive a cycle (`$provide`, `$watchChildren`) are **terminate-scoped** (instance lifetime).
 - The hook keeps its `mounted` name — "setup" in Vue means "runs before mount", which is not what this is, and `mounted()` stays familiar to v3 authors. `destroyed()`/`terminated()` hooks remain for cases that do not fit the returned-cleanup shape.
 - `config.components` loses its ownership meaning. Two jobs remain: register the listed classes when the parent registers, and provide the name set for `on<Child><Event>` resolution.
 - `$parent`, `$children`, `$root`, and `createApp` are removed. `$query()` / `$closest()` (shipped in 3.x) are the replacements.
@@ -92,6 +92,22 @@ The two remaining regressions are understood rather than outstanding. `$emit` pa
 ### The public surface is typed, and free
 
 `Base` takes an optional props type — `class Slider extends Base<{ $refs: …; $options: …; $emits: … }>`. It types `$refs` and `$options` (no more casting on access) and checks `$emit()`'s event names and payloads. `$emits` is the successor to v3's runtime `config.emits`: it keeps the documentation value of declaring what a component dispatches, with nothing left in the bundle.
+
+### Option defaults belong to the instance, and may be factories
+
+`$options` reads its `data-option-*` attribute on every access — an attribute is the source of truth, and stays live. A **default** is the opposite kind of value: it is not in the DOM, so it belongs to the instance that reads it.
+
+```js
+options: {
+  speed: { type: Number, default: 1 },
+  tween: { type: Object, default: () => ({ ease: 'linear' }) },
+}
+```
+
+- **`default` is a value or a factory.** `Function` is not an `OptionType`, so `typeof definition.default === 'function'` unambiguously means factory. The types require the factory form for `Array` and `Object`, because a literal there would live on the class — the shape Vue's `data()` and its object-prop defaults enforce for exactly the same reason.
+- **Built once per instance, then memoised.** Repeated reads hand back the same object, so `this.$options.list.push(x)` persists and two instances of one component never share — and corrupt — the same default. `Array` and `Object` with no declared default memoise an empty one per instance, for the same reason. Primitive defaults are unaffected.
+- **The factory is lazy**: nothing is built for an option that is never read, and a component whose attribute is present never runs its factory at all.
+- Written without types (the no-build path), a literal object or array default is copied per instance rather than shared. A mutation of a value **parsed from an attribute** is not kept, on the other hand: the attribute is re-read and re-parsed on the next access, which is what keeps options live.
 
 ## 2. One registry
 
@@ -195,9 +211,28 @@ The initial sweep is deferred to a microtask: `$watchChildren` is typically call
 Advertisement solves "who is there", not "what is the current value". For continuous shared state, v4 ships a provide/inject primitive modeled on Vue:
 
 - Typed injection key (no string collisions).
-- Reactive value signal (live reference, never serialized).
 - Subtree scope with nearest-provider-wins shadowing.
-- Optionally exposes a curated owner surface (`expose` pattern) instead of the raw instance.
+- **The value is provided verbatim** — nothing is wrapped, so the key's type is the contract end to end.
+- Which is what makes the curated owner surface (`expose` pattern) expressible: state to read, commands to call, and nothing else of the coordinator.
+
+```ts
+// The coordinator exposes what a control may ask for.
+api = this.$provide(SliderContext, {
+  state: new Signal({ index: 0, total: 0 }), // what changes
+  goNext: () => this.goNext(), // what a control may command
+});
+```
+
+A reactive value is a provided `Signal`; a command surface is a provided object; both together is an object holding Signals. Auto-wrapping every value in a `Signal` — the first shape this took — made the third case impossible, and a control that needs `goNext()` then has only one way left to reach it: `$closest('Slider')`, which is precisely the coupling the primitive exists to remove. An event and a command are both legitimate and not interchangeable: `$emit` says "this happened" upward, an exposed method says "do this" to a known owner.
+
+Injection has two forms, and the difference is what the caller does about absence:
+
+| form               | resolves                             | when nothing provides                                                                     |
+| ------------------ | ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `$inject(key)`     | a promise, `await` it in `mounted()` | **never settles** — deliberate: order independence means a missing provider is "not yet". |
+| `$injectSync(key)` | the value, synchronously             | `undefined` — the caller falls back, does nothing, or degrades.                           |
+
+`$injectSync` costs nothing extra: the context request is answered synchronously when a provider is listening, so the sync form is that same round trip without the promise. It is the form a click handler or a keyboard shortcut wants — an answer now or not at all. The async form's pending request is **destroy-scoped**: a destroyed instance leaves nothing in the module's pending set, and `mounted()` running again on remount re-issues it with nothing to re-declare. (The `@inject` field decorator requests once, at construction, so a field left unresolved through a destroy is not re-requested; a consumer that may wait through several cycles calls `$inject()` from `mounted()`.)
 
 Mechanics follow the WICG community context protocol: the consumer dispatches a bubbling `context-request` event with a key and callback; the nearest mounted provider answers, and replays to late requesters / re-announces on late provider mount. This fixes both criticals from the earlier `withStore` design: resolution goes through the DOM event path instead of attribute walking, and replay happens only after the provider is mounted and initialized.
 
@@ -277,6 +312,7 @@ const unsubscribe = scheduler.tick(({ time, delta }) => { … });
 
 - Tick callbacks run **at the start of the flush, before `read`**, so anything they schedule belongs to the same frame. That is what preserves v3's `RafService` contract without a second loop: the callback measures in `read`, the render function it returns mutates in `write`, once, before paint.
 - The subscription is the only handle — no keys, no `remove(key)` — and it is what keeps the loop alive. `#schedule()` is called again at the end of a flush when an in-frame queue is non-empty **or** a tick subscriber remains, so the rAF loop stops on its own once the last one leaves. This answers the "idle-frame behavior" open point below: there is no permanent loop. Pending `background` work is deliberately not part of that condition — it drains on its own turns and never holds a frame open.
+- That property is only true if a component can actually let go **within** a mount cycle, which is what the services' `manual` subscriptions (§8) are for. A component holding `ticked()` for the lifetime of the page would make "no permanent rAF loop" false on any page with a slider or a scroll animation.
 - Tick subscribers are **not queued work**, so `whenIdle()` ignores them. A page with a live scroll animation would otherwise never be idle, and the test helper `settle()` would never return.
 - A throwing tick callback is reported and skipped, never unsubscribed: the subscription belongs to whoever created it, not to the frame that broke.
 
@@ -311,6 +347,18 @@ A service is a shared source of props components subscribe to: `ticked`, `scroll
 - **Scoped to a target.** `useScroll(target?)` takes an element or the window, `useResize(target?)` an element, `useDrag(el)` its element; `useWindowScroll()` and `useWindowSize()` name the default cases, the split VueUse, solid-primitives, react-use and runed all make. `useRaf()` and `usePointer()` have nothing to scope — the frame is the clock and the pointer is read from the window.
 - **One instance per target,** keyed in a `WeakMap` by `perTarget()`. This is lifecycle bookkeeping rather than throughput: reference counting only means something against a target, so the last subscriber of one element must release that element's observer and leave the others running. Sharing one observer across targets was measured indifferent — the widespread claim traces to a single 2017 measurement, and 500 idle observers now cost ~0.02 ms/frame in total — so nothing tries to group them.
 - **Bound per mount cycle, by a mixin.** `withRaf`/`withScroll`/`withResize`/`withPointer`/`withDrag` override `mounted()`, subscribe the component's `ticked`/`scrolled`/`resized`/`moved`/`dragged` method, and hand the unsubscribe back as a cleanup — so `$destroy()` releases it and a remount subscribes again, with `Base` knowing nothing about services. A hook is sugar for the default target; any other target is an option of the mixin (`target`, `hook`) or an explicit `useX(target).add(…)` in `mounted()`. The mixin is the primitive because it needs no build step; `@withScroll()` is the decorator sugar over it, and both are tree-shakeable: an unimported service cannot make a hook silently do nothing.
+- **Suspendable within a cycle — `{ manual: true }` and the v3 verbs.** A mount cycle is the right span for most subscriptions and the wrong one for a component that needs the frame loop only while something settles. `manual` declares the hook without subscribing it, and the component owns the span:
+
+  ```js
+  class SliderItem extends withRaf(Base, { manual: true }) {
+    ticked() { … }                   // declared, not subscribed yet
+    onIndexChange() { this.$enable('ticked'); }
+    onSettled() { this.$disable('ticked'); }
+  }
+  ```
+
+  `$enable`/`$disable` are v3's `$services.enable('ticked')`/`.disable('ticked')` renamed onto the instance, so migrating a component is a rename. The mixin keeps a per-instance `hook → unsubscribe` map filled at construction, which is what lets one call reach the right layer when mixins are stacked and what makes `$enable` idempotent — repeated calls cannot produce two subscriptions. Both verbs are safe before mount and after destroy; everything is released on `$destroy()` whichever side subscribed it, and `$enable` on a terminated instance is a no-op rather than a subscription nothing would release. Reference counting does the rest: a suspended service with no other subscriber genuinely stops, frame loop included (asserted in `mixin.spec.ts` by watching `requestAnimationFrame`).
+
 - **No loops of their own.** `RafService` and the drag inertia subscribe to `scheduler.tick()`; `ScrollService` coalesces its events into one `read` per frame instead of debouncing; `ResizeService` is a `ResizeObserver`, which also means a subscriber is told the current size on subscribe rather than on the next resize. `RafService` collects the render functions its callbacks return itself — the shared primitive fans props out and expects nothing back.
 - **Props are flat, one per axis.** `ScrollProps` is `x`/`y`, `changedX`/`changedY`, `lastX`/`lastY`, `deltaX`/`deltaY`, `maxX`/`maxY`, `progressX`/`progressY`, `isUp`/`isRight`/`isDown`/`isLeft` — v3's spelling exactly, so a ported handler reads identically. The grouped objects (`last`, `delta`, `max`, `progress`, `direction`, `changed`) are gone, and with them the `ScrollDirection*` unions: v3 shipped both shapes, v4 ships one. `PointerProps` and `DragProps` follow the same `<name>X`/`<name>Y` convention, which flattens `origin`, `distance` and `final` too. `ResizeProps` was already flat. A handler destructures what it uses — `scrolled({ deltaY, isDown })` — instead of reaching through a group.
 - **What the simplification dropped.** `PointerService` is pointer-events-only and viewport-relative (v3 branched on `TouchEvent` and took a target element); `ResizeService` keeps `width`/`height`/`ratio`/`orientation`/`breakpoint` and drops `breakpoints`/`activeBreakpoints`; `DragService` drops `props.MODES` (the `DragMode` union types it) and fixes the `dragTreshold` spelling.

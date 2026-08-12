@@ -83,11 +83,19 @@
       <p>
         CSS scroll-snap does the scrolling.
         <code>Slider</code>
-        provides
-        <code>{ index, total }</code>
-        as a reactive signal;
+        provides an owner surface —
+        <code>{ state, goTo, goToItem }</code>
+        — through provide/inject;
         <code>SliderCount</code>
-        injects it — no handshake, no
+        subscribes to
+        <code>state</code>
+        and each slide calls
+        <code>goToItem()</code>
+        on click through
+        <code>$injectSync</code>
+        , so a control drives its coordinator with no
+        <code>$closest</code>
+        , no handshake and no
         <code>connectChildren</code>
         . Buttons emit a bubbling
         <code>slide</code>

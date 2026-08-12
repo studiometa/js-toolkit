@@ -8,7 +8,7 @@ import {
   type HandlerRegistration,
   type WatchChildrenCallbacks,
 } from './Base.js';
-import { Signal, type ContextKey } from './context.js';
+import type { ContextKey } from './context.js';
 import { registerComponent } from './registry.js';
 
 /**
@@ -166,48 +166,53 @@ export function component(config: BaseConfig) {
 }
 
 /**
- * Provide the decorated signal to the subtree (nearest provider wins) — the
- * field-decorator form of `$provide()`:
+ * Provide the decorated field to the subtree (nearest provider wins) — the
+ * field-decorator form of `$provide()`. The value is provided verbatim, so
+ * the field is whatever the key declares: a `Signal` for reactive state, an
+ * object of commands for an owner surface, an object of Signals for both.
  *
  *     class Slider extends Base {
  *       @provide(SliderContext)
- *       state = new Signal({ index: 0, total: 0 });
+ *       api = { state: new Signal({ index: 0, total: 0 }), goNext: () => this.goNext() };
  *     }
- *
- * A plain value is wrapped in a `Signal` automatically.
  */
-export function provide<T>(key: ContextKey<T>): ValueDecorator<Signal<T>> {
+export function provide<T>(key: ContextKey<T>): ValueDecorator<T> {
   return function decorate<This extends Base>(
     _target: unknown,
-    context: ValueDecoratorContext<This, Signal<T>>,
+    context: ValueDecoratorContext<This, T>,
   ) {
-    return withInitializer(context, function initialize(this: This, initial: Signal<T>) {
+    return withInitializer(context, function initialize(this: This, initial: T) {
       return this.$provide(key, initial);
     });
-  } as ValueDecorator<Signal<T>>;
+  } as ValueDecorator<T>;
 }
 
 /**
- * Resolve the nearest provided signal into the decorated field, now or when a
+ * Resolve the nearest provided value into the decorated field, now or when a
  * provider appears — the field stays `undefined` until then (the
  * field-decorator form of `$inject()`, shaped like Lit's `@consume`):
  *
  *     class SliderCount extends Base {
  *       @inject(SliderContext)
- *       state?: Signal<SliderState>;
+ *       accessor api: SliderApi | undefined;
  *     }
+ *
+ * The request is issued once, at construction, and is destroy-scoped like
+ * `$inject()`: a field still unresolved when the instance is destroyed is not
+ * requested again on remount. A consumer that may outlive several cycles
+ * waiting for its provider calls `$inject()` from `mounted()` instead.
  */
-export function inject<T>(key: ContextKey<T>): ValueObserver<Signal<T> | undefined> {
+export function inject<T>(key: ContextKey<T>): ValueObserver<T | undefined> {
   return function decorate<This extends Base>(
     _target: unknown,
-    context: ValueDecoratorContext<This, Signal<T> | undefined>,
+    context: ValueDecoratorContext<This, T | undefined>,
   ): void {
     context.addInitializer(function initialize(this: This) {
-      this.$inject(key).then((signal) => {
-        context.access.set(this, signal);
+      this.$inject(key).then((value) => {
+        context.access.set(this, value);
       });
     });
-  } as ValueObserver<Signal<T> | undefined>;
+  } as ValueObserver<T | undefined>;
 }
 
 /**

@@ -265,6 +265,132 @@ describe('service mixins', () => {
   });
 });
 
+describe('manual subscriptions', () => {
+  class ManualTicker extends withRaf(Base, { manual: true }) {
+    static config = { name: 'ManualTicker' };
+
+    ticks = 0;
+
+    ticked(): void {
+      this.ticks += 1;
+    }
+  }
+
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  it('declares the hook without subscribing it, until $enable', async () => {
+    const instance = new ManualTicker(render()).$mount();
+
+    await frames(3);
+    // Declared, not subscribed: `mounted()` left it off.
+    expect(instance.ticks).toBe(0);
+
+    instance.$enable('ticked');
+    await frames(3);
+    expect(instance.ticks).toBeGreaterThan(0);
+
+    const frozen = instance.ticks;
+    instance.$disable('ticked');
+    await frames(3);
+    expect(instance.ticks).toBe(frozen);
+
+    // And it resumes within the same mount cycle.
+    instance.$enable('ticked');
+    await frames(3);
+    expect(instance.ticks).toBeGreaterThan(frozen);
+
+    instance.$terminate();
+  });
+
+  it('cannot subscribe twice, whatever the number of $enable calls', async () => {
+    const instance = new ManualTicker(render()).$mount();
+
+    instance.$enable('ticked');
+    instance.$enable('ticked');
+    instance.$enable('ticked');
+
+    await frames(4);
+    const counted = instance.ticks;
+    // One subscription means at most one tick per frame — three would treble
+    // the count.
+    expect(counted).toBeGreaterThan(0);
+    expect(counted).toBeLessThanOrEqual(6);
+
+    // One `$disable` is enough to release it.
+    instance.$disable('ticked');
+    await frames(3);
+    expect(instance.ticks).toBe(counted);
+
+    instance.$terminate();
+  });
+
+  it('is safe before mount and after destroy, and releases on destroy', async () => {
+    const instance = new ManualTicker(render());
+
+    expect(() => instance.$enable('ticked')).not.toThrow();
+    await frames(2);
+    expect(instance.ticks).toBeGreaterThan(0);
+
+    instance.$mount();
+    instance.$destroy();
+    const frozen = instance.ticks;
+    await frames(3);
+    // Everything is released on destroy, manual or not.
+    expect(instance.ticks).toBe(frozen);
+
+    expect(() => {
+      instance.$disable('ticked');
+      instance.$enable('ticked');
+      instance.$disable('ticked');
+    }).not.toThrow();
+
+    instance.$terminate();
+    const afterTerminate = instance.ticks;
+    // A terminated instance never mounts again, so nothing would release a
+    // new subscription: `$enable` is a no-op rather than a leak.
+    expect(() => instance.$enable('ticked')).not.toThrow();
+    await frames(3);
+    expect(instance.ticks).toBe(afterTerminate);
+  });
+
+  it('stops the frame loop when nothing else needs it', async () => {
+    await settle();
+    const original = globalThis.requestAnimationFrame;
+    let calls = 0;
+    globalThis.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+      calls += 1;
+      return original.call(globalThis, callback);
+    }) as typeof requestAnimationFrame;
+
+    try {
+      const instance = new ManualTicker(render()).$mount();
+      await sleep(100);
+      // Nothing subscribed, nothing queued: no frame was ever requested.
+      expect(calls).toBe(0);
+
+      instance.$enable('ticked');
+      await sleep(100);
+      expect(calls).toBeGreaterThan(2);
+      expect(instance.ticks).toBeGreaterThan(0);
+
+      instance.$disable('ticked');
+      // Let the frame already requested run out.
+      await sleep(50);
+      const stopped = calls;
+      const ticks = instance.ticks;
+
+      await sleep(150);
+      // The rAF loop is genuinely gone, not merely quiet.
+      expect(calls).toBe(stopped);
+      expect(instance.ticks).toBe(ticks);
+
+      instance.$terminate();
+    } finally {
+      globalThis.requestAnimationFrame = original;
+    }
+  });
+});
+
 describe('service decorators', () => {
   it('is the mixin with a build step', async () => {
     @withRaf()

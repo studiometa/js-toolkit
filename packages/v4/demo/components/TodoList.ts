@@ -1,10 +1,11 @@
-import { Base, createContext, type DelegatedEvent } from '../../src/index.js';
+import { Base, Signal, createContext, type DelegatedEvent } from '../../src/index.js';
 
 /**
  * The TodoList demo from the playground: registry auto-mount, delegation,
  * `$watchChildren`, provide/inject, and native view transitions.
  */
-export const CountContext = createContext<number>('todo-count');
+// The value travels verbatim, so a reactive count is a provided `Signal`.
+export const CountContext = createContext<Signal<number>>('todo-count');
 
 export class TodoItem extends Base<{
   $refs: { remove: HTMLButtonElement };
@@ -44,7 +45,7 @@ export class TodoList extends Base<{
     components: { TodoItem, TodoCount },
   };
 
-  count = this.$provide(CountContext, 0);
+  count = this.$provide(CountContext, new Signal(0));
 
   items = this.$watchChildren<TodoItem>('TodoItem', {
     added: () => this.sync(),

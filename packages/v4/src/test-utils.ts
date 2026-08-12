@@ -3,7 +3,7 @@
  * Not part of the public API.
  */
 import { Base } from './Base.js';
-import { createContext } from './context.js';
+import { Signal, createContext } from './context.js';
 import { registerComponent } from './registry.js';
 import { nextFrame, scheduler } from './scheduler.js';
 import type { DelegatedEvent } from './Base.js';
@@ -32,7 +32,9 @@ export function getInstance<T extends Base = Base>(el: Element | null, name: str
   return el?.__base__?.get(name) as T;
 }
 
-export const CountContext = createContext<number>('todo-count');
+// Reactive state is provided as a `Signal`: the value travels verbatim, so
+// the key says so.
+export const CountContext = createContext<Signal<number>>('todo-count');
 
 export class TodoItem extends Base {
   static config = { name: 'TodoItem', refs: ['remove'] };
@@ -71,7 +73,7 @@ export class TodoList extends Base {
     components: { TodoItem, TodoCount },
   };
 
-  count = this.$provide(CountContext, 0);
+  count = this.$provide(CountContext, new Signal(0));
 
   items = this.$watchChildren<TodoItem>('TodoItem', {
     added: () => this.sync(),
