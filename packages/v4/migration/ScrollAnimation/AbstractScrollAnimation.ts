@@ -37,11 +37,11 @@ export class AbstractScrollAnimation extends Base<AbstractScrollAnimationProps> 
   static config: BaseConfig = {
     name: 'AbstractScrollAnimation',
     options: {
-      playRange: { type: Array, default: [0, 1] },
-      from: { type: Object, default: {} },
-      to: { type: Object, default: {} },
-      keyframes: { type: Array, default: [] },
-      easing: { type: Array, default: [0, 0, 1, 1] },
+      playRange: { type: Array, default: () => [0, 1] },
+      from: { type: Object, default: () => ({}) },
+      to: { type: Object, default: () => ({}) },
+      keyframes: { type: Array, default: () => [] },
+      easing: { type: Array, default: () => [0, 0, 1, 1] },
     },
   };
 

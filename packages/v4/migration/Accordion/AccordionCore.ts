@@ -33,7 +33,7 @@ export class AccordionCore extends Base<AccordionProps> {
     name: 'Accordion',
     options: {
       autoclose: Boolean,
-      item: { type: Object, default: {} },
+      item: { type: Object, default: () => ({}) },
     },
   };
 
