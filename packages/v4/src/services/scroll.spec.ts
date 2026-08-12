@@ -196,6 +196,38 @@ describe('useScroll(element)', () => {
     el.remove();
   });
 
+  it('never reports a negative extent, whatever the scrollbars cost', async () => {
+    // `measure()` subtracts two values that disagree about the scrollbar: for
+    // the window it is `scrollWidth` (which excludes it) minus `innerWidth`
+    // (which counts a classic one). A page that only scrolls vertically then
+    // produces a maximum negative by the scrollbar's width wherever scrollbars
+    // take up space — desktop Chrome and Firefox — and a negative maximum
+    // contradicts the prop and inverts every consumer that divides by it.
+    //
+    // This runner uses overlay scrollbars, so the subtraction lands on `0`
+    // here and the assertion cannot fail for the reason it is written for.
+    // It is the guard for the environments that do, and for the fractional
+    // zoom rounding that reaches the element branch.
+    const tall = document.createElement('div');
+    tall.setAttribute('style', 'height:5000px');
+    document.body.append(tall);
+
+    const service = useScroll();
+    const unsubscribe = service.subscribe(() => {});
+    await settle();
+
+    const { maxX, maxY, progressX, progressY } = service.props();
+    expect(maxX).toBeGreaterThanOrEqual(0);
+    expect(maxY).toBeGreaterThanOrEqual(0);
+    // `-0` would satisfy `>= 0`, so assert the sign as well.
+    expect(Object.is(progressX, -0)).toBe(false);
+    expect(progressX).toBeGreaterThanOrEqual(0);
+    expect(progressY).toBeGreaterThanOrEqual(0);
+
+    unsubscribe();
+    tall.remove();
+  });
+
   it('reports a positive progress in a right-to-left container', async () => {
     const el = document.createElement('div');
     el.setAttribute('dir', 'rtl');

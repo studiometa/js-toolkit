@@ -83,15 +83,25 @@ function measure(target: ScrollTarget) {
     return {
       x: target.scrollX,
       y: target.scrollY,
-      maxX: scrollingElement.scrollWidth - target.innerWidth,
-      maxY: scrollingElement.scrollHeight - target.innerHeight,
+      // Clamped, because the two terms do not agree about the scrollbar:
+      // `innerWidth` counts the classic one, `scrollWidth` does not. On a page
+      // that only scrolls vertically — the common case — the subtraction is
+      // therefore negative by the scrollbar's width wherever scrollbars take
+      // up space, which is desktop Chrome and Firefox. A negative maximum
+      // contradicts what the prop promises, and it made every consumer that
+      // divides by it read backwards.
+      maxX: Math.max(0, scrollingElement.scrollWidth - target.innerWidth),
+      maxY: Math.max(0, scrollingElement.scrollHeight - target.innerHeight),
     };
   }
   return {
     x: target.scrollLeft,
     y: target.scrollTop,
-    maxX: target.scrollWidth - target.clientWidth,
-    maxY: target.scrollHeight - target.clientHeight,
+    // Clamped for the same reason, though the element case is better behaved:
+    // `scrollWidth` is specified never to fall under `clientWidth`, so this
+    // guards the rounding at fractional zoom rather than a whole scrollbar.
+    maxX: Math.max(0, target.scrollWidth - target.clientWidth),
+    maxY: Math.max(0, target.scrollHeight - target.clientHeight),
   };
 }
 
@@ -113,7 +123,12 @@ function directionOf(delta: number): ScrollDirection {
 }
 
 function progressFor(position: number, max: number): number {
-  return max === 0 ? 0 : Math.abs(position) / max;
+  // `max <= 0` rather than `max === 0`: the extents are clamped at the source,
+  // and this is the second lock on the same door — a maximum that is not
+  // positive means the axis does not scroll, which puts it at its start. It
+  // also avoids handing back `-0`, which compares equal to `0` and prints as
+  // `-0` in every log a consumer writes.
+  return max <= 0 ? 0 : Math.abs(position) / max;
 }
 
 function createScrollService(target: ScrollTarget): Service<ScrollProps> {
