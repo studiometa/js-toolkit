@@ -2,7 +2,8 @@ import { injectContext, injectContextSync, provideContext, type ContextKey } fro
 import { domVersion } from './dom-mutations.js';
 import { scheduler, type ScheduledTask } from './scheduler.js';
 import type { MountStrategy } from './mount-strategies.js';
-import { kebabCase, pascalCase, selectorFor } from './utils.js';
+import { selectorFor } from './utils/selectors.js';
+import { kebabCase, pascalCase } from './utils/strings.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
 
 export const SOURCE: unique symbol = Symbol('emitter');

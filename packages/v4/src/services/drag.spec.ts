@@ -116,27 +116,134 @@ describe('useDrag', () => {
     expect(last.at(-1)?.x).toBe(last.at(-1)?.finalX);
   });
 
-  it('computes the settle position in closed form', () => {
+  it('computes the settle position in closed form, and does not revise it', async () => {
     const el = render();
     // Barely any decay per frame, which is what made the old term-by-term
     // walk run ~690 000 iterations — twice per drop, blocking the
-    // `pointerup` for 2.3 to 4.4 ms.
+    // `pointerup` for 2.3 to 4.4 ms. A coast this slow never finishes, which
+    // is the point: the destination is known without travelling to it.
     const dampFactor = 0.99999;
-    const drops: DragProps[] = [];
+    const seen: DragProps[] = [];
     const unsubscribe = useDrag(el, { dampFactor }).subscribe((props) => {
-      if (props.mode === 'drop') {
-        drops.push({ ...props });
-      }
+      seen.push({ ...props });
     });
 
     grab(el, 0, 0);
     move(50, 0);
     release();
-    unsubscribe();
+    const drop = seen.at(-1) as DragProps;
 
-    // The exact sum, where walking it stopped 10 000 px short of it. Timing
-    // is not asserted: the value is what proves the loop is gone.
-    expect(drops[0].finalX).toBe(50 + 50 / (1 - dampFactor));
+    // Finite and far away, where the walk would have blocked to reach it.
+    expect(Number.isFinite(drop.finalX)).toBe(true);
+    expect(drop.finalX).toBeGreaterThan(50);
+
+    await frames(5);
+    const coasting = seen.filter((props) => props.mode === DRAG_MODES.INERTIA);
+
+    // The invariant, asserted without assuming how the velocity was measured:
+    // every frame moves and none of them moves the destination. A walk that
+    // recomputed the sum as the delta shrank would drift instead.
+    expect(coasting.length).toBeGreaterThan(1);
+    for (const props of coasting) {
+      expect(props.finalX).toBe(drop.finalX);
+      expect(props.finalY).toBe(drop.finalY);
+    }
+    expect(coasting.at(-1)?.x).toBeGreaterThan(coasting[0].x);
+
+    unsubscribe();
+  });
+
+  it('coasts to the position announced at the drop, whatever the frames cost', async () => {
+    const el = render();
+    const seen: DragProps[] = [];
+    const unsubscribe = useDrag(el, { dampFactor: 0.5 }).subscribe((props) => {
+      seen.push({ ...props });
+    });
+
+    grab(el, 0, 0);
+    move(40, 20);
+    release();
+    const drop = seen.at(-1) as DragProps;
+
+    await frames(40);
+    const stopped = seen.at(-1) as DragProps;
+
+    // The drop's promise, kept to the pixel. Real frames here are whatever
+    // this machine delivered — the assertion holds because each step
+    // integrates the decay across its own elapsed time rather than counting
+    // frames, so a stutter cannot shorten the coast.
+    expect(stopped.mode).toBe(DRAG_MODES.STOP);
+    expect(stopped.x).toBe(drop.finalX);
+    expect(stopped.y).toBe(drop.finalY);
+    expect(drop.finalX).toBeGreaterThan(40);
+
+    unsubscribe();
+  });
+
+  it('does not fling when the pointer held still before letting go', async () => {
+    const el = render();
+    const seen: DragProps[] = [];
+    const unsubscribe = useDrag(el).subscribe((props) => {
+      seen.push({ ...props });
+    });
+
+    grab(el, 0, 0);
+    move(120, 0);
+    // Held still. The last move's delta used to survive the pause intact, so
+    // letting go after thinking about it threw as hard as letting go mid-swipe.
+    await frames(25);
+    release();
+    const drop = seen.at(-1) as DragProps;
+
+    expect(drop.mode).toBe(DRAG_MODES.DROP);
+    // A couple of pixels of drift is fine; a fling is tens or hundreds.
+    expect(Math.abs(drop.finalX - drop.x)).toBeLessThan(5);
+
+    unsubscribe();
+  });
+
+  it('does not amplify the throw when the release looks older than the move', async () => {
+    const el = render();
+    const seen: DragProps[] = [];
+    const unsubscribe = useDrag(el).subscribe((props) => {
+      seen.push({ ...props });
+    });
+
+    grab(el, 0, 0);
+    // Built now, dispatched after the move, so its `timeStamp` is *earlier*
+    // than the sample it will be compared against — which is what a mismatched
+    // clock looks like from inside the service. Unguarded, the negative idle
+    // ran the decay backwards and multiplied the velocity.
+    const staleRelease = new PointerEvent('pointerup');
+    move(120, 0);
+    window.dispatchEvent(staleRelease);
+    const drop = seen.at(-1) as DragProps;
+
+    expect(drop.mode).toBe(DRAG_MODES.DROP);
+    expect(Number.isFinite(drop.finalX)).toBe(true);
+    // A plausible throw for a 120 px move, not a launch.
+    expect(drop.finalX).toBeLessThan(drop.x + 2000);
+
+    unsubscribe();
+  });
+
+  it('still flings when the pointer was moving as it let go', async () => {
+    const el = render();
+    const seen: DragProps[] = [];
+    const unsubscribe = useDrag(el).subscribe((props) => {
+      seen.push({ ...props });
+    });
+
+    grab(el, 0, 0);
+    move(60, 0);
+    move(120, 0);
+    release();
+    const drop = seen.at(-1) as DragProps;
+
+    // The other side of the same guard: a live gesture must still throw.
+    expect(drop.finalX).toBeGreaterThan(drop.x + 20);
+
+    unsubscribe();
   });
 
   it('drops when the button is released outside the window', () => {

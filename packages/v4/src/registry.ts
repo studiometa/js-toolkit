@@ -6,7 +6,8 @@ import {
   type DOMMutationRecord,
 } from './dom-mutations.js';
 import { applyMountStrategy, MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
-import { kebabCase, selectorFor } from './utils.js';
+import { selectorFor } from './utils/selectors.js';
+import { kebabCase } from './utils/strings.js';
 
 const registry = new Map<string, BaseConstructor>();
 
