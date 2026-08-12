@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { smoothTo } from './smoothTo.js';
-import { frames } from './test-utils.js';
+import { countRequestedFrames, frames } from '../test-utils.js';
 
 describe('smoothTo', () => {
   it('starts at its start value and does not move on its own', async () => {
@@ -15,11 +15,11 @@ describe('smoothTo', () => {
   });
 
   it('travels to the target and stops there exactly', async () => {
-    const x = smoothTo(0);
+    const x = smoothTo(0, { damping: 0.9 });
     x(100);
     expect(x.isMoving).toBe(true);
 
-    await frames(60);
+    await frames(15);
     expect(x()).toBe(100);
     // Arrived means released: nothing is left holding the frame open.
     expect(x.isMoving).toBe(false);
@@ -53,8 +53,8 @@ describe('smoothTo', () => {
     // The consequence of the chains: the value sped up with the number of
     // calls, so a smoothTo driven from a scroll handler moved faster the more
     // the user scrolled.
-    const once = smoothTo(0);
-    const many = smoothTo(0);
+    const once = smoothTo(0, { damping: 0.5 });
+    const many = smoothTo(0, { damping: 0.5 });
     once(100);
     for (let index = 0; index < 20; index += 1) {
       many(100);
@@ -67,37 +67,30 @@ describe('smoothTo', () => {
   });
 
   it('does not ask for a frame while it is at rest', async () => {
-    const x = smoothTo(0);
+    const x = smoothTo(0, { damping: 0.9 });
     x(50);
-    await frames(60);
+    await frames(15);
     expect(x.isMoving).toBe(false);
 
     // Nothing else is subscribed, so the raf service released its tick and the
     // scheduler has no reason to want another frame. `frames()` requests its
     // own, so those four are the floor.
-    let requested = 0;
-    const original = globalThis.requestAnimationFrame;
-    globalThis.requestAnimationFrame = ((callback: FrameRequestCallback) => {
-      requested += 1;
-      return original.call(globalThis, callback);
-    }) as typeof requestAnimationFrame;
-    await frames(4);
-    globalThis.requestAnimationFrame = original;
+    const requested = await countRequestedFrames(() => frames(4));
 
     expect(requested).toBe(4);
     x.destroy();
   });
 
   it('picks up a target that changes mid-flight', async () => {
-    const x = smoothTo(0);
+    const x = smoothTo(0, { damping: 0.5 });
     x(100);
-    await frames(4);
+    await frames(2);
     const midway = x();
     expect(midway).toBeGreaterThan(0);
     expect(midway).toBeLessThan(100);
 
     x(0);
-    await frames(60);
+    await frames(25);
     expect(x()).toBe(0);
     x.destroy();
   });
@@ -113,11 +106,11 @@ describe('smoothTo', () => {
 
   it('springs when a spring parameter is named', async () => {
     // v3 inferred the mode from the parameters, which is the useful default.
-    const x = smoothTo(0, { stiffness: 0.2 });
+    const x = smoothTo(0, { stiffness: 0.6, damping: 0.4 });
     const peak: number[] = [];
     x.subscribe((value) => peak.push(value));
     x(100);
-    await frames(90);
+    await frames(40);
 
     expect(x()).toBe(100);
     // A spring overshoots; damping never does.
@@ -126,11 +119,11 @@ describe('smoothTo', () => {
   });
 
   it('does not overshoot when damping', async () => {
-    const x = smoothTo(0, { damping: 0.3 });
+    const x = smoothTo(0, { damping: 0.9 });
     const seen: number[] = [];
     x.subscribe((value) => seen.push(value));
     x(100);
-    await frames(90);
+    await frames(15);
 
     expect(x()).toBe(100);
     expect(Math.max(...seen)).toBe(100);

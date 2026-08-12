@@ -1,6 +1,6 @@
-import { useRaf } from './services/raf.js';
-import { toggle } from './services/toggle.js';
-import { damp, spring, type SpringOptions } from './utils/maths.js';
+import { useRaf } from '../services/raf.js';
+import { toggle } from '../services/toggle.js';
+import { damp, spring, type SpringOptions } from './maths.js';
 
 export interface SmoothToOptions extends SpringOptions {
   /**

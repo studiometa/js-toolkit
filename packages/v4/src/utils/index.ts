@@ -9,4 +9,5 @@
 
 export * from './maths.js';
 export * from './selectors.js';
+export * from './smoothTo.js';
 export * from './strings.js';
