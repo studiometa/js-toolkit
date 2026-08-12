@@ -1,6 +1,6 @@
 import { scheduler, type TickProps } from '../scheduler.js';
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
-import { createService, type Service } from './Service.js';
+import { createService, type Service } from './service.js';
 
 /**
  * The scheduler's tick props, verbatim: the raf service is a subscription

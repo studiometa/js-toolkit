@@ -1,6 +1,6 @@
 import { scheduler, type ScheduledTask } from '../scheduler.js';
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
-import { createService, perTarget, type Service } from './Service.js';
+import { createService, perTarget, type Service } from './service.js';
 
 /** Anything that scrolls: the window, or an element with an overflow. */
 export type ScrollTarget = Element | Window;

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { frames } from '../test-utils.js';
-import { useDrag, type DragMode, type DragProps } from './DragService.js';
+import { useDrag, type DragMode, type DragProps } from './drag.js';
 
 function render(): HTMLElement {
   const el = document.createElement('div');

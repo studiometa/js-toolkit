@@ -2,14 +2,14 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from '../Base.js';
 import { registerComponent } from '../registry.js';
 import { frames, getInstance, resetDom, settle } from '../test-utils.js';
-import { withDrag } from './DragService.js';
-import { withRaf } from './RafService.js';
-import { withResize } from './ResizeService.js';
-import { withScroll } from './ScrollService.js';
-import type { DragProps } from './DragService.js';
-import type { RafProps } from './RafService.js';
-import type { ResizeProps } from './ResizeService.js';
-import type { ScrollProps } from './ScrollService.js';
+import { withDrag } from './drag.js';
+import { withRaf } from './raf.js';
+import { withResize } from './resize.js';
+import { withScroll } from './scroll.js';
+import type { DragProps } from './drag.js';
+import type { RafProps } from './raf.js';
+import type { ResizeProps } from './resize.js';
+import type { ScrollProps } from './scroll.js';
 
 afterEach(resetDom);
 

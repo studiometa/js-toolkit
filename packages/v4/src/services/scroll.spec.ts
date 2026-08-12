@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { settle } from '../test-utils.js';
-import { useScroll, useWindowScroll, type ScrollProps } from './ScrollService.js';
+import { useScroll, useWindowScroll, type ScrollProps } from './scroll.js';
 
 /**
  * The props object is mutated in place, so every emission has to be read at

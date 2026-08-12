@@ -1,5 +1,5 @@
 import type { Base, BaseConstructor, BaseProps, MountedReturn } from '../Base.js';
-import type { Service } from './Service.js';
+import type { Service } from './service.js';
 
 /**
  * Options every service mixin accepts, on top of the ones its service takes.

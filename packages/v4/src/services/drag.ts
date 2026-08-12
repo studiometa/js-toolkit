@@ -1,6 +1,6 @@
 import { scheduler } from '../scheduler.js';
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
-import { createService, perTarget, type Service } from './Service.js';
+import { createService, perTarget, type Service } from './service.js';
 
 /**
  * Where a drag is in its cycle:

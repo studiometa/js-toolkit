@@ -1,5 +1,5 @@
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
-import { createService, perTarget, type Service } from './Service.js';
+import { createService, perTarget, type Service } from './service.js';
 
 export type ResizeOrientation = 'square' | 'landscape' | 'portrait';
 

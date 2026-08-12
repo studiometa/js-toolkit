@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { usePointer, type PointerProps } from './PointerService.js';
+import { usePointer, type PointerProps } from './pointer.js';
 
 function snapshot(props: PointerProps) {
   return { ...props };

@@ -1,5 +1,5 @@
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
-import { createService, type Service } from './Service.js';
+import { createService, type Service } from './service.js';
 
 /**
  * Props are flat, one per axis, the same `<name>X`/`<name>Y` spelling the

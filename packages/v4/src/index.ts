@@ -83,7 +83,7 @@ export {
   type DragMode,
   type DragOptions,
   type DragProps,
-} from './services/DragService.js';
+} from './services/drag.js';
 export {
   createServiceMixin,
   type MixedClass,
@@ -98,7 +98,7 @@ export {
   type PointerHook,
   type PointerMixinOptions,
   type PointerProps,
-} from './services/PointerService.js';
+} from './services/pointer.js';
 export {
   useRaf,
   withRaf,
@@ -106,7 +106,7 @@ export {
   type RafMixinOptions,
   type RafProps,
   type RafRender,
-} from './services/RafService.js';
+} from './services/raf.js';
 export {
   BREAKPOINTS,
   getBreakpoints,
@@ -118,7 +118,7 @@ export {
   type ResizeMixinOptions,
   type ResizeOrientation,
   type ResizeProps,
-} from './services/ResizeService.js';
+} from './services/resize.js';
 export {
   useScroll,
   useWindowScroll,
@@ -127,13 +127,13 @@ export {
   type ScrollMixinOptions,
   type ScrollProps,
   type ScrollTarget,
-} from './services/ScrollService.js';
+} from './services/scroll.js';
 export {
   createService,
   perTarget,
   type Service,
   type ServiceCallback,
   type ServiceDefinition,
-} from './services/Service.js';
+} from './services/service.js';
 export { kebabCase, pascalCase } from './utils.js';
 export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';

@@ -7,7 +7,7 @@ import {
   useResize,
   useWindowSize,
   type ResizeProps,
-} from './ResizeService.js';
+} from './resize.js';
 
 function snapshot(props: ResizeProps): ResizeProps {
   return { ...props };

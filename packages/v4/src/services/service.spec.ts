@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createService, perTarget } from './Service.js';
+import { createService, perTarget } from './service.js';
 
 describe('createService', () => {
   it('starts with the first subscriber and stops with the last', () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { scheduler } from '../scheduler.js';
 import { frames } from '../test-utils.js';
-import { useRaf, type RafProps } from './RafService.js';
+import { useRaf, type RafProps } from './raf.js';
 
 describe('useRaf', () => {
   it('ticks every frame with the elapsed time', async () => {
