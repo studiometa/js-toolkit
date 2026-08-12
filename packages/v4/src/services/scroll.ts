@@ -23,7 +23,12 @@ export interface ScrollProps {
   /** Furthest scrollable position, `0` when the axis does not scroll. */
   maxX: number;
   maxY: number;
-  /** Position over the maximum, from `0` to `1`. */
+  /**
+   * Position over the maximum, from `0` to `1`. Distance travelled from the
+   * start of the axis, so a right-to-left container — where `scrollLeft`
+   * counts *down* from `0` at the right edge — reports the same `0` to `1`
+   * as any other.
+   */
   progressX: number;
   progressY: number;
   isUp: boolean;
@@ -81,6 +86,18 @@ function measure(target: ScrollTarget) {
   };
 }
 
+/**
+ * How far along the axis the target is, as a distance travelled from its
+ * start rather than as a raw position over the maximum. A right-to-left
+ * container scrolls from `0` at the right edge *down* to `-maxX`, and the
+ * maximum stays positive, so dividing one by the other gave a negative
+ * progress — measured `progressX: -0.56` at `scrollLeft: -500` with
+ * `maxX: 900`.
+ */
+function progressFor(position: number, max: number): number {
+  return max === 0 ? 1 : Math.abs(position) / max;
+}
+
 function createScrollService(target: ScrollTarget): Service<ScrollProps> {
   const initial = measure(target);
   const props: ScrollProps = {
@@ -94,8 +111,8 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
     deltaY: 0,
     maxX: initial.maxX,
     maxY: initial.maxY,
-    progressX: initial.maxX === 0 ? 1 : initial.x / initial.maxX,
-    progressY: initial.maxY === 0 ? 1 : initial.y / initial.maxY,
+    progressX: progressFor(initial.x, initial.maxX),
+    progressY: progressFor(initial.y, initial.maxY),
     isUp: false,
     isRight: false,
     isDown: false,
@@ -118,8 +135,8 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
     props.deltaY = y - lastY;
     props.maxX = maxX;
     props.maxY = maxY;
-    props.progressX = maxX === 0 ? 1 : x / maxX;
-    props.progressY = maxY === 0 ? 1 : y / maxY;
+    props.progressX = progressFor(x, maxX);
+    props.progressY = progressFor(y, maxY);
     props.isUp = y < lastY;
     props.isRight = x > lastX;
     props.isDown = y > lastY;

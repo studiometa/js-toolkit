@@ -160,6 +160,29 @@ describe('useScroll(element)', () => {
     el.remove();
   });
 
+  it('reports a positive progress in a right-to-left container', async () => {
+    const el = document.createElement('div');
+    el.setAttribute('dir', 'rtl');
+    el.setAttribute('style', 'width:100px;height:100px;overflow:auto');
+    el.innerHTML = '<div style="width:1000px;height:50px"></div>';
+    document.body.append(el);
+
+    const service = useScroll(el);
+    const unsubscribe = service.add(() => {});
+    // Right to left, `scrollLeft` counts down from `0` at the right edge
+    // while the maximum stays positive.
+    el.scrollLeft = -500;
+    el.dispatchEvent(new Event('scroll'));
+    await settle();
+
+    expect(service.props().x).toBe(-500);
+    expect(service.props().maxX).toBe(900);
+    expect(service.props().progressX).toBeCloseTo(500 / 900, 5);
+
+    unsubscribe();
+    el.remove();
+  });
+
   it('keeps one service per element, each with its own subscribers', async () => {
     const first = makeScroller();
     const second = makeScroller();
