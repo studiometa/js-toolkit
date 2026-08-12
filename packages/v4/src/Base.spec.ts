@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base, type BaseConfig, type RefEvent } from './Base.js';
+import { registerComponent } from './registry.js';
 import {
   getInstance,
   renderTodoList,
@@ -264,6 +265,31 @@ describe('$refs', () => {
     el.innerHTML = '';
     expect(instance.$refs.title).toBeUndefined();
     expect(instance.$refs.items).toHaveLength(0);
+  });
+
+  it('does not steal component records when read before observer delivery', async () => {
+    class Inserted extends Base {
+      static config = { name: 'RefReadInserted' };
+    }
+
+    class Owner extends Base {
+      static config = { name: 'RefReadOwner', refs: ['item'] };
+    }
+
+    registerComponent(Inserted);
+    const root = document.createElement('div');
+    document.body.append(root);
+    const owner = new Owner(root).$mount();
+
+    root.innerHTML =
+      '<span data-ref="item"></span><span data-component="RefReadInserted"></span>';
+
+    // This drains `MutationObserver.takeRecords()` to make the lookup
+    // synchronous. The same records must remain available to the registry.
+    expect(owner.$refs.item).toBe(root.querySelector('[data-ref="item"]'));
+
+    await settle();
+    expect(getInstance(root.lastElementChild, 'RefReadInserted').$isMounted).toBe(true);
   });
 });
 

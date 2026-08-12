@@ -1,5 +1,5 @@
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
-import { domVersion } from './dom-version.js';
+import { domVersion } from './dom-mutations.js';
 import { scheduler, type ScheduledTask } from './scheduler.js';
 import type { MountStrategy } from './mount-strategies.js';
 import { kebabCase, pascalCase, selectorFor } from './utils.js';

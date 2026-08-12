@@ -1,10 +1,9 @@
 import { Base, type BaseConstructor } from './Base.js';
+import { setDOMMutationProcessor } from './dom-mutations.js';
 import { applyMountStrategy, MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
-import { scheduler } from './scheduler.js';
 import { selectorFor } from './utils.js';
 
 const registry = new Map<string, BaseConstructor>();
-let observer: MutationObserver | null = null;
 
 /**
  * Teardown for the mount strategy watching each element/component pair.
@@ -35,7 +34,7 @@ export function registerComponent(ComponentClass: BaseConstructor): void {
     }
   }
 
-  observe();
+  setDOMMutationProcessor(processMutations);
   scan(document.documentElement, name);
 }
 
@@ -150,19 +149,16 @@ function destroyWithin(node: Node): void {
   }
 }
 
-function observe(): void {
-  if (observer) {
-    return;
-  }
-  observer = new MutationObserver((records) => {
-    for (const record of records) {
-      for (const node of record.addedNodes) {
-        scan(node);
-      }
-      for (const node of record.removedNodes) {
-        scheduler.background(() => destroyWithin(node));
-      }
+function processMutations(records: readonly MutationRecord[]): void {
+  for (const record of records) {
+    if (record.type !== 'childList') {
+      continue;
     }
-  });
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+    for (const node of record.addedNodes) {
+      scan(node);
+    }
+    for (const node of record.removedNodes) {
+      destroyWithin(node);
+    }
+  }
 }
