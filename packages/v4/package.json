@@ -5,7 +5,8 @@
   "type": "module",
   "description": "v4 prototype — tested in a real browser through Vitest browser mode",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./utils": "./src/utils/index.ts"
   },
   "scripts": {
     "test": "vitest run",
