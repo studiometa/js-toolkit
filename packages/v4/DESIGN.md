@@ -364,6 +364,31 @@ A service is a shared source of props components subscribe to: `ticked`, `scroll
 - **What the simplification dropped.** `PointerService` is pointer-events-only and viewport-relative (v3 branched on `TouchEvent` and took a target element); `ResizeService` keeps `width`/`height`/`ratio`/`orientation`/`breakpoint` and drops `breakpoints`/`activeBreakpoints`; `DragService` drops `props.MODES` (the `DragMode` union types it) and fixes the `dragTreshold` spelling.
 - **Breakpoints are configuration, not a constant.** `setBreakpoints()` replaces the named set — the values v3 ships are only the default — and the matching `MediaQueryList` objects are built once instead of once per breakpoint per resize, which measured 5.2× slower. When `defineFeatures` lands it carries the set; this setter is what it will call.
 
+## 9. Animation — what v4 ships, and what it does not
+
+**Decided (2026-08-12): v4 does not ship `tween` or `animate`.**
+
+The usage data across `@studiometa/ui` is one-sided:
+
+| utility            | real consumers in ui                                                              |
+| ------------------ | --------------------------------------------------------------------------------- |
+| `animate` (719 ln) | **1** — `AbstractScrollAnimation`, which never plays it, only calls `.progress()` |
+| `tween`            | **0**                                                                             |
+| `transition`       | **5** — `Modal`, `Tabs`, `Panel`, `AccordionItem`, `withTransition`               |
+
+The player is the part nobody uses. The 719 lines exist to own a rAF loop, a per-element registry of running animations and a `start`/`pause`/`play`/`finish` surface, and ui's only consumer scrubs a progress value instead. Meanwhile the most-used utility of the three is not an animation engine at all — `transition` is a CSS-class state machine.
+
+This is already the de facto state: `src/` contains no animation utility of any kind. The decision is therefore about what gets **promoted**, not what gets deleted.
+
+**Survives, to be promoted from `migration/utils/` into `src/`:**
+
+- the keyframes interpolator — `compile(keyframes, { easing }) => (progress, size) => styles`, pure, no DOM writes and no scheduling of its own, so the caller hands the write to the scheduler. ~150 lines including `cubicBezier`, replacing the `@motionone/easing` dependency.
+- `transition` — both the class form and the inline-style form, since `AccordionItem` animates a measured pixel height.
+
+**Out of core, into a separate `ui-animation` package:** time-based playback, springs, stagger, sequencing, morphing and text splitting. Two entry points over one package — Motion as declarative components (`data-component="Motion"`, its own props as `data-option-*`), GSAP as a lifecycle/scoping decorator (`gsap.context()` bound to the mount cycle) plus thin `Gsap`/`GsapTimeline` components. Engine-specific vocabulary in both cases: Motion's props are its API and port faithfully, GSAP's API is code and only ever maps lossily onto attributes.
+
+**Not the engine's job:** `exit` and `layout`/`layoutId` need framework-owned rendering, which the DOM does not give us — a MutationObserver fires after the element is gone and after layout changed. Native View Transitions already solve both, and are in core (section 7).
+
 ## Kept from the existing #694 plan (unchanged)
 
 - Remove `LoadService`, `KeyService`; simplify `ResizeService`, `PointerService`; `MutationService` internal to the registry. (Done — see section 8.)
