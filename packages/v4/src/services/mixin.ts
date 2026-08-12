@@ -10,76 +10,6 @@ export interface ServiceMixinOptions<Target, Host = Base> {
    * default target — the window, the viewport, the component's root element.
    */
   target?: (instance: Host) => Target;
-  /**
-   * Declare the hook without subscribing it: `mounted()` leaves it off, and
-   * the component turns it on and off itself with `$enable(hook)` /
-   * `$disable(hook)`.
-   *
-   * This is what keeps a service honest about doing no work while nobody
-   * needs it — a component that only wants the frame loop while a value
-   * settles releases it as soon as it has, instead of holding the loop open
-   * for the lifetime of the page.
-   */
-  manual?: boolean;
-}
-
-/**
- * The v3 `$services.enable()` / `.disable()` verbs, on the instance: a
- * subscription can be suspended and resumed **within** one mount cycle.
- *
- * Both are safe before mount and after destroy, and `$enable()` is
- * idempotent — a hook cannot end up subscribed twice.
- */
-export interface ServiceControls {
-  /** Subscribe the named hook now, if it is not subscribed already. */
-  $enable(hook: string): void;
-  /** Release the named hook's subscription, if it has one. */
-  $disable(hook: string): void;
-}
-
-interface ServiceSubscription {
-  /** Subscribe, returning the unsubscribe. */
-  subscribe(): () => void;
-  /** The live unsubscribe, or `null` while the hook is suspended. */
-  unsubscribe: (() => void) | null;
-}
-
-/**
- * Per-instance `hook → subscription` map, filled by each mixin layer at
- * construction. It is shared by every layer, so `$enable('scrolled')` called
- * on a class built from stacked mixins finds the layer that owns the hook.
- */
-const SERVICE_SUBSCRIPTIONS: unique symbol = /* @__PURE__ */ Symbol('service subscriptions');
-
-type WithSubscriptions = { [SERVICE_SUBSCRIPTIONS]?: Map<string, ServiceSubscription> };
-
-function subscriptionsOf(instance: unknown): Map<string, ServiceSubscription> {
-  const host = instance as WithSubscriptions;
-  return (host[SERVICE_SUBSCRIPTIONS] ??= new Map());
-}
-
-function enableHook(instance: unknown, hook: string): void {
-  const subscription = subscriptionsOf(instance).get(hook);
-  if (!subscription) {
-    console.warn(`[service] No service mixin declares a "${hook}" hook on this component.`);
-    return;
-  }
-  // A terminated instance never mounts again, so nothing would ever release
-  // the subscription this would start.
-  if ((instance as Base).$isTerminated) {
-    return;
-  }
-  // Idempotent: an already-running hook keeps its one subscription.
-  subscription.unsubscribe ??= subscription.subscribe();
-}
-
-function disableHook(instance: unknown, hook: string): void {
-  const subscription = subscriptionsOf(instance).get(hook);
-  if (!subscription) {
-    return;
-  }
-  subscription.unsubscribe?.();
-  subscription.unsubscribe = null;
 }
 
 /**
@@ -125,9 +55,7 @@ export interface ServiceMixin<Instance, Target, Options extends object = object>
  * returning different types cannot be extended (TS2510).
  */
 export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> & {
-  new <P extends BaseProps = BaseProps>(
-    el: HTMLElement,
-  ): InstanceType<T> & Base<P> & Instance & ServiceControls;
+  new <P extends BaseProps = BaseProps>(el: HTMLElement): InstanceType<T> & Base<P> & Instance;
 };
 
 /**
@@ -166,19 +94,9 @@ export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> &
  *       return [super.mounted(), () => { … }];
  *     }
  *
- * **A mount cycle is not always the right span.** `{ manual: true }` declares
- * the hook without subscribing it, and the component decides — the v3
- * `$services.enable()`/`.disable()` pair, on the instance:
- *
- *     class SliderItem extends withRaf(Base, { manual: true }) {
- *       ticked() { … }
- *       onIndexChange() { this.$enable('ticked'); }
- *       onSettled() { this.$disable('ticked'); }
- *     }
- *
- * Either way the subscription is released on destroy, so a suspended service
- * with no other subscriber genuinely stops: no listener, no observer, no
- * frame.
+ * **A mount cycle is not always the right span,** and when it is not, the hook
+ * is the wrong tool: `toggle()` wraps a subscription the component starts and
+ * stops itself, with no hook involved.
  */
 export function createServiceMixin<Instance, Target, Options extends object = object>(
   definition: ServiceMixinDefinition<Target, Options & ServiceMixinOptions<Target>>,
@@ -188,54 +106,27 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
   function apply(BaseClass: BaseConstructor, options: MixinOptions) {
     const { hook } = definition;
     const target = options.target ?? definition.target;
-    const isManual = options.manual ?? false;
 
     return class extends BaseClass {
-      constructor(el: HTMLElement) {
-        super(el);
-        // Declared at construction, so `$enable()` works before the first
-        // mount and finds the right layer when mixins are stacked.
-        subscriptionsOf(this).set(hook, {
-          unsubscribe: null,
-          subscribe: () => {
-            const method = (this as unknown as Record<string, unknown>)[hook];
-            // A component that does not implement the method subscribes to
-            // nothing, so the service it would have started never runs.
-            if (typeof method !== 'function') {
-              return () => {};
-            }
-            return definition
-              .use(target(this), options)
-              .add((props) => (method as (props: unknown) => unknown).call(this, props));
-          },
-        });
-      }
-
       mounted(): MountedReturn {
         const inherited = super.mounted();
-        if (!isManual) {
-          enableHook(this, hook);
+        const method = (this as unknown as Record<string, unknown>)[hook];
+        // A component that does not implement the method subscribes to
+        // nothing, so the service it would have started never runs. Read here
+        // rather than at construction, because a hook written as a class field
+        // does not exist yet while the fields are initialising.
+        if (typeof method !== 'function') {
+          return inherited;
         }
-        // Released with the mount cycle whichever side subscribed it — the
-        // mixin above, or the component through `$enable()`. The subscription
-        // is synchronous, so an async `super.mounted()` only defers its own
-        // cleanup, never this one.
-        return [inherited, () => disableHook(this, hook)];
-      }
-
-      $enable(name: string): void {
-        enableHook(this, name);
-      }
-
-      $disable(name: string): void {
-        disableHook(this, name);
-      }
-
-      $terminate(): this {
-        // `$destroy()` releases whatever was subscribed during a mount cycle;
-        // this covers the instance that was enabled and never mounted.
-        disableHook(this, hook);
-        return super.$terminate() as this;
+        // Everything goes through the public lifecycle, so per mount cycle
+        // comes for free: a destroyed instance leaves no subscription behind,
+        // and a remounted one subscribes again, exactly once.
+        return [
+          inherited,
+          definition
+            .use(target(this), options)
+            .add((props) => (method as (props: unknown) => unknown).call(this, props)),
+        ];
       }
     };
   }

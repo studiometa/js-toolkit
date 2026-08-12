@@ -21,7 +21,7 @@
  *    subscribed by hand, or through the `withRaf`/`withScroll`/`withResize`/
  *    `withPointer`/`withDrag` mixins and their `ticked`, `scrolled`,
  *    `resized`, `moved` and `dragged` hooks, per mount cycle — or on the
- *    component's own terms with `{ manual: true }` + `$enable`/`$disable`.
+ *    component's own terms with `toggle()`.
  *
  * Lifecycle: destroy !== terminate !== disconnected.
  * - disconnected (DOM fact) → `$destroy()`: reversible, the instance stays
@@ -95,7 +95,6 @@ export {
 export {
   createServiceMixin,
   type MixedClass,
-  type ServiceControls,
   type ServiceMixin,
   type ServiceMixinDefinition,
   type ServiceMixinOptions,
@@ -140,5 +139,6 @@ export {
   type ServiceCallback,
   type ServiceDefinition,
 } from './services/service.js';
+export { toggle, type Toggle } from './services/toggle.js';
 export { kebabCase, pascalCase } from './utils.js';
 export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
