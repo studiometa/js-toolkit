@@ -5,12 +5,26 @@ import { selectorFor } from './utils.js';
 
 const registry = new Map<string, BaseConstructor>();
 
+interface PairController {
+  active: boolean;
+  dispose(): void;
+  strategy: MountStrategy;
+}
+
 /**
  * Teardown for the mount strategy watching each element/component pair.
  * Its presence also marks the pair as already scheduled, so re-scanning an
  * element never observes it twice.
  */
-const pending = new WeakMap<Element, Map<string, () => void>>();
+const controllers = new WeakMap<Element, Map<string, PairController>>();
+
+function componentTokens(el: Element): Set<string> {
+  return new Set((el.getAttribute('data-component') ?? '').split(/\s+/).filter(Boolean));
+}
+
+function declaresComponent(el: Element, name: string): boolean {
+  return componentTokens(el).has(name);
+}
 
 /**
  * Register a component class. Existing matching elements are scheduled
@@ -35,7 +49,7 @@ export function registerComponent(ComponentClass: BaseConstructor): void {
   }
 
   setDOMMutationProcessor(processMutations);
-  scan(document.documentElement, name);
+  scanRegisteredName(document.documentElement, name);
 }
 
 export function registerComponents(...classes: BaseConstructor[]): void {
@@ -65,45 +79,127 @@ function resolveStrategy(el: Element, ComponentClass: BaseConstructor): MountStr
  * waiting for its strategy has no instance yet, so it stays invisible to
  * `$query`, `$closest` and `$watchChildren`, and announces nothing.
  */
-function mountPair(el: HTMLElement, name: string, ComponentClass: BaseConstructor): void {
-  if (!el.isConnected) {
+function mountPair(
+  el: HTMLElement,
+  name: string,
+  ComponentClass: BaseConstructor,
+  controller: PairController,
+): void {
+  if (
+    !controller.active ||
+    controllers.get(el)?.get(name) !== controller ||
+    !el.isConnected ||
+    !declaresComponent(el, name) ||
+    resolveStrategy(el, ComponentClass) !== controller.strategy
+  ) {
     return;
   }
   const instance = el.__base__?.get(name) ?? new ComponentClass(el);
   instance.$mount();
 }
 
-function schedule(el: HTMLElement, name: string, ComponentClass: BaseConstructor): void {
-  let controllers = pending.get(el);
-  if (!controllers) {
-    controllers = new Map();
-    pending.set(el, controllers);
-  }
-  if (controllers.has(name)) {
+function disposeController(el: Element, name: string): void {
+  const pairs = controllers.get(el);
+  const controller = pairs?.get(name);
+  if (!controller) {
     return;
   }
-  const dispose = applyMountStrategy(el, resolveStrategy(el, ComponentClass), {
-    mount: () => mountPair(el, name, ComponentClass),
-    destroy: () => el.__base__?.get(name)?.$destroy(),
-  });
-  controllers.set(name, dispose);
+  controller.active = false;
+  controller.dispose();
+  pairs?.delete(name);
+  if (pairs?.size === 0) {
+    controllers.delete(el);
+  }
 }
 
-function scan(root: Node, onlyName: string | null = null): void {
+function schedule(el: HTMLElement, name: string, ComponentClass: BaseConstructor): void {
+  const strategy = resolveStrategy(el, ComponentClass);
+  let pairs = controllers.get(el);
+  const current = pairs?.get(name);
+  if (current?.strategy === strategy) {
+    return;
+  }
+  if (current) {
+    disposeController(el, name);
+  }
+
+  pairs = controllers.get(el);
+  if (!pairs) {
+    pairs = new Map();
+    controllers.set(el, pairs);
+  }
+
+  const controller: PairController = {
+    active: true,
+    dispose() {},
+    strategy,
+  };
+  pairs.set(name, controller);
+  controller.dispose = applyMountStrategy(el, strategy, {
+    mount: () => mountPair(el, name, ComponentClass, controller),
+    destroy: () => el.__base__?.get(name)?.$destroy(),
+  });
+}
+
+/**
+ * Make the framework state on one connected element match its final
+ * `data-component` token set.
+ */
+function reconcileElement(el: HTMLElement): void {
+  const tokens = componentTokens(el);
+  const names = new Set<string>([
+    ...(controllers.get(el)?.keys() ?? []),
+    ...(el.__base__?.keys() ?? []),
+  ]);
+
+  for (const name of names) {
+    if (!tokens.has(name) && registry.has(name)) {
+      disposeController(el, name);
+      // Removing a declaration while the element remains is final. Unlike a
+      // disconnection, it removes the component identity from this element.
+      el.__base__?.get(name)?.$terminate();
+    }
+  }
+
+  for (const name of tokens) {
+    const ComponentClass = registry.get(name);
+    if (ComponentClass) {
+      schedule(el, name, ComponentClass);
+    }
+  }
+}
+
+/**
+ * Scan an inserted subtree once. Elements carrying retained instances are
+ * included even when their declaration changed while detached.
+ */
+function scan(root: Node): void {
   if (!(root instanceof Element)) {
     return;
   }
-  for (const [name, ComponentClass] of registry) {
-    if (onlyName && name !== onlyName) {
-      continue;
+  for (const el of [root, ...root.querySelectorAll<HTMLElement>('*')]) {
+    if (el.hasAttribute('data-component') || el.__base__ || controllers.has(el)) {
+      reconcileElement(el as HTMLElement);
     }
-    const selector = selectorFor(name);
-    const elements = root.matches(selector)
-      ? [root, ...root.querySelectorAll(selector)]
-      : [...root.querySelectorAll(selector)];
-    for (const el of elements) {
-      schedule(el as HTMLElement, name, ComponentClass);
-    }
+  }
+}
+
+/**
+ * A newly registered class only needs its own token matches. This avoids a
+ * full document walk for every registration while inserted subtrees still
+ * use the one-pass scanner above.
+ */
+function scanRegisteredName(root: Element, name: string): void {
+  const selector = selectorFor(name);
+  const elements = root.matches(selector)
+    ? [root, ...root.querySelectorAll<HTMLElement>(selector)]
+    : [...root.querySelectorAll<HTMLElement>(selector)];
+  const ComponentClass = registry.get(name);
+  if (!ComponentClass) {
+    return;
+  }
+  for (const el of elements) {
+    schedule(el as HTMLElement, name, ComponentClass);
   }
 }
 
@@ -120,45 +216,73 @@ function destroyWithin(node: Node): void {
   if (!(node instanceof Element)) {
     return;
   }
-  for (const el of [node, ...node.querySelectorAll('*')]) {
-    // Stop watching: a strategy must not mount an element that left the
-    // document, and a re-inserted one is scheduled afresh by `scan()`.
-    const controllers = pending.get(el);
-    if (controllers) {
-      for (const dispose of controllers.values()) {
-        dispose();
+  for (const el of [node, ...node.querySelectorAll<HTMLElement>('*')]) {
+    const pairs = controllers.get(el);
+    if (pairs) {
+      for (const name of [...pairs.keys()]) {
+        disposeController(el, name);
       }
-      pending.delete(el);
     }
     if (!el.__base__) {
       continue;
     }
-    // Snapshot: terminating an instance removes it from the element's map.
-    // oxlint-disable-next-line no-useless-spread
     for (const instance of [...el.__base__.values()]) {
       instance.$destroy();
     }
   }
 
-  // A moved element is back in the document by the time this runs — the
-  // addition record was scanned while its old strategy was still pending,
-  // and skipped. Schedule it again now that the teardown is done, so the
-  // move ends as destroy + remount rather than as a removal.
+  // A moved element is connected again by the time the observer delivers
+  // its records. Hand it back after teardown so the move ends as destroy +
+  // remount rather than being mistaken for an unchanged connected node.
   if (node.isConnected) {
     scan(node);
   }
 }
 
 function processMutations(records: readonly MutationRecord[]): void {
+  // Teardown first. A move must announce its old lifecycle end before the
+  // same node mounts below its new ancestor.
   for (const record of records) {
-    if (record.type !== 'childList') {
+    if (record.type === 'childList') {
+      for (const node of record.removedNodes) {
+        destroyWithin(node);
+      }
+    }
+  }
+
+  const declarations = new Set<HTMLElement>();
+  const strategies = new Set<HTMLElement>();
+  for (const record of records) {
+    if (record.type !== 'attributes' || !(record.target instanceof HTMLElement)) {
       continue;
     }
-    for (const node of record.addedNodes) {
-      scan(node);
+    if (record.attributeName === 'data-component') {
+      declarations.add(record.target);
+    } else if (record.attributeName === MOUNT_ATTRIBUTE) {
+      strategies.add(record.target);
     }
-    for (const node of record.removedNodes) {
-      destroyWithin(node);
+  }
+
+  // Reconcile once from final DOM state even when a morph changed the same
+  // attribute several times in this observer batch.
+  for (const el of declarations) {
+    if (el.isConnected) {
+      reconcileElement(el);
+    }
+  }
+  for (const el of strategies) {
+    if (el.isConnected && !declarations.has(el)) {
+      reconcileElement(el);
+    }
+  }
+
+  for (const record of records) {
+    if (record.type === 'childList') {
+      for (const node of record.addedNodes) {
+        if (node.isConnected) {
+          scan(node);
+        }
+      }
     }
   }
 }
