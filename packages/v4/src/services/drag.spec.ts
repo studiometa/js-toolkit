@@ -193,6 +193,39 @@ describe('useDrag', () => {
     unsubscribe();
   });
 
+  it('takes the touch-action of the target only when nothing else has', () => {
+    const el = render();
+    // Without it, a native pan wins the gesture on touch: the browser fires
+    // `pointercancel`, which the service turns into an inertia fling from a
+    // half-finished drag.
+    const unsubscribe = useDrag(el).add(() => {});
+    expect(el.style.touchAction).toBe('none');
+    unsubscribe();
+    expect(el.style.touchAction).toBe('');
+
+    // Consumer CSS is deliberate, and wins.
+    const styled = render();
+    styled.style.touchAction = 'pan-y';
+    const unsubscribeStyled = useDrag(styled).add(() => {});
+    expect(styled.style.touchAction).toBe('pan-y');
+    unsubscribeStyled();
+    expect(styled.style.touchAction).toBe('pan-y');
+  });
+
+  it('drags an SVG element as readily as an HTML one', () => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const handle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    svg.append(handle);
+    document.body.append(svg);
+
+    const modes: DragMode[] = [];
+    const unsubscribe = useDrag(handle).add(({ mode }) => modes.push(mode));
+    handle.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
+    unsubscribe();
+
+    expect(modes).toEqual(['start']);
+  });
+
   it('starts no inertia when the drop takes the last subscriber with it', async () => {
     const el = render();
     const emits: DragMode[] = [];

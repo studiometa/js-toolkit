@@ -6,7 +6,7 @@ import { withDrag } from './drag.js';
 import { withRaf } from './raf.js';
 import { withResize } from './resize.js';
 import { withScroll } from './scroll.js';
-import type { DragProps } from './drag.js';
+import type { DragProps, DragTarget } from './drag.js';
 import type { RafProps } from './raf.js';
 import type { ResizeProps } from './resize.js';
 import type { ScrollProps } from './scroll.js';
@@ -136,7 +136,7 @@ describe('service mixins', () => {
   });
 
   it('follows another target, named per instance', () => {
-    const targets: HTMLElement[] = [];
+    const targets: DragTarget[] = [];
 
     class Handled extends withDrag(Base, {
       target: (instance) => instance.$el.firstElementChild as HTMLElement,

@@ -2,6 +2,9 @@ import { scheduler } from '../scheduler.js';
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type Service } from './service.js';
 
+/** Anything that can be grabbed: an HTML element, or an SVG one. */
+export type DragTarget = HTMLElement | SVGElement;
+
 /**
  * Where a drag is in its cycle:
  *
@@ -15,7 +18,7 @@ export type DragMode = 'start' | 'drag' | 'drop' | 'inertia' | 'stop';
  */
 export interface DragProps {
   mode: DragMode;
-  target: HTMLElement;
+  target: DragTarget;
   /** Whether the pointer is currently holding the target. */
   isGrabbing: boolean;
   /** Whether the drag is coasting after the drop. */
@@ -62,7 +65,7 @@ function inertiaFinalValue(value: number, delta: number, dampFactor: number): nu
   return value + delta / (1 - dampFactor);
 }
 
-function createDragService(target: HTMLElement, options: DragOptions): Service<DragProps> {
+function createDragService(target: DragTarget, options: DragOptions): Service<DragProps> {
   // A factor of 1 would never decay, and the settle position would be
   // infinitely far away.
   const dampFactor = Math.min(Math.max(options.dampFactor ?? 0.85, 0), 0.99999);
@@ -105,6 +108,18 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
        * page.
        */
       let isClickSuppressed = false;
+
+      // Without `touch-action: none` a native pan wins the gesture on touch:
+      // the browser takes the pointer over and fires `pointercancel`, which
+      // this service turns into an inertia fling from a half-finished drag.
+      // Written only when the computed value is `auto` — anything the
+      // consumer's CSS says about the target is deliberate and wins — and put
+      // back as it was on teardown.
+      const ownsTouchAction = getComputedStyle(target).touchAction === 'auto';
+      const previousTouchAction = target.style.touchAction;
+      if (ownsTouchAction) {
+        target.style.touchAction = 'none';
+      }
 
       function stopInertia() {
         unsubscribeTicks?.();
@@ -257,6 +272,9 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
       return () => {
         isRunning = false;
         isClickSuppressed = false;
+        if (ownsTouchAction) {
+          target.style.touchAction = previousTouchAction;
+        }
         stopInertia();
         // Losing every subscriber mid-drag ends the drag: leaving
         // `isGrabbing` on would make the next `pointerdown` a no-op once a
@@ -292,7 +310,7 @@ const dragServices = /* @__PURE__ */ perTarget(createDragService);
  * share its listeners. The options of the first call are the ones that
  * apply.
  */
-export function useDrag(target: HTMLElement, options: DragOptions = {}): Service<DragProps> {
+export function useDrag(target: DragTarget, options: DragOptions = {}): Service<DragProps> {
   return dragServices(target, options);
 }
 
@@ -301,7 +319,7 @@ export interface DragHook {
   dragged?(props: DragProps): void;
 }
 
-export type DragMixinOptions = DragOptions & ServiceMixinOptions<HTMLElement>;
+export type DragMixinOptions = DragOptions & ServiceMixinOptions<DragTarget>;
 
 /**
  * Subscribe a component's `dragged()` method to the drag service, for its
@@ -318,7 +336,7 @@ export type DragMixinOptions = DragOptions & ServiceMixinOptions<HTMLElement>;
  *
  * // A handle inside the component, and a gentler inertia.
  * class Sheet extends withDrag(Base, {
- *   target: (instance) => instance.$el.querySelector('.handle'),
+ *   target: (instance) => instance.$refs.handle,
  *   dampFactor: 0.95,
  * }) {
  *   dragged(props) { … }
@@ -329,7 +347,7 @@ export type DragMixinOptions = DragOptions & ServiceMixinOptions<HTMLElement>;
  * default is the host, as Lit's `ResizeController` does. The decorator form
  * `@withDrag()` is the same thing with a build step.
  */
-export const withDrag = /* @__PURE__ */ createServiceMixin<DragHook, HTMLElement, DragOptions>({
+export const withDrag = /* @__PURE__ */ createServiceMixin<DragHook, DragTarget, DragOptions>({
   hook: 'dragged',
   target: (instance) => instance.$el,
   use: (target, options) => useDrag(target, options),
