@@ -149,5 +149,4 @@ export {
   type Unsubscribe,
 } from './services/service.js';
 export { toggle, type Toggle } from './services/toggle.js';
-export { kebabCase, pascalCase } from './utils.js';
 export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';

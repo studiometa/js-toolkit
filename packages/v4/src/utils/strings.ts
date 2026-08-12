@@ -1,3 +1,8 @@
+/**
+ * String shapes the framework converts between: an option or handler name in
+ * source, and the `data-` attribute or event type it corresponds to.
+ */
+
 const REGEX_KEBAB = /([a-z0-9])([A-Z])/g;
 
 /**
@@ -13,13 +18,4 @@ export function kebabCase(string: string): string {
  */
 export function pascalCase(string: string): string {
   return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-/**
- * The registry selector for a component name.
- * `~=` gives whitespace-token matching, so `data-component="Action Dialog"`
- * declares several components on one element.
- */
-export function selectorFor(name: string): string {
-  return `[data-component~="${name}"]`;
 }
