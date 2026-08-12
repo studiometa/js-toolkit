@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { userEvent } from '@vitest/browser/context';
-import { frames } from '../test-utils.js';
+import { countRequestedFrames, frames } from '../test-utils.js';
 import { DRAG_MODES, useDrag, type DragMode, type DragProps } from './drag.js';
 
 function render(): HTMLElement {
@@ -31,27 +31,6 @@ function release(): void {
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Count the frames the page requests over a real span of time. `frames()`
- * requests its own, so a test watching for a leaked loop has to wait on a
- * timer instead.
- */
-async function countRequestedFrames(ms: number, run: () => void): Promise<number> {
-  const original = globalThis.requestAnimationFrame;
-  let calls = 0;
-  globalThis.requestAnimationFrame = ((callback: FrameRequestCallback) => {
-    calls += 1;
-    return original.call(globalThis, callback);
-  }) as typeof requestAnimationFrame;
-  try {
-    run();
-    await sleep(ms);
-  } finally {
-    globalThis.requestAnimationFrame = original;
-  }
-  return calls;
-}
 
 afterEach(() => {
   document.body.innerHTML = '';
@@ -368,7 +347,11 @@ describe('useDrag', () => {
     grab(el, 0, 0);
     move(200, 0);
 
-    const requested = await countRequestedFrames(150, release);
+    const requested = await countRequestedFrames(async () => {
+      release();
+      // A real span rather than `frames()`, which would request its own.
+      await sleep(150);
+    });
 
     expect(emits.at(-1)).toBe('drop');
     expect(requested).toBe(0);

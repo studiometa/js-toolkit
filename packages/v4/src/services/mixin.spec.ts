@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from '../Base.js';
 import { registerComponent } from '../registry.js';
-import { frames, getInstance, resetDom, settle } from '../test-utils.js';
+import { countRequestedFrames, frames, getInstance, resetDom, settle } from '../test-utils.js';
 import { withDrag } from './drag.js';
 import { withRaf } from './raf.js';
 import { withResize } from './resize.js';
@@ -320,14 +320,7 @@ describe('a manual hook', () => {
     // scheduler has no reason to ask for another frame. `frames()` awaits one
     // itself, so its own four requests are the floor: anything above them is
     // the loop still running.
-    let framesRequested = 0;
-    const request = window.requestAnimationFrame;
-    window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
-      framesRequested += 1;
-      return request(callback);
-    }) as typeof window.requestAnimationFrame;
-    await frames(4);
-    window.requestAnimationFrame = request;
+    const framesRequested = await countRequestedFrames(() => frames(4));
 
     expect(framesRequested).toBe(4);
     instance.$terminate();
