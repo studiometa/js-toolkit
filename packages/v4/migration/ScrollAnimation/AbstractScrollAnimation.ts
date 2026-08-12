@@ -1,6 +1,6 @@
 import { Base, scheduler, type BaseConfig } from '../../src/index.js';
 import { applyStyles, compile, type Keyframe, type KeyframeStyles } from '../utils/keyframes.js';
-import { clamp01, map } from '../utils/math.js';
+import { clamp01, map } from '../../src/utils/maths.js';
 import type { ScrollInViewProps, ScrolledInViewRender } from './withScrolledInView.js';
 
 export interface AbstractScrollAnimationProps {

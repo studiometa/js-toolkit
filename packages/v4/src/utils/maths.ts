@@ -1,7 +1,14 @@
 /**
- * The maths the framework itself needs. Not a port of
- * `@studiometa/js-toolkit/utils/math` — only what `src/` reaches for, so that
- * a service does not carry a formula of its own.
+ * The maths the framework and the ported components reach for.
+ *
+ * Not a port of `@studiometa/js-toolkit/utils/math`: only what is actually used,
+ * so that no service or component carries a formula of its own. The range
+ * helpers are v3's; the decay and inertia ones are not, and the doc comments say
+ * where they differ and why.
+ *
+ * Everything here that involves time takes an **elapsed** argument in
+ * milliseconds. None of it takes a frame count, and none of it assumes one — see
+ * {@link INERTIA_FRAME}.
  */
 
 /** The inertia factor when none is given: v3's value. */
@@ -20,22 +27,40 @@ export const DEFAULT_DAMP_FACTOR = 0.85;
 export const INERTIA_FRAME = 1000 / 60;
 
 /**
- * A damping factor that is safe to decay by and to sum.
- *
- * `1` never decays, so a coast driven by it would never end and its settle
- * position would be infinitely far away. Below `0` the sign flips every frame.
- * A non-finite factor — an unparsed `data-option-damp-factor`, a division that
- * went wrong — falls back to the default rather than poisoning every frame
- * with `NaN`.
- *
- * Clamped here rather than at each call site so that no caller can reach the
- * formulas below with a factor they do not accept.
+ * Clamp a value in a given range.
  */
-export function clampDampFactor(factor: number): number {
-  if (!Number.isFinite(factor)) {
-    return DEFAULT_DAMP_FACTOR;
+export function clamp(value: number, min: number, max: number): number {
+  if (min < max) {
+    return value < min ? min : value > max ? max : value;
   }
-  return Math.min(Math.max(factor, 0), 0.99999);
+  return value < max ? max : value > min ? min : value;
+}
+
+/**
+ * Clamp a value in the 0–1 range.
+ */
+export function clamp01(value: number): number {
+  return clamp(value, 0, 1);
+}
+
+/**
+ * Map a value from one range onto another.
+ */
+export function map(
+  value: number,
+  inputMin: number,
+  inputMax: number,
+  outputMin: number,
+  outputMax: number,
+): number {
+  return ((value - inputMin) * (outputMax - outputMin)) / (inputMax - inputMin) + outputMin;
+}
+
+/**
+ * Interpolate a ratio between two bounds.
+ */
+export function lerp(min: number, max: number, ratio: number): number {
+  return (1 - ratio) * min + ratio * max;
 }
 
 /**
@@ -65,6 +90,66 @@ export function decayOver(retained: number, elapsed: number): number {
 }
 
 /**
+ * Next damped value: close some of the gap to the target, and snap onto it once
+ * the gap is under `precision`.
+ *
+ * **`elapsed` is required, and that is the whole difference from v3.** There,
+ * `factor` was the fraction of the gap closed *per call*, so the speed was
+ * whatever the display happened to be: measured on the v3 helper, the same
+ * damping settles in 56 frames at 60 Hz and 28 at 120 Hz — twice as fast on a
+ * better screen. Here `factor` is the fraction closed per {@link INERTIA_FRAME},
+ * and the elapsed time decides how much of it this step gets. Every caller has
+ * the number to hand: it is `delta` on the raf props, which the v3 call sites
+ * were all discarding.
+ *
+ * This is the same law the drag inertia coasts on, over the same helper — a
+ * factor of `0.1` closes a tenth of the gap per reference frame, so `0.9` of it
+ * is retained, which is what decays. Note it is {@link decayOver} rather than
+ * {@link inertiaDecay}: the latter also excludes a retention of `1`, because a
+ * coast that never decays has no finite destination, and here it simply means
+ * "hold still".
+ *
+ * It is stable for anything a caller can pass, which v3's was not: at
+ * `factor = 2` the gap flipped sign and oscillated forever, and above that it
+ * diverged. Here an over-large factor retains nothing and closes all of the
+ * gap, and a non-finite factor or elapsed time does the same rather than
+ * returning `NaN`.
+ */
+export function damp(
+  targetValue: number,
+  currentValue: number,
+  factor: number,
+  elapsed: number,
+  precision = 0.01,
+): number {
+  if (Math.abs(targetValue - currentValue) < precision) {
+    return targetValue;
+  }
+  // `1 - factor` is what survives the step, which is what decays.
+  const closed = 1 - decayOver(1 - factor, elapsed);
+  return currentValue + (targetValue - currentValue) * closed;
+}
+
+/**
+ * A damping factor that is safe to decay by and to sum.
+ *
+ * `1` never decays, so a coast driven by it would never end and its settle
+ * position would be infinitely far away. Below `0` the sign flips every frame.
+ * A non-finite factor — an unparsed `data-option-damp-factor`, a division that
+ * went wrong — falls back to the default rather than poisoning every frame
+ * with `NaN`.
+ *
+ * Clamped here rather than at each call site so that no caller can reach the
+ * formulas below with a factor they do not accept.
+ */
+export function clampDampFactor(factor: number): number {
+  if (!Number.isFinite(factor)) {
+    return DEFAULT_DAMP_FACTOR;
+  }
+  return Math.min(Math.max(factor, 0), 0.99999);
+}
+
+/**
  * How much of a velocity survives `elapsed` milliseconds of decay.
  *
  * {@link decayOver} with the tighter clamp the inertia needs: a factor of `1`
@@ -83,7 +168,7 @@ export function inertiaDecay(dampFactor: number, elapsed: number): number {
 
 /**
  * How long the decay takes to run out, in milliseconds — the time constant of
- * `inertiaDecay()`.
+ * {@link inertiaDecay}.
  *
  * `τ = INERTIA_FRAME / ln(1 / damp)`. A velocity decaying as `v·damp^(t/FRAME)`
  * covers `v · τ` before it stops, which is the integral of the whole coast.

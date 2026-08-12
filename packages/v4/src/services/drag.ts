@@ -5,7 +5,7 @@ import {
   inertiaFinalValue,
   inertiaStep,
   INERTIA_FRAME,
-} from '../math.js';
+} from '../utils/maths.js';
 import { scheduler, type TickProps } from '../scheduler.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';

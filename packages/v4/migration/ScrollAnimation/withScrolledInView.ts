@@ -8,7 +8,7 @@ import {
   type MixedClass,
   type MountedReturn,
 } from '../../src/index.js';
-import { clamp, clamp01, damp } from '../utils/math.js';
+import { clamp, clamp01, damp } from '../../src/utils/maths.js';
 import { getEdges, normalizeOffset } from './offset.js';
 
 /**

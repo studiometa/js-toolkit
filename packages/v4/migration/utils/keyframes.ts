@@ -1,4 +1,4 @@
-import { clamp01, map } from './math.js';
+import { clamp01, map } from '../../src/utils/maths.js';
 import { normalizeEasing, type BezierCurve, type EasingFunction } from './easings.js';
 
 /**

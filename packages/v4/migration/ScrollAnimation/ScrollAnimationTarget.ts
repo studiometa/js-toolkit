@@ -1,5 +1,5 @@
 import type { BaseConfig } from '../../src/index.js';
-import { clamp01, damp } from '../utils/math.js';
+import { clamp01, damp } from '../../src/utils/maths.js';
 import { AbstractScrollAnimation } from './AbstractScrollAnimation.js';
 import type { ScrollInViewProps, ScrolledInViewRender } from './withScrolledInView.js';
 

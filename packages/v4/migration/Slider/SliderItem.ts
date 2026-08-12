@@ -1,5 +1,5 @@
 import { Base, useRaf, useResize, type MountedReturn } from '../../src/index.js';
-import { damp } from '../utils/math.js';
+import { damp } from '../../src/utils/maths.js';
 import { uid } from '../utils/uid.js';
 
 export interface SliderItemRect {
