@@ -59,7 +59,7 @@ export class AccordionItem extends Base<AccordionItemProps> {
     refs: ['btn', 'content', 'container'],
     options: {
       isOpen: Boolean,
-      styles: { type: Object, default: {} as Record<string, AccordionItemStates> },
+      styles: { type: Object, default: () => ({}) as Record<string, AccordionItemStates> },
     },
   };
 

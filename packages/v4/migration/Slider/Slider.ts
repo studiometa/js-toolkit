@@ -1,11 +1,11 @@
 import {
   Base,
   createContext,
+  Signal,
   withResize,
   type ChildrenCollection,
   type MountedReturn,
   type RefEvent,
-  type Signal,
 } from '../../src/index.js';
 import { SliderItem } from './SliderItem.js';
 
@@ -25,7 +25,7 @@ export interface SliderState {
  * reconnection safety nets. The signal is resolved through the DOM event
  * path, so mount order does not matter in either direction.
  */
-export const SliderContext = /* @__PURE__ */ createContext<SliderState>('slider-state');
+export const SliderContext = /* @__PURE__ */ createContext<Signal<SliderState>>('slider-state');
 
 export interface SliderProps {
   $refs: { wrapper: HTMLElement };
@@ -68,7 +68,12 @@ export class Slider extends withResize(Base)<SliderProps> {
     },
   };
 
-  state: Signal<SliderState> = this.$provide(SliderContext, { index: 0, total: 0 });
+  state: Signal<SliderState> = this.$provide(
+    SliderContext,
+    // Provided verbatim since v4 stopped wrapping: the coordinator decides
+    // its own surface, and this one is a value cell.
+    new Signal<SliderState>({ index: 0, total: 0 }),
+  );
 
   items: ChildrenCollection<SliderItem> = this.$watchChildren<SliderItem>('SliderItem', {
     added: () => this.refresh(),
