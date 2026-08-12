@@ -194,7 +194,7 @@ function apply(
      * so the subscription itself is the switch.
      */
     startTicking(): void {
-      this.__unsubscribeFrame ??= useRaf().add(() => {
+      this.__unsubscribeFrame ??= useRaf().subscribe(() => {
         const props = this.__scrollInViewProps;
         const { dampFactor, dampPrecision } = this.$options as {
           dampFactor: number;
@@ -221,12 +221,22 @@ function apply(
         props.dampedProgressX = progressBetween(props.dampedCurrentX, props.startX, props.endX);
         props.dampedProgressY = progressBetween(props.dampedCurrentY, props.startY, props.endY);
 
+        const hook = (this as unknown as ScrolledInViewHook).scrolledInView;
+        const render = hook?.call(this, props) ?? undefined;
+
         if (props.dampedCurrentX === props.currentX && props.dampedCurrentY === props.currentY) {
+          // This frame is the one that lands on the settled position, so its
+          // write is scheduled on the instance and the subscription released
+          // after it — a render handed back to a subscription that leaves
+          // mid-frame is cancelled, by design.
+          if (typeof render === 'function') {
+            this.$write(render);
+          }
           this.stopTicking();
+          return undefined;
         }
 
-        const hook = (this as unknown as ScrolledInViewHook).scrolledInView;
-        return hook?.call(this, props) ?? undefined;
+        return render;
       });
     }
 
@@ -242,12 +252,12 @@ function apply(
 
       return [
         inherited,
-        useWindowScroll().add(({ changedX, changedY }) => {
-          if (changedX || changedY) {
+        useWindowScroll().subscribe(({ deltaX, deltaY }) => {
+          if (deltaX !== 0 || deltaY !== 0) {
             this.startTicking();
           }
         }),
-        useResize().add(() => {
+        useResize().subscribe(() => {
           this.__shouldMeasure = true;
           this.renderScrollInView();
         }),

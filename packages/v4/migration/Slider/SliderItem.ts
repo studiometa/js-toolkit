@@ -56,7 +56,7 @@ export class SliderItem extends Base {
     this.$el.setAttribute('aria-label', this.id);
 
     return [
-      useResize().add(() => {
+      useResize().subscribe(() => {
         this.#rect = null;
       }),
       () => this.#stopTicking(),
@@ -93,7 +93,7 @@ export class SliderItem extends Base {
   }
 
   #startTicking(): void {
-    this.#unsubscribeFrame ??= useRaf().add(() => {
+    this.#unsubscribeFrame ??= useRaf().subscribe(() => {
       this.dampedX = damp(this.x, this.dampedX, 0.1, 0.00001);
       if (this.dampedX === this.x) {
         this.#stopTicking();

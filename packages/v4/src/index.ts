@@ -21,7 +21,7 @@
  *    subscribed by hand, or through the `withRaf`/`withScroll`/`withResize`/
  *    `withPointer`/`withDrag` mixins and their `ticked`, `scrolled`,
  *    `resized`, `moved` and `dragged` hooks, per mount cycle — or on the
- *    component's own terms with `{ manual: true }` + `$enable`/`$disable`.
+ *    component's own terms with `toggle()`.
  *
  * Lifecycle: destroy !== terminate !== disconnected.
  * - disconnected (DOM fact) → `$destroy()`: reversible, the instance stays
@@ -76,6 +76,14 @@ export {
   type TickProps,
 } from './scheduler.js';
 export {
+  BREAKPOINTS,
+  getBreakpoints,
+  setBreakpoints,
+  useBreakpoint,
+  type BreakpointProps,
+} from './services/breakpoint.js';
+export {
+  DRAG_MODES,
   useDrag,
   withDrag,
   type DragHook,
@@ -83,11 +91,12 @@ export {
   type DragMode,
   type DragOptions,
   type DragProps,
-} from './services/DragService.js';
+  type DragTarget,
+} from './services/drag.js';
 export {
   createServiceMixin,
   type MixedClass,
-  type ServiceControls,
+  type ServiceHandles,
   type ServiceMixin,
   type ServiceMixinDefinition,
   type ServiceMixinOptions,
@@ -98,7 +107,7 @@ export {
   type PointerHook,
   type PointerMixinOptions,
   type PointerProps,
-} from './services/PointerService.js';
+} from './services/pointer.js';
 export {
   useRaf,
   withRaf,
@@ -106,11 +115,9 @@ export {
   type RafMixinOptions,
   type RafProps,
   type RafRender,
-} from './services/RafService.js';
+  type RafService,
+} from './services/raf.js';
 export {
-  BREAKPOINTS,
-  getBreakpoints,
-  setBreakpoints,
   useResize,
   useWindowSize,
   withResize,
@@ -118,22 +125,26 @@ export {
   type ResizeMixinOptions,
   type ResizeOrientation,
   type ResizeProps,
-} from './services/ResizeService.js';
+} from './services/resize.js';
 export {
   useScroll,
   useWindowScroll,
   withScroll,
   type ScrollHook,
   type ScrollMixinOptions,
+  type ScrollDirection,
   type ScrollProps,
   type ScrollTarget,
-} from './services/ScrollService.js';
+} from './services/scroll.js';
 export {
   createService,
   perTarget,
+  type MutableProps,
   type Service,
   type ServiceCallback,
   type ServiceDefinition,
-} from './services/Service.js';
+  type Unsubscribe,
+} from './services/service.js';
+export { toggle, type Toggle } from './services/toggle.js';
 export { kebabCase, pascalCase } from './utils.js';
 export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';

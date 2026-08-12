@@ -1,5 +1,6 @@
 import type { Base, BaseConstructor, BaseProps, MountedReturn } from '../Base.js';
-import type { Service } from './Service.js';
+import type { Service } from './service.js';
+import { toggle, type Toggle } from './toggle.js';
 
 /**
  * Options every service mixin accepts, on top of the ones its service takes.
@@ -11,81 +12,32 @@ export interface ServiceMixinOptions<Target, Host = Base> {
    */
   target?: (instance: Host) => Target;
   /**
-   * Method the component implements. Defaults to the service's hook name, so
-   * applying the mixin twice with two names subscribes twice.
-   */
-  hook?: string;
-  /**
-   * Declare the hook without subscribing it: `mounted()` leaves it off, and
-   * the component turns it on and off itself with `$enable(hook)` /
-   * `$disable(hook)`.
+   * Declare the hook without subscribing it. `mounted()` leaves it off and the
+   * component owns the span through its handle — `this.$services.<hook>`.
    *
-   * This is what keeps a service honest about doing no work while nobody
-   * needs it — a component that only wants the frame loop while a value
-   * settles releases it as soon as it has, instead of holding the loop open
-   * for the lifetime of the page.
+   * This is what keeps a service honest about doing no work while nobody needs
+   * it: a component that only wants the frame loop while a value settles
+   * releases it as soon as it has, instead of holding the loop open for the
+   * lifetime of the page.
    */
   manual?: boolean;
 }
 
 /**
- * The v3 `$services.enable()` / `.disable()` verbs, on the instance: a
- * subscription can be suspended and resumed **within** one mount cycle.
+ * The handle a mixin adds for its hook, under the hook's own name.
  *
- * Both are safe before mount and after destroy, and `$enable()` is
- * idempotent — a hook cannot end up subscribed twice.
+ * Declared as a type rather than resolved from a string, which is what makes
+ * it checkable: `this.$services.ticked.start()` completes, and renaming the
+ * hook is a compile error instead of the silence `$enable('ticked')` gave.
+ * That only became possible once there was exactly one name per mixin.
+ *
+ * Intersections merge, so stacked mixins accumulate their keys:
+ * `withScroll(withRaf(Base))` has `$services.ticked` **and**
+ * `$services.scrolled`, each reaching its own layer.
  */
-export interface ServiceControls {
-  /** Subscribe the named hook now, if it is not subscribed already. */
-  $enable(hook: string): void;
-  /** Release the named hook's subscription, if it has one. */
-  $disable(hook: string): void;
-}
-
-interface ServiceSubscription {
-  /** Subscribe, returning the unsubscribe. */
-  subscribe(): () => void;
-  /** The live unsubscribe, or `null` while the hook is suspended. */
-  unsubscribe: (() => void) | null;
-}
-
-/**
- * Per-instance `hook → subscription` map, filled by each mixin layer at
- * construction. It is shared by every layer, so `$enable('scrolled')` called
- * on a class built from stacked mixins finds the layer that owns the hook.
- */
-const SERVICE_SUBSCRIPTIONS: unique symbol = /* @__PURE__ */ Symbol('service subscriptions');
-
-type WithSubscriptions = { [SERVICE_SUBSCRIPTIONS]?: Map<string, ServiceSubscription> };
-
-function subscriptionsOf(instance: unknown): Map<string, ServiceSubscription> {
-  const host = instance as WithSubscriptions;
-  return (host[SERVICE_SUBSCRIPTIONS] ??= new Map());
-}
-
-function enableHook(instance: unknown, hook: string): void {
-  const subscription = subscriptionsOf(instance).get(hook);
-  if (!subscription) {
-    console.warn(`[service] No service mixin declares a "${hook}" hook on this component.`);
-    return;
-  }
-  // A terminated instance never mounts again, so nothing would ever release
-  // the subscription this would start.
-  if ((instance as Base).$isTerminated) {
-    return;
-  }
-  // Idempotent: an already-running hook keeps its one subscription.
-  subscription.unsubscribe ??= subscription.subscribe();
-}
-
-function disableHook(instance: unknown, hook: string): void {
-  const subscription = subscriptionsOf(instance).get(hook);
-  if (!subscription) {
-    return;
-  }
-  subscription.unsubscribe?.();
-  subscription.unsubscribe = null;
-}
+export type ServiceHandles<Hook extends string> = {
+  readonly $services: { readonly [K in Hook]: Toggle };
+};
 
 /**
  * What a service declares to get a mixin.
@@ -95,8 +47,12 @@ export interface ServiceMixinDefinition<Target, Options> {
   hook: string;
   /** Default target, e.g. the window for the scroll service. */
   target: (instance: Base) => Target;
-  /** Service the method subscribes to. */
-  use: (target: Target, options: Options) => Service<unknown>;
+  /**
+   * Service the method subscribes to. Both parameters are `unknown` here
+   * because the mixin forwards whatever the hook returns without looking at
+   * it — the frame service is the one that reads it.
+   */
+  use: (target: Target, options: Options) => Service<unknown, unknown>;
 }
 
 /**
@@ -130,9 +86,7 @@ export interface ServiceMixin<Instance, Target, Options extends object = object>
  * returning different types cannot be extended (TS2510).
  */
 export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> & {
-  new <P extends BaseProps = BaseProps>(
-    el: HTMLElement,
-  ): InstanceType<T> & Base<P> & Instance & ServiceControls;
+  new <P extends BaseProps = BaseProps>(el: HTMLElement): InstanceType<T> & Base<P> & Instance;
 };
 
 /**
@@ -145,8 +99,14 @@ export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> &
  * unsubscribe is the cleanup:
  *
  *     mounted() {
- *       return useScroll(this.$refs.panel).add((props) => { … });
+ *       return useScroll(this.$refs.panel).subscribe((props) => { … });
  *     }
+ *
+ * There is one method name per service, and it is the service's own: two
+ * layers of the same mixin on one class would collide on it, and a custom
+ * name bought nothing but ways to go wrong — it lost the hook's props typing
+ * entirely, and renaming it compiled, shipped, and silently stopped updating.
+ * A second target is an explicit subscription in `mounted()`, as above.
  *
  * Both paths reach the same service. This is the line Lit draws as well,
  * where a `ResizeController`'s `target` defaults to the host and is
@@ -166,18 +126,25 @@ export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> &
  *     }
  *
  * **A mount cycle is not always the right span.** `{ manual: true }` declares
- * the hook without subscribing it, and the component decides — the v3
- * `$services.enable()`/`.disable()` pair, on the instance:
+ * the hook without subscribing it, and the component owns the span through the
+ * handle the mixin puts under the hook's name:
  *
  *     class SliderItem extends withRaf(Base, { manual: true }) {
- *       ticked() { … }
- *       onIndexChange() { this.$enable('ticked'); }
- *       onSettled() { this.$disable('ticked'); }
+ *       ticked({ delta }) { … }                        // declared, not running
+ *       onIndexChange() { this.$services.ticked.start(); }
+ *       onSettled() { this.$services.ticked.stop(); }
  *     }
  *
- * Either way the subscription is released on destroy, so a suspended service
- * with no other subscriber genuinely stops: no listener, no observer, no
- * frame.
+ * The hook stays where it reads best — a method on the class — and the verbs
+ * are typed: `$services.ticked` completes, and renaming `ticked` is a compile
+ * error rather than the silence `$enable('ticked')` gave. That is only
+ * possible because there is one fixed name per mixin; a `hook` option would
+ * put the property name back out of the type system's reach.
+ *
+ * Either way the subscription is released with the mount cycle, whichever side
+ * started it, and on `$terminate()` for an instance that started it and never
+ * mounted. `toggle()` is the same primitive without a hook, for a subscription
+ * the component writes itself.
  */
 export function createServiceMixin<Instance, Target, Options extends object = object>(
   definition: ServiceMixinDefinition<Target, Options & ServiceMixinOptions<Target>>,
@@ -185,55 +152,66 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
   type MixinOptions = Options & ServiceMixinOptions<Target>;
 
   function apply(BaseClass: BaseConstructor, options: MixinOptions) {
-    const hook = options.hook ?? definition.hook;
+    const { hook } = definition;
     const target = options.target ?? definition.target;
     const isManual = options.manual ?? false;
 
     return class extends BaseClass {
       constructor(el: HTMLElement) {
         super(el);
-        // Declared at construction, so `$enable()` works before the first
-        // mount and finds the right layer when mixins are stacked.
-        subscriptionsOf(this).set(hook, {
-          unsubscribe: null,
-          subscribe: () => {
-            const method = (this as unknown as Record<string, unknown>)[hook];
-            // A component that does not implement the method subscribes to
-            // nothing, so the service it would have started never runs.
-            if (typeof method !== 'function') {
-              return () => {};
-            }
-            return definition
-              .use(target(this), options)
-              .add((props) => (method as (props: unknown) => unknown).call(this, props));
-          },
+        const host = this as unknown as {
+          $services?: Record<string, Toggle>;
+          $isTerminated: boolean;
+        };
+        // One object per instance, shared by every layer: each mixin adds its
+        // own key, so a stacked class reaches each layer through the name that
+        // layer owns.
+        const services = (host.$services ??= {});
+        const handle = toggle(() => {
+          const method = (this as unknown as Record<string, unknown>)[hook];
+          // A component that does not implement the method subscribes to
+          // nothing, so the service it would have started never runs. Read at
+          // subscribe time rather than here, because a hook written as a class
+          // field does not exist yet while the fields are initialising.
+          if (typeof method !== 'function') {
+            return () => {};
+          }
+          return definition
+            .use(target(this), options)
+            .subscribe((props) => (method as (props: unknown) => unknown).call(this, props));
         });
+
+        services[hook] = {
+          get isActive() {
+            return handle.isActive;
+          },
+          // A terminated instance never mounts again, so nothing would ever
+          // release the subscription this would start.
+          start: () => {
+            if (!host.$isTerminated) {
+              handle.start();
+            }
+          },
+          stop: handle.stop,
+        };
       }
 
       mounted(): MountedReturn {
         const inherited = super.mounted();
+        const handle = (this as unknown as { $services: Record<string, Toggle> }).$services[hook];
         if (!isManual) {
-          enableHook(this, hook);
+          handle.start();
         }
-        // Released with the mount cycle whichever side subscribed it — the
-        // mixin above, or the component through `$enable()`. The subscription
-        // is synchronous, so an async `super.mounted()` only defers its own
-        // cleanup, never this one.
-        return [inherited, () => disableHook(this, hook)];
-      }
-
-      $enable(name: string): void {
-        enableHook(this, name);
-      }
-
-      $disable(name: string): void {
-        disableHook(this, name);
+        // Released with the mount cycle whichever side started it — the mixin
+        // above, or the component through its handle. `stop` is bound and
+        // idempotent, so it is a cleanup as it stands.
+        return [inherited, handle.stop];
       }
 
       $terminate(): this {
-        // `$destroy()` releases whatever was subscribed during a mount cycle;
-        // this covers the instance that was enabled and never mounted.
-        disableHook(this, hook);
+        // `$destroy()` releases whatever ran during a mount cycle; this covers
+        // a manual hook that was started and never mounted.
+        (this as unknown as { $services: Record<string, Toggle> }).$services[hook].stop();
         return super.$terminate() as this;
       }
     };

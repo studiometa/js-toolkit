@@ -6,8 +6,8 @@
  * design questions rather than guard against regressions.
  */
 import { bench, describe } from 'vitest';
-import { BREAKPOINTS } from './ResizeService.js';
-import { createService } from './Service.js';
+import { BREAKPOINTS } from './breakpoint.js';
+import { createService } from './service.js';
 
 /** Keeps each result observable so no benchmark is optimised away. */
 declare global {
@@ -102,7 +102,7 @@ describe('subscription overhead', () => {
   });
 
   bench('service add + unsubscribe', () => {
-    service.add(() => {})();
+    service.subscribe(() => {})();
   });
 
   // One AbortController *per subscription* — which is not the same thing
@@ -127,7 +127,7 @@ describe('fan-out to subscribers', () => {
       start: () => () => {},
     });
     for (let i = 0; i < count; i += 1) {
-      service.add(() => {});
+      service.subscribe(() => {});
     }
     // Reaching the private emit is not possible from outside, so this
     // mirrors its shape: a try/catch per subscriber, collecting returns.

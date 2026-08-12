@@ -2,14 +2,14 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from '../Base.js';
 import { registerComponent } from '../registry.js';
 import { frames, getInstance, resetDom, settle } from '../test-utils.js';
-import { withDrag } from './DragService.js';
-import { withRaf } from './RafService.js';
-import { withResize } from './ResizeService.js';
-import { withScroll } from './ScrollService.js';
-import type { DragProps } from './DragService.js';
-import type { RafProps } from './RafService.js';
-import type { ResizeProps } from './ResizeService.js';
-import type { ScrollProps } from './ScrollService.js';
+import { withDrag } from './drag.js';
+import { withRaf } from './raf.js';
+import { withResize } from './resize.js';
+import { useScroll, withScroll } from './scroll.js';
+import type { DragProps } from './drag.js';
+import type { RafProps } from './raf.js';
+import type { ResizeProps } from './resize.js';
+import type { ScrollProps } from './scroll.js';
 
 afterEach(resetDom);
 
@@ -103,9 +103,8 @@ describe('service mixins', () => {
     class Draggable extends withDrag(Base) {
       static config = { name: 'Draggable' };
 
-      dragged({ mode, target }: DragProps): void {
+      dragged({ mode }: DragProps): void {
         modes.push(mode);
-        expect(target).toBe(this.$el);
       }
     }
 
@@ -136,15 +135,15 @@ describe('service mixins', () => {
   });
 
   it('follows another target, named per instance', () => {
-    const targets: HTMLElement[] = [];
+    const modes: string[] = [];
 
     class Handled extends withDrag(Base, {
       target: (instance) => instance.$el.firstElementChild as HTMLElement,
     }) {
       static config = { name: 'Handled' };
 
-      dragged({ target }: DragProps): void {
-        targets.push(target);
+      dragged({ mode }: DragProps): void {
+        modes.push(mode);
       }
     }
 
@@ -153,46 +152,54 @@ describe('service mixins', () => {
     const handle = el.firstElementChild as HTMLElement;
     const instance = new Handled(el).$mount();
 
-    // The root is not the target anymore, the handle is.
+    // The root is not the target anymore, the handle is. A press on the root
+    // reaches no service — the subscription is keyed on the handle.
     el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
-    expect(targets).toEqual([]);
+    expect(modes).toEqual([]);
 
     handle.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
-    expect(targets).toEqual([handle]);
+    expect(modes).toEqual(['start']);
 
     instance.$destroy();
   });
 
-  it('stacks: two subscriptions of the same kind, two targets, two methods', async () => {
+  it('stacks with another service, and takes a second target by hand', async () => {
     const scroller = render('width:100px;height:100px;overflow:auto');
     scroller.innerHTML = '<div style="width:100px;height:800px"></div>';
 
-    class Both extends withScroll(
-      withScroll(Base, {
-        hook: 'innerScrolled',
-        target: (instance) => instance.$el,
-      }),
-    ) {
+    // One method name per service, so a second scroller is an explicit
+    // subscription whose unsubscribe joins the mount cycle's cleanups.
+    class Both extends withRaf(withScroll(Base)) {
       static config = { name: 'Both' };
 
+      ticks = 0;
       page: number[] = [];
       inner: number[] = [];
+
+      ticked(): void {
+        this.ticks += 1;
+      }
 
       scrolled({ y }: ScrollProps): void {
         this.page.push(y);
       }
 
-      innerScrolled({ y }: ScrollProps): void {
-        this.inner.push(y);
+      mounted() {
+        return [
+          super.mounted(),
+          useScroll(this.$el).subscribe(({ y }: ScrollProps) => this.inner.push(y)),
+        ];
       }
     }
 
     const instance = new Both(scroller).$mount();
+    await frames(2);
 
     scroller.scrollTop = 120;
     scroller.dispatchEvent(new Event('scroll'));
     await settle();
 
+    expect(instance.ticks).toBeGreaterThan(0);
     expect(instance.inner).toEqual([120]);
     // The window did not move, so the other subscription said nothing.
     expect(instance.page).toEqual([]);
@@ -265,129 +272,138 @@ describe('service mixins', () => {
   });
 });
 
-describe('manual subscriptions', () => {
-  class ManualTicker extends withRaf(Base, { manual: true }) {
-    static config = { name: 'ManualTicker' };
+describe('a manual hook', () => {
+  class Settler extends withRaf(Base, { manual: true }) {
+    static config = { name: 'Settler' };
 
     ticks = 0;
 
-    ticked(): void {
+    ticked() {
       this.ticks += 1;
     }
   }
 
-  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  it('declares the hook without subscribing it, until $enable', async () => {
-    const instance = new ManualTicker(render()).$mount();
-
+  it('is declared but not subscribed by mounting', async () => {
+    const instance = new Settler(render()).$mount();
     await frames(3);
-    // Declared, not subscribed: `mounted()` left it off.
+
     expect(instance.ticks).toBe(0);
-
-    instance.$enable('ticked');
-    await frames(3);
-    expect(instance.ticks).toBeGreaterThan(0);
-
-    const frozen = instance.ticks;
-    instance.$disable('ticked');
-    await frames(3);
-    expect(instance.ticks).toBe(frozen);
-
-    // And it resumes within the same mount cycle.
-    instance.$enable('ticked');
-    await frames(3);
-    expect(instance.ticks).toBeGreaterThan(frozen);
-
+    expect(instance.$services.ticked.isActive).toBe(false);
     instance.$terminate();
   });
 
-  it('cannot subscribe twice, whatever the number of $enable calls', async () => {
-    const instance = new ManualTicker(render()).$mount();
+  it('runs while the component wants it, and not after', async () => {
+    const instance = new Settler(render()).$mount();
 
-    instance.$enable('ticked');
-    instance.$enable('ticked');
-    instance.$enable('ticked');
-
-    await frames(4);
-    const counted = instance.ticks;
-    // One subscription means at most one tick per frame — three would treble
-    // the count.
-    expect(counted).toBeGreaterThan(0);
-    expect(counted).toBeLessThanOrEqual(6);
-
-    // One `$disable` is enough to release it.
-    instance.$disable('ticked');
+    instance.$services.ticked.start();
+    expect(instance.$services.ticked.isActive).toBe(true);
     await frames(3);
-    expect(instance.ticks).toBe(counted);
+    const whileRunning = instance.ticks;
+    expect(whileRunning).toBeGreaterThan(0);
 
+    instance.$services.ticked.stop();
+    await frames(3);
+    // Released means released: the frame loop is not still calling it.
+    expect(instance.ticks).toBe(whileRunning);
+    expect(instance.$services.ticked.isActive).toBe(false);
     instance.$terminate();
   });
 
-  it('is safe before mount and after destroy, and releases on destroy', async () => {
-    const instance = new ManualTicker(render());
-
-    expect(() => instance.$enable('ticked')).not.toThrow();
+  it('genuinely stops the frame loop, not just the callback', async () => {
+    const instance = new Settler(render()).$mount();
+    instance.$services.ticked.start();
     await frames(2);
-    expect(instance.ticks).toBeGreaterThan(0);
 
-    instance.$mount();
-    instance.$destroy();
-    const frozen = instance.ticks;
-    await frames(3);
-    // Everything is released on destroy, manual or not.
-    expect(instance.ticks).toBe(frozen);
+    instance.$services.ticked.stop();
+    await frames(2);
+    // Nothing else is subscribed, so the service released its tick and the
+    // scheduler has no reason to ask for another frame. `frames()` awaits one
+    // itself, so its own four requests are the floor: anything above them is
+    // the loop still running.
+    let framesRequested = 0;
+    const request = window.requestAnimationFrame;
+    window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+      framesRequested += 1;
+      return request(callback);
+    }) as typeof window.requestAnimationFrame;
+    await frames(4);
+    window.requestAnimationFrame = request;
 
-    expect(() => {
-      instance.$disable('ticked');
-      instance.$enable('ticked');
-      instance.$disable('ticked');
-    }).not.toThrow();
-
+    expect(framesRequested).toBe(4);
     instance.$terminate();
-    const afterTerminate = instance.ticks;
-    // A terminated instance never mounts again, so nothing would release a
-    // new subscription: `$enable` is a no-op rather than a leak.
-    expect(() => instance.$enable('ticked')).not.toThrow();
-    await frames(3);
-    expect(instance.ticks).toBe(afterTerminate);
   });
 
-  it('stops the frame loop when nothing else needs it', async () => {
-    await settle();
-    const original = globalThis.requestAnimationFrame;
-    let calls = 0;
-    globalThis.requestAnimationFrame = ((callback: FrameRequestCallback) => {
-      calls += 1;
-      return original.call(globalThis, callback);
-    }) as typeof requestAnimationFrame;
+  it('start() is idempotent, so one stop() is enough', async () => {
+    const instance = new Settler(render()).$mount();
+    instance.$services.ticked.start();
+    instance.$services.ticked.start();
+    await frames(3);
+    expect(instance.ticks).toBeGreaterThan(0);
 
-    try {
-      const instance = new ManualTicker(render()).$mount();
-      await sleep(100);
-      // Nothing subscribed, nothing queued: no frame was ever requested.
-      expect(calls).toBe(0);
+    // If the two calls had produced two subscriptions, one would outlive this.
+    instance.$services.ticked.stop();
+    const atStop = instance.ticks;
+    await frames(3);
 
-      instance.$enable('ticked');
-      await sleep(100);
-      expect(calls).toBeGreaterThan(2);
-      expect(instance.ticks).toBeGreaterThan(0);
+    expect(instance.ticks).toBe(atStop);
+    instance.$terminate();
+  });
 
-      instance.$disable('ticked');
-      // Let the frame already requested run out.
-      await sleep(50);
-      const stopped = calls;
-      const ticks = instance.ticks;
+  it('is released by the mount cycle whichever side started it', async () => {
+    const instance = new Settler(render()).$mount();
+    instance.$services.ticked.start();
+    await frames(2);
 
-      await sleep(150);
-      // The rAF loop is genuinely gone, not merely quiet.
-      expect(calls).toBe(stopped);
-      expect(instance.ticks).toBe(ticks);
+    instance.$destroy();
+    expect(instance.$services.ticked.isActive).toBe(false);
+    const atDestroy = instance.ticks;
+    await frames(3);
+    expect(instance.ticks).toBe(atDestroy);
+    instance.$terminate();
+  });
 
-      instance.$terminate();
-    } finally {
-      globalThis.requestAnimationFrame = original;
+  it('does not subscribe on a terminated instance, which nothing would release', () => {
+    const instance = new Settler(render()).$mount();
+    instance.$terminate();
+
+    instance.$services.ticked.start();
+    expect(instance.$services.ticked.isActive).toBe(false);
+  });
+
+  it('releases a hook started before the first mount, on terminate', () => {
+    const instance = new Settler(render());
+    instance.$services.ticked.start();
+    expect(instance.$services.ticked.isActive).toBe(true);
+
+    instance.$terminate();
+    expect(instance.$services.ticked.isActive).toBe(false);
+  });
+
+  it('gives each stacked layer its own handle, under its own name', async () => {
+    class Both extends withScroll(withRaf(Base, { manual: true }), { manual: true }) {
+      static config = { name: 'Both' };
+
+      ticks = 0;
+      scrolls = 0;
+
+      ticked() {
+        this.ticks += 1;
+      }
+
+      scrolled() {
+        this.scrolls += 1;
+      }
     }
+
+    const instance = new Both(render()).$mount();
+    instance.$services.ticked.start();
+    await frames(3);
+
+    // One handle per layer, reached by the name that layer owns.
+    expect(instance.ticks).toBeGreaterThan(0);
+    expect(instance.$services.ticked.isActive).toBe(true);
+    expect(instance.$services.scrolled.isActive).toBe(false);
+    instance.$terminate();
   });
 });
 
@@ -418,7 +434,7 @@ describe('service decorators', () => {
     const el = render('width:100px;height:100px;overflow:auto');
     el.innerHTML = '<div style="width:100px;height:800px"></div>';
 
-    @withScroll({ hook: 'innerScrolled', target: (instance) => instance.$el })
+    @withScroll({ target: (instance) => instance.$el })
     @withRaf()
     class Decorated extends Base {
       static config = { name: 'DecoratedScroll' };
@@ -430,7 +446,7 @@ describe('service decorators', () => {
         this.ticks += 1;
       }
 
-      innerScrolled({ y }: ScrollProps): void {
+      scrolled({ y }: ScrollProps): void {
         this.inner.push(y);
       }
     }

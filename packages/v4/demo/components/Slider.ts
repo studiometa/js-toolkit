@@ -120,7 +120,7 @@ export class Slider extends Base<{
   // frame and reports `isScrolling`, so there is nothing to bind, nothing
   // to debounce, and no `scrollend` handling of our own.
   mounted() {
-    return useScroll(this.$refs.wrapper).add(({ isScrolling }) => {
+    return useScroll(this.$refs.wrapper).subscribe(({ isScrolling }) => {
       if (!isScrolling) {
         this.#navigationTarget = null;
       }
