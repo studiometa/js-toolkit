@@ -27,7 +27,7 @@ export interface ScrollProps {
    * Position over the maximum, from `0` to `1`. Distance travelled from the
    * start of the axis, so a right-to-left container — where `scrollLeft`
    * counts *down* from `0` at the right edge — reports the same `0` to `1`
-   * as any other.
+   * as any other, and an axis that cannot scroll reports `0`.
    */
   progressX: number;
   progressY: number;
@@ -93,9 +93,12 @@ function measure(target: ScrollTarget) {
  * maximum stays positive, so dividing one by the other gave a negative
  * progress — measured `progressX: -0.56` at `scrollLeft: -500` with
  * `maxX: 900`.
+ *
+ * An axis that cannot scroll is at its start, not at its end: reporting `1`
+ * told an empty carousel it had reached the last slide.
  */
 function progressFor(position: number, max: number): number {
-  return max === 0 ? 1 : Math.abs(position) / max;
+  return max === 0 ? 0 : Math.abs(position) / max;
 }
 
 function createScrollService(target: ScrollTarget): Service<ScrollProps> {

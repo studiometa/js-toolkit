@@ -154,6 +154,25 @@ describe('useResize(element)', () => {
     unsubscribe();
   });
 
+  it('reports no ratio for a collapsed element', async () => {
+    const el = document.createElement('div');
+    el.setAttribute('style', 'width:120px;height:0');
+    document.body.append(el);
+
+    const service = useResize(el);
+    const unsubscribe = service.add(() => {});
+    await settle();
+
+    // `Infinity` and `NaN` propagate through everything a subscriber
+    // computes from a ratio; a collapsed element simply has none.
+    expect(service.props().height).toBe(0);
+    expect(service.props().ratio).toBe(0);
+    // And it is still described by the side it is wider on.
+    expect(service.props().orientation).toBe('landscape');
+
+    unsubscribe();
+  });
+
   it('keeps one service per element, each with its own subscribers', async () => {
     const first = makeBox('120px');
     const second = makeBox('120px');

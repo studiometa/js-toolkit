@@ -22,6 +22,11 @@ export const BREAKPOINTS: Readonly<Record<string, string>> = {
 export interface ResizeProps {
   width: number;
   height: number;
+  /**
+   * Width over height, `0` for an element with no height — a collapsed
+   * element has no ratio, and `Infinity` or `NaN` propagate through every
+   * calculation a subscriber does with it.
+   */
   ratio: number;
   orientation: ResizeOrientation;
   /**
@@ -65,10 +70,18 @@ export function getBreakpoints(): Record<string, string> {
   return { ...breakpoints };
 }
 
-function orientationFor(ratio: number): ResizeOrientation {
-  if (ratio > 1) return 'landscape';
-  if (ratio < 1) return 'portrait';
+/**
+ * Read from the two dimensions rather than from the ratio, so a collapsed
+ * element is still described by the side it is wider on.
+ */
+function orientationFor(width: number, height: number): ResizeOrientation {
+  if (width > height) return 'landscape';
+  if (width < height) return 'portrait';
   return 'square';
+}
+
+function ratioFor(width: number, height: number): number {
+  return height === 0 ? 0 : width / height;
 }
 
 /**
@@ -91,8 +104,8 @@ function createResizeService(target: Element): Service<ResizeProps> {
   const props: ResizeProps = {
     width: target.clientWidth,
     height: target.clientHeight,
-    ratio: target.clientWidth / target.clientHeight,
-    orientation: orientationFor(target.clientWidth / target.clientHeight),
+    ratio: ratioFor(target.clientWidth, target.clientHeight),
+    orientation: orientationFor(target.clientWidth, target.clientHeight),
     breakpoint: currentBreakpoint(),
   };
 
@@ -101,8 +114,8 @@ function createResizeService(target: Element): Service<ResizeProps> {
     // viewport — minus the classic scrollbar `innerWidth` counts in.
     props.width = target.clientWidth;
     props.height = target.clientHeight;
-    props.ratio = props.width / props.height;
-    props.orientation = orientationFor(props.ratio);
+    props.ratio = ratioFor(props.width, props.height);
+    props.orientation = orientationFor(props.width, props.height);
     props.breakpoint = currentBreakpoint();
     return props;
   }

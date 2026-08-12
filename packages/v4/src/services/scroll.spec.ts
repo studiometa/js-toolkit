@@ -160,6 +160,25 @@ describe('useScroll(element)', () => {
     el.remove();
   });
 
+  it('reports no progress on an axis that cannot scroll', async () => {
+    const el = document.createElement('div');
+    el.setAttribute('style', 'width:100px;height:100px;overflow:auto');
+    el.innerHTML = '<div style="width:100px;height:800px"></div>';
+    document.body.append(el);
+
+    const service = useScroll(el);
+    const unsubscribe = service.add(() => {});
+    await settle();
+
+    // An axis with nowhere to go is at its start. Reporting `1` told an empty
+    // carousel it had reached its last slide.
+    expect(service.props().maxX).toBe(0);
+    expect(service.props().progressX).toBe(0);
+
+    unsubscribe();
+    el.remove();
+  });
+
   it('reports a positive progress in a right-to-left container', async () => {
     const el = document.createElement('div');
     el.setAttribute('dir', 'rtl');
