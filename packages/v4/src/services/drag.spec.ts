@@ -94,6 +94,31 @@ describe('useDrag', () => {
     expect(modes).toContain('inertia');
     expect(modes.at(-1)).toBe('stop');
     expect(last.at(-1)?.hasInertia).toBe(false);
+    // The coast arrives exactly where the drop said it would.
+    expect(last.at(-1)?.x).toBe(last.at(-1)?.finalX);
+  });
+
+  it('computes the settle position in closed form', () => {
+    const el = render();
+    // Barely any decay per frame, which is what made the old term-by-term
+    // walk run ~690 000 iterations — twice per drop, blocking the
+    // `pointerup` for 2.3 to 4.4 ms.
+    const dampFactor = 0.99999;
+    const drops: DragProps[] = [];
+    const unsubscribe = useDrag(el, { dampFactor }).add((props) => {
+      if (props.mode === 'drop') {
+        drops.push({ ...props });
+      }
+    });
+
+    grab(el, 0, 0);
+    move(50, 0);
+    release();
+    unsubscribe();
+
+    // The exact sum, where walking it stopped 10 000 px short of it. Timing
+    // is not asserted: the value is what proves the loop is gone.
+    expect(drops[0].finalX).toBe(50 + 50 / (1 - dampFactor));
   });
 
   it('drops when the button is released outside the window', () => {

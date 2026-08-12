@@ -48,20 +48,24 @@ export interface DragOptions {
  * Where a damped value ends up once its delta has decayed to nothing —
  * known at drop time, so a component can animate straight to it instead of
  * following the inertia frame by frame.
+ *
+ * The coast adds `delta`, then `delta · damp`, then `delta · damp²`…, so the
+ * travel left is the geometric sum `delta / (1 - damp)`: one division,
+ * instead of walking the decay term by term until a term fell under 0.1 px.
+ *
+ * It is also an **invariant** along the coast — after a tick the position has
+ * gained `delta` and `delta` has been scaled by `damp`, which lands on the
+ * same value — so the position the drop announces is the one the inertia
+ * arrives at, and `stop()` snaps onto it rather than settling near it.
  */
 function inertiaFinalValue(value: number, delta: number, dampFactor: number): number {
-  let final = value;
-  let current = delta;
-  while (Math.abs(current) > 0.1) {
-    final += current;
-    current *= dampFactor;
-  }
-  return final;
+  return value + delta / (1 - dampFactor);
 }
 
 function createDragService(target: HTMLElement, options: DragOptions): Service<DragProps> {
-  // A factor of 1 would never decay, and `inertiaFinalValue` would not end.
-  const dampFactor = Math.min(Math.max(options.dampFactor ?? 0.85, 0.00001), 0.99999);
+  // A factor of 1 would never decay, and the settle position would be
+  // infinitely far away.
+  const dampFactor = Math.min(Math.max(options.dampFactor ?? 0.85, 0), 0.99999);
   const dragThreshold = options.dragThreshold ?? 10;
 
   const props: DragProps = {
@@ -101,6 +105,15 @@ function createDragService(target: HTMLElement, options: DragOptions): Service<D
 
       function stop() {
         stopInertia();
+        // The settle position is exact and invariant along the coast, so the
+        // drop's promise holds to the pixel instead of stopping a fraction
+        // short of it.
+        props.x = props.finalX;
+        props.y = props.finalY;
+        props.deltaX = 0;
+        props.deltaY = 0;
+        props.distanceX = props.x - props.originX;
+        props.distanceY = props.y - props.originY;
         props.isGrabbing = false;
         props.hasInertia = false;
         props.mode = 'stop';
