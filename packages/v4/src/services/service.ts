@@ -44,16 +44,27 @@ export interface ServiceDefinition<T> {
 }
 
 /**
+ * One holder of the service, not one callback: a `Set` keyed by the function
+ * itself collapsed two holders of the same callback into one entry, so the
+ * second subscription was never called and the first unsubscribe tore the
+ * service down under it. Two components sharing a bound method, or one
+ * module-level handler used twice, is enough.
+ */
+interface Subscription<T> {
+  callback: ServiceCallback<T>;
+}
+
+/**
  * Build a service from its definition.
  */
 export function createService<T>({ props, start }: ServiceDefinition<T>): Service<T> {
-  const callbacks = new Set<ServiceCallback<T>>();
+  const subscriptions = new Set<Subscription<T>>();
   let stop: (() => void) | null = null;
 
   function emit(current: T): void {
-    for (const callback of callbacks) {
+    for (const subscription of subscriptions) {
       try {
-        callback(current);
+        subscription.callback(current);
       } catch (error) {
         // One broken component must not deprive the others of the service,
         // which for a per-frame source would mean every frame from now on.
@@ -65,11 +76,12 @@ export function createService<T>({ props, start }: ServiceDefinition<T>): Servic
   return {
     props,
     add(callback) {
-      callbacks.add(callback);
+      const subscription: Subscription<T> = { callback };
+      subscriptions.add(subscription);
       stop ??= start(emit);
       return () => {
         // Already gone, or others are still listening: nothing to release.
-        if (!callbacks.delete(callback) || callbacks.size > 0) {
+        if (!subscriptions.delete(subscription) || subscriptions.size > 0) {
           return;
         }
         stop?.();

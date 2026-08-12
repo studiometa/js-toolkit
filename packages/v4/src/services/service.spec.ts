@@ -50,6 +50,40 @@ describe('createService', () => {
     expect(calls).toEqual(['start', 'stop']);
   });
 
+  it('lets the same callback subscribe twice, and counts both holders', () => {
+    const calls: string[] = [];
+    let emit!: (props: number) => void;
+    const service = createService<number>({
+      props: () => 0,
+      start(fan) {
+        emit = fan;
+        calls.push('start');
+        return () => calls.push('stop');
+      },
+    });
+
+    // Two components sharing one handler — a module-level function, or the
+    // same bound method — are two holders of the service, not one.
+    let received = 0;
+    const callback = () => {
+      received += 1;
+    };
+    const first = service.add(callback);
+    const second = service.add(callback);
+
+    emit(1);
+    expect(received).toBe(2);
+
+    // And the first to leave must not release the service under the second.
+    first();
+    expect(calls).toEqual(['start']);
+    emit(2);
+    expect(received).toBe(3);
+
+    second();
+    expect(calls).toEqual(['start', 'stop']);
+  });
+
   it('fans props out to every subscriber, in subscription order', () => {
     let emit!: (props: number) => void;
     const service = createService<number>({
