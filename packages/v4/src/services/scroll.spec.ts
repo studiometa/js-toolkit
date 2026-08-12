@@ -128,6 +128,38 @@ describe('useScroll(element)', () => {
     unsubscribe();
   });
 
+  it('re-measures its extents when the content changes', async () => {
+    const el = document.createElement('div');
+    el.setAttribute('style', 'width:100px;height:100px;overflow:auto');
+    el.innerHTML = '<div style="width:100px;height:500px"></div>';
+    document.body.append(el);
+
+    const service = useScroll(el);
+    const seen: Array<ReturnType<typeof snapshot>> = [];
+    const unsubscribe = service.add((props) => seen.push(snapshot(props)));
+    await settle();
+    expect(service.props().maxY).toBe(400);
+
+    // A slide loading, an accordion opening: the extents used to stay at
+    // their subscribe-time values until an unrelated scroll or resize came
+    // along, so `maxY` read 400 for 5000 px of content.
+    (el.firstElementChild as HTMLElement).style.height = '5000px';
+    await settle();
+    expect(service.props().maxY).toBe(4900);
+
+    // And content appended, which no `ResizeObserver` on the existing boxes
+    // could see.
+    const added = document.createElement('div');
+    added.setAttribute('style', 'width:100px;height:1000px');
+    el.append(added);
+    await settle();
+    expect(service.props().maxY).toBe(5900);
+    expect(seen.at(-1)?.maxY).toBe(5900);
+
+    unsubscribe();
+    el.remove();
+  });
+
   it('keeps one service per element, each with its own subscribers', async () => {
     const first = makeScroller();
     const second = makeScroller();

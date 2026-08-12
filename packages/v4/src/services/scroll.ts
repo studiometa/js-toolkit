@@ -50,6 +50,14 @@ const SCROLL_END_FALLBACK_DELAY = 120;
 const supportsScrollEnd = /* @__PURE__ */ (() =>
   typeof window !== 'undefined' && 'onscrollend' in window)();
 
+/** The element whose content decides how far the target can scroll. */
+function scrollerOf(target: ScrollTarget): Element {
+  if (target instanceof Window) {
+    return document.scrollingElement ?? document.documentElement;
+  }
+  return target;
+}
+
 /**
  * Where the target stands and how far it can go. The window scrolls the
  * document, so its maximums come from the scrolling element rather than from
@@ -57,7 +65,7 @@ const supportsScrollEnd = /* @__PURE__ */ (() =>
  */
 function measure(target: ScrollTarget) {
   if (target instanceof Window) {
-    const scrollingElement = document.scrollingElement ?? document.documentElement;
+    const scrollingElement = scrollerOf(target);
     return {
       x: target.scrollX,
       y: target.scrollY,
@@ -158,6 +166,37 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
       // down. Re-measure without entering the scrolling state.
       const onResize = () => flush();
 
+      /**
+       * Content growing changes how far the target can scroll, and nothing
+       * announces it: no `resize`, no `scroll`. A carousel whose slides load,
+       * an accordion opening, a list appending — the extents stayed at their
+       * subscribe-time values, so `maxY` read 400 for content that had gone
+       * from 500 to 5000 px, and every `progress` derived from it was wrong.
+       *
+       * A scroll container's own box never grows with its content, so the
+       * observer has to watch the children as well, and a `childList`
+       * `MutationObserver` keeps that set in sync as children come and go.
+       * That is the price: one `ResizeObserver` over `1 + n` boxes and one
+       * `MutationObserver` per scroller, both released with the last
+       * subscriber like everything else here.
+       */
+      const scroller = scrollerOf(target);
+      const refreshExtents = () => {
+        const { maxX, maxY } = measure(target);
+        if (maxX !== props.maxX || maxY !== props.maxY) {
+          flush();
+        }
+      };
+      const contentObserver = new ResizeObserver(refreshExtents);
+      const observeContent = () => {
+        contentObserver.disconnect();
+        contentObserver.observe(scroller);
+        for (const child of scroller.children) {
+          contentObserver.observe(child);
+        }
+      };
+      const childrenObserver = new MutationObserver(observeContent);
+
       // Refresh before the first subscriber reads `props()`, and pick up the
       // maximums of the target as it is now.
       update();
@@ -169,11 +208,15 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
         target.addEventListener('scrollend', onScrollEnd);
       }
       window.addEventListener('resize', onResize, { passive: true });
+      observeContent();
+      childrenObserver.observe(scroller, { childList: true });
 
       return () => {
         task?.cancel();
         task = null;
         clearTimeout(fallbackTimer);
+        contentObserver.disconnect();
+        childrenObserver.disconnect();
         props.isScrolling = false;
         target.removeEventListener('scroll', onScroll);
         target.removeEventListener('scrollend', onScrollEnd);
