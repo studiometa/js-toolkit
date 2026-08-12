@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { registerComponent } from '../../src/index.js';
 import { getInstance, resetDom, settle } from '../../src/test-utils.js';
 import { Transition } from '../Transition/Transition.js';
@@ -99,9 +99,12 @@ describe('Dialog', () => {
     await dialog.open();
     expect(el.open).toBe(true);
 
-    // What the browser dispatches on Escape.
+    // What the browser dispatches on Escape. Await the close started by the
+    // synchronous handler instead of relying on a timer to cross its frames.
+    const close = vi.spyOn(dialog, 'close');
     el.dispatchEvent(new Event('cancel', { cancelable: true }));
-    await settle();
+    expect(close).toHaveBeenCalledOnce();
+    await close.mock.results[0].value;
 
     expect(el.open).toBe(false);
     // The leave transition ran, which is what v3 lost on Escape.
