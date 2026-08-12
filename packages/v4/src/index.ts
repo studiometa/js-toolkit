@@ -149,4 +149,5 @@ export {
   type Unsubscribe,
 } from './services/service.js';
 export { toggle, type Toggle } from './services/toggle.js';
+export { smoothTo, type SmoothTo, type SmoothToOptions } from './smoothTo.js';
 export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
