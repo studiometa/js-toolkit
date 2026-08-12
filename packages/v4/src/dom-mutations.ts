@@ -12,9 +12,9 @@ const lifecycleWork = new Set<Promise<unknown>>();
 /**
  * Start the document's single mutation observer on demand.
  *
- * Attribute names outside this list do not affect a core DOM lookup or the
- * component registry. Open attribute families can be added when core has a
- * concrete consumer for them.
+ * Attribute records are filtered during batch classification because
+ * declared `data-option-*` names cannot be represented by a static
+ * `attributeFilter`.
  */
 function observe(): MutationObserver {
   if (!observer) {
@@ -24,7 +24,6 @@ function observe(): MutationObserver {
       subtree: true,
       attributes: true,
       attributeOldValue: true,
-      attributeFilter: ['data-component', 'data-mount', 'data-ref'],
     });
   }
   return observer;
@@ -36,19 +35,34 @@ function observe(): MutationObserver {
  * steal component-registry work from the observer callback.
  */
 function ingest(incoming: MutationRecord[]): void {
-  if (incoming.length === 0) {
+  const relevant = incoming.filter(
+    ({ type, attributeName }) =>
+      type === 'childList' ||
+      attributeName === 'data-component' ||
+      attributeName === 'data-mount' ||
+      attributeName === 'data-ref' ||
+      attributeName?.startsWith('data-option-'),
+  );
+  if (relevant.length === 0) {
     return;
   }
 
-  records.push(...incoming);
   if (
-    incoming.some(
+    relevant.some(
       ({ type, attributeName }) =>
         type === 'childList' || attributeName === 'data-component' || attributeName === 'data-ref',
     )
   ) {
     version += 1;
   }
+
+  // Before the first component is registered, the current document scan is
+  // sufficient. Keeping historical records here would retain detached
+  // subtrees with nobody able to process them.
+  if (!processor) {
+    return;
+  }
+  records.push(...relevant);
   scheduleProcessing();
 }
 
@@ -62,10 +76,11 @@ function scheduleProcessing(): void {
     records = [];
     processor?.(batch);
   });
-  processTask.promise.finally(() => {
+  const finished = () => {
     processTask = null;
     scheduleProcessing();
-  });
+  };
+  void processTask.promise.then(finished, finished);
 }
 
 /**
@@ -73,7 +88,10 @@ function scheduleProcessing(): void {
  */
 export function setDOMMutationProcessor(next: DOMMutationProcessor): void {
   processor = next;
-  observe();
+  const currentObserver = observe();
+  // Reconcile pending declarations before the registration scan can enqueue
+  // mounts for their final token set.
+  ingest(currentObserver.takeRecords());
   scheduleProcessing();
 }
 
@@ -99,7 +117,8 @@ export function trackDOMLifecycleWork(work: Promise<unknown> | undefined): void 
     return;
   }
   lifecycleWork.add(work);
-  work.finally(() => lifecycleWork.delete(work));
+  const finished = () => lifecycleWork.delete(work);
+  void work.then(finished, finished);
 }
 
 /**
@@ -116,10 +135,7 @@ export async function whenDOMSettled(): Promise<void> {
     ingest(currentObserver.takeRecords());
     scheduleProcessing();
 
-    const pending = [
-      ...(processTask ? [processTask.promise] : []),
-      ...lifecycleWork,
-    ];
+    const pending = [...(processTask ? [processTask.promise] : []), ...lifecycleWork];
     if (pending.length > 0) {
       await Promise.all(pending);
       continue;

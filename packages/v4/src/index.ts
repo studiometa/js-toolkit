@@ -50,6 +50,8 @@ export {
   type HandlerRegistration,
   type LifecycleEventDetail,
   type MountedReturn,
+  type OptionChange,
+  type OptionChangedReturn,
   type OptionDefinition,
   type OptionType,
   type RefEvent,

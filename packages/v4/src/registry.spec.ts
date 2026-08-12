@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { Base } from './Base.js';
+import { registerComponent } from './registry.js';
 import { getInstance, renderTodoList, resetDom, settle, TodoItem, TodoList } from './test-utils.js';
 
 afterEach(resetDom);
@@ -90,5 +92,34 @@ describe('registry', () => {
     const second = getInstance<TodoItem>(el, 'TodoItem');
     expect(second).not.toBe(first);
     expect(second.$isMounted).toBe(true);
+  });
+
+  it('processes a pending token replacement before mounting a newly registered class', async () => {
+    const calls: string[] = [];
+
+    class Before extends Base {
+      static config = { name: 'RegistrationBefore' };
+      terminated(): void {
+        calls.push('before:terminated');
+      }
+    }
+    class After extends Base {
+      static config = { name: 'RegistrationAfter' };
+      mounted(): void {
+        calls.push(`after:mounted:before=${Boolean(this.$el.__base__?.has('RegistrationBefore'))}`);
+      }
+    }
+
+    registerComponent(Before);
+    const el = document.createElement('div');
+    el.setAttribute('data-component', 'RegistrationBefore');
+    document.body.append(el);
+    await settle();
+
+    el.setAttribute('data-component', 'RegistrationAfter');
+    registerComponent(After);
+    await settle();
+
+    expect(calls).toEqual(['before:terminated', 'after:mounted:before=false']);
   });
 });

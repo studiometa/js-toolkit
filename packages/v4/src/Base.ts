@@ -53,6 +53,17 @@ type TypedOptionDefinition<T extends OptionType = OptionType> = T extends Option
 
 export type OptionDefinition = OptionType | TypedOptionDefinition;
 
+export interface OptionChange<T = unknown> {
+  name: string;
+  value: T;
+  previousValue: T | undefined;
+  rawValue: string | null;
+  previousRawValue: string | null;
+  initial: boolean;
+}
+
+export type OptionChangedReturn = void | (() => void);
+
 export interface BaseConfig {
   name: string;
   components?: Record<string, BaseConstructor>;
@@ -300,8 +311,17 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
  * which is what makes `this.$options.list.push(x)` persist and what stops two
  * components from sharing — and corrupting — the same defaulted object.
  */
+interface OptionReader {
+  attribute: string;
+  read(raw: string | null): unknown;
+}
+
+const optionReaders = new WeakMap<Base, Map<string, OptionReader>>();
+
 function buildOptions(instance: Base): Record<string, unknown> {
   const options: Record<string, unknown> = {};
+  const readers = new Map<string, OptionReader>();
+  optionReaders.set(instance, readers);
   const el = instance.$el;
   for (const [name, definition] of Object.entries(instance.$config.options ?? {})) {
     const type = typeof definition === 'function' ? definition : definition.type;
@@ -340,35 +360,34 @@ function buildOptions(instance: Base): Record<string, unknown> {
       return undefined;
     };
 
+    const read = (raw: string | null): unknown => {
+      if (type === Boolean) {
+        return raw === null ? (defaultValue() ?? false) : raw !== 'false';
+      }
+      if (raw === null) {
+        const value = defaultValue();
+        if (value !== undefined) return value;
+        if (type === Number) return 0;
+        if (type === String) return '';
+        return undefined;
+      }
+      if (type === Number) {
+        return Number(raw);
+      }
+      if (type === Array || type === Object) {
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return defaultValue();
+        }
+      }
+      return raw;
+    };
+
+    readers.set(name, { attribute, read });
     Object.defineProperty(options, name, {
       enumerable: true,
-      get() {
-        if (type === Boolean) {
-          if (!el.hasAttribute(attribute)) {
-            return defaultValue() ?? false;
-          }
-          return el.getAttribute(attribute) !== 'false';
-        }
-        const raw = el.getAttribute(attribute);
-        if (raw === null) {
-          const value = defaultValue();
-          if (value !== undefined) return value;
-          if (type === Number) return 0;
-          if (type === String) return '';
-          return undefined;
-        }
-        if (type === Number) {
-          return Number(raw);
-        }
-        if (type === Array || type === Object) {
-          try {
-            return JSON.parse(raw);
-          } catch {
-            return defaultValue();
-          }
-        }
-        return raw;
-      },
+      get: () => read(el.getAttribute(attribute)),
     });
   }
   return options;
@@ -468,6 +487,9 @@ export class Base<T extends BaseProps = BaseProps> {
   /** Per-mount-cycle cleanups (service unsubscriptions, `mounted()` return values). */
   #destroyCallbacks: Array<() => void> = [];
 
+  /** Cleanup returned by each active `option<Name>Changed()` effect. */
+  #optionCleanups = new Map<string, () => void>();
+
   /** Instance-lifetime cleanups ($provide, $watchChildren…), run on `$terminate()`. */
   #terminateCallbacks: Array<() => void> = [];
 
@@ -534,6 +556,7 @@ export class Base<T extends BaseProps = BaseProps> {
     }
     this.#bindHandlers();
     this.#isMounted = true;
+    this.#initializeOptionEffects();
     this.#collectCleanup(this.mounted());
     // Announce existence to every ancestor (objective 5, layer 1).
     const detail: LifecycleEventDetail = { instance: this };
@@ -561,6 +584,7 @@ export class Base<T extends BaseProps = BaseProps> {
     for (const callback of callbacks) {
       callback();
     }
+    this.#clearOptionEffects();
     for (const task of this.#tasks) {
       task.cancel();
     }
@@ -771,6 +795,26 @@ export class Base<T extends BaseProps = BaseProps> {
     return injectContextSync(this.$el, key);
   }
 
+  /**
+   * Apply one live declared-option change. Called by the registry after it
+   * has reconciled component declarations for the mutation batch.
+   *
+   * The method convention is `option<Name>Changed()`. Its returned cleanup
+   * runs before the next value is applied and on destroy.
+   *
+   * @internal
+   */
+  $optionChanged(name: string, previousRawValue: string | null): void {
+    if (!this.#isMounted) {
+      return;
+    }
+    const reader = optionReaders.get(this)?.get(name);
+    if (!reader) {
+      return;
+    }
+    this.#runOptionEffect(name, reader, previousRawValue, false);
+  }
+
   /** Schedule a DOM read; canceled automatically when the instance unmounts. */
   $read<T>(fn: () => T): ScheduledTask<T> {
     return this.#track(scheduler.read(fn));
@@ -788,8 +832,52 @@ export class Base<T extends BaseProps = BaseProps> {
 
   #track<T>(task: ScheduledTask<T>): ScheduledTask<T> {
     this.#tasks.add(task);
-    task.promise.finally(() => this.#tasks.delete(task));
+    const finished = () => this.#tasks.delete(task);
+    void task.promise.then(finished, finished);
     return task;
+  }
+
+  #initializeOptionEffects(): void {
+    for (const [name, reader] of optionReaders.get(this) ?? []) {
+      this.#runOptionEffect(name, reader, null, true);
+    }
+  }
+
+  #runOptionEffect(
+    name: string,
+    reader: OptionReader,
+    previousRawValue: string | null,
+    initial: boolean,
+  ): void {
+    this.#optionCleanups.get(name)?.();
+    this.#optionCleanups.delete(name);
+
+    const method = `option${pascalCase(name)}Changed`;
+    const handler = (this as unknown as Record<string, unknown>)[method];
+    if (typeof handler !== 'function') {
+      return;
+    }
+
+    const rawValue = this.$el.getAttribute(reader.attribute);
+    const change: OptionChange = {
+      name,
+      value: reader.read(rawValue),
+      previousValue: initial ? undefined : reader.read(previousRawValue),
+      rawValue,
+      previousRawValue,
+      initial,
+    };
+    const cleanup = (handler as (change: OptionChange) => OptionChangedReturn).call(this, change);
+    if (typeof cleanup === 'function') {
+      this.#optionCleanups.set(name, cleanup);
+    }
+  }
+
+  #clearOptionEffects(): void {
+    for (const cleanup of this.#optionCleanups.values()) {
+      cleanup();
+    }
+    this.#optionCleanups.clear();
   }
 
   /**

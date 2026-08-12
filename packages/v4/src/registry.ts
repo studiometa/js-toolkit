@@ -1,7 +1,7 @@
 import { Base, type BaseConstructor } from './Base.js';
 import { setDOMMutationProcessor, trackDOMLifecycleWork } from './dom-mutations.js';
 import { applyMountStrategy, MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
-import { selectorFor } from './utils.js';
+import { kebabCase, selectorFor } from './utils.js';
 
 const registry = new Map<string, BaseConstructor>();
 
@@ -79,23 +79,43 @@ function resolveStrategy(el: Element, ComponentClass: BaseConstructor): MountStr
  * waiting for its strategy has no instance yet, so it stays invisible to
  * `$query`, `$closest` and `$watchChildren`, and announces nothing.
  */
+function isCurrentPair(
+  el: HTMLElement,
+  name: string,
+  ComponentClass: BaseConstructor,
+  controller: PairController,
+): boolean {
+  return (
+    controller.active &&
+    controllers.get(el)?.get(name) === controller &&
+    el.isConnected &&
+    declaresComponent(el, name) &&
+    resolveStrategy(el, ComponentClass) === controller.strategy
+  );
+}
+
 function mountPair(
   el: HTMLElement,
   name: string,
   ComponentClass: BaseConstructor,
   controller: PairController,
 ): void {
-  if (
-    !controller.active ||
-    controllers.get(el)?.get(name) !== controller ||
-    !el.isConnected ||
-    !declaresComponent(el, name) ||
-    resolveStrategy(el, ComponentClass) !== controller.strategy
-  ) {
+  if (!isCurrentPair(el, name, ComponentClass, controller)) {
     return;
   }
   const instance = el.__base__?.get(name) ?? new ComponentClass(el);
   instance.$mount();
+}
+
+function destroyPair(
+  el: HTMLElement,
+  name: string,
+  ComponentClass: BaseConstructor,
+  controller: PairController,
+): void {
+  if (isCurrentPair(el, name, ComponentClass, controller)) {
+    el.__base__?.get(name)?.$destroy();
+  }
 }
 
 function disposeController(el: Element, name: string): void {
@@ -137,7 +157,7 @@ function schedule(el: HTMLElement, name: string, ComponentClass: BaseConstructor
   pairs.set(name, controller);
   const applied = applyMountStrategy(el, strategy, {
     mount: () => mountPair(el, name, ComponentClass, controller),
-    destroy: () => el.__base__?.get(name)?.$destroy(),
+    destroy: () => destroyPair(el, name, ComponentClass, controller),
   });
   controller.dispose = applied.dispose;
   trackDOMLifecycleWork(applied.eagerWork);
@@ -221,14 +241,14 @@ function destroyWithin(node: Node): void {
   for (const el of [node, ...node.querySelectorAll<HTMLElement>('*')]) {
     const pairs = controllers.get(el);
     if (pairs) {
-      for (const name of [...pairs.keys()]) {
+      for (const name of pairs.keys()) {
         disposeController(el, name);
       }
     }
     if (!el.__base__) {
       continue;
     }
-    for (const instance of [...el.__base__.values()]) {
+    for (const instance of el.__base__.values()) {
       instance.$destroy();
     }
   }
@@ -254,6 +274,7 @@ function processMutations(records: readonly MutationRecord[]): void {
 
   const declarations = new Set<HTMLElement>();
   const strategies = new Set<HTMLElement>();
+  const options = new Map<HTMLElement, Map<string, string | null>>();
   for (const record of records) {
     if (record.type !== 'attributes' || !(record.target instanceof HTMLElement)) {
       continue;
@@ -262,6 +283,17 @@ function processMutations(records: readonly MutationRecord[]): void {
       declarations.add(record.target);
     } else if (record.attributeName === MOUNT_ATTRIBUTE) {
       strategies.add(record.target);
+    } else if (record.attributeName?.startsWith('data-option-')) {
+      let changes = options.get(record.target);
+      if (!changes) {
+        changes = new Map();
+        options.set(record.target, changes);
+      }
+      // Mutation records carry each preceding value. Keeping the first one
+      // and reading the final DOM below coalesces same-task writes.
+      if (!changes.has(record.attributeName)) {
+        changes.set(record.attributeName, record.oldValue);
+      }
     }
   }
 
@@ -275,6 +307,29 @@ function processMutations(records: readonly MutationRecord[]): void {
   for (const el of strategies) {
     if (el.isConnected && !declarations.has(el)) {
       reconcileElement(el);
+    }
+  }
+
+  // Option effects only run on components which survived declaration
+  // reconciliation and are mounted in this cycle. A waiting strategy reads
+  // the final values when it eventually mounts.
+  for (const [el, changes] of options) {
+    if (!el.isConnected) {
+      continue;
+    }
+    for (const instance of el.__base__?.values() ?? []) {
+      if (!instance.$isMounted) {
+        continue;
+      }
+      for (const name of Object.keys(instance.$config.options ?? {})) {
+        const attribute = `data-option-${kebabCase(name)}`;
+        if (changes.has(attribute)) {
+          const previousRawValue = changes.get(attribute) ?? null;
+          if (el.getAttribute(attribute) !== previousRawValue) {
+            instance.$optionChanged(name, previousRawValue);
+          }
+        }
+      }
     }
   }
 
