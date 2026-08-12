@@ -1,6 +1,6 @@
 import { scheduler, type ScheduledTask } from '../scheduler.js';
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
-import { createService, perTarget, type Service } from './service.js';
+import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
 /** Anything that scrolls: the window, or an element with an overflow. */
 export type ScrollTarget = Element | Window;
@@ -10,38 +10,38 @@ export type ScrollTarget = Element | Window;
  * what it needs (`{ deltaY, isDown }`) instead of reaching through a group.
  */
 export interface ScrollProps {
-  x: number;
-  y: number;
+  readonly x: number;
+  readonly y: number;
   /** Whether the axis moved in this update. */
-  changedX: boolean;
-  changedY: boolean;
+  readonly changedX: boolean;
+  readonly changedY: boolean;
   /** Position at the previous update. */
-  lastX: number;
-  lastY: number;
-  deltaX: number;
-  deltaY: number;
+  readonly lastX: number;
+  readonly lastY: number;
+  readonly deltaX: number;
+  readonly deltaY: number;
   /** Furthest scrollable position, `0` when the axis does not scroll. */
-  maxX: number;
-  maxY: number;
+  readonly maxX: number;
+  readonly maxY: number;
   /**
    * Position over the maximum, from `0` to `1`. Distance travelled from the
    * start of the axis, so a right-to-left container — where `scrollLeft`
    * counts *down* from `0` at the right edge — reports the same `0` to `1`
    * as any other, and an axis that cannot scroll reports `0`.
    */
-  progressX: number;
-  progressY: number;
-  isUp: boolean;
-  isRight: boolean;
-  isDown: boolean;
-  isLeft: boolean;
+  readonly progressX: number;
+  readonly progressY: number;
+  readonly isUp: boolean;
+  readonly isRight: boolean;
+  readonly isDown: boolean;
+  readonly isLeft: boolean;
   /**
    * Whether the target is still moving. It turns off on `scrollend`, which
    * covers momentum, smooth-scrolling and snap settling alike — a component
    * waiting for a scroll to finish should read this rather than time out on
    * its own.
    */
-  isScrolling: boolean;
+  readonly isScrolling: boolean;
 }
 
 /**
@@ -103,7 +103,7 @@ function progressFor(position: number, max: number): number {
 
 function createScrollService(target: ScrollTarget): Service<ScrollProps> {
   const initial = measure(target);
-  const props: ScrollProps = {
+  const props: MutableProps<ScrollProps> = {
     x: initial.x,
     y: initial.y,
     changedX: false,

@@ -6,7 +6,9 @@ import { useRaf, type RafProps } from './raf.js';
 describe('useRaf', () => {
   it('ticks every frame with the elapsed time', async () => {
     const props: RafProps[] = [];
-    const unsubscribe = useRaf().subscribe((frameProps) => props.push({ ...frameProps }));
+    const unsubscribe = useRaf().subscribe((frameProps) => {
+      props.push({ ...frameProps });
+    });
     await frames(4);
     unsubscribe();
 
@@ -33,6 +35,14 @@ describe('useRaf', () => {
     unsubscribe();
 
     expect(phases.slice(0, 2)).toEqual(['read', 'write']);
+  });
+
+  it('takes a render or nothing, and refuses anything else', () => {
+    // A stray return — from an assignment expression, or from an arrow body
+    // written for brevity — used to be run as a DOM mutation on every frame.
+    // @ts-expect-error 42 is not a `RafRender`.
+    const unsubscribe = useRaf().subscribe(() => 42);
+    unsubscribe();
   });
 
   it('cancels a render whose subscriber left between the two phases', async () => {

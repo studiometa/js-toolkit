@@ -53,6 +53,16 @@ describe('useScroll', () => {
     unsubscribe();
   });
 
+  it('hands out props no subscriber can write to', () => {
+    const unsubscribe = useScroll().subscribe((props) => {
+      // The same object reaches every subscriber, so one of them writing to
+      // it would corrupt all the others on the page.
+      // @ts-expect-error every prop field is readonly.
+      props.y = 999;
+    });
+    unsubscribe();
+  });
+
   it('emits once per frame however many scroll events arrive', async () => {
     makePage();
     let calls = 0;

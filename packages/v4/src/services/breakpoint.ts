@@ -1,4 +1,4 @@
-import { createService, type Service } from './service.js';
+import { createService, type MutableProps, type Service } from './service.js';
 
 /**
  * Named viewport widths, ascending. Values are the ones v3 ships. They are
@@ -27,7 +27,7 @@ export interface BreakpointProps {
    * Name of the widest breakpoint the viewport currently matches, `''` when
    * the set has no breakpoint the viewport reaches.
    */
-  name: string;
+  readonly name: string;
 }
 
 let breakpoints: Record<string, string> = { ...BREAKPOINTS };
@@ -90,7 +90,7 @@ function currentBreakpoint(): string {
 }
 
 function createBreakpointService(): Service<BreakpointProps> {
-  const props: BreakpointProps = { name: '' };
+  const props: MutableProps<BreakpointProps> = { name: '' };
 
   return createService<BreakpointProps>({
     // Answered honestly without subscribing, unlike the sampled sources: the

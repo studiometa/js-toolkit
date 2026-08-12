@@ -1,18 +1,18 @@
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
-import { createService, perTarget, type Service } from './service.js';
+import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
 export type ResizeOrientation = 'square' | 'landscape' | 'portrait';
 
 export interface ResizeProps {
-  width: number;
-  height: number;
+  readonly width: number;
+  readonly height: number;
   /**
    * Width over height, `0` for an element with no height — a collapsed
    * element has no ratio, and `Infinity` or `NaN` propagate through every
    * calculation a subscriber does with it.
    */
-  ratio: number;
-  orientation: ResizeOrientation;
+  readonly ratio: number;
+  readonly orientation: ResizeOrientation;
 }
 
 /**
@@ -30,7 +30,7 @@ function ratioFor(width: number, height: number): number {
 }
 
 function createResizeService(target: Element): Service<ResizeProps> {
-  const props: ResizeProps = {
+  const props: MutableProps<ResizeProps> = {
     width: target.clientWidth,
     height: target.clientHeight,
     ratio: ratioFor(target.clientWidth, target.clientHeight),

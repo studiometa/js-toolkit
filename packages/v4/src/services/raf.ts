@@ -14,7 +14,15 @@ export type RafProps = TickProps;
  */
 export type RafRender = (props: RafProps) => void;
 
-function createRafService(): Service<RafProps> {
+/**
+ * The frame service. Its callbacks may hand back a render, and may hand back
+ * nothing — parameterising the return is what makes
+ * `useRaf().subscribe(() => 42)` an error rather than a DOM mutation nobody
+ * asked for, run once a frame.
+ */
+export type RafService = Service<RafProps, void | RafRender>;
+
+function createRafService(): RafService {
   // Before the first tick there is nothing measured yet: report one 60 Hz
   // frame, the same value the scheduler gives its first tick, rather than a
   // zero outside the documented `[1, 40]` range.
@@ -67,7 +75,7 @@ function createRafService(): Service<RafProps> {
         if (typeof render === 'function') {
           renders.push(() => {
             if (isSubscribed) {
-              (render as RafRender)(tickProps);
+              render(tickProps);
             }
           });
         }
@@ -80,7 +88,7 @@ function createRafService(): Service<RafProps> {
   };
 }
 
-let service: Service<RafProps> | undefined;
+let service: RafService | undefined;
 
 /**
  * Use the frame service.
@@ -98,7 +106,7 @@ let service: Service<RafProps> | undefined;
  * scheduler's tick, so components ticking, scroll-driven animations
  * and lifecycle work share one flush per frame.
  */
-export function useRaf(): Service<RafProps> {
+export function useRaf(): RafService {
   service ??= createRafService();
   return service;
 }

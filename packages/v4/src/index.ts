@@ -113,6 +113,7 @@ export {
   type RafMixinOptions,
   type RafProps,
   type RafRender,
+  type RafService,
 } from './services/raf.js';
 export {
   useResize,
@@ -135,9 +136,11 @@ export {
 export {
   createService,
   perTarget,
+  type MutableProps,
   type Service,
   type ServiceCallback,
   type ServiceDefinition,
+  type Unsubscribe,
 } from './services/service.js';
 export { toggle, type Toggle } from './services/toggle.js';
 export { kebabCase, pascalCase } from './utils.js';

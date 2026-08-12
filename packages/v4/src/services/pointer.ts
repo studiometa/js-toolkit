@@ -1,5 +1,5 @@
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
-import { createService, type Service } from './service.js';
+import { createService, type MutableProps, type Service } from './service.js';
 
 /**
  * Props are flat, one per axis, the same `<name>X`/`<name>Y` spelling the
@@ -13,24 +13,24 @@ export interface PointerProps {
    * reachable and with it every ancestor of a subtree that may since have
    * left the document.
    */
-  event: PointerEvent | null;
-  isDown: boolean;
+  readonly event: PointerEvent | null;
+  readonly isDown: boolean;
   /** Position in the viewport. */
-  x: number;
-  y: number;
+  readonly x: number;
+  readonly y: number;
   /** Whether the axis moved in this update. */
-  changedX: boolean;
-  changedY: boolean;
-  lastX: number;
-  lastY: number;
-  deltaX: number;
-  deltaY: number;
+  readonly changedX: boolean;
+  readonly changedY: boolean;
+  readonly lastX: number;
+  readonly lastY: number;
+  readonly deltaX: number;
+  readonly deltaY: number;
   /** Viewport size. */
-  maxX: number;
-  maxY: number;
+  readonly maxX: number;
+  readonly maxY: number;
   /** Position over the viewport, from `0` to `1`. */
-  progressX: number;
-  progressY: number;
+  readonly progressX: number;
+  readonly progressY: number;
 }
 
 /**
@@ -46,7 +46,7 @@ function createPointerService(): Service<PointerProps> {
   // than its top-left corner.
   const x = window.innerWidth / 2;
   const y = window.innerHeight / 2;
-  const props: PointerProps = {
+  const props: MutableProps<PointerProps> = {
     event: null,
     isDown: false,
     x,

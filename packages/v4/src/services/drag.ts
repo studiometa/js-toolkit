@@ -1,6 +1,6 @@
 import { scheduler } from '../scheduler.js';
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
-import { createService, perTarget, type Service } from './service.js';
+import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
 /** Anything that can be grabbed: an HTML element, or an SVG one. */
 export type DragTarget = HTMLElement | SVGElement;
@@ -17,27 +17,27 @@ export type DragMode = 'start' | 'drag' | 'drop' | 'inertia' | 'stop';
  * scroll and pointer services use.
  */
 export interface DragProps {
-  mode: DragMode;
-  target: DragTarget;
+  readonly mode: DragMode;
+  readonly target: DragTarget;
   /** Whether the pointer is currently holding the target. */
-  isGrabbing: boolean;
+  readonly isGrabbing: boolean;
   /** Whether the drag is coasting after the drop. */
-  hasInertia: boolean;
+  readonly hasInertia: boolean;
   /** Current position in the viewport. */
-  x: number;
-  y: number;
+  readonly x: number;
+  readonly y: number;
   /** Movement since the previous update. */
-  deltaX: number;
-  deltaY: number;
+  readonly deltaX: number;
+  readonly deltaY: number;
   /** Where the drag started. */
-  originX: number;
-  originY: number;
+  readonly originX: number;
+  readonly originY: number;
   /** Distance from the origin to the current position. */
-  distanceX: number;
-  distanceY: number;
+  readonly distanceX: number;
+  readonly distanceY: number;
   /** Position the inertia is heading to. */
-  finalX: number;
-  finalY: number;
+  readonly finalX: number;
+  readonly finalY: number;
 }
 
 export interface DragOptions {
@@ -71,7 +71,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
   const dampFactor = Math.min(Math.max(options.dampFactor ?? 0.85, 0), 0.99999);
   const dragThreshold = options.dragThreshold ?? 10;
 
-  const props: DragProps = {
+  const props: MutableProps<DragProps> = {
     mode: 'stop',
     target,
     isGrabbing: false,

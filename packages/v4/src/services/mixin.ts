@@ -20,8 +20,12 @@ export interface ServiceMixinDefinition<Target, Options> {
   hook: string;
   /** Default target, e.g. the window for the scroll service. */
   target: (instance: Base) => Target;
-  /** Service the method subscribes to. */
-  use: (target: Target, options: Options) => Service<unknown>;
+  /**
+   * Service the method subscribes to. Both parameters are `unknown` here
+   * because the mixin forwards whatever the hook returns without looking at
+   * it — the frame service is the one that reads it.
+   */
+  use: (target: Target, options: Options) => Service<unknown, unknown>;
 }
 
 /**

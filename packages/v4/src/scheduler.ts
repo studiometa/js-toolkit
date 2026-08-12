@@ -40,8 +40,8 @@ const FRAME_PHASES = ['read', 'write'] as const;
  * time elapsed since the previous frame, clamped to `[1, 40]` ms.
  */
 export interface TickProps {
-  time: DOMHighResTimeStamp;
-  delta: number;
+  readonly time: DOMHighResTimeStamp;
+  readonly delta: number;
 }
 
 export type TickCallback = (props: TickProps) => void;

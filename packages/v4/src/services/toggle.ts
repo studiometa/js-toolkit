@@ -1,3 +1,5 @@
+import type { Unsubscribe } from './service.js';
+
 /**
  * A subscription the caller starts and stops, handed back by `toggle()`.
  *
@@ -42,8 +44,8 @@ export interface Toggle {
  * rest: a stopped service with no other subscriber genuinely stops — no
  * listener, no observer, no frame.
  */
-export function toggle(subscribe: () => () => void): Toggle {
-  let unsubscribe: (() => void) | null = null;
+export function toggle(subscribe: () => Unsubscribe): Toggle {
+  let unsubscribe: Unsubscribe | null = null;
 
   return {
     get isActive() {

@@ -16,21 +16,48 @@
  *   because the arity changed: v3's `add('id', callback)` would otherwise
  *   have compiled here and subscribed the string.
  */
-export type ServiceCallback<T> = (props: T) => unknown;
+export type Unsubscribe = () => void;
 
-export interface Service<T> {
+/**
+ * What a subscriber may hand back is the service's own business, so it is a
+ * parameter: `void` for a source that expects nothing, `void | RafRender` for
+ * the frame service, which collects render functions. Typing it `unknown`
+ * accepted anything — `useRaf().subscribe(() => 42)` compiled, and a stray
+ * return from an assignment expression was then run as a DOM mutation on
+ * every frame.
+ */
+export type ServiceCallback<T, R = void> = (props: T) => R;
+
+export interface Service<T, R = void> {
   /**
    * Subscribe to the service, starting it if it was not running.
    *
    * @returns Unsubscribe. The service stops with its last subscriber.
    */
-  subscribe(callback: ServiceCallback<T>): () => void;
+  subscribe(callback: ServiceCallback<T, R>): Unsubscribe;
   /**
-   * The current props, without subscribing. They are only kept up to date
-   * while the service runs.
+   * The current props, without subscribing.
+   *
+   * **The props object belongs to the service, and is valid for the duration
+   * of the call that received it.** A service may hand the same object to
+   * every subscriber and overwrite it on the next update — which is what the
+   * sampled sources do, rather than allocate per frame — so keep a copy of
+   * anything needed later (`{ ...props }`). Every field is `readonly`: one
+   * subscriber writing to the object would corrupt every other subscriber on
+   * the page.
+   *
+   * Props are only kept up to date while the service runs. `useBreakpoint()`
+   * is the exception it can afford to be: asking a `MediaQueryList` is cheap,
+   * so its cold read is current.
    */
   props(): T;
 }
+
+/**
+ * A service's own view of its props: the same shape, writable, because the
+ * service is the one that fills it in.
+ */
+export type MutableProps<T> = { -readonly [K in keyof T]: T[K] };
 
 export interface ServiceDefinition<T> {
   props(): T;
@@ -41,7 +68,7 @@ export interface ServiceDefinition<T> {
    * is between it and its service — `useRaf()` collects render functions
    * that way — so nothing comes back here.
    */
-  start(emit: (props: T) => void): () => void;
+  start(emit: (props: T) => void): Unsubscribe;
 }
 
 /**
@@ -51,16 +78,16 @@ export interface ServiceDefinition<T> {
  * service down under it. Two components sharing a bound method, or one
  * module-level handler used twice, is enough.
  */
-interface Subscription<T> {
-  callback: ServiceCallback<T>;
+interface Subscription<T, R> {
+  callback: ServiceCallback<T, R>;
 }
 
 /**
  * Build a service from its definition.
  */
-export function createService<T>({ props, start }: ServiceDefinition<T>): Service<T> {
-  const subscriptions = new Set<Subscription<T>>();
-  let stop: (() => void) | null = null;
+export function createService<T, R = void>({ props, start }: ServiceDefinition<T>): Service<T, R> {
+  const subscriptions = new Set<Subscription<T, R>>();
+  let stop: Unsubscribe | null = null;
 
   function emit(current: T): void {
     for (const subscription of subscriptions) {
@@ -77,7 +104,7 @@ export function createService<T>({ props, start }: ServiceDefinition<T>): Servic
   return {
     props,
     subscribe(callback) {
-      const subscription: Subscription<T> = { callback };
+      const subscription: Subscription<T, R> = { callback };
       subscriptions.add(subscription);
       stop ??= start(emit);
       return () => {
@@ -100,16 +127,16 @@ export function createService<T>({ props, start }: ServiceDefinition<T>): Servic
  * only means something against a target: `useResize(a)` losing its last
  * subscriber must disconnect the observer watching `a` and leave the one
  * watching `b` alone, which a single shared observer could not do. Grouping
- * targets behind one observer is measurably indifferent (`Service.bench.ts`),
+ * targets behind one observer is measurably indifferent (`service.bench.ts`),
  * so nothing here tries to.
  *
  * Extra arguments are the ones of the first call for a target — a second
  * caller joins the running service rather than reconfiguring it.
  */
-export function perTarget<Target extends WeakKey, Args extends unknown[], T>(
-  create: (target: Target, ...args: Args) => Service<T>,
-): (target: Target, ...args: Args) => Service<T> {
-  const services = new WeakMap<Target, Service<T>>();
+export function perTarget<Target extends WeakKey, Args extends unknown[], T, R = void>(
+  create: (target: Target, ...args: Args) => Service<T, R>,
+): (target: Target, ...args: Args) => Service<T, R> {
+  const services = new WeakMap<Target, Service<T, R>>();
   return (target, ...args) => {
     let service = services.get(target);
     if (!service) {
