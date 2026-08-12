@@ -263,6 +263,13 @@ const scrollServices = /* @__PURE__ */ perTarget(createScrollService);
  * listeners are released when its own last subscriber leaves.
  */
 export function useScroll(target: ScrollTarget = window): Service<ScrollProps> {
+  // The document scroller *is* the window scroller, and its `scroll` events
+  // are dispatched at the document rather than at the element. Keying a
+  // second service on it forked one scroller into two, one of which would
+  // never hear an event.
+  if (target === document.scrollingElement || target === document.documentElement) {
+    return scrollServices(window);
+  }
   return scrollServices(target);
 }
 

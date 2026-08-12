@@ -91,6 +91,10 @@ describe('useScroll', () => {
   it('is the window service when no target is given', () => {
     expect(useScroll()).toBe(useWindowScroll());
     expect(useScroll(window)).toBe(useWindowScroll());
+    // The document scroller is the window scroller, and its events are
+    // dispatched at the document: a service of its own would never hear one.
+    expect(useScroll(document.documentElement)).toBe(useWindowScroll());
+    expect(useScroll(document.scrollingElement as Element)).toBe(useWindowScroll());
   });
 });
 
