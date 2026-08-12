@@ -7,7 +7,12 @@ import { createService, type Service } from './service.js';
  * instead of reaching through a group.
  */
 export interface PointerProps {
-  /** The event that produced these props, `null` before the first one. */
+  /**
+   * The event that produced these props — `null` before the first one, and
+   * again once the service stops, because an event keeps its `target`
+   * reachable and with it every ancestor of a subtree that may since have
+   * left the document.
+   */
   event: PointerEvent | null;
   isDown: boolean;
   /** Position in the viewport. */
@@ -129,6 +134,10 @@ function createPointerService(): Service<PointerProps> {
         for (const type of EVENTS) {
           document.removeEventListener(type, onPointer, { capture: true });
         }
+        // The service outlives every subscriber — it is a module-level
+        // singleton — so holding the last event pinned its `target` and the
+        // detached subtree above it for the life of the page.
+        props.event = null;
       };
     },
   });

@@ -120,4 +120,21 @@ describe('usePointer', () => {
     move(20, 20);
     expect(calls).toBe(1);
   });
+
+  it('lets go of the last event when it stops', () => {
+    const el = document.createElement('div');
+    document.body.append(el);
+
+    const unsubscribe = usePointer().add(() => {});
+    el.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: 5, clientY: 5 }));
+    expect(usePointer().props().event?.target).toBe(el);
+
+    unsubscribe();
+    el.remove();
+
+    // The service is a module-level singleton, so a retained event pinned
+    // its `target` — and every ancestor of the subtree that left with it —
+    // for the life of the page.
+    expect(usePointer().props().event).toBeNull();
+  });
 });
