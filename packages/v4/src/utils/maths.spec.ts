@@ -9,6 +9,8 @@ import {
   inertiaTimeConstant,
   INERTIA_FRAME,
   damp,
+  MAX_SPRING_RATIO,
+  spring,
 } from './maths.js';
 
 describe('clampDampFactor', () => {
@@ -272,5 +274,111 @@ describe('damp', () => {
     const value = damp(100, 0, 0.1, 5000);
     expect(value).toBeLessThanOrEqual(100);
     expect(value).toBeGreaterThan(99);
+  });
+});
+
+/** Run a spring to rest in steps of `dt`, reporting the real time it took. */
+function settleSpring(dt: number, target = 100) {
+  let value = 0;
+  let velocity = 0;
+  let peak = 0;
+  let elapsed = 0;
+  while (value !== target && elapsed < 20_000) {
+    [value, velocity] = spring(target, value, velocity, dt);
+    peak = Math.max(peak, value);
+    elapsed += dt;
+  }
+  return { value, peak, elapsed };
+}
+
+describe('spring', () => {
+  it('takes the same real time whatever the display delivers', () => {
+    // The defect, measured on the v3 helper: no notion of time, so the same
+    // spring settled in 56 frames at 60 Hz and 28 at 120 Hz.
+    const at60 = settleSpring(INERTIA_FRAME);
+    const at120 = settleSpring(INERTIA_FRAME / 2);
+    const at30 = settleSpring(INERTIA_FRAME * 2);
+
+    expect(at60.value).toBe(100);
+    expect(at120.value).toBe(100);
+    expect(at30.value).toBe(100);
+
+    // Within a couple of coarse frames of each other, where v3 was a factor of
+    // two apart.
+    expect(Math.abs(at120.elapsed - at60.elapsed)).toBeLessThan(INERTIA_FRAME * 3);
+    expect(Math.abs(at30.elapsed - at60.elapsed)).toBeLessThan(INERTIA_FRAME * 3);
+  });
+
+  it('keeps the same overshoot whatever the display delivers', () => {
+    // A rate change preserves the shape, which is why v3's peak was identical
+    // at both rates while its duration halved. Here both have to match.
+    const at60 = settleSpring(INERTIA_FRAME);
+    const at120 = settleSpring(INERTIA_FRAME / 2);
+    expect(at120.peak).toBeCloseTo(at60.peak, 0);
+    // And it is a spring: it goes past the target before coming back.
+    expect(at60.peak).toBeGreaterThan(100);
+  });
+
+  it('survives the stiffness that made v3 diverge', () => {
+    // v3 integrated with a step it could not see: 1.9 overshot to 190 and 4 ran
+    // away to -1.6e15. A fixed step is most of the answer but not all of it —
+    // semi-implicit Euler explodes above a ratio the step cannot carry — so the
+    // ratio is clamped to it. Nothing here may run away.
+    for (const stiffness of [1.9, 4, 40, 400, 4000, 1e9]) {
+      let value = 0;
+      let velocity = 0;
+      for (let step = 0; step < 400; step += 1) {
+        [value, velocity] = spring(100, value, velocity, INERTIA_FRAME, { stiffness });
+      }
+      expect(Number.isFinite(value)).toBe(true);
+      expect(Math.abs(value)).toBeLessThan(1000);
+    }
+  });
+
+  it('clamps a stiffness the step cannot integrate, rather than exploding', () => {
+    // Above the ratio the two are indistinguishable, which is the point: both
+    // arrive inside a frame, and neither diverges.
+    const atLimit = spring(100, 0, 0, INERTIA_FRAME, { stiffness: MAX_SPRING_RATIO });
+    const wayOver = spring(100, 0, 0, INERTIA_FRAME, { stiffness: 1e6 });
+    expect(wayOver[0]).toBeCloseTo(atLimit[0], 6);
+    expect(Number.isFinite(wayOver[0])).toBe(true);
+
+    // Mass is the other half of the ratio, so it has to be guarded too.
+    expect(Number.isFinite(spring(100, 0, 0, INERTIA_FRAME, { mass: 0 })[0])).toBe(true);
+    expect(Number.isFinite(spring(100, 0, 0, INERTIA_FRAME, { mass: Number.NaN })[0])).toBe(true);
+  });
+
+  it('reaches rest exactly, so a caller can compare against the target', () => {
+    const [value, velocity] = spring(100, 99.99999, 0.000001, INERTIA_FRAME);
+    expect(value).toBe(100);
+    expect(velocity).toBe(0);
+  });
+
+  it('does not move on a step that is no time at all', () => {
+    expect(spring(100, 20, 5, 0)).toEqual([20, 5]);
+    expect(spring(100, 20, 5, -100)).toEqual([20, 5]);
+    expect(spring(100, 20, 5, Number.NaN)).toEqual([20, 5]);
+  });
+
+  it('bounds the work a returning tab can ask for', () => {
+    // A backgrounded tab hands back a huge elapsed time. It costs iterations,
+    // and they are capped: the spring does not spend the frame replaying time
+    // nobody watched, and it certainly does not blow up.
+    const [value, velocity] = spring(100, 0, 0, 600_000);
+    expect(Number.isFinite(value)).toBe(true);
+    expect(Number.isFinite(velocity)).toBe(true);
+  });
+
+  it('is stiffer with more stiffness and slower with more mass', () => {
+    const stiff = settleSpring(INERTIA_FRAME);
+    let value = 0;
+    let velocity = 0;
+    let elapsed = 0;
+    while (value !== 100 && elapsed < 20_000) {
+      [value, velocity] = spring(100, value, velocity, INERTIA_FRAME, { mass: 4 });
+      elapsed += INERTIA_FRAME;
+    }
+    // The parameters still mean what they meant; only time became real.
+    expect(elapsed).toBeGreaterThan(stiff.elapsed);
   });
 });

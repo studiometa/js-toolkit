@@ -28,6 +28,28 @@ export async function frames(count = 3): Promise<void> {
   }
 }
 
+/**
+ * Count the frames the page asks for while `during` runs.
+ *
+ * The stub is restored in a `finally`, which is the whole point of it living
+ * here: three specs had grown their own copy, two of them without one, and a
+ * stub that survives a rejected wait leaks into every later file in the run.
+ */
+export async function countRequestedFrames(during: () => Promise<void> | void): Promise<number> {
+  const original = globalThis.requestAnimationFrame;
+  let requested = 0;
+  globalThis.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+    requested += 1;
+    return original.call(globalThis, callback);
+  }) as typeof requestAnimationFrame;
+  try {
+    await during();
+  } finally {
+    globalThis.requestAnimationFrame = original;
+  }
+  return requested;
+}
+
 export function getInstance<T extends Base = Base>(el: Element | null, name: string): T {
   return el?.__base__?.get(name) as T;
 }

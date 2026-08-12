@@ -233,3 +233,118 @@ export function inertiaStep(velocity: number, dampFactor: number, elapsed: numbe
 export function inertiaFinalValue(value: number, velocity: number, dampFactor: number): number {
   return value + velocity * inertiaTimeConstant(dampFactor);
 }
+
+/**
+ * The fixed step the spring integrates on, in milliseconds — a quarter of
+ * {@link INERTIA_FRAME}, so 60 Hz is exactly four substeps, 120 Hz two and
+ * 30 Hz eight.
+ *
+ * A spring is second order, so the trick the first-order decay uses does not
+ * apply: there is no single exponential to integrate exactly across a step.
+ * The two honest options are the analytic solution of the damped oscillator,
+ * which replaces the parameters with a natural frequency and a damping ratio,
+ * and integrating on a fixed step regardless of what the display delivers.
+ * This is the second, because it keeps `stiffness`, `damping` and `mass`
+ * meaning what they have always meant while making the *rate* real.
+ *
+ * A quarter frame rather than a whole one so that every frame advances the
+ * spring several times: stepping once per 16.67 ms would leave a 120 Hz
+ * display updating on every second frame, which is visible as judder.
+ */
+const SPRING_STEP = INERTIA_FRAME / 4;
+
+/**
+ * The largest `stiffness / mass` {@link SPRING_STEP} can integrate without
+ * diverging.
+ *
+ * Semi-implicit Euler on a spring is stable while `ω₀ · h < 2`, where
+ * `ω₀ = √(stiffness / mass)` and `h` is the step as a fraction of
+ * {@link INERTIA_FRAME}. Solving for the ratio gives `4 / h²`, and the tenth
+ * held back is margin for the damping term.
+ *
+ * A spring at this ratio settles within a frame, so the clamp is not a
+ * restriction on anything a caller can perceive — it is the difference between
+ * "instant" and `-1.6e15`.
+ */
+export const MAX_SPRING_RATIO = (4 / (SPRING_STEP / INERTIA_FRAME) ** 2) * 0.9;
+
+export interface SpringOptions {
+  /** Pull towards the target, per {@link INERTIA_FRAME}. Defaults to `0.1`. */
+  stiffness?: number;
+  /** Velocity retained per {@link INERTIA_FRAME}, the friction. Defaults to `0.6`. */
+  damping?: number;
+  /** Resistance to acceleration. Defaults to `1`. */
+  mass?: number;
+  /** Distance and velocity under which the spring is at rest. Defaults to `1e-4`. */
+  precision?: number;
+}
+
+/**
+ * Advance a spring by `elapsed` milliseconds, returning its next value and
+ * velocity.
+ *
+ * ```js
+ * let [value, velocity] = [0, 0];
+ * useRaf().subscribe(({ delta }) => {
+ *   [value, velocity] = spring(target, value, velocity, delta);
+ * });
+ * ```
+ *
+ * **`elapsed` is required, and it is what v3 did not have.** There the
+ * recurrence ran once per call with no notion of time, which made it a pure
+ * step recurrence: the trajectory's *shape* was preserved but its *rate* was
+ * whatever the display was. Measured on the v3 helper, the same spring settles
+ * in 56 frames at 60 Hz and 28 at 120 Hz — twice as fast — with an identical
+ * `104.24` overshoot at both, which is the signature of a rate change rather
+ * than a physics change.
+ *
+ * It is also stable now, and stable for a reason worth stating rather than
+ * asserting. v3 integrated with a step it could not see, so a stiff spring
+ * simply diverged: `stiffness: 1.9` overshot to `190` and `stiffness: 4` ran
+ * away to `-1.6e15`, with no guard anywhere. Fixing the step is *most* of the
+ * answer — a long frame now costs iterations rather than correctness — but not
+ * all of it: semi-implicit Euler is only stable while `√(stiffness / mass)`
+ * times the step stays under `2`, so a stiff enough spring still explodes at
+ * any fixed step. `stiffness / mass` is therefore clamped to what the step can
+ * carry, which is documented on {@link MAX_SPRING_RATIO} and costs nothing
+ * real: a spring at that ratio already arrives inside a frame, so everything
+ * above it would look the same anyway.
+ *
+ * Returns the target and a velocity of `0` once the spring is within
+ * `precision` of rest on both, so a caller can compare against the target
+ * exactly instead of waiting on a value that only approaches it.
+ */
+export function spring(
+  targetValue: number,
+  currentValue: number,
+  currentVelocity: number,
+  elapsed: number,
+  options: SpringOptions = {},
+): [value: number, velocity: number] {
+  const { stiffness = 0.1, damping = 0.6, mass = 1, precision = 1 / 1e4 } = options;
+
+  if (!Number.isFinite(elapsed) || elapsed <= 0) {
+    return [currentValue, currentVelocity];
+  }
+
+  let value = currentValue;
+  let velocity = currentVelocity;
+  // A long frame is more steps, not a bigger one. Bounded so a backgrounded tab
+  // returning does not spend the frame catching up on time nobody watched.
+  const budget = Math.min(elapsed, 10 * INERTIA_FRAME);
+  const retained = decayOver(damping, SPRING_STEP);
+  const ratio = Number.isFinite(stiffness / mass)
+    ? Math.min(Math.max(stiffness / mass, 0), MAX_SPRING_RATIO)
+    : 0.1;
+  const pull = ratio * (SPRING_STEP / INERTIA_FRAME);
+
+  for (let spent = 0; spent < budget; spent += SPRING_STEP) {
+    velocity = velocity * retained + (targetValue - value) * pull;
+    value += velocity * (SPRING_STEP / INERTIA_FRAME);
+  }
+
+  if (Math.abs(targetValue - value) < precision && Math.abs(velocity) < precision) {
+    return [targetValue, 0];
+  }
+  return [value, velocity];
+}
