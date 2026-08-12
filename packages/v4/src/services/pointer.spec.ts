@@ -80,6 +80,33 @@ describe('usePointer', () => {
     unsubscribe();
   });
 
+  it('follows one pointer at a time, so a second finger cannot end the gesture', () => {
+    const states: boolean[] = [];
+    const unsubscribe = usePointer().add((props) => states.push(props.isDown));
+
+    const press = (pointerId: number, x: number) =>
+      document.dispatchEvent(
+        new PointerEvent('pointerdown', { pointerId, clientX: x, clientY: 0 }),
+      );
+    const lift = (pointerId: number, x: number) =>
+      document.dispatchEvent(new PointerEvent('pointerup', { pointerId, clientX: x, clientY: 0 }));
+
+    press(1, 10);
+    expect(usePointer().props().isDown).toBe(true);
+
+    // A pinch: the second finger comes and goes while the first holds.
+    press(2, 200);
+    lift(2, 200);
+    expect(usePointer().props().isDown).toBe(true);
+    expect(usePointer().props().x).toBe(10);
+
+    lift(1, 10);
+    expect(usePointer().props().isDown).toBe(false);
+    expect(states).toEqual([true, false]);
+
+    unsubscribe();
+  });
+
   it('stops listening when the last subscriber leaves', () => {
     let calls = 0;
     const unsubscribe = usePointer().add(() => {

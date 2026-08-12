@@ -82,15 +82,39 @@ function createPointerService(): Service<PointerProps> {
   return createService<PointerProps>({
     props: () => props,
     start(emit) {
+      /**
+       * Which pointer the props describe. Every active pointer arrives on the
+       * same listener, so merging them made a second finger's `pointerup`
+       * report `isDown: false` while the first finger was still down — in the
+       * middle of a pinch, with the gesture very much alive.
+       */
+      let activePointerId: number | null = null;
+
       const onPointer = (event: Event) => {
         const pointerEvent = event as PointerEvent;
+        const { pointerId, type } = pointerEvent;
+
+        if (type === 'pointerdown') {
+          // One gesture is already being followed; the extra fingers of a
+          // pinch are not it.
+          if (activePointerId !== null) {
+            return;
+          }
+          activePointerId = pointerId;
+        } else if (activePointerId !== null && pointerId !== activePointerId) {
+          return;
+        }
+
         // Every pointer event carries coordinates, and a press is the one
         // that carries the *new* ones: a touch tap has no `pointermove`
         // before it, so reading the position only on move reported wherever
         // the pointer had last been seen — the middle of the viewport on the
         // first tap of a page.
-        if (pointerEvent.type !== 'pointermove') {
-          props.isDown = pointerEvent.type === 'pointerdown';
+        if (type !== 'pointermove') {
+          props.isDown = type === 'pointerdown';
+        }
+        if (type === 'pointerup' || type === 'pointercancel') {
+          activePointerId = null;
         }
         emit(update(pointerEvent));
       };
