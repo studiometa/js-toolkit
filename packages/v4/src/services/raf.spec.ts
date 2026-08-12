@@ -35,6 +35,25 @@ describe('useRaf', () => {
     expect(phases.slice(0, 2)).toEqual(['read', 'write']);
   });
 
+  it('cancels a render whose subscriber left between the two phases', async () => {
+    let writes = 0;
+    let unsubscribeFirst = (): void => {};
+    // Collected in `read`, run in `write` — with a whole fan-out in between,
+    // which is long enough for the component that returned it to be
+    // destroyed. Its cleanup has already run, so the write must not happen.
+    unsubscribeFirst = useRaf().add(() => () => {
+      writes += 1;
+    });
+    const unsubscribeSecond = useRaf().add(() => {
+      unsubscribeFirst();
+    });
+
+    await frames(3);
+    unsubscribeSecond();
+
+    expect(writes).toBe(0);
+  });
+
   it('shares one loop between subscribers and stops with the last of them', async () => {
     let first = 0;
     let second = 0;

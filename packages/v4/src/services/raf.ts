@@ -21,8 +21,10 @@ function createRafService(): Service<RafProps> {
   let props: RafProps = { time: performance.now(), delta: 1000 / 60 };
   // Collected here rather than through the fan-out: returning a value to the
   // service is this service's own convention, not something the shared
-  // primitive knows about.
-  const renders: RafRender[] = [];
+  // primitive knows about. Each entry carries the frame's props and its own
+  // subscription state, so a subscriber that left between the two phases
+  // takes its pending render with it.
+  const renders: Array<() => void> = [];
 
   const service = createService<RafProps>({
     props: () => props,
@@ -41,7 +43,7 @@ function createRafService(): Service<RafProps> {
             renders.length = 0;
             scheduler.write(() => {
               for (const render of batch) {
-                render(tickProps);
+                render();
               }
             });
           }
@@ -53,12 +55,27 @@ function createRafService(): Service<RafProps> {
   return {
     props: service.props,
     add(callback) {
-      return service.add((tickProps) => {
+      // A render is cancelled with its subscription. The two phases of one
+      // frame are far enough apart for a component to be destroyed between
+      // them, and a destroyed component must not write to the DOM after its
+      // cleanup ran. An animation that wants a last paint does that write
+      // before it unsubscribes, which is the only case that can tell the
+      // difference.
+      let isSubscribed = true;
+      const unsubscribe = service.add((tickProps) => {
         const render = callback(tickProps);
         if (typeof render === 'function') {
-          renders.push(render as RafRender);
+          renders.push(() => {
+            if (isSubscribed) {
+              (render as RafRender)(tickProps);
+            }
+          });
         }
       });
+      return () => {
+        isSubscribed = false;
+        unsubscribe();
+      };
     },
   };
 }

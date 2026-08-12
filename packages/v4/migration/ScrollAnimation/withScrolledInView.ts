@@ -221,12 +221,22 @@ function apply(
         props.dampedProgressX = progressBetween(props.dampedCurrentX, props.startX, props.endX);
         props.dampedProgressY = progressBetween(props.dampedCurrentY, props.startY, props.endY);
 
+        const hook = (this as unknown as ScrolledInViewHook).scrolledInView;
+        const render = hook?.call(this, props) ?? undefined;
+
         if (props.dampedCurrentX === props.currentX && props.dampedCurrentY === props.currentY) {
+          // This frame is the one that lands on the settled position, so its
+          // write is scheduled on the instance and the subscription released
+          // after it — a render handed back to a subscription that leaves
+          // mid-frame is cancelled, by design.
+          if (typeof render === 'function') {
+            this.$write(render);
+          }
           this.stopTicking();
+          return undefined;
         }
 
-        const hook = (this as unknown as ScrolledInViewHook).scrolledInView;
-        return hook?.call(this, props) ?? undefined;
+        return render;
       });
     }
 
