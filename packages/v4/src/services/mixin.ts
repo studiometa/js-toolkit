@@ -11,11 +11,6 @@ export interface ServiceMixinOptions<Target, Host = Base> {
    */
   target?: (instance: Host) => Target;
   /**
-   * Method the component implements. Defaults to the service's hook name, so
-   * applying the mixin twice with two names subscribes twice.
-   */
-  hook?: string;
-  /**
    * Declare the hook without subscribing it: `mounted()` leaves it off, and
    * the component turns it on and off itself with `$enable(hook)` /
    * `$disable(hook)`.
@@ -148,6 +143,12 @@ export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> &
  *       return useScroll(this.$refs.panel).add((props) => { … });
  *     }
  *
+ * There is one method name per service, and it is the service's own: two
+ * layers of the same mixin on one class would collide on it, and a custom
+ * name bought nothing but ways to go wrong — it lost the hook's props typing
+ * entirely, and renaming it compiled, shipped, and silently stopped updating.
+ * A second target is an explicit subscription in `mounted()`, as above.
+ *
  * Both paths reach the same service. This is the line Lit draws as well,
  * where a `ResizeController`'s `target` defaults to the host and is
  * otherwise passed in — and it is why the wiring is a mixin rather than
@@ -185,7 +186,7 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
   type MixinOptions = Options & ServiceMixinOptions<Target>;
 
   function apply(BaseClass: BaseConstructor, options: MixinOptions) {
-    const hook = options.hook ?? definition.hook;
+    const { hook } = definition;
     const target = options.target ?? definition.target;
     const isManual = options.manual ?? false;
 

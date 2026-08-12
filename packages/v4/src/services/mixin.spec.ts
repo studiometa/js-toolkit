@@ -5,7 +5,7 @@ import { frames, getInstance, resetDom, settle } from '../test-utils.js';
 import { withDrag } from './drag.js';
 import { withRaf } from './raf.js';
 import { withResize } from './resize.js';
-import { withScroll } from './scroll.js';
+import { useScroll, withScroll } from './scroll.js';
 import type { DragProps, DragTarget } from './drag.js';
 import type { RafProps } from './raf.js';
 import type { ResizeProps } from './resize.js';
@@ -163,36 +163,43 @@ describe('service mixins', () => {
     instance.$destroy();
   });
 
-  it('stacks: two subscriptions of the same kind, two targets, two methods', async () => {
+  it('stacks with another service, and takes a second target by hand', async () => {
     const scroller = render('width:100px;height:100px;overflow:auto');
     scroller.innerHTML = '<div style="width:100px;height:800px"></div>';
 
-    class Both extends withScroll(
-      withScroll(Base, {
-        hook: 'innerScrolled',
-        target: (instance) => instance.$el,
-      }),
-    ) {
+    // One method name per service, so a second scroller is an explicit
+    // subscription whose unsubscribe joins the mount cycle's cleanups.
+    class Both extends withRaf(withScroll(Base)) {
       static config = { name: 'Both' };
 
+      ticks = 0;
       page: number[] = [];
       inner: number[] = [];
+
+      ticked(): void {
+        this.ticks += 1;
+      }
 
       scrolled({ y }: ScrollProps): void {
         this.page.push(y);
       }
 
-      innerScrolled({ y }: ScrollProps): void {
-        this.inner.push(y);
+      mounted() {
+        return [
+          super.mounted(),
+          useScroll(this.$el).add(({ y }: ScrollProps) => this.inner.push(y)),
+        ];
       }
     }
 
     const instance = new Both(scroller).$mount();
+    await frames(2);
 
     scroller.scrollTop = 120;
     scroller.dispatchEvent(new Event('scroll'));
     await settle();
 
+    expect(instance.ticks).toBeGreaterThan(0);
     expect(instance.inner).toEqual([120]);
     // The window did not move, so the other subscription said nothing.
     expect(instance.page).toEqual([]);
@@ -418,7 +425,7 @@ describe('service decorators', () => {
     const el = render('width:100px;height:100px;overflow:auto');
     el.innerHTML = '<div style="width:100px;height:800px"></div>';
 
-    @withScroll({ hook: 'innerScrolled', target: (instance) => instance.$el })
+    @withScroll({ target: (instance) => instance.$el })
     @withRaf()
     class Decorated extends Base {
       static config = { name: 'DecoratedScroll' };
@@ -430,7 +437,7 @@ describe('service decorators', () => {
         this.ticks += 1;
       }
 
-      innerScrolled({ y }: ScrollProps): void {
+      scrolled({ y }: ScrollProps): void {
         this.inner.push(y);
       }
     }

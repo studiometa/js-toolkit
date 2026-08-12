@@ -299,12 +299,9 @@ export type ScrollMixinOptions = ServiceMixinOptions<ScrollTarget>;
  *   }
  * }
  *
- * // Another scroller, another method name — stack one per subscription.
- * class Panel extends withScroll(Base, {
- *   hook: 'panelScrolled',
- *   target: (instance) => instance.$el,
- * }) {
- *   panelScrolled({ progressY }) { … }
+ * // Another scroller: the component's own overflow instead of the window.
+ * class Panel extends withScroll(Base, { target: (instance) => instance.$el }) {
+ *   scrolled({ progressY }) { … }
  * }
  * ```
  *
