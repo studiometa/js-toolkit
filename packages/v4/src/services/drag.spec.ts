@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { userEvent } from '@vitest/browser/context';
 import { frames } from '../test-utils.js';
+import { inertiaTimeConstant, INERTIA_FRAME } from '../math.js';
 import { DRAG_MODES, useDrag, type DragMode, type DragProps } from './drag.js';
 
 function render(): HTMLElement {
@@ -134,9 +135,37 @@ describe('useDrag', () => {
     release();
     unsubscribe();
 
-    // The exact sum, where walking it stopped 10 000 px short of it. Timing
-    // is not asserted: the value is what proves the loop is gone.
-    expect(drops[0].finalX).toBe(50 + 50 / (1 - dampFactor));
+    // The integral of the decay, where walking it term by term stopped short
+    // of it. Timing is not asserted: the value is what proves the loop is gone.
+    const velocity = 50 / INERTIA_FRAME;
+    expect(drops[0].finalX).toBe(50 + velocity * inertiaTimeConstant(dampFactor));
+  });
+
+  it('coasts to the position announced at the drop, whatever the frames cost', async () => {
+    const el = render();
+    const seen: DragProps[] = [];
+    const unsubscribe = useDrag(el, { dampFactor: 0.5 }).subscribe((props) => {
+      seen.push({ ...props });
+    });
+
+    grab(el, 0, 0);
+    move(40, 20);
+    release();
+    const drop = seen.at(-1) as DragProps;
+
+    await frames(40);
+    const stopped = seen.at(-1) as DragProps;
+
+    // The drop's promise, kept to the pixel. Real frames here are whatever
+    // this machine delivered — the assertion holds because each step
+    // integrates the decay across its own elapsed time rather than counting
+    // frames, so a stutter cannot shorten the coast.
+    expect(stopped.mode).toBe(DRAG_MODES.STOP);
+    expect(stopped.x).toBe(drop.finalX);
+    expect(stopped.y).toBe(drop.finalY);
+    expect(drop.finalX).toBeGreaterThan(40);
+
+    unsubscribe();
   });
 
   it('drops when the button is released outside the window', () => {

@@ -1,5 +1,12 @@
-import { clampDampFactor, DEFAULT_DAMP_FACTOR, inertiaFinalValue } from '../math.js';
-import { scheduler } from '../scheduler.js';
+import {
+  clampDampFactor,
+  DEFAULT_DAMP_FACTOR,
+  inertiaDecay,
+  inertiaFinalValue,
+  inertiaStep,
+  INERTIA_FRAME,
+} from '../math.js';
+import { scheduler, type TickProps } from '../scheduler.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
@@ -114,6 +121,16 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
        */
       let isClickSuppressed = false;
 
+      /**
+       * The velocity the coast is driven by, in pixels per millisecond.
+       *
+       * Kept beside the props rather than in them: `deltaX`/`deltaY` are what
+       * the last update moved, which is a different quantity and the one a
+       * subscriber asked for.
+       */
+      let velocityX = 0;
+      let velocityY = 0;
+
       /** Held by the pointer: the two modes a gesture is alive in. */
       const isGrabbing = () => props.mode === DRAG_MODES.START || props.mode === DRAG_MODES.DRAG;
 
@@ -152,18 +169,34 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       }
 
       // The inertia runs on the scheduler's frame tick, like every other
-      // continuous source in v4 — v3 borrowed the raf service for it.
-      function tick() {
-        props.x += props.deltaX;
-        props.y += props.deltaY;
+      // continuous source in v4 — v3 borrowed the raf service for it. The tick
+      // carries the frame's own elapsed time, already clamped to `[1, 40]` ms,
+      // and the coast is driven by it rather than by the frame count: decaying
+      // once per frame made the same flick travel half as far at 120 Hz.
+      function tick({ delta }: TickProps) {
+        const stepX = inertiaStep(velocityX, dampFactor, delta);
+        const stepY = inertiaStep(velocityY, dampFactor, delta);
+        const decay = inertiaDecay(dampFactor, delta);
+
+        props.x += stepX;
+        props.y += stepY;
+        props.deltaX = stepX;
+        props.deltaY = stepY;
         props.distanceX = props.x - props.originX;
         props.distanceY = props.y - props.originY;
-        props.deltaX *= dampFactor;
-        props.deltaY *= dampFactor;
+        velocityX *= decay;
+        velocityY *= decay;
         props.mode = DRAG_MODES.INERTIA;
         emit(props);
 
-        if (isRunning && Math.abs(props.deltaX) < 0.1 && Math.abs(props.deltaY) < 0.1) {
+        // What is left to travel, rather than what the last frame covered: a
+        // slow frame can carry a lot of a nearly-spent coast, and a fast one
+        // very little of a live one.
+        const remaining = Math.max(
+          Math.abs(props.finalX - props.x),
+          Math.abs(props.finalY - props.y),
+        );
+        if (isRunning && remaining < 0.1) {
           stop();
         }
       }
@@ -177,6 +210,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         props.y = props.originY = props.finalY = y;
         props.deltaX = props.deltaY = 0;
         props.distanceX = props.distanceY = 0;
+        velocityX = velocityY = 0;
         props.mode = DRAG_MODES.START;
         emit(props);
         if (!isRunning) {
@@ -188,6 +222,12 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       function drag(event: PointerEvent) {
         props.deltaX = event.clientX - props.x;
         props.deltaY = event.clientY - props.y;
+        // Still the per-event delta, read as one reference frame's worth of
+        // travel. That is what makes a 1000 Hz mouse and a 125 Hz trackpad
+        // throw differently, and it is measured properly in the next commit;
+        // the coast below is already time-driven either way.
+        velocityX = props.deltaX / INERTIA_FRAME;
+        velocityY = props.deltaY / INERTIA_FRAME;
         props.x = props.finalX = event.clientX;
         props.y = props.finalY = event.clientY;
         props.distanceX = props.x - props.originX;
@@ -208,8 +248,8 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         }
         document.removeEventListener('pointermove', onPointerMove);
         props.mode = DRAG_MODES.DROP;
-        props.finalX = inertiaFinalValue(props.x, props.deltaX, dampFactor);
-        props.finalY = inertiaFinalValue(props.y, props.deltaY, dampFactor);
+        props.finalX = inertiaFinalValue(props.x, velocityX, dampFactor);
+        props.finalY = inertiaFinalValue(props.y, velocityY, dampFactor);
         emit(props);
         // A component that unmounts on drop takes the last subscriber with
         // it: subscribing the inertia here would start a frame loop nothing
