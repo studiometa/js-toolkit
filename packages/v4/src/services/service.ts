@@ -80,6 +80,14 @@ export interface ServiceDefinition<T> {
  */
 interface Subscription<T, R> {
   callback: ServiceCallback<T, R>;
+  /**
+   * Cleared by the unsubscribe, checked by the fan-out.
+   *
+   * The fan-out iterates a snapshot, so deleting an entry from the set is no
+   * longer enough to keep it out of an update already in flight — this flag is
+   * what a released subscription is skipped by.
+   */
+  isActive: boolean;
 }
 
 /**
@@ -90,7 +98,20 @@ export function createService<T, R = void>({ props, start }: ServiceDefinition<T
   let stop: Unsubscribe | null = null;
 
   function emit(current: T): void {
-    for (const subscription of subscriptions) {
+    // A snapshot, not the live set. Iterating the set itself visits entries
+    // *added* during the update, which is wrong twice over: the newcomer is
+    // handed props measured before it existed, and a subscriber that
+    // subscribes from inside its own callback never terminates — an unbounded
+    // loop inside one emit, taking the frame and the tab with it.
+    //
+    // Removal was already correct, and correct *because* the set was live, so
+    // the snapshot needs `isActive` beside it: a component destroyed inside
+    // another's handler must still not be called in the update it left.
+    const batch = [...subscriptions];
+    for (const subscription of batch) {
+      if (!subscription.isActive) {
+        continue;
+      }
       try {
         subscription.callback(current);
       } catch (error) {
@@ -109,12 +130,22 @@ export function createService<T, R = void>({ props, start }: ServiceDefinition<T
   return {
     props,
     subscribe(callback) {
-      const subscription: Subscription<T, R> = { callback };
+      const subscription: Subscription<T, R> = { callback, isActive: true };
       subscriptions.add(subscription);
       stop ??= start(emit);
       return () => {
-        // Already gone, or others are still listening: nothing to release.
-        if (!subscriptions.delete(subscription) || subscriptions.size > 0) {
+        // Already gone: a repeated unsubscribe must not read as another holder
+        // leaving.
+        if (!subscription.isActive) {
+          return;
+        }
+        // Cleared before the delete, so an update already iterating its
+        // snapshot skips this callback rather than calling it after its own
+        // unsubscribe returned.
+        subscription.isActive = false;
+        subscriptions.delete(subscription);
+        // Others are still listening: nothing to release.
+        if (subscriptions.size > 0) {
           return;
         }
         stop?.();

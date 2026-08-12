@@ -105,6 +105,80 @@ describe('createService', () => {
     expect(calls).toEqual(['start', 'stop']);
   });
 
+  it('does not call a subscriber that arrived during the update', () => {
+    let emit!: (props: number) => void;
+    const service = createService<number>({
+      props: () => 0,
+      start(fan) {
+        emit = fan;
+        return () => {};
+      },
+    });
+
+    const seen: string[] = [];
+    service.subscribe((props) => {
+      seen.push(`first:${props}`);
+      service.subscribe((next) => seen.push(`late:${next}`));
+    });
+
+    emit(1);
+    // The newcomer did not exist when these props were measured, so it waits
+    // for the next update rather than being handed a value from before it.
+    expect(seen).toEqual(['first:1']);
+
+    emit(2);
+    expect(seen).toEqual(['first:1', 'first:2', 'late:2']);
+  });
+
+  it('terminates when a subscriber subscribes from inside its own callback', () => {
+    let emit!: (props: number) => void;
+    const service = createService<number>({
+      props: () => 0,
+      start(fan) {
+        emit = fan;
+        return () => {};
+      },
+    });
+
+    // Iterating the live set, this never returns: each call adds an entry the
+    // same loop then visits. One emit is one pass over one snapshot.
+    let calls = 0;
+    const subscribeAgain = () => {
+      service.subscribe(() => {
+        calls += 1;
+        subscribeAgain();
+      });
+    };
+    subscribeAgain();
+
+    emit(1);
+    expect(calls).toBe(1);
+  });
+
+  it('skips a subscriber released by another one mid-update', () => {
+    let emit!: (props: number) => void;
+    const service = createService<number>({
+      props: () => 0,
+      start(fan) {
+        emit = fan;
+        return () => {};
+      },
+    });
+
+    const seen: string[] = [];
+    let releaseSecond = () => {};
+    service.subscribe(() => {
+      seen.push('first');
+      // A component destroyed inside another component's handler: it must not
+      // be called in the update it just left, snapshot or no snapshot.
+      releaseSecond();
+    });
+    releaseSecond = service.subscribe(() => seen.push('second'));
+
+    emit(1);
+    expect(seen).toEqual(['first']);
+  });
+
   it('fans props out to every subscriber, in subscription order', () => {
     let emit!: (props: number) => void;
     const service = createService<number>({
