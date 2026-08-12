@@ -73,15 +73,15 @@ second service; `useDrag` excludes `SVGElement`, and our own documented
 
 ## 2. Where the fix is sharper than what I first proposed
 
-- **#6 needs both mechanisms, not a swap.** C's reasoning: the `ResizeObserver`
+- **Defect 6 needs both mechanisms, not a swap.** C's reasoning: the `ResizeObserver`
   on `documentElement` is what catches a **scrollbar appearing or disappearing**,
   which changes the layout viewport width with _no_ `resize` event; and
   `documentElement`'s box does _not_ change when a long page's viewport height
   changes, which is what the `resize` event catches. Keep both.
-- **#3 wants four gates, not one.** C: threshold, disarm on the next
+- **Defect 3 wants four gates, not one.** C: threshold, disarm on the next
   `pointerdown`, `event.isTrusted`, and `event.detail !== 0`. The last two are
   what exclude synthetic and keyboard-driven activation.
-- **#8 is the most expensive fix anyone proposed.** B and C independently
+- **Defect 8 is the most expensive fix anyone proposed.** B and C independently
   converged on a `ResizeObserver` over the scroller _and its children_ plus a
   `childList` `MutationObserver`, because "a scroll container's own box never
   grows with its content". Decide whether that cost is warranted or whether
@@ -113,7 +113,7 @@ second service; `useDrag` excludes `SVGElement`, and our own documented
 Cases where independent agents reasoned to **opposite** conclusions. These need a
 ruling, not a fix.
 
-1. **A render whose subscriber left mid-frame (#2).** B and C cancel it; designer
+1. **A render whose subscriber left mid-frame (defect 2).** B and C cancel it; designer
    D deliberately keeps it — _"it is that gesture's or that loop's last paint."_
    The resolution is conditional: a self-terminating animation wants its last
    paint, a destroyed component must not get one. Only the mixin layer can tell
@@ -174,7 +174,7 @@ seeing the code.
   `withRaf(Base)` is a **TS2416 error**, and an unannotated parameter is an
   implicit-any error under `strict`. The critique's claim that the hook's props
   cannot be typed even in principle is too strong.
-- Custom hook name: **typing is lost** (#14).
+- Custom hook name: **typing is lost** (defect 14).
 - Renaming a hook: **compiles, ships, silently stops updating.** The critique's
   central scenario is real and unmitigated — nothing calls `$enable`, so our
   runtime warning never fires.
