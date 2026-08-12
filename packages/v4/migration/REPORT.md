@@ -86,7 +86,7 @@ _Recommendation:_ ship the interpolator, keep the player separate. They are two 
 | `withMountWhenInView(BaseClass, options)` → `config.mountStrategy = 'in-view'`                          | mount strategies moved into the registry (#751). **Clean win.**          |
 | four `$on(…)` channels with a hand-built `handleEvent` → two service subscriptions returned as cleanups | services are subscribe/unsubscribe closures. ~40 lines deleted.          |
 | grouped `ScrollInViewProps` → flat (`startX`, `dampedProgressY`…)                                       | v4's service prop convention.                                            |
-| **`$services.enable('ticked')`/`disable` → a hand-held `useRaf().subscribe()`**                               | **no v4 equivalent — gap 1.**                                            |
+| **`$services.enable('ticked')`/`disable` → `toggle(() => useRaf().subscribe(…))`**                      | **resolved — `toggle()` is the v4 equivalent.**                          |
 | final boundary render moved off `$read`/`$write` onto the global `scheduler`                            | **`$destroy()` cancels pending tasks right after the cleanups — gap 5.** |
 
 **Size:** components 193 → 136 (−30 %); infrastructure 879 → 441 (−50 %). **Verdict: components mechanical, infrastructure a rewrite that halves it.**
@@ -107,7 +107,7 @@ _Recommendation:_ ship the interpolator, keep the player separate. They are two 
 
 ## Gaps in v4, ordered by cost
 
-1. **No way to suspend a service subscription within a mount cycle.** v3: `$services.enable('ticked')`/`disable`. v4: subscribe in `mounted()`, unsubscribe in `$destroy()`, nothing between. Two of four components needed it and both dropped `withRaf` for a hand-rolled start/stop. Not cosmetic: with `withRaf`, one slider or scroll animation keeps the rAF loop alive forever, contradicting DESIGN.md §7. **Ask:** pause/resume on the subscription handle, or `withRaf(Base, { manual: true })`.
+1. **No way to suspend a service subscription within a mount cycle.** v3: `$services.enable('ticked')`/`disable`. v4: subscribe in `mounted()`, unsubscribe in `$destroy()`, nothing between. Two of four components needed it and both dropped `withRaf` for a hand-rolled start/stop. Not cosmetic: with `withRaf`, one slider or scroll animation keeps the rAF loop alive forever, contradicting DESIGN.md §7. **Ask:** pause/resume on the subscription handle, or `withRaf(Base, { manual: true })`. **Resolved:** `toggle(subscribe)` — `{ isActive, start, stop }` over any subscription, in or out of a component.
 2. **`$options` is read-only, and several ui components write to it.** Any v3 component treating an option as mutable state breaks. **Ask:** setters that write the attribute back, or a migration note plus a lint rule. `grep -rn '\$options\.[a-zA-Z]* *=' packages/ui/src` is the checklist.
 3. **`$inject()` has no synchronous, optional or cancellable form.** It always returns a Promise even when a provider exists; it _never settles_ without one, so a standalone `SliderBtn` hangs forever; and `$destroy()` does not cancel a pending request. **Ask:** `$inject(key, { optional: true })`, `$injectSync(key)`, cancellation on destroy.
 4. **provide/inject has no `expose`.** Promised in DESIGN.md, absent from `context.ts`. Without it every control keeps a `$closest()` back-channel.
