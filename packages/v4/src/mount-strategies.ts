@@ -47,8 +47,15 @@ export interface MountStrategyHooks {
   destroy(): void;
 }
 
+export interface AppliedMountStrategy {
+  dispose(): void;
+  /** Work which mounts eagerly; conditional strategies never expose one. */
+  eagerWork?: Promise<unknown>;
+}
+
 /**
- * Start applying a strategy to one element, returning its teardown.
+ * Start applying a strategy to one element, returning its teardown and any
+ * eager work which a DOM settlement boundary must await.
  *
  * Strategies never construct anything themselves: they only decide *when*
  * to call the hooks the registry passes in, so a single canonical
@@ -58,7 +65,7 @@ export function applyMountStrategy(
   el: HTMLElement,
   strategy: MountStrategy,
   { mount, destroy }: MountStrategyHooks,
-): () => void {
+): AppliedMountStrategy {
   if (strategy === 'visible' || strategy === 'in-view') {
     const isReversible = strategy === 'in-view';
     const observer = new IntersectionObserver((entries) => {
@@ -74,7 +81,7 @@ export function applyMountStrategy(
       }
     });
     observer.observe(el);
-    return () => observer.disconnect();
+    return { dispose: () => observer.disconnect() };
   }
 
   if (strategy === 'idle') {
@@ -82,10 +89,10 @@ export function applyMountStrategy(
     // lane is already budgeted, so it is a fair fallback.
     if (typeof requestIdleCallback !== 'function') {
       const task = scheduler.background(mount);
-      return () => task.cancel();
+      return { dispose: () => task.cancel() };
     }
     const handle = requestIdleCallback(() => mount());
-    return () => cancelIdleCallback(handle);
+    return { dispose: () => cancelIdleCallback(handle) };
   }
 
   if (strategy === 'interaction') {
@@ -101,7 +108,7 @@ export function applyMountStrategy(
     for (const type of INTENT_EVENTS) {
       el.addEventListener(type, onIntent, { once: true });
     }
-    return teardown;
+    return { dispose: teardown };
   }
 
   if (strategy.startsWith('media:')) {
@@ -109,11 +116,11 @@ export function applyMountStrategy(
     const sync = () => (query.matches ? mount() : destroy());
     query.addEventListener('change', sync);
     sync();
-    return () => query.removeEventListener('change', sync);
+    return { dispose: () => query.removeEventListener('change', sync) };
   }
 
   // `eager`, and anything unrecognised: mount as soon as the scheduler's
   // background lane gets to it.
   const task = scheduler.background(mount);
-  return () => task.cancel();
+  return { dispose: () => task.cancel(), eagerWork: task.promise };
 }

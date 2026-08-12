@@ -1,5 +1,5 @@
 import { Base, type BaseConstructor } from './Base.js';
-import { setDOMMutationProcessor } from './dom-mutations.js';
+import { setDOMMutationProcessor, trackDOMLifecycleWork } from './dom-mutations.js';
 import { applyMountStrategy, MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
 import { selectorFor } from './utils.js';
 
@@ -135,10 +135,12 @@ function schedule(el: HTMLElement, name: string, ComponentClass: BaseConstructor
     strategy,
   };
   pairs.set(name, controller);
-  controller.dispose = applyMountStrategy(el, strategy, {
+  const applied = applyMountStrategy(el, strategy, {
     mount: () => mountPair(el, name, ComponentClass, controller),
     destroy: () => el.__base__?.get(name)?.$destroy(),
   });
+  controller.dispose = applied.dispose;
+  trackDOMLifecycleWork(applied.eagerWork);
 }
 
 /**
