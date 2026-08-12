@@ -68,7 +68,7 @@ function postBackgroundTask(run: () => void): void {
   const nativeScheduler = globalThis.scheduler;
   if (typeof nativeScheduler?.postTask === 'function') {
     nativeScheduler.postTask(run, { priority: 'background' }).catch((error: unknown) => {
-      console.error('[scheduler] Background turn failed:', error);
+      reportError(error);
     });
     return;
   }
@@ -318,7 +318,7 @@ export class Scheduler {
         } catch (error) {
           // Reported and skipped, never unsubscribed: a subscription is
           // owned by whoever created it, not by the frame that broke.
-          console.error('[scheduler] Tick callback failed:', error);
+          reportError(error);
         }
       }
     }
@@ -384,7 +384,10 @@ export class Scheduler {
     try {
       item.resolve(item.fn());
     } catch (error) {
-      console.error('[scheduler] Task failed:', error);
+      // Through the platform's error channel, so an error reporter sees it;
+      // `console.error()` reaches nobody but an open console. The task's
+      // promise is rejected too, for whoever awaited it.
+      reportError(error);
       item.reject(error);
     }
   }

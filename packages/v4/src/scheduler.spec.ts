@@ -23,14 +23,31 @@ describe('scheduler (real frames)', () => {
     expect(frames[0]).toBeGreaterThan(0);
   });
 
-  it('survives a throwing task', async () => {
-    const task = scheduler.write(() => {
-      throw new Error('boom');
-    });
-    await expect(task.promise).rejects.toThrow('boom');
+  it('survives a throwing task, and reports it', async () => {
+    const reported: unknown[] = [];
+    const onError = (event: ErrorEvent) => {
+      reported.push(event.error);
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    window.addEventListener('error', onError, { capture: true });
 
-    const after = scheduler.write(() => 'still alive');
-    await expect(after.promise).resolves.toBe('still alive');
+    try {
+      const task = scheduler.write(() => {
+        throw new Error('boom');
+      });
+      await expect(task.promise).rejects.toThrow('boom');
+
+      const after = scheduler.write(() => 'still alive');
+      await expect(after.promise).resolves.toBe('still alive');
+    } finally {
+      window.removeEventListener('error', onError, { capture: true });
+    }
+
+    // `reportError()`, not `console.error()`: the platform's error channel is
+    // what an error reporter is listening to.
+    expect(reported).toHaveLength(1);
+    expect((reported[0] as Error).message).toBe('boom');
   });
 
   it('resolves task promises with return values and supports cancel', async () => {

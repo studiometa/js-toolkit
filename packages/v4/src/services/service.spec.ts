@@ -1,6 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { createService, perTarget } from './service.js';
 
+/**
+ * A broken subscriber is reported through the platform's error channel, which
+ * is the whole point of using `reportError()` — so a test that breaks one on
+ * purpose has to take delivery of it.
+ */
+function catchReportedErrors(run: () => void): unknown[] {
+  const reported: unknown[] = [];
+  const onError = (event: ErrorEvent) => {
+    reported.push(event.error);
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+  window.addEventListener('error', onError, { capture: true });
+  try {
+    run();
+  } finally {
+    window.removeEventListener('error', onError, { capture: true });
+  }
+  return reported;
+}
+
 describe('createService', () => {
   it('starts with the first subscriber and stops with the last', () => {
     const calls: string[] = [];
@@ -125,9 +146,16 @@ describe('createService', () => {
       reached += 1;
     });
 
-    emit(1);
-    emit(2);
+    const reported = catchReportedErrors(() => {
+      emit(1);
+      emit(2);
+    });
+
     expect(reached).toBe(2);
+    // Reported, not swallowed: `reportError()` goes through the platform's
+    // error channel, so an error reporter sees it.
+    expect(reported).toHaveLength(2);
+    expect((reported[0] as Error).message).toBe('boom');
   });
 
   it('reads its props without subscribing', () => {

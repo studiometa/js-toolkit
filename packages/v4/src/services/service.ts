@@ -96,7 +96,12 @@ export function createService<T, R = void>({ props, start }: ServiceDefinition<T
       } catch (error) {
         // One broken component must not deprive the others of the service,
         // which for a per-frame source would mean every frame from now on.
-        console.error('[service] Subscriber failed:', error);
+        //
+        // `reportError()` rather than `console.error()`: it dispatches through
+        // the platform's error channel, so `window.onerror` and everything
+        // built on it — Sentry and friends — see the error with its own stack.
+        // A logged string reaches nobody but whoever has the console open.
+        reportError(error);
       }
     }
   }
