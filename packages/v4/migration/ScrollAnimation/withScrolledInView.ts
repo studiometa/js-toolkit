@@ -32,6 +32,14 @@ export interface ScrollInViewProps {
   progressY: number;
   dampedProgressX: number;
   dampedProgressY: number;
+  /**
+   * Milliseconds since the previous frame, straight from the raf props.
+   *
+   * On the props because a hook that damps a value of its own needs the same
+   * number this layer used — damping per call rather than per elapsed
+   * millisecond is what made the speed depend on the display.
+   */
+  delta: number;
 }
 
 /**
@@ -120,6 +128,7 @@ function apply(
       progressY: 0,
       dampedProgressX: 0,
       dampedProgressY: 0,
+      delta: 0,
     };
 
     /** Live while the damped value is still catching up, `null` otherwise. */
@@ -194,8 +203,9 @@ function apply(
      * so the subscription itself is the switch.
      */
     startTicking(): void {
-      this.__unsubscribeFrame ??= useRaf().subscribe(() => {
+      this.__unsubscribeFrame ??= useRaf().subscribe(({ delta }) => {
         const props = this.__scrollInViewProps;
+        props.delta = delta;
         const { dampFactor, dampPrecision } = this.$options as {
           dampFactor: number;
           dampPrecision: number;
@@ -208,12 +218,14 @@ function apply(
           props.currentX,
           props.dampedCurrentX,
           dampFactor,
+          delta,
           dampPrecision,
         );
         props.dampedCurrentY = damp(
           props.currentY,
           props.dampedCurrentY,
           dampFactor,
+          delta,
           dampPrecision,
         );
         props.progressX = progressBetween(props.currentX, props.startX, props.endX);

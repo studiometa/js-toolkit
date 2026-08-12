@@ -93,8 +93,8 @@ export class SliderItem extends Base {
   }
 
   #startTicking(): void {
-    this.#unsubscribeFrame ??= useRaf().subscribe(() => {
-      this.dampedX = damp(this.x, this.dampedX, 0.1, 0.00001);
+    this.#unsubscribeFrame ??= useRaf().subscribe(({ delta }) => {
+      this.dampedX = damp(this.x, this.dampedX, 0.1, delta, 0.00001);
       if (this.dampedX === this.x) {
         this.#stopTicking();
       }

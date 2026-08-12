@@ -39,12 +39,38 @@ export function clampDampFactor(factor: number): number {
 }
 
 /**
+ * How much of a quantity survives `elapsed` milliseconds, given the fraction
+ * `retained` per {@link INERTIA_FRAME}.
+ *
+ * `retained^(elapsed / INERTIA_FRAME)`: one reference frame of elapsed time is
+ * one application of the fraction, half a frame is half an application. This is
+ * the whole of frame-rate independence for a first-order decay — applying the
+ * fraction once per frame instead ties the result to the display, so the same
+ * animation runs twice as fast on a 120 Hz screen.
+ *
+ * `retained` is clamped to `[0, 1]`, which is the only range that decays: above
+ * `1` a quantity grows without end, and below `0` it changes sign every step.
+ * Both ends are meaningful — `0` retains nothing, `1` retains everything and
+ * never moves — so neither is excluded.
+ *
+ * A non-finite input yields `0` rather than `NaN`. Retaining nothing is the
+ * safe reading: a caller lands on its target, or stops, instead of poisoning
+ * every value that touches the result from then on.
+ */
+export function decayOver(retained: number, elapsed: number): number {
+  if (!Number.isFinite(retained) || !Number.isFinite(elapsed)) {
+    return 0;
+  }
+  return Math.min(Math.max(retained, 0), 1) ** (elapsed / INERTIA_FRAME);
+}
+
+/**
  * How much of a velocity survives `elapsed` milliseconds of decay.
  *
- * `damp^(elapsed / INERTIA_FRAME)`: one reference frame of elapsed time is one
- * application of the factor, half a frame is half an application. Decaying
- * once per frame instead — `v *= damp` — ties the physics to the display, so
- * the same flick coasts half as far at 120 Hz as it does at 60 Hz.
+ * {@link decayOver} with the tighter clamp the inertia needs: a factor of `1`
+ * has to be excluded here, because {@link inertiaTimeConstant} divides by
+ * `ln(1 / damp)` and a coast that never decays has no finite destination. That
+ * restriction belongs to the inertia rather than to decay in general.
  *
  * It is also what a *pause* costs. A velocity measured 200 ms ago is not the
  * velocity now, and running it through the law the coast already obeys is
@@ -52,7 +78,7 @@ export function clampDampFactor(factor: number): number {
  * 14% of it, and a long one leaves nothing.
  */
 export function inertiaDecay(dampFactor: number, elapsed: number): number {
-  return clampDampFactor(dampFactor) ** (elapsed / INERTIA_FRAME);
+  return decayOver(clampDampFactor(dampFactor), elapsed);
 }
 
 /**

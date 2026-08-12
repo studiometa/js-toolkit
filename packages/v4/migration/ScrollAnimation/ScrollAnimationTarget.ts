@@ -36,8 +36,20 @@ export class ScrollAnimationTarget extends AbstractScrollAnimation {
       dampPrecision: number;
     };
 
-    this.dampedCurrentX = damp(props.currentX, this.dampedCurrentX, dampFactor, dampPrecision);
-    this.dampedCurrentY = damp(props.currentY, this.dampedCurrentY, dampFactor, dampPrecision);
+    this.dampedCurrentX = damp(
+      props.currentX,
+      this.dampedCurrentX,
+      dampFactor,
+      props.delta,
+      dampPrecision,
+    );
+    this.dampedCurrentY = damp(
+      props.currentY,
+      this.dampedCurrentY,
+      dampFactor,
+      props.delta,
+      dampPrecision,
+    );
 
     return super.scrolledInView({
       ...props,

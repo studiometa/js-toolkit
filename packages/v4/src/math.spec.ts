@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   clampDampFactor,
+  decayOver,
   DEFAULT_DAMP_FACTOR,
   inertiaDecay,
   inertiaFinalValue,
@@ -29,6 +30,41 @@ describe('clampDampFactor', () => {
     // otherwise poison every frame of the coast.
     expect(clampDampFactor(Number.NaN)).toBe(DEFAULT_DAMP_FACTOR);
     expect(clampDampFactor(Number.POSITIVE_INFINITY)).toBe(DEFAULT_DAMP_FACTOR);
+  });
+});
+
+describe('decayOver', () => {
+  it('applies the retained fraction once per reference frame', () => {
+    expect(decayOver(0.9, INERTIA_FRAME)).toBeCloseTo(0.9, 10);
+    expect(decayOver(0.9, INERTIA_FRAME * 2)).toBeCloseTo(0.81, 10);
+    expect(decayOver(0.9, INERTIA_FRAME / 2)).toBeCloseTo(Math.sqrt(0.9), 10);
+  });
+
+  it('composes, which is what frame-rate independence means', () => {
+    // Two half-frames are one frame, so a stuttering display cannot change the
+    // result — only how many steps it takes to get there.
+    const half = decayOver(0.9, INERTIA_FRAME / 2);
+    expect(half * half).toBeCloseTo(decayOver(0.9, INERTIA_FRAME), 10);
+  });
+
+  it('keeps both ends of the range, because both mean something', () => {
+    // `1` holds still and `0` retains nothing. `inertiaDecay()` excludes `1`
+    // for its own reason; decay in general must not.
+    expect(decayOver(1, INERTIA_FRAME * 100)).toBe(1);
+    expect(decayOver(0, INERTIA_FRAME)).toBe(0);
+  });
+
+  it('refuses a fraction that would not decay', () => {
+    // Above 1 a value grows without end; below 0 it changes sign every step.
+    expect(decayOver(4, INERTIA_FRAME)).toBe(1);
+    expect(decayOver(-2, INERTIA_FRAME)).toBe(0);
+  });
+
+  it('retains nothing rather than returning NaN', () => {
+    // One `NaN` here would otherwise reach every value that touches the result.
+    expect(decayOver(Number.NaN, INERTIA_FRAME)).toBe(0);
+    expect(decayOver(0.9, Number.NaN)).toBe(0);
+    expect(decayOver(0.9, Number.POSITIVE_INFINITY)).toBe(0);
   });
 });
 
