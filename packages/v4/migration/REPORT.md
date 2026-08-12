@@ -6,12 +6,12 @@ Four component families were ported onto v4 to find out what a real migration co
 
 ## What was ported
 
-| Family | Files | Ported | Not ported |
-| --- | --- | --- | --- |
-| `Accordion` | `AccordionCore`, `Accordion`, `AccordionItem` | full | — |
-| `Dialog` | `Dialog`, plus `Transition` / `ViewTransition` (its children) | full | `Action` triggers, `Transition`'s `group` option |
-| `ScrollAnimation` | `withScrolledInView`, `AbstractScrollAnimation`, `ScrollAnimationTimeline`, `…Target` | full (the non-deprecated pair) | the five `@deprecated` classes, `withScrollAnimationDebug` |
-| `Slider` | `Slider`, `SliderItem`, `SliderBtn`, `SliderCount` | full | `SliderDrag`, `SliderDots`, `SliderProgress` (mechanical follow-ups) |
+| Family            | Files                                                                                 | Ported                         | Not ported                                                           |
+| ----------------- | ------------------------------------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------- |
+| `Accordion`       | `AccordionCore`, `Accordion`, `AccordionItem`                                         | full                           | —                                                                    |
+| `Dialog`          | `Dialog`, plus `Transition` / `ViewTransition` (its children)                         | full                           | `Action` triggers, `Transition`'s `group` option                     |
+| `ScrollAnimation` | `withScrolledInView`, `AbstractScrollAnimation`, `ScrollAnimationTimeline`, `…Target` | full (the non-deprecated pair) | the five `@deprecated` classes, `withScrollAnimationDebug`           |
+| `Slider`          | `Slider`, `SliderItem`, `SliderBtn`, `SliderCount`                                    | full                           | `SliderDrag`, `SliderDots`, `SliderProgress` (mechanical follow-ups) |
 
 Utilities copied into `migration/utils/`, minimum viable only: `math.ts` (`clamp`, `clamp01`, `map`, `lerp`, `damp`), `easings.ts` (`cubicBezier`, replacing the `@motionone/easing` dependency), `keyframes.ts` (the interpolator carved out of `animate`), `transition.ts`, `focus.ts` (`trapFocus`/`untrapFocus`/`saveActiveElement`), `uid.ts` (a `$id` replacement).
 
@@ -19,15 +19,15 @@ Utilities copied into `migration/utils/`, minimum viable only: `math.ts` (`clamp
 
 **Ported unchanged.** The whole `AccordionItem` interaction: `btn`/`content`/`container` refs, `onBtnClick`, the animated container height, the `open`/`close` events, every ARIA attribute. `AccordionCore`'s autoclose logic, verbatim apart from how it reaches the items.
 
-| Change | Forced by |
-| --- | --- |
+| Change                                                                  | Forced by                                                                                                                         |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `this.$children.AccordionItem[index]` → `this.items` (`$watchChildren`) | `$children` removed. The collection is live and DOM-ordered, so the index is derived (`items.indexOf(target)`) rather than given. |
-| `onAccordionItemOpen({ index })` → `onAccordionItemOpen({ target })` | delegated `on<Child><Event>` hands over the emitting instance. |
-| `config.emits: ['open','close']` → `$emits` in the props type | runtime `emits` removed. Zero bytes, and `$emit('open', item, index)` is argument-checked. |
-| `destroyed()` style reset → the `mounted()` returned cleanup | v4 idiom; setup and teardown in one closure. |
-| `Accordion extends AccordionCore` no longer spreads the parent config | config merges along the prototype chain (#627). |
-| **`$options.isOpen` as mutable state → a private `#isOpen` field** | **`$options` is a read-only view over attributes in v4.** |
-| **Parent → child option forwarding rewritten** | see below. |
+| `onAccordionItemOpen({ index })` → `onAccordionItemOpen({ target })`    | delegated `on<Child><Event>` hands over the emitting instance.                                                                    |
+| `config.emits: ['open','close']` → `$emits` in the props type           | runtime `emits` removed. Zero bytes, and `$emit('open', item, index)` is argument-checked.                                        |
+| `destroyed()` style reset → the `mounted()` returned cleanup            | v4 idiom; setup and teardown in one closure.                                                                                      |
+| `Accordion extends AccordionCore` no longer spreads the parent config   | config merges along the prototype chain (#627).                                                                                   |
+| **`$options.isOpen` as mutable state → a private `#isOpen` field**      | **`$options` is a read-only view over attributes in v4.**                                                                         |
+| **Parent → child option forwarding rewritten**                          | see below.                                                                                                                        |
 
 **The option-forwarding problem.** v3's `AccordionItem.mounted()` reaches its parent and writes into its own options:
 
@@ -48,11 +48,11 @@ Two v4 decisions break it independently: `$options` is built from getters with n
 
 **Ported unchanged.** `open()`, `close()`, `toggle()`, the modal/non-modal split, scroll locking, and the ordering guarantee that leave transitions finish _before_ the native hide — line-for-line v3.
 
-| Change | Forced by |
-| --- | --- |
-| `$children.Transition` / `.ViewTransition` → two `$watchChildren` collections | `$children` removed. A transition inserted after mount is now picked up (tested). |
-| `keyed({ event, isDown })` → a `keydown` listener in `mounted()` | **`KeyService` was deliberately dropped.** The replacement is smaller than the hook it replaces. |
-| `get dialog() { return this.$el }` → deleted | `$el: HTMLDialogElement` in the props type. |
+| Change                                                                        | Forced by                                                                                        |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `$children.Transition` / `.ViewTransition` → two `$watchChildren` collections | `$children` removed. A transition inserted after mount is now picked up (tested).                |
+| `keyed({ event, isDown })` → a `keydown` listener in `mounted()`              | **`KeyService` was deliberately dropped.** The replacement is smaller than the hook it replaces. |
+| `get dialog() { return this.$el }` → deleted                                  | `$el: HTMLDialogElement` in the props type.                                                      |
 
 **Missing in v4:** nothing blocking. `Transition` lost v3's `group` option, which collects sibling instances via `getInstances(Transition)` — **v4 has no per-class instance registry**. Recorded, not worked around.
 
@@ -81,25 +81,25 @@ _Recommendation:_ ship the interpolator, keep the player separate. They are two 
 
 **Does the scroll service cover its needs? Partly.** `useWindowScroll()`, `useRaf()` and `useResize()` supply the damping loop. What they do not supply is what `withScrolledInView` exists for: **an element's progress through the viewport**, with the `"start end / end start"` offset syntax. `ScrollProps.progressY` is the _page's_ progress, not an element's. _Recommendation:_ `useScrollProgress(el, { offset })` in core — it is the most reused decorator in ui (`ScrollAnimation`, `ScrollReveal`, `Track`, `LargeText`, `CircularMarquee`…).
 
-| Change | Forced by |
-| --- | --- |
-| `withMountWhenInView(BaseClass, options)` → `config.mountStrategy = 'in-view'` | mount strategies moved into the registry (#751). **Clean win.** |
-| four `$on(…)` channels with a hand-built `handleEvent` → two service subscriptions returned as cleanups | services are subscribe/unsubscribe closures. ~40 lines deleted. |
-| grouped `ScrollInViewProps` → flat (`startX`, `dampedProgressY`…) | v4's service prop convention. |
-| **`$services.enable('ticked')`/`disable` → a hand-held `useRaf().add()`** | **no v4 equivalent — gap 1.** |
-| final boundary render moved off `$read`/`$write` onto the global `scheduler` | **`$destroy()` cancels pending tasks right after the cleanups — gap 5.** |
+| Change                                                                                                  | Forced by                                                                |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `withMountWhenInView(BaseClass, options)` → `config.mountStrategy = 'in-view'`                          | mount strategies moved into the registry (#751). **Clean win.**          |
+| four `$on(…)` channels with a hand-built `handleEvent` → two service subscriptions returned as cleanups | services are subscribe/unsubscribe closures. ~40 lines deleted.          |
+| grouped `ScrollInViewProps` → flat (`startX`, `dampedProgressY`…)                                       | v4's service prop convention.                                            |
+| **`$services.enable('ticked')`/`disable` → a hand-held `useRaf().add()`**                               | **no v4 equivalent — gap 1.**                                            |
+| final boundary render moved off `$read`/`$write` onto the global `scheduler`                            | **`$destroy()` cancels pending tasks right after the cleanups — gap 5.** |
 
 **Size:** components 193 → 136 (−30 %); infrastructure 879 → 441 (−50 %). **Verdict: components mechanical, infrastructure a rewrite that halves it.**
 
 ## 4. Slider — the handshake that motivated the design
 
-| Change | Forced by |
-| --- | --- |
-| **`AbstractSliderChild` deleted entirely (143 lines)** | its whole job was finding the parent Slider and subscribing to its store, retrying in `mounted()`, `resized()` **and** `updated()` because none was reliable alone. `$inject(SliderContext)` plus the returned unsubscribe replaces all of it. |
-| `createStorage(...)` → `$provide(SliderContext, …)` | provide/inject in core. |
-| `connectChildren()` + `__connect()` → nothing | the context protocol replays to pending consumers when a late provider mounts. The test `connects a control that mounts before its slider` is the two-sided handshake, gone. |
-| `keyed(...)` + `hasFocus` + focus/blur handlers → `onWrapperKeydown` | `KeyService` dropped. A delegated ref handler only fires when focus is inside the wrapper. |
-| `goTo()` throwing `Index out of bound.` → clamping | with a live children collection the slide count changes by design. |
+| Change                                                               | Forced by                                                                                                                                                                                                                                      |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`AbstractSliderChild` deleted entirely (143 lines)**               | its whole job was finding the parent Slider and subscribing to its store, retrying in `mounted()`, `resized()` **and** `updated()` because none was reliable alone. `$inject(SliderContext)` plus the returned unsubscribe replaces all of it. |
+| `createStorage(...)` → `$provide(SliderContext, …)`                  | provide/inject in core.                                                                                                                                                                                                                        |
+| `connectChildren()` + `__connect()` → nothing                        | the context protocol replays to pending consumers when a late provider mounts. The test `connects a control that mounts before its slider` is the two-sided handshake, gone.                                                                   |
+| `keyed(...)` + `hasFocus` + focus/blur handlers → `onWrapperKeydown` | `KeyService` dropped. A delegated ref handler only fires when focus is inside the wrapper.                                                                                                                                                     |
+| `goTo()` throwing `Index out of bound.` → clamping                   | with a live children collection the slide count changes by design.                                                                                                                                                                             |
 
 **What v4 is missing here: provide/inject carries a value, not an owner surface.** DESIGN.md §5 promises "optionally exposes a curated owner surface (`expose` pattern)"; `context.ts` ships `Signal<T>` only. So `SliderBtn` gets its _state_ from the injected signal but its _commands_ from `$closest('Slider')` — two ways to reach one parent, and the `$closest` one reintroduces the coupling context was meant to remove. **This is the most concrete missing piece for the ui 2.0 rewrite of the thirteen coordinators**, because most need commands as well as state.
 
@@ -120,33 +120,33 @@ _Recommendation:_ ship the interpolator, keep the player separate. They are two 
 
 ## What came out better
 
-|  | v3 | v4 |
-| --- | --- | --- |
-| a control finds its coordinator | 143-line `AbstractSliderChild` + two-sided handshake + retries in three hooks | `await this.$inject(SliderContext)` |
-| a coordinator finds its children | `$children.X`, resolved once, needs `$update()` | `$watchChildren('X')`, live, order-independent |
-| a child added after mount | invisible until `$update()` | just works (tested in all four families) |
-| mount when in view | `withMountWhenInView` wrapping the constructor (109 lines) | `config.mountStrategy = 'in-view'`, overridable per element |
-| keyboard nav on a focused region | `KeyService` + `hasFocus` + focus/blur handlers | `onWrapperKeydown` |
-| declaring emitted events | `config.emits` — bytes, no checking | `$emits` — no bytes, arguments checked |
-| Escape on a `<dialog>` | closes behind the component's back; transitions skipped, scroll lock stuck | `onCancel()`, two lines |
-| a view transition | ui ships a 108-line batching scheduler | `this.$viewTransition(update)` from core |
-| extending a component | spread the parent's config by hand or lose it (#627) | configs merge along the prototype chain |
-| N scroll targets on one timeline | 2N+ scheduler round trips, plus a nested pair inside `animate` | one `read`, one `write`, for the whole timeline |
+|                                  | v3                                                                            | v4                                                          |
+| -------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| a control finds its coordinator  | 143-line `AbstractSliderChild` + two-sided handshake + retries in three hooks | `await this.$inject(SliderContext)`                         |
+| a coordinator finds its children | `$children.X`, resolved once, needs `$update()`                               | `$watchChildren('X')`, live, order-independent              |
+| a child added after mount        | invisible until `$update()`                                                   | just works (tested in all four families)                    |
+| mount when in view               | `withMountWhenInView` wrapping the constructor (109 lines)                    | `config.mountStrategy = 'in-view'`, overridable per element |
+| keyboard nav on a focused region | `KeyService` + `hasFocus` + focus/blur handlers                               | `onWrapperKeydown`                                          |
+| declaring emitted events         | `config.emits` — bytes, no checking                                           | `$emits` — no bytes, arguments checked                      |
+| Escape on a `<dialog>`           | closes behind the component's back; transitions skipped, scroll lock stuck    | `onCancel()`, two lines                                     |
+| a view transition                | ui ships a 108-line batching scheduler                                        | `this.$viewTransition(update)` from core                    |
+| extending a component            | spread the parent's config by hand or lose it (#627)                          | configs merge along the prototype chain                     |
+| N scroll targets on one timeline | 2N+ scheduler round trips, plus a nested pair inside `animate`                | one `read`, one `write`, for the whole timeline             |
 
 ## Size of change
 
 Code lines, comments and blanks excluded. The v4 numbers _include_ the heavy explanatory comments this exercise required, so they understate the reduction.
 
-|  | v3 | v4 | delta |
-| --- | ---: | ---: | ---: |
-| Accordion (3 classes) | 216 | 194 | −10 % |
-| Dialog | 82 | 83 | ±0 |
-| Transition + ViewTransition (+ ui's VT scheduler) | 278 | 147 | −47 % |
-| ScrollAnimation (3 classes) | 193 | 136 | −30 % |
-| ScrollAnimation infrastructure | 879 | 441 | −50 % |
-| Slider (5 classes → 4) | 472 | 295 | −38 % |
-| utilities actually used | 206 | 174 | −16 % |
-| **total** | **2326** | **1470** | **−37 %** |
+|                                                   |       v3 |       v4 |     delta |
+| ------------------------------------------------- | -------: | -------: | --------: |
+| Accordion (3 classes)                             |      216 |      194 |     −10 % |
+| Dialog                                            |       82 |       83 |        ±0 |
+| Transition + ViewTransition (+ ui's VT scheduler) |      278 |      147 |     −47 % |
+| ScrollAnimation (3 classes)                       |      193 |      136 |     −30 % |
+| ScrollAnimation infrastructure                    |      879 |      441 |     −50 % |
+| Slider (5 classes → 4)                            |      472 |      295 |     −38 % |
+| utilities actually used                           |      206 |      174 |     −16 % |
+| **total**                                         | **2326** | **1470** | **−37 %** |
 
 ## Verdict
 
