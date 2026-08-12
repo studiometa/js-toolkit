@@ -83,6 +83,7 @@ export {
   type BreakpointProps,
 } from './services/breakpoint.js';
 export {
+  DRAG_MODES,
   useDrag,
   withDrag,
   type DragHook,

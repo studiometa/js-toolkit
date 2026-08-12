@@ -13,10 +13,34 @@ export type DragTarget = HTMLElement | SVGElement;
  *
  * `idle` is the resting state, and what `props()` reports outside a gesture;
  * `stop` is the transition into it, announced once. Every other flag a
- * subscriber might want is a reading of this one — held is `start`/`drag`,
- * coasting is `inertia`.
+ * subscriber might want is a reading of this one — held is `START`/`DRAG`,
+ * coasting is `INERTIA`.
+ *
+ * Named rather than left to string literals, because a literal union is
+ * invisible to the audience this framework is built for: components written in
+ * plain JavaScript with no build step get no completion and no warning from a
+ * type. `DRAG_MODES.INERTIA` gives them both, and the type below is derived
+ * from this object so there is one source of truth for the set.
+ *
+ *     dragged({ mode }) {
+ *       if (mode === DRAG_MODES.DRAG) { … }
+ *     }
  */
-export type DragMode = 'idle' | 'start' | 'drag' | 'drop' | 'inertia' | 'stop';
+export const DRAG_MODES = {
+  IDLE: 'idle',
+  START: 'start',
+  DRAG: 'drag',
+  DROP: 'drop',
+  INERTIA: 'inertia',
+  STOP: 'stop',
+} as const;
+
+/**
+ * One of {@link DRAG_MODES}. The literals still type-check, so
+ * `mode === 'drag'` keeps working; the constants are what make the set
+ * discoverable without a compiler.
+ */
+export type DragMode = (typeof DRAG_MODES)[keyof typeof DRAG_MODES];
 
 /**
  * Props are flat, one per axis, the same `<name>X`/`<name>Y` spelling the
@@ -56,7 +80,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
   const dragThreshold = options.dragThreshold ?? 10;
 
   const props: MutableProps<DragProps> = {
-    mode: 'idle',
+    mode: DRAG_MODES.IDLE,
     x: 0,
     y: 0,
     deltaX: 0,
@@ -91,7 +115,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       let isClickSuppressed = false;
 
       /** Held by the pointer: the two modes a gesture is alive in. */
-      const isGrabbing = () => props.mode === 'start' || props.mode === 'drag';
+      const isGrabbing = () => props.mode === DRAG_MODES.START || props.mode === DRAG_MODES.DRAG;
 
       // Without `touch-action: none` a native pan wins the gesture on touch:
       // the browser takes the pointer over and fires `pointercancel`, which
@@ -121,10 +145,10 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         props.deltaY = 0;
         props.distanceX = props.x - props.originX;
         props.distanceY = props.y - props.originY;
-        props.mode = 'stop';
+        props.mode = DRAG_MODES.STOP;
         emit(props);
         // `stop` is announced once; `idle` is what the props rest on.
-        props.mode = 'idle';
+        props.mode = DRAG_MODES.IDLE;
       }
 
       // The inertia runs on the scheduler's frame tick, like every other
@@ -136,7 +160,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         props.distanceY = props.y - props.originY;
         props.deltaX *= dampFactor;
         props.deltaY *= dampFactor;
-        props.mode = 'inertia';
+        props.mode = DRAG_MODES.INERTIA;
         emit(props);
 
         if (isRunning && Math.abs(props.deltaX) < 0.1 && Math.abs(props.deltaY) < 0.1) {
@@ -153,7 +177,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         props.y = props.originY = props.finalY = y;
         props.deltaX = props.deltaY = 0;
         props.distanceX = props.distanceY = 0;
-        props.mode = 'start';
+        props.mode = DRAG_MODES.START;
         emit(props);
         if (!isRunning) {
           return;
@@ -168,7 +192,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         props.y = props.finalY = event.clientY;
         props.distanceX = props.x - props.originX;
         props.distanceY = props.y - props.originY;
-        props.mode = 'drag';
+        props.mode = DRAG_MODES.DRAG;
         if (
           Math.abs(props.distanceX) > dragThreshold ||
           Math.abs(props.distanceY) > dragThreshold
@@ -183,7 +207,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
           return;
         }
         document.removeEventListener('pointermove', onPointerMove);
-        props.mode = 'drop';
+        props.mode = DRAG_MODES.DROP;
         props.finalX = inertiaFinalValue(props.x, props.deltaX, dampFactor);
         props.finalY = inertiaFinalValue(props.y, props.deltaY, dampFactor);
         emit(props);
@@ -259,7 +283,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         // Losing every subscriber mid-drag ends the drag: staying in a
         // holding mode would make the next `pointerdown` a no-op once a
         // component subscribes again.
-        props.mode = 'idle';
+        props.mode = DRAG_MODES.IDLE;
         document.removeEventListener('pointermove', onPointerMove);
         target.removeEventListener('pointerdown', onPointerDown);
         target.removeEventListener('dragstart', onDragStart, { capture: true });
@@ -278,7 +302,7 @@ const dragServices = /* @__PURE__ */ perTarget(createDragService);
  *
  * ```js
  * const unsubscribe = useDrag(el).subscribe(({ mode, distanceX }) => {
- *   if (mode === 'drag') {
+ *   if (mode === DRAG_MODES.DRAG) {
  *     el.style.setProperty('--x', `${distanceX}px`);
  *   }
  * });
@@ -306,7 +330,7 @@ export type DragMixinOptions = DragOptions & ServiceMixinOptions<DragTarget>;
  * ```js
  * class Card extends withDrag(Base) {
  *   dragged({ mode, distanceX }) {
- *     if (mode === 'drag') {
+ *     if (mode === DRAG_MODES.DRAG) {
  *       this.$el.style.setProperty('--x', `${distanceX}px`);
  *     }
  *   }

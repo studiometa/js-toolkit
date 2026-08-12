@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { userEvent } from '@vitest/browser/context';
 import { frames } from '../test-utils.js';
-import { useDrag, type DragMode, type DragProps } from './drag.js';
+import { DRAG_MODES, useDrag, type DragMode, type DragProps } from './drag.js';
 
 function render(): HTMLElement {
   const el = document.createElement('div');
@@ -55,6 +55,23 @@ async function countRequestedFrames(ms: number, run: () => void): Promise<number
 
 afterEach(() => {
   document.body.innerHTML = '';
+});
+
+describe('DRAG_MODES', () => {
+  it('names every mode the service can report', () => {
+    // The constants are the discoverable surface for a component written in
+    // plain JavaScript, where the union type is invisible. If the service ever
+    // reports a mode the object does not name, that audience cannot spell it.
+    expect(Object.values(DRAG_MODES)).toEqual(['idle', 'start', 'drag', 'drop', 'inertia', 'stop']);
+  });
+
+  it('types the mode from the object, so the two cannot drift', () => {
+    // Assignable both ways: the type is derived from the constants, and a bare
+    // literal still satisfies it.
+    const fromConstant: DragMode = DRAG_MODES.INERTIA;
+    const fromLiteral: DragMode = 'inertia';
+    expect(fromConstant).toBe(fromLiteral);
+  });
 });
 
 describe('useDrag', () => {
