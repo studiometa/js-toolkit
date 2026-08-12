@@ -117,6 +117,7 @@ _Recommendation:_ ship the interpolator, keep the player separate. They are two 
 8. **`Object`/`Array` option defaults are shared between instances.** `buildOptions()` returns the `default` directly, so `default: {}` hands _the same object_ to every instance. v3 required a factory for exactly this reason. A latent, hard-to-debug bug.
 9. **Option definitions lost `merge: true`.** Merging is now the component's job.
 10. **No `utils`, no `$log`/`$warn`.** Known — but the shape of the need is the finding: ~530 lines of copies for four components, and the biggest v3 utility (`animate`, 719 lines) was **not** what was needed.
+11. **No `onWindow<Event>` / `onDocument<Event>`.** v3 resolves both in `EventsManager` (`isWindowRegex`, `isDocumentRegex`); v4's `#bindHandlers()` resolves `on<Child><Event>`, `on<Ref><Event>` and `on<Event>`, and the last binds to `$el` only. **There is no workaround by delegation:** the events these catch are the ones that by definition never reach the component — a click _outside_ it, a `popstate` that only fires on `window`. ui uses them in five components, and one of them, `ClickOutside`, is nothing but an `onDocumentClick`. Small to build, blocking without it — the cheapest item on this list and the only one with no partial substitute.
 
 ## What came out better
 
@@ -165,6 +166,7 @@ The rewrite is worth doing. It deletes 37 % of the code, removes an entire base 
 4. **`$inject` with an optional/synchronous form, and `expose` on provide/inject** (gaps 3–4). Together these make provide/inject _the_ coordinator primitive; today it covers state but not commands.
 5. **Writable `$options` or a documented replacement, plus factory defaults for `Object`/`Array`** (gaps 2, 8). The second is a latent cross-instance bug, not just a migration cost.
 6. **`$id`** (gap 6). Ten lines, and every accessible component wants it.
-7. **A `utils` port** informed by the above: `clamp`/`clamp01`/`map`/`lerp`/`damp`, `transition`, `trapFocus`, `cubicBezier`. About 200 lines covered four families.
+7. **`onWindow<Event>` and `onDocument<Event>`** (gap 11). Cheap, and `ClickOutside` cannot be written at all without it.
+8. **A `utils` port** informed by the above: `clamp`/`clamp01`/`map`/`lerp`/`damp`, `transition`, `trapFocus`, `cubicBezier`. About 200 lines covered four families.
 
 Items 1–4 change what a component _can_ be written to do. Items 5–7 are cost, not capability.
