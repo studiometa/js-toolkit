@@ -1,3 +1,4 @@
+import { clampDampFactor, DEFAULT_DAMP_FACTOR, inertiaFinalValue } from '../math.js';
 import { scheduler } from '../scheduler.js';
 import { createServiceMixin, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
@@ -47,28 +48,11 @@ export interface DragOptions {
   dragThreshold?: number;
 }
 
-/**
- * Where a damped value ends up once its delta has decayed to nothing —
- * known at drop time, so a component can animate straight to it instead of
- * following the inertia frame by frame.
- *
- * The coast adds `delta`, then `delta · damp`, then `delta · damp²`…, so the
- * travel left is the geometric sum `delta / (1 - damp)`: one division,
- * instead of walking the decay term by term until a term fell under 0.1 px.
- *
- * It is also an **invariant** along the coast — after a tick the position has
- * gained `delta` and `delta` has been scaled by `damp`, which lands on the
- * same value — so the position the drop announces is the one the inertia
- * arrives at, and `stop()` snaps onto it rather than settling near it.
- */
-function inertiaFinalValue(value: number, delta: number, dampFactor: number): number {
-  return value + delta / (1 - dampFactor);
-}
-
 function createDragService(target: DragTarget, options: DragOptions): Service<DragProps> {
-  // A factor of 1 would never decay, and the settle position would be
-  // infinitely far away.
-  const dampFactor = Math.min(Math.max(options.dampFactor ?? 0.85, 0), 0.99999);
+  // Normalised once, here, because the coast decays by this factor every tick
+  // as well as summing it: `inertiaFinalValue()` guards its own argument, but
+  // that would leave the per-tick decay running on whatever was passed in.
+  const dampFactor = clampDampFactor(options.dampFactor ?? DEFAULT_DAMP_FACTOR);
   const dragThreshold = options.dragThreshold ?? 10;
 
   const props: MutableProps<DragProps> = {
