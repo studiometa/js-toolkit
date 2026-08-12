@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
 import { Signal, createContext, provideContext } from './context.js';
 import { registerComponent } from './registry.js';
-import { renderTodoList, resetDom, settle } from './test-utils.js';
+import { getInstance, renderTodoList, resetDom, settle } from './test-utils.js';
 
 afterEach(resetDom);
 
@@ -31,7 +31,7 @@ describe('Signal', () => {
 
 describe('provide/inject', () => {
   it('resolves for a consumer that mounts before its provider', async () => {
-    const Key = createContext<string>('late-provider');
+    const Key = createContext<Signal<string>>('late-provider');
     const received: string[] = [];
 
     class LateConsumer extends Base {
@@ -70,7 +70,7 @@ describe('provide/inject', () => {
     const { promise } = await import('./context.js').then(({ injectContext }) =>
       injectContext(consumer, Key),
     );
-    await expect(promise).resolves.toHaveProperty('value', 'inner');
+    await expect(promise).resolves.toBe('inner');
   });
 
   it('ignores requests for another key', async () => {
@@ -85,8 +85,8 @@ describe('provide/inject', () => {
 
     const { injectContext } = await import('./context.js');
     let resolved: unknown;
-    injectContext(consumer, Wanted).promise.then((signal) => {
-      resolved = signal.value;
+    injectContext(consumer, Wanted).promise.then((value) => {
+      resolved = value;
     });
     await settle();
     expect(resolved).toBeUndefined();
@@ -94,6 +94,138 @@ describe('provide/inject', () => {
     provideContext(host, Wanted, 'yes');
     await settle();
     expect(resolved).toBe('yes');
+  });
+
+  it('provides the value verbatim, wrapping nothing', async () => {
+    const Key = createContext<{ label: string }>('verbatim');
+    const host = document.createElement('div');
+    const consumer = document.createElement('span');
+    host.append(consumer);
+    document.body.append(host);
+
+    const provided = { label: 'exposed' };
+    const { value } = provideContext(host, Key, provided);
+    expect(value).toBe(provided);
+
+    const { injectContext } = await import('./context.js');
+    await expect(injectContext(consumer, Key).promise).resolves.toBe(provided);
+  });
+
+  it('exposes an owner surface a consumer calls without $closest', async () => {
+    interface CounterApi {
+      state: Signal<number>;
+      increment(): void;
+    }
+    const Key = createContext<CounterApi>('counter-api');
+
+    class Counter extends Base {
+      static config = { name: 'Counter' };
+
+      value = 0;
+
+      api = this.$provide<CounterApi>(Key, {
+        state: new Signal(0),
+        increment: () => {
+          this.value += 1;
+          this.api.state.value = this.value;
+        },
+      });
+    }
+
+    class CounterBtn extends Base {
+      static config = { name: 'CounterBtn' };
+
+      seen: number[] = [];
+
+      async mounted() {
+        const { state } = await this.$inject(Key);
+        return state.subscribe((value) => this.seen.push(value));
+      }
+
+      // No `$closest('Counter')`, no reach-back into the coordinator: the
+      // command is part of the surface it exposed.
+      onClick(): void {
+        this.$injectSync(Key)?.increment();
+      }
+    }
+
+    registerComponent(Counter);
+    registerComponent(CounterBtn);
+
+    const root = document.createElement('div');
+    root.setAttribute('data-component', 'Counter');
+    root.innerHTML = '<button data-component="CounterBtn">+</button>';
+    document.body.append(root);
+    await settle();
+
+    const counter = getInstance<Counter>(root, 'Counter');
+    const button = root.querySelector('button');
+    const control = getInstance<CounterBtn>(button, 'CounterBtn');
+
+    button?.click();
+    button?.click();
+    await settle();
+
+    expect(counter.value).toBe(2);
+    expect(control.seen).toEqual([1, 2]);
+  });
+
+  it('answers $injectSync now, or not at all', async () => {
+    const Key = createContext<string>('sync');
+
+    class Consumer extends Base {
+      static config = { name: 'SyncConsumer' };
+    }
+
+    const host = document.createElement('div');
+    const el = document.createElement('span');
+    host.append(el);
+    document.body.append(host);
+    const consumer = new Consumer(el).$mount();
+
+    // No provider: the control is told so instead of waiting forever.
+    expect(consumer.$injectSync(Key)).toBeUndefined();
+
+    provideContext(host, Key, 'ready');
+    expect(consumer.$injectSync(Key)).toBe('ready');
+  });
+
+  it('leaves no pending request behind when the consumer is destroyed', async () => {
+    const Key = createContext<string>('destroyed-consumer');
+    const received: string[] = [];
+
+    class Waiting extends Base {
+      static config = { name: 'Waiting' };
+
+      async mounted() {
+        received.push(await this.$inject(Key));
+      }
+    }
+
+    const host = document.createElement('div');
+    const el = document.createElement('span');
+    host.append(el);
+    document.body.append(host);
+
+    const consumer = new Waiting(el).$mount();
+    await settle();
+    expect(received).toEqual([]);
+
+    consumer.$destroy();
+    // The provider appears after the destroy: a request left in the module's
+    // pending set would be replayed here and resolve.
+    const { dispose } = provideContext(host, Key, 'late');
+    await settle();
+    expect(received).toEqual([]);
+
+    // And the scope is right: `mounted()` runs again on remount, so the
+    // injection happens again with nothing to re-declare.
+    consumer.$mount();
+    await settle();
+    expect(received).toEqual(['late']);
+
+    consumer.$terminate();
+    dispose();
   });
 
   it('feeds a component through the provided signal', async () => {

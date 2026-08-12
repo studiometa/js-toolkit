@@ -20,7 +20,8 @@
  * 7. Lazy, reference-counted services, one instance per observed target —
  *    subscribed by hand, or through the `withRaf`/`withScroll`/`withResize`/
  *    `withPointer`/`withDrag` mixins and their `ticked`, `scrolled`,
- *    `resized`, `moved` and `dragged` hooks, per mount cycle.
+ *    `resized`, `moved` and `dragged` hooks, per mount cycle — or on the
+ *    component's own terms with `{ manual: true }` + `$enable`/`$disable`.
  *
  * Lifecycle: destroy !== terminate !== disconnected.
  * - disconnected (DOM fact) → `$destroy()`: reversible, the instance stays
@@ -58,6 +59,7 @@ export {
   Signal,
   createContext,
   injectContext,
+  injectContextSync,
   provideContext,
   type ContextKey,
 } from './context.js';
@@ -85,6 +87,7 @@ export {
 export {
   createServiceMixin,
   type MixedClass,
+  type ServiceControls,
   type ServiceMixin,
   type ServiceMixinDefinition,
   type ServiceMixinOptions,

@@ -1,4 +1,4 @@
-import { Signal, injectContext, provideContext, type ContextKey } from './context.js';
+import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
 import { domVersion } from './dom-version.js';
 import { scheduler, type ScheduledTask } from './scheduler.js';
 import type { MountStrategy } from './mount-strategies.js';
@@ -18,7 +18,40 @@ export type OptionType =
   | typeof Array
   | typeof Object;
 
-export type OptionDefinition = OptionType | { type: OptionType; default?: unknown };
+/**
+ * The value an option of a given type holds.
+ */
+type OptionValue<T extends OptionType> = T extends typeof String
+  ? string
+  : T extends typeof Number
+    ? number
+    : T extends typeof Boolean
+      ? boolean
+      : T extends typeof Array
+        ? unknown[]
+        : Record<string, unknown>;
+
+/**
+ * `default` is a value, or a **factory** called once per instance.
+ *
+ * A factory is the only form `Array` and `Object` accept, and the reason is
+ * the bug it prevents: a default declared as `default: {}` lives on the class,
+ * so every instance of the component would read — and mutate — the same
+ * object. `Function` is not an `OptionType`, so a function default is
+ * unambiguously a factory.
+ *
+ *     options: {
+ *       speed: { type: Number, default: 1 },
+ *       tween: { type: Object, default: () => ({ ease: 'linear' }) },
+ *     }
+ */
+type TypedOptionDefinition<T extends OptionType = OptionType> = T extends OptionType
+  ? T extends typeof Array | typeof Object
+    ? { type: T; default?: () => OptionValue<T> }
+    : { type: T; default?: OptionValue<T> | (() => OptionValue<T>) }
+  : never;
+
+export type OptionDefinition = OptionType | TypedOptionDefinition;
 
 export interface BaseConfig {
   name: string;
@@ -258,29 +291,70 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
   return refs;
 }
 
+/**
+ * Build the live `$options` view.
+ *
+ * Values are read from the `data-option-*` attributes on every access, so an
+ * attribute is always the source of truth. **Defaults belong to the
+ * instance**, not to the class: each one is built once per instance and kept,
+ * which is what makes `this.$options.list.push(x)` persist and what stops two
+ * components from sharing — and corrupting — the same defaulted object.
+ */
 function buildOptions(instance: Base): Record<string, unknown> {
   const options: Record<string, unknown> = {};
   const el = instance.$el;
   for (const [name, definition] of Object.entries(instance.$config.options ?? {})) {
     const type = typeof definition === 'function' ? definition : definition.type;
-    const defaultValue = typeof definition === 'function' ? undefined : definition.default;
+    const declared = typeof definition === 'function' ? undefined : definition.default;
     const attribute = `data-option-${kebabCase(name)}`;
+
+    // Built on first read and memoised, so repeated reads hand back the same
+    // object and a mutation of it sticks — for this instance only.
+    let memoized: unknown;
+    let isMemoized = false;
+    const defaultValue = (): unknown => {
+      if (!isMemoized) {
+        isMemoized = true;
+        memoized = buildDefault();
+      }
+      return memoized;
+    };
+    const buildDefault = (): unknown => {
+      // `Function` is not an option type, so a callable default is a factory.
+      if (typeof declared === 'function') {
+        return (declared as () => unknown)();
+      }
+      if (declared !== null && typeof declared === 'object') {
+        // The types ask for a factory here; the no-build path has no types,
+        // so a literal object or array is copied rather than shared.
+        return Array.isArray(declared)
+          ? [...declared]
+          : { ...(declared as Record<string, unknown>) };
+      }
+      if (declared !== undefined) {
+        return declared;
+      }
+      // An undeclared object or array default is still the instance's own.
+      if (type === Array) return [];
+      if (type === Object) return {};
+      return undefined;
+    };
+
     Object.defineProperty(options, name, {
       enumerable: true,
       get() {
         if (type === Boolean) {
           if (!el.hasAttribute(attribute)) {
-            return defaultValue ?? false;
+            return defaultValue() ?? false;
           }
           return el.getAttribute(attribute) !== 'false';
         }
         const raw = el.getAttribute(attribute);
         if (raw === null) {
-          if (defaultValue !== undefined) return defaultValue;
+          const value = defaultValue();
+          if (value !== undefined) return value;
           if (type === Number) return 0;
           if (type === String) return '';
-          if (type === Array) return [];
-          if (type === Object) return {};
           return undefined;
         }
         if (type === Number) {
@@ -290,7 +364,7 @@ function buildOptions(instance: Base): Record<string, unknown> {
           try {
             return JSON.parse(raw);
           } catch {
-            return defaultValue ?? (type === Array ? [] : {});
+            return defaultValue();
           }
         }
         return raw;
@@ -408,6 +482,11 @@ export class Base<T extends BaseProps = BaseProps> {
 
   get $isMounted(): boolean {
     return this.#isMounted;
+  }
+
+  /** Whether `$terminate()` has run — the instance never mounts again. */
+  get $isTerminated(): boolean {
+    return this.#isTerminated;
   }
 
   constructor(el: HTMLElement) {
@@ -638,21 +717,58 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Provide a reactive signal to the subtree (nearest provider wins).
+   * Provide a value to the subtree — nearest provider wins, and the value is
+   * provided **verbatim**: what is handed over is what a consumer resolves.
+   *
+   * Reactive state is a `Signal`; a curated owner surface is an object of
+   * commands (the `expose` pattern), which is how a control reaches its
+   * coordinator without `$closest()` and the coupling that comes with it:
+   *
+   *     api = this.$provide(SliderContext, {
+   *       state: new Signal({ index: 0, total: 0 }),
+   *       goNext: () => this.goNext(),
+   *     });
+   *
+   * The provider is instance-lifetime: it survives destroy/mount cycles and
+   * is disposed on `$terminate()`.
    */
-  $provide<T>(key: ContextKey<T>, value: T | Signal<T>): Signal<T> {
-    const { signal, dispose } = provideContext(this.$el, key, value);
+  $provide<V>(key: ContextKey<V>, value: V): V {
+    const { dispose } = provideContext(this.$el, key, value);
     this.#terminateCallbacks.push(dispose);
-    return signal;
+    return value;
   }
 
   /**
-   * Resolve the nearest provided signal, now or when a provider appears.
+   * Resolve the nearest provided value, now or when a provider appears.
+   *
+   * **The promise never settles while no provider exists** — deliberately:
+   * order independence is the whole point, and a consumer mounting before its
+   * provider must not be told "absent" by an ordering accident. Use
+   * `$injectSync()` when an answer is needed now.
+   *
+   * The pending request is destroy-scoped, so a destroyed instance leaves
+   * nothing behind — and `mounted()` runs again on remount, which re-issues
+   * the request naturally.
    */
-  $inject<T>(key: ContextKey<T>): Promise<Signal<T>> {
+  $inject<V>(key: ContextKey<V>): Promise<V> {
     const { promise, cancel } = injectContext(this.$el, key);
-    this.#terminateCallbacks.push(cancel);
+    this.#destroyCallbacks.push(cancel);
     return promise;
+  }
+
+  /**
+   * Resolve the nearest provided value — now, or not at all.
+   *
+   * Nothing is queued and nothing is replayed: `undefined` means no provider
+   * is listening above this element at this moment, which a control can act
+   * on instead of waiting:
+   *
+   *     onClick() {
+   *       this.$injectSync(SliderContext)?.goToItem(this);
+   *     }
+   */
+  $injectSync<V>(key: ContextKey<V>): V | undefined {
+    return injectContextSync(this.$el, key);
   }
 
   /** Schedule a DOM read; canceled automatically when the instance unmounts. */

@@ -6,7 +6,7 @@ import { registerComponents } from './registry.js';
 import { scheduler } from './scheduler.js';
 import { getInstance, resetDom, settle } from './test-utils.js';
 
-const DecoContext = createContext<number>('deco-context');
+const DecoContext = createContext<Signal<number>>('deco-context');
 
 @component({ name: 'DecoChild' })
 class DecoChild extends Base {

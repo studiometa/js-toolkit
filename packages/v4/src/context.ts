@@ -55,13 +55,13 @@ export class Signal<T = unknown> {
 
 interface ContextRequestDetail {
   key: symbol;
-  provide(signal: Signal<unknown>): void;
+  provide(value: unknown): void;
 }
 
 interface PendingRequest {
   el: Element;
   key: symbol;
-  resolve(signal: Signal<unknown>): void;
+  resolve(value: unknown): void;
 }
 
 const pendingRequests = new Set<PendingRequest>();
@@ -70,10 +70,10 @@ function requestContext(request: PendingRequest): boolean {
   let isAnswered = false;
   const detail: ContextRequestDetail = {
     key: request.key,
-    provide(signal) {
+    provide(value) {
       isAnswered = true;
       pendingRequests.delete(request);
-      request.resolve(signal);
+      request.resolve(value);
     },
   };
   request.el.dispatchEvent(new CustomEvent(CONTEXT_REQUEST, { bubbles: true, detail }));
@@ -81,23 +81,32 @@ function requestContext(request: PendingRequest): boolean {
 }
 
 /**
- * Provide a reactive value for the subtree rooted at `el`.
+ * Provide a value for the subtree rooted at `el`.
  * The nearest provider wins, because the consumer's request event stops at
  * the first ancestor that answers.
+ *
+ * **The value is provided verbatim** — nothing is wrapped. What the owner
+ * hands over is exactly what a consumer resolves, so the key's type decides
+ * the shape:
+ *
+ * - reactive state → provide a `Signal`;
+ * - a command surface → provide an object of methods (the `expose` pattern),
+ *   which is what lets a control call its coordinator without reaching back
+ *   through `$closest()`;
+ * - both → provide an object holding Signals.
  */
 export function provideContext<T>(
   el: Element,
   key: ContextKey<T>,
-  value: T | Signal<T>,
-): { signal: Signal<T>; dispose: () => void } {
-  const signal = value instanceof Signal ? value : new Signal(value);
+  value: T,
+): { value: T; dispose: () => void } {
   const onRequest = (event: Event) => {
     const { detail } = event as CustomEvent<ContextRequestDetail>;
     if (detail?.key !== key) {
       return;
     }
     event.stopPropagation();
-    detail.provide(signal as unknown as Signal<unknown>);
+    detail.provide(value);
   };
   el.addEventListener(CONTEXT_REQUEST, onRequest);
 
@@ -113,25 +122,52 @@ export function provideContext<T>(
   }
 
   return {
-    signal,
+    value,
     dispose: () => el.removeEventListener(CONTEXT_REQUEST, onRequest),
   };
 }
 
 /**
- * Resolve the nearest provided signal for `key`, now or when a provider
+ * Resolve the nearest provided value for `key`, now or when a provider
  * appears. Order-independent.
+ *
+ * **The promise never settles while no provider exists.** That is the price
+ * of order independence: a consumer mounting before its provider must not be
+ * told "absent" by an ordering accident. A consumer that needs an answer now
+ * — a click handler, a keyboard shortcut — asks with `injectContextSync()`
+ * and falls back on `undefined`.
  */
 export function injectContext<T>(
   el: Element,
   key: ContextKey<T>,
-): { promise: Promise<Signal<T>>; cancel: () => void } {
+): { promise: Promise<T>; cancel: () => void } {
   let request!: PendingRequest;
-  const promise = new Promise<Signal<T>>((resolve) => {
-    request = { el, key, resolve: resolve as unknown as (signal: Signal<unknown>) => void };
+  const promise = new Promise<T>((resolve) => {
+    request = { el, key, resolve: resolve as (value: unknown) => void };
     if (!requestContext(request)) {
       pendingRequests.add(request);
     }
   });
   return { promise, cancel: () => pendingRequests.delete(request) };
+}
+
+/**
+ * Resolve the nearest provided value for `key` — now, or not at all.
+ *
+ * The context request is answered synchronously when a provider is already
+ * listening, so this is the same round trip as `injectContext()` without the
+ * promise: nothing is queued, nothing is replayed later. `undefined` means
+ * "no provider above this element right now", which a control can act on
+ * (fall back, do nothing) instead of waiting forever.
+ */
+export function injectContextSync<T>(el: Element, key: ContextKey<T>): T | undefined {
+  let resolved: T | undefined;
+  requestContext({
+    el,
+    key,
+    resolve: (value) => {
+      resolved = value as T;
+    },
+  });
+  return resolved;
 }

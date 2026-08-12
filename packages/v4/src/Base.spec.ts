@@ -77,6 +77,127 @@ describe('$options', () => {
     el.setAttribute('data-option-count', '9');
     expect(instance.$options.count).toBe(9);
   });
+
+  it('gives each instance its own defaulted object, declared or not', () => {
+    class Defaulted extends Base<{
+      $options: { tween: Record<string, unknown>; list: unknown[]; bag: Record<string, unknown> };
+    }> {
+      static config = {
+        name: 'Defaulted',
+        options: {
+          // Declared through a factory: called once per instance.
+          tween: { type: Object, default: () => ({ ease: 'linear' }) },
+          // Undeclared: an empty array, still one per instance.
+          list: Array,
+          bag: Object,
+        },
+      };
+    }
+
+    const first = new Defaulted(document.createElement('div'));
+    const second = new Defaulted(document.createElement('div'));
+
+    expect(first.$options.tween).toEqual({ ease: 'linear' });
+    expect(second.$options.tween).toEqual({ ease: 'linear' });
+    // Same value, never the same object: this is the bug that let one
+    // component corrupt every other instance of its class.
+    expect(first.$options.tween).not.toBe(second.$options.tween);
+    expect(first.$options.list).not.toBe(second.$options.list);
+    expect(first.$options.bag).not.toBe(second.$options.bag);
+
+    first.$options.tween.ease = 'ease-out';
+    expect(second.$options.tween).toEqual({ ease: 'linear' });
+  });
+
+  it('memoises the default, so a mutation of it persists on that instance', () => {
+    class Listed extends Base<{ $options: { list: number[]; tween: Record<string, unknown> } }> {
+      static config = {
+        name: 'Listed',
+        options: {
+          list: Array,
+          tween: { type: Object, default: () => ({ ease: 'linear' }) },
+        },
+      };
+    }
+
+    const instance = new Listed(document.createElement('div'));
+
+    // Every read used to build a fresh array, so this push went nowhere.
+    instance.$options.list.push(1, 2);
+    expect(instance.$options.list).toEqual([1, 2]);
+    expect(instance.$options.list).toBe(instance.$options.list);
+
+    instance.$options.tween.ease = 'ease-out';
+    expect(instance.$options.tween).toEqual({ ease: 'ease-out' });
+  });
+
+  it('calls the factory once per instance, lazily', () => {
+    let calls = 0;
+
+    class Lazy extends Base<{ $options: { tween: Record<string, unknown> } }> {
+      static config = {
+        name: 'Lazy',
+        options: {
+          tween: {
+            type: Object,
+            default: () => {
+              calls += 1;
+              return { id: calls };
+            },
+          },
+        },
+      };
+    }
+
+    const first = new Lazy(document.createElement('div'));
+    const second = new Lazy(document.createElement('div'));
+    // Nothing is built before the option is read.
+    expect(calls).toBe(0);
+
+    const read = first.$options.tween;
+    expect(first.$options.tween).toBe(read);
+    expect(calls).toBe(1);
+
+    expect(second.$options.tween).not.toBe(read);
+    expect(calls).toBe(2);
+    expect(second.$options.tween).toEqual({ id: 2 });
+  });
+
+  it('keeps primitive defaults and attribute values as they were', () => {
+    class Mixed extends Base<{
+      $options: { speed: number; label: string; flag: boolean; list: unknown[] };
+    }> {
+      static config = {
+        name: 'Mixed',
+        options: {
+          speed: { type: Number, default: 3 },
+          label: { type: String, default: 'none' },
+          flag: { type: Boolean, default: true },
+          list: { type: Array, default: () => [1] },
+        },
+      };
+    }
+
+    const el = document.createElement('div');
+    const instance = new Mixed(el);
+
+    expect(instance.$options.speed).toBe(3);
+    expect(instance.$options.label).toBe('none');
+    expect(instance.$options.flag).toBe(true);
+    expect(instance.$options.list).toEqual([1]);
+
+    // An attribute is still the source of truth, read on every access.
+    el.setAttribute('data-option-speed', '9');
+    el.setAttribute('data-option-flag', 'false');
+    el.setAttribute('data-option-list', '[2, 3]');
+    expect(instance.$options.speed).toBe(9);
+    expect(instance.$options.flag).toBe(false);
+    expect(instance.$options.list).toEqual([2, 3]);
+
+    // Malformed JSON falls back to the instance's own default.
+    el.setAttribute('data-option-list', '{oops');
+    expect(instance.$options.list).toEqual([1]);
+  });
 });
 
 describe('$el', () => {
