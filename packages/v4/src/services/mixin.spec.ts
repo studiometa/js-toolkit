@@ -6,7 +6,7 @@ import { withDrag } from './drag.js';
 import { withRaf } from './raf.js';
 import { withResize } from './resize.js';
 import { useScroll, withScroll } from './scroll.js';
-import type { DragProps, DragTarget } from './drag.js';
+import type { DragProps } from './drag.js';
 import type { RafProps } from './raf.js';
 import type { ResizeProps } from './resize.js';
 import type { ScrollProps } from './scroll.js';
@@ -103,9 +103,8 @@ describe('service mixins', () => {
     class Draggable extends withDrag(Base) {
       static config = { name: 'Draggable' };
 
-      dragged({ mode, target }: DragProps): void {
+      dragged({ mode }: DragProps): void {
         modes.push(mode);
-        expect(target).toBe(this.$el);
       }
     }
 
@@ -136,15 +135,15 @@ describe('service mixins', () => {
   });
 
   it('follows another target, named per instance', () => {
-    const targets: DragTarget[] = [];
+    const modes: string[] = [];
 
     class Handled extends withDrag(Base, {
       target: (instance) => instance.$el.firstElementChild as HTMLElement,
     }) {
       static config = { name: 'Handled' };
 
-      dragged({ target }: DragProps): void {
-        targets.push(target);
+      dragged({ mode }: DragProps): void {
+        modes.push(mode);
       }
     }
 
@@ -153,12 +152,13 @@ describe('service mixins', () => {
     const handle = el.firstElementChild as HTMLElement;
     const instance = new Handled(el).$mount();
 
-    // The root is not the target anymore, the handle is.
+    // The root is not the target anymore, the handle is. A press on the root
+    // reaches no service — the subscription is keyed on the handle.
     el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
-    expect(targets).toEqual([]);
+    expect(modes).toEqual([]);
 
     handle.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
-    expect(targets).toEqual([handle]);
+    expect(modes).toEqual(['start']);
 
     instance.$destroy();
   });

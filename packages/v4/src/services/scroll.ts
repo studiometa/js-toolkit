@@ -6,18 +6,29 @@ import { createService, perTarget, type MutableProps, type Service } from './ser
 export type ScrollTarget = Element | Window;
 
 /**
- * Props are flat, one per axis, with v3's spelling: a handler destructures
- * what it needs (`{ deltaY, isDown }`) instead of reaching through a group.
+ * Which way an axis moved in this update: `1` forward, `-1` back, `0` not at
+ * all.
+ *
+ * One signed value rather than four booleans, because it **multiplies** —
+ * `offset * directionY` leans a header the way the page is going — where a
+ * pair of flags has to be branched on. It also settles a collision: a
+ * `ScrollProps.isDown` that meant "scrolling down" sat next to a
+ * `PointerProps.isDown` that means "pressed".
+ */
+export type ScrollDirection = -1 | 0 | 1;
+
+/**
+ * Props are flat, one per axis: a handler destructures what it needs
+ * (`{ deltaY, directionY }`) instead of reaching through a group. Nothing that
+ * can be derived from another field is a field.
  */
 export interface ScrollProps {
   readonly x: number;
   readonly y: number;
-  /** Whether the axis moved in this update. */
-  readonly changedX: boolean;
-  readonly changedY: boolean;
-  /** Position at the previous update. */
-  readonly lastX: number;
-  readonly lastY: number;
+  /**
+   * Movement since the previous update. The previous position is `x - deltaX`,
+   * and "did this axis move" is `deltaX !== 0`, so neither is a field.
+   */
   readonly deltaX: number;
   readonly deltaY: number;
   /** Furthest scrollable position, `0` when the axis does not scroll. */
@@ -31,10 +42,8 @@ export interface ScrollProps {
    */
   readonly progressX: number;
   readonly progressY: number;
-  readonly isUp: boolean;
-  readonly isRight: boolean;
-  readonly isDown: boolean;
-  readonly isLeft: boolean;
+  readonly directionX: ScrollDirection;
+  readonly directionY: ScrollDirection;
   /**
    * Whether the target is still moving. It turns off on `scrollend`, which
    * covers momentum, smooth-scrolling and snap settling alike — a component
@@ -97,6 +106,12 @@ function measure(target: ScrollTarget) {
  * An axis that cannot scroll is at its start, not at its end: reporting `1`
  * told an empty carousel it had reached the last slide.
  */
+function directionOf(delta: number): ScrollDirection {
+  if (delta > 0) return 1;
+  if (delta < 0) return -1;
+  return 0;
+}
+
 function progressFor(position: number, max: number): number {
   return max === 0 ? 0 : Math.abs(position) / max;
 }
@@ -106,20 +121,14 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
   const props: MutableProps<ScrollProps> = {
     x: initial.x,
     y: initial.y,
-    changedX: false,
-    changedY: false,
-    lastX: initial.x,
-    lastY: initial.y,
     deltaX: 0,
     deltaY: 0,
     maxX: initial.maxX,
     maxY: initial.maxY,
     progressX: progressFor(initial.x, initial.maxX),
     progressY: progressFor(initial.y, initial.maxY),
-    isUp: false,
-    isRight: false,
-    isDown: false,
-    isLeft: false,
+    directionX: 0,
+    directionY: 0,
     isScrolling: false,
   };
 
@@ -130,20 +139,14 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
 
     props.x = x;
     props.y = y;
-    props.changedX = x !== lastX;
-    props.changedY = y !== lastY;
-    props.lastX = lastX;
-    props.lastY = lastY;
     props.deltaX = x - lastX;
     props.deltaY = y - lastY;
     props.maxX = maxX;
     props.maxY = maxY;
     props.progressX = progressFor(x, maxX);
     props.progressY = progressFor(y, maxY);
-    props.isUp = y < lastY;
-    props.isRight = x > lastX;
-    props.isDown = y > lastY;
-    props.isLeft = x < lastX;
+    props.directionX = directionOf(props.deltaX);
+    props.directionY = directionOf(props.deltaY);
 
     return props;
   }
@@ -252,8 +255,8 @@ const scrollServices = /* @__PURE__ */ perTarget(createScrollService);
  * Use the scroll service for a target, the window by default.
  *
  * ```js
- * const unsubscribe = useScroll().subscribe(({ y, progressY, isDown }) => {
- *   el.classList.toggle('is-hidden', isDown);
+ * const unsubscribe = useScroll().subscribe(({ y, progressY, directionY }) => {
+ *   el.classList.toggle('is-hidden', directionY === 1);
  * });
  *
  * useScroll(panel).subscribe(({ progressY }) => { … });
@@ -294,8 +297,8 @@ export type ScrollMixinOptions = ServiceMixinOptions<ScrollTarget>;
  *
  * ```js
  * class Header extends withScroll(Base) {
- *   scrolled({ isDown }) {
- *     this.$el.classList.toggle('is-hidden', isDown);
+ *   scrolled({ directionY }) {
+ *     this.$el.classList.toggle('is-hidden', directionY === 1);
  *   }
  * }
  *

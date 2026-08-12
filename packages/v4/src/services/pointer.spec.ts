@@ -32,9 +32,9 @@ describe('usePointer', () => {
     expect(first.y).toBe(50);
     expect(second.deltaX).toBe(40);
     expect(second.deltaY).toBe(40);
-    expect(second.lastX).toBe(100);
-    expect(second.lastY).toBe(50);
-    expect(second.changedX).toBe(true);
+    // The previous position is `x - deltaX`, so it is not a field.
+    expect(second.x - second.deltaX).toBe(100);
+    expect(second.y - second.deltaY).toBe(50);
     expect(second.progressX).toBeCloseTo(140 / window.innerWidth, 5);
     expect(second.progressY).toBeCloseTo(90 / window.innerHeight, 5);
   });
@@ -67,15 +67,13 @@ describe('usePointer', () => {
     expect(down?.x).toBe(42);
     expect(down?.y).toBe(84);
     expect(down?.deltaX).toBe(42 - 207);
-    expect(down?.lastX).toBe(207);
-    expect(down?.changedX).toBe(true);
 
     document.dispatchEvent(new PointerEvent('pointerup', { clientX: 50, clientY: 84 }));
     const up = seen.at(-1);
     expect(up?.isDown).toBe(false);
     expect(up?.x).toBe(50);
     expect(up?.deltaX).toBe(8);
-    expect(up?.changedY).toBe(false);
+    expect(up?.deltaY).toBe(0);
 
     unsubscribe();
   });

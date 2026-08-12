@@ -8,9 +8,14 @@ export type DragTarget = HTMLElement | SVGElement;
 /**
  * Where a drag is in its cycle:
  *
- * `start` → `drag`… → `drop` → `inertia`… → `stop`
+ * `idle` → `start` → `drag`… → `drop` → `inertia`… → `stop` → `idle`
+ *
+ * `idle` is the resting state, and what `props()` reports outside a gesture;
+ * `stop` is the transition into it, announced once. Every other flag a
+ * subscriber might want is a reading of this one — held is `start`/`drag`,
+ * coasting is `inertia`.
  */
-export type DragMode = 'start' | 'drag' | 'drop' | 'inertia' | 'stop';
+export type DragMode = 'idle' | 'start' | 'drag' | 'drop' | 'inertia' | 'stop';
 
 /**
  * Props are flat, one per axis, the same `<name>X`/`<name>Y` spelling the
@@ -18,11 +23,6 @@ export type DragMode = 'start' | 'drag' | 'drop' | 'inertia' | 'stop';
  */
 export interface DragProps {
   readonly mode: DragMode;
-  readonly target: DragTarget;
-  /** Whether the pointer is currently holding the target. */
-  readonly isGrabbing: boolean;
-  /** Whether the drag is coasting after the drop. */
-  readonly hasInertia: boolean;
   /** Current position in the viewport. */
   readonly x: number;
   readonly y: number;
@@ -72,10 +72,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
   const dragThreshold = options.dragThreshold ?? 10;
 
   const props: MutableProps<DragProps> = {
-    mode: 'stop',
-    target,
-    isGrabbing: false,
-    hasInertia: false,
+    mode: 'idle',
     x: 0,
     y: 0,
     deltaX: 0,
@@ -109,6 +106,9 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
        */
       let isClickSuppressed = false;
 
+      /** Held by the pointer: the two modes a gesture is alive in. */
+      const isGrabbing = () => props.mode === 'start' || props.mode === 'drag';
+
       // Without `touch-action: none` a native pan wins the gesture on touch:
       // the browser takes the pointer over and fires `pointercancel`, which
       // this service turns into an inertia fling from a half-finished drag.
@@ -137,10 +137,10 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         props.deltaY = 0;
         props.distanceX = props.x - props.originX;
         props.distanceY = props.y - props.originY;
-        props.isGrabbing = false;
-        props.hasInertia = false;
         props.mode = 'stop';
         emit(props);
+        // `stop` is announced once; `idle` is what the props rest on.
+        props.mode = 'idle';
       }
 
       // The inertia runs on the scheduler's frame tick, like every other
@@ -161,7 +161,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       }
 
       function startDrag(x: number, y: number) {
-        if (props.isGrabbing) {
+        if (isGrabbing()) {
           return;
         }
         stopInertia();
@@ -169,8 +169,6 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         props.y = props.originY = props.finalY = y;
         props.deltaX = props.deltaY = 0;
         props.distanceX = props.distanceY = 0;
-        props.isGrabbing = true;
-        props.hasInertia = false;
         props.mode = 'start';
         emit(props);
         if (!isRunning) {
@@ -197,12 +195,10 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       }
 
       function drop() {
-        if (!props.isGrabbing) {
+        if (!isGrabbing()) {
           return;
         }
         document.removeEventListener('pointermove', onPointerMove);
-        props.isGrabbing = false;
-        props.hasInertia = true;
         props.mode = 'drop';
         props.finalX = inertiaFinalValue(props.x, props.deltaX, dampFactor);
         props.finalY = inertiaFinalValue(props.y, props.deltaY, dampFactor);
@@ -276,12 +272,10 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
           target.style.touchAction = previousTouchAction;
         }
         stopInertia();
-        // Losing every subscriber mid-drag ends the drag: leaving
-        // `isGrabbing` on would make the next `pointerdown` a no-op once a
+        // Losing every subscriber mid-drag ends the drag: staying in a
+        // holding mode would make the next `pointerdown` a no-op once a
         // component subscribes again.
-        props.isGrabbing = false;
-        props.hasInertia = false;
-        props.mode = 'stop';
+        props.mode = 'idle';
         document.removeEventListener('pointermove', onPointerMove);
         target.removeEventListener('pointerdown', onPointerDown);
         target.removeEventListener('dragstart', onDragStart, { capture: true });

@@ -32,12 +32,13 @@ describe('useScroll', () => {
 
     const down = seen.at(-1);
     expect(down?.y).toBe(200);
-    expect(down?.lastY).toBe(0);
     expect(down?.deltaY).toBe(200);
-    expect(down?.changedY).toBe(true);
-    expect(down?.changedX).toBe(false);
-    expect(down?.isDown).toBe(true);
-    expect(down?.isUp).toBe(false);
+    // The previous position is `y - deltaY`, and "did it move" is
+    // `deltaY !== 0`: neither is a field of its own any more.
+    expect((down?.y ?? 0) - (down?.deltaY ?? 0)).toBe(0);
+    expect(down?.deltaX).toBe(0);
+    expect(down?.directionY).toBe(1);
+    expect(down?.directionX).toBe(0);
     expect(down?.maxY).toBeGreaterThan(0);
     expect(down?.progressY).toBeCloseTo(200 / (down?.maxY ?? 1), 5);
 
@@ -47,8 +48,10 @@ describe('useScroll', () => {
     const up = seen.at(-1);
     expect(up?.y).toBe(50);
     expect(up?.deltaY).toBe(-150);
-    expect(up?.isUp).toBe(true);
-    expect(up?.isDown).toBe(false);
+    // One signed value, which multiplies, instead of four booleans — and no
+    // longer an `isDown` that means "scrolling down" next to a pointer
+    // `isDown` that means "pressed".
+    expect(up?.directionY).toBe(-1);
 
     unsubscribe();
   });
@@ -134,7 +137,7 @@ describe('useScroll(element)', () => {
     const props = seen.at(-1);
     expect(props?.y).toBe(100);
     expect(props?.deltaY).toBe(100);
-    expect(props?.isDown).toBe(true);
+    expect(props?.directionY).toBe(1);
     // 800px of content in a 100px box.
     expect(props?.maxY).toBe(700);
     expect(props?.progressY).toBeCloseTo(100 / 700, 5);

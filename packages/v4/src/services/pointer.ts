@@ -18,11 +18,10 @@ export interface PointerProps {
   /** Position in the viewport. */
   readonly x: number;
   readonly y: number;
-  /** Whether the axis moved in this update. */
-  readonly changedX: boolean;
-  readonly changedY: boolean;
-  readonly lastX: number;
-  readonly lastY: number;
+  /**
+   * Movement since the previous update. The previous position is `x - deltaX`,
+   * and "did this axis move" is `deltaX !== 0`, so neither is a field.
+   */
   readonly deltaX: number;
   readonly deltaY: number;
   /** Viewport size. */
@@ -51,10 +50,6 @@ function createPointerService(): Service<PointerProps> {
     isDown: false,
     x,
     y,
-    changedX: false,
-    changedY: false,
-    lastX: x,
-    lastY: y,
     deltaX: 0,
     deltaY: 0,
     maxX: window.innerWidth,
@@ -70,10 +65,6 @@ function createPointerService(): Service<PointerProps> {
     props.event = event;
     props.x = event.clientX;
     props.y = event.clientY;
-    props.changedX = props.x !== lastX;
-    props.changedY = props.y !== lastY;
-    props.lastX = lastX;
-    props.lastY = lastY;
     props.deltaX = props.x - lastX;
     props.deltaY = props.y - lastY;
     props.maxX = window.innerWidth;

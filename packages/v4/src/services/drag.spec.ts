@@ -72,7 +72,6 @@ describe('useDrag', () => {
     expect(modes).toEqual(['start']);
     expect(last[0].originX).toBe(10);
     expect(last[0].originY).toBe(10);
-    expect(last[0].isGrabbing).toBe(true);
 
     move(60, 30);
     expect(modes.at(-1)).toBe('drag');
@@ -83,8 +82,6 @@ describe('useDrag', () => {
 
     release();
     expect(modes.at(-1)).toBe('drop');
-    expect(last.at(-1)?.isGrabbing).toBe(false);
-    expect(last.at(-1)?.hasInertia).toBe(true);
     // The final position is known at drop time, before the first inertia
     // frame runs.
     expect(last.at(-1)?.finalX).toBeGreaterThan(60);
@@ -94,7 +91,10 @@ describe('useDrag', () => {
 
     expect(modes).toContain('inertia');
     expect(modes.at(-1)).toBe('stop');
-    expect(last.at(-1)?.hasInertia).toBe(false);
+    // `stop` is announced once; the props rest on `idle`, which is also what
+    // they report before the first gesture. Held and coasting are readings of
+    // `mode`, not flags beside it.
+    expect(useDrag(el, { dampFactor: 0.1 }).props().mode).toBe('idle');
     // The coast arrives exactly where the drop said it would.
     expect(last.at(-1)?.x).toBe(last.at(-1)?.finalX);
   });

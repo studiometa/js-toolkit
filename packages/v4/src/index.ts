@@ -130,6 +130,7 @@ export {
   withScroll,
   type ScrollHook,
   type ScrollMixinOptions,
+  type ScrollDirection,
   type ScrollProps,
   type ScrollTarget,
 } from './services/scroll.js';

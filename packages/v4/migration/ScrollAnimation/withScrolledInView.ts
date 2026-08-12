@@ -252,8 +252,8 @@ function apply(
 
       return [
         inherited,
-        useWindowScroll().subscribe(({ changedX, changedY }) => {
-          if (changedX || changedY) {
+        useWindowScroll().subscribe(({ deltaX, deltaY }) => {
+          if (deltaX !== 0 || deltaY !== 0) {
             this.startTicking();
           }
         }),
