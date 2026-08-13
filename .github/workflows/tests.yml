@@ -71,7 +71,7 @@ jobs:
         include:
           - package: js-toolkit
             working-directory: packages/js-toolkit
-            test-command: npm run build:subpaths && npm test -- --retry=3 --coverage.enabled
+            test-command: npm test -- --retry=3 --coverage.enabled
             coverage-file: packages/js-toolkit/coverage/clover.xml
           - package: eslint-plugin-js-toolkit
             working-directory: packages/eslint-plugin

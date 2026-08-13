@@ -26,7 +26,6 @@ yarn-error.log*
 
 # Build files
 packages/*/dist/
-packages/js-toolkit/src/subpaths/
 packages/demo/dist/
 
 # Module graph reports written by `npm run measure -- --json <file>`

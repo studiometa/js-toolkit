@@ -1048,16 +1048,16 @@
     "#private/*": "./src/*"
   },
   "scripts": {
-    "build": "npm run build:subpaths && npm run build:pkg && npm run build:version",
+    "build": "npm run build:pkg && npm run build:version",
     "build:pkg": "node scripts/build.js",
-    "build:subpaths": "node scripts/generate-subpaths.js",
     "build:version": "node scripts/utils/set-version.js",
     "measure": "node scripts/measure-graph.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "bench": "vitest bench --config vitest.bench.config.ts",
     "bench:run": "vitest bench --config vitest.bench.config.ts --run",
-    "lint:types": "tsc -p tsconfig.lint.json"
+    "lint:types": "tsc -p tsconfig.lint.json",
+    "subpaths": "node scripts/generate-subpaths.js"
   },
   "keywords": [
     "js-toolkit",
