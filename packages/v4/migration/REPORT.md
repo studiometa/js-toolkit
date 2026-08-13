@@ -1,18 +1,19 @@
 # Migrating @studiometa/ui to v4 — a feasibility test
 
-Date: 2026-08-11, extended 2026-08-13 with the three remaining `Slider` controls and with the `Data*` family. Against `@studiometa/ui` 1.10.0 and the v4 prototype in `packages/v4/src`.
+Date: 2026-08-11, extended 2026-08-13 with the three remaining `Slider` controls, with the `Data*` family and with `Action`. Against `@studiometa/ui` 1.10.0 and the v4 prototype in `packages/v4/src`.
 
-Five component families were ported onto v4 to find out what a real migration costs. They were picked because each leans on a part of v3 that v4 changed: the `$children` coordinator pattern, service hooks, `config.emits`, mount decorators, the per-instance store handshake — and, for `Data*`, the group registry and the only signal library in ui. Everything here runs; `migration/**/*.spec.ts` adds 103 tests to the real-browser suite (Vitest browser mode, Chromium), 367 across 36 files in total. **One is red on purpose** and is labelled in place: see §5.
+Six component families were ported onto v4 to find out what a real migration costs. They were picked because each leans on a part of v3 that v4 changed: the `$children` coordinator pattern, service hooks, `config.emits`, mount decorators, the per-instance store handshake — for `Data*`, the group registry and the only signal library in ui — and, for `Action`, the global instance registry and runtime-configured event bindings. Everything here runs; `migration/**/*.spec.ts` adds 138 tests to the real-browser suite (Vitest browser mode, Chromium), 455 across 39 files in total. **One is red on purpose** and is labelled in place: see §6d.
 
 ## What was ported
 
-| Family            | Files                                                                                            | Ported                         | Not ported                                                 |
-| ----------------- | ------------------------------------------------------------------------------------------------ | ------------------------------ | ---------------------------------------------------------- |
-| `Accordion`       | `AccordionCore`, `Accordion`, `AccordionItem`                                                    | full                           | —                                                          |
-| `Dialog`          | `Dialog`, plus `Transition` / `ViewTransition` (its children)                                    | full                           | `Action` triggers, `Transition`'s `group` option           |
-| `ScrollAnimation` | `withScrolledInView`, `AbstractScrollAnimation`, `ScrollAnimationTimeline`, `…Target`            | full (the non-deprecated pair) | the five `@deprecated` classes, `withScrollAnimationDebug` |
-| `Slider`          | `Slider`, `SliderItem`, `SliderBtn`, `SliderCount`, `SliderDrag`, `SliderDots`, `SliderProgress` | full                           | —                                                          |
-| `Data*`           | `DataScope`, `DataBind`, `DataModel`, `DataComputed`, `DataEffect`, `DataChannel`, `formControl` | full                           | `Action`/`Fetch` interop, the `MotionView` transitioner    |
+| Family            | Files                                                                                            | Ported                         | Not ported                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------- |
+| `Accordion`       | `AccordionCore`, `Accordion`, `AccordionItem`                                                    | full                           | —                                                                   |
+| `Dialog`          | `Dialog`, plus `Transition` / `ViewTransition` (its children)                                    | full                           | `Transition`'s `group` option (`Action` triggers now covered — §6f) |
+| `ScrollAnimation` | `withScrolledInView`, `AbstractScrollAnimation`, `ScrollAnimationTimeline`, `…Target`            | full (the non-deprecated pair) | the five `@deprecated` classes, `withScrollAnimationDebug`          |
+| `Slider`          | `Slider`, `SliderItem`, `SliderBtn`, `SliderCount`, `SliderDrag`, `SliderDots`, `SliderProgress` | full                           | —                                                                   |
+| `Data*`           | `DataScope`, `DataBind`, `DataModel`, `DataComputed`, `DataEffect`, `DataChannel`, `formControl` | full                           | `Action`/`Fetch` interop, the `MotionView` transitioner             |
+| `Action`          | `Action`, `ActionEvent`, `Target`                                                                | full                           | —                                                                   |
 
 Utilities copied into `migration/utils/`, minimum viable only: `math.ts` (`clamp`, `clamp01`, `map`, `lerp`, `damp` — since promoted into `src/utils/maths.ts`), `easings.ts` (`cubicBezier`, replacing the `@motionone/easing` dependency), `keyframes.ts` (the interpolator carved out of `animate`), `transition.ts` (the `transition()` primitive plus the enter/leave pair two components share), `focus.ts` (`trapFocus`/`untrapFocus`/`saveActiveElement`), `uid.ts` (a `$id` replacement).
 
@@ -192,7 +193,7 @@ Only (2) is a gap. (1) and (3) say the registry `Set` is the right shape here, a
 
 `DataChannel` always publishes a **fresh frame** (`{ ...update }`), so a value-equality bail-out never fires on this channel and repeating a value stays an observable event (`notifies subscribers again when the same value is written twice`). What it relies on instead is **deduped delivery of the latest frame**: a subscriber that publishes from inside its own delivery — `DataComputed` recomputing, an `Action` writing back — supersedes the outer frame, and no subscriber still to be reached may receive it.
 
-The eager `Signal` on `main` does not do that, and `preserves the latest value during reentrant group updates` is **red on purpose** and labelled at the assertion. It asserts the final agreed value, not how many times anything ran — ui takes a major version bump, so call counts are negotiable and correctness is not.
+The eager `Signal` did not do that, and `preserves the latest value during reentrant group updates` was red on purpose when this family was ported. **It is green since `signal()` landed on `main`** — a nested write now abandons and restarts the delivery round. The spec is unchanged and stays as the regression guard: it asserts the final agreed value, not how many times anything ran, since ui takes a major version bump and call counts are negotiable where correctness is not.
 
 Nothing else in this family needs anything else from the signal. **No batching** (the hydration batch is the registry's, on the scheduler's background lane, not the signal's). **No untracked read** (`.value` is a plain read here). **No derived values** — `DataComputed` is the one place a signal library would offer `computed()` and it does not use one: its recomputation is driven by the channel and its dependency (`$data`) is an immutable snapshot the registry rebuilds on every write. **No disposal hook** beyond the unsubscribe the port already returns from `mounted()`.
 
@@ -226,6 +227,102 @@ Code lines, comments and blanks excluded, barrel files excluded on both sides.
 
 **Verdict for this family: feasible, and the port is a wash on size.** Nothing turned out unportable. One core gap is real and worked around in eight lines; one core semantic (reentrant delivery) is missing and is being fixed in parallel.
 
+## 6. Action — the component that is nothing but a lookup
+
+Ported 2026-08-13. `Action`, `ActionEvent`, `Target`, plus the two files v3 did not need as files: `expression.ts` (the evaluator, inline in v3's `effect` getter) and `instances.ts` (the page-wide instance lookup, imported from the framework in v3). This family was chosen for three questions, and it answers them differently from every other family so far — one is a clean pass, one is the second-worst finding in this report, and one is a non-question.
+
+### 6a. Event binding — delegation buys this family almost nothing
+
+The expectation going in was that v4's `on<Ref><Event>` delegation would make most of `ActionEvent` redundant. **It makes three methods redundant and nothing else**, and the reason is structural rather than incidental.
+
+`#bindHandlers()` resolves handlers from **method names declared on the class**: `on<Child><Event>`, `on<Ref><Event>`, `on<Event>`. `Action`'s bindings are strings read off attributes at mount — `data-on:click.prevent.stop`, `data-option-on="mouseenter"`. There is no method to name, no ref to name, and the event type is not known until the attribute is read. **A runtime-configured listener is precisely what the name-based mechanism cannot express**, so the port calls `$on()` and keeps every line of the parsing. Four of the five families already ported deleted listener bookkeeping; this one deletes none.
+
+| Change                                                                                                         | Forced by                                                                                                                                                             |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `attachEvent()` + `detachEvent()` called from `mounted()`/`destroyed()` → one `attach()` returning its cleanup | the v4 idiom. `Action.destroyed()` had nothing else in it and is gone.                                                                                                |
+| the `EventListenerObject` trick (`addEventListener(event, this)`) → a closure                                  | `$on(type, listener, options)` takes an `EventListener`.                                                                                                              |
+| **the `__actionEvents` memo → re-parsed each mount cycle**                                                     | **a v4 move is a destroy plus a mount of the same instance**, so per-life memoisation is wrong; per cycle is the rule the rest of v4 follows, and it removes a field. |
+| `interface ActionProps extends BaseProps` → a type alias                                                       | gap 14, hit for the second time.                                                                                                                                      |
+| `$options.selector` in the props type                                                                          | deleted: it was declared and never in `config.options`, so it was dead in v3 and would not exist in v4 either.                                                        |
+
+**One capability the delegated path does not have, and `$on` does.** A delegated handler's listener options are core's call — `capture` iff the type is in `CAPTURED_EVENTS`, never `once`, never `passive`. `Action` supports all three as modifiers, and they map onto `AddEventListenerOptions` verbatim through `$on`. So the escape hatch is sufficient and the modifiers are a clean pass; but it is worth recording that **`on<Event>` cannot express `once` or `passive` at all**, which is a limit no family before this one had reason to notice.
+
+**The props type parameter had to be dropped, and not for the reason gap 14 describes.** v3 is `class Action<T extends BaseProps = BaseProps> extends Base<ActionProps & T>`, so a consumer can subclass with extra props. In v4 the class body then cannot read its own options: `Options<T>` is `T['$options'] extends Record<string, unknown> ? T['$options'] : …`, a conditional over a **naked type parameter**, so TypeScript defers it and `this.$options.effect` is `{}`. Both `Base<ActionProps & T>` and the tighter `T extends ActionProps` were tried and both fail on the same line. Nothing in ui subclasses `Action`, so this costs nothing here — but it is a new gap (20 below) and it is core's to fix.
+
+### 6b. Target resolution — the same shape as `withGroup`, and worse
+
+v3's `ActionEvent` imports `getInstances` from `@studiometa/js-toolkit/getInstances`: a module-level `Set` every `Base` joins **in its constructor**. `Action` walks it on every event to answer "which components on this page are called `Dialog`?".
+
+**v4 exports no equivalent, and its registry has none to export.** The registry's only map is `name → class`; instances live on `el.__base__`, one `Map<string, Base>` per element, and nothing collects them. Gap 7 already recorded the absence when `Transition`'s `group` option turned out unportable — but `Transition` merely lost an option, whereas for `Action` **targeting is the component**.
+
+None of the three lookups v4 does ship covers it:
+
+- **`$query(name)`** is descendants of `this.$el`. An `Action` is a button; every documented example targets a sibling subtree (`Dialog(#modal)->target.open()` from a toolbar).
+- **`$closest(name)`** is ancestors, and one of them.
+- **`$watchChildren(name)`** is `$query` plus announcements — same scope, and it needs a component to watch _from_. The page-wide case has no root `Base`, which is finding (3) of §5b arriving from a second family and confirming it is general.
+- **provide/inject** does not apply. This is the named/dynamic problem of §5a again, but without the escape: a target is named at runtime by an arbitrary `config.name`, and unlike a `Data` group there is no owner to provide from. Every component on the page is a potential target, so the "keyed map inside the provided value" answer has no value to live inside.
+
+**What the port does, and the surprise: it is not a downgrade.** `instances.ts` is a document-scoped `$query` — the registry's selector, then `__base__`, then a mounted check. Three differences against v3's `Set`:
+
+1. **Cost, in v4's favour.** v3 iterated _every instance on the page_ once per target part per event, with the name test inside the loop. This is one native `querySelectorAll` per part, already narrowed by name. On a page with 400 components and a two-part target that is 800 JavaScript comparisons against two selector matches. **The missing registry costs nothing at runtime; it is only missing.**
+2. **Detached instances.** v3's set held instances whose element was never in the document — ui's own specs do `new Target(h('div'))` and then `mount()`. v4 has no such state, so the specs are adapted to real DOM. Nothing is lost, and the adaptation is the same one §5f made.
+3. **Subclasses.** v3 compared `instance.__config.name`, so a `class Modal extends Dialog` never answered to `Dialog`. The attribute token matches identically, so gap 18 is inherited here rather than introduced.
+
+**So the ask is not "give ui back the registry".** It is smaller and more precise: `[data-component~="Name"]` is `src/utils/selectors.ts`'s internal `selectorFor()`, and `el.__base__` is wrapped by a `getInstance()` helper in `src/test-utils.ts` that is explicitly marked "not part of the public API". Copying both means **ui hard-codes the registry's attribute contract** — the one thing here that is a real gap. See gap 19.
+
+**One thing got strictly better for free.** `ActionEvent.instances` — the components sharing the action's element, which become named parameters of the effect and make `data-component="Action Dialog" data-on:cancel="Dialog.close()"` work — was a scan of the global set for `instance.$el === $el`. In v4 the answer is sitting on the element. The spec `sees an instance mounted on the action element after it` adds a `data-component` token at runtime and the effect picks it up on the next event, with no rebinding; v3 could not, because the compiled function was cached under a key built from the names known when it was first compiled.
+
+**And `Target` becomes slightly odd.** It is a component whose only purpose was to put an entry in a registry v4 no longer keeps. It still works — the entry is now the `data-component="Target"` attribute itself — but it is the one place where the family's shape is an artefact of v3's registry rather than of anything a user wanted.
+
+### 6c. The effect evaluator — two calls of one primitive
+
+`new Function`-style evaluation stays a ui concern, and the port does not relitigate it: `Data/expression.ts` already documented why (a page with `script-src 'self'` and no `'unsafe-eval'` cannot run it, and core must be loadable there — so the expression-driven components are the only ones a strict CSP disables, instead of the whole toolkit). `Action/expression.ts` reuses that approach rather than inventing a second one: one module-level cache, keyed by everything that changes the compiled output, one documented CSP boundary.
+
+**Should they converge? Yes, on one primitive, and no, not on one function.** They differ in exactly one axis and it is arity. `Data` compiles a fixed `(value, target, $data)` signature and runs `code` as a body. `Action` compiles a **variable** signature — six fixed names plus one per instance on the element, a list only known at the moment the event fires — and wraps `code` in a `return` so an expression is a legal body. The shared primitive is `compile(argNames, body, cacheKey)`, and `Data`'s evaluator is one line of it:
+
+```js
+getCallback(name, code) === compile(['value', 'target', '$data'], code, code + name);
+```
+
+_Recommendation:_ ui ships `compile()` once, in a `utils/expression.ts` both families import, so the CSP boundary is one file and not two. The port keeps them apart because that is a ui packaging decision and this exercise measures core.
+
+One bug fixed on the way through: v3's cache key is `effectDefinition + keys.join('')`, under which the name lists `['Ab','C']` and `['A','bC']` are the same entry and one expression gets the other's compiled signature. The port prefixes the count.
+
+### 6d. What has no framework support at all
+
+**A component cannot ask core to observe an attribute of its own naming.** `dom-mutations.ts` runs its `MutationObserver` with an `attributeFilter` holding `data-component`, `data-mount`, `data-ref` and the `data-option-*` names the registry collected from registered classes; `registerDOMOptionAttributes()` is internal and unexported. `Action`'s primary documented form is `data-on:<event>` — a _virtual_ option, deliberately not a `data-option-*` — so an in-place rewrite of it is invisible to the framework and the old binding survives. That is not hypothetical: `swap({ mode: 'morph' })` rewrites attributes in place without touching the element, and so does any `data-bind:` template around an `Action`.
+
+`rebinds when a `data-on:*` attribute is rewritten in place` is **red on purpose** and labelled at the assertion. Note the asymmetry that makes it worth a red spec rather than a note: the `on`/`target`/`effect` triple _is_ observed, so a component can rebind from `$optionChanged`; the `data-on:*` half has no expressible workaround. Moving or re-inserting the element does re-parse, and the spec above it covers that.
+
+### 6e. Size
+
+Code lines, comments and blanks excluded; barrel files excluded on both sides. The v4 numbers carry heavy explanatory comments, so they understate.
+
+|                                                           |      v3 |      v4 |    delta |
+| --------------------------------------------------------- | ------: | ------: | -------: |
+| `Action`                                                  |      57 |      40 |    −30 % |
+| `ActionEvent`                                             |     143 |     134 |     −6 % |
+| `Target`                                                  |       8 |       6 |    −25 % |
+| `expression.ts` (inline in v3's `effect` getter)          |       0 |      18 |      new |
+| `instances.ts` (`getInstances`, from the framework in v3) |       0 |      21 |      new |
+| **total**                                                 | **208** | **219** | **+5 %** |
+
+**This is the second flat family, and for a sharper version of §5e's reason.** `Data*` was a wash because v4 removes a _dependency_ and a _decorator_. `Action` grows because v4 removes an **export** — `getInstances` — and ui has to carry the replacement itself. The three classes proper shrink by 12 %; the whole family grows by 5 % because 39 lines moved from the framework and from an inline expression into ui's own source.
+
+### 6f. Specs
+
+35 tests in one file, 34 green and one red on purpose (6d).
+
+**Ported adapted:** all of ui's `ActionEvent.spec.ts` and `Action.spec.ts` behaviour, rewritten from hand-constructed instances on detached elements to registered components in real DOM. That adaptation is load-bearing for this family and not stylistic: `Action`'s job is finding other components, and the port resolves them from the document, so a detached-element spec could not exercise the mechanism at all.
+
+**Deliberately not ported:** ui's `configures the addEventListener options` asserted `addEventListener('click', actionEvent, {…})` — the `EventListenerObject` identity, which `$on` replaces with a closure. The **options** are the contract and they are asserted; the listener identity is incidental mechanics. The two fake-timer debounce specs are re-timed against real timers, because the assertion worth keeping is "ran once, late", not the timer bookkeeping.
+
+**Added, because they are what v4 changes:** page-wide reach into a sibling subtree; targets resolved at event time so a later mount is reached and a destroyed one is not; listeners released when the element leaves the DOM; bindings re-read per mount cycle; bound once per cycle and not once per remount; a pending debounce dropped on destroy; an instance mounted on the action element after it. Plus ui's `it.todo` for unparseable target strings, implemented.
+
+**And the `Dialog` interop, which closes a hole in §2.** That section listed `Action` triggers as the one thing the `Dialog` port could not cover. Three specs now cover it against ui's own `close-dialogs` story: opening a dialog the action does not contain, closing every dialog matching `Dialog([data-can-be-closed])` at once, and `data-component="Action Dialog"` with `data-on:cancel.prevent="Dialog.close()"` resolving `Dialog` from the co-located instance names. All three pass unchanged from the markup ui ships.
+
+**Verdict for this family: feasible, mechanical, and the port is slightly larger.** Nothing turned out unportable and nothing needed a workaround in the component. The whole cost is one missing export and one unobservable attribute, and the first of those is cheaper to grant than it looks — ui does not need the registry back, only the selector.
+
 ## Gaps in v4, ordered by cost
 
 1. **No way to suspend a service subscription within a mount cycle.** v3: `$services.enable('ticked')`/`disable`. v4: subscribe in `mounted()`, unsubscribe in `$destroy()`, nothing between. Two of four components needed it and both dropped `withRaf` for a hand-rolled start/stop. Not cosmetic: with `withRaf`, one slider or scroll animation keeps the rAF loop alive forever, contradicting DESIGN.md §7. **Ask:** pause/resume on the subscription handle, or `withRaf(Base, { manual: true })`. **Resolved:** `toggle(subscribe)` — `{ isActive, start, stop }` over any subscription, in or out of a component.
@@ -234,7 +331,7 @@ Code lines, comments and blanks excluded, barrel files excluded on both sides.
 4. **provide/inject has no `expose`.** Promised in DESIGN.md, absent from `context.ts`. Without it every control keeps a `$closest()` back-channel. **Resolved:** the value is provided verbatim, so an owner surface is `$provide(key, { state: signal, goNext: () => … })`; `context.ts` and `Base.$provide()` both document it, and the ported Slider uses it. No control imports its coordinator's class any more.
 5. **`$destroy()` cancels pending scheduler tasks _after_ the cleanups.** A cleanup that schedules `this.$write(…)` — the natural "reset my styles on the way out" — has its task cancelled immediately. **Ask:** cancel before running cleanups, or give `$destroy()` a surviving lane.
 6. **No `$id`.** Any ARIA wiring needs one; two of four families copied a `uid()`.
-7. **No per-class instance registry.** `Transition`'s `group` option is unportable.
+7. **No per-class instance registry.** `Transition`'s `group` option is unportable. **Superseded by gap 20**, which is the same absence measured by the family it actually blocks — and which concludes the registry is not what to build.
 8. **`Object`/`Array` option defaults are shared between instances.** `buildOptions()` returns the `default` directly, so `default: {}` hands _the same object_ to every instance. v3 required a factory for exactly this reason. A latent, hard-to-debug bug.
 9. **Option definitions lost `merge: true`.** Merging is now the component's job.
 10. **No `utils`, no `$log`/`$warn`.** Known — but the shape of the need is the finding: ~530 lines of copies for four components, and the biggest v3 utility (`animate`, 719 lines) was **not** what was needed.
@@ -244,11 +341,12 @@ Code lines, comments and blanks excluded, barrel files excluded on both sides.
 14. **A `$options` type must be a type alias, not an interface.** `BaseProps.$options` is `Record<string, unknown>`, and an interface has no implicit index signature, so `$options: MyOptionsInterface` fails the constraint with a message that points at the props type rather than at the interface. Only bites when the option set is named to be shared between two components, which is exactly when it is worth naming. **Ask:** a note in the docs; the fix is one keyword.
 15. **No `onWindow<Event>` / `onDocument<Event>`.** v3 resolves both in `EventsManager` (`isWindowRegex`, `isDocumentRegex`); v4's `#bindHandlers()` resolves `on<Child><Event>`, `on<Ref><Event>` and `on<Event>`, and the last binds to `$el` only. **There is no workaround by delegation:** the events these catch are the ones that by definition never reach the component — a click _outside_ it, a `popstate` that only fires on `window`. ui uses them in five components, and one of them, `ClickOutside`, is nothing but an `onDocumentClick`. Small to build, blocking without it — the cheapest item on this list and the only one with no partial substitute.
 16. **A nearer provider cannot reclaim a consumer that already resolved.** `requestContext`'s `provide()` deletes the request from `pendingRequests`, so late-provider replay only ever helps a request nobody answered — and `provideRootContext` answers every unscoped request from `document.documentElement`. A `DataScope` mounting after its members can therefore never take them back, and the failure is silent: the member keeps exchanging values on the page-wide channel with anything sharing its group name. Was worked around in `DataScope.mounted()` with an eight-line `RESCOPE` broadcast. **This was the highest-value item this family found.** **Resolved:** the ask was granted as asked — `injectContext(el, key, { subscribe: true, onProvide })` keeps the request live, and it is the mount announcement the component already dispatches that re-answers it, not a provider-side `context-provided` event. The port consumes it: `RESCOPE`, `Rescopable` and the whole of `DataScope.mounted()` are deleted, and `DataBind.mounted()` is one subscribed `$inject` whose returned teardown leaves the old group before the new registry arrives. All three reclamation specs stay green, unchanged.
-17. **The `Signal` delivers a superseded frame to subscribers not yet reached.** A subscriber that publishes from inside its own delivery moves the value forward, and the rest of the current round still gets the old one. Every keyed channel with a component that writes back — `DataComputed`, `Action` — hits it. **Ask:** a nested write abandons and restarts the delivery round; drain synchronously at the end of the outermost write. **In progress on `feature/v4-signal-functional`.**
+17. **The `Signal` delivers a superseded frame to subscribers not yet reached.** A subscriber that publishes from inside its own delivery moves the value forward, and the rest of the current round still gets the old one. Every keyed channel with a component that writes back — `DataComputed`, `Action` — hits it. **Ask:** a nested write abandons and restarts the delivery round; drain synchronously at the end of the outermost write. **Closed:** `signal()` landed on `main` with exactly that; `Data*`'s spec is green and unchanged.
 18. **`$watchChildren` matches on exact `config.name`, so it never sees a subclass.** A family with a base class and three named subclasses needs one collection per class, and a consumer's own subclass gets none. **Ask:** an `instanceof`-shaped predicate alongside the name.
 19. **`$emit` cannot carry an object payload.** `detail` is always the argument array, so a protocol event with a callback on its detail (`dom-update`'s `wrap`) must be a raw `CustomEvent`. **Ask:** a payload-object form, or a documented rule that `$emit` is for component events and protocols use raw events. **Closed:** `$emit(name, payload?)` takes one payload object, and `detail` is that object verbatim. The protocol events keep their own dispatch path, for the one reason that survives — see DESIGN.md — but no longer for their shape.
 20. **There is no public way to resolve components by name outside a component's own subtree.** Gap 7 said "no per-class instance registry" and cost `Transition` an option. `Action` is the component the absence blocks outright: it exists to run effects on components named at runtime, anywhere on the page, and `$query` (descendants), `$closest` (ancestors) and `$watchChildren` (descendants, and it needs a component to watch from) all miss the case. provide/inject does not substitute, because a target is named by an arbitrary `config.name` and has no owner to provide from. The port re-derives the lookup from the DOM and it is **not slower than v3's global `Set`** — one narrowed `querySelectorAll` against a walk of every instance on the page. So the ask is not the registry; it is that the port has to reach past the public surface to write it. **Ask:** `getInstances(name, root = document)`. **Resolved:** `getInstances(name, root = document)` ships from the root barrel and its own subpath — one `querySelectorAll` over `selectorFor(name)`, filtered by `$isMounted`, so a declaration with no instance, a destroyed instance and a terminated one are all absent, and `root` may be any `ParentNode`. **One correction to the ask, for the record: `selectorFor(name)` was already public** — exported from `src/utils/index.ts` and carrying its own `/utils/selectorFor` subpath — so only the `el.__base__` read was ever missing, and that is what the new function encapsulates. No registry was added: the measurement above is precisely the argument against one, and it also answers gap 7.
 21. **A component cannot observe an attribute of its own naming.** The `MutationObserver` runs with an `attributeFilter` of `data-component`, `data-mount`, `data-ref` and the `data-option-*` names collected from registered classes; `registerDOMOptionAttributes()` is internal. `Action`'s primary documented form is the virtual `data-on:<event>` option, so rewriting one in place — which `swap({ mode: 'morph' })` and any `data-bind:` template do — is invisible and the stale binding survives. Re-inserting or moving the element re-parses, which is the only workaround. One spec is red on this and labelled. **Ask:** export `registerDOMOptionAttributes`, or let `config` declare an attribute prefix to observe. **Resolved, and neither ask was granted:** both widen the _page-wide_ filter, and the set is open-ended — any DOM event — so a parse-time registration still misses the attribute added after it. `$watchAttributes(callback)` is the element-scoped opt-in instead: a second, unfiltered observer on the component's own element, created on subscription and disconnected on `$destroy()`, so the cost is proportional to the components which ask rather than to the page. Its records join the one mutation engine's queue and are reported from the same batch, after component reconciliation, which is what makes `whenDOMSettled()` — and therefore `swap()` — cover a watched attribute the way it covers a mount. See DESIGN.md §3.
+22. **A generic props type parameter makes `$options` unreadable inside the class.** `Options<T>` is `T['$options'] extends Record<string, unknown> ? T['$options'] : …` — a conditional over a naked type parameter, so TypeScript defers it and every option reads as `{}`. v3's `class Action<T extends BaseProps = BaseProps> extends Base<ActionProps & T>` is the pattern, and the tighter `T extends ActionProps` fails identically; only dropping the parameter compiles. It is gap 14's neighbour: both are `Options<T>` being resolved too eagerly to be shared and too lazily to be generic. **Ask:** a non-deferring form, or a documented rule that a v4 component's props type is concrete.
 
 ## What came out better
 
@@ -258,7 +356,9 @@ Code lines, comments and blanks excluded, barrel files excluded on both sides.
 | a coordinator finds its children | `$children.X`, resolved once, needs `$update()`                               | `$watchChildren('X')`, live, order-independent              |
 | a control drives its coordinator | `this.slider.goTo(i)` — the whole instance, resolved by class                 | `$injectSync(SliderContext)?.goTo(i)` — a curated surface   |
 | the settle position of a throw   | the component projects it from the last event's delta, per device             | the service announces it exactly at `drop`                  |
-| a child added after mount        | invisible until `$update()`                                                   | just works (tested in all four families)                    |
+| a child added after mount        | invisible until `$update()`                                                   | just works (tested in five families)                        |
+| an `Action` finding its targets  | a walk of every instance on the page, per part, per event                     | one narrowed `querySelectorAll` per part                    |
+| the components on an element     | a scan of the global set for `instance.$el === $el`                           | `el.__base__`, already there                                |
 | mount when in view               | `withMountWhenInView` wrapping the constructor (109 lines)                    | `config.mountStrategy = 'in-view'`, overridable per element |
 | keyboard nav on a focused region | `KeyService` + `hasFocus` + focus/blur handlers                               | `onWrapperKeydown`                                          |
 | declaring emitted events         | `config.emits` — bytes, no checking                                           | `$emits` — no bytes, payload checked                        |
@@ -281,22 +381,25 @@ Code lines, comments and blanks excluded. The v4 numbers _include_ the heavy exp
 | Slider (8 classes → 7)                            |      570 |      456 |     −20 % |
 | utilities actually used                           |      206 |      221 |      +7 % |
 | Data\* (5 classes + channel + registry + utils)   |     1067 |     1036 |      −3 % |
-| **total**                                         | **3491** | **2683** | **−23 %** |
+| Action (3 classes + evaluator + instance lookup)  |      208 |      219 |      +5 % |
+| **total**                                         | **3699** | **2902** | **−22 %** |
 
 The `Data*` row is the flat one, and §5e says why: that family had already been built carefully on primitives, so v4 removes a dependency (`alien-signals`) and a decorator (`withGroup`) rather than accidental complexity, and the registry that replaces both is bigger than either because it now carries the value cell `withGroup` never had. Within the row one number is dramatic — `DataScope` 269 → 55 — and it is the same finding from the other side: four fifths of that component was a data structure that only lived in a component because there was nowhere else to put it.
+
+The `Action` row is the second flat one and its reason is sharper than `Data*`'s: v4 removes an **export**, not a dependency. The three classes proper shrink 12 % (208 → 180); the family grows 5 % because 39 lines moved into ui — the expression evaluator that was inline in a getter, and the instance lookup that `getInstances` used to provide. §6b argues the lookup is the cheapest gap on the list to close and that closing it does not mean rebuilding the registry.
 
 Two rows moved when the three controls landed. The `Slider` row was `472 → 295` (−38 %) over five classes, and −20 % is the truer number: the three controls added are thin in both versions (98 → 99 lines), their deleted base class had already been counted as saved, and `Slider` itself took on ~60 lines of drag handling that v3 also had. Wiring is where the saving is, and the wiring was already counted. And the enter/leave sequence moved out of `Transition` into the utilities — 31 lines off one row, 47 onto the other — which is what buys `SliderDots` its transitions with no second implementation. The utilities row is now larger than v3's, and that is the honest number: v3's equivalent 137-line `withTransition` decorator sat in the row above.
 
 ## Verdict
 
-**Migrating @studiometa/ui to v4 is mostly mechanical for component _behaviour_, and a rewrite for component _wiring_.** The split is clean and identical across all five families.
+**Migrating @studiometa/ui to v4 is mostly mechanical for component _behaviour_, and a rewrite for component _wiring_.** The split is clean and identical across all six families.
 
-- **Mechanical (~70 % of the code):** everything a component does to its own DOM — `AccordionItem`'s height animation and ARIA, `Dialog`'s open/close ordering, `Slider`'s geometry, `AbstractScrollAnimation`'s play-range maths. A codemod plus a careful eye handles this.
+- **Mechanical (~70 % of the code):** everything a component does to its own DOM — `AccordionItem`'s height animation and ARIA, `Dialog`'s open/close ordering, `Slider`'s geometry, `AbstractScrollAnimation`'s play-range maths, `ActionEvent`'s parsing. A codemod plus a careful eye handles this.
 - **A rewrite (~30 %):** everything about how a component reaches another component. Not renaming: the topology changed from parent-owned to DOM-observed, and code that assumed ordering has to be re-thought rather than translated.
 
-The rewrite is worth doing. It deletes 23 % of the code, removes an entire base class, a scheduler, a constructor-wrapping decorator, a group decorator and a runtime dependency; fixes a real Escape-key bug in `Dialog` and a stale-scope bug in `DataBind` for free; and makes "a child appeared after mount" a non-event everywhere. **Nothing in this sample turned out to be unportable.**
+The rewrite is worth doing. It deletes 22 % of the code, removes an entire base class, a scheduler, a constructor-wrapping decorator, a group decorator and a runtime dependency; fixes a real Escape-key bug in `Dialog`, a stale-scope bug in `DataBind` and a cache-key collision in `Action` for free; and makes "a child appeared after mount" a non-event everywhere. **Nothing in this sample turned out to be unportable.**
 
-`Data*` is the family that qualifies the "worth doing" and is worth reading as the counter-example: it is a wash on size, and the case for moving it is entirely about what it stops carrying — its own signal library, its own `globalThis` registry, and two spellings of one channel — rather than about lines saved.
+Two families qualify the "worth doing", and both are worth reading as counter-examples. `Data*` is a wash on size, and the case for moving it is entirely about what it stops carrying — its own signal library, its own `globalThis` registry, two spellings of one channel — rather than about lines saved. `Action` is the only family that comes out **larger**, and its lesson is the complement: v4's savings come from wiring that components hand-rolled, so a component whose wiring was a framework export gets no saving at all. It also draws the sharpest line under what delegation is and is not: `on<Event>` is a compile-time name, and a component whose events are data cannot use it.
 
 ### Build these in v4 before starting the real migration
 
@@ -309,9 +412,9 @@ The rewrite is worth doing. It deletes 23 % of the code, removes an entire base 
 7. **`onWindow<Event>` and `onDocument<Event>`** (gap 15). Cheap, and `ClickOutside` cannot be written at all without it.
 8. **A `utils` port** informed by the above: `clamp`/`clamp01`/`map`/`lerp`/`damp`, `transition`, `trapFocus`, `cubicBezier`. About 200 lines covered four families.
 9. **A codemod for `data-ref="x[]"`** (gap 11), and `{ axis }` on `useDrag` (gap 12). The first is 36 silent breakages in ui's tests and docs — not in its shipped templates, so it is ui's own housekeeping rather than a consumer migration; the second is one CSS declaration every draggable component would otherwise get subtly wrong.
-10. **Reentrancy-safe signal delivery** (gap 17). A nested write must abandon and restart the round, so no subscriber is handed a superseded frame. `Data*` has one spec red on this today, and any keyed channel with a write-back consumer inherits it.
+10. ~~**Reentrancy-safe signal delivery** (gap 17).~~ **Done.** `signal()` landed on `main`: a nested write abandons and restarts the round, so no subscriber is handed a superseded frame. `Data*`'s spec is green, unchanged, and stays as the regression guard.
 11. ~~**A way for a nearer provider to reclaim an already-resolved consumer** (gap 16).~~ **Done.** `subscribe: true` landed on `injectContext`/`$inject`, triggered by the `component:mounted` announcement. `Data*` consumes it and its eight-line broadcast is deleted — so the pattern every name-resolved channel would have reinvented is now one option on the request.
-
 12. ~~**A public way to resolve components by name across the page** (gap 20).~~ **Done.** `getInstances(name, root = document)` — a `querySelectorAll` over the already-public `selectorFor(name)`, filtered to mounted instances. Ten lines, no registry, and no ui component that resolves by name has to hard-code `[data-component~="…"]` or read `el.__base__` any more.
+13. ~~**A way to observe an attribute the framework did not name** (gap 21).~~ **Done.** `$watchAttributes(callback)` — an element-scoped, unfiltered observer created on subscription and disconnected on `$destroy()`. Neither widening ask was granted: the page-wide filter stays precise, and the records join the one mutation engine's queue, so `whenDOMSettled()` — and therefore `swap()` — covers a watched attribute the way it covers a mount.
 
-Items 1–4 and 10–12 change what a component _can_ be written to do. Items 5–9 are cost, not capability.
+Items 1–4, 10–13 change what a component _can_ be written to do. Items 5–9 are cost, not capability.
