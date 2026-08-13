@@ -27,28 +27,48 @@ function makeBox(width: string): HTMLElement {
 }
 
 describe('useResize', () => {
-  it('reports the viewport as soon as a subscriber arrives', async () => {
+  it('reports the viewport to a subscriber that asks for it', async () => {
     const seen: ResizeProps[] = [];
-    const unsubscribe = useResize().subscribe((props) => seen.push(snapshot(props)));
-    await settle();
-    unsubscribe();
+    const unsubscribe = useResize().subscribe((props) => seen.push(snapshot(props)), {
+      immediate: true,
+    });
 
-    // `ResizeObserver` delivers the current size on `observe()`, so a
-    // component knows where it stands without waiting for a resize — v3
-    // only spoke on the next `resize` event.
-    const props = seen.at(-1);
-    expect(seen.length).toBeGreaterThan(0);
+    // Asked for, not delivered by the machinery: the `ResizeObserver` announces
+    // the current box on `observe()` for free, and letting that through made
+    // this the only service that spoke on subscribe.
+    const props = seen.at(0);
+    expect(seen).toHaveLength(1);
     expect(props?.width).toBe(window.innerWidth);
     expect(props?.height).toBe(window.innerHeight);
     expect(props?.ratio).toBe(window.innerWidth / window.innerHeight);
     expect(props?.orientation).toBe(
       window.innerWidth > window.innerHeight ? 'landscape' : 'portrait',
     );
+
+    // And the observer's own first delivery says nothing on top of it.
+    await settle();
+    expect(seen).toHaveLength(1);
+    unsubscribe();
+  });
+
+  it('says nothing on subscribe when nothing asked', async () => {
+    const seen: ResizeProps[] = [];
+    const unsubscribe = useResize().subscribe((props) => seen.push(snapshot(props)));
+    await settle();
+
+    expect(seen).toEqual([]);
+    // Still subscribed, and served by a real resize like any other.
+    window.dispatchEvent(new Event('resize'));
+    await settle();
+    expect(seen).toHaveLength(1);
+    unsubscribe();
   });
 
   it('stays quiet when the document grew but the viewport did not move', async () => {
     const seen: ResizeProps[] = [];
-    const unsubscribe = useResize().subscribe((props) => seen.push(snapshot(props)));
+    const unsubscribe = useResize().subscribe((props) => seen.push(snapshot(props)), {
+      immediate: true,
+    });
     await settle();
     const onSubscribe = seen.length;
 
@@ -68,23 +88,28 @@ describe('useResize', () => {
     unsubscribe();
   });
 
-  it('delivers again to the next subscriber after the service restarted', async () => {
+  it('re-measures for each run, so a restarted service is current', async () => {
+    const el = makeBox('120px');
     const first: ResizeProps[] = [];
-    const off = useResize().subscribe((props) => first.push(snapshot(props)));
-    await settle();
-    expect(first.length).toBeGreaterThan(0);
-    // Last subscriber out: the service stops, so the change gate resets with
-    // it and the next subscriber is told where it stands rather than waiting
-    // for a resize that may never come.
+    const off = useResize(el).subscribe((props) => first.push(snapshot(props)), {
+      immediate: true,
+    });
+    expect(first.at(0)?.width).toBe(120);
+    // Last subscriber out: the observer disconnects, so nothing watches the
+    // element while it changes.
     off();
 
-    const second: ResizeProps[] = [];
-    const unsubscribe = useResize().subscribe((props) => second.push(snapshot(props)));
+    el.style.width = '60px';
     await settle();
-    unsubscribe();
 
-    expect(second.length).toBeGreaterThan(0);
-    expect(second.at(-1)?.width).toBe(window.innerWidth);
+    const second: ResizeProps[] = [];
+    const unsubscribe = useResize(el).subscribe((props) => second.push(snapshot(props)), {
+      immediate: true,
+    });
+    // Measured for this run rather than served from the previous one: the props
+    // the service was built with are a box the element has since left.
+    expect(second.at(0)?.width).toBe(60);
+    unsubscribe();
   });
 
   it('ignores a change to the root box that leaves the viewport alone', async () => {
@@ -156,7 +181,9 @@ describe('useResize(element)', () => {
   it('reports the element box rather than the viewport', async () => {
     const el = makeBox('120px');
     const seen: ResizeProps[] = [];
-    const unsubscribe = useResize(el).subscribe((props) => seen.push(snapshot(props)));
+    const unsubscribe = useResize(el).subscribe((props) => seen.push(snapshot(props)), {
+      immediate: true,
+    });
     await settle();
 
     const props = seen.at(-1);

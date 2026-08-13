@@ -115,7 +115,9 @@ describe('service mixins', () => {
   it('gives each hook the props of its own service', async () => {
     const sizes: ResizeProps[] = [];
 
-    class Responsive extends withResize(Base) {
+    // `{ immediate: true }` because the viewport is not going to resize during
+    // this test: the resize service no longer speaks on subscribe on its own.
+    class Responsive extends withResize(Base, { immediate: true }) {
       static config = { name: 'Responsive' };
 
       resized(props: ResizeProps): void {
