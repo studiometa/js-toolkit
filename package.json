@@ -19,7 +19,6 @@
     "build:v4": "npm run build -w @studiometa/js-toolkit-v4",
     "build:eslint-plugin": "npm run build -w @studiometa/eslint-plugin-js-toolkit",
     "build:subpaths": "npm run build:subpaths -w @studiometa/js-toolkit",
-    "build-for-export-size": "npm run build:subpaths && node packages/js-toolkit/scripts/add-utils-export.js && npm run build:pkg -w @studiometa/js-toolkit && npm run build:v4",
     "measure": "npm run measure -w @studiometa/js-toolkit",
     "test": "npm run build:subpaths && npm run test -w @studiometa/js-toolkit",
     "test:watch": "npm run test:watch -w @studiometa/js-toolkit",
