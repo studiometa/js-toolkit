@@ -155,6 +155,50 @@ optionTargetChanged({ value, previousValue, initial }) {
 
 The hook runs before `mounted()` on every mount cycle. Several writes in one mutation batch are coalesced from the first old raw value to the final DOM value. Before an update, the previous returned cleanup runs; all active option cleanups run on `$destroy()`, and remount starts each effect again with `initial: true`. Removing an attribute applies its declared default. Components without the convention pay no setup cost and continue to read their options directly.
 
+### Responsive options are derived, not recomputed — implemented
+
+One option, several values, chosen by the viewport. The declaration is a flag on the option, and the markup is the option's attribute with a breakpoint on it:
+
+```js
+options: {
+  columns: { type: Number, default: 1, responsive: true },
+}
+```
+
+```html
+<div
+  data-component="Grid"
+  data-option-columns="1"
+  data-option-columns:s="2"
+  data-option-columns:l="4"></div>
+```
+
+**The value is derived on read.** `$options.columns` walks from the active breakpoint down to the base and hands back the first attribute present — the same shape as a plain option, which consults the element on every access, with the viewport as a second coordinate. Nothing is stored and nothing is written.
+
+That is what settles the constraint this feature ran into: **`$options` is read-only**, deliberately, and gap 2 of the port records the ui components that broke when it became so. A responsive option that reacted by being _written_ would have had to reopen the setter that was closed on purpose, for the one kind of value that has the least business being written — the DOM still holds the truth, the viewport merely says which part of it to read. Derivation needs no setter, no invalidation, and no staleness window: a component that read `$options.columns` before a crossing and after it gets two different numbers because it asked twice, not because something raced to update it in between.
+
+The case derivation is supposed to lose — a component that has to **re-lay-out** when the viewport crosses, rather than read a value inside a handler — is not an argument for recomputation either, because the existing option-change channel already carries it:
+
+```js
+optionColumnsChanged({ value, previousValue }) {
+  this.layout(value);
+}
+```
+
+The hook fires on a crossing whose _resolved_ value differs, with exactly the payload an attribute rewrite produces, and the component never learns which of the two moved. This works because the option-change plumbing was never a write path in the first place: it is a **notification**, and the value in `OptionChange` is read through the option's reader at the moment the hook runs. So the reactive half costs nothing the derived half gave up. Rewriting `data-option-columns:s` while the viewport sits at `l` is not a change to `columns`, and neither is a crossing that lands on the same resolved value — the rule is one rule, stated once: a change is a change of the resolved raw value.
+
+The listener follows from that. Reading needs no subscription, since `useBreakpoint().props()` answers honestly cold; only being **told** does. So a mount opens a `matchMedia` subscription when the component declares `option<Name>Changed()` for a responsive option, and not otherwise, and `$destroy()` releases it — the same per-cycle span as every other service subscription, with the service's reference counting taking the listeners down with the last subscriber. A page whose responsive options are only read holds no listener at all, which `responsive-options.spec.ts` asserts by counting registrations on `MediaQueryList.prototype` rather than by inspecting the service.
+
+**The suffix names one breakpoint, and it cascades upwards.** This is the one break with v3, which spelled a _set_ — `data-option-columns:xs:s` — and it is not gratuitous. Three reasons, in increasing order of weight:
+
+- Set membership is what nothing else on the page means. The breakpoints are `min-width` queries and the utility classes beside them cascade; the toolkit alone did exact membership. "From `s` up" was `:s:m:l:xl:xxl:xxxl` — a list that silently stopped covering the top of the range the day a breakpoint was added to the set. It is now `:s`.
+- A set is not enumerable, and the one page-wide observer filters on **exact** attribute names — `attributeFilter` takes no wildcard, which §3 already says out loud for `$watchAttributes()`. The powerset of eight breakpoints cannot be written down; `attribute × breakpoint` can. Under v3's spelling, v4 could not have observed responsive attributes at all: `data-option-columns` rewritten at runtime would be honoured and `data-option-columns:s` ignored, in a framework whose premise is that attributes are the live source of truth.
+- Resolution stops being a scan. v3 read every attribute name on the element and regex-tested each one, on every option access; the cascade walks a precomputed list of `attribute:breakpoint` names, which is why the derived-on-read side is affordable at all.
+
+The separator stays a colon, because a kebab-cased option name can contain a dash — `data-option-columns-s` is ambiguous between `columns` at `s` and `columnsS` — and a colon can never appear in one. So migrating markup keeps its separator and only a multi-breakpoint suffix is rewritten. The real-world cost was measured before deciding: across `@studiometa/ui` the whole feature is **one** component and **two** attributes, plus eight doc examples. A suffix naming no breakpoint is warned about once per mount, which is precisely the shape v3 markup arrives in.
+
+`setBreakpoints()` remains the single source of breakpoint truth, and replacing the set re-derives both caches built from it — the scoped attribute names and the slice of them the observer filters for. The price of the feature is honest and worth stating: `Base` now reaches the breakpoint service, so `services/breakpoint.js` and `services/service.js` join the core module graph for every page. That is the trade taken for a config flag that works because it is declared, rather than one that works only if the page also imported something.
+
 ## 2. One registry
 
 Today three mounting systems coexist: the global registry observer, `ChildrenManager`, and the autoload loader with its own observers. v4 merges them into a single registry where an entry is richer than a constructor:

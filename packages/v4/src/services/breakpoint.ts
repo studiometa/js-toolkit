@@ -42,6 +42,21 @@ let queries: Array<readonly [string, MediaQueryList]> | null = null;
 /** Set by the running service, so a replaced set can re-emit immediately. */
 let refresh: (() => void) | null = null;
 
+/**
+ * The names, narrowest first — the order the set declares.
+ *
+ * Cached rather than taken from `getBreakpoints()`, which copies: a responsive
+ * option walks this list on **every** `$options` access, so the copy would be
+ * an allocation per read.
+ */
+let names: readonly string[] | null = null;
+
+/**
+ * Anything that caches something derived from the named set, re-derived when
+ * `setBreakpoints()` replaces it.
+ */
+const replacementListeners = new Set<() => void>();
+
 function queryList(): Array<readonly [string, MediaQueryList]> {
   queries ??= Object.entries(breakpoints).map(
     ([name, value]) => [name, window.matchMedia(`(min-width: ${value})`)] as const,
@@ -65,6 +80,12 @@ function queryList(): Array<readonly [string, MediaQueryList]> {
 export function setBreakpoints(next: Record<string, string>): void {
   breakpoints = { ...next };
   queries = null;
+  names = null;
+  // Caches first, then the emission: a subscriber told about the new name must
+  // resolve against the new set, not against the one being replaced.
+  for (const listener of replacementListeners) {
+    listener();
+  }
   refresh?.();
 }
 
@@ -74,6 +95,39 @@ export function setBreakpoints(next: Record<string, string>): void {
  */
 export function getBreakpoints(): Record<string, string> {
   return { ...breakpoints };
+}
+
+/**
+ * The breakpoint names in use, narrowest first, without a copy.
+ *
+ * Not part of the package's surface — `getBreakpoints()` is what a consumer
+ * reads. This is the ordering the responsive-option cascade walks, and it is
+ * walked often enough that the copy matters.
+ *
+ * @internal
+ */
+export function breakpointNames(): readonly string[] {
+  names ??= Object.keys(breakpoints);
+  return names;
+}
+
+/**
+ * Be told when `setBreakpoints()` replaces the set.
+ *
+ * Not part of the package's surface either, and deliberately not the service:
+ * this fires for a **replacement of the named set**, which is a configuration
+ * change, where the service fires for a **crossing**, which is a viewport
+ * change. The responsive-option layer needs both, for different reasons — it
+ * caches attribute names derived from the set, and it resolves values against
+ * the current name — and a component only ever needs the second.
+ *
+ * @internal
+ */
+export function onBreakpointsReplaced(callback: () => void): () => void {
+  replacementListeners.add(callback);
+  return () => {
+    replacementListeners.delete(callback);
+  };
 }
 
 /**

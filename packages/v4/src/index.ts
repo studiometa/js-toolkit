@@ -41,8 +41,14 @@
  * four modes, one script-adoption pass, and a promise resolving once the
  * registry has caught up.
  *
- * Not in this prototype: autoload manifests, responsive options,
- * non-bubbling child events (mouseenter/mouseleave).
+ * Plus responsive options: an option declared `{ …, responsive: true }` reads
+ * `data-option-<name>:<breakpoint>` as well as its plain attribute, cascading
+ * upwards from the breakpoint it names. It is derived on read like every other
+ * option, so `$options` stays read-only, and a crossing that changes the
+ * resolved value is announced through the same `option<Name>Changed()`.
+ *
+ * Not in this prototype: autoload manifests, non-bubbling child events
+ * (mouseenter/mouseleave).
  *
  * One dependency: `morphdom`, imported by `swap()` alone for its `morph` mode.
  * Every other subpath is dependency-free, so a page which never swaps never
