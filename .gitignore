@@ -25,16 +25,15 @@ yarn-error.log*
 *.sublime-*
 
 # Build files
-dist/
-packages/js-toolkit/subpaths/
-demo/dist/
+packages/*/dist/
+packages/demo/dist/
 
 # Module graph reports written by `npm run measure -- --json <file>`
 .measure-*.json
 /packages/docs/.vitepress/cache
+/packages/docs/.vitepress/dist
 coverage/
 /full.d.ts
 /index.d.ts
 /lcov.info
-/tsconfig.build.tsbuildinfo
-/tsconfig.lint.tsbuildinfo
+*.tsbuildinfo

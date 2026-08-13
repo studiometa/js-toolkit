@@ -1,85 +1,161 @@
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { enumerate, stubSource, buildSourceExports } from './lib/subpath-exports.js';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, globSync } from 'node:fs';
+import { resolve, dirname, sep } from 'node:path';
+import { enumerate, stubSource, buildSubpathExports, conditions } from './lib/subpath-exports.js';
 
-const pkgRoot = resolve(dirname(new URL(import.meta.url).pathname), '../packages/js-toolkit');
-const subpathsDir = resolve(pkgRoot, 'subpaths');
+const repositoryRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
 
 /**
- * Write the per-symbol subpath stub modules into `packages/js-toolkit/subpaths/`.
+ * Resolve the paths the generator works with for one package.
  *
- * The directory is git-ignored and regenerated from scratch on every build/test/lint run, so it
- * never drifts and never pollutes the working tree. Every stub is a pure re-export, keeping the
- * `sideEffects: false` guarantee intact and every subpath tree-shakeable.
+ * @param   {string} packageDir The package directory, relative to the repository root.
+ * @returns {{ dir: string, manifest: string, srcRoot: string, subpathsDir: string }}
  */
-function generate() {
-  const { root, utils } = enumerate();
+function paths(packageDir) {
+  const dir = resolve(repositoryRoot, packageDir);
+  return {
+    dir,
+    manifest: resolve(dir, 'package.json'),
+    srcRoot: resolve(dir, 'src'),
+    subpathsDir: resolve(dir, 'src/subpaths'),
+  };
+}
+
+/**
+ * The `exports` entries which are not one per symbol: the root barrel, the utils
+ * barrel and the manifest itself. `./package.json` stays a plain string — it is
+ * the same file under every condition.
+ *
+ * @returns {Record<string, unknown>}
+ */
+function groupedExports() {
+  return {
+    '.': conditions('index'),
+    './utils': conditions('utils/index'),
+    './package.json': './package.json',
+  };
+}
+
+/**
+ * The stub every enumerated symbol must have, keyed by its path relative to `src/subpaths/`.
+ *
+ * @param   {string} srcRoot
+ * @returns {Map<string, string>}
+ */
+function expectedStubs(srcRoot) {
+  const { root, utils } = enumerate(srcRoot);
+  const stubs = new Map();
+  for (const symbol of root) stubs.set(`${symbol.exported}.ts`, stubSource(symbol));
+  for (const symbol of utils) stubs.set(`utils/${symbol.exported}.ts`, stubSource(symbol));
+  return stubs;
+}
+
+/**
+ * The `exports` map a package should carry: the grouped entries first, then one per symbol.
+ *
+ * @param   {string} srcRoot
+ * @returns {Record<string, unknown>}
+ */
+function expectedExports(srcRoot) {
+  return { ...groupedExports(), ...buildSubpathExports(srcRoot) };
+}
+
+/**
+ * Write the per-symbol subpath stub modules into `<package>/src/subpaths/`, and refresh the
+ * `exports` map that points at them.
+ *
+ * The stubs are committed, so what the tests import is what the package ships. Run this when a
+ * barrel export is added, removed or renamed; `--check` fails until you do. Every stub is a pure
+ * re-export, keeping the `sideEffects: false` guarantee intact and every subpath tree-shakeable.
+ *
+ * @param {string} packageDir
+ */
+function generate(packageDir) {
+  const { manifest, srcRoot, subpathsDir } = paths(packageDir);
+  const stubs = expectedStubs(srcRoot);
 
   rmSync(subpathsDir, { recursive: true, force: true });
   mkdirSync(resolve(subpathsDir, 'utils'), { recursive: true });
+  for (const [file, source] of stubs) writeFileSync(resolve(subpathsDir, file), source);
 
-  for (const symbol of root) {
-    writeFileSync(resolve(subpathsDir, `${symbol.fileBase}.ts`), stubSource(symbol));
-  }
-  for (const symbol of utils) {
-    writeFileSync(resolve(subpathsDir, 'utils', `${symbol.fileBase}.ts`), stubSource(symbol));
-  }
+  const pkg = JSON.parse(readFileSync(manifest, 'utf8'));
+  pkg.exports = expectedExports(srcRoot);
+  writeFileSync(manifest, `${JSON.stringify(pkg, null, 2)}\n`);
 
   console.log(
-    `Generated ${root.length + utils.length} subpath stubs (${root.length} root, ${utils.length} utils).`,
+    `${packageDir}: generated ${stubs.size} subpath stubs and refreshed the exports map.`,
   );
 }
 
 /**
- * Verify the committed source `package.json` `exports` map still lists exactly the enumerated
- * subpath entries. Used by the contract test to catch drift when a barrel export is added or
- * removed without regenerating the map.
+ * Verify the committed stubs and the committed `exports` map both match what the barrels declare.
+ *
+ * Generation is a manual step, so this is what catches a barrel export added, removed or renamed
+ * without it. Checking the stub files on disk — not just the `exports` map — is the point. They are
+ * what the tests import and what the package ships, so nothing may repair them silently on the way
+ * to a build.
+ *
+ * @param   {string} packageDir
+ * @returns {string[]} One message per problem found.
  */
-function check() {
-  const pkgPath = resolve(pkgRoot, 'package.json');
-  const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
-  const expected = buildSourceExports();
-  const actual = pkg.exports ?? {};
+export function check(packageDir) {
+  const { manifest, srcRoot, subpathsDir } = paths(packageDir);
+  const problems = [];
 
-  const missing = [];
-  const mismatched = [];
-  for (const [key, target] of Object.entries(expected)) {
-    if (!(key in actual)) missing.push(key);
-    else if (actual[key] !== target) mismatched.push(key);
+  const expectedMap = expectedExports(srcRoot);
+  const actualMap = JSON.parse(readFileSync(manifest, 'utf8')).exports ?? {};
+  for (const [key, target] of Object.entries(expectedMap)) {
+    if (!(key in actualMap)) problems.push(`exports: missing ${key}`);
+    else if (JSON.stringify(actualMap[key]) !== JSON.stringify(target)) {
+      problems.push(`exports: stale target for ${key}`);
+    }
+  }
+  for (const key of Object.keys(actualMap)) {
+    if (!(key in expectedMap)) problems.push(`exports: unexpected ${key}`);
   }
 
-  if (missing.length || mismatched.length) {
-    console.error('subpath-exports drift detected in packages/js-toolkit/package.json:');
-    if (missing.length) console.error(`  missing: ${missing.join(', ')}`);
-    if (mismatched.length) console.error(`  mismatched: ${mismatched.join(', ')}`);
-    console.error('Run `node scripts/generate-subpaths.js --write-exports` to refresh it.');
+  const expected = expectedStubs(srcRoot);
+  const actual = new Set(
+    existsSync(subpathsDir)
+      ? globSync('**/*.ts', { cwd: subpathsDir }).map((file) => file.split(sep).join('/'))
+      : [],
+  );
+  for (const [file, source] of expected) {
+    if (!actual.has(file)) problems.push(`stub: missing ${file}`);
+    else if (readFileSync(resolve(subpathsDir, file), 'utf8') !== source) {
+      problems.push(`stub: stale ${file}`);
+    }
+  }
+  for (const file of actual) {
+    if (!expected.has(file)) problems.push(`stub: unexpected ${file}`);
+  }
+
+  return problems;
+}
+
+const args = process.argv.slice(2);
+const packageDirs = args.filter((arg) => !arg.startsWith('--'));
+
+if (!packageDirs.length) {
+  console.error('usage: node scripts/generate-subpaths.js [--check] <package-dir>…');
+  process.exit(1);
+}
+
+if (args.includes('--check')) {
+  let failed = false;
+  for (const packageDir of packageDirs) {
+    const problems = check(packageDir);
+    if (problems.length) {
+      failed = true;
+      console.error(`${packageDir}: the subpath stubs no longer match the barrel exports:`);
+      for (const problem of problems) console.error(`  ${problem}`);
+    } else {
+      console.log(`${packageDir}: subpath stubs and exports map are up to date.`);
+    }
+  }
+  if (failed) {
+    console.error('Run `npm run subpaths` to regenerate them, then commit the result.');
     process.exit(1);
   }
-  console.log('subpath-exports map is up to date.');
-}
-
-/**
- * Rewrite the source `package.json` `exports` map, preserving the grouped entries (`.`, `./utils`,
- * `./package.json`) and replacing the per-symbol subpath entries. Run manually when a barrel export
- * changes.
- */
-function writeExports() {
-  const pkgPath = resolve(pkgRoot, 'package.json');
-  const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
-  const grouped = {
-    '.': pkg.exports['.'],
-    './utils': pkg.exports['./utils'],
-    './package.json': './package.json',
-  };
-  pkg.exports = { ...grouped, ...buildSourceExports() };
-  writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
-  console.log('Refreshed packages/js-toolkit/package.json exports map.');
-}
-
-if (process.argv.includes('--check')) {
-  check();
-} else if (process.argv.includes('--write-exports')) {
-  writeExports();
 } else {
-  generate();
+  for (const packageDir of packageDirs) generate(packageDir);
 }

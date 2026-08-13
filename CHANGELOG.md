@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Removed
+
+- Type-only symbols no longer get a dedicated subpath: the 89 entries such as `@studiometa/js-toolkit/BaseConfig` and `@studiometa/js-toolkit/utils/AnimateOptions` are gone. A subpath exists to stop one runtime import from pulling a whole barrel's graph, and a type import is erased before anything runs, so it never had that cost. Import types from `@studiometa/js-toolkit` or `@studiometa/js-toolkit/utils` instead
+
+### Changed
+
+- The published package is now assembled in `packages/js-toolkit/` instead of a repository-level `dist/`, and its modules sit in that folder's own `dist/`. Every entry of the `exports` map resolves through three conditions — `typescript` for the TypeScript source, `types` for the declaration and `import` for the module — so the subpaths a consumer imports are unchanged
+- The build uses tsdown (rolldown) instead of esbuild plus a separate `tsgo --build` pass, in every package
+- Formatting moves from Prettier to `oxfmt`, which covers the whole tree instead of a hand-written glob; the demo keeps Prettier for its Twig templates
+- The toolchain moves to the released `typescript@7` (`tsc`) instead of `@typescript/native-preview` (`tsgo`), and `oxlint` to 1.77.0
+- The test runner moves to Vitest 4.1.10, and each package owns its runner config. Vitest 5 waits on two things: `@codspeed/vitest-plugin` still peer-depends on `vitest ^3.2 || ^4`, and Vitest 5 replaces the top-level `bench()` with `context.bench`, which the benchmark suite has to be rewritten for
+- The subpath stubs are committed instead of being regenerated before every build, test and lint run. `npm run subpaths` rewrites them and the `exports` map together; the contract test fails until the result is committed
+
 ## [v3.9.0](https://github.com/studiometa/js-toolkit/compare/3.8.2..3.9.0) (2026-08-10)
 
 ### Added

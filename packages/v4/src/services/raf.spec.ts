@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { scheduler } from '../scheduler.js';
+import { defaultScheduler } from '../scheduler.js';
 import { frames } from '../test-utils.js';
 import { useRaf, type RafProps } from './raf.js';
 
@@ -23,10 +23,10 @@ describe('useRaf', () => {
     const phases: string[] = [];
     let time = 0;
     const unsubscribe = useRaf().subscribe((props) => {
-      phases.push(scheduler.phase);
+      phases.push(defaultScheduler.phase);
       time = props.time;
       return (renderProps: RafProps) => {
-        phases.push(scheduler.phase);
+        phases.push(defaultScheduler.phase);
         // The render is given the props of the frame it belongs to.
         expect(renderProps.time).toBe(time);
       };

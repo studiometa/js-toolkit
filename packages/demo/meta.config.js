@@ -19,14 +19,14 @@ export default defineConfig({
   webpack(config) {
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@studiometa/js-toolkit': resolve('../js-toolkit'),
+      '@studiometa/js-toolkit': resolve('../js-toolkit/src'),
     };
 
     config.cache = {
       ...config.cache,
       buildDependencies: {
         config: [import.meta.filename],
-        toolkit: [resolve('../js-toolkit')],
+        toolkit: [resolve('../js-toolkit/src')],
       },
     };
     config.cache = false;

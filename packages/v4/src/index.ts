@@ -73,7 +73,7 @@ export { registerComponent, registerComponents } from './registry.js';
 export {
   nextFrame,
   Scheduler,
-  scheduler,
+  defaultScheduler,
   type ScheduledTask,
   type SchedulerPhase,
   type TickCallback,

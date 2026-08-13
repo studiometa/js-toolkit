@@ -29,4 +29,4 @@ jobs:
         uses: CodSpeedHQ/action@v4
         with:
           mode: simulation
-          run: cd packages/tests && npm exec vitest bench -- --config vitest.bench.config.ts --run
+          run: cd packages/js-toolkit && npm exec vitest bench -- --config vitest.bench.config.ts --run

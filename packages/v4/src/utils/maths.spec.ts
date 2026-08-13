@@ -155,7 +155,7 @@ describe('inertiaFinalValue', () => {
     const coast = (steps: () => number) => {
       let value = 0;
       let velocity = 3;
-      for (let elapsed = 0; elapsed < 40_000; ) {
+      for (let elapsed = 0; elapsed < 40_000;) {
         const dt = steps();
         value += inertiaStep(velocity, 0.85, dt);
         velocity *= inertiaDecay(0.85, dt);

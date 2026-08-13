@@ -1,5 +1,5 @@
 import {
-  scheduler,
+  defaultScheduler,
   useRaf,
   useResize,
   useWindowScroll,
@@ -289,11 +289,11 @@ function apply(
       // Not `$read`/`$write`: `$destroy()` cancels the instance's pending
       // tasks right after running the `mounted()` cleanups, so a final render
       // has to be scheduled outside the instance's own lane.
-      scheduler.read(() => {
+      defaultScheduler.read(() => {
         const hook = (this as unknown as ScrolledInViewHook).scrolledInView;
         const render = hook?.call(this, props);
         if (typeof render === 'function') {
-          scheduler.write(render);
+          defaultScheduler.write(render);
         }
       });
     }

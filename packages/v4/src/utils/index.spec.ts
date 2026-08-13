@@ -37,6 +37,6 @@ describe('the utils barrel', () => {
     // framework's surface, which is the whole reason this file exists.
     expect(Object.keys(barrel)).not.toContain('Base');
     expect(Object.keys(barrel)).not.toContain('registerComponent');
-    expect(Object.keys(barrel)).not.toContain('scheduler');
+    expect(Object.keys(barrel)).not.toContain('defaultScheduler');
   });
 });

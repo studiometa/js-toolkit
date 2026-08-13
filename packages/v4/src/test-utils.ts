@@ -5,7 +5,7 @@
 import { Base } from './Base.js';
 import { Signal, createContext } from './context.js';
 import { registerComponent } from './registry.js';
-import { nextFrame, scheduler } from './scheduler.js';
+import { nextFrame, defaultScheduler } from './scheduler.js';
 import type { DelegatedEvent } from './Base.js';
 
 /**
@@ -15,7 +15,7 @@ import type { DelegatedEvent } from './Base.js';
 export async function settle(): Promise<void> {
   for (let i = 0; i < 5; i += 1) {
     await new Promise((resolve) => setTimeout(resolve, 10));
-    await scheduler.whenIdle();
+    await defaultScheduler.whenIdle();
   }
 }
 

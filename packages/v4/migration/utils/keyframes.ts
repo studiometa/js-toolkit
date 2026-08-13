@@ -107,14 +107,12 @@ function resolveUnit(value: UnitValue | undefined, fallback: number, size: numbe
 
 function normalize(keyframes: Keyframe[], easing?: EasingFunction | BezierCurve) {
   const last = Math.max(1, keyframes.length - 1);
-  return keyframes.map(
-    (keyframe, index): NormalizedKeyframe => ({
-      ...keyframe,
-      offset: keyframe.offset ?? index / last,
-      ease: normalizeEasing(keyframe.easing ?? easing),
-      vars: Object.keys(keyframe).filter((key) => key.startsWith('--')),
-    }),
-  );
+  return keyframes.map((keyframe, index): NormalizedKeyframe => ({
+    ...keyframe,
+    offset: keyframe.offset ?? index / last,
+    ease: normalizeEasing(keyframe.easing ?? easing),
+    vars: Object.keys(keyframe).filter((key) => key.startsWith('--')),
+  }));
 }
 
 /**

@@ -7,7 +7,6 @@ on:
     paths:
       - 'packages/js-toolkit/**'
       - 'packages/v4/**'
-      - 'scripts/**'
       - 'package-lock.json'
       - '.github/workflows/export-size.yml'
 
@@ -22,12 +21,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: weareikko/export-size@1
         with:
-          # The publishable v3 package is assembled at the repository root
-          # `dist/` by the build script; the v4 prototype is measured straight
-          # from its TypeScript sources (esbuild resolves them), so both
-          # packages appear in the same report and can be compared export by
-          # export.
+          # `packages/js-toolkit/` is the folder npm publishes, so the report
+          # measures exactly what a consumer installs. Both packages resolve to
+          # their own `dist/`, which `npm run build` produces, so both appear in
+          # the same report and can be compared export by export.
           packages: |
-            @studiometa/js-toolkit:dist
+            @studiometa/js-toolkit:packages/js-toolkit
             @studiometa/js-toolkit-v4:packages/v4
-          build: npm run build-for-export-size
+          build: npm run build

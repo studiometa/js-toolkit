@@ -30,6 +30,7 @@
     "@studiometa/webpack-config-preset-prototyping": "6.3.6",
     "@studiometa/webpack-config-preset-tailwindcss-4": "6.4.0",
     "http-server": "14.1.1",
+    "prettier": "3.8.1",
     "tailwindcss": "4.2.4"
   },
   "stylelint": {

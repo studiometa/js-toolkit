@@ -17,311 +17,1046 @@
   "homepage": "https://github.com/studiometa/js-toolkit#readme",
   "type": "module",
   "sideEffects": false,
-  "main": "./index.ts",
-  "module": "./index.ts",
-  "types": "./index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "exports": {
     ".": {
-      "import": "./index.ts",
-      "types": "./index.d.ts",
-      "default": "./index.ts"
+      "typescript": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./utils": {
-      "import": "./utils/index.ts",
-      "types": "./utils/index.d.ts",
-      "default": "./utils/index.js"
+      "typescript": "./src/utils/index.ts",
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js"
     },
     "./package.json": "./package.json",
-    "./version": "./subpaths/version.ts",
-    "./Base": "./subpaths/Base.ts",
-    "./getInstances": "./subpaths/getInstances.ts",
-    "./BaseAsyncConstructor": "./subpaths/BaseAsyncConstructor.ts",
-    "./BaseChildren": "./subpaths/BaseChildren.ts",
-    "./BaseConfig": "./subpaths/BaseConfig.ts",
-    "./BaseConfigComponents": "./subpaths/BaseConfigComponents.ts",
-    "./BaseConstructor": "./subpaths/BaseConstructor.ts",
-    "./BaseEl": "./subpaths/BaseEl.ts",
-    "./BaseOptions": "./subpaths/BaseOptions.ts",
-    "./BaseProps": "./subpaths/BaseProps.ts",
-    "./BaseRefs": "./subpaths/BaseRefs.ts",
-    "./Managers": "./subpaths/Managers.ts",
-    "./BaseDecorator": "./subpaths/BaseDecorator.ts",
-    "./BaseEventHookParams": "./subpaths/BaseEventHookParams.ts",
-    "./BaseInterface": "./subpaths/BaseInterface.ts",
-    "./getScopedGroups": "./subpaths/getScopedGroups.ts",
-    "./withBreakpointManager": "./subpaths/withBreakpointManager.ts",
-    "./withBreakpointObserver": "./subpaths/withBreakpointObserver.ts",
-    "./withDrag": "./subpaths/withDrag.ts",
-    "./withExtraConfig": "./subpaths/withExtraConfig.ts",
-    "./withFreezedOptions": "./subpaths/withFreezedOptions.ts",
-    "./withGroup": "./subpaths/withGroup.ts",
-    "./withIntersectionObserver": "./subpaths/withIntersectionObserver.ts",
-    "./withMountOnMediaQuery": "./subpaths/withMountOnMediaQuery.ts",
-    "./withMountWhenInView": "./subpaths/withMountWhenInView.ts",
-    "./withMountWhenPrefersMotion": "./subpaths/withMountWhenPrefersMotion.ts",
-    "./withMutation": "./subpaths/withMutation.ts",
-    "./withName": "./subpaths/withName.ts",
-    "./withRelativePointer": "./subpaths/withRelativePointer.ts",
-    "./withResponsiveOptions": "./subpaths/withResponsiveOptions.ts",
-    "./withScrolledInView": "./subpaths/withScrolledInView.ts",
-    "./DragDecoratorOptions": "./subpaths/DragDecoratorOptions.ts",
-    "./MutationDecoratorOptions": "./subpaths/MutationDecoratorOptions.ts",
-    "./NormalizedOffset": "./subpaths/NormalizedOffset.ts",
-    "./OffsetValue": "./subpaths/OffsetValue.ts",
-    "./RelativePointerDecoratorOptions": "./subpaths/RelativePointerDecoratorOptions.ts",
-    "./RelativePointerInterface": "./subpaths/RelativePointerInterface.ts",
-    "./ScrollInViewProps": "./subpaths/ScrollInViewProps.ts",
-    "./WithBreakpointObserverInterface": "./subpaths/WithBreakpointObserverInterface.ts",
-    "./WithBreakpointObserverProps": "./subpaths/WithBreakpointObserverProps.ts",
-    "./WithDragInterface": "./subpaths/WithDragInterface.ts",
-    "./WithFreezedOptionsInterface": "./subpaths/WithFreezedOptionsInterface.ts",
-    "./WithGroupInterface": "./subpaths/WithGroupInterface.ts",
-    "./WithGroupOptions": "./subpaths/WithGroupOptions.ts",
-    "./WithGroupProps": "./subpaths/WithGroupProps.ts",
-    "./WithIntersectionObserverInterface": "./subpaths/WithIntersectionObserverInterface.ts",
-    "./WithIntersectionObserverProps": "./subpaths/WithIntersectionObserverProps.ts",
-    "./WithMountWhenInViewInterface": "./subpaths/WithMountWhenInViewInterface.ts",
-    "./WithMountWhenInViewProps": "./subpaths/WithMountWhenInViewProps.ts",
-    "./WithMutationInterface": "./subpaths/WithMutationInterface.ts",
-    "./WithScrolledInViewInterface": "./subpaths/WithScrolledInViewInterface.ts",
-    "./WithScrolledInViewOptions": "./subpaths/WithScrolledInViewOptions.ts",
-    "./WithScrolledInViewProps": "./subpaths/WithScrolledInViewProps.ts",
-    "./withMountOnMediaQueryInterface": "./subpaths/withMountOnMediaQueryInterface.ts",
-    "./withMountOnMediaQueryProps": "./subpaths/withMountOnMediaQueryProps.ts",
-    "./closestComponent": "./subpaths/closestComponent.ts",
-    "./createApp": "./subpaths/createApp.ts",
-    "./defineFeatures": "./subpaths/defineFeatures.ts",
-    "./getClosestParent": "./subpaths/getClosestParent.ts",
-    "./getDirectChildren": "./subpaths/getDirectChildren.ts",
-    "./getInstanceFromElement": "./subpaths/getInstanceFromElement.ts",
-    "./importOnInteraction": "./subpaths/importOnInteraction.ts",
-    "./importOnMediaQuery": "./subpaths/importOnMediaQuery.ts",
-    "./importWhenIdle": "./subpaths/importWhenIdle.ts",
-    "./importWhenPrefersMotion": "./subpaths/importWhenPrefersMotion.ts",
-    "./importWhenVisible": "./subpaths/importWhenVisible.ts",
-    "./isDirectChild": "./subpaths/isDirectChild.ts",
-    "./logTree": "./subpaths/logTree.ts",
-    "./queryComponent": "./subpaths/queryComponent.ts",
-    "./queryComponentAll": "./subpaths/queryComponentAll.ts",
-    "./registerComponent": "./subpaths/registerComponent.ts",
-    "./registerComponents": "./subpaths/registerComponents.ts",
-    "./CreateAppOptions": "./subpaths/CreateAppOptions.ts",
-    "./QueryOptions": "./subpaths/QueryOptions.ts",
-    "./AbstractService": "./subpaths/AbstractService.ts",
-    "./DragService": "./subpaths/DragService.ts",
-    "./KeyService": "./subpaths/KeyService.ts",
-    "./LoadService": "./subpaths/LoadService.ts",
-    "./MutationService": "./subpaths/MutationService.ts",
-    "./PointerService": "./subpaths/PointerService.ts",
-    "./RafService": "./subpaths/RafService.ts",
-    "./ResizeService": "./subpaths/ResizeService.ts",
-    "./ScrollService": "./subpaths/ScrollService.ts",
-    "./useDrag": "./subpaths/useDrag.ts",
-    "./useKey": "./subpaths/useKey.ts",
-    "./useLoad": "./subpaths/useLoad.ts",
-    "./useMutation": "./subpaths/useMutation.ts",
-    "./usePointer": "./subpaths/usePointer.ts",
-    "./useRaf": "./subpaths/useRaf.ts",
-    "./useResize": "./subpaths/useResize.ts",
-    "./useScroll": "./subpaths/useScroll.ts",
-    "./DragServiceInterface": "./subpaths/DragServiceInterface.ts",
-    "./DragServiceOptions": "./subpaths/DragServiceOptions.ts",
-    "./DragServiceProps": "./subpaths/DragServiceProps.ts",
-    "./KeyServiceInterface": "./subpaths/KeyServiceInterface.ts",
-    "./KeyServiceProps": "./subpaths/KeyServiceProps.ts",
-    "./LoadServiceInterface": "./subpaths/LoadServiceInterface.ts",
-    "./LoadServiceProps": "./subpaths/LoadServiceProps.ts",
-    "./MutationServiceInterface": "./subpaths/MutationServiceInterface.ts",
-    "./MutationServiceOptions": "./subpaths/MutationServiceOptions.ts",
-    "./MutationServiceProps": "./subpaths/MutationServiceProps.ts",
-    "./PointerServiceInterface": "./subpaths/PointerServiceInterface.ts",
-    "./PointerServiceProps": "./subpaths/PointerServiceProps.ts",
-    "./RafServiceInterface": "./subpaths/RafServiceInterface.ts",
-    "./RafServiceProps": "./subpaths/RafServiceProps.ts",
-    "./ResizeServiceInterface": "./subpaths/ResizeServiceInterface.ts",
-    "./ResizeServiceProps": "./subpaths/ResizeServiceProps.ts",
-    "./ScrollServiceInterface": "./subpaths/ScrollServiceInterface.ts",
-    "./ScrollServiceProps": "./subpaths/ScrollServiceProps.ts",
-    "./ServiceConfig": "./subpaths/ServiceConfig.ts",
-    "./ServiceInterface": "./subpaths/ServiceInterface.ts",
-    "./ComponentLoader": "./subpaths/ComponentLoader.ts",
-    "./DEFAULT_DIAGNOSTIC_PREFIX": "./subpaths/DEFAULT_DIAGNOSTIC_PREFIX.ts",
-    "./VISIBLE_ROOT_MARGIN": "./subpaths/VISIBLE_ROOT_MARGIN.ts",
-    "./IDLE_TIMEOUT": "./subpaths/IDLE_TIMEOUT.ts",
-    "./autoload": "./subpaths/autoload.ts",
-    "./composeManifests": "./subpaths/composeManifests.ts",
-    "./registerManifest": "./subpaths/registerManifest.ts",
-    "./registerManifests": "./subpaths/registerManifests.ts",
-    "./readEagerTokens": "./subpaths/readEagerTokens.ts",
-    "./defineManifest": "./subpaths/defineManifest.ts",
-    "./fromMetaGlob": "./subpaths/fromMetaGlob.ts",
-    "./fromWebpackContext": "./subpaths/fromWebpackContext.ts",
-    "./ComponentLoadStrategy": "./subpaths/ComponentLoadStrategy.ts",
-    "./ComponentManifestEntry": "./subpaths/ComponentManifestEntry.ts",
-    "./ComponentManifest": "./subpaths/ComponentManifest.ts",
-    "./LoaderDependencies": "./subpaths/LoaderDependencies.ts",
-    "./ComponentLoaderOptions": "./subpaths/ComponentLoaderOptions.ts",
-    "./ComponentLoaderStartOptions": "./subpaths/ComponentLoaderStartOptions.ts",
-    "./AutoloadOptions": "./subpaths/AutoloadOptions.ts",
-    "./AutoloadHandle": "./subpaths/AutoloadHandle.ts",
-    "./AutoloadRuntime": "./subpaths/AutoloadRuntime.ts",
-    "./RegisterManifestOptions": "./subpaths/RegisterManifestOptions.ts",
-    "./ModuleRecord": "./subpaths/ModuleRecord.ts",
-    "./ComponentOverride": "./subpaths/ComponentOverride.ts",
-    "./DefineManifestOptions": "./subpaths/DefineManifestOptions.ts",
-    "./WebpackContextLike": "./subpaths/WebpackContextLike.ts",
-    "./utils/debounce": "./subpaths/utils/debounce.ts",
-    "./utils/saveActiveElement": "./subpaths/utils/saveActiveElement.ts",
-    "./utils/trapFocus": "./subpaths/utils/trapFocus.ts",
-    "./utils/untrapFocus": "./subpaths/utils/untrapFocus.ts",
-    "./utils/keyCodes": "./subpaths/utils/keyCodes.ts",
-    "./utils/memoize": "./subpaths/utils/memoize.ts",
-    "./utils/nextFrame": "./subpaths/utils/nextFrame.ts",
-    "./utils/nextTick": "./subpaths/utils/nextTick.ts",
-    "./utils/nextMicrotask": "./subpaths/utils/nextMicrotask.ts",
-    "./utils/throttle": "./subpaths/utils/throttle.ts",
-    "./utils/scrollTo": "./subpaths/utils/scrollTo.ts",
-    "./utils/getComponentResolver": "./subpaths/utils/getComponentResolver.ts",
-    "./utils/isArray": "./subpaths/utils/isArray.ts",
-    "./utils/isBoolean": "./subpaths/utils/isBoolean.ts",
-    "./utils/isDefined": "./subpaths/utils/isDefined.ts",
-    "./utils/isDev": "./subpaths/utils/isDev.ts",
-    "./utils/isEmpty": "./subpaths/utils/isEmpty.ts",
-    "./utils/isEmptyString": "./subpaths/utils/isEmptyString.ts",
-    "./utils/isFunction": "./subpaths/utils/isFunction.ts",
-    "./utils/isNull": "./subpaths/utils/isNull.ts",
-    "./utils/isNumber": "./subpaths/utils/isNumber.ts",
-    "./utils/isObject": "./subpaths/utils/isObject.ts",
-    "./utils/isString": "./subpaths/utils/isString.ts",
-    "./utils/hasWindow": "./subpaths/utils/hasWindow.ts",
-    "./utils/addClass": "./subpaths/utils/addClass.ts",
-    "./utils/addStyle": "./subpaths/utils/addStyle.ts",
-    "./utils/animate": "./subpaths/utils/animate.ts",
-    "./utils/getOffsetSizes": "./subpaths/utils/getOffsetSizes.ts",
-    "./utils/matrix": "./subpaths/utils/matrix.ts",
-    "./utils/removeClass": "./subpaths/utils/removeClass.ts",
-    "./utils/removeStyle": "./subpaths/utils/removeStyle.ts",
-    "./utils/toggleClass": "./subpaths/utils/toggleClass.ts",
-    "./utils/transform": "./subpaths/utils/transform.ts",
-    "./utils/transition": "./subpaths/utils/transition.ts",
-    "./utils/Animate": "./subpaths/utils/Animate.1.ts",
-    "./utils/AnimateOptions": "./subpaths/utils/AnimateOptions.ts",
-    "./utils/CSSCustomPropertyName": "./subpaths/utils/CSSCustomPropertyName.ts",
-    "./utils/Keyframe": "./subpaths/utils/Keyframe.ts",
-    "./utils/NormalizedKeyframe": "./subpaths/utils/NormalizedKeyframe.ts",
-    "./utils/TransformProps": "./subpaths/utils/TransformProps.ts",
-    "./utils/objectToURLSearchParams": "./subpaths/utils/objectToURLSearchParams.ts",
-    "./utils/historyPush": "./subpaths/utils/historyPush.ts",
-    "./utils/historyReplace": "./subpaths/utils/historyReplace.ts",
-    "./utils/boundingRectToCircle": "./subpaths/utils/boundingRectToCircle.ts",
-    "./utils/collideCircleCircle": "./subpaths/utils/collideCircleCircle.ts",
-    "./utils/collideCircleRect": "./subpaths/utils/collideCircleRect.ts",
-    "./utils/collidePointCircle": "./subpaths/utils/collidePointCircle.ts",
-    "./utils/collidePointRect": "./subpaths/utils/collidePointRect.ts",
-    "./utils/collideRectRect": "./subpaths/utils/collideRectRect.ts",
-    "./utils/clamp": "./subpaths/utils/clamp.ts",
-    "./utils/clamp01": "./subpaths/utils/clamp01.ts",
-    "./utils/createEaseInOut": "./subpaths/utils/createEaseInOut.ts",
-    "./utils/createEaseOut": "./subpaths/utils/createEaseOut.ts",
-    "./utils/createRange": "./subpaths/utils/createRange.ts",
-    "./utils/damp": "./subpaths/utils/damp.ts",
-    "./utils/ease": "./subpaths/utils/ease.ts",
-    "./utils/easeInCirc": "./subpaths/utils/easeInCirc.ts",
-    "./utils/easeInCubic": "./subpaths/utils/easeInCubic.ts",
-    "./utils/easeInExpo": "./subpaths/utils/easeInExpo.ts",
-    "./utils/easeInOutCirc": "./subpaths/utils/easeInOutCirc.ts",
-    "./utils/easeInOutCubic": "./subpaths/utils/easeInOutCubic.ts",
-    "./utils/easeInOutExpo": "./subpaths/utils/easeInOutExpo.ts",
-    "./utils/easeInOutQuad": "./subpaths/utils/easeInOutQuad.ts",
-    "./utils/easeInOutQuart": "./subpaths/utils/easeInOutQuart.ts",
-    "./utils/easeInOutQuint": "./subpaths/utils/easeInOutQuint.ts",
-    "./utils/easeInOutSine": "./subpaths/utils/easeInOutSine.ts",
-    "./utils/easeInQuad": "./subpaths/utils/easeInQuad.ts",
-    "./utils/easeInQuart": "./subpaths/utils/easeInQuart.ts",
-    "./utils/easeInQuint": "./subpaths/utils/easeInQuint.ts",
-    "./utils/easeInSine": "./subpaths/utils/easeInSine.ts",
-    "./utils/easeLinear": "./subpaths/utils/easeLinear.ts",
-    "./utils/easeOutCirc": "./subpaths/utils/easeOutCirc.ts",
-    "./utils/easeOutCubic": "./subpaths/utils/easeOutCubic.ts",
-    "./utils/easeOutExpo": "./subpaths/utils/easeOutExpo.ts",
-    "./utils/easeOutQuad": "./subpaths/utils/easeOutQuad.ts",
-    "./utils/easeOutQuart": "./subpaths/utils/easeOutQuart.ts",
-    "./utils/easeOutQuint": "./subpaths/utils/easeOutQuint.ts",
-    "./utils/easeOutSine": "./subpaths/utils/easeOutSine.ts",
-    "./utils/fold": "./subpaths/utils/fold.ts",
-    "./utils/inertiaFinalValue": "./subpaths/utils/inertiaFinalValue.ts",
-    "./utils/lerp": "./subpaths/utils/lerp.ts",
-    "./utils/map": "./subpaths/utils/map.ts",
-    "./utils/mean": "./subpaths/utils/mean.ts",
-    "./utils/round": "./subpaths/utils/round.ts",
-    "./utils/smoothTo": "./subpaths/utils/smoothTo.ts",
-    "./utils/spring": "./subpaths/utils/spring.ts",
-    "./utils/wrap": "./subpaths/utils/wrap.ts",
-    "./utils/EasingFunction": "./subpaths/utils/EasingFunction.ts",
-    "./utils/camelCase": "./subpaths/utils/camelCase.ts",
-    "./utils/dashCase": "./subpaths/utils/dashCase.ts",
-    "./utils/endsWith": "./subpaths/utils/endsWith.ts",
-    "./utils/lowerCase": "./subpaths/utils/lowerCase.ts",
-    "./utils/pascalCase": "./subpaths/utils/pascalCase.ts",
-    "./utils/snakeCase": "./subpaths/utils/snakeCase.ts",
-    "./utils/startsWith": "./subpaths/utils/startsWith.ts",
-    "./utils/upperCase": "./subpaths/utils/upperCase.ts",
-    "./utils/withLeadingCharacters": "./subpaths/utils/withLeadingCharacters.ts",
-    "./utils/withLeadingSlash": "./subpaths/utils/withLeadingSlash.ts",
-    "./utils/withTrailingCharacters": "./subpaths/utils/withTrailingCharacters.ts",
-    "./utils/withTrailingSlash": "./subpaths/utils/withTrailingSlash.ts",
-    "./utils/withoutLeadingCharacters": "./subpaths/utils/withoutLeadingCharacters.ts",
-    "./utils/withoutLeadingCharactersRecursive": "./subpaths/utils/withoutLeadingCharactersRecursive.ts",
-    "./utils/withoutLeadingSlash": "./subpaths/utils/withoutLeadingSlash.ts",
-    "./utils/withoutTrailingCharacters": "./subpaths/utils/withoutTrailingCharacters.ts",
-    "./utils/withoutTrailingCharactersRecursive": "./subpaths/utils/withoutTrailingCharactersRecursive.ts",
-    "./utils/withoutTrailingSlash": "./subpaths/utils/withoutTrailingSlash.ts",
-    "./utils/domScheduler": "./subpaths/utils/domScheduler.ts",
-    "./utils/useScheduler": "./subpaths/utils/useScheduler.ts",
-    "./utils/noop": "./subpaths/utils/noop.ts",
-    "./utils/noopValue": "./subpaths/utils/noopValue.ts",
-    "./utils/tween": "./subpaths/utils/tween.ts",
-    "./utils/Queue": "./subpaths/utils/Queue.ts",
-    "./utils/SmartQueue": "./subpaths/utils/SmartQueue.ts",
-    "./utils/createElement": "./subpaths/utils/createElement.ts",
-    "./utils/getAncestorWhere": "./subpaths/utils/getAncestorWhere.ts",
-    "./utils/getAncestorWhereUntil": "./subpaths/utils/getAncestorWhereUntil.ts",
-    "./utils/wait": "./subpaths/utils/wait.ts",
-    "./utils/random": "./subpaths/utils/random.ts",
-    "./utils/randomInt": "./subpaths/utils/randomInt.ts",
-    "./utils/randomItem": "./subpaths/utils/randomItem.ts",
-    "./utils/memo": "./subpaths/utils/memo.ts",
-    "./utils/loadElement": "./subpaths/utils/loadElement.ts",
-    "./utils/loadIframe": "./subpaths/utils/loadIframe.ts",
-    "./utils/loadImage": "./subpaths/utils/loadImage.ts",
-    "./utils/loadLink": "./subpaths/utils/loadLink.ts",
-    "./utils/loadScript": "./subpaths/utils/loadScript.ts",
-    "./utils/LoadElementsOptions": "./subpaths/utils/LoadElementsOptions.ts",
-    "./utils/LoadElementsReturnType": "./subpaths/utils/LoadElementsReturnType.ts",
-    "./utils/LoadableElements": "./subpaths/utils/LoadableElements.ts",
-    "./utils/LoadableElementsNames": "./subpaths/utils/LoadableElementsNames.ts",
-    "./utils/cache": "./subpaths/utils/cache.ts",
-    "./utils/createLocalStorage": "./subpaths/utils/createLocalStorage.ts",
-    "./utils/createLocalStorageProvider": "./subpaths/utils/createLocalStorageProvider.ts",
-    "./utils/createMemoryStorageProvider": "./subpaths/utils/createMemoryStorageProvider.ts",
-    "./utils/createNoopProvider": "./subpaths/utils/createNoopProvider.ts",
-    "./utils/createSessionStorage": "./subpaths/utils/createSessionStorage.ts",
-    "./utils/createSessionStorageProvider": "./subpaths/utils/createSessionStorageProvider.ts",
-    "./utils/createStorage": "./subpaths/utils/createStorage.ts",
-    "./utils/createUrlSearchParamsInHashProvider": "./subpaths/utils/createUrlSearchParamsInHashProvider.ts",
-    "./utils/createUrlSearchParamsInHashStorage": "./subpaths/utils/createUrlSearchParamsInHashStorage.ts",
-    "./utils/createUrlSearchParamsProvider": "./subpaths/utils/createUrlSearchParamsProvider.ts",
-    "./utils/createUrlSearchParamsStorage": "./subpaths/utils/createUrlSearchParamsStorage.ts",
-    "./utils/localStorageProvider": "./subpaths/utils/localStorageProvider.ts",
-    "./utils/memoryStorageProvider": "./subpaths/utils/memoryStorageProvider.ts",
-    "./utils/sessionStorageProvider": "./subpaths/utils/sessionStorageProvider.ts",
-    "./utils/urlSearchParamsInHashProvider": "./subpaths/utils/urlSearchParamsInHashProvider.ts",
-    "./utils/urlSearchParamsProvider": "./subpaths/utils/urlSearchParamsProvider.ts",
-    "./utils/StorageInstance": "./subpaths/utils/StorageInstance.ts",
-    "./utils/StorageOptions": "./subpaths/utils/StorageOptions.ts",
-    "./utils/StorageProvider": "./subpaths/utils/StorageProvider.ts",
-    "./utils/StorageSerializer": "./subpaths/utils/StorageSerializer.ts",
-    "./utils/UrlProviderOptions": "./subpaths/utils/UrlProviderOptions.ts"
+    "./version": {
+      "typescript": "./src/subpaths/version.ts",
+      "types": "./dist/subpaths/version.d.ts",
+      "import": "./dist/subpaths/version.js"
+    },
+    "./Base": {
+      "typescript": "./src/subpaths/Base.ts",
+      "types": "./dist/subpaths/Base.d.ts",
+      "import": "./dist/subpaths/Base.js"
+    },
+    "./getInstances": {
+      "typescript": "./src/subpaths/getInstances.ts",
+      "types": "./dist/subpaths/getInstances.d.ts",
+      "import": "./dist/subpaths/getInstances.js"
+    },
+    "./getScopedGroups": {
+      "typescript": "./src/subpaths/getScopedGroups.ts",
+      "types": "./dist/subpaths/getScopedGroups.d.ts",
+      "import": "./dist/subpaths/getScopedGroups.js"
+    },
+    "./withBreakpointManager": {
+      "typescript": "./src/subpaths/withBreakpointManager.ts",
+      "types": "./dist/subpaths/withBreakpointManager.d.ts",
+      "import": "./dist/subpaths/withBreakpointManager.js"
+    },
+    "./withBreakpointObserver": {
+      "typescript": "./src/subpaths/withBreakpointObserver.ts",
+      "types": "./dist/subpaths/withBreakpointObserver.d.ts",
+      "import": "./dist/subpaths/withBreakpointObserver.js"
+    },
+    "./withDrag": {
+      "typescript": "./src/subpaths/withDrag.ts",
+      "types": "./dist/subpaths/withDrag.d.ts",
+      "import": "./dist/subpaths/withDrag.js"
+    },
+    "./withExtraConfig": {
+      "typescript": "./src/subpaths/withExtraConfig.ts",
+      "types": "./dist/subpaths/withExtraConfig.d.ts",
+      "import": "./dist/subpaths/withExtraConfig.js"
+    },
+    "./withFreezedOptions": {
+      "typescript": "./src/subpaths/withFreezedOptions.ts",
+      "types": "./dist/subpaths/withFreezedOptions.d.ts",
+      "import": "./dist/subpaths/withFreezedOptions.js"
+    },
+    "./withGroup": {
+      "typescript": "./src/subpaths/withGroup.ts",
+      "types": "./dist/subpaths/withGroup.d.ts",
+      "import": "./dist/subpaths/withGroup.js"
+    },
+    "./withIntersectionObserver": {
+      "typescript": "./src/subpaths/withIntersectionObserver.ts",
+      "types": "./dist/subpaths/withIntersectionObserver.d.ts",
+      "import": "./dist/subpaths/withIntersectionObserver.js"
+    },
+    "./withMountOnMediaQuery": {
+      "typescript": "./src/subpaths/withMountOnMediaQuery.ts",
+      "types": "./dist/subpaths/withMountOnMediaQuery.d.ts",
+      "import": "./dist/subpaths/withMountOnMediaQuery.js"
+    },
+    "./withMountWhenInView": {
+      "typescript": "./src/subpaths/withMountWhenInView.ts",
+      "types": "./dist/subpaths/withMountWhenInView.d.ts",
+      "import": "./dist/subpaths/withMountWhenInView.js"
+    },
+    "./withMountWhenPrefersMotion": {
+      "typescript": "./src/subpaths/withMountWhenPrefersMotion.ts",
+      "types": "./dist/subpaths/withMountWhenPrefersMotion.d.ts",
+      "import": "./dist/subpaths/withMountWhenPrefersMotion.js"
+    },
+    "./withMutation": {
+      "typescript": "./src/subpaths/withMutation.ts",
+      "types": "./dist/subpaths/withMutation.d.ts",
+      "import": "./dist/subpaths/withMutation.js"
+    },
+    "./withName": {
+      "typescript": "./src/subpaths/withName.ts",
+      "types": "./dist/subpaths/withName.d.ts",
+      "import": "./dist/subpaths/withName.js"
+    },
+    "./withRelativePointer": {
+      "typescript": "./src/subpaths/withRelativePointer.ts",
+      "types": "./dist/subpaths/withRelativePointer.d.ts",
+      "import": "./dist/subpaths/withRelativePointer.js"
+    },
+    "./withResponsiveOptions": {
+      "typescript": "./src/subpaths/withResponsiveOptions.ts",
+      "types": "./dist/subpaths/withResponsiveOptions.d.ts",
+      "import": "./dist/subpaths/withResponsiveOptions.js"
+    },
+    "./withScrolledInView": {
+      "typescript": "./src/subpaths/withScrolledInView.ts",
+      "types": "./dist/subpaths/withScrolledInView.d.ts",
+      "import": "./dist/subpaths/withScrolledInView.js"
+    },
+    "./closestComponent": {
+      "typescript": "./src/subpaths/closestComponent.ts",
+      "types": "./dist/subpaths/closestComponent.d.ts",
+      "import": "./dist/subpaths/closestComponent.js"
+    },
+    "./createApp": {
+      "typescript": "./src/subpaths/createApp.ts",
+      "types": "./dist/subpaths/createApp.d.ts",
+      "import": "./dist/subpaths/createApp.js"
+    },
+    "./defineFeatures": {
+      "typescript": "./src/subpaths/defineFeatures.ts",
+      "types": "./dist/subpaths/defineFeatures.d.ts",
+      "import": "./dist/subpaths/defineFeatures.js"
+    },
+    "./getClosestParent": {
+      "typescript": "./src/subpaths/getClosestParent.ts",
+      "types": "./dist/subpaths/getClosestParent.d.ts",
+      "import": "./dist/subpaths/getClosestParent.js"
+    },
+    "./getDirectChildren": {
+      "typescript": "./src/subpaths/getDirectChildren.ts",
+      "types": "./dist/subpaths/getDirectChildren.d.ts",
+      "import": "./dist/subpaths/getDirectChildren.js"
+    },
+    "./getInstanceFromElement": {
+      "typescript": "./src/subpaths/getInstanceFromElement.ts",
+      "types": "./dist/subpaths/getInstanceFromElement.d.ts",
+      "import": "./dist/subpaths/getInstanceFromElement.js"
+    },
+    "./importOnInteraction": {
+      "typescript": "./src/subpaths/importOnInteraction.ts",
+      "types": "./dist/subpaths/importOnInteraction.d.ts",
+      "import": "./dist/subpaths/importOnInteraction.js"
+    },
+    "./importOnMediaQuery": {
+      "typescript": "./src/subpaths/importOnMediaQuery.ts",
+      "types": "./dist/subpaths/importOnMediaQuery.d.ts",
+      "import": "./dist/subpaths/importOnMediaQuery.js"
+    },
+    "./importWhenIdle": {
+      "typescript": "./src/subpaths/importWhenIdle.ts",
+      "types": "./dist/subpaths/importWhenIdle.d.ts",
+      "import": "./dist/subpaths/importWhenIdle.js"
+    },
+    "./importWhenPrefersMotion": {
+      "typescript": "./src/subpaths/importWhenPrefersMotion.ts",
+      "types": "./dist/subpaths/importWhenPrefersMotion.d.ts",
+      "import": "./dist/subpaths/importWhenPrefersMotion.js"
+    },
+    "./importWhenVisible": {
+      "typescript": "./src/subpaths/importWhenVisible.ts",
+      "types": "./dist/subpaths/importWhenVisible.d.ts",
+      "import": "./dist/subpaths/importWhenVisible.js"
+    },
+    "./isDirectChild": {
+      "typescript": "./src/subpaths/isDirectChild.ts",
+      "types": "./dist/subpaths/isDirectChild.d.ts",
+      "import": "./dist/subpaths/isDirectChild.js"
+    },
+    "./logTree": {
+      "typescript": "./src/subpaths/logTree.ts",
+      "types": "./dist/subpaths/logTree.d.ts",
+      "import": "./dist/subpaths/logTree.js"
+    },
+    "./queryComponent": {
+      "typescript": "./src/subpaths/queryComponent.ts",
+      "types": "./dist/subpaths/queryComponent.d.ts",
+      "import": "./dist/subpaths/queryComponent.js"
+    },
+    "./queryComponentAll": {
+      "typescript": "./src/subpaths/queryComponentAll.ts",
+      "types": "./dist/subpaths/queryComponentAll.d.ts",
+      "import": "./dist/subpaths/queryComponentAll.js"
+    },
+    "./registerComponent": {
+      "typescript": "./src/subpaths/registerComponent.ts",
+      "types": "./dist/subpaths/registerComponent.d.ts",
+      "import": "./dist/subpaths/registerComponent.js"
+    },
+    "./registerComponents": {
+      "typescript": "./src/subpaths/registerComponents.ts",
+      "types": "./dist/subpaths/registerComponents.d.ts",
+      "import": "./dist/subpaths/registerComponents.js"
+    },
+    "./AbstractService": {
+      "typescript": "./src/subpaths/AbstractService.ts",
+      "types": "./dist/subpaths/AbstractService.d.ts",
+      "import": "./dist/subpaths/AbstractService.js"
+    },
+    "./DragService": {
+      "typescript": "./src/subpaths/DragService.ts",
+      "types": "./dist/subpaths/DragService.d.ts",
+      "import": "./dist/subpaths/DragService.js"
+    },
+    "./KeyService": {
+      "typescript": "./src/subpaths/KeyService.ts",
+      "types": "./dist/subpaths/KeyService.d.ts",
+      "import": "./dist/subpaths/KeyService.js"
+    },
+    "./LoadService": {
+      "typescript": "./src/subpaths/LoadService.ts",
+      "types": "./dist/subpaths/LoadService.d.ts",
+      "import": "./dist/subpaths/LoadService.js"
+    },
+    "./MutationService": {
+      "typescript": "./src/subpaths/MutationService.ts",
+      "types": "./dist/subpaths/MutationService.d.ts",
+      "import": "./dist/subpaths/MutationService.js"
+    },
+    "./PointerService": {
+      "typescript": "./src/subpaths/PointerService.ts",
+      "types": "./dist/subpaths/PointerService.d.ts",
+      "import": "./dist/subpaths/PointerService.js"
+    },
+    "./RafService": {
+      "typescript": "./src/subpaths/RafService.ts",
+      "types": "./dist/subpaths/RafService.d.ts",
+      "import": "./dist/subpaths/RafService.js"
+    },
+    "./ResizeService": {
+      "typescript": "./src/subpaths/ResizeService.ts",
+      "types": "./dist/subpaths/ResizeService.d.ts",
+      "import": "./dist/subpaths/ResizeService.js"
+    },
+    "./ScrollService": {
+      "typescript": "./src/subpaths/ScrollService.ts",
+      "types": "./dist/subpaths/ScrollService.d.ts",
+      "import": "./dist/subpaths/ScrollService.js"
+    },
+    "./useDrag": {
+      "typescript": "./src/subpaths/useDrag.ts",
+      "types": "./dist/subpaths/useDrag.d.ts",
+      "import": "./dist/subpaths/useDrag.js"
+    },
+    "./useKey": {
+      "typescript": "./src/subpaths/useKey.ts",
+      "types": "./dist/subpaths/useKey.d.ts",
+      "import": "./dist/subpaths/useKey.js"
+    },
+    "./useLoad": {
+      "typescript": "./src/subpaths/useLoad.ts",
+      "types": "./dist/subpaths/useLoad.d.ts",
+      "import": "./dist/subpaths/useLoad.js"
+    },
+    "./useMutation": {
+      "typescript": "./src/subpaths/useMutation.ts",
+      "types": "./dist/subpaths/useMutation.d.ts",
+      "import": "./dist/subpaths/useMutation.js"
+    },
+    "./usePointer": {
+      "typescript": "./src/subpaths/usePointer.ts",
+      "types": "./dist/subpaths/usePointer.d.ts",
+      "import": "./dist/subpaths/usePointer.js"
+    },
+    "./useRaf": {
+      "typescript": "./src/subpaths/useRaf.ts",
+      "types": "./dist/subpaths/useRaf.d.ts",
+      "import": "./dist/subpaths/useRaf.js"
+    },
+    "./useResize": {
+      "typescript": "./src/subpaths/useResize.ts",
+      "types": "./dist/subpaths/useResize.d.ts",
+      "import": "./dist/subpaths/useResize.js"
+    },
+    "./useScroll": {
+      "typescript": "./src/subpaths/useScroll.ts",
+      "types": "./dist/subpaths/useScroll.d.ts",
+      "import": "./dist/subpaths/useScroll.js"
+    },
+    "./ComponentLoader": {
+      "typescript": "./src/subpaths/ComponentLoader.ts",
+      "types": "./dist/subpaths/ComponentLoader.d.ts",
+      "import": "./dist/subpaths/ComponentLoader.js"
+    },
+    "./DEFAULT_DIAGNOSTIC_PREFIX": {
+      "typescript": "./src/subpaths/DEFAULT_DIAGNOSTIC_PREFIX.ts",
+      "types": "./dist/subpaths/DEFAULT_DIAGNOSTIC_PREFIX.d.ts",
+      "import": "./dist/subpaths/DEFAULT_DIAGNOSTIC_PREFIX.js"
+    },
+    "./VISIBLE_ROOT_MARGIN": {
+      "typescript": "./src/subpaths/VISIBLE_ROOT_MARGIN.ts",
+      "types": "./dist/subpaths/VISIBLE_ROOT_MARGIN.d.ts",
+      "import": "./dist/subpaths/VISIBLE_ROOT_MARGIN.js"
+    },
+    "./IDLE_TIMEOUT": {
+      "typescript": "./src/subpaths/IDLE_TIMEOUT.ts",
+      "types": "./dist/subpaths/IDLE_TIMEOUT.d.ts",
+      "import": "./dist/subpaths/IDLE_TIMEOUT.js"
+    },
+    "./autoload": {
+      "typescript": "./src/subpaths/autoload.ts",
+      "types": "./dist/subpaths/autoload.d.ts",
+      "import": "./dist/subpaths/autoload.js"
+    },
+    "./composeManifests": {
+      "typescript": "./src/subpaths/composeManifests.ts",
+      "types": "./dist/subpaths/composeManifests.d.ts",
+      "import": "./dist/subpaths/composeManifests.js"
+    },
+    "./registerManifest": {
+      "typescript": "./src/subpaths/registerManifest.ts",
+      "types": "./dist/subpaths/registerManifest.d.ts",
+      "import": "./dist/subpaths/registerManifest.js"
+    },
+    "./registerManifests": {
+      "typescript": "./src/subpaths/registerManifests.ts",
+      "types": "./dist/subpaths/registerManifests.d.ts",
+      "import": "./dist/subpaths/registerManifests.js"
+    },
+    "./readEagerTokens": {
+      "typescript": "./src/subpaths/readEagerTokens.ts",
+      "types": "./dist/subpaths/readEagerTokens.d.ts",
+      "import": "./dist/subpaths/readEagerTokens.js"
+    },
+    "./defineManifest": {
+      "typescript": "./src/subpaths/defineManifest.ts",
+      "types": "./dist/subpaths/defineManifest.d.ts",
+      "import": "./dist/subpaths/defineManifest.js"
+    },
+    "./fromMetaGlob": {
+      "typescript": "./src/subpaths/fromMetaGlob.ts",
+      "types": "./dist/subpaths/fromMetaGlob.d.ts",
+      "import": "./dist/subpaths/fromMetaGlob.js"
+    },
+    "./fromWebpackContext": {
+      "typescript": "./src/subpaths/fromWebpackContext.ts",
+      "types": "./dist/subpaths/fromWebpackContext.d.ts",
+      "import": "./dist/subpaths/fromWebpackContext.js"
+    },
+    "./utils/debounce": {
+      "typescript": "./src/subpaths/utils/debounce.ts",
+      "types": "./dist/subpaths/utils/debounce.d.ts",
+      "import": "./dist/subpaths/utils/debounce.js"
+    },
+    "./utils/saveActiveElement": {
+      "typescript": "./src/subpaths/utils/saveActiveElement.ts",
+      "types": "./dist/subpaths/utils/saveActiveElement.d.ts",
+      "import": "./dist/subpaths/utils/saveActiveElement.js"
+    },
+    "./utils/trapFocus": {
+      "typescript": "./src/subpaths/utils/trapFocus.ts",
+      "types": "./dist/subpaths/utils/trapFocus.d.ts",
+      "import": "./dist/subpaths/utils/trapFocus.js"
+    },
+    "./utils/untrapFocus": {
+      "typescript": "./src/subpaths/utils/untrapFocus.ts",
+      "types": "./dist/subpaths/utils/untrapFocus.d.ts",
+      "import": "./dist/subpaths/utils/untrapFocus.js"
+    },
+    "./utils/keyCodes": {
+      "typescript": "./src/subpaths/utils/keyCodes.ts",
+      "types": "./dist/subpaths/utils/keyCodes.d.ts",
+      "import": "./dist/subpaths/utils/keyCodes.js"
+    },
+    "./utils/memoize": {
+      "typescript": "./src/subpaths/utils/memoize.ts",
+      "types": "./dist/subpaths/utils/memoize.d.ts",
+      "import": "./dist/subpaths/utils/memoize.js"
+    },
+    "./utils/nextFrame": {
+      "typescript": "./src/subpaths/utils/nextFrame.ts",
+      "types": "./dist/subpaths/utils/nextFrame.d.ts",
+      "import": "./dist/subpaths/utils/nextFrame.js"
+    },
+    "./utils/nextTick": {
+      "typescript": "./src/subpaths/utils/nextTick.ts",
+      "types": "./dist/subpaths/utils/nextTick.d.ts",
+      "import": "./dist/subpaths/utils/nextTick.js"
+    },
+    "./utils/nextMicrotask": {
+      "typescript": "./src/subpaths/utils/nextMicrotask.ts",
+      "types": "./dist/subpaths/utils/nextMicrotask.d.ts",
+      "import": "./dist/subpaths/utils/nextMicrotask.js"
+    },
+    "./utils/throttle": {
+      "typescript": "./src/subpaths/utils/throttle.ts",
+      "types": "./dist/subpaths/utils/throttle.d.ts",
+      "import": "./dist/subpaths/utils/throttle.js"
+    },
+    "./utils/scrollTo": {
+      "typescript": "./src/subpaths/utils/scrollTo.ts",
+      "types": "./dist/subpaths/utils/scrollTo.d.ts",
+      "import": "./dist/subpaths/utils/scrollTo.js"
+    },
+    "./utils/getComponentResolver": {
+      "typescript": "./src/subpaths/utils/getComponentResolver.ts",
+      "types": "./dist/subpaths/utils/getComponentResolver.d.ts",
+      "import": "./dist/subpaths/utils/getComponentResolver.js"
+    },
+    "./utils/isArray": {
+      "typescript": "./src/subpaths/utils/isArray.ts",
+      "types": "./dist/subpaths/utils/isArray.d.ts",
+      "import": "./dist/subpaths/utils/isArray.js"
+    },
+    "./utils/isBoolean": {
+      "typescript": "./src/subpaths/utils/isBoolean.ts",
+      "types": "./dist/subpaths/utils/isBoolean.d.ts",
+      "import": "./dist/subpaths/utils/isBoolean.js"
+    },
+    "./utils/isDefined": {
+      "typescript": "./src/subpaths/utils/isDefined.ts",
+      "types": "./dist/subpaths/utils/isDefined.d.ts",
+      "import": "./dist/subpaths/utils/isDefined.js"
+    },
+    "./utils/isDev": {
+      "typescript": "./src/subpaths/utils/isDev.ts",
+      "types": "./dist/subpaths/utils/isDev.d.ts",
+      "import": "./dist/subpaths/utils/isDev.js"
+    },
+    "./utils/isEmpty": {
+      "typescript": "./src/subpaths/utils/isEmpty.ts",
+      "types": "./dist/subpaths/utils/isEmpty.d.ts",
+      "import": "./dist/subpaths/utils/isEmpty.js"
+    },
+    "./utils/isEmptyString": {
+      "typescript": "./src/subpaths/utils/isEmptyString.ts",
+      "types": "./dist/subpaths/utils/isEmptyString.d.ts",
+      "import": "./dist/subpaths/utils/isEmptyString.js"
+    },
+    "./utils/isFunction": {
+      "typescript": "./src/subpaths/utils/isFunction.ts",
+      "types": "./dist/subpaths/utils/isFunction.d.ts",
+      "import": "./dist/subpaths/utils/isFunction.js"
+    },
+    "./utils/isNull": {
+      "typescript": "./src/subpaths/utils/isNull.ts",
+      "types": "./dist/subpaths/utils/isNull.d.ts",
+      "import": "./dist/subpaths/utils/isNull.js"
+    },
+    "./utils/isNumber": {
+      "typescript": "./src/subpaths/utils/isNumber.ts",
+      "types": "./dist/subpaths/utils/isNumber.d.ts",
+      "import": "./dist/subpaths/utils/isNumber.js"
+    },
+    "./utils/isObject": {
+      "typescript": "./src/subpaths/utils/isObject.ts",
+      "types": "./dist/subpaths/utils/isObject.d.ts",
+      "import": "./dist/subpaths/utils/isObject.js"
+    },
+    "./utils/isString": {
+      "typescript": "./src/subpaths/utils/isString.ts",
+      "types": "./dist/subpaths/utils/isString.d.ts",
+      "import": "./dist/subpaths/utils/isString.js"
+    },
+    "./utils/hasWindow": {
+      "typescript": "./src/subpaths/utils/hasWindow.ts",
+      "types": "./dist/subpaths/utils/hasWindow.d.ts",
+      "import": "./dist/subpaths/utils/hasWindow.js"
+    },
+    "./utils/addClass": {
+      "typescript": "./src/subpaths/utils/addClass.ts",
+      "types": "./dist/subpaths/utils/addClass.d.ts",
+      "import": "./dist/subpaths/utils/addClass.js"
+    },
+    "./utils/addStyle": {
+      "typescript": "./src/subpaths/utils/addStyle.ts",
+      "types": "./dist/subpaths/utils/addStyle.d.ts",
+      "import": "./dist/subpaths/utils/addStyle.js"
+    },
+    "./utils/animate": {
+      "typescript": "./src/subpaths/utils/animate.ts",
+      "types": "./dist/subpaths/utils/animate.d.ts",
+      "import": "./dist/subpaths/utils/animate.js"
+    },
+    "./utils/getOffsetSizes": {
+      "typescript": "./src/subpaths/utils/getOffsetSizes.ts",
+      "types": "./dist/subpaths/utils/getOffsetSizes.d.ts",
+      "import": "./dist/subpaths/utils/getOffsetSizes.js"
+    },
+    "./utils/matrix": {
+      "typescript": "./src/subpaths/utils/matrix.ts",
+      "types": "./dist/subpaths/utils/matrix.d.ts",
+      "import": "./dist/subpaths/utils/matrix.js"
+    },
+    "./utils/removeClass": {
+      "typescript": "./src/subpaths/utils/removeClass.ts",
+      "types": "./dist/subpaths/utils/removeClass.d.ts",
+      "import": "./dist/subpaths/utils/removeClass.js"
+    },
+    "./utils/removeStyle": {
+      "typescript": "./src/subpaths/utils/removeStyle.ts",
+      "types": "./dist/subpaths/utils/removeStyle.d.ts",
+      "import": "./dist/subpaths/utils/removeStyle.js"
+    },
+    "./utils/toggleClass": {
+      "typescript": "./src/subpaths/utils/toggleClass.ts",
+      "types": "./dist/subpaths/utils/toggleClass.d.ts",
+      "import": "./dist/subpaths/utils/toggleClass.js"
+    },
+    "./utils/transform": {
+      "typescript": "./src/subpaths/utils/transform.ts",
+      "types": "./dist/subpaths/utils/transform.d.ts",
+      "import": "./dist/subpaths/utils/transform.js"
+    },
+    "./utils/transition": {
+      "typescript": "./src/subpaths/utils/transition.ts",
+      "types": "./dist/subpaths/utils/transition.d.ts",
+      "import": "./dist/subpaths/utils/transition.js"
+    },
+    "./utils/objectToURLSearchParams": {
+      "typescript": "./src/subpaths/utils/objectToURLSearchParams.ts",
+      "types": "./dist/subpaths/utils/objectToURLSearchParams.d.ts",
+      "import": "./dist/subpaths/utils/objectToURLSearchParams.js"
+    },
+    "./utils/historyPush": {
+      "typescript": "./src/subpaths/utils/historyPush.ts",
+      "types": "./dist/subpaths/utils/historyPush.d.ts",
+      "import": "./dist/subpaths/utils/historyPush.js"
+    },
+    "./utils/historyReplace": {
+      "typescript": "./src/subpaths/utils/historyReplace.ts",
+      "types": "./dist/subpaths/utils/historyReplace.d.ts",
+      "import": "./dist/subpaths/utils/historyReplace.js"
+    },
+    "./utils/boundingRectToCircle": {
+      "typescript": "./src/subpaths/utils/boundingRectToCircle.ts",
+      "types": "./dist/subpaths/utils/boundingRectToCircle.d.ts",
+      "import": "./dist/subpaths/utils/boundingRectToCircle.js"
+    },
+    "./utils/collideCircleCircle": {
+      "typescript": "./src/subpaths/utils/collideCircleCircle.ts",
+      "types": "./dist/subpaths/utils/collideCircleCircle.d.ts",
+      "import": "./dist/subpaths/utils/collideCircleCircle.js"
+    },
+    "./utils/collideCircleRect": {
+      "typescript": "./src/subpaths/utils/collideCircleRect.ts",
+      "types": "./dist/subpaths/utils/collideCircleRect.d.ts",
+      "import": "./dist/subpaths/utils/collideCircleRect.js"
+    },
+    "./utils/collidePointCircle": {
+      "typescript": "./src/subpaths/utils/collidePointCircle.ts",
+      "types": "./dist/subpaths/utils/collidePointCircle.d.ts",
+      "import": "./dist/subpaths/utils/collidePointCircle.js"
+    },
+    "./utils/collidePointRect": {
+      "typescript": "./src/subpaths/utils/collidePointRect.ts",
+      "types": "./dist/subpaths/utils/collidePointRect.d.ts",
+      "import": "./dist/subpaths/utils/collidePointRect.js"
+    },
+    "./utils/collideRectRect": {
+      "typescript": "./src/subpaths/utils/collideRectRect.ts",
+      "types": "./dist/subpaths/utils/collideRectRect.d.ts",
+      "import": "./dist/subpaths/utils/collideRectRect.js"
+    },
+    "./utils/clamp": {
+      "typescript": "./src/subpaths/utils/clamp.ts",
+      "types": "./dist/subpaths/utils/clamp.d.ts",
+      "import": "./dist/subpaths/utils/clamp.js"
+    },
+    "./utils/clamp01": {
+      "typescript": "./src/subpaths/utils/clamp01.ts",
+      "types": "./dist/subpaths/utils/clamp01.d.ts",
+      "import": "./dist/subpaths/utils/clamp01.js"
+    },
+    "./utils/createEaseInOut": {
+      "typescript": "./src/subpaths/utils/createEaseInOut.ts",
+      "types": "./dist/subpaths/utils/createEaseInOut.d.ts",
+      "import": "./dist/subpaths/utils/createEaseInOut.js"
+    },
+    "./utils/createEaseOut": {
+      "typescript": "./src/subpaths/utils/createEaseOut.ts",
+      "types": "./dist/subpaths/utils/createEaseOut.d.ts",
+      "import": "./dist/subpaths/utils/createEaseOut.js"
+    },
+    "./utils/createRange": {
+      "typescript": "./src/subpaths/utils/createRange.ts",
+      "types": "./dist/subpaths/utils/createRange.d.ts",
+      "import": "./dist/subpaths/utils/createRange.js"
+    },
+    "./utils/damp": {
+      "typescript": "./src/subpaths/utils/damp.ts",
+      "types": "./dist/subpaths/utils/damp.d.ts",
+      "import": "./dist/subpaths/utils/damp.js"
+    },
+    "./utils/ease": {
+      "typescript": "./src/subpaths/utils/ease.ts",
+      "types": "./dist/subpaths/utils/ease.d.ts",
+      "import": "./dist/subpaths/utils/ease.js"
+    },
+    "./utils/easeInCirc": {
+      "typescript": "./src/subpaths/utils/easeInCirc.ts",
+      "types": "./dist/subpaths/utils/easeInCirc.d.ts",
+      "import": "./dist/subpaths/utils/easeInCirc.js"
+    },
+    "./utils/easeInCubic": {
+      "typescript": "./src/subpaths/utils/easeInCubic.ts",
+      "types": "./dist/subpaths/utils/easeInCubic.d.ts",
+      "import": "./dist/subpaths/utils/easeInCubic.js"
+    },
+    "./utils/easeInExpo": {
+      "typescript": "./src/subpaths/utils/easeInExpo.ts",
+      "types": "./dist/subpaths/utils/easeInExpo.d.ts",
+      "import": "./dist/subpaths/utils/easeInExpo.js"
+    },
+    "./utils/easeInOutCirc": {
+      "typescript": "./src/subpaths/utils/easeInOutCirc.ts",
+      "types": "./dist/subpaths/utils/easeInOutCirc.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutCirc.js"
+    },
+    "./utils/easeInOutCubic": {
+      "typescript": "./src/subpaths/utils/easeInOutCubic.ts",
+      "types": "./dist/subpaths/utils/easeInOutCubic.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutCubic.js"
+    },
+    "./utils/easeInOutExpo": {
+      "typescript": "./src/subpaths/utils/easeInOutExpo.ts",
+      "types": "./dist/subpaths/utils/easeInOutExpo.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutExpo.js"
+    },
+    "./utils/easeInOutQuad": {
+      "typescript": "./src/subpaths/utils/easeInOutQuad.ts",
+      "types": "./dist/subpaths/utils/easeInOutQuad.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutQuad.js"
+    },
+    "./utils/easeInOutQuart": {
+      "typescript": "./src/subpaths/utils/easeInOutQuart.ts",
+      "types": "./dist/subpaths/utils/easeInOutQuart.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutQuart.js"
+    },
+    "./utils/easeInOutQuint": {
+      "typescript": "./src/subpaths/utils/easeInOutQuint.ts",
+      "types": "./dist/subpaths/utils/easeInOutQuint.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutQuint.js"
+    },
+    "./utils/easeInOutSine": {
+      "typescript": "./src/subpaths/utils/easeInOutSine.ts",
+      "types": "./dist/subpaths/utils/easeInOutSine.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutSine.js"
+    },
+    "./utils/easeInQuad": {
+      "typescript": "./src/subpaths/utils/easeInQuad.ts",
+      "types": "./dist/subpaths/utils/easeInQuad.d.ts",
+      "import": "./dist/subpaths/utils/easeInQuad.js"
+    },
+    "./utils/easeInQuart": {
+      "typescript": "./src/subpaths/utils/easeInQuart.ts",
+      "types": "./dist/subpaths/utils/easeInQuart.d.ts",
+      "import": "./dist/subpaths/utils/easeInQuart.js"
+    },
+    "./utils/easeInQuint": {
+      "typescript": "./src/subpaths/utils/easeInQuint.ts",
+      "types": "./dist/subpaths/utils/easeInQuint.d.ts",
+      "import": "./dist/subpaths/utils/easeInQuint.js"
+    },
+    "./utils/easeInSine": {
+      "typescript": "./src/subpaths/utils/easeInSine.ts",
+      "types": "./dist/subpaths/utils/easeInSine.d.ts",
+      "import": "./dist/subpaths/utils/easeInSine.js"
+    },
+    "./utils/easeLinear": {
+      "typescript": "./src/subpaths/utils/easeLinear.ts",
+      "types": "./dist/subpaths/utils/easeLinear.d.ts",
+      "import": "./dist/subpaths/utils/easeLinear.js"
+    },
+    "./utils/easeOutCirc": {
+      "typescript": "./src/subpaths/utils/easeOutCirc.ts",
+      "types": "./dist/subpaths/utils/easeOutCirc.d.ts",
+      "import": "./dist/subpaths/utils/easeOutCirc.js"
+    },
+    "./utils/easeOutCubic": {
+      "typescript": "./src/subpaths/utils/easeOutCubic.ts",
+      "types": "./dist/subpaths/utils/easeOutCubic.d.ts",
+      "import": "./dist/subpaths/utils/easeOutCubic.js"
+    },
+    "./utils/easeOutExpo": {
+      "typescript": "./src/subpaths/utils/easeOutExpo.ts",
+      "types": "./dist/subpaths/utils/easeOutExpo.d.ts",
+      "import": "./dist/subpaths/utils/easeOutExpo.js"
+    },
+    "./utils/easeOutQuad": {
+      "typescript": "./src/subpaths/utils/easeOutQuad.ts",
+      "types": "./dist/subpaths/utils/easeOutQuad.d.ts",
+      "import": "./dist/subpaths/utils/easeOutQuad.js"
+    },
+    "./utils/easeOutQuart": {
+      "typescript": "./src/subpaths/utils/easeOutQuart.ts",
+      "types": "./dist/subpaths/utils/easeOutQuart.d.ts",
+      "import": "./dist/subpaths/utils/easeOutQuart.js"
+    },
+    "./utils/easeOutQuint": {
+      "typescript": "./src/subpaths/utils/easeOutQuint.ts",
+      "types": "./dist/subpaths/utils/easeOutQuint.d.ts",
+      "import": "./dist/subpaths/utils/easeOutQuint.js"
+    },
+    "./utils/easeOutSine": {
+      "typescript": "./src/subpaths/utils/easeOutSine.ts",
+      "types": "./dist/subpaths/utils/easeOutSine.d.ts",
+      "import": "./dist/subpaths/utils/easeOutSine.js"
+    },
+    "./utils/fold": {
+      "typescript": "./src/subpaths/utils/fold.ts",
+      "types": "./dist/subpaths/utils/fold.d.ts",
+      "import": "./dist/subpaths/utils/fold.js"
+    },
+    "./utils/inertiaFinalValue": {
+      "typescript": "./src/subpaths/utils/inertiaFinalValue.ts",
+      "types": "./dist/subpaths/utils/inertiaFinalValue.d.ts",
+      "import": "./dist/subpaths/utils/inertiaFinalValue.js"
+    },
+    "./utils/lerp": {
+      "typescript": "./src/subpaths/utils/lerp.ts",
+      "types": "./dist/subpaths/utils/lerp.d.ts",
+      "import": "./dist/subpaths/utils/lerp.js"
+    },
+    "./utils/map": {
+      "typescript": "./src/subpaths/utils/map.ts",
+      "types": "./dist/subpaths/utils/map.d.ts",
+      "import": "./dist/subpaths/utils/map.js"
+    },
+    "./utils/mean": {
+      "typescript": "./src/subpaths/utils/mean.ts",
+      "types": "./dist/subpaths/utils/mean.d.ts",
+      "import": "./dist/subpaths/utils/mean.js"
+    },
+    "./utils/round": {
+      "typescript": "./src/subpaths/utils/round.ts",
+      "types": "./dist/subpaths/utils/round.d.ts",
+      "import": "./dist/subpaths/utils/round.js"
+    },
+    "./utils/smoothTo": {
+      "typescript": "./src/subpaths/utils/smoothTo.ts",
+      "types": "./dist/subpaths/utils/smoothTo.d.ts",
+      "import": "./dist/subpaths/utils/smoothTo.js"
+    },
+    "./utils/spring": {
+      "typescript": "./src/subpaths/utils/spring.ts",
+      "types": "./dist/subpaths/utils/spring.d.ts",
+      "import": "./dist/subpaths/utils/spring.js"
+    },
+    "./utils/wrap": {
+      "typescript": "./src/subpaths/utils/wrap.ts",
+      "types": "./dist/subpaths/utils/wrap.d.ts",
+      "import": "./dist/subpaths/utils/wrap.js"
+    },
+    "./utils/camelCase": {
+      "typescript": "./src/subpaths/utils/camelCase.ts",
+      "types": "./dist/subpaths/utils/camelCase.d.ts",
+      "import": "./dist/subpaths/utils/camelCase.js"
+    },
+    "./utils/dashCase": {
+      "typescript": "./src/subpaths/utils/dashCase.ts",
+      "types": "./dist/subpaths/utils/dashCase.d.ts",
+      "import": "./dist/subpaths/utils/dashCase.js"
+    },
+    "./utils/endsWith": {
+      "typescript": "./src/subpaths/utils/endsWith.ts",
+      "types": "./dist/subpaths/utils/endsWith.d.ts",
+      "import": "./dist/subpaths/utils/endsWith.js"
+    },
+    "./utils/lowerCase": {
+      "typescript": "./src/subpaths/utils/lowerCase.ts",
+      "types": "./dist/subpaths/utils/lowerCase.d.ts",
+      "import": "./dist/subpaths/utils/lowerCase.js"
+    },
+    "./utils/pascalCase": {
+      "typescript": "./src/subpaths/utils/pascalCase.ts",
+      "types": "./dist/subpaths/utils/pascalCase.d.ts",
+      "import": "./dist/subpaths/utils/pascalCase.js"
+    },
+    "./utils/snakeCase": {
+      "typescript": "./src/subpaths/utils/snakeCase.ts",
+      "types": "./dist/subpaths/utils/snakeCase.d.ts",
+      "import": "./dist/subpaths/utils/snakeCase.js"
+    },
+    "./utils/startsWith": {
+      "typescript": "./src/subpaths/utils/startsWith.ts",
+      "types": "./dist/subpaths/utils/startsWith.d.ts",
+      "import": "./dist/subpaths/utils/startsWith.js"
+    },
+    "./utils/upperCase": {
+      "typescript": "./src/subpaths/utils/upperCase.ts",
+      "types": "./dist/subpaths/utils/upperCase.d.ts",
+      "import": "./dist/subpaths/utils/upperCase.js"
+    },
+    "./utils/withLeadingCharacters": {
+      "typescript": "./src/subpaths/utils/withLeadingCharacters.ts",
+      "types": "./dist/subpaths/utils/withLeadingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withLeadingCharacters.js"
+    },
+    "./utils/withLeadingSlash": {
+      "typescript": "./src/subpaths/utils/withLeadingSlash.ts",
+      "types": "./dist/subpaths/utils/withLeadingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withLeadingSlash.js"
+    },
+    "./utils/withTrailingCharacters": {
+      "typescript": "./src/subpaths/utils/withTrailingCharacters.ts",
+      "types": "./dist/subpaths/utils/withTrailingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withTrailingCharacters.js"
+    },
+    "./utils/withTrailingSlash": {
+      "typescript": "./src/subpaths/utils/withTrailingSlash.ts",
+      "types": "./dist/subpaths/utils/withTrailingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withTrailingSlash.js"
+    },
+    "./utils/withoutLeadingCharacters": {
+      "typescript": "./src/subpaths/utils/withoutLeadingCharacters.ts",
+      "types": "./dist/subpaths/utils/withoutLeadingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withoutLeadingCharacters.js"
+    },
+    "./utils/withoutLeadingCharactersRecursive": {
+      "typescript": "./src/subpaths/utils/withoutLeadingCharactersRecursive.ts",
+      "types": "./dist/subpaths/utils/withoutLeadingCharactersRecursive.d.ts",
+      "import": "./dist/subpaths/utils/withoutLeadingCharactersRecursive.js"
+    },
+    "./utils/withoutLeadingSlash": {
+      "typescript": "./src/subpaths/utils/withoutLeadingSlash.ts",
+      "types": "./dist/subpaths/utils/withoutLeadingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withoutLeadingSlash.js"
+    },
+    "./utils/withoutTrailingCharacters": {
+      "typescript": "./src/subpaths/utils/withoutTrailingCharacters.ts",
+      "types": "./dist/subpaths/utils/withoutTrailingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withoutTrailingCharacters.js"
+    },
+    "./utils/withoutTrailingCharactersRecursive": {
+      "typescript": "./src/subpaths/utils/withoutTrailingCharactersRecursive.ts",
+      "types": "./dist/subpaths/utils/withoutTrailingCharactersRecursive.d.ts",
+      "import": "./dist/subpaths/utils/withoutTrailingCharactersRecursive.js"
+    },
+    "./utils/withoutTrailingSlash": {
+      "typescript": "./src/subpaths/utils/withoutTrailingSlash.ts",
+      "types": "./dist/subpaths/utils/withoutTrailingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withoutTrailingSlash.js"
+    },
+    "./utils/domScheduler": {
+      "typescript": "./src/subpaths/utils/domScheduler.ts",
+      "types": "./dist/subpaths/utils/domScheduler.d.ts",
+      "import": "./dist/subpaths/utils/domScheduler.js"
+    },
+    "./utils/useScheduler": {
+      "typescript": "./src/subpaths/utils/useScheduler.ts",
+      "types": "./dist/subpaths/utils/useScheduler.d.ts",
+      "import": "./dist/subpaths/utils/useScheduler.js"
+    },
+    "./utils/noop": {
+      "typescript": "./src/subpaths/utils/noop.ts",
+      "types": "./dist/subpaths/utils/noop.d.ts",
+      "import": "./dist/subpaths/utils/noop.js"
+    },
+    "./utils/noopValue": {
+      "typescript": "./src/subpaths/utils/noopValue.ts",
+      "types": "./dist/subpaths/utils/noopValue.d.ts",
+      "import": "./dist/subpaths/utils/noopValue.js"
+    },
+    "./utils/tween": {
+      "typescript": "./src/subpaths/utils/tween.ts",
+      "types": "./dist/subpaths/utils/tween.d.ts",
+      "import": "./dist/subpaths/utils/tween.js"
+    },
+    "./utils/Queue": {
+      "typescript": "./src/subpaths/utils/Queue.ts",
+      "types": "./dist/subpaths/utils/Queue.d.ts",
+      "import": "./dist/subpaths/utils/Queue.js"
+    },
+    "./utils/SmartQueue": {
+      "typescript": "./src/subpaths/utils/SmartQueue.ts",
+      "types": "./dist/subpaths/utils/SmartQueue.d.ts",
+      "import": "./dist/subpaths/utils/SmartQueue.js"
+    },
+    "./utils/createElement": {
+      "typescript": "./src/subpaths/utils/createElement.ts",
+      "types": "./dist/subpaths/utils/createElement.d.ts",
+      "import": "./dist/subpaths/utils/createElement.js"
+    },
+    "./utils/getAncestorWhere": {
+      "typescript": "./src/subpaths/utils/getAncestorWhere.ts",
+      "types": "./dist/subpaths/utils/getAncestorWhere.d.ts",
+      "import": "./dist/subpaths/utils/getAncestorWhere.js"
+    },
+    "./utils/getAncestorWhereUntil": {
+      "typescript": "./src/subpaths/utils/getAncestorWhereUntil.ts",
+      "types": "./dist/subpaths/utils/getAncestorWhereUntil.d.ts",
+      "import": "./dist/subpaths/utils/getAncestorWhereUntil.js"
+    },
+    "./utils/wait": {
+      "typescript": "./src/subpaths/utils/wait.ts",
+      "types": "./dist/subpaths/utils/wait.d.ts",
+      "import": "./dist/subpaths/utils/wait.js"
+    },
+    "./utils/random": {
+      "typescript": "./src/subpaths/utils/random.ts",
+      "types": "./dist/subpaths/utils/random.d.ts",
+      "import": "./dist/subpaths/utils/random.js"
+    },
+    "./utils/randomInt": {
+      "typescript": "./src/subpaths/utils/randomInt.ts",
+      "types": "./dist/subpaths/utils/randomInt.d.ts",
+      "import": "./dist/subpaths/utils/randomInt.js"
+    },
+    "./utils/randomItem": {
+      "typescript": "./src/subpaths/utils/randomItem.ts",
+      "types": "./dist/subpaths/utils/randomItem.d.ts",
+      "import": "./dist/subpaths/utils/randomItem.js"
+    },
+    "./utils/memo": {
+      "typescript": "./src/subpaths/utils/memo.ts",
+      "types": "./dist/subpaths/utils/memo.d.ts",
+      "import": "./dist/subpaths/utils/memo.js"
+    },
+    "./utils/loadElement": {
+      "typescript": "./src/subpaths/utils/loadElement.ts",
+      "types": "./dist/subpaths/utils/loadElement.d.ts",
+      "import": "./dist/subpaths/utils/loadElement.js"
+    },
+    "./utils/loadIframe": {
+      "typescript": "./src/subpaths/utils/loadIframe.ts",
+      "types": "./dist/subpaths/utils/loadIframe.d.ts",
+      "import": "./dist/subpaths/utils/loadIframe.js"
+    },
+    "./utils/loadImage": {
+      "typescript": "./src/subpaths/utils/loadImage.ts",
+      "types": "./dist/subpaths/utils/loadImage.d.ts",
+      "import": "./dist/subpaths/utils/loadImage.js"
+    },
+    "./utils/loadLink": {
+      "typescript": "./src/subpaths/utils/loadLink.ts",
+      "types": "./dist/subpaths/utils/loadLink.d.ts",
+      "import": "./dist/subpaths/utils/loadLink.js"
+    },
+    "./utils/loadScript": {
+      "typescript": "./src/subpaths/utils/loadScript.ts",
+      "types": "./dist/subpaths/utils/loadScript.d.ts",
+      "import": "./dist/subpaths/utils/loadScript.js"
+    },
+    "./utils/cache": {
+      "typescript": "./src/subpaths/utils/cache.ts",
+      "types": "./dist/subpaths/utils/cache.d.ts",
+      "import": "./dist/subpaths/utils/cache.js"
+    },
+    "./utils/createLocalStorage": {
+      "typescript": "./src/subpaths/utils/createLocalStorage.ts",
+      "types": "./dist/subpaths/utils/createLocalStorage.d.ts",
+      "import": "./dist/subpaths/utils/createLocalStorage.js"
+    },
+    "./utils/createLocalStorageProvider": {
+      "typescript": "./src/subpaths/utils/createLocalStorageProvider.ts",
+      "types": "./dist/subpaths/utils/createLocalStorageProvider.d.ts",
+      "import": "./dist/subpaths/utils/createLocalStorageProvider.js"
+    },
+    "./utils/createMemoryStorageProvider": {
+      "typescript": "./src/subpaths/utils/createMemoryStorageProvider.ts",
+      "types": "./dist/subpaths/utils/createMemoryStorageProvider.d.ts",
+      "import": "./dist/subpaths/utils/createMemoryStorageProvider.js"
+    },
+    "./utils/createNoopProvider": {
+      "typescript": "./src/subpaths/utils/createNoopProvider.ts",
+      "types": "./dist/subpaths/utils/createNoopProvider.d.ts",
+      "import": "./dist/subpaths/utils/createNoopProvider.js"
+    },
+    "./utils/createSessionStorage": {
+      "typescript": "./src/subpaths/utils/createSessionStorage.ts",
+      "types": "./dist/subpaths/utils/createSessionStorage.d.ts",
+      "import": "./dist/subpaths/utils/createSessionStorage.js"
+    },
+    "./utils/createSessionStorageProvider": {
+      "typescript": "./src/subpaths/utils/createSessionStorageProvider.ts",
+      "types": "./dist/subpaths/utils/createSessionStorageProvider.d.ts",
+      "import": "./dist/subpaths/utils/createSessionStorageProvider.js"
+    },
+    "./utils/createStorage": {
+      "typescript": "./src/subpaths/utils/createStorage.ts",
+      "types": "./dist/subpaths/utils/createStorage.d.ts",
+      "import": "./dist/subpaths/utils/createStorage.js"
+    },
+    "./utils/createUrlSearchParamsInHashProvider": {
+      "typescript": "./src/subpaths/utils/createUrlSearchParamsInHashProvider.ts",
+      "types": "./dist/subpaths/utils/createUrlSearchParamsInHashProvider.d.ts",
+      "import": "./dist/subpaths/utils/createUrlSearchParamsInHashProvider.js"
+    },
+    "./utils/createUrlSearchParamsInHashStorage": {
+      "typescript": "./src/subpaths/utils/createUrlSearchParamsInHashStorage.ts",
+      "types": "./dist/subpaths/utils/createUrlSearchParamsInHashStorage.d.ts",
+      "import": "./dist/subpaths/utils/createUrlSearchParamsInHashStorage.js"
+    },
+    "./utils/createUrlSearchParamsProvider": {
+      "typescript": "./src/subpaths/utils/createUrlSearchParamsProvider.ts",
+      "types": "./dist/subpaths/utils/createUrlSearchParamsProvider.d.ts",
+      "import": "./dist/subpaths/utils/createUrlSearchParamsProvider.js"
+    },
+    "./utils/createUrlSearchParamsStorage": {
+      "typescript": "./src/subpaths/utils/createUrlSearchParamsStorage.ts",
+      "types": "./dist/subpaths/utils/createUrlSearchParamsStorage.d.ts",
+      "import": "./dist/subpaths/utils/createUrlSearchParamsStorage.js"
+    },
+    "./utils/localStorageProvider": {
+      "typescript": "./src/subpaths/utils/localStorageProvider.ts",
+      "types": "./dist/subpaths/utils/localStorageProvider.d.ts",
+      "import": "./dist/subpaths/utils/localStorageProvider.js"
+    },
+    "./utils/memoryStorageProvider": {
+      "typescript": "./src/subpaths/utils/memoryStorageProvider.ts",
+      "types": "./dist/subpaths/utils/memoryStorageProvider.d.ts",
+      "import": "./dist/subpaths/utils/memoryStorageProvider.js"
+    },
+    "./utils/sessionStorageProvider": {
+      "typescript": "./src/subpaths/utils/sessionStorageProvider.ts",
+      "types": "./dist/subpaths/utils/sessionStorageProvider.d.ts",
+      "import": "./dist/subpaths/utils/sessionStorageProvider.js"
+    },
+    "./utils/urlSearchParamsInHashProvider": {
+      "typescript": "./src/subpaths/utils/urlSearchParamsInHashProvider.ts",
+      "types": "./dist/subpaths/utils/urlSearchParamsInHashProvider.d.ts",
+      "import": "./dist/subpaths/utils/urlSearchParamsInHashProvider.js"
+    },
+    "./utils/urlSearchParamsProvider": {
+      "typescript": "./src/subpaths/utils/urlSearchParamsProvider.ts",
+      "types": "./dist/subpaths/utils/urlSearchParamsProvider.d.ts",
+      "import": "./dist/subpaths/utils/urlSearchParamsProvider.js"
+    }
+  },
+  "imports": {
+    "#test-utils": "./src/__utils__/index.ts",
+    "#private/*": "./src/*"
+  },
+  "scripts": {
+    "build": "npm run build:pkg && npm run build:version",
+    "build:pkg": "node scripts/build.js",
+    "build:version": "node scripts/utils/set-version.js",
+    "measure": "node scripts/measure-graph.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "bench": "vitest bench --config vitest.bench.config.ts",
+    "bench:run": "vitest bench --config vitest.bench.config.ts --run",
+    "lint:types": "tsc -p tsconfig.lint.json"
   },
   "keywords": [
     "js-toolkit",
@@ -332,5 +1067,15 @@
   "dependencies": {
     "@motionone/easing": "^10.18.0",
     "deepmerge": "^4.3.1"
+  },
+  "devDependencies": {
+    "@codspeed/vitest-plugin": "5.2.0",
+    "@happy-dom/global-registrator": "20.8.8",
+    "@vitest/coverage-v8": "4.1.10",
+    "esbuild": "0.27.0",
+    "fast-glob": "3.3.3",
+    "happy-dom": "20.8.8",
+    "tsdown": "0.22.14",
+    "vitest": "4.1.10"
   }
 }

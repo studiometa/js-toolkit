@@ -3,6 +3,7 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "customConditions": ["typescript"],
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "strict": true,
     "noEmit": true,

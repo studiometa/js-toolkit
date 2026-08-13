@@ -38,11 +38,11 @@
 }
 
 .dark .VPHomeHero .image-container {
-	background-color: var(--vp-c-bg);
+  background-color: var(--vp-c-bg);
 }
 
 .VPHomeHero .image-src.dark {
-	mix-blend-mode: lighten;
+  mix-blend-mode: lighten;
 }
 
 @media (min-width: 960px) {
@@ -63,4 +63,3 @@
     max-height: 500px !important;
   }
 }
-
