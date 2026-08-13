@@ -138,7 +138,7 @@ export function enumerate() {
 
 /**
  * Assign a case-insensitively unique `fileBase` to every symbol so the emitted stub files never
- * clash on case-insensitive filesystems (esbuild refuses two outputs whose paths differ only by
+ * clash on case-insensitive filesystems (a bundler refuses two outputs whose paths differ only by
  * case, e.g. the `animate` value and the `Animate` type). The export subpath key still uses the
  * exact symbol name; only the underlying file name is disambiguated. Values keep the plain name; a
  * colliding type gets a `.<n>` suffix.
@@ -181,7 +181,7 @@ function assertUnique(symbols, label) {
 /**
  * Build the source of a per-symbol stub module. Each stub re-exports the symbol both as a named
  * export and as the default export, so the subpath resolves either way. Type-only symbols use the
- * `type` modifier (esbuild elides the whole module to an empty `.js`; the declaration keeps the
+ * `type` modifier (the bundler elides the whole module to an empty `.js`; the declaration keeps the
  * types).
  *
  * @param   {Descriptor} symbol
@@ -195,56 +195,41 @@ export function stubSource({ exported, orig, from, isType }) {
 }
 
 /**
- * Build the `exports` map fragment for the source `package.json` (string targets pointing at the
- * `.ts` stubs, resolved directly in-repo and by the test/lint tooling).
+ * The three conditions every entry of the `exports` map resolves through.
  *
- * @returns {Record<string, string>}
+ * `typescript` points at the `.ts` source, so the specs, the linter and an editor
+ * with `customConditions: ["typescript"]` read the sources directly and never a
+ * stale build. `types` and `import` point at the emitted declaration and module,
+ * which is what a consumer of the published package gets.
+ *
+ * @param   {string} source The `.ts` module, relative to the package root without its extension.
+ * @returns {{ typescript: string, types: string, import: string }}
  */
-export function buildSourceExports() {
-  const { root, utils } = enumerate();
-  const map = {};
-  for (const { exported, fileBase } of root) {
-    map[`./${exported}`] = `./src/subpaths/${fileBase}.ts`;
-  }
-  for (const { exported, fileBase } of utils) {
-    map[`./utils/${exported}`] = `./src/subpaths/utils/${fileBase}.ts`;
-  }
-  return map;
+export function conditions(source) {
+  return {
+    typescript: `./src/${source}.ts`,
+    types: `./dist/${source}.d.ts`,
+    import: `./dist/${source}.js`,
+  };
 }
 
 /**
- * The directory every emitted module lives in inside the published package.
+ * Build the per-symbol fragment of the `exports` map.
  *
- * Nesting the whole build keeps the file paths of the tarball disjoint from the subpath keys of the
- * `exports` map: `./utils/debounce` resolves to `dist/subpaths/utils/debounce.js`, and the
- * implementation it re-exports sits at `dist/utils/debounce.js`. Without that offset the two paths
- * `utils/debounce` and `utils/debounce.js` differ only by the extension, and CDNs which name their
- * build output after the requested subpath — esm.sh does — map the stub and its implementation to the
- * same URL. The served module then imports itself and fails to link with
- * `SyntaxError: Detected cycle while resolving name`.
- */
-export const distDir = 'dist';
-
-/**
- * Build the `exports` map fragment for the published `dist/package.json` (object targets pointing at
- * the emitted `.js` module and its `.d.ts` declaration).
+ * Every entry is a closed, explicit subpath — no `./*` wildcard — pointing at the
+ * stub which re-exports one leaf module. That is what keeps a CDN from serving a
+ * whole barrel's graph for one symbol.
  *
- * @returns {Record<string, { types: string, import: string }>}
+ * @returns {Record<string, { typescript: string, types: string, import: string }>}
  */
-export function buildDistExports() {
+export function buildSubpathExports() {
   const { root, utils } = enumerate();
   const map = {};
   for (const { exported, fileBase } of root) {
-    map[`./${exported}`] = {
-      types: `./${distDir}/subpaths/${fileBase}.d.ts`,
-      import: `./${distDir}/subpaths/${fileBase}.js`,
-    };
+    map[`./${exported}`] = conditions(`subpaths/${fileBase}`);
   }
   for (const { exported, fileBase } of utils) {
-    map[`./utils/${exported}`] = {
-      types: `./${distDir}/subpaths/utils/${fileBase}.d.ts`,
-      import: `./${distDir}/subpaths/utils/${fileBase}.js`,
-    };
+    map[`./utils/${exported}`] = conditions(`subpaths/utils/${fileBase}`);
   }
   return map;
 }

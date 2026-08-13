@@ -1,6 +1,5 @@
 import { resolve, dirname } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { distDir } from '../lib/subpath-exports.js';
 
 /**
  * Replace the `__VERSION__` placeholder with the real version in the built
@@ -11,11 +10,14 @@ import { distDir } from '../lib/subpath-exports.js';
  * string. Both the JavaScript output and the type declaration are patched, so
  * the exact published version shows up at runtime and in editors.
  */
-const version = process.env.npm_package_version ?? 'dev';
-const root = resolve(dirname(new URL(import.meta.url).pathname), '../../../..');
+const pkgRoot = resolve(dirname(new URL(import.meta.url).pathname), '../..');
+const { version: manifestVersion } = JSON.parse(
+  readFileSync(resolve(pkgRoot, 'package.json'), 'utf8'),
+);
+const version = process.env.npm_package_version ?? manifestVersion;
 
-for (const file of [`dist/${distDir}/version.js`, `dist/${distDir}/version.d.ts`]) {
-  const path = resolve(root, file);
+for (const file of ['dist/version.js', 'dist/version.d.ts']) {
+  const path = resolve(pkgRoot, file);
   const content = readFileSync(path, { encoding: 'UTF-8' });
   if (!content.includes('__VERSION__')) {
     throw new Error(`set-version: could not find the '__VERSION__' placeholder in ${file}`);

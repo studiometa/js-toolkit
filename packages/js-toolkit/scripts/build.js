@@ -1,35 +1,178 @@
-import { resolve, dirname } from 'node:path';
+import { isAbsolute, resolve, dirname } from 'node:path';
+import { copyFile, readdir, readFile, writeFile } from 'node:fs/promises';
+import { existsSync, readFileSync } from 'node:fs';
 import glob from 'fast-glob';
-import esbuild from 'esbuild';
-import { distDir } from './lib/subpath-exports.js';
+import { build as tsdownBuild } from 'tsdown';
 
 const pkgRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
-const root = resolve(pkgRoot, '../..');
-const { npm_package_version: version = 'dev' } = process.env;
+const repositoryRoot = resolve(pkgRoot, '../..');
+const srcRoot = resolve(pkgRoot, 'src');
 
-console.log(`Building ${version}...`);
-const { errors, warnings } = await esbuild.build({
-  entryPoints: glob.globSync(
-    [
-      '**/*.ts',
-      '!**/node_modules/**',
-      '!**/*.d.ts',
-      '!**/*.spec.ts',
-      '!__utils__/**',
-      '!__benchmarks__/**',
-      '!**/__snapshots__/**',
-    ],
-    { cwd: resolve(pkgRoot, 'src'), absolute: true },
-  ),
-  write: true,
-  // The modules are nested one level deeper than the package root, see `distDir`.
-  outdir: resolve(root, 'dist', distDir),
-  target: 'esnext',
+/** The sources build into the package-local `dist/`, which is what npm publishes. */
+const outDir = resolve(pkgRoot, 'dist');
+
+// Every `.js`/`.ts` module under `src/` except the ones which are not shipped:
+// the specs, the helpers they share and the benchmarks. `unbundle` keeps the
+// emitted `dist/` tree one-to-one with these sources (e.g. `src/Base/Base.ts` →
+// `dist/Base/Base.js`).
+const entryPoints = glob.sync(
+  [
+    '**/*.js',
+    '**/*.ts',
+    '!**/node_modules/**',
+    '!**/*.d.ts',
+    '!**/*.spec.ts',
+    '!__utils__/**',
+    '!__benchmarks__/**',
+    '!**/__snapshots__/**',
+  ],
+  { cwd: srcRoot, absolute: true },
+);
+
+// Every non-relative, non-absolute specifier stays external, mirroring the
+// transpile-only esbuild build this replaces, which never bundled a bare import
+// (e.g. `deepmerge`, `@motionone/easing`).
+const isExternal = (id) => !id.startsWith('.') && !isAbsolute(id);
+
+const defaultOptions = {
+  entry: entryPoints,
+  outDir,
   format: 'esm',
-  sourcemap: true,
-});
+  platform: 'neutral',
+  target: 'esnext',
+  unbundle: true,
+  config: false,
+  external: isExternal,
+  tsconfig: resolve(pkgRoot, 'tsconfig.build.json'),
+  logLevel: 'silent',
+};
 
-errors.forEach(console.error);
-warnings.forEach(console.warn);
+/**
+ * List every file below `dir`, returned as paths relative to `dir`.
+ *
+ * @param   {string} dir
+ * @param   {string} root
+ * @returns {Promise<string[]>}
+ */
+async function listFiles(dir, root = dir) {
+  const files = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const path = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) files.push(...(await listFiles(path, root)));
+    else files.push(path.slice(root.length + 1));
+  }
+  return files;
+}
 
-console.log(`Done building!`);
+/**
+ * Rolldown emits no source map for a pure re-export facade entry (`export { … }`
+ * only), the same shape esbuild emitted with an empty (`sources: []`) map. Every
+ * per-symbol subpath stub is exactly that shape, so without this the package
+ * would ship hundreds of modules with no map at all. Synthesize the empty,
+ * source-free map for each of them so the public "one source map per module"
+ * invariant still holds.
+ *
+ * @param   {string} directory
+ * @returns {Promise<void>}
+ */
+async function synthesizeFacadeSourceMaps(directory) {
+  const files = await listFiles(directory);
+  const present = new Set(files);
+  for (const file of files) {
+    if (!file.endsWith('.js') || present.has(`${file}.map`)) continue;
+    const absolute = `${directory}/${file}`;
+    const base = file.split('/').pop();
+    const map = {
+      version: 3,
+      file: base,
+      sources: [],
+      sourcesContent: [],
+      names: [],
+      mappings: '',
+    };
+    await writeFile(`${absolute}.map`, `${JSON.stringify(map)}\n`);
+    let source = await readFile(absolute, 'utf8');
+    if (!source.includes('# sourceMappingURL=')) {
+      source = `${source.replace(/\s+$/, '')}\n//# sourceMappingURL=${base}.map\n`;
+      await writeFile(absolute, source);
+    }
+  }
+}
+
+/**
+ * Run one tsdown (rolldown) pass over the sources.
+ *
+ * The JavaScript modules and their `.d.ts` declarations are emitted by two
+ * separate passes (see `buildLibrary`): a single mixed pass would let the
+ * JavaScript source maps leak `//# sourceMappingURL` comments into the
+ * declarations (rolldown-plugin-dts forces the dts output map from the shared
+ * JavaScript `sourcemap` option, then deletes the map, leaving a dangling
+ * reference). Keeping the passes separate avoids that.
+ *
+ * @param   {import('tsdown').Options} opts
+ * @returns {Promise<Awaited<ReturnType<typeof tsdownBuild>>>}
+ */
+function build(opts = {}) {
+  return tsdownBuild({ ...defaultOptions, ...opts });
+}
+
+/**
+ * Copy the repository `README.md` and `LICENSE` next to the package manifest so
+ * the published tarball carries them. Both copies are git-ignored: the tracked
+ * originals stay at the repository root.
+ *
+ * @returns {Promise<void>}
+ */
+async function copyPackageFiles() {
+  for (const file of ['README.md', 'LICENSE']) {
+    const source = resolve(repositoryRoot, file);
+    if (existsSync(source)) await copyFile(source, resolve(pkgRoot, file));
+  }
+}
+
+/**
+ * Assert no shipped file sits at the path of a subpath key.
+ *
+ * A CDN which names its build output after the requested subpath — esm.sh does —
+ * gives the same URL to the `./utils/debounce` entry and to a file shipped at
+ * `utils/debounce.js`. The stub would then import itself, and every consumer of
+ * that URL dies on `SyntaxError: Detected cycle while resolving name`. Emitting
+ * the whole build under `dist/` keeps the two path spaces disjoint; this check
+ * fails the build if anything ever breaks that guarantee.
+ */
+function assertNoSubpathShadowing() {
+  const files = new Set(
+    glob
+      .sync('**/*', { cwd: outDir, onlyFiles: true })
+      .map((file) => `dist/${file.replace(/\\/g, '/')}`),
+  );
+  const shadowed = [];
+
+  const { exports: map } = JSON.parse(readFileSync(resolve(pkgRoot, 'package.json'), 'utf8'));
+  for (const key of Object.keys(map)) {
+    if (key === '.' || key === './package.json') continue;
+    const path = key.slice('./'.length);
+    for (const extension of ['.js', '.mjs', '.d.ts']) {
+      if (files.has(`${path}${extension}`)) shadowed.push(`${key} ↔ ${path}${extension}`);
+    }
+  }
+
+  if (shadowed.length) {
+    console.error(
+      'Subpath keys shadowed by a shipped module — CDNs naming their output after the requested',
+    );
+    console.error('subpath would serve a module which imports itself:');
+    for (const entry of shadowed) console.error(`  ${entry}`);
+    process.exit(1);
+  }
+
+  console.log(`No shadowing among ${files.size} emitted files.`);
+}
+
+console.log(`Building ${entryPoints.length} modules...`);
+await build({ sourcemap: true, dts: false, clean: true });
+await build({ sourcemap: false, dts: { emitDtsOnly: true }, clean: false });
+await synthesizeFacadeSourceMaps(outDir);
+await copyPackageFiles();
+assertNoSubpathShadowing();
+console.log('Done building!');

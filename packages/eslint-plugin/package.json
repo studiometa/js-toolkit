@@ -32,13 +32,13 @@
     "build": "node scripts/build.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint:types": "tsgo --build tsconfig.json"
+    "lint:types": "tsgo --noEmit -p tsconfig.json"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "4.1.2",
-    "esbuild": "0.27.0",
     "eslint": "9.34.0",
-    "typescript": "6.0.2",
+    "tsdown": "0.22.14",
+    "typescript": "7.0.2",
     "vitest": "4.1.2"
   },
   "dependencies": {

@@ -1,6 +1,12 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  // The `exports` map points every public subpath at `dist/`; the `typescript`
+  // condition points it at `src/`. The specs must exercise the sources, so a
+  // stale or missing build can never change what they cover.
+  resolve: {
+    conditions: ['typescript'],
+  },
   test: {
     environment: 'happy-dom',
     // The specs sit next to the sources they cover, so the include list is the

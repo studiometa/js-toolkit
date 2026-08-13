@@ -25,13 +25,19 @@ yarn-error.log*
 *.sublime-*
 
 # Build files
-dist/
+packages/*/dist/
 packages/js-toolkit/src/subpaths/
-demo/dist/
+packages/demo/dist/
+
+# Copied into the package by its build so the tarball carries them; the tracked
+# originals live at the repository root.
+packages/js-toolkit/LICENSE
+packages/js-toolkit/README.md
 
 # Module graph reports written by `npm run measure -- --json <file>`
 .measure-*.json
 /packages/docs/.vitepress/cache
+/packages/docs/.vitepress/dist
 coverage/
 /full.d.ts
 /index.d.ts

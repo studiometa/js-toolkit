@@ -2,11 +2,9 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname, relative } from 'node:path';
 import { brotliCompressSync } from 'node:zlib';
 import esbuild from 'esbuild';
-import { distDir } from './lib/subpath-exports.js';
 
-const root = resolve(dirname(new URL(import.meta.url).pathname), '../../..');
-const distRoot = resolve(root, 'dist');
-const modulesRoot = resolve(distRoot, distDir);
+const pkgRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
+const modulesRoot = resolve(pkgRoot, 'dist');
 
 /**
  * Matches the specifier of every static `import`/`export … from` of a relative module.
@@ -119,11 +117,7 @@ async function measureFloor(entry) {
  * @returns {{ subpath: string, entry: string }[]}
  */
 function collectEntries() {
-  const pkgPath = resolve(distRoot, 'package.json');
-  if (!existsSync(pkgPath)) {
-    console.error('No dist/package.json found — run `npm run build` first.');
-    process.exit(1);
-  }
+  const pkgPath = resolve(pkgRoot, 'package.json');
 
   const { exports: map } = JSON.parse(readFileSync(pkgPath, 'utf8'));
   const entries = [];
@@ -131,7 +125,7 @@ function collectEntries() {
     if (subpath === './package.json') continue;
     const file = typeof target === 'string' ? target : target.import;
     if (!file?.endsWith('.js')) continue;
-    entries.push({ subpath, entry: resolve(distRoot, file) });
+    entries.push({ subpath, entry: resolve(pkgRoot, file) });
   }
   return entries;
 }
@@ -255,7 +249,9 @@ const flag = (name) => {
 };
 
 if (!existsSync(modulesRoot)) {
-  console.error(`No build found at ${relative(root, modulesRoot)} — run \`npm run build\` first.`);
+  console.error(
+    `No build found at ${relative(pkgRoot, modulesRoot)} — run \`npm run build\` first.`,
+  );
   process.exit(1);
 }
 
@@ -264,14 +260,14 @@ const limit = flag('--all') ? rows.length : Number(flag('--limit') ?? 25);
 
 const baseline = flag('--compare');
 if (typeof baseline === 'string') {
-  compare(JSON.parse(readFileSync(resolve(root, baseline), 'utf8')), rows, limit);
+  compare(JSON.parse(readFileSync(resolve(process.cwd(), baseline), 'utf8')), rows, limit);
 } else {
   report(rows, limit);
 }
 
 const out = flag('--json');
 if (typeof out === 'string') {
-  writeFileSync(resolve(root, out), `${JSON.stringify(rows, null, 2)}\n`);
+  writeFileSync(resolve(process.cwd(), out), `${JSON.stringify(rows, null, 2)}\n`);
   console.log(`\nWrote ${rows.length} rows to ${out}`);
 }
 

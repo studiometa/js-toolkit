@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "./src",
+    "paths": {},
+    "types": []
+  },
+  "include": ["./src/**/*.ts"],
+  "exclude": [
+    "dist",
+    "scripts",
+    "node_modules",
+    "./src/**/*.spec.ts",
+    "./src/__utils__/**",
+    "./src/__benchmarks__/**"
+  ]
+}

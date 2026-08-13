@@ -1,13 +1,10 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "noEmit": false,
-    "emitDeclarationOnly": true,
-    "declaration": true,
-    "allowImportingTsExtensions": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "paths": {},
+    "types": []
   },
-  "include": ["./src/**/*.ts"],
-  "exclude": ["dist", "node_modules", "**/*.spec.ts"]
+  "include": ["./src/**/*.ts"]
 }
