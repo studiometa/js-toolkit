@@ -357,21 +357,21 @@ describe('DataBind — the group half', () => {
   });
 
   it('preserves the latest value during reentrant group updates', async () => {
-    // ⚠️ EXPECTED RED on `origin/main`, and deliberately left red.
+    // Was red when this port landed; **green since `signal()` landed on
+    // `main`** (verified 2026-08-13). Kept as the regression guard for the
+    // semantic it asked for.
     //
-    // The eager `Signal` in `src/context.ts` iterates its subscriber set and
-    // delivers the frame it was called with. A subscriber that publishes from
-    // inside its own delivery moves the signal forward, but the remaining
-    // subscribers of the *outer* round still receive the superseded frame —
-    // so `#out` below ends on `'outer'` after `#reentrant` already moved the
-    // group to `'inner'`.
+    // The old eager `Signal` iterated its subscriber set and delivered the
+    // frame it was called with. A subscriber that published from inside its
+    // own delivery moved the signal forward, but the remaining subscribers of
+    // the *outer* round still received the superseded frame — so `#out` ended
+    // on `'outer'` after `#reentrant` had already moved the group to
+    // `'inner'`.
     //
-    // The semantics this needs, and the ones the functional `signal()` on
-    // `feature/v4-signal-functional` implements: **a nested write abandons the
-    // current delivery round and restarts it, so a subscriber not yet reached
-    // never sees a superseded frame.** Nothing else in this port needs
-    // anything else from the signal — no batching, no untracked read, no
-    // derived values.
+    // What fixed it: **a nested write abandons the current delivery round and
+    // restarts it, so a subscriber not yet reached never sees a superseded
+    // frame.** Nothing else in this port needs anything else from the signal
+    // — no batching, no untracked read, no derived values.
     //
     // Note what is *not* asserted: how many times each member's `set()` ran.
     // ui takes a major version bump, so call counts are negotiable; the final

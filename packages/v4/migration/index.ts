@@ -10,6 +10,7 @@
  */
 
 export * from './Accordion/index.js';
+export * from './Action/index.js';
 export * from './Data/index.js';
 export * from './Dialog/index.js';
 export * from './ScrollAnimation/index.js';

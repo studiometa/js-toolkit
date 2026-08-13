@@ -101,6 +101,31 @@ class Slider extends Base<{
 
 It is the successor to v3's runtime `config.emits`: it keeps the documentation value of declaring what a component dispatches, with nothing left in the bundle.
 
+#### Props are read through intersections, never conditionals
+
+A component may take a props parameter of its own, which is how one component is extended by another:
+
+```ts
+class Action<T extends BaseProps = BaseProps> extends Base<ActionProps & T> {
+  mounted() {
+    this.$options.target; // string, not `{}`
+  }
+}
+```
+
+Inside that class body `T` is a naked type parameter, and **TypeScript only resolves a conditional type once its checked type is concrete**. So `Options<T> = T['$options'] extends Record<string, unknown> ? T['$options'] : Record<string, unknown>` — the obvious way to give an optional key a default — is deferred there, and every option reads as the fallback however the parameter is written. `T extends ActionProps` fails identically; the parameter is still naked. This cost the `Action` port its type parameter (REPORT.md gap 22) before it was fixed.
+
+The fix is v3's, and it is one operator: read each prop as an **intersection** with its default, `T['$options'] & Record<string, unknown>`, the way `packages/js-toolkit/src/Base/Base.ts` has always done it. An intersection has no gate — the apparent type of `A & B` is the intersection of the apparent types, so a declared half answers immediately and a deferred half contributes its constraint. It also absorbs the two ways a key can be missing: `undefined & X` is `never` and drops out of the union, `unknown & X` is `X`.
+
+Two consequences worth knowing before changing these types again:
+
+- **A conditional over `T` makes `Base` invariant in `T`.** Two conditionals with different checked types are unrelated in both directions, so TypeScript's variance measurement concludes invariance and `Base<SliderProps>` stops being assignable to `Base` — which is what `$query`, `$closest` and `$watchChildren` hand back, and what every helper taking "some component" is annotated with. Intersections measure as covariant and it keeps working. This is not theoretical: it is what the first attempt at this fix broke.
+- **`$emits` is the exception, and needs a conditional.** `keyof (Declared & EmitMap)` is `string`, so intersecting the default in would throw away every declared name. It gets `NonNullable<T['$emits']> & (unknown extends T['$emits'] ? EmitMap : unknown)` instead — the conditional is checked against `unknown`, the type an omitted key reads as, so it fires for an omitted `$emits` and nothing else, and its branches union to `unknown` so a deferred instance contributes nothing. Everything downstream of it is then checked against the **map** rather than against `T`, and the one place a conditional is unavoidable — a `void` payload takes no argument, a declared one is required — is written `void extends M[K] ? … : …` so the checked type is concrete and only the `extends` side is deferred. Written the other way round, `$emit()` rejects every argument list a generic component gives it.
+
+The price, also v3's: the default's index signature comes along, so reading an option or a ref a component did not declare is `unknown` (respectively `HTMLElement | HTMLElement[]`) rather than an error. Declared props keep their exact types, which is what declaring them is for.
+
+`src/props.spec.ts` holds the assertions — `expectTypeOf` and `@ts-expect-error`, enforced by `npm run lint:types`, since none of this is visible at runtime.
+
 ### Option defaults belong to the instance, and may be factories
 
 `$options` reads its `data-option-*` attribute on every access — an attribute is the source of truth, and stays live. A **default** is the opposite kind of value: it is not in the DOM, so it belongs to the instance that reads it.
@@ -178,13 +203,28 @@ One internal engine owns one MutationObserver for component discovery, lifecycle
 1. destroy removed subtrees and dispose their strategies;
 2. reconcile final `data-component` and `data-mount` attributes;
 3. deliver coalesced declared-option changes to retained mounted instances;
-4. scan added subtrees once and schedule their registered component tokens.
+4. scan added subtrees once and schedule their registered component tokens;
+5. report coalesced attribute changes to the elements which asked to watch them — see below.
 
 v3.9 re-queries every registry entry and sweeps every live instance per mutation batch. v4 reads `data-component` tokens from an inserted subtree in one pass and looks each token up in the registry.
 
 A disconnected element receives `$destroy()` and retains its instance for reinsertion. Removing one component token from a connected element is different: the DOM no longer declares that identity, so the registry calls `$terminate()`. Adding that token later creates a new instance. A moved node produces removal and addition records and deliberately completes a destroy/remount cycle with the same identity.
 
 `whenDOMSettled()` provides an explicit completion boundary for morphing and fetch-style updates. It drains pending records, follows mutation chains created by eager lifecycle work and resolves after eager mounts and teardown have run. It does not wait for visibility, interaction, idle or media conditions, and it does not await promises returned by `mounted()`.
+
+### Attributes the framework cannot name — `$watchAttributes()`
+
+The precise `attributeFilter` is what keeps the engine cheap, and it is also its one blind spot: `attributeFilter` takes **exact names** and the DOM has no wildcard, so an attribute the framework cannot enumerate produces no record at all. `data-on:<event>` is the case that forces the point — its name is any DOM event, so a parse-time registration is never complete, and an in-place rewrite (`swap({ mode: 'morph' })`, a `data-bind:` template re-render) leaves a component's binding stale and **silent**. The half that is enumerable already works: a `data-option-*` name joins the filter when its class registers, and `option<Name>Changed()` reports it.
+
+Two answers were rejected before this one. Adding the names to the global filter cannot be complete against an open-ended set. Dropping the filter and testing each record in the callback is correct and puts every `class` and `style` write in the document — animation churn included — through the queue, which is the cost the filter exists to avoid.
+
+So the opt-in is **element-scoped**: `this.$watchAttributes(callback)` observes every attribute of the component's own element, through a second, unfiltered observer created for that element and disconnected on cleanup. The page pays for the components which ask, not for the components which exist. Nothing is created at import time, and one component's opt-in observes nothing outside its own element.
+
+- **Destroy-scoped**, like the `mounted()` cleanups and a pending `$inject()`: the observer is disconnected by `$destroy()` and a remount re-establishes it, so the call belongs in `mounted()`. The returned cleanup is for ending it early; it is idempotent and dropping it leaks nothing.
+- **The records join the shared queue.** The element observer is drained wherever the engine drains its own — `whenDOMSettled()` included — and its changes are reported from the same background task, as step 5 above. So `swap()` covers a watched attribute exactly as it covers a mount, and there is no second timeline to reason about.
+- **After the framework, deliberately.** A callback is component code and must see a settled framework rather than a half-reconciled one. The consequence is the intended precedence: a component whose `data-component` token was dropped in the same batch has already been terminated by step 2, so it is no longer watching and hears nothing about the accompanying attribute change — a callback never runs against an instance the framework has just ended. Nothing in the framework reads these attributes, so no framework decision can depend on a callback, and the reverse order would have no reader.
+- **Coalesced like options.** Several writes to one attribute in a batch are one change, from the first old value to the final DOM value, and a rewrite ending where it started is not a change at all — the rule `$optionChanged()` already follows.
+- Delivered as one payload object: `{ name, value, previousValue }`, raw attribute strings, `null` on either side for an absent attribute. It is the **entire** attribute set of the element, framework names included; a component narrows by prefix, which is what a `data-on:` or `data-bind:` family wants anyway.
 
 The matching surface is deliberately narrower than v3: only `data-component="Name"` declarations are discovered, with whitespace-separated tokens for several components on one element. v3's `<tk-name>` tag sugar and lowercase arbitrary-selector registrations are not kept. `data-component` still enhances native elements (`<form>`, `<a>`, `<details>`, table markup) and supports several components on one element — both impossible with custom elements as the primitive.
 
@@ -294,7 +334,7 @@ Neither runner is the default, and that is deliberate: `$domUpdate()` with nobod
 
 ## 5. Children advertise their existence
 
-The piece that makes the flat, order-free topology workable. Two layers plus a separate shared-state primitive.
+The piece that makes the flat, order-free topology workable. Two layers, a page-wide lookup for what neither layer is scoped to reach, plus a separate shared-state primitive.
 
 ### Layer 1 — bubbling lifecycle announcements
 
@@ -317,6 +357,25 @@ class Slider extends Base {
 This replaces Slider's per-instance store + two-sided `connectChildren`/`__connect` handshake, and it is the honest v4 successor of `$children` — pull plus push, instead of a lazy re-query getter.
 
 The initial sweep is deferred to a microtask: `$watchChildren` is typically called in a field initializer, and already-mounted children would otherwise fire `added` synchronously while the instance is half-constructed (found live: the Slider demo read `this.items` from an `added` callback before the field was assigned, and its provided state signal stayed at `total: 0`). The announcement listeners attach synchronously, so nothing mounting in between is missed — the internal `Set` deduplicates.
+
+### The page-wide lookup — `getInstances()` — implemented
+
+Every lookup above is scoped to one component: `$query()` walks descendants, `$closest()` walks ancestors, `$watchChildren()` needs a component to watch from. A component that acts on other components _named at runtime, anywhere on the page_ — `Action` is the one that forced this — has none of them, and no ancestor to inject from either, because its targets are named by an arbitrary `config.name` and have no owner.
+
+```js
+getInstances('Dialog').forEach((dialog) => dialog.close()); // page-wide
+getInstances('Dialog', section); // scoped to a region
+```
+
+**It re-derives the answer from the DOM instead of keeping a registry of instances**, which is the core model applied rather than an exception carved out of it: the document already knows where the components are, and a second index of it can go stale. It is also not the slow path — a `querySelectorAll` narrowed by name beats v3's walk of every instance on the page, measured on the `Action` port. That measurement is the reason gap 7's "per-class instance registry" is answered with a function rather than with a registry.
+
+Three decisions, all of them the ones the component-scoped lookups already made:
+
+- **A matching element with no instance is skipped.** A declaration is an intent: an unregistered name never gets an instance, and a `data-mount` strategy still waiting has none yet — consistent with "a waiting component is invisible to `$query`".
+- **The filter is `$isMounted`**, so a destroyed _or_ terminated instance is never returned. `$terminate()` destroys first, so one predicate covers both, and a detached-but-retained subtree — the case that exists only because destroy is reversible — is exactly what a caller must not run effects on.
+- **`root` is a `ParentNode`** and the call _is_ `querySelectorAll`: an element root searches its descendants and never matches itself.
+
+There is no selector-strategy seam behind it. v4 resolves components through `data-component` alone — no tag matching, no arbitrary selectors, no custom elements — so name → selector is the only lookup shape there will ever be, and `selectorFor(name)` (already public, on `/utils`) is the single place that contract is written down. `getInstances` exists so that resolving by name never means hard-coding `[data-component~="…"]` and reading `el.__base__` in user code.
 
 ### Shared state — provide/inject in core
 

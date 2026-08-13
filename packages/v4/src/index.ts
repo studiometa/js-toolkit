@@ -33,6 +33,10 @@
  * - `$terminate()` is explicit and final: destroy + instance-lifetime
  *   teardown ($provide, $watchChildren) + `terminated()` hook.
  *
+ * Plus `getInstances(name, root)`, the lookup for the case the three
+ * component-scoped ones miss: mounted instances of a name anywhere on the page,
+ * resolved from the DOM rather than from a registry.
+ *
  * Plus `swap()`, the DOM content-swapping primitive: one mutation in one of
  * four modes, one script-adoption pass, and a promise resolving once the
  * registry has caught up.
@@ -80,7 +84,8 @@ export {
   type Signal,
 } from './context.js';
 export { children, component, inject, on, provide, read, write } from './decorators.js';
-export { whenDOMSettled } from './dom-mutations.js';
+export { whenDOMSettled, type AttributeChange, type AttributeWatcher } from './dom-mutations.js';
+export { getInstances } from './instances.js';
 export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
 export {
   DOM_UPDATE_EVENT,
