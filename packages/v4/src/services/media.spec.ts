@@ -5,7 +5,6 @@ import { cdp } from 'vitest/browser';
 import type {} from '@vitest/browser-playwright';
 import { settle } from '../test-utils.js';
 import { useMediaQuery, usePrefersReducedMotion, type MediaQueryProps } from './media.js';
-import { until } from './until.js';
 
 /**
  * A media feature the page cannot change from the inside — the reader sets it in
@@ -59,12 +58,25 @@ describe('useMediaQuery', () => {
     expect(service.props().matches).toBe(false);
 
     const seen: boolean[] = [];
-    const unsubscribe = service.subscribe(({ matches }) => seen.push(matches));
+    // Waiting on the emit itself rather than on a predicate. `props()` reads the
+    // `MediaQueryList` live — deliberately, so a caller can branch without
+    // subscribing — so it reports the crossing the moment the emulation applies,
+    // before the `change` event has reached anyone. `until()` resolves on
+    // current props that already match, so it would resolve off that live read
+    // with `seen` still empty. It passed on timing alone.
+    let emitted!: () => void;
+    const hasEmitted = new Promise<void>((resolve) => {
+      emitted = resolve;
+    });
+    const unsubscribe = service.subscribe(({ matches }) => {
+      seen.push(matches);
+      emitted();
+    });
 
     // The reader turns motion down mid-session, which is why this is a service
     // and not a boolean read once at load time.
     await emulateReducedMotion('reduce');
-    await until(service, ({ matches }) => matches);
+    await hasEmitted;
     expect(seen).toEqual([true]);
     expect(service.props().matches).toBe(true);
 
