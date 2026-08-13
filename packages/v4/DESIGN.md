@@ -422,6 +422,12 @@ A service is a shared source of props components subscribe to: `ticked`, `scroll
 
   `start()` is idempotent and `stop()` is safe to repeat, and it works on a `Signal`, on a bare listener, and outside a component, which a pair of instance methods could not. Reference counting does the rest: a stopped service with no other subscriber genuinely stops, frame loop included (asserted in `toggle.spec.ts` by watching `requestAnimationFrame`).
 
+- **A one-shot wait — `until(service, predicate)`.** `isScrolling` is documented as the flag "a component waiting for a scroll to finish should read", and there was nothing to wait _with_: `await until(useScroll(), ({ isScrolling }) => !isScrolling)`. It resolves on the first matching update, releases the subscription before resolving, and resolves with a **copy** of the props, since the object belongs to the service and an `await` resumes a microtask later. It resolves on the current props when they already match — asking whether a scroll has finished must not wait for the next scroll to answer — which is `{ immediate: true }` doing that work, so the sources with no current value are the ones that always wait.
+
+  It exists because the hand-rolled version is a trap twice over. Releasing the subscription from inside the callback names the unsubscribe before `subscribe()` returned it: a temporal dead zone, `ReferenceError` at the first match. Hoisting it to a `let` fixes the crash and not the case where the match arrives _during_ `subscribe()`, where the binding is still `null`, nothing is released, and the service — a frame loop, for `useRaf()` — runs for the life of the page. Measured: the naive form leaves the service started and never stopped, which the spec asserts on. `toggle()` is the same argument for a suspendable subscription; this is the same argument for a wait.
+
+  It consumes a `Service<T>` and nothing else. That matters beyond convenience: `toggle()` and `until()` are what the uniform interface is _for_, and until they existed nothing in the public surface consumed it, so its uniformity was paid for and never spent.
+
 - **A hook can be suspended too — `{ manual: true }` and `$services.<hook>`.** `toggle()` is the primitive, not a replacement for the hook: writing the subscription by hand to get a shorter span costs the thing the hook was for, which is that the behaviour reads as a method on the class. So `manual` stays, and the mixin puts a `Toggle` under the hook's own name:
 
   ```js

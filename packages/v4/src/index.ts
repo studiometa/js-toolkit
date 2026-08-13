@@ -151,4 +151,5 @@ export {
   type Unsubscribe,
 } from './services/service.js';
 export { toggle, type Toggle } from './services/toggle.js';
+export { until } from './services/until.js';
 export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
