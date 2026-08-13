@@ -15,5 +15,5 @@
 export { Action, type ActionProps } from './Action.js';
 export { ActionEvent, type ActionTarget, type Modifier } from './ActionEvent.js';
 export { EFFECT_ARGUMENTS, getEffect, type EffectFunction } from './expression.js';
-export { getInstances, getInstancesOn } from './instances.js';
+export { getInstancesOn } from './instances.js';
 export { Target } from './Target.js';
