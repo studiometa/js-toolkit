@@ -1,11 +1,9 @@
 import { isAbsolute, resolve, dirname } from 'node:path';
-import { copyFile, readdir, readFile, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import glob from 'fast-glob';
 import { build as tsdownBuild } from 'tsdown';
 
 const pkgRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
-const repositoryRoot = resolve(pkgRoot, '../..');
 const srcRoot = resolve(pkgRoot, 'src');
 
 /**
@@ -16,7 +14,7 @@ const srcRoot = resolve(pkgRoot, 'src');
  * the requested subpath — esm.sh does — would otherwise give the same URL to the
  * `./utils/debounce` entry and to a file shipped at `utils/debounce.js`, and the
  * stub would import itself (`SyntaxError: Detected cycle while resolving name`).
- * `files` ships nothing but `dist/` at the package root, so no key can collide.
+ * `files` ships no module outside `dist/`, so no key can collide.
  */
 const outDir = resolve(pkgRoot, 'dist');
 
@@ -125,23 +123,8 @@ function build(opts = {}) {
   return tsdownBuild({ ...defaultOptions, ...opts });
 }
 
-/**
- * Copy the repository `README.md` and `LICENSE` next to the package manifest so
- * the published tarball carries them. Both copies are git-ignored: the tracked
- * originals stay at the repository root.
- *
- * @returns {Promise<void>}
- */
-async function copyPackageFiles() {
-  for (const file of ['README.md', 'LICENSE']) {
-    const source = resolve(repositoryRoot, file);
-    if (existsSync(source)) await copyFile(source, resolve(pkgRoot, file));
-  }
-}
-
 console.log(`Building ${entryPoints.length} modules...`);
 await build({ sourcemap: true, dts: false, clean: true });
 await build({ sourcemap: false, dts: { emitDtsOnly: true }, clean: false });
 await synthesizeFacadeSourceMaps(outDir);
-await copyPackageFiles();
 console.log('Done building!');

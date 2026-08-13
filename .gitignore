@@ -29,11 +29,6 @@ packages/*/dist/
 packages/js-toolkit/src/subpaths/
 packages/demo/dist/
 
-# Copied into the package by its build so the tarball carries them; the tracked
-# originals live at the repository root.
-packages/js-toolkit/LICENSE
-packages/js-toolkit/README.md
-
 # Module graph reports written by `npm run measure -- --json <file>`
 .measure-*.json
 /packages/docs/.vitepress/cache
