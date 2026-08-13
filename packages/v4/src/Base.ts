@@ -1,5 +1,11 @@
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
 import { domVersion } from './dom-mutations.js';
+import {
+  domUpdate,
+  emitExtendable,
+  DOM_UPDATE_EVENT,
+  type DomMutation,
+} from './negotiated-events.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import type { MountStrategy } from './mount-strategies.js';
 import { selectorFor } from './utils/selectors.js';
@@ -853,6 +859,82 @@ export class Base<T extends BaseProps = BaseProps> {
   /** Run a DOM update inside a batched native view transition. */
   $viewTransition(update: ViewTransitionUpdate): Promise<void> {
     return viewTransition(update);
+  }
+
+  /**
+   * A negotiated event dispatched through `$emit`, so it bubbles, carries its
+   * source and reaches an `on<Child><Event>()` handler like any other child
+   * event.
+   *
+   * The cast is the point: `dom-update` and the steps of a choreography are
+   * **framework** events, so a component must not have to list them in its
+   * declared `$emits` map to be allowed to announce through them.
+   */
+  #negotiated(event: string): (detail: Record<string, unknown>) => void {
+    return (detail) =>
+      (this.$emit as (type: string, ...args: unknown[]) => CustomEvent)(event, detail);
+  }
+
+  /**
+   * Announce an imminent DOM change, let an ancestor take it over, and apply it.
+   *
+   * A component that is about to mutate the DOM — insert a fetched fragment,
+   * toggle a `<template>`, remove a node — runs the mutation through this
+   * instead of doing it directly. The bubbling `dom-update` event announces it
+   * first, and any ancestor may claim it synchronously with
+   * `detail.wrap(runner)`, at which point the change runs through that runner:
+   *
+   *     // In the mutating component.
+   *     await this.$domUpdate(() => this.$el.replaceChildren(fragment));
+   *
+   *     // In any ancestor, however far up.
+   *     this.$on(DOM_UPDATE_EVENT, ({ detail: [{ wrap }] }) => wrap(viewTransition));
+   *
+   * The event is cancelable like every `$emit`, and `defaultPrevented` is
+   * deliberately ignored: the change is announced, not proposed, and a listener
+   * that wants nothing to happen has to say so through its own state.
+   *
+   * Nobody claiming is synchronous — the mutation has run by the time this
+   * returns — and the promise resolves once the change has been applied,
+   * whether through a runner or directly. The mutation is never lost: a runner
+   * that throws, rejects or forgets to call `apply` still gets the change
+   * applied, exactly once, with the failure reported.
+   *
+   * @param mutate The DOM change to announce and apply.
+   * @param detail Extra context for the listeners, merged into `event.detail`.
+   */
+  $domUpdate(mutate: DomMutation, detail?: Record<string, unknown>): Promise<void> {
+    return domUpdate(this.#negotiated(DOM_UPDATE_EVENT), mutate, detail);
+  }
+
+  /**
+   * Announce a step of a choreography, and wait for everything up the tree
+   * that asked to hold it open.
+   *
+   * The delay half of the same mechanism `$domUpdate()` uses: a listener does
+   * not replace the step, it postpones what comes after it. A dialog stays
+   * painted while its contents animate out, without knowing that anything
+   * animates:
+   *
+   *     // In the component running the choreography.
+   *     async close() {
+   *       await this.$emitExtendable('close');
+   *       this.$el.close();
+   *     }
+   *
+   *     // In anything above it, or in plain JavaScript on the page.
+   *     this.$on('close', ({ detail: [{ waitUntil }] }) => waitUntil(this.leave()));
+   *
+   * `waitUntil()` takes something to await, something to call, or a duck-typed
+   * object exposing a method named after the step. It accepts **every**
+   * registration and awaits all of them, and no rejection propagates: a failing
+   * extension is reported, and the choreography always completes.
+   *
+   * @param event  The step's event name.
+   * @param detail Extra context for the listeners, merged into `event.detail`.
+   */
+  $emitExtendable(event: string, detail?: Record<string, unknown>): Promise<void> {
+    return emitExtendable(this.#negotiated(event), event, detail);
   }
 
   #track<T>(task: ScheduledTask<T>): ScheduledTask<T> {

@@ -8,7 +8,10 @@
  * 2. One registry — a single Map, one MutationObserver, record-based.
  * 3. Auto-mount on DOM insertion, destroy on ejection.
  * 4. Parents listen to child events — `$emit` bubbles, `on<Child><Event>`
- *    handlers resolve through event delegation on the parent root element.
+ *    handlers resolve through event delegation on the parent root element,
+ *    and negotiated events let a listener take part in a step instead of only
+ *    hearing about it: `$domUpdate()` hands a DOM change to an ancestor's
+ *    transition, `$emitExtendable()` holds a step open until it settles.
  * 5. Children advertise their existence — bubbling `component:mounted` /
  *    `component:destroyed` announcements, packaged as `$watchChildren()`,
  *    plus a provide/inject context primitive for shared reactive state.
@@ -69,6 +72,16 @@ export {
 export { children, component, inject, on, provide, read, write } from './decorators.js';
 export { whenDOMSettled } from './dom-mutations.js';
 export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
+export {
+  DOM_UPDATE_EVENT,
+  type DomMutation,
+  type DomUpdateDetail,
+  type DomUpdateRunner,
+  type DomUpdateTransitioner,
+  type ExtendableDetail,
+  type ExtendableTransitioner,
+  type Extension,
+} from './negotiated-events.js';
 export { registerComponent, registerComponents } from './registry.js';
 export {
   nextFrame,
