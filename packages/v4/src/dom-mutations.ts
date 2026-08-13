@@ -8,7 +8,33 @@ export interface DOMMutationRecord {
 
 export type DOMMutationProcessor = (records: readonly DOMMutationRecord[]) => void;
 
+/**
+ * One attribute change on a watched element, as `$watchAttributes()` reports
+ * it. Values are the raw attribute strings, `null` for an absent attribute —
+ * so a removal is `value: null` and an addition is `previousValue: null`.
+ */
+export interface AttributeChange {
+  name: string;
+  value: string | null;
+  previousValue: string | null;
+}
+
+export type AttributeWatcher = (change: AttributeChange) => void;
+
+interface AttributeWatcherEntry {
+  el: Element;
+  observer: MutationObserver;
+  callback: AttributeWatcher;
+  /**
+   * The first old value seen per attribute in the current batch. Same-batch
+   * writes coalesce against the final DOM value, exactly as declared options
+   * do — a morph rewriting one attribute twice is one change.
+   */
+  pending: Map<string, string | null>;
+}
+
 const observedAttributes = new Set(['data-component', 'data-mount', 'data-ref']);
+const attributeWatchers = new Set<AttributeWatcherEntry>();
 let observer: MutationObserver | null = null;
 let processor: DOMMutationProcessor | null = null;
 let processTask: ScheduledTask<void> | null = null;
@@ -61,6 +87,123 @@ export function registerDOMOptionAttributes(attributes: Iterable<string>): void 
 }
 
 /**
+ * Observe **every** attribute of one element, and report each change.
+ *
+ * The page-wide observer runs with a precise `attributeFilter` and that is
+ * deliberate: without it every `class` and `style` write in the document —
+ * animation churn included — would enter the queue. But `attributeFilter`
+ * takes exact names and the DOM has no wildcard, so an attribute the
+ * framework cannot enumerate is invisible to it. A `data-on:<event>` binding
+ * is exactly that: its name is any DOM event, so no parse-time registration
+ * can be complete, and an in-place rewrite (a `swap({ mode: 'morph' })`, a
+ * template re-render) would leave the binding stale and silent.
+ *
+ * The opt-in is therefore element-scoped: one unfiltered observer for the one
+ * element that asked, created here and disconnected by the returned cleanup.
+ * The page pays for the components which opt in, not for the components which
+ * exist.
+ *
+ * **Records join the shared queue.** The engine drains this observer wherever
+ * it drains its own, and delivers the changes from the same background task,
+ * *after* the framework has reconciled the batch. So `whenDOMSettled()` — and
+ * therefore `swap()` — covers a watched attribute the way it covers a mount,
+ * and a callback never runs against a half-reconciled framework state. Each
+ * observer owns its own record queue, so draining it with `takeRecords()`
+ * neither strands a record (the queue is emptied into the pending map) nor
+ * delivers one twice (the callback is not called for records already taken).
+ *
+ * @param el       The element to observe. Its descendants are not observed.
+ * @param callback Called once per coalesced attribute change.
+ * @returns Idempotent cleanup which disconnects the observer.
+ */
+export function watchElementAttributes(el: Element, callback: AttributeWatcher): () => void {
+  const entry: AttributeWatcherEntry = {
+    el,
+    callback,
+    pending: new Map(),
+    observer: new MutationObserver((incoming) => ingestWatchedAttributes(entry, incoming)),
+  };
+  entry.observer.observe(el, { attributes: true, attributeOldValue: true });
+  attributeWatchers.add(entry);
+
+  return () => {
+    if (!attributeWatchers.delete(entry)) {
+      return;
+    }
+    entry.observer.disconnect();
+    entry.pending.clear();
+  };
+}
+
+function ingestWatchedAttributes(
+  entry: AttributeWatcherEntry,
+  incoming: readonly MutationRecord[],
+): void {
+  for (const { attributeName, oldValue } of incoming) {
+    if (attributeName !== null && !entry.pending.has(attributeName)) {
+      entry.pending.set(attributeName, oldValue);
+    }
+  }
+  scheduleProcessing();
+}
+
+function hasWatchedAttributes(): boolean {
+  for (const { pending } of attributeWatchers) {
+    if (pending.size > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Move every element observer's pending records into the shared queue, so a
+ * caller draining the document — `whenDOMSettled()` — cannot return while an
+ * observer still holds an undelivered change.
+ */
+function takeWatchedAttributes(): void {
+  for (const entry of attributeWatchers) {
+    ingestWatchedAttributes(entry, entry.observer.takeRecords());
+  }
+}
+
+/**
+ * Report the batch's coalesced attribute changes.
+ *
+ * The new value is read from the DOM rather than from a record, which is what
+ * makes several writes to one attribute a single change, and what makes a
+ * net-zero rewrite (`a` → `b` → `a`, the shape a morph produces) no change at
+ * all — the same rule `$optionChanged()` follows.
+ */
+function deliverWatchedAttributes(): void {
+  // A callback may end a subscription mid-flush: `Set` iteration skips an
+  // entry deleted before it is reached, which is the wanted behaviour, and a
+  // watcher subscribed from a callback has nothing pending to report yet.
+  for (const entry of attributeWatchers) {
+    if (entry.pending.size === 0) {
+      continue;
+    }
+    const changes = entry.pending;
+    entry.pending = new Map();
+    for (const [name, previousValue] of changes) {
+      // The callback just run may have ended this very subscription.
+      if (!attributeWatchers.has(entry)) {
+        break;
+      }
+      const value = entry.el.getAttribute(name);
+      if (value === previousValue) {
+        continue;
+      }
+      try {
+        entry.callback({ name, value, previousValue });
+      } catch (error) {
+        console.error(`[base] Attribute watcher for "${name}" failed:`, error);
+      }
+    }
+  }
+}
+
+/**
  * Retain records before scheduling their processing. This is also used by
  * synchronous DOM reads after `takeRecords()`, so reading a ref can never
  * steal component-registry work from the observer callback.
@@ -110,7 +253,11 @@ function ingest(incoming: MutationRecord[]): void {
 }
 
 function scheduleProcessing(): void {
-  if (!processor || processTask || records.length === 0) {
+  if (processTask) {
+    return;
+  }
+  const hasFrameworkWork = Boolean(processor) && records.length > 0;
+  if (!hasFrameworkWork && !hasWatchedAttributes()) {
     return;
   }
 
@@ -118,6 +265,13 @@ function scheduleProcessing(): void {
     const batch = records;
     records = [];
     processor?.(batch);
+    // One engine, one batch, one order: component lifecycle and declared
+    // options first, then the attribute watchers. A component whose
+    // `data-component` token was dropped in this same batch has already been
+    // terminated, so its watcher was disposed and hears nothing — which is
+    // the intended precedence. Nothing else in the framework reads these
+    // attributes, so no framework decision can depend on a callback.
+    deliverWatchedAttributes();
   });
   const finished = () => {
     processTask = null;
@@ -176,6 +330,7 @@ export async function whenDOMSettled(): Promise<void> {
 
   while (true) {
     ingest(currentObserver.takeRecords());
+    takeWatchedAttributes();
     scheduleProcessing();
 
     const pending = [...(processTask ? [processTask.promise] : []), ...lifecycleWork];
@@ -189,9 +344,15 @@ export async function whenDOMSettled(): Promise<void> {
     // take records once more before declaring the document stable.
     await Promise.resolve();
     ingest(currentObserver.takeRecords());
+    takeWatchedAttributes();
     scheduleProcessing();
 
-    if (!processTask && lifecycleWork.size === 0 && (!processor || records.length === 0)) {
+    if (
+      !processTask &&
+      lifecycleWork.size === 0 &&
+      (!processor || records.length === 0) &&
+      !hasWatchedAttributes()
+    ) {
       return;
     }
   }

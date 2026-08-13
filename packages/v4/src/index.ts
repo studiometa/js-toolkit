@@ -80,7 +80,7 @@ export {
   type Signal,
 } from './context.js';
 export { children, component, inject, on, provide, read, write } from './decorators.js';
-export { whenDOMSettled } from './dom-mutations.js';
+export { whenDOMSettled, type AttributeChange, type AttributeWatcher } from './dom-mutations.js';
 export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
 export {
   DOM_UPDATE_EVENT,
