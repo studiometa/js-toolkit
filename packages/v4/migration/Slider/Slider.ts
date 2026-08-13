@@ -4,9 +4,12 @@ import {
   Signal,
   withResize,
   type ChildrenCollection,
+  type DelegatedEvent,
   type MountedReturn,
   type RefEvent,
 } from '../../src/index.js';
+import { clamp } from '../../src/utils/maths.js';
+import { SliderDrag } from './SliderDrag.js';
 import { SliderItem } from './SliderItem.js';
 
 export type SliderModes = 'left' | 'center' | 'right';
@@ -29,7 +32,13 @@ export const SliderContext = /* @__PURE__ */ createContext<Signal<SliderState>>(
 
 export interface SliderProps {
   $refs: { wrapper: HTMLElement };
-  $options: { mode: SliderModes; fitBounds: boolean; contain: boolean };
+  $options: {
+    mode: SliderModes;
+    fitBounds: boolean;
+    contain: boolean;
+    sensitivity: number;
+    dropSensitivity: number;
+  };
   $emits: { goto: [index: number]; index: [index: number] };
 }
 
@@ -42,9 +51,7 @@ interface SliderItemState {
 /**
  * Slider — the root of the carousel system.
  *
- * Port of @studiometa/ui 1.10's `Slider`, minus `SliderDrag` (which needs the
- * drag service and the inertia helper; v4 ships `useDrag`, so it is a
- * mechanical follow-up rather than a blocker).
+ * Port of @studiometa/ui 1.10's `Slider`.
  *
  * What changed, and why:
  *
@@ -55,16 +62,20 @@ interface SliderItemState {
  *   `wrapper` ref. The event only reaches the component when the focus is
  *   inside the wrapper, which is what v3 tracked by hand with
  *   `onWrapperFocus` / `onWrapperBlur` and a `hasFocus` flag.
+ * - the drag handlers take v4's `DragProps`: flat per-axis fields, and a
+ *   settle position the service works out itself — see `onSliderDragDrop`.
  */
 export class Slider extends withResize(Base)<SliderProps> {
   static config = {
     name: 'Slider',
     refs: ['wrapper'],
-    components: { SliderItem },
+    components: { SliderItem, SliderDrag },
     options: {
       mode: { type: String, default: 'left' },
       fitBounds: Boolean,
       contain: Boolean,
+      sensitivity: { type: Number, default: 1 },
+      dropSensitivity: { type: Number, default: 2 },
     },
   };
 
@@ -85,6 +96,12 @@ export class Slider extends withResize(Base)<SliderProps> {
   origins: Record<SliderModes, number> = { left: 0, center: 0, right: 0 };
 
   #currentIndex = 0;
+
+  /** Position the slides sat at when the current gesture started. */
+  #initialX = 0;
+
+  /** Position the slides are at right now, while a gesture is running. */
+  #distanceX = 0;
 
   get currentIndex(): number {
     return this.#currentIndex;
@@ -236,6 +253,79 @@ export class Slider extends withResize(Base)<SliderProps> {
 
     this.currentIndex = clamped;
     this.$emit('goto', clamped);
+  }
+
+  /**
+   * A gesture started on the `SliderDrag` track: remember where the slides
+   * are, so the drag is relative to it.
+   */
+  onSliderDragStart(): void {
+    this.#initialX = this.currentSliderItem?.x ?? 0;
+    this.#distanceX = this.#initialX;
+  }
+
+  /**
+   * Follow the pointer. `props.distanceX` is v4's flat spelling of v3's
+   * `props.distance.x` — the movement since the gesture started.
+   */
+  onSliderDragDrag({ args: [props] }: DelegatedEvent<SliderDrag, 'drag'>): void {
+    this.#distanceX = this.#initialX + props.distanceX * this.$options.sensitivity;
+
+    for (const item of this.items) {
+      item.moveInstantly(this.#distanceX);
+    }
+  }
+
+  /**
+   * The gesture ended: pick the slide the throw was heading for.
+   *
+   * v3 projected the throw itself, with
+   * `inertiaFinalValue(this.__distanceX, props.delta.x * dropSensitivity)` —
+   * feeding a per-event delta into an inertia formula, which made the same
+   * flick land differently on a 1000 Hz mouse and a 125 Hz trackpad. v4's drag
+   * service has already done that work and done it properly: it samples a
+   * velocity in pixels per millisecond and announces the exact settle position
+   * as `finalX` at drop time. So the projection is the travel the service is
+   * promising, `finalX - x`, and `dropSensitivity` keeps its meaning as the
+   * multiplier over it.
+   */
+  onSliderDragDrop({ args: [props] }: DelegatedEvent<SliderDrag, 'drop'>): void {
+    const first = this.states[0];
+    const last = this.states.at(-1);
+    if (!first || !last) {
+      return;
+    }
+
+    const projected = (props.finalX - props.x) * this.$options.dropSensitivity;
+    let finalX = clamp(
+      this.#distanceX + projected,
+      this.getStateValueByMode(first),
+      this.getStateValueByMode(last),
+    );
+
+    const differences = this.states.map((state) =>
+      Math.abs(finalX - this.getStateValueByMode(state)),
+    );
+    const closestIndex = differences.indexOf(Math.min(...differences));
+
+    if (this.$options.fitBounds) {
+      this.goTo(closestIndex);
+      return;
+    }
+
+    if (this.$options.contain) {
+      finalX = Math.min(this.containMinState, finalX);
+      finalX = Math.max(this.containMaxState, finalX);
+    }
+
+    for (const item of this.items) {
+      item.move(finalX);
+    }
+
+    // Deliberately not `goTo()`: the slides rest between two states, so only
+    // the index is published. This is v3's behaviour, and it is why the
+    // `currentIndex` setter is what publishes the state.
+    this.currentIndex = closestIndex;
   }
 
   /**
