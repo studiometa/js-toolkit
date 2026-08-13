@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
 import {
-  Signal,
   createContext,
   injectContext,
   injectContextSync,
   provideContext,
   provideRootContext,
+  signal,
+  type Signal,
 } from './context.js';
 import { registerComponent } from './registry.js';
 import { getInstance, renderTodoList, resetDom, settle } from './test-utils.js';
@@ -15,24 +16,174 @@ afterEach(resetDom);
 
 describe('Signal', () => {
   it('notifies subscribers on change only', () => {
-    const signal = new Signal(1);
+    const count = signal(1);
     const seen: number[] = [];
-    signal.subscribe((value) => seen.push(value), { immediate: true });
+    count.subscribe((value) => seen.push(value), { immediate: true });
 
-    signal.value = 1; // same value, no notification
-    signal.value = 2;
+    count.value = 1; // same value, no notification
+    count.value = 2;
     expect(seen).toEqual([1, 2]);
   });
 
   it('stops notifying after unsubscribe', () => {
-    const signal = new Signal('a');
+    const letter = signal('a');
     const seen: string[] = [];
-    const unsubscribe = signal.subscribe((value) => seen.push(value));
+    const unsubscribe = letter.subscribe((value) => seen.push(value));
 
-    signal.value = 'b';
+    letter.value = 'b';
     unsubscribe();
-    signal.value = 'c';
+    letter.value = 'c';
     expect(seen).toEqual(['b']);
+  });
+
+  it('gives each holder of one callback its own delivery and unsubscribe', () => {
+    // A `Set` keyed by the callback collapsed these into a single entry: the
+    // second holder was never called, and the first unsubscribe tore the
+    // subscription out from under it.
+    const cell = signal(0);
+    let calls = 0;
+    const callback = () => {
+      calls += 1;
+    };
+    const first = cell.subscribe(callback);
+    cell.subscribe(callback);
+
+    cell.value = 1;
+    expect(calls).toBe(2);
+
+    first();
+    cell.value = 2;
+    expect(calls).toBe(3);
+  });
+
+  describe('settling', () => {
+    // The oracle is the hazard behind @studiometa/ui's
+    // `DataBind.spec.ts` — "should preserve the latest value during reentrant
+    // group updates". A member republishes from inside its own delivery, and
+    // every peer must end up having last seen the newest frame. The naive
+    // fan-out resumed its walk on the frame it started on, so the peer sitting
+    // after the writer was handed a stale value *after* the newer one, and
+    // last-write-wins silently became last-listener-wins.
+    it('leaves every subscriber having last seen the newest value', () => {
+      const cell = signal('initial');
+      const seen: string[] = [];
+      let hasWritten = false;
+
+      cell.subscribe((value) => seen.push(`first:${value}`));
+      cell.subscribe((value) => {
+        seen.push(`writer:${value}`);
+        if (value === 'outer' && !hasWritten) {
+          hasWritten = true;
+          cell.value = 'inner';
+        }
+      });
+      cell.subscribe((value) => seen.push(`last:${value}`));
+
+      cell.value = 'outer';
+
+      // Nobody is left on the superseded frame.
+      for (const prefix of ['first', 'writer', 'last']) {
+        const last = seen.filter((entry) => entry.startsWith(`${prefix}:`)).at(-1);
+        expect(last).toBe(`${prefix}:inner`);
+      }
+      // `last` never sees the superseded frame at all: it had not been reached
+      // when the write landed, so the round was abandoned instead of finished.
+      expect(seen).not.toContain('last:outer');
+      // And the value a reader sees is the newest one.
+      expect(cell.value).toBe('inner');
+    });
+
+    it('delivers each subscriber once per surviving value', () => {
+      // Five deliveries, not six: `first` and `writer` are reached on the
+      // abandoned `outer` round and again on `inner` because each genuinely has
+      // a newer value to see, while `last` is reached only once. The eager
+      // fan-out ran six times and ended on the stale frame.
+      const cell = signal('initial');
+      const seen: string[] = [];
+      let hasWritten = false;
+
+      cell.subscribe((value) => seen.push(`first:${value}`));
+      cell.subscribe((value) => {
+        seen.push(`writer:${value}`);
+        if (value === 'outer' && !hasWritten) {
+          hasWritten = true;
+          cell.value = 'inner';
+        }
+      });
+      cell.subscribe((value) => seen.push(`last:${value}`));
+
+      cell.value = 'outer';
+
+      expect(seen).toEqual([
+        'first:outer',
+        'writer:outer',
+        'first:inner',
+        'writer:inner',
+        'last:inner',
+      ]);
+    });
+
+    it('settles synchronously, before the setter returns', () => {
+      const cell = signal(0);
+      const seen: number[] = [];
+      cell.subscribe((value) => seen.push(value));
+
+      cell.value = 1;
+      // No microtask hop: a form-control echo must land in the same task.
+      expect(seen).toEqual([1]);
+    });
+
+    it('collapses a run of writes into the value that survives', () => {
+      const cell = signal(0);
+      const seen: number[] = [];
+      let hasWritten = false;
+
+      cell.subscribe((value) => {
+        seen.push(value);
+        if (!hasWritten) {
+          hasWritten = true;
+          cell.value = 2;
+          cell.value = 3;
+        }
+      });
+
+      cell.value = 1;
+      expect(seen).toEqual([1, 3]);
+      expect(cell.value).toBe(3);
+    });
+
+    it('skips a subscriber removed during delivery', () => {
+      const cell = signal(0);
+      const seen: string[] = [];
+      let unsubscribeLater = () => {};
+
+      cell.subscribe(() => unsubscribeLater());
+      unsubscribeLater = cell.subscribe((value) => seen.push(`later:${value}`));
+
+      cell.value = 1;
+      expect(seen).toEqual([]);
+    });
+
+    it('does not deliver a value that predates a subscriber added during delivery', () => {
+      const cell = signal(0);
+      const seen: number[] = [];
+      let hasSubscribed = false;
+
+      cell.subscribe(() => {
+        if (!hasSubscribed) {
+          hasSubscribed = true;
+          cell.subscribe((value) => seen.push(value));
+        }
+      });
+
+      cell.value = 1;
+      // The newcomer is not handed the frame that was in flight before it
+      // existed, and no later value has been written.
+      expect(seen).toEqual([]);
+
+      cell.value = 2;
+      expect(seen).toEqual([2]);
+    });
   });
 });
 
@@ -44,8 +195,8 @@ describe('provide/inject', () => {
     class LateConsumer extends Base {
       static config = { name: 'LateConsumer' };
       async mounted() {
-        const signal = await this.$inject(Key);
-        received.push(signal.value);
+        const greeting = await this.$inject(Key);
+        received.push(greeting.value);
       }
     }
     registerComponent(LateConsumer);
@@ -57,7 +208,7 @@ describe('provide/inject', () => {
     expect(received).toEqual([]);
 
     // The provider appears later, higher in the tree.
-    provideContext(wrapper, Key, new Signal('hello'));
+    provideContext(wrapper, Key, signal('hello'));
     await settle();
     expect(received).toEqual(['hello']);
   });
@@ -131,7 +282,7 @@ describe('provide/inject', () => {
       value = 0;
 
       api = this.$provide<CounterApi>(Key, {
-        state: new Signal(0),
+        state: signal(0),
         increment: () => {
           this.value += 1;
           this.api.state.value = this.value;
@@ -314,7 +465,7 @@ describe('provideRootContext', () => {
         provideRootContext(DataChannels, () => new Map() as Channels);
       let channel = channels.get(name);
       if (!channel) {
-        channel = new Signal('');
+        channel = signal('');
         channels.set(name, channel);
       }
       return channel;

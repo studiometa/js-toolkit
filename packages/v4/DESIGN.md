@@ -240,7 +240,7 @@ Advertisement solves "who is there", not "what is the current value". For contin
 ```ts
 // The coordinator exposes what a control may ask for.
 api = this.$provide(SliderContext, {
-  state: new Signal({ index: 0, total: 0 }), // what changes
+  state: signal({ index: 0, total: 0 }), // what changes
   goNext: () => this.goNext(), // what a control may command
 });
 ```
@@ -276,7 +276,11 @@ Two consequences, both deliberate. A root provider is **not disposable** and out
 
 `context.spec.ts` carries the spike: bare peers on a name share a channel, scoped peers share a different one, names never collide, and the value is live.
 
-The reactive container is called `Signal` — the name the ecosystem settled on (Angular, Solid, Preact, the TC39 proposal), and the one @studiometa/ui already uses to describe its `Data*` suite.
+The reactive container is called `Signal` — the name the ecosystem settled on (Angular, Solid, Preact, the TC39 proposal), and the one @studiometa/ui already uses to describe its `Data*` suite. It is built by `signal(initialValue)`, a factory over a closure rather than a class: nothing about it wants inheritance or an instance identity, `new` was the only reason it was a class, and a closure is what makes the private delivery state genuinely private. **The accessor stays `.value`** — the factory changed, the read/write shape did not. `signal()`/`signal(next)`, the call-style accessor alien-signals uses, was the alternative and was rejected: it costs every existing call site, it makes `count.value++` into `count(count() + 1)`, and it gives a reader no way to tell a read from a write at the call site.
+
+**A write settles synchronously and the newest value wins.** The obvious fan-out — assign, then walk the subscribers — is wrong in a way that only shows up under re-entrancy, and `Data*` is exactly where it shows up: when a subscriber writes back mid-delivery, the walk carries on with the value it started on, so a subscriber positioned _after_ the writer is handed a frame that is already stale, _after_ it has been handed a newer one. Last-write-wins quietly becomes last-listener-wins. So the value a reader sees is split from the value being delivered, and the delivery loop re-reads the former after every callback: when it has moved, the round is abandoned and restarted on the new value instead of being finished on the old one. Subscribers still to be reached skip the superseded frame entirely.
+
+This is the property @studiometa/ui's `DataChannel` gets from alien-signals today, and the reason it can be dropped rather than depended on — its `publish()` always builds a fresh frame object, so the `===` bail-out never fires there and what it actually relies on is _one delivery per subscriber per settle, carrying the latest value_. Settling stays in the same task on purpose: `DataBind` echoes form-control input, and a microtask hop would be a visible change of behaviour. The price is that a subscriber writing unconditionally on every delivery live-locks the loop rather than overflowing the stack, which is the same trade every synchronous reactive graph makes.
 
 ## 6. Decorators — sugar, never a requirement
 

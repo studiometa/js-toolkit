@@ -173,7 +173,7 @@ export function component(config: BaseConfig) {
  *
  *     class Slider extends Base {
  *       @provide(SliderContext)
- *       api = { state: new Signal({ index: 0, total: 0 }), goNext: () => this.goNext() };
+ *       api = { state: signal({ index: 0, total: 0 }), goNext: () => this.goNext() };
  *     }
  */
 export function provide<T>(key: ContextKey<T>): ValueDecorator<T> {

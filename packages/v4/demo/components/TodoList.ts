@@ -1,4 +1,4 @@
-import { Base, Signal, createContext, type DelegatedEvent } from '../../src/index.js';
+import { Base, createContext, signal, type DelegatedEvent, type Signal } from '../../src/index.js';
 
 /**
  * The TodoList demo from the playground: registry auto-mount, delegation,
@@ -45,7 +45,7 @@ export class TodoList extends Base<{
     components: { TodoItem, TodoCount },
   };
 
-  count = this.$provide(CountContext, new Signal(0));
+  count = this.$provide(CountContext, signal(0));
 
   items = this.$watchChildren<TodoItem>('TodoItem', {
     added: () => this.sync(),

@@ -774,7 +774,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * coordinator without `$closest()` and the coupling that comes with it:
    *
    *     api = this.$provide(SliderContext, {
-   *       state: new Signal({ index: 0, total: 0 }),
+   *       state: signal({ index: 0, total: 0 }),
    *       goNext: () => this.goNext(),
    *     });
    *

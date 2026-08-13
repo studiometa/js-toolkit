@@ -18,39 +18,114 @@ export function createContext<T = unknown>(description = 'context'): ContextKey<
  * A minimal reactive value: read/write `value`, subscribe to changes.
  * The live reference is shared, never serialized.
  */
-export class Signal<T = unknown> {
-  #value: T;
-
-  #subscribers = new Set<(value: T) => void>();
-
-  constructor(value: T) {
-    this.#value = value;
-  }
-
-  get value(): T {
-    return this.#value;
-  }
-
-  set value(next: T) {
-    if (next === this.#value) {
-      return;
-    }
-    this.#value = next;
-    for (const callback of this.#subscribers) {
-      callback(next);
-    }
-  }
-
+export interface Signal<T = unknown> {
+  /**
+   * The current value — always the last one written, even mid-delivery.
+   */
+  value: T;
   /**
    * @returns Unsubscribe.
    */
-  subscribe(callback: (value: T) => void, { immediate = false } = {}): () => void {
-    this.#subscribers.add(callback);
-    if (immediate) {
-      callback(this.#value);
+  subscribe(callback: (value: T) => void, options?: { immediate?: boolean }): () => void;
+}
+
+/**
+ * A subscription is a record, not the bare callback: two holders of the same
+ * function must each get their own delivery and their own unsubscribe, which a
+ * `Set` keyed by the callback collapsed into one. The `isActive` flag is what
+ * makes removal correct while the fan-out walks a snapshot — the same pairing
+ * the services use.
+ */
+interface Subscriber<T> {
+  callback: (value: T) => void;
+  isActive: boolean;
+}
+
+/**
+ * Create a reactive value.
+ *
+ * A write is **settled synchronously** before the setter returns: subscribers
+ * run in the same task, in subscription order. There is no microtask hop —
+ * these signals back form-control echoes, where a deferred delivery would be a
+ * visible change of behaviour.
+ *
+ * **A write from inside a delivery supersedes the one being delivered.** The
+ * naive fan-out — assign, then walk the subscribers — re-enters itself on a
+ * nested write and then carries on walking with the value it started on, so a
+ * subscriber positioned after the writer is handed a frame that is already
+ * stale, *after* a newer one. Last-write-wins turns into last-listener-wins.
+ * So delivery is split from the value: `current` is what a reader sees,
+ * `delivered` is what subscribers have been told, and the loop below re-reads
+ * `current` after every callback. When it has moved, the round is abandoned and
+ * restarted on the new value rather than finished on the old one — the
+ * remaining subscribers skip the superseded frame entirely and every subscriber
+ * ends up having last seen the newest value.
+ *
+ * Two consequences worth naming. A subscriber can be delivered to more than
+ * once per write when a peer writes back mid-round, because it genuinely has a
+ * new value to see; what is guaranteed is that no subscriber ever observes a
+ * value older than one it has already been given. And a subscriber that writes
+ * unconditionally on every delivery does not overflow the stack — it spins in
+ * the loop instead, which is a live-lock by construction, exactly as it is for
+ * any synchronous reactive graph.
+ */
+export function signal<T>(initialValue: T): Signal<T> {
+  let current = initialValue;
+  let delivered = initialValue;
+  let isSettling = false;
+  const subscribers = new Set<Subscriber<T>>();
+
+  function settle() {
+    // Re-entrant write: the loop already running owns the drain and picks the
+    // new value up on its next turn. Draining here would nest the fan-out.
+    if (isSettling) {
+      return;
     }
-    return () => this.#subscribers.delete(callback);
+    isSettling = true;
+    try {
+      while (delivered !== current) {
+        delivered = current;
+        // Snapshot: a subscriber added during delivery is not handed a value
+        // that predates it, and one removed during delivery is skipped through
+        // its `isActive` flag rather than by mutating what we iterate.
+        for (const subscriber of [...subscribers]) {
+          if (!subscriber.isActive) {
+            continue;
+          }
+          subscriber.callback(delivered);
+          if (current !== delivered) {
+            break;
+          }
+        }
+      }
+    } finally {
+      isSettling = false;
+    }
   }
+
+  return {
+    get value(): T {
+      return current;
+    },
+    set value(next: T) {
+      if (next === current) {
+        return;
+      }
+      current = next;
+      settle();
+    },
+    subscribe(callback: (value: T) => void, { immediate = false } = {}): () => void {
+      const subscriber: Subscriber<T> = { callback, isActive: true };
+      subscribers.add(subscriber);
+      if (immediate) {
+        callback(current);
+      }
+      return () => {
+        subscriber.isActive = false;
+        subscribers.delete(subscriber);
+      };
+    },
+  };
 }
 
 interface ContextRequestDetail {

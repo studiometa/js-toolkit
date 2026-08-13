@@ -1,12 +1,13 @@
 import {
   Base,
   createContext,
-  Signal,
+  signal,
   withResize,
   type ChildrenCollection,
   type DelegatedEvent,
   type MountedReturn,
   type RefEvent,
+  type Signal,
 } from '../../src/index.js';
 import { clamp } from '../../src/utils/maths.js';
 import { SliderDrag } from './SliderDrag.js';
@@ -95,7 +96,7 @@ export class Slider extends withResize(Base)<SliderProps> {
     },
   };
 
-  state = new Signal<SliderState>({ index: 0, total: 0 });
+  state = signal<SliderState>({ index: 0, total: 0 });
 
   /**
    * The provided owner surface. The provider is attached in this field

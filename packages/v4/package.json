@@ -41,11 +41,6 @@
       "types": "./dist/subpaths/SOURCE.d.ts",
       "import": "./dist/subpaths/SOURCE.js"
     },
-    "./Signal": {
-      "typescript": "./src/subpaths/Signal.ts",
-      "types": "./dist/subpaths/Signal.d.ts",
-      "import": "./dist/subpaths/Signal.js"
-    },
     "./createContext": {
       "typescript": "./src/subpaths/createContext.ts",
       "types": "./dist/subpaths/createContext.d.ts",
@@ -70,6 +65,11 @@
       "typescript": "./src/subpaths/provideRootContext.ts",
       "types": "./dist/subpaths/provideRootContext.d.ts",
       "import": "./dist/subpaths/provideRootContext.js"
+    },
+    "./signal": {
+      "typescript": "./src/subpaths/signal.ts",
+      "types": "./dist/subpaths/signal.d.ts",
+      "import": "./dist/subpaths/signal.js"
     },
     "./children": {
       "typescript": "./src/subpaths/children.ts",

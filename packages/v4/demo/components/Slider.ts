@@ -1,4 +1,11 @@
-import { Base, Signal, createContext, useScroll, type DelegatedEvent } from '../../src/index.js';
+import {
+  Base,
+  createContext,
+  signal,
+  useScroll,
+  type DelegatedEvent,
+  type Signal,
+} from '../../src/index.js';
 
 /**
  * Slider-lite — a reimplementation of the @studiometa/ui Slider family on
@@ -93,7 +100,7 @@ export class Slider extends Base<{
   // allowed to call. Provided verbatim, so a consumer gets this object and
   // nothing more of the coordinator.
   api = this.$provide<SliderApi>(SliderContext, {
-    state: new Signal<SliderState>({ index: 0, total: 0 }),
+    state: signal<SliderState>({ index: 0, total: 0 }),
     goTo: (index) => this.goTo(index),
     goToItem: (item) => {
       const index = this.items.items.indexOf(item);
