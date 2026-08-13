@@ -336,10 +336,11 @@ describe('DataScope', () => {
   it('reclaims descendants when the scope mounts around content that already resolved', async () => {
     // The ordering trap, in the one shape a DOM move does *not* fix: the
     // element was already there and only its `data-component` declaration
-    // arrives late. Core's context protocol cannot re-answer an answered
-    // request, so `DataScope.mounted()` broadcasts `RESCOPE` instead — see
-    // the comment there. Without those eight lines this spec fails and the
-    // binding stays attached to the page-wide registry forever.
+    // arrives late. This is the spec the port used to need eight lines of
+    // `RESCOPE` broadcast for; core answers it now, because the member asks
+    // with `subscribe: true` and the scope's own mount announcement re-answers
+    // it. Nothing in this file changed — the assertion was always about which
+    // registry the member ends up on, never about how it got there.
     const group = uniqueGroup('late');
     const root = await render(`
       <div id="scope" data-option-group="${group}">

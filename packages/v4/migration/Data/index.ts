@@ -1,9 +1,9 @@
 /**
  * The `Data*` family of @studiometa/ui, ported onto the v4 prototype.
  *
- * Registering is the consumer's call. **Order does not matter** — that is the
- * point of `DataScope`'s `RESCOPE` broadcast — but registering `DataScope`
- * first still saves the reclamation pass:
+ * Registering is the consumer's call and **order does not matter** — a member
+ * asks with `subscribe: true`, so a `DataScope` registered last still takes
+ * back the members that fell through to the page-wide registry:
  *
  *     registerComponents(DataScope, DataBind, DataModel, DataComputed, DataEffect);
  */
@@ -16,13 +16,11 @@ export { DataScope, type DataScopeProps } from './DataScope.js';
 export {
   DataRegistry,
   DataRegistryContext,
-  RESCOPE,
   resolveDataRegistry,
   type DataRegistryOptions,
   type DataScopeMember,
   type DataUpdate,
   type DataValue,
-  type Rescopable,
 } from './registry.js';
 export {
   emitDomUpdate,

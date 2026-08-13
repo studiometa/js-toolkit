@@ -475,26 +475,17 @@ export const DataRegistryContext = /* @__PURE__ */ createContext<DataRegistry>('
  * form is the right default when "no provider yet" must not be mistaken for
  * "no provider ever" — but here there is always an answer, because the root
  * registry is created on demand. A pending promise would buy nothing and cost
- * the synchronous read that `get()`/`set()` are specified to be. What it does
- * *not* solve is a nearer provider appearing later; see `RESCOPE` in
- * `DataScope.ts`.
+ * the synchronous read that `get()`/`set()` are specified to be.
+ *
+ * It is also what makes a subscribed request usable here at all: a member
+ * mounts with `$inject(…, { subscribe: true })`, which waits forever while
+ * nothing provides, and calling this creates the page-wide provider that
+ * answers it. So this stays the fallback path even for a member that is
+ * subscribed — see `DataBind.mounted()`.
  */
 export function resolveDataRegistry(el: Element): DataRegistry {
   return (
     injectContextSync(el, DataRegistryContext) ??
     provideRootContext(DataRegistryContext, () => new DataRegistry())
   );
-}
-
-/**
- * Ask a member to resolve its registry again.
- *
- * Called by a `DataScope` that mounts *after* members already inside it — see
- * the long comment on `DataScope.mounted()`. Symbol-keyed so it is not part of
- * anybody's public surface.
- */
-export const RESCOPE: unique symbol = Symbol('data:rescope');
-
-export interface Rescopable {
-  [RESCOPE](): void;
 }
