@@ -357,6 +357,34 @@ describe('useDrag', () => {
     expect(requested).toBe(0);
   });
 
+  it('delivers a live gesture on subscribe, and nothing at rest', () => {
+    const el = render();
+    const service = useDrag(el);
+
+    // At rest there is no position, no origin and no destination — which is
+    // what `idle` says — so there is nothing to deliver.
+    const cold: DragProps[] = [];
+    const first = service.subscribe((props) => cold.push({ ...props }), { immediate: true });
+    expect(cold).toEqual([]);
+    expect(service.props().mode).toBe(DRAG_MODES.IDLE);
+
+    grab(el, 10, 10);
+    move(70, 40);
+
+    // A component mounting in the middle of a gesture is the case this option
+    // exists for here: it is handed the gesture rather than told about it one
+    // move later.
+    const warm: DragProps[] = [];
+    const second = service.subscribe((props) => warm.push({ ...props }), { immediate: true });
+    expect(warm).toHaveLength(1);
+    expect(warm[0].mode).toBe(DRAG_MODES.DRAG);
+    expect(warm[0].x).toBe(70);
+    expect(warm[0].distanceX).toBe(60);
+
+    first();
+    second();
+  });
+
   it('shares one service per element and releases it with the last subscriber', () => {
     const el = render();
     expect(useDrag(el)).toBe(useDrag(el));

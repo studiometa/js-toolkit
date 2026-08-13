@@ -21,6 +21,15 @@ export interface ServiceMixinOptions<Target, Host = Base> {
    * lifetime of the page.
    */
   manual?: boolean;
+  /**
+   * Call the hook once with the current props as soon as it subscribes,
+   * instead of leaving it to wait for the next update.
+   *
+   * The same option `subscribe()` takes, and honoured by the same sources: a
+   * `resized()` that positions something wants to know the box it is starting
+   * from, a `ticked()` has no current frame to be told about.
+   */
+  immediate?: boolean;
 }
 
 /**
@@ -178,7 +187,9 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
           }
           return definition
             .use(target(this), options)
-            .subscribe((props) => (method as (props: unknown) => unknown).call(this, props));
+            .subscribe((props) => (method as (props: unknown) => unknown).call(this, props), {
+              immediate: options.immediate ?? false,
+            });
         });
 
         services[hook] = {

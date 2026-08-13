@@ -19,6 +19,38 @@ describe('usePointer', () => {
     expect(props.progressY).toBe(0.5);
   });
 
+  it('has nothing to deliver on subscribe until the pointer has been seen', () => {
+    // The precondition, stated rather than assumed: no event yet, so the
+    // centred position above is a stand-in and not a reading.
+    expect(usePointer().props().event).toBeNull();
+
+    const cold: PointerProps[] = [];
+    const first = usePointer().subscribe((props) => cold.push(snapshot(props)), {
+      immediate: true,
+    });
+    expect(cold).toEqual([]);
+
+    // A real event, and the subscription that was handed nothing is served by
+    // it like any other.
+    move(120, 60);
+    expect(cold).toHaveLength(1);
+
+    // Now there is a position to hand over, so a component mounting mid-page
+    // learns where the pointer is instead of waiting for it to move.
+    const warm: PointerProps[] = [];
+    const second = usePointer().subscribe((props) => warm.push(snapshot(props)), {
+      immediate: true,
+    });
+    expect(warm.at(-1)?.x).toBe(120);
+    expect(warm.at(-1)?.y).toBe(60);
+
+    first();
+    second();
+    // And the service forgets the event with its last subscriber, which is
+    // what keeps a detached subtree from being pinned by its `target`.
+    expect(usePointer().props().event).toBeNull();
+  });
+
   it('follows the pointer and reports its delta and progress', () => {
     const seen: Array<ReturnType<typeof snapshot>> = [];
     const unsubscribe = usePointer().subscribe((props) => seen.push(snapshot(props)));

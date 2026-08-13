@@ -232,6 +232,114 @@ describe('createService', () => {
     expect((reported[0] as Error).message).toBe('boom');
   });
 
+  it('delivers the current props to a subscriber that asks, and to nobody else', () => {
+    const service = createService<number>({
+      props: () => 42,
+      start: () => () => {},
+    });
+
+    const seen: string[] = [];
+    service.subscribe((props) => seen.push(`plain:${props}`));
+    service.subscribe((props) => seen.push(`immediate:${props}`), { immediate: true });
+
+    // Only the newcomer: an emit would hand every other subscriber props they
+    // have already been given, which is a duplicate update for the page.
+    expect(seen).toEqual(['immediate:42']);
+  });
+
+  it('waits for the next update when nothing asked for the current props', () => {
+    let emit!: (props: number) => void;
+    const service = createService<number>({
+      props: () => 42,
+      start(fan) {
+        emit = fan;
+        return () => {};
+      },
+    });
+
+    const seen: number[] = [];
+    service.subscribe((props) => seen.push(props));
+    expect(seen).toEqual([]);
+    emit(1);
+    expect(seen).toEqual([1]);
+  });
+
+  it('starts the service before delivering, so the props are current', () => {
+    const calls: string[] = [];
+    let value = 0;
+    const service = createService<number>({
+      props: () => value,
+      start() {
+        // What starting is for: the scroll service measures its target here,
+        // the breakpoint service asks its media queries. Delivering first
+        // would hand out whatever the previous run left behind.
+        value = 7;
+        calls.push('start');
+        return () => {};
+      },
+    });
+
+    service.subscribe((props) => calls.push(`call:${props}`), { immediate: true });
+    expect(calls).toEqual(['start', 'call:7']);
+  });
+
+  it('delivers nothing for a source that has no current props', () => {
+    let emit!: (props: number) => void;
+    let isObserved = false;
+    const service = createService<number>({
+      props: () => 1,
+      // The frame tick between two frames, the pointer before it has been
+      // seen, a drag outside a gesture: a resting value is not a reading, and
+      // handing it over as one is what the option exists to stop.
+      hasProps: () => isObserved,
+      start(fan) {
+        emit = fan;
+        return () => {};
+      },
+    });
+
+    const seen: number[] = [];
+    service.subscribe((props) => seen.push(props), { immediate: true });
+    expect(seen).toEqual([]);
+
+    isObserved = true;
+    service.subscribe((props) => seen.push(props), { immediate: true });
+    expect(seen).toEqual([1]);
+
+    // And the ones that waited are still subscribed.
+    emit(2);
+    expect(seen).toEqual([1, 2, 2]);
+  });
+
+  it('reports a throwing immediate subscriber and keeps its subscription', () => {
+    let emit!: (props: number) => void;
+    const service = createService<number>({
+      props: () => 1,
+      start(fan) {
+        emit = fan;
+        return () => {};
+      },
+    });
+
+    let calls = 0;
+    const reported = catchReportedErrors(() => {
+      const unsubscribe = service.subscribe(
+        () => {
+          calls += 1;
+          throw new Error('boom');
+        },
+        { immediate: true },
+      );
+      // The delivery threw; `subscribe()` did not, so the caller holds the
+      // unsubscribe for the subscription that was nonetheless registered.
+      expect(typeof unsubscribe).toBe('function');
+      emit(2);
+    });
+
+    expect(calls).toBe(2);
+    expect(reported).toHaveLength(2);
+  });
+
   it('reads its props without subscribing', () => {
     let value = 1;
     const service = createService<number>({

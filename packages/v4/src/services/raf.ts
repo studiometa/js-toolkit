@@ -36,6 +36,13 @@ function createRafService(): RafService {
 
   const service = createService<RafProps>({
     props: () => props,
+    // The clock has no current value: `time` and `delta` describe *a frame*,
+    // and between two frames there is no frame to describe. Handing the last
+    // one's props to a newcomer would have it integrate a delta that has
+    // already been spent by everyone else. `{ immediate: true }` is therefore
+    // a no-op here — and it costs nothing, since the first real tick is at
+    // most one frame away.
+    hasProps: () => false,
     start(emit) {
       return scheduler.tick((tickProps) => {
         props = tickProps;
@@ -62,7 +69,7 @@ function createRafService(): RafService {
 
   return {
     props: service.props,
-    subscribe(callback) {
+    subscribe(callback, options) {
       // A render is cancelled with its subscription. The two phases of one
       // frame are far enough apart for a component to be destroyed between
       // them, and a destroyed component must not write to the DOM after its
@@ -79,7 +86,7 @@ function createRafService(): RafService {
             }
           });
         }
-      });
+      }, options);
       return () => {
         isSubscribed = false;
         unsubscribe();
