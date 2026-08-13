@@ -1,5 +1,12 @@
-import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
+import {
+  injectContext,
+  injectContextSync,
+  provideContext,
+  type ContextKey,
+  type InjectContextOptions,
+} from './context.js';
 import { domVersion } from './dom-mutations.js';
+import { DESTROYED_EVENT, MOUNTED_EVENT } from './lifecycle-events.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import type { MountStrategy } from './mount-strategies.js';
 import { selectorFor } from './utils/selectors.js';
@@ -7,8 +14,7 @@ import { kebabCase, pascalCase } from './utils/strings.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
 
 export const SOURCE: unique symbol = Symbol('emitter');
-export const MOUNTED_EVENT = 'component:mounted';
-export const DESTROYED_EVENT = 'component:destroyed';
+export { DESTROYED_EVENT, MOUNTED_EVENT };
 
 const REGEX_HANDLER = /^on[A-Z]/;
 
@@ -798,9 +804,22 @@ export class Base<T extends BaseProps = BaseProps> {
    * The pending request is destroy-scoped, so a destroyed instance leaves
    * nothing behind — and `mounted()` runs again on remount, which re-issues
    * the request naturally.
+   *
+   * `{ subscribe: true, onProvide }` keeps the request live so a **nearer
+   * provider mounting later** re-answers it, which is what a channel resolved
+   * by name needs and a control that found its coordinator does not. The
+   * subscription is destroy-scoped like the pending request, so it ends with
+   * the mount cycle that opened it:
+   *
+   *     mounted() {
+   *       this.$inject(RegistryKey, {
+   *         subscribe: true,
+   *         onProvide: (registry) => registry.join(this.group, this),
+   *       });
+   *     }
    */
-  $inject<V>(key: ContextKey<V>): Promise<V> {
-    const { promise, cancel } = injectContext(this.$el, key);
+  $inject<V>(key: ContextKey<V>, options?: InjectContextOptions<V>): Promise<V> {
+    const { promise, cancel } = injectContext(this.$el, key, options);
     this.#destroyCallbacks.push(cancel);
     return promise;
   }
