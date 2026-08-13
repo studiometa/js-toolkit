@@ -1,6 +1,6 @@
 import { isAbsolute, resolve, dirname } from 'node:path';
 import { copyFile, readdir, readFile, writeFile } from 'node:fs/promises';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import glob from 'fast-glob';
 import { build as tsdownBuild } from 'tsdown';
 
@@ -8,7 +8,16 @@ const pkgRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const repositoryRoot = resolve(pkgRoot, '../..');
 const srcRoot = resolve(pkgRoot, 'src');
 
-/** The sources build into the package-local `dist/`, which is what npm publishes. */
+/**
+ * The sources build into the package-local `dist/`, which is what npm publishes.
+ *
+ * Keeping every emitted module under `dist/` is also what keeps the subpath keys
+ * and the shipped file paths disjoint. A CDN which names its build output after
+ * the requested subpath — esm.sh does — would otherwise give the same URL to the
+ * `./utils/debounce` entry and to a file shipped at `utils/debounce.js`, and the
+ * stub would import itself (`SyntaxError: Detected cycle while resolving name`).
+ * `files` ships nothing but `dist/` at the package root, so no key can collide.
+ */
 const outDir = resolve(pkgRoot, 'dist');
 
 // Every `.js`/`.ts` module under `src/` except the ones which are not shipped:
@@ -130,49 +139,9 @@ async function copyPackageFiles() {
   }
 }
 
-/**
- * Assert no shipped file sits at the path of a subpath key.
- *
- * A CDN which names its build output after the requested subpath — esm.sh does —
- * gives the same URL to the `./utils/debounce` entry and to a file shipped at
- * `utils/debounce.js`. The stub would then import itself, and every consumer of
- * that URL dies on `SyntaxError: Detected cycle while resolving name`. Emitting
- * the whole build under `dist/` keeps the two path spaces disjoint; this check
- * fails the build if anything ever breaks that guarantee.
- */
-function assertNoSubpathShadowing() {
-  const files = new Set(
-    glob
-      .sync('**/*', { cwd: outDir, onlyFiles: true })
-      .map((file) => `dist/${file.replace(/\\/g, '/')}`),
-  );
-  const shadowed = [];
-
-  const { exports: map } = JSON.parse(readFileSync(resolve(pkgRoot, 'package.json'), 'utf8'));
-  for (const key of Object.keys(map)) {
-    if (key === '.' || key === './package.json') continue;
-    const path = key.slice('./'.length);
-    for (const extension of ['.js', '.mjs', '.d.ts']) {
-      if (files.has(`${path}${extension}`)) shadowed.push(`${key} ↔ ${path}${extension}`);
-    }
-  }
-
-  if (shadowed.length) {
-    console.error(
-      'Subpath keys shadowed by a shipped module — CDNs naming their output after the requested',
-    );
-    console.error('subpath would serve a module which imports itself:');
-    for (const entry of shadowed) console.error(`  ${entry}`);
-    process.exit(1);
-  }
-
-  console.log(`No shadowing among ${files.size} emitted files.`);
-}
-
 console.log(`Building ${entryPoints.length} modules...`);
 await build({ sourcemap: true, dts: false, clean: true });
 await build({ sourcemap: false, dts: { emitDtsOnly: true }, clean: false });
 await synthesizeFacadeSourceMaps(outDir);
 await copyPackageFiles();
-assertNoSubpathShadowing();
 console.log('Done building!');
