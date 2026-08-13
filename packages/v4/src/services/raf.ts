@@ -1,4 +1,4 @@
-import { scheduler, type TickProps } from '../scheduler.js';
+import { defaultScheduler, type TickProps } from '../scheduler.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, type Service } from './service.js';
 
@@ -44,19 +44,19 @@ function createRafService(): RafService {
     // most one frame away.
     hasProps: () => false,
     start(emit) {
-      return scheduler.tick((tickProps) => {
+      return defaultScheduler.tick((tickProps) => {
         props = tickProps;
         // The read → write split v3 established: every callback measures
         // together, then every returned render mutates together, so a page
         // full of animations costs one layout per frame instead of one per
         // component.
-        scheduler.read(() => {
+        defaultScheduler.read(() => {
           renders.length = 0;
           emit(tickProps);
           if (renders.length > 0) {
             const batch = [...renders];
             renders.length = 0;
-            scheduler.write(() => {
+            defaultScheduler.write(() => {
               for (const render of batch) {
                 render();
               }

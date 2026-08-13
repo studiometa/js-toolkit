@@ -3,7 +3,7 @@ import { Base, type ChildrenCollection, type DelegatedEvent } from './Base.js';
 import { Signal, createContext } from './context.js';
 import { children, component, inject, on, provide, read, write } from './decorators.js';
 import { registerComponents } from './registry.js';
-import { scheduler } from './scheduler.js';
+import { defaultScheduler } from './scheduler.js';
 import { getInstance, resetDom, settle } from './test-utils.js';
 
 const DecoContext = createContext<Signal<number>>('deco-context');
@@ -159,7 +159,7 @@ describe('@children', () => {
 });
 
 describe('@read / @write', () => {
-  it('defers the method body to its scheduler phase', async () => {
+  it('defers the method body to its defaultScheduler phase', async () => {
     const order: string[] = [];
 
     class Phased extends Base {
@@ -185,7 +185,7 @@ describe('@read / @write', () => {
     // Both scheduled, neither has run yet.
     expect(order).toEqual([]);
 
-    await scheduler.whenIdle();
+    await defaultScheduler.whenIdle();
     // Reads run before writes, whatever the call order.
     expect(order).toEqual(['read', 'write:a']);
   });
@@ -208,7 +208,7 @@ describe('@read / @write', () => {
 
     instance.paint();
     instance.$destroy();
-    await scheduler.whenIdle();
+    await defaultScheduler.whenIdle();
     expect(ran).toBe(false);
   });
 });

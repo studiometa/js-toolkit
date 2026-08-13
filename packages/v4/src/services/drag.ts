@@ -6,7 +6,7 @@ import {
   inertiaStep,
   INERTIA_FRAME,
 } from '../utils/maths.js';
-import { scheduler, type TickProps } from '../scheduler.js';
+import { defaultScheduler, type TickProps } from '../scheduler.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
@@ -323,7 +323,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         if (!isRunning) {
           return;
         }
-        unsubscribeTicks = scheduler.tick(tick);
+        unsubscribeTicks = defaultScheduler.tick(tick);
       }
 
       function onPointerMove(event: Event) {

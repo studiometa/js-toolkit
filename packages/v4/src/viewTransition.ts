@@ -1,4 +1,4 @@
-import { scheduler } from './scheduler.js';
+import { defaultScheduler } from './scheduler.js';
 
 export type ViewTransitionUpdate = () => void | Promise<void>;
 
@@ -28,7 +28,7 @@ export function viewTransition(update: ViewTransitionUpdate): Promise<void> {
     vtQueue.push({ update, resolve, reject });
     if (!vtIsScheduled) {
       vtIsScheduled = true;
-      scheduler.write(flushViewTransitions);
+      defaultScheduler.write(flushViewTransitions);
     }
   });
 }

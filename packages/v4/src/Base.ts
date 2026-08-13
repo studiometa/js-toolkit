@@ -1,6 +1,6 @@
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
 import { domVersion } from './dom-mutations.js';
-import { scheduler, type ScheduledTask } from './scheduler.js';
+import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import type { MountStrategy } from './mount-strategies.js';
 import { selectorFor } from './utils/selectors.js';
 import { kebabCase, pascalCase } from './utils/strings.js';
@@ -842,12 +842,12 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /** Schedule a DOM read; canceled automatically when the instance unmounts. */
   $read<T>(fn: () => T): ScheduledTask<T> {
-    return this.#track(scheduler.read(fn));
+    return this.#track(defaultScheduler.read(fn));
   }
 
   /** Schedule a DOM write; canceled automatically when the instance unmounts. */
   $write<T>(fn: () => T): ScheduledTask<T> {
-    return this.#track(scheduler.write(fn));
+    return this.#track(defaultScheduler.write(fn));
   }
 
   /** Run a DOM update inside a batched native view transition. */

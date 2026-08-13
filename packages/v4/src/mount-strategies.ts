@@ -1,4 +1,4 @@
-import { scheduler } from './scheduler.js';
+import { defaultScheduler } from './scheduler.js';
 
 /**
  * When an instance mounts, independently of when its class was loaded.
@@ -88,7 +88,7 @@ export function applyMountStrategy(
     // `requestIdleCallback` is not available everywhere; the background
     // lane is already budgeted, so it is a fair fallback.
     if (typeof requestIdleCallback !== 'function') {
-      const task = scheduler.background(mount);
+      const task = defaultScheduler.background(mount);
       return { dispose: () => task.cancel() };
     }
     const handle = requestIdleCallback(() => mount());
@@ -121,6 +121,6 @@ export function applyMountStrategy(
 
   // `eager`, and anything unrecognised: mount as soon as the scheduler's
   // background lane gets to it.
-  const task = scheduler.background(mount);
+  const task = defaultScheduler.background(mount);
   return { dispose: () => task.cancel(), eagerWork: task.promise };
 }

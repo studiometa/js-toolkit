@@ -1,4 +1,4 @@
-import { scheduler, type ScheduledTask } from './scheduler.js';
+import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 
 export interface DOMMutationRecord {
   record: MutationRecord;
@@ -114,7 +114,7 @@ function scheduleProcessing(): void {
     return;
   }
 
-  processTask = scheduler.background(() => {
+  processTask = defaultScheduler.background(() => {
     const batch = records;
     records = [];
     processor?.(batch);

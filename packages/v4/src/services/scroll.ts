@@ -1,4 +1,4 @@
-import { scheduler, type ScheduledTask } from '../scheduler.js';
+import { defaultScheduler, type ScheduledTask } from '../scheduler.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
@@ -194,7 +194,7 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
         // One update per frame, in the phase where measuring is free.
         // v3 debounced instead, which cost 100 ms before the final position
         // was announced; a coalesced read always ends on the last event.
-        task ??= scheduler.read(() => {
+        task ??= defaultScheduler.read(() => {
           task = null;
           emit(update());
         });

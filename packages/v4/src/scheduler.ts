@@ -393,7 +393,7 @@ export class Scheduler {
   }
 }
 
-export const scheduler = new Scheduler();
+export const defaultScheduler = new Scheduler();
 
 /**
  * Await the next animation frame.

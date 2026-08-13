@@ -1,23 +1,23 @@
 import { describe, expect, it, vi } from 'vitest';
-import { nextFrame, scheduler, type SchedulerPhase, type TickProps } from './scheduler.js';
+import { nextFrame, defaultScheduler, type SchedulerPhase, type TickProps } from './scheduler.js';
 
-describe('scheduler (real frames)', () => {
+describe('defaultScheduler (real frames)', () => {
   it('runs reads before writes within one frame, regardless of scheduling order', async () => {
     const order: string[] = [];
-    scheduler.write(() => order.push('write'));
-    scheduler.read(() => order.push('read'));
-    await scheduler.whenIdle();
+    defaultScheduler.write(() => order.push('write'));
+    defaultScheduler.read(() => order.push('read'));
+    await defaultScheduler.whenIdle();
     expect(order).toEqual(['read', 'write']);
   });
 
   it('defers a read scheduled from a write to the next frame', async () => {
     const frames: number[] = [];
     let firstFrame = 0;
-    scheduler.write(() => {
+    defaultScheduler.write(() => {
       firstFrame = performance.now();
-      scheduler.read(() => frames.push(performance.now() - firstFrame));
+      defaultScheduler.read(() => frames.push(performance.now() - firstFrame));
     });
-    await scheduler.whenIdle();
+    await defaultScheduler.whenIdle();
     expect(frames).toHaveLength(1);
     // Ran in a later frame, not synchronously after the write.
     expect(frames[0]).toBeGreaterThan(0);
@@ -33,12 +33,12 @@ describe('scheduler (real frames)', () => {
     window.addEventListener('error', onError, { capture: true });
 
     try {
-      const task = scheduler.write(() => {
+      const task = defaultScheduler.write(() => {
         throw new Error('boom');
       });
       await expect(task.promise).rejects.toThrow('boom');
 
-      const after = scheduler.write(() => 'still alive');
+      const after = defaultScheduler.write(() => 'still alive');
       await expect(after.promise).resolves.toBe('still alive');
     } finally {
       window.removeEventListener('error', onError, { capture: true });
@@ -51,9 +51,9 @@ describe('scheduler (real frames)', () => {
   });
 
   it('resolves task promises with return values and supports cancel', async () => {
-    const canceled = scheduler.read(() => 'never');
+    const canceled = defaultScheduler.read(() => 'never');
     canceled.cancel();
-    const kept = scheduler.read(() => 42);
+    const kept = defaultScheduler.read(() => 42);
     await expect(kept.promise).resolves.toBe(42);
     await expect(canceled.promise).resolves.toBeUndefined();
   });
@@ -70,13 +70,13 @@ describe('scheduler (real frames)', () => {
     let isStopped = false;
     const tick = () => {
       runs += 1;
-      if (!isStopped && runs < 100_000) scheduler.read(tick);
+      if (!isStopped && runs < 100_000) defaultScheduler.read(tick);
     };
-    scheduler.read(tick);
+    defaultScheduler.read(tick);
     await new Promise((resolve) => setTimeout(resolve, 200));
     isStopped = true;
     expect(runs).toBeLessThan(100_000);
-    await scheduler.whenIdle();
+    await defaultScheduler.whenIdle();
   });
 
   // The anti-thrashing rule the whole design rests on: bounding same-phase
@@ -85,35 +85,35 @@ describe('scheduler (real frames)', () => {
     const order: string[] = [];
     let readTime = 0;
     let writeTime = 0;
-    scheduler.read(() => {
+    defaultScheduler.read(() => {
       order.push('read');
       readTime = performance.now();
-      scheduler.write(() => {
+      defaultScheduler.write(() => {
         order.push('write');
         writeTime = performance.now();
       });
     });
-    await scheduler.whenIdle();
+    await defaultScheduler.whenIdle();
     expect(order).toEqual(['read', 'write']);
     // Well within one 60 Hz frame: no frame boundary between the two.
     expect(writeTime - readTime).toBeLessThan(8);
   });
 });
 
-describe('scheduler.background', () => {
+describe('defaultScheduler.background', () => {
   // Regression: the lane used to drain inside the rAF callback, against a
   // budget measured from the top of the flush. One busy tick subscriber —
   // a single running animation — spent the whole budget before the lane was
   // reached, and nothing mounted for as long as the animation ran.
   it('still drains background work while every frame is busy', async () => {
     let background = 0;
-    const off = scheduler.tick(() => {
+    const off = defaultScheduler.tick(() => {
       const until = performance.now() + 10;
       while (performance.now() < until) {
         /* occupy the frame */
       }
     });
-    for (let i = 0; i < 5; i += 1) scheduler.background(() => (background += 1));
+    for (let i = 0; i < 5; i += 1) defaultScheduler.background(() => (background += 1));
     await new Promise((resolve) => setTimeout(resolve, 400));
     off();
     expect(background).toBe(5);
@@ -122,7 +122,7 @@ describe('scheduler.background', () => {
   it('runs between frames, not inside one', async () => {
     const phases: SchedulerPhase[] = [];
     let inFrame = false;
-    const off = scheduler.tick(() => {
+    const off = defaultScheduler.tick(() => {
       inFrame = true;
       queueMicrotask(() => {
         inFrame = false;
@@ -130,12 +130,12 @@ describe('scheduler.background', () => {
     });
     const seen: boolean[] = [];
     for (let i = 0; i < 3; i += 1) {
-      scheduler.background(() => {
-        phases.push(scheduler.phase);
+      defaultScheduler.background(() => {
+        phases.push(defaultScheduler.phase);
         seen.push(inFrame);
       });
     }
-    await scheduler.whenIdle();
+    await defaultScheduler.whenIdle();
     off();
 
     expect(phases).toEqual(['background', 'background', 'background']);
@@ -151,7 +151,7 @@ describe('scheduler.background', () => {
     // Each task spends most of the time slice, so a turn fits two of them
     // and the lane has to hand the thread back to finish the six.
     for (let i = 0; i < 6; i += 1) {
-      scheduler.background(() => {
+      defaultScheduler.background(() => {
         if (!hasYielded) ranBeforeYielding += 1;
         const until = performance.now() + 4;
         while (performance.now() < until) {
@@ -159,31 +159,31 @@ describe('scheduler.background', () => {
         }
       });
     }
-    await scheduler.whenIdle();
+    await defaultScheduler.whenIdle();
     expect(ranBeforeYielding).toBeLessThan(6);
   });
 
   it('drains without any animation frame being requested', async () => {
-    await scheduler.whenIdle();
+    await defaultScheduler.whenIdle();
     const spy = vi.spyOn(globalThis, 'requestAnimationFrame');
     let ran = false;
-    scheduler.background(() => (ran = true));
-    await scheduler.whenIdle();
+    defaultScheduler.background(() => (ran = true));
+    await defaultScheduler.whenIdle();
     expect(ran).toBe(true);
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
 });
 
-describe('scheduler.tick', () => {
+describe('defaultScheduler.tick', () => {
   it('ticks once per frame, before the read phase', async () => {
     const phases: string[] = [];
     let ticks = 0;
-    const unsubscribe = scheduler.tick(() => {
+    const unsubscribe = defaultScheduler.tick(() => {
       ticks += 1;
-      phases.push(scheduler.phase);
+      phases.push(defaultScheduler.phase);
       // Scheduled from the tick, so it belongs to the same frame.
-      scheduler.read(() => phases.push(scheduler.phase));
+      defaultScheduler.read(() => phases.push(defaultScheduler.phase));
     });
 
     await nextFrame();
@@ -196,7 +196,7 @@ describe('scheduler.tick', () => {
 
   it('reports the time elapsed since the previous tick', async () => {
     const props: TickProps[] = [];
-    const unsubscribe = scheduler.tick((tickProps) => props.push(tickProps));
+    const unsubscribe = defaultScheduler.tick((tickProps) => props.push(tickProps));
 
     await nextFrame();
     await nextFrame();
@@ -214,7 +214,7 @@ describe('scheduler.tick', () => {
 
   it('clamps the delta to [1, 40] ms', async () => {
     const deltas: number[] = [];
-    const unsubscribe = scheduler.tick(({ delta }) => deltas.push(delta));
+    const unsubscribe = defaultScheduler.tick(({ delta }) => deltas.push(delta));
 
     await nextFrame();
     await nextFrame();
@@ -240,12 +240,12 @@ describe('scheduler.tick', () => {
   it('reports the frame timestamp, shared by every subscriber', async () => {
     // Nothing pending, so the first flush below belongs to the frame this
     // test requests and to no earlier one.
-    await scheduler.whenIdle();
+    await defaultScheduler.whenIdle();
     await nextFrame();
 
     const seen: number[] = [];
-    const offOne = scheduler.tick(({ time }) => seen.push(time));
-    const offTwo = scheduler.tick(({ time }) => seen.push(time));
+    const offOne = defaultScheduler.tick(({ time }) => seen.push(time));
+    const offTwo = defaultScheduler.tick(({ time }) => seen.push(time));
     // Requested in the same task as the subscriptions, so this callback and
     // the scheduler's flush are in the same frame batch — and every callback
     // of a batch is handed the very same timestamp.
@@ -265,7 +265,7 @@ describe('scheduler.tick', () => {
 
   it('stops calling a callback once it unsubscribes', async () => {
     let ticks = 0;
-    const unsubscribe = scheduler.tick(() => {
+    const unsubscribe = defaultScheduler.tick(() => {
       ticks += 1;
     });
     await nextFrame();
@@ -279,14 +279,14 @@ describe('scheduler.tick', () => {
   });
 
   it('never keeps whenIdle() waiting', async () => {
-    const unsubscribe = scheduler.tick(() => {});
+    const unsubscribe = defaultScheduler.tick(() => {});
     // The loop runs, but running is not queued work.
-    await expect(scheduler.whenIdle()).resolves.toBeUndefined();
+    await expect(defaultScheduler.whenIdle()).resolves.toBeUndefined();
     unsubscribe();
   });
 
   it('stops requesting frames when the last subscriber leaves', async () => {
-    const unsubscribe = scheduler.tick(() => {});
+    const unsubscribe = defaultScheduler.tick(() => {});
     await nextFrame();
     unsubscribe();
 

@@ -1,4 +1,4 @@
-import { Base, scheduler, type BaseConfig } from '../../src/index.js';
+import { Base, defaultScheduler, type BaseConfig } from '../../src/index.js';
 import { applyStyles, compile, type Keyframe, type KeyframeStyles } from '../utils/keyframes.js';
 import { clamp01, map } from '../../src/utils/maths.js';
 import type { ScrollInViewProps, ScrolledInViewRender } from './withScrolledInView.js';
@@ -107,7 +107,7 @@ export class AbstractScrollAnimation extends Base<AbstractScrollAnimationProps> 
    * drop the boundary render this schedules.
    */
   renderNow(progress: number): void {
-    scheduler.read(() => scheduler.write(this.render(progress)));
+    defaultScheduler.read(() => defaultScheduler.write(this.render(progress)));
   }
 
   scrolledInView({ dampedProgressY }: ScrollInViewProps): ScrolledInViewRender {
