@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Base, type BaseConfig, type OptionChange, type RefEvent } from './Base.js';
+import {
+  Base,
+  type BaseConfig,
+  type GlobalEvent,
+  type OptionChange,
+  type RefEvent,
+} from './Base.js';
 import type { AttributeChange } from './dom-mutations.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
@@ -529,6 +535,135 @@ describe('on<Ref><Event> handlers', () => {
     el.append(nested);
     nested.querySelector('button')?.click();
     expect(instance.pressed).toEqual([]);
+  });
+});
+
+describe('onWindow<Event> / onDocument<Event> handlers', () => {
+  class Outside extends Base {
+    static config = { name: 'Outside' };
+
+    resized: GlobalEvent[] = [];
+    documentClicks: GlobalEvent<MouseEvent>[] = [];
+    ownClicks: Event[] = [];
+    scrolled: GlobalEvent[] = [];
+
+    onWindowResize(payload: GlobalEvent): void {
+      this.resized.push(payload);
+    }
+
+    onDocumentClick(payload: GlobalEvent<MouseEvent>): void {
+      this.documentClicks.push(payload);
+    }
+
+    // The component's own element, side by side with the global handler
+    // above: two different method names, two different targets.
+    onClick(event: Event): void {
+      this.ownClicks.push(event);
+    }
+
+    onDocumentScroll(payload: GlobalEvent): void {
+      this.scrolled.push(payload);
+    }
+  }
+
+  function render(): { el: HTMLElement; outside: HTMLElement; instance: Outside } {
+    const el = document.createElement('div');
+    const outside = document.createElement('div');
+    document.body.append(el, outside);
+    return { el, outside, instance: new Outside(el).$mount() };
+  }
+
+  it('binds to the global target the method names', () => {
+    const { outside, instance } = render();
+
+    window.dispatchEvent(new Event('resize'));
+    outside.click();
+
+    expect(instance.resized).toHaveLength(1);
+    expect(instance.resized[0].target).toBe(window);
+    expect(instance.documentClicks).toHaveLength(1);
+    expect(instance.documentClicks[0].target).toBe(document);
+    expect(instance.documentClicks[0].event.type).toBe('click');
+  });
+
+  it('keeps on<Event> and onDocument<Event> unambiguous on one component', () => {
+    const { el, outside, instance } = render();
+
+    outside.click();
+    expect(instance.ownClicks).toHaveLength(0);
+    expect(instance.documentClicks).toHaveLength(1);
+
+    // A click on the component's own element is both: it is the element's
+    // event, and it bubbles to the document.
+    el.click();
+    expect(instance.ownClicks).toHaveLength(1);
+    expect(instance.documentClicks).toHaveLength(2);
+  });
+
+  it('reserves the prefixes against a same-named child or ref', () => {
+    class WindowChild extends Base {
+      static config = { name: 'Window' };
+    }
+
+    class Reserved extends Base {
+      static config = {
+        name: 'Reserved',
+        components: { Window: WindowChild },
+        refs: ['document'],
+      };
+
+      resized = 0;
+      documentClicks = 0;
+
+      onWindowResize(): void {
+        this.resized += 1;
+      }
+
+      onDocumentClick(): void {
+        this.documentClicks += 1;
+      }
+    }
+
+    const el = document.createElement('div');
+    el.innerHTML = '<span data-ref="document"></span>';
+    document.body.append(el);
+    const instance = new Reserved(el).$mount();
+
+    window.dispatchEvent(new Event('resize'));
+    // The declared ref, clicked: it is not what `onDocumentClick` resolves
+    // to, but the click does reach the document.
+    el.querySelector('span')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(instance.resized).toBe(1);
+    expect(instance.documentClicks).toBe(1);
+  });
+
+  it('listens in the bubble phase, so a descendant non-bubbling event is not heard', () => {
+    const { el, instance } = render();
+
+    // `scroll` from an inner element does not bubble: only a capture-phase
+    // listener would see it, and a global handler is not delegation.
+    el.dispatchEvent(new Event('scroll'));
+    expect(instance.scrolled).toHaveLength(0);
+
+    document.dispatchEvent(new Event('scroll'));
+    expect(instance.scrolled).toHaveLength(1);
+  });
+
+  it('scopes the listeners to the mount cycle', () => {
+    const { outside, instance } = render();
+
+    instance.$destroy();
+    window.dispatchEvent(new Event('resize'));
+    outside.click();
+    expect(instance.resized).toHaveLength(0);
+    expect(instance.documentClicks).toHaveLength(0);
+
+    instance.$mount();
+    window.dispatchEvent(new Event('resize'));
+    outside.click();
+    expect(instance.resized).toHaveLength(1);
+    expect(instance.documentClicks).toHaveLength(1);
   });
 });
 

@@ -128,6 +128,25 @@ export interface RefEvent<T extends HTMLElement = HTMLElement> {
 }
 
 /**
+ * Payload given to `onWindow<Event>` / `onDocument<Event>` handlers.
+ *
+ * `target` is the global the handler named, which keeps the vocabulary of the
+ * two delegated shapes: `target` is always whatever the handler resolved to —
+ * the child instance, the ref element, or here the global target. There is no
+ * `payload`, because a global event is a platform event rather than a
+ * component's own announcement, and no `index`, because there is nothing to
+ * index. The event is the whole payload:
+ *
+ *     onDocumentClick({ event }: GlobalEvent<MouseEvent>) {
+ *       if (!event.composedPath().includes(this.$el)) this.$emit('click-outside');
+ *     }
+ */
+export interface GlobalEvent<T extends Event = Event> {
+  event: T;
+  target: Window | Document;
+}
+
+/**
  * Events that do not bubble, so their delegated listener must be registered
  * in the capture phase to be reached at all.
  */
@@ -553,6 +572,44 @@ function resolveConfig(ctor: BaseConstructor): BaseConfig {
 
   resolvedConfigs.set(ctor, config);
   return config;
+}
+
+/**
+ * The prefixes that name a global event target rather than something the
+ * component declared. They are **reserved**: `onWindowResize` binds to
+ * `window` even in a component whose `config.components` lists a child named
+ * `Window`, and `onDocumentClick` binds to `document` even next to a ref
+ * named `document`.
+ *
+ * Reserving them is what makes the resolution readable. The alternative —
+ * letting a declared name win — would make the meaning of `onWindowResize`
+ * depend on a `config` entry declared elsewhere in the file, and it is
+ * asymmetric: a child named `Window` can still be reached explicitly with
+ * `@on('Window', 'resize')`, whereas nothing would be left to reach `window`
+ * with. The escape hatch exists on one side only, so that is the side which
+ * yields.
+ */
+const GLOBAL_PREFIXES = ['Window', 'Document'] as const;
+
+/**
+ * Resolve the part of a handler name that follows `on` against the global
+ * prefixes. `null` for anything else, which is every name the child, ref and
+ * own-element rules go on to resolve.
+ *
+ * A bare `onWindow()` is not a global handler: like `on<Ref><Event>`, the
+ * prefix must be followed by an event to name, so `onWindow` stays an
+ * `on<Event>` handler for the (unlikely) `window` event type.
+ */
+function resolveGlobal(rest: string): { target: Window | Document; type: string } | null {
+  for (const prefix of GLOBAL_PREFIXES) {
+    if (rest.length > prefix.length && rest.startsWith(prefix)) {
+      return {
+        target: prefix === 'Window' ? window : document,
+        type: kebabCase(rest.slice(prefix.length)),
+      };
+    }
+  }
+  return null;
 }
 
 function getHandlerNames(instance: Base): Set<string> {
@@ -1283,6 +1340,11 @@ export class Base<T extends BaseProps = BaseProps> {
    * root, resolving the emitter by walking up from `event.target`. Nothing
    * is bound per child or per ref, so elements inserted, removed or swapped
    * later are handled with no rebinding.
+   *
+   * `onWindow<Event>` and `onDocument<Event>` bind to the global target they
+   * name, for the events a component can never see from its own subtree: a
+   * click *outside* it, a `popstate`, a `visibilitychange`. Every one of
+   * these listeners is per mount cycle.
    */
   #bindHandlers(): void {
     const self = this as unknown as Record<string, (payload: unknown) => void>;
@@ -1309,6 +1371,36 @@ export class Base<T extends BaseProps = BaseProps> {
       this.$el.addEventListener(type, listener);
       this.#listeners.push([type, listener, this.$el, false]);
     };
+    /**
+     * Bind an `onWindow<Event>` / `onDocument<Event>` handler.
+     *
+     * **Bubble phase, always** — `CAPTURED_EVENTS` deliberately does not apply
+     * here. That set exists for delegation only: a non-bubbling event fired on
+     * a descendant never reaches the delegating root during the bubble phase,
+     * so the listener has to catch it on the way down. A global handler
+     * delegates nothing — it resolves no target by walking up — and its
+     * listener already sits at the top of every propagation path, so an event
+     * dispatched *at* `window` or `document` reaches it whatever the phase.
+     * Capturing would instead change what the handler hears (the `scroll`,
+     * `focus` and `mouseenter` of every element on the page, none of it the
+     * component's business) and when (before the page's own handlers rather
+     * than after). Bubble phase keeps `onDocumentClick` hearing exactly what
+     * `document.addEventListener('click', …)` hears, which is what the name
+     * promises.
+     *
+     * Per mount cycle, like every other handler: the listener goes in
+     * `#listeners` and `$destroy()` removes it, so a destroyed component stops
+     * reacting to window scroll — and a remount rebinds it.
+     */
+    const bindGlobal = (
+      target: Window | Document,
+      type: string,
+      invoke: (payload: GlobalEvent) => void,
+    ) => {
+      const listener: EventListener = (event) => invoke({ event, target });
+      target.addEventListener(type, listener);
+      this.#listeners.push([type, listener, target, false]);
+    };
 
     // Handlers declared with the `@on` decorator: explicit target/type
     // pairs, so no name parsing and no config lookup to resolve them.
@@ -1327,15 +1419,22 @@ export class Base<T extends BaseProps = BaseProps> {
       }
     }
 
-    // Magic `on<Child><Event>` / `on<Ref><Event>` / `on<Event>` method
-    // names — the no-build path. A method already bound through a decorator
-    // is skipped. Children are matched before refs: a name declared as both
-    // resolves to the component.
+    // Magic `onWindow<Event>` / `onDocument<Event>` / `on<Child><Event>` /
+    // `on<Ref><Event>` / `on<Event>` method names — the no-build path. A
+    // method already bound through a decorator is skipped. The global
+    // prefixes are matched first because they are reserved; children are
+    // matched before refs, so a name declared as both resolves to the
+    // component.
     for (const method of getHandlerNames(this)) {
       if (decorated.has(self[method])) {
         continue;
       }
       const rest = method.slice(2);
+      const global = resolveGlobal(rest);
+      if (global) {
+        bindGlobal(global.target, global.type, (payload) => self[method](payload));
+        continue;
+      }
       const startsWith = (name: string) =>
         rest.startsWith(pascalCase(name)) && rest.length > name.length;
       const childName = childNames.find(startsWith);

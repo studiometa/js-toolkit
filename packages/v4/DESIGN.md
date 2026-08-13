@@ -273,6 +273,29 @@ The cost of the migration was measured before it was chosen. Across `src/`, `mig
 - `mouseenter`/`mouseleave` do not bubble: these two keep direct binding (accepted limitation).
 - `$on`/`$off` and `Action`-style directives keep working unchanged and benefit from bubbling.
 
+### Global handlers — `onWindow<Event>` / `onDocument<Event>` — implemented
+
+Delegation covers everything that happens **inside** a component. The events it structurally cannot cover are the ones a component needs precisely because they happen elsewhere: a click _outside_ it, a `popstate`, a `visibilitychange`, a window `resize`. There is no partial substitute — ui's `ClickOutside` is an `onDocumentClick` and nothing else, so without this it has no v4 form at all.
+
+So the two v3 prefixes are kept, resolved in `#bindHandlers()` alongside the other three rules:
+
+```js
+class ClickOutside extends Base {
+  onDocumentClick({ event }) {
+    if (!event.composedPath().includes(this.$el)) this.$emit('click-outside', { event });
+  }
+}
+```
+
+Four things are decided, and each of them is the answer to "what would surprise a reader least":
+
+- **Scope: the mount cycle**, like every other handler. The listener goes in the same `#listeners` array — which already stored an `EventTarget` — so `$destroy()` removes it and a remount rebinds it. The alternative, instance lifetime, means a destroyed component that keeps reacting to window scroll, which is the bug this is most likely to cause and the reason to be explicit about it.
+- **Phase: bubble, always.** `CAPTURED_EVENTS` exists for delegation only — a non-bubbling event fired on a descendant never reaches the delegating root on the way up, so it has to be caught on the way down. A global handler delegates nothing: its listener already sits at the top of every propagation path, so an event dispatched _at_ `window` or `document` reaches it in either phase. Capturing would only change what it hears (the `scroll`, `focus` and `mouseenter` of every element on the page) and when (before the page's own handlers instead of after). Bubble phase makes `onDocumentClick` hear exactly what `document.addEventListener('click', …)` hears, which is what the name promises. A component that wants a descendant's non-bubbling event has `on<Ref><Event>`, from the right scope.
+- **Resolution: the prefixes are reserved**, and matched before children and refs. `onWindowResize` binds to `window` even in a component whose `config.components` lists a `Window`. Letting a declared name win would make a handler's meaning depend on a `config` entry declared elsewhere in the file — and the choice is settled by an asymmetry rather than by taste: a child named `Window` can still be reached explicitly with `@on('Window', 'resize')`, whereas nothing would be left to reach `window` with. The side with an escape hatch is the side that yields. `on<Event>` and `onDocument<Event>` never collide at all: they are different method names, so `onClick` (own element) and `onDocumentClick` (the page) coexist on one component, and a click on the element fires both — it _is_ the element's event, and it _does_ bubble to the document.
+- **Payload: `{ event, target }`**, where `target` is the global the handler named. Same vocabulary as the two delegated shapes, in which `target` is always whatever the handler resolved to — the child instance, the ref element. No `payload`, because a platform event is not a component's announcement, and no `index`, because there is nothing to index. Destructuring reads identically to the v3 hook it replaces: `onDocumentClick({ event })`.
+
+Listener options (`once`, `passive`) are deliberately **not** part of this. A method name has nowhere to put them, and the question is the same one the `Action` port raised for its own bindings — it belongs to whatever answers it there, not to this.
+
 ### Negotiated events — `$domUpdate()` and `$emitExtendable()` — implemented
 
 The strongest instance of this objective is not a notification but a **negotiation**: a component announces a step _before_ it happens, and anything up the tree may take part in it. There are exactly two things a listener can ask for, and they are the two modes of one mechanism.

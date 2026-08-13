@@ -9,8 +9,9 @@
  * 3. Auto-mount on DOM insertion, destroy on ejection.
  * 4. Parents listen to child events — `$emit` bubbles, `on<Child><Event>`
  *    handlers resolve through event delegation on the parent root element,
- *    and negotiated events let a listener take part in a step instead of only
- *    hearing about it: `$domUpdate()` hands a DOM change to an ancestor's
+ *    `onWindow<Event>` / `onDocument<Event>` cover what a subtree can never
+ *    see, and negotiated events let a listener take part in a step instead of
+ *    only hearing about it: `$domUpdate()` hands a DOM change to an ancestor's
  *    transition, `$emitExtendable()` holds a step open until it settles.
  * 5. Children advertise their existence — bubbling `component:mounted` /
  *    `component:destroyed` announcements, packaged as `$watchChildren()`,
@@ -61,6 +62,7 @@ export {
   type ChildrenCollection,
   type DelegatedEvent,
   type EmitMap,
+  type GlobalEvent,
   type HandlerRegistration,
   type LifecycleEventDetail,
   type MountedReturn,
