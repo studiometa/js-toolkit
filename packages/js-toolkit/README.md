@@ -31,13 +31,13 @@ Visit [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) to learn mo
 
 ## Linting
 
-The [`@studiometa/eslint-plugin-js-toolkit`](./packages/eslint-plugin-js-toolkit/) package provides an Oxlint/ESLint plugin that enforces best practices when writing components with this framework.
+The [`@studiometa/eslint-plugin-js-toolkit`](https://www.npmjs.com/package/@studiometa/eslint-plugin-js-toolkit) package provides an Oxlint/ESLint plugin that enforces best practices when writing components with this framework.
 
 ```bash
 npm install --save-dev @studiometa/eslint-plugin-js-toolkit
 ```
 
-See the [plugin README](./packages/eslint-plugin-js-toolkit/README.md) or the [linting guide](https://js-toolkit.studiometa.dev/guide/going-further/linting.html) for configuration details.
+See the [plugin README](https://github.com/studiometa/js-toolkit/blob/main/packages/eslint-plugin/README.md) or the [linting guide](https://js-toolkit.studiometa.dev/guide/going-further/linting.html) for configuration details.
 
 ## Quick overview
 
@@ -131,7 +131,7 @@ Visit our ["Getting Started" guide](https://js-toolkit.studiometa.dev/guide/) to
 
 ## Contributing
 
-This projects follows the [Git Flow](https://github.com/petervanderdoes/gitflow-avh) methodology to manage its branches and features. The packages and their dependencies are managed with NPM workspaces. The files are linted with ESLint, type checked with TypeScript and formatted with Prettier.
+See the [repository README](https://github.com/studiometa/js-toolkit#contributing).
 
 ## License
 
