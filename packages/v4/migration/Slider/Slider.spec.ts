@@ -197,6 +197,23 @@ describe('Slider', () => {
     expect(count.querySelector('[data-ref="current"]')?.textContent).toBe('1');
   });
 
+  it('leaves a control with no slider above it inert', async () => {
+    const button = document.createElement('button');
+    button.setAttribute('data-component', 'SliderBtn');
+    button.setAttribute('data-option-next', '');
+    document.body.append(button);
+    await settle();
+
+    // Commands are resolved with `$injectSync`, so "no provider" is an answer
+    // a control can act on: the click does nothing and nothing throws. The
+    // state half is still waiting on `$inject`, which never settles without a
+    // provider — hence a button that is never disabled rather than one
+    // disabled by an ordering accident.
+    button.click();
+    await frames(2);
+    expect(button.disabled).toBe(false);
+  });
+
   it('resets a slide position when it leaves the DOM', async () => {
     const root = render();
     const { slider, next } = await ready(root);

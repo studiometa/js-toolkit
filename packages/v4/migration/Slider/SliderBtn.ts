@@ -1,5 +1,5 @@
 import { Base } from '../../src/index.js';
-import { SliderContext, type Slider } from './Slider.js';
+import { SliderContext } from './Slider.js';
 
 export interface SliderBtnProps {
   $el: HTMLButtonElement;
@@ -16,12 +16,11 @@ export interface SliderBtnProps {
  * on its own. Here it is one `$inject` in `mounted()` and the returned
  * unsubscribe.
  *
- * State comes through the context; *commands* do not. v4's provide/inject
- * carries a value signal only — DESIGN.md's "curated owner surface (`expose`
- * pattern)" is not implemented — so the click handler still resolves the
- * Slider with `$closest()`. That is fine at click time (the Slider is
- * mounted), but it means a control has two different ways of reaching its
- * parent.
+ * State *and* commands come through the context, which is what keeps the
+ * control from knowing anything about the `Slider` class. The two halves are
+ * resolved differently on purpose: the disabled state has to survive a control
+ * that mounts first, so it waits on `$inject`; a click has to be answered now,
+ * so it asks with `$injectSync` and does nothing when no slider is above it.
  */
 export class SliderBtn extends Base<SliderBtnProps> {
   static config = {
@@ -29,12 +28,8 @@ export class SliderBtn extends Base<SliderBtnProps> {
     options: { prev: Boolean, next: Boolean },
   };
 
-  get slider(): Slider | null {
-    return this.$closest<Slider>('Slider');
-  }
-
   async mounted() {
-    const state = await this.$inject(SliderContext);
+    const { state } = await this.$inject(SliderContext);
     return state.subscribe(
       ({ index, total }) => {
         this.$write(() => this.update(index, total));
@@ -50,10 +45,11 @@ export class SliderBtn extends Base<SliderBtnProps> {
   }
 
   onClick(): void {
+    const api = this.$injectSync(SliderContext);
     if (this.$options.prev) {
-      this.slider?.goPrev();
+      api?.goPrev();
     } else if (this.$options.next) {
-      this.slider?.goNext();
+      api?.goNext();
     }
   }
 }
