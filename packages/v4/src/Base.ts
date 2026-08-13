@@ -178,23 +178,73 @@ export interface BaseProps {
  */
 export type EmitMap = Record<string, object | void>;
 
-type El<T extends BaseProps> = T['$el'] extends HTMLElement ? T['$el'] : HTMLElement;
+/*
+ * ---------------------------------------------------------------------------
+ * Reading a prop out of the props type
+ * ---------------------------------------------------------------------------
+ *
+ * Every prop below is read as an **intersection** with the framework default,
+ * never as `T['$x'] extends … ? … : Default`. The difference is the whole
+ * reason a component can take a props parameter:
+ *
+ *     class Action<T extends BaseProps = BaseProps> extends Base<ActionProps & T> {
+ *       mounted() { this.$options.target; }
+ *     }
+ *
+ * TypeScript only resolves a conditional type once its checked type is
+ * concrete, and inside that class body `T` is a naked type parameter — so a
+ * conditional over `T['$options']` stays deferred and every option reads as the
+ * fallback, whatever `ActionProps` said. An intersection has no such gate: the
+ * apparent type of `A & B` is the intersection of the apparent types, so the
+ * declared half answers straight away and a deferred half contributes its
+ * constraint. `BaseProps` declares every key optional, and a props type may
+ * leave a key out entirely — an omitted key reads as `unknown` through an
+ * indexed access — and the intersection absorbs both: `undefined & X` is
+ * `never`, which drops out of the union, and `unknown & X` is `X`.
+ *
+ * This is v3's technique, `$el: T['$el'] & BaseEl` in
+ * `packages/js-toolkit/src/Base/Base.ts`, and it is v3 having no conditional
+ * here that lets v3 components take a props parameter at all.
+ *
+ * The second reason to prefer it: a conditional over `T` makes the class
+ * **invariant** in `T`, because two conditionals with different checked types
+ * are unrelated in both directions. `Base<SliderProps>` would stop being
+ * assignable to `Base`, which is what `$query`, `$closest` and
+ * `$watchChildren` hand back. An intersection measures as covariant and they
+ * keep working.
+ *
+ * The price, also v3's: intersecting `Record<string, unknown>` in brings its
+ * index signature along, so reading an option a component did not declare is
+ * `unknown` rather than an error. Declared options keep their exact types,
+ * which is what the declaration is for.
+ */
 
-type Refs<T extends BaseProps> =
-  T['$refs'] extends Record<string, unknown>
-    ? T['$refs']
-    : Record<string, HTMLElement | HTMLElement[]>;
+type El<T extends BaseProps> = T['$el'] & HTMLElement;
 
-type Options<T extends BaseProps> =
-  T['$options'] extends Record<string, unknown> ? T['$options'] : Record<string, unknown>;
+type Refs<T extends BaseProps> = T['$refs'] & Record<string, HTMLElement | HTMLElement[]>;
+
+type Options<T extends BaseProps> = T['$options'] & Record<string, unknown>;
+
+/**
+ * The `$emits` map, resolved.
+ *
+ * The odd one out: `keyof (Declared & EmitMap)` is `string`, so intersecting
+ * the default in unconditionally would throw away every declared name. The
+ * default is contributed by a conditional instead — but one checked against
+ * `unknown`, which is exactly the type an omitted key reads as, so it fires for
+ * an omitted `$emits` and for nothing else. Deferred over a naked `T` like any
+ * conditional, and harmless there: the branches are `EmitMap` and `unknown`,
+ * whose union is `unknown`, so the deferred half contributes nothing to the
+ * intersection and `NonNullable<T['$emits']>` answers on its own.
+ */
+type Emits<T extends BaseProps> = NonNullable<T['$emits']> &
+  (unknown extends T['$emits'] ? EmitMap : unknown);
 
 /**
  * A component that declares `$emits` may only emit those names; one that
- * does not keeps the unrestricted signature.
+ * does not keeps the unrestricted signature — `keyof EmitMap` is `string`.
  */
-type EmitName<T extends BaseProps> = T['$emits'] extends EmitMap
-  ? keyof T['$emits'] & string
-  : string;
+type EmitName<T extends BaseProps> = keyof Emits<T> & string;
 
 /**
  * The `detail` an event carries: the declared payload object, or `null` for an
@@ -205,29 +255,36 @@ type EmitName<T extends BaseProps> = T['$emits'] extends EmitMap
 type EmitDetail<T extends BaseProps, K extends string> =
   // An un-narrowed `string` means the caller did not name the event, so
   // there is nothing to look up.
-  string extends K
-    ? unknown
-    : T['$emits'] extends EmitMap
-      ? K extends keyof T['$emits']
-        ? T['$emits'][K] extends void
-          ? null
-          : T['$emits'][K]
-        : never
-      : unknown;
+  string extends K ? unknown : PayloadOf<Emits<T>, K>;
+
+/**
+ * One payload, looked up in a resolved `$emits` map. The lookup is an indexed
+ * access rather than `K extends keyof M ? … : never`: `keyof M` mentions the
+ * props parameter, and a conditional that tests against it is deferred for
+ * every component that has one.
+ */
+type PayloadOf<M extends EmitMap, K extends string> = M[K] extends void ? null : M[K];
 
 /**
  * `$emit()`'s payload parameter, as a tuple so a declared payload is
- * **required** and a `void` event takes no second argument at all.
+ * **required** and a `void` event takes none — an event declared `void` accepts
+ * no payload object, only the absent argument.
  */
 type EmitArgs<T extends BaseProps, K extends string> = string extends K
   ? [payload?: object]
-  : T['$emits'] extends EmitMap
-    ? K extends keyof T['$emits']
-      ? T['$emits'][K] extends void
-        ? []
-        : [payload: T['$emits'][K]]
-      : never
-    : [payload?: object];
+  : ArgsOf<Emits<T>, K>;
+
+/**
+ * Written `void extends M[K]` rather than `M[K] extends void` so the checked
+ * type is the concrete `void` and only the `extends` side mentions the props
+ * parameter. TypeScript relates an argument to a conditional in that shape by
+ * relating it to both branches, which it can do here — they differ only in
+ * whether the payload is optional. The other way round the type is deferred
+ * whole, and `$emit()` rejects every argument list a generic component gives it.
+ */
+type ArgsOf<M extends EmitMap, K extends string> = void extends M[K]
+  ? [payload?: M[K]]
+  : [payload: M[K]];
 
 /**
  * The props a component was declared with, read from the phantom carrier
