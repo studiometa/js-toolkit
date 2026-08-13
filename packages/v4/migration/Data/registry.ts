@@ -1,5 +1,6 @@
 import {
-  Signal,
+  signal,
+  type Signal,
   createContext,
   defaultScheduler,
   injectContextSync,
@@ -96,7 +97,7 @@ const EMPTY_DATA: Readonly<Record<string, DataValue>> = Object.freeze({});
  * `.value` and calls `.subscribe()`, which both spellings share.
  */
 function createChannel(): Signal<DataUpdate | null> {
-  return new Signal<DataUpdate | null>(null);
+  return signal<DataUpdate | null>(null);
 }
 
 function cloneValue(value: DataValue): DataValue {
