@@ -1,7 +1,6 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname, relative, sep } from 'node:path';
 
-
 /**
  * Parse the `export { … } from '…'` re-export blocks of a barrel file into a flat list of the
  * symbols it exposes, one descriptor per name.

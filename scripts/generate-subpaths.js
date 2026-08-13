@@ -81,7 +81,9 @@ function generate(packageDir) {
   pkg.exports = expectedExports(srcRoot);
   writeFileSync(manifest, `${JSON.stringify(pkg, null, 2)}\n`);
 
-  console.log(`${packageDir}: generated ${stubs.size} subpath stubs and refreshed the exports map.`);
+  console.log(
+    `${packageDir}: generated ${stubs.size} subpath stubs and refreshed the exports map.`,
+  );
 }
 
 /**

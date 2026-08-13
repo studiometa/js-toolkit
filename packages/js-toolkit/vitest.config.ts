@@ -7,6 +7,15 @@ export default defineConfig({
   resolve: {
     conditions: ['typescript'],
   },
+  // The `node` environment specs (`*.server.spec.ts`) resolve through Vite's SSR
+  // pipeline, which carries its own condition list. Without this they fall back
+  // to the `import` condition and land on `dist/`, so they fail on any checkout
+  // that has not been built.
+  ssr: {
+    resolve: {
+      conditions: ['typescript'],
+    },
+  },
   test: {
     environment: 'happy-dom',
     // The specs sit next to the sources they cover, so the include list is the

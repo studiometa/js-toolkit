@@ -1,8 +1,5 @@
 {
-  "ignorePatterns": [
-    "packages/js-toolkit/src/subpaths/",
-    "packages/v4/src/subpaths/"
-  ],
+  "ignorePatterns": ["packages/js-toolkit/src/subpaths/", "packages/v4/src/subpaths/"],
   "jsPlugins": [
     {
       "name": "js-toolkit",
@@ -19,20 +16,14 @@
   },
   "overrides": [
     {
-      "files": [
-        "packages/js-toolkit/src/**/*.ts"
-      ],
+      "files": ["packages/js-toolkit/src/**/*.ts"],
       "rules": {
         "js-toolkit/no-internal-barrel-import": "error"
       }
     },
     {
-      "files": [
-        "packages/v4/**/*.ts"
-      ],
-      "plugins": [
-        "import"
-      ],
+      "files": ["packages/v4/**/*.ts"],
+      "plugins": ["import"],
       "rules": {
         "import/extensions": [
           "error",
@@ -44,10 +35,7 @@
       }
     },
     {
-      "files": [
-        "packages/js-toolkit/src/**/*.ts",
-        "packages/demo/**/*.{ts,js}"
-      ],
+      "files": ["packages/js-toolkit/src/**/*.ts", "packages/demo/**/*.{ts,js}"],
       "rules": {
         "js-toolkit/require-config": "error",
         "js-toolkit/require-config-name-pascal-case": "error",
@@ -65,10 +53,7 @@
       }
     },
     {
-      "files": [
-        "**/*.spec.ts",
-        "**/*.bench.ts"
-      ],
+      "files": ["**/*.spec.ts", "**/*.bench.ts"],
       "rules": {
         "js-toolkit/no-internal-barrel-import": "off",
         "js-toolkit/require-config": "off",

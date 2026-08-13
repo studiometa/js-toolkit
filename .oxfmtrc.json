@@ -24,9 +24,7 @@
   ],
   "overrides": [
     {
-      "files": [
-        "packages/docs/**/*.md"
-      ],
+      "files": ["packages/docs/**/*.md"],
       "options": {
         "printWidth": 78
       }
