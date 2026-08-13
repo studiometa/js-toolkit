@@ -294,7 +294,7 @@ Neither runner is the default, and that is deliberate: `$domUpdate()` with nobod
 
 ## 5. Children advertise their existence
 
-The piece that makes the flat, order-free topology workable. Two layers plus a separate shared-state primitive.
+The piece that makes the flat, order-free topology workable. Two layers, a page-wide lookup for what neither layer is scoped to reach, plus a separate shared-state primitive.
 
 ### Layer 1 — bubbling lifecycle announcements
 
@@ -317,6 +317,25 @@ class Slider extends Base {
 This replaces Slider's per-instance store + two-sided `connectChildren`/`__connect` handshake, and it is the honest v4 successor of `$children` — pull plus push, instead of a lazy re-query getter.
 
 The initial sweep is deferred to a microtask: `$watchChildren` is typically called in a field initializer, and already-mounted children would otherwise fire `added` synchronously while the instance is half-constructed (found live: the Slider demo read `this.items` from an `added` callback before the field was assigned, and its provided state signal stayed at `total: 0`). The announcement listeners attach synchronously, so nothing mounting in between is missed — the internal `Set` deduplicates.
+
+### The page-wide lookup — `getInstances()` — implemented
+
+Every lookup above is scoped to one component: `$query()` walks descendants, `$closest()` walks ancestors, `$watchChildren()` needs a component to watch from. A component that acts on other components _named at runtime, anywhere on the page_ — `Action` is the one that forced this — has none of them, and no ancestor to inject from either, because its targets are named by an arbitrary `config.name` and have no owner.
+
+```js
+getInstances('Dialog').forEach((dialog) => dialog.close()); // page-wide
+getInstances('Dialog', section); // scoped to a region
+```
+
+**It re-derives the answer from the DOM instead of keeping a registry of instances**, which is the core model applied rather than an exception carved out of it: the document already knows where the components are, and a second index of it can go stale. It is also not the slow path — a `querySelectorAll` narrowed by name beats v3's walk of every instance on the page, measured on the `Action` port. That measurement is the reason gap 7's "per-class instance registry" is answered with a function rather than with a registry.
+
+Three decisions, all of them the ones the component-scoped lookups already made:
+
+- **A matching element with no instance is skipped.** A declaration is an intent: an unregistered name never gets an instance, and a `data-mount` strategy still waiting has none yet — consistent with "a waiting component is invisible to `$query`".
+- **The filter is `$isMounted`**, so a destroyed _or_ terminated instance is never returned. `$terminate()` destroys first, so one predicate covers both, and a detached-but-retained subtree — the case that exists only because destroy is reversible — is exactly what a caller must not run effects on.
+- **`root` is a `ParentNode`** and the call _is_ `querySelectorAll`: an element root searches its descendants and never matches itself.
+
+There is no selector-strategy seam behind it. v4 resolves components through `data-component` alone — no tag matching, no arbitrary selectors, no custom elements — so name → selector is the only lookup shape there will ever be, and `selectorFor(name)` (already public, on `/utils`) is the single place that contract is written down. `getInstances` exists so that resolving by name never means hard-coding `[data-component~="…"]` and reading `el.__base__` in user code.
 
 ### Shared state — provide/inject in core
 

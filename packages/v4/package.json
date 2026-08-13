@@ -111,6 +111,11 @@
       "types": "./dist/subpaths/whenDOMSettled.d.ts",
       "import": "./dist/subpaths/whenDOMSettled.js"
     },
+    "./getInstances": {
+      "typescript": "./src/subpaths/getInstances.ts",
+      "types": "./dist/subpaths/getInstances.d.ts",
+      "import": "./dist/subpaths/getInstances.js"
+    },
     "./MOUNT_ATTRIBUTE": {
       "typescript": "./src/subpaths/MOUNT_ATTRIBUTE.ts",
       "types": "./dist/subpaths/MOUNT_ATTRIBUTE.d.ts",
