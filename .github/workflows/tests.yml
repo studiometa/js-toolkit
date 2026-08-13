@@ -62,7 +62,7 @@ jobs:
       - name: Run tests
         run: npm test
       - name: Check types
-        run: npx tsgo --noEmit -p .
+        run: npm run lint:types
 
   unit:
     runs-on: macos-latest
@@ -70,13 +70,13 @@ jobs:
       matrix:
         include:
           - package: js-toolkit
-            working-directory: .
-            test-command: npm run test -- -- --retry=3 --coverage.enabled
-            coverage-file: ./packages/coverage/clover.xml
+            working-directory: packages/js-toolkit
+            test-command: npm run build:subpaths && npm test -- --retry=3 --coverage.enabled
+            coverage-file: packages/js-toolkit/coverage/clover.xml
           - package: eslint-plugin-js-toolkit
-            working-directory: packages/eslint-plugin-js-toolkit
+            working-directory: packages/eslint-plugin
             test-command: npm test -- --retry=3 --coverage.enabled
-            coverage-file: packages/eslint-plugin-js-toolkit/coverage/clover.xml
+            coverage-file: packages/eslint-plugin/coverage/clover.xml
     name: unit (${{ matrix.package }})
     defaults:
       run:
@@ -89,6 +89,7 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --no-progress --no-fund
+        working-directory: .
       - name: Run tests
         run: ${{ matrix.test-command }}
       - name: Upload coverage to Codecov
