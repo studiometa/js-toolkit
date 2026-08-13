@@ -77,6 +77,12 @@ function createPointerService(): Service<PointerProps> {
 
   return createService<PointerProps>({
     props: () => props,
+    // Nothing has been observed until an event has arrived, so there is
+    // nothing to deliver on subscribe: the centred position above is a
+    // stand-in, not a reading, and `event` is `null` to say so. Once the
+    // pointer has been seen — including by a subscriber that has since left —
+    // the props are a real position and `{ immediate: true }` hands it over.
+    hasProps: () => props.event !== null,
     start(emit) {
       /**
        * Which pointer the props describe. Every active pointer arrives on the

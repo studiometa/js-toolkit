@@ -50,14 +50,18 @@ function createResizeService(target: Element): Service<ResizeProps> {
   return createService<ResizeProps>({
     props: () => props,
     start(emit) {
+      // Measured for the start of the run, before anything can read `props()`:
+      // the values it holds were taken when the service was *built*, which for
+      // a target that has been observed before is a box from a previous run.
+      // This is what makes `{ immediate: true }` honest here.
+      update();
+
       // Both mechanisms, because neither sees what the other does.
       //
       // The `ResizeObserver` reports the element's real box, so a zoom or a
       // scrollbar appearing — which changes the layout viewport with no
-      // `resize` event at all — is caught; and it delivers the current size
-      // on `observe()`, so a subscriber learns where it stands without
-      // waiting for a resize. No debounce is needed either: the observer
-      // already delivers at most once per frame.
+      // `resize` event at all — is caught. No debounce is needed either: the
+      // observer already delivers at most once per frame.
       //
       // The `resize` event catches what the observer structurally cannot.
       // For the root element, `clientWidth`/`clientHeight` are the *viewport*
@@ -81,26 +85,25 @@ function createResizeService(target: Element): Service<ResizeProps> {
       // every component on the page, with identical values, which is why the
       // observer publishes only on a change.
       //
-      // The first publish of a run is the exception, and gating it away is the
-      // trap here, because it looks like a no-op: `props` was measured when the
-      // service was built, so the delivery `observe()` makes on subscribe
-      // carries the same values it already holds — and that delivery is how a
-      // new subscriber learns where it stands without waiting for a resize.
-      let hasPublished = false;
+      // The delivery `observe()` makes on subscribe is not an exception to
+      // that: it carries the size `update()` just measured, so the gate has
+      // nothing to publish. It used to be let through, which is how this
+      // service came to be the only one that spoke on subscribe — the
+      // observer's convenience read as an API decision nobody made. Telling a
+      // subscriber where things stand is now `{ immediate: true }`, the same
+      // request against any source.
       const observer = new ResizeObserver(() => {
         const { width, height } = props;
         update();
         // `ratio` and `orientation` are functions of these two.
-        if (hasPublished && props.width === width && props.height === height) {
+        if (props.width === width && props.height === height) {
           return;
         }
-        hasPublished = true;
         emit(props);
       });
       observer.observe(target);
       const isViewport = target === document.documentElement;
       const publish = () => {
-        hasPublished = true;
         emit(update());
       };
       if (isViewport) {
@@ -127,7 +130,8 @@ const resizeServices = /* @__PURE__ */ perTarget(createResizeService);
  *   el.classList.toggle('is-narrow', width < 600);
  * });
  *
- * useResize(card).subscribe(({ width }) => { … });
+ * // Told the current box at once, rather than on the next resize.
+ * useResize(card).subscribe(({ width }) => { … }, { immediate: true });
  * ```
  *
  * One service per element: the props describe that element's box, and its
@@ -166,6 +170,11 @@ export type ResizeMixinOptions = ServiceMixinOptions<Element>;
  * // The component's own box instead of the viewport.
  * class Card extends withResize(Base, { target: (instance) => instance.$el }) {
  *   resized({ width }) { … }
+ * }
+ *
+ * // Called once on mount with the current box, before any resize.
+ * class Sticky extends withResize(Base, { immediate: true }) {
+ *   resized({ height }) { … }
  * }
  * ```
  *

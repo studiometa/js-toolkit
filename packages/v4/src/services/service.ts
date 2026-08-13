@@ -28,13 +28,40 @@ export type Unsubscribe = () => void;
  */
 export type ServiceCallback<T, R = void> = (props: T) => R;
 
+/**
+ * Options `subscribe()` takes, the same shape `Signal.subscribe()` uses.
+ */
+export interface SubscribeOptions {
+  /**
+   * Call this subscriber at once with the current props, instead of leaving it
+   * to wait for the next update.
+   *
+   * **Only a source that has a current value delivers one.** The frame tick
+   * has none between two frames, the pointer has none before it has been seen,
+   * and a drag has none outside a gesture — so `immediate` is honoured by the
+   * sampled sources (scroll, resize, breakpoint, a media query) and is a no-op
+   * for the event-driven ones until they have something real to report. Each
+   * service says which it is through `hasProps()`; the alternative was to
+   * invent a value, which is what the neutral pointer position and the
+   * pre-first-tick delta already are.
+   *
+   * This is opt-in rather than the default because the delivery is a layout
+   * read in the subscriber's own turn, and because a source that emits on
+   * subscribe and a source that does not cannot both be the default. The
+   * asymmetry used to be per-service and invisible: a `ResizeObserver`
+   * delivers the current box on `observe()` for free, so the resize service
+   * spoke on subscribe and the other four did not.
+   */
+  immediate?: boolean;
+}
+
 export interface Service<T, R = void> {
   /**
    * Subscribe to the service, starting it if it was not running.
    *
    * @returns Unsubscribe. The service stops with its last subscriber.
    */
-  subscribe(callback: ServiceCallback<T, R>): Unsubscribe;
+  subscribe(callback: ServiceCallback<T, R>, options?: SubscribeOptions): Unsubscribe;
   /**
    * The current props, without subscribing.
    *
@@ -61,6 +88,18 @@ export type MutableProps<T> = { -readonly [K in keyof T]: T[K] };
 
 export interface ServiceDefinition<T> {
   props(): T;
+  /**
+   * Whether `props()` describes something the service has observed, rather
+   * than a resting value standing in for one. Defaults to `true`.
+   *
+   * It is what `{ immediate: true }` is gated on, and the only honest answer
+   * for a source that is a stream of events rather than a sampled value: the
+   * pointer's position before the first `pointermove` is the middle of the
+   * viewport because something had to be there, and a drag outside a gesture
+   * is `idle` for the same reason. Neither is worth delivering to a subscriber
+   * as "where things stand".
+   */
+  hasProps?(): boolean;
   /**
    * Start observing, returning the teardown.
    *
@@ -93,7 +132,11 @@ interface Subscription<T, R> {
 /**
  * Build a service from its definition.
  */
-export function createService<T, R = void>({ props, start }: ServiceDefinition<T>): Service<T, R> {
+export function createService<T, R = void>({
+  props,
+  start,
+  hasProps,
+}: ServiceDefinition<T>): Service<T, R> {
   const subscriptions = new Set<Subscription<T, R>>();
   let stop: Unsubscribe | null = null;
 
@@ -129,10 +172,29 @@ export function createService<T, R = void>({ props, start }: ServiceDefinition<T
 
   return {
     props,
-    subscribe(callback) {
+    subscribe(callback, { immediate = false } = {}) {
       const subscription: Subscription<T, R> = { callback, isActive: true };
       subscriptions.add(subscription);
       stop ??= start(emit);
+      // After `start()`, never before: starting is what makes `props()`
+      // current — the scroll service measures its target there, the breakpoint
+      // service asks its media queries — so delivering first would hand out
+      // whatever the last run left behind.
+      //
+      // Only this subscriber is called. An emit would reach every other one
+      // with props they have already been given, which is how "tell the
+      // newcomer where things stand" turns into a duplicate update for the
+      // whole page.
+      if (immediate && (hasProps?.() ?? true)) {
+        try {
+          callback(props());
+        } catch (error) {
+          // The same channel the fan-out uses. Throwing out of `subscribe()`
+          // instead would leave the caller holding no unsubscribe for a
+          // subscription that is nonetheless registered.
+          reportError(error);
+        }
+      }
       return () => {
         // Already gone: a repeated unsubscribe must not read as another holder
         // leaving.

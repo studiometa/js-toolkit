@@ -37,6 +37,31 @@ describe('useRaf', () => {
     expect(phases.slice(0, 2)).toEqual(['read', 'write']);
   });
 
+  it('has no current frame to deliver on subscribe', async () => {
+    // A tick has happened, so `props()` holds real numbers.
+    const warm = useRaf().subscribe(() => {});
+    await frames(2);
+    expect(useRaf().props().delta).toBeGreaterThan(0);
+
+    // They describe *a frame*, and between two frames there is no frame to
+    // describe: handing them over would have the newcomer integrate a delta
+    // every other subscriber has already spent. `{ immediate: true }` is a
+    // no-op here, and the first real tick is one frame away.
+    const seen: RafProps[] = [];
+    const unsubscribe = useRaf().subscribe(
+      (props) => {
+        seen.push({ ...props });
+      },
+      { immediate: true },
+    );
+    expect(seen).toEqual([]);
+
+    await frames(2);
+    expect(seen.length).toBeGreaterThan(0);
+    unsubscribe();
+    warm();
+  });
+
   it('takes a render or nothing, and refuses anything else', () => {
     // A stray return — from an assignment expression, or from an arrow body
     // written for brevity — used to be run as a DOM mutation on every frame.

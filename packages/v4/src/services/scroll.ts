@@ -166,6 +166,24 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
     return props;
   }
 
+  /**
+   * Re-measure for the start of a run, and drop the movement.
+   *
+   * "Since the previous update" has no meaning across a stop: the position the
+   * delta would be measured against belongs to a run that ended, at a scroll
+   * position the page has since left. A service restarted after the page moved
+   * would otherwise announce a scroll nobody performed — visible now that
+   * `{ immediate: true }` hands these props straight to a subscriber.
+   */
+  function resync(): ScrollProps {
+    update();
+    props.deltaX = 0;
+    props.deltaY = 0;
+    props.directionX = 0;
+    props.directionY = 0;
+    return props;
+  }
+
   return createService<ScrollProps>({
     props: () => props,
     start(emit) {
@@ -237,7 +255,7 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
 
       // Refresh before the first subscriber reads `props()`, and pick up the
       // maximums of the target as it is now.
-      update();
+      resync();
       // On the target itself: `scroll` does not bubble, so listening here
       // reports this scroller and no other — an inner one would otherwise
       // wake the service to emit unchanged props.

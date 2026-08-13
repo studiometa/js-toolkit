@@ -78,10 +78,46 @@ describe('service mixins', () => {
     expect(instance.ticks).toBe(frozen);
   });
 
+  it('calls the hook with the current props when the mixin asks for them', async () => {
+    const quiet: ScrollProps[] = [];
+    const eager: ScrollProps[] = [];
+
+    class Quiet extends withScroll(Base) {
+      static config = { name: 'QuietHeader' };
+
+      scrolled(props: ScrollProps): void {
+        quiet.push({ ...props });
+      }
+    }
+
+    class Eager extends withScroll(Base, { immediate: true }) {
+      static config = { name: 'EagerHeader' };
+
+      scrolled(props: ScrollProps): void {
+        eager.push({ ...props });
+      }
+    }
+
+    const quietInstance = new Quiet(render()).$mount();
+    const eagerInstance = new Eager(render()).$mount();
+    await settle();
+
+    // Same source, same hook: the option is what decides whether mounting is
+    // enough to hear from it.
+    expect(quiet).toEqual([]);
+    expect(eager).toHaveLength(1);
+    expect(eager[0].y).toBe(window.scrollY);
+
+    quietInstance.$destroy();
+    eagerInstance.$destroy();
+  });
+
   it('gives each hook the props of its own service', async () => {
     const sizes: ResizeProps[] = [];
 
-    class Responsive extends withResize(Base) {
+    // `{ immediate: true }` because the viewport is not going to resize during
+    // this test: the resize service no longer speaks on subscribe on its own.
+    class Responsive extends withResize(Base, { immediate: true }) {
       static config = { name: 'Responsive' };
 
       resized(props: ResizeProps): void {

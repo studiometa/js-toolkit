@@ -17,6 +17,26 @@ describe('useBreakpoint', () => {
     unsubscribe();
   });
 
+  it('delivers the current name to a subscriber that asks for it', () => {
+    const late: string[] = [];
+    const quiet = useBreakpoint().subscribe((props) => late.push(props.name));
+    // Nothing has been crossed, so a plain subscriber hears nothing — which is
+    // right for a crossing and useless for a component that has to lay itself
+    // out now.
+    expect(late).toEqual([]);
+
+    const seen: string[] = [];
+    const unsubscribe = useBreakpoint().subscribe(({ name }) => seen.push(name), {
+      immediate: true,
+    });
+    expect(seen).toEqual([useBreakpoint().props().name]);
+    // Only the newcomer: the others were told nothing they did not know.
+    expect(late).toEqual([]);
+
+    unsubscribe();
+    quiet();
+  });
+
   it('says nothing when a resize crosses no breakpoint', async () => {
     let calls = 0;
     const unsubscribe = useBreakpoint().subscribe(() => {

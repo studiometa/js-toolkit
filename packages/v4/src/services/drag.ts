@@ -115,6 +115,12 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
 
   return createService<DragProps>({
     props: () => props,
+    // A gesture is not a sampled value: outside one there is no position, no
+    // origin and no destination, which is what `idle` says. So
+    // `{ immediate: true }` delivers nothing at rest and delivers the live
+    // gesture to a component that mounts in the middle of one — the case that
+    // makes the option worth having here at all.
+    hasProps: () => props.mode !== DRAG_MODES.IDLE,
     start(emit) {
       /**
        * Publishing is re-entrant: a subscriber that unsubscribes while it is

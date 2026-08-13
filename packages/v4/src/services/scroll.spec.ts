@@ -56,6 +56,37 @@ describe('useScroll', () => {
     unsubscribe();
   });
 
+  it('reports where the page already stands when a subscriber asks', async () => {
+    makePage();
+    // Scrolled before anything subscribed: without asking for the current
+    // props, a component mounted here believes the page is at the top until
+    // somebody scrolls it.
+    window.scrollTo(0, 150);
+    await settle();
+
+    const late: Array<ReturnType<typeof snapshot>> = [];
+    const quiet = useScroll().subscribe((props) => late.push(snapshot(props)));
+    expect(late).toEqual([]);
+
+    const seen: Array<ReturnType<typeof snapshot>> = [];
+    const unsubscribe = useScroll().subscribe((props) => seen.push(snapshot(props)), {
+      immediate: true,
+    });
+
+    expect(seen).toHaveLength(1);
+    expect(seen[0].y).toBe(150);
+    expect(seen[0].progressY).toBeCloseTo(150 / seen[0].maxY, 5);
+    // Where things stand, not a movement. The delta of a run's first props is
+    // zero rather than the distance from wherever the previous run stopped —
+    // a scroll nobody performed.
+    expect(seen[0].deltaY).toBe(0);
+    expect(seen[0].directionY).toBe(0);
+    expect(seen[0].isScrolling).toBe(false);
+
+    unsubscribe();
+    quiet();
+  });
+
   it('hands out props no subscriber can write to', () => {
     const unsubscribe = useScroll().subscribe((props) => {
       // The same object reaches every subscriber, so one of them writing to

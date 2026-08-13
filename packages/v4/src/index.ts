@@ -105,6 +105,7 @@ export {
   type ServiceMixinDefinition,
   type ServiceMixinOptions,
 } from './services/mixin.js';
+export { useMediaQuery, usePrefersReducedMotion, type MediaQueryProps } from './services/media.js';
 export {
   usePointer,
   withPointer,
@@ -147,7 +148,9 @@ export {
   type Service,
   type ServiceCallback,
   type ServiceDefinition,
+  type SubscribeOptions,
   type Unsubscribe,
 } from './services/service.js';
 export { toggle, type Toggle } from './services/toggle.js';
+export { until } from './services/until.js';
 export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
