@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "bracketSpacing": true,
+  "printWidth": 100,
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "all",
+  "bracketSameLine": true,
+  "useTabs": false,
+  "vueIndentScriptAndStyle": true,
+  "htmlWhitespaceSensitivity": "ignore",
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "*.har",
+    "packages/*/dist/",
+    "packages/js-toolkit/README.md",
+    "packages/js-toolkit/src/subpaths/",
+    "packages/docs/guide/recipes/counter-component/Counter.html",
+    "packages/docs/guide/recipes/scroll-linked-animation/ScrollLinkedAnimation.html",
+    "packages/docs/.vitepress/cache",
+    "packages/docs/.vitepress/dist"
+  ],
+  "overrides": [
+    {
+      "files": ["packages/docs/**/*.md"],
+      "options": {
+        "printWidth": 78
+      }
+    }
+  ]
+}

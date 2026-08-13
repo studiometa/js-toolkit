@@ -7,11 +7,5 @@
     "rootDir": "./src"
   },
   "include": ["./src/**/*.ts"],
-  "exclude": [
-    "dist",
-    "scripts",
-    "node_modules",
-    "./src/**/*.spec.ts",
-    "./src/**/*.bench.ts"
-  ]
+  "exclude": ["dist", "scripts", "node_modules", "./src/**/*.spec.ts", "./src/**/*.bench.ts"]
 }

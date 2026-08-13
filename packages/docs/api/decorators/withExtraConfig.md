@@ -50,9 +50,7 @@ import { withExtraConfig } from '@studiometa/js-toolkit';
 export default withExtraConfig(Modal, {
   options: {
     styles: {
-      default: () => ({
-        /* ... */
-      }),
+      default: () => ({/* ... */}),
     },
   },
 });

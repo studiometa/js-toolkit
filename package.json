@@ -29,21 +29,19 @@
     "bench:run": "npm run bench:run -w @studiometa/js-toolkit",
     "lint": "npm run build:subpaths && npm run lint:static && npm run lint:fmt && npm run lint:types",
     "lint:static": "oxlint .",
-    "lint:fmt": "prettier --check '**/*.{yml,md,js,ts,html,vue}' --cache",
-    "lint:types": "tsgo --build tsconfig.lint.json",
+    "lint:fmt": "oxfmt --check .",
+    "lint:types": "npm run lint:types --workspaces --if-present",
     "fix": "npm run fix:static && npm run fix:fmt",
     "fix:static": "npm run lint:static -- --fix",
-    "fix:fmt": "npm run lint:fmt -- --write",
+    "fix:fmt": "oxfmt .",
     "postversion": "npm version --workspaces $npm_package_version"
   },
   "devDependencies": {
-    "@studiometa/prettier-config": "4.4.0",
     "@types/node": "22.19.0",
-    "@typescript/native-preview": "7.0.0-dev.20260326.1",
     "focus-trap": "^7.8.0",
-    "oxlint": "1.63.0",
-    "prettier": "3.8.1",
+    "oxfmt": "0.62.0",
+    "oxlint": "1.77.0",
     "typescript": "7.0.2",
-    "vite": "8.0.3"
+    "vite": "8.2.1"
   }
 }

@@ -20,10 +20,7 @@
     "noImplicitThis": true,
     "esModuleInterop": true,
     "moduleResolution": "bundler",
-    "paths": {
-      "#private/*": ["./packages/js-toolkit/src/*"],
-      "#test-utils": ["./packages/js-toolkit/src/__utils__/index.ts"]
-    }
+    "customConditions": ["typescript"]
   },
-  "include": ["packages/js-toolkit/src/**/*.ts"]
+  "files": []
 }

@@ -325,14 +325,12 @@ function singleAnimate(
   options: TweenOptions = {},
 ): Animate {
   const keyframesCount = keyframes.length - 1;
-  const normalizedKeyframes = keyframes.map(
-    (keyframe, index): NormalizedKeyframe => ({
-      ...keyframe,
-      offset: keyframe.offset ?? index / keyframesCount,
-      easing: normalizeEase(keyframe.easing),
-      vars: Object.keys(keyframe).filter((key) => startsWith(key, '--')),
-    }),
-  );
+  const normalizedKeyframes = keyframes.map((keyframe, index): NormalizedKeyframe => ({
+    ...keyframe,
+    offset: keyframe.offset ?? index / keyframesCount,
+    easing: normalizeEase(keyframe.easing),
+    vars: Object.keys(keyframe).filter((key) => startsWith(key, '--')),
+  }));
 
   // Compile keyframe pairs into pre-computed segments (stage 1: partial evaluation)
   const segments: CompiledSegment[] = [];

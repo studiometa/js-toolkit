@@ -1501,7 +1501,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "bench": "vitest bench --config vitest.bench.config.ts",
-    "bench:run": "vitest bench --config vitest.bench.config.ts --run"
+    "bench:run": "vitest bench --config vitest.bench.config.ts --run",
+    "lint:types": "tsc -p tsconfig.lint.json"
   },
   "keywords": [
     "js-toolkit",
@@ -1514,13 +1515,13 @@
     "deepmerge": "^4.3.1"
   },
   "devDependencies": {
-    "@codspeed/vitest-plugin": "^5.2.0",
+    "@codspeed/vitest-plugin": "5.2.0",
     "@happy-dom/global-registrator": "20.8.8",
-    "@vitest/coverage-v8": "4.1.2",
+    "@vitest/coverage-v8": "4.1.10",
     "esbuild": "0.27.0",
     "fast-glob": "3.3.3",
     "happy-dom": "20.8.8",
     "tsdown": "0.22.14",
-    "vitest": "4.1.2"
+    "vitest": "4.1.10"
   }
 }
