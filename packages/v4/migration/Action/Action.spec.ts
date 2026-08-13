@@ -575,7 +575,7 @@ describe('Action — the v4 lifecycle', () => {
     // can rebind from `$optionChanged`. This half has no expressible
     // workaround at all.
     //
-    // See REPORT.md gap 20.
+    // See REPORT.md gap 21.
     expect(foo.calls).toEqual([['after']]);
   });
 

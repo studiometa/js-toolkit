@@ -32,7 +32,7 @@ export type ActionProps = BaseProps & {
  * | --- | --- |
  * | `mounted()` + `destroyed()` attaching and detaching → `mounted()` returning cleanups | the v4 idiom; setup and teardown in one closure, and `destroyed()` had nothing else in it |
  * | `interface ActionProps extends BaseProps` → a type alias | REPORT.md gap 14: an interface has no implicit index signature, so it fails `$options`'s `Record<string, unknown>` constraint |
- * | **`class Action<T extends BaseProps = BaseProps> extends Base<ActionProps & T>` → no type parameter** | REPORT.md gap 21 — see below |
+ * | **`class Action<T extends BaseProps = BaseProps> extends Base<ActionProps & T>` → no type parameter** | REPORT.md gap 22 — see below |
  * | the `__actionEvents` memo → re-parsed each mount cycle | see below |
  * | `$options.selector` declared in the props but never in `config.options` | deleted — it was dead in v3, and v4's `$options` is built from the config so it would not have existed anyway |
  *
