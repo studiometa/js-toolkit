@@ -72,7 +72,6 @@ export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
 export { registerComponent, registerComponents } from './registry.js';
 export {
   nextFrame,
-  Scheduler,
   defaultScheduler,
   type ScheduledTask,
   type SchedulerPhase,

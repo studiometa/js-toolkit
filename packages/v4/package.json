@@ -131,11 +131,6 @@
       "types": "./dist/subpaths/nextFrame.d.ts",
       "import": "./dist/subpaths/nextFrame.js"
     },
-    "./Scheduler": {
-      "typescript": "./src/subpaths/Scheduler.ts",
-      "types": "./dist/subpaths/Scheduler.d.ts",
-      "import": "./dist/subpaths/Scheduler.js"
-    },
     "./defaultScheduler": {
       "typescript": "./src/subpaths/defaultScheduler.ts",
       "types": "./dist/subpaths/defaultScheduler.d.ts",
