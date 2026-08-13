@@ -9,7 +9,7 @@ export const CountContext = createContext<Signal<number>>('todo-count');
 
 export class TodoItem extends Base<{
   $refs: { remove: HTMLButtonElement };
-  $emits: { remove: [] };
+  $emits: { remove: void };
 }> {
   static config = { name: 'TodoItem', refs: ['remove'] };
 

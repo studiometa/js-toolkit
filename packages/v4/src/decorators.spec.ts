@@ -14,7 +14,7 @@ class DecoChild extends Base {
   accessor total: Signal<number> | undefined;
 
   ping(): void {
-    this.$emit('ping', 42);
+    this.$emit('ping', { answer: 42 });
   }
 }
 
@@ -98,7 +98,7 @@ describe('@on', () => {
     child.ping();
     expect(parent.received).toHaveLength(1);
     expect(parent.received[0].target).toBe(child);
-    expect(parent.received[0].args).toEqual([42]);
+    expect(parent.received[0].payload).toEqual({ answer: 42 });
   });
 
   it('stacks several @on declarations on one method', async () => {

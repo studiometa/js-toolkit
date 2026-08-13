@@ -12,7 +12,7 @@ export interface AccordionItemSettings {
 export interface AccordionItemProps {
   $refs: { btn: HTMLElement; content: HTMLElement; container: HTMLElement };
   $options: { isOpen: boolean; styles: Record<string, AccordionItemStates> };
-  $emits: { open: []; close: [] };
+  $emits: { open: void; close: void };
 }
 
 const ACCORDION_SELECTOR = '[data-component~="Accordion"]';

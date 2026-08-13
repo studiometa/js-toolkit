@@ -2,11 +2,11 @@ import { Base, DRAG_MODES, withDrag, type DragProps, type MountedReturn } from '
 
 export interface SliderDragProps {
   $emits: {
-    start: [props: DragProps];
-    drag: [props: DragProps];
-    drop: [props: DragProps];
-    inertia: [props: DragProps];
-    stop: [props: DragProps];
+    start: DragProps;
+    drag: DragProps;
+    drop: DragProps;
+    inertia: DragProps;
+    stop: DragProps;
   };
 }
 

@@ -39,19 +39,18 @@ class Mutator extends Base {
 
 /**
  * An ancestor claiming through the delegated form instead of a raw listener:
- * the payload a plain listener reads as `event.detail` arrives as the single
- * argument, because a non-array detail is one payload rather than a list.
+ * `payload` is `event.detail`, so both forms read the same object.
  */
 class Watcher extends Base {
   static config = { name: 'Watcher', components: { Mutator } };
 
-  seen: unknown[][] = [];
+  seen: unknown[] = [];
 
-  onMutatorDomUpdate({ args, event }: DelegatedEvent<Mutator>) {
-    this.seen.push(args);
+  onMutatorDomUpdate({ payload, event }: DelegatedEvent<Mutator>) {
+    this.seen.push(payload);
     // The very same object, from both directions.
-    expect(args[0]).toBe((event as CustomEvent).detail);
-    (args[0] as DomUpdateDetail).wrap(async (apply) => {
+    expect(payload).toBe((event as CustomEvent).detail);
+    (payload as DomUpdateDetail).wrap(async (apply) => {
       await apply();
     });
   }
@@ -75,9 +74,9 @@ function render() {
 }
 
 /**
- * Read the negotiation payload. It is the detail itself, not its first
- * element: a negotiated event carries one object, so plain JavaScript on the
- * page reads `event.detail.wrap(…)`.
+ * Read the negotiation payload: the detail itself, exactly as `$emit()` now
+ * carries a component's own payload, so plain JavaScript on the page reads
+ * `event.detail.wrap(…)`.
  */
 function payloadOf<T>(event: Event): T {
   return (event as CustomEvent).detail as T;
@@ -327,11 +326,11 @@ describe('$domUpdate — the take-over mode', () => {
     });
     await instance.$domUpdate(() => {});
 
-    // What plain JavaScript on the page reads. Not `detail[0].wrap`: the
-    // payload is a registration function, not a list of emitted arguments.
+    // What plain JavaScript on the page reads — the same shape `$emit()`
+    // carries, built by the same private dispatch primitive.
     expect(typeof seen?.detail.wrap).toBe('function');
     expect(Array.isArray(seen?.detail)).toBe(false);
-    // Everything `$emit` would have given it, all the same.
+    // Everything `$emit` gives an event, all the same.
     expect(seen?.bubbles).toBe(true);
     expect(seen?.cancelable).toBe(true);
     expect((seen as unknown as Record<symbol, unknown>)[SOURCE]).toBe(instance);
@@ -355,7 +354,7 @@ describe('$domUpdate — the take-over mode', () => {
     // Delegation binds by event type on the root element and walks up from
     // `event.target`, so it never sees how the event was built.
     expect(watcher.seen).toHaveLength(1);
-    expect(typeof (watcher.seen[0][0] as DomUpdateDetail).wrap).toBe('function');
+    expect(typeof (watcher.seen[0] as DomUpdateDetail).wrap).toBe('function');
     expect(el.textContent).toBe('delegated');
   });
 });

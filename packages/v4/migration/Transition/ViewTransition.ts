@@ -4,12 +4,12 @@ import type { Transitionable } from './Transition.js';
 export interface ViewTransitionProps {
   $options: { viewTransitionName: string; enterTo: string; leaveTo: string };
   $emits: {
-    enter: [];
-    'enter-start': [];
-    'enter-end': [];
-    leave: [];
-    'leave-start': [];
-    'leave-end': [];
+    enter: void;
+    'enter-start': void;
+    'enter-end': void;
+    leave: void;
+    'leave-start': void;
+    'leave-end': void;
   };
 }
 

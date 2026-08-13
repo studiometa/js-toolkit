@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type BaseConfig, type OptionChange, type RefEvent } from './Base.js';
 import { registerComponent } from './registry.js';
 import {
@@ -40,9 +40,45 @@ describe('$emit and delegation', () => {
       event.preventDefault();
     });
 
-    const event = instance.$emit('ping', 1, 'two');
-    expect(seen).toEqual([[1, 'two']]);
+    const event = instance.$emit('ping', { count: 1, label: 'two' });
+    // The detail is the payload object itself, not a wrapper around it.
+    expect(seen).toEqual([{ count: 1, label: 'two' }]);
     expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('leaves the detail at the platform null when nothing is emitted', async () => {
+    const root = renderTodoList();
+    await settle();
+
+    const li = root.querySelector('[data-component="TodoItem"]');
+    const instance = getInstance(li, 'TodoItem');
+    const seen: unknown[] = [];
+    root.addEventListener('ping', (event) => seen.push((event as CustomEvent).detail));
+
+    instance.$emit('ping');
+    // Not `{}` and not `[]`: `$emit('open')` announces a fact, and nothing is
+    // synthesized to stand in for a payload nobody sent. `null` is what
+    // `new CustomEvent('ping')` stores, so the platform sets this, not us.
+    expect(seen).toEqual([null]);
+  });
+
+  it('warns when the payload is not an object, and dispatches anyway', async () => {
+    const root = renderTodoList();
+    await settle();
+
+    const li = root.querySelector('[data-component="TodoItem"]');
+    const instance = getInstance(li, 'TodoItem');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const seen: unknown[] = [];
+    root.addEventListener('ping', (event) => seen.push((event as CustomEvent).detail));
+
+    // What the no-build path can write and TypeScript never sees.
+    (instance.$emit as (type: string, payload?: unknown) => void)('ping', 1);
+
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain('one payload object');
+    expect(seen).toEqual([1]);
+    warn.mockRestore();
   });
 });
 
