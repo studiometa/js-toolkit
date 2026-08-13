@@ -26,7 +26,7 @@ yarn-error.log*
 
 # Build files
 dist/
-packages/js-toolkit/subpaths/
+packages/js-toolkit/src/subpaths/
 demo/dist/
 
 # Module graph reports written by `npm run measure -- --json <file>`
@@ -36,5 +36,4 @@ coverage/
 /full.d.ts
 /index.d.ts
 /lcov.info
-/tsconfig.build.tsbuildinfo
-/tsconfig.lint.tsbuildinfo
+*.tsbuildinfo

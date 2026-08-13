@@ -1,7 +1,12 @@
 {
-  "ignorePatterns": ["packages/js-toolkit/subpaths/"],
+  "ignorePatterns": [
+    "packages/js-toolkit/src/subpaths/"
+  ],
   "jsPlugins": [
-    { "name": "js-toolkit", "specifier": "./packages/eslint-plugin-js-toolkit/src/index.ts" }
+    {
+      "name": "js-toolkit",
+      "specifier": "./packages/eslint-plugin/src/index.ts"
+    }
   ],
   "rules": {
     "typescript/no-this-alias": [
@@ -13,20 +18,35 @@
   },
   "overrides": [
     {
-      "files": ["packages/js-toolkit/**/*.ts"],
+      "files": [
+        "packages/js-toolkit/src/**/*.ts"
+      ],
       "rules": {
         "js-toolkit/no-internal-barrel-import": "error"
       }
     },
     {
-      "files": ["packages/v4/**/*.ts"],
-      "plugins": ["import"],
+      "files": [
+        "packages/v4/**/*.ts"
+      ],
+      "plugins": [
+        "import"
+      ],
       "rules": {
-        "import/extensions": ["error", "always", { "ignorePackages": true }]
+        "import/extensions": [
+          "error",
+          "always",
+          {
+            "ignorePackages": true
+          }
+        ]
       }
     },
     {
-      "files": ["packages/js-toolkit/**/*.ts", "packages/demo/**/*.{ts,js}"],
+      "files": [
+        "packages/js-toolkit/src/**/*.ts",
+        "packages/demo/**/*.{ts,js}"
+      ],
       "rules": {
         "js-toolkit/require-config": "error",
         "js-toolkit/require-config-name-pascal-case": "error",
@@ -41,6 +61,28 @@
         "js-toolkit/no-shadow-dom": "error",
         "js-toolkit/no-create-app": "warn",
         "js-toolkit/no-event-listener-methods": "error"
+      }
+    },
+    {
+      "files": [
+        "**/*.spec.ts",
+        "**/*.bench.ts"
+      ],
+      "rules": {
+        "js-toolkit/no-internal-barrel-import": "off",
+        "js-toolkit/require-config": "off",
+        "js-toolkit/require-config-name-pascal-case": "off",
+        "js-toolkit/refs-camel-case": "off",
+        "js-toolkit/refs-plural-multiple": "off",
+        "js-toolkit/options-camel-case": "off",
+        "js-toolkit/async-lifecycle-methods": "off",
+        "js-toolkit/on-handler-naming": "off",
+        "js-toolkit/on-global-handler-prefix": "off",
+        "js-toolkit/no-deprecated-properties": "off",
+        "js-toolkit/no-dispatch-event": "off",
+        "js-toolkit/no-shadow-dom": "off",
+        "js-toolkit/no-create-app": "off",
+        "js-toolkit/no-event-listener-methods": "off"
       }
     }
   ]

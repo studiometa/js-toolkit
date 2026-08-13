@@ -21,9 +21,9 @@
     "esModuleInterop": true,
     "moduleResolution": "bundler",
     "paths": {
-      "#private/*": ["./packages/js-toolkit/*"],
-      "#test-utils": ["./packages/tests/__utils__/index.ts"]
+      "#private/*": ["./packages/js-toolkit/src/*"],
+      "#test-utils": ["./packages/js-toolkit/src/__utils__/index.ts"]
     }
   },
-  "include": ["packages/global.d.ts", "packages/js-toolkit/**/*.ts", "packages/tests/**/*.ts"]
+  "include": ["packages/js-toolkit/src/**/*.ts"]
 }

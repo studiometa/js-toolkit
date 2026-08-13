@@ -3,11 +3,16 @@
   "compilerOptions": {
     "noEmit": false,
     "declaration": true,
-    "rootDir": "./packages/js-toolkit",
+    "rootDir": "./packages/js-toolkit/src",
     "outDir": "dist/dist/",
     "tsBuildInfoFile": "./tsconfig.build.tsbuildinfo",
     "emitDeclarationOnly": true,
     "types": []
   },
-  "include": ["packages/global.d.ts", "packages/js-toolkit/**/*.ts"]
+  "include": ["packages/js-toolkit/src/**/*.ts"],
+  "exclude": [
+    "packages/js-toolkit/src/**/*.spec.ts",
+    "packages/js-toolkit/src/__utils__/**",
+    "packages/js-toolkit/src/__benchmarks__/**"
+  ]
 }
