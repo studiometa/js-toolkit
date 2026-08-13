@@ -5,7 +5,7 @@ import {
   type ContextKey,
   type InjectContextOptions,
 } from './context.js';
-import { domVersion } from './dom-mutations.js';
+import { domVersion, watchElementAttributes, type AttributeChange } from './dom-mutations.js';
 import {
   domUpdate,
   emitExtendable,
@@ -852,6 +852,57 @@ export class Base<T extends BaseProps = BaseProps> {
         return this.items[Symbol.iterator]();
       },
     };
+  }
+
+  /**
+   * Observe every attribute of the component's own element, whatever its name.
+   *
+   * `$options` covers the attributes the framework can name: they are declared
+   * in `config.options`, so the one page-wide observer can filter for them
+   * exactly and `option<Name>Changed()` reports each change. An attribute
+   * **the framework cannot enumerate** has no such path — `attributeFilter`
+   * takes exact names and the DOM has no wildcard — and a component naming its
+   * own attributes (`data-on:<event>`, a `data-bind:` expression) is left
+   * reading the DOM once at mount and never hearing about a rewrite:
+   *
+   *     mounted() {
+   *       return this.$watchAttributes(({ name, value, previousValue }) => {
+   *         if (name.startsWith('data-on:')) this.rebind(name, value, previousValue);
+   *       });
+   *     }
+   *
+   * The subscription is **destroy-scoped**, like the `mounted()` cleanups and
+   * a pending `$inject()`: the observer is disconnected on `$destroy()` and a
+   * remount re-establishes it, so call it from `mounted()`. Returning the
+   * cleanup as well is only for ending it early — nothing is left behind if
+   * the return value is dropped, and running it twice is harmless.
+   *
+   * Delivery is the mutation engine's, not a second timeline: the changes are
+   * reported from the same batch as component lifecycle and declared options,
+   * after them, and `whenDOMSettled()` waits for them — so a `swap()` that
+   * rewrote a watched attribute has already reported it when it resolves.
+   * Several writes to one attribute in a batch coalesce to one change against
+   * the final DOM value, and a rewrite ending on the value it started from is
+   * not a change at all.
+   *
+   * The element's own attributes only: descendants are a `$refs` question, and
+   * one unfiltered observer per opting element is what keeps the cost
+   * proportional to the components which ask for it.
+   *
+   * @param callback Called once per attribute change, with its name, its
+   *                 current raw value and the one it replaced (`null` for an
+   *                 absent attribute, either side).
+   * @returns A cleanup ending the subscription before the next `$destroy()`.
+   */
+  $watchAttributes(callback: (change: AttributeChange) => void): () => void {
+    // A terminated instance never destroys again, so nothing would ever
+    // disconnect the observer: refuse rather than leak one.
+    if (this.#isTerminated) {
+      return () => {};
+    }
+    const stop = watchElementAttributes(this.$el, (change) => callback.call(this, change));
+    this.#destroyCallbacks.push(stop);
+    return stop;
   }
 
   /**

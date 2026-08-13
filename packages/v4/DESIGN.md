@@ -178,13 +178,28 @@ One internal engine owns one MutationObserver for component discovery, lifecycle
 1. destroy removed subtrees and dispose their strategies;
 2. reconcile final `data-component` and `data-mount` attributes;
 3. deliver coalesced declared-option changes to retained mounted instances;
-4. scan added subtrees once and schedule their registered component tokens.
+4. scan added subtrees once and schedule their registered component tokens;
+5. report coalesced attribute changes to the elements which asked to watch them — see below.
 
 v3.9 re-queries every registry entry and sweeps every live instance per mutation batch. v4 reads `data-component` tokens from an inserted subtree in one pass and looks each token up in the registry.
 
 A disconnected element receives `$destroy()` and retains its instance for reinsertion. Removing one component token from a connected element is different: the DOM no longer declares that identity, so the registry calls `$terminate()`. Adding that token later creates a new instance. A moved node produces removal and addition records and deliberately completes a destroy/remount cycle with the same identity.
 
 `whenDOMSettled()` provides an explicit completion boundary for morphing and fetch-style updates. It drains pending records, follows mutation chains created by eager lifecycle work and resolves after eager mounts and teardown have run. It does not wait for visibility, interaction, idle or media conditions, and it does not await promises returned by `mounted()`.
+
+### Attributes the framework cannot name — `$watchAttributes()`
+
+The precise `attributeFilter` is what keeps the engine cheap, and it is also its one blind spot: `attributeFilter` takes **exact names** and the DOM has no wildcard, so an attribute the framework cannot enumerate produces no record at all. `data-on:<event>` is the case that forces the point — its name is any DOM event, so a parse-time registration is never complete, and an in-place rewrite (`swap({ mode: 'morph' })`, a `data-bind:` template re-render) leaves a component's binding stale and **silent**. The half that is enumerable already works: a `data-option-*` name joins the filter when its class registers, and `option<Name>Changed()` reports it.
+
+Two answers were rejected before this one. Adding the names to the global filter cannot be complete against an open-ended set. Dropping the filter and testing each record in the callback is correct and puts every `class` and `style` write in the document — animation churn included — through the queue, which is the cost the filter exists to avoid.
+
+So the opt-in is **element-scoped**: `this.$watchAttributes(callback)` observes every attribute of the component's own element, through a second, unfiltered observer created for that element and disconnected on cleanup. The page pays for the components which ask, not for the components which exist. Nothing is created at import time, and one component's opt-in observes nothing outside its own element.
+
+- **Destroy-scoped**, like the `mounted()` cleanups and a pending `$inject()`: the observer is disconnected by `$destroy()` and a remount re-establishes it, so the call belongs in `mounted()`. The returned cleanup is for ending it early; it is idempotent and dropping it leaks nothing.
+- **The records join the shared queue.** The element observer is drained wherever the engine drains its own — `whenDOMSettled()` included — and its changes are reported from the same background task, as step 5 above. So `swap()` covers a watched attribute exactly as it covers a mount, and there is no second timeline to reason about.
+- **After the framework, deliberately.** A callback is component code and must see a settled framework rather than a half-reconciled one. The consequence is the intended precedence: a component whose `data-component` token was dropped in the same batch has already been terminated by step 2, so it is no longer watching and hears nothing about the accompanying attribute change — a callback never runs against an instance the framework has just ended. Nothing in the framework reads these attributes, so no framework decision can depend on a callback, and the reverse order would have no reader.
+- **Coalesced like options.** Several writes to one attribute in a batch are one change, from the first old value to the final DOM value, and a rewrite ending where it started is not a change at all — the rule `$optionChanged()` already follows.
+- Delivered as one payload object: `{ name, value, previousValue }`, raw attribute strings, `null` on either side for an absent attribute. It is the **entire** attribute set of the element, framework names included; a component narrows by prefix, which is what a `data-on:` or `data-bind:` family wants anyway.
 
 The matching surface is deliberately narrower than v3: only `data-component="Name"` declarations are discovered, with whitespace-separated tokens for several components on one element. v3's `<tk-name>` tag sugar and lowercase arbitrary-selector registrations are not kept. `data-component` still enhances native elements (`<form>`, `<a>`, `<details>`, table markup) and supports several components on one element — both impossible with custom elements as the primitive.
 
