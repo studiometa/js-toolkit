@@ -73,7 +73,9 @@ export {
   provideContext,
   provideRootContext,
   signal,
+  type ContextCallback,
   type ContextKey,
+  type InjectContextOptions,
   type Signal,
 } from './context.js';
 export { children, component, inject, on, provide, read, write } from './decorators.js';
