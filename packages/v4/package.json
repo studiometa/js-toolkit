@@ -14,6 +14,352 @@
       "typescript": "./src/utils/index.ts",
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.js"
+    },
+    "./package.json": "./package.json",
+    "./Base": {
+      "typescript": "./src/subpaths/Base.ts",
+      "types": "./dist/subpaths/Base.d.ts",
+      "import": "./dist/subpaths/Base.js"
+    },
+    "./DESTROYED_EVENT": {
+      "typescript": "./src/subpaths/DESTROYED_EVENT.ts",
+      "types": "./dist/subpaths/DESTROYED_EVENT.d.ts",
+      "import": "./dist/subpaths/DESTROYED_EVENT.js"
+    },
+    "./HANDLER_REGISTRATIONS": {
+      "typescript": "./src/subpaths/HANDLER_REGISTRATIONS.ts",
+      "types": "./dist/subpaths/HANDLER_REGISTRATIONS.d.ts",
+      "import": "./dist/subpaths/HANDLER_REGISTRATIONS.js"
+    },
+    "./MOUNTED_EVENT": {
+      "typescript": "./src/subpaths/MOUNTED_EVENT.ts",
+      "types": "./dist/subpaths/MOUNTED_EVENT.d.ts",
+      "import": "./dist/subpaths/MOUNTED_EVENT.js"
+    },
+    "./SOURCE": {
+      "typescript": "./src/subpaths/SOURCE.ts",
+      "types": "./dist/subpaths/SOURCE.d.ts",
+      "import": "./dist/subpaths/SOURCE.js"
+    },
+    "./Signal": {
+      "typescript": "./src/subpaths/Signal.ts",
+      "types": "./dist/subpaths/Signal.d.ts",
+      "import": "./dist/subpaths/Signal.js"
+    },
+    "./createContext": {
+      "typescript": "./src/subpaths/createContext.ts",
+      "types": "./dist/subpaths/createContext.d.ts",
+      "import": "./dist/subpaths/createContext.js"
+    },
+    "./injectContext": {
+      "typescript": "./src/subpaths/injectContext.ts",
+      "types": "./dist/subpaths/injectContext.d.ts",
+      "import": "./dist/subpaths/injectContext.js"
+    },
+    "./injectContextSync": {
+      "typescript": "./src/subpaths/injectContextSync.ts",
+      "types": "./dist/subpaths/injectContextSync.d.ts",
+      "import": "./dist/subpaths/injectContextSync.js"
+    },
+    "./provideContext": {
+      "typescript": "./src/subpaths/provideContext.ts",
+      "types": "./dist/subpaths/provideContext.d.ts",
+      "import": "./dist/subpaths/provideContext.js"
+    },
+    "./provideRootContext": {
+      "typescript": "./src/subpaths/provideRootContext.ts",
+      "types": "./dist/subpaths/provideRootContext.d.ts",
+      "import": "./dist/subpaths/provideRootContext.js"
+    },
+    "./children": {
+      "typescript": "./src/subpaths/children.ts",
+      "types": "./dist/subpaths/children.d.ts",
+      "import": "./dist/subpaths/children.js"
+    },
+    "./component": {
+      "typescript": "./src/subpaths/component.ts",
+      "types": "./dist/subpaths/component.d.ts",
+      "import": "./dist/subpaths/component.js"
+    },
+    "./inject": {
+      "typescript": "./src/subpaths/inject.ts",
+      "types": "./dist/subpaths/inject.d.ts",
+      "import": "./dist/subpaths/inject.js"
+    },
+    "./on": {
+      "typescript": "./src/subpaths/on.ts",
+      "types": "./dist/subpaths/on.d.ts",
+      "import": "./dist/subpaths/on.js"
+    },
+    "./provide": {
+      "typescript": "./src/subpaths/provide.ts",
+      "types": "./dist/subpaths/provide.d.ts",
+      "import": "./dist/subpaths/provide.js"
+    },
+    "./read": {
+      "typescript": "./src/subpaths/read.ts",
+      "types": "./dist/subpaths/read.d.ts",
+      "import": "./dist/subpaths/read.js"
+    },
+    "./write": {
+      "typescript": "./src/subpaths/write.ts",
+      "types": "./dist/subpaths/write.d.ts",
+      "import": "./dist/subpaths/write.js"
+    },
+    "./whenDOMSettled": {
+      "typescript": "./src/subpaths/whenDOMSettled.ts",
+      "types": "./dist/subpaths/whenDOMSettled.d.ts",
+      "import": "./dist/subpaths/whenDOMSettled.js"
+    },
+    "./MOUNT_ATTRIBUTE": {
+      "typescript": "./src/subpaths/MOUNT_ATTRIBUTE.ts",
+      "types": "./dist/subpaths/MOUNT_ATTRIBUTE.d.ts",
+      "import": "./dist/subpaths/MOUNT_ATTRIBUTE.js"
+    },
+    "./registerComponent": {
+      "typescript": "./src/subpaths/registerComponent.ts",
+      "types": "./dist/subpaths/registerComponent.d.ts",
+      "import": "./dist/subpaths/registerComponent.js"
+    },
+    "./registerComponents": {
+      "typescript": "./src/subpaths/registerComponents.ts",
+      "types": "./dist/subpaths/registerComponents.d.ts",
+      "import": "./dist/subpaths/registerComponents.js"
+    },
+    "./nextFrame": {
+      "typescript": "./src/subpaths/nextFrame.ts",
+      "types": "./dist/subpaths/nextFrame.d.ts",
+      "import": "./dist/subpaths/nextFrame.js"
+    },
+    "./Scheduler": {
+      "typescript": "./src/subpaths/Scheduler.ts",
+      "types": "./dist/subpaths/Scheduler.d.ts",
+      "import": "./dist/subpaths/Scheduler.js"
+    },
+    "./defaultScheduler": {
+      "typescript": "./src/subpaths/defaultScheduler.ts",
+      "types": "./dist/subpaths/defaultScheduler.d.ts",
+      "import": "./dist/subpaths/defaultScheduler.js"
+    },
+    "./BREAKPOINTS": {
+      "typescript": "./src/subpaths/BREAKPOINTS.ts",
+      "types": "./dist/subpaths/BREAKPOINTS.d.ts",
+      "import": "./dist/subpaths/BREAKPOINTS.js"
+    },
+    "./getBreakpoints": {
+      "typescript": "./src/subpaths/getBreakpoints.ts",
+      "types": "./dist/subpaths/getBreakpoints.d.ts",
+      "import": "./dist/subpaths/getBreakpoints.js"
+    },
+    "./setBreakpoints": {
+      "typescript": "./src/subpaths/setBreakpoints.ts",
+      "types": "./dist/subpaths/setBreakpoints.d.ts",
+      "import": "./dist/subpaths/setBreakpoints.js"
+    },
+    "./useBreakpoint": {
+      "typescript": "./src/subpaths/useBreakpoint.ts",
+      "types": "./dist/subpaths/useBreakpoint.d.ts",
+      "import": "./dist/subpaths/useBreakpoint.js"
+    },
+    "./DRAG_MODES": {
+      "typescript": "./src/subpaths/DRAG_MODES.ts",
+      "types": "./dist/subpaths/DRAG_MODES.d.ts",
+      "import": "./dist/subpaths/DRAG_MODES.js"
+    },
+    "./useDrag": {
+      "typescript": "./src/subpaths/useDrag.ts",
+      "types": "./dist/subpaths/useDrag.d.ts",
+      "import": "./dist/subpaths/useDrag.js"
+    },
+    "./withDrag": {
+      "typescript": "./src/subpaths/withDrag.ts",
+      "types": "./dist/subpaths/withDrag.d.ts",
+      "import": "./dist/subpaths/withDrag.js"
+    },
+    "./createServiceMixin": {
+      "typescript": "./src/subpaths/createServiceMixin.ts",
+      "types": "./dist/subpaths/createServiceMixin.d.ts",
+      "import": "./dist/subpaths/createServiceMixin.js"
+    },
+    "./useMediaQuery": {
+      "typescript": "./src/subpaths/useMediaQuery.ts",
+      "types": "./dist/subpaths/useMediaQuery.d.ts",
+      "import": "./dist/subpaths/useMediaQuery.js"
+    },
+    "./usePrefersReducedMotion": {
+      "typescript": "./src/subpaths/usePrefersReducedMotion.ts",
+      "types": "./dist/subpaths/usePrefersReducedMotion.d.ts",
+      "import": "./dist/subpaths/usePrefersReducedMotion.js"
+    },
+    "./usePointer": {
+      "typescript": "./src/subpaths/usePointer.ts",
+      "types": "./dist/subpaths/usePointer.d.ts",
+      "import": "./dist/subpaths/usePointer.js"
+    },
+    "./withPointer": {
+      "typescript": "./src/subpaths/withPointer.ts",
+      "types": "./dist/subpaths/withPointer.d.ts",
+      "import": "./dist/subpaths/withPointer.js"
+    },
+    "./useRaf": {
+      "typescript": "./src/subpaths/useRaf.ts",
+      "types": "./dist/subpaths/useRaf.d.ts",
+      "import": "./dist/subpaths/useRaf.js"
+    },
+    "./withRaf": {
+      "typescript": "./src/subpaths/withRaf.ts",
+      "types": "./dist/subpaths/withRaf.d.ts",
+      "import": "./dist/subpaths/withRaf.js"
+    },
+    "./useResize": {
+      "typescript": "./src/subpaths/useResize.ts",
+      "types": "./dist/subpaths/useResize.d.ts",
+      "import": "./dist/subpaths/useResize.js"
+    },
+    "./useWindowSize": {
+      "typescript": "./src/subpaths/useWindowSize.ts",
+      "types": "./dist/subpaths/useWindowSize.d.ts",
+      "import": "./dist/subpaths/useWindowSize.js"
+    },
+    "./withResize": {
+      "typescript": "./src/subpaths/withResize.ts",
+      "types": "./dist/subpaths/withResize.d.ts",
+      "import": "./dist/subpaths/withResize.js"
+    },
+    "./useScroll": {
+      "typescript": "./src/subpaths/useScroll.ts",
+      "types": "./dist/subpaths/useScroll.d.ts",
+      "import": "./dist/subpaths/useScroll.js"
+    },
+    "./useWindowScroll": {
+      "typescript": "./src/subpaths/useWindowScroll.ts",
+      "types": "./dist/subpaths/useWindowScroll.d.ts",
+      "import": "./dist/subpaths/useWindowScroll.js"
+    },
+    "./withScroll": {
+      "typescript": "./src/subpaths/withScroll.ts",
+      "types": "./dist/subpaths/withScroll.d.ts",
+      "import": "./dist/subpaths/withScroll.js"
+    },
+    "./createService": {
+      "typescript": "./src/subpaths/createService.ts",
+      "types": "./dist/subpaths/createService.d.ts",
+      "import": "./dist/subpaths/createService.js"
+    },
+    "./perTarget": {
+      "typescript": "./src/subpaths/perTarget.ts",
+      "types": "./dist/subpaths/perTarget.d.ts",
+      "import": "./dist/subpaths/perTarget.js"
+    },
+    "./toggle": {
+      "typescript": "./src/subpaths/toggle.ts",
+      "types": "./dist/subpaths/toggle.d.ts",
+      "import": "./dist/subpaths/toggle.js"
+    },
+    "./until": {
+      "typescript": "./src/subpaths/until.ts",
+      "types": "./dist/subpaths/until.d.ts",
+      "import": "./dist/subpaths/until.js"
+    },
+    "./viewTransition": {
+      "typescript": "./src/subpaths/viewTransition.ts",
+      "types": "./dist/subpaths/viewTransition.d.ts",
+      "import": "./dist/subpaths/viewTransition.js"
+    },
+    "./utils/clamp": {
+      "typescript": "./src/subpaths/utils/clamp.ts",
+      "types": "./dist/subpaths/utils/clamp.d.ts",
+      "import": "./dist/subpaths/utils/clamp.js"
+    },
+    "./utils/clamp01": {
+      "typescript": "./src/subpaths/utils/clamp01.ts",
+      "types": "./dist/subpaths/utils/clamp01.d.ts",
+      "import": "./dist/subpaths/utils/clamp01.js"
+    },
+    "./utils/clampDampFactor": {
+      "typescript": "./src/subpaths/utils/clampDampFactor.ts",
+      "types": "./dist/subpaths/utils/clampDampFactor.d.ts",
+      "import": "./dist/subpaths/utils/clampDampFactor.js"
+    },
+    "./utils/damp": {
+      "typescript": "./src/subpaths/utils/damp.ts",
+      "types": "./dist/subpaths/utils/damp.d.ts",
+      "import": "./dist/subpaths/utils/damp.js"
+    },
+    "./utils/decayOver": {
+      "typescript": "./src/subpaths/utils/decayOver.ts",
+      "types": "./dist/subpaths/utils/decayOver.d.ts",
+      "import": "./dist/subpaths/utils/decayOver.js"
+    },
+    "./utils/DEFAULT_DAMP_FACTOR": {
+      "typescript": "./src/subpaths/utils/DEFAULT_DAMP_FACTOR.ts",
+      "types": "./dist/subpaths/utils/DEFAULT_DAMP_FACTOR.d.ts",
+      "import": "./dist/subpaths/utils/DEFAULT_DAMP_FACTOR.js"
+    },
+    "./utils/inertiaDecay": {
+      "typescript": "./src/subpaths/utils/inertiaDecay.ts",
+      "types": "./dist/subpaths/utils/inertiaDecay.d.ts",
+      "import": "./dist/subpaths/utils/inertiaDecay.js"
+    },
+    "./utils/inertiaFinalValue": {
+      "typescript": "./src/subpaths/utils/inertiaFinalValue.ts",
+      "types": "./dist/subpaths/utils/inertiaFinalValue.d.ts",
+      "import": "./dist/subpaths/utils/inertiaFinalValue.js"
+    },
+    "./utils/inertiaStep": {
+      "typescript": "./src/subpaths/utils/inertiaStep.ts",
+      "types": "./dist/subpaths/utils/inertiaStep.d.ts",
+      "import": "./dist/subpaths/utils/inertiaStep.js"
+    },
+    "./utils/inertiaTimeConstant": {
+      "typescript": "./src/subpaths/utils/inertiaTimeConstant.ts",
+      "types": "./dist/subpaths/utils/inertiaTimeConstant.d.ts",
+      "import": "./dist/subpaths/utils/inertiaTimeConstant.js"
+    },
+    "./utils/INERTIA_FRAME": {
+      "typescript": "./src/subpaths/utils/INERTIA_FRAME.ts",
+      "types": "./dist/subpaths/utils/INERTIA_FRAME.d.ts",
+      "import": "./dist/subpaths/utils/INERTIA_FRAME.js"
+    },
+    "./utils/lerp": {
+      "typescript": "./src/subpaths/utils/lerp.ts",
+      "types": "./dist/subpaths/utils/lerp.d.ts",
+      "import": "./dist/subpaths/utils/lerp.js"
+    },
+    "./utils/map": {
+      "typescript": "./src/subpaths/utils/map.ts",
+      "types": "./dist/subpaths/utils/map.d.ts",
+      "import": "./dist/subpaths/utils/map.js"
+    },
+    "./utils/MAX_SPRING_RATIO": {
+      "typescript": "./src/subpaths/utils/MAX_SPRING_RATIO.ts",
+      "types": "./dist/subpaths/utils/MAX_SPRING_RATIO.d.ts",
+      "import": "./dist/subpaths/utils/MAX_SPRING_RATIO.js"
+    },
+    "./utils/spring": {
+      "typescript": "./src/subpaths/utils/spring.ts",
+      "types": "./dist/subpaths/utils/spring.d.ts",
+      "import": "./dist/subpaths/utils/spring.js"
+    },
+    "./utils/selectorFor": {
+      "typescript": "./src/subpaths/utils/selectorFor.ts",
+      "types": "./dist/subpaths/utils/selectorFor.d.ts",
+      "import": "./dist/subpaths/utils/selectorFor.js"
+    },
+    "./utils/smoothTo": {
+      "typescript": "./src/subpaths/utils/smoothTo.ts",
+      "types": "./dist/subpaths/utils/smoothTo.d.ts",
+      "import": "./dist/subpaths/utils/smoothTo.js"
+    },
+    "./utils/kebabCase": {
+      "typescript": "./src/subpaths/utils/kebabCase.ts",
+      "types": "./dist/subpaths/utils/kebabCase.d.ts",
+      "import": "./dist/subpaths/utils/kebabCase.js"
+    },
+    "./utils/pascalCase": {
+      "typescript": "./src/subpaths/utils/pascalCase.ts",
+      "types": "./dist/subpaths/utils/pascalCase.d.ts",
+      "import": "./dist/subpaths/utils/pascalCase.js"
     }
   },
   "scripts": {

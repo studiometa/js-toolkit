@@ -32,6 +32,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --no-progress --no-fund
+      - name: Check the subpath stubs
+        run: npm run subpaths:check
       - name: Run code quality tests
         run: npm run lint:static
       - name: Run format tests

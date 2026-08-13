@@ -1,8 +1,6 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname, relative, sep } from 'node:path';
 
-const pkgRoot = resolve(dirname(new URL(import.meta.url).pathname), '../..');
-const srcRoot = resolve(pkgRoot, 'src');
 
 /**
  * Parse the `export { … } from '…'` re-export blocks of a barrel file into a flat list of the
@@ -113,9 +111,10 @@ function specifierFrom(stubDir, leafFile) {
  * whole barrel's graph, and a type import is erased before anything runs — importing `BaseConfig`
  * from the root barrel costs nothing at runtime. Types stay reachable through `.` and `./utils`.
  *
+ * @param   {string} srcRoot The absolute path of the package's `src/` directory.
  * @returns {{ root: Descriptor[], utils: Descriptor[] }}
  */
-export function enumerate() {
+export function enumerate(srcRoot) {
   const rootBarrel = resolve(srcRoot, 'index.ts');
   const utilsBarrel = resolve(srcRoot, 'utils/index.ts');
   // Stubs live in `src/subpaths/` and `src/subpaths/utils/`.
@@ -203,10 +202,11 @@ export function conditions(source) {
  * stub which re-exports one leaf module. That is what keeps a CDN from serving a
  * whole barrel's graph for one symbol.
  *
+ * @param   {string} srcRoot The absolute path of the package's `src/` directory.
  * @returns {Record<string, { typescript: string, types: string, import: string }>}
  */
-export function buildSubpathExports() {
-  const { root, utils } = enumerate();
+export function buildSubpathExports(srcRoot) {
+  const { root, utils } = enumerate(srcRoot);
   const map = {};
   for (const { exported } of root) {
     map[`./${exported}`] = conditions(`subpaths/${exported}`);

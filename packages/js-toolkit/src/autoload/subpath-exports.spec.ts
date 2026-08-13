@@ -39,8 +39,10 @@ describe('per-symbol subpath exports', () => {
 
 describe('subpath exports map', () => {
   it('stays in sync with the barrel exports', () => {
-    const generator = resolve(packageRoot, 'scripts/generate-subpaths.js');
-    expect(() => execFileSync(process.execPath, [generator, '--check'])).not.toThrow();
+    const generator = resolve(repositoryRoot, 'scripts/generate-subpaths.js');
+    expect(() =>
+      execFileSync(process.execPath, [generator, '--check', 'packages/js-toolkit']),
+    ).not.toThrow();
   });
 });
 

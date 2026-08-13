@@ -1056,8 +1056,7 @@
     "test:watch": "vitest",
     "bench": "vitest bench --config vitest.bench.config.ts",
     "bench:run": "vitest bench --config vitest.bench.config.ts --run",
-    "lint:types": "tsc -p tsconfig.lint.json",
-    "subpaths": "node scripts/generate-subpaths.js"
+    "lint:types": "tsc -p tsconfig.lint.json"
   },
   "keywords": [
     "js-toolkit",
