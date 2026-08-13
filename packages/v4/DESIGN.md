@@ -512,6 +512,63 @@ This is already the de facto state: `src/` contains no animation utility of any 
 
 **Not the engine's job:** `exit` and `layout`/`layoutId` need framework-owned rendering, which the DOM does not give us — a MutationObserver fires after the element is gone and after layout changed. Native View Transitions already solve both, and are in core (section 7).
 
+## 10. DOM content swapping — `swap()`, one primitive in core
+
+**Implemented.** @studiometa/ui writes the same swap twice: `Fetch.__updateDOM` matches elements from a fetched document by `id` and applies one of four modes, and `FrameTarget.updateContent` does the same job between its leave and enter transitions. Both then call `adoptNewScripts(getScripts(el), oldScripts)`. Two copies of a swap is tolerable; two copies of the script rule is not, because the rule is not obvious in either direction — a `<script>` produced by the fragment parser is flagged _already started_ by the HTML specification and stays inert wherever it is moved, so it only runs if it is recreated, and recreating one that was already in the page runs it twice.
+
+```js
+swap(target, content, { mode, wrap }): Promise<void>
+```
+
+- `target` is an element whose **content** changes. It is never itself replaced, so the caller's reference, its `id` and any component instance living on it survive.
+- `content` is a markup string parsed in the target's own parsing context — `<tr>`, `<li>` and `<option>` survive, which no `<div>` or `DOMParser` context gives you — or an `Element`/`DocumentFragment` read as the incoming counterpart of the target, whose children become the new content. That is already what both ui call sites mean when they pass an element matched out of a fetched document.
+- The returned promise resolves after `whenDOMSettled()`, so awaiting `swap()` means the mutation is applied _and_ swapped-in components are mounted and swapped-out ones destroyed.
+
+### Why v4 makes it small
+
+Under v3 each family had to re-mount components inside the new markup and refresh stale refs. v4 removes both jobs: the registry mounts and destroys purely on DOM insertion and ejection (§3), and `$refs` re-read on access (§1). What is left of a swap is one mutation plus one script-adoption pass — roughly forty lines against ui's two implementations, with no `$update()`, no child teardown and no `settle()` helper for the caller. The browser suite asserts exactly that: components inside swapped-in markup mount, components swapped out are destroyed, and a component morphdom preserves is neither destroyed nor re-mounted, all with the `swap()` promise as the only synchronisation point.
+
+### The mode cut
+
+`SWAP_MODES` keeps the four positions ui uses — `replace`, `prepend`, `append`, `morph` — as a frozen object with a derived type, the framework-wide convention for a named constant.
+
+Keeping `prepend`/`append` in core is deliberate even though each is a one-line DOM call. What makes them worth hoisting is not the insertion, it is that they need the same before/after script diff as the other two. Cutting them would force core to export the script-adoption helper instead, which means hoisting two primitives where one will do, and leaving the subtle one in the caller's hands.
+
+Three things ui does around a swap are **not** in core:
+
+- **Element-level replace.** `Fetch`'s `replace` calls `oldElement.replaceWith(newElement)`, discarding the element the caller just found and, with it, its `id`, its instance and any live reference to it. Core's `replace` is `replaceChildren`. In v3 the element-level form bought a guaranteed-fresh subtree; in v4 refs are live and the registry re-mounts on insertion, so it buys nothing and costs identity. `FrameTarget` already used the content-level form.
+- **Attribute syncing in `morph`.** ui morphs the target itself, so the incoming element's attributes land on it. Core passes `childrenOnly: true`: on a v4 element, `data-component` and `data-mount` are lifecycle declarations, and rewriting them as a side effect of a content update would terminate and recreate instances. A caller wanting attributes synced is asking for something else than a content swap.
+- **Transitions, view transitions, history, `id` matching and response parsing.** All caller policy. `Fetch`'s `selector` loop is routing, not swapping.
+
+Two consequences of `morph` are morphdom policy, not swap policy, and the specs record them so callers stop rediscovering them: an element the incoming markup does not contain is discarded even from a preserved parent, and morphdom syncs an input's `value` from the incoming markup. Identity survives a morph — nodes, focus, expandos, component instances — unsent DOM does not.
+
+### The `morphdom` dependency
+
+Approved by the user, and taken as a real dependency rather than reimplemented. A DOM-diffing algorithm is not something to write again for fun: morphdom is ~800 lines of special-cased element handlers accumulated over ten years, ui has already shipped it in production, and reimplementing it would be exactly the "common functionality written again without a clear reason" this project avoids.
+
+Measured with esbuild (minify + gzip -9):
+
+| artifact                                         |    min | min+gzip |
+| ------------------------------------------------ | -----: | -------: |
+| `morphdom` 2.7.8, its own esm bundle             | 5203 B |   2199 B |
+| `dist/swap.js`, the emitted module alone         |  910 B |    529 B |
+| `./swap` subpath, whole graph, morphdom external | 3845 B |   1737 B |
+| `./swap` subpath, whole graph, morphdom included | 9058 B |   3781 B |
+
+So the primitive itself costs about half a kilobyte and the dependency costs about two, roughly doubling the flattened `./swap` graph. The import is static: a dynamic `import('morphdom')` would keep `replace` mode free, at the price of a CDN round-trip precisely when `morph` is used, and 2 kB is not worth buying that with a second network hop. The cost is contained instead by the subpath layout — `morphdom` is reachable only through `swap()`, so a page which never swaps never downloads it. `src/index.ts` says so in place of its former "Zero dependencies."
+
+### The seam for the negotiable event
+
+`swap()` announces nothing on its own. The `wrap` option is the whole seam: it receives the swap's single mutation and decides when it runs.
+
+```js
+await swap(el, html, { mode, wrap: (mutate) => viewTransition(mutate) });
+```
+
+The negotiable `$domUpdate` event (a separate piece of work) slots in as the producer of that wrapper and nothing else. Its `waitUntil`/`wrap` negotiation returns a runner; the caller passes that runner as `wrap` and the swap is delayed, wrapped or transitioned by whoever listened, exactly as ui's `Fetch.update` does today with `emitDomUpdate` + `runWrapped`. Resilience policy — what happens when a negotiated runner rejects, whether the update is applied anyway — stays with the negotiator, where ui already keeps it (`runWrapped` lives next to `emitDomUpdate`, not next to the swap). The swap stays a pure DOM operation with one hole in it.
+
+`swap()` is a free function, not a `Base` method: a swap target is frequently an element found by `id` with no component on it, and the primitive has no use for `this`.
+
 ## Kept from the existing #694 plan (unchanged)
 
 - Remove `LoadService`, `KeyService`; simplify `ResizeService`, `PointerService`; `MutationService` internal to the registry. (Done — see section 8.)
