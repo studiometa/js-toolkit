@@ -261,6 +261,16 @@
       "types": "./dist/subpaths/until.d.ts",
       "import": "./dist/subpaths/until.js"
     },
+    "./SWAP_MODES": {
+      "typescript": "./src/subpaths/SWAP_MODES.ts",
+      "types": "./dist/subpaths/SWAP_MODES.d.ts",
+      "import": "./dist/subpaths/SWAP_MODES.js"
+    },
+    "./swap": {
+      "typescript": "./src/subpaths/swap.ts",
+      "types": "./dist/subpaths/swap.d.ts",
+      "import": "./dist/subpaths/swap.js"
+    },
     "./viewTransition": {
       "typescript": "./src/subpaths/viewTransition.ts",
       "types": "./dist/subpaths/viewTransition.d.ts",
@@ -372,6 +382,9 @@
     "test:debug": "vitest --browser.headless=false",
     "bench": "vitest bench --config vitest.bench.config.js",
     "lint:types": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "morphdom": "^2.7.8"
   },
   "devDependencies": {
     "@rollup/plugin-swc": "^0.4.1",

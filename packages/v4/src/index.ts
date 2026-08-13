@@ -30,10 +30,16 @@
  * - `$terminate()` is explicit and final: destroy + instance-lifetime
  *   teardown ($provide, $watchChildren) + `terminated()` hook.
  *
+ * Plus `swap()`, the DOM content-swapping primitive: one mutation in one of
+ * four modes, one script-adoption pass, and a promise resolving once the
+ * registry has caught up.
+ *
  * Not in this prototype: autoload manifests, responsive options,
  * non-bubbling child events (mouseenter/mouseleave).
  *
- * Zero dependencies.
+ * One dependency: `morphdom`, imported by `swap()` alone for its `morph` mode.
+ * Every other subpath is dependency-free, so a page which never swaps never
+ * downloads it.
  */
 
 export {
@@ -153,4 +159,12 @@ export {
 } from './services/service.js';
 export { toggle, type Toggle } from './services/toggle.js';
 export { until } from './services/until.js';
+export {
+  SWAP_MODES,
+  swap,
+  type SwapContent,
+  type SwapMode,
+  type SwapOptions,
+  type SwapWrap,
+} from './swap.js';
 export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
