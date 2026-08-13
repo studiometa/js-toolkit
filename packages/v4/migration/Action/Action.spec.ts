@@ -546,7 +546,7 @@ describe('Action — the v4 lifecycle', () => {
     expect(foo.calls).toEqual([['before'], ['after']]);
   });
 
-  it('rebinds when a `data-on:*` attribute is rewritten in place', async () => {
+  it.fails('rebinds when a `data-on:*` attribute is rewritten in place', async () => {
     const root = await render(`
       <button id="action" data-component="Action"
         data-on:click="Foo -> target.fn('before')"></button>
@@ -559,8 +559,13 @@ describe('Action — the v4 lifecycle', () => {
     await settle();
     click(button);
 
-    // RED ON PURPOSE — this documents a missing core semantic, it is not a
-    // port defect. v4's MutationObserver runs with an `attributeFilter`
+    // `it.fails()` ON PURPOSE — this documents a missing core semantic, it is
+    // not a port defect, and the assertion below is the one that should hold.
+    // Vitest inverts the result, so the suite stays green while the gap is
+    // open **and turns red the moment core closes it** — at which point flip
+    // this back to a plain `it()`.
+    //
+    // v4's MutationObserver runs with an `attributeFilter`
     // holding `data-component`, `data-mount`, `data-ref` and the
     // `data-option-*` names the registry collected from every registered
     // class (`dom-mutations.ts`, `registerDOMOptionAttributes`). Nothing
