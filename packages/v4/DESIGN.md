@@ -214,14 +214,14 @@ The strongest instance of this objective is not a notification but a **negotiati
 ```js
 // Take over: the mutating component announces instead of mutating.
 await this.$domUpdate(() => this.$el.replaceChildren(fragment));
-this.$on(DOM_UPDATE_EVENT, ({ detail: [{ wrap }] }) => wrap(viewTransition));
+this.$on(DOM_UPDATE_EVENT, ({ detail }) => detail.wrap(viewTransition));
 
 // Delay: the choreography announces its step and waits for whoever asked.
 async close() {
   await this.$emitExtendable('close');
   this.$el.close();
 }
-this.$on('close', ({ detail: [{ waitUntil }] }) => waitUntil(this.leave()));
+this.$on('close', ({ detail }) => detail.waitUntil(this.leave()));
 ```
 
 **@studiometa/ui grew this protocol twice, independently.** `utils/dom-update.ts` (`wrap`, consumed by `DataBind` and `Fetch`, wrapped by `MotionView`) and `Dialog.__emitExtendable` (`waitUntil`, extended by `MotionView` again) have the same transport, the same synchronous-only window, near-identical warning wording and the same duck typing — two spellings of "let anything up the tree negotiate a step". Both collapse onto this one primitive: `Dialog` becomes `await this.$emitExtendable('close')`, `Fetch` and `DataBind` become `await this.$domUpdate(mutate)`, and each drops its private copy of the window, the warning and the normalization. In the code the two modes are one function, `negotiate()`, and the only thing that differs between them is what `accept` does with a registration — overwrite the single one, or push onto the list.
@@ -234,8 +234,13 @@ Why it belongs in core rather than in a component library:
 
 What the v4 form changes:
 
-- **The announcement is `$emit`,** not a hand-built `CustomEvent`. Both ui protocols dispatched raw, and neither had to: `dom-update` did it only because `Fetch` overrides `$emit` with a string-only signature that would mangle a `CustomEvent` — a wart v4 does not have, since `$emit` bubbles and is cancelable by design. So the event bubbles, carries `[SOURCE]` identifying the emitter, and — the part ui could not have — reaches an `on<Child><Event>()` delegated handler like any other child event. The cost is the payload's position: `$emit`'s detail is its argument array, so a raw listener reads `event.detail[0].wrap` where ui read `event.detail.wrap`.
-- **A negotiated event is a framework event, not a component's own,** so it is deliberately absent from `$emits`. A component must not have to declare the protocol to be allowed to announce through it.
+- **The detail is one object, and the event is dispatched directly** — `event.detail.wrap(…)`, not `event.detail[0].wrap(…)`. ui dispatched raw for a stated reason that was not the real one: `Fetch` overrides `$emit` with a string-only signature that would mangle a `CustomEvent`, a wart v4 does not have. The real reason survives the wart. `$emit`'s detail **is** its argument array, which is the right shape for a component's own events and the wrong one for a protocol payload whose content is a registration function — and plain JavaScript on the page is a first-class listener here (ui's `Dialog` advertises exactly that: _"any component (or plain JavaScript) can hold the dialog open"_), for whom `event.detail[0].waitUntil(…)` reads badly permanently. So a negotiated event is built like the three framework protocol events already are — `component:mounted`, `component:destroyed`, `context-request` — with `bubbles`, `cancelable` and `[SOURCE]` set by hand, which is everything `$emit` would have contributed except the array.
+
+  **Delegation is not the price of that.** `on<Child><Event>()` handlers are bound by event _type_ on the root element and walk up from `event.target`, so they never inspect how the event was constructed: `onFetchDomUpdate()` fires either way. The one line that did care was the delegated payload's `args`, which took `detail` when it was an array and `[]` otherwise; it now passes a non-array detail through as the single argument it is. So a delegated handler reads `{ args: [{ wrap }] }` for exactly what a raw listener reads as `event.detail`, and both forms hold at once. That generalization is monotone — it hands framework protocol details to `@on(child, 'component:mounted')`-style handlers that used to receive nothing.
+
+  One consequence is deliberate: a component overriding `$emit` does not intercept these. A framework protocol is not a component's own event.
+
+- **A negotiated event is a framework event, not a component's own,** so it is deliberately absent from `$emits` — a component must not have to declare the protocol to be allowed to announce through it. Bypassing `$emit` is what makes that free: routing through it needed a cast, because a component declaring `$emits` may only emit the names it listed.
 - **`defaultPrevented` is ignored** (part of open question 2, for these events): the step is announced, not proposed. Honouring cancelation would make "the emitter's work always completes" false, and a listener that wants nothing to happen says so through its own state.
 - **Registration is valid only while the event dispatches,** in both modes. A listener that keeps the function and calls it later is warned and ignored, because by then the step has already happened — handing a change to a runner at that point would apply it twice or not at all. The warning is built from the mode's key and the event's name, so there is one wording rather than two.
 - **The duck-typed method is the one that names the event for the object:** `update(mutate)` for a DOM change, `close()` for a dialog's `close` step. This is the `on<Child><Event>` rule again — resolve by name, do not add an option that names a thing. ui's `Dialog` mapped `open`→`enter()` and `close`→`leave()`, a Dialog-specific vocabulary the core rule replaces; `waitUntil()` also accepts a plain thenable and a plain function, so `waitUntil(() => this.enter())` covers any pair of method names with nothing to configure.

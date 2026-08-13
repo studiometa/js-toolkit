@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Base } from './Base.js';
+import { Base, SOURCE, type DelegatedEvent } from './Base.js';
 import {
   DOM_UPDATE_EVENT,
   type DomUpdateDetail,
@@ -38,6 +38,26 @@ class Mutator extends Base {
 }
 
 /**
+ * An ancestor claiming through the delegated form instead of a raw listener:
+ * the payload a plain listener reads as `event.detail` arrives as the single
+ * argument, because a non-array detail is one payload rather than a list.
+ */
+class Watcher extends Base {
+  static config = { name: 'Watcher', components: { Mutator } };
+
+  seen: unknown[][] = [];
+
+  onMutatorDomUpdate({ args, event }: DelegatedEvent<Mutator>) {
+    this.seen.push(args);
+    // The very same object, from both directions.
+    expect(args[0]).toBe((event as CustomEvent).detail);
+    (args[0] as DomUpdateDetail).wrap(async (apply) => {
+      await apply();
+    });
+  }
+}
+
+/**
  * `<div id="outer"><div id="inner"><p data-component="Mutator"></p></div></div>`
  * plus a sibling nobody announces through, all in the document so the
  * announcement travels a real event path.
@@ -54,9 +74,13 @@ function render() {
   return { outer, inner, sibling, instance: new Mutator(el).$mount() };
 }
 
-/** Read the negotiation payload out of the event `$emit` dispatched. */
+/**
+ * Read the negotiation payload. It is the detail itself, not its first
+ * element: a negotiated event carries one object, so plain JavaScript on the
+ * page reads `event.detail.wrap(…)`.
+ */
 function payloadOf<T>(event: Event): T {
-  return ((event as CustomEvent).detail as [T])[0];
+  return (event as CustomEvent).detail as T;
 }
 
 /** Take over every announced change from `el`, with `runner`. */
@@ -292,6 +316,47 @@ describe('$domUpdate — the take-over mode', () => {
     await promise;
     expect(phase).toBe('write');
     expect(instance.$el.textContent).toBe('batched');
+  });
+
+  it('carries one object as the detail, annotated with its source', async () => {
+    const { outer, instance } = render();
+    let seen: CustomEvent | undefined;
+
+    outer.addEventListener(DOM_UPDATE_EVENT, (event) => {
+      seen = event as CustomEvent;
+    });
+    await instance.$domUpdate(() => {});
+
+    // What plain JavaScript on the page reads. Not `detail[0].wrap`: the
+    // payload is a registration function, not a list of emitted arguments.
+    expect(typeof seen?.detail.wrap).toBe('function');
+    expect(Array.isArray(seen?.detail)).toBe(false);
+    // Everything `$emit` would have given it, all the same.
+    expect(seen?.bubbles).toBe(true);
+    expect(seen?.cancelable).toBe(true);
+    expect((seen as unknown as Record<symbol, unknown>)[SOURCE]).toBe(instance);
+  });
+
+  it('reaches a delegated on<Child>DomUpdate() handler, payload included', async () => {
+    const root = document.createElement('div');
+    root.setAttribute('data-component', 'Watcher');
+    const el = document.createElement('p');
+    el.setAttribute('data-component', 'Mutator');
+    root.append(el);
+    document.body.append(root);
+
+    const watcher = new Watcher(root).$mount();
+    const instance = new Mutator(el).$mount();
+
+    await instance.$domUpdate(() => {
+      el.textContent = 'delegated';
+    });
+
+    // Delegation binds by event type on the root element and walks up from
+    // `event.target`, so it never sees how the event was built.
+    expect(watcher.seen).toHaveLength(1);
+    expect(typeof (watcher.seen[0][0] as DomUpdateDetail).wrap).toBe('function');
+    expect(el.textContent).toBe('delegated');
   });
 });
 

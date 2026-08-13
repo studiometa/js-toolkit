@@ -37,7 +37,10 @@
 /** The event a DOM change is announced with. */
 export const DOM_UPDATE_EVENT = 'dom-update';
 
-/** How the modes dispatch — `Base` passes `$emit`. */
+/**
+ * How the modes dispatch. `Base` passes a dispatcher that sends the detail as
+ * **one object**, so a listener reads `event.detail.wrap(…)`.
+ */
 type Emit = (detail: Record<string, unknown>) => void;
 
 interface NegotiationOptions<R> {
@@ -159,8 +162,8 @@ export interface ExtendableDetail {
  * resolves once the change has been applied either way.
  *
  * `emit` is a parameter rather than an element so this module knows nothing
- * about `Base`: the instance method passes `$emit`, which annotates the event
- * with its source and makes it bubble and cancel like every other v4 event.
+ * about `Base`: the instance method passes a dispatcher that bubbles, cancels
+ * and annotates the event with its source.
  */
 export async function domUpdate(
   emit: Emit,

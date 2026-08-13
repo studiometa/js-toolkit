@@ -240,6 +240,24 @@ declare global {
 }
 
 /**
+ * The arguments a delegated `on<Child><Event>()` handler receives.
+ *
+ * `$emit`'s detail **is** its argument array, so it maps over directly. Any
+ * other detail is one payload rather than a list of arguments — which is what
+ * the framework's own protocol events carry, `dom-update` and the steps of a
+ * choreography included — so it is handed over as the single argument it is.
+ * A handler then reads `{ args: [{ wrap }] }` for exactly what a raw listener
+ * reads as `event.detail`.
+ */
+function argsOf(event: Event): unknown[] {
+  const { detail } = event as CustomEvent;
+  if (Array.isArray(detail)) {
+    return detail;
+  }
+  return detail === null || detail === undefined ? [] : [detail];
+}
+
+/**
  * Resolve the `data-ref` elements that belong to a component: no other
  * `data-component` element sits between the ref and the component root.
  */
@@ -862,17 +880,32 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * A negotiated event dispatched through `$emit`, so it bubbles, carries its
-   * source and reaches an `on<Child><Event>()` handler like any other child
-   * event.
+   * Dispatch a negotiated event: bubbling, cancelable and annotated with its
+   * source, exactly like `$emit` — but with the **detail as one object**, so a
+   * listener reads `event.detail.wrap(…)` rather than `event.detail[0].wrap(…)`.
    *
-   * The cast is the point: `dom-update` and the steps of a choreography are
-   * **framework** events, so a component must not have to list them in its
-   * declared `$emits` map to be allowed to announce through them.
+   * That is the whole reason this does not go through `$emit`. `$emit`'s detail
+   * is its argument array, which is the right shape for a component's own
+   * events and the wrong one for a protocol payload whose content is a
+   * registration function: plain JavaScript on the page is a first-class
+   * listener here, and `event.detail[0].waitUntil(…)` reads badly forever. The
+   * three other framework protocol events — `component:mounted`,
+   * `component:destroyed`, `context-request` — are dispatched directly for the
+   * same reason.
+   *
+   * Delegation is unaffected: `on<Child><Event>()` handlers are bound by event
+   * type on the root element and walk up from `event.target`, so they never
+   * see how the event was built.
+   *
+   * A component overriding `$emit` does not intercept these, which is
+   * deliberate — a framework protocol is not a component's own event.
    */
   #negotiated(event: string): (detail: Record<string, unknown>) => void {
-    return (detail) =>
-      (this.$emit as (type: string, ...args: unknown[]) => CustomEvent)(event, detail);
+    return (detail) => {
+      const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail });
+      (e as CustomEvent & { [SOURCE]?: Base })[SOURCE] = this;
+      this.$el.dispatchEvent(e);
+    };
   }
 
   /**
@@ -888,11 +921,15 @@ export class Base<T extends BaseProps = BaseProps> {
    *     await this.$domUpdate(() => this.$el.replaceChildren(fragment));
    *
    *     // In any ancestor, however far up.
-   *     this.$on(DOM_UPDATE_EVENT, ({ detail: [{ wrap }] }) => wrap(viewTransition));
+   *     this.$on(DOM_UPDATE_EVENT, ({ detail }) => detail.wrap(viewTransition));
    *
-   * The event is cancelable like every `$emit`, and `defaultPrevented` is
-   * deliberately ignored: the change is announced, not proposed, and a listener
-   * that wants nothing to happen has to say so through its own state.
+   *     // Or, as a delegated child handler — the same payload, unwrapped.
+   *     onFetchDomUpdate({ args: [{ wrap }] }) { wrap(viewTransition); }
+   *
+   * The event bubbles, is cancelable and carries its source, and
+   * `defaultPrevented` is deliberately ignored: the change is announced, not
+   * proposed, and a listener that wants nothing to happen has to say so through
+   * its own state.
    *
    * Nobody claiming is synchronous — the mutation has run by the time this
    * returns — and the promise resolves once the change has been applied,
@@ -923,7 +960,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *     }
    *
    *     // In anything above it, or in plain JavaScript on the page.
-   *     this.$on('close', ({ detail: [{ waitUntil }] }) => waitUntil(this.leave()));
+   *     this.$on('close', ({ detail }) => detail.waitUntil(this.leave()));
    *
    * `waitUntil()` takes something to await, something to call, or a duck-typed
    * object exposing a method named after the step. It accepts **every**
@@ -1145,9 +1182,7 @@ export class Base<T extends BaseProps = BaseProps> {
                 entry.invoke({
                   event,
                   target: child,
-                  args: Array.isArray((event as CustomEvent).detail)
-                    ? ((event as CustomEvent).detail as unknown[])
-                    : [],
+                  args: argsOf(event),
                 });
                 invoked = true;
               }
