@@ -36,11 +36,8 @@ jobs:
 
       - run: npm ci --no-audit --no-fund
 
-      - name: Build js-toolkit
-        run: npm run build:js-toolkit
-
-      - name: Build oxlint-plugin
-        run: npm run build:eslint-plugin
+      - name: Build the published packages
+        run: npm run build
 
       - name: Test js-toolkit
         run: npm run build:subpaths && npm test -- --retry=3 --coverage.enabled

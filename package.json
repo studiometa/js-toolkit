@@ -14,7 +14,7 @@
     "docs:dev": "npm run dev --workspace=@studiometa/js-toolkit-docs",
     "docs:build": "npm run build --workspace=@studiometa/js-toolkit-docs",
     "docs:preview": "npm run preview --workspace=@studiometa/js-toolkit-docs",
-    "build": "npm run build:js-toolkit && npm run build:v4",
+    "build": "npm run build:js-toolkit && npm run build:v4 && npm run build:eslint-plugin",
     "build:js-toolkit": "npm run build -w @studiometa/js-toolkit",
     "build:v4": "npm run build -w @studiometa/js-toolkit-v4",
     "build:eslint-plugin": "npm run build -w @studiometa/eslint-plugin-js-toolkit",
