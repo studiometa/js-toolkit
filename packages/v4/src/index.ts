@@ -105,6 +105,7 @@ export {
   type ServiceMixinDefinition,
   type ServiceMixinOptions,
 } from './services/mixin.js';
+export { useMediaQuery, usePrefersReducedMotion, type MediaQueryProps } from './services/media.js';
 export {
   usePointer,
   withPointer,
