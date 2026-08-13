@@ -1,8 +1,8 @@
 # Migrating @studiometa/ui to v4 — a feasibility test
 
-Date: 2026-08-11, extended 2026-08-13 with the three remaining `Slider` controls. Against `@studiometa/ui` 1.10.0 and the v4 prototype in `packages/v4/src`.
+Date: 2026-08-11, extended 2026-08-13 with the three remaining `Slider` controls and with the `Data*` family. Against `@studiometa/ui` 1.10.0 and the v4 prototype in `packages/v4/src`.
 
-Four component families were ported onto v4 to find out what a real migration costs. They were picked because each leans on a part of v3 that v4 changed: the `$children` coordinator pattern, service hooks, `config.emits`, mount decorators, and the per-instance store handshake. Everything here runs; `migration/**/*.spec.ts` adds 59 tests to the real-browser suite (Vitest browser mode, Chromium), 300 across 31 files in total.
+Five component families were ported onto v4 to find out what a real migration costs. They were picked because each leans on a part of v3 that v4 changed: the `$children` coordinator pattern, service hooks, `config.emits`, mount decorators, the per-instance store handshake — and, for `Data*`, the group registry and the only signal library in ui. Everything here runs; `migration/**/*.spec.ts` adds 103 tests to the real-browser suite (Vitest browser mode, Chromium), 367 across 36 files in total. **One is red on purpose** and is labelled in place: see §5.
 
 ## What was ported
 
@@ -12,6 +12,7 @@ Four component families were ported onto v4 to find out what a real migration co
 | `Dialog`          | `Dialog`, plus `Transition` / `ViewTransition` (its children)                                    | full                           | `Action` triggers, `Transition`'s `group` option           |
 | `ScrollAnimation` | `withScrolledInView`, `AbstractScrollAnimation`, `ScrollAnimationTimeline`, `…Target`            | full (the non-deprecated pair) | the five `@deprecated` classes, `withScrollAnimationDebug` |
 | `Slider`          | `Slider`, `SliderItem`, `SliderBtn`, `SliderCount`, `SliderDrag`, `SliderDots`, `SliderProgress` | full                           | —                                                          |
+| `Data*`           | `DataScope`, `DataBind`, `DataModel`, `DataComputed`, `DataEffect`, `DataChannel`, `formControl` | full                           | `Action`/`Fetch` interop, the `MotionView` transitioner    |
 
 Utilities copied into `migration/utils/`, minimum viable only: `math.ts` (`clamp`, `clamp01`, `map`, `lerp`, `damp` — since promoted into `src/utils/maths.ts`), `easings.ts` (`cubicBezier`, replacing the `@motionone/easing` dependency), `keyframes.ts` (the interpolator carved out of `animate`), `transition.ts` (the `transition()` primitive plus the enter/leave pair two components share), `focus.ts` (`trapFocus`/`untrapFocus`/`saveActiveElement`), `uid.ts` (a `$id` replacement).
 
@@ -23,7 +24,7 @@ Utilities copied into `migration/utils/`, minimum viable only: `math.ts` (`clamp
 | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `this.$children.AccordionItem[index]` → `this.items` (`$watchChildren`) | `$children` removed. The collection is live and DOM-ordered, so the index is derived (`items.indexOf(target)`) rather than given. |
 | `onAccordionItemOpen({ index })` → `onAccordionItemOpen({ target })`    | delegated `on<Child><Event>` hands over the emitting instance.                                                                    |
-| `config.emits: ['open','close']` → `$emits` in the props type           | runtime `emits` removed. Zero bytes, and `$emit('open', item, index)` is argument-checked.                                        |
+| `config.emits: ['open','close']` → `$emits` in the props type           | runtime `emits` removed. Zero bytes, and `$emit('open', { item, index })` is payload-checked.                                     |
 | `destroyed()` style reset → the `mounted()` returned cleanup            | v4 idiom; setup and teardown in one closure.                                                                                      |
 | `Accordion extends AccordionCore` no longer spreads the parent config   | config merges along the prototype chain (#627).                                                                                   |
 | **`$options.isOpen` as mutable state → a private `#isOpen` field**      | **`$options` is a read-only view over attributes in v4.**                                                                         |
@@ -143,6 +144,88 @@ All seven classes are ported. The coordination changes are in the first table; t
 
 **Size:** 570 → 456 (−20 %) over eight classes becoming seven. The three controls added here are 98 v3 lines against 99 v4 ones — flat, because they were already thin and their base class had been counted as saved. **Verdict unchanged: coordination is a rewrite, geometry is a copy** — and the drag drop handler is the one place where the rewrite made the geometry _smaller_, since the service now does the physics the component used to.
 
+## 5. Data\* — the group registry, and the only signal library in ui
+
+Ported 2026-08-13. `DataScope`, `DataBind`, `DataModel`, `DataComputed`, `DataEffect`, plus the `DataChannel` that disappeared into core's `Signal` and the two utilities that stayed out of core. This family was chosen because it is the one v3 built on primitives v4 **does not have at all**: `withGroup`, `getScopedGroups`, a `globalThis` channel registry, and `alien-signals`. DESIGN.md §5 already promised it would "rebuild on provide/inject"; this is the test of that promise.
+
+### 5a. The mapping that worked
+
+| v3                                                                 | v4                                                              |
+| ------------------------------------------------------------------ | --------------------------------------------------------------- |
+| `DataChannel` (87 lines, `signal` + `effect` from `alien-signals`) | one core `Signal` per group, held in the registry record        |
+| `withGroup(Base, 'data:', { getScope, getGroup })` + `$group`      | `registry.members(name)` — a `Set` beside the value cell        |
+| `getScopedGroups(scope)`                                           | gone; the registry is already per-scope                         |
+| `getDataScope(el)` — a `__base__` walk up the DOM                  | `injectContextSync(el, DataRegistryContext)`                    |
+| `globalThis.__STUDIOMETA_UI_DATA_CHANNELS__` (a `WeakMap`)         | `provideRootContext(DataRegistryContext, …)`                    |
+| `nextTick()` for hydration batching                                | `defaultScheduler.background()`                                 |
+| `DataScope.__groups` + its reconciliation                          | `DataRegistry`, one class, two instances (scoped and page-wide) |
+
+**The named/dynamic problem, and where the keyed map belongs.** `createContext()` yields one static symbol; Data groups are named at runtime from an option. A `Map<string, ContextKey>` is the obvious bridge and is the wrong one: to be shared it would have to live in a module-level cache, which is the `globalThis` registry v4 just removed. The map belongs **inside the provided value** — one key, one provider, `registry.group(name)` within it. That also carries what the scoped half needs beyond a channel (values, sources, hydration bookkeeping), which a bare `ContextKey<Signal>` cannot. DESIGN.md's own sketch says the same thing with a `Map<string, Signal>`; the port only widens the value.
+
+**Two ways in, and the reason is not the one it looks like.** `get()` and `set()` are specified to work before mount (ui's own specs construct a `DataBind` and call `set()` on the next line), so the port keeps a **lazy `injectContextSync` on first use, memoised for the mount cycle** — v3's `__dataScopeResolved`. That rules out the `@inject` field decorator, which requests at construction, the earliest and worst moment of all. From `mounted()` on, a subscribed `$inject` owns the same field: the async form is not there to wait for an answer (there is always one, since `provideRootContext` creates the page-wide registry on demand) but to stay _re-answerable_ — see 5b.
+
+**Per-cycle memoisation is strictly better than v3's.** v3 memoised the resolved scope for the instance's whole life. In v4 a DOM move is a destroy plus a mount, so wrapping existing content in a `DataScope` re-resolves for free — `rebinds descendants when a scope is wrapped around existing content` covers exactly the case v3 got permanently wrong.
+
+### 5b. What had no framework support, and now does
+
+**A nearer provider could not reclaim a consumer that already resolved.** This was the finding. `provideContext()` replays to _pending_ requests when a late provider appears, but `requestContext`'s `provide()` deleted the request from `pendingRequests` the moment anything answered. Add `provideRootContext`, which provides on `document.documentElement` and therefore answers a request from anywhere, and the consequence was: **once the page-wide registry exists, every unscoped request is answered immediately and permanently.** Neither `$inject` nor `$injectSync` changed it — they differ in _when the consumer asks_, not in who may answer afterwards.
+
+For `Slider` that was correct behaviour. Here it was not, because falling back is not a degradation: it silently binds a member to the page-wide channel where it exchanges values with unrelated components that happen to share a group name. The cases that reach it are all real — `registerComponent(DataBind)` before `registerComponent(DataScope)`; a scope with `data-mount="idle"`; a scope inserted by a `data-bind:if` template around content already there.
+
+The port worked around it with eight lines in `DataScope.mounted()`: a `RESCOPE` broadcast telling every `Data` member below to resolve again. **Core closed it, and the workaround is deleted.** The ask was the WICG protocol's `subscribe` flag and that is what shipped: `injectContext(el, key, { subscribe: true, onProvide })` keeps the request live after it has been answered, and a document-level listener on the `component:mounted` announcement re-asks on behalf of any subscribed consumer the newcomer can have changed the answer for. Notably the trigger is _not_ the provider-side `context-provided` event this report also suggested — a provider is not special here, a mount already announces itself, and doing it from `provideContext()` would re-answer from a provider still running its field initializers.
+
+What the port now carries instead: `DataBind.mounted()` is a single subscribed `$inject`, whose `onProvide` connects and whose returned teardown disconnects — so leaving the old group and dropping its keyed value happen _before_ the new registry is handed over, and joining/leaving stay one closure, now per answer rather than per mount cycle. `DataScope` has no `mounted()` at all; its only job is the boundary in its field initializer. The one line that must survive is the fallback: a subscribed request waits forever while nothing provides, so a member with no scope above it still calls `resolveDataRegistry()` to create the page-wide registry, which replays and answers its own pending request.
+
+The three specs that encode the problem — `rebinds descendants when a scope is wrapped around existing content`, `reclaims descendants when the scope mounts around content that already resolved`, `leaves nested members with their nearest scope when an outer one arrives late` — pass unchanged. They always asserted which registry a member ends up on, never how it got there, which is why none of them had to be adapted or removed.
+
+**`$watchChildren` is not the answer to group membership,** for three independent reasons, so the port registers members instead:
+
+1. **A group is not a subtree.** Membership is _nearest scope + group name_: a member inside a nested `DataScope` belongs to the nested one, while `$watchChildren` on the outer scope collects it too. Filtering it back out means re-deriving each member's nearest scope — the resolution `$watchChildren` was meant to replace.
+2. **It matches on exact `config.name`.** `DataModel`, `DataComputed` and `DataEffect` are `DataBind` subclasses with their own names, so a scope needs one collection per class and a user subclass gets none. **Ask:** an `instanceof`-shaped predicate.
+3. **The page-wide group has no component to watch from.** There is no root `Base`, and `provideRootContext` deliberately creates none.
+
+Only (2) is a gap. (1) and (3) say the registry `Set` is the right shape here, and it costs two lines.
+
+**`$emit` cannot carry an object payload.** `$emit(name, ...args)` packs its arguments into `detail` as an array; the `dom-update` protocol needs `detail` to be an object with a `wrap` method on it. So the port dispatches a raw `CustomEvent`, exactly as ui does — ui's stated reason (a `Fetch` override) no longer applies but the shape problem does. **Ask:** either a payload-object form, or a documented statement that protocol events are raw `CustomEvent`s and `$emit` is for component events only. **Closed:** `$emit(name, payload?)` now takes one payload object and `detail` **is** that object, so a protocol payload and a component's own payload are the same shape.
+
+### 5c. What the signal has to do — and what it does not
+
+`DataChannel` always publishes a **fresh frame** (`{ ...update }`), so a value-equality bail-out never fires on this channel and repeating a value stays an observable event (`notifies subscribers again when the same value is written twice`). What it relies on instead is **deduped delivery of the latest frame**: a subscriber that publishes from inside its own delivery — `DataComputed` recomputing, an `Action` writing back — supersedes the outer frame, and no subscriber still to be reached may receive it.
+
+The eager `Signal` on `main` does not do that, and `preserves the latest value during reentrant group updates` is **red on purpose** and labelled at the assertion. It asserts the final agreed value, not how many times anything ran — ui takes a major version bump, so call counts are negotiable and correctness is not.
+
+Nothing else in this family needs anything else from the signal. **No batching** (the hydration batch is the registry's, on the scheduler's background lane, not the signal's). **No untracked read** (`.value` is a plain read here). **No derived values** — `DataComputed` is the one place a signal library would offer `computed()` and it does not use one: its recomputation is driven by the channel and its dependency (`$data`) is an immutable snapshot the registry rebuilds on every write. **No disposal hook** beyond the unsubscribe the port already returns from `mounted()`.
+
+### 5d. Gaps already on this list, re-hit
+
+- **Gap 14 (`$options` must be a type alias, not an interface)** bit within the first `tsc` run, and for exactly the predicted reason: the option set is named to be shared with three subclasses. Four files had to change one keyword.
+- **Gap 10 (no `$warn`)** — four call sites became a local `warn()`.
+- **No `nextTick`** — not a real gap here. `defaultScheduler.background()` is a _stronger_ guarantee than v3's microtask, because it is the same lane eager mounts queue on, so "after everything mounted" stops being a hope.
+
+### 5e. Size
+
+Code lines, comments and blanks excluded, barrel files excluded on both sides.
+
+|                                                       |       v3 |       v4 |    delta |
+| ----------------------------------------------------- | -------: | -------: | -------: |
+| `DataBind`                                            |      378 |      395 |     +4 % |
+| `DataScope` (component)                               |      269 |       55 |    −80 % |
+| `DataChannel` + `withGroup` (v3) → `registry.ts` (v4) |  52 + 81 |      300 |   +126 % |
+| `DataModel` / `DataComputed` / `DataEffect`           |       89 |       84 |     −6 % |
+| `formControl` + expression evaluator                  |  139 + 8 | 145 + 11 |     +6 % |
+| `dom-update`                                          |       51 |       46 |    −10 % |
+| **total**                                             | **1067** | **1036** | **−3 %** |
+
+**This is the flat one, and that is the finding.** The other four families lost 32 % because their wiring was hand-rolled and v4 absorbed it. `Data*` had already been built carefully on primitives, so what v4 removes is a _dependency_ (`alien-signals`) and a _decorator_ (`withGroup`, 81 lines), not accidental complexity — and the registry that replaces both is bigger than either, because it now holds the value cell `withGroup` never had. The one dramatic row is `DataScope`, 269 → 55: four fifths of it was never about being a component, and it lived there only because the group primitive had no value cell to hang it on.
+
+### 5f. Specs
+
+44 tests across three files. Ported adapted rather than verbatim: ui's construct-and-call style became real registered components in real DOM, since that is what a v4 consumer writes.
+
+**Deliberately not ported:** four of the six `dom-update` wrap-protocol specs (the runner-rejects, late-`wrap`, duck-typed-transitioner and rapid-toggle cases — they exercise the protocol, not the framework); the `Action` interop specs (`Action` is not ported); the mirrored-model and duplicated-radio teardown edge cases; `should not hydrate values from immediate keyed subscribers`. Added instead, because they are what v4 changes: three mount-ordering specs (`wrapped around existing content`, `mounts around content that already resolved`, `nested member keeps its nearest scope`) and one for the page-wide channel.
+
+**Verdict for this family: feasible, and the port is a wash on size.** Nothing turned out unportable. One core gap is real and worked around in eight lines; one core semantic (reentrant delivery) is missing and is being fixed in parallel.
+
 ## Gaps in v4, ordered by cost
 
 1. **No way to suspend a service subscription within a mount cycle.** v3: `$services.enable('ticked')`/`disable`. v4: subscribe in `mounted()`, unsubscribe in `$destroy()`, nothing between. Two of four components needed it and both dropped `withRaf` for a hand-rolled start/stop. Not cosmetic: with `withRaf`, one slider or scroll animation keeps the rAF loop alive forever, contradicting DESIGN.md §7. **Ask:** pause/resume on the subscription handle, or `withRaf(Base, { manual: true })`. **Resolved:** `toggle(subscribe)` — `{ isActive, start, stop }` over any subscription, in or out of a component.
@@ -160,6 +243,10 @@ All seven classes are ported. The coordination changes are in the first table; t
 13. **The drag inertia cannot be turned off.** The settle position is exact at `drop`, which is all a component driving its own animation needs; the coast that follows emits ~40 frames it will ignore. **Ask:** `useDrag(el, { inertia: false })`.
 14. **A `$options` type must be a type alias, not an interface.** `BaseProps.$options` is `Record<string, unknown>`, and an interface has no implicit index signature, so `$options: MyOptionsInterface` fails the constraint with a message that points at the props type rather than at the interface. Only bites when the option set is named to be shared between two components, which is exactly when it is worth naming. **Ask:** a note in the docs; the fix is one keyword.
 15. **No `onWindow<Event>` / `onDocument<Event>`.** v3 resolves both in `EventsManager` (`isWindowRegex`, `isDocumentRegex`); v4's `#bindHandlers()` resolves `on<Child><Event>`, `on<Ref><Event>` and `on<Event>`, and the last binds to `$el` only. **There is no workaround by delegation:** the events these catch are the ones that by definition never reach the component — a click _outside_ it, a `popstate` that only fires on `window`. ui uses them in five components, and one of them, `ClickOutside`, is nothing but an `onDocumentClick`. Small to build, blocking without it — the cheapest item on this list and the only one with no partial substitute.
+16. **A nearer provider cannot reclaim a consumer that already resolved.** `requestContext`'s `provide()` deletes the request from `pendingRequests`, so late-provider replay only ever helps a request nobody answered — and `provideRootContext` answers every unscoped request from `document.documentElement`. A `DataScope` mounting after its members can therefore never take them back, and the failure is silent: the member keeps exchanging values on the page-wide channel with anything sharing its group name. Was worked around in `DataScope.mounted()` with an eight-line `RESCOPE` broadcast. **This was the highest-value item this family found.** **Resolved:** the ask was granted as asked — `injectContext(el, key, { subscribe: true, onProvide })` keeps the request live, and it is the mount announcement the component already dispatches that re-answers it, not a provider-side `context-provided` event. The port consumes it: `RESCOPE`, `Rescopable` and the whole of `DataScope.mounted()` are deleted, and `DataBind.mounted()` is one subscribed `$inject` whose returned teardown leaves the old group before the new registry arrives. All three reclamation specs stay green, unchanged.
+17. **The `Signal` delivers a superseded frame to subscribers not yet reached.** A subscriber that publishes from inside its own delivery moves the value forward, and the rest of the current round still gets the old one. Every keyed channel with a component that writes back — `DataComputed`, `Action` — hits it. **Ask:** a nested write abandons and restarts the delivery round; drain synchronously at the end of the outermost write. **In progress on `feature/v4-signal-functional`.**
+18. **`$watchChildren` matches on exact `config.name`, so it never sees a subclass.** A family with a base class and three named subclasses needs one collection per class, and a consumer's own subclass gets none. **Ask:** an `instanceof`-shaped predicate alongside the name.
+19. **`$emit` cannot carry an object payload.** `detail` is always the argument array, so a protocol event with a callback on its detail (`dom-update`'s `wrap`) must be a raw `CustomEvent`. **Ask:** a payload-object form, or a documented rule that `$emit` is for component events and protocols use raw events. **Closed:** `$emit(name, payload?)` takes one payload object, and `detail` is that object verbatim. The protocol events keep their own dispatch path, for the one reason that survives — see DESIGN.md — but no longer for their shape.
 
 ## What came out better
 
@@ -172,7 +259,7 @@ All seven classes are ported. The coordination changes are in the first table; t
 | a child added after mount        | invisible until `$update()`                                                   | just works (tested in all four families)                    |
 | mount when in view               | `withMountWhenInView` wrapping the constructor (109 lines)                    | `config.mountStrategy = 'in-view'`, overridable per element |
 | keyboard nav on a focused region | `KeyService` + `hasFocus` + focus/blur handlers                               | `onWrapperKeydown`                                          |
-| declaring emitted events         | `config.emits` — bytes, no checking                                           | `$emits` — no bytes, arguments checked                      |
+| declaring emitted events         | `config.emits` — bytes, no checking                                           | `$emits` — no bytes, payload checked                        |
 | Escape on a `<dialog>`           | closes behind the component's back; transitions skipped, scroll lock stuck    | `onCancel()`, two lines                                     |
 | a view transition                | ui ships a 108-line batching scheduler                                        | `this.$viewTransition(update)` from core                    |
 | extending a component            | spread the parent's config by hand or lose it (#627)                          | configs merge along the prototype chain                     |
@@ -191,18 +278,23 @@ Code lines, comments and blanks excluded. The v4 numbers _include_ the heavy exp
 | ScrollAnimation infrastructure                    |      879 |      441 |     −50 % |
 | Slider (8 classes → 7)                            |      570 |      456 |     −20 % |
 | utilities actually used                           |      206 |      221 |      +7 % |
-| **total**                                         | **2424** | **1647** | **−32 %** |
+| Data\* (5 classes + channel + registry + utils)   |     1067 |     1036 |      −3 % |
+| **total**                                         | **3491** | **2683** | **−23 %** |
+
+The `Data*` row is the flat one, and §5e says why: that family had already been built carefully on primitives, so v4 removes a dependency (`alien-signals`) and a decorator (`withGroup`) rather than accidental complexity, and the registry that replaces both is bigger than either because it now carries the value cell `withGroup` never had. Within the row one number is dramatic — `DataScope` 269 → 55 — and it is the same finding from the other side: four fifths of that component was a data structure that only lived in a component because there was nowhere else to put it.
 
 Two rows moved when the three controls landed. The `Slider` row was `472 → 295` (−38 %) over five classes, and −20 % is the truer number: the three controls added are thin in both versions (98 → 99 lines), their deleted base class had already been counted as saved, and `Slider` itself took on ~60 lines of drag handling that v3 also had. Wiring is where the saving is, and the wiring was already counted. And the enter/leave sequence moved out of `Transition` into the utilities — 31 lines off one row, 47 onto the other — which is what buys `SliderDots` its transitions with no second implementation. The utilities row is now larger than v3's, and that is the honest number: v3's equivalent 137-line `withTransition` decorator sat in the row above.
 
 ## Verdict
 
-**Migrating @studiometa/ui to v4 is mostly mechanical for component _behaviour_, and a rewrite for component _wiring_.** The split is clean and identical across all four families.
+**Migrating @studiometa/ui to v4 is mostly mechanical for component _behaviour_, and a rewrite for component _wiring_.** The split is clean and identical across all five families.
 
 - **Mechanical (~70 % of the code):** everything a component does to its own DOM — `AccordionItem`'s height animation and ARIA, `Dialog`'s open/close ordering, `Slider`'s geometry, `AbstractScrollAnimation`'s play-range maths. A codemod plus a careful eye handles this.
 - **A rewrite (~30 %):** everything about how a component reaches another component. Not renaming: the topology changed from parent-owned to DOM-observed, and code that assumed ordering has to be re-thought rather than translated.
 
-The rewrite is worth doing. It deletes 32 % of the code, removes an entire base class, a scheduler and a constructor-wrapping decorator; fixes a real Escape-key bug in `Dialog` for free; and makes "a child appeared after mount" a non-event everywhere. **Nothing in this sample turned out to be unportable.**
+The rewrite is worth doing. It deletes 23 % of the code, removes an entire base class, a scheduler, a constructor-wrapping decorator, a group decorator and a runtime dependency; fixes a real Escape-key bug in `Dialog` and a stale-scope bug in `DataBind` for free; and makes "a child appeared after mount" a non-event everywhere. **Nothing in this sample turned out to be unportable.**
+
+`Data*` is the family that qualifies the "worth doing" and is worth reading as the counter-example: it is a wash on size, and the case for moving it is entirely about what it stops carrying — its own signal library, its own `globalThis` registry, and two spellings of one channel — rather than about lines saved.
 
 ### Build these in v4 before starting the real migration
 
@@ -215,5 +307,7 @@ The rewrite is worth doing. It deletes 32 % of the code, removes an entire base 
 7. **`onWindow<Event>` and `onDocument<Event>`** (gap 15). Cheap, and `ClickOutside` cannot be written at all without it.
 8. **A `utils` port** informed by the above: `clamp`/`clamp01`/`map`/`lerp`/`damp`, `transition`, `trapFocus`, `cubicBezier`. About 200 lines covered four families.
 9. **A codemod for `data-ref="x[]"`** (gap 11), and `{ axis }` on `useDrag` (gap 12). The first is 36 silent breakages in ui's tests and docs — not in its shipped templates, so it is ui's own housekeeping rather than a consumer migration; the second is one CSS declaration every draggable component would otherwise get subtly wrong.
+10. **Reentrancy-safe signal delivery** (gap 17). A nested write must abandon and restart the round, so no subscriber is handed a superseded frame. `Data*` has one spec red on this today, and any keyed channel with a write-back consumer inherits it.
+11. ~~**A way for a nearer provider to reclaim an already-resolved consumer** (gap 16).~~ **Done.** `subscribe: true` landed on `injectContext`/`$inject`, triggered by the `component:mounted` announcement. `Data*` consumes it and its eight-line broadcast is deleted — so the pattern every name-resolved channel would have reinvented is now one option on the request.
 
-Items 1–4 change what a component _can_ be written to do. Items 5–9 are cost, not capability.
+Items 1–4 and 10–11 change what a component _can_ be written to do. Items 5–9 are cost, not capability.

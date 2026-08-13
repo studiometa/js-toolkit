@@ -1,12 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
 import {
-  Signal,
   createContext,
   injectContext,
   injectContextSync,
   provideContext,
   provideRootContext,
+  signal,
+  type ContextKey,
+  type Signal,
 } from './context.js';
 import { registerComponent } from './registry.js';
 import { getInstance, renderTodoList, resetDom, settle } from './test-utils.js';
@@ -15,24 +17,174 @@ afterEach(resetDom);
 
 describe('Signal', () => {
   it('notifies subscribers on change only', () => {
-    const signal = new Signal(1);
+    const count = signal(1);
     const seen: number[] = [];
-    signal.subscribe((value) => seen.push(value), { immediate: true });
+    count.subscribe((value) => seen.push(value), { immediate: true });
 
-    signal.value = 1; // same value, no notification
-    signal.value = 2;
+    count.value = 1; // same value, no notification
+    count.value = 2;
     expect(seen).toEqual([1, 2]);
   });
 
   it('stops notifying after unsubscribe', () => {
-    const signal = new Signal('a');
+    const letter = signal('a');
     const seen: string[] = [];
-    const unsubscribe = signal.subscribe((value) => seen.push(value));
+    const unsubscribe = letter.subscribe((value) => seen.push(value));
 
-    signal.value = 'b';
+    letter.value = 'b';
     unsubscribe();
-    signal.value = 'c';
+    letter.value = 'c';
     expect(seen).toEqual(['b']);
+  });
+
+  it('gives each holder of one callback its own delivery and unsubscribe', () => {
+    // A `Set` keyed by the callback collapsed these into a single entry: the
+    // second holder was never called, and the first unsubscribe tore the
+    // subscription out from under it.
+    const cell = signal(0);
+    let calls = 0;
+    const callback = () => {
+      calls += 1;
+    };
+    const first = cell.subscribe(callback);
+    cell.subscribe(callback);
+
+    cell.value = 1;
+    expect(calls).toBe(2);
+
+    first();
+    cell.value = 2;
+    expect(calls).toBe(3);
+  });
+
+  describe('settling', () => {
+    // The oracle is the hazard behind @studiometa/ui's
+    // `DataBind.spec.ts` — "should preserve the latest value during reentrant
+    // group updates". A member republishes from inside its own delivery, and
+    // every peer must end up having last seen the newest frame. The naive
+    // fan-out resumed its walk on the frame it started on, so the peer sitting
+    // after the writer was handed a stale value *after* the newer one, and
+    // last-write-wins silently became last-listener-wins.
+    it('leaves every subscriber having last seen the newest value', () => {
+      const cell = signal('initial');
+      const seen: string[] = [];
+      let hasWritten = false;
+
+      cell.subscribe((value) => seen.push(`first:${value}`));
+      cell.subscribe((value) => {
+        seen.push(`writer:${value}`);
+        if (value === 'outer' && !hasWritten) {
+          hasWritten = true;
+          cell.value = 'inner';
+        }
+      });
+      cell.subscribe((value) => seen.push(`last:${value}`));
+
+      cell.value = 'outer';
+
+      // Nobody is left on the superseded frame.
+      for (const prefix of ['first', 'writer', 'last']) {
+        const last = seen.filter((entry) => entry.startsWith(`${prefix}:`)).at(-1);
+        expect(last).toBe(`${prefix}:inner`);
+      }
+      // `last` never sees the superseded frame at all: it had not been reached
+      // when the write landed, so the round was abandoned instead of finished.
+      expect(seen).not.toContain('last:outer');
+      // And the value a reader sees is the newest one.
+      expect(cell.value).toBe('inner');
+    });
+
+    it('delivers each subscriber once per surviving value', () => {
+      // Five deliveries, not six: `first` and `writer` are reached on the
+      // abandoned `outer` round and again on `inner` because each genuinely has
+      // a newer value to see, while `last` is reached only once. The eager
+      // fan-out ran six times and ended on the stale frame.
+      const cell = signal('initial');
+      const seen: string[] = [];
+      let hasWritten = false;
+
+      cell.subscribe((value) => seen.push(`first:${value}`));
+      cell.subscribe((value) => {
+        seen.push(`writer:${value}`);
+        if (value === 'outer' && !hasWritten) {
+          hasWritten = true;
+          cell.value = 'inner';
+        }
+      });
+      cell.subscribe((value) => seen.push(`last:${value}`));
+
+      cell.value = 'outer';
+
+      expect(seen).toEqual([
+        'first:outer',
+        'writer:outer',
+        'first:inner',
+        'writer:inner',
+        'last:inner',
+      ]);
+    });
+
+    it('settles synchronously, before the setter returns', () => {
+      const cell = signal(0);
+      const seen: number[] = [];
+      cell.subscribe((value) => seen.push(value));
+
+      cell.value = 1;
+      // No microtask hop: a form-control echo must land in the same task.
+      expect(seen).toEqual([1]);
+    });
+
+    it('collapses a run of writes into the value that survives', () => {
+      const cell = signal(0);
+      const seen: number[] = [];
+      let hasWritten = false;
+
+      cell.subscribe((value) => {
+        seen.push(value);
+        if (!hasWritten) {
+          hasWritten = true;
+          cell.value = 2;
+          cell.value = 3;
+        }
+      });
+
+      cell.value = 1;
+      expect(seen).toEqual([1, 3]);
+      expect(cell.value).toBe(3);
+    });
+
+    it('skips a subscriber removed during delivery', () => {
+      const cell = signal(0);
+      const seen: string[] = [];
+      let unsubscribeLater = () => {};
+
+      cell.subscribe(() => unsubscribeLater());
+      unsubscribeLater = cell.subscribe((value) => seen.push(`later:${value}`));
+
+      cell.value = 1;
+      expect(seen).toEqual([]);
+    });
+
+    it('does not deliver a value that predates a subscriber added during delivery', () => {
+      const cell = signal(0);
+      const seen: number[] = [];
+      let hasSubscribed = false;
+
+      cell.subscribe(() => {
+        if (!hasSubscribed) {
+          hasSubscribed = true;
+          cell.subscribe((value) => seen.push(value));
+        }
+      });
+
+      cell.value = 1;
+      // The newcomer is not handed the frame that was in flight before it
+      // existed, and no later value has been written.
+      expect(seen).toEqual([]);
+
+      cell.value = 2;
+      expect(seen).toEqual([2]);
+    });
   });
 });
 
@@ -44,8 +196,8 @@ describe('provide/inject', () => {
     class LateConsumer extends Base {
       static config = { name: 'LateConsumer' };
       async mounted() {
-        const signal = await this.$inject(Key);
-        received.push(signal.value);
+        const greeting = await this.$inject(Key);
+        received.push(greeting.value);
       }
     }
     registerComponent(LateConsumer);
@@ -57,7 +209,7 @@ describe('provide/inject', () => {
     expect(received).toEqual([]);
 
     // The provider appears later, higher in the tree.
-    provideContext(wrapper, Key, new Signal('hello'));
+    provideContext(wrapper, Key, signal('hello'));
     await settle();
     expect(received).toEqual(['hello']);
   });
@@ -131,7 +283,7 @@ describe('provide/inject', () => {
       value = 0;
 
       api = this.$provide<CounterApi>(Key, {
-        state: new Signal(0),
+        state: signal(0),
         increment: () => {
           this.value += 1;
           this.api.state.value = this.value;
@@ -314,7 +466,7 @@ describe('provideRootContext', () => {
         provideRootContext(DataChannels, () => new Map() as Channels);
       let channel = channels.get(name);
       if (!channel) {
-        channel = new Signal('');
+        channel = signal('');
         channels.set(name, channel);
       }
       return channel;
@@ -344,5 +496,335 @@ describe('provideRootContext', () => {
     channelFor(at('bare-b'), 'email').subscribe((value) => seen.push(value));
     channelFor(at('bare-a'), 'email').value = 'a@b.c';
     expect(seen).toEqual(['a@b.c']);
+  });
+});
+
+/**
+ * A real, full garbage collection through the DevTools protocol — the only way
+ * to assert weakness rather than assume it. `--expose-gc` was measured first
+ * and does not reach the page: passing `--js-flags=--expose-gc` through the
+ * provider's `launchOptions` leaves `globalThis.gc` undefined in the test
+ * frame. A WeakRef only clears after a collection, so CDP it is.
+ *
+ * The import is the deprecated one on purpose: `vitest/browser`, which the
+ * runner suggests instead, exposes no `cdp()` in this version.
+ */
+async function collectGarbage(): Promise<void> {
+  const { cdp } = await import('@vitest/browser/context');
+  await cdp().send('HeapProfiler.collectGarbage');
+  // WeakRefs are cleared at a microtask checkpoint after the collection.
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+describe('subscribed requests', () => {
+  /**
+   * The failure this closes, in the shape a real port found it.
+   *
+   * `provideRootContext` answers from `document.documentElement`, so it
+   * reaches a consumer anywhere on the page — and an answered request used to
+   * be deleted, which made that answer permanent. Wrap a scope around content
+   * that is already on the page and its descendants keep talking to the
+   * page-wide channel forever. Nothing errors; they trade values with the
+   * wrong owner.
+   */
+  interface Registry {
+    name: string;
+  }
+
+  function render(html: string): HTMLElement {
+    const root = document.createElement('div');
+    root.innerHTML = html;
+    document.body.append(root);
+    return root;
+  }
+
+  /**
+   * A provider whose value carries the id of the element it lives on, so a
+   * consumer's log says which provider answered it.
+   */
+  function defineScope(name: string, key: ContextKey<Registry>) {
+    class Scope extends Base {
+      static config = { name };
+
+      registry = this.$provide(key, { name: this.$el.id });
+    }
+    registerComponent(Scope);
+    return Scope;
+  }
+
+  it('lets a nearer provider that mounts later take a resolved consumer back', async () => {
+    const Key = createContext<Registry>('reanswer');
+    defineScope('ReanswerScope', Key);
+
+    class Member extends Base {
+      static config = { name: 'ReanswerMember' };
+
+      seen: string[] = [];
+
+      mounted() {
+        this.$inject(Key, {
+          subscribe: true,
+          onProvide: (registry) => {
+            this.seen.push(registry.name);
+          },
+        });
+      }
+    }
+    registerComponent(Member);
+
+    provideRootContext(Key, () => ({ name: 'page' }));
+
+    const root = render(`
+      <div id="scope">
+        <span data-component="ReanswerMember"></span>
+      </div>
+    `);
+    await settle();
+
+    const member = getInstance<Member>(root.querySelector('span'), 'ReanswerMember');
+    // Answered by the page-wide provider, which is the only one there is.
+    expect(member.seen).toEqual(['page']);
+
+    // Only the declaration arrives late — the element was always there, so no
+    // DOM move re-runs `mounted()` and nothing else can notice.
+    root.querySelector('#scope')?.setAttribute('data-component', 'ReanswerScope');
+    await settle();
+
+    expect(member.seen).toEqual(['page', 'scope']);
+  });
+
+  it('ignores a provider that does not contain the consumer', async () => {
+    const Key = createContext<Registry>('elsewhere');
+    defineScope('ElsewhereScope', Key);
+
+    class Member extends Base {
+      static config = { name: 'ElsewhereMember' };
+
+      seen: string[] = [];
+
+      mounted() {
+        this.$inject(Key, {
+          subscribe: true,
+          onProvide: (registry) => {
+            this.seen.push(registry.name);
+          },
+        });
+      }
+    }
+    registerComponent(Member);
+
+    provideRootContext(Key, () => ({ name: 'page' }));
+
+    const root = render(`
+      <div id="here"><span data-component="ElsewhereMember"></span></div>
+      <div id="there"></div>
+    `);
+    await settle();
+
+    const member = getInstance<Member>(root.querySelector('span'), 'ElsewhereMember');
+    expect(member.seen).toEqual(['page']);
+
+    root.querySelector('#there')?.setAttribute('data-component', 'ElsewhereScope');
+    await settle();
+
+    // A mount is not an invitation: the provider has to be an ancestor.
+    expect(member.seen).toEqual(['page']);
+  });
+
+  it('leaves a consumer with its nearest provider when a farther one mounts', async () => {
+    const Key = createContext<Registry>('nesting');
+    defineScope('NestingScope', Key);
+
+    class Member extends Base {
+      static config = { name: 'NestingMember' };
+
+      seen: string[] = [];
+
+      mounted() {
+        this.$inject(Key, {
+          subscribe: true,
+          onProvide: (registry) => {
+            this.seen.push(registry.name);
+          },
+        });
+      }
+    }
+    registerComponent(Member);
+
+    const root = render(`
+      <div id="outer">
+        <div id="inner" data-component="NestingScope">
+          <span data-component="NestingMember"></span>
+        </div>
+      </div>
+    `);
+    await settle();
+
+    const member = getInstance<Member>(root.querySelector('span'), 'NestingMember');
+    expect(member.seen).toEqual(['inner']);
+
+    root.querySelector('#outer')?.setAttribute('data-component', 'NestingScope');
+    await settle();
+
+    // The second `contains()` of the sweep: the provider already answering
+    // sits inside the newcomer, so the newcomer is farther and is dropped
+    // before anything is dispatched.
+    expect(member.seen).toEqual(['inner']);
+  });
+
+  it('keeps the one-shot behaviour when subscribe is omitted', async () => {
+    const Key = createContext<Registry>('one-shot');
+    defineScope('OneShotScope', Key);
+
+    class Member extends Base {
+      static config = { name: 'OneShotMember' };
+
+      seen: string[] = [];
+
+      async mounted() {
+        const registry = await this.$inject(Key);
+        this.seen.push(registry.name);
+      }
+    }
+    registerComponent(Member);
+
+    provideRootContext(Key, () => ({ name: 'page' }));
+
+    const root = render('<div id="scope"><span data-component="OneShotMember"></span></div>');
+    await settle();
+
+    const member = getInstance<Member>(root.querySelector('span'), 'OneShotMember');
+    expect(member.seen).toEqual(['page']);
+
+    root.querySelector('#scope')?.setAttribute('data-component', 'OneShotScope');
+    await settle();
+
+    // Unchanged for every consumer that never asked to be re-answered: one
+    // answer, request deleted.
+    expect(member.seen).toEqual(['page']);
+  });
+
+  it('runs the previous answer teardown before delivering the next one', async () => {
+    const Key = createContext<Registry>('supersede');
+    defineScope('SupersedeScope', Key);
+
+    class Member extends Base {
+      static config = { name: 'SupersedeMember' };
+
+      log: string[] = [];
+
+      mounted() {
+        this.$inject(Key, {
+          subscribe: true,
+          onProvide: (registry) => {
+            this.log.push(`join:${registry.name}`);
+            return () => this.log.push(`leave:${registry.name}`);
+          },
+        });
+      }
+    }
+    registerComponent(Member);
+
+    provideRootContext(Key, () => ({ name: 'page' }));
+
+    const root = render('<div id="scope"><span data-component="SupersedeMember"></span></div>');
+    await settle();
+
+    const member = getInstance<Member>(root.querySelector('span'), 'SupersedeMember');
+    expect(member.log).toEqual(['join:page']);
+
+    root.querySelector('#scope')?.setAttribute('data-component', 'SupersedeScope');
+    await settle();
+
+    // The contract: an answer is replaced, never accumulated.
+    expect(member.log).toEqual(['join:page', 'leave:page', 'join:scope']);
+
+    // And destroy-scoped, like the pending request it grew out of.
+    member.$destroy();
+    expect(member.log).toEqual(['join:page', 'leave:page', 'join:scope', 'leave:scope']);
+  });
+
+  it('delivers nothing when a nearer provider hands over the same value', async () => {
+    const Key = createContext<Registry>('identical');
+    const shared: Registry = { name: 'shared' };
+
+    class Scope extends Base {
+      static config = { name: 'IdenticalScope' };
+
+      registry = this.$provide(Key, shared);
+    }
+    registerComponent(Scope);
+
+    const seen: string[] = [];
+    const root = render('<div id="scope"><span></span></div>');
+    provideRootContext(Key, () => shared);
+
+    const consumer = root.querySelector('span') as Element;
+    injectContext(consumer, Key, {
+      subscribe: true,
+      onProvide: (registry) => {
+        seen.push(registry.name);
+      },
+    });
+    expect(seen).toEqual(['shared']);
+
+    root.querySelector('#scope')?.setAttribute('data-component', 'IdenticalScope');
+    await settle();
+
+    // The consumer is already bound to that exact object. Tearing a working
+    // binding down to rebuild it identically is churn, not correctness.
+    expect(seen).toEqual(['shared']);
+  });
+
+  it('stops re-asking once the subscription is cancelled', async () => {
+    const Key = createContext<Registry>('cancelled');
+    defineScope('CancelledScope', Key);
+
+    provideRootContext(Key, () => ({ name: 'page' }));
+
+    const seen: string[] = [];
+    const root = render('<div id="scope"><span></span></div>');
+    const consumer = root.querySelector('span') as Element;
+
+    const { cancel } = injectContext(consumer, Key, {
+      subscribe: true,
+      onProvide: (registry) => {
+        seen.push(registry.name);
+        return () => seen.push(`leave:${registry.name}`);
+      },
+    });
+    expect(seen).toEqual(['page']);
+
+    cancel();
+    expect(seen).toEqual(['page', 'leave:page']);
+
+    root.querySelector('#scope')?.setAttribute('data-component', 'CancelledScope');
+    await settle();
+
+    expect(seen).toEqual(['page', 'leave:page']);
+  });
+
+  it('keeps no strong reference to a consumer element that is discarded', async () => {
+    const Key = createContext<Registry>('weak');
+    const host = render('<div id="host"></div>').querySelector('#host') as Element;
+    provideContext(host, Key, { name: 'host' });
+
+    // The element, its subscription and its callback are all created and
+    // dropped inside this call, so anything still holding the element
+    // afterwards can only be the context module.
+    const ref = ((): WeakRef<Element> => {
+      const el = document.createElement('span');
+      host.append(el);
+      injectContext(el, Key, { subscribe: true, onProvide: () => {} });
+      el.remove();
+      return new WeakRef(el);
+    })();
+
+    await collectGarbage();
+
+    // A strong registry of resolved consumers would pin every element that
+    // ever resolved for the life of the page — which is why the index holds
+    // `WeakRef`s and a subscription's lifetime is anchored on its element.
+    expect(ref.deref()).toBeUndefined();
   });
 });

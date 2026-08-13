@@ -9,12 +9,12 @@ import {
 export interface TransitionProps {
   $options: TransitionOptions;
   $emits: {
-    'transition-enter': [];
-    'transition-enter-start': [];
-    'transition-enter-end': [];
-    'transition-leave': [];
-    'transition-leave-start': [];
-    'transition-leave-end': [];
+    'transition-enter': void;
+    'transition-enter-start': void;
+    'transition-enter-end': void;
+    'transition-leave': void;
+    'transition-leave-start': void;
+    'transition-leave-end': void;
   };
 }
 

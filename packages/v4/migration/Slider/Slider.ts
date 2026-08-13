@@ -1,12 +1,13 @@
 import {
   Base,
   createContext,
-  Signal,
+  signal,
   withResize,
   type ChildrenCollection,
   type DelegatedEvent,
   type MountedReturn,
   type RefEvent,
+  type Signal,
 } from '../../src/index.js';
 import { clamp } from '../../src/utils/maths.js';
 import { SliderDrag } from './SliderDrag.js';
@@ -54,7 +55,7 @@ export interface SliderProps {
     sensitivity: number;
     dropSensitivity: number;
   };
-  $emits: { goto: [index: number]; index: [index: number] };
+  $emits: { goto: { index: number }; index: { index: number } };
 }
 
 interface SliderItemState {
@@ -95,7 +96,7 @@ export class Slider extends withResize(Base)<SliderProps> {
     },
   };
 
-  state = new Signal<SliderState>({ index: 0, total: 0 });
+  state = signal<SliderState>({ index: 0, total: 0 });
 
   /**
    * The provided owner surface. The provider is attached in this field
@@ -134,7 +135,7 @@ export class Slider extends withResize(Base)<SliderProps> {
   set currentIndex(value: number) {
     this.currentSliderItem?.disactivate();
     this.#currentIndex = value;
-    this.$emit('index', value);
+    this.$emit('index', { index: value });
     this.state.value = { index: value, total: this.items.size };
     this.currentSliderItem?.activate();
   }
@@ -276,7 +277,7 @@ export class Slider extends withResize(Base)<SliderProps> {
     }
 
     this.currentIndex = clamped;
-    this.$emit('goto', clamped);
+    this.$emit('goto', { index: clamped });
   }
 
   /**
@@ -292,7 +293,7 @@ export class Slider extends withResize(Base)<SliderProps> {
    * Follow the pointer. `props.distanceX` is v4's flat spelling of v3's
    * `props.distance.x` — the movement since the gesture started.
    */
-  onSliderDragDrag({ args: [props] }: DelegatedEvent<SliderDrag, 'drag'>): void {
+  onSliderDragDrag({ payload: props }: DelegatedEvent<SliderDrag, 'drag'>): void {
     this.#distanceX = this.#initialX + props.distanceX * this.$options.sensitivity;
 
     for (const item of this.items) {
@@ -313,7 +314,7 @@ export class Slider extends withResize(Base)<SliderProps> {
    * promising, `finalX - x`, and `dropSensitivity` keeps its meaning as the
    * multiplier over it.
    */
-  onSliderDragDrop({ args: [props] }: DelegatedEvent<SliderDrag, 'drop'>): void {
+  onSliderDragDrop({ payload: props }: DelegatedEvent<SliderDrag, 'drop'>): void {
     const first = this.states[0];
     const last = this.states.at(-1);
     if (!first || !last) {

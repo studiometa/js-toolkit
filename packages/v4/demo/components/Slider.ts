@@ -1,4 +1,11 @@
-import { Base, Signal, createContext, useScroll, type DelegatedEvent } from '../../src/index.js';
+import {
+  Base,
+  createContext,
+  signal,
+  useScroll,
+  type DelegatedEvent,
+  type Signal,
+} from '../../src/index.js';
 
 /**
  * Slider-lite — a reimplementation of the @studiometa/ui Slider family on
@@ -50,7 +57,7 @@ export class SliderItem extends Base {
 export class SliderBtn extends Base<{
   $el: HTMLButtonElement;
   $options: { direction: number };
-  $emits: { slide: [direction: number] };
+  $emits: { slide: { direction: number } };
 }> {
   static config = {
     name: 'SliderBtn',
@@ -58,7 +65,7 @@ export class SliderBtn extends Base<{
   };
 
   onClick(): void {
-    this.$emit('slide', this.$options.direction);
+    this.$emit('slide', { direction: this.$options.direction });
   }
 }
 
@@ -93,7 +100,7 @@ export class Slider extends Base<{
   // allowed to call. Provided verbatim, so a consumer gets this object and
   // nothing more of the coordinator.
   api = this.$provide<SliderApi>(SliderContext, {
-    state: new Signal<SliderState>({ index: 0, total: 0 }),
+    state: signal<SliderState>({ index: 0, total: 0 }),
     goTo: (index) => this.goTo(index),
     goToItem: (item) => {
       const index = this.items.items.indexOf(item);
@@ -181,8 +188,8 @@ export class Slider extends Base<{
     this.api.state.value = { index: this.index, total };
   }
 
-  // Naming the event types `args` from SliderBtn's own `$emits`.
-  onSliderBtnSlide({ args: [direction] }: DelegatedEvent<SliderBtn, 'slide'>): void {
+  // Naming the event types `payload` from SliderBtn's own `$emits`.
+  onSliderBtnSlide({ payload: { direction } }: DelegatedEvent<SliderBtn, 'slide'>): void {
     this.goTo(this.index + direction);
   }
 

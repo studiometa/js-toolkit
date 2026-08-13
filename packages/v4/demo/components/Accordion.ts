@@ -24,7 +24,7 @@ export class AccordionItem extends Base<{
   // The component only makes sense on a <details>, so `open` is reachable
   // straight off `$el` — no getter, no cast.
   $el: HTMLDetailsElement;
-  $emits: { open: []; close: [] };
+  $emits: { open: void; close: void };
 }> {
   static config = { name: 'AccordionItem' };
 

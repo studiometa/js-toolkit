@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base, type ChildrenCollection, type DelegatedEvent } from './Base.js';
-import { Signal, createContext } from './context.js';
+import { createContext, signal, type Signal } from './context.js';
 import { children, component, inject, on, provide, read, write } from './decorators.js';
 import { registerComponents } from './registry.js';
 import { defaultScheduler } from './scheduler.js';
@@ -14,7 +14,7 @@ class DecoChild extends Base {
   accessor total: Signal<number> | undefined;
 
   ping(): void {
-    this.$emit('ping', 42);
+    this.$emit('ping', { answer: 42 });
   }
 }
 
@@ -22,7 +22,7 @@ class DecoChild extends Base {
 class DecoParent extends Base {
   // No `components` declaration: @on resolves the child name itself.
   @provide(DecoContext)
-  total = new Signal(0);
+  total = signal(0);
 
   @children<DecoChild>('DecoChild', {
     added() {
@@ -98,7 +98,7 @@ describe('@on', () => {
     child.ping();
     expect(parent.received).toHaveLength(1);
     expect(parent.received[0].target).toBe(child);
-    expect(parent.received[0].args).toEqual([42]);
+    expect(parent.received[0].payload).toEqual({ answer: 42 });
   });
 
   it('stacks several @on declarations on one method', async () => {

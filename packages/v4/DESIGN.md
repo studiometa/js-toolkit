@@ -91,7 +91,15 @@ The two remaining regressions are understood rather than outstanding. `$emit` pa
 
 ### The public surface is typed, and free
 
-`Base` takes an optional props type — `class Slider extends Base<{ $refs: …; $options: …; $emits: … }>`. It types `$refs` and `$options` (no more casting on access) and checks `$emit()`'s event names and payloads. `$emits` is the successor to v3's runtime `config.emits`: it keeps the documentation value of declaring what a component dispatches, with nothing left in the bundle.
+`Base` takes an optional props type — `class Slider extends Base<{ $refs: …; $options: …; $emits: … }>`. It types `$refs` and `$options` (no more casting on access) and checks `$emit()`'s event names and payloads. `$emits` maps each name to the **payload object** the event carries, `void` for one that carries nothing:
+
+```ts
+class Slider extends Base<{
+  $emits: { goto: { index: number }; stop: void };
+}> {}
+```
+
+It is the successor to v3's runtime `config.emits`: it keeps the documentation value of declaring what a component dispatches, with nothing left in the bundle.
 
 ### Option defaults belong to the instance, and may be factories
 
@@ -185,13 +193,36 @@ The matching surface is deliberately narrower than v3: only `data-component="Nam
 `$emit` becomes a native bubbling, cancelable event (#630):
 
 ```js
-$emit(event, ...args) {
-  const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail: args });
+$emit(event, payload) {
+  return this.#dispatch(event, payload); // detail = payload, verbatim
+}
+
+#dispatch(event, detail) {
+  const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail });
   e[SOURCE] = this; // symbol — avoids userland collisions
   this.$el.dispatchEvent(e);
   return e; // caller can check e.defaultPrevented
 }
 ```
+
+### The payload is one object, and it is the detail
+
+`$emit(name, payload?)` takes **one optional object**, and `detail` **is** that object. Omitting it leaves `detail` at the platform's own `null` — the value `new CustomEvent('open')` stores — rather than at a synthesized `{}`, so `$emit('open')` stays a single word and nothing stands in for a payload nobody announced.
+
+```js
+this.$emit('open');
+this.$emit('slide', { direction: 1 });
+```
+
+Three reasons, in order of weight:
+
+- **The platform says so.** `CustomEvent.detail` is one value. The variadic form v4 started with — `$emit(name, ...args)` packing `detail: args` — was a v4 invention layered on top of it, and every listener outside the framework paid for it: plain JavaScript on the page, an `addEventListener` in a Twig template, a test, all read `event.detail[0]` for what the emitter called one thing. `detail` is now what a listener would have guessed.
+- **Named fields survive evolution; positions do not.** A third thing worth announcing is a new key that every existing listener ignores. A third positional argument is a signature change, and `$emit('open', item, index)` has to be read against the declaration to know which is which — `$emit('open', { item, index })` does not.
+- **It removes an ambiguity rather than moving it.** With variadic arguments, `detail` was sometimes a payload and sometimes a list of them, and the delegation path had to guess with `Array.isArray(detail)`. One object means one answer everywhere: a delegated `on<Child><Event>()` handler receives `{ event, target, payload }` where `payload` **is** `event.detail`. That is why a bare non-object is not accepted as a shortcut — it would put the guess back.
+
+The type enforces it, and a `console.warn` says it out loud at runtime. The warning is not redundant with the type: the no-build path — magic `on<…>` method names, a plain `<script type="module">` — is a first-class audience here and never sees a type, so for them the rule would otherwise be a convention nothing checks. `$emit('slide', 1)` would work, silently, and box a positional argument back into an API that just removed them. The event still dispatches; the warning reports a shape rather than policing one.
+
+The cost of the migration was measured before it was chosen. Across `src/`, `migration/` (five ported ui families) and `demo/` there are 24 `$emit` call sites: **18 pass nothing at all** and are untouched, one (`SliderDrag`'s `$emit(props.mode, props)`) already passed a single object and only changed its declaration, and **five** carried positional values — `slide`, `goto`, `index`, and `Accordion`'s `open`/`close` pair. Those five now name what they announce, which is the whole diff at the call sites.
 
 `EventsManager` switches from per-child binding to delegation on `this.$el`:
 
@@ -201,6 +232,65 @@ $emit(event, ...args) {
 - `config.components` still provides the name set, because method names alone are ambiguous (`onSliderDragStart` → `SliderDrag`+`start` or `Slider`+`drag-start`).
 - `mouseenter`/`mouseleave` do not bubble: these two keep direct binding (accepted limitation).
 - `$on`/`$off` and `Action`-style directives keep working unchanged and benefit from bubbling.
+
+### Negotiated events — `$domUpdate()` and `$emitExtendable()` — implemented
+
+The strongest instance of this objective is not a notification but a **negotiation**: a component announces a step _before_ it happens, and anything up the tree may take part in it. There are exactly two things a listener can ask for, and they are the two modes of one mechanism.
+
+| mode          | asks for   | registers with | keeps                 | on failure                     |
+| ------------- | ---------- | -------------- | --------------------- | ------------------------------ |
+| **take over** | the action | `wrap(runner)` | one runner, last wins | the mutation is applied anyway |
+| **delay**     | the moment | `waitUntil(x)` | many, all awaited     | the step goes ahead anyway     |
+
+```js
+// Take over: the mutating component announces instead of mutating.
+await this.$domUpdate(() => this.$el.replaceChildren(fragment));
+this.$on(DOM_UPDATE_EVENT, ({ detail }) => detail.wrap(viewTransition));
+
+// Delay: the choreography announces its step and waits for whoever asked.
+async close() {
+  await this.$emitExtendable('close');
+  this.$el.close();
+}
+this.$on('close', ({ detail }) => detail.waitUntil(this.leave()));
+```
+
+**@studiometa/ui grew this protocol twice, independently.** `utils/dom-update.ts` (`wrap`, consumed by `DataBind` and `Fetch`, wrapped by `MotionView`) and `Dialog.__emitExtendable` (`waitUntil`, extended by `MotionView` again) have the same transport, the same synchronous-only window, near-identical warning wording and the same duck typing — two spellings of "let anything up the tree negotiate a step". Both collapse onto this one primitive: `Dialog` becomes `await this.$emitExtendable('close')`, `Fetch` and `DataBind` become `await this.$domUpdate(mutate)`, and each drops its private copy of the window, the warning and the normalization. In the code the two modes are one function, `negotiate()`, and the only thing that differs between them is what `accept` does with a registration — overwrite the single one, or push onto the list.
+
+Why it belongs in core rather than in a component library:
+
+- **It is ambient interception through DOM ancestry** — no registration, no handshake, no ownership. The emitter never learns who answered, and the answerer never learns what the step does. That is this section's thesis applied to the one thing components could not previously delegate.
+- **The alternative is coupling.** Without it, animating a fetched replacement means the mutator knowing about the transition, or the transition reaching into the mutator; holding a dialog open means the dialog knowing its contents animate. Both are the `$closest()`-and-poke shape the flat topology exists to remove.
+- **It closes the gap left by section 9.** `exit` and `layout` animations need a hook _before_ the DOM changes, and a `MutationObserver` fires after the element is gone. An announced step is that hook, and it is the only one the DOM can give us.
+
+What the v4 form changes:
+
+- **The detail is one object** — `event.detail.wrap(…)`, not `event.detail[0].wrap(…)`. This was once a difference between a protocol event and a component's own, and it is not one any more: `$emit()` carries one payload object too, so a negotiated event is shaped exactly like every other event in v4. ui dispatched raw for a stated reason that was not the real one (`Fetch` overrides `$emit` with a string-only signature that would mangle a `CustomEvent`, a wart v4 does not have), and the shape reason that did hold has now dissolved.
+
+  **Delegation is not the price of that.** `on<Child><Event>()` handlers are bound by event _type_ on the root element and walk up from `event.target`, so they never inspect how the event was constructed: `onFetchDomUpdate()` fires either way. The delegated payload is `event.detail` verbatim, so a handler reads `{ payload: { wrap } }` for exactly what a raw listener reads as `event.detail` — one shape, no `Array.isArray` branch, framework protocol details included.
+
+- **The protocol events keep their own dispatch path, for the one reason that survives.** They are framework events rather than a component's own, so they are deliberately absent from `$emits` — a component must not have to declare a protocol in order to announce through it. `$emit()` is precisely the method that forbids that: a component declaring `$emits` may only emit the names it listed. Routing `$domUpdate()` and `$emitExtendable()` through `$emit()` would therefore need a cast at every call — trading a documented bypass for a hidden one.
+
+  So the split is drawn one level down instead. A private `#dispatch(event, detail)` builds and sends the event — `bubbles`, `cancelable`, `detail`, `[SOURCE]`, the four decisions, in one place. `$emit()` is `#dispatch()` plus the `$emits` type constraint; the negotiated events are `#dispatch()` without it. Nothing is duplicated, nothing is cast, and the constraint is not weakened. The three other framework protocol events — `component:mounted`, `component:destroyed`, `context-request` — sit outside `$emit()` for the same reason (`component:destroyed` also dispatches on `document`, its element being gone, so it does not share the primitive).
+
+  One consequence is deliberate: a component overriding `$emit` does not intercept these. A framework protocol is not a component's own event.
+
+- **`defaultPrevented` is ignored** (part of open question 2, for these events): the step is announced, not proposed. Honouring cancelation would make "the emitter's work always completes" false, and a listener that wants nothing to happen says so through its own state.
+- **Registration is valid only while the event dispatches,** in both modes. A listener that keeps the function and calls it later is warned and ignored, because by then the step has already happened — handing a change to a runner at that point would apply it twice or not at all. The warning is built from the mode's key and the event's name, so there is one wording rather than two.
+- **The duck-typed method is the one that names the event for the object:** `update(mutate)` for a DOM change, `close()` for a dialog's `close` step. This is the `on<Child><Event>` rule again — resolve by name, do not add an option that names a thing. ui's `Dialog` mapped `open`→`enter()` and `close`→`leave()`, a Dialog-specific vocabulary the core rule replaces; `waitUntil()` also accepts a plain thenable and a plain function, so `waitUntil(() => this.enter())` covers any pair of method names with nothing to configure.
+- **The emitter's work always completes.** A runner that throws, rejects _or resolves without ever calling `apply`_ loses the animation, never the change — ui covered only the first two, so a runner that forgot to apply silently dropped the update. An extension that rejects is swallowed, because a failing extension must never leave a dialog painted with the scroll locked. Failures go through `reportError()` (section 8); misuse — a late registration, a runner that never applied — through `console.warn`.
+- **The last claim wins in take-over mode,** as in ui. Bubbling reaches the nearest ancestor first, and the nearest is not necessarily the one that should animate: an outer component owning the whole region takes over deliberately. **Delay mode keeps every registration**, and that difference is intrinsic: replacing an action is exclusive, postponing one is not — two components animating out must both be waited for.
+- **Unclaimed is synchronous.** With nobody listening, `$domUpdate()`'s mutation runs before the returned promise exists, so a reactive pipeline can read the DOM back on the next line — which is what `DataBind`'s synchronous binding pass requires.
+
+**Composition with the two runners core already ships is the point of the function shape.** A `DomUpdateRunner` is `(apply) => void | Promise<unknown>`, so:
+
+| claim                                         | effect                                                                                                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `wrap(viewTransition)`                        | the change plays as a batched native view transition (section 7), with no adapter — `viewTransition(update)` already has the runner's exact shape |
+| `wrap((apply) => this.$write(apply).promise)` | the change lands in the frame's `write` phase, batched with every other write and canceled with the claiming instance                             |
+| `wrap(motionView)`                            | the duck-typed transitioner form: any object with `update(mutate)`, which is what `MotionView` in `@studiometa/ui-motion` already is              |
+
+Neither runner is the default, and that is deliberate: `$domUpdate()` with nobody listening must stay a plain synchronous mutation. Choosing a lane is the ancestor's decision, because the ancestor is the one that knows whether the region is animating.
 
 ## 5. Children advertise their existence
 
@@ -240,7 +330,7 @@ Advertisement solves "who is there", not "what is the current value". For contin
 ```ts
 // The coordinator exposes what a control may ask for.
 api = this.$provide(SliderContext, {
-  state: new Signal({ index: 0, total: 0 }), // what changes
+  state: signal({ index: 0, total: 0 }), // what changes
   goNext: () => this.goNext(), // what a control may command
 });
 ```
@@ -256,7 +346,7 @@ Injection has two forms, and the difference is what the caller does about absenc
 
 `$injectSync` costs nothing extra: the context request is answered synchronously when a provider is listening, so the sync form is that same round trip without the promise. It is the form a click handler or a keyboard shortcut wants — an answer now or not at all. The async form's pending request is **destroy-scoped**: a destroyed instance leaves nothing in the module's pending set, and `mounted()` running again on remount re-issues it with nothing to re-declare. (The `@inject` field decorator requests once, at construction, so a field left unresolved through a destroy is not re-requested; a consumer that may wait through several cycles calls `$inject()` from `mounted()`.)
 
-Mechanics follow the WICG community context protocol: the consumer dispatches a bubbling `context-request` event with a key and callback; the nearest mounted provider answers, and replays to late requesters / re-announces on late provider mount. This fixes both criticals from the earlier `withStore` design: resolution goes through the DOM event path instead of attribute walking, and replay happens only after the provider is mounted and initialized.
+Mechanics follow the WICG community context protocol: the consumer dispatches a bubbling `context-request` event with a key, a callback and a `subscribe` flag; the nearest mounted provider answers, and replays to late requesters / re-announces on late provider mount. This fixes both criticals from the earlier `withStore` design: resolution goes through the DOM event path instead of attribute walking, and replay happens only after the provider is mounted and initialized. `subscribe: true` is what lets an **already answered** consumer be taken back by a nearer provider that appears later — see "Being re-answered" below.
 
 The `Data*` suite in @studiometa/ui (DataScope/DataBind/…) rebuilds on this primitive and drops its bespoke channel plumbing — but only once the sibling case has somewhere to live, which needed one addition.
 
@@ -276,7 +366,27 @@ Two consequences, both deliberate. A root provider is **not disposable** and out
 
 `context.spec.ts` carries the spike: bare peers on a name share a channel, scoped peers share a different one, names never collide, and the value is live.
 
-The reactive container is called `Signal` — the name the ecosystem settled on (Angular, Solid, Preact, the TC39 proposal), and the one @studiometa/ui already uses to describe its `Data*` suite.
+#### Being re-answered — `subscribe: true`
+
+The outermost scope has a sharp edge, and the `Data*` port found it: **a page-wide provider answers from `document.documentElement`, so it reaches every unscoped consumer on the page — and an answered request was deleted.** Replay only ever helped a request nobody had answered. So once the root provider existed, every consumer that fell back to it was bound to it permanently and silently: wrap a `DataScope` around content that is already on the page and its descendants keep trading values with the page-wide channel. Nothing errors. The port worked around it with an eight-line `RESCOPE` broadcast of its own and filed it as an ask for core.
+
+The fix is the WICG protocol's `subscribe` flag, which v4 was implementing the protocol without. `injectContext(el, key, { subscribe: true, onProvide })` keeps the request live after it has been answered; `onProvide` is called for every answer, synchronously, and `cancel()` is the unsubscribe. Omitted or `false` is exactly the old behaviour — one answer, request deleted — which is what a control that found its coordinator wants. `$inject(key, options)` passes it through and keeps the subscription destroy-scoped, like the pending request it grew out of.
+
+**The trigger is the mount announcement, not a provider-side broadcast.** A `context-provided` event dispatched down a provider's subtree was the obvious alternative and it makes providers special for something they are not special in. Every mount already announces itself with a bubbling `component:mounted` carrying its instance (objective 5, layer 1); `$watchChildren` only looks parent-scoped because it listens on `this.$el`. So the context module keeps **one listener, on the document**, attached on the first subscription and never at import time. It fires after `mounted()` has run, which is also why the re-answer does not go in `provideContext()`: a field-initializer `$provide` would re-answer consumers from a provider that is still constructing itself.
+
+Two `contains()` calls bound the per-mount cost, and together they are exactly the set of consumers whose answer _can_ have changed: the newcomer must contain the consumer, and it must sit inside the provider already answering it. The second is the general form of "only root-answered consumers can be wrong" — the root provider contains everything, so those always pass, while a consumer already held by a nearer provider is dropped before any event is dispatched. Nothing is re-checked for a mount that changes nothing.
+
+The registry that makes this iterable **holds nothing**. A subscription's lifetime is anchored on its consumer element through a `WeakMap` — the same reason v3's scoped-groups registry used one — and the iterable index holds `WeakRef`s, pruned on the sweep that finds them dead. A plain `Set` would have been simpler and wrong: the callback closes over the consumer instance, which holds its element, so every consumer that ever resolved would stay alive for the life of the page. `context.spec.ts` asserts it with a real collection over CDP rather than assuming it.
+
+**A re-answer replaces, never accumulates.** `onProvide` may return a teardown for the value it was given; it runs before the next value is delivered and on unsubscribe, so whatever the consumer did with the previous provider is undone first. An identical value is not an answer — a nearer provider can hand over the very same object, and tearing a working binding down to rebuild it identically is churn, not correctness.
+
+**The port consumes it and its workaround is gone.** `DataBind.mounted()` is now a single subscribed `$inject` whose `onProvide` joins the group and whose returned teardown leaves it, and `DataScope` has no `mounted()` at all — its only job is the boundary in its field initializer. That is the whole eight-line `RESCOPE` broadcast, plus a symbol and an interface, deleted; the three specs that encode the problem pass unchanged, because they always asserted which registry a member ends up on rather than how it got there. One thing the shape does demand of a consumer: a subscribed request waits forever while nothing provides, so a member with no scope above it still has to create the page-wide registry — `injectContextSync(…) ?? provideRootContext(…)` stays the fallback, and creating the provider replays the member's own pending request.
+
+The reactive container is called `Signal` — the name the ecosystem settled on (Angular, Solid, Preact, the TC39 proposal), and the one @studiometa/ui already uses to describe its `Data*` suite. It is built by `signal(initialValue)`, a factory over a closure rather than a class: nothing about it wants inheritance or an instance identity, `new` was the only reason it was a class, and a closure is what makes the private delivery state genuinely private. **The accessor stays `.value`** — the factory changed, the read/write shape did not. `signal()`/`signal(next)`, the call-style accessor alien-signals uses, was the alternative and was rejected: it costs every existing call site, it makes `count.value++` into `count(count() + 1)`, and it gives a reader no way to tell a read from a write at the call site.
+
+**A write settles synchronously and the newest value wins.** The obvious fan-out — assign, then walk the subscribers — is wrong in a way that only shows up under re-entrancy, and `Data*` is exactly where it shows up: when a subscriber writes back mid-delivery, the walk carries on with the value it started on, so a subscriber positioned _after_ the writer is handed a frame that is already stale, _after_ it has been handed a newer one. Last-write-wins quietly becomes last-listener-wins. So the value a reader sees is split from the value being delivered, and the delivery loop re-reads the former after every callback: when it has moved, the round is abandoned and restarted on the new value instead of being finished on the old one. Subscribers still to be reached skip the superseded frame entirely.
+
+This is the property @studiometa/ui's `DataChannel` gets from alien-signals today, and the reason it can be dropped rather than depended on — its `publish()` always builds a fresh frame object, so the `===` bail-out never fires there and what it actually relies on is _one delivery per subscriber per settle, carrying the latest value_. Settling stays in the same task on purpose: `DataBind` echoes form-control input, and a microtask hop would be a visible change of behaviour. The price is that a subscriber writing unconditionally on every delivery live-locks the loop rather than overflowing the stack, which is the same trade every synchronous reactive graph makes.
 
 ## 6. Decorators — sugar, never a requirement
 
@@ -507,6 +617,63 @@ This is already the de facto state: `src/` contains no animation utility of any 
 **Out of core, into a separate `ui-animation` package:** time-based playback, stagger, sequencing, morphing and text splitting. Springs were on this list and came off it (2026-08-12): `spring()` is forty lines of pure maths with no player, no registry and no scheduling of its own, and `smoothTo()` is the one primitive the ported components need to smooth a value towards a target. What belongs outside is the _engine_ — a timeline, playback controls, a per-element registry — not a function that advances one number by one step. Two entry points over one package — Motion as declarative components (`data-component="Motion"`, its own props as `data-option-*`), GSAP as a lifecycle/scoping decorator (`gsap.context()` bound to the mount cycle) plus thin `Gsap`/`GsapTimeline` components. Engine-specific vocabulary in both cases: Motion's props are its API and port faithfully, GSAP's API is code and only ever maps lossily onto attributes.
 
 **Not the engine's job:** `exit` and `layout`/`layoutId` need framework-owned rendering, which the DOM does not give us — a MutationObserver fires after the element is gone and after layout changed. Native View Transitions already solve both, and are in core (section 7).
+
+## 10. DOM content swapping — `swap()`, one primitive in core
+
+**Implemented.** @studiometa/ui writes the same swap twice: `Fetch.__updateDOM` matches elements from a fetched document by `id` and applies one of four modes, and `FrameTarget.updateContent` does the same job between its leave and enter transitions. Both then call `adoptNewScripts(getScripts(el), oldScripts)`. Two copies of a swap is tolerable; two copies of the script rule is not, because the rule is not obvious in either direction — a `<script>` produced by the fragment parser is flagged _already started_ by the HTML specification and stays inert wherever it is moved, so it only runs if it is recreated, and recreating one that was already in the page runs it twice.
+
+```js
+swap(target, content, { mode, wrap }): Promise<void>
+```
+
+- `target` is an element whose **content** changes. It is never itself replaced, so the caller's reference, its `id` and any component instance living on it survive.
+- `content` is a markup string parsed in the target's own parsing context — `<tr>`, `<li>` and `<option>` survive, which no `<div>` or `DOMParser` context gives you — or an `Element`/`DocumentFragment` read as the incoming counterpart of the target, whose children become the new content. That is already what both ui call sites mean when they pass an element matched out of a fetched document.
+- The returned promise resolves after `whenDOMSettled()`, so awaiting `swap()` means the mutation is applied _and_ swapped-in components are mounted and swapped-out ones destroyed.
+
+### Why v4 makes it small
+
+Under v3 each family had to re-mount components inside the new markup and refresh stale refs. v4 removes both jobs: the registry mounts and destroys purely on DOM insertion and ejection (§3), and `$refs` re-read on access (§1). What is left of a swap is one mutation plus one script-adoption pass — roughly forty lines against ui's two implementations, with no `$update()`, no child teardown and no `settle()` helper for the caller. The browser suite asserts exactly that: components inside swapped-in markup mount, components swapped out are destroyed, and a component morphdom preserves is neither destroyed nor re-mounted, all with the `swap()` promise as the only synchronisation point.
+
+### The mode cut
+
+`SWAP_MODES` keeps the four positions ui uses — `replace`, `prepend`, `append`, `morph` — as a frozen object with a derived type, the framework-wide convention for a named constant.
+
+Keeping `prepend`/`append` in core is deliberate even though each is a one-line DOM call. What makes them worth hoisting is not the insertion, it is that they need the same before/after script diff as the other two. Cutting them would force core to export the script-adoption helper instead, which means hoisting two primitives where one will do, and leaving the subtle one in the caller's hands.
+
+Three things ui does around a swap are **not** in core:
+
+- **Element-level replace.** `Fetch`'s `replace` calls `oldElement.replaceWith(newElement)`, discarding the element the caller just found and, with it, its `id`, its instance and any live reference to it. Core's `replace` is `replaceChildren`. In v3 the element-level form bought a guaranteed-fresh subtree; in v4 refs are live and the registry re-mounts on insertion, so it buys nothing and costs identity. `FrameTarget` already used the content-level form.
+- **Attribute syncing in `morph`.** ui morphs the target itself, so the incoming element's attributes land on it. Core passes `childrenOnly: true`: on a v4 element, `data-component` and `data-mount` are lifecycle declarations, and rewriting them as a side effect of a content update would terminate and recreate instances. A caller wanting attributes synced is asking for something else than a content swap.
+- **Transitions, view transitions, history, `id` matching and response parsing.** All caller policy. `Fetch`'s `selector` loop is routing, not swapping.
+
+Two consequences of `morph` are morphdom policy, not swap policy, and the specs record them so callers stop rediscovering them: an element the incoming markup does not contain is discarded even from a preserved parent, and morphdom syncs an input's `value` from the incoming markup. Identity survives a morph — nodes, focus, expandos, component instances — unsent DOM does not.
+
+### The `morphdom` dependency
+
+Approved by the user, and taken as a real dependency rather than reimplemented. A DOM-diffing algorithm is not something to write again for fun: morphdom is ~800 lines of special-cased element handlers accumulated over ten years, ui has already shipped it in production, and reimplementing it would be exactly the "common functionality written again without a clear reason" this project avoids.
+
+Measured with esbuild (minify + gzip -9):
+
+| artifact                                         |    min | min+gzip |
+| ------------------------------------------------ | -----: | -------: |
+| `morphdom` 2.7.8, its own esm bundle             | 5203 B |   2199 B |
+| `dist/swap.js`, the emitted module alone         |  910 B |    529 B |
+| `./swap` subpath, whole graph, morphdom external | 3845 B |   1737 B |
+| `./swap` subpath, whole graph, morphdom included | 9058 B |   3781 B |
+
+So the primitive itself costs about half a kilobyte and the dependency costs about two, roughly doubling the flattened `./swap` graph. The import is static: a dynamic `import('morphdom')` would keep `replace` mode free, at the price of a CDN round-trip precisely when `morph` is used, and 2 kB is not worth buying that with a second network hop. The cost is contained instead by the subpath layout — `morphdom` is reachable only through `swap()`, so a page which never swaps never downloads it. `src/index.ts` says so in place of its former "Zero dependencies."
+
+### The seam for the negotiable event
+
+`swap()` announces nothing on its own. The `wrap` option is the whole seam: it receives the swap's single mutation and decides when it runs.
+
+```js
+await swap(el, html, { mode, wrap: (mutate) => viewTransition(mutate) });
+```
+
+The negotiable `$domUpdate` event (a separate piece of work) slots in as the producer of that wrapper and nothing else. Its `waitUntil`/`wrap` negotiation returns a runner; the caller passes that runner as `wrap` and the swap is delayed, wrapped or transitioned by whoever listened, exactly as ui's `Fetch.update` does today with `emitDomUpdate` + `runWrapped`. Resilience policy — what happens when a negotiated runner rejects, whether the update is applied anyway — stays with the negotiator, where ui already keeps it (`runWrapped` lives next to `emitDomUpdate`, not next to the swap). The swap stays a pure DOM operation with one hole in it.
+
+`swap()` is a free function, not a `Base` method: a swap target is frequently an element found by `id` with no component on it, and the primitive has no use for `this`.
 
 ## Kept from the existing #694 plan (unchanged)
 
