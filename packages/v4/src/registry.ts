@@ -5,7 +5,12 @@ import {
   trackDOMLifecycleWork,
   type DOMMutationRecord,
 } from './dom-mutations.js';
-import { applyMountStrategy, MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
+import {
+  applyMountStrategy,
+  MOUNT_ATTRIBUTE,
+  type AppliedMountStrategy,
+  type MountStrategy,
+} from './mount-strategies.js';
 import { selectorFor } from './utils/selectors.js';
 import { kebabCase } from './utils/strings.js';
 
@@ -23,6 +28,43 @@ interface PairController {
  * element never observes it twice.
  */
 const controllers = new WeakMap<Element, Map<string, PairController>>();
+
+/**
+ * Imports the module a lazy component lives in. Anything resolving to the
+ * class works — the class itself, the module namespace, a `default` export.
+ */
+export type ComponentImporter = () => Promise<unknown>;
+
+/**
+ * A lazy entry of the same registry: what to import, and — standing in for
+ * the `config.mountStrategy` of a class which does not exist yet — when.
+ */
+export interface ComponentManifestEntry {
+  load: ComponentImporter;
+  mountStrategy?: MountStrategy;
+}
+
+/** `data-component` tokens mapped to the lazy entry which resolves them. */
+export type ComponentManifest = Record<string, ComponentImporter | ComponentManifestEntry>;
+
+const manifest = new Map<string, ComponentManifestEntry>();
+/** One import per name, whichever element triggered it first. */
+const imports = new Map<string, Promise<void>>();
+
+interface LoadController {
+  dispose(): void;
+}
+
+/**
+ * Teardown for the strategy waiting to *import* one element's declared but
+ * unloaded component. It is the same object the registry keeps for a loaded
+ * pair, one step earlier in the pipeline.
+ */
+const loaders = new WeakMap<Element, Map<string, LoadController>>();
+
+function isComponentClass(value: unknown): value is BaseConstructor {
+  return typeof value === 'function' && (value === Base || value.prototype instanceof Base);
+}
 
 function componentTokens(el: Element): Set<string> {
   return new Set((el.getAttribute('data-component') ?? '').split(/\s+/).filter(Boolean));
@@ -47,22 +89,120 @@ export function registerComponent(ComponentClass: BaseConstructor): void {
     return;
   }
   registry.set(name, ComponentClass);
+  manifest.delete(name);
 
   for (const Child of Object.values(ComponentClass.config.components ?? {})) {
-    if (Child === Base || Child.prototype instanceof Base) {
+    if (isComponentClass(Child)) {
       registerComponent(Child);
     }
   }
 
   registerDOMOptionAttributes(optionAttributes(ComponentClass));
   setDOMMutationProcessor(processMutations);
-  scanRegisteredName(document.documentElement, name);
+  scanName(document.documentElement, name);
 }
 
 export function registerComponents(...classes: BaseConstructor[]): void {
   for (const ComponentClass of classes) {
     registerComponent(ComponentClass);
   }
+}
+
+/**
+ * Register lazy entries into the same registry: a `data-component` token
+ * whose class has not been downloaded yet.
+ *
+ * The trigger is the mount strategy, not a second `data-load` knob. An
+ * element's `data-mount` wins over the entry's `mountStrategy`, which stands
+ * in for the `config.mountStrategy` of a class nobody can read yet, which
+ * defaults to `eager` — the same precedence a registered class follows. When
+ * the strategy fires the module is imported once and its class registered,
+ * and the registry owns every mount and unmount from there.
+ *
+ * A declaration whose class has not loaded has no instance, so it stays
+ * invisible to `$query`, `$closest`, `$watchChildren` and `getInstances()`,
+ * exactly like a component still waiting for its mount strategy.
+ */
+export function registerManifest(entries: ComponentManifest): void {
+  const added: string[] = [];
+
+  for (const [name, entry] of Object.entries(entries)) {
+    if (registry.has(name) || manifest.has(name)) {
+      console.warn(`[registry] "${name}" is already registered, ignoring.`);
+      continue;
+    }
+    manifest.set(name, typeof entry === 'function' ? { load: entry } : entry);
+    added.push(name);
+  }
+
+  if (added.length === 0) {
+    return;
+  }
+
+  setDOMMutationProcessor(processMutations);
+  for (const name of added) {
+    scanName(document.documentElement, name);
+  }
+}
+
+/**
+ * Import one lazy entry and register what it resolves to, at most once per
+ * name. A failure is reported and never retried: the trigger has already
+ * been spent, and a retry loop on a broken chunk is worse than a silent page.
+ */
+function importComponent(name: string): Promise<void> {
+  const pending = imports.get(name);
+  if (pending) {
+    return pending;
+  }
+  const entry = manifest.get(name);
+  if (!entry) {
+    return Promise.resolve();
+  }
+
+  const work = Promise.resolve()
+    .then(() => entry.load())
+    .then((module) => {
+      const ComponentClass = resolveComponentClass(module, name);
+      if (!ComponentClass) {
+        throw new TypeError(`"${name}" did not resolve to a component class.`);
+      }
+      if (ComponentClass.config.name !== name) {
+        console.warn(
+          `[registry] "${name}" resolved to a component named "${ComponentClass.config.name}".`,
+        );
+      }
+      manifest.delete(name);
+      registerComponent(ComponentClass);
+    })
+    .catch((error: unknown) => {
+      console.error(`[registry] Failed to load "${name}":`, error);
+    });
+
+  imports.set(name, work);
+  return work;
+}
+
+/**
+ * Accept whatever the importer resolved: the class, the module namespace of
+ * `import('./Foo.js')` with `Foo` or `default` on it. Writing the `.then()`
+ * which unwraps it is the boilerplate every hand-written manifest would
+ * otherwise repeat once per line.
+ */
+function resolveComponentClass(module: unknown, name: string): BaseConstructor | undefined {
+  if (isComponentClass(module)) {
+    return module;
+  }
+  if (typeof module !== 'object' || module === null) {
+    return undefined;
+  }
+  const exports = module as Record<string, unknown>;
+  for (const candidate of [exports[name], exports.default]) {
+    if (isComponentClass(candidate)) {
+      return candidate;
+    }
+  }
+  return undefined;
 }
 
 function optionAttributes(ComponentClass: BaseConstructor): string[] {
@@ -186,6 +326,87 @@ function schedule(el: HTMLElement, name: string, ComponentClass: BaseConstructor
   trackDOMLifecycleWork(applied.eagerWork);
 }
 
+function disposeLoader(el: Element, name: string): void {
+  const pending = loaders.get(el);
+  const controller = pending?.get(name);
+  if (!controller) {
+    return;
+  }
+  controller.dispose();
+  pending?.delete(name);
+  if (pending?.size === 0) {
+    loaders.delete(el);
+  }
+}
+
+/**
+ * Wait for one element's declared-but-unloaded component, on the strategy
+ * that element resolves to. The trigger is one-shot even for a reversible
+ * strategy: importing is not reversible, and once the class is registered
+ * the registry re-applies the same strategy to the pair — this time with the
+ * class's own `config.mountStrategy` in the precedence chain.
+ */
+function scheduleLoad(el: HTMLElement, name: string): void {
+  const entry = manifest.get(name);
+  let pending = loaders.get(el);
+  if (!entry || pending?.has(name)) {
+    return;
+  }
+  if (!pending) {
+    pending = new Map();
+    loaders.set(el, pending);
+  }
+
+  const strategy =
+    (el.getAttribute(MOUNT_ATTRIBUTE) as MountStrategy | null) ?? entry.mountStrategy ?? 'eager';
+  const controller: LoadController = { dispose() {} };
+  pending.set(name, controller);
+
+  let fired = false;
+  let applied: AppliedMountStrategy | undefined;
+  applied = applyMountStrategy(el, strategy, {
+    mount: () => {
+      if (fired) {
+        return;
+      }
+      fired = true;
+      disposeLoader(el, name);
+      const work = importComponent(name);
+      // Only an eager trigger belongs to the settlement boundary, matching
+      // the rule the registry already follows: `whenDOMSettled()` — and so
+      // `swap()` — waits for an eager lazy component to be downloaded,
+      // registered and mounted, and never waits on a viewport, an idle
+      // callback, an interaction or a media query.
+      if (applied?.eagerWork) {
+        trackDOMLifecycleWork(work);
+      }
+    },
+    destroy() {},
+  });
+  controller.dispose = applied.dispose;
+  // `media:` evaluates synchronously, so the trigger may already have fired
+  // against the no-op teardown installed above.
+  if (fired) {
+    applied.dispose();
+  }
+  trackDOMLifecycleWork(applied.eagerWork);
+}
+
+/**
+ * Schedule one element/component pair down whichever half of the registry
+ * holds the name: a class mounts, a lazy entry loads first.
+ */
+function scheduleFor(el: HTMLElement, name: string): void {
+  const ComponentClass = registry.get(name);
+  if (ComponentClass) {
+    // The class arrived; this element no longer needs its import trigger.
+    disposeLoader(el, name);
+    schedule(el, name, ComponentClass);
+  } else if (manifest.has(name)) {
+    scheduleLoad(el, name);
+  }
+}
+
 /**
  * Make the framework state on one connected element match its final
  * `data-component` token set.
@@ -194,12 +415,14 @@ function reconcileElement(el: HTMLElement): void {
   const tokens = componentTokens(el);
   const names = new Set<string>([
     ...(controllers.get(el)?.keys() ?? []),
+    ...(loaders.get(el)?.keys() ?? []),
     ...(el.__base__?.keys() ?? []),
   ]);
 
   for (const name of names) {
-    if (!tokens.has(name) && registry.has(name)) {
+    if (!tokens.has(name) && (registry.has(name) || manifest.has(name))) {
       disposeController(el, name);
+      disposeLoader(el, name);
       // Removing a declaration while the element remains is final. Unlike a
       // disconnection, it removes the component identity from this element.
       el.__base__?.get(name)?.$terminate();
@@ -207,10 +430,7 @@ function reconcileElement(el: HTMLElement): void {
   }
 
   for (const name of tokens) {
-    const ComponentClass = registry.get(name);
-    if (ComponentClass) {
-      schedule(el, name, ComponentClass);
-    }
+    scheduleFor(el, name);
   }
 }
 
@@ -223,28 +443,29 @@ function scan(root: Node): void {
     return;
   }
   for (const el of [root, ...root.querySelectorAll<HTMLElement>('*')]) {
-    if (el.hasAttribute('data-component') || el.__base__ || controllers.has(el)) {
+    if (
+      el.hasAttribute('data-component') ||
+      el.__base__ ||
+      controllers.has(el) ||
+      loaders.has(el)
+    ) {
       reconcileElement(el as HTMLElement);
     }
   }
 }
 
 /**
- * A newly registered class only needs its own token matches. This avoids a
- * full document walk for every registration while inserted subtrees still
- * use the one-pass scanner above.
+ * A newly registered name — a class or a lazy entry — only needs its own
+ * token matches. This avoids a full document walk for every registration
+ * while inserted subtrees still use the one-pass scanner above.
  */
-function scanRegisteredName(root: Element, name: string): void {
+function scanName(root: Element, name: string): void {
   const selector = selectorFor(name);
   const elements = root.matches(selector)
     ? [root, ...root.querySelectorAll<HTMLElement>(selector)]
     : [...root.querySelectorAll<HTMLElement>(selector)];
-  const ComponentClass = registry.get(name);
-  if (!ComponentClass) {
-    return;
-  }
   for (const el of elements) {
-    schedule(el as HTMLElement, name, ComponentClass);
+    scheduleFor(el as HTMLElement, name);
   }
 }
 
@@ -266,6 +487,12 @@ function destroyWithin(node: Node, snapshot?: readonly Element[]): void {
     if (pairs) {
       for (const name of pairs.keys()) {
         disposeController(el, name);
+      }
+    }
+    const pending = loaders.get(el);
+    if (pending) {
+      for (const name of pending.keys()) {
+        disposeLoader(el, name);
       }
     }
     if (!el.__base__) {
