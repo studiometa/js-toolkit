@@ -91,7 +91,15 @@ The two remaining regressions are understood rather than outstanding. `$emit` pa
 
 ### The public surface is typed, and free
 
-`Base` takes an optional props type — `class Slider extends Base<{ $refs: …; $options: …; $emits: … }>`. It types `$refs` and `$options` (no more casting on access) and checks `$emit()`'s event names and payloads. `$emits` is the successor to v3's runtime `config.emits`: it keeps the documentation value of declaring what a component dispatches, with nothing left in the bundle.
+`Base` takes an optional props type — `class Slider extends Base<{ $refs: …; $options: …; $emits: … }>`. It types `$refs` and `$options` (no more casting on access) and checks `$emit()`'s event names and payloads. `$emits` maps each name to the **payload object** the event carries, `void` for one that carries nothing:
+
+```ts
+class Slider extends Base<{
+  $emits: { goto: { index: number }; stop: void };
+}> {}
+```
+
+It is the successor to v3's runtime `config.emits`: it keeps the documentation value of declaring what a component dispatches, with nothing left in the bundle.
 
 ### Option defaults belong to the instance, and may be factories
 
@@ -185,13 +193,36 @@ The matching surface is deliberately narrower than v3: only `data-component="Nam
 `$emit` becomes a native bubbling, cancelable event (#630):
 
 ```js
-$emit(event, ...args) {
-  const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail: args });
+$emit(event, payload) {
+  return this.#dispatch(event, payload); // detail = payload, verbatim
+}
+
+#dispatch(event, detail) {
+  const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail });
   e[SOURCE] = this; // symbol — avoids userland collisions
   this.$el.dispatchEvent(e);
   return e; // caller can check e.defaultPrevented
 }
 ```
+
+### The payload is one object, and it is the detail
+
+`$emit(name, payload?)` takes **one optional object**, and `detail` **is** that object. Omitting it leaves `detail` at the platform's own `null` — the value `new CustomEvent('open')` stores — rather than at a synthesized `{}`, so `$emit('open')` stays a single word and nothing stands in for a payload nobody announced.
+
+```js
+this.$emit('open');
+this.$emit('slide', { direction: 1 });
+```
+
+Three reasons, in order of weight:
+
+- **The platform says so.** `CustomEvent.detail` is one value. The variadic form v4 started with — `$emit(name, ...args)` packing `detail: args` — was a v4 invention layered on top of it, and every listener outside the framework paid for it: plain JavaScript on the page, an `addEventListener` in a Twig template, a test, all read `event.detail[0]` for what the emitter called one thing. `detail` is now what a listener would have guessed.
+- **Named fields survive evolution; positions do not.** A third thing worth announcing is a new key that every existing listener ignores. A third positional argument is a signature change, and `$emit('open', item, index)` has to be read against the declaration to know which is which — `$emit('open', { item, index })` does not.
+- **It removes an ambiguity rather than moving it.** With variadic arguments, `detail` was sometimes a payload and sometimes a list of them, and the delegation path had to guess with `Array.isArray(detail)`. One object means one answer everywhere: a delegated `on<Child><Event>()` handler receives `{ event, target, payload }` where `payload` **is** `event.detail`. That is why a bare non-object is not accepted as a shortcut — it would put the guess back.
+
+The type enforces it, and a `console.warn` says it out loud at runtime. The warning is not redundant with the type: the no-build path — magic `on<…>` method names, a plain `<script type="module">` — is a first-class audience here and never sees a type, so for them the rule would otherwise be a convention nothing checks. `$emit('slide', 1)` would work, silently, and box a positional argument back into an API that just removed them. The event still dispatches; the warning reports a shape rather than policing one.
+
+The cost of the migration was measured before it was chosen. Across `src/`, `migration/` (five ported ui families) and `demo/` there are 24 `$emit` call sites: **18 pass nothing at all** and are untouched, one (`SliderDrag`'s `$emit(props.mode, props)`) already passed a single object and only changed its declaration, and **five** carried positional values — `slide`, `goto`, `index`, and `Accordion`'s `open`/`close` pair. Those five now name what they announce, which is the whole diff at the call sites.
 
 `EventsManager` switches from per-child binding to delegation on `this.$el`:
 
@@ -234,13 +265,16 @@ Why it belongs in core rather than in a component library:
 
 What the v4 form changes:
 
-- **The detail is one object, and the event is dispatched directly** — `event.detail.wrap(…)`, not `event.detail[0].wrap(…)`. ui dispatched raw for a stated reason that was not the real one: `Fetch` overrides `$emit` with a string-only signature that would mangle a `CustomEvent`, a wart v4 does not have. The real reason survives the wart. `$emit`'s detail **is** its argument array, which is the right shape for a component's own events and the wrong one for a protocol payload whose content is a registration function — and plain JavaScript on the page is a first-class listener here (ui's `Dialog` advertises exactly that: _"any component (or plain JavaScript) can hold the dialog open"_), for whom `event.detail[0].waitUntil(…)` reads badly permanently. So a negotiated event is built like the three framework protocol events already are — `component:mounted`, `component:destroyed`, `context-request` — with `bubbles`, `cancelable` and `[SOURCE]` set by hand, which is everything `$emit` would have contributed except the array.
+- **The detail is one object** — `event.detail.wrap(…)`, not `event.detail[0].wrap(…)`. This was once a difference between a protocol event and a component's own, and it is not one any more: `$emit()` carries one payload object too, so a negotiated event is shaped exactly like every other event in v4. ui dispatched raw for a stated reason that was not the real one (`Fetch` overrides `$emit` with a string-only signature that would mangle a `CustomEvent`, a wart v4 does not have), and the shape reason that did hold has now dissolved.
 
-  **Delegation is not the price of that.** `on<Child><Event>()` handlers are bound by event _type_ on the root element and walk up from `event.target`, so they never inspect how the event was constructed: `onFetchDomUpdate()` fires either way. The one line that did care was the delegated payload's `args`, which took `detail` when it was an array and `[]` otherwise; it now passes a non-array detail through as the single argument it is. So a delegated handler reads `{ args: [{ wrap }] }` for exactly what a raw listener reads as `event.detail`, and both forms hold at once. That generalization is monotone — it hands framework protocol details to `@on(child, 'component:mounted')`-style handlers that used to receive nothing.
+  **Delegation is not the price of that.** `on<Child><Event>()` handlers are bound by event _type_ on the root element and walk up from `event.target`, so they never inspect how the event was constructed: `onFetchDomUpdate()` fires either way. The delegated payload is `event.detail` verbatim, so a handler reads `{ payload: { wrap } }` for exactly what a raw listener reads as `event.detail` — one shape, no `Array.isArray` branch, framework protocol details included.
+
+- **The protocol events keep their own dispatch path, for the one reason that survives.** They are framework events rather than a component's own, so they are deliberately absent from `$emits` — a component must not have to declare a protocol in order to announce through it. `$emit()` is precisely the method that forbids that: a component declaring `$emits` may only emit the names it listed. Routing `$domUpdate()` and `$emitExtendable()` through `$emit()` would therefore need a cast at every call — trading a documented bypass for a hidden one.
+
+  So the split is drawn one level down instead. A private `#dispatch(event, detail)` builds and sends the event — `bubbles`, `cancelable`, `detail`, `[SOURCE]`, the four decisions, in one place. `$emit()` is `#dispatch()` plus the `$emits` type constraint; the negotiated events are `#dispatch()` without it. Nothing is duplicated, nothing is cast, and the constraint is not weakened. The three other framework protocol events — `component:mounted`, `component:destroyed`, `context-request` — sit outside `$emit()` for the same reason (`component:destroyed` also dispatches on `document`, its element being gone, so it does not share the primitive).
 
   One consequence is deliberate: a component overriding `$emit` does not intercept these. A framework protocol is not a component's own event.
 
-- **A negotiated event is a framework event, not a component's own,** so it is deliberately absent from `$emits` — a component must not have to declare the protocol to be allowed to announce through it. Bypassing `$emit` is what makes that free: routing through it needed a cast, because a component declaring `$emits` may only emit the names it listed.
 - **`defaultPrevented` is ignored** (part of open question 2, for these events): the step is announced, not proposed. Honouring cancelation would make "the emitter's work always completes" false, and a listener that wants nothing to happen says so through its own state.
 - **Registration is valid only while the event dispatches,** in both modes. A listener that keeps the function and calls it later is warned and ignored, because by then the step has already happened — handing a change to a runner at that point would apply it twice or not at all. The warning is built from the mode's key and the event's name, so there is one wording rather than two.
 - **The duck-typed method is the one that names the event for the object:** `update(mutate)` for a DOM change, `close()` for a dialog's `close` step. This is the `on<Child><Event>` rule again — resolve by name, do not add an option that names a thing. ui's `Dialog` mapped `open`→`enter()` and `close`→`leave()`, a Dialog-specific vocabulary the core rule replaces; `waitUntil()` also accepts a plain thenable and a plain function, so `waitUntil(() => this.enter())` covers any pair of method names with nothing to configure.

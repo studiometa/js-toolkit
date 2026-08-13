@@ -105,15 +105,16 @@ export interface BaseConstructor {
 /**
  * Payload given to delegated `on<Child><Event>` handlers.
  *
- * Naming the event as the second parameter types `args` from the child's
- * `$emits` declaration, so a handler reads its payload without casting:
+ * `payload` is the event's `detail`, unchanged — what a plain listener on the
+ * page reads. Naming the event as the second parameter types it from the
+ * child's `$emits` declaration, so a handler reads its fields without casting:
  *
- *     onSliderBtnSlide({ args: [direction] }: DelegatedEvent<SliderBtn, 'slide'>) {}
+ *     onSliderBtnSlide({ payload: { direction } }: DelegatedEvent<SliderBtn, 'slide'>) {}
  */
 export interface DelegatedEvent<T extends Base = Base, K extends string = string> {
   event: Event;
   target: T;
-  args: EmitArgs<PropsOf<T>, K>;
+  payload: EmitDetail<PropsOf<T>, K>;
 }
 
 /**
@@ -150,13 +151,15 @@ const CAPTURED_EVENTS = new Set([
  *       $el: HTMLFormElement;
  *       $refs: { wrapper: HTMLElement; slides: HTMLElement[] };
  *       $options: { autoplay: boolean };
- *       $emits: { slide: [index: number] };
+ *       $emits: { slide: { index: number }; stop: void };
  *     }> {}
  *
  * `$el` narrows the root element for a component that only makes sense on
  * one tag — a `<details>`, a `<form>` — so its members are reachable
- * without casting. `$emits` documents what the component dispatches and
- * types `$emit()`'s arguments, replacing v3's runtime `config.emits` array.
+ * without casting. `$emits` maps each event name to the **payload object**
+ * `$emit()` carries for it — `void` for an event that carries nothing — and
+ * replaces v3's runtime `config.emits` array: it documents what the component
+ * dispatches and types `$emit()`, with nothing left in the bundle.
  *
  * Each declaration is the author's assertion about their own markup: the
  * registry mounts whatever element matched the selector, so a mismatch
@@ -166,8 +169,14 @@ export interface BaseProps {
   $el?: HTMLElement;
   $refs?: Record<string, HTMLElement | HTMLElement[]>;
   $options?: Record<string, unknown>;
-  $emits?: Record<string, unknown[]>;
+  $emits?: EmitMap;
 }
+
+/**
+ * What `$emits` maps an event name to: the payload object the event carries,
+ * or `void` for one that carries nothing.
+ */
+export type EmitMap = Record<string, object | void>;
 
 type El<T extends BaseProps> = T['$el'] extends HTMLElement ? T['$el'] : HTMLElement;
 
@@ -183,19 +192,42 @@ type Options<T extends BaseProps> =
  * A component that declares `$emits` may only emit those names; one that
  * does not keeps the unrestricted signature.
  */
-type EmitName<T extends BaseProps> =
-  T['$emits'] extends Record<string, unknown[]> ? keyof T['$emits'] & string : string;
+type EmitName<T extends BaseProps> = T['$emits'] extends EmitMap
+  ? keyof T['$emits'] & string
+  : string;
 
-type EmitArgs<T extends BaseProps, K extends string> =
+/**
+ * The `detail` an event carries: the declared payload object, or `null` for an
+ * event declared `void`. `null` rather than `{}` because that is what the
+ * platform stores for a `CustomEvent` built without a detail — nothing is
+ * synthesized to stand in for a payload nobody announced.
+ */
+type EmitDetail<T extends BaseProps, K extends string> =
   // An un-narrowed `string` means the caller did not name the event, so
   // there is nothing to look up.
   string extends K
-    ? unknown[]
-    : T['$emits'] extends Record<string, unknown[]>
+    ? unknown
+    : T['$emits'] extends EmitMap
       ? K extends keyof T['$emits']
-        ? T['$emits'][K]
+        ? T['$emits'][K] extends void
+          ? null
+          : T['$emits'][K]
         : never
-      : unknown[];
+      : unknown;
+
+/**
+ * `$emit()`'s payload parameter, as a tuple so a declared payload is
+ * **required** and a `void` event takes no second argument at all.
+ */
+type EmitArgs<T extends BaseProps, K extends string> = string extends K
+  ? [payload?: object]
+  : T['$emits'] extends EmitMap
+    ? K extends keyof T['$emits']
+      ? T['$emits'][K] extends void
+        ? []
+        : [payload: T['$emits'][K]]
+      : never
+    : [payload?: object];
 
 /**
  * The props a component was declared with, read from the phantom carrier
@@ -246,21 +278,23 @@ declare global {
 }
 
 /**
- * The arguments a delegated `on<Child><Event>()` handler receives.
+ * A payload is one object, or nothing at all.
  *
- * `$emit`'s detail **is** its argument array, so it maps over directly. Any
- * other detail is one payload rather than a list of arguments — which is what
- * the framework's own protocol events carry, `dom-update` and the steps of a
- * choreography included — so it is handed over as the single argument it is.
- * A handler then reads `{ args: [{ wrap }] }` for exactly what a raw listener
- * reads as `event.detail`.
+ * TypeScript says so at every typed call site, but the no-build path — magic
+ * `on<…>` method names, plain `<script type="module">` — never sees a type.
+ * The rule is a convention rather than a mechanism, and a convention that is
+ * only checked in a build step is invisible to the audience most likely to
+ * break it: `$emit('slide', 1)` would work, and would box a positional
+ * argument back into an API that just removed them. So it is said out loud,
+ * once, at the moment the mistake is made. The event still dispatches — this
+ * reports a shape, it does not police one.
  */
-function argsOf(event: Event): unknown[] {
-  const { detail } = event as CustomEvent;
-  if (Array.isArray(detail)) {
-    return detail;
+function checkPayload(event: string, payload: unknown): void {
+  if (payload !== undefined && (typeof payload !== 'object' || payload === null)) {
+    console.warn(
+      `[base] \`$emit('${event}', …)\` takes one payload object; received ${typeof payload}. Name the value: \`{ value }\`.`,
+    );
   }
-  return detail === null || detail === undefined ? [] : [detail];
 }
 
 /**
@@ -677,15 +711,40 @@ export class Base<T extends BaseProps = BaseProps> {
    * Dispatch a native bubbling, cancelable event, annotated with the
    * emitting instance.
    *
-   * A component that declares `$emits` in its props gets its event names
-   * and payloads checked here — the declaration is types only, so nothing
-   * about it reaches the bundle.
+   * The payload is **one object**, and it is the event's `detail` verbatim —
+   * what `CustomEvent` was built to carry, and what a plain listener on the
+   * page reads. Omitting it leaves `detail` at the platform's own `null`, not
+   * at a synthesized `{}`, so `$emit('open')` stays a single word:
+   *
+   *     this.$emit('open');
+   *     this.$emit('slide', { direction: 1 });
+   *
+   * Fields are named because they outlive the call that introduced them: a
+   * third thing worth announcing is a new key that every existing listener
+   * ignores, where a third positional argument is a signature change.
+   *
+   * A component that declares `$emits` in its props gets its event names and
+   * payloads checked here — the declaration is types only, so nothing about it
+   * reaches the bundle.
    *
    * @returns Check `defaultPrevented` on the returned event.
    */
-  $emit<K extends EmitName<T>>(event: K, ...args: EmitArgs<T, K>): CustomEvent<unknown[]>;
-  $emit(event: string, ...args: unknown[]): CustomEvent<unknown[]> {
-    const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail: args });
+  $emit<K extends EmitName<T>>(event: K, ...payload: EmitArgs<T, K>): CustomEvent<EmitDetail<T, K>>;
+  $emit(event: string, payload?: object): CustomEvent<unknown> {
+    checkPayload(event, payload);
+    return this.#dispatch(event, payload);
+  }
+
+  /**
+   * Build and dispatch a component event: bubbling, cancelable, carrying one
+   * `detail` and annotated with the instance that sent it.
+   *
+   * The single place any of that is decided. `$emit()` is this plus the
+   * `$emits` type constraint; the negotiated protocol events are this without
+   * it — see `#negotiated()` for why they must not have it.
+   */
+  #dispatch(event: string, detail: unknown): CustomEvent<unknown> {
+    const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail });
     (e as CustomEvent & { [SOURCE]?: Base })[SOURCE] = this;
     this.$el.dispatchEvent(e);
     return e;
@@ -900,30 +959,32 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Dispatch a negotiated event: bubbling, cancelable and annotated with its
-   * source, exactly like `$emit` — but with the **detail as one object**, so a
-   * listener reads `event.detail.wrap(…)` rather than `event.detail[0].wrap(…)`.
+   * source — the same event `$emit()` builds, through the same `#dispatch()`,
+   * with the payload object as `detail`. `dom-update` and the steps of a
+   * choreography are shaped exactly like a component's own events.
    *
-   * That is the whole reason this does not go through `$emit`. `$emit`'s detail
-   * is its argument array, which is the right shape for a component's own
-   * events and the wrong one for a protocol payload whose content is a
-   * registration function: plain JavaScript on the page is a first-class
-   * listener here, and `event.detail[0].waitUntil(…)` reads badly forever. The
-   * three other framework protocol events — `component:mounted`,
-   * `component:destroyed`, `context-request` — are dispatched directly for the
-   * same reason.
+   * What it deliberately does **not** go through is the public `$emit()`, and
+   * the payload shape is not the reason — that difference is gone. The reason
+   * is the type constraint `$emit()` adds: a component declaring `$emits` may
+   * only emit the names it listed, and a component must not have to declare a
+   * framework protocol in order to announce through it. Routing here would
+   * need a cast at every call — still a bypass, but a hidden one a reader has
+   * to spot, rather than a named one. The three other protocol events —
+   * `component:mounted`, `component:destroyed`, `context-request` — sit
+   * outside `$emit()` for the same reason.
    *
    * Delegation is unaffected: `on<Child><Event>()` handlers are bound by event
    * type on the root element and walk up from `event.target`, so they never
-   * see how the event was built.
+   * see how the event was built, and a handler reads `{ payload: { wrap } }`
+   * for exactly what a raw listener reads as `event.detail`.
    *
-   * A component overriding `$emit` does not intercept these, which is
-   * deliberate — a framework protocol is not a component's own event.
+   * A component overriding `$emit` does not intercept these, which follows
+   * from the above and is welcome — a framework protocol is not a component's
+   * own event.
    */
   #negotiated(event: string): (detail: Record<string, unknown>) => void {
     return (detail) => {
-      const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail });
-      (e as CustomEvent & { [SOURCE]?: Base })[SOURCE] = this;
-      this.$el.dispatchEvent(e);
+      this.#dispatch(event, detail);
     };
   }
 
@@ -942,8 +1003,8 @@ export class Base<T extends BaseProps = BaseProps> {
    *     // In any ancestor, however far up.
    *     this.$on(DOM_UPDATE_EVENT, ({ detail }) => detail.wrap(viewTransition));
    *
-   *     // Or, as a delegated child handler — the same payload, unwrapped.
-   *     onFetchDomUpdate({ args: [{ wrap }] }) { wrap(viewTransition); }
+   *     // Or, as a delegated child handler — the same payload.
+   *     onFetchDomUpdate({ payload: { wrap } }) { wrap(viewTransition); }
    *
    * The event bubbles, is cancelable and carries its source, and
    * `defaultPrevented` is deliberately ignored: the change is announced, not
@@ -1201,7 +1262,8 @@ export class Base<T extends BaseProps = BaseProps> {
                 entry.invoke({
                   event,
                   target: child,
-                  args: argsOf(event),
+                  // The detail verbatim — what a plain listener reads.
+                  payload: (event as CustomEvent).detail,
                 });
                 invoked = true;
               }

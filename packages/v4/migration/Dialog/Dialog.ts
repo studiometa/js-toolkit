@@ -16,7 +16,7 @@ export interface DialogProps {
     /** Lock the document scroll while open. */
     scrollLock: boolean;
   };
-  $emits: { open: []; close: [] };
+  $emits: { open: void; close: void };
 }
 
 /**

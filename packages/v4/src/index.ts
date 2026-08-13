@@ -56,6 +56,7 @@ export {
   type BaseProps,
   type ChildrenCollection,
   type DelegatedEvent,
+  type EmitMap,
   type HandlerRegistration,
   type LifecycleEventDetail,
   type MountedReturn,

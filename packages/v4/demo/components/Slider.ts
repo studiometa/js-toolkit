@@ -57,7 +57,7 @@ export class SliderItem extends Base {
 export class SliderBtn extends Base<{
   $el: HTMLButtonElement;
   $options: { direction: number };
-  $emits: { slide: [direction: number] };
+  $emits: { slide: { direction: number } };
 }> {
   static config = {
     name: 'SliderBtn',
@@ -65,7 +65,7 @@ export class SliderBtn extends Base<{
   };
 
   onClick(): void {
-    this.$emit('slide', this.$options.direction);
+    this.$emit('slide', { direction: this.$options.direction });
   }
 }
 
@@ -188,8 +188,8 @@ export class Slider extends Base<{
     this.api.state.value = { index: this.index, total };
   }
 
-  // Naming the event types `args` from SliderBtn's own `$emits`.
-  onSliderBtnSlide({ args: [direction] }: DelegatedEvent<SliderBtn, 'slide'>): void {
+  // Naming the event types `payload` from SliderBtn's own `$emits`.
+  onSliderBtnSlide({ payload: { direction } }: DelegatedEvent<SliderBtn, 'slide'>): void {
     this.goTo(this.index + direction);
   }
 

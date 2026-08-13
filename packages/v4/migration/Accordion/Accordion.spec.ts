@@ -97,10 +97,14 @@ describe('Accordion', () => {
     const seen: Array<[string, number]> = [];
     for (const type of ['open', 'close']) {
       root.addEventListener(type, (event) => {
-        const detail = (event as CustomEvent).detail as [AccordionItem, number];
-        // Only the Accordion's own re-emit carries two arguments.
-        if (detail.length === 2) {
-          seen.push([type, detail[1]]);
+        const detail = (event as CustomEvent).detail as {
+          item: AccordionItem;
+          index: number;
+        } | null;
+        // The item announces with no payload, so its detail is `null`; only
+        // the Accordion's re-emit names the item and its index.
+        if (detail) {
+          seen.push([type, detail.index]);
         }
       });
     }

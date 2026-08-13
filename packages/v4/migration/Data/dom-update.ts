@@ -9,14 +9,13 @@
  *
  * Two things survived the port and one changed:
  *
- * - the raw `dispatchEvent` stayed. ui bypasses `$emit` because `Fetch`
- *   overrides it with a string-only signature; v4's `$emit` is fine on that
- *   count but still wrong here, because it packs its arguments into
- *   `detail` **as an array** (`detail: args`). This protocol needs an object
- *   `detail` with a `wrap` method on it, which `$emit` cannot express.
- *   *Ask for core:* a way to emit a payload object, or an explicit statement
- *   that protocol events are raw `CustomEvent`s and `$emit` is for component
- *   events only.
+ * - the raw `dispatchEvent` stayed, and the reason it had to has since gone:
+ *   the port was written when `$emit` packed its arguments into `detail` as an
+ *   array, which this protocol — an object `detail` carrying a `wrap` method —
+ *   could not express. `$emit` now takes one payload object, and core grew
+ *   `$domUpdate()`, which is this whole module. This copy stays only because
+ *   it is a standalone function bound to an element rather than to a `Base`;
+ *   the gap it reported (REPORT.md 19) is closed.
  * - `instance.$warn(...)` became a plain `warn()`, since v4 has no `$warn`
  *   (REPORT.md gap 10).
  */

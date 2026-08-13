@@ -9,8 +9,8 @@ import type { AccordionItem } from './AccordionItem.js';
 export interface AccordionProps {
   $options: { autoclose: boolean; item: Record<string, unknown> };
   $emits: {
-    open: [item: AccordionItem, index: number];
-    close: [item: AccordionItem, index: number];
+    open: { item: AccordionItem; index: number };
+    close: { item: AccordionItem; index: number };
   };
 }
 
@@ -40,7 +40,7 @@ export class AccordionCore extends Base<AccordionProps> {
   items: ChildrenCollection<AccordionItem> = this.$watchChildren<AccordionItem>('AccordionItem');
 
   onAccordionItemOpen({ target }: DelegatedEvent<AccordionItem>): void {
-    this.$emit('open', target, this.items.items.indexOf(target));
+    this.$emit('open', { item: target, index: this.items.items.indexOf(target) });
 
     if (this.$options.autoclose) {
       for (const item of this.items) {
@@ -52,6 +52,6 @@ export class AccordionCore extends Base<AccordionProps> {
   }
 
   onAccordionItemClose({ target }: DelegatedEvent<AccordionItem>): void {
-    this.$emit('close', target, this.items.items.indexOf(target));
+    this.$emit('close', { item: target, index: this.items.items.indexOf(target) });
   }
 }
