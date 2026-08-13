@@ -202,6 +202,62 @@ $emit(event, ...args) {
 - `mouseenter`/`mouseleave` do not bubble: these two keep direct binding (accepted limitation).
 - `$on`/`$off` and `Action`-style directives keep working unchanged and benefit from bubbling.
 
+### Negotiated events — `$domUpdate()` and `$emitExtendable()` — implemented
+
+The strongest instance of this objective is not a notification but a **negotiation**: a component announces a step _before_ it happens, and anything up the tree may take part in it. There are exactly two things a listener can ask for, and they are the two modes of one mechanism.
+
+| mode          | asks for   | registers with | keeps                 | on failure                     |
+| ------------- | ---------- | -------------- | --------------------- | ------------------------------ |
+| **take over** | the action | `wrap(runner)` | one runner, last wins | the mutation is applied anyway |
+| **delay**     | the moment | `waitUntil(x)` | many, all awaited     | the step goes ahead anyway     |
+
+```js
+// Take over: the mutating component announces instead of mutating.
+await this.$domUpdate(() => this.$el.replaceChildren(fragment));
+this.$on(DOM_UPDATE_EVENT, ({ detail }) => detail.wrap(viewTransition));
+
+// Delay: the choreography announces its step and waits for whoever asked.
+async close() {
+  await this.$emitExtendable('close');
+  this.$el.close();
+}
+this.$on('close', ({ detail }) => detail.waitUntil(this.leave()));
+```
+
+**@studiometa/ui grew this protocol twice, independently.** `utils/dom-update.ts` (`wrap`, consumed by `DataBind` and `Fetch`, wrapped by `MotionView`) and `Dialog.__emitExtendable` (`waitUntil`, extended by `MotionView` again) have the same transport, the same synchronous-only window, near-identical warning wording and the same duck typing — two spellings of "let anything up the tree negotiate a step". Both collapse onto this one primitive: `Dialog` becomes `await this.$emitExtendable('close')`, `Fetch` and `DataBind` become `await this.$domUpdate(mutate)`, and each drops its private copy of the window, the warning and the normalization. In the code the two modes are one function, `negotiate()`, and the only thing that differs between them is what `accept` does with a registration — overwrite the single one, or push onto the list.
+
+Why it belongs in core rather than in a component library:
+
+- **It is ambient interception through DOM ancestry** — no registration, no handshake, no ownership. The emitter never learns who answered, and the answerer never learns what the step does. That is this section's thesis applied to the one thing components could not previously delegate.
+- **The alternative is coupling.** Without it, animating a fetched replacement means the mutator knowing about the transition, or the transition reaching into the mutator; holding a dialog open means the dialog knowing its contents animate. Both are the `$closest()`-and-poke shape the flat topology exists to remove.
+- **It closes the gap left by section 9.** `exit` and `layout` animations need a hook _before_ the DOM changes, and a `MutationObserver` fires after the element is gone. An announced step is that hook, and it is the only one the DOM can give us.
+
+What the v4 form changes:
+
+- **The detail is one object, and the event is dispatched directly** — `event.detail.wrap(…)`, not `event.detail[0].wrap(…)`. ui dispatched raw for a stated reason that was not the real one: `Fetch` overrides `$emit` with a string-only signature that would mangle a `CustomEvent`, a wart v4 does not have. The real reason survives the wart. `$emit`'s detail **is** its argument array, which is the right shape for a component's own events and the wrong one for a protocol payload whose content is a registration function — and plain JavaScript on the page is a first-class listener here (ui's `Dialog` advertises exactly that: _"any component (or plain JavaScript) can hold the dialog open"_), for whom `event.detail[0].waitUntil(…)` reads badly permanently. So a negotiated event is built like the three framework protocol events already are — `component:mounted`, `component:destroyed`, `context-request` — with `bubbles`, `cancelable` and `[SOURCE]` set by hand, which is everything `$emit` would have contributed except the array.
+
+  **Delegation is not the price of that.** `on<Child><Event>()` handlers are bound by event _type_ on the root element and walk up from `event.target`, so they never inspect how the event was constructed: `onFetchDomUpdate()` fires either way. The one line that did care was the delegated payload's `args`, which took `detail` when it was an array and `[]` otherwise; it now passes a non-array detail through as the single argument it is. So a delegated handler reads `{ args: [{ wrap }] }` for exactly what a raw listener reads as `event.detail`, and both forms hold at once. That generalization is monotone — it hands framework protocol details to `@on(child, 'component:mounted')`-style handlers that used to receive nothing.
+
+  One consequence is deliberate: a component overriding `$emit` does not intercept these. A framework protocol is not a component's own event.
+
+- **A negotiated event is a framework event, not a component's own,** so it is deliberately absent from `$emits` — a component must not have to declare the protocol to be allowed to announce through it. Bypassing `$emit` is what makes that free: routing through it needed a cast, because a component declaring `$emits` may only emit the names it listed.
+- **`defaultPrevented` is ignored** (part of open question 2, for these events): the step is announced, not proposed. Honouring cancelation would make "the emitter's work always completes" false, and a listener that wants nothing to happen says so through its own state.
+- **Registration is valid only while the event dispatches,** in both modes. A listener that keeps the function and calls it later is warned and ignored, because by then the step has already happened — handing a change to a runner at that point would apply it twice or not at all. The warning is built from the mode's key and the event's name, so there is one wording rather than two.
+- **The duck-typed method is the one that names the event for the object:** `update(mutate)` for a DOM change, `close()` for a dialog's `close` step. This is the `on<Child><Event>` rule again — resolve by name, do not add an option that names a thing. ui's `Dialog` mapped `open`→`enter()` and `close`→`leave()`, a Dialog-specific vocabulary the core rule replaces; `waitUntil()` also accepts a plain thenable and a plain function, so `waitUntil(() => this.enter())` covers any pair of method names with nothing to configure.
+- **The emitter's work always completes.** A runner that throws, rejects _or resolves without ever calling `apply`_ loses the animation, never the change — ui covered only the first two, so a runner that forgot to apply silently dropped the update. An extension that rejects is swallowed, because a failing extension must never leave a dialog painted with the scroll locked. Failures go through `reportError()` (section 8); misuse — a late registration, a runner that never applied — through `console.warn`.
+- **The last claim wins in take-over mode,** as in ui. Bubbling reaches the nearest ancestor first, and the nearest is not necessarily the one that should animate: an outer component owning the whole region takes over deliberately. **Delay mode keeps every registration**, and that difference is intrinsic: replacing an action is exclusive, postponing one is not — two components animating out must both be waited for.
+- **Unclaimed is synchronous.** With nobody listening, `$domUpdate()`'s mutation runs before the returned promise exists, so a reactive pipeline can read the DOM back on the next line — which is what `DataBind`'s synchronous binding pass requires.
+
+**Composition with the two runners core already ships is the point of the function shape.** A `DomUpdateRunner` is `(apply) => void | Promise<unknown>`, so:
+
+| claim                                         | effect                                                                                                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `wrap(viewTransition)`                        | the change plays as a batched native view transition (section 7), with no adapter — `viewTransition(update)` already has the runner's exact shape |
+| `wrap((apply) => this.$write(apply).promise)` | the change lands in the frame's `write` phase, batched with every other write and canceled with the claiming instance                             |
+| `wrap(motionView)`                            | the duck-typed transitioner form: any object with `update(mutate)`, which is what `MotionView` in `@studiometa/ui-motion` already is              |
+
+Neither runner is the default, and that is deliberate: `$domUpdate()` with nobody listening must stay a plain synchronous mutation. Choosing a lane is the ancestor's decision, because the ancestor is the one that knows whether the region is animating.
+
 ## 5. Children advertise their existence
 
 The piece that makes the flat, order-free topology workable. Two layers plus a separate shared-state primitive.

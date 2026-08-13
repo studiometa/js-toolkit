@@ -116,6 +116,11 @@
       "types": "./dist/subpaths/MOUNT_ATTRIBUTE.d.ts",
       "import": "./dist/subpaths/MOUNT_ATTRIBUTE.js"
     },
+    "./DOM_UPDATE_EVENT": {
+      "typescript": "./src/subpaths/DOM_UPDATE_EVENT.ts",
+      "types": "./dist/subpaths/DOM_UPDATE_EVENT.d.ts",
+      "import": "./dist/subpaths/DOM_UPDATE_EVENT.js"
+    },
     "./registerComponent": {
       "typescript": "./src/subpaths/registerComponent.ts",
       "types": "./dist/subpaths/registerComponent.d.ts",
