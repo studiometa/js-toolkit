@@ -101,6 +101,31 @@ class Slider extends Base<{
 
 It is the successor to v3's runtime `config.emits`: it keeps the documentation value of declaring what a component dispatches, with nothing left in the bundle.
 
+#### Props are read through intersections, never conditionals
+
+A component may take a props parameter of its own, which is how one component is extended by another:
+
+```ts
+class Action<T extends BaseProps = BaseProps> extends Base<ActionProps & T> {
+  mounted() {
+    this.$options.target; // string, not `{}`
+  }
+}
+```
+
+Inside that class body `T` is a naked type parameter, and **TypeScript only resolves a conditional type once its checked type is concrete**. So `Options<T> = T['$options'] extends Record<string, unknown> ? T['$options'] : Record<string, unknown>` — the obvious way to give an optional key a default — is deferred there, and every option reads as the fallback however the parameter is written. `T extends ActionProps` fails identically; the parameter is still naked. This cost the `Action` port its type parameter (REPORT.md gap 22) before it was fixed.
+
+The fix is v3's, and it is one operator: read each prop as an **intersection** with its default, `T['$options'] & Record<string, unknown>`, the way `packages/js-toolkit/src/Base/Base.ts` has always done it. An intersection has no gate — the apparent type of `A & B` is the intersection of the apparent types, so a declared half answers immediately and a deferred half contributes its constraint. It also absorbs the two ways a key can be missing: `undefined & X` is `never` and drops out of the union, `unknown & X` is `X`.
+
+Two consequences worth knowing before changing these types again:
+
+- **A conditional over `T` makes `Base` invariant in `T`.** Two conditionals with different checked types are unrelated in both directions, so TypeScript's variance measurement concludes invariance and `Base<SliderProps>` stops being assignable to `Base` — which is what `$query`, `$closest` and `$watchChildren` hand back, and what every helper taking "some component" is annotated with. Intersections measure as covariant and it keeps working. This is not theoretical: it is what the first attempt at this fix broke.
+- **`$emits` is the exception, and needs a conditional.** `keyof (Declared & EmitMap)` is `string`, so intersecting the default in would throw away every declared name. It gets `NonNullable<T['$emits']> & (unknown extends T['$emits'] ? EmitMap : unknown)` instead — the conditional is checked against `unknown`, the type an omitted key reads as, so it fires for an omitted `$emits` and nothing else, and its branches union to `unknown` so a deferred instance contributes nothing. Everything downstream of it is then checked against the **map** rather than against `T`, and the one place a conditional is unavoidable — a `void` payload takes no argument, a declared one is required — is written `void extends M[K] ? … : …` so the checked type is concrete and only the `extends` side is deferred. Written the other way round, `$emit()` rejects every argument list a generic component gives it.
+
+The price, also v3's: the default's index signature comes along, so reading an option or a ref a component did not declare is `unknown` (respectively `HTMLElement | HTMLElement[]`) rather than an error. Declared props keep their exact types, which is what declaring them is for.
+
+`src/props.spec.ts` holds the assertions — `expectTypeOf` and `@ts-expect-error`, enforced by `npm run lint:types`, since none of this is visible at runtime.
+
 ### Option defaults belong to the instance, and may be factories
 
 `$options` reads its `data-option-*` attribute on every access — an attribute is the source of truth, and stays live. A **default** is the opposite kind of value: it is not in the DOM, so it belongs to the instance that reads it.
