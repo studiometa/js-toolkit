@@ -1,6 +1,6 @@
-import type { Base } from '../../src/index.js';
+import { getInstances, type Base } from '../../src/index.js';
 import { getEffect, type EffectFunction } from './expression.js';
-import { getInstances, getInstancesOn } from './instances.js';
+import { getInstancesOn } from './instances.js';
 
 /**
  * Extract a component name and an optional additional selector from one
@@ -21,7 +21,8 @@ function warn(...args: unknown[]): void {
  * One `data-on:<event>` binding, or the `on`/`target`/`effect` option triple.
  *
  * Port of @studiometa/ui 1.10's `ActionEvent` (143 code lines → 96 here plus
- * `expression.ts` and `instances.ts`).
+ * `expression.ts`, and `instances.ts` for the co-located instances alone —
+ * the page-wide lookup is core's `getInstances()` since gap 20 closed).
  *
  * ## Does v4's delegation make this redundant? No — and that is the finding.
  *
@@ -44,7 +45,7 @@ function warn(...args: unknown[]): void {
  *
  * | v3 | v4 |
  * | --- | --- |
- * | `attachEvent()` + `detachEvent()`, called from `mounted()`/`destroyed()` | one `attach()` returning its own cleanup, collected by `mounted()` |
+ * | `attachEvent()` + `detachEvent()`, called from `mounted()`/`destroyed()` | one `attach()` returning its own cleanup |
  * | the `EventListenerObject` trick (`addEventListener(event, this)`) | a closure; `$on` takes an `EventListener` |
  * | `Action.destroyed()` | gone — nothing left in it |
  *
@@ -52,6 +53,12 @@ function warn(...args: unknown[]): void {
  * not a deletion of the mechanism, and the honest summary is that
  * **delegation buys `Action` less than it buys any other component in ui**,
  * because `Action` is the one component whose events are data.
+ *
+ * The one place the tidy-up paid off beyond tidiness: `attach()` returning
+ * its own release is what lets `Action` rebind a single attribute when it
+ * changes, without knowing anything about the others. Detaching by event type
+ * — v3's `detachEvent()` — could not have done it, since two `data-on:*`
+ * attributes may name the same type.
  *
  * The modifiers all survive: `capture`, `once` and `passive` are
  * `AddEventListenerOptions`, which `$on(type, listener, options)` forwards
