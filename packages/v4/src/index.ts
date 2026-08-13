@@ -58,13 +58,14 @@ export {
   type WatchChildrenCallbacks,
 } from './Base.js';
 export {
-  Signal,
   createContext,
   injectContext,
   injectContextSync,
   provideContext,
   provideRootContext,
+  signal,
   type ContextKey,
+  type Signal,
 } from './context.js';
 export { children, component, inject, on, provide, read, write } from './decorators.js';
 export { whenDOMSettled } from './dom-mutations.js';

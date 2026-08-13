@@ -3,7 +3,7 @@
  * Not part of the public API.
  */
 import { Base } from './Base.js';
-import { Signal, createContext } from './context.js';
+import { createContext, signal, type Signal } from './context.js';
 import { registerComponent } from './registry.js';
 import { nextFrame, defaultScheduler } from './scheduler.js';
 import type { DelegatedEvent } from './Base.js';
@@ -74,10 +74,10 @@ export class TodoCount extends Base {
   cleanupCalls = 0;
 
   async mounted() {
-    const signal = await this.$inject(CountContext);
-    const unsubscribe = signal.subscribe(
-      (count) => {
-        this.$el.textContent = String(count);
+    const count = await this.$inject(CountContext);
+    const unsubscribe = count.subscribe(
+      (value) => {
+        this.$el.textContent = String(value);
       },
       { immediate: true },
     );
@@ -95,7 +95,7 @@ export class TodoList extends Base {
     components: { TodoItem, TodoCount },
   };
 
-  count = this.$provide(CountContext, new Signal(0));
+  count = this.$provide(CountContext, signal(0));
 
   items = this.$watchChildren<TodoItem>('TodoItem', {
     added: () => this.sync(),
