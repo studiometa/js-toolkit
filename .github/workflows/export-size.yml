@@ -22,10 +22,10 @@ jobs:
       - uses: weareikko/export-size@1
         with:
           # `packages/js-toolkit/` is the folder npm publishes, so the report
-          # measures exactly what a consumer installs; the v4 prototype is
-          # measured straight from its TypeScript sources (esbuild resolves
-          # them), so both packages appear in the same report and can be
-          # compared export by export.
+          # measures exactly what a consumer installs. The v4 prototype now
+          # resolves to its own `dist/` too, so `build-for-export-size` builds
+          # both packages: both appear in the same report and can be compared
+          # export by export.
           packages: |
             @studiometa/js-toolkit:packages/js-toolkit
             @studiometa/js-toolkit-v4:packages/v4
