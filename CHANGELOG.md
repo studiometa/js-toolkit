@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Removed
+
+- Type-only symbols no longer get a dedicated subpath: the 89 entries such as `@studiometa/js-toolkit/BaseConfig` and `@studiometa/js-toolkit/utils/AnimateOptions` are gone. A subpath exists to stop one runtime import from pulling a whole barrel's graph, and a type import is erased before anything runs, so it never had that cost. Import types from `@studiometa/js-toolkit` or `@studiometa/js-toolkit/utils` instead
+
 ### Changed
 
 - The published package is now assembled in `packages/js-toolkit/` instead of a repository-level `dist/`, and its modules sit in that folder's own `dist/`. Every entry of the `exports` map resolves through three conditions — `typescript` for the TypeScript source, `types` for the declaration and `import` for the module — so the subpaths a consumer imports are unchanged

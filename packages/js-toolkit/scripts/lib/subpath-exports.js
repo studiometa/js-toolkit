@@ -109,6 +109,10 @@ function specifierFrom(stubDir, leafFile) {
  * intermediate barrels down to the module declaring it, so each stub imports one leaf instead of a
  * barrel.
  *
+ * Type-only symbols are left out. A subpath exists to keep one runtime import from dragging in a
+ * whole barrel's graph, and a type import is erased before anything runs — importing `BaseConfig`
+ * from the root barrel costs nothing at runtime. Types stay reachable through `.` and `./utils`.
+ *
  * @returns {{ root: Descriptor[], utils: Descriptor[] }}
  */
 export function enumerate() {
@@ -118,80 +122,59 @@ export function enumerate() {
   const rootStubDir = resolve(srcRoot, 'subpaths');
   const utilsStubDir = resolve(rootStubDir, 'utils');
 
-  const root = parseBarrel(rootBarrel).map((symbol) => {
-    const leaf = resolveToLeaf(rootBarrel, symbol.exported);
-    return { ...symbol, orig: leaf.name, from: specifierFrom(rootStubDir, leaf.file) };
-  });
-  const utils = parseBarrel(utilsBarrel).map((symbol) => {
-    const leaf = resolveToLeaf(utilsBarrel, symbol.exported);
-    return { ...symbol, orig: leaf.name, from: specifierFrom(utilsStubDir, leaf.file) };
-  });
+  const root = parseBarrel(rootBarrel)
+    .filter((symbol) => !symbol.isType)
+    .map((symbol) => {
+      const leaf = resolveToLeaf(rootBarrel, symbol.exported);
+      return { ...symbol, orig: leaf.name, from: specifierFrom(rootStubDir, leaf.file) };
+    });
+  const utils = parseBarrel(utilsBarrel)
+    .filter((symbol) => !symbol.isType)
+    .map((symbol) => {
+      const leaf = resolveToLeaf(utilsBarrel, symbol.exported);
+      return { ...symbol, orig: leaf.name, from: specifierFrom(utilsStubDir, leaf.file) };
+    });
 
   assertUnique(root, 'root');
   assertUnique(utils, 'utils');
-
-  assignFileBases(root);
-  assignFileBases(utils);
 
   return { root, utils };
 }
 
 /**
- * Assign a case-insensitively unique `fileBase` to every symbol so the emitted stub files never
- * clash on case-insensitive filesystems (a bundler refuses two outputs whose paths differ only by
- * case, e.g. the `animate` value and the `Animate` type). The export subpath key still uses the
- * exact symbol name; only the underlying file name is disambiguated. Values keep the plain name; a
- * colliding type gets a `.<n>` suffix.
+ * Assert the symbols map to distinct stub files.
  *
- * @param {Descriptor[]} symbols
- */
-function assignFileBases(symbols) {
-  const groups = new Map();
-  for (const symbol of symbols) {
-    const key = symbol.exported.toLowerCase();
-    (groups.get(key) ?? groups.set(key, []).get(key)).push(symbol);
-  }
-  for (const group of groups.values()) {
-    if (group.length === 1) {
-      group[0].fileBase = group[0].exported;
-      continue;
-    }
-    // Values first, so a runtime value subpath keeps the clean file name.
-    group.sort((a, b) => Number(a.isType) - Number(b.isType));
-    group.forEach((symbol, index) => {
-      symbol.fileBase = index === 0 ? symbol.exported : `${symbol.exported}.${index}`;
-    });
-  }
-}
-
-/**
+ * The comparison is case-insensitive because the stub file is named after the symbol: two exports
+ * differing only by case (a `Damp` next to `damp`) would be one file on a case-insensitive
+ * filesystem, and the bundler refuses two outputs whose paths differ only by case. Failing here
+ * turns that into a build error instead of a corrupted package.
+ *
  * @param {{ exported: string }[]} symbols
  * @param {string} label
  */
 function assertUnique(symbols, label) {
-  const seen = new Set();
+  const seen = new Map();
   for (const { exported } of symbols) {
-    if (seen.has(exported)) {
-      throw new Error(`subpath-exports: duplicate ${label} symbol "${exported}"`);
+    const key = exported.toLowerCase();
+    if (seen.has(key)) {
+      const clash = seen.get(key);
+      const how = clash === exported ? 'duplicate' : `case-insensitive clash with "${clash}":`;
+      throw new Error(`subpath-exports: ${how} ${label} symbol "${exported}"`);
     }
-    seen.add(exported);
+    seen.set(key, exported);
   }
 }
 
 /**
  * Build the source of a per-symbol stub module. Each stub re-exports the symbol both as a named
- * export and as the default export, so the subpath resolves either way. Type-only symbols use the
- * `type` modifier (the bundler elides the whole module to an empty `.js`; the declaration keeps the
- * types).
+ * export and as the default export, so the subpath resolves either way.
  *
  * @param   {Descriptor} symbol
  * @returns {string}
  */
-export function stubSource({ exported, orig, from, isType }) {
-  const type = isType ? 'type ' : '';
-  const named = orig === exported ? `${type}${exported}` : `${type}${orig} as ${exported}`;
-  const asDefault = `${type}${orig} as default`;
-  return `export { ${named}, ${asDefault} } from '${from}';\n`;
+export function stubSource({ exported, orig, from }) {
+  const named = orig === exported ? exported : `${orig} as ${exported}`;
+  return `export { ${named}, ${orig} as default } from '${from}';\n`;
 }
 
 /**
@@ -225,15 +208,15 @@ export function conditions(source) {
 export function buildSubpathExports() {
   const { root, utils } = enumerate();
   const map = {};
-  for (const { exported, fileBase } of root) {
-    map[`./${exported}`] = conditions(`subpaths/${fileBase}`);
+  for (const { exported } of root) {
+    map[`./${exported}`] = conditions(`subpaths/${exported}`);
   }
-  for (const { exported, fileBase } of utils) {
-    map[`./utils/${exported}`] = conditions(`subpaths/utils/${fileBase}`);
+  for (const { exported } of utils) {
+    map[`./utils/${exported}`] = conditions(`subpaths/utils/${exported}`);
   }
   return map;
 }
 
 /**
- * @typedef {{ exported: string, orig: string, origin: string, from: string, isType: boolean }} Descriptor
+ * @typedef {{ exported: string, orig: string, origin: string, from: string }} Descriptor
  */

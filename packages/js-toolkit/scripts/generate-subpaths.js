@@ -35,10 +35,10 @@ function generate() {
   mkdirSync(resolve(subpathsDir, 'utils'), { recursive: true });
 
   for (const symbol of root) {
-    writeFileSync(resolve(subpathsDir, `${symbol.fileBase}.ts`), stubSource(symbol));
+    writeFileSync(resolve(subpathsDir, `${symbol.exported}.ts`), stubSource(symbol));
   }
   for (const symbol of utils) {
-    writeFileSync(resolve(subpathsDir, 'utils', `${symbol.fileBase}.ts`), stubSource(symbol));
+    writeFileSync(resolve(subpathsDir, 'utils', `${symbol.exported}.ts`), stubSource(symbol));
   }
 
   console.log(
