@@ -9,14 +9,14 @@ export interface SliderCountProps {
  * SliderCount — the slide counter.
  *
  * Port of @studiometa/ui 1.10's `SliderCount`. v3 only wrote the current
- * index, because the store carried nothing else; the provided signal carries
+ * index, because the store carried nothing else; the provided state carries
  * the total too, so an optional `total` ref costs nothing.
  */
 export class SliderCount extends Base<SliderCountProps> {
   static config = { name: 'SliderCount', refs: ['current', 'total'] };
 
   async mounted() {
-    const state = await this.$inject(SliderContext);
+    const { state } = await this.$inject(SliderContext);
     return state.subscribe(
       ({ index, total }) => {
         this.$write(() => {

@@ -1,6 +1,7 @@
 export {
   Slider,
   SliderContext,
+  type SliderApi,
   type SliderModes,
   type SliderProps,
   type SliderState,

@@ -20,15 +20,30 @@ export interface SliderState {
 }
 
 /**
- * The state a Slider publishes to its controls.
+ * The surface a Slider exposes to its controls: state to read, commands to
+ * call. Nothing else of the Slider is reachable through it.
  *
  * This replaces the per-instance `createStorage()` store of v3 and, with it,
  * the whole `AbstractSliderChild` handshake: no `connectChildren()` on the
  * parent, no `__connect()` on the child, no `updated()`/`resized()`
- * reconnection safety nets. The signal is resolved through the DOM event
- * path, so mount order does not matter in either direction.
+ * reconnection safety nets. It is resolved through the DOM event path, so
+ * mount order does not matter in either direction.
+ *
+ * The commands are here because a control needs both halves and the state
+ * signal is only one of them: v3's controls called `this.slider.goTo(index)`,
+ * and a context carrying a `Signal` alone left them reaching back through
+ * `$closest('Slider')` for that — which is the coupling the context exists to
+ * remove, reintroduced. Provided verbatim, so this object is exactly what a
+ * consumer resolves.
  */
-export const SliderContext = /* @__PURE__ */ createContext<Signal<SliderState>>('slider-state');
+export interface SliderApi {
+  state: Signal<SliderState>;
+  goTo(index: number): void;
+  goNext(): void;
+  goPrev(): void;
+}
+
+export const SliderContext = /* @__PURE__ */ createContext<SliderApi>('slider');
 
 export interface SliderProps {
   $refs: { wrapper: HTMLElement };
@@ -57,7 +72,8 @@ interface SliderItemState {
  *
  * - `$children.SliderItem` → `$watchChildren('SliderItem')`, so slides added
  *   or removed after mount are picked up.
- * - the index store → a provided `Signal`, injected by the controls.
+ * - the index store → a provided owner surface (a `Signal` for what changes,
+ *   methods for what a control may ask for), injected by the controls.
  * - `keyed()` (KeyService) → `onWrapperKeydown`, a delegated handler on the
  *   `wrapper` ref. The event only reaches the component when the focus is
  *   inside the wrapper, which is what v3 tracked by hand with
@@ -79,12 +95,20 @@ export class Slider extends withResize(Base)<SliderProps> {
     },
   };
 
-  state: Signal<SliderState> = this.$provide(
-    SliderContext,
-    // Provided verbatim since v4 stopped wrapping: the coordinator decides
-    // its own surface, and this one is a value cell.
-    new Signal<SliderState>({ index: 0, total: 0 }),
-  );
+  state = new Signal<SliderState>({ index: 0, total: 0 });
+
+  /**
+   * The provided owner surface. The provider is attached in this field
+   * initializer, so it answers a request from the moment the instance exists —
+   * before `mounted()`, and before `$closest('Slider')` would find anything,
+   * since that only reports a *mounted* ancestor.
+   */
+  api: SliderApi = this.$provide(SliderContext, {
+    state: this.state,
+    goTo: (index) => this.goTo(index),
+    goNext: () => this.goNext(),
+    goPrev: () => this.goPrev(),
+  });
 
   items: ChildrenCollection<SliderItem> = this.$watchChildren<SliderItem>('SliderItem', {
     added: () => this.refresh(),
