@@ -1,11 +1,9 @@
-import { Base, type BaseConfig, type BaseProps, type MountedReturn } from '../../src/index.js';
+import { Base, type BaseConfig, type BaseProps } from '../../src/index.js';
 import {
   DataRegistry,
   DataRegistryContext,
-  RESCOPE,
   type DataScopeMember,
   type DataValue,
-  type Rescopable,
 } from './registry.js';
 
 export type DataScopeProps = BaseProps & {
@@ -43,7 +41,20 @@ export type DataScopeProps = BaseProps & {
  * | `getDataScope(el)` DOM walk → `injectContextSync(el, DataRegistryContext)` | the context protocol resolves through the DOM event path, nearest first |
  * | the `globalThis` `WeakMap` of channels → `provideRootContext` | DESIGN.md §5: the page-wide case is the outermost scope, not a second mechanism |
  * | `nextTick()` hydration → `defaultScheduler.background()` | v4 ships no `nextTick`, and the background lane is where eager mounts already queue — a stronger guarantee than a microtask |
- * | nothing | the `RESCOPE` broadcast below, which is **not** a port — it is new, and it exists because core cannot express what it does |
+ *
+ * ## What this component no longer has to do
+ *
+ * It had a `mounted()` whose only job was to tell every `Data` member below it
+ * to resolve its registry again — eight lines of `RESCOPE` broadcast, the one
+ * piece of the port that was not a port. It existed because an answered
+ * context request used to be deleted, so a scope that mounted around members
+ * which had already fallen back to the page-wide registry could never take
+ * them back.
+ *
+ * Core closed that: a member now asks with `subscribe: true`, and the mount
+ * announcement this component already dispatches is what re-answers it. The
+ * boundary is the field initializer below and nothing else — which is what
+ * "the component decides *where* the boundary is" was supposed to mean.
  */
 export class DataScope extends Base<DataScopeProps> {
   static config: BaseConfig = {
@@ -76,57 +87,6 @@ export class DataScope extends Base<DataScopeProps> {
       isReady: () => this.$isMounted,
     }),
   );
-
-  /**
-   * Reclaim members that resolved before this scope existed.
-   *
-   * **This is the one thing in the port that core cannot do**, and it is
-   * worth stating precisely rather than hiding behind the workaround.
-   *
-   * `provideContext()` replays to *pending* requests when a late provider
-   * appears — but a request is deleted from `pendingRequests` the moment
-   * anything answers it. Combined with `provideRootContext`, which provides
-   * on `document.documentElement` and therefore answers a request from
-   * anywhere, that means: **once the page-wide registry exists, every
-   * unscoped request is answered immediately and permanently, and a nearer
-   * provider mounting later can never take those consumers back.** Neither
-   * `$inject` nor `$injectSync` changes this; the two differ in when the
-   * consumer asks, not in who may answer it afterwards.
-   *
-   * For most consumers that is right — a `SliderBtn` that found a `Slider`
-   * should keep it. For a `Data` member it is wrong, because falling back is
-   * not a degradation here: it silently binds the member to the page-wide
-   * channel, where it will happily exchange values with unrelated components
-   * that happen to share a group name.
-   *
-   * The cases that reach it, all real:
-   *
-   * - `registerComponent(DataBind)` called before `registerComponent(DataScope)`
-   *   — registration scans per name, so the binds are scheduled first;
-   * - a `DataScope` with `data-mount="idle"` / `"visible"` around eager members;
-   * - a scope inserted by a `data-bind:if` template around content that was
-   *   already there.
-   *
-   * The fix is eight lines and no framework support: on mount, tell every
-   * `Data` member below to resolve again. `injectContextSync` finds the
-   * nearest provider, so a member inside a *nested* scope re-resolves to the
-   * nested one and nothing is stolen.
-   *
-   * **Ask for core:** a provider-side announcement — `provideContext` also
-   * dispatching a `context-provided` event down its subtree, or a
-   * `subscribe: true` request that is re-answered when a nearer provider
-   * appears (the WICG context protocol has exactly this in its `subscribe`
-   * flag, and v4 implements the protocol without it). Every keyed,
-   * name-resolved channel will need it; this is the second family to want it
-   * after `Slider` wanted `$injectSync`.
-   */
-  mounted(): MountedReturn {
-    for (const el of this.$el.querySelectorAll('*')) {
-      for (const instance of el.__base__?.values() ?? []) {
-        (instance as Partial<Rescopable>)[RESCOPE]?.();
-      }
-    }
-  }
 
   /**
    * The live peer set for a group inside this scope.

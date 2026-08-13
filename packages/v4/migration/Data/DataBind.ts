@@ -12,13 +12,12 @@ import {
   type DataControlContext,
 } from './formControl.js';
 import {
-  RESCOPE,
+  DataRegistryContext,
   resolveDataRegistry,
   type DataRegistry,
   type DataScopeMember,
   type DataUpdate,
   type DataValue,
-  type Rescopable,
 } from './registry.js';
 
 // A type alias, not an interface: an interface has no implicit index
@@ -67,7 +66,7 @@ type VirtualBinding =
  * | `destroyed()` → the `mounted()` cleanup | v4 idiom; joining and leaving a group are one closure. |
  * | `nextTick()` → `defaultScheduler.background()` | v4 ships no `nextTick`. The background lane is where eager mounts queue, so "after everything mounted" is a guarantee rather than a hope. |
  * | `this.$warn(…)` → `warn(…)` | no `$warn` in v4 (REPORT.md gap 10). |
- * | `[RESCOPE]()` | new — see `DataScope.mounted()`. Nothing in core can express it. |
+ * | `mounted()` resolving once → `$inject(…, { subscribe: true })` | a member must be re-answerable: a `DataScope` mounting around it takes it back off the page-wide registry. This is the one thing the port had to work around, and core now carries it. |
  *
  * ## What has no framework support
  *
@@ -91,7 +90,7 @@ type VirtualBinding =
  * (2). (1) and (3) are properties of this family, not gaps — a registry
  * members set is the right shape here and costs two lines.
  */
-export class DataBind extends Base<DataBindProps> implements DataScopeMember, Rescopable {
+export class DataBind extends Base<DataBindProps> implements DataScopeMember {
   static config: BaseConfig = {
     name: 'DataBind',
     options: {
@@ -109,10 +108,13 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember, Re
    * `set()` are specified to work on an instance that has not mounted yet —
    * ui's specs construct a `DataBind` and call `set()` on the next line, and
    * an `Action` can reach one through `$closest` before the registry gets to
-   * it. That is v3's `__dataScopeResolved` memoization, and it is the reason
-   * this port uses **neither** `$inject` (which resolves at one moment) nor
-   * the `@inject` field decorator (which resolves at construction, the
-   * earliest and worst moment of all).
+   * it. That is v3's `__dataScopeResolved` memoization, and it rules out the
+   * `@inject` field decorator, which resolves at construction — the earliest
+   * and worst moment of all.
+   *
+   * From `mounted()` on, the subscribed request owns this field: every answer
+   * writes it, so a `DataScope` that appears later moves the member without
+   * anything here having to notice.
    *
    * @private
    */
@@ -569,29 +571,42 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember, Re
   }
 
   /**
-   * Re-resolve the registry because a nearer `DataScope` appeared.
-   * See the long comment on `DataScope.mounted()`.
+   * Bind to the nearest registry, and stay bindable.
+   *
+   * `subscribe: true` is the whole of what used to be `DataScope`'s `RESCOPE`
+   * broadcast. A member that resolved the page-wide registry — because it
+   * mounted before its scope did, or because its scope is `data-mount="idle"`,
+   * or because a `data-bind:if` template wrapped one around it — is re-answered
+   * when that scope mounts, and the teardown returned below is what makes the
+   * move clean: it leaves the old group and drops its keyed value there before
+   * the new registry is handed over. Joining and leaving stay one closure, as
+   * they were, only now they are per *answer* rather than per mount cycle.
+   *
+   * The fallback call is not optional. A subscribed request waits forever
+   * while nothing provides, and the page-wide registry is created on demand —
+   * so a member with no `DataScope` above it must create it, which replays its
+   * own pending request and answers it.
    */
-  [RESCOPE](): void {
-    if (!this.$isMounted) {
-      return;
+  mounted(): void {
+    this.$inject(DataRegistryContext, {
+      subscribe: true,
+      onProvide: (registry) => {
+        this.#registry = registry;
+        this.#connect();
+        this.#propagateOnMount();
+
+        return () => {
+          this.#disconnect();
+          if (registry.scoped && this.dataKey) {
+            registry.deleteValue(this.group, this.dataKey, this);
+          }
+          this.#registry = undefined;
+        };
+      },
+    });
+
+    if (!this.#registry) {
+      resolveDataRegistry(this.$el);
     }
-    this.#registry = undefined;
-    this.#connect();
-    this.#propagateOnMount();
-  }
-
-  mounted(): void | (() => void) {
-    this.#connect();
-    this.#propagateOnMount();
-
-    return () => {
-      this.#disconnect();
-      const registry = this.#registry;
-      if (registry?.scoped && this.dataKey) {
-        registry.deleteValue(this.group, this.dataKey, this);
-      }
-      this.#registry = undefined;
-    };
   }
 }
