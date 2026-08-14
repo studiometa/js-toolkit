@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type OptionChange } from './Base.js';
-import { registerComponent } from './registry.js';
+import { registerComponent, registerManifest } from './registry.js';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
 import { getInstance, resetDom, settle } from './test-utils.js';
 
@@ -362,6 +362,49 @@ describe('responsive options', () => {
     grid.changes = [];
     atSmall();
     expect(grid.changes).toHaveLength(1);
+  });
+
+  it('registers the scoped spellings of a component that arrives lazily', async () => {
+    atSmall();
+
+    class LazyGrid extends Base<{ $options: { columns: number } }> {
+      static config = {
+        name: 'LazyGrid',
+        options: { columns: { type: Number, default: 1 } },
+      };
+
+      changes: OptionChange[] = [];
+
+      optionColumnsChanged(change: OptionChange): void {
+        this.changes.push(change);
+      }
+    }
+
+    // Declared in the lazy half of the registry only: the class does not exist
+    // when the element appears, and registers one import later than an eager
+    // component would.
+    registerManifest({ LazyGrid: async () => LazyGrid });
+
+    const root = render(
+      `<div data-component="LazyGrid"
+            data-option-columns="1"
+            data-option-columns:large="4"></div>`,
+    );
+    await settle();
+    const grid = getInstance<LazyGrid>(root.firstElementChild, 'LazyGrid');
+
+    // Nothing is scoped to `small`, so the cascade lands on the base — read
+    // from whatever the DOM holds at mount, which is the import's own moment.
+    expect(grid.$options.columns).toBe(1);
+    grid.changes = [];
+
+    // The assertion that matters: a lazy component's `attribute × breakpoint`
+    // names reach the one observer's filter when its class arrives, not when
+    // the page started, so a scoped attribute rewritten afterwards is seen.
+    grid.$el.setAttribute('data-option-columns:small', '3');
+    await settle();
+    expect(grid.changes).toHaveLength(1);
+    expect(grid.changes[0]).toMatchObject({ value: 3, previousValue: 1 });
   });
 
   it('reports a suffix that names no breakpoint, which is what v3 markup is', async () => {
