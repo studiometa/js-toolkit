@@ -11,6 +11,7 @@ import {
   type AppliedMountStrategy,
   type MountStrategy,
 } from './mount-strategies.js';
+import { observeResponsiveAttribute } from './responsive-options.js';
 import { selectorFor } from './utils/selectors.js';
 import { kebabCase } from './utils/strings.js';
 
@@ -81,6 +82,21 @@ function isClassLike(value: (...args: never[]) => unknown): boolean {
  * Register the family a component declares in `config.components`, where a
  * value is the child's class or a thunk importing it.
  *
+ * The **merged** config, not `ComponentClass.config` — the same fix `mountStrategy`
+ * needed. Every subclass declares a `static config` of its own, if only for
+ * `name`, so reading the own static made registering a subclass register
+ * nothing its base declared, while `$config` and `on<Child><Event>` resolution
+ * read the merged set. A subclass therefore mounted children its own instances
+ * announce and query, and since a `() => import(…)` child has no other
+ * registration path, a subclass lost its base's lazy children outright.
+ *
+ * Registering the same family twice — a base and its subclass both declaring
+ * it — costs nothing: `registerComponent()` returns on a name already mapped
+ * to that very class, and `registerLazyChild()` on a name already known. That
+ * guard is also what terminates the recursion, because the name is mapped
+ * *before* the family is walked, so a cycle (A declares B, B declares A)
+ * closes on the second visit.
+ *
  * **A class is a function too**, so the two are told apart the way
  * `resolveComponentClass()` already tells a class from anything else an
  * importer resolved to: `isComponentClass()`, the prototype chain. It is the
@@ -96,14 +112,15 @@ function isClassLike(value: (...args: never[]) => unknown): boolean {
  * alone, and the child is its own chunk.
  */
 function registerFamily(ComponentClass: BaseConstructor): void {
-  for (const [name, Child] of Object.entries(ComponentClass.config.components ?? {})) {
+  const { name, components } = resolveConfig(ComponentClass);
+  for (const [childName, Child] of Object.entries(components ?? {})) {
     if (isComponentClass(Child)) {
       registerComponent(Child);
     } else if (typeof Child === 'function' && !isClassLike(Child)) {
-      registerLazyChild(name, Child);
+      registerLazyChild(childName, Child);
     } else {
       console.error(
-        `[registry] "${ComponentClass.config.name}" declares "${name}" as neither a component class nor an importer, ignoring.`,
+        `[registry] "${name}" declares "${childName}" as neither a component class nor an importer, ignoring.`,
       );
     }
   }
@@ -145,8 +162,9 @@ function declaresComponent(el: Element, name: string): boolean {
  * Register a component class. Existing matching elements are scheduled
  * right away; future ones are scheduled when they enter the DOM. When each
  * instance actually mounts is the strategy's call — see `data-mount`.
- * The family declared in `config.components` registers too: a class right
- * away, a `() => import(…)` thunk as a lazy entry.
+ * The family declared in the **merged** `config.components` registers too: a
+ * class right away, a `() => import(…)` thunk as a lazy entry — so a subclass
+ * registers what its base declared.
  */
 export function registerComponent(ComponentClass: BaseConstructor): void {
   const { name } = ComponentClass.config;
@@ -274,7 +292,13 @@ function optionAttributes(ComponentClass: BaseConstructor): string[] {
   let current: BaseConstructor | null = ComponentClass;
   while (current?.config) {
     for (const name of Object.keys(current.config.options ?? {})) {
-      names.add(`data-option-${kebabCase(name)}`);
+      const attribute = `data-option-${kebabCase(name)}`;
+      names.add(attribute);
+      // Every option may be written across several attributes, one per
+      // breakpoint. The observer filters on exact names, so the breakpoint-
+      // scoped spellings are registered too — and re-registered if the named
+      // set is later replaced, which the responsive layer owns.
+      observeResponsiveAttribute(attribute);
     }
     current = Object.getPrototypeOf(current) as BaseConstructor | null;
   }
@@ -631,17 +655,12 @@ function processMutations(records: readonly DOMMutationRecord[]): void {
       continue;
     }
     for (const instance of el.__base__?.values() ?? []) {
-      if (!instance.$isMounted) {
-        continue;
-      }
-      for (const name of Object.keys(instance.$config.options ?? {})) {
-        const attribute = `data-option-${kebabCase(name)}`;
-        if (changes.has(attribute)) {
-          const previousRawValue = changes.get(attribute) ?? null;
-          if (el.getAttribute(attribute) !== previousRawValue) {
-            instance.$optionChanged(name, previousRawValue);
-          }
-        }
+      if (instance.$isMounted) {
+        // The batch goes over whole: which attribute belongs to which option,
+        // and what an option's value was before the batch, are the reader's
+        // questions — a responsive option answers from whichever
+        // breakpoint-scoped spelling its cascade selects.
+        instance.$optionsChanged(changes);
       }
     }
   }

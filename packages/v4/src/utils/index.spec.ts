@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import * as barrel from './index.js';
 import * as maths from './maths.js';
+import * as memoModule from './memo.js';
 import * as selectors from './selectors.js';
 import * as smoothToModule from './smoothTo.js';
 import * as strings from './strings.js';
-import type { SmoothTo, SmoothToOptions, SpringOptions } from './index.js';
+import type { Memo, SmoothTo, SmoothToOptions, SpringOptions } from './index.js';
 
 describe('the utils barrel', () => {
   it('names every runtime export of every module it fronts', () => {
@@ -13,6 +14,7 @@ describe('the utils barrel', () => {
     // module without adding it here and this fails with the name in the diff.
     const expected = [
       ...Object.keys(maths),
+      ...Object.keys(memoModule),
       ...Object.keys(selectors),
       ...Object.keys(smoothToModule),
       ...Object.keys(strings),
@@ -27,7 +29,9 @@ describe('the utils barrel', () => {
     const spring: SpringOptions = { stiffness: 0.2, damping: 0.6, mass: 1 };
     const options: SmoothToOptions = { ...spring, spring: true, precision: 0.01 };
     const value: SmoothTo = barrel.smoothTo(0, options);
+    const upper: Memo<[key: string], string> = barrel.memo((key: string) => key.toUpperCase());
 
+    expect(upper('a')).toBe('A');
     expect(value()).toBe(0);
     value.destroy();
   });
