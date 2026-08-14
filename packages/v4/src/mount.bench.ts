@@ -154,19 +154,35 @@ describe('remount: $mount() + $destroy() on one instance', () => {
 
 /**
  * A fixed pool, cycled: a fresh element per iteration would grow the document
- * without bound over a few thousand samples, and the append would end up
- * being what is measured.
+ * without bound over a few thousand samples, and the append would end up being
+ * what is measured.
  */
 const pool = Array.from({ length: 100 }, panelElement);
 let next = 0;
 const nextElement = () => pool[next++ % pool.length];
 
-describe('first mount of a fresh instance (construction included)', () => {
+/**
+ * The previous instance is destroyed before the next is built, so exactly one
+ * is ever mounted.
+ *
+ * Leaving them mounted would leak a `window` resize listener per iteration —
+ * a few thousand of them over a run — and what the later samples measure is
+ * then the listener list, not the mount. Its `$destroy()` is inside the
+ * measured region as a result, which is the smaller distortion of the two and
+ * an equal one on both sides of a comparison.
+ */
+let live: Base | null = null;
+
+describe('construction + first mount, one instance alive at a time', () => {
   bench('Panel', () => {
-    globalThis.__benchSink = new Panel(nextElement()).$mount();
+    live?.$destroy();
+    live = new Panel(nextElement()).$mount();
+    globalThis.__benchSink = live;
   });
 
   bench('DeepPanel', () => {
-    globalThis.__benchSink = new DeepPanel(nextElement()).$mount();
+    live?.$destroy();
+    live = new DeepPanel(nextElement()).$mount();
+    globalThis.__benchSink = live;
   });
 });
