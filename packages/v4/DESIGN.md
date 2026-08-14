@@ -157,11 +157,11 @@ The hook runs before `mounted()` on every mount cycle. Several writes in one mut
 
 ### Responsive options are derived, not recomputed — implemented
 
-One option, several values, chosen by the viewport. The declaration is a flag on the option, and the markup is the option's attribute with a breakpoint on it:
+One option, several values, chosen by the viewport. **Every option is responsive**, and there is nothing to declare for it — an option is declared, and the markup may scope its attribute to a breakpoint:
 
 ```js
 options: {
-  columns: { type: Number, default: 1, responsive: true },
+  columns: { type: Number, default: 1 },
 }
 ```
 
@@ -173,9 +173,11 @@ options: {
   data-option-columns:l="4"></div>
 ```
 
-**The value is derived on read.** `$options.columns` walks from the active breakpoint down to the base and hands back the first attribute present — the same shape as a plain option, which consults the element on every access, with the viewport as a second coordinate. Nothing is stored and nothing is written.
+**There is no `responsive: true` flag, and there will not be one.** A prototype carried one; it was removed before merge. The rule it broke is the project's own — convention over configuration, and specifically: do not add an option whose only job is to name a thing. The framework already knows the option exists, because it is in `config.options`; the author who writes `data-option-columns:s` has already said everything a flag would repeat. A flag would also have been an opt-in that arrives too late for the machinery it gates: the scoped names have to be in the observer's filter at `registerComponent()`, so an option nobody flagged would be permanently unable to grow a scoped attribute at runtime — silently, in the framework whose premise is that the attribute is live. The shorthand form `options: { theme: String }` settles it from the other side: it has nowhere to put a flag, and it is as responsive as any other declaration.
 
-That is what settles the constraint this feature ran into: **`$options` is read-only**, deliberately, and gap 2 of the port records the ui components that broke when it became so. A responsive option that reacted by being _written_ would have had to reopen the setter that was closed on purpose, for the one kind of value that has the least business being written — the DOM still holds the truth, the viewport merely says which part of it to read. Derivation needs no setter, no invalidation, and no staleness window: a component that read `$options.columns` before a crossing and after it gets two different numbers because it asked twice, not because something raced to update it in between.
+**The value is derived on read.** `$options.columns` walks from the active breakpoint down to the base and hands back the first attribute present — the same shape an option always had, consulting the element on every access, with the viewport as a second coordinate. Nothing is stored and nothing is written.
+
+That is what settles the constraint this feature ran into: **`$options` is read-only**, deliberately, and gap 2 of the port records the ui components that broke when it became so. An option that reacted to the viewport by being _written_ would have had to reopen the setter that was closed on purpose, for the one kind of value that has the least business being written — the DOM still holds the truth, the viewport merely says which part of it to read. Derivation needs no setter, no invalidation, and no staleness window: a component that read `$options.columns` before a crossing and after it gets two different numbers because it asked twice, not because something raced to update it in between.
 
 The case derivation is supposed to lose — a component that has to **re-lay-out** when the viewport crosses, rather than read a value inside a handler — is not an argument for recomputation either, because the existing option-change channel already carries it:
 
@@ -187,7 +189,7 @@ optionColumnsChanged({ value, previousValue }) {
 
 The hook fires on a crossing whose _resolved_ value differs, with exactly the payload an attribute rewrite produces, and the component never learns which of the two moved. This works because the option-change plumbing was never a write path in the first place: it is a **notification**, and the value in `OptionChange` is read through the option's reader at the moment the hook runs. So the reactive half costs nothing the derived half gave up. Rewriting `data-option-columns:s` while the viewport sits at `l` is not a change to `columns`, and neither is a crossing that lands on the same resolved value — the rule is one rule, stated once: a change is a change of the resolved raw value.
 
-The listener follows from that. Reading needs no subscription, since `useBreakpoint().props()` answers honestly cold; only being **told** does. So a mount opens a `matchMedia` subscription when the component declares `option<Name>Changed()` for a responsive option, and not otherwise, and `$destroy()` releases it — the same per-cycle span as every other service subscription, with the service's reference counting taking the listeners down with the last subscriber. A page whose responsive options are only read holds no listener at all, which `responsive-options.spec.ts` asserts by counting registrations on `MediaQueryList.prototype` rather than by inspecting the service.
+The listener follows from that. Reading needs no subscription, since `useBreakpoint().props()` answers honestly cold; only being **told** does. So a mount opens a `matchMedia` subscription when the component declares an `option<Name>Changed()`, and not otherwise, and `$destroy()` releases it — the same per-cycle span as every other service subscription, with the service's reference counting taking the listeners down with the last subscriber. A page whose options are only read holds no listener at all, which `responsive-options.spec.ts` asserts by counting registrations on `MediaQueryList.prototype` rather than by inspecting the service.
 
 **The suffix names one breakpoint, and it cascades upwards.** This is the one break with v3, which spelled a _set_ — `data-option-columns:xs:s` — and it is not gratuitous. Three reasons, in increasing order of weight:
 
@@ -195,9 +197,18 @@ The listener follows from that. Reading needs no subscription, since `useBreakpo
 - A set is not enumerable, and the one page-wide observer filters on **exact** attribute names — `attributeFilter` takes no wildcard, which §3 already says out loud for `$watchAttributes()`. The powerset of eight breakpoints cannot be written down; `attribute × breakpoint` can. Under v3's spelling, v4 could not have observed responsive attributes at all: `data-option-columns` rewritten at runtime would be honoured and `data-option-columns:s` ignored, in a framework whose premise is that attributes are the live source of truth.
 - Resolution stops being a scan. v3 read every attribute name on the element and regex-tested each one, on every option access; the cascade walks a precomputed list of `attribute:breakpoint` names, which is why the derived-on-read side is affordable at all.
 
-The separator stays a colon, because a kebab-cased option name can contain a dash — `data-option-columns-s` is ambiguous between `columns` at `s` and `columnsS` — and a colon can never appear in one. So migrating markup keeps its separator and only a multi-breakpoint suffix is rewritten. The real-world cost was measured before deciding: across `@studiometa/ui` the whole feature is **one** component and **two** attributes, plus eight doc examples. A suffix naming no breakpoint is warned about once per mount, which is precisely the shape v3 markup arrives in.
+The separator stays a colon, because a kebab-cased option name can contain a dash — `data-option-columns-s` is ambiguous between `columns` at `s` and `columnsS` — and a colon can never appear in one. So migrating markup keeps its separator and only a multi-breakpoint suffix is rewritten. The real-world cost was measured before deciding: across `@studiometa/ui` v3's spelling is used by **one** component and **two** attributes, plus eight doc examples. A suffix naming no breakpoint is warned about once per mount, which is precisely the shape v3 markup arrives in.
 
-`setBreakpoints()` remains the single source of breakpoint truth, and replacing the set re-derives both caches built from it — the scoped attribute names and the slice of them the observer filters for. The price of the feature is honest and worth stating: `Base` now reaches the breakpoint service, so `services/breakpoint.js` and `services/service.js` join the core module graph for every page. That is the trade taken for a config flag that works because it is declared, rather than one that works only if the page also imported something.
+`setBreakpoints()` remains the single source of breakpoint truth, and replacing the set re-derives both caches built from it — the scoped attribute names and the slice of them the observer filters for.
+
+#### What it costs, and why it stays in core — settled
+
+**The breakpoint service is part of the core graph, unconditionally.** `Base` reaches `services/breakpoint.js`, which pulls `services/service.js`, on every page — whether or not any markup on it is responsive. A plugin seam was considered and **rejected**: a responsive option is a basic feature of the framework, not an extra, and an option that only resolves per breakpoint if the page also imported something is exactly the configuration this design removed. The cost statement stands as written; it is a price, not an open question.
+
+The two prices of dropping the flag were measured before it was dropped (`responsive-options.bench.ts`, Chromium):
+
+- **The observer's filter widens by ~9×** — 3 + 33 + 8 = 44 names across the ported families when one option opted in, 3 + 33 × 9 = 300 when they all do. It costs **nothing measurable**: an unfiltered attribute write on the page (a `class` rewrite, the common case) and a filtered `data-option-*` rewrite are both flat from 44 to 723 names, within noise. The engine does not scan the filter linearly. Re-observing does scale with it — `observe()` goes 0.007 ms → 0.046 ms → 0.131 ms — but it runs once per registered class at startup, so a large app pays a few milliseconds once. Memory is a few hundred interned strings.
+- **Every read walks the cascade**, and this one is real: `$options.foo` goes from 3.3 M/s to 195 k/s, **16.8× slower**, ~0.3 µs to ~5.1 µs. Nearly all of it is `activeBreakpoint()` alone (197 k/s), which asks eight kept `MediaQueryList` objects for `.matches` — not the attribute walk. It is the honest price of a value derived from the viewport on every access, and the mitigation, if a page ever needs one, is to memoise the active name rather than to reinstate a flag.
 
 ## 2. One registry
 
