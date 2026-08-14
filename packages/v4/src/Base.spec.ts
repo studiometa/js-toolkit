@@ -1033,6 +1033,38 @@ describe('lifecycle', () => {
     expect(instance.$isMounted).toBe(false);
   });
 
+  /**
+   * REPORT.md gap 5. Cancelling the pending tasks *after* the cleanups took
+   * the work the teardown itself had just scheduled, so "reset my styles on
+   * the way out" — written the only way the framework offers — never ran.
+   */
+  it('runs a task scheduled by a mount cleanup, and cancels the cycle it left behind', async () => {
+    const ran: string[] = [];
+
+    class Resetting extends Base {
+      static config = { name: 'Resetting' };
+      mounted() {
+        // In flight when the instance goes: this one belongs to the cycle and
+        // must not survive it.
+        this.$write(() => ran.push('during-cycle'));
+        return () => {
+          this.$write(() => ran.push('cleanup'));
+        };
+      }
+      destroyed(): void {
+        this.$write(() => ran.push('destroyed'));
+      }
+    }
+
+    const el = document.createElement('div');
+    document.body.append(el);
+    const instance = new Resetting(el).$mount();
+    instance.$destroy();
+
+    await settle();
+    expect(ran).toEqual(['cleanup', 'destroyed']);
+  });
+
   it('runs a cleanup resolved after destroy immediately', async () => {
     let cleaned = false;
 

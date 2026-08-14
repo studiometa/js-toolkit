@@ -758,9 +758,9 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Unmount the instance — the reversible inverse of `$mount()`. Removes the
-   * per-cycle listeners, leaves the services, runs the `mounted()` cleanups,
-   * cancels pending scheduler tasks and calls the `destroyed()` hook. The
-   * instance stays on its element and can mount again.
+   * per-cycle listeners, leaves the services, cancels the scheduler tasks the
+   * cycle left pending, runs the `mounted()` cleanups and calls the
+   * `destroyed()` hook. The instance stays on its element and can mount again.
    */
   $destroy(): this {
     if (!this.#isMounted) {
@@ -771,6 +771,22 @@ export class Base<T extends BaseProps = BaseProps> {
       target.removeEventListener(type, listener, capture);
     }
     this.#listeners = [];
+    // Before the cleanups, not after. What is cancelled here is the work the
+    // mount cycle left in flight — a `$write()` scheduled by a rAF subscriber
+    // that is about to be released. Cancelling afterwards also took the work
+    // the teardown itself scheduled, so "reset my styles on the way out",
+    // written the only way the framework offers, never ran.
+    //
+    // The set is emptied first so `#track()` can refill it: a task queued from
+    // a cleanup, from `destroyed()` or from an option effect's teardown belongs
+    // to nobody's cycle and runs on its own. It is no longer cancelled by a
+    // later `$destroy()` either, since this instance is already unmounted and
+    // the guard above returns early.
+    const pending = this.#tasks;
+    this.#tasks = new Set();
+    for (const task of pending) {
+      task.cancel();
+    }
     const callbacks = this.#destroyCallbacks;
     this.#destroyCallbacks = [];
     for (const callback of callbacks) {
@@ -781,10 +797,6 @@ export class Base<T extends BaseProps = BaseProps> {
       }
     }
     this.#clearOptionEffects();
-    for (const task of this.#tasks) {
-      task.cancel();
-    }
-    this.#tasks.clear();
     try {
       this.destroyed();
     } catch (error) {
