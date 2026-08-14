@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Base, type BaseConfig } from './Base.js';
+import { Base, type BaseConfig, type BaseConstructor } from './Base.js';
 import { whenDOMSettled } from './dom-mutations.js';
 import { getInstances } from './instances.js';
 import { registerComponent, registerManifest } from './registry.js';
@@ -499,5 +499,88 @@ describe('a dynamic import declared in config.components', () => {
       `[registry] "${parentName}" declares "${childName}" as neither a component class nor an importer, ignoring.`,
     );
     error.mockRestore();
+  });
+});
+
+/** Every subclass declares a `static config` of its own, if only for `name`. */
+function defineSubclass(Parent: BaseConstructor, components?: BaseConfig['components']) {
+  counter += 1;
+  const name = `Sub${counter}`;
+
+  class Sub extends Parent {
+    static config: BaseConfig = components ? { name, components } : { name };
+  }
+
+  return { name, Sub };
+}
+
+describe('the family a subclass inherits', () => {
+  it('registers a class child its base declared', async () => {
+    counter += 1;
+    const childName = `Inherited${counter}`;
+
+    class Child extends Base {
+      static config: BaseConfig = { name: childName };
+    }
+
+    const { Parent } = defineParent({ [childName]: Child });
+    const { Sub } = defineSubclass(Parent);
+
+    // The base is never registered: the subclass alone carries the family.
+    registerComponent(Sub);
+    const el = render(childName);
+    await settle();
+
+    expect(instanceOf(el, childName)).toBeInstanceOf(Child);
+  });
+
+  it('registers a lazy child its base declared', async () => {
+    const child = defineLazy();
+    const { Parent } = defineParent({ [child.name]: child.load });
+    const { Sub } = defineSubclass(Parent);
+
+    registerComponent(Sub);
+    const el = render(child.name);
+    await settle();
+
+    // A thunk has no other registration path, so the subclass loses the
+    // child entirely when registration reads the own config.
+    expect(child.importCount()).toBe(1);
+    expect(instanceOf(el, child.name)?.$isMounted).toBe(true);
+  });
+
+  it('lets a subclass override one key without dropping the rest', async () => {
+    const kept = defineLazy();
+    const overridden = defineLazy();
+    const stale = vi.fn();
+    const { Parent } = defineParent({ [kept.name]: kept.load, [overridden.name]: stale });
+    const { Sub } = defineSubclass(Parent, { [overridden.name]: overridden.Lazy });
+
+    registerComponent(Sub);
+    const keptEl = render(kept.name);
+    const overriddenEl = render(overridden.name);
+    await settle();
+
+    expect(stale).not.toHaveBeenCalled();
+    expect(instanceOf(overriddenEl, overridden.name)).toBeInstanceOf(overridden.Lazy);
+    expect(kept.importCount()).toBe(1);
+    expect(instanceOf(keptEl, kept.name)?.$isMounted).toBe(true);
+  });
+
+  it('registers a shared family once when the base registers too', async () => {
+    const child = defineLazy();
+    const { Parent } = defineParent({ [child.name]: child.load });
+    const { Sub } = defineSubclass(Parent);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    registerComponent(Parent);
+    registerComponent(Sub);
+    const el = render(child.name);
+    await settle();
+
+    expect(warn).not.toHaveBeenCalled();
+    expect(child.importCount()).toBe(1);
+    expect(instanceOf(el, child.name)?.$isMounted).toBe(true);
+    warn.mockRestore();
   });
 });

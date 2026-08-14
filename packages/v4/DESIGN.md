@@ -89,7 +89,9 @@ The two remaining regressions are understood rather than outstanding. `$emit` pa
 
 ### `config` merges along the prototype chain
 
-`$config` walks the prototype chain and merges every config it finds, so extending a component keeps what its parents declared — the crash reported in #627. `refs`, `options` and `components` all merge (v3 merged only `options` and `emits`); scalar keys stay overridable by the most derived class. An intermediate class should annotate `static config: BaseConfig`, otherwise TypeScript infers a literal type its subclasses must match.
+`$config` walks the prototype chain and merges every config it finds, so extending a component keeps what its parents declared — the crash reported in #627. `refs`, `options` and `components` all merge (v3 merged only `options` and `emits`); scalar keys stay overridable by the most derived class, and a subclass restating a `components` key wins for that key alone. An intermediate class should annotate `static config: BaseConfig`, otherwise TypeScript infers a literal type its subclasses must match.
+
+**The registry reads the merged config too**, and reads it before any instance exists, which is why `resolveConfig()` is exported from `Base.ts`. It resolves the mount strategy of a pair (§11b) and registers the family of `config.components` (§11d) from the merged set, not the class's own static. Every subclass declares a `static config` if only for its `name`, so reading the own static made a subclass fall back to `eager` and register nothing its base declared — while its instances still announce and query those children through `$config`. A `() => import(…)` child has no registration path besides this one, so it went missing outright.
 
 ### The public surface is typed, and free
 
@@ -838,7 +840,7 @@ static config = {
 };
 ```
 
-`registerComponent()` already walked the map to register the family. It now **defers** a thunk instead of resolving it: the value becomes a lazy entry of the same registry, under its key, and every step after that is the one 11c already built — `scheduleFor()` finds the name, the element's `data-mount` decides when, `importComponent()` imports once per name whichever element triggered it, `registerComponent()` takes over when the class arrives. Nothing new observes, schedules or imports.
+`registerComponent()` already walked the map — the merged one, so a subclass registers its base's family — to register it. It now **defers** a thunk instead of resolving it: the value becomes a lazy entry of the same registry, under its key, and every step after that is the one 11c already built — `scheduleFor()` finds the name, the element's `data-mount` decides when, `importComponent()` imports once per name whichever element triggered it, `registerComponent()` takes over when the class arrives. Nothing new observes, schedules or imports.
 
 **Why the object shape is what makes this work.** The key supplies the component name, and a thunk cannot until it resolves. So a lazy child is a name the registry knows with nothing downloaded — the same knowledge a manifest entry carries, read out of the parent's own source instead of a separate file. The name set `on<Child><Event>` resolution reads is `Object.keys()`, so a lazy value changes nothing there either.
 
