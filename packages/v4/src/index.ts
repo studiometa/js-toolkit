@@ -5,12 +5,16 @@
  *
  * 1. Components are independent — the registry is the only code that creates
  *    instances; lifecycle equals DOM presence; no parent-owned children.
- * 2. One registry — a single Map, one MutationObserver, record-based.
+ * 2. One registry — a single Map, one MutationObserver, record-based. A
+ *    `registerManifest()` entry is the lazy half of it: the class is imported
+ *    when the element's mount strategy first fires, then mounted by the
+ *    registry like any other.
  * 3. Auto-mount on DOM insertion, destroy on ejection.
  * 4. Parents listen to child events — `$emit` bubbles, `on<Child><Event>`
  *    handlers resolve through event delegation on the parent root element,
- *    and negotiated events let a listener take part in a step instead of only
- *    hearing about it: `$domUpdate()` hands a DOM change to an ancestor's
+ *    `onWindow<Event>` / `onDocument<Event>` cover what a subtree can never
+ *    see, and negotiated events let a listener take part in a step instead of
+ *    only hearing about it: `$domUpdate()` hands a DOM change to an ancestor's
  *    transition, `$emitExtendable()` holds a step open until it settles.
  * 5. Children advertise their existence — bubbling `component:mounted` /
  *    `component:destroyed` announcements, packaged as `$watchChildren()`,
@@ -48,8 +52,8 @@
  * and a crossing that changes the resolved value is announced through the same
  * `option<Name>Changed()`.
  *
- * Not in this prototype: autoload manifests, non-bubbling child events
- * (mouseenter/mouseleave).
+ * Not in this prototype: manifest generation from a bundler glob, non-bubbling
+ * child events (mouseenter/mouseleave).
  *
  * One dependency: `morphdom`, imported by `swap()` alone for its `morph` mode.
  * Every other subpath is dependency-free, so a page which never swaps never
@@ -68,6 +72,7 @@ export {
   type ChildrenCollection,
   type DelegatedEvent,
   type EmitMap,
+  type GlobalEvent,
   type HandlerRegistration,
   type LifecycleEventDetail,
   type MountedReturn,
@@ -104,7 +109,14 @@ export {
   type ExtendableTransitioner,
   type Extension,
 } from './negotiated-events.js';
-export { registerComponent, registerComponents } from './registry.js';
+export {
+  registerComponent,
+  registerComponents,
+  registerManifest,
+  type ComponentImporter,
+  type ComponentManifest,
+  type ComponentManifestEntry,
+} from './registry.js';
 export {
   nextFrame,
   defaultScheduler,
