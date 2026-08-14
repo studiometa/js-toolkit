@@ -326,6 +326,36 @@ describe('responsive options', () => {
     expect(banner.changes[0]).toMatchObject({ value: 'dark', previousValue: 'light' });
   });
 
+  /**
+   * The one import-time side effect this module has, pinned.
+   *
+   * `onBreakpointsReplaced()` is called at module scope, and its job is
+   * exactly this: a replaced set means names that were never registered with
+   * the one observer, whose filter takes **exact** attribute names. Without
+   * the subscription the failure is silent — `data-option-columns` keeps
+   * being honoured while `data-option-columns:<new name>` is invisible — so
+   * `package.json` names this module in `sideEffects` and this is what says
+   * why.
+   */
+  it('observes a scoped spelling named by a breakpoint set installed later', async () => {
+    atSmall();
+    const root = render('<div data-component="Grid" data-option-columns="1"></div>');
+    await settle();
+    const grid = getInstance<Grid>(root.firstElementChild, 'Grid');
+    grid.changes = [];
+
+    // A name no component was ever registered against: `wide` did not exist
+    // when `Grid`'s option attributes entered the filter.
+    setBreakpoints({ small: '0rem', wide: '0rem' });
+    await settle();
+    grid.changes = [];
+
+    grid.$el.setAttribute('data-option-columns:wide', '6');
+    await settle();
+    expect(grid.changes).toHaveLength(1);
+    expect(grid.changes[0]).toMatchObject({ value: 6, previousValue: 1 });
+  });
+
   it('holds its `matchMedia` listener for the mount cycle, and no longer', async () => {
     atSmall();
     const root = render(
