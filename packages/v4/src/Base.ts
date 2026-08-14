@@ -541,10 +541,15 @@ const resolvedConfigs = new WeakMap<BaseConstructor, BaseConfig>();
  * so extending a component never silently drops what the parent declared.
  *
  * `refs`, `options` and `components` merge (v3 merged only `options`, which
- * is what issue #627 reports); scalar keys such as `name` are overridden by
- * the most derived class. The result is cached per constructor.
+ * is what issue #627 reports); scalar keys such as `name` and `mountStrategy`
+ * are overridden by the most derived class **that declares one**, which is
+ * what the spread does — a subclass restating `name` and nothing else keeps
+ * its parent's strategy. The result is cached per constructor.
+ *
+ * Exported because the registry resolves a mount strategy before any instance
+ * exists, so it cannot go through `$config`.
  */
-function resolveConfig(ctor: BaseConstructor): BaseConfig {
+export function resolveConfig(ctor: BaseConstructor): BaseConfig {
   const cached = resolvedConfigs.get(ctor);
   if (cached) {
     return cached;
