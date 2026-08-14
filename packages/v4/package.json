@@ -136,6 +136,11 @@
       "types": "./dist/subpaths/registerComponents.d.ts",
       "import": "./dist/subpaths/registerComponents.js"
     },
+    "./registerManifest": {
+      "typescript": "./src/subpaths/registerManifest.ts",
+      "types": "./dist/subpaths/registerManifest.d.ts",
+      "import": "./dist/subpaths/registerManifest.js"
+    },
     "./nextFrame": {
       "typescript": "./src/subpaths/nextFrame.ts",
       "types": "./dist/subpaths/nextFrame.d.ts",

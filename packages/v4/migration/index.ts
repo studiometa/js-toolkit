@@ -1,7 +1,7 @@
 /**
  * @studiometa/ui components ported onto the v4 prototype.
  *
- * This is a migration feasibility test, not a component library: four
+ * This is a migration feasibility test, not a component library: eight
  * families were chosen because they hit the parts of v3 that v4 changed most.
  * Each file documents what its port cost against the v3 original.
  *
@@ -11,6 +11,7 @@
 
 export * from './Accordion/index.js';
 export * from './Action/index.js';
+export * from './ClickOutside/index.js';
 export * from './Data/index.js';
 export * from './Dialog/index.js';
 export * from './InView/index.js';

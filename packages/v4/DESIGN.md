@@ -171,6 +171,8 @@ RegistryEntry = {
 - `registerComponent(Ctor)` registers an eager entry. `registerManifest(...)` registers lazy entries into the same map. The autoload package layer stays; its loader, observers, and scheduler become the registry's own.
 - One name → one entry, like `customElements.define`. Collisions warn and are ignored.
 
+**`loadStrategy` did not survive** — see §11b. Deferring the import and deferring the mount are one decision, so a lazy entry carries a `mountStrategy` (standing in for the `config.mountStrategy` of a class not yet downloaded) and there is no `data-load`. Section 11 is the measurement.
+
 ### Mount strategies (#751) — implemented
 
 `mountStrategy` is the answer to #751, and it lives in the registry rather than in a decorator.
@@ -272,6 +274,29 @@ The cost of the migration was measured before it was chosen. Across `src/`, `mig
 - `config.components` still provides the name set, because method names alone are ambiguous (`onSliderDragStart` → `SliderDrag`+`start` or `Slider`+`drag-start`).
 - `mouseenter`/`mouseleave` do not bubble: these two keep direct binding (accepted limitation).
 - `$on`/`$off` and `Action`-style directives keep working unchanged and benefit from bubbling.
+
+### Global handlers — `onWindow<Event>` / `onDocument<Event>` — implemented
+
+Delegation covers everything that happens **inside** a component. The events it structurally cannot cover are the ones a component needs precisely because they happen elsewhere: a click _outside_ it, a `popstate`, a `visibilitychange`, a window `resize`. There is no partial substitute — ui's `ClickOutside` is an `onDocumentClick` and nothing else, so without this it has no v4 form at all.
+
+So the two v3 prefixes are kept, resolved in `#bindHandlers()` alongside the other three rules:
+
+```js
+class ClickOutside extends Base {
+  onDocumentClick({ event }) {
+    if (!event.composedPath().includes(this.$el)) this.$emit('click-outside', { event });
+  }
+}
+```
+
+Four things are decided, and each of them is the answer to "what would surprise a reader least":
+
+- **Scope: the mount cycle**, like every other handler. The listener goes in the same `#listeners` array — which already stored an `EventTarget` — so `$destroy()` removes it and a remount rebinds it. The alternative, instance lifetime, means a destroyed component that keeps reacting to window scroll, which is the bug this is most likely to cause and the reason to be explicit about it.
+- **Phase: bubble, always.** `CAPTURED_EVENTS` exists for delegation only — a non-bubbling event fired on a descendant never reaches the delegating root on the way up, so it has to be caught on the way down. A global handler delegates nothing: its listener already sits at the top of every propagation path, so an event dispatched _at_ `window` or `document` reaches it in either phase. Capturing would only change what it hears (the `scroll`, `focus` and `mouseenter` of every element on the page) and when (before the page's own handlers instead of after). Bubble phase makes `onDocumentClick` hear exactly what `document.addEventListener('click', …)` hears, which is what the name promises. A component that wants a descendant's non-bubbling event has `on<Ref><Event>`, from the right scope.
+- **Resolution: the prefixes are reserved**, and matched before children and refs. `onWindowResize` binds to `window` even in a component whose `config.components` lists a `Window`. Letting a declared name win would make a handler's meaning depend on a `config` entry declared elsewhere in the file — and the choice is settled by an asymmetry rather than by taste: a child named `Window` can still be reached explicitly with `@on('Window', 'resize')`, whereas nothing would be left to reach `window` with. The side with an escape hatch is the side that yields. `on<Event>` and `onDocument<Event>` never collide at all: they are different method names, so `onClick` (own element) and `onDocumentClick` (the page) coexist on one component, and a click on the element fires both — it _is_ the element's event, and it _does_ bubble to the document.
+- **Payload: `{ event, target }`**, where `target` is the global the handler named. Same vocabulary as the two delegated shapes, in which `target` is always whatever the handler resolved to — the child instance, the ref element. No `payload`, because a platform event is not a component's announcement, and no `index`, because there is nothing to index. Destructuring reads identically to the v3 hook it replaces: `onDocumentClick({ event })`.
+
+Listener options (`once`, `passive`) are deliberately **not** part of this. A method name has nowhere to put them, and the question is the same one the `Action` port raised for its own bindings — it belongs to whatever answers it there, not to this.
 
 ### Negotiated events — `$domUpdate()` and `$emitExtendable()` — implemented
 
@@ -734,6 +759,76 @@ The negotiable `$domUpdate` event (a separate piece of work) slots in as the pro
 
 `swap()` is a free function, not a `Base` method: a swap target is frequently an element found by `id` with no component on it, and the primitive has no use for `this`.
 
+## 11. Autoload — measured against the registry, and mostly absorbed
+
+v3 ships **1033 source lines** of autoload across seven modules, plus 1419 lines of spec (`packages/js-toolkit/src/autoload/`). §2 promised the layer would stay and "its loader, observers, and scheduler become the registry's own". Measured against what the registry and the mount strategies now do, that promise is generous: what is left after the absorption is **one map and one trigger**, and the trigger is not a new one.
+
+### 11a. What the registry already does
+
+**Absorbed — deleted, not rewritten.**
+
+- **The discovery observer.** `ComponentLoader.start()` creates a second `MutationObserver` on the root and `__scan`s added subtrees for `[data-component]` (`loader.ts:147-199`). v4 has exactly one document observer with a precise `attributeFilter` (`dom-mutations.ts:52-68`), and `registry.ts` already reads the token set from each inserted subtree in one pass. A lazy entry is a lookup in the same map, in the same `reconcileElement()` walk. **~90 lines gone**, and with them the second observer §2 called out as one of the three mounting systems.
+- **The four load triggers.** `__schedule()` re-implements `visible` (an `IntersectionObserver` with a 200 px `rootMargin`), `idle` (`requestIdleCallback` with a 2 s timeout and a `setTimeout` fallback) and `interaction` (`pointerover`/`pointerdown`/`focusin`, once) — `loader.ts:270-337`. `mount-strategies.ts:64-126` is the same code, already written, already specced, and richer: it adds `in-view` and `media:<query>`, and it distinguishes one-shot from reversible, which v3's loader never had to because importing is never reversible. **~70 lines gone.**
+- **The per-element and per-record cleanup bookkeeping.** `__addCleanup`, `__cleanSubtree`, `__clean`, `__elementCleanups`, `__elementSchedules` — `loader.ts:434-480`, ~50 lines whose whole job is "dispose the trigger when the element leaves". `registry.ts` already owns that shape for mount strategies (`disposeController`, `destroyWithin`, the removed-subtree snapshot), so the lazy half reuses it: `disposeLoader()` is 11 lines and hangs off the same three call sites.
+- **Recursive registration of configured children.** `__registerConfiguredChildren` + `__registerConfiguredChild` + the manifest's `children: string[]` field — `loader.ts:381-432`, ~50 lines and a cycle-guard `visited` set, because v3's `registerComponent(Ctor, token)` did not walk `config.components`. v4's `registerComponent()` does, in four lines (`registry.ts:94-98`). The 15 `children` arrays in ui's generated manifest are dead data on v4.
+- **Component-state bookkeeping.** `ComponentRecord` with `scheduled | loading | registered | failed`, `scheduledStrategies`, and the `record.state !== 'scheduled'` guards threaded through every branch (`loader.ts:37-45, 256-337`). One `Map<string, Promise<void>>` keyed by name replaces it: an import happens once, whichever element triggered it, and the promise is the state.
+- **`readEagerTokens` and `<meta name="js-toolkit:eager">`** (`runtime.ts:88-98`). A per-page escape hatch to force tokens eager, bypassing both the manifest strategy and `data-load`. `data-mount` on the element is the same override, in the place the decision belongs, and it is already live. Grepped across `@studiometa/ui`: the meta appears in the changelog and the docs, and **in no page and no template**. Not ported.
+
+**Still needed, and much smaller.**
+
+- **The token → importer map.** Genuinely new information: no amount of DOM observation tells you where `data-component="Slider"` is published. This is the irreducible core of autoload, and it is a `Map`.
+- **Import-error reporting.** `__reportError` is 12 lines plus a `js-toolkit:error` `CustomEvent` (`loader.ts:488-500`). v4 logs `[registry] Failed to load "X":` next to the existing `[registry] Failed to mount "X":`, one line. The custom event is a next layer (11d).
+- **Resolving the class out of the imported module.** v3 splits it: generated manifests write `.then(({ Slider }) => Slider)` once per entry (80 times in ui's manifest) and `defineManifest` does `module[exportName] ?? module.default` for hand-built ones. v4 does it once, in six lines, so a hand-written entry is `Slider: () => import('./Slider.js')` with no unwrapping.
+
+**Still needed, unchanged: nothing.** Every remaining piece is either smaller or gone. The one v3 concept kept verbatim is the _shape_ of the manifest value, and even that is loosened to accept a bare importer.
+
+### 11b. The knob that did not survive: `data-load`
+
+v3 has two orthogonal knobs — `ComponentLoadStrategy` (`eager | visible | idle | interaction`, per manifest entry, overridable per element with `data-load`) and, in v4, `MountStrategy`. §2's `RegistryEntry` sketch keeps both. It should not.
+
+They are the same decision asked twice. Deferring the _import_ until visible and deferring the _mount_ until visible have one trigger and one answer; the only case where they differ is "download it now but do not mount it yet", which buys a page nothing it could not get by making the import eager, and costs it a second vocabulary in the markup. So v4 has **one** knob, and it is the one that already exists:
+
+```
+data-mount  >  manifest entry mountStrategy  >  'eager'
+```
+
+which is precisely `resolveStrategy()`'s chain (`registry.ts:228-234`) with the manifest entry standing in for the class's `config.mountStrategy` — _because the class is not there to be read yet_. That is the entry's whole justification, and it is the honest one: a lazy entry needs a strategy field for exactly as long as the class it names is undownloaded. Once the class registers, `resolveStrategy()` reads `config.mountStrategy` and the entry is deleted from the map.
+
+The evidence says the same. Across `@studiometa/ui`'s three generated manifests: 80 `@studiometa/ui` entries all `strategy: 'eager'`, all 14 `ui-mapbox` entries and all 4 `ui-motion` entries `strategy: 'visible'` — a **per-package family policy**, never a per-component one. And `data-load`, the per-element override the four-value vocabulary exists to serve, appears in the ui repository **once, in a documentation page**. The knob nobody turns is the one dropped.
+
+### 11c. The layer that was built
+
+`registerManifest(entries)` in `registry.ts` — **+245 / −18 lines in one file**, comments included, sharing the registry's map, its scan, its element bookkeeping and its mount strategies. No new module, no new observer, no new dependency.
+
+```js
+import { registerManifest } from '@studiometa/js-toolkit-v4';
+
+registerManifest({
+  Accordion: () => import('./Accordion.js'),
+  Map: { load: () => import('./Map.js'), mountStrategy: 'visible' },
+});
+```
+
+- **One name, one entry**, across both halves: a token an eager class or an earlier manifest already owns warns and is ignored, like `customElements.define` and like `registerComponent()`.
+- **Zero dependencies, zero bundler knowledge.** The value is a function returning a promise. `import.meta.glob`, `import.meta.webpackContext` and a generated manifest all produce that shape; none of them is named in core.
+- **The registry stays the only constructor.** The import ends in `registerComponent(ComponentClass)`, which schedules the pair exactly as a hand-registered class is scheduled. Autoload never touches `new`, `el.__base__`, or a mount hook.
+- **An unloaded declaration is invisible.** Nothing is constructed at discovery — the trigger imports, and construction happens on first mount as always. So `$query`, `$closest`, `$watchChildren` and `getInstances()` miss it for the same reason they miss a component waiting on `data-mount="visible"`, and by the same mechanism: no instance on the element. §2's rule needed no exception written for it.
+- **`whenDOMSettled()` covers an eager lazy component.** The import promise joins the lifecycle-work set only when the trigger was the eager one (`applied.eagerWork` is defined for `eager` alone, `mount-strategies.ts:122-125`), so `swap()` waits for download → registration → mount, and still never waits on a viewport, an idle callback, an interaction or a media query. That is the existing rule, extended one step earlier in the pipeline rather than a new one.
+- **One import per name, one failure report per name.** Failures are logged and never retried: the trigger is spent, and a retry loop against a 404'd chunk is worse than a quiet page.
+- **A class whose `config.name` differs from the token warns** instead of failing silently, since v4 registers by `config.name` and v3 registered by token.
+
+Cost: **+245 lines in `registry.ts` and +18 specs in `src/autoload.spec.ts`**, against v3's 1033 source lines across seven modules — which collapse to one exported function and three exported types.
+
+### 11d. Layers deliberately not built, and what each costs
+
+1. **Manifest generation from a bundler glob** — `defineManifest`, `fromMetaGlob`, `fromWebpackContext` (v3: 173 lines across two modules). It is path→token derivation (`index.ts` falls back to the parent directory) plus a lazy/eager glob guard. **Cost: ~40 lines, no dependency**, and it is where the duplicate-token warning belongs. This is the obvious next layer: without it a 200-component design system writes 200 map entries, which is exactly what ui's `scripts/generate-manifests.ts` exists to avoid.
+2. **A cross-copy shared runtime** — v3's `runtime.ts`, 215 lines: a `Symbol.for` slot on `globalThis`, a version-conflict guard, microtask coalescing of several manifest registrations into one loader start, and a stop/restart when a manifest arrives late. **v4 needs almost none of it**: there is one registry module, registration is idempotent, and a late `registerManifest()` scans only its own tokens, so nothing has to be coalesced or restarted. What survives the reduction is the _duplicated package copy_ problem — two bundled copies of v4 mean two `Map`s and two observers. **Cost: ~25 lines** for a `Symbol.for`-keyed module singleton, and it is a v4-wide question (the scheduler and the services have it too), not an autoload one. Worth doing once, at that level.
+3. **A `js-toolkit:error` `CustomEvent` on import failure.** ui documents it as the hook for error reporting. **Cost: 8 lines.** Deferred because v4 has no error-event convention yet — mount failures only `console.error` — and inventing one for the lazy half alone would be the wrong place to start.
+4. **Composing and overriding manifests** — v3's `composeManifests` is later-wins, so an app can shadow a packaged component by re-declaring its token last (`autoload.ts:32-40`). v4 is first-wins-and-warn, following `customElements.define`. **Cost: an `{ override: true }` option, ~5 lines** — but the decision is the expensive part, not the code, and first-wins is the safer default to start from.
+5. **A scoped `root`.** v3 takes `root?: Document | Element` and scans only within it. v4's registry is document-wide by construction, so this is not an autoload feature but a registry one. **Cost: unknown and not small** — it would change `scanName()`, `scan()` and the observer's target. No consumer has asked.
+6. **Informational manifest metadata** — `packageName`, `subpath`, `exportName`, `group`, `styles`, `integrations`. The loader reads none of them (`types.ts:16-49` says so six times); they exist for tooling around the manifest. **Cost: zero code, and they belong in the generator's output type, not in core's.**
+7. **A `data-load` compatibility shim.** Explicitly not built — see 11b. A page that used `data-load` migrates to `data-mount`, one attribute rename, and the strategy vocabulary is a superset except for the meaningless "load now, mount later".
+
 ## Kept from the existing #694 plan (unchanged)
 
 - Remove `LoadService`, `KeyService`; simplify `ResizeService`, `PointerService`; `MutationService` internal to the registry. (Done — see section 8.)
@@ -747,7 +842,7 @@ The negotiable `$domUpdate` event (a separate piece of work) slots in as the pro
 - Custom elements as the mounting/lifecycle primitive → replaced by the observer-first decision.
 - A separate directive registry/lifecycle in core → not needed; behaviors stay components on the one registry.
 - The bespoke `cdn.studiometa.dev` delivery → already superseded in ui 1.10.0 by esm.sh + `/autoload` side-effect entries; v4 keeps that path.
-- `<ui-lazy>` component → covered by registry `loadStrategy`/`mountStrategy` + manifests (`data-load` / `data-mount`).
+- `<ui-lazy>` component → covered by registry `mountStrategy` + manifests (`data-mount`); the separate `loadStrategy`/`data-load` knob is itself superseded by §11b.
 
 ## Open questions
 
