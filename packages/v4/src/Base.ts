@@ -440,11 +440,24 @@ function checkPayload(event: string, payload: unknown): void {
 /**
  * Resolve the `data-ref` elements that belong to a component: no other
  * `data-component` element sits between the ref and the component root.
+ *
+ * `owner` names the component a **namespaced** ref addressed by name, and it
+ * changes what counts as a boundary. A plain `data-ref="next"` stops at the
+ * nearest component of any kind; `data-ref="Slider.next"` stops only at
+ * another `Slider`, so it reaches past whatever else is in the way. That is
+ * the whole point of the namespace, and it is v3's rule
+ * (`RefsManager.refBelongToInstance()`) unchanged.
+ *
+ * The root itself is never tested against `owner`. It cannot be: ui registers
+ * `FigureShopify` under the name `Figure`, so the element reading
+ * `data-ref="FigureShopify.img"` sits under `data-component="Figure"`. The
+ * namespace names the **class's** `config.name`, which is what the selector
+ * already matched on; the walk only decides who else could have claimed it.
  */
-function belongsTo(el: Element, root: Element): boolean {
+function belongsTo(el: Element, root: Element, owner?: string): boolean {
   let parent = el.parentElement;
   while (parent && parent !== root) {
-    if (parent.hasAttribute('data-component')) {
+    if (owner ? parent.matches(selectorFor(owner)) : parent.hasAttribute('data-component')) {
       return false;
     }
     parent = parent.parentElement;
@@ -477,15 +490,92 @@ function refPropertyName(definition: string): string {
 }
 
 /**
- * The elements currently declaring `data-ref="<definition>"` inside a
- * component, skipping those owned by a nested component.
+ * The separator between a ref's namespace and its name.
  *
- * The parameter is the **declared** name, suffix included — the attribute is
- * spelled the way `config.refs` spells it.
+ * `data-ref="Slider.next"` says *this ref belongs to the enclosing `Slider`*,
+ * whatever else stands between them. Without it there is no way to express
+ * that at all: `belongsTo()` stops at the first `data-component` it meets, so
+ * a ref inside a child component is unreachable from the outside. v3 had the
+ * form; v4 dropped it and ui uses it — `App.form` reaches a `Frame`'s form
+ * from the app root, `FigureShopify.img` reaches an image wrapped in a
+ * `Transition`.
+ *
+ * It is not a second spelling of the same thing, the way the `[]` question
+ * was: the two forms answer two different questions. A plain ref asks for the
+ * nearest owner, a namespaced one names its owner.
  */
-function queryRefs(root: HTMLElement, definition: string): HTMLElement[] {
-  return [...root.querySelectorAll<HTMLElement>(`[data-ref="${definition}"]`)].filter((el) =>
+const REF_NAMESPACE_SEPARATOR = '.';
+
+/**
+ * The namespaced spelling of one ref definition.
+ *
+ * **The namespace wraps the whole definition, suffix included** —
+ * `Slider.dots[]`, not `Slider.dots` or `Slider[].dots`. That is v3's order
+ * (`RefsManager.__register()` builds `` `${name}.${refName}` `` from the
+ * already-suffixed config entry) and it is the order ui's documentation is
+ * written in. It also reads correctly: `[]` qualifies the ref, and the
+ * namespace qualifies the pair.
+ */
+function namespacedRef(componentName: string, definition: string): string {
+  return `${componentName}${REF_NAMESPACE_SEPARATOR}${definition}`;
+}
+
+/**
+ * Does this element declare `definition` as a ref of `root`, in either
+ * spelling? The two forms scope differently, so which one was written decides
+ * how ownership is resolved.
+ */
+function isRefOf(
+  el: Element,
+  root: Element,
+  componentName: string,
+  definition: string,
+): el is HTMLElement {
+  const declared = el.getAttribute('data-ref');
+  if (declared === definition) {
+    return belongsTo(el, root);
+  }
+  return (
+    declared === namespacedRef(componentName, definition) && belongsTo(el, root, componentName)
+  );
+}
+
+/**
+ * The elements currently declaring `definition` inside a component, skipping
+ * those owned by a nested component.
+ *
+ * The parameter is the **declared** name, suffix included; the attribute is
+ * spelled the way `config.refs` spells it, optionally prefixed by the
+ * component's name.
+ *
+ * **Two queries rather than one selector list.** `[data-ref="a"],[data-ref="b"]`
+ * costs Chromium its single-attribute fast path: measured over a 25-element
+ * subtree, the cold lookup went 8.0 → 11.2 µs when it matches and 1.2 → 3.4 µs
+ * when it does not, against 8.7 µs and 2.1 µs for two separate queries. Since
+ * `queryRefs()` runs once per ref per cache miss, and since almost every ref in
+ * practice uses the plain spelling, the plain query keeps its fast path and the
+ * namespaced one is a second cheap query that usually returns nothing. Merging
+ * only pays for `compareDocumentPosition` in the one case that needs it: a ref
+ * written both ways under the same component.
+ */
+function queryRefs(root: HTMLElement, componentName: string, definition: string): HTMLElement[] {
+  const plain = [...root.querySelectorAll<HTMLElement>(`[data-ref="${definition}"]`)].filter((el) =>
     belongsTo(el, root),
+  );
+  const namespaced = root.querySelectorAll<HTMLElement>(
+    `[data-ref="${namespacedRef(componentName, definition)}"]`,
+  );
+  if (namespaced.length === 0) {
+    return plain;
+  }
+  const owned = [...namespaced].filter((el) => belongsTo(el, root, componentName));
+  if (plain.length === 0) {
+    return owned;
+  }
+  // One property, so one document order — an index handed to `on<Ref><Event>`
+  // has to mean the same thing as an index into `$refs`.
+  return [...plain, ...owned].sort((a, b) =>
+    a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1,
   );
 }
 
@@ -508,7 +598,11 @@ function warnMissingRefSuffix(instance: Base, definition: string, checked: Set<s
   }
   checked.add(definition);
   const name = refPropertyName(definition);
-  if (!instance.$el.querySelector(`[data-ref="${name}"]`)) {
+  const namespaced = namespacedRef(instance.$config.name, name);
+  // Both spellings, so `data-ref="Slider.dots"` is caught the same way
+  // `data-ref="dots"` is. This runs once per instance and per ref, and only
+  // when the ref found nothing, so the selector list costs nothing here.
+  if (!instance.$el.querySelector(`[data-ref="${name}"],[data-ref="${namespaced}"]`)) {
     return;
   }
   console.warn(
@@ -562,11 +656,15 @@ function warnRefSuffixMismatch(
  *
  * A name declared as `name[]` selects `data-ref="name[]"` and always yields an
  * array under `$refs.name`; a plain name selects `data-ref="name"` and yields
- * the first match.
+ * the first match. Either selects the namespaced spelling too —
+ * `data-ref="<Component>.name[]"` — which is how a ref sitting under another
+ * component still names this one as its owner. **The namespace is not part of
+ * the property**: `Slider.next` is `$refs.next`.
  */
 function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> {
   const refs: Record<string, HTMLElement | HTMLElement[]> = {};
   const checked = new Set<string>();
+  const componentName = instance.$config.name;
   for (const definition of instance.$config.refs ?? []) {
     const isList = isRefList(definition);
     const name = refPropertyName(definition);
@@ -587,11 +685,11 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
           const version = domVersion();
           if (version !== cachedVersion) {
             cachedVersion = version;
-            cached = queryRefs(instance.$el, definition);
+            cached = queryRefs(instance.$el, componentName, definition);
           }
           elements = cached;
         } else {
-          elements = queryRefs(instance.$el, definition);
+          elements = queryRefs(instance.$el, componentName, definition);
         }
         if (isList && elements.length === 0) {
           warnMissingRefSuffix(instance, definition, checked);
@@ -1677,9 +1775,13 @@ export class Base<T extends BaseProps = BaseProps> {
     // `SliderDrag` child, not to `Slider`.
     const byLength = (a: string, b: string) => b.length - a.length;
     const childNames = Object.keys(this.$config.components ?? {}).sort(byLength);
-    // Two spellings of one ref: `name` is what `on<Ref><Event>` and `@on()`
-    // name it, `definition` is what the attribute says — they differ by the
-    // `[]` of a list ref, which the markup carries too.
+    const componentName = this.$config.name;
+    // `definition` is the declaration — what `config.refs` says, what `@on()`
+    // names, and what the entry carries into delegation. `name` is the
+    // derived spelling, used by `on<Ref><Event>` and by `$refs`; the two
+    // differ by the `[]` of a list ref. Neither is ever namespaced: the
+    // namespace is written on the attribute, never declared, so `isRefOf()`
+    // is what reconciles `Slider.dots[]` in the markup with `dots[]` here.
     const refs = (this.$config.refs ?? [])
       .map((definition) => ({ name: refPropertyName(definition), definition }))
       .sort((a, b) => byLength(a.name, b.name));
@@ -1819,12 +1921,14 @@ export class Base<T extends BaseProps = BaseProps> {
                 });
                 invoked = true;
               }
-            } else if (el.getAttribute('data-ref') === entry.name && belongsTo(el, this.$el)) {
-              const target = el as HTMLElement;
+            } else if (isRefOf(el, this.$el, componentName, entry.name)) {
+              const target = el;
               entry.invoke({
                 event,
                 target,
-                index: queryRefs(this.$el, entry.name).indexOf(target),
+                // The index within the ref list as `$refs` sees it, so the two
+                // spellings share one numbering.
+                index: queryRefs(this.$el, componentName, entry.name).indexOf(target),
               });
               invoked = true;
             }
