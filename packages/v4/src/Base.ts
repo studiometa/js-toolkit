@@ -1019,8 +1019,17 @@ interface HandlerPlan {
  * already the same answer for the plan's whole life. A class that gained a
  * handler after its first mount would need a new prototype, which is a new
  * class and a new key.
+ *
+ * **`/* @__PURE__ *\/` is load-bearing, not decoration.** A top-level call is
+ * something a bundler must keep unless told otherwise, and keeping this one
+ * keeps everything it references — which is all of `Base`. Every constant
+ * subpath (`./DESTROYED_EVENT`, `./MOUNTED_EVENT`, `./SOURCE`) is a
+ * re-export *from* `Base.js` and owes its size entirely to `Base` being
+ * shaken away, so without the annotation each of them grows from 1.9 kB to
+ * 7.7 kB gzip — measured, and the reason the services already annotate their
+ * `perTarget()` calls the same way.
  */
-const handlerPlan = memo((ctor: BaseConstructor): HandlerPlan => {
+const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan => {
   const config = resolveConfig(ctor);
   // Longest name first, so `onSliderDragStart` resolves to the declared
   // `SliderDrag` child, not to `Slider`.
