@@ -416,6 +416,68 @@ describe('$options', () => {
     el.setAttribute('data-option-list', '{oops');
     expect(instance.$options.list).toEqual([1]);
   });
+
+  /**
+   * REPORT.md gap 9. Without `merge`, an attribute replaces the default
+   * outright, so overriding one key of a settings object means restating every
+   * other one in the markup.
+   */
+  it('completes the default with the attribute when the option declares merge', () => {
+    class Merged extends Base<{
+      $options: {
+        styles: Record<string, unknown>;
+        plain: Record<string, unknown>;
+        list: number[];
+      };
+    }> {
+      static config = {
+        name: 'Merged',
+        options: {
+          styles: {
+            type: Object,
+            default: () => ({ display: 'none', tween: { ease: 'linear', duration: 1 } }),
+            merge: true,
+          },
+          // The same default without `merge`, for the contrast.
+          plain: { type: Object, default: () => ({ display: 'none' }) },
+          list: { type: Array, default: () => [1], merge: true },
+        },
+      };
+    }
+
+    const el = document.createElement('div');
+    const instance = new Merged(el);
+
+    // Nothing to merge with: the default stands.
+    expect(instance.$options.styles).toEqual({
+      display: 'none',
+      tween: { ease: 'linear', duration: 1 },
+    });
+
+    el.setAttribute('data-option-styles', '{"opacity":1,"tween":{"ease":"ease-out"}}');
+    el.setAttribute('data-option-plain', '{"opacity":1}');
+    el.setAttribute('data-option-list', '[2,3]');
+
+    // Objects recurse key by key, arrays concatenate — v3's rules, which were
+    // `deepmerge`'s.
+    expect(instance.$options.styles).toEqual({
+      display: 'none',
+      opacity: 1,
+      tween: { ease: 'ease-out', duration: 1 },
+    });
+    expect(instance.$options.list).toEqual([1, 2, 3]);
+    // Without `merge`, the attribute replaces the default outright.
+    expect(instance.$options.plain).toEqual({ opacity: 1 });
+
+    // The merge borrows the memoised default; it must not consume it.
+    el.removeAttribute('data-option-styles');
+    el.removeAttribute('data-option-list');
+    expect(instance.$options.styles).toEqual({
+      display: 'none',
+      tween: { ease: 'linear', duration: 1 },
+    });
+    expect(instance.$options.list).toEqual([1]);
+  });
 });
 
 describe('$el', () => {
