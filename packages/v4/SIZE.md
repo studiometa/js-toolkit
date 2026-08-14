@@ -14,6 +14,11 @@ _measured on a patched build_ was produced by editing `src/`, rebuilding, measur
 and reverting — the patch scripts are described in §6 so any number here can be
 disagreed with by re-running it.
 
+Companion document: `SIMPLIFY.md` asks what v4 could stop _doing_ rather than
+what it costs. Where the two overlap — the duplication of §R7, the
+`registry.ts` → `Base.ts` edge of §R2 — they cross-reference rather than repeat,
+and one conclusion here was corrected by that audit (§R7).
+
 ---
 
 ## 1. What "under 10 kB gzipped" has to mean
@@ -378,9 +383,19 @@ reasons — `optionAttributes()` re-deriving what `resolveConfig()` caches is a
 genuine divergence risk, and `registry.ts:85–92` flags that exact class of bug
 twice in its own comments — but do not expect the size report to move.
 
-One item on that list is worth doing _for_ R2 rather than for its own sake:
-`resolveConfig()` moving to `config.ts` is what makes `optionAttributes()`'s
-private walk look like the outlier it is.
+`SIMPLIFY.md` §2.1 takes the same eleven `try`/`catch` blocks from the other
+side and reaches a stronger conclusion: six of them have **no regression test**,
+so the 0.12 kB above is not just a small win, it is a small win with nothing
+standing in its way. Do not take it.
+
+**Correction (2026-08-14, from `SIMPLIFY.md` §1.1).** This section originally
+said the config-chain row was worth doing _for_ R2, because `resolveConfig()`
+moving to `config.ts` is what would make `optionAttributes()`'s private walk look
+like the outlier it is. That gate does not exist: `registry.ts:1` **already
+imports `resolveConfig`**, so collapsing the hand walk to
+`Object.keys(resolveConfig(ComponentClass).options ?? {})` is a standalone
+~8-line deletion available today, independent of R2. It is still not a size win —
+it is a correctness one, and `SIMPLIFY.md` §1.1 carries it.
 
 ### Not recommended
 
