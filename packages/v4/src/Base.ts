@@ -57,24 +57,10 @@ type OptionValue<T extends OptionType> = T extends typeof String
  *       speed: { type: Number, default: 1 },
  *       tween: { type: Object, default: () => ({ ease: 'linear' }) },
  *     }
- *
- * `merge` belongs to the two types that can hold one: with it, the attribute
- * **completes** the default instead of replacing it, so a page overriding one
- * key of a settings object does not have to restate the rest.
- *
- *     styles: { type: Object, default: () => ({ display: 'none', opacity: 0 }), merge: true }
- *
- *     <div data-option-styles='{"opacity":1}'>  →  { display: 'none', opacity: 1 }
- *
- * v3 spelled it `merge: true | DeepmergeOptions` and pulled in `deepmerge`
- * for the second form. Only the boolean comes back: the object form
- * configures a dependency this package does not have, and a component whose
- * merge is more interesting than "objects recurse, arrays concatenate" is a
- * component reading the raw attribute for itself.
  */
 type TypedOptionDefinition<T extends OptionType = OptionType> = T extends OptionType
   ? T extends typeof Array | typeof Object
-    ? { type: T; default?: () => OptionValue<T>; merge?: boolean }
+    ? { type: T; default?: () => OptionValue<T> }
     : { type: T; default?: OptionValue<T> | (() => OptionValue<T>) }
   : never;
 
@@ -566,19 +552,15 @@ const optionReaders = new WeakMap<Base, Map<string, OptionReader>>();
  * quietly change what the author declared. A default of that shape is shared
  * between instances, and the factory form is the answer for it.
  */
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  if (value === null || typeof value !== 'object') {
-    return false;
-  }
-  const proto = Object.getPrototypeOf(value);
-  return proto === Object.prototype || proto === null;
-}
-
 function copyDefault(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(copyDefault);
   }
-  if (!isPlainObject(value)) {
+  if (value === null || typeof value !== 'object') {
+    return value;
+  }
+  const proto = Object.getPrototypeOf(value);
+  if (proto !== Object.prototype && proto !== null) {
     return value;
   }
   const copy: Record<string, unknown> = {};
@@ -586,29 +568,6 @@ function copyDefault(value: unknown): unknown {
     copy[key] = copyDefault(nested);
   }
   return copy;
-}
-
-/**
- * Complete a default with an attribute value, for an option declared
- * `merge: true`.
- *
- * The rules are v3's, which were `deepmerge`'s: two plain objects recurse key
- * by key, two arrays concatenate, and anything else is replaced by what the
- * attribute said. Neither side is mutated — the default is the instance's own
- * memoised object and must survive the read that borrowed it.
- */
-function mergeDefault(base: unknown, incoming: unknown): unknown {
-  if (Array.isArray(base) && Array.isArray(incoming)) {
-    return [...base, ...incoming];
-  }
-  if (isPlainObject(base) && isPlainObject(incoming)) {
-    const merged: Record<string, unknown> = { ...base };
-    for (const [key, value] of Object.entries(incoming)) {
-      merged[key] = key in base ? mergeDefault(base[key], value) : value;
-    }
-    return merged;
-  }
-  return incoming;
 }
 
 function buildOptions(instance: Base): Record<string, unknown> {
@@ -619,8 +578,6 @@ function buildOptions(instance: Base): Record<string, unknown> {
   for (const [name, definition] of Object.entries(instance.$config.options ?? {})) {
     const type = typeof definition === 'function' ? definition : definition.type;
     const declared = typeof definition === 'function' ? undefined : definition.default;
-    const merge =
-      typeof definition !== 'function' && 'merge' in definition && definition.merge === true;
     const attribute = `data-option-${kebabCase(name)}`;
 
     // Built on first read and memoised, so repeated reads hand back the same
@@ -670,10 +627,7 @@ function buildOptions(instance: Base): Record<string, unknown> {
       }
       if (type === Array || type === Object) {
         try {
-          const parsed: unknown = JSON.parse(raw);
-          // `merge: true` makes the attribute complete the default rather than
-          // replace it, so a page overriding one key restates only that key.
-          return merge ? mergeDefault(defaultValue(), parsed) : parsed;
+          return JSON.parse(raw);
         } catch {
           return defaultValue();
         }
