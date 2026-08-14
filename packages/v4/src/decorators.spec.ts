@@ -144,6 +144,29 @@ class DotList extends Base {
   }
 }
 
+/**
+ * C9 meets C8. A ref may name its owner in the markup —
+ * `data-ref="NsDots.dots[]"` — to reach past a component boundary, but the
+ * namespace is never declared: `config.refs` says `dots[]`, so that is what
+ * `@on()` names and `onDotsClick()` still derives from. The attribute spelling
+ * is `isRefOf()`'s business, and no part of it reaches the decorator.
+ */
+@component({ name: 'NsDots', refs: ['dots[]', 'title'] })
+class NsDots extends Base {
+  clicked: number[] = [];
+
+  titles: string[] = [];
+
+  @on('dots[]', 'click')
+  trackDot({ index }: RefEvent): void {
+    this.clicked.push(index);
+  }
+
+  onTitleClick({ target }: RefEvent): void {
+    this.titles.push(target.tagName);
+  }
+}
+
 /** The mismatch: `dots[]` is declared, `dots` is what the decorator names. */
 @component({ name: 'DotMismatch', refs: ['dots[]'] })
 class DotMismatch extends Base {
@@ -412,6 +435,36 @@ describe('@on', () => {
     // declaration, not to the decorator.
     (root.querySelector('h2') as HTMLElement).click();
     expect(instance.titles).toEqual(['H2']);
+  });
+
+  it('binds a namespaced ref through its plain declared name, and warns nothing', async () => {
+    const root = document.createElement('div');
+    root.setAttribute('data-component', 'NsDots');
+    root.innerHTML = `
+      <div data-component="NsShell">
+        <i data-ref="NsDots.dots[]"></i>
+        <i data-ref="NsDots.dots[]"></i>
+        <h2 data-ref="NsDots.title"></h2>
+      </div>
+    `;
+    document.body.append(root);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await settle();
+
+    const instance = getInstance<NsDots>(root, 'NsDots');
+    // `@on('dots[]', …)` names the declaration; the markup namespaces the
+    // attribute to reach past `NsShell`. Both resolve the same entry.
+    (root.querySelectorAll('i')[1] as HTMLElement).click();
+    expect(instance.clicked).toEqual([1]);
+
+    // The magic name derives from the declaration too, namespace or not.
+    (root.querySelector('h2') as HTMLElement).click();
+    expect(instance.titles).toEqual(['H2']);
+
+    // `warnRefSuffixMismatch()` reasons about declarations only, so a
+    // namespaced attribute can never make it fire.
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it('warns instead of binding silently when @on drops a list ref suffix', async () => {

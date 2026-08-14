@@ -1776,9 +1776,12 @@ export class Base<T extends BaseProps = BaseProps> {
     const byLength = (a: string, b: string) => b.length - a.length;
     const childNames = Object.keys(this.$config.components ?? {}).sort(byLength);
     const componentName = this.$config.name;
-    // Two spellings of one ref: `name` is what `on<Ref><Event>` and `@on()`
-    // name it, `definition` is what the attribute says — they differ by the
-    // `[]` of a list ref, which the markup carries too.
+    // `definition` is the declaration — what `config.refs` says, what `@on()`
+    // names, and what the entry carries into delegation. `name` is the
+    // derived spelling, used by `on<Ref><Event>` and by `$refs`; the two
+    // differ by the `[]` of a list ref. Neither is ever namespaced: the
+    // namespace is written on the attribute, never declared, so `isRefOf()`
+    // is what reconciles `Slider.dots[]` in the markup with `dots[]` here.
     const refs = (this.$config.refs ?? [])
       .map((definition) => ({ name: refPropertyName(definition), definition }))
       .sort((a, b) => byLength(a.name, b.name));
