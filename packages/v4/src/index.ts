@@ -5,7 +5,10 @@
  *
  * 1. Components are independent — the registry is the only code that creates
  *    instances; lifecycle equals DOM presence; no parent-owned children.
- * 2. One registry — a single Map, one MutationObserver, record-based.
+ * 2. One registry — a single Map, one MutationObserver, record-based. A
+ *    `registerManifest()` entry is the lazy half of it: the class is imported
+ *    when the element's mount strategy first fires, then mounted by the
+ *    registry like any other.
  * 3. Auto-mount on DOM insertion, destroy on ejection.
  * 4. Parents listen to child events — `$emit` bubbles, `on<Child><Event>`
  *    handlers resolve through event delegation on the parent root element,
@@ -42,8 +45,8 @@
  * four modes, one script-adoption pass, and a promise resolving once the
  * registry has caught up.
  *
- * Not in this prototype: autoload manifests, responsive options,
- * non-bubbling child events (mouseenter/mouseleave).
+ * Not in this prototype: manifest generation from a bundler glob, responsive
+ * options, non-bubbling child events (mouseenter/mouseleave).
  *
  * One dependency: `morphdom`, imported by `swap()` alone for its `morph` mode.
  * Every other subpath is dependency-free, so a page which never swaps never
@@ -99,7 +102,14 @@ export {
   type ExtendableTransitioner,
   type Extension,
 } from './negotiated-events.js';
-export { registerComponent, registerComponents } from './registry.js';
+export {
+  registerComponent,
+  registerComponents,
+  registerManifest,
+  type ComponentImporter,
+  type ComponentManifest,
+  type ComponentManifestEntry,
+} from './registry.js';
 export {
   nextFrame,
   defaultScheduler,
