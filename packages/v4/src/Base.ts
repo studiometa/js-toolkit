@@ -455,9 +455,13 @@ function checkPayload(event: string, payload: unknown): void {
  * already matched on; the walk only decides who else could have claimed it.
  */
 function belongsTo(el: Element, root: Element, owner?: string): boolean {
+  // Built before the walk, not inside it: the selector depends on `owner`
+  // alone, and the loop runs once per ancestor — for every ref, on every
+  // mount. Hoisting is what a cache would buy here, without the cache.
+  const selector = owner === undefined ? undefined : selectorFor(owner);
   let parent = el.parentElement;
   while (parent && parent !== root) {
-    if (owner ? parent.matches(selectorFor(owner)) : parent.hasAttribute('data-component')) {
+    if (selector === undefined ? parent.hasAttribute('data-component') : parent.matches(selector)) {
       return false;
     }
     parent = parent.parentElement;
