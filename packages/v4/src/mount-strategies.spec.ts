@@ -200,6 +200,47 @@ describe('config.mountStrategy', () => {
     await observed();
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
   });
+
+  /**
+   * REPORT.md gap 24. Every subclass declares a `static config` of its own, if
+   * only for `name`, so reading the class's own static rather than the merged
+   * one made every subclass of a strategy-declaring component fall back to
+   * `eager` — and silently, because it still worked, it just mounted
+   * everywhere.
+   */
+  it('is inherited by a subclass that declares a config of its own', async () => {
+    const { Tracked } = defineTracked({ mountStrategy: 'visible' });
+    counter += 1;
+    const name = `StrategyHeir${counter}`;
+
+    class Heir extends Tracked {
+      static config: BaseConfig = { name };
+    }
+    registerComponent(Heir);
+
+    const el = render(name, {}, OFFSCREEN);
+    await observed();
+    expect(el.__base__?.get(name)).toBeUndefined();
+
+    el.setAttribute('style', ONSCREEN);
+    await observed();
+    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+  });
+
+  it('is overridden by a subclass declaring its own strategy', async () => {
+    const { Tracked } = defineTracked({ mountStrategy: 'visible' });
+    counter += 1;
+    const name = `StrategyHeir${counter}`;
+
+    class Heir extends Tracked {
+      static config: BaseConfig = { name, mountStrategy: 'eager' };
+    }
+    registerComponent(Heir);
+
+    const el = render(name, {}, OFFSCREEN);
+    await settle();
+    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+  });
 });
 
 describe('dynamic data-mount', () => {
