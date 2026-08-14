@@ -180,7 +180,11 @@ function withInitializer<This extends Base, Value>(
  * string forms keep their meaning beside the value forms — `@on('Window',
  * 'resize')` is still a child named `Window` — and a component that is not
  * imported is still reachable by name, which is what the autoload path and
- * the bundle size depend on.
+ * the bundle size depend on. A child declared lazily, as
+ * `Child: () => import('./Child.js')`, is exactly that case: the class form
+ * would import the chunk the thunk exists to defer, so the string form is
+ * the one to use. The thunk itself is not a target — it is a function with
+ * no `config`, refused by the overloads and at runtime.
  *
  * An `EventTarget` that is none of these is rejected; see
  * `resolveHandlerTarget()` for why, and for the one line that replaces it.

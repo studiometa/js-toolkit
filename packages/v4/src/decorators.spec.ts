@@ -2,6 +2,7 @@ import { afterEach, describe, expect, expectTypeOf, it } from 'vitest';
 import {
   Base,
   type ChildrenCollection,
+  type ComponentImporter,
   type DelegatedEvent,
   type GlobalEvent,
   type RefEvent,
@@ -211,8 +212,17 @@ class OnOverloads extends Base {
     on(document.body, 'click');
     // @ts-expect-error a target value must be followed by an event type
     on(window);
+    // @ts-expect-error a lazy `config.components` thunk is not a class
+    on(lazyChild, 'ping');
   }
 }
+
+/**
+ * A lazy `config.components` value. `@on` takes the class, so an author who
+ * declared a child as a thunk still imports the class to decorate with it —
+ * and the thunk itself is not a target.
+ */
+const lazyChild: ComponentImporter = () => import('./decorators.js');
 
 function render(childCount = 1): HTMLElement {
   const root = document.createElement('div');
@@ -401,6 +411,9 @@ describe('@on', () => {
     const el = document.createElement('div');
     // Refused by the overloads above; refused here too, for the untyped path.
     expect(() => on(el as never, 'click')).toThrow(TypeError);
+    // A lazy `config.components` thunk is a function without a `config`, so it
+    // is refused by the same guard rather than resolving to a wrong name.
+    expect(() => on(lazyChild as never, 'ping')).toThrow(TypeError);
     // The overloads are asserted in `OnOverloads`, which only compiles.
     expect(OnOverloads.config.name).toBe('OnOverloads');
   });
