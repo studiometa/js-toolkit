@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, expectTypeOf, it } from 'vitest';
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   Base,
   type ChildrenCollection,
@@ -115,11 +115,38 @@ class GlobalNames extends Base {
 }
 
 /**
- * A list ref is declared and spelled `dots[]` in the markup, but every handler
- * form names it `dots` — the decorator included.
+ * `@on()` refers to the ref entry, so it names it the way `config.refs` and the
+ * attribute do — `dots[]` with its suffix, `title` without one. The derived
+ * spellings, `$refs.dots` and `onDotsClick()`, are the ones that drop it.
  */
-@component({ name: 'DotList', refs: ['dots[]'] })
+@component({ name: 'DotList', refs: ['dots[]', 'title'] })
 class DotList extends Base {
+  clicked: number[] = [];
+
+  titles: string[] = [];
+
+  magic: number[] = [];
+
+  @on('dots[]', 'click')
+  trackDot({ index }: RefEvent): void {
+    this.clicked.push(index);
+  }
+
+  @on('title', 'click')
+  trackTitle({ target }: RefEvent): void {
+    this.titles.push(target.tagName);
+  }
+
+  // The magic name derives its ref from the method name, so it has no suffix
+  // to carry — and it resolves the same `dots[]` declaration.
+  onDotsClick({ index }: RefEvent): void {
+    this.magic.push(index);
+  }
+}
+
+/** The mismatch: `dots[]` is declared, `dots` is what the decorator names. */
+@component({ name: 'DotMismatch', refs: ['dots[]'] })
+class DotMismatch extends Base {
   clicked: number[] = [];
 
   @on('dots', 'click')
@@ -162,6 +189,7 @@ registerComponents(
   GlobalNames,
   WindowChild,
   DotList,
+  DotMismatch,
   SubTargetParent,
   BaseKind,
   SubKind,
@@ -367,17 +395,42 @@ describe('@on', () => {
     expect(parent.childResizes[0].target).toBe(child);
   });
 
-  it('names a list ref without its [] suffix, like every other handler form', async () => {
+  it('names a ref the way config.refs declares it, [] included', async () => {
     const root = document.createElement('div');
     root.setAttribute('data-component', 'DotList');
-    // The attribute carries the suffix; the decorator does not.
-    root.innerHTML = '<i data-ref="dots[]"></i><i data-ref="dots[]"></i>';
+    root.innerHTML = '<i data-ref="dots[]"></i><i data-ref="dots[]"></i><h2 data-ref="title"></h2>';
     document.body.append(root);
     await settle();
 
     const instance = getInstance<DotList>(root, 'DotList');
     (root.querySelectorAll('i')[1] as HTMLElement).click();
     expect(instance.clicked).toEqual([1]);
+    // The magic name resolves the same declaration from the derived spelling.
+    expect(instance.magic).toEqual([1]);
+
+    // A ref declared plainly is named plainly: the suffix belongs to the
+    // declaration, not to the decorator.
+    (root.querySelector('h2') as HTMLElement).click();
+    expect(instance.titles).toEqual(['H2']);
+  });
+
+  it('warns instead of binding silently when @on drops a list ref suffix', async () => {
+    const root = document.createElement('div');
+    root.setAttribute('data-component', 'DotMismatch');
+    root.innerHTML = '<i data-ref="dots[]"></i><i data-ref="dots[]"></i>';
+    document.body.append(root);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await settle();
+
+    const instance = getInstance<DotMismatch>(root, 'DotMismatch');
+    // One spelling only: `dots` does not also reach the `dots[]` declaration.
+    (root.querySelectorAll('i')[1] as HTMLElement).click();
+    expect(instance.clicked).toEqual([]);
+
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain('DotMismatch');
+    expect(warn.mock.calls[0][0]).toContain("@on('dots[]', …)");
+    warn.mockRestore();
   });
 
   it('resolves a subclass to the name it mounts under, not to its parent', async () => {

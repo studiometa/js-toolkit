@@ -220,6 +220,12 @@ export function on<T extends BaseConstructor, K extends string>(
  * A name is a child **or** a ref — `#bindHandlers()` resolves either, children
  * first — and only the author knows which, so the handler is typed as either.
  * The class form has no such doubt: a class can only be a child.
+ *
+ * A ref is named the way `config.refs` declares it, `[]` included:
+ * `@on('dots[]', 'click')` for a `dots[]` declaration, one spelling and not
+ * two. `$refs.dots` and `onDotsClick()` derive a name from that declaration
+ * and drop the suffix; `@on()` refers to the entry itself, like the
+ * `data-ref="dots[]"` attribute, so it keeps it.
  */
 export function on(
   child: string,

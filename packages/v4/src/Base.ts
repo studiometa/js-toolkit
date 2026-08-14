@@ -402,9 +402,9 @@ export interface HandlerRegistration {
    */
   target: Window | Document | null;
   /**
-   * Child component name — or ref name, spelled without a list ref's `[]`,
-   * the way every handler form names it — for delegated handlers. `null` for
-   * own events.
+   * Child component name — or ref name, spelled the way `config.refs` declares
+   * it, `[]` included for a list — for delegated handlers. `null` for own
+   * events.
    */
   child: string | null;
   type: string;
@@ -513,6 +513,41 @@ function warnMissingRefSuffix(instance: Base, definition: string, checked: Set<s
   }
   console.warn(
     `[base] \`${instance.$config.name}\` declares \`${definition}\` and found no \`data-ref="${definition}"\`, but the markup declares \`data-ref="${name}"\`. A list ref carries the \`[]\` in the attribute too: add it, or drop it from \`config.refs\`.`,
+  );
+}
+
+/**
+ * Say so when `@on()` names a ref by the spelling its **property** uses rather
+ * than the one its **declaration** uses.
+ *
+ * One rule covers both: **the declaration spelling is what you write to refer
+ * to the entry, the property spelling is what you write when a name is derived
+ * from it.** `config.refs: ['dots[]']`, `data-ref="dots[]"` and
+ * `@on('dots[]', 'click')` all refer to the entry, so all three carry the
+ * suffix; `$refs.dots` and `onDotsClick()` derive a name from it, so neither
+ * does. One spelling each, never two — the same choice
+ * {@link warnMissingRefSuffix} enforces for the attribute.
+ *
+ * `@on('dots', 'click')` therefore matches nothing and binds a listener that
+ * can never fire. There is no type to catch it: the decorator sees a string and
+ * cannot read the class's `config.refs`, which is declared elsewhere in the
+ * class body and is not in its type. So it is a warning, raised where both are
+ * known — at bind time — and only for the unambiguous case: the name matches no
+ * declared component and no declared ref, but its other spelling matches a
+ * declared ref. A name matching nothing at all is left alone, because
+ * `@on('Child', …)` deliberately needs no `config.components` entry.
+ */
+function warnRefSuffixMismatch(
+  instance: Base,
+  child: string,
+  refs: Array<{ definition: string }>,
+): void {
+  const other = isRefList(child) ? refPropertyName(child) : `${child}${REF_LIST_SUFFIX}`;
+  if (!refs.some(({ definition }) => definition === other)) {
+    return;
+  }
+  console.warn(
+    `[base] \`${instance.$config.name}\` binds \`@on('${child}', …)\`, which matches no component and no ref. The ref is declared \`${other}\`, and \`@on()\` names a ref the way it is declared: write \`@on('${other}', …)\`.`,
   );
 }
 
@@ -1708,16 +1743,20 @@ export class Base<T extends BaseProps = BaseProps> {
       if (target) {
         bindGlobal(target, type, (payload) => handler.call(this, payload));
       } else if (child) {
-        // `child` is the name the decorator was given, so a list ref is named
-        // `dots` here and `dots[]` in the attribute — the entry carries the
-        // declared spelling, which is what `queryRefs()` and the `data-ref`
-        // comparison need.
-        const ref = childNames.includes(child)
-          ? undefined
-          : refs.find(({ name }) => name === child);
+        // `@on()` refers to the entry, so it names a ref the way `config.refs`
+        // and the attribute do — `dots[]`, suffix included. `definition` is
+        // therefore both what is matched and what the entry carries, which is
+        // what `queryRefs()` and the `data-ref` comparison need. The derived
+        // spelling `dots` belongs to `$refs.dots` and `onDotsClick()`, and is
+        // not a second way to write this one.
+        const declaredChild = childNames.includes(child);
+        const ref = declaredChild ? undefined : refs.find(({ definition }) => definition === child);
+        if (!declaredChild && !ref) {
+          warnRefSuffixMismatch(this, child, refs);
+        }
         addDelegated(type, {
           kind: ref ? 'ref' : 'child',
-          name: ref ? ref.definition : child,
+          name: child,
           invoke: (payload: DelegatedEvent | RefEvent) => handler.call(this, payload),
         } as Entry);
       } else {
