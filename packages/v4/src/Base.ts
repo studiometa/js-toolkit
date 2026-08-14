@@ -341,6 +341,13 @@ export interface LifecycleEventDetail {
 export const HANDLER_REGISTRATIONS: unique symbol = Symbol('handler registrations');
 
 export interface HandlerRegistration {
+  /**
+   * Global event target for `@on(window, …)` / `@on(document, …)`, `null` for
+   * everything the component can reach from its own subtree. Recorded as the
+   * target itself rather than as a reserved `child` name, so the string space
+   * stays free for a child or a ref actually called `window`.
+   */
+  target: Window | Document | null;
   /** Child component name for delegated handlers, `null` for own events. */
   child: string | null;
   type: string;
@@ -1403,11 +1410,16 @@ export class Base<T extends BaseProps = BaseProps> {
     };
 
     // Handlers declared with the `@on` decorator: explicit target/type
-    // pairs, so no name parsing and no config lookup to resolve them.
+    // pairs, so no name parsing and no config lookup to resolve them. A
+    // global target goes through the very same `bindGlobal()` the magic
+    // `onWindow<Event>` / `onDocument<Event>` names use, bubble phase and
+    // per-cycle listener included.
     const registrations = this[HANDLER_REGISTRATIONS] ?? [];
     const decorated = new Set(registrations.map(({ handler }) => handler));
-    for (const { child, type, handler } of registrations) {
-      if (child) {
+    for (const { target, child, type, handler } of registrations) {
+      if (target) {
+        bindGlobal(target, type, (payload) => handler.call(this, payload));
+      } else if (child) {
         const kind = refNames.includes(child) && !childNames.includes(child) ? 'ref' : 'child';
         addDelegated(type, {
           kind,

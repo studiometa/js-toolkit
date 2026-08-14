@@ -5,6 +5,7 @@ import {
   type BaseConstructor,
   type ChildrenCollection,
   type DelegatedEvent,
+  type GlobalEvent,
   type HandlerRegistration,
   type WatchChildrenCallbacks,
 } from './Base.js';
@@ -21,7 +22,76 @@ import { registerComponent } from './registry.js';
 // `this: any` keeps the handler assignable whatever the host class is: the
 // decorated method is typed by its own class, which the decorator cannot know.
 type OwnHandler = (this: any, event: Event) => void;
-type ChildHandler<T extends Base = Base> = (this: any, payload: DelegatedEvent<T>) => void;
+type ChildHandler<T extends Base = Base, K extends string = string> = (
+  this: any,
+  payload: DelegatedEvent<T, K>,
+) => void;
+type GlobalHandler<T extends Event = Event> = (this: any, payload: GlobalEvent<T>) => void;
+
+/**
+ * The event a name maps to on a global target — `MouseEvent` for `click`,
+ * `Event` for a custom name the platform's map does not know, so a
+ * `@on(window, 'my-app:ready')` still types rather than collapsing to `any`.
+ */
+type PlatformEvent<M, K extends string> = K extends keyof M
+  ? M[K] extends Event
+    ? M[K]
+    : Event
+  : Event;
+
+/** Everything `@on` accepts as a target. */
+type OnTarget = string | BaseConstructor | typeof window | typeof document;
+
+/**
+ * Split `@on`'s arguments into the record `#bindHandlers()` consumes.
+ *
+ * `window` and `document` are matched **by identity**, so they resolve to the
+ * same binding the reserved `onWindow<Event>` / `onDocument<Event>` names use;
+ * a component class resolves to its `config.name`, which is exactly what the
+ * string form of the same child resolves to. Nothing is encoded into `child`:
+ * the target travels as itself, so no string is reserved and `@on('Window',
+ * 'resize')` keeps meaning a child named `Window`.
+ *
+ * **Any other `EventTarget` is refused** — by the overloads for typed callers,
+ * and here for the untyped path. It is not a gap. A decorator is evaluated
+ * once, at class definition, with no instance and no document: an arbitrary
+ * target can therefore only be a module-scope value shared by every instance
+ * of the class, which is not what a per-mount-cycle listener means. A ref is
+ * already covered by the string form, and anything else is one line in
+ * `mounted()` — `addEventListener` plus the cleanup returned beside it —
+ * scoped to the instance and to the cycle by the machinery that is already
+ * there.
+ */
+function resolveHandlerTarget(
+  target: OnTarget,
+  maybeType?: string,
+): Omit<HandlerRegistration, 'handler'> {
+  if (typeof target === 'string') {
+    // One argument names an own event on the root element; two make the
+    // first argument the child or ref name.
+    return maybeType === undefined
+      ? { target: null, child: null, type: target }
+      : { target: null, child: target, type: maybeType };
+  }
+
+  if (maybeType === undefined) {
+    throw new TypeError('[@on] a target value must be followed by an event type.');
+  }
+
+  if (typeof target === 'function') {
+    const name = target.config?.name;
+    if (typeof name === 'string') {
+      return { target: null, child: name, type: maybeType };
+    }
+  } else if (target === window || target === document) {
+    return { target, child: null, type: maybeType };
+  }
+
+  throw new TypeError(
+    '[@on] the target must be a child name, a component class, `window` or `document`. ' +
+      'Bind any other EventTarget from `mounted()`, where the instance and its cleanup exist.',
+  );
+}
 
 /**
  * A value decorator usable on a plain field or on an `accessor` field: the
@@ -67,7 +137,8 @@ function withInitializer<This extends Base, Value>(
 
 /**
  * Declare an event handler explicitly — a method decorator alternative to
- * the magic `on<Child><Event>` method names:
+ * the magic `on<Child><Event>` method names. The target comes first, as a
+ * name or as the value itself:
  *
  *     class Accordion extends Base {
  *       // Delegated child event: no `config.components` needed to resolve
@@ -75,16 +146,58 @@ function withInitializer<This extends Base, Value>(
  *       @on('AccordionItem', 'open')
  *       autoclose({ target }: DelegatedEvent<AccordionItem>) { … }
  *
+ *       // The same child as a value. The class *is* the type, so `target`
+ *       // and `payload` are typed from it with nothing to annotate.
+ *       @on(AccordionItem, 'open')
+ *       track({ target, payload }) { … }
+ *
+ *       // Global target — the decorator form of `onWindow<Event>` /
+ *       // `onDocument<Event>`, and the very same listener behind it.
+ *       @on(document, 'click')
+ *       close({ event }: GlobalEvent<MouseEvent>) { … }
+ *
  *       // Own event on the root element.
  *       @on('click')
  *       handleClick(event: Event) { … }
  *     }
+ *
+ * Taking the value is what gives the global form a spelling at all: a string
+ * `'window'` would have to be reserved, and would then compete with a ref or
+ * a component genuinely named `window`. Nothing is reserved here, so the
+ * string forms keep their meaning beside the value forms — `@on('Window',
+ * 'resize')` is still a child named `Window` — and a component that is not
+ * imported is still reachable by name, which is what the autoload path and
+ * the bundle size depend on.
+ *
+ * An `EventTarget` that is none of these is rejected; see
+ * `resolveHandlerTarget()` for why, and for the one line that replaces it.
  */
 export function on(
   type: string,
 ): <This extends Base>(
   value: OwnHandler,
   context: ClassMethodDecoratorContext<This, OwnHandler>,
+) => void;
+export function on<K extends string>(
+  target: typeof window,
+  type: K,
+): <This extends Base>(
+  value: GlobalHandler<PlatformEvent<WindowEventMap, K>>,
+  context: ClassMethodDecoratorContext<This, GlobalHandler<PlatformEvent<WindowEventMap, K>>>,
+) => void;
+export function on<K extends string>(
+  target: typeof document,
+  type: K,
+): <This extends Base>(
+  value: GlobalHandler<PlatformEvent<DocumentEventMap, K>>,
+  context: ClassMethodDecoratorContext<This, GlobalHandler<PlatformEvent<DocumentEventMap, K>>>,
+) => void;
+export function on<T extends BaseConstructor, K extends string>(
+  child: T,
+  type: K,
+): <This extends Base>(
+  value: ChildHandler<InstanceType<T>, K>,
+  context: ClassMethodDecoratorContext<This, ChildHandler<InstanceType<T>, K>>,
 ) => void;
 export function on(
   child: string,
@@ -93,15 +206,14 @@ export function on(
   value: ChildHandler<T>,
   context: ClassMethodDecoratorContext<This, ChildHandler<T>>,
 ) => void;
-export function on(childOrType: string, maybeType?: string) {
-  const child = maybeType === undefined ? null : childOrType;
-  const type = maybeType ?? childOrType;
+export function on(target: OnTarget, maybeType?: string) {
+  const registration = resolveHandlerTarget(target, maybeType);
   return function decorate(
     value: HandlerRegistration['handler'],
     context: ClassMethodDecoratorContext<any, any>,
   ): void {
     context.addInitializer(function initialize(this: Base) {
-      (this[HANDLER_REGISTRATIONS] ??= []).push({ child, type, handler: value });
+      (this[HANDLER_REGISTRATIONS] ??= []).push({ ...registration, handler: value });
     });
   };
 }
