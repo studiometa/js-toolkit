@@ -394,17 +394,66 @@ describe('perTarget', () => {
     expect(calls).toEqual(['start:first', 'start:second', 'stop:first', 'stop:second']);
   });
 
-  it('joins the running service rather than reconfiguring it', () => {
+  it('shares one service between two callers asking for the same observation', () => {
     const { calls, use } = makeServices();
     const target = document.createElement('div');
 
-    const first = use(target, 'first').subscribe(() => {});
-    // The second caller's arguments are ignored: the service is already up.
-    const second = use(target, 'second').subscribe(() => {});
+    const first = use(target, 'same').subscribe(() => {});
+    const second = use(target, 'same').subscribe(() => {});
+    expect(use(target, 'same')).toBe(use(target, 'same'));
+    // One start for two subscribers, and the first to leave releases nothing.
     first();
-    expect(calls).toEqual(['start:first']);
+    expect(calls).toEqual(['start:same']);
 
     second();
-    expect(calls).toEqual(['start:first', 'stop:first']);
+    expect(calls).toEqual(['start:same', 'stop:same']);
+  });
+
+  /**
+   * The gap-26 case: keying by the target alone handed the second caller the
+   * first caller's service, so a component asking for a different observation
+   * was silently never told anything.
+   */
+  it('builds a service of its own for a caller whose arguments differ', () => {
+    const { calls, use } = makeServices();
+    const target = document.createElement('div');
+
+    expect(use(target, 'first')).not.toBe(use(target, 'second'));
+
+    const first = use(target, 'first').subscribe(() => {});
+    const second = use(target, 'second').subscribe(() => {});
+    expect(calls).toEqual(['start:first', 'start:second']);
+
+    // Reference counting is per observation too.
+    first();
+    expect(calls).toEqual(['start:first', 'start:second', 'stop:first']);
+    second();
+    expect(calls).toEqual(['start:first', 'start:second', 'stop:first', 'stop:second']);
+  });
+
+  it('keys an options object by its contents, not by its identity', () => {
+    const use = perTarget((_target: Element, options: { threshold: number }) =>
+      createService<number>({ props: () => options.threshold, start: () => () => {} }),
+    );
+    const target = document.createElement('div');
+
+    expect(use(target, { threshold: 0.5 })).toBe(use(target, { threshold: 0.5 }));
+    expect(use(target, { threshold: 0.5 })).not.toBe(use(target, { threshold: 0 }));
+  });
+
+  it('takes a key function for arguments that do not serialise', () => {
+    const use = perTarget(
+      (_target: Element, root: Element) =>
+        createService<Element>({ props: () => root, start: () => () => {} }),
+      (root) => root.id,
+    );
+    const target = document.createElement('div');
+    const a = document.createElement('div');
+    a.id = 'a';
+    const b = document.createElement('div');
+    b.id = 'b';
+
+    expect(use(target, a)).toBe(use(target, a));
+    expect(use(target, a)).not.toBe(use(target, b));
   });
 });
