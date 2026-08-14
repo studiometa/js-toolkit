@@ -22,6 +22,7 @@ import {
   watchBreakpoint,
 } from './responsive-options.js';
 import type { MountStrategy } from './mount-strategies.js';
+import { memo } from './utils/memo.js';
 import { selectorFor } from './utils/selectors.js';
 import { kebabCase, pascalCase } from './utils/strings.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
@@ -948,22 +949,127 @@ function resolveGlobal(rest: string): { target: Window | Document; type: string 
   return null;
 }
 
-function getHandlerNames(instance: Base): Set<string> {
+/**
+ * Every `on<…>` name declared up a class's prototype chain, most derived
+ * first, stopping at `Base` itself.
+ *
+ * **Names only — whether one resolves to a function is asked of the
+ * instance.** A class field can shadow a prototype method with a
+ * non-function, so that question has an instance in its answer and cannot be
+ * settled here; `#bindHandlers()` asks it, per instance, per entry, at the
+ * cost of one `typeof`. What is settled here is the expensive half: the walk,
+ * the `getOwnPropertyNames()` per prototype, and the regex per name.
+ *
+ * Class fields never appear: they are own properties of the instance and this
+ * walks prototypes. An `onClick = () => {}` is not a handler in v4, which is
+ * v3's rule too.
+ */
+function handlerMethodNames(ctor: BaseConstructor): string[] {
   const names = new Set<string>();
-  let proto = Object.getPrototypeOf(instance);
+  let proto: object | null = ctor.prototype;
   while (proto && proto !== Base.prototype) {
     for (const name of Object.getOwnPropertyNames(proto)) {
-      if (
-        REGEX_HANDLER.test(name) &&
-        typeof (instance as unknown as Record<string, unknown>)[name] === 'function'
-      ) {
+      if (REGEX_HANDLER.test(name)) {
         names.add(name);
       }
     }
-    proto = Object.getPrototypeOf(proto);
+    proto = Object.getPrototypeOf(proto) as object | null;
   }
-  return names;
+  return [...names];
 }
+
+/**
+ * One resolved magic handler: which listener to create, and where, for an
+ * `on<…>` method name — everything but the instance to call it on.
+ */
+type HandlerPlanEntry = { method: string; type: string } & (
+  | { kind: 'global'; target: Window | Document }
+  /** The declared child name. */
+  | { kind: 'child'; name: string }
+  /** The **declared** ref, `[]` included: it is what `queryRefs()` takes. */
+  | { kind: 'ref'; name: string }
+  | { kind: 'own' }
+);
+
+interface HandlerPlan {
+  /** Declared child names, longest first. */
+  childNames: string[];
+  /** Declared refs, longest derived name first. */
+  refs: Array<{ name: string; definition: string }>;
+  componentName: string;
+  entries: HandlerPlanEntry[];
+}
+
+/**
+ * What `#bindHandlers()` binds for a class, worked out once for the class.
+ *
+ * `#bindHandlers()` runs on **every** `$mount()`, and under `data-mount` a
+ * component mounts and unmounts as often as it scrolls past. Almost all of
+ * that work reads the class and nothing else: the sorted child names, the
+ * mapped and sorted refs, the prototype scan, and — per handler name — the
+ * global-prefix test, the prefix match against children and refs, and the
+ * `kebabCase()` of what is left. None of it can differ between two instances
+ * of one class, so it is done for the class. What stays per mount is the
+ * closures that call `self[method]` and the `addEventListener()` calls, which
+ * is what a mount actually is.
+ *
+ * **No `clear()`, because nothing can go stale.** The plan is derived from
+ * the prototype chain, which is fixed once the class is defined, and from
+ * `resolveConfig(ctor)`, which is itself cached per constructor and so is
+ * already the same answer for the plan's whole life. A class that gained a
+ * handler after its first mount would need a new prototype, which is a new
+ * class and a new key.
+ */
+const handlerPlan = memo((ctor: BaseConstructor): HandlerPlan => {
+  const config = resolveConfig(ctor);
+  // Longest name first, so `onSliderDragStart` resolves to the declared
+  // `SliderDrag` child, not to `Slider`.
+  const byLength = (a: string, b: string) => b.length - a.length;
+  const childNames = Object.keys(config.components ?? {}).sort(byLength);
+  // `definition` is the declaration — what `config.refs` says, what `@on()`
+  // names, and what the entry carries into delegation. `name` is the derived
+  // spelling, used by `on<Ref><Event>` and by `$refs`; the two differ by the
+  // `[]` of a list ref. Neither is ever namespaced: the namespace is written
+  // on the attribute, never declared, so `isRefOf()` is what reconciles
+  // `Slider.dots[]` in the markup with `dots[]` here.
+  const refs = (config.refs ?? [])
+    .map((definition) => ({ name: refPropertyName(definition), definition }))
+    .sort((a, b) => byLength(a.name, b.name));
+
+  // The global prefixes are matched first because they are reserved; children
+  // are matched before refs, so a name declared as both resolves to the
+  // component.
+  const entries = handlerMethodNames(ctor).map((method): HandlerPlanEntry => {
+    const rest = method.slice(2);
+    const global = resolveGlobal(rest);
+    if (global) {
+      return { kind: 'global', method, type: global.type, target: global.target };
+    }
+    const startsWith = (name: string) =>
+      rest.startsWith(pascalCase(name)) && rest.length > name.length;
+    const childName = childNames.find(startsWith);
+    if (childName) {
+      return {
+        kind: 'child',
+        method,
+        type: kebabCase(rest.slice(childName.length)),
+        name: childName,
+      };
+    }
+    const ref = refs.find(({ name }) => startsWith(name));
+    if (ref) {
+      return {
+        kind: 'ref',
+        method,
+        type: kebabCase(rest.slice(ref.name.length)),
+        name: ref.definition,
+      };
+    }
+    return { kind: 'own', method, type: kebabCase(rest) };
+  });
+
+  return { childNames, refs, componentName: config.name, entries };
+});
 
 /**
  * `mounted()` may return one cleanup, several, nothing — or a promise of
@@ -1775,20 +1881,11 @@ export class Base<T extends BaseProps = BaseProps> {
    */
   #bindHandlers(): void {
     const self = this as unknown as Record<string, (payload: unknown) => void>;
-    // Longest name first, so `onSliderDragStart` resolves to the declared
-    // `SliderDrag` child, not to `Slider`.
-    const byLength = (a: string, b: string) => b.length - a.length;
-    const childNames = Object.keys(this.$config.components ?? {}).sort(byLength);
-    const componentName = this.$config.name;
-    // `definition` is the declaration — what `config.refs` says, what `@on()`
-    // names, and what the entry carries into delegation. `name` is the
-    // derived spelling, used by `on<Ref><Event>` and by `$refs`; the two
-    // differ by the `[]` of a list ref. Neither is ever namespaced: the
-    // namespace is written on the attribute, never declared, so `isRefOf()`
-    // is what reconciles `Slider.dots[]` in the markup with `dots[]` here.
-    const refs = (this.$config.refs ?? [])
-      .map((definition) => ({ name: refPropertyName(definition), definition }))
-      .sort((a, b) => byLength(a.name, b.name));
+    // Everything that reads the class and not the instance, resolved once for
+    // the class: the sorted child names, the mapped refs, and the target and
+    // event type each `on<…>` method name binds to.
+    const plan = handlerPlan(this.constructor as BaseConstructor);
+    const { childNames, refs, componentName } = plan;
 
     type Entry =
       | { kind: 'child'; name: string; invoke: (payload: DelegatedEvent) => void }
@@ -1844,7 +1941,7 @@ export class Base<T extends BaseProps = BaseProps> {
     // `onWindow<Event>` / `onDocument<Event>` names use, bubble phase and
     // per-cycle listener included.
     const registrations = this[HANDLER_REGISTRATIONS] ?? [];
-    const decorated = new Set(registrations.map(({ handler }) => handler));
+    const decorated: Set<unknown> = new Set(registrations.map(({ handler }) => handler));
     for (const { target, child, type, handler } of registrations) {
       if (target) {
         bindGlobal(target, type, (payload) => handler.call(this, payload));
@@ -1871,40 +1968,29 @@ export class Base<T extends BaseProps = BaseProps> {
     }
 
     // Magic `onWindow<Event>` / `onDocument<Event>` / `on<Child><Event>` /
-    // `on<Ref><Event>` / `on<Event>` method names — the no-build path. A
-    // method already bound through a decorator is skipped. The global
-    // prefixes are matched first because they are reserved; children are
-    // matched before refs, so a name declared as both resolves to the
-    // component.
-    for (const method of getHandlerNames(this)) {
-      if (decorated.has(self[method])) {
+    // `on<Ref><Event>` / `on<Event>` method names — the no-build path. Which
+    // one each name is was decided for the class; what is left per instance
+    // is whether it resolves to a function at all, whether a decorator
+    // already claimed it, and the closure that calls it.
+    for (const entry of plan.entries) {
+      const { method, type } = entry;
+      // Read through the instance, deliberately: a class field can shadow a
+      // prototype method with something that is not callable, and the plan
+      // lists the name either way.
+      const handler = self[method] as unknown;
+      if (typeof handler !== 'function' || decorated.has(handler)) {
         continue;
       }
-      const rest = method.slice(2);
-      const global = resolveGlobal(rest);
-      if (global) {
-        bindGlobal(global.target, global.type, (payload) => self[method](payload));
-        continue;
-      }
-      const startsWith = (name: string) =>
-        rest.startsWith(pascalCase(name)) && rest.length > name.length;
-      const childName = childNames.find(startsWith);
-      const ref = childName ? undefined : refs.find(({ name }) => startsWith(name));
-
-      if (childName) {
-        addDelegated(kebabCase(rest.slice(childName.length)), {
-          kind: 'child',
-          name: childName,
-          invoke: (payload) => self[method](payload),
-        });
-      } else if (ref) {
-        addDelegated(kebabCase(rest.slice(ref.name.length)), {
-          kind: 'ref',
-          name: ref.definition,
-          invoke: (payload) => self[method](payload),
-        });
+      if (entry.kind === 'global') {
+        bindGlobal(entry.target, type, (payload) => self[method](payload));
+      } else if (entry.kind === 'own') {
+        bindOwn(type, (event) => self[method](event));
       } else {
-        bindOwn(kebabCase(rest), (event) => self[method](event));
+        addDelegated(type, {
+          kind: entry.kind,
+          name: entry.name,
+          invoke: (payload: DelegatedEvent | RefEvent) => self[method](payload),
+        } as Entry);
       }
     }
 
