@@ -235,8 +235,8 @@ describe('a component declared with a props type parameter', () => {
     document.body.innerHTML = `
       <form data-component="Extensible" data-option-target="here">
         <button data-ref="btn"></button>
-        <span data-ref="items"></span>
-        <span data-ref="items"></span>
+        <span data-ref="items[]"></span>
+        <span data-ref="items[]"></span>
       </form>`;
     await settle();
 

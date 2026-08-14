@@ -510,8 +510,8 @@ describe('$refs', () => {
     const el = document.createElement('div');
     el.innerHTML = `
       <span data-ref="own"></span>
-      <span data-ref="many"></span>
-      <span data-ref="many"></span>
+      <span data-ref="many[]"></span>
+      <span data-ref="many[]"></span>
       <div data-component="Other"><span data-ref="own"></span></div>
     `;
     const instance = new Owner(el).$mount();
@@ -523,36 +523,70 @@ describe('$refs', () => {
   });
 
   /**
-   * REPORT.md gap 11. v3 selected `[data-ref="dots[]"]`; v4 declares the array
-   * in `config.refs` and selects the plain name, so markup carrying the v3
-   * suffix resolves to `[]` and the component silently does nothing. ui has 36
-   * of them, all in test fixtures and documentation examples.
+   * REPORT.md gap 11. The `[]` of a list ref is part of the attribute, not
+   * only of the declaration — v3's spelling, and the one ui's templates,
+   * fixtures and documentation are written in. One spelling, not two: the
+   * unsuffixed attribute is a different ref, and a list definition does not
+   * match it.
    */
-  it('names the element to fix when the markup keeps the v3 [] suffix', () => {
-    class Legacy extends Base {
-      static config = { name: 'Legacy', refs: ['dots[]', 'title'] };
+  it('selects a list ref by its declared name, suffix included', () => {
+    class Dotted extends Base {
+      static config = { name: 'Dotted', refs: ['dots[]'] };
     }
 
     const el = document.createElement('div');
-    el.innerHTML = '<span data-ref="dots[]"></span><span data-ref="dots[]"></span>';
+    el.innerHTML = '<i data-ref="dots[]"></i><i data-ref="dots[]"></i><i data-ref="dots"></i>';
+    const instance = new Dotted(el).$mount();
+
+    expect(instance.$refs.dots).toHaveLength(2);
+    expect(instance.$refs.dots).toEqual([...el.querySelectorAll('[data-ref="dots[]"]')]);
+  });
+
+  it('names the element to fix when a list ref lost its suffix in the markup', () => {
+    class Dropped extends Base {
+      static config = { name: 'Dropped', refs: ['dots[]', 'title[]'] };
+    }
+
+    const el = document.createElement('div');
+    el.innerHTML = '<i data-ref="dots"></i><i data-ref="dots"></i>';
     document.body.append(el);
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const instance = new Legacy(el).$mount();
+    const instance = new Dropped(el).$mount();
 
     expect(instance.$refs.dots).toEqual([]);
     expect(warn).toHaveBeenCalledOnce();
     expect(warn.mock.calls[0][0]).toContain('data-ref="dots[]"');
-    expect(warn.mock.calls[0][0]).toContain('Legacy');
+    expect(warn.mock.calls[0][0]).toContain('Dropped');
 
-    // Once per instance and per name, whatever the read count.
+    // Once per instance and per ref, whatever the read count.
     void instance.$refs.dots;
     void instance.$refs.dots;
     expect(warn).toHaveBeenCalledOnce();
 
-    // A ref that is simply absent says nothing: there is nothing to fix.
-    expect(instance.$refs.title).toBeUndefined();
+    // A list ref that is simply absent says nothing: there is nothing to fix.
+    expect(instance.$refs.title).toEqual([]);
     expect(warn).toHaveBeenCalledOnce();
     warn.mockRestore();
+  });
+
+  it('delegates on<Ref><Event> to a list ref through its suffixed attribute', async () => {
+    const seen: number[] = [];
+
+    class Tabs extends Base {
+      static config = { name: 'RefSuffixTabs', refs: ['tab[]'] };
+      onTabClick({ index }: RefEvent) {
+        seen.push(index);
+      }
+    }
+
+    const el = document.createElement('div');
+    el.innerHTML = '<button data-ref="tab[]">a</button><button data-ref="tab[]">b</button>';
+    document.body.append(el);
+    new Tabs(el).$mount();
+
+    el.querySelectorAll('button')[1].click();
+    await settle();
+    expect(seen).toEqual([1]);
   });
 
   it('stays live when the markup is replaced', async () => {
@@ -561,14 +595,14 @@ describe('$refs', () => {
     }
 
     const el = document.createElement('div');
-    el.innerHTML = '<h1 data-ref="title">before</h1><span data-ref="items"></span>';
+    el.innerHTML = '<h1 data-ref="title">before</h1><span data-ref="items[]"></span>';
     const instance = new Swapped(el).$mount();
     expect((instance.$refs.title as HTMLElement).textContent).toBe('before');
     expect(instance.$refs.items).toHaveLength(1);
 
     // A Fetch-style swap: brand new elements, no $update() call.
     el.innerHTML =
-      '<h1 data-ref="title">after</h1><span data-ref="items"></span><span data-ref="items"></span>';
+      '<h1 data-ref="title">after</h1><span data-ref="items[]"></span><span data-ref="items[]"></span>';
     expect((instance.$refs.title as HTMLElement).textContent).toBe('after');
     expect(instance.$refs.title).toBe(el.querySelector('[data-ref="title"]'));
     expect(instance.$refs.items).toHaveLength(2);
@@ -632,8 +666,8 @@ describe('on<Ref><Event> handlers', () => {
     const el = document.createElement('div');
     el.innerHTML = `
       <input data-ref="input" />
-      <button data-ref="buttons">a</button>
-      <button data-ref="buttons">b</button>
+      <button data-ref="buttons[]">a</button>
+      <button data-ref="buttons[]">b</button>
     `;
     document.body.append(el);
     return { el, instance: new Form(el).$mount() };
@@ -668,7 +702,7 @@ describe('on<Ref><Event> handlers', () => {
     const { el, instance } = render();
 
     const added = document.createElement('button');
-    added.setAttribute('data-ref', 'buttons');
+    added.setAttribute('data-ref', 'buttons[]');
     el.append(added);
     added.click();
     // Third button, no rebinding needed.
@@ -680,7 +714,7 @@ describe('on<Ref><Event> handlers', () => {
 
     const nested = document.createElement('div');
     nested.setAttribute('data-component', 'Other');
-    nested.innerHTML = '<button data-ref="buttons">nested</button>';
+    nested.innerHTML = '<button data-ref="buttons[]">nested</button>';
     el.append(nested);
     nested.querySelector('button')?.click();
     expect(instance.pressed).toEqual([]);

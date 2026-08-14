@@ -422,39 +422,66 @@ function belongsTo(el: Element, root: Element): boolean {
 }
 
 /**
- * The elements currently declaring `data-ref="<name>"` inside a component,
- * skipping those owned by a nested component.
+ * The suffix that declares a ref as a list.
+ *
+ * **It is part of the attribute, not only of the declaration.**
+ * `config.refs: ['dots[]']` selects `[data-ref="dots[]"]`, and the property is
+ * `$refs.dots`. This is v3's spelling (`RefsManager.__register()`), kept
+ * because it is the one ui's templates, fixtures and documentation are
+ * written in, and because the suffix says in the markup what the markup
+ * actually is: one of several, rather than the only one.
+ *
+ * One spelling, not two: a list definition matches the suffixed attribute and
+ * nothing else, exactly as in v3.
  */
-function queryRefs(root: HTMLElement, name: string): HTMLElement[] {
-  return [...root.querySelectorAll<HTMLElement>(`[data-ref="${name}"]`)].filter((el) =>
+const REF_LIST_SUFFIX = '[]';
+
+function isRefList(definition: string): boolean {
+  return definition.endsWith(REF_LIST_SUFFIX);
+}
+
+/** The name a `config.refs` entry takes in `$refs`, and in `on<Ref><Event>`. */
+function refPropertyName(definition: string): string {
+  return isRefList(definition) ? definition.slice(0, -REF_LIST_SUFFIX.length) : definition;
+}
+
+/**
+ * The elements currently declaring `data-ref="<definition>"` inside a
+ * component, skipping those owned by a nested component.
+ *
+ * The parameter is the **declared** name, suffix included — the attribute is
+ * spelled the way `config.refs` spells it.
+ */
+function queryRefs(root: HTMLElement, definition: string): HTMLElement[] {
+  return [...root.querySelectorAll<HTMLElement>(`[data-ref="${definition}"]`)].filter((el) =>
     belongsTo(el, root),
   );
 }
 
 /**
- * Say so when a ref resolves to nothing and the v3 spelling of it is sitting
- * right there in the markup.
+ * Say so when a list ref resolves to nothing and the unsuffixed spelling is
+ * sitting right there in the markup.
  *
- * v3 selected `[data-ref="dots[]"]` for `config.refs: ['dots[]']`; v4 declares
- * the array in the config and selects the plain name. The markup change is a
- * template edit rather than a code one, and it fails **silently** — the ref
- * resolves to `[]` and the component simply does nothing (REPORT.md gap 11).
- * This turns that into one console warning naming the element to fix.
+ * The suffix is easy to leave out of the attribute once it has been written in
+ * the config, and the failure is silent: the ref resolves to `[]` and the
+ * component simply does nothing. This turns that into one console warning
+ * naming the element to fix.
  *
- * Checked once per instance and per name, and only when the ref found nothing,
+ * Checked once per instance and per ref, and only when the ref found nothing,
  * so correct markup never pays for it and broken markup pays one
  * `querySelector` in total.
  */
-function warnLegacyRefSuffix(instance: Base, name: string, checked: Set<string>): void {
-  if (checked.has(name)) {
+function warnMissingRefSuffix(instance: Base, definition: string, checked: Set<string>): void {
+  if (checked.has(definition)) {
     return;
   }
-  checked.add(name);
-  if (!instance.$el.querySelector(`[data-ref="${name}[]"]`)) {
+  checked.add(definition);
+  const name = refPropertyName(definition);
+  if (!instance.$el.querySelector(`[data-ref="${name}"]`)) {
     return;
   }
   console.warn(
-    `[base] \`${instance.$config.name}\` found no \`data-ref="${name}"\`, but the markup declares \`data-ref="${name}[]"\`. v4 declares the array in \`config.refs\` and selects the plain name: drop the \`[]\` from the attribute.`,
+    `[base] \`${instance.$config.name}\` declares \`${definition}\` and found no \`data-ref="${definition}"\`, but the markup declares \`data-ref="${name}"\`. A list ref carries the \`[]\` in the attribute too: add it, or drop it from \`config.refs\`.`,
   );
 }
 
@@ -467,15 +494,16 @@ function warnLegacyRefSuffix(instance: Base, name: string, checked: Set<string>)
  * refresh and no `$update()` to call: the DOM is the source of truth, the
  * same way the registry treats it for components.
  *
- * A name declared as `name[]` always yields an array; a plain name yields
+ * A name declared as `name[]` selects `data-ref="name[]"` and always yields an
+ * array under `$refs.name`; a plain name selects `data-ref="name"` and yields
  * the first match.
  */
 function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> {
   const refs: Record<string, HTMLElement | HTMLElement[]> = {};
   const checked = new Set<string>();
   for (const definition of instance.$config.refs ?? []) {
-    const isList = definition.endsWith('[]');
-    const name = isList ? definition.slice(0, -2) : definition;
+    const isList = isRefList(definition);
+    const name = refPropertyName(definition);
     // Re-querying on every access is what keeps refs live, and it is the
     // one place v4 was measurably slower than v3's mount-time snapshot.
     // The lookup is cached against the document version instead: still
@@ -493,14 +521,14 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
           const version = domVersion();
           if (version !== cachedVersion) {
             cachedVersion = version;
-            cached = queryRefs(instance.$el, name);
+            cached = queryRefs(instance.$el, definition);
           }
           elements = cached;
         } else {
-          elements = queryRefs(instance.$el, name);
+          elements = queryRefs(instance.$el, definition);
         }
-        if (elements.length === 0) {
-          warnLegacyRefSuffix(instance, name, checked);
+        if (isList && elements.length === 0) {
+          warnMissingRefSuffix(instance, definition, checked);
         }
         return isList ? elements : elements[0];
       },
@@ -1497,12 +1525,17 @@ export class Base<T extends BaseProps = BaseProps> {
     // `SliderDrag` child, not to `Slider`.
     const byLength = (a: string, b: string) => b.length - a.length;
     const childNames = Object.keys(this.$config.components ?? {}).sort(byLength);
-    const refNames = (this.$config.refs ?? [])
-      .map((definition) => (definition.endsWith('[]') ? definition.slice(0, -2) : definition))
-      .sort(byLength);
+    // Two spellings of one ref: `name` is what `on<Ref><Event>` and `@on()`
+    // name it, `definition` is what the attribute says — they differ by the
+    // `[]` of a list ref, which the markup carries too.
+    const refs = (this.$config.refs ?? [])
+      .map((definition) => ({ name: refPropertyName(definition), definition }))
+      .sort((a, b) => byLength(a.name, b.name));
 
     type Entry =
       | { kind: 'child'; name: string; invoke: (payload: DelegatedEvent) => void }
+      // `name` here is the **declared** ref, suffix included: it is compared
+      // against the `data-ref` attribute and handed to `queryRefs()`.
       | { kind: 'ref'; name: string; invoke: (payload: RefEvent) => void };
     const delegated = new Map<string, Entry[]>();
     const addDelegated = (type: string, entry: Entry) => {
@@ -1553,10 +1586,12 @@ export class Base<T extends BaseProps = BaseProps> {
     const decorated = new Set(registrations.map(({ handler }) => handler));
     for (const { child, type, handler } of registrations) {
       if (child) {
-        const kind = refNames.includes(child) && !childNames.includes(child) ? 'ref' : 'child';
+        const ref = childNames.includes(child)
+          ? undefined
+          : refs.find(({ name }) => name === child);
         addDelegated(type, {
-          kind,
-          name: child,
+          kind: ref ? 'ref' : 'child',
+          name: ref ? ref.definition : child,
           invoke: (payload: DelegatedEvent | RefEvent) => handler.call(this, payload),
         } as Entry);
       } else {
@@ -1583,7 +1618,7 @@ export class Base<T extends BaseProps = BaseProps> {
       const startsWith = (name: string) =>
         rest.startsWith(pascalCase(name)) && rest.length > name.length;
       const childName = childNames.find(startsWith);
-      const refName = childName ? undefined : refNames.find(startsWith);
+      const ref = childName ? undefined : refs.find(({ name }) => startsWith(name));
 
       if (childName) {
         addDelegated(kebabCase(rest.slice(childName.length)), {
@@ -1591,10 +1626,10 @@ export class Base<T extends BaseProps = BaseProps> {
           name: childName,
           invoke: (payload) => self[method](payload),
         });
-      } else if (refName) {
-        addDelegated(kebabCase(rest.slice(refName.length)), {
+      } else if (ref) {
+        addDelegated(kebabCase(rest.slice(ref.name.length)), {
           kind: 'ref',
-          name: refName,
+          name: ref.definition,
           invoke: (payload) => self[method](payload),
         });
       } else {
