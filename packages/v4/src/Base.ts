@@ -201,7 +201,26 @@ const CAPTURED_EVENTS = new Set([
 export interface BaseProps {
   $el?: HTMLElement;
   $refs?: Record<string, HTMLElement | HTMLElement[]>;
-  $options?: Record<string, unknown>;
+  /**
+   * `object` rather than `Record<string, unknown>`, and the reason is
+   * REPORT.md gap 14: an interface has no implicit index signature, so an
+   * option set **named** to be shared between two components —
+   * `interface SliderOptions { … }` — failed the constraint, with an error
+   * pointing at the props type rather than at the interface. It bit exactly
+   * when naming the set was worth doing.
+   *
+   * Nothing is lost by relaxing it. The constraint rejected no option value:
+   * they are `unknown`. `Options<T>` intersects `Record<string, unknown>` back
+   * in, so an undeclared option still reads as `unknown` and a declared one
+   * keeps its exact type.
+   *
+   * `$refs` and `$emits` keep their stricter constraints, because those do
+   * reject something — a ref that is not an element, an event payload that is
+   * not an object — and a named interface for either is still written as
+   * `type MyProps = BaseProps & { $refs: MyRefs }`. The intersection form
+   * accepts an interface where `interface MyProps extends BaseProps` cannot.
+   */
+  $options?: object;
   $emits?: EmitMap;
 }
 
