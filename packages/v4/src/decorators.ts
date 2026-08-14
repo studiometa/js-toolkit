@@ -7,6 +7,8 @@ import {
   type DelegatedEvent,
   type GlobalEvent,
   type HandlerRegistration,
+  type RefEvent,
+  resolveConfig,
   type WatchChildrenCallbacks,
 } from './Base.js';
 import type { ContextKey } from './context.js';
@@ -26,6 +28,7 @@ type ChildHandler<T extends Base = Base, K extends string = string> = (
   this: any,
   payload: DelegatedEvent<T, K>,
 ) => void;
+type RefHandler<T extends HTMLElement = HTMLElement> = (this: any, payload: RefEvent<T>) => void;
 type GlobalHandler<T extends Event = Event> = (this: any, payload: GlobalEvent<T>) => void;
 
 /**
@@ -46,11 +49,19 @@ type OnTarget = string | BaseConstructor | typeof window | typeof document;
  * Split `@on`'s arguments into the record `#bindHandlers()` consumes.
  *
  * `window` and `document` are matched **by identity**, so they resolve to the
- * same binding the reserved `onWindow<Event>` / `onDocument<Event>` names use;
- * a component class resolves to its `config.name`, which is exactly what the
- * string form of the same child resolves to. Nothing is encoded into `child`:
- * the target travels as itself, so no string is reserved and `@on('Window',
- * 'resize')` keeps meaning a child named `Window`.
+ * same binding the reserved `onWindow<Event>` / `onDocument<Event>` names use.
+ * Nothing is encoded into `child`: the target travels as itself, so no string
+ * is reserved and `@on('Window', 'resize')` keeps meaning a child named
+ * `Window`.
+ *
+ * A component class resolves through `resolveConfig()` rather than through its
+ * own `config.name`. The merged config is what the instance mounts under, so
+ * it is by definition the key the delegation walk looks up on `el.__base__`;
+ * the class's own `config.name` only happens to agree, because `BaseConfig`
+ * makes `name` required and the most derived declaration wins. Reading the
+ * merged config makes the class form resolve to the mount identity by
+ * construction instead of by coincidence, and it is the same cached lookup
+ * `$config` performs.
  *
  * **Any other `EventTarget` is refused** — by the overloads for typed callers,
  * and here for the untyped path. It is not a gap. A decorator is evaluated
@@ -79,9 +90,11 @@ function resolveHandlerTarget(
   }
 
   if (typeof target === 'function') {
-    const name = target.config?.name;
-    if (typeof name === 'string') {
-      return { target: null, child: name, type: maybeType };
+    // `Base` gives every component class a static `config`, so its presence is
+    // what tells a component class from any other function.
+    const { config } = target;
+    if (config !== null && typeof config === 'object') {
+      return { target: null, child: resolveConfig(target).name, type: maybeType };
     }
   } else if (target === window || target === document) {
     return { target, child: null, type: maybeType };
@@ -199,12 +212,17 @@ export function on<T extends BaseConstructor, K extends string>(
   value: ChildHandler<InstanceType<T>, K>,
   context: ClassMethodDecoratorContext<This, ChildHandler<InstanceType<T>, K>>,
 ) => void;
+/**
+ * A name is a child **or** a ref — `#bindHandlers()` resolves either, children
+ * first — and only the author knows which, so the handler is typed as either.
+ * The class form has no such doubt: a class can only be a child.
+ */
 export function on(
   child: string,
   type: string,
-): <T extends Base, This extends Base>(
-  value: ChildHandler<T>,
-  context: ClassMethodDecoratorContext<This, ChildHandler<T>>,
+): <T extends Base, E extends HTMLElement, This extends Base>(
+  value: ChildHandler<T> | RefHandler<E>,
+  context: ClassMethodDecoratorContext<This, ChildHandler<T> | RefHandler<E>>,
 ) => void;
 export function on(target: OnTarget, maybeType?: string) {
   const registration = resolveHandlerTarget(target, maybeType);

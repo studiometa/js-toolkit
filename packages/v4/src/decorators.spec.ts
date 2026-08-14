@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, expectTypeOf, it } from 'vitest';
-import { Base, type ChildrenCollection, type DelegatedEvent, type GlobalEvent } from './Base.js';
+import {
+  Base,
+  type ChildrenCollection,
+  type DelegatedEvent,
+  type GlobalEvent,
+  type RefEvent,
+} from './Base.js';
 import { createContext, signal, type Signal } from './context.js';
 import { children, component, inject, on, provide, read, write } from './decorators.js';
 import { registerComponents } from './registry.js';
@@ -107,7 +113,58 @@ class GlobalNames extends Base {
   }
 }
 
-registerComponents(DecoParent, DecoChild, GlobalNames, WindowChild);
+/**
+ * A list ref is declared and spelled `dots[]` in the markup, but every handler
+ * form names it `dots` — the decorator included.
+ */
+@component({ name: 'DotList', refs: ['dots[]'] })
+class DotList extends Base {
+  clicked: number[] = [];
+
+  @on('dots', 'click')
+  trackDot({ index }: RefEvent): void {
+    this.clicked.push(index);
+  }
+}
+
+@component({ name: 'BaseKind' })
+class BaseKind extends Base {}
+
+/**
+ * A subclass declaring its own `static config`. It mounts under its own name,
+ * so `@on(SubKind, …)` must resolve to `SubKind` and not to what it extends —
+ * the merged config is what says so.
+ */
+@component({ name: 'SubKind' })
+class SubKind extends BaseKind {}
+
+@component({ name: 'SubTargetParent' })
+class SubTargetParent extends Base {
+  seen: Array<DelegatedEvent<SubKind, 'ping'>> = [];
+
+  base: Array<DelegatedEvent<BaseKind, 'ping'>> = [];
+
+  @on(SubKind, 'ping')
+  trackSub(payload: DelegatedEvent<SubKind, 'ping'>): void {
+    this.seen.push(payload);
+  }
+
+  @on(BaseKind, 'ping')
+  trackBase(payload: DelegatedEvent<BaseKind, 'ping'>): void {
+    this.base.push(payload);
+  }
+}
+
+registerComponents(
+  DecoParent,
+  DecoChild,
+  GlobalNames,
+  WindowChild,
+  DotList,
+  SubTargetParent,
+  BaseKind,
+  SubKind,
+);
 
 /* ------------------------------------------------------------------------ *
  * `@on`'s overloads, asserted at compile time. Nothing below runs — the
@@ -298,6 +355,46 @@ describe('@on', () => {
     childEl.dispatchEvent(new Event('resize', { bubbles: true }));
     expect(parent.childResizes).toHaveLength(1);
     expect(parent.childResizes[0].target).toBe(child);
+  });
+
+  it('names a list ref without its [] suffix, like every other handler form', async () => {
+    const root = document.createElement('div');
+    root.setAttribute('data-component', 'DotList');
+    // The attribute carries the suffix; the decorator does not.
+    root.innerHTML = '<i data-ref="dots[]"></i><i data-ref="dots[]"></i>';
+    document.body.append(root);
+    await settle();
+
+    const instance = getInstance<DotList>(root, 'DotList');
+    (root.querySelectorAll('i')[1] as HTMLElement).click();
+    expect(instance.clicked).toEqual([1]);
+  });
+
+  it('resolves a subclass to the name it mounts under, not to its parent', async () => {
+    const root = document.createElement('div');
+    root.setAttribute('data-component', 'SubTargetParent');
+    root.innerHTML = '<div data-component="SubKind"></div><div data-component="BaseKind"></div>';
+    document.body.append(root);
+    await settle();
+
+    const parent = getInstance<SubTargetParent>(root, 'SubTargetParent');
+    const sub = getInstance<SubKind>(root.querySelector('[data-component="SubKind"]'), 'SubKind');
+    const base = getInstance<BaseKind>(
+      root.querySelector('[data-component="BaseKind"]'),
+      'BaseKind',
+    );
+
+    sub.$emit('ping');
+    expect(parent.seen).toHaveLength(1);
+    expect(parent.seen[0].target).toBe(sub);
+    // The parent class resolves to its own name, so the subclass's event is
+    // not also delivered there.
+    expect(parent.base).toHaveLength(0);
+
+    base.$emit('ping');
+    expect(parent.base).toHaveLength(1);
+    expect(parent.base[0].target).toBe(base);
+    expect(parent.seen).toHaveLength(1);
   });
 
   it('rejects an EventTarget that is neither a global nor a component class', () => {

@@ -401,4 +401,17 @@ describe('useDrag', () => {
     grab(el, 0, 0);
     expect(calls).toBe(1);
   });
+
+  /**
+   * The live half of REPORT.md gap 26: two components dragging the same
+   * element with different options used to share the first caller's service,
+   * so the second one silently got a damping and a threshold it never asked
+   * for.
+   */
+  it('gives two callers with different options a service each', () => {
+    const el = render();
+    expect(useDrag(el, { dampFactor: 0.1 })).toBe(useDrag(el, { dampFactor: 0.1 }));
+    expect(useDrag(el, { dampFactor: 0.1 })).not.toBe(useDrag(el, { dampFactor: 0.5 }));
+    expect(useDrag(el, { dragThreshold: 4 })).not.toBe(useDrag(el));
+  });
 });

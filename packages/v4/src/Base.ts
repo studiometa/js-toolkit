@@ -187,7 +187,26 @@ const CAPTURED_EVENTS = new Set([
 export interface BaseProps {
   $el?: HTMLElement;
   $refs?: Record<string, HTMLElement | HTMLElement[]>;
-  $options?: Record<string, unknown>;
+  /**
+   * `object` rather than `Record<string, unknown>`, and the reason is
+   * REPORT.md gap 14: an interface has no implicit index signature, so an
+   * option set **named** to be shared between two components —
+   * `interface SliderOptions { … }` — failed the constraint, with an error
+   * pointing at the props type rather than at the interface. It bit exactly
+   * when naming the set was worth doing.
+   *
+   * Nothing is lost by relaxing it. The constraint rejected no option value:
+   * they are `unknown`. `Options<T>` intersects `Record<string, unknown>` back
+   * in, so an undeclared option still reads as `unknown` and a declared one
+   * keeps its exact type.
+   *
+   * `$refs` and `$emits` keep their stricter constraints, because those do
+   * reject something — a ref that is not an element, an event payload that is
+   * not an object — and a named interface for either is still written as
+   * `type MyProps = BaseProps & { $refs: MyRefs }`. The intersection form
+   * accepts an interface where `interface MyProps extends BaseProps` cannot.
+   */
+  $options?: object;
   $emits?: EmitMap;
 }
 
@@ -348,7 +367,11 @@ export interface HandlerRegistration {
    * stays free for a child or a ref actually called `window`.
    */
   target: Window | Document | null;
-  /** Child component name for delegated handlers, `null` for own events. */
+  /**
+   * Child component name — or ref name, spelled without a list ref's `[]`,
+   * the way every handler form names it — for delegated handlers. `null` for
+   * own events.
+   */
   child: string | null;
   type: string;
   handler: (this: any, payload: any) => void;
@@ -396,12 +419,66 @@ function belongsTo(el: Element, root: Element): boolean {
 }
 
 /**
- * The elements currently declaring `data-ref="<name>"` inside a component,
- * skipping those owned by a nested component.
+ * The suffix that declares a ref as a list.
+ *
+ * **It is part of the attribute, not only of the declaration.**
+ * `config.refs: ['dots[]']` selects `[data-ref="dots[]"]`, and the property is
+ * `$refs.dots`. This is v3's spelling (`RefsManager.__register()`), kept
+ * because it is the one ui's templates, fixtures and documentation are
+ * written in, and because the suffix says in the markup what the markup
+ * actually is: one of several, rather than the only one.
+ *
+ * One spelling, not two: a list definition matches the suffixed attribute and
+ * nothing else, exactly as in v3.
  */
-function queryRefs(root: HTMLElement, name: string): HTMLElement[] {
-  return [...root.querySelectorAll<HTMLElement>(`[data-ref="${name}"]`)].filter((el) =>
+const REF_LIST_SUFFIX = '[]';
+
+function isRefList(definition: string): boolean {
+  return definition.endsWith(REF_LIST_SUFFIX);
+}
+
+/** The name a `config.refs` entry takes in `$refs`, and in `on<Ref><Event>`. */
+function refPropertyName(definition: string): string {
+  return isRefList(definition) ? definition.slice(0, -REF_LIST_SUFFIX.length) : definition;
+}
+
+/**
+ * The elements currently declaring `data-ref="<definition>"` inside a
+ * component, skipping those owned by a nested component.
+ *
+ * The parameter is the **declared** name, suffix included — the attribute is
+ * spelled the way `config.refs` spells it.
+ */
+function queryRefs(root: HTMLElement, definition: string): HTMLElement[] {
+  return [...root.querySelectorAll<HTMLElement>(`[data-ref="${definition}"]`)].filter((el) =>
     belongsTo(el, root),
+  );
+}
+
+/**
+ * Say so when a list ref resolves to nothing and the unsuffixed spelling is
+ * sitting right there in the markup.
+ *
+ * The suffix is easy to leave out of the attribute once it has been written in
+ * the config, and the failure is silent: the ref resolves to `[]` and the
+ * component simply does nothing. This turns that into one console warning
+ * naming the element to fix.
+ *
+ * Checked once per instance and per ref, and only when the ref found nothing,
+ * so correct markup never pays for it and broken markup pays one
+ * `querySelector` in total.
+ */
+function warnMissingRefSuffix(instance: Base, definition: string, checked: Set<string>): void {
+  if (checked.has(definition)) {
+    return;
+  }
+  checked.add(definition);
+  const name = refPropertyName(definition);
+  if (!instance.$el.querySelector(`[data-ref="${name}"]`)) {
+    return;
+  }
+  console.warn(
+    `[base] \`${instance.$config.name}\` declares \`${definition}\` and found no \`data-ref="${definition}"\`, but the markup declares \`data-ref="${name}"\`. A list ref carries the \`[]\` in the attribute too: add it, or drop it from \`config.refs\`.`,
   );
 }
 
@@ -414,14 +491,16 @@ function queryRefs(root: HTMLElement, name: string): HTMLElement[] {
  * refresh and no `$update()` to call: the DOM is the source of truth, the
  * same way the registry treats it for components.
  *
- * A name declared as `name[]` always yields an array; a plain name yields
+ * A name declared as `name[]` selects `data-ref="name[]"` and always yields an
+ * array under `$refs.name`; a plain name selects `data-ref="name"` and yields
  * the first match.
  */
 function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> {
   const refs: Record<string, HTMLElement | HTMLElement[]> = {};
+  const checked = new Set<string>();
   for (const definition of instance.$config.refs ?? []) {
-    const isList = definition.endsWith('[]');
-    const name = isList ? definition.slice(0, -2) : definition;
+    const isList = isRefList(definition);
+    const name = refPropertyName(definition);
     // Re-querying on every access is what keeps refs live, and it is the
     // one place v4 was measurably slower than v3's mount-time snapshot.
     // The lookup is cached against the document version instead: still
@@ -432,18 +511,23 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
     Object.defineProperty(refs, name, {
       enumerable: true,
       get() {
+        let elements: HTMLElement[];
         // A detached subtree produces no mutation records, so nothing
         // would ever invalidate a cache built from it.
-        if (!instance.$el.isConnected) {
-          const elements = queryRefs(instance.$el, name);
-          return isList ? elements : elements[0];
+        if (instance.$el.isConnected) {
+          const version = domVersion();
+          if (version !== cachedVersion) {
+            cachedVersion = version;
+            cached = queryRefs(instance.$el, definition);
+          }
+          elements = cached;
+        } else {
+          elements = queryRefs(instance.$el, definition);
         }
-        const version = domVersion();
-        if (version !== cachedVersion) {
-          cachedVersion = version;
-          cached = queryRefs(instance.$el, name);
+        if (isList && elements.length === 0) {
+          warnMissingRefSuffix(instance, definition, checked);
         }
-        return isList ? cached : cached[0];
+        return isList ? elements : elements[0];
       },
     });
   }
@@ -458,6 +542,12 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
  * instance**, not to the class: each one is built once per instance and kept,
  * which is what makes `this.$options.list.push(x)` persist and what stops two
  * components from sharing — and corrupting — the same defaulted object.
+ *
+ * That is what the contract buys: **a primitive may be a default, anything
+ * else needs a factory.** A factory is called once per instance, and an
+ * `Array`/`Object` option with no declared default gets an empty one per
+ * instance for the same reason. A literal is neither: it lives on the class,
+ * so it is warned about rather than repaired.
  */
 interface OptionReader {
   attribute: string;
@@ -465,6 +555,44 @@ interface OptionReader {
 }
 
 const optionReaders = new WeakMap<Base, Map<string, OptionReader>>();
+
+/**
+ * Definitions already reported by {@link warnLiteralDefault}, so the message
+ * belongs to the declaration rather than to the instance reading it: the
+ * definition object is the one the class declared, shared by every instance of
+ * it, and by every subclass that inherits it through `resolveConfig()`.
+ */
+const reportedLiteralDefaults = new WeakSet<object>();
+
+/**
+ * Say so when a default is a literal object or array.
+ *
+ * **The contract is that a primitive may be a default, and anything else needs
+ * a factory.** A literal lives on the class, so every instance would read — and
+ * mutate — the same object. `TypedOptionDefinition` refuses it at the type
+ * level, which settles it for anyone with a build step; this is the same rule
+ * said out loud for the no-build path, which never sees a type.
+ *
+ * Core does not repair it. Copying the literal made an unsupported declaration
+ * appear to work, and a shallow copy made it appear to work only one level
+ * deep, which is worse: the value is handed over exactly as declared, and the
+ * warning says what to write instead.
+ */
+function warnLiteralDefault(
+  componentName: string,
+  option: string,
+  definition: object,
+  declared: object,
+): void {
+  if (reportedLiteralDefaults.has(definition)) {
+    return;
+  }
+  reportedLiteralDefaults.add(definition);
+  const kind = Array.isArray(declared) ? 'array' : 'object';
+  console.warn(
+    `[base] \`${componentName}\` declares option \`${option}\` with a literal ${kind} default, which every instance of it then shares. Only a primitive may be a default; declare this one as a factory: \`default: () => (…)\`.`,
+  );
+}
 
 function buildOptions(instance: Base): Record<string, unknown> {
   const options: Record<string, unknown> = {};
@@ -475,6 +603,10 @@ function buildOptions(instance: Base): Record<string, unknown> {
     const type = typeof definition === 'function' ? definition : definition.type;
     const declared = typeof definition === 'function' ? undefined : definition.default;
     const attribute = `data-option-${kebabCase(name)}`;
+
+    if (typeof definition !== 'function' && declared !== null && typeof declared === 'object') {
+      warnLiteralDefault(instance.$config.name, name, definition, declared);
+    }
 
     // Built on first read and memoised, so repeated reads hand back the same
     // object and a mutation of it sticks — for this instance only.
@@ -492,13 +624,10 @@ function buildOptions(instance: Base): Record<string, unknown> {
       if (typeof declared === 'function') {
         return (declared as () => unknown)();
       }
-      if (declared !== null && typeof declared === 'object') {
-        // The types ask for a factory here; the no-build path has no types,
-        // so a literal object or array is copied rather than shared.
-        return Array.isArray(declared)
-          ? [...declared]
-          : { ...(declared as Record<string, unknown>) };
-      }
+      // Anything else is handed over as declared — including a literal object
+      // or array, which the contract does not allow and `warnLiteralDefault()`
+      // has already reported. Copying it here would repair a declaration the
+      // contract rejects, and make an unsupported form look supported.
       if (declared !== undefined) {
         return declared;
       }
@@ -548,10 +677,15 @@ const resolvedConfigs = new WeakMap<BaseConstructor, BaseConfig>();
  * so extending a component never silently drops what the parent declared.
  *
  * `refs`, `options` and `components` merge (v3 merged only `options`, which
- * is what issue #627 reports); scalar keys such as `name` are overridden by
- * the most derived class. The result is cached per constructor.
+ * is what issue #627 reports); scalar keys such as `name` and `mountStrategy`
+ * are overridden by the most derived class **that declares one**, which is
+ * what the spread does — a subclass restating `name` and nothing else keeps
+ * its parent's strategy. The result is cached per constructor.
+ *
+ * Exported because the registry resolves a mount strategy before any instance
+ * exists, so it cannot go through `$config`.
  */
-function resolveConfig(ctor: BaseConstructor): BaseConfig {
+export function resolveConfig(ctor: BaseConstructor): BaseConfig {
   const cached = resolvedConfigs.get(ctor);
   if (cached) {
     return cached;
@@ -760,9 +894,9 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Unmount the instance — the reversible inverse of `$mount()`. Removes the
-   * per-cycle listeners, leaves the services, runs the `mounted()` cleanups,
-   * cancels pending scheduler tasks and calls the `destroyed()` hook. The
-   * instance stays on its element and can mount again.
+   * per-cycle listeners, leaves the services, cancels the scheduler tasks the
+   * cycle left pending, runs the `mounted()` cleanups and calls the
+   * `destroyed()` hook. The instance stays on its element and can mount again.
    */
   $destroy(): this {
     if (!this.#isMounted) {
@@ -773,6 +907,22 @@ export class Base<T extends BaseProps = BaseProps> {
       target.removeEventListener(type, listener, capture);
     }
     this.#listeners = [];
+    // Before the cleanups, not after. What is cancelled here is the work the
+    // mount cycle left in flight — a `$write()` scheduled by a rAF subscriber
+    // that is about to be released. Cancelling afterwards also took the work
+    // the teardown itself scheduled, so "reset my styles on the way out",
+    // written the only way the framework offers, never ran.
+    //
+    // The set is emptied first so `#track()` can refill it: a task queued from
+    // a cleanup, from `destroyed()` or from an option effect's teardown belongs
+    // to nobody's cycle and runs on its own. It is no longer cancelled by a
+    // later `$destroy()` either, since this instance is already unmounted and
+    // the guard above returns early.
+    const pending = this.#tasks;
+    this.#tasks = new Set();
+    for (const task of pending) {
+      task.cancel();
+    }
     const callbacks = this.#destroyCallbacks;
     this.#destroyCallbacks = [];
     for (const callback of callbacks) {
@@ -783,10 +933,6 @@ export class Base<T extends BaseProps = BaseProps> {
       }
     }
     this.#clearOptionEffects();
-    for (const task of this.#tasks) {
-      task.cancel();
-    }
-    this.#tasks.clear();
     try {
       this.destroyed();
     } catch (error) {
@@ -1359,12 +1505,17 @@ export class Base<T extends BaseProps = BaseProps> {
     // `SliderDrag` child, not to `Slider`.
     const byLength = (a: string, b: string) => b.length - a.length;
     const childNames = Object.keys(this.$config.components ?? {}).sort(byLength);
-    const refNames = (this.$config.refs ?? [])
-      .map((definition) => (definition.endsWith('[]') ? definition.slice(0, -2) : definition))
-      .sort(byLength);
+    // Two spellings of one ref: `name` is what `on<Ref><Event>` and `@on()`
+    // name it, `definition` is what the attribute says — they differ by the
+    // `[]` of a list ref, which the markup carries too.
+    const refs = (this.$config.refs ?? [])
+      .map((definition) => ({ name: refPropertyName(definition), definition }))
+      .sort((a, b) => byLength(a.name, b.name));
 
     type Entry =
       | { kind: 'child'; name: string; invoke: (payload: DelegatedEvent) => void }
+      // `name` here is the **declared** ref, suffix included: it is compared
+      // against the `data-ref` attribute and handed to `queryRefs()`.
       | { kind: 'ref'; name: string; invoke: (payload: RefEvent) => void };
     const delegated = new Map<string, Entry[]>();
     const addDelegated = (type: string, entry: Entry) => {
@@ -1420,10 +1571,16 @@ export class Base<T extends BaseProps = BaseProps> {
       if (target) {
         bindGlobal(target, type, (payload) => handler.call(this, payload));
       } else if (child) {
-        const kind = refNames.includes(child) && !childNames.includes(child) ? 'ref' : 'child';
+        // `child` is the name the decorator was given, so a list ref is named
+        // `dots` here and `dots[]` in the attribute — the entry carries the
+        // declared spelling, which is what `queryRefs()` and the `data-ref`
+        // comparison need.
+        const ref = childNames.includes(child)
+          ? undefined
+          : refs.find(({ name }) => name === child);
         addDelegated(type, {
-          kind,
-          name: child,
+          kind: ref ? 'ref' : 'child',
+          name: ref ? ref.definition : child,
           invoke: (payload: DelegatedEvent | RefEvent) => handler.call(this, payload),
         } as Entry);
       } else {
@@ -1450,7 +1607,7 @@ export class Base<T extends BaseProps = BaseProps> {
       const startsWith = (name: string) =>
         rest.startsWith(pascalCase(name)) && rest.length > name.length;
       const childName = childNames.find(startsWith);
-      const refName = childName ? undefined : refNames.find(startsWith);
+      const ref = childName ? undefined : refs.find(({ name }) => startsWith(name));
 
       if (childName) {
         addDelegated(kebabCase(rest.slice(childName.length)), {
@@ -1458,10 +1615,10 @@ export class Base<T extends BaseProps = BaseProps> {
           name: childName,
           invoke: (payload) => self[method](payload),
         });
-      } else if (refName) {
-        addDelegated(kebabCase(rest.slice(refName.length)), {
+      } else if (ref) {
+        addDelegated(kebabCase(rest.slice(ref.name.length)), {
           kind: 'ref',
-          name: refName,
+          name: ref.definition,
           invoke: (payload) => self[method](payload),
         });
       } else {
