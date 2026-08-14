@@ -58,7 +58,7 @@ class TodoCount extends Base {
 - If an async `mounted()` resolves after the instance was destroyed, the cleanup runs immediately instead of leaking.
 - Two cleanup scopes follow from the lifecycle model: `mounted()` returns are **destroy-scoped** (per cycle), and so is a pending `$inject()` request — `mounted()` re-runs on remount, which re-issues it, and a destroyed instance must not sit in the context module's pending set forever. Constructor-time registrations that outlive a cycle (`$provide`, `$watchChildren`) are **terminate-scoped** (instance lifetime).
 - The hook keeps its `mounted` name — "setup" in Vue means "runs before mount", which is not what this is, and `mounted()` stays familiar to v3 authors. `destroyed()`/`terminated()` hooks remain for cases that do not fit the returned-cleanup shape.
-- `config.components` loses its ownership meaning. Two jobs remain: register the listed classes when the parent registers, and provide the name set for `on<Child><Event>` resolution.
+- `config.components` loses its ownership meaning. Two jobs remain: register the declared family when the parent registers — a class right away, a `() => import('./Child.js')` thunk as a lazy entry (§11d) — and provide the name set for `on<Child><Event>` resolution. The object shape is what carries both: the key is the component name, so a lazy child is a name the registry knows with nothing downloaded.
 - `$parent`, `$children`, `$root`, and `createApp` are removed. `$query()` / `$closest()` (shipped in 3.x) are the replacements.
 - Sibling composition (#697, `config.use`) fits the model: a sibling is another instance on the same element, created by the registry, resolvable through the element's instance map.
 
@@ -841,14 +841,14 @@ v3 ships **1033 source lines** of autoload across seven modules, plus 1419 lines
 - **The discovery observer.** `ComponentLoader.start()` creates a second `MutationObserver` on the root and `__scan`s added subtrees for `[data-component]` (`loader.ts:147-199`). v4 has exactly one document observer with a precise `attributeFilter` (`dom-mutations.ts:52-68`), and `registry.ts` already reads the token set from each inserted subtree in one pass. A lazy entry is a lookup in the same map, in the same `reconcileElement()` walk. **~90 lines gone**, and with them the second observer §2 called out as one of the three mounting systems.
 - **The four load triggers.** `__schedule()` re-implements `visible` (an `IntersectionObserver` with a 200 px `rootMargin`), `idle` (`requestIdleCallback` with a 2 s timeout and a `setTimeout` fallback) and `interaction` (`pointerover`/`pointerdown`/`focusin`, once) — `loader.ts:270-337`. `mount-strategies.ts:64-126` is the same code, already written, already specced, and richer: it adds `in-view` and `media:<query>`, and it distinguishes one-shot from reversible, which v3's loader never had to because importing is never reversible. **~70 lines gone.**
 - **The per-element and per-record cleanup bookkeeping.** `__addCleanup`, `__cleanSubtree`, `__clean`, `__elementCleanups`, `__elementSchedules` — `loader.ts:434-480`, ~50 lines whose whole job is "dispose the trigger when the element leaves". `registry.ts` already owns that shape for mount strategies (`disposeController`, `destroyWithin`, the removed-subtree snapshot), so the lazy half reuses it: `disposeLoader()` is 11 lines and hangs off the same three call sites.
-- **Recursive registration of configured children.** `__registerConfiguredChildren` + `__registerConfiguredChild` + the manifest's `children: string[]` field — `loader.ts:381-432`, ~50 lines and a cycle-guard `visited` set, because v3's `registerComponent(Ctor, token)` did not walk `config.components`. v4's `registerComponent()` does, in four lines (`registry.ts:94-98`). The 15 `children` arrays in ui's generated manifest are dead data on v4.
+- **Recursive registration of configured children.** `__registerConfiguredChildren` + `__registerConfiguredChild` + the manifest's `children: string[]` field — `loader.ts:381-432`, ~50 lines and a cycle-guard `visited` set, because v3's `registerComponent(Ctor, token)` did not walk `config.components`. v4's `registerComponent()` does, in one `registerFamily()` loop — which is also where a `() => import(…)` child is deferred rather than resolved (§11d). The 15 `children` arrays in ui's generated manifest are dead data on v4.
 - **Component-state bookkeeping.** `ComponentRecord` with `scheduled | loading | registered | failed`, `scheduledStrategies`, and the `record.state !== 'scheduled'` guards threaded through every branch (`loader.ts:37-45, 256-337`). One `Map<string, Promise<void>>` keyed by name replaces it: an import happens once, whichever element triggered it, and the promise is the state.
 - **`readEagerTokens` and `<meta name="js-toolkit:eager">`** (`runtime.ts:88-98`). A per-page escape hatch to force tokens eager, bypassing both the manifest strategy and `data-load`. `data-mount` on the element is the same override, in the place the decision belongs, and it is already live. Grepped across `@studiometa/ui`: the meta appears in the changelog and the docs, and **in no page and no template**. Not ported.
 
 **Still needed, and much smaller.**
 
 - **The token → importer map.** Genuinely new information: no amount of DOM observation tells you where `data-component="Slider"` is published. This is the irreducible core of autoload, and it is a `Map`.
-- **Import-error reporting.** `__reportError` is 12 lines plus a `js-toolkit:error` `CustomEvent` (`loader.ts:488-500`). v4 logs `[registry] Failed to load "X":` next to the existing `[registry] Failed to mount "X":`, one line. The custom event is a next layer (11d).
+- **Import-error reporting.** `__reportError` is 12 lines plus a `js-toolkit:error` `CustomEvent` (`loader.ts:488-500`). v4 logs `[registry] Failed to load "X":` next to the existing `[registry] Failed to mount "X":`, one line. The custom event is a next layer (11e).
 - **Resolving the class out of the imported module.** v3 splits it: generated manifests write `.then(({ Slider }) => Slider)` once per entry (80 times in ui's manifest) and `defineManifest` does `module[exportName] ?? module.default` for hand-built ones. v4 does it once, in six lines, so a hand-written entry is `Slider: () => import('./Slider.js')` with no unwrapping.
 
 **Still needed, unchanged: nothing.** Every remaining piece is either smaller or gone. The one v3 concept kept verbatim is the _shape_ of the manifest value, and even that is loosened to accept a bare importer.
@@ -890,7 +890,35 @@ registerManifest({
 
 Cost: **+245 lines in `registry.ts` and +18 specs in `src/autoload.spec.ts`**, against v3's 1033 source lines across seven modules — which collapse to one exported function and three exported types.
 
-### 11d. Layers deliberately not built, and what each costs
+### 11d. The parent's own map: `config.components` takes a dynamic import
+
+`config.components` keeps its name and its object shape, and a value may now be a thunk beside a class:
+
+```js
+static config = {
+  name: 'Parent',
+  components: {
+    Child: () => import('./Child.js'),
+    Other: OtherClass,
+  },
+};
+```
+
+`registerComponent()` already walked the map to register the family. It now **defers** a thunk instead of resolving it: the value becomes a lazy entry of the same registry, under its key, and every step after that is the one 11c already built — `scheduleFor()` finds the name, the element's `data-mount` decides when, `importComponent()` imports once per name whichever element triggered it, `registerComponent()` takes over when the class arrives. Nothing new observes, schedules or imports.
+
+**Why the object shape is what makes this work.** The key supplies the component name, and a thunk cannot until it resolves. So a lazy child is a name the registry knows with nothing downloaded — the same knowledge a manifest entry carries, read out of the parent's own source instead of a separate file. The name set `on<Child><Event>` resolution reads is `Object.keys()`, so a lazy value changes nothing there either.
+
+**Telling a class from a thunk** is the one real trap, because a class _is_ a function. The test is `isComponentClass()` — the prototype chain — which is what `resolveComponentClass()` already uses on whatever an importer resolved, so the two halves agree by construction. It is the definition of a component class rather than a proxy for it: a `config` static can be forgotten, and `fn.toString()` reads source text. Anything else callable is a thunk, with one exception worth catching early: a value written with `class` and not extending `Base` would be called as an importer and throw "cannot be invoked without 'new'", on an element, long after the mistake. A class's `prototype` own property is non-writable and an arrow's does not exist, so that shape is reported where it is declared.
+
+**What it buys.** A manifest may declare **only the parent**, and the parent owns when its children load. It is also the answer to the gap 11c left open: a lazy component no longer drags its declared family into one chunk, because a child behind a thunk is its own chunk — the family splits where the author says it splits.
+
+**First wins, quietly** — unlike `registerManifest()`, which warns. Several parents declaring the same lazy child is the normal case rather than a collision, and two thunks importing one module are two different function objects, so there is nothing to compare a real conflict against. A token two components genuinely claim still reports itself one step later, through the class-name check when the import lands.
+
+The entry gets **no `mountStrategy` field**. A manifest entry needs one because the class it names cannot be read; a `config.components` thunk is declared beside a class which carries its `config.mountStrategy` the moment it registers, so a second place to say the same thing would put back the knob 11b dropped. Until the class arrives the chain is `data-mount > eager`; after it, the usual three-step one, reading the **merged** config — so a lazy child which is a subclass inherits the strategy its base declared, and the deferral never becomes the way to lose it.
+
+Cost: ~35 lines in `registry.ts` and one union in `BaseConfig`; `ComponentImporter` moves next to `BaseConstructor` in `Base.ts` and is re-exported where it was.
+
+### 11e. Layers deliberately not built, and what each costs
 
 1. **Manifest generation from a bundler glob** — `defineManifest`, `fromMetaGlob`, `fromWebpackContext` (v3: 173 lines across two modules). It is path→token derivation (`index.ts` falls back to the parent directory) plus a lazy/eager glob guard. **Cost: ~40 lines, no dependency**, and it is where the duplicate-token warning belongs. This is the obvious next layer: without it a 200-component design system writes 200 map entries, which is exactly what ui's `scripts/generate-manifests.ts` exists to avoid.
 2. **A cross-copy shared runtime** — v3's `runtime.ts`, 215 lines: a `Symbol.for` slot on `globalThis`, a version-conflict guard, microtask coalescing of several manifest registrations into one loader start, and a stop/restart when a manifest arrives late. **v4 needs almost none of it**: there is one registry module, registration is idempotent, and a late `registerManifest()` scans only its own tokens, so nothing has to be coalesced or restarted. What survives the reduction is the _duplicated package copy_ problem — two bundled copies of v4 mean two `Map`s and two observers. **Cost: ~25 lines** for a `Symbol.for`-keyed module singleton, and it is a v4-wide question (the scheduler and the services have it too), not an autoload one. Worth doing once, at that level.
@@ -917,7 +945,7 @@ Cost: **+245 lines in `registry.ts` and +18 specs in `src/autoload.spec.ts`**, a
 
 ## Open questions
 
-1. Naming: `config.components` successor (`uses`?), `$watchChildren` vs `$children(name, callbacks)`, announcement event names, `config.use` vs `config.siblings` for #697.
+1. Naming: ~~`config.components` successor (`uses`?)~~ — **decided (2026-08-14): the name and the object shape stay**, and the value gains v3's dynamic-import form (§11d). `$watchChildren` vs `$children(name, callbacks)`, announcement event names, `config.use` vs `config.siblings` for #697 remain open.
 2. Does `$emit` cancelation gate anything framework-side, or is `defaultPrevented` purely userland?
 3. Exact `mountStrategy` vocabulary and its interaction with existing `withMountWhen*` decorators (#751 semantics: one-shot `visible` vs reversible `in-view`).
 4. ~~Migration phases~~ **Decided (2026-08-11): no bridge release.** Backporting the new primitives into a v3.x minor could itself destabilize ui components, so nothing v4 ships in 3.x. `@studiometa/js-toolkit` 4.0 and `@studiometa/ui` 2.0 ship as full breaking majors, in lockstep. Migration helpers are tooling, not runtime: lint rules in the existing eslint plugins flagging `$children`/`$parent`/`updated()`/old handler signatures, and codemods only for the mechanical renames. The `$children` coordinator components (13 files in ui) are rewritten on `$watchChildren`/provide-inject — several disappear into the platform instead (Accordion → `<details>`, Modal/Panel → Dialog).

@@ -43,6 +43,18 @@ function defineLazy(config: Omit<BaseConfig, 'name'> = {}) {
   return { name, Lazy, load, importCount: () => imports };
 }
 
+/** A parent nobody imported the children of, declaring them by name. */
+function defineParent(components: BaseConfig['components']) {
+  counter += 1;
+  const name = `Parent${counter}`;
+
+  class Parent extends Base {
+    static config: BaseConfig = { name, components };
+  }
+
+  return { name, Parent };
+}
+
 function render(name: string, attributes: Record<string, string> = {}, style = ONSCREEN) {
   const el = document.createElement('div');
   el.setAttribute('data-component', name);
@@ -350,5 +362,142 @@ describe('registerManifest collisions and failures', () => {
     );
     expect(el.__base__).toBeUndefined();
     warn.mockRestore();
+  });
+});
+
+describe('a dynamic import declared in config.components', () => {
+  it('mounts the child when its element appears, importing nothing before', async () => {
+    const child = defineLazy();
+    const { Parent } = defineParent({ [child.name]: child.load });
+
+    registerComponent(Parent);
+    await settle();
+
+    // The parent registering is not a reason to download its family.
+    expect(child.importCount()).toBe(0);
+
+    const el = render(child.name);
+    await settle();
+
+    expect(child.importCount()).toBe(1);
+    expect(instanceOf(el, child.name)?.$isMounted).toBe(true);
+  });
+
+  it('registers the class half of a mixed map right away', async () => {
+    const lazy = defineLazy();
+    counter += 1;
+    const eagerName = `Sibling${counter}`;
+
+    class Sibling extends Base {
+      static config: BaseConfig = { name: eagerName };
+    }
+
+    const { Parent } = defineParent({ [eagerName]: Sibling, [lazy.name]: lazy.load });
+    registerComponent(Parent);
+
+    const siblingEl = render(eagerName);
+    await settle();
+
+    expect(instanceOf(siblingEl, eagerName)).toBeInstanceOf(Sibling);
+    expect(lazy.importCount()).toBe(0);
+
+    const lazyEl = render(lazy.name);
+    await settle();
+
+    expect(lazy.importCount()).toBe(1);
+    expect(instanceOf(lazyEl, lazy.name)?.$isMounted).toBe(true);
+  });
+
+  it('imports the module once for every element declaring the child', async () => {
+    const child = defineLazy();
+    const { Parent } = defineParent({ [child.name]: child.load });
+
+    registerComponent(Parent);
+    const first = render(child.name);
+    const second = render(child.name);
+    await settle();
+
+    expect(child.importCount()).toBe(1);
+    expect(instanceOf(first, child.name)?.$isMounted).toBe(true);
+    expect(instanceOf(second, child.name)?.$isMounted).toBe(true);
+  });
+
+  it('imports once when two parents declare the same child', async () => {
+    const child = defineLazy();
+    const first = defineParent({ [child.name]: child.load });
+    const second = defineParent({ [child.name]: async () => child.Lazy });
+
+    registerComponent(first.Parent);
+    registerComponent(second.Parent);
+    render(child.name);
+    await settle();
+
+    expect(child.importCount()).toBe(1);
+  });
+
+  it('lets a manifest declare the parent alone and the parent own its family', async () => {
+    const child = defineLazy();
+    const { name: parentName, Parent } = defineParent({ [child.name]: child.load });
+
+    let parentImports = 0;
+    registerManifest({
+      [parentName]: async () => {
+        parentImports += 1;
+        return Parent;
+      },
+    });
+    await settle();
+
+    const root = document.createElement('div');
+    root.setAttribute('data-component', parentName);
+    root.setAttribute('style', ONSCREEN);
+    const childEl = document.createElement('div');
+    childEl.setAttribute('data-component', child.name);
+    root.append(childEl);
+    document.body.append(root);
+    await settle();
+
+    // Two chunks, in order: the parent's, then the one its own map names.
+    expect(parentImports).toBe(1);
+    expect(child.importCount()).toBe(1);
+    expect(instanceOf(root, parentName)?.$isMounted).toBe(true);
+    expect(instanceOf(childEl, child.name)?.$isMounted).toBe(true);
+  });
+
+  it('honours the element data-mount of a child nobody has imported', async () => {
+    const child = defineLazy();
+    const { Parent } = defineParent({ [child.name]: child.load });
+
+    registerComponent(Parent);
+    const el = render(child.name, { 'data-mount': 'visible' }, OFFSCREEN);
+    await observed();
+
+    expect(child.importCount()).toBe(0);
+
+    el.setAttribute('style', ONSCREEN);
+    await observed();
+
+    expect(child.importCount()).toBe(1);
+    expect(instanceOf(el, child.name)?.$isMounted).toBe(true);
+  });
+
+  it('reports a value which is neither a class nor an importer', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    counter += 1;
+    const childName = `NotAThunk${counter}`;
+
+    // A class not extending `Base` reads as callable but throws when called,
+    // so it is caught here rather than on the element it would break.
+    const { name: parentName, Parent } = defineParent({
+      [childName]: class Detached {} as unknown as never,
+    });
+    registerComponent(Parent);
+    render(childName);
+    await settle();
+
+    expect(error).toHaveBeenCalledWith(
+      `[registry] "${parentName}" declares "${childName}" as neither a component class nor an importer, ignoring.`,
+    );
+    error.mockRestore();
   });
 });

@@ -84,9 +84,36 @@ export interface OptionChange<T = unknown> {
 
 export type OptionChangedReturn = void | (() => void);
 
+/**
+ * Imports the module a component lives in. Anything resolving to the class
+ * works — the class itself, the module namespace, a `default` export.
+ *
+ * `Promise<unknown>` is what `() => import('./Child.js')` actually produces:
+ * a module namespace nothing has typed yet. Narrowing it further would only
+ * reject correct code, so the shape is checked where it is known — when the
+ * promise resolves, by `resolveComponentClass()`.
+ */
+export type ComponentImporter = () => Promise<unknown>;
+
 export interface BaseConfig {
   name: string;
-  components?: Record<string, BaseConstructor>;
+  /**
+   * The components this one declares, by name.
+   *
+   * A value is the child's class, or a thunk importing it:
+   *
+   *     components: {
+   *       Other: OtherClass,
+   *       Child: () => import('./Child.js'),
+   *     }
+   *
+   * A thunk is registered, never called, when the parent registers: the map
+   * **key** is the component name, which is what lets a name be known with
+   * nothing imported. So a manifest may declare only the parent, the parent
+   * owns when its children load, and a lazy child is its own chunk instead
+   * of being pulled into its parent's.
+   */
+  components?: Record<string, BaseConstructor | ComponentImporter>;
   refs?: string[];
   options?: Record<string, OptionDefinition>;
   /**
