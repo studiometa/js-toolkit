@@ -147,6 +147,59 @@ class Undeclared extends Base {
 }
 
 /* ------------------------------------------------------------------------ *
+ * 4-bis. An option set named to be shared between two components — REPORT.md
+ *    gap 14. An `interface` has no implicit index signature, so declaring one
+ *    used to fail `$options`'s `Record<string, unknown>` constraint, with the
+ *    error pointing at the props type rather than at the interface. It bit
+ *    exactly when naming the set was worth doing.
+ * ------------------------------------------------------------------------ */
+
+interface NamedOptions {
+  speed: number;
+  label: string;
+}
+
+interface NamedRefs {
+  handle: HTMLElement;
+}
+
+interface SharingProps extends BaseProps {
+  $options: NamedOptions;
+}
+
+class SharesItsOptions extends Base<SharingProps> {
+  static config = { name: 'SharesItsOptions', options: { speed: Number, label: String } };
+
+  assertions(): void {
+    expectTypeOf(this.$options.speed).toEqualTypeOf<number>();
+    expectTypeOf(this.$options.label).toEqualTypeOf<string>();
+    // The index signature is still intersected back in, so an option nobody
+    // declared reads as `unknown` rather than erroring — v3's price, unchanged.
+    expectTypeOf(this.$options.whatever).toEqualTypeOf<unknown>();
+  }
+}
+
+/**
+ * `$refs` and `$emits` keep the stricter constraint, because it rejects
+ * something an interface should not be allowed to say. The intersection form
+ * is what names them: it accepts an interface where `extends BaseProps`
+ * cannot, and it is v3's own spelling.
+ */
+type IntersectedProps = BaseProps & {
+  $options: NamedOptions;
+  $refs: NamedRefs;
+};
+
+class NamesEveryProp extends Base<IntersectedProps> {
+  static config = { name: 'NamesEveryProp', refs: ['handle'], options: { speed: Number } };
+
+  assertions(): void {
+    expectTypeOf(this.$options.speed).toEqualTypeOf<number>();
+    expectTypeOf(this.$refs.handle).toEqualTypeOf<HTMLElement>();
+  }
+}
+
+/* ------------------------------------------------------------------------ *
  * 5. A component that declared props is still a `Base`. Reading a prop through
  *    an intersection rather than a conditional is what keeps the class
  *    covariant in its parameter, and `$query`, `$closest` and
@@ -165,8 +218,10 @@ function widened(
   concrete: Concrete,
   partial: Partial,
   undeclared: Undeclared,
+  sharing: SharesItsOptions,
+  named: NamesEveryProp,
 ): Base[] {
-  return [generic, child, constrained, concrete, partial, undeclared];
+  return [generic, child, constrained, concrete, partial, undeclared, sharing, named];
 }
 
 /* ------------------------------------------------------------------------ *
@@ -180,8 +235,8 @@ describe('a component declared with a props type parameter', () => {
     document.body.innerHTML = `
       <form data-component="Extensible" data-option-target="here">
         <button data-ref="btn"></button>
-        <span data-ref="items"></span>
-        <span data-ref="items"></span>
+        <span data-ref="items[]"></span>
+        <span data-ref="items[]"></span>
       </form>`;
     await settle();
 
@@ -221,7 +276,9 @@ describe('a component declared with a props type parameter', () => {
         new Concrete(el),
         new Partial(el),
         new Undeclared(el),
+        new SharesItsOptions(el),
+        new NamesEveryProp(el),
       ),
-    ).toHaveLength(6);
+    ).toHaveLength(8);
   });
 });

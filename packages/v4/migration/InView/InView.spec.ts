@@ -235,20 +235,17 @@ describe('what the mount strategy cannot express', () => {
   });
 
   /**
-   * **RED ON PURPOSE — documents REPORT.md gap 24.**
+   * REPORT.md gap 24, now closed.
    *
-   * `resolveStrategy()` reads `ComponentClass.config.mountStrategy` off the
-   * class's own static, not off the config `resolveConfig()` merges along the
-   * prototype chain. `refs`, `options` and `components` all merge — that is
-   * what issue #627 fixed — and `mountStrategy` does not, so a subclass that
-   * declares a `static config` at all (and every subclass must, for `name`)
-   * silently falls back to `eager`.
-   *
-   * Silently is the operative word: the subclass still works, it just mounts
-   * everywhere, which for an `InView` means firing `in-view` for an element
-   * nobody has seen.
+   * `resolveStrategy()` used to read `ComponentClass.config.mountStrategy` off
+   * the class's own static, not off the config `resolveConfig()` merges along
+   * the prototype chain. `refs`, `options` and `components` all merge — that
+   * is what issue #627 fixed — so a subclass that declares a `static config`
+   * at all (and every subclass must, for `name`) silently fell back to
+   * `eager`: it still worked, it just mounted everywhere, which for an
+   * `InView` means firing `in-view` for an element nobody has seen.
    */
-  it.fails('inherits the mount strategy in a subclass that declares its own config', async () => {
+  it('inherits the mount strategy in a subclass that declares its own config', async () => {
     const el = render('InViewSubclass', OFFSCREEN);
     await observed();
 

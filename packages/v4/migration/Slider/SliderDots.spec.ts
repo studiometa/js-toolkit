@@ -24,7 +24,7 @@ function render({ items = 3 } = {}): HTMLElement {
     <div data-component="SliderDots" data-option-enter-to="is-active" data-option-enter-keep>
       ${Array.from(
         { length: items },
-        (_, index) => `<button type="button" data-ref="dots"><span>${index + 1}</span></button>`,
+        (_, index) => `<button type="button" data-ref="dots[]"><span>${index + 1}</span></button>`,
       ).join('')}
     </div>
   `;
@@ -39,7 +39,7 @@ async function ready(root: HTMLElement) {
   return {
     slider: getInstance<Slider>(root, 'Slider'),
     dots: getInstance<SliderDots>(dotsEl, 'SliderDots'),
-    buttons: [...dotsEl.querySelectorAll<HTMLButtonElement>('[data-ref="dots"]')],
+    buttons: [...dotsEl.querySelectorAll<HTMLButtonElement>('[data-ref="dots[]"]')],
   };
 }
 
@@ -101,7 +101,7 @@ describe('SliderDots', () => {
 
     const added = document.createElement('button');
     added.type = 'button';
-    added.setAttribute('data-ref', 'dots');
+    added.setAttribute('data-ref', 'dots[]');
     added.innerHTML = '<span>3</span>';
     dots.$el.append(added);
 

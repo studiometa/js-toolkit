@@ -1,4 +1,4 @@
-import { Base, type BaseConstructor } from './Base.js';
+import { Base, resolveConfig, type BaseConstructor } from './Base.js';
 import {
   registerDOMOptionAttributes,
   setDOMMutationProcessor,
@@ -231,11 +231,16 @@ function optionAttributes(ComponentClass: BaseConstructor): string[] {
  * An element declaring several components (`data-component="A B"`) applies
  * its `data-mount` to all of them; a component needing its own policy
  * declares it in its config instead.
+ *
+ * The **merged** config, not `ComponentClass.config`: every subclass declares
+ * a `static config` of its own, if only for `name`, so reading the own static
+ * made every subclass of a strategy-declaring component fall back to `eager`
+ * — silently, since it still worked, it just mounted everywhere.
  */
 function resolveStrategy(el: Element, ComponentClass: BaseConstructor): MountStrategy {
   return (
     (el.getAttribute(MOUNT_ATTRIBUTE) as MountStrategy | null) ??
-    ComponentClass.config.mountStrategy ??
+    resolveConfig(ComponentClass).mountStrategy ??
     'eager'
   );
 }
