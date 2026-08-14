@@ -1,4 +1,4 @@
-import { Base, resolveConfig, type BaseConstructor } from './Base.js';
+import { Base, resolveConfig, type BaseConstructor, type ComponentImporter } from './Base.js';
 import {
   registerDOMOptionAttributes,
   setDOMMutationProcessor,
@@ -29,11 +29,7 @@ interface PairController {
  */
 const controllers = new WeakMap<Element, Map<string, PairController>>();
 
-/**
- * Imports the module a lazy component lives in. Anything resolving to the
- * class works — the class itself, the module namespace, a `default` export.
- */
-export type ComponentImporter = () => Promise<unknown>;
+export type { ComponentImporter };
 
 /**
  * A lazy entry of the same registry: what to import, and — standing in for
@@ -66,6 +62,77 @@ function isComponentClass(value: unknown): value is BaseConstructor {
   return typeof value === 'function' && (value === Base || value.prototype instanceof Base);
 }
 
+/**
+ * Whether a function was written with `class`, which only matters for the
+ * ones `isComponentClass()` rejected: those are constructors, so calling
+ * them as an importer throws "cannot be invoked without 'new'" — on an
+ * element, at load time, long after the mistake was made.
+ *
+ * A class has a non-writable `prototype` own property; a function
+ * expression's is writable, and an arrow or an `async function` has none at
+ * all. Every spelling an importer takes is therefore excluded, and the
+ * one shape worth catching early is caught.
+ */
+function isClassLike(value: (...args: never[]) => unknown): boolean {
+  return Object.getOwnPropertyDescriptor(value, 'prototype')?.writable === false;
+}
+
+/**
+ * Register the family a component declares in `config.components`, where a
+ * value is the child's class or a thunk importing it.
+ *
+ * **A class is a function too**, so the two are told apart the way
+ * `resolveComponentClass()` already tells a class from anything else an
+ * importer resolved to: `isComponentClass()`, the prototype chain. It is the
+ * definition of a component class rather than a proxy for it — a `config`
+ * static can be forgotten and inherited by a subclass either way, and
+ * `fn.toString()` reads source text. Anything else callable is a thunk, and
+ * a wrong shape is reported here instead of registering nothing.
+ *
+ * A thunk is **not called**. It becomes a lazy entry under its map key,
+ * which is the whole feature: the key names the component — a thunk cannot,
+ * until it resolves — so `scheduleFor()` matches `data-component` tokens
+ * against a name nothing had to import. A manifest then declares the parent
+ * alone, and the child is its own chunk.
+ */
+function registerFamily(ComponentClass: BaseConstructor): void {
+  for (const [name, Child] of Object.entries(ComponentClass.config.components ?? {})) {
+    if (isComponentClass(Child)) {
+      registerComponent(Child);
+    } else if (typeof Child === 'function' && !isClassLike(Child)) {
+      registerLazyChild(name, Child);
+    } else {
+      console.error(
+        `[registry] "${ComponentClass.config.name}" declares "${name}" as neither a component class nor an importer, ignoring.`,
+      );
+    }
+  }
+}
+
+/**
+ * Add one `config.components` thunk to the lazy half of the registry, under
+ * the key which named it. From there it is an ordinary lazy entry: the
+ * element's `data-mount` decides when to import, `importComponent()` imports
+ * once per name whichever element triggered it, and `registerComponent()`
+ * takes over as soon as the class exists.
+ *
+ * First wins, and quietly — unlike `registerManifest()`, which warns. A name
+ * already known here is the normal case rather than a mistake: several
+ * parents declaring the same lazy child is exactly how a shared child gets
+ * its own chunk, and two thunks importing one module are two different
+ * function objects, so there is nothing to compare a real conflict against.
+ * A token genuinely claimed by two components still reports itself one step
+ * later, through `importComponent()`'s class-name check.
+ */
+function registerLazyChild(name: string, load: ComponentImporter): void {
+  if (registry.has(name) || manifest.has(name)) {
+    return;
+  }
+  manifest.set(name, { load });
+  setDOMMutationProcessor(processMutations);
+  scanName(document.documentElement, name);
+}
+
 function componentTokens(el: Element): Set<string> {
   return new Set((el.getAttribute('data-component') ?? '').split(/\s+/).filter(Boolean));
 }
@@ -78,7 +145,8 @@ function declaresComponent(el: Element, name: string): boolean {
  * Register a component class. Existing matching elements are scheduled
  * right away; future ones are scheduled when they enter the DOM. When each
  * instance actually mounts is the strategy's call — see `data-mount`.
- * Classes declared in `config.components` register too.
+ * The family declared in `config.components` registers too: a class right
+ * away, a `() => import(…)` thunk as a lazy entry.
  */
 export function registerComponent(ComponentClass: BaseConstructor): void {
   const { name } = ComponentClass.config;
@@ -91,11 +159,7 @@ export function registerComponent(ComponentClass: BaseConstructor): void {
   registry.set(name, ComponentClass);
   manifest.delete(name);
 
-  for (const Child of Object.values(ComponentClass.config.components ?? {})) {
-    if (isComponentClass(Child)) {
-      registerComponent(Child);
-    }
-  }
+  registerFamily(ComponentClass);
 
   registerDOMOptionAttributes(optionAttributes(ComponentClass));
   setDOMMutationProcessor(processMutations);
