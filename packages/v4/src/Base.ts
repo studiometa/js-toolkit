@@ -14,6 +14,13 @@ import {
 } from './negotiated-events.js';
 import { DESTROYED_EVENT, MOUNTED_EVENT } from './lifecycle-events.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
+import {
+  activeBreakpoint,
+  checkResponsiveAttributes,
+  isResponsiveAttribute,
+  responsiveRawValue,
+  watchBreakpoint,
+} from './responsive-options.js';
 import type { MountStrategy } from './mount-strategies.js';
 import { selectorFor } from './utils/selectors.js';
 import { kebabCase, pascalCase } from './utils/strings.js';
@@ -577,7 +584,21 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
  * so it is warned about rather than repaired.
  */
 interface OptionReader {
+  /** The unsuffixed `data-option-*` attribute — the base of the cascade. */
   attribute: string;
+  /**
+   * The raw string in force now: the value of the breakpoint-scoped spelling
+   * the cascade selects, or the base attribute's when none is scoped.
+   */
+  rawValue(): string | null;
+  /**
+   * The raw string that was in force at another breakpoint, or before a
+   * mutation batch. `get` supplies the attribute values to resolve against, so
+   * the same cascade answers both questions.
+   */
+  rawValueAt(breakpoint: string, get: (name: string) => string | null): string | null;
+  /** Whether an attribute name is this option's, at any breakpoint. */
+  owns(attributeName: string): boolean;
   read(raw: string | null): unknown;
 }
 
@@ -688,10 +709,20 @@ function buildOptions(instance: Base): Record<string, unknown> {
       return raw;
     };
 
-    readers.set(name, { attribute, read });
+    // Every option is responsive, and it is **derived on read**: the getter
+    // consults the viewport as well as the element, and stores nothing. This
+    // is what lets `$options` stay a read-only view — there is no moment at
+    // which a breakpoint change has to write a value in.
+    const fromElement = (attributeName: string) => el.getAttribute(attributeName);
+    const rawValue = () => responsiveRawValue(attribute, activeBreakpoint(), fromElement);
+    const rawValueAt = (breakpoint: string, get: (attributeName: string) => string | null) =>
+      responsiveRawValue(attribute, breakpoint, get);
+    const owns = (attributeName: string) => isResponsiveAttribute(attribute, attributeName);
+
+    readers.set(name, { attribute, rawValue, rawValueAt, owns, read });
     Object.defineProperty(options, name, {
       enumerable: true,
-      get: () => read(el.getAttribute(attribute)),
+      get: () => read(rawValue()),
     });
   }
   return options;
@@ -908,6 +939,7 @@ export class Base<T extends BaseProps = BaseProps> {
     this.#isMounted = true;
     this.#mountCycle += 1;
     this.#initializeOptionEffects();
+    this.#initializeResponsiveOptions();
     try {
       this.#collectCleanup(this.mounted());
     } catch (error) {
@@ -1268,23 +1300,53 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Apply one live declared-option change. Called by the registry after it
-   * has reconciled component declarations for the mutation batch.
+   * Apply the live declared-option changes of one mutation batch. Called by
+   * the registry after it has reconciled component declarations for the batch.
    *
    * The method convention is `option<Name>Changed()`. Its returned cleanup
    * runs before the next value is applied and on destroy.
    *
+   * The batch is handed over whole, as `attribute → value before the batch`,
+   * rather than one resolved option at a time: an option answers from whichever
+   * breakpoint-scoped spelling the cascade selects, so what its previous value
+   * was is a question only its own reader can answer. The rule is one rule — a
+   * change is one whose **resolved** raw value differs from the resolved raw
+   * value before the batch, so rewriting `data-option-columns:s` while the
+   * viewport sits at `l` is not a change to `columns`, and neither is a
+   * net-zero rewrite.
+   *
    * @internal
    */
-  $optionChanged(name: string, previousRawValue: string | null): void {
+  $optionsChanged(changes: ReadonlyMap<string, string | null>): void {
     if (!this.#isMounted) {
       return;
     }
-    const reader = optionReaders.get(this)?.get(name);
-    if (!reader) {
-      return;
+    const before = (attributeName: string) =>
+      changes.has(attributeName)
+        ? (changes.get(attributeName) ?? null)
+        : this.$el.getAttribute(attributeName);
+
+    for (const [name, reader] of optionReaders.get(this) ?? []) {
+      // The base attribute is one lookup; any of the scoped spellings may be
+      // the one the cascade was selecting, so a miss asks about every changed
+      // name before giving up.
+      let touched = changes.has(reader.attribute);
+      if (!touched) {
+        for (const attributeName of changes.keys()) {
+          if (reader.owns(attributeName)) {
+            touched = true;
+            break;
+          }
+        }
+      }
+      if (!touched) {
+        continue;
+      }
+      const previousRawValue = reader.rawValueAt(activeBreakpoint(), before);
+      if (reader.rawValue() !== previousRawValue) {
+        this.#runOptionEffect(name, reader, previousRawValue, false);
+      }
     }
-    this.#runOptionEffect(name, reader, previousRawValue, false);
   }
 
   /** Schedule a DOM read; canceled automatically when the instance unmounts. */
@@ -1412,6 +1474,54 @@ export class Base<T extends BaseProps = BaseProps> {
     }
   }
 
+  /**
+   * Follow the viewport for the mount cycle, if this component has anything to
+   * do about a crossing.
+   *
+   * "Anything to do" is a declared `option<Name>Changed()`, and the condition
+   * is the point: reading an option needs no subscription — the value is
+   * derived when it is read — so a component that only reads costs the page
+   * nothing at rest. Only a component that has asked to be **told** holds a
+   * `matchMedia` listener, and only while it is mounted.
+   */
+  #initializeResponsiveOptions(): void {
+    const readers = optionReaders.get(this);
+    if (!readers || readers.size === 0) {
+      return;
+    }
+    // One scan of the element's attributes per mount — not one per option —
+    // to report a suffix naming no breakpoint, which is the one way this can
+    // fail quietly and the shape v3 markup arrives in.
+    checkResponsiveAttributes(
+      this.$el,
+      [...readers.values()].map((reader) => reader.attribute),
+    );
+
+    let announces = false;
+    for (const name of readers.keys()) {
+      announces ||=
+        typeof (this as unknown as Record<string, unknown>)[`option${pascalCase(name)}Changed`] ===
+        'function';
+    }
+    if (!announces) {
+      return;
+    }
+
+    this.#destroyCallbacks.push(
+      watchBreakpoint((previous) => {
+        const fromElement = (attributeName: string) => this.$el.getAttribute(attributeName);
+        for (const [name, reader] of readers) {
+          // The attributes did not move; the viewport did. A crossing is only a
+          // change to the options whose cascade now selects a different one.
+          const previousRawValue = reader.rawValueAt(previous, fromElement);
+          if (reader.rawValue() !== previousRawValue) {
+            this.#runOptionEffect(name, reader, previousRawValue, false);
+          }
+        }
+      }),
+    );
+  }
+
   #runOptionEffect(
     name: string,
     reader: OptionReader,
@@ -1440,7 +1550,7 @@ export class Base<T extends BaseProps = BaseProps> {
     const cycle = this.#mountCycle;
     let cleanup: OptionChangedReturn;
     try {
-      const rawValue = this.$el.getAttribute(reader.attribute);
+      const rawValue = reader.rawValue();
       const change: OptionChange = {
         name,
         value: reader.read(rawValue),

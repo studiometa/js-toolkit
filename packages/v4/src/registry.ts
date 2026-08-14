@@ -11,6 +11,7 @@ import {
   type AppliedMountStrategy,
   type MountStrategy,
 } from './mount-strategies.js';
+import { observeResponsiveAttribute } from './responsive-options.js';
 import { selectorFor } from './utils/selectors.js';
 import { kebabCase } from './utils/strings.js';
 
@@ -274,7 +275,13 @@ function optionAttributes(ComponentClass: BaseConstructor): string[] {
   let current: BaseConstructor | null = ComponentClass;
   while (current?.config) {
     for (const name of Object.keys(current.config.options ?? {})) {
-      names.add(`data-option-${kebabCase(name)}`);
+      const attribute = `data-option-${kebabCase(name)}`;
+      names.add(attribute);
+      // Every option may be written across several attributes, one per
+      // breakpoint. The observer filters on exact names, so the breakpoint-
+      // scoped spellings are registered too — and re-registered if the named
+      // set is later replaced, which the responsive layer owns.
+      observeResponsiveAttribute(attribute);
     }
     current = Object.getPrototypeOf(current) as BaseConstructor | null;
   }
@@ -631,17 +638,12 @@ function processMutations(records: readonly DOMMutationRecord[]): void {
       continue;
     }
     for (const instance of el.__base__?.values() ?? []) {
-      if (!instance.$isMounted) {
-        continue;
-      }
-      for (const name of Object.keys(instance.$config.options ?? {})) {
-        const attribute = `data-option-${kebabCase(name)}`;
-        if (changes.has(attribute)) {
-          const previousRawValue = changes.get(attribute) ?? null;
-          if (el.getAttribute(attribute) !== previousRawValue) {
-            instance.$optionChanged(name, previousRawValue);
-          }
-        }
+      if (instance.$isMounted) {
+        // The batch goes over whole: which attribute belongs to which option,
+        // and what an option's value was before the batch, are the reader's
+        // questions — a responsive option answers from whichever
+        // breakpoint-scoped spelling its cascade selects.
+        instance.$optionsChanged(changes);
       }
     }
   }
