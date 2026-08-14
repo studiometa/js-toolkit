@@ -154,6 +154,60 @@ describe('$options', () => {
     expect(second.$options.tween).toEqual({ ease: 'linear' });
   });
 
+  /**
+   * The no-build path, which is the audience the type-level ban on a literal
+   * `Object`/`Array` default cannot reach. The copy has to go all the way
+   * down: a shallow one gave every instance its own outer object and *the
+   * same* nested one, which is the same bug one level in.
+   */
+  it('copies a literal default all the way down', () => {
+    class Literal extends Base<{
+      $options: { tween: Record<string, Record<string, number>>; matrix: number[][] };
+    }> {
+      // Cast on purpose: `TypedOptionDefinition` bans a literal `Object`/
+      // `Array` default, and the no-build path never sees that ban. This is
+      // what it runs.
+      static config = {
+        name: 'Literal',
+        options: {
+          tween: { type: Object, default: { ease: { in: 1, out: 2 } } },
+          matrix: { type: Array, default: [[1], [2]] },
+        },
+      } as unknown as BaseConfig;
+    }
+
+    const first = new Literal(document.createElement('div'));
+    const second = new Literal(document.createElement('div'));
+
+    expect(first.$options.tween).not.toBe(second.$options.tween);
+    expect(first.$options.tween.ease).not.toBe(second.$options.tween.ease);
+    expect(first.$options.matrix[0]).not.toBe(second.$options.matrix[0]);
+
+    first.$options.tween.ease.in = 99;
+    first.$options.matrix[0].push(42);
+    expect(second.$options.tween).toEqual({ ease: { in: 1, out: 2 } });
+    expect(second.$options.matrix).toEqual([[1], [2]]);
+  });
+
+  it('hands over a default it cannot rebuild rather than guessing', () => {
+    const shared = new Date(0);
+
+    class Exotic extends Base<{ $options: { at: Record<string, unknown> } }> {
+      static config = {
+        name: 'Exotic',
+        options: { at: { type: Object, default: { stamp: shared } } },
+      } as unknown as BaseConfig;
+    }
+
+    const first = new Exotic(document.createElement('div'));
+    const second = new Exotic(document.createElement('div'));
+
+    // The plain wrapper is the instance's own; the `Date` inside it is not,
+    // because copying it would mean guessing at its constructor.
+    expect(first.$options.at).not.toBe(second.$options.at);
+    expect(first.$options.at.stamp).toBe(shared);
+  });
+
   it('memoises the default, so a mutation of it persists on that instance', () => {
     class Listed extends Base<{ $options: { list: number[]; tween: Record<string, unknown> } }> {
       static config = {

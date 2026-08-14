@@ -459,6 +459,37 @@ interface OptionReader {
 
 const optionReaders = new WeakMap<Base, Map<string, OptionReader>>();
 
+/**
+ * Copy a literal default, all the way down.
+ *
+ * A shallow copy left the nested halves shared, so `default: { a: { b: 1 } }`
+ * handed every instance its own outer object and *the same* `a` — the same bug
+ * a factory exists to prevent, one level in, and identical when it bites.
+ *
+ * Plain objects and arrays are the only things rebuilt. Anything else — a
+ * `Date`, a `Map`, an element, an instance of a class — is handed over as it
+ * is, because copying it would need to guess at its constructor and would
+ * quietly change what the author declared. A default of that shape is shared
+ * between instances, and the factory form is the answer for it.
+ */
+function copyDefault(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(copyDefault);
+  }
+  if (value === null || typeof value !== 'object') {
+    return value;
+  }
+  const proto = Object.getPrototypeOf(value);
+  if (proto !== Object.prototype && proto !== null) {
+    return value;
+  }
+  const copy: Record<string, unknown> = {};
+  for (const [key, nested] of Object.entries(value)) {
+    copy[key] = copyDefault(nested);
+  }
+  return copy;
+}
+
 function buildOptions(instance: Base): Record<string, unknown> {
   const options: Record<string, unknown> = {};
   const readers = new Map<string, OptionReader>();
@@ -487,10 +518,9 @@ function buildOptions(instance: Base): Record<string, unknown> {
       }
       if (declared !== null && typeof declared === 'object') {
         // The types ask for a factory here; the no-build path has no types,
-        // so a literal object or array is copied rather than shared.
-        return Array.isArray(declared)
-          ? [...declared]
-          : { ...(declared as Record<string, unknown>) };
+        // so a literal object or array is copied rather than shared — and
+        // copied deeply, since a shared nested object is the same bug.
+        return copyDefault(declared);
       }
       if (declared !== undefined) {
         return declared;
