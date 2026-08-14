@@ -432,6 +432,33 @@ function queryRefs(root: HTMLElement, name: string): HTMLElement[] {
 }
 
 /**
+ * Say so when a ref resolves to nothing and the v3 spelling of it is sitting
+ * right there in the markup.
+ *
+ * v3 selected `[data-ref="dots[]"]` for `config.refs: ['dots[]']`; v4 declares
+ * the array in the config and selects the plain name. The markup change is a
+ * template edit rather than a code one, and it fails **silently** — the ref
+ * resolves to `[]` and the component simply does nothing (REPORT.md gap 11).
+ * This turns that into one console warning naming the element to fix.
+ *
+ * Checked once per instance and per name, and only when the ref found nothing,
+ * so correct markup never pays for it and broken markup pays one
+ * `querySelector` in total.
+ */
+function warnLegacyRefSuffix(instance: Base, name: string, checked: Set<string>): void {
+  if (checked.has(name)) {
+    return;
+  }
+  checked.add(name);
+  if (!instance.$el.querySelector(`[data-ref="${name}[]"]`)) {
+    return;
+  }
+  console.warn(
+    `[base] \`${instance.$config.name}\` found no \`data-ref="${name}"\`, but the markup declares \`data-ref="${name}[]"\`. v4 declares the array in \`config.refs\` and selects the plain name: drop the \`[]\` from the attribute.`,
+  );
+}
+
+/**
  * Build the live `$refs` view.
  *
  * Refs resolve on access rather than once at mount, so swapping a
@@ -445,6 +472,7 @@ function queryRefs(root: HTMLElement, name: string): HTMLElement[] {
  */
 function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> {
   const refs: Record<string, HTMLElement | HTMLElement[]> = {};
+  const checked = new Set<string>();
   for (const definition of instance.$config.refs ?? []) {
     const isList = definition.endsWith('[]');
     const name = isList ? definition.slice(0, -2) : definition;
@@ -458,18 +486,23 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
     Object.defineProperty(refs, name, {
       enumerable: true,
       get() {
+        let elements: HTMLElement[];
         // A detached subtree produces no mutation records, so nothing
         // would ever invalidate a cache built from it.
-        if (!instance.$el.isConnected) {
-          const elements = queryRefs(instance.$el, name);
-          return isList ? elements : elements[0];
+        if (instance.$el.isConnected) {
+          const version = domVersion();
+          if (version !== cachedVersion) {
+            cachedVersion = version;
+            cached = queryRefs(instance.$el, name);
+          }
+          elements = cached;
+        } else {
+          elements = queryRefs(instance.$el, name);
         }
-        const version = domVersion();
-        if (version !== cachedVersion) {
-          cachedVersion = version;
-          cached = queryRefs(instance.$el, name);
+        if (elements.length === 0) {
+          warnLegacyRefSuffix(instance, name, checked);
         }
-        return isList ? cached : cached[0];
+        return isList ? elements : elements[0];
       },
     });
   }

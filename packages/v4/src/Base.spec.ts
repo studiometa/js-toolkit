@@ -522,6 +522,39 @@ describe('$refs', () => {
     expect(el.querySelectorAll('[data-ref="own"]')).toHaveLength(2);
   });
 
+  /**
+   * REPORT.md gap 11. v3 selected `[data-ref="dots[]"]`; v4 declares the array
+   * in `config.refs` and selects the plain name, so markup carrying the v3
+   * suffix resolves to `[]` and the component silently does nothing. ui has 36
+   * of them, all in test fixtures and documentation examples.
+   */
+  it('names the element to fix when the markup keeps the v3 [] suffix', () => {
+    class Legacy extends Base {
+      static config = { name: 'Legacy', refs: ['dots[]', 'title'] };
+    }
+
+    const el = document.createElement('div');
+    el.innerHTML = '<span data-ref="dots[]"></span><span data-ref="dots[]"></span>';
+    document.body.append(el);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const instance = new Legacy(el).$mount();
+
+    expect(instance.$refs.dots).toEqual([]);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain('data-ref="dots[]"');
+    expect(warn.mock.calls[0][0]).toContain('Legacy');
+
+    // Once per instance and per name, whatever the read count.
+    void instance.$refs.dots;
+    void instance.$refs.dots;
+    expect(warn).toHaveBeenCalledOnce();
+
+    // A ref that is simply absent says nothing: there is nothing to fix.
+    expect(instance.$refs.title).toBeUndefined();
+    expect(warn).toHaveBeenCalledOnce();
+    warn.mockRestore();
+  });
+
   it('stays live when the markup is replaced', async () => {
     class Swapped extends Base {
       static config = { name: 'Swapped', refs: ['title', 'items[]'] };
