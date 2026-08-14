@@ -356,6 +356,11 @@
       "types": "./dist/subpaths/utils/spring.d.ts",
       "import": "./dist/subpaths/utils/spring.js"
     },
+    "./utils/memo": {
+      "typescript": "./src/subpaths/utils/memo.ts",
+      "types": "./dist/subpaths/utils/memo.d.ts",
+      "import": "./dist/subpaths/utils/memo.js"
+    },
     "./utils/selectorFor": {
       "typescript": "./src/subpaths/utils/selectorFor.ts",
       "types": "./dist/subpaths/utils/selectorFor.d.ts",
