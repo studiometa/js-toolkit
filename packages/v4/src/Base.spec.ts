@@ -514,6 +514,118 @@ describe('$refs', () => {
     warn.mockRestore();
   });
 
+  /**
+   * C9. `belongsTo()` stops at the first `data-component` between a ref and
+   * the root, so a ref nested in a child component cannot be read from the
+   * outside — unless it names its owner. That is what the namespace is for,
+   * and it is v3's rule (`RefsManager.refBelongToInstance()`): ui's
+   * `App.form` reaches a `Frame`'s form from the app root, and
+   * `FigureShopify.img` reaches an image wrapped in a `Transition`.
+   */
+  it('resolves a namespaced ref across an intervening component', () => {
+    class App extends Base {
+      static config = { name: 'NamespacedApp', refs: ['form'] };
+    }
+
+    const el = document.createElement('div');
+    el.innerHTML = `
+      <div data-component="NamespacedFrame">
+        <form data-ref="NamespacedApp.form"></form>
+        <span data-ref="form"></span>
+      </div>
+    `;
+    const instance = new App(el).$mount();
+
+    // The namespace drops out of the property: `App.form` is `$refs.form`.
+    expect(instance.$refs.form).toBe(el.querySelector('form'));
+    // The plain spelling is scoped exactly as before — the child owns it.
+    expect(instance.$refs.form).not.toBe(el.querySelector('span'));
+  });
+
+  /**
+   * The namespace wraps the whole definition, suffix included, because v3
+   * builds `` `${name}.${refName}` `` from the already-suffixed config entry.
+   * It is also the spelling ui documents (`data-ref="Modal.close[]"`).
+   */
+  it('spells a namespaced list ref with the suffix last', () => {
+    class Modal extends Base {
+      static config = { name: 'NamespacedModal', refs: ['close[]'] };
+    }
+
+    const el = document.createElement('div');
+    el.innerHTML = `
+      <div data-component="NamespacedPanel">
+        <button data-ref="NamespacedModal.close[]"></button>
+        <button data-ref="NamespacedModal.close[]"></button>
+      </div>
+      <button data-ref="close[]"></button>
+    `;
+    const instance = new Modal(el).$mount();
+
+    // One property, both spellings, in document order.
+    expect(instance.$refs.close).toEqual([...el.querySelectorAll('button')]);
+  });
+
+  it('ignores a namespaced ref addressed to another component', () => {
+    class Slider extends Base {
+      static config = { name: 'NamespacedSlider', refs: ['next'] };
+    }
+
+    const el = document.createElement('div');
+    el.innerHTML = '<button data-ref="Carousel.next"></button>';
+    const instance = new Slider(el).$mount();
+
+    expect(instance.$refs.next).toBeUndefined();
+  });
+
+  /**
+   * The namespace names an owner, it does not skip every boundary: only a
+   * component of *that* name takes the ref away.
+   */
+  it('gives a namespaced ref to the nearest component of that name', () => {
+    class Nested extends Base {
+      static config = { name: 'NamespacedNested', refs: ['item'] };
+    }
+
+    const el = document.createElement('div');
+    el.innerHTML = `
+      <div data-component="NamespacedNested" id="inner">
+        <span data-ref="NamespacedNested.item"></span>
+      </div>
+    `;
+    const inner = el.querySelector<HTMLElement>('#inner') as HTMLElement;
+    const outerInstance = new Nested(el).$mount();
+    const innerInstance = new Nested(inner).$mount();
+
+    expect(innerInstance.$refs.item).toBe(el.querySelector('span'));
+    expect(outerInstance.$refs.item).toBeUndefined();
+  });
+
+  it('delegates on<Ref><Event> to a namespaced ref, named without its namespace', async () => {
+    const seen: number[] = [];
+
+    class Dialog extends Base {
+      static config = { name: 'NamespacedDialog', refs: ['close[]'] };
+      onCloseClick({ index }: RefEvent) {
+        seen.push(index);
+      }
+    }
+
+    const el = document.createElement('div');
+    el.innerHTML = `
+      <div data-component="NamespacedShell">
+        <button data-ref="NamespacedDialog.close[]">a</button>
+        <button data-ref="NamespacedDialog.close[]">b</button>
+      </div>
+    `;
+    document.body.append(el);
+    new Dialog(el).$mount();
+
+    el.querySelectorAll('button')[1].click();
+    await settle();
+    expect(seen).toEqual([1]);
+  });
+
   it('delegates on<Ref><Event> to a list ref through its suffixed attribute', async () => {
     const seen: number[] = [];
 
