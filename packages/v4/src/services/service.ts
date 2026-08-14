@@ -218,8 +218,29 @@ export function createService<T, R = void>({
 }
 
 /**
- * Key a service by what it observes: one instance per target, held in a
- * `WeakMap` so a target and its service are collected together.
+ * The remaining arguments, as one string, so two callers asking for the same
+ * observation share a service and two callers asking for different ones do
+ * not.
+ *
+ * Serialising is the default because it is right for every source whose
+ * options are plain data — `useDrag(el, { dampFactor })`, an intersection
+ * `init` — and because being wrong here is silent. A factory whose arguments
+ * do not survive `JSON.stringify()` (a DOM node, a callback, anything
+ * circular) passes its own `keyOf` instead; that is what the parameter is for.
+ *
+ * Property order counts, so `{ a, b }` and `{ b, a }` key two services rather
+ * than one. That is the conservative direction — a duplicated observer, not a
+ * caller handed an observation it did not ask for — and the whole point of
+ * this helper is that the second failure must not happen.
+ */
+function serializeArgs(...args: unknown[]): string {
+  return JSON.stringify(args);
+}
+
+/**
+ * Key a service by what it observes: one instance per target **and per set of
+ * arguments**, held in a `WeakMap` so a target and its services are collected
+ * together.
  *
  * The reason is lifecycle bookkeeping, not throughput. Reference counting
  * only means something against a target: `useResize(a)` losing its last
@@ -228,18 +249,35 @@ export function createService<T, R = void>({
  * targets behind one observer is measurably indifferent (`service.bench.ts`),
  * so nothing here tries to.
  *
- * Extra arguments are the ones of the first call for a target — a second
- * caller joins the running service rather than reconfiguring it.
+ * **The arguments are part of the key**, not the first caller's settings kept
+ * for the life of the page. Keying by the target alone was right for
+ * `useScroll(el)` and `useResize(el)`, which have nothing else to say, and
+ * wrong for every source whose options change what is observed: after
+ * `useInView(el, { threshold: 0 })`, a `useInView(el, { threshold: 0.5 })`
+ * was handed the first caller's observer and the second subscriber was never
+ * told anything — a wrong answer, silently, and `useDrag(el, options)` has
+ * that shape (REPORT.md gap 26).
+ *
+ * @param create The factory, called once per target/arguments pair.
+ * @param keyOf  How the remaining arguments become a string; defaults to
+ *               `JSON.stringify()` over the argument list.
  */
 export function perTarget<Target extends WeakKey, Args extends unknown[], T, R = void>(
   create: (target: Target, ...args: Args) => Service<T, R>,
+  keyOf: (...args: Args) => string = serializeArgs,
 ): (target: Target, ...args: Args) => Service<T, R> {
-  const services = new WeakMap<Target, Service<T, R>>();
+  const services = new WeakMap<Target, Map<string, Service<T, R>>>();
   return (target, ...args) => {
-    let service = services.get(target);
+    let byArgs = services.get(target);
+    if (!byArgs) {
+      byArgs = new Map();
+      services.set(target, byArgs);
+    }
+    const key = keyOf(...args);
+    let service = byArgs.get(key);
     if (!service) {
       service = create(target, ...args);
-      services.set(target, service);
+      byArgs.set(key, service);
     }
     return service;
   };
