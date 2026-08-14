@@ -155,31 +155,26 @@ describe('$options', () => {
   });
 
   /**
-   * The no-build path, which is the audience the type-level ban on a literal
-   * `Object`/`Array` default cannot reach. The copy has to go all the way
-   * down: a shallow one gave every instance its own outer object and *the
-   * same* nested one, which is the same bug one level in.
+   * The contract: **a primitive may be a default; anything else needs a
+   * factory.** A factory is what gives each instance its own nested value, all
+   * the way down, without core guessing at how to rebuild anything.
    */
-  it('copies a literal default all the way down', () => {
-    class Literal extends Base<{
+  it('gives each instance its own nested default through a factory', () => {
+    class Nested extends Base<{
       $options: { tween: Record<string, Record<string, number>>; matrix: number[][] };
     }> {
-      // Cast on purpose: `TypedOptionDefinition` bans a literal `Object`/
-      // `Array` default, and the no-build path never sees that ban. This is
-      // what it runs.
       static config = {
-        name: 'Literal',
+        name: 'Nested',
         options: {
-          tween: { type: Object, default: { ease: { in: 1, out: 2 } } },
-          matrix: { type: Array, default: [[1], [2]] },
+          tween: { type: Object, default: () => ({ ease: { in: 1, out: 2 } }) },
+          matrix: { type: Array, default: () => [[1], [2]] },
         },
-      } as unknown as BaseConfig;
+      };
     }
 
-    const first = new Literal(document.createElement('div'));
-    const second = new Literal(document.createElement('div'));
+    const first = new Nested(document.createElement('div'));
+    const second = new Nested(document.createElement('div'));
 
-    expect(first.$options.tween).not.toBe(second.$options.tween);
     expect(first.$options.tween.ease).not.toBe(second.$options.tween.ease);
     expect(first.$options.matrix[0]).not.toBe(second.$options.matrix[0]);
 
@@ -189,23 +184,35 @@ describe('$options', () => {
     expect(second.$options.matrix).toEqual([[1], [2]]);
   });
 
-  it('hands over a default it cannot rebuild rather than guessing', () => {
-    const shared = new Date(0);
+  /**
+   * `TypedOptionDefinition` refuses a literal `Object`/`Array` default at the
+   * type level, so this is only reachable from the no-build path — which never
+   * sees a type, and is exactly who the warning is for. Core does not repair
+   * the declaration: copying it made an unsupported form look supported.
+   */
+  it('warns about a literal default instead of repairing it', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    class Exotic extends Base<{ $options: { at: Record<string, unknown> } }> {
+    class LiteralDefault extends Base<{ $options: { tween: Record<string, unknown> } }> {
+      // Cast on purpose: this is what the no-build path can write and
+      // TypeScript never sees.
       static config = {
-        name: 'Exotic',
-        options: { at: { type: Object, default: { stamp: shared } } },
+        name: 'LiteralDefault',
+        options: { tween: { type: Object, default: { ease: 'linear' } } },
       } as unknown as BaseConfig;
     }
 
-    const first = new Exotic(document.createElement('div'));
-    const second = new Exotic(document.createElement('div'));
+    const first = new LiteralDefault(document.createElement('div'));
+    const second = new LiteralDefault(document.createElement('div'));
 
-    // The plain wrapper is the instance's own; the `Date` inside it is not,
-    // because copying it would mean guessing at its constructor.
-    expect(first.$options.at).not.toBe(second.$options.at);
-    expect(first.$options.at.stamp).toBe(shared);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain('LiteralDefault');
+    expect(warn.mock.calls[0][0]).toContain('tween');
+    expect(warn.mock.calls[0][0]).toContain('default: () => (…)');
+
+    // Handed over exactly as declared, shared — which is what the warning says.
+    expect(first.$options.tween).toBe(second.$options.tween);
+    warn.mockRestore();
   });
 
   it('memoises the default, so a mutation of it persists on that instance', () => {

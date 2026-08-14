@@ -128,9 +128,11 @@ The price, also v3's: the default's index signature comes along, so reading an o
 
 `src/props.spec.ts` holds the assertions — `expectTypeOf` and `@ts-expect-error`, enforced by `npm run lint:types`, since none of this is visible at runtime.
 
-### Option defaults belong to the instance, and may be factories
+### Option defaults belong to the instance: a primitive, or a factory
 
-`$options` reads its `data-option-*` attribute on every access — an attribute is the source of truth, and stays live. A **default** is the opposite kind of value: it is not in the DOM, so it belongs to the instance that reads it.
+**The contract, in one line: a primitive can be set as a default; any other data type needs a factory function.**
+
+`$options` reads its `data-option-*` attribute on every access — an attribute is the source of truth, and stays live. A **default** is the opposite kind of value: it is not in the DOM, so it belongs to the instance that reads it, which is what the contract is there to guarantee.
 
 ```js
 options: {
@@ -139,10 +141,11 @@ options: {
 }
 ```
 
-- **`default` is a value or a factory.** `Function` is not an `OptionType`, so `typeof definition.default === 'function'` unambiguously means factory. The types require the factory form for `Array` and `Object`, because a literal there would live on the class — the shape Vue's `data()` and its object-prop defaults enforce for exactly the same reason.
+- **`default` is a primitive or a factory.** `Function` is not an `OptionType`, so `typeof definition.default === 'function'` unambiguously means factory. `TypedOptionDefinition` requires the factory form for `Array` and `Object`, because a literal there would live on the class — the shape Vue's `data()` and its object-prop defaults enforce for exactly the same reason.
 - **Built once per instance, then memoised.** Repeated reads hand back the same object, so `this.$options.list.push(x)` persists and two instances of one component never share — and corrupt — the same default. `Array` and `Object` with no declared default memoise an empty one per instance, for the same reason. Primitive defaults are unaffected.
 - **The factory is lazy**: nothing is built for an option that is never read, and a component whose attribute is present never runs its factory at all.
-- Written without types (the no-build path), a literal object or array default is copied per instance rather than shared. A mutation of a value **parsed from an attribute** is not kept, on the other hand: the attribute is re-read and re-parsed on the next access, which is what keeps options live.
+- **A literal object or array default is warned about, not repaired.** The type-level ban settles it for anyone with a build step; the no-build path never sees a type, so the same rule is said out loud — once per declaration, naming the component, the option and the fix — and the value is then handed over exactly as declared, shared between instances. Copying it was tried and removed: a shallow copy made an unsupported declaration appear to work one level deep, and a deep copy made core guess at how to rebuild a `Date`, a `Map` or a class instance. Neither is core's job when the contract already has an answer that works all the way down.
+- A mutation of a value **parsed from an attribute** is not kept, on the other hand: the attribute is re-read and re-parsed on the next access, which is what keeps options live.
 
 ### Setup-sensitive options are live effects
 

@@ -531,6 +531,12 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
  * instance**, not to the class: each one is built once per instance and kept,
  * which is what makes `this.$options.list.push(x)` persist and what stops two
  * components from sharing — and corrupting — the same defaulted object.
+ *
+ * That is what the contract buys: **a primitive may be a default, anything
+ * else needs a factory.** A factory is called once per instance, and an
+ * `Array`/`Object` option with no declared default gets an empty one per
+ * instance for the same reason. A literal is neither: it lives on the class,
+ * so it is warned about rather than repaired.
  */
 interface OptionReader {
   attribute: string;
@@ -540,34 +546,41 @@ interface OptionReader {
 const optionReaders = new WeakMap<Base, Map<string, OptionReader>>();
 
 /**
- * Copy a literal default, all the way down.
- *
- * A shallow copy left the nested halves shared, so `default: { a: { b: 1 } }`
- * handed every instance its own outer object and *the same* `a` — the same bug
- * a factory exists to prevent, one level in, and identical when it bites.
- *
- * Plain objects and arrays are the only things rebuilt. Anything else — a
- * `Date`, a `Map`, an element, an instance of a class — is handed over as it
- * is, because copying it would need to guess at its constructor and would
- * quietly change what the author declared. A default of that shape is shared
- * between instances, and the factory form is the answer for it.
+ * Definitions already reported by {@link warnLiteralDefault}, so the message
+ * belongs to the declaration rather than to the instance reading it: the
+ * definition object is the one the class declared, shared by every instance of
+ * it, and by every subclass that inherits it through `resolveConfig()`.
  */
-function copyDefault(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(copyDefault);
+const reportedLiteralDefaults = new WeakSet<object>();
+
+/**
+ * Say so when a default is a literal object or array.
+ *
+ * **The contract is that a primitive may be a default, and anything else needs
+ * a factory.** A literal lives on the class, so every instance would read — and
+ * mutate — the same object. `TypedOptionDefinition` refuses it at the type
+ * level, which settles it for anyone with a build step; this is the same rule
+ * said out loud for the no-build path, which never sees a type.
+ *
+ * Core does not repair it. Copying the literal made an unsupported declaration
+ * appear to work, and a shallow copy made it appear to work only one level
+ * deep, which is worse: the value is handed over exactly as declared, and the
+ * warning says what to write instead.
+ */
+function warnLiteralDefault(
+  componentName: string,
+  option: string,
+  definition: object,
+  declared: object,
+): void {
+  if (reportedLiteralDefaults.has(definition)) {
+    return;
   }
-  if (value === null || typeof value !== 'object') {
-    return value;
-  }
-  const proto = Object.getPrototypeOf(value);
-  if (proto !== Object.prototype && proto !== null) {
-    return value;
-  }
-  const copy: Record<string, unknown> = {};
-  for (const [key, nested] of Object.entries(value)) {
-    copy[key] = copyDefault(nested);
-  }
-  return copy;
+  reportedLiteralDefaults.add(definition);
+  const kind = Array.isArray(declared) ? 'array' : 'object';
+  console.warn(
+    `[base] \`${componentName}\` declares option \`${option}\` with a literal ${kind} default, which every instance of it then shares. Only a primitive may be a default; declare this one as a factory: \`default: () => (…)\`.`,
+  );
 }
 
 function buildOptions(instance: Base): Record<string, unknown> {
@@ -579,6 +592,10 @@ function buildOptions(instance: Base): Record<string, unknown> {
     const type = typeof definition === 'function' ? definition : definition.type;
     const declared = typeof definition === 'function' ? undefined : definition.default;
     const attribute = `data-option-${kebabCase(name)}`;
+
+    if (typeof definition !== 'function' && declared !== null && typeof declared === 'object') {
+      warnLiteralDefault(instance.$config.name, name, definition, declared);
+    }
 
     // Built on first read and memoised, so repeated reads hand back the same
     // object and a mutation of it sticks — for this instance only.
@@ -596,12 +613,10 @@ function buildOptions(instance: Base): Record<string, unknown> {
       if (typeof declared === 'function') {
         return (declared as () => unknown)();
       }
-      if (declared !== null && typeof declared === 'object') {
-        // The types ask for a factory here; the no-build path has no types,
-        // so a literal object or array is copied rather than shared — and
-        // copied deeply, since a shared nested object is the same bug.
-        return copyDefault(declared);
-      }
+      // Anything else is handed over as declared — including a literal object
+      // or array, which the contract does not allow and `warnLiteralDefault()`
+      // has already reported. Copying it here would repair a declaration the
+      // contract rejects, and make an unsupported form look supported.
       if (declared !== undefined) {
         return declared;
       }
