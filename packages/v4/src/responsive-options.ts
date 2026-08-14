@@ -1,15 +1,20 @@
 /**
  * Responsive options — one option, several values, chosen by the viewport.
  *
- * An option declares itself responsive in the config, and its markup gains
- * breakpoint-scoped spellings of the same attribute:
+ * **Every** option is responsive, with nothing declared for it. An option is
+ * declared in `config.options` and its markup may scope the same attribute to
+ * a breakpoint:
  *
- *     options: { columns: { type: Number, default: 1, responsive: true } }
+ *     options: { columns: { type: Number, default: 1 } }
  *
  *     <div data-component="Grid"
  *          data-option-columns="1"
  *          data-option-columns:s="2"
  *          data-option-columns:l="4"></div>
+ *
+ * There is no flag, because a flag would only name a thing: the framework
+ * already knows the option exists, and an author who writes the scoped
+ * attribute has said everything there is to say. The markup is the opt-in.
  *
  * Two rules, and they are the whole feature:
  *
@@ -83,8 +88,9 @@ function scopedAttributes(attribute: string): readonly string[] {
  * spellings, so rewriting `data-option-columns:s` at runtime reports a change
  * exactly as rewriting `data-option-columns` does.
  *
- * Called by the registry for every responsive option a registered component
- * declares.
+ * Called by the registry for every option a registered component declares —
+ * `attribute × breakpoint`, which is why the suffix names one breakpoint
+ * rather than a set.
  */
 export function observeResponsiveAttribute(attribute: string): void {
   observed.add(attribute);
@@ -167,15 +173,24 @@ export function watchBreakpoint(callback: (previous: string) => void): () => voi
  * when it happens — so it is said out loud, once per mount, in the same spirit
  * as the payload-shape warning: the option still resolves, this reports a
  * spelling rather than policing one.
+ *
+ * The element's attributes are scanned **once** for all of a component's
+ * options rather than once per option, since `getAttributeNames()` allocates.
  */
-export function checkResponsiveAttributes(el: HTMLElement, attribute: string): void {
-  const prefix = `${attribute}${RESPONSIVE_SEPARATOR}`;
+export function checkResponsiveAttributes(el: HTMLElement, attributes: readonly string[]): void {
+  if (attributes.length === 0) {
+    return;
+  }
   const names = breakpointNames();
   for (const name of el.getAttributeNames()) {
-    if (name.startsWith(prefix) && !names.includes(name.slice(prefix.length))) {
-      console.warn(
-        `[base] \`${name}\` names no breakpoint, so it is never read. One breakpoint per attribute, cascading upwards from it — known names: ${names.join(', ')}.`,
-      );
+    for (const attribute of attributes) {
+      const prefix = `${attribute}${RESPONSIVE_SEPARATOR}`;
+      if (name.startsWith(prefix) && !names.includes(name.slice(prefix.length))) {
+        console.warn(
+          `[base] \`${name}\` names no breakpoint, so it is never read. One breakpoint per attribute, cascading upwards from it — known names: ${names.join(', ')}.`,
+        );
+        break;
+      }
     }
   }
 }

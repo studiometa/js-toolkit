@@ -70,16 +70,14 @@ function optionAttributes(ComponentClass: BaseConstructor): string[] {
   const names = new Set<string>();
   let current: BaseConstructor | null = ComponentClass;
   while (current?.config) {
-    for (const [name, definition] of Object.entries(current.config.options ?? {})) {
+    for (const name of Object.keys(current.config.options ?? {})) {
       const attribute = `data-option-${kebabCase(name)}`;
       names.add(attribute);
-      // A responsive option is written across several attributes, one per
-      // breakpoint. The observer filters on exact names, so its breakpoint-
+      // Every option may be written across several attributes, one per
+      // breakpoint. The observer filters on exact names, so the breakpoint-
       // scoped spellings are registered too — and re-registered if the named
       // set is later replaced, which the responsive layer owns.
-      if (typeof definition !== 'function' && definition.responsive === true) {
-        observeResponsiveAttribute(attribute);
-      }
+      observeResponsiveAttribute(attribute);
     }
     current = Object.getPrototypeOf(current) as BaseConstructor | null;
   }

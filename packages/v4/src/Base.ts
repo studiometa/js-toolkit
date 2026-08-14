@@ -67,8 +67,8 @@ type OptionValue<T extends OptionType> = T extends typeof String
  */
 type TypedOptionDefinition<T extends OptionType = OptionType> = T extends OptionType
   ? T extends typeof Array | typeof Object
-    ? { type: T; default?: () => OptionValue<T>; responsive?: boolean }
-    : { type: T; default?: OptionValue<T> | (() => OptionValue<T>); responsive?: boolean }
+    ? { type: T; default?: () => OptionValue<T> }
+    : { type: T; default?: OptionValue<T> | (() => OptionValue<T>) }
   : never;
 
 export type OptionDefinition = OptionType | TypedOptionDefinition;
@@ -441,12 +441,11 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
  * components from sharing — and corrupting — the same defaulted object.
  */
 interface OptionReader {
-  /** The unsuffixed `data-option-*` attribute. */
+  /** The unsuffixed `data-option-*` attribute — the base of the cascade. */
   attribute: string;
-  responsive: boolean;
   /**
-   * The raw string in force now: the attribute's value, or — for a responsive
-   * option — the value of the breakpoint-scoped spelling the cascade selects.
+   * The raw string in force now: the value of the breakpoint-scoped spelling
+   * the cascade selects, or the base attribute's when none is scoped.
    */
   rawValue(): string | null;
   /**
@@ -470,7 +469,6 @@ function buildOptions(instance: Base): Record<string, unknown> {
   for (const [name, definition] of Object.entries(instance.$config.options ?? {})) {
     const type = typeof definition === 'function' ? definition : definition.type;
     const declared = typeof definition === 'function' ? undefined : definition.default;
-    const responsive = typeof definition !== 'function' && definition.responsive === true;
     const attribute = `data-option-${kebabCase(name)}`;
 
     // Built on first read and memoised, so repeated reads hand back the same
@@ -529,24 +527,17 @@ function buildOptions(instance: Base): Record<string, unknown> {
       return raw;
     };
 
-    // A responsive option is **derived on read**, exactly like a plain one:
-    // the getter consults the viewport where the other consults the element,
-    // and neither stores anything. This is what lets `$options` stay a
-    // read-only view — there is no moment at which a breakpoint change has to
-    // write a value in.
+    // Every option is responsive, and it is **derived on read**: the getter
+    // consults the viewport as well as the element, and stores nothing. This
+    // is what lets `$options` stay a read-only view — there is no moment at
+    // which a breakpoint change has to write a value in.
     const fromElement = (attributeName: string) => el.getAttribute(attributeName);
-    const rawValue = responsive
-      ? () => responsiveRawValue(attribute, activeBreakpoint(), fromElement)
-      : () => el.getAttribute(attribute);
-    const rawValueAt = responsive
-      ? (breakpoint: string, get: (attributeName: string) => string | null) =>
-          responsiveRawValue(attribute, breakpoint, get)
-      : (_breakpoint: string, get: (attributeName: string) => string | null) => get(attribute);
-    const owns = responsive
-      ? (attributeName: string) => isResponsiveAttribute(attribute, attributeName)
-      : (attributeName: string) => attributeName === attribute;
+    const rawValue = () => responsiveRawValue(attribute, activeBreakpoint(), fromElement);
+    const rawValueAt = (breakpoint: string, get: (attributeName: string) => string | null) =>
+      responsiveRawValue(attribute, breakpoint, get);
+    const owns = (attributeName: string) => isResponsiveAttribute(attribute, attributeName);
 
-    readers.set(name, { attribute, responsive, rawValue, rawValueAt, owns, read });
+    readers.set(name, { attribute, rawValue, rawValueAt, owns, read });
     Object.defineProperty(options, name, {
       enumerable: true,
       get: () => read(rawValue()),
@@ -1079,13 +1070,13 @@ export class Base<T extends BaseProps = BaseProps> {
    * runs before the next value is applied and on destroy.
    *
    * The batch is handed over whole, as `attribute → value before the batch`,
-   * rather than one resolved option at a time: a responsive option answers from
-   * whichever breakpoint-scoped spelling the cascade selects, so what its
-   * previous value was is a question only its own reader can answer. The rule
-   * is the same either way — a change is one whose **resolved** raw value
-   * differs from the resolved raw value before the batch, so rewriting
-   * `data-option-columns:s` while the viewport sits at `l` is not a change to
-   * `columns`, and neither is a net-zero rewrite.
+   * rather than one resolved option at a time: an option answers from whichever
+   * breakpoint-scoped spelling the cascade selects, so what its previous value
+   * was is a question only its own reader can answer. The rule is one rule — a
+   * change is one whose **resolved** raw value differs from the resolved raw
+   * value before the batch, so rewriting `data-option-columns:s` while the
+   * viewport sits at `l` is not a change to `columns`, and neither is a
+   * net-zero rewrite.
    *
    * @internal
    */
@@ -1099,11 +1090,11 @@ export class Base<T extends BaseProps = BaseProps> {
         : this.$el.getAttribute(attributeName);
 
     for (const [name, reader] of optionReaders.get(this) ?? []) {
-      // A plain option is one lookup; only a responsive one has to ask about
-      // every changed name, since any of its scoped spellings may be the one
-      // the cascade was selecting.
+      // The base attribute is one lookup; any of the scoped spellings may be
+      // the one the cascade was selecting, so a miss asks about every changed
+      // name before giving up.
       let touched = changes.has(reader.attribute);
-      if (!touched && reader.responsive) {
+      if (!touched) {
         for (const attributeName of changes.keys()) {
           if (reader.owns(attributeName)) {
             touched = true;
@@ -1250,27 +1241,27 @@ export class Base<T extends BaseProps = BaseProps> {
    * Follow the viewport for the mount cycle, if this component has anything to
    * do about a crossing.
    *
-   * "Anything to do" is a declared `option<Name>Changed()` for a responsive
-   * option, and the condition is the point: reading a responsive option needs
-   * no subscription — the value is derived when it is read — so a component
-   * that only reads costs the page nothing at rest. Only a component that has
-   * asked to be **told** holds a `matchMedia` listener, and only while it is
-   * mounted.
+   * "Anything to do" is a declared `option<Name>Changed()`, and the condition
+   * is the point: reading an option needs no subscription — the value is
+   * derived when it is read — so a component that only reads costs the page
+   * nothing at rest. Only a component that has asked to be **told** holds a
+   * `matchMedia` listener, and only while it is mounted.
    */
   #initializeResponsiveOptions(): void {
     const readers = optionReaders.get(this);
-    if (!readers) {
+    if (!readers || readers.size === 0) {
       return;
     }
+    // One scan of the element's attributes per mount — not one per option —
+    // to report a suffix naming no breakpoint, which is the one way this can
+    // fail quietly and the shape v3 markup arrives in.
+    checkResponsiveAttributes(
+      this.$el,
+      [...readers.values()].map((reader) => reader.attribute),
+    );
+
     let announces = false;
-    for (const [name, reader] of readers) {
-      if (!reader.responsive) {
-        continue;
-      }
-      // One scan of the element's attributes per responsive option per mount,
-      // to report a suffix naming no breakpoint — the one way this can fail
-      // quietly, and the shape v3 markup arrives in.
-      checkResponsiveAttributes(this.$el, reader.attribute);
+    for (const name of readers.keys()) {
       announces ||=
         typeof (this as unknown as Record<string, unknown>)[`option${pascalCase(name)}Changed`] ===
         'function';
@@ -1283,9 +1274,6 @@ export class Base<T extends BaseProps = BaseProps> {
       watchBreakpoint((previous) => {
         const fromElement = (attributeName: string) => this.$el.getAttribute(attributeName);
         for (const [name, reader] of readers) {
-          if (!reader.responsive) {
-            continue;
-          }
           // The attributes did not move; the viewport did. A crossing is only a
           // change to the options whose cascade now selects a different one.
           const previousRawValue = reader.rawValueAt(previous, fromElement);

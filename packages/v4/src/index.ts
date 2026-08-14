@@ -41,11 +41,12 @@
  * four modes, one script-adoption pass, and a promise resolving once the
  * registry has caught up.
  *
- * Plus responsive options: an option declared `{ …, responsive: true }` reads
+ * Plus responsive options, which every option is: a declared option reads
  * `data-option-<name>:<breakpoint>` as well as its plain attribute, cascading
- * upwards from the breakpoint it names. It is derived on read like every other
- * option, so `$options` stays read-only, and a crossing that changes the
- * resolved value is announced through the same `option<Name>Changed()`.
+ * upwards from the breakpoint it names, with nothing declared for it. It is
+ * derived on read like every other value here, so `$options` stays read-only,
+ * and a crossing that changes the resolved value is announced through the same
+ * `option<Name>Changed()`.
  *
  * Not in this prototype: autoload manifests, non-bubbling child events
  * (mouseenter/mouseleave).

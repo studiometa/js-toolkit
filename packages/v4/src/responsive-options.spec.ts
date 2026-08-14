@@ -47,11 +47,16 @@ async function countMediaListeners(during: () => Promise<void>): Promise<number>
   return added;
 }
 
-/** Reads its responsive option, and asks to hear nothing. */
+/**
+ * Reads its option, and asks to hear nothing.
+ *
+ * Nothing here declares an option responsive, because nothing can: every
+ * declared option is, and the markup is the only opt-in there is.
+ */
 class Label extends Base<{ $options: { label: string } }> {
   static config = {
     name: 'Label',
-    options: { label: { type: String, default: 'base', responsive: true } },
+    options: { label: { type: String, default: 'base' } },
   };
 }
 
@@ -60,8 +65,8 @@ class Grid extends Base<{ $options: { columns: number; gap: number } }> {
   static config = {
     name: 'Grid',
     options: {
-      columns: { type: Number, default: 1, responsive: true },
-      // Not responsive: the same batch must leave it alone.
+      columns: { type: Number, default: 1 },
+      // Written unsuffixed only: the same batch must leave it alone.
       gap: { type: Number, default: 0 },
     },
   };
@@ -78,8 +83,23 @@ class Grid extends Base<{ $options: { columns: number; gap: number } }> {
   }
 }
 
+/** The shorthand declaration — the one that cannot carry a flag at all. */
+class Banner extends Base<{ $options: { theme: string } }> {
+  static config = {
+    name: 'Banner',
+    options: { theme: String },
+  };
+
+  changes: OptionChange[] = [];
+
+  optionThemeChanged(change: OptionChange): void {
+    this.changes.push(change);
+  }
+}
+
 registerComponent(Label);
 registerComponent(Grid);
+registerComponent(Banner);
 
 function render(html: string): HTMLElement {
   const root = document.createElement('div');
@@ -223,7 +243,7 @@ describe('responsive options', () => {
     expect(grid.changes[1]).toMatchObject({ value: 3, previousValue: 6 });
   });
 
-  it('leaves a non-responsive option on its own attribute', async () => {
+  it('leaves an option written unsuffixed alone across a crossing', async () => {
     atSmall();
     const root = render(
       `<div data-component="Grid" data-option-columns:large="4" data-option-gap="8"></div>`,
@@ -233,9 +253,43 @@ describe('responsive options', () => {
 
     expect(grid.$options.gap).toBe(8);
     atLarge();
-    // A crossing moves the responsive option and nothing else.
+    // `gap` is as responsive as `columns` — it simply has nothing scoped, so
+    // the cascade falls to its base attribute at every breakpoint.
     expect(grid.$options.gap).toBe(8);
     expect(grid.$options.columns).toBe(4);
+  });
+
+  it('needs nothing declared: every option is responsive, including the shorthand form', async () => {
+    atSmall();
+    const root = render(
+      `<p data-component="Banner"
+          data-option-theme="light"
+          data-option-theme:large="dark"></p>`,
+    );
+    await settle();
+    const banner = getInstance<Banner>(root.firstElementChild, 'Banner');
+
+    // `options: { theme: String }` — a declaration with nowhere to put a flag.
+    expect(banner.$options.theme).toBe('light');
+    atLarge();
+    expect(banner.$options.theme).toBe('dark');
+  });
+
+  it('observes the scoped spellings of an option no markup ever scoped', async () => {
+    atSmall();
+    const root = render('<p data-component="Banner" data-option-theme="light"></p>');
+    await settle();
+    const banner = getInstance<Banner>(root.firstElementChild, 'Banner');
+    banner.changes = [];
+
+    // The scoped names entered the one observer's filter because the option
+    // exists, not because anything declared or wrote them — so a scoped
+    // attribute added at runtime is reported, which no opt-in could have
+    // arranged after the fact.
+    banner.$el.setAttribute('data-option-theme:small', 'dark');
+    await settle();
+    expect(banner.changes).toHaveLength(1);
+    expect(banner.changes[0]).toMatchObject({ value: 'dark', previousValue: 'light' });
   });
 
   it('holds its `matchMedia` listener for the mount cycle, and no longer', async () => {
