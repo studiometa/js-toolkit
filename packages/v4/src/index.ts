@@ -45,8 +45,15 @@
  * four modes, one script-adoption pass, and a promise resolving once the
  * registry has caught up.
  *
- * Not in this prototype: manifest generation from a bundler glob, responsive
- * options, non-bubbling child events (mouseenter/mouseleave).
+ * Plus responsive options, which every option is: a declared option reads
+ * `data-option-<name>:<breakpoint>` as well as its plain attribute, cascading
+ * upwards from the breakpoint it names, with nothing declared for it. It is
+ * derived on read like every other value here, so `$options` stays read-only,
+ * and a crossing that changes the resolved value is announced through the same
+ * `option<Name>Changed()`.
+ *
+ * Not in this prototype: manifest generation from a bundler glob, non-bubbling
+ * child events (mouseenter/mouseleave).
  *
  * One dependency: `morphdom`, imported by `swap()` alone for its `morph` mode.
  * Every other subpath is dependency-free, so a page which never swaps never
