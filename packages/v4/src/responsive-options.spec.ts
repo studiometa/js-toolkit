@@ -165,6 +165,40 @@ describe('responsive options', () => {
     expect(added).toBe(0);
   });
 
+  it('does not serve a stale breakpoint after a crossing, subscribed to nothing', async () => {
+    atSmall();
+    const root = render(
+      `<p data-component="Label"
+          data-option-label:small="narrow"
+          data-option-label:large="wide"></p>`,
+    );
+    await settle();
+    const label = getInstance<Label>(root.firstElementChild, 'Label');
+
+    const added = await countMediaListeners(async () => {
+      // Warm the memoised breakpoint name hard: within one task these must be
+      // one `matches` sweep, and the answer must still be the true one.
+      for (let index = 0; index < 5; index += 1) {
+        expect(label.$options.label).toBe('narrow');
+      }
+
+      // The crossing happens in the same task as the reads that primed the
+      // cache. A boundary invalidation alone would not have covered this, which
+      // is why `setBreakpoints()` drops the resolved name itself.
+      atLarge();
+      expect(label.$options.label).toBe('wide');
+
+      // And again after the boundary the memo does use, from a fresh task.
+      await settle();
+      expect(label.$options.label).toBe('wide');
+      atSmall();
+      expect(label.$options.label).toBe('narrow');
+    });
+
+    // Memoising a read must not have turned a read into a subscription.
+    expect(added).toBe(0);
+  });
+
   it('announces a crossing through `option<Name>Changed()`', async () => {
     atSmall();
     const root = render(

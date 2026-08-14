@@ -34,6 +34,9 @@ setBreakpoints(BREAKPOINTS);
 /** The filter widths the change moves between, plus a large-app figure. */
 const WIDTHS = [44, 300, 723] as const;
 
+/** Reads in one task: twenty instances reading one option, or four reading five. */
+const READS = 20;
+
 function filterOf(size: number): string[] {
   const names = ['data-component', 'data-mount', 'data-ref'];
   for (let index = names.length; index < size; index += 1) {
@@ -42,7 +45,13 @@ function filterOf(size: number): string[] {
   return names;
 }
 
-describe('option read (runs on every `$options.foo`)', () => {
+/**
+ * One read, and the benchmark runner crosses a microtask between iterations —
+ * so every one of these is a **cold** read, the first of its task. That is the
+ * case the memoised breakpoint name cannot help and is not meant to: it is
+ * measured here as the floor, and the batch below is where the memo lives.
+ */
+describe('option read, cold (the first read of a task)', () => {
   const el = document.createElement('div');
   el.setAttribute('data-option-columns', '1');
   document.body.append(el);
@@ -86,6 +95,62 @@ describe('option read (runs on every `$options.foo`)', () => {
       activeBreakpoint(),
       fromScoped,
     );
+  });
+});
+
+/**
+ * The shape a component actually reads in: a handler, a `raf` callback, a
+ * layout pass — several options, several instances, all inside **one task**.
+ *
+ * The viewport cannot change during a task, so the memoised breakpoint name is
+ * exactly as fresh as re-querying would have been, and the sweep of eight
+ * `MediaQueryList` objects happens once instead of `READS` times. This is the
+ * measurement the memo was added for.
+ */
+describe(`option read, batched (${READS} reads in one task)`, () => {
+  const el = document.createElement('div');
+  el.setAttribute('data-option-columns', '1');
+  document.body.append(el);
+  const fromElement = (name: string) => el.getAttribute(name);
+
+  bench(`plain attribute × ${READS}`, () => {
+    let last: string | null = null;
+    for (let index = 0; index < READS; index += 1) {
+      last = el.getAttribute('data-option-columns');
+    }
+    globalThis.__benchSink = last;
+  });
+
+  // The path before the memo, inlined so the two are one measurement rather
+  // than an extrapolation: persistent `MediaQueryList` objects — already the
+  // fast form, per `service.bench.ts` — swept on every single read.
+  const queries = Object.entries(BREAKPOINTS).map(
+    ([name, value]) => [name, window.matchMedia(`(min-width: ${value})`)] as const,
+  );
+  const sweep = (): string => {
+    let match = '';
+    for (const [name, query] of queries) {
+      if (query.matches) {
+        match = name;
+      }
+    }
+    return match;
+  };
+
+  bench(`cascade × ${READS}, breakpoint swept per read (before)`, () => {
+    let last: string | null = null;
+    for (let index = 0; index < READS; index += 1) {
+      last = responsiveRawValue('data-option-columns', sweep(), fromElement);
+    }
+    globalThis.__benchSink = last;
+  });
+
+  bench(`cascade × ${READS}, breakpoint memoised per task (after)`, () => {
+    let last: string | null = null;
+    for (let index = 0; index < READS; index += 1) {
+      last = responsiveRawValue('data-option-columns', activeBreakpoint(), fromElement);
+    }
+    globalThis.__benchSink = last;
   });
 });
 

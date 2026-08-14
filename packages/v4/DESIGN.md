@@ -208,7 +208,18 @@ The separator stays a colon, because a kebab-cased option name can contain a das
 The two prices of dropping the flag were measured before it was dropped (`responsive-options.bench.ts`, Chromium):
 
 - **The observer's filter widens by ~9×** — 3 + 33 + 8 = 44 names across the ported families when one option opted in, 3 + 33 × 9 = 300 when they all do. It costs **nothing measurable**: an unfiltered attribute write on the page (a `class` rewrite, the common case) and a filtered `data-option-*` rewrite are both flat from 44 to 723 names, within noise. The engine does not scan the filter linearly. Re-observing does scale with it — `observe()` goes 0.007 ms → 0.046 ms → 0.131 ms — but it runs once per registered class at startup, so a large app pays a few milliseconds once. Memory is a few hundred interned strings.
-- **Every read walks the cascade**, and this one is real: `$options.foo` goes from 3.3 M/s to 195 k/s, **16.8× slower**, ~0.3 µs to ~5.1 µs. Nearly all of it is `activeBreakpoint()` alone (197 k/s), which asks eight kept `MediaQueryList` objects for `.matches` — not the attribute walk. It is the honest price of a value derived from the viewport on every access, and the mitigation, if a page ever needs one, is to memoise the active name rather than to reinstate a flag.
+- **Every read walks the cascade**, and this one was real: measured in a loop, a read cost **4.70 µs** against a plain `getAttribute()`'s 0.052 µs — **91×** — and nearly all of it was asking eight kept `MediaQueryList` objects for `.matches`, not the attribute walk. **Fixed by memoising the active breakpoint name**, below: the same batched read is now **0.38 µs, 12.3× faster**, and 7.4× a plain attribute rather than 91×. What is left is the cascade walk itself — up to nine `getAttribute()` calls instead of one — which is the feature, not an accident of it.
+
+#### The active breakpoint is memoised for the length of a task
+
+The sweep of eight `MediaQueryList` objects was the whole cost of an option read. It is now computed at most once per task, through `utils/memo.js`, and the invalidation is the design:
+
+- **A microtask boundary ends the cache.** This is not a heuristic with a tuned duration. A media query is re-evaluated when the viewport changes, and that change is delivered as a **task** — script runs to completion before one can be. So the active breakpoint is a _constant_ for the length of a task, and a value dropped at the microtask checkpoint is exactly as fresh as re-querying would have been, for every read it served. There is no staleness window to trade against a hit rate, which is precisely what a `maxAge` would have been.
+- **Two events cut it shorter, and both are stronger.** `setBreakpoints()` replaces the named set synchronously — a crossing that no `matchMedia` event announces, and the one the specs perform — so it clears the value itself rather than waiting for the boundary. And a running service's `change` handler _knows_ a crossing happened, so it clears too. Both share the one cache with the cold path instead of keeping a second.
+
+**Honest cold survives untouched**, which was the property at risk: memoising a read did not turn a read into a subscription. Nothing here calls `addEventListener`, and `responsive-options.spec.ts` proves it by crossing a breakpoint mid-task, reading the new value, and asserting zero registrations on `MediaQueryList.prototype` for the same window.
+
+The first read of a task still pays the full sweep, by design. The shape this fixes is the one components actually have — a handler, a `raf` callback, a layout pass reading several options across several instances — where the sweep happened once per read to learn a name that could not have changed in between.
 
 ## 2. One registry
 

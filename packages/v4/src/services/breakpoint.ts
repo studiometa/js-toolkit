@@ -1,3 +1,4 @@
+import { memo } from '../utils/memo.js';
 import { createService, type MutableProps, type Service } from './service.js';
 
 /**
@@ -81,6 +82,10 @@ export function setBreakpoints(next: Record<string, string>): void {
   breakpoints = { ...next };
   queries = null;
   names = null;
+  // Replacing the set is a crossing that no `matchMedia` event announces, so
+  // the resolved name is dropped here rather than at the next boundary — the
+  // specs read an option straight after `setBreakpoints()`, in the same task.
+  widestMatch.clear();
   // Caches first, then the emission: a subscriber told about the new name must
   // resolve against the new set, not against the one being replaced.
   for (const listener of replacementListeners) {
@@ -133,7 +138,7 @@ export function onBreakpointsReplaced(callback: () => void): () => void {
 /**
  * The widest matching name. The set is ascending, so the last match wins.
  */
-function currentBreakpoint(): string {
+const widestMatch = memo((): string => {
   let match = '';
   for (const [name, query] of queryList()) {
     if (query.matches) {
@@ -141,6 +146,48 @@ function currentBreakpoint(): string {
     }
   }
   return match;
+});
+
+/** Whether a boundary invalidation is already armed for the current task. */
+let invalidating = false;
+
+/**
+ * The widest matching name, computed at most once per task.
+ *
+ * Asking eight kept `MediaQueryList` objects for `.matches` measured **~5.1 µs**
+ * and it is the whole of an option read now that every option is responsive —
+ * 16.8× the plain `getAttribute()` it replaced (`responsive-options.bench.ts`).
+ * A component reading three options in a scroll handler paid for 24 media
+ * queries to learn one name that cannot have changed between the first and the
+ * third.
+ *
+ * **Cannot have changed** is the whole argument, and it is why the invalidation
+ * is a microtask boundary rather than a duration. A media query is re-evaluated
+ * when the viewport changes, and that change is delivered as a *task*; script
+ * runs to completion before one can be. So the active breakpoint is a constant
+ * for the length of a task, and a cache dropped at the microtask checkpoint is
+ * not an approximation of the truth — it is exactly as fresh as reading the
+ * queries would have been, for the reads it serves.
+ *
+ * Two events cut it shorter, and both are stronger than the boundary:
+ * `setBreakpoints()` replaces the named set synchronously, and a running
+ * service's `change` handler knows a crossing happened. Both clear this, so
+ * they share one cache with the cold path rather than keeping a second.
+ *
+ * The listener count is untouched, which is the property that mattered: this
+ * opens nothing. `useBreakpoint().props()` stays honest cold, and
+ * `responsive-options.spec.ts` still counts registrations on
+ * `MediaQueryList.prototype` to prove it.
+ */
+function currentBreakpoint(): string {
+  if (!invalidating) {
+    invalidating = true;
+    queueMicrotask(() => {
+      invalidating = false;
+      widestMatch.clear();
+    });
+  }
+  return widestMatch();
 }
 
 function createBreakpointService(): Service<BreakpointProps> {
@@ -155,6 +202,9 @@ function createBreakpointService(): Service<BreakpointProps> {
     },
     start(emit) {
       const publishIfCrossed = () => {
+        // A `change` event is the one signal that says a crossing *has*
+        // happened, so it invalidates rather than waiting for the boundary.
+        widestMatch.clear();
         const name = currentBreakpoint();
         if (name === props.name) {
           return;

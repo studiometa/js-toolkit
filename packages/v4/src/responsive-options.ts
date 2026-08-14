@@ -39,6 +39,7 @@
  */
 import { registerDOMOptionAttributes } from './dom-mutations.js';
 import { breakpointNames, onBreakpointsReplaced, useBreakpoint } from './services/breakpoint.js';
+import { memo } from './utils/memo.js';
 
 /**
  * What separates an option's attribute from the breakpoint it is scoped to.
@@ -56,16 +57,19 @@ export const RESPONSIVE_SEPARATOR = ':';
  * The breakpoint-scoped spellings of one attribute, in the set's own order.
  *
  * Built once per attribute and kept, because resolution runs on every read of
- * a responsive option: composing the strings each time would allocate one per
- * candidate per access. Dropped when the set is replaced, below.
+ * an option: composing the strings each time would allocate one per candidate
+ * per access. Its lifetime is the named set's, which is what `clear()` below
+ * is for — the case `maxAge` could not have expressed.
  */
-const scopedNames = new Map<string, readonly string[]>();
+const scopedAttributes = memo((attribute: string): readonly string[] =>
+  breakpointNames().map((name) => `${attribute}${RESPONSIVE_SEPARATOR}${name}`),
+);
 
 /** Base attributes whose scoped spellings the one observer filters for. */
 const observed = new Set<string>();
 
 onBreakpointsReplaced(() => {
-  scopedNames.clear();
+  scopedAttributes.clear();
   // The filter takes exact names, so a replaced set means names that were
   // never registered. Re-derive them, or a `data-option-x:<new>` rewritten at
   // runtime would be invisible while the plain `data-option-x` is honoured.
@@ -73,15 +77,6 @@ onBreakpointsReplaced(() => {
     registerDOMOptionAttributes(scopedAttributes(attribute));
   }
 });
-
-function scopedAttributes(attribute: string): readonly string[] {
-  let scoped = scopedNames.get(attribute);
-  if (!scoped) {
-    scoped = breakpointNames().map((name) => `${attribute}${RESPONSIVE_SEPARATOR}${name}`);
-    scopedNames.set(attribute, scoped);
-  }
-  return scoped;
-}
 
 /**
  * Widen the one mutation observer's filter to an attribute's breakpoint-scoped
