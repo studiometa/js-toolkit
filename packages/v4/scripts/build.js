@@ -6,10 +6,17 @@ const pkgRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const srcRoot = resolve(pkgRoot, 'src');
 const outDir = resolve(pkgRoot, 'dist');
 
-// Every module under `src/` except the specs and the benchmarks. `unbundle` keeps
-// the emitted `dist/` tree one-to-one with the sources.
+// Every consumer module under `src/`. Specs, benchmarks and test utilities stay
+// source-only. `unbundle` keeps the emitted `dist/` tree one-to-one with the entries.
 const entryPoints = glob.sync(
-  ['**/*.ts', '!**/*.d.ts', '!**/*.spec.ts', '!**/*.bench.ts', '!**/node_modules/**'],
+  [
+    '**/*.ts',
+    '!**/*.d.ts',
+    '!**/*.spec.ts',
+    '!**/*.bench.ts',
+    '!test-utils.ts',
+    '!**/node_modules/**',
+  ],
   { cwd: srcRoot, absolute: true },
 );
 
