@@ -109,7 +109,11 @@ interface TouchActionOwnership {
  * target at once. Their touch-action claims therefore share one owner: one
  * service leaving must not restore the target while another still needs it.
  */
-const touchActionOwnership = new WeakMap<DragTarget, TouchActionOwnership>();
+const touchActionOwnership = /* @__PURE__ */ getSharedRuntimeSlot(
+  'service:drag:touch-action-ownership',
+  1,
+  () => new WeakMap<DragTarget, TouchActionOwnership>(),
+);
 
 function applyTouchAction(target: DragTarget, ownership: TouchActionOwnership): void {
   if (

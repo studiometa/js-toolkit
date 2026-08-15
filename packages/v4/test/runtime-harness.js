@@ -319,6 +319,22 @@ async function run(copyA, copyB) {
     stopInViewB();
     const intersectionActiveAfterBoth = observers.intersection.active;
 
+    // Different axis options create distinct services, one from each bundled
+    // copy. Their touch-action claims still belong to the realm: releasing one
+    // copy must leave the other copy's claim in place, and only the final
+    // release may restore the consumer's exact inline value.
+    serviceTarget.style.touchAction = 'auto';
+    const stopDragX = copyA.useDrag(serviceTarget, { axis: 'x' }).subscribe(() => {});
+    const touchActionWithX = serviceTarget.style.touchAction;
+    const stopDragY = copyB
+      .useDrag(serviceTarget, { axis: 'y', inertia: false })
+      .subscribe(() => {});
+    const touchActionWithBoth = serviceTarget.style.touchAction;
+    stopDragX();
+    const touchActionAfterX = serviceTarget.style.touchAction;
+    stopDragY();
+    const touchActionAfterBoth = serviceTarget.style.touchAction;
+
     let rootCreates = 0;
     const rootKey = Symbol.for('@studiometa/js-toolkit-v4/test/root-context');
     const rootValueA = copyA.provideRootContext(rootKey, () => ({ copy: ++rootCreates }));
@@ -422,6 +438,12 @@ async function run(copyA, copyB) {
             activeWithBoth: intersectionActiveWithBoth,
             activeAfterOne: intersectionActiveAfterOne,
             activeAfterBoth: intersectionActiveAfterBoth,
+          },
+          dragTouchAction: {
+            withX: touchActionWithX,
+            withBoth: touchActionWithBoth,
+            afterX: touchActionAfterX,
+            afterBoth: touchActionAfterBoth,
           },
         },
         context: {
