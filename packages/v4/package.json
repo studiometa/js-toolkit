@@ -413,6 +413,7 @@
   },
   "scripts": {
     "build": "node scripts/build.js",
+    "check:constant-subpaths": "node scripts/check-constant-subpaths.js",
     "demo:dev": "vite demo --host",
     "demo:build": "vite build demo",
     "demo:preview": "vite preview demo --host",

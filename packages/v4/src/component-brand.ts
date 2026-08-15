@@ -1,16 +1,11 @@
 import type { BaseConstructor } from './Base.js';
 
-const BASE_BRAND = Symbol.for('@studiometa/js-toolkit-v4/base');
-
-/** Mark the canonical base constructor and prototype without a public export. */
-export function brandBaseConstructor(ComponentClass: BaseConstructor): void {
-  Object.defineProperty(ComponentClass, BASE_BRAND, { value: true });
-  Object.defineProperty(ComponentClass.prototype, BASE_BRAND, { value: true });
-}
+/** @internal The realm-stable key owned by `Base` and inherited by subclasses. */
+export const BASE_BRAND = Symbol.for('@studiometa/js-toolkit-v4/base');
 
 /**
  * Recognise v4 component classes from this or another evaluated package copy.
- * A normal function, importer, or unrelated class has neither inherited brand.
+ * A normal function, importer, or unrelated class has no inherited brand.
  */
 export function isBaseConstructor(value: unknown): value is BaseConstructor {
   if (typeof value !== 'function') {
@@ -19,12 +14,13 @@ export function isBaseConstructor(value: unknown): value is BaseConstructor {
   const candidate = value as unknown as {
     [BASE_BRAND]?: unknown;
     config?: unknown;
-    prototype?: { [BASE_BRAND]?: unknown };
+    prototype?: unknown;
   };
   const config = candidate.config as { name?: unknown } | undefined;
   return (
     candidate[BASE_BRAND] === true &&
-    candidate.prototype?.[BASE_BRAND] === true &&
+    typeof candidate.prototype === 'object' &&
+    candidate.prototype !== null &&
     typeof config === 'object' &&
     config !== null &&
     typeof config.name === 'string'

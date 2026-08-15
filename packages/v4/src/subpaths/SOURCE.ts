@@ -1,1 +1,1 @@
-export { SOURCE, SOURCE as default } from '../Base.js';
+export { SOURCE, SOURCE as default } from '../protocol-symbols.js';

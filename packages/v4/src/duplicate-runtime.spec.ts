@@ -6,6 +6,13 @@ interface FixtureMessage {
   ok: boolean;
   error?: { message: string; stack?: string };
   result?: {
+    protocol: { sameSource: boolean; sourceReadByA: boolean; decoratorCalls: number };
+    branding: {
+      direct: Record<string, boolean>;
+      subclasses: Record<string, boolean>;
+      wrongClasses: Record<string, boolean>;
+      importThunks: Record<string, boolean>;
+    };
     scheduler: { same: boolean; frameRequests: number };
     registry: {
       observers: number;
@@ -18,6 +25,18 @@ interface FixtureMessage {
       parentFromA: boolean;
       childFromB: boolean;
       lazyFromB: boolean;
+    };
+    breakpoints: {
+      sameService: boolean;
+      readByB: Record<string, string>;
+      activeReadByB: string;
+      activeReadByA: string;
+      responsive: {
+        mountsBeforeReplacement: number;
+        mountsAfterReplacement: number;
+        reconciliations: number;
+        destroys: number;
+      };
     };
     services: {
       identity: Record<string, boolean>;
@@ -87,6 +106,17 @@ describe('duplicated v4 bundles', () => {
     expect(result).toBeDefined();
     if (!result) return;
 
+    expect(result.protocol).toEqual({
+      sameSource: true,
+      sourceReadByA: true,
+      decoratorCalls: 1,
+    });
+    expect(result.branding).toEqual({
+      direct: { aFromA: true, bFromA: true, aFromB: true, bFromB: true },
+      subclasses: { aFromA: true, bFromA: true, aFromB: true, bFromB: true },
+      wrongClasses: { fromA: false, fromB: false },
+      importThunks: { aFromA: false, bFromA: false, aFromB: false, bFromB: false },
+    });
     expect(result.scheduler).toEqual({ same: true, frameRequests: 1 });
     expect(result.registry).toEqual({
       observers: 1,
@@ -100,7 +130,20 @@ describe('duplicated v4 bundles', () => {
       childFromB: true,
       lazyFromB: true,
     });
+    expect(result.breakpoints).toEqual({
+      sameService: true,
+      readByB: { small: '0rem', large: '9999rem' },
+      activeReadByB: 'small',
+      activeReadByA: 'large',
+      responsive: {
+        mountsBeforeReplacement: 0,
+        mountsAfterReplacement: 1,
+        reconciliations: 1,
+        destroys: 1,
+      },
+    });
     expect(result.services.identity).toEqual({
+      breakpoint: true,
       raf: true,
       scroll: true,
       resize: true,

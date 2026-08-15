@@ -1,4 +1,4 @@
-import { brandBaseConstructor } from './component-brand.js';
+import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import {
   injectContext,
@@ -15,6 +15,7 @@ import {
   type DomMutation,
 } from './negotiated-events.js';
 import { DESTROYED_EVENT, MOUNTED_EVENT } from './lifecycle-events.js';
+import { HANDLER_REGISTRATIONS, SOURCE } from './protocol-symbols.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import {
   activeBreakpoint,
@@ -29,8 +30,8 @@ import { selectorFor } from './utils/selectors.js';
 import { kebabCase, pascalCase } from './utils/strings.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
 
-export const SOURCE: unique symbol = Symbol('emitter');
-export { DESTROYED_EVENT, MOUNTED_EVENT };
+export { DESTROYED_EVENT, MOUNTED_EVENT } from './lifecycle-events.js';
+export { HANDLER_REGISTRATIONS, SOURCE } from './protocol-symbols.js';
 
 const REGEX_HANDLER = /^on[A-Z]/;
 
@@ -390,12 +391,9 @@ export interface LifecycleEventDetail {
 }
 
 /**
- * Per-instance list of handlers declared with the `@on` decorator, filled by
- * the decorator's initializers during construction and consumed by
- * `#bindHandlers()` on every mount.
+ * One handler declared with the `@on` decorator. Initializers store these on
+ * the realm-stable `HANDLER_REGISTRATIONS` key for each instance.
  */
-export const HANDLER_REGISTRATIONS: unique symbol = Symbol('handler registrations');
-
 export interface HandlerRegistration {
   /**
    * Global event target for `@on(window, …)` / `@on(document, …)`, `null` for
@@ -1021,13 +1019,9 @@ interface HandlerPlan {
  * class and a new key.
  *
  * **`/* @__PURE__ *\/` is load-bearing, not decoration.** A top-level call is
- * something a bundler must keep unless told otherwise, and keeping this one
- * keeps everything it references — which is all of `Base`. Every constant
- * subpath (`./DESTROYED_EVENT`, `./MOUNTED_EVENT`, `./SOURCE`) is a
- * re-export *from* `Base.js` and owes its size entirely to `Base` being
- * shaken away, so without the annotation each of them grows from 1.9 kB to
- * 7.7 kB gzip — measured, and the reason the services already annotate their
- * `perTarget()` calls the same way.
+ * something a bundler must otherwise keep. The annotation lets a consumer
+ * which does not use handler planning remove this memo and everything its
+ * callback references.
  */
 const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan => {
   const config = resolveConfig(ctor);
@@ -1088,6 +1082,9 @@ const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan =>
 export type MountedReturn = void | (() => void) | MountedReturn[] | Promise<MountedReturn>;
 
 export class Base<T extends BaseProps = BaseProps> {
+  /** A class-owned brand inherited by subclasses and shared by bundled copies. */
+  static readonly [BASE_BRAND] = true;
+
   static config: BaseConfig = { name: 'Base' };
 
   /**
@@ -2047,5 +2044,3 @@ export class Base<T extends BaseProps = BaseProps> {
     }
   }
 }
-
-brandBaseConstructor(Base);
