@@ -1,4 +1,5 @@
 import { MOUNTED_EVENT } from './lifecycle-events.js';
+import { getSharedRuntimeSlot } from './shared-runtime.js';
 
 const CONTEXT_REQUEST = 'context-request';
 
@@ -187,8 +188,6 @@ interface PendingRequest {
   resolve(value: unknown, providerNode: Node | null): void;
 }
 
-const pendingRequests = new Set<PendingRequest>();
-
 function requestContext(request: PendingRequest): boolean {
   let isAnswered = false;
   let event!: CustomEvent<ContextRequestDetail>;
@@ -226,6 +225,27 @@ interface ContextSubscription {
   unsubscribe(): void;
 }
 
+interface ContextRuntimeState {
+  pendingRequests: Set<PendingRequest>;
+  subscriptionsByElement: WeakMap<Element, Set<ContextSubscription>>;
+  subscriptionIndex: Set<WeakRef<ContextSubscription>>;
+  isMountListenerAttached: boolean;
+  rootProviders: Map<symbol, unknown>;
+}
+
+const contextState = /* @__PURE__ */ getSharedRuntimeSlot<ContextRuntimeState>(
+  'context',
+  1,
+  () => ({
+    pendingRequests: new Set(),
+    subscriptionsByElement: new WeakMap(),
+    subscriptionIndex: new Set(),
+    isMountListenerAttached: false,
+    rootProviders: new Map(),
+  }),
+);
+const { pendingRequests, subscriptionsByElement, subscriptionIndex, rootProviders } = contextState;
+
 /**
  * The subscription registry, in two halves, because it has two jobs that pull
  * in opposite directions: it must be **iterable** on every mount, and it must
@@ -245,10 +265,6 @@ interface ContextSubscription {
  * registry would keep every consumer that ever resolved alive for the life of
  * the page.
  */
-const subscriptionsByElement = new WeakMap<Element, Set<ContextSubscription>>();
-const subscriptionIndex = new Set<WeakRef<ContextSubscription>>();
-
-let isMountListenerAttached = false;
 
 function runTeardown(subscription: ContextSubscription): void {
   const { teardown } = subscription;
@@ -352,8 +368,8 @@ function subscribeRequest(subscription: ContextSubscription): void {
   owned.add(subscription);
   subscriptionIndex.add(subscription.ref);
 
-  if (!isMountListenerAttached) {
-    isMountListenerAttached = true;
+  if (!contextState.isMountListenerAttached) {
+    contextState.isMountListenerAttached = true;
     // Nothing at import time: a page with no subscribed consumer never gets
     // this listener, exactly as it never gets a root provider.
     document.addEventListener(MOUNTED_EVENT, onComponentMounted);
@@ -426,8 +442,6 @@ export function provideContext<T>(
 }
 
 /** One root provider per key, created on demand and kept for the page. */
-const rootProviders = new Map<symbol, unknown>();
-
 /**
  * Provide a value for the whole document, creating it on first use.
  *

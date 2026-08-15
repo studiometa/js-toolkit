@@ -95,6 +95,7 @@ class Concrete extends Base<ActionProps> {
   static config = { name: 'Concrete', refs: ['btn', 'items[]'], options: { target: String } };
 
   assertions(): void {
+    expectTypeOf(this.$id).toEqualTypeOf<string>();
     expectTypeOf(this.$options.target).toEqualTypeOf<string>();
     expectTypeOf(this.$options.count).toEqualTypeOf<number>();
     expectTypeOf(this.$refs.btn).toEqualTypeOf<HTMLElement>();
@@ -106,6 +107,8 @@ class Concrete extends Base<ActionProps> {
   }
 
   negatives(): void {
+    // @ts-expect-error `$id` is stable for the instance
+    this.$id = 'replacement';
     // @ts-expect-error `nope` is not a declared event
     this.$emit('nope');
     // @ts-expect-error `go` carries a payload
