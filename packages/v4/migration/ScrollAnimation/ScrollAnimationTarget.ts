@@ -3,20 +3,7 @@ import { clamp01, damp } from '../../src/utils/maths.js';
 import { AbstractScrollAnimation } from './AbstractScrollAnimation.js';
 import type { ScrollInViewProps, ScrolledInViewRender } from './withScrolledInView.js';
 
-/**
- * ScrollAnimationTarget — one animated element inside a
- * `ScrollAnimationTimeline`.
- *
- * Port of @studiometa/ui 1.10's `ScrollAnimationTarget`: it damps the
- * timeline's raw progress again with its own factor, so several targets on
- * one range each get their own inertia.
- *
- * v3 wrapped the damping in `domScheduler.read()` and the parent call in
- * `domScheduler.write()`, which is wrong twice over — the maths touches no
- * DOM at all, and running `super.scrolledInView()` in a write phase is what
- * made `animate` schedule a nested read. Here the whole thing is the read
- * pass and the returned function is the write pass.
- */
+/** Timeline target with independent progress damping. */
 export class ScrollAnimationTarget extends AbstractScrollAnimation {
   static config: BaseConfig = {
     name: 'ScrollAnimationTarget',

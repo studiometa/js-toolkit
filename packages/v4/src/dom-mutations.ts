@@ -138,34 +138,13 @@ export function replaceDOMOptionAttributes(
 }
 
 /**
- * Observe **every** attribute of one element, and report each change.
+ * Observe all attributes of one element without observing its descendants.
+ * An element-scoped observer is required because `MutationObserver.attributeFilter` has no wildcard.
+ * Changes are coalesced and delivered after framework reconciliation through the shared queue.
  *
- * The page-wide observer runs with a precise `attributeFilter` and that is
- * deliberate: without it every `class` and `style` write in the document —
- * animation churn included — would enter the queue. But `attributeFilter`
- * takes exact names and the DOM has no wildcard, so an attribute the
- * framework cannot enumerate is invisible to it. A `data-on:<event>` binding
- * is exactly that: its name is any DOM event, so no parse-time registration
- * can be complete, and an in-place rewrite (a `swap({ mode: 'morph' })`, a
- * template re-render) would leave the binding stale and silent.
- *
- * The opt-in is therefore element-scoped: one unfiltered observer for the one
- * element that asked, created here and disconnected by the returned cleanup.
- * The page pays for the elements which opt in, not for the components which
- * exist.
- *
- * **Records join the shared queue.** The engine drains this observer wherever
- * it drains its own, and delivers the changes from the same background task,
- * *after* the framework has reconciled the batch. So `whenDOMSettled()` — and
- * therefore `swap()` — covers a watched attribute the way it covers a mount,
- * and a callback never runs against a half-reconciled framework state. Each
- * observer owns its own record queue, so draining it with `takeRecords()`
- * neither strands a record (the queue is emptied into the pending map) nor
- * delivers one twice (the callback is not called for records already taken).
- *
- * @param el       The element to observe. Its descendants are not observed.
+ * @param el The element to observe.
  * @param callback Called once per coalesced attribute change.
- * @returns Idempotent cleanup which disconnects the observer.
+ * @returns An idempotent cleanup function.
  */
 export function watchAttributes(el: Element, callback: AttributeWatcher): () => void {
   const entry: AttributeWatcherEntry = {
@@ -219,12 +198,7 @@ function takeWatchedAttributes(): void {
 }
 
 /**
- * Report the batch's coalesced attribute changes.
- *
- * The new value is read from the DOM rather than from a record, which is what
- * makes several writes to one attribute a single change, and what makes a
- * net-zero rewrite (`a` → `b` → `a`, the shape a morph produces) no change at
- * all — the same rule `$optionChanged()` follows.
+ * Report coalesced changes using the final DOM value; omit net-zero changes.
  */
 function deliverWatchedAttributes(): void {
   // A callback may end a subscription mid-flush: `Set` iteration skips an
@@ -322,12 +296,7 @@ function scheduleProcessing(): void {
     const batch = domMutationState.records;
     domMutationState.records = [];
     domMutationState.processor?.(batch);
-    // One engine, one batch, one order: component lifecycle and declared
-    // options first, then the attribute watchers. A component whose
-    // `data-component` token was dropped in this same batch has already been
-    // terminated, so its watcher was disposed and hears nothing — which is
-    // the intended precedence. Nothing else in the framework reads these
-    // attributes, so no framework decision can depend on a callback.
+    // Lifecycle and declared options must run before attribute watchers.
     deliverWatchedAttributes();
   });
   const finished = () => {
@@ -350,12 +319,7 @@ export function setDOMMutationProcessor(next: DOMMutationProcessor): void {
 }
 
 /**
- * A counter bumped whenever the document changes in a way that can change a
- * component lookup or ref result.
- *
- * Pending observer records are retained for normal registry processing
- * before the version is returned. This keeps a ref read correct in the same
- * task as a DOM change without requiring a second MutationObserver.
+ * Return the component lookup version after retaining pending records for registry processing.
  */
 export function domVersion(): number {
   ingest(observe().takeRecords());

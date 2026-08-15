@@ -28,21 +28,7 @@ export interface Transitionable {
   toggle(): Promise<void>;
 }
 
-/**
- * Transition — enter/leave CSS transitions on an element.
- *
- * Port of @studiometa/ui 1.10's `Transition` component and the
- * `withTransition` decorator behind it. v3 split them so that `SliderDots`
- * could mix the behaviour in; here the shared half is two functions in
- * `utils/transition.ts` — a component cannot be mixed into another one, and
- * the decorator only ever needed the element and the options.
- *
- * One v3 feature is **not** ported: the `group` option, which collects the
- * other `Transition` instances sharing a group name through
- * `getInstances(Transition)`. v4 has no per-class instance registry — the
- * registry maps a name to a constructor, not to its live instances — so a
- * group would have to be resolved by DOM query instead.
- */
+/** Runs configured enter and leave CSS transitions on its element. */
 export class Transition extends Base<TransitionProps> implements Transitionable {
   static config = {
     name: 'Transition',

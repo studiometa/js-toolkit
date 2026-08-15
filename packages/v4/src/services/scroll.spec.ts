@@ -2,10 +2,6 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { settle } from '../test-utils.js';
 import { useScroll, useWindowScroll, type ScrollProps } from './scroll.js';
 
-/**
- * The props object is mutated in place, so every emission has to be read at
- * once rather than kept as a reference.
- */
 function snapshot(props: ScrollProps) {
   return { ...props };
 }
@@ -33,8 +29,6 @@ describe('useScroll', () => {
     const down = seen.at(-1);
     expect(down?.y).toBe(200);
     expect(down?.deltaY).toBe(200);
-    // The previous position is `y - deltaY`, and "did it move" is
-    // `deltaY !== 0`: neither is a field of its own any more.
     expect((down?.y ?? 0) - (down?.deltaY ?? 0)).toBe(0);
     expect(down?.deltaX).toBe(0);
     expect(down?.directionY).toBe(1);
@@ -48,9 +42,6 @@ describe('useScroll', () => {
     const up = seen.at(-1);
     expect(up?.y).toBe(50);
     expect(up?.deltaY).toBe(-150);
-    // One signed value, which multiplies, instead of four booleans — and no
-    // longer an `isDown` that means "scrolling down" next to a pointer
-    // `isDown` that means "pressed".
     expect(up?.directionY).toBe(-1);
 
     unsubscribe();
@@ -58,9 +49,6 @@ describe('useScroll', () => {
 
   it('reports where the page already stands when a subscriber asks', async () => {
     makePage();
-    // Scrolled before anything subscribed: without asking for the current
-    // props, a component mounted here believes the page is at the top until
-    // somebody scrolls it.
     window.scrollTo(0, 150);
     await settle();
 
@@ -76,9 +64,6 @@ describe('useScroll', () => {
     expect(seen).toHaveLength(1);
     expect(seen[0].y).toBe(150);
     expect(seen[0].progressY).toBeCloseTo(150 / seen[0].maxY, 5);
-    // Where things stand, not a movement. The delta of a run's first props is
-    // zero rather than the distance from wherever the previous run stopped —
-    // a scroll nobody performed.
     expect(seen[0].deltaY).toBe(0);
     expect(seen[0].directionY).toBe(0);
     expect(seen[0].isScrolling).toBe(false);
@@ -89,8 +74,6 @@ describe('useScroll', () => {
 
   it('hands out props no subscriber can write to', () => {
     const unsubscribe = useScroll().subscribe((props) => {
-      // The same object reaches every subscriber, so one of them writing to
-      // it would corrupt all the others on the page.
       // @ts-expect-error every prop field is readonly.
       props.y = 999;
     });
@@ -110,7 +93,6 @@ describe('useScroll', () => {
     await settle();
     unsubscribe();
 
-    // Five positions, one measurement — and it reports the last one.
     expect(calls).toBe(1);
     expect(useScroll().props().y).toBe(100);
   });
@@ -135,18 +117,11 @@ describe('useScroll', () => {
   it('is the window service when no target is given', () => {
     expect(useScroll()).toBe(useWindowScroll());
     expect(useScroll(window)).toBe(useWindowScroll());
-    // The document scroller is the window scroller, and its events are
-    // dispatched at the document: a service of its own would never hear one.
     expect(useScroll(document.documentElement)).toBe(useWindowScroll());
     expect(useScroll(document.scrollingElement as Element)).toBe(useWindowScroll());
   });
 });
 
-/**
- * An element with an overflow, which is what most of the ecosystem scopes
- * its scroll primitive to — VueUse's `useScroll(el)`, solid-primitives'
- * `createScrollPosition(el)`.
- */
 function makeScroller(): HTMLElement {
   const el = document.createElement('div');
   el.setAttribute('style', 'width:100px;height:100px;overflow:auto');
@@ -169,7 +144,6 @@ describe('useScroll(element)', () => {
     expect(props?.y).toBe(100);
     expect(props?.deltaY).toBe(100);
     expect(props?.directionY).toBe(1);
-    // 800px of content in a 100px box.
     expect(props?.maxY).toBe(700);
     expect(props?.progressY).toBeCloseTo(100 / 700, 5);
 
@@ -188,15 +162,10 @@ describe('useScroll(element)', () => {
     await settle();
     expect(service.props().maxY).toBe(400);
 
-    // A slide loading, an accordion opening: the extents used to stay at
-    // their subscribe-time values until an unrelated scroll or resize came
-    // along, so `maxY` read 400 for 5000 px of content.
     (el.firstElementChild as HTMLElement).style.height = '5000px';
     await settle();
     expect(service.props().maxY).toBe(4900);
 
-    // And content appended, which no `ResizeObserver` on the existing boxes
-    // could see.
     const added = document.createElement('div');
     added.setAttribute('style', 'width:100px;height:1000px');
     el.append(added);
@@ -218,8 +187,6 @@ describe('useScroll(element)', () => {
     const unsubscribe = service.subscribe(() => {});
     await settle();
 
-    // An axis with nowhere to go is at its start. Reporting `1` told an empty
-    // carousel it had reached its last slide.
     expect(service.props().maxX).toBe(0);
     expect(service.props().progressX).toBe(0);
 
@@ -228,17 +195,6 @@ describe('useScroll(element)', () => {
   });
 
   it('never reports a negative extent, whatever the scrollbars cost', async () => {
-    // `measure()` subtracts two values that disagree about the scrollbar: for
-    // the window it is `scrollWidth` (which excludes it) minus `innerWidth`
-    // (which counts a classic one). A page that only scrolls vertically then
-    // produces a maximum negative by the scrollbar's width wherever scrollbars
-    // take up space — desktop Chrome and Firefox — and a negative maximum
-    // contradicts the prop and inverts every consumer that divides by it.
-    //
-    // This runner uses overlay scrollbars, so the subtraction lands on `0`
-    // here and the assertion cannot fail for the reason it is written for.
-    // It is the guard for the environments that do, and for the fractional
-    // zoom rounding that reaches the element branch.
     const tall = document.createElement('div');
     tall.setAttribute('style', 'height:5000px');
     document.body.append(tall);
@@ -250,7 +206,6 @@ describe('useScroll(element)', () => {
     const { maxX, maxY, progressX, progressY } = service.props();
     expect(maxX).toBeGreaterThanOrEqual(0);
     expect(maxY).toBeGreaterThanOrEqual(0);
-    // `-0` would satisfy `>= 0`, so assert the sign as well.
     expect(Object.is(progressX, -0)).toBe(false);
     expect(progressX).toBeGreaterThanOrEqual(0);
     expect(progressY).toBeGreaterThanOrEqual(0);
@@ -268,8 +223,6 @@ describe('useScroll(element)', () => {
 
     const service = useScroll(el);
     const unsubscribe = service.subscribe(() => {});
-    // Right to left, `scrollLeft` counts down from `0` at the right edge
-    // while the maximum stays positive.
     el.scrollLeft = -500;
     el.dispatchEvent(new Event('scroll'));
     await settle();
@@ -298,8 +251,6 @@ describe('useScroll(element)', () => {
       secondCalls += 1;
     });
 
-    // The last subscriber of one element leaves; the other element is
-    // untouched and keeps reporting.
     unsubscribeFirst();
     first.scrollTop = 50;
     first.dispatchEvent(new Event('scroll'));
@@ -322,9 +273,6 @@ describe('isScrolling', () => {
 
     const service = useScroll(el);
     const off = service.subscribe(() => {});
-    // A scroll with no `scrollend` behind it, which is what mid-gesture
-    // looks like: a real jump starts and settles inside one frame, so the
-    // coalesced read would only ever report the settled state.
     el.dispatchEvent(new Event('scroll'));
     await settle();
 
@@ -343,14 +291,10 @@ describe('isScrolling', () => {
     const off = useScroll(el).subscribe(({ isScrolling }) => seen.push(isScrolling));
 
     el.scrollTop = 200;
-    // Long enough for `scrollend`, or for the quiet period standing in for
-    // it where the browser has no such event.
     await new Promise((resolve) => setTimeout(resolve, 400));
     off();
     el.remove();
 
-    // The settled state is announced even though the position did not
-    // change with it — that is the whole point of the flag.
     expect(seen.length).toBeGreaterThan(0);
     expect(seen.at(-1)).toBe(false);
   });
@@ -364,9 +308,6 @@ describe('isScrolling', () => {
     const service = useScroll(el);
     const off = service.subscribe(() => {});
 
-    // A resize re-measures the maximums, but nothing is moving — and no
-    // `scrollend` follows to take the flag back down, so treating it as a
-    // scroll would leave the service stuck reporting a scroll forever.
     window.dispatchEvent(new Event('resize'));
     await settle();
 

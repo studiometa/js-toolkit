@@ -113,9 +113,7 @@ function createScrollProgressService(
         });
       };
 
-      // Start the shared sampled sources before the first measurement. This
-      // makes their props current for this run and gives `{ immediate: true }`
-      // one synchronous, measured value after `start()` returns.
+      // Start sampled sources before the initial synchronous measurement.
       const unsubscribeScroll = useWindowScroll().subscribe(({ x, y }) => {
         if (setCurrent(x, y)) {
           emit(props);
@@ -124,9 +122,7 @@ function createScrollProgressService(
       const unsubscribeSize = useWindowSize().subscribe(scheduleMeasure);
       measure();
 
-      // ResizeObserver covers the target box and content-driven size changes.
-      // MutationObserver also catches geometry changes that do not resize its
-      // border box, such as a class changing `top` or `transform`.
+      // MutationObserver catches geometry changes that do not resize the target box.
       const resizeObserver = new ResizeObserver(scheduleMeasure);
       resizeObserver.observe(target);
       const mutationObserver = new MutationObserver(scheduleMeasure);
@@ -170,36 +166,7 @@ export function useScrollProgress(
 }
 
 /**
- * Subscribe a component's `scrolledInView()` method to its root element's raw
- * viewport progress. The first measured props are delivered on mount by
- * default, and a returned mutation runs through the instance write lane:
- *
- * ```js
- * class Hero extends withScrollProgress(Base, {
- *   offset: 'start end / end start',
- * }) {
- *   scrolledInView({ progressY }) {
- *     return () => {
- *       this.$el.style.setProperty('--progress', `${progressY}`);
- *     };
- *   }
- * }
- * ```
- *
- * Use `target: (instance) => instance.$refs.panel` for another element,
- * `immediate: false` to wait for the first update, or `manual: true` to own the
- * subscription through `this.$services.scrolledInView.start()` and `.stop()`.
- * The stage-3 decorator form is equivalent:
- *
- * ```js
- * @withScrollProgress({ offset: 'start center / end center' })
- * class Hero extends Base {
- *   scrolledInView({ progressY }) { … }
- * }
- * ```
- *
- * This supplies raw progress only. Damping and mount control stay with the
- * component.
+ * Subscribe `scrolledInView()` to raw viewport progress for each mount cycle. Returned mutations run through the instance write lane.
  */
 export const withScrollProgress = /* @__PURE__ */ createServiceMixin<
   ScrollProgressHook & ServiceHandles<'scrolledInView'>,
@@ -209,8 +176,7 @@ export const withScrollProgress = /* @__PURE__ */ createServiceMixin<
   hook: 'scrolledInView',
   target: (instance) => instance.$el,
   defaultImmediate: true,
-  // Only service options reach the service. Lifecycle fields must not become
-  // part of its target-and-offset cache key.
+  // Keep lifecycle options out of the service cache key.
   use: (target, { offset }) => useScrollProgress(target, { offset }),
   handleResult: (instance, result) => {
     if (typeof result === 'function') {

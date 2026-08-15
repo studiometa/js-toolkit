@@ -18,7 +18,6 @@ describe('memo', () => {
   });
 
   it('memoises a result of `undefined` instead of recomputing it', () => {
-    // The bug every `get() === undefined ? compute() : hit` version has.
     const fn = vi.fn(() => undefined);
     const nothing = memo(fn);
 
@@ -46,8 +45,6 @@ describe('memo', () => {
     expect(tag(one)).toBe('DIV');
     expect(tag(one)).toBe('DIV');
     expect(tag(two)).toBe('DIV');
-    // Two structurally identical elements are two entries: the key is the
-    // thing itself, which is what lets it be held weakly.
     expect(fn).toHaveBeenCalledTimes(2);
   });
 
@@ -67,8 +64,6 @@ describe('memo', () => {
   });
 
   it('distinguishes the keys a joined-string key would collide', () => {
-    // v3's `args.join('')` made `['a', 'bc']` and `['ab', 'c']` one entry.
-    // Identity keying has no such seam, and one argument has no seam at all.
     const fn = vi.fn((key: string) => key.length);
     const length = memo(fn);
 

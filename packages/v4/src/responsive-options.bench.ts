@@ -1,24 +1,4 @@
-/**
- * What it costs to make **every** option responsive.
- *
- * Run with `npx vitest bench --config vitest.bench.config.js` from
- * `packages/v4`. Like the other files here, these answer a design question
- * rather than guard against a regression.
- *
- * Two prices were on the table when the `responsive: true` flag was dropped:
- *
- * 1. **The observer's filter widens.** `attributeFilter` takes exact names, so
- *    a responsive option registers `attribute × breakpoint` — nine names per
- *    option instead of one. Across the ported families that is 33 option
- *    attributes: a filter of 3 + 33 + 8 = **44** names when one option in the
- *    page opted in, and 3 + 33 × 9 = **300** when they all do. A large app is
- *    the same arithmetic on a larger set, so 723 (80 options) is measured too.
- * 2. **Every read walks the cascade.** `$options.foo` was one `getAttribute()`.
- *    It is now the active breakpoint plus up to nine `getAttribute()` calls.
- *
- * The sizes below are the ones the arithmetic produces; the widths are
- * deliberately kept as literals so the curve is readable next to them.
- */
+/** Benchmark responsive option reads and `MutationObserver` filter widths. */
 import { bench, describe } from 'vitest';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
 import { activeBreakpoint, responsiveRawValue } from './responsive-options.js';
@@ -45,12 +25,7 @@ function filterOf(size: number): string[] {
   return names;
 }
 
-/**
- * One read, and the benchmark runner crosses a microtask between iterations —
- * so every one of these is a **cold** read, the first of its task. That is the
- * case the memoised breakpoint name cannot help and is not meant to: it is
- * measured here as the floor, and the batch below is where the memo lives.
- */
+/** The runner crosses a microtask between cold-read iterations. */
 describe('option read, cold (the first read of a task)', () => {
   const el = document.createElement('div');
   el.setAttribute('data-option-columns', '1');
@@ -66,19 +41,16 @@ describe('option read, cold (the first read of a task)', () => {
   const fromElement = (name: string) => el.getAttribute(name);
   const fromScoped = (name: string) => scoped.getAttribute(name);
 
-  // The whole of a plain option's read path before the change.
   bench('plain attribute', () => {
     globalThis.__benchSink = el.getAttribute('data-option-columns');
   });
 
-  // Half of the new read path, measured on its own: eight `MediaQueryList`
-  // objects, built once and kept, asked for `.matches`.
+  // Measure the media-query sweep separately.
   bench('activeBreakpoint() alone', () => {
     globalThis.__benchSink = activeBreakpoint();
   });
 
-  // The new read path at its worst: nothing is scoped, so the walk misses
-  // every breakpoint and lands on the base attribute.
+  // Measure a cascade miss through every breakpoint.
   bench('cascade, base attribute only', () => {
     globalThis.__benchSink = responsiveRawValue(
       'data-option-columns',
@@ -87,8 +59,7 @@ describe('option read, cold (the first read of a task)', () => {
     );
   });
 
-  // And at its best: the active breakpoint is scoped, so the walk stops on
-  // its first lookup and only `activeBreakpoint()` is left.
+  // Measure a cascade hit at the active breakpoint.
   bench('cascade, scoped hit at the active breakpoint', () => {
     globalThis.__benchSink = responsiveRawValue(
       'data-option-columns',
@@ -98,15 +69,7 @@ describe('option read, cold (the first read of a task)', () => {
   });
 });
 
-/**
- * The shape a component actually reads in: a handler, a `raf` callback, a
- * layout pass — several options, several instances, all inside **one task**.
- *
- * The viewport cannot change during a task, so the memoised breakpoint name is
- * exactly as fresh as re-querying would have been, and the sweep of eight
- * `MediaQueryList` objects happens once instead of `READS` times. This is the
- * measurement the memo was added for.
- */
+/** Measure repeated option reads within one task. */
 describe(`option read, batched (${READS} reads in one task)`, () => {
   const el = document.createElement('div');
   el.setAttribute('data-option-columns', '1');
@@ -121,9 +84,7 @@ describe(`option read, batched (${READS} reads in one task)`, () => {
     globalThis.__benchSink = last;
   });
 
-  // The path before the memo, inlined so the two are one measurement rather
-  // than an extrapolation: persistent `MediaQueryList` objects — already the
-  // fast form, per `service.bench.ts` — swept on every single read.
+  // Inline the non-memoized media-query sweep for direct comparison.
   const queries = Object.entries(BREAKPOINTS).map(
     ([name, value]) => [name, window.matchMedia(`(min-width: ${value})`)] as const,
   );

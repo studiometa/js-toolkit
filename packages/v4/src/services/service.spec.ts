@@ -29,7 +29,6 @@ describe('createService', () => {
       },
     });
 
-    // Lazy: a service nobody listens to does nothing at all.
     expect(calls).toEqual([]);
 
     const first = service.subscribe(() => {});
@@ -41,7 +40,6 @@ describe('createService', () => {
     second();
     expect(calls).toEqual(['start', 'stop']);
 
-    // And it comes back for the next subscriber.
     service.subscribe(() => {});
     expect(calls).toEqual(['start', 'stop', 'start']);
   });
@@ -149,7 +147,6 @@ describe('createService', () => {
     const other = service.subscribe(() => {});
     unsubscribe();
     unsubscribe();
-    // The second call must not be read as "the last subscriber left".
     expect(calls).toEqual(['start']);
 
     other();
@@ -168,8 +165,6 @@ describe('createService', () => {
       },
     });
 
-    // Two components sharing one handler — a module-level function, or the
-    // same bound method — are two holders of the service, not one.
     let received = 0;
     const callback = () => {
       received += 1;
@@ -180,7 +175,6 @@ describe('createService', () => {
     emit(1);
     expect(received).toBe(2);
 
-    // And the first to leave must not release the service under the second.
     first();
     expect(calls).toEqual(['start']);
     emit(2);
@@ -207,8 +201,6 @@ describe('createService', () => {
     });
 
     emit(1);
-    // The newcomer did not exist when these props were measured, so it waits
-    // for the next update rather than being handed a value from before it.
     expect(seen).toEqual(['first:1']);
 
     emit(2);
@@ -225,8 +217,6 @@ describe('createService', () => {
       },
     });
 
-    // Iterating the live set, this never returns: each call adds an entry the
-    // same loop then visits. One emit is one pass over one snapshot.
     let calls = 0;
     const subscribeAgain = () => {
       service.subscribe(() => {
@@ -254,8 +244,6 @@ describe('createService', () => {
     let releaseSecond = () => {};
     service.subscribe(() => {
       seen.push('first');
-      // A component destroyed inside another component's handler: it must not
-      // be called in the update it just left, snapshot or no snapshot.
       releaseSecond();
     });
     releaseSecond = service.subscribe(() => seen.push('second'));
@@ -276,8 +264,6 @@ describe('createService', () => {
 
     const seen: string[] = [];
     service.subscribe((props) => seen.push(`first:${props}`));
-    // What a subscriber returns is between it and its service — `useRaf()`
-    // collects render functions that way — so nothing comes back here.
     service.subscribe((props) => {
       seen.push(`second:${props}`);
       return () => {};
@@ -330,8 +316,6 @@ describe('createService', () => {
     service.subscribe((props) => seen.push(`plain:${props}`));
     service.subscribe((props) => seen.push(`immediate:${props}`), { immediate: true });
 
-    // Only the newcomer: an emit would hand every other subscriber props they
-    // have already been given, which is a duplicate update for the page.
     expect(seen).toEqual(['immediate:42']);
   });
 
@@ -358,9 +342,6 @@ describe('createService', () => {
     const service = createService<number>({
       props: () => value,
       start() {
-        // What starting is for: the scroll service measures its target here,
-        // the breakpoint service asks its media queries. Delivering first
-        // would hand out whatever the previous run left behind.
         value = 7;
         calls.push('start');
         return () => {};
@@ -376,9 +357,6 @@ describe('createService', () => {
     let isObserved = false;
     const service = createService<number>({
       props: () => 1,
-      // The frame tick between two frames, the pointer before it has been
-      // seen, a drag outside a gesture: a resting value is not a reading, and
-      // handing it over as one is what the option exists to stop.
       hasProps: () => isObserved,
       start(fan) {
         emit = fan;
@@ -394,7 +372,6 @@ describe('createService', () => {
     service.subscribe((props) => seen.push(props), { immediate: true });
     expect(seen).toEqual([1]);
 
-    // And the ones that waited are still subscribed.
     emit(2);
     expect(seen).toEqual([1, 2, 2]);
   });
@@ -418,8 +395,6 @@ describe('createService', () => {
         },
         { immediate: true },
       );
-      // The delivery threw; `subscribe()` did not, so the caller holds the
-      // unsubscribe for the subscription that was nonetheless registered.
       expect(typeof unsubscribe).toBe('function');
       emit(2);
     });
@@ -475,7 +450,6 @@ describe('perTarget', () => {
     const unsubscribeSecond = use(second, 'second').subscribe(() => {});
     expect(calls).toEqual(['start:first', 'start:second']);
 
-    // The last subscriber of one target leaving releases that target only.
     unsubscribeFirst();
     expect(calls).toEqual(['start:first', 'start:second', 'stop:first']);
 
@@ -490,7 +464,6 @@ describe('perTarget', () => {
     const first = use(target, 'same').subscribe(() => {});
     const second = use(target, 'same').subscribe(() => {});
     expect(use(target, 'same')).toBe(use(target, 'same'));
-    // One start for two subscribers, and the first to leave releases nothing.
     first();
     expect(calls).toEqual(['start:same']);
 
@@ -498,11 +471,6 @@ describe('perTarget', () => {
     expect(calls).toEqual(['start:same', 'stop:same']);
   });
 
-  /**
-   * The gap-26 case: keying by the target alone handed the second caller the
-   * first caller's service, so a component asking for a different observation
-   * was silently never told anything.
-   */
   it('builds a service of its own for a caller whose arguments differ', () => {
     const { calls, use } = makeServices();
     const target = document.createElement('div');
@@ -513,7 +481,6 @@ describe('perTarget', () => {
     const second = use(target, 'second').subscribe(() => {});
     expect(calls).toEqual(['start:first', 'start:second']);
 
-    // Reference counting is per observation too.
     first();
     expect(calls).toEqual(['start:first', 'start:second', 'stop:first']);
     second();

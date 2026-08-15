@@ -63,7 +63,6 @@ class DecoFamilyParent extends Base {
 
 @component({ name: 'DecoParent' })
 class DecoParent extends Base {
-  // No `components` declaration: @on resolves the child name itself.
   @provide(DecoContext)
   total = signal(0);
 
@@ -104,7 +103,6 @@ class DecoParent extends Base {
     this.stacked.push(event.type);
   }
 
-  // The class as the target: no string, and the payload is typed from it.
   @on(DecoChild, 'ping')
   handleClassPing(payload: DelegatedEvent<DecoChild, 'ping'>): void {
     this.byClass.push(payload);
@@ -126,10 +124,6 @@ class DecoParent extends Base {
   }
 }
 
-/**
- * A component genuinely named `Window`, so the string form and the value form
- * of a global stand side by side in one component with nothing reserved.
- */
 @component({ name: 'Window' })
 class WindowChild extends Base {}
 
@@ -150,11 +144,6 @@ class GlobalNames extends Base {
   }
 }
 
-/**
- * `@on()` refers to the ref entry, so it names it the way `config.refs` and the
- * attribute do — `dots[]` with its suffix, `title` without one. The derived
- * spellings, `$refs.dots` and `onDotsClick()`, are the ones that drop it.
- */
 @component({ name: 'DotList', refs: ['dots[]', 'title'] })
 class DotList extends Base {
   clicked: number[] = [];
@@ -173,20 +162,11 @@ class DotList extends Base {
     this.titles.push(target.tagName);
   }
 
-  // The magic name derives its ref from the method name, so it has no suffix
-  // to carry — and it resolves the same `dots[]` declaration.
   onDotsClick({ index }: RefEvent): void {
     this.magic.push(index);
   }
 }
 
-/**
- * C9 meets C8. A ref may name its owner in the markup —
- * `data-ref="NsDots.dots[]"` — to reach past a component boundary, but the
- * namespace is never declared: `config.refs` says `dots[]`, so that is what
- * `@on()` names and `onDotsClick()` still derives from. The attribute spelling
- * is `isRefOf()`'s business, and no part of it reaches the decorator.
- */
 @component({ name: 'NsDots', refs: ['dots[]', 'title'] })
 class NsDots extends Base {
   clicked: number[] = [];
@@ -203,7 +183,6 @@ class NsDots extends Base {
   }
 }
 
-/** The mismatch: `dots[]` is declared, `dots` is what the decorator names. */
 @component({ name: 'DotMismatch', refs: ['dots[]'] })
 class DotMismatch extends Base {
   clicked: number[] = [];
@@ -217,11 +196,6 @@ class DotMismatch extends Base {
 @component({ name: 'BaseKind' })
 class BaseKind extends Base {}
 
-/**
- * A subclass declaring its own `static config`. It mounts under its own name,
- * so `@on(SubKind, …)` must resolve to `SubKind` and not to what it extends —
- * the merged config is what says so.
- */
 @component({ name: 'SubKind' })
 class SubKind extends BaseKind {}
 
@@ -254,12 +228,7 @@ registerComponents(
   SubKind,
 );
 
-/* ------------------------------------------------------------------------ *
- * `@on`'s overloads, asserted at compile time. Nothing below runs — the
- * assertions are enforced by `npm run lint:types`, whose `tsc -p
- * tsconfig.json` includes `src/**\/*.ts`. They exist because an overload that
- * quietly widened to `any` would still pass every runtime test in this file.
- * ------------------------------------------------------------------------ */
+// Compile-time assertions prevent the overloads from silently widening to `any`.
 
 @component({ name: 'TypedKid' })
 class TypedKid extends Base<{ $emits: { open: { index: number } } }> {}
@@ -267,21 +236,17 @@ class TypedKid extends Base<{ $emits: { open: { index: number } } }> {}
 class OnOverloads extends Base {
   static config = { name: 'OnOverloads' };
 
-  // A name the platform knows gives the platform's own event…
   @on(window, 'click')
   known(payload: GlobalEvent<MouseEvent>): void {
     expectTypeOf(payload.event).toEqualTypeOf<MouseEvent>();
     expectTypeOf(payload.target).toEqualTypeOf<Window | Document>();
   }
 
-  // …and one it does not know falls back to `Event`, never to `any`.
   @on(window, 'app:ready')
   custom(payload: GlobalEvent): void {
     expectTypeOf(payload.event).toEqualTypeOf<Event>();
   }
 
-  // The class *is* the type: `target` is the component and `payload` is read
-  // from its `$emits`, with nothing to annotate.
   @on(TypedKid, 'open')
   byClass(payload: DelegatedEvent<TypedKid, 'open'>): void {
     expectTypeOf(payload.target).toEqualTypeOf<TypedKid>();
@@ -304,11 +269,6 @@ class OnOverloads extends Base {
   }
 }
 
-/**
- * A lazy `config.components` value. `@on` takes the class, so an author who
- * declared a child as a thunk still imports the class to decorate with it —
- * and the thunk itself is not a target.
- */
 const lazyChild: ComponentImporter = () => import('./decorators.js');
 
 function render(childCount = 1): HTMLElement {
@@ -327,7 +287,6 @@ describe('@component', () => {
 
     const root = render();
     await settle();
-    // Mounted by the registry without an explicit registerComponent call.
     expect(getInstance(root, 'DecoParent').$isMounted).toBe(true);
   });
 });
@@ -362,7 +321,6 @@ describe('@on', () => {
     child.ping();
     child.$emit('pong');
     expect(parent.stacked).toEqual(['ping', 'pong']);
-    // The single-purpose handler only saw `ping`.
     expect(parent.received).toHaveLength(1);
   });
 
@@ -389,8 +347,6 @@ describe('@on', () => {
     expect(parent.byClass).toHaveLength(1);
     expect(parent.byClass[0].target).toBe(child);
     expect(parent.byClass[0].payload).toEqual({ answer: 42 });
-    // Same event, same delegation: the class form and the string form landed
-    // on the very same entry.
     expect(parent.received[0].event).toBe(parent.byClass[0].event);
   });
 
@@ -407,8 +363,6 @@ describe('@on', () => {
     document.body.click();
     expect(parent.documentClicks).toHaveLength(1);
     expect(parent.documentClicks[0].target).toBe(document);
-    // A click outside the component's subtree: exactly what the root element
-    // listener structurally cannot see.
     expect(parent.clicks).toBe(0);
   });
 
@@ -439,16 +393,11 @@ describe('@on', () => {
     const childEl = root.querySelector('[data-component="Window"]') as HTMLElement;
     const child = getInstance<WindowChild>(childEl, 'Window');
 
-    // The global target, named by value: the `'Window'` string did not take it.
     window.dispatchEvent(new Event('resize'));
     expect(parent.globalResizes).toHaveLength(1);
     expect(parent.globalResizes[0].target).toBe(window);
     expect(parent.childResizes).toHaveLength(0);
 
-    // The child, named by string: `window` did not take it either. The global
-    // handler hears this one too, because a bubbling event dispatched in the
-    // document reaches `window` — plain DOM, exactly what
-    // `window.addEventListener('resize', …)` would hear.
     childEl.dispatchEvent(new Event('resize', { bubbles: true }));
     expect(parent.childResizes).toHaveLength(1);
     expect(parent.childResizes[0].target).toBe(child);
@@ -464,11 +413,8 @@ describe('@on', () => {
     const instance = getInstance<DotList>(root, 'DotList');
     (root.querySelectorAll('i')[1] as HTMLElement).click();
     expect(instance.clicked).toEqual([1]);
-    // The magic name resolves the same declaration from the derived spelling.
     expect(instance.magic).toEqual([1]);
 
-    // A ref declared plainly is named plainly: the suffix belongs to the
-    // declaration, not to the decorator.
     (root.querySelector('h2') as HTMLElement).click();
     expect(instance.titles).toEqual(['H2']);
   });
@@ -488,17 +434,12 @@ describe('@on', () => {
     await settle();
 
     const instance = getInstance<NsDots>(root, 'NsDots');
-    // `@on('dots[]', …)` names the declaration; the markup namespaces the
-    // attribute to reach past `NsShell`. Both resolve the same entry.
     (root.querySelectorAll('i')[1] as HTMLElement).click();
     expect(instance.clicked).toEqual([1]);
 
-    // The magic name derives from the declaration too, namespace or not.
     (root.querySelector('h2') as HTMLElement).click();
     expect(instance.titles).toEqual(['H2']);
 
-    // `warnRefSuffixMismatch()` reasons about declarations only, so a
-    // namespaced attribute can never make it fire.
     expect(warn).not.toHaveBeenCalled();
     warn.mockRestore();
   });
@@ -512,7 +453,6 @@ describe('@on', () => {
     await settle();
 
     const instance = getInstance<DotMismatch>(root, 'DotMismatch');
-    // One spelling only: `dots` does not also reach the `dots[]` declaration.
     (root.querySelectorAll('i')[1] as HTMLElement).click();
     expect(instance.clicked).toEqual([]);
 
@@ -539,8 +479,6 @@ describe('@on', () => {
     sub.$emit('ping');
     expect(parent.seen).toHaveLength(1);
     expect(parent.seen[0].target).toBe(sub);
-    // The parent class resolves to its own name, so the subclass's event is
-    // not also delivered there.
     expect(parent.base).toHaveLength(0);
 
     base.$emit('ping');
@@ -555,13 +493,9 @@ describe('@on', () => {
       static config = { name: 'WrongWithConfig' };
     }
 
-    // Refused by the overloads above; refused here too, for the untyped path.
     expect(() => on(el as never, 'click')).toThrow(TypeError);
-    // A matching static config alone does not make an unrelated class a Base.
     expect(() => on(WrongWithConfig as never, 'ping')).toThrow(TypeError);
-    // A lazy `config.components` thunk has no Base brand either.
     expect(() => on(lazyChild as never, 'ping')).toThrow(TypeError);
-    // The overloads are asserted in `OnOverloads`, which only compiles.
     expect(OnOverloads.config.name).toBe('OnOverloads');
   });
 
@@ -643,11 +577,9 @@ describe('@read / @write', () => {
 
     instance.paint('a');
     instance.measure();
-    // Both scheduled, neither has run yet.
     expect(order).toEqual([]);
 
     await defaultScheduler.whenIdle();
-    // Reads run before writes, whatever the call order.
     expect(order).toEqual(['read', 'write:a']);
   });
 
@@ -685,9 +617,7 @@ describe('@provide / @inject', () => {
       'DecoChild',
     );
 
-    // The @children callbacks published the count through @provide.
     expect(parent.total.value).toBe(2);
-    // The child resolved the same signal instance through @inject.
     expect(child.total).toBe(parent.total);
     expect(child.total?.value).toBe(2);
 

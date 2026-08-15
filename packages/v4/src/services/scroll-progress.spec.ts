@@ -69,8 +69,6 @@ describe('useScrollProgress', () => {
     };
     const service = useScrollProgress(target);
     const unsubscribe = service.subscribe(() => {}, { immediate: true });
-    // Let the observer's initial box delivery finish, then count from the
-    // stable running state. Scroll updates must not read the target again.
     await settle();
     const readsBeforeScroll = layoutReads;
 

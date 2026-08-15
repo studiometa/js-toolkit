@@ -8,15 +8,7 @@ import { DataModel } from './DataModel.js';
 import { DataScope } from './DataScope.js';
 import type { DataValue } from './registry.js';
 
-/**
- * A member that publishes from inside its own delivery.
- *
- * This is the hazard `@studiometa/ui`'s
- * `should preserve the latest value during reentrant group updates` encodes,
- * reduced to its minimum. Real callers that do it: `DataComputed` writing a
- * derived value back, an `Action` mutating a bound value from a click that
- * itself came from a binding.
- */
+/** A member that publishes from inside its own delivery. */
 class ReentrantBind extends DataBind {
   static config = { ...DataBind.config, name: 'ReentrantBind' };
 
@@ -348,8 +340,6 @@ describe('DataBind — the group half', () => {
     const a = at<DataBind>(root, '#a', 'DataBind');
     const b = at<DataBind>(root, '#b', 'DataBind');
 
-    // v3 needed a `globalThis` registry for this; `provideRootContext` makes
-    // it the outermost scope of the one mechanism.
     expect(a.dataRegistry).toBe(b.dataRegistry);
     expect(a.dataRegistry.scoped).toBe(false);
     a.set('shared');
@@ -357,25 +347,7 @@ describe('DataBind — the group half', () => {
   });
 
   it('preserves the latest value during reentrant group updates', async () => {
-    // Was red when this port landed; **green since `signal()` landed on
-    // `main`** (verified 2026-08-13). Kept as the regression guard for the
-    // semantic it asked for.
-    //
-    // The old eager `Signal` iterated its subscriber set and delivered the
-    // frame it was called with. A subscriber that published from inside its
-    // own delivery moved the signal forward, but the remaining subscribers of
-    // the *outer* round still received the superseded frame — so `#out` ended
-    // on `'outer'` after `#reentrant` had already moved the group to
-    // `'inner'`.
-    //
-    // What fixed it: **a nested write abandons the current delivery round and
-    // restarts it, so a subscriber not yet reached never sees a superseded
-    // frame.** Nothing else in this port needs anything else from the signal
-    // — no batching, no untracked read, no derived values.
-    //
-    // Note what is *not* asserted: how many times each member's `set()` ran.
-    // ui takes a major version bump, so call counts are negotiable; the final
-    // agreed value is not.
+    // A nested write must prevent later subscribers from receiving the superseded frame.
     const group = uniqueGroup('reentrant');
     const root = await render(`
       <div id="src" data-component="DataBind" data-option-group="${group}"></div>
@@ -408,8 +380,6 @@ describe('DataBind — the group half', () => {
     source.set('first');
     expect(effectEl.dataset.calls).toBe('1');
 
-    // v3 needed `destroyed()` to unsubscribe; here the subscription is the
-    // cleanup `mounted()` returned, so disconnection is the whole story.
     effectEl.remove();
     await settle();
     source.set('second');
@@ -431,8 +401,7 @@ describe('DataBind — the group half', () => {
     const a = at<DataBind>(root, '#a', 'DataBind');
     expect(a.value).toEqual(['foo', 'bar']);
 
-    // No `await settle()`: the registry prunes disconnected members on read,
-    // so the guarantee survives v4's asynchronous teardown.
+    // The registry prunes disconnected members synchronously on read.
     el(root, '#b').remove();
     expect(a.value).toEqual(['foo']);
   });

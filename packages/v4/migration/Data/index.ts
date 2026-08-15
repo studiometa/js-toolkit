@@ -1,11 +1,6 @@
 /**
- * The `Data*` family of @studiometa/ui, ported onto the v4 prototype.
- *
- * Registering is the consumer's call and **order does not matter** — a member
- * uses `subscribeContext()`, so a `DataScope` registered last still takes
- * back the members that fell through to the page-wide registry:
- *
- *     registerComponents(DataScope, DataBind, DataModel, DataComputed, DataEffect);
+ * Register with `registerComponents(DataScope, DataBind, DataModel, DataComputed,
+ * DataEffect)`. Registration order does not affect scope resolution.
  */
 
 export { DataBind, type DataBindOptions, type DataBindProps } from './DataBind.js';

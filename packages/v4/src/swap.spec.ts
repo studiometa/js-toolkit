@@ -18,10 +18,6 @@ function target(html = ''): HTMLElement {
   return el;
 }
 
-/**
- * A counter an inline `<script>` can bump, so "executed exactly once" is a
- * number and not an assumption.
- */
 function runCounter(): { key: string; get: () => number; markup: string } {
   counter += 1;
   const key = `__swapRuns${counter}__`;
@@ -98,7 +94,6 @@ describe('swap — modes', () => {
     expect(el.querySelector('#one')).toBe(one);
     expect(el.querySelector('#two')).toBe(two);
     expect(el.querySelector('#field')).toBe(field);
-    // Focus is the honest proof: it cannot survive a detached-and-recreated node.
     expect(document.activeElement).toBe(field);
     expect(one?.textContent).toContain('ONE');
     expect(el.querySelectorAll('li')).toHaveLength(3);
@@ -108,10 +103,6 @@ describe('swap — modes', () => {
     const el = target('<div id="host"></div>');
     const host = el.querySelector('#host');
 
-    // Two things the caller must know about morph mode, both morphdom policy
-    // rather than swap policy: an element the incoming markup does not contain
-    // is removed even from a preserved parent, and morphdom syncs `value` from
-    // the incoming input. Identity survives a morph; unsent DOM does not.
     const extra = document.createElement('input');
     host?.append(extra);
     extra.value = 'typed';
@@ -159,7 +150,6 @@ describe('swap — script adoption', () => {
     const runs = runCounter();
     const el = target();
 
-    // The baseline the primitive exists to fix: markup alone never runs.
     el.innerHTML = runs.markup;
 
     expect(runs.get()).toBe(0);
@@ -235,8 +225,6 @@ describe('swap — component lifecycle', () => {
 
     const el = target();
     await swap(el, `<div id="first" data-component="${name}"></div>`);
-    // The `swap()` promise alone is the synchronisation point: no `$update()`,
-    // no manual teardown, no settle helper.
     expect(log).toEqual(['mounted:first']);
 
     await swap(el, `<div id="second" data-component="${name}"></div>`, {

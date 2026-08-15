@@ -10,9 +10,7 @@ function move(x: number, y: number): void {
 }
 
 describe('usePointer', () => {
-  // First, because the props below are the ones every later test moves.
   it('starts centered, so progress means something before the first move', () => {
-    // Read without subscribing: the service is not even running here.
     const props = usePointer().props();
     expect(props.x).toBe(window.innerWidth / 2);
     expect(props.progressX).toBe(0.5);
@@ -20,8 +18,6 @@ describe('usePointer', () => {
   });
 
   it('has nothing to deliver on subscribe until the pointer has been seen', () => {
-    // The precondition, stated rather than assumed: no event yet, so the
-    // centred position above is a stand-in and not a reading.
     expect(usePointer().props().event).toBeNull();
 
     const cold: PointerProps[] = [];
@@ -30,13 +26,9 @@ describe('usePointer', () => {
     });
     expect(cold).toEqual([]);
 
-    // A real event, and the subscription that was handed nothing is served by
-    // it like any other.
     move(120, 60);
     expect(cold).toHaveLength(1);
 
-    // Now there is a position to hand over, so a component mounting mid-page
-    // learns where the pointer is instead of waiting for it to move.
     const warm: PointerProps[] = [];
     const second = usePointer().subscribe((props) => warm.push(snapshot(props)), {
       immediate: true,
@@ -46,8 +38,6 @@ describe('usePointer', () => {
 
     first();
     second();
-    // And the service forgets the event with its last subscriber, which is
-    // what keeps a detached subtree from being pinned by its `target`.
     expect(usePointer().props().event).toBeNull();
   });
 
@@ -64,7 +54,6 @@ describe('usePointer', () => {
     expect(first.y).toBe(50);
     expect(second.deltaX).toBe(40);
     expect(second.deltaY).toBe(40);
-    // The previous position is `x - deltaX`, so it is not a field.
     expect(second.x - second.deltaX).toBe(100);
     expect(second.y - second.deltaY).toBe(50);
     expect(second.progressX).toBeCloseTo(140 / window.innerWidth, 5);
@@ -77,7 +66,6 @@ describe('usePointer', () => {
 
     document.dispatchEvent(new PointerEvent('pointerdown', { clientX: 10, clientY: 10 }));
     document.dispatchEvent(new PointerEvent('pointerup', { clientX: 10, clientY: 10 }));
-    // A canceled gesture releases just as well.
     document.dispatchEvent(new PointerEvent('pointerdown', { clientX: 10, clientY: 10 }));
     document.dispatchEvent(new PointerEvent('pointercancel'));
     unsubscribe();
@@ -90,8 +78,6 @@ describe('usePointer', () => {
     const unsubscribe = usePointer().subscribe((props) => seen.push(snapshot(props)));
 
     move(207, 300);
-    // A touch tap has no `pointermove` before it. Reading the position only
-    // on move reported wherever the pointer had last been seen.
     document.dispatchEvent(new PointerEvent('pointerdown', { clientX: 42, clientY: 84 }));
 
     const down = seen.at(-1);
@@ -124,7 +110,6 @@ describe('usePointer', () => {
     press(1, 10);
     expect(usePointer().props().isDown).toBe(true);
 
-    // A pinch: the second finger comes and goes while the first holds.
     press(2, 200);
     lift(2, 200);
     expect(usePointer().props().isDown).toBe(true);
@@ -162,9 +147,6 @@ describe('usePointer', () => {
     unsubscribe();
     el.remove();
 
-    // The service is a module-level singleton, so a retained event pinned
-    // its `target` — and every ancestor of the subtree that left with it —
-    // for the life of the page.
     expect(usePointer().props().event).toBeNull();
   });
 });

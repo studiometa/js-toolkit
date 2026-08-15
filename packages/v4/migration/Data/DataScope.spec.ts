@@ -7,21 +7,12 @@ import { DataEffect } from './DataEffect.js';
 import { DataModel } from './DataModel.js';
 import { DataScope } from './DataScope.js';
 
-// Registration order is deliberate here and *only* here: it is the order a
-// consumer would naturally write, and the `mounts around content that
-// resolved before it` spec below covers the other one.
+// The late-scope spec below covers the opposite registration order.
 registerComponents(DataScope, DataBind, DataModel, DataComputed, DataEffect);
 
 afterEach(resetDom);
 
-/**
- * Every spec uses its own group name.
- *
- * The page-wide registry `provideRootContext` creates is deliberately not
- * disposable — it is page state — so it survives `resetDom()` and is shared
- * by the whole run. That is the documented trade-off, and a unique name per
- * spec is the isolation the primitive's own docs recommend.
- */
+/** Isolate tests because the page-wide registry survives `resetDom()`. */
 let counter = 0;
 function uniqueGroup(name: string): string {
   counter += 1;
@@ -86,8 +77,6 @@ describe('DataScope', () => {
     const nested = at<DataBind>(root, '#nested-bind', 'DataBind');
     const sibling = at<DataBind>(root, '#sibling-bind', 'DataBind');
 
-    // Same group *name*, three different channels — which is what
-    // `stopPropagation` on the nearest provider buys, for free.
     expect(outer.peers).not.toBe(nested.peers);
     expect(outer.peers).not.toBe(sibling.peers);
     expect(nested.dataRegistry).toBe(nestedScope.registry);
@@ -278,10 +267,7 @@ describe('DataScope', () => {
     expect(out.value).toBe('Ada');
     expect(effectEl.dataset.calls).toBe('1');
 
-    // The fresh-frame rule: an equal value is still an event. This is why
-    // core's value-equality bail-out never fires on this channel, and why
-    // what the family needs from the signal is *deduped delivery of the
-    // latest frame*, not `Object.is` deduplication of the value.
+    // Equal values remain observable events.
     model.set('Ada');
     expect(effectEl.dataset.calls).toBe('2');
     expect(model.$data).toEqual({ first: 'Ada' });
@@ -309,9 +295,6 @@ describe('DataScope', () => {
   });
 
   it('rebinds descendants when a scope is wrapped around existing content', async () => {
-    // A DOM move is a destroy + a mount in v4, so the member re-resolves its
-    // registry on the new cycle. v3 memoized the scope for the instance's
-    // whole life and got this permanently wrong.
     const group = uniqueGroup('wrapped');
     const root = await render(`
       <div id="bind" data-component="DataBind" data-option-key="first"></div>
@@ -334,13 +317,6 @@ describe('DataScope', () => {
   });
 
   it('reclaims descendants when the scope mounts around content that already resolved', async () => {
-    // The ordering trap, in the one shape a DOM move does *not* fix: the
-    // element was already there and only its `data-component` declaration
-    // arrives late. This is the spec the port used to need eight lines of
-    // `RESCOPE` broadcast for; core answers it now, because the member uses
-    // `subscribeContext()` and the scope's own mount announcement re-answers
-    // it. Nothing in this file changed — the assertion was always about which
-    // registry the member ends up on, never about how it got there.
     const group = uniqueGroup('late');
     const root = await render(`
       <div id="scope" data-option-group="${group}">

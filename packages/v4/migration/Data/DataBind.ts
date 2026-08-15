@@ -26,11 +26,7 @@ import {
   type DataValue,
 } from './registry.js';
 
-// A type alias, not an interface: an interface has no implicit index
-// signature, so `$options: SomeInterface` fails `BaseProps`'s
-// `Record<string, unknown>` constraint (REPORT.md gap 14). It bites here
-// because the option set is named to be shared with three subclasses, which
-// is exactly when naming it is worth doing.
+// An interface lacks the implicit index signature required by `BaseProps`.
 export type DataBindOptions = {
   prop: string;
   immediate: boolean;
@@ -50,57 +46,7 @@ type VirtualBinding =
   | { type: 'text' | 'if'; expression: string }
   | { type: 'prop' | 'attr' | 'class' | 'style'; name: string; expression: string };
 
-/**
- * DataBind — a two-way binding between an element and a named group.
- *
- * Port of `@studiometa/ui` 1.10's `DataBind` (522 lines → 380 here).
- *
- * ## Ported unchanged
- *
- * Everything about the element: `prop` resolution (`valueAsNumber`,
- * `valueAsDate`, `textContent`), the virtual `data-bind:prop|attr|class|
- * style|text|if` bindings and their nullish semantics, `toggle()`,
- * `increment()`, `cycle()`, the `data-bind:if` template protocol. That is
- * roughly 60 % of the file and it moved by copy-paste.
- *
- * ## What was forced to change
- *
- * | change | forced by |
- * | --- | --- |
- * | `extends withGroup(Base, DATA_GROUP_NAMESPACE, {…})` → `extends Base` | **v4 exports no group primitive.** `src/index.ts` has no `withGroup`, by design (DESIGN.md §5). |
- * | `getDataScope(this.$el)` DOM walk → `resolveDataRegistry(this.$el)` | the context protocol resolves through the DOM event path. Same nearest-first answer, no `__base__` spelunking. |
- * | `this.$group` (a `Set` from the decorator) → `registry.members(group)` | the peers and the value cell are now one object, which is what let `DataChannel` disappear. |
- * | `this.dataScope?.getChannel(group)` **or** `getDataChannel(this.$group)` | → one call. The scoped and page-wide halves were two code paths in every method that published; now the registry is the same class either way. |
- * | `DataChannel` (87 lines, alien-signals) → core `Signal` | the only alien-signals user in all of ui. See `registry.ts`. |
- * | the resolved scope memoized **for the instance's life** → memoized **per mount cycle** | v4 lifecycle. A DOM move is a destroy + mount, so wrapping existing content in a `DataScope` re-resolves for free — a case v3's permanent memoization got permanently wrong. |
- * | `destroyed()` → the `mounted()` cleanup | v4 idiom; joining and leaving a group are one closure. |
- * | `nextTick()` → `defaultScheduler.background()` | v4 ships no `nextTick`. The background lane is where eager mounts queue, so "after everything mounted" is a guarantee rather than a hope. |
- * | copied `emitDomUpdate()` + `runWrapped()` → `domUpdate()` | the standalone helper keeps the unclaimed mutation synchronous and owns runner resilience without adding a `Base` method. |
- * | `this.$warn(…)` → `warn(…)` | no `$warn` in v4 (REPORT.md gap 10). |
- * | `mounted()` resolving once → `subscribeContext(…)` | a member must be re-answerable: a `DataScope` mounting around it takes it back off the page-wide registry. The optional helper carries this without adding it to `Base`. |
- *
- * ## What has no framework support
- *
- * `$watchChildren` looks like the answer to group membership and is not, for
- * three independent reasons, so this port registers members instead:
- *
- * 1. **A group is not a subtree.** Membership is *nearest scope + group
- *    name*: a member inside a nested `DataScope` belongs to the nested one,
- *    while `$watchChildren` on the outer scope collects it too. Filtering it
- *    back out means re-deriving each member's nearest scope — which is the
- *    resolution `$watchChildren` was supposed to replace.
- * 2. **It matches on exact `config.name`.** `DataModel`, `DataComputed` and
- *    `DataEffect` are `DataBind` subclasses with their own names, so a scope
- *    needs one collection per class — and a user subclass gets none.
- * 3. **The page-wide group has no component to watch from.** There is no
- *    root `Base` instance, and `provideRootContext` deliberately does not
- *    create one.
- *
- * *Ask for core:* `$watchChildren(name)` matching subclasses (an
- * `instanceof`-shaped predicate rather than a name equality), which would fix
- * (2). (1) and (3) are properties of this family, not gaps — a registry
- * members set is the right shape here and costs two lines.
- */
+/** A two-way binding between an element and a named data group. */
 export class DataBind extends Base<DataBindProps> implements DataScopeMember {
   static config: BaseConfig = {
     name: 'DataBind',
@@ -112,23 +58,7 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
     },
   };
 
-  /**
-   * Resolved on first use and kept **for the mount cycle**.
-   *
-   * Lazy rather than resolved at a fixed lifecycle point, because `get()` and
-   * `set()` are specified to work on an instance that has not mounted yet —
-   * ui's specs construct a `DataBind` and call `set()` on the next line, and
-   * an `Action` can reach one through `$closest` before the registry gets to
-   * it. That is v3's `__dataScopeResolved` memoization, and it rules out the
-   * `@inject` field decorator, which resolves at construction — the earliest
-   * and worst moment of all.
-   *
-   * From `mounted()` on, the subscribed request owns this field: every answer
-   * writes it, so a `DataScope` that appears later moves the member without
-   * anything here having to notice.
-   *
-   * @private
-   */
+  /** Lazily resolved before mount and updated when the nearest scope changes. @private */
   #registry?: DataRegistry;
 
   /** Undoes `#connect()`. `undefined` while disconnected. @private */
@@ -169,7 +99,7 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
     return this.$options.group || this.dataRegistry.defaultGroup || '';
   }
 
-  /** The live peer set — `withGroup`'s `$group`, without the decorator. */
+  /** The live peer set for the resolved group. */
   get peers(): Set<DataScopeMember> {
     return this.dataRegistry.members(this.group);
   }
@@ -311,9 +241,7 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
     const registry = this.dataRegistry;
     const { group } = this;
 
-    // The scoped path publishes keyed and always forced, because a scope's
-    // value can legitimately be re-set to what it already was — a form
-    // resubmitting the same answer is still an event.
+    // Equal keyed values remain observable events.
     if (registry.scoped && this.dataKey) {
       if (updateData) {
         registry.setValue(group, this.dataKey, value, this);
@@ -404,13 +332,7 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
   }
 
   /**
-   * Toggle the presence of a bound `<template>`'s content in the DOM.
-   *
-   * Ported unchanged from v3 apart from `$warn` and the standalone helper. The
-   * logical state is tracked synchronously by `#ifPresent` while the DOM
-   * change may run later through an `EVENTS.dom.update` runner, so each closure
-   * guards on `#ifNodes` to stay a no-op when queued runners apply in
-   * sequence.
+   * Toggle bound template content. Queued runners guard against stale state.
    * @private
    */
   #applyIfBinding(isPresent: boolean): void {
@@ -575,23 +497,7 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
     });
   }
 
-  /**
-   * Bind to the nearest registry, and stay bindable.
-   *
-   * `subscribeContext()` is the whole of what used to be `DataScope`'s
-   * `RESCOPE` broadcast. A member that resolved the page-wide registry — because it
-   * mounted before its scope did, or because its scope is `data-mount="idle"`,
-   * or because a `data-bind:if` template wrapped one around it — is re-answered
-   * when that scope mounts, and the teardown returned below is what makes the
-   * move clean: it leaves the old group and drops its keyed value there before
-   * the new registry is handed over. Joining and leaving stay one closure, as
-   * they were, only now they are per *answer* rather than per mount cycle.
-   *
-   * The fallback call is not optional. A subscribed request waits forever
-   * while nothing provides, and the page-wide registry is created on demand —
-   * so a member with no `DataScope` above it must create it, which replays its
-   * own pending request and answers it.
-   */
+  /** Follow the nearest registry; create the required root registry as fallback. */
   mounted(): () => void {
     const unsubscribe = subscribeContext(this.$el, DataRegistryContext, (registry) => {
       this.#registry = registry;

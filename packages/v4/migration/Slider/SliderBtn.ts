@@ -7,20 +7,8 @@ export interface SliderBtnProps {
 }
 
 /**
- * SliderBtn — a previous/next control.
- *
- * Port of @studiometa/ui 1.10's `SliderBtn`, and the clearest illustration of
- * what `AbstractSliderChild` was for. v3 needed 143 lines of base class to
- * find its Slider and subscribe to its store, with a reconnection in
- * `mounted()`, `resized()` and `updated()` because none of them was reliable
- * on its own. Here it is one `$inject` in `mounted()` and the returned
- * unsubscribe.
- *
- * State *and* commands come through the context, which is what keeps the
- * control from knowing anything about the `Slider` class. The two halves are
- * resolved differently on purpose: the disabled state has to survive a control
- * that mounts first, so it waits on `$inject`; a click has to be answered now,
- * so it asks with `$injectSync` and does nothing when no slider is above it.
+ * Previous or next control. State waits for a Slider context; clicks use the
+ * current context and do nothing when none exists.
  */
 export class SliderBtn extends Base<SliderBtnProps> {
   static config = {

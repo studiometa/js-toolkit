@@ -99,15 +99,12 @@ describe('Dialog', () => {
     await dialog.open();
     expect(el.open).toBe(true);
 
-    // What the browser dispatches on Escape. Await the close started by the
-    // synchronous handler instead of relying on a timer to cross its frames.
     const close = vi.spyOn(dialog, 'close');
     el.dispatchEvent(new Event('cancel', { cancelable: true }));
     expect(close).toHaveBeenCalledOnce();
     await close.mock.results[0].value;
 
     expect(el.open).toBe(false);
-    // The leave transition ran, which is what v3 lost on Escape.
     expect(panel.classList.contains('is-closed')).toBe(true);
     expect(document.documentElement.style.overflow).toBe('');
   });

@@ -1,12 +1,3 @@
-/**
- * `trapFocus` / `untrapFocus` / `saveActiveElement`, ported from
- * `@studiometa/js-toolkit/utils/trapFocus`.
- *
- * The one change is the key test: v3 reads `event.keyCode`, deprecated since
- * 2016 and the reason the toolkit ships a `keyCodes` table. `event.key` needs
- * no table.
- */
-
 const FOCUSABLE = [
   'a[href]:not([tabindex^="-"]):not([inert])',
   'area[href]:not([tabindex^="-"]):not([inert])',

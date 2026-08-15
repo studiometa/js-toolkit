@@ -6,9 +6,7 @@ export {
   TRACK_PSEUDO_EVENTS,
   parseEventDefinition,
   resolveDetailPlaceholders,
-  // Aliased: `Action/ActionEvent.ts` exports a `Modifier` of its own, and both
-  // families are barrelled together. ui has the same collision and never sees
-  // it, because each family ships its own entry point.
+  // Avoid the `ActionEvent.Modifier` barrel-export collision.
   type Modifier as TrackModifier,
   type ParsedEvent,
   type TrackPseudoEvent,

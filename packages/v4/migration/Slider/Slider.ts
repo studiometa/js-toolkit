@@ -20,23 +20,7 @@ export interface SliderState {
   total: number;
 }
 
-/**
- * The surface a Slider exposes to its controls: state to read, commands to
- * call. Nothing else of the Slider is reachable through it.
- *
- * This replaces the per-instance `createStorage()` store of v3 and, with it,
- * the whole `AbstractSliderChild` handshake: no `connectChildren()` on the
- * parent, no `__connect()` on the child, no `updated()`/`resized()`
- * reconnection safety nets. It is resolved through the DOM event path, so
- * mount order does not matter in either direction.
- *
- * The commands are here because a control needs both halves and the state
- * signal is only one of them: v3's controls called `this.slider.goTo(index)`,
- * and a context carrying a `Signal` alone left them reaching back through
- * `$closest('Slider')` for that — which is the coupling the context exists to
- * remove, reintroduced. Provided verbatim, so this object is exactly what a
- * consumer resolves.
- */
+/** State and navigation commands exposed to Slider controls. */
 export interface SliderApi {
   state: Signal<SliderState>;
   goTo(index: number): void;
@@ -64,24 +48,7 @@ interface SliderItemState {
   right: number;
 }
 
-/**
- * Slider — the root of the carousel system.
- *
- * Port of @studiometa/ui 1.10's `Slider`.
- *
- * What changed, and why:
- *
- * - `$children.SliderItem` → `$watchChildren('SliderItem')`, so slides added
- *   or removed after mount are picked up.
- * - the index store → a provided owner surface (a `Signal` for what changes,
- *   methods for what a control may ask for), injected by the controls.
- * - `keyed()` (KeyService) → `onWrapperKeydown`, a delegated handler on the
- *   `wrapper` ref. The event only reaches the component when the focus is
- *   inside the wrapper, which is what v3 tracked by hand with
- *   `onWrapperFocus` / `onWrapperBlur` and a `hasFocus` flag.
- * - the drag handlers take v4's `DragProps`: flat per-axis fields, and a
- *   settle position the service works out itself — see `onSliderDragDrop`.
- */
+/** Root carousel component with live slides, controls, and optional drag support. */
 export class Slider extends withResize(Base)<SliderProps> {
   static config = {
     name: 'Slider',
@@ -98,12 +65,7 @@ export class Slider extends withResize(Base)<SliderProps> {
 
   state = signal<SliderState>({ index: 0, total: 0 });
 
-  /**
-   * The provided owner surface. The provider is attached in this field
-   * initializer, so it answers a request from the moment the instance exists —
-   * before `mounted()`, and before `$closest('Slider')` would find anything,
-   * since that only reports a *mounted* ancestor.
-   */
+  /** Provided during construction so controls can resolve it before mount. */
   api: SliderApi = this.$provide(SliderContext, {
     state: this.state,
     goTo: (index) => this.goTo(index),
@@ -122,10 +84,8 @@ export class Slider extends withResize(Base)<SliderProps> {
 
   #currentIndex = 0;
 
-  /** Position the slides sat at when the current gesture started. */
   #initialX = 0;
 
-  /** Position the slides are at right now, while a gesture is running. */
   #distanceX = 0;
 
   get currentIndex(): number {
@@ -164,11 +124,7 @@ export class Slider extends withResize(Base)<SliderProps> {
     return inherited;
   }
 
-  /**
-   * Re-measure and re-publish. v3 split this between `mounted()`,
-   * `resized()` and `connectChildren()`; here one method answers every event
-   * that can change the geometry or the slide count.
-   */
+  /** Re-measure geometry and publish the current state. */
   refresh(): void {
     this.$read(() => {
       this.states = this.getStates();
@@ -234,7 +190,6 @@ export class Slider extends withResize(Base)<SliderProps> {
       return states;
     }
 
-    // `center` + `contain` was never implemented in v3 either.
     console.warn('[Slider] The `center` mode is not compatible with the `contain` mode.');
     return states;
   }
@@ -255,12 +210,7 @@ export class Slider extends withResize(Base)<SliderProps> {
     }
   }
 
-  /**
-   * v3 threw `Index out of bound.` here, which meant a slide removed from the
-   * DOM could crash the slider. With a live children collection the index is
-   * clamped instead — the collection is the source of truth and it changes
-   * under the component by design.
-   */
+  /** Navigate to an index clamped to the live slide collection. */
   goTo(index: number): void {
     if (this.items.size === 0) {
       this.currentIndex = 0;
@@ -280,19 +230,13 @@ export class Slider extends withResize(Base)<SliderProps> {
     this.$emit('goto', { index: clamped });
   }
 
-  /**
-   * A gesture started on the `SliderDrag` track: remember where the slides
-   * are, so the drag is relative to it.
-   */
+  /** Capture the slide position at the start of a drag. */
   onSliderDragStart(): void {
     this.#initialX = this.currentSliderItem?.x ?? 0;
     this.#distanceX = this.#initialX;
   }
 
-  /**
-   * Follow the pointer. `props.distanceX` is v4's flat spelling of v3's
-   * `props.distance.x` — the movement since the gesture started.
-   */
+  /** Follow the pointer relative to the gesture start. */
   onSliderDragDrag({ payload: props }: DelegatedEvent<SliderDrag, 'drag'>): void {
     this.#distanceX = this.#initialX + props.distanceX * this.$options.sensitivity;
 
@@ -301,19 +245,7 @@ export class Slider extends withResize(Base)<SliderProps> {
     }
   }
 
-  /**
-   * The gesture ended: pick the slide the throw was heading for.
-   *
-   * v3 projected the throw itself, with
-   * `inertiaFinalValue(this.__distanceX, props.delta.x * dropSensitivity)` —
-   * feeding a per-event delta into an inertia formula, which made the same
-   * flick land differently on a 1000 Hz mouse and a 125 Hz trackpad. v4's drag
-   * service has already done that work and done it properly: it samples a
-   * velocity in pixels per millisecond and announces the exact settle position
-   * as `finalX` at drop time. So the projection is the travel the service is
-   * promising, `finalX - x`, and `dropSensitivity` keeps its meaning as the
-   * multiplier over it.
-   */
+  /** Select the closest slide using the drag service's projected settle position. */
   onSliderDragDrop({ payload: props }: DelegatedEvent<SliderDrag, 'drop'>): void {
     const first = this.states[0];
     const last = this.states.at(-1);
@@ -347,9 +279,7 @@ export class Slider extends withResize(Base)<SliderProps> {
       item.move(finalX);
     }
 
-    // Deliberately not `goTo()`: the slides rest between two states, so only
-    // the index is published. This is v3's behaviour, and it is why the
-    // `currentIndex` setter is what publishes the state.
+    // Without `fitBounds`, publish the index without snapping slide positions.
     this.currentIndex = closestIndex;
   }
 

@@ -4,17 +4,7 @@ import { serializeControlValue } from './formControl.js';
 
 export type DataModelProps = DataBindProps;
 
-/**
- * DataModel — a `DataBind` that publishes what the user types.
- *
- * Port of `@studiometa/ui` 1.10's `DataModel` (29 lines → 29 here).
- *
- * **Ported unchanged.** The only edits are the two renamed protected members
- * (`__controlContext` → `controlContext`, `__publishValue` → `publishValue`)
- * and the `isCurrent` call moving onto the registry. `onInput` is already the
- * v4 spelling — v3's magic handler names survived into v4 unchanged, which is
- * why the whole input half of this family costs nothing to move.
- */
+/** A `DataBind` that publishes user input. */
 export class DataModel extends DataBind {
   static config: BaseConfig = {
     name: 'DataModel',

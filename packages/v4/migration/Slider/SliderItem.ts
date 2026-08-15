@@ -7,19 +7,7 @@ export interface SliderItemRect {
   width: number;
 }
 
-/**
- * SliderItem — one slide.
- *
- * Port of @studiometa/ui 1.10's `SliderItem`. It caches its position for the
- * Slider's arithmetic and translates itself along the x axis, instantly or
- * with a damped animation.
- *
- * v3 drove the animation with `this.$services.enable('ticked')` /
- * `disable('ticked')`, toggling the shared RAF service per item. v4 has no
- * such switch: `withRaf` subscribes for the whole mount cycle. The
- * subscription is therefore taken and released by hand — which is the same
- * behaviour, and arguably clearer, but it is a hook the mixin cannot give.
- */
+/** One slide with cached geometry and damped horizontal movement. */
 export class SliderItem extends Base {
   static config = { name: 'SliderItem' };
 
@@ -35,13 +23,7 @@ export class SliderItem extends Base {
 
   #unsubscribeFrame: (() => void) | null = null;
 
-  /**
-   * Position and width of the slide as if it were untranslated.
-   *
-   * Invalidated by the resize service instead of by v3's `resized()` hook
-   * plus a `shouldEvaluateRect` flag: a `ResizeObserver` reports the current
-   * size on subscribe, so there is no first-resize gap to work around.
-   */
+  /** Position and width as if the slide were untranslated. */
   get rect(): SliderItemRect {
     if (!this.#rect) {
       const rect = this.$el.getBoundingClientRect();

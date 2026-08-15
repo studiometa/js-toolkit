@@ -100,8 +100,6 @@ describe('SliderDrag', () => {
 
     expect(modes.at(-1)).toBe('stop');
     expect(modes).toContain('inertia');
-    // `idle` is what the service reports outside a gesture; announcing it
-    // would be an event about nothing happening.
     expect(modes).not.toContain('idle');
   });
 
@@ -176,10 +174,6 @@ describe('SliderDrag', () => {
 
     grab(track, 50);
     move(20);
-    // Holding still costs the velocity: it is decayed by the idle time at the
-    // drop, through the law the coast itself obeys. v3 kept the last move's
-    // delta however long the pause was, so letting go after a pause flung the
-    // slider.
     await sleep(300);
     release();
     await frames(4);
@@ -202,8 +196,6 @@ describe('SliderDrag', () => {
     release();
     await frames(4);
 
-    // The index follows the closest state, but the slides stay where the
-    // gesture left them — which is the whole point of the option.
     expect(slider.currentIndex).toBe(0);
     const [first] = slider.items.items;
     expect(first.x).toBeLessThan(-25);
@@ -214,10 +206,6 @@ describe('SliderDrag', () => {
     const root = render();
     const { track } = await ready(root);
 
-    // v3 blocked the native gesture from an `onTouchmove` handler once a touch
-    // drag looked horizontal. `pan-y` is that heuristic as a platform rule —
-    // and it survives the drag service, which only writes `touch-action: none`
-    // over a computed `auto`.
     expect(track.style.touchAction).toBe('pan-y');
     expect(getComputedStyle(track).touchAction).toBe('pan-y');
 

@@ -15,15 +15,9 @@ import type { ContextKey } from './context.js';
 import { HANDLER_REGISTRATIONS } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 
-/**
- * Stage-3 decorators are optional sugar over the function API: no engine
- * ships them yet, so they require a build step — the function forms
- * (`registerComponent`, `$provide`, `$watchChildren`, magic `on<…>` method
- * names) remain the no-build path.
- */
+/** Decorator syntax requires transpilation; use the function APIs without a build step. */
 
-// `this: any` keeps the handler assignable whatever the host class is: the
-// decorated method is typed by its own class, which the decorator cannot know.
+// The decorator cannot know the host class of a decorated method.
 type OwnHandler = (this: any, event: Event) => void;
 type ChildHandler<T extends Base = Base, K extends string = string> = (
   this: any,
@@ -32,55 +26,24 @@ type ChildHandler<T extends Base = Base, K extends string = string> = (
 type RefHandler<T extends HTMLElement = HTMLElement> = (this: any, payload: RefEvent<T>) => void;
 type GlobalHandler<T extends Event = Event> = (this: any, payload: GlobalEvent<T>) => void;
 
-/**
- * The event a name maps to on a global target — `MouseEvent` for `click`,
- * `Event` for a custom name the platform's map does not know, so a
- * `@on(window, 'my-app:ready')` still types rather than collapsing to `any`.
- */
+/** Maps known global event names to their platform type and custom names to `Event`. */
 type PlatformEvent<M, K extends string> = K extends keyof M
   ? M[K] extends Event
     ? M[K]
     : Event
   : Event;
 
-/** Everything `@on` accepts as a target. */
 type OnTarget = string | BaseConstructor | typeof window | typeof document;
 
 /**
- * Split `@on`'s arguments into the record `#bindHandlers()` consumes.
- *
- * `window` and `document` are matched **by identity**, so they resolve to the
- * same binding the reserved `onWindow<Event>` / `onDocument<Event>` names use.
- * Nothing is encoded into `child`: the target travels as itself, so no string
- * is reserved and `@on('Window', 'resize')` keeps meaning a child named
- * `Window`.
- *
- * A component class resolves through `resolveConfig()` rather than through its
- * own `config.name`. The merged config is what the instance mounts under, so
- * it is by definition the key the delegation walk looks up on `el.__base__`;
- * the class's own `config.name` only happens to agree, because `BaseConfig`
- * makes `name` required and the most derived declaration wins. Reading the
- * merged config makes the class form resolve to the mount identity by
- * construction instead of by coincidence, and it is the same cached lookup
- * `$config` performs.
- *
- * **Any other `EventTarget` is refused** — by the overloads for typed callers,
- * and here for the untyped path. It is not a gap. A decorator is evaluated
- * once, at class definition, with no instance and no document: an arbitrary
- * target can therefore only be a module-scope value shared by every instance
- * of the class, which is not what a per-mount-cycle listener means. A ref is
- * already covered by the string form, and anything else is one line in
- * `mounted()` — `addEventListener` plus the cleanup returned beside it —
- * scoped to the instance and to the cycle by the machinery that is already
- * there.
+ * Global targets use identity checks. Component classes use their merged config name because it is their mount identity.
+ * Other `EventTarget` values are invalid because decorators have no component instance or mount cycle.
  */
 function resolveHandlerTarget(
   target: OnTarget,
   maybeType?: string,
 ): Omit<HandlerRegistration, 'handler'> {
   if (typeof target === 'string') {
-    // One argument names an own event on the root element; two make the
-    // first argument the child or ref name.
     return maybeType === undefined
       ? { target: null, child: null, type: target }
       : { target: null, child: target, type: maybeType };
@@ -102,19 +65,11 @@ function resolveHandlerTarget(
   );
 }
 
-/**
- * A value decorator usable on a plain field or on an `accessor` field: the
- * two differ only in how the initializer is handed back to the runtime (a
- * bare function for a field, an `{ init }` object for an accessor).
- */
+/** A value decorator for a field or an `accessor` field. */
 type ValueDecoratorContext<This, Value> =
   | ClassFieldDecoratorContext<This, Value>
   | ClassAccessorDecoratorContext<This, Value>;
 
-/**
- * The overloaded shape TypeScript expects from a decorator that works on
- * both a plain field and an `accessor` field.
- */
 interface ValueDecorator<Value> {
   <This extends Base>(
     target: undefined,
@@ -126,9 +81,6 @@ interface ValueDecorator<Value> {
   ): ClassAccessorDecoratorResult<This, Value>;
 }
 
-/**
- * A decorator that only reacts to construction, with nothing to hand back.
- */
 interface ValueObserver<Value> {
   <This extends Base>(target: undefined, context: ClassFieldDecoratorContext<This, Value>): void;
   <This extends Base>(
@@ -145,45 +97,9 @@ function withInitializer<This extends Base, Value>(
 }
 
 /**
- * Declare an event handler explicitly — a method decorator alternative to
- * the magic `on<Child><Event>` method names. The target comes first, as a
- * name or as the value itself:
- *
- *     class Accordion extends Base {
- *       // Delegated child event: no `config.components` needed to resolve
- *       // the name, no naming ambiguity, any event type.
- *       @on('AccordionItem', 'open')
- *       autoclose({ target }: DelegatedEvent<AccordionItem>) { … }
- *
- *       // The same child as a value. The class *is* the type, so `target`
- *       // and `payload` are typed from it with nothing to annotate.
- *       @on(AccordionItem, 'open')
- *       track({ target, payload }) { … }
- *
- *       // Global target — the decorator form of `onWindow<Event>` /
- *       // `onDocument<Event>`, and the very same listener behind it.
- *       @on(document, 'click')
- *       close({ event }: GlobalEvent<MouseEvent>) { … }
- *
- *       // Own event on the root element.
- *       @on('click')
- *       handleClick(event: Event) { … }
- *     }
- *
- * Taking the value is what gives the global form a spelling at all: a string
- * `'window'` would have to be reserved, and would then compete with a ref or
- * a component genuinely named `window`. Nothing is reserved here, so the
- * string forms keep their meaning beside the value forms — `@on('Window',
- * 'resize')` is still a child named `Window` — and a component that is not
- * imported is still reachable by name, which is what the autoload path and
- * the bundle size depend on. A child declared lazily, as
- * `Child: () => import('./Child.js')`, is exactly that case: the class form
- * would import the chunk the thunk exists to defer, so the string form is
- * the one to use. The thunk itself is not a target — it is a function with
- * no `config`, refused by the overloads and at runtime.
- *
- * An `EventTarget` that is none of these is rejected; see
- * `resolveHandlerTarget()` for why, and for the one line that replaces it.
+ * Decorate a method as an event handler.
+ * One string binds an event on the component root. A string and event type bind a child or ref.
+ * A component class binds that child type. `window` and `document` bind global events.
  */
 export function on(
   type: string,
@@ -212,17 +128,7 @@ export function on<T extends BaseConstructor, K extends string>(
   value: ChildHandler<InstanceType<T>, K>,
   context: ClassMethodDecoratorContext<This, ChildHandler<InstanceType<T>, K>>,
 ) => void;
-/**
- * A name is a child **or** a ref — `#bindHandlers()` resolves either, children
- * first — and only the author knows which, so the handler is typed as either.
- * The class form has no such doubt: a class can only be a child.
- *
- * A ref is named the way `config.refs` declares it, `[]` included:
- * `@on('dots[]', 'click')` for a `dots[]` declaration, one spelling and not
- * two. `$refs.dots` and `onDotsClick()` derive a name from that declaration
- * and drop the suffix; `@on()` refers to the entry itself, like the
- * `data-ref="dots[]"` attribute, so it keeps it.
- */
+/** A string target can be a child or ref. Ref names must include the `[]` suffix declared in `config.refs`. */
 export function on(
   child: string,
   type: string,
@@ -255,40 +161,13 @@ function inPhase(phase: '$read' | '$write') {
   };
 }
 
-/**
- * Run the method body in the scheduler's `read` phase, so its layout
- * measurements batch with every other read of the frame:
- *
- *     @read
- *     measure() { this.width = this.$el.getBoundingClientRect().width; }
- *
- * The call schedules and returns immediately; the task is canceled if the
- * instance is destroyed first. Use `this.$read()` directly when the task
- * handle or the return value is needed.
- */
+/** Schedule the method body in the next read phase. Destruction cancels pending work. */
 export const read = inPhase('$read');
 
-/**
- * Run the method body in the scheduler's `write` phase, so its DOM writes
- * batch after every read of the frame:
- *
- *     @write
- *     open() { this.$el.open = true; }
- *
- * The call schedules and returns immediately; the task is canceled if the
- * instance is destroyed first. Use `this.$write()` directly when the task
- * handle is needed.
- */
+/** Schedule the method body in the next write phase. Destruction cancels pending work. */
 export const write = inPhase('$write');
 
-/**
- * Declare the component's config and register it with the registry as soon
- * as the class is defined — the decorator form of `static config` +
- * `registerComponent()`:
- *
- *     @component({ name: 'Reveal' })
- *     class Reveal extends Base { … }
- */
+/** Set the component config and register the class when it is defined. */
 export function component(config: BaseConfig) {
   return function decorate<T extends BaseConstructor>(
     value: T,
@@ -301,17 +180,7 @@ export function component(config: BaseConfig) {
   };
 }
 
-/**
- * Provide the decorated field to the subtree (nearest provider wins) — the
- * field-decorator form of `$provide()`. The value is provided verbatim, so
- * the field is whatever the key declares: a `Signal` for reactive state, an
- * object of commands for an owner surface, an object of Signals for both.
- *
- *     class Slider extends Base {
- *       @provide(SliderContext)
- *       api = { state: signal({ index: 0, total: 0 }), goNext: () => this.goNext() };
- *     }
- */
+/** Provide the decorated field to descendants. The nearest provider wins. */
 export function provide<T>(key: ContextKey<T>): ValueDecorator<T> {
   return function decorate<This extends Base>(
     _target: unknown,
@@ -324,19 +193,8 @@ export function provide<T>(key: ContextKey<T>): ValueDecorator<T> {
 }
 
 /**
- * Resolve the nearest provided value into the decorated field, now or when a
- * provider appears — the field stays `undefined` until then (the
- * field-decorator form of `$inject()`, shaped like Lit's `@consume`):
- *
- *     class SliderCount extends Base {
- *       @inject(SliderContext)
- *       accessor api: SliderApi | undefined;
- *     }
- *
- * The request is issued once, at construction, and is destroy-scoped like
- * `$inject()`: a field still unresolved when the instance is destroyed is not
- * requested again on remount. A consumer that may outlive several cycles
- * waiting for its provider calls `$inject()` from `mounted()` instead.
+ * Resolve the nearest provided value into the decorated field. The field stays `undefined` until resolution.
+ * Resolution starts once at construction and does not restart after destruction.
  */
 export function inject<T>(key: ContextKey<T>): ValueObserver<T | undefined> {
   return function decorate<This extends Base>(
@@ -352,17 +210,8 @@ export function inject<T>(key: ContextKey<T>): ValueObserver<T | undefined> {
 }
 
 /**
- * Track mounted descendants as a live collection — the field-decorator form
- * of `$watchChildren()`. A string matches `config.name` exactly. A component
- * class includes its named subclasses and infers the collection and callback
- * instance type. Callbacks are bound to the host component:
- *
- *     class Accordion extends Base {
- *       @children(AccordionItem, {
- *         added(item) { this.sync(item); },
- *       })
- *       accessor items!: ChildrenCollection<AccordionItem>;
- *     }
+ * Track mounted descendants as a live collection. Strings match `config.name` exactly.
+ * Component classes include named subclasses. Callbacks bind to the host component.
  */
 export function children<T extends Base = Base, Host = any>(
   name: string,

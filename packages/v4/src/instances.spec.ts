@@ -73,8 +73,7 @@ describe('getInstances', () => {
     detached.append(root);
     await settle();
 
-    // Destroy is reversible, so the elements keep their retained instances:
-    // the `$isMounted` filter is the only thing keeping them out of the answer.
+    // Destroyed instances remain retained but are excluded by `$isMounted`.
     expect(instance.$isMounted).toBe(false);
     expect(getInstance(li, 'TodoItem')).toBe(instance);
     expect(detached.querySelectorAll('[data-component~="TodoItem"]')).toHaveLength(2);

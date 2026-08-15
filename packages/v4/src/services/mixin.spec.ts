@@ -45,15 +45,12 @@ describe('service mixins', () => {
     instance.$destroy();
     const frozen = instance.ticks;
     await frames(3);
-    // Nothing left behind: the service does not know this component anymore.
     expect(instance.ticks).toBe(frozen);
 
     instance.$mount();
     await frames(3);
     expect(instance.ticks).toBeGreaterThan(frozen);
 
-    // And a second mount subscribed once, not twice: the count keeps rising
-    // one tick per frame.
     const before = instance.ticks;
     await frames(4);
     expect(instance.ticks - before).toBeLessThanOrEqual(5);
@@ -102,8 +99,6 @@ describe('service mixins', () => {
     const eagerInstance = new Eager(render()).$mount();
     await settle();
 
-    // Same source, same hook: the option is what decides whether mounting is
-    // enough to hear from it.
     expect(quiet).toEqual([]);
     expect(eager).toHaveLength(1);
     expect(eager[0].y).toBe(window.scrollY);
@@ -115,8 +110,6 @@ describe('service mixins', () => {
   it('gives each hook the props of its own service', async () => {
     const sizes: ResizeProps[] = [];
 
-    // `{ immediate: true }` because the viewport is not going to resize during
-    // this test: the resize service no longer speaks on subscribe on its own.
     class Responsive extends withResize(Base, { immediate: true }) {
       static config = { name: 'Responsive' };
 
@@ -202,8 +195,6 @@ describe('service mixins', () => {
 
     const el = render();
     const instance = new Quiet(el).$mount();
-    // No `dragged()` method, so nothing was ever added to the service: a
-    // `pointerdown` starts no drag, and there is nothing to release.
     expect(() => {
       el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
       instance.$destroy();
@@ -228,8 +219,6 @@ describe('service mixins', () => {
     const handle = el.firstElementChild as HTMLElement;
     const instance = new Handled(el).$mount();
 
-    // The root is not the target anymore, the handle is. A press on the root
-    // reaches no service — the subscription is keyed on the handle.
     el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
     expect(modes).toEqual([]);
 
@@ -243,8 +232,6 @@ describe('service mixins', () => {
     const scroller = render('width:100px;height:100px;overflow:auto');
     scroller.innerHTML = '<div style="width:100px;height:800px"></div>';
 
-    // One method name per service, so a second scroller is an explicit
-    // subscription whose unsubscribe joins the mount cycle's cleanups.
     class Both extends withRaf(withScroll(Base)) {
       static config = { name: 'Both' };
 
@@ -277,7 +264,6 @@ describe('service mixins', () => {
 
     expect(instance.ticks).toBeGreaterThan(0);
     expect(instance.inner).toEqual([120]);
-    // The window did not move, so the other subscription said nothing.
     expect(instance.page).toEqual([]);
 
     instance.$destroy();
@@ -299,8 +285,6 @@ describe('service mixins', () => {
 
       mounted() {
         calls.push('mounted');
-        // The mixin contract: hand back what is inherited along with the
-        // component's own cleanup.
         return [super.mounted(), () => calls.push('cleanup')];
       }
     }
@@ -341,7 +325,6 @@ describe('service mixins', () => {
     async.$destroy();
     await settle();
     expect(calls).toContain('async cleanup');
-    // The subscription went with it, promise or no promise.
     const frozen = async.ticks;
     await frames(3);
     expect(async.ticks).toBe(frozen);
@@ -379,7 +362,6 @@ describe('a manual hook', () => {
 
     instance.$services.ticked.stop();
     await frames(3);
-    // Released means released: the frame loop is not still calling it.
     expect(instance.ticks).toBe(whileRunning);
     expect(instance.$services.ticked.isActive).toBe(false);
     instance.$terminate();
@@ -392,10 +374,6 @@ describe('a manual hook', () => {
 
     instance.$services.ticked.stop();
     await frames(2);
-    // Nothing else is subscribed, so the service released its tick and the
-    // scheduler has no reason to ask for another frame. `frames()` awaits one
-    // itself, so its own four requests are the floor: anything above them is
-    // the loop still running.
     const framesRequested = await countRequestedFrames(() => frames(4));
 
     expect(framesRequested).toBe(4);
@@ -409,7 +387,6 @@ describe('a manual hook', () => {
     await frames(3);
     expect(instance.ticks).toBeGreaterThan(0);
 
-    // If the two calls had produced two subscriptions, one would outlive this.
     instance.$services.ticked.stop();
     const atStop = instance.ticks;
     await frames(3);
@@ -468,7 +445,6 @@ describe('a manual hook', () => {
     instance.$services.ticked.start();
     await frames(3);
 
-    // One handle per layer, reached by the name that layer owns.
     expect(instance.ticks).toBeGreaterThan(0);
     expect(instance.$services.ticked.isActive).toBe(true);
     expect(instance.$services.scrolled.isActive).toBe(false);

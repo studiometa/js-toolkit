@@ -7,16 +7,7 @@ export type DataEffectProps = DataBindProps & {
   $options: DataBindOptions & { effect: string };
 };
 
-/**
- * DataEffect — run an expression on every group update, write nothing back.
- *
- * Port of `@studiometa/ui` 1.10's `DataEffect` (41 lines → 41 here).
- *
- * **Ported unchanged**, and it is the component that pins down what "deduped
- * delivery" has to mean for core: an effect is *observable*, so how many
- * times the channel delivers is not an implementation detail here — it is
- * the component's contract. Its spec counts calls.
- */
+/** Run an expression on each group update without writing a value back. */
 export class DataEffect extends DataBind {
   declare $options: DataEffectProps['$options'];
 

@@ -6,21 +6,7 @@ import {
   type ScrolledInViewRender,
 } from './withScrolledInView.js';
 
-/**
- * ScrollAnimationTimeline — the scroll driver for a group of targets.
- *
- * Port of @studiometa/ui 1.10's `ScrollAnimationTimeline`. It is one of the
- * thirteen `$children` coordinators, and the change is the usual one:
- * `$children.ScrollAnimationTarget` becomes a `$watchChildren` collection, so
- * a target inserted after the timeline mounted is driven with no `$update()`.
- *
- * Forwarding also got cheaper. In v3 each child re-entered the scheduler on
- * its own (`domScheduler.read` + `domScheduler.write` per target, plus one
- * more pair inside `animate`). Here the timeline is already in the read
- * phase, every target computes its styles there, and the returned functions
- * are run together in one write — a timeline of N targets costs one
- * layout pass instead of N.
- */
+/** Drives a live group of scroll animation targets in one read/write pass. */
 export class ScrollAnimationTimeline extends withScrolledInView(Base) {
   static config: BaseConfig = {
     name: 'ScrollAnimationTimeline',

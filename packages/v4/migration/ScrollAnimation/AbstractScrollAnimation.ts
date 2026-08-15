@@ -13,26 +13,7 @@ export interface AbstractScrollAnimationProps {
   };
 }
 
-/**
- * AbstractScrollAnimation — shared base for the scroll-linked animations.
- *
- * Port of @studiometa/ui 1.10's `AbstractScrollAnimation`. Same options, same
- * `playRange` arithmetic, same mapping of the damped progress onto the
- * animation.
- *
- * The one structural change is what drives the styles. v3 builds a full
- * `animate()` player — a tween, a rAF loop, a per-element registry of running
- * animations, `start` / `pause` / `play` / `finish` — and then never plays it:
- * it only ever calls `animation.progress(p)`. v4 compiles the same keyframes
- * into a pure `(progress, size) => styles` function, and `scrolledInView()`
- * hands the resulting write back to the scheduler.
- *
- * `withFreezedOptions` is not ported: it existed because v3 re-read and
- * re-parsed `data-option-*` attributes on every access, which was expensive
- * inside a per-frame handler. v4 keeps the same live-getter semantics, so the
- * decorator would still buy something for `Object`/`Array` options — noted in
- * the report rather than worked around.
- */
+/** Shared base for scroll-linked keyframe animations. */
 export class AbstractScrollAnimation extends Base<AbstractScrollAnimationProps> {
   static config: BaseConfig = {
     name: 'AbstractScrollAnimation',
@@ -69,12 +50,7 @@ export class AbstractScrollAnimation extends Base<AbstractScrollAnimationProps> 
     return this.#interpolate;
   }
 
-  /**
-   * Start and end of the play range.
-   *
-   * The three-value form `[index, length, step]` splits the range into
-   * `length` staggered slices — unchanged from v3.
-   */
+  /** The three-value form `[index, length, step]` creates staggered ranges. */
   get playRange(): [number, number] {
     const { playRange } = this.$options;
 
@@ -91,12 +67,10 @@ export class AbstractScrollAnimation extends Base<AbstractScrollAnimationProps> 
   }
 
   mounted(): void {
-    // Restore the animation state for the current progress.
     this.renderNow(this.progress);
   }
 
   destroyed(): void {
-    // Complete the animation to its nearest boundary.
     this.renderNow(Math.round(this.progress));
   }
 
@@ -115,13 +89,7 @@ export class AbstractScrollAnimation extends Base<AbstractScrollAnimationProps> 
     return this.render(clamp01(map(dampedProgressY, start, end, 0, 1)));
   }
 
-  /**
-   * Compute the styles for a progress value and hand back the write.
-   *
-   * Splitting compute from write is what lets a whole timeline measure once
-   * and mutate once: v3's `animate` nested a `domScheduler.read` inside a
-   * `domScheduler.write` per element instead.
-   */
+  /** Compute styles now and return the deferred DOM write. */
   render(progress: number): ScrolledInViewRender {
     this.progress = progress;
     const { target } = this;

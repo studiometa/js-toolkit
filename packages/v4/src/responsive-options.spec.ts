@@ -5,13 +5,7 @@ import { registerComponent, registerManifest } from './registry.js';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
 import { getInstance, resetDom, settle } from './test-utils.js';
 
-/**
- * Two named widths, both `0rem`, so the *set* decides the active name and the
- * real viewport does not: every query matches, and the widest declared name
- * wins. Replacing the set is a real crossing — it goes through the same
- * `matchMedia` lists and the same emission a resize produces — which is what
- * makes a breakpoint testable at all without driving the browser's viewport.
- */
+/** Select test breakpoints without changing the viewport. */
 function atSmall(): void {
   setBreakpoints({ small: '0rem', large: '9999rem' });
 }
@@ -20,15 +14,7 @@ function atLarge(): void {
   setBreakpoints({ small: '0rem', large: '0rem' });
 }
 
-/**
- * Count `matchMedia` listener registrations opened while `during` runs.
- *
- * The prototype is patched rather than `window.matchMedia`, so the count covers
- * the `MediaQueryList` objects the service built earlier and kept — and a
- * service that was already listening added its listeners before the window, so
- * it is not counted. What this measures is precisely "did something start the
- * breakpoint service here".
- */
+/** Count `MediaQueryList` listeners added while `during` runs. */
 async function countMediaListeners(during: () => Promise<void>): Promise<number> {
   const proto = MediaQueryList.prototype;
   const original = proto.addEventListener;
@@ -48,12 +34,6 @@ async function countMediaListeners(during: () => Promise<void>): Promise<number>
   return added;
 }
 
-/**
- * Reads its option, and asks to hear nothing.
- *
- * Nothing here declares an option responsive, because nothing can: every
- * declared option is, and the markup is the only opt-in there is.
- */
 class Label extends Base<{ $options: { label: string } }> {
   static config = {
     name: 'Label',
@@ -61,13 +41,11 @@ class Label extends Base<{ $options: { label: string } }> {
   };
 }
 
-/** Declares the effect, so it is told when the resolved value changes. */
 class Grid extends Base<{ $options: { columns: number; gap: number } }> {
   static config = {
     name: 'Grid',
     options: {
       columns: { type: Number, default: 1 },
-      // Written unsuffixed only: the same batch must leave it alone.
       gap: { type: Number, default: 0 },
     },
   };
@@ -84,7 +62,6 @@ class Grid extends Base<{ $options: { columns: number; gap: number } }> {
   }
 }
 
-/** The shorthand declaration — the one that cannot carry a flag at all. */
 class Banner extends Base<{ $options: { theme: string } }> {
   static config = {
     name: 'Banner',
@@ -125,8 +102,6 @@ describe('responsive options', () => {
     await settle();
     const label = getInstance<Label>(root.firstElementChild, 'Label');
 
-    // Nothing is scoped to `small`, so the base answers — the cascade only ever
-    // looks *down* from the active name.
     expect(label.$options.label).toBe('base');
 
     atLarge();
@@ -138,8 +113,6 @@ describe('responsive options', () => {
     const root = render('<p data-component="Label"></p>');
     await settle();
 
-    // Absent everywhere is absent: the option's own default, not an empty
-    // string, exactly as a plain option behaves.
     expect(getInstance<Label>(root.firstElementChild, 'Label').$options.label).toBe('base');
   });
 
@@ -154,15 +127,11 @@ describe('responsive options', () => {
     const label = getInstance<Label>(root.firstElementChild, 'Label');
     expect(label.$options.label).toBe('narrow');
 
-    // No attribute is written and no value is stored: the getter consults the
-    // viewport, so `$options` stays the read-only view it is everywhere else.
     const added = await countMediaListeners(async () => {
       atLarge();
       await settle();
     });
     expect(label.$options.label).toBe('wide');
-    // `Label` declares no `optionLabelChanged()`, so it asked to be told
-    // nothing and holds no listener. The value still followed the viewport.
     expect(added).toBe(0);
   });
 
@@ -177,26 +146,19 @@ describe('responsive options', () => {
     const label = getInstance<Label>(root.firstElementChild, 'Label');
 
     const added = await countMediaListeners(async () => {
-      // Warm the memoised breakpoint name hard: within one task these must be
-      // one `matches` sweep, and the answer must still be the true one.
       for (let index = 0; index < 5; index += 1) {
         expect(label.$options.label).toBe('narrow');
       }
 
-      // The crossing happens in the same task as the reads that primed the
-      // cache. A boundary invalidation alone would not have covered this, which
-      // is why `setBreakpoints()` drops the resolved name itself.
       atLarge();
       expect(label.$options.label).toBe('wide');
 
-      // And again after the boundary the memo does use, from a fresh task.
       await settle();
       expect(label.$options.label).toBe('wide');
       atSmall();
       expect(label.$options.label).toBe('narrow');
     });
 
-    // Memoising a read must not have turned a read into a subscription.
     expect(added).toBe(0);
   });
 
@@ -215,8 +177,6 @@ describe('responsive options', () => {
 
     atLarge();
 
-    // The same channel a rewritten attribute uses, with the same payload — the
-    // component never learns which of the two moved.
     expect(grid.changes).toHaveLength(2);
     expect(grid.changes[1]).toMatchObject({
       name: 'columns',
@@ -226,14 +186,12 @@ describe('responsive options', () => {
       previousRawValue: '1',
       initial: false,
     });
-    // The previous effect's cleanup ran before the new value was applied.
     expect(grid.cleanups).toBe(1);
     expect(grid.$options.columns).toBe(4);
   });
 
   it('says nothing when a crossing leaves the resolved value alone', async () => {
     atSmall();
-    // Only a base value, so every breakpoint resolves to it.
     const root = render('<div data-component="Grid" data-option-columns="2"></div>');
     await settle();
     const grid = getInstance<Grid>(root.firstElementChild, 'Grid');
@@ -242,7 +200,6 @@ describe('responsive options', () => {
     atLarge();
     atSmall();
 
-    // A crossing is not a change; a change of the *resolved* value is.
     expect(grid.changes).toHaveLength(1);
     expect(grid.cleanups).toBe(0);
   });
@@ -258,20 +215,15 @@ describe('responsive options', () => {
     const grid = getInstance<Grid>(root.firstElementChild, 'Grid');
     grid.changes = [];
 
-    // The one page-wide observer filters on exact names, so this only arrives
-    // because the breakpoint-scoped spellings were registered with it.
     grid.$el.setAttribute('data-option-columns:large', '6');
     await settle();
     expect(grid.changes).toHaveLength(1);
     expect(grid.changes[0]).toMatchObject({ value: 6, previousValue: 4 });
 
-    // A spelling the cascade is not currently selecting is not a change to the
-    // option: the resolved value never moved.
     grid.$el.setAttribute('data-option-columns:small', '3');
     await settle();
     expect(grid.changes).toHaveLength(1);
 
-    // Removing the winner falls back down the cascade, and that *is* a change.
     grid.$el.removeAttribute('data-option-columns:large');
     await settle();
     expect(grid.changes).toHaveLength(2);
@@ -288,8 +240,6 @@ describe('responsive options', () => {
 
     expect(grid.$options.gap).toBe(8);
     atLarge();
-    // `gap` is as responsive as `columns` — it simply has nothing scoped, so
-    // the cascade falls to its base attribute at every breakpoint.
     expect(grid.$options.gap).toBe(8);
     expect(grid.$options.columns).toBe(4);
   });
@@ -304,7 +254,6 @@ describe('responsive options', () => {
     await settle();
     const banner = getInstance<Banner>(root.firstElementChild, 'Banner');
 
-    // `options: { theme: String }` — a declaration with nowhere to put a flag.
     expect(banner.$options.theme).toBe('light');
     atLarge();
     expect(banner.$options.theme).toBe('dark');
@@ -317,27 +266,13 @@ describe('responsive options', () => {
     const banner = getInstance<Banner>(root.firstElementChild, 'Banner');
     banner.changes = [];
 
-    // The scoped names entered the one observer's filter because the option
-    // exists, not because anything declared or wrote them — so a scoped
-    // attribute added at runtime is reported, which no opt-in could have
-    // arranged after the fact.
     banner.$el.setAttribute('data-option-theme:small', 'dark');
     await settle();
     expect(banner.changes).toHaveLength(1);
     expect(banner.changes[0]).toMatchObject({ value: 'dark', previousValue: 'light' });
   });
 
-  /**
-   * The one import-time side effect this module has, pinned.
-   *
-   * `onBreakpointsReplaced()` is called at module scope, and its job is
-   * exactly this: a replaced set means names that were never registered with
-   * the one observer, whose filter takes **exact** attribute names. Without
-   * the subscription the failure is silent — `data-option-columns` keeps
-   * being honoured while `data-option-columns:<new name>` is invisible — so
-   * `package.json` names this module in `sideEffects` and this is what says
-   * why.
-   */
+  /** `package.json` lists this module in `sideEffects` because it observes breakpoint replacement at import time. */
   it('observes a scoped spelling named by a breakpoint set installed later', async () => {
     atSmall();
     const root = render('<div data-component="Grid" data-option-columns="1"></div>');
@@ -345,8 +280,6 @@ describe('responsive options', () => {
     const grid = getInstance<Grid>(root.firstElementChild, 'Grid');
     grid.changes = [];
 
-    // A name no component was ever registered against: `wide` did not exist
-    // when `Grid`'s option attributes entered the filter.
     setBreakpoints({ small: '0rem', wide: '0rem' });
     await settle();
     grid.changes = [];
@@ -365,8 +298,6 @@ describe('responsive options', () => {
             data-option-columns:large="4"></div>`,
     );
 
-    // Mounting the component is what starts the service: the listeners are
-    // opened here, not by the module, and not by reading an option.
     const added = await countMediaListeners(async () => {
       await settle();
     });
@@ -382,11 +313,8 @@ describe('responsive options', () => {
 
     atSmall();
     atLarge();
-    // Destroy released the subscription, so the service is free to stop with
-    // its last subscriber — reference counting does the rest.
     expect(grid.changes).toHaveLength(2);
 
-    // And a remount subscribes again, like every other per-cycle subscription.
     root.append(grid.$el);
     await settle();
     expect(grid.$isMounted).toBe(true);
@@ -411,9 +339,6 @@ describe('responsive options', () => {
       }
     }
 
-    // Declared in the lazy half of the registry only: the class does not exist
-    // when the element appears, and registers one import later than an eager
-    // component would.
     registerManifest({ LazyGrid: async () => LazyGrid });
 
     const root = render(
@@ -424,14 +349,9 @@ describe('responsive options', () => {
     await settle();
     const grid = getInstance<LazyGrid>(root.firstElementChild, 'LazyGrid');
 
-    // Nothing is scoped to `small`, so the cascade lands on the base — read
-    // from whatever the DOM holds at mount, which is the import's own moment.
     expect(grid.$options.columns).toBe(1);
     grid.changes = [];
 
-    // The assertion that matters: a lazy component's `attribute × breakpoint`
-    // names reach the one observer's filter when its class arrives, not when
-    // the page started, so a scoped attribute rewritten afterwards is seen.
     grid.$el.setAttribute('data-option-columns:small', '3');
     await settle();
     expect(grid.changes).toHaveLength(1);
@@ -487,8 +407,7 @@ describe('responsive options', () => {
       expect(mountedEvents).toBe(0);
       expect(addedMediaListeners).toBe(0);
     } finally {
-      // If the assertions run against a broken implementation, release the
-      // subscription which escaped the destroyed first cycle.
+      // Release any leaked test subscription.
       instance.$mount().$destroy();
     }
   });
@@ -497,8 +416,7 @@ describe('responsive options', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     atSmall();
     render(
-      // v3 spelled a *set* of breakpoints here. It parses as one name, which is
-      // in no set, so the attribute would silently never be read.
+      // A combined suffix is one unknown breakpoint name.
       `<p data-component="Label" data-option-label:small:large="both"></p>`,
     );
     await settle();

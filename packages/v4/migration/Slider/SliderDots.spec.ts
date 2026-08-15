@@ -85,8 +85,6 @@ describe('SliderDots', () => {
     const root = render();
     const { dots, buttons } = await ready(root);
 
-    // Moving the dots outside the Slider element cuts the context path — the
-    // request no longer bubbles to the provider — and nothing else changes.
     document.body.append(dots.$el);
     await settle();
 
@@ -114,7 +112,6 @@ describe('SliderDots', () => {
     slider.goTo(2);
     await frames(4);
 
-    // Refs are re-queried, so the new dot is a target with no `$update()`.
     expect(added.classList.contains('is-active')).toBe(true);
     added.click();
     expect(slider.currentIndex).toBe(2);

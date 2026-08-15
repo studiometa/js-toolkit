@@ -1,11 +1,4 @@
-/**
- * Easing helpers.
- *
- * v3 imports `cubicBezier` from `@motionone/easing`, which is the only third
- * party dependency the `animate` chain pulls in. v4 has none, so the curve is
- * solved here with the usual Newton–Raphson pass and a bisection fallback —
- * about thirty lines against a package.
- */
+/** Easing helpers. */
 
 export type EasingFunction = (progress: number) => number;
 export type BezierCurve = [number, number, number, number];
@@ -54,10 +47,7 @@ export function cubicBezier(mX1: number, mY1: number, mX2: number, mY2: number):
   };
 }
 
-/**
- * Accept either a function or a `[x1, y1, x2, y2]` curve, as v3's
- * `normalizeEase` does.
- */
+/** Accept an easing function or a `[x1, y1, x2, y2]` curve. */
 export function normalizeEasing(easing?: EasingFunction | BezierCurve): EasingFunction {
   if (!easing) {
     return linear;

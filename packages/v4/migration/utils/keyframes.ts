@@ -1,21 +1,7 @@
 import { clamp01, map } from '../../src/utils/maths.js';
 import { normalizeEasing, type BezierCurve, type EasingFunction } from './easings.js';
 
-/**
- * The keyframes → styles interpolator the `ScrollAnimation` family needs.
- *
- * v3's `animate()` is a player: it owns a `tween`, a rAF loop, a `running`
- * WeakMap of concurrent animations per element, `start`/`pause`/`play`/
- * `finish`, staggering across several targets, and it writes to the DOM
- * itself through `domScheduler`. `ScrollAnimation` — its only real consumer
- * in @studiometa/ui — never calls any of that. It builds the animation once
- * and only ever calls `animation.progress(p)` from a scroll handler.
- *
- * So the port keeps the interpolation and drops the player: `compile()`
- * returns a pure `(progress, size) => Styles` function. Nothing is scheduled
- * here and nothing is written; the caller measures in `read` and writes in
- * `write`, which is what makes the whole family batch into one frame.
- */
+/** Pure keyframe-to-style interpolation for scroll animations. */
 
 export type CSSCustomPropertyName = `--${string}`;
 

@@ -13,17 +13,7 @@ export interface ViewTransitionProps {
   };
 }
 
-/**
- * ViewTransition — the same interface as `Transition`, animated by the
- * native View Transitions API.
- *
- * This is the port that shrank the most, and it did so without a single
- * decision to make: @studiometa/ui ships its own batching scheduler for this
- * (`ViewTransition/scheduler.ts` — microtask-batched updates flushed into one
- * `document.startViewTransition()`, batches serialised, synchronous
- * fallback). v4 moved that into the standalone core helper, so the component
- * calls `viewTransition(update)` and the whole scheduler file disappears.
- */
+/** Implements `Transitionable` with the native View Transitions API. */
 export class ViewTransition extends Base<ViewTransitionProps> implements Transitionable {
   static config = {
     name: 'ViewTransition',

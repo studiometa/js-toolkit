@@ -101,8 +101,6 @@ describe('Accordion', () => {
           item: AccordionItem;
           index: number;
         } | null;
-        // The item announces with no payload, so its detail is `null`; only
-        // the Accordion's re-emit names the item and its index.
         if (detail) {
           seen.push([type, detail.index]);
         }
@@ -121,8 +119,6 @@ describe('Accordion', () => {
   });
 
   it('forwards the parent `item` option to items that mount before it', async () => {
-    // The item is inserted first and on its own, so nothing about the
-    // Accordion is mounted when it reads its settings.
     const root = document.createElement('div');
     root.setAttribute('data-component', 'Accordion');
     root.setAttribute('data-option-item', JSON.stringify({ isOpen: true }));

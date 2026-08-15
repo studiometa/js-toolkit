@@ -12,25 +12,7 @@ export interface SliderDotsProps {
   $options: TransitionOptions;
 }
 
-/**
- * SliderDots — pagination dots.
- *
- * Port of @studiometa/ui 1.10's `SliderDots`. The behaviour is v3's: the dot
- * for the active slide runs the enter transition, the one leaving runs the
- * leave transition, and a click navigates to the dot's own index. The markup
- * is v3's too — one `dots[]` ref per dot, the eight transition classes as
- * options on this element.
- *
- * | v3 | v4 | why |
- * | -- | -- | --- |
- * | `extends withTransition(AbstractSliderChild)` | `extends Base` | both halves of that chain are gone: `AbstractSliderChild` is `$inject`, and `withTransition` is a component in v4, which cannot be mixed in. Its two useful functions are shared through `utils/transition.ts`. |
- * | `this.slider.goTo(index)` | `$injectSync(SliderContext)?.goTo(index)` | the coordinator is reached through its provided surface, not by class. |
- * | `update(index)` scheduled by `AbstractSliderChild.__updateWith` | the signal subscription calls it | one channel instead of a base class scheduling `domScheduler.read`/`write` around it. |
- *
- * `currentIndex` starts at `-1` so the first update always enters a dot, as in
- * v3 — where `this.$refs.dots[-1]` was then handed to `leave()`. Here that is
- * an explicit guard, since the shared function takes one element.
- */
+/** Pagination dots that transition on state changes and navigate on click. */
 export class SliderDots extends Base<SliderDotsProps> {
   static config = {
     name: 'SliderDots',

@@ -15,10 +15,6 @@ function render(): HTMLElement {
   return el;
 }
 
-/**
- * A component that needs the frame loop only while something settles — the
- * case a mount cycle is the wrong span for.
- */
 class Settler extends Base {
   static config = { name: 'Settler' };
 
@@ -31,7 +27,6 @@ class Settler extends Base {
   );
 
   mounted(): MountedReturn {
-    // `stop` is bound, so it is a cleanup as it stands.
     return this.frame.stop;
   }
 }
@@ -55,7 +50,6 @@ describe('toggle', () => {
     await frames(3);
     expect(instance.ticks).toBe(frozen);
 
-    // And it resumes within the same mount cycle.
     instance.frame.start();
     await frames(3);
     expect(instance.ticks).toBeGreaterThan(frozen);
@@ -72,12 +66,9 @@ describe('toggle', () => {
 
     await frames(4);
     const counted = instance.ticks;
-    // One subscription means at most one tick per frame — three would treble
-    // the count.
     expect(counted).toBeGreaterThan(0);
     expect(counted).toBeLessThanOrEqual(6);
 
-    // And one stop is enough to release it, however many times it is called.
     instance.frame.stop();
     instance.frame.stop();
     await frames(3);
@@ -112,7 +103,6 @@ describe('toggle', () => {
     try {
       const instance = new Settler(render()).$mount();
       await sleep(100);
-      // Nothing subscribed, nothing queued: no frame was ever requested.
       expect(calls).toBe(0);
 
       instance.frame.start();
@@ -121,13 +111,11 @@ describe('toggle', () => {
       expect(instance.ticks).toBeGreaterThan(0);
 
       instance.frame.stop();
-      // Let the frame already requested run out.
       await sleep(50);
       const stopped = calls;
       const ticks = instance.ticks;
 
       await sleep(150);
-      // The rAF loop is genuinely gone, not merely quiet.
       expect(calls).toBe(stopped);
       expect(instance.ticks).toBe(ticks);
 
@@ -144,8 +132,6 @@ describe('toggle', () => {
       return () => calls.push('unsubscribe');
     });
 
-    // No instance, no hook, no string key: `$enable`/`$disable` could not be
-    // used here at all.
     const { start, stop } = handle;
     start();
     start();

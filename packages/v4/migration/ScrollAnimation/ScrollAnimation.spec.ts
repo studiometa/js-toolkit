@@ -118,7 +118,6 @@ describe('ScrollAnimationTimeline', () => {
   it('honours the play range of each target', async () => {
     const el = render({ targets: 2 });
     const [first, second] = targetsOf(el);
-    // The first plays over the first half, the second over the second half.
     first.setAttribute('data-option-play-range', '[0, 0.5]');
     second.setAttribute('data-option-play-range', '[0.5, 1]');
     await settle();
@@ -166,8 +165,6 @@ describe('ScrollAnimationTimeline', () => {
     const timeline = getInstance<ScrollAnimationTimeline>(el, 'ScrollAnimationTimeline');
 
     await scrollTo(bounds().end);
-    // No frame subscription is left running: the whole point of v3's
-    // `$services.disable('ticked')`.
     expect((timeline as unknown as { __unsubscribeFrame: unknown }).__unsubscribeFrame).toBeNull();
   });
 });

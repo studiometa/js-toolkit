@@ -22,7 +22,7 @@ describe('Signal', () => {
     const seen: number[] = [];
     count.subscribe((value) => seen.push(value), { immediate: true });
 
-    count.value = 1; // same value, no notification
+    count.value = 1;
     count.value = 2;
     expect(seen).toEqual([1, 2]);
   });
@@ -39,9 +39,6 @@ describe('Signal', () => {
   });
 
   it('gives each holder of one callback its own delivery and unsubscribe', () => {
-    // A `Set` keyed by the callback collapsed these into a single entry: the
-    // second holder was never called, and the first unsubscribe tore the
-    // subscription out from under it.
     const cell = signal(0);
     let calls = 0;
     const callback = () => {
@@ -127,13 +124,6 @@ describe('Signal', () => {
   });
 
   describe('settling', () => {
-    // The oracle is the hazard behind @studiometa/ui's
-    // `DataBind.spec.ts` — "should preserve the latest value during reentrant
-    // group updates". A member republishes from inside its own delivery, and
-    // every peer must end up having last seen the newest frame. The naive
-    // fan-out resumed its walk on the frame it started on, so the peer sitting
-    // after the writer was handed a stale value *after* the newer one, and
-    // last-write-wins silently became last-listener-wins.
     it('leaves every subscriber having last seen the newest value', () => {
       const cell = signal('initial');
       const seen: string[] = [];
@@ -151,23 +141,15 @@ describe('Signal', () => {
 
       cell.value = 'outer';
 
-      // Nobody is left on the superseded frame.
       for (const prefix of ['first', 'writer', 'last']) {
         const last = seen.filter((entry) => entry.startsWith(`${prefix}:`)).at(-1);
         expect(last).toBe(`${prefix}:inner`);
       }
-      // `last` never sees the superseded frame at all: it had not been reached
-      // when the write landed, so the round was abandoned instead of finished.
       expect(seen).not.toContain('last:outer');
-      // And the value a reader sees is the newest one.
       expect(cell.value).toBe('inner');
     });
 
     it('delivers each subscriber once per surviving value', () => {
-      // Five deliveries, not six: `first` and `writer` are reached on the
-      // abandoned `outer` round and again on `inner` because each genuinely has
-      // a newer value to see, while `last` is reached only once. The eager
-      // fan-out ran six times and ended on the stale frame.
       const cell = signal('initial');
       const seen: string[] = [];
       let hasWritten = false;
@@ -199,7 +181,6 @@ describe('Signal', () => {
       cell.subscribe((value) => seen.push(value));
 
       cell.value = 1;
-      // No microtask hop: a form-control echo must land in the same task.
       expect(seen).toEqual([1]);
     });
 
@@ -247,8 +228,6 @@ describe('Signal', () => {
       });
 
       cell.value = 1;
-      // The newcomer is not handed the frame that was in flight before it
-      // existed, and no later value has been written.
       expect(seen).toEqual([]);
 
       cell.value = 2;
@@ -303,7 +282,6 @@ describe('provide/inject', () => {
     await settle();
     expect(received).toEqual([]);
 
-    // The provider appears later, higher in the tree.
     provideContext(wrapper, Key, signal('hello'));
     await settle();
     expect(received).toEqual(['hello']);
@@ -449,8 +427,6 @@ describe('provide/inject', () => {
         return state.subscribe((value) => this.seen.push(value));
       }
 
-      // No `$closest('Counter')`, no reach-back into the coordinator: the
-      // command is part of the surface it exposed.
       onClick(): void {
         this.$injectSync(Key)?.increment();
       }
@@ -490,7 +466,6 @@ describe('provide/inject', () => {
     document.body.append(host);
     const consumer = new Consumer(el).$mount();
 
-    // No provider: the control is told so instead of waiting forever.
     expect(consumer.$injectSync(Key)).toBeUndefined();
 
     provideContext(host, Key, 'ready');
@@ -519,14 +494,10 @@ describe('provide/inject', () => {
     expect(received).toEqual([]);
 
     consumer.$destroy();
-    // The provider appears after the destroy: a request left in the module's
-    // pending set would be replayed here and resolve.
     const { dispose } = provideContext(host, Key, 'late');
     await settle();
     expect(received).toEqual([]);
 
-    // And the scope is right: `mounted()` runs again on remount, so the
-    // injection happens again with nothing to re-declare.
     consumer.$mount();
     await settle();
     expect(received).toEqual(['late']);
@@ -561,8 +532,6 @@ describe('provideRootContext', () => {
     provideRootContext(key, () => 'page');
     const el = render('<span></span>').querySelector('span') as Element;
 
-    // The case provide/inject could not express: nothing to name as an
-    // ancestor, so v3 answered it with a separate global registry.
     expect(injectContextSync(el, key)).toBe('page');
   });
 
@@ -573,8 +542,6 @@ describe('provideRootContext', () => {
     provideContext(scope, key, 'scoped');
     const el = scope.querySelector('span') as Element;
 
-    // The whole point of option 2: page-wide is the outermost scope of the
-    // mechanism that already exists, not a second one with its own rules.
     expect(injectContextSync(el, key)).toBe('scoped');
   });
 
@@ -592,8 +559,6 @@ describe('provideRootContext', () => {
     const key = createContext<string>('root');
     const el = render('<span></span>').querySelector('span') as Element;
 
-    // Order independence has to hold for the root provider too: the consumer
-    // is already waiting when the value is created.
     const { promise } = injectContext(el, key);
     provideRootContext(key, () => 'late');
 
@@ -601,10 +566,6 @@ describe('provideRootContext', () => {
   });
 
   it('binds peers by name with or without a scope — the DataBind shape', () => {
-    // The spike this was built for. A control publishes and reads a value on a
-    // channel named by an option, sharing it with peers on the same name.
-    // v3 resolved that through `withGroup`: a scoped registry when a `DataScope`
-    // ancestor existed, a `globalThis` one when it did not.
     type Channels = Map<string, Signal<string>>;
     const DataChannels = createContext<Channels>('data-channels');
 
@@ -631,15 +592,11 @@ describe('provideRootContext', () => {
     const at = (id: string) => tree.querySelector(`#${id}`) as Element;
     provideContext(at('scope'), DataChannels, new Map() as Channels);
 
-    // Two bare peers, no ancestor anywhere: same name, same channel.
     expect(channelFor(at('bare-a'), 'email')).toBe(channelFor(at('bare-b'), 'email'));
-    // Two scoped peers: same name, same channel, and *not* the page one.
     expect(channelFor(at('scoped-a'), 'email')).toBe(channelFor(at('scoped-b'), 'email'));
     expect(channelFor(at('scoped-a'), 'email')).not.toBe(channelFor(at('bare-a'), 'email'));
-    // Different names never collide.
     expect(channelFor(at('bare-a'), 'name')).not.toBe(channelFor(at('bare-a'), 'email'));
 
-    // And the value is live, which is what `withGroup`'s member set never was.
     const seen: string[] = [];
     channelFor(at('bare-b'), 'email').subscribe((value) => seen.push(value));
     channelFor(at('bare-a'), 'email').value = 'a@b.c';

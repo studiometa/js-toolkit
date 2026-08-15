@@ -1,27 +1,9 @@
 import { defaultScheduler } from './scheduler.js';
 
 /**
- * When an instance mounts, independently of when its class was loaded.
- *
- * One-shot strategies mount once and stay mounted; reversible ones mount
- * and unmount as their condition flips, which the lifecycle already
- * supports — `$destroy()` is the reversible inverse of `$mount()`, and the
- * same instance comes back.
- *
- * | strategy                 | mounts when                       | reversible |
- * | ------------------------ | --------------------------------- | ---------- |
- * | `eager`                  | the element enters the DOM        | no         |
- * | `visible[:<rootMargin>]` | it first intersects the viewport  | no         |
- * | `in-view[:<rootMargin>]` | it intersects the viewport        | yes        |
- * | `idle`                   | the main thread goes idle         | no         |
- * | `interaction`            | the user first aims at it         | no         |
- * | `media:<q>`              | the media query matches           | yes        |
- *
- * The optional viewport suffix is passed as
- * `IntersectionObserverInit.rootMargin`. An empty suffix is the same as the
- * bare strategy. `visible` and `in-view` are deliberately separate:
- * re-mounting is right for a scroll animation and destructive for a map, a
- * video or a form.
+ * Control when an instance mounts.
+ * `in-view` and `media` are reversible; all other strategies mount once.
+ * Viewport suffixes are passed as `IntersectionObserverInit.rootMargin`.
  */
 export type MountStrategy =
   | 'eager'
@@ -36,14 +18,8 @@ export type MountStrategy =
 export const MOUNT_ATTRIBUTE = 'data-mount';
 
 /**
- * Intent events, so a component is mounted before the interaction it was
- * waiting for completes: `pointerdown` precedes `click`, `focusin`
- * precedes typing.
- *
- * Note that `pointerenter` also fires when an element appears under a
- * resting cursor, which mounts it without the user having moved. That is
- * intent as far as the pointer is concerned — it is over the element — but
- * it does mean an element inserted under the mouse mounts immediately.
+ * Events that mount before the related interaction completes.
+ * `pointerenter` also fires when an element appears under a resting cursor.
  */
 const INTENT_EVENTS = ['pointerenter', 'pointerdown', 'focusin'] as const;
 
@@ -90,12 +66,7 @@ function rejectMountStrategy(_strategy: string, error: unknown): AppliedMountStr
 }
 
 /**
- * Start applying a strategy to one element, returning its teardown and any
- * eager work which a DOM settlement boundary must await.
- *
- * Strategies never construct anything themselves: they only decide *when*
- * to call the hooks the registry passes in, so a single canonical
- * constructor stays registered per component name (issue #751).
+ * Apply a strategy and return its teardown and any eager work that DOM settlement must await.
  */
 export function applyMountStrategy(
   el: HTMLElement,

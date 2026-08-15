@@ -17,22 +17,7 @@ export interface AccordionItemProps {
 
 const ACCORDION_SELECTOR = '[data-component~="Accordion"]';
 
-/**
- * The `item` option an ancestor `Accordion` declares, read straight from the
- * DOM rather than from the instance.
- *
- * v3 forwarded these by *mutating* the child's `$options` in `mounted()`
- * (`this.$options[key] = value`). Two v4 decisions make that impossible:
- *
- * - `$options` is a live view over the element's attributes, defined with
- *   getters only. Assigning to it throws.
- * - `$closest('Accordion')` only answers once the parent is mounted, and v4
- *   has no mount ordering: an item can mount first.
- *
- * Reading the ancestor's attribute is the answer that fits the v4 model —
- * DOM ancestry is a fact, available before anything is mounted — and it is
- * live for free, exactly like `$options` itself.
- */
+/** Read live ancestor defaults without depending on component mount order. */
 function inheritedSettings(el: HTMLElement): Partial<AccordionItemSettings> {
   const accordion = el.parentElement?.closest(ACCORDION_SELECTOR);
   const raw = accordion?.getAttribute('data-option-item');
@@ -46,13 +31,7 @@ function inheritedSettings(el: HTMLElement): Partial<AccordionItemSettings> {
   }
 }
 
-/**
- * AccordionItem — a single collapsible panel.
- *
- * Faithful port of @studiometa/ui 1.10's `AccordionItem`: the same `btn` /
- * `content` / `container` refs, the same animated container height, the same
- * ARIA wiring, the same `open` / `close` events.
- */
+/** A collapsible panel with animated height and ARIA state. */
 export class AccordionItem extends Base<AccordionItemProps> {
   static config = {
     name: 'AccordionItem',
@@ -65,14 +44,6 @@ export class AccordionItem extends Base<AccordionItemProps> {
 
   readonly id = uid('accordion-item');
 
-  /**
-   * Open state.
-   *
-   * v3 stored this in `$options.isOpen` and wrote to it on every toggle,
-   * conflating configuration with state. v4's read-only `$options` forces the
-   * split, which is the better shape: the attribute is the initial value, the
-   * field is the current one.
-   */
   #isOpen = false;
 
   get contentId(): string {
@@ -129,8 +100,6 @@ export class AccordionItem extends Base<AccordionItemProps> {
       transition(ref, { to: this.#isOpen ? open : closed }, 'keep');
     }
 
-    // v3 undid this in a `destroyed()` hook; in v4 the cleanup lives in the
-    // closure that set it up, so setup and teardown cannot drift apart.
     return () => {
       container.style.visibility = '';
       container.style.height = '';

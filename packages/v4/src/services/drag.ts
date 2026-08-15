@@ -14,26 +14,7 @@ import { createService, perTarget, type MutableProps, type Service } from './ser
 /** Anything that can be grabbed: an HTML element, or an SVG one. */
 export type DragTarget = HTMLElement | SVGElement;
 
-/**
- * Where a drag is in its cycle:
- *
- * `idle` → `start` → `drag`… → `drop` → `inertia`… → `stop` → `idle`
- *
- * `idle` is the resting state, and what `props()` reports outside a gesture;
- * `stop` is the transition into it, announced once. Every other flag a
- * subscriber might want is a reading of this one — held is `START`/`DRAG`,
- * coasting is `INERTIA`.
- *
- * Named rather than left to string literals, because a literal union is
- * invisible to the audience this framework is built for: components written in
- * plain JavaScript with no build step get no completion and no warning from a
- * type. `DRAG_MODES.INERTIA` gives them both, and the type below is derived
- * from this object so there is one source of truth for the set.
- *
- *     dragged({ mode }) {
- *       if (mode === DRAG_MODES.DRAG) { … }
- *     }
- */
+/** Drag lifecycle modes: `idle → start → drag → drop → inertia → stop → idle`. */
 export const DRAG_MODES = {
   IDLE: 'idle',
   START: 'start',
@@ -43,17 +24,10 @@ export const DRAG_MODES = {
   STOP: 'stop',
 } as const;
 
-/**
- * One of {@link DRAG_MODES}. The literals still type-check, so
- * `mode === 'drag'` keeps working; the constants are what make the set
- * discoverable without a compiler.
- */
+/** One of {@link DRAG_MODES}. */
 export type DragMode = (typeof DRAG_MODES)[keyof typeof DRAG_MODES];
 
-/**
- * Props are flat, one per axis, the same `<name>X`/`<name>Y` spelling the
- * scroll and pointer services use.
- */
+/** Drag state for both viewport axes. */
 export interface DragProps {
   readonly mode: DragMode;
   /** Current position in the viewport. */
@@ -132,9 +106,7 @@ function applyTouchAction(target: DragTarget, ownership: TouchActionOwnership): 
 function claimTouchAction(target: DragTarget, touchAction: OwnedTouchAction): () => void {
   let ownership = touchActionOwnership.get(target);
   if (!ownership) {
-    // Consumer CSS is deliberate and wins. A value written by another drag
-    // service is recognised through the shared ownership above, not mistaken
-    // for consumer CSS.
+    // Do not override consumer touch-action CSS.
     if (getComputedStyle(target).touchAction !== 'auto') {
       return () => {};
     }
@@ -170,9 +142,7 @@ function claimTouchAction(target: DragTarget, touchAction: OwnedTouchAction): ()
 }
 
 function createDragService(target: DragTarget, options: DragOptions): Service<DragProps> {
-  // Normalised once, here, because the coast decays by this factor every tick
-  // as well as summing it: `inertiaFinalValue()` guards its own argument, but
-  // that would leave the per-tick decay running on whatever was passed in.
+  // Normalize values shared by projection and per-tick decay.
   const axis = options.axis === 'x' || options.axis === 'y' ? options.axis : 'both';
   const dampFactor = clampDampFactor(options.dampFactor ?? DEFAULT_DAMP_FACTOR);
   const dragThreshold = options.dragThreshold ?? 10;
@@ -197,29 +167,13 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
 
   return createService<DragProps>({
     props: () => props,
-    // A gesture is not a sampled value: outside one there is no position, no
-    // origin and no destination, which is what `idle` says. So
-    // `{ immediate: true }` delivers nothing at rest and delivers the live
-    // gesture to a component that mounts in the middle of one — the case that
-    // makes the option worth having here at all.
+    // `idle` is not an observed gesture value.
     hasProps: () => props.mode !== DRAG_MODES.IDLE,
     start(emit) {
-      /**
-       * Publishing is re-entrant: a subscriber that unsubscribes while it is
-       * being called can be the last one, and the service is then torn down
-       * *inside* the `emit()` it is still in. Anything that touches state
-       * after publishing has to ask whether the service it belongs to still
-       * exists — otherwise the teardown that already ran cannot release it.
-       */
+      /** Publishing can synchronously release the last subscriber and stop this run. */
       let isRunning = true;
       let unsubscribeTicks: (() => void) | null = null;
-      /**
-       * Armed by a drag that went past the threshold, disarmed by the next
-       * `pointerdown`. The guard used to read `distance*` instead, which
-       * survives the gesture that produced it — so after any real drag it
-       * suppressed *every* later click on the target, for the life of the
-       * page.
-       */
+      /** Suppress only the trusted click synthesized for the current drag. */
       let isClickSuppressed = false;
 
       /**
@@ -240,11 +194,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       /** Held by the pointer: the two modes a gesture is alive in. */
       const isGrabbing = () => props.mode === DRAG_MODES.START || props.mode === DRAG_MODES.DRAG;
 
-      // Without the matching `touch-action`, a native pan can win the gesture
-      // on touch. `x` leaves vertical panning to the browser, `y` leaves
-      // horizontal panning, and `both` owns both directions. Consumer CSS wins
-      // when its computed value is not `auto`; the prior inline value is put
-      // back when the final service leaves.
+      // Claim required touch axes and restore the previous inline value after the final claim.
       const releaseTouchAction = claimTouchAction(target, touchAction);
 
       function stopInertia() {
@@ -254,9 +204,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
 
       function stop() {
         stopInertia();
-        // The settle position is exact and invariant along the coast, so the
-        // drop's promise holds to the pixel instead of stopping a fraction
-        // short of it.
+        // Snap to the invariant projected destination.
         props.x = props.finalX;
         props.y = props.finalY;
         props.deltaX = 0;
@@ -269,25 +217,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         props.mode = DRAG_MODES.IDLE;
       }
 
-      /**
-       * Velocity in pixels per millisecond, smoothed.
-       *
-       * Per millisecond and not per event: a 1000 Hz mouse reports many small
-       * deltas where a 125 Hz trackpad reports few large ones, so the same
-       * physical flick produced completely different numbers when the delta
-       * *was* the velocity.
-       *
-       * The interval is clamped to `[MIN_SAMPLE, MAX_SAMPLE]`. Below the floor
-       * the reading is not a speed — coalesced moves, or a synthetic event
-       * dispatched in the same millisecond as the last, divide by almost
-       * nothing and report an absurd one. Above the ceiling the samples are too
-       * far apart to be one gesture.
-       *
-       * Smoothed with an exponential moving average, because a single sample is
-       * noisy on a trackpad and at the sub-millisecond intervals a high-rate
-       * mouse delivers; the weight favours the newest sample so a deliberate
-       * change of direction is not averaged away.
-       */
+      /** Measure smoothed velocity per millisecond with a bounded sample interval. */
       function measureVelocity(timeStamp: number, deltaX: number, deltaY: number) {
         const elapsed = velocityTime === 0 ? INERTIA_FRAME : timeStamp - velocityTime;
         const interval = Math.min(Math.max(elapsed, MIN_SAMPLE), MAX_SAMPLE);
@@ -298,11 +228,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         velocityY = velocityY * (1 - VELOCITY_SMOOTHING) + sampleY * VELOCITY_SMOOTHING;
       }
 
-      // The inertia runs on the scheduler's frame tick, like every other
-      // continuous source in v4 — v3 borrowed the raf service for it. The tick
-      // carries the frame's own elapsed time, already clamped to `[1, 40]` ms,
-      // and the coast is driven by it rather than by the frame count: decaying
-      // once per frame made the same flick travel half as far at 120 Hz.
+      // Integrate inertia from elapsed frame time, not frame count.
       function tick({ delta }: TickProps) {
         const stepX = inertiaStep(velocityX, dampFactor, delta);
         const stepY = inertiaStep(velocityY, dampFactor, delta);
@@ -319,9 +245,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         props.mode = DRAG_MODES.INERTIA;
         emit(props);
 
-        // What is left to travel, rather than what the last frame covered: a
-        // slow frame can carry a lot of a nearly-spent coast, and a fast one
-        // very little of a live one.
+        // Stop by remaining distance, not the last step size.
         const remaining = Math.max(
           Math.abs(props.finalX - props.x),
           Math.abs(props.finalY - props.y),
@@ -370,25 +294,14 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         emit(props);
       }
 
-      /**
-       * `timeStamp` comes from the event that ended the gesture, on the same
-       * clock `measureVelocity()` sampled with. Reading `performance.now()`
-       * here instead mixed two clocks: they share a time origin for events
-       * from this document, but not for one dispatched from another — and the
-       * failure mode is not a small error, it is a negative idle, which runs
-       * the decay backwards and amplifies the throw.
-       */
+      /** Use the ending event timestamp so velocity and idle time use one clock. */
       function drop(timeStamp: number) {
         if (!isGrabbing()) {
           return;
         }
         document.removeEventListener('pointermove', onPointerMove);
         props.mode = DRAG_MODES.DROP;
-        // A velocity measured a moment ago is not the velocity now. Holding
-        // still and then letting go used to fling, because the last move's
-        // delta survived however long the pause was. Decayed by the law the
-        // coast itself obeys rather than by a staleness threshold: a short
-        // pause takes the edge off, a long one leaves nothing to throw.
+        // Decay velocity over the idle interval before projection.
         const idle = velocityTime === 0 ? 0 : timeStamp - velocityTime;
         const idleDecay = inertiaDecay(dampFactor, idle);
         velocityX *= idleDecay;
@@ -396,15 +309,11 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         props.finalX = inertiaFinalValue(props.x, velocityX, dampFactor);
         props.finalY = inertiaFinalValue(props.y, velocityY, dampFactor);
         emit(props);
-        // A component that unmounts on drop takes the last subscriber with
-        // it: subscribing the inertia here would start a frame loop nothing
-        // is left to release.
+        // `emit()` can release the final subscriber before inertia starts.
         if (!isRunning) {
           return;
         }
-        // The projected destination still belongs to `drop` when the caller
-        // does not need the coast. Finish through the same stop/idle contract,
-        // synchronously, without ever subscribing the scheduler.
+        // Without inertia, finish synchronously through the same stop contract.
         if (!hasInertia) {
           stop();
           return;
@@ -414,8 +323,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
 
       function onPointerMove(event: Event) {
         const pointerEvent = event as PointerEvent;
-        // The button was released outside the window, or a gesture took the
-        // pointer over: there is nothing left to follow.
+        // End when the pointer no longer reports the primary button.
         if (pointerEvent.buttons === 1) {
           drag(pointerEvent);
         } else {
@@ -426,8 +334,6 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       function onPointerDown(event: Event) {
         const pointerEvent = event as PointerEvent;
         if (pointerEvent.button === 0) {
-          // A new gesture: whatever the previous one did, this one has not
-          // dragged anywhere yet.
           isClickSuppressed = false;
           startDrag(pointerEvent.clientX, pointerEvent.clientY);
         }
@@ -439,16 +345,11 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       }
 
       function onClick(event: Event) {
-        // Only the click the browser synthesizes at the end of the gesture
-        // this service just suppressed. A programmatic `.click()` is
-        // untrusted, and keyboard activation of a link inside the target
-        // arrives with `detail === 0` — neither is the tail of a drag, and
-        // swallowing them made a dragged card's links unreachable.
+        // Keep programmatic clicks and keyboard activation; suppress only a trusted pointer click.
         if (!isClickSuppressed || !event.isTrusted || (event as MouseEvent).detail === 0) {
           return;
         }
-        // Dragging a link or a button must not follow it. Captured and
-        // stopped immediately, before any handler down the tree sees it.
+        // Stop activation before descendant handlers run.
         event.stopImmediatePropagation();
         event.preventDefault();
       }
@@ -460,8 +361,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       target.addEventListener('pointerdown', onPointerDown, { passive: true });
       target.addEventListener('dragstart', onDragStart, { capture: true });
       target.addEventListener('click', onClick, { capture: true });
-      // On the window: a pointer released outside the target still ends the
-      // drag.
+      // Window listeners end a drag released outside the target.
       window.addEventListener('pointerup', onPointerUp, { passive: true });
       window.addEventListener('pointercancel', onPointerUp, { passive: true });
 
@@ -470,9 +370,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         isClickSuppressed = false;
         releaseTouchAction();
         stopInertia();
-        // Losing every subscriber mid-drag ends the drag: staying in a
-        // holding mode would make the next `pointerdown` a no-op once a
-        // component subscribes again.
+        // Reset the gesture when the final subscriber leaves.
         props.mode = DRAG_MODES.IDLE;
         document.removeEventListener('pointermove', onPointerMove);
         target.removeEventListener('pointerdown', onPointerDown);
@@ -489,22 +387,7 @@ const dragServices = /* @__PURE__ */ getSharedRuntimeSlot('service:drag', 1, () 
   perTarget(createDragService),
 );
 
-/**
- * Use the drag service for an element.
- *
- * ```js
- * const unsubscribe = useDrag(el, { axis: 'x', inertia: false }).subscribe(({ mode, distanceX }) => {
- *   if (mode === DRAG_MODES.DRAG) {
- *     el.style.setProperty('--x', `${distanceX}px`);
- *   }
- * });
- * ```
- *
- * One service per element and option set, so callers asking for the same drag
- * share its listeners while a different axis, inertia choice, damping or
- * threshold gets its own service. `axis` defaults to `both`, and `inertia`
- * defaults to `true`.
- */
+/** Use one shared drag service per target and option set. */
 export function useDrag(target: DragTarget, options: DragOptions = {}): Service<DragProps> {
   return dragServices(target, options);
 }
@@ -516,33 +399,7 @@ export interface DragHook {
 
 export type DragMixinOptions = DragOptions & ServiceMixinOptions<DragTarget>;
 
-/**
- * Subscribe a component's `dragged()` method to the drag service, for its
- * whole mount cycle:
- *
- * ```js
- * class Card extends withDrag(Base) {
- *   dragged({ mode, distanceX }) {
- *     if (mode === DRAG_MODES.DRAG) {
- *       this.$el.style.setProperty('--x', `${distanceX}px`);
- *     }
- *   }
- * }
- *
- * // A horizontal handle with a projected drop and no scheduler coast.
- * class Sheet extends withDrag(Base, {
- *   target: (instance) => instance.$refs.handle,
- *   axis: 'x',
- *   inertia: false,
- * }) {
- *   dragged(props) { … }
- * }
- * ```
- *
- * The component's root element is the default target — the one hook whose
- * default is the host, as Lit's `ResizeController` does. The decorator form
- * `@withDrag()` is the same thing with a build step.
- */
+/** Subscribe `dragged()` to the drag service for each mount cycle. The root element is the default target. */
 export const withDrag = /* @__PURE__ */ createServiceMixin<
   DragHook & ServiceHandles<'dragged'>,
   DragTarget,

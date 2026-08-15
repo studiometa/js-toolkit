@@ -5,39 +5,6 @@ import { Track } from './Track.js';
 import { TrackContext } from './TrackContext.js';
 import { TrackShopify } from './TrackShopify.js';
 
-/**
- * Specs for the `Track` port.
- *
- * ## How these differ from ui's
- *
- * ui's specs build instances by hand — `new Track(el)` on a detached `<div>`,
- * then `await mount(...)` — and mock the `IntersectionObserver` wholesale.
- * These render real markup into the document and let the registry mount it,
- * because that is what a v4 consumer writes, and because the `view` event runs
- * against a real observer in a real Chromium: an element is parked below the
- * fold and brought back into it, as `src/mount-strategies.spec.ts` does.
- *
- * ## Deliberately not ported
- *
- * - `should have the correct config` — `config.refs` is still asserted through
- *   the `payload` ref working; asserting the array is asserting the source.
- * - `should resolve the ancestor context only once across dispatches`, which
- *   spies on `$closest` and counts calls. The memo moved from per instance to
- *   per mount cycle, so the *assertion* changed rather than the count:
- *   `re-resolves the context when the component moves under a new scope` below
- *   asserts the property the memo is for, and would pass vacuously without one
- *   only if `$closest` were free.
- * - The two fake-timer specs (`debounce500`, `throttle200`) are re-timed
- *   against real timers with short delays, exactly as the `Action` port did:
- *   the assertion worth keeping is "ran once, late", not the timer
- *   bookkeeping.
- * - `TrackShopify`'s `$warn` specs. `$warn` does not exist in v4 (gap 10) and
- *   the port's `warn()` is a `console.warn` — asserting a log line asserts the
- *   substitution, not the component. The two *behavioural* halves of those
- *   specs (nothing published without an `event` name, nothing thrown without
- *   the API) are kept.
- */
-
 registerComponents(Track, TrackContext, TrackShopify);
 
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';
@@ -262,9 +229,6 @@ describe('Track — the `mounted` pseudo-event', () => {
     `);
     await settle();
 
-    // The deferral is `defaultScheduler.background()`, the same lane eager
-    // mounts queue on — so "after everything in this batch has mounted" is a
-    // guarantee rather than v3's one-frame hope.
     expect(lastPush()).toEqual({ page_type: 'home', event: 'page_view' });
     expect(pushes()).toHaveLength(1);
   });
@@ -273,8 +237,6 @@ describe('Track — the `mounted` pseudo-event', () => {
     const root = document.createElement('div');
     root.innerHTML = `<div data-component="Track" data-track:mounted='{"event": "page_view"}'></div>`;
     document.body.append(root);
-    // Removed inside the same task, before the background lane runs: an SPA
-    // route change. The task handle is cancelled by the `mounted()` cleanup.
     root.innerHTML = '';
     await observed();
 
@@ -301,11 +263,6 @@ describe('Track — the `mounted` pseudo-event', () => {
     await settle();
     expect(lastPush()).toEqual({ event: 'page_view' });
 
-    // Wrapping existing content in a scope — what a `data-bind:if` template or
-    // a `swap()` does. The element moves, so v4 destroys and remounts the same
-    // instance, and both the bindings and the per-cycle context memo are
-    // rebuilt. v3 memoised the context for the instance's whole life and would
-    // have kept publishing the old one forever.
     const track = root.querySelector('[data-component="Track"]') as HTMLElement;
     const scope = document.createElement('div');
     scope.setAttribute('data-component', 'TrackContext');
@@ -373,26 +330,7 @@ describe('Track — the `view` pseudo-event', () => {
     expect(pushes()).toHaveLength(1);
   });
 
-  /**
-   * **This spec asserts the opposite of ui's, and the reversal is the finding.**
-   *
-   * ui has `should dispatch on any visibility, even a ratio below the
-   * threshold (tall element)`, and `TrackEvent` carries a comment explaining
-   * that it tests `isIntersecting` rather than `intersectionRatio >=
-   * threshold` precisely so a tall element stays reachable.
-   *
-   * That reasoning only holds against ui's jsdom mock, which lets a spec force
-   * `isIntersecting: true` with a ratio of `0.2`. A real `IntersectionObserver`
-   * given `{ threshold: 0.5 }` reports `isIntersecting: false` until the ratio
-   * crosses `0.5` — the comparison the component decided not to make is one
-   * the platform makes for it, from the same option. So the component's guard
-   * buys nothing, and an element taller than twice the viewport with
-   * `data-option-threshold="0.5"` can never produce an impression.
-   *
-   * Green, not `it.fails()`: this is a bug in ui rather than a gap in v4, and
-   * the port inherits it faithfully. It is recorded here because it is what
-   * running a mocked spec against a real browser is for.
-   */
+  /** A tall element that cannot reach its threshold never intersects. */
   it('cannot dispatch for an element that can never reach its own threshold', async () => {
     await render(
       `<div data-component="Track" data-option-threshold="0.5"
@@ -431,9 +369,6 @@ describe('Track — the `view` pseudo-event', () => {
     el.setAttribute('style', ONSCREEN);
     await observed();
 
-    // Reference counting does this, not the component: the subscription was
-    // the only one on that element's service, so the last release disconnected
-    // the observer.
     expect(pushes()).toHaveLength(0);
     expect(track.$isMounted).toBe(false);
   });
@@ -486,9 +421,6 @@ describe('Track — lifecycle', () => {
     track.$mount();
     el.click();
 
-    // v3 memoised the parsed set in `__actionEvents`-style for the instance's
-    // whole life; in v4 an instance survives a move, and re-insertion after a
-    // `swap()` can bring different attributes on the same element.
     expect(lastPush()).toEqual({ event: 'after' });
   });
 });
@@ -567,13 +499,7 @@ describe('Track — live rebinding through watchAttributes', () => {
   });
 });
 
-/**
- * Count the `IntersectionObserver`s built while `during` runs.
- *
- * The stub is restored in a `finally`, following `countRequestedFrames()` in
- * `src/test-utils.ts` — a stub that survives a rejected wait leaks into every
- * later file in the run.
- */
+/** Count observers while always restoring the global constructor. */
 async function countObservers(during: () => Promise<void>): Promise<number> {
   const Original = globalThis.IntersectionObserver;
   let built = 0;
@@ -592,10 +518,6 @@ async function countObservers(during: () => Promise<void>): Promise<number> {
   return built;
 }
 
-/**
- * The question this port was chosen to answer: does one service instance per
- * observed target hold up when many components observe many elements?
- */
 describe('the intersection service under load', () => {
   const CARDS = 60;
 
@@ -614,8 +536,6 @@ describe('the intersection service under load', () => {
 
     expect(pushes()).toHaveLength(CARDS);
     expect(new Set(pushes().map((entry) => entry.id)).size).toBe(CARDS);
-    // One per target, and not one more. The `WeakMap` keyed by element is
-    // doing exactly what `perTarget()` does for the core services.
     expect(built).toBe(CARDS);
   });
 
@@ -634,8 +554,6 @@ describe('the intersection service under load', () => {
         .map((entry) => entry.event)
         .sort(),
     ).toEqual(['a', 'b']);
-    // Two `TrackEvent`s, two subscriptions, one observer — reference counting
-    // rather than two `new IntersectionObserver` calls, which is what ui does.
     expect(built).toBe(1);
   });
 
@@ -648,8 +566,6 @@ describe('the intersection service under load', () => {
       await observed();
     });
 
-    // Two elements, so two observers here whatever the key — the point of the
-    // spec is the one below it, which is the case `perTarget()` gets wrong.
     expect(built).toBe(2);
     expect(pushes()).toHaveLength(2);
   });
@@ -672,9 +588,6 @@ describe('the intersection service under load', () => {
       await observed();
     });
 
-    // Two observations of one element, so two observers. `perTarget()` would
-    // have returned the first service to the second caller and the 0.9
-    // subscriber would never have been told anything — silently.
     expect(built).toBe(2);
     expect(firstRatio).toBeGreaterThan(0);
     expect(secondRatio).toBeGreaterThan(0);
@@ -696,10 +609,6 @@ describe('the intersection service under load', () => {
     await observed();
     window.dataLayer = [];
 
-    // Nothing observes anything now: every subscription left with its mount
-    // cycle, and the last one out of each service disconnected its observer.
-    // Rebuilding the same markup starts from zero rather than from a page
-    // holding 60 stale observers.
     const built = await countObservers(async () => {
       await render(markup);
       await observed();
@@ -727,8 +636,6 @@ describe('TrackShopify — the dispatch seam', () => {
       event: 'add_to_cart',
       id: '1',
     });
-    // Nothing reached the dataLayer: the seam is the only difference between
-    // the two components.
     expect(pushes()).toHaveLength(0);
     delete window.Shopify;
   });

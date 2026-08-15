@@ -1,7 +1,4 @@
-/**
- * One token in an element or viewport edge. Named edges, ratios, percentages,
- * pixels and viewport units use the offset grammar from v3.
- */
+/** One element or viewport edge token. */
 export type OffsetValue = string | number;
 
 /** The start pair and end pair in `"<target> <viewport> / <target> <viewport>"`. */
