@@ -8,8 +8,8 @@ import {
   type MixedClass,
   type MountedReturn,
 } from '../../src/index.js';
+import { getEdges, normalizeOffset } from '../../src/services/scroll-progress-offset.js';
 import { clamp, clamp01, damp } from '../../src/utils/maths.js';
-import { getEdges, normalizeOffset } from './offset.js';
 
 /**
  * What a `scrolledInView()` hook receives.

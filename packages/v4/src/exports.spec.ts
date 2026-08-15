@@ -3,7 +3,9 @@ import { clamp, smoothTo } from '@studiometa/js-toolkit-v4/utils';
 import {
   Base,
   useInView,
+  useScrollProgress,
   withInView,
+  withScrollProgress,
   type InViewHook,
   type InViewMixinOptions,
   type InViewProps,
@@ -12,9 +14,11 @@ import {
 import useInViewFromSubpath, {
   useInView as namedUseInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/useInView';
+import useScrollProgressSubpath from '@studiometa/js-toolkit-v4/useScrollProgress';
 import withInViewFromSubpath, {
   withInView as namedWithInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/withInView';
+import withScrollProgressSubpath from '@studiometa/js-toolkit-v4/withScrollProgress';
 
 describe('the package entry points', () => {
   it('serves the utils from the /utils subpath', () => {
@@ -42,5 +46,10 @@ describe('the package entry points', () => {
       intersected?: (props: InViewProps) => void;
     }>();
     expectTypeOf<InViewMixinOptions>().toMatchTypeOf<IntersectionObserverInit>();
+  });
+
+  it('exports scroll progress from the root and symbol subpaths', () => {
+    expect(useScrollProgress).toBe(useScrollProgressSubpath);
+    expect(withScrollProgress).toBe(withScrollProgressSubpath);
   });
 });

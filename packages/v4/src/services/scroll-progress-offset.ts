@@ -1,13 +1,10 @@
 /**
- * Offset parsing for `withScrolledInView`, ported from
- * `@studiometa/js-toolkit/decorators/withScrolledInView/utils`.
- *
- * The syntax is unchanged: `"<target> <container> / <target> <container>"`,
- * where each edge is `start` / `center` / `end`, a ratio, a percentage, or a
- * length in `px` / `vh` / `vw` / `vmin` / `vmax`.
+ * One token in an element or viewport edge. Named edges, ratios, percentages,
+ * pixels and viewport units use the offset grammar from v3.
  */
-
 export type OffsetValue = string | number;
+
+/** The start pair and end pair in `"<target> <viewport> / <target> <viewport>"`. */
 export type NormalizedOffset = [[OffsetValue, OffsetValue], [OffsetValue, OffsetValue]];
 
 const NAMED: Record<string, number> = { start: 0, center: 0.5, end: 1 };
@@ -19,15 +16,14 @@ const VIEWPORT_UNITS: Record<string, () => number> = {
   vmax: () => Math.max(window.innerWidth, window.innerHeight),
 };
 
+/** Parse the two target/viewport edge pairs. */
 export function normalizeOffset(offsets: string): NormalizedOffset {
   return offsets
     .split('/')
     .map((offset) => offset.trim().split(' ').slice(0, 2)) as NormalizedOffset;
 }
 
-/**
- * An edge position given a start, a size and one offset token.
- */
+/** Resolve one edge token against a box. */
 export function getEdgeWithOffset(start: number, size: number, offset: OffsetValue): number {
   if (typeof offset === 'number') {
     return start + size * offset;
@@ -56,7 +52,6 @@ export function getEdgeWithOffset(start: number, size: number, offset: OffsetVal
     }
   }
 
-  // A bare number, e.g. "0.5".
   return start + size * value;
 }
 
@@ -65,19 +60,17 @@ export interface AxisRect {
   size: number;
 }
 
-/**
- * The scroll positions at which the animation starts and ends on one axis.
- */
+/** Get the scroll positions where one axis starts and ends. */
 export function getEdges(
   target: AxisRect,
-  container: AxisRect,
+  viewport: AxisRect,
   offset: NormalizedOffset,
 ): [number, number] {
   const start =
     getEdgeWithOffset(target.position, target.size, offset[0][0]) -
-    getEdgeWithOffset(0, container.size, offset[0][1]);
+    getEdgeWithOffset(0, viewport.size, offset[0][1]);
   const end =
     getEdgeWithOffset(target.position, target.size, offset[1][0]) -
-    getEdgeWithOffset(0, container.size, offset[1][1]);
+    getEdgeWithOffset(0, viewport.size, offset[1][1]);
   return [start, end];
 }
