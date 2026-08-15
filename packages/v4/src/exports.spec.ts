@@ -1,7 +1,23 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 import { clamp, smoothTo } from '@studiometa/js-toolkit-v4/utils';
-import { Base, useScrollProgress, withScrollProgress } from '@studiometa/js-toolkit-v4';
+import {
+  Base,
+  useInView,
+  useScrollProgress,
+  withInView,
+  withScrollProgress,
+  type InViewHook,
+  type InViewMixinOptions,
+  type InViewProps,
+  type Service,
+} from '@studiometa/js-toolkit-v4';
+import useInViewFromSubpath, {
+  useInView as namedUseInViewFromSubpath,
+} from '@studiometa/js-toolkit-v4/useInView';
 import useScrollProgressSubpath from '@studiometa/js-toolkit-v4/useScrollProgress';
+import withInViewFromSubpath, {
+  withInView as namedWithInViewFromSubpath,
+} from '@studiometa/js-toolkit-v4/withInView';
 import withScrollProgressSubpath from '@studiometa/js-toolkit-v4/withScrollProgress';
 
 describe('the package entry points', () => {
@@ -17,6 +33,19 @@ describe('the package entry points', () => {
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
+  });
+
+  it('serves useInView and withInView from the root and their symbol subpaths', () => {
+    expect(typeof useInView).toBe('function');
+    expect(useInViewFromSubpath).toBe(useInView);
+    expect(namedUseInViewFromSubpath).toBe(useInView);
+    expect(withInViewFromSubpath).toBe(withInView);
+    expect(namedWithInViewFromSubpath).toBe(withInView);
+    expectTypeOf(useInView(document.documentElement)).toEqualTypeOf<Service<InViewProps>>();
+    expectTypeOf<InViewHook>().toMatchTypeOf<{
+      intersected?: (props: InViewProps) => void;
+    }>();
+    expectTypeOf<InViewMixinOptions>().toMatchTypeOf<IntersectionObserverInit>();
   });
 
   it('exports scroll progress from the root and symbol subpaths', () => {

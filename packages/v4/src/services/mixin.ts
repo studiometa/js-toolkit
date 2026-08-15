@@ -56,8 +56,12 @@ export interface ServiceMixinDefinition<Target, Options> {
   hook: string;
   /** Default target, e.g. the window for the scroll service. */
   target: (instance: Base) => Target;
-  /** Default first-delivery policy. An explicit mixin option overrides it. */
-  immediate?: boolean;
+  /**
+   * Whether a subscription asks for current props when the caller does not
+   * choose. Most hooks wait for the next update; sources whose hook is about
+   * current state can opt in while still honouring an explicit `false`.
+   */
+  defaultImmediate?: boolean;
   /**
    * Service the method subscribes to. Both parameters are `unknown` here
    * because most mixins forward whatever the hook returns without looking at
@@ -202,7 +206,7 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
               }
               return result;
             },
-            { immediate: options.immediate ?? definition.immediate ?? false },
+            { immediate: options.immediate ?? definition.defaultImmediate ?? false },
           );
         });
 

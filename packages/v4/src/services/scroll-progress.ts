@@ -203,7 +203,7 @@ export const withScrollProgress = /* @__PURE__ */ createServiceMixin<
 >({
   hook: 'scrolledInView',
   target: (instance) => instance.$el,
-  immediate: true,
+  defaultImmediate: true,
   // Only service options reach the service. Lifecycle fields must not become
   // part of its target-and-offset cache key.
   use: (target, { offset }) => useScrollProgress(target, { offset }),
