@@ -1,9 +1,20 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { clamp, smoothTo } from '@studiometa/js-toolkit-v4/utils';
-import { Base, useInView, type InViewProps, type Service } from '@studiometa/js-toolkit-v4';
+import {
+  Base,
+  useInView,
+  withInView,
+  type InViewHook,
+  type InViewMixinOptions,
+  type InViewProps,
+  type Service,
+} from '@studiometa/js-toolkit-v4';
 import useInViewFromSubpath, {
   useInView as namedUseInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/useInView';
+import withInViewFromSubpath, {
+  withInView as namedWithInViewFromSubpath,
+} from '@studiometa/js-toolkit-v4/withInView';
 
 describe('the package entry points', () => {
   it('serves the utils from the /utils subpath', () => {
@@ -20,10 +31,16 @@ describe('the package entry points', () => {
     expect(root.smoothTo).toBeUndefined();
   });
 
-  it('serves useInView from the root and its symbol subpath', () => {
+  it('serves useInView and withInView from the root and their symbol subpaths', () => {
     expect(typeof useInView).toBe('function');
     expect(useInViewFromSubpath).toBe(useInView);
     expect(namedUseInViewFromSubpath).toBe(useInView);
+    expect(withInViewFromSubpath).toBe(withInView);
+    expect(namedWithInViewFromSubpath).toBe(withInView);
     expectTypeOf(useInView(document.documentElement)).toEqualTypeOf<Service<InViewProps>>();
+    expectTypeOf<InViewHook>().toMatchTypeOf<{
+      intersected?: (props: InViewProps) => void;
+    }>();
+    expectTypeOf<InViewMixinOptions>().toMatchTypeOf<IntersectionObserverInit>();
   });
 });

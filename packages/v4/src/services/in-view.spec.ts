@@ -1,6 +1,14 @@
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
-import { useInView, type InViewProps } from './in-view.js';
+import { Base } from '../Base.js';
+import {
+  useInView,
+  withInView,
+  type InViewHook,
+  type InViewMixinOptions,
+  type InViewProps,
+} from './in-view.js';
 import type { Service } from './service.js';
+import type { Toggle } from './toggle.js';
 
 class FakeIntersectionObserver {
   static instances: FakeIntersectionObserver[] = [];
@@ -50,6 +58,32 @@ function readonlyAssertions(props: InViewProps): void {
   props.entry = null;
 }
 void readonlyAssertions;
+
+class TypedReveal extends withInView(Base, { manual: true }) {
+  intersected(_props: InViewProps): void {}
+}
+
+function mixinTypeAssertions(instance: TypedReveal): void {
+  expectTypeOf<InViewHook>().toMatchTypeOf<{
+    intersected?: (props: InViewProps) => void;
+  }>();
+  expectTypeOf(instance.intersected).toEqualTypeOf<(props: InViewProps) => void>();
+  expectTypeOf(instance.$services.intersected).toEqualTypeOf<Toggle>();
+  instance.$services.intersected.start();
+  instance.$services.intersected.stop();
+  // @ts-expect-error only the mixin's fixed hook gets a service handle
+  instance.$services.scrolled.start();
+}
+void mixinTypeAssertions;
+
+const mixinOptionsTypeAssertions: InViewMixinOptions = {
+  threshold: 0.5,
+  rootMargin: '100px',
+  manual: true,
+  immediate: false,
+  target: (instance) => instance.$el,
+};
+void mixinOptionsTypeAssertions;
 
 describe('useInView', () => {
   beforeEach(() => {
@@ -188,7 +222,9 @@ describe('useInView', () => {
       immediate: true,
     });
     expect(FakeIntersectionObserver.instances).toHaveLength(2);
-    // The old observer's entry is not a current entry for this new run.
+    // The old observer's entry is not a current entry for this new run, even
+    // if its callback was already queued when `disconnect()` ran.
+    firstObserver?.deliver([entryFor(target, true)]);
     expect(seen).toEqual([]);
 
     const entry = entryFor(target, false);
@@ -196,5 +232,215 @@ describe('useInView', () => {
     expect(seen).toEqual([{ isInView: false, entry }]);
     unsubscribeRestarted();
     expect(FakeIntersectionObserver.instances[1]?.disconnects).toBe(1);
+  });
+});
+
+describe('withInView', () => {
+  beforeEach(() => {
+    FakeIntersectionObserver.instances = [];
+    globalThis.IntersectionObserver =
+      FakeIntersectionObserver as unknown as typeof IntersectionObserver;
+  });
+
+  afterEach(() => {
+    globalThis.IntersectionObserver = NativeIntersectionObserver;
+    document.body.innerHTML = '';
+  });
+
+  it('supports the no-build mixin form and observes the component root', () => {
+    const seen: InViewProps[] = [];
+
+    class Reveal extends withInView(Base, { threshold: 0.5, rootMargin: '100px' }) {
+      intersected(props: InViewProps): void {
+        seen.push({ ...props });
+      }
+    }
+
+    const target = document.createElement('article');
+    document.body.append(target);
+    const instance = new Reveal(target).$mount();
+    const observer = FakeIntersectionObserver.instances[0];
+
+    expect(observer?.observed).toEqual([target]);
+    expect(observer?.init).toEqual({ rootMargin: '100px', threshold: 0.5 });
+
+    const entry = entryFor(target, true);
+    observer?.deliver([entry]);
+    expect(seen).toEqual([{ isInView: true, entry }]);
+    instance.$terminate();
+  });
+
+  it('supports the stage-3 decorator form', () => {
+    const seen: InViewProps[] = [];
+
+    @withInView({ threshold: 0.5 })
+    class Reveal extends Base {
+      intersected(props: InViewProps): void {
+        seen.push({ ...props });
+      }
+    }
+
+    const target = document.createElement('article');
+    document.body.append(target);
+    const instance = new Reveal(target).$mount();
+    const observer = FakeIntersectionObserver.instances[0];
+
+    expect(observer?.observed).toEqual([target]);
+    expect(observer?.init).toEqual({ threshold: 0.5 });
+    const entry = entryFor(target, false);
+    observer?.deliver([entry]);
+    expect(seen).toEqual([{ isInView: false, entry }]);
+    instance.$terminate();
+  });
+
+  it('resolves a custom target and forwards only IntersectionObserverInit fields', () => {
+    const root = document.createElement('main');
+
+    class Reveal extends withInView(Base, {
+      root,
+      rootMargin: '10px',
+      scrollMargin: '20px',
+      threshold: [0, 0.5, 1],
+      target: (instance) => instance.$el.firstElementChild as Element,
+      manual: false,
+      immediate: false,
+    }) {
+      intersected(): void {}
+    }
+
+    const host = document.createElement('article');
+    const target = document.createElement('figure');
+    host.append(target);
+    document.body.append(root, host);
+    const instance = new Reveal(host).$mount();
+    const observer = FakeIntersectionObserver.instances[0];
+
+    expect(observer?.observed).toEqual([target]);
+    expect(observer?.init).toEqual({
+      root,
+      rootMargin: '10px',
+      scrollMargin: '20px',
+      threshold: [0, 0.5, 1],
+    });
+    expect(observer?.init).not.toHaveProperty('target');
+    expect(observer?.init).not.toHaveProperty('manual');
+    expect(observer?.init).not.toHaveProperty('immediate');
+    instance.$terminate();
+  });
+
+  it('defaults to honest immediate delivery and honours an explicit false', () => {
+    const target = document.createElement('article');
+    document.body.append(target);
+    const first: InViewProps[] = [];
+    const later: InViewProps[] = [];
+    const quiet: InViewProps[] = [];
+
+    class First extends withInView(Base) {
+      intersected(props: InViewProps): void {
+        first.push({ ...props });
+      }
+    }
+    class Later extends withInView(Base) {
+      intersected(props: InViewProps): void {
+        later.push({ ...props });
+      }
+    }
+    class Quiet extends withInView(Base, { immediate: false }) {
+      intersected(props: InViewProps): void {
+        quiet.push({ ...props });
+      }
+    }
+
+    const firstInstance = new First(target).$mount();
+    expect(first).toEqual([]);
+
+    const observer = FakeIntersectionObserver.instances[0];
+    const initialEntry = entryFor(target, false);
+    observer?.deliver([initialEntry]);
+    expect(first).toEqual([{ isInView: false, entry: initialEntry }]);
+
+    const laterInstance = new Later(target).$mount();
+    expect(later).toEqual([{ isInView: false, entry: initialEntry }]);
+
+    const quietInstance = new Quiet(target).$mount();
+    expect(quiet).toEqual([]);
+    expect(FakeIntersectionObserver.instances).toHaveLength(1);
+
+    const nextEntry = entryFor(target, true);
+    observer?.deliver([nextEntry]);
+    expect(first.at(-1)).toEqual({ isInView: true, entry: nextEntry });
+    expect(later.at(-1)).toEqual({ isInView: true, entry: nextEntry });
+    expect(quiet).toEqual([{ isInView: true, entry: nextEntry }]);
+
+    firstInstance.$terminate();
+    laterInstance.$terminate();
+    quietInstance.$terminate();
+  });
+
+  it('releases each automatic mount cycle and waits for a new real entry on remount', () => {
+    const seen: InViewProps[] = [];
+
+    class Reveal extends withInView(Base) {
+      intersected(props: InViewProps): void {
+        seen.push({ ...props });
+      }
+    }
+
+    const target = document.createElement('article');
+    document.body.append(target);
+    const instance = new Reveal(target).$mount();
+    const firstObserver = FakeIntersectionObserver.instances[0];
+    firstObserver?.deliver([entryFor(target, true)]);
+    expect(seen).toHaveLength(1);
+
+    instance.$destroy();
+    expect(firstObserver?.disconnects).toBe(1);
+
+    instance.$mount();
+    const secondObserver = FakeIntersectionObserver.instances[1];
+    expect(secondObserver?.observed).toEqual([target]);
+    expect(seen).toHaveLength(1);
+
+    secondObserver?.deliver([entryFor(target, false)]);
+    expect(seen).toHaveLength(2);
+    instance.$terminate();
+    expect(secondObserver?.disconnects).toBe(1);
+  });
+
+  it('leaves a manual hook stopped on mount and releases starts on destroy or terminate', () => {
+    const seen: InViewProps[] = [];
+
+    class Reveal extends withInView(Base, { manual: true }) {
+      intersected(props: InViewProps): void {
+        seen.push({ ...props });
+      }
+    }
+
+    const target = document.createElement('article');
+    document.body.append(target);
+    const instance = new Reveal(target).$mount();
+
+    expect(FakeIntersectionObserver.instances).toEqual([]);
+    expect(instance.$services.intersected.isActive).toBe(false);
+
+    instance.$services.intersected.start();
+    const firstObserver = FakeIntersectionObserver.instances[0];
+    expect(instance.$services.intersected.isActive).toBe(true);
+    firstObserver?.deliver([entryFor(target, true)]);
+    expect(seen).toHaveLength(1);
+
+    instance.$destroy();
+    expect(instance.$services.intersected.isActive).toBe(false);
+    expect(firstObserver?.disconnects).toBe(1);
+
+    instance.$mount();
+    expect(FakeIntersectionObserver.instances).toHaveLength(1);
+    instance.$services.intersected.start();
+    const secondObserver = FakeIntersectionObserver.instances[1];
+    expect(instance.$services.intersected.isActive).toBe(true);
+
+    instance.$terminate();
+    expect(instance.$services.intersected.isActive).toBe(false);
+    expect(secondObserver?.disconnects).toBe(1);
   });
 });

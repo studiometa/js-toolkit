@@ -57,6 +57,12 @@ export interface ServiceMixinDefinition<Target, Options> {
   /** Default target, e.g. the window for the scroll service. */
   target: (instance: Base) => Target;
   /**
+   * Whether a subscription asks for current props when the caller does not
+   * choose. Most hooks wait for the next update; sources whose hook is about
+   * current state can opt in while still honouring an explicit `false`.
+   */
+  defaultImmediate?: boolean;
+  /**
    * Service the method subscribes to. Both parameters are `unknown` here
    * because the mixin forwards whatever the hook returns without looking at
    * it — the frame service is the one that reads it.
@@ -188,7 +194,7 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
           return definition
             .use(target(this), options)
             .subscribe((props) => (method as (props: unknown) => unknown).call(this, props), {
-              immediate: options.immediate ?? false,
+              immediate: options.immediate ?? definition.defaultImmediate ?? false,
             });
         });
 

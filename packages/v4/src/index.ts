@@ -26,8 +26,9 @@
  *    `requestAnimationFrame` loop.
  * 7. Lazy, reference-counted services, one instance per observed target —
  *    subscribed by hand, or through the `withRaf`/`withScroll`/`withResize`/
- *    `withPointer`/`withDrag` mixins and their `ticked`, `scrolled`,
- *    `resized`, `moved` and `dragged` hooks, per mount cycle — or on the
+ *    `withPointer`/`withDrag`/`withInView` mixins and their `ticked`,
+ *    `scrolled`, `resized`, `moved`, `dragged` and `intersected` hooks, per
+ *    mount cycle — or on the
  *    component's own terms with `toggle()`.
  *
  * Lifecycle: destroy !== terminate !== disconnected.
@@ -143,7 +144,13 @@ export {
   type DragProps,
   type DragTarget,
 } from './services/drag.js';
-export { useInView, type InViewProps } from './services/in-view.js';
+export {
+  useInView,
+  withInView,
+  type InViewHook,
+  type InViewMixinOptions,
+  type InViewProps,
+} from './services/in-view.js';
 export {
   createServiceMixin,
   type MixedClass,
