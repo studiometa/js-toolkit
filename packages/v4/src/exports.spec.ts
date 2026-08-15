@@ -5,6 +5,8 @@ import {
   Base,
   EVENTS,
   defineManifest,
+  domUpdate,
+  emitExtendable,
   fromMetaGlob,
   fromWebpackContext,
   useDrag,
@@ -14,11 +16,16 @@ import {
   withInView,
   withScrollProgress,
   type DefineManifestOptions,
+  type DomMutation,
+  type DomUpdateDetail,
+  type DomUpdateRunner,
   type DragMixinOptions,
   type DragOptions,
   type DragProps,
   type InViewHook,
   type InViewMixinOptions,
+  type ExtendableDetail,
+  type Extension,
   type InViewProps,
   type ModuleRecord,
   type Service,
@@ -27,6 +34,12 @@ import {
   type WebpackContextLike,
 } from '@studiometa/js-toolkit-v4';
 import defineManifestFromSubpath from '@studiometa/js-toolkit-v4/defineManifest';
+import domUpdateFromSubpath, {
+  domUpdate as namedDomUpdateFromSubpath,
+} from '@studiometa/js-toolkit-v4/domUpdate';
+import emitExtendableFromSubpath, {
+  emitExtendable as namedEmitExtendableFromSubpath,
+} from '@studiometa/js-toolkit-v4/emitExtendable';
 import fromMetaGlobFromSubpath from '@studiometa/js-toolkit-v4/fromMetaGlob';
 import fromWebpackContextFromSubpath from '@studiometa/js-toolkit-v4/fromWebpackContext';
 import useDragFromSubpath from '@studiometa/js-toolkit-v4/useDrag';
@@ -70,7 +83,7 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(57);
+    expect(Object.keys(root)).toHaveLength(59);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
@@ -83,6 +96,20 @@ describe('the package entry points', () => {
     ]) {
       expect(root[removed]).toBeUndefined();
     }
+  });
+
+  it('exports standalone orchestration helpers without Base wrappers', () => {
+    expect(domUpdateFromSubpath).toBe(domUpdate);
+    expect(namedDomUpdateFromSubpath).toBe(domUpdate);
+    expect(emitExtendableFromSubpath).toBe(emitExtendable);
+    expect(namedEmitExtendableFromSubpath).toBe(emitExtendable);
+    expect(Base.prototype).not.toHaveProperty('$domUpdate');
+    expect(Base.prototype).not.toHaveProperty('$emitExtendable');
+    expect(Base.prototype).not.toHaveProperty('$viewTransition');
+    expectTypeOf(domUpdate).parameter(0).toEqualTypeOf<Node>();
+    expectTypeOf<DomMutation>().toEqualTypeOf<() => void | Promise<void>>();
+    expectTypeOf<DomUpdateDetail>().toMatchTypeOf<{ wrap(runner: DomUpdateRunner): void }>();
+    expectTypeOf<ExtendableDetail>().toMatchTypeOf<{ waitUntil(extension: Extension): void }>();
   });
 
   it('does not expose removed constant and symbol subpaths', () => {

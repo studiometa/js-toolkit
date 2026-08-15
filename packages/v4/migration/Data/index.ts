@@ -22,14 +22,6 @@ export {
   type DataUpdate,
   type DataValue,
 } from './registry.js';
-export {
-  emitDomUpdate,
-  runWrapped,
-  warn,
-  type DomUpdateRunner,
-  type DomUpdateTransitioner,
-  type NormalizedRunner,
-} from './dom-update.js';
 export { getCallback, type DataExpression } from './expression.js';
 export {
   isCheckbox,

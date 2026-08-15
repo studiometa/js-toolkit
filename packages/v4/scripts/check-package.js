@@ -197,9 +197,28 @@ async function checkBrowserConsumer(consumerRoot) {
         cancelable: true,
         detail: { packed: true },
       },
+      helperSubpaths: {
+        domUpdateIdentity: true,
+        emitExtendableIdentity: true,
+        updatedSynchronously: true,
+        domUpdateEvent: {
+          bubbles: true,
+          cancelable: false,
+          detailIsObject: true,
+        },
+        extensionSettled: true,
+        extendableEvent: {
+          bubbles: true,
+          cancelable: false,
+          detailIsObject: true,
+        },
+        baseWrappersRemoved: true,
+      },
       serviceSubpath: true,
     });
-    console.log('Browser packed consumer: Base lifecycle, events and service subpath passed.');
+    console.log(
+      'Browser packed consumer: Base lifecycle, events, helper subpaths and service subpath passed.',
+    );
   } finally {
     await browser?.close();
     await server.close();
