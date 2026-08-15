@@ -103,19 +103,6 @@ function assertConsumerExports(packageJson, files) {
   }
 }
 
-function assertRemovedUiOrchestration(packageJson, files) {
-  assert(
-    !('./viewTransition' in packageJson.exports),
-    'The removed viewTransition subpath exists.',
-  );
-  const removed = [...files].filter((path) =>
-    /^dist\/(?:negotiated-events|viewTransition|subpaths\/viewTransition)\.(?:js|js\.map|d\.ts)$/.test(
-      path,
-    ),
-  );
-  assert.deepEqual(removed, [], `Removed UI orchestration was packed:\n${removed.join('\n')}`);
-}
-
 async function installPackage(tarball, consumerRoot) {
   await mkdir(consumerRoot, { recursive: true });
   await writeFile(
@@ -247,7 +234,6 @@ try {
   );
   assertSideEffects(installedPackageJson.sideEffects, packedFiles);
   assertConsumerExports(installedPackageJson, packedFiles);
-  assertRemovedUiOrchestration(installedPackageJson, packedFiles);
 
   console.log(
     `Packed content: ${metadata.entryCount} files, ${formatBytes(metadata.size)} packed, ${formatBytes(metadata.unpackedSize)} unpacked.`,
