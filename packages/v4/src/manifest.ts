@@ -1,4 +1,5 @@
 import type { ComponentImporter } from './Base.js';
+import { DIAGNOSTICS, warnOnce } from './diagnostics.js';
 import type { MountStrategy } from './mount-strategies.js';
 import type { ComponentManifest } from './registry.js';
 
@@ -41,8 +42,11 @@ export function defineManifest({
     const token = deriveToken(path);
     const firstPath = paths.get(token);
     if (firstPath !== undefined) {
-      console.warn(
-        `[manifest] "${token}" is already derived from "${firstPath}"; ignoring "${path}".`,
+      warnOnce(
+        modules,
+        `${token}\0${firstPath}\0${path}`,
+        DIAGNOSTICS.manifest.duplicateToken,
+        `"${token}" is already derived from "${firstPath}"; ignoring "${path}".`,
       );
       continue;
     }

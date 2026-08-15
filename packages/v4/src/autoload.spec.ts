@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type BaseConfig, type BaseConstructor } from './Base.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostics.js';
 import { whenDOMSettled } from './dom-mutations.js';
-import { type ToolkitErrorDetail } from './errors.js';
 import { EVENTS } from './events.js';
 import { getInstances } from './instances.js';
 import { registerComponent, registerManifest } from './registry.js';
@@ -231,24 +231,28 @@ describe('the strategy that triggers the import', () => {
 
   it('replaces an inert invalid trigger when data-mount is corrected', async () => {
     const { name, load, importCount } = defineLazy();
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const diagnostics: ToolkitDiagnosticDetail[] = [];
     const el = render(name, { 'data-mount': 'eagre' });
+    el.addEventListener(EVENTS.diagnostic, (event) => {
+      event.preventDefault();
+      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+    });
     registerManifest({ [name]: load });
     await observed();
 
     expect(importCount()).toBe(0);
     expect(el.__base__?.get(name)).toBeUndefined();
-    expect(error).toHaveBeenCalledOnce();
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0].code).toBe(DIAGNOSTICS.component.invalidMountStrategy);
 
     el.setAttribute('data-mount', 'eagre');
     await observed();
-    expect(error).toHaveBeenCalledOnce();
+    expect(diagnostics).toHaveLength(1);
 
     el.setAttribute('data-mount', 'eager');
     await settle();
     expect(importCount()).toBe(1);
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
-    error.mockRestore();
   });
 
   it('hands a parameterized reversible override to the registry after the import', async () => {
@@ -320,7 +324,9 @@ describe('registerManifest collisions and failures', () => {
     await settle();
 
     expect(load).not.toHaveBeenCalled();
-    expect(warn).toHaveBeenCalledWith(`[registry] "${name}" is already registered, ignoring.`);
+    expect(warn).toHaveBeenCalledWith(
+      `[js-toolkit:${DIAGNOSTICS.registry.conflict}] "${name}" is already registered; the incoming declaration was ignored.`,
+    );
     expect(instanceOf(el, name)).toBeInstanceOf(Owned);
     warn.mockRestore();
   });
@@ -344,7 +350,6 @@ describe('registerManifest collisions and failures', () => {
     counter += 1;
     const name = `Broken${counter}`;
     const failure = new Error('chunk 404');
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     const load = vi.fn(async () => {
       throw failure;
     });
@@ -352,56 +357,69 @@ describe('registerManifest collisions and failures', () => {
     registerManifest({ [name]: load });
     const first = render(name);
     const second = render(name);
-    const elementEvents: CustomEvent<ToolkitErrorDetail>[] = [];
-    const documentEvents: CustomEvent<ToolkitErrorDetail>[] = [];
-    const windowEvents: CustomEvent<ToolkitErrorDetail>[] = [];
-    first.addEventListener(EVENTS.error, (event) => {
+    const elementEvents: CustomEvent<ToolkitDiagnosticDetail>[] = [];
+    const documentEvents: CustomEvent<ToolkitDiagnosticDetail>[] = [];
+    const windowEvents: CustomEvent<ToolkitDiagnosticDetail>[] = [];
+    first.addEventListener(EVENTS.diagnostic, (event) => {
       event.preventDefault();
-      elementEvents.push(event as CustomEvent<ToolkitErrorDetail>);
+      elementEvents.push(event as CustomEvent<ToolkitDiagnosticDetail>);
     });
     document.addEventListener(
-      EVENTS.error,
-      (event) => documentEvents.push(event as CustomEvent<ToolkitErrorDetail>),
+      EVENTS.diagnostic,
+      (event) => documentEvents.push(event as CustomEvent<ToolkitDiagnosticDetail>),
       { once: true },
     );
     window.addEventListener(
-      EVENTS.error,
-      (event) => windowEvents.push(event as CustomEvent<ToolkitErrorDetail>),
+      EVENTS.diagnostic,
+      (event) => windowEvents.push(event as CustomEvent<ToolkitDiagnosticDetail>),
       { once: true },
     );
     await settle();
 
     expect(load).toHaveBeenCalledTimes(1);
-    expect(error).toHaveBeenCalledOnce();
-    expect(error).toHaveBeenCalledWith(`[registry] Failed to load "${name}":`, failure);
     expect(elementEvents).toHaveLength(1);
     expect(documentEvents).toEqual(elementEvents);
     expect(windowEvents).toEqual(elementEvents);
     expect(elementEvents[0]).toMatchObject({
       bubbles: true,
-      cancelable: false,
+      cancelable: true,
       composed: true,
-      defaultPrevented: false,
+      defaultPrevented: true,
       target: first,
     });
-    expect(elementEvents[0].detail).toEqual({ stage: 'load', error: failure, component: name });
+    expect(elementEvents[0].detail).toEqual({
+      severity: 'error',
+      code: DIAGNOSTICS.component.loadFailed,
+      message: `Failed to load component "${name}".`,
+      error: failure,
+      component: name,
+    });
     expect(elementEvents[0].detail.error).toBe(failure);
     expect(first.__base__).toBeUndefined();
     expect(second.__base__).toBeUndefined();
-    error.mockRestore();
   });
 
   it('reports a module which resolves to no component class', async () => {
     counter += 1;
     const name = `Empty${counter}`;
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const diagnostics: ToolkitDiagnosticDetail[] = [];
+    const onDiagnostic = (event: Event) => {
+      event.preventDefault();
+      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+    };
+    document.addEventListener(EVENTS.diagnostic, onDiagnostic);
 
     registerManifest({ [name]: async () => ({ notAClass: 42 }) });
     render(name);
     await settle();
+    document.removeEventListener(EVENTS.diagnostic, onDiagnostic);
 
-    expect(error).toHaveBeenCalledOnce();
-    error.mockRestore();
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0]).toMatchObject({
+      severity: 'error',
+      code: DIAGNOSTICS.component.loadFailed,
+      component: name,
+    });
   });
 
   it('warns when the resolved class does not answer to the declared token', async () => {
@@ -415,7 +433,7 @@ describe('registerManifest collisions and failures', () => {
     await settle();
 
     expect(warn).toHaveBeenCalledWith(
-      `[registry] "${token}" resolved to a component named "${name}".`,
+      `[js-toolkit:${DIAGNOSTICS.registry.lazyNameMismatch}] "${token}" resolved to a component named "${name}".`,
     );
     expect(el.__base__).toBeUndefined();
     warn.mockRestore();
@@ -539,7 +557,7 @@ describe('a dynamic import declared in config.components', () => {
   });
 
   it('reports a value which is neither a class nor an importer', async () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     counter += 1;
     const childName = `NotAThunk${counter}`;
 
@@ -552,10 +570,10 @@ describe('a dynamic import declared in config.components', () => {
     render(childName);
     await settle();
 
-    expect(error).toHaveBeenCalledWith(
-      `[registry] "${parentName}" declares "${childName}" as neither a component class nor an importer, ignoring.`,
+    expect(warn).toHaveBeenCalledWith(
+      `[js-toolkit:${DIAGNOSTICS.component.invalidFamilyDeclaration}] "${parentName}" declares "${childName}" as neither a component class nor an importer; the declaration was ignored.`,
     );
-    error.mockRestore();
+    warn.mockRestore();
   });
 });
 

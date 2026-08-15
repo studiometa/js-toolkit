@@ -9,7 +9,7 @@ describe('EVENTS', () => {
         destroyed: 'js-toolkit:component:destroyed',
       },
       dom: { update: 'js-toolkit:dom:update' },
-      error: 'js-toolkit:error',
+      diagnostic: 'js-toolkit:diagnostic',
     });
   });
 
@@ -23,7 +23,7 @@ describe('EVENTS', () => {
         readonly destroyed: 'js-toolkit:component:destroyed';
       };
       readonly dom: { readonly update: 'js-toolkit:dom:update' };
-      readonly error: 'js-toolkit:error';
+      readonly diagnostic: 'js-toolkit:diagnostic';
     }>();
   });
 });

@@ -9,6 +9,8 @@ import {
   signal,
   type Signal,
 } from './context.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostics.js';
+import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
 import { getInstance, renderTodoList, resetDom, settle } from './test-utils.js';
 
@@ -54,6 +56,74 @@ describe('Signal', () => {
     first();
     cell.value = 2;
     expect(calls).toBe(3);
+  });
+
+  it('returns a usable unsubscribe after an immediate subscriber failure', () => {
+    const cell = signal(0);
+    const failure = new Error('immediate signal failure');
+    const diagnostics: ToolkitDiagnosticDetail[] = [];
+    document.addEventListener(
+      EVENTS.diagnostic,
+      (event) => {
+        event.preventDefault();
+        diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+      },
+      { once: true },
+    );
+
+    const unsubscribe = cell.subscribe(
+      () => {
+        throw failure;
+      },
+      { immediate: true },
+    );
+    unsubscribe();
+    const seen: number[] = [];
+    cell.subscribe((value) => seen.push(value));
+    cell.value = 1;
+
+    expect(seen).toEqual([1]);
+    expect(diagnostics).toEqual([
+      {
+        severity: 'error',
+        code: DIAGNOSTICS.callback.signalFailed,
+        message: 'An immediate signal subscriber failed.',
+        error: failure,
+      },
+    ]);
+  });
+
+  it('isolates update failures without staling a reentrant delivery round', () => {
+    const cell = signal(0);
+    const failure = new Error('signal update failure');
+    const diagnostics: ToolkitDiagnosticDetail[] = [];
+    const listener = (event: Event) => {
+      event.preventDefault();
+      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+    };
+    document.addEventListener(EVENTS.diagnostic, listener);
+    const broken: number[] = [];
+    const later: number[] = [];
+    cell.subscribe((value) => {
+      broken.push(value);
+      throw failure;
+    });
+    cell.subscribe((value) => {
+      if (value === 1) cell.value = 2;
+    });
+    cell.subscribe((value) => later.push(value));
+
+    cell.value = 1;
+    document.removeEventListener(EVENTS.diagnostic, listener);
+
+    expect(cell.value).toBe(2);
+    expect(broken).toEqual([1, 2]);
+    expect(later).toEqual([2]);
+    expect(diagnostics).toHaveLength(2);
+    expect(diagnostics.every(({ code }) => code === DIAGNOSTICS.callback.signalFailed)).toBe(true);
+    expect(
+      diagnostics.every((detail) => detail.severity === 'error' && detail.error === failure),
+    ).toBe(true);
   });
 
   describe('settling', () => {

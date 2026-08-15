@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type BaseConfig, type OptionChange } from './Base.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostics.js';
 import { watchAttributes, whenDOMSettled, type AttributeChange } from './dom-mutations.js';
+import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
 import { getInstance, resetDom } from './test-utils.js';
@@ -217,7 +219,11 @@ describe('watchAttributes', () => {
     const el = document.createElement('div');
     document.body.append(el);
     const failure = new Error('watcher failure');
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const diagnostics: ToolkitDiagnosticDetail[] = [];
+    el.addEventListener(EVENTS.diagnostic, (event) => {
+      event.preventDefault();
+      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+    });
     const changes: AttributeChange[] = [];
     trackedWatcher(el, () => {
       throw failure;
@@ -227,12 +233,15 @@ describe('watchAttributes', () => {
     el.setAttribute(VIRTUAL_ATTRIBUTE, 'open()');
     await whenDOMSettled();
 
-    expect(error).toHaveBeenCalledWith(
-      `[watchAttributes] Callback for "${VIRTUAL_ATTRIBUTE}" failed:`,
-      failure,
-    );
+    expect(diagnostics).toEqual([
+      {
+        severity: 'error',
+        code: DIAGNOSTICS.callback.attributeWatcherFailed,
+        message: `The attribute watcher callback for "${VIRTUAL_ATTRIBUTE}" failed.`,
+        error: failure,
+      },
+    ]);
     expect(changes).toEqual([{ name: VIRTUAL_ATTRIBUTE, value: 'open()', previousValue: null }]);
-    error.mockRestore();
   });
 
   it('delivers after declared options in the same mutation batch', async () => {

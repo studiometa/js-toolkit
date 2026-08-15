@@ -1,8 +1,8 @@
 import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
+import { DIAGNOSTICS, reportDiagnostic, warnOnce } from './diagnostics.js';
 import { domVersion } from './dom-mutations.js';
-import { reportToolkitError } from './errors.js';
 import { EVENTS } from './events.js';
 import { HANDLER_REGISTRATIONS } from './protocol-symbols.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
@@ -418,10 +418,14 @@ declare global {
  * once, at the moment the mistake is made. The event still dispatches — this
  * reports a shape, it does not police one.
  */
-function checkPayload(event: string, payload: unknown): void {
+function checkPayload(instance: Base, event: string, payload: unknown): void {
   if (payload !== undefined && (typeof payload !== 'object' || payload === null)) {
-    console.warn(
-      `[base] \`$emit('${event}', …)\` takes one payload object; received ${typeof payload}. Name the value: \`{ value }\`.`,
+    warnOnce(
+      instance,
+      event,
+      DIAGNOSTICS.event.invalidEmitPayload,
+      `\`$emit('${event}', …)\` takes one payload object; received ${typeof payload}. Name the value: \`{ value }\`.`,
+      { component: instance.$config.name, target: instance.$el },
     );
   }
 }
@@ -596,8 +600,12 @@ function warnMissingRefSuffix(instance: Base, definition: string, checked: Set<s
   if (!instance.$el.querySelector(`[data-ref="${name}"],[data-ref="${namespaced}"]`)) {
     return;
   }
-  console.warn(
-    `[base] \`${instance.$config.name}\` declares \`${definition}\` and found no \`data-ref="${definition}"\`, but the markup declares \`data-ref="${name}"\`. A list ref carries the \`[]\` in the attribute too: add it, or drop it from \`config.refs\`.`,
+  warnOnce(
+    instance,
+    `attribute:${definition}`,
+    DIAGNOSTICS.ref.mismatch,
+    `\`${instance.$config.name}\` declares \`${definition}\` and found no \`data-ref="${definition}"\`, but the markup declares \`data-ref="${name}"\`. A list ref carries the \`[]\` in the attribute too: add it, or drop it from \`config.refs\`.`,
+    { component: instance.$config.name, target: instance.$el },
   );
 }
 
@@ -631,8 +639,12 @@ function warnRefSuffixMismatch(
   if (!refs.some(({ definition }) => definition === other)) {
     return;
   }
-  console.warn(
-    `[base] \`${instance.$config.name}\` binds \`@on('${child}', …)\`, which matches no component and no ref. The ref is declared \`${other}\`, and \`@on()\` names a ref the way it is declared: write \`@on('${other}', …)\`.`,
+  warnOnce(
+    instance,
+    `handler:${child}`,
+    DIAGNOSTICS.ref.mismatch,
+    `\`${instance.$config.name}\` binds \`@on('${child}', …)\`, which matches no component and no ref. The ref is declared \`${other}\`, and \`@on()\` names a ref the way it is declared: write \`@on('${other}', …)\`.`,
+    { component: instance.$config.name, target: instance.$el },
   );
 }
 
@@ -734,8 +746,6 @@ const optionReaders = new WeakMap<Base, Map<string, OptionReader>>();
  * definition object is the one the class declared, shared by every instance of
  * it, and by every subclass that inherits it through `resolveConfig()`.
  */
-const reportedLiteralDefaults = new WeakSet<object>();
-
 /**
  * Say so when a default is a literal object or array.
  *
@@ -755,14 +765,15 @@ function warnLiteralDefault(
   option: string,
   definition: object,
   declared: object,
+  target: Element,
 ): void {
-  if (reportedLiteralDefaults.has(definition)) {
-    return;
-  }
-  reportedLiteralDefaults.add(definition);
   const kind = Array.isArray(declared) ? 'array' : 'object';
-  console.warn(
-    `[base] \`${componentName}\` declares option \`${option}\` with a literal ${kind} default, which every instance of it then shares. Only a primitive may be a default; declare this one as a factory: \`default: () => (…)\`.`,
+  warnOnce(
+    definition,
+    '',
+    DIAGNOSTICS.option.literalDefault,
+    `\`${componentName}\` declares option \`${option}\` with a literal ${kind} default, which every instance of it then shares. Only a primitive may be a default; declare this one as a factory: \`default: () => (…)\`.`,
+    { component: componentName, target },
   );
 }
 
@@ -777,7 +788,7 @@ function buildOptions(instance: Base): Record<string, unknown> {
     const attribute = `data-option-${kebabCase(name)}`;
 
     if (typeof definition !== 'function' && declared !== null && typeof declared === 'object') {
-      warnLiteralDefault(instance.$config.name, name, definition, declared);
+      warnLiteralDefault(instance.$config.name, name, definition, declared, el);
     }
 
     // Built on first read and memoised, so repeated reads hand back the same
@@ -1069,6 +1080,13 @@ const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan =>
  */
 export type MountedReturn = void | (() => void) | MountedReturn[] | Promise<MountedReturn>;
 
+function reportLifecycleFailure(instance: Base, message: string, error: unknown): void {
+  reportDiagnostic(DIAGNOSTICS.component.lifecycleFailed, message, error, {
+    component: instance.$config.name,
+    target: instance.$el,
+  });
+}
+
 export class Base<T extends BaseProps = BaseProps> {
   /** A class-owned brand inherited by subclasses and shared by bundled copies. */
   static readonly [BASE_BRAND] = true;
@@ -1199,8 +1217,7 @@ export class Base<T extends BaseProps = BaseProps> {
     try {
       this.#collectCleanup(this.mounted(), cycle);
     } catch (error) {
-      console.error('[base] `mounted()` failed:', error);
-      reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+      reportLifecycleFailure(this, '`mounted()` failed.', error);
     }
     if (!this.#isActiveMountCycle(cycle)) {
       return this;
@@ -1250,16 +1267,14 @@ export class Base<T extends BaseProps = BaseProps> {
       try {
         callback();
       } catch (error) {
-        console.error('[base] Mount cleanup failed:', error);
-        reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+        reportLifecycleFailure(this, 'A mount cleanup failed.', error);
       }
     }
     this.#clearOptionEffects();
     try {
       this.destroyed();
     } catch (error) {
-      console.error('[base] `destroyed()` failed:', error);
-      reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+      reportLifecycleFailure(this, '`destroyed()` failed.', error);
     }
     // The element may already be detached, so a bubbling event would reach
     // nobody: announce from the document instead.
@@ -1287,15 +1302,13 @@ export class Base<T extends BaseProps = BaseProps> {
       try {
         callback();
       } catch (error) {
-        console.error('[base] Termination cleanup failed:', error);
-        reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+        reportLifecycleFailure(this, 'A termination cleanup failed.', error);
       }
     }
     try {
       this.terminated();
     } catch (error) {
-      console.error('[base] `terminated()` failed:', error);
-      reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+      reportLifecycleFailure(this, '`terminated()` failed.', error);
     }
     this.$el.__base__?.delete(this.$config.name);
     return this;
@@ -1324,7 +1337,7 @@ export class Base<T extends BaseProps = BaseProps> {
    */
   $emit<K extends EmitName<T>>(event: K, ...payload: EmitArgs<T, K>): CustomEvent<EmitDetail<T, K>>;
   $emit(event: string, payload?: object): CustomEvent<unknown> {
-    checkPayload(event, payload);
+    checkPayload(this, event, payload);
     return this.#dispatch(event, payload);
   }
 
@@ -1678,8 +1691,7 @@ export class Base<T extends BaseProps = BaseProps> {
       try {
         previousCleanup();
       } catch (error) {
-        console.error(`[base] Option "${name}" cleanup failed:`, error);
-        reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+        reportLifecycleFailure(this, `Option "${name}" cleanup failed.`, error);
       }
     }
     if (!this.#isMounted) {
@@ -1706,8 +1718,7 @@ export class Base<T extends BaseProps = BaseProps> {
       };
       cleanup = (handler as (change: OptionChange) => OptionChangedReturn).call(this, change);
     } catch (error) {
-      console.error(`[base] \`${method}()\` failed:`, error);
-      reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+      reportLifecycleFailure(this, `\`${method}()\` failed.`, error);
       return;
     }
     if (typeof cleanup === 'function') {
@@ -1717,8 +1728,7 @@ export class Base<T extends BaseProps = BaseProps> {
         try {
           cleanup();
         } catch (error) {
-          console.error(`[base] Option "${name}" cleanup failed:`, error);
-          reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+          reportLifecycleFailure(this, `Option "${name}" cleanup failed.`, error);
         }
       }
     }
@@ -1731,8 +1741,7 @@ export class Base<T extends BaseProps = BaseProps> {
       try {
         cleanup();
       } catch (error) {
-        console.error(`[base] Option "${name}" cleanup failed:`, error);
-        reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+        reportLifecycleFailure(this, `Option "${name}" cleanup failed.`, error);
       }
     }
   }
@@ -1752,8 +1761,7 @@ export class Base<T extends BaseProps = BaseProps> {
         try {
           result();
         } catch (error) {
-          console.error('[base] Late mount cleanup failed:', error);
-          reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+          reportLifecycleFailure(this, 'A late mount cleanup failed.', error);
         }
       }
       return;
@@ -1768,8 +1776,7 @@ export class Base<T extends BaseProps = BaseProps> {
       result
         .then((resolved) => this.#collectCleanup(resolved, cycle))
         .catch((error) => {
-          console.error('[base] `mounted()` failed:', error);
-          reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+          reportLifecycleFailure(this, '`mounted()` failed.', error);
         });
     }
   }

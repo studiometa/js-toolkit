@@ -11,5 +11,5 @@ const dom = Object.freeze({
 export const EVENTS = Object.freeze({
   component,
   dom,
-  error: 'js-toolkit:error',
+  diagnostic: 'js-toolkit:diagnostic',
 } as const);

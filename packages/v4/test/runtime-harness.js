@@ -293,7 +293,7 @@ async function run(copyA, copyB) {
       copyA.EVENTS.component.mounted === copyB.EVENTS.component.mounted &&
       copyA.EVENTS.component.destroyed === copyB.EVENTS.component.destroyed &&
       copyA.EVENTS.dom.update === copyB.EVENTS.dom.update &&
-      copyA.EVENTS.error === copyB.EVENTS.error;
+      copyA.EVENTS.diagnostic === copyB.EVENTS.diagnostic;
 
     const decoratorInitializers = [];
     let decoratorCalls = 0;
@@ -326,23 +326,28 @@ async function run(copyA, copyB) {
 
     const errorEventsA = [];
     const errorEventsB = [];
-    const onErrorA = (event) => errorEventsA.push(event);
+    const onErrorA = (event) => {
+      event.preventDefault();
+      errorEventsA.push(event);
+    };
     const onErrorB = (event) => errorEventsB.push(event);
-    document.addEventListener(copyA.EVENTS.error, onErrorA);
-    document.addEventListener(copyB.EVENTS.error, onErrorB);
+    document.addEventListener(copyA.EVENTS.diagnostic, onErrorA);
+    document.addEventListener(copyB.EVENTS.diagnostic, onErrorB);
 
     const lifecycleFailureA = new Error('copy A lifecycle failure');
     const lifecycleFailureB = new Error('copy B lifecycle failure');
     const mountFailureB = new Error('copy B construction failure');
     const loadFailure = new Error('shared registry load failure');
     const expectedFailures = [lifecycleFailureA, lifecycleFailureB, mountFailureB, loadFailure];
+    const expectedCodes = [
+      copyA.DIAGNOSTICS.component.lifecycleFailed,
+      copyA.DIAGNOSTICS.component.lifecycleFailed,
+      copyA.DIAGNOSTICS.component.mountFailed,
+      copyA.DIAGNOSTICS.component.loadFailed,
+    ];
     const errorTargets = Array.from({ length: 4 }, () => document.createElement('div'));
-    const nativeConsoleError = console.error;
-    const frameworkConsoleErrors = [];
 
     try {
-      console.error = (...args) => frameworkConsoleErrors.push(args);
-
       class LifecycleFailureA extends copyA.Base {
         static config = { name: 'RuntimeFixtureFailureA' };
 
@@ -384,29 +389,76 @@ async function run(copyA, copyB) {
       });
       await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
     } finally {
-      console.error = nativeConsoleError;
-      document.removeEventListener(copyA.EVENTS.error, onErrorA);
-      document.removeEventListener(copyB.EVENTS.error, onErrorB);
+      document.removeEventListener(copyA.EVENTS.diagnostic, onErrorA);
+      document.removeEventListener(copyB.EVENTS.diagnostic, onErrorB);
     }
 
     const errors = {
-      sameEventName: copyA.EVENTS.error === copyB.EVENTS.error,
+      sameEventName: copyA.EVENTS.diagnostic === copyB.EVENTS.diagnostic,
       heardByA: errorEventsA.length,
       heardByB: errorEventsB.length,
       sameEvents: errorEventsA.every((event, index) => event === errorEventsB[index]),
       contract: errorEventsA.every(
         (event) =>
-          event.type === copyA.EVENTS.error && event.bubbles && event.composed && !event.cancelable,
+          event.type === copyA.EVENTS.diagnostic &&
+          event.bubbles &&
+          event.composed &&
+          event.cancelable &&
+          event.defaultPrevented,
       ),
       identities: errorEventsA.every(
         (event, index) => event.detail.error === expectedFailures[index],
       ),
+      codes: errorEventsA.every((event, index) => event.detail.code === expectedCodes[index]),
       targets: errorEventsA.every((event, index) => event.target === errorTargets[index]),
-      consoleReports: frameworkConsoleErrors.length,
       details: errorEventsA.map((event) => ({
-        stage: event.detail.stage,
+        severity: event.detail.severity,
+        code: event.detail.code,
         component: event.detail.component,
       })),
+    };
+
+    const warningEventsA = [];
+    const warningEventsB = [];
+    const onWarningA = (event) => {
+      if (event.detail.severity !== 'warning') return;
+      event.preventDefault();
+      warningEventsA.push(event);
+    };
+    const onWarningB = (event) => {
+      if (event.detail.severity === 'warning') warningEventsB.push(event);
+    };
+    document.addEventListener(copyA.EVENTS.diagnostic, onWarningA);
+    document.addEventListener(copyB.EVENTS.diagnostic, onWarningB);
+    try {
+      const modules = {
+        './first/Duplicate.ts': async () => ({}),
+        './second/Duplicate.ts': async () => ({}),
+      };
+      copyA.defineManifest({ modules });
+      copyB.defineManifest({ modules });
+
+      const definition = { type: Object, default: { shared: true } };
+      class LiteralDefaultA extends copyA.Base {
+        static config = { name: 'RuntimeFixtureLiteralA', options: { value: definition } };
+      }
+      class LiteralDefaultB extends copyB.Base {
+        static config = { name: 'RuntimeFixtureLiteralB', options: { value: definition } };
+      }
+      new LiteralDefaultA(document.createElement('div'));
+      new LiteralDefaultB(document.createElement('div'));
+    } finally {
+      document.removeEventListener(copyA.EVENTS.diagnostic, onWarningA);
+      document.removeEventListener(copyB.EVENTS.diagnostic, onWarningB);
+    }
+    const warnings = {
+      heardByA: warningEventsA.length,
+      heardByB: warningEventsB.length,
+      sameEvents: warningEventsA.every((event, index) => event === warningEventsB[index]),
+      codes: warningEventsA.map((event) => event.detail.code),
+      oneStringProtocol:
+        copyA.DIAGNOSTICS.manifest.duplicateToken === copyB.DIAGNOSTICS.manifest.duplicateToken &&
+        copyA.DIAGNOSTICS.option.literalDefault === copyB.DIAGNOSTICS.option.literalDefault,
     };
 
     let frameRequests = 0;
@@ -692,6 +744,7 @@ async function run(copyA, copyB) {
           copyB: attributeChangesB,
         },
         errors,
+        warnings,
         registry: {
           observers: registryObservers,
           ...registryResult,

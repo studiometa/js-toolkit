@@ -37,6 +37,7 @@
  * present. Nothing is written, which is what keeps `$options` the read-only
  * view over attributes it is everywhere else.
  */
+import { DIAGNOSTICS, warnOnce } from './diagnostics.js';
 import { registerDOMOptionAttributes, replaceDOMOptionAttributes } from './dom-mutations.js';
 import { breakpointNames, onBreakpointsReplaced, useBreakpoint } from './services/breakpoint.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
@@ -65,23 +66,21 @@ export const RESPONSIVE_SEPARATOR = ':';
 interface ResponsiveOptionsRuntimeState {
   scopedAttributes: Memo<[attribute: string], readonly string[]>;
   observed: Set<string>;
-  warnedResponsiveAttributes: WeakMap<Element, Set<string>>;
   isReplacementListenerAttached: boolean;
 }
 
 const responsiveOptionsState = /* @__PURE__ */ getSharedRuntimeSlot<ResponsiveOptionsRuntimeState>(
   'responsive-options',
-  1,
+  2,
   () => ({
     scopedAttributes: memo((attribute: string): readonly string[] =>
       breakpointNames().map((name) => `${attribute}${RESPONSIVE_SEPARATOR}${name}`),
     ),
     observed: new Set(),
-    warnedResponsiveAttributes: new WeakMap(),
     isReplacementListenerAttached: false,
   }),
 );
-const { scopedAttributes, observed, warnedResponsiveAttributes } = responsiveOptionsState;
+const { scopedAttributes, observed } = responsiveOptionsState;
 
 /**
  * The exact scoped spellings for an attribute in the current breakpoint set.
@@ -227,17 +226,12 @@ export function checkResponsiveAttributes(el: HTMLElement, attributes: readonly 
     for (const attribute of attributes) {
       const prefix = `${attribute}${RESPONSIVE_SEPARATOR}`;
       if (name.startsWith(prefix) && !names.includes(name.slice(prefix.length))) {
-        let warned = warnedResponsiveAttributes.get(el);
-        if (warned?.has(name)) {
-          break;
-        }
-        if (!warned) {
-          warned = new Set();
-          warnedResponsiveAttributes.set(el, warned);
-        }
-        warned.add(name);
-        console.warn(
-          `[base] \`${name}\` names no breakpoint, so it is never read. One breakpoint per attribute, cascading upwards from it — known names: ${names.join(', ')}.`,
+        warnOnce(
+          el,
+          name,
+          DIAGNOSTICS.responsive.unknownBreakpoint,
+          `\`${name}\` names no breakpoint, so it is never read. One breakpoint per attribute, cascading upwards from it — known names: ${names.join(', ')}.`,
+          { target: el },
         );
         break;
       }

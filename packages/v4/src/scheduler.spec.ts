@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostics.js';
+import { EVENTS } from './events.js';
 import { nextFrame, defaultScheduler, type SchedulerPhase, type TickProps } from './scheduler.js';
 
 describe('defaultScheduler (real frames)', () => {
@@ -23,31 +25,33 @@ describe('defaultScheduler (real frames)', () => {
     expect(frames[0]).toBeGreaterThan(0);
   });
 
-  it('survives a throwing task, and reports it', async () => {
-    const reported: unknown[] = [];
-    const onError = (event: ErrorEvent) => {
-      reported.push(event.error);
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    };
-    window.addEventListener('error', onError, { capture: true });
+  it('survives a throwing task, reports it, and keeps its promise rejection', async () => {
+    const failure = new Error('boom');
+    const diagnostics: ToolkitDiagnosticDetail[] = [];
+    document.addEventListener(
+      EVENTS.diagnostic,
+      (event) => {
+        event.preventDefault();
+        diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+      },
+      { once: true },
+    );
 
-    try {
-      const task = defaultScheduler.write(() => {
-        throw new Error('boom');
-      });
-      await expect(task.promise).rejects.toThrow('boom');
+    const task = defaultScheduler.write(() => {
+      throw failure;
+    });
+    await expect(task.promise).rejects.toBe(failure);
 
-      const after = defaultScheduler.write(() => 'still alive');
-      await expect(after.promise).resolves.toBe('still alive');
-    } finally {
-      window.removeEventListener('error', onError, { capture: true });
-    }
-
-    // `reportError()`, not `console.error()`: the platform's error channel is
-    // what an error reporter is listening to.
-    expect(reported).toHaveLength(1);
-    expect((reported[0] as Error).message).toBe('boom');
+    const after = defaultScheduler.write(() => 'still alive');
+    await expect(after.promise).resolves.toBe('still alive');
+    expect(diagnostics).toEqual([
+      {
+        severity: 'error',
+        code: DIAGNOSTICS.callback.scheduledTaskFailed,
+        message: 'A scheduled task failed.',
+        error: failure,
+      },
+    ]);
   });
 
   it('resolves task promises with return values and supports cancel', async () => {
@@ -173,6 +177,38 @@ describe('defaultScheduler.background', () => {
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
+
+  it('reports a native background-post rejection and continues through the fallback', async () => {
+    const failure = new Error('native post failed');
+    const diagnostics: ToolkitDiagnosticDetail[] = [];
+    document.addEventListener(
+      EVENTS.diagnostic,
+      (event) => {
+        event.preventDefault();
+        diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+      },
+      { once: true },
+    );
+    vi.stubGlobal('scheduler', {
+      postTask: () => Promise.reject(failure),
+    });
+
+    try {
+      const task = defaultScheduler.background(() => 'continued');
+      await expect(task.promise).resolves.toBe('continued');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+
+    expect(diagnostics).toEqual([
+      {
+        severity: 'error',
+        code: DIAGNOSTICS.scheduler.backgroundPostFailed,
+        message: 'The native scheduler rejected a background post.',
+        error: failure,
+      },
+    ]);
+  });
 });
 
 describe('defaultScheduler.tick', () => {
@@ -192,6 +228,42 @@ describe('defaultScheduler.tick', () => {
 
     expect(ticks).toBeGreaterThanOrEqual(1);
     expect(phases.slice(0, 2)).toEqual(['tick', 'read']);
+  });
+
+  it('isolates a failed tick callback and continues the tick', async () => {
+    const failure = new Error('tick failure');
+    const diagnostics: ToolkitDiagnosticDetail[] = [];
+    document.addEventListener(
+      EVENTS.diagnostic,
+      (event) => {
+        event.preventDefault();
+        diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+      },
+      { once: true },
+    );
+    let stopBroken = (): void => {};
+    stopBroken = defaultScheduler.tick(() => {
+      stopBroken();
+      throw failure;
+    });
+    let healthyCalls = 0;
+    let stopHealthy = (): void => {};
+    stopHealthy = defaultScheduler.tick(() => {
+      healthyCalls += 1;
+      stopHealthy();
+    });
+
+    await nextFrame();
+
+    expect(healthyCalls).toBe(1);
+    expect(diagnostics).toEqual([
+      {
+        severity: 'error',
+        code: DIAGNOSTICS.callback.schedulerTickFailed,
+        message: 'A scheduler tick callback failed.',
+        error: failure,
+      },
+    ]);
   });
 
   it('reports the time elapsed since the previous tick', async () => {

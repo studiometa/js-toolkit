@@ -1,25 +1,21 @@
 import { describe, expect, it } from 'vitest';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from '../diagnostics.js';
+import { EVENTS } from '../events.js';
 import { createService, perTarget } from './service.js';
 
-/**
- * A broken subscriber is reported through the platform's error channel, which
- * is the whole point of using `reportError()` — so a test that breaks one on
- * purpose has to take delivery of it.
- */
-function catchReportedErrors(run: () => void): unknown[] {
-  const reported: unknown[] = [];
-  const onError = (event: ErrorEvent) => {
-    reported.push(event.error);
+function catchDiagnostics(run: () => void): ToolkitDiagnosticDetail[] {
+  const diagnostics: ToolkitDiagnosticDetail[] = [];
+  const onDiagnostic = (event: Event) => {
     event.preventDefault();
-    event.stopImmediatePropagation();
+    diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
   };
-  window.addEventListener('error', onError, { capture: true });
+  document.addEventListener(EVENTS.diagnostic, onDiagnostic);
   try {
     run();
   } finally {
-    window.removeEventListener('error', onError, { capture: true });
+    document.removeEventListener(EVENTS.diagnostic, onDiagnostic);
   }
-  return reported;
+  return diagnostics;
 }
 
 describe('createService', () => {
@@ -309,16 +305,19 @@ describe('createService', () => {
       reached += 1;
     });
 
-    const reported = catchReportedErrors(() => {
+    const diagnostics = catchDiagnostics(() => {
       emit(1);
       emit(2);
     });
 
     expect(reached).toBe(2);
-    // Reported, not swallowed: `reportError()` goes through the platform's
-    // error channel, so an error reporter sees it.
-    expect(reported).toHaveLength(2);
-    expect((reported[0] as Error).message).toBe('boom');
+    expect(diagnostics).toHaveLength(2);
+    expect(diagnostics.every(({ code }) => code === DIAGNOSTICS.callback.serviceFailed)).toBe(true);
+    expect(
+      diagnostics.every(
+        (detail) => detail.severity === 'error' && (detail.error as Error).message === 'boom',
+      ),
+    ).toBe(true);
   });
 
   it('delivers the current props to a subscriber that asks, and to nobody else', () => {
@@ -411,7 +410,7 @@ describe('createService', () => {
     });
 
     let calls = 0;
-    const reported = catchReportedErrors(() => {
+    const diagnostics = catchDiagnostics(() => {
       const unsubscribe = service.subscribe(
         () => {
           calls += 1;
@@ -426,7 +425,8 @@ describe('createService', () => {
     });
 
     expect(calls).toBe(2);
-    expect(reported).toHaveLength(2);
+    expect(diagnostics).toHaveLength(2);
+    expect(diagnostics.every(({ code }) => code === DIAGNOSTICS.callback.serviceFailed)).toBe(true);
   });
 
   it('reads its props without subscribing', () => {
