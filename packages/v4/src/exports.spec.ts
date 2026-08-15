@@ -2,6 +2,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import { clamp, smoothTo } from '@studiometa/js-toolkit-v4/utils';
 import {
   Base,
+  JS_TOOLKIT_ERROR_EVENT,
   useInView,
   useScrollProgress,
   withInView,
@@ -10,15 +11,31 @@ import {
   type InViewMixinOptions,
   type InViewProps,
   type Service,
+  type ToolkitErrorDetail,
+  type ToolkitErrorStage,
 } from '@studiometa/js-toolkit-v4';
 import useInViewFromSubpath, {
   useInView as namedUseInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/useInView';
 import useScrollProgressSubpath from '@studiometa/js-toolkit-v4/useScrollProgress';
+import errorEventFromSubpath, {
+  JS_TOOLKIT_ERROR_EVENT as namedErrorEventFromSubpath,
+} from '@studiometa/js-toolkit-v4/JS_TOOLKIT_ERROR_EVENT';
 import withInViewFromSubpath, {
   withInView as namedWithInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/withInView';
 import withScrollProgressSubpath from '@studiometa/js-toolkit-v4/withScrollProgress';
+
+function toolkitErrorDetailTypeAssertions(detail: ToolkitErrorDetail): void {
+  // @ts-expect-error framework error details are observations, not mutable recovery state
+  detail.stage = 'mount';
+  // @ts-expect-error the caught value keeps its identity and cannot be replaced
+  detail.error = new Error('replacement');
+  // @ts-expect-error the component name cannot be rewritten by a listener
+  detail.component = 'Replacement';
+}
+
+void toolkitErrorDetailTypeAssertions;
 
 describe('the package entry points', () => {
   it('serves the utils from the /utils subpath', () => {
@@ -51,5 +68,17 @@ describe('the package entry points', () => {
   it('exports scroll progress from the root and symbol subpaths', () => {
     expect(useScrollProgress).toBe(useScrollProgressSubpath);
     expect(withScrollProgress).toBe(withScrollProgressSubpath);
+  });
+
+  it('exports the framework error contract from the root and constant subpath', () => {
+    expect(JS_TOOLKIT_ERROR_EVENT).toBe('js-toolkit:error');
+    expect(errorEventFromSubpath).toBe(JS_TOOLKIT_ERROR_EVENT);
+    expect(namedErrorEventFromSubpath).toBe(JS_TOOLKIT_ERROR_EVENT);
+    expectTypeOf<ToolkitErrorStage>().toEqualTypeOf<'load' | 'mount' | 'lifecycle'>();
+    expectTypeOf<ToolkitErrorDetail>().toEqualTypeOf<{
+      readonly stage: ToolkitErrorStage;
+      readonly error: unknown;
+      readonly component?: string;
+    }>();
   });
 });

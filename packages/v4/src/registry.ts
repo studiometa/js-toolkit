@@ -11,6 +11,7 @@ import {
   trackDOMLifecycleWork,
   type DOMMutationRecord,
 } from './dom-mutations.js';
+import { reportToolkitError } from './errors.js';
 import {
   applyMountStrategy,
   MOUNT_ATTRIBUTE,
@@ -312,7 +313,7 @@ export function registerManifest(entries: ComponentManifest): void {
  * name. A failure is reported and never retried: the trigger has already
  * been spent, and a retry loop on a broken chunk is worse than a silent page.
  */
-function importComponent(name: string): Promise<void> {
+function importComponent(name: string, target?: Element): Promise<void> {
   const pending = imports.get(name);
   if (pending) {
     return pending;
@@ -339,6 +340,7 @@ function importComponent(name: string): Promise<void> {
     })
     .catch((error: unknown) => {
       console.error(`[registry] Failed to load "${name}":`, error);
+      reportToolkitError('load', error, name, target);
     });
 
   imports.set(name, work);
@@ -440,6 +442,7 @@ function mountPair(
     instance.$mount();
   } catch (error) {
     console.error(`[registry] Failed to mount "${name}":`, error);
+    reportToolkitError('mount', error, name, el);
   }
 }
 
@@ -544,7 +547,7 @@ function scheduleLoad(el: HTMLElement, name: string): void {
       }
       fired = true;
       disposeLoader(el, name);
-      const work = importComponent(name);
+      const work = importComponent(name, el);
       // Only an eager trigger belongs to the settlement boundary, matching
       // the rule the registry already follows: `whenDOMSettled()` — and so
       // `swap()` — waits for an eager lazy component to be downloaded,

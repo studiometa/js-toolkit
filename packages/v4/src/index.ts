@@ -98,6 +98,11 @@ export {
 } from './context.js';
 export { children, component, inject, on, provide, read, write } from './decorators.js';
 export { whenDOMSettled, type AttributeChange, type AttributeWatcher } from './dom-mutations.js';
+export {
+  JS_TOOLKIT_ERROR_EVENT,
+  type ToolkitErrorDetail,
+  type ToolkitErrorStage,
+} from './errors.js';
 export { getInstances } from './instances.js';
 export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
 export {
