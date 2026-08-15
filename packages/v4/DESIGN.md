@@ -60,7 +60,7 @@ class TodoCount extends Base {
 - The hook keeps its `mounted` name — "setup" in Vue means "runs before mount", which is not what this is, and `mounted()` stays familiar to v3 authors. `destroyed()`/`terminated()` hooks remain for cases that do not fit the returned-cleanup shape.
 - `config.components` loses its ownership meaning. Two jobs remain: register the declared family when the parent registers — a class right away, a `() => import('./Child.js')` thunk as a lazy entry (§11d) — and provide the name set for `on<Child><Event>` resolution. The object shape is what carries both: the key is the component name, so a lazy child is a name the registry knows with nothing downloaded.
 - `$parent`, `$children`, `$root`, and `createApp` are removed. `$query()` / `$closest()` (shipped in 3.x) are the replacements.
-- Sibling composition (#697, `config.use`) fits the model: a sibling is another instance on the same element, created by the registry, resolvable through the element's instance map.
+- Sibling composition through `config.use` was considered in #697 and is not planned.
 
 ### Refs are live, so there is no `$update()`
 
@@ -397,7 +397,7 @@ The cost of the migration was measured before it was chosen. Across `src/`, `mig
 - The handler walks from `event.target` up to `this.$el`, reads each element's instance map, and calls `on<Name><Event>` for the first matching mounted instance.
 - Dynamically inserted children need no rebinding.
 - `config.components` still provides the name set, because method names alone are ambiguous (`onSliderDragStart` → `SliderDrag`+`start` or `Slider`+`drag-start`).
-- `mouseenter`/`mouseleave` do not bubble: these two keep direct binding (accepted limitation).
+- Non-bubbling events, including `mouseenter` and `mouseleave`, are delegated from the capture phase.
 - `$on`/`$off` and `Action`-style directives keep working unchanged and benefit from bubbling.
 
 ### Global handlers — `onWindow<Event>` / `onDocument<Event>` — implemented
@@ -682,7 +682,7 @@ Properties:
 - **The background lane runs outside the frame.** It absorbs `SmartQueue`, and it is _not_ a phase of the flush. rAF callbacks run before style, layout and paint, so non-rendering work placed there competes with the frame no matter what budget guards it — and a budget measured from the top of the flush is spent by the tick callbacks and the render phases before the lane is reached. Measured: one tick subscriber busy 10 ms per frame (one running animation) starved the lane completely — zero background tasks in 400 ms, so nothing mounted while the animation ran. The lane now posts its own turns through `scheduler.postTask({ priority: 'background' })`, falling back to a `MessageChannel` message (`setTimeout` clamps nested timeouts; React's scheduler moved to a message channel for exactly this reason, facebook/react#16214). Each turn runs a 5 ms slice measured from the start of _the drain_, then hands the thread back and posts the next turn, so the work drains across as many turns as it needs. `isInputPending` is deliberately not used — that recommendation has been retracted. Prior art: Motion runs a second batcher on `queueMicrotask`, outside rAF, rather than budgeting inside it. Consequences: background work alone never requests an animation frame, and `whenIdle()` — which still counts background tasks as queued work — now resolves at the end of a background drain as well as at the end of a flush.
 - **Clamped tick delta.** `TickProps.delta` is clamped to `[1, 40]` ms, and the first tick after the loop wakes reports `1000/60`. Raw wall time includes everything a frame is not — a backgrounded tab, a long task, an iOS scroll pause — and every subscriber integrating it jumps by the whole gap. Motion clamps to `[1, 40]`, framesync to 40, rafz to 64; GSAP's `lagSmoothing` is the same idea. `TickProps.time` stays raw on purpose: it is rAF's own timestamp, the clock the Web Animations API and `requestVideoFrameCallback` are expressed in.
 - **Error isolation.** try/catch per task; a throwing task is reported and dropped, the flush continues, the scheduler never deadlocks.
-- **Source compatibility.** `domScheduler.read/write` keeps its shape — all current consumers (Slider children, ScrollAnimation, Draggable, `withScrolledInView`, `animate`) keep working; only flush timing changes, and `afterWrite` had no consumers to keep. `useScheduler` custom-steps stays for non-DOM use. A synchronous escape (`flushSync`, and the `blocking` feature for tests) remains available.
+- **Queued execution only.** `read` and `write` tasks run in their ordered, double-buffered frame phases. `background` tasks run on separate time-sliced turns. v4 has no synchronous or blocking escape.
 
 ### Tick subscriptions — `scheduler.tick(callback)` — implemented
 
@@ -1014,13 +1014,13 @@ This channel is deliberately narrower than every caught callback in the package.
 5. **Informational manifest metadata** — `packageName`, `subpath`, `exportName`, `group`, `styles`, `integrations`. The loader reads none of them (`types.ts:16-49` says so six times); they exist for tooling around the manifest. **Cost: zero code, and they belong in the generator's output type, not in core's.**
 6. **A `data-load` compatibility shim.** Explicitly not built — see 11b. A page that used `data-load` migrates to `data-mount`, one attribute rename, and the strategy vocabulary is a superset except for the meaningless "load now, mount later".
 
-## Kept from the existing #694 plan (unchanged)
+## Resolution status for #694
 
-- Remove `LoadService`, `KeyService`; simplify `ResizeService`, `PointerService`; `MutationService` internal to the registry. (Done — see section 8.)
-- Config merge strategy for refs/components (#627): merge by default.
-- Multiple option types (#651).
-- `ResponsiveOptionsManager` as default; breakpoints aligned with @studiometa/tailwind-config.
-- Meta-components promoted to core where relevant (Action/SafeAction/Fetch/Transition/Data*) — the Data* ones now sit on provide/inject.
+- `LoadService` and `KeyService` are removed. The service simplification is complete, and mutation handling is internal to the registry. See section 8.
+- `refs` and `components` merge by default. This resolves #627.
+- Multiple option types are not implemented. They remain tracked by open issue #651.
+- Every option is responsive by default. The current default breakpoints are not aligned with `@studiometa/tailwind-config`; alignment is a separate unresolved product decision.
+- `Action`, `SafeAction`, `Fetch`, `Transition`, and `Data*` are not promoted to core. Files under `migration/` are feasibility ports for a future `@studiometa/ui`; core keeps only general primitives.
 
 ## Superseded parts of the spec-draft comment
 
@@ -1029,9 +1029,9 @@ This channel is deliberately narrower than every caught callback in the package.
 - The bespoke `cdn.studiometa.dev` delivery → already superseded in ui 1.10.0 by esm.sh + `/autoload` side-effect entries; v4 keeps that path.
 - `<ui-lazy>` component → covered by registry `mountStrategy` + manifests (`data-mount`); the separate `loadStrategy`/`data-load` knob is itself superseded by §11b.
 
-## Open questions
+## Resolved questions
 
-1. Naming: ~~`config.components` successor (`uses`?)~~ — **decided (2026-08-14): the name and the object shape stay**, and the value gains v3's dynamic-import form (§11d). `$watchChildren` vs `$children(name, callbacks)` and `config.use` vs `config.siblings` for #697 remain open.
+1. ~~Naming and composition APIs~~ **Decided (2026-08-14):** `config.components` keeps its name and object shape, with the v3 dynamic-import form described in §11d. `$watchChildren` stays. `config.use` and `config.siblings` are not planned, per #697.
 2. ~~Does `$emit` cancelation gate anything framework-side, or is `defaultPrevented` purely userland?~~ **Decided:** `$emit()` returns the dispatched event and component code reads `defaultPrevented`; framework notifications are not cancelable unless their protocol defines cancellation.
 3. ~~Exact `mountStrategy` vocabulary and its interaction with existing `withMountWhen*` decorators.~~ **Decided:** `visible[:<rootMargin>]` is one-shot, `in-view[:<rootMargin>]` is reversible, and the registry replaces constructor-wrapping mount decorators (#751).
-4. ~~Migration phases~~ **Decided (2026-08-11): no bridge release.** Backporting the new primitives into a v3.x minor could itself destabilize ui components, so nothing v4 ships in 3.x. `@studiometa/js-toolkit` 4.0 and `@studiometa/ui` 2.0 ship as full breaking majors, in lockstep. Migration helpers are tooling, not runtime: lint rules in the existing eslint plugins flagging `$children`/`$parent`/`updated()`/old handler signatures, and codemods only for the mechanical renames. The `$children` coordinator components (13 files in ui) are rewritten on `$watchChildren`/provide-inject — several disappear into the platform instead (Accordion → `<details>`, Modal/Panel → Dialog).
+4. ~~Migration phases~~ **Decided (2026-08-11): no further bridge or backport release.** v3 bridge work had already shipped: `$query()` and `$closest()` in #711, `defineFeatures()` in #712, and deprecation warnings in #713. The later decision stops additional v4 backports. `@studiometa/js-toolkit` 4.0 and `@studiometa/ui` 2.0 ship as full breaking majors, in lockstep. Further migration helpers are tooling, not runtime: lint rules in the existing eslint plugins flag `$children`/`$parent`/`updated()`/old handler signatures, and codemods cover only mechanical renames. The `$children` coordinator components (13 files in ui) are rewritten on `$watchChildren`/provide-inject — several disappear into the platform instead (Accordion → `<details>`, Modal/Panel → Dialog).
