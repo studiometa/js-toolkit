@@ -8,6 +8,7 @@ import {
   type InjectContextOptions,
 } from './context.js';
 import { domVersion, watchElementAttributes, type AttributeChange } from './dom-mutations.js';
+import { reportToolkitError } from './errors.js';
 import {
   domUpdate,
   emitExtendable,
@@ -1208,6 +1209,7 @@ export class Base<T extends BaseProps = BaseProps> {
       this.#collectCleanup(this.mounted());
     } catch (error) {
       console.error('[base] `mounted()` failed:', error);
+      reportToolkitError('lifecycle', error, this.$config.name, this.$el);
     }
     // Announce existence to every ancestor (objective 5, layer 1).
     const detail: LifecycleEventDetail = { instance: this };
@@ -1253,6 +1255,7 @@ export class Base<T extends BaseProps = BaseProps> {
         callback();
       } catch (error) {
         console.error('[base] Mount cleanup failed:', error);
+        reportToolkitError('lifecycle', error, this.$config.name, this.$el);
       }
     }
     this.#clearOptionEffects();
@@ -1260,6 +1263,7 @@ export class Base<T extends BaseProps = BaseProps> {
       this.destroyed();
     } catch (error) {
       console.error('[base] `destroyed()` failed:', error);
+      reportToolkitError('lifecycle', error, this.$config.name, this.$el);
     }
     // The element may already be detached, so a bubbling event would reach
     // nobody: announce from the document instead.
@@ -1286,12 +1290,14 @@ export class Base<T extends BaseProps = BaseProps> {
         callback();
       } catch (error) {
         console.error('[base] Termination cleanup failed:', error);
+        reportToolkitError('lifecycle', error, this.$config.name, this.$el);
       }
     }
     try {
       this.terminated();
     } catch (error) {
       console.error('[base] `terminated()` failed:', error);
+      reportToolkitError('lifecycle', error, this.$config.name, this.$el);
     }
     this.$el.__base__?.delete(this.$config.name);
     return this;
@@ -1836,6 +1842,7 @@ export class Base<T extends BaseProps = BaseProps> {
         previousCleanup();
       } catch (error) {
         console.error(`[base] Option "${name}" cleanup failed:`, error);
+        reportToolkitError('lifecycle', error, this.$config.name, this.$el);
       }
     }
     if (!this.#isMounted) {
@@ -1863,6 +1870,7 @@ export class Base<T extends BaseProps = BaseProps> {
       cleanup = (handler as (change: OptionChange) => OptionChangedReturn).call(this, change);
     } catch (error) {
       console.error(`[base] \`${method}()\` failed:`, error);
+      reportToolkitError('lifecycle', error, this.$config.name, this.$el);
       return;
     }
     if (typeof cleanup === 'function') {
@@ -1873,6 +1881,7 @@ export class Base<T extends BaseProps = BaseProps> {
           cleanup();
         } catch (error) {
           console.error(`[base] Option "${name}" cleanup failed:`, error);
+          reportToolkitError('lifecycle', error, this.$config.name, this.$el);
         }
       }
     }
@@ -1886,6 +1895,7 @@ export class Base<T extends BaseProps = BaseProps> {
         cleanup();
       } catch (error) {
         console.error(`[base] Option "${name}" cleanup failed:`, error);
+        reportToolkitError('lifecycle', error, this.$config.name, this.$el);
       }
     }
   }
@@ -1906,6 +1916,7 @@ export class Base<T extends BaseProps = BaseProps> {
           result();
         } catch (error) {
           console.error('[base] Late mount cleanup failed:', error);
+          reportToolkitError('lifecycle', error, this.$config.name, this.$el);
         }
       }
       return;
@@ -1919,7 +1930,10 @@ export class Base<T extends BaseProps = BaseProps> {
     if (result instanceof Promise) {
       result
         .then((resolved) => this.#collectCleanup(resolved))
-        .catch((error) => console.error('[base] `mounted()` failed:', error));
+        .catch((error) => {
+          console.error('[base] `mounted()` failed:', error);
+          reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+        });
     }
   }
 

@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base } from './Base.js';
+import { JS_TOOLKIT_ERROR_EVENT, type ToolkitErrorDetail } from './errors.js';
 import { registerComponent } from './registry.js';
 import { getInstance, renderTodoList, resetDom, settle, TodoItem, TodoList } from './test-utils.js';
 
@@ -92,6 +93,57 @@ describe('registry', () => {
     const second = getInstance<TodoItem>(el, 'TodoItem');
     expect(second).not.toBe(first);
     expect(second.$isMounted).toBe(true);
+  });
+
+  it('isolates a construction failure and reports it from the component element', async () => {
+    const failure = new Error('constructor failed');
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const events: CustomEvent<ToolkitErrorDetail>[] = [];
+    let healthyMounts = 0;
+
+    class BrokenConstruction extends Base {
+      static config = { name: 'BrokenConstructionErrorEvent' };
+
+      constructor(el: HTMLElement) {
+        super(el);
+        throw failure;
+      }
+    }
+
+    class HealthyConstruction extends Base {
+      static config = { name: 'HealthyAfterConstructionError' };
+
+      mounted(): void {
+        healthyMounts += 1;
+      }
+    }
+
+    registerComponent(BrokenConstruction);
+    registerComponent(HealthyConstruction);
+    const broken = document.createElement('div');
+    broken.setAttribute('data-component', 'BrokenConstructionErrorEvent');
+    broken.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+      events.push(event as CustomEvent<ToolkitErrorDetail>);
+    });
+    const healthy = document.createElement('div');
+    healthy.setAttribute('data-component', 'HealthyAfterConstructionError');
+    document.body.append(broken, healthy);
+    await settle();
+
+    expect(error).toHaveBeenCalledOnce();
+    expect(error).toHaveBeenCalledWith(
+      '[registry] Failed to mount "BrokenConstructionErrorEvent":',
+      failure,
+    );
+    expect(events).toHaveLength(1);
+    expect(events[0].target).toBe(broken);
+    expect(events[0].detail).toEqual({
+      stage: 'mount',
+      error: failure,
+      component: 'BrokenConstructionErrorEvent',
+    });
+    expect(healthyMounts).toBe(1);
+    error.mockRestore();
   });
 
   it('processes a pending token replacement before mounting a newly registered class', async () => {

@@ -221,6 +221,91 @@ async function run(copyA, copyB) {
     const decorated = new CrossCopyDecorated(decoratedEl).$mount();
     decoratedEl.dispatchEvent(new Event('runtime:decorated'));
 
+    const errorEventsA = [];
+    const errorEventsB = [];
+    const onErrorA = (event) => errorEventsA.push(event);
+    const onErrorB = (event) => errorEventsB.push(event);
+    document.addEventListener(copyA.JS_TOOLKIT_ERROR_EVENT, onErrorA);
+    document.addEventListener(copyB.JS_TOOLKIT_ERROR_EVENT, onErrorB);
+
+    const lifecycleFailureA = new Error('copy A lifecycle failure');
+    const lifecycleFailureB = new Error('copy B lifecycle failure');
+    const mountFailureB = new Error('copy B construction failure');
+    const loadFailure = new Error('shared registry load failure');
+    const expectedFailures = [lifecycleFailureA, lifecycleFailureB, mountFailureB, loadFailure];
+    const errorTargets = Array.from({ length: 4 }, () => document.createElement('div'));
+    const nativeConsoleError = console.error;
+    const frameworkConsoleErrors = [];
+
+    try {
+      console.error = (...args) => frameworkConsoleErrors.push(args);
+
+      class LifecycleFailureA extends copyA.Base {
+        static config = { name: 'RuntimeFixtureFailureA' };
+
+        mounted() {
+          throw lifecycleFailureA;
+        }
+      }
+
+      class LifecycleFailureB extends copyB.Base {
+        static config = { name: 'RuntimeFixtureFailureB' };
+
+        mounted() {
+          throw lifecycleFailureB;
+        }
+      }
+
+      document.body.append(errorTargets[0], errorTargets[1]);
+      new LifecycleFailureA(errorTargets[0]).$mount();
+      new LifecycleFailureB(errorTargets[1]).$mount();
+
+      class MountFailureB extends copyB.Base {
+        static config = { name: 'RuntimeFixtureMountFailureB' };
+
+        constructor(el) {
+          super(el);
+          throw mountFailureB;
+        }
+      }
+
+      copyA.registerComponent(MountFailureB);
+      errorTargets[2].setAttribute('data-component', 'RuntimeFixtureMountFailureB');
+      document.body.append(errorTargets[2]);
+      await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
+
+      errorTargets[3].setAttribute('data-component', 'RuntimeFixtureLoadFailure');
+      document.body.append(errorTargets[3]);
+      copyB.registerManifest({
+        RuntimeFixtureLoadFailure: () => Promise.reject(loadFailure),
+      });
+      await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
+    } finally {
+      console.error = nativeConsoleError;
+      document.removeEventListener(copyA.JS_TOOLKIT_ERROR_EVENT, onErrorA);
+      document.removeEventListener(copyB.JS_TOOLKIT_ERROR_EVENT, onErrorB);
+    }
+
+    const errors = {
+      sameEventName: copyA.JS_TOOLKIT_ERROR_EVENT === copyB.JS_TOOLKIT_ERROR_EVENT,
+      heardByA: errorEventsA.length,
+      heardByB: errorEventsB.length,
+      sameEvents: errorEventsA.every((event, index) => event === errorEventsB[index]),
+      contract: errorEventsA.every(
+        (event) =>
+          event.type === 'js-toolkit:error' && event.bubbles && event.composed && !event.cancelable,
+      ),
+      identities: errorEventsA.every(
+        (event, index) => event.detail.error === expectedFailures[index],
+      ),
+      targets: errorEventsA.every((event, index) => event.target === errorTargets[index]),
+      consoleReports: frameworkConsoleErrors.length,
+      details: errorEventsA.map((event) => ({
+        stage: event.detail.stage,
+        component: event.detail.component,
+      })),
+    };
+
     let frameRequests = 0;
     const nativeRequestAnimationFrame = globalThis.requestAnimationFrame;
     globalThis.requestAnimationFrame = (callback) => {
@@ -405,6 +490,7 @@ async function run(copyA, copyB) {
           same: copyA.defaultScheduler === copyB.defaultScheduler,
           frameRequests,
         },
+        errors,
         registry: {
           observers: registryObservers,
           ...registryResult,
