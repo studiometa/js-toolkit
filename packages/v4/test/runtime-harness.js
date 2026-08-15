@@ -627,6 +627,39 @@ async function run(copyA, copyB) {
     unsubscribeB();
     subscribedProvider.dispose();
     document.addEventListener = nativeDocumentAddEventListener;
+    await copyA.whenDOMSettled();
+
+    const watchedAttributes = document.createElement('div');
+    const attributeChangesA = [];
+    const attributeChangesB = [];
+    const stopWatchingA = copyA.watchAttributes(watchedAttributes, (change) => {
+      attributeChangesA.push(change);
+    });
+    const stopWatchingB = copyB.watchAttributes(watchedAttributes, (change) => {
+      attributeChangesB.push(change);
+    });
+    const nativeBackground = copyA.defaultScheduler.background;
+    let scheduledAttributeBatches = 0;
+    copyA.defaultScheduler.background = function countedBackground(...args) {
+      scheduledAttributeBatches += 1;
+      return nativeBackground.apply(this, args);
+    };
+    try {
+      watchedAttributes.setAttribute('data-runtime-watch', 'one');
+      await copyB.whenDOMSettled();
+      stopWatchingA();
+      stopWatchingA();
+      watchedAttributes.setAttribute('data-runtime-watch', 'two');
+      await copyA.whenDOMSettled();
+      stopWatchingB();
+      stopWatchingB();
+      watchedAttributes.setAttribute('data-runtime-watch', 'three');
+      await copyA.whenDOMSettled();
+    } finally {
+      stopWatchingA();
+      stopWatchingB();
+      copyA.defaultScheduler.background = nativeBackground;
+    }
 
     root.remove();
     lazy.remove();
@@ -652,6 +685,11 @@ async function run(copyA, copyB) {
         scheduler: {
           same: copyA.defaultScheduler === copyB.defaultScheduler,
           frameRequests,
+        },
+        attributeWatching: {
+          scheduledBatches: scheduledAttributeBatches,
+          copyA: attributeChangesA,
+          copyB: attributeChangesB,
         },
         errors,
         registry: {

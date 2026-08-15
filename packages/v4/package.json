@@ -80,6 +80,10 @@
       "types": "./dist/subpaths/write.d.ts",
       "import": "./dist/subpaths/write.js"
     },
+    "./watchAttributes": {
+      "types": "./dist/subpaths/watchAttributes.d.ts",
+      "import": "./dist/subpaths/watchAttributes.js"
+    },
     "./whenDOMSettled": {
       "types": "./dist/subpaths/whenDOMSettled.d.ts",
       "import": "./dist/subpaths/whenDOMSettled.js"

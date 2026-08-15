@@ -10,6 +10,7 @@ import { createServer as createViteServer } from 'vite';
 const execute = promisify(execFile);
 const packageRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const packageName = '@studiometa/js-toolkit-v4';
+const typescriptCompiler = resolve(packageRoot, '../../node_modules/typescript/bin/tsc');
 const distArtifact = /^dist\/(?:[^/]+\/)*[^/]+\.(?:js|js\.map|d\.ts)$/;
 
 async function run(command, args, options = {}) {
@@ -131,6 +132,23 @@ async function checkNodeConsumer(consumerRoot) {
   process.stdout.write(output);
 }
 
+async function checkTypeScriptConsumer(consumerRoot) {
+  await Promise.all([
+    copyFile(
+      resolve(packageRoot, 'test/package-typescript-consumer.ts'),
+      join(consumerRoot, 'package-typescript-consumer.ts'),
+    ),
+    copyFile(
+      resolve(packageRoot, 'test/package-typescript-consumer.tsconfig.json'),
+      join(consumerRoot, 'tsconfig.json'),
+    ),
+  ]);
+  await run(process.execPath, [typescriptCompiler, '--project', 'tsconfig.json'], {
+    cwd: consumerRoot,
+  });
+  console.log('TypeScript packed consumer: root and watchAttributes subpath types passed.');
+}
+
 async function checkBrowserConsumer(consumerRoot) {
   await copyFile(
     resolve(packageRoot, 'test/package-browser-consumer.js'),
@@ -212,6 +230,14 @@ async function checkBrowserConsumer(consumerRoot) {
           cancelable: false,
           detailIsObject: true,
         },
+        watchAttributesIdentity: true,
+        attributeChanges: [
+          {
+            name: 'data-packed-watch',
+            value: 'one',
+            previousValue: null,
+          },
+        ],
         baseWrappersRemoved: true,
       },
       contextSubscription: {
@@ -221,7 +247,7 @@ async function checkBrowserConsumer(consumerRoot) {
       serviceSubpath: true,
     });
     console.log(
-      'Browser packed consumer: Base lifecycle, events, helper subpaths, context subscription and service subpath passed.',
+      'Browser packed consumer: Base lifecycle, events, helper subpaths, attribute watching, context subscription and service subpath passed.',
     );
   } finally {
     await browser?.close();
@@ -262,6 +288,7 @@ try {
     `Packed content: ${metadata.entryCount} files, ${formatBytes(metadata.size)} packed, ${formatBytes(metadata.unpackedSize)} unpacked.`,
   );
   await checkNodeConsumer(consumerRoot);
+  await checkTypeScriptConsumer(consumerRoot);
   await checkBrowserConsumer(consumerRoot);
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true });

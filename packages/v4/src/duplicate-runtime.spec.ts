@@ -14,6 +14,11 @@ interface FixtureMessage {
       importThunks: Record<string, boolean>;
     };
     scheduler: { same: boolean; frameRequests: number };
+    attributeWatching: {
+      scheduledBatches: number;
+      copyA: { name: string; value: string | null; previousValue: string | null }[];
+      copyB: { name: string; value: string | null; previousValue: string | null }[];
+    };
     errors: {
       sameEventName: boolean;
       heardByA: number;
@@ -164,6 +169,14 @@ describe('duplicated v4 bundles', () => {
       importThunks: { aFromA: false, bFromA: false, aFromB: false, bFromB: false },
     });
     expect(result.scheduler).toEqual({ same: true, frameRequests: 1 });
+    expect(result.attributeWatching).toEqual({
+      scheduledBatches: 2,
+      copyA: [{ name: 'data-runtime-watch', value: 'one', previousValue: null }],
+      copyB: [
+        { name: 'data-runtime-watch', value: 'one', previousValue: null },
+        { name: 'data-runtime-watch', value: 'two', previousValue: 'one' },
+      ],
+    });
     expect(result.errors).toEqual({
       sameEventName: true,
       heardByA: 4,

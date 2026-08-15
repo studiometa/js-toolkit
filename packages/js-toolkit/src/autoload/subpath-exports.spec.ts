@@ -3,6 +3,7 @@ import { globSync, readFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
+import { stubSource } from '../../../../scripts/lib/subpath-exports.js';
 import { createApp, registerManifests } from '@studiometa/js-toolkit';
 import { Base } from '@studiometa/js-toolkit';
 import { damp } from '@studiometa/js-toolkit/utils';
@@ -43,6 +44,36 @@ describe('subpath exports map', () => {
     expect(() =>
       execFileSync(process.execPath, [generator, '--check', 'packages/js-toolkit']),
     ).not.toThrow();
+  });
+
+  it('adds companion types only for the exact source module and symbol', () => {
+    expect(
+      stubSource({
+        exported: 'observeAttributes',
+        orig: 'watchAttributes',
+        origin: './dom-mutations.js',
+        source: resolve(repositoryRoot, 'packages/v4/src/dom-mutations.ts'),
+        from: '../dom-mutations.js',
+      }),
+    ).toContain(', type AttributeChange, type AttributeWatcher');
+    expect(
+      stubSource({
+        exported: 'watchAttributes',
+        orig: 'watchAttributes',
+        origin: './dom-mutations.js',
+        source: resolve(repositoryRoot, 'packages/other/src/dom-mutations.ts'),
+        from: '../dom-mutations.js',
+      }),
+    ).not.toContain('AttributeChange');
+    expect(
+      stubSource({
+        exported: 'watchAttributes',
+        orig: 'observeAttributes',
+        origin: './dom-mutations.js',
+        source: resolve(repositoryRoot, 'packages/v4/src/dom-mutations.ts'),
+        from: '../dom-mutations.js',
+      }),
+    ).not.toContain('AttributeChange');
   });
 });
 

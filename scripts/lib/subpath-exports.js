@@ -124,13 +124,23 @@ export function enumerate(srcRoot) {
     .filter((symbol) => !symbol.isType)
     .map((symbol) => {
       const leaf = resolveToLeaf(rootBarrel, symbol.exported);
-      return { ...symbol, orig: leaf.name, from: specifierFrom(rootStubDir, leaf.file) };
+      return {
+        ...symbol,
+        orig: leaf.name,
+        source: leaf.file,
+        from: specifierFrom(rootStubDir, leaf.file),
+      };
     });
   const utils = parseBarrel(utilsBarrel)
     .filter((symbol) => !symbol.isType)
     .map((symbol) => {
       const leaf = resolveToLeaf(utilsBarrel, symbol.exported);
-      return { ...symbol, orig: leaf.name, from: specifierFrom(utilsStubDir, leaf.file) };
+      return {
+        ...symbol,
+        orig: leaf.name,
+        source: leaf.file,
+        from: specifierFrom(utilsStubDir, leaf.file),
+      };
     });
 
   assertUnique(root, 'root');
@@ -163,6 +173,15 @@ function assertUnique(symbols, label) {
   }
 }
 
+/** Companion types for exact declaring modules and symbols which need them on their subpath. */
+/** @type {ReadonlyMap<string, ReadonlyMap<string, readonly string[]>>} */
+const COMPANION_TYPES = new Map([
+  [
+    resolve(dirname(new URL(import.meta.url).pathname), '../../packages/v4/src/dom-mutations.ts'),
+    new Map([['watchAttributes', ['AttributeChange', 'AttributeWatcher']]]),
+  ],
+]);
+
 /**
  * Build the source of a per-symbol stub module. Each stub re-exports the symbol both as a named
  * export and as the default export, so the subpath resolves either way.
@@ -170,9 +189,12 @@ function assertUnique(symbols, label) {
  * @param   {Descriptor} symbol
  * @returns {string}
  */
-export function stubSource({ exported, orig, from }) {
+export function stubSource({ exported, orig, source, from }) {
   const named = orig === exported ? exported : `${orig} as ${exported}`;
-  return `export { ${named}, ${orig} as default } from '${from}';\n`;
+  const companionTypes = (COMPANION_TYPES.get(source)?.get(orig) ?? [])
+    .map((type) => `, type ${type}`)
+    .join('');
+  return `export { ${named}, ${orig} as default${companionTypes} } from '${from}';\n`;
 }
 
 /**
@@ -217,5 +239,5 @@ export function buildSubpathExports(srcRoot) {
 }
 
 /**
- * @typedef {{ exported: string, orig: string, origin: string, from: string }} Descriptor
+ * @typedef {{ exported: string, orig: string, origin: string, source: string, from: string }} Descriptor
  */

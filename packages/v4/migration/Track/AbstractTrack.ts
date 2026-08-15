@@ -1,6 +1,7 @@
 import {
   Base,
   defaultScheduler,
+  watchAttributes,
   type BaseConfig,
   type BaseProps,
   type MountedReturn,
@@ -83,8 +84,8 @@ function parseEventValue(value: string): Record<string, unknown> {
  *
  * `data-track:<event>` is a *virtual* option: named by this component, not by
  * the framework, so no page-wide `attributeFilter` can enumerate it. That is
- * exactly what `$watchAttributes()` (REPORT.md gap 21) was built for, and
- * consuming it here costs **nine lines and no restructuring**, because the
+ * exactly what `watchAttributes()` (REPORT.md gap 21) was built for, and
+ * consuming it here costs **eleven lines and no restructuring**, because the
  * keyed-bindings shape `Action` had to introduce is the shape this port
  * already needed for its three kinds of source. A `data-track:click` rewritten
  * by a morph, a template or a script now takes effect on the same element in
@@ -213,14 +214,14 @@ export class AbstractTrack<T extends BaseProps = BaseProps> extends Base<Abstrac
       this.#bind(name, this.#parseAttribute(name, value));
     }
 
-    // Destroy-scoped by itself, so the returned unsubscribe is dropped.
-    this.$watchAttributes(({ name, value }) => {
+    const stopWatchingAttributes = watchAttributes(this.$el, ({ name, value }) => {
       if (name.startsWith(TRACK_ATTRIBUTE_PREFIX)) {
         this.#bind(name, this.#parseAttribute(name, value));
       }
     });
 
     return () => {
+      stopWatchingAttributes();
       for (const release of this.#bindings.values()) {
         release();
       }

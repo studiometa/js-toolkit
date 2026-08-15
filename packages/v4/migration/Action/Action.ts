@@ -1,4 +1,10 @@
-import { Base, type BaseConfig, type BaseProps, type MountedReturn } from '../../src/index.js';
+import {
+  Base,
+  watchAttributes,
+  type BaseConfig,
+  type BaseProps,
+  type MountedReturn,
+} from '../../src/index.js';
 import { ActionEvent } from './ActionEvent.js';
 
 /**
@@ -52,12 +58,12 @@ export type ActionProps = BaseProps & {
  * that fits what names it:
  *
  * - **`data-on:<event>`** is named by the component, not by the framework, so
- *   no `attributeFilter` can enumerate it. `$watchAttributes()` (REPORT.md
+ *   no `attributeFilter` can enumerate it. `watchAttributes()` (REPORT.md
  *   gap 21) is the element-scoped observer that reports it, and the callback
  *   filters on the prefix.
  * - **`on` / `target` / `effect`** are declared options, so the framework
  *   already observes them and reports each through `option<Name>Changed()`.
- *   Watching them with `$watchAttributes` too would work and would be wrong:
+ *   Watching them with `watchAttributes()` too would work and would be wrong:
  *   it would re-derive the `data-option-<kebab>` spelling by hand, which is
  *   the contract-copying mistake gap 20 was about.
  *
@@ -67,7 +73,7 @@ export type ActionProps = BaseProps & {
  *
  * ## Two coalescing rules, and only one of them is the framework's
  *
- * `$watchAttributes` coalesces **per attribute per batch** and reports against
+ * `watchAttributes()` coalesces **per attribute per batch** and reports against
  * the final DOM value, so a rewrite that nets out (`a` → `b` → `a`, exactly
  * what a morph produces) reports nothing at all. Neither rule needed working
  * around, and that is not luck: a binding here is a *pure function of the
@@ -155,14 +161,14 @@ export class Action extends Base<ActionProps> {
       this.#bind(name, this.#parseAttribute(name, value));
     }
 
-    // Destroy-scoped by itself, so the return value is dropped on purpose.
-    this.$watchAttributes(({ name, value }) => {
+    const stopWatchingAttributes = watchAttributes(this.$el, ({ name, value }) => {
       if (name.startsWith(ON_ATTRIBUTE_PREFIX)) {
         this.#bind(name, this.#parseAttribute(name, value));
       }
     });
 
     return () => {
+      stopWatchingAttributes();
       for (const release of this.#bindings.values()) {
         release();
       }

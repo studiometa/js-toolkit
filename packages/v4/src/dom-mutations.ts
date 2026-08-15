@@ -10,7 +10,7 @@ export interface DOMMutationRecord {
 export type DOMMutationProcessor = (records: readonly DOMMutationRecord[]) => void;
 
 /**
- * One attribute change on a watched element, as `$watchAttributes()` reports
+ * One attribute change on a watched element, as `watchAttributes()` reports
  * it. Values are the raw attribute strings, `null` for an absent attribute —
  * so a removal is `value: null` and an addition is `previousValue: null`.
  */
@@ -150,7 +150,7 @@ export function replaceDOMOptionAttributes(
  *
  * The opt-in is therefore element-scoped: one unfiltered observer for the one
  * element that asked, created here and disconnected by the returned cleanup.
- * The page pays for the components which opt in, not for the components which
+ * The page pays for the elements which opt in, not for the components which
  * exist.
  *
  * **Records join the shared queue.** The engine drains this observer wherever
@@ -166,7 +166,7 @@ export function replaceDOMOptionAttributes(
  * @param callback Called once per coalesced attribute change.
  * @returns Idempotent cleanup which disconnects the observer.
  */
-export function watchElementAttributes(el: Element, callback: AttributeWatcher): () => void {
+export function watchAttributes(el: Element, callback: AttributeWatcher): () => void {
   const entry: AttributeWatcherEntry = {
     el,
     callback,
@@ -247,7 +247,7 @@ function deliverWatchedAttributes(): void {
       try {
         entry.callback({ name, value, previousValue });
       } catch (error) {
-        console.error(`[base] Attribute watcher for "${name}" failed:`, error);
+        console.error(`[watchAttributes] Callback for "${name}" failed:`, error);
       }
     }
   }
