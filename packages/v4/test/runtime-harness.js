@@ -498,17 +498,73 @@ async function run(copyA, copyB) {
     stopResizeB();
     const resizeActiveAfterBoth = observers.resize.active;
 
-    const inViewService = copyA.useInView(serviceTarget, { threshold: 0.5 });
-    const intersectionCreatedBefore = observers.intersection.created;
-    const intersectionActiveBefore = observers.intersection.active;
-    const stopInViewA = inViewService.subscribe(() => {});
-    const stopInViewB = copyB.useInView(serviceTarget, { threshold: 0.5 }).subscribe(() => {});
-    const intersectionCreated = observers.intersection.created - intersectionCreatedBefore;
-    const intersectionActiveWithBoth = observers.intersection.active - intersectionActiveBefore;
-    stopInViewA();
-    const intersectionActiveAfterOne = observers.intersection.active - intersectionActiveBefore;
-    stopInViewB();
-    const intersectionActiveAfterBoth = observers.intersection.active - intersectionActiveBefore;
+    const sharedInViewRoot = document.createElement('section');
+    const inViewRootA = document.createElement('section');
+    const inViewRootB = document.createElement('section');
+    sharedInViewRoot.append(inViewRootA);
+    inViewRootA.append(inViewRootB);
+    inViewRootB.append(serviceTarget);
+    document.body.append(sharedInViewRoot);
+
+    // The exact same root object and equivalent options still identify one
+    // realm-wide service across independently bundled copies.
+    const sharedRootServiceA = copyA.useInView(serviceTarget, {
+      root: sharedInViewRoot,
+      threshold: 0.5,
+    });
+    const sharedRootServiceB = copyB.useInView(serviceTarget, {
+      root: sharedInViewRoot,
+      threshold: 0.5,
+    });
+    const sharedRootCreatedBefore = observers.intersection.created;
+    const sharedRootActiveBefore = observers.intersection.active;
+    const sharedRootObserverOffset = intersectionObservers.length;
+    const stopSharedRootA = sharedRootServiceA.subscribe(() => {});
+    const stopSharedRootB = sharedRootServiceB.subscribe(() => {});
+    const sharedRootObservers = intersectionObservers.slice(sharedRootObserverOffset);
+    const sharedRootCreated = observers.intersection.created - sharedRootCreatedBefore;
+    const sharedRootActiveWithBoth = observers.intersection.active - sharedRootActiveBefore;
+    stopSharedRootA();
+    const sharedRootActiveAfterOne = observers.intersection.active - sharedRootActiveBefore;
+    stopSharedRootB();
+    const sharedRootActiveAfterBoth = observers.intersection.active - sharedRootActiveBefore;
+
+    // Each copy now asks for the same target with a distinct root. A copy-local
+    // identity allocator would give both roots the same ID and silently return
+    // A's service to B.
+    const distinctRootServiceA = copyA.useInView(serviceTarget, {
+      root: inViewRootA,
+      threshold: 0.5,
+    });
+    const distinctRootServiceB = copyB.useInView(serviceTarget, {
+      root: inViewRootB,
+      threshold: 0.5,
+    });
+    let distinctRootCallsA = 0;
+    let distinctRootCallsB = 0;
+    const distinctRootCreatedBefore = observers.intersection.created;
+    const distinctRootActiveBefore = observers.intersection.active;
+    const distinctRootObserverOffset = intersectionObservers.length;
+    const stopDistinctRootA = distinctRootServiceA.subscribe(() => {
+      distinctRootCallsA += 1;
+    });
+    const stopDistinctRootB = distinctRootServiceB.subscribe(() => {
+      distinctRootCallsB += 1;
+    });
+    const distinctRootObservers = intersectionObservers.slice(distinctRootObserverOffset);
+    const observerForRootA = distinctRootObservers.find(
+      (observer) => observer.options.root === inViewRootA,
+    );
+    const observerForRootB = distinctRootObservers.find(
+      (observer) => observer.options.root === inViewRootB,
+    );
+    observerForRootA?.deliver(serviceTarget, true);
+    const distinctRootCreated = observers.intersection.created - distinctRootCreatedBefore;
+    const distinctRootActiveWithBoth = observers.intersection.active - distinctRootActiveBefore;
+    stopDistinctRootA();
+    const distinctRootActiveAfterOne = observers.intersection.active - distinctRootActiveBefore;
+    stopDistinctRootB();
+    const distinctRootActiveAfterBoth = observers.intersection.active - distinctRootActiveBefore;
 
     // Different axis options create distinct services, one from each bundled
     // copy. Their touch-action claims still belong to the realm: releasing one
@@ -576,7 +632,7 @@ async function run(copyA, copyB) {
     viewport.remove();
     viewportLazy.remove();
     responsive.remove();
-    serviceTarget.remove();
+    sharedInViewRoot.remove();
     otherTarget.remove();
     contextScope.remove();
     emitter.$terminate();
@@ -628,10 +684,28 @@ async function run(copyA, copyB) {
             activeAfterBoth: resizeActiveAfterBoth,
           },
           intersection: {
-            created: intersectionCreated,
-            activeWithBoth: intersectionActiveWithBoth,
-            activeAfterOne: intersectionActiveAfterOne,
-            activeAfterBoth: intersectionActiveAfterBoth,
+            sameRoot: {
+              sameService: sharedRootServiceA === sharedRootServiceB,
+              correctRoot:
+                sharedRootObservers.length === 1 &&
+                sharedRootObservers[0].options.root === sharedInViewRoot,
+              created: sharedRootCreated,
+              activeWithBoth: sharedRootActiveWithBoth,
+              activeAfterOne: sharedRootActiveAfterOne,
+              activeAfterBoth: sharedRootActiveAfterBoth,
+            },
+            distinctRoots: {
+              separateServices: distinctRootServiceA !== distinctRootServiceB,
+              correctRoots:
+                distinctRootObservers.length === 2 &&
+                observerForRootA !== undefined &&
+                observerForRootB !== undefined,
+              isolatedState: distinctRootCallsA === 1 && distinctRootCallsB === 0,
+              created: distinctRootCreated,
+              activeWithBoth: distinctRootActiveWithBoth,
+              activeAfterOne: distinctRootActiveAfterOne,
+              activeAfterBoth: distinctRootActiveAfterBoth,
+            },
           },
           dragTouchAction: {
             withX: touchActionWithX,
