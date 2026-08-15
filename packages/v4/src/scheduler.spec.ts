@@ -263,6 +263,70 @@ describe('defaultScheduler.tick', () => {
     expect(seen[0]).toBe(rafTime);
   });
 
+  it('waits until the next frame to call a callback added during a tick', async () => {
+    let firstTicks = 0;
+    let addedTicks = 0;
+    const added = () => {
+      addedTicks += 1;
+    };
+    let unsubscribeAdded = (): void => {};
+    const unsubscribeFirst = defaultScheduler.tick(() => {
+      firstTicks += 1;
+      unsubscribeAdded = defaultScheduler.tick(added);
+    });
+
+    await nextFrame();
+    const afterFirstFrame = { firstTicks, addedTicks };
+    await nextFrame();
+    unsubscribeFirst();
+    unsubscribeAdded();
+
+    expect(afterFirstFrame).toEqual({ firstTicks: 1, addedTicks: 0 });
+    expect({ firstTicks, addedTicks }).toEqual({ firstTicks: 2, addedTicks: 1 });
+  });
+
+  it('skips a callback removed before its turn in the same tick', async () => {
+    const calls: string[] = [];
+    let unsubscribeSecond = (): void => {};
+    const unsubscribeFirst = defaultScheduler.tick(() => {
+      calls.push('first');
+      unsubscribeSecond();
+    });
+    unsubscribeSecond = defaultScheduler.tick(() => {
+      calls.push('second');
+    });
+
+    await nextFrame();
+    unsubscribeFirst();
+
+    expect(calls).toEqual(['first']);
+  });
+
+  it('bounds repeated callback creation to one generation per frame', async () => {
+    const unsubscribers: Array<() => void> = [];
+    let runs = 0;
+    const addCallback = () => {
+      unsubscribers.push(
+        defaultScheduler.tick(() => {
+          runs += 1;
+          if (runs < 10_000) {
+            addCallback();
+          }
+        }),
+      );
+    };
+    addCallback();
+
+    await nextFrame();
+    for (const unsubscribe of unsubscribers) {
+      unsubscribe();
+    }
+
+    // Live Set iteration would call all 10,000 newly added callbacks in this
+    // flush. A frame snapshot runs only the generation present at its start.
+    expect(runs).toBe(1);
+  });
+
   it('stops calling a callback once it unsubscribes', async () => {
     let ticks = 0;
     const unsubscribe = defaultScheduler.tick(() => {
