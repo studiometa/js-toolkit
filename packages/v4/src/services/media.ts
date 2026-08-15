@@ -1,3 +1,4 @@
+import { getSharedRuntimeSlot } from '../shared-runtime.js';
 import { createService, type MutableProps, type Service } from './service.js';
 
 export interface MediaQueryProps {
@@ -18,7 +19,11 @@ const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
  * services in it hold no listener while nobody subscribes, which is the cost
  * that would have mattered.
  */
-const services = new Map<string, Service<MediaQueryProps>>();
+const services = /* @__PURE__ */ getSharedRuntimeSlot<Map<string, Service<MediaQueryProps>>>(
+  'service:media',
+  1,
+  () => new Map(),
+);
 
 function createMediaQueryService(query: string): Service<MediaQueryProps> {
   // Built once and kept, the same reason the breakpoint service keeps its

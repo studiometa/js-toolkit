@@ -1,3 +1,4 @@
+import { getSharedRuntimeSlot } from '../shared-runtime.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, type MutableProps, type Service } from './service.js';
 
@@ -140,7 +141,9 @@ function createPointerService(): Service<PointerProps> {
   });
 }
 
-let service: Service<PointerProps> | undefined;
+const pointerState = /* @__PURE__ */ getSharedRuntimeSlot<{
+  service: Service<PointerProps> | undefined;
+}>('service:pointer', 1, () => ({ service: undefined }));
 
 /**
  * Use the pointer service.
@@ -156,8 +159,8 @@ let service: Service<PointerProps> | undefined;
  * values subtracts its own box, which it has to measure anyway.
  */
 export function usePointer(): Service<PointerProps> {
-  service ??= createPointerService();
-  return service;
+  pointerState.service ??= createPointerService();
+  return pointerState.service;
 }
 
 /** The method `withPointer()` subscribes for the component. */

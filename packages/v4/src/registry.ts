@@ -1,4 +1,5 @@
-import { Base, resolveConfig, type BaseConstructor, type ComponentImporter } from './Base.js';
+import { resolveConfig, type BaseConstructor, type ComponentImporter } from './Base.js';
+import { isBaseConstructor } from './component-brand.js';
 import {
   COMPONENT_ATTRIBUTE,
   componentTokens,
@@ -24,11 +25,10 @@ import {
   watchBreakpoint,
 } from './responsive-options.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
+import { getSharedRuntimeSlot } from './shared-runtime.js';
 import { onBreakpointsReplaced } from './services/breakpoint.js';
 import { selectorFor } from './utils/selectors.js';
 import { kebabCase } from './utils/strings.js';
-
-const registry = new Map<string, BaseConstructor>();
 
 // Component declarations use the same finite attribute × breakpoint filter as
 // responsive options. This opens no observer and no media-query listener.
@@ -45,8 +45,6 @@ interface PairController {
  * Its presence also marks the pair as already scheduled, so re-scanning an
  * element never observes it twice.
  */
-const controllers = new WeakMap<Element, Map<string, PairController>>();
-
 export type { ComponentImporter };
 
 /**
@@ -61,10 +59,6 @@ export interface ComponentManifestEntry {
 /** `data-component` tokens mapped to the lazy entry which resolves them. */
 export type ComponentManifest = Record<string, ComponentImporter | ComponentManifestEntry>;
 
-const manifest = new Map<string, ComponentManifestEntry>();
-/** One import per name, whichever element triggered it first. */
-const imports = new Map<string, Promise<void>>();
-
 interface LoadController {
   dispose(): void;
 }
@@ -74,15 +68,40 @@ interface LoadController {
  * unloaded component. It is the same object the registry keeps for a loaded
  * pair, one step earlier in the pipeline.
  */
-const loaders = new WeakMap<Element, Map<string, LoadController>>();
-
-function isComponentClass(value: unknown): value is BaseConstructor {
-  return typeof value === 'function' && (value === Base || value.prototype instanceof Base);
+interface RegistryRuntimeState {
+  registry: Map<string, BaseConstructor>;
+  controllers: WeakMap<Element, Map<string, PairController>>;
+  manifest: Map<string, ComponentManifestEntry>;
+  imports: Map<string, Promise<void>>;
+  loaders: WeakMap<Element, Map<string, LoadController>>;
+  responsiveElements: Set<HTMLElement>;
+  unwatchBreakpoints: (() => void) | null;
+  responsiveTask: ScheduledTask<void> | null;
+  pendingResponsiveElements: Set<HTMLElement>;
+  isReplacementListenerAttached: boolean;
 }
+
+const registryState = /* @__PURE__ */ getSharedRuntimeSlot<RegistryRuntimeState>(
+  'registry',
+  1,
+  () => ({
+    registry: new Map(),
+    controllers: new WeakMap(),
+    manifest: new Map(),
+    imports: new Map(),
+    loaders: new WeakMap(),
+    responsiveElements: new Set(),
+    unwatchBreakpoints: null,
+    responsiveTask: null,
+    pendingResponsiveElements: new Set(),
+    isReplacementListenerAttached: false,
+  }),
+);
+const { registry, controllers, manifest, imports, loaders, responsiveElements } = registryState;
 
 /**
  * Whether a function was written with `class`, which only matters for the
- * ones `isComponentClass()` rejected: those are constructors, so calling
+ * ones `isBaseConstructor()` rejected: those are constructors, so calling
  * them as an importer throws "cannot be invoked without 'new'" — on an
  * element, at load time, long after the mistake was made.
  *
@@ -116,7 +135,7 @@ function isClassLike(value: (...args: never[]) => unknown): boolean {
  *
  * **A class is a function too**, so the two are told apart the way
  * `resolveComponentClass()` already tells a class from anything else an
- * importer resolved to: `isComponentClass()`, the prototype chain. It is the
+ * importer resolved to: `isBaseConstructor()`, the shared component brand. It is the
  * definition of a component class rather than a proxy for it — a `config`
  * static can be forgotten and inherited by a subclass either way, and
  * `fn.toString()` reads source text. Anything else callable is a thunk, and
@@ -131,7 +150,7 @@ function isClassLike(value: (...args: never[]) => unknown): boolean {
 function registerFamily(ComponentClass: BaseConstructor): void {
   const { name, components } = resolveConfig(ComponentClass);
   for (const [childName, Child] of Object.entries(components ?? {})) {
-    if (isComponentClass(Child)) {
+    if (isBaseConstructor(Child)) {
       registerComponent(Child);
     } else if (typeof Child === 'function' && !isClassLike(Child)) {
       registerLazyChild(childName, Child);
@@ -172,15 +191,10 @@ function declaresComponent(el: Element, name: string): boolean {
 }
 
 /** Connected elements whose declarations need a breakpoint crossing. */
-const responsiveElements = new Set<HTMLElement>();
-let unwatchBreakpoints: (() => void) | null = null;
-let responsiveTask: ScheduledTask<void> | null = null;
-let pendingResponsiveElements = new Set<HTMLElement>();
-
 function syncResponsiveElement(el: HTMLElement): void {
   if (el.isConnected && hasResponsiveComponentAttribute(el)) {
     responsiveElements.add(el);
-    unwatchBreakpoints ??= watchBreakpoint(() => {
+    registryState.unwatchBreakpoints ??= watchBreakpoint(() => {
       scheduleResponsiveReconciliation(responsiveElements);
     });
     return;
@@ -188,8 +202,8 @@ function syncResponsiveElement(el: HTMLElement): void {
 
   responsiveElements.delete(el);
   if (responsiveElements.size === 0) {
-    unwatchBreakpoints?.();
-    unwatchBreakpoints = null;
+    registryState.unwatchBreakpoints?.();
+    registryState.unwatchBreakpoints = null;
   }
 }
 
@@ -200,15 +214,15 @@ function syncResponsiveElement(el: HTMLElement): void {
  */
 function scheduleResponsiveReconciliation(elements: Iterable<HTMLElement>): void {
   for (const el of elements) {
-    pendingResponsiveElements.add(el);
+    registryState.pendingResponsiveElements.add(el);
   }
-  if (responsiveTask || pendingResponsiveElements.size === 0) {
+  if (registryState.responsiveTask || registryState.pendingResponsiveElements.size === 0) {
     return;
   }
 
-  responsiveTask = defaultScheduler.background(() => {
-    const batch = pendingResponsiveElements;
-    pendingResponsiveElements = new Set();
+  const task = defaultScheduler.background(() => {
+    const batch = registryState.pendingResponsiveElements;
+    registryState.pendingResponsiveElements = new Set();
     for (const el of batch) {
       if (el.isConnected) {
         reconcileElement(el);
@@ -217,26 +231,30 @@ function scheduleResponsiveReconciliation(elements: Iterable<HTMLElement>): void
       }
     }
   });
-  trackDOMLifecycleWork(responsiveTask.promise);
+  registryState.responsiveTask = task;
+  trackDOMLifecycleWork(task.promise);
   const finished = () => {
-    responsiveTask = null;
+    registryState.responsiveTask = null;
     scheduleResponsiveReconciliation([]);
   };
-  void responsiveTask.promise.then(finished, finished);
+  void task.promise.then(finished, finished);
 }
 
-onBreakpointsReplaced(() => {
-  const candidates = new Set(responsiveElements);
-  const selector = responsiveAttributeNames(COMPONENT_ATTRIBUTE)
-    .map((attribute) => `[${CSS.escape(attribute)}]`)
-    .join(',');
-  if (selector) {
-    for (const el of document.querySelectorAll<HTMLElement>(selector)) {
-      candidates.add(el);
+if (!registryState.isReplacementListenerAttached) {
+  registryState.isReplacementListenerAttached = true;
+  onBreakpointsReplaced(() => {
+    const candidates = new Set(responsiveElements);
+    const selector = responsiveAttributeNames(COMPONENT_ATTRIBUTE)
+      .map((attribute) => `[${CSS.escape(attribute)}]`)
+      .join(',');
+    if (selector) {
+      for (const el of document.querySelectorAll<HTMLElement>(selector)) {
+        candidates.add(el);
+      }
     }
-  }
-  scheduleResponsiveReconciliation(candidates);
-});
+    scheduleResponsiveReconciliation(candidates);
+  });
+}
 
 /**
  * Register a component class. Existing matching elements are scheduled
@@ -352,7 +370,7 @@ function importComponent(name: string): Promise<void> {
  * otherwise repeat once per line.
  */
 function resolveComponentClass(module: unknown, name: string): BaseConstructor | undefined {
-  if (isComponentClass(module)) {
+  if (isBaseConstructor(module)) {
     return module;
   }
   if (typeof module !== 'object' || module === null) {
@@ -360,7 +378,7 @@ function resolveComponentClass(module: unknown, name: string): BaseConstructor |
   }
   const exports = module as Record<string, unknown>;
   for (const candidate of [exports[name], exports.default]) {
-    if (isComponentClass(candidate)) {
+    if (isBaseConstructor(candidate)) {
       return candidate;
     }
   }

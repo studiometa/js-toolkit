@@ -28,4 +28,4 @@ jobs:
           packages: |
             @studiometa/js-toolkit:packages/js-toolkit
             @studiometa/js-toolkit-v4:packages/v4
-          build: npm run build
+          build: npm run build && npm run check:constant-subpaths -w @studiometa/js-toolkit-v4
