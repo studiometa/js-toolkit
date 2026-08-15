@@ -178,6 +178,11 @@ export {
   type ResizeProps,
 } from './services/resize.js';
 export {
+  useScrollProgress,
+  type ScrollProgressOptions,
+  type ScrollProgressProps,
+} from './services/scroll-progress.js';
+export {
   useScroll,
   useWindowScroll,
   withScroll,

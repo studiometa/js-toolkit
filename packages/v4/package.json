@@ -240,6 +240,11 @@
       "types": "./dist/subpaths/withResize.d.ts",
       "import": "./dist/subpaths/withResize.js"
     },
+    "./useScrollProgress": {
+      "typescript": "./src/subpaths/useScrollProgress.ts",
+      "types": "./dist/subpaths/useScrollProgress.d.ts",
+      "import": "./dist/subpaths/useScrollProgress.js"
+    },
     "./useScroll": {
       "typescript": "./src/subpaths/useScroll.ts",
       "types": "./dist/subpaths/useScroll.d.ts",
