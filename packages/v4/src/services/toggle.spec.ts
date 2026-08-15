@@ -155,4 +155,111 @@ describe('toggle', () => {
     expect(handle.isActive).toBe(false);
     expect(calls).toEqual(['subscribe', 'unsubscribe']);
   });
+
+  it('honours a synchronous stop while the subscription is starting', () => {
+    const activity: boolean[] = [];
+    let cleanups = 0;
+    let handle!: ReturnType<typeof toggle>;
+    handle = toggle(() => {
+      activity.push(handle.isActive);
+      handle.stop();
+      activity.push(handle.isActive);
+      return () => {
+        cleanups += 1;
+      };
+    });
+
+    handle.start();
+    expect(activity).toEqual([true, false]);
+    expect(handle.isActive).toBe(false);
+    expect(cleanups).toBe(1);
+
+    handle.stop();
+    expect(cleanups).toBe(1);
+  });
+
+  it('can restart after a synchronous startup stop', () => {
+    let subscriptions = 0;
+    let cleanups = 0;
+    let stopDuringStart = true;
+    let handle!: ReturnType<typeof toggle>;
+    handle = toggle(() => {
+      subscriptions += 1;
+      if (stopDuringStart) {
+        handle.stop();
+      }
+      return () => {
+        cleanups += 1;
+      };
+    });
+
+    handle.start();
+    expect(handle.isActive).toBe(false);
+    expect([subscriptions, cleanups]).toEqual([1, 1]);
+
+    stopDuringStart = false;
+    handle.start();
+    expect(handle.isActive).toBe(true);
+    expect([subscriptions, cleanups]).toEqual([2, 1]);
+
+    handle.stop();
+    expect(handle.isActive).toBe(false);
+    expect([subscriptions, cleanups]).toEqual([2, 2]);
+  });
+
+  it('keeps nested starts idempotent and repeated startup stops pending once', () => {
+    let subscriptions = 0;
+    let cleanups = 0;
+    let handle!: ReturnType<typeof toggle>;
+    handle = toggle(() => {
+      subscriptions += 1;
+      handle.start();
+      handle.start();
+      handle.stop();
+      handle.stop();
+      handle.start();
+      return () => {
+        cleanups += 1;
+        handle.stop();
+      };
+    });
+
+    handle.start();
+    expect(handle.isActive).toBe(false);
+    expect([subscriptions, cleanups]).toEqual([1, 1]);
+
+    handle.start();
+    expect(handle.isActive).toBe(false);
+    expect([subscriptions, cleanups]).toEqual([2, 2]);
+  });
+
+  it('resets the starting state when subscribe throws', () => {
+    let shouldThrow = true;
+    let subscriptions = 0;
+    let cleanups = 0;
+    let handle!: ReturnType<typeof toggle>;
+    handle = toggle(() => {
+      subscriptions += 1;
+      expect(handle.isActive).toBe(true);
+      if (shouldThrow) {
+        throw new Error('subscribe failed');
+      }
+      return () => {
+        cleanups += 1;
+      };
+    });
+
+    expect(() => handle.start()).toThrow('subscribe failed');
+    expect(handle.isActive).toBe(false);
+    handle.stop();
+
+    shouldThrow = false;
+    handle.start();
+    expect(handle.isActive).toBe(true);
+    expect(subscriptions).toBe(2);
+
+    handle.stop();
+    expect(handle.isActive).toBe(false);
+    expect(cleanups).toBe(1);
+  });
 });
