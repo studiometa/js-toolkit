@@ -52,11 +52,21 @@ export interface MountStrategyHooks {
   destroy(): void;
 }
 
-export interface AppliedMountStrategy {
-  dispose(): void;
-  /** Work which mounts eagerly; conditional strategies never expose one. */
-  eagerWork?: Promise<unknown>;
-}
+export type AppliedMountStrategy =
+  | {
+      readonly valid: true;
+      dispose(): void;
+      /** Work which mounts eagerly; conditional strategies never expose one. */
+      eagerWork?: Promise<unknown>;
+      error?: never;
+    }
+  | {
+      readonly valid: false;
+      dispose(): void;
+      eagerWork?: never;
+      /** The same error reported to the console. */
+      error: unknown;
+    };
 
 interface ViewportMountStrategy {
   isReversible: boolean;
@@ -64,7 +74,7 @@ interface ViewportMountStrategy {
 }
 
 /** Parse the two viewport strategy forms at their shared execution seam. */
-function parseViewportMountStrategy(strategy: MountStrategy): ViewportMountStrategy | undefined {
+function parseViewportMountStrategy(strategy: string): ViewportMountStrategy | undefined {
   const separator = strategy.indexOf(':');
   const name = separator < 0 ? strategy : strategy.slice(0, separator);
   if (name !== 'visible' && name !== 'in-view') {
@@ -72,6 +82,12 @@ function parseViewportMountStrategy(strategy: MountStrategy): ViewportMountStrat
   }
   const rootMargin = separator < 0 ? undefined : strategy.slice(separator + 1) || undefined;
   return { isReversible: name === 'in-view', rootMargin };
+}
+
+/** Keep an invalid strategy inert while exposing the exact reported failure. */
+function rejectMountStrategy(strategy: string, error: unknown): AppliedMountStrategy {
+  console.error(`[mount-strategy] Failed to apply "${strategy}":`, error);
+  return { valid: false, dispose() {}, error };
 }
 
 /**
@@ -84,7 +100,7 @@ function parseViewportMountStrategy(strategy: MountStrategy): ViewportMountStrat
  */
 export function applyMountStrategy(
   el: HTMLElement,
-  strategy: MountStrategy,
+  strategy: string,
   { mount, destroy }: MountStrategyHooks,
 ): AppliedMountStrategy {
   const viewport = parseViewportMountStrategy(strategy);
@@ -109,11 +125,10 @@ export function applyMountStrategy(
     } catch (error) {
       // The browser owns the rootMargin grammar. Report author errors without
       // changing the requested mount policy or stopping registry reconciliation.
-      console.error(`[mount-strategy] Failed to apply "${strategy}":`, error);
-      return { dispose() {} };
+      return rejectMountStrategy(strategy, error);
     }
     observer.observe(el);
-    return { dispose: () => observer.disconnect() };
+    return { valid: true, dispose: () => observer.disconnect() };
   }
 
   if (strategy === 'idle') {
@@ -121,10 +136,10 @@ export function applyMountStrategy(
     // lane is already budgeted, so it is a fair fallback.
     if (typeof requestIdleCallback !== 'function') {
       const task = defaultScheduler.background(mount);
-      return { dispose: () => task.cancel() };
+      return { valid: true, dispose: () => task.cancel() };
     }
     const handle = requestIdleCallback(() => mount());
-    return { dispose: () => cancelIdleCallback(handle) };
+    return { valid: true, dispose: () => cancelIdleCallback(handle) };
   }
 
   if (strategy === 'interaction') {
@@ -140,19 +155,31 @@ export function applyMountStrategy(
     for (const type of INTENT_EVENTS) {
       el.addEventListener(type, onIntent, { once: true });
     }
-    return { dispose: teardown };
+    return { valid: true, dispose: teardown };
   }
 
   if (strategy.startsWith('media:')) {
-    const query = matchMedia(strategy.slice('media:'.length));
+    const source = strategy.slice('media:'.length);
+    if (source.trim().length === 0) {
+      return rejectMountStrategy(
+        strategy,
+        new TypeError('The media mount strategy requires a non-empty query.'),
+      );
+    }
+    const query = matchMedia(source);
     const sync = () => (query.matches ? mount() : destroy());
     query.addEventListener('change', sync);
     sync();
-    return { dispose: () => query.removeEventListener('change', sync) };
+    return {
+      valid: true,
+      dispose: () => query.removeEventListener('change', sync),
+    };
   }
 
-  // `eager`, and anything unrecognised: mount as soon as the scheduler's
-  // background lane gets to it.
+  if (strategy !== 'eager') {
+    return rejectMountStrategy(strategy, new TypeError(`Unknown mount strategy "${strategy}".`));
+  }
+
   const task = defaultScheduler.background(mount);
-  return { dispose: () => task.cancel(), eagerWork: task.promise };
+  return { valid: true, dispose: () => task.cancel(), eagerWork: task.promise };
 }

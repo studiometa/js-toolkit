@@ -38,7 +38,7 @@ observeResponsiveAttribute(COMPONENT_ATTRIBUTE);
 interface PairController {
   active: boolean;
   dispose(): void;
-  strategy: MountStrategy;
+  strategy: string;
 }
 
 /**
@@ -62,6 +62,7 @@ export type ComponentManifest = Record<string, ComponentImporter | ComponentMani
 
 interface LoadController {
   dispose(): void;
+  strategy: string;
 }
 
 /**
@@ -418,12 +419,8 @@ function optionAttributes(ComponentClass: BaseConstructor): string[] {
  * made every subclass of a strategy-declaring component fall back to `eager`
  * — silently, since it still worked, it just mounted everywhere.
  */
-function resolveStrategy(el: Element, ComponentClass: BaseConstructor): MountStrategy {
-  return (
-    (el.getAttribute(MOUNT_ATTRIBUTE) as MountStrategy | null) ??
-    resolveConfig(ComponentClass).mountStrategy ??
-    'eager'
-  );
+function resolveStrategy(el: Element, ComponentClass: BaseConstructor): string {
+  return el.getAttribute(MOUNT_ATTRIBUTE) ?? resolveConfig(ComponentClass).mountStrategy ?? 'eager';
 }
 
 /**
@@ -517,6 +514,9 @@ function schedule(el: HTMLElement, name: string, ComponentClass: BaseConstructor
     destroy: () => destroyPair(el, name, ComponentClass, controller),
   });
   controller.dispose = applied.dispose;
+  if (!applied.valid) {
+    reportToolkitError('mount', applied.error, name, el);
+  }
   trackDOMLifecycleWork(applied.eagerWork);
 }
 
@@ -540,7 +540,7 @@ function disposeLoader(el: Element, name: string): void {
  * satisfied it, so the new controller mounts without waiting for a second
  * visibility, idle or interaction trigger.
  */
-function completeOneShotLoad(el: HTMLElement, name: string, strategy: MountStrategy): void {
+function completeOneShotLoad(el: HTMLElement, name: string, strategy: string): void {
   if (
     strategy !== 'visible' &&
     !strategy.startsWith('visible:') &&
@@ -572,18 +572,26 @@ function completeOneShotLoad(el: HTMLElement, name: string, strategy: MountStrat
  */
 function scheduleLoad(el: HTMLElement, name: string): void {
   const entry = manifest.get(name);
-  let pending = loaders.get(el);
-  if (!entry || pending?.has(name)) {
+  if (!entry) {
     return;
+  }
+
+  const strategy = el.getAttribute(MOUNT_ATTRIBUTE) ?? entry.mountStrategy ?? 'eager';
+  let pending = loaders.get(el);
+  const current = pending?.get(name);
+  if (current?.strategy === strategy) {
+    return;
+  }
+  if (current) {
+    disposeLoader(el, name);
+    pending = loaders.get(el);
   }
   if (!pending) {
     pending = new Map();
     loaders.set(el, pending);
   }
 
-  const strategy =
-    (el.getAttribute(MOUNT_ATTRIBUTE) as MountStrategy | null) ?? entry.mountStrategy ?? 'eager';
-  const controller: LoadController = { dispose() {} };
+  const controller: LoadController = { dispose() {}, strategy };
   pending.set(name, controller);
 
   let fired = false;
@@ -609,6 +617,9 @@ function scheduleLoad(el: HTMLElement, name: string): void {
     destroy() {},
   });
   controller.dispose = applied.dispose;
+  if (!applied.valid) {
+    reportToolkitError('mount', applied.error, name, el);
+  }
   // `media:` evaluates synchronously, so the trigger may already have fired
   // against the no-op teardown installed above.
   if (fired) {
