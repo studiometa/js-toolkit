@@ -56,12 +56,20 @@ export interface ServiceMixinDefinition<Target, Options> {
   hook: string;
   /** Default target, e.g. the window for the scroll service. */
   target: (instance: Base) => Target;
+  /** Default first-delivery policy. An explicit mixin option overrides it. */
+  immediate?: boolean;
   /**
    * Service the method subscribes to. Both parameters are `unknown` here
-   * because the mixin forwards whatever the hook returns without looking at
+   * because most mixins forward whatever the hook returns without looking at
    * it — the frame service is the one that reads it.
    */
   use: (target: Target, options: Options) => Service<unknown, unknown>;
+  /**
+   * Adapt a hook result when the service itself does not own it. This keeps a
+   * service-specific write convention in its definition without copying the
+   * mixin lifecycle.
+   */
+  handleResult?: (instance: Base, result: unknown) => void;
 }
 
 /**
@@ -185,11 +193,17 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
           if (typeof method !== 'function') {
             return () => {};
           }
-          return definition
-            .use(target(this), options)
-            .subscribe((props) => (method as (props: unknown) => unknown).call(this, props), {
-              immediate: options.immediate ?? false,
-            });
+          return definition.use(target(this), options).subscribe(
+            (props) => {
+              const result = (method as (props: unknown) => unknown).call(this, props);
+              if (definition.handleResult) {
+                definition.handleResult(this, result);
+                return undefined;
+              }
+              return result;
+            },
+            { immediate: options.immediate ?? definition.immediate ?? false },
+          );
         });
 
         services[hook] = {

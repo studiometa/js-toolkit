@@ -26,9 +26,9 @@
  *    `requestAnimationFrame` loop.
  * 7. Lazy, reference-counted services, one instance per observed target —
  *    subscribed by hand, or through the `withRaf`/`withScroll`/`withResize`/
- *    `withPointer`/`withDrag` mixins and their `ticked`, `scrolled`,
- *    `resized`, `moved` and `dragged` hooks, per mount cycle — or on the
- *    component's own terms with `toggle()`.
+ *    `withScrollProgress`/`withPointer`/`withDrag` mixins and their `ticked`,
+ *    `scrolled`, `resized`, `scrolledInView`, `moved` and `dragged` hooks, per
+ *    mount cycle — or on the component's own terms with `toggle()`.
  *
  * Lifecycle: destroy !== terminate !== disconnected.
  * - disconnected (DOM fact) → `$destroy()`: reversible, the instance stays
@@ -179,8 +179,12 @@ export {
 } from './services/resize.js';
 export {
   useScrollProgress,
+  withScrollProgress,
+  type ScrollProgressHook,
+  type ScrollProgressMixinOptions,
   type ScrollProgressOptions,
   type ScrollProgressProps,
+  type ScrollProgressRender,
 } from './services/scroll-progress.js';
 export {
   useScroll,

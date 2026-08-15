@@ -1,5 +1,6 @@
 import { defaultScheduler, type ScheduledTask } from '../scheduler.js';
 import { clamp, clamp01 } from '../utils/maths.js';
+import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { getEdges, normalizeOffset, type NormalizedOffset } from './scroll-progress-offset.js';
 import { useWindowSize } from './resize.js';
 import { useWindowScroll } from './scroll.js';
@@ -23,6 +24,16 @@ export interface ScrollProgressProps {
   readonly progressX: number;
   readonly progressY: number;
 }
+
+/** A DOM mutation returned by `scrolledInView()`, run in the write phase. */
+export type ScrollProgressRender = () => void;
+
+/** The method `withScrollProgress()` subscribes for the component. */
+export interface ScrollProgressHook {
+  scrolledInView?(props: ScrollProgressProps): void | ScrollProgressRender;
+}
+
+export type ScrollProgressMixinOptions = ScrollProgressOptions & ServiceMixinOptions<Element>;
 
 function progressBetween(current: number, start: number, end: number): number {
   return start === end ? 0 : clamp01((current - start) / (end - start));
@@ -152,3 +163,53 @@ export function useScrollProgress(
 ): Service<ScrollProgressProps> {
   return scrollProgressServices(target, offset);
 }
+
+/**
+ * Subscribe a component's `scrolledInView()` method to its root element's raw
+ * viewport progress. The first measured props are delivered on mount by
+ * default, and a returned mutation runs through the instance write lane:
+ *
+ * ```js
+ * class Hero extends withScrollProgress(Base, {
+ *   offset: 'start end / end start',
+ * }) {
+ *   scrolledInView({ progressY }) {
+ *     return () => {
+ *       this.$el.style.setProperty('--progress', `${progressY}`);
+ *     };
+ *   }
+ * }
+ * ```
+ *
+ * Use `target: (instance) => instance.$refs.panel` for another element,
+ * `immediate: false` to wait for the first update, or `manual: true` to own the
+ * subscription through `this.$services.scrolledInView.start()` and `.stop()`.
+ * The stage-3 decorator form is equivalent:
+ *
+ * ```js
+ * @withScrollProgress({ offset: 'start center / end center' })
+ * class Hero extends Base {
+ *   scrolledInView({ progressY }) { … }
+ * }
+ * ```
+ *
+ * This supplies raw progress only. Damping and mount control stay with the
+ * component.
+ */
+export const withScrollProgress = /* @__PURE__ */ createServiceMixin<
+  ScrollProgressHook & ServiceHandles<'scrolledInView'>,
+  Element,
+  ScrollProgressOptions
+>({
+  hook: 'scrolledInView',
+  target: (instance) => instance.$el,
+  immediate: true,
+  // Only service options reach the service. Lifecycle fields must not become
+  // part of its target-and-offset cache key.
+  use: (target, { offset }) => useScrollProgress(target, { offset }),
+  handleResult: (instance, result) => {
+    if (typeof result === 'function') {
+      instance.$write(result as ScrollProgressRender);
+    }
+  },
+});

@@ -1,6 +1,13 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, expectTypeOf, it } from 'vitest';
+import { Base } from '../Base.js';
 import { settle } from '../test-utils.js';
-import { useScrollProgress, type ScrollProgressProps } from './scroll-progress.js';
+import type { Toggle } from './toggle.js';
+import {
+  useScrollProgress,
+  withScrollProgress,
+  type ScrollProgressProps,
+  type ScrollProgressRender,
+} from './scroll-progress.js';
 
 function snapshot(props: ScrollProgressProps): ScrollProgressProps {
   return { ...props };
@@ -263,5 +270,232 @@ describe('useScrollProgress', () => {
       props.progressY = 1;
     });
     unsubscribe();
+  });
+});
+
+describe('withScrollProgress', () => {
+  it('uses the component root and delivers its initial progress by default', () => {
+    const seen: ScrollProgressProps[] = [];
+
+    class Hero extends withScrollProgress(Base, { offset: 'start center / end center' }) {
+      static config = { name: 'RootProgressHero' };
+
+      scrolledInView(props: ScrollProgressProps): void {
+        seen.push(snapshot(props));
+      }
+    }
+
+    const target = makeTarget();
+    const instance = new Hero(target).$mount();
+
+    expect(seen).toHaveLength(1);
+    expect(seen[0].startY).toBe(800 - window.innerHeight / 2);
+    expect(seen[0].endY).toBe(900 - window.innerHeight / 2);
+    instance.$terminate();
+  });
+
+  it('supports a per-instance target and keeps generic fields out of the service key', () => {
+    const target = makeTarget();
+    const original = target.getBoundingClientRect.bind(target);
+    let layoutReads = 0;
+    target.getBoundingClientRect = () => {
+      layoutReads += 1;
+      return original();
+    };
+    const quiet: ScrollProgressProps[] = [];
+    const eager: ScrollProgressProps[] = [];
+
+    class Quiet extends withScrollProgress(Base, {
+      target: () => target,
+      offset: 'center center / end start',
+      immediate: false,
+    }) {
+      static config = { name: 'QuietProgressTarget' };
+
+      scrolledInView(props: ScrollProgressProps): void {
+        quiet.push(snapshot(props));
+      }
+    }
+
+    class Eager extends withScrollProgress(Base, {
+      target: () => target,
+      offset: 'center center / end start',
+      immediate: true,
+      manual: false,
+    }) {
+      static config = { name: 'EagerProgressTarget' };
+
+      scrolledInView(props: ScrollProgressProps): void {
+        eager.push(snapshot(props));
+      }
+    }
+
+    const quietRoot = document.body.appendChild(document.createElement('div'));
+    const eagerRoot = document.body.appendChild(document.createElement('div'));
+    const quietInstance = new Quiet(quietRoot).$mount();
+    const eagerInstance = new Eager(eagerRoot).$mount();
+
+    expect(layoutReads).toBe(1);
+    expect(quiet).toEqual([]);
+    expect(eager).toHaveLength(1);
+    expect(eager[0].startY).toBe(850 - window.innerHeight / 2);
+    expect(eager[0].endY).toBe(900);
+    quietInstance.$terminate();
+    eagerInstance.$terminate();
+  });
+
+  it('supports the stage-3 decorator form', () => {
+    const seen: ScrollProgressProps[] = [];
+
+    @withScrollProgress({ offset: 'start center / end center' })
+    class DecoratedHero extends Base {
+      static config = { name: 'DecoratedProgressHero' };
+
+      scrolledInView(props: ScrollProgressProps): void {
+        seen.push(snapshot(props));
+      }
+    }
+
+    const target = makeTarget();
+    const instance = new DecoratedHero(target).$mount();
+
+    expect(seen).toHaveLength(1);
+    expect(seen[0].startX).toBe(900 - window.innerWidth / 2);
+    expect(seen[0].endX).toBe(1100 - window.innerWidth / 2);
+    instance.$terminate();
+  });
+
+  it('honours explicit immediate false', async () => {
+    const seen: ScrollProgressProps[] = [];
+
+    class Deferred extends withScrollProgress(Base, { immediate: false }) {
+      static config = { name: 'DeferredProgressHero' };
+
+      scrolledInView(props: ScrollProgressProps): void {
+        seen.push(snapshot(props));
+      }
+    }
+
+    const instance = new Deferred(makeTarget()).$mount();
+    expect(seen).toEqual([]);
+
+    window.scrollTo(0, 100);
+    window.dispatchEvent(new Event('scroll'));
+    await settle();
+    expect(seen).toHaveLength(1);
+    instance.$terminate();
+  });
+
+  it('defers returned renders through $write and cancels a stale mount-cycle write', async () => {
+    class Renderer extends withScrollProgress(Base) {
+      static config = { name: 'ProgressRenderer' };
+
+      measurements = 0;
+      renders = 0;
+      writes = 0;
+
+      scrolledInView(): ScrollProgressRender {
+        this.measurements += 1;
+        return () => {
+          this.renders += 1;
+        };
+      }
+
+      $write<T>(fn: () => T) {
+        this.writes += 1;
+        return super.$write(fn);
+      }
+    }
+
+    const live = new Renderer(makeTarget()).$mount();
+    expect(live.measurements).toBe(1);
+    expect(live.writes).toBe(1);
+    expect(live.renders).toBe(0);
+    await settle();
+    expect(live.renders).toBe(1);
+    live.$terminate();
+
+    const stale = new Renderer(makeTarget()).$mount();
+    expect(stale.measurements).toBe(1);
+    expect(stale.writes).toBe(1);
+    expect(stale.renders).toBe(0);
+    stale.$destroy();
+    await settle();
+    expect(stale.renders).toBe(0);
+    stale.$terminate();
+  });
+
+  it('cleans up automatically and subscribes once on each remount', async () => {
+    class Remounted extends withScrollProgress(Base) {
+      static config = { name: 'RemountedProgressHero' };
+
+      calls = 0;
+
+      scrolledInView(): void {
+        this.calls += 1;
+      }
+    }
+
+    const target = makeTarget();
+    const instance = new Remounted(target).$mount();
+    expect(instance.calls).toBe(1);
+
+    instance.$destroy();
+    target.style.top = '1200px';
+    window.scrollTo(0, 200);
+    await settle();
+    expect(instance.calls).toBe(1);
+
+    instance.$mount();
+    expect(instance.calls).toBe(2);
+    target.style.top = '1400px';
+    await settle();
+    expect(instance.calls).toBe(3);
+    instance.$terminate();
+  });
+
+  it('exposes a manual typed handle and releases it on stop and termination', async () => {
+    class Manual extends withScrollProgress(Base, { manual: true }) {
+      static config = { name: 'ManualProgressHero' };
+
+      calls = 0;
+
+      scrolledInView(): void {
+        this.calls += 1;
+      }
+    }
+
+    const instance = new Manual(makeTarget()).$mount();
+    expect(instance.calls).toBe(0);
+    expect(instance.$services.scrolledInView.isActive).toBe(false);
+
+    instance.$services.scrolledInView.start();
+    expect(instance.calls).toBe(1);
+    expect(instance.$services.scrolledInView.isActive).toBe(true);
+    instance.$services.scrolledInView.stop();
+    window.scrollTo(0, 100);
+    await settle();
+    expect(instance.calls).toBe(1);
+
+    instance.$services.scrolledInView.start();
+    expect(instance.$services.scrolledInView.isActive).toBe(true);
+    instance.$terminate();
+    expect(instance.$services.scrolledInView.isActive).toBe(false);
+  });
+
+  it('types the hook, returned render and manual service handle', () => {
+    class Typed extends withScrollProgress(Base, { manual: true }) {
+      static config = { name: 'TypedProgressHero' };
+
+      scrolledInView(props: ScrollProgressProps): void | ScrollProgressRender {
+        expectTypeOf(props).toEqualTypeOf<ScrollProgressProps>();
+        expectTypeOf(this.$services.scrolledInView).toEqualTypeOf<Toggle>();
+        const render: ScrollProgressRender = () => {};
+        expectTypeOf(render).toEqualTypeOf<ScrollProgressRender>();
+        return render;
+      }
+    }
+
+    expectTypeOf<Typed['scrolledInView']>().returns.toEqualTypeOf<void | ScrollProgressRender>();
   });
 });

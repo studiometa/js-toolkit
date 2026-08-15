@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { clamp, smoothTo } from '@studiometa/js-toolkit-v4/utils';
-import { Base } from '@studiometa/js-toolkit-v4';
+import { Base, useScrollProgress, withScrollProgress } from '@studiometa/js-toolkit-v4';
+import useScrollProgressSubpath from '@studiometa/js-toolkit-v4/useScrollProgress';
+import withScrollProgressSubpath from '@studiometa/js-toolkit-v4/withScrollProgress';
 
 describe('the package entry points', () => {
   it('serves the utils from the /utils subpath', () => {
@@ -15,5 +17,10 @@ describe('the package entry points', () => {
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
+  });
+
+  it('exports scroll progress from the root and symbol subpaths', () => {
+    expect(useScrollProgress).toBe(useScrollProgressSubpath);
+    expect(withScrollProgress).toBe(withScrollProgressSubpath);
   });
 });
