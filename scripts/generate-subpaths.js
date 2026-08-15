@@ -52,11 +52,19 @@ function expectedStubs(srcRoot) {
 /**
  * The `exports` map a package should carry: the grouped entries first, then one per symbol.
  *
+ * @param   {string} packageDir
  * @param   {string} srcRoot
  * @returns {Record<string, unknown>}
  */
-function expectedExports(srcRoot) {
-  return { ...groupedExports(), ...buildSubpathExports(srcRoot) };
+function expectedExports(packageDir, srcRoot) {
+  const map = { ...groupedExports(), ...buildSubpathExports(srcRoot) };
+  // v4 publishes built artifacts only. Its export map must not point at omitted sources.
+  if (packageDir === 'packages/v4') {
+    for (const target of Object.values(map)) {
+      if (typeof target === 'object') delete target.typescript;
+    }
+  }
+  return map;
 }
 
 /**
@@ -78,7 +86,7 @@ function generate(packageDir) {
   for (const [file, source] of stubs) writeFileSync(resolve(subpathsDir, file), source);
 
   const pkg = JSON.parse(readFileSync(manifest, 'utf8'));
-  pkg.exports = expectedExports(srcRoot);
+  pkg.exports = expectedExports(packageDir, srcRoot);
   writeFileSync(manifest, `${JSON.stringify(pkg, null, 2)}\n`);
 
   console.log(
@@ -101,7 +109,7 @@ export function check(packageDir) {
   const { manifest, srcRoot, subpathsDir } = paths(packageDir);
   const problems = [];
 
-  const expectedMap = expectedExports(srcRoot);
+  const expectedMap = expectedExports(packageDir, srcRoot);
   const actualMap = JSON.parse(readFileSync(manifest, 'utf8')).exports ?? {};
   for (const [key, target] of Object.entries(expectedMap)) {
     if (!(key in actualMap)) problems.push(`exports: missing ${key}`);

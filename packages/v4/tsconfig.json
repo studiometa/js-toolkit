@@ -3,7 +3,12 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "customConditions": ["typescript"],
+    "paths": {
+      "@studiometa/js-toolkit-v4": ["./src/index.ts"],
+      "@studiometa/js-toolkit-v4/utils": ["./src/utils/index.ts"],
+      "@studiometa/js-toolkit-v4/utils/*": ["./src/subpaths/utils/*.ts"],
+      "@studiometa/js-toolkit-v4/*": ["./src/subpaths/*.ts"]
+    },
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "strict": true,
     "noEmit": true,

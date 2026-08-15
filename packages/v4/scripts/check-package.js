@@ -78,9 +78,8 @@ function assertConsumerExports(packageJson, files) {
       continue;
     }
 
-    for (const condition of ['types', 'import']) {
-      const target = conditions[condition];
-      assert.equal(typeof target, 'string', `${subpath} has no ${condition} export.`);
+    for (const [condition, target] of Object.entries(conditions)) {
+      assert.equal(typeof target, 'string', `${subpath} has an invalid ${condition} export.`);
       assert(
         files.has(target.replace(/^\.\//, '')),
         `${subpath} ${condition} points to missing packed file ${target}.`,
