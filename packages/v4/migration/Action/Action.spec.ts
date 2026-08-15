@@ -583,9 +583,9 @@ describe('Action — the v4 lifecycle', () => {
   });
 });
 
-describe('Action — live rebinding through $watchAttributes', () => {
+describe('Action — live rebinding through watchAttributes', () => {
   /**
-   * Core closed REPORT.md gap 21 with `$watchAttributes()`, and this block is
+   * Core closed REPORT.md gap 21 with `watchAttributes()`, and this block is
    * the port consuming it. The gap was that `data-on:<event>` is named by the
    * component, not by the framework, so no `attributeFilter` could enumerate
    * it and an in-place rewrite left the old binding attached. The only
@@ -658,7 +658,7 @@ describe('Action — live rebinding through $watchAttributes', () => {
   });
 
   it('applies only the final value when one batch writes several times', async () => {
-    // `$watchAttributes` coalesces per attribute per batch and reports against
+    // `watchAttributes()` coalesces per attribute per batch and reports against
     // the final DOM value. That is exactly right here, because a binding is a
     // pure function of the attribute's current value.
     const root = await render(`
@@ -750,8 +750,8 @@ describe('Action — live rebinding through $watchAttributes', () => {
     button.remove();
     await settle();
 
-    // A MutationObserver keeps observing a detached element, so this write is
-    // what proves the subscription is destroy-scoped rather than merely idle.
+    // A MutationObserver keeps observing a detached element, so this write
+    // proves that Action ran the helper cleanup with its mount cleanup.
     button.setAttribute('data-on:click', "Foo -> target.fn('while-detached')");
     await settle();
 
@@ -769,7 +769,7 @@ describe('Action — live rebinding of the option triple', () => {
   /**
    * The other half of the surface. `on`, `target` and `effect` are declared
    * options, so the framework already observes them and reports each through
-   * `option<Name>Changed()` — no `$watchAttributes` needed, and using it here
+   * `option<Name>Changed()` — no `watchAttributes()` needed, and using it here
    * would mean re-deriving the `data-option-<kebab>` spelling by hand.
    *
    * The catch the framework cannot absorb: three attributes feed **one**

@@ -493,7 +493,7 @@ describe('Track — lifecycle', () => {
   });
 });
 
-describe('Track — live rebinding through $watchAttributes', () => {
+describe('Track — live rebinding through watchAttributes', () => {
   it('follows a data-track:* attribute rewritten in place', async () => {
     const root = await render(
       `<div data-component="Track" data-track:click='{"event": "before"}'></div>`,

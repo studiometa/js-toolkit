@@ -212,6 +212,14 @@ async function checkBrowserConsumer(consumerRoot) {
           cancelable: false,
           detailIsObject: true,
         },
+        watchAttributesIdentity: true,
+        attributeChanges: [
+          {
+            name: 'data-packed-watch',
+            value: 'one',
+            previousValue: null,
+          },
+        ],
         baseWrappersRemoved: true,
       },
       contextSubscription: {
@@ -221,7 +229,7 @@ async function checkBrowserConsumer(consumerRoot) {
       serviceSubpath: true,
     });
     console.log(
-      'Browser packed consumer: Base lifecycle, events, helper subpaths, context subscription and service subpath passed.',
+      'Browser packed consumer: Base lifecycle, events, helper subpaths, attribute watching, context subscription and service subpath passed.',
     );
   } finally {
     await browser?.close();

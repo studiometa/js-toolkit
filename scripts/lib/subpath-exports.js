@@ -172,7 +172,9 @@ function assertUnique(symbols, label) {
  */
 export function stubSource({ exported, orig, from }) {
   const named = orig === exported ? exported : `${orig} as ${exported}`;
-  return `export { ${named}, ${orig} as default } from '${from}';\n`;
+  const companionTypes =
+    exported === 'watchAttributes' ? ', type AttributeChange, type AttributeWatcher' : '';
+  return `export { ${named}, ${orig} as default${companionTypes} } from '${from}';\n`;
 }
 
 /**

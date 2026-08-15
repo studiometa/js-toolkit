@@ -5,10 +5,13 @@ import {
   emitExtendable as rootEmitExtendable,
   provideContext,
   subscribeContext as rootSubscribeContext,
+  watchAttributes as rootWatchAttributes,
+  whenDOMSettled,
 } from '@studiometa/js-toolkit-v4';
 import domUpdate from '@studiometa/js-toolkit-v4/domUpdate';
 import emitExtendable from '@studiometa/js-toolkit-v4/emitExtendable';
 import subscribeContext from '@studiometa/js-toolkit-v4/subscribeContext';
+import watchAttributes from '@studiometa/js-toolkit-v4/watchAttributes';
 import { EVENTS } from '@studiometa/js-toolkit-v4/EVENTS';
 import useRaf, { useRaf as namedUseRaf } from '@studiometa/js-toolkit-v4/useRaf';
 
@@ -67,6 +70,17 @@ try {
   });
   await Promise.all([update, emitExtendable(element, 'packed:close')]);
 
+  const attributeChanges = [];
+  const stopWatchingAttributes = watchAttributes(element, (change) => {
+    attributeChanges.push(change);
+  });
+  element.setAttribute('data-packed-watch', 'one');
+  await whenDOMSettled();
+  stopWatchingAttributes();
+  stopWatchingAttributes();
+  element.setAttribute('data-packed-watch', 'two');
+  await whenDOMSettled();
+
   const contextConsumer = document.createElement('span');
   element.append(contextConsumer);
   const contextKey = createContext('packed-subscription');
@@ -115,10 +129,13 @@ try {
           typeof extendableEvent?.detail === 'object' &&
           typeof extendableEvent?.detail.waitUntil === 'function',
       },
+      watchAttributesIdentity: watchAttributes === rootWatchAttributes,
+      attributeChanges,
       baseWrappersRemoved:
         !('$domUpdate' in component) &&
         !('$emitExtendable' in component) &&
-        !('$viewTransition' in component),
+        !('$viewTransition' in component) &&
+        !('$watchAttributes' in component),
     },
     contextSubscription: {
       subpathIdentity: subscribeContext === rootSubscribeContext,

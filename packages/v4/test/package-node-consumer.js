@@ -8,6 +8,7 @@ import subscribeContextDefault, {
   subscribeContext,
 } from '@studiometa/js-toolkit-v4/subscribeContext';
 import useRafDefault, { useRaf } from '@studiometa/js-toolkit-v4/useRaf';
+import watchAttributesDefault, { watchAttributes } from '@studiometa/js-toolkit-v4/watchAttributes';
 import clampDefault, { clamp } from '@studiometa/js-toolkit-v4/utils/clamp';
 
 assert.equal(Base, toolkit.Base);
@@ -23,6 +24,10 @@ assert.equal(subscribeContext, toolkit.subscribeContext);
 assert.equal(subscribeContextDefault, subscribeContext);
 assert.equal(useRaf, toolkit.useRaf);
 assert.equal(useRafDefault, useRaf);
+assert.equal(watchAttributes, toolkit.watchAttributes);
+assert.equal(watchAttributesDefault, watchAttributes);
+assert.equal('$watchAttributes' in Base.prototype, false);
+assert.equal(Object.keys(toolkit).length, 61);
 assert.equal(clampDefault, clamp);
 assert.equal(clamp(12, 0, 10), 10);
 

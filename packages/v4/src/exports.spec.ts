@@ -13,6 +13,7 @@ import {
   useDrag,
   useInView,
   useScrollProgress,
+  watchAttributes,
   withDrag,
   withInView,
   withScrollProgress,
@@ -28,6 +29,8 @@ import {
   type ExtendableDetail,
   type Extension,
   type InViewProps,
+  type AttributeChange,
+  type AttributeWatcher,
   type ContextCallback,
   type ModuleRecord,
   type Service,
@@ -52,6 +55,11 @@ import useInViewFromSubpath, {
   useInView as namedUseInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/useInView';
 import useScrollProgressSubpath from '@studiometa/js-toolkit-v4/useScrollProgress';
+import watchAttributesFromSubpath, {
+  watchAttributes as namedWatchAttributesFromSubpath,
+  type AttributeChange as SubpathAttributeChange,
+  type AttributeWatcher as SubpathAttributeWatcher,
+} from '@studiometa/js-toolkit-v4/watchAttributes';
 import eventsFromSubpath, {
   EVENTS as namedEventsFromSubpath,
 } from '@studiometa/js-toolkit-v4/EVENTS';
@@ -71,6 +79,13 @@ function toolkitErrorDetailTypeAssertions(detail: ToolkitErrorDetail): void {
 }
 
 void toolkitErrorDetailTypeAssertions;
+
+function removedBaseAttributeWatcherAssertion(instance: Base): void {
+  // @ts-expect-error Attribute observation is a standalone helper, not a Base method.
+  void instance.$watchAttributes;
+}
+
+void removedBaseAttributeWatcherAssertion;
 
 // @ts-expect-error HandlerRegistration is an internal source type.
 type RemovedHandlerRegistration = import('@studiometa/js-toolkit-v4').HandlerRegistration;
@@ -98,7 +113,7 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(60);
+    expect(Object.keys(root)).toHaveLength(61);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
@@ -114,6 +129,15 @@ describe('the package entry points', () => {
     ]) {
       expect(root[removed]).toBeUndefined();
     }
+  });
+
+  it('exports watchAttributes and its types from root and subpath, not Base', () => {
+    expect(watchAttributesFromSubpath).toBe(watchAttributes);
+    expect(namedWatchAttributesFromSubpath).toBe(watchAttributes);
+    expect(Base.prototype).not.toHaveProperty('$watchAttributes');
+    expectTypeOf<AttributeChange>().toEqualTypeOf<SubpathAttributeChange>();
+    expectTypeOf<AttributeWatcher>().toEqualTypeOf<SubpathAttributeWatcher>();
+    expectTypeOf<AttributeWatcher>().toEqualTypeOf<(change: AttributeChange) => void>();
   });
 
   it('exports the optional context subscription helper from root and subpath', () => {
