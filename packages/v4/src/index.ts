@@ -143,6 +143,7 @@ export {
   type DragProps,
   type DragTarget,
 } from './services/drag.js';
+export { useInView, type InViewProps } from './services/in-view.js';
 export {
   createServiceMixin,
   type MixedClass,

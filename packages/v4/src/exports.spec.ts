@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 import { clamp, smoothTo } from '@studiometa/js-toolkit-v4/utils';
-import { Base } from '@studiometa/js-toolkit-v4';
+import { Base, useInView, type InViewProps, type Service } from '@studiometa/js-toolkit-v4';
+import useInViewFromSubpath, {
+  useInView as namedUseInViewFromSubpath,
+} from '@studiometa/js-toolkit-v4/useInView';
 
 describe('the package entry points', () => {
   it('serves the utils from the /utils subpath', () => {
@@ -15,5 +18,12 @@ describe('the package entry points', () => {
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
+  });
+
+  it('serves useInView from the root and its symbol subpath', () => {
+    expect(typeof useInView).toBe('function');
+    expect(useInViewFromSubpath).toBe(useInView);
+    expect(namedUseInViewFromSubpath).toBe(useInView);
+    expectTypeOf(useInView(document.documentElement)).toEqualTypeOf<Service<InViewProps>>();
   });
 });
