@@ -6,7 +6,7 @@ interface FixtureMessage {
   ok: boolean;
   error?: { message: string; stack?: string };
   result?: {
-    protocol: { sameSource: boolean; sourceReadByA: boolean; decoratorCalls: number };
+    protocol: { sameEventValues: boolean; decoratorCalls: number };
     branding: {
       direct: Record<string, boolean>;
       subclasses: Record<string, boolean>;
@@ -153,8 +153,7 @@ describe('duplicated v4 bundles', () => {
     if (!result) return;
 
     expect(result.protocol).toEqual({
-      sameSource: true,
-      sourceReadByA: true,
+      sameEventValues: true,
       decoratorCalls: 1,
     });
     expect(result.branding).toEqual({

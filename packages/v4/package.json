@@ -25,26 +25,6 @@
       "types": "./dist/subpaths/Base.d.ts",
       "import": "./dist/subpaths/Base.js"
     },
-    "./DESTROYED_EVENT": {
-      "typescript": "./src/subpaths/DESTROYED_EVENT.ts",
-      "types": "./dist/subpaths/DESTROYED_EVENT.d.ts",
-      "import": "./dist/subpaths/DESTROYED_EVENT.js"
-    },
-    "./HANDLER_REGISTRATIONS": {
-      "typescript": "./src/subpaths/HANDLER_REGISTRATIONS.ts",
-      "types": "./dist/subpaths/HANDLER_REGISTRATIONS.d.ts",
-      "import": "./dist/subpaths/HANDLER_REGISTRATIONS.js"
-    },
-    "./MOUNTED_EVENT": {
-      "typescript": "./src/subpaths/MOUNTED_EVENT.ts",
-      "types": "./dist/subpaths/MOUNTED_EVENT.d.ts",
-      "import": "./dist/subpaths/MOUNTED_EVENT.js"
-    },
-    "./SOURCE": {
-      "typescript": "./src/subpaths/SOURCE.ts",
-      "types": "./dist/subpaths/SOURCE.d.ts",
-      "import": "./dist/subpaths/SOURCE.js"
-    },
     "./createContext": {
       "typescript": "./src/subpaths/createContext.ts",
       "types": "./dist/subpaths/createContext.d.ts",
@@ -115,10 +95,10 @@
       "types": "./dist/subpaths/whenDOMSettled.d.ts",
       "import": "./dist/subpaths/whenDOMSettled.js"
     },
-    "./JS_TOOLKIT_ERROR_EVENT": {
-      "typescript": "./src/subpaths/JS_TOOLKIT_ERROR_EVENT.ts",
-      "types": "./dist/subpaths/JS_TOOLKIT_ERROR_EVENT.d.ts",
-      "import": "./dist/subpaths/JS_TOOLKIT_ERROR_EVENT.js"
+    "./EVENTS": {
+      "typescript": "./src/subpaths/EVENTS.ts",
+      "types": "./dist/subpaths/EVENTS.d.ts",
+      "import": "./dist/subpaths/EVENTS.js"
     },
     "./getInstances": {
       "typescript": "./src/subpaths/getInstances.ts",
@@ -144,11 +124,6 @@
       "typescript": "./src/subpaths/MOUNT_ATTRIBUTE.ts",
       "types": "./dist/subpaths/MOUNT_ATTRIBUTE.d.ts",
       "import": "./dist/subpaths/MOUNT_ATTRIBUTE.js"
-    },
-    "./DOM_UPDATE_EVENT": {
-      "typescript": "./src/subpaths/DOM_UPDATE_EVENT.ts",
-      "types": "./dist/subpaths/DOM_UPDATE_EVENT.d.ts",
-      "import": "./dist/subpaths/DOM_UPDATE_EVENT.js"
     },
     "./registerComponent": {
       "typescript": "./src/subpaths/registerComponent.ts",

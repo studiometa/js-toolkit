@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type BaseConfig } from './Base.js';
-import { JS_TOOLKIT_ERROR_EVENT, type ToolkitErrorDetail } from './errors.js';
+import { type ToolkitErrorDetail } from './errors.js';
+import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
 import { resetDom, settle } from './test-utils.js';
 
@@ -286,7 +287,7 @@ describe('invalid data-mount', () => {
       const el = document.createElement('div');
       el.setAttribute('data-component', name);
       el.setAttribute('data-mount', strategy);
-      el.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+      el.addEventListener(EVENTS.error, (event) => {
         event.preventDefault();
         events.push(event as CustomEvent<ToolkitErrorDetail>);
       });

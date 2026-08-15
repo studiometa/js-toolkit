@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   Base,
-  MOUNTED_EVENT,
   type BaseConfig,
   type ChildrenCollection,
   type DelegatedEvent,
@@ -11,7 +10,8 @@ import {
   type RefEvent,
 } from './Base.js';
 import type { AttributeChange } from './dom-mutations.js';
-import { JS_TOOLKIT_ERROR_EVENT, type ToolkitErrorDetail } from './errors.js';
+import { type ToolkitErrorDetail } from './errors.js';
+import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
 import {
@@ -412,7 +412,7 @@ describe('$options', () => {
       registerComponent(ReentrantOption);
       const resilient = document.createElement('div');
       resilient.setAttribute('data-component', 'ResilientOptions');
-      resilient.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+      resilient.addEventListener(EVENTS.error, (event) => {
         events.push(event as CustomEvent<ToolkitErrorDetail>);
       });
       const reentrant = document.createElement('div');
@@ -1415,7 +1415,7 @@ describe('$watchChildren', () => {
     const collection = owner.$watchChildren(Child);
     owner.$mount();
     let announcements = 0;
-    root.addEventListener(MOUNTED_EVENT, () => {
+    root.addEventListener(EVENTS.component.mounted, () => {
       announcements += 1;
     });
 
@@ -1428,7 +1428,7 @@ describe('$watchChildren', () => {
 
     // Ignore a stale or user-created announcement for an unmounted instance.
     childEl.dispatchEvent(
-      new CustomEvent(MOUNTED_EVENT, { bubbles: true, detail: { instance: child } }),
+      new CustomEvent(EVENTS.component.mounted, { bubbles: true, detail: { instance: child } }),
     );
     expect(collection.size).toBe(0);
     owner.$terminate();
@@ -1687,11 +1687,11 @@ describe('lifecycle', () => {
     const asynchronousElement = document.createElement('div');
     document.body.append(synchronousElement, asynchronousElement);
     for (const el of [synchronousElement, asynchronousElement]) {
-      el.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+      el.addEventListener(EVENTS.error, (event) => {
         event.preventDefault();
         events.push(event as CustomEvent<ToolkitErrorDetail>);
       });
-      el.addEventListener(MOUNTED_EVENT, () => {
+      el.addEventListener(EVENTS.component.mounted, () => {
         mountedEvents += 1;
       });
     }
@@ -1752,7 +1752,7 @@ describe('lifecycle', () => {
 
     const el = document.createElement('div');
     document.body.append(el);
-    el.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+    el.addEventListener(EVENTS.error, (event) => {
       events.push(event as CustomEvent<ToolkitErrorDetail>);
     });
     const instance = new TeardownFailure(el).$mount();

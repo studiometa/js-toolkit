@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Base, MOUNTED_EVENT, type OptionChange } from './Base.js';
+import { Base, type OptionChange } from './Base.js';
+import { EVENTS } from './events.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
 import { getInstance, resetDom, settle } from './test-utils.js';
@@ -471,7 +472,7 @@ describe('responsive options', () => {
     registerComponent(SelfDestroyingOption);
     const el = document.createElement('div');
     el.setAttribute('data-component', 'SelfDestroyingInitialOption');
-    el.addEventListener(MOUNTED_EVENT, () => {
+    el.addEventListener(EVENTS.component.mounted, () => {
       mountedEvents += 1;
     });
     const addedMediaListeners = await countMediaListeners(async () => {

@@ -1,5 +1,4 @@
 import {
-  HANDLER_REGISTRATIONS,
   type Base,
   type BaseConfig,
   type BaseConstructor,
@@ -13,6 +12,7 @@ import {
 } from './Base.js';
 import { isBaseConstructor } from './component-brand.js';
 import type { ContextKey } from './context.js';
+import { HANDLER_REGISTRATIONS } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 
 /**

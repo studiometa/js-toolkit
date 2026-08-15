@@ -1,5 +1,7 @@
+import { EVENTS } from '../../src/index.js';
+
 /**
- * The `dom-update` protocol — ported from `@studiometa/ui`
+ * The `js-toolkit:dom:update` protocol — ported from `@studiometa/ui`
  * `utils/dom-update.ts`.
  *
  * `data-bind:if` inserts and removes DOM. Before it does, it announces the
@@ -54,13 +56,21 @@ export function emitDomUpdate(
 
   function wrap(newRunner: DomUpdateRunner) {
     if (!dispatching) {
-      warn('`wrap` must be called synchronously while the `dom-update` event dispatches.');
+      warn(
+        `\`wrap\` must be called synchronously while the \`${EVENTS.dom.update}\` event dispatches.`,
+      );
       return;
     }
     runner = newRunner;
   }
 
-  el.dispatchEvent(new CustomEvent('dom-update', { detail: { ...detail, wrap }, bubbles: true }));
+  el.dispatchEvent(
+    new CustomEvent(EVENTS.dom.update, {
+      detail: { ...detail, wrap },
+      bubbles: true,
+      cancelable: false,
+    }),
+  );
   dispatching = false;
 
   if (runner && typeof (runner as DomUpdateTransitioner).update === 'function') {
@@ -84,7 +94,7 @@ export async function runWrapped(runner: NormalizedRunner, applyChange: () => vo
   try {
     await runner(apply);
   } catch (error) {
-    warn('The `dom-update` runner rejected.', error);
+    warn(`The \`${EVENTS.dom.update}\` runner rejected.`, error);
     if (!applied) {
       apply();
     }

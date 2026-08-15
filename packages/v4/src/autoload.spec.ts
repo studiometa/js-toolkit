@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type BaseConfig, type BaseConstructor } from './Base.js';
 import { whenDOMSettled } from './dom-mutations.js';
-import { JS_TOOLKIT_ERROR_EVENT, type ToolkitErrorDetail } from './errors.js';
+import { type ToolkitErrorDetail } from './errors.js';
+import { EVENTS } from './events.js';
 import { getInstances } from './instances.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { resetDom, settle } from './test-utils.js';
@@ -354,17 +355,17 @@ describe('registerManifest collisions and failures', () => {
     const elementEvents: CustomEvent<ToolkitErrorDetail>[] = [];
     const documentEvents: CustomEvent<ToolkitErrorDetail>[] = [];
     const windowEvents: CustomEvent<ToolkitErrorDetail>[] = [];
-    first.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+    first.addEventListener(EVENTS.error, (event) => {
       event.preventDefault();
       elementEvents.push(event as CustomEvent<ToolkitErrorDetail>);
     });
     document.addEventListener(
-      JS_TOOLKIT_ERROR_EVENT,
+      EVENTS.error,
       (event) => documentEvents.push(event as CustomEvent<ToolkitErrorDetail>),
       { once: true },
     );
     window.addEventListener(
-      JS_TOOLKIT_ERROR_EVENT,
+      EVENTS.error,
       (event) => windowEvents.push(event as CustomEvent<ToolkitErrorDetail>),
       { once: true },
     );

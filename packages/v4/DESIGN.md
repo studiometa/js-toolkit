@@ -336,6 +336,15 @@ The matching surface is deliberately narrower than v3: only plain and configured
 
 ## 4. Parents listen to child events
 
+### Event convention
+
+- Public framework events use the deeply frozen `EVENTS` object and `js-toolkit:`-namespaced strings.
+- Private framework transports use module-local namespaced constants and do not join `EVENTS`.
+- Component events use typed lower-kebab string literals declared through `BaseProps['$emits']`.
+- A payload is one object in `CustomEvent.detail`, or the platform `null` when omitted.
+- `$emit()` bubbles, is cancelable, returns the dispatched event, and exposes cancellation through `event.defaultPrevented`.
+- Framework notifications are not cancelable unless their protocol defines cancellation.
+
 `$emit` becomes a native bubbling, cancelable event (#630):
 
 ```js
@@ -345,7 +354,6 @@ $emit(event, payload) {
 
 #dispatch(event, detail) {
   const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail });
-  e[SOURCE] = this; // symbol — avoids userland collisions
   this.$el.dispatchEvent(e);
   return e; // caller can check e.defaultPrevented
 }
@@ -414,7 +422,7 @@ The strongest instance of this objective is not a notification but a **negotiati
 ```js
 // Take over: the mutating component announces instead of mutating.
 await this.$domUpdate(() => this.$el.replaceChildren(fragment));
-this.$on(DOM_UPDATE_EVENT, ({ detail }) => detail.wrap(viewTransition));
+this.$on(EVENTS.dom.update, ({ detail }) => detail.wrap(viewTransition));
 
 // Delay: the choreography announces its step and waits for whoever asked.
 async close() {
@@ -424,7 +432,7 @@ async close() {
 this.$on('close', ({ detail }) => detail.waitUntil(this.leave()));
 ```
 
-**@studiometa/ui grew this protocol twice, independently.** `utils/dom-update.ts` (`wrap`, consumed by `DataBind` and `Fetch`, wrapped by `MotionView`) and `Dialog.__emitExtendable` (`waitUntil`, extended by `MotionView` again) have the same transport, the same synchronous-only window, near-identical warning wording and the same duck typing — two spellings of "let anything up the tree negotiate a step". Both collapse onto this one primitive: `Dialog` becomes `await this.$emitExtendable('close')`, `Fetch` and `DataBind` become `await this.$domUpdate(mutate)`, and each drops its private copy of the window, the warning and the normalization. In the code the two modes are one function, `negotiate()`, and the only thing that differs between them is what `accept` does with a registration — overwrite the single one, or push onto the list.
+**@studiometa/ui grew this protocol twice, independently.** Its `utils/dom-update.ts` (`wrap`, consumed by `DataBind` and `Fetch`, wrapped by `MotionView`) and `Dialog.__emitExtendable` (`waitUntil`, extended by `MotionView` again) have the same transport, the same synchronous-only window, near-identical warning wording and the same duck typing — two spellings of "let anything up the tree negotiate a step". Both collapse onto this one primitive: `Dialog` becomes `await this.$emitExtendable('close')`, `Fetch` and `DataBind` become `await this.$domUpdate(mutate)`, and each drops its private copy of the window, the warning and the normalization. In the code the two modes are one function, `negotiate()`, and the only thing that differs between them is what `accept` does with a registration — overwrite the single one, or push onto the list.
 
 Why it belongs in core rather than in a component library:
 
@@ -436,11 +444,11 @@ What the v4 form changes:
 
 - **The detail is one object** — `event.detail.wrap(…)`, not `event.detail[0].wrap(…)`. This was once a difference between a protocol event and a component's own, and it is not one any more: `$emit()` carries one payload object too, so a negotiated event is shaped exactly like every other event in v4. ui dispatched raw for a stated reason that was not the real one (`Fetch` overrides `$emit` with a string-only signature that would mangle a `CustomEvent`, a wart v4 does not have), and the shape reason that did hold has now dissolved.
 
-  **Delegation is not the price of that.** `on<Child><Event>()` handlers are bound by event _type_ on the root element and walk up from `event.target`, so they never inspect how the event was constructed: `onFetchDomUpdate()` fires either way. The delegated payload is `event.detail` verbatim, so a handler reads `{ payload: { wrap } }` for exactly what a raw listener reads as `event.detail` — one shape, no `Array.isArray` branch, framework protocol details included.
+  **Delegation is not the price of that.** A namespaced framework event uses `@on('Fetch', EVENTS.dom.update)` because a magic method name cannot spell its colons. Decorated handlers are bound by event _type_ on the root element and walk up from `event.target`, so they never inspect how the event was constructed. The delegated payload is `event.detail` verbatim, so a handler reads `{ payload: { wrap } }` for exactly what a raw listener reads as `event.detail` — one shape, no `Array.isArray` branch, framework protocol details included.
 
 - **The protocol events keep their own dispatch path, for the one reason that survives.** They are framework events rather than a component's own, so they are deliberately absent from `$emits` — a component must not have to declare a protocol in order to announce through it. `$emit()` is precisely the method that forbids that: a component declaring `$emits` may only emit the names it listed. Routing `$domUpdate()` and `$emitExtendable()` through `$emit()` would therefore need a cast at every call — trading a documented bypass for a hidden one.
 
-  So the split is drawn one level down instead. A private `#dispatch(event, detail)` builds and sends the event — `bubbles`, `cancelable`, `detail`, `[SOURCE]`, the four decisions, in one place. `$emit()` is `#dispatch()` plus the `$emits` type constraint; the negotiated events are `#dispatch()` without it. Nothing is duplicated, nothing is cast, and the constraint is not weakened. The three other framework protocol events — `component:mounted`, `component:destroyed`, `context-request` — sit outside `$emit()` for the same reason (`component:destroyed` also dispatches on `document`, its element being gone, so it does not share the primitive).
+  So the split is drawn one level down instead. A private `#dispatch(event, detail)` builds and sends the event in one place. `$emit()` is `#dispatch()` plus the `$emits` type constraint; the negotiated events are `#dispatch()` without it. Nothing is duplicated, nothing is cast, and the constraint is not weakened. The framework lifecycle events in `EVENTS.component` and the private context transport sit outside `$emit()` for the same reason (`EVENTS.component.destroyed` also dispatches on `document`, its element being gone, so it does not share the primitive).
 
   One consequence is deliberate: a component overriding `$emit` does not intercept these. A framework protocol is not a component's own event.
 
@@ -467,7 +475,7 @@ The piece that makes the flat, order-free topology workable. Two layers, a page-
 
 ### Layer 1 — bubbling lifecycle announcements
 
-Every instance dispatches a bubbling framework event on mount and on terminate (e.g. `component:mounted` / `component:destroyed`), carrying the instance. Any ancestor can track descendants with no declaration and no handshake. Instances scheduled but not yet mounted (per `mountStrategy`) are not announced.
+Every instance dispatches a framework event from `EVENTS.component` on mount and on terminate, carrying the instance. The mounted event bubbles from the element; the destroyed event dispatches from `document` because its element can already be detached. Any ancestor can track descendants with no declaration and no handshake. Instances scheduled but not yet mounted (per `mountStrategy`) are not announced.
 
 ### Layer 2 — a live-children primitive
 
@@ -539,7 +547,7 @@ Injection has two forms, and the difference is what the caller does about absenc
 
 `$injectSync` costs nothing extra: the context request is answered synchronously when a provider is listening, so the sync form is that same round trip without the promise. It is the form a click handler or a keyboard shortcut wants — an answer now or not at all. The async form's pending request is **destroy-scoped**: a destroyed instance leaves nothing in the module's pending set, and `mounted()` running again on remount re-issues it with nothing to re-declare. (The `@inject` field decorator requests once, at construction, so a field left unresolved through a destroy is not re-requested; a consumer that may wait through several cycles calls `$inject()` from `mounted()`.)
 
-Mechanics follow the WICG community context protocol: the consumer dispatches a bubbling `context-request` event with a key, a callback and a `subscribe` flag; the nearest mounted provider answers, and replays to late requesters / re-announces on late provider mount. This fixes both criticals from the earlier `withStore` design: resolution goes through the DOM event path instead of attribute walking, and replay happens only after the provider is mounted and initialized. `subscribe: true` is what lets an **already answered** consumer be taken back by a nearer provider that appears later — see "Being re-answered" below.
+Mechanics follow the WICG community context protocol: the consumer dispatches the bubbling module-private `js-toolkit:context:request` event with a key, a callback and a `subscribe` flag; it is not part of public `EVENTS`. The nearest mounted provider answers, and replays to late requesters / re-announces on late provider mount. This fixes both criticals from the earlier `withStore` design: resolution goes through the DOM event path instead of attribute walking, and replay happens only after the provider is mounted and initialized. `subscribe: true` is what lets an **already answered** consumer be taken back by a nearer provider that appears later — see "Being re-answered" below.
 
 The `Data*` suite in @studiometa/ui (DataScope/DataBind/…) rebuilds on this primitive and drops its bespoke channel plumbing — but only once the sibling case has somewhere to live, which needed one addition.
 
@@ -547,7 +555,7 @@ The `Data*` suite in @studiometa/ui (DataScope/DataBind/…) rebuilds on this pr
 
 Provide/inject needs an ancestor to provide from, and the sibling channel is the one case with nothing to name. `DataBind` is `withGroup(Base, { getScope: (i) => getDataScope(i.$el) })`, and `getDataScope` returns `undefined` when no `DataScope` is above it — at which point v3 fell back to a **page-global registry** hung off `globalThis`. So a bare `DataBind` binds by name across the document with no ancestor at all, and "rebuilds on provide/inject" was true for the scoped half and structurally impossible for the other.
 
-`provideRootContext(key, create)` closes it by making the page-wide case the **outermost scope of the mechanism that already exists**, rather than a second mechanism beside it. The value is provided on `document.documentElement`, so a `context-request` from anywhere reaches it by bubbling and any nearer provider still wins by `stopPropagation` — a page-wide default and a scoped override are one primitive at two depths. `create` runs at most once per key, so peers join rather than race, and nothing is created at import time: a page that never asks never gets a listener.
+`provideRootContext(key, create)` closes it by making the page-wide case the **outermost scope of the mechanism that already exists**, rather than a second mechanism beside it. The value is provided on `document.documentElement`, so a context request from anywhere reaches it by bubbling and any nearer provider still wins by `stopPropagation` — a page-wide default and a scoped override are one primitive at two depths. `create` runs at most once per key, so peers join rather than race, and nothing is created at import time: a page that never asks never gets a listener.
 
 ```js
 // Scoped or page-wide, resolved the same way, nearest first.
@@ -565,7 +573,7 @@ The outermost scope has a sharp edge, and the `Data*` port found it: **a page-wi
 
 The fix is the WICG protocol's `subscribe` flag, which v4 was implementing the protocol without. `injectContext(el, key, { subscribe: true, onProvide })` keeps the request live after it has been answered; `onProvide` is called for every answer, synchronously, and `cancel()` is the unsubscribe. Omitted or `false` is exactly the old behaviour — one answer, request deleted — which is what a control that found its coordinator wants. `$inject(key, options)` passes it through and keeps the subscription destroy-scoped, like the pending request it grew out of.
 
-**The trigger is the mount announcement, not a provider-side broadcast.** A `context-provided` event dispatched down a provider's subtree was the obvious alternative and it makes providers special for something they are not special in. Every mount already announces itself with a bubbling `component:mounted` carrying its instance (objective 5, layer 1); `$watchChildren` only looks parent-scoped because it listens on `this.$el`. So the context module keeps **one listener, on the document**, attached on the first subscription and never at import time. It fires after `mounted()` has run, which is also why the re-answer does not go in `provideContext()`: a field-initializer `$provide` would re-answer consumers from a provider that is still constructing itself.
+**The trigger is the mount announcement, not a provider-side broadcast.** A `context-provided` event dispatched down a provider's subtree was the obvious alternative and it makes providers special for something they are not special in. Every mount already announces itself with the bubbling `EVENTS.component.mounted` event carrying its instance (objective 5, layer 1); `$watchChildren` only looks parent-scoped because it listens on `this.$el`. So the context module keeps **one listener, on the document**, attached on the first subscription and never at import time. It fires after `mounted()` has run, which is also why the re-answer does not go in `provideContext()`: a field-initializer `$provide` would re-answer consumers from a provider that is still constructing itself.
 
 Two `contains()` calls bound the per-mount cost, and together they are exactly the set of consumers whose answer _can_ have changed: the newcomer must contain the consumer, and it must sit inside the provider already answering it. The second is the general form of "only root-answered consumers can be wrong" — the root provider contains everything, so those always pass, while a consumer already held by a nearer provider is dropped before any event is dispatched. Nothing is re-checked for a mount that changes nothing.
 
@@ -601,7 +609,7 @@ No engine ships stage-3 decorators yet, so requiring them would break the no-bui
 - **A lazy child is the reason the string form exists.** A child declared as `Child: () => import('./Child.js')` exists to keep its chunk out of its parent's, and `@on(Child, 'open')` would import exactly what the thunk defers — the class form is useless there, by construction. So `@on('Child', 'open')` is not a fallback for it, it is the form that case is served by, and it imports nothing at all. The thunk is not itself a target — a function with no `config`, refused by the overloads and at runtime.
 - **A name is a child _or_ a ref**, resolved children-first, so the string form types its handler as either `DelegatedEvent` or `RefEvent`. The class form has no such doubt: a class can only be a child.
 - **A ref is named the way it is declared** — `@on('dots[]', 'click')` for `config.refs: ['dots[]']`. One rule covers the whole family: _the declaration spelling is what you write to refer to the entry, the property spelling is what you write when a name is derived from it._ `config.refs`, `data-ref="dots[]"` and `@on()` all refer to the entry and all carry the `[]`; `$refs.dots` and `onDotsClick()` derive a name and drop it. One spelling each, never two — the same choice #785 settled for the attribute, applied one layer up. A mismatched `@on('dots', 'click')` **warns** rather than binding silently, which is the failure it would otherwise be: there is no type that could catch it, since the decorator sees a string and cannot read the `config.refs` declared elsewhere in the class body. The warning is raised at bind time, where both are known, and only when the other spelling is actually declared — a name matching nothing at all stays silent, because `@on('Child', …)` deliberately needs no `config.components` entry.
-- **A global target goes through `bindGlobal()`**, the same binding `onWindow<Event>` uses: bubble phase for the reason above, listener per mount cycle, removed by `$destroy()`. `HandlerRegistration` records the target as itself rather than encoding it into `child`, which is what keeps the string space free.
+- **A global target goes through `bindGlobal()`**, the same binding `onWindow<Event>` uses: bubble phase for the reason above, listener per mount cycle, removed by `$destroy()`. The internal registration record stores the target itself rather than encoding it into `child`, which keeps the string space free.
 - **Any other `EventTarget` is refused**, by the overloads and by a `TypeError` for the untyped path. Not a gap: a decorator is evaluated once, at class definition, with no instance and no document, so an arbitrary target can only ever be a module-scope value shared by every instance — which is not what a per-mount-cycle listener means. A ref is already covered by the string form; anything else is one line in `mounted()`, `addEventListener` plus the cleanup returned beside it, scoped by the machinery that is already there.
 
 Each value decorator works on a plain field and on an `accessor` field — the two differ only in how the initializer is handed back to the runtime.
@@ -967,11 +975,11 @@ Cost: ~35 lines in `registry.ts` and one union in `BaseConfig`; `ComponentImport
 
 ### 11e. One framework error event
 
-Caught framework failures use one observable contract: `JS_TOOLKIT_ERROR_EVENT` is `'js-toolkit:error'`, and its `CustomEvent<ToolkitErrorDetail>` carries the original caught value with `stage: 'load' | 'mount' | 'lifecycle'` and the component config or manifest name when known. Lazy import failures are `load`; registry construction and mount failures are `mount`; caught `Base` hook, mounted-cleanup and option-effect failures are `lifecycle`. The existing `console.error` calls stay in place, with their existing text, and each catch dispatches exactly one event. In particular, a rejected async `mounted()` is reported by the promise rejection handler only: it does not escape to the registry and become a second mount report.
+Caught framework failures use one observable contract: `EVENTS.error` is `'js-toolkit:error'`, and its `CustomEvent<ToolkitErrorDetail>` carries the original caught value with `stage: 'load' | 'mount' | 'lifecycle'` and the component config or manifest name when known. Lazy import failures are `load`; registry construction and mount failures are `mount`; caught `Base` hook, mounted-cleanup and option-effect failures are `lifecycle`. The existing `console.error` calls stay in place, with their existing text, and each catch dispatches exactly one event. In particular, a rejected async `mounted()` is reported by the promise rejection handler only: it does not escape to the registry and become a second mount report.
 
 The event starts on the connected component element when that catch has one, with `bubbles: true` and `composed: true`, so an element listener and page-level `document` or `window` reporters observe the same event and the same error object. A catch without an element, or with one already detached from the event path, dispatches on `document`. It is explicitly not cancelable. A listener observes recovery rather than deciding it: `preventDefault()` has no effect, dispatch does not change control flow, and the catch continues with the same isolation it had before. The event name is a string protocol, so a listener using either of two independently evaluated package copies observes lifecycle failures from both copies and the shared registry's single load or mount report.
 
-This channel is deliberately narrower than every caught callback in the package. Scheduler tasks and service subscribers already use the platform `reportError()` channel and are not component lifecycle failures, so they do not dispatch `js-toolkit:error`. The small internal `reportToolkitError()` helper only centralises the event construction and target fallback; it is not an error service, bus, handler registry, retry policy or recovery mechanism. The public surface is the event constant and its detail/stage types, from the root entry and the constant's generated leaf subpath.
+This channel is deliberately narrower than every caught callback in the package. Scheduler tasks and service subscribers already use the platform `reportError()` channel and are not component lifecycle failures, so they do not dispatch `js-toolkit:error`. The small internal `reportToolkitError()` helper only centralises the event construction and target fallback; it is not an error service, bus, handler registry, retry policy or recovery mechanism. The public surface is `EVENTS` and the detail/stage types from the root entry, with `EVENTS` on its generated leaf subpath.
 
 ### 11f. Further layers, and what each costs
 
@@ -999,7 +1007,7 @@ This channel is deliberately narrower than every caught callback in the package.
 
 ## Open questions
 
-1. Naming: ~~`config.components` successor (`uses`?)~~ — **decided (2026-08-14): the name and the object shape stay**, and the value gains v3's dynamic-import form (§11d). `$watchChildren` vs `$children(name, callbacks)`, announcement event names, `config.use` vs `config.siblings` for #697 remain open.
-2. Does `$emit` cancelation gate anything framework-side, or is `defaultPrevented` purely userland?
+1. Naming: ~~`config.components` successor (`uses`?)~~ — **decided (2026-08-14): the name and the object shape stay**, and the value gains v3's dynamic-import form (§11d). `$watchChildren` vs `$children(name, callbacks)` and `config.use` vs `config.siblings` for #697 remain open.
+2. ~~Does `$emit` cancelation gate anything framework-side, or is `defaultPrevented` purely userland?~~ **Decided:** `$emit()` returns the dispatched event and component code reads `defaultPrevented`; framework notifications are not cancelable unless their protocol defines cancellation.
 3. ~~Exact `mountStrategy` vocabulary and its interaction with existing `withMountWhen*` decorators.~~ **Decided:** `visible[:<rootMargin>]` is one-shot, `in-view[:<rootMargin>]` is reversible, and the registry replaces constructor-wrapping mount decorators (#751).
 4. ~~Migration phases~~ **Decided (2026-08-11): no bridge release.** Backporting the new primitives into a v3.x minor could itself destabilize ui components, so nothing v4 ships in 3.x. `@studiometa/js-toolkit` 4.0 and `@studiometa/ui` 2.0 ship as full breaking majors, in lockstep. Migration helpers are tooling, not runtime: lint rules in the existing eslint plugins flagging `$children`/`$parent`/`updated()`/old handler signatures, and codemods only for the mechanical renames. The `$children` coordinator components (13 files in ui) are rewritten on `$watchChildren`/provide-inject — several disappear into the platform instead (Accordion → `<details>`, Modal/Panel → Dialog).

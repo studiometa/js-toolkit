@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { JS_TOOLKIT_ERROR_EVENT, reportToolkitError, type ToolkitErrorDetail } from './errors.js';
+import { reportToolkitError, type ToolkitErrorDetail } from './errors.js';
+import { EVENTS } from './events.js';
 
 describe('framework error reporting', () => {
   it('falls back to document when no component element is available', () => {
@@ -7,7 +8,7 @@ describe('framework error reporting', () => {
     const documentEvents: CustomEvent<ToolkitErrorDetail>[] = [];
     const windowEvents: CustomEvent<ToolkitErrorDetail>[] = [];
     document.addEventListener(
-      JS_TOOLKIT_ERROR_EVENT,
+      EVENTS.error,
       (event) => {
         event.preventDefault();
         documentEvents.push(event as CustomEvent<ToolkitErrorDetail>);
@@ -15,7 +16,7 @@ describe('framework error reporting', () => {
       { once: true },
     );
     window.addEventListener(
-      JS_TOOLKIT_ERROR_EVENT,
+      EVENTS.error,
       (event) => windowEvents.push(event as CustomEvent<ToolkitErrorDetail>),
       { once: true },
     );

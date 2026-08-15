@@ -289,13 +289,11 @@ async function run(copyA, copyB) {
       },
     };
 
-    const emitterEl = document.createElement('div');
-    const emitter = new copyB.Base(emitterEl).$mount();
-    let sourceReadByA = false;
-    emitterEl.addEventListener('runtime:source', (event) => {
-      sourceReadByA = event[copyA.SOURCE] === emitter;
-    });
-    emitter.$emit('runtime:source', { copy: 'b' });
+    const sameEventValues =
+      copyA.EVENTS.component.mounted === copyB.EVENTS.component.mounted &&
+      copyA.EVENTS.component.destroyed === copyB.EVENTS.component.destroyed &&
+      copyA.EVENTS.dom.update === copyB.EVENTS.dom.update &&
+      copyA.EVENTS.error === copyB.EVENTS.error;
 
     const decoratorInitializers = [];
     let decoratorCalls = 0;
@@ -330,8 +328,8 @@ async function run(copyA, copyB) {
     const errorEventsB = [];
     const onErrorA = (event) => errorEventsA.push(event);
     const onErrorB = (event) => errorEventsB.push(event);
-    document.addEventListener(copyA.JS_TOOLKIT_ERROR_EVENT, onErrorA);
-    document.addEventListener(copyB.JS_TOOLKIT_ERROR_EVENT, onErrorB);
+    document.addEventListener(copyA.EVENTS.error, onErrorA);
+    document.addEventListener(copyB.EVENTS.error, onErrorB);
 
     const lifecycleFailureA = new Error('copy A lifecycle failure');
     const lifecycleFailureB = new Error('copy B lifecycle failure');
@@ -387,18 +385,18 @@ async function run(copyA, copyB) {
       await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
     } finally {
       console.error = nativeConsoleError;
-      document.removeEventListener(copyA.JS_TOOLKIT_ERROR_EVENT, onErrorA);
-      document.removeEventListener(copyB.JS_TOOLKIT_ERROR_EVENT, onErrorB);
+      document.removeEventListener(copyA.EVENTS.error, onErrorA);
+      document.removeEventListener(copyB.EVENTS.error, onErrorB);
     }
 
     const errors = {
-      sameEventName: copyA.JS_TOOLKIT_ERROR_EVENT === copyB.JS_TOOLKIT_ERROR_EVENT,
+      sameEventName: copyA.EVENTS.error === copyB.EVENTS.error,
       heardByA: errorEventsA.length,
       heardByB: errorEventsB.length,
       sameEvents: errorEventsA.every((event, index) => event === errorEventsB[index]),
       contract: errorEventsA.every(
         (event) =>
-          event.type === 'js-toolkit:error' && event.bubbles && event.composed && !event.cancelable,
+          event.type === copyA.EVENTS.error && event.bubbles && event.composed && !event.cancelable,
       ),
       identities: errorEventsA.every(
         (event, index) => event.detail.error === expectedFailures[index],
@@ -607,7 +605,7 @@ async function run(copyA, copyB) {
     let mountListeners = 0;
     const nativeDocumentAddEventListener = document.addEventListener;
     document.addEventListener = function (type, ...args) {
-      if (type === 'component:mounted') {
+      if (type === copyA.EVENTS.component.mounted) {
         mountListeners += 1;
       }
       return nativeDocumentAddEventListener.call(this, type, ...args);
@@ -635,7 +633,6 @@ async function run(copyA, copyB) {
     sharedInViewRoot.remove();
     otherTarget.remove();
     contextScope.remove();
-    emitter.$terminate();
     decorated.$terminate();
     await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
     copyA.setBreakpoints(copyA.BREAKPOINTS);
@@ -645,8 +642,7 @@ async function run(copyA, copyB) {
       ok: true,
       result: {
         protocol: {
-          sameSource: copyA.SOURCE === copyB.SOURCE,
-          sourceReadByA,
+          sameEventValues,
           decoratorCalls,
         },
         branding,

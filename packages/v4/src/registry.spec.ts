@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base } from './Base.js';
-import { JS_TOOLKIT_ERROR_EVENT, type ToolkitErrorDetail } from './errors.js';
+import { type ToolkitErrorDetail } from './errors.js';
+import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
 import { getInstance, renderTodoList, resetDom, settle, TodoItem, TodoList } from './test-utils.js';
 
@@ -129,7 +130,7 @@ describe('registry', () => {
     registerComponent(HealthyConstruction);
     const broken = document.createElement('div');
     broken.setAttribute('data-component', 'BrokenConstructionErrorEvent');
-    broken.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+    broken.addEventListener(EVENTS.error, (event) => {
       events.push(event as CustomEvent<ToolkitErrorDetail>);
     });
     const healthy = document.createElement('div');

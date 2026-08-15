@@ -1,7 +1,7 @@
-import { MOUNTED_EVENT } from './lifecycle-events.js';
+import { EVENTS } from './events.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
 
-const CONTEXT_REQUEST = 'context-request';
+const CONTEXT_REQUEST = 'js-toolkit:context:request';
 
 /**
  * A typed context key. The phantom `__context` property carries the value
@@ -317,7 +317,7 @@ function deliver(subscription: ContextSubscription, value: unknown, providerNode
  *
  * **One listener, at the document, for the whole page** — not one per
  * consumer, and no provider-side broadcast. Every mount already announces
- * itself with a bubbling `component:mounted`, so the trigger exists; what was
+ * itself with the bubbling `EVENTS.component.mounted` event, so the trigger exists; what was
  * missing was permission to re-answer.
  *
  * Two `contains()` calls bound the work, and together they are exactly the set
@@ -372,7 +372,7 @@ function subscribeRequest(subscription: ContextSubscription): void {
     contextState.isMountListenerAttached = true;
     // Nothing at import time: a page with no subscribed consumer never gets
     // this listener, exactly as it never gets a root provider.
-    document.addEventListener(MOUNTED_EVENT, onComponentMounted);
+    document.addEventListener(EVENTS.component.mounted, onComponentMounted);
   }
 }
 
@@ -446,7 +446,7 @@ export function provideContext<T>(
  * Provide a value for the whole document, creating it on first use.
  *
  * This is the outermost scope, not a second mechanism: the value is provided on
- * `document.documentElement`, so a `context-request` from anywhere reaches it by
+ * `document.documentElement`, so a context request from anywhere reaches it by
  * bubbling and **any nearer provider still wins**. A page-wide default and a
  * scoped override are the same primitive at different depths.
  *
