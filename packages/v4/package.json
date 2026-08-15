@@ -190,6 +190,16 @@
       "types": "./dist/subpaths/withDrag.d.ts",
       "import": "./dist/subpaths/withDrag.js"
     },
+    "./useInView": {
+      "typescript": "./src/subpaths/useInView.ts",
+      "types": "./dist/subpaths/useInView.d.ts",
+      "import": "./dist/subpaths/useInView.js"
+    },
+    "./withInView": {
+      "typescript": "./src/subpaths/withInView.ts",
+      "types": "./dist/subpaths/withInView.d.ts",
+      "import": "./dist/subpaths/withInView.js"
+    },
     "./createServiceMixin": {
       "typescript": "./src/subpaths/createServiceMixin.ts",
       "types": "./dist/subpaths/createServiceMixin.d.ts",
