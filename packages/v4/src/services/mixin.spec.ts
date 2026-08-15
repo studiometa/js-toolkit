@@ -155,6 +155,46 @@ describe('service mixins', () => {
     expect(modes).toEqual(['start']);
   });
 
+  it('forwards drag axis and inertia options for the whole mount cycle', () => {
+    const seen: DragProps[] = [];
+
+    class Horizontal extends withDrag(Base, { axis: 'x', inertia: false }) {
+      static config = { name: 'Horizontal' };
+
+      dragged(props: DragProps): void {
+        seen.push({ ...props });
+      }
+    }
+
+    const el = render();
+    const instance = new Horizontal(el).$mount();
+    expect(el.style.touchAction).toBe('pan-y');
+
+    el.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        button: 0,
+        buttons: 1,
+        clientX: 10,
+        clientY: 20,
+        bubbles: true,
+      }),
+    );
+    document.dispatchEvent(
+      new PointerEvent('pointermove', { buttons: 1, clientX: 80, clientY: 90 }),
+    );
+    window.dispatchEvent(new PointerEvent('pointerup'));
+
+    const dragged = seen.find(({ mode }) => mode === 'drag') as DragProps;
+    expect(dragged.distanceX).toBe(70);
+    expect(dragged.y).toBe(20);
+    expect(dragged.deltaY).toBe(0);
+    expect(dragged.distanceY).toBe(0);
+    expect(seen.map(({ mode }) => mode)).toEqual(['start', 'drag', 'drop', 'stop']);
+
+    instance.$destroy();
+    expect(el.style.touchAction).toBe('');
+  });
+
   it('subscribes nothing when the component declares no hook', () => {
     class Quiet extends withDrag(Base) {
       static config = { name: 'Quiet' };

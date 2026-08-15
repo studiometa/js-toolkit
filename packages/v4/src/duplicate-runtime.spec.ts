@@ -69,6 +69,12 @@ interface FixtureMessage {
         activeAfterOne: number;
         activeAfterBoth: number;
       };
+      dragTouchAction: {
+        withX: string;
+        withBoth: string;
+        afterX: string;
+        afterBoth: string;
+      };
     };
     context: {
       sameRoot: boolean;
@@ -203,6 +209,12 @@ describe('duplicated v4 bundles', () => {
       activeWithBoth: 1,
       activeAfterOne: 1,
       activeAfterBoth: 0,
+    });
+    expect(result.services.dragTouchAction).toEqual({
+      withX: 'pan-y',
+      withBoth: 'none',
+      afterX: 'pan-x',
+      afterBoth: 'auto',
     });
     expect(result.context).toEqual({
       sameRoot: true,
