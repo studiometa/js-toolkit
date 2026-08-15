@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import type { BaseConfig, ComponentManifestEntry, MountStrategy } from './index.js';
 import { applyMountStrategy } from './mount-strategies.js';
 
@@ -108,4 +108,30 @@ describe('applyMountStrategy viewport parameters', () => {
       expect(FakeIntersectionObserver.instances.at(-1)?.init).toBeUndefined();
     },
   );
+
+  it('reports an invalid root margin without falling back or stopping DOM work', () => {
+    const failure = new DOMException('rootMargin must use pixels or percent', 'SyntaxError');
+    globalThis.IntersectionObserver = class {
+      constructor() {
+        throw failure;
+      }
+    } as unknown as typeof IntersectionObserver;
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const hooks = { mount: vi.fn(), destroy: vi.fn() };
+
+    const applied = applyMountStrategy(
+      document.createElement('div'),
+      'in-view:not-a-root-margin',
+      hooks,
+    );
+
+    expect(error).toHaveBeenCalledWith(
+      '[mount-strategy] Failed to apply "in-view:not-a-root-margin":',
+      failure,
+    );
+    expect(hooks.mount).not.toHaveBeenCalled();
+    expect(hooks.destroy).not.toHaveBeenCalled();
+    expect(() => applied.dispose()).not.toThrow();
+    error.mockRestore();
+  });
 });

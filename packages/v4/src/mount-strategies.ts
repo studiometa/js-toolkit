@@ -89,21 +89,29 @@ export function applyMountStrategy(
 ): AppliedMountStrategy {
   const viewport = parseViewportMountStrategy(strategy);
   if (viewport) {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            if (!viewport.isReversible) {
-              observer.disconnect();
+    let observer: IntersectionObserver;
+    try {
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              if (!viewport.isReversible) {
+                observer.disconnect();
+              }
+              mount();
+            } else if (viewport.isReversible) {
+              destroy();
             }
-            mount();
-          } else if (viewport.isReversible) {
-            destroy();
           }
-        }
-      },
-      viewport.rootMargin ? { rootMargin: viewport.rootMargin } : undefined,
-    );
+        },
+        viewport.rootMargin ? { rootMargin: viewport.rootMargin } : undefined,
+      );
+    } catch (error) {
+      // The browser owns the rootMargin grammar. Report author errors without
+      // changing the requested mount policy or stopping registry reconciliation.
+      console.error(`[mount-strategy] Failed to apply "${strategy}":`, error);
+      return { dispose() {} };
+    }
     observer.observe(el);
     return { dispose: () => observer.disconnect() };
   }
