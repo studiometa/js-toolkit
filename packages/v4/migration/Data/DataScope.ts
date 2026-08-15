@@ -51,7 +51,7 @@ export type DataScopeProps = BaseProps & {
  * which had already fallen back to the page-wide registry could never take
  * them back.
  *
- * Core closed that: a member now asks with `subscribe: true`, and the mount
+ * Core closed that: a member now uses `subscribeContext()`, and the mount
  * announcement this component already dispatches is what re-answers it. The
  * boundary is the field initializer below and nothing else — which is what
  * "the component decides *where* the boundary is" was supposed to mean.

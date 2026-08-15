@@ -2,6 +2,7 @@ import {
   Base,
   defaultScheduler,
   domUpdate,
+  subscribeContext,
   type BaseConfig,
   type BaseProps,
 } from '../../src/index.js';
@@ -76,7 +77,7 @@ type VirtualBinding =
  * | `nextTick()` → `defaultScheduler.background()` | v4 ships no `nextTick`. The background lane is where eager mounts queue, so "after everything mounted" is a guarantee rather than a hope. |
  * | copied `emitDomUpdate()` + `runWrapped()` → `domUpdate()` | the standalone helper keeps the unclaimed mutation synchronous and owns runner resilience without adding a `Base` method. |
  * | `this.$warn(…)` → `warn(…)` | no `$warn` in v4 (REPORT.md gap 10). |
- * | `mounted()` resolving once → `$inject(…, { subscribe: true })` | a member must be re-answerable: a `DataScope` mounting around it takes it back off the page-wide registry. This is the one thing the port had to work around, and core now carries it. |
+ * | `mounted()` resolving once → `subscribeContext(…)` | a member must be re-answerable: a `DataScope` mounting around it takes it back off the page-wide registry. The optional helper carries this without adding it to `Base`. |
  *
  * ## What has no framework support
  *
@@ -577,8 +578,8 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
   /**
    * Bind to the nearest registry, and stay bindable.
    *
-   * `subscribe: true` is the whole of what used to be `DataScope`'s `RESCOPE`
-   * broadcast. A member that resolved the page-wide registry — because it
+   * `subscribeContext()` is the whole of what used to be `DataScope`'s
+   * `RESCOPE` broadcast. A member that resolved the page-wide registry — because it
    * mounted before its scope did, or because its scope is `data-mount="idle"`,
    * or because a `data-bind:if` template wrapped one around it — is re-answered
    * when that scope mounts, and the teardown returned below is what makes the
@@ -591,26 +592,24 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
    * so a member with no `DataScope` above it must create it, which replays its
    * own pending request and answers it.
    */
-  mounted(): void {
-    this.$inject(DataRegistryContext, {
-      subscribe: true,
-      onProvide: (registry) => {
-        this.#registry = registry;
-        this.#connect();
-        this.#propagateOnMount();
+  mounted(): () => void {
+    const unsubscribe = subscribeContext(this.$el, DataRegistryContext, (registry) => {
+      this.#registry = registry;
+      this.#connect();
+      this.#propagateOnMount();
 
-        return () => {
-          this.#disconnect();
-          if (registry.scoped && this.dataKey) {
-            registry.deleteValue(this.group, this.dataKey, this);
-          }
-          this.#registry = undefined;
-        };
-      },
+      return () => {
+        this.#disconnect();
+        if (registry.scoped && this.dataKey) {
+          registry.deleteValue(this.group, this.dataKey, this);
+        }
+        this.#registry = undefined;
+      };
     });
 
     if (!this.#registry) {
       resolveDataRegistry(this.$el);
     }
+    return unsubscribe;
   }
 }

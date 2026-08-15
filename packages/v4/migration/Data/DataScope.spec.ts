@@ -337,8 +337,8 @@ describe('DataScope', () => {
     // The ordering trap, in the one shape a DOM move does *not* fix: the
     // element was already there and only its `data-component` declaration
     // arrives late. This is the spec the port used to need eight lines of
-    // `RESCOPE` broadcast for; core answers it now, because the member asks
-    // with `subscribe: true` and the scope's own mount announcement re-answers
+    // `RESCOPE` broadcast for; core answers it now, because the member uses
+    // `subscribeContext()` and the scope's own mount announcement re-answers
     // it. Nothing in this file changed — the assertion was always about which
     // registry the member ends up on, never about how it got there.
     const group = uniqueGroup('late');

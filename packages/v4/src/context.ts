@@ -1,4 +1,3 @@
-import { EVENTS } from './events.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
 
 const CONTEXT_REQUEST = 'js-toolkit:context:request';
@@ -131,64 +130,46 @@ export function signal<T>(initialValue: T): Signal<T> {
   };
 }
 
-/**
- * What a subscribed consumer is handed on every answer.
- *
- * The second argument is the same `unsubscribe` the injector returned, so a
- * consumer can end its own subscription from inside a delivery. **Returning a
- * function registers the teardown for that answer** — see `deliver()` for the
- * contract it buys.
- */
-export type ContextCallback<T> = (value: T, unsubscribe: () => void) => void | (() => void);
-
-/**
- * How a consumer asks.
- */
-export interface InjectContextOptions<T = unknown> {
-  /**
-   * Keep the request live after it has been answered, so that a **nearer
-   * provider appearing later answers it again**. This is the WICG context
-   * protocol's `subscribe` flag, and it is off by default: an unsubscribed
-   * request is deleted the moment anything answers it, which is what a
-   * control that found its coordinator wants.
-   *
-   * Re-answers are delivered to `onProvide` — a promise settles once, as
-   * promises do — so `subscribe` without `onProvide` subscribes to nothing.
-   */
-  subscribe?: boolean;
-  /**
-   * Called for **every** answer, including the first, synchronously, with the
-   * value and an `unsubscribe`. The promise still settles on the first
-   * answer, so a consumer that only uses the callback can ignore it.
-   */
-  onProvide?: ContextCallback<T>;
-}
-
 interface ContextRequestDetail {
   key: symbol;
-  /**
-   * Part of the dispatched protocol, not of v4's own resolution: v4 re-asks
-   * from the consumer rather than being pushed to, so its own providers do
-   * not read this. A third-party provider implementing the WICG protocol
-   * does, which is the reason it is on the wire.
-   */
+  /** Required by the WICG protocol for subscribed third-party requests. */
   subscribe: boolean;
   provide(value: unknown): void;
 }
 
-interface PendingRequest {
+/**
+ * One context request on the private event transport.
+ *
+ * @internal
+ */
+export interface ContextRequest {
   el: Element;
   key: symbol;
   subscribe: boolean;
-  /**
-   * `providerNode` is whoever answered — `event.currentTarget` at the moment
-   * the answer came in. It is what makes "is this new provider nearer than
-   * the one I have?" a single `contains()` instead of a re-dispatch.
-   */
   resolve(value: unknown, providerNode: Node | null): void;
 }
 
-function requestContext(request: PendingRequest): boolean {
+interface ContextRuntimeState {
+  pendingRequests: Set<ContextRequest>;
+  rootProviders: Map<symbol, unknown>;
+}
+
+const contextState = /* @__PURE__ */ getSharedRuntimeSlot<ContextRuntimeState>(
+  'context',
+  2,
+  () => ({
+    pendingRequests: new Set(),
+    rootProviders: new Map(),
+  }),
+);
+const { pendingRequests, rootProviders } = contextState;
+
+/**
+ * Dispatch one request and report whether a provider answered synchronously.
+ *
+ * @internal
+ */
+export function dispatchContextRequest(request: ContextRequest): boolean {
   let isAnswered = false;
   let event!: CustomEvent<ContextRequestDetail>;
   const detail: ContextRequestDetail = {
@@ -196,11 +177,12 @@ function requestContext(request: PendingRequest): boolean {
     subscribe: request.subscribe,
     provide(value) {
       isAnswered = true;
-      // Answered means no longer *pending*, for a subscribed request too: what
-      // keeps it re-askable is the subscription index below, not this set.
       pendingRequests.delete(request);
       const provider = event.currentTarget;
-      request.resolve(value, provider instanceof Node ? provider : null);
+      request.resolve(
+        value,
+        provider !== null && 'contains' in provider ? (provider as Node) : null,
+      );
     },
   };
   event = new CustomEvent(CONTEXT_REQUEST, { bubbles: true, detail });
@@ -208,183 +190,14 @@ function requestContext(request: PendingRequest): boolean {
   return isAnswered;
 }
 
-/**
- * An answered request that is still allowed to be answered again.
- */
-interface ContextSubscription {
-  request: PendingRequest;
-  el: Element;
-  callback?: ContextCallback<unknown>;
-  /** Whoever answered last. `null` until the first answer. */
-  providerNode: Node | null;
-  value: unknown;
-  hasValue: boolean;
-  teardown?: () => void;
-  isActive: boolean;
-  ref: WeakRef<ContextSubscription>;
-  unsubscribe(): void;
+/** Keep an unanswered request available for a provider that appears later. @internal */
+export function retainContextRequest(request: ContextRequest): void {
+  pendingRequests.add(request);
 }
 
-interface ContextRuntimeState {
-  pendingRequests: Set<PendingRequest>;
-  subscriptionsByElement: WeakMap<Element, Set<ContextSubscription>>;
-  subscriptionIndex: Set<WeakRef<ContextSubscription>>;
-  isMountListenerAttached: boolean;
-  rootProviders: Map<symbol, unknown>;
-}
-
-const contextState = /* @__PURE__ */ getSharedRuntimeSlot<ContextRuntimeState>(
-  'context',
-  1,
-  () => ({
-    pendingRequests: new Set(),
-    subscriptionsByElement: new WeakMap(),
-    subscriptionIndex: new Set(),
-    isMountListenerAttached: false,
-    rootProviders: new Map(),
-  }),
-);
-const { pendingRequests, subscriptionsByElement, subscriptionIndex, rootProviders } = contextState;
-
-/**
- * The subscription registry, in two halves, because it has two jobs that pull
- * in opposite directions: it must be **iterable** on every mount, and it must
- * **hold nothing**.
- *
- * - `subscriptionsByElement` anchors a subscription's lifetime to its consumer
- *   element and nothing else. A subscription references its element, the
- *   element's entry references the subscription back, and the cycle is
- *   reachable from this module only weakly — so a discarded element takes its
- *   subscriptions with it. This is the `WeakMap` v3's scoped-groups registry
- *   used, for the same reason.
- * - `subscriptionIndex` is the iterable half, and it holds `WeakRef`s so it
- *   pins nothing either. Dead entries are pruned on the sweep that finds them.
- *
- * A strong `Set` of subscriptions would have been simpler and wrong: the
- * callback closes over the consumer instance, which holds its element, so the
- * registry would keep every consumer that ever resolved alive for the life of
- * the page.
- */
-
-function runTeardown(subscription: ContextSubscription): void {
-  const { teardown } = subscription;
-  subscription.teardown = undefined;
-  if (!teardown) {
-    return;
-  }
-  try {
-    teardown();
-  } catch (error) {
-    console.error('[context] Re-answer teardown failed:', error);
-  }
-}
-
-/**
- * Hand an answer to a subscribed consumer, superseding the previous one.
- *
- * **The contract.** An answer is replaced, never accumulated: the teardown the
- * consumer returned for the previous value runs *before* the new value is
- * delivered, so whatever it had done with the old provider (joined a registry,
- * subscribed to a Signal, wrote to the DOM) is undone first. A consumer that
- * returns nothing is saying its own re-answer handling is idempotent.
- *
- * An identical value is not an answer: the consumer is already bound to it, so
- * only the bookkeeping moves. That matters because a nearer provider can hand
- * over the very same object — `provideRootContext` values do — and tearing a
- * working binding down to rebuild it identically is churn, not correctness.
- */
-function deliver(subscription: ContextSubscription, value: unknown, providerNode: Node | null) {
-  if (!subscription.isActive) {
-    return;
-  }
-  if (subscription.hasValue && Object.is(value, subscription.value)) {
-    subscription.providerNode = providerNode;
-    return;
-  }
-  runTeardown(subscription);
-  subscription.value = value;
-  subscription.hasValue = true;
-  subscription.providerNode = providerNode;
-  const result = subscription.callback?.(value, subscription.unsubscribe);
-  if (typeof result === 'function') {
-    subscription.teardown = result;
-  }
-}
-
-/**
- * Re-ask on behalf of every subscribed consumer the newly mounted element can
- * have changed the answer for.
- *
- * **One listener, at the document, for the whole page** — not one per
- * consumer, and no provider-side broadcast. Every mount already announces
- * itself with the bubbling `EVENTS.component.mounted` event, so the trigger exists; what was
- * missing was permission to re-answer.
- *
- * Two `contains()` calls bound the work, and together they are exactly the set
- * of consumers whose answer *can* have changed:
- *
- * 1. `mountedEl.contains(el)` — a provider that is not an ancestor of the
- *    consumer can never answer it.
- * 2. `providerNode.contains(mountedEl)` — a provider outside the one already
- *    answering is farther away, and the nearest still wins.
- *
- * (2) is the generalisation of "only consumers answered by the root provider
- * can be wrong": the root provider sits on `document.documentElement`, which
- * contains everything, so those consumers always pass — and a consumer already
- * held by a nearer provider is dropped before anything is dispatched.
- */
-function onComponentMounted(event: Event): void {
-  const mountedEl = event.target;
-  if (!(mountedEl instanceof Element) || subscriptionIndex.size === 0) {
-    return;
-  }
-  // Snapshot: a delivery can unsubscribe, and pruning mutates the index.
-  // oxlint-disable-next-line no-useless-spread
-  for (const ref of [...subscriptionIndex]) {
-    const subscription = ref.deref();
-    if (!subscription) {
-      subscriptionIndex.delete(ref);
-      continue;
-    }
-    const { providerNode } = subscription;
-    if (
-      !subscription.isActive ||
-      providerNode === mountedEl ||
-      !mountedEl.contains(subscription.el) ||
-      (providerNode !== null && !providerNode.contains(mountedEl))
-    ) {
-      continue;
-    }
-    requestContext(subscription.request);
-  }
-}
-
-function subscribeRequest(subscription: ContextSubscription): void {
-  let owned = subscriptionsByElement.get(subscription.el);
-  if (!owned) {
-    owned = new Set();
-    subscriptionsByElement.set(subscription.el, owned);
-  }
-  owned.add(subscription);
-  subscriptionIndex.add(subscription.ref);
-
-  if (!contextState.isMountListenerAttached) {
-    contextState.isMountListenerAttached = true;
-    // Nothing at import time: a page with no subscribed consumer never gets
-    // this listener, exactly as it never gets a root provider.
-    document.addEventListener(EVENTS.component.mounted, onComponentMounted);
-  }
-}
-
-function unsubscribeRequest(subscription: ContextSubscription): void {
-  if (!subscription.isActive) {
-    return;
-  }
-  subscription.isActive = false;
-  pendingRequests.delete(subscription.request);
-  subscriptionsByElement.get(subscription.el)?.delete(subscription);
-  subscriptionIndex.delete(subscription.ref);
-  runTeardown(subscription);
+/** Stop replaying an unanswered request. @internal */
+export function cancelContextRequest(request: ContextRequest): void {
+  pendingRequests.delete(request);
 }
 
 /**
@@ -421,17 +234,14 @@ export function provideContext<T>(
   // Requests are re-dispatched from the consumer, so the nearest provider
   // still wins.
   //
-  // This covers requests nobody has answered yet, and only those. A consumer
-  // that was *already* answered — by a page-wide root provider, typically —
-  // is taken back by the mount announcement instead, and only if it asked to
-  // be (`subscribe: true`). Replaying here would re-answer from a provider
-  // that is still constructing itself; the mount event fires after
-  // `mounted()` has run.
+  // This covers requests nobody has answered yet, and only those. Optional
+  // subscriptions re-ask after the provider has completed its mount instead
+  // of accepting an answer from a provider that is still constructing itself.
   // Snapshot: answering a request removes it from `pendingRequests`.
   // oxlint-disable-next-line no-useless-spread
   for (const request of [...pendingRequests]) {
     if (request.key === key && el.contains(request.el)) {
-      requestContext(request);
+      dispatchContextRequest(request);
     }
   }
 
@@ -485,89 +295,29 @@ export function provideRootContext<T>(key: ContextKey<T>, create: () => T): T {
 
 /**
  * Resolve the nearest provided value for `key`, now or when a provider
- * appears. Order-independent.
+ * appears. This request is one-shot: the first answer settles the promise and
+ * removes the request.
  *
- * **The promise never settles while no provider exists.** That is the price
- * of order independence: a consumer mounting before its provider must not be
- * told "absent" by an ordering accident. A consumer that needs an answer now
- * — a click handler, a keyboard shortcut — asks with `injectContextSync()`
- * and falls back on `undefined`.
- *
- * **`subscribe: true` keeps the request live.** Without it the request is
- * deleted the moment anything answers, which means a nearer provider mounting
- * later can never take the consumer back — and because `provideRootContext`
- * answers from `document.documentElement`, "anything" includes a page-wide
- * default that reaches every unscoped consumer on the page. That is fine for a
- * control which found its coordinator and wrong for a channel resolved by
- * name, where falling back to the page silently trades values with the wrong
- * owner. Such a consumer subscribes:
- *
- *     const { cancel } = injectContext(el, RegistryKey, {
- *       subscribe: true,
- *       onProvide(registry) {
- *         const leave = registry.join(group, member);
- *         return leave; // undone before the next answer, and on cancel
- *       },
- *     });
- *
- * `cancel()` is the unsubscribe: it drops the request, whether answered or
- * not, and runs the teardown of the answer in force.
+ * The promise stays pending while no provider exists. `cancel()` removes that
+ * pending request and does nothing after an answer.
  */
 export function injectContext<T>(
   el: Element,
   key: ContextKey<T>,
-  { subscribe = false, onProvide }: InjectContextOptions<T> = {},
 ): { promise: Promise<T>; cancel: () => void } {
-  if (!subscribe) {
-    let request!: PendingRequest;
-    const promise = new Promise<T>((resolve) => {
-      request = {
-        el,
-        key,
-        subscribe: false,
-        resolve: (value) => {
-          onProvide?.(value as T, () => pendingRequests.delete(request));
-          resolve(value as T);
-        },
-      };
-      if (!requestContext(request)) {
-        pendingRequests.add(request);
-      }
-    });
-    return { promise, cancel: () => pendingRequests.delete(request) };
-  }
-
-  const subscription = {
-    el,
-    callback: onProvide as ContextCallback<unknown> | undefined,
-    providerNode: null,
-    value: undefined,
-    hasValue: false,
-    isActive: true,
-  } as ContextSubscription;
-  subscription.ref = new WeakRef(subscription);
-  subscription.unsubscribe = () => unsubscribeRequest(subscription);
-
+  let request!: ContextRequest;
   const promise = new Promise<T>((resolve) => {
-    subscription.request = {
+    request = {
       el,
       key,
-      subscribe: true,
-      resolve: (value, providerNode) => {
-        deliver(subscription, value, providerNode);
-        resolve(value as T);
-      },
+      subscribe: false,
+      resolve: (value) => resolve(value as T),
     };
-    subscribeRequest(subscription);
-    if (!requestContext(subscription.request)) {
-      // Not answered yet: the request waits in the pending set for a late
-      // provider exactly as an unsubscribed one does. Being subscribed
-      // changes what happens *after* the first answer, not before it.
-      pendingRequests.add(subscription.request);
+    if (!dispatchContextRequest(request)) {
+      retainContextRequest(request);
     }
   });
-
-  return { promise, cancel: subscription.unsubscribe };
+  return { promise, cancel: () => cancelContextRequest(request) };
 }
 
 /**
@@ -579,15 +329,10 @@ export function injectContext<T>(
  * "no provider above this element right now", which a control can act on
  * (fall back, do nothing) instead of waiting forever.
  *
- * There is no subscribed form of this one: a subscription needs a handle to
- * end it, and this returns a bare value on purpose. A consumer that wants both
- * — an answer in this tick *and* the right to be re-answered — uses
- * `injectContext(el, key, { subscribe: true, onProvide })`, whose `onProvide`
- * runs synchronously on the first answer too.
  */
 export function injectContextSync<T>(el: Element, key: ContextKey<T>): T | undefined {
   let resolved: T | undefined;
-  requestContext({
+  dispatchContextRequest({
     el,
     key,
     subscribe: false,

@@ -1,12 +1,6 @@
 import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
-import {
-  injectContext,
-  injectContextSync,
-  provideContext,
-  type ContextKey,
-  type InjectContextOptions,
-} from './context.js';
+import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
 import { domVersion, watchElementAttributes, type AttributeChange } from './dom-mutations.js';
 import { reportToolkitError } from './errors.js';
 import { EVENTS } from './events.js';
@@ -1569,25 +1563,12 @@ export class Base<T extends BaseProps = BaseProps> {
    * provider must not be told "absent" by an ordering accident. Use
    * `$injectSync()` when an answer is needed now.
    *
-   * The pending request is destroy-scoped, so a destroyed instance leaves
-   * nothing behind — and `mounted()` runs again on remount, which re-issues
-   * the request naturally.
-   *
-   * `{ subscribe: true, onProvide }` keeps the request live so a **nearer
-   * provider mounting later** re-answers it, which is what a channel resolved
-   * by name needs and a control that found its coordinator does not. The
-   * subscription is destroy-scoped like the pending request, so it ends with
-   * the mount cycle that opened it:
-   *
-   *     mounted() {
-   *       this.$inject(RegistryKey, {
-   *         subscribe: true,
-   *         onProvide: (registry) => registry.join(this.group, this),
-   *       });
-   *     }
+   * The one-shot pending request is destroy-scoped, so a destroyed instance
+   * leaves nothing behind. `mounted()` runs again on remount and naturally
+   * issues a new request.
    */
-  $inject<V>(key: ContextKey<V>, options?: InjectContextOptions<V>): Promise<V> {
-    const { promise, cancel } = injectContext(this.$el, key, options);
+  $inject<V>(key: ContextKey<V>): Promise<V> {
+    const { promise, cancel } = injectContext(this.$el, key);
     this.#destroyCallbacks.push(cancel);
     return promise;
   }

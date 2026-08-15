@@ -85,11 +85,10 @@ export {
   provideContext,
   provideRootContext,
   signal,
-  type ContextCallback,
   type ContextKey,
-  type InjectContextOptions,
   type Signal,
 } from './context.js';
+export { subscribeContext, type ContextCallback } from './context-subscription.js';
 export { children, component, inject, on, provide, read, write } from './decorators.js';
 export { whenDOMSettled, type AttributeChange, type AttributeWatcher } from './dom-mutations.js';
 export { type ToolkitErrorDetail, type ToolkitErrorStage } from './errors.js';
