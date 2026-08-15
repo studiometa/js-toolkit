@@ -115,6 +115,11 @@
       "types": "./dist/subpaths/whenDOMSettled.d.ts",
       "import": "./dist/subpaths/whenDOMSettled.js"
     },
+    "./JS_TOOLKIT_ERROR_EVENT": {
+      "typescript": "./src/subpaths/JS_TOOLKIT_ERROR_EVENT.ts",
+      "types": "./dist/subpaths/JS_TOOLKIT_ERROR_EVENT.d.ts",
+      "import": "./dist/subpaths/JS_TOOLKIT_ERROR_EVENT.js"
+    },
     "./getInstances": {
       "typescript": "./src/subpaths/getInstances.ts",
       "types": "./dist/subpaths/getInstances.d.ts",

@@ -2,7 +2,7 @@ import { dirname, resolve } from 'node:path';
 import { build } from 'tsdown';
 
 const packageRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
-const names = ['SOURCE', 'MOUNTED_EVENT', 'DESTROYED_EVENT'];
+const names = ['SOURCE', 'MOUNTED_EVENT', 'DESTROYED_EVENT', 'JS_TOOLKIT_ERROR_EVENT'];
 
 for (const name of names) {
   const bundles = await build({

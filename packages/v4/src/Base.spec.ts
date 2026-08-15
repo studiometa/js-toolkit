@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   Base,
+  MOUNTED_EVENT,
   type BaseConfig,
   type ChildrenCollection,
   type DelegatedEvent,
@@ -9,6 +10,7 @@ import {
   type RefEvent,
 } from './Base.js';
 import type { AttributeChange } from './dom-mutations.js';
+import { JS_TOOLKIT_ERROR_EVENT, type ToolkitErrorDetail } from './errors.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
 import {
@@ -368,8 +370,10 @@ describe('$options', () => {
 
   it('isolates option effect errors and reentrant cleanup', async () => {
     const calls: string[] = [];
-    const error = console.error;
-    console.error = () => {};
+    const cleanupFailure = new Error('expected cleanup failure');
+    const handlerFailure = new Error('expected handler failure');
+    const events: CustomEvent<ToolkitErrorDetail>[] = [];
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     class ResilientOptions extends Base {
       static config = {
@@ -379,10 +383,10 @@ describe('$options', () => {
 
       optionFirstChanged({ initial }: OptionChange<number>) {
         if (!initial) {
-          throw new Error('expected handler failure');
+          throw handlerFailure;
         }
         return () => {
-          throw new Error('expected cleanup failure');
+          throw cleanupFailure;
         };
       }
 
@@ -407,6 +411,9 @@ describe('$options', () => {
       registerComponent(ReentrantOption);
       const resilient = document.createElement('div');
       resilient.setAttribute('data-component', 'ResilientOptions');
+      resilient.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+        events.push(event as CustomEvent<ToolkitErrorDetail>);
+      });
       const reentrant = document.createElement('div');
       reentrant.setAttribute('data-component', 'ReentrantOption');
       document.body.append(resilient, reentrant);
@@ -419,11 +426,14 @@ describe('$options', () => {
 
       // A failed cleanup and handler do not block the later option update.
       expect(calls).toEqual(['second:0', 'second:2']);
+      expect(events.map((event) => event.detail.error)).toEqual([cleanupFailure, handlerFailure]);
+      expect(events.every((event) => event.detail.stage === 'lifecycle')).toBe(true);
+      expect(events.every((event) => event.detail.component === 'ResilientOptions')).toBe(true);
       // Cleanup can destroy its own mount cycle without recursion or a stale
       // replacement cleanup being retained.
       expect(getInstance<ReentrantOption>(reentrant, 'ReentrantOption').$isMounted).toBe(false);
     } finally {
-      console.error = error;
+      error.mockRestore();
     }
   });
 
@@ -1611,6 +1621,122 @@ describe('$watchAttributes', () => {
 });
 
 describe('lifecycle', () => {
+  it('reports synchronous and asynchronous mounted failures once without stopping mount', async () => {
+    const synchronousFailure = new Error('synchronous mounted failure');
+    const asynchronousFailure = new Error('asynchronous mounted failure');
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const events: CustomEvent<ToolkitErrorDetail>[] = [];
+    let mountedEvents = 0;
+
+    class SynchronousFailure extends Base {
+      static config = { name: 'SynchronousMountedFailure' };
+
+      mounted(): void {
+        throw synchronousFailure;
+      }
+    }
+
+    class AsynchronousFailure extends Base {
+      static config = { name: 'AsynchronousMountedFailure' };
+
+      async mounted(): Promise<void> {
+        throw asynchronousFailure;
+      }
+    }
+
+    const synchronousElement = document.createElement('div');
+    const asynchronousElement = document.createElement('div');
+    document.body.append(synchronousElement, asynchronousElement);
+    for (const el of [synchronousElement, asynchronousElement]) {
+      el.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+        event.preventDefault();
+        events.push(event as CustomEvent<ToolkitErrorDetail>);
+      });
+      el.addEventListener(MOUNTED_EVENT, () => {
+        mountedEvents += 1;
+      });
+    }
+
+    const synchronous = new SynchronousFailure(synchronousElement).$mount();
+    const asynchronous = new AsynchronousFailure(asynchronousElement).$mount();
+    await settle();
+
+    expect(events).toHaveLength(2);
+    expect(events.map((event) => event.target)).toEqual([synchronousElement, asynchronousElement]);
+    expect(events.map((event) => event.detail)).toEqual([
+      {
+        stage: 'lifecycle',
+        error: synchronousFailure,
+        component: 'SynchronousMountedFailure',
+      },
+      {
+        stage: 'lifecycle',
+        error: asynchronousFailure,
+        component: 'AsynchronousMountedFailure',
+      },
+    ]);
+    expect(events.every((event) => !event.cancelable && !event.defaultPrevented)).toBe(true);
+    expect(error.mock.calls).toEqual([
+      ['[base] `mounted()` failed:', synchronousFailure],
+      ['[base] `mounted()` failed:', asynchronousFailure],
+    ]);
+    expect(synchronous.$isMounted).toBe(true);
+    expect(asynchronous.$isMounted).toBe(true);
+    expect(mountedEvents).toBe(2);
+    error.mockRestore();
+  });
+
+  it('reports cleanup, destroyed and terminated failures without stopping teardown', () => {
+    const cleanupFailure = new Error('cleanup failure');
+    const destroyedFailure = new Error('destroyed failure');
+    const terminatedFailure = new Error('terminated failure');
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const events: CustomEvent<ToolkitErrorDetail>[] = [];
+
+    class TeardownFailure extends Base {
+      static config = { name: 'TeardownFailure' };
+
+      mounted() {
+        return () => {
+          throw cleanupFailure;
+        };
+      }
+
+      destroyed(): void {
+        throw destroyedFailure;
+      }
+
+      terminated(): void {
+        throw terminatedFailure;
+      }
+    }
+
+    const el = document.createElement('div');
+    document.body.append(el);
+    el.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+      events.push(event as CustomEvent<ToolkitErrorDetail>);
+    });
+    const instance = new TeardownFailure(el).$mount();
+
+    instance.$terminate();
+
+    expect(events.map((event) => event.detail.error)).toEqual([
+      cleanupFailure,
+      destroyedFailure,
+      terminatedFailure,
+    ]);
+    expect(events.every((event) => event.detail.stage === 'lifecycle')).toBe(true);
+    expect(events.every((event) => event.detail.component === 'TeardownFailure')).toBe(true);
+    expect(error.mock.calls).toEqual([
+      ['[base] Mount cleanup failed:', cleanupFailure],
+      ['[base] `destroyed()` failed:', destroyedFailure],
+      ['[base] `terminated()` failed:', terminatedFailure],
+    ]);
+    expect(instance.$isMounted).toBe(false);
+    expect(el.__base__?.has('TeardownFailure')).toBe(false);
+    error.mockRestore();
+  });
+
   it('runs the mounted() cleanup on destroy', async () => {
     const root = renderTodoList();
     await settle();

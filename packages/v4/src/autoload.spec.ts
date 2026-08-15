@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type BaseConfig, type BaseConstructor } from './Base.js';
 import { whenDOMSettled } from './dom-mutations.js';
+import { JS_TOOLKIT_ERROR_EVENT, type ToolkitErrorDetail } from './errors.js';
 import { getInstances } from './instances.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { resetDom, settle } from './test-utils.js';
@@ -319,18 +320,49 @@ describe('registerManifest collisions and failures', () => {
   it('reports an import failure once and leaves the page running', async () => {
     counter += 1;
     const name = `Broken${counter}`;
+    const failure = new Error('chunk 404');
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     const load = vi.fn(async () => {
-      throw new Error('chunk 404');
+      throw failure;
     });
 
     registerManifest({ [name]: load });
     const first = render(name);
     const second = render(name);
+    const elementEvents: CustomEvent<ToolkitErrorDetail>[] = [];
+    const documentEvents: CustomEvent<ToolkitErrorDetail>[] = [];
+    const windowEvents: CustomEvent<ToolkitErrorDetail>[] = [];
+    first.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+      event.preventDefault();
+      elementEvents.push(event as CustomEvent<ToolkitErrorDetail>);
+    });
+    document.addEventListener(
+      JS_TOOLKIT_ERROR_EVENT,
+      (event) => documentEvents.push(event as CustomEvent<ToolkitErrorDetail>),
+      { once: true },
+    );
+    window.addEventListener(
+      JS_TOOLKIT_ERROR_EVENT,
+      (event) => windowEvents.push(event as CustomEvent<ToolkitErrorDetail>),
+      { once: true },
+    );
     await settle();
 
     expect(load).toHaveBeenCalledTimes(1);
     expect(error).toHaveBeenCalledOnce();
+    expect(error).toHaveBeenCalledWith(`[registry] Failed to load "${name}":`, failure);
+    expect(elementEvents).toHaveLength(1);
+    expect(documentEvents).toEqual(elementEvents);
+    expect(windowEvents).toEqual(elementEvents);
+    expect(elementEvents[0]).toMatchObject({
+      bubbles: true,
+      cancelable: false,
+      composed: true,
+      defaultPrevented: false,
+      target: first,
+    });
+    expect(elementEvents[0].detail).toEqual({ stage: 'load', error: failure, component: name });
+    expect(elementEvents[0].detail.error).toBe(failure);
     expect(first.__base__).toBeUndefined();
     expect(second.__base__).toBeUndefined();
     error.mockRestore();

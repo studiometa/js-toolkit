@@ -14,6 +14,17 @@ interface FixtureMessage {
       importThunks: Record<string, boolean>;
     };
     scheduler: { same: boolean; frameRequests: number };
+    errors: {
+      sameEventName: boolean;
+      heardByA: number;
+      heardByB: number;
+      sameEvents: boolean;
+      contract: boolean;
+      identities: boolean;
+      targets: boolean;
+      consoleReports: number;
+      details: { stage: string; component?: string }[];
+    };
     registry: {
       observers: number;
       parentMounts: number;
@@ -140,6 +151,22 @@ describe('duplicated v4 bundles', () => {
       importThunks: { aFromA: false, bFromA: false, aFromB: false, bFromB: false },
     });
     expect(result.scheduler).toEqual({ same: true, frameRequests: 1 });
+    expect(result.errors).toEqual({
+      sameEventName: true,
+      heardByA: 4,
+      heardByB: 4,
+      sameEvents: true,
+      contract: true,
+      identities: true,
+      targets: true,
+      consoleReports: 4,
+      details: [
+        { stage: 'lifecycle', component: 'RuntimeFixtureFailureA' },
+        { stage: 'lifecycle', component: 'RuntimeFixtureFailureB' },
+        { stage: 'mount', component: 'RuntimeFixtureMountFailureB' },
+        { stage: 'load', component: 'RuntimeFixtureLoadFailure' },
+      ],
+    });
     expect(result.registry).toEqual({
       observers: 1,
       parentMounts: 1,
