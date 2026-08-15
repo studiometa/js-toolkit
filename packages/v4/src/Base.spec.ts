@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   Base,
   MOUNTED_EVENT,
   type BaseConfig,
+  type ChildrenCollection,
   type DelegatedEvent,
   type GlobalEvent,
   type OptionChange,
@@ -23,6 +24,43 @@ import {
 } from './test-utils.js';
 
 afterEach(resetDom);
+
+describe('$id', () => {
+  it('uses the resolved component name and a unique monotonic sequence', () => {
+    class First extends Base {
+      static config = { name: 'ResolvedFirst' };
+    }
+    class Second extends Base {
+      static config = { name: 'ResolvedSecond' };
+    }
+
+    const first = new First(document.createElement('div'));
+    const next = new First(document.createElement('div'));
+    const other = new Second(document.createElement('div'));
+    const sequence = (instance: Base) => Number(instance.$id.split('-').at(-1));
+
+    expect(first.$id).toMatch(/^ResolvedFirst-\d+$/);
+    expect(next.$id).toMatch(/^ResolvedFirst-\d+$/);
+    expect(other.$id).toMatch(/^ResolvedSecond-\d+$/);
+    expect(new Set([first.$id, next.$id, other.$id]).size).toBe(3);
+    expect(sequence(next)).toBe(sequence(first) + 1);
+    expect(sequence(other)).toBe(sequence(next) + 1);
+  });
+
+  it('is available to derived field initializers and survives remounts', () => {
+    class Identified extends Base {
+      static config = { name: 'Identified' };
+      readonly initializedWith = this.$id;
+    }
+
+    const instance = new Identified(document.createElement('div'));
+    const id = instance.$id;
+
+    expect(instance.initializedWith).toBe(id);
+    instance.$mount().$destroy().$mount();
+    expect(instance.$id).toBe(id);
+  });
+});
 
 describe('$emit and delegation', () => {
   it('delegates bubbled child $emit to on<Child><Event> with a real click', async () => {
@@ -1223,6 +1261,160 @@ describe('$watchChildren', () => {
       'b',
       'c',
     ]);
+  });
+
+  it('matches a class and every named subclass through initial and live updates', async () => {
+    class Family extends Base {
+      static config = { name: 'WatchFamily' };
+      family = true;
+    }
+    class Alpha extends Family {
+      static config = { name: 'WatchAlpha' };
+    }
+    class Beta extends Family {
+      static config = { name: 'WatchBeta' };
+    }
+    class Gamma extends Family {
+      static config = { name: 'WatchGamma' };
+    }
+    class Owner extends Family {
+      static config = { name: 'WatchOwner' };
+    }
+    class Unrelated extends Base {
+      static config = { name: 'WatchUnrelated' };
+    }
+
+    const root = document.createElement('div');
+    root.innerHTML = `
+      <div id="alpha"></div>
+      <section>
+        <div id="beta"></div>
+        <div><div id="family"></div></div>
+      </section>
+      <div id="gamma"></div>
+      <div id="unrelated"></div>
+    `;
+    document.body.append(root);
+
+    const alpha = new Alpha(root.querySelector('#alpha') as HTMLElement);
+    const beta = new Beta(root.querySelector('#beta') as HTMLElement);
+    const family = new Family(root.querySelector('#family') as HTMLElement);
+    const gamma = new Gamma(root.querySelector('#gamma') as HTMLElement);
+    const unrelated = new Unrelated(root.querySelector('#unrelated') as HTMLElement);
+    for (const instance of [unrelated, gamma, family, beta, alpha]) {
+      instance.$mount();
+    }
+    // One instance can be exposed under more than one component token. The
+    // constructor sweep must still add it once.
+    alpha.$el.__base__?.set('WatchAlphaAlias', alpha);
+
+    const owner = new Owner(root);
+    const added: Family[] = [];
+    const removed: Family[] = [];
+    const collection = owner.$watchChildren(Family, {
+      added(instance) {
+        expectTypeOf(instance).toEqualTypeOf<Family>();
+        added.push(instance);
+      },
+      removed(instance) {
+        expectTypeOf(instance).toEqualTypeOf<Family>();
+        removed.push(instance);
+      },
+    });
+    expectTypeOf(collection).toEqualTypeOf<ChildrenCollection<Family>>();
+
+    // Owner is itself a Family. Its own mount announcement must not add it.
+    owner.$mount();
+    await settle();
+
+    expect(added).toEqual([alpha, beta, family, gamma]);
+    expect(collection.items).toEqual([alpha, beta, family, gamma]);
+    expect(collection.items).not.toContain(owner);
+    expect(collection.items).not.toContain(unrelated);
+
+    const outsideEl = document.createElement('div');
+    document.body.append(outsideEl);
+    new Alpha(outsideEl).$mount();
+    expect(collection.size).toBe(4);
+
+    const lateEl = document.createElement('div');
+    root.querySelector('section')?.prepend(lateEl);
+    const late = new Alpha(lateEl).$mount();
+    expect(added.at(-1)).toBe(late);
+    expect(collection.items).toEqual([alpha, late, beta, family, gamma]);
+
+    beta.$destroy();
+    expect(removed).toEqual([beta]);
+    expect(collection.items).toEqual([alpha, late, family, gamma]);
+
+    beta.$mount();
+    expect(added.at(-1)).toBe(beta);
+    expect(collection.items).toEqual([alpha, late, beta, family, gamma]);
+
+    owner.$terminate();
+    const afterTermination = new Gamma(root.appendChild(document.createElement('div'))).$mount();
+    alpha.$destroy();
+    expect(collection.items).toEqual([alpha, late, beta, family, gamma]);
+    expect(collection.items).not.toContain(afterTermination);
+  });
+
+  it('keeps string matching as exact config.name matching', async () => {
+    class Exact extends Base {
+      static config = { name: 'WatchExact' };
+    }
+    class NamedSubclass extends Exact {
+      static config = { name: 'WatchNamedSubclass' };
+    }
+    class Owner extends Base {
+      static config = { name: 'WatchExactOwner' };
+    }
+
+    const root = document.createElement('div');
+    root.innerHTML =
+      '<div id="exact" data-component="WatchExact"></div>' +
+      '<div id="subclass" data-component="WatchNamedSubclass"></div>';
+    document.body.append(root);
+    const exact = new Exact(root.querySelector('#exact') as HTMLElement).$mount();
+    const subclass = new NamedSubclass(root.querySelector('#subclass') as HTMLElement).$mount();
+    const owner = new Owner(root).$mount();
+    const collection = owner.$watchChildren<Exact>('WatchExact');
+    await settle();
+
+    expect(collection.items).toEqual([exact]);
+    expect(collection.items).not.toContain(subclass);
+
+    const lateSubclassEl = root.appendChild(document.createElement('div'));
+    lateSubclassEl.setAttribute('data-component', 'WatchNamedSubclass');
+    const lateSubclass = new NamedSubclass(lateSubclassEl).$mount();
+    expect(collection.items).toEqual([exact]);
+    expect(collection.items).not.toContain(lateSubclass);
+
+    const lateExactEl = root.appendChild(document.createElement('div'));
+    lateExactEl.setAttribute('data-component', 'WatchExact');
+    const lateExact = new Exact(lateExactEl).$mount();
+    expect(collection.items).toEqual([exact, lateExact]);
+  });
+
+  it('does not let a deferred constructor sweep outlive termination', async () => {
+    class Child extends Base {
+      static config = { name: 'WatchTerminatedChild' };
+    }
+    class Owner extends Base {
+      static config = { name: 'WatchTerminatedOwner' };
+    }
+
+    const root = document.createElement('div');
+    const childEl = root.appendChild(document.createElement('div'));
+    document.body.append(root);
+    new Child(childEl).$mount();
+    const owner = new Owner(root);
+    const added: Child[] = [];
+    const collection = owner.$watchChildren(Child, { added: (instance) => added.push(instance) });
+    owner.$terminate();
+    await settle();
+
+    expect(collection.size).toBe(0);
+    expect(added).toEqual([]);
   });
 });
 

@@ -1,4 +1,5 @@
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
+import { getSharedRuntimeSlot } from './shared-runtime.js';
 
 export interface DOMMutationRecord {
   record: MutationRecord;
@@ -33,18 +34,36 @@ interface AttributeWatcherEntry {
   pending: Map<string, string | null>;
 }
 
-const observedAttributes = new Set(['data-component', 'data-mount', 'data-ref']);
+interface DOMMutationRuntimeState {
+  observedAttributes: Set<string>;
+  attributeWatchers: Set<AttributeWatcherEntry>;
+  observer: MutationObserver | null;
+  processor: DOMMutationProcessor | null;
+  processTask: ScheduledTask<void> | null;
+  version: number;
+  records: DOMMutationRecord[];
+  lifecycleWork: Set<Promise<unknown>>;
+}
+
+const domMutationState = /* @__PURE__ */ getSharedRuntimeSlot<DOMMutationRuntimeState>(
+  'dom-mutations',
+  1,
+  () => ({
+    observedAttributes: new Set(['data-component', 'data-mount', 'data-ref']),
+    attributeWatchers: new Set(),
+    observer: null,
+    processor: null,
+    processTask: null,
+    version: 0,
+    records: [],
+    lifecycleWork: new Set(),
+  }),
+);
+const { observedAttributes, attributeWatchers, lifecycleWork } = domMutationState;
 
 function isComponentAttribute(attribute: string | null): boolean {
   return attribute === 'data-component' || attribute?.startsWith('data-component:') === true;
 }
-const attributeWatchers = new Set<AttributeWatcherEntry>();
-let observer: MutationObserver | null = null;
-let processor: DOMMutationProcessor | null = null;
-let processTask: ScheduledTask<void> | null = null;
-let version = 0;
-let records: DOMMutationRecord[] = [];
-const lifecycleWork = new Set<Promise<unknown>>();
 
 /**
  * Start the document's single mutation observer on demand.
@@ -54,15 +73,15 @@ const lifecycleWork = new Set<Promise<unknown>>();
  * not create mutation records.
  */
 function observe(): MutationObserver {
-  if (!observer) {
-    observer = new MutationObserver(ingest);
+  if (!domMutationState.observer) {
+    domMutationState.observer = new MutationObserver(ingest);
     observeDocument();
   }
-  return observer;
+  return domMutationState.observer;
 }
 
 function observeDocument(): void {
-  observer?.observe(document.documentElement, {
+  domMutationState.observer?.observe(document.documentElement, {
     childList: true,
     subtree: true,
     attributes: true,
@@ -83,10 +102,10 @@ export function registerDOMOptionAttributes(attributes: Iterable<string>): void 
       changed = true;
     }
   }
-  if (!changed || !observer) {
+  if (!changed || !domMutationState.observer) {
     return;
   }
-  ingest(observer.takeRecords());
+  ingest(domMutationState.observer.takeRecords());
   observeDocument();
 }
 
@@ -110,10 +129,10 @@ export function replaceDOMOptionAttributes(
       changed = true;
     }
   }
-  if (!changed || !observer) {
+  if (!changed || !domMutationState.observer) {
     return;
   }
-  ingest(observer.takeRecords());
+  ingest(domMutationState.observer.takeRecords());
   observeDocument();
 }
 
@@ -258,16 +277,16 @@ function ingest(incoming: MutationRecord[]): void {
         type === 'childList' || isComponentAttribute(attributeName) || attributeName === 'data-ref',
     )
   ) {
-    version += 1;
+    domMutationState.version += 1;
   }
 
   // Before the first component is registered, the current document scan is
   // sufficient. Keeping historical records here would retain detached
   // subtrees with nobody able to process them.
-  if (!processor) {
+  if (!domMutationState.processor) {
     return;
   }
-  records.push(
+  domMutationState.records.push(
     ...relevant.map((record): DOMMutationRecord => {
       const removedSubtrees = new Map<Node, readonly Element[]>();
       if (record.type === 'childList') {
@@ -284,18 +303,19 @@ function ingest(incoming: MutationRecord[]): void {
 }
 
 function scheduleProcessing(): void {
-  if (processTask) {
+  if (domMutationState.processTask) {
     return;
   }
-  const hasFrameworkWork = Boolean(processor) && records.length > 0;
+  const hasFrameworkWork =
+    Boolean(domMutationState.processor) && domMutationState.records.length > 0;
   if (!hasFrameworkWork && !hasWatchedAttributes()) {
     return;
   }
 
-  processTask = defaultScheduler.background(() => {
-    const batch = records;
-    records = [];
-    processor?.(batch);
+  domMutationState.processTask = defaultScheduler.background(() => {
+    const batch = domMutationState.records;
+    domMutationState.records = [];
+    domMutationState.processor?.(batch);
     // One engine, one batch, one order: component lifecycle and declared
     // options first, then the attribute watchers. A component whose
     // `data-component` token was dropped in this same batch has already been
@@ -305,17 +325,17 @@ function scheduleProcessing(): void {
     deliverWatchedAttributes();
   });
   const finished = () => {
-    processTask = null;
+    domMutationState.processTask = null;
     scheduleProcessing();
   };
-  void processTask.promise.then(finished, finished);
+  void domMutationState.processTask.promise.then(finished, finished);
 }
 
 /**
  * Install the one core processor which owns component lifecycle ordering.
  */
 export function setDOMMutationProcessor(next: DOMMutationProcessor): void {
-  processor = next;
+  domMutationState.processor ??= next;
   const currentObserver = observe();
   // Reconcile pending declarations before the registration scan can enqueue
   // mounts for their final token set.
@@ -333,7 +353,7 @@ export function setDOMMutationProcessor(next: DOMMutationProcessor): void {
  */
 export function domVersion(): number {
   ingest(observe().takeRecords());
-  return version;
+  return domMutationState.version;
 }
 
 /**
@@ -364,7 +384,10 @@ export async function whenDOMSettled(): Promise<void> {
     takeWatchedAttributes();
     scheduleProcessing();
 
-    const pending = [...(processTask ? [processTask.promise] : []), ...lifecycleWork];
+    const pending = [
+      ...(domMutationState.processTask ? [domMutationState.processTask.promise] : []),
+      ...lifecycleWork,
+    ];
     if (pending.length > 0) {
       await Promise.all(pending);
       continue;
@@ -379,9 +402,9 @@ export async function whenDOMSettled(): Promise<void> {
     scheduleProcessing();
 
     if (
-      !processTask &&
+      !domMutationState.processTask &&
       lifecycleWork.size === 0 &&
-      (!processor || records.length === 0) &&
+      (!domMutationState.processor || domMutationState.records.length === 0) &&
       !hasWatchedAttributes()
     ) {
       return;

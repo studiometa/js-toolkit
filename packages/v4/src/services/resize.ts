@@ -1,3 +1,4 @@
+import { getSharedRuntimeSlot } from '../shared-runtime.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
@@ -120,7 +121,9 @@ function createResizeService(target: Element): Service<ResizeProps> {
   });
 }
 
-const resizeServices = /* @__PURE__ */ perTarget(createResizeService);
+const resizeServices = /* @__PURE__ */ getSharedRuntimeSlot('service:resize', 1, () =>
+  perTarget(createResizeService),
+);
 
 /**
  * Use the resize service for an element, the document element by default.

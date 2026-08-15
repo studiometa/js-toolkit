@@ -1,0 +1,553 @@
+const token = new URL(location.href).searchParams.get('token');
+const source = 'v4-shared-runtime-fixture';
+
+function post(payload) {
+  parent.postMessage({ source, token, ...payload }, location.origin);
+}
+
+const NativeMutationObserver = globalThis.MutationObserver;
+const NativeResizeObserver = globalThis.ResizeObserver;
+const NativeIntersectionObserver = globalThis.IntersectionObserver;
+
+const observers = {
+  mutation: { created: 0, active: 0 },
+  resize: { created: 0, active: 0 },
+  intersection: { created: 0, active: 0 },
+};
+
+function countedObserver(Native, counts) {
+  return class extends Native {
+    isActive = false;
+
+    constructor(callback) {
+      super(callback);
+      counts.created += 1;
+    }
+
+    observe(...args) {
+      if (!this.isActive) {
+        this.isActive = true;
+        counts.active += 1;
+      }
+      return super.observe(...args);
+    }
+
+    disconnect() {
+      if (this.isActive) {
+        this.isActive = false;
+        counts.active -= 1;
+      }
+      return super.disconnect();
+    }
+  };
+}
+
+globalThis.MutationObserver = countedObserver(NativeMutationObserver, observers.mutation);
+globalThis.ResizeObserver = countedObserver(NativeResizeObserver, observers.resize);
+globalThis.IntersectionObserver = countedObserver(
+  NativeIntersectionObserver,
+  observers.intersection,
+);
+
+const COPY_A_KEY = Symbol.for('@studiometa/js-toolkit-v4/test/copy-a');
+const COPY_B_KEY = Symbol.for('@studiometa/js-toolkit-v4/test/copy-b');
+
+async function run(copyA, copyB) {
+  try {
+    let parentMounts = 0;
+    let parentDestroys = 0;
+    let childMounts = 0;
+    let childDestroys = 0;
+    let lazyMounts = 0;
+    let lazyDestroys = 0;
+    let responsiveMounts = 0;
+    let responsiveDestroys = 0;
+
+    class SharedChild extends copyB.Base {
+      static config = { name: 'RuntimeFixtureChild' };
+
+      mounted() {
+        childMounts += 1;
+      }
+
+      destroyed() {
+        childDestroys += 1;
+      }
+    }
+
+    class SharedParent extends copyA.Base {
+      static config = {
+        name: 'RuntimeFixtureParent',
+        components: { RuntimeFixtureChild: SharedChild },
+      };
+
+      mounted() {
+        parentMounts += 1;
+      }
+
+      destroyed() {
+        parentDestroys += 1;
+      }
+    }
+
+    class SharedLazy extends copyB.Base {
+      static config = { name: 'RuntimeFixtureLazy' };
+
+      mounted() {
+        lazyMounts += 1;
+      }
+
+      destroyed() {
+        lazyDestroys += 1;
+      }
+    }
+
+    class SharedResponsive extends copyB.Base {
+      static config = { name: 'RuntimeFixtureResponsive' };
+
+      mounted() {
+        responsiveMounts += 1;
+      }
+
+      destroyed() {
+        responsiveDestroys += 1;
+      }
+    }
+
+    class SubA extends copyA.Base {
+      static config = { name: 'RuntimeFixtureSubA' };
+    }
+    class DeepSubA extends SubA {
+      static config = { name: 'RuntimeFixtureDeepSubA' };
+    }
+    class SubB extends copyB.Base {
+      static config = { name: 'RuntimeFixtureSubB' };
+    }
+    class DeepSubB extends SubB {
+      static config = { name: 'RuntimeFixtureDeepSubB' };
+    }
+    class WrongWithConfig {
+      static config = { name: 'RuntimeFixtureWrong' };
+    }
+    const importThunkA = () => Promise.resolve({ default: SubA });
+    const importThunkB = () => Promise.resolve({ default: SubB });
+    const branding = {
+      direct: {
+        aFromA: copyA.isBaseConstructor(copyA.Base),
+        bFromA: copyA.isBaseConstructor(copyB.Base),
+        aFromB: copyB.isBaseConstructor(copyA.Base),
+        bFromB: copyB.isBaseConstructor(copyB.Base),
+      },
+      subclasses: {
+        aFromA: copyA.isBaseConstructor(DeepSubA),
+        bFromA: copyA.isBaseConstructor(DeepSubB),
+        aFromB: copyB.isBaseConstructor(DeepSubA),
+        bFromB: copyB.isBaseConstructor(DeepSubB),
+      },
+      wrongClasses: {
+        fromA: copyA.isBaseConstructor(WrongWithConfig),
+        fromB: copyB.isBaseConstructor(WrongWithConfig),
+      },
+      importThunks: {
+        aFromA: copyA.isBaseConstructor(importThunkA),
+        bFromA: copyA.isBaseConstructor(importThunkB),
+        aFromB: copyB.isBaseConstructor(importThunkA),
+        bFromB: copyB.isBaseConstructor(importThunkB),
+      },
+    };
+
+    // With independent registries these calls install two processors and two
+    // observers, then both construct the same declaration.
+    copyA.registerComponent(SharedParent);
+    copyB.registerComponent(SharedParent);
+    copyA.registerManifest({
+      RuntimeFixtureLazy: () => Promise.resolve({ default: SharedLazy }),
+    });
+
+    const root = document.createElement('section');
+    root.setAttribute('data-component', 'RuntimeFixtureParent');
+    root.innerHTML = '<div data-component="RuntimeFixtureChild"></div>';
+    const lazy = document.createElement('div');
+    lazy.setAttribute('data-component', 'RuntimeFixtureLazy');
+    document.body.append(root, lazy);
+
+    await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
+
+    const registryObservers = observers.mutation.created;
+    const registryResult = {
+      parentMounts,
+      childMounts,
+      lazyMounts,
+      parentFromA: root.__base__?.get('RuntimeFixtureParent') instanceof SharedParent,
+      childFromB:
+        root.firstElementChild?.__base__?.get('RuntimeFixtureChild') instanceof SharedChild,
+      lazyFromB: lazy.__base__?.get('RuntimeFixtureLazy') instanceof SharedLazy,
+    };
+
+    const emitterEl = document.createElement('div');
+    const emitter = new copyB.Base(emitterEl).$mount();
+    let sourceReadByA = false;
+    emitterEl.addEventListener('runtime:source', (event) => {
+      sourceReadByA = event[copyA.SOURCE] === emitter;
+    });
+    emitter.$emit('runtime:source', { copy: 'b' });
+
+    const decoratorInitializers = [];
+    let decoratorCalls = 0;
+    class CrossCopyDecorated extends copyB.Base {
+      static config = { name: 'RuntimeFixtureDecorated' };
+
+      constructor(el) {
+        super(el);
+        for (const initialize of decoratorInitializers) {
+          initialize.call(this);
+        }
+      }
+
+      handleDecoratedEvent() {
+        decoratorCalls += 1;
+      }
+    }
+    copyA.on('runtime:decorated')(CrossCopyDecorated.prototype.handleDecoratedEvent, {
+      kind: 'method',
+      name: 'handleDecoratedEvent',
+      static: false,
+      private: false,
+      addInitializer(initialize) {
+        decoratorInitializers.push(initialize);
+      },
+    });
+    const decoratedEl = document.createElement('div');
+    const decorated = new CrossCopyDecorated(decoratedEl).$mount();
+    decoratedEl.dispatchEvent(new Event('runtime:decorated'));
+
+    const errorEventsA = [];
+    const errorEventsB = [];
+    const onErrorA = (event) => errorEventsA.push(event);
+    const onErrorB = (event) => errorEventsB.push(event);
+    document.addEventListener(copyA.JS_TOOLKIT_ERROR_EVENT, onErrorA);
+    document.addEventListener(copyB.JS_TOOLKIT_ERROR_EVENT, onErrorB);
+
+    const lifecycleFailureA = new Error('copy A lifecycle failure');
+    const lifecycleFailureB = new Error('copy B lifecycle failure');
+    const mountFailureB = new Error('copy B construction failure');
+    const loadFailure = new Error('shared registry load failure');
+    const expectedFailures = [lifecycleFailureA, lifecycleFailureB, mountFailureB, loadFailure];
+    const errorTargets = Array.from({ length: 4 }, () => document.createElement('div'));
+    const nativeConsoleError = console.error;
+    const frameworkConsoleErrors = [];
+
+    try {
+      console.error = (...args) => frameworkConsoleErrors.push(args);
+
+      class LifecycleFailureA extends copyA.Base {
+        static config = { name: 'RuntimeFixtureFailureA' };
+
+        mounted() {
+          throw lifecycleFailureA;
+        }
+      }
+
+      class LifecycleFailureB extends copyB.Base {
+        static config = { name: 'RuntimeFixtureFailureB' };
+
+        mounted() {
+          throw lifecycleFailureB;
+        }
+      }
+
+      document.body.append(errorTargets[0], errorTargets[1]);
+      new LifecycleFailureA(errorTargets[0]).$mount();
+      new LifecycleFailureB(errorTargets[1]).$mount();
+
+      class MountFailureB extends copyB.Base {
+        static config = { name: 'RuntimeFixtureMountFailureB' };
+
+        constructor(el) {
+          super(el);
+          throw mountFailureB;
+        }
+      }
+
+      copyA.registerComponent(MountFailureB);
+      errorTargets[2].setAttribute('data-component', 'RuntimeFixtureMountFailureB');
+      document.body.append(errorTargets[2]);
+      await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
+
+      errorTargets[3].setAttribute('data-component', 'RuntimeFixtureLoadFailure');
+      document.body.append(errorTargets[3]);
+      copyB.registerManifest({
+        RuntimeFixtureLoadFailure: () => Promise.reject(loadFailure),
+      });
+      await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
+    } finally {
+      console.error = nativeConsoleError;
+      document.removeEventListener(copyA.JS_TOOLKIT_ERROR_EVENT, onErrorA);
+      document.removeEventListener(copyB.JS_TOOLKIT_ERROR_EVENT, onErrorB);
+    }
+
+    const errors = {
+      sameEventName: copyA.JS_TOOLKIT_ERROR_EVENT === copyB.JS_TOOLKIT_ERROR_EVENT,
+      heardByA: errorEventsA.length,
+      heardByB: errorEventsB.length,
+      sameEvents: errorEventsA.every((event, index) => event === errorEventsB[index]),
+      contract: errorEventsA.every(
+        (event) =>
+          event.type === 'js-toolkit:error' && event.bubbles && event.composed && !event.cancelable,
+      ),
+      identities: errorEventsA.every(
+        (event, index) => event.detail.error === expectedFailures[index],
+      ),
+      targets: errorEventsA.every((event, index) => event.target === errorTargets[index]),
+      consoleReports: frameworkConsoleErrors.length,
+      details: errorEventsA.map((event) => ({
+        stage: event.detail.stage,
+        component: event.detail.component,
+      })),
+    };
+
+    let frameRequests = 0;
+    const nativeRequestAnimationFrame = globalThis.requestAnimationFrame;
+    globalThis.requestAnimationFrame = (callback) => {
+      frameRequests += 1;
+      return nativeRequestAnimationFrame(callback);
+    };
+    try {
+      await Promise.all([
+        copyA.defaultScheduler.read(() => undefined).promise,
+        copyB.defaultScheduler.read(() => undefined).promise,
+      ]);
+    } finally {
+      globalThis.requestAnimationFrame = nativeRequestAnimationFrame;
+    }
+
+    const sameBreakpointService = copyA.useBreakpoint() === copyB.useBreakpoint();
+    copyA.setBreakpoints({ small: '0rem', large: '9999rem' });
+    const breakpointsReadByB = copyB.getBreakpoints();
+    const activeReadByB = copyB.useBreakpoint().props().name;
+
+    // The class comes from B, registration comes from A, and the declaration
+    // only becomes active when B replaces the shared breakpoint set.
+    copyA.registerComponent(SharedResponsive);
+    const responsive = document.createElement('div');
+    responsive.setAttribute('data-component:large', 'RuntimeFixtureResponsive');
+    document.body.append(responsive);
+    await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
+    const mountsBeforeReplacement = responsiveMounts;
+
+    let responsiveReconciliations = 0;
+    const nativeGetAttributeNames = responsive.getAttributeNames;
+    responsive.getAttributeNames = function countedGetAttributeNames() {
+      responsiveReconciliations += 1;
+      return nativeGetAttributeNames.call(this);
+    };
+    copyB.setBreakpoints({ small: '0rem', large: '0rem' });
+    await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
+    responsive.getAttributeNames = nativeGetAttributeNames;
+    const activeReadByA = copyA.useBreakpoint().props().name;
+
+    const serviceTarget = document.createElement('div');
+    const otherTarget = document.createElement('div');
+    document.body.append(serviceTarget, otherTarget);
+
+    const serviceIdentity = {
+      breakpoint: sameBreakpointService,
+      raf: copyA.useRaf() === copyB.useRaf(),
+      scroll: copyA.useScroll(serviceTarget) === copyB.useScroll(serviceTarget),
+      resize: copyA.useResize(serviceTarget) === copyB.useResize(serviceTarget),
+      pointer: copyA.usePointer() === copyB.usePointer(),
+      drag:
+        copyA.useDrag(serviceTarget, { dampFactor: 0.8 }) ===
+        copyB.useDrag(serviceTarget, { dampFactor: 0.8 }),
+      media: copyA.useMediaQuery('(min-width: 1px)') === copyB.useMediaQuery(' (min-width: 1px) '),
+      inView:
+        copyA.useInView(serviceTarget, { threshold: 0.5 }) ===
+        copyB.useInView(serviceTarget, { threshold: 0.5 }),
+      scrollProgress:
+        copyA.useScrollProgress(serviceTarget, { offset: 'start end / end start' }) ===
+        copyB.useScrollProgress(serviceTarget, { offset: 'start end / end start' }),
+    };
+
+    const optionDistinction = {
+      target: copyA.useScroll(serviceTarget) !== copyB.useScroll(otherTarget),
+      drag:
+        copyA.useDrag(serviceTarget, { dampFactor: 0.8 }) !==
+        copyB.useDrag(serviceTarget, { dampFactor: 0.9 }),
+      media: copyA.useMediaQuery('(min-width: 1px)') !== copyB.useMediaQuery('(min-width: 2px)'),
+      inView:
+        copyA.useInView(serviceTarget, { threshold: 0.5 }) !==
+        copyB.useInView(serviceTarget, { threshold: 0.75 }),
+      scrollProgress:
+        copyA.useScrollProgress(serviceTarget, { offset: 'start end / end start' }) !==
+        copyB.useScrollProgress(serviceTarget, { offset: 'start center / end center' }),
+    };
+
+    const resizeService = copyA.useResize(serviceTarget);
+    const resizeCreatedBefore = observers.resize.created;
+    const stopResizeA = resizeService.subscribe(() => {});
+    const stopResizeB = copyB.useResize(serviceTarget).subscribe(() => {});
+    const resizeCreated = observers.resize.created - resizeCreatedBefore;
+    const resizeActiveWithBoth = observers.resize.active;
+    stopResizeA();
+    const resizeActiveAfterOne = observers.resize.active;
+    stopResizeB();
+    const resizeActiveAfterBoth = observers.resize.active;
+
+    const inViewService = copyA.useInView(serviceTarget, { threshold: 0.5 });
+    const intersectionCreatedBefore = observers.intersection.created;
+    const stopInViewA = inViewService.subscribe(() => {});
+    const stopInViewB = copyB.useInView(serviceTarget, { threshold: 0.5 }).subscribe(() => {});
+    const intersectionCreated = observers.intersection.created - intersectionCreatedBefore;
+    const intersectionActiveWithBoth = observers.intersection.active;
+    stopInViewA();
+    const intersectionActiveAfterOne = observers.intersection.active;
+    stopInViewB();
+    const intersectionActiveAfterBoth = observers.intersection.active;
+
+    let rootCreates = 0;
+    const rootKey = Symbol.for('@studiometa/js-toolkit-v4/test/root-context');
+    const rootValueA = copyA.provideRootContext(rootKey, () => ({ copy: ++rootCreates }));
+    const rootValueB = copyB.provideRootContext(rootKey, () => ({ copy: ++rootCreates }));
+
+    const contextScope = document.createElement('div');
+    const contextConsumer = document.createElement('span');
+    contextScope.append(contextConsumer);
+    document.body.append(contextScope);
+    const pendingKey = Symbol.for('@studiometa/js-toolkit-v4/test/pending-context');
+    const pending = copyB.injectContext(contextConsumer, pendingKey);
+    const pendingValue = { source: 'copy-a' };
+    const provided = copyA.provideContext(contextScope, pendingKey, pendingValue);
+    const resolvedPending = await Promise.race([
+      pending.promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('context replay timed out')), 500),
+      ),
+    ]);
+    pending.cancel();
+    provided.dispose();
+
+    let mountListeners = 0;
+    const nativeDocumentAddEventListener = document.addEventListener;
+    document.addEventListener = function (type, ...args) {
+      if (type === 'component:mounted') {
+        mountListeners += 1;
+      }
+      return nativeDocumentAddEventListener.call(this, type, ...args);
+    };
+    const subscribedKey = Symbol.for('@studiometa/js-toolkit-v4/test/subscribed-context');
+    const subscribedProvider = copyA.provideContext(contextScope, subscribedKey, { ok: true });
+    const subscribedA = copyA.injectContext(contextConsumer, subscribedKey, {
+      subscribe: true,
+      onProvide() {},
+    });
+    const subscribedB = copyB.injectContext(contextConsumer, subscribedKey, {
+      subscribe: true,
+      onProvide() {},
+    });
+    subscribedA.cancel();
+    subscribedB.cancel();
+    subscribedProvider.dispose();
+    document.addEventListener = nativeDocumentAddEventListener;
+
+    root.remove();
+    lazy.remove();
+    responsive.remove();
+    serviceTarget.remove();
+    otherTarget.remove();
+    contextScope.remove();
+    emitter.$terminate();
+    decorated.$terminate();
+    await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
+    copyA.setBreakpoints(copyA.BREAKPOINTS);
+    await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
+
+    post({
+      ok: true,
+      result: {
+        protocol: {
+          sameSource: copyA.SOURCE === copyB.SOURCE,
+          sourceReadByA,
+          decoratorCalls,
+        },
+        branding,
+        scheduler: {
+          same: copyA.defaultScheduler === copyB.defaultScheduler,
+          frameRequests,
+        },
+        errors,
+        registry: {
+          observers: registryObservers,
+          ...registryResult,
+          parentDestroys,
+          childDestroys,
+          lazyDestroys,
+        },
+        breakpoints: {
+          sameService: sameBreakpointService,
+          readByB: breakpointsReadByB,
+          activeReadByB,
+          activeReadByA,
+          responsive: {
+            mountsBeforeReplacement,
+            mountsAfterReplacement: responsiveMounts,
+            reconciliations: responsiveReconciliations,
+            destroys: responsiveDestroys,
+          },
+        },
+        services: {
+          identity: serviceIdentity,
+          distinction: optionDistinction,
+          resize: {
+            created: resizeCreated,
+            activeWithBoth: resizeActiveWithBoth,
+            activeAfterOne: resizeActiveAfterOne,
+            activeAfterBoth: resizeActiveAfterBoth,
+          },
+          intersection: {
+            created: intersectionCreated,
+            activeWithBoth: intersectionActiveWithBoth,
+            activeAfterOne: intersectionActiveAfterOne,
+            activeAfterBoth: intersectionActiveAfterBoth,
+          },
+        },
+        context: {
+          sameRoot: rootValueA === rootValueB,
+          rootCreates,
+          pendingReplay: resolvedPending === pendingValue,
+          mountListeners,
+        },
+      },
+    });
+  } catch (error) {
+    post({
+      ok: false,
+      error:
+        error instanceof Error
+          ? { message: error.message, stack: error.stack }
+          : { message: String(error) },
+    });
+  } finally {
+    // Keep failure paths isolated too. The parent removes the iframe after the
+    // result, but restore shared configuration before that realm is released.
+    copyA.setBreakpoints(copyA.BREAKPOINTS);
+    for (const el of document.querySelectorAll('body > :not(script)')) {
+      el.remove();
+    }
+    globalThis.MutationObserver = NativeMutationObserver;
+    globalThis.ResizeObserver = NativeResizeObserver;
+    globalThis.IntersectionObserver = NativeIntersectionObserver;
+  }
+}
+
+function startWhenReady() {
+  const copyA = globalThis[COPY_A_KEY];
+  const copyB = globalThis[COPY_B_KEY];
+  if (!copyA || !copyB) {
+    return;
+  }
+  globalThis.removeEventListener('@studiometa/js-toolkit-v4/test/copy-ready', startWhenReady);
+  void run(copyA, copyB);
+}
+
+globalThis.addEventListener('@studiometa/js-toolkit-v4/test/copy-ready', startWhenReady);
+startWhenReady();

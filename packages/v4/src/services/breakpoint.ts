@@ -1,4 +1,5 @@
-import { memo } from '../utils/memo.js';
+import { getSharedRuntimeSlot } from '../shared-runtime.js';
+import { memo, type Memo } from '../utils/memo.js';
 import { createService, type MutableProps, type Service } from './service.js';
 
 /**
@@ -31,38 +32,51 @@ export interface BreakpointProps {
   readonly name: string;
 }
 
-let breakpoints: Record<string, string> = { ...BREAKPOINTS };
+interface BreakpointRuntimeState {
+  breakpoints: Record<string, string>;
+  queries: Array<readonly [string, MediaQueryList]> | null;
+  refresh: (() => void) | null;
+  names: readonly string[] | null;
+  replacementListeners: Set<() => void>;
+  widestMatch: Memo<[], string>;
+  invalidating: boolean;
+  service: Service<BreakpointProps> | undefined;
+}
+
+const breakpointState = /* @__PURE__ */ getSharedRuntimeSlot<BreakpointRuntimeState>(
+  'service:breakpoint',
+  1,
+  () => ({
+    breakpoints: { ...BREAKPOINTS },
+    queries: null,
+    refresh: null,
+    names: null,
+    replacementListeners: new Set(),
+    widestMatch: memo((): string => {
+      let match = '';
+      for (const [name, query] of queryList()) {
+        if (query.matches) {
+          match = name;
+        }
+      }
+      return match;
+    }),
+    invalidating: false,
+    service: undefined,
+  }),
+);
+const { replacementListeners, widestMatch } = breakpointState;
 
 /**
- * Built on first use and kept — constructing a `MediaQueryList` per
- * breakpoint on every update measured 5.2× the cost of querying lists made
- * once (`service.bench.ts`). Dropped when the set changes.
+ * Build the media-query lists on first use and keep them until the named set
+ * changes. Constructing a `MediaQueryList` per breakpoint on every update
+ * measured 5.2× the cost of querying lists made once (`service.bench.ts`).
  */
-let queries: Array<readonly [string, MediaQueryList]> | null = null;
-
-/** Set by the running service, so a replaced set can re-emit immediately. */
-let refresh: (() => void) | null = null;
-
-/**
- * The names, narrowest first — the order the set declares.
- *
- * Cached rather than taken from `getBreakpoints()`, which copies: a responsive
- * option walks this list on **every** `$options` access, so the copy would be
- * an allocation per read.
- */
-let names: readonly string[] | null = null;
-
-/**
- * Anything that caches something derived from the named set, re-derived when
- * `setBreakpoints()` replaces it.
- */
-const replacementListeners = new Set<() => void>();
-
 function queryList(): Array<readonly [string, MediaQueryList]> {
-  queries ??= Object.entries(breakpoints).map(
+  breakpointState.queries ??= Object.entries(breakpointState.breakpoints).map(
     ([name, value]) => [name, window.matchMedia(`(min-width: ${value})`)] as const,
   );
-  return queries;
+  return breakpointState.queries;
 }
 
 /**
@@ -79,9 +93,9 @@ function queryList(): Array<readonly [string, MediaQueryList]> {
  * this is the whole configuration surface.
  */
 export function setBreakpoints(next: Record<string, string>): void {
-  breakpoints = { ...next };
-  queries = null;
-  names = null;
+  breakpointState.breakpoints = { ...next };
+  breakpointState.queries = null;
+  breakpointState.names = null;
   // Replacing the set is a crossing that no `matchMedia` event announces, so
   // the resolved name is dropped here rather than at the next boundary — the
   // specs read an option straight after `setBreakpoints()`, in the same task.
@@ -91,7 +105,7 @@ export function setBreakpoints(next: Record<string, string>): void {
   for (const listener of replacementListeners) {
     listener();
   }
-  refresh?.();
+  breakpointState.refresh?.();
 }
 
 /**
@@ -99,7 +113,7 @@ export function setBreakpoints(next: Record<string, string>): void {
  * otherwise.
  */
 export function getBreakpoints(): Record<string, string> {
-  return { ...breakpoints };
+  return { ...breakpointState.breakpoints };
 }
 
 /**
@@ -112,8 +126,8 @@ export function getBreakpoints(): Record<string, string> {
  * @internal
  */
 export function breakpointNames(): readonly string[] {
-  names ??= Object.keys(breakpoints);
-  return names;
+  breakpointState.names ??= Object.keys(breakpointState.breakpoints);
+  return breakpointState.names;
 }
 
 /**
@@ -143,18 +157,7 @@ export function onBreakpointsReplaced(callback: () => void): () => void {
  * what `./BREAKPOINTS` and `./getBreakpoints` pay for a name they never
  * compute. Measured: 0.38 → 0.11 kB and 0.38 → 0.13 kB gzip.
  */
-const widestMatch = /* @__PURE__ */ memo((): string => {
-  let match = '';
-  for (const [name, query] of queryList()) {
-    if (query.matches) {
-      match = name;
-    }
-  }
-  return match;
-});
-
 /** Whether a boundary invalidation is already armed for the current task. */
-let invalidating = false;
 
 /**
  * The widest matching name, computed at most once per task.
@@ -185,10 +188,10 @@ let invalidating = false;
  * `MediaQueryList.prototype` to prove it.
  */
 function currentBreakpoint(): string {
-  if (!invalidating) {
-    invalidating = true;
+  if (!breakpointState.invalidating) {
+    breakpointState.invalidating = true;
     queueMicrotask(() => {
-      invalidating = false;
+      breakpointState.invalidating = false;
       widestMatch.clear();
     });
   }
@@ -232,7 +235,7 @@ function createBreakpointService(): Service<BreakpointProps> {
 
       props.name = currentBreakpoint();
       let unlisten = listen();
-      refresh = () => {
+      breakpointState.refresh = () => {
         unlisten();
         unlisten = listen();
         publishIfCrossed();
@@ -240,13 +243,11 @@ function createBreakpointService(): Service<BreakpointProps> {
 
       return () => {
         unlisten();
-        refresh = null;
+        breakpointState.refresh = null;
       };
     },
   });
 }
-
-let service: Service<BreakpointProps> | undefined;
 
 /**
  * Use the breakpoint service.
@@ -267,6 +268,6 @@ let service: Service<BreakpointProps> | undefined;
  * element a resize service happens to be observing.
  */
 export function useBreakpoint(): Service<BreakpointProps> {
-  service ??= createBreakpointService();
-  return service;
+  breakpointState.service ??= createBreakpointService();
+  return breakpointState.service;
 }
