@@ -53,7 +53,8 @@
  * and a crossing that changes the resolved value is announced through the same
  * `option<Name>Changed()`.
  *
- * Not in this prototype: non-bubbling child events (mouseenter/mouseleave).
+ * Non-bubbling child events, including `mouseenter` and `mouseleave`, are
+ * delegated in the capture phase.
  *
  * One dependency: `morphdom`, imported by `swap()` alone for its `morph` mode.
  * Every other subpath is dependency-free, so a page which never swaps never
