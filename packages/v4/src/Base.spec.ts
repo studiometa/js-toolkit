@@ -22,6 +22,43 @@ import {
 
 afterEach(resetDom);
 
+describe('$id', () => {
+  it('uses the resolved component name and a unique monotonic sequence', () => {
+    class First extends Base {
+      static config = { name: 'ResolvedFirst' };
+    }
+    class Second extends Base {
+      static config = { name: 'ResolvedSecond' };
+    }
+
+    const first = new First(document.createElement('div'));
+    const next = new First(document.createElement('div'));
+    const other = new Second(document.createElement('div'));
+    const sequence = (instance: Base) => Number(instance.$id.split('-').at(-1));
+
+    expect(first.$id).toMatch(/^ResolvedFirst-\d+$/);
+    expect(next.$id).toMatch(/^ResolvedFirst-\d+$/);
+    expect(other.$id).toMatch(/^ResolvedSecond-\d+$/);
+    expect(new Set([first.$id, next.$id, other.$id]).size).toBe(3);
+    expect(sequence(next)).toBe(sequence(first) + 1);
+    expect(sequence(other)).toBe(sequence(next) + 1);
+  });
+
+  it('is available to derived field initializers and survives remounts', () => {
+    class Identified extends Base {
+      static config = { name: 'Identified' };
+      readonly initializedWith = this.$id;
+    }
+
+    const instance = new Identified(document.createElement('div'));
+    const id = instance.$id;
+
+    expect(instance.initializedWith).toBe(id);
+    instance.$mount().$destroy().$mount();
+    expect(instance.$id).toBe(id);
+  });
+});
+
 describe('$emit and delegation', () => {
   it('delegates bubbled child $emit to on<Child><Event> with a real click', async () => {
     const root = renderTodoList();

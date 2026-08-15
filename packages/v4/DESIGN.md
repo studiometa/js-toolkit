@@ -101,6 +101,10 @@ The two remaining regressions are understood rather than outstanding. `$emit` pa
 
 ### The public surface is typed, and free
 
+#### Component ids are stable for the instance
+
+Every `Base` instance has a readonly `$id` in the form `<ComponentName>-<sequence>`. The component name comes from its resolved config and the package-level sequence increases once for each constructed instance. The id exists before derived field initializers run and stays unchanged through every destroy and remount cycle. Core does not copy it to a DOM `id`; a component uses it only where its own ARIA relationships need one.
+
 `Base` takes an optional props type — `class Slider extends Base<{ $refs: …; $options: …; $emits: … }>`. It types `$refs` and `$options` (no more casting on access) and checks `$emit()`'s event names and payloads. `$emits` maps each name to the **payload object** the event carries, `void` for one that carries nothing:
 
 ```ts
