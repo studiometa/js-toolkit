@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   Base,
   type BaseConfig,
+  type DelegatedEvent,
   type GlobalEvent,
   type OptionChange,
   type RefEvent,
@@ -904,6 +905,213 @@ describe('onWindow<Event> / onDocument<Event> handlers', () => {
     outside.click();
     expect(instance.resized).toHaveLength(1);
     expect(instance.documentClicks).toHaveLength(1);
+  });
+});
+
+/**
+ * `#bindHandlers()` runs on every mount, and everything it resolves from the
+ * class — the sorted names, the prototype scan, which target each `on<…>`
+ * method binds to — is worked out once per constructor and shared. These pin
+ * what the sharing must not change.
+ */
+describe('the per-class handler plan', () => {
+  class PlanItem extends Base {
+    static config = { name: 'PlanItem' };
+
+    pick(): void {
+      this.$emit('pick');
+    }
+  }
+
+  class Panel extends Base<{
+    $refs: { close: HTMLButtonElement; tabs: HTMLButtonElement[] };
+  }> {
+    static config: BaseConfig = {
+      name: 'PlanPanel',
+      refs: ['close', 'tabs[]'],
+      components: { PlanItem },
+    };
+
+    ownClicks = 0;
+    closeClicks = 0;
+    tabIndexes: number[] = [];
+    picked: string[] = [];
+    resizes = 0;
+
+    onClick(): void {
+      this.ownClicks += 1;
+    }
+
+    onCloseClick(): void {
+      this.closeClicks += 1;
+    }
+
+    onTabsClick({ index }: RefEvent): void {
+      this.tabIndexes.push(index);
+    }
+
+    onPlanItemPick({ target }: DelegatedEvent<PlanItem>): void {
+      this.picked.push(target.$el.id);
+    }
+
+    onWindowResize(): void {
+      this.resizes += 1;
+    }
+  }
+
+  function markup(id: string): HTMLElement {
+    const el = document.createElement('div');
+    el.innerHTML = `
+      <button data-ref="close"></button>
+      <button data-ref="tabs[]"></button>
+      <button data-ref="tabs[]"></button>
+      <button data-ref="extra"></button>
+      <div data-component="PlanItem" id="${id}"></div>
+    `;
+    document.body.append(el);
+    return el;
+  }
+
+  function render(id: string): { el: HTMLElement; instance: Panel; item: PlanItem } {
+    const el = markup(id);
+    const instance = new Panel(el).$mount();
+    const item = new PlanItem(el.querySelector('#' + id) as HTMLElement).$mount();
+    return { el, instance, item };
+  }
+
+  const buttons = (el: HTMLElement) => [...el.querySelectorAll('button')];
+
+  it('binds two instances of one class, each to its own subtree', () => {
+    const a = render('a');
+    const b = render('b');
+
+    buttons(a.el)[0].click();
+    expect(a.instance.closeClicks).toBe(1);
+    // The own-element listener hears the same click, from the same plan.
+    expect(a.instance.ownClicks).toBe(1);
+    expect(b.instance.closeClicks).toBe(0);
+    expect(b.instance.ownClicks).toBe(0);
+
+    buttons(b.el)[2].click();
+    expect(b.instance.tabIndexes).toEqual([1]);
+    expect(a.instance.tabIndexes).toEqual([]);
+
+    b.item.pick();
+    expect(b.instance.picked).toEqual(['b']);
+    expect(a.instance.picked).toEqual([]);
+
+    window.dispatchEvent(new Event('resize'));
+    expect(a.instance.resizes).toBe(1);
+    expect(b.instance.resizes).toBe(1);
+  });
+
+  it('rebinds every kind of handler on a remount', () => {
+    const { el, instance, item } = render('remount');
+
+    instance.$destroy();
+    buttons(el)[0].click();
+    buttons(el)[1].click();
+    item.pick();
+    window.dispatchEvent(new Event('resize'));
+    expect(instance.closeClicks).toBe(0);
+    expect(instance.tabIndexes).toEqual([]);
+    expect(instance.picked).toEqual([]);
+    expect(instance.resizes).toBe(0);
+
+    instance.$mount();
+    buttons(el)[0].click();
+    buttons(el)[1].click();
+    item.pick();
+    window.dispatchEvent(new Event('resize'));
+    expect(instance.closeClicks).toBe(1);
+    expect(instance.tabIndexes).toEqual([0]);
+    expect(instance.picked).toEqual(['remount']);
+    expect(instance.resizes).toBe(1);
+  });
+
+  it('resolves a subclass against its own merged config, not its parent’s plan', () => {
+    class ExtendedPanel extends Panel {
+      static config: BaseConfig = { name: 'PlanExtendedPanel', refs: ['extra'] };
+
+      extraClicks = 0;
+
+      onExtraClick(): void {
+        this.extraClicks += 1;
+      }
+    }
+
+    const el = markup('sub');
+    const instance = new ExtendedPanel(el).$mount();
+    new PlanItem(el.querySelector('#sub') as HTMLElement).$mount();
+
+    // The subclass's own ref, declared nowhere else.
+    buttons(el)[3].click();
+    expect(instance.extraClicks).toBe(1);
+    // Everything the parent declares still resolves through the merged config.
+    buttons(el)[0].click();
+    buttons(el)[2].click();
+    expect(instance.closeClicks).toBe(1);
+    expect(instance.tabIndexes).toEqual([1]);
+
+    // And the parent's plan is untouched: `extra` is not one of its refs.
+    const parent = render('parent');
+    buttons(parent.el)[3].click();
+    buttons(parent.el)[1].click();
+    expect(parent.instance.tabIndexes).toEqual([0]);
+    expect(parent.instance.ownClicks).toBe(2);
+  });
+
+  /**
+   * The plan lists the `on<…>` names a class declares; whether one *is* a
+   * function is still asked of the instance, because a class field can
+   * shadow a prototype method with something that is not callable — and two
+   * instances of one class can therefore disagree.
+   */
+  it('skips a handler the instance shadows with a non-function', () => {
+    class Maybe extends Base {
+      static config: BaseConfig = { name: 'PlanMaybe' };
+
+      clicks = 0;
+
+      constructor(el: HTMLElement) {
+        super(el);
+        if (el.hasAttribute('data-mute')) {
+          (this as unknown as Record<string, unknown>).onClick = null;
+        }
+      }
+
+      onClick(): void {
+        this.clicks += 1;
+      }
+    }
+
+    const live = document.createElement('div');
+    const muted = document.createElement('div');
+    muted.setAttribute('data-mute', '');
+    document.body.append(live, muted);
+
+    const liveInstance = new Maybe(live).$mount();
+    const mutedInstance = new Maybe(muted).$mount();
+
+    const reported: unknown[] = [];
+    const onError = (event: ErrorEvent) => {
+      reported.push(event.error);
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    window.addEventListener('error', onError, { capture: true });
+    try {
+      live.click();
+      muted.click();
+    } finally {
+      window.removeEventListener('error', onError, { capture: true });
+    }
+
+    expect(liveInstance.clicks).toBe(1);
+    expect(mutedInstance.clicks).toBe(0);
+    // Skipped, not bound-and-thrown: a listener calling `null` would report
+    // an error on every click of the muted element.
+    expect(reported).toEqual([]);
   });
 });
 

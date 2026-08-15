@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": [
+    "./dist/responsive-options.js",
+    "./src/responsive-options.ts"
+  ],
   "description": "v4 prototype — tested in a real browser through Vitest browser mode",
   "exports": {
     ".": {

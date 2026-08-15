@@ -137,8 +137,13 @@ export function onBreakpointsReplaced(callback: () => void): () => void {
 
 /**
  * The widest matching name. The set is ascending, so the last match wins.
+ *
+ * Annotated because a top-level call is retained by default, and retaining
+ * this one retains `queryList()` and the service graph behind it — which is
+ * what `./BREAKPOINTS` and `./getBreakpoints` pay for a name they never
+ * compute. Measured: 0.38 → 0.11 kB and 0.38 → 0.13 kB gzip.
  */
-const widestMatch = memo((): string => {
+const widestMatch = /* @__PURE__ */ memo((): string => {
   let match = '';
   for (const [name, query] of queryList()) {
     if (query.matches) {
