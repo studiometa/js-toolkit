@@ -477,13 +477,18 @@ class Slider extends Base {
     added(item) { … },
     removed(item) { … },
   });
-  // `items` is a live, DOM-ordered collection, correct regardless of mount order
+  specialItems = this.$watchChildren(SliderItem);
+  // `items` matches the exact config.name. `specialItems` also includes every
+  // named subclass of SliderItem through instanceof. Both are live,
+  // DOM-ordered collections, correct regardless of mount order.
 }
 ```
 
 This replaces Slider's per-instance store + two-sided `connectChildren`/`__connect` handshake, and it is the honest v4 successor of `$children` — pull plus push, instead of a lazy re-query getter.
 
 The initial sweep is deferred to a microtask: `$watchChildren` is typically called in a field initializer, and already-mounted children would otherwise fire `added` synchronously while the instance is half-constructed (found live: the Slider demo read `this.items` from an `added` callback before the field was assigned, and its provided state signal stayed at `total: 0`). The announcement listeners attach synchronously, so nothing mounting in between is missed — the internal `Set` deduplicates.
+
+The string overload keeps the existing exact `config.name` lookup. The constructor overload cannot select one `data-component` token because every named subclass has a different token, so its initial sweep walks descendant elements in DOM order and reads their existing `__base__` maps. It keeps mounted instances for which `instance instanceof ComponentClass`, excludes the watching instance, and deduplicates a shared instance exposed under several tokens. No global instance registry is added. Mounted and destroyed announcements pass through the same matcher, and the subscription remains active across destroy/remount cycles until the watcher terminates.
 
 ### The page-wide lookup — `getInstances()` — implemented
 
@@ -578,13 +583,13 @@ This is the property @studiometa/ui's `DataChannel` gets from alien-signals toda
 
 No engine ships stage-3 decorators yet, so requiring them would break the no-build promise: **every decorator is a thin wrapper over a function API that works without it.** Projects that build their sources opt in; a page loading the package from an ESM CDN keeps `registerComponent`, `$provide`, `$watchChildren`, `$read`/`$write` and the magic `on<Child><Event>` method names.
 
-| Decorator                         | Wraps                                   | Notes                                                                     |
-| --------------------------------- | --------------------------------------- | ------------------------------------------------------------------------- |
-| `@component({ name })`            | `static config` + `registerComponent()` | Registers as soon as the class is defined.                                |
-| `@on(target, type)` / `@on(type)` | the magic `on<Child><Event>` names      | Target as a name **or** as a value. See below.                            |
-| `@provide(key)` / `@inject(key)`  | `$provide()` / `$inject()`              | Same shape as Lit's `@provide`/`@consume` over the same context protocol. |
-| `@children(name, callbacks)`      | `$watchChildren()`                      | Callbacks are bound to the instance.                                      |
-| `@read` / `@write`                | `$read()` / `$write()`                  | Runs the method body in that scheduler phase, cancel-on-destroy included. |
+| Decorator                           | Wraps                                   | Notes                                                                        |
+| ----------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------- |
+| `@component({ name })`              | `static config` + `registerComponent()` | Registers as soon as the class is defined.                                   |
+| `@on(target, type)` / `@on(type)`   | the magic `on<Child><Event>` names      | Target as a name **or** as a value. See below.                               |
+| `@provide(key)` / `@inject(key)`    | `$provide()` / `$inject()`              | Same shape as Lit's `@provide`/`@consume` over the same context protocol.    |
+| `@children(nameOrClass, callbacks)` | `$watchChildren()`                      | Exact name or constructor + subclasses; callbacks are bound to the instance. |
+| `@read` / `@write`                  | `$read()` / `$write()`                  | Runs the method body in that scheduler phase, cancel-on-destroy included.    |
 
 `@on` is the one that is genuinely better than the form it replaces, not just shorter. The explicit `(target, type)` pair means: no name parsing, so `onSliderDragStart`-style ambiguity disappears; no `config.components` entry needed, since the child name is in the decorator; any event name works, including ones no method name could spell (`fetch:after`); the method is free to be named after what it does (`autoclose()`); and several `@on` stack on one method. The magic names stay for the no-build path, and a method bound through a decorator is skipped by the name scan so the two never double-bind.
 

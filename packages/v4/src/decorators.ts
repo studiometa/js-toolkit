@@ -356,31 +356,42 @@ export function inject<T>(key: ContextKey<T>): ValueObserver<T | undefined> {
 }
 
 /**
- * Track the mounted descendants of a name as a live collection — the
- * field-decorator form of `$watchChildren()`. Callbacks are bound to the
- * instance, so `this` is the component:
+ * Track mounted descendants as a live collection — the field-decorator form
+ * of `$watchChildren()`. A string matches `config.name` exactly. A component
+ * class includes its named subclasses and infers the collection and callback
+ * instance type. Callbacks are bound to the host component:
  *
  *     class Accordion extends Base {
- *       @children<AccordionItem>('AccordionItem', {
- *         added() { this.sync(); },
+ *       @children(AccordionItem, {
+ *         added(item) { this.sync(item); },
  *       })
- *       items!: ChildrenCollection<AccordionItem>;
+ *       accessor items!: ChildrenCollection<AccordionItem>;
  *     }
  */
 export function children<T extends Base = Base, Host = any>(
   name: string,
   callbacks?: WatchChildrenCallbacks<T> & ThisType<Host>,
-): ValueDecorator<ChildrenCollection<T>> {
+): ValueDecorator<ChildrenCollection<T>>;
+export function children<T extends BaseConstructor, Host = any>(
+  ComponentClass: T,
+  callbacks?: WatchChildrenCallbacks<InstanceType<T>> & ThisType<Host>,
+): ValueDecorator<ChildrenCollection<InstanceType<T>>>;
+export function children(
+  target: string | BaseConstructor,
+  callbacks?: WatchChildrenCallbacks & ThisType<any>,
+): ValueDecorator<ChildrenCollection> {
   return function decorate<This extends Base>(
     _target: unknown,
-    context: ValueDecoratorContext<This, ChildrenCollection<T>>,
+    context: ValueDecoratorContext<This, ChildrenCollection>,
   ) {
     return withInitializer(context, function initialize(this: This) {
       const bound = callbacks && {
         added: callbacks.added?.bind(this as never),
         removed: callbacks.removed?.bind(this as never),
       };
-      return this.$watchChildren<T>(name, bound);
+      return typeof target === 'string'
+        ? this.$watchChildren(target, bound)
+        : this.$watchChildren(target, bound);
     });
-  } as ValueDecorator<ChildrenCollection<T>>;
+  } as ValueDecorator<ChildrenCollection>;
 }

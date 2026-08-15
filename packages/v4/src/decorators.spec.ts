@@ -25,6 +25,42 @@ class DecoChild extends Base {
   }
 }
 
+class DecoFamily extends Base {
+  static config = { name: 'DecoFamily' };
+}
+
+class DecoFamilyAlpha extends DecoFamily {
+  static config = { name: 'DecoFamilyAlpha' };
+}
+
+class DecoFamilyBeta extends DecoFamily {
+  static config = { name: 'DecoFamilyBeta' };
+}
+
+class DecoFamilyUnrelated extends Base {
+  static config = { name: 'DecoFamilyUnrelated' };
+}
+
+class DecoFamilyParent extends Base {
+  static config = { name: 'DecoFamilyParent' };
+
+  added: DecoFamily[] = [];
+
+  removed: DecoFamily[] = [];
+
+  @children(DecoFamily, {
+    added(instance) {
+      expectTypeOf(instance).toEqualTypeOf<DecoFamily>();
+      this.added.push(instance);
+    },
+    removed(instance) {
+      expectTypeOf(instance).toEqualTypeOf<DecoFamily>();
+      this.removed.push(instance);
+    },
+  })
+  accessor family!: ChildrenCollection<DecoFamily>;
+}
+
 @component({ name: 'DecoParent' })
 class DecoParent extends Base {
   // No `components` declaration: @on resolves the child name itself.
@@ -552,6 +588,29 @@ describe('@children', () => {
     root.querySelector('[data-component="DecoChild"]')?.remove();
     await settle();
     expect(parent.kids.size).toBe(1);
+  });
+
+  it('accepts a constructor and infers its subclass collection', async () => {
+    const root = document.createElement('div');
+    const alphaEl = root.appendChild(document.createElement('div'));
+    const unrelatedEl = root.appendChild(document.createElement('div'));
+    document.body.append(root);
+    const alpha = new DecoFamilyAlpha(alphaEl).$mount();
+    new DecoFamilyUnrelated(unrelatedEl).$mount();
+    const parent = new DecoFamilyParent(root).$mount();
+    await settle();
+
+    expectTypeOf(parent.family).toEqualTypeOf<ChildrenCollection<DecoFamily>>();
+    expect(parent.family.items).toEqual([alpha]);
+    expect(parent.added).toEqual([alpha]);
+
+    const beta = new DecoFamilyBeta(root.appendChild(document.createElement('div'))).$mount();
+    expect(parent.family.items).toEqual([alpha, beta]);
+    expect(parent.added).toEqual([alpha, beta]);
+
+    alpha.$destroy();
+    expect(parent.family.items).toEqual([beta]);
+    expect(parent.removed).toEqual([alpha]);
   });
 });
 

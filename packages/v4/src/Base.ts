@@ -379,7 +379,8 @@ export interface WatchChildrenCallbacks<T extends Base = Base> {
 }
 
 /**
- * Live, DOM-ordered view over the mounted descendants of a name.
+ * Live, DOM-ordered view over mounted descendants matched by exact component
+ * name or by a component constructor and its subclasses.
  */
 export interface ChildrenCollection<T extends Base = Base> extends Iterable<T> {
   readonly size: number;
@@ -1375,15 +1376,31 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Live, order-independent collection of mounted descendants (objective 5,
-   * layer 2): initial `$query()` sweep + subscription to the bubbling
-   * lifecycle announcements.
+   * Live, DOM-ordered collection of mounted descendants (objective 5, layer
+   * 2): an initial sweep + subscription to the lifecycle announcements.
+   *
+   * A string matches `config.name` exactly. A component class matches every
+   * instance of that class or one of its subclasses, whatever name the
+   * subclass declares:
+   *
+   *     this.$watchChildren('SliderItem'); // exact name
+   *     this.$watchChildren(SliderItem);   // SliderItem and named subclasses
    */
   $watchChildren<T extends Base = Base>(
     name: string,
+    callbacks?: WatchChildrenCallbacks<T>,
+  ): ChildrenCollection<T>;
+  $watchChildren<T extends BaseConstructor>(
+    ComponentClass: T,
+    callbacks?: WatchChildrenCallbacks<InstanceType<T>>,
+  ): ChildrenCollection<InstanceType<T>>;
+  $watchChildren<T extends Base = Base>(
+    target: string | BaseConstructor,
     callbacks: WatchChildrenCallbacks<T> = {},
   ): ChildrenCollection<T> {
     const instances = new Set<T>();
+    const matches = (instance: Base): instance is T =>
+      typeof target === 'string' ? instance.$config.name === target : instance instanceof target;
     const add = (instance: T) => {
       if ((instance as Base) !== this && !instances.has(instance)) {
         instances.add(instance);
@@ -1405,21 +1422,39 @@ export class Base<T extends BaseProps = BaseProps> {
       if (this.#isTerminated) {
         return;
       }
-      for (const instance of this.$query<T>(name)) {
-        add(instance);
+      if (typeof target === 'string') {
+        for (const instance of this.$query<T>(target)) {
+          add(instance);
+        }
+        return;
+      }
+      // Constructor matching cannot select by a single data-component token:
+      // named subclasses have different tokens. Walk this subtree in DOM order
+      // and inspect the mounted instances already held by each element. The Set
+      // also deduplicates an instance exposed under more than one token.
+      for (const el of this.$el.querySelectorAll('*')) {
+        for (const instance of el.__base__?.values() ?? []) {
+          if (instance.$isMounted && matches(instance)) {
+            add(instance);
+          }
+        }
       }
     });
 
     const onMounted = (event: Event) => {
       const { instance } = (event as CustomEvent<LifecycleEventDetail>).detail;
-      if (instance.$config.name === name && instance !== this) {
-        add(instance as T);
+      if (matches(instance)) {
+        add(instance);
       }
     };
     // Destroyed announcements are dispatched on the document (the element is
-    // already detached); membership in the collection is the filter.
+    // already detached), so membership remains the subtree filter. Apply the
+    // same target matcher before updating the collection.
     const onDestroyed = (event: Event) => {
-      remove((event as CustomEvent<LifecycleEventDetail>).detail.instance as T);
+      const { instance } = (event as CustomEvent<LifecycleEventDetail>).detail;
+      if (matches(instance)) {
+        remove(instance);
+      }
     };
 
     this.$el.addEventListener(MOUNTED_EVENT, onMounted);
@@ -1435,9 +1470,12 @@ export class Base<T extends BaseProps = BaseProps> {
         return instances.size;
       },
       get items() {
-        return [...instances].sort((a, b) =>
-          a.$el.compareDocumentPosition(b.$el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1,
-        );
+        return [...instances].sort((a, b) => {
+          const position = a.$el.compareDocumentPosition(b.$el);
+          if (position & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+          if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+          return 0;
+        });
       },
       [Symbol.iterator]() {
         return this.items[Symbol.iterator]();
