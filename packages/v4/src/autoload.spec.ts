@@ -212,14 +212,14 @@ describe('the strategy that triggers the import', () => {
 
   it('lets the element data-mount win over the entry default', async () => {
     const { name, load, importCount } = defineLazy();
-    const el = render(name, { 'data-mount': 'interaction' }, ONSCREEN);
-    registerManifest({ [name]: { load, mountStrategy: 'visible' } });
+    const el = render(name, { 'data-mount': 'visible' }, OFFSCREEN);
+    registerManifest({ [name]: { load, mountStrategy: 'eager' } });
     await observed();
 
     expect(importCount()).toBe(0);
 
-    el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-    await settle();
+    el.setAttribute('style', ONSCREEN);
+    await observed();
 
     expect(importCount()).toBe(1);
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
