@@ -50,6 +50,95 @@ describe('createService', () => {
     expect(calls).toEqual(['start', 'stop', 'start']);
   });
 
+  it('joins a subscription created by a synchronous startup emit to the same run', () => {
+    const calls: string[] = [];
+    const service = createService<number>({
+      props: () => 1,
+      start(emit) {
+        calls.push('start');
+        emit(1);
+        return () => calls.push('stop');
+      },
+    });
+
+    let didNest = false;
+    let unsubscribeNested = () => {};
+    const unsubscribeFirst = service.subscribe(() => {
+      if (!didNest) {
+        didNest = true;
+        unsubscribeNested = service.subscribe(() => {});
+      }
+    });
+
+    expect(calls).toEqual(['start']);
+    unsubscribeFirst();
+    expect(calls).toEqual(['start']);
+    unsubscribeNested();
+    expect(calls).toEqual(['start', 'stop']);
+  });
+
+  it('restarts after a reentrant startup run is fully released', () => {
+    const calls: string[] = [];
+    const service = createService<number>({
+      props: () => 1,
+      start(emit) {
+        calls.push('start');
+        emit(1);
+        return () => calls.push('stop');
+      },
+    });
+
+    function subscribeRun() {
+      let didNest = false;
+      let unsubscribeNested = () => {};
+      const unsubscribeFirst = service.subscribe(() => {
+        if (!didNest) {
+          didNest = true;
+          unsubscribeNested = service.subscribe(() => {});
+        }
+      });
+      return () => {
+        unsubscribeFirst();
+        unsubscribeNested();
+      };
+    }
+
+    subscribeRun()();
+    subscribeRun()();
+    expect(calls).toEqual(['start', 'stop', 'start', 'stop']);
+  });
+
+  it('rolls back a subscriber when startup throws and can recover', () => {
+    const startupError = new Error('startup failed');
+    const failedCalls: number[] = [];
+    const recoveredCalls: number[] = [];
+    let starts = 0;
+    let stops = 0;
+    const service = createService<number>({
+      props: () => starts,
+      start(emit) {
+        starts += 1;
+        if (starts === 1) {
+          throw startupError;
+        }
+        emit(starts);
+        return () => {
+          stops += 1;
+        };
+      },
+    });
+
+    expect(() => service.subscribe((value) => failedCalls.push(value))).toThrow(startupError);
+
+    const unsubscribe = service.subscribe((value) => recoveredCalls.push(value));
+    expect(starts).toBe(2);
+    expect(failedCalls).toEqual([]);
+    expect(recoveredCalls).toEqual([2]);
+
+    unsubscribe();
+    expect(stops).toBe(1);
+  });
+
   it('ignores a repeated unsubscribe', () => {
     const calls: string[] = [];
     const service = createService<number>({
