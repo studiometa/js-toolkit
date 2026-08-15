@@ -1,5 +1,11 @@
 import { Base, resolveConfig, type BaseConstructor, type ComponentImporter } from './Base.js';
 import {
+  COMPONENT_ATTRIBUTE,
+  componentTokens,
+  hasComponentAttribute,
+  hasResponsiveComponentAttribute,
+} from './component-declarations.js';
+import {
   registerDOMOptionAttributes,
   setDOMMutationProcessor,
   trackDOMLifecycleWork,
@@ -11,11 +17,22 @@ import {
   type AppliedMountStrategy,
   type MountStrategy,
 } from './mount-strategies.js';
-import { observeResponsiveAttribute } from './responsive-options.js';
+import {
+  checkResponsiveAttributes,
+  observeResponsiveAttribute,
+  responsiveAttributeNames,
+  watchBreakpoint,
+} from './responsive-options.js';
+import { defaultScheduler, type ScheduledTask } from './scheduler.js';
+import { onBreakpointsReplaced } from './services/breakpoint.js';
 import { selectorFor } from './utils/selectors.js';
 import { kebabCase } from './utils/strings.js';
 
 const registry = new Map<string, BaseConstructor>();
+
+// Component declarations use the same finite attribute × breakpoint filter as
+// responsive options. This opens no observer and no media-query listener.
+observeResponsiveAttribute(COMPONENT_ATTRIBUTE);
 
 interface PairController {
   active: boolean;
@@ -150,13 +167,76 @@ function registerLazyChild(name: string, load: ComponentImporter): void {
   scanName(document.documentElement, name);
 }
 
-function componentTokens(el: Element): Set<string> {
-  return new Set((el.getAttribute('data-component') ?? '').split(/\s+/).filter(Boolean));
-}
-
 function declaresComponent(el: Element, name: string): boolean {
   return componentTokens(el).has(name);
 }
+
+/** Connected elements whose declarations need a breakpoint crossing. */
+const responsiveElements = new Set<HTMLElement>();
+let unwatchBreakpoints: (() => void) | null = null;
+let responsiveTask: ScheduledTask<void> | null = null;
+let pendingResponsiveElements = new Set<HTMLElement>();
+
+function syncResponsiveElement(el: HTMLElement): void {
+  if (el.isConnected && hasResponsiveComponentAttribute(el)) {
+    responsiveElements.add(el);
+    unwatchBreakpoints ??= watchBreakpoint(() => {
+      scheduleResponsiveReconciliation(responsiveElements);
+    });
+    return;
+  }
+
+  responsiveElements.delete(el);
+  if (responsiveElements.size === 0) {
+    unwatchBreakpoints?.();
+    unwatchBreakpoints = null;
+  }
+}
+
+/**
+ * Put a crossing through the same background lifecycle boundary as a DOM
+ * mutation. Coalescing matters for `setBreakpoints()`: replacing the set and
+ * refreshing the running service can both ask for the same reconciliation.
+ */
+function scheduleResponsiveReconciliation(elements: Iterable<HTMLElement>): void {
+  for (const el of elements) {
+    pendingResponsiveElements.add(el);
+  }
+  if (responsiveTask || pendingResponsiveElements.size === 0) {
+    return;
+  }
+
+  responsiveTask = defaultScheduler.background(() => {
+    const batch = pendingResponsiveElements;
+    pendingResponsiveElements = new Set();
+    for (const el of batch) {
+      if (el.isConnected) {
+        reconcileElement(el);
+      } else {
+        syncResponsiveElement(el);
+      }
+    }
+  });
+  trackDOMLifecycleWork(responsiveTask.promise);
+  const finished = () => {
+    responsiveTask = null;
+    scheduleResponsiveReconciliation([]);
+  };
+  void responsiveTask.promise.then(finished, finished);
+}
+
+onBreakpointsReplaced(() => {
+  const candidates = new Set(responsiveElements);
+  const selector = responsiveAttributeNames(COMPONENT_ATTRIBUTE)
+    .map((attribute) => `[${CSS.escape(attribute)}]`)
+    .join(',');
+  if (selector) {
+    for (const el of document.querySelectorAll<HTMLElement>(selector)) {
+      candidates.add(el);
+    }
+  }
+  scheduleResponsiveReconciliation(candidates);
+});
 
 /**
  * Register a component class. Existing matching elements are scheduled
@@ -505,6 +585,8 @@ function scheduleFor(el: HTMLElement, name: string): void {
  * `data-component` token set.
  */
 function reconcileElement(el: HTMLElement): void {
+  checkResponsiveAttributes(el, [COMPONENT_ATTRIBUTE]);
+  syncResponsiveElement(el);
   const tokens = componentTokens(el);
   const names = new Set<string>([
     ...(controllers.get(el)?.keys() ?? []),
@@ -536,12 +618,7 @@ function scan(root: Node): void {
     return;
   }
   for (const el of [root, ...root.querySelectorAll<HTMLElement>('*')]) {
-    if (
-      el.hasAttribute('data-component') ||
-      el.__base__ ||
-      controllers.has(el) ||
-      loaders.has(el)
-    ) {
+    if (hasComponentAttribute(el) || el.__base__ || controllers.has(el) || loaders.has(el)) {
       reconcileElement(el as HTMLElement);
     }
   }
@@ -558,7 +635,7 @@ function scanName(root: Element, name: string): void {
     ? [root, ...root.querySelectorAll<HTMLElement>(selector)]
     : [...root.querySelectorAll<HTMLElement>(selector)];
   for (const el of elements) {
-    scheduleFor(el as HTMLElement, name);
+    reconcileElement(el as HTMLElement);
   }
 }
 
@@ -576,6 +653,7 @@ function destroyWithin(node: Node, snapshot?: readonly Element[]): void {
     return;
   }
   for (const el of snapshot ?? [node, ...node.querySelectorAll<HTMLElement>('*')]) {
+    syncResponsiveElement(el as HTMLElement);
     const pairs = controllers.get(el);
     if (pairs) {
       for (const name of pairs.keys()) {
@@ -616,7 +694,10 @@ function processMutations(records: readonly DOMMutationRecord[]): void {
     if (record.type !== 'attributes' || !(record.target instanceof HTMLElement)) {
       continue;
     }
-    if (record.attributeName === 'data-component') {
+    if (
+      record.attributeName === COMPONENT_ATTRIBUTE ||
+      record.attributeName?.startsWith(`${COMPONENT_ATTRIBUTE}:`)
+    ) {
       declarations.add(record.target);
     } else if (record.attributeName === MOUNT_ATTRIBUTE) {
       strategies.add(record.target);

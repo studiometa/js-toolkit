@@ -252,6 +252,25 @@ RegistryEntry = {
 
 **`loadStrategy` did not survive** — see §11b. Deferring the import and deferring the mount are one decision, so a lazy entry carries a `mountStrategy` (standing in for the `config.mountStrategy` of a class not yet downloaded) and there is no `data-load`. Section 11 is the measurement.
 
+### Responsive component declarations — implemented
+
+The plain `data-component` token set remains unconditional. The same one-breakpoint, upward-cascading spelling as responsive options adds one responsive token set:
+
+```html
+<div
+  data-component="Action Analytics"
+  data-component:xxs="MobileMenu MobileSearch"
+  data-component:m="DesktopMenu DesktopSearch"></div>
+```
+
+At the active breakpoint the registry walks from the widest active suffix down and takes the first attribute that is present. That value is the complete responsive set: a wider value replaces every lower value rather than merging with it. An explicitly present empty value is therefore a stop — `data-component:s="TabletFeature" data-component:l=""` runs `TabletFeature` at `s` and `m`, then removes it at `l`. The effective declaration is the deduplicated union of the unconditional set and the selected responsive set.
+
+A crossing diffs that effective set against the registry's current element state. Shared names keep their controller and instance. Old-only names are terminated because they are no longer declared; crossing back creates a fresh identity. New-only names enter the normal registry pipeline, so eager and conditional mount strategies, `data-mount`, lazy manifest entries and lifecycle events keep their existing meaning. In particular, an inactive lazy declaration does not import its class.
+
+The breakpoint set makes every valid spelling enumerable. The document observer registers exact `data-component:<breakpoint>` names and replaces that filter slice after `setBreakpoints()`, never observing every document attribute and never creating one observer per responsive element. Connected elements carrying a scoped declaration share one reference-counted `useBreakpoint()` subscription; pages with plain declarations open none. Breakpoint work runs through the background lifecycle boundary, so `whenDOMSettled()` includes eager teardown, import and mount work caused by a crossing.
+
+A suffix naming no configured breakpoint is ignored and warned about once, including v3 list syntax such as `data-component:xxs:xs:s`. There is no range or breakpoint-list form: a wider replacement creates a range naturally.
+
 ### Mount strategies (#751) — implemented
 
 `mountStrategy` is the answer to #751, and it lives in the registry rather than in a decorator.
@@ -279,19 +298,19 @@ The issue's open questions, answered:
 
 ## 3. One mutation engine drives the DOM
 
-One internal engine owns one MutationObserver for component discovery, lifecycle, mount strategies, ref invalidation and declared options. Its `attributeFilter` contains the fixed framework attributes plus the option names accumulated from registered component configs, so unrelated `class`, `style` and ARIA writes create no records. It snapshots removed subtree membership when records enter its retained queue, before background processing, and processes each batch in a fixed order:
+One internal engine owns one MutationObserver for component discovery, lifecycle, mount strategies, ref invalidation and declared options. Its `attributeFilter` contains the fixed framework attributes, the exact responsive component spellings from the configured breakpoint set, and the option names accumulated from registered component configs, so unrelated `class`, `style` and ARIA writes create no records. It snapshots removed subtree membership when records enter its retained queue, before background processing, and processes each batch in a fixed order:
 
 1. destroy removed subtrees and dispose their strategies;
-2. reconcile final `data-component` and `data-mount` attributes;
+2. reconcile final plain and breakpoint-scoped `data-component` attributes and `data-mount`;
 3. deliver coalesced declared-option changes to retained mounted instances;
 4. scan added subtrees once and schedule their registered component tokens;
 5. report coalesced attribute changes to the elements which asked to watch them — see below.
 
-v3.9 re-queries every registry entry and sweeps every live instance per mutation batch. v4 reads `data-component` tokens from an inserted subtree in one pass and looks each token up in the registry.
+v3.9 re-queries every registry entry and sweeps every live instance per mutation batch. v4 resolves the effective plain-plus-responsive `data-component` token set from each inserted subtree in one pass and looks each token up in the registry.
 
-A disconnected element receives `$destroy()` and retains its instance for reinsertion. Removing one component token from a connected element is different: the DOM no longer declares that identity, so the registry calls `$terminate()`. Adding that token later creates a new instance. A moved node produces removal and addition records and deliberately completes a destroy/remount cycle with the same identity.
+A disconnected element receives `$destroy()` and retains its instance for reinsertion. Removing one component token from a connected element — by a plain or scoped attribute change, or by a breakpoint crossing — is different: the DOM no longer declares that identity, so the registry calls `$terminate()`. Adding that token later creates a new instance. A moved node produces removal and addition records and deliberately completes a destroy/remount cycle with the same identity.
 
-`whenDOMSettled()` provides an explicit completion boundary for morphing and fetch-style updates. It drains pending records, follows mutation chains created by eager lifecycle work and resolves after eager mounts and teardown have run. It does not wait for visibility, interaction, idle or media conditions, and it does not await promises returned by `mounted()`.
+`whenDOMSettled()` provides an explicit completion boundary for morphing, fetch-style updates and breakpoint crossings. It drains pending records, follows mutation chains created by eager lifecycle work and resolves after eager mounts and teardown have run. It does not wait for visibility, interaction, idle or media conditions, and it does not await promises returned by `mounted()`.
 
 ### Attributes the framework cannot name — `$watchAttributes()`
 
@@ -307,7 +326,7 @@ So the opt-in is **element-scoped**: `this.$watchAttributes(callback)` observes 
 - **Coalesced like options.** Several writes to one attribute in a batch are one change, from the first old value to the final DOM value, and a rewrite ending where it started is not a change at all — the rule `$optionChanged()` already follows.
 - Delivered as one payload object: `{ name, value, previousValue }`, raw attribute strings, `null` on either side for an absent attribute. It is the **entire** attribute set of the element, framework names included; a component narrows by prefix, which is what a `data-on:` or `data-bind:` family wants anyway.
 
-The matching surface is deliberately narrower than v3: only `data-component="Name"` declarations are discovered, with whitespace-separated tokens for several components on one element. v3's `<tk-name>` tag sugar and lowercase arbitrary-selector registrations are not kept. `data-component` still enhances native elements (`<form>`, `<a>`, `<details>`, table markup) and supports several components on one element — both impossible with custom elements as the primitive.
+The matching surface is deliberately narrower than v3: only plain and configured breakpoint-scoped `data-component` declarations are discovered, with whitespace-separated tokens for several components on one element. v3's `<tk-name>` tag sugar, breakpoint-list suffixes and lowercase arbitrary-selector registrations are not kept. `data-component` still enhances native elements (`<form>`, `<a>`, `<details>`, table markup) and supports several components on one element — both impossible with custom elements as the primitive.
 
 ## 4. Parents listen to child events
 
