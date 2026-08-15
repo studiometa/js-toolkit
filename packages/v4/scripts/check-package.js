@@ -10,6 +10,7 @@ import { createServer as createViteServer } from 'vite';
 const execute = promisify(execFile);
 const packageRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const packageName = '@studiometa/js-toolkit-v4';
+const typescriptCompiler = resolve(packageRoot, '../../node_modules/typescript/bin/tsc');
 const distArtifact = /^dist\/(?:[^/]+\/)*[^/]+\.(?:js|js\.map|d\.ts)$/;
 
 async function run(command, args, options = {}) {
@@ -129,6 +130,23 @@ async function checkNodeConsumer(consumerRoot) {
   await copyFile(resolve(packageRoot, 'test/package-node-consumer.js'), fixture);
   const output = await run(process.execPath, [fixture], { cwd: consumerRoot });
   process.stdout.write(output);
+}
+
+async function checkTypeScriptConsumer(consumerRoot) {
+  await Promise.all([
+    copyFile(
+      resolve(packageRoot, 'test/package-typescript-consumer.ts'),
+      join(consumerRoot, 'package-typescript-consumer.ts'),
+    ),
+    copyFile(
+      resolve(packageRoot, 'test/package-typescript-consumer.tsconfig.json'),
+      join(consumerRoot, 'tsconfig.json'),
+    ),
+  ]);
+  await run(process.execPath, [typescriptCompiler, '--project', 'tsconfig.json'], {
+    cwd: consumerRoot,
+  });
+  console.log('TypeScript packed consumer: root and watchAttributes subpath types passed.');
 }
 
 async function checkBrowserConsumer(consumerRoot) {
@@ -270,6 +288,7 @@ try {
     `Packed content: ${metadata.entryCount} files, ${formatBytes(metadata.size)} packed, ${formatBytes(metadata.unpackedSize)} unpacked.`,
   );
   await checkNodeConsumer(consumerRoot);
+  await checkTypeScriptConsumer(consumerRoot);
   await checkBrowserConsumer(consumerRoot);
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true });
