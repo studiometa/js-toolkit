@@ -1,3 +1,4 @@
+import { componentTokens } from './component-declarations.js';
 import {
   injectContext,
   injectContextSync,
@@ -452,17 +453,15 @@ function checkPayload(event: string, payload: unknown): void {
  * The root itself is never tested against `owner`. It cannot be: ui registers
  * `FigureShopify` under the name `Figure`, so the element reading
  * `data-ref="FigureShopify.img"` sits under `data-component="Figure"`. The
- * namespace names the **class's** `config.name`, which is what the selector
- * already matched on; the walk only decides who else could have claimed it.
+ * namespace names the **class's** `config.name`, which is what the root's
+ * effective declaration matched; the walk only decides who else could have
+ * claimed it.
  */
 function belongsTo(el: Element, root: Element, owner?: string): boolean {
-  // Built before the walk, not inside it: the selector depends on `owner`
-  // alone, and the loop runs once per ancestor — for every ref, on every
-  // mount. Hoisting is what a cache would buy here, without the cache.
-  const selector = owner === undefined ? undefined : selectorFor(owner);
   let parent = el.parentElement;
   while (parent && parent !== root) {
-    if (selector === undefined ? parent.hasAttribute('data-component') : parent.matches(selector)) {
+    const declarations = componentTokens(parent);
+    if (owner === undefined ? declarations.size > 0 : declarations.has(owner)) {
       return false;
     }
     parent = parent.parentElement;

@@ -34,6 +34,10 @@ interface AttributeWatcherEntry {
 }
 
 const observedAttributes = new Set(['data-component', 'data-mount', 'data-ref']);
+
+function isComponentAttribute(attribute: string | null): boolean {
+  return attribute === 'data-component' || attribute?.startsWith('data-component:') === true;
+}
 const attributeWatchers = new Set<AttributeWatcherEntry>();
 let observer: MutationObserver | null = null;
 let processor: DOMMutationProcessor | null = null;
@@ -74,6 +78,33 @@ function observeDocument(): void {
 export function registerDOMOptionAttributes(attributes: Iterable<string>): void {
   let changed = false;
   for (const attribute of attributes) {
+    if (!observedAttributes.has(attribute)) {
+      observedAttributes.add(attribute);
+      changed = true;
+    }
+  }
+  if (!changed || !observer) {
+    return;
+  }
+  ingest(observer.takeRecords());
+  observeDocument();
+}
+
+/**
+ * Replace one derived slice of the exact attribute filter.
+ *
+ * Responsive attributes use this when `setBreakpoints()` replaces the named
+ * set. Existing records are retained before the observer is reconfigured.
+ */
+export function replaceDOMOptionAttributes(
+  previous: Iterable<string>,
+  next: Iterable<string>,
+): void {
+  let changed = false;
+  for (const attribute of previous) {
+    changed = observedAttributes.delete(attribute) || changed;
+  }
+  for (const attribute of next) {
     if (!observedAttributes.has(attribute)) {
       observedAttributes.add(attribute);
       changed = true;
@@ -212,7 +243,7 @@ function ingest(incoming: MutationRecord[]): void {
   const relevant = incoming.filter(
     ({ type, attributeName }) =>
       type === 'childList' ||
-      attributeName === 'data-component' ||
+      isComponentAttribute(attributeName) ||
       attributeName === 'data-mount' ||
       attributeName === 'data-ref' ||
       attributeName?.startsWith('data-option-'),
@@ -224,7 +255,7 @@ function ingest(incoming: MutationRecord[]): void {
   if (
     relevant.some(
       ({ type, attributeName }) =>
-        type === 'childList' || attributeName === 'data-component' || attributeName === 'data-ref',
+        type === 'childList' || isComponentAttribute(attributeName) || attributeName === 'data-ref',
     )
   ) {
     version += 1;
