@@ -144,7 +144,10 @@ async function run(copyA, copyB) {
     }
 
     class SharedViewportLazy extends copyA.Base {
-      static config = { name: 'RuntimeFixtureViewportLazy' };
+      static config = {
+        name: 'RuntimeFixtureViewportLazy',
+        mountStrategy: 'visible:321px 0px',
+      };
 
       mounted() {
         viewportLazyMounts += 1;
