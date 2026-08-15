@@ -3,17 +3,26 @@ import { clamp, smoothTo } from '@studiometa/js-toolkit-v4/utils';
 import {
   Base,
   JS_TOOLKIT_ERROR_EVENT,
+  defineManifest,
+  fromMetaGlob,
+  fromWebpackContext,
   useInView,
   useScrollProgress,
   withInView,
   withScrollProgress,
+  type DefineManifestOptions,
   type InViewHook,
   type InViewMixinOptions,
   type InViewProps,
+  type ModuleRecord,
   type Service,
   type ToolkitErrorDetail,
   type ToolkitErrorStage,
+  type WebpackContextLike,
 } from '@studiometa/js-toolkit-v4';
+import defineManifestFromSubpath from '@studiometa/js-toolkit-v4/defineManifest';
+import fromMetaGlobFromSubpath from '@studiometa/js-toolkit-v4/fromMetaGlob';
+import fromWebpackContextFromSubpath from '@studiometa/js-toolkit-v4/fromWebpackContext';
 import useInViewFromSubpath, {
   useInView as namedUseInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/useInView';
@@ -63,6 +72,17 @@ describe('the package entry points', () => {
       intersected?: (props: InViewProps) => void;
     }>();
     expectTypeOf<InViewMixinOptions>().toMatchTypeOf<IntersectionObserverInit>();
+  });
+
+  it('exports manifest generation from the root and symbol subpaths', () => {
+    expect(defineManifestFromSubpath).toBe(defineManifest);
+    expect(fromMetaGlobFromSubpath).toBe(fromMetaGlob);
+    expect(fromWebpackContextFromSubpath).toBe(fromWebpackContext);
+    expectTypeOf<DefineManifestOptions>().toMatchTypeOf<{
+      modules: ModuleRecord;
+      mountStrategy?: string;
+    }>();
+    expectTypeOf<WebpackContextLike>().toBeCallableWith('./Widget.ts');
   });
 
   it('exports scroll progress from the root and symbol subpaths', () => {

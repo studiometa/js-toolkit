@@ -534,11 +534,36 @@ function disposeLoader(el: Element, name: string): void {
 }
 
 /**
+ * Complete a conditional one-shot strategy after its import. Registration
+ * applies the loaded class's strategy to the pair. When it resolves to the
+ * same one-shot strategy, the condition which started the import already
+ * satisfied it, so the new controller mounts without waiting for a second
+ * visibility, idle or interaction trigger.
+ */
+function completeOneShotLoad(el: HTMLElement, name: string, strategy: MountStrategy): void {
+  if (strategy !== 'visible' && strategy !== 'idle' && strategy !== 'interaction') {
+    return;
+  }
+  const ComponentClass = registry.get(name);
+  const controller = controllers.get(el)?.get(name);
+  if (
+    !ComponentClass ||
+    !controller ||
+    controller.strategy !== strategy ||
+    resolveStrategy(el, ComponentClass) !== strategy
+  ) {
+    return;
+  }
+  controller.dispose();
+  mountPair(el, name, ComponentClass, controller);
+}
+
+/**
  * Wait for one element's declared-but-unloaded component, on the strategy
- * that element resolves to. The trigger is one-shot even for a reversible
- * strategy: importing is not reversible, and once the class is registered
- * the registry re-applies the same strategy to the pair — this time with the
- * class's own `config.mountStrategy` in the precedence chain.
+ * that element resolves to. Importing is one-shot even for a reversible
+ * strategy. Once the class is registered, the registry applies its resolved
+ * strategy to the pair. A reversible condition is observed again; a matching
+ * one-shot condition has already fired and completes immediately.
  */
 function scheduleLoad(el: HTMLElement, name: string): void {
   const entry = manifest.get(name);
@@ -566,6 +591,7 @@ function scheduleLoad(el: HTMLElement, name: string): void {
       fired = true;
       disposeLoader(el, name);
       const work = importComponent(name, el);
+      void work.then(() => completeOneShotLoad(el, name, strategy));
       // Only an eager trigger belongs to the settlement boundary, matching
       // the rule the registry already follows: `whenDOMSettled()` — and so
       // `swap()` — waits for an eager lazy component to be downloaded,

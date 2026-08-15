@@ -53,8 +53,7 @@
  * and a crossing that changes the resolved value is announced through the same
  * `option<Name>Changed()`.
  *
- * Not in this prototype: manifest generation from a bundler glob, non-bubbling
- * child events (mouseenter/mouseleave).
+ * Not in this prototype: non-bubbling child events (mouseenter/mouseleave).
  *
  * One dependency: `morphdom`, imported by `swap()` alone for its `morph` mode.
  * Every other subpath is dependency-free, so a page which never swaps never
@@ -104,6 +103,14 @@ export {
   type ToolkitErrorStage,
 } from './errors.js';
 export { getInstances } from './instances.js';
+export {
+  defineManifest,
+  fromMetaGlob,
+  fromWebpackContext,
+  type DefineManifestOptions,
+  type ModuleRecord,
+  type WebpackContextLike,
+} from './manifest.js';
 export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
 export {
   DOM_UPDATE_EVENT,

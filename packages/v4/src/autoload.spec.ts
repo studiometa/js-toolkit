@@ -213,7 +213,9 @@ describe('the strategy that triggers the import', () => {
 
   it('lets the element data-mount win over the entry default', async () => {
     const { name, load, importCount } = defineLazy();
-    const el = render(name, { 'data-mount': 'interaction' }, ONSCREEN);
+    // Parked away from the pointer on purpose: `pointerenter` counts as
+    // interaction and can fire when an element appears under a resting cursor.
+    const el = render(name, { 'data-mount': 'interaction' }, OFFSCREEN);
     registerManifest({ [name]: { load, mountStrategy: 'visible' } });
     await observed();
 
