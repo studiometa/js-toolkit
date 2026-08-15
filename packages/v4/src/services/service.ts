@@ -138,6 +138,7 @@ export function createService<T, R = void>({
   hasProps,
 }: ServiceDefinition<T>): Service<T, R> {
   const subscriptions = new Set<Subscription<T, R>>();
+  let state: 'idle' | 'starting' | 'running' = 'idle';
   let stop: Unsubscribe | null = null;
 
   function emit(current: T): void {
@@ -175,7 +176,27 @@ export function createService<T, R = void>({
     subscribe(callback, { immediate = false } = {}) {
       const subscription: Subscription<T, R> = { callback, isActive: true };
       subscriptions.add(subscription);
-      stop ??= start(emit);
+      if (state === 'idle') {
+        // Mark the run before calling user code: `start()` may emit at once,
+        // and a callback may subscribe again from inside that emit. The nested
+        // subscription joins this run instead of starting a second source.
+        state = 'starting';
+        try {
+          stop = start(emit);
+          state = 'running';
+        } catch (error) {
+          // Nobody can have subscribed before this startup attempt: an idle
+          // service has no holders. Roll back this subscriber and any nested
+          // ones that joined the failed run, then leave the service restartable.
+          for (const joined of subscriptions) {
+            joined.isActive = false;
+          }
+          subscriptions.clear();
+          stop = null;
+          state = 'idle';
+          throw error;
+        }
+      }
       // After `start()`, never before: starting is what makes `props()`
       // current — the scroll service measures its target there, the breakpoint
       // service asks its media queries — so delivering first would hand out
@@ -210,8 +231,13 @@ export function createService<T, R = void>({
         if (subscriptions.size > 0) {
           return;
         }
-        stop?.();
+        if (state !== 'running') {
+          return;
+        }
+        const release = stop;
         stop = null;
+        state = 'idle';
+        release?.();
       };
     },
   };
