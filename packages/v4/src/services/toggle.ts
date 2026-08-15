@@ -46,17 +46,40 @@ export interface Toggle {
  */
 export function toggle(subscribe: () => Unsubscribe): Toggle {
   let unsubscribe: Unsubscribe | null = null;
+  let isStarting = false;
+  let stopPending = false;
 
   return {
     get isActive() {
-      return unsubscribe !== null;
+      return unsubscribe !== null || (isStarting && !stopPending);
     },
     start: () => {
-      unsubscribe ??= subscribe();
+      if (unsubscribe !== null || isStarting) {
+        return;
+      }
+
+      isStarting = true;
+      try {
+        const cleanup = subscribe();
+        if (stopPending) {
+          cleanup();
+        } else {
+          unsubscribe = cleanup;
+        }
+      } finally {
+        isStarting = false;
+        stopPending = false;
+      }
     },
     stop: () => {
-      unsubscribe?.();
+      if (isStarting) {
+        stopPending = true;
+        return;
+      }
+
+      const cleanup = unsubscribe;
       unsubscribe = null;
+      cleanup?.();
     },
   };
 }
