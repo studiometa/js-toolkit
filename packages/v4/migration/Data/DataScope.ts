@@ -73,7 +73,7 @@ export class DataScope extends Base<DataScopeProps> {
    *
    * `$provide` calls `provideContext`, which calls `addEventListener`
    * immediately. Field initializers run during construction, so a `DataScope`
-   * answers `context-request` from the moment it is constructed, before it is
+   * answers private `js-toolkit:context:request` events from the moment it is constructed, before it is
    * mounted and before anything it contains has run a line. The registry
    * scans an inserted subtree in document order, so an ancestor is
    * constructed first and every descendant resolves correctly with no

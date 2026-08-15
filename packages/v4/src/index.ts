@@ -16,8 +16,8 @@
  *    see, and negotiated events let a listener take part in a step instead of
  *    only hearing about it: `$domUpdate()` hands a DOM change to an ancestor's
  *    transition, `$emitExtendable()` holds a step open until it settles.
- * 5. Children advertise their existence — bubbling `component:mounted` /
- *    `component:destroyed` announcements, packaged as `$watchChildren()`,
+ * 5. Children advertise their existence through namespaced lifecycle
+ *    announcements, packaged as `$watchChildren()`,
  *    plus a provide/inject context primitive for shared reactive state.
  * 6. One frame-aligned scheduler — three in-frame phases (tick → read →
  *    write) plus an off-frame `background` lane — with cancelable handles,
@@ -62,10 +62,6 @@
 
 export {
   Base,
-  DESTROYED_EVENT,
-  HANDLER_REGISTRATIONS,
-  MOUNTED_EVENT,
-  SOURCE,
   type BaseConfig,
   type BaseConstructor,
   type BaseProps,
@@ -73,7 +69,6 @@ export {
   type DelegatedEvent,
   type EmitMap,
   type GlobalEvent,
-  type HandlerRegistration,
   type LifecycleEventDetail,
   type MountedReturn,
   type OptionChange,
@@ -97,11 +92,8 @@ export {
 } from './context.js';
 export { children, component, inject, on, provide, read, write } from './decorators.js';
 export { whenDOMSettled, type AttributeChange, type AttributeWatcher } from './dom-mutations.js';
-export {
-  JS_TOOLKIT_ERROR_EVENT,
-  type ToolkitErrorDetail,
-  type ToolkitErrorStage,
-} from './errors.js';
+export { type ToolkitErrorDetail, type ToolkitErrorStage } from './errors.js';
+export { EVENTS } from './events.js';
 export { getInstances } from './instances.js';
 export {
   defineManifest,
@@ -113,7 +105,6 @@ export {
 } from './manifest.js';
 export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
 export {
-  DOM_UPDATE_EVENT,
   type DomMutation,
   type DomUpdateDetail,
   type DomUpdateRunner,

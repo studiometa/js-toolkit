@@ -189,6 +189,32 @@ describe('Signal', () => {
 });
 
 describe('provide/inject', () => {
+  it('uses the private namespaced context transport', () => {
+    const key = createContext<string>('transport');
+    const host = document.createElement('div');
+    const consumer = document.createElement('span');
+    host.append(consumer);
+    document.body.append(host);
+    provideContext(host, key, 'provided');
+
+    const namespaced: Event[] = [];
+    const legacy: Event[] = [];
+    const onNamespaced = (event: Event) => namespaced.push(event);
+    const onLegacy = (event: Event) => legacy.push(event);
+    document.addEventListener('js-toolkit:context:request', onNamespaced, { capture: true });
+    document.addEventListener('context-request', onLegacy, { capture: true });
+    try {
+      expect(injectContextSync(consumer, key)).toBe('provided');
+    } finally {
+      document.removeEventListener('js-toolkit:context:request', onNamespaced, { capture: true });
+      document.removeEventListener('context-request', onLegacy, { capture: true });
+    }
+
+    expect(namespaced).toHaveLength(1);
+    expect(namespaced[0]).toMatchObject({ bubbles: true, cancelable: false });
+    expect(legacy).toHaveLength(0);
+  });
+
   it('resolves for a consumer that mounts before its provider', async () => {
     const Key = createContext<Signal<string>>('late-provider');
     const received: string[] = [];

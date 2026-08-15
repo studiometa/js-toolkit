@@ -47,7 +47,7 @@ export interface SwapOptions {
   /**
    * The composition seam. Without it the mutation runs synchronously; with it
    * the mutation is handed over — to `viewTransition`, to a leave/enter
-   * transition, to a negotiated `dom-update` runner.
+   * transition, to a negotiated `EVENTS.dom.update` runner.
    */
   wrap?: SwapWrap;
 }

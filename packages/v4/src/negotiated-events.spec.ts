@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Base, SOURCE, type DelegatedEvent } from './Base.js';
+import { Base, type DelegatedEvent } from './Base.js';
+import { on } from './decorators.js';
+import { EVENTS } from './events.js';
 import {
-  DOM_UPDATE_EVENT,
   type DomUpdateDetail,
   type DomUpdateRunner,
   type ExtendableDetail,
@@ -46,7 +47,8 @@ class Watcher extends Base {
 
   seen: unknown[] = [];
 
-  onMutatorDomUpdate({ payload, event }: DelegatedEvent<Mutator>) {
+  @on(Mutator, EVENTS.dom.update)
+  onMutatorDomUpdate({ payload, event }: DelegatedEvent<Mutator, typeof EVENTS.dom.update>) {
     this.seen.push(payload);
     // The very same object, from both directions.
     expect(payload).toBe((event as CustomEvent).detail);
@@ -84,7 +86,7 @@ function payloadOf<T>(event: Event): T {
 
 /** Take over every announced change from `el`, with `runner`. */
 function claimFrom(el: Element, runner: DomUpdateRunner): void {
-  el.addEventListener(DOM_UPDATE_EVENT, (event) => payloadOf<DomUpdateDetail>(event).wrap(runner));
+  el.addEventListener(EVENTS.dom.update, (event) => payloadOf<DomUpdateDetail>(event).wrap(runner));
 }
 
 /** Hold every announced `event` from `el` open, with `extension`. */
@@ -189,7 +191,7 @@ describe('$domUpdate — the take-over mode', () => {
 
       expect(instance.$el.textContent).toBe('applied anyway');
       expect(warn).toHaveBeenCalledWith(
-        '[base] The `dom-update` runner settled without applying the change, applying it directly.',
+        `[base] The \`${EVENTS.dom.update}\` runner settled without applying the change, applying it directly.`,
       );
     } finally {
       warn.mockRestore();
@@ -218,7 +220,7 @@ describe('$domUpdate — the take-over mode', () => {
     let runnerCalls = 0;
 
     try {
-      outer.addEventListener(DOM_UPDATE_EVENT, (event) => {
+      outer.addEventListener(EVENTS.dom.update, (event) => {
         // Kept for later instead of answering now — the mistake the protocol
         // refuses, because the change may already have run.
         late = payloadOf<DomUpdateDetail>(event).wrap;
@@ -235,7 +237,7 @@ describe('$domUpdate — the take-over mode', () => {
 
       expect(runnerCalls).toBe(0);
       expect(warn).toHaveBeenCalledWith(
-        '[base] `wrap()` must be called synchronously while the `dom-update` event dispatches.',
+        `[base] \`wrap()\` must be called synchronously while the \`${EVENTS.dom.update}\` event dispatches.`,
       );
     } finally {
       warn.mockRestore();
@@ -269,10 +271,10 @@ describe('$domUpdate — the take-over mode', () => {
 
     // Ancestry is the whole scoping rule: a component elsewhere in the page
     // hears nothing, with no filtering to write.
-    sibling.addEventListener(DOM_UPDATE_EVENT, () => {
+    sibling.addEventListener(EVENTS.dom.update, () => {
       seen += 1;
     });
-    document.addEventListener(DOM_UPDATE_EVENT, () => {
+    document.addEventListener(EVENTS.dom.update, () => {
       seen += 1;
     });
 
@@ -317,11 +319,11 @@ describe('$domUpdate — the take-over mode', () => {
     expect(instance.$el.textContent).toBe('batched');
   });
 
-  it('carries one object as the detail, annotated with its source', async () => {
+  it('carries one object as the detail in a non-cancelable notification', async () => {
     const { outer, instance } = render();
     let seen: CustomEvent | undefined;
 
-    outer.addEventListener(DOM_UPDATE_EVENT, (event) => {
+    outer.addEventListener(EVENTS.dom.update, (event) => {
       seen = event as CustomEvent;
     });
     await instance.$domUpdate(() => {});
@@ -330,13 +332,11 @@ describe('$domUpdate — the take-over mode', () => {
     // carries, built by the same private dispatch primitive.
     expect(typeof seen?.detail.wrap).toBe('function');
     expect(Array.isArray(seen?.detail)).toBe(false);
-    // Everything `$emit` gives an event, all the same.
     expect(seen?.bubbles).toBe(true);
-    expect(seen?.cancelable).toBe(true);
-    expect((seen as unknown as Record<symbol, unknown>)[SOURCE]).toBe(instance);
+    expect(seen?.cancelable).toBe(false);
   });
 
-  it('reaches a delegated on<Child>DomUpdate() handler, payload included', async () => {
+  it('reaches a delegated @on handler, payload included', async () => {
     const root = document.createElement('div');
     root.setAttribute('data-component', 'Watcher');
     const el = document.createElement('p');
@@ -360,14 +360,15 @@ describe('$domUpdate — the take-over mode', () => {
 });
 
 describe('$emitExtendable — the delay mode', () => {
-  it('resolves without waiting when nobody extends the step', async () => {
+  it('dispatches a non-cancelable notification without waiting when nobody extends it', async () => {
     const { instance } = render();
-    const seen: string[] = [];
+    const seen: Event[] = [];
 
-    document.addEventListener('close', () => seen.push('heard'));
+    document.addEventListener('close', (event) => seen.push(event));
     await instance.$emitExtendable('close');
 
-    expect(seen).toEqual(['heard']);
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).toMatchObject({ bubbles: true, cancelable: false });
   });
 
   it('waits for every registration, not only the last one', async () => {

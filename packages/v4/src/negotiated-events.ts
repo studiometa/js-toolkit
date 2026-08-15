@@ -1,3 +1,5 @@
+import { EVENTS } from './events.js';
+
 /**
  * Negotiated events — a step announced before it happens, which anything up
  * the tree may take part in.
@@ -33,9 +35,6 @@
  *    rejects is reported, never rethrown: a take-over applies the mutation
  *    anyway, exactly once, and a delayed step goes ahead.
  */
-
-/** The event a DOM change is announced with. */
-export const DOM_UPDATE_EVENT = 'dom-update';
 
 /**
  * How the modes dispatch. `Base` passes a dispatcher that sends the detail as
@@ -125,7 +124,7 @@ export type DomUpdateRunner =
   | ((apply: DomMutation) => void | Promise<unknown>)
   | DomUpdateTransitioner;
 
-/** The `dom-update` payload: `wrap()` plus whatever context the emitter adds. */
+/** The `EVENTS.dom.update` payload: `wrap()` plus emitter context. */
 export interface DomUpdateDetail {
   /**
    * Take over the announced change. Valid synchronously only, and the last
@@ -162,8 +161,8 @@ export interface ExtendableDetail {
  * resolves once the change has been applied either way.
  *
  * `emit` is a parameter rather than an element so this module knows nothing
- * about `Base`: the instance method passes a dispatcher that bubbles, cancels
- * and annotates the event with its source.
+ * about `Base`: the instance method passes a dispatcher that bubbles the
+ * non-cancelable framework notification.
  */
 export async function domUpdate(
   emit: Emit,
@@ -175,7 +174,7 @@ export async function domUpdate(
   negotiate<DomUpdateRunner>({
     emit,
     detail,
-    event: DOM_UPDATE_EVENT,
+    event: EVENTS.dom.update,
     key: 'wrap',
     // One runner, and the last claim wins. Bubbling visits the nearest
     // ancestor first, and the nearest one is not necessarily the one that
@@ -219,7 +218,7 @@ export async function domUpdate(
   if (!isApplied) {
     if (!hasFailed) {
       console.warn(
-        `[base] The \`${DOM_UPDATE_EVENT}\` runner settled without applying the change, applying it directly.`,
+        `[base] The \`${EVENTS.dom.update}\` runner settled without applying the change, applying it directly.`,
       );
     }
     await apply();

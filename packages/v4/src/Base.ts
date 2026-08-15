@@ -9,14 +9,9 @@ import {
 } from './context.js';
 import { domVersion, watchElementAttributes, type AttributeChange } from './dom-mutations.js';
 import { reportToolkitError } from './errors.js';
-import {
-  domUpdate,
-  emitExtendable,
-  DOM_UPDATE_EVENT,
-  type DomMutation,
-} from './negotiated-events.js';
-import { DESTROYED_EVENT, MOUNTED_EVENT } from './lifecycle-events.js';
-import { HANDLER_REGISTRATIONS, SOURCE } from './protocol-symbols.js';
+import { EVENTS } from './events.js';
+import { domUpdate, emitExtendable, type DomMutation } from './negotiated-events.js';
+import { HANDLER_REGISTRATIONS } from './protocol-symbols.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import {
   activeBreakpoint,
@@ -30,9 +25,6 @@ import { memo } from './utils/memo.js';
 import { selectorFor } from './utils/selectors.js';
 import { kebabCase, pascalCase } from './utils/strings.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
-
-export { DESTROYED_EVENT, MOUNTED_EVENT } from './lifecycle-events.js';
-export { HANDLER_REGISTRATIONS, SOURCE } from './protocol-symbols.js';
 
 const REGEX_HANDLER = /^on[A-Z]/;
 
@@ -1223,7 +1215,9 @@ export class Base<T extends BaseProps = BaseProps> {
     }
     // Announce existence to every ancestor (objective 5, layer 1).
     const detail: LifecycleEventDetail = { instance: this };
-    this.$el.dispatchEvent(new CustomEvent(MOUNTED_EVENT, { bubbles: true, detail }));
+    this.$el.dispatchEvent(
+      new CustomEvent(EVENTS.component.mounted, { bubbles: true, cancelable: false, detail }),
+    );
     return this;
   }
 
@@ -1278,7 +1272,9 @@ export class Base<T extends BaseProps = BaseProps> {
     // The element may already be detached, so a bubbling event would reach
     // nobody: announce from the document instead.
     const detail: LifecycleEventDetail = { instance: this };
-    document.dispatchEvent(new CustomEvent(DESTROYED_EVENT, { detail }));
+    document.dispatchEvent(
+      new CustomEvent(EVENTS.component.destroyed, { cancelable: false, detail }),
+    );
     return this;
   }
 
@@ -1314,8 +1310,7 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Dispatch a native bubbling, cancelable event, annotated with the
-   * emitting instance.
+   * Dispatch a native bubbling, cancelable event.
    *
    * The payload is **one object**, and it is the event's `detail` verbatim —
    * what `CustomEvent` was built to carry, and what a plain listener on the
@@ -1342,18 +1337,17 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Build and dispatch a component event: bubbling, cancelable, carrying one
-   * `detail` and annotated with the instance that sent it.
+   * Build and dispatch a component event: bubbling, carrying one `detail`, and
+   * cancelable by default.
    *
    * The single place any of that is decided. `$emit()` is this plus the
    * `$emits` type constraint; the negotiated protocol events are this without
    * it — see `#negotiated()` for why they must not have it.
    */
-  #dispatch(event: string, detail: unknown): CustomEvent<unknown> {
-    const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail });
-    (e as CustomEvent & { [SOURCE]?: Base })[SOURCE] = this;
-    this.$el.dispatchEvent(e);
-    return e;
+  #dispatch(event: string, detail: unknown, cancelable = true): CustomEvent<unknown> {
+    const dispatched = new CustomEvent(event, { bubbles: true, cancelable, detail });
+    this.$el.dispatchEvent(dispatched);
+    return dispatched;
   }
 
   $on(type: string, listener: EventListener, options?: AddEventListenerOptions): () => void {
@@ -1471,12 +1465,12 @@ export class Base<T extends BaseProps = BaseProps> {
       }
     };
 
-    this.$el.addEventListener(MOUNTED_EVENT, onMounted);
-    document.addEventListener(DESTROYED_EVENT, onDestroyed);
+    this.$el.addEventListener(EVENTS.component.mounted, onMounted);
+    document.addEventListener(EVENTS.component.destroyed, onDestroyed);
     // Instance-lifetime: the collection survives destroy/mount cycles.
     this.#terminateCallbacks.push(() => {
-      this.$el.removeEventListener(MOUNTED_EVENT, onMounted);
-      document.removeEventListener(DESTROYED_EVENT, onDestroyed);
+      this.$el.removeEventListener(EVENTS.component.mounted, onMounted);
+      document.removeEventListener(EVENTS.component.destroyed, onDestroyed);
     });
 
     return {
@@ -1682,9 +1676,9 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Dispatch a negotiated event: bubbling, cancelable and annotated with its
-   * source — the same event `$emit()` builds, through the same `#dispatch()`,
-   * with the payload object as `detail`. `dom-update` and the steps of a
+   * Dispatch a negotiated event: bubbling, with the same payload object as
+   * `detail`. It uses the same `#dispatch()` primitive as `$emit()`.
+   * `js-toolkit:dom:update` and the steps of a
    * choreography are shaped exactly like a component's own events.
    *
    * What it deliberately does **not** go through is the public `$emit()`, and
@@ -1694,7 +1688,8 @@ export class Base<T extends BaseProps = BaseProps> {
    * framework protocol in order to announce through it. Routing here would
    * need a cast at every call — still a bypass, but a hidden one a reader has
    * to spot, rather than a named one. The three other protocol events —
-   * `component:mounted`, `component:destroyed`, `context-request` — sit
+   * `js-toolkit:component:mounted`, `js-toolkit:component:destroyed`, and the
+   * private context request — sit
    * outside `$emit()` for the same reason.
    *
    * Delegation is unaffected: `on<Child><Event>()` handlers are bound by event
@@ -1708,7 +1703,7 @@ export class Base<T extends BaseProps = BaseProps> {
    */
   #negotiated(event: string): (detail: Record<string, unknown>) => void {
     return (detail) => {
-      this.#dispatch(event, detail);
+      this.#dispatch(event, detail, false);
     };
   }
 
@@ -1717,7 +1712,7 @@ export class Base<T extends BaseProps = BaseProps> {
    *
    * A component that is about to mutate the DOM — insert a fetched fragment,
    * toggle a `<template>`, remove a node — runs the mutation through this
-   * instead of doing it directly. The bubbling `dom-update` event announces it
+   * instead of doing it directly. The bubbling `js-toolkit:dom:update` event announces it
    * first, and any ancestor may claim it synchronously with
    * `detail.wrap(runner)`, at which point the change runs through that runner:
    *
@@ -1725,13 +1720,13 @@ export class Base<T extends BaseProps = BaseProps> {
    *     await this.$domUpdate(() => this.$el.replaceChildren(fragment));
    *
    *     // In any ancestor, however far up.
-   *     this.$on(DOM_UPDATE_EVENT, ({ detail }) => detail.wrap(viewTransition));
+   *     this.$on(EVENTS.dom.update, ({ detail }) => detail.wrap(viewTransition));
    *
    *     // Or, as a delegated child handler — the same payload.
+   *     @on('Fetch', EVENTS.dom.update)
    *     onFetchDomUpdate({ payload: { wrap } }) { wrap(viewTransition); }
    *
-   * The event bubbles, is cancelable and carries its source, and
-   * `defaultPrevented` is deliberately ignored: the change is announced, not
+   * The event bubbles and is not cancelable: the change is announced, not
    * proposed, and a listener that wants nothing to happen has to say so through
    * its own state.
    *
@@ -1745,7 +1740,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * @param detail Extra context for the listeners, merged into `event.detail`.
    */
   $domUpdate(mutate: DomMutation, detail?: Record<string, unknown>): Promise<void> {
-    return domUpdate(this.#negotiated(DOM_UPDATE_EVENT), mutate, detail);
+    return domUpdate(this.#negotiated(EVENTS.dom.update), mutate, detail);
   }
 
   /**

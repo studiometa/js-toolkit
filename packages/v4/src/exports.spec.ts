@@ -1,8 +1,9 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
+import packageManifest from '../package.json' with { type: 'json' };
 import { clamp, smoothTo } from '@studiometa/js-toolkit-v4/utils';
 import {
   Base,
-  JS_TOOLKIT_ERROR_EVENT,
+  EVENTS,
   defineManifest,
   fromMetaGlob,
   fromWebpackContext,
@@ -33,9 +34,9 @@ import useInViewFromSubpath, {
   useInView as namedUseInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/useInView';
 import useScrollProgressSubpath from '@studiometa/js-toolkit-v4/useScrollProgress';
-import errorEventFromSubpath, {
-  JS_TOOLKIT_ERROR_EVENT as namedErrorEventFromSubpath,
-} from '@studiometa/js-toolkit-v4/JS_TOOLKIT_ERROR_EVENT';
+import eventsFromSubpath, {
+  EVENTS as namedEventsFromSubpath,
+} from '@studiometa/js-toolkit-v4/EVENTS';
 import withDragFromSubpath from '@studiometa/js-toolkit-v4/withDrag';
 import withInViewFromSubpath, {
   withInView as namedWithInViewFromSubpath,
@@ -53,6 +54,11 @@ function toolkitErrorDetailTypeAssertions(detail: ToolkitErrorDetail): void {
 
 void toolkitErrorDetailTypeAssertions;
 
+// @ts-expect-error HandlerRegistration is an internal source type.
+type RemovedHandlerRegistration = import('@studiometa/js-toolkit-v4').HandlerRegistration;
+const removedHandlerRegistrationTypeAssertion = null as unknown as RemovedHandlerRegistration;
+void removedHandlerRegistrationTypeAssertion;
+
 describe('the package entry points', () => {
   it('serves the utils from the /utils subpath', () => {
     expect(clamp(5, 0, 1)).toBe(1);
@@ -61,11 +67,37 @@ describe('the package entry points', () => {
     x.destroy();
   });
 
-  it('keeps the framework on the root entry, without the utils', async () => {
+  it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
+    expect(Object.keys(root)).toHaveLength(57);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
+    for (const removed of [
+      'SOURCE',
+      'HANDLER_REGISTRATIONS',
+      'MOUNTED_EVENT',
+      'DESTROYED_EVENT',
+      'DOM_UPDATE_EVENT',
+      'JS_TOOLKIT_ERROR_EVENT',
+    ]) {
+      expect(root[removed]).toBeUndefined();
+    }
+  });
+
+  it('does not expose removed constant and symbol subpaths', () => {
+    const exports = packageManifest.exports as Record<string, unknown>;
+    for (const removed of [
+      './SOURCE',
+      './HANDLER_REGISTRATIONS',
+      './MOUNTED_EVENT',
+      './DESTROYED_EVENT',
+      './DOM_UPDATE_EVENT',
+      './JS_TOOLKIT_ERROR_EVENT',
+    ]) {
+      expect(exports).not.toHaveProperty(removed);
+    }
+    expect(exports).toHaveProperty('./EVENTS');
   });
 
   it('serves drag controls and types from the public entry points', () => {
@@ -108,10 +140,9 @@ describe('the package entry points', () => {
     expect(withScrollProgress).toBe(withScrollProgressSubpath);
   });
 
-  it('exports the framework error contract from the root and constant subpath', () => {
-    expect(JS_TOOLKIT_ERROR_EVENT).toBe('js-toolkit:error');
-    expect(errorEventFromSubpath).toBe(JS_TOOLKIT_ERROR_EVENT);
-    expect(namedErrorEventFromSubpath).toBe(JS_TOOLKIT_ERROR_EVENT);
+  it('exports the framework event contract from the root and constant subpath', () => {
+    expect(eventsFromSubpath).toBe(EVENTS);
+    expect(namedEventsFromSubpath).toBe(EVENTS);
     expectTypeOf<ToolkitErrorStage>().toEqualTypeOf<'load' | 'mount' | 'lifecycle'>();
     expectTypeOf<ToolkitErrorDetail>().toEqualTypeOf<{
       readonly stage: ToolkitErrorStage;
