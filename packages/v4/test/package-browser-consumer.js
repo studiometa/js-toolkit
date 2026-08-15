@@ -1,4 +1,10 @@
-import { Base } from '@studiometa/js-toolkit-v4';
+import {
+  Base,
+  domUpdate as rootDomUpdate,
+  emitExtendable as rootEmitExtendable,
+} from '@studiometa/js-toolkit-v4';
+import domUpdate from '@studiometa/js-toolkit-v4/domUpdate';
+import emitExtendable from '@studiometa/js-toolkit-v4/emitExtendable';
 import { EVENTS } from '@studiometa/js-toolkit-v4/EVENTS';
 import useRaf, { useRaf as namedUseRaf } from '@studiometa/js-toolkit-v4/useRaf';
 
@@ -36,6 +42,27 @@ try {
   const component = new PackedComponent(element).$mount();
   const emitted = component.$emit('packed:ready', { packed: true });
 
+  let domUpdateEvent;
+  element.addEventListener(EVENTS.dom.update, (event) => {
+    domUpdateEvent = event;
+  });
+  const update = domUpdate(element, () => {
+    element.dataset.updated = 'yes';
+  });
+  const updatedSynchronously = element.dataset.updated === 'yes';
+
+  let extendableEvent;
+  let extensionSettled = false;
+  element.addEventListener('packed:close', (event) => {
+    extendableEvent = event;
+    event.detail.waitUntil(
+      Promise.resolve().then(() => {
+        extensionSettled = true;
+      }),
+    );
+  });
+  await Promise.all([update, emitExtendable(element, 'packed:close')]);
+
   globalThis.__V4_PACKED_CONSUMER__ = {
     status: 'passed',
     mountedHookCalls,
@@ -52,6 +79,30 @@ try {
       bubbles: emitted.bubbles,
       cancelable: emitted.cancelable,
       detail: emitted.detail,
+    },
+    helperSubpaths: {
+      domUpdateIdentity: domUpdate === rootDomUpdate,
+      emitExtendableIdentity: emitExtendable === rootEmitExtendable,
+      updatedSynchronously,
+      domUpdateEvent: {
+        bubbles: domUpdateEvent?.bubbles,
+        cancelable: domUpdateEvent?.cancelable,
+        detailIsObject:
+          typeof domUpdateEvent?.detail === 'object' &&
+          typeof domUpdateEvent?.detail.wrap === 'function',
+      },
+      extensionSettled,
+      extendableEvent: {
+        bubbles: extendableEvent?.bubbles,
+        cancelable: extendableEvent?.cancelable,
+        detailIsObject:
+          typeof extendableEvent?.detail === 'object' &&
+          typeof extendableEvent?.detail.waitUntil === 'function',
+      },
+      baseWrappersRemoved:
+        !('$domUpdate' in component) &&
+        !('$emitExtendable' in component) &&
+        !('$viewTransition' in component),
     },
     serviceSubpath: useRaf === namedUseRaf && typeof useRaf === 'function',
   };

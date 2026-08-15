@@ -11,17 +11,17 @@
  *    registry like any other.
  * 3. Auto-mount on DOM insertion, destroy on ejection.
  * 4. Parents listen to child events — `$emit` bubbles, `on<Child><Event>`
- *    handlers resolve through event delegation on the parent root element,
+ *    handlers resolve through event delegation on the parent root element, and
  *    `onWindow<Event>` / `onDocument<Event>` cover what a subtree can never
- *    see, and negotiated events let a listener take part in a step instead of
- *    only hearing about it: `$domUpdate()` hands a DOM change to an ancestor's
- *    transition, `$emitExtendable()` holds a step open until it settles.
+ *    see. Optional `domUpdate()` and `emitExtendable()` helpers let a listener
+ *    take part in a step without adding orchestration methods to `Base`.
  * 5. Children advertise their existence through namespaced lifecycle
  *    announcements, packaged as `$watchChildren()`,
  *    plus a provide/inject context primitive for shared reactive state.
  * 6. One frame-aligned scheduler — three in-frame phases (tick → read →
- *    write) plus an off-frame `background` lane — with cancelable handles,
- *    error isolation, and a `viewTransition` lane. It is also the clock:
+ *    write) plus an off-frame `background` lane — with cancelable handles and
+ *    error isolation. The optional `viewTransition()` helper coordinates with
+ *    its write phase. The scheduler is also the clock:
  *    services subscribe to its tick instead of owning a
  *    `requestAnimationFrame` loop.
  * 7. Lazy, reference-counted services, one instance per observed target —
@@ -105,6 +105,8 @@ export {
 } from './manifest.js';
 export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
 export {
+  domUpdate,
+  emitExtendable,
   type DomMutation,
   type DomUpdateDetail,
   type DomUpdateRunner,

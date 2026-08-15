@@ -1,5 +1,10 @@
-import { Base, defaultScheduler, type BaseConfig, type BaseProps } from '../../src/index.js';
-import { emitDomUpdate, runWrapped, warn } from './dom-update.js';
+import {
+  Base,
+  defaultScheduler,
+  domUpdate,
+  type BaseConfig,
+  type BaseProps,
+} from '../../src/index.js';
 import { getCallback } from './expression.js';
 import {
   isCheckbox,
@@ -36,6 +41,10 @@ export type DataBindProps = BaseProps & {
   $options: DataBindOptions;
 };
 
+function warn(...args: unknown[]): void {
+  console.warn('[data]', ...args);
+}
+
 type VirtualBinding =
   | { type: 'text' | 'if'; expression: string }
   | { type: 'prop' | 'attr' | 'class' | 'style'; name: string; expression: string };
@@ -65,6 +74,7 @@ type VirtualBinding =
  * | the resolved scope memoized **for the instance's life** → memoized **per mount cycle** | v4 lifecycle. A DOM move is a destroy + mount, so wrapping existing content in a `DataScope` re-resolves for free — a case v3's permanent memoization got permanently wrong. |
  * | `destroyed()` → the `mounted()` cleanup | v4 idiom; joining and leaving a group are one closure. |
  * | `nextTick()` → `defaultScheduler.background()` | v4 ships no `nextTick`. The background lane is where eager mounts queue, so "after everything mounted" is a guarantee rather than a hope. |
+ * | copied `emitDomUpdate()` + `runWrapped()` → `domUpdate()` | the standalone helper keeps the unclaimed mutation synchronous and owns runner resilience without adding a `Base` method. |
  * | `this.$warn(…)` → `warn(…)` | no `$warn` in v4 (REPORT.md gap 10). |
  * | `mounted()` resolving once → `$inject(…, { subscribe: true })` | a member must be re-answerable: a `DataScope` mounting around it takes it back off the page-wide registry. This is the one thing the port had to work around, and core now carries it. |
  *
@@ -395,7 +405,7 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
   /**
    * Toggle the presence of a bound `<template>`'s content in the DOM.
    *
-   * Ported unchanged from v3 apart from `$warn` and the raw dispatch. The
+   * Ported unchanged from v3 apart from `$warn` and the standalone helper. The
    * logical state is tracked synchronously by `#ifPresent` while the DOM
    * change may run later through an `EVENTS.dom.update` runner, so each closure
    * guards on `#ifNodes` to stay a no-op when queued runners apply in
@@ -437,15 +447,9 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
           this.#ifNodes = undefined;
         };
 
-    const runner = emitDomUpdate(this.$el, { isPresent });
-
-    if (runner) {
-      // Intentionally not awaited: the reactive pipeline stays synchronous
-      // while the runner defers the DOM change.
-      void runWrapped(runner, apply);
-    } else {
-      apply();
-    }
+    // Intentionally not awaited: an unclaimed update applies before
+    // `domUpdate()` returns its promise, while a runner may defer the change.
+    void domUpdate(this.$el, apply, { isPresent });
   }
 
   /** @private */

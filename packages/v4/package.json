@@ -104,6 +104,14 @@
       "types": "./dist/subpaths/MOUNT_ATTRIBUTE.d.ts",
       "import": "./dist/subpaths/MOUNT_ATTRIBUTE.js"
     },
+    "./domUpdate": {
+      "types": "./dist/subpaths/domUpdate.d.ts",
+      "import": "./dist/subpaths/domUpdate.js"
+    },
+    "./emitExtendable": {
+      "types": "./dist/subpaths/emitExtendable.d.ts",
+      "import": "./dist/subpaths/emitExtendable.js"
+    },
     "./registerComponent": {
       "types": "./dist/subpaths/registerComponent.d.ts",
       "import": "./dist/subpaths/registerComponent.js"

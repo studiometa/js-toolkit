@@ -1,4 +1,11 @@
-import { Base, createContext, signal, type DelegatedEvent, type Signal } from '../../src/index.js';
+import {
+  Base,
+  createContext,
+  signal,
+  viewTransition,
+  type DelegatedEvent,
+  type Signal,
+} from '../../src/index.js';
 
 /**
  * The TodoList demo from the playground: registry auto-mount, delegation,
@@ -61,7 +68,7 @@ export class TodoList extends Base<{
   }
 
   onTodoItemRemove({ target }: DelegatedEvent<TodoItem>): void {
-    this.$viewTransition(() => target.$el.remove());
+    void viewTransition(() => target.$el.remove());
   }
 
   onSubmit(event: Event): void {
@@ -80,6 +87,6 @@ export class TodoList extends Base<{
       span.textContent = title;
     }
     input.value = '';
-    this.$viewTransition(() => list.append(li));
+    void viewTransition(() => list.append(li));
   }
 }

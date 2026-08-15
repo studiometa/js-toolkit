@@ -1,4 +1,4 @@
-import { Base } from '../../src/index.js';
+import { Base, viewTransition } from '../../src/index.js';
 import type { Transitionable } from './Transition.js';
 
 export interface ViewTransitionProps {
@@ -21,8 +21,8 @@ export interface ViewTransitionProps {
  * decision to make: @studiometa/ui ships its own batching scheduler for this
  * (`ViewTransition/scheduler.ts` — microtask-batched updates flushed into one
  * `document.startViewTransition()`, batches serialised, synchronous
- * fallback). v4 moved that into core, so the component is just
- * `this.$viewTransition(update)` and the whole scheduler file disappears.
+ * fallback). v4 moved that into the standalone core helper, so the component
+ * calls `viewTransition(update)` and the whole scheduler file disappears.
  */
 export class ViewTransition extends Base<ViewTransitionProps> implements Transitionable {
   static config = {
@@ -52,7 +52,7 @@ export class ViewTransition extends Base<ViewTransitionProps> implements Transit
     this.state = 'entering';
     this.$emit('enter');
     this.$emit('enter-start');
-    await this.$viewTransition(() => {
+    await viewTransition(() => {
       this.#toggleClasses(leaveTo, enterTo);
     });
     this.$emit('enter-end');
@@ -63,7 +63,7 @@ export class ViewTransition extends Base<ViewTransitionProps> implements Transit
     this.state = 'leaving';
     this.$emit('leave');
     this.$emit('leave-start');
-    await this.$viewTransition(() => {
+    await viewTransition(() => {
       this.#toggleClasses(enterTo, leaveTo);
     });
     this.$emit('leave-end');

@@ -17,10 +17,10 @@ import { EVENTS } from './events.js';
  * | **take over** | the action     | `wrap()`       | one runner, last wins  |
  * | **delay**     | the moment     | `waitUntil()`  | many, all awaited      |
  *
- * `$domUpdate()` is the first: a component about to mutate the DOM lets an
- * ancestor run the mutation inside a transition of its own. `$emitExtendable()`
- * is the second: a component running a choreography lets anything above it hold
- * a step open until its own work has settled. `@studiometa/ui` grew both
+ * `domUpdate()` is the first: code about to mutate the DOM lets an ancestor run
+ * the mutation inside a transition of its own. `emitExtendable()` is the second:
+ * code running a choreography lets anything above it hold a step open until its
+ * own work has settled. `@studiometa/ui` grew both
  * independently — `utils/dom-update.ts` and `Dialog.__emitExtendable` — with
  * near-identical windows, warnings and duck typing; this is that mechanism,
  * once.
@@ -36,15 +36,10 @@ import { EVENTS } from './events.js';
  *    anyway, exactly once, and a delayed step goes ahead.
  */
 
-/**
- * How the modes dispatch. `Base` passes a dispatcher that sends the detail as
- * **one object**, so a listener reads `event.detail.wrap(…)`.
- */
-type Emit = (detail: Record<string, unknown>) => void;
-
 interface NegotiationOptions<R> {
-  emit: Emit;
-  /** The event's name, for the warning and for duck-typed method lookup. */
+  /** The DOM node the bubbling event starts from. */
+  target: Node;
+  /** The event's name, for dispatch, warnings and duck-typed method lookup. */
   event: string;
   /** The key the registration function is exposed under: `wrap`, `waitUntil`. */
   key: string;
@@ -61,22 +56,24 @@ interface NegotiationOptions<R> {
  * registration — overwrite the single one, or push onto the list. Everything
  * else, transport and window included, is shared.
  */
-function negotiate<R>({ emit, event, key, detail, accept }: NegotiationOptions<R>): void {
+function negotiate<R>({ target, event, key, detail, accept }: NegotiationOptions<R>): void {
   let isDispatching = true;
-
-  emit({
+  const payload = {
     ...detail,
     [key]: (registration: R) => {
       if (!isDispatching) {
         console.warn(
-          `[base] \`${key}()\` must be called synchronously while the \`${event}\` event dispatches.`,
+          `[js-toolkit] \`${key}()\` must be called synchronously while the \`${event}\` event dispatches.`,
         );
         return;
       }
       accept(registration);
     },
-  });
+  };
 
+  target.dispatchEvent(
+    new CustomEvent(event, { bubbles: true, cancelable: false, detail: payload }),
+  );
   isDispatching = false;
 }
 
@@ -160,19 +157,18 @@ export interface ExtendableDetail {
  * DOM back on the next line. A claim makes it asynchronous, and the promise
  * resolves once the change has been applied either way.
  *
- * `emit` is a parameter rather than an element so this module knows nothing
- * about `Base`: the instance method passes a dispatcher that bubbles the
- * non-cancelable framework notification.
+ * The target is a DOM node because DOM ancestry gives the bubbling event its
+ * scope. The helper does not require a component instance.
  */
 export async function domUpdate(
-  emit: Emit,
+  target: Node,
   mutate: DomMutation,
   detail?: Record<string, unknown>,
 ): Promise<void> {
   let runner: DomUpdateRunner | null = null;
 
   negotiate<DomUpdateRunner>({
-    emit,
+    target,
     detail,
     event: EVENTS.dom.update,
     key: 'wrap',
@@ -218,7 +214,7 @@ export async function domUpdate(
   if (!isApplied) {
     if (!hasFailed) {
       console.warn(
-        `[base] The \`${EVENTS.dom.update}\` runner settled without applying the change, applying it directly.`,
+        `[js-toolkit] The \`${EVENTS.dom.update}\` runner settled without applying the change, applying it directly.`,
       );
     }
     await apply();
@@ -237,14 +233,14 @@ export async function domUpdate(
  * still painted, the scroll still locked. Failures are reported instead.
  */
 export async function emitExtendable(
-  emit: Emit,
+  target: Node,
   event: string,
   detail?: Record<string, unknown>,
 ): Promise<void> {
   const pending: Promise<unknown>[] = [];
 
   negotiate<Extension>({
-    emit,
+    target,
     detail,
     event,
     key: 'waitUntil',
