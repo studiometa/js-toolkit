@@ -8,9 +8,9 @@ import { createService, type Service } from '../../src/index.js';
  * v4 core has six sources — `useRaf`, `useScroll`, `useResize`, `usePointer`,
  * `useDrag`, `useBreakpoint`/`useMediaQuery` — and **no intersection source at
  * all**. The only `IntersectionObserver` in `src/` is inside
- * `applyMountStrategy()`, which is private, takes no options, and answers a
- * different question: *when does this component mount*, not *is this element
- * in view right now*.
+ * `applyMountStrategy()`, which is private, only accepts a root-margin suffix,
+ * and answers a different question: *when does this component mount*, not
+ * *is this element in view right now*.
  *
  * v3 had both, as two decorators: `withMountWhenInView` (mount/destroy on
  * crossings) and `withIntersectionObserver` (an observer for the mount

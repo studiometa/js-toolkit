@@ -38,12 +38,6 @@ const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';
 const ONSCREEN = 'position:absolute;top:0;left:0;width:50px;height:50px';
 
 /**
- * Just below the fold — outside the viewport, but well inside a 400px
- * `rootMargin` if one could be set.
- */
-const BELOW_THE_FOLD = 'position:absolute;top:calc(100vh + 50px);left:0;width:50px;height:50px';
-
-/**
  * A subclass of `InView` that declares a config of its own without restating
  * the mount strategy — the shape every ui subclass has, since `name` is
  * mandatory.
@@ -207,27 +201,21 @@ describe('InViewOnce', () => {
   });
 });
 
-describe('what the mount strategy cannot express', () => {
+describe('mount strategy gaps found by the port', () => {
   /**
-   * **RED ON PURPOSE — documents REPORT.md gap 23.**
+   * REPORT.md gap 23, now closed.
    *
-   * v3's `withMountWhenInView` takes an `IntersectionObserverInit`, both as a
-   * decorator argument (defaulting to `{ threshold: [0, 1] }`) and as the
-   * documented `data-option-intersection-observer` attribute — which ui's own
-   * `should expose the configurable intersectionObserver option` spec covers.
-   * `applyMountStrategy()` builds `new IntersectionObserver(callback)` with no
-   * init at all, and builds it in the registry, so a component cannot reach
-   * it. There is no component-side workaround: observing the element again
-   * would not change the observation the mount was already decided by.
-   *
-   * This will flip to green the moment a strategy can carry an init — the
-   * `media:<query>` strategy already proves a parameterised strategy name is
-   * expressible.
+   * The root margin is part of the strategy string because the registry owns
+   * the observer before an instance exists. This keeps component config,
+   * `data-mount` and lazy manifest entries on the same parser and does not add
+   * a second options attribute.
    */
-  it.fails('honours a rootMargin so an element below the fold mounts early', async () => {
-    const el = render('InView', BELOW_THE_FOLD, {
-      'data-option-intersection-observer': '{"rootMargin": "400px"}',
-    });
+  it('accepts a rootMargin in the per-element strategy', async () => {
+    const el = render('InView', OFFSCREEN, { 'data-mount': 'in-view:400px' });
+    await observed();
+    expect(log.events).toEqual([]);
+
+    el.setAttribute('style', ONSCREEN);
     await observed();
 
     expect(log.events).toEqual(['in-view']);

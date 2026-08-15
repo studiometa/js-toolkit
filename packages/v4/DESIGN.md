@@ -243,7 +243,7 @@ RegistryEntry = {
   name,
   source: constructor | lazy loader (manifest entry),
   loadStrategy,   // when to import the class:    eager | visible | idle | interaction   (data-load)
-  mountStrategy,  // when to mount each instance:  eager | visible | in-view | idle | interaction | media:…  (data-mount, #751)
+  mountStrategy,  // when to mount each instance:  eager | visible[:rootMargin] | in-view[:rootMargin] | idle | interaction | media:…  (data-mount, #751)
 }
 ```
 
@@ -275,21 +275,21 @@ A suffix naming no configured breakpoint is ignored and warned about once, inclu
 
 `mountStrategy` is the answer to #751, and it lives in the registry rather than in a decorator.
 
-| strategy          | mounts when                      | reversible |
-| ----------------- | -------------------------------- | ---------- |
-| `eager` (default) | the element enters the DOM       | no         |
-| `visible`         | it first intersects the viewport | no         |
-| `in-view`         | it intersects the viewport       | yes        |
-| `idle`            | the main thread goes idle        | no         |
-| `interaction`     | the user first aims at it        | no         |
-| `media:<query>`   | the query matches                | yes        |
+| strategy                 | mounts when                      | reversible |
+| ------------------------ | -------------------------------- | ---------- |
+| `eager` (default)        | the element enters the DOM       | no         |
+| `visible[:<rootMargin>]` | it first intersects the viewport | no         |
+| `in-view[:<rootMargin>]` | it intersects the viewport       | yes        |
+| `idle`                   | the main thread goes idle        | no         |
+| `interaction`            | the user first aims at it        | no         |
+| `media:<query>`          | the query matches                | yes        |
 
-A component declares its default with `config.mountStrategy`; any element overrides it with `data-mount`.
+A component declares its default with `config.mountStrategy`; any element overrides it with `data-mount`. The optional `visible:` and `in-view:` suffix is passed verbatim as `IntersectionObserverInit.rootMargin`, so `visible:200px`, `in-view:200px 0px` and `in-view:-10% 0px` use the same strategy path as their bare forms. An empty suffix is the bare strategy. No threshold, root element, JSON options or second attribute is part of this grammar.
 
 The issue's open questions, answered:
 
 - **One canonical constructor.** Strategies never construct anything — they only decide _when_ to call the mount/destroy hooks the registry passes in. Nothing wraps the class, so the identity conflicts the issue describes cannot arise. The `withMountWhenInView` decorator is deleted rather than kept: with the framework owning this, a constructor-wrapping version would model the anti-pattern.
-- **One-shot vs reversible are separate values.** `visible` mounts once and stays; `in-view` mounts and unmounts as the element crosses the viewport. Re-mounting is right for a scroll animation and destructive for a map, a video or a form, so the choice is explicit rather than inferred.
+- **One-shot vs reversible are separate values.** `visible` and `visible:<rootMargin>` mount once and stay; `in-view` and `in-view:<rootMargin>` mount and unmount as the element crosses the viewport. Re-mounting is right for a scroll animation and destructive for a map, a video or a form, so the choice is explicit rather than inferred.
 - **`interaction` uses intent**, not replay: `pointerenter`, `pointerdown` and `focusin` all precede the interaction they lead to, so the component is mounted before the click lands.
 - **Several components on one element** share the element's `data-mount`; a component needing its own policy states it in its config.
 - **A waiting component has no instance yet.** Construction happens on first mount, not on discovery, so it is invisible to `$query`, `$closest` and `$watchChildren` and announces nothing — consistent with "an instance exists because it is mounted".
@@ -875,7 +875,7 @@ v3 ships **1033 source lines** of autoload across seven modules, plus 1419 lines
 **Absorbed — deleted, not rewritten.**
 
 - **The discovery observer.** `ComponentLoader.start()` creates a second `MutationObserver` on the root and `__scan`s added subtrees for `[data-component]` (`loader.ts:147-199`). v4 has exactly one document observer with a precise `attributeFilter` (`dom-mutations.ts:52-68`), and `registry.ts` already reads the token set from each inserted subtree in one pass. A lazy entry is a lookup in the same map, in the same `reconcileElement()` walk. **~90 lines gone**, and with them the second observer §2 called out as one of the three mounting systems.
-- **The four load triggers.** `__schedule()` re-implements `visible` (an `IntersectionObserver` with a 200 px `rootMargin`), `idle` (`requestIdleCallback` with a 2 s timeout and a `setTimeout` fallback) and `interaction` (`pointerover`/`pointerdown`/`focusin`, once) — `loader.ts:270-337`. `mount-strategies.ts:64-126` is the same code, already written, already specced, and richer: it adds `in-view` and `media:<query>`, and it distinguishes one-shot from reversible, which v3's loader never had to because importing is never reversible. **~70 lines gone.**
+- **The four load triggers.** `__schedule()` re-implements `visible` (an `IntersectionObserver` with a 200 px `rootMargin`), `idle` (`requestIdleCallback` with a 2 s timeout and a `setTimeout` fallback) and `interaction` (`pointerover`/`pointerdown`/`focusin`, once) — `loader.ts:270-337`. `mount-strategies.ts` is the same code, already written, already specced, and richer: `visible:200px` preserves that early viewport boundary, it adds the reversible `in-view[:<rootMargin>]` and `media:<query>`, and it keeps importing one-shot even when the later mount lifecycle is reversible. **~70 lines gone.**
 - **The per-element and per-record cleanup bookkeeping.** `__addCleanup`, `__cleanSubtree`, `__clean`, `__elementCleanups`, `__elementSchedules` — `loader.ts:434-480`, ~50 lines whose whole job is "dispose the trigger when the element leaves". `registry.ts` already owns that shape for mount strategies (`disposeController`, `destroyWithin`, the removed-subtree snapshot), so the lazy half reuses it: `disposeLoader()` is 11 lines and hangs off the same three call sites.
 - **Recursive registration of configured children.** `__registerConfiguredChildren` + `__registerConfiguredChild` + the manifest's `children: string[]` field — `loader.ts:381-432`, ~50 lines and a cycle-guard `visited` set, because v3's `registerComponent(Ctor, token)` did not walk `config.components`. v4's `registerComponent()` does, in one `registerFamily()` loop — which is also where a `() => import(…)` child is deferred rather than resolved (§11d). The 15 `children` arrays in ui's generated manifest are dead data on v4.
 - **Component-state bookkeeping.** `ComponentRecord` with `scheduled | loading | registered | failed`, `scheduledStrategies`, and the `record.state !== 'scheduled'` guards threaded through every branch (`loader.ts:37-45, 256-337`). One `Map<string, Promise<void>>` keyed by name replaces it: an import happens once, whichever element triggered it, and the promise is the state.
@@ -983,5 +983,5 @@ Cost: ~35 lines in `registry.ts` and one union in `BaseConfig`; `ComponentImport
 
 1. Naming: ~~`config.components` successor (`uses`?)~~ — **decided (2026-08-14): the name and the object shape stay**, and the value gains v3's dynamic-import form (§11d). `$watchChildren` vs `$children(name, callbacks)`, announcement event names, `config.use` vs `config.siblings` for #697 remain open.
 2. Does `$emit` cancelation gate anything framework-side, or is `defaultPrevented` purely userland?
-3. Exact `mountStrategy` vocabulary and its interaction with existing `withMountWhen*` decorators (#751 semantics: one-shot `visible` vs reversible `in-view`).
+3. ~~Exact `mountStrategy` vocabulary and its interaction with existing `withMountWhen*` decorators.~~ **Decided:** `visible[:<rootMargin>]` is one-shot, `in-view[:<rootMargin>]` is reversible, and the registry replaces constructor-wrapping mount decorators (#751).
 4. ~~Migration phases~~ **Decided (2026-08-11): no bridge release.** Backporting the new primitives into a v3.x minor could itself destabilize ui components, so nothing v4 ships in 3.x. `@studiometa/js-toolkit` 4.0 and `@studiometa/ui` 2.0 ship as full breaking majors, in lockstep. Migration helpers are tooling, not runtime: lint rules in the existing eslint plugins flagging `$children`/`$parent`/`updated()`/old handler signatures, and codemods only for the mechanical renames. The `$children` coordinator components (13 files in ui) are rewritten on `$watchChildren`/provide-inject — several disappear into the platform instead (Accordion → `<details>`, Modal/Panel → Dialog).
