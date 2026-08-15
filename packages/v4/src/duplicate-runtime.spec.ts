@@ -217,10 +217,10 @@ describe('duplicated v4 bundles', () => {
       ],
     });
     expect(result.warnings).toEqual({
-      heardByA: 2,
-      heardByB: 2,
+      heardByA: 3,
+      heardByB: 3,
       sameEvents: true,
-      codes: ['manifest.duplicate-token', 'option.literal-default'],
+      codes: ['manifest.duplicate-token', 'option.literal-default', 'protocol.late-registration'],
       oneStringProtocol: true,
     });
     expect(result.registry).toEqual({

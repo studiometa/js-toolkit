@@ -1,4 +1,4 @@
-import { DIAGNOSTICS, reportDiagnostic } from './diagnostics.js';
+import { reportDiagnostic } from './diagnostics.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
 
 /**
@@ -84,7 +84,7 @@ function postBackgroundTask(run: () => void): void {
   if (typeof nativeScheduler?.postTask === 'function') {
     nativeScheduler.postTask(run, { priority: 'background' }).catch((error: unknown) => {
       reportDiagnostic(
-        DIAGNOSTICS.scheduler.backgroundPostFailed,
+        'scheduler.background-post-failed',
         'The native scheduler rejected a background post.',
         error,
       );
@@ -338,7 +338,7 @@ export class Scheduler {
           // Reported and skipped, never unsubscribed: a subscription is
           // owned by whoever created it, not by the frame that broke.
           reportDiagnostic(
-            DIAGNOSTICS.callback.schedulerTickFailed,
+            'callback.scheduler-tick-failed',
             'A scheduler tick callback failed.',
             error,
           );
@@ -409,7 +409,7 @@ export class Scheduler {
     } catch (error) {
       // The task's promise keeps the original rejection for its owner. The
       // diagnostic reports the recovered scheduler failure independently.
-      reportDiagnostic(DIAGNOSTICS.callback.scheduledTaskFailed, 'A scheduled task failed.', error);
+      reportDiagnostic('callback.scheduled-task-failed', 'A scheduled task failed.', error);
       item.reject(error);
     }
   }

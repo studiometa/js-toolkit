@@ -1,4 +1,4 @@
-import { DIAGNOSTICS, reportDiagnostic } from '../diagnostics.js';
+import { reportDiagnostic } from '../diagnostics.js';
 
 /**
  * A service is a shared source of props — the frame tick, the scroll
@@ -163,7 +163,7 @@ export function createService<T, R = void>({
       } catch (error) {
         // One broken component must not deprive the others of the service,
         // which for a per-frame source would mean every frame from now on.
-        reportDiagnostic(DIAGNOSTICS.callback.serviceFailed, 'A service subscriber failed.', error);
+        reportDiagnostic('callback.service-failed', 'A service subscriber failed.', error);
       }
     }
   }
@@ -211,7 +211,7 @@ export function createService<T, R = void>({
           // instead would leave the caller holding no unsubscribe for a
           // subscription that is nonetheless registered.
           reportDiagnostic(
-            DIAGNOSTICS.callback.serviceFailed,
+            'callback.service-failed',
             'An immediate service subscriber failed.',
             error,
           );

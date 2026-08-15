@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type BaseConfig, type OptionChange } from './Base.js';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostics.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { watchAttributes, whenDOMSettled, type AttributeChange } from './dom-mutations.js';
 import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';

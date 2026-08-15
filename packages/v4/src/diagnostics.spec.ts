@@ -1,13 +1,11 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   DIAGNOSTICS,
-  reportDiagnostic,
-  warn,
-  warnOnce,
   type ToolkitDiagnosticCode,
   type ToolkitDiagnosticDetail,
   type ToolkitDiagnosticSeverity,
-} from './diagnostics.js';
+} from './diagnostic-contract.js';
+import { reportDiagnostic, warn, warnOnce } from './diagnostics.js';
 import { EVENTS } from './events.js';
 
 describe('diagnostics', () => {

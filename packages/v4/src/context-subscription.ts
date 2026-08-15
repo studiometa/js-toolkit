@@ -5,7 +5,7 @@ import {
   type ContextKey,
   type ContextRequest,
 } from './context.js';
-import { DIAGNOSTICS, reportDiagnostic } from './diagnostics.js';
+import { reportDiagnostic } from './diagnostics.js';
 import { EVENTS } from './events.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
 
@@ -61,8 +61,8 @@ function reportFailure(
 ): void {
   reportDiagnostic(
     operation === 'callback'
-      ? DIAGNOSTICS.callback.contextSubscriptionFailed
-      : DIAGNOSTICS.callback.contextTeardownFailed,
+      ? 'callback.context-subscription-failed'
+      : 'callback.context-teardown-failed',
     `A context subscription ${operation} failed.`,
     error,
     { target: subscription.el },

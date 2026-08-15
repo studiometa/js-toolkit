@@ -1,7 +1,7 @@
 import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
-import { DIAGNOSTICS, reportDiagnostic, warnOnce } from './diagnostics.js';
+import { reportDiagnostic, warnOnce } from './diagnostics.js';
 import { domVersion } from './dom-mutations.js';
 import { EVENTS } from './events.js';
 import { HANDLER_REGISTRATIONS } from './protocol-symbols.js';
@@ -423,7 +423,7 @@ function checkPayload(instance: Base, event: string, payload: unknown): void {
     warnOnce(
       instance,
       event,
-      DIAGNOSTICS.event.invalidEmitPayload,
+      'event.invalid-emit-payload',
       `\`$emit('${event}', …)\` takes one payload object; received ${typeof payload}. Name the value: \`{ value }\`.`,
       { component: instance.$config.name, target: instance.$el },
     );
@@ -603,7 +603,7 @@ function warnMissingRefSuffix(instance: Base, definition: string, checked: Set<s
   warnOnce(
     instance,
     `attribute:${definition}`,
-    DIAGNOSTICS.ref.mismatch,
+    'ref.mismatch',
     `\`${instance.$config.name}\` declares \`${definition}\` and found no \`data-ref="${definition}"\`, but the markup declares \`data-ref="${name}"\`. A list ref carries the \`[]\` in the attribute too: add it, or drop it from \`config.refs\`.`,
     { component: instance.$config.name, target: instance.$el },
   );
@@ -642,7 +642,7 @@ function warnRefSuffixMismatch(
   warnOnce(
     instance,
     `handler:${child}`,
-    DIAGNOSTICS.ref.mismatch,
+    'ref.mismatch',
     `\`${instance.$config.name}\` binds \`@on('${child}', …)\`, which matches no component and no ref. The ref is declared \`${other}\`, and \`@on()\` names a ref the way it is declared: write \`@on('${other}', …)\`.`,
     { component: instance.$config.name, target: instance.$el },
   );
@@ -771,7 +771,7 @@ function warnLiteralDefault(
   warnOnce(
     definition,
     '',
-    DIAGNOSTICS.option.literalDefault,
+    'option.literal-default',
     `\`${componentName}\` declares option \`${option}\` with a literal ${kind} default, which every instance of it then shares. Only a primitive may be a default; declare this one as a factory: \`default: () => (…)\`.`,
     { component: componentName, target },
   );
@@ -1081,7 +1081,7 @@ const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan =>
 export type MountedReturn = void | (() => void) | MountedReturn[] | Promise<MountedReturn>;
 
 function reportLifecycleFailure(instance: Base, message: string, error: unknown): void {
-  reportDiagnostic(DIAGNOSTICS.component.lifecycleFailed, message, error, {
+  reportDiagnostic('component.lifecycle-failed', message, error, {
     component: instance.$config.name,
     target: instance.$el,
   });

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { Base } from './Base.js';
-import { DIAGNOSTICS } from './diagnostics.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
 import {
   defineManifest,
   fromMetaGlob,

@@ -9,7 +9,7 @@ import {
   type OptionChange,
   type RefEvent,
 } from './Base.js';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostics.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
 import {

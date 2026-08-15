@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from '../diagnostics.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from '../diagnostic-contract.js';
 import { EVENTS } from '../events.js';
 import { createService, perTarget } from './service.js';
 

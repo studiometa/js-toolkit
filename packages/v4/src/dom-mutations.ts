@@ -1,4 +1,4 @@
-import { DIAGNOSTICS, reportDiagnostic } from './diagnostics.js';
+import { reportDiagnostic } from './diagnostics.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
 
@@ -249,7 +249,7 @@ function deliverWatchedAttributes(): void {
         entry.callback({ name, value, previousValue });
       } catch (error) {
         reportDiagnostic(
-          DIAGNOSTICS.callback.attributeWatcherFailed,
+          'callback.attribute-watcher-failed',
           `The attribute watcher callback for "${name}" failed.`,
           error,
           { target: entry.el },

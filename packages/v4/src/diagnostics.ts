@@ -1,13 +1,5 @@
 import { type ToolkitDiagnosticCode, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
-import { EVENTS } from './events.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
-
-export {
-  DIAGNOSTICS,
-  type ToolkitDiagnosticCode,
-  type ToolkitDiagnosticDetail,
-  type ToolkitDiagnosticSeverity,
-} from './diagnostic-contract.js';
 
 interface DiagnosticContext {
   component?: string;
@@ -36,7 +28,7 @@ function dispatchDiagnostic(
     const error = detail.error;
     runDefaultSink = () => reportError(error);
   }
-  const event = new CustomEvent<ToolkitDiagnosticDetail>(EVENTS.diagnostic, {
+  const event = new CustomEvent<ToolkitDiagnosticDetail>('js-toolkit:diagnostic', {
     bubbles: true,
     composed: true,
     cancelable: true,

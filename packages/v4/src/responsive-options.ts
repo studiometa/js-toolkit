@@ -37,7 +37,7 @@
  * present. Nothing is written, which is what keeps `$options` the read-only
  * view over attributes it is everywhere else.
  */
-import { DIAGNOSTICS, warnOnce } from './diagnostics.js';
+import { warnOnce } from './diagnostics.js';
 import { registerDOMOptionAttributes, replaceDOMOptionAttributes } from './dom-mutations.js';
 import { breakpointNames, onBreakpointsReplaced, useBreakpoint } from './services/breakpoint.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
@@ -229,7 +229,7 @@ export function checkResponsiveAttributes(el: HTMLElement, attributes: readonly 
         warnOnce(
           el,
           name,
-          DIAGNOSTICS.responsive.unknownBreakpoint,
+          'responsive.unknown-breakpoint',
           `\`${name}\` names no breakpoint, so it is never read. One breakpoint per attribute, cascading upwards from it — known names: ${names.join(', ')}.`,
           { target: el },
         );

@@ -1,4 +1,4 @@
-import { DIAGNOSTICS, reportDiagnostic } from './diagnostics.js';
+import { reportDiagnostic } from './diagnostics.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
 
 const CONTEXT_REQUEST = 'js-toolkit:context:request';
@@ -98,11 +98,7 @@ export function signal<T>(initialValue: T): Signal<T> {
           try {
             subscriber.callback(delivered);
           } catch (error) {
-            reportDiagnostic(
-              DIAGNOSTICS.callback.signalFailed,
-              'A signal subscriber failed.',
-              error,
-            );
+            reportDiagnostic('callback.signal-failed', 'A signal subscriber failed.', error);
           }
           if (current !== delivered) {
             break;
@@ -133,7 +129,7 @@ export function signal<T>(initialValue: T): Signal<T> {
           callback(current);
         } catch (error) {
           reportDiagnostic(
-            DIAGNOSTICS.callback.signalFailed,
+            'callback.signal-failed',
             'An immediate signal subscriber failed.',
             error,
           );

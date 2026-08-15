@@ -1,4 +1,4 @@
-import { DIAGNOSTICS, reportDiagnostic, warnOnce } from './diagnostics.js';
+import { reportDiagnostic, warnOnce } from './diagnostics.js';
 import { EVENTS } from './events.js';
 
 /**
@@ -62,9 +62,9 @@ function negotiate<R>({ target, event, key, detail, accept }: NegotiationOptions
   const register = (registration: R) => {
     if (!isDispatching) {
       warnOnce(
-        register,
-        '',
-        DIAGNOSTICS.protocol.lateRegistration,
+        target,
+        `${event}\0${key}`,
+        'protocol.late-registration',
         `\`${key}()\` must be called synchronously while the \`${event}\` event dispatches.`,
         { target: diagnosticTarget(target) },
       );
@@ -216,7 +216,7 @@ export async function domUpdate(
   } catch (error) {
     hasFailed = true;
     reportDiagnostic(
-      DIAGNOSTICS.callback.domUpdateRunnerFailed,
+      'callback.dom-update-runner-failed',
       `The \`${EVENTS.dom.update}\` runner failed.`,
       error,
       { target: diagnosticTarget(target) },
@@ -228,7 +228,7 @@ export async function domUpdate(
       warnOnce(
         claimed,
         '',
-        DIAGNOSTICS.protocol.unappliedDomUpdate,
+        'protocol.unapplied-dom-update',
         `The \`${EVENTS.dom.update}\` runner settled without applying the change; the change was applied directly.`,
         { target: diagnosticTarget(target) },
       );
@@ -269,7 +269,7 @@ export async function emitExtendable(
             await invoke(extension, event, []);
           } catch (error) {
             reportDiagnostic(
-              DIAGNOSTICS.callback.extendableEventExtensionFailed,
+              'callback.extendable-event-extension-failed',
               `An extension of the \`${event}\` event failed.`,
               error,
               { target: diagnosticTarget(target) },

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostics.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import {
   domUpdate,
@@ -186,10 +186,12 @@ describe('domUpdate()', () => {
 
     await domUpdate(target, () => target.setAttribute('data-applied', 'yes'));
     late?.(() => target.setAttribute('data-late', 'yes'));
+    await domUpdate(target, () => target.setAttribute('data-applied-again', 'yes'));
     late?.(() => target.setAttribute('data-later', 'yes'));
 
-    expect(target.dataset).toMatchObject({ applied: 'yes' });
+    expect(target.dataset).toMatchObject({ applied: 'yes', appliedAgain: 'yes' });
     expect(target.dataset.late).toBeUndefined();
+    expect(target.dataset.later).toBeUndefined();
     expect(warn).toHaveBeenCalledOnce();
   });
 

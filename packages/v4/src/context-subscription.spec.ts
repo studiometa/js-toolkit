@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
 import { subscribeContext } from './context-subscription.js';
 import { createContext, provideContext, provideRootContext, type ContextKey } from './context.js';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostics.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
 import { getInstance, resetDom, settle } from './test-utils.js';

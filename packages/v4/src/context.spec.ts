@@ -9,7 +9,7 @@ import {
   signal,
   type Signal,
 } from './context.js';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostics.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
 import { getInstance, renderTodoList, resetDom, settle } from './test-utils.js';

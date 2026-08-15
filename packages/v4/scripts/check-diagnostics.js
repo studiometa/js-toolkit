@@ -11,6 +11,7 @@ const files = glob.sync(['**/*.ts', '!**/*.spec.ts', '!**/*.bench.ts', '!diagnos
 });
 const directOutput = [];
 const directErrorReports = [];
+const fullObjectReferences = [];
 
 for (const file of files) {
   const source = await readFile(resolve(sourceRoot, file), 'utf8');
@@ -19,6 +20,9 @@ for (const file of files) {
   }
   if (/\breportError\s*\(/.test(source)) {
     directErrorReports.push(file);
+  }
+  if (/\bDIAGNOSTICS\./.test(source) || /import\s+\{[^}]*\bDIAGNOSTICS\b/s.test(source)) {
+    fullObjectReferences.push(file);
   }
 }
 
@@ -32,4 +36,9 @@ assert.deepEqual(
   [],
   `Core runtime files must use the diagnostic error sink instead of reportError() directly:\n${directErrorReports.join('\n')}`,
 );
-console.log('Diagnostics: direct core console and reportError calls exist only in the sink.');
+assert.deepEqual(
+  fullObjectReferences,
+  [],
+  `Core runtime files must pass typed code literals instead of loading the full DIAGNOSTICS object:\n${fullObjectReferences.join('\n')}`,
+);
+console.log('Diagnostics: sinks are centralized and internal code references are tree-shakeable.');

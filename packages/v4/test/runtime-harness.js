@@ -447,6 +447,18 @@ async function run(copyA, copyB) {
       }
       new LiteralDefaultA(document.createElement('div'));
       new LiteralDefaultB(document.createElement('div'));
+
+      const negotiatedTarget = document.createElement('div');
+      document.body.append(negotiatedTarget);
+      let lateWrap;
+      negotiatedTarget.addEventListener(copyA.EVENTS.dom.update, (event) => {
+        lateWrap = event.detail.wrap;
+      });
+      await copyA.domUpdate(negotiatedTarget, () => {});
+      lateWrap?.(() => {});
+      await copyB.domUpdate(negotiatedTarget, () => {});
+      lateWrap?.(() => {});
+      negotiatedTarget.remove();
     } finally {
       document.removeEventListener(copyA.EVENTS.diagnostic, onWarningA);
       document.removeEventListener(copyB.EVENTS.diagnostic, onWarningB);
@@ -458,7 +470,8 @@ async function run(copyA, copyB) {
       codes: warningEventsA.map((event) => event.detail.code),
       oneStringProtocol:
         copyA.DIAGNOSTICS.manifest.duplicateToken === copyB.DIAGNOSTICS.manifest.duplicateToken &&
-        copyA.DIAGNOSTICS.option.literalDefault === copyB.DIAGNOSTICS.option.literalDefault,
+        copyA.DIAGNOSTICS.option.literalDefault === copyB.DIAGNOSTICS.option.literalDefault &&
+        copyA.DIAGNOSTICS.protocol.lateRegistration === copyB.DIAGNOSTICS.protocol.lateRegistration,
     };
 
     let frameRequests = 0;

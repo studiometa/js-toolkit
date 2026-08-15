@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostics.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import { nextFrame, defaultScheduler, type SchedulerPhase, type TickProps } from './scheduler.js';
 

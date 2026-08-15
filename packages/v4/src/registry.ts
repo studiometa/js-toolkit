@@ -6,7 +6,7 @@ import {
   hasComponentAttribute,
   hasResponsiveComponentAttribute,
 } from './component-declarations.js';
-import { DIAGNOSTICS, reportDiagnostic, warnOnce } from './diagnostics.js';
+import { reportDiagnostic, warnOnce } from './diagnostics.js';
 import {
   registerDOMOptionAttributes,
   setDOMMutationProcessor,
@@ -160,7 +160,7 @@ function registerFamily(ComponentClass: BaseConstructor): void {
       warnOnce(
         ComponentClass,
         childName,
-        DIAGNOSTICS.component.invalidFamilyDeclaration,
+        'component.invalid-family-declaration',
         `"${name}" declares "${childName}" as neither a component class nor an importer; the declaration was ignored.`,
         { component: name },
       );
@@ -277,7 +277,7 @@ export function registerComponent(ComponentClass: BaseConstructor): void {
       warnOnce(
         ComponentClass,
         name,
-        DIAGNOSTICS.registry.conflict,
+        'registry.conflict',
         `"${name}" is already registered; the incoming declaration was ignored.`,
         { component: name },
       );
@@ -323,7 +323,7 @@ export function registerManifest(entries: ComponentManifest): void {
       warnOnce(
         entries,
         name,
-        DIAGNOSTICS.registry.conflict,
+        'registry.conflict',
         `"${name}" is already registered; the incoming declaration was ignored.`,
         { component: name },
       );
@@ -369,7 +369,7 @@ function importComponent(name: string, target?: Element): Promise<void> {
         warnOnce(
           entry.load,
           name,
-          DIAGNOSTICS.registry.lazyNameMismatch,
+          'registry.lazy-name-mismatch',
           `"${name}" resolved to a component named "${ComponentClass.config.name}".`,
           { component: name, target },
         );
@@ -378,12 +378,10 @@ function importComponent(name: string, target?: Element): Promise<void> {
       registerComponent(ComponentClass);
     })
     .catch((error: unknown) => {
-      reportDiagnostic(
-        DIAGNOSTICS.component.loadFailed,
-        `Failed to load component "${name}".`,
-        error,
-        { component: name, target },
-      );
+      reportDiagnostic('component.load-failed', `Failed to load component "${name}".`, error, {
+        component: name,
+        target,
+      });
     });
 
   imports.set(name, work);
@@ -490,12 +488,10 @@ function mountPair(
     if (!instance) {
       el.__base__?.delete(name);
     }
-    reportDiagnostic(
-      DIAGNOSTICS.component.mountFailed,
-      `Failed to mount component "${name}".`,
-      error,
-      { component: name, target: el },
-    );
+    reportDiagnostic('component.mount-failed', `Failed to mount component "${name}".`, error, {
+      component: name,
+      target: el,
+    });
   }
 }
 
@@ -554,7 +550,7 @@ function schedule(el: HTMLElement, name: string, ComponentClass: BaseConstructor
   controller.dispose = applied.dispose;
   if (!applied.valid) {
     reportDiagnostic(
-      DIAGNOSTICS.component.invalidMountStrategy,
+      'component.invalid-mount-strategy',
       `Failed to apply mount strategy "${strategy}" to component "${name}".`,
       applied.error,
       { component: name, target: el },
@@ -662,7 +658,7 @@ function scheduleLoad(el: HTMLElement, name: string): void {
   controller.dispose = applied.dispose;
   if (!applied.valid) {
     reportDiagnostic(
-      DIAGNOSTICS.component.invalidMountStrategy,
+      'component.invalid-mount-strategy',
       `Failed to apply mount strategy "${strategy}" to component "${name}".`,
       applied.error,
       { component: name, target: el },
