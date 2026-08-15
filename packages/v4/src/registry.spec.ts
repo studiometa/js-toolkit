@@ -95,10 +95,12 @@ describe('registry', () => {
     expect(second.$isMounted).toBe(true);
   });
 
-  it('isolates a construction failure and reports it from the component element', async () => {
+  it('does not retain or reuse an instance whose derived constructor failed', async () => {
     const failure = new Error('constructor failed');
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     const events: CustomEvent<ToolkitErrorDetail>[] = [];
+    const attempts: BrokenConstruction[] = [];
+    let brokenMounts = 0;
     let healthyMounts = 0;
 
     class BrokenConstruction extends Base {
@@ -106,7 +108,12 @@ describe('registry', () => {
 
       constructor(el: HTMLElement) {
         super(el);
+        attempts.push(this);
         throw failure;
+      }
+
+      mounted(): void {
+        brokenMounts += 1;
       }
     }
 
@@ -130,19 +137,62 @@ describe('registry', () => {
     document.body.append(broken, healthy);
     await settle();
 
-    expect(error).toHaveBeenCalledOnce();
-    expect(error).toHaveBeenCalledWith(
+    expect(attempts).toHaveLength(1);
+    expect(broken.__base__?.get('BrokenConstructionErrorEvent')).toBeUndefined();
+    expect(brokenMounts).toBe(0);
+    expect(healthyMounts).toBe(1);
+
+    // Reconciliation retries construction. It must not mount the object whose
+    // derived constructor did not finish.
+    const firstAttempt = attempts[0];
+    broken.remove();
+    await settle();
+    document.body.append(broken);
+    await settle();
+
+    expect(attempts).toHaveLength(2);
+    expect(attempts[1]).not.toBe(firstAttempt);
+    expect(broken.__base__?.get('BrokenConstructionErrorEvent')).toBeUndefined();
+    expect(brokenMounts).toBe(0);
+    expect(error).toHaveBeenCalledTimes(2);
+    expect(error).toHaveBeenLastCalledWith(
       '[registry] Failed to mount "BrokenConstructionErrorEvent":',
       failure,
     );
-    expect(events).toHaveLength(1);
-    expect(events[0].target).toBe(broken);
-    expect(events[0].detail).toEqual({
-      stage: 'mount',
-      error: failure,
-      component: 'BrokenConstructionErrorEvent',
-    });
-    expect(healthyMounts).toBe(1);
+    expect(events).toHaveLength(2);
+    expect(events.every((event) => event.target === broken)).toBe(true);
+    expect(events.every((event) => event.detail.stage === 'mount')).toBe(true);
+    expect(events.every((event) => event.detail.error === failure)).toBe(true);
+    expect(events.every((event) => event.detail.component === 'BrokenConstructionErrorEvent')).toBe(
+      true,
+    );
+    error.mockRestore();
+  });
+
+  it('preserves a valid pre-existing instance when its registry mount fails', async () => {
+    const failure = new Error('mount failed');
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    class Existing extends Base {
+      static config = { name: 'ExistingMountFailure' };
+
+      $mount(): this {
+        throw failure;
+      }
+    }
+
+    registerComponent(Existing);
+    const el = document.createElement('div');
+    const instance = new Existing(el);
+    el.setAttribute('data-component', 'ExistingMountFailure');
+    document.body.append(el);
+    await settle();
+
+    expect(el.__base__?.get('ExistingMountFailure')).toBe(instance);
+    expect(error).toHaveBeenCalledWith(
+      '[registry] Failed to mount "ExistingMountFailure":',
+      failure,
+    );
     error.mockRestore();
   });
 

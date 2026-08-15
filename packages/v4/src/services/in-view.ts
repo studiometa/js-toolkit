@@ -9,28 +9,35 @@ export interface InViewProps {
   readonly entry: IntersectionObserverEntry | null;
 }
 
-/**
- * Give an observer root a stable serialisable identity. `perTarget()` can
- * serialise the rest of `IntersectionObserverInit`, but two root elements
- * would otherwise both become `{}` and share an observation they did not ask
- * for.
- */
-const rootIds = new WeakMap<object, number>();
-let nextRootId = 1;
+interface InViewRootIdentity {
+  readonly ids: WeakMap<object, number>;
+  nextId: number;
+}
 
-function rootId(root: object): number {
-  let id = rootIds.get(root);
+interface InViewRuntimeState {
+  readonly rootIdentity: InViewRootIdentity;
+  readonly services: (target: Element, init: IntersectionObserverInit) => Service<InViewProps>;
+}
+
+/**
+ * Give an observer root a stable realm-wide serialisable identity.
+ * `perTarget()` can serialise the rest of `IntersectionObserverInit`, but two
+ * root elements would otherwise both become `{}` and share an observation
+ * they did not ask for.
+ */
+function rootId(root: object, identity: InViewRootIdentity): number {
+  let id = identity.ids.get(root);
   if (!id) {
-    id = nextRootId;
-    nextRootId += 1;
-    rootIds.set(root, id);
+    id = identity.nextId;
+    identity.nextId += 1;
+    identity.ids.set(root, id);
   }
   return id;
 }
 
-function keyOf(init: IntersectionObserverInit): string {
+function keyOf(init: IntersectionObserverInit, identity: InViewRootIdentity): string {
   const { root, ...options } = init;
-  return JSON.stringify([root ? rootId(root) : null, options]);
+  return JSON.stringify([root ? rootId(root, identity) : null, options]);
 }
 
 function createInViewService(
@@ -92,8 +99,19 @@ function createInViewService(
   });
 }
 
-const inViewServices = /* @__PURE__ */ getSharedRuntimeSlot('service:in-view', 1, () =>
-  perTarget(createInViewService, keyOf),
+const inViewState = /* @__PURE__ */ getSharedRuntimeSlot<InViewRuntimeState>(
+  'service:in-view',
+  2,
+  () => {
+    const rootIdentity: InViewRootIdentity = {
+      ids: new WeakMap(),
+      nextId: 1,
+    };
+    return {
+      rootIdentity,
+      services: perTarget(createInViewService, (init) => keyOf(init, rootIdentity)),
+    };
+  },
 );
 
 /**
@@ -112,7 +130,7 @@ export function useInView(
   target: Element,
   init: IntersectionObserverInit = {},
 ): Service<InViewProps> {
-  return inViewServices(target, init);
+  return inViewState.services(target, init);
 }
 
 /** The method `withInView()` subscribes for the component. */
