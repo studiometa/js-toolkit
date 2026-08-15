@@ -86,18 +86,95 @@ const MAX_SAMPLE = 100;
 const VELOCITY_SMOOTHING = 0.35;
 
 export interface DragOptions {
+  /** Which movement the drag owns. Defaults to `both`. */
+  axis?: 'x' | 'y' | 'both';
   /** How fast the inertia decays, from `0` (none) to `1` (endless). */
   dampFactor?: number;
   /** Movement past which a drag stops counting as a click, in pixels. */
   dragThreshold?: number;
+  /** Whether to coast after `drop`. Defaults to `true`. */
+  inertia?: boolean;
+}
+
+type OwnedTouchAction = 'none' | 'pan-x' | 'pan-y';
+
+interface TouchActionOwnership {
+  readonly previous: string;
+  readonly requests: Map<OwnedTouchAction, number>;
+}
+
+/**
+ * Every option set gets its own service, but several of them can observe one
+ * target at once. Their touch-action claims therefore share one owner: one
+ * service leaving must not restore the target while another still needs it.
+ */
+const touchActionOwnership = new WeakMap<DragTarget, TouchActionOwnership>();
+
+function applyTouchAction(target: DragTarget, ownership: TouchActionOwnership): void {
+  if (
+    ownership.requests.has('none') ||
+    (ownership.requests.has('pan-x') && ownership.requests.has('pan-y'))
+  ) {
+    target.style.touchAction = 'none';
+  } else if (ownership.requests.has('pan-x')) {
+    target.style.touchAction = 'pan-x';
+  } else {
+    target.style.touchAction = 'pan-y';
+  }
+}
+
+/** Claim the native pan directions left free by one drag axis. */
+function claimTouchAction(target: DragTarget, touchAction: OwnedTouchAction): () => void {
+  let ownership = touchActionOwnership.get(target);
+  if (!ownership) {
+    // Consumer CSS is deliberate and wins. A value written by another drag
+    // service is recognised through the shared ownership above, not mistaken
+    // for consumer CSS.
+    if (getComputedStyle(target).touchAction !== 'auto') {
+      return () => {};
+    }
+    ownership = {
+      previous: target.style.touchAction,
+      requests: new Map(),
+    };
+    touchActionOwnership.set(target, ownership);
+  }
+
+  ownership.requests.set(touchAction, (ownership.requests.get(touchAction) ?? 0) + 1);
+  applyTouchAction(target, ownership);
+
+  let isActive = true;
+  return () => {
+    if (!isActive) {
+      return;
+    }
+    isActive = false;
+    const count = ownership.requests.get(touchAction) ?? 0;
+    if (count > 1) {
+      ownership.requests.set(touchAction, count - 1);
+    } else {
+      ownership.requests.delete(touchAction);
+    }
+    if (ownership.requests.size > 0) {
+      applyTouchAction(target, ownership);
+      return;
+    }
+    target.style.touchAction = ownership.previous;
+    touchActionOwnership.delete(target);
+  };
 }
 
 function createDragService(target: DragTarget, options: DragOptions): Service<DragProps> {
   // Normalised once, here, because the coast decays by this factor every tick
   // as well as summing it: `inertiaFinalValue()` guards its own argument, but
   // that would leave the per-tick decay running on whatever was passed in.
+  const axis = options.axis === 'x' || options.axis === 'y' ? options.axis : 'both';
   const dampFactor = clampDampFactor(options.dampFactor ?? DEFAULT_DAMP_FACTOR);
   const dragThreshold = options.dragThreshold ?? 10;
+  const hasInertia = options.inertia ?? true;
+  const movesX = axis !== 'y';
+  const movesY = axis !== 'x';
+  const touchAction = axis === 'x' ? 'pan-y' : axis === 'y' ? 'pan-x' : 'none';
 
   const props: MutableProps<DragProps> = {
     mode: DRAG_MODES.IDLE,
@@ -158,17 +235,12 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       /** Held by the pointer: the two modes a gesture is alive in. */
       const isGrabbing = () => props.mode === DRAG_MODES.START || props.mode === DRAG_MODES.DRAG;
 
-      // Without `touch-action: none` a native pan wins the gesture on touch:
-      // the browser takes the pointer over and fires `pointercancel`, which
-      // this service turns into an inertia fling from a half-finished drag.
-      // Written only when the computed value is `auto` — anything the
-      // consumer's CSS says about the target is deliberate and wins — and put
-      // back as it was on teardown.
-      const ownsTouchAction = getComputedStyle(target).touchAction === 'auto';
-      const previousTouchAction = target.style.touchAction;
-      if (ownsTouchAction) {
-        target.style.touchAction = 'none';
-      }
+      // Without the matching `touch-action`, a native pan can win the gesture
+      // on touch. `x` leaves vertical panning to the browser, `y` leaves
+      // horizontal panning, and `both` owns both directions. Consumer CSS wins
+      // when its computed value is not `auto`; the prior inline value is put
+      // back when the final service leaves.
+      const releaseTouchAction = claimTouchAction(target, touchAction);
 
       function stopInertia() {
         unsubscribeTicks?.();
@@ -274,11 +346,13 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       }
 
       function drag(event: PointerEvent) {
-        props.deltaX = event.clientX - props.x;
-        props.deltaY = event.clientY - props.y;
+        const x = movesX ? event.clientX : props.x;
+        const y = movesY ? event.clientY : props.y;
+        props.deltaX = x - props.x;
+        props.deltaY = y - props.y;
         measureVelocity(event.timeStamp, props.deltaX, props.deltaY);
-        props.x = props.finalX = event.clientX;
-        props.y = props.finalY = event.clientY;
+        props.x = props.finalX = x;
+        props.y = props.finalY = y;
         props.distanceX = props.x - props.originX;
         props.distanceY = props.y - props.originY;
         props.mode = DRAG_MODES.DRAG;
@@ -321,6 +395,13 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
         // it: subscribing the inertia here would start a frame loop nothing
         // is left to release.
         if (!isRunning) {
+          return;
+        }
+        // The projected destination still belongs to `drop` when the caller
+        // does not need the coast. Finish through the same stop/idle contract,
+        // synchronously, without ever subscribing the scheduler.
+        if (!hasInertia) {
+          stop();
           return;
         }
         unsubscribeTicks = defaultScheduler.tick(tick);
@@ -382,9 +463,7 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
       return () => {
         isRunning = false;
         isClickSuppressed = false;
-        if (ownsTouchAction) {
-          target.style.touchAction = previousTouchAction;
-        }
+        releaseTouchAction();
         stopInertia();
         // Losing every subscriber mid-drag ends the drag: staying in a
         // holding mode would make the next `pointerdown` a no-op once a
@@ -407,16 +486,17 @@ const dragServices = /* @__PURE__ */ perTarget(createDragService);
  * Use the drag service for an element.
  *
  * ```js
- * const unsubscribe = useDrag(el).subscribe(({ mode, distanceX }) => {
+ * const unsubscribe = useDrag(el, { axis: 'x', inertia: false }).subscribe(({ mode, distanceX }) => {
  *   if (mode === DRAG_MODES.DRAG) {
  *     el.style.setProperty('--x', `${distanceX}px`);
  *   }
  * });
  * ```
  *
- * One service per element, so several components dragging the same target
- * share its listeners. The options of the first call are the ones that
- * apply.
+ * One service per element and option set, so callers asking for the same drag
+ * share its listeners while a different axis, inertia choice, damping or
+ * threshold gets its own service. `axis` defaults to `both`, and `inertia`
+ * defaults to `true`.
  */
 export function useDrag(target: DragTarget, options: DragOptions = {}): Service<DragProps> {
   return dragServices(target, options);
@@ -442,10 +522,11 @@ export type DragMixinOptions = DragOptions & ServiceMixinOptions<DragTarget>;
  *   }
  * }
  *
- * // A handle inside the component, and a gentler inertia.
+ * // A horizontal handle with a projected drop and no scheduler coast.
  * class Sheet extends withDrag(Base, {
  *   target: (instance) => instance.$refs.handle,
- *   dampFactor: 0.95,
+ *   axis: 'x',
+ *   inertia: false,
  * }) {
  *   dragged(props) { … }
  * }

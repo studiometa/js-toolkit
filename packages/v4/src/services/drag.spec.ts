@@ -10,20 +10,23 @@ function render(): HTMLElement {
   return el;
 }
 
-function grab(el: HTMLElement, x: number, y: number): void {
+function grab(el: HTMLElement, x: number, y: number, pointerType = 'mouse'): void {
   el.dispatchEvent(
     new PointerEvent('pointerdown', {
       button: 0,
       buttons: 1,
       clientX: x,
       clientY: y,
+      pointerType,
       bubbles: true,
     }),
   );
 }
 
-function move(x: number, y: number): void {
-  document.dispatchEvent(new PointerEvent('pointermove', { buttons: 1, clientX: x, clientY: y }));
+function move(x: number, y: number, pointerType = 'mouse'): void {
+  document.dispatchEvent(
+    new PointerEvent('pointermove', { buttons: 1, clientX: x, clientY: y, pointerType }),
+  );
 }
 
 function release(): void {
@@ -93,6 +96,53 @@ describe('useDrag', () => {
     expect(useDrag(el, { dampFactor: 0.1 }).props().mode).toBe('idle');
     // The coast arrives exactly where the drop said it would.
     expect(last.at(-1)?.x).toBe(last.at(-1)?.finalX);
+  });
+
+  it.each(['mouse', 'touch'])('filters %s pointer movement to the owned axis', (pointerType) => {
+    for (const axis of ['x', 'y'] as const) {
+      const el = render();
+      const seen: DragProps[] = [];
+      const unsubscribe = useDrag(el, { axis, inertia: false }).subscribe((props) => {
+        seen.push({ ...props });
+      });
+
+      grab(el, 10, 20, pointerType);
+      move(70, 90, pointerType);
+
+      const dragged = seen.find(({ mode }) => mode === DRAG_MODES.DRAG) as DragProps;
+      if (axis === 'x') {
+        expect(dragged.x).toBe(70);
+        expect(dragged.deltaX).toBe(60);
+        expect(dragged.distanceX).toBe(60);
+        expect(dragged.y).toBe(20);
+        expect(dragged.deltaY).toBe(0);
+        expect(dragged.distanceY).toBe(0);
+      } else {
+        expect(dragged.x).toBe(10);
+        expect(dragged.deltaX).toBe(0);
+        expect(dragged.distanceX).toBe(0);
+        expect(dragged.y).toBe(90);
+        expect(dragged.deltaY).toBe(70);
+        expect(dragged.distanceY).toBe(70);
+      }
+
+      release();
+      const dropped = seen.find(({ mode }) => mode === DRAG_MODES.DROP) as DragProps;
+      if (axis === 'x') {
+        expect(dropped.finalX).toBeGreaterThan(dropped.x);
+        expect(dropped.finalY).toBe(20);
+        expect(dropped.distanceX).toBe(60);
+        expect(dropped.distanceY).toBe(0);
+      } else {
+        expect(dropped.finalX).toBe(10);
+        expect(dropped.finalY).toBeGreaterThan(dropped.y);
+        expect(dropped.distanceX).toBe(0);
+        expect(dropped.distanceY).toBe(70);
+      }
+
+      unsubscribe();
+      el.remove();
+    }
   });
 
   it('computes the settle position in closed form, and does not revise it', async () => {
@@ -225,6 +275,35 @@ describe('useDrag', () => {
     unsubscribe();
   });
 
+  it('keeps the projected drop but skips the scheduler coast when inertia is disabled', async () => {
+    const el = render();
+    const seen: DragProps[] = [];
+    const unsubscribe = useDrag(el, { inertia: false }).subscribe((props) => {
+      seen.push({ ...props });
+    });
+
+    grab(el, 10, 20);
+    move(90, 60);
+    const requested = await countRequestedFrames(async () => {
+      release();
+      await sleep(50);
+    });
+
+    const drop = seen.find(({ mode }) => mode === DRAG_MODES.DROP) as DragProps;
+    const stop = seen.find(({ mode }) => mode === DRAG_MODES.STOP) as DragProps;
+    expect(seen.map(({ mode }) => mode)).toEqual(['start', 'drag', 'drop', 'stop']);
+    expect(drop.finalX).toBeGreaterThan(drop.x);
+    expect(drop.finalY).toBeGreaterThan(drop.y);
+    expect(stop.x).toBe(drop.finalX);
+    expect(stop.y).toBe(drop.finalY);
+    expect(stop.finalX).toBe(drop.finalX);
+    expect(stop.finalY).toBe(drop.finalY);
+    expect(useDrag(el, { inertia: false }).props().mode).toBe(DRAG_MODES.IDLE);
+    expect(requested).toBe(0);
+
+    unsubscribe();
+  });
+
   it('drops when the button is released outside the window', () => {
     const el = render();
     const modes: DragMode[] = [];
@@ -296,23 +375,47 @@ describe('useDrag', () => {
     unsubscribe();
   });
 
-  it('takes the touch-action of the target only when nothing else has', () => {
-    const el = render();
-    // Without it, a native pan wins the gesture on touch: the browser fires
-    // `pointercancel`, which the service turns into an inertia fling from a
-    // half-finished drag.
-    const unsubscribe = useDrag(el).subscribe(() => {});
-    expect(el.style.touchAction).toBe('none');
-    unsubscribe();
-    expect(el.style.touchAction).toBe('');
+  it('owns the touch-action for its axis only when nothing else has', () => {
+    for (const [axis, touchAction] of [
+      ['x', 'pan-y'],
+      ['y', 'pan-x'],
+      ['both', 'none'],
+    ] as const) {
+      const el = render();
+      el.style.touchAction = 'auto';
+      const unsubscribe = useDrag(el, { axis }).subscribe(() => {});
+      expect(el.style.touchAction).toBe(touchAction);
+      unsubscribe();
+      // The exact prior inline value is restored, not only its computed
+      // equivalent.
+      expect(el.style.touchAction).toBe('auto');
+    }
 
     // Consumer CSS is deliberate, and wins.
     const styled = render();
     styled.style.touchAction = 'pan-y';
-    const unsubscribeStyled = useDrag(styled).subscribe(() => {});
+    const unsubscribeStyled = useDrag(styled, { axis: 'both' }).subscribe(() => {});
     expect(styled.style.touchAction).toBe('pan-y');
     unsubscribeStyled();
     expect(styled.style.touchAction).toBe('pan-y');
+  });
+
+  it('keeps shared touch-action ownership until the final option service leaves', () => {
+    const el = render();
+    const releaseX = useDrag(el, { axis: 'x' }).subscribe(() => {});
+    const releaseXWithoutInertia = useDrag(el, { axis: 'x', inertia: false }).subscribe(() => {});
+    expect(el.style.touchAction).toBe('pan-y');
+
+    releaseX();
+    expect(el.style.touchAction).toBe('pan-y');
+
+    const releaseY = useDrag(el, { axis: 'y' }).subscribe(() => {});
+    expect(el.style.touchAction).toBe('none');
+
+    releaseXWithoutInertia();
+    expect(el.style.touchAction).toBe('pan-x');
+    releaseY();
+    expect(el.style.touchAction).toBe('');
   });
 
   it('drags an SVG element as readily as an HTML one', () => {
@@ -413,5 +516,9 @@ describe('useDrag', () => {
     expect(useDrag(el, { dampFactor: 0.1 })).toBe(useDrag(el, { dampFactor: 0.1 }));
     expect(useDrag(el, { dampFactor: 0.1 })).not.toBe(useDrag(el, { dampFactor: 0.5 }));
     expect(useDrag(el, { dragThreshold: 4 })).not.toBe(useDrag(el));
+    expect(useDrag(el, { axis: 'x' })).toBe(useDrag(el, { axis: 'x' }));
+    expect(useDrag(el, { axis: 'x' })).not.toBe(useDrag(el, { axis: 'y' }));
+    expect(useDrag(el, { inertia: false })).toBe(useDrag(el, { inertia: false }));
+    expect(useDrag(el, { inertia: false })).not.toBe(useDrag(el));
   });
 });
