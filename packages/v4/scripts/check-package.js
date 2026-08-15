@@ -68,6 +68,21 @@ function assertPackageContent(metadata) {
   return fileSet;
 }
 
+function assertSideEffects(sideEffects, files) {
+  if (sideEffects === undefined || typeof sideEffects === 'boolean') {
+    return;
+  }
+  assert(Array.isArray(sideEffects), '`sideEffects` must be a boolean or an array of paths.');
+
+  for (const [index, path] of sideEffects.entries()) {
+    assert.equal(typeof path, 'string', `sideEffects[${index}] must be a string path.`);
+    assert(
+      files.has(path.replace(/^\.\//, '')),
+      `sideEffects[${index}] points to missing packed file ${path}.`,
+    );
+  }
+}
+
 function assertConsumerExports(packageJson, files) {
   for (const [subpath, conditions] of Object.entries(packageJson.exports)) {
     if (typeof conditions === 'string') {
@@ -217,6 +232,7 @@ try {
       'utf8',
     ),
   );
+  assertSideEffects(installedPackageJson.sideEffects, packedFiles);
   assertConsumerExports(installedPackageJson, packedFiles);
 
   console.log(

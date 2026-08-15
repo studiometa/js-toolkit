@@ -4,8 +4,7 @@
   "private": true,
   "type": "module",
   "sideEffects": [
-    "./dist/responsive-options.js",
-    "./src/responsive-options.ts"
+    "./dist/responsive-options.js"
   ],
   "description": "v4 prototype — tested in a real browser through Vitest browser mode",
   "files": [
@@ -356,6 +355,7 @@
     "fast-glob": "3.3.3",
     "playwright": "^1.50.0",
     "tsdown": "0.22.14",
+    "vite": "8.2.1",
     "vitest": "4.1.10"
   }
 }
