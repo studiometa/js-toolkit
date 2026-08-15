@@ -8,22 +8,27 @@ import { defaultScheduler } from './scheduler.js';
  * supports — `$destroy()` is the reversible inverse of `$mount()`, and the
  * same instance comes back.
  *
- * | strategy      | mounts when                       | reversible |
- * | ------------- | --------------------------------- | ---------- |
- * | `eager`       | the element enters the DOM        | no         |
- * | `visible`     | it first intersects the viewport  | no         |
- * | `in-view`     | it intersects the viewport        | yes        |
- * | `idle`        | the main thread goes idle         | no         |
- * | `interaction` | the user first aims at it         | no         |
- * | `media:<q>`   | the media query matches           | yes        |
+ * | strategy                 | mounts when                       | reversible |
+ * | ------------------------ | --------------------------------- | ---------- |
+ * | `eager`                  | the element enters the DOM        | no         |
+ * | `visible[:<rootMargin>]` | it first intersects the viewport  | no         |
+ * | `in-view[:<rootMargin>]` | it intersects the viewport        | yes        |
+ * | `idle`                   | the main thread goes idle         | no         |
+ * | `interaction`            | the user first aims at it         | no         |
+ * | `media:<q>`              | the media query matches           | yes        |
  *
- * `visible` and `in-view` are deliberately separate: re-mounting is right
- * for a scroll animation and destructive for a map, a video or a form.
+ * The optional viewport suffix is passed as
+ * `IntersectionObserverInit.rootMargin`. An empty suffix is the same as the
+ * bare strategy. `visible` and `in-view` are deliberately separate:
+ * re-mounting is right for a scroll animation and destructive for a map, a
+ * video or a form.
  */
 export type MountStrategy =
   | 'eager'
   | 'visible'
+  | `visible:${string}`
   | 'in-view'
+  | `in-view:${string}`
   | 'idle'
   | 'interaction'
   | `media:${string}`;
@@ -53,6 +58,22 @@ export interface AppliedMountStrategy {
   eagerWork?: Promise<unknown>;
 }
 
+interface ViewportMountStrategy {
+  isReversible: boolean;
+  rootMargin?: string;
+}
+
+/** Parse the two viewport strategy forms at their shared execution seam. */
+function parseViewportMountStrategy(strategy: MountStrategy): ViewportMountStrategy | undefined {
+  const separator = strategy.indexOf(':');
+  const name = separator < 0 ? strategy : strategy.slice(0, separator);
+  if (name !== 'visible' && name !== 'in-view') {
+    return undefined;
+  }
+  const rootMargin = separator < 0 ? undefined : strategy.slice(separator + 1) || undefined;
+  return { isReversible: name === 'in-view', rootMargin };
+}
+
 /**
  * Start applying a strategy to one element, returning its teardown and any
  * eager work which a DOM settlement boundary must await.
@@ -66,20 +87,31 @@ export function applyMountStrategy(
   strategy: MountStrategy,
   { mount, destroy }: MountStrategyHooks,
 ): AppliedMountStrategy {
-  if (strategy === 'visible' || strategy === 'in-view') {
-    const isReversible = strategy === 'in-view';
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          if (!isReversible) {
-            observer.disconnect();
+  const viewport = parseViewportMountStrategy(strategy);
+  if (viewport) {
+    let observer: IntersectionObserver;
+    try {
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              if (!viewport.isReversible) {
+                observer.disconnect();
+              }
+              mount();
+            } else if (viewport.isReversible) {
+              destroy();
+            }
           }
-          mount();
-        } else if (isReversible) {
-          destroy();
-        }
-      }
-    });
+        },
+        viewport.rootMargin ? { rootMargin: viewport.rootMargin } : undefined,
+      );
+    } catch (error) {
+      // The browser owns the rootMargin grammar. Report author errors without
+      // changing the requested mount policy or stopping registry reconciliation.
+      console.error(`[mount-strategy] Failed to apply "${strategy}":`, error);
+      return { dispose() {} };
+    }
     observer.observe(el);
     return { dispose: () => observer.disconnect() };
   }

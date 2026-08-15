@@ -541,7 +541,12 @@ function disposeLoader(el: Element, name: string): void {
  * visibility, idle or interaction trigger.
  */
 function completeOneShotLoad(el: HTMLElement, name: string, strategy: MountStrategy): void {
-  if (strategy !== 'visible' && strategy !== 'idle' && strategy !== 'interaction') {
+  if (
+    strategy !== 'visible' &&
+    !strategy.startsWith('visible:') &&
+    strategy !== 'idle' &&
+    strategy !== 'interaction'
+  ) {
     return;
   }
   const ComponentClass = registry.get(name);

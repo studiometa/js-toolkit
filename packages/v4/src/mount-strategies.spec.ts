@@ -83,9 +83,9 @@ describe('data-mount="visible"', () => {
     expect(el.__base__?.get(name)).toBeUndefined();
   });
 
-  it('mounts once it intersects and stays mounted afterwards', async () => {
+  it('mounts once with a root margin and stays mounted afterwards', async () => {
     const { name } = defineTracked();
-    const el = render(name, { 'data-mount': 'visible' }, OFFSCREEN);
+    const el = render(name, { 'data-mount': 'visible:200px' }, OFFSCREEN);
     await observed();
 
     el.setAttribute('style', ONSCREEN);
@@ -169,8 +169,8 @@ describe('data-mount="media:…"', () => {
 });
 
 describe('config.mountStrategy', () => {
-  it('sets the default for every instance of a component', async () => {
-    const { name } = defineTracked({ mountStrategy: 'visible' });
+  it('sets a parameterized default for every instance of a component', async () => {
+    const { name } = defineTracked({ mountStrategy: 'visible:200px 0px' });
     const el = render(name, {}, OFFSCREEN);
     await observed();
     expect(el.__base__?.get(name)).toBeUndefined();
@@ -187,6 +187,22 @@ describe('config.mountStrategy', () => {
     await settle();
 
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
+  });
+
+  it('lets a parameterized data-mount override the component config', async () => {
+    const { name } = defineTracked({ mountStrategy: 'eager' });
+    const el = render(name, { 'data-mount': 'in-view:200px 0px' }, OFFSCREEN);
+    await observed();
+    expect(el.__base__?.get(name)).toBeUndefined();
+
+    el.setAttribute('style', ONSCREEN);
+    await observed();
+    const instance = instanceOf(el, name);
+    expect(instance?.$isMounted).toBe(true);
+
+    el.setAttribute('style', OFFSCREEN);
+    await observed();
+    expect(instance?.$isMounted).toBe(false);
   });
 
   it('is restored when the element override is removed', async () => {
@@ -257,9 +273,9 @@ describe('dynamic data-mount', () => {
 });
 
 describe('teardown', () => {
-  it('stops watching an element that leaves the document', async () => {
+  it('stops a parameterized viewport strategy when the element leaves the document', async () => {
     const { name } = defineTracked();
-    const el = render(name, { 'data-mount': 'visible' }, OFFSCREEN);
+    const el = render(name, { 'data-mount': 'visible:200px' }, OFFSCREEN);
     await observed();
 
     el.remove();

@@ -31,19 +31,14 @@ export type InViewProps = BaseProps & {
  * `$destroy()` are both idempotent — the second call returns early. What was a
  * field and a comparison is now nothing at all.
  *
- * ## What the port loses, and it has no workaround
+ * ## Parameterized viewport timing
  *
- * v3's decorator takes an `IntersectionObserverInit`, both as a decorator
- * argument (`{ threshold: [0, 1] }` by default) and as the documented
- * `data-option-intersection-observer` attribute. `applyMountStrategy()`
- * constructs `new IntersectionObserver(callback)` with **no init at all**, and
- * it does so from the registry — before, and independently of, the instance.
- * A component therefore cannot influence its own mount strategy's observer.
- *
- * There is no component-side workaround. Observing the element a second time
- * with the right `rootMargin` would not help: the thing that needs the margin
- * is the mount, which has already been decided by the observer the strategy
- * owns. See `InView.spec.ts`, where the spec for it is `it.fails()`.
+ * The registry owns the observer before an instance exists, so viewport mount
+ * options belong to the strategy. `in-view:<rootMargin>` passes its suffix as
+ * `IntersectionObserverInit.rootMargin`; for example, `in-view:400px` mounts
+ * before the element reaches the viewport. The same form works in component
+ * config, `data-mount` and lazy manifest entries without a second options
+ * attribute. See the root-margin regression in `InView.spec.ts`.
  */
 export class InView extends Base<InViewProps> {
   static config: BaseConfig = {

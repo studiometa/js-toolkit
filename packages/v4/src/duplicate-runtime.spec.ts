@@ -36,6 +36,22 @@ interface FixtureMessage {
       parentFromA: boolean;
       childFromB: boolean;
       lazyFromB: boolean;
+      viewport: {
+        direct: {
+          observers: number;
+          rootMargin: string | null;
+          mounts: number;
+          destroys: number;
+          fromB: boolean;
+        };
+        lazy: {
+          observers: number;
+          rootMargin: string | null;
+          imports: number;
+          mounts: number;
+          fromA: boolean;
+        };
+      };
     };
     breakpoints: {
       sameService: boolean;
@@ -162,6 +178,22 @@ describe('duplicated v4 bundles', () => {
       parentFromA: true,
       childFromB: true,
       lazyFromB: true,
+      viewport: {
+        direct: {
+          observers: 1,
+          rootMargin: '123px 45px',
+          mounts: 1,
+          destroys: 1,
+          fromB: true,
+        },
+        lazy: {
+          observers: 1,
+          rootMargin: '321px 0px',
+          imports: 1,
+          mounts: 1,
+          fromA: true,
+        },
+      },
     });
     expect(result.breakpoints).toEqual({
       sameService: true,

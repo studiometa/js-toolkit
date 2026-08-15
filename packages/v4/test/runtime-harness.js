@@ -14,17 +14,23 @@ const observers = {
   resize: { created: 0, active: 0 },
   intersection: { created: 0, active: 0 },
 };
+const intersectionObservers = [];
 
-function countedObserver(Native, counts) {
+function countedObserver(Native, counts, instances) {
   return class extends Native {
     isActive = false;
+    observed = new Set();
 
-    constructor(callback) {
-      super(callback);
+    constructor(...args) {
+      super(...args);
+      this.callback = args[0];
+      this.options = args[1];
       counts.created += 1;
+      instances?.push(this);
     }
 
     observe(...args) {
+      this.observed.add(args[0]);
       if (!this.isActive) {
         this.isActive = true;
         counts.active += 1;
@@ -32,12 +38,27 @@ function countedObserver(Native, counts) {
       return super.observe(...args);
     }
 
+    unobserve(...args) {
+      this.observed.delete(args[0]);
+      const result = super.unobserve(...args);
+      if (this.isActive && this.observed.size === 0) {
+        this.isActive = false;
+        counts.active -= 1;
+      }
+      return result;
+    }
+
     disconnect() {
+      this.observed.clear();
       if (this.isActive) {
         this.isActive = false;
         counts.active -= 1;
       }
       return super.disconnect();
+    }
+
+    deliver(target, isIntersecting) {
+      this.callback([{ target, isIntersecting }], this);
     }
   };
 }
@@ -47,6 +68,7 @@ globalThis.ResizeObserver = countedObserver(NativeResizeObserver, observers.resi
 globalThis.IntersectionObserver = countedObserver(
   NativeIntersectionObserver,
   observers.intersection,
+  intersectionObservers,
 );
 
 const COPY_A_KEY = Symbol.for('@studiometa/js-toolkit-v4/test/copy-a');
@@ -60,6 +82,10 @@ async function run(copyA, copyB) {
     let childDestroys = 0;
     let lazyMounts = 0;
     let lazyDestroys = 0;
+    let viewportMounts = 0;
+    let viewportDestroys = 0;
+    let viewportLazyImports = 0;
+    let viewportLazyMounts = 0;
     let responsiveMounts = 0;
     let responsiveDestroys = 0;
 
@@ -99,6 +125,32 @@ async function run(copyA, copyB) {
 
       destroyed() {
         lazyDestroys += 1;
+      }
+    }
+
+    class SharedViewport extends copyB.Base {
+      static config = {
+        name: 'RuntimeFixtureViewport',
+        mountStrategy: 'in-view:123px 45px',
+      };
+
+      mounted() {
+        viewportMounts += 1;
+      }
+
+      destroyed() {
+        viewportDestroys += 1;
+      }
+    }
+
+    class SharedViewportLazy extends copyA.Base {
+      static config = {
+        name: 'RuntimeFixtureViewportLazy',
+        mountStrategy: 'visible:321px 0px',
+      };
+
+      mounted() {
+        viewportLazyMounts += 1;
       }
     }
 
@@ -163,14 +215,50 @@ async function run(copyA, copyB) {
     copyA.registerManifest({
       RuntimeFixtureLazy: () => Promise.resolve({ default: SharedLazy }),
     });
+    copyA.registerComponent(SharedViewport);
+    copyB.registerComponent(SharedViewport);
+    copyB.registerManifest({
+      RuntimeFixtureViewportLazy: {
+        load: () => {
+          viewportLazyImports += 1;
+          return Promise.resolve({ default: SharedViewportLazy });
+        },
+        mountStrategy: 'visible:321px 0px',
+      },
+    });
 
     const root = document.createElement('section');
     root.setAttribute('data-component', 'RuntimeFixtureParent');
     root.innerHTML = '<div data-component="RuntimeFixtureChild"></div>';
     const lazy = document.createElement('div');
     lazy.setAttribute('data-component', 'RuntimeFixtureLazy');
-    document.body.append(root, lazy);
+    const viewport = document.createElement('div');
+    viewport.setAttribute('data-component', 'RuntimeFixtureViewport');
+    viewport.style.cssText = 'position:absolute;top:300vh;width:10px;height:10px';
+    const viewportLazy = document.createElement('div');
+    viewportLazy.setAttribute('data-component', 'RuntimeFixtureViewportLazy');
+    viewportLazy.style.cssText = 'position:absolute;top:300vh;width:10px;height:10px';
+    document.body.append(root, lazy, viewport, viewportLazy);
 
+    await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
+
+    const directViewportObservers = intersectionObservers.filter((observer) =>
+      observer.observed.has(viewport),
+    );
+    const lazyViewportObservers = intersectionObservers.filter((observer) =>
+      observer.observed.has(viewportLazy),
+    );
+    for (const observer of directViewportObservers) {
+      observer.deliver(viewport, true);
+      observer.deliver(viewport, true);
+      observer.deliver(viewport, false);
+      observer.deliver(viewport, false);
+    }
+    for (const observer of lazyViewportObservers) {
+      observer.deliver(viewportLazy, true);
+      observer.deliver(viewportLazy, true);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 0));
     await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
 
     const registryObservers = observers.mutation.created;
@@ -182,6 +270,23 @@ async function run(copyA, copyB) {
       childFromB:
         root.firstElementChild?.__base__?.get('RuntimeFixtureChild') instanceof SharedChild,
       lazyFromB: lazy.__base__?.get('RuntimeFixtureLazy') instanceof SharedLazy,
+      viewport: {
+        direct: {
+          observers: directViewportObservers.length,
+          rootMargin: directViewportObservers[0]?.options?.rootMargin ?? null,
+          mounts: viewportMounts,
+          destroys: viewportDestroys,
+          fromB: viewport.__base__?.get('RuntimeFixtureViewport') instanceof SharedViewport,
+        },
+        lazy: {
+          observers: lazyViewportObservers.length,
+          rootMargin: lazyViewportObservers[0]?.options?.rootMargin ?? null,
+          imports: viewportLazyImports,
+          mounts: viewportLazyMounts,
+          fromA:
+            viewportLazy.__base__?.get('RuntimeFixtureViewportLazy') instanceof SharedViewportLazy,
+        },
+      },
     };
 
     const emitterEl = document.createElement('div');
@@ -395,14 +500,15 @@ async function run(copyA, copyB) {
 
     const inViewService = copyA.useInView(serviceTarget, { threshold: 0.5 });
     const intersectionCreatedBefore = observers.intersection.created;
+    const intersectionActiveBefore = observers.intersection.active;
     const stopInViewA = inViewService.subscribe(() => {});
     const stopInViewB = copyB.useInView(serviceTarget, { threshold: 0.5 }).subscribe(() => {});
     const intersectionCreated = observers.intersection.created - intersectionCreatedBefore;
-    const intersectionActiveWithBoth = observers.intersection.active;
+    const intersectionActiveWithBoth = observers.intersection.active - intersectionActiveBefore;
     stopInViewA();
-    const intersectionActiveAfterOne = observers.intersection.active;
+    const intersectionActiveAfterOne = observers.intersection.active - intersectionActiveBefore;
     stopInViewB();
-    const intersectionActiveAfterBoth = observers.intersection.active;
+    const intersectionActiveAfterBoth = observers.intersection.active - intersectionActiveBefore;
 
     // Different axis options create distinct services, one from each bundled
     // copy. Their touch-action claims still belong to the realm: releasing one
@@ -467,6 +573,8 @@ async function run(copyA, copyB) {
 
     root.remove();
     lazy.remove();
+    viewport.remove();
+    viewportLazy.remove();
     responsive.remove();
     serviceTarget.remove();
     otherTarget.remove();

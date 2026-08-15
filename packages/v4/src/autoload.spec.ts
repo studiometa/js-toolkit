@@ -174,10 +174,10 @@ describe('a lazy declaration before its class arrives', () => {
     expect(importCount()).toBe(0);
   });
 
-  it('drops its trigger when the element leaves, and re-establishes it on return', async () => {
+  it('drops its parameterized trigger when the element leaves, and re-establishes it on return', async () => {
     const { name, load, importCount } = defineLazy();
     const el = render(name, {}, OFFSCREEN);
-    registerManifest({ [name]: { load, mountStrategy: 'visible' } });
+    registerManifest({ [name]: { load, mountStrategy: 'visible:200px' } });
     await observed();
 
     el.remove();
@@ -196,10 +196,10 @@ describe('a lazy declaration before its class arrives', () => {
 });
 
 describe('the strategy that triggers the import', () => {
-  it('takes the entry default, standing in for the class config', async () => {
+  it('takes a parameterized entry default, standing in for the class config', async () => {
     const { name, load, importCount } = defineLazy();
     const el = render(name, {}, OFFSCREEN);
-    registerManifest({ [name]: { load, mountStrategy: 'visible' } });
+    registerManifest({ [name]: { load, mountStrategy: 'visible:200px 0px' } });
     await observed();
 
     expect(importCount()).toBe(0);
@@ -228,9 +228,9 @@ describe('the strategy that triggers the import', () => {
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
   });
 
-  it('hands a reversible strategy over to the registry after the import', async () => {
+  it('hands a parameterized reversible override to the registry after the import', async () => {
     const { name, load, importCount } = defineLazy();
-    const el = render(name, { 'data-mount': 'in-view' }, OFFSCREEN);
+    const el = render(name, { 'data-mount': 'in-view:200px 0px' }, OFFSCREEN);
     registerManifest({ [name]: load });
     await observed();
 
