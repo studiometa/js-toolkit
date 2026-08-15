@@ -214,10 +214,14 @@ async function checkBrowserConsumer(consumerRoot) {
         },
         baseWrappersRemoved: true,
       },
+      contextSubscription: {
+        subpathIdentity: true,
+        answers: ['packed', 'leave:packed'],
+      },
       serviceSubpath: true,
     });
     console.log(
-      'Browser packed consumer: Base lifecycle, events, helper subpaths and service subpath passed.',
+      'Browser packed consumer: Base lifecycle, events, helper subpaths, context subscription and service subpath passed.',
     );
   } finally {
     await browser?.close();

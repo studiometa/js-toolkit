@@ -477,11 +477,11 @@ export const DataRegistryContext = /* @__PURE__ */ createContext<DataRegistry>('
  * registry is created on demand. A pending promise would buy nothing and cost
  * the synchronous read that `get()`/`set()` are specified to be.
  *
- * It is also what makes a subscribed request usable here at all: a member
- * mounts with `$inject(…, { subscribe: true })`, which waits forever while
- * nothing provides, and calling this creates the page-wide provider that
- * answers it. So this stays the fallback path even for a member that is
- * subscribed — see `DataBind.mounted()`.
+ * It is also what makes a subscription usable here at all: a member calls
+ * `subscribeContext()` from `mounted()`, which waits forever while nothing
+ * provides, and calling this creates the page-wide provider that answers it.
+ * So this stays the fallback path for subscribed members — see
+ * `DataBind.mounted()`.
  */
 export function resolveDataRegistry(el: Element): DataRegistry {
   return (

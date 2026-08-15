@@ -48,6 +48,10 @@
       "types": "./dist/subpaths/signal.d.ts",
       "import": "./dist/subpaths/signal.js"
     },
+    "./subscribeContext": {
+      "types": "./dist/subpaths/subscribeContext.d.ts",
+      "import": "./dist/subpaths/subscribeContext.js"
+    },
     "./children": {
       "types": "./dist/subpaths/children.d.ts",
       "import": "./dist/subpaths/children.js"

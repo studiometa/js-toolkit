@@ -9,6 +9,7 @@ import {
   emitExtendable,
   fromMetaGlob,
   fromWebpackContext,
+  subscribeContext,
   useDrag,
   useInView,
   useScrollProgress,
@@ -27,6 +28,7 @@ import {
   type ExtendableDetail,
   type Extension,
   type InViewProps,
+  type ContextCallback,
   type ModuleRecord,
   type Service,
   type ToolkitErrorDetail,
@@ -42,6 +44,9 @@ import emitExtendableFromSubpath, {
 } from '@studiometa/js-toolkit-v4/emitExtendable';
 import fromMetaGlobFromSubpath from '@studiometa/js-toolkit-v4/fromMetaGlob';
 import fromWebpackContextFromSubpath from '@studiometa/js-toolkit-v4/fromWebpackContext';
+import subscribeContextFromSubpath, {
+  subscribeContext as namedSubscribeContextFromSubpath,
+} from '@studiometa/js-toolkit-v4/subscribeContext';
 import useDragFromSubpath from '@studiometa/js-toolkit-v4/useDrag';
 import useInViewFromSubpath, {
   useInView as namedUseInViewFromSubpath,
@@ -72,6 +77,16 @@ type RemovedHandlerRegistration = import('@studiometa/js-toolkit-v4').HandlerReg
 const removedHandlerRegistrationTypeAssertion = null as unknown as RemovedHandlerRegistration;
 void removedHandlerRegistrationTypeAssertion;
 
+// @ts-expect-error InjectContextOptions was removed with the basic options path.
+type RemovedInjectContextOptions = import('@studiometa/js-toolkit-v4').InjectContextOptions;
+const removedInjectContextOptionsTypeAssertion = null as unknown as RemovedInjectContextOptions;
+void removedInjectContextOptionsTypeAssertion;
+
+// @ts-expect-error ContextRequest is source-internal transport state.
+type InternalContextRequest = import('@studiometa/js-toolkit-v4').ContextRequest;
+const internalContextRequestTypeAssertion = null as unknown as InternalContextRequest;
+void internalContextRequestTypeAssertion;
+
 describe('the package entry points', () => {
   it('serves the utils from the /utils subpath', () => {
     expect(clamp(5, 0, 1)).toBe(1);
@@ -83,7 +98,7 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(59);
+    expect(Object.keys(root)).toHaveLength(60);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
@@ -93,9 +108,20 @@ describe('the package entry points', () => {
       'DESTROYED_EVENT',
       'DOM_UPDATE_EVENT',
       'JS_TOOLKIT_ERROR_EVENT',
+      'dispatchContextRequest',
+      'retainContextRequest',
+      'cancelContextRequest',
     ]) {
       expect(root[removed]).toBeUndefined();
     }
+  });
+
+  it('exports the optional context subscription helper from root and subpath', () => {
+    expect(subscribeContextFromSubpath).toBe(subscribeContext);
+    expect(namedSubscribeContextFromSubpath).toBe(subscribeContext);
+    expectTypeOf<ContextCallback<string>>().toEqualTypeOf<
+      (value: string, unsubscribe: () => void) => void | (() => void)
+    >();
   });
 
   it('exports standalone orchestration helpers without Base wrappers', () => {
@@ -121,6 +147,9 @@ describe('the package entry points', () => {
       './DESTROYED_EVENT',
       './DOM_UPDATE_EVENT',
       './JS_TOOLKIT_ERROR_EVENT',
+      './dispatchContextRequest',
+      './retainContextRequest',
+      './cancelContextRequest',
     ]) {
       expect(exports).not.toHaveProperty(removed);
     }

@@ -611,17 +611,20 @@ async function run(copyA, copyB) {
       return nativeDocumentAddEventListener.call(this, type, ...args);
     };
     const subscribedKey = Symbol.for('@studiometa/js-toolkit-v4/test/subscribed-context');
-    const subscribedProvider = copyA.provideContext(contextScope, subscribedKey, { ok: true });
-    const subscribedA = copyA.injectContext(contextConsumer, subscribedKey, {
-      subscribe: true,
-      onProvide() {},
+    const subscribedRoot = copyA.provideRootContext(subscribedKey, () => ({ source: 'root' }));
+    const subscribedAnswersA = [];
+    const subscribedAnswersB = [];
+    const unsubscribeA = copyA.subscribeContext(contextConsumer, subscribedKey, (value) => {
+      subscribedAnswersA.push(value);
     });
-    const subscribedB = copyB.injectContext(contextConsumer, subscribedKey, {
-      subscribe: true,
-      onProvide() {},
+    const unsubscribeB = copyB.subscribeContext(contextConsumer, subscribedKey, (value) => {
+      subscribedAnswersB.push(value);
     });
-    subscribedA.cancel();
-    subscribedB.cancel();
+    const subscribedNear = { source: 'near' };
+    const subscribedProvider = copyA.provideContext(contextScope, subscribedKey, subscribedNear);
+    contextScope.dispatchEvent(new CustomEvent(copyB.EVENTS.component.mounted, { bubbles: true }));
+    unsubscribeA();
+    unsubscribeB();
     subscribedProvider.dispose();
     document.addEventListener = nativeDocumentAddEventListener;
 
@@ -715,6 +718,13 @@ async function run(copyA, copyB) {
           rootCreates,
           pendingReplay: resolvedPending === pendingValue,
           mountListeners,
+          subscribedReanswer:
+            subscribedAnswersA.length === 2 &&
+            subscribedAnswersA[0] === subscribedRoot &&
+            subscribedAnswersA[1] === subscribedNear &&
+            subscribedAnswersB.length === 2 &&
+            subscribedAnswersB[0] === subscribedRoot &&
+            subscribedAnswersB[1] === subscribedNear,
         },
       },
     });

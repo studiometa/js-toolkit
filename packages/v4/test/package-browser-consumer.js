@@ -1,10 +1,14 @@
 import {
   Base,
+  createContext,
   domUpdate as rootDomUpdate,
   emitExtendable as rootEmitExtendable,
+  provideContext,
+  subscribeContext as rootSubscribeContext,
 } from '@studiometa/js-toolkit-v4';
 import domUpdate from '@studiometa/js-toolkit-v4/domUpdate';
 import emitExtendable from '@studiometa/js-toolkit-v4/emitExtendable';
+import subscribeContext from '@studiometa/js-toolkit-v4/subscribeContext';
 import { EVENTS } from '@studiometa/js-toolkit-v4/EVENTS';
 import useRaf, { useRaf as namedUseRaf } from '@studiometa/js-toolkit-v4/useRaf';
 
@@ -63,6 +67,18 @@ try {
   });
   await Promise.all([update, emitExtendable(element, 'packed:close')]);
 
+  const contextConsumer = document.createElement('span');
+  element.append(contextConsumer);
+  const contextKey = createContext('packed-subscription');
+  const contextProvider = provideContext(element, contextKey, 'packed');
+  const contextAnswers = [];
+  const unsubscribeContext = subscribeContext(contextConsumer, contextKey, (value) => {
+    contextAnswers.push(value);
+    return () => contextAnswers.push(`leave:${value}`);
+  });
+  unsubscribeContext();
+  contextProvider.dispose();
+
   globalThis.__V4_PACKED_CONSUMER__ = {
     status: 'passed',
     mountedHookCalls,
@@ -103,6 +119,10 @@ try {
         !('$domUpdate' in component) &&
         !('$emitExtendable' in component) &&
         !('$viewTransition' in component),
+    },
+    contextSubscription: {
+      subpathIdentity: subscribeContext === rootSubscribeContext,
+      answers: contextAnswers,
     },
     serviceSubpath: useRaf === namedUseRaf && typeof useRaf === 'function',
   };

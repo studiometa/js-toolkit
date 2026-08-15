@@ -105,6 +105,7 @@ interface FixtureMessage {
       rootCreates: number;
       pendingReplay: boolean;
       mountListeners: number;
+      subscribedReanswer: boolean;
     };
   };
 }
@@ -273,6 +274,7 @@ describe('duplicated v4 bundles', () => {
       rootCreates: 1,
       pendingReplay: true,
       mountListeners: 1,
+      subscribedReanswer: true,
     });
   });
 });
