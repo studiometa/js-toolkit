@@ -101,6 +101,10 @@ The two remaining regressions are understood rather than outstanding. `$emit` pa
 
 ### The public surface is typed, and free
 
+#### Component ids are stable for the instance
+
+Every `Base` instance has a readonly `$id` in the form `<ComponentName>-<sequence>`. The component name comes from its resolved config and the package-level sequence increases once for each constructed instance. The id exists before derived field initializers run and stays unchanged through every destroy and remount cycle. Core does not copy it to a DOM `id`; a component uses it only where its own ARIA relationships need one.
+
 `Base` takes an optional props type — `class Slider extends Base<{ $refs: …; $options: …; $emits: … }>`. It types `$refs` and `$options` (no more casting on access) and checks `$emit()`'s event names and payloads. `$emits` maps each name to the **payload object** the event carries, `void` for one that carries nothing:
 
 ```ts
@@ -473,13 +477,18 @@ class Slider extends Base {
     added(item) { … },
     removed(item) { … },
   });
-  // `items` is a live, DOM-ordered collection, correct regardless of mount order
+  specialItems = this.$watchChildren(SliderItem);
+  // `items` matches the exact config.name. `specialItems` also includes every
+  // named subclass of SliderItem through instanceof. Both are live,
+  // DOM-ordered collections, correct regardless of mount order.
 }
 ```
 
 This replaces Slider's per-instance store + two-sided `connectChildren`/`__connect` handshake, and it is the honest v4 successor of `$children` — pull plus push, instead of a lazy re-query getter.
 
 The initial sweep is deferred to a microtask: `$watchChildren` is typically called in a field initializer, and already-mounted children would otherwise fire `added` synchronously while the instance is half-constructed (found live: the Slider demo read `this.items` from an `added` callback before the field was assigned, and its provided state signal stayed at `total: 0`). The announcement listeners attach synchronously, so nothing mounting in between is missed — the internal `Set` deduplicates.
+
+The string overload keeps the existing exact `config.name` lookup. The constructor overload cannot select one `data-component` token because every named subclass has a different token, so its initial sweep walks descendant elements in DOM order and reads their existing `__base__` maps. It keeps mounted instances for which `instance instanceof ComponentClass`, excludes the watching instance, and deduplicates a shared instance exposed under several tokens. No global instance registry is added. Mounted and destroyed announcements pass through the same matcher, and the subscription remains active across destroy/remount cycles until the watcher terminates.
 
 ### The page-wide lookup — `getInstances()` — implemented
 
@@ -574,13 +583,13 @@ This is the property @studiometa/ui's `DataChannel` gets from alien-signals toda
 
 No engine ships stage-3 decorators yet, so requiring them would break the no-build promise: **every decorator is a thin wrapper over a function API that works without it.** Projects that build their sources opt in; a page loading the package from an ESM CDN keeps `registerComponent`, `$provide`, `$watchChildren`, `$read`/`$write` and the magic `on<Child><Event>` method names.
 
-| Decorator                         | Wraps                                   | Notes                                                                     |
-| --------------------------------- | --------------------------------------- | ------------------------------------------------------------------------- |
-| `@component({ name })`            | `static config` + `registerComponent()` | Registers as soon as the class is defined.                                |
-| `@on(target, type)` / `@on(type)` | the magic `on<Child><Event>` names      | Target as a name **or** as a value. See below.                            |
-| `@provide(key)` / `@inject(key)`  | `$provide()` / `$inject()`              | Same shape as Lit's `@provide`/`@consume` over the same context protocol. |
-| `@children(name, callbacks)`      | `$watchChildren()`                      | Callbacks are bound to the instance.                                      |
-| `@read` / `@write`                | `$read()` / `$write()`                  | Runs the method body in that scheduler phase, cancel-on-destroy included. |
+| Decorator                           | Wraps                                   | Notes                                                                        |
+| ----------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------- |
+| `@component({ name })`              | `static config` + `registerComponent()` | Registers as soon as the class is defined.                                   |
+| `@on(target, type)` / `@on(type)`   | the magic `on<Child><Event>` names      | Target as a name **or** as a value. See below.                               |
+| `@provide(key)` / `@inject(key)`    | `$provide()` / `$inject()`              | Same shape as Lit's `@provide`/`@consume` over the same context protocol.    |
+| `@children(nameOrClass, callbacks)` | `$watchChildren()`                      | Exact name or constructor + subclasses; callbacks are bound to the instance. |
+| `@read` / `@write`                  | `$read()` / `$write()`                  | Runs the method body in that scheduler phase, cancel-on-destroy included.    |
 
 `@on` is the one that is genuinely better than the form it replaces, not just shorter. The explicit `(target, type)` pair means: no name parsing, so `onSliderDragStart`-style ambiguity disappears; no `config.components` entry needed, since the child name is in the decorator; any event name works, including ones no method name could spell (`fetch:after`); the method is free to be named after what it does (`autoclose()`); and several `@on` stack on one method. The magic names stay for the no-build path, and a method bound through a decorator is skipped by the name scan so the two never double-bind.
 
@@ -957,7 +966,7 @@ Cost: ~35 lines in `registry.ts` and one union in `BaseConfig`; `ComponentImport
 ### 11e. Further layers, and what each costs
 
 1. ~~**Manifest generation from a bundler glob.**~~ **Built:** `defineManifest({ modules, mountStrategy? })`, `fromMetaGlob()` and `fromWebpackContext()` add path→token derivation (`index.ts` falls back to the parent directory), a lazy/eager Vite glob guard and a deferred webpack adapter with no bundler dependency. The package-wide `mountStrategy` emits entry wrappers only when it is not `eager`; importers and module namespaces stay untouched for the registry to resolve. Duplicate tokens warn and keep the first path, matching the registry. No load strategy, `data-load`, aliases, children, metadata, composition, observer, loader, runtime or registration API comes with this layer.
-2. **A cross-copy shared runtime** — v3's `runtime.ts`, 215 lines: a `Symbol.for` slot on `globalThis`, a version-conflict guard, microtask coalescing of several manifest registrations into one loader start, and a stop/restart when a manifest arrives late. **v4 needs almost none of it**: there is one registry module, registration is idempotent, and a late `registerManifest()` scans only its own tokens, so nothing has to be coalesced or restarted. What survives the reduction is the _duplicated package copy_ problem — two bundled copies of v4 mean two `Map`s and two observers. **Cost: ~25 lines** for a `Symbol.for`-keyed module singleton, and it is a v4-wide question (the scheduler and the services have it too), not an autoload one. Worth doing once, at that level.
+2. ~~**A cross-copy shared runtime.**~~ **Built.** `shared-runtime.ts` owns `globalThis[Symbol.for('@studiometa/js-toolkit-v4/runtime')]` and gives each subsystem a typed, revision-checked slot. Duplicate evaluated copies now reuse the canonical `defaultScheduler`; registry eager/lazy maps, pair/load controllers and responsive work; the DOM mutation observer, processor, queue and settlement state; root-context providers, pending requests and subscriptions; responsive breakpoint state; and every built-in service cache or singleton (`raf`, scroll, resize, pointer, drag, media, in-view and scroll-progress). `Base` carries a separate `Symbol.for` brand on its constructor and prototype, so registry family and imported-module resolution recognise a component from another copy without treating an arbitrary function as a class. The slots stay lazy and keep the existing reference-counted teardown; incompatible root or slot revisions throw instead of mixing layouts. This is same-realm coordination only, through that realm's `globalThis`, and only core's built-in caches join it: a consumer's own `createService()` or `perTarget()` call remains consumer-owned. None of v3's manifest coalescing, stop/restart logic, load strategies, package-version negotiation or global instance registry returned. A browser fixture builds two independent bundles and proves one frame request, observer/processor path and mount, cross-copy family/lazy-class recognition, shared option-sensitive services, shared context state and final teardown.
 3. **A `js-toolkit:error` `CustomEvent` on import failure.** ui documents it as the hook for error reporting. **Cost: 8 lines.** Deferred because v4 has no error-event convention yet — mount failures only `console.error` — and inventing one for the lazy half alone would be the wrong place to start.
 4. **Composing and overriding manifests** — v3's `composeManifests` is later-wins, so an app can shadow a packaged component by re-declaring its token last (`autoload.ts:32-40`). v4 is first-wins-and-warn, following `customElements.define`. **Cost: an `{ override: true }` option, ~5 lines** — but the decision is the expensive part, not the code, and first-wins is the safer default to start from.
 5. **A scoped `root`.** v3 takes `root?: Document | Element` and scans only within it. v4's registry is document-wide by construction, so this is not an autoload feature but a registry one. **Cost: unknown and not small** — it would change `scanName()`, `scan()` and the observer's target. No consumer has asked.

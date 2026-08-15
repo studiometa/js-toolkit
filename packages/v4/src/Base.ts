@@ -1,3 +1,4 @@
+import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import {
   injectContext,
@@ -14,6 +15,7 @@ import {
   type DomMutation,
 } from './negotiated-events.js';
 import { DESTROYED_EVENT, MOUNTED_EVENT } from './lifecycle-events.js';
+import { HANDLER_REGISTRATIONS, SOURCE } from './protocol-symbols.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import {
   activeBreakpoint,
@@ -28,10 +30,12 @@ import { selectorFor } from './utils/selectors.js';
 import { kebabCase, pascalCase } from './utils/strings.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
 
-export const SOURCE: unique symbol = Symbol('emitter');
-export { DESTROYED_EVENT, MOUNTED_EVENT };
+export { DESTROYED_EVENT, MOUNTED_EVENT } from './lifecycle-events.js';
+export { HANDLER_REGISTRATIONS, SOURCE } from './protocol-symbols.js';
 
 const REGEX_HANDLER = /^on[A-Z]/;
+
+let componentId = 0;
 
 export type OptionType =
   | typeof String
@@ -377,7 +381,8 @@ export interface WatchChildrenCallbacks<T extends Base = Base> {
 }
 
 /**
- * Live, DOM-ordered view over the mounted descendants of a name.
+ * Live, DOM-ordered view over mounted descendants matched by exact component
+ * name or by a component constructor and its subclasses.
  */
 export interface ChildrenCollection<T extends Base = Base> extends Iterable<T> {
   readonly size: number;
@@ -389,12 +394,9 @@ export interface LifecycleEventDetail {
 }
 
 /**
- * Per-instance list of handlers declared with the `@on` decorator, filled by
- * the decorator's initializers during construction and consumed by
- * `#bindHandlers()` on every mount.
+ * One handler declared with the `@on` decorator. Initializers store these on
+ * the realm-stable `HANDLER_REGISTRATIONS` key for each instance.
  */
-export const HANDLER_REGISTRATIONS: unique symbol = Symbol('handler registrations');
-
 export interface HandlerRegistration {
   /**
    * Global event target for `@on(window, …)` / `@on(document, …)`, `null` for
@@ -1020,13 +1022,9 @@ interface HandlerPlan {
  * class and a new key.
  *
  * **`/* @__PURE__ *\/` is load-bearing, not decoration.** A top-level call is
- * something a bundler must keep unless told otherwise, and keeping this one
- * keeps everything it references — which is all of `Base`. Every constant
- * subpath (`./DESTROYED_EVENT`, `./MOUNTED_EVENT`, `./SOURCE`) is a
- * re-export *from* `Base.js` and owes its size entirely to `Base` being
- * shaken away, so without the annotation each of them grows from 1.9 kB to
- * 7.7 kB gzip — measured, and the reason the services already annotate their
- * `perTarget()` calls the same way.
+ * something a bundler must otherwise keep. The annotation lets a consumer
+ * which does not use handler planning remove this memo and everything its
+ * callback references.
  */
 const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan => {
   const config = resolveConfig(ctor);
@@ -1087,6 +1085,9 @@ const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan =>
 export type MountedReturn = void | (() => void) | MountedReturn[] | Promise<MountedReturn>;
 
 export class Base<T extends BaseProps = BaseProps> {
+  /** A class-owned brand inherited by subclasses and shared by bundled copies. */
+  static readonly [BASE_BRAND] = true;
+
   static config: BaseConfig = { name: 'Base' };
 
   /**
@@ -1094,6 +1095,15 @@ export class Base<T extends BaseProps = BaseProps> {
    * another component can read this one's declared surface.
    */
   declare readonly __props?: T;
+
+  /**
+   * Unique, stable instance id (`<ComponentName>-<sequence>`).
+   *
+   * Generated once during construction from the resolved component name. It
+   * stays unchanged across destroy and remount cycles, so a component can use
+   * it for persistent ARIA relationships without changing the DOM id itself.
+   */
+  readonly $id: string;
 
   $el: El<T>;
 
@@ -1144,9 +1154,12 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   constructor(el: HTMLElement) {
+    const { name } = this.$config;
+    this.$id = `${name}-${componentId}`;
+    componentId += 1;
     this.$el = el as El<T>;
     el.__base__ ??= new Map();
-    el.__base__.set(this.$config.name, this);
+    el.__base__.set(name, this);
     // Both views resolve on access, so they are built once and stay correct
     // for the instance's whole life.
     this.$options = buildOptions(this) as Options<T>;
@@ -1361,15 +1374,31 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Live, order-independent collection of mounted descendants (objective 5,
-   * layer 2): initial `$query()` sweep + subscription to the bubbling
-   * lifecycle announcements.
+   * Live, DOM-ordered collection of mounted descendants (objective 5, layer
+   * 2): an initial sweep + subscription to the lifecycle announcements.
+   *
+   * A string matches `config.name` exactly. A component class matches every
+   * instance of that class or one of its subclasses, whatever name the
+   * subclass declares:
+   *
+   *     this.$watchChildren('SliderItem'); // exact name
+   *     this.$watchChildren(SliderItem);   // SliderItem and named subclasses
    */
   $watchChildren<T extends Base = Base>(
     name: string,
+    callbacks?: WatchChildrenCallbacks<T>,
+  ): ChildrenCollection<T>;
+  $watchChildren<T extends BaseConstructor>(
+    ComponentClass: T,
+    callbacks?: WatchChildrenCallbacks<InstanceType<T>>,
+  ): ChildrenCollection<InstanceType<T>>;
+  $watchChildren<T extends Base = Base>(
+    target: string | BaseConstructor,
     callbacks: WatchChildrenCallbacks<T> = {},
   ): ChildrenCollection<T> {
     const instances = new Set<T>();
+    const matches = (instance: Base): instance is T =>
+      typeof target === 'string' ? instance.$config.name === target : instance instanceof target;
     const add = (instance: T) => {
       if ((instance as Base) !== this && !instances.has(instance)) {
         instances.add(instance);
@@ -1391,21 +1420,39 @@ export class Base<T extends BaseProps = BaseProps> {
       if (this.#isTerminated) {
         return;
       }
-      for (const instance of this.$query<T>(name)) {
-        add(instance);
+      if (typeof target === 'string') {
+        for (const instance of this.$query<T>(target)) {
+          add(instance);
+        }
+        return;
+      }
+      // Constructor matching cannot select by a single data-component token:
+      // named subclasses have different tokens. Walk this subtree in DOM order
+      // and inspect the mounted instances already held by each element. The Set
+      // also deduplicates an instance exposed under more than one token.
+      for (const el of this.$el.querySelectorAll('*')) {
+        for (const instance of el.__base__?.values() ?? []) {
+          if (instance.$isMounted && matches(instance)) {
+            add(instance);
+          }
+        }
       }
     });
 
     const onMounted = (event: Event) => {
       const { instance } = (event as CustomEvent<LifecycleEventDetail>).detail;
-      if (instance.$config.name === name && instance !== this) {
-        add(instance as T);
+      if (matches(instance)) {
+        add(instance);
       }
     };
     // Destroyed announcements are dispatched on the document (the element is
-    // already detached); membership in the collection is the filter.
+    // already detached), so membership remains the subtree filter. Apply the
+    // same target matcher before updating the collection.
     const onDestroyed = (event: Event) => {
-      remove((event as CustomEvent<LifecycleEventDetail>).detail.instance as T);
+      const { instance } = (event as CustomEvent<LifecycleEventDetail>).detail;
+      if (matches(instance)) {
+        remove(instance);
+      }
     };
 
     this.$el.addEventListener(MOUNTED_EVENT, onMounted);
@@ -1421,9 +1468,12 @@ export class Base<T extends BaseProps = BaseProps> {
         return instances.size;
       },
       get items() {
-        return [...instances].sort((a, b) =>
-          a.$el.compareDocumentPosition(b.$el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1,
-        );
+        return [...instances].sort((a, b) => {
+          const position = a.$el.compareDocumentPosition(b.$el);
+          if (position & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+          if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+          return 0;
+        });
       },
       [Symbol.iterator]() {
         return this.items[Symbol.iterator]();

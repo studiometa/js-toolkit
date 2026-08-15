@@ -7,6 +7,7 @@ import {
   INERTIA_FRAME,
 } from '../utils/maths.js';
 import { defaultScheduler, type TickProps } from '../scheduler.js';
+import { getSharedRuntimeSlot } from '../shared-runtime.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
@@ -401,7 +402,9 @@ function createDragService(target: DragTarget, options: DragOptions): Service<Dr
   });
 }
 
-const dragServices = /* @__PURE__ */ perTarget(createDragService);
+const dragServices = /* @__PURE__ */ getSharedRuntimeSlot('service:drag', 1, () =>
+  perTarget(createDragService),
+);
 
 /**
  * Use the drag service for an element.

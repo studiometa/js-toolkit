@@ -1,4 +1,5 @@
 import { defaultScheduler, type ScheduledTask } from '../scheduler.js';
+import { getSharedRuntimeSlot } from '../shared-runtime.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
@@ -282,7 +283,9 @@ function createScrollService(target: ScrollTarget): Service<ScrollProps> {
   });
 }
 
-const scrollServices = /* @__PURE__ */ perTarget(createScrollService);
+const scrollServices = /* @__PURE__ */ getSharedRuntimeSlot('service:scroll', 1, () =>
+  perTarget(createScrollService),
+);
 
 /**
  * Use the scroll service for a target, the window by default.
