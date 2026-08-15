@@ -33,6 +33,8 @@ export { DESTROYED_EVENT, MOUNTED_EVENT };
 
 const REGEX_HANDLER = /^on[A-Z]/;
 
+let componentId = 0;
+
 export type OptionType =
   | typeof String
   | typeof Number
@@ -1095,6 +1097,15 @@ export class Base<T extends BaseProps = BaseProps> {
    */
   declare readonly __props?: T;
 
+  /**
+   * Unique, stable instance id (`<ComponentName>-<sequence>`).
+   *
+   * Generated once during construction from the resolved component name. It
+   * stays unchanged across destroy and remount cycles, so a component can use
+   * it for persistent ARIA relationships without changing the DOM id itself.
+   */
+  readonly $id: string;
+
   $el: El<T>;
 
   /**
@@ -1144,9 +1155,12 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   constructor(el: HTMLElement) {
+    const { name } = this.$config;
+    this.$id = `${name}-${componentId}`;
+    componentId += 1;
     this.$el = el as El<T>;
     el.__base__ ??= new Map();
-    el.__base__.set(this.$config.name, this);
+    el.__base__.set(name, this);
     // Both views resolve on access, so they are built once and stay correct
     // for the instance's whole life.
     this.$options = buildOptions(this) as Options<T>;
