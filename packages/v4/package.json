@@ -8,6 +8,9 @@
     "./src/responsive-options.ts"
   ],
   "description": "v4 prototype — tested in a real browser through Vitest browser mode",
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "typescript": "./src/index.ts",
@@ -409,6 +412,7 @@
   "scripts": {
     "build": "node scripts/build.js",
     "check:constant-subpaths": "node scripts/check-constant-subpaths.js",
+    "check:package": "npm run build && node scripts/check-package.js",
     "demo:dev": "vite demo --host",
     "demo:build": "vite build demo",
     "demo:preview": "vite preview demo --host",

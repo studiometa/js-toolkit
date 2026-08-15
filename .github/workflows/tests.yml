@@ -65,6 +65,8 @@ jobs:
         run: npm test
       - name: Check types
         run: npm run lint:types
+      - name: Check the packed package
+        run: npm run check:package
 
   unit:
     runs-on: macos-latest
