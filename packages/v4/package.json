@@ -120,6 +120,21 @@
       "types": "./dist/subpaths/getInstances.d.ts",
       "import": "./dist/subpaths/getInstances.js"
     },
+    "./defineManifest": {
+      "typescript": "./src/subpaths/defineManifest.ts",
+      "types": "./dist/subpaths/defineManifest.d.ts",
+      "import": "./dist/subpaths/defineManifest.js"
+    },
+    "./fromMetaGlob": {
+      "typescript": "./src/subpaths/fromMetaGlob.ts",
+      "types": "./dist/subpaths/fromMetaGlob.d.ts",
+      "import": "./dist/subpaths/fromMetaGlob.js"
+    },
+    "./fromWebpackContext": {
+      "typescript": "./src/subpaths/fromWebpackContext.ts",
+      "types": "./dist/subpaths/fromWebpackContext.d.ts",
+      "import": "./dist/subpaths/fromWebpackContext.js"
+    },
     "./MOUNT_ATTRIBUTE": {
       "typescript": "./src/subpaths/MOUNT_ATTRIBUTE.ts",
       "types": "./dist/subpaths/MOUNT_ATTRIBUTE.d.ts",
