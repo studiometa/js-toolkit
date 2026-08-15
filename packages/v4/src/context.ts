@@ -234,9 +234,9 @@ export function provideContext<T>(
   // Requests are re-dispatched from the consumer, so the nearest provider
   // still wins.
   //
-  // This covers requests nobody has answered yet, and only those. Optional
-  // subscriptions re-ask after the provider has completed its mount instead
-  // of accepting an answer from a provider that is still constructing itself.
+  // This covers requests nobody has answered yet, including subscriptions.
+  // A subscription which already has an answer re-asks only after a nearer
+  // provider has completed its mount.
   // Snapshot: answering a request removes it from `pendingRequests`.
   // oxlint-disable-next-line no-useless-spread
   for (const request of [...pendingRequests]) {
