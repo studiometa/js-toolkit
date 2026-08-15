@@ -37,7 +37,7 @@
  * present. Nothing is written, which is what keeps `$options` the read-only
  * view over attributes it is everywhere else.
  */
-import { registerDOMOptionAttributes } from './dom-mutations.js';
+import { registerDOMOptionAttributes, replaceDOMOptionAttributes } from './dom-mutations.js';
 import { breakpointNames, onBreakpointsReplaced, useBreakpoint } from './services/breakpoint.js';
 import { memo } from './utils/memo.js';
 
@@ -65,17 +65,30 @@ const scopedAttributes = memo((attribute: string): readonly string[] =>
   breakpointNames().map((name) => `${attribute}${RESPONSIVE_SEPARATOR}${name}`),
 );
 
+/**
+ * The exact scoped spellings for an attribute in the current breakpoint set.
+ *
+ * Shared with component declarations because the observer filter and both
+ * cascades must derive their finite attribute set from the same model.
+ *
+ * @internal
+ */
+export function responsiveAttributeNames(attribute: string): readonly string[] {
+  return scopedAttributes(attribute);
+}
+
 /** Base attributes whose scoped spellings the one observer filters for. */
 const observed = new Set<string>();
 
 onBreakpointsReplaced(() => {
+  const previous = [...observed].flatMap((attribute) => scopedAttributes(attribute));
   scopedAttributes.clear();
   // The filter takes exact names, so a replaced set means names that were
-  // never registered. Re-derive them, or a `data-option-x:<new>` rewritten at
-  // runtime would be invisible while the plain `data-option-x` is honoured.
-  for (const attribute of observed) {
-    registerDOMOptionAttributes(scopedAttributes(attribute));
-  }
+  // never registered. Replace every derived slice, or a
+  // `data-option-x:<new>` rewritten at runtime would be invisible while stale
+  // names from the old set kept producing records.
+  const next = [...observed].flatMap((attribute) => scopedAttributes(attribute));
+  replaceDOMOptionAttributes(previous, next);
 });
 
 /**
@@ -83,9 +96,9 @@ onBreakpointsReplaced(() => {
  * spellings, so rewriting `data-option-columns:s` at runtime reports a change
  * exactly as rewriting `data-option-columns` does.
  *
- * Called by the registry for every option a registered component declares —
- * `attribute × breakpoint`, which is why the suffix names one breakpoint
- * rather than a set.
+ * Called by the registry for `data-component` and for every option a
+ * registered component declares — `attribute × breakpoint`, which is why the
+ * suffix names one breakpoint rather than a set.
  */
 export function observeResponsiveAttribute(attribute: string): void {
   observed.add(attribute);
@@ -127,6 +140,21 @@ export function responsiveRawValue(
   breakpoint: string,
   get: (name: string) => string | null,
 ): string | null {
+  return responsiveScopedRawValue(attribute, breakpoint, get) ?? get(attribute);
+}
+
+/**
+ * The scoped value in force at one breakpoint, without falling back to the
+ * plain attribute. An empty string is a present override; `null` means no
+ * scoped candidate was present.
+ *
+ * @internal
+ */
+export function responsiveScopedRawValue(
+  attribute: string,
+  breakpoint: string,
+  get: (name: string) => string | null,
+): string | null {
   const names = breakpointNames();
   const scoped = scopedAttributes(attribute);
   for (let index = names.indexOf(breakpoint); index >= 0; index -= 1) {
@@ -135,19 +163,18 @@ export function responsiveRawValue(
       return value;
     }
   }
-  return get(attribute);
+  return null;
 }
 
 /**
  * Follow the viewport, and report the breakpoint it left as well as the one it
  * reached.
  *
- * The subscription is the only thing here that costs anything at rest, which is
- * why the caller opens it per mount cycle and only for a component that can act
- * on a crossing. Reference counting does the rest: the breakpoint service holds
- * its `matchMedia` listeners while it has subscribers and releases them with
- * the last one, so a page with no responsive option — or one whose responsive
- * components have all been destroyed — listens to nothing.
+ * The subscription is the only thing here that costs anything at rest. Option
+ * effects open it per mount cycle; the registry opens one shared subscription
+ * while connected responsive declarations exist. Reference counting does the
+ * rest: the breakpoint service holds its `matchMedia` listeners while it has
+ * subscribers and releases them with the last one.
  */
 export function watchBreakpoint(callback: (previous: string) => void): () => void {
   let previous = activeBreakpoint();
@@ -165,13 +192,15 @@ export function watchBreakpoint(callback: (previous: string) => void): () => voi
  * breakpoint `xxs:xs:s`, which is in no set, so the attribute is simply never a
  * candidate and the option quietly serves its base value everywhere. That is
  * the one failure this design can produce silently, and a migration is exactly
- * when it happens — so it is said out loud, once per mount, in the same spirit
- * as the payload-shape warning: the option still resolves, this reports a
- * spelling rather than policing one.
+ * when it happens — so it is said out loud, once per element and spelling, in
+ * the same spirit as the payload-shape warning: the option still resolves,
+ * this reports a spelling rather than policing one.
  *
  * The element's attributes are scanned **once** for all of a component's
  * options rather than once per option, since `getAttributeNames()` allocates.
  */
+const warnedResponsiveAttributes = new WeakMap<Element, Set<string>>();
+
 export function checkResponsiveAttributes(el: HTMLElement, attributes: readonly string[]): void {
   if (attributes.length === 0) {
     return;
@@ -181,6 +210,15 @@ export function checkResponsiveAttributes(el: HTMLElement, attributes: readonly 
     for (const attribute of attributes) {
       const prefix = `${attribute}${RESPONSIVE_SEPARATOR}`;
       if (name.startsWith(prefix) && !names.includes(name.slice(prefix.length))) {
+        let warned = warnedResponsiveAttributes.get(el);
+        if (warned?.has(name)) {
+          break;
+        }
+        if (!warned) {
+          warned = new Set();
+          warnedResponsiveAttributes.set(el, warned);
+        }
+        warned.add(name);
         console.warn(
           `[base] \`${name}\` names no breakpoint, so it is never read. One breakpoint per attribute, cascading upwards from it — known names: ${names.join(', ')}.`,
         );
