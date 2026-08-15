@@ -1203,13 +1203,23 @@ export class Base<T extends BaseProps = BaseProps> {
     this.#bindHandlers();
     this.#isMounted = true;
     this.#mountCycle += 1;
-    this.#initializeOptionEffects();
-    this.#initializeResponsiveOptions();
+    const cycle = this.#mountCycle;
+    this.#initializeOptionEffects(cycle);
+    if (!this.#isActiveMountCycle(cycle)) {
+      return this;
+    }
+    this.#initializeResponsiveOptions(cycle);
+    if (!this.#isActiveMountCycle(cycle)) {
+      return this;
+    }
     try {
-      this.#collectCleanup(this.mounted());
+      this.#collectCleanup(this.mounted(), cycle);
     } catch (error) {
       console.error('[base] `mounted()` failed:', error);
       reportToolkitError('lifecycle', error, this.$config.name, this.$el);
+    }
+    if (!this.#isActiveMountCycle(cycle)) {
+      return this;
     }
     // Announce existence to every ancestor (objective 5, layer 1).
     const detail: LifecycleEventDetail = { instance: this };
@@ -1447,7 +1457,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
     const onMounted = (event: Event) => {
       const { instance } = (event as CustomEvent<LifecycleEventDetail>).detail;
-      if (matches(instance)) {
+      if (instance.$isMounted && matches(instance)) {
         add(instance);
       }
     };
@@ -1775,8 +1785,15 @@ export class Base<T extends BaseProps = BaseProps> {
     return task;
   }
 
-  #initializeOptionEffects(): void {
+  #isActiveMountCycle(cycle: number): boolean {
+    return this.#isMounted && this.#mountCycle === cycle;
+  }
+
+  #initializeOptionEffects(cycle: number): void {
     for (const [name, reader] of optionReaders.get(this) ?? []) {
+      if (!this.#isActiveMountCycle(cycle)) {
+        return;
+      }
       this.#runOptionEffect(name, reader, null, true);
     }
   }
@@ -1791,7 +1808,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * nothing at rest. Only a component that has asked to be **told** holds a
    * `matchMedia` listener, and only while it is mounted.
    */
-  #initializeResponsiveOptions(): void {
+  #initializeResponsiveOptions(cycle: number): void {
     const readers = optionReaders.get(this);
     if (!readers || readers.size === 0) {
       return;
@@ -1814,7 +1831,7 @@ export class Base<T extends BaseProps = BaseProps> {
       return;
     }
 
-    this.#destroyCallbacks.push(
+    this.#collectCleanup(
       watchBreakpoint((previous) => {
         const fromElement = (attributeName: string) => this.$el.getAttribute(attributeName);
         for (const [name, reader] of readers) {
@@ -1826,6 +1843,7 @@ export class Base<T extends BaseProps = BaseProps> {
           }
         }
       }),
+      cycle,
     );
   }
 
@@ -1902,15 +1920,15 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Register the cleanup value returned by `mounted()`. Async hooks are
-   * awaited; if the instance was destroyed in the meantime, the cleanup runs
-   * right away instead of leaking.
+   * awaited; if their mount cycle ended in the meantime, the cleanup runs
+   * right away instead of leaking into a later cycle.
    */
-  #collectCleanup(result: MountedReturn): void {
+  #collectCleanup(result: MountedReturn, cycle: number): void {
     if (typeof result === 'function') {
-      if (this.#isMounted) {
+      if (this.#isActiveMountCycle(cycle)) {
         this.#destroyCallbacks.push(result);
       } else {
-        // The instance was destroyed while an async `mounted()` was pending:
+        // The originating mount cycle ended while an async result was pending:
         // run the cleanup right away instead of leaking.
         try {
           result();
@@ -1923,13 +1941,13 @@ export class Base<T extends BaseProps = BaseProps> {
     }
     if (Array.isArray(result)) {
       for (const item of result) {
-        this.#collectCleanup(item);
+        this.#collectCleanup(item, cycle);
       }
       return;
     }
     if (result instanceof Promise) {
       result
-        .then((resolved) => this.#collectCleanup(resolved))
+        .then((resolved) => this.#collectCleanup(resolved, cycle))
         .catch((error) => {
           console.error('[base] `mounted()` failed:', error);
           reportToolkitError('lifecycle', error, this.$config.name, this.$el);
