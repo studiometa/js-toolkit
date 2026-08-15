@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Base, type OptionChange } from './Base.js';
+import { Base, MOUNTED_EVENT, type OptionChange } from './Base.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
 import { getInstance, resetDom, settle } from './test-utils.js';
@@ -435,6 +435,61 @@ describe('responsive options', () => {
     await settle();
     expect(grid.changes).toHaveLength(1);
     expect(grid.changes[0]).toMatchObject({ value: 3, previousValue: 1 });
+  });
+
+  it('stops option mount work when an initial effect destroys its cycle', async () => {
+    atSmall();
+    const calls: string[] = [];
+    let destroyOnMount = true;
+    let mountedEvents = 0;
+
+    class SelfDestroyingOption extends Base<{
+      $options: { stop: number; later: number };
+    }> {
+      static config = {
+        name: 'SelfDestroyingInitialOption',
+        options: { stop: Number, later: Number },
+      };
+
+      optionStopChanged(): void {
+        calls.push('stop');
+        if (destroyOnMount) {
+          destroyOnMount = false;
+          this.$destroy();
+        }
+      }
+
+      optionLaterChanged(): void {
+        calls.push('later');
+      }
+
+      mounted(): void {
+        calls.push('mounted');
+      }
+    }
+
+    registerComponent(SelfDestroyingOption);
+    const el = document.createElement('div');
+    el.setAttribute('data-component', 'SelfDestroyingInitialOption');
+    el.addEventListener(MOUNTED_EVENT, () => {
+      mountedEvents += 1;
+    });
+    const addedMediaListeners = await countMediaListeners(async () => {
+      document.body.append(el);
+      await settle();
+    });
+    const instance = getInstance<SelfDestroyingOption>(el, 'SelfDestroyingInitialOption');
+
+    try {
+      expect(calls).toEqual(['stop']);
+      expect(instance.$isMounted).toBe(false);
+      expect(mountedEvents).toBe(0);
+      expect(addedMediaListeners).toBe(0);
+    } finally {
+      // If the assertions run against a broken implementation, release the
+      // subscription which escaped the destroyed first cycle.
+      instance.$mount().$destroy();
+    }
   });
 
   it('reports a suffix that names no breakpoint, which is what v3 markup is', async () => {

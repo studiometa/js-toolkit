@@ -6,6 +6,7 @@ import {
   type ChildrenCollection,
   type DelegatedEvent,
   type GlobalEvent,
+  type MountedReturn,
   type OptionChange,
   type RefEvent,
 } from './Base.js';
@@ -1395,6 +1396,44 @@ describe('$watchChildren', () => {
     expect(collection.items).toEqual([exact, lateExact]);
   });
 
+  it('does not announce or retain a child destroyed from mounted()', async () => {
+    class Child extends Base {
+      static config = { name: 'WatchSelfDestroyingChild' };
+
+      mounted(): void {
+        this.$destroy();
+      }
+    }
+    class Owner extends Base {
+      static config = { name: 'WatchSelfDestroyingOwner' };
+    }
+
+    const root = document.createElement('div');
+    const childEl = root.appendChild(document.createElement('div'));
+    document.body.append(root);
+    const owner = new Owner(root);
+    const collection = owner.$watchChildren(Child);
+    owner.$mount();
+    let announcements = 0;
+    root.addEventListener(MOUNTED_EVENT, () => {
+      announcements += 1;
+    });
+
+    const child = new Child(childEl).$mount();
+    await settle();
+
+    expect(child.$isMounted).toBe(false);
+    expect(announcements).toBe(0);
+    expect(collection.size).toBe(0);
+
+    // Ignore a stale or user-created announcement for an unmounted instance.
+    childEl.dispatchEvent(
+      new CustomEvent(MOUNTED_EVENT, { bubbles: true, detail: { instance: child } }),
+    );
+    expect(collection.size).toBe(0);
+    owner.$terminate();
+  });
+
   it('does not let a deferred constructor sweep outlive termination', async () => {
     class Child extends Base {
       static config = { name: 'WatchTerminatedChild' };
@@ -1851,5 +1890,43 @@ describe('lifecycle', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 60));
     expect(cleaned).toBe(true);
+  });
+
+  it('keeps recursive async cleanups with the mount cycle that produced them', async () => {
+    const calls: string[] = [];
+    const resolvers: Array<(result: MountedReturn) => void> = [];
+    let mounts = 0;
+
+    class Cycled extends Base {
+      static config = { name: 'CycledAsyncCleanup' };
+
+      mounted(): MountedReturn {
+        mounts += 1;
+        return new Promise<MountedReturn>((resolve) => {
+          resolvers.push((result) => resolve(result));
+        });
+      }
+    }
+
+    const el = document.createElement('div');
+    document.body.append(el);
+    const instance = new Cycled(el).$mount();
+    instance.$destroy();
+    instance.$mount();
+
+    // This nested result belongs to cycle 1. Resolving it during cycle 2 must
+    // run it now, not attach it to cycle 2.
+    resolvers[0]([Promise.resolve([() => calls.push('cleanup:1')])]);
+    await settle();
+    expect(mounts).toBe(2);
+    expect(instance.$isMounted).toBe(true);
+    expect(calls).toEqual(['cleanup:1']);
+
+    // A cleanup from the active cycle is still retained until destroy.
+    resolvers[1]([() => calls.push('cleanup:2')]);
+    await settle();
+    expect(calls).toEqual(['cleanup:1']);
+    instance.$destroy();
+    expect(calls).toEqual(['cleanup:1', 'cleanup:2']);
   });
 });

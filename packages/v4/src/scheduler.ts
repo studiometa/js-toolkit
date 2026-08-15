@@ -314,7 +314,13 @@ export class Scheduler {
         delta: this.#clampDelta(frameTime),
       };
       this.#lastFrameTime = frameTime;
-      for (const callback of this.#tickCallbacks) {
+      const callbacks = [...this.#tickCallbacks];
+      for (const callback of callbacks) {
+        // A subscription starts on the next frame. An unsubscribe takes
+        // effect at once, including before the callback's turn in this tick.
+        if (!this.#tickCallbacks.has(callback)) {
+          continue;
+        }
         try {
           callback(props);
         } catch (error) {

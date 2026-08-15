@@ -241,7 +241,11 @@ class ClassScheduler implements Variant {
         delta: this.#clampDelta(frameTime),
       };
       this.#lastFrameTime = frameTime;
-      for (const callback of this.#tickCallbacks) {
+      const callbacks = [...this.#tickCallbacks];
+      for (const callback of callbacks) {
+        if (!this.#tickCallbacks.has(callback)) {
+          continue;
+        }
         try {
           callback(props);
         } catch (error) {
@@ -367,7 +371,11 @@ function createFactoryScheduler(driver: Driver): Variant {
       phase = 'tick';
       const props: TickProps = { time: frameTime, delta: clampDelta(frameTime) };
       lastFrameTime = frameTime;
-      for (const callback of tickCallbacks) {
+      const callbacks = [...tickCallbacks];
+      for (const callback of callbacks) {
+        if (!tickCallbacks.has(callback)) {
+          continue;
+        }
         try {
           callback(props);
         } catch (error) {
@@ -555,9 +563,10 @@ describe('250 reads + 250 writes in one frame', () => {
 });
 
 /**
- * The flush path with no promises in it: a tick fan-out allocates nothing per
- * subscriber, so what is left is the loop, the phase writes, the delta clamp
- * and — in the class — the brand check on every `this.#field` it touches.
+ * The flush path with no promises in it: a tick fan-out allocates one callback
+ * snapshot per frame, so what is left is the copy, the loop, the live-set
+ * checks, the phase writes, the delta clamp and — in the class — the brand
+ * check on every `this.#field` it touches.
  */
 describe('tick fan-out, 100 subscribers, 100 frames', () => {
   function body([scheduler, driver]: [Variant, Driver]) {

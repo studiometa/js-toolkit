@@ -452,10 +452,20 @@ function mountPair(
   if (!isCurrentPair(el, name, ComponentClass, controller)) {
     return;
   }
+  let instance = el.__base__?.get(name);
   try {
-    const instance = el.__base__?.get(name) ?? new ComponentClass(el);
+    if (!instance) {
+      instance = new ComponentClass(el);
+    }
     instance.$mount();
   } catch (error) {
+    // A derived constructor can throw after Base published `this`. Assignment
+    // above only completes for a fully constructed object, so an empty local
+    // identifies construction failure without disturbing an existing instance
+    // or a valid instance whose mount failed.
+    if (!instance) {
+      el.__base__?.delete(name);
+    }
     console.error(`[registry] Failed to mount "${name}":`, error);
     reportToolkitError('mount', error, name, el);
   }
