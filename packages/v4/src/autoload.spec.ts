@@ -228,6 +228,28 @@ describe('the strategy that triggers the import', () => {
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
   });
 
+  it('replaces an inert invalid trigger when data-mount is corrected', async () => {
+    const { name, load, importCount } = defineLazy();
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const el = render(name, { 'data-mount': 'eagre' });
+    registerManifest({ [name]: load });
+    await observed();
+
+    expect(importCount()).toBe(0);
+    expect(el.__base__?.get(name)).toBeUndefined();
+    expect(error).toHaveBeenCalledOnce();
+
+    el.setAttribute('data-mount', 'eagre');
+    await observed();
+    expect(error).toHaveBeenCalledOnce();
+
+    el.setAttribute('data-mount', 'eager');
+    await settle();
+    expect(importCount()).toBe(1);
+    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    error.mockRestore();
+  });
+
   it('hands a parameterized reversible override to the registry after the import', async () => {
     const { name, load, importCount } = defineLazy();
     const el = render(name, { 'data-mount': 'in-view:200px 0px' }, OFFSCREEN);

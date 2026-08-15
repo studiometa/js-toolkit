@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type BaseConfig } from './Base.js';
+import { JS_TOOLKIT_ERROR_EVENT, type ToolkitErrorDetail } from './errors.js';
 import { registerComponent } from './registry.js';
 import { resetDom, settle } from './test-utils.js';
 
@@ -60,7 +61,10 @@ async function observed(): Promise<void> {
   }
 }
 
-afterEach(resetDom);
+afterEach(async () => {
+  vi.restoreAllMocks();
+  await resetDom();
+});
 
 describe('eager (default)', () => {
   it('mounts as soon as the element is in the DOM', async () => {
@@ -269,6 +273,72 @@ describe('dynamic data-mount', () => {
     el.setAttribute('data-mount', 'eager');
     await settle();
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
+  });
+});
+
+describe('invalid data-mount', () => {
+  it.each(['eagre', 'media:', 'visible:not-a-root-margin'])(
+    'keeps %j inert, reports it once, and accepts a later correction',
+    async (strategy) => {
+      const { name } = defineTracked();
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const events: CustomEvent<ToolkitErrorDetail>[] = [];
+      const el = document.createElement('div');
+      el.setAttribute('data-component', name);
+      el.setAttribute('data-mount', strategy);
+      el.addEventListener(JS_TOOLKIT_ERROR_EVENT, (event) => {
+        event.preventDefault();
+        events.push(event as CustomEvent<ToolkitErrorDetail>);
+      });
+      document.body.append(el);
+
+      await observed();
+
+      expect(el.__base__?.get(name)).toBeUndefined();
+      expect(error).toHaveBeenCalledOnce();
+      const failure = error.mock.calls[0]?.[1];
+      expect(failure).toBeInstanceOf(Error);
+      expect(error).toHaveBeenCalledWith(
+        `[mount-strategy] Failed to apply "${strategy}":`,
+        failure,
+      );
+      expect(events).toHaveLength(1);
+      expect(events[0]).toMatchObject({
+        target: el,
+        cancelable: false,
+        defaultPrevented: false,
+      });
+      expect(events[0].detail).toEqual({ stage: 'mount', error: failure, component: name });
+
+      // A same-value mutation reconciles the element, but the inert controller
+      // remains current and must not report or schedule itself again.
+      el.setAttribute('data-mount', strategy);
+      await observed();
+      expect(error).toHaveBeenCalledOnce();
+      expect(events).toHaveLength(1);
+
+      el.setAttribute('data-mount', 'eager');
+      await settle();
+      expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    },
+  );
+
+  it('does not stop a valid sibling in the same reconciliation batch', async () => {
+    const broken = defineTracked();
+    const healthy = defineTracked();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const brokenEl = document.createElement('div');
+    brokenEl.setAttribute('data-component', broken.name);
+    brokenEl.setAttribute('data-mount', 'in-view:not-a-root-margin');
+    const healthyEl = document.createElement('div');
+    healthyEl.setAttribute('data-component', healthy.name);
+    document.body.append(brokenEl, healthyEl);
+
+    await observed();
+
+    expect(brokenEl.__base__?.get(broken.name)).toBeUndefined();
+    expect(instanceOf(healthyEl, healthy.name)?.$isMounted).toBe(true);
   });
 });
 

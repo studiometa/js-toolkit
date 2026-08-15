@@ -286,9 +286,11 @@ A suffix naming no configured breakpoint is ignored and warned about once, inclu
 | `in-view[:<rootMargin>]` | it intersects the viewport       | yes        |
 | `idle`                   | the main thread goes idle        | no         |
 | `interaction`            | the user first aims at it        | no         |
-| `media:<query>`          | the query matches                | yes        |
+| `media:<query>`          | the non-empty query matches      | yes        |
 
-A component declares its default with `config.mountStrategy`; any element overrides it with `data-mount`. The optional `visible:` and `in-view:` suffix is passed verbatim as `IntersectionObserverInit.rootMargin`, so `visible:200px`, `in-view:200px 0px` and `in-view:-10% 0px` use the same strategy path as their bare forms. An empty suffix is the bare strategy. No threshold, root element, JSON options or second attribute is part of this grammar.
+A component declares its default with `config.mountStrategy`; any element overrides it with `data-mount`. The accepted values are exactly `eager`, `visible`, `visible:`, `visible:<rootMargin>`, `in-view`, `in-view:`, `in-view:<rootMargin>`, `idle`, `interaction` and `media:<non-empty query>`. A viewport suffix is passed verbatim as `IntersectionObserverInit.rootMargin`, so `visible:200px`, `in-view:200px 0px` and `in-view:-10% 0px` use the same strategy path as their bare forms; the empty suffix stays compatible with the bare strategy. No threshold, root element, JSON options or second attribute is part of this grammar.
+
+An unknown value, an empty media query or a `rootMargin` rejected by the browser leaves the component unmounted instead of falling back to `eager`. The console diagnostic remains, and the registry dispatches one non-cancelable `js-toolkit:error` from the component element with the `mount` stage, component name and original error. The inert controller remains current for an unchanged invalid declaration, so reconciliation does not retry or report it again; changing the attribute replaces that controller and applies the corrected strategy normally. A failed strategy is isolated to its element/component pair and cannot stop the rest of a registry reconciliation.
 
 The issue's open questions, answered:
 
