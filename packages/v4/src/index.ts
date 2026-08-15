@@ -12,18 +12,15 @@
  * 3. Auto-mount on DOM insertion, destroy on ejection.
  * 4. Parents listen to child events — `$emit` bubbles, `on<Child><Event>`
  *    handlers resolve through event delegation on the parent root element,
- *    `onWindow<Event>` / `onDocument<Event>` cover what a subtree can never
- *    see, and negotiated events let a listener take part in a step instead of
- *    only hearing about it: `$domUpdate()` hands a DOM change to an ancestor's
- *    transition, `$emitExtendable()` holds a step open until it settles.
+ *    and `onWindow<Event>` / `onDocument<Event>` cover what a subtree can
+ *    never see.
  * 5. Children advertise their existence through namespaced lifecycle
  *    announcements, packaged as `$watchChildren()`,
  *    plus a provide/inject context primitive for shared reactive state.
  * 6. One frame-aligned scheduler — three in-frame phases (tick → read →
- *    write) plus an off-frame `background` lane — with cancelable handles,
- *    error isolation, and a `viewTransition` lane. It is also the clock:
- *    services subscribe to its tick instead of owning a
- *    `requestAnimationFrame` loop.
+ *    write) plus an off-frame `background` lane — with cancelable handles and
+ *    error isolation. It is also the clock: services subscribe to its tick
+ *    instead of owning a `requestAnimationFrame` loop.
  * 7. Lazy, reference-counted services, one instance per observed target —
  *    subscribed by hand, or through the `withRaf`/`withScroll`/`withResize`/
  *    `withScrollProgress`/`withPointer`/`withDrag`/`withInView` mixins and
@@ -104,15 +101,6 @@ export {
   type WebpackContextLike,
 } from './manifest.js';
 export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
-export {
-  type DomMutation,
-  type DomUpdateDetail,
-  type DomUpdateRunner,
-  type DomUpdateTransitioner,
-  type ExtendableDetail,
-  type ExtendableTransitioner,
-  type Extension,
-} from './negotiated-events.js';
 export {
   registerComponent,
   registerComponents,
@@ -227,4 +215,3 @@ export {
   type SwapOptions,
   type SwapWrap,
 } from './swap.js';
-export { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';

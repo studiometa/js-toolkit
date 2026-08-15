@@ -59,6 +59,13 @@ type RemovedHandlerRegistration = import('@studiometa/js-toolkit-v4').HandlerReg
 const removedHandlerRegistrationTypeAssertion = null as unknown as RemovedHandlerRegistration;
 void removedHandlerRegistrationTypeAssertion;
 
+// @ts-expect-error view transition orchestration is not a core type.
+type RemovedViewTransitionUpdate = import('@studiometa/js-toolkit-v4').ViewTransitionUpdate;
+// @ts-expect-error negotiated DOM updates are not a core protocol.
+type RemovedDomUpdateDetail = import('@studiometa/js-toolkit-v4').DomUpdateDetail;
+void (null as unknown as RemovedViewTransitionUpdate);
+void (null as unknown as RemovedDomUpdateDetail);
+
 describe('the package entry points', () => {
   it('serves the utils from the /utils subpath', () => {
     expect(clamp(5, 0, 1)).toBe(1);
@@ -70,10 +77,11 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(57);
+    expect(Object.keys(root)).toHaveLength(56);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
+      'viewTransition',
       'SOURCE',
       'HANDLER_REGISTRATIONS',
       'MOUNTED_EVENT',
@@ -88,6 +96,7 @@ describe('the package entry points', () => {
   it('does not expose removed constant and symbol subpaths', () => {
     const exports = packageManifest.exports as Record<string, unknown>;
     for (const removed of [
+      './viewTransition',
       './SOURCE',
       './HANDLER_REGISTRATIONS',
       './MOUNTED_EVENT',
@@ -98,6 +107,12 @@ describe('the package entry points', () => {
       expect(exports).not.toHaveProperty(removed);
     }
     expect(exports).toHaveProperty('./EVENTS');
+  });
+
+  it('does not expose UI orchestration methods on Base', () => {
+    expect(Base.prototype).not.toHaveProperty('$domUpdate');
+    expect(Base.prototype).not.toHaveProperty('$emitExtendable');
+    expect(Base.prototype).not.toHaveProperty('$viewTransition');
   });
 
   it('serves drag controls and types from the public entry points', () => {

@@ -1,6 +1,14 @@
 import { Base } from '../../src/index.js';
 import type { Transitionable } from './Transition.js';
 
+async function updateWithViewTransition(update: () => void): Promise<void> {
+  if (typeof document.startViewTransition === 'function') {
+    await document.startViewTransition(update).finished;
+  } else {
+    update();
+  }
+}
+
 export interface ViewTransitionProps {
   $options: { viewTransitionName: string; enterTo: string; leaveTo: string };
   $emits: {
@@ -17,12 +25,9 @@ export interface ViewTransitionProps {
  * ViewTransition — the same interface as `Transition`, animated by the
  * native View Transitions API.
  *
- * This is the port that shrank the most, and it did so without a single
- * decision to make: @studiometa/ui ships its own batching scheduler for this
- * (`ViewTransition/scheduler.ts` — microtask-batched updates flushed into one
- * `document.startViewTransition()`, batches serialised, synchronous
- * fallback). v4 moved that into core, so the component is just
- * `this.$viewTransition(update)` and the whole scheduler file disappears.
+ * The migration calls `document.startViewTransition()` directly and applies
+ * the update immediately when the platform API is absent. Its former batching
+ * and serialization scheduler is UI choreography and does not move into core.
  */
 export class ViewTransition extends Base<ViewTransitionProps> implements Transitionable {
   static config = {
@@ -52,7 +57,7 @@ export class ViewTransition extends Base<ViewTransitionProps> implements Transit
     this.state = 'entering';
     this.$emit('enter');
     this.$emit('enter-start');
-    await this.$viewTransition(() => {
+    await updateWithViewTransition(() => {
       this.#toggleClasses(leaveTo, enterTo);
     });
     this.$emit('enter-end');
@@ -63,7 +68,7 @@ export class ViewTransition extends Base<ViewTransitionProps> implements Transit
     this.state = 'leaving';
     this.$emit('leave');
     this.$emit('leave-start');
-    await this.$viewTransition(() => {
+    await updateWithViewTransition(() => {
       this.#toggleClasses(enterTo, leaveTo);
     });
     this.$emit('leave-end');

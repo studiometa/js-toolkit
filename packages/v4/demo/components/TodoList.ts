@@ -1,5 +1,13 @@
 import { Base, createContext, signal, type DelegatedEvent, type Signal } from '../../src/index.js';
 
+function updateWithViewTransition(update: () => void): void {
+  if (typeof document.startViewTransition === 'function') {
+    document.startViewTransition(update);
+  } else {
+    update();
+  }
+}
+
 /**
  * The TodoList demo from the playground: registry auto-mount, delegation,
  * `$watchChildren`, provide/inject, and native view transitions.
@@ -61,7 +69,7 @@ export class TodoList extends Base<{
   }
 
   onTodoItemRemove({ target }: DelegatedEvent<TodoItem>): void {
-    this.$viewTransition(() => target.$el.remove());
+    updateWithViewTransition(() => target.$el.remove());
   }
 
   onSubmit(event: Event): void {
@@ -80,6 +88,6 @@ export class TodoList extends Base<{
       span.textContent = title;
     }
     input.value = '';
-    this.$viewTransition(() => list.append(li));
+    updateWithViewTransition(() => list.append(li));
   }
 }

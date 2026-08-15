@@ -9,7 +9,16 @@ assert.equal(Base, toolkit.Base);
 assert.equal(BaseDefault, Base);
 assert.equal(EVENTS, toolkit.EVENTS);
 assert.equal(EVENTSDefault, EVENTS);
-assert.equal(EVENTS.component.mounted, 'js-toolkit:component:mounted');
+assert.deepEqual(EVENTS, {
+  component: {
+    mounted: 'js-toolkit:component:mounted',
+    destroyed: 'js-toolkit:component:destroyed',
+  },
+  error: 'js-toolkit:error',
+});
+assert(Object.isFrozen(EVENTS));
+assert(Object.isFrozen(EVENTS.component));
+assert(!('viewTransition' in toolkit));
 assert.equal(useRaf, toolkit.useRaf);
 assert.equal(useRafDefault, useRaf);
 assert.equal(clampDefault, clamp);

@@ -23,6 +23,7 @@ export {
   type DataValue,
 } from './registry.js';
 export {
+  DATA_DOM_UPDATE_EVENT,
   emitDomUpdate,
   runWrapped,
   warn,

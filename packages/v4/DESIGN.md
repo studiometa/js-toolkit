@@ -410,64 +410,11 @@ Four things are decided, and each of them is the answer to "what would surprise 
 
 Listener options (`once`, `passive`) are deliberately **not** part of this. A method name has nowhere to put them, and the question is the same one the `Action` port raised for its own bindings — it belongs to whatever answers it there, not to this.
 
-### Negotiated events — `$domUpdate()` and `$emitExtendable()` — implemented
+### UI choreography stays outside core
 
-The strongest instance of this objective is not a notification but a **negotiation**: a component announces a step _before_ it happens, and anything up the tree may take part in it. There are exactly two things a listener can ask for, and they are the two modes of one mechanism.
+`$emit()` remains a component notification: it dispatches one cancelable bubbling `CustomEvent`, carries one payload object or the platform `null`, and returns the event so callers can read `defaultPrevented`. Core does not negotiate DOM-update runners, delay a component's next step, or schedule native view transitions.
 
-| mode          | asks for   | registers with | keeps                 | on failure                     |
-| ------------- | ---------- | -------------- | --------------------- | ------------------------------ |
-| **take over** | the action | `wrap(runner)` | one runner, last wins | the mutation is applied anyway |
-| **delay**     | the moment | `waitUntil(x)` | many, all awaited     | the step goes ahead anyway     |
-
-```js
-// Take over: the mutating component announces instead of mutating.
-await this.$domUpdate(() => this.$el.replaceChildren(fragment));
-this.$on(EVENTS.dom.update, ({ detail }) => detail.wrap(viewTransition));
-
-// Delay: the choreography announces its step and waits for whoever asked.
-async close() {
-  await this.$emitExtendable('close');
-  this.$el.close();
-}
-this.$on('close', ({ detail }) => detail.waitUntil(this.leave()));
-```
-
-**@studiometa/ui grew this protocol twice, independently.** Its `utils/dom-update.ts` (`wrap`, consumed by `DataBind` and `Fetch`, wrapped by `MotionView`) and `Dialog.__emitExtendable` (`waitUntil`, extended by `MotionView` again) have the same transport, the same synchronous-only window, near-identical warning wording and the same duck typing — two spellings of "let anything up the tree negotiate a step". Both collapse onto this one primitive: `Dialog` becomes `await this.$emitExtendable('close')`, `Fetch` and `DataBind` become `await this.$domUpdate(mutate)`, and each drops its private copy of the window, the warning and the normalization. In the code the two modes are one function, `negotiate()`, and the only thing that differs between them is what `accept` does with a registration — overwrite the single one, or push onto the list.
-
-Why it belongs in core rather than in a component library:
-
-- **It is ambient interception through DOM ancestry** — no registration, no handshake, no ownership. The emitter never learns who answered, and the answerer never learns what the step does. That is this section's thesis applied to the one thing components could not previously delegate.
-- **The alternative is coupling.** Without it, animating a fetched replacement means the mutator knowing about the transition, or the transition reaching into the mutator; holding a dialog open means the dialog knowing its contents animate. Both are the `$closest()`-and-poke shape the flat topology exists to remove.
-- **It closes the gap left by section 9.** `exit` and `layout` animations need a hook _before_ the DOM changes, and a `MutationObserver` fires after the element is gone. An announced step is that hook, and it is the only one the DOM can give us.
-
-What the v4 form changes:
-
-- **The detail is one object** — `event.detail.wrap(…)`, not `event.detail[0].wrap(…)`. This was once a difference between a protocol event and a component's own, and it is not one any more: `$emit()` carries one payload object too, so a negotiated event is shaped exactly like every other event in v4. ui dispatched raw for a stated reason that was not the real one (`Fetch` overrides `$emit` with a string-only signature that would mangle a `CustomEvent`, a wart v4 does not have), and the shape reason that did hold has now dissolved.
-
-  **Delegation is not the price of that.** A namespaced framework event uses `@on('Fetch', EVENTS.dom.update)` because a magic method name cannot spell its colons. Decorated handlers are bound by event _type_ on the root element and walk up from `event.target`, so they never inspect how the event was constructed. The delegated payload is `event.detail` verbatim, so a handler reads `{ payload: { wrap } }` for exactly what a raw listener reads as `event.detail` — one shape, no `Array.isArray` branch, framework protocol details included.
-
-- **The protocol events keep their own dispatch path, for the one reason that survives.** They are framework events rather than a component's own, so they are deliberately absent from `$emits` — a component must not have to declare a protocol in order to announce through it. `$emit()` is precisely the method that forbids that: a component declaring `$emits` may only emit the names it listed. Routing `$domUpdate()` and `$emitExtendable()` through `$emit()` would therefore need a cast at every call — trading a documented bypass for a hidden one.
-
-  So the split is drawn one level down instead. A private `#dispatch(event, detail)` builds and sends the event in one place. `$emit()` is `#dispatch()` plus the `$emits` type constraint; the negotiated events are `#dispatch()` without it. Nothing is duplicated, nothing is cast, and the constraint is not weakened. The framework lifecycle events in `EVENTS.component` and the private context transport sit outside `$emit()` for the same reason (`EVENTS.component.destroyed` also dispatches on `document`, its element being gone, so it does not share the primitive).
-
-  One consequence is deliberate: a component overriding `$emit` does not intercept these. A framework protocol is not a component's own event.
-
-- **`defaultPrevented` is ignored** (part of open question 2, for these events): the step is announced, not proposed. Honouring cancelation would make "the emitter's work always completes" false, and a listener that wants nothing to happen says so through its own state.
-- **Registration is valid only while the event dispatches,** in both modes. A listener that keeps the function and calls it later is warned and ignored, because by then the step has already happened — handing a change to a runner at that point would apply it twice or not at all. The warning is built from the mode's key and the event's name, so there is one wording rather than two.
-- **The duck-typed method is the one that names the event for the object:** `update(mutate)` for a DOM change, `close()` for a dialog's `close` step. This is the `on<Child><Event>` rule again — resolve by name, do not add an option that names a thing. ui's `Dialog` mapped `open`→`enter()` and `close`→`leave()`, a Dialog-specific vocabulary the core rule replaces; `waitUntil()` also accepts a plain thenable and a plain function, so `waitUntil(() => this.enter())` covers any pair of method names with nothing to configure.
-- **The emitter's work always completes.** A runner that throws, rejects _or resolves without ever calling `apply`_ loses the animation, never the change — ui covered only the first two, so a runner that forgot to apply silently dropped the update. An extension that rejects is swallowed, because a failing extension must never leave a dialog painted with the scroll locked. Failures go through `reportError()` (section 8); misuse — a late registration, a runner that never applied — through `console.warn`.
-- **The last claim wins in take-over mode,** as in ui. Bubbling reaches the nearest ancestor first, and the nearest is not necessarily the one that should animate: an outer component owning the whole region takes over deliberately. **Delay mode keeps every registration**, and that difference is intrinsic: replacing an action is exclusive, postponing one is not — two components animating out must both be waited for.
-- **Unclaimed is synchronous.** With nobody listening, `$domUpdate()`'s mutation runs before the returned promise exists, so a reactive pipeline can read the DOM back on the next line — which is what `DataBind`'s synchronous binding pass requires.
-
-**Composition with the two runners core already ships is the point of the function shape.** A `DomUpdateRunner` is `(apply) => void | Promise<unknown>`, so:
-
-| claim                                         | effect                                                                                                                                            |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `wrap(viewTransition)`                        | the change plays as a batched native view transition (section 7), with no adapter — `viewTransition(update)` already has the runner's exact shape |
-| `wrap((apply) => this.$write(apply).promise)` | the change lands in the frame's `write` phase, batched with every other write and canceled with the claiming instance                             |
-| `wrap(motionView)`                            | the duck-typed transitioner form: any object with `update(mutate)`, which is what `MotionView` in `@studiometa/ui-motion` already is              |
-
-Neither runner is the default, and that is deliberate: `$domUpdate()` with nobody listening must stay a plain synchronous mutation. Choosing a lane is the ancestor's decision, because the ancestor is the one that knows whether the region is animating.
+Those flows belong to the UI code that needs them. The Data migration keeps its DOM-update event and runner local to that module. The transition migration and demo call `document.startViewTransition()` directly and apply the update immediately when the platform API is absent. This keeps core focused on component events, lifecycle, registry, context, services, and DOM scheduling.
 
 ## 5. Children advertise their existence
 
@@ -618,7 +565,7 @@ Each value decorator works on a plain field and on an `accessor` field — the t
 
 ## 7. One scheduler — a stronger `domScheduler`
 
-v3.9 has four independent scheduling mechanisms: `domScheduler` (microtask flush), `RafService` (its own rAF loop), `SmartQueue` (nextTick waiter, 40 ms budget for lifecycle work), and the registry's MutationObserver callback. @studiometa/ui adds a `viewTransition` scheduler on top. v4 replaces them with **one frame-aligned scheduler that is the framework's clock**.
+v3.9 has four independent core scheduling mechanisms: `domScheduler` (microtask flush), `RafService` (its own rAF loop), `SmartQueue` (nextTick waiter, 40 ms budget for lifecycle work), and the registry's MutationObserver callback. v4 replaces them with **one frame-aligned scheduler that is the framework's clock**.
 
 ### Weaknesses of the current implementation
 
@@ -674,16 +621,6 @@ const unsubscribe = scheduler.tick(({ time, delta }) => { … });
 - Tick subscribers are **not queued work**, so `whenIdle()` ignores them. A page with a live scroll animation would otherwise never be idle, and the test helper `settle()` would never return.
 - A throwing tick callback is reported and skipped, never unsubscribed: the subscription belongs to whoever created it, not to the frame that broke.
 
-### Native View Transitions move into core
-
-The `viewTransition(update)` helper and its batching scheduler currently live in @studiometa/ui (`ViewTransition/scheduler.ts`: microtask-batched updates flushed into a single `document.startViewTransition()`, batches serialized, synchronous fallback when unsupported). In v4 this becomes a lane of the core scheduler, because a view transition is a scheduling concern — `startViewTransition` snapshots the DOM, so its timing must coordinate with pending reads/writes:
-
-- Core exports `viewTransition(update): Promise<void>` (same shape and progressive-enhancement contract as today's ui helper).
-- Updates queued in the same flush batch into **one** `startViewTransition()` call, so independent elements (backdrop + panel) animate as one coordinated transition. Batches stay serialized behind the in-flight transition.
-- The scheduler flushes pending `write` tasks **before** the snapshot is captured, and writes scheduled from inside the update callback run within the transition. No half-applied frames in the "old" snapshot.
-- Base sugar: `this.$viewTransition(fn)`, instance-owned and cancel-aware like `$read`/`$write`.
-- @studiometa/ui keeps only the declarative `ViewTransition` component, rebuilt on the core helper; Toaster/Dialog/Frame consume it unchanged.
-
 ### A known future slot: measurement between `read` and `write`
 
 Motion has a phase between read and write — `resolveKeyframes` — that owns the unavoidable write/read/write/read pass some animations need to resolve their keyframes, amortised across every animating component so the whole page pays one layout instead of one each. It is where Framer's measured 2.5–6× came from, and it is the right shape for measurement-heavy mounting.
@@ -694,7 +631,6 @@ Nothing in v4 needs it today, so nothing implements it: this project does not ad
 
 - ~~`afterWrite` timing~~ **Decided:** removed. rAF runs before style and layout, so no in-frame phase can observe post-layout geometry; a `ResizeObserver` callback is the only in-frame hook that can, and everything else measures in the next frame's `read`. An "after paint" phase (double rAF / `requestPostAnimationFrame`-style) can be added later on its own merits, under a name that does not promise same-frame layout.
 - ~~Idle-frame behavior~~ **Decided:** no permanent rAF loop. The scheduler wakes on the first scheduled in-frame task or tick subscription and stops when both are gone.
-- Whether the frame loop keeps ticking during a running view transition (rendering is frozen while the snapshot is captured; long transitions should not starve `background` work — less pressing now that the lane runs off-frame).
 
 ## 8. Services — lazy, reference-counted — implemented
 
@@ -826,7 +762,7 @@ This is already the de facto state: `src/` contains no animation utility of any 
 
 **Out of core, into a separate `ui-animation` package:** time-based playback, stagger, sequencing, morphing and text splitting. Springs were on this list and came off it (2026-08-12): `spring()` is forty lines of pure maths with no player, no registry and no scheduling of its own, and `smoothTo()` is the one primitive the ported components need to smooth a value towards a target. What belongs outside is the _engine_ — a timeline, playback controls, a per-element registry — not a function that advances one number by one step. Two entry points over one package — Motion as declarative components (`data-component="Motion"`, its own props as `data-option-*`), GSAP as a lifecycle/scoping decorator (`gsap.context()` bound to the mount cycle) plus thin `Gsap`/`GsapTimeline` components. Engine-specific vocabulary in both cases: Motion's props are its API and port faithfully, GSAP's API is code and only ever maps lossily onto attributes.
 
-**Not the engine's job:** `exit` and `layout`/`layoutId` need framework-owned rendering, which the DOM does not give us — a MutationObserver fires after the element is gone and after layout changed. Native View Transitions already solve both, and are in core (section 7).
+**Not the engine's job:** `exit` and `layout`/`layoutId` need UI-owned rendering, which the DOM does not give us — a MutationObserver fires after the element is gone and after layout changed. UI code can use Native View Transitions for both without adding choreography to core.
 
 ## 10. DOM content swapping — `swap()`, one primitive in core
 
@@ -873,15 +809,22 @@ Measured with esbuild (minify + gzip -9):
 
 So the primitive itself costs about half a kilobyte and the dependency costs about two, roughly doubling the flattened `./swap` graph. The import is static: a dynamic `import('morphdom')` would keep `replace` mode free, at the price of a CDN round-trip precisely when `morph` is used, and 2 kB is not worth buying that with a second network hop. The cost is contained instead by the subpath layout — `morphdom` is reachable only through `swap()`, so a page which never swaps never downloads it. `src/index.ts` says so in place of its former "Zero dependencies."
 
-### The seam for the negotiable event
+### The caller-owned wrapper seam
 
-`swap()` announces nothing on its own. The `wrap` option is the whole seam: it receives the swap's single mutation and decides when it runs.
+`swap()` announces nothing on its own. The `wrap` option receives the swap's single mutation and lets the caller decide when it runs.
 
 ```js
-await swap(el, html, { mode, wrap: (mutate) => viewTransition(mutate) });
+await swap(el, html, {
+  mode,
+  wrap: async (mutate) => {
+    await leave();
+    mutate();
+    await enter();
+  },
+});
 ```
 
-The negotiable `$domUpdate` event (a separate piece of work) slots in as the producer of that wrapper and nothing else. Its `waitUntil`/`wrap` negotiation returns a runner; the caller passes that runner as `wrap` and the swap is delayed, wrapped or transitioned by whoever listened, exactly as ui's `Fetch.update` does today with `emitDomUpdate` + `runWrapped`. Resilience policy — what happens when a negotiated runner rejects, whether the update is applied anyway — stays with the negotiator, where ui already keeps it (`runWrapped` lives next to `emitDomUpdate`, not next to the swap). The swap stays a pure DOM operation with one hole in it.
+Core does not create a protocol event or provide a runner for this seam. Resilience policy — what happens when a wrapper rejects, whether the update is applied anyway — stays with the UI caller. The swap stays a pure DOM operation with one caller-owned hole in it.
 
 `swap()` is a free function, not a `Base` method: a swap target is frequently an element found by `id` with no component on it, and the primitive has no use for `this`.
 

@@ -292,7 +292,6 @@ async function run(copyA, copyB) {
     const sameEventValues =
       copyA.EVENTS.component.mounted === copyB.EVENTS.component.mounted &&
       copyA.EVENTS.component.destroyed === copyB.EVENTS.component.destroyed &&
-      copyA.EVENTS.dom.update === copyB.EVENTS.dom.update &&
       copyA.EVENTS.error === copyB.EVENTS.error;
 
     const decoratorInitializers = [];

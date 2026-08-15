@@ -10,7 +10,6 @@ import {
 import { domVersion, watchElementAttributes, type AttributeChange } from './dom-mutations.js';
 import { reportToolkitError } from './errors.js';
 import { EVENTS } from './events.js';
-import { domUpdate, emitExtendable, type DomMutation } from './negotiated-events.js';
 import { HANDLER_REGISTRATIONS } from './protocol-symbols.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import {
@@ -24,7 +23,6 @@ import type { MountStrategy } from './mount-strategies.js';
 import { memo } from './utils/memo.js';
 import { selectorFor } from './utils/selectors.js';
 import { kebabCase, pascalCase } from './utils/strings.js';
-import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
 
 const REGEX_HANDLER = /^on[A-Z]/;
 
@@ -1340,9 +1338,8 @@ export class Base<T extends BaseProps = BaseProps> {
    * Build and dispatch a component event: bubbling, carrying one `detail`, and
    * cancelable by default.
    *
-   * The single place any of that is decided. `$emit()` is this plus the
-   * `$emits` type constraint; the negotiated protocol events are this without
-   * it — see `#negotiated()` for why they must not have it.
+   * The single place any of that is decided. `$emit()` adds the `$emits` type
+   * constraint.
    */
   #dispatch(event: string, detail: unknown, cancelable = true): CustomEvent<unknown> {
     const dispatched = new CustomEvent(event, { bubbles: true, cancelable, detail });
@@ -1668,109 +1665,6 @@ export class Base<T extends BaseProps = BaseProps> {
   /** Schedule a DOM write; canceled automatically when the instance unmounts. */
   $write<T>(fn: () => T): ScheduledTask<T> {
     return this.#track(defaultScheduler.write(fn));
-  }
-
-  /** Run a DOM update inside a batched native view transition. */
-  $viewTransition(update: ViewTransitionUpdate): Promise<void> {
-    return viewTransition(update);
-  }
-
-  /**
-   * Dispatch a negotiated event: bubbling, with the same payload object as
-   * `detail`. It uses the same `#dispatch()` primitive as `$emit()`.
-   * `js-toolkit:dom:update` and the steps of a
-   * choreography are shaped exactly like a component's own events.
-   *
-   * What it deliberately does **not** go through is the public `$emit()`, and
-   * the payload shape is not the reason — that difference is gone. The reason
-   * is the type constraint `$emit()` adds: a component declaring `$emits` may
-   * only emit the names it listed, and a component must not have to declare a
-   * framework protocol in order to announce through it. Routing here would
-   * need a cast at every call — still a bypass, but a hidden one a reader has
-   * to spot, rather than a named one. The three other protocol events —
-   * `js-toolkit:component:mounted`, `js-toolkit:component:destroyed`, and the
-   * private context request — sit
-   * outside `$emit()` for the same reason.
-   *
-   * Delegation is unaffected: `on<Child><Event>()` handlers are bound by event
-   * type on the root element and walk up from `event.target`, so they never
-   * see how the event was built, and a handler reads `{ payload: { wrap } }`
-   * for exactly what a raw listener reads as `event.detail`.
-   *
-   * A component overriding `$emit` does not intercept these, which follows
-   * from the above and is welcome — a framework protocol is not a component's
-   * own event.
-   */
-  #negotiated(event: string): (detail: Record<string, unknown>) => void {
-    return (detail) => {
-      this.#dispatch(event, detail, false);
-    };
-  }
-
-  /**
-   * Announce an imminent DOM change, let an ancestor take it over, and apply it.
-   *
-   * A component that is about to mutate the DOM — insert a fetched fragment,
-   * toggle a `<template>`, remove a node — runs the mutation through this
-   * instead of doing it directly. The bubbling `js-toolkit:dom:update` event announces it
-   * first, and any ancestor may claim it synchronously with
-   * `detail.wrap(runner)`, at which point the change runs through that runner:
-   *
-   *     // In the mutating component.
-   *     await this.$domUpdate(() => this.$el.replaceChildren(fragment));
-   *
-   *     // In any ancestor, however far up.
-   *     this.$on(EVENTS.dom.update, ({ detail }) => detail.wrap(viewTransition));
-   *
-   *     // Or, as a delegated child handler — the same payload.
-   *     @on('Fetch', EVENTS.dom.update)
-   *     onFetchDomUpdate({ payload: { wrap } }) { wrap(viewTransition); }
-   *
-   * The event bubbles and is not cancelable: the change is announced, not
-   * proposed, and a listener that wants nothing to happen has to say so through
-   * its own state.
-   *
-   * Nobody claiming is synchronous — the mutation has run by the time this
-   * returns — and the promise resolves once the change has been applied,
-   * whether through a runner or directly. The mutation is never lost: a runner
-   * that throws, rejects or forgets to call `apply` still gets the change
-   * applied, exactly once, with the failure reported.
-   *
-   * @param mutate The DOM change to announce and apply.
-   * @param detail Extra context for the listeners, merged into `event.detail`.
-   */
-  $domUpdate(mutate: DomMutation, detail?: Record<string, unknown>): Promise<void> {
-    return domUpdate(this.#negotiated(EVENTS.dom.update), mutate, detail);
-  }
-
-  /**
-   * Announce a step of a choreography, and wait for everything up the tree
-   * that asked to hold it open.
-   *
-   * The delay half of the same mechanism `$domUpdate()` uses: a listener does
-   * not replace the step, it postpones what comes after it. A dialog stays
-   * painted while its contents animate out, without knowing that anything
-   * animates:
-   *
-   *     // In the component running the choreography.
-   *     async close() {
-   *       await this.$emitExtendable('close');
-   *       this.$el.close();
-   *     }
-   *
-   *     // In anything above it, or in plain JavaScript on the page.
-   *     this.$on('close', ({ detail }) => detail.waitUntil(this.leave()));
-   *
-   * `waitUntil()` takes something to await, something to call, or a duck-typed
-   * object exposing a method named after the step. It accepts **every**
-   * registration and awaits all of them, and no rejection propagates: a failing
-   * extension is reported, and the choreography always completes.
-   *
-   * @param event  The step's event name.
-   * @param detail Extra context for the listeners, merged into `event.detail`.
-   */
-  $emitExtendable(event: string, detail?: Record<string, unknown>): Promise<void> {
-    return emitExtendable(this.#negotiated(event), event, detail);
   }
 
   #track<T>(task: ScheduledTask<T>): ScheduledTask<T> {

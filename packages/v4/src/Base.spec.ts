@@ -63,6 +63,37 @@ describe('$id', () => {
   });
 });
 
+describe('framework lifecycle events', () => {
+  it('keeps mount and destroy announcements non-cancelable', () => {
+    const el = document.createElement('div');
+    document.body.append(el);
+    const events: Event[] = [];
+    const observe = (event: Event) => {
+      event.preventDefault();
+      events.push(event);
+    };
+
+    el.addEventListener(EVENTS.component.mounted, observe);
+    document.addEventListener(EVENTS.component.destroyed, observe);
+    try {
+      new Base(el).$mount().$terminate();
+    } finally {
+      document.removeEventListener(EVENTS.component.destroyed, observe);
+    }
+
+    expect(
+      events.map(({ type, cancelable, defaultPrevented }) => ({
+        type,
+        cancelable,
+        defaultPrevented,
+      })),
+    ).toEqual([
+      { type: EVENTS.component.mounted, cancelable: false, defaultPrevented: false },
+      { type: EVENTS.component.destroyed, cancelable: false, defaultPrevented: false },
+    ]);
+  });
+});
+
 describe('$emit and delegation', () => {
   it('delegates bubbled child $emit to on<Child><Event> with a real click', async () => {
     const root = renderTodoList();
@@ -84,16 +115,20 @@ describe('$emit and delegation', () => {
 
     const li = root.querySelector('[data-component="TodoItem"]');
     const instance = getInstance(li, 'TodoItem');
-    const seen: unknown[] = [];
+    let observed: CustomEvent | undefined;
     root.addEventListener('ping', (event) => {
-      seen.push((event as CustomEvent).detail);
+      observed = event as CustomEvent;
       event.preventDefault();
     });
 
     const event = instance.$emit('ping', { count: 1, label: 'two' });
-    // The detail is the payload object itself, not a wrapper around it.
-    expect(seen).toEqual([{ count: 1, label: 'two' }]);
-    expect(event.defaultPrevented).toBe(true);
+    expect(event).toBe(observed);
+    expect(event).toMatchObject({
+      bubbles: true,
+      cancelable: true,
+      defaultPrevented: true,
+      detail: { count: 1, label: 'two' },
+    });
   });
 
   it('leaves the detail at the platform null when nothing is emitted', async () => {

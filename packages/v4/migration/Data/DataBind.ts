@@ -397,8 +397,8 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
    *
    * Ported unchanged from v3 apart from `$warn` and the raw dispatch. The
    * logical state is tracked synchronously by `#ifPresent` while the DOM
-   * change may run later through an `EVENTS.dom.update` runner, so each closure
-   * guards on `#ifNodes` to stay a no-op when queued runners apply in
+   * change may run later through the Data migration's DOM-update runner, so
+   * each closure guards on `#ifNodes` to stay a no-op when queued runners apply in
    * sequence.
    * @private
    */

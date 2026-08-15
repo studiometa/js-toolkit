@@ -244,10 +244,6 @@
       "types": "./dist/subpaths/swap.d.ts",
       "import": "./dist/subpaths/swap.js"
     },
-    "./viewTransition": {
-      "types": "./dist/subpaths/viewTransition.d.ts",
-      "import": "./dist/subpaths/viewTransition.js"
-    },
     "./utils/clamp": {
       "types": "./dist/subpaths/utils/clamp.d.ts",
       "import": "./dist/subpaths/utils/clamp.js"

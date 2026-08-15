@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { EVENTS, registerComponents } from '../../src/index.js';
+import { registerComponents } from '../../src/index.js';
 import { getInstance, resetDom, settle } from '../../src/test-utils.js';
 import { DataBind } from './DataBind.js';
 import { DataComputed } from './DataComputed.js';
 import { DataEffect } from './DataEffect.js';
 import { DataModel } from './DataModel.js';
 import { DataScope } from './DataScope.js';
+import { DATA_DOM_UPDATE_EVENT } from './dom-update.js';
 import type { DataValue } from './registry.js';
 
 /**
@@ -538,7 +539,7 @@ describe('DataBind — the data-bind:if template protocol', () => {
     expect(root.querySelector('p')).not.toBe(inserted);
   });
 
-  it('lets an EVENTS.dom.update listener defer the insertion', async () => {
+  it('lets a Data DOM-update listener defer the insertion', async () => {
     const group = uniqueGroup('if');
     const root = await render(`
       <div id="host">
@@ -549,7 +550,7 @@ describe('DataBind — the data-bind:if template protocol', () => {
 
     let apply: (() => void) | undefined;
     let isPresent: boolean | undefined;
-    el(root, '#host').addEventListener(EVENTS.dom.update, (event) => {
+    el(root, '#host').addEventListener(DATA_DOM_UPDATE_EVENT, (event) => {
       const { detail } = event as CustomEvent<{
         isPresent: boolean;
         wrap(runner: (run: () => void) => void): void;

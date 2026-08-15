@@ -1,7 +1,5 @@
-import { EVENTS } from '../../src/index.js';
-
 /**
- * The `js-toolkit:dom:update` protocol — ported from `@studiometa/ui`
+ * The Data migration's DOM-update protocol, ported from `@studiometa/ui`
  * `utils/dom-update.ts`.
  *
  * `data-bind:if` inserts and removes DOM. Before it does, it announces the
@@ -9,18 +7,12 @@ import { EVENTS } from '../../src/index.js';
  * — a view transition, an exit animation — can take over *when* the change
  * runs without owning *what* it is.
  *
- * Two things survived the port and one changed:
- *
- * - the raw `dispatchEvent` stayed, and the reason it had to has since gone:
- *   the port was written when `$emit` packed its arguments into `detail` as an
- *   array, which this protocol — an object `detail` carrying a `wrap` method —
- *   could not express. `$emit` now takes one payload object, and core grew
- *   `$domUpdate()`, which is this whole module. This copy stays only because
- *   it is a standalone function bound to an element rather than to a `Base`;
- *   the gap it reported (REPORT.md 19) is closed.
- * - `instance.$warn(...)` became a plain `warn()`, since v4 has no `$warn`
- *   (REPORT.md gap 10).
+ * This protocol stays with the migration because it is Data-specific UI
+ * choreography, not a core component event. `instance.$warn(...)` became a
+ * plain `warn()`, since v4 has no `$warn` (REPORT.md gap 10).
  */
+
+export const DATA_DOM_UPDATE_EVENT = 'studiometa:data:dom:update';
 
 /**
  * A component able to run a DOM change inside its own transition — the
@@ -57,7 +49,7 @@ export function emitDomUpdate(
   function wrap(newRunner: DomUpdateRunner) {
     if (!dispatching) {
       warn(
-        `\`wrap\` must be called synchronously while the \`${EVENTS.dom.update}\` event dispatches.`,
+        `\`wrap\` must be called synchronously while the \`${DATA_DOM_UPDATE_EVENT}\` event dispatches.`,
       );
       return;
     }
@@ -65,7 +57,7 @@ export function emitDomUpdate(
   }
 
   el.dispatchEvent(
-    new CustomEvent(EVENTS.dom.update, {
+    new CustomEvent(DATA_DOM_UPDATE_EVENT, {
       detail: { ...detail, wrap },
       bubbles: true,
       cancelable: false,
@@ -94,7 +86,7 @@ export async function runWrapped(runner: NormalizedRunner, applyChange: () => vo
   try {
     await runner(apply);
   } catch (error) {
-    warn(`The \`${EVENTS.dom.update}\` runner rejected.`, error);
+    warn(`The \`${DATA_DOM_UPDATE_EVENT}\` runner rejected.`, error);
     if (!applied) {
       apply();
     }

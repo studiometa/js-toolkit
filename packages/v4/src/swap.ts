@@ -37,7 +37,7 @@ export type SwapContent = string | Element | DocumentFragment;
  *
  * It receives the mutation and must invoke it exactly once. Whether a
  * rejecting wrapper loses the update or falls back to applying it directly is
- * the business of whoever negotiated the wrapper, not of the swap.
+ * the caller's policy, not the swap's.
  */
 export type SwapWrap = (mutate: () => void) => void | Promise<unknown>;
 
@@ -46,8 +46,7 @@ export interface SwapOptions {
   mode?: SwapMode;
   /**
    * The composition seam. Without it the mutation runs synchronously; with it
-   * the mutation is handed over — to `viewTransition`, to a leave/enter
-   * transition, to a negotiated `EVENTS.dom.update` runner.
+   * the caller decides when and how to apply the mutation.
    */
   wrap?: SwapWrap;
 }
