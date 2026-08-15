@@ -1,3 +1,5 @@
+import { getSharedRuntimeSlot } from './shared-runtime.js';
+
 /**
  * Milliseconds of `background` work allowed per turn, measured from the
  * start of the drain — never from the start of a frame, which would charge
@@ -393,7 +395,11 @@ export class Scheduler {
   }
 }
 
-export const defaultScheduler = new Scheduler();
+export const defaultScheduler = /* @__PURE__ */ getSharedRuntimeSlot(
+  'scheduler:default',
+  1,
+  () => new Scheduler(),
+);
 
 /**
  * Await the next animation frame.

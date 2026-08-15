@@ -27,6 +27,7 @@ yarn-error.log*
 # Build files
 packages/*/dist/
 packages/demo/dist/
+/packages/v4/test/.runtime/
 
 # Module graph reports written by `npm run measure -- --json <file>`
 .measure-*.json

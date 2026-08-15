@@ -1,3 +1,4 @@
+import { getSharedRuntimeSlot } from '../shared-runtime.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
@@ -91,7 +92,9 @@ function createInViewService(
   });
 }
 
-const inViewServices = /* @__PURE__ */ perTarget(createInViewService, keyOf);
+const inViewServices = /* @__PURE__ */ getSharedRuntimeSlot('service:in-view', 1, () =>
+  perTarget(createInViewService, keyOf),
+);
 
 /**
  * Observe whether an element is in view.

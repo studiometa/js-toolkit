@@ -1,3 +1,4 @@
+import { brandBaseConstructor } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import {
   injectContext,
@@ -2046,3 +2047,5 @@ export class Base<T extends BaseProps = BaseProps> {
     }
   }
 }
+
+brandBaseConstructor(Base);
