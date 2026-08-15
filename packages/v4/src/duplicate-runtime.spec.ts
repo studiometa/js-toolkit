@@ -75,10 +75,23 @@ interface FixtureMessage {
         activeAfterBoth: number;
       };
       intersection: {
-        created: number;
-        activeWithBoth: number;
-        activeAfterOne: number;
-        activeAfterBoth: number;
+        sameRoot: {
+          sameService: boolean;
+          correctRoot: boolean;
+          created: number;
+          activeWithBoth: number;
+          activeAfterOne: number;
+          activeAfterBoth: number;
+        };
+        distinctRoots: {
+          separateServices: boolean;
+          correctRoots: boolean;
+          isolatedState: boolean;
+          created: number;
+          activeWithBoth: number;
+          activeAfterOne: number;
+          activeAfterBoth: number;
+        };
       };
       dragTouchAction: {
         withX: string;
@@ -232,10 +245,23 @@ describe('duplicated v4 bundles', () => {
       activeAfterBoth: 0,
     });
     expect(result.services.intersection).toEqual({
-      created: 1,
-      activeWithBoth: 1,
-      activeAfterOne: 1,
-      activeAfterBoth: 0,
+      sameRoot: {
+        sameService: true,
+        correctRoot: true,
+        created: 1,
+        activeWithBoth: 1,
+        activeAfterOne: 1,
+        activeAfterBoth: 0,
+      },
+      distinctRoots: {
+        separateServices: true,
+        correctRoots: true,
+        isolatedState: true,
+        created: 2,
+        activeWithBoth: 2,
+        activeAfterOne: 1,
+        activeAfterBoth: 0,
+      },
     });
     expect(result.services.dragTouchAction).toEqual({
       withX: 'pan-y',
