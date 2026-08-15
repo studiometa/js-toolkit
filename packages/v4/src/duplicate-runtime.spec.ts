@@ -26,9 +26,16 @@ interface FixtureMessage {
       sameEvents: boolean;
       contract: boolean;
       identities: boolean;
+      codes: boolean;
       targets: boolean;
-      consoleReports: number;
-      details: { stage: string; component?: string }[];
+      details: { severity: string; code: string; component?: string }[];
+    };
+    warnings: {
+      heardByA: number;
+      heardByB: number;
+      sameEvents: boolean;
+      codes: string[];
+      oneStringProtocol: boolean;
     };
     registry: {
       observers: number;
@@ -184,14 +191,37 @@ describe('duplicated v4 bundles', () => {
       sameEvents: true,
       contract: true,
       identities: true,
+      codes: true,
       targets: true,
-      consoleReports: 4,
       details: [
-        { stage: 'lifecycle', component: 'RuntimeFixtureFailureA' },
-        { stage: 'lifecycle', component: 'RuntimeFixtureFailureB' },
-        { stage: 'mount', component: 'RuntimeFixtureMountFailureB' },
-        { stage: 'load', component: 'RuntimeFixtureLoadFailure' },
+        {
+          severity: 'error',
+          code: 'component.lifecycle-failed',
+          component: 'RuntimeFixtureFailureA',
+        },
+        {
+          severity: 'error',
+          code: 'component.lifecycle-failed',
+          component: 'RuntimeFixtureFailureB',
+        },
+        {
+          severity: 'error',
+          code: 'component.mount-failed',
+          component: 'RuntimeFixtureMountFailureB',
+        },
+        {
+          severity: 'error',
+          code: 'component.load-failed',
+          component: 'RuntimeFixtureLoadFailure',
+        },
       ],
+    });
+    expect(result.warnings).toEqual({
+      heardByA: 3,
+      heardByB: 3,
+      sameEvents: true,
+      codes: ['manifest.duplicate-token', 'option.literal-default', 'protocol.late-registration'],
+      oneStringProtocol: true,
     });
     expect(result.registry).toEqual({
       observers: 1,

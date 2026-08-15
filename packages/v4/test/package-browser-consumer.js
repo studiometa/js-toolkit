@@ -1,5 +1,6 @@
 import {
   Base,
+  DIAGNOSTICS,
   createContext,
   domUpdate as rootDomUpdate,
   emitExtendable as rootEmitExtendable,
@@ -8,6 +9,7 @@ import {
   watchAttributes as rootWatchAttributes,
   whenDOMSettled,
 } from '@studiometa/js-toolkit-v4';
+import diagnosticsFromSubpath from '@studiometa/js-toolkit-v4/DIAGNOSTICS';
 import domUpdate from '@studiometa/js-toolkit-v4/domUpdate';
 import emitExtendable from '@studiometa/js-toolkit-v4/emitExtendable';
 import subscribeContext from '@studiometa/js-toolkit-v4/subscribeContext';
@@ -48,6 +50,17 @@ try {
 
   const component = new PackedComponent(element).$mount();
   const emitted = component.$emit('packed:ready', { packed: true });
+
+  let diagnosticEvent;
+  element.addEventListener(
+    EVENTS.diagnostic,
+    (event) => {
+      diagnosticEvent = event;
+      event.preventDefault();
+    },
+    { once: true },
+  );
+  component.$emit('packed:invalid', 1);
 
   let domUpdateEvent;
   element.addEventListener(EVENTS.dom.update, (event) => {
@@ -109,6 +122,16 @@ try {
       bubbles: emitted.bubbles,
       cancelable: emitted.cancelable,
       detail: emitted.detail,
+    },
+    diagnostic: {
+      constantsIdentity: diagnosticsFromSubpath === DIAGNOSTICS,
+      type: diagnosticEvent?.type,
+      target: diagnosticEvent?.target === element,
+      bubbles: diagnosticEvent?.bubbles,
+      composed: diagnosticEvent?.composed,
+      cancelable: diagnosticEvent?.cancelable,
+      defaultPrevented: diagnosticEvent?.defaultPrevented,
+      detail: diagnosticEvent?.detail,
     },
     helperSubpaths: {
       domUpdateIdentity: domUpdate === rootDomUpdate,

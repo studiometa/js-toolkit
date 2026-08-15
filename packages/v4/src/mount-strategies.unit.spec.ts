@@ -117,7 +117,6 @@ describe('applyMountStrategy viewport parameters', () => {
         throw failure;
       }
     } as unknown as typeof IntersectionObserver;
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     const hooks = { mount: vi.fn(), destroy: vi.fn() };
 
     const applied = applyMountStrategy(
@@ -126,31 +125,21 @@ describe('applyMountStrategy viewport parameters', () => {
       hooks,
     );
 
-    expect(error).toHaveBeenCalledWith(
-      '[mount-strategy] Failed to apply "in-view:not-a-root-margin":',
-      failure,
-    );
     expect(hooks.mount).not.toHaveBeenCalled();
     expect(hooks.destroy).not.toHaveBeenCalled();
     expect(applied).toMatchObject({ valid: false, error: failure });
     expect(() => applied.dispose()).not.toThrow();
-    error.mockRestore();
   });
 
   it.each(['eagre', 'media:', 'media:   '])(
     'rejects invalid strategy %j without mounting it',
     (strategy) => {
-      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       const hooks = { mount: vi.fn(), destroy: vi.fn() };
 
       const applied = applyMountStrategy(document.createElement('div'), strategy, hooks);
 
       expect(applied.valid).toBe(false);
       expect(applied.error).toBeInstanceOf(TypeError);
-      expect(error).toHaveBeenCalledWith(
-        `[mount-strategy] Failed to apply "${strategy}":`,
-        applied.error,
-      );
       expect(hooks.mount).not.toHaveBeenCalled();
       expect(hooks.destroy).not.toHaveBeenCalled();
       expect(() => applied.dispose()).not.toThrow();

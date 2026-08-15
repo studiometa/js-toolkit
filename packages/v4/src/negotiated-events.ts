@@ -1,3 +1,4 @@
+import { reportDiagnostic, warnOnce } from './diagnostics.js';
 import { EVENTS } from './events.js';
 
 /**
@@ -58,17 +59,22 @@ interface NegotiationOptions<R> {
  */
 function negotiate<R>({ target, event, key, detail, accept }: NegotiationOptions<R>): void {
   let isDispatching = true;
+  const register = (registration: R) => {
+    if (!isDispatching) {
+      warnOnce(
+        target,
+        `${event}\0${key}`,
+        'protocol.late-registration',
+        `\`${key}()\` must be called synchronously while the \`${event}\` event dispatches.`,
+        { target: diagnosticTarget(target) },
+      );
+      return;
+    }
+    accept(registration);
+  };
   const payload = {
     ...detail,
-    [key]: (registration: R) => {
-      if (!isDispatching) {
-        console.warn(
-          `[js-toolkit] \`${key}()\` must be called synchronously while the \`${event}\` event dispatches.`,
-        );
-        return;
-      }
-      accept(registration);
-    },
+    [key]: register,
   };
 
   target.dispatchEvent(
@@ -85,6 +91,10 @@ function negotiate<R>({ target, event, key, detail, accept }: NegotiationOptions
  * Anything else is handed back untouched, which is how a bare thenable reaches
  * `waitUntil()` with nothing to call.
  */
+function diagnosticTarget(target: Node): Element | undefined {
+  return target instanceof Element ? target : (target.parentElement ?? undefined);
+}
+
 function invoke(registration: unknown, method: string, args: unknown[]): unknown {
   if (typeof registration === 'function') {
     return (registration as (...rest: unknown[]) => unknown)(...args);
@@ -204,17 +214,23 @@ export async function domUpdate(
   try {
     await invoke(claimed, 'update', [apply]);
   } catch (error) {
-    // The change is neither lost nor rethrown, so the failure would be silent:
-    // it goes through the platform's error channel, which is what an error
-    // reporter listens to.
     hasFailed = true;
-    reportError(error);
+    reportDiagnostic(
+      'callback.dom-update-runner-failed',
+      `The \`${EVENTS.dom.update}\` runner failed.`,
+      error,
+      { target: diagnosticTarget(target) },
+    );
   }
 
   if (!isApplied) {
     if (!hasFailed) {
-      console.warn(
-        `[js-toolkit] The \`${EVENTS.dom.update}\` runner settled without applying the change, applying it directly.`,
+      warnOnce(
+        claimed,
+        '',
+        'protocol.unapplied-dom-update',
+        `The \`${EVENTS.dom.update}\` runner settled without applying the change; the change was applied directly.`,
+        { target: diagnosticTarget(target) },
       );
     }
     await apply();
@@ -252,7 +268,12 @@ export async function emitExtendable(
           try {
             await invoke(extension, event, []);
           } catch (error) {
-            reportError(error);
+            reportDiagnostic(
+              'callback.extendable-event-extension-failed',
+              `An extension of the \`${event}\` event failed.`,
+              error,
+              { target: diagnosticTarget(target) },
+            );
           }
         })(),
       );

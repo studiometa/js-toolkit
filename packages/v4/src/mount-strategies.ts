@@ -64,7 +64,7 @@ export type AppliedMountStrategy =
       readonly valid: false;
       dispose(): void;
       eagerWork?: never;
-      /** The same error reported to the console. */
+      /** The original error for the registry diagnostic. */
       error: unknown;
     };
 
@@ -84,9 +84,8 @@ function parseViewportMountStrategy(strategy: string): ViewportMountStrategy | u
   return { isReversible: name === 'in-view', rootMargin };
 }
 
-/** Keep an invalid strategy inert while exposing the exact reported failure. */
-function rejectMountStrategy(strategy: string, error: unknown): AppliedMountStrategy {
-  console.error(`[mount-strategy] Failed to apply "${strategy}":`, error);
+/** Keep an invalid strategy inert while exposing the exact failure. */
+function rejectMountStrategy(_strategy: string, error: unknown): AppliedMountStrategy {
   return { valid: false, dispose() {}, error };
 }
 

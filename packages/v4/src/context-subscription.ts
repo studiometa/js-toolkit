@@ -5,6 +5,7 @@ import {
   type ContextKey,
   type ContextRequest,
 } from './context.js';
+import { reportDiagnostic } from './diagnostics.js';
 import { EVENTS } from './events.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
 
@@ -53,8 +54,19 @@ const { subscriptionsByElement, subscriptionIndex } = subscriptionState;
 // iterable index contains only weak references, so the document listener can
 // sweep subscriptions without keeping discarded consumers alive.
 
-function reportFailure(operation: 'callback' | 'teardown', error: unknown): void {
-  console.error(`[context] Subscription ${operation} failed:`, error);
+function reportFailure(
+  subscription: ContextSubscription,
+  operation: 'callback' | 'teardown',
+  error: unknown,
+): void {
+  reportDiagnostic(
+    operation === 'callback'
+      ? 'callback.context-subscription-failed'
+      : 'callback.context-teardown-failed',
+    `A context subscription ${operation} failed.`,
+    error,
+    { target: subscription.el },
+  );
 }
 
 function runTeardown(subscription: ContextSubscription): void {
@@ -66,7 +78,7 @@ function runTeardown(subscription: ContextSubscription): void {
   try {
     teardown();
   } catch (error) {
-    reportFailure('teardown', error);
+    reportFailure(subscription, 'teardown', error);
   }
 }
 
@@ -93,7 +105,7 @@ function deliver(subscription: ContextSubscription, value: unknown, providerNode
   try {
     teardown = subscription.callback(value, subscription.unsubscribe);
   } catch (error) {
-    reportFailure('callback', error);
+    reportFailure(subscription, 'callback', error);
     return;
   }
 

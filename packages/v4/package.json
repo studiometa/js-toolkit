@@ -80,6 +80,10 @@
       "types": "./dist/subpaths/write.d.ts",
       "import": "./dist/subpaths/write.js"
     },
+    "./DIAGNOSTICS": {
+      "types": "./dist/subpaths/DIAGNOSTICS.d.ts",
+      "import": "./dist/subpaths/DIAGNOSTICS.js"
+    },
     "./watchAttributes": {
       "types": "./dist/subpaths/watchAttributes.d.ts",
       "import": "./dist/subpaths/watchAttributes.js"
@@ -348,11 +352,12 @@
   "scripts": {
     "build": "node scripts/build.js",
     "check:constant-subpaths": "node scripts/check-constant-subpaths.js",
+    "check:diagnostics": "node scripts/check-diagnostics.js",
     "check:package": "npm run build && node scripts/check-package.js",
     "demo:dev": "vite demo --host",
     "demo:build": "vite build demo",
     "demo:preview": "vite preview demo --host",
-    "test": "npm run test:fixtures && vitest run",
+    "test": "npm run check:diagnostics && npm run test:fixtures && vitest run",
     "test:fixtures": "node scripts/build-runtime-fixtures.js",
     "test:runtime": "npm run test:fixtures && vitest run src/shared-runtime.spec.ts src/duplicate-runtime.spec.ts",
     "test:watch": "vitest",

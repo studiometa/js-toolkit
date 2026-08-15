@@ -66,8 +66,7 @@ that cannot scroll ("you are at the end" for an empty carousel); `setBreakpoints
 never re-emits, so a stale `breakpoint` survives until an unrelated resize;
 `useScroll(document.documentElement)` silently forks the document scroller into a
 second service; `useDrag` excludes `SVGElement`, and our own documented
-`target: (i) => i.$el.querySelector('.handle')` example would not type-check;
-`console.error` in the fan-out reaches no error reporter — `reportError()` does.
+`target: (i) => i.$el.querySelector('.handle')` example would not type-check. Service callback failures now use the cancelable diagnostic protocol, whose uncanceled error sink calls `reportError()` with the original value.
 
 ---
 
@@ -199,7 +198,7 @@ seeing the code.
 - Renaming a hook: **compiles, ships, silently stops updating.** The critique's
   central scenario is real and unmitigated — nothing calls `$enable`, so our
   runtime warning never fires.
-- `$enable('typo')`: compiles, but ours _does_ `console.warn` at runtime, so this
+- `$enable('typo')`: compiles, but ours _does_ produce a runtime warning, so this
   one is mitigated.
 
 ---

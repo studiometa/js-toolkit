@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import {
   domUpdate,
@@ -17,20 +18,19 @@ afterEach(async () => {
   await resetDom();
 });
 
-async function catchReportedErrors(run: () => Promise<void>): Promise<unknown[]> {
-  const reported: unknown[] = [];
-  const onError = (event: ErrorEvent) => {
-    reported.push(event.error);
+async function catchDiagnostics(run: () => Promise<void>): Promise<ToolkitDiagnosticDetail[]> {
+  const diagnostics: ToolkitDiagnosticDetail[] = [];
+  const onDiagnostic = (event: Event) => {
     event.preventDefault();
-    event.stopImmediatePropagation();
+    diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
   };
-  window.addEventListener('error', onError, { capture: true });
+  document.addEventListener(EVENTS.diagnostic, onDiagnostic);
   try {
     await run();
   } finally {
-    window.removeEventListener('error', onError, { capture: true });
+    document.removeEventListener(EVENTS.diagnostic, onDiagnostic);
   }
-  return reported;
+  return diagnostics;
 }
 
 function renderTarget() {
@@ -140,25 +140,40 @@ describe('domUpdate()', () => {
     const error = new Error('runner boom');
     claim(outer, () => Promise.reject(error));
 
-    const reported = await catchReportedErrors(async () => {
+    const diagnostics = await catchDiagnostics(async () => {
       await expect(
         domUpdate(target, () => target.setAttribute('data-applied', 'yes')),
       ).resolves.toBe(undefined);
     });
 
     expect(target.dataset.applied).toBe('yes');
-    expect(reported).toEqual([error]);
+    expect(diagnostics).toEqual([
+      {
+        severity: 'error',
+        code: DIAGNOSTICS.callback.domUpdateRunnerFailed,
+        message: `The \`${EVENTS.dom.update}\` runner failed.`,
+        error,
+      },
+    ]);
   });
 
-  it('warns about a forgetful runner and applies the mutation directly', async () => {
+  it('keeps the direct fallback when its warning is canceled', async () => {
     const { outer, target } = renderTarget();
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    claim(outer, () => Promise.resolve());
+    const diagnostics: ToolkitDiagnosticDetail[] = [];
+    target.addEventListener(EVENTS.diagnostic, (event) => {
+      event.preventDefault();
+      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+    });
+    const runner = () => Promise.resolve();
+    claim(outer, runner);
 
     await domUpdate(target, () => target.setAttribute('data-applied', 'yes'));
+    await domUpdate(target, () => target.setAttribute('data-applied-again', 'yes'));
 
-    expect(target.dataset.applied).toBe('yes');
-    expect(warn).toHaveBeenCalledOnce();
+    expect(target.dataset).toMatchObject({ applied: 'yes', appliedAgain: 'yes' });
+    expect(diagnostics.map(({ code }) => code)).toEqual([DIAGNOSTICS.protocol.unappliedDomUpdate]);
+    expect(warn).not.toHaveBeenCalled();
   });
 
   it('warns and ignores a wrap() registration made after dispatch', async () => {
@@ -171,9 +186,12 @@ describe('domUpdate()', () => {
 
     await domUpdate(target, () => target.setAttribute('data-applied', 'yes'));
     late?.(() => target.setAttribute('data-late', 'yes'));
+    await domUpdate(target, () => target.setAttribute('data-applied-again', 'yes'));
+    late?.(() => target.setAttribute('data-later', 'yes'));
 
-    expect(target.dataset).toMatchObject({ applied: 'yes' });
+    expect(target.dataset).toMatchObject({ applied: 'yes', appliedAgain: 'yes' });
     expect(target.dataset.late).toBeUndefined();
+    expect(target.dataset.later).toBeUndefined();
     expect(warn).toHaveBeenCalledOnce();
   });
 
@@ -249,12 +267,19 @@ describe('emitExtendable()', () => {
       completed = true;
     });
 
-    const reported = await catchReportedErrors(async () => {
+    const diagnostics = await catchDiagnostics(async () => {
       await expect(emitExtendable(target, 'close')).resolves.toBeUndefined();
     });
 
     expect(completed).toBe(true);
-    expect(reported).toEqual([error]);
+    expect(diagnostics).toEqual([
+      {
+        severity: 'error',
+        code: DIAGNOSTICS.callback.extendableEventExtensionFailed,
+        message: 'An extension of the `close` event failed.',
+        error,
+      },
+    ]);
   });
 
   it('warns and ignores a waitUntil() registration made after dispatch', async () => {
@@ -267,6 +292,9 @@ describe('emitExtendable()', () => {
     });
 
     await emitExtendable(target, 'close');
+    late?.(() => {
+      calls += 1;
+    });
     late?.(() => {
       calls += 1;
     });

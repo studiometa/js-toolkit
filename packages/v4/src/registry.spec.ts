@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
-import { type ToolkitErrorDetail } from './errors.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
 import { getInstance, renderTodoList, resetDom, settle, TodoItem, TodoList } from './test-utils.js';
@@ -98,8 +98,7 @@ describe('registry', () => {
 
   it('does not retain or reuse an instance whose derived constructor failed', async () => {
     const failure = new Error('constructor failed');
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const events: CustomEvent<ToolkitErrorDetail>[] = [];
+    const events: CustomEvent<ToolkitDiagnosticDetail>[] = [];
     const attempts: BrokenConstruction[] = [];
     let brokenMounts = 0;
     let healthyMounts = 0;
@@ -130,8 +129,9 @@ describe('registry', () => {
     registerComponent(HealthyConstruction);
     const broken = document.createElement('div');
     broken.setAttribute('data-component', 'BrokenConstructionErrorEvent');
-    broken.addEventListener(EVENTS.error, (event) => {
-      events.push(event as CustomEvent<ToolkitErrorDetail>);
+    broken.addEventListener(EVENTS.diagnostic, (event) => {
+      event.preventDefault();
+      events.push(event as CustomEvent<ToolkitDiagnosticDetail>);
     });
     const healthy = document.createElement('div');
     healthy.setAttribute('data-component', 'HealthyAfterConstructionError');
@@ -155,24 +155,21 @@ describe('registry', () => {
     expect(attempts[1]).not.toBe(firstAttempt);
     expect(broken.__base__?.get('BrokenConstructionErrorEvent')).toBeUndefined();
     expect(brokenMounts).toBe(0);
-    expect(error).toHaveBeenCalledTimes(2);
-    expect(error).toHaveBeenLastCalledWith(
-      '[registry] Failed to mount "BrokenConstructionErrorEvent":',
-      failure,
-    );
     expect(events).toHaveLength(2);
     expect(events.every((event) => event.target === broken)).toBe(true);
-    expect(events.every((event) => event.detail.stage === 'mount')).toBe(true);
+    expect(events.every((event) => event.defaultPrevented)).toBe(true);
+    expect(events.every((event) => event.detail.code === DIAGNOSTICS.component.mountFailed)).toBe(
+      true,
+    );
     expect(events.every((event) => event.detail.error === failure)).toBe(true);
     expect(events.every((event) => event.detail.component === 'BrokenConstructionErrorEvent')).toBe(
       true,
     );
-    error.mockRestore();
   });
 
   it('preserves a valid pre-existing instance when its registry mount fails', async () => {
     const failure = new Error('mount failed');
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const diagnostics: ToolkitDiagnosticDetail[] = [];
 
     class Existing extends Base {
       static config = { name: 'ExistingMountFailure' };
@@ -185,16 +182,22 @@ describe('registry', () => {
     registerComponent(Existing);
     const el = document.createElement('div');
     const instance = new Existing(el);
+    el.addEventListener(EVENTS.diagnostic, (event) => {
+      event.preventDefault();
+      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+    });
     el.setAttribute('data-component', 'ExistingMountFailure');
     document.body.append(el);
     await settle();
 
     expect(el.__base__?.get('ExistingMountFailure')).toBe(instance);
-    expect(error).toHaveBeenCalledWith(
-      '[registry] Failed to mount "ExistingMountFailure":',
-      failure,
-    );
-    error.mockRestore();
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0]).toMatchObject({
+      severity: 'error',
+      code: DIAGNOSTICS.component.mountFailed,
+      error: failure,
+      component: 'ExistingMountFailure',
+    });
   });
 
   it('processes a pending token replacement before mounting a newly registered class', async () => {

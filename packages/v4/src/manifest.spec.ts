@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { Base } from './Base.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
 import {
   defineManifest,
   fromMetaGlob,
@@ -68,16 +69,17 @@ describe('defineManifest', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const first = vi.fn(async () => ({ Widget }));
     const second = vi.fn(async () => ({ Widget: Other }));
-    const manifest = defineManifest({
-      modules: {
-        './first/Widget.ts': first,
-        './second/Widget.ts': second,
-      },
-    });
+    const modules = {
+      './first/Widget.ts': first,
+      './second/Widget.ts': second,
+    };
+    const manifest = defineManifest({ modules });
+    defineManifest({ modules });
 
     expect(manifest.Widget).toBe(first);
+    expect(warn).toHaveBeenCalledOnce();
     expect(warn).toHaveBeenCalledWith(
-      '[manifest] "Widget" is already derived from "./first/Widget.ts"; ignoring "./second/Widget.ts".',
+      `[js-toolkit:${DIAGNOSTICS.manifest.duplicateToken}] "Widget" is already derived from "./first/Widget.ts"; ignoring "./second/Widget.ts".`,
     );
   });
 

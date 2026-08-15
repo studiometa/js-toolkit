@@ -1,3 +1,5 @@
+import { reportDiagnostic } from '../diagnostics.js';
+
 /**
  * A service is a shared source of props — the frame tick, the scroll
  * position, the pointer — that components subscribe to.
@@ -161,12 +163,7 @@ export function createService<T, R = void>({
       } catch (error) {
         // One broken component must not deprive the others of the service,
         // which for a per-frame source would mean every frame from now on.
-        //
-        // `reportError()` rather than `console.error()`: it dispatches through
-        // the platform's error channel, so `window.onerror` and everything
-        // built on it — Sentry and friends — see the error with its own stack.
-        // A logged string reaches nobody but whoever has the console open.
-        reportError(error);
+        reportDiagnostic('callback.service-failed', 'A service subscriber failed.', error);
       }
     }
   }
@@ -213,7 +210,11 @@ export function createService<T, R = void>({
           // The same channel the fan-out uses. Throwing out of `subscribe()`
           // instead would leave the caller holding no unsubscribe for a
           // subscription that is nonetheless registered.
-          reportError(error);
+          reportDiagnostic(
+            'callback.service-failed',
+            'An immediate service subscriber failed.',
+            error,
+          );
         }
       }
       return () => {

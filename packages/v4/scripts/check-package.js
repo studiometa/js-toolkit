@@ -146,7 +146,7 @@ async function checkTypeScriptConsumer(consumerRoot) {
   await run(process.execPath, [typescriptCompiler, '--project', 'tsconfig.json'], {
     cwd: consumerRoot,
   });
-  console.log('TypeScript packed consumer: root and watchAttributes subpath types passed.');
+  console.log('TypeScript packed consumer: diagnostics and watchAttributes types passed.');
 }
 
 async function checkBrowserConsumer(consumerRoot) {
@@ -214,6 +214,22 @@ async function checkBrowserConsumer(consumerRoot) {
         bubbles: true,
         cancelable: true,
         detail: { packed: true },
+      },
+      diagnostic: {
+        constantsIdentity: true,
+        type: 'js-toolkit:diagnostic',
+        target: true,
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+        defaultPrevented: true,
+        detail: {
+          severity: 'warning',
+          code: 'event.invalid-emit-payload',
+          message:
+            "`$emit('packed:invalid', …)` takes one payload object; received number. Name the value: `{ value }`.",
+          component: 'PackedComponent',
+        },
       },
       helperSubpaths: {
         domUpdateIdentity: true,

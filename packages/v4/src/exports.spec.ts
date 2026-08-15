@@ -3,6 +3,7 @@ import packageManifest from '../package.json' with { type: 'json' };
 import { clamp, smoothTo } from '@studiometa/js-toolkit-v4/utils';
 import {
   Base,
+  DIAGNOSTICS,
   EVENTS,
   defineManifest,
   domUpdate,
@@ -34,8 +35,9 @@ import {
   type ContextCallback,
   type ModuleRecord,
   type Service,
-  type ToolkitErrorDetail,
-  type ToolkitErrorStage,
+  type ToolkitDiagnosticCode,
+  type ToolkitDiagnosticDetail,
+  type ToolkitDiagnosticSeverity,
   type WebpackContextLike,
 } from '@studiometa/js-toolkit-v4';
 import defineManifestFromSubpath from '@studiometa/js-toolkit-v4/defineManifest';
@@ -60,6 +62,9 @@ import watchAttributesFromSubpath, {
   type AttributeChange as SubpathAttributeChange,
   type AttributeWatcher as SubpathAttributeWatcher,
 } from '@studiometa/js-toolkit-v4/watchAttributes';
+import diagnosticsFromSubpath, {
+  DIAGNOSTICS as namedDiagnosticsFromSubpath,
+} from '@studiometa/js-toolkit-v4/DIAGNOSTICS';
 import eventsFromSubpath, {
   EVENTS as namedEventsFromSubpath,
 } from '@studiometa/js-toolkit-v4/EVENTS';
@@ -69,16 +74,18 @@ import withInViewFromSubpath, {
 } from '@studiometa/js-toolkit-v4/withInView';
 import withScrollProgressSubpath from '@studiometa/js-toolkit-v4/withScrollProgress';
 
-function toolkitErrorDetailTypeAssertions(detail: ToolkitErrorDetail): void {
-  // @ts-expect-error framework error details are observations, not mutable recovery state
-  detail.stage = 'mount';
-  // @ts-expect-error the caught value keeps its identity and cannot be replaced
-  detail.error = new Error('replacement');
+function toolkitDiagnosticDetailTypeAssertions(detail: ToolkitDiagnosticDetail): void {
+  // @ts-expect-error diagnostic details are readonly observations
+  detail.code = DIAGNOSTICS.component.mountFailed;
   // @ts-expect-error the component name cannot be rewritten by a listener
   detail.component = 'Replacement';
+  if (detail.severity === 'error') {
+    // @ts-expect-error the caught value keeps its identity and cannot be replaced
+    detail.error = new Error('replacement');
+  }
 }
 
-void toolkitErrorDetailTypeAssertions;
+void toolkitDiagnosticDetailTypeAssertions;
 
 function removedBaseAttributeWatcherAssertion(instance: Base): void {
   // @ts-expect-error Attribute observation is a standalone helper, not a Base method.
@@ -86,6 +93,16 @@ function removedBaseAttributeWatcherAssertion(instance: Base): void {
 }
 
 void removedBaseAttributeWatcherAssertion;
+
+// @ts-expect-error ToolkitErrorDetail was removed by the diagnostic protocol.
+type RemovedToolkitErrorDetail = import('@studiometa/js-toolkit-v4').ToolkitErrorDetail;
+const removedToolkitErrorDetailAssertion = null as unknown as RemovedToolkitErrorDetail;
+void removedToolkitErrorDetailAssertion;
+
+// @ts-expect-error ToolkitErrorStage was removed by the diagnostic protocol.
+type RemovedToolkitErrorStage = import('@studiometa/js-toolkit-v4').ToolkitErrorStage;
+const removedToolkitErrorStageAssertion = null as unknown as RemovedToolkitErrorStage;
+void removedToolkitErrorStageAssertion;
 
 // @ts-expect-error HandlerRegistration is an internal source type.
 type RemovedHandlerRegistration = import('@studiometa/js-toolkit-v4').HandlerRegistration;
@@ -113,7 +130,7 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(61);
+    expect(Object.keys(root)).toHaveLength(62);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
@@ -123,6 +140,8 @@ describe('the package entry points', () => {
       'DESTROYED_EVENT',
       'DOM_UPDATE_EVENT',
       'JS_TOOLKIT_ERROR_EVENT',
+      'ToolkitErrorDetail',
+      'ToolkitErrorStage',
       'dispatchContextRequest',
       'retainContextRequest',
       'cancelContextRequest',
@@ -177,6 +196,7 @@ describe('the package entry points', () => {
     ]) {
       expect(exports).not.toHaveProperty(removed);
     }
+    expect(exports).toHaveProperty('./DIAGNOSTICS');
     expect(exports).toHaveProperty('./EVENTS');
   });
 
@@ -220,14 +240,28 @@ describe('the package entry points', () => {
     expect(withScrollProgress).toBe(withScrollProgressSubpath);
   });
 
-  it('exports the framework event contract from the root and constant subpath', () => {
+  it('exports the diagnostic contract from root and constant subpaths', () => {
     expect(eventsFromSubpath).toBe(EVENTS);
     expect(namedEventsFromSubpath).toBe(EVENTS);
-    expectTypeOf<ToolkitErrorStage>().toEqualTypeOf<'load' | 'mount' | 'lifecycle'>();
-    expectTypeOf<ToolkitErrorDetail>().toEqualTypeOf<{
-      readonly stage: ToolkitErrorStage;
-      readonly error: unknown;
-      readonly component?: string;
-    }>();
+    expect(diagnosticsFromSubpath).toBe(DIAGNOSTICS);
+    expect(namedDiagnosticsFromSubpath).toBe(DIAGNOSTICS);
+    expectTypeOf<ToolkitDiagnosticSeverity>().toEqualTypeOf<'warning' | 'error'>();
+    expectTypeOf<ToolkitDiagnosticCode>().toMatchTypeOf<string>();
+    expectTypeOf<ToolkitDiagnosticDetail>().toMatchTypeOf<
+      | {
+          readonly severity: 'warning';
+          readonly code: ToolkitDiagnosticCode;
+          readonly message: string;
+          readonly component?: string;
+          readonly error?: never;
+        }
+      | {
+          readonly severity: 'error';
+          readonly code: ToolkitDiagnosticCode;
+          readonly message: string;
+          readonly component?: string;
+          readonly error: unknown;
+        }
+    >();
   });
 });

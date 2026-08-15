@@ -1,3 +1,4 @@
+import { reportDiagnostic } from './diagnostics.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
 
 /**
@@ -61,20 +62,11 @@ let channel: MessageChannel | undefined;
  * whose nested-timeout clamping (4 ms after five levels) would cap the lane
  * at a couple of hundred turns per second — the reason React's scheduler
  * moved off timers too (facebook/react#16214, "Yield many times per frame,
- * no rAF"). `isInputPending` is deliberately not consulted: the guidance to
- * use it has been retracted.
+ * no rAF"). A rejected native post is diagnosed and handed to that fallback,
+ * so the background queue still drains. `isInputPending` is deliberately not
+ * consulted: the guidance to use it has been retracted.
  */
-function postBackgroundTask(run: () => void): void {
-  // The global `scheduler` object, not this module's export — hence the
-  // explicit `globalThis`.
-  const nativeScheduler = globalThis.scheduler;
-  if (typeof nativeScheduler?.postTask === 'function') {
-    nativeScheduler.postTask(run, { priority: 'background' }).catch((error: unknown) => {
-      reportError(error);
-    });
-    return;
-  }
-
+function postMessageTask(run: () => void): void {
   // Opened on demand, never at module scope: importing the framework must
   // not open a port.
   if (!channel) {
@@ -83,6 +75,25 @@ function postBackgroundTask(run: () => void): void {
   }
   turns.push(run);
   channel.port2.postMessage(null);
+}
+
+function postBackgroundTask(run: () => void): void {
+  // The global `scheduler` object, not this module's export — hence the
+  // explicit `globalThis`.
+  const nativeScheduler = globalThis.scheduler;
+  if (typeof nativeScheduler?.postTask === 'function') {
+    nativeScheduler.postTask(run, { priority: 'background' }).catch((error: unknown) => {
+      reportDiagnostic(
+        'scheduler.background-post-failed',
+        'The native scheduler rejected a background post.',
+        error,
+      );
+      postMessageTask(run);
+    });
+    return;
+  }
+
+  postMessageTask(run);
 }
 
 /**
@@ -326,7 +337,11 @@ export class Scheduler {
         } catch (error) {
           // Reported and skipped, never unsubscribed: a subscription is
           // owned by whoever created it, not by the frame that broke.
-          reportError(error);
+          reportDiagnostic(
+            'callback.scheduler-tick-failed',
+            'A scheduler tick callback failed.',
+            error,
+          );
         }
       }
     }
@@ -392,10 +407,9 @@ export class Scheduler {
     try {
       item.resolve(item.fn());
     } catch (error) {
-      // Through the platform's error channel, so an error reporter sees it;
-      // `console.error()` reaches nobody but an open console. The task's
-      // promise is rejected too, for whoever awaited it.
-      reportError(error);
+      // The task's promise keeps the original rejection for its owner. The
+      // diagnostic reports the recovered scheduler failure independently.
+      reportDiagnostic('callback.scheduled-task-failed', 'A scheduled task failed.', error);
       item.reject(error);
     }
   }

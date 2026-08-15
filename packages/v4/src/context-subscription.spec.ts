@@ -1,7 +1,9 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
 import { subscribeContext } from './context-subscription.js';
 import { createContext, provideContext, provideRootContext, type ContextKey } from './context.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
+import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
 import { getInstance, resetDom, settle } from './test-utils.js';
 
@@ -232,11 +234,15 @@ describe('subscribeContext', () => {
   });
 
   it('isolates callback and teardown failures', () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const diagnostics: ToolkitDiagnosticDetail[] = [];
     const key = createContext<Registry>('failure-isolation');
     const root = render('<span></span>');
     const consumer = root.querySelector('span') as Element;
     provideContext(root, key, { name: 'root' });
+    consumer.addEventListener(EVENTS.diagnostic, (event) => {
+      event.preventDefault();
+      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+    });
 
     const failed = subscribeContext(consumer, key, () => {
       throw new Error('callback');
@@ -252,8 +258,11 @@ describe('subscribeContext', () => {
     failed();
     teardownFailed();
     expect(seen).toEqual(['root']);
-    expect(error).toHaveBeenCalledTimes(2);
-    error.mockRestore();
+    expect(diagnostics.map(({ code }) => code)).toEqual([
+      DIAGNOSTICS.callback.contextSubscriptionFailed,
+      DIAGNOSTICS.callback.contextTeardownFailed,
+    ]);
+    expect(diagnostics.every(({ severity }) => severity === 'error')).toBe(true);
   });
 
   it('does not keep a discarded consumer alive after it was answered', async () => {

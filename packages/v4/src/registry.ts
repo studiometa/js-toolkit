@@ -6,13 +6,13 @@ import {
   hasComponentAttribute,
   hasResponsiveComponentAttribute,
 } from './component-declarations.js';
+import { reportDiagnostic, warnOnce } from './diagnostics.js';
 import {
   registerDOMOptionAttributes,
   setDOMMutationProcessor,
   trackDOMLifecycleWork,
   type DOMMutationRecord,
 } from './dom-mutations.js';
-import { reportToolkitError } from './errors.js';
 import {
   applyMountStrategy,
   MOUNT_ATTRIBUTE,
@@ -157,8 +157,12 @@ function registerFamily(ComponentClass: BaseConstructor): void {
     } else if (typeof Child === 'function' && !isClassLike(Child)) {
       registerLazyChild(childName, Child);
     } else {
-      console.error(
-        `[registry] "${name}" declares "${childName}" as neither a component class nor an importer, ignoring.`,
+      warnOnce(
+        ComponentClass,
+        childName,
+        'component.invalid-family-declaration',
+        `"${name}" declares "${childName}" as neither a component class nor an importer; the declaration was ignored.`,
+        { component: name },
       );
     }
   }
@@ -270,7 +274,13 @@ export function registerComponent(ComponentClass: BaseConstructor): void {
   const { name } = ComponentClass.config;
   if (registry.has(name)) {
     if (registry.get(name) !== ComponentClass) {
-      console.warn(`[registry] "${name}" is already registered, ignoring.`);
+      warnOnce(
+        ComponentClass,
+        name,
+        'registry.conflict',
+        `"${name}" is already registered; the incoming declaration was ignored.`,
+        { component: name },
+      );
     }
     return;
   }
@@ -310,7 +320,13 @@ export function registerManifest(entries: ComponentManifest): void {
 
   for (const [name, entry] of Object.entries(entries)) {
     if (registry.has(name) || manifest.has(name)) {
-      console.warn(`[registry] "${name}" is already registered, ignoring.`);
+      warnOnce(
+        entries,
+        name,
+        'registry.conflict',
+        `"${name}" is already registered; the incoming declaration was ignored.`,
+        { component: name },
+      );
       continue;
     }
     manifest.set(name, typeof entry === 'function' ? { load: entry } : entry);
@@ -350,16 +366,22 @@ function importComponent(name: string, target?: Element): Promise<void> {
         throw new TypeError(`"${name}" did not resolve to a component class.`);
       }
       if (ComponentClass.config.name !== name) {
-        console.warn(
-          `[registry] "${name}" resolved to a component named "${ComponentClass.config.name}".`,
+        warnOnce(
+          entry.load,
+          name,
+          'registry.lazy-name-mismatch',
+          `"${name}" resolved to a component named "${ComponentClass.config.name}".`,
+          { component: name, target },
         );
       }
       manifest.delete(name);
       registerComponent(ComponentClass);
     })
     .catch((error: unknown) => {
-      console.error(`[registry] Failed to load "${name}":`, error);
-      reportToolkitError('load', error, name, target);
+      reportDiagnostic('component.load-failed', `Failed to load component "${name}".`, error, {
+        component: name,
+        target,
+      });
     });
 
   imports.set(name, work);
@@ -466,8 +488,10 @@ function mountPair(
     if (!instance) {
       el.__base__?.delete(name);
     }
-    console.error(`[registry] Failed to mount "${name}":`, error);
-    reportToolkitError('mount', error, name, el);
+    reportDiagnostic('component.mount-failed', `Failed to mount component "${name}".`, error, {
+      component: name,
+      target: el,
+    });
   }
 }
 
@@ -525,7 +549,12 @@ function schedule(el: HTMLElement, name: string, ComponentClass: BaseConstructor
   });
   controller.dispose = applied.dispose;
   if (!applied.valid) {
-    reportToolkitError('mount', applied.error, name, el);
+    reportDiagnostic(
+      'component.invalid-mount-strategy',
+      `Failed to apply mount strategy "${strategy}" to component "${name}".`,
+      applied.error,
+      { component: name, target: el },
+    );
   }
   trackDOMLifecycleWork(applied.eagerWork);
 }
@@ -628,7 +657,12 @@ function scheduleLoad(el: HTMLElement, name: string): void {
   });
   controller.dispose = applied.dispose;
   if (!applied.valid) {
-    reportToolkitError('mount', applied.error, name, el);
+    reportDiagnostic(
+      'component.invalid-mount-strategy',
+      `Failed to apply mount strategy "${strategy}" to component "${name}".`,
+      applied.error,
+      { component: name, target: el },
+    );
   }
   // `media:` evaluates synchronously, so the trigger may already have fired
   // against the no-op teardown installed above.
