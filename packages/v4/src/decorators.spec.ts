@@ -549,12 +549,17 @@ describe('@on', () => {
     expect(parent.seen).toHaveLength(1);
   });
 
-  it('rejects an EventTarget that is neither a global nor a component class', () => {
+  it('rejects values that are neither globals nor branded component classes', () => {
     const el = document.createElement('div');
+    class WrongWithConfig {
+      static config = { name: 'WrongWithConfig' };
+    }
+
     // Refused by the overloads above; refused here too, for the untyped path.
     expect(() => on(el as never, 'click')).toThrow(TypeError);
-    // A lazy `config.components` thunk is a function without a `config`, so it
-    // is refused by the same guard rather than resolving to a wrong name.
+    // A matching static config alone does not make an unrelated class a Base.
+    expect(() => on(WrongWithConfig as never, 'ping')).toThrow(TypeError);
+    // A lazy `config.components` thunk has no Base brand either.
     expect(() => on(lazyChild as never, 'ping')).toThrow(TypeError);
     // The overloads are asserted in `OnOverloads`, which only compiles.
     expect(OnOverloads.config.name).toBe('OnOverloads');

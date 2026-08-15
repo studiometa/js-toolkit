@@ -39,7 +39,8 @@
  */
 import { registerDOMOptionAttributes, replaceDOMOptionAttributes } from './dom-mutations.js';
 import { breakpointNames, onBreakpointsReplaced, useBreakpoint } from './services/breakpoint.js';
-import { memo } from './utils/memo.js';
+import { getSharedRuntimeSlot } from './shared-runtime.js';
+import { memo, type Memo } from './utils/memo.js';
 
 /**
  * What separates an option's attribute from the breakpoint it is scoped to.
@@ -61,9 +62,26 @@ export const RESPONSIVE_SEPARATOR = ':';
  * per access. Its lifetime is the named set's, which is what `clear()` below
  * is for — the case `maxAge` could not have expressed.
  */
-const scopedAttributes = memo((attribute: string): readonly string[] =>
-  breakpointNames().map((name) => `${attribute}${RESPONSIVE_SEPARATOR}${name}`),
+interface ResponsiveOptionsRuntimeState {
+  scopedAttributes: Memo<[attribute: string], readonly string[]>;
+  observed: Set<string>;
+  warnedResponsiveAttributes: WeakMap<Element, Set<string>>;
+  isReplacementListenerAttached: boolean;
+}
+
+const responsiveOptionsState = /* @__PURE__ */ getSharedRuntimeSlot<ResponsiveOptionsRuntimeState>(
+  'responsive-options',
+  1,
+  () => ({
+    scopedAttributes: memo((attribute: string): readonly string[] =>
+      breakpointNames().map((name) => `${attribute}${RESPONSIVE_SEPARATOR}${name}`),
+    ),
+    observed: new Set(),
+    warnedResponsiveAttributes: new WeakMap(),
+    isReplacementListenerAttached: false,
+  }),
 );
+const { scopedAttributes, observed, warnedResponsiveAttributes } = responsiveOptionsState;
 
 /**
  * The exact scoped spellings for an attribute in the current breakpoint set.
@@ -78,18 +96,19 @@ export function responsiveAttributeNames(attribute: string): readonly string[] {
 }
 
 /** Base attributes whose scoped spellings the one observer filters for. */
-const observed = new Set<string>();
-
-onBreakpointsReplaced(() => {
-  const previous = [...observed].flatMap((attribute) => scopedAttributes(attribute));
-  scopedAttributes.clear();
-  // The filter takes exact names, so a replaced set means names that were
-  // never registered. Replace every derived slice, or a
-  // `data-option-x:<new>` rewritten at runtime would be invisible while stale
-  // names from the old set kept producing records.
-  const next = [...observed].flatMap((attribute) => scopedAttributes(attribute));
-  replaceDOMOptionAttributes(previous, next);
-});
+if (!responsiveOptionsState.isReplacementListenerAttached) {
+  responsiveOptionsState.isReplacementListenerAttached = true;
+  onBreakpointsReplaced(() => {
+    const previous = [...observed].flatMap((attribute) => scopedAttributes(attribute));
+    scopedAttributes.clear();
+    // The filter takes exact names, so a replaced set means names that were
+    // never registered. Replace every derived slice, or a
+    // `data-option-x:<new>` rewritten at runtime would be invisible while stale
+    // names from the old set kept producing records.
+    const next = [...observed].flatMap((attribute) => scopedAttributes(attribute));
+    replaceDOMOptionAttributes(previous, next);
+  });
+}
 
 /**
  * Widen the one mutation observer's filter to an attribute's breakpoint-scoped
@@ -199,8 +218,6 @@ export function watchBreakpoint(callback: (previous: string) => void): () => voi
  * The element's attributes are scanned **once** for all of a component's
  * options rather than once per option, since `getAttributeNames()` allocates.
  */
-const warnedResponsiveAttributes = new WeakMap<Element, Set<string>>();
-
 export function checkResponsiveAttributes(el: HTMLElement, attributes: readonly string[]): void {
   if (attributes.length === 0) {
     return;

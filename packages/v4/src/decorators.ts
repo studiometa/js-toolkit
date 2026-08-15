@@ -11,6 +11,7 @@ import {
   resolveConfig,
   type WatchChildrenCallbacks,
 } from './Base.js';
+import { isBaseConstructor } from './component-brand.js';
 import type { ContextKey } from './context.js';
 import { registerComponent } from './registry.js';
 
@@ -89,13 +90,8 @@ function resolveHandlerTarget(
     throw new TypeError('[@on] a target value must be followed by an event type.');
   }
 
-  if (typeof target === 'function') {
-    // `Base` gives every component class a static `config`, so its presence is
-    // what tells a component class from any other function.
-    const { config } = target;
-    if (config !== null && typeof config === 'object') {
-      return { target: null, child: resolveConfig(target).name, type: maybeType };
-    }
+  if (isBaseConstructor(target)) {
+    return { target: null, child: resolveConfig(target).name, type: maybeType };
   } else if (target === window || target === document) {
     return { target, child: null, type: maybeType };
   }

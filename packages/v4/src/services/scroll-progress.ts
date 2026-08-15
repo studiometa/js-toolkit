@@ -1,4 +1,5 @@
 import { defaultScheduler, type ScheduledTask } from '../scheduler.js';
+import { getSharedRuntimeSlot } from '../shared-runtime.js';
 import { clamp, clamp01 } from '../utils/maths.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { getEdges, normalizeOffset, type NormalizedOffset } from './scroll-progress-offset.js';
@@ -148,7 +149,11 @@ function createScrollProgressService(
   });
 }
 
-const scrollProgressServices = /* @__PURE__ */ perTarget(createScrollProgressService);
+const scrollProgressServices = /* @__PURE__ */ getSharedRuntimeSlot(
+  'service:scroll-progress',
+  1,
+  () => perTarget(createScrollProgressService),
+);
 
 /**
  * Observe an element's progress through the viewport on both axes.

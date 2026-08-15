@@ -1,4 +1,5 @@
 import { defaultScheduler, type TickProps } from '../scheduler.js';
+import { getSharedRuntimeSlot } from '../shared-runtime.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, type Service } from './service.js';
 
@@ -95,7 +96,9 @@ function createRafService(): RafService {
   };
 }
 
-let service: RafService | undefined;
+const rafState = /* @__PURE__ */ getSharedRuntimeSlot<{
+  service: RafService | undefined;
+}>('service:raf', 1, () => ({ service: undefined }));
 
 /**
  * Use the frame service.
@@ -114,8 +117,8 @@ let service: RafService | undefined;
  * and lifecycle work share one flush per frame.
  */
 export function useRaf(): RafService {
-  service ??= createRafService();
-  return service;
+  rafState.service ??= createRafService();
+  return rafState.service;
 }
 
 /** The method `withRaf()` subscribes for the component. */
