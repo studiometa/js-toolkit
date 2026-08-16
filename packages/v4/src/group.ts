@@ -13,7 +13,7 @@ export interface GroupMember {
 /**
  * A set of peers that know about each other, published as one reactive value.
  *
- * The roster _is_ the state. v3's `withGroup` handed out a bare `Set` with no
+ * The membership _is_ the state. v3's `withGroup` handed out a bare `Set` with no
  * value cell, so a coordinator could read its peers but never learn that one
  * arrived, and every consumer built a change channel beside it. Here a peer
  * joining or leaving is an observable write, which is what makes an invariant
@@ -26,7 +26,7 @@ export interface GroupMember {
  */
 export interface Group<T extends GroupMember = GroupMember> {
   /**
-   * The roster in document order, replaced by a new array on every change so
+   * The members in document order, replaced by a new array on every change so
    * subscribers observe changes by identity and never share a mutable set.
    */
   readonly members: Signal<readonly T[]>;

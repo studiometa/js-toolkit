@@ -14,7 +14,7 @@ function member(el: Element): { $el: Element } {
 }
 
 describe('createGroup', () => {
-  it('publishes the roster in document order whatever the join order', () => {
+  it('publishes its members in document order whatever the join order', () => {
     const root = document.createElement('div');
     root.innerHTML = '<i></i><i></i><i></i>';
     document.body.append(root);
@@ -43,8 +43,8 @@ describe('createGroup', () => {
     const el = document.createElement('div');
     const only = member(el);
     const group = createGroup();
-    const rosters: ReadonlyArray<unknown>[] = [];
-    group.members.subscribe((value) => rosters.push(value));
+    const published: ReadonlyArray<unknown>[] = [];
+    group.members.subscribe((value) => published.push(value));
 
     const leave = group.join(only);
     group.join(only);
@@ -52,7 +52,7 @@ describe('createGroup', () => {
     leave();
 
     // One join and one leave, whatever the number of calls.
-    expect(rosters).toEqual([[only], []]);
+    expect(published).toEqual([[only], []]);
   });
 
   it('publishes a new array on every change', () => {
@@ -78,7 +78,7 @@ describe('createGroup', () => {
 // -----------------------------------------------------------------------------
 
 /**
- * What the group exposes to its members: the roster to read and one command.
+ * What the group exposes to its members: the members to read and one command.
  * The invariant stays with the coordinator; a member only asks.
  */
 interface DisclosureGroupApi {
@@ -167,7 +167,7 @@ class DisclosureGroup extends Base<DisclosureGroupProps> {
     return this.#peers.members.value;
   }
 
-  /** A peer arriving or leaving can break the invariant, so re-check the roster. */
+  /** A peer arriving or leaving can break the invariant, so re-check the members. */
   mounted(): MountedReturn {
     return this.#peers.members.subscribe(() => this.reconcile(), { immediate: true });
   }

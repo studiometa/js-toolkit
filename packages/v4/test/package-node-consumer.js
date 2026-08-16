@@ -71,15 +71,15 @@ storage.set('theme', 'light');
 unsubscribe();
 storage.set('theme', 'dark');
 assert.deepEqual(seen, ['light']);
-// A group needs no DOM to hold a roster: it only reads `$el` to order peers.
+// A group needs no DOM to hold its members: it only reads `$el` to order peers.
 const group = createGroup();
 const peer = { $el: {} };
-const rosters = [];
-group.members.subscribe((members) => rosters.push(members));
+const published = [];
+group.members.subscribe((members) => published.push(members));
 const leave = group.join(peer);
 assert.deepEqual(group.members.value, [peer]);
 leave();
-assert.deepEqual(rosters, [[peer], []]);
+assert.deepEqual(published, [[peer], []]);
 
 assert.equal(clampDefault, clamp);
 assert.equal(clamp(12, 0, 10), 10);
