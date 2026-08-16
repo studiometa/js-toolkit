@@ -659,8 +659,14 @@ function destroyWithin(node: Node, snapshot?: readonly Element[]): void {
   }
 }
 
-function processMutations(records: readonly DOMMutationRecord[]): void {
-  // Teardown must finish before a moved node mounts under its new ancestor.
+/** The attribute mutations of one batch, sorted by what they affect. */
+interface AttributeChanges {
+  declarations: Set<HTMLElement>;
+  strategies: Set<HTMLElement>;
+  options: Map<HTMLElement, Map<string, string | null>>;
+}
+
+function destroyRemovedSubtrees(records: readonly DOMMutationRecord[]): void {
   for (const { record, removedSubtrees } of records) {
     if (record.type === 'childList') {
       for (const node of record.removedNodes) {
@@ -668,7 +674,9 @@ function processMutations(records: readonly DOMMutationRecord[]): void {
       }
     }
   }
+}
 
+function collectAttributeChanges(records: readonly DOMMutationRecord[]): AttributeChanges {
   const declarations = new Set<HTMLElement>();
   const strategies = new Set<HTMLElement>();
   const options = new Map<HTMLElement, Map<string, string | null>>();
@@ -690,13 +698,17 @@ function processMutations(records: readonly DOMMutationRecord[]): void {
         options.set(record.target, changes);
       }
       // Mutation records carry each preceding value. Keeping the first one
-      // and reading the final DOM below coalesces same-task writes.
+      // and reading the final DOM when the batch is applied coalesces
+      // same-task writes.
       if (!changes.has(record.attributeName)) {
         changes.set(record.attributeName, record.oldValue);
       }
     }
   }
+  return { declarations, strategies, options };
+}
 
+function reconcileChangedElements({ declarations, strategies }: AttributeChanges): void {
   // Reconcile once from final DOM state even when a morph changed the same
   // attribute several times in this observer batch.
   for (const el of declarations) {
@@ -709,10 +721,9 @@ function processMutations(records: readonly DOMMutationRecord[]): void {
       reconcileElement(el);
     }
   }
+}
 
-  // Option effects only run on components which survived declaration
-  // reconciliation and are mounted in this cycle. A waiting strategy reads
-  // the final values when it eventually mounts.
+function applyOptionChanges({ options }: AttributeChanges): void {
   for (const [el, changes] of options) {
     if (!el.isConnected) {
       continue;
@@ -724,7 +735,9 @@ function processMutations(records: readonly DOMMutationRecord[]): void {
       }
     }
   }
+}
 
+function scanAddedNodes(records: readonly DOMMutationRecord[]): void {
   for (const { record } of records) {
     if (record.type === 'childList') {
       for (const node of record.addedNodes) {
@@ -734,4 +747,20 @@ function processMutations(records: readonly DOMMutationRecord[]): void {
       }
     }
   }
+}
+
+function processMutations(records: readonly DOMMutationRecord[]): void {
+  // Teardown must finish before a moved node mounts under its new ancestor.
+  destroyRemovedSubtrees(records);
+  // Every attribute of the batch is collected before any of them is applied,
+  // so an element touched several times reconciles once, from final DOM state.
+  const changes = collectAttributeChanges(records);
+  reconcileChangedElements(changes);
+  // Option effects only run on components which survived declaration
+  // reconciliation and are mounted in this cycle. A waiting strategy reads
+  // the final values when it eventually mounts.
+  applyOptionChanges(changes);
+  // Insertions come last: a node moved within this batch was torn down above
+  // and mounts here, under the ancestor it ended up in.
+  scanAddedNodes(records);
 }
