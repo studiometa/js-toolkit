@@ -52,6 +52,12 @@ const scheduler = Object.freeze({
   backgroundPostFailed: 'scheduler.background-post-failed',
 } as const);
 
+const storage = Object.freeze({
+  accessFailed: 'storage.access-failed',
+  deserializeFailed: 'storage.deserialize-failed',
+  serializeFailed: 'storage.serialize-failed',
+} as const);
+
 /** Stable codes carried by toolkit diagnostics. */
 export const DIAGNOSTICS = Object.freeze({
   callback,
@@ -64,6 +70,7 @@ export const DIAGNOSTICS = Object.freeze({
   registry,
   responsive,
   scheduler,
+  storage,
 } as const);
 
 export type ToolkitDiagnosticSeverity = 'warning' | 'error';

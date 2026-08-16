@@ -43,6 +43,11 @@ describe('diagnostics', () => {
       },
       responsive: { unknownBreakpoint: 'responsive.unknown-breakpoint' },
       scheduler: { backgroundPostFailed: 'scheduler.background-post-failed' },
+      storage: {
+        accessFailed: 'storage.access-failed',
+        deserializeFailed: 'storage.deserialize-failed',
+        serializeFailed: 'storage.serialize-failed',
+      },
     });
     expect(Object.isFrozen(DIAGNOSTICS)).toBe(true);
     for (const group of Object.values(DIAGNOSTICS)) {
@@ -74,6 +79,9 @@ describe('diagnostics', () => {
       | 'registry.lazy-name-mismatch'
       | 'responsive.unknown-breakpoint'
       | 'scheduler.background-post-failed'
+      | 'storage.access-failed'
+      | 'storage.deserialize-failed'
+      | 'storage.serialize-failed'
     >();
   });
 

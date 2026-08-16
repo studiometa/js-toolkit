@@ -169,6 +169,31 @@ export {
 export { toggle, type Toggle } from './services/toggle.js';
 export { until } from './services/until.js';
 export {
+  createFallbackProvider,
+  createLocalStorage,
+  createLocalStorageProvider,
+  createMemoryStorageProvider,
+  createSessionStorage,
+  createSessionStorageProvider,
+  createStorage,
+  createUrlSearchParamsInHashProvider,
+  createUrlSearchParamsInHashStorage,
+  createUrlSearchParamsProvider,
+  createUrlSearchParamsStorage,
+  jsonSerializer,
+  localStorageProvider,
+  memoryStorageProvider,
+  sessionStorageProvider,
+  urlSearchParamsInHashProvider,
+  urlSearchParamsProvider,
+  type StorageInstance,
+  type StorageOptions,
+  type StorageProvider,
+  type StorageSerializer,
+  type StorageSubscribeOptions,
+  type UrlProviderOptions,
+} from './storage/index.js';
+export {
   SWAP_MODES,
   swap,
   type SwapContent,
