@@ -6,7 +6,7 @@
   "sideEffects": [
     "./dist/responsive-options.js"
   ],
-  "description": "v4 prototype \u2014 tested in a real browser through Vitest browser mode",
+  "description": "v4 prototype — tested in a real browser through Vitest browser mode",
   "files": [
     "dist"
   ],
@@ -276,10 +276,6 @@
       "types": "./dist/subpaths/createLocalStorage.d.ts",
       "import": "./dist/subpaths/createLocalStorage.js"
     },
-    "./createLocalStorageProvider": {
-      "types": "./dist/subpaths/createLocalStorageProvider.d.ts",
-      "import": "./dist/subpaths/createLocalStorageProvider.js"
-    },
     "./createMemoryStorageProvider": {
       "types": "./dist/subpaths/createMemoryStorageProvider.d.ts",
       "import": "./dist/subpaths/createMemoryStorageProvider.js"
@@ -287,10 +283,6 @@
     "./createSessionStorage": {
       "types": "./dist/subpaths/createSessionStorage.d.ts",
       "import": "./dist/subpaths/createSessionStorage.js"
-    },
-    "./createSessionStorageProvider": {
-      "types": "./dist/subpaths/createSessionStorageProvider.d.ts",
-      "import": "./dist/subpaths/createSessionStorageProvider.js"
     },
     "./createStorage": {
       "types": "./dist/subpaths/createStorage.d.ts",
