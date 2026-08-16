@@ -192,6 +192,10 @@
       "types": "./dist/subpaths/usePrefersReducedMotion.d.ts",
       "import": "./dist/subpaths/usePrefersReducedMotion.js"
     },
+    "./useMutation": {
+      "types": "./dist/subpaths/useMutation.d.ts",
+      "import": "./dist/subpaths/useMutation.js"
+    },
     "./usePointer": {
       "types": "./dist/subpaths/usePointer.d.ts",
       "import": "./dist/subpaths/usePointer.js"

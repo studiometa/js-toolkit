@@ -112,6 +112,7 @@ export {
   type ServiceMixinOptions,
 } from './services/mixin.js';
 export { useMediaQuery, usePrefersReducedMotion, type MediaQueryProps } from './services/media.js';
+export { useMutation, type MutationProps } from './services/mutation.js';
 export {
   usePointer,
   withPointer,

@@ -13,6 +13,7 @@ import {
   subscribeContext,
   useDrag,
   useInView,
+  useMutation,
   useScrollProgress,
   watchAttributes,
   withDrag,
@@ -30,6 +31,7 @@ import {
   type ExtendableDetail,
   type Extension,
   type InViewProps,
+  type MutationProps,
   type AttributeChange,
   type AttributeWatcher,
   type ContextCallback,
@@ -56,6 +58,9 @@ import useDragFromSubpath from '@studiometa/js-toolkit-v4/useDrag';
 import useInViewFromSubpath, {
   useInView as namedUseInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/useInView';
+import useMutationFromSubpath, {
+  useMutation as namedUseMutationFromSubpath,
+} from '@studiometa/js-toolkit-v4/useMutation';
 import useScrollProgressSubpath from '@studiometa/js-toolkit-v4/useScrollProgress';
 import watchAttributesFromSubpath, {
   watchAttributes as namedWatchAttributesFromSubpath,
@@ -130,7 +135,7 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(79);
+    expect(Object.keys(root)).toHaveLength(80);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
@@ -222,6 +227,13 @@ describe('the package entry points', () => {
       intersected?: (props: InViewProps) => void;
     }>();
     expectTypeOf<InViewMixinOptions>().toMatchTypeOf<IntersectionObserverInit>();
+  });
+
+  it('serves useMutation from the root and its symbol subpath', () => {
+    expect(useMutationFromSubpath).toBe(useMutation);
+    expect(namedUseMutationFromSubpath).toBe(useMutation);
+    expectTypeOf(useMutation(document)).toEqualTypeOf<Service<MutationProps>>();
+    expectTypeOf<MutationProps>().toEqualTypeOf<{ readonly records: readonly MutationRecord[] }>();
   });
 
   it('exports manifest generation from the root and symbol subpaths', () => {
