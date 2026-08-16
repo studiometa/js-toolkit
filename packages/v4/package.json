@@ -336,6 +336,10 @@
       "types": "./dist/subpaths/viewTransition.d.ts",
       "import": "./dist/subpaths/viewTransition.js"
     },
+    "./utils/createElement": {
+      "types": "./dist/subpaths/utils/createElement.d.ts",
+      "import": "./dist/subpaths/utils/createElement.js"
+    },
     "./utils/historyPush": {
       "types": "./dist/subpaths/utils/historyPush.d.ts",
       "import": "./dist/subpaths/utils/historyPush.js"

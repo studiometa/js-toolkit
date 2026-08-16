@@ -1,5 +1,6 @@
 /** Public entry point for `@studiometa/js-toolkit-v4/utils`. */
 
+export { createElement, type CreateElementAttributes, type CreateElementChildren } from './dom.js';
 export {
   historyPush,
   historyReplace,

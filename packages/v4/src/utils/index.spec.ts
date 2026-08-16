@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as barrel from './index.js';
+import * as dom from './dom.js';
 import * as historyModule from './history.js';
 import * as is from './is.js';
 import * as maths from './maths.js';
@@ -14,6 +15,7 @@ import type { Memo, SmoothTo, SmoothToOptions, SpringOptions } from './index.js'
 describe('the utils barrel', () => {
   it('names every runtime export of every module it fronts', () => {
     const expected = [
+      ...Object.keys(dom),
       ...Object.keys(historyModule),
       ...Object.keys(is),
       ...Object.keys(maths),
