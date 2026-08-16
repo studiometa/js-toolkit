@@ -68,6 +68,7 @@ export {
   type SpringOptions,
 } from './maths.js';
 export { memo, type Memo } from './memo.js';
+export { noop, noopValue } from './noop.js';
 export { random, randomInt, randomItem } from './random.js';
 export {
   SCROLL_AXES,

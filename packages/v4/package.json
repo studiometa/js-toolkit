@@ -580,6 +580,14 @@
       "types": "./dist/subpaths/utils/memo.d.ts",
       "import": "./dist/subpaths/utils/memo.js"
     },
+    "./utils/noop": {
+      "types": "./dist/subpaths/utils/noop.d.ts",
+      "import": "./dist/subpaths/utils/noop.js"
+    },
+    "./utils/noopValue": {
+      "types": "./dist/subpaths/utils/noopValue.d.ts",
+      "import": "./dist/subpaths/utils/noopValue.js"
+    },
     "./utils/random": {
       "types": "./dist/subpaths/utils/random.d.ts",
       "import": "./dist/subpaths/utils/random.js"
