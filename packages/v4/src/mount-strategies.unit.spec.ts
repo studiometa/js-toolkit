@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import type { BaseConfig, ComponentManifestEntry, MountStrategy } from './index.js';
-import { applyMountStrategy } from './mount-strategies.js';
+import { applyMountStrategy, mountStrategyBehaviour } from './mount-strategies.js';
 
 class FakeIntersectionObserver {
   static instances: FakeIntersectionObserver[] = [];
@@ -44,6 +44,62 @@ expectTypeOf<'in-view:-10% 0px'>().toMatchTypeOf<
 // @ts-expect-error only visible and in-view accept viewport parameters
 const invalidViewportStrategy: MountStrategy = 'viewport:200px';
 void invalidViewportStrategy;
+
+describe('mountStrategyBehaviour', () => {
+  // The registry schedules against these two facts, so they belong to the
+  // module owning the grammar rather than to a list of strategy names
+  // maintained beside it.
+  it.each([
+    ['eager', { eager: true, reversible: false }],
+    ['visible', { eager: false, reversible: false }],
+    ['visible:200px', { eager: false, reversible: false }],
+    ['in-view', { eager: false, reversible: true }],
+    ['in-view:', { eager: false, reversible: true }],
+    ['in-view:-10% 0px', { eager: false, reversible: true }],
+    ['idle', { eager: false, reversible: false }],
+    ['interaction', { eager: false, reversible: false }],
+    ['media:(min-width: 1px)', { eager: false, reversible: true }],
+    ['eagre', { eager: false, reversible: false }],
+    ['media:', { eager: false, reversible: false }],
+  ])('describes %j without applying it', (strategy, behaviour) => {
+    expect(mountStrategyBehaviour(strategy)).toEqual(behaviour);
+  });
+});
+
+describe('applyMountStrategy synchronous evaluation', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('mounts a matching media query before it returns', () => {
+    let returned = false;
+    const firedAfterReturn: boolean[] = [];
+
+    const applied = applyMountStrategy(document.createElement('div'), 'media:(min-width: 1px)', {
+      mount: () => firedAfterReturn.push(returned),
+      destroy() {},
+    });
+    returned = true;
+
+    // The only strategy which can call a hook from inside `applyMountStrategy`.
+    // Every caller has to be safe with a teardown it does not hold yet.
+    expect(firedAfterReturn).toEqual([false]);
+    applied.dispose();
+  });
+
+  it.each(['eager', 'visible', 'idle', 'interaction'] as const)(
+    'defers every hook of %j past the call',
+    (strategy) => {
+      const hooks = { mount: vi.fn(), destroy: vi.fn() };
+
+      const applied = applyMountStrategy(document.createElement('div'), strategy, hooks);
+
+      expect(hooks.mount).not.toHaveBeenCalled();
+      expect(hooks.destroy).not.toHaveBeenCalled();
+      applied.dispose();
+    },
+  );
+});
 
 describe('applyMountStrategy viewport parameters', () => {
   beforeEach(() => {
