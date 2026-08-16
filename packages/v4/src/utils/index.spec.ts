@@ -12,6 +12,7 @@ import * as smoothToModule from './smoothTo.js';
 import * as strings from './strings.js';
 import * as timing from './timing.js';
 import * as transformModule from './transform.js';
+import * as transitionModule from './transition.js';
 import type { Memo, SmoothTo, SmoothToOptions, SpringOptions } from './index.js';
 
 describe('the utils barrel', () => {
@@ -29,6 +30,7 @@ describe('the utils barrel', () => {
       ...Object.keys(strings),
       ...Object.keys(timing),
       ...Object.keys(transformModule),
+      ...Object.keys(transitionModule),
     ].sort();
 
     expect(Object.keys(barrel).sort()).toEqual(expected);

@@ -17,5 +17,4 @@ export * from './utils/inView.js';
 export * from './utils/keyframes.js';
 export * from '../src/utils/maths.js';
 export * from './utils/throttle.js';
-export * from './utils/transition.js';
 export * from './utils/uid.js';

@@ -84,6 +84,16 @@ export {
 } from './strings.js';
 export { debounce, throttle, wait } from './timing.js';
 export {
+  enterTransition,
+  leaveTransition,
+  setClassesOrStyles,
+  transition,
+  TRANSITION_OPTIONS,
+  type ClassesOrStyles,
+  type TransitionOptions,
+  type TransitionStyles,
+} from './transition.js';
+export {
   matrix,
   transform,
   TRANSFORM_PROPS,

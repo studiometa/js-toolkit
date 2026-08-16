@@ -4,7 +4,7 @@ import {
   leaveTransition,
   TRANSITION_OPTIONS,
   type TransitionOptions,
-} from '../utils/transition.js';
+} from '../../src/utils/transition.js';
 
 export interface TransitionProps {
   $options: TransitionOptions;

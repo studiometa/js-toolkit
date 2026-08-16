@@ -1,5 +1,5 @@
 import { Base } from '../../src/index.js';
-import { transition, type ClassesOrStyles } from '../utils/transition.js';
+import { transition, type ClassesOrStyles } from '../../src/utils/transition.js';
 import { uid } from '../utils/uid.js';
 
 export type AccordionItemStates = Partial<Record<'open' | 'active' | 'closed', ClassesOrStyles>>;

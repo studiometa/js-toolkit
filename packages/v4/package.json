@@ -660,6 +660,26 @@
       "types": "./dist/subpaths/utils/wait.d.ts",
       "import": "./dist/subpaths/utils/wait.js"
     },
+    "./utils/enterTransition": {
+      "types": "./dist/subpaths/utils/enterTransition.d.ts",
+      "import": "./dist/subpaths/utils/enterTransition.js"
+    },
+    "./utils/leaveTransition": {
+      "types": "./dist/subpaths/utils/leaveTransition.d.ts",
+      "import": "./dist/subpaths/utils/leaveTransition.js"
+    },
+    "./utils/setClassesOrStyles": {
+      "types": "./dist/subpaths/utils/setClassesOrStyles.d.ts",
+      "import": "./dist/subpaths/utils/setClassesOrStyles.js"
+    },
+    "./utils/transition": {
+      "types": "./dist/subpaths/utils/transition.d.ts",
+      "import": "./dist/subpaths/utils/transition.js"
+    },
+    "./utils/TRANSITION_OPTIONS": {
+      "types": "./dist/subpaths/utils/TRANSITION_OPTIONS.d.ts",
+      "import": "./dist/subpaths/utils/TRANSITION_OPTIONS.js"
+    },
     "./utils/matrix": {
       "types": "./dist/subpaths/utils/matrix.d.ts",
       "import": "./dist/subpaths/utils/matrix.js"
