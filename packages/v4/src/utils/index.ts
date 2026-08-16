@@ -69,6 +69,14 @@ export {
 } from './maths.js';
 export { memo, type Memo } from './memo.js';
 export { random, randomInt, randomItem } from './random.js';
+export {
+  SCROLL_AXES,
+  scrollTo,
+  type ScrollAxis,
+  type ScrollPosition,
+  type ScrollToOptions,
+  type ScrollToTarget,
+} from './scrollTo.js';
 export { selectorFor } from './selectors.js';
 export { smoothTo, type SmoothTo, type SmoothToOptions } from './smoothTo.js';
 export {
