@@ -71,7 +71,7 @@ describe('Slider', () => {
     expect(root.getAttribute('aria-roledescription')).toBe('carousel');
     const [item] = slider.items.items;
     expect(item.$el.getAttribute('aria-roledescription')).toBe('slide');
-    expect(item.$el.getAttribute('aria-label')).toBe(item.id);
+    expect(item.$el.getAttribute('aria-label')).toBe(item.$id);
   });
 
   it('navigates on a real click and moves every slide', async () => {
