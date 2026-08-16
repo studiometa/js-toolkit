@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
+- Schedule every v4 component through one algorithm: a registered class and a lazy manifest entry now share one controller per element/component pair, and `mount-strategies` answers whether a strategy is reversible or eager instead of the registry re-deriving it from strategy names ([#843](https://github.com/studiometa/js-toolkit/pull/843))
 - Assemble the published package in `packages/js-toolkit/` instead of a repository-level `dist/`. The subpaths a consumer imports are unchanged ([#777](https://github.com/studiometa/js-toolkit/pull/777))
 - Build with tsdown (rolldown) instead of esbuild plus a separate `tsgo --build` pass, in every package ([#777](https://github.com/studiometa/js-toolkit/pull/777))
 - Format with `oxfmt` instead of Prettier, across the whole tree; the demo keeps Prettier for its Twig templates ([#777](https://github.com/studiometa/js-toolkit/pull/777))
