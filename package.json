@@ -25,6 +25,7 @@
     "test:eslint-plugin": "npm run test -w @studiometa/eslint-plugin-js-toolkit",
     "bench": "npm run bench -w @studiometa/js-toolkit",
     "bench:run": "npm run bench:run -w @studiometa/js-toolkit",
+    "bench:v4": "npm run bench:report -w @studiometa/js-toolkit-v4",
     "lint": "npm run subpaths:check && npm run lint:static && npm run lint:fmt && npm run lint:types",
     "lint:static": "oxlint .",
     "lint:fmt": "oxfmt --check .",

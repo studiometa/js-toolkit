@@ -1,0 +1,208 @@
+name: 'Benchmark diff'
+description: 'Run a vitest benchmark suite for the base and the head commit on one runner, alternating, and comment the difference.'
+author: 'Studio Meta'
+branding:
+  icon: 'activity'
+  color: 'blue'
+
+# The action knows nothing about how a suite runs. It takes a directory, a
+# command and an output path, and reads the JSON vitest emits — the same
+# schema whether the benchmark bodies execute in Node or in a browser. Keep it
+# that way: a second suite is added by adding a step, not by adding a branch.
+
+inputs:
+  id:
+    description: 'Identifier for this suite. Namespaces the sticky comment and the temporary files, so several suites can each keep their own comment on one pull request.'
+    required: false
+    default: 'bench-diff'
+  title:
+    description: 'Heading of the sticky comment.'
+    required: false
+    default: 'Benchmarks'
+  unit:
+    description: "What a group's count counts, for the per-unit column — `component`, `element`, `node`. Groups whose title carries no number have no per-unit figure."
+    required: false
+    default: 'unit'
+  bench:
+    description: 'Command producing a `vitest bench --outputJson` file at `$BENCH_JSON`, run in `working-directory` inside each checkout.'
+    required: true
+  working-directory:
+    description: 'Directory to run `bench` in, relative to a checkout root.'
+    required: false
+    default: '.'
+  install:
+    description: 'Command that installs dependencies, run at the root of each checkout.'
+    required: false
+    default: 'npm ci --no-audit --no-fund'
+  prepare:
+    description: 'Optional command run after `install` in each checkout, for anything the benchmarks need on disk.'
+    required: false
+    default: ''
+  rounds:
+    description: 'Sampling rounds per side. Sides alternate within a round, and the order flips between rounds, so thermal drift and runner contention land on both sides equally.'
+    required: false
+    default: '3'
+  threshold:
+    description: 'Percent change reported as a change. Set it from a measured same-commit noise floor, never from taste.'
+    required: false
+    default: '25'
+  floor:
+    description: 'Benchmarks with a median under this many milliseconds are reported but never flagged: the timer cannot resolve them.'
+    required: false
+    default: '5'
+  node-version:
+    description: 'Node.js version.'
+    required: false
+    default: '24'
+  comment:
+    description: 'Upsert a sticky pull-request comment with the diff.'
+    required: false
+    default: 'true'
+  github-token:
+    description: 'Token used to upsert the comment (needs `pull-requests: write`).'
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+
+    - name: Install the pull request
+      shell: bash
+      run: |
+        ${{ inputs.install }}
+        ${{ inputs.prepare }}
+
+    # The base is measured on this runner, from the same action-provided
+    # scripts, rather than read from a cache. A cached baseline comes from
+    # another machine under other contention, which re-imports exactly the
+    # cross-machine noise this design exists to remove — and a cached number
+    # cannot be interleaved with anything.
+    - name: Check out the base branch
+      if: github.event_name == 'pull_request'
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+        path: __bench-diff-base
+
+    # No `|| true` here. A base that cannot install or prepare is a broken
+    # job, and suppressing it would turn a broken baseline into a confident
+    # "everything is new" comment — a green report of a comparison that never
+    # happened. Only a base with no benchmark suite may degrade, and that is
+    # decided further down, from whether it produced any output at all.
+    - name: Install the base branch
+      if: github.event_name == 'pull_request'
+      shell: bash
+      working-directory: __bench-diff-base
+      run: |
+        ${{ inputs.install }}
+        ${{ inputs.prepare }}
+
+    - name: Run both sides, alternating
+      shell: bash
+      env:
+        BENCH_ID: ${{ inputs.id }}
+        BENCH_ROUNDS: ${{ inputs.rounds }}
+        BENCH_WORKDIR: ${{ inputs.working-directory }}
+        BENCH_HAS_BASE: ${{ github.event_name == 'pull_request' }}
+      run: |
+        # `shell: bash` already runs with `-e -o pipefail`; saying so here
+        # keeps the guarantee visible to whoever edits this next.
+        set -euo pipefail
+        run_side() {
+          local side="$1" round="$2" root="$3"
+          local out="$RUNNER_TEMP/$BENCH_ID-$side-$round.json"
+          # `export` on its own line, not a prefix assignment: `$BENCH_JSON`
+          # inside the command is expanded by this shell before the command
+          # runs, so a prefix assignment would come too late for it.
+          ( cd "$root/$BENCH_WORKDIR" && export BENCH_JSON="$out" && ${{ inputs.bench }} ) \
+            || echo "::warning::the $side benchmark run failed in round $round"
+        }
+        for round in $(seq 1 "$BENCH_ROUNDS"); do
+          if [ "$BENCH_HAS_BASE" != 'true' ]; then
+            run_side head "$round" "$GITHUB_WORKSPACE"
+          elif [ $((round % 2)) -eq 1 ]; then
+            run_side head "$round" "$GITHUB_WORKSPACE"
+            run_side base "$round" "$GITHUB_WORKSPACE/__bench-diff-base"
+          else
+            run_side base "$round" "$GITHUB_WORKSPACE/__bench-diff-base"
+            run_side head "$round" "$GITHUB_WORKSPACE"
+          fi
+        done
+
+    # Three outcomes per side, and they are not the same thing.
+    #
+    #   every round measured  -> compare
+    #   no round measured     -> only the base may do this, and only because
+    #                            "the suite does not exist on this commit yet"
+    #                            is a real, expected state on the pull request
+    #                            that adds it. Degrade to an empty base, and
+    #                            say so in the comment.
+    #   some rounds measured  -> a suite that ran and then did not is broken,
+    #                            not absent. Never degrade; fail.
+    #
+    # Counting output is what separates absent from broken without the action
+    # having to know anything about the command it was given.
+    - name: Aggregate the rounds
+      shell: bash
+      env:
+        BENCH_ID: ${{ inputs.id }}
+        BENCH_ROUNDS: ${{ inputs.rounds }}
+        BENCH_HAS_BASE: ${{ github.event_name == 'pull_request' }}
+      run: |
+        set -euo pipefail
+        shopt -s nullglob
+        head_rounds=("$RUNNER_TEMP/$BENCH_ID"-head-*.json)
+        base_rounds=("$RUNNER_TEMP/$BENCH_ID"-base-*.json)
+
+        if [ ${#head_rounds[@]} -ne "$BENCH_ROUNDS" ]; then
+          echo "::error::the head commit measured ${#head_rounds[@]} of $BENCH_ROUNDS rounds" >&2
+          exit 1
+        fi
+        node "$GITHUB_ACTION_PATH/bench-report.mjs" "${head_rounds[@]}" \
+          --json "$RUNNER_TEMP/$BENCH_ID-head.json" --markdown
+
+        if [ "$BENCH_HAS_BASE" != 'true' ] || [ ${#base_rounds[@]} -eq 0 ]; then
+          if [ "$BENCH_HAS_BASE" = 'true' ]; then
+            echo '::warning::the base commit produced no benchmark output; reporting every benchmark as new' >&2
+          fi
+          echo '[]' > "$RUNNER_TEMP/$BENCH_ID-base.json"
+        elif [ ${#base_rounds[@]} -ne "$BENCH_ROUNDS" ]; then
+          echo "::error::the base commit measured ${#base_rounds[@]} of $BENCH_ROUNDS rounds, so its suite is broken rather than absent" >&2
+          exit 1
+        else
+          node "$GITHUB_ACTION_PATH/bench-report.mjs" "${base_rounds[@]}" \
+            --json "$RUNNER_TEMP/$BENCH_ID-base.json"
+        fi
+
+    - name: Comment on the pull request
+      if: inputs.comment == 'true' && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        BENCH_ID: ${{ inputs.id }}
+      run: |
+        node "$GITHUB_ACTION_PATH/bench-comment.mjs" \
+          "$RUNNER_TEMP/$BENCH_ID-base.json" "$RUNNER_TEMP/$BENCH_ID-head.json" \
+          --threshold '${{ inputs.threshold }}' \
+          --floor '${{ inputs.floor }}' \
+          --rounds '${{ inputs.rounds }}' \
+          --id '${{ inputs.id }}' \
+          --title '${{ inputs.title }}' \
+          --unit '${{ inputs.unit }}' > "$RUNNER_TEMP/$BENCH_ID-comment.md"
+        cat "$RUNNER_TEMP/$BENCH_ID-comment.md" >> "$GITHUB_STEP_SUMMARY"
+        marker="<!-- bench-diff:$BENCH_ID -->"
+        repo='${{ github.repository }}'
+        pr='${{ github.event.pull_request.number }}'
+        comment_id=$(gh api "repos/$repo/issues/$pr/comments" --paginate \
+          --jq ".[] | select(.body | contains(\"$marker\")) | .id" | head -n1)
+        if [ -n "$comment_id" ]; then
+          gh api --method PATCH "repos/$repo/issues/comments/$comment_id" -F body=@"$RUNNER_TEMP/$BENCH_ID-comment.md" >/dev/null
+        else
+          gh api --method POST "repos/$repo/issues/$pr/comments" -F body=@"$RUNNER_TEMP/$BENCH_ID-comment.md" >/dev/null
+        fi

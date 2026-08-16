@@ -31,6 +31,9 @@ packages/demo/dist/
 
 # Module graph reports written by `npm run measure -- --json <file>`
 .measure-*.json
+
+# Benchmark output written by `npm run bench:v4`
+.bench-report.json
 /packages/docs/.vitepress/cache
 /packages/docs/.vitepress/dist
 coverage/

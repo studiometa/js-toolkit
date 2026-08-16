@@ -6,7 +6,7 @@
   "sideEffects": [
     "./dist/responsive-options.js"
   ],
-  "description": "v4 prototype — tested in a real browser through Vitest browser mode",
+  "description": "v4 prototype \u2014 tested in a real browser through Vitest browser mode",
   "files": [
     "dist"
   ],
@@ -767,6 +767,7 @@
     "test:watch": "vitest",
     "test:debug": "vitest --browser.headless=false",
     "bench": "vitest bench --config vitest.bench.config.js",
+    "bench:report": "npm run bench -- --run --outputJson .bench-report.json && node ../../.github/actions/bench-diff/bench-report.mjs .bench-report.json",
     "lint:types": "tsc -p tsconfig.json"
   },
   "dependencies": {
