@@ -5,6 +5,7 @@ import {
   Base,
   DIAGNOSTICS,
   EVENTS,
+  createGroup,
   defineManifest,
   domUpdate,
   emitExtendable,
@@ -44,6 +45,8 @@ import {
   type AttributeChange,
   type AttributeWatcher,
   type ContextCallback,
+  type Group,
+  type GroupMember,
   type ModuleRecord,
   type Service,
   type ToolkitDiagnosticCode,
@@ -51,6 +54,9 @@ import {
   type ToolkitDiagnosticSeverity,
   type WebpackContextLike,
 } from '@studiometa/js-toolkit-v4';
+import createGroupFromSubpath, {
+  createGroup as namedCreateGroupFromSubpath,
+} from '@studiometa/js-toolkit-v4/createGroup';
 import defineManifestFromSubpath from '@studiometa/js-toolkit-v4/defineManifest';
 import domUpdateFromSubpath, {
   domUpdate as namedDomUpdateFromSubpath,
@@ -153,7 +159,7 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(81);
+    expect(Object.keys(root)).toHaveLength(82);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
@@ -188,6 +194,15 @@ describe('the package entry points', () => {
     expectTypeOf<ContextCallback<string>>().toEqualTypeOf<
       (value: string, unsubscribe: () => void) => void | (() => void)
     >();
+  });
+
+  it('exports the group helper and its structural member type', () => {
+    expect(createGroupFromSubpath).toBe(createGroup);
+    expect(namedCreateGroupFromSubpath).toBe(createGroup);
+    expectTypeOf<GroupMember>().toEqualTypeOf<{ readonly $el: Element }>();
+    // A `Base` satisfies the member type without the group importing it.
+    expectTypeOf<Base>().toMatchTypeOf<GroupMember>();
+    expectTypeOf<Group>().toMatchTypeOf<{ join(member: GroupMember): () => void }>();
   });
 
   it('exports standalone orchestration helpers without Base wrappers', () => {

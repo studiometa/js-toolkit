@@ -12,6 +12,7 @@ import useMutationDefault, { useMutation } from '@studiometa/js-toolkit-v4/useMu
 import useRafDefault, { useRaf } from '@studiometa/js-toolkit-v4/useRaf';
 import withMutationDefault, { withMutation } from '@studiometa/js-toolkit-v4/withMutation';
 import watchAttributesDefault, { watchAttributes } from '@studiometa/js-toolkit-v4/watchAttributes';
+import createGroupDefault, { createGroup } from '@studiometa/js-toolkit-v4/createGroup';
 import createStorageDefault, { createStorage } from '@studiometa/js-toolkit-v4/createStorage';
 import createMemoryStorageProviderDefault, {
   createMemoryStorageProvider,
@@ -53,7 +54,9 @@ assert.equal(createStorage, toolkit.createStorage);
 assert.equal(createStorageDefault, createStorage);
 assert.equal(createMemoryStorageProvider, toolkit.createMemoryStorageProvider);
 assert.equal(createMemoryStorageProviderDefault, createMemoryStorageProvider);
-assert.equal(Object.keys(toolkit).length, 81);
+assert.equal(createGroup, toolkit.createGroup);
+assert.equal(createGroupDefault, createGroup);
+assert.equal(Object.keys(toolkit).length, 82);
 assert.equal(toolkit.ToolkitErrorDetail, undefined);
 assert.equal(toolkit.ToolkitErrorStage, undefined);
 
@@ -68,6 +71,16 @@ storage.set('theme', 'light');
 unsubscribe();
 storage.set('theme', 'dark');
 assert.deepEqual(seen, ['light']);
+// A group needs no DOM to hold a roster: it only reads `$el` to order peers.
+const group = createGroup();
+const peer = { $el: {} };
+const rosters = [];
+group.members.subscribe((members) => rosters.push(members));
+const leave = group.join(peer);
+assert.deepEqual(group.members.value, [peer]);
+leave();
+assert.deepEqual(rosters, [[peer], []]);
+
 assert.equal(clampDefault, clamp);
 assert.equal(clamp(12, 0, 10), 10);
 

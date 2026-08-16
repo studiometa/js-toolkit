@@ -96,6 +96,10 @@
       "types": "./dist/subpaths/EVENTS.d.ts",
       "import": "./dist/subpaths/EVENTS.js"
     },
+    "./createGroup": {
+      "types": "./dist/subpaths/createGroup.d.ts",
+      "import": "./dist/subpaths/createGroup.js"
+    },
     "./getInstances": {
       "types": "./dist/subpaths/getInstances.d.ts",
       "import": "./dist/subpaths/getInstances.js"

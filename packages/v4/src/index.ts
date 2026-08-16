@@ -41,6 +41,7 @@ export {
   type AttributeWatcher,
 } from './dom-mutations.js';
 export { EVENTS } from './events.js';
+export { createGroup, type Group, type GroupMember } from './group.js';
 export { getInstances } from './instances.js';
 export {
   defineManifest,
