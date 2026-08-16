@@ -22,3 +22,10 @@ export { memo, type Memo } from './memo.js';
 export { selectorFor } from './selectors.js';
 export { smoothTo, type SmoothTo, type SmoothToOptions } from './smoothTo.js';
 export { kebabCase, pascalCase } from './strings.js';
+export {
+  matrix,
+  transform,
+  TRANSFORM_PROPS,
+  type MatrixProps,
+  type TransformProps,
+} from './transform.js';

@@ -415,6 +415,18 @@
     "./utils/pascalCase": {
       "types": "./dist/subpaths/utils/pascalCase.d.ts",
       "import": "./dist/subpaths/utils/pascalCase.js"
+    },
+    "./utils/matrix": {
+      "types": "./dist/subpaths/utils/matrix.d.ts",
+      "import": "./dist/subpaths/utils/matrix.js"
+    },
+    "./utils/transform": {
+      "types": "./dist/subpaths/utils/transform.d.ts",
+      "import": "./dist/subpaths/utils/transform.js"
+    },
+    "./utils/TRANSFORM_PROPS": {
+      "types": "./dist/subpaths/utils/TRANSFORM_PROPS.d.ts",
+      "import": "./dist/subpaths/utils/TRANSFORM_PROPS.js"
     }
   },
   "scripts": {
