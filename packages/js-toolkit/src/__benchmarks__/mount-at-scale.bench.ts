@@ -138,9 +138,9 @@ function swapBench(version: Version, scenario: ScenarioName, size: number): void
  */
 function destroyBench(version: Version, size: number): void {
   // Fewer iterations than a swap group: the whole pool is mounted at once, so
-  // the count sets how heavy the starting page is, and v3 cannot afford a
-  // heavy one — its queue drains with `Array#shift`, which V8 turns quadratic
-  // past ~16 000 entries.
+  // the count sets how heavy the starting page is, and neither version should
+  // be charged for setting up a document several times the size the group is
+  // named after.
   const base = samplesFor(size);
   const options = { ...base, iterations: Math.min(base.iterations, 5) };
   let pool: HTMLElement[] = [];

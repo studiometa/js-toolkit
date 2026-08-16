@@ -20,10 +20,9 @@ import { decorators } from '../v4/vite-plugin-decorators.js';
  * - `vitest run` runs `*.profile.ts`, which reports the blocking profile a
  *   throughput number cannot show.
  *
- * `V3_BENCH_SIZES` sets the at-scale sizes. The default stops at 1 000
- * because v3 does not survive 5 000: its queue drains with `Array#shift`,
- * which V8 turns quadratic past ~16 000 entries, and one swap then takes over
- * five seconds. That number belongs in a report, not in every run.
+ * `V3_BENCH_SIZES` sets the at-scale sizes. The default stops at 1 000 to keep
+ * a run bounded: 5 000 costs both versions minutes of samples, so it belongs
+ * in a report rather than in every run.
  */
 const sizes = (process.env.V3_BENCH_SIZES ?? '100,1000')
   .split(',')
