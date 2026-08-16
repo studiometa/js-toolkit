@@ -1,4 +1,4 @@
-import { COMPONENT_ATTRIBUTE } from '../component-declarations.js';
+import { COMPONENT_ATTRIBUTE } from '../attributes.js';
 import { responsiveAttributeNames } from '../responsive-options.js';
 
 /**

@@ -1,7 +1,13 @@
 import { resolveConfig, type BaseConstructor, type ComponentImporter } from './Base.js';
-import { isBaseConstructor } from './component-brand.js';
 import {
   COMPONENT_ATTRIBUTE,
+  isComponentAttribute,
+  isOptionAttribute,
+  MOUNT_ATTRIBUTE,
+  optionAttributeFor,
+} from './attributes.js';
+import { isBaseConstructor } from './component-brand.js';
+import {
   componentTokens,
   hasComponentAttribute,
   hasResponsiveComponentAttribute,
@@ -15,7 +21,6 @@ import {
 } from './dom-mutations.js';
 import {
   applyMountStrategy,
-  MOUNT_ATTRIBUTE,
   mountStrategyBehaviour,
   type MountStrategy,
   type MountStrategyHooks,
@@ -31,7 +36,6 @@ import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
 import { onBreakpointsReplaced } from './services/breakpoint.js';
 import { selectorFor } from './utils/selectors.js';
-import { kebabCase } from './utils/strings.js';
 
 // Register exact responsive component attribute names with the shared observer filter.
 observeResponsiveAttribute(COMPONENT_ATTRIBUTE);
@@ -345,7 +349,7 @@ function optionAttributes(ComponentClass: BaseConstructor): string[] {
   let current: BaseConstructor | null = ComponentClass;
   while (current?.config) {
     for (const name of Object.keys(current.config.options ?? {})) {
-      const attribute = `data-option-${kebabCase(name)}`;
+      const attribute = optionAttributeFor(name);
       names.add(attribute);
       // Register each exact breakpoint-scoped spelling with the observer filter.
       observeResponsiveAttribute(attribute);
@@ -631,14 +635,11 @@ function collectAttributeChanges(records: readonly DOMMutationRecord[]): Attribu
     if (record.type !== 'attributes' || !(record.target instanceof HTMLElement)) {
       continue;
     }
-    if (
-      record.attributeName === COMPONENT_ATTRIBUTE ||
-      record.attributeName?.startsWith(`${COMPONENT_ATTRIBUTE}:`)
-    ) {
+    if (isComponentAttribute(record.attributeName)) {
       declarations.add(record.target);
     } else if (record.attributeName === MOUNT_ATTRIBUTE) {
       strategies.add(record.target);
-    } else if (record.attributeName?.startsWith('data-option-')) {
+    } else if (isOptionAttribute(record.attributeName)) {
       let changes = options.get(record.target);
       if (!changes) {
         changes = new Map();

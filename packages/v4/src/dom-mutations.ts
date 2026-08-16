@@ -1,3 +1,10 @@
+import {
+  FRAMEWORK_ATTRIBUTES,
+  isComponentAttribute,
+  isOptionAttribute,
+  MOUNT_ATTRIBUTE,
+  REF_ATTRIBUTE,
+} from './attributes.js';
 import { reportDiagnostic } from './diagnostics.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
@@ -50,7 +57,7 @@ const domMutationState = /* @__PURE__ */ getSharedRuntimeSlot<DOMMutationRuntime
   'dom-mutations',
   1,
   () => ({
-    observedAttributes: new Set(['data-component', 'data-mount', 'data-ref']),
+    observedAttributes: new Set<string>(FRAMEWORK_ATTRIBUTES),
     attributeWatchers: new Set(),
     observer: null,
     processor: null,
@@ -61,10 +68,6 @@ const domMutationState = /* @__PURE__ */ getSharedRuntimeSlot<DOMMutationRuntime
   }),
 );
 const { observedAttributes, attributeWatchers, lifecycleWork } = domMutationState;
-
-function isComponentAttribute(attribute: string | null): boolean {
-  return attribute === 'data-component' || attribute?.startsWith('data-component:') === true;
-}
 
 /**
  * Start the document's single mutation observer on demand.
@@ -243,9 +246,9 @@ function ingest(incoming: MutationRecord[]): void {
     ({ type, attributeName }) =>
       type === 'childList' ||
       isComponentAttribute(attributeName) ||
-      attributeName === 'data-mount' ||
-      attributeName === 'data-ref' ||
-      attributeName?.startsWith('data-option-'),
+      attributeName === MOUNT_ATTRIBUTE ||
+      attributeName === REF_ATTRIBUTE ||
+      isOptionAttribute(attributeName),
   );
   if (relevant.length === 0) {
     return;
@@ -254,7 +257,9 @@ function ingest(incoming: MutationRecord[]): void {
   if (
     relevant.some(
       ({ type, attributeName }) =>
-        type === 'childList' || isComponentAttribute(attributeName) || attributeName === 'data-ref',
+        type === 'childList' ||
+        isComponentAttribute(attributeName) ||
+        attributeName === REF_ATTRIBUTE,
     )
   ) {
     domMutationState.version += 1;

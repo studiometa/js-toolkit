@@ -1,3 +1,4 @@
+import { optionAttributeFor, REF_ATTRIBUTE } from './attributes.js';
 import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
@@ -324,7 +325,7 @@ function isRefOf(
   componentName: string,
   definition: string,
 ): el is HTMLElement {
-  const declared = el.getAttribute('data-ref');
+  const declared = el.getAttribute(REF_ATTRIBUTE);
   if (declared === definition) {
     return belongsTo(el, root);
   }
@@ -335,11 +336,11 @@ function isRefOf(
 
 /** Return owned plain and namespaced refs for the declared name, in document order. */
 function queryRefs(root: HTMLElement, componentName: string, definition: string): HTMLElement[] {
-  const plain = [...root.querySelectorAll<HTMLElement>(`[data-ref="${definition}"]`)].filter((el) =>
-    belongsTo(el, root),
-  );
+  const plain = [
+    ...root.querySelectorAll<HTMLElement>(`[${REF_ATTRIBUTE}="${definition}"]`),
+  ].filter((el) => belongsTo(el, root));
   const namespaced = root.querySelectorAll<HTMLElement>(
-    `[data-ref="${namespacedRef(componentName, definition)}"]`,
+    `[${REF_ATTRIBUTE}="${namespacedRef(componentName, definition)}"]`,
   );
   if (namespaced.length === 0) {
     return plain;
@@ -366,7 +367,9 @@ function warnMissingRefSuffix(instance: Base, definition: string, checked: Set<s
   // Both spellings, so `data-ref="Slider.dots"` is caught the same way
   // `data-ref="dots"` is. This runs once per instance and per ref, and only
   // when the ref found nothing, so the selector list costs nothing here.
-  if (!instance.$el.querySelector(`[data-ref="${name}"],[data-ref="${namespaced}"]`)) {
+  if (
+    !instance.$el.querySelector(`[${REF_ATTRIBUTE}="${name}"],[${REF_ATTRIBUTE}="${namespaced}"]`)
+  ) {
     return;
   }
   warnOnce(
@@ -520,7 +523,7 @@ function buildOptions(instance: Base): Record<string, unknown> {
   for (const [name, definition] of Object.entries(instance.$config.options ?? {})) {
     const type = typeof definition === 'function' ? definition : definition.type;
     const declared = typeof definition === 'function' ? undefined : definition.default;
-    const attribute = `data-option-${kebabCase(name)}`;
+    const attribute = optionAttributeFor(name);
 
     if (typeof definition !== 'function' && declared !== null && typeof declared === 'object') {
       warnLiteralDefault(instance.$config.name, name, definition, declared, el);
