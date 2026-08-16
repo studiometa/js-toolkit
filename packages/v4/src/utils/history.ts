@@ -36,7 +36,9 @@ function updateUrlSearchParam(
   }
 
   if (Array.isArray(value)) {
-    for (const [index, item] of value.entries()) {
+    // `Array.isArray()` widens a readonly array to `any[]`; name the element type back.
+    const items: readonly SearchParamInput[] = value;
+    for (const [index, item] of items.entries()) {
       updateUrlSearchParam(params, `${name}[${index}]`, item);
     }
     return params;

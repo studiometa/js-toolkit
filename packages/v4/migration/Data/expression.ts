@@ -13,7 +13,8 @@ export function getCallback(name: string, code: string): DataExpression {
 
   let callback = callbacks.get(key);
   if (!callback) {
-    // oxlint-disable-next-line no-new-func
+    // Compiling the author's expression is the whole feature.
+    // oxlint-disable-next-line no-new-func, typescript/no-implied-eval
     callback = new Function('value', 'target', '$data', code) as DataExpression;
     callbacks.set(key, callback);
   }

@@ -32,7 +32,7 @@ export class AccordionCore extends Base<AccordionProps> {
     if (this.$options.autoclose) {
       for (const item of this.items) {
         if (item !== target) {
-          item.close();
+          void item.close();
         }
       }
     }

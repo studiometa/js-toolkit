@@ -62,7 +62,7 @@ export class Dialog extends Base<DialogProps> {
   /** Route native cancellation through `close()` so cleanup and transitions run. */
   onCancel(event: Event): void {
     event.preventDefault();
-    this.close();
+    void this.close();
   }
 
   async open(): Promise<void> {

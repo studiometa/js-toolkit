@@ -304,7 +304,7 @@ export function inject<T>(key: ContextKey<T>): ValueObserver<T | undefined> {
     context: ValueDecoratorContext<This, T | undefined>,
   ): void {
     context.addInitializer(function initialize(this: This) {
-      this.$inject(key).then((value) => {
+      void this.$inject(key).then((value) => {
         context.access.set(this, value);
       });
     });

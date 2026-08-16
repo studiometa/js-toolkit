@@ -118,7 +118,7 @@ export async function transition(
   setClassesOrStyles(el, classesOrStyles.from, 'remove');
   setClassesOrStyles(el, classesOrStyles.to);
   if (!onEnd) {
-    nextFrame().then(() => settle());
+    void nextFrame().then(() => settle());
   }
 
   await ended;

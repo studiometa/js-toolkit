@@ -33,7 +33,7 @@ function isPlain(value: unknown): value is Record<string, unknown> {
 /** Copy arrays and plain objects; return everything else unchanged. */
 function clone<T>(value: T): T {
   if (Array.isArray(value)) {
-    return value.map((item) => clone(item)) as T;
+    return value.map((item: unknown) => clone(item)) as T;
   }
   if (!isPlain(value)) {
     return value;

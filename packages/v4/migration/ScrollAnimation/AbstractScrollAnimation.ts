@@ -62,7 +62,7 @@ export class AbstractScrollAnimation extends Base<AbstractScrollAnimationProps> 
       return [start, Math.min(1, start + duration)];
     }
 
-    const [start = 0, end = 1] = playRange;
+    const [start, end] = playRange;
     return [start, end];
   }
 

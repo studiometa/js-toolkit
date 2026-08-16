@@ -37,10 +37,10 @@ export class SliderDots extends Base<SliderDotsProps> {
     this.currentIndex = index;
 
     if (previous) {
-      leaveTransition(previous, this.$options);
+      void leaveTransition(previous, this.$options);
     }
     if (next) {
-      enterTransition(next, this.$options);
+      void enterTransition(next, this.$options);
     }
   }
 

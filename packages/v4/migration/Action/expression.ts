@@ -18,7 +18,8 @@ const cache = new Map<string, EffectFunction>();
 function compile(argNames: readonly string[], body: string, cacheKey: string): EffectFunction {
   let callback = cache.get(cacheKey);
   if (!callback) {
-    // oxlint-disable-next-line no-new-func
+    // Compiling the author's expression is the whole feature.
+    // oxlint-disable-next-line no-new-func, typescript/no-implied-eval
     callback = new Function(...argNames, body) as EffectFunction;
     cache.set(cacheKey, callback);
   }
