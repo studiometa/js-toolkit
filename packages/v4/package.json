@@ -336,6 +336,18 @@
       "types": "./dist/subpaths/viewTransition.d.ts",
       "import": "./dist/subpaths/viewTransition.js"
     },
+    "./utils/historyPush": {
+      "types": "./dist/subpaths/utils/historyPush.d.ts",
+      "import": "./dist/subpaths/utils/historyPush.js"
+    },
+    "./utils/historyReplace": {
+      "types": "./dist/subpaths/utils/historyReplace.d.ts",
+      "import": "./dist/subpaths/utils/historyReplace.js"
+    },
+    "./utils/objectToURLSearchParams": {
+      "types": "./dist/subpaths/utils/objectToURLSearchParams.d.ts",
+      "import": "./dist/subpaths/utils/objectToURLSearchParams.js"
+    },
     "./utils/isBoolean": {
       "types": "./dist/subpaths/utils/isBoolean.d.ts",
       "import": "./dist/subpaths/utils/isBoolean.js"

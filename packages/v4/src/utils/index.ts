@@ -1,5 +1,12 @@
 /** Public entry point for `@studiometa/js-toolkit-v4/utils`. */
 
+export {
+  historyPush,
+  historyReplace,
+  objectToURLSearchParams,
+  type HistoryOptions,
+  type SearchParamInput,
+} from './history.js';
 export { isBoolean, isDefined, isFunction, isNull, isNumber, isObject, isString } from './is.js';
 export {
   clamp,
