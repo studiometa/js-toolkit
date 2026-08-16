@@ -188,9 +188,16 @@ if (!registryState.isReplacementListenerAttached) {
   });
 }
 
-/** Register a component and its merged family, then scan matching elements. */
+/**
+ * Register a component and its merged family, then scan matching elements.
+ *
+ * The name comes from the merged config, like the instance's `$id` and the
+ * `__base__` key it publishes itself under: a subclass which extends a
+ * component with extra config and forgets to rename would otherwise register
+ * under `undefined` instead of colliding with the name it inherited.
+ */
 export function registerComponent(ComponentClass: BaseConstructor): void {
-  const { name } = ComponentClass.config;
+  const { name } = resolveConfig(ComponentClass);
   if (registry.has(name)) {
     if (registry.get(name) !== ComponentClass) {
       warnOnce(
@@ -268,12 +275,13 @@ function importComponent(name: string, target?: Element): Promise<void> {
       if (!ComponentClass) {
         throw new TypeError(`"${name}" did not resolve to a component class.`);
       }
-      if (ComponentClass.config.name !== name) {
+      const resolvedName = resolveConfig(ComponentClass).name;
+      if (resolvedName !== name) {
         warnOnce(
           entry.load,
           name,
           'registry.lazy-name-mismatch',
-          `"${name}" resolved to a component named "${ComponentClass.config.name}".`,
+          `"${name}" resolved to a component named "${resolvedName}".`,
           { component: name, target },
         );
       }

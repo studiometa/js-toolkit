@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { Base } from './Base.js';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { Base, type BaseConfig } from './Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
@@ -225,5 +225,32 @@ describe('registry', () => {
     await settle();
 
     expect(calls).toEqual(['before:terminated', 'after:mounted:before=false']);
+  });
+
+  it('registers a subclass under its merged name, not its own static config', async () => {
+    class Named extends Base {
+      static config = { name: 'MergedName' };
+    }
+
+    class Extended extends Named {
+      // No `name`: the merged config inherits `MergedName`, which is what the
+      // instance mounts under, so registration has to see the collision.
+      // @ts-expect-error `name` is missing, as it is in untyped sources.
+      static config: BaseConfig = { options: { extra: Boolean } };
+    }
+
+    registerComponent(Named);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    registerComponent(Extended);
+    const el = document.createElement('div');
+    el.setAttribute('data-component', 'MergedName');
+    document.body.append(el);
+    await settle();
+
+    expect(warn).toHaveBeenCalledWith(
+      `[js-toolkit:${DIAGNOSTICS.registry.conflict}] "MergedName" is already registered; the incoming declaration was ignored.`,
+    );
+    expect(getInstance(el, 'MergedName')).toBeInstanceOf(Named);
+    warn.mockRestore();
   });
 });

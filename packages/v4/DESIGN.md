@@ -97,7 +97,28 @@ The two remaining regressions are understood rather than outstanding. `$emit` pa
 
 `$config` walks the prototype chain and merges every config it finds, so extending a component keeps what its parents declared — the crash reported in #627. `refs`, `options` and `components` all merge (v3 merged only `options` and `emits`); scalar keys stay overridable by the most derived class, and a subclass restating a `components` key wins for that key alone. An intermediate class should annotate `static config: BaseConfig`, otherwise TypeScript infers a literal type its subclasses must match.
 
-**The registry reads the merged config too**, and reads it before any instance exists, which is why `resolveConfig()` is exported from `Base.ts`. It resolves the mount strategy of a pair (§11b) and registers the family of `config.components` (§11d) from the merged set, not the class's own static. Every subclass declares a `static config` if only for its `name`, so reading the own static made a subclass fall back to `eager` and register nothing its base declared — while its instances still announce and query those children through `$config`. A `() => import(…)` child has no registration path besides this one, so it went missing outright.
+**The registry reads the merged config too**, and reads it before any instance exists, which is why `resolveConfig()` is exported from `Base.ts`. It resolves the mount strategy of a pair (§11b), registers the family of `config.components` (§11d) and takes the name a class registers under, all from the merged set rather than the class's own static. Every subclass declares a `static config` if only for its `name`, so reading the own static made a subclass fall back to `eager` and register nothing its base declared — while its instances still announce and query those children through `$config`. A `() => import(…)` child has no registration path besides this one, so it went missing outright. The name had the same shape of bug: a subclass that declared options and forgot to rename registered under `undefined` instead of colliding with the name it inherited.
+
+### Extending a component with different config — `withExtraConfig` is `extends`
+
+v3's `withExtraConfig(Class, config, deepmergeOptions)` returned a subclass whose `config` was the original deep-merged with an override, renamed when the name collided. It existed because v3 read a class's own static `config`: a subclass could not add one option without restating everything its parent declared. Merging along the prototype chain removes the reason, so **v4 ships no equivalent and does not need one** — the operation is a class declaration:
+
+```js
+class MapboxNavigationControl extends AbstractMapboxControl {
+  static config = {
+    name: 'MapboxNavigationControl',
+    options: { showCompass: Boolean, showZoom: Boolean },
+  };
+}
+registerComponent(MapboxNavigationControl);
+```
+
+That is the whole translation of all three `@studiometa/ui` call sites (`MapboxNavigationControl`, `MapboxGeolocateControl`, `MapboxFullscreenControl`), each of which overrides `createControl()` and so needs a class body regardless. `@component({ name, options })` is the same thing with the registration folded in, and it takes a config object already — there is nothing to extend. The base's `position` option keeps its default, its refs and its `components` come along, and the base itself is left untouched. A class you cannot edit is extended in expression position: `registerComponent(class extends Vendor { static config = { name: 'CompactVendor', … } })`. `src/config-extension.spec.ts` holds the proof.
+
+Two v3 behaviours are deliberately not reproduced:
+
+- **The auto-rename.** v3 renamed a colliding result to `<Name>WithExtraConfig`, a name nobody writes in HTML. `name` is required by `BaseConfig`, and the registry is first-wins-and-warn (§11f item 3), so a forgotten rename is a diagnostic rather than a machine-invented token. All three ui call sites already name their extension, so the branch was dead there.
+- **The deep merge.** v3 took npm `deepmerge` plus a caller-supplied options object. Core ships its own `deepmerge` now (`utils/deepmerge.ts`), but config is **not** where it belongs: `Base` merges config one level on purpose, and an option definition is a unit — a derived class restating `theme` restates its type _and_ its default, which is what "this option is different here" means. Deep-merging would also have to reach into `default` factory functions, which it treats as opaque values. The knob v3 exposed for tuning that merge has no v4 equivalent because the merge it tuned is gone.
 
 ### The public surface is typed, and free
 
