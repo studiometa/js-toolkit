@@ -337,6 +337,14 @@ function nestedMarkup(prefix: string): string {
  * prefix so both sides describe the same page. Each returns exactly `size`
  * `data-component` elements, and therefore exactly `size` `mounted()` calls,
  * so a result divides into a per-component cost.
+ *
+ * v4's `inView` and `responsive` scenarios have no entry here. Both are
+ * declared in v4's markup — `data-mount="in-view"`, `data-option-x:s` — and
+ * v3 has neither attribute: its analogues are the `withMountWhenInView` and
+ * `withResponsiveOptions` decorators, which are a different unit of work
+ * wrapped around the component rather than a cost the registry pays per
+ * element. Comparing the two would compare a decorator against an attribute,
+ * so they are left to v4's own `mount-at-scale.bench.ts`.
  */
 function buildScenarios(prefix: string) {
   return {
