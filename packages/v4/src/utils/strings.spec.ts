@@ -102,6 +102,15 @@ describe('leading and trailing characters', () => {
     expect(withoutLeadingCharactersRecursive('foo', '/')).toBe('foo');
   });
 
+  it('treats no characters as nothing to do', () => {
+    expect(withLeadingCharacters('foo', '')).toBe('foo');
+    expect(withTrailingCharacters('foo', '')).toBe('foo');
+    expect(withoutLeadingCharacters('foo', '')).toBe('foo');
+    expect(withoutTrailingCharacters('foo', '')).toBe('foo');
+    expect(withoutLeadingCharactersRecursive('foo', '')).toBe('foo');
+    expect(withoutTrailingCharactersRecursive('foo', '')).toBe('foo');
+  });
+
   it('matches the characters literally', () => {
     expect(withoutLeadingCharacters('.foo', '.')).toBe('foo');
     expect(withoutLeadingCharacters('afoo', '.')).toBe('afoo');

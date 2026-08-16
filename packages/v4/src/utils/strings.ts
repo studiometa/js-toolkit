@@ -87,13 +87,25 @@ export function withLeadingCharacters(string: string, characters: string): strin
   return `${characters}${withoutLeadingCharacters(string, characters)}`;
 }
 
-/** Remove the given characters from the start of a string, once. */
+/**
+ * Remove the given characters from the start of a string, once.
+ *
+ * No characters is nothing to remove: every helper here returns the string
+ * unchanged rather than treating the empty match every string starts and ends
+ * with as a hit.
+ */
 export function withoutLeadingCharacters(string: string, characters: string): string {
+  if (characters.length === 0) {
+    return string;
+  }
   return string.startsWith(characters) ? string.slice(characters.length) : string;
 }
 
 /** Remove the given characters from the start of a string, as often as they repeat. */
 export function withoutLeadingCharactersRecursive(string: string, characters: string): string {
+  if (characters.length === 0) {
+    return string;
+  }
   let result = string;
   while (result.startsWith(characters)) {
     result = result.slice(characters.length);
@@ -108,11 +120,17 @@ export function withTrailingCharacters(string: string, characters: string): stri
 
 /** Remove the given characters from the end of a string, once. */
 export function withoutTrailingCharacters(string: string, characters: string): string {
+  if (characters.length === 0) {
+    return string;
+  }
   return string.endsWith(characters) ? string.slice(0, -characters.length) : string;
 }
 
 /** Remove the given characters from the end of a string, as often as they repeat. */
 export function withoutTrailingCharactersRecursive(string: string, characters: string): string {
+  if (characters.length === 0) {
+    return string;
+  }
   let result = string;
   while (result.endsWith(characters)) {
     result = result.slice(0, -characters.length);
