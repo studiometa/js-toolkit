@@ -11,14 +11,7 @@ import {
 import { getEdges, normalizeOffset } from '../../src/services/scroll-progress-offset.js';
 import { clamp, clamp01, damp } from '../../src/utils/maths.js';
 
-/**
- * What a `scrolledInView()` hook receives.
- *
- * v3 groups these as `{ start: {x, y}, end: {x, y}, current: {x, y}, … }`.
- * v4's service props are flat, one key per axis (`ScrollProps` is `x`, `y`,
- * `deltaX`, `deltaY`, …), so this follows the same convention — a handler
- * destructures `{ dampedProgressY }` instead of reaching through two levels.
- */
+/** Values passed to a `scrolledInView()` hook. */
 export interface ScrollInViewProps {
   startX: number;
   startY: number;
@@ -32,21 +25,11 @@ export interface ScrollInViewProps {
   progressY: number;
   dampedProgressX: number;
   dampedProgressY: number;
-  /**
-   * Milliseconds since the previous frame, straight from the raf props.
-   *
-   * On the props because a hook that damps a value of its own needs the same
-   * number this layer used — damping per call rather than per elapsed
-   * millisecond is what made the speed depend on the display.
-   */
+  /** Milliseconds since the previous frame. */
   delta: number;
 }
 
-/**
- * A hook may return a function, which runs in the same frame's `write`
- * phase — the read/write split the toolkit has always had, made explicit by
- * the return value instead of by nested `domScheduler` calls.
- */
+/** A hook return value that runs in the same frame's write phase. */
 export type ScrolledInViewRender = () => void;
 
 export interface ScrolledInViewHook {
@@ -62,28 +45,7 @@ function progressBetween(current: number, start: number, end: number): number {
   return start === end ? 0 : clamp01((current - start) / (end - start));
 }
 
-/**
- * Add scroll-linked progress to a component.
- *
- * Port of `@studiometa/js-toolkit/decorators/withScrolledInView`. The v3
- * decorator is a `withMountWhenInView` subclass that listens to four `$on`
- * channels (`mounted`, `resized`, `scrolled`, `ticked`) through a hand-built
- * `handleEvent` delegate, and toggles the `ticked` service on and off with
- * `$services.enable` / `$services.disable` so the frame loop only runs while
- * the damped value is catching up.
- *
- * In v4:
- *
- * - `withMountWhenInView` is gone; the component declares
- *   `config.mountStrategy = 'in-view'` instead, and any element overrides it
- *   with `data-mount`.
- * - the four `$on` channels become two service subscriptions returned as
- *   `mounted()` cleanups, so nothing has to be unbound by hand.
- * - `$services.enable('ticked')` / `disable('ticked')` has **no v4
- *   equivalent**: a mixin subscribes for the whole mount cycle. The frame
- *   subscription is therefore taken and released by hand here, which is the
- *   thing this port could not do with `withRaf`.
- */
+/** Add damped, scroll-linked progress to a component. */
 export function withScrolledInView<T extends BaseConstructor>(
   BaseClass: T,
   options: WithScrolledInViewOptions = {},
@@ -91,13 +53,7 @@ export function withScrolledInView<T extends BaseConstructor>(
   return apply(BaseClass, options) as unknown as MixedClass<T, ScrolledInViewHook>;
 }
 
-/**
- * The class is built against the concrete `BaseConstructor` rather than
- * against the type parameter: TypeScript only allows extending a type
- * parameter when its constructor takes `...args: any[]`, which `Base` does
- * not. This is the shape `createServiceMixin` uses in core for the same
- * reason.
- */
+/** Use the concrete constructor because TypeScript cannot extend this constrained type parameter. */
 function apply(
   BaseClass: BaseConstructor,
   { target = (instance: Base) => instance.$el }: WithScrolledInViewOptions,
@@ -105,8 +61,6 @@ function apply(
   return class WithScrolledInView extends BaseClass {
     static config = {
       name: 'WithScrolledInView',
-      // The reversible strategy: a scroll animation is exactly the case the
-      // v4 design names for `in-view` over `visible`.
       mountStrategy: 'in-view' as const,
       options: {
         dampFactor: { type: Number, default: 0.1 },
@@ -197,11 +151,7 @@ function apply(
       });
     }
 
-    /**
-     * Take the frame subscription, if it is not already running. This is the
-     * `$services.enable('ticked')` of v3 — v4 has no such switch on a mixin,
-     * so the subscription itself is the switch.
-     */
+    /** Start the frame subscription if it is not already active. */
     startTicking(): void {
       this.__unsubscribeFrame ??= useRaf().subscribe(({ delta }) => {
         const props = this.__scrollInViewProps;
@@ -237,10 +187,7 @@ function apply(
         const render = hook?.call(this, props) ?? undefined;
 
         if (props.dampedCurrentX === props.currentX && props.dampedCurrentY === props.currentY) {
-          // This frame is the one that lands on the settled position, so its
-          // write is scheduled on the instance and the subscription released
-          // after it — a render handed back to a subscription that leaves
-          // mid-frame is cancelled, by design.
+          // Schedule the final write before releasing the subscription.
           if (typeof render === 'function') {
             this.$write(render);
           }
@@ -279,16 +226,13 @@ function apply(
 
     destroyed(): void {
       super.destroyed();
-      // Snap the damped values to their target and render once more, so a
-      // component leaving the viewport is not frozen mid-animation.
+      // Snap to the target before the component leaves the viewport.
       const props = this.__scrollInViewProps;
       props.dampedCurrentX = props.currentX;
       props.dampedCurrentY = props.currentY;
       props.dampedProgressX = props.progressX;
       props.dampedProgressY = props.progressY;
-      // Not `$read`/`$write`: `$destroy()` cancels the instance's pending
-      // tasks right after running the `mounted()` cleanups, so a final render
-      // has to be scheduled outside the instance's own lane.
+      // Destruction cancels instance-owned tasks, so use the global scheduler.
       defaultScheduler.read(() => {
         const hook = (this as unknown as ScrolledInViewHook).scrolledInView;
         const render = hook?.call(this, props);

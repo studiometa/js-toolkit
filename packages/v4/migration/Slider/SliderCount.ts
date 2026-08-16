@@ -5,13 +5,7 @@ export interface SliderCountProps {
   $refs: { current: HTMLElement; total: HTMLElement };
 }
 
-/**
- * SliderCount — the slide counter.
- *
- * Port of @studiometa/ui 1.10's `SliderCount`. v3 only wrote the current
- * index, because the store carried nothing else; the provided state carries
- * the total too, so an optional `total` ref costs nothing.
- */
+/** Displays the current slide number and optional total. */
 export class SliderCount extends Base<SliderCountProps> {
   static config = { name: 'SliderCount', refs: ['current', 'total'] };
 

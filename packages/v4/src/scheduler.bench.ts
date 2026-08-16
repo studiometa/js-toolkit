@@ -1,29 +1,4 @@
-/**
- * `class Scheduler` versus `createScheduler()` — a closure factory — for the
- * one scheduler the framework ever instantiates.
- *
- * The class shipped first, and `defaultScheduler` is its only instance ever.
- * A single instance removes the usual argument for a prototype (state per
- * instance, behaviour shared), and leaves two claims worth testing: that a
- * closure factory drops the `class`/`constructor` boilerplate from the
- * shipped bytes, and that reading a closure variable beats the private-brand
- * check every `this.#field` access performs on the per-frame flush path.
- *
- * Both variants below implement the same contract — `tick`, `read`, `write`,
- * `background`, `whenIdle`, `phase`, cancelable handles, error isolation
- * through `reportError()`, one flush per frame, double-buffered phases.
- *
- * Two deliberate departures from `scheduler.ts`, applied identically to both
- * copies so the comparison stays fair:
- *
- * 1. The frame and the off-frame turn come from an injected driver instead of
- *    `requestAnimationFrame()` and `postBackgroundTask()`. Without it there
- *    is nothing to measure: a real animation frame caps the flush at ~60
- *    turns a second, which measures the display and not the scheduler.
- * 2. Nothing here throws. The cost of a throwing task is the cost of
- *    `reportError()` dispatching a window `error` event — a platform call
- *    that swamps the shape of whatever calls it, in both variants equally.
- */
+/** Compare equivalent class-based and closure-based schedulers with an injected synchronous driver. */
 import { bench, describe } from 'vitest';
 
 declare global {

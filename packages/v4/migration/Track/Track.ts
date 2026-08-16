@@ -10,13 +10,8 @@ declare global {
 export type TrackProps = AbstractTrackProps;
 
 /**
- * Track — the `window.dataLayer` implementation of the tracking seam.
- *
- * Port of `@studiometa/ui` 1.10's `Track`. **Unchanged**, other than the
- * config no longer spreading its parent's (configs merge along the prototype
- * chain in v4, #627) and the props interface becoming a type alias (gap 14).
- * Compatible with GTM and any other `dataLayer` consumer; consent stays a tag
- * manager or CMP concern.
+ * Pushes tracking payloads to `window.dataLayer`.
+ * Compatible with GTM and other `dataLayer` consumers.
  *
  * @example
  * ```html

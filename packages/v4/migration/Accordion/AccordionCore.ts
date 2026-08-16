@@ -14,20 +14,7 @@ export interface AccordionProps {
   };
 }
 
-/**
- * AccordionCore — the orchestrator for a group of `AccordionItem` children.
- *
- * Port of @studiometa/ui 1.10's `AccordionCore`. Everything it does is
- * cross-item coordination, which is exactly the `$children` coordinator shape
- * v4 replaces:
- *
- * - `$children.AccordionItem` → `$watchChildren('AccordionItem')`, a live
- *   DOM-ordered collection that is correct whatever the mount order.
- * - `onAccordionItemOpen({ index })` → a delegated handler carrying the
- *   emitting instance itself, so the index is only needed to keep the v3
- *   event payload.
- * - `config.emits: ['open', 'close']` → the type-only `$emits` declaration.
- */
+/** Coordinates a live, DOM-ordered group of `AccordionItem` children. */
 export class AccordionCore extends Base<AccordionProps> {
   static config: BaseConfig = {
     name: 'Accordion',

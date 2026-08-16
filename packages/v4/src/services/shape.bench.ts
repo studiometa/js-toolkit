@@ -1,12 +1,4 @@
-/**
- * Closure-per-instance versus prototype-shared methods for the service
- * primitive.
- *
- * The question only became material when services went per-target: five
- * singletons make the shape irrelevant, one service per observed element
- * does not. Each variant below implements the same contract — lazy start on
- * the first subscriber, stop on the last, subscribe returns its undo.
- */
+/** Compare closure-per-instance and prototype-shared service methods. */
 import { bench, describe } from 'vitest';
 
 declare global {
@@ -24,7 +16,7 @@ interface Subscribable<T> {
   add(callback: (props: T) => unknown): () => void;
 }
 
-/** What the package ships today: methods captured per instance. */
+/** Methods captured per instance. */
 function closureService<T>({ props, start }: Definition<T>): Subscribable<T> {
   const callbacks = new Set<(props: T) => unknown>();
   let stop: (() => void) | null = null;
@@ -226,16 +218,7 @@ describe('retained footprint of 5000 services (heap delta)', () => {
   });
 });
 
-/**
- * The deeper comparison: the whole service, not just the wrapper.
- *
- * The factory shape allocates a closure per behaviour per instance —
- * `props`, `update`, `start` — on top of the primitive's `add` and `emit`.
- * v3's shape put those on a prototype and kept only state per instance
- * (`AbstractService` with `init`/`kill` overridden by each service). That
- * is the real fork, and the last group puts both against the cost of the
- * `ResizeObserver` they exist to wrap.
- */
+/** Compare complete closure-based and prototype-based resize services. */
 interface BoxProps {
   width: number;
   height: number;
@@ -263,7 +246,7 @@ function closureResizeService(target: Element, observe: boolean): Subscribable<B
   });
 }
 
-/** v3's shape: behaviour on the prototype, state on the instance. */
+/** Behavior on the prototype and state on the instance. */
 abstract class AbstractService<T> {
   #callbacks = new Set<(props: T) => unknown>();
   #isRunning = false;

@@ -63,8 +63,6 @@ describe('SliderProgress', () => {
     await frames(4);
     expect(bar.style.transform).toBe('translate3d(0px, 0px, 0px)');
 
-    // A slide appears: the range grows, and the same index is no longer the
-    // end of it. v3 read `indexMax` off the Slider instance for this.
     const added = document.createElement('div');
     added.setAttribute('data-component', 'SliderItem');
     added.style.cssText = `flex:0 0 ${ITEM_WIDTH}px;height:20px`;
@@ -79,8 +77,6 @@ describe('SliderProgress', () => {
     const root = render({ items: 1 });
     const { bar } = await ready(root);
 
-    // v3: `map(0, 0, 0, -60, 0)` divides by zero, writes `translate3d(NaNpx…)`
-    // and the browser drops the whole declaration.
     expect(bar.style.transform).toBe('translate3d(0px, 0px, 0px)');
   });
 });

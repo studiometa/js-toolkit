@@ -1,59 +1,14 @@
 import { reportDiagnostic } from '../diagnostics.js';
 
-/**
- * A service is a shared source of props — the frame tick, the scroll
- * position, the pointer — that components subscribe to.
- *
- * Two properties define one, and both are enforced here rather than in each
- * service:
- *
- * - **Lazy and reference-counted.** Nothing is observed until the first
- *   subscriber arrives, and everything is released when the last one leaves.
- *   A service with no subscriber does no work at all: no listener, no
- *   observer, no frame.
- * - **Symmetric.** Subscribing hands back the only thing needed to undo it,
- *   the same shape `Signal.subscribe()`, `provideContext()` and the mount
- *   strategies use. v3 keyed callbacks by an instance id and exposed
- *   `add`/`remove`/`has`. It is spelled `subscribe` rather than v3's `add`
- *   because the arity changed: v3's `add('id', callback)` would otherwise
- *   have compiled here and subscribed the string.
- */
+/** Release one subscription. Services start with their first subscriber and stop with their last. */
 export type Unsubscribe = () => void;
 
-/**
- * What a subscriber may hand back is the service's own business, so it is a
- * parameter: `void` for a source that expects nothing, `void | RafRender` for
- * the frame service, which collects render functions. Typing it `unknown`
- * accepted anything — `useRaf().subscribe(() => 42)` compiled, and a stray
- * return from an assignment expression was then run as a DOM mutation on
- * every frame.
- */
+/** A service callback with a service-specific return type. */
 export type ServiceCallback<T, R = void> = (props: T) => R;
 
-/**
- * Options `subscribe()` takes, the same shape `Signal.subscribe()` uses.
- */
+/** Subscription options. */
 export interface SubscribeOptions {
-  /**
-   * Call this subscriber at once with the current props, instead of leaving it
-   * to wait for the next update.
-   *
-   * **Only a source that has a current value delivers one.** The frame tick
-   * has none between two frames, the pointer has none before it has been seen,
-   * and a drag has none outside a gesture — so `immediate` is honoured by the
-   * sampled sources (scroll, resize, breakpoint, a media query) and is a no-op
-   * for the event-driven ones until they have something real to report. Each
-   * service says which it is through `hasProps()`; the alternative was to
-   * invent a value, which is what the neutral pointer position and the
-   * pre-first-tick delta already are.
-   *
-   * This is opt-in rather than the default because the delivery is a layout
-   * read in the subscriber's own turn, and because a source that emits on
-   * subscribe and a source that does not cannot both be the default. The
-   * asymmetry used to be per-service and invisible: a `ResizeObserver`
-   * delivers the current box on `observe()` for free, so the resize service
-   * spoke on subscribe and the other four did not.
-   */
+  /** Deliver current props immediately when the source has an observed value. */
   immediate?: boolean;
 }
 
@@ -65,19 +20,7 @@ export interface Service<T, R = void> {
    */
   subscribe(callback: ServiceCallback<T, R>, options?: SubscribeOptions): Unsubscribe;
   /**
-   * The current props, without subscribing.
-   *
-   * **The props object belongs to the service, and is valid for the duration
-   * of the call that received it.** A service may hand the same object to
-   * every subscriber and overwrite it on the next update — which is what the
-   * sampled sources do, rather than allocate per frame — so keep a copy of
-   * anything needed later (`{ ...props }`). Every field is `readonly`: one
-   * subscriber writing to the object would corrupt every other subscriber on
-   * the page.
-   *
-   * Props are only kept up to date while the service runs. `useBreakpoint()`
-   * is the exception it can afford to be: asking a `MediaQueryList` is cheap,
-   * so its cold read is current.
+   * Return current props without subscribing. The shared object can be overwritten on the next update; copy values that must persist.
    */
   props(): T;
 }
@@ -90,17 +33,7 @@ export type MutableProps<T> = { -readonly [K in keyof T]: T[K] };
 
 export interface ServiceDefinition<T> {
   props(): T;
-  /**
-   * Whether `props()` describes something the service has observed, rather
-   * than a resting value standing in for one. Defaults to `true`.
-   *
-   * It is what `{ immediate: true }` is gated on, and the only honest answer
-   * for a source that is a stream of events rather than a sampled value: the
-   * pointer's position before the first `pointermove` is the middle of the
-   * viewport because something had to be there, and a drag outside a gesture
-   * is `idle` for the same reason. Neither is worth delivering to a subscriber
-   * as "where things stand".
-   */
+  /** Whether `props()` contains an observed value. Defaults to `true`. */
   hasProps?(): boolean;
   /**
    * Start observing, returning the teardown.
@@ -112,22 +45,10 @@ export interface ServiceDefinition<T> {
   start(emit: (props: T) => void): Unsubscribe;
 }
 
-/**
- * One holder of the service, not one callback: a `Set` keyed by the function
- * itself collapsed two holders of the same callback into one entry, so the
- * second subscription was never called and the first unsubscribe tore the
- * service down under it. Two components sharing a bound method, or one
- * module-level handler used twice, is enough.
- */
+/** One independently owned subscription. */
 interface Subscription<T, R> {
   callback: ServiceCallback<T, R>;
-  /**
-   * Cleared by the unsubscribe, checked by the fan-out.
-   *
-   * The fan-out iterates a snapshot, so deleting an entry from the set is no
-   * longer enough to keep it out of an update already in flight — this flag is
-   * what a released subscription is skipped by.
-   */
+  /** Prevent delivery after unsubscribe during a snapshot iteration. */
   isActive: boolean;
 }
 
@@ -144,15 +65,7 @@ export function createService<T, R = void>({
   let stop: Unsubscribe | null = null;
 
   function emit(current: T): void {
-    // A snapshot, not the live set. Iterating the set itself visits entries
-    // *added* during the update, which is wrong twice over: the newcomer is
-    // handed props measured before it existed, and a subscriber that
-    // subscribes from inside its own callback never terminates — an unbounded
-    // loop inside one emit, taking the frame and the tab with it.
-    //
-    // Removal was already correct, and correct *because* the set was live, so
-    // the snapshot needs `isActive` beside it: a component destroyed inside
-    // another's handler must still not be called in the update it left.
+    // Snapshot delivery excludes later additions; `isActive` handles removals.
     const batch = [...subscriptions];
     for (const subscription of batch) {
       if (!subscription.isActive) {
@@ -161,8 +74,7 @@ export function createService<T, R = void>({
       try {
         subscription.callback(current);
       } catch (error) {
-        // One broken component must not deprive the others of the service,
-        // which for a per-frame source would mean every frame from now on.
+        // Isolate subscriber failures.
         reportDiagnostic('callback.service-failed', 'A service subscriber failed.', error);
       }
     }
@@ -174,17 +86,13 @@ export function createService<T, R = void>({
       const subscription: Subscription<T, R> = { callback, isActive: true };
       subscriptions.add(subscription);
       if (state === 'idle') {
-        // Mark the run before calling user code: `start()` may emit at once,
-        // and a callback may subscribe again from inside that emit. The nested
-        // subscription joins this run instead of starting a second source.
+        // Mark startup first so reentrant subscriptions join this run.
         state = 'starting';
         try {
           stop = start(emit);
           state = 'running';
         } catch (error) {
-          // Nobody can have subscribed before this startup attempt: an idle
-          // service has no holders. Roll back this subscriber and any nested
-          // ones that joined the failed run, then leave the service restartable.
+          // Roll back every subscription that joined the failed startup.
           for (const joined of subscriptions) {
             joined.isActive = false;
           }
@@ -194,22 +102,12 @@ export function createService<T, R = void>({
           throw error;
         }
       }
-      // After `start()`, never before: starting is what makes `props()`
-      // current — the scroll service measures its target there, the breakpoint
-      // service asks its media queries — so delivering first would hand out
-      // whatever the last run left behind.
-      //
-      // Only this subscriber is called. An emit would reach every other one
-      // with props they have already been given, which is how "tell the
-      // newcomer where things stand" turns into a duplicate update for the
-      // whole page.
+      // Deliver after startup, when props are current, and only to the new subscriber.
       if (immediate && (hasProps?.() ?? true)) {
         try {
           callback(props());
         } catch (error) {
-          // The same channel the fan-out uses. Throwing out of `subscribe()`
-          // instead would leave the caller holding no unsubscribe for a
-          // subscription that is nonetheless registered.
+          // Keep `subscribe()` successful so the caller receives its unsubscribe.
           reportDiagnostic(
             'callback.service-failed',
             'An immediate service subscriber failed.',
@@ -218,17 +116,13 @@ export function createService<T, R = void>({
         }
       }
       return () => {
-        // Already gone: a repeated unsubscribe must not read as another holder
-        // leaving.
+        // Unsubscribe is idempotent.
         if (!subscription.isActive) {
           return;
         }
-        // Cleared before the delete, so an update already iterating its
-        // snapshot skips this callback rather than calling it after its own
-        // unsubscribe returned.
+        // Clear activity before removal so an active snapshot skips it.
         subscription.isActive = false;
         subscriptions.delete(subscription);
-        // Others are still listening: nothing to release.
         if (subscriptions.size > 0) {
           return;
         }
@@ -244,50 +138,16 @@ export function createService<T, R = void>({
   };
 }
 
-/**
- * The remaining arguments, as one string, so two callers asking for the same
- * observation share a service and two callers asking for different ones do
- * not.
- *
- * Serialising is the default because it is right for every source whose
- * options are plain data — `useDrag(el, { dampFactor })`, an intersection
- * `init` — and because being wrong here is silent. A factory whose arguments
- * do not survive `JSON.stringify()` (a DOM node, a callback, anything
- * circular) passes its own `keyOf` instead; that is what the parameter is for.
- *
- * Property order counts, so `{ a, b }` and `{ b, a }` key two services rather
- * than one. That is the conservative direction — a duplicated observer, not a
- * caller handed an observation it did not ask for — and the whole point of
- * this helper is that the second failure must not happen.
- */
+/** Serialize plain-data arguments for service identity. Property order is significant. */
 function serializeArgs(...args: unknown[]): string {
   return JSON.stringify(args);
 }
 
 /**
- * Key a service by what it observes: one instance per target **and per set of
- * arguments**, held in a `WeakMap` so a target and its services are collected
- * together.
+ * Create one weakly held service per target and argument key.
  *
- * The reason is lifecycle bookkeeping, not throughput. Reference counting
- * only means something against a target: `useResize(a)` losing its last
- * subscriber must disconnect the observer watching `a` and leave the one
- * watching `b` alone, which a single shared observer could not do. Grouping
- * targets behind one observer is measurably indifferent (`service.bench.ts`),
- * so nothing here tries to.
- *
- * **The arguments are part of the key**, not the first caller's settings kept
- * for the life of the page. Keying by the target alone was right for
- * `useScroll(el)` and `useResize(el)`, which have nothing else to say, and
- * wrong for every source whose options change what is observed: after
- * `useInView(el, { threshold: 0 })`, a `useInView(el, { threshold: 0.5 })`
- * was handed the first caller's observer and the second subscriber was never
- * told anything — a wrong answer, silently, and `useDrag(el, options)` has
- * that shape (REPORT.md gap 26).
- *
- * @param create The factory, called once per target/arguments pair.
- * @param keyOf  How the remaining arguments become a string; defaults to
- *               `JSON.stringify()` over the argument list.
+ * @param create Called once per target and argument pair.
+ * @param keyOf Serializes arguments. Defaults to `JSON.stringify()`.
  */
 export function perTarget<Target extends WeakKey, Args extends unknown[], T, R = void>(
   create: (target: Target, ...args: Args) => Service<T, R>,

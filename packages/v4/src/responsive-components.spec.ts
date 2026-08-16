@@ -357,7 +357,6 @@ describe('responsive component declarations', () => {
     const mounted = instance(el, feature.name);
     expect(mounted?.$isMounted).toBe(true);
 
-    // The replacement also updates the document observer's exact filter.
     el.removeAttribute('data-component:desktop');
     await whenDOMSettled();
     expect(mounted?.$isTerminated).toBe(true);

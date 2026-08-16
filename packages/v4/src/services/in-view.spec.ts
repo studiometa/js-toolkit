@@ -124,8 +124,6 @@ describe('useInView', () => {
     const entry = entryFor(target, true);
     observer?.deliver([entryFor(target, false), entryFor(other, false), entry]);
 
-    // Several queued crossings for the target still leave the service on the
-    // latest one in the batch.
     expect(seen).toEqual([{ isInView: true, entry }]);
     expect(useInView(target).props()).toMatchObject({ isInView: true, entry });
     unsubscribe();
@@ -139,7 +137,6 @@ describe('useInView', () => {
       immediate: true,
     });
 
-    // Starting the observer did not invent an entry for the immediate call.
     expect(first).toEqual([]);
 
     const entry = entryFor(target, false);
@@ -151,7 +148,6 @@ describe('useInView', () => {
       immediate: true,
     });
     expect(immediate).toEqual([{ isInView: false, entry }]);
-    // Existing subscribers do not receive a duplicate when the newcomer asks.
     expect(first).toHaveLength(1);
 
     unsubscribeFirst();
@@ -222,8 +218,6 @@ describe('useInView', () => {
       immediate: true,
     });
     expect(FakeIntersectionObserver.instances).toHaveLength(2);
-    // The old observer's entry is not a current entry for this new run, even
-    // if its callback was already queued when `disconnect()` ran.
     firstObserver?.deliver([entryFor(target, true)]);
     expect(seen).toEqual([]);
 

@@ -14,19 +14,7 @@ declare global {
 
 export type TrackShopifyProps = AbstractTrackProps;
 
-/**
- * TrackShopify — the `window.Shopify.analytics.publish` implementation of the
- * tracking seam.
- *
- * Port of `@studiometa/ui` 1.10's `TrackShopify`. **Unchanged** apart from
- * `$warn` (gap 10) and the config no longer spreading its parent's.
- *
- * It is in this port for one reason: it is the proof that `dispatch()` is a
- * real seam rather than a shape. Two destinations, two four-line overrides,
- * and every line of parsing, merging, binding and lifecycle is shared — which
- * is what makes the `AbstractTrack` row of the size table the honest one to
- * read.
- */
+/** Publishes tracking payloads through `window.Shopify.analytics.publish`. */
 export class TrackShopify<T extends BaseProps = BaseProps> extends AbstractTrack<T> {
   static config: BaseConfig = {
     name: 'TrackShopify',

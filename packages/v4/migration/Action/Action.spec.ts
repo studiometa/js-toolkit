@@ -6,35 +6,6 @@ import { Action } from './Action.js';
 import { ActionEvent } from './ActionEvent.js';
 import { Target } from './Target.js';
 
-/**
- * Specs for the `Action` port.
- *
- * ## How these differ from ui's
- *
- * ui's specs build instances by hand — `new Action(h('div'))`, then
- * `mount(action, target)` — on elements that are never in the document. v4
- * has no such state: the registry creates an instance on first mount, from an
- * element that is in the DOM. So every spec here renders real markup and lets
- * the registry do the mounting, which is also what a v4 consumer writes.
- *
- * That adaptation is not cosmetic for this family: `Action`'s whole job is
- * finding *other* components, and the port resolves them from the document
- * (see `instances.ts`). A detached-element spec could not exercise it at all.
- *
- * ## Deliberately not ported
- *
- * - ui's `configures the addEventListener options` spec asserted
- *   `addEventListener('click', actionEvent, {…})` — the `EventListenerObject`
- *   identity. v4's `$on` takes an `EventListener`, so the port passes a
- *   closure. The **options** are the contract and they are asserted below;
- *   the listener identity is incidental mechanics.
- * - ui's `it.todo` for unparseable target strings is implemented instead, as
- *   `ignores a target part it cannot parse`.
- * - The fake-timer debounce specs are re-timed against real timers with short
- *   delays. Browser-mode fake timers would work, but the assertion worth
- *   keeping is "the effect ran once, late", not the timer bookkeeping.
- */
-
 class Foo extends Base {
   static config: BaseConfig = { name: 'Foo' };
 
@@ -49,13 +20,7 @@ class Bar extends Base {
   static config: BaseConfig = { name: 'Bar' };
 }
 
-/**
- * Counts mount cycles from the same element as the component under test.
- *
- * Declared alongside an `Action` rather than built into it: a mount counter is
- * test scaffolding, and a co-located component destroys and remounts on
- * exactly the same schedule, so it measures the thing without being it.
- */
+/** Counts mount cycles on the tested element. */
 class MountProbe extends Base {
   static config: BaseConfig = { name: 'MountProbe' };
 
@@ -199,15 +164,11 @@ describe('ActionEvent — target resolution', () => {
     const action = at<Action>(root, '#action', 'Action');
     const target = at<Target>(root, '#target', 'Target');
 
-    // `123` matches no name; v3's `it.todo` said this must fail silently.
     const actionEvent = new ActionEvent(action, 'click', '123 Target -> target');
     expect(actionEvent.targets).toEqual([{ Target: target }]);
   });
 
   it('reaches a target that is neither a descendant nor an ancestor', async () => {
-    // The case the port exists to answer. `$query` sees descendants,
-    // `$closest` sees ancestors; this target is in a sibling subtree, which
-    // is where every documented `Action` example puts it.
     const root = await render(`
       <section><button id="action" data-component="Action"
         data-on:click="Foo -> target.fn('far')"></button></section>
@@ -344,10 +305,6 @@ describe('ActionEvent — modifiers', () => {
   });
 
   it('drops a pending debounced effect when the action is destroyed', async () => {
-    // Not a ui spec. v3 cleared the timer in `detachEvent()` too, but the
-    // failure it prevents is v4-shaped: an element removed mid-debounce would
-    // otherwise fire an effect against a target list resolved from a DOM that
-    // has moved on.
     const root = await render(`
       <button id="action" data-component="Action"
         data-on:click.debounce50="Foo -> target.fn()"></button>
@@ -451,11 +408,6 @@ describe('Action — the component', () => {
   });
 
   it('sees an instance mounted on the action element after it', async () => {
-    // v4-only. The instance list is read per event, from `$el.__base__`, so
-    // adding a second `data-component` token later is picked up with no
-    // rebinding. v3 needed the instance to exist when the effect was first
-    // compiled, because the compiled function was cached under a key built
-    // from the names known at that moment.
     const root = await render(`
       <button id="action" data-component="Action" data-option-target="Foo"
         data-option-effect="target.fn(typeof Bar === 'undefined' ? null : Bar)"></button>
@@ -540,9 +492,6 @@ describe('Action — the v4 lifecycle', () => {
   });
 
   it('re-reads its bindings on every mount cycle', async () => {
-    // v3 memoised the parsed bindings for the instance's whole life, so this
-    // moved element would keep its old binding. In v4 a move is a destroy
-    // plus a mount of the same instance, and the bindings are per cycle.
     const root = await render(`
       <div id="a"><button id="action" data-component="Action"
         data-on:click="Foo -> target.fn('before')"></button></div>
@@ -584,17 +533,6 @@ describe('Action — the v4 lifecycle', () => {
 });
 
 describe('Action — live rebinding through watchAttributes', () => {
-  /**
-   * Core closed REPORT.md gap 21 with `watchAttributes()`, and this block is
-   * the port consuming it. The gap was that `data-on:<event>` is named by the
-   * component, not by the framework, so no `attributeFilter` could enumerate
-   * it and an in-place rewrite left the old binding attached. The only
-   * workaround was to move or re-insert the element, which the block above
-   * still covers.
-   *
-   * What is asserted here is the three shapes an edit takes — changed,
-   * removed, added — plus the two coalescing rules the primitive imposes.
-   */
   it('rebinds when a `data-on:*` attribute is rewritten in place', async () => {
     const root = await render(`
       <button id="action" data-component="Action"
@@ -608,8 +546,6 @@ describe('Action — live rebinding through watchAttributes', () => {
     await settle();
     click(button);
 
-    // One call, not two: the old binding is released before the new one is
-    // attached, so a rewrite cannot leak the listener it replaces.
     expect(foo.calls).toEqual([['after']]);
   });
 
@@ -633,8 +569,6 @@ describe('Action — live rebinding through watchAttributes', () => {
     click(button);
     expect(foo.calls).toHaveLength(1);
 
-    // The sibling binding is untouched — bindings are keyed by the attribute
-    // that produced them, so removing one says nothing about the others.
     button.dispatchEvent(new Event('mouseenter'));
     expect(foo.calls[1]).toEqual(['hover']);
   });
@@ -658,9 +592,6 @@ describe('Action — live rebinding through watchAttributes', () => {
   });
 
   it('applies only the final value when one batch writes several times', async () => {
-    // `watchAttributes()` coalesces per attribute per batch and reports against
-    // the final DOM value. That is exactly right here, because a binding is a
-    // pure function of the attribute's current value.
     const root = await render(`
       <button id="action" data-component="Action"
         data-on:click="Foo -> target.fn('a')"></button>
@@ -678,9 +609,6 @@ describe('Action — live rebinding through watchAttributes', () => {
   });
 
   it('keeps the binding through a rewrite that nets out', async () => {
-    // `a` → `b` → `a` in one batch reports nothing at all. The binding built
-    // from `a` is still the correct one, so silence is the right answer and
-    // no rebinding happens — one fewer `new Function` compile per morph.
     const root = await render(`
       <button id="action" data-component="Action"
         data-on:click="Foo -> target.fn('a')"></button>
@@ -698,16 +626,6 @@ describe('Action — live rebinding through watchAttributes', () => {
   });
 
   it('rebinds after a morph rewrites the attribute', async () => {
-    // The case gap 21 was really about: `swap({ mode: 'morph' })` rewrites
-    // attributes in place without replacing the element, so the instance is
-    // never destroyed and the per-mount-cycle re-parse never runs. Because the
-    // watcher's records join the one mutation engine's queue, `swap()` has
-    // already reported the change when it resolves — no extra `settle()`.
-    //
-    // `swap` morphs with `childrenOnly`, so the content is the host's *inner*
-    // markup. Wrapping it in `#host` again makes the button a structural
-    // change instead of an attribute one, and the component remounts — which
-    // is a different code path, and the one the block above already covers.
     const root = await render(`
       <div id="host">
         <button id="action" data-component="Action MountProbe"
@@ -728,8 +646,6 @@ describe('Action — live rebinding through watchAttributes', () => {
       { mode: SWAP_MODES.MORPH },
     );
 
-    // Same node, same instance, **same mount cycle**: only the third makes
-    // this a test of the watcher rather than of the mount re-parse.
     expect(root.querySelector('#action')).toBe(before);
     expect(at<Action>(root, '#action', 'Action')).toBe(action);
     expect(probe.mounts).toBe(1);
@@ -750,8 +666,6 @@ describe('Action — live rebinding through watchAttributes', () => {
     button.remove();
     await settle();
 
-    // A MutationObserver keeps observing a detached element, so this write
-    // proves that Action ran the helper cleanup with its mount cleanup.
     button.setAttribute('data-on:click', "Foo -> target.fn('while-detached')");
     await settle();
 
@@ -759,22 +673,11 @@ describe('Action — live rebinding through watchAttributes', () => {
     await settle();
 
     click(button);
-    // Remounting re-read the attribute, so the value written while detached is
-    // the one in force — reached by the mount re-parse, not by the watcher.
     expect(foo.calls).toEqual([['while-detached']]);
   });
 });
 
 describe('Action — live rebinding of the option triple', () => {
-  /**
-   * The other half of the surface. `on`, `target` and `effect` are declared
-   * options, so the framework already observes them and reports each through
-   * `option<Name>Changed()` — no `watchAttributes()` needed, and using it here
-   * would mean re-deriving the `data-option-<kebab>` spelling by hand.
-   *
-   * The catch the framework cannot absorb: three attributes feed **one**
-   * binding, and the hook is per option name. `Action` dedupes on its own.
-   */
   it('rebinds when the `effect` option changes', async () => {
     const root = await render(`
       <button id="action" data-component="Action" data-option-target="Foo"
@@ -867,11 +770,6 @@ describe('Action — live rebinding of the option triple', () => {
   });
 
   it('produces one binding when two of the three options change together', async () => {
-    // `option<Name>Changed()` fires once per option, so this batch calls back
-    // twice for a single binding. Without `Action`'s own signature check the
-    // second call would rebuild an identical binding for nothing; with it, the
-    // observable result is one listener either way — which is what is asserted,
-    // since a leaked one would double the call count.
     const root = await render(`
       <button id="action" data-component="Action" data-option-target="Foo"
         data-option-effect="target.fn('before')"></button>
@@ -892,7 +790,6 @@ describe('Action — live rebinding of the option triple', () => {
   });
 
   it('leaves the option binding alone when a `data-on:*` attribute changes', async () => {
-    // The two halves are keyed apart, so neither disturbs the other.
     const root = await render(`
       <button id="action" data-component="Action" data-option-target="Foo"
         data-option-effect="target.fn('option')"
@@ -911,9 +808,6 @@ describe('Action — live rebinding of the option triple', () => {
 });
 
 describe('Action — interop with the ported Dialog', () => {
-  // REPORT.md §2 listed `Action` triggers as the one thing the `Dialog` port
-  // could not cover. This is that gap closed: the markup is ui's own
-  // `close-dialogs` story, reduced to what the assertion needs.
   let root: HTMLElement;
 
   beforeEach(async () => {
@@ -954,9 +848,6 @@ describe('Action — interop with the ported Dialog', () => {
   });
 
   it('lets an Action on the dialog itself reach the Dialog beside it', async () => {
-    // `data-component="Action Dialog"` with `data-on:cancel="Dialog.close()"`:
-    // no target definition, so the effect resolves `Dialog` from the names of
-    // the instances sharing the element.
     const dialog = at<Dialog>(root, '#modal', 'Dialog');
     await dialog.open();
     expect(dialog.isOpen).toBe(true);

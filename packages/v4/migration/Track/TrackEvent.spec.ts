@@ -4,19 +4,6 @@ import { resetDom, settle } from '../../src/test-utils.js';
 import { Track } from './Track.js';
 import { parseEventDefinition, resolveDetailPlaceholders } from './TrackEvent.js';
 
-/**
- * Specs for the parsing and modifier half of `TrackEvent`.
- *
- * This half ported **verbatim** — it is string handling and `addEventListener`
- * options, and v4 changed neither — so these are ui's assertions with their
- * fixtures rewritten as real markup, plus two unit specs for the two exported
- * pure functions that had none.
- *
- * The two fake-timer specs are re-timed against real timers with short delays,
- * as the `Action` port did: what is worth asserting is "ran once, late", not
- * the timer bookkeeping.
- */
-
 registerComponents(Track);
 
 afterEach(resetDom);
@@ -167,9 +154,6 @@ describe('TrackEvent — listener modifiers', () => {
     el.click();
     el.click();
 
-    // `once` and `passive` are `AddEventListenerOptions` and reach the
-    // listener through `$on`. The delegated `on<Event>` path could not express
-    // either, which is the limit §6a recorded for `Action`.
     expect(pushes()).toHaveLength(1);
   });
 
@@ -177,8 +161,6 @@ describe('TrackEvent — listener modifiers', () => {
     const el = await render(
       `<div data-component="Track" data-track:click.capture='{"event": "cta"}'><span></span></div>`,
     );
-    // The bubble-phase marker goes into the same array the component pushes
-    // to, so the order of the two is the assertion.
     el.addEventListener('click', () => window.dataLayer?.push({ event: 'bubble' }));
 
     (el.querySelector('span') as HTMLElement).dispatchEvent(new Event('click', { bubbles: true }));

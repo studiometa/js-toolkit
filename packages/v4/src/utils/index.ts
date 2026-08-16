@@ -1,15 +1,4 @@
-/**
- * The utils entry point — `@studiometa/js-toolkit-v4/utils`.
- *
- * Deliberately **not** re-exported from `src/index.ts`: the root barrel is the
- * framework's surface — components, the registry, the scheduler, the services —
- * and a `clamp` beside a `Base` says nothing true about either. Utils are their
- * own entry, imported from here or from the module that holds them.
- *
- * Every export is named rather than star-forwarded, so this file is a readable
- * inventory of the surface and adding to a module is a deliberate act here
- * rather than a side effect there.
- */
+/** Public entry point for `@studiometa/js-toolkit-v4/utils`. */
 
 export {
   clamp,

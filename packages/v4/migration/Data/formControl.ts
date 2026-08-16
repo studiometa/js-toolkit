@@ -1,19 +1,6 @@
 import type { DataValue } from './registry.js';
 
-/**
- * Reading and writing a value on a form control.
- *
- * **Copied from `@studiometa/ui` `Data/formControl.ts` essentially verbatim**
- * — 178 lines in, 178 lines out, one import changed. Nothing in it touches
- * the framework: it is `HTMLInputElement`/`HTMLSelectElement` semantics, the
- * grouped-checkbox union, and the type coercions a `<input type="number">`
- * needs. That it survived the port untouched is the finding: the half of the
- * `Data*` family that is about *the DOM* costs nothing to move, and the half
- * that is about *reaching other components* is the whole migration.
- *
- * The one change: `camelCase` came from `@studiometa/js-toolkit/utils`, which
- * v4 does not ship (REPORT.md gap 10). It is four lines, inlined below.
- */
+/** Form-control value reading, writing, grouping, and type coercion. */
 
 const REGEX_CAMEL = /[-_\s]+(.)?/g;
 

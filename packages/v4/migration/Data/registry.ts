@@ -7,45 +7,7 @@ import {
   provideRootContext,
 } from '../../src/index.js';
 
-/**
- * The group registry — what `withGroup` + `getScopedGroups` + `DataChannel`
- * collapse into on v4.
- *
- * ## Why this file exists
- *
- * v3 spread one concept over three mechanisms:
- *
- * - `withGroup(Base, 'data:', { getScope, getGroup })` kept a `Set` of peers
- *   per (scope, group name) pair, resolved through `getScopedGroups()`;
- * - `DataScope.__groups` kept the keyed values, the sources and the hydration
- *   bookkeeping for the scoped half;
- * - `DataChannel` + a `WeakMap` hung off `globalThis` kept the *value cell*,
- *   because a member `Set` has none — which is the whole reason ui had to
- *   write `getDataChannel(this.$group)` on top of `withGroup`.
- *
- * v4 exports no group primitive at all (check `src/index.ts` — there is no
- * `withGroup`), and DESIGN.md §5 says why: `provideRootContext()` makes the
- * page-wide case the outermost scope of provide/inject rather than a second
- * registry beside it. So the three become one object, provided on a key:
- * a `DataScope` provides its own, and a member with no `DataScope` above it
- * resolves the root one. Nearest wins, by `stopPropagation`, for free.
- *
- * ## The named/dynamic problem, and where the keyed map belongs
- *
- * `createContext()` yields one static symbol; Data groups are **named at
- * runtime** from an option (`data-option-group="checkout"`). The bridge is a
- * keyed map behind a single key — and the map belongs *inside the provided
- * value*, not in a `Map<string, ContextKey>` beside it:
- *
- * - a key-per-group map would have to live in a module-level cache to be
- *   shared, which is the `globalThis` registry v4 just removed;
- * - the value provided is what a consumer resolves verbatim, so putting the
- *   naming *inside* it keeps one key, one provider, one lifetime;
- * - and the scoped half needs more than a channel anyway (values, sources,
- *   hydration), which a bare `ContextKey<Signal>` cannot carry.
- *
- * One key, one registry object, `registry.group(name)` inside it.
- */
+/** Stores named data groups, values, sources, membership, and hydration state. */
 
 export type DataValue = boolean | string | string[] | number | Date | null | undefined;
 
@@ -88,14 +50,7 @@ interface DataGroupRecord {
 
 const EMPTY_DATA: Readonly<Record<string, DataValue>> = Object.freeze({});
 
-/**
- * The one construction seam for core's reactive cell.
- *
- * Core is mid-move from the eager `Signal` class to a functional
- * `signal(initial)` factory keeping `Signal` as the exported *type*. Only
- * construction changes, and only here — everything else in this port reads
- * `.value` and calls `.subscribe()`, which both spellings share.
- */
+/** Construction seam for the group signal. */
 function createChannel(): Signal<DataUpdate | null> {
   return signal<DataUpdate | null>(null);
 }
@@ -130,11 +85,7 @@ function isCurrentValueSource(instance: DataScopeMember): boolean {
 }
 
 export interface DataRegistryOptions {
-  /**
-   * Whether keyed values live here. A `DataScope` owns a scoped registry;
-   * the page-wide root one carries channels and membership only, which is
-   * exactly what v3's `globalThis` `WeakMap` of `DataChannel`s did.
-   */
+  /** Whether this registry stores keyed values. */
   scoped?: boolean;
   /** The group a member falls back to. Live, since it comes from an option. */
   defaultGroup?: () => string;
@@ -165,18 +116,7 @@ export class DataRegistry {
     return this.#defaultGroup();
   }
 
-  /**
-   * The record for a group name, reconciled against the DOM on every access.
-   *
-   * The reconciliation is v3's, kept verbatim in intent: a source whose
-   * element left the document stops owning its key **synchronously**, without
-   * waiting for the registry's MutationObserver. ui's specs assert exactly
-   * that (`input.remove()` then `scope.getData(...)` on the next line), and
-   * v4's teardown is a background task, so dropping this would turn a
-   * synchronous guarantee into an asynchronous one.
-   *
-   * @private
-   */
+  /** Reconcile disconnected members synchronously on every access. @private */
   #record(group: string): DataGroupRecord {
     let record = this.#groups.get(group);
 
@@ -256,10 +196,7 @@ export class DataRegistry {
    * @private
    */
   #publishTo(record: DataGroupRecord, update: DataUpdate): DataUpdate {
-    // Always a fresh frame, so equal values stay observable events. The
-    // consequence for core: a value-equality bail-out in the signal never
-    // fires here, and what this relies on instead is **deduped delivery of
-    // the latest frame** — see `isCurrent()`.
+    // A fresh frame keeps equal values observable.
     const frame = { ...update };
     record.latest = frame;
     record.channel.value = frame;
@@ -276,10 +213,7 @@ export class DataRegistry {
     return () => record.members.delete(member);
   }
 
-  /**
-   * The live peer set for a group. This is `withGroup`'s `$group`, minus the
-   * decorator — and unlike it, the value cell lives beside it.
-   */
+  /** The live peer set for a group. */
   members(group: string): Set<DataScopeMember> {
     return this.#record(group).members;
   }
@@ -288,15 +222,7 @@ export class DataRegistry {
     return this.#publishTo(this.#record(group), update);
   }
 
-  /**
-   * Whether `frame` is still the newest frame on this group.
-   *
-   * A subscriber may publish from inside its own delivery — `DataComputed`
-   * recomputing, an `Action` writing back. When that happens the outer frame
-   * is superseded and the member that started it must **not** apply its own
-   * stale value on top. This is the reentrancy hazard ui's
-   * `should preserve the latest value during reentrant group updates` encodes.
-   */
+  /** Whether a frame is still current after possible reentrant publication. */
   isCurrent(group: string, frame: DataUpdate): boolean {
     return this.#record(group).latest === frame;
   }
@@ -304,9 +230,7 @@ export class DataRegistry {
   subscribe(group: string, subscriber: (update: DataUpdate) => void): () => void {
     const record = this.#record(group);
     return record.channel.subscribe((update) => {
-      // `null` is the initial cell value, not a publication. v3 needed a
-      // sentinel symbol plus an `initialized` flag because `effect()` runs
-      // its body once to collect dependencies; `Signal.subscribe` does not.
+      // `null` is the initial cell value, not a publication.
       if (update !== null) {
         subscriber(update);
       }
@@ -371,16 +295,7 @@ export class DataRegistry {
     }
   }
 
-  /**
-   * Collect every immediate source of a group, once, then announce.
-   *
-   * The batching is the point: three `data-option-immediate` inputs must not
-   * make subscribers see a half-filled `$data` twice on the way to the full
-   * one. v3 deferred the collection with `nextTick()`; this uses the
-   * scheduler's **background lane**, which is where v4 already queues eager
-   * mounts — so the collection is guaranteed to run after every mount already
-   * queued, not merely after the current microtask checkpoint.
-   */
+  /** Collect all immediate sources before notifying subscribers. The background lane runs after queued eager mounts. */
   hydrate(group: string, member: DataScopeMember): void {
     if (!this.scoped || !member.isDataSource) {
       return;
@@ -462,27 +377,7 @@ function multipleSourcesValue(sources: Set<DataScopeMember>): string[] {
 
 export const DataRegistryContext = /* @__PURE__ */ createContext<DataRegistry>('data-registry');
 
-/**
- * The nearest registry for an element: a `DataScope`'s if one provides above
- * it, the page-wide one otherwise.
- *
- * This is the whole of `getDataScope()`'s DOM walk plus v3's `globalThis`
- * fallback, in two lines, because `provideRootContext` puts the page-wide
- * value on `document.documentElement` and any `DataScope` above the element
- * answers first by `stopPropagation`.
- *
- * **`injectContextSync` and not `injectContext`, deliberately.** The async
- * form is the right default when "no provider yet" must not be mistaken for
- * "no provider ever" — but here there is always an answer, because the root
- * registry is created on demand. A pending promise would buy nothing and cost
- * the synchronous read that `get()`/`set()` are specified to be.
- *
- * It is also what makes a subscription usable here at all: a member calls
- * `subscribeContext()` from `mounted()`, which waits forever while nothing
- * provides, and calling this creates the page-wide provider that answers it.
- * So this stays the fallback path for subscribed members — see
- * `DataBind.mounted()`.
- */
+/** Resolve the nearest registry synchronously, creating the page-wide root if needed. */
 export function resolveDataRegistry(el: Element): DataRegistry {
   return (
     injectContextSync(el, DataRegistryContext) ??

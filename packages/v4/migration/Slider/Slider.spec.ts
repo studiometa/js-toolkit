@@ -138,7 +138,6 @@ describe('Slider', () => {
     await frames(2);
     expect(slider.currentIndex).toBe(0);
 
-    // A key pressed outside the wrapper is not the slider's business.
     root.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
     await frames(2);
     expect(slider.currentIndex).toBe(0);
@@ -157,7 +156,6 @@ describe('Slider', () => {
 
     expect(slider.items.size).toBe(3);
     expect(total.textContent).toBe('3');
-    // The next button is no longer at the bound.
     expect(next.disabled).toBe(false);
   });
 
@@ -173,15 +171,12 @@ describe('Slider', () => {
     slider.items.items[2].$el.remove();
     await ready(root);
 
-    // v3 threw `Index out of bound.` here.
     expect(slider.items.size).toBe(2);
     expect(slider.currentIndex).toBe(1);
     expect(slider.state.value).toEqual({ index: 1, total: 2 });
   });
 
   it('connects a control that mounts before its slider', async () => {
-    // The counter is inserted on its own, so nothing about the Slider exists
-    // when it asks for the context.
     const count = document.createElement('p');
     count.setAttribute('data-component', 'SliderCount');
     count.innerHTML = '<span data-ref="current"></span>';
@@ -193,7 +188,6 @@ describe('Slider', () => {
     root.append(count);
     await ready(root);
 
-    // No handshake, no `connectChildren()`: the late provider replays.
     expect(count.querySelector('[data-ref="current"]')?.textContent).toBe('1');
   });
 
@@ -204,11 +198,6 @@ describe('Slider', () => {
     document.body.append(button);
     await settle();
 
-    // Commands are resolved with `$injectSync`, so "no provider" is an answer
-    // a control can act on: the click does nothing and nothing throws. The
-    // state half is still waiting on `$inject`, which never settles without a
-    // provider — hence a button that is never disabled rather than one
-    // disabled by an ordering accident.
     button.click();
     await frames(2);
     expect(button.disabled).toBe(false);

@@ -3,15 +3,7 @@ import { memo, type Memo } from '../utils/memo.js';
 import { createService, type MutableProps, type Service } from './service.js';
 
 /**
- * Named viewport widths, ascending. Values are the ones v3 ships. They are
- * the default set, not the only one: `setBreakpoints()` replaces them.
- *
- * They are `rem` values, and in a **media query** `rem` resolves against the
- * *initial* font size rather than the root element's own. So the reader's
- * browser font-size preference moves every breakpoint, and
- * `html { font-size: 62.5% }` moves none of them — verified at a viewport of
- * 414 px, where `xs` (30rem) matched neither at a root of `10px` nor at
- * `32px`.
+ * Default named viewport widths, ascending. Media-query `rem` uses the browser's initial font size, not the root element's computed size.
  */
 export const BREAKPOINTS: Readonly<Record<string, string>> = {
   xxs: '0rem',
@@ -67,11 +59,7 @@ const breakpointState = /* @__PURE__ */ getSharedRuntimeSlot<BreakpointRuntimeSt
 );
 const { replacementListeners, widestMatch } = breakpointState;
 
-/**
- * Build the media-query lists on first use and keep them until the named set
- * changes. Constructing a `MediaQueryList` per breakpoint on every update
- * measured 5.2× the cost of querying lists made once (`service.bench.ts`).
- */
+/** Build media-query lists lazily and keep them until the set changes. */
 function queryList(): Array<readonly [string, MediaQueryList]> {
   breakpointState.queries ??= Object.entries(breakpointState.breakpoints).map(
     ([name, value]) => [name, window.matchMedia(`(min-width: ${value})`)] as const,
@@ -79,69 +67,32 @@ function queryList(): Array<readonly [string, MediaQueryList]> {
   return breakpointState.queries;
 }
 
-/**
- * Replace the named breakpoints, ascending.
- *
- * ```js
- * setBreakpoints({ mobile: '0rem', tablet: '48rem', desktop: '80rem' });
- * ```
- *
- * A running service re-reads them at once and announces the new name, rather
- * than serving a stale one until something unrelated happens to resize.
- *
- * The design has `defineFeatures` carry these eventually; until it exists,
- * this is the whole configuration surface.
- */
+/** Replace the ascending named breakpoint set and refresh active subscribers. */
 export function setBreakpoints(next: Record<string, string>): void {
   breakpointState.breakpoints = { ...next };
   breakpointState.queries = null;
   breakpointState.names = null;
-  // Replacing the set is a crossing that no `matchMedia` event announces, so
-  // the resolved name is dropped here rather than at the next boundary — the
-  // specs read an option straight after `setBreakpoints()`, in the same task.
+  // A set replacement has no `matchMedia` event, so invalidate synchronously.
   widestMatch.clear();
-  // Caches first, then the emission: a subscriber told about the new name must
-  // resolve against the new set, not against the one being replaced.
+  // Invalidate derived caches before notifying subscribers.
   for (const listener of replacementListeners) {
     listener();
   }
   breakpointState.refresh?.();
 }
 
-/**
- * The breakpoints in use, the defaults until `setBreakpoints()` says
- * otherwise.
- */
+/** Return a copy of the active breakpoint set. */
 export function getBreakpoints(): Record<string, string> {
   return { ...breakpointState.breakpoints };
 }
 
-/**
- * The breakpoint names in use, narrowest first, without a copy.
- *
- * Not part of the package's surface — `getBreakpoints()` is what a consumer
- * reads. This is the ordering the responsive-option cascade walks, and it is
- * walked often enough that the copy matters.
- *
- * @internal
- */
+/** Return breakpoint names from narrowest to widest without copying. @internal */
 export function breakpointNames(): readonly string[] {
   breakpointState.names ??= Object.keys(breakpointState.breakpoints);
   return breakpointState.names;
 }
 
-/**
- * Be told when `setBreakpoints()` replaces the set.
- *
- * Not part of the package's surface either, and deliberately not the service:
- * this fires for a **replacement of the named set**, which is a configuration
- * change, where the service fires for a **crossing**, which is a viewport
- * change. The responsive-option layer needs both, for different reasons — it
- * caches attribute names derived from the set, and it resolves values against
- * the current name — and a component only ever needs the second.
- *
- * @internal
- */
+/** Subscribe to breakpoint-set replacement, not viewport crossings. @internal */
 export function onBreakpointsReplaced(callback: () => void): () => void {
   replacementListeners.add(callback);
   return () => {
@@ -150,42 +101,7 @@ export function onBreakpointsReplaced(callback: () => void): () => void {
 }
 
 /**
- * The widest matching name. The set is ascending, so the last match wins.
- *
- * Annotated because a top-level call is retained by default, and retaining
- * this one retains `queryList()` and the service graph behind it — which is
- * what `./BREAKPOINTS` and `./getBreakpoints` pay for a name they never
- * compute. Measured: 0.38 → 0.11 kB and 0.38 → 0.13 kB gzip.
- */
-/** Whether a boundary invalidation is already armed for the current task. */
-
-/**
- * The widest matching name, computed at most once per task.
- *
- * Asking eight kept `MediaQueryList` objects for `.matches` measured **~5.1 µs**
- * and it is the whole of an option read now that every option is responsive —
- * 16.8× the plain `getAttribute()` it replaced (`responsive-options.bench.ts`).
- * A component reading three options in a scroll handler paid for 24 media
- * queries to learn one name that cannot have changed between the first and the
- * third.
- *
- * **Cannot have changed** is the whole argument, and it is why the invalidation
- * is a microtask boundary rather than a duration. A media query is re-evaluated
- * when the viewport changes, and that change is delivered as a *task*; script
- * runs to completion before one can be. So the active breakpoint is a constant
- * for the length of a task, and a cache dropped at the microtask checkpoint is
- * not an approximation of the truth — it is exactly as fresh as reading the
- * queries would have been, for the reads it serves.
- *
- * Two events cut it shorter, and both are stronger than the boundary:
- * `setBreakpoints()` replaces the named set synchronously, and a running
- * service's `change` handler knows a crossing happened. Both clear this, so
- * they share one cache with the cold path rather than keeping a second.
- *
- * The listener count is untouched, which is the property that mattered: this
- * opens nothing. `useBreakpoint().props()` stays honest cold, and
- * `responsive-options.spec.ts` still counts registrations on
- * `MediaQueryList.prototype` to prove it.
+ * Return the widest matching breakpoint, cached for the current task. Set replacement and media-query changes invalidate it immediately.
  */
 function currentBreakpoint(): string {
   if (!breakpointState.invalidating) {
@@ -202,16 +118,14 @@ function createBreakpointService(): Service<BreakpointProps> {
   const props: MutableProps<BreakpointProps> = { name: '' };
 
   return createService<BreakpointProps>({
-    // Answered honestly without subscribing, unlike the sampled sources: the
-    // `MediaQueryList` objects are built once and asking them is a read.
+    // Media queries provide a current value without a subscription.
     props: () => {
       props.name = currentBreakpoint();
       return props;
     },
     start(emit) {
       const publishIfCrossed = () => {
-        // A `change` event is the one signal that says a crossing *has*
-        // happened, so it invalidates rather than waiting for the boundary.
+        // A media-query change invalidates the task cache immediately.
         widestMatch.clear();
         const name = currentBreakpoint();
         if (name === props.name) {
@@ -250,22 +164,7 @@ function createBreakpointService(): Service<BreakpointProps> {
 }
 
 /**
- * Use the breakpoint service.
- *
- * ```js
- * const unsubscribe = useBreakpoint().subscribe(({ name }) => {
- *   el.hidden = name === 'xxs';
- * });
- * ```
- *
- * `matchMedia` change listeners, not a resize: this emits on **crossings**
- * rather than on every resize frame, and it is the only mechanism that
- * reports a change of the reader's font size — which `rem` breakpoints depend
- * on and no amount of watching boxes can see.
- *
- * A media query answers about the viewport, which is why this is a source of
- * its own rather than a field of `ResizeProps`: it says nothing about the
- * element a resize service happens to be observing.
+ * Use the viewport breakpoint service. It listens to media-query crossings, including changes caused by the browser's initial font size.
  */
 export function useBreakpoint(): Service<BreakpointProps> {
   breakpointState.service ??= createBreakpointService();

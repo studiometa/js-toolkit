@@ -143,8 +143,6 @@ describe('registry', () => {
     expect(brokenMounts).toBe(0);
     expect(healthyMounts).toBe(1);
 
-    // Reconciliation retries construction. It must not mount the object whose
-    // derived constructor did not finish.
     const firstAttempt = attempts[0];
     broken.remove();
     await settle();

@@ -44,13 +44,7 @@ function runtimeFor(host: object): SharedRuntime {
 }
 
 /**
- * Reuse one internal state slot across evaluated copies of v4.
- *
- * Each subsystem owns its narrow value type and schema revision. A revision
- * mismatch is an error: mixing two internal layouts would be less safe than
- * refusing the second copy. This is a fixed compatibility guard, not package
- * version negotiation.
- *
+ * Reuse a revision-checked state slot across evaluated package copies.
  * @internal
  */
 export function getSharedRuntimeSlot<T>(

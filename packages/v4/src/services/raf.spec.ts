@@ -15,7 +15,6 @@ describe('useRaf', () => {
     expect(props.length).toBeGreaterThanOrEqual(2);
     expect(props[1].time).toBeGreaterThan(props[0].time);
     expect(props[1].delta).toBeGreaterThan(0);
-    // The service keeps the last props for whoever asks without subscribing.
     expect(useRaf().props().time).toBe(props.at(-1)?.time);
   });
 
@@ -27,7 +26,6 @@ describe('useRaf', () => {
       time = props.time;
       return (renderProps: RafProps) => {
         phases.push(defaultScheduler.phase);
-        // The render is given the props of the frame it belongs to.
         expect(renderProps.time).toBe(time);
       };
     });
@@ -38,15 +36,10 @@ describe('useRaf', () => {
   });
 
   it('has no current frame to deliver on subscribe', async () => {
-    // A tick has happened, so `props()` holds real numbers.
     const warm = useRaf().subscribe(() => {});
     await frames(2);
     expect(useRaf().props().delta).toBeGreaterThan(0);
 
-    // They describe *a frame*, and between two frames there is no frame to
-    // describe: handing them over would have the newcomer integrate a delta
-    // every other subscriber has already spent. `{ immediate: true }` is a
-    // no-op here, and the first real tick is one frame away.
     const seen: RafProps[] = [];
     const unsubscribe = useRaf().subscribe(
       (props) => {
@@ -63,8 +56,6 @@ describe('useRaf', () => {
   });
 
   it('takes a render or nothing, and refuses anything else', () => {
-    // A stray return — from an assignment expression, or from an arrow body
-    // written for brevity — used to be run as a DOM mutation on every frame.
     // @ts-expect-error 42 is not a `RafRender`.
     const unsubscribe = useRaf().subscribe(() => 42);
     unsubscribe();
@@ -73,9 +64,6 @@ describe('useRaf', () => {
   it('cancels a render whose subscriber left between the two phases', async () => {
     let writes = 0;
     let unsubscribeFirst = (): void => {};
-    // Collected in `read`, run in `write` — with a whole fan-out in between,
-    // which is long enough for the component that returned it to be
-    // destroyed. Its cleanup has already run, so the write must not happen.
     unsubscribeFirst = useRaf().subscribe(() => () => {
       writes += 1;
     });

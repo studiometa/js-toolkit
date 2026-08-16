@@ -6,10 +6,6 @@ function snapshot(props: ResizeProps): ResizeProps {
   return { ...props };
 }
 
-/**
- * The observer watches the document element, so changing its box is what a
- * viewport resize looks like from inside the page.
- */
 function resizeDocument(width: string): void {
   document.documentElement.style.width = width;
 }
@@ -33,9 +29,6 @@ describe('useResize', () => {
       immediate: true,
     });
 
-    // Asked for, not delivered by the machinery: the `ResizeObserver` announces
-    // the current box on `observe()` for free, and letting that through made
-    // this the only service that spoke on subscribe.
     const props = seen.at(0);
     expect(seen).toHaveLength(1);
     expect(props?.width).toBe(window.innerWidth);
@@ -45,7 +38,6 @@ describe('useResize', () => {
       window.innerWidth > window.innerHeight ? 'landscape' : 'portrait',
     );
 
-    // And the observer's own first delivery says nothing on top of it.
     await settle();
     expect(seen).toHaveLength(1);
     unsubscribe();
@@ -57,7 +49,6 @@ describe('useResize', () => {
     await settle();
 
     expect(seen).toEqual([]);
-    // Still subscribed, and served by a real resize like any other.
     window.dispatchEvent(new Event('resize'));
     await settle();
     expect(seen).toHaveLength(1);
@@ -72,10 +63,6 @@ describe('useResize', () => {
     await settle();
     const onSubscribe = seen.length;
 
-    // The observer watches `documentElement`'s own box, which on the root
-    // element is the document height rather than the viewport. A lazy image,
-    // an accordion or an infinite scroll page moves it constantly, and none of
-    // it changes a single value these props report.
     const spacer = document.createElement('div');
     spacer.setAttribute('style', 'height:4000px');
     document.body.append(spacer);
@@ -95,8 +82,6 @@ describe('useResize', () => {
       immediate: true,
     });
     expect(first.at(0)?.width).toBe(120);
-    // Last subscriber out: the observer disconnects, so nothing watches the
-    // element while it changes.
     off();
 
     el.style.width = '60px';
@@ -106,8 +91,6 @@ describe('useResize', () => {
     const unsubscribe = useResize(el).subscribe((props) => second.push(snapshot(props)), {
       immediate: true,
     });
-    // Measured for this run rather than served from the previous one: the props
-    // the service was built with are a box the element has since left.
     expect(second.at(0)?.width).toBe(60);
     unsubscribe();
   });
@@ -120,12 +103,6 @@ describe('useResize', () => {
     await settle();
     const initial = calls;
 
-    // This used to assert an emit, back when the observer published
-    // unconditionally. It reports nothing: `clientWidth` on the root element
-    // is the viewport, so narrowing `documentElement`'s own box moves the
-    // observed rect and leaves every value in the props exactly as it was.
-    // A real viewport resize is covered by the test below, through the
-    // `resize` event, which is the mechanism that can actually see one.
     resizeDocument('320px');
     await settle();
     expect(calls).toBe(initial);
@@ -134,11 +111,6 @@ describe('useResize', () => {
   });
 
   it('emits on a viewport resize the observer cannot see', async () => {
-    // The observer watches `documentElement`'s box, and for the root element
-    // `clientWidth`/`clientHeight` are the viewport instead. On a page taller
-    // than the viewport the two are decoupled — measured height 3000 against
-    // a `clientHeight` of 896 — so a viewport-only height change, a mobile
-    // toolbar sliding away, moves the props and fires no observer at all.
     let calls = 0;
     const unsubscribe = useResize().subscribe(() => {
       calls += 1;
@@ -208,11 +180,8 @@ describe('useResize(element)', () => {
     const unsubscribe = service.subscribe(() => {});
     await settle();
 
-    // `Infinity` and `NaN` propagate through everything a subscriber
-    // computes from a ratio; a collapsed element simply has none.
     expect(service.props().height).toBe(0);
     expect(service.props().ratio).toBe(0);
-    // And it is still described by the side it is wider on.
     expect(service.props().orientation).toBe('landscape');
 
     unsubscribe();
@@ -235,8 +204,6 @@ describe('useResize(element)', () => {
     });
     await settle();
 
-    // The last subscriber of one element leaves; its observer stops, and the
-    // other element keeps being watched.
     unsubscribeFirst();
     const frozen = firstCalls;
     const observed = secondCalls;

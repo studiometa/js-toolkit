@@ -20,26 +20,8 @@ export interface DialogProps {
 }
 
 /**
- * Dialog — a headless wrapper around the native `<dialog>` element.
- *
- * Port of @studiometa/ui 1.10's `Dialog`. It owns only what the platform does
- * not give for free (modality, scroll lock, an optional focus trap for the
- * non-modal path) and fans `enter()`/`leave()` out to every transition child.
- *
- * Three v4 decisions show up here:
- *
- * - `$children.Transition` / `$children.ViewTransition` → two
- *   `$watchChildren` collections, live and mount-order independent. v3's
- *   `$children` only listed the classes declared in `config.components` of
- *   this exact class; a transition inserted later was invisible until the
- *   next `$update()`.
- * - `keyed()` (KeyService) → a plain `keydown` listener registered in
- *   `mounted()` and released by its returned cleanup. v4 dropped `KeyService`
- *   on the grounds that "a keydown listener needs no service around it", and
- *   this is the component that proves it: the hook cost more than the
- *   listener.
- * - `$el` is typed `HTMLDialogElement`, so `showModal()`, `close()` and
- *   `open` are reachable without the `get dialog()` cast v3 needed.
+ * Headless native dialog with optional modality, focus trapping, scroll lock,
+ * and child transitions.
  */
 export class Dialog extends Base<DialogProps> {
   static config = {
@@ -77,12 +59,7 @@ export class Dialog extends Base<DialogProps> {
     return () => document.removeEventListener('keydown', onKeydown);
   }
 
-  /**
-   * Escape closes a native `<dialog>` behind the component's back: v3 let it
-   * happen, so the leave transitions never ran and the scroll stayed locked.
-   * Cancelling the native close and going through `close()` fixes both — the
-   * bubbling `cancel` event makes this a two-line handler in v4.
-   */
+  /** Route native cancellation through `close()` so cleanup and transitions run. */
   onCancel(event: Event): void {
     event.preventDefault();
     this.close();
@@ -116,8 +93,7 @@ export class Dialog extends Base<DialogProps> {
     }
 
     this.$emit('close');
-    // Leave transitions are awaited *before* the native hide, so the dialog
-    // is still painted while its children animate out.
+    // Keep the dialog painted until leave transitions finish.
     await Promise.all(this.transitions.map((transition) => transition.leave()));
     this.$el.close();
 

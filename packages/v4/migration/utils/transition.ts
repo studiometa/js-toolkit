@@ -2,21 +2,8 @@ import { nextFrame } from '../../src/index.js';
 import type { OptionDefinition } from '../../src/index.js';
 
 /**
- * The `transition` helper, ported from
- * `@studiometa/js-toolkit/utils/css/transition`.
- *
- * It is the Vue `<transition>` recipe: apply the `from` state, wait a frame,
- * swap to `to` with the `active` state applied, resolve on `transitionend`.
- * Both the class form and the inline-style form are kept because
- * `AccordionItem` needs the style one (it animates a measured pixel height)
- * and the `Transition` component needs the class one.
- *
- * The enter/leave pair below is the rest of v3's `withTransition` decorator,
- * as two functions: v4's `Transition` is a component rather than a mixin, and
- * `SliderDots` — v3's only other consumer, which mixed it in to transition its
- * dot refs — cannot mix in a component. Everything the decorator did with
- * `this` is a parameter here, so there is one implementation and no base class
- * between the two.
+ * CSS transition helpers for class names or inline styles. Apply `from`, then
+ * `active` and `to`, and resolve after `transitionend` or on the next frame when no transition runs.
  */
 
 export type ClassesOrStyles = string | string[] | Partial<CSSStyleDeclaration>;
@@ -129,11 +116,7 @@ export async function transition(
   end(el, classesOrStyles, mode);
 }
 
-/**
- * The eight class options v3's `withTransition` declared, and the two
- * components that use them declare in turn. Spread into a `config`, so each
- * class owns its own object.
- */
+/** Shared transition option definitions. */
 export const TRANSITION_OPTIONS: Record<string, OptionDefinition> = {
   enterFrom: String,
   enterActive: String,
@@ -148,9 +131,7 @@ export const TRANSITION_OPTIONS: Record<string, OptionDefinition> = {
 /**
  * The resolved values of {@link TRANSITION_OPTIONS}.
  *
- * A type alias rather than an interface, because `BaseProps.$options` is a
- * `Record<string, unknown>`: an object type alias gets an implicit index
- * signature and satisfies it, an interface never does.
+ * This must be a type alias to satisfy the `Record<string, unknown>` constraint.
  */
 export type TransitionOptions = {
   enterFrom: string;

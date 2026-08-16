@@ -1,33 +1,4 @@
-/**
- * What a mount costs, and how much of it `#bindHandlers()` was redoing.
- *
- * Run with `npx vitest bench --config vitest.bench.config.js` from
- * `packages/v4`. Like the other files here, this answers a design question
- * rather than guarding against a regression.
- *
- * `$mount()` is not a once-per-instance path. Under a `data-mount` strategy —
- * `visible`, `media`, `interaction` — the same instance mounts and unmounts
- * as the page scrolls, so every allocation and every prototype walk inside
- * `#bindHandlers()` is paid again each time. The shapes below are the ones a
- * real component has:
- *
- * - **`Panel`** — five handlers across all four resolution rules (own
- *   element, a delegated child, a plain ref, a list ref, a global target),
- *   two declared children, three declared refs. What a slider or a dialog
- *   looks like.
- * - **`Bare`** — one own-element handler and nothing declared. The floor: it
- *   measures what a mount costs when there is almost nothing to resolve, so
- *   the share of the saving that is `$mount()` itself rather than handler
- *   resolution is visible.
- * - **`DeepPanel`** — `Panel` under three intermediate subclasses, each
- *   adding a handler. The prototype walk is the part that grows with the
- *   class hierarchy, and mixins (`withScroll`, `withDrag`) are how a real
- *   component gets deep.
- *
- * Each benchmark is a **remount**: construct once, then `$mount()`/
- * `$destroy()` in a loop, which is the repeat path. Construction is measured
- * separately so the two are not read as one number.
- */
+/** Benchmark remount and first-mount costs for representative component shapes. */
 import { bench, describe } from 'vitest';
 import { Base, type BaseConfig, type DelegatedEvent, type RefEvent } from './Base.js';
 
@@ -152,25 +123,12 @@ describe('remount: $mount() + $destroy() on one instance', () => {
   });
 });
 
-/**
- * A fixed pool, cycled: a fresh element per iteration would grow the document
- * without bound over a few thousand samples, and the append would end up being
- * what is measured.
- */
+/** Reuse a bounded element pool so DOM growth is not measured. */
 const pool = Array.from({ length: 100 }, panelElement);
 let next = 0;
 const nextElement = () => pool[next++ % pool.length];
 
-/**
- * The previous instance is destroyed before the next is built, so exactly one
- * is ever mounted.
- *
- * Leaving them mounted would leak a `window` resize listener per iteration —
- * a few thousand of them over a run — and what the later samples measure is
- * then the listener list, not the mount. Its `$destroy()` is inside the
- * measured region as a result, which is the smaller distortion of the two and
- * an equal one on both sides of a comparison.
- */
+/** Keep only one mounted instance to prevent listener accumulation. */
 let live: Base | null = null;
 
 describe('construction + first mount, one instance alive at a time', () => {

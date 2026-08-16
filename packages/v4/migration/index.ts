@@ -1,13 +1,4 @@
-/**
- * @studiometa/ui components ported onto the v4 prototype.
- *
- * This is a migration feasibility test, not a component library: eight
- * families were chosen because they hit the parts of v3 that v4 changed most.
- * Each file documents what its port cost against the v3 original.
- *
- * Registering is left to the consumer — `registerComponent(Accordion)` and so
- * on — so importing the barrel mounts nothing on its own.
- */
+/** Component exports. Importing this barrel does not register components. */
 
 export * from './Accordion/index.js';
 export * from './Action/index.js';

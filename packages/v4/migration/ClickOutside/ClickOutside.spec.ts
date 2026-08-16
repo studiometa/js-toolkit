@@ -3,21 +3,7 @@ import { Base, registerComponents, type BaseConfig, type DelegatedEvent } from '
 import { getInstance, resetDom, settle } from '../../src/test-utils.js';
 import { ClickOutside } from './ClickOutside.js';
 
-/**
- * Specs for the `ClickOutside` port.
- *
- * These are the proof for REPORT.md gap 15 rather than a port of ui's specs:
- * the claim under test is that `onDocumentClick` makes the component
- * writable, so what is asserted is the behaviour a consumer sees — a click
- * outside announces itself, a click inside does not, and neither survives the
- * mount cycle that registered the listener.
- */
-
-/**
- * A parent hearing the announcement through delegation, which is the whole
- * point of `$emit()` over the hand-built `CustomEvent` v3 dispatched: the
- * event bubbles, so an ancestor needs no listener of its own.
- */
+/** Parent probe for delegated `click-outside` events. */
 class Dropdown extends Base {
   static config: BaseConfig = { name: 'Dropdown', components: { ClickOutside } };
 

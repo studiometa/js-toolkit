@@ -5,18 +5,11 @@ import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
 import { resetDom, settle } from './test-utils.js';
 
-/**
- * Strategies observe the real viewport, so a probe is either parked far
- * below the fold or brought back into it.
- */
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';
 const ONSCREEN = 'position:absolute;top:0;left:0;width:50px;height:50px';
 
 let counter = 0;
 
-/**
- * Register a component with a unique name, tracking its mount cycles.
- */
 function defineTracked(config: Omit<BaseConfig, 'name'> = {}) {
   counter += 1;
   const name = `Strategy${counter}`;
@@ -55,7 +48,6 @@ function instanceOf<T extends Base>(el: Element, name: string): T | undefined {
   return el.__base__?.get(name) as T | undefined;
 }
 
-/** Give observers a few frames to deliver their callbacks. */
 async function observed(): Promise<void> {
   for (let i = 0; i < 6; i += 1) {
     await settle();
@@ -83,8 +75,6 @@ describe('data-mount="visible"', () => {
     const el = render(name, { 'data-mount': 'visible' }, OFFSCREEN);
     await observed();
 
-    // Not merely unmounted: no instance exists yet, so the component is
-    // invisible to queries and announces nothing.
     expect(el.__base__?.get(name)).toBeUndefined();
   });
 
@@ -98,7 +88,6 @@ describe('data-mount="visible"', () => {
     const instance = instanceOf(el, name);
     expect(instance?.$isMounted).toBe(true);
 
-    // One-shot: leaving the viewport does not unmount it.
     el.setAttribute('style', OFFSCREEN);
     await observed();
     expect(instance?.$isMounted).toBe(true);
@@ -123,7 +112,6 @@ describe('data-mount="in-view"', () => {
 
     el.setAttribute('style', ONSCREEN);
     await observed();
-    // Same instance, second cycle.
     expect(instanceOf(el, name)).toBe(instance);
     expect(instance?.$isMounted).toBe(true);
     expect(instance?.mounts).toBe(2);
@@ -140,7 +128,6 @@ describe('data-mount="interaction"', () => {
     await settle();
     expect(el.__base__?.get(name)).toBeUndefined();
 
-    // `pointerdown` precedes `click`, so the component is ready in time.
     el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     await settle();
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
@@ -187,7 +174,6 @@ describe('config.mountStrategy', () => {
 
   it('is overridden by the element attribute', async () => {
     const { name } = defineTracked({ mountStrategy: 'visible' });
-    // Parked offscreen, but asked to mount eagerly anyway.
     const el = render(name, { 'data-mount': 'eager' }, OFFSCREEN);
     await settle();
 
@@ -222,13 +208,6 @@ describe('config.mountStrategy', () => {
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
   });
 
-  /**
-   * REPORT.md gap 24. Every subclass declares a `static config` of its own, if
-   * only for `name`, so reading the class's own static rather than the merged
-   * one made every subclass of a strategy-declaring component fall back to
-   * `eager` — and silently, because it still worked, it just mounted
-   * everywhere.
-   */
   it('is inherited by a subclass that declares a config of its own', async () => {
     const { Tracked } = defineTracked({ mountStrategy: 'visible' });
     counter += 1;
@@ -355,8 +334,6 @@ describe('teardown', () => {
 
     el.remove();
     await observed();
-    // The strategy was disposed with the element: bringing it back into
-    // view off-document must not mount anything.
     el.setAttribute('style', ONSCREEN);
     await observed();
     expect(el.__base__?.get(name)).toBeUndefined();

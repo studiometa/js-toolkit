@@ -21,7 +21,6 @@ describe('compile', () => {
   it('resolves percentage units against the element size', () => {
     const interpolate = compile([{ x: 0 }, { x: [50, '%'], y: [100, '%'] }]);
 
-    // 50% of the width, 100% of the height.
     expect(interpolate(1, size).transform).toBe('translate3d(100px, 100px, 0px)');
   });
 
@@ -51,7 +50,6 @@ describe('compile', () => {
     const linear = compile([{ opacity: 0 }, { opacity: 1 }]);
 
     expect(Number(eased(0.5, size).opacity)).toBeCloseTo(0.5, 3);
-    // An ease-in-out curve is behind the linear one at a quarter.
     expect(Number(eased(0.25, size).opacity)).toBeLessThan(Number(linear(0.25, size).opacity));
   });
 

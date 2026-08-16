@@ -4,44 +4,10 @@ import { resetDom, settle } from '../../src/test-utils.js';
 import { InView } from './InView.js';
 import { InViewOnce } from './InViewOnce.js';
 
-/**
- * Specs for the `InView` port.
- *
- * ## How these differ from ui's
- *
- * ui's specs mock the whole `IntersectionObserver` — `mockIsIntersecting(el,
- * true)`, `intersectionMockInstance(el)` — because they run in jsdom, where
- * there is no viewport to cross. These run in a real Chromium against a real
- * observer, so an element is parked below the fold or brought back into it,
- * exactly as `src/mount-strategies.spec.ts` does for the strategy itself.
- *
- * That is not a cosmetic change for this family. Two of ui's five `InView`
- * assertions are about the *mock*: `intersectionMockInstance(el).rootMargin`
- * and `expect(observer.disconnect).toHaveBeenCalled()`. Neither has a v4
- * counterpart, because the observer belongs to the registry's mount strategy
- * and is not reachable from anywhere. They are replaced below by assertions on
- * what the observer is *for*: whether a crossing mounts, and whether a later
- * crossing still does.
- *
- * ## Deliberately not ported
- *
- * - `should have the correct config` (both classes): `config.emits` no longer
- *   exists, and `$emits` is types-only — asserting it at runtime would assert
- *   nothing. The emissions themselves are asserted throughout.
- * - `expect(terminateSpy).toHaveBeenCalledTimes(1)` for `InViewOnce`: v4 does
- *   not terminate, and `does not destroy when it leaves the viewport` below is
- *   the assertion that replaced it — a stronger one, since terminating was
- *   only ever v3's way of achieving it.
- */
-
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';
 const ONSCREEN = 'position:absolute;top:0;left:0;width:50px;height:50px';
 
-/**
- * A subclass of `InView` that declares a config of its own without restating
- * the mount strategy — the shape every ui subclass has, since `name` is
- * mandatory.
- */
+/** Subclass that relies on the inherited mount strategy. */
 class InViewSubclass extends InView {
   static config: BaseConfig = { name: 'InViewSubclass' };
 }
@@ -68,12 +34,7 @@ function render(name: string, style: string, attributes: Record<string, string> 
   return el;
 }
 
-/**
- * Record every `in-view` / `out-of-view` on the document, where they bubble
- * to. Listening on the element is not an option here: the component may not
- * exist yet when the listener has to be in place, and the first `in-view` is
- * emitted from the mount the listener is waiting for.
- */
+/** Record events on `document` because the component may not exist before entry. */
 function record(): { events: string[]; stop: () => void } {
   const events: string[] = [];
   const listener = (event: Event) => events.push(event.type);
@@ -131,8 +92,6 @@ describe('InView', () => {
     await observed();
 
     expect(log.events).toEqual(['in-view', 'out-of-view', 'in-view']);
-    // v3 rebuilt nothing either, but it had to keep an `__isVisible` latch to
-    // avoid mounting twice per batch; v4's `$mount()` is idempotent.
     expect(el.__base__?.get('InView')).toBe(instance);
   });
 
@@ -140,10 +99,6 @@ describe('InView', () => {
     const el = render('InView', OFFSCREEN);
     await observed();
 
-    // Stronger than v3, where the decorator constructed the instance eagerly
-    // in order to give it an observer. Here nothing exists to observe *with*
-    // until the strategy says so, so an off-screen `InView` costs one entry in
-    // the registry's observer and no instance at all.
     expect(el.__base__?.get('InView')).toBeUndefined();
   });
 });
@@ -179,10 +134,6 @@ describe('InViewOnce', () => {
     el.setAttribute('style', OFFSCREEN);
     await observed();
 
-    // v3 called `$terminate()` from `mounted()` to stop the decorator's
-    // observer repeating. v4's `visible` strategy disconnects its own observer
-    // on the first crossing, so the instance can simply live on — which is
-    // what makes the port four lines with no lifecycle call in it.
     expect(instance?.$isMounted).toBe(true);
     expect(instance?.$isTerminated).toBe(false);
   });
@@ -194,22 +145,12 @@ describe('InViewOnce', () => {
     el.remove();
     await observed();
 
-    // The `destroyed()` override is what earns its keep here: removing the
-    // element destroys the instance, and the inherited hook would announce a
-    // leave for a component whose whole contract is one event.
     expect(log.events).toEqual(['in-view']);
   });
 });
 
 describe('mount strategy gaps found by the port', () => {
-  /**
-   * REPORT.md gap 23, now closed.
-   *
-   * The root margin is part of the strategy string because the registry owns
-   * the observer before an instance exists. This keeps component config,
-   * `data-mount` and lazy manifest entries on the same parser and does not add
-   * a second options attribute.
-   */
+  /** The root margin is part of the strategy string used before instantiation. */
   it('accepts a rootMargin in the per-element strategy', async () => {
     const el = render('InView', OFFSCREEN, { 'data-mount': 'in-view:400px' });
     await observed();
@@ -222,17 +163,7 @@ describe('mount strategy gaps found by the port', () => {
     expect(el.__base__?.get('InView')?.$isMounted).toBe(true);
   });
 
-  /**
-   * REPORT.md gap 24, now closed.
-   *
-   * `resolveStrategy()` used to read `ComponentClass.config.mountStrategy` off
-   * the class's own static, not off the config `resolveConfig()` merges along
-   * the prototype chain. `refs`, `options` and `components` all merge — that
-   * is what issue #627 fixed — so a subclass that declares a `static config`
-   * at all (and every subclass must, for `name`) silently fell back to
-   * `eager`: it still worked, it just mounted everywhere, which for an
-   * `InView` means firing `in-view` for an element nobody has seen.
-   */
+  /** Subclasses must inherit the resolved mount strategy. */
   it('inherits the mount strategy in a subclass that declares its own config', async () => {
     const el = render('InViewSubclass', OFFSCREEN);
     await observed();
@@ -255,8 +186,6 @@ describe('the strategy is per element, which the decorator never was', () => {
     const el = render('InView', OFFSCREEN, { 'data-mount': 'eager' });
     await observed();
 
-    // v3's decorator is baked into the class: an `InView` that should mount
-    // eagerly on one page needs a second class. Here it is one attribute.
     expect(el.__base__?.get('InView')?.$isMounted).toBe(true);
     expect(log.events).toEqual(['in-view']);
   });

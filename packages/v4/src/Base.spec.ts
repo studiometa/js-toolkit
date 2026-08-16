@@ -89,7 +89,6 @@ describe('$emit and delegation', () => {
     });
 
     const event = instance.$emit('ping', { count: 1, label: 'two' });
-    // The detail is the payload object itself, not a wrapper around it.
     expect(seen).toEqual([{ count: 1, label: 'two' }]);
     expect(event.defaultPrevented).toBe(true);
   });
@@ -104,9 +103,6 @@ describe('$emit and delegation', () => {
     root.addEventListener('ping', (event) => seen.push((event as CustomEvent).detail));
 
     instance.$emit('ping');
-    // Not `{}` and not `[]`: `$emit('open')` announces a fact, and nothing is
-    // synthesized to stand in for a payload nobody sent. `null` is what
-    // `new CustomEvent('ping')` stores, so the platform sets this, not us.
     expect(seen).toEqual([null]);
   });
 
@@ -120,7 +116,6 @@ describe('$emit and delegation', () => {
     const seen: unknown[] = [];
     root.addEventListener('ping', (event) => seen.push((event as CustomEvent).detail));
 
-    // What the no-build path can write and TypeScript never sees.
     (instance.$emit as (type: string, payload?: unknown) => void)('ping', 1);
     (instance.$emit as (type: string, payload?: unknown) => void)('ping', 2);
     (instance.$emit as (type: string, payload?: unknown) => void)('pong', 3);
@@ -160,7 +155,6 @@ describe('$options', () => {
     expect(instance.$options.list).toEqual([1, 2]);
     expect(instance.$options.withDefault).toBe(42);
 
-    // Options are live getters, not a snapshot.
     el.setAttribute('data-option-count', '9');
     expect(instance.$options.count).toBe(9);
   });
@@ -172,9 +166,7 @@ describe('$options', () => {
       static config = {
         name: 'Defaulted',
         options: {
-          // Declared through a factory: called once per instance.
           tween: { type: Object, default: () => ({ ease: 'linear' }) },
-          // Undeclared: an empty array, still one per instance.
           list: Array,
           bag: Object,
         },
@@ -186,8 +178,6 @@ describe('$options', () => {
 
     expect(first.$options.tween).toEqual({ ease: 'linear' });
     expect(second.$options.tween).toEqual({ ease: 'linear' });
-    // Same value, never the same object: this is the bug that let one
-    // component corrupt every other instance of its class.
     expect(first.$options.tween).not.toBe(second.$options.tween);
     expect(first.$options.list).not.toBe(second.$options.list);
     expect(first.$options.bag).not.toBe(second.$options.bag);
@@ -196,11 +186,6 @@ describe('$options', () => {
     expect(second.$options.tween).toEqual({ ease: 'linear' });
   });
 
-  /**
-   * The contract: **a primitive may be a default; anything else needs a
-   * factory.** A factory is what gives each instance its own nested value, all
-   * the way down, without core guessing at how to rebuild anything.
-   */
   it('gives each instance its own nested default through a factory', () => {
     class Nested extends Base<{
       $options: { tween: Record<string, Record<string, number>>; matrix: number[][] };
@@ -226,18 +211,10 @@ describe('$options', () => {
     expect(second.$options.matrix).toEqual([[1], [2]]);
   });
 
-  /**
-   * `TypedOptionDefinition` refuses a literal `Object`/`Array` default at the
-   * type level, so this is only reachable from the no-build path — which never
-   * sees a type, and is exactly who the warning is for. Core does not repair
-   * the declaration: copying it made an unsupported form look supported.
-   */
   it('warns about a literal default instead of repairing it', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     class LiteralDefault extends Base<{ $options: { tween: Record<string, unknown> } }> {
-      // Cast on purpose: this is what the no-build path can write and
-      // TypeScript never sees.
       static config = {
         name: 'LiteralDefault',
         options: { tween: { type: Object, default: { ease: 'linear' } } },
@@ -252,7 +229,6 @@ describe('$options', () => {
     expect(warn.mock.calls[0][0]).toContain('tween');
     expect(warn.mock.calls[0][0]).toContain('default: () => (…)');
 
-    // Handed over exactly as declared, shared — which is what the warning says.
     expect(first.$options.tween).toBe(second.$options.tween);
     warn.mockRestore();
   });
@@ -270,7 +246,6 @@ describe('$options', () => {
 
     const instance = new Listed(document.createElement('div'));
 
-    // Every read used to build a fresh array, so this push went nowhere.
     instance.$options.list.push(1, 2);
     expect(instance.$options.list).toEqual([1, 2]);
     expect(instance.$options.list).toBe(instance.$options.list);
@@ -299,7 +274,6 @@ describe('$options', () => {
 
     const first = new Lazy(document.createElement('div'));
     const second = new Lazy(document.createElement('div'));
-    // Nothing is built before the option is read.
     expect(calls).toBe(0);
 
     const read = first.$options.tween;
@@ -336,14 +310,11 @@ describe('$options', () => {
     await settle();
     expect(calls).toEqual(['initial:none->1']);
 
-    // Several writes in one task produce one effect update from the first
-    // old value to the final DOM value.
     el.setAttribute('data-option-count', '2');
     el.setAttribute('data-option-count', '3');
     await settle();
     expect(calls).toEqual(['initial:none->1', 'cleanup:1', 'changed:1->3']);
 
-    // Removing the attribute applies the declared default.
     el.removeAttribute('data-option-count');
     await settle();
     expect(calls).toEqual([
@@ -354,7 +325,6 @@ describe('$options', () => {
       'changed:3->5',
     ]);
 
-    // A batch which ends on its initial raw value causes no update.
     el.setAttribute('data-option-count', '7');
     el.removeAttribute('data-option-count');
     await settle();
@@ -425,15 +395,12 @@ describe('$options', () => {
       reentrant.setAttribute('data-option-value', '1');
       await settle();
 
-      // A failed cleanup and handler do not block the later option update.
       expect(calls).toEqual(['second:0', 'second:2']);
       expect(events.map((event) => event.detail.error)).toEqual([cleanupFailure, handlerFailure]);
       expect(
         events.every((event) => event.detail.code === DIAGNOSTICS.component.lifecycleFailed),
       ).toBe(true);
       expect(events.every((event) => event.detail.component === 'ResilientOptions')).toBe(true);
-      // Cleanup can destroy its own mount cycle without recursion or a stale
-      // replacement cleanup being retained.
       expect(getInstance<ReentrantOption>(reentrant, 'ReentrantOption').$isMounted).toBe(false);
     } finally {
       document.querySelectorAll('[data-component="ResilientOptions"]').forEach((el) => el.remove());
@@ -463,7 +430,6 @@ describe('$options', () => {
     expect(instance.$options.flag).toBe(true);
     expect(instance.$options.list).toEqual([1]);
 
-    // An attribute is still the source of truth, read on every access.
     el.setAttribute('data-option-speed', '9');
     el.setAttribute('data-option-flag', 'false');
     el.setAttribute('data-option-list', '[2, 3]');
@@ -471,7 +437,6 @@ describe('$options', () => {
     expect(instance.$options.flag).toBe(false);
     expect(instance.$options.list).toEqual([2, 3]);
 
-    // Malformed JSON falls back to the instance's own default.
     el.setAttribute('data-option-list', '{oops');
     expect(instance.$options.list).toEqual([1]);
   });
@@ -482,7 +447,6 @@ describe('$el', () => {
     class Panel extends Base<{ $el: HTMLDetailsElement }> {
       static config = { name: 'Panel' };
 
-      // Reads `open` straight off `$el`: no getter, no cast.
       toggle(): boolean {
         this.$el.open = !this.$el.open;
         return this.$el.open;
@@ -515,17 +479,9 @@ describe('$refs', () => {
 
     expect(instance.$refs.own).toBe(el.querySelector('[data-ref="own"]'));
     expect(instance.$refs.many).toHaveLength(2);
-    // The ref nested in another component does not belong to this one.
     expect(el.querySelectorAll('[data-ref="own"]')).toHaveLength(2);
   });
 
-  /**
-   * REPORT.md gap 11. The `[]` of a list ref is part of the attribute, not
-   * only of the declaration — v3's spelling, and the one ui's templates,
-   * fixtures and documentation are written in. One spelling, not two: the
-   * unsuffixed attribute is a different ref, and a list definition does not
-   * match it.
-   */
   it('selects a list ref by its declared name, suffix included', () => {
     class Dotted extends Base {
       static config = { name: 'Dotted', refs: ['dots[]'] };
@@ -555,27 +511,17 @@ describe('$refs', () => {
     expect(warn.mock.calls[0][0]).toContain('data-ref="dots[]"');
     expect(warn.mock.calls[0][0]).toContain('Dropped');
 
-    // Once per instance and per ref, whatever the read count.
     void instance.$refs.dots;
     void instance.$refs.dots;
     instance.$destroy().$mount();
     void instance.$refs.dots;
     expect(warn).toHaveBeenCalledOnce();
 
-    // A list ref that is simply absent says nothing: there is nothing to fix.
     expect(instance.$refs.title).toEqual([]);
     expect(warn).toHaveBeenCalledOnce();
     warn.mockRestore();
   });
 
-  /**
-   * C9. `belongsTo()` stops at the first `data-component` between a ref and
-   * the root, so a ref nested in a child component cannot be read from the
-   * outside — unless it names its owner. That is what the namespace is for,
-   * and it is v3's rule (`RefsManager.refBelongToInstance()`): ui's
-   * `App.form` reaches a `Frame`'s form from the app root, and
-   * `FigureShopify.img` reaches an image wrapped in a `Transition`.
-   */
   it('resolves a namespaced ref across an intervening component', () => {
     class App extends Base {
       static config = { name: 'NamespacedApp', refs: ['form'] };
@@ -590,17 +536,10 @@ describe('$refs', () => {
     `;
     const instance = new App(el).$mount();
 
-    // The namespace drops out of the property: `App.form` is `$refs.form`.
     expect(instance.$refs.form).toBe(el.querySelector('form'));
-    // The plain spelling is scoped exactly as before — the child owns it.
     expect(instance.$refs.form).not.toBe(el.querySelector('span'));
   });
 
-  /**
-   * The namespace wraps the whole definition, suffix included, because v3
-   * builds `` `${name}.${refName}` `` from the already-suffixed config entry.
-   * It is also the spelling ui documents (`data-ref="Modal.close[]"`).
-   */
   it('spells a namespaced list ref with the suffix last', () => {
     class Modal extends Base {
       static config = { name: 'NamespacedModal', refs: ['close[]'] };
@@ -616,7 +555,6 @@ describe('$refs', () => {
     `;
     const instance = new Modal(el).$mount();
 
-    // One property, both spellings, in document order.
     expect(instance.$refs.close).toEqual([...el.querySelectorAll('button')]);
   });
 
@@ -632,10 +570,6 @@ describe('$refs', () => {
     expect(instance.$refs.next).toBeUndefined();
   });
 
-  /**
-   * The namespace names an owner, it does not skip every boundary: only a
-   * component of *that* name takes the ref away.
-   */
   it('gives a namespaced ref to the nearest component of that name', () => {
     class Nested extends Base {
       static config = { name: 'NamespacedNested', refs: ['item'] };
@@ -711,14 +645,12 @@ describe('$refs', () => {
     expect((instance.$refs.title as HTMLElement).textContent).toBe('before');
     expect(instance.$refs.items).toHaveLength(1);
 
-    // A Fetch-style swap: brand new elements, no $update() call.
     el.innerHTML =
       '<h1 data-ref="title">after</h1><span data-ref="items[]"></span><span data-ref="items[]"></span>';
     expect((instance.$refs.title as HTMLElement).textContent).toBe('after');
     expect(instance.$refs.title).toBe(el.querySelector('[data-ref="title"]'));
     expect(instance.$refs.items).toHaveLength(2);
 
-    // A ref that disappears reads as undefined rather than as a detached node.
     el.innerHTML = '';
     expect(instance.$refs.title).toBeUndefined();
     expect(instance.$refs.items).toHaveLength(0);
@@ -740,8 +672,7 @@ describe('$refs', () => {
 
     root.innerHTML = '<span data-ref="item"></span><span data-component="RefReadInserted"></span>';
 
-    // This drains `MutationObserver.takeRecords()` to make the lookup
-    // synchronous. The same records must remain available to the registry.
+    // The synchronous ref lookup must not consume records needed by the registry.
     expect(owner.$refs.item).toBe(root.querySelector('[data-ref="item"]'));
 
     await settle();
@@ -816,7 +747,6 @@ describe('on<Ref><Event> handlers', () => {
     added.setAttribute('data-ref', 'buttons[]');
     el.append(added);
     added.click();
-    // Third button, no rebinding needed.
     expect(instance.pressed).toEqual([2]);
   });
 
@@ -849,8 +779,6 @@ describe('onWindow<Event> / onDocument<Event> handlers', () => {
       this.documentClicks.push(payload);
     }
 
-    // The component's own element, side by side with the global handler
-    // above: two different method names, two different targets.
     onClick(event: Event): void {
       this.ownClicks.push(event);
     }
@@ -887,8 +815,6 @@ describe('onWindow<Event> / onDocument<Event> handlers', () => {
     expect(instance.ownClicks).toHaveLength(0);
     expect(instance.documentClicks).toHaveLength(1);
 
-    // A click on the component's own element is both: it is the element's
-    // event, and it bubbles to the document.
     el.click();
     expect(instance.ownClicks).toHaveLength(1);
     expect(instance.documentClicks).toHaveLength(2);
@@ -924,8 +850,6 @@ describe('onWindow<Event> / onDocument<Event> handlers', () => {
     const instance = new Reserved(el).$mount();
 
     window.dispatchEvent(new Event('resize'));
-    // The declared ref, clicked: it is not what `onDocumentClick` resolves
-    // to, but the click does reach the document.
     el.querySelector('span')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
     expect(instance.resized).toBe(1);
@@ -935,8 +859,7 @@ describe('onWindow<Event> / onDocument<Event> handlers', () => {
   it('listens in the bubble phase, so a descendant non-bubbling event is not heard', () => {
     const { el, instance } = render();
 
-    // `scroll` from an inner element does not bubble: only a capture-phase
-    // listener would see it, and a global handler is not delegation.
+    // Global handlers use the bubble phase.
     el.dispatchEvent(new Event('scroll'));
     expect(instance.scrolled).toHaveLength(0);
 
@@ -961,12 +884,6 @@ describe('onWindow<Event> / onDocument<Event> handlers', () => {
   });
 });
 
-/**
- * `#bindHandlers()` runs on every mount, and everything it resolves from the
- * class — the sorted names, the prototype scan, which target each `on<…>`
- * method binds to — is worked out once per constructor and shared. These pin
- * what the sharing must not change.
- */
 describe('the per-class handler plan', () => {
   class PlanItem extends Base {
     static config = { name: 'PlanItem' };
@@ -1040,7 +957,6 @@ describe('the per-class handler plan', () => {
 
     buttons(a.el)[0].click();
     expect(a.instance.closeClicks).toBe(1);
-    // The own-element listener hears the same click, from the same plan.
     expect(a.instance.ownClicks).toBe(1);
     expect(b.instance.closeClicks).toBe(0);
     expect(b.instance.ownClicks).toBe(0);
@@ -1097,16 +1013,13 @@ describe('the per-class handler plan', () => {
     const instance = new ExtendedPanel(el).$mount();
     new PlanItem(el.querySelector('#sub') as HTMLElement).$mount();
 
-    // The subclass's own ref, declared nowhere else.
     buttons(el)[3].click();
     expect(instance.extraClicks).toBe(1);
-    // Everything the parent declares still resolves through the merged config.
     buttons(el)[0].click();
     buttons(el)[2].click();
     expect(instance.closeClicks).toBe(1);
     expect(instance.tabIndexes).toEqual([1]);
 
-    // And the parent's plan is untouched: `extra` is not one of its refs.
     const parent = render('parent');
     buttons(parent.el)[3].click();
     buttons(parent.el)[1].click();
@@ -1114,12 +1027,6 @@ describe('the per-class handler plan', () => {
     expect(parent.instance.ownClicks).toBe(2);
   });
 
-  /**
-   * The plan lists the `on<…>` names a class declares; whether one *is* a
-   * function is still asked of the instance, because a class field can
-   * shadow a prototype method with something that is not callable — and two
-   * instances of one class can therefore disagree.
-   */
   it('skips a handler the instance shadows with a non-function', () => {
     class Maybe extends Base {
       static config: BaseConfig = { name: 'PlanMaybe' };
@@ -1162,16 +1069,12 @@ describe('the per-class handler plan', () => {
 
     expect(liveInstance.clicks).toBe(1);
     expect(mutedInstance.clicks).toBe(0);
-    // Skipped, not bound-and-thrown: a listener calling `null` would report
-    // an error on every click of the muted element.
     expect(reported).toEqual([]);
   });
 });
 
 describe('config inheritance', () => {
   it('merges refs, options and components with the parent config', () => {
-    // An intermediate class annotates its config, so a subclass is free to
-    // declare a different shape (the same annotation v3 components use).
     class Parent extends Base {
       static config: BaseConfig = {
         name: 'ConfigParent',
@@ -1194,12 +1097,10 @@ describe('config inheritance', () => {
     const child = new Child(el);
 
     expect(child.$config.name).toBe('ConfigChild');
-    // Inherited from the parent instead of being dropped by the child.
     expect(child.$config.refs).toEqual(['one', 'two']);
     expect(Object.keys(child.$config.options ?? {})).toEqual(['a', 'b']);
     expect(Object.keys(child.$config.components ?? {})).toEqual(['TodoItem', 'TodoCount']);
 
-    // The parent's own config is untouched.
     expect(new Parent(document.createElement('div')).$config.refs).toEqual(['one']);
   });
 
@@ -1218,7 +1119,6 @@ describe('config inheritance', () => {
     const el = document.createElement('div');
     el.innerHTML = '<span data-ref="label">hi</span>';
     const instance = new LoudGreeter(el).$mount();
-    // v3 threw here: the child config overrode the parent's refs.
     expect(instance.greet()).toBe('hi');
   });
 });
@@ -1309,8 +1209,6 @@ describe('$watchChildren', () => {
     for (const instance of [unrelated, gamma, family, beta, alpha]) {
       instance.$mount();
     }
-    // One instance can be exposed under more than one component token. The
-    // constructor sweep must still add it once.
     alpha.$el.__base__?.set('WatchAlphaAlias', alpha);
 
     const owner = new Owner(root);
@@ -1328,7 +1226,6 @@ describe('$watchChildren', () => {
     });
     expectTypeOf(collection).toEqualTypeOf<ChildrenCollection<Family>>();
 
-    // Owner is itself a Family. Its own mount announcement must not add it.
     owner.$mount();
     await settle();
 
@@ -1430,7 +1327,6 @@ describe('$watchChildren', () => {
     expect(announcements).toBe(0);
     expect(collection.size).toBe(0);
 
-    // Ignore a stale or user-created announcement for an unmounted instance.
     childEl.dispatchEvent(
       new CustomEvent(EVENTS.component.mounted, { bubbles: true, detail: { instance: child } }),
     );
@@ -1614,7 +1510,6 @@ describe('lifecycle', () => {
     instance.$destroy();
     expect(calls).toEqual(['mounted', 'cleanup', 'destroyed']);
 
-    // Destroy is reversible.
     instance.$mount();
     expect(instance.$isMounted).toBe(true);
     expect(el.__base__?.get('Tracked')).toBe(instance);
@@ -1629,25 +1524,17 @@ describe('lifecycle', () => {
       'destroyed',
       'terminated',
     ]);
-    // Terminate is final: detached from the element, never mounts again.
     expect(el.__base__?.get('Tracked')).toBeUndefined();
     instance.$mount();
     expect(instance.$isMounted).toBe(false);
   });
 
-  /**
-   * REPORT.md gap 5. Cancelling the pending tasks *after* the cleanups took
-   * the work the teardown itself had just scheduled, so "reset my styles on
-   * the way out" — written the only way the framework offers — never ran.
-   */
   it('runs a task scheduled by a mount cleanup, and cancels the cycle it left behind', async () => {
     const ran: string[] = [];
 
     class Resetting extends Base {
       static config = { name: 'Resetting' };
       mounted() {
-        // In flight when the instance goes: this one belongs to the cycle and
-        // must not survive it.
         this.$write(() => ran.push('during-cycle'));
         return () => {
           this.$write(() => ran.push('cleanup'));
@@ -1711,15 +1598,12 @@ describe('lifecycle', () => {
     instance.$destroy();
     instance.$mount();
 
-    // This nested result belongs to cycle 1. Resolving it during cycle 2 must
-    // run it now, not attach it to cycle 2.
     resolvers[0]([Promise.resolve([() => calls.push('cleanup:1')])]);
     await settle();
     expect(mounts).toBe(2);
     expect(instance.$isMounted).toBe(true);
     expect(calls).toEqual(['cleanup:1']);
 
-    // A cleanup from the active cycle is still retained until destroy.
     resolvers[1]([() => calls.push('cleanup:2')]);
     await settle();
     expect(calls).toEqual(['cleanup:1']);

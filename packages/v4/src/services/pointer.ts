@@ -2,27 +2,15 @@ import { getSharedRuntimeSlot } from '../shared-runtime.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, type MutableProps, type Service } from './service.js';
 
-/**
- * Props are flat, one per axis, the same `<name>X`/`<name>Y` spelling the
- * scroll service uses: a handler destructures what it needs (`{ progressX }`)
- * instead of reaching through a group.
- */
+/** Pointer state for both viewport axes. */
 export interface PointerProps {
-  /**
-   * The event that produced these props — `null` before the first one, and
-   * again once the service stops, because an event keeps its `target`
-   * reachable and with it every ancestor of a subtree that may since have
-   * left the document.
-   */
+  /** The source event, or `null` before observation and after release. */
   readonly event: PointerEvent | null;
   readonly isDown: boolean;
   /** Position in the viewport. */
   readonly x: number;
   readonly y: number;
-  /**
-   * Movement since the previous update. The previous position is `x - deltaX`,
-   * and "did this axis move" is `deltaX !== 0`, so neither is a field.
-   */
+  /** Movement since the previous update. */
   readonly deltaX: number;
   readonly deltaY: number;
   /** Viewport size. */
@@ -33,17 +21,11 @@ export interface PointerProps {
   readonly progressY: number;
 }
 
-/**
- * Pointer events unify mouse, touch and pen, so one set of listeners
- * replaces the six v3 needed — and `pointermove` carries the coordinates a
- * `TouchEvent` hid inside `touches[0]`.
- */
+/** Pointer event types observed by the service. */
 const EVENTS = ['pointermove', 'pointerdown', 'pointerup', 'pointercancel'] as const;
 
 function createPointerService(): Service<PointerProps> {
-  // Centered until the pointer says otherwise: a component reading
-  // `progressX` before the first move gets the middle of the viewport rather
-  // than its top-left corner.
+  // Use the viewport center until a pointer event is observed.
   const x = window.innerWidth / 2;
   const y = window.innerHeight / 2;
   const props: MutableProps<PointerProps> = {
@@ -78,19 +60,10 @@ function createPointerService(): Service<PointerProps> {
 
   return createService<PointerProps>({
     props: () => props,
-    // Nothing has been observed until an event has arrived, so there is
-    // nothing to deliver on subscribe: the centred position above is a
-    // stand-in, not a reading, and `event` is `null` to say so. Once the
-    // pointer has been seen — including by a subscriber that has since left —
-    // the props are a real position and `{ immediate: true }` hands it over.
+    // The centered initial position is not an observed value.
     hasProps: () => props.event !== null,
     start(emit) {
-      /**
-       * Which pointer the props describe. Every active pointer arrives on the
-       * same listener, so merging them made a second finger's `pointerup`
-       * report `isDown: false` while the first finger was still down — in the
-       * middle of a pinch, with the gesture very much alive.
-       */
+      /** Track one pointer so other contacts cannot end its gesture. */
       let activePointerId: number | null = null;
 
       const onPointer = (event: Event) => {
@@ -98,8 +71,7 @@ function createPointerService(): Service<PointerProps> {
         const { pointerId, type } = pointerEvent;
 
         if (type === 'pointerdown') {
-          // One gesture is already being followed; the extra fingers of a
-          // pinch are not it.
+          // Ignore additional contacts during an active gesture.
           if (activePointerId !== null) {
             return;
           }
@@ -108,11 +80,7 @@ function createPointerService(): Service<PointerProps> {
           return;
         }
 
-        // Every pointer event carries coordinates, and a press is the one
-        // that carries the *new* ones: a touch tap has no `pointermove`
-        // before it, so reading the position only on move reported wherever
-        // the pointer had last been seen — the middle of the viewport on the
-        // first tap of a page.
+        // Read coordinates from every event because a touch tap can have no move event.
         if (type !== 'pointermove') {
           props.isDown = type === 'pointerdown';
         }
@@ -122,8 +90,7 @@ function createPointerService(): Service<PointerProps> {
         emit(update(pointerEvent));
       };
 
-      // Capture, so a component reads the pointer even when something down
-      // the tree stops the event from propagating.
+      // Capture events that descendants stop from propagating.
       for (const type of EVENTS) {
         document.addEventListener(type, onPointer, { passive: true, capture: true });
       }
@@ -132,9 +99,7 @@ function createPointerService(): Service<PointerProps> {
         for (const type of EVENTS) {
           document.removeEventListener(type, onPointer, { capture: true });
         }
-        // The service outlives every subscriber — it is a module-level
-        // singleton — so holding the last event pinned its `target` and the
-        // detached subtree above it for the life of the page.
+        // Release the event so its target subtree can be collected.
         props.event = null;
       };
     },
@@ -145,19 +110,7 @@ const pointerState = /* @__PURE__ */ getSharedRuntimeSlot<{
   service: Service<PointerProps> | undefined;
 }>('service:pointer', 1, () => ({ service: undefined }));
 
-/**
- * Use the pointer service.
- *
- * ```js
- * const unsubscribe = usePointer().subscribe(({ progressX, isDown }) => {
- *   el.style.setProperty('--x', String(progressX));
- * });
- * ```
- *
- * Coordinates are always relative to the viewport. v3 accepted a target
- * element to translate them against; a component that needs element-relative
- * values subtracts its own box, which it has to measure anyway.
- */
+/** Use the viewport-relative pointer service. */
 export function usePointer(): Service<PointerProps> {
   pointerState.service ??= createPointerService();
   return pointerState.service;
@@ -170,22 +123,7 @@ export interface PointerHook {
 
 export type PointerMixinOptions = ServiceMixinOptions<void>;
 
-/**
- * Subscribe a component's `moved()` method to the pointer service, for its
- * whole mount cycle:
- *
- * ```js
- * class Cursor extends withPointer(Base) {
- *   moved({ progressX }) {
- *     this.$el.style.setProperty('--x', String(progressX));
- *   }
- * }
- * ```
- *
- * The pointer is read from the window, like VueUse's `usePointer()` and
- * solid-primitives' `createMousePosition()`, so there is nothing to target.
- * The decorator form `@withPointer()` is the same thing with a build step.
- */
+/** Subscribe `moved()` to the viewport pointer for each mount cycle. */
 export const withPointer = /* @__PURE__ */ createServiceMixin<
   PointerHook & ServiceHandles<'moved'>,
   void

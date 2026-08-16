@@ -1,29 +1,9 @@
-/**
- * The maths the framework and the ported components reach for.
- *
- * Not a port of `@studiometa/js-toolkit/utils/math`: only what is actually used,
- * so that no service or component carries a formula of its own. The range
- * helpers are v3's; the decay and inertia ones are not, and the doc comments say
- * where they differ and why.
- *
- * Everything here that involves time takes an **elapsed** argument in
- * milliseconds. None of it takes a frame count, and none of it assumes one — see
- * {@link INERTIA_FRAME}.
- */
+/** Time-based functions take elapsed milliseconds. */
 
-/** The inertia factor when none is given: v3's value. */
+/** The default inertia factor. */
 export const DEFAULT_DAMP_FACTOR = 0.85;
 
-/**
- * The frame a damping factor is expressed against, in milliseconds — one frame
- * at 60 Hz.
- *
- * A factor on its own is a number per *step*, which only means something if
- * every step is the same length. Frames are not: 60 Hz, 120 Hz and a stutter
- * all deliver different ones. Anchoring the factor to this reference is what
- * lets an elapsed time be converted into the decay that belongs to it, so
- * `0.85` keeps meaning the same physical decay wherever it runs.
- */
+/** The 60 Hz reference frame for damping factors, in milliseconds. */
 export const INERTIA_FRAME = 1000 / 60;
 
 /**
@@ -64,31 +44,9 @@ export function lerp(min: number, max: number, ratio: number): number {
 }
 
 /**
- * How much of a quantity survives `elapsed` milliseconds, given the fraction
- * `retained` per {@link INERTIA_FRAME}.
+ * Return the fraction retained after `elapsed` milliseconds.
  *
- * `retained^(elapsed / INERTIA_FRAME)`: one reference frame of elapsed time is
- * one application of the fraction, half a frame is half an application. This is
- * the whole of frame-rate independence for a first-order decay — applying the
- * fraction once per frame instead ties the result to the display, so the same
- * animation runs twice as fast on a 120 Hz screen.
- *
- * `retained` is clamped to `[0, 1]`, which is the only range that decays: above
- * `1` a quantity grows without end, and below `0` it changes sign every step.
- * Both ends are meaningful — `0` retains nothing, `1` retains everything and
- * never moves — so neither is excluded.
- *
- * A non-finite input yields `0` rather than `NaN`. Retaining nothing is the
- * safe reading: a caller lands on its target, or stops, instead of poisoning
- * every value that touches the result from then on.
- *
- * `elapsed` is floored at `0`, and that guard matters more than it looks. A
- * negative duration does not decay — it runs the decay *backwards*, returning
- * more than there was: `decayOver(0.9, -1000)` is `556`, an amplification. Fed
- * to {@link damp} it moves away from the target instead of towards it, and fed
- * to the inertia it turns a flick into a launch. Time only runs one way, so a
- * negative elapsed means a caller's clocks disagree, and "no time passed" is
- * the only reading that cannot make things worse.
+ * Retention is clamped to `[0, 1]`, elapsed time to non-negative values, and non-finite inputs return `0`.
  */
 export function decayOver(retained: number, elapsed: number): number {
   if (!Number.isFinite(retained) || !Number.isFinite(elapsed)) {
@@ -97,32 +55,7 @@ export function decayOver(retained: number, elapsed: number): number {
   return Math.min(Math.max(retained, 0), 1) ** (Math.max(elapsed, 0) / INERTIA_FRAME);
 }
 
-/**
- * Next damped value: close some of the gap to the target, and snap onto it once
- * the gap is under `precision`.
- *
- * **`elapsed` is required, and that is the whole difference from v3.** There,
- * `factor` was the fraction of the gap closed *per call*, so the speed was
- * whatever the display happened to be: measured on the v3 helper, the same
- * damping settles in 56 frames at 60 Hz and 28 at 120 Hz — twice as fast on a
- * better screen. Here `factor` is the fraction closed per {@link INERTIA_FRAME},
- * and the elapsed time decides how much of it this step gets. Every caller has
- * the number to hand: it is `delta` on the raf props, which the v3 call sites
- * were all discarding.
- *
- * This is the same law the drag inertia coasts on, over the same helper — a
- * factor of `0.1` closes a tenth of the gap per reference frame, so `0.9` of it
- * is retained, which is what decays. Note it is {@link decayOver} rather than
- * {@link inertiaDecay}: the latter also excludes a retention of `1`, because a
- * coast that never decays has no finite destination, and here it simply means
- * "hold still".
- *
- * It is stable for anything a caller can pass, which v3's was not: at
- * `factor = 2` the gap flipped sign and oscillated forever, and above that it
- * diverged. Here an over-large factor retains nothing and closes all of the
- * gap, and a non-finite factor or elapsed time does the same rather than
- * returning `NaN`.
- */
+/** Return the next time-based damped value and snap within `precision`. */
 export function damp(
   targetValue: number,
   currentValue: number,
@@ -138,18 +71,7 @@ export function damp(
   return currentValue + (targetValue - currentValue) * closed;
 }
 
-/**
- * A damping factor that is safe to decay by and to sum.
- *
- * `1` never decays, so a coast driven by it would never end and its settle
- * position would be infinitely far away. Below `0` the sign flips every frame.
- * A non-finite factor — an unparsed `data-option-damp-factor`, a division that
- * went wrong — falls back to the default rather than poisoning every frame
- * with `NaN`.
- *
- * Clamped here rather than at each call site so that no caller can reach the
- * formulas below with a factor they do not accept.
- */
+/** Clamp an inertia damping factor to a finite decaying range. */
 export function clampDampFactor(factor: number): number {
   if (!Number.isFinite(factor)) {
     return DEFAULT_DAMP_FACTOR;
@@ -157,115 +79,32 @@ export function clampDampFactor(factor: number): number {
   return Math.min(Math.max(factor, 0), 0.99999);
 }
 
-/**
- * How much of a velocity survives `elapsed` milliseconds of decay.
- *
- * {@link decayOver} with the tighter clamp the inertia needs: a factor of `1`
- * has to be excluded here, because {@link inertiaTimeConstant} divides by
- * `ln(1 / damp)` and a coast that never decays has no finite destination. That
- * restriction belongs to the inertia rather than to decay in general.
- *
- * It is also what a *pause* costs. A velocity measured 200 ms ago is not the
- * velocity now, and running it through the law the coast already obeys is
- * truer than picking a staleness threshold: at `0.85` a 200 ms pause leaves
- * 14% of it, and a long one leaves nothing.
- */
+/** Return the velocity fraction retained after elapsed time. */
 export function inertiaDecay(dampFactor: number, elapsed: number): number {
   return decayOver(clampDampFactor(dampFactor), elapsed);
 }
 
-/**
- * How long the decay takes to run out, in milliseconds — the time constant of
- * {@link inertiaDecay}.
- *
- * `τ = INERTIA_FRAME / ln(1 / damp)`. A velocity decaying as `v·damp^(t/FRAME)`
- * covers `v · τ` before it stops, which is the integral of the whole coast.
- *
- * `damp = 0` gives `ln(1/0) = Infinity` and therefore `τ = 0`: nothing decays
- * because nothing coasts. The upper clamp keeps the other end finite.
- */
+/** Return the inertia decay time constant in milliseconds. */
 export function inertiaTimeConstant(dampFactor: number): number {
   return INERTIA_FRAME / Math.log(1 / clampDampFactor(dampFactor));
 }
 
-/**
- * How far a coast travels in one step of `elapsed` milliseconds, given its
- * velocity in **pixels per millisecond**.
- *
- * `v · τ · (1 - decay)` — the integral of the decay across the step, not
- * `v · elapsed`.
- *
- * That difference is the whole point, and it is easy to get wrong: `v ·
- * elapsed` is a left rectangle sum over a curve that falls throughout the
- * step, so it overshoots, and it overshoots *by an amount that depends on the
- * step*. Decaying exponentially but integrating by rectangles still leaves a
- * 60 Hz coast and a 120 Hz coast landing 4% apart, and leaves neither of them
- * on {@link inertiaFinalValue}. Integrating exactly telescopes: whatever
- * sequence of steps the display happens to deliver, the total is `v · τ` and
- * the destination announced at the drop is the one the coast arrives at.
- *
- * Read another way, each step covers a fixed *fraction* of the travel that is
- * left, and time decides the fraction.
- */
+/** Integrate one inertia step exactly for velocity in pixels per millisecond. */
 export function inertiaStep(velocity: number, dampFactor: number, elapsed: number): number {
   return velocity * inertiaTimeConstant(dampFactor) * (1 - inertiaDecay(dampFactor, elapsed));
 }
 
 /**
- * Where a coast ends up, given the velocity it is released with in **pixels
- * per millisecond**.
- *
- * `value + velocity · τ` — the integral of the decay, so it is exact rather
- * than a walk of the decay term by term until a term falls under some epsilon.
- *
- * It is also an **invariant** along the coast: after any step the value has
- * gained {@link inertiaStep} and the velocity has lost exactly that much of
- * its remaining travel, which lands on the same number. So the destination is
- * knowable the moment the gesture is released — which is what lets a consumer
- * animate straight to the resting position, or hand it to a CSS transition,
- * instead of following every frame — and a coast can snap onto it at the end
- * rather than stop a fraction short.
- *
- * The velocity is per millisecond and not per frame on purpose: per frame is
- * the quantity that changes meaning with the display, and it is what made the
- * same gesture throw differently on a 1000 Hz mouse and a 125 Hz trackpad.
+ * Return the exact coast destination for velocity in pixels per millisecond. The destination remains invariant during the coast.
  */
 export function inertiaFinalValue(value: number, velocity: number, dampFactor: number): number {
   return value + velocity * inertiaTimeConstant(dampFactor);
 }
 
-/**
- * The fixed step the spring integrates on, in milliseconds — a quarter of
- * {@link INERTIA_FRAME}, so 60 Hz is exactly four substeps, 120 Hz two and
- * 30 Hz eight.
- *
- * A spring is second order, so the trick the first-order decay uses does not
- * apply: there is no single exponential to integrate exactly across a step.
- * The two honest options are the analytic solution of the damped oscillator,
- * which replaces the parameters with a natural frequency and a damping ratio,
- * and integrating on a fixed step regardless of what the display delivers.
- * This is the second, because it keeps `stiffness`, `damping` and `mass`
- * meaning what they have always meant while making the *rate* real.
- *
- * A quarter frame rather than a whole one so that every frame advances the
- * spring several times: stepping once per 16.67 ms would leave a 120 Hz
- * display updating on every second frame, which is visible as judder.
- */
+/** Fixed spring integration step in milliseconds. */
 const SPRING_STEP = INERTIA_FRAME / 4;
 
-/**
- * The largest `stiffness / mass` {@link SPRING_STEP} can integrate without
- * diverging.
- *
- * Semi-implicit Euler on a spring is stable while `ω₀ · h < 2`, where
- * `ω₀ = √(stiffness / mass)` and `h` is the step as a fraction of
- * {@link INERTIA_FRAME}. Solving for the ratio gives `4 / h²`, and the tenth
- * held back is margin for the damping term.
- *
- * A spring at this ratio settles within a frame, so the clamp is not a
- * restriction on anything a caller can perceive — it is the difference between
- * "instant" and `-1.6e15`.
- */
+/** Largest stable `stiffness / mass` ratio for {@link SPRING_STEP}. */
 export const MAX_SPRING_RATIO = (4 / (SPRING_STEP / INERTIA_FRAME) ** 2) * 0.9;
 
 export interface SpringOptions {
@@ -280,39 +119,9 @@ export interface SpringOptions {
 }
 
 /**
- * Advance a spring by `elapsed` milliseconds, returning its next value and
- * velocity.
+ * Advance a spring by elapsed milliseconds with fixed, bounded substeps. Stiffness-to-mass ratio is clamped for stability.
  *
- * ```js
- * let [value, velocity] = [0, 0];
- * useRaf().subscribe(({ delta }) => {
- *   [value, velocity] = spring(target, value, velocity, delta);
- * });
- * ```
- *
- * **`elapsed` is required, and it is what v3 did not have.** There the
- * recurrence ran once per call with no notion of time, which made it a pure
- * step recurrence: the trajectory's *shape* was preserved but its *rate* was
- * whatever the display was. Measured on the v3 helper, the same spring settles
- * in 56 frames at 60 Hz and 28 at 120 Hz — twice as fast — with an identical
- * `104.24` overshoot at both, which is the signature of a rate change rather
- * than a physics change.
- *
- * It is also stable now, and stable for a reason worth stating rather than
- * asserting. v3 integrated with a step it could not see, so a stiff spring
- * simply diverged: `stiffness: 1.9` overshot to `190` and `stiffness: 4` ran
- * away to `-1.6e15`, with no guard anywhere. Fixing the step is *most* of the
- * answer — a long frame now costs iterations rather than correctness — but not
- * all of it: semi-implicit Euler is only stable while `√(stiffness / mass)`
- * times the step stays under `2`, so a stiff enough spring still explodes at
- * any fixed step. `stiffness / mass` is therefore clamped to what the step can
- * carry, which is documented on {@link MAX_SPRING_RATIO} and costs nothing
- * real: a spring at that ratio already arrives inside a frame, so everything
- * above it would look the same anyway.
- *
- * Returns the target and a velocity of `0` once the spring is within
- * `precision` of rest on both, so a caller can compare against the target
- * exactly instead of waiting on a value that only approaches it.
+ * Returns the exact target and zero velocity within `precision`.
  */
 export function spring(
   targetValue: number,
@@ -329,8 +138,7 @@ export function spring(
 
   let value = currentValue;
   let velocity = currentVelocity;
-  // A long frame is more steps, not a bigger one. Bounded so a backgrounded tab
-  // returning does not spend the frame catching up on time nobody watched.
+  // Bound catch-up work after long pauses.
   const budget = Math.min(elapsed, 10 * INERTIA_FRAME);
   const retained = decayOver(damping, SPRING_STEP);
   const ratio = Number.isFinite(stiffness / mass)

@@ -42,20 +42,7 @@ type OptionValue<T extends OptionType> = T extends typeof String
         ? unknown[]
         : Record<string, unknown>;
 
-/**
- * `default` is a value, or a **factory** called once per instance.
- *
- * A factory is the only form `Array` and `Object` accept, and the reason is
- * the bug it prevents: a default declared as `default: {}` lives on the class,
- * so every instance of the component would read — and mutate — the same
- * object. `Function` is not an `OptionType`, so a function default is
- * unambiguously a factory.
- *
- *     options: {
- *       speed: { type: Number, default: 1 },
- *       tween: { type: Object, default: () => ({ ease: 'linear' }) },
- *     }
- */
+/** `Array` and `Object` defaults must be per-instance factories. */
 type TypedOptionDefinition<T extends OptionType = OptionType> = T extends OptionType
   ? T extends typeof Array | typeof Object
     ? { type: T; default?: () => OptionValue<T> }
@@ -75,35 +62,12 @@ export interface OptionChange<T = unknown> {
 
 export type OptionChangedReturn = void | (() => void);
 
-/**
- * Imports the module a component lives in. Anything resolving to the class
- * works — the class itself, the module namespace, a `default` export.
- *
- * `Promise<unknown>` is what `() => import('./Child.js')` actually produces:
- * a module namespace nothing has typed yet. Narrowing it further would only
- * reject correct code, so the shape is checked where it is known — when the
- * promise resolves, by `resolveComponentClass()`.
- */
+/** Lazy importer resolving to a component class, default export or module namespace. */
 export type ComponentImporter = () => Promise<unknown>;
 
 export interface BaseConfig {
   name: string;
-  /**
-   * The components this one declares, by name.
-   *
-   * A value is the child's class, or a thunk importing it:
-   *
-   *     components: {
-   *       Other: OtherClass,
-   *       Child: () => import('./Child.js'),
-   *     }
-   *
-   * A thunk is registered, never called, when the parent registers: the map
-   * **key** is the component name, which is what lets a name be known with
-   * nothing imported. So a manifest may declare only the parent, the parent
-   * owns when its children load, and a lazy child is its own chunk instead
-   * of being pulled into its parent's.
-   */
+  /** Child classes or lazy importers keyed by component name. Importers are registered without being called. */
   components?: Record<string, BaseConstructor | ComponentImporter>;
   refs?: string[];
   options?: Record<string, OptionDefinition>;
@@ -114,11 +78,7 @@ export interface BaseConfig {
   mountStrategy?: MountStrategy;
 }
 
-/**
- * Any component class. Declared structurally rather than as `typeof Base`,
- * so a component that types its props — `class Foo extends Base<{…}>` —
- * still satisfies it.
- */
+/** Structural component constructor compatible with typed `Base` subclasses. */
 export interface BaseConstructor {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new (el: HTMLElement): Base<any>;
@@ -127,15 +87,7 @@ export interface BaseConstructor {
   readonly prototype: Base<any>;
 }
 
-/**
- * Payload given to delegated `on<Child><Event>` handlers.
- *
- * `payload` is the event's `detail`, unchanged — what a plain listener on the
- * page reads. Naming the event as the second parameter types it from the
- * child's `$emits` declaration, so a handler reads its fields without casting:
- *
- *     onSliderBtnSlide({ payload: { direction } }: DelegatedEvent<SliderBtn, 'slide'>) {}
- */
+/** Child event payload. `payload` is the unchanged event detail, typed from the child's `$emits`. */
 export interface DelegatedEvent<T extends Base = Base, K extends string = string> {
   event: Event;
   target: T;
@@ -152,20 +104,7 @@ export interface RefEvent<T extends HTMLElement = HTMLElement> {
   index: number;
 }
 
-/**
- * Payload given to `onWindow<Event>` / `onDocument<Event>` handlers.
- *
- * `target` is the global the handler named, which keeps the vocabulary of the
- * two delegated shapes: `target` is always whatever the handler resolved to —
- * the child instance, the ref element, or here the global target. There is no
- * `payload`, because a global event is a platform event rather than a
- * component's own announcement, and no `index`, because there is nothing to
- * index. The event is the whole payload:
- *
- *     onDocumentClick({ event }: GlobalEvent<MouseEvent>) {
- *       if (!event.composedPath().includes(this.$el)) this.$emit('click-outside');
- *     }
- */
+/** Global handler payload containing the named target and platform event. */
 export interface GlobalEvent<T extends Event = Event> {
   event: T;
   target: Window | Document;
@@ -188,49 +127,14 @@ const CAPTURED_EVENTS = new Set([
 ]);
 
 /**
- * Type-level description of a component's public surface. Nothing here
- * exists at runtime — declaring it costs no bytes:
+ * Type-level description of a component's public surface.
  *
- *     class Slider extends Base<{
- *       $el: HTMLFormElement;
- *       $refs: { wrapper: HTMLElement; slides: HTMLElement[] };
- *       $options: { autoplay: boolean };
- *       $emits: { slide: { index: number }; stop: void };
- *     }> {}
- *
- * `$el` narrows the root element for a component that only makes sense on
- * one tag — a `<details>`, a `<form>` — so its members are reachable
- * without casting. `$emits` maps each event name to the **payload object**
- * `$emit()` carries for it — `void` for an event that carries nothing — and
- * replaces v3's runtime `config.emits` array: it documents what the component
- * dispatches and types `$emit()`, with nothing left in the bundle.
- *
- * Each declaration is the author's assertion about their own markup: the
- * registry mounts whatever element matched the selector, so a mismatch
- * surfaces at runtime, not here.
+ * `$el` narrows the root element. `$emits` maps event names to payload objects, or `void` for events without payloads. Declarations do not validate markup at runtime.
  */
 export interface BaseProps {
   $el?: HTMLElement;
   $refs?: Record<string, HTMLElement | HTMLElement[]>;
-  /**
-   * `object` rather than `Record<string, unknown>`, and the reason is
-   * REPORT.md gap 14: an interface has no implicit index signature, so an
-   * option set **named** to be shared between two components —
-   * `interface SliderOptions { … }` — failed the constraint, with an error
-   * pointing at the props type rather than at the interface. It bit exactly
-   * when naming the set was worth doing.
-   *
-   * Nothing is lost by relaxing it. The constraint rejected no option value:
-   * they are `unknown`. `Options<T>` intersects `Record<string, unknown>` back
-   * in, so an undeclared option still reads as `unknown` and a declared one
-   * keeps its exact type.
-   *
-   * `$refs` and `$emits` keep their stricter constraints, because those do
-   * reject something — a ref that is not an element, an event payload that is
-   * not an object — and a named interface for either is still written as
-   * `type MyProps = BaseProps & { $refs: MyRefs }`. The intersection form
-   * accepts an interface where `interface MyProps extends BaseProps` cannot.
-   */
+  /** `object` accepts named option interfaces without requiring an index signature. */
   $options?: object;
   $emits?: EmitMap;
 }
@@ -241,46 +145,7 @@ export interface BaseProps {
  */
 export type EmitMap = Record<string, object | void>;
 
-/*
- * ---------------------------------------------------------------------------
- * Reading a prop out of the props type
- * ---------------------------------------------------------------------------
- *
- * Every prop below is read as an **intersection** with the framework default,
- * never as `T['$x'] extends … ? … : Default`. The difference is the whole
- * reason a component can take a props parameter:
- *
- *     class Action<T extends BaseProps = BaseProps> extends Base<ActionProps & T> {
- *       mounted() { this.$options.target; }
- *     }
- *
- * TypeScript only resolves a conditional type once its checked type is
- * concrete, and inside that class body `T` is a naked type parameter — so a
- * conditional over `T['$options']` stays deferred and every option reads as the
- * fallback, whatever `ActionProps` said. An intersection has no such gate: the
- * apparent type of `A & B` is the intersection of the apparent types, so the
- * declared half answers straight away and a deferred half contributes its
- * constraint. `BaseProps` declares every key optional, and a props type may
- * leave a key out entirely — an omitted key reads as `unknown` through an
- * indexed access — and the intersection absorbs both: `undefined & X` is
- * `never`, which drops out of the union, and `unknown & X` is `X`.
- *
- * This is v3's technique, `$el: T['$el'] & BaseEl` in
- * `packages/js-toolkit/src/Base/Base.ts`, and it is v3 having no conditional
- * here that lets v3 components take a props parameter at all.
- *
- * The second reason to prefer it: a conditional over `T` makes the class
- * **invariant** in `T`, because two conditionals with different checked types
- * are unrelated in both directions. `Base<SliderProps>` would stop being
- * assignable to `Base`, which is what `$query`, `$closest` and
- * `$watchChildren` hand back. An intersection measures as covariant and they
- * keep working.
- *
- * The price, also v3's: intersecting `Record<string, unknown>` in brings its
- * index signature along, so reading an option a component did not declare is
- * `unknown` rather than an error. Declared options keep their exact types,
- * which is what the declaration is for.
- */
+/* Intersections keep generic props resolved and `Base<T>` assignable to `Base`. */
 
 type El<T extends BaseProps> = T['$el'] & HTMLElement;
 
@@ -288,18 +153,7 @@ type Refs<T extends BaseProps> = T['$refs'] & Record<string, HTMLElement | HTMLE
 
 type Options<T extends BaseProps> = T['$options'] & Record<string, unknown>;
 
-/**
- * The `$emits` map, resolved.
- *
- * The odd one out: `keyof (Declared & EmitMap)` is `string`, so intersecting
- * the default in unconditionally would throw away every declared name. The
- * default is contributed by a conditional instead — but one checked against
- * `unknown`, which is exactly the type an omitted key reads as, so it fires for
- * an omitted `$emits` and for nothing else. Deferred over a naked `T` like any
- * conditional, and harmless there: the branches are `EmitMap` and `unknown`,
- * whose union is `unknown`, so the deferred half contributes nothing to the
- * intersection and `NonNullable<T['$emits']>` answers on its own.
- */
+/** Resolve declared event names without widening them to `string`. */
 type Emits<T extends BaseProps> = NonNullable<T['$emits']> &
   (unknown extends T['$emits'] ? EmitMap : unknown);
 
@@ -337,14 +191,7 @@ type EmitArgs<T extends BaseProps, K extends string> = string extends K
   ? [payload?: object]
   : ArgsOf<Emits<T>, K>;
 
-/**
- * Written `void extends M[K]` rather than `M[K] extends void` so the checked
- * type is the concrete `void` and only the `extends` side mentions the props
- * parameter. TypeScript relates an argument to a conditional in that shape by
- * relating it to both branches, which it can do here — they differ only in
- * whether the payload is optional. The other way round the type is deferred
- * whole, and `$emit()` rejects every argument list a generic component gives it.
- */
+/** Check concrete `void` first so generic component argument tuples remain resolvable. */
 type ArgsOf<M extends EmitMap, K extends string> = void extends M[K]
   ? [payload?: M[K]]
   : [payload: M[K]];
@@ -406,18 +253,7 @@ declare global {
   }
 }
 
-/**
- * A payload is one object, or nothing at all.
- *
- * TypeScript says so at every typed call site, but the no-build path — magic
- * `on<…>` method names, plain `<script type="module">` — never sees a type.
- * The rule is a convention rather than a mechanism, and a convention that is
- * only checked in a build step is invisible to the audience most likely to
- * break it: `$emit('slide', 1)` would work, and would box a positional
- * argument back into an API that just removed them. So it is said out loud,
- * once, at the moment the mistake is made. The event still dispatches — this
- * reports a shape, it does not police one.
- */
+/** Warn for non-object payloads used from untyped code. The event still dispatches. */
 function checkPayload(instance: Base, event: string, payload: unknown): void {
   if (payload !== undefined && (typeof payload !== 'object' || payload === null)) {
     warnOnce(
@@ -431,22 +267,9 @@ function checkPayload(instance: Base, event: string, payload: unknown): void {
 }
 
 /**
- * Resolve the `data-ref` elements that belong to a component: no other
- * `data-component` element sits between the ref and the component root.
+ * Test ref ownership. Plain refs stop at any component boundary; namespaced refs stop at a boundary with the named component.
  *
- * `owner` names the component a **namespaced** ref addressed by name, and it
- * changes what counts as a boundary. A plain `data-ref="next"` stops at the
- * nearest component of any kind; `data-ref="Slider.next"` stops only at
- * another `Slider`, so it reaches past whatever else is in the way. That is
- * the whole point of the namespace, and it is v3's rule
- * (`RefsManager.refBelongToInstance()`) unchanged.
- *
- * The root itself is never tested against `owner`. It cannot be: ui registers
- * `FigureShopify` under the name `Figure`, so the element reading
- * `data-ref="FigureShopify.img"` sits under `data-component="Figure"`. The
- * namespace names the **class's** `config.name`, which is what the root's
- * effective declaration matched; the walk only decides who else could have
- * claimed it.
+ * The root is not tested because the namespace uses the class config name, which can differ from its declaration token.
  */
 function belongsTo(el: Element, root: Element, owner?: string): boolean {
   let parent = el.parentElement;
@@ -460,19 +283,7 @@ function belongsTo(el: Element, root: Element, owner?: string): boolean {
   return parent === root;
 }
 
-/**
- * The suffix that declares a ref as a list.
- *
- * **It is part of the attribute, not only of the declaration.**
- * `config.refs: ['dots[]']` selects `[data-ref="dots[]"]`, and the property is
- * `$refs.dots`. This is v3's spelling (`RefsManager.__register()`), kept
- * because it is the one ui's templates, fixtures and documentation are
- * written in, and because the suffix says in the markup what the markup
- * actually is: one of several, rather than the only one.
- *
- * One spelling, not two: a list definition matches the suffixed attribute and
- * nothing else, exactly as in v3.
- */
+/** The list suffix is part of both the declaration and `data-ref` value. */
 const REF_LIST_SUFFIX = '[]';
 
 function isRefList(definition: string): boolean {
@@ -484,33 +295,10 @@ function refPropertyName(definition: string): string {
   return isRefList(definition) ? definition.slice(0, -REF_LIST_SUFFIX.length) : definition;
 }
 
-/**
- * The separator between a ref's namespace and its name.
- *
- * `data-ref="Slider.next"` says *this ref belongs to the enclosing `Slider`*,
- * whatever else stands between them. Without it there is no way to express
- * that at all: `belongsTo()` stops at the first `data-component` it meets, so
- * a ref inside a child component is unreachable from the outside. v3 had the
- * form; v4 dropped it and ui uses it — `App.form` reaches a `Frame`'s form
- * from the app root, `FigureShopify.img` reaches an image wrapped in a
- * `Transition`.
- *
- * It is not a second spelling of the same thing, the way the `[]` question
- * was: the two forms answer two different questions. A plain ref asks for the
- * nearest owner, a namespaced one names its owner.
- */
+/** Namespaced refs name their owner and can cross other component boundaries. */
 const REF_NAMESPACE_SEPARATOR = '.';
 
-/**
- * The namespaced spelling of one ref definition.
- *
- * **The namespace wraps the whole definition, suffix included** —
- * `Slider.dots[]`, not `Slider.dots` or `Slider[].dots`. That is v3's order
- * (`RefsManager.__register()` builds `` `${name}.${refName}` `` from the
- * already-suffixed config entry) and it is the order ui's documentation is
- * written in. It also reads correctly: `[]` qualifies the ref, and the
- * namespace qualifies the pair.
- */
+/** Return `Component.ref[]`; the namespace wraps the complete ref definition. */
 function namespacedRef(componentName: string, definition: string): string {
   return `${componentName}${REF_NAMESPACE_SEPARATOR}${definition}`;
 }
@@ -535,24 +323,7 @@ function isRefOf(
   );
 }
 
-/**
- * The elements currently declaring `definition` inside a component, skipping
- * those owned by a nested component.
- *
- * The parameter is the **declared** name, suffix included; the attribute is
- * spelled the way `config.refs` spells it, optionally prefixed by the
- * component's name.
- *
- * **Two queries rather than one selector list.** `[data-ref="a"],[data-ref="b"]`
- * costs Chromium its single-attribute fast path: measured over a 25-element
- * subtree, the cold lookup went 8.0 → 11.2 µs when it matches and 1.2 → 3.4 µs
- * when it does not, against 8.7 µs and 2.1 µs for two separate queries. Since
- * `queryRefs()` runs once per ref per cache miss, and since almost every ref in
- * practice uses the plain spelling, the plain query keeps its fast path and the
- * namespaced one is a second cheap query that usually returns nothing. Merging
- * only pays for `compareDocumentPosition` in the one case that needs it: a ref
- * written both ways under the same component.
- */
+/** Return owned plain and namespaced refs for the declared name, in document order. */
 function queryRefs(root: HTMLElement, componentName: string, definition: string): HTMLElement[] {
   const plain = [...root.querySelectorAll<HTMLElement>(`[data-ref="${definition}"]`)].filter((el) =>
     belongsTo(el, root),
@@ -574,19 +345,7 @@ function queryRefs(root: HTMLElement, componentName: string, definition: string)
   );
 }
 
-/**
- * Say so when a list ref resolves to nothing and the unsuffixed spelling is
- * sitting right there in the markup.
- *
- * The suffix is easy to leave out of the attribute once it has been written in
- * the config, and the failure is silent: the ref resolves to `[]` and the
- * component simply does nothing. This turns that into one console warning
- * naming the element to fix.
- *
- * Checked once per instance and per ref, and only when the ref found nothing,
- * so correct markup never pays for it and broken markup pays one
- * `querySelector` in total.
- */
+/** Warn once when a missing list ref has an unsuffixed markup candidate. */
 function warnMissingRefSuffix(instance: Base, definition: string, checked: Set<string>): void {
   if (checked.has(definition)) {
     return;
@@ -609,27 +368,7 @@ function warnMissingRefSuffix(instance: Base, definition: string, checked: Set<s
   );
 }
 
-/**
- * Say so when `@on()` names a ref by the spelling its **property** uses rather
- * than the one its **declaration** uses.
- *
- * One rule covers both: **the declaration spelling is what you write to refer
- * to the entry, the property spelling is what you write when a name is derived
- * from it.** `config.refs: ['dots[]']`, `data-ref="dots[]"` and
- * `@on('dots[]', 'click')` all refer to the entry, so all three carry the
- * suffix; `$refs.dots` and `onDotsClick()` derive a name from it, so neither
- * does. One spelling each, never two — the same choice
- * {@link warnMissingRefSuffix} enforces for the attribute.
- *
- * `@on('dots', 'click')` therefore matches nothing and binds a listener that
- * can never fire. There is no type to catch it: the decorator sees a string and
- * cannot read the class's `config.refs`, which is declared elsewhere in the
- * class body and is not in its type. So it is a warning, raised where both are
- * known — at bind time — and only for the unambiguous case: the name matches no
- * declared component and no declared ref, but its other spelling matches a
- * declared ref. A name matching nothing at all is left alone, because
- * `@on('Child', …)` deliberately needs no `config.components` entry.
- */
+/** Warn when `@on()` uses a list ref's derived property name instead of its suffixed declaration. */
 function warnRefSuffixMismatch(
   instance: Base,
   child: string,
@@ -649,20 +388,7 @@ function warnRefSuffixMismatch(
 }
 
 /**
- * Build the live `$refs` view.
- *
- * Refs resolve on access rather than once at mount, so swapping a
- * component's markup — a `Fetch`-style DOM replacement, a template render —
- * never leaves `$refs` pointing at detached elements. There is nothing to
- * refresh and no `$update()` to call: the DOM is the source of truth, the
- * same way the registry treats it for components.
- *
- * A name declared as `name[]` selects `data-ref="name[]"` and always yields an
- * array under `$refs.name`; a plain name selects `data-ref="name"` and yields
- * the first match. Either selects the namespaced spelling too —
- * `data-ref="<Component>.name[]"` — which is how a ref sitting under another
- * component still names this one as its owner. **The namespace is not part of
- * the property**: `Slider.next` is `$refs.next`.
+ * Build live refs resolved from current DOM. List declarations return arrays; namespaced attributes use the unqualified property name.
  */
 function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> {
   const refs: Record<string, HTMLElement | HTMLElement[]> = {};
@@ -671,11 +397,7 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
   for (const definition of instance.$config.refs ?? []) {
     const isList = isRefList(definition);
     const name = refPropertyName(definition);
-    // Re-querying on every access is what keeps refs live, and it is the
-    // one place v4 was measurably slower than v3's mount-time snapshot.
-    // The lookup is cached against the document version instead: still
-    // live, since any structural change invalidates it, but a repeated
-    // read is a property read again.
+    // Cache live refs by document version; structural changes invalidate them.
     let cachedVersion = -1;
     let cached: HTMLElement[] = [];
     Object.defineProperty(refs, name, {
@@ -704,21 +426,7 @@ function buildRefs(instance: Base): Record<string, HTMLElement | HTMLElement[]> 
   return refs;
 }
 
-/**
- * Build the live `$options` view.
- *
- * Values are read from the `data-option-*` attributes on every access, so an
- * attribute is always the source of truth. **Defaults belong to the
- * instance**, not to the class: each one is built once per instance and kept,
- * which is what makes `this.$options.list.push(x)` persist and what stops two
- * components from sharing — and corrupting — the same defaulted object.
- *
- * That is what the contract buys: **a primitive may be a default, anything
- * else needs a factory.** A factory is called once per instance, and an
- * `Array`/`Object` option with no declared default gets an empty one per
- * instance for the same reason. A literal is neither: it lives on the class,
- * so it is warned about rather than repaired.
- */
+/** Build live attribute-backed options with per-instance defaults. */
 interface OptionReader {
   /** The unsuffixed `data-option-*` attribute — the base of the cascade. */
   attribute: string;
@@ -740,26 +448,7 @@ interface OptionReader {
 
 const optionReaders = new WeakMap<Base, Map<string, OptionReader>>();
 
-/**
- * Definitions already reported by {@link warnLiteralDefault}, so the message
- * belongs to the declaration rather than to the instance reading it: the
- * definition object is the one the class declared, shared by every instance of
- * it, and by every subclass that inherits it through `resolveConfig()`.
- */
-/**
- * Say so when a default is a literal object or array.
- *
- * **The contract is that a primitive may be a default, and anything else needs
- * a factory.** A literal lives on the class, so every instance would read — and
- * mutate — the same object. `TypedOptionDefinition` refuses it at the type
- * level, which settles it for anyone with a build step; this is the same rule
- * said out loud for the no-build path, which never sees a type.
- *
- * Core does not repair it. Copying the literal made an unsupported declaration
- * appear to work, and a shallow copy made it appear to work only one level
- * deep, which is worse: the value is handed over exactly as declared, and the
- * warning says what to write instead.
- */
+/** Warn once per declaration for literal object or array defaults. Values are not copied. */
 function warnLiteralDefault(
   componentName: string,
   option: string,
@@ -866,17 +555,9 @@ function buildOptions(instance: Base): Record<string, unknown> {
 const resolvedConfigs = new WeakMap<BaseConstructor, BaseConfig>();
 
 /**
- * Merge a class's config with every config declared up its prototype chain,
- * so extending a component never silently drops what the parent declared.
+ * Merge inherited config. Collections merge; declared scalar values override parent values.
  *
- * `refs`, `options` and `components` merge (v3 merged only `options`, which
- * is what issue #627 reports); scalar keys such as `name` and `mountStrategy`
- * are overridden by the most derived class **that declares one**, which is
- * what the spread does — a subclass restating `name` and nothing else keeps
- * its parent's strategy. The result is cached per constructor.
- *
- * Exported because the registry resolves a mount strategy before any instance
- * exists, so it cannot go through `$config`.
+ * The registry uses this before an instance exists.
  */
 export function resolveConfig(ctor: BaseConstructor): BaseConfig {
   const cached = resolvedConfigs.get(ctor);
@@ -908,32 +589,10 @@ export function resolveConfig(ctor: BaseConstructor): BaseConfig {
   return config;
 }
 
-/**
- * The prefixes that name a global event target rather than something the
- * component declared. They are **reserved**: `onWindowResize` binds to
- * `window` even in a component whose `config.components` lists a child named
- * `Window`, and `onDocumentClick` binds to `document` even next to a ref
- * named `document`.
- *
- * Reserving them is what makes the resolution readable. The alternative —
- * letting a declared name win — would make the meaning of `onWindowResize`
- * depend on a `config` entry declared elsewhere in the file, and it is
- * asymmetric: a child named `Window` can still be reached explicitly with
- * `@on('Window', 'resize')`, whereas nothing would be left to reach `window`
- * with. The escape hatch exists on one side only, so that is the side which
- * yields.
- */
+/** Reserved handler prefixes for global targets. They take precedence over child and ref names. */
 const GLOBAL_PREFIXES = ['Window', 'Document'] as const;
 
-/**
- * Resolve the part of a handler name that follows `on` against the global
- * prefixes. `null` for anything else, which is every name the child, ref and
- * own-element rules go on to resolve.
- *
- * A bare `onWindow()` is not a global handler: like `on<Ref><Event>`, the
- * prefix must be followed by an event to name, so `onWindow` stays an
- * `on<Event>` handler for the (unlikely) `window` event type.
- */
+/** Resolve a global handler prefix only when an event name follows it. */
 function resolveGlobal(rest: string): { target: Window | Document; type: string } | null {
   for (const prefix of GLOBAL_PREFIXES) {
     if (rest.length > prefix.length && rest.startsWith(prefix)) {
@@ -946,21 +605,7 @@ function resolveGlobal(rest: string): { target: Window | Document; type: string 
   return null;
 }
 
-/**
- * Every `on<…>` name declared up a class's prototype chain, most derived
- * first, stopping at `Base` itself.
- *
- * **Names only — whether one resolves to a function is asked of the
- * instance.** A class field can shadow a prototype method with a
- * non-function, so that question has an instance in its answer and cannot be
- * settled here; `#bindHandlers()` asks it, per instance, per entry, at the
- * cost of one `typeof`. What is settled here is the expensive half: the walk,
- * the `getOwnPropertyNames()` per prototype, and the regex per name.
- *
- * Class fields never appear: they are own properties of the instance and this
- * walks prototypes. An `onClick = () => {}` is not a handler in v4, which is
- * v3's rule too.
- */
+/** Return inherited prototype handler names. Class fields are not included. */
 function handlerMethodNames(ctor: BaseConstructor): string[] {
   const names = new Set<string>();
   let proto: object | null = ctor.prototype;
@@ -998,29 +643,9 @@ interface HandlerPlan {
 }
 
 /**
- * What `#bindHandlers()` binds for a class, worked out once for the class.
+ * Resolve and cache each class's handler plan.
  *
- * `#bindHandlers()` runs on **every** `$mount()`, and under `data-mount` a
- * component mounts and unmounts as often as it scrolls past. Almost all of
- * that work reads the class and nothing else: the sorted child names, the
- * mapped and sorted refs, the prototype scan, and — per handler name — the
- * global-prefix test, the prefix match against children and refs, and the
- * `kebabCase()` of what is left. None of it can differ between two instances
- * of one class, so it is done for the class. What stays per mount is the
- * closures that call `self[method]` and the `addEventListener()` calls, which
- * is what a mount actually is.
- *
- * **No `clear()`, because nothing can go stale.** The plan is derived from
- * the prototype chain, which is fixed once the class is defined, and from
- * `resolveConfig(ctor)`, which is itself cached per constructor and so is
- * already the same answer for the plan's whole life. A class that gained a
- * handler after its first mount would need a new prototype, which is a new
- * class and a new key.
- *
- * **`/* @__PURE__ *\/` is load-bearing, not decoration.** A top-level call is
- * something a bundler must otherwise keep. The annotation lets a consumer
- * which does not use handler planning remove this memo and everything its
- * callback references.
+ * Keep the `@__PURE__` annotation so bundlers can remove unused handler planning.
  */
 const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan => {
   const config = resolveConfig(ctor);
@@ -1028,12 +653,7 @@ const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan =>
   // `SliderDrag` child, not to `Slider`.
   const byLength = (a: string, b: string) => b.length - a.length;
   const childNames = Object.keys(config.components ?? {}).sort(byLength);
-  // `definition` is the declaration — what `config.refs` says, what `@on()`
-  // names, and what the entry carries into delegation. `name` is the derived
-  // spelling, used by `on<Ref><Event>` and by `$refs`; the two differ by the
-  // `[]` of a list ref. Neither is ever namespaced: the namespace is written
-  // on the attribute, never declared, so `isRefOf()` is what reconciles
-  // `Slider.dots[]` in the markup with `dots[]` here.
+  // Keep both declared and derived ref names; list refs differ by `[]`.
   const refs = (config.refs ?? [])
     .map((definition) => ({ name: refPropertyName(definition), definition }))
     .sort((a, b) => byLength(a.name, b.name));
@@ -1222,7 +842,7 @@ export class Base<T extends BaseProps = BaseProps> {
     if (!this.#isActiveMountCycle(cycle)) {
       return this;
     }
-    // Announce existence to every ancestor (objective 5, layer 1).
+    // Announce the mounted instance to ancestors.
     const detail: LifecycleEventDetail = { instance: this };
     this.$el.dispatchEvent(
       new CustomEvent(EVENTS.component.mounted, { bubbles: true, cancelable: false, detail }),
@@ -1245,17 +865,7 @@ export class Base<T extends BaseProps = BaseProps> {
       target.removeEventListener(type, listener, capture);
     }
     this.#listeners = [];
-    // Before the cleanups, not after. What is cancelled here is the work the
-    // mount cycle left in flight — a `$write()` scheduled by a rAF subscriber
-    // that is about to be released. Cancelling afterwards also took the work
-    // the teardown itself scheduled, so "reset my styles on the way out",
-    // written the only way the framework offers, never ran.
-    //
-    // The set is emptied first so `#track()` can refill it: a task queued from
-    // a cleanup, from `destroyed()` or from an option effect's teardown belongs
-    // to nobody's cycle and runs on its own. It is no longer cancelled by a
-    // later `$destroy()` either, since this instance is already unmounted and
-    // the guard above returns early.
+    // Cancel cycle work before cleanup. Tasks scheduled by cleanup must remain active.
     const pending = this.#tasks;
     this.#tasks = new Set();
     for (const task of pending) {
@@ -1315,25 +925,9 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Dispatch a native bubbling, cancelable event.
+   * Dispatch a bubbling, cancelable event with the payload as `detail`.
    *
-   * The payload is **one object**, and it is the event's `detail` verbatim —
-   * what `CustomEvent` was built to carry, and what a plain listener on the
-   * page reads. Omitting it leaves `detail` at the platform's own `null`, not
-   * at a synthesized `{}`, so `$emit('open')` stays a single word:
-   *
-   *     this.$emit('open');
-   *     this.$emit('slide', { direction: 1 });
-   *
-   * Fields are named because they outlive the call that introduced them: a
-   * third thing worth announcing is a new key that every existing listener
-   * ignores, where a third positional argument is a signature change.
-   *
-   * A component that declares `$emits` in its props gets its event names and
-   * payloads checked here — the declaration is types only, so nothing about it
-   * reaches the bundle.
-   *
-   * @returns Check `defaultPrevented` on the returned event.
+   * @returns The dispatched event. Check `defaultPrevented` for cancellation.
    */
   $emit<K extends EmitName<T>>(event: K, ...payload: EmitArgs<T, K>): CustomEvent<EmitDetail<T, K>>;
   $emit(event: string, payload?: object): CustomEvent<unknown> {
@@ -1341,13 +935,7 @@ export class Base<T extends BaseProps = BaseProps> {
     return this.#dispatch(event, payload);
   }
 
-  /**
-   * Build and dispatch a component event: bubbling, carrying one `detail`, and
-   * cancelable.
-   *
-   * The single place a component's own events are built and dispatched.
-   * `$emit()` adds the `$emits` type constraint before it reaches this method.
-   */
+  /** Build and dispatch a component event. */
   #dispatch(event: string, detail: unknown): CustomEvent<unknown> {
     const dispatched = new CustomEvent(event, { bubbles: true, cancelable: true, detail });
     this.$el.dispatchEvent(dispatched);
@@ -1388,15 +976,9 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Live, DOM-ordered collection of mounted descendants (objective 5, layer
-   * 2): an initial sweep + subscription to the lifecycle announcements.
+   * Return a live, DOM-ordered collection of mounted descendants.
    *
-   * A string matches `config.name` exactly. A component class matches every
-   * instance of that class or one of its subclasses, whatever name the
-   * subclass declares:
-   *
-   *     this.$watchChildren('SliderItem'); // exact name
-   *     this.$watchChildren(SliderItem);   // SliderItem and named subclasses
+   * A string matches `config.name`. A class also matches subclasses.
    */
   $watchChildren<T extends Base = Base>(
     name: string,
@@ -1425,11 +1007,7 @@ export class Base<T extends BaseProps = BaseProps> {
       }
     };
 
-    // Defer the initial sweep to a microtask: `$watchChildren` is typically
-    // called in a field initializer, and already-mounted children would fire
-    // `added` synchronously while `this` is still half-constructed. The
-    // listeners below attach right away, so children mounting in between are
-    // caught either way — the Set deduplicates.
+    // Defer callbacks until construction completes; listeners attach before the sweep.
     queueMicrotask(() => {
       if (this.#isTerminated) {
         return;
@@ -1440,10 +1018,7 @@ export class Base<T extends BaseProps = BaseProps> {
         }
         return;
       }
-      // Constructor matching cannot select by a single data-component token:
-      // named subclasses have different tokens. Walk this subtree in DOM order
-      // and inspect the mounted instances already held by each element. The Set
-      // also deduplicates an instance exposed under more than one token.
+      // Constructor matching must inspect instances because subclasses can use other tokens.
       for (const el of this.$el.querySelectorAll('*')) {
         for (const instance of el.__base__?.values() ?? []) {
           if (instance.$isMounted && matches(instance)) {
@@ -1459,9 +1034,7 @@ export class Base<T extends BaseProps = BaseProps> {
         add(instance);
       }
     };
-    // Destroyed announcements are dispatched on the document (the element is
-    // already detached), so membership remains the subtree filter. Apply the
-    // same target matcher before updating the collection.
+    // Destroyed events use `document` because their elements can be detached.
     const onDestroyed = (event: Event) => {
       const { instance } = (event as CustomEvent<LifecycleEventDetail>).detail;
       if (matches(instance)) {
@@ -1495,22 +1068,7 @@ export class Base<T extends BaseProps = BaseProps> {
     };
   }
 
-  /**
-   * Provide a value to the subtree — nearest provider wins, and the value is
-   * provided **verbatim**: what is handed over is what a consumer resolves.
-   *
-   * Reactive state is a `Signal`; a curated owner surface is an object of
-   * commands (the `expose` pattern), which is how a control reaches its
-   * coordinator without `$closest()` and the coupling that comes with it:
-   *
-   *     api = this.$provide(SliderContext, {
-   *       state: signal({ index: 0, total: 0 }),
-   *       goNext: () => this.goNext(),
-   *     });
-   *
-   * The provider is instance-lifetime: it survives destroy/mount cycles and
-   * is disposed on `$terminate()`.
-   */
+  /** Provide a value verbatim to the subtree until `$terminate()`. The nearest provider wins. */
   $provide<V>(key: ContextKey<V>, value: V): V {
     const { dispose } = provideContext(this.$el, key, value);
     this.#terminateCallbacks.push(dispose);
@@ -1518,16 +1076,7 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Resolve the nearest provided value, now or when a provider appears.
-   *
-   * **The promise never settles while no provider exists** — deliberately:
-   * order independence is the whole point, and a consumer mounting before its
-   * provider must not be told "absent" by an ordering accident. Use
-   * `$injectSync()` when an answer is needed now.
-   *
-   * The one-shot pending request is destroy-scoped, so a destroyed instance
-   * leaves nothing behind. `mounted()` runs again on remount and naturally
-   * issues a new request.
+   * Resolve the nearest value now or when a provider appears. The request remains pending without a provider and is canceled on destroy.
    */
   $inject<V>(key: ContextKey<V>): Promise<V> {
     const { promise, cancel } = injectContext(this.$el, key);
@@ -1535,36 +1084,13 @@ export class Base<T extends BaseProps = BaseProps> {
     return promise;
   }
 
-  /**
-   * Resolve the nearest provided value — now, or not at all.
-   *
-   * Nothing is queued and nothing is replayed: `undefined` means no provider
-   * is listening above this element at this moment, which a control can act
-   * on instead of waiting:
-   *
-   *     onClick() {
-   *       this.$injectSync(SliderContext)?.goToItem(this);
-   *     }
-   */
+  /** Resolve the nearest value now, or return `undefined` without queuing a request. */
   $injectSync<V>(key: ContextKey<V>): V | undefined {
     return injectContextSync(this.$el, key);
   }
 
   /**
-   * Apply the live declared-option changes of one mutation batch. Called by
-   * the registry after it has reconciled component declarations for the batch.
-   *
-   * The method convention is `option<Name>Changed()`. Its returned cleanup
-   * runs before the next value is applied and on destroy.
-   *
-   * The batch is handed over whole, as `attribute → value before the batch`,
-   * rather than one resolved option at a time: an option answers from whichever
-   * breakpoint-scoped spelling the cascade selects, so what its previous value
-   * was is a question only its own reader can answer. The rule is one rule — a
-   * change is one whose **resolved** raw value differs from the resolved raw
-   * value before the batch, so rewriting `data-option-columns:s` while the
-   * viewport sits at `l` is not a change to `columns`, and neither is a
-   * net-zero rewrite.
+   * Apply one mutation batch after declaration reconciliation. Option cleanup runs before the next value and on destroy. Only resolved value changes trigger effects.
    *
    * @internal
    */
@@ -1630,24 +1156,13 @@ export class Base<T extends BaseProps = BaseProps> {
     }
   }
 
-  /**
-   * Follow the viewport for the mount cycle, if this component has anything to
-   * do about a crossing.
-   *
-   * "Anything to do" is a declared `option<Name>Changed()`, and the condition
-   * is the point: reading an option needs no subscription — the value is
-   * derived when it is read — so a component that only reads costs the page
-   * nothing at rest. Only a component that has asked to be **told** holds a
-   * `matchMedia` listener, and only while it is mounted.
-   */
+  /** Subscribe to breakpoint changes for this mount cycle only when an option effect exists. */
   #initializeResponsiveOptions(cycle: number): void {
     const readers = optionReaders.get(this);
     if (!readers || readers.size === 0) {
       return;
     }
-    // One scan of the element's attributes per mount — not one per option —
-    // to report a suffix naming no breakpoint, which is the one way this can
-    // fail quietly and the shape v3 markup arrives in.
+    // Scan attributes once per mount for unknown breakpoint suffixes.
     checkResponsiveAttributes(
       this.$el,
       [...readers.values()].map((reader) => reader.attribute),
@@ -1781,25 +1296,10 @@ export class Base<T extends BaseProps = BaseProps> {
     }
   }
 
-  /**
-   * Bind every handler the component declares (objective 4).
-   *
-   * `on<Event>` binds to the root element; `on<Child><Event>` and
-   * `on<Ref><Event>` are delegated — one listener per event type on the
-   * root, resolving the emitter by walking up from `event.target`. Nothing
-   * is bound per child or per ref, so elements inserted, removed or swapped
-   * later are handled with no rebinding.
-   *
-   * `onWindow<Event>` and `onDocument<Event>` bind to the global target they
-   * name, for the events a component can never see from its own subtree: a
-   * click *outside* it, a `popstate`, a `visibilitychange`. Every one of
-   * these listeners is per mount cycle.
-   */
+  /** Bind root, delegated child/ref and global handlers for the current mount cycle. Delegated handlers resolve dynamic descendants at event time. */
   #bindHandlers(): void {
     const self = this as unknown as Record<string, (payload: unknown) => void>;
-    // Everything that reads the class and not the instance, resolved once for
-    // the class: the sorted child names, the mapped refs, and the target and
-    // event type each `on<…>` method name binds to.
+    // Resolve class-level handler metadata once.
     const plan = handlerPlan(this.constructor as BaseConstructor);
     const { childNames, refs, componentName } = plan;
 
@@ -1820,27 +1320,7 @@ export class Base<T extends BaseProps = BaseProps> {
       this.$el.addEventListener(type, listener);
       this.#listeners.push([type, listener, this.$el, false]);
     };
-    /**
-     * Bind an `onWindow<Event>` / `onDocument<Event>` handler.
-     *
-     * **Bubble phase, always** — `CAPTURED_EVENTS` deliberately does not apply
-     * here. That set exists for delegation only: a non-bubbling event fired on
-     * a descendant never reaches the delegating root during the bubble phase,
-     * so the listener has to catch it on the way down. A global handler
-     * delegates nothing — it resolves no target by walking up — and its
-     * listener already sits at the top of every propagation path, so an event
-     * dispatched *at* `window` or `document` reaches it whatever the phase.
-     * Capturing would instead change what the handler hears (the `scroll`,
-     * `focus` and `mouseenter` of every element on the page, none of it the
-     * component's business) and when (before the page's own handlers rather
-     * than after). Bubble phase keeps `onDocumentClick` hearing exactly what
-     * `document.addEventListener('click', …)` hears, which is what the name
-     * promises.
-     *
-     * Per mount cycle, like every other handler: the listener goes in
-     * `#listeners` and `$destroy()` removes it, so a destroyed component stops
-     * reacting to window scroll — and a remount rebinds it.
-     */
+    /** Bind a global handler in bubble phase for the current mount cycle. Capture is only for delegated non-bubbling events. */
     const bindGlobal = (
       target: Window | Document,
       type: string,
@@ -1851,23 +1331,14 @@ export class Base<T extends BaseProps = BaseProps> {
       this.#listeners.push([type, listener, target, false]);
     };
 
-    // Handlers declared with the `@on` decorator: explicit target/type
-    // pairs, so no name parsing and no config lookup to resolve them. A
-    // global target goes through the very same `bindGlobal()` the magic
-    // `onWindow<Event>` / `onDocument<Event>` names use, bubble phase and
-    // per-cycle listener included.
+    // Decorated handlers already contain resolved targets and event types.
     const registrations = this[HANDLER_REGISTRATIONS] ?? [];
     const decorated: Set<unknown> = new Set(registrations.map(({ handler }) => handler));
     for (const { target, child, type, handler } of registrations) {
       if (target) {
         bindGlobal(target, type, (payload) => handler.call(this, payload));
       } else if (child) {
-        // `@on()` refers to the entry, so it names a ref the way `config.refs`
-        // and the attribute do — `dots[]`, suffix included. `definition` is
-        // therefore both what is matched and what the entry carries, which is
-        // what `queryRefs()` and the `data-ref` comparison need. The derived
-        // spelling `dots` belongs to `$refs.dots` and `onDotsClick()`, and is
-        // not a second way to write this one.
+        // Decorators use the declared ref name, including `[]`.
         const declaredChild = childNames.includes(child);
         const ref = declaredChild ? undefined : refs.find(({ definition }) => definition === child);
         if (!declaredChild && !ref) {
@@ -1883,11 +1354,7 @@ export class Base<T extends BaseProps = BaseProps> {
       }
     }
 
-    // Magic `onWindow<Event>` / `onDocument<Event>` / `on<Child><Event>` /
-    // `on<Ref><Event>` / `on<Event>` method names — the no-build path. Which
-    // one each name is was decided for the class; what is left per instance
-    // is whether it resolves to a function at all, whether a decorator
-    // already claimed it, and the closure that calls it.
+    // Bind undecorated magic handlers from the cached class plan.
     for (const entry of plan.entries) {
       const { method, type } = entry;
       // Read through the instance, deliberately: a class field can shadow a

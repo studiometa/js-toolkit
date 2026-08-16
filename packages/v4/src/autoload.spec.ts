@@ -7,16 +7,12 @@ import { getInstances } from './instances.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { resetDom, settle } from './test-utils.js';
 
-/** Strategies observe the real viewport, so a probe is parked or shown. */
+/** Positions used to control viewport strategies. */
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';
 const ONSCREEN = 'position:absolute;top:0;left:0;width:50px;height:50px';
 
 let counter = 0;
 
-/**
- * A component class nobody has imported yet, plus the importer which will.
- * The importer resolves on a microtask, like a real dynamic import.
- */
 function defineLazy(config: Omit<BaseConfig, 'name'> = {}) {
   counter += 1;
   const name = `Lazy${counter}`;
@@ -45,7 +41,6 @@ function defineLazy(config: Omit<BaseConfig, 'name'> = {}) {
   return { name, Lazy, load, importCount: () => imports };
 }
 
-/** A parent nobody imported the children of, declaring them by name. */
 function defineParent(components: BaseConfig['components']) {
   counter += 1;
   const name = `Parent${counter}`;
@@ -72,7 +67,7 @@ function instanceOf<T extends Base>(el: Element, name: string): T | undefined {
   return el.__base__?.get(name) as T | undefined;
 }
 
-/** Give observers a few frames to deliver their callbacks. */
+/** Wait for observer delivery. */
 async function observed(): Promise<void> {
   for (let i = 0; i < 6; i += 1) {
     await settle();
@@ -182,7 +177,6 @@ describe('a lazy declaration before its class arrives', () => {
     await observed();
 
     el.remove();
-    // Visible is meaningless while detached, and the trigger is gone anyway.
     el.setAttribute('style', ONSCREEN);
     await observed();
 
@@ -214,8 +208,7 @@ describe('the strategy that triggers the import', () => {
 
   it('lets the element data-mount win over the entry default', async () => {
     const { name, load, importCount } = defineLazy();
-    // Parked away from the pointer on purpose: `pointerenter` counts as
-    // interaction and can fire when an element appears under a resting cursor.
+    // Keep the element away from the pointer because `pointerenter` counts as interaction.
     const el = render(name, { 'data-mount': 'interaction' }, OFFSCREEN);
     registerManifest({ [name]: { load, mountStrategy: 'visible' } });
     await observed();
@@ -274,7 +267,6 @@ describe('the strategy that triggers the import', () => {
     await observed();
 
     expect(instance?.$isMounted).toBe(false);
-    // A second crossing remounts without a second import.
     el.setAttribute('style', ONSCREEN);
     await observed();
 
@@ -448,7 +440,6 @@ describe('a dynamic import declared in config.components', () => {
     registerComponent(Parent);
     await settle();
 
-    // The parent registering is not a reason to download its family.
     expect(child.importCount()).toBe(0);
 
     const el = render(child.name);
@@ -532,7 +523,6 @@ describe('a dynamic import declared in config.components', () => {
     document.body.append(root);
     await settle();
 
-    // Two chunks, in order: the parent's, then the one its own map names.
     expect(parentImports).toBe(1);
     expect(child.importCount()).toBe(1);
     expect(instanceOf(root, parentName)?.$isMounted).toBe(true);
@@ -561,8 +551,6 @@ describe('a dynamic import declared in config.components', () => {
     counter += 1;
     const childName = `NotAThunk${counter}`;
 
-    // A class not extending `Base` reads as callable but throws when called,
-    // so it is caught here rather than on the element it would break.
     const { name: parentName, Parent } = defineParent({
       [childName]: class Detached {} as unknown as never,
     });
@@ -577,7 +565,6 @@ describe('a dynamic import declared in config.components', () => {
   });
 });
 
-/** Every subclass declares a `static config` of its own, if only for `name`. */
 function defineSubclass(Parent: BaseConstructor, components?: BaseConfig['components']) {
   counter += 1;
   const name = `Sub${counter}`;
@@ -601,7 +588,6 @@ describe('the family a subclass inherits', () => {
     const { Parent } = defineParent({ [childName]: Child });
     const { Sub } = defineSubclass(Parent);
 
-    // The base is never registered: the subclass alone carries the family.
     registerComponent(Sub);
     const el = render(childName);
     await settle();
@@ -618,8 +604,6 @@ describe('the family a subclass inherits', () => {
     const el = render(child.name);
     await settle();
 
-    // A thunk has no other registration path, so the subclass loses the
-    // child entirely when registration reads the own config.
     expect(child.importCount()).toBe(1);
     expect(instanceOf(el, child.name)?.$isMounted).toBe(true);
   });

@@ -1,59 +1,8 @@
 import { createService, type Service } from '../../src/index.js';
 
 /**
- * `useInView(el, init)` — the intersection service v4 does not ship.
- *
- * ## Why this file exists
- *
- * v4 core has six sources — `useRaf`, `useScroll`, `useResize`, `usePointer`,
- * `useDrag`, `useBreakpoint`/`useMediaQuery` — and **no intersection source at
- * all**. The only `IntersectionObserver` in `src/` is inside
- * `applyMountStrategy()`, which is private, only accepts a root-margin suffix,
- * and answers a different question: *when does this component mount*, not
- * *is this element in view right now*.
- *
- * v3 had both, as two decorators: `withMountWhenInView` (mount/destroy on
- * crossings) and `withIntersectionObserver` (an observer for the mount
- * cycle, with the element staying mounted). `data-mount="in-view"` replaces
- * the first exactly — the `InView` port is three lines because of it. The
- * second has **no replacement**, and `Track`'s `data-track:view` is the case
- * that needs it: the component keeps a `click` listener and a `payload` ref
- * alive while *one of its events* watches the viewport. Mounting the whole
- * component on the crossing would destroy the rest of it.
- *
- * ## Written as a service on purpose
- *
- * This could have been `new IntersectionObserver(...)` in `TrackEvent`, and
- * that is what ui does. It is written against `createService()` instead
- * because the point of the exercise is to find out whether v4's service
- * primitive holds up for a source no core service covers. It does: the whole
- * definition below is 20 lines, and lazy start, reference counting, snapshot
- * fan-out, error isolation and `hasProps()` gating all come from
- * `createService` untouched. Two `data-track:view` events on one element share
- * one observer, and the last of them to leave disconnects it.
- *
- * ## What did *not* come from core: the cache key
- *
- * `perTarget()` — core's helper for "one instance per observed target" — keys
- * a `WeakMap` **by the target alone** and drops the remaining arguments:
- *
- *     const services = new WeakMap<Target, Service<T, R>>();
- *     return (target, ...args) => { … create(target, ...args) … };
- *
- * That is right for `useScroll(el)` and `useResize(el)`, which have nothing
- * else to say. It is wrong for any source whose options change *what is
- * observed*: here, `useInView(el, { threshold: 0.5 })` followed by
- * `useInView(el, { threshold: 0 })` would hand the second caller the first
- * caller's observer, silently, and the second component would never fire.
- * That is not hypothetical for `Track` — `data-option-threshold` is a
- * documented option and two `Track`s on nested elements routinely differ.
- *
- * So the cache here is keyed by **root, then element, then the init that
- * describes the observation**. Three levels rather than one, and the reason
- * for three is that `root` is an object: it cannot go into a string key, so it
- * is the outer `WeakMap`'s own key and only `rootMargin`/`threshold` are
- * serialised. `perTarget()` would need this shape to be reusable; it has it
- * for none of the six.
+ * Reference-counted intersection service. Instances are keyed by root,
+ * element, and observer options because each combination has distinct state.
  */
 export interface InViewProps {
   /** Whether the element intersects the root, as the observer reports it. */
@@ -78,19 +27,14 @@ function initKey({ rootMargin = '0px', threshold = 0 }: IntersectionObserverInit
 }
 
 function createInViewService(el: Element, init: IntersectionObserverInit): InViewService {
-  // The service owns this object and overwrites it in place, which is the v4
-  // props convention: `{ ...props }` is how a subscriber keeps one.
+  // The service owns and mutates this props object.
   const props = {
     isIntersecting: false,
     ratio: 0,
     entry: null as IntersectionObserverEntry | null,
   };
 
-  // An `IntersectionObserver` has no current value before it has delivered
-  // one — asking it is not a read the way `getBoundingClientRect()` is — so
-  // `{ immediate: true }` is honestly a no-op until the first crossing.
-  // The observer delivers the initial state on `observe()` anyway, one task
-  // later, which is why nothing here tries to synthesise it.
+  // No current value exists before the observer's first delivery.
   let hasBeenSeen = false;
 
   return createService<InViewProps>({

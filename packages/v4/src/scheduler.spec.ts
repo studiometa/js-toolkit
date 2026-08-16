@@ -21,7 +21,6 @@ describe('defaultScheduler (real frames)', () => {
     });
     await defaultScheduler.whenIdle();
     expect(frames).toHaveLength(1);
-    // Ran in a later frame, not synchronously after the write.
     expect(frames[0]).toBeGreaterThan(0);
   });
 
@@ -62,15 +61,8 @@ describe('defaultScheduler (real frames)', () => {
     await expect(canceled.promise).resolves.toBeUndefined();
   });
 
-  // Regression: `while ((item = queue.shift()))` drained a phase until it
-  // was empty, so a task re-scheduling itself into its own phase re-entered
-  // within the same frame, without end. 100,000 chained reads used to run
-  // in one frame, with no paint and no yield.
   it('does not loop forever when a read schedules a read', async () => {
     let runs = 0;
-    // The chain is bounded per frame, so it outlives the test window: the
-    // flag stops it, otherwise the next tests would run against a read
-    // queue that is never empty.
     let isStopped = false;
     const tick = () => {
       runs += 1;
@@ -83,8 +75,6 @@ describe('defaultScheduler (real frames)', () => {
     await defaultScheduler.whenIdle();
   });
 
-  // The anti-thrashing rule the whole design rests on: bounding same-phase
-  // re-entrancy must not cost the cross-phase guarantee.
   it('still runs a write scheduled from a read in the same frame', async () => {
     const order: string[] = [];
     let readTime = 0;
@@ -99,23 +89,16 @@ describe('defaultScheduler (real frames)', () => {
     });
     await defaultScheduler.whenIdle();
     expect(order).toEqual(['read', 'write']);
-    // Well within one 60 Hz frame: no frame boundary between the two.
     expect(writeTime - readTime).toBeLessThan(8);
   });
 });
 
 describe('defaultScheduler.background', () => {
-  // Regression: the lane used to drain inside the rAF callback, against a
-  // budget measured from the top of the flush. One busy tick subscriber —
-  // a single running animation — spent the whole budget before the lane was
-  // reached, and nothing mounted for as long as the animation ran.
   it('still drains background work while every frame is busy', async () => {
     let background = 0;
     const off = defaultScheduler.tick(() => {
       const until = performance.now() + 10;
-      while (performance.now() < until) {
-        /* occupy the frame */
-      }
+      while (performance.now() < until) {}
     });
     for (let i = 0; i < 5; i += 1) defaultScheduler.background(() => (background += 1));
     await new Promise((resolve) => setTimeout(resolve, 400));
@@ -152,15 +135,11 @@ describe('defaultScheduler.background', () => {
     setTimeout(() => {
       hasYielded = true;
     }, 0);
-    // Each task spends most of the time slice, so a turn fits two of them
-    // and the lane has to hand the thread back to finish the six.
     for (let i = 0; i < 6; i += 1) {
       defaultScheduler.background(() => {
         if (!hasYielded) ranBeforeYielding += 1;
         const until = performance.now() + 4;
-        while (performance.now() < until) {
-          /* spend the slice */
-        }
+        while (performance.now() < until) {}
       });
     }
     await defaultScheduler.whenIdle();
@@ -218,7 +197,6 @@ describe('defaultScheduler.tick', () => {
     const unsubscribe = defaultScheduler.tick(() => {
       ticks += 1;
       phases.push(defaultScheduler.phase);
-      // Scheduled from the tick, so it belongs to the same frame.
       defaultScheduler.read(() => phases.push(defaultScheduler.phase));
     });
 
@@ -276,9 +254,6 @@ describe('defaultScheduler.tick', () => {
     unsubscribe();
 
     expect(props.length).toBeGreaterThanOrEqual(2);
-    // The first tick has no previous frame to measure against, so it
-    // reports one 60 Hz frame rather than a zero that would freeze anything
-    // integrating it.
     expect(props[0].delta).toBe(1000 / 60);
     expect(props[1].delta).toBeGreaterThan(0);
     expect(props[1].time).toBeGreaterThan(props[0].time);
@@ -290,12 +265,8 @@ describe('defaultScheduler.tick', () => {
 
     await nextFrame();
     await nextFrame();
-    // A long task between two frames: the wall clock jumps, the delta must
-    // not — a subscriber integrating it would jump with it.
     const until = performance.now() + 120;
-    while (performance.now() < until) {
-      /* stall the main thread */
-    }
+    while (performance.now() < until) {}
     await nextFrame();
     await nextFrame();
     unsubscribe();
@@ -305,33 +276,22 @@ describe('defaultScheduler.tick', () => {
       expect(delta).toBeGreaterThanOrEqual(1);
       expect(delta).toBeLessThanOrEqual(40);
     }
-    // The stall really did produce a gap the clamp had to absorb.
     expect(Math.max(...deltas)).toBe(40);
   });
 
   it('reports the frame timestamp, shared by every subscriber', async () => {
-    // Nothing pending, so the first flush below belongs to the frame this
-    // test requests and to no earlier one.
     await defaultScheduler.whenIdle();
     await nextFrame();
 
     const seen: number[] = [];
     const offOne = defaultScheduler.tick(({ time }) => seen.push(time));
     const offTwo = defaultScheduler.tick(({ time }) => seen.push(time));
-    // Requested in the same task as the subscriptions, so this callback and
-    // the scheduler's flush are in the same frame batch — and every callback
-    // of a batch is handed the very same timestamp.
     const rafTime = await new Promise<number>((resolve) => requestAnimationFrame(resolve));
     offOne();
     offTwo();
 
     expect(seen.length).toBeGreaterThanOrEqual(2);
-    // Both subscribers observe one frame's time, not two readings of a clock.
     expect(seen[0]).toBe(seen[1]);
-    // And it is the frame's own timestamp. Compared against rAF's rather
-    // than `performance.now()` on purpose: a `now()` read at the top of the
-    // flush would land a fraction of a millisecond away and pass any
-    // tolerance, while drifting against `document.timeline` all the same.
     expect(seen[0]).toBe(rafTime);
   });
 
@@ -394,8 +354,6 @@ describe('defaultScheduler.tick', () => {
       unsubscribe();
     }
 
-    // Live Set iteration would call all 10,000 newly added callbacks in this
-    // flush. A frame snapshot runs only the generation present at its start.
     expect(runs).toBe(1);
   });
 
@@ -416,7 +374,6 @@ describe('defaultScheduler.tick', () => {
 
   it('never keeps whenIdle() waiting', async () => {
     const unsubscribe = defaultScheduler.tick(() => {});
-    // The loop runs, but running is not queued work.
     await expect(defaultScheduler.whenIdle()).resolves.toBeUndefined();
     unsubscribe();
   });
@@ -426,8 +383,6 @@ describe('defaultScheduler.tick', () => {
     await nextFrame();
     unsubscribe();
 
-    // Let the frame already requested run out, then watch a few go by
-    // without touching `requestAnimationFrame` from the test itself.
     await new Promise((resolve) => setTimeout(resolve, 50));
     const spy = vi.spyOn(globalThis, 'requestAnimationFrame');
     await new Promise((resolve) => setTimeout(resolve, 100));

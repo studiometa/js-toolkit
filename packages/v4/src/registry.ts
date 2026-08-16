@@ -31,8 +31,7 @@ import { onBreakpointsReplaced } from './services/breakpoint.js';
 import { selectorFor } from './utils/selectors.js';
 import { kebabCase } from './utils/strings.js';
 
-// Component declarations use the same finite attribute × breakpoint filter as
-// responsive options. This opens no observer and no media-query listener.
+// Register exact responsive component attribute names with the shared observer filter.
 observeResponsiveAttribute(COMPONENT_ATTRIBUTE);
 
 interface PairController {
@@ -41,17 +40,9 @@ interface PairController {
   strategy: string;
 }
 
-/**
- * Teardown for the mount strategy watching each element/component pair.
- * Its presence also marks the pair as already scheduled, so re-scanning an
- * element never observes it twice.
- */
 export type { ComponentImporter };
 
-/**
- * A lazy entry of the same registry: what to import, and — standing in for
- * the `config.mountStrategy` of a class which does not exist yet — when.
- */
+/** A lazy component importer and its optional pre-load mount strategy. */
 export interface ComponentManifestEntry {
   load: ComponentImporter;
   mountStrategy?: MountStrategy;
@@ -65,11 +56,6 @@ interface LoadController {
   strategy: string;
 }
 
-/**
- * Teardown for the strategy waiting to *import* one element's declared but
- * unloaded component. It is the same object the registry keeps for a loaded
- * pair, one step earlier in the pipeline.
- */
 interface RegistryRuntimeState {
   registry: Map<string, BaseConstructor>;
   controllers: WeakMap<Element, Map<string, PairController>>;
@@ -101,54 +87,12 @@ const registryState = /* @__PURE__ */ getSharedRuntimeSlot<RegistryRuntimeState>
 );
 const { registry, controllers, manifest, imports, loaders, responsiveElements } = registryState;
 
-/**
- * Whether a function was written with `class`, which only matters for the
- * ones `isBaseConstructor()` rejected: those are constructors, so calling
- * them as an importer throws "cannot be invoked without 'new'" — on an
- * element, at load time, long after the mistake was made.
- *
- * A class has a non-writable `prototype` own property; a function
- * expression's is writable, and an arrow or an `async function` has none at
- * all. Every spelling an importer takes is therefore excluded, and the
- * one shape worth catching early is caught.
- */
+/** Distinguish an unbranded class from a callable importer. */
 function isClassLike(value: (...args: never[]) => unknown): boolean {
   return Object.getOwnPropertyDescriptor(value, 'prototype')?.writable === false;
 }
 
-/**
- * Register the family a component declares in `config.components`, where a
- * value is the child's class or a thunk importing it.
- *
- * The **merged** config, not `ComponentClass.config` — the same fix `mountStrategy`
- * needed. Every subclass declares a `static config` of its own, if only for
- * `name`, so reading the own static made registering a subclass register
- * nothing its base declared, while `$config` and `on<Child><Event>` resolution
- * read the merged set. A subclass therefore mounted children its own instances
- * announce and query, and since a `() => import(…)` child has no other
- * registration path, a subclass lost its base's lazy children outright.
- *
- * Registering the same family twice — a base and its subclass both declaring
- * it — costs nothing: `registerComponent()` returns on a name already mapped
- * to that very class, and `registerLazyChild()` on a name already known. That
- * guard is also what terminates the recursion, because the name is mapped
- * *before* the family is walked, so a cycle (A declares B, B declares A)
- * closes on the second visit.
- *
- * **A class is a function too**, so the two are told apart the way
- * `resolveComponentClass()` already tells a class from anything else an
- * importer resolved to: `isBaseConstructor()`, the shared component brand. It is the
- * definition of a component class rather than a proxy for it — a `config`
- * static can be forgotten and inherited by a subclass either way, and
- * `fn.toString()` reads source text. Anything else callable is a thunk, and
- * a wrong shape is reported here instead of registering nothing.
- *
- * A thunk is **not called**. It becomes a lazy entry under its map key,
- * which is the whole feature: the key names the component — a thunk cannot,
- * until it resolves — so `scheduleFor()` matches `data-component` tokens
- * against a name nothing had to import. A manifest then declares the parent
- * alone, and the child is its own chunk.
- */
+/** Register classes and lazy importers from the merged `config.components`. */
 function registerFamily(ComponentClass: BaseConstructor): void {
   const { name, components } = resolveConfig(ComponentClass);
   for (const [childName, Child] of Object.entries(components ?? {})) {
@@ -168,21 +112,7 @@ function registerFamily(ComponentClass: BaseConstructor): void {
   }
 }
 
-/**
- * Add one `config.components` thunk to the lazy half of the registry, under
- * the key which named it. From there it is an ordinary lazy entry: the
- * element's `data-mount` decides when to import, `importComponent()` imports
- * once per name whichever element triggered it, and `registerComponent()`
- * takes over as soon as the class exists.
- *
- * First wins, and quietly — unlike `registerManifest()`, which warns. A name
- * already known here is the normal case rather than a mistake: several
- * parents declaring the same lazy child is exactly how a shared child gets
- * its own chunk, and two thunks importing one module are two different
- * function objects, so there is nothing to compare a real conflict against.
- * A token genuinely claimed by two components still reports itself one step
- * later, through `importComponent()`'s class-name check.
- */
+/** Register a lazy child without loading it. The first declaration wins. */
 function registerLazyChild(name: string, load: ComponentImporter): void {
   if (registry.has(name) || manifest.has(name)) {
     return;
@@ -213,11 +143,7 @@ function syncResponsiveElement(el: HTMLElement): void {
   }
 }
 
-/**
- * Put a crossing through the same background lifecycle boundary as a DOM
- * mutation. Coalescing matters for `setBreakpoints()`: replacing the set and
- * refreshing the running service can both ask for the same reconciliation.
- */
+/** Coalesce responsive reconciliation in the background lifecycle queue. */
 function scheduleResponsiveReconciliation(elements: Iterable<HTMLElement>): void {
   for (const el of elements) {
     registryState.pendingResponsiveElements.add(el);
@@ -262,14 +188,7 @@ if (!registryState.isReplacementListenerAttached) {
   });
 }
 
-/**
- * Register a component class. Existing matching elements are scheduled
- * right away; future ones are scheduled when they enter the DOM. When each
- * instance actually mounts is the strategy's call — see `data-mount`.
- * The family declared in the **merged** `config.components` registers too: a
- * class right away, a `() => import(…)` thunk as a lazy entry — so a subclass
- * registers what its base declared.
- */
+/** Register a component and its merged family, then scan matching elements. */
 export function registerComponent(ComponentClass: BaseConstructor): void {
   const { name } = ComponentClass.config;
   if (registry.has(name)) {
@@ -301,19 +220,7 @@ export function registerComponents(...classes: BaseConstructor[]): void {
 }
 
 /**
- * Register lazy entries into the same registry: a `data-component` token
- * whose class has not been downloaded yet.
- *
- * The trigger is the mount strategy, not a second `data-load` knob. An
- * element's `data-mount` wins over the entry's `mountStrategy`, which stands
- * in for the `config.mountStrategy` of a class nobody can read yet, which
- * defaults to `eager` — the same precedence a registered class follows. When
- * the strategy fires the module is imported once and its class registered,
- * and the registry owns every mount and unmount from there.
- *
- * A declaration whose class has not loaded has no instance, so it stays
- * invisible to `$query`, `$closest`, `$watchChildren` and `getInstances()`,
- * exactly like a component still waiting for its mount strategy.
+ * Register lazy component entries. Element `data-mount` overrides the entry strategy; unloaded components have no instance.
  */
 export function registerManifest(entries: ComponentManifest): void {
   const added: string[] = [];
@@ -343,11 +250,7 @@ export function registerManifest(entries: ComponentManifest): void {
   }
 }
 
-/**
- * Import one lazy entry and register what it resolves to, at most once per
- * name. A failure is reported and never retried: the trigger has already
- * been spent, and a retry loop on a broken chunk is worse than a silent page.
- */
+/** Import and register a lazy entry once per name. Failed imports are not retried. */
 function importComponent(name: string, target?: Element): Promise<void> {
   const pending = imports.get(name);
   if (pending) {
@@ -388,12 +291,7 @@ function importComponent(name: string, target?: Element): Promise<void> {
   return work;
 }
 
-/**
- * Accept whatever the importer resolved: the class, the module namespace of
- * `import('./Foo.js')` with `Foo` or `default` on it. Writing the `.then()`
- * which unwraps it is the boilerplate every hand-written manifest would
- * otherwise repeat once per line.
- */
+/** Resolve a component class from a direct value, named export, or default export. */
 function resolveComponentClass(module: unknown, name: string): BaseConstructor | undefined {
   if (isBaseConstructor(module)) {
     return module;
@@ -417,10 +315,7 @@ function optionAttributes(ComponentClass: BaseConstructor): string[] {
     for (const name of Object.keys(current.config.options ?? {})) {
       const attribute = `data-option-${kebabCase(name)}`;
       names.add(attribute);
-      // Every option may be written across several attributes, one per
-      // breakpoint. The observer filters on exact names, so the breakpoint-
-      // scoped spellings are registered too — and re-registered if the named
-      // set is later replaced, which the responsive layer owns.
+      // Register each exact breakpoint-scoped spelling with the observer filter.
       observeResponsiveAttribute(attribute);
     }
     current = Object.getPrototypeOf(current) as BaseConstructor | null;
@@ -428,19 +323,7 @@ function optionAttributes(ComponentClass: BaseConstructor): string[] {
   return [...names];
 }
 
-/**
- * The strategy for one element/component pair: the element's `data-mount`
- * wins over the class's `config.mountStrategy`, which wins over `eager`.
- *
- * An element declaring several components (`data-component="A B"`) applies
- * its `data-mount` to all of them; a component needing its own policy
- * declares it in its config instead.
- *
- * The **merged** config, not `ComponentClass.config`: every subclass declares
- * a `static config` of its own, if only for `name`, so reading the own static
- * made every subclass of a strategy-declaring component fall back to `eager`
- * — silently, since it still worked, it just mounted everywhere.
- */
+/** Resolve strategy precedence: element, merged component config, then `eager`. */
 function resolveStrategy(el: Element, ComponentClass: BaseConstructor): string {
   return el.getAttribute(MOUNT_ATTRIBUTE) ?? resolveConfig(ComponentClass).mountStrategy ?? 'eager';
 }
@@ -481,10 +364,7 @@ function mountPair(
     }
     instance.$mount();
   } catch (error) {
-    // A derived constructor can throw after Base published `this`. Assignment
-    // above only completes for a fully constructed object, so an empty local
-    // identifies construction failure without disturbing an existing instance
-    // or a valid instance whose mount failed.
+    // A failed derived constructor can leave the instance published by `Base`.
     if (!instance) {
       el.__base__?.delete(name);
     }
@@ -644,11 +524,7 @@ function scheduleLoad(el: HTMLElement, name: string): void {
       disposeLoader(el, name);
       const work = importComponent(name, el);
       void work.then(() => completeOneShotLoad(el, name, strategy));
-      // Only an eager trigger belongs to the settlement boundary, matching
-      // the rule the registry already follows: `whenDOMSettled()` — and so
-      // `swap()` — waits for an eager lazy component to be downloaded,
-      // registered and mounted, and never waits on a viewport, an idle
-      // callback, an interaction or a media query.
+      // DOM settlement tracks eager imports only; conditional triggers can remain pending.
       if (applied?.eagerWork) {
         trackDOMLifecycleWork(work);
       }
@@ -746,15 +622,7 @@ function scanName(root: Element, name: string): void {
   }
 }
 
-// Disconnection is a DOM fact, not an end of life: destroy (reversible)
-// and keep the instance on its element — a re-inserted element remounts the
-// same instance. A *move* produces a removal record and an addition record:
-// the instance is destroyed then remounted (same identity, per-cycle state
-// reset), matching the disconnectedCallback/connectedCallback pair custom
-// elements get on moves — and both sides announce, so `$watchChildren` on
-// the old and the new ancestor stay correct. When the element never comes
-// back, element and instance are garbage-collected together. `$terminate()`
-// stays an explicit, final call.
+// Disconnection destroys an instance reversibly. Re-insertion remounts the same instance.
 function destroyWithin(node: Node, snapshot?: readonly Element[]): void {
   if (!(node instanceof Element)) {
     return;
@@ -783,9 +651,7 @@ function destroyWithin(node: Node, snapshot?: readonly Element[]): void {
 }
 
 function processMutations(records: readonly DOMMutationRecord[]): void {
-  // Teardown first. A move must announce its old lifecycle end before the
-  // same node mounts below its new ancestor. Removed subtree membership was
-  // snapshotted at observer delivery, before this background task.
+  // Teardown must finish before a moved node mounts under its new ancestor.
   for (const { record, removedSubtrees } of records) {
     if (record.type === 'childList') {
       for (const node of record.removedNodes) {
@@ -844,10 +710,7 @@ function processMutations(records: readonly DOMMutationRecord[]): void {
     }
     for (const instance of el.__base__?.values() ?? []) {
       if (instance.$isMounted) {
-        // The batch goes over whole: which attribute belongs to which option,
-        // and what an option's value was before the batch, are the reader's
-        // questions — a responsive option answers from whichever
-        // breakpoint-scoped spelling its cascade selects.
+        // Pass the full batch so responsive options can resolve previous values.
         instance.$optionsChanged(changes);
       }
     }

@@ -11,39 +11,13 @@ export interface ServiceMixinOptions<Target, Host = Base> {
    * default target — the window, the viewport, the component's root element.
    */
   target?: (instance: Host) => Target;
-  /**
-   * Declare the hook without subscribing it. `mounted()` leaves it off and the
-   * component owns the span through its handle — `this.$services.<hook>`.
-   *
-   * This is what keeps a service honest about doing no work while nobody needs
-   * it: a component that only wants the frame loop while a value settles
-   * releases it as soon as it has, instead of holding the loop open for the
-   * lifetime of the page.
-   */
+  /** Do not subscribe on mount. Control the subscription through `this.$services.<hook>`. */
   manual?: boolean;
-  /**
-   * Call the hook once with the current props as soon as it subscribes,
-   * instead of leaving it to wait for the next update.
-   *
-   * The same option `subscribe()` takes, and honoured by the same sources: a
-   * `resized()` that positions something wants to know the box it is starting
-   * from, a `ticked()` has no current frame to be told about.
-   */
+  /** Request current props when the subscription starts. */
   immediate?: boolean;
 }
 
-/**
- * The handle a mixin adds for its hook, under the hook's own name.
- *
- * Declared as a type rather than resolved from a string, which is what makes
- * it checkable: `this.$services.ticked.start()` completes, and renaming the
- * hook is a compile error instead of the silence `$enable('ticked')` gave.
- * That only became possible once there was exactly one name per mixin.
- *
- * Intersections merge, so stacked mixins accumulate their keys:
- * `withScroll(withRaf(Base))` has `$services.ticked` **and**
- * `$services.scrolled`, each reaching its own layer.
- */
+/** Typed service controls keyed by hook name. Stacked mixins accumulate keys. */
 export type ServiceHandles<Hook extends string> = {
   readonly $services: { readonly [K in Hook]: Toggle };
 };
@@ -76,15 +50,7 @@ export interface ServiceMixinDefinition<Target, Options> {
   handleResult?: (instance: Base, result: unknown) => void;
 }
 
-/**
- * The two forms a service mixin takes: applied to a class, or used as a
- * class decorator.
- *
- * The mixin form is the primitive because it needs no build step; the
- * decorator is sugar over it, the rule every decorator in this package
- * follows. Both return a subclass, so a component keeps its own props type
- * through `withScroll(Base)<MyProps>`.
- */
+/** A service mixin used directly or as a class decorator. */
 export interface ServiceMixin<Instance, Target, Options extends object = object> {
   <T extends BaseConstructor>(
     BaseClass: T,
@@ -98,74 +64,13 @@ export interface ServiceMixin<Instance, Target, Options extends object = object>
   ) => MixedClass<T, Instance>;
 }
 
-/**
- * The class a mixin hands back: the statics of the one it extends, and a
- * generic construct signature so the component keeps declaring its own props
- * — `class Slider extends withScroll(Base)<SliderProps>`.
- *
- * The statics are picked rather than intersected: two construct signatures
- * returning different types cannot be extended (TS2510).
- */
+/** Mixed class statics and a generic constructor that preserves component props. */
 export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> & {
   new <P extends BaseProps = BaseProps>(el: HTMLElement): InstanceType<T> & Base<P> & Instance;
 };
 
 /**
- * Build the mixin a service exposes for its hook.
- *
- * **A hook is sugar for the default target.** `scrolled()` follows the
- * window, `dragged()` the component's own root — whatever the service
- * observes when called with no argument. Any other target is named in the
- * mixin's options, or subscribed by hand in `mounted()`, where the returned
- * unsubscribe is the cleanup:
- *
- *     mounted() {
- *       return useScroll(this.$refs.panel).subscribe((props) => { … });
- *     }
- *
- * There is one method name per service, and it is the service's own: two
- * layers of the same mixin on one class would collide on it, and a custom
- * name bought nothing but ways to go wrong — it lost the hook's props typing
- * entirely, and renaming it compiled, shipped, and silently stopped updating.
- * A second target is an explicit subscription in `mounted()`, as above.
- *
- * Both paths reach the same service. This is the line Lit draws as well,
- * where a `ResizeController`'s `target` defaults to the host and is
- * otherwise passed in — and it is why the wiring is a mixin rather than
- * something `Base` knows about: a hook adds public API to the component,
- * which is Lit's own criterion for choosing a mixin over a controller.
- *
- * Everything runs through the public lifecycle: the mixin overrides
- * `mounted()`, subscribes, and hands its unsubscribe back with the rest of
- * the cleanups. Per mount cycle therefore comes for free — a destroyed
- * instance leaves no subscription behind, and a remounted one subscribes
- * again, exactly once. A component overriding `mounted()` returns what it
- * extends along with its own cleanup, the usual mixin contract:
- *
- *     mounted() {
- *       return [super.mounted(), () => { … }];
- *     }
- *
- * **A mount cycle is not always the right span.** `{ manual: true }` declares
- * the hook without subscribing it, and the component owns the span through the
- * handle the mixin puts under the hook's name:
- *
- *     class SliderItem extends withRaf(Base, { manual: true }) {
- *       ticked({ delta }) { … }                        // declared, not running
- *       onIndexChange() { this.$services.ticked.start(); }
- *       onSettled() { this.$services.ticked.stop(); }
- *     }
- *
- * The hook stays where it reads best — a method on the class — and the verbs
- * are typed: `$services.ticked` completes, and renaming `ticked` is a compile
- * error rather than the silence `$enable('ticked')` gave. That is only
- * possible because there is one fixed name per mixin; a `hook` option would
- * put the property name back out of the type system's reach.
- *
- * Either way the subscription is released with the mount cycle, whichever side
- * started it, and on `$terminate()` for an instance that started it and never
- * mounted. `toggle()` is the same primitive without a hook, for a subscription
- * the component writes itself.
+ * Build a lifecycle-bound service mixin. Automatic subscriptions last for one mount cycle. Manual subscriptions also stop on destroy or termination.
  */
 export function createServiceMixin<Instance, Target, Options extends object = object>(
   definition: ServiceMixinDefinition<Target, Options & ServiceMixinOptions<Target>>,
@@ -184,16 +89,11 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
           $services?: Record<string, Toggle>;
           $isTerminated: boolean;
         };
-        // One object per instance, shared by every layer: each mixin adds its
-        // own key, so a stacked class reaches each layer through the name that
-        // layer owns.
+        // Share one handle object across stacked mixins.
         const services = (host.$services ??= {});
         const handle = toggle(() => {
           const method = (this as unknown as Record<string, unknown>)[hook];
-          // A component that does not implement the method subscribes to
-          // nothing, so the service it would have started never runs. Read at
-          // subscribe time rather than here, because a hook written as a class
-          // field does not exist yet while the fields are initialising.
+          // Resolve the hook when subscribing because class fields initialize after `super()`.
           if (typeof method !== 'function') {
             return () => {};
           }
@@ -231,15 +131,12 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
         if (!isManual) {
           handle.start();
         }
-        // Released with the mount cycle whichever side started it — the mixin
-        // above, or the component through its handle. `stop` is bound and
-        // idempotent, so it is a cleanup as it stands.
+        // `stop` is bound and idempotent.
         return [inherited, handle.stop];
       }
 
       $terminate(): this {
-        // `$destroy()` releases whatever ran during a mount cycle; this covers
-        // a manual hook that was started and never mounted.
+        // Stop a manual subscription that started outside a mount cycle.
         (this as unknown as { $services: Record<string, Toggle> }).$services[hook].stop();
         return super.$terminate() as this;
       }
@@ -247,8 +144,7 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
   }
 
   return function mixin(first?: unknown, second?: unknown) {
-    // A class as the first argument is the mixin form; anything else is the
-    // decorator's options.
+    // A class selects mixin form; other values select decorator options.
     if (typeof first === 'function') {
       return apply(first as BaseConstructor, (second ?? {}) as MixinOptions);
     }
