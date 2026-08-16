@@ -81,7 +81,7 @@ assert.equal(randomIntDefault, randomInt);
 assert.equal(randomInt(0, 0), 0);
 assert.equal(deepmergeDefault, deepmerge);
 assert.deepEqual(deepmerge({ a: { b: 1 } }, { a: { c: 2 } }), { a: { b: 1, c: 2 } });
-assert.equal(utils.deepmergeAll([{ a: 1 }, { a: 2 }]).a, 2);
+assert.equal(utils.deepmerge({ a: 1 }, { a: 2 }, { a: 3 }).a, 3);
 assert.equal(utils.isObject({}), true);
 assert.equal(utils.round(1.2345, 2), 1.23);
 assert.deepEqual(utils.createRange(0, 2, 1), [0, 1, 2]);

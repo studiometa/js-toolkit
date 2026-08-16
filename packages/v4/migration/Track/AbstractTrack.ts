@@ -8,7 +8,7 @@ import {
   type ScheduledTask,
   type Unsubscribe,
 } from '../../src/index.js';
-import { deepmerge, deepmergeAll } from '../../src/utils/deepmerge.js';
+import { deepmerge } from '../../src/utils/deepmerge.js';
 import { TrackContext } from './TrackContext.js';
 import { TRACK_PSEUDO_EVENTS, TrackEvent } from './TrackEvent.js';
 import { warn } from './utils.js';
@@ -143,7 +143,7 @@ export class AbstractTrack<T extends BaseProps = BaseProps> extends Base<Abstrac
    * then the event's own data.
    */
   send(data: Record<string, unknown>, event?: Event): void {
-    this.dispatch(deepmergeAll([this.context, this.payload ?? {}, data ?? {}]), event);
+    this.dispatch(deepmerge(this.context, this.payload ?? {}, data ?? {}), event);
   }
 
   /**
