@@ -540,6 +540,7 @@ Every lookup above is scoped to one component: `$query()` walks descendants, `$c
 ```js
 getInstances('Dialog').forEach((dialog) => dialog.close()); // page-wide
 getInstances('Dialog', section); // scoped to a region
+getInstances(el); // everything mounted on one element
 ```
 
 **It re-derives the answer from the DOM instead of keeping a registry of instances**, which is the core model applied rather than an exception carved out of it: the document already knows where the components are, and a second index of it can go stale. It is also not the slow path — a `querySelectorAll` narrowed by name beats v3's walk of every instance on the page, measured on the `Action` port. That measurement is the reason gap 7's "per-class instance registry" is answered with a function rather than with a registry.
@@ -566,7 +567,7 @@ It is not public API; `getInstances()` is. What it costs is the devtools afforda
 $0[Symbol.for('@studiometa/js-toolkit-v4/instances')];
 ```
 
-It also costs the one-line read in ordinary code. `migration/Action/instances.ts` used it for "what else is on this element" and now imports the internal key to keep working — a gap that belongs in `getInstances()`, not in a port.
+**The element overload — `getInstances(el)` — answers the other question**, "what is mounted _here_", in mount order and filtered by `$isMounted` like the name form. It is an overload rather than a second export because both answer "which instances are mounted" and the argument picks the scope; a string searches the page, an element inspects itself. It became core's job with this symbol: while the map was a plain `el.__base__` property, a caller could read it in one line, and the `Action` port did exactly that. A key documented as "not public API" is not something a port should import, so `migration/Action/instances.ts` is deleted and `ActionEvent` keys the result by `$config.name` at the call site.
 
 ### Shared state — provide/inject in core
 

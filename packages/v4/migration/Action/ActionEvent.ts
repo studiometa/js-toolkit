@@ -1,6 +1,5 @@
 import { getInstances, type Base } from '../../src/index.js';
 import { getEffect, type EffectFunction } from './expression.js';
-import { getInstancesOn } from './instances.js';
 
 /**
  * Extract a component name and an optional additional selector from one
@@ -74,7 +73,9 @@ export class ActionEvent {
 
   /** Co-located mounted instances, recomputed for each event. */
   get instances(): Map<string, Base> {
-    return getInstancesOn(this.action.$el);
+    return new Map(
+      getInstances(this.action.$el).map((instance) => [instance.$config.name, instance]),
+    );
   }
 
   /**
