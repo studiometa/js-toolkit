@@ -16,8 +16,9 @@ import {
 import {
   applyMountStrategy,
   MOUNT_ATTRIBUTE,
-  type AppliedMountStrategy,
+  mountStrategyBehaviour,
   type MountStrategy,
+  type MountStrategyHooks,
 } from './mount-strategies.js';
 import { INSTANCES } from './protocol-symbols.js';
 import {
@@ -35,12 +36,6 @@ import { kebabCase } from './utils/strings.js';
 // Register exact responsive component attribute names with the shared observer filter.
 observeResponsiveAttribute(COMPONENT_ATTRIBUTE);
 
-interface PairController {
-  active: boolean;
-  dispose(): void;
-  strategy: string;
-}
-
 export type { ComponentImporter };
 
 /** A lazy component importer and its optional pre-load mount strategy. */
@@ -52,8 +47,36 @@ export interface ComponentManifestEntry {
 /** `data-component` tokens mapped to the lazy entry which resolves them. */
 export type ComponentManifest = Record<string, ComponentImporter | ComponentManifestEntry>;
 
-interface LoadController {
+/**
+ * The half of the registry which answers for a name. A class mounts on its
+ * strategy; an entry imports on the same one, then registers a class.
+ */
+type ComponentSource = BaseConstructor | ComponentManifestEntry;
+
+/**
+ * A controller's lifetime.
+ *
+ * `live` is the pair's current decision. A spent controller is an import
+ * trigger which has fired: it stays in the map as the memory that its
+ * condition was satisfied, so the controller replacing it once the class
+ * lands does not wait for the very same condition a second time. `disposed`
+ * is set before teardown, so a callback a strategy already queued cannot act
+ * through a controller which is gone.
+ */
+type PairState = 'live' | 'spent' | 'disposed';
+
+/**
+ * One element/component pair, scheduled once whichever half of the registry
+ * owns its name. The hooks handed to the strategy either mount the class or
+ * import the module; everything else — precedence, replacement, teardown,
+ * settlement — is the same algorithm.
+ */
+interface PairController {
   dispose(): void;
+  /** DOM settlement waits for an eager mount or import, never for a condition. */
+  eager: boolean;
+  source: ComponentSource;
+  state: PairState;
   strategy: string;
 }
 
@@ -62,7 +85,6 @@ interface RegistryRuntimeState {
   controllers: WeakMap<Element, Map<string, PairController>>;
   manifest: Map<string, ComponentManifestEntry>;
   imports: Map<string, Promise<void>>;
-  loaders: WeakMap<Element, Map<string, LoadController>>;
   responsiveElements: Set<HTMLElement>;
   unwatchBreakpoints: (() => void) | null;
   responsiveTask: ScheduledTask<void> | null;
@@ -70,15 +92,16 @@ interface RegistryRuntimeState {
   isReplacementListenerAttached: boolean;
 }
 
+// Revision 2: both halves share one controller map, so a copy still keeping
+// its import triggers in a second one cannot share this layout.
 const registryState = /* @__PURE__ */ getSharedRuntimeSlot<RegistryRuntimeState>(
   'registry',
-  1,
+  2,
   () => ({
     registry: new Map(),
     controllers: new WeakMap(),
     manifest: new Map(),
     imports: new Map(),
-    loaders: new WeakMap(),
     responsiveElements: new Set(),
     unwatchBreakpoints: null,
     responsiveTask: null,
@@ -86,7 +109,7 @@ const registryState = /* @__PURE__ */ getSharedRuntimeSlot<RegistryRuntimeState>
     isReplacementListenerAttached: false,
   }),
 );
-const { registry, controllers, manifest, imports, loaders, responsiveElements } = registryState;
+const { registry, controllers, manifest, imports, responsiveElements } = registryState;
 
 /** Distinguish an unbranded class from a callable importer. */
 function isClassLike(value: (...args: never[]) => unknown): boolean {
@@ -332,9 +355,16 @@ function optionAttributes(ComponentClass: BaseConstructor): string[] {
   return [...names];
 }
 
-/** Resolve strategy precedence: element, merged component config, then `eager`. */
-function resolveStrategy(el: Element, ComponentClass: BaseConstructor): string {
-  return el.getAttribute(MOUNT_ATTRIBUTE) ?? resolveConfig(ComponentClass).mountStrategy ?? 'eager';
+/**
+ * Resolve strategy precedence: element, then the default declared by whichever
+ * half of the registry owns the name, then `eager`. A manifest entry states one
+ * for exactly as long as its class cannot be read.
+ */
+function resolveStrategy(el: Element, source: ComponentSource): string {
+  const declared = isBaseConstructor(source)
+    ? resolveConfig(source).mountStrategy
+    : source.mountStrategy;
+  return el.getAttribute(MOUNT_ATTRIBUTE) ?? declared ?? 'eager';
 }
 
 /**
@@ -342,18 +372,13 @@ function resolveStrategy(el: Element, ComponentClass: BaseConstructor): string {
  * waiting for its strategy has no instance yet, so it stays invisible to
  * `$query`, `$closest` and `$watchChildren`, and announces nothing.
  */
-function isCurrentPair(
-  el: HTMLElement,
-  name: string,
-  ComponentClass: BaseConstructor,
-  controller: PairController,
-): boolean {
+function isCurrentPair(el: HTMLElement, name: string, controller: PairController): boolean {
   return (
-    controller.active &&
+    controller.state === 'live' &&
     controllers.get(el)?.get(name) === controller &&
     el.isConnected &&
     declaresComponent(el, name) &&
-    resolveStrategy(el, ComponentClass) === controller.strategy
+    resolveStrategy(el, controller.source) === controller.strategy
   );
 }
 
@@ -363,7 +388,7 @@ function mountPair(
   ComponentClass: BaseConstructor,
   controller: PairController,
 ): void {
-  if (!isCurrentPair(el, name, ComponentClass, controller)) {
+  if (!isCurrentPair(el, name, controller)) {
     return;
   }
   let instance = el[INSTANCES]?.get(name);
@@ -384,15 +409,43 @@ function mountPair(
   }
 }
 
-function destroyPair(
-  el: HTMLElement,
-  name: string,
-  ComponentClass: BaseConstructor,
-  controller: PairController,
-): void {
-  if (isCurrentPair(el, name, ComponentClass, controller)) {
+function destroyPair(el: HTMLElement, name: string, controller: PairController): void {
+  if (isCurrentPair(el, name, controller)) {
     el[INSTANCES]?.get(name)?.$destroy();
   }
+}
+
+/**
+ * Import the class a lazy declaration names, once.
+ *
+ * Importing is one-shot even on a reversible strategy, so the controller
+ * stands down here instead of tearing its own trigger down: `media:` fires
+ * while `applyMountStrategy()` is still running, when no teardown exists yet.
+ * A spent controller fails `isCurrentPair()`, which is what makes a second
+ * trigger inert, and the controller replacing it disposes the strategy.
+ */
+function importPair(el: HTMLElement, name: string, controller: PairController): void {
+  if (!isCurrentPair(el, name, controller)) {
+    return;
+  }
+  controller.state = 'spent';
+  const work = importComponent(name, el);
+  if (controller.eager) {
+    // DOM settlement tracks eager imports only; conditional triggers can remain pending.
+    trackDOMLifecycleWork(work);
+  }
+}
+
+/** The hooks a strategy drives: mount a class, or import the module naming one. */
+function hooksFor(el: HTMLElement, name: string, controller: PairController): MountStrategyHooks {
+  const { source } = controller;
+  if (isBaseConstructor(source)) {
+    return {
+      mount: () => mountPair(el, name, source, controller),
+      destroy: () => destroyPair(el, name, controller),
+    };
+  }
+  return { mount: () => importPair(el, name, controller), destroy() {} };
 }
 
 function disposeController(el: Element, name: string): void {
@@ -401,7 +454,7 @@ function disposeController(el: Element, name: string): void {
   if (!controller) {
     return;
   }
-  controller.active = false;
+  controller.state = 'disposed';
   controller.dispose();
   pairs?.delete(name);
   if (pairs?.size === 0) {
@@ -409,14 +462,31 @@ function disposeController(el: Element, name: string): void {
   }
 }
 
-function schedule(el: HTMLElement, name: string, ComponentClass: BaseConstructor): void {
-  const strategy = resolveStrategy(el, ComponentClass);
-  let pairs = controllers.get(el);
-  const current = pairs?.get(name);
-  if (current?.strategy === strategy) {
+/**
+ * Schedule one element/component pair on the strategy that element resolves
+ * to, whichever half of the registry answers for the name.
+ *
+ * A controller is replaced when the strategy changes and when the source
+ * does — which is how an import lands: `registerComponent()` swaps the entry
+ * for the class, and this pass turns the spent import trigger into a mount
+ * controller for the same pair.
+ */
+function schedule(el: HTMLElement, name: string): void {
+  const source = registry.get(name) ?? manifest.get(name);
+  if (!source) {
     return;
   }
-  if (current) {
+
+  const strategy = resolveStrategy(el, source);
+  let pairs = controllers.get(el);
+  const previous = pairs?.get(name);
+  if (previous?.strategy === strategy && previous.source === source) {
+    return;
+  }
+  // Read before teardown, which marks the controller disposed: a spent
+  // trigger on this very strategy is a condition already satisfied.
+  const wasSatisfied = previous?.state === 'spent' && previous.strategy === strategy;
+  if (previous) {
     disposeController(el, name);
   }
 
@@ -426,16 +496,16 @@ function schedule(el: HTMLElement, name: string, ComponentClass: BaseConstructor
     controllers.set(el, pairs);
   }
 
+  const { eager, reversible } = mountStrategyBehaviour(strategy);
   const controller: PairController = {
-    active: true,
     dispose() {},
+    eager,
+    source,
+    state: 'live',
     strategy,
   };
   pairs.set(name, controller);
-  const applied = applyMountStrategy(el, strategy, {
-    mount: () => mountPair(el, name, ComponentClass, controller),
-    destroy: () => destroyPair(el, name, ComponentClass, controller),
-  });
+  const applied = applyMountStrategy(el, strategy, hooksFor(el, name, controller));
   controller.dispose = applied.dispose;
   if (!applied.valid) {
     reportDiagnostic(
@@ -446,129 +516,14 @@ function schedule(el: HTMLElement, name: string, ComponentClass: BaseConstructor
     );
   }
   trackDOMLifecycleWork(applied.eagerWork);
-}
 
-function disposeLoader(el: Element, name: string): void {
-  const pending = loaders.get(el);
-  const controller = pending?.get(name);
-  if (!controller) {
-    return;
-  }
-  controller.dispose();
-  pending?.delete(name);
-  if (pending?.size === 0) {
-    loaders.delete(el);
-  }
-}
-
-/**
- * Complete a conditional one-shot strategy after its import. Registration
- * applies the loaded class's strategy to the pair. When it resolves to the
- * same one-shot strategy, the condition which started the import already
- * satisfied it, so the new controller mounts without waiting for a second
- * visibility, idle or interaction trigger.
- */
-function completeOneShotLoad(el: HTMLElement, name: string, strategy: string): void {
-  if (
-    strategy !== 'visible' &&
-    !strategy.startsWith('visible:') &&
-    strategy !== 'idle' &&
-    strategy !== 'interaction'
-  ) {
-    return;
-  }
-  const ComponentClass = registry.get(name);
-  const controller = controllers.get(el)?.get(name);
-  if (
-    !ComponentClass ||
-    !controller ||
-    controller.strategy !== strategy ||
-    resolveStrategy(el, ComponentClass) !== strategy
-  ) {
-    return;
-  }
-  controller.dispose();
-  mountPair(el, name, ComponentClass, controller);
-}
-
-/**
- * Wait for one element's declared-but-unloaded component, on the strategy
- * that element resolves to. Importing is one-shot even for a reversible
- * strategy. Once the class is registered, the registry applies its resolved
- * strategy to the pair. A reversible condition is observed again; a matching
- * one-shot condition has already fired and completes immediately.
- */
-function scheduleLoad(el: HTMLElement, name: string): void {
-  const entry = manifest.get(name);
-  if (!entry) {
-    return;
-  }
-
-  const strategy = el.getAttribute(MOUNT_ATTRIBUTE) ?? entry.mountStrategy ?? 'eager';
-  let pending = loaders.get(el);
-  const current = pending?.get(name);
-  if (current?.strategy === strategy) {
-    return;
-  }
-  if (current) {
-    disposeLoader(el, name);
-    pending = loaders.get(el);
-  }
-  if (!pending) {
-    pending = new Map();
-    loaders.set(el, pending);
-  }
-
-  const controller: LoadController = { dispose() {}, strategy };
-  pending.set(name, controller);
-
-  let fired = false;
-  let applied: AppliedMountStrategy | undefined;
-  applied = applyMountStrategy(el, strategy, {
-    mount: () => {
-      if (fired) {
-        return;
-      }
-      fired = true;
-      disposeLoader(el, name);
-      const work = importComponent(name, el);
-      void work.then(() => completeOneShotLoad(el, name, strategy));
-      // DOM settlement tracks eager imports only; conditional triggers can remain pending.
-      if (applied?.eagerWork) {
-        trackDOMLifecycleWork(work);
-      }
-    },
-    destroy() {},
-  });
-  controller.dispose = applied.dispose;
-  if (!applied.valid) {
-    reportDiagnostic(
-      'component.invalid-mount-strategy',
-      `Failed to apply mount strategy "${strategy}" to component "${name}".`,
-      applied.error,
-      { component: name, target: el },
-    );
-  }
-  // `media:` evaluates synchronously, so the trigger may already have fired
-  // against the no-op teardown installed above.
-  if (fired) {
-    applied.dispose();
-  }
-  trackDOMLifecycleWork(applied.eagerWork);
-}
-
-/**
- * Schedule one element/component pair down whichever half of the registry
- * holds the name: a class mounts, a lazy entry loads first.
- */
-function scheduleFor(el: HTMLElement, name: string): void {
-  const ComponentClass = registry.get(name);
-  if (ComponentClass) {
-    // The class arrived; this element no longer needs its import trigger.
-    disposeLoader(el, name);
-    schedule(el, name, ComponentClass);
-  } else if (manifest.has(name)) {
-    scheduleLoad(el, name);
+  // The class this pair just received is here because its own trigger fired.
+  // A one-shot condition cannot fire twice, so waiting for it again would
+  // leave the component unmounted forever; the import is the proof it was
+  // satisfied. A reversible condition is simply observed again.
+  if (wasSatisfied && !reversible && isBaseConstructor(source)) {
+    controller.dispose();
+    mountPair(el, name, source, controller);
   }
 }
 
@@ -582,14 +537,12 @@ function reconcileElement(el: HTMLElement): void {
   const tokens = componentTokens(el);
   const names = new Set<string>([
     ...(controllers.get(el)?.keys() ?? []),
-    ...(loaders.get(el)?.keys() ?? []),
     ...(el[INSTANCES]?.keys() ?? []),
   ]);
 
   for (const name of names) {
     if (!tokens.has(name) && (registry.has(name) || manifest.has(name))) {
       disposeController(el, name);
-      disposeLoader(el, name);
       // Removing a declaration while the element remains is final. Unlike a
       // disconnection, it removes the component identity from this element.
       el[INSTANCES]?.get(name)?.$terminate();
@@ -597,7 +550,7 @@ function reconcileElement(el: HTMLElement): void {
   }
 
   for (const name of tokens) {
-    scheduleFor(el, name);
+    schedule(el, name);
   }
 }
 
@@ -610,7 +563,7 @@ function scan(root: Node): void {
     return;
   }
   for (const el of [root, ...root.querySelectorAll<HTMLElement>('*')]) {
-    if (hasComponentAttribute(el) || el[INSTANCES] || controllers.has(el) || loaders.has(el)) {
+    if (hasComponentAttribute(el) || el[INSTANCES] || controllers.has(el)) {
       reconcileElement(el as HTMLElement);
     }
   }
@@ -642,12 +595,6 @@ function destroyWithin(node: Node, snapshot?: readonly Element[]): void {
     if (pairs) {
       for (const name of pairs.keys()) {
         disposeController(el, name);
-      }
-    }
-    const pending = loaders.get(el);
-    if (pending) {
-      for (const name of pending.keys()) {
-        disposeLoader(el, name);
       }
     }
     if (!el[INSTANCES]) {
