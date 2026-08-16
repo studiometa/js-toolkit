@@ -87,9 +87,12 @@ export function mountedSoFar(): number {
 }
 
 /**
- * A quiet main thread costs one clamped timer round trip. Chromium clamps a
- * nested `setTimeout(0)` to 4 ms, so anything under 8 ms means nothing ran
- * between the probe being posted and it being called.
+ * How long a probe round trip may take and still count as quiet.
+ *
+ * An idle round trip measures 0.1-0.7 ms here, and the shortest unit of work
+ * either version schedules is far above that, so 8 ms separates "nothing ran"
+ * from "something did" with room to spare — including the 4 ms Chromium
+ * clamps a deeply nested `setTimeout(0)` to.
  */
 const QUIET_MS = 8;
 
@@ -125,10 +128,11 @@ function backgroundProbe(): Promise<void> {
  * round trip is repeated until it comes back fast, which can only happen when
  * both queues are empty.
  *
- * The idle round trip is a clamped timer, so every measurement carries a
- * ~4-5 ms tail. It is the same tail on both sides, which understates rather
- * than inflates whichever version is faster. `mount-at-scale.profile.ts`
- * reports the settle time without it.
+ * The idle round trip costs 0.1-0.7 ms, so the tail this adds to a
+ * measurement is not material at any size worth benchmarking — and it is the
+ * same tail on both sides. `mount-at-scale.profile.ts` reports the settle
+ * time and the quiet time separately, so the gap between them is visible
+ * rather than assumed.
  */
 export async function whenMainThreadQuiet(): Promise<void> {
   for (;;) {
