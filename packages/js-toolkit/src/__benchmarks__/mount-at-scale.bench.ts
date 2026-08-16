@@ -8,7 +8,7 @@
  *    title to report a per-component cost.
  * 2. **Between versions, now.** Both run on the same runner, in the same
  *    browser, minutes apart, which is as close to a controlled comparison as
- *    two frameworks that cannot share a document will get.
+ *    two mounting paths sharing one main thread will get.
  *
  * Each version is driven through its **own native path** — v3's document
  * mutation observer feeding `SmartQueue`, v4's observer feeding its
@@ -18,10 +18,14 @@
  * thread — observed from the components, so neither framework's own settle
  * API gets to define away work it defers.
  *
- * **The versions take turns**, v3 first, because they collide on
- * `el.__base__`; see `registerScenario()`. They are therefore in separate
- * groups, and the ratio is read from the report rather than from vitest's
- * per-group summary.
+ * **The versions take turns**, v3 first, and the v4 groups run with v3's
+ * registry emptied. Not because the two cannot coexist — since v4 keys its
+ * instance map with a symbol they share a document safely, which
+ * `packages/v4/src/coexistence.spec.ts` proves — but because a live v3
+ * registry rescans the whole document on every mutation, on the thread the v4
+ * groups are timing. That cost is measured in `releaseDocumentFromV3()`. The
+ * two are therefore in separate groups, and the ratio is read from the report
+ * rather than from vitest's per-group summary.
  *
  * Wall clock alone cannot answer the question `SmartQueue` was written for.
  * `mount-at-scale.profile.ts` reports the blocking profile — total blocking

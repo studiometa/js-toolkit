@@ -11,12 +11,14 @@
  * friends mutate a module-level map, and everything in this file shares
  * one realm, so a global set here would follow every benchmark below it.
  *
- * Neither version is *registered* here, which is what lets the two share
- * a document at all: v3 and v4 both publish their instances on
- * `el.__base__`, and a live v4 registry finds v3's entries there and
- * calls `$destroy()` on them. Mounting is done by hand on both sides.
- * `mount-at-scale.bench.ts` measures the registered paths, and has to
- * give each version the document in turn.
+ * Neither version is *registered* here: mounting is done by hand on both
+ * sides, so no registry scan runs inside a measurement. The two can share
+ * a document safely — v4 keys its instance map with a symbol rather than
+ * the `'__base__'` string v3 uses, which
+ * `packages/v4/src/coexistence.spec.ts` proves — but a live registry
+ * would still charge these benchmarks for work they do not measure.
+ * `mount-at-scale.bench.ts` measures the registered paths, and gives each
+ * version the document in turn for that same reason.
  */
 import { bench, describe } from 'vitest';
 import { Base as BaseV3, type BaseConfig } from '@studiometa/js-toolkit';

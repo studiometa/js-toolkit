@@ -197,8 +197,9 @@ function report(): string {
   return lines.join('\n');
 }
 
-// v3 has to go first: the two versions collide on `el.__base__`, and only v3's
-// registry can be emptied afterwards. See `registerScenario()`.
+// v3 has to go first: only v3's registry can be emptied afterwards, and a live
+// one would rescan the document on every mutation the v4 profiles make. See
+// `releaseDocumentFromV3()`.
 describe.sequential('mount-at-scale blocking profile', () => {
   for (const version of ['v3', 'v4'] as const) {
     for (const size of SIZES) {
