@@ -1,4 +1,5 @@
 export { AbstractTrack, type AbstractTrackProps } from './AbstractTrack.js';
+export { deepmerge, deepmergeAll } from './payload.js';
 export { Track, type TrackProps } from './Track.js';
 export { TrackContext, type TrackContextProps } from './TrackContext.js';
 export {

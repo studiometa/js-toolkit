@@ -1,6 +1,5 @@
 import { Base } from '../../src/index.js';
 import { transition, type ClassesOrStyles } from '../../src/utils/transition.js';
-import { uid } from '../utils/uid.js';
 
 export type AccordionItemStates = Partial<Record<'open' | 'active' | 'closed', ClassesOrStyles>>;
 
@@ -42,12 +41,10 @@ export class AccordionItem extends Base<AccordionItemProps> {
     },
   };
 
-  readonly id = uid('accordion-item');
-
   #isOpen = false;
 
   get contentId(): string {
-    return `content-${this.id}`;
+    return `content-${this.$id}`;
   }
 
   get isOpen(): boolean {
@@ -88,9 +85,9 @@ export class AccordionItem extends Base<AccordionItemProps> {
   mounted() {
     const { btn, content, container } = this.$refs;
 
-    btn.setAttribute('id', this.id);
+    btn.setAttribute('id', this.$id);
     btn.setAttribute('aria-controls', this.contentId);
-    content.setAttribute('aria-labelledby', this.id);
+    content.setAttribute('aria-labelledby', this.$id);
     content.setAttribute('id', this.contentId);
 
     this.#isOpen = this.settings.isOpen;

@@ -1,6 +1,6 @@
+import { useInView } from '../../src/index.js';
 import type { Unsubscribe } from '../../src/index.js';
-import { throttle } from '../utils/throttle.js';
-import { useInView } from '../utils/inView.js';
+import { throttle } from '../../src/utils/timing.js';
 import type { AbstractTrack } from './AbstractTrack.js';
 
 export type Modifier =
@@ -205,11 +205,11 @@ export class TrackEvent {
     if (event === TRACK_PSEUDO_EVENTS.VIEW) {
       let unsubscribe: Unsubscribe | undefined;
       unsubscribe = useInView(track.$el, { threshold: track.$options.threshold }).subscribe(
-        ({ isIntersecting }) => {
-          if (!isIntersecting) {
+        ({ isInView }) => {
+          if (!isInView) {
             return;
           }
-          // `isIntersecting` and not `ratio >= threshold`: the observer's own
+          // `isInView` and not `ratio >= threshold`: the observer's own
           // threshold already controls sensitivity, and comparing ratios would
           // make an impression unreachable for an element taller than the
           // viewport, whose ratio can never approach a non-zero threshold.

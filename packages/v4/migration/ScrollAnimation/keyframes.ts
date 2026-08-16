@@ -1,5 +1,5 @@
 import { clamp01, map } from '../../src/utils/maths.js';
-import { normalizeEasing, type BezierCurve, type EasingFunction } from './easings.js';
+import { normalizeEasing, type BezierCurve, type EasingFunction } from './bezier.js';
 
 /** Pure keyframe-to-style interpolation for scroll animations. */
 

@@ -1,6 +1,5 @@
 import { Base, useRaf, useResize, type MountedReturn } from '../../src/index.js';
 import { damp } from '../../src/utils/maths.js';
-import { uid } from '../utils/uid.js';
 
 export interface SliderItemRect {
   x: number;
@@ -10,8 +9,6 @@ export interface SliderItemRect {
 /** One slide with cached geometry and damped horizontal movement. */
 export class SliderItem extends Base {
   static config = { name: 'SliderItem' };
-
-  readonly id = uid('slider-item');
 
   /** Target position. */
   x = 0;
@@ -35,7 +32,7 @@ export class SliderItem extends Base {
   mounted(): MountedReturn {
     this.$el.setAttribute('role', 'group');
     this.$el.setAttribute('aria-roledescription', 'slide');
-    this.$el.setAttribute('aria-label', this.id);
+    this.$el.setAttribute('aria-label', this.$id);
 
     return [
       useResize().subscribe(() => {
