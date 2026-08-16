@@ -7,6 +7,7 @@ import * as memoModule from './memo.js';
 import * as selectors from './selectors.js';
 import * as smoothToModule from './smoothTo.js';
 import * as strings from './strings.js';
+import * as timing from './timing.js';
 import * as transformModule from './transform.js';
 import type { Memo, SmoothTo, SmoothToOptions, SpringOptions } from './index.js';
 
@@ -20,6 +21,7 @@ describe('the utils barrel', () => {
       ...Object.keys(selectors),
       ...Object.keys(smoothToModule),
       ...Object.keys(strings),
+      ...Object.keys(timing),
       ...Object.keys(transformModule),
     ].sort();
 

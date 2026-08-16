@@ -516,6 +516,18 @@
       "types": "./dist/subpaths/utils/withTrailingSlash.d.ts",
       "import": "./dist/subpaths/utils/withTrailingSlash.js"
     },
+    "./utils/debounce": {
+      "types": "./dist/subpaths/utils/debounce.d.ts",
+      "import": "./dist/subpaths/utils/debounce.js"
+    },
+    "./utils/throttle": {
+      "types": "./dist/subpaths/utils/throttle.d.ts",
+      "import": "./dist/subpaths/utils/throttle.js"
+    },
+    "./utils/wait": {
+      "types": "./dist/subpaths/utils/wait.d.ts",
+      "import": "./dist/subpaths/utils/wait.js"
+    },
     "./utils/matrix": {
       "types": "./dist/subpaths/utils/matrix.d.ts",
       "import": "./dist/subpaths/utils/matrix.js"
