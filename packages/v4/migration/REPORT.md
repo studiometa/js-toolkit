@@ -17,7 +17,7 @@ Eight component families were ported onto v4 to find out what a real migration c
 | `InView`          | `InView`, `InViewOnce`                                                                           | full                           | —                                                                   |
 | `Track`           | `AbstractTrack`, `Track`, `TrackShopify`, `TrackContext`, `TrackEvent`                           | full                           | —                                                                   |
 
-Utilities copied into `migration/utils/`, minimum viable only: `math.ts` (`clamp`, `clamp01`, `map`, `lerp`, `damp` — since promoted into `src/utils/maths.ts`), `easings.ts` (`cubicBezier`, replacing the `@motionone/easing` dependency), `keyframes.ts` (the interpolator carved out of `animate`), `transition.ts` (the `transition()` primitive plus the enter/leave pair two components share), `focus.ts` (`trapFocus`/`untrapFocus`/`saveActiveElement`), `uid.ts` (a `$id` replacement), `throttle.ts` (v3's, verbatim), `deepmerge.ts` (the one merge shape ui's `deepmerge` dependency is used for), and `inView.ts` — **`useInView(el, init)`, the intersection service core does not have**, written on `createService()` because writing it is the measurement (§8b).
+Utilities copied into `migration/utils/`, minimum viable only: `math.ts` (`clamp`, `clamp01`, `map`, `lerp`, `damp` — since promoted into `src/utils/maths.ts`), `easings.ts` (`cubicBezier`, replacing the `@motionone/easing` dependency), `keyframes.ts` (the interpolator carved out of `animate`), `transition.ts` (the `transition()` primitive plus the enter/leave pair two components share — since promoted into `src/utils/transition.ts`), `focus.ts` (`trapFocus`/`untrapFocus`/`saveActiveElement` — since promoted into `src/utils/focus.ts`), `uid.ts` (a `$id` replacement), `throttle.ts` (v3's, verbatim — since ported as `src/utils/timing.ts` and deleted here), `deepmerge.ts` (the one merge shape ui's `deepmerge` dependency is used for), and `inView.ts` — **`useInView(el, init)`, the intersection service core did not have**, written on `createService()` because writing it is the measurement (§8b), and deleted once core shipped `src/services/in-view.ts`.
 
 ## 1. Accordion — `$children` coordinator, option forwarding, ARIA
 
@@ -398,7 +398,9 @@ The mount `IntersectionObserver` in `src/` is inside `applyMountStrategy()`: pri
 
 ### 8b. Writing the missing service — 20 lines, and what they proved
 
-`migration/utils/inView.ts` is `useInView(el, init)` on `createService()`. It could have been `new IntersectionObserver(...)` inside `TrackEvent`, which is what ui does; it is a service because the question worth answering was whether v4's service primitive holds up for a source core does not cover.
+`migration/utils/inView.ts` was `useInView(el, init)` on `createService()`. It could have been `new IntersectionObserver(...)` inside `TrackEvent`, which is what ui does; it is a service because the question worth answering was whether v4's service primitive holds up for a source core does not cover.
+
+**Resolved (2026-08-16):** core answers it — `src/services/in-view.ts` ships `useInView()` and `withInView()`, with a shared runtime slot, callbacks from a disconnected run rejected and the target's own entry picked out of the platform batch. The copy is deleted and `TrackEvent` consumes the core service. What follows is the measurement which argued for it.
 
 **It does, and the definition is 20 lines.** Lazy start, reference counting, the snapshot fan-out, error isolation through the diagnostic protocol, `hasProps()` gating for `{ immediate: true }` — all inherited untouched. `hasProps()` is honestly `false` until the first delivery, which is the right answer for an observer: asking one is not a read the way `getBoundingClientRect()` is.
 
