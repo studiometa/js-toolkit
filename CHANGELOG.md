@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix `Queue` and `SmartQueue` draining in quadratic time, which cost a page of 5 000 components several seconds of mounting: 5 548 ms becomes 294 ms ([#833](https://github.com/studiometa/js-toolkit/pull/833))
+
 ### Removed
 
 - Type-only symbols no longer get a dedicated subpath: the 89 entries such as `@studiometa/js-toolkit/BaseConfig` and `@studiometa/js-toolkit/utils/AnimateOptions` are gone. A subpath exists to stop one runtime import from pulling a whole barrel's graph, and a type import is erased before anything runs, so it never had that cost. Import types from `@studiometa/js-toolkit` or `@studiometa/js-toolkit/utils` instead

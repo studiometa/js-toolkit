@@ -41,16 +41,28 @@ export class SmartQueue extends Queue {
   }
 
   /**
-   * Run the queue.
+   * Run as many tasks as the budget allows, then drop the ones that ran.
+   *
+   * `flush()` hands over the live queue, so this walks it by index and trims
+   * it once instead of draining it with `Array#shift`, whose per-entry cost
+   * makes a deep queue quadratic. Reading `tasks.length` on every turn keeps
+   * work queued by a running task eligible for the same drain, and whatever
+   * the budget leaves behind is what `flush()` reschedules.
    */
   run(tasks: Array<(...args: unknown[]) => unknown>) {
-    let task;
     const start = performance.now();
     let now = start;
-    // eslint-disable-next-line no-cond-assign
-    while (now - start < LONG_TASK_DURATION && (task = tasks.shift())) {
-      task();
-      now = performance.now();
+    let index = 0;
+
+    try {
+      while (now - start < LONG_TASK_DURATION && index < tasks.length) {
+        const task = tasks[index];
+        index += 1;
+        task();
+        now = performance.now();
+      }
+    } finally {
+      tasks.splice(0, index);
     }
   }
 }
