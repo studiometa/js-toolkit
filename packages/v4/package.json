@@ -496,6 +496,18 @@
       "types": "./dist/subpaths/utils/isString.d.ts",
       "import": "./dist/subpaths/utils/isString.js"
     },
+    "./utils/loadImage": {
+      "types": "./dist/subpaths/utils/loadImage.d.ts",
+      "import": "./dist/subpaths/utils/loadImage.js"
+    },
+    "./utils/loadLink": {
+      "types": "./dist/subpaths/utils/loadLink.d.ts",
+      "import": "./dist/subpaths/utils/loadLink.js"
+    },
+    "./utils/loadScript": {
+      "types": "./dist/subpaths/utils/loadScript.d.ts",
+      "import": "./dist/subpaths/utils/loadScript.js"
+    },
     "./utils/clamp": {
       "types": "./dist/subpaths/utils/clamp.d.ts",
       "import": "./dist/subpaths/utils/clamp.js"
