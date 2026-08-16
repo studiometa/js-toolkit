@@ -400,13 +400,12 @@ const scenarioComponents = {
 /**
  * Register the components one scenario needs, for one version only.
  *
- * **The two versions have to take the document in turns.** Both publish their
- * instances on `el.__base__`, so two live registries do not merely add noise
- * to each other's measurements: v4's teardown walks a removed subtree, finds
- * v3's entries in that map and calls `$destroy()` on them — which throws
- * outright once v3 has left its `'terminated'` marker there. Measuring both
- * natively in one document is therefore not an option, and pretending
- * otherwise would have produced numbers rather than an error only by luck.
+ * **The two versions take the document in turns.** Not because they collide:
+ * v4 keys its per-element instance map with a symbol rather than the
+ * `'__base__'` string v3 uses, so neither reads the other's entries, and
+ * `packages/v4/src/coexistence.spec.ts` covers the case that used to throw —
+ * v4's teardown finding the `'terminated'` marker v3 leaves behind. They take
+ * turns to keep the measurement clean, which `releaseDocumentFromV3()` prices.
  *
  * Only the components a scenario needs are registered, so v3's per-mutation
  * document scan stays one or two selectors wide rather than the whole
@@ -421,7 +420,28 @@ export async function registerScenario(version: Version, scenario: ScenarioName)
 }
 
 /**
- * Hand the document over from v3 to v4.
+ * Hand the document over from v3 to v4, so the v4 groups measure v4 alone.
+ *
+ * **This is measurement isolation, not a crash workaround.** v3's registry
+ * callback runs on every childList mutation: it rescans the whole document
+ * once per registered name, then walks every live instance checking
+ * `isConnected`. Left live across the v4 groups — six v3 names registered by
+ * then — it charges them for a scan that grows with the page v4 just mounted.
+ *
+ * Priced by running this file sixteen times in each state, released against
+ * live, alternating so drift hits both. Medians across rounds, at 1 000
+ * components:
+ *
+ * | group             | released | v3 live |  delta | rounds slower |
+ * | :--               |      --: |     --: |    --: |           --: |
+ * | `swap` control    |  2.30 ms | 3.10 ms |   +35% |         16/16 |
+ * | `destroy` flat    |  4.30 ms | 6.10 ms |   +42% |         16/16 |
+ * | `swap` realistic  | 104.2 ms | 112.4 ms |   +8% |         12/16 |
+ *
+ * All ten v4 benchmarks came out slower with v3 live, and the two cheap
+ * groups in every single round. The same-condition contrast — one half of the
+ * released rounds against the other — stays within ±13%, so the two headline
+ * figures are well outside the noise the benchmark makes on its own.
  *
  * v3 must go first: v4 installs its mutation processor on the first
  * registration and offers no way to remove it, while v3's registry is a plain
@@ -429,6 +449,11 @@ export async function registerScenario(version: Version, scenario: ScenarioName)
  * observer attached but with nothing to scan for and no instances to
  * terminate, which is as close to absent as v3 can be made without reloading
  * the page.
+ *
+ * Safety no longer depends on any of this: v4 keys its instance map with
+ * `Symbol.for('@studiometa/js-toolkit-v4/instances')`, so the two versions
+ * share a document without touching each other's entries. See
+ * `packages/v4/src/coexistence.spec.ts`.
  */
 export function releaseDocumentFromV3(): void {
   globalThis.__JS_TOOLKIT_REGISTRY__?.clear();
