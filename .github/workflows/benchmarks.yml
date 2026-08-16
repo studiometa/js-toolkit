@@ -15,8 +15,12 @@ permissions:
 
 jobs:
   benchmarks:
-    name: Run benchmarks
+    name: Run benchmarks (shard ${{ matrix.shard }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/2', '2/2']
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
@@ -29,4 +33,4 @@ jobs:
         uses: CodSpeedHQ/action@v4
         with:
           mode: simulation
-          run: cd packages/js-toolkit && npm exec vitest bench -- --config vitest.bench.config.ts --run
+          run: cd packages/js-toolkit && npm exec vitest bench -- --config vitest.bench.config.ts --run --shard=${{ matrix.shard }}

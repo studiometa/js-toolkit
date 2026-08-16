@@ -15,8 +15,6 @@ export default defineConfig({
   },
   test: {
     environment: 'happy-dom',
-    fileParallelism: true,
-    maxWorkers: 2,
     include: ['src/__benchmarks__/**/*.bench.ts'],
     benchmark: {
       include: ['src/__benchmarks__/**/*.bench.ts'],
