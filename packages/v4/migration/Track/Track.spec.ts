@@ -577,13 +577,13 @@ describe('the intersection service under load', () => {
     const built = await countObservers(async () => {
       const root = await render(`<div style="${ONSCREEN};height:200px" id="probe"></div>`);
       const el = root.querySelector('#probe') as HTMLElement;
-      const { useInView } = await import('../utils/inView.js');
+      const { useInView } = await import('../../src/index.js');
 
-      useInView(el, { threshold: 0 }).subscribe(({ ratio }) => {
-        firstRatio = ratio;
+      useInView(el, { threshold: 0 }).subscribe(({ entry }) => {
+        firstRatio = entry?.intersectionRatio ?? -1;
       });
-      useInView(el, { threshold: 0.9 }).subscribe(({ ratio }) => {
-        secondRatio = ratio;
+      useInView(el, { threshold: 0.9 }).subscribe(({ entry }) => {
+        secondRatio = entry?.intersectionRatio ?? -1;
       });
       await observed();
     });
