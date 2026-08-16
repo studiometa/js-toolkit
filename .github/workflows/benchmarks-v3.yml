@@ -27,6 +27,13 @@ on:
       - main
     paths:
       - 'packages/js-toolkit/**'
+      # The cross-version benchmark imports v4's sources and reuses its SWC
+      # decorator plugin, so a v4-only change moves half of what this suite
+      # measures. Without these, the one comparison that can catch a v4
+      # mounting regression against v3 would skip the pull requests most
+      # likely to cause one.
+      - 'packages/v4/src/**'
+      - 'packages/v4/vite-plugin-decorators.js'
       - 'package-lock.json'
       - '.github/actions/bench-diff/**'
       - '.github/workflows/benchmarks-v3.yml'
