@@ -1,10 +1,13 @@
+import { getSharedRuntimeSlot } from '../shared-runtime.js';
+
+/** What tab navigation can reach, in document order. */
 const FOCUSABLE = [
   'a[href]:not([tabindex^="-"]):not([inert])',
   'area[href]:not([tabindex^="-"]):not([inert])',
-  'input:not([disabled]):not([inert])',
-  'select:not([disabled]):not([inert])',
-  'textarea:not([disabled]):not([inert])',
-  'button:not([disabled]):not([inert])',
+  'input:not([disabled]):not([tabindex^="-"]):not([inert])',
+  'select:not([disabled]):not([tabindex^="-"]):not([inert])',
+  'textarea:not([disabled]):not([tabindex^="-"]):not([inert])',
+  'button:not([disabled]):not([tabindex^="-"]):not([inert])',
   'iframe:not([tabindex^="-"]):not([inert])',
   'audio:not([tabindex^="-"]):not([inert])',
   'video:not([tabindex^="-"]):not([inert])',
@@ -12,13 +15,19 @@ const FOCUSABLE = [
   '[tabindex]:not([tabindex^="-"]):not([inert])',
 ].join(', ');
 
-let focusedBefore: Element | null = null;
+/**
+ * What had the focus before the trap. There is one focus on the page, so
+ * evaluated package copies must save and restore through the same slot.
+ */
+const state = /* @__PURE__ */ getSharedRuntimeSlot('focus', 1, () => ({
+  focusedBefore: null as Element | null,
+}));
 
 /**
  * Remember what had the focus, to restore it later.
  */
 export function saveActiveElement(): void {
-  focusedBefore = document.activeElement;
+  state.focusedBefore = document.activeElement;
 }
 
 /**
@@ -29,7 +38,7 @@ export function trapFocus(el: HTMLElement, event: KeyboardEvent): void {
     return;
   }
 
-  focusedBefore ??= document.activeElement;
+  state.focusedBefore ??= document.activeElement;
 
   const focusable = [...el.querySelectorAll<HTMLElement>(FOCUSABLE)];
   if (focusable.length === 0) {
@@ -58,8 +67,8 @@ export function trapFocus(el: HTMLElement, event: KeyboardEvent): void {
  * Give the focus back to whatever had it before the trap.
  */
 export function untrapFocus(): void {
-  if (focusedBefore instanceof HTMLElement) {
-    focusedBefore.focus();
+  if (state.focusedBefore instanceof HTMLElement) {
+    state.focusedBefore.focus();
   }
-  focusedBefore = null;
+  state.focusedBefore = null;
 }

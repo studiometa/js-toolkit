@@ -1,20 +1,38 @@
 import { describe, expect, it } from 'vitest';
 import * as barrel from './index.js';
+import * as dom from './dom.js';
+import * as easings from './easings.js';
+import * as focus from './focus.js';
+import * as historyModule from './history.js';
+import * as is from './is.js';
 import * as maths from './maths.js';
 import * as memoModule from './memo.js';
+import * as randomModule from './random.js';
 import * as selectors from './selectors.js';
 import * as smoothToModule from './smoothTo.js';
 import * as strings from './strings.js';
+import * as timing from './timing.js';
+import * as transformModule from './transform.js';
+import * as transitionModule from './transition.js';
 import type { Memo, SmoothTo, SmoothToOptions, SpringOptions } from './index.js';
 
 describe('the utils barrel', () => {
   it('names every runtime export of every module it fronts', () => {
     const expected = [
+      ...Object.keys(dom),
+      ...Object.keys(easings),
+      ...Object.keys(focus),
+      ...Object.keys(historyModule),
+      ...Object.keys(is),
       ...Object.keys(maths),
       ...Object.keys(memoModule),
+      ...Object.keys(randomModule),
       ...Object.keys(selectors),
       ...Object.keys(smoothToModule),
       ...Object.keys(strings),
+      ...Object.keys(timing),
+      ...Object.keys(transformModule),
+      ...Object.keys(transitionModule),
     ].sort();
 
     expect(Object.keys(barrel).sort()).toEqual(expected);

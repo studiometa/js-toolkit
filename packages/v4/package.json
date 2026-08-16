@@ -336,6 +336,158 @@
       "types": "./dist/subpaths/viewTransition.d.ts",
       "import": "./dist/subpaths/viewTransition.js"
     },
+    "./utils/createElement": {
+      "types": "./dist/subpaths/utils/createElement.d.ts",
+      "import": "./dist/subpaths/utils/createElement.js"
+    },
+    "./utils/createEaseInOut": {
+      "types": "./dist/subpaths/utils/createEaseInOut.d.ts",
+      "import": "./dist/subpaths/utils/createEaseInOut.js"
+    },
+    "./utils/createEaseOut": {
+      "types": "./dist/subpaths/utils/createEaseOut.d.ts",
+      "import": "./dist/subpaths/utils/createEaseOut.js"
+    },
+    "./utils/easeInCirc": {
+      "types": "./dist/subpaths/utils/easeInCirc.d.ts",
+      "import": "./dist/subpaths/utils/easeInCirc.js"
+    },
+    "./utils/easeInCubic": {
+      "types": "./dist/subpaths/utils/easeInCubic.d.ts",
+      "import": "./dist/subpaths/utils/easeInCubic.js"
+    },
+    "./utils/easeInExpo": {
+      "types": "./dist/subpaths/utils/easeInExpo.d.ts",
+      "import": "./dist/subpaths/utils/easeInExpo.js"
+    },
+    "./utils/easeInOutCirc": {
+      "types": "./dist/subpaths/utils/easeInOutCirc.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutCirc.js"
+    },
+    "./utils/easeInOutCubic": {
+      "types": "./dist/subpaths/utils/easeInOutCubic.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutCubic.js"
+    },
+    "./utils/easeInOutExpo": {
+      "types": "./dist/subpaths/utils/easeInOutExpo.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutExpo.js"
+    },
+    "./utils/easeInOutQuad": {
+      "types": "./dist/subpaths/utils/easeInOutQuad.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutQuad.js"
+    },
+    "./utils/easeInOutQuart": {
+      "types": "./dist/subpaths/utils/easeInOutQuart.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutQuart.js"
+    },
+    "./utils/easeInOutQuint": {
+      "types": "./dist/subpaths/utils/easeInOutQuint.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutQuint.js"
+    },
+    "./utils/easeInOutSine": {
+      "types": "./dist/subpaths/utils/easeInOutSine.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutSine.js"
+    },
+    "./utils/easeInQuad": {
+      "types": "./dist/subpaths/utils/easeInQuad.d.ts",
+      "import": "./dist/subpaths/utils/easeInQuad.js"
+    },
+    "./utils/easeInQuart": {
+      "types": "./dist/subpaths/utils/easeInQuart.d.ts",
+      "import": "./dist/subpaths/utils/easeInQuart.js"
+    },
+    "./utils/easeInQuint": {
+      "types": "./dist/subpaths/utils/easeInQuint.d.ts",
+      "import": "./dist/subpaths/utils/easeInQuint.js"
+    },
+    "./utils/easeInSine": {
+      "types": "./dist/subpaths/utils/easeInSine.d.ts",
+      "import": "./dist/subpaths/utils/easeInSine.js"
+    },
+    "./utils/easeLinear": {
+      "types": "./dist/subpaths/utils/easeLinear.d.ts",
+      "import": "./dist/subpaths/utils/easeLinear.js"
+    },
+    "./utils/easeOutCirc": {
+      "types": "./dist/subpaths/utils/easeOutCirc.d.ts",
+      "import": "./dist/subpaths/utils/easeOutCirc.js"
+    },
+    "./utils/easeOutCubic": {
+      "types": "./dist/subpaths/utils/easeOutCubic.d.ts",
+      "import": "./dist/subpaths/utils/easeOutCubic.js"
+    },
+    "./utils/easeOutExpo": {
+      "types": "./dist/subpaths/utils/easeOutExpo.d.ts",
+      "import": "./dist/subpaths/utils/easeOutExpo.js"
+    },
+    "./utils/easeOutQuad": {
+      "types": "./dist/subpaths/utils/easeOutQuad.d.ts",
+      "import": "./dist/subpaths/utils/easeOutQuad.js"
+    },
+    "./utils/easeOutQuart": {
+      "types": "./dist/subpaths/utils/easeOutQuart.d.ts",
+      "import": "./dist/subpaths/utils/easeOutQuart.js"
+    },
+    "./utils/easeOutQuint": {
+      "types": "./dist/subpaths/utils/easeOutQuint.d.ts",
+      "import": "./dist/subpaths/utils/easeOutQuint.js"
+    },
+    "./utils/easeOutSine": {
+      "types": "./dist/subpaths/utils/easeOutSine.d.ts",
+      "import": "./dist/subpaths/utils/easeOutSine.js"
+    },
+    "./utils/saveActiveElement": {
+      "types": "./dist/subpaths/utils/saveActiveElement.d.ts",
+      "import": "./dist/subpaths/utils/saveActiveElement.js"
+    },
+    "./utils/trapFocus": {
+      "types": "./dist/subpaths/utils/trapFocus.d.ts",
+      "import": "./dist/subpaths/utils/trapFocus.js"
+    },
+    "./utils/untrapFocus": {
+      "types": "./dist/subpaths/utils/untrapFocus.d.ts",
+      "import": "./dist/subpaths/utils/untrapFocus.js"
+    },
+    "./utils/historyPush": {
+      "types": "./dist/subpaths/utils/historyPush.d.ts",
+      "import": "./dist/subpaths/utils/historyPush.js"
+    },
+    "./utils/historyReplace": {
+      "types": "./dist/subpaths/utils/historyReplace.d.ts",
+      "import": "./dist/subpaths/utils/historyReplace.js"
+    },
+    "./utils/objectToURLSearchParams": {
+      "types": "./dist/subpaths/utils/objectToURLSearchParams.d.ts",
+      "import": "./dist/subpaths/utils/objectToURLSearchParams.js"
+    },
+    "./utils/isBoolean": {
+      "types": "./dist/subpaths/utils/isBoolean.d.ts",
+      "import": "./dist/subpaths/utils/isBoolean.js"
+    },
+    "./utils/isDefined": {
+      "types": "./dist/subpaths/utils/isDefined.d.ts",
+      "import": "./dist/subpaths/utils/isDefined.js"
+    },
+    "./utils/isFunction": {
+      "types": "./dist/subpaths/utils/isFunction.d.ts",
+      "import": "./dist/subpaths/utils/isFunction.js"
+    },
+    "./utils/isNull": {
+      "types": "./dist/subpaths/utils/isNull.d.ts",
+      "import": "./dist/subpaths/utils/isNull.js"
+    },
+    "./utils/isNumber": {
+      "types": "./dist/subpaths/utils/isNumber.d.ts",
+      "import": "./dist/subpaths/utils/isNumber.js"
+    },
+    "./utils/isObject": {
+      "types": "./dist/subpaths/utils/isObject.d.ts",
+      "import": "./dist/subpaths/utils/isObject.js"
+    },
+    "./utils/isString": {
+      "types": "./dist/subpaths/utils/isString.d.ts",
+      "import": "./dist/subpaths/utils/isString.js"
+    },
     "./utils/clamp": {
       "types": "./dist/subpaths/utils/clamp.d.ts",
       "import": "./dist/subpaths/utils/clamp.js"
@@ -348,6 +500,10 @@
       "types": "./dist/subpaths/utils/clampDampFactor.d.ts",
       "import": "./dist/subpaths/utils/clampDampFactor.js"
     },
+    "./utils/createRange": {
+      "types": "./dist/subpaths/utils/createRange.d.ts",
+      "import": "./dist/subpaths/utils/createRange.js"
+    },
     "./utils/damp": {
       "types": "./dist/subpaths/utils/damp.d.ts",
       "import": "./dist/subpaths/utils/damp.js"
@@ -359,6 +515,10 @@
     "./utils/DEFAULT_DAMP_FACTOR": {
       "types": "./dist/subpaths/utils/DEFAULT_DAMP_FACTOR.d.ts",
       "import": "./dist/subpaths/utils/DEFAULT_DAMP_FACTOR.js"
+    },
+    "./utils/fold": {
+      "types": "./dist/subpaths/utils/fold.d.ts",
+      "import": "./dist/subpaths/utils/fold.js"
     },
     "./utils/inertiaDecay": {
       "types": "./dist/subpaths/utils/inertiaDecay.d.ts",
@@ -392,13 +552,37 @@
       "types": "./dist/subpaths/utils/MAX_SPRING_RATIO.d.ts",
       "import": "./dist/subpaths/utils/MAX_SPRING_RATIO.js"
     },
+    "./utils/mean": {
+      "types": "./dist/subpaths/utils/mean.d.ts",
+      "import": "./dist/subpaths/utils/mean.js"
+    },
+    "./utils/round": {
+      "types": "./dist/subpaths/utils/round.d.ts",
+      "import": "./dist/subpaths/utils/round.js"
+    },
     "./utils/spring": {
       "types": "./dist/subpaths/utils/spring.d.ts",
       "import": "./dist/subpaths/utils/spring.js"
     },
+    "./utils/wrap": {
+      "types": "./dist/subpaths/utils/wrap.d.ts",
+      "import": "./dist/subpaths/utils/wrap.js"
+    },
     "./utils/memo": {
       "types": "./dist/subpaths/utils/memo.d.ts",
       "import": "./dist/subpaths/utils/memo.js"
+    },
+    "./utils/random": {
+      "types": "./dist/subpaths/utils/random.d.ts",
+      "import": "./dist/subpaths/utils/random.js"
+    },
+    "./utils/randomInt": {
+      "types": "./dist/subpaths/utils/randomInt.d.ts",
+      "import": "./dist/subpaths/utils/randomInt.js"
+    },
+    "./utils/randomItem": {
+      "types": "./dist/subpaths/utils/randomItem.d.ts",
+      "import": "./dist/subpaths/utils/randomItem.js"
     },
     "./utils/selectorFor": {
       "types": "./dist/subpaths/utils/selectorFor.d.ts",
@@ -408,13 +592,117 @@
       "types": "./dist/subpaths/utils/smoothTo.d.ts",
       "import": "./dist/subpaths/utils/smoothTo.js"
     },
+    "./utils/camelCase": {
+      "types": "./dist/subpaths/utils/camelCase.d.ts",
+      "import": "./dist/subpaths/utils/camelCase.js"
+    },
+    "./utils/capitalize": {
+      "types": "./dist/subpaths/utils/capitalize.d.ts",
+      "import": "./dist/subpaths/utils/capitalize.js"
+    },
     "./utils/kebabCase": {
       "types": "./dist/subpaths/utils/kebabCase.d.ts",
       "import": "./dist/subpaths/utils/kebabCase.js"
     },
+    "./utils/lowerCase": {
+      "types": "./dist/subpaths/utils/lowerCase.d.ts",
+      "import": "./dist/subpaths/utils/lowerCase.js"
+    },
     "./utils/pascalCase": {
       "types": "./dist/subpaths/utils/pascalCase.d.ts",
       "import": "./dist/subpaths/utils/pascalCase.js"
+    },
+    "./utils/snakeCase": {
+      "types": "./dist/subpaths/utils/snakeCase.d.ts",
+      "import": "./dist/subpaths/utils/snakeCase.js"
+    },
+    "./utils/upperCase": {
+      "types": "./dist/subpaths/utils/upperCase.d.ts",
+      "import": "./dist/subpaths/utils/upperCase.js"
+    },
+    "./utils/withLeadingCharacters": {
+      "types": "./dist/subpaths/utils/withLeadingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withLeadingCharacters.js"
+    },
+    "./utils/withLeadingSlash": {
+      "types": "./dist/subpaths/utils/withLeadingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withLeadingSlash.js"
+    },
+    "./utils/withoutLeadingCharacters": {
+      "types": "./dist/subpaths/utils/withoutLeadingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withoutLeadingCharacters.js"
+    },
+    "./utils/withoutLeadingCharactersRecursive": {
+      "types": "./dist/subpaths/utils/withoutLeadingCharactersRecursive.d.ts",
+      "import": "./dist/subpaths/utils/withoutLeadingCharactersRecursive.js"
+    },
+    "./utils/withoutLeadingSlash": {
+      "types": "./dist/subpaths/utils/withoutLeadingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withoutLeadingSlash.js"
+    },
+    "./utils/withoutTrailingCharacters": {
+      "types": "./dist/subpaths/utils/withoutTrailingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withoutTrailingCharacters.js"
+    },
+    "./utils/withoutTrailingCharactersRecursive": {
+      "types": "./dist/subpaths/utils/withoutTrailingCharactersRecursive.d.ts",
+      "import": "./dist/subpaths/utils/withoutTrailingCharactersRecursive.js"
+    },
+    "./utils/withoutTrailingSlash": {
+      "types": "./dist/subpaths/utils/withoutTrailingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withoutTrailingSlash.js"
+    },
+    "./utils/withTrailingCharacters": {
+      "types": "./dist/subpaths/utils/withTrailingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withTrailingCharacters.js"
+    },
+    "./utils/withTrailingSlash": {
+      "types": "./dist/subpaths/utils/withTrailingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withTrailingSlash.js"
+    },
+    "./utils/debounce": {
+      "types": "./dist/subpaths/utils/debounce.d.ts",
+      "import": "./dist/subpaths/utils/debounce.js"
+    },
+    "./utils/throttle": {
+      "types": "./dist/subpaths/utils/throttle.d.ts",
+      "import": "./dist/subpaths/utils/throttle.js"
+    },
+    "./utils/wait": {
+      "types": "./dist/subpaths/utils/wait.d.ts",
+      "import": "./dist/subpaths/utils/wait.js"
+    },
+    "./utils/enterTransition": {
+      "types": "./dist/subpaths/utils/enterTransition.d.ts",
+      "import": "./dist/subpaths/utils/enterTransition.js"
+    },
+    "./utils/leaveTransition": {
+      "types": "./dist/subpaths/utils/leaveTransition.d.ts",
+      "import": "./dist/subpaths/utils/leaveTransition.js"
+    },
+    "./utils/setClassesOrStyles": {
+      "types": "./dist/subpaths/utils/setClassesOrStyles.d.ts",
+      "import": "./dist/subpaths/utils/setClassesOrStyles.js"
+    },
+    "./utils/transition": {
+      "types": "./dist/subpaths/utils/transition.d.ts",
+      "import": "./dist/subpaths/utils/transition.js"
+    },
+    "./utils/TRANSITION_OPTIONS": {
+      "types": "./dist/subpaths/utils/TRANSITION_OPTIONS.d.ts",
+      "import": "./dist/subpaths/utils/TRANSITION_OPTIONS.js"
+    },
+    "./utils/matrix": {
+      "types": "./dist/subpaths/utils/matrix.d.ts",
+      "import": "./dist/subpaths/utils/matrix.js"
+    },
+    "./utils/transform": {
+      "types": "./dist/subpaths/utils/transform.d.ts",
+      "import": "./dist/subpaths/utils/transform.js"
+    },
+    "./utils/TRANSFORM_PROPS": {
+      "types": "./dist/subpaths/utils/TRANSFORM_PROPS.d.ts",
+      "import": "./dist/subpaths/utils/TRANSFORM_PROPS.js"
     }
   },
   "scripts": {

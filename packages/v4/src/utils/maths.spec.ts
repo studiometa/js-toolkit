@@ -11,6 +11,11 @@ import {
   damp,
   MAX_SPRING_RATIO,
   spring,
+  wrap,
+  fold,
+  round,
+  mean,
+  createRange,
 } from './maths.js';
 
 describe('clampDampFactor', () => {
@@ -323,5 +328,101 @@ describe('spring', () => {
       elapsed += INERTIA_FRAME;
     }
     expect(elapsed).toBeGreaterThan(stiff.elapsed);
+  });
+});
+
+describe('wrap', () => {
+  it('keeps an in-range value, and wraps the max onto the min', () => {
+    expect(wrap(5, 0, 10)).toBe(5);
+    expect(wrap(0, 0, 10)).toBe(0);
+    expect(wrap(10, 0, 10)).toBe(0);
+  });
+
+  it('wraps above and below, over any number of cycles', () => {
+    expect(wrap(15, 0, 10)).toBe(5);
+    expect(wrap(25, 0, 10)).toBe(5);
+    expect(wrap(-5, 0, 10)).toBe(5);
+    expect(wrap(1005, 0, 100)).toBe(5);
+  });
+
+  it('supports a negative range and fractional values', () => {
+    expect(wrap(-15, -10, 0)).toBe(-5);
+    expect(wrap(12, -5, 5)).toBe(2);
+    expect(wrap(2.3, 0, 1)).toBeCloseTo(0.3, 10);
+  });
+
+  it('collapses an empty range, and passes a non-finite one through', () => {
+    expect(wrap(5, 0, 0)).toBe(0);
+    expect(wrap(5, 0, Number.POSITIVE_INFINITY)).toBe(5);
+  });
+});
+
+describe('fold', () => {
+  it('keeps an in-range value, bounds included', () => {
+    expect(fold(1, 0, 2)).toBe(1);
+    expect(fold(0, 0, 2)).toBe(0);
+    expect(fold(2, 0, 2)).toBe(2);
+  });
+
+  it('reflects off both bounds, over any number of cycles', () => {
+    expect(fold(3, 0, 2)).toBe(1);
+    expect(fold(4, 0, 2)).toBe(0);
+    expect(fold(-1, 0, 2)).toBe(1);
+    expect(fold(6, 0, 2)).toBe(2);
+    expect(fold(-5, 0, 2)).toBe(1);
+  });
+
+  it('supports a shifted range and fractional values', () => {
+    expect(fold(7, 2, 4)).toBe(3);
+    expect(fold(-15, -10, 0)).toBe(-5);
+    expect(fold(1.5, 0, 1)).toBeCloseTo(0.5, 10);
+  });
+
+  it('returns the min for a range with nothing in it', () => {
+    expect(fold(5, 2, 2)).toBe(2);
+    expect(fold(5, 4, 2)).toBe(4);
+    expect(fold(5, 0, Number.POSITIVE_INFINITY)).toBe(0);
+  });
+});
+
+describe('round', () => {
+  it('rounds to the given number of decimals', () => {
+    expect(round(1.4)).toBe(1);
+    expect(round(1.5)).toBe(2);
+    expect(round(1.2345, 2)).toBe(1.23);
+    expect(round(-1.005, 2)).toBe(-1);
+  });
+});
+
+describe('mean', () => {
+  it('averages the given numbers', () => {
+    expect(mean([1, 2, 3])).toBe(2);
+    expect(mean([2])).toBe(2);
+    expect(mean([])).toBe(0);
+  });
+});
+
+describe('createRange', () => {
+  it('lists the values one step apart, bounds included', () => {
+    expect(createRange(0, 4, 1)).toEqual([0, 1, 2, 3, 4]);
+    expect(createRange(0, 5, 2)).toEqual([0, 2, 4]);
+    expect(createRange(-2, 2, 2)).toEqual([-2, 0, 2]);
+  });
+
+  it('does not accumulate error on a fractional step', () => {
+    const range = createRange(0, 1, 0.1);
+    expect(range).toHaveLength(11);
+    for (const [index, value] of range.entries()) {
+      expect(value).toBeCloseTo(index / 10, 12);
+    }
+    // Accumulating the step instead ends at 0.9999999999999999.
+    expect(range.at(-1)).toBe(1);
+  });
+
+  it('returns nothing for a range no step describes', () => {
+    expect(createRange(0, 10, 0)).toEqual([]);
+    expect(createRange(0, 10, -1)).toEqual([]);
+    expect(createRange(10, 0, 1)).toEqual([]);
+    expect(createRange(0, Number.POSITIVE_INFINITY, 1)).toEqual([]);
   });
 });

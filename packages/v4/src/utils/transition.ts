@@ -1,5 +1,5 @@
-import { nextFrame } from '../../src/index.js';
-import type { OptionDefinition } from '../../src/index.js';
+import type { OptionDefinition } from '../Base.js';
+import { nextFrame } from '../scheduler.js';
 
 /**
  * CSS transition helpers for class names or inline styles. Apply `from`, then
@@ -14,21 +14,13 @@ export interface TransitionStyles {
   to?: ClassesOrStyles;
 }
 
-interface TransitionState {
-  isTransitioning: boolean;
-  onEnd: (() => void) | null;
+/** The run in progress on an element, which a new one interrupts. */
+interface TransitionRun {
+  aborted: boolean;
+  abort: () => void;
 }
 
-const states = new WeakMap<HTMLElement, TransitionState>();
-
-function stateFor(el: HTMLElement): TransitionState {
-  let state = states.get(el);
-  if (!state) {
-    state = { isTransitioning: false, onEnd: null };
-    states.set(el, state);
-  }
-  return state;
-}
+const runs = new WeakMap<HTMLElement, TransitionRun>();
 
 function toClassList(value: string | string[]): string[] {
   return (Array.isArray(value) ? value : value.split(' ')).filter(Boolean);
@@ -57,21 +49,12 @@ function hasTransition(el: HTMLElement): boolean {
   return Boolean(transitionDuration) && transitionDuration !== '0s';
 }
 
-function end(el: HTMLElement, classesOrStyles: TransitionStyles, mode: 'keep' | 'remove'): void {
-  const state = stateFor(el);
-  if (state.onEnd) {
-    el.removeEventListener('transitionend', state.onEnd);
-  }
-  if (mode === 'remove') {
-    setClassesOrStyles(el, classesOrStyles.to, 'remove');
-  }
-  setClassesOrStyles(el, classesOrStyles.active, 'remove');
-  state.isTransitioning = false;
-  state.onEnd = null;
-}
-
 /**
  * Run a CSS transition on an element.
+ *
+ * A transition started while another one runs on the same element interrupts
+ * it: the interrupted one removes what it applied and resolves, so a caller
+ * awaiting it is never left waiting for an end which will not come.
  *
  * @param mode Whether the `to` state is kept or removed at the end.
  */
@@ -89,31 +72,59 @@ export async function transition(
         }
       : { from: '', active: '', to: '', ...nameOrStyles };
 
-  const state = stateFor(el);
-  if (state.isTransitioning) {
-    end(el, classesOrStyles, 'remove');
-  }
+  runs.get(el)?.abort();
 
-  state.isTransitioning = true;
-  setClassesOrStyles(el, classesOrStyles.from);
-  await nextFrame();
-  setClassesOrStyles(el, classesOrStyles.active);
-
-  await new Promise<void>((resolve) => {
-    if (hasTransition(el)) {
-      state.onEnd = () => resolve();
-      el.addEventListener('transitionend', state.onEnd);
-    }
-    setClassesOrStyles(el, classesOrStyles.from, 'remove');
-    setClassesOrStyles(el, classesOrStyles.to);
-    nextFrame().then(() => {
-      if (!state.onEnd) {
-        resolve();
-      }
-    });
+  let onEnd: (() => void) | null = null;
+  let settle: () => void;
+  const ended = new Promise<void>((resolve) => {
+    settle = resolve;
   });
 
-  end(el, classesOrStyles, mode);
+  /** Drop the listener, the `active` state and, unless kept, the `to` state. */
+  function end(endMode: 'keep' | 'remove'): void {
+    if (runs.get(el) === run) {
+      runs.delete(el);
+    }
+    if (onEnd) {
+      el.removeEventListener('transitionend', onEnd);
+      onEnd = null;
+    }
+    if (endMode === 'remove') {
+      setClassesOrStyles(el, classesOrStyles.to, 'remove');
+    }
+    setClassesOrStyles(el, classesOrStyles.active, 'remove');
+  }
+
+  const run: TransitionRun = {
+    aborted: false,
+    abort() {
+      run.aborted = true;
+      end('remove');
+      settle();
+    },
+  };
+  runs.set(el, run);
+
+  setClassesOrStyles(el, classesOrStyles.from);
+  await nextFrame();
+  if (run.aborted) return;
+
+  setClassesOrStyles(el, classesOrStyles.active);
+
+  if (hasTransition(el)) {
+    onEnd = () => settle();
+    el.addEventListener('transitionend', onEnd);
+  }
+  setClassesOrStyles(el, classesOrStyles.from, 'remove');
+  setClassesOrStyles(el, classesOrStyles.to);
+  if (!onEnd) {
+    nextFrame().then(() => settle());
+  }
+
+  await ended;
+  if (run.aborted) return;
+
+  end(mode);
 }
 
 /** Shared transition option definitions. */

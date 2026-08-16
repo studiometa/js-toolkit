@@ -1,7 +1,7 @@
 import { Base, type ChildrenCollection } from '../../src/index.js';
 import { Transition, type Transitionable } from '../Transition/Transition.js';
 import { ViewTransition } from '../Transition/ViewTransition.js';
-import { saveActiveElement, trapFocus, untrapFocus } from '../utils/focus.js';
+import { saveActiveElement, trapFocus, untrapFocus } from '../../src/utils/focus.js';
 
 export interface DialogProps {
   $el: HTMLDialogElement;

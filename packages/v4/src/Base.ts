@@ -16,7 +16,7 @@ import {
 import type { MountStrategy } from './mount-strategies.js';
 import { memo } from './utils/memo.js';
 import { selectorFor } from './utils/selectors.js';
-import { kebabCase, pascalCase } from './utils/strings.js';
+import { capitalize, kebabCase } from './utils/strings.js';
 
 const REGEX_HANDLER = /^on[A-Z]/;
 
@@ -668,7 +668,7 @@ const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan =>
       return { kind: 'global', method, type: global.type, target: global.target };
     }
     const startsWith = (name: string) =>
-      rest.startsWith(pascalCase(name)) && rest.length > name.length;
+      rest.startsWith(capitalize(name)) && rest.length > name.length;
     const childName = childNames.find(startsWith);
     if (childName) {
       return {
@@ -1171,7 +1171,7 @@ export class Base<T extends BaseProps = BaseProps> {
     let announces = false;
     for (const name of readers.keys()) {
       announces ||=
-        typeof (this as unknown as Record<string, unknown>)[`option${pascalCase(name)}Changed`] ===
+        typeof (this as unknown as Record<string, unknown>)[`option${capitalize(name)}Changed`] ===
         'function';
     }
     if (!announces) {
@@ -1213,7 +1213,7 @@ export class Base<T extends BaseProps = BaseProps> {
       return;
     }
 
-    const method = `option${pascalCase(name)}Changed`;
+    const method = `option${capitalize(name)}Changed`;
     const handler = (this as unknown as Record<string, unknown>)[method];
     if (typeof handler !== 'function') {
       return;
