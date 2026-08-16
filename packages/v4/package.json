@@ -436,6 +436,18 @@
       "types": "./dist/subpaths/utils/easeOutSine.d.ts",
       "import": "./dist/subpaths/utils/easeOutSine.js"
     },
+    "./utils/saveActiveElement": {
+      "types": "./dist/subpaths/utils/saveActiveElement.d.ts",
+      "import": "./dist/subpaths/utils/saveActiveElement.js"
+    },
+    "./utils/trapFocus": {
+      "types": "./dist/subpaths/utils/trapFocus.d.ts",
+      "import": "./dist/subpaths/utils/trapFocus.js"
+    },
+    "./utils/untrapFocus": {
+      "types": "./dist/subpaths/utils/untrapFocus.d.ts",
+      "import": "./dist/subpaths/utils/untrapFocus.js"
+    },
     "./utils/historyPush": {
       "types": "./dist/subpaths/utils/historyPush.d.ts",
       "import": "./dist/subpaths/utils/historyPush.js"

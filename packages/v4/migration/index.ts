@@ -12,7 +12,6 @@ export * from './Track/index.js';
 export * from './Transition/index.js';
 export * from './utils/deepmerge.js';
 export * from './utils/easings.js';
-export * from './utils/focus.js';
 export * from './utils/inView.js';
 export * from './utils/keyframes.js';
 export * from '../src/utils/maths.js';

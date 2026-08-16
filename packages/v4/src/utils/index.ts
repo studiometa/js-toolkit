@@ -28,6 +28,7 @@ export {
   easeOutSine,
   type EasingFunction,
 } from './easings.js';
+export { saveActiveElement, trapFocus, untrapFocus } from './focus.js';
 export {
   historyPush,
   historyReplace,
