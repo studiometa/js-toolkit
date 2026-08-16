@@ -1,5 +1,5 @@
 import { Base, defaultScheduler, type BaseConfig } from '../../src/index.js';
-import { applyStyles, compile, type Keyframe, type KeyframeStyles } from '../utils/keyframes.js';
+import { applyStyles, compile, type Keyframe, type KeyframeStyles } from './keyframes.js';
 import { clamp01, map } from '../../src/utils/maths.js';
 import type { ScrollInViewProps, ScrolledInViewRender } from './withScrolledInView.js';
 

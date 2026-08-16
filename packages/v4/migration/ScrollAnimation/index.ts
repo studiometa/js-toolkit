@@ -1,3 +1,13 @@
+export { cubicBezier, normalizeEasing, type BezierCurve, type EasingFunction } from './bezier.js';
+export {
+  applyStyles,
+  compile,
+  type CSSCustomPropertyName,
+  type ElementSize,
+  type Keyframe,
+  type KeyframeStyles,
+  type UnitValue,
+} from './keyframes.js';
 export {
   AbstractScrollAnimation,
   type AbstractScrollAnimationProps,

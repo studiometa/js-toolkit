@@ -10,7 +10,3 @@ export * from './ScrollAnimation/index.js';
 export * from './Slider/index.js';
 export * from './Track/index.js';
 export * from './Transition/index.js';
-export * from './utils/deepmerge.js';
-export * from './utils/easings.js';
-export * from './utils/keyframes.js';
-export * from '../src/utils/maths.js';
