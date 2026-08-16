@@ -8,7 +8,7 @@ import {
   type ScheduledTask,
   type Unsubscribe,
 } from '../../src/index.js';
-import { deepmerge, deepmergeAll } from './payload.js';
+import { deepmerge, deepmergeAll } from '../../src/utils/deepmerge.js';
 import { TrackContext } from './TrackContext.js';
 import { TRACK_PSEUDO_EVENTS, TrackEvent } from './TrackEvent.js';
 import { warn } from './utils.js';

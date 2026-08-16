@@ -1,5 +1,5 @@
 import { Base, type BaseConfig, type BaseProps } from '../../src/index.js';
-import { deepmerge } from './payload.js';
+import { deepmerge } from '../../src/utils/deepmerge.js';
 import { warn } from './utils.js';
 
 export type TrackContextProps = BaseProps & {

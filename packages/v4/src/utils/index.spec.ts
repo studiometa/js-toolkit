@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as barrel from './index.js';
+import * as deepmergeModule from './deepmerge.js';
 import * as dom from './dom.js';
 import * as easings from './easings.js';
 import * as focus from './focus.js';
@@ -19,6 +20,7 @@ import type { Memo, SmoothTo, SmoothToOptions, SpringOptions } from './index.js'
 describe('the utils barrel', () => {
   it('names every runtime export of every module it fronts', () => {
     const expected = [
+      ...Object.keys(deepmergeModule),
       ...Object.keys(dom),
       ...Object.keys(easings),
       ...Object.keys(focus),

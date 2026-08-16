@@ -20,6 +20,7 @@ import kebabCaseDefault, { kebabCase } from '@studiometa/js-toolkit-v4/utils/keb
 import transformDefault, { transform } from '@studiometa/js-toolkit-v4/utils/transform';
 import easeOutQuadDefault, { easeOutQuad } from '@studiometa/js-toolkit-v4/utils/easeOutQuad';
 import randomIntDefault, { randomInt } from '@studiometa/js-toolkit-v4/utils/randomInt';
+import deepmergeDefault, { deepmerge } from '@studiometa/js-toolkit-v4/utils/deepmerge';
 
 assert.equal(Base, toolkit.Base);
 assert.equal(BaseDefault, Base);
@@ -78,6 +79,9 @@ assert.equal(easeOutQuadDefault, easeOutQuad);
 assert.equal(easeOutQuad(1), 1);
 assert.equal(randomIntDefault, randomInt);
 assert.equal(randomInt(0, 0), 0);
+assert.equal(deepmergeDefault, deepmerge);
+assert.deepEqual(deepmerge({ a: { b: 1 } }, { a: { c: 2 } }), { a: { b: 1, c: 2 } });
+assert.equal(utils.deepmergeAll([{ a: 1 }, { a: 2 }]).a, 2);
 assert.equal(utils.isObject({}), true);
 assert.equal(utils.round(1.2345, 2), 1.23);
 assert.deepEqual(utils.createRange(0, 2, 1), [0, 1, 2]);
