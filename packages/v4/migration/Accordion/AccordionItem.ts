@@ -94,7 +94,7 @@ export class AccordionItem extends Base<AccordionItemProps> {
     this.updateAttributes(this.#isOpen);
 
     for (const [ref, { open = '', closed = '' }] of this.styledRefs) {
-      transition(ref, { to: this.#isOpen ? open : closed }, 'keep');
+      void transition(ref, { to: this.#isOpen ? open : closed }, 'keep');
     }
 
     return () => {
@@ -105,9 +105,9 @@ export class AccordionItem extends Base<AccordionItemProps> {
 
   onBtnClick(): void {
     if (this.#isOpen) {
-      this.close();
+      void this.close();
     } else {
-      this.open();
+      void this.open();
     }
   }
 

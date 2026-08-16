@@ -32,9 +32,9 @@ export interface Service<T, R = void> {
 export type MutableProps<T> = { -readonly [K in keyof T]: T[K] };
 
 export interface ServiceDefinition<T> {
-  props(): T;
+  props: () => T;
   /** Whether `props()` contains an observed value. Defaults to `true`. */
-  hasProps?(): boolean;
+  hasProps?: () => boolean;
   /**
    * Start observing, returning the teardown.
    *
@@ -42,7 +42,7 @@ export interface ServiceDefinition<T> {
    * is between it and its service — `useRaf()` collects render functions
    * that way — so nothing comes back here.
    */
-  start(emit: (props: T) => void): Unsubscribe;
+  start: (emit: (props: T) => void) => Unsubscribe;
 }
 
 /** One independently owned subscription. */

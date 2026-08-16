@@ -23,7 +23,7 @@ export function memo<Args extends [] | [key: unknown], Value>(
   let objects: WeakMap<WeakKey, Value> | undefined;
 
   const cached = (...args: Args): Value => {
-    const key = args[0] as unknown;
+    const key = args[0];
     // `has()` distinguishes a cached `undefined` result from a miss.
     if (isWeakKey(key)) {
       objects ??= new WeakMap();

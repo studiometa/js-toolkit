@@ -224,7 +224,7 @@ export class TrackEvent {
       return () => unsubscribe?.();
     }
 
-    return track.$on(event, this.#handler as EventListener, {
+    return track.$on(event, this.#handler, {
       capture: modifiers.includes('capture'),
       once: modifiers.includes('once'),
       passive: modifiers.includes('passive'),

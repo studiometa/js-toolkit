@@ -47,6 +47,14 @@ type VirtualBinding =
   | { type: 'prop' | 'attr' | 'class' | 'style'; name: string; expression: string };
 
 /** A two-way binding between an element and a named data group. */
+/**
+ * Stringify whatever the author's expression returned, objects included — the
+ * same contract `v-bind` has. The default `[object Object]` form is the
+ * intended output here, not an oversight.
+ */
+// oxlint-disable-next-line typescript/no-base-to-string
+const bindingText = (result: unknown): string => String(result);
+
 export class DataBind extends Base<DataBindProps> implements DataScopeMember {
   static config: BaseConfig = {
     name: 'DataBind',
@@ -309,7 +317,7 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
           if (result === false || result === null || result === undefined) {
             this.target.removeAttribute(binding.name);
           } else {
-            this.target.setAttribute(binding.name, result === true ? '' : String(result));
+            this.target.setAttribute(binding.name, result === true ? '' : bindingText(result));
           }
           break;
         case 'class':
@@ -318,7 +326,7 @@ export class DataBind extends Base<DataBindProps> implements DataScopeMember {
         case 'style':
           this.target.style.setProperty(
             binding.name,
-            result === false || result === null || result === undefined ? '' : String(result),
+            result === false || result === null || result === undefined ? '' : bindingText(result),
           );
           break;
         case 'text':

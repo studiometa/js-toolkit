@@ -22,10 +22,10 @@ export async function frames(count = 3): Promise<void> {
 export async function countRequestedFrames(during: () => Promise<void> | void): Promise<number> {
   const original = globalThis.requestAnimationFrame;
   let requested = 0;
-  globalThis.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+  globalThis.requestAnimationFrame = (callback: FrameRequestCallback) => {
     requested += 1;
     return original.call(globalThis, callback);
-  }) as typeof requestAnimationFrame;
+  };
   try {
     await during();
   } finally {

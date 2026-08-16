@@ -27,7 +27,7 @@
     "bench:run": "npm run bench:run -w @studiometa/js-toolkit",
     "bench:v4": "npm run bench:report -w @studiometa/js-toolkit-v4",
     "lint": "npm run subpaths:check && npm run lint:static && npm run lint:fmt && npm run lint:types",
-    "lint:static": "oxlint .",
+    "lint:static": "oxlint --ignore-pattern packages/v4/ . && oxlint --type-aware packages/v4",
     "lint:fmt": "oxfmt --check .",
     "lint:types": "npm run lint:types --workspaces --if-present",
     "fix": "npm run fix:static && npm run fix:fmt",
@@ -43,6 +43,7 @@
     "focus-trap": "^7.8.0",
     "oxfmt": "0.62.0",
     "oxlint": "1.77.0",
+    "oxlint-tsgolint": "7.0.2001",
     "patch-package": "8.0.1",
     "typescript": "7.0.2",
     "vite": "8.2.1"

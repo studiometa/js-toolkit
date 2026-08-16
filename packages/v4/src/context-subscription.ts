@@ -30,7 +30,7 @@ interface ContextSubscription {
   teardown?: () => void;
   isActive: boolean;
   ref: WeakRef<ContextSubscription>;
-  unsubscribe(): void;
+  unsubscribe: () => void;
 }
 
 interface ContextSubscriptionRuntimeState {

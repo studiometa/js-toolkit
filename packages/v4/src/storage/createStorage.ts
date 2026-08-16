@@ -90,10 +90,10 @@ export function createStorage<T extends object = Record<string, unknown>>(
   return {
     // Asserted because one implementation cannot satisfy both overloads: the
     // two differ only in whether a default rules `undefined` out.
-    get: ((key: string, defaultValue?: unknown) => {
+    get: (key: string, defaultValue?: unknown) => {
       const value = decode(key, provider.get(resolveKey(key)));
       return value === undefined ? defaultValue : value;
-    }) as StorageInstance<T>['get'],
+    },
 
     set(key, value) {
       let raw: string;

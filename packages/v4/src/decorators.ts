@@ -304,11 +304,11 @@ export function inject<T>(key: ContextKey<T>): ValueObserver<T | undefined> {
     context: ValueDecoratorContext<This, T | undefined>,
   ): void {
     context.addInitializer(function initialize(this: This) {
-      this.$inject(key).then((value) => {
+      void this.$inject(key).then((value) => {
         context.access.set(this, value);
       });
     });
-  } as ValueObserver<T | undefined>;
+  };
 }
 
 /**
@@ -333,8 +333,8 @@ export function children(
   ) {
     return withInitializer(context, function initialize(this: This) {
       const bound = callbacks && {
-        added: callbacks.added?.bind(this as never),
-        removed: callbacks.removed?.bind(this as never),
+        added: callbacks.added?.bind(this),
+        removed: callbacks.removed?.bind(this),
       };
       return typeof target === 'string'
         ? this.$watchChildren(target, bound)

@@ -8,7 +8,7 @@ export type ContextKey<T = unknown> = symbol & { readonly __context?: T };
 
 /** Create a typed context key. */
 export function createContext<T = unknown>(description = 'context'): ContextKey<T> {
-  return Symbol(description) as ContextKey<T>;
+  return Symbol(description);
 }
 
 /** A reactive value with synchronous subscriptions. */

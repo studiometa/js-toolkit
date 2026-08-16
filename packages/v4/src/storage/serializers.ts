@@ -6,5 +6,5 @@ import type { StorageSerializer } from './types.js';
  */
 export const jsonSerializer: StorageSerializer = {
   serialize: (value) => JSON.stringify(value),
-  deserialize: (value) => JSON.parse(value),
+  deserialize: (value) => JSON.parse(value) as unknown,
 };
