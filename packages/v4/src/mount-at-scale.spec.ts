@@ -146,6 +146,30 @@ async function mountCost(html: string): Promise<MountCost> {
   };
 }
 
+/**
+ * Measure two pages against each other and return `b / a`, the ratio of their
+ * best wall times.
+ *
+ * The two sides are measured **alternately**, not one after the other. A
+ * ratio of two separately-taken measurements absorbs every bit of drift
+ * between the two blocks: a CI runner that slows down between them reports it
+ * as a difference between the pages. Nesting read 1.91 that way on
+ * `ubuntu-latest` while the benchmark suite, which interleaves, put the same
+ * pair at 1.01 on the same runner class. Alternating puts any drift on both
+ * sides, which is the same reason `bench-diff` alternates base and head.
+ */
+async function costRatio(a: string, b: string): Promise<number> {
+  await mountOnce(a);
+  await mountOnce(b);
+  const first: number[] = [];
+  const second: number[] = [];
+  for (let index = 0; index < REPEATS; index += 1) {
+    first.push((await mountOnce(a)).duration);
+    second.push((await mountOnce(b)).duration);
+  }
+  return Math.min(...second) / Math.min(...first);
+}
+
 describe('mounting at page scale', () => {
   // 500 realistic components is a heavy real page. Its un-chunked pass costs
   // ~7 ms here, so reaching 50 ms needs a machine seven times slower.
@@ -165,35 +189,40 @@ describe('mounting at page scale', () => {
   /**
    * The failure this really guards against: a change that makes the scan
    * re-query the document per element turns mounting quadratic, and a
-   * quadratic page only reveals itself at scale. A ratio of per-component
-   * costs does not care how fast the runner is, so it can be tighter than
-   * any wall-clock ceiling — five times the components must not cost more
-   * than 2.5× per component, where quadratic would cost five.
+   * quadratic page only reveals itself at scale.
    *
-   * Both sides are deliberately in the tens of milliseconds. An earlier
-   * version compared 500 against 4 000 and read 2.22 on a CI runner while
-   * reading 1.0 here, because taking the best of several repeats favours the
-   * shorter side: a 3 ms run dodges an interruption that a 70 ms run
-   * absorbs. Comparable magnitudes remove that bias. Measured at 1.07 here
-   * and 0.78 on `ubuntu-latest`, where per-component cost falls with size.
+   * This guard cannot use two equal sizes — differing sizes are the whole
+   * question — so it keeps a bias the nesting guard below does not have.
+   * Taking the best of several repeats favours the shorter side, because a
+   * 14 ms run slips between interruptions that a 80 ms run absorbs, and
+   * contention widens the gap: measured at 1.11 to 1.20 per component when
+   * quiet, and up to 1.57 with all eight cores saturated. An earlier version
+   * compared 500 against 4 000 and read 2.22 on a CI runner.
+   *
+   * So the threshold is placed between the noise and the signal rather than
+   * just above the noise: five times the components read about 1.6 per
+   * component at worst when linear, and would read 5 if quadratic. Three
+   * sits between the two, with room on both sides.
    */
   it('costs the same per component at 5 000 as at 1 000', async () => {
-    const small = await mountCost(scenarios.flat(1000));
-    const large = await mountCost(scenarios.flat(5000));
-    expect(large.duration / 5000 / (small.duration / 1000)).toBeLessThan(2.5);
+    const ratio = await costRatio(scenarios.flat(1000), scenarios.flat(5000));
+    expect(ratio / 5).toBeLessThan(3);
   }, 60000);
 
   /**
    * v4 claims nesting costs nothing, because no parent orchestrates its
    * children's mounting. Reintroducing that orchestration means a second
-   * pass that finds and mounts children from each parent, so it would at
-   * least double the nested side. Measured between 0.82 and 1.15 across
-   * quiet and fully contended runs here, and below 1.0 on `ubuntu-latest`,
-   * where a four-deep tree mounts slightly faster than a flat one.
+   * pass that finds and mounts children from each parent.
+   *
+   * Equal sizes on both sides — same component count, same node count, only
+   * the shape differs — so this one has no short-side bias and can be tight.
+   * Measured between 0.898 and 1.024 over ten runs, quiet and with every
+   * core saturated. 5 000 rather than 2 000 so each side is long enough that
+   * one scheduling gap is a small fraction of it; at 2 000, sequentially,
+   * this read 1.91 on a CI runner.
    */
   it('mounts a four-deep tree for what a flat one costs', async () => {
-    const flat = await mountCost(scenarios.flat(2000));
-    const nested = await mountCost(scenarios.nested(2000));
-    expect(nested.duration / flat.duration).toBeLessThan(1.8);
+    const ratio = await costRatio(scenarios.flat(5000), scenarios.nested(5000));
+    expect(ratio).toBeLessThan(1.8);
   }, 60000);
 });
