@@ -53,7 +53,7 @@
       }
     },
     {
-      "files": ["**/*.spec.ts", "**/*.bench.ts"],
+      "files": ["**/*.spec.ts", "**/*.bench.ts", "**/__benchmarks__/**"],
       "rules": {
         "js-toolkit/no-internal-barrel-import": "off",
         "js-toolkit/require-config": "off",

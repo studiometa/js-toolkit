@@ -1057,6 +1057,7 @@
     "bench": "vitest bench --config vitest.bench.config.ts",
     "bench:run": "vitest bench --config vitest.bench.config.ts --run",
     "bench:report": "npm run bench:run -- --outputJson .bench-report.json && node ../../.github/actions/bench-diff/bench-report.mjs .bench-report.json",
+    "bench:profile": "vitest run --config vitest.bench.config.ts --reporter=verbose",
     "lint:types": "tsc -p tsconfig.lint.json"
   },
   "keywords": [

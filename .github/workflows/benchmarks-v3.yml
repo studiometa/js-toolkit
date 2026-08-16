@@ -1,0 +1,76 @@
+name: benchmarks-v3
+
+# v3's benchmarks used to run under CodSpeed, in Node with happy-dom. Both
+# halves of that are gone.
+#
+# CodSpeed went because it did not work: on the last twelve merged pull
+# requests, none of which touched `packages/js-toolkit/`, it failed five times
+# and every one merged anyway. On #829 alone it read fail, fail, pass, fail,
+# pass while that package's content never changed. A check that fails on an
+# unchanged package is not a signal, and a signal everyone has learned to
+# ignore is worse than none.
+#
+# happy-dom went because the numbers were not comparable to anything. v4's
+# suite runs in Chromium, and the two must share an environment before a
+# v3-against-v4 figure means anything — and the browser is the honest one
+# regardless: v3's `SmartQueue` yields through `setTimeout`, whose clamping,
+# and the `longtask` accounting that goes with it, exist only in a browser.
+#
+# A separate file rather than a job in `benchmarks-v4.yml`, for the reason the
+# bench-diff README gives: two suites in one job would share a base checkout,
+# and only a workflow-level `paths:` filter can keep each one off the pull
+# requests that do not concern it.
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'packages/js-toolkit/**'
+      - 'package-lock.json'
+      - '.github/actions/bench-diff/**'
+      - '.github/workflows/benchmarks-v3.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  bench_diff:
+    name: Compare against the base commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/bench-diff
+        with:
+          id: v3-mount
+          title: v3 mount benchmarks
+          unit: component
+          working-directory: packages/js-toolkit
+          # No build: vitest runs the browser suite straight from TypeScript.
+          prepare: npx playwright install --with-deps chromium
+          # The at-scale file only, and one size.
+          #
+          # The other ten benchmark files are micro-benchmarks that were
+          # readable under CodSpeed's instruction counting and are not readable
+          # on a wall clock: Chromium clamps `performance.now()` to 100 us, so a
+          # benchmark whose whole body costs a microsecond reports zero. They
+          # stay in the suite for local use — `npm run bench` — and are not
+          # tracked here.
+          #
+          # The full size matrix is 100/1 000. CI samples 1 000, the size above
+          # the timer's resolution floor. 5 000 is deliberately not sampled:
+          # v3's queue drains with `Array#shift`, which V8 turns quadratic past
+          # ~16 000 entries, so one v3 swap there costs over five seconds.
+          #
+          # Set on the command rather than as step `env:`, which a composite
+          # action's steps do not reliably inherit.
+          bench: V3_BENCH_SIZES=1000 npm exec vitest bench -- --config vitest.bench.config.ts --run src/__benchmarks__/mount-at-scale.bench.ts --outputJson "$BENCH_JSON"
+          rounds: '3'
+          # The action's measured same-commit noise floor: 4.5 % median, 12.5 %
+          # p90. 25 % leaves room for a shared runner being noisier than a
+          # developer machine, and `floor` drops anything the clock cannot
+          # resolve.
+          threshold: '25'
+          floor: '5'
