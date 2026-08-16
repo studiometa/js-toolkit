@@ -111,7 +111,9 @@ runs:
         BENCH_WORKDIR: ${{ inputs.working-directory }}
         BENCH_HAS_BASE: ${{ github.event_name == 'pull_request' }}
       run: |
-        set -u
+        # `shell: bash` already runs with `-e -o pipefail`; saying so here
+        # keeps the guarantee visible to whoever edits this next.
+        set -euo pipefail
         run_side() {
           local side="$1" round="$2" root="$3"
           local out="$RUNNER_TEMP/$BENCH_ID-$side-$round.json"
@@ -153,7 +155,7 @@ runs:
         BENCH_ROUNDS: ${{ inputs.rounds }}
         BENCH_HAS_BASE: ${{ github.event_name == 'pull_request' }}
       run: |
-        set -u
+        set -euo pipefail
         shopt -s nullglob
         head_rounds=("$RUNNER_TEMP/$BENCH_ID"-head-*.json)
         base_rounds=("$RUNNER_TEMP/$BENCH_ID"-base-*.json)

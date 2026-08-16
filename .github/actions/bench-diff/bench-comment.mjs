@@ -66,12 +66,13 @@ if (!basePath || !headPath) {
   process.exit(1);
 }
 
+// No fallback to `[]` on a read or parse error. An absent base is expressed
+// by a report that *is* `[]`, written deliberately by the action, so a file
+// that cannot be read or parsed means the measurement broke — and turning
+// that into an empty base would report a comparison that never happened. Let
+// it throw; a non-zero exit fails the step.
 function read(path) {
-  try {
-    return JSON.parse(readFileSync(path, 'utf8'));
-  } catch {
-    return [];
-  }
+  return JSON.parse(readFileSync(path, 'utf8'));
 }
 
 function index(entries) {
