@@ -44,6 +44,7 @@ export {
   type SearchParamInput,
 } from './history.js';
 export { isBoolean, isDefined, isFunction, isNull, isNumber, isObject, isString } from './is.js';
+export { loadImage, loadLink, loadScript } from './load.js';
 export {
   clamp,
   clamp01,

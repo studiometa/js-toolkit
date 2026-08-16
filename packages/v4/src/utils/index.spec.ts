@@ -6,6 +6,7 @@ import * as easings from './easings.js';
 import * as focus from './focus.js';
 import * as historyModule from './history.js';
 import * as is from './is.js';
+import * as load from './load.js';
 import * as maths from './maths.js';
 import * as memoModule from './memo.js';
 import * as noopModule from './noop.js';
@@ -28,6 +29,7 @@ describe('the utils barrel', () => {
       ...Object.keys(focus),
       ...Object.keys(historyModule),
       ...Object.keys(is),
+      ...Object.keys(load),
       ...Object.keys(maths),
       ...Object.keys(memoModule),
       ...Object.keys(noopModule),
