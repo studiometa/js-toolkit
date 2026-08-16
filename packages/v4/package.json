@@ -256,6 +256,74 @@
       "types": "./dist/subpaths/until.d.ts",
       "import": "./dist/subpaths/until.js"
     },
+    "./createFallbackProvider": {
+      "types": "./dist/subpaths/createFallbackProvider.d.ts",
+      "import": "./dist/subpaths/createFallbackProvider.js"
+    },
+    "./createLocalStorage": {
+      "types": "./dist/subpaths/createLocalStorage.d.ts",
+      "import": "./dist/subpaths/createLocalStorage.js"
+    },
+    "./createLocalStorageProvider": {
+      "types": "./dist/subpaths/createLocalStorageProvider.d.ts",
+      "import": "./dist/subpaths/createLocalStorageProvider.js"
+    },
+    "./createMemoryStorageProvider": {
+      "types": "./dist/subpaths/createMemoryStorageProvider.d.ts",
+      "import": "./dist/subpaths/createMemoryStorageProvider.js"
+    },
+    "./createSessionStorage": {
+      "types": "./dist/subpaths/createSessionStorage.d.ts",
+      "import": "./dist/subpaths/createSessionStorage.js"
+    },
+    "./createSessionStorageProvider": {
+      "types": "./dist/subpaths/createSessionStorageProvider.d.ts",
+      "import": "./dist/subpaths/createSessionStorageProvider.js"
+    },
+    "./createStorage": {
+      "types": "./dist/subpaths/createStorage.d.ts",
+      "import": "./dist/subpaths/createStorage.js"
+    },
+    "./createUrlSearchParamsInHashProvider": {
+      "types": "./dist/subpaths/createUrlSearchParamsInHashProvider.d.ts",
+      "import": "./dist/subpaths/createUrlSearchParamsInHashProvider.js"
+    },
+    "./createUrlSearchParamsInHashStorage": {
+      "types": "./dist/subpaths/createUrlSearchParamsInHashStorage.d.ts",
+      "import": "./dist/subpaths/createUrlSearchParamsInHashStorage.js"
+    },
+    "./createUrlSearchParamsProvider": {
+      "types": "./dist/subpaths/createUrlSearchParamsProvider.d.ts",
+      "import": "./dist/subpaths/createUrlSearchParamsProvider.js"
+    },
+    "./createUrlSearchParamsStorage": {
+      "types": "./dist/subpaths/createUrlSearchParamsStorage.d.ts",
+      "import": "./dist/subpaths/createUrlSearchParamsStorage.js"
+    },
+    "./jsonSerializer": {
+      "types": "./dist/subpaths/jsonSerializer.d.ts",
+      "import": "./dist/subpaths/jsonSerializer.js"
+    },
+    "./localStorageProvider": {
+      "types": "./dist/subpaths/localStorageProvider.d.ts",
+      "import": "./dist/subpaths/localStorageProvider.js"
+    },
+    "./memoryStorageProvider": {
+      "types": "./dist/subpaths/memoryStorageProvider.d.ts",
+      "import": "./dist/subpaths/memoryStorageProvider.js"
+    },
+    "./sessionStorageProvider": {
+      "types": "./dist/subpaths/sessionStorageProvider.d.ts",
+      "import": "./dist/subpaths/sessionStorageProvider.js"
+    },
+    "./urlSearchParamsInHashProvider": {
+      "types": "./dist/subpaths/urlSearchParamsInHashProvider.d.ts",
+      "import": "./dist/subpaths/urlSearchParamsInHashProvider.js"
+    },
+    "./urlSearchParamsProvider": {
+      "types": "./dist/subpaths/urlSearchParamsProvider.d.ts",
+      "import": "./dist/subpaths/urlSearchParamsProvider.js"
+    },
     "./SWAP_MODES": {
       "types": "./dist/subpaths/SWAP_MODES.d.ts",
       "import": "./dist/subpaths/SWAP_MODES.js"
