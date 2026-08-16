@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Removed
 
 - Drop the dedicated subpaths of the 89 type-only symbols, such as `@studiometa/js-toolkit/BaseConfig`. Import types from `@studiometa/js-toolkit` or `@studiometa/js-toolkit/utils` instead ([#777](https://github.com/studiometa/js-toolkit/pull/777))
+- **Breaking:** drop `createLocalStorageProvider` and `createSessionStorageProvider` from the published surface of `@studiometa/js-toolkit-v4`, root entry and subpaths alike. Both returned an adapter behaving exactly like the `localStorageProvider` and `sessionStorageProvider` instances the package already exports — the adapter holds no state — so use those instances instead ([#841](https://github.com/studiometa/js-toolkit/pull/841))
 
 ### Changed
 
