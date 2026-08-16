@@ -1,10 +1,4 @@
-import {
-  FRAMEWORK_ATTRIBUTES,
-  isComponentAttribute,
-  isOptionAttribute,
-  MOUNT_ATTRIBUTE,
-  REF_ATTRIBUTE,
-} from './attributes.js';
+import { FRAMEWORK_ATTRIBUTES, isComponentAttribute, REF_ATTRIBUTE } from './attributes.js';
 import { reportDiagnostic } from './diagnostics.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
@@ -95,49 +89,64 @@ function observeDocument(): void {
 }
 
 /**
- * Add declared option attributes to the one observer's precise filter.
- * Existing records enter the queue before observation options change.
+ * Whether the engine has anything to do with an attribute.
+ *
+ * This is the **same set** `observeDocument()` hands the observer as its
+ * `attributeFilter`, and that is the point: any module may widen the filter
+ * through {@link registerDOMOptionAttributes}, and a relevance test written
+ * against the framework prefixes would silently drop the records a name
+ * matching neither prefix produces. Deriving both from one set makes the two
+ * impossible to separate.
+ *
+ * @internal Exported for the spec which asserts the filter and this test agree.
  */
-export function registerDOMOptionAttributes(attributes: Iterable<string>): void {
-  let changed = false;
-  for (const attribute of attributes) {
-    if (!observedAttributes.has(attribute)) {
-      observedAttributes.add(attribute);
-      changed = true;
-    }
-  }
-  if (!changed || !domMutationState.observer) {
+export function isObservedDOMAttribute(attribute: string | null): boolean {
+  return attribute !== null && observedAttributes.has(attribute);
+}
+
+/** Apply one change to the observed set, draining the records it already produced. */
+function updateObservedAttributes(removed: readonly string[], added: readonly string[]): void {
+  if (removed.length === 0 && added.length === 0) {
     return;
   }
-  ingest(domMutationState.observer.takeRecords());
-  observeDocument();
+  // Records are classified by the vocabulary which delivered them, so what the
+  // current filter produced enters the queue before the set moves under it.
+  ingest(domMutationState.observer?.takeRecords() ?? []);
+  for (const attribute of removed) {
+    observedAttributes.delete(attribute);
+  }
+  for (const attribute of added) {
+    observedAttributes.add(attribute);
+  }
+  if (domMutationState.observer) {
+    observeDocument();
+  }
+}
+
+/**
+ * Add declared option attributes to the one observer's precise filter.
+ */
+export function registerDOMOptionAttributes(attributes: Iterable<string>): void {
+  const added = [...attributes].filter((attribute) => !observedAttributes.has(attribute));
+  updateObservedAttributes([], added);
 }
 
 /**
  * Replace one derived slice of the exact attribute filter.
  *
  * Responsive attributes use this when `setBreakpoints()` replaces the named
- * set. Existing records are retained before the observer is reconfigured.
+ * set. A name in both slices stays observed and is not disturbed.
  */
 export function replaceDOMOptionAttributes(
   previous: Iterable<string>,
   next: Iterable<string>,
 ): void {
-  let changed = false;
-  for (const attribute of previous) {
-    changed = observedAttributes.delete(attribute) || changed;
-  }
-  for (const attribute of next) {
-    if (!observedAttributes.has(attribute)) {
-      observedAttributes.add(attribute);
-      changed = true;
-    }
-  }
-  if (!changed || !domMutationState.observer) {
-    return;
-  }
-  ingest(domMutationState.observer.takeRecords());
-  observeDocument();
+  const kept = new Set(next);
+  const removed = [...previous].filter(
+    (attribute) => !kept.has(attribute) && observedAttributes.has(attribute),
+  );
+  const added = [...kept].filter((attribute) => !observedAttributes.has(attribute));
+  updateObservedAttributes(removed, added);
 }
 
 /**
@@ -243,12 +252,7 @@ function deliverWatchedAttributes(): void {
  */
 function ingest(incoming: MutationRecord[]): void {
   const relevant = incoming.filter(
-    ({ type, attributeName }) =>
-      type === 'childList' ||
-      isComponentAttribute(attributeName) ||
-      attributeName === MOUNT_ATTRIBUTE ||
-      attributeName === REF_ATTRIBUTE ||
-      isOptionAttribute(attributeName),
+    ({ type, attributeName }) => type === 'childList' || isObservedDOMAttribute(attributeName),
   );
   if (relevant.length === 0) {
     return;
