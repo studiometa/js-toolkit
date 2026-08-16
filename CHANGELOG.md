@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
-- Fix mounting a large page costing several seconds: `Queue.run()` and `SmartQueue.run()` drained their task list with `Array#shift`, which moves every remaining entry, so draining N tasks cost O(N²) — and `SmartQueue`, which `$mount()` queues about six closures per component into, hands over its whole queue. Both now walk the list by index and trim it once per turn. Draining 60 000 tasks goes from 583 ms to 3.6 ms, and a page of 5 000 flat components settles in 294 ms instead of 5 548 ms
+- Fix `Queue` and `SmartQueue` draining in quadratic time, which cost a page of 5 000 components several seconds of mounting: 5 548 ms becomes 294 ms ([#833](https://github.com/studiometa/js-toolkit/pull/833))
 
 ### Removed
 
