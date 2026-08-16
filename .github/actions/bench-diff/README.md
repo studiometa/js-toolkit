@@ -14,7 +14,14 @@ It is the timing counterpart of [`weareikko/export-size`](https://github.com/wea
 
 **A measured threshold, and a resolution floor.** Run one commit against itself, read the spread, and set `threshold` from it. Benchmarks whose median falls under `floor` milliseconds are reported but never flagged: Chromium clamps `performance.now()` to 100 µs, so a 1 ms benchmark cannot resolve a percentage.
 
-**It comments; it does not block.** A timing threshold that fails a build on a shared runner is a threshold that gets deleted. Hard gates belong in the test suite, as assertions that do not depend on how fast the runner is.
+**It comments; it does not block — but it fails when it could not measure.** A timing _threshold_ that fails a build on a shared runner is a threshold that gets deleted, so regressions are reported rather than enforced. A broken _measurement_ is the opposite: the job fails, because a comparison that silently did not happen is worse than no comparison. The one state that degrades is a base with no benchmark suite yet, which is a real thing on the pull request that adds one. Absent is not broken:
+
+| side | every round measured | none measured                             | some measured |
+| ---- | -------------------- | ----------------------------------------- | ------------- |
+| head | compare              | fail                                      | fail          |
+| base | compare              | empty base, warn, and the comment says so | fail          |
+
+Base `install` and `prepare` are never suppressed either. That distinction is the whole reason counting output is worth doing.
 
 **It knows nothing about environments.** It takes a directory, a command and an output path, and reads the JSON vitest emits — the same schema whether the benchmark bodies run in Node, in happy-dom or in a real browser over CDP. A second suite is another step with another `id`, not a branch inside the action. Keep it that way.
 

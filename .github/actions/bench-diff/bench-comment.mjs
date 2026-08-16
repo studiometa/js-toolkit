@@ -149,11 +149,18 @@ body.push(
 );
 
 if (base.size === 0) {
-  // The base could not be installed or benchmarked — or, on the pull request
-  // that adds them, has no such benchmarks yet. Degrade to "everything is
-  // new" rather than failing the job, as `export-size` does, and show every
-  // row: none of them is hidden noise, they are all the whole story.
-  body.push('No base measurement: every benchmark below is new.', '', ...HEADER, ...steady, '');
+  // The base has no benchmark suite — the expected state on the pull request
+  // that adds one. A base that failed to install, prepare, or measure only
+  // some of its rounds never reaches here: the action fails the job instead,
+  // so an empty base always means absent and never means broken. Show every
+  // row, since none of them is hidden noise; they are the whole story.
+  body.push(
+    'The base commit has no benchmark suite, so every benchmark below is new. A base that failed to build or measure would have failed this job rather than appearing here.',
+    '',
+    ...HEADER,
+    ...steady,
+    '',
+  );
 } else {
   if (changed.length === 0) {
     body.push('No benchmark moved beyond the noise floor.', '');

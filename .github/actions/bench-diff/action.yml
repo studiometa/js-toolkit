@@ -90,13 +90,18 @@ runs:
         ref: ${{ github.event.pull_request.base.sha }}
         path: __bench-diff-base
 
+    # No `|| true` here. A base that cannot install or prepare is a broken
+    # job, and suppressing it would turn a broken baseline into a confident
+    # "everything is new" comment — a green report of a comparison that never
+    # happened. Only a base with no benchmark suite may degrade, and that is
+    # decided further down, from whether it produced any output at all.
     - name: Install the base branch
       if: github.event_name == 'pull_request'
       shell: bash
       working-directory: __bench-diff-base
       run: |
-        ${{ inputs.install }} || true
-        ${{ inputs.prepare }} || true
+        ${{ inputs.install }}
+        ${{ inputs.prepare }}
 
     - name: Run both sides, alternating
       shell: bash
@@ -128,25 +133,46 @@ runs:
           fi
         done
 
+    # Three outcomes per side, and they are not the same thing.
+    #
+    #   every round measured  -> compare
+    #   no round measured     -> only the base may do this, and only because
+    #                            "the suite does not exist on this commit yet"
+    #                            is a real, expected state on the pull request
+    #                            that adds it. Degrade to an empty base, and
+    #                            say so in the comment.
+    #   some rounds measured  -> a suite that ran and then did not is broken,
+    #                            not absent. Never degrade; fail.
+    #
+    # Counting output is what separates absent from broken without the action
+    # having to know anything about the command it was given.
     - name: Aggregate the rounds
       shell: bash
       env:
         BENCH_ID: ${{ inputs.id }}
+        BENCH_ROUNDS: ${{ inputs.rounds }}
+        BENCH_HAS_BASE: ${{ github.event_name == 'pull_request' }}
       run: |
         set -u
         shopt -s nullglob
         head_rounds=("$RUNNER_TEMP/$BENCH_ID"-head-*.json)
         base_rounds=("$RUNNER_TEMP/$BENCH_ID"-base-*.json)
-        # A missing base degrades to "everything is new"; a missing head means
-        # the action itself is broken, and must not pass quietly.
-        if [ ${#head_rounds[@]} -eq 0 ]; then
-          echo '::error::the benchmark command produced no output for the head commit' >&2
+
+        if [ ${#head_rounds[@]} -ne "$BENCH_ROUNDS" ]; then
+          echo "::error::the head commit measured ${#head_rounds[@]} of $BENCH_ROUNDS rounds" >&2
           exit 1
         fi
         node "$GITHUB_ACTION_PATH/bench-report.mjs" "${head_rounds[@]}" \
           --json "$RUNNER_TEMP/$BENCH_ID-head.json" --markdown
-        if [ ${#base_rounds[@]} -eq 0 ]; then
+
+        if [ "$BENCH_HAS_BASE" != 'true' ] || [ ${#base_rounds[@]} -eq 0 ]; then
+          if [ "$BENCH_HAS_BASE" = 'true' ]; then
+            echo '::warning::the base commit produced no benchmark output; reporting every benchmark as new' >&2
+          fi
           echo '[]' > "$RUNNER_TEMP/$BENCH_ID-base.json"
+        elif [ ${#base_rounds[@]} -ne "$BENCH_ROUNDS" ]; then
+          echo "::error::the base commit measured ${#base_rounds[@]} of $BENCH_ROUNDS rounds, so its suite is broken rather than absent" >&2
+          exit 1
         else
           node "$GITHUB_ACTION_PATH/bench-report.mjs" "${base_rounds[@]}" \
             --json "$RUNNER_TEMP/$BENCH_ID-base.json"
