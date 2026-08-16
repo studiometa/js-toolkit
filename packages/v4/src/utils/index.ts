@@ -60,6 +60,7 @@ export {
   type SpringOptions,
 } from './maths.js';
 export { memo, type Memo } from './memo.js';
+export { random, randomInt, randomItem } from './random.js';
 export { selectorFor } from './selectors.js';
 export { smoothTo, type SmoothTo, type SmoothToOptions } from './smoothTo.js';
 export {

@@ -560,6 +560,18 @@
       "types": "./dist/subpaths/utils/memo.d.ts",
       "import": "./dist/subpaths/utils/memo.js"
     },
+    "./utils/random": {
+      "types": "./dist/subpaths/utils/random.d.ts",
+      "import": "./dist/subpaths/utils/random.js"
+    },
+    "./utils/randomInt": {
+      "types": "./dist/subpaths/utils/randomInt.d.ts",
+      "import": "./dist/subpaths/utils/randomInt.js"
+    },
+    "./utils/randomItem": {
+      "types": "./dist/subpaths/utils/randomItem.d.ts",
+      "import": "./dist/subpaths/utils/randomItem.js"
+    },
     "./utils/selectorFor": {
       "types": "./dist/subpaths/utils/selectorFor.d.ts",
       "import": "./dist/subpaths/utils/selectorFor.js"
