@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
+- ⚠️ Update the default breakpoints to match `@studiometa/tailwind-config` ([#708](https://github.com/studiometa/js-toolkit/pull/708))
 - Assemble the published package in `packages/js-toolkit/` instead of a repository-level `dist/`. The subpaths a consumer imports are unchanged ([#777](https://github.com/studiometa/js-toolkit/pull/777))
 - Build with tsdown (rolldown) instead of esbuild plus a separate `tsgo --build` pass, in every package ([#777](https://github.com/studiometa/js-toolkit/pull/777))
 - Format with `oxfmt` instead of Prettier, across the whole tree; the demo keeps Prettier for its Twig templates ([#777](https://github.com/studiometa/js-toolkit/pull/777))
@@ -177,6 +178,7 @@ All notable changes to this project will be documented in this file. The format 
 
 - Deprecate `$parent`, `$children` and `$root` instance properties in favor of `$closest(name)` and `$query(name)` ([#694](https://github.com/studiometa/js-toolkit/issues/694))
 
+||||||| parent of 74613a7a (Update changelog)
 ## [v3.4.3](https://github.com/studiometa/js-toolkit/compare/3.4.2..3.4.3) (2025-11-13)
 
 ### Fixed

@@ -15,8 +15,8 @@ import MenuMobile from './MenuMobile';
 import MenuDesktop from './MenuDesktop';
 
 export default class Menu extends withBreakpointManager(Base, [
-  ['xxs xs s', MenuMobile],
-  ['m l xl xxl', MenuDesktop],
+  ['2xs xs s', MenuMobile],
+  ['m l xl 2xl', MenuDesktop],
 ]) {
   static config = {
     name: 'Menu',
@@ -48,8 +48,8 @@ import MenuMobile from './MenuMobile';
 import MenuDesktop from './MenuDesktop';
 
 export default class Menu extends withBreakpointManager(Base, [
-  ['xxs xs s', MenuMobile],
-  ['m l xl xxl', MenuDesktop],
+  ['2xs xs s', MenuMobile],
+  ['m l xl 2xl', MenuDesktop],
 ]) {
   static config = {
     name: 'Menu',
