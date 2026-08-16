@@ -340,10 +340,6 @@
       "types": "./dist/subpaths/utils/deepmerge.d.ts",
       "import": "./dist/subpaths/utils/deepmerge.js"
     },
-    "./utils/deepmergeAll": {
-      "types": "./dist/subpaths/utils/deepmergeAll.d.ts",
-      "import": "./dist/subpaths/utils/deepmergeAll.js"
-    },
     "./utils/createElement": {
       "types": "./dist/subpaths/utils/createElement.d.ts",
       "import": "./dist/subpaths/utils/createElement.js"

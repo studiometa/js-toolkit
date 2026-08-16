@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deepmerge, deepmergeAll } from './deepmerge.js';
+import { deepmerge } from './deepmerge.js';
 
 describe('deepmerge', () => {
   it('recurses into plain objects, keeping the keys the source does not name', () => {
@@ -102,24 +102,36 @@ describe('deepmerge', () => {
 
     it('leaves the global prototype alone', () => {
       deepmerge({ x: 1 }, attacker());
-      deepmergeAll([{ x: 1 }, attacker()]);
+      deepmerge({ x: 1 }, attacker(), attacker());
       expect(({} as { polluted?: string }).polluted).toBeUndefined();
     });
   });
 });
 
-describe('deepmergeAll', () => {
-  it('merges left to right, the rightmost winning', () => {
-    expect(deepmergeAll([{ a: 1 }, { a: 2, b: 1 }, { b: 2 }])).toEqual({ a: 2, b: 2 });
+describe('deepmerge over any number of layers', () => {
+  it('folds left to right, the rightmost winning', () => {
+    expect(deepmerge({ a: 1 }, { a: 2, b: 1 }, { b: 2 })).toEqual({ a: 2, b: 2 });
   });
 
   it('recurses through every layer', () => {
     expect(
-      deepmergeAll([{ e: { currency: 'EUR' } }, { e: { items: [1] } }, { e: { items: [2] } }]),
+      deepmerge({ e: { currency: 'EUR' } }, { e: { items: [1] } }, { e: { items: [2] } }),
     ).toEqual({ e: { currency: 'EUR', items: [2] } });
   });
 
+  it('spreads a list built at runtime', () => {
+    const layers = [{ a: 1 }, { b: 2 }, { c: 3 }];
+    expect(deepmerge(...layers)).toEqual({ a: 1, b: 2, c: 3 });
+  });
+
   it('answers an empty object for no layer', () => {
-    expect(deepmergeAll([])).toEqual({});
+    expect(deepmerge()).toEqual({});
+  });
+
+  it('deep-copies a single layer', () => {
+    const only = { a: { b: 1 } };
+    const copy = deepmerge(only) as { a: { b: number } };
+    copy.a.b = 99;
+    expect(only.a.b).toBe(1);
   });
 });
