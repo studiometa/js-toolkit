@@ -55,12 +55,13 @@ function assertPackageContent(metadata) {
 
   const forbiddenTests = files.filter(
     (path) =>
-      path.startsWith('dist/test-utils.') || /\.(?:spec|bench)\.(?:js|js\.map|d\.ts)$/.test(path),
+      path.startsWith('dist/test-utils.') ||
+      /\.(?:spec|bench|fixtures)\.(?:js|js\.map|d\.ts)$/.test(path),
   );
   assert.deepEqual(
     forbiddenTests,
     [],
-    `Test utilities, specs and benchmarks must not be packed:\n${forbiddenTests.join('\n')}`,
+    `Test utilities, specs, benchmarks and fixtures must not be packed:\n${forbiddenTests.join('\n')}`,
   );
 
   assert(fileSet.has('dist/index.js'), 'dist/index.js is missing from the package.');
