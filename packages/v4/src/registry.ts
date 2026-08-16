@@ -5,6 +5,7 @@ import {
   isOptionAttribute,
   MOUNT_ATTRIBUTE,
   optionAttributeFor,
+  rememberPreviousValue,
 } from './attributes.js';
 import { isBaseConstructor } from './component-brand.js';
 import {
@@ -645,12 +646,9 @@ function collectAttributeChanges(records: readonly DOMMutationRecord[]): Attribu
         changes = new Map();
         options.set(record.target, changes);
       }
-      // Mutation records carry each preceding value. Keeping the first one
-      // and reading the final DOM when the batch is applied coalesces
-      // same-task writes.
-      if (!changes.has(record.attributeName)) {
-        changes.set(record.attributeName, record.oldValue);
-      }
+      // Mutation records carry each preceding value; the batch is applied
+      // against the final DOM, so only the first one is kept.
+      rememberPreviousValue(changes, record.attributeName, record.oldValue);
     }
   }
   return { declarations, strategies, options };

@@ -58,3 +58,35 @@ export function isComponentAttribute(attribute: string | null): attribute is str
     attribute?.startsWith(`${COMPONENT_ATTRIBUTE}${RESPONSIVE_SEPARATOR}`) === true
   );
 }
+
+/**
+ * Several writes to one attribute in a batch are **one** change, from the value
+ * it held before the first write to the value the DOM ends the batch with. So
+ * the first previous value wins and every later record is dropped: a morph
+ * rewriting an attribute twice must not look like two changes.
+ *
+ * This is the first half of the coalescing rule; {@link isNetChange} is the
+ * second. Declared options, watched attributes and the responsive cascade all
+ * answer to it, which is why it is stated here once rather than in each of them.
+ */
+export function rememberPreviousValue(
+  previousValues: Map<string, string | null>,
+  attribute: string,
+  previousValue: string | null,
+): void {
+  if (!previousValues.has(attribute)) {
+    previousValues.set(attribute, previousValue);
+  }
+}
+
+/**
+ * The second half of the rule: a batch ending where it started changed nothing
+ * and is not reported. The comparison is on raw strings — what is in force now
+ * against what was in force before — so it holds for an attribute read straight
+ * off the element and for a value resolved through the responsive cascade
+ * alike, which is what lets a breakpoint crossing and an attribute rewrite be
+ * the same kind of event.
+ */
+export function isNetChange(value: string | null, previousValue: string | null): boolean {
+  return value !== previousValue;
+}

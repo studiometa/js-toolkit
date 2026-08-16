@@ -1,4 +1,4 @@
-import { optionAttributeFor, REF_ATTRIBUTE } from './attributes.js';
+import { isNetChange, optionAttributeFor, REF_ATTRIBUTE } from './attributes.js';
 import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
@@ -1151,7 +1151,7 @@ export class Base<T extends BaseProps = BaseProps> {
         continue;
       }
       const previousRawValue = reader.rawValueAt(activeBreakpoint(), before);
-      if (reader.rawValue() !== previousRawValue) {
+      if (isNetChange(reader.rawValue(), previousRawValue)) {
         this.#runOptionEffect(name, reader, previousRawValue, false);
       }
     }
@@ -1231,7 +1231,7 @@ export class Base<T extends BaseProps = BaseProps> {
           // The attributes did not move; the viewport did. A crossing is only a
           // change to the options whose cascade now selects a different one.
           const previousRawValue = reader.rawValueAt(previous, fromElement);
-          if (reader.rawValue() !== previousRawValue) {
+          if (isNetChange(reader.rawValue(), previousRawValue)) {
             this.#runOptionEffect(name, reader, previousRawValue, false);
           }
         }

@@ -1,4 +1,10 @@
-import { FRAMEWORK_ATTRIBUTES, isComponentAttribute, REF_ATTRIBUTE } from './attributes.js';
+import {
+  FRAMEWORK_ATTRIBUTES,
+  isComponentAttribute,
+  isNetChange,
+  REF_ATTRIBUTE,
+  rememberPreviousValue,
+} from './attributes.js';
 import { reportDiagnostic } from './diagnostics.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
@@ -29,9 +35,9 @@ interface AttributeWatcherEntry {
   observer: MutationObserver;
   callback: AttributeWatcher;
   /**
-   * The first old value seen per attribute in the current batch. Same-batch
-   * writes coalesce against the final DOM value, exactly as declared options
-   * do — a morph rewriting one attribute twice is one change.
+   * The first old value seen per attribute in the current batch, kept under
+   * the one coalescing rule declared options answer to — see
+   * {@link rememberPreviousValue}.
    */
   pending: Map<string, string | null>;
 }
@@ -182,8 +188,8 @@ function ingestWatchedAttributes(
   incoming: readonly MutationRecord[],
 ): void {
   for (const { attributeName, oldValue } of incoming) {
-    if (attributeName !== null && !entry.pending.has(attributeName)) {
-      entry.pending.set(attributeName, oldValue);
+    if (attributeName !== null) {
+      rememberPreviousValue(entry.pending, attributeName, oldValue);
     }
   }
   scheduleProcessing();
@@ -228,7 +234,7 @@ function deliverWatchedAttributes(): void {
         break;
       }
       const value = entry.el.getAttribute(name);
-      if (value === previousValue) {
+      if (!isNetChange(value, previousValue)) {
         continue;
       }
       try {
