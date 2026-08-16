@@ -231,6 +231,16 @@ export interface LifecycleEventDetail {
  */
 export interface HandlerRegistration {
   /**
+   * The decorated method's name, and the only key the magic name scan dedupes
+   * on. Not the function it decorates: `@read` and `@write` **replace** the
+   * method with a wrapper, so a `@write` applied above an `@on` leaves the
+   * class carrying a function this registration never saw. Comparing
+   * identities missed it and bound the same handler a second time, which made
+   * the order the two decorators are stacked in part of the interface. The
+   * name is the same on both sides whatever wraps the body.
+   */
+  method: string | symbol;
+  /**
    * Global event target for `@on(window, …)` / `@on(document, …)`, `null` for
    * everything the component can reach from its own subtree. Recorded as the
    * target itself rather than as a reserved `child` name, so the string space
@@ -1317,8 +1327,8 @@ export class Base<T extends BaseProps = BaseProps> {
     // Resolve class-level handler metadata once.
     const plan = handlerPlan(this.constructor as BaseConstructor);
     const delegated: DelegatedEntries = new Map();
-    // Decorated handlers win: the plan lists the same method names, and the
-    // set returned here is what tells the second pass to skip them.
+    // Decorated handlers win: both passes name a method the same way, so the
+    // names bound here are what tells the second pass to skip them.
     const decorated = this.#bindDecoratedHandlers(plan, delegated);
     this.#bindPlannedHandlers(plan, delegated, decorated);
     this.#installDelegatedListeners(plan.componentName, delegated);
@@ -1343,12 +1353,12 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Bind the decorated handlers, which already carry resolved targets and
-   * event types, and return the functions they bound.
+   * event types, and return the method names they bound.
    */
-  #bindDecoratedHandlers(plan: HandlerPlan, delegated: DelegatedEntries): Set<unknown> {
+  #bindDecoratedHandlers(plan: HandlerPlan, delegated: DelegatedEntries): Set<string | symbol> {
     const { childNames, refs } = plan;
     const registrations = this[HANDLER_REGISTRATIONS] ?? [];
-    const decorated: Set<unknown> = new Set(registrations.map(({ handler }) => handler));
+    const decorated: Set<string | symbol> = new Set(registrations.map(({ method }) => method));
     for (const { target, child, type, handler } of registrations) {
       if (target) {
         this.#bindGlobal(target, type, (payload) => handler.call(this, payload));
@@ -1375,16 +1385,18 @@ export class Base<T extends BaseProps = BaseProps> {
   #bindPlannedHandlers(
     plan: HandlerPlan,
     delegated: DelegatedEntries,
-    decorated: Set<unknown>,
+    decorated: Set<string | symbol>,
   ): void {
     const self = this as unknown as Record<string, (payload: unknown) => void>;
     for (const entry of plan.entries) {
       const { method, type } = entry;
+      if (decorated.has(method)) {
+        continue;
+      }
       // Read through the instance, deliberately: a class field can shadow a
       // prototype method with something that is not callable, and the plan
       // lists the name either way.
-      const handler = self[method] as unknown;
-      if (typeof handler !== 'function' || decorated.has(handler)) {
+      if (typeof self[method] !== 'function') {
         continue;
       }
       if (entry.kind === 'global') {

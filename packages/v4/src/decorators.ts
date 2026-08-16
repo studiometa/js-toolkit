@@ -43,7 +43,7 @@ type OnTarget = string | BaseConstructor | typeof window | typeof document;
 function resolveHandlerTarget(
   target: OnTarget,
   maybeType?: string,
-): Omit<HandlerRegistration, 'handler'> {
+): Omit<HandlerRegistration, 'handler' | 'method'> {
   if (typeof target === 'string') {
     return maybeType === undefined
       ? { target: null, child: null, type: target }
@@ -144,7 +144,15 @@ export function on(target: OnTarget, maybeType?: string) {
     context: ClassMethodDecoratorContext<any, any>,
   ): void {
     context.addInitializer(function initialize(this: Base) {
-      (this[HANDLER_REGISTRATIONS] ??= []).push({ ...registration, handler: value });
+      // `context.name` rather than `value.name`: `@read`/`@write` hand their
+      // wrapper down, and it is named after the wrapper. The context names the
+      // method being decorated whatever else is stacked on it, which is what
+      // makes the magic name scan skip this handler in either order.
+      (this[HANDLER_REGISTRATIONS] ??= []).push({
+        ...registration,
+        method: context.name,
+        handler: value,
+      });
     });
   };
 }
