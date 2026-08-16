@@ -707,6 +707,9 @@ function reportLifecycleFailure(instance: Base, message: string, error: unknown)
   });
 }
 
+/** What `#guard()` returns instead of a value when the guarded call threw. */
+const GUARD_FAILED = Symbol('guard-failed');
+
 export class Base<T extends BaseProps = BaseProps> {
   /** A class-owned brand inherited by subclasses and shared by bundled copies. */
   static readonly [BASE_BRAND] = true;
@@ -834,11 +837,7 @@ export class Base<T extends BaseProps = BaseProps> {
     if (!this.#isActiveMountCycle(cycle)) {
       return this;
     }
-    try {
-      this.#collectCleanup(this.mounted(), cycle);
-    } catch (error) {
-      reportLifecycleFailure(this, '`mounted()` failed.', error);
-    }
+    this.#guard('`mounted()` failed.', () => this.#collectCleanup(this.mounted(), cycle));
     if (!this.#isActiveMountCycle(cycle)) {
       return this;
     }
@@ -874,18 +873,10 @@ export class Base<T extends BaseProps = BaseProps> {
     const callbacks = this.#destroyCallbacks;
     this.#destroyCallbacks = [];
     for (const callback of callbacks) {
-      try {
-        callback();
-      } catch (error) {
-        reportLifecycleFailure(this, 'A mount cleanup failed.', error);
-      }
+      this.#guard('A mount cleanup failed.', callback);
     }
     this.#clearOptionEffects();
-    try {
-      this.destroyed();
-    } catch (error) {
-      reportLifecycleFailure(this, '`destroyed()` failed.', error);
-    }
+    this.#guard('`destroyed()` failed.', () => this.destroyed());
     // The element may already be detached, so a bubbling event would reach
     // nobody: announce from the document instead.
     const detail: LifecycleEventDetail = { instance: this };
@@ -909,17 +900,9 @@ export class Base<T extends BaseProps = BaseProps> {
     const callbacks = this.#terminateCallbacks;
     this.#terminateCallbacks = [];
     for (const callback of callbacks) {
-      try {
-        callback();
-      } catch (error) {
-        reportLifecycleFailure(this, 'A termination cleanup failed.', error);
-      }
+      this.#guard('A termination cleanup failed.', callback);
     }
-    try {
-      this.terminated();
-    } catch (error) {
-      reportLifecycleFailure(this, '`terminated()` failed.', error);
-    }
+    this.#guard('`terminated()` failed.', () => this.terminated());
     this.$el[INSTANCES]?.delete(this.$config.name);
     return this;
   }
@@ -1147,6 +1130,21 @@ export class Base<T extends BaseProps = BaseProps> {
     return this.#isMounted && this.#mountCycle === cycle;
   }
 
+  /**
+   * Run a hook or a cleanup owned by the component. A throw there must not
+   * abandon the framework bookkeeping which follows it, so it is reported and
+   * swallowed; the sentinel lets the few callers which care tell a failure
+   * from a value the call returned.
+   */
+  #guard<T>(message: string, run: () => T): T | typeof GUARD_FAILED {
+    try {
+      return run();
+    } catch (error) {
+      reportLifecycleFailure(this, message, error);
+      return GUARD_FAILED;
+    }
+  }
+
   #initializeOptionEffects(cycle: number): void {
     for (const [name, reader] of optionReaders.get(this) ?? []) {
       if (!this.#isActiveMountCycle(cycle)) {
@@ -1203,11 +1201,7 @@ export class Base<T extends BaseProps = BaseProps> {
     const previousCleanup = this.#optionCleanups.get(name);
     this.#optionCleanups.delete(name);
     if (previousCleanup) {
-      try {
-        previousCleanup();
-      } catch (error) {
-        reportLifecycleFailure(this, `Option "${name}" cleanup failed.`, error);
-      }
+      this.#guard(`Option "${name}" cleanup failed.`, previousCleanup);
     }
     if (!this.#isMounted) {
       return;
@@ -1220,8 +1214,7 @@ export class Base<T extends BaseProps = BaseProps> {
     }
 
     const cycle = this.#mountCycle;
-    let cleanup: OptionChangedReturn;
-    try {
+    const cleanup = this.#guard(`\`${method}()\` failed.`, () => {
       const rawValue = reader.rawValue();
       const change: OptionChange = {
         name,
@@ -1231,20 +1224,16 @@ export class Base<T extends BaseProps = BaseProps> {
         previousRawValue,
         initial,
       };
-      cleanup = (handler as (change: OptionChange) => OptionChangedReturn).call(this, change);
-    } catch (error) {
-      reportLifecycleFailure(this, `\`${method}()\` failed.`, error);
+      return (handler as (change: OptionChange) => OptionChangedReturn).call(this, change);
+    });
+    if (cleanup === GUARD_FAILED) {
       return;
     }
     if (typeof cleanup === 'function') {
       if (this.#isMounted && this.#mountCycle === cycle) {
         this.#optionCleanups.set(name, cleanup);
       } else {
-        try {
-          cleanup();
-        } catch (error) {
-          reportLifecycleFailure(this, `Option "${name}" cleanup failed.`, error);
-        }
+        this.#guard(`Option "${name}" cleanup failed.`, cleanup);
       }
     }
   }
@@ -1253,11 +1242,7 @@ export class Base<T extends BaseProps = BaseProps> {
     const cleanups = this.#optionCleanups;
     this.#optionCleanups = new Map();
     for (const [name, cleanup] of cleanups) {
-      try {
-        cleanup();
-      } catch (error) {
-        reportLifecycleFailure(this, `Option "${name}" cleanup failed.`, error);
-      }
+      this.#guard(`Option "${name}" cleanup failed.`, cleanup);
     }
   }
 
@@ -1273,11 +1258,7 @@ export class Base<T extends BaseProps = BaseProps> {
       } else {
         // The originating mount cycle ended while an async result was pending:
         // run the cleanup right away instead of leaking.
-        try {
-          result();
-        } catch (error) {
-          reportLifecycleFailure(this, 'A late mount cleanup failed.', error);
-        }
+        this.#guard('A late mount cleanup failed.', result);
       }
       return;
     }
