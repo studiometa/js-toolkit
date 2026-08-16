@@ -693,6 +693,22 @@ const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan =>
   return { childNames, refs, componentName: config.name, entries };
 });
 
+/** One handler waiting on a descendant, resolved at event time. */
+type DelegatedEntry =
+  | { kind: 'child'; name: string; invoke: (payload: DelegatedEvent) => void }
+  // `name` here is the **declared** ref, suffix included: it is compared
+  // against the `data-ref` attribute and handed to `queryRefs()`.
+  | { kind: 'ref'; name: string; invoke: (payload: RefEvent) => void };
+
+type DelegatedEntries = Map<string, DelegatedEntry[]>;
+
+function addDelegated(delegated: DelegatedEntries, type: string, entry: DelegatedEntry): void {
+  if (!delegated.has(type)) {
+    delegated.set(type, []);
+  }
+  delegated.get(type)?.push(entry);
+}
+
 /**
  * `mounted()` may return one cleanup, several, nothing — or a promise of
  * those. The shape nests, so a subclass composes with what it extends
@@ -1279,45 +1295,44 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /** Bind root, delegated child/ref and global handlers for the current mount cycle. Delegated handlers resolve dynamic descendants at event time. */
   #bindHandlers(): void {
-    const self = this as unknown as Record<string, (payload: unknown) => void>;
     // Resolve class-level handler metadata once.
     const plan = handlerPlan(this.constructor as BaseConstructor);
-    const { childNames, refs, componentName } = plan;
+    const delegated: DelegatedEntries = new Map();
+    // Decorated handlers win: the plan lists the same method names, and the
+    // set returned here is what tells the second pass to skip them.
+    const decorated = this.#bindDecoratedHandlers(plan, delegated);
+    this.#bindPlannedHandlers(plan, delegated, decorated);
+    this.#installDelegatedListeners(plan.componentName, delegated);
+  }
 
-    type Entry =
-      | { kind: 'child'; name: string; invoke: (payload: DelegatedEvent) => void }
-      // `name` here is the **declared** ref, suffix included: it is compared
-      // against the `data-ref` attribute and handed to `queryRefs()`.
-      | { kind: 'ref'; name: string; invoke: (payload: RefEvent) => void };
-    const delegated = new Map<string, Entry[]>();
-    const addDelegated = (type: string, entry: Entry) => {
-      if (!delegated.has(type)) {
-        delegated.set(type, []);
-      }
-      delegated.get(type)?.push(entry);
-    };
-    const bindOwn = (type: string, invoke: (event: Event) => void) => {
-      const listener: EventListener = (event) => invoke(event);
-      this.$el.addEventListener(type, listener);
-      this.#listeners.push([type, listener, this.$el, false]);
-    };
-    /** Bind a global handler in bubble phase for the current mount cycle. Capture is only for delegated non-bubbling events. */
-    const bindGlobal = (
-      target: Window | Document,
-      type: string,
-      invoke: (payload: GlobalEvent) => void,
-    ) => {
-      const listener: EventListener = (event) => invoke({ event, target });
-      target.addEventListener(type, listener);
-      this.#listeners.push([type, listener, target, false]);
-    };
+  #bindOwn(type: string, invoke: (event: Event) => void): void {
+    const listener: EventListener = (event) => invoke(event);
+    this.$el.addEventListener(type, listener);
+    this.#listeners.push([type, listener, this.$el, false]);
+  }
 
-    // Decorated handlers already contain resolved targets and event types.
+  /** Bind a global handler in bubble phase for the current mount cycle. Capture is only for delegated non-bubbling events. */
+  #bindGlobal(
+    target: Window | Document,
+    type: string,
+    invoke: (payload: GlobalEvent) => void,
+  ): void {
+    const listener: EventListener = (event) => invoke({ event, target });
+    target.addEventListener(type, listener);
+    this.#listeners.push([type, listener, target, false]);
+  }
+
+  /**
+   * Bind the decorated handlers, which already carry resolved targets and
+   * event types, and return the functions they bound.
+   */
+  #bindDecoratedHandlers(plan: HandlerPlan, delegated: DelegatedEntries): Set<unknown> {
+    const { childNames, refs } = plan;
     const registrations = this[HANDLER_REGISTRATIONS] ?? [];
     const decorated: Set<unknown> = new Set(registrations.map(({ handler }) => handler));
     for (const { target, child, type, handler } of registrations) {
       if (target) {
-        bindGlobal(target, type, (payload) => handler.call(this, payload));
+        this.#bindGlobal(target, type, (payload) => handler.call(this, payload));
       } else if (child) {
         // Decorators use the declared ref name, including `[]`.
         const declaredChild = childNames.includes(child);
@@ -1325,17 +1340,25 @@ export class Base<T extends BaseProps = BaseProps> {
         if (!declaredChild && !ref) {
           warnRefSuffixMismatch(this, child, refs);
         }
-        addDelegated(type, {
+        addDelegated(delegated, type, {
           kind: ref ? 'ref' : 'child',
           name: child,
           invoke: (payload: DelegatedEvent | RefEvent) => handler.call(this, payload),
-        } as Entry);
+        } as DelegatedEntry);
       } else {
-        bindOwn(type, (event) => handler.call(this, event));
+        this.#bindOwn(type, (event) => handler.call(this, event));
       }
     }
+    return decorated;
+  }
 
-    // Bind undecorated magic handlers from the cached class plan.
+  /** Bind the undecorated magic handlers from the cached class plan. */
+  #bindPlannedHandlers(
+    plan: HandlerPlan,
+    delegated: DelegatedEntries,
+    decorated: Set<unknown>,
+  ): void {
+    const self = this as unknown as Record<string, (payload: unknown) => void>;
     for (const entry of plan.entries) {
       const { method, type } = entry;
       // Read through the instance, deliberately: a class field can shadow a
@@ -1346,44 +1369,28 @@ export class Base<T extends BaseProps = BaseProps> {
         continue;
       }
       if (entry.kind === 'global') {
-        bindGlobal(entry.target, type, (payload) => self[method](payload));
+        this.#bindGlobal(entry.target, type, (payload) => self[method](payload));
       } else if (entry.kind === 'own') {
-        bindOwn(type, (event) => self[method](event));
+        this.#bindOwn(type, (event) => self[method](event));
       } else {
-        addDelegated(type, {
+        addDelegated(delegated, type, {
           kind: entry.kind,
           name: entry.name,
           invoke: (payload: DelegatedEvent | RefEvent) => self[method](payload),
-        } as Entry);
+        } as DelegatedEntry);
       }
     }
+  }
 
+  /** Install one root listener per delegated event type. */
+  #installDelegatedListeners(componentName: string, delegated: DelegatedEntries): void {
     for (const [type, entries] of delegated) {
       const listener: EventListener = (event) => {
         let el = event.target instanceof Element ? event.target : null;
         while (el && el !== this.$el) {
           let invoked = false;
           for (const entry of entries) {
-            if (entry.kind === 'child') {
-              const child = el[INSTANCES]?.get(entry.name);
-              if (child?.$isMounted) {
-                entry.invoke({
-                  event,
-                  target: child,
-                  // The detail verbatim — what a plain listener reads.
-                  payload: (event as CustomEvent).detail,
-                });
-                invoked = true;
-              }
-            } else if (isRefOf(el, this.$el, componentName, entry.name)) {
-              const target = el;
-              entry.invoke({
-                event,
-                target,
-                // The index within the ref list as `$refs` sees it, so the two
-                // spellings share one numbering.
-                index: queryRefs(this.$el, componentName, entry.name).indexOf(target),
-              });
+            if (this.#invokeDelegated(entry, el, event, componentName)) {
               invoked = true;
             }
           }
@@ -1400,5 +1407,42 @@ export class Base<T extends BaseProps = BaseProps> {
       this.$el.addEventListener(type, listener, capture);
       this.#listeners.push([type, listener, this.$el, capture]);
     }
+  }
+
+  /**
+   * Fire one delegated entry when `el` is what it waits on: a mounted child
+   * instance, or an owned ref. Returns whether it fired, which is how the
+   * walk knows it reached the nearest matching element.
+   */
+  #invokeDelegated(
+    entry: DelegatedEntry,
+    el: Element,
+    event: Event,
+    componentName: string,
+  ): boolean {
+    if (entry.kind === 'child') {
+      const child = el[INSTANCES]?.get(entry.name);
+      if (!child?.$isMounted) {
+        return false;
+      }
+      entry.invoke({
+        event,
+        target: child,
+        // The detail verbatim — what a plain listener reads.
+        payload: (event as CustomEvent).detail,
+      });
+      return true;
+    }
+    if (!isRefOf(el, this.$el, componentName, entry.name)) {
+      return false;
+    }
+    entry.invoke({
+      event,
+      target: el,
+      // The index within the ref list as `$refs` sees it, so the two
+      // spellings share one numbering.
+      index: queryRefs(this.$el, componentName, entry.name).indexOf(el),
+    });
+    return true;
   }
 }
