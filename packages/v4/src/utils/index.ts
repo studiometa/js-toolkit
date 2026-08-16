@@ -1,5 +1,6 @@
 /** Public entry point for `@studiometa/js-toolkit-v4/utils`. */
 
+export { isBoolean, isDefined, isFunction, isNull, isNumber, isObject, isString } from './is.js';
 export {
   clamp,
   clamp01,

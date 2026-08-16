@@ -336,6 +336,34 @@
       "types": "./dist/subpaths/viewTransition.d.ts",
       "import": "./dist/subpaths/viewTransition.js"
     },
+    "./utils/isBoolean": {
+      "types": "./dist/subpaths/utils/isBoolean.d.ts",
+      "import": "./dist/subpaths/utils/isBoolean.js"
+    },
+    "./utils/isDefined": {
+      "types": "./dist/subpaths/utils/isDefined.d.ts",
+      "import": "./dist/subpaths/utils/isDefined.js"
+    },
+    "./utils/isFunction": {
+      "types": "./dist/subpaths/utils/isFunction.d.ts",
+      "import": "./dist/subpaths/utils/isFunction.js"
+    },
+    "./utils/isNull": {
+      "types": "./dist/subpaths/utils/isNull.d.ts",
+      "import": "./dist/subpaths/utils/isNull.js"
+    },
+    "./utils/isNumber": {
+      "types": "./dist/subpaths/utils/isNumber.d.ts",
+      "import": "./dist/subpaths/utils/isNumber.js"
+    },
+    "./utils/isObject": {
+      "types": "./dist/subpaths/utils/isObject.d.ts",
+      "import": "./dist/subpaths/utils/isObject.js"
+    },
+    "./utils/isString": {
+      "types": "./dist/subpaths/utils/isString.d.ts",
+      "import": "./dist/subpaths/utils/isString.js"
+    },
     "./utils/clamp": {
       "types": "./dist/subpaths/utils/clamp.d.ts",
       "import": "./dist/subpaths/utils/clamp.js"
