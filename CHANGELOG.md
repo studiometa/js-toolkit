@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Changed
 
 - Schedule every v4 component through one algorithm: a registered class and a lazy manifest entry now share one controller per element/component pair, and `mount-strategies` answers whether a strategy is reversible or eager instead of the registry re-deriving it from strategy names ([#843](https://github.com/studiometa/js-toolkit/pull/843))
+- Give the v4 attribute vocabulary one owner, `attributes.ts`: the framework attribute names, the `data-option-` spelling and the batch coalescing rule were each written down in several modules, and the mutation engine kept them as string literals to avoid an import cycle. The engine's relevance test and the observer's `attributeFilter` are now the same set, so a framework attribute added to one can no longer be dropped by the other. Internal to the v4 prototype; no public API changes ([#842](https://github.com/studiometa/js-toolkit/pull/842))
 - Assemble the published package in `packages/js-toolkit/` instead of a repository-level `dist/`. The subpaths a consumer imports are unchanged ([#777](https://github.com/studiometa/js-toolkit/pull/777))
 - Build with tsdown (rolldown) instead of esbuild plus a separate `tsgo --build` pass, in every package ([#777](https://github.com/studiometa/js-toolkit/pull/777))
 - Format with `oxfmt` instead of Prettier, across the whole tree; the demo keeps Prettier for its Twig templates ([#777](https://github.com/studiometa/js-toolkit/pull/777))
