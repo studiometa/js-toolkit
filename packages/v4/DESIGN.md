@@ -614,6 +614,41 @@ The reactive container is called `Signal` — the name the ecosystem settled on 
 
 This is the property @studiometa/ui's `DataChannel` gets from alien-signals today, and the reason it can be dropped rather than depended on — its `publish()` always builds a fresh frame object, so the `===` bail-out never fires there and what it actually relies on is _one delivery per subscriber per settle, carrying the latest value_. Settling stays in the same task on purpose: `DataBind` echoes form-control input, and a microtask hop would be a visible change of behaviour. The price is that a subscriber writing unconditionally on every delivery live-locks the loop rather than overflowing the stack, which is the same trade every synchronous reactive graph makes.
 
+#### A set of peers — `createGroup()`
+
+v3's `withGroup` gave every instance a `$group: Set<Base>` of its peers, keyed by a group name and optionally scoped by a resolver. §5's `provideRootContext()` section states why it is not ported: the set had no value cell. What that section did not settle is where the _membership_ itself lives, and the answer is not a second registry. **A group is a membership published as one `Signal`, created by whoever coordinates it and reached the way every other shared value is reached — as a context.**
+
+```js
+// The coordinator owns the membership and hands out the ways in.
+const peers = createGroup();
+api = this.$provide(DisclosureGroupContext, {
+  members: peers.members, // the members to read, in document order
+  join: (peer) => peers.join(peer), // returns the leave function
+  open: (peer) => this.open(peer), // the invariant stays here
+});
+```
+
+```js
+// A member joins the nearest group, whenever that group appears.
+mounted() {
+  return subscribeContext(this.$el, DisclosureGroupContext, (group) => {
+    this.group = group;
+    const leave = group.join(this);
+    return () => { leave(); this.group = undefined; };
+  });
+}
+```
+
+`join()` returning its own `leave` is the whole ergonomic point: the shape of `subscribeContext()`'s answer/teardown contract already _is_ the shape of joining and leaving a group, so a member that migrates to a nearer group leaves the old one before it joins the new one, with no `__connect`/`__disconnect` handshake to write. Scoping comes free from nearest-provider-wins, so a nested group takes its own members and never its parent's — the case `$watchChildren` cannot express, since it collects every matching descendant across nested boundaries.
+
+**The membership is a value, and that is what v3's `Set` was missing.** A coordinator subscribes to it, so a peer arriving or leaving is an event it can act on. That matters because v4 mounts on DOM insertion with no ordering guarantee: "the set of my peers" is not settled at any point in time, and an invariant over the set — one open at a time, one selected item — has to be re-checked on every change rather than established once. **Document order is the tie-breaker, deliberately**, so which peer keeps its state is a fact about the markup and not about which one happened to mount first. A disclosure written open that mounts late loses to the one before it in the DOM, and wins over the ones after it; both orders are asserted in `group.spec.ts`, which builds the Disclosure pattern end to end from this helper plus `$provide` and `subscribeContext` alone.
+
+Nothing sweeps disconnected members, and nothing needs to: v4 destroys a component when its element leaves the DOM, so the member's own teardown is what removes it. v3 swept on every read of `$group` because its membership was written from `mounted` and `destroyed` on a registry that outlived both.
+
+The helper holds a `Set` and a `Signal` and nothing else — no element index, no name keys, no global map. `createGroup()` names no group and resolves no scope: the name a v3 consumer passed was the partition key of a page-global registry, and a group whose membership is a DOM fact needs neither.
+
+**The two v3 consumers of `withGroup` divide on exactly that line, which is why one uses this helper and the other does not.** `Disclosure` groups by _ancestry_ — its group is a component in the DOM, and the whole difficulty was the two sides finding each other. `Data*` groups by _name_, with the nearest `DataScope` only choosing which partition table to look in and a page-wide table when there is none, so `DataRegistry` keeps a record per name in which membership is one field beside values, sources and hydration state, and it never observes membership changes. It has its own `join(group, member)` returning the same leave function for the same reason, and no members signal because nothing subscribes to one. A group that is a set of peers gets `createGroup()`; a group that is a partition of a keyed store keeps the store.
+
 ## 6. Decorators — sugar, never a requirement
 
 No engine ships stage-3 decorators yet, so requiring them would break the no-build promise: **every decorator is a thin wrapper over a function API that works without it.** Projects that build their sources opt in; a page loading the package from an ESM CDN keeps `registerComponent`, `$provide`, `$watchChildren`, `$read`/`$write` and the magic `on<Child><Event>` method names.
