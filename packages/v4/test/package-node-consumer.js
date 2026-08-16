@@ -15,6 +15,11 @@ import createMemoryStorageProviderDefault, {
   createMemoryStorageProvider,
 } from '@studiometa/js-toolkit-v4/createMemoryStorageProvider';
 import clampDefault, { clamp } from '@studiometa/js-toolkit-v4/utils/clamp';
+import * as utils from '@studiometa/js-toolkit-v4/utils';
+import kebabCaseDefault, { kebabCase } from '@studiometa/js-toolkit-v4/utils/kebabCase';
+import transformDefault, { transform } from '@studiometa/js-toolkit-v4/utils/transform';
+import easeOutQuadDefault, { easeOutQuad } from '@studiometa/js-toolkit-v4/utils/easeOutQuad';
+import randomIntDefault, { randomInt } from '@studiometa/js-toolkit-v4/utils/randomInt';
 
 assert.equal(Base, toolkit.Base);
 assert.equal(BaseDefault, Base);
@@ -58,5 +63,25 @@ storage.set('theme', 'dark');
 assert.deepEqual(seen, ['light']);
 assert.equal(clampDefault, clamp);
 assert.equal(clamp(12, 0, 10), 10);
+
+// The ported utilities, through their own subpath and through the barrel.
+assert.equal(kebabCaseDefault, kebabCase);
+assert.equal(kebabCase, utils.kebabCase);
+assert.equal(kebabCase('SliderDragStart'), 'slider-drag-start');
+assert.equal(utils.capitalize('btn'), 'Btn');
+assert.equal(utils.pascalCase('my-ref'), 'MyRef');
+assert.equal(utils.withoutTrailingSlash('/foo/'), '/foo');
+assert.equal(transformDefault, transform);
+assert.equal(transform({ x: 10 }), 'translate3d(10px, 0px, 0px)');
+assert.equal(utils.matrix(), 'matrix(1, 0, 0, 1, 0, 0)');
+assert.equal(easeOutQuadDefault, easeOutQuad);
+assert.equal(easeOutQuad(1), 1);
+assert.equal(randomIntDefault, randomInt);
+assert.equal(randomInt(0, 0), 0);
+assert.equal(utils.isObject({}), true);
+assert.equal(utils.round(1.2345, 2), 1.23);
+assert.deepEqual(utils.createRange(0, 2, 1), [0, 1, 2]);
+assert.equal(typeof utils.debounce(() => {}), 'function');
+await utils.wait(1);
 
 console.log('Node packed consumer: root and public subpaths passed.');
