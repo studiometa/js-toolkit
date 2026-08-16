@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from '../Base.js';
 import { registerComponent } from '../registry.js';
 import { countRequestedFrames, frames, getInstance, resetDom, settle } from '../test-utils.js';
-import { withDrag } from './drag.js';
+import { useDrag, withDrag } from './drag.js';
 import { withRaf } from './raf.js';
 import { withResize } from './resize.js';
 import { useScroll, withScroll } from './scroll.js';
@@ -186,6 +186,34 @@ describe('service mixins', () => {
 
     instance.$destroy();
     expect(el.style.touchAction).toBe('');
+  });
+
+  it('keeps its own lifecycle options out of the service it subscribes to', () => {
+    const seen: DragProps[] = [];
+
+    class Deferred extends withDrag(Base, { manual: true }) {
+      static config = { name: 'Deferred' };
+
+      dragged(props: DragProps): void {
+        seen.push(props);
+      }
+    }
+
+    const el = render();
+    const instance = new Deferred(el).$mount();
+    instance.$services.dragged.start();
+
+    // The service the plain `withDrag(Base)` asks for, on the same element.
+    const shared = useDrag(el);
+    el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
+
+    // A service publishes its own props object, so one object is one service:
+    // `manual` describes the subscription and must not buy a second drag —
+    // a second pointer listener set, and a second `touch-action` claim.
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).toBe(shared.props());
+
+    instance.$destroy();
   });
 
   it('subscribes nothing when the component declares no hook', () => {

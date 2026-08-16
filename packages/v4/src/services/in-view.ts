@@ -127,14 +127,5 @@ export const withInView = /* @__PURE__ */ createServiceMixin<
   hook: 'intersected',
   target: (instance) => instance.$el,
   defaultImmediate: true,
-  use: (target, options) => {
-    const { root, rootMargin, scrollMargin, threshold } = options;
-    const init: IntersectionObserverInit = {
-      ...(root !== undefined && { root }),
-      ...(rootMargin !== undefined && { rootMargin }),
-      ...(scrollMargin !== undefined && { scrollMargin }),
-      ...(threshold !== undefined && { threshold }),
-    };
-    return useInView(target, init);
-  },
+  use: (target, options) => useInView(target, options),
 });
