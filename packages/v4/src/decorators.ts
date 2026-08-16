@@ -173,6 +173,14 @@ export function component(config: BaseConfig) {
     value: T,
     context: ClassDecoratorContext<T>,
   ): void {
+    // Copying the inherited config adds nothing to the merged one —
+    // `resolveConfig()` walks the prototype chain — but `isBaseConstructor()`
+    // reads `config.name` straight off the class, and cannot call
+    // `resolveConfig()` because `Base` imports the brand. A config written
+    // without a name, as an untyped subclass adding config to its parent's
+    // does, would leave the class registered under the name it inherited yet
+    // rejected by every brand check: `config.components` entries,
+    // `@on(Class, type)` and lazy import resolution.
     value.config = { ...value.config, ...config };
     context.addInitializer(function initialize(this: T) {
       registerComponent(this);
