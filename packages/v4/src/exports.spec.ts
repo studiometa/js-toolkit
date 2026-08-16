@@ -14,11 +14,13 @@ import {
   useDrag,
   useInView,
   useMutation,
+  usePointer,
   useScrollProgress,
   watchAttributes,
   withDrag,
   withInView,
   withMutation,
+  withPointer,
   withScrollProgress,
   type DefineManifestOptions,
   type DomMutation,
@@ -27,6 +29,7 @@ import {
   type DragMixinOptions,
   type DragOptions,
   type DragProps,
+  type ElementPointerProps,
   type InViewHook,
   type InViewMixinOptions,
   type ExtendableDetail,
@@ -35,6 +38,9 @@ import {
   type MutationHook,
   type MutationMixinOptions,
   type MutationProps,
+  type PointerHook,
+  type PointerMixinOptions,
+  type PointerProps,
   type AttributeChange,
   type AttributeWatcher,
   type ContextCallback,
@@ -64,6 +70,9 @@ import useInViewFromSubpath, {
 import useMutationFromSubpath, {
   useMutation as namedUseMutationFromSubpath,
 } from '@studiometa/js-toolkit-v4/useMutation';
+import usePointerFromSubpath, {
+  usePointer as namedUsePointerFromSubpath,
+} from '@studiometa/js-toolkit-v4/usePointer';
 import useScrollProgressSubpath from '@studiometa/js-toolkit-v4/useScrollProgress';
 import watchAttributesFromSubpath, {
   watchAttributes as namedWatchAttributesFromSubpath,
@@ -83,6 +92,9 @@ import withInViewFromSubpath, {
 import withMutationFromSubpath, {
   withMutation as namedWithMutationFromSubpath,
 } from '@studiometa/js-toolkit-v4/withMutation';
+import withPointerFromSubpath, {
+  withPointer as namedWithPointerFromSubpath,
+} from '@studiometa/js-toolkit-v4/withPointer';
 import withScrollProgressSubpath from '@studiometa/js-toolkit-v4/withScrollProgress';
 
 function toolkitDiagnosticDetailTypeAssertions(detail: ToolkitDiagnosticDetail): void {
@@ -246,6 +258,25 @@ describe('the package entry points', () => {
       mutated?: (props: MutationProps) => void;
     }>();
     expectTypeOf<MutationMixinOptions>().toMatchTypeOf<MutationObserverInit>();
+  });
+
+  it('serves usePointer and withPointer from the root and their symbol subpaths', () => {
+    expect(usePointerFromSubpath).toBe(usePointer);
+    expect(namedUsePointerFromSubpath).toBe(usePointer);
+    expect(withPointerFromSubpath).toBe(withPointer);
+    expect(namedWithPointerFromSubpath).toBe(withPointer);
+    // The viewport pointer and the element-scoped one are one function.
+    expectTypeOf(usePointer()).toEqualTypeOf<Service<PointerProps>>();
+    expectTypeOf(usePointer(document.documentElement)).toEqualTypeOf<
+      Service<ElementPointerProps>
+    >();
+    expectTypeOf<ElementPointerProps>().toMatchTypeOf<PointerProps>();
+    expectTypeOf<PointerHook>().toMatchTypeOf<{
+      moved?: (props: ElementPointerProps) => void;
+    }>();
+    expectTypeOf<PointerMixinOptions>().toMatchTypeOf<{
+      target?: (instance: Base) => Element;
+    }>();
   });
 
   it('exports manifest generation from the root and symbol subpaths', () => {

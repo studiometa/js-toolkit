@@ -122,6 +122,7 @@ export {
 export {
   usePointer,
   withPointer,
+  type ElementPointerProps,
   type PointerHook,
   type PointerMixinOptions,
   type PointerProps,
