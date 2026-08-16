@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- Fix v4 services being identified by how their options were written rather than by what they observe: `useDrag(el, { axis, inertia })` and `useDrag(el, { inertia, axis })` describe one drag and bound two services, and a mixin's own `manual`, `immediate` and `target` options entered the key, so `withDrag(Base, { manual: true })` bound a second drag service — a second pointer listener set and a second `touch-action` claim — on an element the plain `withDrag(Base)` already owned ([#839](https://github.com/studiometa/js-toolkit/pull/839))
 - Fix `Queue` and `SmartQueue` draining in quadratic time, which cost a page of 5 000 components several seconds of mounting: 5 548 ms becomes 294 ms ([#833](https://github.com/studiometa/js-toolkit/pull/833))
 
 ### Removed
