@@ -466,6 +466,42 @@ function warnLiteralDefault(
   );
 }
 
+/** Turn the attribute in force into a value. `null` means the attribute is absent. */
+type OptionTypeRule = (raw: string | null, defaultValue: () => unknown) => unknown;
+
+/** An absent attribute reads the declared default, or the type's empty value. */
+function absentValue(defaultValue: () => unknown, empty: unknown): unknown {
+  const value = defaultValue();
+  return value === undefined ? empty : value;
+}
+
+/**
+ * `buildDefault()` already answers `[]` or `{}` when nothing was declared, so
+ * a structured type needs no empty value of its own. Unparsable JSON is not a
+ * failure either: the option falls back to that same default.
+ */
+function readJSON(raw: string | null, defaultValue: () => unknown): unknown {
+  if (raw === null) {
+    return absentValue(defaultValue, undefined);
+  }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return defaultValue();
+  }
+}
+
+/** What each supported option type makes of its attribute. */
+const OPTION_TYPE_RULES = new Map<unknown, OptionTypeRule>([
+  // Presence is the value, so — unlike every other type — a declared `null`
+  // default still reads as `false`.
+  [Boolean, (raw, defaultValue) => (raw === null ? (defaultValue() ?? false) : raw !== 'false')],
+  [Number, (raw, defaultValue) => (raw === null ? absentValue(defaultValue, 0) : Number(raw))],
+  [String, (raw, defaultValue) => (raw === null ? absentValue(defaultValue, '') : raw)],
+  [Array, readJSON],
+  [Object, readJSON],
+]);
+
 function buildOptions(instance: Base): Record<string, unknown> {
   const options: Record<string, unknown> = {};
   const readers = new Map<string, OptionReader>();
@@ -509,29 +545,12 @@ function buildOptions(instance: Base): Record<string, unknown> {
       return undefined;
     };
 
-    const read = (raw: string | null): unknown => {
-      if (type === Boolean) {
-        return raw === null ? (defaultValue() ?? false) : raw !== 'false';
-      }
-      if (raw === null) {
-        const value = defaultValue();
-        if (value !== undefined) return value;
-        if (type === Number) return 0;
-        if (type === String) return '';
-        return undefined;
-      }
-      if (type === Number) {
-        return Number(raw);
-      }
-      if (type === Array || type === Object) {
-        try {
-          return JSON.parse(raw);
-        } catch {
-          return defaultValue();
-        }
-      }
-      return raw;
-    };
+    // An unrecognised type has no rule of its own: it keeps the declared
+    // default when the attribute is absent, and the raw string otherwise.
+    const rule =
+      OPTION_TYPE_RULES.get(type) ??
+      ((raw, fallback) => (raw === null ? absentValue(fallback, undefined) : raw));
+    const read = (raw: string | null): unknown => rule(raw, defaultValue);
 
     // Every option is responsive, and it is **derived on read**: the getter
     // consults the viewport as well as the element, and stores nothing. This
