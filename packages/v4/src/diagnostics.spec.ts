@@ -28,6 +28,7 @@ describe('diagnostics', () => {
         lifecycleFailed: 'component.lifecycle-failed',
         invalidMountStrategy: 'component.invalid-mount-strategy',
         invalidFamilyDeclaration: 'component.invalid-family-declaration',
+        configConflict: 'component.config-conflict',
       },
       event: { invalidEmitPayload: 'event.invalid-emit-payload' },
       manifest: { duplicateToken: 'manifest.duplicate-token' },
@@ -69,6 +70,7 @@ describe('diagnostics', () => {
       | 'component.lifecycle-failed'
       | 'component.invalid-mount-strategy'
       | 'component.invalid-family-declaration'
+      | 'component.config-conflict'
       | 'event.invalid-emit-payload'
       | 'manifest.duplicate-token'
       | 'option.literal-default'

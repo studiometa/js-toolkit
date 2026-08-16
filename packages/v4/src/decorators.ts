@@ -12,6 +12,7 @@ import {
 } from './Base.js';
 import { isBaseConstructor } from './component-brand.js';
 import type { ContextKey } from './context.js';
+import { warnOnce } from './diagnostics.js';
 import { HANDLER_REGISTRATIONS } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 
@@ -167,12 +168,64 @@ export const read = inPhase('$read');
 /** Schedule the method body in the next write phase. Destruction cancels pending work. */
 export const write = inPhase('$write');
 
+/**
+ * Merge the two config declarations one class can carry, by the rules
+ * `resolveConfig()` applies to a chain: collections merge, declared values
+ * override. A key neither side declares stays absent, so the written config
+ * keeps the shorthand shape the author wrote.
+ */
+function mergeOwnConfigs(base: BaseConfig, extra: BaseConfig): BaseConfig {
+  const merged: BaseConfig = { ...base, ...extra };
+  if (base.refs && extra.refs) {
+    merged.refs = [...new Set([...base.refs, ...extra.refs])];
+  }
+  if (base.options && extra.options) {
+    merged.options = { ...base.options, ...extra.options };
+  }
+  if (base.components && extra.components) {
+    merged.components = { ...base.components, ...extra.components };
+  }
+  return merged;
+}
+
+/**
+ * Keys the two declarations give different values, `options` and `components`
+ * entry by entry. `refs` are a union, so declaring one twice keeps it and is
+ * not reported. Only these keys make the precedence rule observable, so they
+ * are the only ones worth a warning.
+ */
+function conflictingKeys(base: BaseConfig, extra: BaseConfig): string[] {
+  const conflicts: string[] = [];
+  const scalars = base as unknown as Record<string, unknown>;
+  for (const [key, value] of Object.entries(extra)) {
+    if (key !== 'refs' && key !== 'options' && key !== 'components' && scalars[key] !== undefined) {
+      if (scalars[key] !== value) {
+        conflicts.push(key);
+      }
+    }
+  }
+  for (const key of ['options', 'components'] as const) {
+    const own = base[key];
+    const incoming = extra[key];
+    if (!own || !incoming) {
+      continue;
+    }
+    for (const [entry, value] of Object.entries(incoming)) {
+      if (own[entry] !== undefined && own[entry] !== value) {
+        conflicts.push(`${key}.${entry}`);
+      }
+    }
+  }
+  return conflicts;
+}
+
 /** Set the component config and register the class when it is defined. */
 export function component(config: BaseConfig) {
   return function decorate<T extends BaseConstructor>(
     value: T,
     context: ClassDecoratorContext<T>,
   ): void {
+    const inherited = value.config;
     // Copying the inherited config adds nothing to the merged one —
     // `resolveConfig()` walks the prototype chain — but `isBaseConstructor()`
     // reads `config.name` straight off the class, and cannot call
@@ -181,8 +234,33 @@ export function component(config: BaseConfig) {
     // does, would leave the class registered under the name it inherited yet
     // rejected by every brand check: `config.components` entries,
     // `@on(Class, type)` and lazy import resolution.
-    value.config = { ...value.config, ...config };
+    const written = { ...inherited, ...config };
+    value.config = written;
+
     context.addInitializer(function initialize(this: T) {
+      // Static field initializers run after class decorators, so a `static
+      // config` on the same class has replaced the object written above and
+      // the decorator's declaration would be gone. Class initializers run
+      // after those fields, which is the first moment both declarations exist:
+      // merge them, decorator last — the direction it already has over the
+      // inherited config. Initializers still run while the class definition
+      // evaluates, so `this.config` is final before any statement following
+      // the class, `registerComponent()` at module scope included.
+      if (this.config !== written) {
+        const field = this.config;
+        const merged = mergeOwnConfigs({ ...inherited, ...field }, config);
+        this.config = merged;
+        const conflicts = conflictingKeys(field, config);
+        if (conflicts.length > 0) {
+          warnOnce(
+            this,
+            'config',
+            'component.config-conflict',
+            `"${merged.name}" declares ${conflicts.join(', ')} in both @component() and its static config; the @component() value was kept. Declare each key once.`,
+            { component: merged.name },
+          );
+        }
+      }
       registerComponent(this);
     });
   };

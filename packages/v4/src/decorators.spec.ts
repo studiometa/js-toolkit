@@ -12,7 +12,7 @@ import {
 import { isBaseConstructor } from './component-brand.js';
 import { createContext, signal, type Signal } from './context.js';
 import { children, component, inject, on, provide, read, write } from './decorators.js';
-import { registerComponents } from './registry.js';
+import { registerComponent, registerComponents } from './registry.js';
 import { defaultScheduler } from './scheduler.js';
 import { getInstance, resetDom, settle, TodoItem } from './test-utils.js';
 
@@ -358,6 +358,29 @@ describe('@component', () => {
     expect(() => on(BrandChild, 'ping')).not.toThrow();
   });
 
+  /**
+   * The same, through the merge: a static config field replaces the object the
+   * decorator wrote, so the merged one has to carry the inherited name back.
+   */
+  it('keeps the inherited name when a nameless static config replaces the written one', () => {
+    @component({ name: 'BrandFieldParent' })
+    class BrandFieldParent extends Base {}
+
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // @ts-expect-error `name` is missing on both sides, as it is in untyped sources.
+    @component({ refs: ['handle'] })
+    class BrandFieldChild extends BrandFieldParent {
+      // @ts-expect-error `name` is missing.
+      static config: BaseConfig = { options: { extra: Boolean } };
+    }
+    warn.mockRestore();
+
+    expect(BrandFieldChild.config.name).toBe('BrandFieldParent');
+    expect(BrandFieldChild.config.refs).toEqual(['handle']);
+    expect(BrandFieldChild.config.options).toEqual({ extra: Boolean });
+    expect(isBaseConstructor(BrandFieldChild)).toBe(true);
+  });
+
   it('writes an own config and leaves the parent object untouched', () => {
     @component({ name: 'OwnParent', refs: ['a'] })
     class OwnParent extends Base {}
@@ -378,18 +401,156 @@ describe('@component', () => {
   });
 
   /**
-   * Declaring both is a mistake, but pin which one wins: static field
-   * initializers run after class decorators, so the field replaces everything
-   * the decorator wrote — `fromDecorator` never reaches the merged config.
+   * Two declarations of one config on one class. Static field initializers run
+   * after class decorators, so the field's object replaces the one the
+   * decorator wrote: the decorator used to lose everything the field did not
+   * repeat, silently. Class initializers run after those fields, which is
+   * where the two are merged back together — by the rules `resolveConfig()`
+   * already applies to a chain, with the decorator last.
    */
-  it('is overwritten by a static config field on the same class', () => {
-    @component({ name: 'FieldWins', options: { fromDecorator: Boolean } })
-    class FieldWins extends Base {
-      static config: BaseConfig = { name: 'FieldWinsStatic' };
+  it('merges a static config field on the same class instead of dropping one', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    @component({ name: 'BothSides', refs: ['btn'] })
+    class BothSides extends Base {
+      static config: BaseConfig = { name: 'BothSides', options: { open: Boolean } };
+    }
+    warn.mockRestore();
+
+    expect(BothSides.config).toEqual({
+      name: 'BothSides',
+      refs: ['btn'],
+      options: { open: Boolean },
+    });
+    expect(resolveConfig(BothSides)).toMatchObject({
+      name: 'BothSides',
+      refs: ['btn'],
+      options: { open: Boolean },
+    });
+    // Declaring the same name on both sides is not a conflict, and disjoint
+    // keys need no precedence rule, so nothing is reported.
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The precedence rule is only observable when the two give one key different
+   * values, and that is the case a warning has to name: it is an authoring
+   * mistake, not a declaration the merge can honour.
+   */
+  it('keeps the decorator value and reports a key declared differently on both sides', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    @component({
+      name: 'ConflictingConfig',
+      mountStrategy: 'visible',
+      options: { open: Boolean, extra: String },
+    })
+    class ConflictingConfig extends Base {
+      static config: BaseConfig = {
+        name: 'ShadowedName',
+        mountStrategy: 'idle',
+        options: { open: String },
+      };
     }
 
-    expect(FieldWins.config).toEqual({ name: 'FieldWinsStatic' });
-    expect(resolveConfig(FieldWins).options).toEqual({});
+    expect(ConflictingConfig.config).toEqual({
+      name: 'ConflictingConfig',
+      mountStrategy: 'visible',
+      options: { open: Boolean, extra: String },
+    });
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain('[js-toolkit:component.config-conflict]');
+    expect(warn.mock.calls[0][0]).toContain('name, mountStrategy, options.open');
+    warn.mockRestore();
+  });
+
+  /** Refs union, so declaring one on both sides loses nothing to report. */
+  it('unions refs declared on both sides', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    @component({ name: 'RefUnion', refs: ['handle'] })
+    class RefUnion extends Base {
+      static config: BaseConfig = { name: 'RefUnion', refs: ['label', 'handle'] };
+    }
+    warn.mockRestore();
+
+    // The field's refs come first because the decorator merges onto them; refs
+    // are looked up by name, so the order carries nothing.
+    expect(RefUnion.config.refs).toEqual(['label', 'handle']);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The merge happens in a class initializer, which still runs while the class
+   * definition evaluates. `registerComponent()` on the next line — how it is
+   * called at module scope — must therefore see the merged config, name
+   * included, and not a half-written one cached by `resolveConfig()`.
+   */
+  it('has the merged config ready for a registerComponent() call on the next line', async () => {
+    const el = document.createElement('div');
+    el.setAttribute('data-component', 'ImmediateRegistration');
+    el.setAttribute('data-option-tone', 'loud');
+    el.innerHTML = '<span data-ref="label"></span>';
+    document.body.append(el);
+
+    @component({ name: 'ImmediateRegistration', refs: ['label'] })
+    class ImmediateRegistration extends Base {
+      static config: BaseConfig = {
+        name: 'ImmediateRegistration',
+        options: { tone: String },
+      };
+    }
+    registerComponent(ImmediateRegistration);
+
+    expect(resolveConfig(ImmediateRegistration)).toMatchObject({
+      name: 'ImmediateRegistration',
+      refs: ['label'],
+      options: { tone: String },
+    });
+
+    await settle();
+    const instance = getInstance<ImmediateRegistration>(el, 'ImmediateRegistration');
+    expect(instance.$isMounted).toBe(true);
+    expect(instance.$options.tone).toBe('loud');
+    expect(instance.$refs.label).toBe(el.querySelector('span'));
+  });
+
+  /** Each class merges its own two declarations; the chain merges the rest. */
+  it('merges both declarations on a decorated subclass of a decorated class', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    @component({ name: 'MixParent', refs: ['handle'] })
+    class MixParent extends Base {
+      static config: BaseConfig = { name: 'MixParent', options: { open: Boolean } };
+    }
+
+    @component({ name: 'MixChild', refs: ['extra'] })
+    class MixChild extends MixParent {
+      static config: BaseConfig = { name: 'MixChild', options: { size: Number } };
+    }
+
+    /** An undecorated subclass keeps declaring config the plain way. */
+    class MixGrandChild extends MixChild {
+      static config: BaseConfig = { name: 'MixGrandChild', refs: ['last'] };
+    }
+    warn.mockRestore();
+
+    expect(MixParent.config).toEqual({
+      name: 'MixParent',
+      refs: ['handle'],
+      options: { open: Boolean },
+    });
+    expect(resolveConfig(MixChild)).toMatchObject({
+      name: 'MixChild',
+      refs: ['handle', 'extra'],
+      options: { open: Boolean, size: Number },
+    });
+    expect(resolveConfig(MixGrandChild)).toMatchObject({
+      name: 'MixGrandChild',
+      refs: ['handle', 'extra', 'last'],
+      options: { open: Boolean, size: Number },
+    });
+    expect(warn).not.toHaveBeenCalled();
   });
 });
 

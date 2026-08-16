@@ -16,6 +16,7 @@ const component = Object.freeze({
   lifecycleFailed: 'component.lifecycle-failed',
   invalidMountStrategy: 'component.invalid-mount-strategy',
   invalidFamilyDeclaration: 'component.invalid-family-declaration',
+  configConflict: 'component.config-conflict',
 } as const);
 
 const event = Object.freeze({
