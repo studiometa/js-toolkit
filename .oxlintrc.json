@@ -12,6 +12,12 @@
       {
         "allowDestructuring": true
       }
+    ],
+    "complexity": [
+      "error",
+      {
+        "max": 20
+      }
     ]
   },
   "overrides": [
@@ -53,8 +59,9 @@
       }
     },
     {
-      "files": ["**/*.spec.ts", "**/*.bench.ts", "**/__benchmarks__/**"],
+      "files": ["**/*.spec.ts", "**/*.bench.ts", "**/__benchmarks__/**", "packages/v4/test/**"],
       "rules": {
+        "complexity": "off",
         "js-toolkit/no-internal-barrel-import": "off",
         "js-toolkit/require-config": "off",
         "js-toolkit/require-config-name-pascal-case": "off",

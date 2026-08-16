@@ -195,25 +195,41 @@ function mergeOwnConfigs(base: BaseConfig, extra: BaseConfig): BaseConfig {
  * are the only ones worth a warning.
  */
 function conflictingKeys(base: BaseConfig, extra: BaseConfig): string[] {
+  return [
+    ...conflictingScalars(base, extra),
+    ...conflictingEntries('options', base, extra),
+    ...conflictingEntries('components', base, extra),
+  ];
+}
+
+/** Top-level keys both declare with different values; the collections are compared per entry. */
+function conflictingScalars(base: BaseConfig, extra: BaseConfig): string[] {
   const conflicts: string[] = [];
   const scalars = base as unknown as Record<string, unknown>;
   for (const [key, value] of Object.entries(extra)) {
-    if (key !== 'refs' && key !== 'options' && key !== 'components' && scalars[key] !== undefined) {
-      if (scalars[key] !== value) {
-        conflicts.push(key);
-      }
+    const isCollection = key === 'refs' || key === 'options' || key === 'components';
+    if (!isCollection && scalars[key] !== undefined && scalars[key] !== value) {
+      conflicts.push(key);
     }
   }
-  for (const key of ['options', 'components'] as const) {
-    const own = base[key];
-    const incoming = extra[key];
-    if (!own || !incoming) {
-      continue;
-    }
-    for (const [entry, value] of Object.entries(incoming)) {
-      if (own[entry] !== undefined && own[entry] !== value) {
-        conflicts.push(`${key}.${entry}`);
-      }
+  return conflicts;
+}
+
+/** Entries of one collection both declare with different values. */
+function conflictingEntries(
+  key: 'options' | 'components',
+  base: BaseConfig,
+  extra: BaseConfig,
+): string[] {
+  const own = base[key];
+  const incoming = extra[key];
+  if (!own || !incoming) {
+    return [];
+  }
+  const conflicts: string[] = [];
+  for (const [entry, value] of Object.entries(incoming)) {
+    if (own[entry] !== undefined && own[entry] !== value) {
+      conflicts.push(`${key}.${entry}`);
     }
   }
   return conflicts;

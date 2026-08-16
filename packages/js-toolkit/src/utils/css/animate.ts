@@ -150,6 +150,9 @@ const TRANSLATE_DEFS: ReadonlyArray<readonly [string, number, string]> = [
  * Compile a pair of keyframes into a pre-computed segment.
  * All constant work (deltas, property filtering) is done here once.
  */
+// Deliberately flat: this runs once per segment so that rendering does not
+// branch, and splitting it would move the branches back onto the hot path.
+// oxlint-disable-next-line complexity
 function compileSegment(from: NormalizedKeyframe, to: NormalizedKeyframe): CompiledSegment {
   const transformStarts: number[] = [];
   const transformDeltas: number[] = [];

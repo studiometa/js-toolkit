@@ -57,6 +57,25 @@ export function reportDiagnostic(
   return dispatchDiagnostic(detail, target);
 }
 
+/**
+ * Run a callback the framework does not own, and report a throw instead of
+ * letting it out: one failing subscriber must not stop delivery to the others,
+ * nor turn a subscription into a failure for the caller.
+ *
+ * @internal
+ */
+export function isolateCallbackFailure(
+  code: ToolkitDiagnosticCode,
+  message: string,
+  run: () => void,
+): void {
+  try {
+    run();
+  } catch (error) {
+    reportDiagnostic(code, message, error);
+  }
+}
+
 /** @internal */
 export function warn(
   code: ToolkitDiagnosticCode,

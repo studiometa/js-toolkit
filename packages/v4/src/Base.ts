@@ -466,6 +466,42 @@ function warnLiteralDefault(
   );
 }
 
+/** Turn the attribute in force into a value. `null` means the attribute is absent. */
+type OptionTypeRule = (raw: string | null, defaultValue: () => unknown) => unknown;
+
+/** An absent attribute reads the declared default, or the type's empty value. */
+function absentValue(defaultValue: () => unknown, empty: unknown): unknown {
+  const value = defaultValue();
+  return value === undefined ? empty : value;
+}
+
+/**
+ * `buildDefault()` already answers `[]` or `{}` when nothing was declared, so
+ * a structured type needs no empty value of its own. Unparsable JSON is not a
+ * failure either: the option falls back to that same default.
+ */
+function readJSON(raw: string | null, defaultValue: () => unknown): unknown {
+  if (raw === null) {
+    return absentValue(defaultValue, undefined);
+  }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return defaultValue();
+  }
+}
+
+/** What each supported option type makes of its attribute. */
+const OPTION_TYPE_RULES = new Map<unknown, OptionTypeRule>([
+  // Presence is the value, so — unlike every other type — a declared `null`
+  // default still reads as `false`.
+  [Boolean, (raw, defaultValue) => (raw === null ? (defaultValue() ?? false) : raw !== 'false')],
+  [Number, (raw, defaultValue) => (raw === null ? absentValue(defaultValue, 0) : Number(raw))],
+  [String, (raw, defaultValue) => (raw === null ? absentValue(defaultValue, '') : raw)],
+  [Array, readJSON],
+  [Object, readJSON],
+]);
+
 function buildOptions(instance: Base): Record<string, unknown> {
   const options: Record<string, unknown> = {};
   const readers = new Map<string, OptionReader>();
@@ -509,29 +545,12 @@ function buildOptions(instance: Base): Record<string, unknown> {
       return undefined;
     };
 
-    const read = (raw: string | null): unknown => {
-      if (type === Boolean) {
-        return raw === null ? (defaultValue() ?? false) : raw !== 'false';
-      }
-      if (raw === null) {
-        const value = defaultValue();
-        if (value !== undefined) return value;
-        if (type === Number) return 0;
-        if (type === String) return '';
-        return undefined;
-      }
-      if (type === Number) {
-        return Number(raw);
-      }
-      if (type === Array || type === Object) {
-        try {
-          return JSON.parse(raw);
-        } catch {
-          return defaultValue();
-        }
-      }
-      return raw;
-    };
+    // An unrecognised type has no rule of its own: it keeps the declared
+    // default when the attribute is absent, and the raw string otherwise.
+    const rule =
+      OPTION_TYPE_RULES.get(type) ??
+      ((raw, fallback) => (raw === null ? absentValue(fallback, undefined) : raw));
+    const read = (raw: string | null): unknown => rule(raw, defaultValue);
 
     // Every option is responsive, and it is **derived on read**: the getter
     // consults the viewport as well as the element, and stores nothing. This
@@ -693,6 +712,22 @@ const handlerPlan = /* @__PURE__ */ memo((ctor: BaseConstructor): HandlerPlan =>
   return { childNames, refs, componentName: config.name, entries };
 });
 
+/** One handler waiting on a descendant, resolved at event time. */
+type DelegatedEntry =
+  | { kind: 'child'; name: string; invoke: (payload: DelegatedEvent) => void }
+  // `name` here is the **declared** ref, suffix included: it is compared
+  // against the `data-ref` attribute and handed to `queryRefs()`.
+  | { kind: 'ref'; name: string; invoke: (payload: RefEvent) => void };
+
+type DelegatedEntries = Map<string, DelegatedEntry[]>;
+
+function addDelegated(delegated: DelegatedEntries, type: string, entry: DelegatedEntry): void {
+  if (!delegated.has(type)) {
+    delegated.set(type, []);
+  }
+  delegated.get(type)?.push(entry);
+}
+
 /**
  * `mounted()` may return one cleanup, several, nothing — or a promise of
  * those. The shape nests, so a subclass composes with what it extends
@@ -706,6 +741,9 @@ function reportLifecycleFailure(instance: Base, message: string, error: unknown)
     target: instance.$el,
   });
 }
+
+/** What `#guard()` returns instead of a value when the guarded call threw. */
+const GUARD_FAILED = Symbol('guard-failed');
 
 export class Base<T extends BaseProps = BaseProps> {
   /** A class-owned brand inherited by subclasses and shared by bundled copies. */
@@ -834,11 +872,7 @@ export class Base<T extends BaseProps = BaseProps> {
     if (!this.#isActiveMountCycle(cycle)) {
       return this;
     }
-    try {
-      this.#collectCleanup(this.mounted(), cycle);
-    } catch (error) {
-      reportLifecycleFailure(this, '`mounted()` failed.', error);
-    }
+    this.#guard('`mounted()` failed.', () => this.#collectCleanup(this.mounted(), cycle));
     if (!this.#isActiveMountCycle(cycle)) {
       return this;
     }
@@ -874,18 +908,10 @@ export class Base<T extends BaseProps = BaseProps> {
     const callbacks = this.#destroyCallbacks;
     this.#destroyCallbacks = [];
     for (const callback of callbacks) {
-      try {
-        callback();
-      } catch (error) {
-        reportLifecycleFailure(this, 'A mount cleanup failed.', error);
-      }
+      this.#guard('A mount cleanup failed.', callback);
     }
     this.#clearOptionEffects();
-    try {
-      this.destroyed();
-    } catch (error) {
-      reportLifecycleFailure(this, '`destroyed()` failed.', error);
-    }
+    this.#guard('`destroyed()` failed.', () => this.destroyed());
     // The element may already be detached, so a bubbling event would reach
     // nobody: announce from the document instead.
     const detail: LifecycleEventDetail = { instance: this };
@@ -909,17 +935,9 @@ export class Base<T extends BaseProps = BaseProps> {
     const callbacks = this.#terminateCallbacks;
     this.#terminateCallbacks = [];
     for (const callback of callbacks) {
-      try {
-        callback();
-      } catch (error) {
-        reportLifecycleFailure(this, 'A termination cleanup failed.', error);
-      }
+      this.#guard('A termination cleanup failed.', callback);
     }
-    try {
-      this.terminated();
-    } catch (error) {
-      reportLifecycleFailure(this, '`terminated()` failed.', error);
-    }
+    this.#guard('`terminated()` failed.', () => this.terminated());
     this.$el[INSTANCES]?.delete(this.$config.name);
     return this;
   }
@@ -1147,6 +1165,21 @@ export class Base<T extends BaseProps = BaseProps> {
     return this.#isMounted && this.#mountCycle === cycle;
   }
 
+  /**
+   * Run a hook or a cleanup owned by the component. A throw there must not
+   * abandon the framework bookkeeping which follows it, so it is reported and
+   * swallowed; the sentinel lets the few callers which care tell a failure
+   * from a value the call returned.
+   */
+  #guard<T>(message: string, run: () => T): T | typeof GUARD_FAILED {
+    try {
+      return run();
+    } catch (error) {
+      reportLifecycleFailure(this, message, error);
+      return GUARD_FAILED;
+    }
+  }
+
   #initializeOptionEffects(cycle: number): void {
     for (const [name, reader] of optionReaders.get(this) ?? []) {
       if (!this.#isActiveMountCycle(cycle)) {
@@ -1203,11 +1236,7 @@ export class Base<T extends BaseProps = BaseProps> {
     const previousCleanup = this.#optionCleanups.get(name);
     this.#optionCleanups.delete(name);
     if (previousCleanup) {
-      try {
-        previousCleanup();
-      } catch (error) {
-        reportLifecycleFailure(this, `Option "${name}" cleanup failed.`, error);
-      }
+      this.#guard(`Option "${name}" cleanup failed.`, previousCleanup);
     }
     if (!this.#isMounted) {
       return;
@@ -1220,8 +1249,7 @@ export class Base<T extends BaseProps = BaseProps> {
     }
 
     const cycle = this.#mountCycle;
-    let cleanup: OptionChangedReturn;
-    try {
+    const cleanup = this.#guard(`\`${method}()\` failed.`, () => {
       const rawValue = reader.rawValue();
       const change: OptionChange = {
         name,
@@ -1231,20 +1259,16 @@ export class Base<T extends BaseProps = BaseProps> {
         previousRawValue,
         initial,
       };
-      cleanup = (handler as (change: OptionChange) => OptionChangedReturn).call(this, change);
-    } catch (error) {
-      reportLifecycleFailure(this, `\`${method}()\` failed.`, error);
+      return (handler as (change: OptionChange) => OptionChangedReturn).call(this, change);
+    });
+    if (cleanup === GUARD_FAILED) {
       return;
     }
     if (typeof cleanup === 'function') {
       if (this.#isMounted && this.#mountCycle === cycle) {
         this.#optionCleanups.set(name, cleanup);
       } else {
-        try {
-          cleanup();
-        } catch (error) {
-          reportLifecycleFailure(this, `Option "${name}" cleanup failed.`, error);
-        }
+        this.#guard(`Option "${name}" cleanup failed.`, cleanup);
       }
     }
   }
@@ -1253,11 +1277,7 @@ export class Base<T extends BaseProps = BaseProps> {
     const cleanups = this.#optionCleanups;
     this.#optionCleanups = new Map();
     for (const [name, cleanup] of cleanups) {
-      try {
-        cleanup();
-      } catch (error) {
-        reportLifecycleFailure(this, `Option "${name}" cleanup failed.`, error);
-      }
+      this.#guard(`Option "${name}" cleanup failed.`, cleanup);
     }
   }
 
@@ -1273,11 +1293,7 @@ export class Base<T extends BaseProps = BaseProps> {
       } else {
         // The originating mount cycle ended while an async result was pending:
         // run the cleanup right away instead of leaking.
-        try {
-          result();
-        } catch (error) {
-          reportLifecycleFailure(this, 'A late mount cleanup failed.', error);
-        }
+        this.#guard('A late mount cleanup failed.', result);
       }
       return;
     }
@@ -1298,45 +1314,44 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /** Bind root, delegated child/ref and global handlers for the current mount cycle. Delegated handlers resolve dynamic descendants at event time. */
   #bindHandlers(): void {
-    const self = this as unknown as Record<string, (payload: unknown) => void>;
     // Resolve class-level handler metadata once.
     const plan = handlerPlan(this.constructor as BaseConstructor);
-    const { childNames, refs, componentName } = plan;
+    const delegated: DelegatedEntries = new Map();
+    // Decorated handlers win: the plan lists the same method names, and the
+    // set returned here is what tells the second pass to skip them.
+    const decorated = this.#bindDecoratedHandlers(plan, delegated);
+    this.#bindPlannedHandlers(plan, delegated, decorated);
+    this.#installDelegatedListeners(plan.componentName, delegated);
+  }
 
-    type Entry =
-      | { kind: 'child'; name: string; invoke: (payload: DelegatedEvent) => void }
-      // `name` here is the **declared** ref, suffix included: it is compared
-      // against the `data-ref` attribute and handed to `queryRefs()`.
-      | { kind: 'ref'; name: string; invoke: (payload: RefEvent) => void };
-    const delegated = new Map<string, Entry[]>();
-    const addDelegated = (type: string, entry: Entry) => {
-      if (!delegated.has(type)) {
-        delegated.set(type, []);
-      }
-      delegated.get(type)?.push(entry);
-    };
-    const bindOwn = (type: string, invoke: (event: Event) => void) => {
-      const listener: EventListener = (event) => invoke(event);
-      this.$el.addEventListener(type, listener);
-      this.#listeners.push([type, listener, this.$el, false]);
-    };
-    /** Bind a global handler in bubble phase for the current mount cycle. Capture is only for delegated non-bubbling events. */
-    const bindGlobal = (
-      target: Window | Document,
-      type: string,
-      invoke: (payload: GlobalEvent) => void,
-    ) => {
-      const listener: EventListener = (event) => invoke({ event, target });
-      target.addEventListener(type, listener);
-      this.#listeners.push([type, listener, target, false]);
-    };
+  #bindOwn(type: string, invoke: (event: Event) => void): void {
+    const listener: EventListener = (event) => invoke(event);
+    this.$el.addEventListener(type, listener);
+    this.#listeners.push([type, listener, this.$el, false]);
+  }
 
-    // Decorated handlers already contain resolved targets and event types.
+  /** Bind a global handler in bubble phase for the current mount cycle. Capture is only for delegated non-bubbling events. */
+  #bindGlobal(
+    target: Window | Document,
+    type: string,
+    invoke: (payload: GlobalEvent) => void,
+  ): void {
+    const listener: EventListener = (event) => invoke({ event, target });
+    target.addEventListener(type, listener);
+    this.#listeners.push([type, listener, target, false]);
+  }
+
+  /**
+   * Bind the decorated handlers, which already carry resolved targets and
+   * event types, and return the functions they bound.
+   */
+  #bindDecoratedHandlers(plan: HandlerPlan, delegated: DelegatedEntries): Set<unknown> {
+    const { childNames, refs } = plan;
     const registrations = this[HANDLER_REGISTRATIONS] ?? [];
     const decorated: Set<unknown> = new Set(registrations.map(({ handler }) => handler));
     for (const { target, child, type, handler } of registrations) {
       if (target) {
-        bindGlobal(target, type, (payload) => handler.call(this, payload));
+        this.#bindGlobal(target, type, (payload) => handler.call(this, payload));
       } else if (child) {
         // Decorators use the declared ref name, including `[]`.
         const declaredChild = childNames.includes(child);
@@ -1344,17 +1359,25 @@ export class Base<T extends BaseProps = BaseProps> {
         if (!declaredChild && !ref) {
           warnRefSuffixMismatch(this, child, refs);
         }
-        addDelegated(type, {
+        addDelegated(delegated, type, {
           kind: ref ? 'ref' : 'child',
           name: child,
           invoke: (payload: DelegatedEvent | RefEvent) => handler.call(this, payload),
-        } as Entry);
+        } as DelegatedEntry);
       } else {
-        bindOwn(type, (event) => handler.call(this, event));
+        this.#bindOwn(type, (event) => handler.call(this, event));
       }
     }
+    return decorated;
+  }
 
-    // Bind undecorated magic handlers from the cached class plan.
+  /** Bind the undecorated magic handlers from the cached class plan. */
+  #bindPlannedHandlers(
+    plan: HandlerPlan,
+    delegated: DelegatedEntries,
+    decorated: Set<unknown>,
+  ): void {
+    const self = this as unknown as Record<string, (payload: unknown) => void>;
     for (const entry of plan.entries) {
       const { method, type } = entry;
       // Read through the instance, deliberately: a class field can shadow a
@@ -1365,44 +1388,28 @@ export class Base<T extends BaseProps = BaseProps> {
         continue;
       }
       if (entry.kind === 'global') {
-        bindGlobal(entry.target, type, (payload) => self[method](payload));
+        this.#bindGlobal(entry.target, type, (payload) => self[method](payload));
       } else if (entry.kind === 'own') {
-        bindOwn(type, (event) => self[method](event));
+        this.#bindOwn(type, (event) => self[method](event));
       } else {
-        addDelegated(type, {
+        addDelegated(delegated, type, {
           kind: entry.kind,
           name: entry.name,
           invoke: (payload: DelegatedEvent | RefEvent) => self[method](payload),
-        } as Entry);
+        } as DelegatedEntry);
       }
     }
+  }
 
+  /** Install one root listener per delegated event type. */
+  #installDelegatedListeners(componentName: string, delegated: DelegatedEntries): void {
     for (const [type, entries] of delegated) {
       const listener: EventListener = (event) => {
         let el = event.target instanceof Element ? event.target : null;
         while (el && el !== this.$el) {
           let invoked = false;
           for (const entry of entries) {
-            if (entry.kind === 'child') {
-              const child = el[INSTANCES]?.get(entry.name);
-              if (child?.$isMounted) {
-                entry.invoke({
-                  event,
-                  target: child,
-                  // The detail verbatim — what a plain listener reads.
-                  payload: (event as CustomEvent).detail,
-                });
-                invoked = true;
-              }
-            } else if (isRefOf(el, this.$el, componentName, entry.name)) {
-              const target = el;
-              entry.invoke({
-                event,
-                target,
-                // The index within the ref list as `$refs` sees it, so the two
-                // spellings share one numbering.
-                index: queryRefs(this.$el, componentName, entry.name).indexOf(target),
-              });
+            if (this.#invokeDelegated(entry, el, event, componentName)) {
               invoked = true;
             }
           }
@@ -1419,5 +1426,42 @@ export class Base<T extends BaseProps = BaseProps> {
       this.$el.addEventListener(type, listener, capture);
       this.#listeners.push([type, listener, this.$el, capture]);
     }
+  }
+
+  /**
+   * Fire one delegated entry when `el` is what it waits on: a mounted child
+   * instance, or an owned ref. Returns whether it fired, which is how the
+   * walk knows it reached the nearest matching element.
+   */
+  #invokeDelegated(
+    entry: DelegatedEntry,
+    el: Element,
+    event: Event,
+    componentName: string,
+  ): boolean {
+    if (entry.kind === 'child') {
+      const child = el[INSTANCES]?.get(entry.name);
+      if (!child?.$isMounted) {
+        return false;
+      }
+      entry.invoke({
+        event,
+        target: child,
+        // The detail verbatim — what a plain listener reads.
+        payload: (event as CustomEvent).detail,
+      });
+      return true;
+    }
+    if (!isRefOf(el, this.$el, componentName, entry.name)) {
+      return false;
+    }
+    entry.invoke({
+      event,
+      target: el,
+      // The index within the ref list as `$refs` sees it, so the two
+      // spellings share one numbering.
+      index: queryRefs(this.$el, componentName, entry.name).indexOf(el),
+    });
+    return true;
   }
 }

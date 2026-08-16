@@ -1,4 +1,4 @@
-import { reportDiagnostic } from '../diagnostics.js';
+import { isolateCallbackFailure } from '../diagnostics.js';
 
 /** Release one subscription. Services start with their first subscriber and stop with their last. */
 export type Unsubscribe = () => void;
@@ -71,12 +71,9 @@ export function createService<T, R = void>({
       if (!subscription.isActive) {
         continue;
       }
-      try {
-        subscription.callback(current);
-      } catch (error) {
-        // Isolate subscriber failures.
-        reportDiagnostic('callback.service-failed', 'A service subscriber failed.', error);
-      }
+      isolateCallbackFailure('callback.service-failed', 'A service subscriber failed.', () =>
+        subscription.callback(current),
+      );
     }
   }
 
@@ -104,16 +101,12 @@ export function createService<T, R = void>({
       }
       // Deliver after startup, when props are current, and only to the new subscriber.
       if (immediate && (hasProps?.() ?? true)) {
-        try {
-          callback(props());
-        } catch (error) {
-          // Keep `subscribe()` successful so the caller receives its unsubscribe.
-          reportDiagnostic(
-            'callback.service-failed',
-            'An immediate service subscriber failed.',
-            error,
-          );
-        }
+        // Keep `subscribe()` successful so the caller receives its unsubscribe.
+        isolateCallbackFailure(
+          'callback.service-failed',
+          'An immediate service subscriber failed.',
+          () => callback(props()),
+        );
       }
       return () => {
         // Unsubscribe is idempotent.
