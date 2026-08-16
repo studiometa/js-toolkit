@@ -10,6 +10,7 @@ import subscribeContextDefault, {
 } from '@studiometa/js-toolkit-v4/subscribeContext';
 import useMutationDefault, { useMutation } from '@studiometa/js-toolkit-v4/useMutation';
 import useRafDefault, { useRaf } from '@studiometa/js-toolkit-v4/useRaf';
+import withMutationDefault, { withMutation } from '@studiometa/js-toolkit-v4/withMutation';
 import watchAttributesDefault, { watchAttributes } from '@studiometa/js-toolkit-v4/watchAttributes';
 import createStorageDefault, { createStorage } from '@studiometa/js-toolkit-v4/createStorage';
 import createMemoryStorageProviderDefault, {
@@ -43,6 +44,8 @@ assert.equal(useRaf, toolkit.useRaf);
 assert.equal(useRafDefault, useRaf);
 assert.equal(useMutation, toolkit.useMutation);
 assert.equal(useMutationDefault, useMutation);
+assert.equal(withMutation, toolkit.withMutation);
+assert.equal(withMutationDefault, withMutation);
 assert.equal(watchAttributes, toolkit.watchAttributes);
 assert.equal(watchAttributesDefault, watchAttributes);
 assert.equal('$watchAttributes' in Base.prototype, false);
@@ -50,7 +53,7 @@ assert.equal(createStorage, toolkit.createStorage);
 assert.equal(createStorageDefault, createStorage);
 assert.equal(createMemoryStorageProvider, toolkit.createMemoryStorageProvider);
 assert.equal(createMemoryStorageProviderDefault, createMemoryStorageProvider);
-assert.equal(Object.keys(toolkit).length, 80);
+assert.equal(Object.keys(toolkit).length, 81);
 assert.equal(toolkit.ToolkitErrorDetail, undefined);
 assert.equal(toolkit.ToolkitErrorStage, undefined);
 

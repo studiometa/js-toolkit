@@ -196,6 +196,10 @@
       "types": "./dist/subpaths/useMutation.d.ts",
       "import": "./dist/subpaths/useMutation.js"
     },
+    "./withMutation": {
+      "types": "./dist/subpaths/withMutation.d.ts",
+      "import": "./dist/subpaths/withMutation.js"
+    },
     "./usePointer": {
       "types": "./dist/subpaths/usePointer.d.ts",
       "import": "./dist/subpaths/usePointer.js"

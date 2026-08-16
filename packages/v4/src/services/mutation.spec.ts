@@ -1,8 +1,16 @@
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
+import { Base } from '../Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from '../diagnostic-contract.js';
 import { EVENTS } from '../events.js';
-import { useMutation, type MutationProps } from './mutation.js';
+import {
+  useMutation,
+  withMutation,
+  type MutationHook,
+  type MutationMixinOptions,
+  type MutationProps,
+} from './mutation.js';
 import type { Service } from './service.js';
+import type { Toggle } from './toggle.js';
 
 interface Observation {
   target: Node;
@@ -108,6 +116,33 @@ function readonlyAssertions(props: MutationProps): void {
   props.records.push(recordFor(document.body));
 }
 void readonlyAssertions;
+
+class TypedWatcher extends withMutation(Base, { manual: true }) {
+  mutated(_props: MutationProps): void {}
+}
+
+function mixinTypeAssertions(instance: TypedWatcher): void {
+  expectTypeOf<MutationHook>().toMatchTypeOf<{
+    mutated?: (props: MutationProps) => void;
+  }>();
+  expectTypeOf(instance.mutated).toEqualTypeOf<(props: MutationProps) => void>();
+  expectTypeOf(instance.$services.mutated).toEqualTypeOf<Toggle>();
+  instance.$services.mutated.start();
+  instance.$services.mutated.stop();
+  // @ts-expect-error only the mixin's fixed hook gets a service handle
+  instance.$services.scrolled.start();
+}
+void mixinTypeAssertions;
+
+const mixinOptionsTypeAssertions: MutationMixinOptions = {
+  childList: true,
+  subtree: true,
+  attributeFilter: ['data-state'],
+  manual: true,
+  immediate: false,
+  target: () => document,
+};
+void mixinOptionsTypeAssertions;
 
 describe('useMutation', () => {
   beforeEach(() => {
@@ -317,5 +352,143 @@ describe('useMutation on the platform observer', () => {
       setTimeout(resolve, 0);
     });
     expect(seen).toHaveLength(1);
+  });
+});
+
+describe('withMutation', () => {
+  beforeEach(() => {
+    FakeMutationObserver.instances = [];
+    globalThis.MutationObserver = FakeMutationObserver as unknown as typeof MutationObserver;
+  });
+
+  afterEach(() => {
+    globalThis.MutationObserver = NativeMutationObserver;
+    document.body.innerHTML = '';
+  });
+
+  it('supports the no-build mixin form and watches the component root', () => {
+    const seen: number[] = [];
+
+    class Watcher extends withMutation(Base) {
+      mutated({ records }: MutationProps): void {
+        seen.push(records.length);
+      }
+    }
+
+    const el = document.createElement('article');
+    document.body.append(el);
+    const instance = new Watcher(el).$mount();
+
+    expect(initOf(el)).toEqual(resolvedInit({ childList: true, subtree: true }));
+
+    observerOf(el).deliver([recordFor(el)]);
+    expect(seen).toEqual([1]);
+    instance.$terminate();
+  });
+
+  it('supports the stage-3 decorator form', () => {
+    const seen: number[] = [];
+
+    @withMutation({ attributeFilter: ['data-state'] })
+    class Watcher extends Base {
+      mutated({ records }: MutationProps): void {
+        seen.push(records.length);
+      }
+    }
+
+    const el = document.createElement('article');
+    document.body.append(el);
+    const instance = new Watcher(el).$mount();
+
+    expect(initOf(el)).toEqual(resolvedInit({ attributes: true, attributeFilter: ['data-state'] }));
+    observerOf(el).deliver([recordFor(el, 'attributes')]);
+    expect(seen).toEqual([1]);
+    instance.$terminate();
+  });
+
+  it('resolves a custom target and forwards only MutationObserverInit fields', () => {
+    class Watcher extends withMutation(Base, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+      target: (instance) => instance.$el.firstElementChild as Node,
+      manual: false,
+      immediate: true,
+    }) {
+      mutated(): void {}
+    }
+
+    const el = document.createElement('article');
+    const target = document.createElement('figure');
+    el.append(target);
+    document.body.append(el);
+    const instance = new Watcher(el).$mount();
+
+    expect(observersOf(el)).toEqual([]);
+    expect(initOf(target)).toEqual(
+      resolvedInit({ childList: true, characterData: true, subtree: true }),
+    );
+    expect(initOf(target)).not.toHaveProperty('target');
+    expect(initOf(target)).not.toHaveProperty('manual');
+    expect(initOf(target)).not.toHaveProperty('immediate');
+    instance.$terminate();
+  });
+
+  it('releases each automatic mount cycle and observes again on remount', () => {
+    const seen: number[] = [];
+
+    class Watcher extends withMutation(Base) {
+      mutated({ records }: MutationProps): void {
+        seen.push(records.length);
+      }
+    }
+
+    const el = document.createElement('article');
+    document.body.append(el);
+    const instance = new Watcher(el).$mount();
+    const first = observerOf(el);
+    first.deliver([recordFor(el)]);
+    expect(seen).toHaveLength(1);
+
+    instance.$destroy();
+    expect(first.disconnects).toBe(1);
+
+    instance.$mount();
+    const second = observersOf(el)[1];
+    expect(second?.observed[0]?.target).toBe(el);
+
+    second?.deliver([recordFor(el)]);
+    expect(seen).toHaveLength(2);
+
+    instance.$terminate();
+    expect(second?.disconnects).toBe(1);
+  });
+
+  it('leaves a manual hook stopped on mount and releases starts on destroy', () => {
+    const seen: number[] = [];
+
+    class Watcher extends withMutation(Base, { manual: true }) {
+      mutated({ records }: MutationProps): void {
+        seen.push(records.length);
+      }
+    }
+
+    const el = document.createElement('article');
+    document.body.append(el);
+    const instance = new Watcher(el).$mount();
+
+    expect(observersOf(el)).toEqual([]);
+    expect(instance.$services.mutated.isActive).toBe(false);
+
+    instance.$services.mutated.start();
+    const observer = observerOf(el);
+    expect(instance.$services.mutated.isActive).toBe(true);
+    observer.deliver([recordFor(el)]);
+    expect(seen).toHaveLength(1);
+
+    instance.$destroy();
+    expect(instance.$services.mutated.isActive).toBe(false);
+    expect(observer.disconnects).toBe(1);
+    instance.$terminate();
   });
 });

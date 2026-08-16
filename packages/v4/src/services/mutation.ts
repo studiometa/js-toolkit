@@ -1,4 +1,5 @@
 import { getSharedRuntimeSlot } from '../shared-runtime.js';
+import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
 import { createService, perTarget, type MutableProps, type Service } from './service.js';
 
 export interface MutationProps {
@@ -109,3 +110,45 @@ export function useMutation(
 ): Service<MutationProps> {
   return mutationServices(target, resolveInit(init));
 }
+
+/** The method `withMutation()` subscribes for the component. */
+export interface MutationHook {
+  mutated?(props: MutationProps): void;
+}
+
+export type MutationMixinOptions = MutationObserverInit & ServiceMixinOptions<Node>;
+
+/**
+ * Subscribe `mutated()` for each mount cycle, watching the root element's
+ * subtree unless the options name another observation.
+ */
+export const withMutation = /* @__PURE__ */ createServiceMixin<
+  MutationHook & ServiceHandles<'mutated'>,
+  Node,
+  MutationObserverInit
+>({
+  hook: 'mutated',
+  target: (instance) => instance.$el,
+  use: (target, options) => {
+    const {
+      attributeFilter,
+      attributeOldValue,
+      attributes,
+      characterData,
+      characterDataOldValue,
+      childList,
+      subtree,
+    } = options;
+    const init: MutationObserverInit = {
+      ...(attributeFilter !== undefined && { attributeFilter }),
+      ...(attributeOldValue !== undefined && { attributeOldValue }),
+      ...(attributes !== undefined && { attributes }),
+      ...(characterData !== undefined && { characterData }),
+      ...(characterDataOldValue !== undefined && { characterDataOldValue }),
+      ...(childList !== undefined && { childList }),
+      ...(subtree !== undefined && { subtree }),
+    };
+    // An options object holding only mixin keys names no observation.
+    return useMutation(target, Object.keys(init).length > 0 ? init : DEFAULT_INIT);
+  },
+});

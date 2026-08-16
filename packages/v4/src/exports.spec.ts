@@ -18,6 +18,7 @@ import {
   watchAttributes,
   withDrag,
   withInView,
+  withMutation,
   withScrollProgress,
   type DefineManifestOptions,
   type DomMutation,
@@ -31,6 +32,8 @@ import {
   type ExtendableDetail,
   type Extension,
   type InViewProps,
+  type MutationHook,
+  type MutationMixinOptions,
   type MutationProps,
   type AttributeChange,
   type AttributeWatcher,
@@ -77,6 +80,9 @@ import withDragFromSubpath from '@studiometa/js-toolkit-v4/withDrag';
 import withInViewFromSubpath, {
   withInView as namedWithInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/withInView';
+import withMutationFromSubpath, {
+  withMutation as namedWithMutationFromSubpath,
+} from '@studiometa/js-toolkit-v4/withMutation';
 import withScrollProgressSubpath from '@studiometa/js-toolkit-v4/withScrollProgress';
 
 function toolkitDiagnosticDetailTypeAssertions(detail: ToolkitDiagnosticDetail): void {
@@ -135,7 +141,7 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(80);
+    expect(Object.keys(root)).toHaveLength(81);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
@@ -229,11 +235,17 @@ describe('the package entry points', () => {
     expectTypeOf<InViewMixinOptions>().toMatchTypeOf<IntersectionObserverInit>();
   });
 
-  it('serves useMutation from the root and its symbol subpath', () => {
+  it('serves useMutation and withMutation from the root and their symbol subpaths', () => {
     expect(useMutationFromSubpath).toBe(useMutation);
     expect(namedUseMutationFromSubpath).toBe(useMutation);
+    expect(withMutationFromSubpath).toBe(withMutation);
+    expect(namedWithMutationFromSubpath).toBe(withMutation);
     expectTypeOf(useMutation(document)).toEqualTypeOf<Service<MutationProps>>();
     expectTypeOf<MutationProps>().toEqualTypeOf<{ readonly records: readonly MutationRecord[] }>();
+    expectTypeOf<MutationHook>().toMatchTypeOf<{
+      mutated?: (props: MutationProps) => void;
+    }>();
+    expectTypeOf<MutationMixinOptions>().toMatchTypeOf<MutationObserverInit>();
   });
 
   it('exports manifest generation from the root and symbol subpaths', () => {
