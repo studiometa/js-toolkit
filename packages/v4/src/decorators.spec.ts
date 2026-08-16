@@ -1,17 +1,20 @@
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   Base,
+  type BaseConfig,
   type ChildrenCollection,
   type ComponentImporter,
   type DelegatedEvent,
   type GlobalEvent,
   type RefEvent,
+  resolveConfig,
 } from './Base.js';
+import { isBaseConstructor } from './component-brand.js';
 import { createContext, signal, type Signal } from './context.js';
 import { children, component, inject, on, provide, read, write } from './decorators.js';
 import { registerComponents } from './registry.js';
 import { defaultScheduler } from './scheduler.js';
-import { getInstance, resetDom, settle } from './test-utils.js';
+import { getInstance, resetDom, settle, TodoItem } from './test-utils.js';
 
 const DecoContext = createContext<Signal<number>>('deco-context');
 
@@ -288,6 +291,105 @@ describe('@component', () => {
     const root = render();
     await settle();
     expect(getInstance(root, 'DecoParent').$isMounted).toBe(true);
+  });
+
+  /**
+   * The decorator writes `{ ...value.config, ...config }`, so a class with no
+   * own `config` copies its parent's keys down before adding its own. None of
+   * those copied keys reach the merged config on their own: `resolveConfig()`
+   * walks the chain and merges the same values from the parent's own config.
+   */
+  it('copies no value into the merged config that resolveConfig does not merge', () => {
+    class CopyParent extends Base {
+      static config: BaseConfig = {
+        name: 'CopyParent',
+        refs: ['handle'],
+        options: { one: String },
+        components: { TodoItem },
+        mountStrategy: 'visible',
+      };
+    }
+
+    const added: BaseConfig = { name: 'CopyChild', refs: ['extra'], options: { two: String } };
+
+    /** The own config the decorator writes today. */
+    class WithCopy extends CopyParent {
+      static config: BaseConfig = { ...CopyParent.config, ...added };
+    }
+
+    /** The own config it would write without the copy. */
+    class WithoutCopy extends CopyParent {
+      static config: BaseConfig = added;
+    }
+
+    expect(resolveConfig(WithCopy)).toEqual(resolveConfig(WithoutCopy));
+    expect(resolveConfig(WithCopy)).toMatchObject({
+      name: 'CopyChild',
+      refs: ['handle', 'extra'],
+      mountStrategy: 'visible',
+    });
+  });
+
+  /**
+   * What the copy is for. `isBaseConstructor()` reads `config.name` straight
+   * off the class — it cannot call `resolveConfig()`, which lives in `Base` and
+   * imports the brand. A class with no own `config` passes because it reads its
+   * parent's; a decorated one only passes because the decorator carried the
+   * inherited name into the config it wrote. Untyped sources reach this by
+   * extending a component and adding config without renaming, the case #823
+   * made register under the inherited name.
+   */
+  it('keeps a class whose config omits a name recognisable as a component', () => {
+    @component({ name: 'BrandParent' })
+    class BrandParent extends Base {}
+
+    // Registering under the inherited name collides with the parent, which is
+    // the loud first-wins path and not what this spec is about.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // @ts-expect-error `name` is missing, as it is in untyped sources.
+    @component({ options: { extra: Boolean } })
+    class BrandChild extends BrandParent {}
+    warn.mockRestore();
+
+    expect(BrandChild.config.name).toBe('BrandParent');
+    // Consumed by `config.components` entries, `@on(Class, type)` and the lazy
+    // import resolution: all three reject a class the brand check refuses.
+    expect(isBaseConstructor(BrandChild)).toBe(true);
+    expect(() => on(BrandChild, 'ping')).not.toThrow();
+  });
+
+  it('writes an own config and leaves the parent object untouched', () => {
+    @component({ name: 'OwnParent', refs: ['a'] })
+    class OwnParent extends Base {}
+    const parentConfig = OwnParent.config;
+
+    @component({ name: 'OwnChild', refs: ['b'] })
+    class OwnChild extends OwnParent {}
+
+    expect(Object.hasOwn(OwnChild, 'config')).toBe(true);
+    expect(OwnChild.config).not.toBe(parentConfig);
+    expect(parentConfig).toEqual({ name: 'OwnParent', refs: ['a'] });
+
+    // An undecorated subclass reads the parent object by identity. Nothing
+    // mutates a `config` in place, so the sharing is safe.
+    class OwnGrandChild extends OwnChild {}
+    expect(OwnGrandChild.config).toBe(OwnChild.config);
+    expect(resolveConfig(OwnGrandChild).name).toBe('OwnChild');
+  });
+
+  /**
+   * Declaring both is a mistake, but pin which one wins: static field
+   * initializers run after class decorators, so the field replaces everything
+   * the decorator wrote — `fromDecorator` never reaches the merged config.
+   */
+  it('is overwritten by a static config field on the same class', () => {
+    @component({ name: 'FieldWins', options: { fromDecorator: Boolean } })
+    class FieldWins extends Base {
+      static config: BaseConfig = { name: 'FieldWinsStatic' };
+    }
+
+    expect(FieldWins.config).toEqual({ name: 'FieldWinsStatic' });
+    expect(resolveConfig(FieldWins).options).toEqual({});
   });
 });
 
