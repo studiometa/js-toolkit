@@ -1,5 +1,6 @@
 import { Base } from './Base.js';
 import { createContext, signal, type Signal } from './context.js';
+import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import { nextFrame, defaultScheduler } from './scheduler.js';
 import type { DelegatedEvent } from './Base.js';
@@ -34,7 +35,7 @@ export async function countRequestedFrames(during: () => Promise<void> | void): 
 }
 
 export function getInstance<T extends Base = Base>(el: Element | null, name: string): T {
-  return el?.__base__?.get(name) as T;
+  return el?.[INSTANCES]?.get(name) as T;
 }
 
 export const CountContext = createContext<Signal<number>>('todo-count');

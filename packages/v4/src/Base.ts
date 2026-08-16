@@ -4,7 +4,7 @@ import { injectContext, injectContextSync, provideContext, type ContextKey } fro
 import { reportDiagnostic, warnOnce } from './diagnostics.js';
 import { domVersion } from './dom-mutations.js';
 import { EVENTS } from './events.js';
-import { HANDLER_REGISTRATIONS } from './protocol-symbols.js';
+import { HANDLER_REGISTRATIONS, INSTANCES } from './protocol-symbols.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import {
   activeBreakpoint,
@@ -249,7 +249,7 @@ export interface HandlerRegistration {
 
 declare global {
   interface Element {
-    __base__?: Map<string, Base>;
+    [INSTANCES]?: Map<string, Base>;
   }
 }
 
@@ -781,8 +781,8 @@ export class Base<T extends BaseProps = BaseProps> {
     this.$id = `${name}-${componentId}`;
     componentId += 1;
     this.$el = el as El<T>;
-    el.__base__ ??= new Map();
-    el.__base__.set(name, this);
+    el[INSTANCES] ??= new Map();
+    el[INSTANCES].set(name, this);
     // Both views resolve on access, so they are built once and stay correct
     // for the instance's whole life.
     this.$options = buildOptions(this) as Options<T>;
@@ -920,7 +920,7 @@ export class Base<T extends BaseProps = BaseProps> {
     } catch (error) {
       reportLifecycleFailure(this, '`terminated()` failed.', error);
     }
-    this.$el.__base__?.delete(this.$config.name);
+    this.$el[INSTANCES]?.delete(this.$config.name);
     return this;
   }
 
@@ -956,7 +956,7 @@ export class Base<T extends BaseProps = BaseProps> {
    */
   $query<T extends Base = Base>(name: string): T[] {
     return [...this.$el.querySelectorAll(selectorFor(name))]
-      .map((el) => el.__base__?.get(name))
+      .map((el) => el[INSTANCES]?.get(name))
       .filter((instance): instance is T => Boolean(instance?.$isMounted));
   }
 
@@ -966,7 +966,7 @@ export class Base<T extends BaseProps = BaseProps> {
   $closest<T extends Base = Base>(name: string): T | null {
     let el = this.$el.parentElement;
     while (el) {
-      const instance = el.__base__?.get(name);
+      const instance = el[INSTANCES]?.get(name);
       if (instance?.$isMounted) {
         return instance as T;
       }
@@ -1020,7 +1020,7 @@ export class Base<T extends BaseProps = BaseProps> {
       }
       // Constructor matching must inspect instances because subclasses can use other tokens.
       for (const el of this.$el.querySelectorAll('*')) {
-        for (const instance of el.__base__?.values() ?? []) {
+        for (const instance of el[INSTANCES]?.values() ?? []) {
           if (instance.$isMounted && matches(instance)) {
             add(instance);
           }
@@ -1384,7 +1384,7 @@ export class Base<T extends BaseProps = BaseProps> {
           let invoked = false;
           for (const entry of entries) {
             if (entry.kind === 'child') {
-              const child = el.__base__?.get(entry.name);
+              const child = el[INSTANCES]?.get(entry.name);
               if (child?.$isMounted) {
                 entry.invoke({
                   event,

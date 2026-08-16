@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
+import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
 import { resetDom } from './test-utils.js';
@@ -232,7 +233,7 @@ describe('swap — component lifecycle', () => {
     });
 
     expect(log).toEqual(['mounted:first', 'mounted:second']);
-    expect(el.querySelector('#second')?.__base__?.get(name)?.$isMounted).toBe(true);
+    expect(el.querySelector('#second')?.[INSTANCES]?.get(name)?.$isMounted).toBe(true);
 
     await swap(el, '<p>gone</p>');
 
@@ -257,7 +258,7 @@ describe('swap — component lifecycle', () => {
     const el = target();
     await swap(el, `<div id="kept" data-component="${name}">before</div>`);
     const inner = el.querySelector('#kept');
-    const instance = inner?.__base__?.get(name);
+    const instance = inner?.[INSTANCES]?.get(name);
     expect(log).toEqual(['mounted']);
 
     await swap(el, `<div id="kept" data-component="${name}">after</div>`, {
@@ -265,7 +266,7 @@ describe('swap — component lifecycle', () => {
     });
 
     expect(el.querySelector('#kept')).toBe(inner);
-    expect(inner?.__base__?.get(name)).toBe(instance);
+    expect(inner?.[INSTANCES]?.get(name)).toBe(instance);
     expect(inner?.textContent).toBe('after');
     expect(log).toEqual(['mounted']);
   });
@@ -303,11 +304,11 @@ describe('swap — the wrap seam', () => {
     await swap(el, `<div data-component="${name}"></div>`, {
       wrap: (mutate) => {
         mutate();
-        mountedDuringWrap = el.firstElementChild?.__base__?.get(name)?.$isMounted;
+        mountedDuringWrap = el.firstElementChild?.[INSTANCES]?.get(name)?.$isMounted;
       },
     });
 
     expect(mountedDuringWrap).toBeFalsy();
-    expect(el.firstElementChild?.__base__?.get(name)?.$isMounted).toBe(true);
+    expect(el.firstElementChild?.[INSTANCES]?.get(name)?.$isMounted).toBe(true);
   });
 });

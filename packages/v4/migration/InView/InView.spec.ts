@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Base, registerComponents, type BaseConfig } from '../../src/index.js';
+import { INSTANCES } from '../../src/protocol-symbols.js';
 import { resetDom, settle } from '../../src/test-utils.js';
 import { InView } from './InView.js';
 import { InViewOnce } from './InViewOnce.js';
@@ -84,7 +85,7 @@ describe('InView', () => {
   it('re-emits `in-view` on each re-entry, from the same instance', async () => {
     const el = render('InView', ONSCREEN);
     await observed();
-    const instance = el.__base__?.get('InView');
+    const instance = el[INSTANCES]?.get('InView');
 
     el.setAttribute('style', OFFSCREEN);
     await observed();
@@ -92,14 +93,14 @@ describe('InView', () => {
     await observed();
 
     expect(log.events).toEqual(['in-view', 'out-of-view', 'in-view']);
-    expect(el.__base__?.get('InView')).toBe(instance);
+    expect(el[INSTANCES]?.get('InView')).toBe(instance);
   });
 
   it('does not instantiate the component until it is first seen', async () => {
     const el = render('InView', OFFSCREEN);
     await observed();
 
-    expect(el.__base__?.get('InView')).toBeUndefined();
+    expect(el[INSTANCES]?.get('InView')).toBeUndefined();
   });
 });
 
@@ -129,7 +130,7 @@ describe('InViewOnce', () => {
   it('stays mounted after leaving the viewport, where v3 terminated', async () => {
     const el = render('InViewOnce', ONSCREEN);
     await observed();
-    const instance = el.__base__?.get('InViewOnce');
+    const instance = el[INSTANCES]?.get('InViewOnce');
 
     el.setAttribute('style', OFFSCREEN);
     await observed();
@@ -160,7 +161,7 @@ describe('mount strategy gaps found by the port', () => {
     await observed();
 
     expect(log.events).toEqual(['in-view']);
-    expect(el.__base__?.get('InView')?.$isMounted).toBe(true);
+    expect(el[INSTANCES]?.get('InView')?.$isMounted).toBe(true);
   });
 
   /** Subclasses must inherit the resolved mount strategy. */
@@ -168,7 +169,7 @@ describe('mount strategy gaps found by the port', () => {
     const el = render('InViewSubclass', OFFSCREEN);
     await observed();
 
-    expect(el.__base__?.get('InViewSubclass')).toBeUndefined();
+    expect(el[INSTANCES]?.get('InViewSubclass')).toBeUndefined();
   });
 });
 
@@ -186,17 +187,17 @@ describe('the strategy is per element, which the decorator never was', () => {
     const el = render('InView', OFFSCREEN, { 'data-mount': 'eager' });
     await observed();
 
-    expect(el.__base__?.get('InView')?.$isMounted).toBe(true);
+    expect(el[INSTANCES]?.get('InView')?.$isMounted).toBe(true);
     expect(log.events).toEqual(['in-view']);
   });
 
   it('lets `data-mount="in-view"` give the strategy to a component that never asked', async () => {
     const el = render('InViewEagerProbe', OFFSCREEN, { 'data-mount': 'in-view' });
     await observed();
-    expect(el.__base__?.get('InViewEagerProbe')).toBeUndefined();
+    expect(el[INSTANCES]?.get('InViewEagerProbe')).toBeUndefined();
 
     el.setAttribute('style', ONSCREEN);
     await observed();
-    expect((el.__base__?.get('InViewEagerProbe') as Eager | undefined)?.mounts).toBe(1);
+    expect((el[INSTANCES]?.get('InViewEagerProbe') as Eager | undefined)?.mounts).toBe(1);
   });
 });

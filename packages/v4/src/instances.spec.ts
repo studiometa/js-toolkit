@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { getInstances } from './instances.js';
+import { INSTANCES } from './protocol-symbols.js';
 import { getInstance, renderTodoList, resetDom, settle, type TodoItem } from './test-utils.js';
 
 afterEach(resetDom);
@@ -47,7 +48,7 @@ describe('getInstances', () => {
     await settle();
 
     expect(el.matches('[data-component~="Unregistered"]')).toBe(true);
-    expect(el.__base__).toBeUndefined();
+    expect(el[INSTANCES]).toBeUndefined();
     expect(getInstances('Unregistered')).toEqual([]);
   });
 
@@ -92,5 +93,46 @@ describe('getInstances', () => {
     expect(instance.$isTerminated).toBe(true);
     expect(instance.$isMounted).toBe(false);
     expect(getInstances('TodoItem')).toEqual([]);
+  });
+});
+
+describe('getInstances on an element', () => {
+  it('answers what is mounted on one element, in mount order', async () => {
+    const root = renderTodoList({ items: ['one'] });
+    const li = root.querySelector('[data-component="TodoItem"]') as HTMLElement;
+    li.setAttribute('data-component', 'TodoItem TodoCount');
+    await settle();
+
+    expect(getInstances(li).map((instance) => instance.$config.name)).toEqual([
+      'TodoItem',
+      'TodoCount',
+    ]);
+    expect(getInstances(li)).toContain(getInstance(li, 'TodoItem'));
+  });
+
+  it('never looks past the element', async () => {
+    const root = renderTodoList({ items: ['one'] });
+    await settle();
+
+    // `TodoList` is on `root`; its items are on descendants.
+    expect(getInstances(root).map((instance) => instance.$config.name)).toEqual(['TodoList']);
+  });
+
+  it('returns nothing for an element carrying no instance', async () => {
+    const el = document.createElement('div');
+    document.body.append(el);
+    await settle();
+
+    expect(getInstances(el)).toEqual([]);
+  });
+
+  it('excludes an instance that is no longer mounted', async () => {
+    const root = renderTodoList({ items: ['one'] });
+    await settle();
+
+    const li = root.querySelector('[data-component="TodoItem"]') as HTMLElement;
+    getInstance<TodoItem>(li, 'TodoItem').$terminate();
+
+    expect(getInstances(li)).toEqual([]);
   });
 });

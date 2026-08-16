@@ -3,6 +3,7 @@ import { Base, type BaseConfig, type OptionChange } from './Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { watchAttributes, whenDOMSettled, type AttributeChange } from './dom-mutations.js';
 import { EVENTS } from './events.js';
+import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
 import { getInstance, resetDom } from './test-utils.js';
@@ -44,7 +45,7 @@ describe('whenDOMSettled', () => {
     document.body.append(el);
 
     await whenDOMSettled();
-    expect(el.__base__?.get(name)?.$isMounted).toBe(true);
+    expect(el[INSTANCES]?.get(name)?.$isMounted).toBe(true);
   });
 
   it('follows mutations created by eager lifecycle work', async () => {
@@ -72,7 +73,7 @@ describe('whenDOMSettled', () => {
 
     await whenDOMSettled();
     const child = parent.firstElementChild;
-    expect(child?.__base__?.get(childName)?.$isMounted).toBe(true);
+    expect(child?.[INSTANCES]?.get(childName)?.$isMounted).toBe(true);
   });
 
   it('does not wait for a conditional mount strategy', async () => {
@@ -89,7 +90,7 @@ describe('whenDOMSettled', () => {
     document.body.append(el);
 
     await whenDOMSettled();
-    expect(el.__base__?.get(name)).toBeUndefined();
+    expect(el[INSTANCES]?.get(name)).toBeUndefined();
   });
 
   it('waits for eager teardown caused by removal', async () => {
@@ -107,7 +108,7 @@ describe('whenDOMSettled', () => {
     el.setAttribute('data-component', name);
     document.body.append(el);
     await whenDOMSettled();
-    const instance = el.__base__?.get(name) as Removed;
+    const instance = el[INSTANCES]?.get(name) as Removed;
 
     el.remove();
     await whenDOMSettled();

@@ -768,7 +768,7 @@
     "test:debug": "vitest --browser.headless=false",
     "bench": "vitest bench --config vitest.bench.config.js",
     "bench:report": "npm run bench -- --run --outputJson .bench-report.json && node ../../.github/actions/bench-diff/bench-report.mjs .bench-report.json",
-    "lint:types": "tsc -p tsconfig.json"
+    "lint:types": "tsc -p tsconfig.json && tsc -p tsconfig.coexistence.json"
   },
   "dependencies": {
     "morphdom": "^2.7.8"
