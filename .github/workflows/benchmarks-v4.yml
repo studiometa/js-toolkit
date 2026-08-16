@@ -1,0 +1,66 @@
+name: benchmarks-v4
+
+# v4's benchmarks run in a real Chromium, so they cannot share the v3 job in
+# `benchmarks.yml`: CodSpeed's simulation mode instruments the Node process,
+# while a browser-mode benchmark body runs in the browser over CDP, so it
+# would measure the driver. This job compares the base and the head commit on
+# one runner instead, which removes cross-machine noise without an account, a
+# token or a stored baseline.
+#
+# It comments; it never blocks. The hard gate is `src/mount-at-scale.spec.ts`
+# in the normal test job, whose thresholds do not depend on runner speed.
+#
+# Separate file rather than a job in `benchmarks.yml` because only a
+# workflow-level `paths:` filter can keep it off pull requests that do not
+# touch v4, and `benchmarks.yml` must keep running for v3.
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'packages/v4/**'
+      - 'package-lock.json'
+      - '.github/actions/bench-diff/**'
+      - '.github/workflows/benchmarks-v4.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  bench_diff:
+    name: Compare against the base commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/bench-diff
+        with:
+          # Identity, not configuration: the action knows nothing about
+          # browsers or about v4. A second suite — v3's Node and happy-dom
+          # benchmarks, say — is another step with another `id`, not a branch
+          # inside the action.
+          id: v4-mount
+          title: v4 mount benchmarks
+          unit: component
+          working-directory: packages/v4
+          # No build: vitest runs the browser suite straight from TypeScript.
+          prepare: npx playwright install --with-deps chromium
+          # The at-scale file only. Adding the other three v4 benchmark files
+          # costs ~55 s per run, so ~5.5 min across six runs, for micro-
+          # benchmarks a wall-clock diff can barely resolve.
+          #
+          # The full size matrix is 100/1 000/5 000. CI samples the two sizes
+          # above the timer's resolution floor: a 100-component benchmark lands
+          # near 1 ms, where Chromium's 100 us clamp makes a percentage
+          # meaningless. It is set on the command rather than as step `env:`,
+          # which a composite action's steps do not reliably inherit.
+          bench: V4_BENCH_SIZES=1000,5000 npm exec vitest bench -- --config vitest.bench.config.js --run src/mount-at-scale.bench.ts --outputJson "$BENCH_JSON"
+          rounds: '3'
+          # Same-commit noise floor, three interleaved rounds per side: 4.5 %
+          # median, 12.5 % p90, 33 % worst — and every case above 13 % is a
+          # benchmark under 2 ms, which `floor` excludes anyway. 25 % leaves
+          # room for a shared runner being noisier than a developer machine.
+          threshold: '25'
+          floor: '5'
