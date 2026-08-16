@@ -497,6 +497,23 @@ describe('perTarget', () => {
     expect(use(target, { threshold: 0.5 })).not.toBe(use(target, { threshold: 0 }));
   });
 
+  it('keys an options object by its meaning, not by the order it was written in', () => {
+    const use = perTarget((_target: Element, options: object) =>
+      createService<object>({ props: () => options, start: () => () => {} }),
+    );
+    const target = document.createElement('div');
+
+    expect(use(target, { axis: 'x', inertia: false })).toBe(
+      use(target, { inertia: false, axis: 'x' }),
+    );
+    // Nested records are canonical too, at every depth.
+    expect(use(target, { nested: { a: 1, b: 2 } })).toBe(use(target, { nested: { b: 2, a: 1 } }));
+    // Naming an option without a value is not naming it.
+    expect(use(target, { axis: undefined })).toBe(use(target, {}));
+    // An array is ordered data, so two orders stay two observations.
+    expect(use(target, { threshold: [0, 1] })).not.toBe(use(target, { threshold: [1, 0] }));
+  });
+
   it('takes a key function for arguments that do not serialise', () => {
     const use = perTarget(
       (_target: Element, root: Element) =>

@@ -458,4 +458,14 @@ describe('useDrag', () => {
     expect(useDrag(el, { inertia: false })).toBe(useDrag(el, { inertia: false }));
     expect(useDrag(el, { inertia: false })).not.toBe(useDrag(el));
   });
+
+  it('reads one option set however it was written', () => {
+    const el = render();
+    // Property order is spelling, not meaning: one drag, one listener set.
+    expect(useDrag(el, { axis: 'x', inertia: false })).toBe(
+      useDrag(el, { inertia: false, axis: 'x' }),
+    );
+    // An option named without a value is one the caller did not name.
+    expect(useDrag(el, { axis: undefined })).toBe(useDrag(el));
+  });
 });

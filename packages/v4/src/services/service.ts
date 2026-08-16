@@ -131,20 +131,57 @@ export function createService<T, R = void>({
   };
 }
 
-/** Serialize plain-data arguments for service identity. Property order is significant. */
-function serializeArgs(...args: unknown[]): string {
-  return JSON.stringify(args);
+/**
+ * Serialize a value so that two spellings of one observation write one string.
+ *
+ * `JSON.stringify()` alone put spelling in the identity: `{ axis, inertia }`
+ * and `{ inertia, axis }` describe the same drag and bought two services —
+ * two pointer listener sets on one element. Object keys are therefore sorted,
+ * and a key holding `undefined` is dropped, because naming an option without a
+ * value is the same request as not naming it. Arrays keep their order: a
+ * threshold list is ordered data, not a record.
+ *
+ * It covers what services are keyed on — plain objects, arrays, primitives and
+ * `undefined`. An object the platform owns has no own enumerable keys and
+ * serializes as `{}`, which is why a service holding one, such as the
+ * `IntersectionObserver` root, gives it a stable identity before keying it.
+ */
+function stableStringify(value: unknown): string {
+  // `JSON.stringify(undefined)` returns no string at all, so name it here.
+  if (value === undefined) {
+    return 'undefined';
+  }
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(',')}]`;
+  }
+  const record = value as Record<string, unknown>;
+  const entries = Object.keys(record)
+    .sort()
+    .filter((key) => record[key] !== undefined)
+    .map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`);
+  return `{${entries.join(',')}}`;
+}
+
+/**
+ * Key plain-data arguments by what they mean, independently of how they were written.
+ * @internal
+ */
+export function stableKey(...args: unknown[]): string {
+  return stableStringify(args);
 }
 
 /**
  * Create one weakly held service per target and argument key.
  *
  * @param create Called once per target and argument pair.
- * @param keyOf Serializes arguments. Defaults to `JSON.stringify()`.
+ * @param keyOf Serializes arguments. Defaults to {@link stableKey}.
  */
 export function perTarget<Target extends WeakKey, Args extends unknown[], T, R = void>(
   create: (target: Target, ...args: Args) => Service<T, R>,
-  keyOf: (...args: Args) => string = serializeArgs,
+  keyOf: (...args: Args) => string = stableKey,
 ): (target: Target, ...args: Args) => Service<T, R> {
   const services = new WeakMap<Target, Map<string, Service<T, R>>>();
   return (target, ...args) => {

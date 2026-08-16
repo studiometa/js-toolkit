@@ -1,6 +1,6 @@
 import { getSharedRuntimeSlot } from '../shared-runtime.js';
 import { createServiceMixin, type ServiceHandles, type ServiceMixinOptions } from './mixin.js';
-import { createService, perTarget, type MutableProps, type Service } from './service.js';
+import { createService, perTarget, stableKey, type MutableProps, type Service } from './service.js';
 
 export interface InViewProps {
   /** Whether the target intersects its root, as the latest entry reports it. */
@@ -30,9 +30,10 @@ function rootId(root: object, identity: InViewRootIdentity): number {
   return id;
 }
 
+/** Key an init by its meaning: the root as its stable id, the rest canonically. */
 function keyOf(init: IntersectionObserverInit, identity: InViewRootIdentity): string {
   const { root, ...options } = init;
-  return JSON.stringify([root ? rootId(root, identity) : null, options]);
+  return stableKey(root ? rootId(root, identity) : null, options);
 }
 
 function createInViewService(

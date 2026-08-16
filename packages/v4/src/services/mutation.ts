@@ -35,6 +35,10 @@ const DEFAULT_INIT: MutationObserverInit = /* @__PURE__ */ Object.freeze({
  * `attributeFilter` imply `attributes`, and `characterDataOldValue` implies
  * `characterData`. Contradictory options — a filter with `attributes: false` —
  * are forwarded untouched so `observe()` still rejects them.
+ *
+ * Property order is not this function's business: `perTarget()` sorts keys
+ * before it keys anything. What is left here is the DOM contract — an omitted
+ * option is `false`, a filter is a set, and the platform infers two flags.
  */
 function resolveInit(init: MutationObserverInit): MutationObserverInit {
   const attributeFilter = init.attributeFilter && [...new Set(init.attributeFilter)].sort();
@@ -48,11 +52,6 @@ function resolveInit(init: MutationObserverInit): MutationObserverInit {
     characterDataOldValue: init.characterDataOldValue ?? false,
     ...(attributeFilter !== undefined && { attributeFilter }),
   };
-}
-
-/** Key a resolved init. Its property order is fixed, so the string is canonical. */
-function keyOf(init: MutationObserverInit): string {
-  return JSON.stringify(init);
 }
 
 function createMutationService(target: Node, init: MutationObserverInit): Service<MutationProps> {
@@ -89,7 +88,7 @@ function createMutationService(target: Node, init: MutationObserverInit): Servic
 }
 
 const mutationServices = /* @__PURE__ */ getSharedRuntimeSlot('service:mutation', 1, () =>
-  perTarget(createMutationService, keyOf),
+  perTarget(createMutationService),
 );
 
 /**
