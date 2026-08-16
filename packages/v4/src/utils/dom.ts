@@ -5,6 +5,8 @@ interface AnyHTMLElementTagNameMap extends HTMLElementTagNameMap {
   [key: string]: HTMLElement;
 }
 
+/** Element creation and element measurement, both element-level DOM helpers. */
+
 /** What an element can be given as content: markup-free text, nodes, or both. */
 export type CreateElementChildren = string | Node | Array<string | Node>;
 
@@ -66,4 +68,50 @@ export function createElement<T extends keyof AnyHTMLElementTagNameMap = 'div'>(
   }
 
   return element as AnyHTMLElementTagNameMap[T];
+}
+
+/** A `DOMRect`-shaped box, in the same viewport coordinates. */
+export interface OffsetSizes {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+/**
+ * Measure an element's box as layout placed it, with every transform on it and
+ * on its ancestors ignored — what `getBoundingClientRect()` would answer if
+ * nothing were transformed. Coordinates are the viewport's, as that method's.
+ *
+ * A pure read: the caller owns the phase it happens in.
+ */
+export function getOffsetSizes(element: HTMLElement): OffsetSizes {
+  let x = element.offsetLeft;
+  let y = element.offsetTop;
+  let offsetParent = element.offsetParent;
+
+  for (let node = element.parentElement; node; node = node.parentElement) {
+    // Every scrolling ancestor shifts the box, the document included: reading
+    // the chain covers the page scroll in standards and in quirks mode alike.
+    x -= node.scrollLeft;
+    y -= node.scrollTop;
+
+    if (node === offsetParent) {
+      // The offsets are relative to the offset parent's padding edge, and its
+      // own offsets place its border edge, so its border sits between the two.
+      const styles = getComputedStyle(node);
+      x += node.offsetLeft + Number.parseFloat(styles.borderLeftWidth);
+      y += node.offsetTop + Number.parseFloat(styles.borderTopWidth);
+      offsetParent = node.offsetParent;
+    }
+  }
+
+  const width = element.offsetWidth;
+  const height = element.offsetHeight;
+
+  return { x, y, width, height, top: y, right: x + width, bottom: y + height, left: x };
 }

@@ -8,7 +8,9 @@ import * as historyModule from './history.js';
 import * as is from './is.js';
 import * as maths from './maths.js';
 import * as memoModule from './memo.js';
+import * as noopModule from './noop.js';
 import * as randomModule from './random.js';
+import * as scrollToModule from './scrollTo.js';
 import * as selectors from './selectors.js';
 import * as smoothToModule from './smoothTo.js';
 import * as strings from './strings.js';
@@ -28,7 +30,9 @@ describe('the utils barrel', () => {
       ...Object.keys(is),
       ...Object.keys(maths),
       ...Object.keys(memoModule),
+      ...Object.keys(noopModule),
       ...Object.keys(randomModule),
+      ...Object.keys(scrollToModule),
       ...Object.keys(selectors),
       ...Object.keys(smoothToModule),
       ...Object.keys(strings),

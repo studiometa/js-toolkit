@@ -1,7 +1,13 @@
 /** Public entry point for `@studiometa/js-toolkit-v4/utils`. */
 
 export { deepmerge } from './deepmerge.js';
-export { createElement, type CreateElementAttributes, type CreateElementChildren } from './dom.js';
+export {
+  createElement,
+  getOffsetSizes,
+  type CreateElementAttributes,
+  type CreateElementChildren,
+  type OffsetSizes,
+} from './dom.js';
 export {
   createEaseInOut,
   createEaseOut,
@@ -62,7 +68,16 @@ export {
   type SpringOptions,
 } from './maths.js';
 export { memo, type Memo } from './memo.js';
+export { noop, noopValue } from './noop.js';
 export { random, randomInt, randomItem } from './random.js';
+export {
+  SCROLL_AXES,
+  scrollTo,
+  type ScrollAxis,
+  type ScrollPosition,
+  type ScrollToOptions,
+  type ScrollToTarget,
+} from './scrollTo.js';
 export { selectorFor } from './selectors.js';
 export { smoothTo, type SmoothTo, type SmoothToOptions } from './smoothTo.js';
 export {

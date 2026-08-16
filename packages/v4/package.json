@@ -344,6 +344,10 @@
       "types": "./dist/subpaths/utils/createElement.d.ts",
       "import": "./dist/subpaths/utils/createElement.js"
     },
+    "./utils/getOffsetSizes": {
+      "types": "./dist/subpaths/utils/getOffsetSizes.d.ts",
+      "import": "./dist/subpaths/utils/getOffsetSizes.js"
+    },
     "./utils/createEaseInOut": {
       "types": "./dist/subpaths/utils/createEaseInOut.d.ts",
       "import": "./dist/subpaths/utils/createEaseInOut.js"
@@ -576,6 +580,14 @@
       "types": "./dist/subpaths/utils/memo.d.ts",
       "import": "./dist/subpaths/utils/memo.js"
     },
+    "./utils/noop": {
+      "types": "./dist/subpaths/utils/noop.d.ts",
+      "import": "./dist/subpaths/utils/noop.js"
+    },
+    "./utils/noopValue": {
+      "types": "./dist/subpaths/utils/noopValue.d.ts",
+      "import": "./dist/subpaths/utils/noopValue.js"
+    },
     "./utils/random": {
       "types": "./dist/subpaths/utils/random.d.ts",
       "import": "./dist/subpaths/utils/random.js"
@@ -587,6 +599,14 @@
     "./utils/randomItem": {
       "types": "./dist/subpaths/utils/randomItem.d.ts",
       "import": "./dist/subpaths/utils/randomItem.js"
+    },
+    "./utils/SCROLL_AXES": {
+      "types": "./dist/subpaths/utils/SCROLL_AXES.d.ts",
+      "import": "./dist/subpaths/utils/SCROLL_AXES.js"
+    },
+    "./utils/scrollTo": {
+      "types": "./dist/subpaths/utils/scrollTo.d.ts",
+      "import": "./dist/subpaths/utils/scrollTo.js"
     },
     "./utils/selectorFor": {
       "types": "./dist/subpaths/utils/selectorFor.d.ts",
