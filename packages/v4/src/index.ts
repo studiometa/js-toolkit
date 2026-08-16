@@ -180,10 +180,8 @@ export { until } from './services/until.js';
 export {
   createFallbackProvider,
   createLocalStorage,
-  createLocalStorageProvider,
   createMemoryStorageProvider,
   createSessionStorage,
-  createSessionStorageProvider,
   createStorage,
   createUrlSearchParamsInHashProvider,
   createUrlSearchParamsInHashStorage,

@@ -159,10 +159,12 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(82);
+    expect(Object.keys(root)).toHaveLength(80);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
+      'createLocalStorageProvider',
+      'createSessionStorageProvider',
       'SOURCE',
       'HANDLER_REGISTRATIONS',
       'MOUNTED_EVENT',
@@ -222,6 +224,8 @@ describe('the package entry points', () => {
   it('does not expose removed constant and symbol subpaths', () => {
     const exports = packageManifest.exports as Record<string, unknown>;
     for (const removed of [
+      './createLocalStorageProvider',
+      './createSessionStorageProvider',
       './SOURCE',
       './HANDLER_REGISTRATIONS',
       './MOUNTED_EVENT',
@@ -236,6 +240,9 @@ describe('the package entry points', () => {
     }
     expect(exports).toHaveProperty('./DIAGNOSTICS');
     expect(exports).toHaveProperty('./EVENTS');
+    // The stateless web storage adapters are reached as instances only.
+    expect(exports).toHaveProperty('./localStorageProvider');
+    expect(exports).toHaveProperty('./sessionStorageProvider');
   });
 
   it('serves drag controls and types from the public entry points', () => {

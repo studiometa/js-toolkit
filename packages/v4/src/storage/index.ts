@@ -12,9 +12,7 @@ import type { StorageInstance, StorageOptions, UrlProviderOptions } from './type
 export { createStorage } from './createStorage.js';
 export {
   createFallbackProvider,
-  createLocalStorageProvider,
   createMemoryStorageProvider,
-  createSessionStorageProvider,
   createUrlSearchParamsInHashProvider,
   createUrlSearchParamsProvider,
   localStorageProvider,
