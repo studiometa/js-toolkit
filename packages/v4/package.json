@@ -436,13 +436,33 @@
       "types": "./dist/subpaths/utils/smoothTo.d.ts",
       "import": "./dist/subpaths/utils/smoothTo.js"
     },
+    "./utils/camelCase": {
+      "types": "./dist/subpaths/utils/camelCase.d.ts",
+      "import": "./dist/subpaths/utils/camelCase.js"
+    },
+    "./utils/capitalize": {
+      "types": "./dist/subpaths/utils/capitalize.d.ts",
+      "import": "./dist/subpaths/utils/capitalize.js"
+    },
     "./utils/kebabCase": {
       "types": "./dist/subpaths/utils/kebabCase.d.ts",
       "import": "./dist/subpaths/utils/kebabCase.js"
     },
+    "./utils/lowerCase": {
+      "types": "./dist/subpaths/utils/lowerCase.d.ts",
+      "import": "./dist/subpaths/utils/lowerCase.js"
+    },
     "./utils/pascalCase": {
       "types": "./dist/subpaths/utils/pascalCase.d.ts",
       "import": "./dist/subpaths/utils/pascalCase.js"
+    },
+    "./utils/snakeCase": {
+      "types": "./dist/subpaths/utils/snakeCase.d.ts",
+      "import": "./dist/subpaths/utils/snakeCase.js"
+    },
+    "./utils/upperCase": {
+      "types": "./dist/subpaths/utils/upperCase.d.ts",
+      "import": "./dist/subpaths/utils/upperCase.js"
     },
     "./utils/matrix": {
       "types": "./dist/subpaths/utils/matrix.d.ts",

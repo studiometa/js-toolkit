@@ -22,7 +22,15 @@ export {
 export { memo, type Memo } from './memo.js';
 export { selectorFor } from './selectors.js';
 export { smoothTo, type SmoothTo, type SmoothToOptions } from './smoothTo.js';
-export { kebabCase, pascalCase } from './strings.js';
+export {
+  camelCase,
+  capitalize,
+  kebabCase,
+  lowerCase,
+  pascalCase,
+  snakeCase,
+  upperCase,
+} from './strings.js';
 export {
   matrix,
   transform,
