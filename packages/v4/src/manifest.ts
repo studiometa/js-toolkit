@@ -77,5 +77,5 @@ export function fromMetaGlob(glob: Record<string, unknown>): ModuleRecord {
 export function fromWebpackContext(context: WebpackContextLike): ModuleRecord {
   return Object.fromEntries(
     context.keys().map((key) => [key, () => Promise.resolve(context(key))]),
-  ) as ModuleRecord;
+  );
 }

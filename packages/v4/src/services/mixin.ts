@@ -138,7 +138,7 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
       $terminate(): this {
         // Stop a manual subscription that started outside a mount cycle.
         (this as unknown as { $services: Record<string, Toggle> }).$services[hook].stop();
-        return super.$terminate() as this;
+        return super.$terminate();
       }
     };
   }

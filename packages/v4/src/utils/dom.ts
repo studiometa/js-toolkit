@@ -58,7 +58,7 @@ export function createElement<T extends keyof AnyHTMLElementTagNameMap = 'div'>(
       element.setAttribute(kebabCase(name), value);
     } else if (name === 'data' && isObject(value)) {
       for (const [dataName, dataValue] of Object.entries(value)) {
-        element.setAttribute(`data-${kebabCase(dataName)}`, dataValue as string);
+        element.setAttribute(`data-${kebabCase(dataName)}`, dataValue);
       }
     }
   }
@@ -67,7 +67,7 @@ export function createElement<T extends keyof AnyHTMLElementTagNameMap = 'div'>(
     element.append(...(Array.isArray(content) ? content : [content]));
   }
 
-  return element as AnyHTMLElementTagNameMap[T];
+  return element;
 }
 
 /** A `DOMRect`-shaped box, in the same viewport coordinates. */

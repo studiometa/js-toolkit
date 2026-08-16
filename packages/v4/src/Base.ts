@@ -773,9 +773,9 @@ export class Base<T extends BaseProps = BaseProps> {
    * re-reads the DOM, so replaced markup is picked up with nothing to
    * refresh.
    */
-  $refs: Refs<T> = {} as Refs<T>;
+  $refs: Refs<T> = {};
 
-  $options: Options<T> = {} as Options<T>;
+  $options: Options<T> = {};
 
   #isMounted = false;
 
@@ -818,13 +818,13 @@ export class Base<T extends BaseProps = BaseProps> {
     const { name } = this.$config;
     this.$id = `${name}-${componentId}`;
     componentId += 1;
-    this.$el = el as El<T>;
+    this.$el = el;
     el[INSTANCES] ??= new Map();
     el[INSTANCES].set(name, this);
     // Both views resolve on access, so they are built once and stay correct
     // for the instance's whole life.
-    this.$options = buildOptions(this) as Options<T>;
-    this.$refs = buildRefs(this) as Refs<T>;
+    this.$options = buildOptions(this);
+    this.$refs = buildRefs(this);
   }
 
   /**
@@ -1363,7 +1363,7 @@ export class Base<T extends BaseProps = BaseProps> {
           kind: ref ? 'ref' : 'child',
           name: child,
           invoke: (payload: DelegatedEvent | RefEvent) => handler.call(this, payload),
-        } as DelegatedEntry);
+        });
       } else {
         this.#bindOwn(type, (event) => handler.call(this, event));
       }
@@ -1396,7 +1396,7 @@ export class Base<T extends BaseProps = BaseProps> {
           kind: entry.kind,
           name: entry.name,
           invoke: (payload: DelegatedEvent | RefEvent) => self[method](payload),
-        } as DelegatedEntry);
+        });
       }
     }
   }

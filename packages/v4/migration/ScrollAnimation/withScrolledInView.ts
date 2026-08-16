@@ -91,7 +91,7 @@ function apply(
     __shouldMeasure = true;
 
     get scrollInViewTarget(): HTMLElement {
-      return target(this as unknown as Base);
+      return target(this);
     }
 
     /**
