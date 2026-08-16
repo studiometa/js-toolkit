@@ -464,6 +464,46 @@
       "types": "./dist/subpaths/utils/upperCase.d.ts",
       "import": "./dist/subpaths/utils/upperCase.js"
     },
+    "./utils/withLeadingCharacters": {
+      "types": "./dist/subpaths/utils/withLeadingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withLeadingCharacters.js"
+    },
+    "./utils/withLeadingSlash": {
+      "types": "./dist/subpaths/utils/withLeadingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withLeadingSlash.js"
+    },
+    "./utils/withoutLeadingCharacters": {
+      "types": "./dist/subpaths/utils/withoutLeadingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withoutLeadingCharacters.js"
+    },
+    "./utils/withoutLeadingCharactersRecursive": {
+      "types": "./dist/subpaths/utils/withoutLeadingCharactersRecursive.d.ts",
+      "import": "./dist/subpaths/utils/withoutLeadingCharactersRecursive.js"
+    },
+    "./utils/withoutLeadingSlash": {
+      "types": "./dist/subpaths/utils/withoutLeadingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withoutLeadingSlash.js"
+    },
+    "./utils/withoutTrailingCharacters": {
+      "types": "./dist/subpaths/utils/withoutTrailingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withoutTrailingCharacters.js"
+    },
+    "./utils/withoutTrailingCharactersRecursive": {
+      "types": "./dist/subpaths/utils/withoutTrailingCharactersRecursive.d.ts",
+      "import": "./dist/subpaths/utils/withoutTrailingCharactersRecursive.js"
+    },
+    "./utils/withoutTrailingSlash": {
+      "types": "./dist/subpaths/utils/withoutTrailingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withoutTrailingSlash.js"
+    },
+    "./utils/withTrailingCharacters": {
+      "types": "./dist/subpaths/utils/withTrailingCharacters.d.ts",
+      "import": "./dist/subpaths/utils/withTrailingCharacters.js"
+    },
+    "./utils/withTrailingSlash": {
+      "types": "./dist/subpaths/utils/withTrailingSlash.d.ts",
+      "import": "./dist/subpaths/utils/withTrailingSlash.js"
+    },
     "./utils/matrix": {
       "types": "./dist/subpaths/utils/matrix.d.ts",
       "import": "./dist/subpaths/utils/matrix.js"

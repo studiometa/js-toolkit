@@ -82,3 +82,60 @@ export const kebabCase = /* @__PURE__ */ memo(function kebabCase(string: string)
 export const snakeCase = /* @__PURE__ */ memo(function snakeCase(string: string): string {
   return delimitedCase(string, '_');
 });
+/** Add the given characters to the start of a string, once. */
+export function withLeadingCharacters(string: string, characters: string): string {
+  return `${characters}${withoutLeadingCharacters(string, characters)}`;
+}
+
+/** Remove the given characters from the start of a string, once. */
+export function withoutLeadingCharacters(string: string, characters: string): string {
+  return string.startsWith(characters) ? string.slice(characters.length) : string;
+}
+
+/** Remove the given characters from the start of a string, as often as they repeat. */
+export function withoutLeadingCharactersRecursive(string: string, characters: string): string {
+  let result = string;
+  while (result.startsWith(characters)) {
+    result = result.slice(characters.length);
+  }
+  return result;
+}
+
+/** Add the given characters to the end of a string, once. */
+export function withTrailingCharacters(string: string, characters: string): string {
+  return `${withoutTrailingCharacters(string, characters)}${characters}`;
+}
+
+/** Remove the given characters from the end of a string, once. */
+export function withoutTrailingCharacters(string: string, characters: string): string {
+  return string.endsWith(characters) ? string.slice(0, -characters.length) : string;
+}
+
+/** Remove the given characters from the end of a string, as often as they repeat. */
+export function withoutTrailingCharactersRecursive(string: string, characters: string): string {
+  let result = string;
+  while (result.endsWith(characters)) {
+    result = result.slice(0, -characters.length);
+  }
+  return result;
+}
+
+/** Add a leading slash to a string, once. */
+export function withLeadingSlash(string: string): string {
+  return withLeadingCharacters(string, '/');
+}
+
+/** Remove the leading slash from a string, once. */
+export function withoutLeadingSlash(string: string): string {
+  return withoutLeadingCharacters(string, '/');
+}
+
+/** Add a trailing slash to a string, once. */
+export function withTrailingSlash(string: string): string {
+  return withTrailingCharacters(string, '/');
+}
+
+/** Remove the trailing slash from a string, once. */
+export function withoutTrailingSlash(string: string): string {
+  return withoutTrailingCharacters(string, '/');
+}

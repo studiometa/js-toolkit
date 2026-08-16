@@ -7,6 +7,16 @@ import {
   pascalCase,
   snakeCase,
   upperCase,
+  withLeadingCharacters,
+  withLeadingSlash,
+  withoutLeadingCharacters,
+  withoutLeadingCharactersRecursive,
+  withoutLeadingSlash,
+  withoutTrailingCharacters,
+  withoutTrailingCharactersRecursive,
+  withoutTrailingSlash,
+  withTrailingCharacters,
+  withTrailingSlash,
 } from './strings.js';
 
 describe('lowerCase and upperCase', () => {
@@ -68,5 +78,50 @@ describe('snakeCase', () => {
   it('joins the words with an underscore', () => {
     expect(snakeCase('SliderDragStart')).toBe('slider_drag_start');
     expect(snakeCase('foo-bar')).toBe('foo_bar');
+  });
+});
+
+describe('leading and trailing characters', () => {
+  it('adds the characters once, however many are already there', () => {
+    expect(withLeadingCharacters('foo', '/')).toBe('/foo');
+    expect(withLeadingCharacters('/foo', '/')).toBe('/foo');
+    expect(withTrailingCharacters('foo', '/')).toBe('foo/');
+    expect(withTrailingCharacters('foo/', '/')).toBe('foo/');
+    expect(withLeadingCharacters('bar', 'foo-')).toBe('foo-bar');
+  });
+
+  it('removes the characters once', () => {
+    expect(withoutLeadingCharacters('//foo', '/')).toBe('/foo');
+    expect(withoutTrailingCharacters('foo//', '/')).toBe('foo/');
+    expect(withoutLeadingCharacters('foo', '/')).toBe('foo');
+  });
+
+  it('removes the characters as often as they repeat', () => {
+    expect(withoutLeadingCharactersRecursive('///foo', '/')).toBe('foo');
+    expect(withoutTrailingCharactersRecursive('foo///', '/')).toBe('foo');
+    expect(withoutLeadingCharactersRecursive('foo', '/')).toBe('foo');
+  });
+
+  it('matches the characters literally', () => {
+    expect(withoutLeadingCharacters('.foo', '.')).toBe('foo');
+    expect(withoutLeadingCharacters('afoo', '.')).toBe('afoo');
+    expect(withoutTrailingCharacters('foo.', '.')).toBe('foo');
+    expect(withoutTrailingCharacters('fooa', '.')).toBe('fooa');
+  });
+});
+
+describe('leading and trailing slashes', () => {
+  it('adds a slash once', () => {
+    expect(withLeadingSlash('foo')).toBe('/foo');
+    expect(withLeadingSlash('/foo')).toBe('/foo');
+    expect(withTrailingSlash('foo')).toBe('foo/');
+    expect(withTrailingSlash('foo/')).toBe('foo/');
+  });
+
+  it('removes a slash once', () => {
+    expect(withoutLeadingSlash('/foo')).toBe('foo');
+    expect(withoutLeadingSlash('foo')).toBe('foo');
+    expect(withoutTrailingSlash('foo/')).toBe('foo');
+    expect(withoutTrailingSlash('foo')).toBe('foo');
   });
 });

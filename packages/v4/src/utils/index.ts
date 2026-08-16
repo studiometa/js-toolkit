@@ -30,6 +30,16 @@ export {
   pascalCase,
   snakeCase,
   upperCase,
+  withLeadingCharacters,
+  withLeadingSlash,
+  withoutLeadingCharacters,
+  withoutLeadingCharactersRecursive,
+  withoutLeadingSlash,
+  withoutTrailingCharacters,
+  withoutTrailingCharactersRecursive,
+  withoutTrailingSlash,
+  withTrailingCharacters,
+  withTrailingSlash,
 } from './strings.js';
 export {
   matrix,
