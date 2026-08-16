@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type BaseConfig } from './Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
+import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import { getInstance, renderTodoList, resetDom, settle, TodoItem, TodoList } from './test-utils.js';
 
@@ -51,7 +52,7 @@ describe('registry', () => {
     const el = document.createElement('li');
     document.body.append(el);
     await settle();
-    expect(el.__base__?.get('TodoItem')).toBeUndefined();
+    expect(el[INSTANCES]?.get('TodoItem')).toBeUndefined();
 
     el.setAttribute('data-component', 'TodoItem');
     await settle();
@@ -72,8 +73,8 @@ describe('registry', () => {
     el.setAttribute('data-component', 'TodoCount');
     await settle();
 
-    expect(el.__base__?.get('TodoItem')).toBeUndefined();
-    expect(el.__base__?.get('TodoCount')).toBe(count);
+    expect(el[INSTANCES]?.get('TodoItem')).toBeUndefined();
+    expect(el[INSTANCES]?.get('TodoCount')).toBe(count);
     expect(count.$isMounted).toBe(true);
   });
 
@@ -86,7 +87,7 @@ describe('registry', () => {
 
     el.removeAttribute('data-component');
     await settle();
-    expect(el.__base__?.get('TodoItem')).toBeUndefined();
+    expect(el[INSTANCES]?.get('TodoItem')).toBeUndefined();
     expect(first.$isMounted).toBe(false);
 
     el.setAttribute('data-component', 'TodoItem');
@@ -139,7 +140,7 @@ describe('registry', () => {
     await settle();
 
     expect(attempts).toHaveLength(1);
-    expect(broken.__base__?.get('BrokenConstructionErrorEvent')).toBeUndefined();
+    expect(broken[INSTANCES]?.get('BrokenConstructionErrorEvent')).toBeUndefined();
     expect(brokenMounts).toBe(0);
     expect(healthyMounts).toBe(1);
 
@@ -151,7 +152,7 @@ describe('registry', () => {
 
     expect(attempts).toHaveLength(2);
     expect(attempts[1]).not.toBe(firstAttempt);
-    expect(broken.__base__?.get('BrokenConstructionErrorEvent')).toBeUndefined();
+    expect(broken[INSTANCES]?.get('BrokenConstructionErrorEvent')).toBeUndefined();
     expect(brokenMounts).toBe(0);
     expect(events).toHaveLength(2);
     expect(events.every((event) => event.target === broken)).toBe(true);
@@ -188,7 +189,7 @@ describe('registry', () => {
     document.body.append(el);
     await settle();
 
-    expect(el.__base__?.get('ExistingMountFailure')).toBe(instance);
+    expect(el[INSTANCES]?.get('ExistingMountFailure')).toBe(instance);
     expect(diagnostics).toHaveLength(1);
     expect(diagnostics[0]).toMatchObject({
       severity: 'error',
@@ -210,7 +211,9 @@ describe('registry', () => {
     class After extends Base {
       static config = { name: 'RegistrationAfter' };
       mounted(): void {
-        calls.push(`after:mounted:before=${Boolean(this.$el.__base__?.has('RegistrationBefore'))}`);
+        calls.push(
+          `after:mounted:before=${Boolean(this.$el[INSTANCES]?.has('RegistrationBefore'))}`,
+        );
       }
     }
 

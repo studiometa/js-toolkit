@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { getInstances } from './instances.js';
+import { INSTANCES } from './protocol-symbols.js';
 import { getInstance, renderTodoList, resetDom, settle, type TodoItem } from './test-utils.js';
 
 afterEach(resetDom);
@@ -47,7 +48,7 @@ describe('getInstances', () => {
     await settle();
 
     expect(el.matches('[data-component~="Unregistered"]')).toBe(true);
-    expect(el.__base__).toBeUndefined();
+    expect(el[INSTANCES]).toBeUndefined();
     expect(getInstances('Unregistered')).toEqual([]);
   });
 

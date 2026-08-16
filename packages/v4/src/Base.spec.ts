@@ -11,6 +11,7 @@ import {
 } from './Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
+import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import {
   getInstance,
@@ -1209,7 +1210,7 @@ describe('$watchChildren', () => {
     for (const instance of [unrelated, gamma, family, beta, alpha]) {
       instance.$mount();
     }
-    alpha.$el.__base__?.set('WatchAlphaAlias', alpha);
+    alpha.$el[INSTANCES]?.set('WatchAlphaAlias', alpha);
 
     const owner = new Owner(root);
     const added: Family[] = [];
@@ -1466,7 +1467,7 @@ describe('lifecycle', () => {
     expect(events.every((event) => event.detail.component === 'TeardownFailure')).toBe(true);
     expect(events.every((event) => event.defaultPrevented)).toBe(true);
     expect(instance.$isMounted).toBe(false);
-    expect(el.__base__?.has('TeardownFailure')).toBe(false);
+    expect(el[INSTANCES]?.has('TeardownFailure')).toBe(false);
   });
 
   it('runs the mounted() cleanup on destroy', async () => {
@@ -1512,7 +1513,7 @@ describe('lifecycle', () => {
 
     instance.$mount();
     expect(instance.$isMounted).toBe(true);
-    expect(el.__base__?.get('Tracked')).toBe(instance);
+    expect(el[INSTANCES]?.get('Tracked')).toBe(instance);
 
     instance.$terminate();
     expect(calls).toEqual([
@@ -1524,7 +1525,7 @@ describe('lifecycle', () => {
       'destroyed',
       'terminated',
     ]);
-    expect(el.__base__?.get('Tracked')).toBeUndefined();
+    expect(el[INSTANCES]?.get('Tracked')).toBeUndefined();
     instance.$mount();
     expect(instance.$isMounted).toBe(false);
   });

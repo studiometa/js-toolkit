@@ -1,3 +1,4 @@
+import { INSTANCES } from './protocol-symbols.js';
 import { selectorFor } from './utils/selectors.js';
 import type { Base } from './Base.js';
 
@@ -11,7 +12,7 @@ export function getInstances<T extends Base = Base>(
 ): T[] {
   const instances: T[] = [];
   for (const el of root.querySelectorAll(selectorFor(name))) {
-    const instance = el.__base__?.get(name);
+    const instance = el[INSTANCES]?.get(name);
     if (instance?.$isMounted) {
       instances.push(instance as T);
     }

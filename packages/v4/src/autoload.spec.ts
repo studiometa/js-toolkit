@@ -4,6 +4,7 @@ import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract
 import { whenDOMSettled } from './dom-mutations.js';
 import { EVENTS } from './events.js';
 import { getInstances } from './instances.js';
+import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { resetDom, settle } from './test-utils.js';
 
@@ -64,7 +65,7 @@ function render(name: string, attributes: Record<string, string> = {}, style = O
 }
 
 function instanceOf<T extends Base>(el: Element, name: string): T | undefined {
-  return el.__base__?.get(name) as T | undefined;
+  return el[INSTANCES]?.get(name) as T | undefined;
 }
 
 /** Wait for observer delivery. */
@@ -82,7 +83,7 @@ describe('registerManifest', () => {
     const el = render(name);
     await settle();
 
-    expect(el.__base__).toBeUndefined();
+    expect(el[INSTANCES]).toBeUndefined();
 
     registerManifest({ [name]: load });
     await settle();
@@ -146,7 +147,7 @@ describe('a lazy declaration before its class arrives', () => {
     registerManifest({ [name]: { load, mountStrategy: 'visible' } });
     await observed();
 
-    expect(el.__base__).toBeUndefined();
+    expect(el[INSTANCES]).toBeUndefined();
     expect(getInstances(name)).toEqual([]);
 
     el.setAttribute('style', ONSCREEN);
@@ -234,7 +235,7 @@ describe('the strategy that triggers the import', () => {
     await observed();
 
     expect(importCount()).toBe(0);
-    expect(el.__base__?.get(name)).toBeUndefined();
+    expect(el[INSTANCES]?.get(name)).toBeUndefined();
     expect(diagnostics).toHaveLength(1);
     expect(diagnostics[0].code).toBe(DIAGNOSTICS.component.invalidMountStrategy);
 
@@ -387,8 +388,8 @@ describe('registerManifest collisions and failures', () => {
       component: name,
     });
     expect(elementEvents[0].detail.error).toBe(failure);
-    expect(first.__base__).toBeUndefined();
-    expect(second.__base__).toBeUndefined();
+    expect(first[INSTANCES]).toBeUndefined();
+    expect(second[INSTANCES]).toBeUndefined();
   });
 
   it('reports a module which resolves to no component class', async () => {
@@ -427,7 +428,7 @@ describe('registerManifest collisions and failures', () => {
     expect(warn).toHaveBeenCalledWith(
       `[js-toolkit:${DIAGNOSTICS.registry.lazyNameMismatch}] "${token}" resolved to a component named "${name}".`,
     );
-    expect(el.__base__).toBeUndefined();
+    expect(el[INSTANCES]).toBeUndefined();
     warn.mockRestore();
   });
 });

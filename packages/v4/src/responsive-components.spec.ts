@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type BaseConfig } from './Base.js';
 import { whenDOMSettled } from './dom-mutations.js';
 import { getInstances } from './instances.js';
+import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
 import { resetDom, settle } from './test-utils.js';
@@ -57,7 +58,7 @@ function render(attributes: Record<string, string>): HTMLElement {
 }
 
 function instance(el: Element, name: string): TrackedComponent | undefined {
-  return el.__base__?.get(name) as TrackedComponent | undefined;
+  return el[INSTANCES]?.get(name) as TrackedComponent | undefined;
 }
 
 function at(name: 'small' | 'middle' | 'wide'): void {
@@ -109,7 +110,7 @@ describe('responsive component declarations', () => {
     });
     await whenDOMSettled();
 
-    expect([...(el.__base__?.keys() ?? [])].sort()).toEqual(
+    expect([...(el[INSTANCES]?.keys() ?? [])].sort()).toEqual(
       [action.name, analytics.name, mobileMenu.name, mobileSearch.name].sort(),
     );
     expect(instance(el, action.name)?.mounts).toBe(1);

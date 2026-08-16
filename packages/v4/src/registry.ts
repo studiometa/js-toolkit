@@ -19,6 +19,7 @@ import {
   type AppliedMountStrategy,
   type MountStrategy,
 } from './mount-strategies.js';
+import { INSTANCES } from './protocol-symbols.js';
 import {
   checkResponsiveAttributes,
   observeResponsiveAttribute,
@@ -192,7 +193,7 @@ if (!registryState.isReplacementListenerAttached) {
  * Register a component and its merged family, then scan matching elements.
  *
  * The name comes from the merged config, like the instance's `$id` and the
- * `__base__` key it publishes itself under: a subclass which extends a
+ * `INSTANCES` map key it publishes itself under: a subclass which extends a
  * component with extra config and forgets to rename would otherwise register
  * under `undefined` instead of colliding with the name it inherited.
  */
@@ -365,7 +366,7 @@ function mountPair(
   if (!isCurrentPair(el, name, ComponentClass, controller)) {
     return;
   }
-  let instance = el.__base__?.get(name);
+  let instance = el[INSTANCES]?.get(name);
   try {
     if (!instance) {
       instance = new ComponentClass(el);
@@ -374,7 +375,7 @@ function mountPair(
   } catch (error) {
     // A failed derived constructor can leave the instance published by `Base`.
     if (!instance) {
-      el.__base__?.delete(name);
+      el[INSTANCES]?.delete(name);
     }
     reportDiagnostic('component.mount-failed', `Failed to mount component "${name}".`, error, {
       component: name,
@@ -390,7 +391,7 @@ function destroyPair(
   controller: PairController,
 ): void {
   if (isCurrentPair(el, name, ComponentClass, controller)) {
-    el.__base__?.get(name)?.$destroy();
+    el[INSTANCES]?.get(name)?.$destroy();
   }
 }
 
@@ -582,7 +583,7 @@ function reconcileElement(el: HTMLElement): void {
   const names = new Set<string>([
     ...(controllers.get(el)?.keys() ?? []),
     ...(loaders.get(el)?.keys() ?? []),
-    ...(el.__base__?.keys() ?? []),
+    ...(el[INSTANCES]?.keys() ?? []),
   ]);
 
   for (const name of names) {
@@ -591,7 +592,7 @@ function reconcileElement(el: HTMLElement): void {
       disposeLoader(el, name);
       // Removing a declaration while the element remains is final. Unlike a
       // disconnection, it removes the component identity from this element.
-      el.__base__?.get(name)?.$terminate();
+      el[INSTANCES]?.get(name)?.$terminate();
     }
   }
 
@@ -609,7 +610,7 @@ function scan(root: Node): void {
     return;
   }
   for (const el of [root, ...root.querySelectorAll<HTMLElement>('*')]) {
-    if (hasComponentAttribute(el) || el.__base__ || controllers.has(el) || loaders.has(el)) {
+    if (hasComponentAttribute(el) || el[INSTANCES] || controllers.has(el) || loaders.has(el)) {
       reconcileElement(el as HTMLElement);
     }
   }
@@ -649,10 +650,10 @@ function destroyWithin(node: Node, snapshot?: readonly Element[]): void {
         disposeLoader(el, name);
       }
     }
-    if (!el.__base__) {
+    if (!el[INSTANCES]) {
       continue;
     }
-    for (const instance of el.__base__.values()) {
+    for (const instance of el[INSTANCES].values()) {
       instance.$destroy();
     }
   }
@@ -716,7 +717,7 @@ function processMutations(records: readonly DOMMutationRecord[]): void {
     if (!el.isConnected) {
       continue;
     }
-    for (const instance of el.__base__?.values() ?? []) {
+    for (const instance of el[INSTANCES]?.values() ?? []) {
       if (instance.$isMounted) {
         // Pass the full batch so responsive options can resolve previous values.
         instance.$optionsChanged(changes);

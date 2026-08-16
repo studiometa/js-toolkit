@@ -531,7 +531,7 @@ This replaces Slider's per-instance store + two-sided `connectChildren`/`__conne
 
 The initial sweep is deferred to a microtask: `$watchChildren` is typically called in a field initializer, and already-mounted children would otherwise fire `added` synchronously while the instance is half-constructed (found live: the Slider demo read `this.items` from an `added` callback before the field was assigned, and its provided state signal stayed at `total: 0`). The announcement listeners attach synchronously, so nothing mounting in between is missed — the internal `Set` deduplicates.
 
-The string overload keeps the existing exact `config.name` lookup. The constructor overload cannot select one `data-component` token because every named subclass has a different token, so its initial sweep walks descendant elements in DOM order and reads their existing `__base__` maps. It keeps mounted instances for which `instance instanceof ComponentClass`, excludes the watching instance, and deduplicates a shared instance exposed under several tokens. No global instance registry is added. Mounted and destroyed announcements pass through the same matcher, and the subscription remains active across destroy/remount cycles until the watcher terminates.
+The string overload keeps the existing exact `config.name` lookup. The constructor overload cannot select one `data-component` token because every named subclass has a different token, so its initial sweep walks descendant elements in DOM order and reads their existing instance maps. It keeps mounted instances for which `instance instanceof ComponentClass`, excludes the watching instance, and deduplicates a shared instance exposed under several tokens. No global instance registry is added. Mounted and destroyed announcements pass through the same matcher, and the subscription remains active across destroy/remount cycles until the watcher terminates.
 
 ### The page-wide lookup — `getInstances()` — implemented
 
@@ -550,7 +550,23 @@ Three decisions, all of them the ones the component-scoped lookups already made:
 - **The filter is `$isMounted`**, so a destroyed _or_ terminated instance is never returned. `$terminate()` destroys first, so one predicate covers both, and a detached-but-retained subtree — the case that exists only because destroy is reversible — is exactly what a caller must not run effects on.
 - **`root` is a `ParentNode`** and the call _is_ `querySelectorAll`: an element root searches its descendants and never matches itself.
 
-There is no selector-strategy seam behind it. v4 resolves components through `data-component` alone — no tag matching, no arbitrary selectors, no custom elements — so name → selector is the only lookup shape there will ever be, and `selectorFor(name)` (already public, on `/utils`) is the single place that contract is written down. `getInstances` exists so that resolving by name never means hard-coding `[data-component~="…"]` and reading `el.__base__` in user code.
+There is no selector-strategy seam behind it. v4 resolves components through `data-component` alone — no tag matching, no arbitrary selectors, no custom elements — so name → selector is the only lookup shape there will ever be, and `selectorFor(name)` (already public, on `/utils`) is the single place that contract is written down. `getInstances` exists so that resolving by name never means hard-coding `[data-component~="…"]` and reading the instance map in user code.
+
+### Where the instances live — a symbol, not `__base__`
+
+An element publishes its instances under `Symbol.for('@studiometa/js-toolkit-v4/instances')`, alongside the symbols already used for the handler registrations, the component brand and the shared runtime.
+
+**The reason is coexistence.** v3 stores `Map<string, Base | 'terminated'>` under `el.__base__`; v4 stored `Map<string, Base>` under the same name. Two versions in one document therefore read each other's maps as their own: v4's teardown called `$destroy()` on v3's instances, and on the `'terminated'` string v3 leaves behind — a `TypeError` — while v3's child resolution accepted a v4 instance as one of its children. That blocked any page-by-page migration. `src/coexistence.spec.ts` mounts both versions in one document and holds the line.
+
+`Symbol.for` and not a module-local `Symbol()`: the key is realm-global, so two evaluated copies of v4 still agree on it — the one property of the string that had to survive. The duplicate-runtime fixture resolves it the same way, with no import.
+
+It is not public API; `getInstances()` is. What it costs is the devtools affordance of typing `$0.__base__` in a console, and the replacement is one line that needs no import and works in any build:
+
+```js
+$0[Symbol.for('@studiometa/js-toolkit-v4/instances')];
+```
+
+It also costs the one-line read in ordinary code. `migration/Action/instances.ts` used it for "what else is on this element" and now imports the internal key to keep working — a gap that belongs in `getInstances()`, not in a port.
 
 ### Shared state — provide/inject in core
 
@@ -1029,7 +1045,7 @@ registerManifest({
 
 - **One name, one entry**, across both halves: a token an eager class or an earlier manifest already owns warns and is ignored, like `customElements.define` and like `registerComponent()`.
 - **Zero dependencies, zero bundler knowledge.** The value is a function returning a promise. `import.meta.glob`, `import.meta.webpackContext` and a generated manifest all produce that shape; none of them is named in core.
-- **The registry stays the only constructor.** The import ends in `registerComponent(ComponentClass)`, which schedules the pair exactly as a hand-registered class is scheduled. Autoload never touches `new`, `el.__base__`, or a mount hook.
+- **The registry stays the only constructor.** The import ends in `registerComponent(ComponentClass)`, which schedules the pair exactly as a hand-registered class is scheduled. Autoload never touches `new`, the instance map, or a mount hook.
 - **An unloaded declaration is invisible.** Nothing is constructed at discovery — the trigger imports, and construction happens on first mount as always. So `$query`, `$closest`, `$watchChildren` and `getInstances()` miss it for the same reason they miss a component waiting on `data-mount="visible"`, and by the same mechanism: no instance on the element. §2's rule needed no exception written for it.
 - **`whenDOMSettled()` covers an eager lazy component.** The import promise joins the lifecycle-work set only when the trigger was the eager one (`applied.eagerWork` is defined for `eager` alone, `mount-strategies.ts:122-125`), so `swap()` waits for download → registration → mount, and still never waits on a viewport, an idle callback, an interaction or a media query. That is the existing rule, extended one step earlier in the pipeline rather than a new one.
 - **One import per name, one failure report per name.** Failures emit one diagnostic and are never retried: the trigger is spent, and a retry loop against a 404'd chunk is worse than a quiet page.

@@ -1,6 +1,11 @@
 const token = new URL(location.href).searchParams.get('token');
 const source = 'v4-shared-runtime-fixture';
 
+// The key both evaluated copies publish instances under. `Symbol.for` is
+// realm-global, so the harness resolves it without importing either copy —
+// which is also what lets the two copies agree on it.
+const INSTANCES = Symbol.for('@studiometa/js-toolkit-v4/instances');
+
 function post(payload) {
   parent.postMessage({ source, token, ...payload }, location.origin);
 }
@@ -266,17 +271,17 @@ async function run(copyA, copyB) {
       parentMounts,
       childMounts,
       lazyMounts,
-      parentFromA: root.__base__?.get('RuntimeFixtureParent') instanceof SharedParent,
+      parentFromA: root[INSTANCES]?.get('RuntimeFixtureParent') instanceof SharedParent,
       childFromB:
-        root.firstElementChild?.__base__?.get('RuntimeFixtureChild') instanceof SharedChild,
-      lazyFromB: lazy.__base__?.get('RuntimeFixtureLazy') instanceof SharedLazy,
+        root.firstElementChild?.[INSTANCES]?.get('RuntimeFixtureChild') instanceof SharedChild,
+      lazyFromB: lazy[INSTANCES]?.get('RuntimeFixtureLazy') instanceof SharedLazy,
       viewport: {
         direct: {
           observers: directViewportObservers.length,
           rootMargin: directViewportObservers[0]?.options?.rootMargin ?? null,
           mounts: viewportMounts,
           destroys: viewportDestroys,
-          fromB: viewport.__base__?.get('RuntimeFixtureViewport') instanceof SharedViewport,
+          fromB: viewport[INSTANCES]?.get('RuntimeFixtureViewport') instanceof SharedViewport,
         },
         lazy: {
           observers: lazyViewportObservers.length,
@@ -284,7 +289,8 @@ async function run(copyA, copyB) {
           imports: viewportLazyImports,
           mounts: viewportLazyMounts,
           fromA:
-            viewportLazy.__base__?.get('RuntimeFixtureViewportLazy') instanceof SharedViewportLazy,
+            viewportLazy[INSTANCES]?.get('RuntimeFixtureViewportLazy') instanceof
+            SharedViewportLazy,
         },
       },
     };

@@ -15,5 +15,6 @@
     "skipLibCheck": true,
     "types": []
   },
-  "include": ["src/**/*.ts", "demo/**/*.ts", "migration/**/*.ts"]
+  "include": ["src/**/*.ts", "demo/**/*.ts", "migration/**/*.ts"],
+  "exclude": ["src/coexistence.spec.ts"]
 }
