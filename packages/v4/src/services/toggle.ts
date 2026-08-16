@@ -5,9 +5,9 @@ export interface Toggle {
   /** Whether the subscription is running. */
   readonly isActive: boolean;
   /** Subscribe now, unless it is subscribed already. */
-  start(): void;
+  start: () => void;
   /** Release the subscription, if it has one. */
-  stop(): void;
+  stop: () => void;
 }
 
 /**

@@ -143,8 +143,10 @@ function apply(
         if (this.__shouldMeasure) {
           this.measure();
         }
-        const hook = (this as unknown as ScrolledInViewHook).scrolledInView;
-        const render = hook?.call(this, this.__scrollInViewProps);
+        // Called through the optional-call so the hook stays bound to `this`.
+        const render = (this as unknown as ScrolledInViewHook).scrolledInView?.(
+          this.__scrollInViewProps,
+        );
         if (typeof render === 'function') {
           this.$write(render);
         }
@@ -183,8 +185,8 @@ function apply(
         props.dampedProgressX = progressBetween(props.dampedCurrentX, props.startX, props.endX);
         props.dampedProgressY = progressBetween(props.dampedCurrentY, props.startY, props.endY);
 
-        const hook = (this as unknown as ScrolledInViewHook).scrolledInView;
-        const render = hook?.call(this, props) ?? undefined;
+        // Called through the optional-call so the hook stays bound to `this`.
+        const render = (this as unknown as ScrolledInViewHook).scrolledInView?.(props) ?? undefined;
 
         if (props.dampedCurrentX === props.currentX && props.dampedCurrentY === props.currentY) {
           // Schedule the final write before releasing the subscription.
@@ -234,8 +236,8 @@ function apply(
       props.dampedProgressY = props.progressY;
       // Destruction cancels instance-owned tasks, so use the global scheduler.
       defaultScheduler.read(() => {
-        const hook = (this as unknown as ScrolledInViewHook).scrolledInView;
-        const render = hook?.call(this, props);
+        // Called through the optional-call so the hook stays bound to `this`.
+        const render = (this as unknown as ScrolledInViewHook).scrolledInView?.(props);
         if (typeof render === 'function') {
           defaultScheduler.write(render);
         }

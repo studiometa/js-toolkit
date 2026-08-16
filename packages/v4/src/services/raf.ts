@@ -44,7 +44,7 @@ function createRafService(): RafService {
   });
 
   return {
-    props: service.props,
+    props: () => service.props(),
     subscribe(callback, options) {
       // Do not write after the subscription is released.
       let isSubscribed = true;

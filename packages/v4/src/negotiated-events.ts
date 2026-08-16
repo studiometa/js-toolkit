@@ -17,7 +17,7 @@ interface NegotiationOptions<R> {
   /** Extra context merged into the detail, alongside the registration function. */
   detail?: Record<string, unknown>;
   /** Called for each registration made while the event dispatches. */
-  accept(registration: R): void;
+  accept: (registration: R) => void;
 }
 
 /** Emit a bubbling event and collect synchronous registrations. */

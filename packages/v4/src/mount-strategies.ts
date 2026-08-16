@@ -24,8 +24,8 @@ export const MOUNT_ATTRIBUTE = 'data-mount';
 const INTENT_EVENTS = ['pointerenter', 'pointerdown', 'focusin'] as const;
 
 export interface MountStrategyHooks {
-  mount(): void;
-  destroy(): void;
+  mount: () => void;
+  destroy: () => void;
 }
 
 export type AppliedMountStrategy =
