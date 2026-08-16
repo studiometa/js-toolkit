@@ -8,11 +8,9 @@ import { decorators } from './vite-plugin-decorators.js';
  * mutation observer driving the registry — have no meaningful cost in an
  * emulated DOM.
  *
- * CodSpeed's simulation mode cannot instrument these: its plugin forces
- * `pool: "forks"` and measures the Node process, while a browser-mode
- * benchmark body runs in Chromium over CDP. Regressions are caught instead by
- * `.github/actions/bench-diff`, which runs this suite for the base and the
- * head commit on one runner and comments the difference.
+ * Regressions are caught by `.github/actions/bench-diff`, which runs this
+ * suite for the base and the head commit on one runner and comments the
+ * difference.
  *
  * `V4_BENCH_SIZES` narrows the at-scale suite — CI compares a subset so the
  * job stays inside a few minutes.

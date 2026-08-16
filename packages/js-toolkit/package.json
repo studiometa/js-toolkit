@@ -1056,6 +1056,8 @@
     "test:watch": "vitest",
     "bench": "vitest bench --config vitest.bench.config.ts",
     "bench:run": "vitest bench --config vitest.bench.config.ts --run",
+    "bench:report": "npm run bench:run -- --outputJson .bench-report.json && node ../../.github/actions/bench-diff/bench-report.mjs .bench-report.json",
+    "bench:profile": "vitest run --config vitest.bench.config.ts --reporter=verbose",
     "lint:types": "tsc -p tsconfig.lint.json"
   },
   "keywords": [
@@ -1069,12 +1071,14 @@
     "deepmerge": "^4.3.1"
   },
   "devDependencies": {
-    "@codspeed/vitest-plugin": "5.2.0",
     "@happy-dom/global-registrator": "20.8.8",
+    "@vitest/browser": "4.1.10",
+    "@vitest/browser-playwright": "4.1.10",
     "@vitest/coverage-v8": "4.1.10",
     "esbuild": "0.27.0",
     "fast-glob": "3.3.3",
     "happy-dom": "20.8.8",
+    "playwright": "^1.50.0",
     "tsdown": "0.22.14",
     "vitest": "4.1.10"
   }

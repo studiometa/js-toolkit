@@ -8,9 +8,15 @@
  * then compare is the work per operation.
  *
  * Nothing here may touch global framework state: `defineFeatures()` and
- * friends mutate a module-level map, and these files share a process
- * under CodSpeed, so a global set here would follow every other
- * benchmark in the suite.
+ * friends mutate a module-level map, and everything in this file shares
+ * one realm, so a global set here would follow every benchmark below it.
+ *
+ * Neither version is *registered* here, which is what lets the two share
+ * a document at all: v3 and v4 both publish their instances on
+ * `el.__base__`, and a live v4 registry finds v3's entries there and
+ * calls `$destroy()` on them. Mounting is done by hand on both sides.
+ * `mount-at-scale.bench.ts` measures the registered paths, and has to
+ * give each version the document in turn.
  */
 import { bench, describe } from 'vitest';
 import { Base as BaseV3, type BaseConfig } from '@studiometa/js-toolkit';

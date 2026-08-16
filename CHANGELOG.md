@@ -14,7 +14,8 @@ All notable changes to this project will be documented in this file. The format 
 - The build uses tsdown (rolldown) instead of esbuild plus a separate `tsgo --build` pass, in every package
 - Formatting moves from Prettier to `oxfmt`, which covers the whole tree instead of a hand-written glob; the demo keeps Prettier for its Twig templates
 - The toolchain moves to the released `typescript@7` (`tsc`) instead of `@typescript/native-preview` (`tsgo`), and `oxlint` to 1.77.0
-- The test runner moves to Vitest 4.1.10, and each package owns its runner config. Vitest 5 waits on two things: `@codspeed/vitest-plugin` still peer-depends on `vitest ^3.2 || ^4`, and Vitest 5 replaces the top-level `bench()` with `context.bench`, which the benchmark suite has to be rewritten for
+- The test runner moves to Vitest 4.1.10, and each package owns its runner config. Vitest 5 waits on one thing: it replaces the top-level `bench()` with `context.bench`, which the benchmark suite has to be rewritten for
+- v3's benchmarks run in a real Chromium instead of Node with happy-dom, so they measure the same environment v4's do. Regressions are tracked by `.github/actions/bench-diff` — the base and the head commit measured on one runner — instead of CodSpeed, which is removed. `src/__benchmarks__/mount-at-scale.bench.ts` and `mount-at-scale.profile.ts` add the v3-against-v4 mounting comparison, including a total-blocking-time profile
 - The subpath stubs are committed instead of being regenerated before every build, test and lint run. `npm run subpaths` rewrites them and the `exports` map together; the contract test fails until the result is committed
 
 ## [v3.9.0](https://github.com/studiometa/js-toolkit/compare/3.8.2..3.9.0) (2026-08-10)
