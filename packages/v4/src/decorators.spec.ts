@@ -219,6 +219,83 @@ class SubTargetParent extends Base {
   }
 }
 
+@component({ name: 'PhasedChild' })
+class PhasedChild extends Base {}
+
+/**
+ * Every handler here is named the way the magic scan spells the event its
+ * `@on` declares, so both binding passes claim it, and each carries a `@read`
+ * or a `@write` — above the `@on` on half of them, below it on the other half.
+ * That order decides which function the registration records, and used to
+ * decide whether the handler bound once or twice.
+ */
+@component({
+  name: 'PhasedHandlers',
+  refs: ['dot', 'tag'],
+  components: { PhasedChild },
+})
+class PhasedHandlers extends Base {
+  calls: Record<string, number> = {};
+
+  count(name: string): void {
+    this.calls[name] = (this.calls[name] ?? 0) + 1;
+  }
+
+  @write
+  @on(window, 'resize')
+  onWindowResize(): void {
+    this.count('onWindowResize');
+  }
+
+  @on(window, 'scroll')
+  @write
+  onWindowScroll(): void {
+    this.count('onWindowScroll');
+  }
+
+  @write
+  @on('PhasedChild', 'ping')
+  onPhasedChildPing(): void {
+    this.count('onPhasedChildPing');
+  }
+
+  @on('PhasedChild', 'pong')
+  @write
+  onPhasedChildPong(): void {
+    this.count('onPhasedChildPong');
+  }
+
+  @read
+  @on('dot', 'click')
+  onDotClick(): void {
+    this.count('onDotClick');
+  }
+
+  @on('tag', 'click')
+  @read
+  onTagClick(): void {
+    this.count('onTagClick');
+  }
+}
+
+/** The two families on their own, on names the magic scan also claims. */
+@component({ name: 'SinglyDecorated' })
+class SinglyDecorated extends Base {
+  resizes = 0;
+
+  scrolls = 0;
+
+  @on(window, 'resize')
+  onWindowResize(): void {
+    this.resizes += 1;
+  }
+
+  @write
+  onWindowScroll(): void {
+    this.scrolls += 1;
+  }
+}
+
 registerComponents(
   DecoParent,
   DecoChild,
@@ -229,6 +306,9 @@ registerComponents(
   SubTargetParent,
   BaseKind,
   SubKind,
+  PhasedChild,
+  PhasedHandlers,
+  SinglyDecorated,
 );
 
 // Compile-time assertions prevent the overloads from silently widening to `any`.
@@ -866,6 +946,73 @@ describe('@read / @write', () => {
     instance.$destroy();
     await defaultScheduler.whenIdle();
     expect(ran).toBe(false);
+  });
+});
+
+describe('@on stacked with @read / @write', () => {
+  function renderPhased(): HTMLElement {
+    const root = document.createElement('div');
+    root.setAttribute('data-component', 'PhasedHandlers');
+    root.innerHTML =
+      '<div data-component="PhasedChild"></div><button data-ref="dot"></button><button data-ref="tag"></button>';
+    document.body.append(root);
+    return root;
+  }
+
+  it('binds a handler once whichever order the two decorators are stacked in', async () => {
+    const root = renderPhased();
+    await settle();
+
+    const instance = getInstance<PhasedHandlers>(root, 'PhasedHandlers');
+    const child = getInstance<PhasedChild>(
+      root.querySelector('[data-component="PhasedChild"]'),
+      'PhasedChild',
+    );
+
+    window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('scroll'));
+    child.$emit('ping');
+    child.$emit('pong');
+    (root.querySelector('[data-ref="dot"]') as HTMLElement).click();
+    (root.querySelector('[data-ref="tag"]') as HTMLElement).click();
+
+    // Whichever function the registration recorded, the body may run in a
+    // scheduler phase; drain it before counting.
+    await defaultScheduler.whenIdle();
+
+    expect(instance.calls).toEqual({
+      onWindowResize: 1,
+      onWindowScroll: 1,
+      onPhasedChildPing: 1,
+      onPhasedChildPong: 1,
+      onDotClick: 1,
+      onTagClick: 1,
+    });
+  });
+
+  it('binds a magic name carrying only @on once', async () => {
+    const root = document.createElement('div');
+    root.setAttribute('data-component', 'SinglyDecorated');
+    document.body.append(root);
+    await settle();
+
+    const instance = getInstance<SinglyDecorated>(root, 'SinglyDecorated');
+    window.dispatchEvent(new Event('resize'));
+    expect(instance.resizes).toBe(1);
+  });
+
+  it('binds a magic name carrying only @write once, through the scheduled wrapper', async () => {
+    const root = document.createElement('div');
+    root.setAttribute('data-component', 'SinglyDecorated');
+    document.body.append(root);
+    await settle();
+
+    const instance = getInstance<SinglyDecorated>(root, 'SinglyDecorated');
+    window.dispatchEvent(new Event('scroll'));
+    expect(instance.scrolls).toBe(0);
+
+    await defaultScheduler.whenIdle();
+    expect(instance.scrolls).toBe(1);
   });
 });
 
