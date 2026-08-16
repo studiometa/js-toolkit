@@ -1,7 +1,13 @@
 /** Public entry point for `@studiometa/js-toolkit-v4/utils`. */
 
 export { deepmerge } from './deepmerge.js';
-export { createElement, type CreateElementAttributes, type CreateElementChildren } from './dom.js';
+export {
+  createElement,
+  getOffsetSizes,
+  type CreateElementAttributes,
+  type CreateElementChildren,
+  type OffsetSizes,
+} from './dom.js';
 export {
   createEaseInOut,
   createEaseOut,

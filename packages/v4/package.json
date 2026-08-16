@@ -344,6 +344,10 @@
       "types": "./dist/subpaths/utils/createElement.d.ts",
       "import": "./dist/subpaths/utils/createElement.js"
     },
+    "./utils/getOffsetSizes": {
+      "types": "./dist/subpaths/utils/getOffsetSizes.d.ts",
+      "import": "./dist/subpaths/utils/getOffsetSizes.js"
+    },
     "./utils/createEaseInOut": {
       "types": "./dist/subpaths/utils/createEaseInOut.d.ts",
       "import": "./dist/subpaths/utils/createEaseInOut.js"
