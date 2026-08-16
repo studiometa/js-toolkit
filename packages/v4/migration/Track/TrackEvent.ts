@@ -1,6 +1,6 @@
 import { useInView } from '../../src/index.js';
 import type { Unsubscribe } from '../../src/index.js';
-import { throttle } from '../utils/throttle.js';
+import { throttle } from '../../src/utils/timing.js';
 import type { AbstractTrack } from './AbstractTrack.js';
 
 export type Modifier =

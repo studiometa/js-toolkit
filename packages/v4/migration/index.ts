@@ -14,5 +14,4 @@ export * from './utils/deepmerge.js';
 export * from './utils/easings.js';
 export * from './utils/keyframes.js';
 export * from '../src/utils/maths.js';
-export * from './utils/throttle.js';
 export * from './utils/uid.js';
