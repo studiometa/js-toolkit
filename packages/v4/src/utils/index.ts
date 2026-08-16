@@ -13,9 +13,11 @@ export {
   clamp,
   clamp01,
   clampDampFactor,
+  createRange,
   damp,
   decayOver,
   DEFAULT_DAMP_FACTOR,
+  fold,
   inertiaDecay,
   inertiaFinalValue,
   inertiaStep,
@@ -24,7 +26,10 @@ export {
   lerp,
   map,
   MAX_SPRING_RATIO,
+  mean,
+  round,
   spring,
+  wrap,
   type SpringOptions,
 } from './maths.js';
 export { memo, type Memo } from './memo.js';

@@ -392,6 +392,10 @@
       "types": "./dist/subpaths/utils/clampDampFactor.d.ts",
       "import": "./dist/subpaths/utils/clampDampFactor.js"
     },
+    "./utils/createRange": {
+      "types": "./dist/subpaths/utils/createRange.d.ts",
+      "import": "./dist/subpaths/utils/createRange.js"
+    },
     "./utils/damp": {
       "types": "./dist/subpaths/utils/damp.d.ts",
       "import": "./dist/subpaths/utils/damp.js"
@@ -403,6 +407,10 @@
     "./utils/DEFAULT_DAMP_FACTOR": {
       "types": "./dist/subpaths/utils/DEFAULT_DAMP_FACTOR.d.ts",
       "import": "./dist/subpaths/utils/DEFAULT_DAMP_FACTOR.js"
+    },
+    "./utils/fold": {
+      "types": "./dist/subpaths/utils/fold.d.ts",
+      "import": "./dist/subpaths/utils/fold.js"
     },
     "./utils/inertiaDecay": {
       "types": "./dist/subpaths/utils/inertiaDecay.d.ts",
@@ -436,9 +444,21 @@
       "types": "./dist/subpaths/utils/MAX_SPRING_RATIO.d.ts",
       "import": "./dist/subpaths/utils/MAX_SPRING_RATIO.js"
     },
+    "./utils/mean": {
+      "types": "./dist/subpaths/utils/mean.d.ts",
+      "import": "./dist/subpaths/utils/mean.js"
+    },
+    "./utils/round": {
+      "types": "./dist/subpaths/utils/round.d.ts",
+      "import": "./dist/subpaths/utils/round.js"
+    },
     "./utils/spring": {
       "types": "./dist/subpaths/utils/spring.d.ts",
       "import": "./dist/subpaths/utils/spring.js"
+    },
+    "./utils/wrap": {
+      "types": "./dist/subpaths/utils/wrap.d.ts",
+      "import": "./dist/subpaths/utils/wrap.js"
     },
     "./utils/memo": {
       "types": "./dist/subpaths/utils/memo.d.ts",

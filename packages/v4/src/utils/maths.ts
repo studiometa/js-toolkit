@@ -44,6 +44,71 @@ export function lerp(min: number, max: number, ratio: number): number {
 }
 
 /**
+ * Wrap a value in a range: it leaves by one bound and comes back by the other.
+ */
+export function wrap(value: number, min: number, max: number): number {
+  const range = max - min;
+
+  if (!Number.isFinite(range)) {
+    return value;
+  }
+
+  return min === max ? min : ((range + ((value - min) % range)) % range) + min;
+}
+
+/**
+ * Fold a value back and forth in a range: it bounces off both bounds.
+ */
+export function fold(value: number, min: number, max: number): number {
+  const range = max - min;
+
+  if (!Number.isFinite(range) || range <= 0) {
+    return min;
+  }
+
+  const wrapped = wrap(value, min, min + range * 2);
+  return wrapped > max ? 2 * max - wrapped : wrapped;
+}
+
+/**
+ * Round a value to the given number of decimals.
+ */
+export function round(value: number, decimals = 0): number {
+  return Number(value.toFixed(decimals));
+}
+
+/**
+ * The arithmetic mean of the given numbers. An empty list averages to `0`.
+ */
+export function mean(numbers: readonly number[]): number {
+  if (numbers.length === 0) {
+    return 0;
+  }
+
+  let sum = 0;
+  for (const value of numbers) {
+    sum += value;
+  }
+  return sum / numbers.length;
+}
+
+/**
+ * The values from `min` up to `max`, one step apart.
+ *
+ * Each value is computed from the index rather than accumulated, so a
+ * fractional step does not drift. A step which is not positive and finite
+ * describes no range and returns an empty array.
+ */
+export function createRange(min: number, max: number, step: number): number[] {
+  if (!Number.isFinite(step) || step <= 0 || !Number.isFinite(max - min) || max < min) {
+    return [];
+  }
+
+  const count = Math.floor((max - min) / step) + 1;
+  return Array.from({ length: count }, (_, index) => min + index * step);
+}
+
+/**
  * Return the fraction retained after `elapsed` milliseconds.
  *
  * Retention is clamped to `[0, 1]`, elapsed time to non-negative values, and non-finite inputs return `0`.
