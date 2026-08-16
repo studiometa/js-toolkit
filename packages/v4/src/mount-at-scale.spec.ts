@@ -29,9 +29,11 @@
  * flake. The one guard that does not depend on machine speed — a ratio — is
  * where the tight threshold goes.
  *
- * Every threshold is a ceiling on the *best* of several repeats. A CI runner
- * is slower and noisier than this machine, and a guard that flakes gets
- * deleted by the next person, which is worse than no guard.
+ * Every threshold tolerates noise, because a CI runner is slower and noisier
+ * than this machine and a guard that flakes gets deleted by the next person,
+ * which is worse than no guard. Each signal tolerates it in the way that
+ * suits it: wall time takes the best of several repeats, a long task takes
+ * the second worst. `mountCost()` explains why they differ.
  */
 import { describe, expect, it } from 'vitest';
 import { whenDOMSettled } from './dom-mutations.js';
@@ -44,7 +46,11 @@ import {
 
 registerScaleComponents();
 
-/** Repeats per measurement, so one scheduling hiccup cannot fail the build. */
+/**
+ * Repeats per measurement, so one scheduling hiccup cannot fail the build.
+ * Must stay at two or more: the long-task reduction below discards the worst
+ * repeat and reads the one behind it.
+ */
 const REPEATS = 4;
 
 /**
@@ -103,16 +109,40 @@ async function mountOnce(html: string): Promise<MountCost> {
   return cost;
 }
 
-/** The cheapest of `REPEATS` runs, after one unmeasured run warms the paths. */
-async function bestMountCost(html: string): Promise<MountCost> {
+/**
+ * Run the measurement `REPEATS` times, after one unmeasured run warms the
+ * paths, and reduce the repeats — differently for each signal, because they
+ * are different kinds of number.
+ *
+ * **Wall time takes the minimum.** It is a cost, and the least interrupted
+ * run is the closest any of them gets to the cost of the work itself. Every
+ * other repeat measured that same work plus something else.
+ *
+ * **A long task takes the second worst.** It is a defect, not a cost: any
+ * occurrence is the finding, so the minimum is exactly wrong — one lucky
+ * repeat out of four would hide a page that blocks the main thread three
+ * times out of four. The maximum is wrong in the other direction, because a
+ * `longtask` entry attributes *any* 50 ms task in the frame, including a GC
+ * pause or a runner hiccup that has nothing to do with mounting, and one of
+ * those would fail the build. Discarding only the single worst repeat keeps
+ * the signal — a page that really blocks does so on every repeat — while
+ * forgiving one bad sample. One blocked run is noise; two is the finding.
+ *
+ * Tolerating noise in *how many repeats blocked*, rather than by allowing
+ * some blocking, is what keeps the assertion honest: it still reads "no long
+ * task", never "no long task longer than N".
+ */
+async function mountCost(html: string): Promise<MountCost> {
   await mountOnce(html);
   const runs: MountCost[] = [];
   for (let index = 0; index < REPEATS; index += 1) {
     runs.push(await mountOnce(html));
   }
+  const blocked = runs.map((run) => run.longestTask).sort((a, b) => a - b);
   return {
     duration: Math.min(...runs.map((run) => run.duration)),
-    longestTask: Math.min(...runs.map((run) => run.longestTask)),
+    // The second worst, so the single worst repeat is discarded.
+    longestTask: blocked[blocked.length - 2],
   };
 }
 
@@ -120,14 +150,14 @@ describe('mounting at page scale', () => {
   // 500 realistic components is a heavy real page. Its un-chunked pass costs
   // ~7 ms here, so reaching 50 ms needs a machine seven times slower.
   it('mounts 500 realistic components without blocking', async () => {
-    const cost = await bestMountCost(scenarios.realistic(500));
+    const cost = await mountCost(scenarios.realistic(500));
     expect(cost.longestTask).toBe(0);
     expect(cost.duration).toBeLessThan(SETTLE_CEILING);
   }, 60000);
 
   // 2 000 flat components walk about as many nodes, with the same headroom.
   it('mounts 2 000 flat components without blocking', async () => {
-    const cost = await bestMountCost(scenarios.flat(2000));
+    const cost = await mountCost(scenarios.flat(2000));
     expect(cost.longestTask).toBe(0);
     expect(cost.duration).toBeLessThan(SETTLE_CEILING);
   }, 60000);
@@ -148,8 +178,8 @@ describe('mounting at page scale', () => {
    * and 0.78 on `ubuntu-latest`, where per-component cost falls with size.
    */
   it('costs the same per component at 5 000 as at 1 000', async () => {
-    const small = await bestMountCost(scenarios.flat(1000));
-    const large = await bestMountCost(scenarios.flat(5000));
+    const small = await mountCost(scenarios.flat(1000));
+    const large = await mountCost(scenarios.flat(5000));
     expect(large.duration / 5000 / (small.duration / 1000)).toBeLessThan(2.5);
   }, 60000);
 
@@ -162,8 +192,8 @@ describe('mounting at page scale', () => {
    * where a four-deep tree mounts slightly faster than a flat one.
    */
   it('mounts a four-deep tree for what a flat one costs', async () => {
-    const flat = await bestMountCost(scenarios.flat(2000));
-    const nested = await bestMountCost(scenarios.nested(2000));
+    const flat = await mountCost(scenarios.flat(2000));
+    const nested = await mountCost(scenarios.nested(2000));
     expect(nested.duration / flat.duration).toBeLessThan(1.8);
   }, 60000);
 });
