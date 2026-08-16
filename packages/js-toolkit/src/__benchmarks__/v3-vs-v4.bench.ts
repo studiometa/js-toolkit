@@ -8,9 +8,8 @@
  * then compare is the work per operation.
  *
  * Nothing here may touch global framework state: `defineFeatures()` and
- * friends mutate a module-level map, and these files share a process
- * under CodSpeed, so a global set here would follow every other
- * benchmark in the suite.
+ * friends mutate a module-level map, and everything in this file shares
+ * one realm, so a global set here would follow every benchmark below it.
  */
 import { bench, describe } from 'vitest';
 import { Base as BaseV3, type BaseConfig } from '@studiometa/js-toolkit';
