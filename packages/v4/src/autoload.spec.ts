@@ -223,7 +223,10 @@ describe('the strategy that triggers the import', () => {
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
   });
 
-  it('replaces an inert invalid trigger when data-mount is corrected', async () => {
+  // An invalid strategy is reported and kept inert by the one scheduling path
+  // `mount-strategies.spec.ts` covers on a registered class. What is lazy here
+  // is that nothing is downloaded for a trigger which never fires.
+  it('imports nothing for an invalid trigger, and imports when data-mount is corrected', async () => {
     const { name, load, importCount } = defineLazy();
     const diagnostics: ToolkitDiagnosticDetail[] = [];
     const el = render(name, { 'data-mount': 'eagre' });
@@ -239,14 +242,30 @@ describe('the strategy that triggers the import', () => {
     expect(diagnostics).toHaveLength(1);
     expect(diagnostics[0].code).toBe(DIAGNOSTICS.component.invalidMountStrategy);
 
-    el.setAttribute('data-mount', 'eagre');
-    await observed();
-    expect(diagnostics).toHaveLength(1);
-
     el.setAttribute('data-mount', 'eager');
     await settle();
     expect(importCount()).toBe(1);
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
+  });
+
+  it('imports on a media query which matches while its trigger is being applied', async () => {
+    const { name, load, importCount } = defineLazy();
+    const el = render(name);
+    registerManifest({ [name]: { load, mountStrategy: 'media:(min-width: 1px)' } });
+    await observed();
+
+    expect(importCount()).toBe(1);
+    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+  });
+
+  it('imports nothing while the media query does not match', async () => {
+    const { name, load, importCount } = defineLazy();
+    const el = render(name, { 'data-mount': 'media:(max-width: 1px)' });
+    registerManifest({ [name]: load });
+    await observed();
+
+    expect(importCount()).toBe(0);
+    expect(el[INSTANCES]).toBeUndefined();
   });
 
   it('hands a parameterized reversible override to the registry after the import', async () => {
@@ -273,6 +292,38 @@ describe('the strategy that triggers the import', () => {
 
     expect(importCount()).toBe(1);
     expect(instance?.$isMounted).toBe(true);
+  });
+
+  // A one-shot condition cannot fire twice, so the registry mounts on the
+  // import which proves it was satisfied. A reversible one must not take that
+  // shortcut: reversibility is read from the strategy grammar, not from a
+  // list of names kept beside it.
+  it('waits for a reversible condition again when it stopped holding during the import', async () => {
+    const { name, Lazy } = defineLazy();
+    let release = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const el = render(name, { 'data-mount': 'in-view' }, ONSCREEN);
+    registerManifest({
+      [name]: async () => {
+        await gate;
+        return Lazy;
+      },
+    });
+    await observed();
+
+    el.setAttribute('style', OFFSCREEN);
+    await observed();
+    release();
+    await observed();
+
+    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+
+    el.setAttribute('style', ONSCREEN);
+    await observed();
+
+    expect(instanceOf(el, name)?.$isMounted).toBe(true);
   });
 });
 
