@@ -340,6 +340,102 @@
       "types": "./dist/subpaths/utils/createElement.d.ts",
       "import": "./dist/subpaths/utils/createElement.js"
     },
+    "./utils/createEaseInOut": {
+      "types": "./dist/subpaths/utils/createEaseInOut.d.ts",
+      "import": "./dist/subpaths/utils/createEaseInOut.js"
+    },
+    "./utils/createEaseOut": {
+      "types": "./dist/subpaths/utils/createEaseOut.d.ts",
+      "import": "./dist/subpaths/utils/createEaseOut.js"
+    },
+    "./utils/easeInCirc": {
+      "types": "./dist/subpaths/utils/easeInCirc.d.ts",
+      "import": "./dist/subpaths/utils/easeInCirc.js"
+    },
+    "./utils/easeInCubic": {
+      "types": "./dist/subpaths/utils/easeInCubic.d.ts",
+      "import": "./dist/subpaths/utils/easeInCubic.js"
+    },
+    "./utils/easeInExpo": {
+      "types": "./dist/subpaths/utils/easeInExpo.d.ts",
+      "import": "./dist/subpaths/utils/easeInExpo.js"
+    },
+    "./utils/easeInOutCirc": {
+      "types": "./dist/subpaths/utils/easeInOutCirc.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutCirc.js"
+    },
+    "./utils/easeInOutCubic": {
+      "types": "./dist/subpaths/utils/easeInOutCubic.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutCubic.js"
+    },
+    "./utils/easeInOutExpo": {
+      "types": "./dist/subpaths/utils/easeInOutExpo.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutExpo.js"
+    },
+    "./utils/easeInOutQuad": {
+      "types": "./dist/subpaths/utils/easeInOutQuad.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutQuad.js"
+    },
+    "./utils/easeInOutQuart": {
+      "types": "./dist/subpaths/utils/easeInOutQuart.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutQuart.js"
+    },
+    "./utils/easeInOutQuint": {
+      "types": "./dist/subpaths/utils/easeInOutQuint.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutQuint.js"
+    },
+    "./utils/easeInOutSine": {
+      "types": "./dist/subpaths/utils/easeInOutSine.d.ts",
+      "import": "./dist/subpaths/utils/easeInOutSine.js"
+    },
+    "./utils/easeInQuad": {
+      "types": "./dist/subpaths/utils/easeInQuad.d.ts",
+      "import": "./dist/subpaths/utils/easeInQuad.js"
+    },
+    "./utils/easeInQuart": {
+      "types": "./dist/subpaths/utils/easeInQuart.d.ts",
+      "import": "./dist/subpaths/utils/easeInQuart.js"
+    },
+    "./utils/easeInQuint": {
+      "types": "./dist/subpaths/utils/easeInQuint.d.ts",
+      "import": "./dist/subpaths/utils/easeInQuint.js"
+    },
+    "./utils/easeInSine": {
+      "types": "./dist/subpaths/utils/easeInSine.d.ts",
+      "import": "./dist/subpaths/utils/easeInSine.js"
+    },
+    "./utils/easeLinear": {
+      "types": "./dist/subpaths/utils/easeLinear.d.ts",
+      "import": "./dist/subpaths/utils/easeLinear.js"
+    },
+    "./utils/easeOutCirc": {
+      "types": "./dist/subpaths/utils/easeOutCirc.d.ts",
+      "import": "./dist/subpaths/utils/easeOutCirc.js"
+    },
+    "./utils/easeOutCubic": {
+      "types": "./dist/subpaths/utils/easeOutCubic.d.ts",
+      "import": "./dist/subpaths/utils/easeOutCubic.js"
+    },
+    "./utils/easeOutExpo": {
+      "types": "./dist/subpaths/utils/easeOutExpo.d.ts",
+      "import": "./dist/subpaths/utils/easeOutExpo.js"
+    },
+    "./utils/easeOutQuad": {
+      "types": "./dist/subpaths/utils/easeOutQuad.d.ts",
+      "import": "./dist/subpaths/utils/easeOutQuad.js"
+    },
+    "./utils/easeOutQuart": {
+      "types": "./dist/subpaths/utils/easeOutQuart.d.ts",
+      "import": "./dist/subpaths/utils/easeOutQuart.js"
+    },
+    "./utils/easeOutQuint": {
+      "types": "./dist/subpaths/utils/easeOutQuint.d.ts",
+      "import": "./dist/subpaths/utils/easeOutQuint.js"
+    },
+    "./utils/easeOutSine": {
+      "types": "./dist/subpaths/utils/easeOutSine.d.ts",
+      "import": "./dist/subpaths/utils/easeOutSine.js"
+    },
     "./utils/historyPush": {
       "types": "./dist/subpaths/utils/historyPush.d.ts",
       "import": "./dist/subpaths/utils/historyPush.js"

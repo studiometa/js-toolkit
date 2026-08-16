@@ -2,6 +2,33 @@
 
 export { createElement, type CreateElementAttributes, type CreateElementChildren } from './dom.js';
 export {
+  createEaseInOut,
+  createEaseOut,
+  easeInCirc,
+  easeInCubic,
+  easeInExpo,
+  easeInOutCirc,
+  easeInOutCubic,
+  easeInOutExpo,
+  easeInOutQuad,
+  easeInOutQuart,
+  easeInOutQuint,
+  easeInOutSine,
+  easeInQuad,
+  easeInQuart,
+  easeInQuint,
+  easeInSine,
+  easeLinear,
+  easeOutCirc,
+  easeOutCubic,
+  easeOutExpo,
+  easeOutQuad,
+  easeOutQuart,
+  easeOutQuint,
+  easeOutSine,
+  type EasingFunction,
+} from './easings.js';
+export {
   historyPush,
   historyReplace,
   objectToURLSearchParams,
