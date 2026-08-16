@@ -72,13 +72,28 @@ export class Queue {
   }
 
   /**
-   * Run the queue.
+   * Run the given tasks in order, then drop the ones that ran from the array.
+   *
+   * The array is walked by index and trimmed once, rather than drained with
+   * `Array#shift`: V8 moves every remaining entry on each shift, so a queue
+   * handed over whole — which is what `SmartQueue` does — costs O(n²) to
+   * drain. `tasks.length` is read on every turn, so work queued by a running
+   * task is picked up by the same drain.
+   *
+   * The trim is in a `finally`: a task that throws takes itself and everything
+   * before it out of the queue, and leaves the rest of the queue alone.
    */
   run(tasks: Array<(...args: unknown[]) => unknown>) {
-    let task;
-    // eslint-disable-next-line no-cond-assign
-    while ((task = tasks.shift())) {
-      task();
+    let index = 0;
+
+    try {
+      while (index < tasks.length) {
+        const task = tasks[index];
+        index += 1;
+        task();
+      }
+    } finally {
+      tasks.splice(0, index);
     }
   }
 }

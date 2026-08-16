@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix mounting a large page costing several seconds: `Queue.run()` and `SmartQueue.run()` drained their task list with `Array#shift`, which moves every remaining entry, so draining N tasks cost O(N²) — and `SmartQueue`, which `$mount()` queues about six closures per component into, hands over its whole queue. Both now walk the list by index and trim it once per turn. Draining 60 000 tasks goes from 583 ms to 3.6 ms, and a page of 5 000 flat components settles in 294 ms instead of 5 548 ms
+
 ### Removed
 
 - Type-only symbols no longer get a dedicated subpath: the 89 entries such as `@studiometa/js-toolkit/BaseConfig` and `@studiometa/js-toolkit/utils/AnimateOptions` are gone. A subpath exists to stop one runtime import from pulling a whole barrel's graph, and a type import is erased before anything runs, so it never had that cost. Import types from `@studiometa/js-toolkit` or `@studiometa/js-toolkit/utils` instead

@@ -37,4 +37,67 @@ describe('The `Queue` class', () => {
     await p;
     expect(spy).toHaveBeenCalledTimes(1);
   });
+
+  it('should run one batch of `concurrency` tasks per flush', async () => {
+    const queue = new Queue(2, nextTick);
+    const spy = vi.fn();
+
+    for (let index = 0; index < 5; index += 1) {
+      queue.add(spy);
+    }
+
+    await nextTick();
+    expect(spy).toHaveBeenCalledTimes(2);
+    expect(queue.tasks).toHaveLength(3);
+    await nextTick();
+    expect(spy).toHaveBeenCalledTimes(4);
+    await nextTick();
+    expect(spy).toHaveBeenCalledTimes(5);
+    expect(queue.tasks).toHaveLength(0);
+  });
+
+  it('should empty the array it is given', () => {
+    const queue = new Queue(10);
+    const spy = vi.fn();
+    const tasks = [spy, spy, spy];
+
+    queue.run(tasks);
+    expect(spy).toHaveBeenCalledTimes(3);
+    expect(tasks).toHaveLength(0);
+  });
+
+  it('should pick up tasks pushed while it is running', () => {
+    const queue = new Queue(10);
+    const order: string[] = [];
+    const tasks = [
+      () => {
+        order.push('first');
+        tasks.push(() => order.push('nested'));
+      },
+      () => order.push('second'),
+    ];
+
+    queue.run(tasks);
+    expect(order).toEqual(['first', 'second', 'nested']);
+    expect(tasks).toHaveLength(0);
+  });
+
+  it('should drop a throwing task and keep the ones after it', () => {
+    const queue = new Queue(10);
+    const spy = vi.fn();
+    const tasks = [
+      spy,
+      () => {
+        throw new Error('nope');
+      },
+      spy,
+    ];
+
+    expect(() => queue.run(tasks)).toThrow('nope');
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(tasks).toHaveLength(1);
+
+    queue.run(tasks);
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
 });
