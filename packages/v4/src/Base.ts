@@ -460,6 +460,22 @@ interface OptionReader {
 
 const optionReaders = new WeakMap<Base, Map<string, OptionReader>>();
 
+/** The method name an option's effect is declared under. */
+function optionChangedMethod(name: string): string {
+  return `option${capitalize(name)}Changed`;
+}
+
+/** The effect an option declares, or `undefined` when the component declares none. */
+function optionChangedHandler(
+  instance: Base,
+  name: string,
+): ((change: OptionChange) => OptionChangedReturn) | undefined {
+  const handler = (instance as unknown as Record<string, unknown>)[optionChangedMethod(name)];
+  return typeof handler === 'function'
+    ? (handler as (change: OptionChange) => OptionChangedReturn)
+    : undefined;
+}
+
 /** Warn once per declaration for literal object or array defaults. Values are not copied. */
 function warnLiteralDefault(
   componentName: string,
@@ -1210,9 +1226,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
     let announces = false;
     for (const name of readers.keys()) {
-      announces ||=
-        typeof (this as unknown as Record<string, unknown>)[`option${capitalize(name)}Changed`] ===
-        'function';
+      announces ||= optionChangedHandler(this, name) !== undefined;
     }
     if (!announces) {
       return;
@@ -1249,14 +1263,13 @@ export class Base<T extends BaseProps = BaseProps> {
       return;
     }
 
-    const method = `option${capitalize(name)}Changed`;
-    const handler = (this as unknown as Record<string, unknown>)[method];
-    if (typeof handler !== 'function') {
+    const handler = optionChangedHandler(this, name);
+    if (!handler) {
       return;
     }
 
     const cycle = this.#mountCycle;
-    const cleanup = this.#guard(`\`${method}()\` failed.`, () => {
+    const cleanup = this.#guard(`\`${optionChangedMethod(name)}()\` failed.`, () => {
       const rawValue = reader.rawValue();
       const change: OptionChange = {
         name,
@@ -1266,7 +1279,7 @@ export class Base<T extends BaseProps = BaseProps> {
         previousRawValue,
         initial,
       };
-      return (handler as (change: OptionChange) => OptionChangedReturn).call(this, change);
+      return handler.call(this, change);
     });
     if (cleanup === GUARD_FAILED) {
       return;
