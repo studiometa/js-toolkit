@@ -621,9 +621,10 @@ function buildOptions(instance: Base): Record<string, unknown> {
     const read = (raw: string | null): unknown =>
       isOptionTypes(type)
         ? readUnion(type, raw, defaultValue)
-        : (OPTION_TYPE_RULES.get(type) ??
-            ((value, fallback) =>
-              value === null ? absentValue(fallback, undefined) : value))(raw, defaultValue);
+        : (
+            OPTION_TYPE_RULES.get(type) ??
+            ((value, fallback) => (value === null ? absentValue(fallback, undefined) : value))
+          )(raw, defaultValue);
 
     // Every option is responsive, and it is **derived on read**: the getter
     // consults the viewport as well as the element, and stores nothing. This
