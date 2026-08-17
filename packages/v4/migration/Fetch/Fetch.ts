@@ -1,8 +1,8 @@
-import morphdom from 'morphdom';
 import {
   Base,
   domUpdate,
   EVENTS,
+  swap,
   SWAP_MODES,
   viewTransition,
   type BaseConfig,
@@ -11,7 +11,6 @@ import {
   type SwapMode,
 } from '../../src/index.js';
 import { historyPush } from '../../src/utils/history.js';
-import { adoptNewScripts, getScripts } from './utils.js';
 
 /**
  * The lifecycle events a `Fetch` announces.
@@ -363,10 +362,23 @@ export class Fetch<T extends BaseProps = BaseProps> extends Base<FetchProps & T>
 
   /**
    * Swap every element of the response whose id matches one on the page.
+   *
+   * `swap()` does all four modes now that it can replace its target: this
+   * family matches an element by id and puts the response's element in its
+   * place, attributes included, which is what `self` asks for. The additive
+   * modes are the ones that keep the page element and add to its children, so
+   * they are exactly `swap()`'s default.
+   *
+   * Every swap is started before any is awaited, so the whole update is one
+   * synchronous DOM pass — v3's ordering — and the settling of all of them is
+   * awaited once.
+   *
    * @protected
    */
-  updateDOM(fragment: Document): void {
+  async updateDOM(fragment: Document): Promise<void> {
     const { mode, selector } = this.$options;
+    const isAdditive = mode === SWAP_MODES.APPEND || mode === SWAP_MODES.PREPEND;
+    const swaps: Promise<void>[] = [];
 
     for (const newElement of fragment.querySelectorAll<HTMLElement>(selector)) {
       const oldElement = newElement.id ? document.getElementById(newElement.id) : null;
@@ -375,27 +387,10 @@ export class Fetch<T extends BaseProps = BaseProps> extends Base<FetchProps & T>
         continue;
       }
 
-      const oldScripts = getScripts(oldElement);
-
-      switch (mode) {
-        case SWAP_MODES.APPEND:
-          oldElement.append(...newElement.childNodes);
-          adoptNewScripts(getScripts(oldElement), oldScripts);
-          break;
-        case SWAP_MODES.PREPEND:
-          oldElement.prepend(...newElement.childNodes);
-          adoptNewScripts(getScripts(oldElement), oldScripts);
-          break;
-        case SWAP_MODES.MORPH:
-          morphdom(oldElement, newElement);
-          adoptNewScripts(getScripts(oldElement), oldScripts);
-          break;
-        default:
-          oldElement.replaceWith(newElement);
-          adoptNewScripts(getScripts(newElement), oldScripts);
-          break;
-      }
+      swaps.push(swap(oldElement, newElement, { mode, self: !isAdditive }));
     }
+
+    await Promise.all(swaps);
   }
 
   /**

@@ -11,4 +11,3 @@ export {
   SECTIONS_PARAMETER,
   type FetchShopifySectionProps,
 } from './FetchShopifySection.js';
-export { adoptNewScript, adoptNewScripts, getScripts } from './utils.js';
