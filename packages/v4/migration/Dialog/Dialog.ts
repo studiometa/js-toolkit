@@ -1,4 +1,4 @@
-import { Base, type ChildrenCollection } from '../../src/index.js';
+import { Base, withKey, type ChildrenCollection, type KeyProps } from '../../src/index.js';
 import { Transition, type Transitionable } from '../Transition/Transition.js';
 import { ViewTransition } from '../Transition/ViewTransition.js';
 import { saveActiveElement, trapFocus, untrapFocus } from '../../src/utils/focus.js';
@@ -23,7 +23,7 @@ export interface DialogProps {
  * Headless native dialog with optional modality, focus trapping, scroll lock,
  * and child transitions.
  */
-export class Dialog extends Base<DialogProps> {
+export class Dialog extends withKey(Base)<DialogProps> {
   static config = {
     name: 'Dialog',
     components: { Transition, ViewTransition },
@@ -48,15 +48,12 @@ export class Dialog extends Base<DialogProps> {
     return this.$el.open;
   }
 
-  mounted() {
-    const onKeydown = (event: KeyboardEvent) => {
-      if (this.$options.modal || !this.$options.trapFocus || !this.$el.open) {
-        return;
-      }
-      trapFocus(this.$el, event);
-    };
-    document.addEventListener('keydown', onKeydown);
-    return () => document.removeEventListener('keydown', onKeydown);
+  /** Trap the tabulation by hand; a modal dialog gets the trap natively. */
+  keyed({ event, isDown }: KeyProps): void {
+    if (!event || !isDown || this.$options.modal || !this.$options.trapFocus || !this.$el.open) {
+      return;
+    }
+    trapFocus(this.$el, event);
   }
 
   /** Route native cancellation through `close()` so cleanup and transitions run. */

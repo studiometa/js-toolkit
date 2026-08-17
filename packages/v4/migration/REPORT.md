@@ -50,19 +50,18 @@ Two v4 decisions break it independently: `$options` is built from getters with n
 
 ## 2. Dialog — refs, lifecycle, focus trap, `$children`
 
-**Ported unchanged.** `open()`, `close()`, `toggle()`, the modal/non-modal split, scroll locking, and the ordering guarantee that leave transitions finish _before_ the native hide — line-for-line v3.
+**Ported unchanged.** `open()`, `close()`, `toggle()`, the modal/non-modal split, scroll locking, and the ordering guarantee that leave transitions finish _before_ the native hide — line-for-line v3. `keyed()` is in that list as of the key-service port: it left for a hand-rolled `keydown` listener while `KeyService` was dropped, and came back under its own name once core shipped `withKey`. That round trip is the measurement, and it is written up in RATIONALE.md §8.
 
-| Change                                                                        | Forced by                                                                                                                                                                            |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `$children.Transition` / `.ViewTransition` → two `$watchChildren` collections | `$children` removed. A transition inserted after mount is now picked up (tested).                                                                                                    |
-| `keyed({ event, isDown })` → a `keydown` listener in `mounted()`              | **`KeyService` was dropped when this port was written.** Measured after: v3's 6-line `keyed()` became a 10-line `mounted()`. The service is now ported (§8); this port is unchanged. |
-| `get dialog() { return this.$el }` → deleted                                  | `$el: HTMLDialogElement` in the props type.                                                                                                                                          |
+| Change                                                                        | Forced by                                                                         |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `$children.Transition` / `.ViewTransition` → two `$watchChildren` collections | `$children` removed. A transition inserted after mount is now picked up (tested). |
+| `get dialog() { return this.$el }` → deleted                                  | `$el: HTMLDialogElement` in the props type.                                       |
 
 **Missing in v4:** nothing blocking. `Transition` lost v3's `group` option, which collects sibling instances via `getInstances(Transition)` — **v4 has no per-class instance registry**. Recorded, not worked around.
 
 **Better in v4.** A v3 bug disappears: pressing Escape closes a native `<dialog>` behind the component's back, so v3's leave transitions never ran and the scroll lock stayed on. In v4 the bubbling `cancel` event makes this a two-line `onCancel()` handler, with a test. The transition children shrank because v4 core absorbed the `viewTransition()` batching scheduler ui ships as `ViewTransition/scheduler.ts` (108 lines, deleted).
 
-**Size:** `Dialog` 82 → 83 lines; transition children 278 → 116 (−58 %), once the enter/leave sequence moved into `utils/transition.ts` for `SliderDots` to share (§4b) — 116 + those 47 lines against v3's 278. **Verdict: mechanical.**
+**Size:** `Dialog` 82 → 79 lines; transition children 278 → 116 (−58 %), once the enter/leave sequence moved into `utils/transition.ts` for `SliderDots` to share (§4b) — 116 + those 47 lines against v3's 278. **Verdict: mechanical.**
 
 ## 3. ScrollAnimation — the `animate` data point
 
