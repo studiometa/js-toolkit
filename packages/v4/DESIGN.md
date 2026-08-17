@@ -1,107 +1,94 @@
-# v4 architecture design — consolidated (2026-08-11)
+# v4 architecture design
 
-Status: validated design direction. Supersedes the mounting/CDN parts of the earlier spec draft comment. Written against v3.9.0 and @studiometa/ui 1.10.0.
+Status: validated design direction (2026-08-11). Written against v3.9.0 and `@studiometa/ui` 1.10.0.
+
+This file states what v4 does. [RATIONALE.md](./RATIONALE.md) states why, which options were refused, and what the measurements are. Each section here links to its part of that file.
 
 ## Core model
 
-**The registry is the framework, and the DOM is the component tree.**
+**The registry is the framework. The DOM is the component tree.**
 
-An instance exists because its element is in the DOM and its class is registered. Nothing else creates or destroys instances. Parent/child is not ownership; it is only DOM ancestry, observed through queries and events.
+An instance exists because its element is in the document and its class is registered. Nothing else creates or destroys an instance. Parent and child are DOM ancestry only, not ownership. Components find each other through queries and events.
 
 Five objectives structure the design:
 
 1. Components are independent.
 2. One registry.
-3. Auto-mount driven by DOM insertion/ejection.
+3. The DOM drives mount and destroy.
 4. Parents listen to child events.
-5. Children advertise their existence to parents.
+5. Children announce their existence to parents.
 
-## Decisions
+| Fork            | Decision                                                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Mount primitive | `data-component` and one record-based MutationObserver. No tag names, no arbitrary selectors, no custom elements, no directive system.     |
+| Shared state    | provide/inject in core, with the shape of Vue and the mechanics of the context protocol. `provideRootContext()` covers the page-wide case. |
+| Child events    | The `on<Child><Event>` method names stay. Delegation resolves them against the names in `config.components`.                               |
 
-| Fork            | Decision                                                                                                                                                                                                    |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mount primitive | **Observer-first**: `data-component` + one record-based MutationObserver. No tag or arbitrary-selector matching, no custom-element lifecycle, no separate directive system in core.                         |
-| Shared state    | **provide/inject ships in v4 core**, Vue-shaped, with context-protocol mechanics, plus `provideRootContext()` for the sibling case that has no ancestor. The `Data*` components in ui rebuild on top of it. |
-| Child events    | **Keep `on<Child><Event>` magic methods**, resolved through delegation against names declared in `config.components`.                                                                                       |
+See [RATIONALE.md — Core model](./RATIONALE.md#core-model).
 
 ## 1. Independent components
 
-- The registry is the only code path that constructs instances. `ChildrenManager` no longer instantiates anything (`__getChild`, `__asyncComponentPromises` removed).
-- Lifecycle equals DOM presence: element inserted → mount; element removed → destroy. A parent's `$destroy` does not cascade to children.
+The registry is the only code that constructs an instance. `ChildrenManager` constructs nothing.
 
-### Lifecycle model — destroy ≠ terminate ≠ disconnected
+`$parent`, `$children`, `$root` and `createApp` are removed. Use `$query()` and `$closest()`. `config.use` and `config.siblings` are not planned.
 
-Three distinct notions, kept distinct:
+### Lifecycle
 
-| Notion           | What it is                                 | Effect                                                                                                                                                                                                          |
-| ---------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **disconnected** | A DOM fact: the element left the document. | The registry calls `$destroy()`. The instance stays on its element; a re-inserted element **remounts the same instance**. If the element never returns, element + instance are garbage-collected together.      |
-| **destroy**      | The reversible inverse of mount.           | Unbinds per-cycle listeners, runs the `mounted()` cleanups, cancels pending scheduler tasks, calls `destroyed()`, announces. The instance can mount again.                                                      |
-| **terminate**    | Explicit, irreversible end of life.        | `$destroy()` first if needed, then instance-lifetime teardown (`$provide` disposers, `$watchChildren` subscriptions), the `terminated()` hook, and removal from the element's instance map. Never mounts again. |
+Three notions stay separate:
 
-**Moves.** A moved element produces a removal record and an addition record: the instance is destroyed, then remounted — same identity, per-cycle state reset. This matches the `disconnectedCallback`/`connectedCallback` pair custom elements receive on moves, and it is required for correctness: both sides announce, so `$watchChildren` on the old ancestor removes the child and on the new ancestor adds it. (Found by the real-browser test suite: skipping destroy for still-connected moved elements silently broke both watchers.) Open question for later: an opt-in state-preserving move path once `Node.moveBefore()` semantics are considered.
+| Notion           | What it is                        | Effect                                                                                                                                     |
+| ---------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **disconnected** | The element left the document.    | The registry calls `$destroy()`. The instance stays on its element. A re-inserted element mounts the same instance again.                  |
+| **destroy**      | The reversible opposite of mount. | Unbinds the listeners of the cycle, runs the `mounted()` cleanups, cancels the scheduled tasks, calls `destroyed()`, announces the change. |
+| **terminate**    | The explicit and permanent end.   | Destroys first, then releases `$provide` and `$watchChildren`, calls `terminated()`, and removes the instance from the element.            |
+
+A parent that destroys does not destroy its children.
+
+A move gives one removal record and one addition record. The instance is destroyed and then mounted again. The identity stays the same and the state of the cycle starts again. This is the behaviour of `disconnectedCallback` and `connectedCallback` for custom elements.
 
 ### `mounted()` returns its cleanup
 
-`mounted()` may return a function (or an array of functions), sync or async, that runs on the next `$destroy()` — the setup/cleanup pattern (Svelte `onMount`, React effects):
+`mounted()` can return a function, or an array of functions, sync or async. The functions run on the next `$destroy()`.
 
 ```js
 class TodoCount extends Base {
   async mounted() {
     const signal = await this.$inject(CountContext);
-    return signal.subscribe((count) => { … });   // unsubscribed on destroy
+    return signal.subscribe((count) => { … }); // released on destroy
   }
 }
 ```
 
-- The cleanup lives in the same closure as the resource it releases: no instance fields, no paired `destroyed()` boilerplate, symmetry guaranteed per mount cycle — which matters once `data-mount` strategies remount the same instance repeatedly.
-- If an async `mounted()` resolves after the instance was destroyed, the cleanup runs immediately instead of leaking.
-- Two cleanup scopes follow from the lifecycle model: `mounted()` returns are **destroy-scoped** (per cycle), and so is a pending `$inject()` request — `mounted()` re-runs on remount, which re-issues it, and a destroyed instance must not sit in the context module's pending set forever. Constructor-time registrations that outlive a cycle (`$provide`, `$watchChildren`) are **terminate-scoped** (instance lifetime).
-- The hook keeps its `mounted` name — "setup" in Vue means "runs before mount", which is not what this is, and `mounted()` stays familiar to v3 authors. `destroyed()`/`terminated()` hooks remain for cases that do not fit the returned-cleanup shape.
-- `config.components` loses its ownership meaning. Two jobs remain: register the declared family when the parent registers — a class right away, a `() => import('./Child.js')` thunk as a lazy entry (§11d) — and provide the name set for `on<Child><Event>` resolution. The object shape is what carries both: the key is the component name, so a lazy child is a name the registry knows with nothing downloaded.
-- `$parent`, `$children`, `$root`, and `createApp` are removed. `$query()` / `$closest()` (shipped in 3.x) are the replacements.
-- Sibling composition through `config.use` was considered in #697 and is not planned.
+- If an async `mounted()` resolves after the destroy, the cleanup runs immediately.
+- Cleanups returned by `mounted()` are destroy-scoped. A pending `$inject()` request is destroy-scoped too.
+- Registrations made in the constructor are terminate-scoped: `$provide` and `$watchChildren`.
+- `destroyed()` and `terminated()` stay available for the cases that the returned cleanup does not fit.
 
-### Refs are live, so there is no `$update()`
+### `config.components`
 
-v3 resolved `$refs` once per mount and offered `$update()` to redo it when a subtree changed. v4 drops the method instead of porting it: each `$refs` property re-reads the DOM on access, so markup swapped into a component — a `Fetch` replacement, a re-render — is picked up with nothing to refresh and no detached elements left behind. The DOM is the source of truth for refs, exactly as the registry already treats it for components. `on<Ref><Event>` handlers follow the same rule: they are delegated from the root element, so refs appearing later need no rebinding.
+`config.components` does two jobs. It registers the declared family when the parent registers, and it gives the name set that `on<Child><Event>` resolution needs. A value is a class or a thunk such as `() => import('./Child.js')`. See §11d.
 
-Non-bubbling events (`focus`, `blur`, `scroll`, `mouseenter`…) are delegated from the **capture** phase, where they are still observable — the same trick makes the `mouseenter`/`mouseleave` limitation noted in #694 disappear for refs.
+### Refs are live
 
-**A list ref keeps v3's spelling: the `[]` is part of the attribute too.** `config.refs: ['dots[]']` selects `[data-ref="dots[]"]` and exposes `$refs.dots` as an array; a plain `'dots'` selects `[data-ref="dots"]` and yields the first match. A v4-only rule that declared the suffix and selected the unsuffixed attribute was tried and reverted — it turned correct ui markup into a silent no-op (REPORT.md gap 11), and it bought nothing: the suffix says in the markup what the markup is, one of several rather than the only one. **One spelling, not two.** A list definition matches the suffixed attribute and nothing else, exactly as in v3; accepting both would be a compatibility layer over a decision that has been made. The inverse mistake — the suffix left out of the attribute — is a dev warning, once per instance and per ref, naming the component and both spellings.
+Each `$refs` property reads the DOM on access. There is no `$update()`. Markup that is put into a component is found with no refresh, and no detached element stays in a list.
 
-**A ref may name its owner: `data-ref="Slider.next"`.** By default a ref belongs to the nearest enclosing component, so a `data-component` element between the ref and the root takes it away — which is the right rule almost always, and leaves no way at all to say _this one belongs to the `Slider` further up_. v3 had that escape hatch and v4 dropped it; it is restored here, with v3's semantics: the prefixed form walks past every boundary **except another component of that name**, so the nearest `Slider` wins and a nested one still shadows its parent. ui writes it three times, and all three are the same shape — a ref wrapped in a presentational component. `data-ref="App.form"` reaches a `Frame`'s form from the app root; `data-ref="FigureShopify.img"` reaches an image wrapped in a `Transition`.
+`on<Ref><Event>` handlers are delegated from the root element, so a ref that appears later needs no new binding. Events that do not bubble — `focus`, `blur`, `scroll`, `mouseenter`, `mouseleave` — are delegated from the capture phase.
 
-The namespace lives in the **markup, never in `config.refs`**, and that is not a shortcut — it is what the feature requires. `FigureShopify` declares `refs: ['img']` once, inherited from `AbstractFigure`, and its templates write `data-ref="img"` three times and `data-ref="FigureShopify.img"` once, choosing per template by how deeply the image is nested. Moving the namespace into the declaration would force one component to pick a single spelling for every one of its templates, and would make an inherited ref undeclarable: `AbstractFigure` cannot know the name of the subclass that will use it. So the two forms are not two spellings of one thing, the way the `[]` question was — they are two different questions, _who is my nearest owner_ and _who is my named owner_, answered into one property. The name a ref carries elsewhere is unchanged and never namespaced: `Slider.next` is `$refs.next`, `onNextClick()`, and `@on('next', …)`; `Slider.dots[]` is `$refs.dots`, `onDotsClick()`, and `@on('dots[]', …)`. The namespace qualifies the pair, so it goes outside the suffix — `Component.name[]`, which is both v3's order and the order ui's documentation is written in.
+**A list ref keeps the `[]` in the attribute.** `config.refs: ['dots[]']` selects `[data-ref="dots[]"]` and gives `$refs.dots` as an array. A plain `'dots'` selects `[data-ref="dots"]` and gives the first match. A list declaration matches the suffixed attribute and nothing else. The opposite mistake — the suffix absent from the attribute — gives one warning per instance and per ref, with the name of the component and both spellings.
 
-Accepting a second spelling costs the **cold** lookup only, and it is bought back by splitting the query rather than widening the selector. `[data-ref="a"],[data-ref="b"]` costs Chromium its single-attribute fast path: over a 25-element subtree, a cold lookup went 8.0 → 11.2 µs when it matched and 1.2 → 3.4 µs when it did not. Two separate queries — the plain one keeping its fast path, the namespaced one usually returning nothing — cost 8.7 µs and 2.1 µs instead. Document order is restored with `compareDocumentPosition` only when a ref is genuinely written both ways under the same component, so one property still has one numbering for `on<Ref><Event>`'s `index`.
+**A ref can name its owner: `data-ref="Slider.next"`.** By default a ref belongs to the nearest enclosing component. The prefixed form passes every boundary except another component of that name, so the nearest `Slider` wins and a nested `Slider` shadows its parent.
 
-Resolving on every access was measurably expensive — the benchmark put a 25-element ref list ~26× behind v3's mount-time snapshot — so lookups are cached against a counter bumped by the framework's single MutationObserver. A repeated read is a property read again; any structural or `data-ref`/`data-component` boundary change invalidates it. Reading the version drains pending records with `takeRecords()`, which keeps the cache correct _within the same task_: the records enter the shared mutation queue before the read returns, so synchronous ref correctness never steals registry work. Detached elements are never cached, since no observer can see them change.
+The namespace is written in the markup only, never in `config.refs`. The name of the ref elsewhere never carries the namespace: `Slider.next` gives `$refs.next`, `onNextClick()` and `@on('next', …)`. `Slider.dots[]` gives `$refs.dots`, `onDotsClick()` and `@on('dots[]', …)`. The namespace goes before the suffix: `Component.name[]`.
 
-## Measurements
-
-Benchmarked against v3 in `packages/tests/__benchmarks__/v3-vs-v4.bench.ts`, both sides working synchronously so the comparison is work per operation rather than scheduling:
-
-| operation                        | result                             |
-| -------------------------------- | ---------------------------------- |
-| mount a list of 25 children      | v4 ~3.6× faster                    |
-| resolve descendants (`$query`)   | v4 ~7× faster                      |
-| resolve an ancestor (`$closest`) | v4 ~8.6× faster                    |
-| read `config`                    | v4 ~5.9× faster (cached per class) |
-| read a ref                       | v4 ~2.5× slower                    |
-| `$emit`                          | v4 ~1.8× slower                    |
-
-The two remaining regressions are understood rather than outstanding. `$emit` pays for dispatching a bubbling, cancelable event through the tree — that is the feature. Ref reads pay the version check that keeps them live, having started ~26× behind before the cache.
+Ref lookups are cached. The cache is invalidated by a counter that the framework MutationObserver increases. A read of that counter drains the pending records with `takeRecords()`. Detached elements are never cached.
 
 ### `config` merges along the prototype chain
 
-`$config` walks the prototype chain and merges every config it finds, so extending a component keeps what its parents declared — the crash reported in #627. `refs`, `options` and `components` all merge (v3 merged only `options` and `emits`); scalar keys stay overridable by the most derived class, and a subclass restating a `components` key wins for that key alone. An intermediate class should annotate `static config: BaseConfig`, otherwise TypeScript infers a literal type its subclasses must match.
+`$config` walks the prototype chain and merges every config that it finds. `refs`, `options` and `components` merge. Scalar keys stay overridable by the most derived class. A subclass that states a `components` key again wins for that key only. An intermediate class declares `static config: BaseConfig`, or TypeScript infers a literal type that every subclass must match.
 
-**The registry reads the merged config too**, and reads it before any instance exists, which is why `resolveConfig()` is exported from `Base.ts`. It resolves the mount strategy of a pair (§11b), registers the family of `config.components` (§11d) and takes the name a class registers under, all from the merged set rather than the class's own static. Every subclass declares a `static config` if only for its `name`, so reading the own static made a subclass fall back to `eager` and register nothing its base declared — while its instances still announce and query those children through `$config`. A `() => import(…)` child has no registration path besides this one, so it went missing outright. The name had the same shape of bug: a subclass that declared options and forgot to rename registered under `undefined` instead of colliding with the name it inherited.
+The registry reads the merged config too, before any instance exists, through `resolveConfig()` exported from `Base.ts`. It reads the mount strategy of a pair, the family of `config.components` and the name that a class registers under.
 
-### Extending a component with different config — `withExtraConfig` is `extends`
-
-v3's `withExtraConfig(Class, config, deepmergeOptions)` returned a subclass whose `config` was the original deep-merged with an override, renamed when the name collided. It existed because v3 read a class's own static `config`: a subclass could not add one option without restating everything its parent declared. Merging along the prototype chain removes the reason, so **v4 ships no equivalent and does not need one** — the operation is a class declaration:
+There is no `withExtraConfig()`. To extend a component with a different config, declare a class:
 
 ```js
 class MapboxNavigationControl extends AbstractMapboxControl {
@@ -113,20 +100,13 @@ class MapboxNavigationControl extends AbstractMapboxControl {
 registerComponent(MapboxNavigationControl);
 ```
 
-That is the whole translation of all three `@studiometa/ui` call sites (`MapboxNavigationControl`, `MapboxGeolocateControl`, `MapboxFullscreenControl`), each of which overrides `createControl()` and so needs a class body regardless. `@component({ name, options })` is the same thing with the registration folded in, and it takes a config object already — there is nothing to extend. The base's `position` option keeps its default, its refs and its `components` come along, and the base itself is left untouched. A class you cannot edit is extended in expression position: `registerComponent(class extends Vendor { static config = { name: 'CompactVendor', … } })`. `src/config-extension.spec.ts` holds the proof.
+Extend a class that you cannot edit in expression position: `registerComponent(class extends Vendor { static config = { name: 'CompactVendor', … } })`.
 
-Two v3 behaviours are deliberately not reproduced:
+### The typed surface
 
-- **The auto-rename.** v3 renamed a colliding result to `<Name>WithExtraConfig`, a name nobody writes in HTML. `name` is required by `BaseConfig`, and the registry is first-wins-and-warn (§11f item 3), so a forgotten rename is a diagnostic rather than a machine-invented token. All three ui call sites already name their extension, so the branch was dead there.
-- **The deep merge.** v3 took npm `deepmerge` plus a caller-supplied options object. Core ships its own `deepmerge` now (`utils/deepmerge.ts`), but config is **not** where it belongs: `Base` merges config one level on purpose, and an option definition is a unit — a derived class restating `theme` restates its type _and_ its default, which is what "this option is different here" means. Deep-merging would also have to reach into `default` factory functions, which it treats as opaque values. The knob v3 exposed for tuning that merge has no v4 equivalent because the merge it tuned is gone.
+Every instance has a readonly `$id` with the form `<ComponentName>-<sequence>`. The name comes from the resolved config. The sequence increases once for each constructed instance. The id exists before the field initializers of derived classes run, and it does not change through destroy and mount cycles. Core never copies it to a DOM `id`.
 
-### The public surface is typed, and free
-
-#### Component ids are stable for the instance
-
-Every `Base` instance has a readonly `$id` in the form `<ComponentName>-<sequence>`. The component name comes from its resolved config and the package-level sequence increases once for each constructed instance. The id exists before derived field initializers run and stays unchanged through every destroy and remount cycle. Core does not copy it to a DOM `id`; a component uses it only where its own ARIA relationships need one.
-
-`Base` takes an optional props type — `class Slider extends Base<{ $refs: …; $options: …; $emits: … }>`. It types `$refs` and `$options` (no more casting on access) and checks `$emit()`'s event names and payloads. `$emits` maps each name to the **payload object** the event carries, `void` for one that carries nothing:
+`Base` takes an optional props type. It types `$refs` and `$options`, and it checks the event names and payloads of `$emit()`. `$emits` maps each name to the payload object, or to `void` for an event with no payload.
 
 ```ts
 class Slider extends Base<{
@@ -134,38 +114,25 @@ class Slider extends Base<{
 }> {}
 ```
 
-It is the successor to v3's runtime `config.emits`: it keeps the documentation value of declaring what a component dispatches, with nothing left in the bundle.
+`$emits` replaces the runtime `config.emits` of v3. Nothing of it stays in the bundle.
 
-#### Props are read through intersections, never conditionals
-
-A component may take a props parameter of its own, which is how one component is extended by another:
+A component can take a props parameter of its own. This is how one component extends another:
 
 ```ts
 class Action<T extends BaseProps = BaseProps> extends Base<ActionProps & T> {
   mounted() {
-    this.$options.target; // string, not `{}`
+    this.$options.target; // string
   }
 }
 ```
 
-Inside that class body `T` is a naked type parameter, and **TypeScript only resolves a conditional type once its checked type is concrete**. So `Options<T> = T['$options'] extends Record<string, unknown> ? T['$options'] : Record<string, unknown>` — the obvious way to give an optional key a default — is deferred there, and every option reads as the fallback however the parameter is written. `T extends ActionProps` fails identically; the parameter is still naked. This cost the `Action` port its type parameter (REPORT.md gap 22) before it was fixed.
+Each prop is read as an intersection with its default, such as `T['$options'] & Record<string, unknown>`. Do not read a prop through a conditional type. `$emits` is the one exception and needs a conditional. The price of the intersection is the index signature of the default: an option or a ref that a component does not declare reads as `unknown`, or as `HTMLElement | HTMLElement[]`, and not as an error. Declared props keep their exact types.
 
-The fix is v3's, and it is one operator: read each prop as an **intersection** with its default, `T['$options'] & Record<string, unknown>`, the way `packages/js-toolkit/src/Base/Base.ts` has always done it. An intersection has no gate — the apparent type of `A & B` is the intersection of the apparent types, so a declared half answers immediately and a deferred half contributes its constraint. It also absorbs the two ways a key can be missing: `undefined & X` is `never` and drops out of the union, `unknown & X` is `X`.
+`src/props.spec.ts` holds the assertions. `npm run lint:types` enforces them.
 
-Two consequences worth knowing before changing these types again:
+### Option defaults
 
-- **A conditional over `T` makes `Base` invariant in `T`.** Two conditionals with different checked types are unrelated in both directions, so TypeScript's variance measurement concludes invariance and `Base<SliderProps>` stops being assignable to `Base` — which is what `$query`, `$closest` and `$watchChildren` hand back, and what every helper taking "some component" is annotated with. Intersections measure as covariant and it keeps working. This is not theoretical: it is what the first attempt at this fix broke.
-- **`$emits` is the exception, and needs a conditional.** `keyof (Declared & EmitMap)` is `string`, so intersecting the default in would throw away every declared name. It gets `NonNullable<T['$emits']> & (unknown extends T['$emits'] ? EmitMap : unknown)` instead — the conditional is checked against `unknown`, the type an omitted key reads as, so it fires for an omitted `$emits` and nothing else, and its branches union to `unknown` so a deferred instance contributes nothing. Everything downstream of it is then checked against the **map** rather than against `T`, and the one place a conditional is unavoidable — a `void` payload takes no argument, a declared one is required — is written `void extends M[K] ? … : …` so the checked type is concrete and only the `extends` side is deferred. Written the other way round, `$emit()` rejects every argument list a generic component gives it.
-
-The price, also v3's: the default's index signature comes along, so reading an option or a ref a component did not declare is `unknown` (respectively `HTMLElement | HTMLElement[]`) rather than an error. Declared props keep their exact types, which is what declaring them is for.
-
-`src/props.spec.ts` holds the assertions — `expectTypeOf` and `@ts-expect-error`, enforced by `npm run lint:types`, since none of this is visible at runtime.
-
-### Option defaults belong to the instance: a primitive, or a factory
-
-**The contract, in one line: a primitive can be set as a default; any other data type needs a factory function.**
-
-`$options` reads its `data-option-*` attribute on every access — an attribute is the source of truth, and stays live. A **default** is the opposite kind of value: it is not in the DOM, so it belongs to the instance that reads it, which is what the contract is there to guarantee.
+**A primitive can be a default. Every other data type needs a factory function.**
 
 ```js
 options: {
@@ -174,17 +141,18 @@ options: {
 }
 ```
 
-- **`default` is a primitive or a factory.** `Function` is not an `OptionType`, so `typeof definition.default === 'function'` unambiguously means factory. `TypedOptionDefinition` requires the factory form for `Array` and `Object`, because a literal there would live on the class — the shape Vue's `data()` and its object-prop defaults enforce for exactly the same reason.
-- **Built once per instance, then memoised.** Repeated reads hand back the same object, so `this.$options.list.push(x)` persists and two instances of one component never share — and corrupt — the same default. `Array` and `Object` with no declared default memoise an empty one per instance, for the same reason. Primitive defaults are unaffected.
-- **The factory is lazy**: nothing is built for an option that is never read, and a component whose attribute is present never runs its factory at all.
-- **A literal object or array default is warned about, not repaired.** The type-level ban settles it for anyone with a build step; the no-build path never sees a type, so the same rule is said out loud — once per declaration, naming the component, the option and the fix — and the value is then handed over exactly as declared, shared between instances. Copying it was tried and removed: a shallow copy made an unsupported declaration appear to work one level deep, and a deep copy made core guess at how to rebuild a `Date`, a `Map` or a class instance. Neither is core's job when the contract already has an answer that works all the way down.
-- A mutation of a value **parsed from an attribute** is not kept, on the other hand: the attribute is re-read and re-parsed on the next access, which is what keeps options live.
+- `Function` is not an `OptionType`, so `typeof definition.default === 'function'` means a factory.
+- `TypedOptionDefinition` requires the factory form for `Array` and `Object`.
+- A default is built once per instance and then kept. Two instances never share one default. `Array` and `Object` with no declared default get an empty value per instance.
+- A factory is lazy. Nothing is built for an option that nobody reads. A component whose attribute is present never runs its factory.
+- A literal object or array default gives one warning per declaration, with the component, the option and the correction. The value is then used as declared and shared between instances.
+- `$options` reads its `data-option-*` attribute on each access, so a change to a value that comes from an attribute is not kept.
 
-**An option can accept several types.** Declare the accepted constructors in order: `offset: [Number, Array]` reads `"10"` as a number and `"[10, 20]"` as an array. Each parser must produce a value of its declared type before the next parser is tried. An absent union option uses its declared default, or the empty value of its first type.
+**An option can accept several types.** Declare the constructors in order: `offset: [Number, Array]` reads `"10"` as a number and `"[10, 20]"` as an array. Each parser must give a value of its declared type before the next parser runs. An absent union option uses its declared default, or the empty value of its first type.
 
-### Setup-sensitive options are live effects
+### Options that choose a resource are live effects
 
-Reading an option on demand is enough for values used inside handlers and insufficient for an option which chooses a subscription, target, or other mount-scoped resource. A declared method named `option<Name>Changed()` turns that option into a live effect:
+A declared method with the name `option<Name>Changed()` makes that option a live effect:
 
 ```js
 optionTargetChanged({ value, previousValue, initial }) {
@@ -193,11 +161,15 @@ optionTargetChanged({ value, previousValue, initial }) {
 }
 ```
 
-The hook runs before `mounted()` on every mount cycle. Several writes in one mutation batch are coalesced from the first old raw value to the final DOM value. Before an update, the previous returned cleanup runs; all active option cleanups run on `$destroy()`, and remount starts each effect again with `initial: true`. Removing an attribute applies its declared default. Components without the convention pay no setup cost and continue to read their options directly.
+- The hook runs before `mounted()` on each mount cycle.
+- Several writes in one mutation batch give one change, from the first old raw value to the final DOM value.
+- The previous cleanup runs before an update. Every active cleanup runs on `$destroy()`. A new mount starts each effect again with `initial: true`.
+- Removal of the attribute applies the declared default.
+- A component without the convention pays no setup cost and reads its options directly.
 
-### Responsive options are derived, not recomputed — implemented
+### Responsive options
 
-One option, several values, chosen by the viewport. **Every option is responsive**, and there is nothing to declare for it — an option is declared, and the markup may scope its attribute to a breakpoint:
+**Every option is responsive. There is nothing to declare for it.** There is no `responsive: true` flag.
 
 ```js
 options: {
@@ -213,76 +185,37 @@ options: {
   data-option-columns:l="4"></div>
 ```
 
-**There is no `responsive: true` flag, and there will not be one.** A prototype carried one; it was removed before merge. The rule it broke is the project's own — convention over configuration, and specifically: do not add an option whose only job is to name a thing. The framework already knows the option exists, because it is in `config.options`; the author who writes `data-option-columns:s` has already said everything a flag would repeat. A flag would also have been an opt-in that arrives too late for the machinery it gates: the scoped names have to be in the observer's filter at `registerComponent()`, so an option nobody flagged would be permanently unable to grow a scoped attribute at runtime — silently, in the framework whose premise is that the attribute is live. The shorthand form `options: { theme: String }` settles it from the other side: it has nowhere to put a flag, and it is as responsive as any other declaration.
+- **The suffix names one breakpoint and it cascades upwards.** `$options.columns` walks from the active breakpoint down to the base value and gives the first attribute that is present. v3 spelled a set (`:xs:s`); v4 does not. A suffix that names no configured breakpoint gives one warning per mount.
+- **The separator is a colon**, because an option name in kebab case can contain a dash.
+- **The value is derived on read.** Nothing is stored and nothing is written. `$options` is read-only.
+- **A crossing reports through `option<Name>Changed()`**, with the payload of an attribute change. A change is a change of the resolved raw value: a crossing to the same resolved value announces nothing, and a write to `data-option-columns:s` while the viewport is at `l` announces nothing.
+- **A `matchMedia` subscription opens only for a component that declares `option<Name>Changed()`.** `$destroy()` releases it. A page that only reads options holds no listener.
+- `setBreakpoints()` is the single source of breakpoint truth. It rebuilds the scoped attribute names and the slice of them that the observer filters for.
+- The active breakpoint name is memoised for the length of one task, through `utils/memo.js`. `setBreakpoints()` and the `change` handler of a running service clear it at once.
+- The breakpoint service is part of the core graph on every page.
 
-**The value is derived on read.** `$options.columns` walks from the active breakpoint down to the base and hands back the first attribute present — the same shape an option always had, consulting the element on every access, with the viewport as a second coordinate. Nothing is stored and nothing is written.
-
-That is what settles the constraint this feature ran into: **`$options` is read-only**, deliberately, and gap 2 of the port records the ui components that broke when it became so. An option that reacted to the viewport by being _written_ would have had to reopen the setter that was closed on purpose, for the one kind of value that has the least business being written — the DOM still holds the truth, the viewport merely says which part of it to read. Derivation needs no setter, no invalidation, and no staleness window: a component that read `$options.columns` before a crossing and after it gets two different numbers because it asked twice, not because something raced to update it in between.
-
-The case derivation is supposed to lose — a component that has to **re-lay-out** when the viewport crosses, rather than read a value inside a handler — is not an argument for recomputation either, because the existing option-change channel already carries it:
-
-```js
-optionColumnsChanged({ value, previousValue }) {
-  this.layout(value);
-}
-```
-
-The hook fires on a crossing whose _resolved_ value differs, with exactly the payload an attribute rewrite produces, and the component never learns which of the two moved. This works because the option-change plumbing was never a write path in the first place: it is a **notification**, and the value in `OptionChange` is read through the option's reader at the moment the hook runs. So the reactive half costs nothing the derived half gave up. Rewriting `data-option-columns:s` while the viewport sits at `l` is not a change to `columns`, and neither is a crossing that lands on the same resolved value — the rule is one rule, stated once: a change is a change of the resolved raw value.
-
-The listener follows from that. Reading needs no subscription, since `useBreakpoint().props()` answers honestly cold; only being **told** does. So a mount opens a `matchMedia` subscription when the component declares an `option<Name>Changed()`, and not otherwise, and `$destroy()` releases it — the same per-cycle span as every other service subscription, with the service's reference counting taking the listeners down with the last subscriber. A page whose options are only read holds no listener at all, which `responsive-options.spec.ts` asserts by counting registrations on `MediaQueryList.prototype` rather than by inspecting the service.
-
-**The suffix names one breakpoint, and it cascades upwards.** This is the one break with v3, which spelled a _set_ — `data-option-columns:xs:s` — and it is not gratuitous. Three reasons, in increasing order of weight:
-
-- Set membership is what nothing else on the page means. The breakpoints are `min-width` queries and the utility classes beside them cascade; the toolkit alone did exact membership. "From `s` up" was `:s:m:l:xl:xxl:xxxl` — a list that silently stopped covering the top of the range the day a breakpoint was added to the set. It is now `:s`.
-- A set is not enumerable, and the one page-wide observer filters on **exact** attribute names — `attributeFilter` takes no wildcard, which §3 already says out loud for `watchAttributes()`. The powerset of eight breakpoints cannot be written down; `attribute × breakpoint` can. Under v3's spelling, v4 could not have observed responsive attributes at all: `data-option-columns` rewritten at runtime would be honoured and `data-option-columns:s` ignored, in a framework whose premise is that attributes are the live source of truth.
-- Resolution stops being a scan. v3 read every attribute name on the element and regex-tested each one, on every option access; the cascade walks a precomputed list of `attribute:breakpoint` names, which is why the derived-on-read side is affordable at all.
-
-The separator stays a colon, because a kebab-cased option name can contain a dash — `data-option-columns-s` is ambiguous between `columns` at `s` and `columnsS` — and a colon can never appear in one. So migrating markup keeps its separator and only a multi-breakpoint suffix is rewritten. The real-world cost was measured before deciding: across `@studiometa/ui` v3's spelling is used by **one** component and **two** attributes, plus eight doc examples. A suffix naming no breakpoint is warned about once per mount, which is precisely the shape v3 markup arrives in.
-
-`setBreakpoints()` remains the single source of breakpoint truth, and replacing the set re-derives both caches built from it — the scoped attribute names and the slice of them the observer filters for.
-
-#### What it costs, and why it stays in core — settled
-
-**The breakpoint service is part of the core graph, unconditionally.** `Base` reaches `services/breakpoint.js`, which pulls `services/service.js`, on every page — whether or not any markup on it is responsive. A plugin seam was considered and **rejected**: a responsive option is a basic feature of the framework, not an extra, and an option that only resolves per breakpoint if the page also imported something is exactly the configuration this design removed. The cost statement stands as written; it is a price, not an open question.
-
-The two prices of dropping the flag were measured before it was dropped (`responsive-options.bench.ts`, Chromium):
-
-- **The observer's filter widens by ~9×** — 3 + 33 + 8 = 44 names across the ported families when one option opted in, 3 + 33 × 9 = 300 when they all do. It costs **nothing measurable**: an unfiltered attribute write on the page (a `class` rewrite, the common case) and a filtered `data-option-*` rewrite are both flat from 44 to 723 names, within noise. The engine does not scan the filter linearly. Re-observing does scale with it — `observe()` goes 0.007 ms → 0.046 ms → 0.131 ms — but it runs once per registered class at startup, so a large app pays a few milliseconds once. Memory is a few hundred interned strings.
-- **Every read walks the cascade**, and this one was real: measured in a loop, a read cost **4.70 µs** against a plain `getAttribute()`'s 0.052 µs — **91×** — and nearly all of it was asking eight kept `MediaQueryList` objects for `.matches`, not the attribute walk. **Fixed by memoising the active breakpoint name**, below: the same batched read is now **0.38 µs, 12.3× faster**, and 7.4× a plain attribute rather than 91×. What is left is the cascade walk itself — up to nine `getAttribute()` calls instead of one — which is the feature, not an accident of it.
-
-#### The active breakpoint is memoised for the length of a task
-
-The sweep of eight `MediaQueryList` objects was the whole cost of an option read. It is now computed at most once per task, through `utils/memo.js`, and the invalidation is the design:
-
-- **A microtask boundary ends the cache.** This is not a heuristic with a tuned duration. A media query is re-evaluated when the viewport changes, and that change is delivered as a **task** — script runs to completion before one can be. So the active breakpoint is a _constant_ for the length of a task, and a value dropped at the microtask checkpoint is exactly as fresh as re-querying would have been, for every read it served. There is no staleness window to trade against a hit rate, which is precisely what a `maxAge` would have been.
-- **Two events cut it shorter, and both are stronger.** `setBreakpoints()` replaces the named set synchronously — a crossing that no `matchMedia` event announces, and the one the specs perform — so it clears the value itself rather than waiting for the boundary. And a running service's `change` handler _knows_ a crossing happened, so it clears too. Both share the one cache with the cold path instead of keeping a second.
-
-**Honest cold survives untouched**, which was the property at risk: memoising a read did not turn a read into a subscription. Nothing here calls `addEventListener`, and `responsive-options.spec.ts` proves it by crossing a breakpoint mid-task, reading the new value, and asserting zero registrations on `MediaQueryList.prototype` for the same window.
-
-The first read of a task still pays the full sweep, by design. The shape this fixes is the one components actually have — a handler, a `raf` callback, a layout pass reading several options across several instances — where the sweep happened once per read to learn a name that could not have changed in between.
+See [RATIONALE.md — 1. Independent components](./RATIONALE.md#1-independent-components).
 
 ## 2. One registry
 
-Today three mounting systems coexist: the global registry observer, `ChildrenManager`, and the autoload loader with its own observers. v4 merges them into a single registry where an entry is richer than a constructor:
+One registry replaces the three mounting systems of v3.9: the global registry observer, `ChildrenManager` and the autoload loader.
 
 ```
 RegistryEntry = {
   name,
   source: constructor | lazy loader (manifest entry),
-  loadStrategy,   // when to import the class:    eager | visible | idle | interaction   (data-load)
-  mountStrategy,  // when to mount each instance:  eager | visible[:rootMargin] | in-view[:rootMargin] | idle | interaction | media:…  (data-mount, #751)
+  mountStrategy,  // when to mount each instance (data-mount, #751)
 }
 ```
 
-- `registerComponent(Ctor)` registers an eager entry. `registerManifest(...)` registers lazy entries into the same map. The autoload package layer stays; its loader, observers, and scheduler become the registry's own.
-- One name → one entry, like `customElements.define`. Collisions warn and are ignored.
-- One element/component pair → one controller, holding the strategy that pair is scheduled on and the source it was scheduled against. A class and a lazy entry are two answers to "who owns this name?", not two schedulers: §11c has the shape.
+- `registerComponent(Ctor)` registers an eager entry. `registerManifest(…)` registers lazy entries in the same map.
+- One name gives one entry, as with `customElements.define`. A collision gives a warning and the entry is ignored.
+- One element and component pair gives one controller. The controller holds the strategy of the pair and the source that it was scheduled against.
+- There is no `loadStrategy` and no `data-load`. See §11b.
 
-**`loadStrategy` did not survive** — see §11b. Deferring the import and deferring the mount are one decision, so a lazy entry carries a `mountStrategy` (standing in for the `config.mountStrategy` of a class not yet downloaded) and there is no `data-load`. Section 11 is the measurement.
+### Responsive component declarations
 
-### Responsive component declarations — implemented
-
-The plain `data-component` token set remains unconditional. The same one-breakpoint, upward-cascading spelling as responsive options adds one responsive token set:
+The plain `data-component` token set is always active. One responsive token set is added with the spelling of responsive options:
 
 ```html
 <div
@@ -291,153 +224,130 @@ The plain `data-component` token set remains unconditional. The same one-breakpo
   data-component:m="DesktopMenu DesktopSearch"></div>
 ```
 
-At the active breakpoint the registry walks from the widest active suffix down and takes the first attribute that is present. That value is the complete responsive set: a wider value replaces every lower value rather than merging with it. An explicitly present empty value is therefore a stop — `data-component:s="TabletFeature" data-component:l=""` runs `TabletFeature` at `s` and `m`, then removes it at `l`. The effective declaration is the deduplicated union of the unconditional set and the selected responsive set.
+- At the active breakpoint the registry walks from the widest active suffix down and takes the first attribute that is present.
+- That value is the complete responsive set. A wider value replaces every lower value; it does not merge with it. An empty value is a stop: `data-component:s="TabletFeature" data-component:l=""` runs `TabletFeature` at `s` and `m`, and removes it at `l`.
+- The effective declaration is the union of the unconditional set and the selected responsive set, without duplicates.
+- A crossing compares that effective set against the current state of the element. A shared name keeps its controller and its instance. A name that is no longer declared is terminated; a crossing back gives a new identity. A new name enters the normal pipeline, so mount strategies, `data-mount`, lazy entries and lifecycle events keep their meaning. An inactive lazy declaration imports nothing.
+- The document observer registers the exact `data-component:<breakpoint>` names and replaces that slice of the filter after `setBreakpoints()`.
+- Connected elements with a scoped declaration share one reference-counted `useBreakpoint()` subscription. A page with plain declarations opens none.
+- Breakpoint work runs through the background lane, so `whenDOMSettled()` includes the teardown, import and mount work of a crossing.
+- A suffix that names no configured breakpoint is ignored with one warning. This includes the v3 list syntax `data-component:xxs:xs:s`. There is no range form and no breakpoint-list form.
 
-A crossing diffs that effective set against the registry's current element state. Shared names keep their controller and instance. Old-only names are terminated because they are no longer declared; crossing back creates a fresh identity. New-only names enter the normal registry pipeline, so eager and conditional mount strategies, `data-mount`, lazy manifest entries and lifecycle events keep their existing meaning. In particular, an inactive lazy declaration does not import its class.
+### Mount strategies (#751)
 
-The breakpoint set makes every valid spelling enumerable. The document observer registers exact `data-component:<breakpoint>` names and replaces that filter slice after `setBreakpoints()`, never observing every document attribute and never creating one observer per responsive element. Connected elements carrying a scoped declaration share one reference-counted `useBreakpoint()` subscription; pages with plain declarations open none. Breakpoint work runs through the background lifecycle boundary, so `whenDOMSettled()` includes eager teardown, import and mount work caused by a crossing.
+| strategy                 | mounts when                           | reversible |
+| ------------------------ | ------------------------------------- | ---------- |
+| `eager` (default)        | the element enters the document       | no         |
+| `visible[:<rootMargin>]` | it first intersects the viewport      | no         |
+| `in-view[:<rootMargin>]` | it intersects the viewport            | yes        |
+| `idle`                   | the main thread becomes idle          | no         |
+| `interaction`            | the user first aims at it             | no         |
+| `media:<query>`          | the query is not empty and it matches | yes        |
 
-A suffix naming no configured breakpoint is ignored and warned about once, including v3 list syntax such as `data-component:xxs:xs:s`. There is no range or breakpoint-list form: a wider replacement creates a range naturally.
+A component declares its default with `config.mountStrategy`. Any element overrides it with `data-mount`.
 
-### Mount strategies (#751) — implemented
+The accepted values are exactly `eager`, `visible`, `visible:`, `visible:<rootMargin>`, `in-view`, `in-view:`, `in-view:<rootMargin>`, `idle`, `interaction` and `media:<non-empty query>`. A viewport suffix is passed as `IntersectionObserverInit.rootMargin`. The empty suffix behaves as the bare strategy. There is no threshold, no root element, no JSON options and no second attribute.
 
-`mountStrategy` is the answer to #751, and it lives in the registry rather than in a decorator.
+An unknown value, an empty media query, or a `rootMargin` that the browser refuses leaves the component unmounted. The registry dispatches one cancelable `js-toolkit:diagnostic` event with the code `DIAGNOSTICS.component.invalidMountStrategy`, the severity `error`, the name of the component and the original error. Cancellation suppresses the default `reportError()` output only. The inert controller stays current while the declaration does not change, so the registry does not report it again. A corrected attribute replaces that controller. A failed strategy cannot stop the rest of a reconciliation.
 
-| strategy                 | mounts when                      | reversible |
-| ------------------------ | -------------------------------- | ---------- |
-| `eager` (default)        | the element enters the DOM       | no         |
-| `visible[:<rootMargin>]` | it first intersects the viewport | no         |
-| `in-view[:<rootMargin>]` | it intersects the viewport       | yes        |
-| `idle`                   | the main thread goes idle        | no         |
-| `interaction`            | the user first aims at it        | no         |
-| `media:<query>`          | the non-empty query matches      | yes        |
+- **A strategy constructs nothing.** It decides when the registry calls the mount and destroy hooks. `withMountWhenInView` is deleted.
+- **One-shot and reversible are separate values.** `visible` mounts once and stays. `in-view` mounts and unmounts on each crossing. `mountStrategyBehaviour()` reads those two facts from the grammar.
+- **`interaction` uses intent**: `pointerenter`, `pointerdown` and `focusin`, so the component mounts before the click arrives.
+- **Several components on one element share the `data-mount` of that element.** A component that needs its own policy declares it in its config.
+- **A component that waits has no instance.** It is invisible to `$query`, `$closest`, `$watchChildren` and `getInstances()`, and it announces nothing.
+- **Teardown follows the element.** A strategy is disposed when its element leaves the document. A move ends as a destroy and a mount of the same instance.
+- **The attribute is live.** A change to `data-mount` disposes the old strategy and applies the final strategy. Controller identity guards a queued callback of a disposed strategy.
 
-A component declares its default with `config.mountStrategy`; any element overrides it with `data-mount`. The accepted values are exactly `eager`, `visible`, `visible:`, `visible:<rootMargin>`, `in-view`, `in-view:`, `in-view:<rootMargin>`, `idle`, `interaction` and `media:<non-empty query>`. A viewport suffix is passed verbatim as `IntersectionObserverInit.rootMargin`, so `visible:200px`, `in-view:200px 0px` and `in-view:-10% 0px` use the same strategy path as their bare forms; the empty suffix stays compatible with the bare strategy. No threshold, root element, JSON options or second attribute is part of this grammar.
-
-An unknown value, an empty media query or a `rootMargin` rejected by the browser leaves the component unmounted instead of falling back to `eager`. The registry dispatches one cancelable `js-toolkit:diagnostic` with code `DIAGNOSTICS.component.invalidMountStrategy`, severity `error`, the component name and the original error. Canceling the event suppresses only the default `reportError()` sink; the inert controller remains current for an unchanged invalid declaration, so reconciliation does not retry or report it again. Changing the attribute replaces that controller and applies the corrected strategy normally. A failed strategy is isolated to its element/component pair and cannot stop the rest of a registry reconciliation.
-
-The issue's open questions, answered:
-
-- **One canonical constructor.** Strategies never construct anything — they only decide _when_ to call the mount/destroy hooks the registry passes in. Nothing wraps the class, so the identity conflicts the issue describes cannot arise. The `withMountWhenInView` decorator is deleted rather than kept: with the framework owning this, a constructor-wrapping version would model the anti-pattern.
-- **One-shot vs reversible are separate values.** `visible` and `visible:<rootMargin>` mount once and stay; `in-view` and `in-view:<rootMargin>` mount and unmount as the element crosses the viewport. Re-mounting is right for a scroll animation and destructive for a map, a video or a form, so the choice is explicit rather than inferred. Which of the two a strategy is, and whether it waits for a condition at all, is read from the grammar through `mountStrategyBehaviour()` — the registry schedules against those two facts and never spells the strategy names again.
-- **`interaction` uses intent**, not replay: `pointerenter`, `pointerdown` and `focusin` all precede the interaction they lead to, so the component is mounted before the click lands.
-- **Several components on one element** share the element's `data-mount`; a component needing its own policy states it in its config.
-- **A waiting component has no instance yet.** Construction happens on first mount, not on discovery, so it is invisible to `$query`, `$closest` and `$watchChildren` and announces nothing — consistent with "an instance exists because it is mounted".
-- **Teardown follows the element.** Strategies are disposed when their element leaves the document. A _moved_ element is handed back to the registry by that teardown, so a move ends as destroy + remount of the same instance (caught by the browser suite).
-- **The attribute is live.** Changing `data-mount` disposes the old strategy and applies the final declared or class-default strategy. A queued callback from a disposed strategy is guarded by controller identity and cannot mount or destroy its replacement.
+See [RATIONALE.md — 2. One registry](./RATIONALE.md#2-one-registry).
 
 ## 3. One mutation engine drives the DOM
 
-One internal engine owns one MutationObserver for component discovery, lifecycle, mount strategies, ref invalidation and declared options. Its `attributeFilter` contains the fixed framework attributes, the exact responsive component spellings from the configured breakpoint set, and the option names accumulated from registered component configs, so unrelated `class`, `style` and ARIA writes create no records. It snapshots removed subtree membership when records enter its retained queue, before background processing, and processes each batch in a fixed order:
+One internal engine owns one MutationObserver for component discovery, lifecycle, mount strategies, ref invalidation and declared options.
+
+Its `attributeFilter` holds the fixed framework attributes, the exact responsive component spellings of the configured breakpoints, and the option names of every registered config. Writes to `class`, `style` and ARIA attributes create no record.
+
+The engine snapshots the membership of a removed subtree when the records enter its queue. It processes each batch in a fixed order:
 
 1. destroy removed subtrees and dispose their strategies;
-2. reconcile final plain and breakpoint-scoped `data-component` attributes and `data-mount`;
-3. deliver coalesced declared-option changes to retained mounted instances;
+2. reconcile the final plain and scoped `data-component` attributes and `data-mount`;
+3. deliver coalesced declared-option changes to the mounted instances that stay;
 4. scan added subtrees once and schedule their registered component tokens;
-5. report coalesced attribute changes to the elements which asked to watch them — see below.
+5. report coalesced attribute changes to the elements that asked to watch them.
 
-v3.9 re-queries every registry entry and sweeps every live instance per mutation batch. v4 resolves the effective plain-plus-responsive `data-component` token set from each inserted subtree in one pass and looks each token up in the registry.
+A disconnected element receives `$destroy()` and keeps its instance for a later insertion. Removal of one component token from a connected element — by an attribute change or by a breakpoint crossing — calls `$terminate()`, because the DOM no longer declares that identity. The same token later gives a new instance. A moved node completes a destroy and mount cycle with the same identity.
 
-A disconnected element receives `$destroy()` and retains its instance for reinsertion. Removing one component token from a connected element — by a plain or scoped attribute change, or by a breakpoint crossing — is different: the DOM no longer declares that identity, so the registry calls `$terminate()`. Adding that token later creates a new instance. A moved node produces removal and addition records and deliberately completes a destroy/remount cycle with the same identity.
+`whenDOMSettled()` is the completion boundary for morphing, fetch updates and breakpoint crossings. It drains the pending records, follows the mutation chains of eager lifecycle work, and resolves after the eager mounts and the teardown. It does not wait for visibility, interaction, idle or media conditions, and it does not await the promises returned by `mounted()`.
 
-`whenDOMSettled()` provides an explicit completion boundary for morphing, fetch-style updates and breakpoint crossings. It drains pending records, follows mutation chains created by eager lifecycle work and resolves after eager mounts and teardown have run. It does not wait for visibility, interaction, idle or media conditions, and it does not await promises returned by `mounted()`.
+`attributes.ts` owns every name in the filter and every test against one: `data-component`, `data-mount`, `data-ref`, the `data-option-` prefix with `optionAttributeFor()` and `isOptionAttribute()`, the responsive separator, and the coalescing rule. It imports nothing from core. `component-declarations.ts` consumes that vocabulary and reads the DOM through the responsive cascade.
 
-### The vocabulary has one owner, and the filter is the relevance test — implemented
+**The `attributeFilter` and the relevance test of the engine are one set.** A record is relevant if and only if it names an attribute in the set that the observer holds. A change to that set drains the records of the previous filter first.
 
-Every name in that filter, and every test against one, comes from `attributes.ts`: `data-component`, `data-mount`, `data-ref`, the `data-option-` prefix with `optionAttributeFor()` and `isOptionAttribute()`, the responsive separator, and the coalescing rule below. It is a **leaf** — it imports nothing from core, which is the whole point. The engine used to spell these names as string literals, because importing their owners would have closed the cycle `dom-mutations → component-declarations → responsive-options → dom-mutations`; the engine and the registry then classified the same records against two copies of one vocabulary. Moving the names **down** breaks that cycle without the copies. `component-declarations.ts` reads the DOM through the responsive cascade and so sits downstream of the engine: it consumes the vocabulary rather than owning it.
+**The coalescing rule is written once.** Several writes to one attribute in a batch give one change, from the value before the first write to the value at the end of the batch. A write that ends where it started is not a change. `rememberPreviousValue()` and `isNetChange()` hold the rule. The comparison uses raw strings, so a breakpoint crossing and an attribute write are the same kind of event.
 
-**The `attributeFilter` and the engine's relevance test are one set.** Any module may widen the filter — declared options and their breakpoint-scoped spellings arrive at `registerComponent()`, and `setBreakpoints()` replaces a derived slice of it — while a relevance test written against the framework prefixes silently drops the records of a name matching neither, on an invariant nothing stated and nothing could check. A record is now relevant if and only if it names an attribute in the very set the observer is handed, so widening one cannot leave the other behind; a change to that set drains what the previous filter already delivered before it takes effect, since a record is classified by the vocabulary which produced it.
+### `watchAttributes()`
 
-**The coalescing rule is stated once.** Several writes to one attribute in a batch are one change, from the value in force before the first write to the value the DOM ends the batch with, and a rewrite ending where it started is not a change. `rememberPreviousValue()` is the first half and `isNetChange()` the second; declared options, watched attributes and the responsive cascade call them instead of restating the rule. The comparison is on raw strings, which is what makes a breakpoint crossing and an attribute rewrite the same kind of event — a crossing landing on the same resolved value announces nothing, exactly as §1 requires.
+`attributeFilter` takes exact names and the DOM has no wildcard, so the engine cannot see an attribute that the framework cannot name. `data-on:<event>` is that case.
 
-### Attributes the framework cannot name — `watchAttributes()`
+`watchAttributes(element, callback)` is the opt-in. It observes every attribute of that element through a second, unfiltered observer. The page pays for the elements that ask.
 
-The precise `attributeFilter` is what keeps the engine cheap, and it is also its one blind spot: `attributeFilter` takes **exact names** and the DOM has no wildcard, so an attribute the framework cannot enumerate produces no record at all. `data-on:<event>` is the case that forces the point — its name is any DOM event, so a parse-time registration is never complete, and an in-place rewrite (`swap({ mode: 'morph' })`, a `data-bind:` template re-render) leaves a component's binding stale and **silent**. The half that is enumerable already works: a `data-option-*` name joins the filter when its class registers, and `option<Name>Changed()` reports it.
+- **The caller owns it.** The helper returns one idempotent cleanup and knows nothing about `Base`. A component calls it from `mounted()` and runs the cleanup from the returned mount cleanup.
+- **The records join the shared queue.** They are drained wherever the engine drains its own, `whenDOMSettled()` included, and they are reported from the same background task, as step 5 above.
+- **A callback runs after the framework work of the batch.** A component that stops its watcher during the same batch as its own termination hears nothing about the attribute change.
+- **Changes are coalesced**, with the rule of `option<Name>Changed()`.
+- **The payload is one object**: `{ name, value, previousValue }`, with raw attribute strings and `null` for an absent attribute. It covers the whole attribute set of the element, framework names included. A caller narrows by prefix.
+- A failed callback reports `EVENTS.diagnostic` with the code `DIAGNOSTICS.callback.attributeWatcherFailed`, so one watcher cannot stop another.
+- To watch a subtree, character data, or a node that the framework does not know, use `useMutation()` from §8.
 
-Two answers were rejected before this one. Adding the names to the global filter cannot be complete against an open-ended set. Dropping the filter and testing each record in the callback is correct and puts every `class` and `style` write in the document — animation churn included — through the queue, which is the cost the filter exists to avoid.
+The matching surface is smaller than in v3. Only plain and configured scoped `data-component` declarations are discovered, with tokens separated by whitespace for several components on one element. The `<tk-name>` tag sugar, the breakpoint-list suffixes and the lowercase arbitrary-selector registrations are removed. `data-component` still improves native elements such as `<form>`, `<a>`, `<details>` and table markup.
 
-So the opt-in is the standalone, element-scoped `watchAttributes(element, callback)` helper. It observes every attribute of that element through a second, unfiltered observer. The page pays for the elements which ask, not for the components which exist. Nothing is created at import time, and one opt-in observes nothing outside its element.
-
-- **Caller-owned.** The helper returns one idempotent cleanup and does not know about `Base` or component lifecycle. A component calls it from `mounted()` and runs that cleanup from the returned mount cleanup, before it releases resources which a callback could otherwise reach. `Base` does not own or auto-clean the observer.
-- **The records join the shared queue.** The element observer is drained wherever the engine drains its own — `whenDOMSettled()` included — and its changes are reported from the same background task, as step 5 above. So `swap()` covers a watched attribute exactly as it covers a mount, and there is no second timeline to reason about.
-- **After the framework, deliberately.** A callback must see settled component lifecycle and declared options rather than a half-reconciled batch. A component which stops its watcher from its mounted cleanup during same-batch termination therefore hears nothing about the accompanying attribute change. Nothing in the framework reads these arbitrary attributes, so no framework decision can depend on a callback, and the reverse order would have no reader.
-- **Coalesced like options.** Several writes to one attribute in a batch are one change, from the first old value to the final DOM value, and a rewrite ending where it started is not a change at all — the rule `$optionChanged()` already follows.
-- **Not the general-purpose observer.** Watching a subtree, character data, or a node the framework knows nothing about is `useMutation()` in section 8, which owns its own observer and reports raw records on the platform's own timing. This helper is the one to reach for whenever the question is what an attribute became.
-- Delivered as one payload object: `{ name, value, previousValue }`, raw attribute strings, `null` on either side for an absent attribute. It is the **entire** attribute set of the element, framework names included; a caller narrows by prefix, which is what a `data-on:` or `data-bind:` family wants anyway. Callback failures are isolated through `EVENTS.diagnostic` with code `DIAGNOSTICS.callback.attributeWatcherFailed`, so one watcher cannot stop another.
-
-Measured from the preceding `origin/main` with esbuild tree shaking and minification, `morphdom` external and gzip level 9:
-
-| entry               | retained source lines before → after | gzip before → after |
-| ------------------- | -----------------------------------: | ------------------: |
-| `Base.ts` source    |                          2000 → 1949 |                   — |
-| `./Base` graph      |                          4361 → 4310 |     8002 B → 7887 B |
-| root graph          |                          9670 → 9624 | 17,832 B → 17,819 B |
-| `./watchAttributes` |                            new → 906 |        new → 1738 B |
-
-`Base` loses the method, its documentation and its mutation-helper import. The root graph also shrinks while adding the public helper name, because it already retained the mutation engine through `Base` and the registry. The generated helper subpath retains that existing engine directly; it does not add another timeline or runtime layer.
-
-The package dry run moves from **282 files, 267,606 B packed and 847,465 B unpacked** to **284 files, 265,174 B packed and 840,221 B unpacked**. The generated helper module adds its package artifacts, while the smaller `Base` and root declarations and source maps reduce both total sizes.
-
-The matching surface is deliberately narrower than v3: only plain and configured breakpoint-scoped `data-component` declarations are discovered, with whitespace-separated tokens for several components on one element. v3's `<tk-name>` tag sugar, breakpoint-list suffixes and lowercase arbitrary-selector registrations are not kept. `data-component` still enhances native elements (`<form>`, `<a>`, `<details>`, table markup) and supports several components on one element — both impossible with custom elements as the primitive.
+See [RATIONALE.md — 3. One mutation engine](./RATIONALE.md#3-one-mutation-engine).
 
 ## 4. Parents listen to child events
 
 ### Event convention
 
-- Public framework events use the deeply frozen `EVENTS` object and `js-toolkit:`-namespaced strings.
+- Public framework events use the deeply frozen `EVENTS` object and strings with the `js-toolkit:` namespace.
 - Private framework transports use module-local namespaced constants and do not join `EVENTS`.
 - Component events use typed lower-kebab string literals declared through `BaseProps['$emits']`.
-- A payload is one object in `CustomEvent.detail`, or the platform `null` when omitted.
-- `$emit()` bubbles, is cancelable, returns the dispatched event, and exposes cancellation through `event.defaultPrevented`.
-- Framework notifications follow their own protocol. Diagnostic events are cancelable so monitoring can suppress only their default output.
+- A payload is one object in `CustomEvent.detail`, or the platform value `null`.
+- `$emit()` bubbles, is cancelable, returns the dispatched event, and reports cancellation through `event.defaultPrevented`.
+- Diagnostic events are cancelable, so monitoring can suppress the default output only.
 
-`$emit` becomes a native bubbling, cancelable event (#630):
+### `$emit` is a native event (#630)
 
 ```js
 $emit(event, payload) {
-  return this.#dispatch(event, payload); // detail = payload, verbatim
+  return this.#dispatch(event, payload); // detail = payload
 }
 
 #dispatch(event, detail) {
   const e = new CustomEvent(event, { bubbles: true, cancelable: true, detail });
   this.$el.dispatchEvent(e);
-  return e; // caller can check e.defaultPrevented
+  return e;
 }
 ```
 
-### The payload is one object, and it is the detail
-
-`$emit(name, payload?)` takes **one optional object**, and `detail` **is** that object. Omitting it leaves `detail` at the platform's own `null` — the value `new CustomEvent('open')` stores — rather than at a synthesized `{}`, so `$emit('open')` stays a single word and nothing stands in for a payload nobody announced.
+`$emit(name, payload?)` takes one optional object, and `detail` is that object. An omitted payload leaves `detail` at the platform value `null`.
 
 ```js
 this.$emit('open');
 this.$emit('slide', { direction: 1 });
 ```
 
-Three reasons, in order of weight:
+A delegated `on<Child><Event>()` handler receives `{ event, target, payload }`, where `payload` is `event.detail`. A value that is not an object is not accepted: the type refuses it, and `DIAGNOSTICS.event.invalidEmitPayload` reports it at runtime. The event still dispatches.
 
-- **The platform says so.** `CustomEvent.detail` is one value. The variadic form v4 started with — `$emit(name, ...args)` packing `detail: args` — was a v4 invention layered on top of it, and every listener outside the framework paid for it: plain JavaScript on the page, an `addEventListener` in a Twig template, a test, all read `event.detail[0]` for what the emitter called one thing. `detail` is now what a listener would have guessed.
-- **Named fields survive evolution; positions do not.** A third thing worth announcing is a new key that every existing listener ignores. A third positional argument is a signature change, and `$emit('open', item, index)` has to be read against the declaration to know which is which — `$emit('open', { item, index })` does not.
-- **It removes an ambiguity rather than moving it.** With variadic arguments, `detail` was sometimes a payload and sometimes a list of them, and the delegation path had to guess with `Array.isArray(detail)`. One object means one answer everywhere: a delegated `on<Child><Event>()` handler receives `{ event, target, payload }` where `payload` **is** `event.detail`. That is why a bare non-object is not accepted as a shortcut — it would put the guess back.
+### Delegation
 
-The type enforces it, and `DIAGNOSTICS.event.invalidEmitPayload` says it out loud at runtime. The warning is not redundant with the type: the no-build path — magic `on<…>` method names, a plain `<script type="module">` — is a first-class audience here and never sees a type, so for them the rule would otherwise be a convention nothing checks. `$emit('slide', 1)` would work, silently, and box a positional argument back into an API that just removed them. The event still dispatches; the warning reports a shape rather than policing one.
+`EventsManager` delegates on `this.$el`:
 
-The cost of the migration was measured before it was chosen. Across `src/`, `migration/` (five ported ui families) and `demo/` there are 24 `$emit` call sites: **18 pass nothing at all** and are untouched, one (`SliderDrag`'s `$emit(props.mode, props)`) already passed a single object and only changed its declaration, and **five** carried positional values — `slide`, `goto`, `index`, and `Accordion`'s `open`/`close` pair. Those five now name what they announce, which is the whole diff at the call sites.
+- One listener per event type on the root element of the parent.
+- The handler walks from `event.target` up to `this.$el`, reads the instance map of each element, and calls `on<Name><Event>` for the first mounted instance that matches.
+- A child that is inserted later needs no new binding.
+- `config.components` gives the name set, because a method name alone is ambiguous: `onSliderDragStart` is `SliderDrag` plus `start`, or `Slider` plus `drag-start`.
+- Events that do not bubble, `mouseenter` and `mouseleave` included, are delegated from the capture phase.
+- `$on`, `$off` and `Action`-style directives work unchanged.
 
-`EventsManager` switches from per-child binding to delegation on `this.$el`:
-
-- One listener per event type on the parent's root element.
-- The handler walks from `event.target` up to `this.$el`, reads each element's instance map, and calls `on<Name><Event>` for the first matching mounted instance.
-- Dynamically inserted children need no rebinding.
-- `config.components` still provides the name set, because method names alone are ambiguous (`onSliderDragStart` → `SliderDrag`+`start` or `Slider`+`drag-start`).
-- Non-bubbling events, including `mouseenter` and `mouseleave`, are delegated from the capture phase.
-- `$on`/`$off` and `Action`-style directives keep working unchanged and benefit from bubbling.
-
-### Global handlers — `onWindow<Event>` / `onDocument<Event>` — implemented
-
-Delegation covers everything that happens **inside** a component. The events it structurally cannot cover are the ones a component needs precisely because they happen elsewhere: a click _outside_ it, a `popstate`, a `visibilitychange`, a window `resize`. There is no partial substitute — ui's `ClickOutside` is an `onDocumentClick` and nothing else, so without this it has no v4 form at all.
-
-So the two v3 prefixes are kept, resolved in `#bindHandlers()` alongside the other three rules:
+### Global handlers — `onWindow<Event>` and `onDocument<Event>`
 
 ```js
 class ClickOutside extends Base {
@@ -447,30 +357,27 @@ class ClickOutside extends Base {
 }
 ```
 
-Four things are decided, and each of them is the answer to "what would surprise a reader least":
+- **Scope: the mount cycle.** The listener goes in the same `#listeners` array, so `$destroy()` removes it and a new mount binds it again.
+- **Phase: bubble, always.** `onDocumentClick` hears what `document.addEventListener('click', …)` hears. To hear an event of a descendant that does not bubble, use `on<Ref><Event>`.
+- **The two prefixes are reserved**, and they match before children and refs. `onWindowResize` binds to `window` even in a component whose `config.components` holds a `Window`. To reach a child with that name, use `@on('Window', 'resize')`. This rule is about method names only. `onClick` and `onDocumentClick` are different names and both can exist on one component; a click on the element fires both.
+- **Payload: `{ event, target }`**, where `target` is the global that the handler names. There is no `payload` and no `index`.
+- Listener options such as `once` and `passive` are not part of this.
 
-- **Scope: the mount cycle**, like every other handler. The listener goes in the same `#listeners` array — which already stored an `EventTarget` — so `$destroy()` removes it and a remount rebinds it. The alternative, instance lifetime, means a destroyed component that keeps reacting to window scroll, which is the bug this is most likely to cause and the reason to be explicit about it.
-- **Phase: bubble, always.** `CAPTURED_EVENTS` exists for delegation only — a non-bubbling event fired on a descendant never reaches the delegating root on the way up, so it has to be caught on the way down. A global handler delegates nothing: its listener already sits at the top of every propagation path, so an event dispatched _at_ `window` or `document` reaches it in either phase. Capturing would only change what it hears (the `scroll`, `focus` and `mouseenter` of every element on the page) and when (before the page's own handlers instead of after). Bubble phase makes `onDocumentClick` hear exactly what `document.addEventListener('click', …)` hears, which is what the name promises. A component that wants a descendant's non-bubbling event has `on<Ref><Event>`, from the right scope.
-- **Resolution: the prefixes are reserved**, and matched before children and refs. `onWindowResize` binds to `window` even in a component whose `config.components` lists a `Window`. Letting a declared name win would make a handler's meaning depend on a `config` entry declared elsewhere in the file — and the choice is settled by an asymmetry rather than by taste: a child named `Window` can still be reached explicitly with `@on('Window', 'resize')`, whereas nothing would be left to reach `window` with. The side with an escape hatch is the side that yields. This is a rule about **method names** and stays one: the decorator reserves nothing, because it takes the global as a value — see §6. `on<Event>` and `onDocument<Event>` never collide at all: they are different method names, so `onClick` (own element) and `onDocumentClick` (the page) coexist on one component, and a click on the element fires both — it _is_ the element's event, and it _does_ bubble to the document.
-- **Payload: `{ event, target }`**, where `target` is the global the handler named. Same vocabulary as the two delegated shapes, in which `target` is always whatever the handler resolved to — the child instance, the ref element. No `payload`, because a platform event is not a component's announcement, and no `index`, because there is nothing to index. Destructuring reads identically to the v3 hook it replaces: `onDocumentClick({ event })`.
+### Negotiated events — `domUpdate()` and `emitExtendable()`
 
-Listener options (`once`, `passive`) are deliberately **not** part of this. A method name has nowhere to put them, and the question is the same one the `Action` port raised for its own bindings — it belongs to whatever answers it there, not to this.
-
-### Negotiated events — `domUpdate()` and `emitExtendable()` — implemented as standalone helpers
-
-The strongest instance of this objective is not a notification but a **negotiation**: a component announces a step _before_ it happens, and anything up the tree may take part in it. There are exactly two things a listener can ask for, and they are the two modes of one mechanism.
+A component announces a step before it happens, and anything above it in the tree can take part. There are two modes of one mechanism:
 
 | mode          | asks for   | registers with | keeps                 | on failure                     |
 | ------------- | ---------- | -------------- | --------------------- | ------------------------------ |
 | **take over** | the action | `wrap(runner)` | one runner, last wins | the mutation is applied anyway |
-| **delay**     | the moment | `waitUntil(x)` | many, all awaited     | the step goes ahead anyway     |
+| **delay**     | the moment | `waitUntil(x)` | many, all are awaited | the step happens anyway        |
 
 ```js
-// Take over: the mutating code announces instead of mutating.
+// Take over: the code that mutates announces instead of mutating.
 await domUpdate(this.$el, () => this.$el.replaceChildren(fragment));
 this.$on(EVENTS.dom.update, ({ detail }) => detail.wrap(viewTransition));
 
-// Delay: the choreography announces its step and waits for whoever asked.
+// Delay: the choreography announces its step and waits.
 async close() {
   await emitExtendable(this.$el, 'close');
   this.$el.close();
@@ -478,52 +385,34 @@ async close() {
 this.$on('close', ({ detail }) => detail.waitUntil(this.leave()));
 ```
 
-**@studiometa/ui grew this protocol twice, independently.** Its `utils/dom-update.ts` (`wrap`, consumed by `DataBind` and `Fetch`, wrapped by `MotionView`) and `Dialog.__emitExtendable` (`waitUntil`, extended by `MotionView` again) have the same transport, the same synchronous-only window, near-identical warning wording and the same duck typing — two spellings of "let anything up the tree negotiate a step". Both collapse onto standalone helpers: `Dialog` becomes `await emitExtendable(this.$el, 'close')`, `Fetch` and `DataBind` become `await domUpdate(this.$el, mutate)`, and each drops its private copy of the window, the warning and the normalization. In the code the two modes share `negotiate()`, and the only difference is what `accept` does with a registration — overwrite the single one, or push onto the list.
+- **The detail is one object.** A negotiated event has the shape of every other v4 event. A decorated handler reads `{ payload: { wrap } }` for what a raw listener reads as `event.detail`.
+- **The protocol events have no `Base` path.** They are absent from `$emits`. Each helper dispatches its own bubbling, non-cancelable `CustomEvent` on the given node, so the negotiation code and the optional view-transition import stay out of the `Base` graph. Plain DOM code uses the same function with no instance.
+- **`defaultPrevented` is ignored.** The step is announced, not proposed.
+- **A registration is valid only while the event dispatches.** A listener that keeps the function and calls it later is warned and ignored.
+- **The duck-typed method has the name of the event**: `update(mutate)` for a DOM change, `close()` for the `close` step of a dialog. `waitUntil()` also accepts a thenable and a plain function, so `waitUntil(() => this.enter())` covers any pair of method names.
+- **The work of the emitter always completes.** A runner that throws, rejects, or resolves without a call to `apply` loses the animation, never the change. An extension that rejects is swallowed. Failures use the diagnostic protocol of §11e.
+- **The last claim wins in take-over mode.** Delay mode keeps every registration, because two components that animate out must both be awaited.
+- **An unclaimed `domUpdate()` is synchronous.** With no listener, the mutation runs before the returned promise exists.
 
-Why it belongs in core rather than in a component library:
+A `DomUpdateRunner` is `(apply) => void | Promise<unknown>`, so a claim composes with what core already ships:
 
-- **It is ambient interception through DOM ancestry** — no registration, no handshake, no ownership. The emitter never learns who answered, and the answerer never learns what the step does. That is this section's thesis applied to the one thing components could not previously delegate.
-- **The alternative is coupling.** Without it, animating a fetched replacement means the mutator knowing about the transition, or the transition reaching into the mutator; holding a dialog open means the dialog knowing its contents animate. Both are the `$closest()`-and-poke shape the flat topology exists to remove.
-- **It closes the gap left by section 9.** `exit` and `layout` animations need a hook _before_ the DOM changes, and a `MutationObserver` fires after the element is gone. An announced step is that hook, and it is the only one the DOM can give us.
+| claim                                         | effect                                                                         |
+| --------------------------------------------- | ------------------------------------------------------------------------------ |
+| `wrap(viewTransition)`                        | the change plays as one batched native view transition (§7)                    |
+| `wrap((apply) => this.$write(apply).promise)` | the change lands in the `write` phase, batched and cancelled with the instance |
+| `wrap(motionView)`                            | any object with `update(mutate)`, which `MotionView` already is                |
 
-What the v4 form changes:
+Neither runner is the default. The ancestor chooses the lane, because it knows whether the region animates.
 
-- **The detail is one object** — `event.detail.wrap(…)`, not `event.detail[0].wrap(…)`. This was once a difference between a protocol event and a component's own, and it is not one any more: `$emit()` carries one payload object too, so a negotiated event is shaped exactly like every other event in v4. ui dispatched raw for a stated reason that was not the real one (`Fetch` overrides `$emit` with a string-only signature that would mangle a `CustomEvent`, a wart v4 does not have), and the shape reason that did hold has now dissolved.
-
-  **Delegation is not the price of that.** A namespaced framework event uses `@on('Fetch', EVENTS.dom.update)` because a magic method name cannot spell its colons. Decorated handlers are bound by event _type_ on the root element and walk up from `event.target`, so they never inspect how the event was constructed. The delegated payload is `event.detail` verbatim, so a handler reads `{ payload: { wrap } }` for exactly what a raw listener reads as `event.detail` — one shape, no `Array.isArray` branch, framework protocol details included.
-
-- **The protocol events have no `Base` path.** They are framework events rather than a component's own, so they are deliberately absent from `$emits`. Each helper dispatches its own bubbling, non-cancelable `CustomEvent` on the supplied DOM node. This keeps all negotiation code and optional view-transition imports out of the `Base` graph. A component imports a helper only when it announces that protocol; plain DOM code uses the same function with no component instance or callback emitter.
-
-  `$emit()` stays only for a component's own events: cancelable, constrained by `$emits`, returning the dispatched event, and leaving omitted detail at platform `null`. A framework helper does not weaken or bypass that contract, and overriding `$emit` does not intercept framework notifications.
-
-- **`defaultPrevented` is ignored** (part of open question 2, for these events): the step is announced, not proposed. Honouring cancelation would make "the emitter's work always completes" false, and a listener that wants nothing to happen says so through its own state.
-- **Registration is valid only while the event dispatches,** in both modes. A listener that keeps the function and calls it later is warned and ignored, because by then the step has already happened — handing a change to a runner at that point would apply it twice or not at all. The warning is built from the mode's key and the event's name, so there is one wording rather than two.
-- **The duck-typed method is the one that names the event for the object:** `update(mutate)` for a DOM change, `close()` for a dialog's `close` step. This is the `on<Child><Event>` rule again — resolve by name, do not add an option that names a thing. ui's `Dialog` mapped `open`→`enter()` and `close`→`leave()`, a Dialog-specific vocabulary the core rule replaces; `waitUntil()` also accepts a plain thenable and a plain function, so `waitUntil(() => this.enter())` covers any pair of method names with nothing to configure.
-- **The emitter's work always completes.** A runner that throws, rejects _or resolves without ever calling `apply`_ loses the animation, never the change — ui covered only the first two, so a runner that forgot to apply silently dropped the update. An extension that rejects is swallowed, because a failing extension must never leave a dialog painted with the scroll locked. Failures and misuse use the diagnostic protocol (§11e); canceling a diagnostic suppresses only its default sink.
-- **The last claim wins in take-over mode,** as in ui. Bubbling reaches the nearest ancestor first, and the nearest is not necessarily the one that should animate: an outer component owning the whole region takes over deliberately. **Delay mode keeps every registration**, and that difference is intrinsic: replacing an action is exclusive, postponing one is not — two components animating out must both be waited for.
-- **Unclaimed is synchronous.** With nobody listening, `domUpdate()`'s mutation runs before the returned promise exists, so a reactive pipeline can read the DOM back on the next line — which is what `DataBind`'s synchronous binding pass requires.
-
-**Composition with the two runners core already ships is the point of the function shape.** A `DomUpdateRunner` is `(apply) => void | Promise<unknown>`, so:
-
-| claim                                         | effect                                                                                                                                            |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `wrap(viewTransition)`                        | the change plays as a batched native view transition (section 7), with no adapter — `viewTransition(update)` already has the runner's exact shape |
-| `wrap((apply) => this.$write(apply).promise)` | the change lands in the frame's `write` phase, batched with every other write and canceled with the claiming instance                             |
-| `wrap(motionView)`                            | the duck-typed transitioner form: any object with `update(mutate)`, which is what `MotionView` in `@studiometa/ui-motion` already is              |
-
-Neither runner is the default, and that is deliberate: `domUpdate()` with nobody listening must stay a plain synchronous mutation. Choosing a lane is the ancestor's decision, because the ancestor is the one that knows whether the region is animating.
+See [RATIONALE.md — 4. Parents listen to child events](./RATIONALE.md#4-parents-listen-to-child-events).
 
 ## 5. Children advertise their existence
 
-The piece that makes the flat, order-free topology workable. Two layers, a page-wide lookup for what neither layer is scoped to reach, plus a separate shared-state primitive.
-
 ### Layer 1 — bubbling lifecycle announcements
 
-Every instance dispatches a framework event from `EVENTS.component` on mount and on terminate, carrying the instance. The mounted event bubbles from the element; the destroyed event dispatches from `document` because its element can already be detached. Any ancestor can track descendants with no declaration and no handshake. Instances scheduled but not yet mounted (per `mountStrategy`) are not announced.
+Every instance dispatches a framework event from `EVENTS.component` on mount and on terminate, with the instance in the payload. The mount event bubbles from the element. The terminate event dispatches from `document`, because the element can already be detached. Any ancestor can follow its descendants with no declaration. An instance that is scheduled but not mounted announces nothing.
 
-### Layer 2 — a live-children primitive
-
-Announcements alone miss one ordering: a parent that mounts after its children hears nothing. The order-independent recipe is: initial `$query()` sweep at mount + subscribe to announcements afterward. v4 packages that recipe once:
+### Layer 2 — `$watchChildren()`
 
 ```js
 class Slider extends Base {
@@ -532,91 +421,68 @@ class Slider extends Base {
     removed(item) { … },
   });
   specialItems = this.$watchChildren(SliderItem);
-  // `items` matches the exact config.name. `specialItems` also includes every
-  // named subclass of SliderItem through instanceof. Both are live,
-  // DOM-ordered collections, correct regardless of mount order.
+  // `items` matches the exact config.name.
+  // `specialItems` also holds every named subclass, through instanceof.
+  // Both are live collections in document order, whatever the mount order is.
 }
 ```
 
-This replaces Slider's per-instance store + two-sided `connectChildren`/`__connect` handshake, and it is the honest v4 successor of `$children` — pull plus push, instead of a lazy re-query getter.
+- The initial sweep is deferred to a microtask, because `$watchChildren` is usually called in a field initializer. The announcement listeners attach at once, so nothing is missed. An internal `Set` removes duplicates.
+- The string overload looks up the exact `config.name`.
+- The constructor overload walks the descendant elements in document order and reads their instance maps. It keeps the instances where `instance instanceof ComponentClass`, excludes the watching instance, and removes duplicates.
+- No global instance registry is added. The subscription stays active through destroy and mount cycles, until the watcher terminates.
 
-The initial sweep is deferred to a microtask: `$watchChildren` is typically called in a field initializer, and already-mounted children would otherwise fire `added` synchronously while the instance is half-constructed (found live: the Slider demo read `this.items` from an `added` callback before the field was assigned, and its provided state signal stayed at `total: 0`). The announcement listeners attach synchronously, so nothing mounting in between is missed — the internal `Set` deduplicates.
-
-The string overload keeps the existing exact `config.name` lookup. The constructor overload cannot select one `data-component` token because every named subclass has a different token, so its initial sweep walks descendant elements in DOM order and reads their existing instance maps. It keeps mounted instances for which `instance instanceof ComponentClass`, excludes the watching instance, and deduplicates a shared instance exposed under several tokens. No global instance registry is added. Mounted and destroyed announcements pass through the same matcher, and the subscription remains active across destroy/remount cycles until the watcher terminates.
-
-### The page-wide lookup — `getInstances()` — implemented
-
-Every lookup above is scoped to one component: `$query()` walks descendants, `$closest()` walks ancestors, `$watchChildren()` needs a component to watch from. A component that acts on other components _named at runtime, anywhere on the page_ — `Action` is the one that forced this — has none of them, and no ancestor to inject from either, because its targets are named by an arbitrary `config.name` and have no owner.
+### The page-wide lookup — `getInstances()`
 
 ```js
 getInstances('Dialog').forEach((dialog) => dialog.close()); // page-wide
-getInstances('Dialog', section); // scoped to a region
+getInstances('Dialog', section); // one region
 getInstances(el); // everything mounted on one element
 ```
 
-**It re-derives the answer from the DOM instead of keeping a registry of instances**, which is the core model applied rather than an exception carved out of it: the document already knows where the components are, and a second index of it can go stale. It is also not the slow path — a `querySelectorAll` narrowed by name beats v3's walk of every instance on the page, measured on the `Action` port. That measurement is the reason gap 7's "per-class instance registry" is answered with a function rather than with a registry.
+It derives the answer from the DOM. It keeps no registry of instances.
 
-Three decisions, all of them the ones the component-scoped lookups already made:
+- A matching element with no instance is skipped.
+- The filter is `$isMounted`, so a destroyed or terminated instance is never returned.
+- `root` is a `ParentNode` and the call is `querySelectorAll`, so an element root searches its descendants and never matches itself.
+- `selectorFor(name)` on `/utils` is the one place that writes the name-to-selector contract.
 
-- **A matching element with no instance is skipped.** A declaration is an intent: an unregistered name never gets an instance, and a `data-mount` strategy still waiting has none yet — consistent with "a waiting component is invisible to `$query`".
-- **The filter is `$isMounted`**, so a destroyed _or_ terminated instance is never returned. `$terminate()` destroys first, so one predicate covers both, and a detached-but-retained subtree — the case that exists only because destroy is reversible — is exactly what a caller must not run effects on.
-- **`root` is a `ParentNode`** and the call _is_ `querySelectorAll`: an element root searches its descendants and never matches itself.
+### Where the instances live
 
-There is no selector-strategy seam behind it. v4 resolves components through `data-component` alone — no tag matching, no arbitrary selectors, no custom elements — so name → selector is the only lookup shape there will ever be, and `selectorFor(name)` (already public, on `/utils`) is the single place that contract is written down. `getInstances` exists so that resolving by name never means hard-coding `[data-component~="…"]` and reading the instance map in user code.
-
-### Where the instances live — a symbol, not `__base__`
-
-An element publishes its instances under `Symbol.for('@studiometa/js-toolkit-v4/instances')`, alongside the symbols already used for the handler registrations, the component brand and the shared runtime.
-
-**The reason is coexistence.** v3 stores `Map<string, Base | 'terminated'>` under `el.__base__`; v4 stored `Map<string, Base>` under the same name. Two versions in one document therefore read each other's maps as their own: v4's teardown called `$destroy()` on v3's instances, and on the `'terminated'` string v3 leaves behind — a `TypeError` — while v3's child resolution accepted a v4 instance as one of its children. That blocked any page-by-page migration. `src/coexistence.spec.ts` mounts both versions in one document and holds the line.
-
-`Symbol.for` and not a module-local `Symbol()`: the key is realm-global, so two evaluated copies of v4 still agree on it — the one property of the string that had to survive. The duplicate-runtime fixture resolves it the same way, with no import.
-
-It is not public API; `getInstances()` is. What it costs is the devtools affordance of typing `$0.__base__` in a console, and the replacement is one line that needs no import and works in any build:
+An element publishes its instances under `Symbol.for('@studiometa/js-toolkit-v4/instances')`. It is not public API; `getInstances()` is. In a console, read them with one line:
 
 ```js
 $0[Symbol.for('@studiometa/js-toolkit-v4/instances')];
 ```
 
-**The element overload — `getInstances(el)` — answers the other question**, "what is mounted _here_", in mount order and filtered by `$isMounted` like the name form. It is an overload rather than a second export because both answer "which instances are mounted" and the argument picks the scope; a string searches the page, an element inspects itself. It became core's job with this symbol: while the map was a plain `el.__base__` property, a caller could read it in one line, and the `Action` port did exactly that. A key documented as "not public API" is not something a port should import, so `migration/Action/instances.ts` is deleted and `ActionEvent` keys the result by `$config.name` at the call site.
+The element overload `getInstances(el)` answers "what is mounted here", in mount order and with the `$isMounted` filter.
 
-### Shared state — provide/inject in core
-
-Advertisement solves "who is there", not "what is the current value". For continuous shared state, v4 ships a provide/inject primitive modeled on Vue:
-
-- Typed injection key (no string collisions).
-- Subtree scope with nearest-provider-wins shadowing.
-- **The value is provided verbatim** — nothing is wrapped, so the key's type is the contract end to end.
-- Which is what makes the curated owner surface (`expose` pattern) expressible: state to read, commands to call, and nothing else of the coordinator.
+### Shared state — provide/inject
 
 ```ts
-// The coordinator exposes what a control may ask for.
+// The coordinator exposes what a control can ask for.
 api = this.$provide(SliderContext, {
   state: signal({ index: 0, total: 0 }), // what changes
-  goNext: () => this.goNext(), // what a control may command
+  goNext: () => this.goNext(), // what a control can command
 });
 ```
 
-A reactive value is a provided `Signal`; a command surface is a provided object; both together is an object holding Signals. Auto-wrapping every value in a `Signal` — the first shape this took — made the third case impossible, and a control that needs `goNext()` then has only one way left to reach it: `$closest('Slider')`, which is precisely the coupling the primitive exists to remove. An event and a command are both legitimate and not interchangeable: `$emit` says "this happened" upward, an exposed method says "do this" to a known owner.
+- The injection key is typed, so strings cannot collide.
+- The scope is the subtree, and the nearest provider wins.
+- **The value is provided as it is.** Nothing is wrapped, so the type of the key is the contract from end to end. A reactive value is a provided `Signal`. A command surface is a provided object.
 
-Injection has two forms, and the difference is what the caller does about absence:
+| form               | resolves                          | when nothing provides                                 |
+| ------------------ | --------------------------------- | ----------------------------------------------------- |
+| `$inject(key)`     | a promise, awaited in `mounted()` | it never settles: a missing provider means "not yet". |
+| `$injectSync(key)` | the value, synchronously          | `undefined`: the caller falls back or does nothing.   |
 
-| form               | resolves                             | when nothing provides                                                                     |
-| ------------------ | ------------------------------------ | ----------------------------------------------------------------------------------------- |
-| `$inject(key)`     | a promise, `await` it in `mounted()` | **never settles** — deliberate: order independence means a missing provider is "not yet". |
-| `$injectSync(key)` | the value, synchronously             | `undefined` — the caller falls back, does nothing, or degrades.                           |
+The pending request of the async form is destroy-scoped. A new mount runs `mounted()` again and asks again. The `@inject` field decorator asks once, at construction; a consumer that can wait through several cycles calls `$inject()` from `mounted()`.
 
-`$injectSync` costs nothing extra: the context request is answered synchronously when a provider is listening, so the sync form is that same round trip without the promise. It is the form a click handler or a keyboard shortcut wants — an answer now or not at all. The async form's pending request is **destroy-scoped**: a destroyed instance leaves nothing in the module's pending set, and `mounted()` running again on remount re-issues it with nothing to re-declare. (The `@inject` field decorator requests once, at construction, so a field left unresolved through a destroy is not re-requested; a consumer that may wait through several cycles calls `$inject()` from `mounted()`.)
+The mechanics follow the WICG context protocol. The consumer dispatches the bubbling, module-private `js-toolkit:context:request` event with a key, a callback and a subscription marker. It is not part of public `EVENTS`. The nearest mounted provider answers. `provideContext()` replays the requests that have no first answer yet. `injectContext()` and `$inject()` are one-shot.
 
-Mechanics follow the WICG community context protocol: the consumer dispatches the bubbling module-private `js-toolkit:context:request` event with a key, a callback and a subscription marker; it is not part of public `EVENTS`. The nearest mounted provider answers, and `provideContext()` replays requests that have not received their first answer. This fixes both criticals from the earlier `withStore` design: resolution goes through the DOM event path instead of attribute walking, and late providers can answer pending consumers. Basic `injectContext()` and `Base.$inject()` are one-shot. Re-answering an already resolved consumer is the separate optional `subscribeContext()` graph described below.
+#### `provideRootContext()`
 
-The `Data*` suite in @studiometa/ui (DataScope/DataBind/…) rebuilds on this primitive and drops its bespoke channel plumbing — but only once the sibling case has somewhere to live, which needed one addition.
-
-#### The outermost scope — `provideRootContext()`
-
-Provide/inject needs an ancestor to provide from, and the sibling channel is the one case with nothing to name. `DataBind` is `withGroup(Base, { getScope: (i) => getDataScope(i.$el) })`, and `getDataScope` returns `undefined` when no `DataScope` is above it — at which point v3 fell back to a **page-global registry** hung off `globalThis`. So a bare `DataBind` binds by name across the document with no ancestor at all, and "rebuilds on provide/inject" was true for the scoped half and structurally impossible for the other.
-
-`provideRootContext(key, create)` closes it by making the page-wide case the **outermost scope of the mechanism that already exists**, rather than a second mechanism beside it. The value is provided on `document.documentElement`, so a context request from anywhere reaches it by bubbling and any nearer provider still wins by `stopPropagation` — a page-wide default and a scoped override are one primitive at two depths. `create` runs at most once per key, so peers join rather than race, and nothing is created at import time: a page that never asks never gets a listener.
+`provideRootContext(key, create)` makes the page-wide case the outermost scope of the same mechanism. The value is provided on `document.documentElement`, so a request from anywhere reaches it by bubbling and a nearer provider still wins through `stopPropagation`. `create` runs at most once per key. Nothing is created at import time.
 
 ```js
 // Scoped or page-wide, resolved the same way, nearest first.
@@ -624,51 +490,31 @@ const channels =
   injectContextSync(el, DataChannels) ?? provideRootContext(DataChannels, () => new Map());
 ```
 
-Two consequences, both deliberate. A root provider is **not disposable** and outlives whichever instance asked first: it is page state, and tying its lifetime to the earliest consumer to mount is exactly the ordering dependency the primitive exists to remove. And `withGroup` is therefore **not ported** — its `$group` was a member `Set` with no value cell, which is why ui had to build `getDataChannel(this.$group)` on top of it; a provided registry of `Signal`s is that cell, owned by the provider, and it makes the two registries one.
+A root provider cannot be disposed and it outlives the instance that asked first, because it is page state. `withGroup` is not ported.
 
-`context.spec.ts` carries the spike: bare peers on a name share a channel, scoped peers share a different one, names never collide, and the value is live.
+#### `subscribeContext()`
 
-#### Being re-answered — optional `subscribeContext()`
+`subscribeContext(el, key, onProvide)` gives the subscription behaviour of the WICG protocol. The required callback runs synchronously for each answer and receives the value and the same unsubscribe function that the helper returns. A component calls it from `mounted()` and returns the unsubscribe function, which gives it a destroy-scoped lifetime.
 
-The outermost scope has a sharp edge, and the `Data*` port found it: **a page-wide provider answers from `document.documentElement`, so it reaches every unscoped consumer on the page — and an answered request was deleted.** Replay only ever helped a request nobody had answered. So once the root provider existed, every consumer that fell back to it was bound to it permanently and silently: wrap a `DataScope` around content that is already on the page and its descendants keep trading values with the page-wide channel. Nothing errors. The port worked around it with an eight-line `RESCOPE` broadcast of its own and filed it as an ask for core.
+- **The trigger is the mount announcement**, not a broadcast from the provider. The optional `context-subscription.ts` module keeps one listener on the document, attached on the first subscription and never at import time. It runs after `mounted()`.
+- Two `contains()` calls bound the cost per mount: the new provider must contain the consumer, and it must sit inside the provider that answers it now. A mount that changes nothing checks nothing.
+- **The registry holds nothing.** A subscription is anchored on its consumer element through a `WeakMap`, and the iterable index holds `WeakRef`s that the sweep prunes.
+- **A new answer replaces; it never accumulates.** The callback can return a teardown for the value that it received. The teardown runs before the next different value and on unsubscribe. An identical value is not an answer.
+- Callback and teardown failures are isolated, so one consumer cannot stop the shared sweep.
+- `context.ts` and the `Base` graph import none of this optional state.
 
-The WICG protocol's subscription behavior remains available through `subscribeContext(el, key, onProvide)`. The required callback runs synchronously for every answer and receives the value plus the same unsubscribe function returned by the helper. Basic `injectContext(el, key)` and `$inject(key)` stay one-shot: one answer, request deleted. A component calls the optional helper from `mounted()` and returns its unsubscribe function, which gives it the same destroy-scoped lifetime as other service and signal subscriptions without putting subscription machinery in `Base`.
+Duplicate bundles share the basic provider and pending-request state through the `context` slot at schema revision 2. The optional owner map, weak index and listener flag use the `context-subscription` slot at revision 1.
 
-**The trigger is the mount announcement, not a provider-side broadcast.** A `context-provided` event dispatched down a provider's subtree was the obvious alternative and it makes providers special for something they are not special in. Every mount already announces itself with the bubbling `EVENTS.component.mounted` event carrying its instance (objective 5, layer 1); `$watchChildren` only looks parent-scoped because it listens on `this.$el`. So the optional `context-subscription.ts` module keeps **one listener, on the document**, attached on the first subscription and never at import time. It fires after `mounted()` has run, which is also why the re-answer does not go in `provideContext()`: a field-initializer `$provide` would re-answer consumers from a provider that is still constructing itself. `context.ts` and the `Base` graph import none of this optional state or listener.
+#### `Signal`
 
-Two `contains()` calls bound the per-mount cost, and together they are exactly the set of consumers whose answer _can_ have changed: the newcomer must contain the consumer, and it must sit inside the provider already answering it. The second is the general form of "only root-answered consumers can be wrong" — the root provider contains everything, so those always pass, while a consumer already held by a nearer provider is dropped before any event is dispatched. Nothing is re-checked for a mount that changes nothing.
+`signal(initialValue)` is a factory over a closure. The accessor is `.value`.
 
-The registry that makes this iterable **holds nothing**. A subscription's lifetime is anchored on its consumer element through a `WeakMap` — the same reason v3's scoped-groups registry used one — and the iterable index holds `WeakRef`s, pruned on the sweep that finds them dead. A plain `Set` would have been simpler and wrong: the callback closes over the consumer instance, which holds its element, so every consumer that ever resolved would stay alive for the life of the page. `context-subscription.spec.ts` asserts the weak-ownership requirement with a real collection over CDP without prescribing the index implementation.
+**A write settles synchronously and the newest value wins.** The delivery loop re-reads the value after each callback. If the value moved, the loop abandons the round and starts again on the new value. A subscriber that was not reached yet skips the old value. Delivery stays in the same task. A subscriber that writes on every delivery live-locks the loop.
 
-Duplicate bundles share basic provider and pending-request state through the `context` slot at schema revision 2, while the optional owner map, weak index and listener flag use the separate `context-subscription` slot at revision 1. The changed basic schema deliberately keeps the old slot name and increments its revision, so a copy with the former combined schema fails clearly instead of sharing an incompatible shape. Event names remain realm-stable strings, and the duplicate-runtime fixture proves that two copies attach one listener and re-answer both copies' subscriptions.
-
-**A re-answer replaces, never accumulates.** The callback may return a teardown for the value it was given; it runs before the next different value is delivered and on unsubscribe, so whatever the consumer did with the previous provider is undone first. An identical value is not an answer — a nearer provider can hand over the same object, and tearing a working binding down to rebuild it identically is churn, not correctness. Callback and teardown failures are isolated so one consumer cannot stop the shared re-answer sweep.
-
-**The port consumes it and its workaround is gone.** `DataBind.mounted()` now calls `subscribeContext()` directly; its callback joins the group, its returned teardown leaves it, and `mounted()` returns the unsubscribe cleanup. `DataScope` has no `mounted()` at all — its only job is the boundary in its field initializer. That is the whole eight-line `RESCOPE` broadcast, plus a symbol and an interface, deleted; the three specs that encode the problem pass unchanged, because they always asserted which registry a member ends up on rather than how it got there. One thing the shape does demand of a consumer: a subscription waits forever while nothing provides, so a member with no scope above it still has to create the page-wide registry — `injectContextSync(…) ?? provideRootContext(…)` stays the fallback, and creating the provider replays the member's own pending request.
-
-Measured from `origin/main` with esbuild tree shaking and minification, `morphdom` external, gzip level 9, and physical lines across retained v4 source modules:
-
-| entry                | source lines before → after | gzip before → after |
-| -------------------- | --------------------------: | ------------------: |
-| `./Base`             |                 4650 → 4376 |     8463 B → 8002 B |
-| `./injectContext`    |                   694 → 423 |      1285 B → 684 B |
-| root barrel          |                 9541 → 9477 | 17,803 B → 17,832 B |
-| `./subscribeContext` |                   new → 649 |        new → 1270 B |
-
-The basic entries shrink, while the root pays 29 gzip bytes to name the new public helper. Importing `./subscribeContext` retains the optional four-module graph; importing `./Base` or `./injectContext` does not.
-
-The reactive container is called `Signal` — the name the ecosystem settled on (Angular, Solid, Preact, the TC39 proposal), and the one @studiometa/ui already uses to describe its `Data*` suite. It is built by `signal(initialValue)`, a factory over a closure rather than a class: nothing about it wants inheritance or an instance identity, `new` was the only reason it was a class, and a closure is what makes the private delivery state genuinely private. **The accessor stays `.value`** — the factory changed, the read/write shape did not. `signal()`/`signal(next)`, the call-style accessor alien-signals uses, was the alternative and was rejected: it costs every existing call site, it makes `count.value++` into `count(count() + 1)`, and it gives a reader no way to tell a read from a write at the call site.
-
-**A write settles synchronously and the newest value wins.** The obvious fan-out — assign, then walk the subscribers — is wrong in a way that only shows up under re-entrancy, and `Data*` is exactly where it shows up: when a subscriber writes back mid-delivery, the walk carries on with the value it started on, so a subscriber positioned _after_ the writer is handed a frame that is already stale, _after_ it has been handed a newer one. Last-write-wins quietly becomes last-listener-wins. So the value a reader sees is split from the value being delivered, and the delivery loop re-reads the former after every callback: when it has moved, the round is abandoned and restarted on the new value instead of being finished on the old one. Subscribers still to be reached skip the superseded frame entirely.
-
-This is the property @studiometa/ui's `DataChannel` gets from alien-signals today, and the reason it can be dropped rather than depended on — its `publish()` always builds a fresh frame object, so the `===` bail-out never fires there and what it actually relies on is _one delivery per subscriber per settle, carrying the latest value_. Settling stays in the same task on purpose: `DataBind` echoes form-control input, and a microtask hop would be a visible change of behaviour. The price is that a subscriber writing unconditionally on every delivery live-locks the loop rather than overflowing the stack, which is the same trade every synchronous reactive graph makes.
-
-#### A set of peers — `createGroup()`
-
-v3's `withGroup` gave every instance a `$group: Set<Base>` of its peers, keyed by a group name and optionally scoped by a resolver. §5's `provideRootContext()` section states why it is not ported: the set had no value cell. What that section did not settle is where the _membership_ itself lives, and the answer is not a second registry. **A group is a membership published as one `Signal`, created by whoever coordinates it and reached the way every other shared value is reached — as a context.**
+#### `createGroup()`
 
 ```js
-// The coordinator owns the membership and hands out the ways in.
+// The coordinator owns the membership and gives out the ways in.
 const peers = createGroup();
 api = this.$provide(DisclosureGroupContext, {
   members: peers.members, // the members to read, in document order
@@ -688,150 +534,112 @@ mounted() {
 }
 ```
 
-`join()` returning its own `leave` is the whole ergonomic point: the shape of `subscribeContext()`'s answer/teardown contract already _is_ the shape of joining and leaving a group, so a member that migrates to a nearer group leaves the old one before it joins the new one, with no `__connect`/`__disconnect` handshake to write. Scoping comes free from nearest-provider-wins, so a nested group takes its own members and never its parent's — the case `$watchChildren` cannot express, since it collects every matching descendant across nested boundaries.
+- `join()` returns its own `leave`, so a member that moves to a nearer group leaves the old one first.
+- Scope comes from nearest-provider-wins, so a nested group takes its own members only.
+- **The membership is a value.** A coordinator subscribes to it and re-checks its invariant on each change.
+- **Document order is the tie-breaker**, so the markup decides which peer keeps its state.
+- Nothing sweeps disconnected members. The teardown of the member removes it.
+- The helper holds a `Set` and a `Signal`. `createGroup()` names no group and resolves no scope.
 
-**The membership is a value, and that is what v3's `Set` was missing.** A coordinator subscribes to it, so a peer arriving or leaving is an event it can act on. That matters because v4 mounts on DOM insertion with no ordering guarantee: "the set of my peers" is not settled at any point in time, and an invariant over the set — one open at a time, one selected item — has to be re-checked on every change rather than established once. **Document order is the tie-breaker, deliberately**, so which peer keeps its state is a fact about the markup and not about which one happened to mount first. A disclosure written open that mounts late loses to the one before it in the DOM, and wins over the ones after it; both orders are asserted in `group.spec.ts`, which builds the Disclosure pattern end to end from this helper plus `$provide` and `subscribeContext` alone.
-
-Nothing sweeps disconnected members, and nothing needs to: v4 destroys a component when its element leaves the DOM, so the member's own teardown is what removes it. v3 swept on every read of `$group` because its membership was written from `mounted` and `destroyed` on a registry that outlived both.
-
-The helper holds a `Set` and a `Signal` and nothing else — no element index, no name keys, no global map. `createGroup()` names no group and resolves no scope: the name a v3 consumer passed was the partition key of a page-global registry, and a group whose membership is a DOM fact needs neither.
-
-**The two v3 consumers of `withGroup` divide on exactly that line, which is why one uses this helper and the other does not.** `Disclosure` groups by _ancestry_ — its group is a component in the DOM, and the whole difficulty was the two sides finding each other. `Data*` groups by _name_, with the nearest `DataScope` only choosing which partition table to look in and a page-wide table when there is none, so `DataRegistry` keeps a record per name in which membership is one field beside values, sources and hydration state, and it never observes membership changes. It has its own `join(group, member)` returning the same leave function for the same reason, and no members signal because nothing subscribes to one. A group that is a set of peers gets `createGroup()`; a group that is a partition of a keyed store keeps the store.
+See [RATIONALE.md — 5. Children advertise their existence](./RATIONALE.md#5-children-advertise-their-existence).
 
 ## 6. Decorators — sugar, never a requirement
 
-No engine ships stage-3 decorators yet, so requiring them would break the no-build promise: **every decorator is a thin wrapper over a function API that works without it.** Projects that build their sources opt in; a page loading the package from an ESM CDN keeps `registerComponent`, `$provide`, `$watchChildren`, `$read`/`$write` and the magic `on<Child><Event>` method names.
+No engine ships stage-3 decorators, so **every decorator is a thin wrapper over a function API that works without it.** A page that loads the package from an ESM CDN keeps `registerComponent`, `$provide`, `$watchChildren`, `$read`, `$write` and the `on<Child><Event>` method names.
 
-| Decorator                           | Wraps                                   | Notes                                                                        |
-| ----------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------- |
-| `@component({ name })`              | `static config` + `registerComponent()` | Registers as soon as the class is defined.                                   |
-| `@on(target, type)` / `@on(type)`   | the magic `on<Child><Event>` names      | Target as a name **or** as a value. See below.                               |
-| `@provide(key)` / `@inject(key)`    | `$provide()` / `$inject()`              | Same shape as Lit's `@provide`/`@consume` over the same context protocol.    |
-| `@children(nameOrClass, callbacks)` | `$watchChildren()`                      | Exact name or constructor + subclasses; callbacks are bound to the instance. |
-| `@read` / `@write`                  | `$read()` / `$write()`                  | Runs the method body in that scheduler phase, cancel-on-destroy included.    |
+| Decorator                           | Wraps                                   | Notes                                                                          |
+| ----------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------ |
+| `@component({ name })`              | `static config` + `registerComponent()` | Registers as soon as the class is defined.                                     |
+| `@on(target, type)` / `@on(type)`   | the `on<Child><Event>` names            | The target is a name or a value.                                               |
+| `@provide(key)` / `@inject(key)`    | `$provide()` / `$inject()`              | The shape of Lit's `@provide` and `@consume`.                                  |
+| `@children(nameOrClass, callbacks)` | `$watchChildren()`                      | Exact name or constructor and subclasses. Callbacks are bound to the instance. |
+| `@read` / `@write`                  | `$read()` / `$write()`                  | Runs the method body in that phase, cancelled on destroy.                      |
 
-**`@component` and a `static config` on one class merge, decorator last.** A class decorator runs before static field initializers, so the field's object replaces the one the decorator wrote and half the declaration used to disappear with no warning. The two are merged back together in a class initializer, which runs after the fields and still inside the class definition — `registerComponent()` on the line after the class sees the finished config. They merge by the rules `resolveConfig()` already applies along a prototype chain, so there is no second set of rules to learn: refs union, `options` and `components` merge entry by entry, and a declared value overrides. The decorator is applied last, the direction it already had over the inherited config. Only a key both sides declare _differently_ needs that precedence, and that is an authoring mistake rather than an intent, so it is reported as `component.config-conflict`.
+**`@component` and a `static config` on one class merge, and the decorator is applied last.** They merge in a class initializer, which runs after the fields and inside the class definition, so `registerComponent()` on the next line reads the finished config. The rules are the rules of `resolveConfig()`: refs union, `options` and `components` merge entry by entry, a declared value overrides. A key that both sides declare differently is reported as `component.config-conflict`.
 
-`@on` is the one that is genuinely better than the form it replaces, not just shorter. The explicit `(target, type)` pair means: no name parsing, so `onSliderDragStart`-style ambiguity disappears; no `config.components` entry needed, since the child name is in the decorator; any event name works, including ones no method name could spell (`fetch:after`); the method is free to be named after what it does (`autoclose()`); and several `@on` stack on one method. The magic names stay for the no-build path, and a method bound through a decorator is skipped by the name scan — **by its name** — so the two never double-bind.
+`@on` accepts a name or a value: `@on('click')`, `@on('AccordionItem', 'open')`, `@on(AccordionItem, 'open')`, `@on(window, 'load')`, `@on(document, 'click')`. Nothing is reserved in its string space: `'Window'` means the child and `window` means the global.
 
-**The target is a name or a value** — `@on('click')`, `@on('AccordionItem', 'open')`, `@on(AccordionItem, 'open')`, `@on(window, 'load')`, `@on(document, 'click')`. Taking the value is what gives the global form a spelling at all. As a string it would have to be reserved, and a second reserved-name rule inside the decorator's own string space is worse than the one the magic names already carry: `on<Event>` reserves `Window`/`Document` at the cost of nothing, because `@on('Window', 'resize')` is exactly the escape hatch left for a child of that name — reserving the string there would close the escape hatch it is the escape hatch for. So nothing is reserved: `'Window'` still means the child, `window` means the global, and the two stand side by side in one component.
+- **A class resolves to its merged `config.name`** and lands on the same delegated entry as the string form. The class is the type, so `target` is the component and `payload` comes from its `$emits`. `@on(window, 'click')` types the event from `WindowEventMap` and falls back to `Event`.
+- **A lazy child needs the string form.** `@on('Child', 'open')` imports nothing. A thunk is not a target; the overloads and the runtime refuse it.
+- **A name is a child or a ref**, resolved children-first, so the handler is typed as `DelegatedEvent` or `RefEvent`.
+- **A ref is named as it is declared**: `@on('dots[]', 'click')` for `config.refs: ['dots[]']`. The rule is one rule: the declaration spelling refers to the entry, and the property spelling is used where a name is derived from it. A mismatched `@on('dots', 'click')` gives a warning at bind time when the other spelling is declared. A name that matches nothing stays silent.
+- **A global target goes through `bindGlobal()`**, the binding that `onWindow<Event>` uses: bubble phase, one listener per mount cycle, removed by `$destroy()`.
+- **Any other `EventTarget` is refused**, by the overloads and by a `TypeError`. A decorator is evaluated once, at class definition, so an arbitrary target can only be a module-scope value.
 
-- **A class resolves to its merged `config.name`** — the same string the string form resolves to, landing on the same delegated entry. It is not a parallel path, it is the same one with the name read off the class instead of typed out. `resolveConfig()` rather than the class's own `config.name`, because the merged config is by definition what the instance mounts under, and so what the delegation walk looks up. What the class form adds is the type: the class _is_ the type, so `target` is the component and `payload` is read from its `$emits` with nothing to annotate. `@on(window, 'click')` types the event from `WindowEventMap` and falls back to `Event` — never `any` — for a custom name.
-- **A lazy child is the reason the string form exists.** A child declared as `Child: () => import('./Child.js')` exists to keep its chunk out of its parent's, and `@on(Child, 'open')` would import exactly what the thunk defers — the class form is useless there, by construction. So `@on('Child', 'open')` is not a fallback for it, it is the form that case is served by, and it imports nothing at all. The thunk is not itself a target — a function with no `config`, refused by the overloads and at runtime.
-- **A name is a child _or_ a ref**, resolved children-first, so the string form types its handler as either `DelegatedEvent` or `RefEvent`. The class form has no such doubt: a class can only be a child.
-- **A ref is named the way it is declared** — `@on('dots[]', 'click')` for `config.refs: ['dots[]']`. One rule covers the whole family: _the declaration spelling is what you write to refer to the entry, the property spelling is what you write when a name is derived from it._ `config.refs`, `data-ref="dots[]"` and `@on()` all refer to the entry and all carry the `[]`; `$refs.dots` and `onDotsClick()` derive a name and drop it. One spelling each, never two — the same choice #785 settled for the attribute, applied one layer up. A mismatched `@on('dots', 'click')` **warns** rather than binding silently, which is the failure it would otherwise be: there is no type that could catch it, since the decorator sees a string and cannot read the `config.refs` declared elsewhere in the class body. The warning is raised at bind time, where both are known, and only when the other spelling is actually declared — a name matching nothing at all stays silent, because `@on('Child', …)` deliberately needs no `config.components` entry.
-- **A global target goes through `bindGlobal()`**, the same binding `onWindow<Event>` uses: bubble phase for the reason above, listener per mount cycle, removed by `$destroy()`. The internal registration record stores the target itself rather than encoding it into `child`, which keeps the string space free.
-- **Any other `EventTarget` is refused**, by the overloads and by a `TypeError` for the untyped path. Not a gap: a decorator is evaluated once, at class definition, with no instance and no document, so an arbitrary target can only ever be a module-scope value shared by every instance — which is not what a per-mount-cycle listener means. A ref is already covered by the string form; anything else is one line in `mounted()`, `addEventListener` plus the cleanup returned beside it, scoped by the machinery that is already there.
+**The skip is keyed by the method name, so `@on` and `@read`/`@write` stack in either order.** The order decides what the listener calls: a phase decorator written below the `@on`, nearest the method, schedules the body of the handler; one written above it schedules direct calls only. Write `@read` and `@write` closest to the method body.
 
-**The skip is keyed by method name, so `@on` and `@read`/`@write` stack in either order.** The two families meet on one method — `@write @on(window, 'resize') onWindowResize()` — and only one of them leaves the method it decorates alone: `@read` and `@write` **replace** it with a wrapper that schedules the body. Applied bottom-up, a phase decorator written above the `@on` therefore hands the class a function the registration below it never saw, and the skip, which compared the registered function against the one the instance carries, missed it and bound the handler twice. Nothing failed loudly, so the stacking order was part of the interface and documented nowhere. The name is the one thing both passes already hold — the plan keys every magic handler by `method`, and `context.name` names the decorated method whatever else is stacked on it — so it is what the skip compares, and there is no second rule to learn. What the order still decides is what the listener calls: `@on` records the function it is handed, so a phase decorator written **below** the `@on`, nearest the method, schedules the handler's body, and one written above it schedules only direct calls to the method. Write `@read`/`@write` closest to the method body it belongs to.
+Each value decorator works on a plain field and on an `accessor` field.
 
-Each value decorator works on a plain field and on an `accessor` field — the two differ only in how the initializer is handed back to the runtime.
+**Build setup.** Vite 8 transforms TypeScript with Oxc, which passes decorators through untouched. The package compiles them with `@rollup/plugin-swc` (`decoratorVersion: '2023-11'`), filtered to the files that contain a decorator.
 
-**Build setup.** Vite 8 transforms TypeScript with Oxc, which passes decorators through untouched. The package compiles them with `@rollup/plugin-swc` (`decoratorVersion: '2023-11'`), filtered to files that contain a decorator, as documented in the Vite 8 migration guide.
+See [RATIONALE.md — 6. Decorators](./RATIONALE.md#6-decorators).
 
-## 7. One scheduler — a stronger `domScheduler`
+## 7. One scheduler
 
-v3.9 has four independent scheduling mechanisms: `domScheduler` (microtask flush), `RafService` (its own rAF loop), `SmartQueue` (nextTick waiter, 40 ms budget for lifecycle work), and the registry's MutationObserver callback. @studiometa/ui adds a `viewTransition` scheduler on top. v4 replaces them with **one frame-aligned scheduler that is the framework's clock**.
-
-### Weaknesses of the current implementation
-
-- `domScheduler` flushes on `Promise.resolve().then()`. It batches within one microtask, not within one frame. A `write()` from an event handler flushes mid-turn; a later read→write batch still forces synchronous layout.
-- No cancelation: tasks are anonymous closures. Queued work can run against elements already removed from the DOM.
-- A throwing task deadlocks the scheduler: `flush()` never resets `isScheduled` on throw, so every later `scheduleFlush()` returns early. Silent and fatal.
-- Lifecycle work (`SmartQueue`) and render work (`domScheduler`) compete without coordination.
-
-### v4 design
-
-One scheduler with **three phases inside the frame — `tick` → `read` → `write` — and one off-frame lane, `background`**:
+One frame-aligned scheduler is the clock of the framework. It replaces `domScheduler`, the `RafService` loop, `SmartQueue` and the `viewTransition` scheduler of `@studiometa/ui`.
 
 ```
 frame start (rAF)
-  1. tick        — fan-out to the clock's subscribers
+  1. tick        — fan out to the subscribers of the clock
   2. read        — measure: layout reads only
   3. write       — mutate: DOM writes only
 style / layout / paint
 
 between frames, on its own turns
-  background     — time-sliced lane: mount/update lifecycle work,
+  background     — time-sliced lane: mount and update lifecycle work,
                    mutation-record processing, manifest loading
-                   (absorbs SmartQueue)
 ```
 
-**Naming.** `read` and `write` are kept exactly as they are — fastdom, framesync and Motion spell them the same way, and they say precisely what they do. `background` becomes _more_ accurate once the lane runs off-frame: it maps literally onto `scheduler.postTask({ priority: 'background' })`. `frame(callback)` is now **`tick(callback)`**, with `TickProps`/`TickCallback`: the component hook is already `ticked()` and GSAP's shared clock is `gsap.ticker`, so `tick` is the word the API and the field already use, while `frame` collided with the `nextFrame()` helper — which keeps its name, since awaiting one frame is exactly what it does.
+`frame(callback)` is `tick(callback)`, with `TickProps` and `TickCallback`. `nextFrame()` keeps its name. `afterWrite` is removed: rAF callbacks run before style, layout and paint, so no phase inside the frame can read post-layout geometry. Measure in the `read` phase of the next frame, or use a `ResizeObserver`.
 
-**`afterWrite` is removed.** It had no consumers — neither in v4 nor in @studiometa/ui — and its name promised something `requestAnimationFrame` cannot deliver: the flush runs in a rAF callback, which the HTML "update the rendering" steps place _before_ style, layout and paint, so nothing scheduled inside the frame can observe post-layout geometry. The only in-frame hook that observes it is a `ResizeObserver` callback, which those same steps run after layout. Anything else that needs post-layout geometry waits a frame and measures in the next `read`, or uses an observer. Renaming a phase nobody called would only have kept the confusion alive under a new spelling.
+- **Frame alignment.** One flush per frame, at rAF. Every read runs before every write, once, before paint. `RafService` subscribes to the tick instead of owning a loop.
+- **No thrashing.** A `read` scheduled from a `write` runs in the next frame. A `write` scheduled from a `read` runs in the same frame.
+- **Bounded phases.** Each queue array is swapped for an empty one when its phase starts, so a task scheduled into the running phase lands in the batch of the next frame. The `write` batch is taken after the reads run.
+- **Task handles.** Scheduling returns a cancelable handle whose promise resolves with the return value of the task: `const box = await scheduler.read(() => el.getBoundingClientRect())`.
+- **Instance ownership.** `this.$read(fn)` and `this.$write(fn)` tie tasks to the instance. Terminate cancels the pending tasks of that instance.
+- **The background lane runs outside the frame.** It posts its own turns through `scheduler.postTask({ priority: 'background' })`, and falls back to a `MessageChannel` message. Each turn runs a 5 ms slice measured from the start of the drain, then gives the thread back and posts the next turn. Background work alone never requests an animation frame. `whenIdle()` counts background tasks and resolves at the end of a background drain as well as at the end of a flush.
+- **Clamped tick delta.** `TickProps.delta` is clamped to `[1, 40]` ms, and the first tick after the loop wakes reports `1000/60`. `TickProps.time` stays the raw rAF timestamp.
+- **Error isolation.** One try/catch per task. A task that throws is reported and dropped. The flush continues and the scheduler never deadlocks.
+- **Queued execution only.** There is no synchronous escape.
 
-Properties:
-
-- **Frame alignment.** One flush per frame, at rAF. All reads batch before all writes, once, before paint. `RafService` no longer owns a loop; it subscribes to the scheduler's tick. Its `callback` → returned-render-function pattern maps directly to read → write phases (unchanged for users).
-- **Anti-thrashing by construction.** A `read` scheduled from a `write` runs next frame; a `write` scheduled from a `read` runs in the same frame (fastdom semantics).
-- **Bounded phases — double-buffered queues.** Each phase runs the batch it was handed and nothing else: the queue array is swapped for an empty one when the phase starts, so a task scheduled into the phase that is _currently running_ lands in the next frame's batch. Draining a phase until it was empty (`while (queue.shift())`) let a `read` scheduling a `read` re-enter without end — 100,000 chained reads in one frame, no paint, no yield. Motion's render steps double-buffer for the same reason; Theatre.js instead caps recursion (warn at 10, throw at 100), which was rejected because it needs a limit to tune, surfaces as warnings and throws in the caller's code, and aborts work instead of letting it progress. Swapping the array costs nothing and preserves the cross-phase rule for free: the `write` batch is taken _after_ the reads ran, so a `write` scheduled from a `read` is still in it.
-- **Task handles.** Scheduling returns a cancelable handle whose promise resolves with the task's return value: `const box = await scheduler.read(() => el.getBoundingClientRect())`.
-- **Instance ownership.** Base sugar (`this.$read(fn)` / `this.$write(fn)`) ties tasks to the instance; terminate cancels its pending tasks. This is what makes "lifecycle equals DOM presence" safe — no stale writes to detached elements.
-- **The background lane runs outside the frame.** It absorbs `SmartQueue`, and it is _not_ a phase of the flush. rAF callbacks run before style, layout and paint, so non-rendering work placed there competes with the frame no matter what budget guards it — and a budget measured from the top of the flush is spent by the tick callbacks and the render phases before the lane is reached. Measured: one tick subscriber busy 10 ms per frame (one running animation) starved the lane completely — zero background tasks in 400 ms, so nothing mounted while the animation ran. The lane now posts its own turns through `scheduler.postTask({ priority: 'background' })`, falling back to a `MessageChannel` message (`setTimeout` clamps nested timeouts; React's scheduler moved to a message channel for exactly this reason, facebook/react#16214). Each turn runs a 5 ms slice measured from the start of _the drain_, then hands the thread back and posts the next turn, so the work drains across as many turns as it needs. `isInputPending` is deliberately not used — that recommendation has been retracted. Prior art: Motion runs a second batcher on `queueMicrotask`, outside rAF, rather than budgeting inside it. Consequences: background work alone never requests an animation frame, and `whenIdle()` — which still counts background tasks as queued work — now resolves at the end of a background drain as well as at the end of a flush.
-- **Clamped tick delta.** `TickProps.delta` is clamped to `[1, 40]` ms, and the first tick after the loop wakes reports `1000/60`. Raw wall time includes everything a frame is not — a backgrounded tab, a long task, an iOS scroll pause — and every subscriber integrating it jumps by the whole gap. Motion clamps to `[1, 40]`, framesync to 40, rafz to 64; GSAP's `lagSmoothing` is the same idea. `TickProps.time` stays raw on purpose: it is rAF's own timestamp, the clock the Web Animations API and `requestVideoFrameCallback` are expressed in.
-- **Error isolation.** try/catch per task; a throwing task is reported and dropped, the flush continues, the scheduler never deadlocks.
-- **Queued execution only.** `read` and `write` tasks run in their ordered, double-buffered frame phases. `background` tasks run on separate time-sliced turns. v4 has no synchronous or blocking escape.
-
-### Tick subscriptions — `scheduler.tick(callback)` — implemented
-
-The clock needs one more verb than `read`/`write`/`background`, because a service is not a task: it does not run once, it runs _while somebody is listening_.
+### `scheduler.tick(callback)`
 
 ```js
 const unsubscribe = scheduler.tick(({ time, delta }) => { … });
 ```
 
-- Tick callbacks run **at the start of the flush, before `read`**, so anything they schedule belongs to the same frame. That is what preserves v3's `RafService` contract without a second loop: the callback measures in `read`, the render function it returns mutates in `write`, once, before paint.
-- The subscription is the only handle — no keys, no `remove(key)` — and it is what keeps the loop alive. `#schedule()` is called again at the end of a flush when an in-frame queue is non-empty **or** a tick subscriber remains, so the rAF loop stops on its own once the last one leaves. This answers the "idle-frame behavior" open point below: there is no permanent loop. Pending `background` work is deliberately not part of that condition — it drains on its own turns and never holds a frame open.
-- That property is only true if a component can actually let go **within** a mount cycle, which is what `toggle()` (§8) is for. A component holding `ticked()` for the lifetime of the page would make "no permanent rAF loop" false on any page with a slider or a scroll animation.
-- Tick subscribers are **not queued work**, so `whenIdle()` ignores them. A page with a live scroll animation would otherwise never be idle, and the test helper `settle()` would never return.
-- A throwing tick callback is reported and skipped, never unsubscribed: the subscription belongs to whoever created it, not to the frame that broke.
+- Tick callbacks run at the start of the flush, before `read`, so what they schedule belongs to the same frame. A callback measures in `read` and the render function that it returns mutates in `write`.
+- The subscription is the only handle, and it keeps the loop alive. The scheduler requests the next frame when a queue inside the frame is not empty, or when a tick subscriber stays. There is no permanent rAF loop. Pending background work never holds a frame open.
+- A component that needs the loop for part of a cycle uses `toggle()` (§8).
+- Tick subscribers are not queued work, so `whenIdle()` ignores them.
+- A tick callback that throws is reported and skipped, never unsubscribed.
 
-### Native View Transitions move into core
+### Native view transitions
 
-The `viewTransition(update)` helper and its batching scheduler currently live in @studiometa/ui (`ViewTransition/scheduler.ts`: microtask-batched updates flushed into a single `document.startViewTransition()`, batches serialized, synchronous fallback when unsupported). In v4 this becomes a lane of the core scheduler, because a view transition is a scheduling concern — `startViewTransition` snapshots the DOM, so its timing must coordinate with pending reads/writes:
+Core exports `viewTransition(update): Promise<void>`, with the progressive-enhancement contract of the current `@studiometa/ui` helper.
 
-- Core exports `viewTransition(update): Promise<void>` (same shape and progressive-enhancement contract as today's ui helper).
-- Updates queued in the same flush batch into **one** `startViewTransition()` call, so independent elements (backdrop + panel) animate as one coordinated transition. Every later batch appends to one promise tail. This matters when several scheduler flushes arrive during one transition: they stay serialized instead of all resuming when the same `finished` promise settles.
-- The scheduler flushes pending `write` tasks **before** the snapshot is captured, and writes scheduled from inside the update callback run within the transition. No half-applied frames in the "old" snapshot.
-- The helper stays standalone. `Base` has no view-transition method or import, so consumers that do not use native transitions do not retain this graph.
-- @studiometa/ui keeps only the declarative `ViewTransition` component, rebuilt on the core helper; Toaster/Dialog/Frame import it where needed.
+- Updates queued in the same flush batch into one `startViewTransition()` call, so a backdrop and a panel animate as one transition. Each later batch is appended to one promise tail, so several flushes during one transition stay serialized.
+- The scheduler flushes the pending `write` tasks before the snapshot. Writes scheduled inside the update callback run within the transition.
+- The helper is standalone. `Base` has no view-transition method and no import of one.
+- `@studiometa/ui` keeps the declarative `ViewTransition` component, rebuilt on this helper.
 
-### A known future slot: measurement between `read` and `write`
+**Open point:** whether the frame loop keeps ticking during a running view transition.
 
-Motion has a phase between read and write — `resolveKeyframes` — that owns the unavoidable write/read/write/read pass some animations need to resolve their keyframes, amortised across every animating component so the whole page pays one layout instead of one each. It is where Framer's measured 2.5–6× came from, and it is the right shape for measurement-heavy mounting.
+See [RATIONALE.md — 7. One scheduler](./RATIONALE.md#7-one-scheduler).
 
-Nothing in v4 needs it today, so nothing implements it: this project does not add speculative abstractions. It is recorded here as the slot to fill if measurement-heavy mounting ever appears — between `read` and `write`, batched, never as a per-component escape hatch.
+## 8. Services — lazy and reference-counted
 
-### Open points
+A service is a shared source of props that components subscribe to: `ticked`, `scrolled`, `resized`, `moved`, `dragged`, `intersected`, `mutated`. `KeyService` and `LoadService` are not ported.
 
-- ~~`afterWrite` timing~~ **Decided:** removed. rAF runs before style and layout, so no in-frame phase can observe post-layout geometry; a `ResizeObserver` callback is the only in-frame hook that can, and everything else measures in the next frame's `read`. An "after paint" phase (double rAF / `requestPostAnimationFrame`-style) can be added later on its own merits, under a name that does not promise same-frame layout.
-- ~~Idle-frame behavior~~ **Decided:** no permanent rAF loop. The scheduler wakes on the first scheduled in-frame task or tick subscription and stops when both are gone.
-- Whether the frame loop keeps ticking during a running view transition (rendering is frozen while the snapshot is captured; long transitions should not starve `background` work — less pressing now that the lane runs off-frame).
-
-## 8. Services — lazy, reference-counted — implemented
-
-A service is a shared source of props components subscribe to: `ticked`, `scrolled`, `resized`, `moved`, `dragged`, `intersected`, `mutated`. `KeyService` and `LoadService` are not ported — a `keydown` listener and `window.onload` need no service around them.
-
-> **Hardened after an adversarial review** (`SERVICES-REVIEW.md`, 2026-08-12): 17 confirmed defects, each with a regression test, plus the API changes recorded below. Three claims this section used to make were falsified by that review and are corrected in place.
->
-> **Two of that review's findings are still open, on purpose** (`SERVICES-SURFACE.md`, 2026-08-13): whether every source should emit in one frame-aligned phase, and whether one `Service<T>` with an honest `props()` can cover a gesture. Both change semantics across all five services and both amend decisions this section made deliberately, so they are written up with their evidence — measured, not asserted — and not implemented. The short version of each: the phase is the wrong axis and the **write path** is the right one, since frame-aligning a discrete source has to either collapse a tap or copy its props; and `props()` should split, staying `T` for the sampled sources and becoming `T | null` for the pointer, the drag and the frame — which is what `hasProps()` already says at runtime while the type says `T` for all six.
-
-- **Lazy and reference-counted.** `createService()` starts the definition on the first subscriber and tears it down on the last: no listener, no observer and no frame while nobody listens. This is the property the whole design leans on, since components mount and unmount constantly under `data-mount` strategies. **Publishing is re-entrant**, so a subscriber that unsubscribes while it is being called can tear the service down inside the `emit()` it is still in: anything that mutates state after publishing checks first. The drag service's `drop()` did not, and subscribed an inertia tick to a dead service — a frame loop nothing could release.
-- **Symmetric subscriptions.** `subscribe(callback)` returns the unsubscribe, like `Signal.subscribe()`, `provideContext()` and the mount strategies. `AbortSignal` was measured as the alternative and rejected: 17× the cost per subscription, and not what the ecosystem uses internally either. It is spelled `subscribe` rather than v3's `add` because the arity changed — v3's `add('id', callback)` would otherwise have compiled and subscribed the string. **A closure is not automatically safe:** keying subscribers in a `Set` by the callback itself made two holders of one function collapse into a single entry, so the second was never called and the first unsubscribe tore the service down under it. Subscriptions are records; reference counting counts holders. **The fan-out walks a snapshot,** and each record carries an `isActive` flag: iterating the live set visited subscribers _added_ during the update — handed props measured before they existed, and unbounded if a subscriber subscribes from its own callback — while removal was only correct _because_ the set was live, so the two changes are one change.
-- **The first delivery is asked for — `subscribe(callback, { immediate: true })`.** A subscription says "tell me when this changes", and a component laying itself out also needs "tell me where it stands"; the two are different requests and only one of them was available. Which sources answered the second was an accident of their machinery: a `ResizeObserver` delivers the current box on `observe()` for free, so the resize service spoke on subscribe and the other four did not — the asymmetry three of the review's six agents flagged independently, invisible in the types. It is now the option `Signal.subscribe()` already had, honoured by the sources that have a current value and a no-op for the ones that do not, which each service states through `hasProps()`: the frame tick has none between two frames — its `time`/`delta` describe _a frame_, and handing over the last one would have a newcomer integrate a delta everyone else has spent — the pointer has none before it has been seen, and a drag has none outside a gesture. Delivering to a source's resting value instead would mean announcing the centred pre-event pointer position and the `idle` drag as readings, which is exactly what makes them dishonest. Only the new subscriber is called: an emit would hand every other one props it has already been given. The mixins take the same option, so `withResize(Base, { immediate: true })` is how a `resized()` learns its starting box. `withInView` defaults it to `true`: before the first platform entry that still emits nothing, while a later component joining an active observation receives the real entry already held by the service; `immediate: false` opts out.
-
-  It also exposed a defect of its own, which had been invisible while nothing read a run's first props: `deltaX`/`deltaY` were measured against the position the _previous_ run ended at, so a service restarted after the page had moved announced a scroll nobody performed — 100 px of it, in the test that now guards it. A run's first props carry no movement.
-
-- **Scoped to a target.** `useScroll(target?)` takes an element or the window, `useResize(target?)`, `useScrollProgress(target, options?)` and `useInView(target, init?)` take an element, `useMutation(target, init?)` takes any node, and `useDrag(el)` takes an `HTMLElement` or an `SVGElement`; `useWindowScroll()` and `useWindowSize()` name the default cases, the split VueUse, solid-primitives, react-use and runed all make. `usePointer(target?)` takes an element too, and answers about the viewport without one. `useRaf()` and `useBreakpoint()` have nothing to scope — the frame is the clock, and a media query answers about the viewport. `useScroll(document.documentElement)` is the window service, because the document scroller dispatches its events at the document.
-- **One instance per target and service options,** keyed in a `WeakMap` by `perTarget()`. This is lifecycle bookkeeping rather than throughput: reference counting only means something against a target, so the last subscriber of one element must release that element's observer and leave the others running. `useDrag()` includes its axis, inertia, damping and threshold choices; `useInView()` includes every `IntersectionObserverInit` field in the key and gives object roots stable weak identities; `useScrollProgress()` includes its resolved offset. Sharing one observer across targets was measured indifferent — the widespread claim traces to a single 2017 measurement, and 500 idle observers now cost ~0.02 ms/frame in total (`service.bench.ts`) — so nothing tries to group them.
-
-  **The options are read by meaning, not by spelling,** which is what makes that claim true rather than intended. The key was `JSON.stringify(args)`, so `{ axis, inertia }` and `{ inertia, axis }` — one drag — bought two services, two pointer listener sets and two `touch-action` claims on the one element; `{ threshold, rootMargin }` bought a second `IntersectionObserver`. `perTarget()` now sorts object keys at every depth and drops keys holding `undefined`, because naming an option without a value is not naming it. Arrays keep their order: a threshold list is ordered data, not a record. Only what the platform owns still needs a service's own `keyOf` — an `IntersectionObserver` root has no own enumerable keys, so `useInView()` keeps giving it a stable weak id before keying it, and `useMutation()` keeps `resolveInit()` for the DOM contract, not for the ordering.
-
-  **A mixin's own options are not the service's.** `target`, `manual` and `immediate` describe the subscription; the service is identified by what it observes. They are stripped before `use()` is called and are absent from its `Options` type, so `use: (target, options) => useDrag(target, options)` — forwarding the whole object, which is what let `withDrag(Base, { manual: true })` bind a drag service of its own on an element the plain `withDrag(Base)` already owned — is now the correct call rather than a mistake that type-checked. `withInView`, `withMutation` and `withScrollProgress` each filtered the lifecycle keys out by hand; those filters are deleted, since a seam that only one of four mixins used correctly was the defect.
-
-- **Bound per mount cycle, by a mixin.** `withRaf`/`withScroll`/`withResize`/`withScrollProgress`/`withPointer`/`withDrag`/`withInView`/`withMutation` override `mounted()`, subscribe the component's `ticked`/`scrolled`/`resized`/`scrolledInView`/`moved`/`dragged`/`intersected`/`mutated` method, and hand the unsubscribe back as a cleanup — so `$destroy()` releases it and a remount subscribes again, with `Base` knowing nothing about services. The mixin is the primitive because it needs no build step; `@withScroll()` is the decorator sugar over it, and both are tree-shakeable: an unimported service cannot make a hook silently do nothing. `withInView` observes a component that is already mounted; it does not replace the `visible` or `in-view` mount strategy. `withScrollProgress` keeps the useful v3 `scrolledInView` hook but not the old decorator's damping or mount control. Its first raw measurement is immediate by default, and a render returned by the hook goes through the instance `$write()` lane.
-- **One method name per mixin, and it is the service's own.** A hook is sugar for the default target; `target` is the only option. There is no `hook` option: two layers with the same name collapsed into one subscription with no warning, a custom name lost the hook's props typing entirely, and renaming one compiled, shipped and silently stopped updating. Any other target is an explicit subscription in `mounted()`, where the returned unsubscribe is the cleanup:
+- **Lazy and reference-counted.** `createService()` starts the definition on the first subscriber and stops it on the last. With no subscriber there is no listener, no observer and no frame. Publishing is re-entrant, so any code that changes state after a publication checks first that the service is still alive.
+- **Symmetric subscriptions.** `subscribe(callback)` returns the unsubscribe function. A subscription is a record, not a key in a set, so two holders of one function are two subscribers. The fan-out walks a snapshot, and each record carries an `isActive` flag.
+- **The first delivery is asked for**: `subscribe(callback, { immediate: true })`. The sources with a current value honour it; the sources without one do nothing, which each service states through `hasProps()`. The frame tick has no current value between two frames, the pointer has none before it is seen, and a drag has none outside a gesture. Only the new subscriber is called. The mixins take the same option, and `withInView` defaults it to `true`. The first props of a run carry no movement.
+- **Scoped to a target.** `useScroll(target?)` takes an element or the window. `useResize(target?)`, `useScrollProgress(target, options?)` and `useInView(target, init?)` take an element. `useMutation(target, init?)` takes any node. `useDrag(el)` takes an `HTMLElement` or an `SVGElement`. `usePointer(target?)` takes an element and answers about the viewport without one. `useWindowScroll()` and `useWindowSize()` name the default cases. `useRaf()` and `useBreakpoint()` have nothing to scope. `useScroll(document.documentElement)` is the window service.
+- **One instance per target and per service options**, keyed in a `WeakMap` by `perTarget()`. `useDrag()` keys its axis, inertia, damping and threshold. `useInView()` keys every `IntersectionObserverInit` field and gives object roots a stable weak identity. `useScrollProgress()` keys its resolved offset. Nothing groups observers across targets.
+- **The options are read by meaning, not by spelling.** `perTarget()` sorts object keys at every depth and drops the keys that hold `undefined`. Arrays keep their order. Only what the platform owns needs a `keyOf` of its own: `useInView()` gives its root a weak id, and `useMutation()` keeps `resolveInit()` for the DOM contract.
+- **The options of a mixin are not the options of the service.** `target`, `manual` and `immediate` describe the subscription. They are removed before `use()` is called and they are absent from its `Options` type, so `use: (target, options) => useDrag(target, options)` is correct.
+- **A mixin binds per mount cycle.** `withRaf`, `withScroll`, `withResize`, `withScrollProgress`, `withPointer`, `withDrag`, `withInView` and `withMutation` override `mounted()`, subscribe the `ticked`, `scrolled`, `resized`, `scrolledInView`, `moved`, `dragged`, `intersected` or `mutated` method of the component, and return the unsubscribe function as a cleanup. `Base` knows nothing about services. The mixin is the primitive, because it needs no build step; `@withScroll()` is the decorator sugar. `withInView` observes a component that is already mounted; it does not replace the `visible` or `in-view` mount strategy.
+- **One method name per mixin, and it is the name of the service.** There is no `hook` option. Any other target is an explicit subscription in `mounted()`:
 
   ```js
   mounted() {
@@ -839,19 +647,15 @@ A service is a shared source of props components subscribe to: `ticked`, `scroll
   }
   ```
 
-- **Mutations are a service too — `useMutation()`.** Section 3 keeps one filtered `MutationObserver` for the framework's own names, and opens that engine to one element's attributes through `watchAttributes()`. Neither covers "tell me when anything under this node changes", which is why `@studiometa/ui`'s `Disclosure` was writing an observer by hand. `useMutation(node, init?)` is that observer as a service, and it is the last resort of the three: `watchAttributes()` first for an attribute, since it coalesces and reports after component lifecycle has settled, and the registry's own observer for everything the framework already reconciles. This one delivers on the platform's own timing, and a subscriber that needs the framework's ordering awaits `whenDOMSettled()` from its callback.
-
-  Its props are `{ records }` and it **keeps nothing after the delivery**. A `childList` record holds the nodes it removed, so a service retaining the last batch — as v3's persistent props object did — keeps a detached subtree alive for the life of the page. That also makes `hasProps()` honest, for the reason the frame tick has none between two frames: a batch is a mutation that happened, not a state that holds, so `props()` is empty between deliveries and `{ immediate: true }` waits for a real one. Its key is a **canonical** init rather than the raw options: an omitted option, an unsorted or repeated `attributeFilter`, and the platform's own `attributeOldValue`/`characterDataOldValue` inferences all describe one observation and must not buy a second observer. Property order is no longer its business — `perTarget()` canonicalizes that for every service — so `resolveInit()` is left with the DOM contract alone. The default observation is `{ childList: true, subtree: true }`, because attributes of one element are `watchAttributes()`'s job.
-
-- **Suspendable within a cycle — `toggle()`.** A mount cycle is the right span for most subscriptions and the wrong one for a component that needs the frame loop only while something settles. `toggle(subscribe)` returns `{ isActive, start, stop }` over anything that hands back its own unsubscribe, with `start` and `stop` bound:
+- **`useMutation(node, init?)`** is a general MutationObserver as a service, for "tell me when anything under this node changes". Reach for `watchAttributes()` first for one attribute, and for the observer of the registry for what the framework already reconciles. This service delivers on the timing of the platform; a subscriber that needs the order of the framework awaits `whenDOMSettled()` in its callback. Its props are `{ records }` and it keeps nothing after the delivery, so `props()` is empty between deliveries and `{ immediate: true }` waits for a real batch. Its key is a canonical init. The default observation is `{ childList: true, subtree: true }`.
+- **`toggle(subscribe)`** returns `{ isActive, start, stop }` over anything that returns its own unsubscribe function. `start` and `stop` are bound:
 
   ```js
   class SliderItem extends Base {
     #frame = toggle(() => useRaf().subscribe(({ delta }) => this.follow(delta)));
 
-    // `stop` is bound, so it is a cleanup as it is.
     mounted() {
-      return this.#frame.stop;
+      return this.#frame.stop; // `stop` is bound, so it is a cleanup as it is
     }
 
     onIndexChange() {
@@ -864,15 +668,10 @@ A service is a shared source of props components subscribe to: `ticked`, `scroll
   }
   ```
 
-  `start()` is idempotent and `stop()` is safe to repeat, and it works on a `Signal`, on a bare listener, and outside a component, which a pair of instance methods could not. Reference counting does the rest: a stopped service with no other subscriber genuinely stops, frame loop included (asserted in `toggle.spec.ts` by watching `requestAnimationFrame`).
+  `start()` is idempotent and `stop()` is safe to repeat. It works on a `Signal`, on a bare listener, and outside a component.
 
-- **A one-shot wait — `until(service, predicate)`.** `isScrolling` is documented as the flag "a component waiting for a scroll to finish should read", and there was nothing to wait _with_: `await until(useScroll(), ({ isScrolling }) => !isScrolling)`. It resolves on the first matching update, releases the subscription before resolving, and resolves with a **copy** of the props, since the object belongs to the service and an `await` resumes a microtask later. It resolves on the current props when they already match — asking whether a scroll has finished must not wait for the next scroll to answer — which is `{ immediate: true }` doing that work, so the sources with no current value are the ones that always wait.
-
-  It exists because the hand-rolled version is a trap twice over. Releasing the subscription from inside the callback names the unsubscribe before `subscribe()` returned it: a temporal dead zone, `ReferenceError` at the first match. Hoisting it to a `let` fixes the crash and not the case where the match arrives _during_ `subscribe()`, where the binding is still `null`, nothing is released, and the service — a frame loop, for `useRaf()` — runs for the life of the page. Measured: the naive form leaves the service started and never stopped, which the spec asserts on. `toggle()` is the same argument for a suspendable subscription; this is the same argument for a wait.
-
-  It consumes a `Service<T>` and nothing else. That matters beyond convenience: `toggle()` and `until()` are what the uniform interface is _for_, and until they existed nothing in the public surface consumed it, so its uniformity was paid for and never spent.
-
-- **A hook can be suspended too — `{ manual: true }` and `$services.<hook>`.** `toggle()` is the primitive, not a replacement for the hook: writing the subscription by hand to get a shorter span costs the thing the hook was for, which is that the behaviour reads as a method on the class. So `manual` stays, and the mixin puts a `Toggle` under the hook's own name:
+- **`until(service, predicate)`** is a one-shot wait: `await until(useScroll(), ({ isScrolling }) => !isScrolling)`. It resolves on the first update that matches, releases the subscription before it resolves, and resolves with a copy of the props. It resolves on the current props when they already match. It consumes a `Service<T>` and nothing else.
+- **A hook can be suspended too**, with `{ manual: true }` and `$services.<hook>`:
 
   ```js
   class SliderItem extends withRaf(Base, { manual: true }) {
@@ -882,178 +681,110 @@ A service is a shared source of props components subscribe to: `ticked`, `scroll
   }
   ```
 
-  This is v3's `$services.enable('ticked')` with the string taken out, and it is what deleting the `hook` option bought: with one fixed name per mixin, the property can be **declared in the type** — `ServiceHandles<'ticked'>` — so `$services.ticked` completes, and a renamed hook is `TS2551: Property 'onScrolled' does not exist… Did you mean 'scrolled'?` instead of the silence `$enable('onScrolled')` gave. Intersections merge, so stacked mixins accumulate their keys and each handle reaches its own layer. What is gone is the per-instance `hook → subscription` map behind a module symbol and the runtime `console.warn` that was the only thing vetting a string.
+  The property is declared in the type as `ServiceHandles<'ticked'>`, so `$services.ticked` completes and a wrong name is a type error. Intersections merge, so stacked mixins accumulate their keys.
 
-- **No loops of their own.** The raf service and an enabled drag inertia subscribe to `scheduler.tick()`; `{ inertia: false }` still publishes the exact projected destination at `drop`, then goes through `stop` to `idle` without a tick subscription. The scroll service coalesces its events into one `read` per frame instead of debouncing; the resize service is a `ResizeObserver`. That observer's delivery on `observe()` used to be published as the service's first emission, which is how this one service came to speak on subscribe while the other four did not; it is gated like any other delivery now, and telling a subscriber where things stand is `{ immediate: true }`. The raf service collects the render functions its callbacks return itself — the shared primitive fans props out and expects nothing back — and **cancels a render whose subscriber left between the two phases**: a destroyed component must not write to the DOM after its cleanup ran, and an animation that wants a last paint does that write before it unsubscribes.
-- **A `ResizeObserver` does not see the viewport.** It reports the observed element's box, which is what catches a zoom or a scrollbar appearing — a layout-viewport change with no `resize` event at all. But for the **root element** `clientWidth`/`clientHeight` report the viewport, and on a page taller than the viewport the two are decoupled: measured height 3000 against a `clientHeight` of 896. A mobile toolbar sliding away therefore fires no observer, so the viewport service keeps a `resize` listener beside it. Both mechanisms, because neither sees what the other does.
-- **Extents are observed, not sampled once.** A scroll container's own box never grows with its content, and content growing announces itself with no `scroll` and no `resize`: `maxY` stayed at 400 for content that had gone from 500 to 5000 px. The scroll service therefore watches the scroller **and its element children** with a `ResizeObserver`, plus a `childList` `MutationObserver` to keep that set in sync — `1 + n` observed boxes per scroller, lazy and released with the last subscriber like everything else.
-- **Props are flat, one per axis, and nothing derivable is a field.** `ScrollProps` is `x`/`y`, `deltaX`/`deltaY`, `maxX`/`maxY`, `progressX`/`progressY`, `directionX`/`directionY`, `isScrolling`. The grouped objects (`last`, `delta`, `max`, `progress`, `direction`, `changed`) are gone, and so are the derivations v3 shipped as fields: `lastX` is `x - deltaX`, `changedX` is `deltaX !== 0`. `directionX`/`directionY` are `-1 | 0 | 1`, one signed value that **multiplies**, replacing `isUp`/`isRight`/`isDown`/`isLeft` — which also settles the collision between a `ScrollProps.isDown` meaning "scrolling down" and a `PointerProps.isDown` meaning "pressed". `PointerProps` and `DragProps` follow the same convention, which flattens `origin`, `distance` and `final`; drag drops `isGrabbing`/`hasInertia`/`target`, all readings of `mode`, and `DragMode` gains `idle` for what `props()` reports outside a gesture. A handler destructures what it uses — `scrolled({ deltaY, directionY })` — instead of reaching through a group.
-- **Every prop field is `readonly`, and the props object belongs to its service.** It is valid for the duration of the call that received it: a service may hand the same object to every subscriber and overwrite it on the next update, which is what the sampled sources do rather than allocate per frame. `{ ...props }` is how you keep one. Without `readonly`, `useScroll().subscribe((p) => { p.y = 999 })` compiled and corrupted every other subscriber on the page. What a callback may return is a type parameter too, so `RafRender` is enforced — `useRaf().subscribe(() => 42)` used to compile and run a stray return as a DOM mutation every frame.
-- **The pointer is placed in a box — `usePointer(target)`.** v3 shipped element-relative coordinates as `withRelativePointer`, a decorator whose whole content was a target and the subtraction. v4 puts both in the service: `usePointer()` is the viewport singleton it always was, `usePointer(el)` is one lazy service per target, and `ElementPointerProps extends PointerProps` with `relativeX`/`relativeY` and `relativeProgressX`/`relativeProgressY` beside the viewport fields — a superset, so `x` never changes meaning with the way the service was obtained. The targeted service **subscribes to the singleton** rather than listening again, so one document listener set serves every target and the `pointerId` tracking is the same code. `withPointer` therefore defaults its target to `$el`, like every other targeted mixin: a component asking about the pointer nearly always asks in relation to itself, and the viewport fields are still in the same object.
+- **No service owns a loop.** The raf service and an active drag inertia subscribe to `scheduler.tick()`. With `{ inertia: false }` a drag publishes the exact projected destination at `drop`, then goes through `stop` to `idle` with no tick subscription. The scroll service coalesces its events into one `read` per frame. The resize service is a `ResizeObserver`. The raf service collects the render functions of its callbacks and cancels a render whose subscriber left between the two phases.
+- **A `ResizeObserver` does not see the viewport.** It reports the box of the observed element, which catches a zoom or a scrollbar. For the root element, `clientWidth` and `clientHeight` report the viewport and are decoupled from the observed box, so the viewport service keeps a `resize` listener as well.
+- **Extents are observed, not sampled once.** The scroll service watches the scroller and its element children with a `ResizeObserver`, plus a `childList` MutationObserver to keep that set correct: `1 + n` observed boxes per scroller, lazy and released with the last subscriber.
+- **Props are flat, one field per axis, and nothing derivable is a field.** `ScrollProps` is `x`, `y`, `deltaX`, `deltaY`, `maxX`, `maxY`, `progressX`, `progressY`, `directionX`, `directionY` and `isScrolling`. The grouped objects `last`, `delta`, `max`, `progress`, `direction` and `changed` are removed, and so are the derived fields: `lastX` is `x - deltaX`, and `changedX` is `deltaX !== 0`. `directionX` and `directionY` are `-1 | 0 | 1`, one signed value that multiplies. `PointerProps` and `DragProps` follow the same convention. Drag drops `isGrabbing`, `hasInertia` and `target`, and `DragMode` gains `idle`.
+- **Every prop field is `readonly`, and the props object belongs to its service.** It is valid for the duration of the call that received it. Use `{ ...props }` to keep one. What a callback can return is a type parameter too, so `RafRender` is enforced.
+- **The pointer can be placed in a box.** `usePointer()` is the viewport singleton. `usePointer(el)` is one lazy service per target, and `ElementPointerProps extends PointerProps` with `relativeX`, `relativeY`, `relativeProgressX` and `relativeProgressY` beside the viewport fields. The targeted service subscribes to the singleton, so one set of document listeners serves every target. `withPointer` defaults its target to `$el`. The box is measured on demand and kept until a `scroll` (captured at the document), a `resize`, or the `ResizeObserver` of the target can have moved it. The layout box is the frame of reference, so a transform that the consumer applies from `moved()` does not invalidate it.
+- **What the simplification dropped.** `PointerService` uses pointer events only and follows one `pointerId` at a time. `ResizeService` keeps `width`, `height`, `ratio` and `orientation`, and drops `breakpoints` and `activeBreakpoints`. `DragService` drops `props.MODES` and fixes the `dragTreshold` spelling.
+- **A closed set of strings is named, and the type is derived from the name.** `DRAG_MODES` is a module-level `as const` object, and `DragMode = (typeof DRAG_MODES)[keyof typeof DRAG_MODES]`. This is the pattern for every closed set of strings in the framework.
+- **Breakpoints are their own source — `useBreakpoint()`.** It is backed by `matchMedia` `change` listeners, so it emits on crossings and it reports a change of the font size of the reader. `setBreakpoints()` replaces the named set and emits at once. The `MediaQueryList` objects are built once. The values are in `rem`, and in a media query `rem` resolves against the initial font size, not against the root element.
+- **The `matchMedia` engine is exposed — `useMediaQuery(query)`.** One instance per query string. Its `props()` answers with no subscription, because asking a `MediaQueryList` is a read. Emissions are crossings.
+- **`usePrefersReducedMotion()`** is the named case. It is a service and not a read at load time, because the preference changes while the page is open.
+- **Decay is expressed in time, not in frames.** `INERTIA_FRAME` (16.67 ms) is the reference of every factor. `decayOver(retained, elapsed)` converts an elapsed time into the decay of that time. `inertiaDecay()` is the same with the tighter clamp that a coast needs. `inertiaStep()` integrates the decay across the step, so any sequence of frames sums to `velocity · τ` exactly. The settle position is `value + velocity · τ` with `τ = INERTIA_FRAME / ln(1 / damp)`. The velocity is sampled as a distance over the interval between events, smoothed, with the interval clamped at both ends. At the drop, the velocity is decayed by the idle time through the same law.
+- **`damp(…, elapsed)` takes the elapsed time as a required argument.** `factor` is the fraction of the gap that closes per reference frame. It is stable for every value that a caller can pass. `ScrollInViewProps` carries `delta` for the same reason.
+- **`spring()` integrates on a fixed `SPRING_STEP` of a quarter frame**, however long the frame is, so `stiffness`, `damping` and `mass` keep their meaning and the duration is real. `stiffness / mass` is clamped to `MAX_SPRING_RATIO`, from which the step is derived.
+- **`smoothTo()` is a `toggle()` over `useRaf()`**: one subscription however many times the target is set, started when the value has somewhere to go, released when it arrives, plus `destroy()` for the case where the component goes first.
+- **A gesture that the browser can steal is not a gesture.** `useDrag` owns both axes by default and writes `touch-action: none`. `{ axis: 'x' }` writes `pan-y` and sets every Y movement prop to zero; `{ axis: 'y' }` writes `pan-x` and sets X to zero. It writes only when the computed value is `auto`, and it restores the previous inline value when the last service of those options leaves. Services on one target share that ownership. The click that ends a drag is suppressed from a flag that movement on the owned axis arms and the next `pointerdown` disarms, and only for a trusted click with a non-zero `detail`.
+- **Errors use the diagnostic protocol.** A subscriber that throws is skipped. Core dispatches `EVENTS.diagnostic` first, and calls `reportError()` with the original value only when no listener cancelled the event.
 
-  **The box is cached, because the read is the expensive half.** `getBoundingClientRect()` is a layout read and a mouse reports up to 1000 events a second. Measured in Chromium over 1000 reads: **1.7 µs** each against a clean layout and **31.6 µs** each when a write sits between them — the forced reflow, which is the realistic case since the effect being driven writes to the DOM. So the box is measured on demand and kept until a `scroll` (captured at the document, so every scroller counts), a `resize`, or the target's own `ResizeObserver` can have moved it: 1000 events cost **one** read instead of 1000, asserted by counting them in the spec. The layout box is deliberately the frame of reference — a transform the consumer applies from `moved()` does not invalidate it, so a hover effect cannot feed its own output back in.
+Two questions of the services review stay open on purpose (`SERVICES-SURFACE.md`, 2026-08-13): whether every source emits in one frame-aligned phase, and whether one `Service<T>` with an honest `props()` can cover a gesture.
 
-- **What the simplification dropped.** `PointerService` is pointer-events-only (v3 branched on `TouchEvent`), and follows one `pointerId` at a time so a second finger cannot end a live gesture; `ResizeService` keeps `width`/`height`/`ratio`/`orientation` and drops `breakpoints`/`activeBreakpoints`; `DragService` drops `props.MODES` from the props and fixes the `dragTreshold` spelling.
+See [RATIONALE.md — 8. Services](./RATIONALE.md#8-services).
 
-- **Closed sets of strings are named, and the type is derived from the name.** `DRAG_MODES` is a module-level `as const` object, with `DragMode = (typeof DRAG_MODES)[keyof typeof DRAG_MODES]`. This partly reverses the line above, and the reversal is narrower than it looks: what v3 shipped was `props.MODES`, a copy of the set on **every emission**, which deserved to go. A module export is a different thing, and the original decision — "the `DragMode` union types it" — weighed only the TypeScript audience. The first-class audience here writes components in plain JavaScript with **no build step**, and a literal union gives them nothing: no completion, no typo protection, no way to discover the set at all. `DRAG_MODES.INERTIA` gives all three, the literals still type-check, and deriving the type from the object keeps one source of truth. This is the pattern for every closed set of strings in the framework, not just this one.
-- **Breakpoints are their own source — `useBreakpoint()`.** A media query answers about the viewport, so a `breakpoint` field of `ResizeProps` said nothing about the element that service was observing. It is backed by `matchMedia` `change` listeners, which emit on **crossings** rather than once per resize frame and are the only mechanism that reports a change of the reader's font size. `setBreakpoints()` replaces the named set — the values v3 ships are only the default — and re-emits at once instead of leaving a stale name until something unrelated resized. The matching `MediaQueryList` objects are built once instead of once per breakpoint per resize, which measured 5.2× slower. When `defineFeatures` lands it carries the set; this setter is what it will call.
+## 9. Animation
 
-  The values are in `rem`, and **in a media query `rem` resolves against the _initial_ font size, not the root element's.** So the reader's browser font-size preference moves every breakpoint and `html { font-size: 62.5% }` moves none of them — verified at a viewport of 414 px, where `xs` (30rem) matched neither at a root of `10px` nor at `32px`. This is the reason `matchMedia` is the only honest source for them.
+**v4 does not ship `tween` or `animate`** (decided 2026-08-12).
 
-- **The `matchMedia` engine is exposed — `useMediaQuery(query)`.** The breakpoint service is that engine behind a named set of widths, and the engine itself was not reachable: `useMediaQuery('(orientation: portrait)')` is the same service with nothing named, one instance per query string so two components asking one question share one listener. Its `props()` is honest cold for the same reason the breakpoint one is — asking a `MediaQueryList` is a read — so a caller that only needs to branch once needs no subscription. Emissions are crossings, since `change` fires when the answer becomes different and never once per resize frame.
+Promoted from `migration/utils/` into `src/`:
 
-  **`usePrefersReducedMotion()` is the named case, and it is an accessibility gap rather than a convenience.** v4 ships a frame loop, drag inertia, damped scroll animations and a spring, and had no way to ask whether the reader turned motion down. It is a service and not a boolean read at load time because the preference **changes while the page is open**: a reader flipping it in their system settings leaves every value captured at load wrong for the rest of the session. Verified against a real crossing — the spec emulates the media feature through the browser rather than stubbing `matchMedia`, so the change travels the event path a reader's does.
+- `transition` — the class form and the inline-style form, with `enterTransition` and `leaveTransition` beside them.
+- The easing functions, on `utils/easings.ts`.
+- `spring()` and `smoothTo()`.
 
-- **Decay is expressed in time, not in frames.** A damping factor is a number per _step_, which only means something if the steps are equal — and frames are not. `INERTIA_FRAME` (16.67 ms) is the reference every factor is anchored to and `decayOver(retained, elapsed)` converts an elapsed time into the decay that belongs to it, so a factor keeps meaning one physical decay wherever it runs. `inertiaDecay()` is that with the tighter clamp the coast needs — a retention of `1` has no finite destination, which is a restriction of the inertia rather than of decay, and reusing it in `damp()` made a factor of `0` drift instead of holding still. For the inertia, and the coast runs on the elapsed time each `scheduler.tick()` already carries. Decaying once per frame instead made the same flick coast half as far at 120 Hz.
+The keyframes interpolator and its `cubicBezier` stay in `migration/ScrollAnimation/`, beside the only family that calls them, so they leave with it in one deletion.
 
-  Two parts of this are easy to get wrong and both were, once each. **Exponential decay is not enough on its own:** advancing by `velocity · elapsed` is a left rectangle sum over a curve that falls throughout the step, so it overshoots by an amount that depends on the step — 60 Hz and 120 Hz still landed 4% apart. `inertiaStep()` integrates the decay across the step, which telescopes, so any sequence of frames sums to `velocity · τ` exactly and the destination announced at the drop is the one the coast reaches. And **the velocity has to be a speed:** using the delta between two pointer events made it a function of the device's report rate, so a 1000 Hz mouse and a 125 Hz trackpad threw differently. It is sampled as distance over the interval between events, smoothed, with the interval clamped at both ends — under half a frame is coalescing rather than speed, over 100 ms is not one movement.
+Out of core, in a separate `ui-animation` package: time-based playback, stagger, sequencing, morphing and text splitting. Two entry points over one package — Motion as declarative components (`data-component="Motion"`, its props as `data-option-*`), and GSAP as a lifecycle and scoping decorator (`gsap.context()` bound to the mount cycle) with thin `Gsap` and `GsapTimeline` components. Both keep the vocabulary of their engine.
 
-  The settle position is `value + velocity · τ` with `τ = INERTIA_FRAME / ln(1 / damp)`, so it stays exact and invariant along the coast. It is also what makes a _pause_ cost the right thing: the velocity is decayed by the idle time at the drop, through the same law, rather than against a staleness threshold — holding still and then letting go used to throw as hard as letting go mid-swipe.
+`exit`, `layout` and `layoutId` are not the job of an engine. Native view transitions solve them, and they are in core (§7).
 
-- **`damp()` is the same law, and was the same bug.** Every per-frame damping in the ported components — the slider's position, the scroll animations' damped progress — applied its factor once per call, so the speed was whatever the display happened to be. Measured on the v3 helper it is a clean doubling: 56 frames to settle at 60 Hz, 28 at 120 Hz. All three call sites sit inside `useRaf().subscribe()`, which hands them the frame's elapsed time, and all three were discarding it.
+See [RATIONALE.md — 9. Animation](./RATIONALE.md#9-animation).
 
-  `elapsed` is a **required** argument rather than a defaulted one, because the only available default is "assume 60 Hz" and that is the defect. `factor` is the fraction of the gap closed per reference frame, so the values the components already pass keep roughly their old meaning. It is also stable for anything a caller can pass, which v3 was not: `factor = 2` flipped the gap's sign and oscillated forever, above that it diverged, and a non-finite factor returned `NaN` and poisoned every value downstream.
-
-  `ScrollInViewProps` carries `delta` for the same reason — a hook damping a value of its own needs the number this layer used.
-
-- **`spring()` and `smoothTo()` are ported, and both needed a different fix from the coast.** They were held out of the inertia work because neither could take its trick, and the reasons are worth keeping.
-
-  `spring()` is second order, so there is no single exponential to integrate exactly across a step. Measured on the v3 helper, `dt` appeared nowhere in it, which made it a pure step recurrence: the trajectory's _shape_ survived — an identical `104.24` overshoot at both rates — while its _rate_ was whatever the display was, settling in 56 real frames at 60 Hz and 28 at 120 Hz. The v4 one integrates on a fixed `SPRING_STEP` of a quarter frame however long the frame was, which keeps `stiffness`, `damping` and `mass` meaning exactly what they meant while making the duration real. A quarter frame rather than a whole one so that a 120 Hz display advances the spring twice per frame instead of every second frame, which would be visible as judder.
-
-  A fixed step turned out to be most of the stability answer and not all of it, which a test caught: semi-implicit Euler holds only while `√(stiffness / mass)` times the step stays under `2`, so a stiff enough spring diverges at _any_ fixed step. v3 had no guard at all and paid for it — `stiffness: 1.9` overshot to `190`, `stiffness: 4` ran away to `-1.6e15`. `stiffness / mass` is now clamped to `MAX_SPRING_RATIO`, which the step derives, and the clamp costs nothing perceptible because a spring at that ratio already arrives inside a frame.
-
-  `smoothTo()` needed rewriting rather than porting, and for a bug rather than a preference. `update()` called `tick()` synchronously and `tick()` re-scheduled itself through `requestAnimationFrame` with nothing cancelling or de-duplicating, so **every** call while the value was still settling started another self-perpetuating chain: five updates in one frame measured five chains, five subscriber notifications per frame, and five more frames queued. The value then converged N times faster than asked, where N was however many times the caller set it — so a `smoothTo` driven from a scroll handler, which is what it is for, sped up with the scrolling. It also owned a `requestAnimationFrame` loop, which this section forbids, and had no teardown at all.
-
-  The v4 one is a `toggle()` over `useRaf()`: one subscription however many times the target is set, started when the value has somewhere to go, released the moment it arrives, and `destroy()` for the case where the component goes first. Reference counting does the rest — the last one to stop stops the frame loop with it.
-
-- **A gesture the browser can steal is not a gesture.** Without the matching `touch-action` a native pan wins on touch, the browser fires `pointercancel`, and the drag service can receive only a half-finished drag. `useDrag` owns `both` axes by default and writes `none`; `{ axis: 'x' }` writes `pan-y` and filters every Y movement prop to zero relative to the gesture, while `{ axis: 'y' }` writes `pan-x` and filters X. It writes only when the computed value is `auto`, so consumer CSS is deliberate and wins, and restores the prior inline value after the final option-specific service leaves. Concurrent services on one target share that ownership instead of restoring CSS under one another. The click that ends a drag is suppressed from a flag armed by movement on the owned axis and disarmed by the next `pointerdown`, and only for a trusted click with a non-zero `detail` — reading the persistent `distance*` instead made every later click on the target unreachable, keyboard activation of a link inside it included.
-- **Errors use the diagnostic protocol.** A subscriber that throws is skipped so it cannot starve the others. Core dispatches `EVENTS.diagnostic` first, then calls `reportError()` with the original value only when no listener canceled the event.
-
-## 9. Animation — what v4 ships, and what it does not
-
-**Decided (2026-08-12): v4 does not ship `tween` or `animate`.**
-
-The usage data across `@studiometa/ui` is one-sided:
-
-| utility            | real consumers in ui                                                              |
-| ------------------ | --------------------------------------------------------------------------------- |
-| `animate` (719 ln) | **1** — `AbstractScrollAnimation`, which never plays it, only calls `.progress()` |
-| `tween`            | **0**                                                                             |
-| `transition`       | **5** — `Modal`, `Tabs`, `Panel`, `AccordionItem`, `withTransition`               |
-
-The player is the part nobody uses. The 719 lines exist to own a rAF loop, a per-element registry of running animations and a `start`/`pause`/`play`/`finish` surface, and ui's only consumer scrubs a progress value instead. Meanwhile the most-used utility of the three is not an animation engine at all — `transition` is a CSS-class state machine.
-
-This is already the de facto state: `src/` contains no animation utility of any kind. The decision is therefore about what gets **promoted**, not what gets deleted.
-
-**Promoted from `migration/utils/` into `src/`:**
-
-- `transition` — both the class form and the inline-style form, since `AccordionItem` animates a measured pixel height. **Done**, with `enterTransition`/`leaveTransition` beside it and one fix: an interrupted run used to drop its `transitionend` listener without resolving, so the caller it interrupted waited forever.
-
-**The keyframes interpolator is not promoted (2026-08-16), because what needs it is going away.** It was on the list above — `compile(keyframes, { easing }) => (progress, size) => styles`, ~150 lines including the `cubicBezier` which replaces `@motionone/easing`. `ui-motion` does not ship an interpolator either: it carries Motion's **scroll-linked animation**, which is the whole job the `ScrollAnimation` family exists to do. Those components become obsolete, and the interpolator with them — so promoting it into core would be hoisting a primitive whose only consumer is scheduled for deletion.
-
-Core keeps what the rest of the ported components need from the maths: the easing functions on `utils/easings.ts` (ported 2026-08-16), `spring()` and `smoothTo()`. The interpolator and its bezier live in `migration/ScrollAnimation/`, beside the only family that calls them, so they leave with it in one deletion.
-
-**Out of core, into a separate `ui-animation` package:** time-based playback, stagger, sequencing, morphing and text splitting. Springs were on this list and came off it (2026-08-12): `spring()` is forty lines of pure maths with no player, no registry and no scheduling of its own, and `smoothTo()` is the one primitive the ported components need to smooth a value towards a target. What belongs outside is the _engine_ — a timeline, playback controls, a per-element registry — not a function that advances one number by one step. Two entry points over one package — Motion as declarative components (`data-component="Motion"`, its own props as `data-option-*`), GSAP as a lifecycle/scoping decorator (`gsap.context()` bound to the mount cycle) plus thin `Gsap`/`GsapTimeline` components. Engine-specific vocabulary in both cases: Motion's props are its API and port faithfully, GSAP's API is code and only ever maps lossily onto attributes.
-
-**Not the engine's job:** `exit` and `layout`/`layoutId` need framework-owned rendering, which the DOM does not give us — a MutationObserver fires after the element is gone and after layout changed. Native View Transitions already solve both, and are in core (section 7).
-
-## 10. DOM content swapping — `swap()`, one primitive in core
-
-**Implemented.** @studiometa/ui writes the same swap twice: `Fetch.__updateDOM` matches elements from a fetched document by `id` and applies one of four modes, and `FrameTarget.updateContent` does the same job between its leave and enter transitions. Both then call `adoptNewScripts(getScripts(el), oldScripts)`. Two copies of a swap is tolerable; two copies of the script rule is not, because the rule is not obvious in either direction — a `<script>` produced by the fragment parser is flagged _already started_ by the HTML specification and stays inert wherever it is moved, so it only runs if it is recreated, and recreating one that was already in the page runs it twice.
+## 10. DOM content swapping — `swap()`
 
 ```js
 swap(target, content, { mode, wrap }): Promise<void>
 ```
 
-- `target` is an element whose **content** changes. It is never itself replaced, so the caller's reference, its `id` and any component instance living on it survive.
-- `content` is a markup string parsed in the target's own parsing context — `<tr>`, `<li>` and `<option>` survive, which no `<div>` or `DOMParser` context gives you — or an `Element`/`DocumentFragment` read as the incoming counterpart of the target, whose children become the new content. That is already what both ui call sites mean when they pass an element matched out of a fetched document.
-- The returned promise resolves after `whenDOMSettled()`, so awaiting `swap()` means the mutation is applied _and_ swapped-in components are mounted and swapped-out ones destroyed.
+- `target` is an element whose **content** changes. The element itself is never replaced, so the reference of the caller, its `id` and any instance on it survive.
+- `content` is a markup string, parsed in the parsing context of the target, so `<tr>`, `<li>` and `<option>` survive. It can also be an `Element` or a `DocumentFragment`, read as the incoming counterpart of the target, whose children become the new content.
+- The returned promise resolves after `whenDOMSettled()`, so an awaited `swap()` means that the mutation is applied, the new components are mounted and the old ones are destroyed.
 
-### Why v4 makes it small
+`SWAP_MODES` holds four positions — `replace`, `prepend`, `append` and `morph` — as a frozen object with a derived type. `prepend` and `append` stay in core because they need the same before-and-after script diff as the other two.
 
-Under v3 each family had to re-mount components inside the new markup and refresh stale refs. v4 removes both jobs: the registry mounts and destroys purely on DOM insertion and ejection (§3), and `$refs` re-read on access (§1). What is left of a swap is one mutation plus one script-adoption pass — roughly forty lines against ui's two implementations, with no `$update()`, no child teardown and no `settle()` helper for the caller. The browser suite asserts exactly that: components inside swapped-in markup mount, components swapped out are destroyed, and a component morphdom preserves is neither destroyed nor re-mounted, all with the `swap()` promise as the only synchronisation point.
+A `<script>` produced by the fragment parser is flagged as already started by the HTML specification and stays inert wherever it is moved. It runs only if it is recreated, and a script that was already in the page runs twice if it is recreated. `swap()` owns that rule, once.
 
-### The mode cut
+Three things are not in core:
 
-`SWAP_MODES` keeps the four positions ui uses — `replace`, `prepend`, `append`, `morph` — as a frozen object with a derived type, the framework-wide convention for a named constant.
+- **Element-level replace.** Core's `replace` is `replaceChildren`.
+- **Attribute syncing in `morph`.** Core passes `childrenOnly: true`, because `data-component` and `data-mount` are lifecycle declarations.
+- **Transitions, view transitions, history, `id` matching and response parsing.** All of these are caller policy.
 
-Keeping `prepend`/`append` in core is deliberate even though each is a one-line DOM call. What makes them worth hoisting is not the insertion, it is that they need the same before/after script diff as the other two. Cutting them would force core to export the script-adoption helper instead, which means hoisting two primitives where one will do, and leaving the subtle one in the caller's hands.
+Two consequences of `morph` are policy of morphdom, not of `swap()`: an element that the incoming markup does not contain is discarded even from a preserved parent, and morphdom syncs the `value` of an input from the incoming markup. Identity survives a morph — nodes, focus, expandos, instances — but markup that is not sent does not.
 
-Three things ui does around a swap are **not** in core:
+`morphdom` is a real dependency, approved by the user. The import is static. The subpath layout contains the cost: `morphdom` is reachable through `swap()` only, so a page that never swaps never downloads it.
 
-- **Element-level replace.** `Fetch`'s `replace` calls `oldElement.replaceWith(newElement)`, discarding the element the caller just found and, with it, its `id`, its instance and any live reference to it. Core's `replace` is `replaceChildren`. In v3 the element-level form bought a guaranteed-fresh subtree; in v4 refs are live and the registry re-mounts on insertion, so it buys nothing and costs identity. `FrameTarget` already used the content-level form.
-- **Attribute syncing in `morph`.** ui morphs the target itself, so the incoming element's attributes land on it. Core passes `childrenOnly: true`: on a v4 element, `data-component` and `data-mount` are lifecycle declarations, and rewriting them as a side effect of a content update would terminate and recreate instances. A caller wanting attributes synced is asking for something else than a content swap.
-- **Transitions, view transitions, history, `id` matching and response parsing.** All caller policy. `Fetch`'s `selector` loop is routing, not swapping.
-
-Two consequences of `morph` are morphdom policy, not swap policy, and the specs record them so callers stop rediscovering them: an element the incoming markup does not contain is discarded even from a preserved parent, and morphdom syncs an input's `value` from the incoming markup. Identity survives a morph — nodes, focus, expandos, component instances — unsent DOM does not.
-
-### The `morphdom` dependency
-
-Approved by the user, and taken as a real dependency rather than reimplemented. A DOM-diffing algorithm is not something to write again for fun: morphdom is ~800 lines of special-cased element handlers accumulated over ten years, ui has already shipped it in production, and reimplementing it would be exactly the "common functionality written again without a clear reason" this project avoids.
-
-Measured with esbuild (minify + gzip -9):
-
-| artifact                                         |    min | min+gzip |
-| ------------------------------------------------ | -----: | -------: |
-| `morphdom` 2.7.8, its own esm bundle             | 5203 B |   2199 B |
-| `dist/swap.js`, the emitted module alone         |  910 B |    529 B |
-| `./swap` subpath, whole graph, morphdom external | 3845 B |   1737 B |
-| `./swap` subpath, whole graph, morphdom included | 9058 B |   3781 B |
-
-So the primitive itself costs about half a kilobyte and the dependency costs about two, roughly doubling the flattened `./swap` graph. The import is static: a dynamic `import('morphdom')` would keep `replace` mode free, at the price of a CDN round-trip precisely when `morph` is used, and 2 kB is not worth buying that with a second network hop. The cost is contained instead by the subpath layout — `morphdom` is reachable only through `swap()`, so a page which never swaps never downloads it. `src/index.ts` says so in place of its former "Zero dependencies."
-
-### The seam for the negotiable event
-
-`swap()` announces nothing on its own. The `wrap` option is the whole seam: it receives the swap's single mutation and decides when it runs.
+The `wrap` option is the whole seam for a negotiated event. It receives the single mutation of the swap and decides when it runs:
 
 ```js
 await swap(el, html, { mode, wrap: (mutate) => viewTransition(mutate) });
 ```
 
-The negotiable `domUpdate()` event helper slots in as the producer of that wrapper and nothing else. Its `wrap` negotiation selects a runner; the caller passes the swap mutation through that runner and the swap is delayed, wrapped or transitioned by whoever listened. Resilience policy — what happens when a negotiated runner rejects, whether the update is applied anyway — stays with `domUpdate()`. The swap stays a pure DOM operation with one hole in it.
+`domUpdate()` produces that wrapper and nothing else. Resilience policy stays with `domUpdate()`.
 
-`swap()` is a free function, not a `Base` method: a swap target is frequently an element found by `id` with no component on it, and the primitive has no use for `this`.
+`swap()` is a free function, not a `Base` method.
 
-## 11. Autoload — measured against the registry, and mostly absorbed
+See [RATIONALE.md — 10. DOM content swapping](./RATIONALE.md#10-dom-content-swapping).
 
-v3 ships **1033 source lines** of autoload across seven modules, plus 1419 lines of spec (`packages/js-toolkit/src/autoload/`). §2 promised the layer would stay and "its loader, observers, and scheduler become the registry's own". Measured against what the registry and the mount strategies now do, that promise is generous: what is left after the absorption is **one map and one trigger**, and the trigger is not a new one.
+## 11. Autoload
 
-### 11a. What the registry already does
+v3 ships 1033 source lines of autoload across seven modules. The registry and the mount strategies absorb almost all of it. What stays is one map and one trigger, and the trigger already exists.
 
-**Absorbed — deleted, not rewritten.**
+### 11a. Absorbed
 
-- **The discovery observer.** `ComponentLoader.start()` creates a second `MutationObserver` on the root and `__scan`s added subtrees for `[data-component]` (`loader.ts:147-199`). v4 has exactly one document observer with a precise `attributeFilter` (`dom-mutations.ts:52-68`), and `registry.ts` already reads the token set from each inserted subtree in one pass. A lazy entry is a lookup in the same map, in the same `reconcileElement()` walk. **~90 lines gone**, and with them the second observer §2 called out as one of the three mounting systems.
-- **The four load triggers.** `__schedule()` re-implements `visible` (an `IntersectionObserver` with a 200 px `rootMargin`), `idle` (`requestIdleCallback` with a 2 s timeout and a `setTimeout` fallback) and `interaction` (`pointerover`/`pointerdown`/`focusin`, once) — `loader.ts:270-337`. `mount-strategies.ts` is the same code, already written, already specced, and richer: `visible:200px` preserves that early viewport boundary, it adds the reversible `in-view[:<rootMargin>]` and `media:<query>`, and it keeps importing one-shot even when the later mount lifecycle is reversible. **~70 lines gone.**
-- **The per-element and per-record cleanup bookkeeping.** `__addCleanup`, `__cleanSubtree`, `__clean`, `__elementCleanups`, `__elementSchedules` — `loader.ts:434-480`, ~50 lines whose whole job is "dispose the trigger when the element leaves". `registry.ts` already owns that shape for mount strategies (`disposeController`, `destroyWithin`, the removed-subtree snapshot), and the lazy half does not reuse it so much as _be_ it: one controller map holds both halves, so an import trigger is disposed by the same eleven lines which dispose a mount strategy, at the same call sites. **Zero extra lines.**
-- **Recursive registration of configured children.** `__registerConfiguredChildren` + `__registerConfiguredChild` + the manifest's `children: string[]` field — `loader.ts:381-432`, ~50 lines and a cycle-guard `visited` set, because v3's `registerComponent(Ctor, token)` did not walk `config.components`. v4's `registerComponent()` does, in one `registerFamily()` loop — which is also where a `() => import(…)` child is deferred rather than resolved (§11d). The 15 `children` arrays in ui's generated manifest are dead data on v4.
-- **Component-state bookkeeping.** `ComponentRecord` with `scheduled | loading | registered | failed`, `scheduledStrategies`, and the `record.state !== 'scheduled'` guards threaded through every branch (`loader.ts:37-45, 256-337`). One `Map<string, Promise<void>>` keyed by name replaces it: an import happens once, whichever element triggered it, and the promise is the state.
-- **`readEagerTokens` and `<meta name="js-toolkit:eager">`** (`runtime.ts:88-98`). A per-page escape hatch to force tokens eager, bypassing both the manifest strategy and `data-load`. `data-mount` on the element is the same override, in the place the decision belongs, and it is already live. Grepped across `@studiometa/ui`: the meta appears in the changelog and the docs, and **in no page and no template**. Not ported.
+- The discovery observer of `ComponentLoader.start()`. v4 has one document observer, and a lazy entry is a lookup in the same map, in the same `reconcileElement()` walk.
+- The four load triggers of `__schedule()`. `mount-strategies.ts` is that code, richer and already specced.
+- The per-element and per-record cleanup bookkeeping. One controller map holds both halves, so an import trigger is disposed where a mount strategy is disposed.
+- Recursive registration of configured children. `registerComponent()` walks `config.components` in one `registerFamily()` loop. The `children` arrays of a v3 manifest are dead data.
+- The `ComponentRecord` state machine. One `Map<string, Promise<void>>` keyed by name replaces it: the promise is the state.
+- `readEagerTokens` and `<meta name="js-toolkit:eager">`. `data-mount` on the element is the same override. Not ported.
 
-**Still needed, and much smaller.**
+Still needed: the token-to-importer map, import-error reporting through the diagnostic protocol, and resolution of the class out of the imported module, which v4 does once so that a hand-written entry is `Slider: () => import('./Slider.js')` with nothing to unwrap.
 
-- **The token → importer map.** Genuinely new information: no amount of DOM observation tells you where `data-component="Slider"` is published. This is the irreducible core of autoload, and it is a `Map`.
-- **Import-error reporting.** `__reportError` is 12 lines plus a dedicated v3 error event (`loader.ts:488-500`). v4 reports load and mount recovery through the single diagnostic protocol in 11e.
-- **Resolving the class out of the imported module.** v3 splits it: generated manifests write `.then(({ Slider }) => Slider)` once per entry (80 times in ui's manifest) and `defineManifest` does `module[exportName] ?? module.default` for hand-built ones. v4 does it once, in six lines, so a hand-written entry is `Slider: () => import('./Slider.js')` with no unwrapping.
+### 11b. One knob, not two
 
-**Still needed, unchanged: nothing.** Every remaining piece is either smaller or gone. The one v3 concept kept verbatim is the _shape_ of the manifest value, and even that is loosened to accept a bare importer.
-
-### 11b. The knob that did not survive: `data-load`
-
-v3 has two orthogonal knobs — `ComponentLoadStrategy` (`eager | visible | idle | interaction`, per manifest entry, overridable per element with `data-load`) and, in v4, `MountStrategy`. §2's `RegistryEntry` sketch keeps both. It should not.
-
-They are the same decision asked twice. Deferring the _import_ until visible and deferring the _mount_ until visible have one trigger and one answer; the only case where they differ is "download it now but do not mount it yet", which buys a page nothing it could not get by making the import eager, and costs it a second vocabulary in the markup. So v4 has **one** knob, and it is the one that already exists:
+Deferring the import and deferring the mount are one decision:
 
 ```
 data-mount  >  manifest entry mountStrategy  >  'eager'
 ```
 
-which is precisely `resolveStrategy()`'s chain — the same function, with the manifest entry standing in the middle slot for the class's `config.mountStrategy` _because the class is not there to be read yet_. That is the entry's whole justification, and it is the honest one: a lazy entry needs a strategy field for exactly as long as the class it names is undownloaded. Once the class registers, `resolveStrategy()` reads `config.mountStrategy` and the entry is deleted from the map.
+This is the chain of `resolveStrategy()`. The manifest entry stands in the middle slot for the `config.mountStrategy` of a class that cannot be read yet. Once the class registers, `resolveStrategy()` reads `config.mountStrategy` and the entry is deleted from the map. There is no `data-load` and no compatibility shim for it.
 
-The evidence says the same. Across `@studiometa/ui`'s three generated manifests: 80 `@studiometa/ui` entries all `strategy: 'eager'`, all 14 `ui-mapbox` entries and all 4 `ui-motion` entries `strategy: 'visible'` — a **per-package family policy**, never a per-component one. And `data-load`, the per-element override the four-value vocabulary exists to serve, appears in the ui repository **once, in a documentation page**. The knob nobody turns is the one dropped.
-
-### 11c. The layer that was built
-
-`registerManifest(entries)` in `registry.ts` — **+245 / −18 lines in one file**, comments included, sharing the registry's map, its scan, its element bookkeeping and its mount strategies. No new module, no new observer, no new dependency.
+### 11c. `registerManifest()`
 
 ```js
 import { registerManifest } from '@studiometa/js-toolkit-v4';
@@ -1064,21 +795,17 @@ registerManifest({
 });
 ```
 
-- **One name, one entry**, across both halves: a token an eager class or an earlier manifest already owns warns and is ignored, like `customElements.define` and like `registerComponent()`.
-- **Zero dependencies, zero bundler knowledge.** The value is a function returning a promise. `import.meta.glob`, `import.meta.webpackContext` and a generated manifest all produce that shape; none of them is named in core.
-- **The registry stays the only constructor.** The import ends in `registerComponent(ComponentClass)`, which schedules the pair exactly as a hand-registered class is scheduled. Autoload never touches `new`, the instance map, or a mount hook.
-- **One scheduling algorithm, not two.** A name resolves to one source — a registered class or a manifest entry — and one controller holds the pair's current decision, whichever answered. Strategy precedence, the unchanged-declaration bail, replacement, teardown and settlement are written once; only the hooks differ, mounting a class or importing a module. The class arriving is a change of _source_, so the pass which replaces a controller is also the pass which turns a spent import trigger into a mount. A one-shot trigger cannot fire a second time, so that pass mounts on the import which proves the condition was satisfied; a reversible one is observed again. Both facts come from `mountStrategyBehaviour()`, never from a list of strategy names in the registry.
-- **A trigger stands down without tearing itself down.** `media:` reads its query inside `applyMountStrategy()`, so a lazy trigger can fire before the registry holds its teardown. The controller therefore only marks itself spent — a spent controller is not the current pair, which is what makes any second trigger inert — and the teardown runs from the ordinary controller replacement. No caller depends on when a hook fires.
-- **An unloaded declaration is invisible.** Nothing is constructed at discovery — the trigger imports, and construction happens on first mount as always. So `$query`, `$closest`, `$watchChildren` and `getInstances()` miss it for the same reason they miss a component waiting on `data-mount="visible"`, and by the same mechanism: no instance on the element. §2's rule needed no exception written for it.
-- **`whenDOMSettled()` covers an eager lazy component.** The import promise joins the lifecycle-work set only when the trigger was the eager one (`mountStrategyBehaviour(strategy).eager`, which is `eager` alone), so `swap()` waits for download → registration → mount, and still never waits on a viewport, an idle callback, an interaction or a media query. That is the existing rule, extended one step earlier in the pipeline rather than a new one.
-- **One import per name, one failure report per name.** Failures emit one diagnostic and are never retried: the trigger is spent, and a retry loop against a 404'd chunk is worse than a quiet page.
-- **A class whose `config.name` differs from the token warns** instead of failing silently, since v4 registers by `config.name` and v3 registered by token.
+- **One name, one entry**, across both halves. A token that an eager class or an earlier manifest owns gives a warning and is ignored.
+- **No dependency and no bundler knowledge.** The value is a function that returns a promise. `import.meta.glob`, `import.meta.webpackContext` and a generated manifest all produce that shape. Core names none of them.
+- **The registry stays the only constructor.** The import ends in `registerComponent(ComponentClass)`. Autoload never touches `new`, the instance map, or a mount hook.
+- **One scheduling algorithm.** A name resolves to one source, and one controller holds the current decision of the pair. The arrival of the class is a change of source, so the pass that replaces a controller turns a spent import trigger into a mount. A one-shot trigger mounts on the import that proves its condition; a reversible one is observed again. Both facts come from `mountStrategyBehaviour()`.
+- **A trigger stands down without a teardown of its own.** A controller marks itself spent. A spent controller is not the current pair, so a second trigger is inert. The teardown runs from the ordinary controller replacement.
+- **An unloaded declaration is invisible** to `$query`, `$closest`, `$watchChildren` and `getInstances()`, because nothing is constructed at discovery.
+- **`whenDOMSettled()` covers an eager lazy component.** The import promise joins the lifecycle-work set only for the eager trigger, so `swap()` waits for download, registration and mount, and still never waits on a viewport, an idle callback, an interaction or a media query.
+- **One import per name, one failure report per name.** A failure emits one diagnostic and is never retried.
+- **A class whose `config.name` differs from its token gives a warning.**
 
-Cost: **+245 lines in `registry.ts` and +18 specs in `src/autoload.spec.ts`**, against v3's 1033 source lines across seven modules — which collapse to one exported function and three exported types.
-
-### 11d. The parent's own map: `config.components` takes a dynamic import
-
-`config.components` keeps its name and its object shape, and a value may now be a thunk beside a class:
+### 11d. `config.components` takes a dynamic import
 
 ```js
 static config = {
@@ -1090,31 +817,23 @@ static config = {
 };
 ```
 
-`registerComponent()` already walked the map — the merged one, so a subclass registers its base's family — to register it. It now **defers** a thunk instead of resolving it: the value becomes a lazy entry of the same registry, under its key, and every step after that is the one 11c already built — `scheduleFor()` finds the name, the element's `data-mount` decides when, `importComponent()` imports once per name whichever element triggered it, `registerComponent()` takes over when the class arrives. Nothing new observes, schedules or imports.
+`registerComponent()` defers a thunk instead of resolving it. The value becomes a lazy entry of the same registry, under its key. Every step after that is the step of 11c.
 
-**Why the object shape is what makes this work.** The key supplies the component name, and a thunk cannot until it resolves. So a lazy child is a name the registry knows with nothing downloaded — the same knowledge a manifest entry carries, read out of the parent's own source instead of a separate file. The name set `on<Child><Event>` resolution reads is `Object.keys()`, so a lazy value changes nothing there either.
-
-**Telling a class from a thunk** is the one real trap, because a class _is_ a function. The test is `isComponentClass()` — the prototype chain — which is what `resolveComponentClass()` already uses on whatever an importer resolved, so the two halves agree by construction. It is the definition of a component class rather than a proxy for it: a `config` static can be forgotten, and `fn.toString()` reads source text. Anything else callable is a thunk, with one exception worth catching early: a value written with `class` and not extending `Base` would be called as an importer and throw "cannot be invoked without 'new'", on an element, long after the mistake. A class's `prototype` own property is non-writable and an arrow's does not exist, so that shape is reported where it is declared.
-
-**What it buys.** A manifest may declare **only the parent**, and the parent owns when its children load. It is also the answer to the gap 11c left open: a lazy component no longer drags its declared family into one chunk, because a child behind a thunk is its own chunk — the family splits where the author says it splits.
-
-**First wins, quietly** — unlike `registerManifest()`, which warns. Several parents declaring the same lazy child is the normal case rather than a collision, and two thunks importing one module are two different function objects, so there is nothing to compare a real conflict against. A token two components genuinely claim still reports itself one step later, through the class-name check when the import lands.
-
-The entry gets **no `mountStrategy` field**. A manifest entry needs one because the class it names cannot be read; a `config.components` thunk is declared beside a class which carries its `config.mountStrategy` the moment it registers, so a second place to say the same thing would put back the knob 11b dropped. Until the class arrives the chain is `data-mount > eager`; after it, the usual three-step one, reading the **merged** config — so a lazy child which is a subclass inherits the strategy its base declared, and the deferral never becomes the way to lose it.
-
-Cost: ~35 lines in `registry.ts` and one union in `BaseConfig`; `ComponentImporter` moves next to `BaseConstructor` in `Base.ts` and is re-exported where it was.
+- **The key supplies the name**, so a lazy child is a name that the registry knows with nothing downloaded. The name set for `on<Child><Event>` resolution is `Object.keys()`.
+- **`isComponentClass()` tells a class from a thunk**, through the prototype chain, which is the test that `resolveComponentClass()` already uses. A value written with `class` that does not extend `Base` is reported where it is declared, because the `prototype` own property of a class is not writable and an arrow function has none.
+- **A manifest can declare the parent only.** A child behind a thunk is its own chunk, so a family splits where the author splits it.
+- **First wins, quietly**, unlike `registerManifest()`. Several parents that declare the same lazy child is the normal case. A token that two components genuinely claim is reported by the class-name check when the import lands.
+- **The entry gets no `mountStrategy` field.** Until the class arrives the chain is `data-mount > eager`. After it, the usual three steps read the merged config, so a lazy child that is a subclass inherits the strategy of its base.
 
 ### 11e. One diagnostic protocol
 
-Warnings and recovered errors use one observable contract. `EVENTS.diagnostic` is `'js-toolkit:diagnostic'`, and `CustomEvent<ToolkitDiagnosticDetail>` carries readonly `severity`, `code`, `message` and optional `component` fields. An error detail also requires the original caught value as readonly `error`; a warning does not carry one. `ToolkitDiagnosticSeverity` is `'warning' | 'error'`, and `ToolkitDiagnosticCode` is the exact union of the stable namespaced strings in the deeply frozen `DIAGNOSTICS` object. The nested constant shape keeps call sites clear, for example `DIAGNOSTICS.component.loadFailed`, `DIAGNOSTICS.callback.serviceFailed` and `DIAGNOSTICS.protocol.lateRegistration`.
+`EVENTS.diagnostic` is `'js-toolkit:diagnostic'`. `CustomEvent<ToolkitDiagnosticDetail>` carries readonly `severity`, `code` and `message` fields, and an optional `component`. An error detail also requires the original caught value as readonly `error`; a warning carries none. `ToolkitDiagnosticSeverity` is `'warning' | 'error'`. `ToolkitDiagnosticCode` is the exact union of the namespaced strings in the deeply frozen `DIAGNOSTICS` object, such as `DIAGNOSTICS.component.loadFailed`, `DIAGNOSTICS.callback.serviceFailed` and `DIAGNOSTICS.protocol.lateRegistration`.
 
-Every diagnostic starts on its relevant connected element when one exists and otherwise on `document`. It bubbles across shadow boundaries and is cancelable: `{ bubbles: true, composed: true, cancelable: true }`. Dispatch always happens before the default sink. An uncanceled warning calls `console.warn()` once with exactly `[js-toolkit:<code>] <message>`; an uncanceled error calls `reportError(detail.error)` with the original value. `preventDefault()` suppresses only that sink. It does not change mount recovery, fallback mutation, callback continuation, promise rejection or any other framework decision.
+Every diagnostic starts on its relevant connected element, or on `document` when there is none. It is dispatched with `{ bubbles: true, composed: true, cancelable: true }`. Dispatch always happens before the default output. An uncancelled warning calls `console.warn()` once with exactly `[js-toolkit:<code>] <message>`. An uncancelled error calls `reportError(detail.error)` with the original value. `preventDefault()` suppresses that output only. It changes no framework decision.
 
-The internal diagnostics module owns dispatch plus small `warn()` and `warnOnce()` helpers; the reporting functions are not public. Runtime modules pass code literals checked against `ToolkitDiagnosticCode`, so the full public `DIAGNOSTICS` object enters only the root and `./DIAGNOSTICS` export graphs. Warning deduplication is stored in a revisioned shared-runtime slot, keyed by weak owner plus diagnostic-specific misuse key. It therefore works across independently evaluated package copies without retaining instances, elements, declarations, runners or manifest inputs, and it does not collapse unrelated warnings merely because their text matches. Direct `console.warn()` and `console.error()` calls do not exist elsewhere in core.
+The internal diagnostics module owns the dispatch and the `warn()` and `warnOnce()` helpers. The reporting functions are not public. Warning deduplication is stored in a revisioned shared-runtime slot, keyed by weak owner plus a misuse key, so it works across independently evaluated copies without retaining instances, elements, declarations, runners or manifest inputs. There is no direct `console.warn()` or `console.error()` call elsewhere in core.
 
-Recovered load, mount, invalid-strategy and `Base` lifecycle failures report exactly once. Isolated signal, context subscription and teardown, attribute watcher, service, scheduler tick/task, DOM-update runner and extendable-event callbacks report and continue the remaining work. A scheduled task also rejects its own promise with the same value. Direct caller-owned failures remain throws or rejections: decorator and manifest-adapter misuse, shared-runtime incompatibility, service startup rollback, caller-owned teardown, `viewTransition()` and `swap()` do not add diagnostics.
-
-A page can monitor all diagnostics and suppress only default output:
+Recovered load, mount, invalid-strategy and `Base` lifecycle failures report exactly once. Isolated signal, context subscription and teardown, attribute watcher, service, scheduler tick and task, DOM-update runner and extendable-event callbacks report and continue. A scheduled task also rejects its own promise with the same value. Direct caller-owned failures stay throws or rejections: decorator and manifest-adapter misuse, shared-runtime incompatibility, service startup rollback, caller-owned teardown, `viewTransition()` and `swap()`.
 
 ```ts
 import { DIAGNOSTICS, EVENTS, type ToolkitDiagnosticDetail } from '@studiometa/js-toolkit-v4';
@@ -1129,55 +848,51 @@ document.addEventListener(EVENTS.diagnostic, (rawEvent) => {
 });
 ```
 
-The breaking surface removes `EVENTS.error`, `ToolkitErrorDetail` and `ToolkitErrorStage` with no aliases. It adds `DIAGNOSTICS`, `ToolkitDiagnosticSeverity`, `ToolkitDiagnosticCode` and `ToolkitDiagnosticDetail`. From post-#813 `main`, the public root moves from **61 to 62 runtime exports** and from **90 to 91 type-only exports**. Generated `./EVENTS` and `./DIAGNOSTICS` constant subpaths keep both frozen objects independently importable.
+`EVENTS.error`, `ToolkitErrorDetail` and `ToolkitErrorStage` are removed with no alias. `DIAGNOSTICS`, `ToolkitDiagnosticSeverity`, `ToolkitDiagnosticCode` and `ToolkitDiagnosticDetail` are added. Generated `./EVENTS` and `./DIAGNOSTICS` subpaths keep both frozen objects importable on their own.
 
-### 11f. Further layers, and what each costs
+### 11f. Further layers
 
-1. ~~**Manifest generation from a bundler glob.**~~ **Built:** `defineManifest({ modules, mountStrategy? })`, `fromMetaGlob()` and `fromWebpackContext()` add path→token derivation (`index.ts` falls back to the parent directory), a lazy/eager Vite glob guard and a deferred webpack adapter with no bundler dependency. The package-wide `mountStrategy` emits entry wrappers only when it is not `eager`; importers and module namespaces stay untouched for the registry to resolve. Duplicate tokens warn and keep the first path, matching the registry. No load strategy, `data-load`, aliases, children, metadata, composition, observer, loader, runtime or registration API comes with this layer.
-2. ~~**A cross-copy shared runtime.**~~ **Built.** `shared-runtime.ts` owns `globalThis[Symbol.for('@studiometa/js-toolkit-v4/runtime')]` and gives each subsystem a typed, revision-checked slot. Duplicate evaluated copies now reuse the canonical `defaultScheduler`; registry eager/lazy maps, pair/load controllers and responsive work; the DOM mutation observer, processor, queue and settlement state; root-context providers, pending requests and subscriptions; responsive breakpoint state; and every built-in service cache or singleton (`raf`, scroll, resize, pointer, drag, media, in-view and scroll-progress). `Base` carries a separate inherited `Symbol.for` brand on its constructor, so registry family and imported-module resolution recognise a component from another copy without treating an arbitrary function as a class. The slots stay lazy and keep the existing reference-counted teardown; incompatible root or slot revisions throw instead of mixing layouts. This is same-realm coordination only, through that realm's `globalThis`, and only core's built-in caches join it: a consumer's own `createService()` or `perTarget()` call remains consumer-owned. None of v3's manifest coalescing, stop/restart logic, load strategies, package-version negotiation or global instance registry returned. A browser fixture builds two independent bundles and proves one frame request, observer/processor path and mount, cross-copy family/lazy-class recognition, one public diagnostic protocol with single registry reports and shared weak warning state, shared option-sensitive services, shared context state and final teardown.
-3. **Composing and overriding manifests** — v3's `composeManifests` is later-wins, so an app can shadow a packaged component by re-declaring its token last (`autoload.ts:32-40`). v4 is first-wins-and-warn, following `customElements.define`. **Cost: an `{ override: true }` option, ~5 lines** — but the decision is the expensive part, not the code, and first-wins is the safer default to start from.
-4. **A scoped `root`.** v3 takes `root?: Document | Element` and scans only within it. v4's registry is document-wide by construction, so this is not an autoload feature but a registry one. **Cost: unknown and not small** — it would change `scanName()`, `scan()` and the observer's target. No consumer has asked.
-5. **Informational manifest metadata** — `packageName`, `subpath`, `exportName`, `group`, `styles`, `integrations`. The loader reads none of them (`types.ts:16-49` says so six times); they exist for tooling around the manifest. **Cost: zero code, and they belong in the generator's output type, not in core's.**
-6. **A `data-load` compatibility shim.** Explicitly not built — see 11b. A page that used `data-load` migrates to `data-mount`, one attribute rename, and the strategy vocabulary is a superset except for the meaningless "load now, mount later".
+1. **Manifest generation from a bundler glob — built.** `defineManifest({ modules, mountStrategy? })`, `fromMetaGlob()` and `fromWebpackContext()` add path-to-token derivation (`index.ts` falls back to the parent directory), a lazy and eager Vite glob guard, and a deferred webpack adapter with no bundler dependency. The package-wide `mountStrategy` emits entry wrappers only when it is not `eager`. Duplicate tokens give a warning and keep the first path.
+2. **A cross-copy shared runtime — built.** `shared-runtime.ts` owns `globalThis[Symbol.for('@studiometa/js-toolkit-v4/runtime')]` and gives each subsystem a typed slot with a revision. Duplicate copies reuse the canonical `defaultScheduler`, the registry maps and controllers, the DOM mutation observer and queue, the root-context state, the breakpoint state and every built-in service cache. `Base` carries a separate inherited `Symbol.for` brand on its constructor, so family and imported-module resolution recognise a component from another copy. The slots stay lazy and keep the reference-counted teardown. An incompatible root or slot revision throws. This is same-realm coordination only. A `createService()` or `perTarget()` call of a consumer stays owned by that consumer.
+3. **Composing and overriding manifests.** v4 is first-wins-and-warn, as `customElements.define` is. An `{ override: true }` option is about five lines, but the decision is the expensive part.
+4. **A scoped `root`.** The registry is document-wide by construction. This would change `scanName()`, `scan()` and the target of the observer. No consumer has asked.
+5. **Informational manifest metadata** (`packageName`, `subpath`, `exportName`, `group`, `styles`, `integrations`). It belongs in the output type of the generator, not in core.
+6. **A `data-load` compatibility shim.** Not built. A page that used `data-load` renames one attribute.
 
-## 12. Storage — one seam, six adapters — implemented
+See [RATIONALE.md — 11. Autoload](./RATIONALE.md#11-autoload).
 
-`createStorage(options?)` is a typed, observable key–value store over a **`StorageProvider`**: six synchronous string methods — `get`, `set`, `remove`, `has`, `keys`, `clear` — plus an optional `syncEvents`. Everything a consumer thinks of as storage lives on the storage side of that seam, and everything platform-specific lives behind it.
+## 12. Storage — one seam, six adapters
 
-- **The seam is where the depth ratio is.** `createStorage()` owns key namespacing (`prefix`), serialization both ways, a per-key `Signal` created on first subscription, and the reference-counted wiring to `useStorageSync()`. A provider owns none of that: it moves strings. That is what makes a custom backend — an in-memory map, an `IndexedDB` mirror behind a synchronous cache, a server-rendered snapshot — six small methods rather than a re-implementation, and what lets one storage instance be tested without a browser at all (`test/package-node-consumer.js` runs it in Node over the memory provider).
+`createStorage(options?)` is a typed, observable key-value store over a `StorageProvider`: six synchronous string methods — `get`, `set`, `remove`, `has`, `keys`, `clear` — plus an optional `syncEvents`.
 
-- **Built-in providers report their own failures and never throw.** Web storage fails for reasons the caller cannot prevent: a quota that is full, or an area the browser refuses to hand over — Safari's private mode, a third-party frame with storage access denied. `guard()` turns each of those into a `storage.access-failed` diagnostic and returns the method's fallback (`null`, `false`, `[]`, `undefined`), so a `set()` never becomes an exception a component has to catch. It reports **once per operation** rather than once per area: a silent write is data loss, and the second failure is as informative as the first. The area is resolved per call — `globalThis[name]`, inside the guard — because the getter itself is what throws when storage is denied, so a provider built at module scope must not touch it at construction. `types.ts` states the contract for custom providers: be total in the same way.
+- **`createStorage()` owns everything that a consumer thinks of as storage**: key namespacing through `prefix`, serialization in both directions, a `Signal` per key created on the first subscription, and the reference-counted wiring to `useStorageSync()`. A provider moves strings only. A custom backend is six small methods, and one storage instance runs in Node over the memory provider (`test/package-node-consumer.js`).
+- **A built-in provider reports its own failures and never throws.** `guard()` turns a full quota or a refused area into a `storage.access-failed` diagnostic and returns the fallback of the method: `null`, `false`, `[]` or `undefined`. It reports once per operation, not once per area. The area is resolved per call, inside the guard, because the getter itself throws when storage is denied. `types.ts` states the same contract for custom providers.
+- The failures of the storage have their own codes: `storage.serialize-failed`, after which nothing is written, and `storage.deserialize-failed`, after which the default is returned.
+- **The six adapters.** `localStorageProvider` and `sessionStorageProvider` over the web storage areas. `memoryStorageProvider` and `createMemoryStorageProvider()` over a `Map`. `createFallbackProvider(...providers)`, which reads from the first provider that holds the key and writes to all of them. `urlSearchParamsProvider` over `location.search`. `urlSearchParamsInHashProvider` over `location.hash` read as search params. The two URL adapters rebuild the whole location on each write, so a search write keeps the hash and a hash write keeps the query string. They take one option, `push`, which chooses `history.pushState` over the default `replaceState`.
+- **`syncEvents` is a list of window event names and nothing more.** A provider declares how a change made outside this instance announces itself: `storage` for another tab, `popstate` and `hashchange` for a navigation. `createStorage()` subscribes one shared, reference-counted listener per name while at least one key is observed, and re-reads every observed key when it fires. The event carries no usable state, so the subscriber re-reads. A provider whose changes arrive on a `BroadcastChannel` or through an observer has no way to announce them yet. This is a known gap.
+- **A factory exists only where its product has state.** `createMemoryStorageProvider()` holds a `Map`. `createFallbackProvider()` and the two URL factories take arguments. `createLocalStorageProvider()` and `createSessionStorageProvider()` are removed; the instances stay. The presets `createLocalStorage()`, `createSessionStorage()`, `createUrlSearchParamsStorage()` and `createUrlSearchParamsInHashStorage()` stay, because each removes an argument from every call site.
+- **The adapters are tested at the seam, against the platform.** `providers.spec.ts` drives each adapter through the six methods for real, including a `setItem` that throws, an area getter that throws, `push` against `history.length`, and the `syncEvents` names of each adapter.
 
-  The failures that belong to the _storage_, not the provider, stay on the storage side and have their own codes: `storage.serialize-failed` (nothing is written) and `storage.deserialize-failed` (the default is returned, which a missing key would also do — hence the distinct report).
+See [RATIONALE.md — 12. Storage](./RATIONALE.md#12-storage).
 
-- **The six adapters.** `localStorageProvider` and `sessionStorageProvider` over the web storage areas; `memoryStorageProvider` / `createMemoryStorageProvider()` over a `Map`; `createFallbackProvider(...providers)`, which reads from the first provider holding the key and writes through to all of them; `urlSearchParamsProvider` over `location.search`; and `urlSearchParamsInHashProvider` over `location.hash` read as search params. The two URL adapters reassemble the whole location on every write so that a search write keeps the hash and a hash write keeps the query string — the part of the URL the adapter does not own is not its to drop — and they take the one option in the family, `push`, choosing `history.pushState` over the default `replaceState`.
+## Status for #694
 
-- **`syncEvents` is a list of window event names, and nothing more.** A provider declares how a change made outside this instance announces itself — `storage` for another tab, `popstate` and `hashchange` for a navigation — and `createStorage()` subscribes one shared, reference-counted listener per name while at least one key is observed, re-reading every observed key when it fires. The event carries no usable state (a `StorageEvent` names one key; a `hashchange` names none), so the subscriber re-reads rather than trusting the payload. A provider whose changes arrive on a `BroadcastChannel` or an observer has no way to announce them yet: that is a known gap, not an oversight, and widening the field is the layer to add when a consumer needs it.
-
-- **A factory only where its product has state.** `createLocalStorageProvider()` and `createSessionStorageProvider()` were removed in the breaking pass: their bodies resolved `globalThis[name]` per call, so a fresh instance was indistinguishable from the shared one and five of the seventeen storage names were two ways to reach one thing. The instances stay, the factories go. `createMemoryStorageProvider()` keeps its factory because it holds a `Map` — two of them are genuinely two stores — and `createFallbackProvider()` and the two URL factories keep theirs because they take arguments.
-
-  The `create<Area>Storage` presets are a different case and stay: `createLocalStorage()`, `createSessionStorage()`, `createUrlSearchParamsStorage()` and `createUrlSearchParamsInHashStorage()` each remove an argument from every call site instead of only moving it.
-
-- **The adapters are tested at the seam, against the platform.** `providers.spec.ts` drives each adapter through the six methods for real — the actual storage areas, the actual `location` and `history` — including the paths only the platform has: a `setItem` that throws, an area getter that throws, `push` against `history.length`, and each adapter's `syncEvents` names. Testing `createStorage()` over the memory provider proves the storage; it proves nothing about the four adapters that touch the platform, which are the part that can fail.
-
-## Resolution status for #694
-
-- `LoadService` and `KeyService` are removed. The service simplification is complete, and mutation handling is internal to the registry. See section 8.
+- `LoadService` and `KeyService` are removed. Mutation handling is internal to the registry. See §8.
 - `refs` and `components` merge by default. This resolves #627.
-- Multiple option types are not implemented. They remain tracked by open issue #651.
-- Every option is responsive by default. The current default breakpoints are not aligned with `@studiometa/tailwind-config`; alignment is a separate unresolved product decision.
-- `Action`, `SafeAction`, `Fetch`, `Transition`, and `Data*` are not promoted to core. Files under `migration/` are feasibility ports for a future `@studiometa/ui`; core keeps only general primitives.
+- Several option types are implemented (§1). #651 tracked this.
+- Every option is responsive by default. The current default breakpoints are not aligned with `@studiometa/tailwind-config`. That alignment is a separate product decision.
+- `Action`, `SafeAction`, `Fetch`, `Transition` and the `Data*` family are not promoted to core. The files under `migration/` are feasibility ports for a future `@studiometa/ui`. Core keeps general primitives only.
 
-## Superseded parts of the spec-draft comment
+## Superseded parts of the spec draft
 
-- Custom elements as the mounting/lifecycle primitive → replaced by the observer-first decision.
-- A separate directive registry/lifecycle in core → not needed; behaviors stay components on the one registry.
-- The bespoke `cdn.studiometa.dev` delivery → already superseded in ui 1.10.0 by esm.sh + `/autoload` side-effect entries; v4 keeps that path.
-- `<ui-lazy>` component → covered by registry `mountStrategy` + manifests (`data-mount`); the separate `loadStrategy`/`data-load` knob is itself superseded by §11b.
+- Custom elements as the mount and lifecycle primitive. Replaced by the observer decision.
+- A separate directive registry in core. Not needed: a behaviour is a component on the one registry.
+- The `cdn.studiometa.dev` delivery. `@studiometa/ui` 1.10.0 already uses esm.sh with `/autoload` side-effect entries, and v4 keeps that path.
+- The `<ui-lazy>` component. Covered by `mountStrategy`, manifests and `data-mount`.
 
 ## Resolved questions
 
-1. ~~Naming and composition APIs~~ **Decided (2026-08-14):** `config.components` keeps its name and object shape, with the v3 dynamic-import form described in §11d. `$watchChildren` stays. `config.use` and `config.siblings` are not planned, per #697.
-2. ~~Does `$emit` cancelation gate anything framework-side, or is `defaultPrevented` purely userland?~~ **Decided:** `$emit()` returns the dispatched event and component code reads `defaultPrevented`; framework notifications follow their own protocol. Diagnostic cancellation suppresses only its default sink.
-3. ~~Exact `mountStrategy` vocabulary and its interaction with existing `withMountWhen*` decorators.~~ **Decided:** `visible[:<rootMargin>]` is one-shot, `in-view[:<rootMargin>]` is reversible, and the registry replaces constructor-wrapping mount decorators (#751).
-4. ~~Migration phases~~ **Decided (2026-08-11): no further bridge or backport release.** v3 bridge work had already shipped: `$query()` and `$closest()` in #711, `defineFeatures()` in #712, and deprecation warnings in #713. The later decision stops additional v4 backports. `@studiometa/js-toolkit` 4.0 and `@studiometa/ui` 2.0 ship as full breaking majors, in lockstep. Further migration helpers are tooling, not runtime: lint rules in the existing eslint plugins flag `$children`/`$parent`/`updated()`/old handler signatures, and codemods cover only mechanical renames. The `$children` coordinator components (13 files in ui) are rewritten on `$watchChildren`/provide-inject — several disappear into the platform instead (Accordion → `<details>`, Modal/Panel → Dialog).
+1. **Naming and composition APIs** (2026-08-14): `config.components` keeps its name and object shape, with the dynamic-import form of §11d. `$watchChildren` stays. `config.use` and `config.siblings` are not planned (#697).
+2. **Does `$emit` cancellation gate anything in the framework?** No. Component code reads `defaultPrevented`. Framework notifications follow their own protocol, and a cancelled diagnostic suppresses its default output only.
+3. **The `mountStrategy` vocabulary and the `withMountWhen*` decorators**: `visible[:<rootMargin>]` is one-shot, `in-view[:<rootMargin>]` is reversible, and the registry replaces the decorators that wrap a constructor (#751).
+4. **Migration phases** (2026-08-11): no further bridge and no backport release. `@studiometa/js-toolkit` 4.0 and `@studiometa/ui` 2.0 ship as full breaking majors, together. Further migration help is tooling: lint rules flag `$children`, `$parent`, `updated()` and the old handler signatures, and codemods cover mechanical renames only.
