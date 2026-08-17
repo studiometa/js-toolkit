@@ -14,6 +14,7 @@ export {
   type OptionChangedReturn,
   type OptionDefinition,
   type OptionType,
+  type OptionTypes,
   type RefEvent,
   type WatchChildrenCallbacks,
 } from './Base.js';

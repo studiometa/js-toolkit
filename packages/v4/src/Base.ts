@@ -30,27 +30,46 @@ export type OptionType =
   | typeof Array
   | typeof Object;
 
+/** An ordered list of types accepted by one option. */
+export type OptionTypes = readonly OptionType[];
+
+type OptionDefinitionType = OptionType | OptionTypes;
+
 /**
  * The value an option of a given type holds.
  */
-type OptionValue<T extends OptionType> = T extends typeof String
-  ? string
-  : T extends typeof Number
-    ? number
-    : T extends typeof Boolean
-      ? boolean
-      : T extends typeof Array
-        ? unknown[]
-        : Record<string, unknown>;
+type OptionValue<T extends OptionDefinitionType> = T extends OptionTypes
+  ? OptionValue<T[number]>
+  : T extends typeof String
+    ? string
+    : T extends typeof Number
+      ? number
+      : T extends typeof Boolean
+        ? boolean
+        : T extends typeof Array
+          ? unknown[]
+          : Record<string, unknown>;
+
+type PrimitiveOptionType = typeof String | typeof Number | typeof Boolean;
 
 /** `Array` and `Object` defaults must be per-instance factories. */
-type TypedOptionDefinition<T extends OptionType = OptionType> = T extends OptionType
-  ? T extends typeof Array | typeof Object
-    ? { type: T; default?: () => OptionValue<T> }
-    : { type: T; default?: OptionValue<T> | (() => OptionValue<T>) }
-  : never;
+type TypedOptionDefinition<T extends OptionDefinitionType = OptionDefinitionType> =
+  T extends OptionTypes
+    ? {
+        type: T;
+        default?:
+          | (() => OptionValue<T>)
+          | (Extract<T[number], PrimitiveOptionType> extends never
+              ? never
+              : OptionValue<Extract<T[number], PrimitiveOptionType>>);
+      }
+    : T extends OptionType
+      ? T extends typeof Array | typeof Object
+        ? { type: T; default?: () => OptionValue<T> }
+        : { type: T; default?: OptionValue<T> | (() => OptionValue<T>) }
+      : never;
 
-export type OptionDefinition = OptionType | TypedOptionDefinition;
+export type OptionDefinition = OptionDefinitionType | TypedOptionDefinition;
 
 export interface OptionChange<T = unknown> {
   name: string;
@@ -504,8 +523,24 @@ function readJSON(raw: string | null, defaultValue: () => unknown): unknown {
   }
 }
 
+function emptyValue(type: OptionType): unknown {
+  if (type === Boolean) return false;
+  if (type === Number) return 0;
+  if (type === String) return '';
+  if (type === Array) return [];
+  return {};
+}
+
+function isOptionValue(value: unknown, type: OptionType): boolean {
+  if (type === Boolean) return typeof value === 'boolean';
+  if (type === Number) return typeof value === 'number' && !Number.isNaN(value);
+  if (type === String) return typeof value === 'string';
+  if (type === Array) return Array.isArray(value);
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
 /** What each supported option type makes of its attribute. */
-const OPTION_TYPE_RULES = new Map<unknown, OptionTypeRule>([
+const OPTION_TYPE_RULES = new Map<OptionType, OptionTypeRule>([
   // Presence is the value, so — unlike every other type — a declared `null`
   // default still reads as `false`.
   [Boolean, (raw, defaultValue) => (raw === null ? (defaultValue() ?? false) : raw !== 'false')],
@@ -515,17 +550,41 @@ const OPTION_TYPE_RULES = new Map<unknown, OptionTypeRule>([
   [Object, readJSON],
 ]);
 
+function readUnion(types: OptionTypes, raw: string | null, defaultValue: () => unknown): unknown {
+  if (raw === null) {
+    return absentValue(defaultValue, types[0] === undefined ? undefined : emptyValue(types[0]));
+  }
+
+  for (const type of types) {
+    const value = OPTION_TYPE_RULES.get(type)!(raw, () => undefined);
+    if (isOptionValue(value, type)) {
+      return value;
+    }
+  }
+
+  return defaultValue();
+}
+
+function isOptionTypes(value: unknown): value is OptionTypes {
+  return Array.isArray(value);
+}
+
+function isOptionShorthand(definition: OptionDefinition): definition is OptionType | OptionTypes {
+  return typeof definition === 'function' || isOptionTypes(definition);
+}
+
 function buildOptions(instance: Base): Record<string, unknown> {
   const options: Record<string, unknown> = {};
   const readers = new Map<string, OptionReader>();
   optionReaders.set(instance, readers);
   const el = instance.$el;
   for (const [name, definition] of Object.entries(instance.$config.options ?? {})) {
-    const type = typeof definition === 'function' ? definition : definition.type;
-    const declared = typeof definition === 'function' ? undefined : definition.default;
+    const shorthand = isOptionShorthand(definition);
+    const type = shorthand ? definition : definition.type;
+    const declared = shorthand ? undefined : definition.default;
     const attribute = optionAttributeFor(name);
 
-    if (typeof definition !== 'function' && declared !== null && typeof declared === 'object') {
+    if (!shorthand && declared !== null && typeof declared === 'object') {
       warnLiteralDefault(instance.$config.name, name, definition, declared, el);
     }
 
@@ -553,17 +612,18 @@ function buildOptions(instance: Base): Record<string, unknown> {
         return declared;
       }
       // An undeclared object or array default is still the instance's own.
-      if (type === Array) return [];
-      if (type === Object) return {};
+      const defaultType = isOptionTypes(type) ? type[0] : type;
+      if (defaultType === Array) return [];
+      if (defaultType === Object) return {};
       return undefined;
     };
 
-    // An unrecognised type has no rule of its own: it keeps the declared
-    // default when the attribute is absent, and the raw string otherwise.
-    const rule =
-      OPTION_TYPE_RULES.get(type) ??
-      ((raw, fallback) => (raw === null ? absentValue(fallback, undefined) : raw));
-    const read = (raw: string | null): unknown => rule(raw, defaultValue);
+    const read = (raw: string | null): unknown =>
+      isOptionTypes(type)
+        ? readUnion(type, raw, defaultValue)
+        : (OPTION_TYPE_RULES.get(type) ??
+            ((value, fallback) =>
+              value === null ? absentValue(fallback, undefined) : value))(raw, defaultValue);
 
     // Every option is responsive, and it is **derived on read**: the getter
     // consults the viewport as well as the element, and stores nothing. This
