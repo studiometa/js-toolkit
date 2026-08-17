@@ -8,6 +8,7 @@ import {
   withResize,
   type ChildrenCollection,
   type MountedReturn,
+  type RafRender,
 } from '../../src/index.js';
 import { CarouselBtn } from './CarouselBtn.js';
 import { CarouselDrag } from './CarouselDrag.js';
@@ -208,14 +209,26 @@ export class Carousel extends withResize(withRaf(Indexable, { manual: true }))<C
     return result;
   }
 
-  ticked(): void {
-    if (this.progress !== this.previousProgress) {
-      this.previousProgress = this.progress;
-      this.$emit('progress', { progress: this.progress });
-      this.$el.style.setProperty('--carousel-progress', String(this.progress));
-    } else {
+  /**
+   * The frame hook runs in the scheduler's **read** phase, which is where
+   * `progress` belongs — it reads the wrapper's `scrollLeft`. The custom
+   * property is a write, so it travels back as the returned render, which the
+   * frame service runs in the write phase of the same frame.
+   */
+  ticked(): void | RafRender {
+    const { progress } = this;
+
+    if (progress === this.previousProgress) {
       this.$services.ticked.stop();
+      return;
     }
+
+    this.previousProgress = progress;
+    this.$emit('progress', { progress });
+
+    return () => {
+      this.$el.style.setProperty('--carousel-progress', String(progress));
+    };
   }
 
   /** Publish the whole state, so a control never has to ask for a second value. */

@@ -2,6 +2,7 @@ import {
   Base,
   component,
   withPointer,
+  write,
   type BaseProps,
   type MountedReturn,
   type PointerProps,
@@ -121,6 +122,14 @@ export class Cursor<T extends BaseProps = BaseProps> extends withPointer(Base)<C
     this.motion({ x, y, scale });
   }
 
+  /**
+   * A frame subscriber runs in the scheduler's **read** phase — that is where
+   * `useRaf()` fans out, so that a measurement can precede the writes of the
+   * same frame. This method only mutates, so it belongs in the write phase,
+   * and a write scheduled from a read runs in the same frame: no latency, and
+   * no style write landing between two components' measurements.
+   */
+  @write
   render({
     x,
     y,
