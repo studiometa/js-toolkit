@@ -464,7 +464,10 @@ describe('Carousel — orientation', () => {
     document.body.append(root);
     await settled();
 
-    const wrapper = getInstance<CarouselWrapper>(root.firstElementChild as HTMLElement, 'CarouselWrapper');
+    const wrapper = getInstance<CarouselWrapper>(
+      root.firstElementChild as HTMLElement,
+      'CarouselWrapper',
+    );
     expect(wrapper.isHorizontal).toBe(true);
     expect(wrapper.carousel).toBeUndefined();
   });

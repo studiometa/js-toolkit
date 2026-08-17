@@ -112,7 +112,13 @@ describe('Cursor', () => {
 
     // `isDown` comes from `pointerdown`, not from a move's `buttons`.
     document.body.dispatchEvent(
-      new PointerEvent('pointerdown', { clientX: 40, clientY: 40, button: 0, buttons: 1, bubbles: true }),
+      new PointerEvent('pointerdown', {
+        clientX: 40,
+        clientY: 40,
+        button: 0,
+        buttons: 1,
+        bubbles: true,
+      }),
     );
     movePointer(document.body, 41, 41, 1);
     await settle();

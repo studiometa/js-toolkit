@@ -1,4 +1,9 @@
-import { withResize, type BaseConfig, type BaseProps, type MountedReturn } from '../../src/index.js';
+import {
+  withResize,
+  type BaseConfig,
+  type BaseProps,
+  type MountedReturn,
+} from '../../src/index.js';
 import { clamp } from '../../src/utils/maths.js';
 import { AbstractCarouselComponent } from './AbstractCarouselComponent.js';
 import { getClosestIndex } from './utils.js';

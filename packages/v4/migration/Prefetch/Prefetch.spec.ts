@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance, resetDom, settle } from '../../src/test-utils.js';
 import { AbstractPrefetch } from './AbstractPrefetch.js';
@@ -58,7 +58,10 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
   it('accepts a same-origin URL that is not the current page', async () => {
     const href = uniqueHref();
     const root = await render(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
-    const instance = getInstance<AbstractPrefetch>(root.firstElementChild as HTMLElement, 'AbstractPrefetch');
+    const instance = getInstance<AbstractPrefetch>(
+      root.firstElementChild as HTMLElement,
+      'AbstractPrefetch',
+    );
 
     expect(instance.isPrefetchable).toBe(true);
     expect(instance.url?.href).toBe(href);
@@ -68,7 +71,10 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
     const root = await render(
       `<a data-component="AbstractPrefetch" href="https://example.com/other"></a>`,
     );
-    const instance = getInstance<AbstractPrefetch>(root.firstElementChild as HTMLElement, 'AbstractPrefetch');
+    const instance = getInstance<AbstractPrefetch>(
+      root.firstElementChild as HTMLElement,
+      'AbstractPrefetch',
+    );
 
     expect(instance.isPrefetchable).toBe(false);
   });
@@ -77,14 +83,20 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
     const root = await render(
       `<a data-component="AbstractPrefetch" href="${window.location.href}"></a>`,
     );
-    const instance = getInstance<AbstractPrefetch>(root.firstElementChild as HTMLElement, 'AbstractPrefetch');
+    const instance = getInstance<AbstractPrefetch>(
+      root.firstElementChild as HTMLElement,
+      'AbstractPrefetch',
+    );
 
     expect(instance.isPrefetchable).toBe(false);
   });
 
   it('refuses an anchor into the current page', async () => {
     const root = await render(`<a data-component="AbstractPrefetch" href="#section"></a>`);
-    const instance = getInstance<AbstractPrefetch>(root.firstElementChild as HTMLElement, 'AbstractPrefetch');
+    const instance = getInstance<AbstractPrefetch>(
+      root.firstElementChild as HTMLElement,
+      'AbstractPrefetch',
+    );
 
     expect(instance.isPrefetchable).toBe(false);
   });
@@ -93,7 +105,10 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
     const root = await render(
       `<a data-component="AbstractPrefetch" href="${uniqueHref()}" data-option-prefetch="false"></a>`,
     );
-    const instance = getInstance<AbstractPrefetch>(root.firstElementChild as HTMLElement, 'AbstractPrefetch');
+    const instance = getInstance<AbstractPrefetch>(
+      root.firstElementChild as HTMLElement,
+      'AbstractPrefetch',
+    );
 
     expect(instance.isPrefetchable).toBe(false);
   });
@@ -104,7 +119,10 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
    */
   it('answers for an anchor with no href instead of throwing', async () => {
     const root = await render(`<a data-component="AbstractPrefetch"></a>`);
-    const instance = getInstance<AbstractPrefetch>(root.firstElementChild as HTMLElement, 'AbstractPrefetch');
+    const instance = getInstance<AbstractPrefetch>(
+      root.firstElementChild as HTMLElement,
+      'AbstractPrefetch',
+    );
 
     expect(instance.url).toBeNull();
     expect(instance.isPrefetchable).toBe(false);
@@ -116,7 +134,10 @@ describe('AbstractPrefetch — the hint', () => {
   it('appends a prefetch link for a prefetchable URL', async () => {
     const href = uniqueHref();
     const root = await render(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
-    const instance = getInstance<AbstractPrefetch>(root.firstElementChild as HTMLElement, 'AbstractPrefetch');
+    const instance = getInstance<AbstractPrefetch>(
+      root.firstElementChild as HTMLElement,
+      'AbstractPrefetch',
+    );
 
     instance.prefetch();
     await observed();
@@ -129,7 +150,10 @@ describe('AbstractPrefetch — the hint', () => {
     const root = await render(
       `<a data-component="AbstractPrefetch" href="https://example.com/other"></a>`,
     );
-    const instance = getInstance<AbstractPrefetch>(root.firstElementChild as HTMLElement, 'AbstractPrefetch');
+    const instance = getInstance<AbstractPrefetch>(
+      root.firstElementChild as HTMLElement,
+      'AbstractPrefetch',
+    );
 
     instance.prefetch();
     await observed();
@@ -140,7 +164,10 @@ describe('AbstractPrefetch — the hint', () => {
   it('emits `prefetched` with the URL once the hint has settled', async () => {
     const href = uniqueHref();
     const root = await render(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
-    const instance = getInstance<AbstractPrefetch>(root.firstElementChild as HTMLElement, 'AbstractPrefetch');
+    const instance = getInstance<AbstractPrefetch>(
+      root.firstElementChild as HTMLElement,
+      'AbstractPrefetch',
+    );
     let detail: { url: URL } | undefined;
     document.addEventListener('prefetched', (event) => {
       detail = (event as CustomEvent<{ url: URL }>).detail;
@@ -203,7 +230,10 @@ describe('AbstractPrefetch — the hint', () => {
   it('says nothing once the component has been destroyed', async () => {
     const href = uniqueHref();
     const root = await render(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
-    const instance = getInstance<AbstractPrefetch>(root.firstElementChild as HTMLElement, 'AbstractPrefetch');
+    const instance = getInstance<AbstractPrefetch>(
+      root.firstElementChild as HTMLElement,
+      'AbstractPrefetch',
+    );
     let count = 0;
     document.addEventListener('prefetched', () => {
       count += 1;
@@ -258,7 +288,10 @@ describe('PrefetchWhenVisible', () => {
     await observed();
 
     expect(
-      getInstance<PrefetchWhenVisible>(root.firstElementChild as HTMLElement, 'PrefetchWhenVisible'),
+      getInstance<PrefetchWhenVisible>(
+        root.firstElementChild as HTMLElement,
+        'PrefetchWhenVisible',
+      ),
     ).toBeUndefined();
     expect(hasPrefetchLink(href)).toBe(false);
   });

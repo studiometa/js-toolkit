@@ -427,7 +427,7 @@ describe('Fetch — the request', () => {
     await settle();
 
     const abort = events.find(({ type }) => type === FETCH_EVENTS.ABORT);
-    expect((abort?.detail as { reason: unknown }).reason).toBe('because');
+    expect((abort as { detail: { reason: unknown } }).detail.reason).toBe('because');
   });
 
   it('evaluates the `response` option to extract the content', async () => {
@@ -452,7 +452,7 @@ describe('Fetch — the request', () => {
     await instance.fetch();
 
     const error = events.find(({ type }) => type === FETCH_EVENTS.ERROR);
-    expect((error?.detail as { error: Error }).error.message).toContain('500');
+    expect((error as { detail: { error: Error } }).detail.error.message).toContain('500');
   });
 
   it('emits `fetch-after` with the error and no content when the request fails', async () => {
@@ -465,7 +465,7 @@ describe('Fetch — the request', () => {
     await instance.fetch();
 
     const after = events.find(({ type }) => type === FETCH_EVENTS.AFTER_FETCH);
-    expect((after?.detail as { error: Error }).error.message).toBe('network down');
+    expect((after as { detail: { error: Error } }).detail.error.message).toBe('network down');
   });
 });
 

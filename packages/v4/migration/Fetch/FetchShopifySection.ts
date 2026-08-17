@@ -5,7 +5,8 @@ import { Fetch, type FetchProps } from './Fetch.js';
 export const SECTIONS_PARAMETER = 'sections';
 
 /** The `response` option value the base class ships, and the one this replaces. */
-const DEFAULT_RESPONSE = (Fetch.config.options?.response as { default: string }).default;
+const DEFAULT_RESPONSE = (Fetch.config.options as Record<string, { default: string }>).response
+  .default;
 
 export type FetchShopifySectionProps = FetchProps & {
   $options: FetchProps['$options'] & {

@@ -349,7 +349,8 @@ export class Fetch<T extends BaseProps = BaseProps> extends Base<FetchProps & T>
    * @protected
    */
   parseResponse(response: Response, url: URL, requestInit: RequestInit): Promise<string> | string {
-    // eslint-disable-next-line no-new-func
+    // Evaluating the author's `response` expression is the documented feature.
+    // oxlint-disable-next-line no-new-func, typescript/no-implied-eval
     const fn = new Function(
       'response',
       'url',

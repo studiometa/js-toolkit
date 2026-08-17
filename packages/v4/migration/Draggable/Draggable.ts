@@ -216,7 +216,10 @@ export class Draggable<T extends BaseProps = BaseProps> extends withResize(
       this.props.originY = this.props.y;
       this.dampFactor = sensitivity;
       this.render();
-    } else if (props.mode === DRAG_MODES.DRAG || (props.mode === DRAG_MODES.INERTIA && !fitBounds)) {
+    } else if (
+      props.mode === DRAG_MODES.DRAG ||
+      (props.mode === DRAG_MODES.INERTIA && !fitBounds)
+    ) {
       // v3 spells this `props.x - props.origin.x`; the service publishes the
       // subtraction itself now.
       this.props.x = this.props.originX + props.distanceX;

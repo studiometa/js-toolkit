@@ -4,7 +4,6 @@ import {
   withRaf,
   withResize,
   type BaseConfig,
-  type BaseProps,
   type ChildrenCollection,
   type MountedReturn,
 } from '../../src/index.js';
@@ -181,6 +180,8 @@ export class Carousel extends withResize(withRaf(Indexable, { manual: true }))<C
   itemsChanged(): void {
     this.#positions = null;
     this.wrapper?.invalidate();
+    // Re-run the setter so the boundary re-normalises against the new count.
+    // oxlint-disable-next-line no-self-assign
     this.currentIndex = this.currentIndex;
     this.previousProgress = -1;
     this.$services.ticked.start();

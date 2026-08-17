@@ -16,7 +16,9 @@ import { CarouselContext, type CarouselState } from './context.js';
  * consumer when the provider mounts later, so there is no ordering to retry
  * against and no seeding to check.
  */
-export class AbstractCarouselChild<T extends BaseProps = BaseProps> extends AbstractCarouselComponent<T> {
+export class AbstractCarouselChild<
+  T extends BaseProps = BaseProps,
+> extends AbstractCarouselComponent<T> {
   static config: BaseConfig = {
     name: 'AbstractCarouselChild',
   };
