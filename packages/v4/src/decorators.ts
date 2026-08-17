@@ -176,6 +176,9 @@ export const read = inPhase('$read');
 /** Schedule the method body in the next write phase. Destruction cancels pending work. */
 export const write = inPhase('$write');
 
+/** Config keys that merge rather than override; the rest are compared as scalars. */
+const COLLECTION_KEYS = new Set(['refs', 'options', 'components']);
+
 /**
  * Merge the two config declarations one class can carry, by the rules
  * `resolveConfig()` applies to a chain: collections merge, declared values
@@ -215,8 +218,7 @@ function conflictingScalars(base: BaseConfig, extra: BaseConfig): string[] {
   const conflicts: string[] = [];
   const scalars = base as unknown as Record<string, unknown>;
   for (const [key, value] of Object.entries(extra)) {
-    const isCollection = key === 'refs' || key === 'options' || key === 'components';
-    if (!isCollection && scalars[key] !== undefined && scalars[key] !== value) {
+    if (!COLLECTION_KEYS.has(key) && scalars[key] !== undefined && scalars[key] !== value) {
       conflicts.push(key);
     }
   }
