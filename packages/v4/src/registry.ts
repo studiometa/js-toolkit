@@ -346,18 +346,14 @@ function resolveComponentClass(module: unknown, name: string): BaseConstructor |
 }
 
 function optionAttributes(ComponentClass: BaseConstructor): string[] {
-  const names = new Set<string>();
-  let current: BaseConstructor | null = ComponentClass;
-  while (current?.config) {
-    for (const name of Object.keys(current.config.options ?? {})) {
-      const attribute = optionAttributeFor(name);
-      names.add(attribute);
-      // Register each exact breakpoint-scoped spelling with the observer filter.
-      observeResponsiveAttribute(attribute);
-    }
-    current = Object.getPrototypeOf(current) as BaseConstructor | null;
+  const names: string[] = [];
+  for (const name of Object.keys(resolveConfig(ComponentClass).options ?? {})) {
+    const attribute = optionAttributeFor(name);
+    names.push(attribute);
+    // Register each exact breakpoint-scoped spelling with the observer filter.
+    observeResponsiveAttribute(attribute);
   }
-  return [...names];
+  return names;
 }
 
 /**

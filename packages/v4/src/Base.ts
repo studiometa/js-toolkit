@@ -3,6 +3,7 @@ import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
 import { reportDiagnostic, warnOnce } from './diagnostics.js';
+import { compareDocumentOrder } from './document-order.js';
 import { domVersion } from './dom-mutations.js';
 import { EVENTS } from './events.js';
 import { HANDLER_REGISTRATIONS, INSTANCES } from './protocol-symbols.js';
@@ -370,9 +371,7 @@ function queryRefs(root: HTMLElement, componentName: string, definition: string)
   }
   // One property, so one document order — an index handed to `on<Ref><Event>`
   // has to mean the same thing as an index into `$refs`.
-  return [...plain, ...owned].sort((a, b) =>
-    a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1,
-  );
+  return [...plain, ...owned].sort(compareDocumentOrder);
 }
 
 /** Warn once when a missing list ref has an unsuffixed markup candidate. */
@@ -479,6 +478,22 @@ interface OptionReader {
 }
 
 const optionReaders = new WeakMap<Base, Map<string, OptionReader>>();
+
+/** The method name an option's effect is declared under. */
+function optionChangedMethod(name: string): string {
+  return `option${capitalize(name)}Changed`;
+}
+
+/** The effect an option declares, or `undefined` when the component declares none. */
+function optionChangedHandler(
+  instance: Base,
+  name: string,
+): ((change: OptionChange) => OptionChangedReturn) | undefined {
+  const handler = (instance as unknown as Record<string, unknown>)[optionChangedMethod(name)];
+  return typeof handler === 'function'
+    ? (handler as (change: OptionChange) => OptionChangedReturn)
+    : undefined;
+}
 
 /** Warn once per declaration for literal object or array defaults. Values are not copied. */
 function warnLiteralDefault(
@@ -1147,12 +1162,7 @@ export class Base<T extends BaseProps = BaseProps> {
         return instances.size;
       },
       get items() {
-        return [...instances].sort((a, b) => {
-          const position = a.$el.compareDocumentPosition(b.$el);
-          if (position & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
-          if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1;
-          return 0;
-        });
+        return [...instances].sort((a, b) => compareDocumentOrder(a.$el, b.$el));
       },
       [Symbol.iterator]() {
         return this.items[Symbol.iterator]();
@@ -1275,12 +1285,9 @@ export class Base<T extends BaseProps = BaseProps> {
       [...readers.values()].map((reader) => reader.attribute),
     );
 
-    let announces = false;
-    for (const name of readers.keys()) {
-      announces ||=
-        typeof (this as unknown as Record<string, unknown>)[`option${capitalize(name)}Changed`] ===
-        'function';
-    }
+    const announces = [...readers.keys()].some(
+      (name) => optionChangedHandler(this, name) !== undefined,
+    );
     if (!announces) {
       return;
     }
@@ -1316,14 +1323,13 @@ export class Base<T extends BaseProps = BaseProps> {
       return;
     }
 
-    const method = `option${capitalize(name)}Changed`;
-    const handler = (this as unknown as Record<string, unknown>)[method];
-    if (typeof handler !== 'function') {
+    const handler = optionChangedHandler(this, name);
+    if (!handler) {
       return;
     }
 
     const cycle = this.#mountCycle;
-    const cleanup = this.#guard(`\`${method}()\` failed.`, () => {
+    const cleanup = this.#guard(`\`${optionChangedMethod(name)}()\` failed.`, () => {
       const rawValue = reader.rawValue();
       const change: OptionChange = {
         name,
@@ -1333,7 +1339,7 @@ export class Base<T extends BaseProps = BaseProps> {
         previousRawValue,
         initial,
       };
-      return (handler as (change: OptionChange) => OptionChangedReturn).call(this, change);
+      return handler.call(this, change);
     });
     if (cleanup === GUARD_FAILED) {
       return;
