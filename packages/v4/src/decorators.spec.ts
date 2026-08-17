@@ -2,6 +2,7 @@ import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   Base,
   type BaseConfig,
+  type BaseProps,
   type ChildrenCollection,
   type ComponentImporter,
   type DelegatedEvent,
@@ -674,6 +675,39 @@ describe('@on', () => {
     const parent = getInstance<DecoParent>(root, 'DecoParent');
     root.click();
     expect(parent.clicks).toBe(1);
+  });
+
+  it('types an own handler from the platform map, and from the handler for a component event', async () => {
+    const name = 'DecoOwnTypes';
+    const seen: string[] = [];
+
+    @component({ name })
+    class OwnTypes extends Base<BaseProps & { $emits: { picked: { id: string } } }> {
+      @on('click')
+      onPlatformEvent(event: MouseEvent): void {
+        expectTypeOf(event).toEqualTypeOf<MouseEvent>();
+        seen.push(`click:${event.type}`);
+      }
+
+      // The name is not in `HTMLElementEventMap`, so the detail is the
+      // emitter's business and the handler declares what it expects.
+      @on('picked')
+      onComponentEvent(event: CustomEvent<{ id: string }>): void {
+        expectTypeOf(event.detail).toEqualTypeOf<{ id: string }>();
+        seen.push(`picked:${event.detail.id}`);
+      }
+    }
+
+    const root = document.createElement('div');
+    root.setAttribute('data-component', name);
+    document.body.append(root);
+    await settle();
+
+    const instance = getInstance<OwnTypes>(root, name);
+    root.click();
+    instance.$emit('picked', { id: 'a' });
+
+    expect(seen).toEqual(['click:click', 'picked:a']);
   });
 
   it('resolves a component class to the same child its name resolves to', async () => {

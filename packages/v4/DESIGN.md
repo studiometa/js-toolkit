@@ -559,6 +559,7 @@ No engine ships stage-3 decorators, so **every decorator is a thin wrapper over 
 
 `@on` accepts a name or a value: `@on('click')`, `@on('AccordionItem', 'open')`, `@on(AccordionItem, 'open')`, `@on(window, 'load')`, `@on(document, 'click')`. Nothing is reserved in its string space: `'Window'` means the child and `window` means the global.
 
+- **The one-argument form types its event from `HTMLElementEventMap`**, so `@on('click')` hands over a `MouseEvent` and `@on('submit')` a `SubmitEvent`. A name outside that map is a component event, whose detail only its emitter knows, so the handler declares the type it expects — `@on('content') inject(event: CustomEvent<{ content: string }>)`.
 - **A class resolves to its merged `config.name`** and lands on the same delegated entry as the string form. The class is the type, so `target` is the component and `payload` comes from its `$emits`. `@on(window, 'click')` types the event from `WindowEventMap` and falls back to `Event`.
 - **A lazy child needs the string form.** `@on('Child', 'open')` imports nothing. A thunk is not a target; the overloads and the runtime refuse it.
 - **A name is a child or a ref**, resolved children-first, so the handler is typed as `DelegatedEvent` or `RefEvent`.
