@@ -1,0 +1,91 @@
+import { Base, swap, type BaseConfig, type BaseProps } from '../../src/index.js';
+
+/** Gap 10: core ships no `$warn`. */
+function warn(...args: unknown[]): void {
+  console.warn('[LazyInclude]', ...args);
+}
+
+export type LazyIncludeProps = BaseProps & {
+  $refs: {
+    loading?: HTMLElement;
+    error?: HTMLElement;
+  };
+  $options: {
+    src: string;
+    terminateOnLoad: boolean;
+  };
+  $emits: {
+    content: { content: string };
+    error: { error: unknown };
+    always: void;
+  };
+};
+
+/**
+ * Fetches remote HTML from the `src` option on mount and injects it into the
+ * element, toggling the `loading` and `error` refs. It emits `content`,
+ * `error` and `always`, and can self-terminate once loaded.
+ *
+ * @link https://ui.studiometa.dev/reference/items/LazyInclude/
+ */
+export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyIncludeProps & T> {
+  static config: BaseConfig = {
+    name: 'LazyInclude',
+    refs: ['loading', 'error'],
+    options: {
+      src: String,
+      terminateOnLoad: Boolean,
+    },
+  };
+
+  /** Load the lazy content on mount. */
+  mounted(): void {
+    if (!this.$options.src) {
+      warn('The `src` option is missing. Define it with the `data-option-src` attribute');
+      return;
+    }
+
+    fetch(this.$options.src)
+      .then((response) => response.text())
+      .then((content) => {
+        this.$emit('content', { content });
+      })
+      .catch((error: unknown) => {
+        this.$emit('error', { error });
+      })
+      .finally(() => {
+        this.$emit('always');
+      });
+  }
+
+  /**
+   * Inject the content.
+   *
+   * v3 assigns `innerHTML`, which leaves a `<script>` in the fragment inert
+   * and returns before anything inside it has mounted. `swap()` is this
+   * element's exact shape — the children change, the element does not — so it
+   * owns both, and the awaited settle is what makes `always` meaningful.
+   */
+  async onContent(event: CustomEvent<{ content: string }>): Promise<void> {
+    const { loading } = this.$refs;
+    if (loading) {
+      loading.style.display = 'none';
+    }
+    await swap(this.$el, event.detail.content);
+  }
+
+  /** Reveal the error ref. */
+  onError(): void {
+    const { error } = this.$refs;
+    if (error) {
+      error.style.display = 'block';
+    }
+  }
+
+  /** Stop the component for good once the request has settled. */
+  onAlways(): void {
+    if (this.$options.terminateOnLoad) {
+      this.$terminate();
+    }
+  }
+}

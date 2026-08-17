@@ -7,6 +7,8 @@ export * from './Data/index.js';
 export * from './Dialog/index.js';
 export * from './Fetch/index.js';
 export * from './InView/index.js';
+export * from './LazyInclude/index.js';
+export * from './Prefetch/index.js';
 export * from './ScrollAnimation/index.js';
 export * from './Slider/index.js';
 export * from './Track/index.js';
