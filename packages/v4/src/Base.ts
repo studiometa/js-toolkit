@@ -1224,10 +1224,9 @@ export class Base<T extends BaseProps = BaseProps> {
       [...readers.values()].map((reader) => reader.attribute),
     );
 
-    let announces = false;
-    for (const name of readers.keys()) {
-      announces ||= optionChangedHandler(this, name) !== undefined;
-    }
+    const announces = [...readers.keys()].some(
+      (name) => optionChangedHandler(this, name) !== undefined,
+    );
     if (!announces) {
       return;
     }
