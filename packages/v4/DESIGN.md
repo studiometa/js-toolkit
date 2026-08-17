@@ -730,10 +730,10 @@ See [RATIONALE.md — 9. Animation](./RATIONALE.md#9-animation).
 ## 10. DOM content swapping — `swap()`
 
 ```js
-swap(target, content, { mode, wrap }): Promise<void>
+swap(target, content, { mode, wrap, self }): Promise<void>
 ```
 
-- `target` is an element whose **content** changes. The element itself is never replaced, so the reference of the caller, its `id` and any instance on it survive.
+- `target` is an element whose **content** changes. By default the element itself is never replaced, so the reference of the caller, its `id` and any instance on it survive.
 - `content` is a markup string, parsed in the parsing context of the target, so `<tr>`, `<li>` and `<option>` survive. It can also be an `Element` or a `DocumentFragment`, read as the incoming counterpart of the target, whose children become the new content.
 - The returned promise resolves after `whenDOMSettled()`, so an awaited `swap()` means that the mutation is applied, the new components are mounted and the old ones are destroyed.
 
@@ -741,10 +741,16 @@ swap(target, content, { mode, wrap }): Promise<void>
 
 A `<script>` produced by the fragment parser is flagged as already started by the HTML specification and stays inert wherever it is moved. It runs only if it is recreated, and a script that was already in the page runs twice if it is recreated. `swap()` owns that rule, once.
 
-Three things are not in core:
+**`self` replaces the target element itself**, attributes included, instead of its children. It is the axis a caller that matches an element of a response to an element of the page needs: an id-matched section otherwise keeps the classes of the element it replaces.
 
-- **Element-level replace.** Core's `replace` is `replaceChildren`.
-- **Attribute syncing in `morph`.** Core passes `childrenOnly: true`, because `data-component` and `data-mount` are lifecycle declarations.
+- With `self`, an `Element` content **is** the replacement rather than a container — that is the only way its own attributes reach the page. A string or a `DocumentFragment` contributes its first top-level element.
+- `replace` puts the replacement in the place of the target, so the target leaves the document. `morph` morphs the target from the replacement without `childrenOnly`, so the element and its identity survive while its attributes are updated.
+- `append` and `prepend` add to the children by definition. `self` with either is a `swap.self-ignored` warning, as is a content that holds no element.
+- Script adoption follows whatever ends up in the document, so a replacement carrying a script still runs it exactly once.
+
+Two things are not in core:
+
+- **Attribute syncing in a default `morph`.** Core passes `childrenOnly: true` without `self`, because `data-component` and `data-mount` are lifecycle declarations of the target.
 - **Transitions, view transitions, history, `id` matching and response parsing.** All of these are caller policy.
 
 Two consequences of `morph` are policy of morphdom, not of `swap()`: an element that the incoming markup does not contain is discarded even from a preserved parent, and morphdom syncs the `value` of an input from the incoming markup. Identity survives a morph — nodes, focus, expandos, instances — but markup that is not sent does not.

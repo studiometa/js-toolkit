@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
+import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
+import { EVENTS } from './events.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
@@ -310,5 +312,110 @@ describe('swap — the wrap seam', () => {
 
     expect(mountedDuringWrap).toBeFalsy();
     expect(el.firstElementChild?.[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+  });
+});
+
+/** Collect diagnostic codes until the returned cleanup runs. */
+function captureDiagnostics(): { codes: string[]; release: () => void } {
+  const codes: string[] = [];
+  const listener = (event: Event) => {
+    codes.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail.code);
+  };
+  document.addEventListener(EVENTS.diagnostic, listener);
+  return { codes, release: () => document.removeEventListener(EVENTS.diagnostic, listener) };
+}
+
+describe('swap — replacing the target itself', () => {
+  it('replaces the target element, attributes included', async () => {
+    const parent = target('<div id="here" class="old" data-keep="yes"><p>old</p></div>');
+    const el = parent.firstElementChild as HTMLElement;
+
+    const incoming = document.createElement('section');
+    incoming.id = 'here';
+    incoming.className = 'new';
+    incoming.innerHTML = '<p>new</p>';
+
+    await swap(el, incoming, { self: true });
+
+    expect(el.isConnected).toBe(false);
+    expect(parent.innerHTML).toBe('<section id="here" class="new"><p>new</p></section>');
+  });
+
+  it('morphs the target itself, so its own attributes are updated', async () => {
+    const parent = target('<div id="here" class="old"><p id="kept">old</p></div>');
+    const el = parent.firstElementChild as HTMLElement;
+    const keptChild = el.firstElementChild;
+
+    const incoming = document.createElement('div');
+    incoming.id = 'here';
+    incoming.className = 'new';
+    incoming.innerHTML = '<p id="kept">new</p>';
+
+    await swap(el, incoming, { mode: SWAP_MODES.MORPH, self: true });
+
+    // The element survives — that is what morph is for — and its class does not.
+    expect(el.isConnected).toBe(true);
+    expect(el.getAttribute('class')).toBe('new');
+    expect(el.firstElementChild).toBe(keptChild);
+    expect(keptChild?.textContent).toBe('new');
+  });
+
+  it('takes the first element of a markup string as the replacement', async () => {
+    const parent = target('<div id="here"></div>');
+    const el = parent.firstElementChild as HTMLElement;
+
+    await swap(el, '<article id="here">new</article>', { self: true });
+
+    expect(parent.innerHTML).toBe('<article id="here">new</article>');
+  });
+
+  it('executes a script carried by the replacement exactly once', async () => {
+    const runs = runCounter();
+    const parent = target('<div id="here"></div>');
+    const el = parent.firstElementChild as HTMLElement;
+
+    await swap(el, `<div id="here">${runs.markup}</div>`, { self: true });
+
+    expect(runs.get()).toBe(1);
+  });
+
+  it('mounts a component the replacement declares on itself', async () => {
+    const name = uniqueName('SwapSelfMount');
+    class Replacement extends Base {
+      static config = { name };
+    }
+    registerComponent(Replacement);
+
+    const parent = target('<div id="here"></div>');
+    const el = parent.firstElementChild as HTMLElement;
+
+    await swap(el, `<div id="here" data-component="${name}"></div>`, { self: true });
+
+    expect(parent.firstElementChild?.[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+  });
+
+  it('warns and keeps its meaning when a mode adds to the children', async () => {
+    const parent = target('<div id="here"><p>old</p></div>');
+    const el = parent.firstElementChild as HTMLElement;
+    const { codes, release } = captureDiagnostics();
+
+    await swap(el, '<p>new</p>', { mode: SWAP_MODES.APPEND, self: true });
+    release();
+
+    expect(codes).toEqual([DIAGNOSTICS.swap.selfIgnored]);
+    expect(el.isConnected).toBe(true);
+    expect(el.innerHTML).toBe('<p>old</p><p>new</p>');
+  });
+
+  it('warns when the content holds no element to replace the target with', async () => {
+    const parent = target('<div id="here"><p>old</p></div>');
+    const el = parent.firstElementChild as HTMLElement;
+    const { codes, release } = captureDiagnostics();
+
+    await swap(el, 'text only', { self: true });
+    release();
+
+    expect(codes).toEqual([DIAGNOSTICS.swap.selfIgnored]);
+    expect(el.isConnected).toBe(true);
   });
 });

@@ -53,6 +53,10 @@ const scheduler = Object.freeze({
   backgroundPostFailed: 'scheduler.background-post-failed',
 } as const);
 
+const swap = Object.freeze({
+  selfIgnored: 'swap.self-ignored',
+} as const);
+
 const storage = Object.freeze({
   accessFailed: 'storage.access-failed',
   deserializeFailed: 'storage.deserialize-failed',
@@ -72,6 +76,7 @@ export const DIAGNOSTICS = Object.freeze({
   responsive,
   scheduler,
   storage,
+  swap,
 } as const);
 
 export type ToolkitDiagnosticSeverity = 'warning' | 'error';

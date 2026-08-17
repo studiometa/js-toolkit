@@ -1,4 +1,5 @@
 import morphdom from 'morphdom';
+import { warn } from './diagnostics.js';
 import { whenDOMSettled } from './dom-mutations.js';
 
 /** Named content swap modes. */
@@ -14,6 +15,9 @@ export type SwapMode = (typeof SWAP_MODES)[keyof typeof SWAP_MODES];
 
 /**
  * Content for the target. Strings use the target's parsing context; nodes provide their children.
+ *
+ * With `self`, an `Element` is the replacement itself rather than a container:
+ * that is the only way its own attributes reach the page.
  */
 export type SwapContent = string | Element | DocumentFragment;
 
@@ -25,12 +29,18 @@ export interface SwapOptions {
   mode?: SwapMode;
   /** Wrap the mutation. Without a wrapper it runs synchronously. */
   wrap?: SwapWrap;
+  /**
+   * Replace the target element itself, attributes included, instead of its
+   * children. Only `replace` and `morph` can do that — `append` and `prepend`
+   * add to the children by definition and warn when this is set.
+   */
+  self?: boolean;
 }
 
 /**
  * Swap an element's content and wait for observable component lifecycle work.
  *
- * @param target The element whose content changes. The target itself is not replaced.
+ * @param target The element whose content changes. With `self`, the element itself.
  * @param content The new content.
  * @returns Resolves after eager lifecycle work. Conditional mount strategies are not awaited.
  */
@@ -39,12 +49,29 @@ export async function swap(
   content: SwapContent,
   options: SwapOptions = {},
 ): Promise<void> {
-  const { mode = SWAP_MODES.REPLACE, wrap } = options;
+  const { mode = SWAP_MODES.REPLACE, wrap, self = false } = options;
   const incoming = asContainer(target, content);
+  const replacement = self ? replacementFor(content, incoming) : null;
+
+  if (self && (mode === SWAP_MODES.APPEND || mode === SWAP_MODES.PREPEND)) {
+    warn(
+      'swap.self-ignored',
+      `The "${mode}" mode adds to the target's children, so \`self\` was ignored.`,
+      { target },
+    );
+  } else if (self && !replacement) {
+    warn('swap.self-ignored', 'The content holds no element to replace the target with.', {
+      target,
+    });
+  }
+
   // Track script identity so preserved scripts do not run again.
   const knownScripts = new Set(target.querySelectorAll('script'));
 
   const mutate = () => {
+    // Whatever ends up in the document, so its new scripts run exactly once.
+    let roots: Element[] = [target];
+
     switch (mode) {
       case SWAP_MODES.APPEND:
         target.append(...incoming.childNodes);
@@ -53,13 +80,26 @@ export async function swap(
         target.prepend(...incoming.childNodes);
         break;
       case SWAP_MODES.MORPH:
-        // Preserve the target and its attributes.
-        morphdom(target, incoming, { childrenOnly: true });
+        // `childrenOnly` preserves the target and its attributes; `self` is the
+        // opposite ask, so the replacement morphs the target itself.
+        roots = [
+          replacement
+            ? (morphdom(target, replacement) as Element)
+            : (morphdom(target, incoming, { childrenOnly: true }) as Element),
+        ];
         break;
       default:
-        target.replaceChildren(...incoming.childNodes);
+        if (replacement) {
+          roots = [replacement];
+          target.replaceWith(replacement);
+        } else {
+          target.replaceChildren(...incoming.childNodes);
+        }
     }
-    adoptScripts(target, knownScripts);
+
+    for (const root of roots) {
+      adoptScripts(root, knownScripts);
+    }
   };
 
   if (wrap) {
@@ -87,10 +127,21 @@ function asContainer(target: Element, content: SwapContent): Element {
 }
 
 /**
+ * The element that takes the target's place. An `Element` content is that
+ * element; anything else contributes its first top-level element.
+ */
+function replacementFor(content: SwapContent, incoming: Element): Element | null {
+  return content instanceof Element ? content : incoming.firstElementChild;
+}
+
+/**
  * Recreate newly inserted scripts so parser-inert scripts run once. Preserved script nodes do not run again.
  */
-function adoptScripts(target: Element, knownScripts: ReadonlySet<HTMLScriptElement>): void {
-  for (const script of target.querySelectorAll('script')) {
+function adoptScripts(root: Element, knownScripts: ReadonlySet<HTMLScriptElement>): void {
+  // `self` can put a script in the document as the root rather than under one.
+  const scripts = root instanceof HTMLScriptElement ? [root] : root.querySelectorAll('script');
+
+  for (const script of scripts) {
     if (knownScripts.has(script)) {
       continue;
     }
