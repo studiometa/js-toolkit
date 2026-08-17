@@ -35,6 +35,10 @@ const DEFAULT_INIT: MutationObserverInit = /* @__PURE__ */ Object.freeze({
  * `attributeFilter` imply `attributes`, and `characterDataOldValue` implies
  * `characterData`. Contradictory options — a filter with `attributes: false` —
  * are forwarded untouched so `observe()` still rejects them.
+ *
+ * Property order is not this function's business: `perTarget()` sorts keys
+ * before it keys anything. What is left here is the DOM contract — an omitted
+ * option is `false`, a filter is a set, and the platform infers two flags.
  */
 function resolveInit(init: MutationObserverInit): MutationObserverInit {
   const attributeFilter = init.attributeFilter && [...new Set(init.attributeFilter)].sort();
@@ -48,11 +52,6 @@ function resolveInit(init: MutationObserverInit): MutationObserverInit {
     characterDataOldValue: init.characterDataOldValue ?? false,
     ...(attributeFilter !== undefined && { attributeFilter }),
   };
-}
-
-/** Key a resolved init. Its property order is fixed, so the string is canonical. */
-function keyOf(init: MutationObserverInit): string {
-  return JSON.stringify(init);
 }
 
 function createMutationService(target: Node, init: MutationObserverInit): Service<MutationProps> {
@@ -89,7 +88,7 @@ function createMutationService(target: Node, init: MutationObserverInit): Servic
 }
 
 const mutationServices = /* @__PURE__ */ getSharedRuntimeSlot('service:mutation', 1, () =>
-  perTarget(createMutationService, keyOf),
+  perTarget(createMutationService),
 );
 
 /**
@@ -129,26 +128,9 @@ export const withMutation = /* @__PURE__ */ createServiceMixin<
 >({
   hook: 'mutated',
   target: (instance) => instance.$el,
-  use: (target, options) => {
-    const {
-      attributeFilter,
-      attributeOldValue,
-      attributes,
-      characterData,
-      characterDataOldValue,
-      childList,
-      subtree,
-    } = options;
-    const init: MutationObserverInit = {
-      ...(attributeFilter !== undefined && { attributeFilter }),
-      ...(attributeOldValue !== undefined && { attributeOldValue }),
-      ...(attributes !== undefined && { attributes }),
-      ...(characterData !== undefined && { characterData }),
-      ...(characterDataOldValue !== undefined && { characterDataOldValue }),
-      ...(childList !== undefined && { childList }),
-      ...(subtree !== undefined && { subtree }),
-    };
-    // An options object holding only mixin keys names no observation.
-    return useMutation(target, Object.keys(init).length > 0 ? init : DEFAULT_INIT);
-  },
+  // Options naming no observation — `{ manual: true }`, or nothing at all —
+  // ask for the documented default rather than for `observe(target, {})`,
+  // which the platform rejects.
+  use: (target, options) =>
+    useMutation(target, Object.keys(options).length > 0 ? options : DEFAULT_INIT),
 });

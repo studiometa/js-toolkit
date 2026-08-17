@@ -176,8 +176,7 @@ export const withScrollProgress = /* @__PURE__ */ createServiceMixin<
   hook: 'scrolledInView',
   target: (instance) => instance.$el,
   defaultImmediate: true,
-  // Keep lifecycle options out of the service cache key.
-  use: (target, { offset }) => useScrollProgress(target, { offset }),
+  use: (target, options) => useScrollProgress(target, options),
   handleResult: (instance, result) => {
     if (typeof result === 'function') {
       instance.$write(result as ScrollProgressRender);

@@ -200,6 +200,24 @@ describe('useInView', () => {
     for (const unsubscribe of unsubscribes) unsubscribe();
   });
 
+  it('keys an init by its meaning, not by the order it was written in', () => {
+    const target = document.createElement('div');
+    const root = document.createElement('section');
+
+    const written = useInView(target, { rootMargin: '0px', threshold: 0.5 });
+    const rewritten = useInView(target, { threshold: 0.5, rootMargin: '0px' });
+    expect(written).toBe(rewritten);
+    // The root keeps its own weak identity through the canonical key.
+    expect(useInView(target, { root, threshold: 0.5 })).toBe(
+      useInView(target, { threshold: 0.5, root }),
+    );
+
+    const unsubscribes = [written, rewritten].map((service) => service.subscribe(() => {}));
+    // Two spellings of one observation, one `IntersectionObserver`.
+    expect(FakeIntersectionObserver.instances).toHaveLength(1);
+    for (const unsubscribe of unsubscribes) unsubscribe();
+  });
+
   it('disconnects after the final unsubscribe and waits for a new entry on restart', () => {
     const target = document.createElement('div');
     const service = useInView(target);

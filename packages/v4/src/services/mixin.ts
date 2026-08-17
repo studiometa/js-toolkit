@@ -17,6 +17,39 @@ export interface ServiceMixinOptions<Target, Host = Base> {
   immediate?: boolean;
 }
 
+/**
+ * The keys of {@link ServiceMixinOptions}. They describe the subscription, not
+ * the observation, so they belong to the mixin and never to the service.
+ */
+const MIXIN_OPTIONS: readonly string[] = ['target', 'manual', 'immediate'];
+
+/**
+ * Split the service half out of what the caller wrote.
+ *
+ * A service is identified by the options it is handed, so a lifecycle key
+ * reaching `use()` mints a service of its own: `withDrag(Base, { manual: true })`
+ * bound a second drag service on the element the plain `withDrag(Base)` already
+ * owned — two pointer listener sets, two window listener sets and two
+ * `touch-action` claims. `Options` no longer holds those keys either, so
+ * forwarding the whole object is now the correct call rather than the mistake.
+ *
+ * A key holding `undefined` goes with them: naming an option without a value
+ * is the same request as not naming it, and the service key already reads it
+ * that way.
+ */
+function serviceOptionsOf<Options extends object, Target>(
+  options: Options & ServiceMixinOptions<Target>,
+): Options {
+  const source = options as Record<string, unknown>;
+  const serviceOptions: Record<string, unknown> = {};
+  for (const key of Object.keys(source)) {
+    if (source[key] !== undefined && !MIXIN_OPTIONS.includes(key)) {
+      serviceOptions[key] = source[key];
+    }
+  }
+  return serviceOptions as Options;
+}
+
 /** Typed service controls keyed by hook name. Stacked mixins accumulate keys. */
 export type ServiceHandles<Hook extends string> = {
   readonly $services: { readonly [K in Hook]: Toggle };
@@ -37,9 +70,16 @@ export interface ServiceMixinDefinition<Target, Options> {
    */
   defaultImmediate?: boolean;
   /**
-   * Service the method subscribes to. Both parameters are `unknown` here
-   * because most mixins forward whatever the hook returns without looking at
-   * it — the frame service is the one that reads it.
+   * Service the method subscribes to, given the service half of the options.
+   *
+   * `Options` is the service's own option type, without the mixin's `target`,
+   * `manual` and `immediate`: they are stripped before the call and absent
+   * from the type, so forwarding the whole object cannot put a lifecycle
+   * choice into the service identity.
+   *
+   * Both service parameters are `unknown` here because most mixins forward
+   * whatever the hook returns without looking at it — the frame service is the
+   * one that reads it.
    */
   use: (target: Target, options: Options) => Service<unknown, unknown>;
   /**
@@ -73,7 +113,7 @@ export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> &
  * Build a lifecycle-bound service mixin. Automatic subscriptions last for one mount cycle. Manual subscriptions also stop on destroy or termination.
  */
 export function createServiceMixin<Instance, Target, Options extends object = object>(
-  definition: ServiceMixinDefinition<Target, Options & ServiceMixinOptions<Target>>,
+  definition: ServiceMixinDefinition<Target, Options>,
 ): ServiceMixin<Instance, Target, Options> {
   type MixinOptions = Options & ServiceMixinOptions<Target>;
 
@@ -81,6 +121,8 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
     const { hook } = definition;
     const target = options.target ?? definition.target;
     const isManual = options.manual ?? false;
+    // One split per applied mixin: every instance asks for the same service.
+    const serviceOptions = serviceOptionsOf<Options, Target>(options);
 
     return class extends BaseClass {
       constructor(el: HTMLElement) {
@@ -97,7 +139,7 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
           if (typeof method !== 'function') {
             return () => {};
           }
-          return definition.use(target(this), options).subscribe(
+          return definition.use(target(this), serviceOptions).subscribe(
             (props) => {
               const result = (method as (props: unknown) => unknown).call(this, props);
               if (definition.handleResult) {
