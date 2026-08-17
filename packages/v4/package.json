@@ -184,10 +184,6 @@
       "types": "./dist/subpaths/withInView.d.ts",
       "import": "./dist/subpaths/withInView.js"
     },
-    "./KEYS": {
-      "types": "./dist/subpaths/KEYS.d.ts",
-      "import": "./dist/subpaths/KEYS.js"
-    },
     "./useKey": {
       "types": "./dist/subpaths/useKey.d.ts",
       "import": "./dist/subpaths/useKey.js"

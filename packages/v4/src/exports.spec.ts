@@ -5,7 +5,6 @@ import {
   Base,
   DIAGNOSTICS,
   EVENTS,
-  KEYS,
   createGroup,
   defineManifest,
   domUpdate,
@@ -39,7 +38,6 @@ import {
   type ExtendableDetail,
   type Extension,
   type InViewProps,
-  type Key,
   type KeyFlags,
   type KeyHook,
   type KeyMixinOptions,
@@ -104,7 +102,6 @@ import diagnosticsFromSubpath, {
 import eventsFromSubpath, {
   EVENTS as namedEventsFromSubpath,
 } from '@studiometa/js-toolkit-v4/EVENTS';
-import keysFromSubpath, { KEYS as namedKeysFromSubpath } from '@studiometa/js-toolkit-v4/KEYS';
 import withDragFromSubpath from '@studiometa/js-toolkit-v4/withDrag';
 import withInViewFromSubpath, {
   withInView as namedWithInViewFromSubpath,
@@ -176,7 +173,7 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(83);
+    expect(Object.keys(root)).toHaveLength(82);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
@@ -286,18 +283,19 @@ describe('the package entry points', () => {
     expectTypeOf<InViewMixinOptions>().toMatchTypeOf<IntersectionObserverInit>();
   });
 
-  it('serves the key service, its mixin and its constant from the root and their subpaths', () => {
+  it('serves the key service and its mixin from the root and their subpaths', () => {
     expect(useKeyFromSubpath).toBe(useKey);
     expect(namedUseKeyFromSubpath).toBe(useKey);
     expect(withKeyFromSubpath).toBe(withKey);
     expect(namedWithKeyFromSubpath).toBe(withKey);
-    expect(keysFromSubpath).toBe(KEYS);
-    expect(namedKeysFromSubpath).toBe(KEYS);
     // The document default and an explicit target are one function.
     expectTypeOf(useKey()).toEqualTypeOf<Service<KeyProps>>();
     expectTypeOf(useKey(document.documentElement)).toEqualTypeOf<Service<KeyProps>>();
     expectTypeOf<KeyTarget>().toEqualTypeOf<Document | Element | Window>();
-    expectTypeOf<Key>().toEqualTypeOf<(typeof KEYS)[KeyName]>();
+    // The named keys reach a consumer as props, so the constant stays internal.
+    expectTypeOf<KeyName>().toEqualTypeOf<
+      'ENTER' | 'SPACE' | 'TAB' | 'ESC' | 'LEFT' | 'UP' | 'RIGHT' | 'DOWN'
+    >();
     expectTypeOf<KeyProps>().toMatchTypeOf<KeyFlags>();
     expectTypeOf<KeyHook>().toMatchTypeOf<{
       keyed?: (props: KeyProps) => void;

@@ -107,10 +107,8 @@ export {
   type InViewProps,
 } from './services/in-view.js';
 export {
-  KEYS,
   useKey,
   withKey,
-  type Key,
   type KeyFlags,
   type KeyHook,
   type KeyMixinOptions,
