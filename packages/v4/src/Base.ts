@@ -3,6 +3,7 @@ import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
 import { reportDiagnostic, warnOnce } from './diagnostics.js';
+import { compareDocumentOrder } from './document-order.js';
 import { domVersion } from './dom-mutations.js';
 import { EVENTS } from './events.js';
 import { HANDLER_REGISTRATIONS, INSTANCES } from './protocol-symbols.js';
@@ -351,9 +352,7 @@ function queryRefs(root: HTMLElement, componentName: string, definition: string)
   }
   // One property, so one document order — an index handed to `on<Ref><Event>`
   // has to mean the same thing as an index into `$refs`.
-  return [...plain, ...owned].sort((a, b) =>
-    a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1,
-  );
+  return [...plain, ...owned].sort(compareDocumentOrder);
 }
 
 /** Warn once when a missing list ref has an unsuffixed markup candidate. */
@@ -1086,12 +1085,7 @@ export class Base<T extends BaseProps = BaseProps> {
         return instances.size;
       },
       get items() {
-        return [...instances].sort((a, b) => {
-          const position = a.$el.compareDocumentPosition(b.$el);
-          if (position & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
-          if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1;
-          return 0;
-        });
+        return [...instances].sort((a, b) => compareDocumentOrder(a.$el, b.$el));
       },
       [Symbol.iterator]() {
         return this.items[Symbol.iterator]();

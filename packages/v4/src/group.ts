@@ -1,4 +1,5 @@
 import { signal, type Signal } from './context.js';
+import { compareDocumentOrder } from './document-order.js';
 
 /**
  * What a group needs of a member: the element that decides its rank.
@@ -45,21 +46,6 @@ export interface Group<T extends GroupMember = GroupMember> {
 }
 
 /**
- * Document order, the only order DOM-anchored peers can agree on without
- * either the coordinator or the mount sequence arbitrating it.
- */
-function inDocumentOrder(a: GroupMember, b: GroupMember): number {
-  const position = a.$el.compareDocumentPosition(b.$el);
-  if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
-    return -1;
-  }
-  if (position & Node.DOCUMENT_POSITION_PRECEDING) {
-    return 1;
-  }
-  return 0;
-}
-
-/**
  * Create an empty group.
  *
  * A member leaves through the function `join()` returned; nothing sweeps
@@ -73,7 +59,7 @@ export function createGroup<T extends GroupMember = GroupMember>(): Group<T> {
   // Sorting on write keeps the published value ready to read and makes the
   // new array identity the notification.
   const publish = () => {
-    members.value = [...joined].sort(inDocumentOrder);
+    members.value = [...joined].sort((a, b) => compareDocumentOrder(a.$el, b.$el));
   };
 
   return {
