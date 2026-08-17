@@ -605,8 +605,13 @@ Ported 2026-08-17. `AbstractPrefetch`, `PrefetchWhenVisible`, `PrefetchWhenOver`
 | build a `<link rel="prefetch">`, append it, listen for `load`     | `loadLink(url.href, { rel: 'prefetch' })`                           |
 | `static prefetchedUrls: Set<string>` — a page-wide dedup registry | `loadLink()`'s own key, which is the resolved URL **and** the `rel` |
 | `withMountWhenInView(AbstractPrefetch)`                           | `mountStrategy: 'visible'`                                          |
+| `onMouseenter()` on an already-mounted instance                   | `mountStrategy: 'interaction'`                                      |
 | `...AbstractPrefetch.config` spread in both subclasses            | deleted; configs merge along the prototype chain (#627)             |
 | `config.emits: ['prefetched']`                                    | `$emits` in the props type                                          |
+
+**Both variants are a mount strategy, and that is the finding.** The family exists to answer one question — _when_ is a link worth hinting — and its two answers are now two strings: `visible` for the viewport and `interaction` for a pointer, a touch or the keyboard. Each subclass is a `@component()` and a `mounted()` that calls `prefetch()`; nothing else distinguishes them. v3 needed a constructor-wrapping decorator for one and an event handler for the other, so the two variants were built out of two different mechanisms for what is the same decision.
+
+**And `interaction` is wider than the handler it replaces, not narrower.** Core mounts on `pointerenter`, `pointerdown` or `focusin`, whichever comes first. v3's `mouseenter` fires for none of a touch, and none of a keyboard: the two inputs ui cannot prefetch for today are exactly the ones the strategy adds. A spec drives both. The component also stops existing before the intent arrives, which is the `InView` win (§7) reaching a second family.
 
 **`visible` rather than `in-view`, and the reason generalises.** v3 uses the reversible decorator and relies on its dedup set to make the repeated mounts harmless. The intent is one-shot; v4 ships the one-shot strategy. This is the third component in the exercise — after `InViewOnce` and now `CarouselDrag`'s media query — where a v3 decorator **plus a guard against its own repetition** collapses into a strategy string.
 
@@ -614,9 +619,9 @@ Ported 2026-08-17. `AbstractPrefetch`, `PrefetchWhenVisible`, `PrefetchWhenOver`
 
 **One thing core does better than the ask.** `loadLink()` checks `relList.supports(rel)` and resolves immediately for a `rel` the browser ignores. Safari ignores `prefetch` entirely, so v3's `prefetched` event never fires there at all; the port's does.
 
-**Size:** 87 → 82 code lines (−6 %), and the interesting number is inside it: `prefetch()` itself goes from 17 lines to 8 and the static registry disappears.
+**Size:** 87 → 77 code lines (−11 %), and two numbers inside it are the interesting ones: `prefetch()` goes from 17 lines to 8 with the static registry gone, and `PrefetchWhenOver` is now four code lines against v3's twelve.
 
-**Specs:** 19, all green, adapted from ui's three files. The adaptation is load-bearing: ui asserts against a mocked observer and a mocked link, and the port drives a real `IntersectionObserver` and a real `<link>` the test server really answers — which is how the `loadLink()` failure path (it removes the element again) got discovered.
+**Specs:** 20, all green, adapted from ui's three files. The adaptation is load-bearing: ui asserts against a mocked observer and a mocked link, and the port drives a real `IntersectionObserver` and a real `<link>` the test server really answers — which is how the `loadLink()` failure path (it removes the element again) got discovered.
 
 ## 12. Cursor — the component gap 1 was written about
 
@@ -863,12 +868,12 @@ Code lines, comments and blanks excluded. The v4 numbers _include_ the heavy exp
 | Track utilities (`throttle`, `memo`, `deepmerge`, `useInView`) |       24 |      108 |    +350 % |
 | Fetch (2 classes, `swap()` doing the update)                   |      397 |      371 |      −7 % |
 | LazyInclude                                                    |       56 |       67 |     +20 % |
-| Prefetch (3 classes)                                           |       87 |       78 |     −10 % |
+| Prefetch (3 classes)                                           |       87 |       77 |     −11 % |
 | Cursor                                                         |      121 |       99 |     −18 % |
 | Draggable                                                      |      191 |      222 |     +16 % |
 | Carousel (7 classes + context + utils)                         |      431 |      454 |      +5 % |
 | Carousel infrastructure (`withIndex` + `Indexable`)            |      206 |      157 |     −24 % |
-| **total**                                                      | **5689** | **4842** | **−15 %** |
+| **total**                                                      | **5689** | **4841** | **−15 %** |
 
 The `Data*` row is the flattest one, and §5e says why: that family had already been built carefully on primitives, so v4 removes a dependency (`alien-signals`), a decorator (`withGroup`) and now its copied DOM-update protocol rather than broad accidental complexity. The registry that replaces the first two is bigger than either because it carries the value cell `withGroup` never had. Within the row one number is dramatic — `DataScope` 269 → 55 — and it is the same finding from the other side: four fifths of that component was a data structure that only lived in a component because there was nowhere else to put it.
 
@@ -878,7 +883,7 @@ The two new families sit at the opposite ends of the table and say the same thin
 
 Two rows moved when the three controls landed. The `Slider` row was `472 → 295` (−38 %) over five classes, and −20 % is the truer number: the three controls added are thin in both versions (98 → 99 lines), their deleted base class had already been counted as saved, and `Slider` itself took on ~60 lines of drag handling that v3 also had. Wiring is where the saving is, and the wiring was already counted. And the enter/leave sequence moved out of `Transition` into the utilities — 31 lines off one row, 47 onto the other — which is what buys `SliderDots` its transitions with no second implementation. The utilities row is now larger than v3's, and that is the honest number: v3's equivalent 137-line `withTransition` decorator sat in the row above.
 
-**The 2026-08-17 round is flat, and that is the result rather than a disappointment.** Six families, 1489 v3 lines against 1448 v4 ones — and it only reaches −2 % because the review of it grew `swap({ self })` and took 39 lines back out of `Fetch`. Four shrink (`Fetch` −7 %, `Prefetch` −10 %, `Cursor` −18 %, `withIndex` −24 %), two grow (`LazyInclude` +20 %, `Draggable` +16 %) and `Carousel` is flat at +4 %, and the growth is the same three things every time: an `$emits` map where `config.emits` was one line, named types for what v3 declared as anonymous field annotations, and a utility core does not ship. Inside the flat totals the distribution is anything but flat — `AbstractCarouselChild` loses 72 %, `CarouselItem` 67 %, and both losses reappear as +35 % on the coordinator. **The wiring saving is real and it is now fully spent**: by this round every family had already been debugged into the careful shape `Data*` was in, so what v4 removes is the last of the mount-order defence, not accidental complexity.
+**The 2026-08-17 round is flat, and that is the result rather than a disappointment.** Six families, 1489 v3 lines against 1447 v4 ones — and it only reaches −2 % because the review of it grew `swap({ self })` and took 39 lines back out of `Fetch`. Four shrink (`Fetch` −7 %, `Prefetch` −11 %, `Cursor` −18 %, `withIndex` −24 %), two grow (`LazyInclude` +20 %, `Draggable` +16 %) and `Carousel` is flat at +4 %, and the growth is the same three things every time: an `$emits` map where `config.emits` was one line, named types for what v3 declared as anonymous field annotations, and a utility core does not ship. Inside the flat totals the distribution is anything but flat — `AbstractCarouselChild` loses 72 %, `CarouselItem` 67 %, and both losses reappear as +35 % on the coordinator. **The wiring saving is real and it is now fully spent**: by this round every family had already been debugged into the careful shape `Data*` was in, so what v4 removes is the last of the mount-order defence, not accidental complexity.
 
 The two utilities this round had to write are worth naming next to `deepmerge` and `useInView` from §8, because the pattern is now four for four: `Fetch`'s script adoption (26 lines, which core has and keeps private — gap 36) and `Carousel`'s centred scroll position (12 lines, replacing the `compute-scroll-into-view` package — gap 37). **v4 does not remove a dependency; it makes you write it, or it ships something adjacent that does not quite reach.**
 

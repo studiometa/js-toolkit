@@ -248,21 +248,41 @@ describe('AbstractPrefetch — the hint', () => {
 });
 
 describe('PrefetchWhenOver', () => {
-  it('prefetches on mouseenter', async () => {
+  it('prefetches when the pointer arrives', async () => {
     const href = uniqueHref();
     const root = await render(`<a data-component="PrefetchWhenOver" href="${href}"></a>`);
 
-    root.firstElementChild?.dispatchEvent(new MouseEvent('mouseenter'));
+    root.firstElementChild?.dispatchEvent(new PointerEvent('pointerenter'));
     await observed();
 
     expect(hasPrefetchLink(href)).toBe(true);
   });
 
-  it('does nothing before the pointer arrives', async () => {
-    const href = uniqueHref();
-    await render(`<a data-component="PrefetchWhenOver" href="${href}"></a>`);
+  it('prefetches for a touch and for the keyboard, which `mouseenter` never saw', async () => {
+    const tapped = uniqueHref();
+    const focused = uniqueHref();
+    const root = await render(
+      `<a data-component="PrefetchWhenOver" href="${tapped}"></a>` +
+        `<a data-component="PrefetchWhenOver" href="${focused}"></a>`,
+    );
+    const [tap, focus] = [...root.children];
+
+    tap.dispatchEvent(new PointerEvent('pointerdown'));
+    focus.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
     await observed();
 
+    expect(hasPrefetchLink(tapped)).toBe(true);
+    expect(hasPrefetchLink(focused)).toBe(true);
+  });
+
+  it('does not instantiate the component before the intent arrives', async () => {
+    const href = uniqueHref();
+    const root = await render(`<a data-component="PrefetchWhenOver" href="${href}"></a>`);
+    await observed();
+
+    expect(
+      getInstance<PrefetchWhenOver>(root.firstElementChild as HTMLElement, 'PrefetchWhenOver'),
+    ).toBeUndefined();
     expect(hasPrefetchLink(href)).toBe(false);
   });
 
@@ -272,7 +292,7 @@ describe('PrefetchWhenOver', () => {
       `<a data-component="PrefetchWhenOver" href="${href}" data-option-prefetch="false"></a>`,
     );
 
-    root.firstElementChild?.dispatchEvent(new MouseEvent('mouseenter'));
+    root.firstElementChild?.dispatchEvent(new PointerEvent('pointerenter'));
     await observed();
 
     expect(hasPrefetchLink(href)).toBe(false);
