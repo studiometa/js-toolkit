@@ -2,6 +2,7 @@
 
 export * from './Accordion/index.js';
 export * from './Action/index.js';
+export * from './Carousel/index.js';
 export * from './ClickOutside/index.js';
 export * from './Cursor/index.js';
 export * from './Data/index.js';
