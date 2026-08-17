@@ -19,7 +19,7 @@ Fifteen component families were ported onto v4 to find out what a real migration
 | `ClickOutside`    | `ClickOutside`                                                                                   | full                           | —                                                                   |
 | `Fetch`           | `Fetch`, `FetchShopifySection`, `utils`                                                          | full                           | `FetchShopifyPartial` (§9d), and `Frame` — see below                |
 | `LazyInclude`     | `LazyInclude`                                                                                    | full                           | —                                                                   |
-| `Prefetch`        | `AbstractPrefetch`, `PrefetchWhenVisible`, `PrefetchWhenOver`                                    | full                           | —                                                                   |
+| `Prefetch`        | `AbstractPrefetch`, `PrefetchWhenVisible`, `PrefetchOnInteraction`                                    | full                           | —                                                                   |
 | `Cursor`          | `Cursor`                                                                                         | full                           | —                                                                   |
 | `Draggable`       | `Draggable`                                                                                      | full                           | —                                                                   |
 | `Carousel`        | all seven classes, `utils`, plus the `Indexable`/`withIndex` base it extends                     | full                           | —                                                                   |
@@ -598,7 +598,7 @@ Ported 2026-08-17. One class, and the shortest section in this report for the go
 
 ## 11. Prefetch — three classes, and core already had all of it
 
-Ported 2026-08-17. `AbstractPrefetch`, `PrefetchWhenVisible`, `PrefetchWhenOver`.
+Ported 2026-08-17. `AbstractPrefetch`, `PrefetchWhenVisible`, and `PrefetchWhenOver` under its v4 name, `PrefetchOnInteraction`.
 
 | v3                                                                | v4                                                                  |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
@@ -619,7 +619,7 @@ Ported 2026-08-17. `AbstractPrefetch`, `PrefetchWhenVisible`, `PrefetchWhenOver`
 
 **One thing core does better than the ask.** `loadLink()` checks `relList.supports(rel)` and resolves immediately for a `rel` the browser ignores. Safari ignores `prefetch` entirely, so v3's `prefetched` event never fires there at all; the port's does.
 
-**Size:** 87 → 77 code lines (−11 %), and two numbers inside it are the interesting ones: `prefetch()` goes from 17 lines to 8 with the static registry gone, and `PrefetchWhenOver` is now four code lines against v3's twelve.
+**Size:** 87 → 77 code lines (−11 %), and two numbers inside it are the interesting ones: `prefetch()` goes from 17 lines to 8 with the static registry gone, and `PrefetchOnInteraction` is now four code lines against v3's twelve.
 
 **Specs:** 20, all green, adapted from ui's three files. The adaptation is load-bearing: ui asserts against a mocked observer and a mocked link, and the port drives a real `IntersectionObserver` and a real `<link>` the test server really answers — which is how the `loadLink()` failure path (it removes the element again) got discovered.
 

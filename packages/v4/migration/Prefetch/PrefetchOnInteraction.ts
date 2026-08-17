@@ -4,7 +4,8 @@ import { AbstractPrefetch } from './AbstractPrefetch.js';
 /**
  * Prefetches the link's URL when a pointer, a touch or the keyboard reaches it.
  *
- * v3 binds `onMouseenter` on an instance that already exists. v4 has a mount
+ * v3 calls this `PrefetchWhenOver` and binds `onMouseenter` on an instance
+ * that already exists. v4 has a mount
  * strategy for the same intent, so the variant is a config key and the
  * component is one call: `interaction` mounts on `pointerenter`,
  * `pointerdown` or `focusin`, whichever comes first, and never before. That
@@ -18,8 +19,8 @@ import { AbstractPrefetch } from './AbstractPrefetch.js';
  *
  * @link https://ui.studiometa.dev/reference/items/Prefetch/
  */
-@component({ name: 'PrefetchWhenOver', mountStrategy: 'interaction' })
-export class PrefetchWhenOver<T extends BaseProps = BaseProps> extends AbstractPrefetch<T> {
+@component({ name: 'PrefetchOnInteraction', mountStrategy: 'interaction' })
+export class PrefetchOnInteraction<T extends BaseProps = BaseProps> extends AbstractPrefetch<T> {
   mounted(): void {
     this.prefetch();
   }

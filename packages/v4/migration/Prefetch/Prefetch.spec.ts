@@ -2,10 +2,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance, resetDom, settle } from '../../src/test-utils.js';
 import { AbstractPrefetch } from './AbstractPrefetch.js';
-import { PrefetchWhenOver } from './PrefetchWhenOver.js';
+import { PrefetchOnInteraction } from './PrefetchOnInteraction.js';
 import { PrefetchWhenVisible } from './PrefetchWhenVisible.js';
 
-registerComponents(AbstractPrefetch, PrefetchWhenOver, PrefetchWhenVisible);
+registerComponents(AbstractPrefetch, PrefetchOnInteraction, PrefetchWhenVisible);
 
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';
 const ONSCREEN = 'position:absolute;top:0;left:0;width:50px;height:50px';
@@ -247,10 +247,10 @@ describe('AbstractPrefetch — the hint', () => {
   });
 });
 
-describe('PrefetchWhenOver', () => {
+describe('PrefetchOnInteraction', () => {
   it('prefetches when the pointer arrives', async () => {
     const href = uniqueHref();
-    const root = await render(`<a data-component="PrefetchWhenOver" href="${href}"></a>`);
+    const root = await render(`<a data-component="PrefetchOnInteraction" href="${href}"></a>`);
 
     root.firstElementChild?.dispatchEvent(new PointerEvent('pointerenter'));
     await observed();
@@ -262,8 +262,8 @@ describe('PrefetchWhenOver', () => {
     const tapped = uniqueHref();
     const focused = uniqueHref();
     const root = await render(
-      `<a data-component="PrefetchWhenOver" href="${tapped}"></a>` +
-        `<a data-component="PrefetchWhenOver" href="${focused}"></a>`,
+      `<a data-component="PrefetchOnInteraction" href="${tapped}"></a>` +
+        `<a data-component="PrefetchOnInteraction" href="${focused}"></a>`,
     );
     const [tap, focus] = [...root.children];
 
@@ -277,11 +277,14 @@ describe('PrefetchWhenOver', () => {
 
   it('does not instantiate the component before the intent arrives', async () => {
     const href = uniqueHref();
-    const root = await render(`<a data-component="PrefetchWhenOver" href="${href}"></a>`);
+    const root = await render(`<a data-component="PrefetchOnInteraction" href="${href}"></a>`);
     await observed();
 
     expect(
-      getInstance<PrefetchWhenOver>(root.firstElementChild as HTMLElement, 'PrefetchWhenOver'),
+      getInstance<PrefetchOnInteraction>(
+        root.firstElementChild as HTMLElement,
+        'PrefetchOnInteraction',
+      ),
     ).toBeUndefined();
     expect(hasPrefetchLink(href)).toBe(false);
   });
@@ -289,7 +292,7 @@ describe('PrefetchWhenOver', () => {
   it('inherits the `prefetch` option from the base class config', async () => {
     const href = uniqueHref();
     const root = await render(
-      `<a data-component="PrefetchWhenOver" href="${href}" data-option-prefetch="false"></a>`,
+      `<a data-component="PrefetchOnInteraction" href="${href}" data-option-prefetch="false"></a>`,
     );
 
     root.firstElementChild?.dispatchEvent(new PointerEvent('pointerenter'));
