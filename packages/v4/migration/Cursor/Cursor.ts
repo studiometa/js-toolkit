@@ -1,8 +1,8 @@
 import {
   Base,
+  component,
   withPointer,
   withRaf,
-  type BaseConfig,
   type BaseProps,
   type MountedReturn,
   type PointerProps,
@@ -37,29 +37,28 @@ export type CursorProps = BaseProps & {
  *
  * @link https://ui.studiometa.dev/reference/items/Cursor/
  */
+@component({
+  name: 'Cursor',
+  options: {
+    growSelectors: {
+      type: String,
+      default: 'a, a *, button, button *, [data-cursor-grow], [data-cursor-grow] *',
+    },
+    shrinkSelectors: {
+      type: String,
+      default: '[data-cursor-shrink], [data-cursor-shrink] *',
+    },
+    scale: { type: Number, default: 1 },
+    growTo: { type: Number, default: 2 },
+    shrinkTo: { type: Number, default: 0.5 },
+    translateDampFactor: { type: Number, default: 0.25 },
+    growDampFactor: { type: Number, default: 0.25 },
+    shrinkDampFactor: { type: Number, default: 0.25 },
+  },
+})
 export class Cursor<T extends BaseProps = BaseProps> extends withRaf(withPointer(Base), {
   manual: true,
 })<CursorProps & T> {
-  static config: BaseConfig = {
-    name: 'Cursor',
-    options: {
-      growSelectors: {
-        type: String,
-        default: 'a, a *, button, button *, [data-cursor-grow], [data-cursor-grow] *',
-      },
-      shrinkSelectors: {
-        type: String,
-        default: '[data-cursor-shrink], [data-cursor-shrink] *',
-      },
-      scale: { type: Number, default: 1 },
-      growTo: { type: Number, default: 2 },
-      shrinkTo: { type: Number, default: 0.5 },
-      translateDampFactor: { type: Number, default: 0.25 },
-      growDampFactor: { type: Number, default: 0.25 },
-      shrinkDampFactor: { type: Number, default: 0.25 },
-    },
-  };
-
   x = 0;
 
   y = 0;

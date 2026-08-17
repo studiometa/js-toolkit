@@ -1,4 +1,4 @@
-import { Base, swap, type BaseConfig, type BaseProps } from '../../src/index.js';
+import { Base, component, on, swap, type BaseProps } from '../../src/index.js';
 
 /** Gap 10: core ships no `$warn`. */
 function warn(...args: unknown[]): void {
@@ -28,16 +28,15 @@ export type LazyIncludeProps = BaseProps & {
  *
  * @link https://ui.studiometa.dev/reference/items/LazyInclude/
  */
+@component({
+  name: 'LazyInclude',
+  refs: ['loading', 'error'],
+  options: {
+    src: String,
+    terminateOnLoad: Boolean,
+  },
+})
 export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyIncludeProps & T> {
-  static config: BaseConfig = {
-    name: 'LazyInclude',
-    refs: ['loading', 'error'],
-    options: {
-      src: String,
-      terminateOnLoad: Boolean,
-    },
-  };
-
   /** Load the lazy content on mount. */
   mounted(): void {
     if (!this.$options.src) {
@@ -66,7 +65,8 @@ export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyInclu
    * element's exact shape — the children change, the element does not — so it
    * owns both, and the awaited settle is what makes `always` meaningful.
    */
-  async onContent(event: CustomEvent<{ content: string }>): Promise<void> {
+  @on('content')
+  async inject(event: CustomEvent<{ content: string }>): Promise<void> {
     const { loading } = this.$refs;
     if (loading) {
       loading.style.display = 'none';
@@ -75,7 +75,8 @@ export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyInclu
   }
 
   /** Reveal the error ref. */
-  onError(): void {
+  @on('error')
+  showError(): void {
     const { error } = this.$refs;
     if (error) {
       error.style.display = 'block';
@@ -83,7 +84,8 @@ export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyInclu
   }
 
   /** Stop the component for good once the request has settled. */
-  onAlways(): void {
+  @on('always')
+  terminateWhenAsked(): void {
     if (this.$options.terminateOnLoad) {
       this.$terminate();
     }

@@ -1,10 +1,10 @@
 import {
   Base,
+  component,
   DRAG_MODES,
   withDrag,
   withRaf,
   withResize,
-  type BaseConfig,
   type BaseProps,
   type DragProps,
   type MountedReturn,
@@ -72,6 +72,19 @@ export type DraggableProps = BaseProps & {
  *
  * @link https://ui.studiometa.dev/reference/items/Draggable/
  */
+@component({
+  name: 'Draggable',
+  refs: ['target'],
+  options: {
+    x: { type: Boolean, default: true },
+    y: { type: Boolean, default: true },
+    fitBounds: Boolean,
+    strictFitBounds: Boolean,
+    sensitivity: { type: Number, default: 0.5 },
+    dropSensitivity: { type: Number, default: 0.1 },
+    margin: { type: String, default: '0' },
+  },
+})
 export class Draggable<T extends BaseProps = BaseProps> extends withResize(
   withRaf(
     withDrag(Base, {
@@ -83,20 +96,6 @@ export class Draggable<T extends BaseProps = BaseProps> extends withResize(
     { manual: true },
   ),
 )<DraggableProps & T> {
-  static config: BaseConfig = {
-    name: 'Draggable',
-    refs: ['target'],
-    options: {
-      x: { type: Boolean, default: true },
-      y: { type: Boolean, default: true },
-      fitBounds: Boolean,
-      strictFitBounds: Boolean,
-      sensitivity: { type: Number, default: 0.5 },
-      dropSensitivity: { type: Number, default: 0.1 },
-      margin: { type: String, default: '0' },
-    },
-  };
-
   /** The target position, shared as the payload of every event. */
   props: DraggablePosition = {
     x: 0,

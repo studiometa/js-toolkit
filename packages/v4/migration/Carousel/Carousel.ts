@@ -1,9 +1,11 @@
 import {
+  children,
+  component,
   nextFrame,
+  provide,
   signal,
   withRaf,
   withResize,
-  type BaseConfig,
   type ChildrenCollection,
   type MountedReturn,
 } from '../../src/index.js';
@@ -34,15 +36,14 @@ export type CarouselProps = IndexableProps & {
  * needs no `$update()`; and the geometry lives here, because this is the only
  * place that knows both the scroller and the item list.
  */
+@component({
+  name: 'Carousel',
+  components: { CarouselBtn, CarouselDrag, CarouselItem, CarouselWrapper },
+  options: {
+    axis: { type: String, default: 'x' },
+  },
+})
 export class Carousel extends withResize(withRaf(Indexable, { manual: true }))<CarouselProps> {
-  static config: BaseConfig = {
-    name: 'Carousel',
-    components: { CarouselBtn, CarouselDrag, CarouselItem, CarouselWrapper },
-    options: {
-      axis: { type: String, default: 'x' },
-    },
-  };
-
   state = signal<CarouselState>({
     index: 0,
     total: 0,
@@ -56,7 +57,8 @@ export class Carousel extends withResize(withRaf(Indexable, { manual: true }))<C
    * child's `$injectSync` from the moment the instance exists — which is what
    * replaces v3's `connectChildren()` handshake entirely.
    */
-  api: CarouselApi = this.$provide(CarouselContext, {
+  @provide(CarouselContext)
+  api: CarouselApi = {
     state: this.state,
     goTo: (indexOrInstruction) => {
       void this.goTo(indexOrInstruction);
@@ -75,14 +77,22 @@ export class Carousel extends withResize(withRaf(Indexable, { manual: true }))<C
     keepTicking: () => {
       this.$services.ticked.start();
     },
-  });
+  };
 
-  items: ChildrenCollection<CarouselItem> = this.$watchChildren(CarouselItem, {
-    added: () => this.itemsChanged(),
-    removed: () => this.itemsChanged(),
-  });
+  // The host of the callbacks is `any` unless it is named, and naming it is
+  // what lets them read `this` under type-aware linting.
+  @children<typeof CarouselItem, Carousel>(CarouselItem, {
+    added() {
+      this.itemsChanged();
+    },
+    removed() {
+      this.itemsChanged();
+    },
+  })
+  items!: ChildrenCollection<CarouselItem>;
 
-  wrappers: ChildrenCollection<CarouselWrapper> = this.$watchChildren(CarouselWrapper);
+  @children(CarouselWrapper)
+  wrappers!: ChildrenCollection<CarouselWrapper>;
 
   previousProgress = -1;
 

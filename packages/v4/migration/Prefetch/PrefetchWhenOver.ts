@@ -1,4 +1,4 @@
-import { type BaseConfig, type BaseProps } from '../../src/index.js';
+import { component, on, type BaseProps } from '../../src/index.js';
 import { AbstractPrefetch } from './AbstractPrefetch.js';
 
 /**
@@ -6,12 +6,10 @@ import { AbstractPrefetch } from './AbstractPrefetch.js';
  *
  * @link https://ui.studiometa.dev/reference/items/Prefetch/
  */
+@component({ name: 'PrefetchWhenOver' })
 export class PrefetchWhenOver<T extends BaseProps = BaseProps> extends AbstractPrefetch<T> {
-  static config: BaseConfig = {
-    name: 'PrefetchWhenOver',
-  };
-
-  onMouseenter(): void {
+  @on('mouseenter')
+  prefetchOnHover(): void {
     this.prefetch();
   }
 }

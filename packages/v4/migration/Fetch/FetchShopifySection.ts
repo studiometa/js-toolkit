@@ -1,4 +1,4 @@
-import { type BaseConfig, type BaseProps } from '../../src/index.js';
+import { component, type BaseProps } from '../../src/index.js';
 import { Fetch, type FetchProps } from './Fetch.js';
 
 /** The Section Rendering API query parameter name. */
@@ -27,20 +27,19 @@ export type FetchShopifySectionProps = FetchProps & {
  *
  * @link https://ui.studiometa.dev/reference/items/FetchShopifySection/
  */
+/**
+ * The config no longer spreads `Fetch.config`: configs merge along the
+ * prototype chain (#627), so only what this class adds is restated.
+ */
+@component({
+  name: 'FetchShopifySection',
+  options: {
+    sections: String,
+  },
+})
 export class FetchShopifySection<T extends BaseProps = BaseProps> extends Fetch<
   FetchShopifySectionProps & T
 > {
-  /**
-   * The config no longer spreads `Fetch.config`: configs merge along the
-   * prototype chain (#627), so only what this class adds is restated.
-   */
-  static config: BaseConfig = {
-    name: 'FetchShopifySection',
-    options: {
-      sections: String,
-    },
-  };
-
   /** The configured section IDs, trimmed and empty-filtered. */
   get sectionIds(): string[] {
     return this.$options.sections
