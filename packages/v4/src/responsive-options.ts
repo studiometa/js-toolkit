@@ -3,14 +3,12 @@
  *
  * Values are resolved on read and are not stored.
  */
+import { RESPONSIVE_SEPARATOR } from './attributes.js';
 import { warnOnce } from './diagnostics.js';
 import { registerDOMOptionAttributes, replaceDOMOptionAttributes } from './dom-mutations.js';
 import { breakpointNames, onBreakpointsReplaced, useBreakpoint } from './services/breakpoint.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
 import { memo, type Memo } from './utils/memo.js';
-
-/** Separates an option attribute from its breakpoint without conflicting with kebab-case names. */
-export const RESPONSIVE_SEPARATOR = ':';
 
 /** Memoized scoped attribute names for the current breakpoint set. */
 interface ResponsiveOptionsRuntimeState {

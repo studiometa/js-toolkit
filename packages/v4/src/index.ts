@@ -1,3 +1,4 @@
+export { MOUNT_ATTRIBUTE } from './attributes.js';
 export {
   Base,
   type BaseConfig,
@@ -51,7 +52,7 @@ export {
   type ModuleRecord,
   type WebpackContextLike,
 } from './manifest.js';
-export { MOUNT_ATTRIBUTE, type MountStrategy } from './mount-strategies.js';
+export { type MountStrategy } from './mount-strategies.js';
 export {
   domUpdate,
   emitExtendable,

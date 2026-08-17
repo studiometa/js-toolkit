@@ -1,11 +1,9 @@
+import { COMPONENT_ATTRIBUTE, RESPONSIVE_SEPARATOR } from './attributes.js';
 import {
   activeBreakpoint,
   responsiveAttributeNames,
   responsiveScopedRawValue,
-  RESPONSIVE_SEPARATOR,
 } from './responsive-options.js';
-
-export const COMPONENT_ATTRIBUTE = 'data-component';
 
 /** Parse the whitespace-token syntax used by every component declaration. */
 function tokens(value: string | null): string[] {

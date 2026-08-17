@@ -1,3 +1,10 @@
+import {
+  FRAMEWORK_ATTRIBUTES,
+  isComponentAttribute,
+  isNetChange,
+  REF_ATTRIBUTE,
+  rememberPreviousValue,
+} from './attributes.js';
 import { reportDiagnostic } from './diagnostics.js';
 import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
@@ -28,9 +35,9 @@ interface AttributeWatcherEntry {
   observer: MutationObserver;
   callback: AttributeWatcher;
   /**
-   * The first old value seen per attribute in the current batch. Same-batch
-   * writes coalesce against the final DOM value, exactly as declared options
-   * do — a morph rewriting one attribute twice is one change.
+   * The first old value seen per attribute in the current batch, kept under
+   * the one coalescing rule declared options answer to — see
+   * {@link rememberPreviousValue}.
    */
   pending: Map<string, string | null>;
 }
@@ -50,7 +57,7 @@ const domMutationState = /* @__PURE__ */ getSharedRuntimeSlot<DOMMutationRuntime
   'dom-mutations',
   1,
   () => ({
-    observedAttributes: new Set(['data-component', 'data-mount', 'data-ref']),
+    observedAttributes: new Set<string>(FRAMEWORK_ATTRIBUTES),
     attributeWatchers: new Set(),
     observer: null,
     processor: null,
@@ -61,10 +68,6 @@ const domMutationState = /* @__PURE__ */ getSharedRuntimeSlot<DOMMutationRuntime
   }),
 );
 const { observedAttributes, attributeWatchers, lifecycleWork } = domMutationState;
-
-function isComponentAttribute(attribute: string | null): boolean {
-  return attribute === 'data-component' || attribute?.startsWith('data-component:') === true;
-}
 
 /**
  * Start the document's single mutation observer on demand.
@@ -92,49 +95,64 @@ function observeDocument(): void {
 }
 
 /**
- * Add declared option attributes to the one observer's precise filter.
- * Existing records enter the queue before observation options change.
+ * Whether the engine has anything to do with an attribute.
+ *
+ * This is the **same set** `observeDocument()` hands the observer as its
+ * `attributeFilter`, and that is the point: any module may widen the filter
+ * through {@link registerDOMOptionAttributes}, and a relevance test written
+ * against the framework prefixes would silently drop the records a name
+ * matching neither prefix produces. Deriving both from one set makes the two
+ * impossible to separate.
+ *
+ * @internal Exported for the spec which asserts the filter and this test agree.
  */
-export function registerDOMOptionAttributes(attributes: Iterable<string>): void {
-  let changed = false;
-  for (const attribute of attributes) {
-    if (!observedAttributes.has(attribute)) {
-      observedAttributes.add(attribute);
-      changed = true;
-    }
-  }
-  if (!changed || !domMutationState.observer) {
+export function isObservedDOMAttribute(attribute: string | null): boolean {
+  return attribute !== null && observedAttributes.has(attribute);
+}
+
+/** Apply one change to the observed set, draining the records it already produced. */
+function updateObservedAttributes(removed: readonly string[], added: readonly string[]): void {
+  if (removed.length === 0 && added.length === 0) {
     return;
   }
-  ingest(domMutationState.observer.takeRecords());
-  observeDocument();
+  // Records are classified by the vocabulary which delivered them, so what the
+  // current filter produced enters the queue before the set moves under it.
+  ingest(domMutationState.observer?.takeRecords() ?? []);
+  for (const attribute of removed) {
+    observedAttributes.delete(attribute);
+  }
+  for (const attribute of added) {
+    observedAttributes.add(attribute);
+  }
+  if (domMutationState.observer) {
+    observeDocument();
+  }
+}
+
+/**
+ * Add declared option attributes to the one observer's precise filter.
+ */
+export function registerDOMOptionAttributes(attributes: Iterable<string>): void {
+  const added = [...attributes].filter((attribute) => !observedAttributes.has(attribute));
+  updateObservedAttributes([], added);
 }
 
 /**
  * Replace one derived slice of the exact attribute filter.
  *
  * Responsive attributes use this when `setBreakpoints()` replaces the named
- * set. Existing records are retained before the observer is reconfigured.
+ * set. A name in both slices stays observed and is not disturbed.
  */
 export function replaceDOMOptionAttributes(
   previous: Iterable<string>,
   next: Iterable<string>,
 ): void {
-  let changed = false;
-  for (const attribute of previous) {
-    changed = observedAttributes.delete(attribute) || changed;
-  }
-  for (const attribute of next) {
-    if (!observedAttributes.has(attribute)) {
-      observedAttributes.add(attribute);
-      changed = true;
-    }
-  }
-  if (!changed || !domMutationState.observer) {
-    return;
-  }
-  ingest(domMutationState.observer.takeRecords());
-  observeDocument();
+  const kept = new Set(next);
+  const removed = [...previous].filter(
+    (attribute) => !kept.has(attribute) && observedAttributes.has(attribute),
+  );
+  const added = [...kept].filter((attribute) => !observedAttributes.has(attribute));
+  updateObservedAttributes(removed, added);
 }
 
 /**
@@ -170,8 +188,8 @@ function ingestWatchedAttributes(
   incoming: readonly MutationRecord[],
 ): void {
   for (const { attributeName, oldValue } of incoming) {
-    if (attributeName !== null && !entry.pending.has(attributeName)) {
-      entry.pending.set(attributeName, oldValue);
+    if (attributeName !== null) {
+      rememberPreviousValue(entry.pending, attributeName, oldValue);
     }
   }
   scheduleProcessing();
@@ -216,7 +234,7 @@ function deliverWatchedAttributes(): void {
         break;
       }
       const value = entry.el.getAttribute(name);
-      if (value === previousValue) {
+      if (!isNetChange(value, previousValue)) {
         continue;
       }
       try {
@@ -240,12 +258,7 @@ function deliverWatchedAttributes(): void {
  */
 function ingest(incoming: MutationRecord[]): void {
   const relevant = incoming.filter(
-    ({ type, attributeName }) =>
-      type === 'childList' ||
-      isComponentAttribute(attributeName) ||
-      attributeName === 'data-mount' ||
-      attributeName === 'data-ref' ||
-      attributeName?.startsWith('data-option-'),
+    ({ type, attributeName }) => type === 'childList' || isObservedDOMAttribute(attributeName),
   );
   if (relevant.length === 0) {
     return;
@@ -254,7 +267,9 @@ function ingest(incoming: MutationRecord[]): void {
   if (
     relevant.some(
       ({ type, attributeName }) =>
-        type === 'childList' || isComponentAttribute(attributeName) || attributeName === 'data-ref',
+        type === 'childList' ||
+        isComponentAttribute(attributeName) ||
+        attributeName === REF_ATTRIBUTE,
     )
   ) {
     domMutationState.version += 1;

@@ -1,1 +1,1 @@
-export { MOUNT_ATTRIBUTE, MOUNT_ATTRIBUTE as default } from '../mount-strategies.js';
+export { MOUNT_ATTRIBUTE, MOUNT_ATTRIBUTE as default } from '../attributes.js';

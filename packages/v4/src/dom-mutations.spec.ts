@@ -1,7 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { FRAMEWORK_ATTRIBUTES } from './attributes.js';
 import { Base, type BaseConfig, type OptionChange } from './Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
-import { watchAttributes, whenDOMSettled, type AttributeChange } from './dom-mutations.js';
+import {
+  isObservedDOMAttribute,
+  registerDOMOptionAttributes,
+  replaceDOMOptionAttributes,
+  setDOMMutationProcessor,
+  watchAttributes,
+  whenDOMSettled,
+  type AttributeChange,
+} from './dom-mutations.js';
 import { EVENTS } from './events.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
@@ -342,5 +351,119 @@ describe('watchAttributes', () => {
     expect(changes).toEqual([
       { name: VIRTUAL_ATTRIBUTE, value: 'close()', previousValue: 'open()' },
     ]);
+  });
+});
+
+/**
+ * A framework attribute matching neither the `data-component:` nor the
+ * `data-option-` prefix. Every name registered so far happens to match one of
+ * them, which is exactly why the filter and the relevance test could drift
+ * apart unnoticed.
+ */
+const UNPREFIXED_ATTRIBUTE = 'data-widget';
+const OTHER_UNPREFIXED_ATTRIBUTE = 'data-gadget';
+
+/** The exact names the last `observe()` call handed the document observer. */
+function lastAttributeFilter(spy: ReturnType<typeof vi.spyOn>): string[] {
+  const init = spy.mock.lastCall?.[1] as MutationObserverInit | undefined;
+  return [...(init?.attributeFilter ?? [])];
+}
+
+describe('the observed attribute set', () => {
+  it('accepts the framework names before anything registers', () => {
+    for (const attribute of FRAMEWORK_ATTRIBUTES) {
+      expect(isObservedDOMAttribute(attribute)).toBe(true);
+    }
+    expect(isObservedDOMAttribute('class')).toBe(false);
+    expect(isObservedDOMAttribute(null)).toBe(false);
+  });
+
+  it('widens the observer filter and the relevance test together', () => {
+    const observeSpy = vi.spyOn(MutationObserver.prototype, 'observe');
+    registerDOMOptionAttributes([UNPREFIXED_ATTRIBUTE]);
+    try {
+      const filter = lastAttributeFilter(observeSpy);
+      // The invariant: the filter is the relevance test. A name the observer
+      // is told to deliver can never be one the engine then drops.
+      expect(filter).toContain(UNPREFIXED_ATTRIBUTE);
+      expect(filter.every((name) => isObservedDOMAttribute(name))).toBe(true);
+      expect(filter).not.toContain('class');
+    } finally {
+      replaceDOMOptionAttributes([UNPREFIXED_ATTRIBUTE], []);
+    }
+  });
+
+  it('narrows both together when a derived slice is replaced', () => {
+    registerDOMOptionAttributes([UNPREFIXED_ATTRIBUTE]);
+    const observeSpy = vi.spyOn(MutationObserver.prototype, 'observe');
+    try {
+      replaceDOMOptionAttributes([UNPREFIXED_ATTRIBUTE], [OTHER_UNPREFIXED_ATTRIBUTE]);
+      expect(isObservedDOMAttribute(UNPREFIXED_ATTRIBUTE)).toBe(false);
+      expect(isObservedDOMAttribute(OTHER_UNPREFIXED_ATTRIBUTE)).toBe(true);
+      const filter = lastAttributeFilter(observeSpy);
+      expect(filter).toContain(OTHER_UNPREFIXED_ATTRIBUTE);
+      expect(filter).not.toContain(UNPREFIXED_ATTRIBUTE);
+    } finally {
+      replaceDOMOptionAttributes([UNPREFIXED_ATTRIBUTE, OTHER_UNPREFIXED_ATTRIBUTE], []);
+    }
+  });
+
+  it('leaves a name present in both slices observed', () => {
+    registerDOMOptionAttributes([UNPREFIXED_ATTRIBUTE]);
+    const observeSpy = vi.spyOn(MutationObserver.prototype, 'observe');
+    try {
+      replaceDOMOptionAttributes([UNPREFIXED_ATTRIBUTE], [UNPREFIXED_ATTRIBUTE]);
+      expect(isObservedDOMAttribute(UNPREFIXED_ATTRIBUTE)).toBe(true);
+      // Nothing moved, so the document observer is not reconfigured either.
+      expect(observeSpy).not.toHaveBeenCalled();
+    } finally {
+      replaceDOMOptionAttributes([UNPREFIXED_ATTRIBUTE], []);
+    }
+  });
+
+  it('does not reconfigure the observer for a name it already filters', () => {
+    const observeSpy = vi.spyOn(MutationObserver.prototype, 'observe');
+    registerDOMOptionAttributes([...FRAMEWORK_ATTRIBUTES]);
+    expect(observeSpy).not.toHaveBeenCalled();
+  });
+
+  it('keeps a registered name out of the way of the elements it never touches', async () => {
+    registerDOMOptionAttributes([UNPREFIXED_ATTRIBUTE]);
+    try {
+      const el = document.createElement('div');
+      document.body.append(el);
+      await whenDOMSettled();
+
+      // The widened filter delivers this record to the engine instead of
+      // dropping it, and no component claims it, so nothing observable happens.
+      el.setAttribute(UNPREFIXED_ATTRIBUTE, 'value');
+      await expect(whenDOMSettled()).resolves.toBeUndefined();
+      expect(el.getAttribute(UNPREFIXED_ATTRIBUTE)).toBe('value');
+    } finally {
+      replaceDOMOptionAttributes([UNPREFIXED_ATTRIBUTE], []);
+    }
+  });
+});
+
+describe('setDOMMutationProcessor', () => {
+  it('keeps the processor installed first, so one owner sequences the lifecycle', async () => {
+    const later = vi.fn();
+    setDOMMutationProcessor(later);
+
+    const name = uniqueName('SoleProcessor');
+    class SoleProcessor extends Base {
+      static config = { name };
+    }
+    registerComponent(SoleProcessor);
+
+    const el = document.createElement('div');
+    el.setAttribute('data-component', name);
+    document.body.append(el);
+    await whenDOMSettled();
+
+    // The registry installed the one processor at import time; a second caller
+    // does not replace it and does not get a second delivery of the batch.
+    expect(el[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+    expect(later).not.toHaveBeenCalled();
   });
 });

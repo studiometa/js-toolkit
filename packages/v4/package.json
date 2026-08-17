@@ -20,6 +20,10 @@
       "import": "./dist/utils/index.js"
     },
     "./package.json": "./package.json",
+    "./MOUNT_ATTRIBUTE": {
+      "types": "./dist/subpaths/MOUNT_ATTRIBUTE.d.ts",
+      "import": "./dist/subpaths/MOUNT_ATTRIBUTE.js"
+    },
     "./Base": {
       "types": "./dist/subpaths/Base.d.ts",
       "import": "./dist/subpaths/Base.js"
@@ -115,10 +119,6 @@
     "./fromWebpackContext": {
       "types": "./dist/subpaths/fromWebpackContext.d.ts",
       "import": "./dist/subpaths/fromWebpackContext.js"
-    },
-    "./MOUNT_ATTRIBUTE": {
-      "types": "./dist/subpaths/MOUNT_ATTRIBUTE.d.ts",
-      "import": "./dist/subpaths/MOUNT_ATTRIBUTE.js"
     },
     "./domUpdate": {
       "types": "./dist/subpaths/domUpdate.d.ts",

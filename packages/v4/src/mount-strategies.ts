@@ -15,8 +15,6 @@ export type MountStrategy =
   | 'interaction'
   | `media:${string}`;
 
-export const MOUNT_ATTRIBUTE = 'data-mount';
-
 /**
  * Events that mount before the related interaction completes.
  * `pointerenter` also fires when an element appears under a resting cursor.
