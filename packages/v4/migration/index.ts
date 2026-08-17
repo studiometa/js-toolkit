@@ -5,6 +5,7 @@ export * from './Action/index.js';
 export * from './ClickOutside/index.js';
 export * from './Data/index.js';
 export * from './Dialog/index.js';
+export * from './Fetch/index.js';
 export * from './InView/index.js';
 export * from './ScrollAnimation/index.js';
 export * from './Slider/index.js';
