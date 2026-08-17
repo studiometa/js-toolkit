@@ -18,7 +18,13 @@ function guard<T>(fallback: T, operation: () => T): T {
   }
 }
 
-/** `localStorage` and `sessionStorage` differ only in which area they name. */
+/**
+ * `localStorage` and `sessionStorage` differ only in which area they name.
+ *
+ * Internal, and called twice: the adapter holds no state of its own — every
+ * method resolves `globalThis[name]` per call — so a second instance would
+ * behave exactly like the shared one. The package exports the instances.
+ */
 function createWebStorageProvider(name: 'localStorage' | 'sessionStorage'): StorageProvider {
   // Resolved per call: the area getter itself throws when storage is denied.
   const area = () => globalThis[name];
@@ -38,14 +44,6 @@ function createWebStorageProvider(name: 'localStorage' | 'sessionStorage'): Stor
       }),
     clear: () => guard(undefined, () => area().clear()),
   };
-}
-
-export function createLocalStorageProvider(): StorageProvider {
-  return createWebStorageProvider('localStorage');
-}
-
-export function createSessionStorageProvider(): StorageProvider {
-  return createWebStorageProvider('sessionStorage');
 }
 
 /** A provider backed by a `Map`, for tests and for opting out of persistence. */
@@ -169,8 +167,8 @@ export function createUrlSearchParamsInHashProvider(
  * package copies must resolve the same one.
  */
 const defaults = /* @__PURE__ */ getSharedRuntimeSlot('storage:providers', 1, () => ({
-  local: createLocalStorageProvider(),
-  session: createSessionStorageProvider(),
+  local: createWebStorageProvider('localStorage'),
+  session: createWebStorageProvider('sessionStorage'),
   memory: createMemoryStorageProvider(),
   urlSearchParams: createUrlSearchParamsProvider(),
   urlSearchParamsInHash: createUrlSearchParamsInHashProvider(),

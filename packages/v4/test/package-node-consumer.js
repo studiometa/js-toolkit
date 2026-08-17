@@ -56,9 +56,12 @@ assert.equal(createMemoryStorageProvider, toolkit.createMemoryStorageProvider);
 assert.equal(createMemoryStorageProviderDefault, createMemoryStorageProvider);
 assert.equal(createGroup, toolkit.createGroup);
 assert.equal(createGroupDefault, createGroup);
-assert.equal(Object.keys(toolkit).length, 82);
+assert.equal(Object.keys(toolkit).length, 80);
 assert.equal(toolkit.ToolkitErrorDetail, undefined);
 assert.equal(toolkit.ToolkitErrorStage, undefined);
+// The stateless web storage adapters are exported as instances only.
+assert.equal(toolkit.createLocalStorageProvider, undefined);
+assert.equal(toolkit.createSessionStorageProvider, undefined);
 
 // Storage runs outside a browser: no provider of the default reaches for `window`.
 const storage = createStorage({ provider: createMemoryStorageProvider() });
