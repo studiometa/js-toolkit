@@ -61,8 +61,8 @@ describe('Cursor', () => {
     movePointer(document, 120, 80);
     await settle();
 
-    expect(instance.pointerX).toBe(120);
-    expect(instance.pointerY).toBe(80);
+    expect(instance.motion.raw().x).toBe(120);
+    expect(instance.motion.raw().y).toBe(80);
   });
 
   it('damps its way to the pointer instead of jumping there', async () => {
@@ -72,13 +72,13 @@ describe('Cursor', () => {
     await settle();
 
     // One frame in, it has started but not arrived.
-    expect(instance.x).toBeGreaterThan(0);
-    expect(instance.x).toBeLessThan(200);
+    expect(instance.motion().x).toBeGreaterThan(0);
+    expect(instance.motion().x).toBeLessThan(200);
 
     await ticked();
 
-    expect(instance.x).toBe(200);
-    expect(instance.y).toBe(100);
+    expect(instance.motion().x).toBe(200);
+    expect(instance.motion().y).toBe(100);
   });
 
   it('grows over an element matching `growSelectors`', async () => {
@@ -91,7 +91,7 @@ describe('Cursor', () => {
     movePointer(link, 5, 5);
     await settle();
 
-    expect(instance.pointerScale).toBe(2);
+    expect(instance.motion.raw().scale).toBe(2);
   });
 
   it('shrinks over an element matching `shrinkSelectors`', async () => {
@@ -104,7 +104,7 @@ describe('Cursor', () => {
     movePointer(target, 5, 5);
     await settle();
 
-    expect(instance.pointerScale).toBe(0.5);
+    expect(instance.motion.raw().scale).toBe(0.5);
   });
 
   it('shrinks while the pointer is down, whatever it is over', async () => {
@@ -123,7 +123,7 @@ describe('Cursor', () => {
     movePointer(document.body, 41, 41, 1);
     await settle();
 
-    expect(instance.pointerScale).toBe(0.5);
+    expect(instance.motion.raw().scale).toBe(0.5);
   });
 
   it('keeps the base `scale` over anything else', async () => {
@@ -132,26 +132,26 @@ describe('Cursor', () => {
     movePointer(document.body, 40, 40);
     await settle();
 
-    expect(instance.pointerScale).toBe(3);
+    expect(instance.motion.raw().scale).toBe(3);
   });
 
   /**
    * Gap 1 consumed. v3 spells this `$services.enable`/`disable('ticked')`; v4
-   * has `withRaf(..., { manual: true })` and a `Toggle`, and the point of both
-   * is that an idle cursor holds no frame loop.
+   * holds its frame through `smoothTo()`, and the point of both is that an
+   * idle cursor holds no frame loop.
    */
   it('starts the frame loop on a move and stops it once it has caught up', async () => {
     const { instance } = await mountCursor();
 
-    expect(instance.$services.ticked.isActive).toBe(false);
+    expect(instance.motion.isMoving).toBe(false);
 
     movePointer(document, 150, 150);
     await settle();
-    expect(instance.$services.ticked.isActive).toBe(true);
+    expect(instance.motion.isMoving).toBe(true);
 
     await ticked();
 
-    expect(instance.$services.ticked.isActive).toBe(false);
+    expect(instance.motion.isMoving).toBe(false);
   });
 
   it('requests no frames at all while nothing moves', async () => {
@@ -169,12 +169,12 @@ describe('Cursor', () => {
 
     movePointer(document, 300, 300);
     await settle();
-    expect(instance.$services.ticked.isActive).toBe(true);
+    expect(instance.motion.isMoving).toBe(true);
 
     root.remove();
     await settle();
 
-    expect(instance.$services.ticked.isActive).toBe(false);
+    expect(instance.motion.isMoving).toBe(false);
   });
 
   it('writes the damped position and scale into one matrix', async () => {
@@ -190,7 +190,7 @@ describe('Cursor', () => {
     const { root, instance } = await mountCursor();
     movePointer(document, 90, 90);
     await ticked();
-    expect(instance.x).toBe(90);
+    expect(instance.motion().x).toBe(90);
 
     const other = document.createElement('section');
     document.body.append(other);
@@ -198,7 +198,7 @@ describe('Cursor', () => {
     await settle();
 
     const moved = getInstance<Cursor>(other.firstElementChild as HTMLElement, 'Cursor');
-    expect(moved.x).toBe(0);
+    expect(moved.motion().x).toBe(0);
     expect(moved.$el.style.transform).toContain('matrix(0, 0, 0, 0, 0, 0)');
   });
 });

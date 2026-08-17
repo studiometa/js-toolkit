@@ -2,13 +2,11 @@ import {
   Base,
   component,
   withPointer,
-  withRaf,
   type BaseProps,
   type MountedReturn,
   type PointerProps,
-  type RafProps,
 } from '../../src/index.js';
-import { damp } from '../../src/utils/maths.js';
+import { smoothTo, type SmoothToRecord } from '../../src/utils/smoothTo.js';
 import { matrix } from '../../src/utils/transform.js';
 
 export type CursorProps = BaseProps & {
@@ -31,9 +29,12 @@ export type CursorProps = BaseProps & {
  * between the `scale`, `growTo` and `shrinkTo` factors.
  *
  * v3 declares neither service: `moved()` and `ticked()` are enough for its
- * `$services` to bind the pointer and the frame loop. v4 asks for both by
- * name, and `withRaf(..., { manual: true })` is what lets the loop stop the
- * moment the cursor has caught up — v3 spells that `$services.disable`.
+ * `$services` to bind the pointer and the frame loop. This port declares only
+ * the pointer, because `smoothTo()` owns the other half: three named channels
+ * on one frame subscription, each with its own rate, started when the pointer
+ * moves and released the moment the cursor has caught up. v3 spells that
+ * `$services.enable`/`disable('ticked')`, and this port used to spell it
+ * `withRaf(..., { manual: true })` plus a hand-written `ticked()`.
  *
  * @link https://ui.studiometa.dev/reference/items/Cursor/
  */
@@ -56,20 +57,24 @@ export type CursorProps = BaseProps & {
     shrinkDampFactor: { type: Number, default: 0.25 },
   },
 })
-export class Cursor<T extends BaseProps = BaseProps> extends withRaf(withPointer(Base), {
-  manual: true,
-})<CursorProps & T> {
-  x = 0;
-
-  y = 0;
-
-  scale = 0;
-
-  pointerX = 0;
-
-  pointerY = 0;
-
-  pointerScale = 0;
+export class Cursor<T extends BaseProps = BaseProps> extends withPointer(Base)<CursorProps & T> {
+  /**
+   * The three smoothed channels. `scale` damps at its own rate **and** by the
+   * direction it travels, which is why the factor is a function rather than a
+   * number: it is read per frame, per channel.
+   */
+  motion: SmoothToRecord<'x' | 'y' | 'scale'> = smoothTo(
+    { x: 0, y: 0, scale: 0 },
+    {
+      damping: (key): number => {
+        const { translateDampFactor, growDampFactor, shrinkDampFactor } = this.$options;
+        if (key !== 'scale') {
+          return translateDampFactor;
+        }
+        return this.motion.raw().scale < this.motion().scale ? shrinkDampFactor : growDampFactor;
+      },
+    },
+  );
 
   /**
    * A mixin binds its subscription from `mounted()` and returns the release,
@@ -78,27 +83,25 @@ export class Cursor<T extends BaseProps = BaseProps> extends withRaf(withPointer
    * subscribes to nothing.
    */
   mounted(): MountedReturn {
-    this.x = 0;
-    this.y = 0;
-    this.scale = 0;
-    this.pointerX = 0;
-    this.pointerY = 0;
-    this.pointerScale = 0;
-    this.render({ x: this.x, y: this.y, scale: this.scale });
-    return super.mounted();
+    // A remount starts from rest: `jump()` moves the value and its target
+    // together, so nothing animates back from where the last cycle left it.
+    this.render(this.motion.jump({ x: 0, y: 0, scale: 0 }));
+
+    return [
+      super.mounted(),
+      this.motion.subscribe((values: Record<'x' | 'y' | 'scale', number>) => this.render(values)),
+      // The frame belongs to the mount cycle: a cursor destroyed mid-travel
+      // must not keep asking for frames to finish a journey nobody watches.
+      () => this.motion.destroy(),
+    ];
   }
 
   /** Follow the pointer and decide the scale it is heading to. */
   moved({ event, x, y, isDown }: PointerProps): void {
-    this.$services.ticked.start();
-
-    this.pointerX = x;
-    this.pointerY = y;
-
     let { scale } = this.$options;
 
     if (!event) {
-      this.pointerScale = scale;
+      this.motion({ x, y, scale });
       return;
     }
 
@@ -115,30 +118,18 @@ export class Cursor<T extends BaseProps = BaseProps> extends withRaf(withPointer
       scale = this.$options.shrinkTo;
     }
 
-    this.pointerScale = scale;
+    this.motion({ x, y, scale });
   }
 
-  /** Close the gap, then stop the loop once there is none left. */
-  ticked({ delta }: RafProps): void {
-    const { translateDampFactor, shrinkDampFactor, growDampFactor } = this.$options;
-
-    this.x = damp(this.pointerX, this.x, translateDampFactor, delta);
-    this.y = damp(this.pointerY, this.y, translateDampFactor, delta);
-    this.scale = damp(
-      this.pointerScale,
-      this.scale,
-      this.pointerScale < this.scale ? shrinkDampFactor : growDampFactor,
-      delta,
-    );
-
-    this.render({ x: this.x, y: this.y, scale: this.scale });
-
-    if (this.x === this.pointerX && this.y === this.pointerY && this.scale === this.pointerScale) {
-      this.$services.ticked.stop();
-    }
-  }
-
-  render({ x, y, scale }: { x: number; y: number; scale: number }): void {
+  render({
+    x,
+    y,
+    scale,
+  }: {
+    readonly x: number;
+    readonly y: number;
+    readonly scale: number;
+  }): void {
     this.$el.style.transform = `translateZ(0) ${matrix({
       translateX: x,
       translateY: y,
