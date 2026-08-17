@@ -44,24 +44,69 @@ export type AppliedMountStrategy =
       error: unknown;
     };
 
-interface ViewportMountStrategy {
-  isReversible: boolean;
-  rootMargin?: string;
-}
+type ParsedMountStrategy =
+  | { kind: 'eager' }
+  | { kind: 'idle' }
+  | { kind: 'interaction' }
+  | { kind: 'media'; query: string }
+  | { kind: 'viewport'; reversible: boolean; rootMargin?: string }
+  | { kind: 'invalid'; error: unknown };
 
-/** Parse the two viewport strategy forms at their shared execution seam. */
-function parseViewportMountStrategy(strategy: string): ViewportMountStrategy | undefined {
+/**
+ * Read the strategy grammar once, for every question asked about it.
+ *
+ * Applying a strategy and describing one are the same switch: a seventh
+ * strategy is taught to the framework here, and both the observer it installs
+ * and the facts the registry schedules against follow from that single branch.
+ */
+function parseMountStrategy(strategy: string): ParsedMountStrategy {
   const separator = strategy.indexOf(':');
   const name = separator < 0 ? strategy : strategy.slice(0, separator);
-  if (name !== 'visible' && name !== 'in-view') {
-    return undefined;
+  const parameter = separator < 0 ? '' : strategy.slice(separator + 1);
+
+  if (name === 'visible' || name === 'in-view') {
+    return { kind: 'viewport', reversible: name === 'in-view', rootMargin: parameter || undefined };
   }
-  const rootMargin = separator < 0 ? undefined : strategy.slice(separator + 1) || undefined;
-  return { isReversible: name === 'in-view', rootMargin };
+  if (name === 'media' && separator >= 0) {
+    return parameter.trim().length === 0
+      ? {
+          kind: 'invalid',
+          error: new TypeError('The media mount strategy requires a non-empty query.'),
+        }
+      : { kind: 'media', query: parameter };
+  }
+  if (strategy === 'eager' || strategy === 'idle' || strategy === 'interaction') {
+    return { kind: strategy };
+  }
+  return { kind: 'invalid', error: new TypeError(`Unknown mount strategy "${strategy}".`) };
+}
+
+/** What a strategy does, known before it is applied to anything. */
+export interface MountStrategyBehaviour {
+  /** Mounts as soon as it is applied: there is no condition to wait for. */
+  readonly eager: boolean;
+  /** Unmounts again when its condition stops holding, and can fire more than once. */
+  readonly reversible: boolean;
+}
+
+/**
+ * Describe a strategy without installing it.
+ *
+ * The registry needs both facts *before* `applyMountStrategy()` returns,
+ * because `media:` reads its query synchronously and can therefore call a hook
+ * from inside that call. Deriving them from the parse above is what keeps the
+ * list of reversible strategies in the module that owns the grammar.
+ */
+export function mountStrategyBehaviour(strategy: string): MountStrategyBehaviour {
+  const parsed = parseMountStrategy(strategy);
+  return {
+    eager: parsed.kind === 'eager',
+    reversible: parsed.kind === 'media' || (parsed.kind === 'viewport' && parsed.reversible),
+  };
 }
 
 /** Keep an invalid strategy inert while exposing the exact failure. */
-function rejectMountStrategy(_strategy: string, error: unknown): AppliedMountStrategy {
+function rejectMountStrategy(error: unknown): AppliedMountStrategy {
   return { valid: false, dispose() {}, error };
 }
 
@@ -73,35 +118,40 @@ export function applyMountStrategy(
   strategy: string,
   { mount, destroy }: MountStrategyHooks,
 ): AppliedMountStrategy {
-  const viewport = parseViewportMountStrategy(strategy);
-  if (viewport) {
+  const parsed = parseMountStrategy(strategy);
+
+  if (parsed.kind === 'invalid') {
+    return rejectMountStrategy(parsed.error);
+  }
+
+  if (parsed.kind === 'viewport') {
     let observer: IntersectionObserver;
     try {
       observer = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
             if (entry.isIntersecting) {
-              if (!viewport.isReversible) {
+              if (!parsed.reversible) {
                 observer.disconnect();
               }
               mount();
-            } else if (viewport.isReversible) {
+            } else if (parsed.reversible) {
               destroy();
             }
           }
         },
-        viewport.rootMargin ? { rootMargin: viewport.rootMargin } : undefined,
+        parsed.rootMargin ? { rootMargin: parsed.rootMargin } : undefined,
       );
     } catch (error) {
       // The browser owns the rootMargin grammar. Report author errors without
       // changing the requested mount policy or stopping registry reconciliation.
-      return rejectMountStrategy(strategy, error);
+      return rejectMountStrategy(error);
     }
     observer.observe(el);
     return { valid: true, dispose: () => observer.disconnect() };
   }
 
-  if (strategy === 'idle') {
+  if (parsed.kind === 'idle') {
     // `requestIdleCallback` is not available everywhere; the background
     // lane is already budgeted, so it is a fair fallback.
     if (typeof requestIdleCallback !== 'function') {
@@ -112,7 +162,7 @@ export function applyMountStrategy(
     return { valid: true, dispose: () => cancelIdleCallback(handle) };
   }
 
-  if (strategy === 'interaction') {
+  if (parsed.kind === 'interaction') {
     const onIntent = () => {
       teardown();
       mount();
@@ -128,26 +178,18 @@ export function applyMountStrategy(
     return { valid: true, dispose: teardown };
   }
 
-  if (strategy.startsWith('media:')) {
-    const source = strategy.slice('media:'.length);
-    if (source.trim().length === 0) {
-      return rejectMountStrategy(
-        strategy,
-        new TypeError('The media mount strategy requires a non-empty query.'),
-      );
-    }
-    const query = matchMedia(source);
+  if (parsed.kind === 'media') {
+    const query = matchMedia(parsed.query);
     const sync = () => (query.matches ? mount() : destroy());
     query.addEventListener('change', sync);
+    // The first evaluation is not deferred: a matching query mounts before
+    // this call returns, so a caller cannot assume it holds the teardown
+    // below by the time its hooks run.
     sync();
     return {
       valid: true,
       dispose: () => query.removeEventListener('change', sync),
     };
-  }
-
-  if (strategy !== 'eager') {
-    return rejectMountStrategy(strategy, new TypeError(`Unknown mount strategy "${strategy}".`));
   }
 
   const task = defaultScheduler.background(mount);
