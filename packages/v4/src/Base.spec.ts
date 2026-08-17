@@ -160,6 +160,54 @@ describe('$options', () => {
     expect(instance.$options.count).toBe(9);
   });
 
+  it('reads the first matching type from a union option', () => {
+    class Offset extends Base<{ $options: { offset: number | unknown[] } }> {
+      static config = {
+        name: 'Offset',
+        options: {
+          offset: [Number, Array],
+        },
+      };
+    }
+
+    const number = document.createElement('div');
+    number.setAttribute('data-option-offset', '10');
+    expect(new Offset(number).$options.offset).toBe(10);
+
+    const array = document.createElement('div');
+    array.setAttribute('data-option-offset', '[10, 20]');
+    expect(new Offset(array).$options.offset).toEqual([10, 20]);
+
+    const fallback = new Offset(document.createElement('div'));
+    expect(fallback.$options.offset).toBe(0);
+
+    class Ordered extends Base<{ $options: { value: string | number } }> {
+      static config = {
+        name: 'Ordered',
+        options: {
+          value: { type: [String, Number], default: 1 },
+        },
+      };
+    }
+
+    const ordered = document.createElement('div');
+    ordered.setAttribute('data-option-value', '10');
+    expect(new Ordered(ordered).$options.value).toBe('10');
+
+    class Defaulted extends Base<{ $options: { value: number | unknown[] } }> {
+      static config = {
+        name: 'DefaultedUnion',
+        options: {
+          value: { type: [Number, Array], default: 3 },
+        },
+      };
+    }
+
+    const invalid = document.createElement('div');
+    invalid.setAttribute('data-option-value', 'invalid');
+    expect(new Defaulted(invalid).$options.value).toBe(3);
+  });
+
   it('gives each instance its own defaulted object, declared or not', () => {
     class Defaulted extends Base<{
       $options: { tween: Record<string, unknown>; list: unknown[]; bag: Record<string, unknown> };

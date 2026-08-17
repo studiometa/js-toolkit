@@ -180,6 +180,8 @@ options: {
 - **A literal object or array default is warned about, not repaired.** The type-level ban settles it for anyone with a build step; the no-build path never sees a type, so the same rule is said out loud — once per declaration, naming the component, the option and the fix — and the value is then handed over exactly as declared, shared between instances. Copying it was tried and removed: a shallow copy made an unsupported declaration appear to work one level deep, and a deep copy made core guess at how to rebuild a `Date`, a `Map` or a class instance. Neither is core's job when the contract already has an answer that works all the way down.
 - A mutation of a value **parsed from an attribute** is not kept, on the other hand: the attribute is re-read and re-parsed on the next access, which is what keeps options live.
 
+**An option can accept several types.** Declare the accepted constructors in order: `offset: [Number, Array]` reads `"10"` as a number and `"[10, 20]"` as an array. Each parser must produce a value of its declared type before the next parser is tried. An absent union option uses its declared default, or the empty value of its first type.
+
 ### Setup-sensitive options are live effects
 
 Reading an option on demand is enough for values used inside handlers and insufficient for an option which chooses a subscription, target, or other mount-scoped resource. A declared method named `option<Name>Changed()` turns that option into a live effect:
