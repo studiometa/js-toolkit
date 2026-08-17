@@ -50,19 +50,18 @@ Two v4 decisions break it independently: `$options` is built from getters with n
 
 ## 2. Dialog — refs, lifecycle, focus trap, `$children`
 
-**Ported unchanged.** `open()`, `close()`, `toggle()`, the modal/non-modal split, scroll locking, and the ordering guarantee that leave transitions finish _before_ the native hide — line-for-line v3.
+**Ported unchanged.** `open()`, `close()`, `toggle()`, the modal/non-modal split, scroll locking, and the ordering guarantee that leave transitions finish _before_ the native hide — line-for-line v3. `keyed()` is in that list as of the key-service port: it left for a hand-rolled `keydown` listener while `KeyService` was dropped, and came back under its own name once core shipped `withKey`. That round trip is the measurement, and it is written up in RATIONALE.md §8.
 
-| Change                                                                        | Forced by                                                                                        |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `$children.Transition` / `.ViewTransition` → two `$watchChildren` collections | `$children` removed. A transition inserted after mount is now picked up (tested).                |
-| `keyed({ event, isDown })` → a `keydown` listener in `mounted()`              | **`KeyService` was deliberately dropped.** The replacement is smaller than the hook it replaces. |
-| `get dialog() { return this.$el }` → deleted                                  | `$el: HTMLDialogElement` in the props type.                                                      |
+| Change                                                                        | Forced by                                                                         |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `$children.Transition` / `.ViewTransition` → two `$watchChildren` collections | `$children` removed. A transition inserted after mount is now picked up (tested). |
+| `get dialog() { return this.$el }` → deleted                                  | `$el: HTMLDialogElement` in the props type.                                       |
 
 **Missing in v4:** nothing blocking. `Transition` lost v3's `group` option, which collects sibling instances via `getInstances(Transition)` — **v4 has no per-class instance registry**. Recorded, not worked around.
 
 **Better in v4.** A v3 bug disappears: pressing Escape closes a native `<dialog>` behind the component's back, so v3's leave transitions never ran and the scroll lock stayed on. In v4 the bubbling `cancel` event makes this a two-line `onCancel()` handler, with a test. The transition children shrank because v4 core absorbed the `viewTransition()` batching scheduler ui ships as `ViewTransition/scheduler.ts` (108 lines, deleted).
 
-**Size:** `Dialog` 82 → 83 lines; transition children 278 → 116 (−58 %), once the enter/leave sequence moved into `utils/transition.ts` for `SliderDots` to share (§4b) — 116 + those 47 lines against v3's 278. **Verdict: mechanical.**
+**Size:** `Dialog` 82 → 79 lines; transition children 278 → 116 (−58 %), once the enter/leave sequence moved into `utils/transition.ts` for `SliderDots` to share (§4b) — 116 + those 47 lines against v3's 278. **Verdict: mechanical.**
 
 ## 3. ScrollAnimation — the `animate` data point
 
@@ -99,14 +98,14 @@ _Recommendation:_ ship the interpolator, keep the player separate. They are two 
 
 All seven classes are ported. The coordination changes are in the first table; the three controls added on 2026-08-13 follow.
 
-| Change                                                                         | Forced by                                                                                                                                                                                                                                           |
-| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`AbstractSliderChild` deleted entirely (143 lines)**                         | its whole job was finding the parent Slider and subscribing to its store, retrying in `mounted()`, `resized()` **and** `updated()` because none was reliable alone. `$inject(SliderContext)` plus the returned unsubscribe replaces all of it.      |
-| `createStorage(...)` → `$provide(SliderContext, …)`                            | provide/inject in core.                                                                                                                                                                                                                             |
-| `connectChildren()` + `__connect()` → nothing                                  | the context protocol replays to pending consumers when a late provider mounts. The test `connects a control that mounts before its slider` is the two-sided handshake, gone.                                                                        |
-| `keyed(...)` + `hasFocus` + focus/blur handlers → `onWrapperKeydown`           | `KeyService` dropped. A delegated ref handler only fires when focus is inside the wrapper.                                                                                                                                                          |
-| `goTo()` throwing `Index out of bound.` → clamping                             | with a live children collection the slide count changes by design.                                                                                                                                                                                  |
-| **the context carries `{ state, goTo, goNext, goPrev }`, not a bare `Signal`** | three of the four controls need a _command_ and only `SliderProgress` does not. A context carrying state alone left them on `$closest('Slider')`, which is the coupling the context exists to remove. See below — this was gap 4, and it is closed. |
+| Change                                                                         | Forced by                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`AbstractSliderChild` deleted entirely (143 lines)**                         | its whole job was finding the parent Slider and subscribing to its store, retrying in `mounted()`, `resized()` **and** `updated()` because none was reliable alone. `$inject(SliderContext)` plus the returned unsubscribe replaces all of it.                    |
+| `createStorage(...)` → `$provide(SliderContext, …)`                            | provide/inject in core.                                                                                                                                                                                                                                           |
+| `connectChildren()` + `__connect()` → nothing                                  | the context protocol replays to pending consumers when a late provider mounts. The test `connects a control that mounts before its slider` is the two-sided handshake, gone.                                                                                      |
+| `keyed(...)` + `hasFocus` + focus/blur handlers → `onWrapperKeydown`           | `KeyService` dropped when this port was written. A delegated ref handler only fires when focus is inside the wrapper: 16 lines to 6. Measured after: the saving is the delegation, not the missing service — `useKey(this.$refs.wrapper)` earns the same 6 lines. |
+| `goTo()` throwing `Index out of bound.` → clamping                             | with a live children collection the slide count changes by design.                                                                                                                                                                                                |
+| **the context carries `{ state, goTo, goNext, goPrev }`, not a bare `Signal`** | three of the four controls need a _command_ and only `SliderProgress` does not. A context carrying state alone left them on `$closest('Slider')`, which is the coupling the context exists to remove. See below — this was gap 4, and it is closed.               |
 
 ### 4a. SliderDrag — the drag service was rewritten under it
 
@@ -535,26 +534,26 @@ The honest reading is the one §5e reached for `Data*` from the other direction:
 
 ## What came out better
 
-|                                     | v3                                                                            | v4                                                          |
-| ----------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| a control finds its coordinator     | 143-line `AbstractSliderChild` + two-sided handshake + retries in three hooks | `await this.$inject(SliderContext)`                         |
-| a coordinator finds its children    | `$children.X`, resolved once, needs `$update()`                               | `$watchChildren('X')`, live, order-independent              |
-| a control drives its coordinator    | `this.slider.goTo(i)` — the whole instance, resolved by class                 | `$injectSync(SliderContext)?.goTo(i)` — a curated surface   |
-| the settle position of a throw      | the component projects it from the last event's delta, per device             | the service announces it exactly at `drop`                  |
-| a child added after mount           | invisible until `$update()`                                                   | just works (tested in five families)                        |
-| an `Action` finding its targets     | a walk of every instance on the page, per part, per event                     | `getInstances(name)` — one narrowed `querySelectorAll`      |
-| a binding attribute rewritten       | read once at mount; a morph leaves the old listener attached                  | `watchAttributes()` — released and rebound in the batch     |
-| the components on an element        | a scan of the global set for `instance.$el === $el`                           | `getInstances(el)` — read straight off the element          |
-| mount when in view                  | `withMountWhenInView` wrapping the constructor (109 lines)                    | `config.mountStrategy = 'in-view'`, overridable per element |
-| a one-shot "seen it" component      | mount when in view, then `$terminate()` from `mounted()`                      | `config.mountStrategy = 'visible'`, and nothing else        |
-| an off-screen component             | constructed eagerly, so the decorator can give it an observer                 | no instance exists until the strategy says so               |
-| two components watching one element | two `IntersectionObserver`s                                                   | one, reference-counted, released with the last subscriber   |
-| keyboard nav on a focused region    | `KeyService` + `hasFocus` + focus/blur handlers                               | `onWrapperKeydown`                                          |
-| declaring emitted events            | `config.emits` — bytes, no checking                                           | `$emits` — no bytes, payload checked                        |
-| Escape on a `<dialog>`              | closes behind the component's back; transitions skipped, scroll lock stuck    | `onCancel()`, two lines                                     |
-| a view transition                   | ui ships a 108-line batching scheduler                                        | imported `viewTransition(update)` helper from core          |
-| extending a component               | spread the parent's config by hand or lose it (#627)                          | configs merge along the prototype chain                     |
-| N scroll targets on one timeline    | 2N+ scheduler round trips, plus a nested pair inside `animate`                | one `read`, one `write`, for the whole timeline             |
+|                                     | v3                                                                            | v4                                                                         |
+| ----------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| a control finds its coordinator     | 143-line `AbstractSliderChild` + two-sided handshake + retries in three hooks | `await this.$inject(SliderContext)`                                        |
+| a coordinator finds its children    | `$children.X`, resolved once, needs `$update()`                               | `$watchChildren('X')`, live, order-independent                             |
+| a control drives its coordinator    | `this.slider.goTo(i)` — the whole instance, resolved by class                 | `$injectSync(SliderContext)?.goTo(i)` — a curated surface                  |
+| the settle position of a throw      | the component projects it from the last event's delta, per device             | the service announces it exactly at `drop`                                 |
+| a child added after mount           | invisible until `$update()`                                                   | just works (tested in five families)                                       |
+| an `Action` finding its targets     | a walk of every instance on the page, per part, per event                     | `getInstances(name)` — one narrowed `querySelectorAll`                     |
+| a binding attribute rewritten       | read once at mount; a morph leaves the old listener attached                  | `watchAttributes()` — released and rebound in the batch                    |
+| the components on an element        | a scan of the global set for `instance.$el === $el`                           | `getInstances(el)` — read straight off the element                         |
+| mount when in view                  | `withMountWhenInView` wrapping the constructor (109 lines)                    | `config.mountStrategy = 'in-view'`, overridable per element                |
+| a one-shot "seen it" component      | mount when in view, then `$terminate()` from `mounted()`                      | `config.mountStrategy = 'visible'`, and nothing else                       |
+| an off-screen component             | constructed eagerly, so the decorator can give it an observer                 | no instance exists until the strategy says so                              |
+| two components watching one element | two `IntersectionObserver`s                                                   | one, reference-counted, released with the last subscriber                  |
+| keyboard nav on a focused region    | `KeyService` + `hasFocus` + focus/blur handlers                               | `onWrapperKeydown` — the saving is ref delegation, not the missing service |
+| declaring emitted events            | `config.emits` — bytes, no checking                                           | `$emits` — no bytes, payload checked                                       |
+| Escape on a `<dialog>`              | closes behind the component's back; transitions skipped, scroll lock stuck    | `onCancel()`, two lines                                                    |
+| a view transition                   | ui ships a 108-line batching scheduler                                        | imported `viewTransition(update)` helper from core                         |
+| extending a component               | spread the parent's config by hand or lose it (#627)                          | configs merge along the prototype chain                                    |
+| N scroll targets on one timeline    | 2N+ scheduler round trips, plus a nested pair inside `animate`                | one `read`, one `write`, for the whole timeline                            |
 
 ## Size of change
 

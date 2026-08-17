@@ -501,6 +501,20 @@ A `childList` record holds the nodes that it removed, so a service that retains 
 
 `Disclosure` of `@studiometa/ui` was writing an observer by hand, because neither the framework engine nor `watchAttributes()` covers "tell me when anything under this node changes".
 
+### Why `KeyService` came back
+
+The spec dropped it, the migration ports were the measurement, and the measurement went the other way.
+
+`Modal.keyed()` of v3 (`node_modules/@studiometa/ui/Modal/Modal.js:121-131`) handled the focus trap and Escape in 6 lines, with no setup at all. Its replacement in the port was a 10-line `mounted()` whose whole content was a `keydown` listener and its teardown, and it covered the trap only. Escape moved to `onCancel()`, which is the native `<dialog>` `cancel` event doing that work, and not a saving from dropping the service. So the document-level case gets bigger without a service, not smaller.
+
+The ported `Dialog` now consumes `withKey`, which is the claim tested rather than asserted: the `mounted()` method is gone, `keyed()` is six lines under its v3 name, the component is 83 code lines to 79, and both keyboard specs — the trap and its release on destroy — pass unchanged, because `withKey` defaults to the same document the hand-rolled listener used.
+
+`Slider` of v3 (`node_modules/@studiometa/ui/Slider/Slider.js:280-301`) spent about 16 lines on `hasFocus`, `onWrapperFocus`, `onWrapperBlur` and `keyed`, against 6 lines for v4's `onWrapperKeydown`. That saving is real, and it is not a saving against the service: it comes from ref delegation, and a target-scoped `useKey(this.$refs.wrapper)` earns the identical one. v3 needed the focus bookkeeping only because its service was document-only, with no target to scope to.
+
+Of the three consumers in `ui` — `Modal`, `Menu`, `Slider` — two are document-level.
+
+The cost, stated honestly: the module is about 160 lines in core, some 85 of them code, and every consumer of the package pays for it. Against three consumers it is roughly line-neutral. What it buys is one shared `keydown`/`keyup` pair per target instead of one per component, a target to scope to, and the repeat counter in one place rather than in none.
+
 ### Why `until()` exists
 
 `isScrolling` is documented as the flag that a component waiting for a scroll to finish should read, and there was nothing to wait with.

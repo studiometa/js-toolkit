@@ -14,12 +14,14 @@ import {
   subscribeContext,
   useDrag,
   useInView,
+  useKey,
   useMutation,
   usePointer,
   useScrollProgress,
   watchAttributes,
   withDrag,
   withInView,
+  withKey,
   withMutation,
   withPointer,
   withScrollProgress,
@@ -36,6 +38,12 @@ import {
   type ExtendableDetail,
   type Extension,
   type InViewProps,
+  type KeyFlags,
+  type KeyHook,
+  type KeyMixinOptions,
+  type KeyName,
+  type KeyProps,
+  type KeyTarget,
   type MutationHook,
   type MutationMixinOptions,
   type MutationProps,
@@ -73,6 +81,9 @@ import useDragFromSubpath from '@studiometa/js-toolkit-v4/useDrag';
 import useInViewFromSubpath, {
   useInView as namedUseInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/useInView';
+import useKeyFromSubpath, {
+  useKey as namedUseKeyFromSubpath,
+} from '@studiometa/js-toolkit-v4/useKey';
 import useMutationFromSubpath, {
   useMutation as namedUseMutationFromSubpath,
 } from '@studiometa/js-toolkit-v4/useMutation';
@@ -95,6 +106,9 @@ import withDragFromSubpath from '@studiometa/js-toolkit-v4/withDrag';
 import withInViewFromSubpath, {
   withInView as namedWithInViewFromSubpath,
 } from '@studiometa/js-toolkit-v4/withInView';
+import withKeyFromSubpath, {
+  withKey as namedWithKeyFromSubpath,
+} from '@studiometa/js-toolkit-v4/withKey';
 import withMutationFromSubpath, {
   withMutation as namedWithMutationFromSubpath,
 } from '@studiometa/js-toolkit-v4/withMutation';
@@ -159,7 +173,7 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(80);
+    expect(Object.keys(root)).toHaveLength(82);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
@@ -267,6 +281,28 @@ describe('the package entry points', () => {
       intersected?: (props: InViewProps) => void;
     }>();
     expectTypeOf<InViewMixinOptions>().toMatchTypeOf<IntersectionObserverInit>();
+  });
+
+  it('serves the key service and its mixin from the root and their subpaths', () => {
+    expect(useKeyFromSubpath).toBe(useKey);
+    expect(namedUseKeyFromSubpath).toBe(useKey);
+    expect(withKeyFromSubpath).toBe(withKey);
+    expect(namedWithKeyFromSubpath).toBe(withKey);
+    // The document default and an explicit target are one function.
+    expectTypeOf(useKey()).toEqualTypeOf<Service<KeyProps>>();
+    expectTypeOf(useKey(document.documentElement)).toEqualTypeOf<Service<KeyProps>>();
+    expectTypeOf<KeyTarget>().toEqualTypeOf<Document | Element | Window>();
+    // The named keys reach a consumer as props, so the constant stays internal.
+    expectTypeOf<KeyName>().toEqualTypeOf<
+      'ENTER' | 'SPACE' | 'TAB' | 'ESC' | 'LEFT' | 'UP' | 'RIGHT' | 'DOWN'
+    >();
+    expectTypeOf<KeyProps>().toMatchTypeOf<KeyFlags>();
+    expectTypeOf<KeyHook>().toMatchTypeOf<{
+      keyed?: (props: KeyProps) => void;
+    }>();
+    expectTypeOf<KeyMixinOptions>().toMatchTypeOf<{
+      target?: (instance: Base) => KeyTarget;
+    }>();
   });
 
   it('serves useMutation and withMutation from the root and their symbol subpaths', () => {

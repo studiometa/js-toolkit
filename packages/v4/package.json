@@ -184,6 +184,14 @@
       "types": "./dist/subpaths/withInView.d.ts",
       "import": "./dist/subpaths/withInView.js"
     },
+    "./useKey": {
+      "types": "./dist/subpaths/useKey.d.ts",
+      "import": "./dist/subpaths/useKey.js"
+    },
+    "./withKey": {
+      "types": "./dist/subpaths/withKey.d.ts",
+      "import": "./dist/subpaths/withKey.js"
+    },
     "./createServiceMixin": {
       "types": "./dist/subpaths/createServiceMixin.d.ts",
       "import": "./dist/subpaths/createServiceMixin.js"

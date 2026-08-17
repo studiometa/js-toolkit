@@ -107,6 +107,16 @@ export {
   type InViewProps,
 } from './services/in-view.js';
 export {
+  useKey,
+  withKey,
+  type KeyFlags,
+  type KeyHook,
+  type KeyMixinOptions,
+  type KeyName,
+  type KeyProps,
+  type KeyTarget,
+} from './services/key.js';
+export {
   createServiceMixin,
   type MixedClass,
   type ServiceHandles,
