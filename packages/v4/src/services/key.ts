@@ -80,24 +80,20 @@ function createKeyService(target: KeyTarget): Service<KeyProps> {
   const props = restingProps(names);
 
   function update(event: KeyboardEvent): KeyProps {
-    // Read the previous key before the new event overwrites it.
-    const previous = props.event;
+    const isDown = event.type === 'keydown';
+    // A repeat is one key going down while it is already down, read from the
+    // state the new event is about to overwrite. This fixes a v3 bug: v3
+    // incremented on any two consecutive keydowns, so holding `A` and then
+    // pressing `B` reported `2`. A different key, or any keyup, restarts it.
+    const isRepeat = isDown && props.isDown && props.event?.key === event.key;
 
-    props.isDown = event.type === 'keydown';
-    props.isUp = !props.isDown;
+    props.triggered = isRepeat ? props.triggered + 1 : 1;
+    props.event = event;
+    props.isDown = isDown;
+    props.isUp = !isDown;
     for (const name of names) {
       props[name] = KEYS[name] === event.key;
     }
-
-    // Repeats of one key, which fixes a v3 bug: v3 incremented on any two
-    // consecutive keydowns, so holding `A` and then pressing `B` reported `2`.
-    // A different key, or any keyup, restarts the count.
-    props.triggered =
-      props.isDown && previous?.type === 'keydown' && previous.key === event.key
-        ? props.triggered + 1
-        : 1;
-
-    props.event = event;
 
     return props;
   }
@@ -148,7 +144,8 @@ export type KeyMixinOptions = ServiceMixinOptions<KeyTarget>;
 /**
  * Subscribe `keyed()` for each mount cycle. The document is the default target,
  * as in v3 and as `withScroll` and `withResize` do for their own page-wide
- * source. Scope it to a region with a target: `withKey(Base, { target: (instance) => instance.$refs.wrapper })`.
+ * source. Scope it to a region with a target:
+ * `withKey(Base, { target: (instance) => instance.$refs.wrapper })`.
  */
 export const withKey = /* @__PURE__ */ createServiceMixin<
   KeyHook & ServiceHandles<'keyed'>,

@@ -16,10 +16,6 @@ import type { Toggle } from './toggle.js';
 
 const NAMES = Object.keys(KEYS) as KeyName[];
 
-function snapshot(props: KeyProps) {
-  return { ...props };
-}
-
 /** The named flags only, so a test states the whole set it expects. */
 function flagsOf(props: KeyProps): Record<string, boolean> {
   return Object.fromEntries(NAMES.map((name) => [name, props[name]]));
@@ -93,20 +89,20 @@ describe('useKey', () => {
 
   it('names the key of the event and nothing else', () => {
     const seen: KeyProps[] = [];
-    const unsubscribe = useKey().subscribe((props) => seen.push(snapshot(props)));
+    const unsubscribe = useKey().subscribe((props) => seen.push({ ...props }));
 
     for (const name of NAMES) {
       press(KEYS[name]);
     }
 
     expect(seen).toHaveLength(NAMES.length);
-    expect(seen.map(flagsOf)).toEqual(NAMES.map((name) => flagsFor(name)));
+    expect(seen.map(flagsOf)).toEqual(NAMES.map(flagsFor));
     unsubscribe();
   });
 
   it('reports no named key for an unnamed one', () => {
     const seen: KeyProps[] = [];
-    const unsubscribe = useKey().subscribe((props) => seen.push(snapshot(props)));
+    const unsubscribe = useKey().subscribe((props) => seen.push({ ...props }));
 
     press('a');
     expect(seen.map(flagsOf)).toEqual([flagsFor(null)]);
@@ -115,7 +111,7 @@ describe('useKey', () => {
 
   it('follows the event type with isDown and isUp', () => {
     const seen: KeyProps[] = [];
-    const unsubscribe = useKey().subscribe((props) => seen.push(snapshot(props)));
+    const unsubscribe = useKey().subscribe((props) => seen.push({ ...props }));
 
     press(KEYS.ESC);
     release(KEYS.ESC);
@@ -154,7 +150,7 @@ describe('useKey', () => {
     expect(service.props().triggered).toBe(0);
 
     const seen: KeyProps[] = [];
-    const unsubscribe = service.subscribe((props) => seen.push(snapshot(props)), {
+    const unsubscribe = service.subscribe((props) => seen.push({ ...props }), {
       immediate: true,
     });
     expect(seen).toEqual([]);
@@ -163,7 +159,7 @@ describe('useKey', () => {
     expect(seen).toHaveLength(1);
 
     const later: KeyProps[] = [];
-    const unsubscribeLater = service.subscribe((props) => later.push(snapshot(props)), {
+    const unsubscribeLater = service.subscribe((props) => later.push({ ...props }), {
       immediate: true,
     });
     expect(later).toHaveLength(1);
@@ -176,11 +172,8 @@ describe('useKey', () => {
   it('lets a subscriber prevent the default action', () => {
     const unsubscribe = useKey().subscribe(({ event }) => event?.preventDefault());
 
-    const event = new KeyboardEvent('keydown', { key: KEYS.TAB, bubbles: true, cancelable: true });
-    const notCancelled = document.dispatchEvent(event);
-
-    expect(event.defaultPrevented).toBe(true);
-    expect(notCancelled).toBe(false);
+    // A passive listener could not have set this.
+    expect(press(KEYS.TAB).defaultPrevented).toBe(true);
     unsubscribe();
   });
 
@@ -217,8 +210,8 @@ describe('useKey', () => {
 
     const first: KeyProps[] = [];
     const second: KeyProps[] = [];
-    const unsubscribeFirst = service.subscribe((props) => first.push(snapshot(props)));
-    const unsubscribeSecond = service.subscribe((props) => second.push(snapshot(props)));
+    const unsubscribeFirst = service.subscribe((props) => first.push({ ...props }));
+    const unsubscribeSecond = service.subscribe((props) => second.push({ ...props }));
 
     press(KEYS.LEFT, region);
     expect(first).toHaveLength(1);
@@ -247,7 +240,7 @@ describe('withKey', () => {
 
     class Trap extends withKey(Base) {
       keyed(props: KeyProps): void {
-        seen.push(snapshot(props));
+        seen.push({ ...props });
       }
     }
 
@@ -269,7 +262,7 @@ describe('withKey', () => {
     @withKey()
     class Trap extends Base {
       keyed(props: KeyProps): void {
-        seen.push(snapshot(props));
+        seen.push({ ...props });
       }
     }
 
@@ -288,7 +281,7 @@ describe('withKey', () => {
 
     class Trap extends withKey(Base, { manual: true }) {
       keyed(props: KeyProps): void {
-        seen.push(snapshot(props));
+        seen.push({ ...props });
       }
     }
 
@@ -321,7 +314,7 @@ describe('withKey', () => {
       static config = { name: 'Trap', refs: ['wrapper'] };
 
       keyed(props: KeyProps): void {
-        seen.push(snapshot(props));
+        seen.push({ ...props });
       }
     }
 
@@ -345,7 +338,7 @@ describe('withKey', () => {
 
     class Trap extends withKey(Base) {
       keyed(props: KeyProps): void {
-        seen.push(snapshot(props));
+        seen.push({ ...props });
       }
     }
 
