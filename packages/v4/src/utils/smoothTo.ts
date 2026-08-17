@@ -2,9 +2,17 @@ import { useRaf } from '../services/raf.js';
 import { toggle } from '../services/toggle.js';
 import { damp, spring, type SpringOptions } from './maths.js';
 
-export interface SmoothToOptions extends SpringOptions {
-  /** Damping factor, or spring friction in spring mode. Defaults to `0.6`. */
-  damping?: number;
+export interface SmoothToOptions extends Omit<SpringOptions, 'damping'> {
+  /**
+   * Damping factor, or spring friction in spring mode. Defaults to `0.6`.
+   *
+   * A function is read on **every frame**, which is what a consumer whose
+   * factor is an option needs: `$options` is a live view over attributes, so a
+   * value captured once would freeze an attribute the framework keeps live.
+   * It is also how a factor that depends on the direction of travel is
+   * expressed — read the current value and decide.
+   */
+  damping?: number | (() => number);
   /** Spring physics instead of damping. Implied by `stiffness` or `mass`. */
   spring?: boolean;
 }
@@ -29,6 +37,7 @@ export function smoothTo(start = 0, options: SmoothToOptions = {}): SmoothTo {
   const { spring: useSpring, stiffness, mass, damping = 0.6, precision = 1 / 1e4 } = options;
   // A spring parameter enables spring mode.
   const isSpring = useSpring === true || stiffness !== undefined || mass !== undefined;
+  const dampingNow = typeof damping === 'function' ? damping : () => damping;
 
   const callbacks = new Set<(value: number) => unknown>();
   let target = start;
@@ -37,15 +46,18 @@ export function smoothTo(start = 0, options: SmoothToOptions = {}): SmoothTo {
 
   const frame = toggle(() =>
     useRaf().subscribe(({ delta }) => {
+      // Read per frame, so an option that changed since the last one counts.
+      const factor = dampingNow();
+
       if (isSpring) {
         [value, velocity] = spring(target, value, velocity, delta, {
           stiffness,
           mass,
-          damping,
+          damping: factor,
           precision,
         });
       } else {
-        value = damp(target, value, damping, delta, precision);
+        value = damp(target, value, factor, delta, precision);
       }
 
       // Release the shared frame subscription as soon as the value arrives.

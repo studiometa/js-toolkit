@@ -92,6 +92,47 @@ describe('smoothTo', () => {
     x.destroy();
   });
 
+  it('reads a damping function on every frame, so a changed factor counts', async () => {
+    let factor = 0.99;
+    const reads: number[] = [];
+    const x = smoothTo(0, {
+      damping: () => {
+        reads.push(factor);
+        return factor;
+      },
+    });
+
+    x(100);
+    await frames(2);
+    const slow = x();
+    expect(reads.length).toBeGreaterThan(1);
+
+    // Nothing is re-created and no target is set again: only the factor moves.
+    factor = 0.1;
+    await frames(2);
+
+    expect(x()).toBeGreaterThan(slow);
+    expect(reads.at(-1)).toBe(0.1);
+    x.destroy();
+  });
+
+  it('lets the factor depend on the direction of travel', async () => {
+    // The same rule in both: fall fast, rise slowly.
+    const rule = (channel: { (): number; raw(): number }) => () =>
+      channel.raw() < channel() ? 0.9 : 0.1;
+    const falling = smoothTo(100, { damping: () => rule(falling)() });
+    const rising = smoothTo(0, { damping: () => rule(rising)() });
+
+    falling(0);
+    rising(100);
+    await frames(2);
+
+    // Same distance asked for, opposite directions, different factor applied.
+    expect(100 - falling()).toBeGreaterThan(rising());
+    falling.destroy();
+    rising.destroy();
+  });
+
   it('springs when a spring parameter is named', async () => {
     const x = smoothTo(0, { stiffness: 0.6, damping: 0.4 });
     const peak: number[] = [];
