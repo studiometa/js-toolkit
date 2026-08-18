@@ -14,7 +14,10 @@ afterEach(async () => {
 function render({ modal = true, withTransition = true } = {}): HTMLDialogElement {
   const el = document.createElement('dialog');
   el.setAttribute('data-component', 'Dialog');
-  el.setAttribute('data-option-modal', String(modal));
+  // A boolean is presence: `String(modal)` would read `true` either way.
+  if (!modal) {
+    el.setAttribute('data-option-no-modal', '');
+  }
   el.innerHTML = `
     ${
       withTransition

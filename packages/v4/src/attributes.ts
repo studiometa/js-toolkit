@@ -44,6 +44,27 @@ export function optionAttributeFor(name: string): string {
 }
 
 /**
+ * What a present negation resolves to.
+ *
+ * A boolean reads presence, not value, so the raw string has to carry **which
+ * spelling was there** rather than what it said. A NUL character is that
+ * signal: the HTML parser replaces it with U+FFFD in an attribute value, so no
+ * markup can produce it, and change detection still sees a plain string.
+ */
+export const NEGATED_RAW = '\u0000';
+
+/**
+ * The attribute which turns a boolean option off by being there.
+ *
+ * `data-option-no-view-transition` is another spelling of
+ * `data-option-view-transition="false"`, which is what v3 wrote and what reads
+ * better in markup: a flag is present or it is not.
+ */
+export function negatedOptionAttributeFor(name: string): string {
+  return `${OPTION_ATTRIBUTE_PREFIX}no-${kebabCase(name)}`;
+}
+
+/**
  * Whether a name is a declared option's, at any breakpoint. The scoped
  * spellings share the prefix, so one test covers the whole family.
  */

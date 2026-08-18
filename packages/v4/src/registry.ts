@@ -1,9 +1,15 @@
-import { resolveConfig, type BaseConstructor, type ComponentImporter } from './Base.js';
+import {
+  declaresBoolean,
+  resolveConfig,
+  type BaseConstructor,
+  type ComponentImporter,
+} from './Base.js';
 import {
   COMPONENT_ATTRIBUTE,
   isComponentAttribute,
   isOptionAttribute,
   MOUNT_ATTRIBUTE,
+  negatedOptionAttributeFor,
   optionAttributeFor,
   rememberPreviousValue,
 } from './attributes.js';
@@ -347,12 +353,21 @@ function resolveComponentClass(module: unknown, name: string): BaseConstructor |
 
 function optionAttributes(ComponentClass: BaseConstructor): string[] {
   const names: string[] = [];
-  for (const name of Object.keys(resolveConfig(ComponentClass).options ?? {})) {
+  for (const [name, definition] of Object.entries(resolveConfig(ComponentClass).options ?? {})) {
     const attribute = optionAttributeFor(name);
     names.push(attribute);
     // Register each exact breakpoint-scoped spelling with the observer filter.
     observeResponsiveAttribute(attribute);
+
+    // Only a boolean can be turned off by a bare attribute, so only a boolean
+    // costs the observer its negated spellings.
+    if (declaresBoolean(definition)) {
+      const negated = negatedOptionAttributeFor(name);
+      names.push(negated);
+      observeResponsiveAttribute(negated);
+    }
   }
+
   return names;
 }
 

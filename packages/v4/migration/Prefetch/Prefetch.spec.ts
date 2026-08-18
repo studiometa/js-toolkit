@@ -103,7 +103,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
 
   it('refuses when the `prefetch` option is off', async () => {
     const root = await render(
-      `<a data-component="AbstractPrefetch" href="${uniqueHref()}" data-option-prefetch="false"></a>`,
+      `<a data-component="AbstractPrefetch" href="${uniqueHref()}" data-option-no-prefetch></a>`,
     );
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
@@ -292,7 +292,7 @@ describe('PrefetchOnInteraction', () => {
   it('inherits the `prefetch` option from the base class config', async () => {
     const href = uniqueHref();
     const root = await render(
-      `<a data-component="PrefetchOnInteraction" href="${href}" data-option-prefetch="false"></a>`,
+      `<a data-component="PrefetchOnInteraction" href="${href}" data-option-no-prefetch></a>`,
     );
 
     root.firstElementChild?.dispatchEvent(new PointerEvent('pointerenter'));

@@ -480,7 +480,8 @@ describe('$options', () => {
     expect(instance.$options.list).toEqual([1]);
 
     el.setAttribute('data-option-speed', '9');
-    el.setAttribute('data-option-flag', 'false');
+    // A boolean reads presence, so the off switch is the negated spelling.
+    el.setAttribute('data-option-no-flag', '');
     el.setAttribute('data-option-list', '[2, 3]');
     expect(instance.$options.speed).toBe(9);
     expect(instance.$options.flag).toBe(false);

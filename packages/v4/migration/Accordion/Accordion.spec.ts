@@ -14,7 +14,7 @@ function render(): HTMLElement {
   root.innerHTML = ['a', 'b', 'c']
     .map(
       (name) => `
-      <div data-component="AccordionItem" data-option-is-open="${name === 'a'}">
+      <div data-component="AccordionItem" ${name === 'a' ? 'data-option-is-open' : ''}>
         <button type="button" data-ref="btn">${name}</button>
         <div data-ref="container"><div data-ref="content">content ${name}</div></div>
       </div>`,

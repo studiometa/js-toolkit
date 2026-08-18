@@ -349,7 +349,7 @@ describe('Fetch — the request', () => {
   it('emits the whole lifecycle in order', async () => {
     stubClient();
     const { root, instance } = await mountFetch(
-      `<a data-component="Fetch" href="#a" data-option-view-transition="false"></a>`,
+      `<a data-component="Fetch" href="#a" data-option-no-view-transition></a>`,
     );
     const events = recordEvents(root);
 
@@ -434,7 +434,7 @@ describe('Fetch — the request', () => {
     stubClient(async () => new Response(JSON.stringify({ html: '<div id="target">json</div>' })));
     await render(`<div id="target">old</div>`);
     const { instance } = await mountFetch(
-      `<a data-component="Fetch" href="#a" data-option-view-transition="false"
+      `<a data-component="Fetch" href="#a" data-option-no-view-transition
         data-option-response="response.json().then((data) => data.html)"></a>`,
     );
 
@@ -647,7 +647,7 @@ describe('Fetch — the dom-update negotiation', () => {
     const { spy, restore } = stubViewTransition();
     await render(`<div id="target">old</div>`);
     const { instance } = await mountFetch(
-      `<a data-component="Fetch" href="#a" data-option-view-transition="false"></a>`,
+      `<a data-component="Fetch" href="#a" data-option-no-view-transition></a>`,
     );
 
     await instance.update(new URL('https://example.com'), {}, '<div id="target">new</div>');
@@ -703,7 +703,7 @@ describe('Fetch — the dom-update negotiation', () => {
   it('accepts a transitioner object exposing `update()`', async () => {
     await render(`<div id="target">old</div>`);
     const { root, instance } = await mountFetch(
-      `<a data-component="Fetch" href="#a" data-option-view-transition="false"></a>`,
+      `<a data-component="Fetch" href="#a" data-option-no-view-transition></a>`,
     );
     const transitioner = { update: vi.fn((mutate: () => void) => mutate()) };
     root.addEventListener('js-toolkit:dom:update', (event) => {
@@ -719,7 +719,7 @@ describe('Fetch — the dom-update negotiation', () => {
   it('applies the change anyway when a runner settles without applying it', async () => {
     await render(`<div id="target">old</div>`);
     const { root, instance } = await mountFetch(
-      `<a data-component="Fetch" href="#a" data-option-view-transition="false"></a>`,
+      `<a data-component="Fetch" href="#a" data-option-no-view-transition></a>`,
     );
     root.addEventListener('js-toolkit:dom:update', (event) => {
       (event as CustomEvent<{ wrap(runner: () => void): void }>).detail.wrap(() => {});
@@ -808,7 +808,7 @@ describe('FetchShopifySection', () => {
     await render(`<div id="header">old header</div><div id="footer">old footer</div>`);
     const { instance } = await mountFetch<FetchShopifySection>(
       `<a data-component="FetchShopifySection" href="#a" data-option-sections="header,footer"
-        data-option-view-transition="false"></a>`,
+        data-option-no-view-transition></a>`,
       'FetchShopifySection',
     );
 
@@ -827,7 +827,7 @@ describe('FetchShopifySection', () => {
     await render(`<div id="header">old</div><div id="footer">old</div>`);
     const { instance } = await mountFetch<FetchShopifySection>(
       `<a data-component="FetchShopifySection" href="#a" data-option-sections="header,footer"
-        data-option-view-transition="false"></a>`,
+        data-option-no-view-transition></a>`,
       'FetchShopifySection',
     );
 
@@ -842,7 +842,7 @@ describe('FetchShopifySection', () => {
     stubClient(async () => new Response('<div id="target">plain html</div>'));
     await render(`<div id="target">old</div>`);
     const { instance } = await mountFetch<FetchShopifySection>(
-      `<a data-component="FetchShopifySection" href="#a" data-option-view-transition="false"></a>`,
+      `<a data-component="FetchShopifySection" href="#a" data-option-no-view-transition></a>`,
       'FetchShopifySection',
     );
 
@@ -858,7 +858,7 @@ describe('FetchShopifySection', () => {
     await render(`<div id="target">old</div>`);
     const { instance } = await mountFetch<FetchShopifySection>(
       `<a data-component="FetchShopifySection" href="#a" data-option-sections="header"
-        data-option-view-transition="false"
+        data-option-no-view-transition
         data-option-response="response.json().then((data) => data.html)"></a>`,
       'FetchShopifySection',
     );

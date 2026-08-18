@@ -194,6 +194,42 @@ options: {
 - The active breakpoint name is memoised for the length of one task, through `utils/memo.js`. `setBreakpoints()` and the `change` handler of a running service clear it at once.
 - The breakpoint service is part of the core graph on every page.
 
+### A boolean option reads presence
+
+`data-option-open` is on, an absent attribute is the declared default, and the string the attribute carries is never read — as `disabled` and `checked` work on the platform:
+
+```html
+<div data-component="Panel" data-option-open></div>
+<!-- true  -->
+<div data-component="Panel" data-option-open="false"></div>
+<!-- true, the value says nothing -->
+<div data-component="Panel"></div>
+<!-- the declared default -->
+```
+
+**Update one from code by adding or removing the attribute**, which is the same statement the markup makes:
+
+```js
+flag ? el.setAttribute('data-option-open', '') : el.removeAttribute('data-option-open');
+```
+
+A template must therefore write the attribute conditionally rather than interpolate a boolean into it: `{% if isOpen %}data-option-open{% endif %}`, never `data-option-open="{{ isOpen }}"`.
+
+### Turning a boolean option off — `data-option-no-<name>`
+
+A boolean option is turned off by an attribute which only has to be there:
+
+```html
+<div data-component="Dialog" data-option-no-trap-focus></div>
+```
+
+- **It is how an option declared `default: true` is turned off**, since removing an attribute that is not there says nothing. It resolves to a raw value the boolean rule reads as off, so there is one parsing path and no third state.
+- **Only an option which can hold `false` has one.** A declared `Boolean`, or a union containing it (`[Boolean, String]`). A `String` option has nothing to turn off, so `data-option-no-label` is not its attribute and the observer never watches for it.
+- **It is responsive like every other spelling.** `data-option-no-x:s` exists and cascades with the rest. One cascade, from the active breakpoint down to the base: at each level the value-carrying spelling is read first, then the negation, and the first hit wins. So a narrower breakpoint turns an option back **on** with `data-option-x:l="true"`, and at one breakpoint an explicit value outranks a flag.
+- **Presence is the whole statement.** A value on the negated attribute is not read: `data-option-no-x="false"` is not a double negative, it is the same flag.
+- **An option whose own name starts with `no` negates independently.** `noSort` owns `data-option-no-sort`, and its own off spelling doubles the prefix — `data-option-no-no-sort` — so no attribute an author writes means two things. The one declaration that would be ambiguous is a component declaring both `sort` and `noSort`; that is a lint rule's business, not a runtime check's.
+- The cost is paid by boolean options only: each one adds its negated name, and one scoped spelling per breakpoint, to the observer's filter.
+
 See [RATIONALE.md — 1. Independent components](./RATIONALE.md#1-independent-components).
 
 ## 2. One registry

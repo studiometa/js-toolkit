@@ -3,7 +3,7 @@
  *
  * Values are resolved on read and are not stored.
  */
-import { RESPONSIVE_SEPARATOR } from './attributes.js';
+import { NEGATED_RAW, RESPONSIVE_SEPARATOR } from './attributes.js';
 import { warnOnce } from './diagnostics.js';
 import { registerDOMOptionAttributes, replaceDOMOptionAttributes } from './dom-mutations.js';
 import { breakpointNames, onBreakpointsReplaced, useBreakpoint } from './services/breakpoint.js';
@@ -66,13 +66,39 @@ export function isResponsiveAttribute(attribute: string, name: string): boolean 
   return name === attribute || name.startsWith(`${attribute}${RESPONSIVE_SEPARATOR}`);
 }
 
-/** Resolve a raw option value by cascading from a breakpoint to the base attribute. */
+/**
+ * Resolve a raw option value by cascading from a breakpoint to the base attribute.
+ *
+ * `negated` is the off spelling of a boolean option, consulted at each level
+ * **after** the on spelling: a narrower breakpoint wins over a wider one
+ * whichever spelling it uses, and at one breakpoint the positive attribute
+ * wins, since declaring both there says nothing coherent. It resolves to
+ * `NEGATED_RAW`, so one cascade answers both spellings.
+ */
 export function responsiveRawValue(
   attribute: string,
   breakpoint: string,
   get: (name: string) => string | null,
+  negated?: string,
 ): string | null {
-  return responsiveScopedRawValue(attribute, breakpoint, get) ?? get(attribute);
+  if (negated === undefined) {
+    return responsiveScopedRawValue(attribute, breakpoint, get) ?? get(attribute);
+  }
+
+  const names = breakpointNames();
+  const scoped = scopedAttributes(attribute);
+  const scopedNegations = scopedAttributes(negated);
+  for (let index = names.indexOf(breakpoint); index >= 0; index -= 1) {
+    const value = get(scoped[index]);
+    if (value !== null) {
+      return value;
+    }
+    if (get(scopedNegations[index]) !== null) {
+      return NEGATED_RAW;
+    }
+  }
+
+  return get(attribute) ?? (get(negated) === null ? null : NEGATED_RAW);
 }
 
 /**

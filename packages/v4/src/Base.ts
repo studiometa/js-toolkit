@@ -1,4 +1,10 @@
-import { isNetChange, optionAttributeFor, REF_ATTRIBUTE } from './attributes.js';
+import {
+  isNetChange,
+  NEGATED_RAW,
+  negatedOptionAttributeFor,
+  optionAttributeFor,
+  REF_ATTRIBUTE,
+} from './attributes.js';
 import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
@@ -556,9 +562,15 @@ function isOptionValue(value: unknown, type: OptionType): boolean {
 
 /** What each supported option type makes of its attribute. */
 const OPTION_TYPE_RULES = new Map<OptionType, OptionTypeRule>([
-  // Presence is the value, so — unlike every other type — a declared `null`
-  // default still reads as `false`.
-  [Boolean, (raw, defaultValue) => (raw === null ? (defaultValue() ?? false) : raw !== 'false')],
+  // Presence is the value — the attribute is there or it is not, as a platform
+  // boolean attribute is — so `data-option-x="false"` reads `true` and the way
+  // to turn one off is to remove the attribute or to write its negated
+  // spelling. Unlike every other type, a declared `null` default still reads
+  // as `false`.
+  [
+    Boolean,
+    (raw, defaultValue) => (raw === null ? (defaultValue() ?? false) : raw !== NEGATED_RAW),
+  ],
   [Number, (raw, defaultValue) => (raw === null ? absentValue(defaultValue, 0) : Number(raw))],
   [String, (raw, defaultValue) => (raw === null ? absentValue(defaultValue, '') : raw)],
   [Array, readJSON],
@@ -568,6 +580,13 @@ const OPTION_TYPE_RULES = new Map<OptionType, OptionTypeRule>([
 function readUnion(types: OptionTypes, raw: string | null, defaultValue: () => unknown): unknown {
   if (raw === null) {
     return absentValue(defaultValue, types[0] === undefined ? undefined : emptyValue(types[0]));
+  }
+
+  // A negation is not a value, so it is answered before the members are tried:
+  // `[String, Boolean]` would otherwise hand the sentinel to the string rule,
+  // which accepts any string, and the option would read as one.
+  if (raw === NEGATED_RAW) {
+    return false;
   }
 
   for (const type of types) {
@@ -588,6 +607,16 @@ function isOptionShorthand(definition: OptionDefinition): definition is OptionTy
   return typeof definition === 'function' || isOptionTypes(definition);
 }
 
+/**
+ * Whether an option can hold `false`, and therefore whether the negated
+ * attribute means anything for it. A union is enough: `[Boolean, String]` can
+ * be turned off, `[String, Number]` has nothing to turn off.
+ */
+export function declaresBoolean(definition: OptionDefinition): boolean {
+  const type = isOptionShorthand(definition) ? definition : definition.type;
+  return isOptionTypes(type) ? type.includes(Boolean) : type === Boolean;
+}
+
 function buildOptions(instance: Base): Record<string, unknown> {
   const options: Record<string, unknown> = {};
   const readers = new Map<string, OptionReader>();
@@ -598,6 +627,8 @@ function buildOptions(instance: Base): Record<string, unknown> {
     const type = shorthand ? definition : definition.type;
     const declared = shorthand ? undefined : definition.default;
     const attribute = optionAttributeFor(name);
+    // Only an option which can hold `false` has an off spelling to read.
+    const negated = declaresBoolean(definition) ? negatedOptionAttributeFor(name) : undefined;
 
     if (!shorthand && declared !== null && typeof declared === 'object') {
       warnLiteralDefault(instance.$config.name, name, definition, declared, el);
@@ -646,10 +677,12 @@ function buildOptions(instance: Base): Record<string, unknown> {
     // is what lets `$options` stay a read-only view — there is no moment at
     // which a breakpoint change has to write a value in.
     const fromElement = (attributeName: string) => el.getAttribute(attributeName);
-    const rawValue = () => responsiveRawValue(attribute, activeBreakpoint(), fromElement);
+    const rawValue = () => responsiveRawValue(attribute, activeBreakpoint(), fromElement, negated);
     const rawValueAt = (breakpoint: string, get: (attributeName: string) => string | null) =>
-      responsiveRawValue(attribute, breakpoint, get);
-    const owns = (attributeName: string) => isResponsiveAttribute(attribute, attributeName);
+      responsiveRawValue(attribute, breakpoint, get, negated);
+    const owns = (attributeName: string) =>
+      isResponsiveAttribute(attribute, attributeName) ||
+      (negated !== undefined && isResponsiveAttribute(negated, attributeName));
 
     readers.set(name, { attribute, rawValue, rawValueAt, owns, read });
     Object.defineProperty(options, name, {

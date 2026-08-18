@@ -221,7 +221,7 @@ describe('Draggable — the drag', () => {
   });
 
   it('leaves an axis alone when its option is off', async () => {
-    const { target } = await render('data-option-y="false"');
+    const { target } = await render('data-option-no-y');
 
     grab(target, 10, 10);
     move(110, 110);
