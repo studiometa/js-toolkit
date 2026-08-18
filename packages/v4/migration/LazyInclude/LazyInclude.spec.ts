@@ -191,7 +191,6 @@ describe('LazyInclude', () => {
     // The component is not ended: it remembers, which is what the option
     // means and what survives the move the next spec makes.
     expect(instance.hasLoaded).toBe(true);
-    expect(instance.$isTerminated).toBe(false);
     expect(instance.$isMounted).toBe(true);
   });
 
@@ -206,7 +205,6 @@ describe('LazyInclude', () => {
     await included();
 
     expect(instance.hasLoaded).toBe(false);
-    expect(instance.$isTerminated).toBe(false);
     expect(instance.$isMounted).toBe(true);
   });
 
@@ -266,8 +264,8 @@ describe('LazyInclude', () => {
   });
 
   /**
-   * Gap 35, closed by dropping `$terminate()` for a field. The instance stays
-   * on its element across a move, so "already loaded" survives with it — where
+   * Gap 35, closed by recording the load in a field. The instance stays on its
+   * element across a move, so "already loaded" survives with it — where v3's
    * termination detached the instance and lost the memory it was made of.
    */
   it('fetches again after a failed load, whatever `terminateOnLoad` says', async () => {

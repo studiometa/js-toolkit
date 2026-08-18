@@ -34,15 +34,16 @@ The registry is the only code that constructs an instance. `ChildrenManager` con
 
 ### Lifecycle
 
-Three notions stay separate:
+Two notions stay separate:
 
 | Notion           | What it is                        | Effect                                                                                                                                     |
 | ---------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | **disconnected** | The element left the document.    | The registry calls `$destroy()`. The instance stays on its element. A re-inserted element mounts the same instance again.                  |
 | **destroy**      | The reversible opposite of mount. | Unbinds the listeners of the cycle, runs the `mounted()` cleanups, cancels the scheduled tasks, calls `destroyed()`, announces the change. |
-| **terminate**    | The explicit and permanent end.   | Destroys first, then releases `$provide` and `$watchChildren`, calls `terminated()`, and removes the instance from the element.            |
 
-**`$terminate()` is the registry's word for a withdrawn declaration, not a component's word for "my work is done".** It runs when the element stops declaring the component — the token leaves `data-component`, or a responsive declaration stops matching — and it removes the instance from the element, which is what makes it permanent.
+**`mount` and `destroy` are the whole lifecycle.** There is no third, permanent notion: a component never declares that its work is over, and nothing marks an instance as never mountable again.
+
+**A withdrawn declaration is a registry action, not a lifecycle state.** When the element stops declaring the component — the token leaves `data-component`, or a responsive declaration stops matching — the registry destroys the instance and drops it from the element, so declaring the name again builds a new one. That is the registry rearranging its own bookkeeping, and the instance only ever sees `$destroy()`.
 
 So "do this once per element" is **instance state, not a lifecycle decision**. `$destroy()` leaves the instance on its element, so a plain field survives every move, re-insertion and `swap()` that preserves the element:
 
@@ -54,7 +55,7 @@ mounted() {
 }
 ```
 
-What a field does not survive is an element that is genuinely **replaced**, which is exactly when the work should run again. Terminating instead would detach the instance and throw that memory away with it, so the next mount pass would build a fresh instance which has never heard of the termination.
+What a field does not survive is an element that is genuinely **replaced**, which is exactly when the work should run again.
 
 A parent that destroys does not destroy its children.
 
@@ -75,8 +76,8 @@ class TodoCount extends Base {
 
 - If an async `mounted()` resolves after the destroy, the cleanup runs immediately.
 - Cleanups returned by `mounted()` are destroy-scoped. A pending `$inject()` request is destroy-scoped too.
-- Registrations made in the constructor are terminate-scoped: `$provide` and `$watchChildren`.
-- `destroyed()` and `terminated()` stay available for the cases that the returned cleanup does not fit.
+- Registrations made in the constructor are instance-scoped: `$provide` and `$watchChildren` are never released, and both die with the instance or with its element. A component whose declaration is withdrawn therefore keeps providing context until its element goes.
+- `destroyed()` stays available for the cases that the returned cleanup does not fit.
 
 ### `config.components`
 
@@ -277,7 +278,7 @@ The plain `data-component` token set is always active. One responsive token set 
 - At the active breakpoint the registry walks from the widest active suffix down and takes the first attribute that is present.
 - That value is the complete responsive set. A wider value replaces every lower value; it does not merge with it. An empty value is a stop: `data-component:s="TabletFeature" data-component:l=""` runs `TabletFeature` at `s` and `m`, and removes it at `l`.
 - The effective declaration is the union of the unconditional set and the selected responsive set, without duplicates.
-- A crossing compares that effective set against the current state of the element. A shared name keeps its controller and its instance. A name that is no longer declared is terminated; a crossing back gives a new identity. A new name enters the normal pipeline, so mount strategies, `data-mount`, lazy entries and lifecycle events keep their meaning. An inactive lazy declaration imports nothing.
+- A crossing compares that effective set against the current state of the element. A shared name keeps its controller and its instance. A name that is no longer declared is destroyed and dropped from the element; a crossing back gives a new identity. A new name enters the normal pipeline, so mount strategies, `data-mount`, lazy entries and lifecycle events keep their meaning. An inactive lazy declaration imports nothing.
 - The document observer registers the exact `data-component:<breakpoint>` names and replaces that slice of the filter after `setBreakpoints()`.
 - Connected elements with a scoped declaration share one reference-counted `useBreakpoint()` subscription. A page with plain declarations opens none.
 - Breakpoint work runs through the background lane, so `whenDOMSettled()` includes the teardown, import and mount work of a crossing.
@@ -329,7 +330,7 @@ The engine snapshots the membership of a removed subtree when the records enter 
 4. scan added subtrees once and schedule their registered component tokens;
 5. report coalesced attribute changes to the elements that asked to watch them.
 
-A disconnected element receives `$destroy()` and keeps its instance for a later insertion. Removal of one component token from a connected element — by an attribute change or by a breakpoint crossing — calls `$terminate()`, because the DOM no longer declares that identity. The same token later gives a new instance. A moved node completes a destroy and mount cycle with the same identity.
+A disconnected element receives `$destroy()` and keeps its instance for a later insertion. Removal of one component token from a connected element — by an attribute change or by a breakpoint crossing — also calls `$destroy()`, and then drops the instance from the element, because the DOM no longer declares that identity. The same token later gives a new instance. A moved node completes a destroy and mount cycle with the same identity.
 
 `whenDOMSettled()` is the completion boundary for morphing, fetch updates and breakpoint crossings. It drains the pending records, follows the mutation chains of eager lifecycle work, and resolves after the eager mounts and the teardown. It does not wait for visibility, interaction, idle or media conditions, and it does not await the promises returned by `mounted()`.
 
@@ -347,7 +348,7 @@ A disconnected element receives `$destroy()` and keeps its instance for a later 
 
 - **The caller owns it.** The helper returns one idempotent cleanup and knows nothing about `Base`. A component calls it from `mounted()` and runs the cleanup from the returned mount cleanup.
 - **The records join the shared queue.** They are drained wherever the engine drains its own, `whenDOMSettled()` included, and they are reported from the same background task, as step 5 above.
-- **A callback runs after the framework work of the batch.** A component that stops its watcher during the same batch as its own termination hears nothing about the attribute change.
+- **A callback runs after the framework work of the batch.** A component that stops its watcher during the same batch in which its own declaration is withdrawn hears nothing about the attribute change.
 - **Changes are coalesced**, with the rule of `option<Name>Changed()`.
 - **The payload is one object**: `{ name, value, previousValue }`, with raw attribute strings and `null` for an absent attribute. It covers the whole attribute set of the element, framework names included. A caller narrows by prefix.
 - A failed callback reports `EVENTS.diagnostic` with the code `DIAGNOSTICS.callback.attributeWatcherFailed`, so one watcher cannot stop another.
@@ -465,7 +466,7 @@ See [RATIONALE.md — 4. Parents listen to child events](./RATIONALE.md#4-parent
 
 ### Layer 1 — bubbling lifecycle announcements
 
-Every instance dispatches a framework event from `EVENTS.component` on mount and on terminate, with the instance in the payload. The mount event bubbles from the element. The terminate event dispatches from `document`, because the element can already be detached. Any ancestor can follow its descendants with no declaration. An instance that is scheduled but not mounted announces nothing.
+Every instance dispatches a framework event from `EVENTS.component` on mount and on destroy, with the instance in the payload. The mount event bubbles from the element. The destroy event dispatches from `document`, because the element can already be detached. Any ancestor can follow its descendants with no declaration. An instance that is scheduled but not mounted announces nothing.
 
 ### Layer 2 — `$watchChildren()`
 
@@ -485,7 +486,8 @@ class Slider extends Base {
 - The initial sweep is deferred to a microtask, because `$watchChildren` is usually called in a field initializer. The announcement listeners attach at once, so nothing is missed. An internal `Set` removes duplicates.
 - The string overload looks up the exact `config.name`.
 - The constructor overload walks the descendant elements in document order and reads their instance maps. It keeps the instances where `instance instanceof ComponentClass`, excludes the watching instance, and removes duplicates.
-- No global instance registry is added. The subscription stays active through destroy and mount cycles, until the watcher terminates.
+- No global instance registry is added. The subscription stays active through destroy and mount cycles, for the whole life of the watching instance.
+- Destroyed instances announce from `document`, so one lazy, realm-shared listener serves every watcher and the document holds nothing but weak references to them. A listener per watcher would make every watching component immortal, since the document outlives the page's components.
 
 ### The page-wide lookup — `getInstances()`
 
@@ -498,7 +500,7 @@ getInstances(el); // everything mounted on one element
 It derives the answer from the DOM. It keeps no registry of instances.
 
 - A matching element with no instance is skipped.
-- The filter is `$isMounted`, so a destroyed or terminated instance is never returned.
+- The filter is `$isMounted`, so a destroyed instance is never returned.
 - `root` is a `ParentNode` and the call is `querySelectorAll`, so an element root searches its descendants and never matches itself.
 - `selectorFor(name)` on `/utils` is the one place that writes the name-to-selector contract.
 
@@ -652,7 +654,7 @@ between frames, on its own turns
 - **No thrashing.** A `read` scheduled from a `write` runs in the next frame. A `write` scheduled from a `read` runs in the same frame.
 - **Bounded phases.** Each queue array is swapped for an empty one when its phase starts, so a task scheduled into the running phase lands in the batch of the next frame. The `write` batch is taken after the reads run.
 - **Task handles.** Scheduling returns a cancelable handle whose promise resolves with the return value of the task: `const box = await scheduler.read(() => el.getBoundingClientRect())`.
-- **Instance ownership.** `this.$read(fn)` and `this.$write(fn)` tie tasks to the instance. Terminate cancels the pending tasks of that instance.
+- **Instance ownership.** `this.$read(fn)` and `this.$write(fn)` tie tasks to the instance. Destroy cancels the pending tasks of that instance.
 - **The background lane runs outside the frame.** It posts its own turns through `scheduler.postTask({ priority: 'background' })`, and falls back to a `MessageChannel` message. Each turn runs a 5 ms slice measured from the start of the drain, then gives the thread back and posts the next turn. Background work alone never requests an animation frame. `whenIdle()` counts background tasks and resolves at the end of a background drain as well as at the end of a flush.
 - **Clamped tick delta.** `TickProps.delta` is clamped to `[1, 40]` ms, and the first tick after the loop wakes reports `1000/60`. `TickProps.time` stays the raw rAF timestamp.
 - **Error isolation.** One try/catch per task. A task that throws is reported and dropped. The flush continues and the scheduler never deadlocks.
@@ -695,7 +697,7 @@ A service is a shared source of props that components subscribe to: `ticked`, `s
 - **The options are read by meaning, not by spelling.** `perTarget()` sorts object keys at every depth and drops the keys that hold `undefined`. Arrays keep their order. Only what the platform owns needs a `keyOf` of its own: `useInView()` gives its root a weak id, and `useMutation()` keeps `resolveInit()` for the DOM contract.
 - **The options of a mixin are not the options of the service.** `target`, `manual` and `immediate` describe the subscription. They are removed before `use()` is called and they are absent from its `Options` type, so `use: (target, options) => useDrag(target, options)` is correct.
 - **A mixin binds per mount cycle.** `withRaf`, `withScroll`, `withResize`, `withScrollProgress`, `withPointer`, `withDrag`, `withInView`, `withMutation` and `withKey` override `$mount()` and `$destroy()`, subscribe the `ticked`, `scrolled`, `resized`, `scrolledInView`, `moved`, `dragged`, `intersected`, `mutated` or `keyed` method of the component, and return the unsubscribe function as a cleanup. `Base` knows nothing about services. The mixin is the primitive, because it needs no build step; `@withScroll()` is the decorator sugar. `withInView` observes a component that is already mounted; it does not replace the `visible` or `in-view` mount strategy.
-- **A mixin never occupies a lifecycle hook.** `mounted()`, `destroyed()` and `terminated()` belong to the component author, so nothing has to be chained: a class which mixes a service in and writes its own `mounted()` without `super.mounted()` still subscribes. The framework's own `$mount()`/`$destroy()` pair carries the subscription instead, which is where `$terminate()` already lived. The subscription therefore starts once the whole of `mounted()` has run — including an `immediate` first delivery, which reaches a component that is fully set up — and is released before `destroyed()`, exactly where the mount cleanup used to release it.
+- **A mixin never occupies a lifecycle hook.** `mounted()` and `destroyed()` belong to the component author, so nothing has to be chained: a class which mixes a service in and writes its own `mounted()` without `super.mounted()` still subscribes. The framework's own `$mount()`/`$destroy()` pair carries the subscription instead. The subscription therefore starts once the whole of `mounted()` has run — including an `immediate` first delivery, which reaches a component that is fully set up — and is released before `destroyed()`, exactly where the mount cleanup used to release it. `$destroy()` releases unconditionally, so a manual subscription started outside a mount cycle is released too.
 - **A mixin written outside core still chains.** The rule is about what the mixin overrides, not about who wrote it: a userland mixin which puts its work in `mounted()` needs its subclasses to call `super.mounted()`, and the way not to need that is to override `$mount()`.
 - **One method name per mixin, and it is the name of the service.** There is no `hook` option. Any other target is an explicit subscription in `mounted()`:
 

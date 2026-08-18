@@ -12,7 +12,6 @@ let counter = 0;
 interface TrackedComponent extends Base {
   mounts: number;
   destroys: number;
-  terminations: number;
 }
 
 function defineTracked(prefix: string, config: Omit<BaseConfig, 'name'> = {}) {
@@ -24,7 +23,6 @@ function defineTracked(prefix: string, config: Omit<BaseConfig, 'name'> = {}) {
 
     mounts = 0;
     destroys = 0;
-    terminations = 0;
 
     mounted(): void {
       this.mounts += 1;
@@ -32,10 +30,6 @@ function defineTracked(prefix: string, config: Omit<BaseConfig, 'name'> = {}) {
 
     destroyed(): void {
       this.destroys += 1;
-    }
-
-    terminated(): void {
-      this.terminations += 1;
     }
   }
 
@@ -137,14 +131,14 @@ describe('responsive component declarations', () => {
     at('middle');
     await whenDOMSettled();
     const firstTablet = instance(el, tablet.name);
-    expect(firstMobile?.$isTerminated).toBe(true);
+    expect(firstMobile?.$isMounted).toBe(false);
     expect(firstTablet?.$isMounted).toBe(true);
     expect(instance(el, mobile.name)).toBeUndefined();
     expect(instance(el, base.name)?.$isMounted).toBe(true);
 
     at('wide');
     await whenDOMSettled();
-    expect(firstTablet?.$isTerminated).toBe(true);
+    expect(firstTablet?.$isMounted).toBe(false);
     expect(instance(el, tablet.name)).toBeUndefined();
     expect(instance(el, base.name)?.$isMounted).toBe(true);
 
@@ -154,7 +148,7 @@ describe('responsive component declarations', () => {
     expect(instance(el, mobile.name)?.$isMounted).toBe(true);
   });
 
-  it('preserves shared instances while terminating old-only names in both crossing directions', async () => {
+  it('preserves shared instances while withdrawing old-only names in both crossing directions', async () => {
     at('small');
     const shared = defineTracked('Shared');
     const mobile = defineTracked('Narrow');
@@ -174,13 +168,15 @@ describe('responsive component declarations', () => {
     const firstDesktop = instance(el, desktop.name);
     expect(instance(el, shared.name)).toBe(sharedInstance);
     expect(sharedInstance?.mounts).toBe(1);
-    expect(firstMobile?.$isTerminated).toBe(true);
+    expect(firstMobile?.$isMounted).toBe(false);
+    expect(instance(el, mobile.name)).toBeUndefined();
     expect(firstDesktop?.$isMounted).toBe(true);
 
     at('small');
     await whenDOMSettled();
     expect(instance(el, shared.name)).toBe(sharedInstance);
-    expect(firstDesktop?.$isTerminated).toBe(true);
+    expect(firstDesktop?.$isMounted).toBe(false);
+    expect(instance(el, desktop.name)).toBeUndefined();
     expect(instance(el, mobile.name)).not.toBe(firstMobile);
   });
 
@@ -206,7 +202,8 @@ describe('responsive component declarations', () => {
 
     el.setAttribute('data-component:small', second.name);
     await whenDOMSettled();
-    expect(firstInstance?.$isTerminated).toBe(true);
+    expect(firstInstance?.$isMounted).toBe(false);
+    expect(instance(el, first.name)).toBeUndefined();
     expect(instance(el, second.name)?.$isMounted).toBe(true);
 
     el.removeAttribute('data-component:small');
@@ -262,7 +259,9 @@ describe('responsive component declarations', () => {
     el.remove();
     await whenDOMSettled();
     expect(retained?.$isMounted).toBe(false);
-    expect(retained?.$isTerminated).toBe(false);
+    // A disconnection retains the instance, where a withdrawn declaration
+    // would have dropped it from the element.
+    expect(instance(el, feature.name)).toBe(retained);
 
     firstParent.append(el);
     await whenDOMSettled();
@@ -360,7 +359,8 @@ describe('responsive component declarations', () => {
 
     el.removeAttribute('data-component:desktop');
     await whenDOMSettled();
-    expect(mounted?.$isTerminated).toBe(true);
+    expect(mounted?.$isMounted).toBe(false);
+    expect(instance(el, feature.name)).toBeUndefined();
     warn.mockRestore();
   });
 

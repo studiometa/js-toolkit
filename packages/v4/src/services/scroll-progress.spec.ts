@@ -289,7 +289,7 @@ describe('withScrollProgress', () => {
     expect(seen).toHaveLength(1);
     expect(seen[0].startY).toBe(800 - window.innerHeight / 2);
     expect(seen[0].endY).toBe(900 - window.innerHeight / 2);
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('supports a per-instance target and keeps generic fields out of the service key', () => {
@@ -338,8 +338,8 @@ describe('withScrollProgress', () => {
     expect(eager).toHaveLength(1);
     expect(eager[0].startY).toBe(850 - window.innerHeight / 2);
     expect(eager[0].endY).toBe(900);
-    quietInstance.$terminate();
-    eagerInstance.$terminate();
+    quietInstance.$destroy();
+    eagerInstance.$destroy();
   });
 
   it('supports the stage-3 decorator form', () => {
@@ -360,7 +360,7 @@ describe('withScrollProgress', () => {
     expect(seen).toHaveLength(1);
     expect(seen[0].startX).toBe(900 - window.innerWidth / 2);
     expect(seen[0].endX).toBe(1100 - window.innerWidth / 2);
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('honours explicit immediate false', async () => {
@@ -381,7 +381,7 @@ describe('withScrollProgress', () => {
     window.dispatchEvent(new Event('scroll'));
     await settle();
     expect(seen).toHaveLength(1);
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('defers returned renders through $write and cancels a stale mount-cycle write', async () => {
@@ -411,7 +411,7 @@ describe('withScrollProgress', () => {
     expect(live.renders).toBe(0);
     await settle();
     expect(live.renders).toBe(1);
-    live.$terminate();
+    live.$destroy();
 
     const stale = new Renderer(makeTarget()).$mount();
     expect(stale.measurements).toBe(1);
@@ -420,7 +420,7 @@ describe('withScrollProgress', () => {
     stale.$destroy();
     await settle();
     expect(stale.renders).toBe(0);
-    stale.$terminate();
+    stale.$destroy();
   });
 
   it('cleans up automatically and subscribes once on each remount', async () => {
@@ -449,10 +449,10 @@ describe('withScrollProgress', () => {
     target.style.top = '1400px';
     await settle();
     expect(instance.calls).toBe(3);
-    instance.$terminate();
+    instance.$destroy();
   });
 
-  it('exposes a manual typed handle and releases it on stop and termination', async () => {
+  it('exposes a manual typed handle and releases it on stop and on destroy', async () => {
     class Manual extends withScrollProgress(Base, { manual: true }) {
       static config = { name: 'ManualProgressHero' };
 
@@ -477,7 +477,7 @@ describe('withScrollProgress', () => {
 
     instance.$services.scrolledInView.start();
     expect(instance.$services.scrolledInView.isActive).toBe(true);
-    instance.$terminate();
+    instance.$destroy();
     expect(instance.$services.scrolledInView.isActive).toBe(false);
   });
 

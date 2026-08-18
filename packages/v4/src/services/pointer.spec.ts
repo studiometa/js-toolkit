@@ -385,7 +385,7 @@ describe('withPointer', () => {
     expect(instance.seen.at(-1)?.relativeX).toBe(50);
     expect(instance.seen.at(-1)?.relativeY).toBe(30);
 
-    instance.$terminate();
+    instance.$destroy();
     move(160, 80);
     expect(instance.seen).toHaveLength(1);
   });
@@ -416,11 +416,11 @@ describe('withPointer', () => {
     ]);
     expect(reads()).toBe(1);
 
-    a.$terminate();
+    a.$destroy();
     move(160, 80);
     expect(seen.at(-1)).toEqual(['b', 60]);
 
-    b.$terminate();
+    b.$destroy();
     move(170, 80);
     expect(seen).toHaveLength(3);
   });

@@ -78,7 +78,7 @@ describe('registry', () => {
     expect(count.$isMounted).toBe(true);
   });
 
-  it('creates a new instance when a terminated token is declared again', async () => {
+  it('creates a new instance when a withdrawn token is declared again', async () => {
     const el = document.createElement('li');
     el.setAttribute('data-component', 'TodoItem');
     document.body.append(el);
@@ -204,8 +204,8 @@ describe('registry', () => {
 
     class Before extends Base {
       static config = { name: 'RegistrationBefore' };
-      terminated(): void {
-        calls.push('before:terminated');
+      destroyed(): void {
+        calls.push('before:destroyed');
       }
     }
     class After extends Base {
@@ -227,7 +227,7 @@ describe('registry', () => {
     registerComponent(After);
     await settle();
 
-    expect(calls).toEqual(['before:terminated', 'after:mounted:before=false']);
+    expect(calls).toEqual(['before:destroyed', 'after:mounted:before=false']);
   });
 
   it('registers a subclass under its merged name, not its own static config', async () => {
