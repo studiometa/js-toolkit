@@ -55,7 +55,10 @@ type VirtualBinding =
 // oxlint-disable-next-line typescript/no-base-to-string
 const bindingText = (result: unknown): string => String(result);
 
-export class DataBind extends Base<DataBindProps> implements DataScopeMember {
+export class DataBind<T extends BaseProps = DataBindProps>
+  extends Base<DataBindProps & T>
+  implements DataScopeMember
+{
   static config: BaseConfig = {
     name: 'DataBind',
     options: {

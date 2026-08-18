@@ -8,10 +8,7 @@ export type DataComputedProps = DataBindProps & {
 };
 
 /** A read-only binding computed from its group's value and data. */
-export class DataComputed extends DataBind {
-  // Narrow the inherited option type without emitting a field.
-  declare $options: DataComputedProps['$options'];
-
+export class DataComputed extends DataBind<DataComputedProps> {
   static config: BaseConfig = {
     name: 'DataComputed',
     options: {
