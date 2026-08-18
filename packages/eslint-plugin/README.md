@@ -57,6 +57,38 @@ Add the plugin to your `.oxlintrc.json`:
 }
 ```
 
+### v4
+
+v4 is not v3 with a bigger version number, so it has its own rule set. `configs.v4` replaces `configs.recommended` rather than extending it: the rules policing something v4 removed — `config.emits`, `$children`, the v3 decorator names — are absent, and `async-lifecycle-methods` is absent because a v4 frame hook returns the function which writes rather than a promise.
+
+```js
+import { jsToolkit } from '@studiometa/eslint-plugin-js-toolkit';
+
+export default [jsToolkit.configs.v4];
+```
+
+The same set in `.oxlintrc.json`:
+
+```json
+{
+  "jsPlugins": [{ "name": "js-toolkit", "specifier": "@studiometa/eslint-plugin-js-toolkit" }],
+  "rules": {
+    "js-toolkit/no-write-in-read-phase": "error",
+    "js-toolkit/no-options-assignment": "error",
+    "js-toolkit/prefer-instance-scheduler": "warn",
+    "js-toolkit/option-default-factory": "error",
+    "js-toolkit/no-conflicting-negated-option": "error",
+    "js-toolkit/no-deprecated-properties": ["error", { "version": "v4" }],
+    "js-toolkit/no-dispatch-event": "warn",
+    "js-toolkit/no-shadow-dom": "error",
+    "js-toolkit/no-event-listener-methods": "error",
+    "js-toolkit/no-manual-mutation-observer": "warn",
+    "js-toolkit/refs-no-bracket-access": "error",
+    "js-toolkit/prefer-ref-over-query-selector": "warn"
+  }
+}
+```
+
 ### ESLint
 
 Add the recommended config to your `eslint.config.js` (ESLint v9 flat config):
@@ -114,7 +146,7 @@ export default [
 
 | Rule                                              | Description                                                                                                                                                                                    | Recommended | Fixable |
 | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------- |
-| `js-toolkit/no-deprecated-properties`             | Disallows deprecated properties (`$parent`, `$root`, `$children`). Use `$closest()` or `$query()` instead.                                                                                     | warn        |         |
+| `js-toolkit/no-deprecated-properties`             | Disallows deprecated properties (`$parent`, `$root`, `$children`). Use `$closest()` or `$query()` instead. With `{ "version": "v4" }`, reports the members v4 removed instead — see below.     | warn        |         |
 | `js-toolkit/no-dispatch-event`                    | Disallows `dispatchEvent()` inside `Base` subclasses. Use `this.$emit()` instead.                                                                                                              | warn        |         |
 | `js-toolkit/no-shadow-dom`                        | Disallows `attachShadow()` inside `Base` subclasses. The framework uses Light DOM only.                                                                                                        | error       |         |
 | `js-toolkit/no-create-app`                        | Disallows `createApp()` (deprecated). Use `registerComponent()` instead.                                                                                                                       | warn        |         |
@@ -156,3 +188,32 @@ export default [
 | `js-toolkit/prefer-destructured-lookups` | Warns when `this.$refs`, `this.$options` or `this.$children` members are accessed more than once in the same method. Destructure into a local variable instead.  | warn        |         |
 | `js-toolkit/no-dollar-prefix`            | Disallows user-defined instance methods and properties prefixed with `$` in `Base` subclasses. The `$` prefix is reserved for framework-provided members.        | error       |         |
 | `js-toolkit/require-destroyed-cleanup`   | Requires a `destroyed()` method in `Base` subclasses that call `setTimeout`, `setInterval` or `requestAnimationFrame`, to clear timers and prevent memory leaks. | warn        |         |
+
+### v4
+
+These rules describe v4 only, and ship in `configs.v4` rather than in `configs.recommended`.
+
+| Rule                                       | Description                                                                                                                                                                                    | v4    | Fixable |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------- |
+| `js-toolkit/no-write-in-read-phase`        | Disallows a DOM write in a read-phase callback — a frame hook, a subscriber of a read-phase service, or a `$read()` task. Return a render function, or write from `$write()`.                  | error |         |
+| `js-toolkit/no-options-assignment`         | Disallows writing to `this.$options`. Every option is a getter with no setter, so the assignment throws at runtime; this moves the failure to CI.                                              | error |         |
+| `js-toolkit/prefer-instance-scheduler`     | Warns on `defaultScheduler.read()` / `.write()` inside a component. `this.$read()` and `this.$write()` tie the task to the instance, so destroying it cancels the task.                        | warn  |         |
+| `js-toolkit/option-default-factory`        | Disallows a literal object or array as an option `default` — every instance would share it. Core warns at runtime, but only once a component mounts.                                           | error |         |
+| `js-toolkit/no-conflicting-negated-option` | Disallows declaring both a boolean option `x` and an option named `noX`, which would make `data-option-no-x` mean two things. Core deliberately does not check this on every mount.            | error |         |
+| `js-toolkit/no-deprecated-properties`      | With `{ "version": "v4" }`: reports `$parent`, `$root`, `$children`, `$update`, `$warn`, `$log`, `$terminate`, `$services.enable()`/`.disable()`, `updated()`, `terminated()`, `config.emits`. | error |         |
+
+#### `no-write-in-read-phase`
+
+`useRaf()`, `useScroll()` and `useScrollProgress()` fan their subscribers out inside `defaultScheduler.read()`, so that every measurement of a frame precedes every write of that frame. A callback which measures **and** writes defeats the split: the write forces layout for every component still measuring. The contract is that a callback _returns_ the function which mutates.
+
+A read-phase context is a `ticked()`, `scrolled()` or `scrolledInView()` method, a `subscribe()` callback of one of those services or of a `smoothTo()` value, or a `$read()` / `defaultScheduler.read()` task. A DOM write is an assignment to `style.*`, `textContent`, `innerHTML`, `className`, `scrollTop`, `scrollLeft` or `value`, or a call to `setProperty`, `setAttribute` and friends, `classList.*`, `append`/`prepend`/`remove`/`replaceChildren`/`insertAdjacentHTML`, `scrollTo`/`scrollIntoView` or `animate`. The receiver has to reach the DOM from `this.$el`, `this.$refs.*`, `document`, `window` or a local initialised from one of those, which is what makes a rule with no type information accurate enough to turn on.
+
+Two mechanisms remove the false positives. The armed state clears at **any** nested function boundary, which is why a returned render function and a `$write()` callback are correct by construction. And a `this.<name>(…)` call is resolved **one** level, into that method, unless it carries `@read` or `@write` — so a helper which only mutates is caught, while `@write render()` is not.
+
+#### What counts as a component
+
+These rules have to recognise a v4 component with no type information and without leaving the file. A component always extends something — `Base`, a `with<Service>(…)` mixin, or a local abstract component — so a superclass is necessary, and nowhere near sufficient: `class Store extends Error` must not be told to call a `this.$read()` it does not have.
+
+So the test is a superclass **plus** a second signal in the same class body: a `@component({ … })` decorator, a `static config`, or use of the framework surface off `this` (`$el`, `$refs`, `$options`, `$emit`, `$read`, `$write`, `$services` and the rest). Lifecycle and service hook names are deliberately excluded from that surface — they are what `no-write-in-read-phase` keys on, so counting them would make the test circular.
+
+This keeps a subclass of a local abstract component, whose base is in another file, and it keeps `Base` itself out: `Base` declares `static config` and defines the whole surface, but it extends nothing. A component using none of the three signals anywhere in its body is missed, which is the right way to be wrong — a false negative rather than advice that does not apply.

@@ -1,4 +1,4 @@
-import { Base, defaultScheduler, type BaseConfig } from '../../src/index.js';
+import { Base, type BaseConfig } from '../../src/index.js';
 import { applyStyles, compile, type Keyframe, type KeyframeStyles } from './keyframes.js';
 import { clamp01, map } from '../../src/utils/maths.js';
 import type { ScrollInViewProps, ScrolledInViewRender } from './withScrolledInView.js';
@@ -76,12 +76,14 @@ export class AbstractScrollAnimation extends Base<AbstractScrollAnimationProps> 
 
   /**
    * Render outside a `scrolledInView()` pass. Measuring stays in `read` and
-   * writing in `write`, and neither is instance-owned: `$destroy()` cancels
-   * the instance's pending tasks straight after the cleanups, which would
-   * drop the boundary render this schedules.
+   * writing in `write`, and both are instance-owned in either caller:
+   * `$destroy()` cancels the pending tasks *before* it runs the cleanups and
+   * `destroyed()`, so the boundary render this schedules from teardown still
+   * runs, while the one it schedules from `mounted()` is cancelled if the
+   * component goes first.
    */
   renderNow(progress: number): void {
-    defaultScheduler.read(() => defaultScheduler.write(this.render(progress)));
+    this.$read(() => this.$write(this.render(progress)));
   }
 
   scrolledInView({ dampedProgressY }: ScrollInViewProps): ScrolledInViewRender {
