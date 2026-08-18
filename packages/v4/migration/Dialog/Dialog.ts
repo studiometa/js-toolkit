@@ -2,6 +2,7 @@ import { Base, withKey, type ChildrenCollection, type KeyProps } from '../../src
 import { Transition, type Transitionable } from '../Transition/Transition.js';
 import { ViewTransition } from '../Transition/ViewTransition.js';
 import { saveActiveElement, trapFocus, untrapFocus } from '../../src/utils/focus.js';
+import { lockScroll } from '../../src/utils/scroll-lock.js';
 
 export interface DialogProps {
   $el: HTMLDialogElement;
@@ -33,6 +34,17 @@ export class Dialog extends withKey(Base)<DialogProps> {
       scrollLock: { type: Boolean, default: true },
     },
   };
+
+  /**
+   * Releases this dialog's hold on the page scroll.
+   *
+   * A field rather than a style write, because the page scroll is shared: a
+   * dialog opened from inside a drawer must not put the scroll back when it
+   * closes while the drawer is still open. It is released on close and again
+   * on destroy — the release is idempotent, and a dialog destroyed while open
+   * used to leak its lock for the life of the page.
+   */
+  #releaseScroll: (() => void) | null = null;
 
   transitionChildren: ChildrenCollection<Transition> =
     this.$watchChildren<Transition>('Transition');
@@ -77,7 +89,7 @@ export class Dialog extends withKey(Base)<DialogProps> {
     }
 
     if (this.$options.scrollLock) {
-      document.documentElement.style.overflow = 'hidden';
+      this.#releaseScroll = lockScroll();
     }
 
     this.$emit('open');
@@ -98,9 +110,14 @@ export class Dialog extends withKey(Base)<DialogProps> {
       untrapFocus();
     }
 
-    if (this.$options.scrollLock) {
-      document.documentElement.style.overflow = '';
-    }
+    this.#releaseScroll?.();
+    this.#releaseScroll = null;
+  }
+
+  /** A dialog destroyed while open still owes the page its scroll. */
+  destroyed(): void {
+    this.#releaseScroll?.();
+    this.#releaseScroll = null;
   }
 
   toggle(): Promise<void> {

@@ -6,7 +6,7 @@ import { CarouselBtn } from './CarouselBtn.js';
 import { CarouselDrag } from './CarouselDrag.js';
 import { CarouselItem } from './CarouselItem.js';
 import { CarouselWrapper } from './CarouselWrapper.js';
-import { getClosestIndex, centeredScrollPosition } from './utils.js';
+import { getClosestIndex } from './utils.js';
 
 registerComponents(Carousel, CarouselBtn, CarouselDrag, CarouselItem, CarouselWrapper);
 
@@ -80,15 +80,14 @@ describe('getClosestIndex', () => {
   });
 });
 
-describe('centeredScrollPosition', () => {
-  it('centres the element in its scroller, clamped to the scroll range', async () => {
-    const { el, wrapper } = await render({ count: 3 });
-    const [first, second, third] = itemElements(el);
+describe('slide positions', () => {
+  it('centres each slide in its scroller, clamped to the scroll range', async () => {
+    const { el } = await render({ count: 3 });
+    const carousel = getInstance<Carousel>(el, 'Carousel');
 
-    // Each slide fills the scroller, so centring is the same as aligning.
-    expect(centeredScrollPosition(first, wrapper).left).toBe(0);
-    expect(centeredScrollPosition(second, wrapper).left).toBe(200);
-    expect(centeredScrollPosition(third, wrapper).left).toBe(400);
+    // Each slide fills the scroller, so centring is the same as aligning —
+    // and the arithmetic is core's now, through `scrollPosition({ align })`.
+    expect(carousel.positions.map((position) => position.left)).toEqual([0, 200, 400]);
   });
 });
 

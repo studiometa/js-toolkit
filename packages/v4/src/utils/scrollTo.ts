@@ -20,13 +20,34 @@ export const SCROLL_AXES = /* @__PURE__ */ Object.freeze({
 
 export type ScrollAxis = (typeof SCROLL_AXES)[keyof typeof SCROLL_AXES];
 
-export interface ScrollToOptions {
+/** Where an element comes to rest inside the scroller. */
+export const SCROLL_ALIGNMENTS = /* @__PURE__ */ Object.freeze({
+  start: 'start',
+  center: 'center',
+  end: 'end',
+} as const);
+
+export type ScrollAlign = (typeof SCROLL_ALIGNMENTS)[keyof typeof SCROLL_ALIGNMENTS];
+
+export interface ScrollPositionOptions {
   /** What scrolls. Defaults to the window. */
   rootElement?: Element | Window;
   /** Which axes a target that names none may move. Defaults to `'y'`. */
   axis?: ScrollAxis;
   /** Pixels to stop short of the target. Defaults to `0`. */
   offset?: number;
+  /**
+   * Where an **element** target comes to rest, per axis. Defaults to `'start'`.
+   *
+   * The names are physical, like `axis`: this is `x` and `y`, not the
+   * platform's `inline` and `block`, because nothing here maps a writing mode.
+   * A number or a position target names its own destination, so it has nothing
+   * to align.
+   */
+  align?: ScrollAlign | { x?: ScrollAlign; y?: ScrollAlign };
+}
+
+export interface ScrollToOptions extends ScrollPositionOptions {
   /** Defaults to `'smooth'`, or to `'instant'` when the reader asked for less motion. */
   behavior?: ScrollBehavior;
 }
@@ -56,6 +77,29 @@ function pixels(value: string): number {
   return Number.parseFloat(value) || 0;
 }
 
+/** What the scroller shows at once, scrollbars excluded on both axes. */
+function viewportOf(root: Element | Window): { width: number; height: number } {
+  return root instanceof Window
+    ? { width: root.innerWidth, height: root.innerHeight }
+    : { width: root.clientWidth, height: root.clientHeight };
+}
+
+/**
+ * How far past the start of the viewport the element rests.
+ *
+ * `start` is zero, which is why a caller that never asks for alignment pays
+ * nothing and reads the same numbers it always did.
+ */
+function alignmentShift(align: ScrollAlign | undefined, viewport: number, size: number): number {
+  if (align === SCROLL_ALIGNMENTS.center) {
+    return (viewport - size) / 2;
+  }
+  if (align === SCROLL_ALIGNMENTS.end) {
+    return viewport - size;
+  }
+  return 0;
+}
+
 /**
  * Where an element sits inside the root's scrolled content.
  *
@@ -66,11 +110,23 @@ function positionOfElement(
   element: Element,
   root: Element | Window,
   current: ScrollPosition,
+  align: ScrollPositionOptions['align'],
 ): ScrollPosition {
   const rect = element.getBoundingClientRect();
   const styles = getComputedStyle(element);
-  let left = rect.left + current.left - pixels(styles.scrollMarginLeft);
-  let top = rect.top + current.top - pixels(styles.scrollMarginTop);
+  const viewport = viewportOf(root);
+  const alignX = isString(align) ? align : align?.x;
+  const alignY = isString(align) ? align : align?.y;
+  let left =
+    rect.left +
+    current.left -
+    pixels(styles.scrollMarginLeft) -
+    alignmentShift(alignX, viewport.width, rect.width);
+  let top =
+    rect.top +
+    current.top -
+    pixels(styles.scrollMarginTop) -
+    alignmentShift(alignY, viewport.height, rect.height);
 
   if (!(root instanceof Window)) {
     // A viewport coordinate is not a content coordinate for a scrolling
@@ -90,6 +146,7 @@ function requestedPosition(
   root: Element | Window,
   current: ScrollPosition,
   axis: ScrollAxis,
+  align: ScrollPositionOptions['align'],
 ): Partial<ScrollPosition> | null {
   // A position object names its own axes, so `axis` has nothing left to pick.
   if (!isString(target) && !isNumber(target) && !(target instanceof Element)) {
@@ -105,7 +162,7 @@ function requestedPosition(
     if (!element) {
       return null;
     }
-    position = positionOfElement(element, root, current);
+    position = positionOfElement(element, root, current, align);
   }
 
   if (axis === SCROLL_AXES.x) {
@@ -115,6 +172,40 @@ function requestedPosition(
     return { top: position.top };
   }
   return position;
+}
+
+/**
+ * Where a scroll would land, without scrolling.
+ *
+ * The measurement half of {@link scrollTo}, split out because a caller often
+ * needs the number rather than the move: which slide is nearest, how far a
+ * control has to travel, whether the destination is where the scroller
+ * already stands. A target the document does not contain gives the current
+ * position back, so the answer is always a position.
+ *
+ * @example
+ * ```js
+ * const { left } = scrollPosition(slide, { rootElement: track, axis: 'x', align: 'center' });
+ * ```
+ */
+export function scrollPosition(
+  target: ScrollToTarget,
+  options: ScrollPositionOptions = {},
+): ScrollPosition {
+  const { rootElement = window, axis = SCROLL_AXES.y, offset = 0, align } = options;
+
+  const current = currentPositionOf(rootElement);
+  const requested = requestedPosition(target, rootElement, current, axis, align);
+
+  if (!requested) {
+    return current;
+  }
+
+  const max = maxPositionOf(rootElement);
+  return {
+    left: requested.left === undefined ? current.left : clamp(requested.left - offset, 0, max.left),
+    top: requested.top === undefined ? current.top : clamp(requested.top - offset, 0, max.top),
+  };
 }
 
 /**
@@ -129,23 +220,12 @@ function requestedPosition(
  * ```js
  * scrollTo('#section', { offset: 80 });
  * scrollTo({ left: 0 }, { rootElement: carousel });
+ * scrollTo(slide, { rootElement: track, axis: 'x', align: 'center' });
  * ```
  */
 export function scrollTo(target: ScrollToTarget, options: ScrollToOptions = {}): ScrollPosition {
-  const { rootElement = window, axis = SCROLL_AXES.y, offset = 0, behavior } = options;
-
-  const current = currentPositionOf(rootElement);
-  const requested = requestedPosition(target, rootElement, current, axis);
-
-  if (!requested) {
-    return current;
-  }
-
-  const max = maxPositionOf(rootElement);
-  const destination: ScrollPosition = {
-    left: requested.left === undefined ? current.left : clamp(requested.left - offset, 0, max.left),
-    top: requested.top === undefined ? current.top : clamp(requested.top - offset, 0, max.top),
-  };
+  const { rootElement = window, behavior } = options;
+  const destination = scrollPosition(target, options);
 
   rootElement.scrollTo({
     ...destination,

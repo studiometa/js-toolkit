@@ -72,13 +72,18 @@ export { memo, type Memo } from './memo.js';
 export { noop, noopValue } from './noop.js';
 export { random, randomInt, randomItem } from './random.js';
 export {
+  SCROLL_ALIGNMENTS,
   SCROLL_AXES,
+  scrollPosition,
   scrollTo,
+  type ScrollAlign,
   type ScrollAxis,
   type ScrollPosition,
+  type ScrollPositionOptions,
   type ScrollToOptions,
   type ScrollToTarget,
 } from './scrollTo.js';
+export { lockScroll } from './scroll-lock.js';
 export { selectorFor } from './selectors.js';
 export { smoothTo, type SmoothTo, type SmoothToOptions } from './smoothTo.js';
 export {
