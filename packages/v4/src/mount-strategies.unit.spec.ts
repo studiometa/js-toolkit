@@ -38,6 +38,7 @@ expectTypeOf<'in-view:200px 0px'>().toMatchTypeOf<MountStrategy>();
 expectTypeOf<'in-view:-10% 0px'>().toMatchTypeOf<MountStrategy>();
 expectTypeOf<'visible:'>().toMatchTypeOf<MountStrategy>();
 expectTypeOf<'interaction:page'>().toMatchTypeOf<MountStrategy>();
+expectTypeOf<'interaction:'>().toMatchTypeOf<MountStrategy>();
 expectTypeOf<'visible:200px'>().toMatchTypeOf<NonNullable<BaseConfig['mountStrategy']>>();
 expectTypeOf<'in-view:-10% 0px'>().toMatchTypeOf<
   NonNullable<ComponentManifestEntry['mountStrategy']>

@@ -14,6 +14,7 @@ export type MountStrategy =
   | `in-view:${string}`
   | 'idle'
   | 'interaction'
+  | 'interaction:'
   | 'interaction:page'
   | `media:${string}`;
 
