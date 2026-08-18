@@ -582,6 +582,13 @@ function readUnion(types: OptionTypes, raw: string | null, defaultValue: () => u
     return absentValue(defaultValue, types[0] === undefined ? undefined : emptyValue(types[0]));
   }
 
+  // A negation is not a value, so it is answered before the members are tried:
+  // `[String, Boolean]` would otherwise hand the sentinel to the string rule,
+  // which accepts any string, and the option would read as one.
+  if (raw === NEGATED_RAW) {
+    return false;
+  }
+
   for (const type of types) {
     const value = OPTION_TYPE_RULES.get(type)!(raw, () => undefined);
     if (isOptionValue(value, type)) {

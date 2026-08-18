@@ -77,7 +77,12 @@ class Banner extends Base<{ $options: { theme: string } }> {
 
 /** Two boolean options, one on by default and one off, plus a union. */
 class Flags extends Base<{
-  $options: { viewTransition: boolean; autostart: boolean; mode: boolean | string };
+  $options: {
+    viewTransition: boolean;
+    autostart: boolean;
+    mode: boolean | string;
+    label: string | boolean;
+  };
 }> {
   static config = {
     name: 'Flags',
@@ -85,6 +90,7 @@ class Flags extends Base<{
       viewTransition: { type: Boolean, default: true },
       autostart: Boolean,
       mode: [Boolean, String] as const,
+      label: [String, Boolean] as const,
     },
   };
 
@@ -507,6 +513,14 @@ describe('negated boolean options', () => {
     await settle();
 
     expect(getInstance<Flags>(root.firstElementChild, 'Flags').$options.mode).toBe(false);
+  });
+
+  it('turns one off whatever order the union declares its members in', async () => {
+    const root = render(`<p data-component="Flags" data-option-no-label></p>`);
+    await settle();
+
+    // `[String, Boolean]` would otherwise read the negation as a string.
+    expect(getInstance<Flags>(root.firstElementChild, 'Flags').$options.label).toBe(false);
   });
 
   it('cascades from a breakpoint like every other spelling', async () => {
