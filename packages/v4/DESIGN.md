@@ -42,6 +42,20 @@ Three notions stay separate:
 | **destroy**      | The reversible opposite of mount. | Unbinds the listeners of the cycle, runs the `mounted()` cleanups, cancels the scheduled tasks, calls `destroyed()`, announces the change. |
 | **terminate**    | The explicit and permanent end.   | Destroys first, then releases `$provide` and `$watchChildren`, calls `terminated()`, and removes the instance from the element.            |
 
+**`$terminate()` is the registry's word for a withdrawn declaration, not a component's word for "my work is done".** It runs when the element stops declaring the component — the token leaves `data-component`, or a responsive declaration stops matching — and it removes the instance from the element, which is what makes it permanent.
+
+So "do this once per element" is **instance state, not a lifecycle decision**. `$destroy()` leaves the instance on its element, so a plain field survives every move, re-insertion and `swap()` that preserves the element:
+
+```js
+mounted() {
+  if (this.hasLoaded) return;
+  …
+  this.hasLoaded = true;
+}
+```
+
+What a field does not survive is an element that is genuinely **replaced**, which is exactly when the work should run again. Terminating instead would detach the instance and throw that memory away with it, so the next mount pass would build a fresh instance which has never heard of the termination.
+
 A parent that destroys does not destroy its children.
 
 A move gives one removal record and one addition record. The instance is destroyed and then mounted again. The identity stays the same and the state of the cycle starts again. This is the behaviour of `disconnectedCallback` and `connectedCallback` for custom elements.
