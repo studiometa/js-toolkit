@@ -58,6 +58,111 @@ describe('service mixins', () => {
     instance.$terminate();
   });
 
+  it('subscribes for a component whose `mounted()` does not chain `super`', async () => {
+    class Unchained extends withRaf(Base) {
+      static config = { name: 'Unchained' };
+
+      ticks = 0;
+      mountedRan = false;
+
+      // No `super.mounted()`, which is how most components are written and
+      // what used to leave the mixin subscribed to nothing.
+      mounted(): void {
+        this.mountedRan = true;
+      }
+
+      ticked(): void {
+        this.ticks += 1;
+      }
+    }
+
+    const instance = new Unchained(render()).$mount();
+    await frames(3);
+
+    expect(instance.mountedRan).toBe(true);
+    expect(instance.ticks).toBeGreaterThan(0);
+
+    instance.$destroy();
+    const frozen = instance.ticks;
+    await frames(3);
+    expect(instance.ticks).toBe(frozen);
+
+    instance.$terminate();
+  });
+
+  it('starts the subscription once the whole `mounted()` has run', async () => {
+    const order: string[] = [];
+
+    class Ordered extends withRaf(Base) {
+      static config = { name: 'Ordered' };
+
+      mounted(): void {
+        order.push(`mounted:${this.$services.ticked.isActive}`);
+      }
+
+      ticked(): void {
+        if (order.at(-1) !== 'ticked') {
+          order.push('ticked');
+        }
+      }
+    }
+
+    const instance = new Ordered(render()).$mount();
+    await frames(2);
+
+    // The component is fully set up before its first delivery, which is what
+    // an `immediate` service would otherwise interrupt.
+    expect(order).toEqual(['mounted:false', 'ticked']);
+
+    instance.$terminate();
+  });
+
+  it('subscribes for a component whose `mounted()` threw, as its handlers stay bound', async () => {
+    const failures: string[] = [];
+    const onDiagnostic = (event: Event) => {
+      // Cancel the default sink: the failure is the point of the spec, and
+      // `reportError()` would surface it as an unhandled error in the run.
+      event.preventDefault();
+      failures.push((event as CustomEvent<{ code: string }>).detail.code);
+    };
+    document.addEventListener('js-toolkit:diagnostic', onDiagnostic);
+
+    class Broken extends withRaf(Base) {
+      static config = { name: 'Broken' };
+
+      ticks = 0;
+      clicks = 0;
+
+      mounted(): void {
+        throw new Error('half built');
+      }
+
+      onClick(): void {
+        this.clicks += 1;
+      }
+
+      ticked(): void {
+        this.ticks += 1;
+      }
+    }
+
+    const el = render();
+    const instance = new Broken(el).$mount();
+    await frames(3);
+    el.click();
+    document.removeEventListener('js-toolkit:diagnostic', onDiagnostic);
+
+    // `#guard()` reports the failure and the cycle continues: the component is
+    // mounted, its handlers are bound and its option effects are live, so the
+    // subscription belongs with them rather than being the one thing withheld.
+    expect(failures).toContain('component.lifecycle-failed');
+    expect(instance.$isMounted).toBe(true);
+    expect(instance.clicks).toBe(1);
+    expect(instance.ticks).toBeGreaterThan(0);
+
+    instance.$terminate();
+  });
+
   it('follows the registry: an element leaving the DOM leaves no subscription', async () => {
     registerComponent(Ticker);
     const el = render();

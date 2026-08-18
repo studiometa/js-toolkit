@@ -177,21 +177,25 @@ describe('LazyInclude', () => {
     expect(detail?.content).toBe('<p>remote</p>');
   });
 
-  it('terminates itself when `terminateOnLoad` is set', async () => {
+  it('records the load when `terminateOnLoad` is set, and stays mounted', async () => {
     const deferred = deferFetch();
     const root = await render(
       `<div data-component="LazyInclude" data-option-src="/lazy.html" data-option-terminate-on-load></div>`,
     );
     const instance = getInstance<LazyInclude>(root.firstElementChild as HTMLElement, 'LazyInclude');
-    expect(instance.$isTerminated).toBe(false);
+    expect(instance.hasLoaded).toBe(false);
 
     deferred.resolve('<p>remote</p>');
     await included();
 
-    expect(instance.$isTerminated).toBe(true);
+    // The component is not ended: it remembers, which is what the option
+    // means and what survives the move the next spec makes.
+    expect(instance.hasLoaded).toBe(true);
+    expect(instance.$isTerminated).toBe(false);
+    expect(instance.$isMounted).toBe(true);
   });
 
-  it('stays mounted without `terminateOnLoad`', async () => {
+  it('records nothing without `terminateOnLoad`', async () => {
     const deferred = deferFetch();
     const root = await render(
       `<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`,
@@ -201,6 +205,7 @@ describe('LazyInclude', () => {
     deferred.resolve('<p>remote</p>');
     await included();
 
+    expect(instance.hasLoaded).toBe(false);
     expect(instance.$isTerminated).toBe(false);
     expect(instance.$isMounted).toBe(true);
   });
@@ -261,12 +266,11 @@ describe('LazyInclude', () => {
   });
 
   /**
-   * Gap 35: `$terminate()` detaches the instance from its element, so the next
-   * mount pass builds a brand-new one and the option that means "load once"
-   * does not survive a move. v3 keeps the terminated instance and never runs
-   * again.
+   * Gap 35, closed by dropping `$terminate()` for a field. The instance stays
+   * on its element across a move, so "already loaded" survives with it — where
+   * termination detached the instance and lost the memory it was made of.
    */
-  it.fails('does not fetch again when `terminateOnLoad` ended the component (gap 35)', async () => {
+  it('does not fetch again once `terminateOnLoad` has been honoured', async () => {
     const client = stubFetch('<p>remote</p>');
     const root = await render(
       `<div data-component="LazyInclude" data-option-src="/lazy.html" data-option-terminate-on-load></div>`,

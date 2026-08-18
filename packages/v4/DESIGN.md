@@ -42,6 +42,20 @@ Three notions stay separate:
 | **destroy**      | The reversible opposite of mount. | Unbinds the listeners of the cycle, runs the `mounted()` cleanups, cancels the scheduled tasks, calls `destroyed()`, announces the change. |
 | **terminate**    | The explicit and permanent end.   | Destroys first, then releases `$provide` and `$watchChildren`, calls `terminated()`, and removes the instance from the element.            |
 
+**`$terminate()` is the registry's word for a withdrawn declaration, not a component's word for "my work is done".** It runs when the element stops declaring the component — the token leaves `data-component`, or a responsive declaration stops matching — and it removes the instance from the element, which is what makes it permanent.
+
+So "do this once per element" is **instance state, not a lifecycle decision**. `$destroy()` leaves the instance on its element, so a plain field survives every move, re-insertion and `swap()` that preserves the element:
+
+```js
+mounted() {
+  if (this.hasLoaded) return;
+  …
+  this.hasLoaded = true;
+}
+```
+
+What a field does not survive is an element that is genuinely **replaced**, which is exactly when the work should run again. Terminating instead would detach the instance and throw that memory away with it, so the next mount pass would build a fresh instance which has never heard of the termination.
+
 A parent that destroys does not destroy its children.
 
 A move gives one removal record and one addition record. The instance is destroyed and then mounted again. The identity stays the same and the state of the cycle starts again. This is the behaviour of `disconnectedCallback` and `connectedCallback` for custom elements.
@@ -680,7 +694,9 @@ A service is a shared source of props that components subscribe to: `ticked`, `s
 - **One instance per target and per service options**, keyed in a `WeakMap` by `perTarget()`. `useDrag()` keys its axis, inertia, damping and threshold. `useInView()` keys every `IntersectionObserverInit` field and gives object roots a stable weak identity. `useScrollProgress()` keys its resolved offset. Nothing groups observers across targets.
 - **The options are read by meaning, not by spelling.** `perTarget()` sorts object keys at every depth and drops the keys that hold `undefined`. Arrays keep their order. Only what the platform owns needs a `keyOf` of its own: `useInView()` gives its root a weak id, and `useMutation()` keeps `resolveInit()` for the DOM contract.
 - **The options of a mixin are not the options of the service.** `target`, `manual` and `immediate` describe the subscription. They are removed before `use()` is called and they are absent from its `Options` type, so `use: (target, options) => useDrag(target, options)` is correct.
-- **A mixin binds per mount cycle.** `withRaf`, `withScroll`, `withResize`, `withScrollProgress`, `withPointer`, `withDrag`, `withInView`, `withMutation` and `withKey` override `mounted()`, subscribe the `ticked`, `scrolled`, `resized`, `scrolledInView`, `moved`, `dragged`, `intersected`, `mutated` or `keyed` method of the component, and return the unsubscribe function as a cleanup. `Base` knows nothing about services. The mixin is the primitive, because it needs no build step; `@withScroll()` is the decorator sugar. `withInView` observes a component that is already mounted; it does not replace the `visible` or `in-view` mount strategy.
+- **A mixin binds per mount cycle.** `withRaf`, `withScroll`, `withResize`, `withScrollProgress`, `withPointer`, `withDrag`, `withInView`, `withMutation` and `withKey` override `$mount()` and `$destroy()`, subscribe the `ticked`, `scrolled`, `resized`, `scrolledInView`, `moved`, `dragged`, `intersected`, `mutated` or `keyed` method of the component, and return the unsubscribe function as a cleanup. `Base` knows nothing about services. The mixin is the primitive, because it needs no build step; `@withScroll()` is the decorator sugar. `withInView` observes a component that is already mounted; it does not replace the `visible` or `in-view` mount strategy.
+- **A mixin never occupies a lifecycle hook.** `mounted()`, `destroyed()` and `terminated()` belong to the component author, so nothing has to be chained: a class which mixes a service in and writes its own `mounted()` without `super.mounted()` still subscribes. The framework's own `$mount()`/`$destroy()` pair carries the subscription instead, which is where `$terminate()` already lived. The subscription therefore starts once the whole of `mounted()` has run — including an `immediate` first delivery, which reaches a component that is fully set up — and is released before `destroyed()`, exactly where the mount cleanup used to release it.
+- **A mixin written outside core still chains.** The rule is about what the mixin overrides, not about who wrote it: a userland mixin which puts its work in `mounted()` needs its subclasses to call `super.mounted()`, and the way not to need that is to override `$mount()`.
 - **One method name per mixin, and it is the name of the service.** There is no `hook` option. Any other target is an explicit subscription in `mounted()`:
 
   ```js

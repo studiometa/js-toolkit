@@ -40,8 +40,24 @@ export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyInclu
   /** The content injection in flight, so `always` can wait for it. */
   injection: Promise<void> = Promise.resolve();
 
-  /** Load the lazy content on mount. */
+  /**
+   * Whether `terminateOnLoad` has already been honoured.
+   *
+   * "Do this once per element" is instance state, not a lifecycle decision:
+   * `$destroy()` leaves the instance on its element, so this field survives
+   * every move, re-insertion and `swap()` which preserves the element — and
+   * an element that is genuinely replaced gets a new instance, which is
+   * exactly when the content should be fetched again. `$terminate()` would
+   * have detached the instance and thrown this memory away with it.
+   */
+  hasLoaded = false;
+
+  /** Load the lazy content on mount, once per element when asked. */
   mounted(): void {
+    if (this.hasLoaded) {
+      return;
+    }
+
     if (!this.$options.src) {
       warn('The `src` option is missing. Define it with the `data-option-src` attribute');
       return;
@@ -96,11 +112,9 @@ export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyInclu
     }
   }
 
-  /** Stop the component for good once the request has settled. */
+  /** Remember that the work is done, so a later mount does not repeat it. */
   @on('always')
-  terminateWhenAsked(): void {
-    if (this.$options.terminateOnLoad) {
-      this.$terminate();
-    }
+  rememberLoad(): void {
+    this.hasLoaded = this.$options.terminateOnLoad;
   }
 }
