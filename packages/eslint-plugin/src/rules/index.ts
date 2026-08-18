@@ -31,3 +31,4 @@ export { requireDestroyedCleanup } from './require-destroyed-cleanup.ts';
 export { noWriteInReadPhase } from './no-write-in-read-phase.ts';
 export { noOptionsAssignment } from './no-options-assignment.ts';
 export { preferInstanceScheduler } from './prefer-instance-scheduler.ts';
+export { optionDefaultFactory } from './option-default-factory.ts';
