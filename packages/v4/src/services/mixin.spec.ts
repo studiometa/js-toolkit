@@ -120,6 +120,9 @@ describe('service mixins', () => {
   it('subscribes for a component whose `mounted()` threw, as its handlers stay bound', async () => {
     const failures: string[] = [];
     const onDiagnostic = (event: Event) => {
+      // Cancel the default sink: the failure is the point of the spec, and
+      // `reportError()` would surface it as an unhandled error in the run.
+      event.preventDefault();
       failures.push((event as CustomEvent<{ code: string }>).detail.code);
     };
     document.addEventListener('js-toolkit:diagnostic', onDiagnostic);
