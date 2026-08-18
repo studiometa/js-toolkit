@@ -121,6 +121,8 @@ Extend a class that you cannot edit in expression position: `registerComponent(c
 
 Every instance has a readonly `$id` with the form `<ComponentName>-<sequence>`. The name comes from the resolved config. The sequence increases once for each constructed instance. The id exists before the field initializers of derived classes run, and it does not change through destroy and mount cycles. Core never copies it to a DOM `id`.
 
+**`$el`, `$id`, `$options` and `$refs` are fixed properties of the instance**, not fields it happens to hold. They are defined non-writable in the constructor, so an assignment throws in a module rather than replacing what every other part of the framework reads: the element the instance is bound to, the id derived from its name, and the two live views over its markup. `readonly` states it for a reader with a build step; the property descriptor states it for everyone else. They stay enumerable, so an instance still reads as one.
+
 `Base` takes an optional props type. It types `$refs` and `$options`, and it checks the event names and payloads of `$emit()`. `$emits` maps each name to the payload object, or to `void` for an event with no payload.
 
 ```ts

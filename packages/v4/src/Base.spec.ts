@@ -128,6 +128,46 @@ describe('$emit and delegation', () => {
   });
 });
 
+describe('the fixed instance properties', () => {
+  it('refuses a write to any of the four', () => {
+    class Fixed extends Base<{ $refs: { title: HTMLElement } }> {
+      static config = { name: 'Fixed', refs: ['title'] };
+    }
+
+    const el = document.createElement('div');
+    const instance = new Fixed(el);
+    const before = {
+      $el: instance.$el,
+      $id: instance.$id,
+      $options: instance.$options,
+      $refs: instance.$refs,
+    };
+
+    // The element it is bound to, the id derived from its name and the two
+    // views over its markup are what every other part of the framework reads.
+    for (const property of ['$el', '$id', '$options', '$refs'] as const) {
+      expect(() => {
+        (instance as unknown as Record<string, unknown>)[property] = {};
+      }).toThrow(TypeError);
+    }
+
+    expect(instance.$el).toBe(before.$el);
+    expect(instance.$id).toBe(before.$id);
+    expect(instance.$options).toBe(before.$options);
+    expect(instance.$refs).toBe(before.$refs);
+  });
+
+  it('keeps them enumerable, so an instance still reads as one', () => {
+    class Plain extends Base {
+      static config = { name: 'Plain' };
+    }
+
+    const keys = Object.keys(new Plain(document.createElement('div')));
+
+    expect(keys).toEqual(expect.arrayContaining(['$el', '$id', '$options', '$refs']));
+  });
+});
+
 describe('$options', () => {
   it('reads typed values from data-option attributes', async () => {
     class Optioned extends Base {
@@ -158,6 +198,21 @@ describe('$options', () => {
 
     el.setAttribute('data-option-count', '9');
     expect(instance.$options.count).toBe(9);
+  });
+
+  it('refuses a write to the view itself, not only to an option', () => {
+    class Panel extends Base<{ $options: { open: boolean } }> {
+      static config = { name: 'Panel', options: { open: Boolean } };
+    }
+
+    const instance = new Panel(document.createElement('div'));
+    const view = instance.$options;
+
+    expect(() => {
+      // @ts-expect-error the view is the instance's, and it is fixed
+      instance.$options = { open: true };
+    }).toThrow(TypeError);
+    expect(instance.$options).toBe(view);
   });
 
   it('refuses a write, and the attribute is what changes the value', () => {

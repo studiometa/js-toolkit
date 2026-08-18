@@ -729,6 +729,24 @@ export const resolveConfig = /* @__PURE__ */ memo((ctor: BaseConstructor): BaseC
   return config;
 });
 
+/**
+ * Define one of the four fixed instance properties.
+ *
+ * `readonly` is a compile-time promise and these four are the instance's
+ * identity — the element it is bound to, the id derived from its name, and the
+ * two views over its markup. A non-writable property makes the promise the
+ * runtime's too: an assignment throws in a module rather than replacing what
+ * every other part of the framework reads. The fields are `declare`d, so the
+ * class emits no initializer to overwrite what this defines.
+ */
+function defineFixed<T extends Base, K extends '$el' | '$id' | '$options' | '$refs'>(
+  instance: T,
+  property: K,
+  value: T[K],
+): void {
+  Object.defineProperty(instance, property, { value, enumerable: true });
+}
+
 /** Reserved handler prefixes for global targets. They take precedence over child and ref names. */
 const GLOBAL_PREFIXES = ['Window', 'Document'] as const;
 
@@ -885,16 +903,16 @@ export class Base<T extends BaseProps = BaseProps> {
    * stays unchanged across destroy and remount cycles, so a component can use
    * it for persistent ARIA relationships without changing the DOM id itself.
    */
-  readonly $id: string;
+  declare readonly $id: string;
 
-  $el: El<T>;
+  declare readonly $el: El<T>;
 
   /**
    * Live view over the component's `data-ref` elements: every access
    * re-reads the DOM, so replaced markup is picked up with nothing to
    * refresh.
    */
-  $refs: Refs<T> = {};
+  declare readonly $refs: Refs<T>;
 
   /**
    * Read-only view over the component's `data-option-*` attributes: an option
@@ -909,11 +927,9 @@ export class Base<T extends BaseProps = BaseProps> {
    * seeded from the option. One which means the DOM to change writes the
    * attribute, which is the same statement the markup makes.
    *
-   * It has no initializer, unlike `$refs`: a mapped type over a props
-   * parameter accepts no structural value, so the constructor is the one
-   * place the view is set.
+   * The constructor is the one place it is set.
    */
-  $options: Readonly<Options<T>>;
+  declare readonly $options: Readonly<Options<T>>;
 
   #isMounted = false;
 
@@ -960,9 +976,11 @@ export class Base<T extends BaseProps = BaseProps> {
 
   constructor(el: HTMLElement) {
     const { name } = this.$config;
-    this.$id = `${name}-${componentId}`;
     componentId += 1;
-    this.$el = el;
+    // `$el` has to be readable before the views are built: `buildOptions()`
+    // and `buildRefs()` both read it off the instance.
+    defineFixed(this, '$el', el);
+    defineFixed(this, '$id', `${name}-${componentId - 1}`);
     el[INSTANCES] ??= new Map();
     el[INSTANCES].set(name, this);
     // Both views resolve on access, so they are built once and stay correct
@@ -971,9 +989,9 @@ export class Base<T extends BaseProps = BaseProps> {
     // The view is a bag of getters, which no structural type describes once
     // `Readonly<>` is mapped over a props parameter — core builds it, and the
     // readonly says what every consumer may do with it.
-    this.$options = built.options as Readonly<Options<T>>;
+    defineFixed(this, '$options', built.options as Readonly<Options<T>>);
     this.#optionReaders = built.readers;
-    this.$refs = buildRefs(this);
+    defineFixed(this, '$refs', buildRefs(this));
   }
 
   /**
