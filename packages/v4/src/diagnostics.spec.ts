@@ -49,6 +49,7 @@ describe('diagnostics', () => {
         deserializeFailed: 'storage.deserialize-failed',
         serializeFailed: 'storage.serialize-failed',
       },
+      swap: { selfIgnored: 'swap.self-ignored' },
     });
     expect(Object.isFrozen(DIAGNOSTICS)).toBe(true);
     for (const group of Object.values(DIAGNOSTICS)) {
@@ -84,6 +85,7 @@ describe('diagnostics', () => {
       | 'storage.access-failed'
       | 'storage.deserialize-failed'
       | 'storage.serialize-failed'
+      | 'swap.self-ignored'
     >();
   });
 

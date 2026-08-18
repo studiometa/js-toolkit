@@ -1,8 +1,8 @@
 # Migrating @studiometa/ui to v4 — a feasibility test
 
-Date: 2026-08-11, extended 2026-08-13 with the three remaining `Slider` controls, with the `Data*` family, with `Action`, and with `InView` + `Track`. Against `@studiometa/ui` 1.10.0 and the v4 prototype in `packages/v4/src`.
+Date: 2026-08-11, extended 2026-08-13 with the three remaining `Slider` controls, with the `Data*` family, with `Action`, and with `InView` + `Track`, and extended 2026-08-17 with `Fetch`, `LazyInclude`, `Prefetch`, `Cursor`, `Draggable` and `Carousel`. Against `@studiometa/ui` 1.10.0 and the v4 prototype in `packages/v4/src`.
 
-Eight component families were ported onto v4 to find out what a real migration costs. They were picked because each leans on a part of v3 that v4 changed: the `$children` coordinator pattern, service hooks, `config.emits`, mount decorators, the per-instance store handshake — for `Data*`, the group registry and the only signal library in ui — for `Action`, the global instance registry and runtime-configured event bindings — and, for `InView` and `Track`, the two intersection decorators and the service layer under real load. Everything here runs; `migration/**/*.spec.ts` adds 216 tests to the real-browser suite (Vitest browser mode, Chromium), 552 across 44 files in total, **all green apart from two `it.fails()`** that name open gaps 23 and 24. Two earlier families left a spec red on purpose while the gap it named was open — `Data*`'s reentrant signal delivery and `Action`'s in-place attribute rewrite. Core closed both, and both specs now pass unchanged in substance.
+Fifteen component families were ported onto v4 to find out what a real migration costs. They were picked because each leans on a part of v3 that v4 changed: the `$children` coordinator pattern, service hooks, `config.emits`, mount decorators, the per-instance store handshake — for `Data*`, the group registry and the only signal library in ui — for `Action`, the global instance registry and runtime-configured event bindings — for `InView` and `Track`, the two intersection decorators and the service layer under real load — for `Fetch` and `LazyInclude`, the negotiated DOM-update protocol and the three core helpers that now cover parts of it — for `Cursor` and `Draggable`, the suspendable service subscription that gap 1 was about — and, for `Carousel`, the largest coordinator in ui and the last of v3's constructor-wrapping decorators. Everything here runs; `migration/**/*.spec.ts` adds 377 tests to the real-browser suite (Vitest browser mode, Chromium), 1326 across 89 files in total, **all green apart from one `it.fails()`** that names open gap 35. Three earlier families left a spec red on purpose while the gap it named was open — `Data*`'s reentrant signal delivery, `Action`'s in-place attribute rewrite, and `InView`'s inherited mount strategy. Core closed all three, and every one of those specs now passes unchanged in substance.
 
 ## What was ported
 
@@ -16,6 +16,15 @@ Eight component families were ported onto v4 to find out what a real migration c
 | `Action`          | `Action`, `ActionEvent`, `Target`                                                                | full                           | —                                                                   |
 | `InView`          | `InView`, `InViewOnce`                                                                           | full                           | —                                                                   |
 | `Track`           | `AbstractTrack`, `Track`, `TrackShopify`, `TrackContext`, `TrackEvent`                           | full                           | —                                                                   |
+| `ClickOutside`    | `ClickOutside`                                                                                   | full                           | —                                                                   |
+| `Fetch`           | `Fetch`, `FetchShopifySection`, `utils`                                                          | full                           | `FetchShopifyPartial` (§9d), and `Frame` — see below                |
+| `LazyInclude`     | `LazyInclude`                                                                                    | full                           | —                                                                   |
+| `Prefetch`        | `AbstractPrefetch`, `PrefetchWhenVisible`, `PrefetchOnInteraction`                               | full                           | —                                                                   |
+| `Cursor`          | `Cursor`                                                                                         | full                           | —                                                                   |
+| `Draggable`       | `Draggable`                                                                                      | full                           | —                                                                   |
+| `Carousel`        | all seven classes, `utils`, plus the `Indexable`/`withIndex` base it extends                     | full                           | —                                                                   |
+
+**`Frame` is deliberately absent and will not be ported.** It is not a gap and not a deferral: the product decision is that `Frame` does not exist in ui 2.0, because `Fetch` does the same job and is easier to use. Nothing in this report should be read as measuring it.
 
 Utilities copied for the port, minimum viable only. They were written into a shared `migration/utils/`; what survives now lives beside the single family that calls it, and the directory is gone: `math.ts` (`clamp`, `clamp01`, `map`, `lerp`, `damp` — since promoted into `src/utils/maths.ts`), `easings.ts` (`cubicBezier`, replacing the `@motionone/easing` dependency — the named curves are in `src/utils/easings.ts` now, the bezier is `ScrollAnimation/bezier.ts`), `keyframes.ts` (the interpolator carved out of `animate` — now `ScrollAnimation/keyframes.ts`), `transition.ts` (the `transition()` primitive plus the enter/leave pair two components share — since promoted into `src/utils/transition.ts`), `focus.ts` (`trapFocus`/`untrapFocus`/`saveActiveElement` — since promoted into `src/utils/focus.ts`), `uid.ts` (a `$id` replacement — deleted once `Base` shipped `$id`), `throttle.ts` (v3's, verbatim — since ported as `src/utils/timing.ts` and deleted here), `deepmerge.ts` (the one merge shape ui's `deepmerge` dependency is used for — since promoted into `src/utils/deepmerge.ts`), and `inView.ts` — **`useInView(el, init)`, the intersection service core did not have**, written on `createService()` because writing it is the measurement (§8b), and deleted once core shipped `src/services/in-view.ts`.
 
@@ -494,6 +503,278 @@ The honest reading is the one §5e reached for `Data*` from the other direction:
 
 **Verdict for this family: feasible, mechanical, and the one family that costs more than it saves** — because what it costs is two things v4 has not written yet, one of which (`useInView`) is 59 lines and belongs in core.
 
+## 9. Fetch — the negotiated DOM update, measured against the three helpers core ships for it
+
+Ported 2026-08-17. `Fetch`, `FetchShopifySection` and the script-adoption `utils`. This family was picked for one question: v4 ships `domUpdate()`, `viewTransition()` and `swap()`, all three carved out of what ui does here, so how much of a real consumer do they actually cover? The answer is two of three cleanly, one not at all, and the one that misses is instructive.
+
+### 9a. What core absorbed outright
+
+| v3                                                                            | v4                                                                    |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `utils/dom-update.ts` — `emitDomUpdate()` + `runWrapped()`, 51 lines          | `domUpdate(target, mutate, detail)`, imported                         |
+| `ViewTransition/scheduler.ts` — a batching scheduler, 56 lines                | `viewTransition(update)`, imported                                    |
+| the `$emit` override rebuilding every event as a bubbling `CustomEvent`       | deleted; `$emit()` bubbles                                            |
+| `config.emits: [...Object.values(FETCH_EVENTS), 'dom-update']`                | `$emits` in the props type, one payload shape per event               |
+| `onWindowPopstate()` through v3's `EventsManager`                             | `onWindowPopstate()` through `#bindHandlers()` — **gap 15, consumed** |
+| `FETCH_MODES` (`replace`/`prepend`/`append`/`morph`)                          | `SWAP_MODES`, the same four names, imported                           |
+| `historyPush` from `@studiometa/js-toolkit/utils`                             | `historyPush` from `src/utils/history.ts`                             |
+| `domScheduler.write(...)` for the document title                              | `this.$write(...)` — the instance's lane, cancelled on destroy        |
+| `declare ['constructor']: FetchConstructor` + `this.constructor.FETCH_EVENTS` | module constants; the type and the workaround both disappear          |
+
+The `$emit` override deserves its own line, because v3 carries a comment explaining that the `dom-update` protocol event has to be dispatched **directly on the element** rather than through `$emit`, precisely to route around that override. Both the override and the reason for it are gone in one edit.
+
+### 9b. The view transition becomes a claim, not an `else` branch
+
+v3 decides between three paths with an `if`/`else` chain: a registered runner, else the view transition, else a direct write. That shape needs to know whether anyone claimed the update, and **`domUpdate()` does not report it** — it returns `Promise<void>` and applies the change itself when unclaimed.
+
+The port does not ask. It registers its own view transition as a `wrap()` claim on the element the event starts from, for the duration of the update:
+
+```ts
+const releaseDefault = hasViewTransition
+  ? this.$on(EVENTS.dom.update, (event) => {
+      (event as CustomEvent<DomUpdateDetail>).detail.wrap((apply) => viewTransition(apply));
+    })
+  : null;
+```
+
+`wrap()` keeps the **last** registration and the event bubbles, so any listener above the component overrides the default without the component consulting it. The component's own behaviour stops being a special case and becomes one more participant in the protocol it publishes. Six specs cover it, including the two ways an ancestor can take over (a function and a duck-typed transitioner) and the case where the runner settles without applying.
+
+One honest edge: a listener on the **same element**, registered before the component mounted, is overridden by the default rather than overriding it — v3 lets any runner win. Every documented case is an ancestor listener, so this is a note rather than a defect, and there is no ask attached to it. _Recommendation:_ leave `domUpdate()` alone. The shape it forced is better than the one it would have enabled.
+
+### 9c. `swap()` did not fit, the axis was named, and core grew it
+
+`SWAP_MODES` are `Fetch`'s modes exactly, and `swap()` even adopts newly inserted scripts the way ui's `utils.ts` does. It was still unusable here, for one reason: **`swap()` changed a target's children and never the target itself.** `replace` was `replaceChildren()`, `morph` passed `childrenOnly: true`. `Fetch` matches an element of the response against one on the page **by id** and replaces that element, attributes included — an id-matched Shopify section keeps its old classes otherwise. So the port first kept its own `updateDOM()` and copied v3's 26-line script helper, which core owned but kept module-private inside `swap()`. That was gap 36.
+
+Read next to §10: the same helper covers `LazyInclude` completely. **The axis is whether the element itself is replaced**, and it is the only axis — which is what made it cheap to close.
+
+**Closed, as the axis rather than as a fifth mode.** `swap(target, content, { mode, self })`: `mode` stays _how_ the content is applied, `self` says _what_ is replaced. The four-branch switch is now one `swap()` call — the additive modes are `swap()`'s default and the other two pass `self` — the copied helper is deleted, and all 60 specs pass unchanged, including the two that pin the id-matched replacement keeping the response's attributes. Every swap starts before any is awaited, so the update stays one synchronous DOM pass and the settling of all of them is awaited once.
+
+### 9d. `FetchShopifySection` is ported, `FetchShopifyPartial` is not
+
+The section subclass earns its place the way `TrackShopify` did: it exercises subclass config merging, a generic props parameter, and four `super` overrides (`url`, `fetch`, `parseResponse`, `update`). It now declares only `name` and its own `sections` option — no `...Fetch.config` spread — because configs merge along the prototype chain (#627), and a spec asserts that its `selector` option and `headers[]` ref arrive inherited.
+
+`FetchShopifyPartial` is skipped, and the reason is that it measures nothing v4-shaped. It re-implements the whole `fetch()` lifecycle around a dynamic `import('@shopify/partial-rendering')` — a preview package that is not installed, behind a static override seam that exists so tests can inject a fake. Every core-relevant thing in it (the subclass seam, the generic props, the `super` chain) is already covered by the section subclass, and what remains is Shopify's API surface rather than v4's.
+
+### 9e-bis. Two v3 shapes the port keeps, and a third it had to repair
+
+Kept, because the exercise measures v4 rather than improves ui, and both are ui's calls to make in 2.0:
+
+- **`self` in a `response` expression is the global, not the component.** `parseResponse()` compiles `new Function('response', 'url', 'requestInit', 'self', …)` and calls it with `self` — which inside a function body already resolves to `window`, so the binding buys nothing. v3 does exactly the same (`Fetch.ts:370`), and its own doc says the instance arrives "via `this`", so `self` reads like a parameter named for the component and handed the global instead. Ported verbatim; **ui 2.0 should decide** whether `self` becomes the instance.
+- **`fetch()` does not await `update()`.** v3 calls it and moves on (`Fetch.ts:337`), so an awaited `fetch()` resolves before the DOM has changed and a failure inside the update never reaches `fetch-error`. The port keeps the shape, with an explicit `void` where v3 leaves a floating promise. It matters more in v4 than in v3 — `update()` now awaits DOM settlement through `swap()` — which is the argument for changing it, in ui, deliberately.
+
+Repaired, because the port introduced it: **`LazyInclude` announced `always` before its own listener had finished.** v3's content handler assigns `innerHTML` and is done inside the dispatch, so the `.finally()` that emits `always` runs after the content is in. The port's handler awaits `swap()`, and `$emit()` returns before an async listener settles, so `always` — and the `terminateOnLoad` that listens for it — arrived on an empty element. The component now keeps the injection promise and awaits it before announcing, because an event cannot carry one: a listener's return value goes nowhere, which is the general shape of the thing and worth remembering for any handler that does real work.
+
+### 9e. What v4 changed for the better, for free
+
+`AFTER_UPDATE` is unchanged in shape but the content behind it is not: components arriving in the fetched HTML mount through the registry's observer with no `$update()` anywhere, which is one spec. And `data-option-response` still compiles through `new Function`, unchanged — the CSP boundary `Data/expression.ts` documents applies here too and the port does not relitigate it.
+
+### 9f. Size
+
+Code lines, comments and blanks excluded; barrel files excluded on both sides.
+
+|                       |      v3 |      v4 |    delta |
+| --------------------- | ------: | ------: | -------: |
+| `Fetch`               |     310 |     319 |     +3 % |
+| `FetchShopifySection` |      63 |      52 |    −17 % |
+| `utils` (scripts)     |      24 |       0 |   −100 % |
+| **total**             | **397** | **371** | **−7 %** |
+
+The `utils` row went to zero when core grew `swap({ self })` (gap 36) and the port took its own `updateDOM()` back: the four-branch switch is one call and the copied script helper is deleted. Before that it was `397 → 410` (+3 %), which is the number to compare against the other flat families.
+
+What is left is familiar from `Action` and `Track`: what grows is declaration (`FetchEmits` is twelve lines where `config.emits` was one) and what shrinks is wiring. The number this table cannot show is the **107 lines of v3 infrastructure this family stops carrying** — `utils/dom-update.ts` (51) and `ViewTransition/scheduler.ts` (56) — both already credited to the `Data*` and `Transition` rows, so counting them again here would double-count v3.
+
+**Specs:** 60 in one file, all green, adapted from ui's 1387-line jsdom suite. **Ported adapted:** the getters, every trigger, the fetch lifecycle, the four update modes, the script handling, the history behaviour and the whole `dom-update` negotiation, rewritten from hand-constructed instances to registered components in real DOM. **Deliberately not ported:** ui's `startViewTransition` mock assertions where they asserted the mock rather than the outcome. **Added, because they are what v4 changes:** `onWindowPopstate` released with the mount cycle, events bubbling with no override, a component mounting inside the fetched content, the default claim released after the update, and the `replace`/`morph` element-identity pair of §9c.
+
+## 10. LazyInclude — the family `swap()` was written for
+
+Ported 2026-08-17. One class, and the shortest section in this report for the good half.
+
+| Change                                                           | Forced by                                                                                   |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `this.$el.innerHTML = content` → `await swap(this.$el, content)` | not forced — the children change and the element does not, which is `swap()`'s exact shape. |
+| `config.emits: ['content','error','always']` → `$emits`          | runtime `emits` removed.                                                                    |
+| `onContent({ args: [content] })` → `event.detail.content`        | `$emit(name, payload)` carries one payload object (gap 19, closed).                         |
+| `this.$warn(...)` → a local `warn()`                             | gap 10.                                                                                     |
+| `$refs.loading`/`$refs.error` accessed unguarded → optional      | not forced — v3 throws on an element that declares neither ref.                             |
+
+**Two things arrive with `swap()` that v3 does not have.** A `<script>` in the included fragment runs, because `swap()` adopts newly inserted scripts; and `always` fires after the injected components have mounted, because `swap()` awaits `whenDOMSettled()`. Both are spec'd. In v3 an included fragment carrying a script is silently inert.
+
+**And the cost is the per-mount-cycle rule, arriving as a behaviour change rather than as a stale memo.** `mounted()` is where the request lives, and a v4 move is a destroy plus a mount, so moving a `LazyInclude` re-fetches. v3 mounts once per instance and does not. The option ui ships for exactly this — `terminateOnLoad` — does not save it either: `$terminate()` detaches the instance from its element, so the next mount pass builds a fresh one that has never heard of the termination. **That is gap 35, and its spec is the one `it.fails()` in the tree.**
+
+**Size:** 56 → 64 code lines (+14 %), all of it the `$emits` map and the ref guards.
+
+**Specs:** 13, twelve green and one `it.fails()`. Written rather than ported — ui has no `LazyInclude` suite.
+
+## 11. Prefetch — three classes, and core already had all of it
+
+Ported 2026-08-17. `AbstractPrefetch`, `PrefetchWhenVisible`, and `PrefetchWhenOver` under its v4 name, `PrefetchOnInteraction`.
+
+| v3                                                                | v4                                                                  |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------- |
+| build a `<link rel="prefetch">`, append it, listen for `load`     | `loadLink(url.href, { rel: 'prefetch' })`                           |
+| `static prefetchedUrls: Set<string>` — a page-wide dedup registry | `loadLink()`'s own key, which is the resolved URL **and** the `rel` |
+| `withMountWhenInView(AbstractPrefetch)`                           | `mountStrategy: 'visible'`                                          |
+| `onMouseenter()` on an already-mounted instance                   | `mountStrategy: 'interaction'`                                      |
+| `...AbstractPrefetch.config` spread in both subclasses            | deleted; configs merge along the prototype chain (#627)             |
+| `config.emits: ['prefetched']`                                    | `$emits` in the props type                                          |
+
+**Both variants are a mount strategy, and that is the finding.** The family exists to answer one question — _when_ is a link worth hinting — and its two answers are now two strings: `visible` for the viewport and `interaction` for a pointer, a touch or the keyboard. Each subclass is a `@component()` and a `mounted()` that calls `prefetch()`; nothing else distinguishes them. v3 needed a constructor-wrapping decorator for one and an event handler for the other, so the two variants were built out of two different mechanisms for what is the same decision.
+
+**And `interaction` is wider than the handler it replaces, not narrower.** Core mounts on `pointerenter`, `pointerdown` or `focusin`, whichever comes first. v3's `mouseenter` fires for none of a touch, and none of a keyboard: the two inputs ui cannot prefetch for today are exactly the ones the strategy adds. A spec drives both. The component also stops existing before the intent arrives, which is the `InView` win (§7) reaching a second family.
+
+**`visible` rather than `in-view`, and the reason generalises.** v3 uses the reversible decorator and relies on its dedup set to make the repeated mounts harmless. The intent is one-shot; v4 ships the one-shot strategy. This is the third component in the exercise — after `InViewOnce` and now `CarouselDrag`'s media query — where a v3 decorator **plus a guard against its own repetition** collapses into a strategy string.
+
+**Two v3 defects fall out of the port, both spec'd.** `prefetch()` reads `url.href` before asking whether the URL exists, so an `<a>` with no `href` throws; the guard order is reversed here. And the dedup set returns early **before** anything is emitted, so the second component pointing at an already-hinted URL is silently never told it was prefetched — core's split is the right one, since sharing the link is not a reason to swallow the second component's announcement.
+
+**One thing core does better than the ask.** `loadLink()` checks `relList.supports(rel)` and resolves immediately for a `rel` the browser ignores. Safari ignores `prefetch` entirely, so v3's `prefetched` event never fires there at all; the port's does.
+
+**Size:** 87 → 77 code lines (−11 %), and two numbers inside it are the interesting ones: `prefetch()` goes from 17 lines to 8 with the static registry gone, and `PrefetchOnInteraction` is now four code lines against v3's twelve.
+
+**Specs:** 20, all green, adapted from ui's three files. The adaptation is load-bearing: ui asserts against a mocked observer and a mocked link, and the port drives a real `IntersectionObserver` and a real `<link>` the test server really answers — which is how the `loadLink()` failure path (it removes the element again) got discovered.
+
+## 12. Cursor — the component gap 1 was written about
+
+Ported 2026-08-17. One class, and it is the cleanest consumption of `toggle()` in the exercise.
+
+v3's `Cursor` **mentions no service anywhere**. Writing `moved()` and `ticked()` is enough for its `$services` to bind the pointer and the frame loop, and `$services.enable('ticked')`/`disable('ticked')` starts and stops the second one from inside the first. v4 asks for both by name and hands back a `Toggle`:
+
+```ts
+export class Cursor extends withPointer(Base) { … }
+```
+
+**The frame half is `smoothTo()` now, not a mixin.** The port first wrote `withRaf(withPointer(Base), { manual: true })` with a hand-written `ticked()` that damped three values, rendered, and stopped the loop once all three had arrived. That is exactly what the helper does, so on review the component took it back (gap 42): three named channels on one subscription, `scale` carrying its own factor **and** its own direction rule through the `damping` hook, one `subscribe()` that renders, and `jump()` for the reset a remount needs. The `withRaf` mixin, the `ticked()` hook and the six position fields are gone; the class went 108 → 98 code lines, and back to 100 when `render()` took the write phase (gap 43) and the specs read the same properties through `motion()` and `motion.raw()`.
+
+| Change                                                                | Forced by                                                                                                                                                                                       |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| implicit service binding → `withPointer` + `withRaf`                  | v4 has no hook-presence binding. One line, and the subscriptions are now legible.                                                                                                               |
+| `$services.enable`/`disable('ticked')` → `smoothTo()` owning the loop | **gap 1, consumed by the family it was found in.** `toggle()` answered it and `smoothTo()` now hides it: the loop starts when a target moves and releases itself when the last channel arrives. |
+| `damp(target, current, factor)` → a `damping` hook read per frame     | v4's damping is per elapsed millisecond, and the three factors are live options, one of them chosen by the direction of travel.                                                                 |
+| `matrix({...})` written by hand                                       | unchanged — core ships the same `matrix()`.                                                                                                                                                     |
+| `PointerServiceProps` grouped → `PointerProps` flat                   | v4's service prop convention.                                                                                                                                                                   |
+
+**The promise is measured rather than asserted.** One spec counts `requestAnimationFrame` calls across four settles with the cursor at rest and gets **zero**. DESIGN.md §7 says a v4 page holds no permanent frame loop; this is the first time a ported component proves it.
+
+**And the port found the one thing about mixins that fails silently (gap 38).** A mixin subscribes from `mounted()` and returns the release from it, so a component that mixes one in **must** chain `super.mounted()`. `Cursor.mounted()` resets six fields and renders, exactly as v3's does, and the first version did not chain — every one of its twelve specs failed at once, with no warning from anywhere. v3's `$services` sits outside the hook and forgives the omission.
+
+**Size:** 121 → 99 code lines (−18 %), of which ten went when the hand-written frame loop became `smoothTo()`.
+
+**Specs:** 12, all green, driving real `PointerEvent`s. Written rather than ported — ui has no `Cursor` suite. One of them documents a shared-service hazard worth knowing: the pointer service is page-wide and its `isDown` survives a spec, so the suite has to put the button back up in `afterEach`.
+
+## 13. Draggable — three mixins on one class
+
+Ported 2026-08-17. One class, and the question it answers is whether the mixins compose.
+
+They do, without ceremony: `withResize(withRaf(withDrag(Base, { target }), { manual: true }))` gives one shared `$services` object, one `mounted()` chain and one cleanup per subscription. Nothing had to be hand-rolled.
+
+| Change                                                                               | Forced by                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `props.x - props.origin.x` → `props.distanceX`                                       | the service publishes the subtraction. Same for `finalX`.                                                                                                                                                                   |
+| `props.MODES.START` → `DRAG_MODES.START`                                             | the modes are a module constant, not a prop.                                                                                                                                                                                |
+| `$emit(`drag-${props.mode}`, …)` guarded against `idle`                              | `DragMode` gained `idle` for what `props()` reports outside a gesture; `$emits` does not declare it, so the guard is type-checked (the `SliderDrag` rule).                                                                  |
+| `$services.enable('ticked')` for the fit animation → `this.$services.ticked.start()` | gap 1 again, in its second family this round.                                                                                                                                                                               |
+| `transform(el, { x, y })` → `el.style.transform = transform({ x, y })`               | v4's `transform()` builds a string; nothing else transforms this element, so the read-merge-write bought nothing (the `SliderProgress` finding).                                                                            |
+| `domScheduler.read`/`write` → `this.$read`/`this.$write`                             | the instance's lanes, cancelled on destroy.                                                                                                                                                                                 |
+| `damp(…)` per frame → `damp(…, elapsed)`                                             | **`render()` is called from `dragged()` as well as from `ticked()`**, so it takes an `elapsed` defaulting to `INERTIA_FRAME` — one nominal frame, which is what v3 assumed everywhere without saying so.                    |
+| `__bounds`/`__margin` memoised for the instance's life → per mount cycle             | a v4 move is a destroy plus a mount, and the geometry it lands in is a different one. Fourth hit of the per-cycle rule, and here it is a correctness fix — no resize event describes a target that changed size on its own. |
+| `@ts-expect-error` on the drag target resolver → a structural cast                   | gap 39. The mixin is applied before the class exists, so the resolver's host is `Base`.                                                                                                                                     |
+
+**`resized()` stays bound to the viewport, and that is faithful.** `withResize`'s default target is `document.documentElement` and v3's `resized()` hook is the window resize service, so a change to the element's own box was never what invalidated these bounds in either version. Worth stating because it looks like a gap and is not.
+
+**Size:** 191 → 222 code lines (+16 %), and every line of the growth is nameable: the `$emits` map (10), the three interfaces v3 declares inline as anonymous field types — `DraggablePosition`, `Bounds`, `Margin` (25) — and explanatory comments. The logic is line-for-line.
+
+**Specs:** 20, all green, driving real pointer events. Written rather than ported — ui's `Draggable` suite is thin. The margin-shorthand cases, the bounds arithmetic, the `strictFitBounds` clamp and the `fitBounds` drop animation are all covered, plus the two v4-specific ones: the per-cycle bounds invalidation and the frame loop released mid-fit when the element leaves the DOM.
+
+## 14. Carousel — the largest coordinator, and the last constructor-wrapping decorator
+
+Ported 2026-08-17. All seven classes, `utils`, and the `Indexable`/`withIndex` base the coordinator extends. This is the family the whole exercise was pointing at, and the result is the one the `Slider` port predicted.
+
+### 14a. `AbstractCarouselChild` — 64 lines to 18, and what those 64 lines were
+
+This class is the measurement. Its job is "connect to my carousel and follow its index", and v3 states that problem five times:
+
+1. `__connect()` called from `mounted()`, from `resized()` **and** from `updated()`, because none of the three is reliable alone;
+2. an `__unsubscribe` field so those three calls are idempotent;
+3. a `store.has('index')` check, so the callback never runs against a carousel that has not seeded itself;
+4. a **parent-side** `connectChildren()` on the `Carousel`, walking `$children` to reach the controls that mounted first;
+5. a `domScheduler.read`/`write` wrapper around a subclass method that may or may not return a second callback to run in the write phase.
+
+All five are one awaited `$inject(CarouselContext)` and the subscription it returns. The context protocol replays to a pending consumer when the provider mounts later, so there is no ordering to retry against; the provider is created in a field initializer, so there is no seeding to check; and `this.$write(() => this.update(state))` is the whole scheduling contract.
+
+The spec that used to need the parent-side handshake — `connects a control that mounts before its carousel` — now mounts a `CarouselBtn` on its own, asserts it is not yet disabled, then inserts a `Carousel` **around** it and asserts that it is. Nothing on either side coordinates.
+
+### 14b. The rest of the coordination
+
+| v3                                                                        | v4                                                                         |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `createStorage({ provider: createMemoryStorageProvider() })` per instance | one `signal<CarouselState>` inside the provided object                     |
+| `AbstractCarouselComponent.__carousel` + a guarded `$closest('Carousel')` | `$injectSync(CarouselContext)`, memoised for the mount cycle               |
+| `Carousel.connectChildren()`                                              | nothing                                                                    |
+| `$children.CarouselItem` + `updated()`                                    | `$watchChildren(CarouselItem, { added, removed })`                         |
+| `carousel.currentIndex = i` from the wrapper                              | `carousel.reportIndex(i)` on the exposed surface                           |
+| `carousel.$services.enable('ticked')` from the wrapper                    | `carousel.keepTicking()` on the exposed surface                            |
+| `item.carousel.$children.CarouselItem.indexOf(this)`                      | `carousel.indexOf(this.$el)` — an **element**, so no control names a class |
+| an import cycle between `AbstractCarouselComponent` and `Carousel`        | none; the context module is the only shared import                         |
+
+The `indexOf(element)` signature is the small decision worth recording. A control asking for its own position must not have to name its coordinator's class to do it, and an element is the one identifier both sides already have.
+
+### 14c. The geometry moved, and it took a dependency with it (gap 37)
+
+v3 puts the scroll target on `CarouselItem`: a cached `compute-scroll-into-view` call with `block: 'center', inline: 'center'`, invalidated from `resized()` and from `updated()`. That measurement needs the **scroller** and the **item**, and the coordinator is the only place holding both — so in v4 it is `Carousel.positions`, one cache in one place, invalidated when the item list changes, on resize, and with the mount cycle. `CarouselItem` drops from 43 lines to 14.
+
+The package went with it, and core cannot replace it: **`scrollTo()` aligns a target to the start of its scroller and takes no block/inline alignment**, so a carousel that centres its slides has nothing to call. The replacement is `centeredScrollPosition()`, twelve lines of arithmetic beside the family. Same shape as the `deepmerge` finding in §8: v4 does not remove a dependency, it makes you write it.
+
+### 14d. `withIndex` had to come, and it is the sharpest re-hit of gap 2
+
+`Carousel extends Indexable` and nothing downstream works without it, so the 197-line decorator plus its 9-line wrapper component are ported beside the family as **one class**. There is nothing left for a decorator to do: it takes no options and every consumer extends the wrapper.
+
+**And two of its accessors are illegal in v4.** `set isReverse(value) { this.$options.reverse = !!value; }` and `set boundary(value) { this.$options.boundary = … }` both write into `$options`, which is a read-only view over attributes. This is not a corner: `bounce` navigation flips `isReverse` **every time it reaches an end**, so the option is mutable state in the ordinary path. Both become private fields seeded from the option, exactly as `AccordionItem.isOpen` had to. Gap 2 now has three named consumers in this report and one of them is a primitive.
+
+### 14e. `withMountOnMediaQuery` is a string in a config object
+
+`CarouselDrag` is `withMountOnMediaQuery(withDrag(AbstractCarouselComponent), '(pointer: fine)')` in v3. In v4 it is `mountStrategy: 'media:(pointer: fine)'` — the **fourth** decorator in this exercise that turns out to be a config key, after `withMountWhenInView` (twice, §7 and §11) and `withScrolledInView`'s mount half. The track also drops v3's `props.delta.x * -2.5` throw projection — a per-device quantity, since a delta is per event — for the settle position the drag service announces at `drop`, which is the same correction §4a made for `SliderDrag`.
+
+### 14f. Size
+
+Code lines, comments and blanks excluded; barrel files excluded on both sides.
+
+|                                        |      v3 |      v4 |    delta |
+| -------------------------------------- | ------: | ------: | -------: |
+| `AbstractCarouselChild`                |      64 |      18 |    −72 % |
+| `AbstractCarouselComponent`            |      21 |      20 |     −5 % |
+| `CarouselItem`                         |      43 |      14 |    −67 % |
+| `CarouselBtn`                          |      50 |      47 |     −6 % |
+| `CarouselWrapper`                      |      56 |      62 |    +11 % |
+| `CarouselDrag`                         |      71 |      76 |     +7 % |
+| `Carousel`                             |     112 |     151 |    +35 % |
+| `context.ts` (v3: none)                |       0 |      21 |        — |
+| `utils`                                |      14 |      35 |   +150 % |
+| **components**                         | **431** | **444** | **+3 %** |
+| `withIndex` + `Indexable` (v3: shared) |     206 |     157 |    −24 % |
+| **total**                              | **637** | **601** | **−6 %** |
+
+**The distribution is the finding, not the total.** The two classes whose entire job was coordination lose 72 % and 67 %. The coordinator gains 35 %, and the gain is exactly what the children lost: the geometry cache, the exposed surface, and the `publish()` that replaces the store write. `utils` more than doubles because it absorbed a package. Nothing here was hand-rolled wiring the way `Slider`'s was — v3's `Carousel` is a careful component that had already been debugged into shape, which is why it reads like `Data*` on the size table and like `Slider` on the structure.
+
+**Specs:** 33 in one file, all green, with a real scroll container, real smooth scrolling and a real media query. Adapted from ui's eight spec files. **Ported adapted:** the boundary behaviours, the button disabled logic, the progress arithmetic, the scroll-sync-without-scrolling-back guarantee, and the whole navigation suite, rewritten from carousel mocks to real registered components. **Deliberately not ported:** ui's `AbstractCarouselChild` connection specs, which assert `__connect` idempotency and subscription counts — the mechanism they cover does not exist, and the two specs that matter (`connects a control that mounts before its carousel`, `releases its subscription when the control leaves the DOM`) assert the outcome instead. **Added, because they are what v4 changes:** five live-slide specs (added, removed, index re-normalised, buttons re-enabled, positions re-measured), the frame loop settling to inactive, and the media-query mount.
+
+## 15. The decorator pass — the surface fifteen ports had never used
+
+Added on review of this round, and the first finding is the state it found: **no ported family used a decorator, in any round.** Not the six of this PR and not the nine before them. There was no mechanical reason — `vite-plugin-decorators.js` transforms any file containing a `@`, `migration/**` included, so decorators compiled here all along. It was habit, inherited from the first port and never revisited. The cost was that `DESIGN.md` §6 made claims no component had tested: only `src/decorators.spec.ts` did.
+
+**What was converted.** `@component()` on the twelve concrete components, `@on` on the seven DOM and component handlers, `@provide` on `Carousel.api` and `@children` on its two collections. Specs are unchanged and green.
+
+**What was not, and why each refusal is a finding.**
+
+- **The four abstract bases keep `static config`.** `@component()` registers, and a base with no markup to claim has nothing to register. The decorator is for a component a page can declare.
+- **`@inject` still does not fit the Carousel bases**, for the reason the `Data*` port found first (§5b): it requests at construction and only sets a field, while `AbstractCarouselComponent` needs a lazy `$injectSync()` at first use and `AbstractCarouselChild` needs the awaited `$inject()` **and** a subscription to what it resolves. Two ports, two families, same conclusion — the field decorator covers the "resolve a value into a field" case and nothing else.
+- **`@write` cannot carry a template method.** `AbstractCarouselChild` schedules `this.update(value)` on the write phase and subclasses implement `update()`. A phase decorator wraps the method it decorates, so a subclass override is a different property and is never wrapped: the base would schedule nothing and the subclass would run synchronously. That is gap 41.
+- **`Draggable.render()` keeps its `$read`/`$write` pair**, because it is one read feeding one write inside one method, and the decorators schedule whole methods.
+
+**One thing the pass broke, and core was fixed rather than the ports.** `@on('click')` typed its handler as the base `Event`, so `navigate(event: MouseEvent)` did not compile — the magic-name form `onClick(event: MouseEvent)` always did. Three handlers in two families hit it immediately. The one-argument overload now reads `HTMLElementEventMap`, and a name outside that map — a component event, whose detail only its emitter knows — lets the handler declare the type it expects. Types only, no runtime change, and `src/decorators.spec.ts` asserts both halves. That is gap 40, filed and closed in the same review.
+
+**And one it did not break but did expose:** `@children`'s callbacks are `ThisType<any>` unless the host is named, so `this.itemsChanged()` inside them is an `unsafe-call` under type-aware linting until the call site writes `@children<typeof CarouselItem, Carousel>(…)`. Same shape as gap 39 — a decorator or mixin applied while its class is still being defined cannot know that class — and the second instance of it in one round.
+
+**Size: the pass is not a saving.** +9 code lines across the six families (`Fetch` +4, `LazyInclude` +3, `Carousel` +6, `Prefetch` −4, `Cursor` and `Draggable` flat). `@component({…})` costs about what `static config: BaseConfig = {…}` cost, and each `@on` adds a line the magic name did not need. What it buys is different: the binding is declared where the method is, the method gets its own name — `navigate()`, `showError()`, `reportScroll()` instead of `onClick()`, `onError()`, `onScroll()` — and a handler for a component event no longer has to be spelled the way the magic scan expects. **The v4 name convention and the decorator are not two spellings of one thing: one is discovered, the other is declared.**
+
 ## Gaps in v4, ordered by cost
 
 1. **No way to suspend a service subscription within a mount cycle.** v3: `$services.enable('ticked')`/`disable`. v4: subscribe in `mounted()`, unsubscribe in `$destroy()`, nothing between. Two of four components needed it and both dropped `withRaf` for a hand-rolled start/stop. Not cosmetic: with `withRaf`, one slider or scroll animation keeps the rAF loop alive forever, contradicting DESIGN.md §7. **Ask:** pause/resume on the subscription handle, or `withRaf(Base, { manual: true })`. **Resolved:** `toggle(subscribe)` — `{ isActive, start, stop }` over any subscription, in or out of a component. **Not re-hit by `InView`/`Track`, and the negative result is worth recording:** that family hand-rolls its subscriptions too, but never wants to suspend one — its subscriptions live exactly one mount cycle and `.once` releases rather than pauses. It hand-rolls because the _mixin_ cannot express one subscription per markup declaration, which is gap 28 and a different problem.
@@ -532,28 +813,48 @@ The honest reading is the one §5e reached for `Data*` from the other direction:
 32. **A lazily loaded component drags its whole family into one chunk.** `registerComponent()` walks `config.components` and registers each class (`registry.ts:94-98`), and those are static imports of the parent module, so `Slider` arriving lazily brings `SliderBtn`, `SliderItem` and the rest with it. v3 had the same ceiling by a different route — its manifest's `children` tokens were resolved from the already-loaded parent's `config.components` (`loader.ts:381-432`) — so this is not a regression, and one chunk per family is usually the right granularity anyway. It is worth recording as the ceiling: there is no way to declare a child component lazily from its parent's config. **Ask:** none yet; measure a real family first.
 33. **v3's responsive-option spelling cannot be observed by v4's one observer.** The feature itself was simply absent — `src/index.ts` listed it under _Not in this prototype_ — but porting it as written was not possible, and the reason is the same wall gap 21 hit from the other side. v3 spells a **set** of breakpoints in the suffix (`data-option-label:xs:s`), so the attribute names a component can legally use are the powerset of the named breakpoints; `attributeFilter` takes exact names and has no wildcard, so the page-wide observer could never have been told about them. Under v3's grammar, v4 would have honoured a runtime rewrite of `data-option-label` and silently ignored one of `data-option-label:s` — in the framework whose premise is that the attribute is the live source of truth. The same grammar also forces resolution to scan every attribute on the element and regex-test it, on every read, which is what makes v3's lazy resolution the only affordable one. **Ask:** a spelling the framework can enumerate, or an element-scoped observer like gap 21's. **Resolved, by changing the grammar rather than the machinery:** the suffix names **one** breakpoint and **cascades upwards** from it, so the legal names are `attribute × breakpoint` — finite, registered with the one observer at `registerComponent()`, and re-registered if `setBreakpoints()` replaces the set. `watchAttributes()` was rejected here precisely because it is element-scoped and unfiltered: a declared option's name _is_ enumerable once the grammar is, and paying for a second observer per component to work around a suffix grammar would have been the tail wagging the dog. The cascade is also the better semantics on its own merits — the breakpoints are `min-width` queries and every utility class beside them cascades, while the toolkit alone did exact membership, so "from `s` up" was `:s:m:l:xl:xxl:xxxl` and quietly stopped covering the range whenever a breakpoint was added to the set. **The breaking change was costed before it was taken:** across `@studiometa/ui` the entire feature is one component (`Menu`, option `mode`) and two attributes, both `data-option-mode:xxs:xs:s="click"` beside a plain `data-option-mode="hover"` — which is the shape the cascade expresses in one attribute instead of a six-name list — plus eight examples in the v3 docs. The separator stays a colon, so no codemod touches anything but a multi-breakpoint suffix, and a suffix naming no breakpoint is warned about once per mount rather than silently never read. See DESIGN.md §1, "Responsive options", and RATIONALE.md.
 
+34. **v3's `data-option-no-<name>` negation prefix has no v4 equivalent.** A `Boolean` option declared with `default: true` is turned off in v3 by writing `data-option-no-view-transition`; v4 parses a boolean as `raw !== 'false'`, so the only way to turn one off is `data-option-view-transition="false"` and the `no-` attribute is silently ignored — the option keeps its default and the component does the opposite of what the markup says. Found by writing the `Fetch` spec against ui's own documented attribute. **Scale, counted rather than estimated: 39 occurrences across 26 files in `@studiometa/ui`**, spread over fifteen distinct options (`no-autostart`, `no-modal`, `no-multiple`, `no-view-transition`, `no-trap-focus`, `no-scroll-lock`…). **Ask:** accept the `no-` prefix for a declared `Boolean` option, or decide against it and warn once per instance when an attribute matching `data-option-no-<declared boolean option>` is present — the failure is silent either way, and silence is what makes 39 occurrences expensive.
+35. **`$terminate()` does not survive a DOM move.** It detaches the instance from its element (`$el[INSTANCES].delete(name)`), so the next mount pass builds a brand-new instance which has never heard of the termination and mounts normally. In v3 the terminated instance stays on the element and `$mount()` refuses forever. This turns a documented ui option into a no-op: `LazyInclude`'s `terminateOnLoad` means "fetch once and stop", and a `swap()`, a `data-bind:` template or an SPA route change moving the element makes it fetch again. `it.fails('does not fetch again when `terminateOnLoad` ended the component (gap 35)')` names it. **Ask:** make termination a property of the element rather than of the instance — the mount pass has to consult something the move preserves. A `data-mount="none"` write from `$terminate()` would do it with no new state, and would also make the decision visible in the DOM the way every other mount decision is.
+36. **`swap()` can only replace a target's children, and its script adoption is private. Resolved with the axis the port named.** `SWAP_MODES` are `Fetch`'s four modes exactly and `adoptScripts()` is ui's `adoptNewScripts()` in substance, yet the helper was unusable there: `replace` was `replaceChildren()` and `morph` passed `childrenOnly: true`, while `Fetch` matches an element of the response against one on the page by id and replaces **that element**, attributes included. `LazyInclude` was the counter-example in the same PR — `swap()` covers it completely — and the axis between them is only whether the element itself is replaced. **`self` is that axis, and it is an option rather than a fifth mode**, because `mode` says how the content is applied and `self` says what is replaced: `replace` puts the replacement in the target's place, `morph` drops `childrenOnly` so the element survives while its attributes are updated, and the additive modes warn (`swap.self-ignored`) rather than ignoring the ask quietly. With `self` an `Element` content **is** the replacement rather than a container, since reading it as a container is what drops the attributes the option exists to carry. Script adoption now follows whatever ended up in the document, so it also covers a replacement which is itself a `<script>` — the case v3's `getScripts()` handled. The port consumes it: `updateDOM()` is one `swap()` call and `Fetch/utils.ts` is deleted.
+37. **`scrollTo()` has no block/inline alignment.** It aligns a target to the **start** of its scroller, with an `offset` as the only adjustment. A carousel centres its slides, which is `compute-scroll-into-view`'s `block: 'center', inline: 'center'`, so `Carousel` cannot call it and the port writes twelve lines of arithmetic instead — and ui drops a runtime dependency it had for exactly this. Centring is not exotic: it is what a scroll-snap carousel, a tab strip and a thumbnail rail all want. **Ask:** `scrollTo(target, { block: 'start' | 'center' | 'end', inline: … })`, matching the platform's own `scrollIntoView` vocabulary, and a way to get the computed position back without scrolling — the carousel needs the offsets to answer "which slide is closest", not only to move.
+38. **A component that mixes in a service and overrides `mounted()` without chaining `super.mounted()` silently subscribes to nothing.** The mixin's whole lifecycle lives in `mounted()`: it starts the subscription there and returns the release from there. v3's `$services` binds outside the hook, so every ui component that mixes a service in and has a `mounted()` — which is most of them — is written without the chain today. The failure is total and silent: no warning, no type error, and the hook the component wrote is simply never called. `Cursor` was written this way first and all twelve of its specs failed at once with nothing to point at. **Ask:** warn once per instance when a class whose prototype chain includes a service mixin overrides `mounted()` and the mixin's own `mounted()` was not reached during the cycle. The check is one flag set in the mixin and read after `mounted()` resolves.
+39. **A service mixin's `target` resolver is typed against `Base`, not against the class being defined.** `ServiceMixinOptions<Target, Host = Base>` takes `(instance: Host) => Target`, and in `withDrag(Base, { target: … })` the host is whatever was passed in — which cannot be the subclass, since the mixin is applied while its extends clause is still being evaluated. v3 writes `@ts-expect-error` over the same line; the port names the structural shape instead (`(instance as Base & { readonly target: HTMLElement }).target`), which is an assertion rather than a suppressed error but is still not inference. Low cost, and it bites every component whose service target is not `$el`. **Ask:** a form that defers the host type — a `target` declared as a method the subclass implements (`get serviceTarget()`) would type itself, at the cost of one reserved name; or accept the cast and say so in the docs, so the next author writes it deliberately.
+
+40. **`@on(type)` typed its handler as the base `Event`, so a typed DOM handler did not compile. Resolved.** The magic-name form has always allowed `onClick(event: MouseEvent)`; the decorator's one-argument overload took `(event: Event) => void`, which contravariance rejects a narrower parameter for, so `@on('click') navigate(event: MouseEvent)` was a type error. Found the moment the ports were converted — three handlers in two families. The overload now maps a name in `HTMLElementEventMap` to its platform type, and a name outside it — a component event dispatched by `$emit()`, whose detail only its emitter knows — infers the handler's own declared event type. Types only; the runtime binding never changed.
+41. **A `@read`/`@write` method cannot be overridden by a subclass.** The phase decorators return a wrapper around the method they decorate, so the schedule lives on that class's property. A subclass that overrides the method defines its own, unwrapped, and `this.method()` resolves to it: the base's scheduling silently disappears and the body runs synchronously in whatever phase the caller was in. It blocks the template-method shape a coordinator family wants — `AbstractCarouselChild` schedules `update()` on the write phase and every subclass implements `update()` — so that base keeps an explicit `this.$write(() => this.update(value))`. **Ask:** decide the rule and say it. Either the phase belongs to the call (`$write()` at the call site, as the port does) and the decorators are documented as leaf-method sugar, or a `@write` method has to be scheduled through a dispatcher the subclass cannot replace, which is a bigger change than the sugar is worth.
+
+42. **`smoothTo()` had no consumer in fifteen ports, and two things were why. Resolved, and consumed.** The helper is the exact shape four ported components hand-roll — a target, a damped value, a frame subscription released on arrival — yet `Cursor`, `Draggable`, `SliderItem` and `ScrollAnimationTarget` all called `damp()` directly. **First blocker: `damping` was captured at creation** while every consumer's factor is an option, and `$options` is a live view, so adopting the helper would have frozen a live attribute. `Cursor`'s scale adds a second case — a factor that depends on the direction of travel. Both are answered by `damping` taking a function, read per frame and per channel. **Second blocker: the helper was scalar**, so a position was two instances, two frame callbacks and two settle states where the component wants one render and one stop condition. Answered by a record of **named** channels — not `{ x, y }`, since a component smooths a scale, an opacity or a progress as readily as a coordinate — sharing one subscription, one settled state and one subscriber call. Two smaller things fell out of converting the consumer: `jump()`, which sets a value and its target together for the reset a mount cycle needs, and a `precision` default that now follows the function each mode wraps (`0.01` damping, `1e-4` springing) rather than the spring's for both — without which a converted `damp()` call snaps 100× later and never quite arrives. **`Cursor` consumes all of it (§12).** **`Draggable` still does not, and the reason is a third axis rather than a missing option:** it advances its damping from a **drag event**, synchronously, with a nominal frame (`render(INERTIA_FRAME)`), and only falls back to the frame loop after the drop. The helper owns its clock, so a component that must step the smoothing on an input event cannot use it. **Ask:** nothing yet — one consumer is not evidence, and a hand-stepped smoother is a different primitive from a self-driving one.
+
+43. **A frame subscriber runs in the read phase, and a write from it is silent.** `useRaf()` fans its subscribers out inside `defaultScheduler.read()`, so that a measurement can precede the writes of the same frame, and the service's own contract is that a callback **returns** the function which mutates — `RafHook.ticked?(props): void | RafRender`. DESIGN.md §7 states it. Two of the fifteen families broke it anyway, independently: `Cursor` wrote its transform straight from the frame hook, and `Carousel` read the wrapper's `scrollLeft` **and** wrote `--carousel-progress` in the same read phase, which is exactly the interleaving the phases exist to prevent. Nothing fails, nothing warns, and no spec can see it — the pixels are right, the layout work is not. Fixed in both: `Carousel.ticked()` returns its write, and `Cursor.render()` carries `@write`, which is the same thing for a component whose loop is now inside `smoothTo()`. An audit of the other thirteen families found no third case. **Ask:** a lint rule in `@studiometa/eslint-plugin-js-toolkit` — a DOM write inside `ticked()`, or inside a callback passed to a service `subscribe()`, is mechanically detectable, and it is the only kind of check that reaches a mistake no test can fail on.
+
 ## What came out better
 
-|                                     | v3                                                                            | v4                                                                         |
-| ----------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| a control finds its coordinator     | 143-line `AbstractSliderChild` + two-sided handshake + retries in three hooks | `await this.$inject(SliderContext)`                                        |
-| a coordinator finds its children    | `$children.X`, resolved once, needs `$update()`                               | `$watchChildren('X')`, live, order-independent                             |
-| a control drives its coordinator    | `this.slider.goTo(i)` — the whole instance, resolved by class                 | `$injectSync(SliderContext)?.goTo(i)` — a curated surface                  |
-| the settle position of a throw      | the component projects it from the last event's delta, per device             | the service announces it exactly at `drop`                                 |
-| a child added after mount           | invisible until `$update()`                                                   | just works (tested in five families)                                       |
-| an `Action` finding its targets     | a walk of every instance on the page, per part, per event                     | `getInstances(name)` — one narrowed `querySelectorAll`                     |
-| a binding attribute rewritten       | read once at mount; a morph leaves the old listener attached                  | `watchAttributes()` — released and rebound in the batch                    |
-| the components on an element        | a scan of the global set for `instance.$el === $el`                           | `getInstances(el)` — read straight off the element                         |
-| mount when in view                  | `withMountWhenInView` wrapping the constructor (109 lines)                    | `config.mountStrategy = 'in-view'`, overridable per element                |
-| a one-shot "seen it" component      | mount when in view, then `$terminate()` from `mounted()`                      | `config.mountStrategy = 'visible'`, and nothing else                       |
-| an off-screen component             | constructed eagerly, so the decorator can give it an observer                 | no instance exists until the strategy says so                              |
-| two components watching one element | two `IntersectionObserver`s                                                   | one, reference-counted, released with the last subscriber                  |
-| keyboard nav on a focused region    | `KeyService` + `hasFocus` + focus/blur handlers                               | `onWrapperKeydown` — the saving is ref delegation, not the missing service |
-| declaring emitted events            | `config.emits` — bytes, no checking                                           | `$emits` — no bytes, payload checked                                       |
-| Escape on a `<dialog>`              | closes behind the component's back; transitions skipped, scroll lock stuck    | `onCancel()`, two lines                                                    |
-| a view transition                   | ui ships a 108-line batching scheduler                                        | imported `viewTransition(update)` helper from core                         |
-| extending a component               | spread the parent's config by hand or lose it (#627)                          | configs merge along the prototype chain                                    |
-| N scroll targets on one timeline    | 2N+ scheduler round trips, plus a nested pair inside `animate`                | one `read`, one `write`, for the whole timeline                            |
+|                                      | v3                                                                            | v4                                                                         |
+| ------------------------------------ | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| a control finds its coordinator      | 143-line `AbstractSliderChild` + two-sided handshake + retries in three hooks | `await this.$inject(SliderContext)`                                        |
+| a coordinator finds its children     | `$children.X`, resolved once, needs `$update()`                               | `$watchChildren('X')`, live, order-independent                             |
+| a control drives its coordinator     | `this.slider.goTo(i)` — the whole instance, resolved by class                 | `$injectSync(SliderContext)?.goTo(i)` — a curated surface                  |
+| the settle position of a throw       | the component projects it from the last event's delta, per device             | the service announces it exactly at `drop`                                 |
+| a child added after mount            | invisible until `$update()`                                                   | just works (tested in five families)                                       |
+| an `Action` finding its targets      | a walk of every instance on the page, per part, per event                     | `getInstances(name)` — one narrowed `querySelectorAll`                     |
+| a binding attribute rewritten        | read once at mount; a morph leaves the old listener attached                  | `watchAttributes()` — released and rebound in the batch                    |
+| the components on an element         | a scan of the global set for `instance.$el === $el`                           | `getInstances(el)` — read straight off the element                         |
+| mount when in view                   | `withMountWhenInView` wrapping the constructor (109 lines)                    | `config.mountStrategy = 'in-view'`, overridable per element                |
+| a one-shot "seen it" component       | mount when in view, then `$terminate()` from `mounted()`                      | `config.mountStrategy = 'visible'`, and nothing else                       |
+| an off-screen component              | constructed eagerly, so the decorator can give it an observer                 | no instance exists until the strategy says so                              |
+| two components watching one element  | two `IntersectionObserver`s                                                   | one, reference-counted, released with the last subscriber                  |
+| keyboard nav on a focused region     | `KeyService` + `hasFocus` + focus/blur handlers                               | `onWrapperKeydown` — the saving is ref delegation, not the missing service |
+| declaring emitted events             | `config.emits` — bytes, no checking                                           | `$emits` — no bytes, payload checked                                       |
+| Escape on a `<dialog>`               | closes behind the component's back; transitions skipped, scroll lock stuck    | `onCancel()`, two lines                                                    |
+| a view transition                    | ui ships a 108-line batching scheduler                                        | imported `viewTransition(update)` helper from core                         |
+| extending a component                | spread the parent's config by hand or lose it (#627)                          | configs merge along the prototype chain                                    |
+| N scroll targets on one timeline     | 2N+ scheduler round trips, plus a nested pair inside `animate`                | one `read`, one `write`, for the whole timeline                            |
+| a component's own default transition | an `if`/`else` chain that must know whether a listener claimed the update     | one more `wrap()` claim on the protocol it publishes; the last one wins    |
+| a mount bound to a media query       | `withMountOnMediaQuery(Class, '(pointer: fine)')` wrapping the constructor    | `mountStrategy: 'media:(pointer: fine)'`                                   |
+| a prefetch hint                      | build a `<link>`, dedupe in a static `Set`, and stay silent in Safari         | `loadLink(href, { rel })` — deduped by URL and `rel`, resolved either way  |
+| a carousel control finding its index | `__connect()` retried from three hooks, plus a parent-side `connectChildren`  | `await this.$inject(CarouselContext)`                                      |
+| an included fragment with a script   | inert, because `innerHTML` never runs one                                     | `swap()` adopts it, and `whenDOMSettled()` says when it is done            |
+| a damped loop at rest                | `$services.disable('ticked')`, on a service bound by hook presence            | `this.$services.ticked.stop()` — measured at zero requested frames         |
 
 ## Size of change
 
@@ -574,7 +875,14 @@ Code lines, comments and blanks excluded. The v4 numbers _include_ the heavy exp
 | InView infrastructure (`withMountWhenInView`)                  |       60 |        0 |    −100 % |
 | Track (5 classes), at parity                                   |      386 |      409 |      +6 % |
 | Track utilities (`throttle`, `memo`, `deepmerge`, `useInView`) |       24 |      108 |    +350 % |
-| **total**                                                      | **4200** | **3394** | **−19 %** |
+| Fetch (2 classes, `swap()` doing the update)                   |      397 |      371 |      −7 % |
+| LazyInclude                                                    |       56 |       67 |     +20 % |
+| Prefetch (3 classes)                                           |       87 |       77 |     −11 % |
+| Cursor                                                         |      121 |       99 |     −18 % |
+| Draggable                                                      |      191 |      222 |     +16 % |
+| Carousel (7 classes + context + utils)                         |      431 |      454 |      +5 % |
+| Carousel infrastructure (`withIndex` + `Indexable`)            |      206 |      157 |     −24 % |
+| **total**                                                      | **5689** | **4841** | **−15 %** |
 
 The `Data*` row is the flattest one, and §5e says why: that family had already been built carefully on primitives, so v4 removes a dependency (`alien-signals`), a decorator (`withGroup`) and now its copied DOM-update protocol rather than broad accidental complexity. The registry that replaces the first two is bigger than either because it carries the value cell `withGroup` never had. Within the row one number is dramatic — `DataScope` 269 → 55 — and it is the same finding from the other side: four fifths of that component was a data structure that only lived in a component because there was nowhere else to put it.
 
@@ -584,24 +892,30 @@ The two new families sit at the opposite ends of the table and say the same thin
 
 Two rows moved when the three controls landed. The `Slider` row was `472 → 295` (−38 %) over five classes, and −20 % is the truer number: the three controls added are thin in both versions (98 → 99 lines), their deleted base class had already been counted as saved, and `Slider` itself took on ~60 lines of drag handling that v3 also had. Wiring is where the saving is, and the wiring was already counted. And the enter/leave sequence moved out of `Transition` into the utilities — 31 lines off one row, 47 onto the other — which is what buys `SliderDots` its transitions with no second implementation. The utilities row is now larger than v3's, and that is the honest number: v3's equivalent 137-line `withTransition` decorator sat in the row above.
 
+**The 2026-08-17 round is flat, and that is the result rather than a disappointment.** Six families, 1489 v3 lines against 1447 v4 ones — and it only reaches −2 % because the review of it grew `swap({ self })` and took 39 lines back out of `Fetch`. Four shrink (`Fetch` −7 %, `Prefetch` −11 %, `Cursor` −18 %, `withIndex` −24 %), two grow (`LazyInclude` +20 %, `Draggable` +16 %) and `Carousel` is flat at +4 %, and the growth is the same three things every time: an `$emits` map where `config.emits` was one line, named types for what v3 declared as anonymous field annotations, and a utility core does not ship. Inside the flat totals the distribution is anything but flat — `AbstractCarouselChild` loses 72 %, `CarouselItem` 67 %, and both losses reappear as +35 % on the coordinator. **The wiring saving is real and it is now fully spent**: by this round every family had already been debugged into the careful shape `Data*` was in, so what v4 removes is the last of the mount-order defence, not accidental complexity.
+
+The two utilities this round had to write are worth naming next to `deepmerge` and `useInView` from §8, because the pattern is now four for four: `Fetch`'s script adoption (26 lines, which core has and keeps private — gap 36) and `Carousel`'s centred scroll position (12 lines, replacing the `compute-scroll-into-view` package — gap 37). **v4 does not remove a dependency; it makes you write it, or it ships something adjacent that does not quite reach.**
+
 ## Verdict
 
-**Migrating @studiometa/ui to v4 is mostly mechanical for component _behaviour_, and a rewrite for component _wiring_.** The split is clean and identical across all six families.
+**Migrating @studiometa/ui to v4 is mostly mechanical for component _behaviour_, and a rewrite for component _wiring_.** The split is clean and identical across all fifteen families.
 
 - **Mechanical (~70 % of the code):** everything a component does to its own DOM — `AccordionItem`'s height animation and ARIA, `Dialog`'s open/close ordering, `Slider`'s geometry, `AbstractScrollAnimation`'s play-range maths, `ActionEvent`'s parsing. A codemod plus a careful eye handles this.
 - **A rewrite (~30 %):** everything about how a component reaches another component. Not renaming: the topology changed from parent-owned to DOM-observed, and code that assumed ordering has to be re-thought rather than translated.
 
-The rewrite is worth doing. It deletes 18 % of the code, removes an entire base class, a scheduler, two constructor-wrapping decorators, a group decorator and a runtime dependency; fixes a real Escape-key bug in `Dialog`, a stale-scope bug in `DataBind`, a cache-key collision in `Action` and a stale-context bug in `Track` for free; and makes "a child appeared after mount" a non-event everywhere. **Nothing in this sample turned out to be unportable.**
+The rewrite is worth doing. It deletes 14 % of the code, removes **two** entire coordinator base classes (`AbstractSliderChild`, `AbstractCarouselChild`), a scheduler, **five** constructor-wrapping decorators (`withMountWhenInView` twice, `withMountOnMediaQuery`, `withScrolledInView`'s mount half, `withIndex`), a group decorator and **three** runtime dependencies (`alien-signals`, `deepmerge`, `compute-scroll-into-view`); fixes a real Escape-key bug in `Dialog`, a stale-scope bug in `DataBind`, a cache-key collision in `Action`, a stale-context bug in `Track`, a throw on a hrefless anchor and a swallowed announcement in `Prefetch`, and a frame-rate-dependent throw in `Carousel` — all for free; and makes "a child appeared after mount" a non-event everywhere. **Nothing in this sample turned out to be unportable.**
 
 Three families qualify the "worth doing", and all three are worth reading as counter-examples. `Data*` is a wash on size, and the case for moving it is entirely about what it stops carrying — its own signal library, its own `globalThis` registry, two spellings of one channel — rather than about lines saved. `Action` is flat, and its lesson is the complement: v4's savings come from wiring that components hand-rolled, so a component whose wiring was a framework export saves nothing — it only stops losing once the export exists again. It also draws the sharpest line under what delegation is and is not: `on<Event>` is a compile-time name, and a component whose events are data cannot use it.
 
 `Track` is the one that grows, and it makes both of those points at once. Its wiring was `$closest`, `addEventListener` and a decorator it does not use, so there was nothing accidental to remove; what it carried was two dependencies, and v4 does not remove a dependency, it makes you write it (`deepmerge`, 35 lines) or leaves you to write the service it has not shipped (`useInView`, 59 — gap 25). And it re-derives `Action`'s lesson from the service layer: **`with<Service>` is a compile-time name too**, so a component whose subscriptions are one per markup declaration hand-rolls them, exactly as `Action` hand-rolls its listeners. Two sugar layers, one rule.
 
+**And the 2026-08-17 round closes the loop on gap 1, which has been item 1 on the build list since the first day of this exercise.** `Cursor` and `Draggable` are the components it was found in — a damping loop that must stop the instant it has caught up — and both consume `{ manual: true }` plus a `Toggle` with no hand-rolling at all. One `Cursor` spec counts `requestAnimationFrame` calls with the cursor at rest and gets **zero**, which is DESIGN.md §7's promise measured on a real component rather than asserted. What the round found in exchange is smaller and sharper: three of the six new gaps (35, 38, 34) are **silent failures** — a termination that a DOM move undoes, a missing `super.mounted()` that subscribes to nothing, an attribute spelling that reads as its own opposite — and silence is what makes a migration expensive, not size.
+
 **Every family also ended up ahead of where it started**, which is the part a size table cannot show. Every gap the earlier ports found is now closed, and each port consumes the fix rather than describing it: `Data*` deleted a broadcast for `subscribeContext()` and holds a reentrancy-safe signal; `Action` deleted a lookup for `getInstances()` and gained live rebinding through `watchAttributes()`; `Track` picked that same live rebinding up for **eleven** code lines, because it was already shaped for it, and `InView` reduced a 60-line decorator to a config key. The exercise was supposed to measure core. It moved it.
 
 ### Build these in v4 before starting the real migration
 
-1. **A way to suspend a service subscription within a mount cycle** (gap 1). Without it v4's "no permanent rAF loop" promise is false on any page with a slider or scroll animation.
+1. ~~**A way to suspend a service subscription within a mount cycle** (gap 1).~~ **Done, and now proved by the components it was found in.** `toggle()` plus `with<Service>(…, { manual: true })` give a `Toggle` on `this.$services.<hook>`, and `Cursor` and `Draggable` both drive their damping loops with it — start from the event, stop the frame the value arrives. A spec counts `requestAnimationFrame` calls with a `Cursor` at rest and gets zero.
 2. **The two viewport primitives — `useInView(el, init)` and `useScrollProgress(el, { offset })`.**
 
    **`useInView`** (gap 25) is the more urgent of the two and the cheaper. v3 shipped two intersection decorators; v4 answers `withMountWhenInView` with `data-mount="in-view"` and `withIntersectionObserver` with nothing at all, while the only `IntersectionObserver` in `src/` stays private to `applyMountStrategy()`. Every component that reacts to visibility _without_ wanting its lifecycle tied to it — an impression, a lazy image, a sticky header — therefore builds its own observer, which is what ui does today. It is 20 lines of definition on `createService()`: the `Track` port wrote it and measured it at one observer per target, with two subscribers on one element genuinely sharing one.
@@ -624,4 +938,7 @@ Three families qualify the "worth doing", and all three are worth reading as cou
 
 16. ~~**Manifest generation for the lazy half of the registry** (gap 29).~~ **Done.** `defineManifest()`, `fromMetaGlob()` and `fromWebpackContext()` add only path→token derivation, one package-wide `MountStrategy`, duplicate first-wins diagnostics and lazy bundler adapters. They preserve importers and leave export resolution and runtime work in `registerManifest()`; no v3 load strategy or `data-load` returned.
 
-Items 1–4, 10–14 and 16 change what a component _can_ be written to do. Items 5–9 and 15 are cost, not capability — except that 15 is the cheapest pair on the list and one half of it is a silent correctness bug.
+17. **The three silent failures** (gaps 35, 38, 34), in that order. `$terminate()` undone by a DOM move turns a documented ui option into a no-op; a missing `super.mounted()` in a service-mixing component subscribes to nothing, with no warning and no type error; and a `data-option-no-<name>` attribute — 39 of them in ui — is read as the option's opposite. None of the three is expensive to fix and all three fail without saying anything, which is the property that makes a migration cost more than its diff.
+18. **Two helpers that nearly reach and do not** (gaps 36, 37). `swap()` cannot replace its own target, so `Fetch` copies 26 lines core already has; `scrollTo()` has no block/inline alignment, so `Carousel` writes the centring arithmetic a package used to do. Both are small additions to something that already exists, and both are the difference between a component consuming core and a component reimplementing it.
+
+Items 1–4, 10–14 and 16 change what a component _can_ be written to do. Items 5–9, 15, 17 and 18 are cost, not capability — except that 15 and 17 are the cheapest items on the list and every one of them is a silent correctness bug.

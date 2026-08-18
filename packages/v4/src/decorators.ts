@@ -19,7 +19,6 @@ import { registerComponent } from './registry.js';
 /** Decorator syntax requires transpilation; use the function APIs without a build step. */
 
 // The decorator cannot know the host class of a decorated method.
-type OwnHandler = (this: any, event: Event) => void;
 type ChildHandler<T extends Base = Base, K extends string = string> = (
   this: any,
   payload: DelegatedEvent<T, K>,
@@ -102,11 +101,21 @@ function withInitializer<This extends Base, Value>(
  * One string binds an event on the component root. A string and event type bind a child or ref.
  * A component class binds that child type. `window` and `document` bind global events.
  */
-export function on(
+export function on<K extends keyof HTMLElementEventMap>(
+  type: K,
+): <This extends Base>(
+  value: (this: This, event: HTMLElementEventMap[K]) => void,
+  context: ClassMethodDecoratorContext<This, (this: This, event: HTMLElementEventMap[K]) => void>,
+) => void;
+/**
+ * A name outside the platform's map is a component event, whose detail only its
+ * emitter knows, so the handler declares the event type it expects.
+ */
+export function on<E extends Event = Event>(
   type: string,
 ): <This extends Base>(
-  value: OwnHandler,
-  context: ClassMethodDecoratorContext<This, OwnHandler>,
+  value: (this: This, event: E) => void,
+  context: ClassMethodDecoratorContext<This, (this: This, event: E) => void>,
 ) => void;
 export function on<K extends string>(
   target: typeof window,

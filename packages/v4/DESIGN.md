@@ -564,6 +564,7 @@ No engine ships stage-3 decorators, so **every decorator is a thin wrapper over 
 
 `@on` accepts a name or a value: `@on('click')`, `@on('AccordionItem', 'open')`, `@on(AccordionItem, 'open')`, `@on(window, 'load')`, `@on(document, 'click')`. Nothing is reserved in its string space: `'Window'` means the child and `window` means the global.
 
+- **The one-argument form types its event from `HTMLElementEventMap`**, so `@on('click')` hands over a `MouseEvent` and `@on('submit')` a `SubmitEvent`. A name outside that map is a component event, whose detail only its emitter knows, so the handler declares the type it expects — `@on('content') inject(event: CustomEvent<{ content: string }>)`.
 - **A class resolves to its merged `config.name`** and lands on the same delegated entry as the string form. The class is the type, so `target` is the component and `payload` comes from its `$emits`. `@on(window, 'click')` types the event from `WindowEventMap` and falls back to `Event`.
 - **A lazy child needs the string form.** `@on('Child', 'open')` imports nothing. A thunk is not a target; the overloads and the runtime refuse it.
 - **A name is a child or a ref**, resolved children-first, so the handler is typed as `DelegatedEvent` or `RefEvent`.
@@ -707,6 +708,10 @@ A service is a shared source of props that components subscribe to: `ticked`, `s
 - **`damp(…, elapsed)` takes the elapsed time as a required argument.** `factor` is the fraction of the gap that closes per reference frame. It is stable for every value that a caller can pass. `ScrollInViewProps` carries `delta` for the same reason.
 - **`spring()` integrates on a fixed `SPRING_STEP` of a quarter frame**, however long the frame is, so `stiffness`, `damping` and `mass` keep their meaning and the duration is real. `stiffness / mass` is clamped to `MAX_SPRING_RATIO`, from which the step is derived.
 - **`smoothTo()` is a `toggle()` over `useRaf()`**: one subscription however many times the target is set, started when the value has somewhere to go, released when it arrives, plus `destroy()` for the case where the component goes first.
+- **`damping` accepts a function, read on every frame and for every channel.** A component's factor is an option, and `$options` is a live view over attributes, so a factor captured once would freeze an attribute the framework keeps live. The same hook expresses a factor that depends on the direction of travel — read the current value and decide — and gives one channel of a record a different rate from its neighbour. A number stays a number.
+- **`smoothTo({ … })` smooths several named values on one subscription.** The keys are the consumer's own: a scale, an opacity or a progress as readily as a coordinate. One frame subscription, one settled state — the loop stops when the _last_ channel arrives — and one subscriber call per frame carrying the whole record. A call sets only the channels it names, so re-aiming one leaves a neighbour mid-flight alone. The record handed out is the same object every frame, as a service hands the same props; treat it as read-only. The mode (`spring`, `stiffness`, `mass`) belongs to the instance, not the channel.
+- **`jump()` sets a value and its target together**, with no travel and no frame: the reset a component needs when a mount cycle starts from rest. A channel it does not name keeps travelling.
+- **`precision` defaults to the default of the function each mode wraps** — `0.01` damping, `1e-4` springing — so converting a raw `damp()` call to the helper does not move where it snaps.
 - **A gesture that the browser can steal is not a gesture.** `useDrag` owns both axes by default and writes `touch-action: none`. `{ axis: 'x' }` writes `pan-y` and sets every Y movement prop to zero; `{ axis: 'y' }` writes `pan-x` and sets X to zero. It writes only when the computed value is `auto`, and it restores the previous inline value when the last service of those options leaves. Services on one target share that ownership. The click that ends a drag is suppressed from a flag that movement on the owned axis arms and the next `pointerdown` disarms, and only for a trusted click with a non-zero `detail`.
 - **Errors use the diagnostic protocol.** A subscriber that throws is skipped. Core dispatches `EVENTS.diagnostic` first, and calls `reportError()` with the original value only when no listener cancelled the event.
 
@@ -735,10 +740,10 @@ See [RATIONALE.md — 9. Animation](./RATIONALE.md#9-animation).
 ## 10. DOM content swapping — `swap()`
 
 ```js
-swap(target, content, { mode, wrap }): Promise<void>
+swap(target, content, { mode, wrap, self }): Promise<void>
 ```
 
-- `target` is an element whose **content** changes. The element itself is never replaced, so the reference of the caller, its `id` and any instance on it survive.
+- `target` is an element whose **content** changes. By default the element itself is never replaced, so the reference of the caller, its `id` and any instance on it survive.
 - `content` is a markup string, parsed in the parsing context of the target, so `<tr>`, `<li>` and `<option>` survive. It can also be an `Element` or a `DocumentFragment`, read as the incoming counterpart of the target, whose children become the new content.
 - The returned promise resolves after `whenDOMSettled()`, so an awaited `swap()` means that the mutation is applied, the new components are mounted and the old ones are destroyed.
 
@@ -746,10 +751,16 @@ swap(target, content, { mode, wrap }): Promise<void>
 
 A `<script>` produced by the fragment parser is flagged as already started by the HTML specification and stays inert wherever it is moved. It runs only if it is recreated, and a script that was already in the page runs twice if it is recreated. `swap()` owns that rule, once.
 
-Three things are not in core:
+**`self` replaces the target element itself**, attributes included, instead of its children. It is the axis a caller that matches an element of a response to an element of the page needs: an id-matched section otherwise keeps the classes of the element it replaces.
 
-- **Element-level replace.** Core's `replace` is `replaceChildren`.
-- **Attribute syncing in `morph`.** Core passes `childrenOnly: true`, because `data-component` and `data-mount` are lifecycle declarations.
+- With `self`, an `Element` content **is** the replacement rather than a container — that is the only way its own attributes reach the page. A string or a `DocumentFragment` contributes its first top-level element.
+- `replace` puts the replacement in the place of the target, so the target leaves the document. `morph` morphs the target from the replacement without `childrenOnly`, so the element and its identity survive while its attributes are updated.
+- `append` and `prepend` add to the children by definition. `self` with either is a `swap.self-ignored` warning, as is a content that holds no element.
+- Script adoption follows whatever ends up in the document, so a replacement carrying a script still runs it exactly once.
+
+Two things are not in core:
+
+- **Attribute syncing in a default `morph`.** Core passes `childrenOnly: true` without `self`, because `data-component` and `data-mount` are lifecycle declarations of the target.
 - **Transitions, view transitions, history, `id` matching and response parsing.** All of these are caller policy.
 
 Two consequences of `morph` are policy of morphdom, not of `swap()`: an element that the incoming markup does not contain is discarded even from a preserved parent, and morphdom syncs the `value` of an input from the incoming markup. Identity survives a morph — nodes, focus, expandos, instances — but markup that is not sent does not.
