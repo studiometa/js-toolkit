@@ -10,13 +10,14 @@ import {
   type MountedReturn,
   type RafRender,
 } from '../../src/index.js';
+import { SCROLL_ALIGNMENTS, SCROLL_AXES, scrollPosition } from '../../src/utils/scrollTo.js';
 import { CarouselBtn } from './CarouselBtn.js';
 import { CarouselDrag } from './CarouselDrag.js';
 import { CarouselItem } from './CarouselItem.js';
 import { CarouselWrapper } from './CarouselWrapper.js';
 import { CarouselContext, type CarouselApi, type CarouselState } from './context.js';
 import { Indexable, type IndexableInstruction, type IndexableProps } from './Indexable.js';
-import { centeredScrollPosition, type ScrollPosition } from './utils.js';
+import { type ScrollPosition } from './utils.js';
 
 export type CarouselProps = IndexableProps & {
   $options: IndexableProps['$options'] & {
@@ -128,7 +129,13 @@ export class Carousel extends withResize(withRaf(Indexable, { manual: true }))<C
       return [];
     }
 
-    this.#positions ??= this.items.items.map((item) => centeredScrollPosition(item.$el, scroller));
+    this.#positions ??= this.items.items.map((item) =>
+      scrollPosition(item.$el, {
+        rootElement: scroller,
+        axis: SCROLL_AXES.both,
+        align: SCROLL_ALIGNMENTS.center,
+      }),
+    );
 
     return this.#positions;
   }

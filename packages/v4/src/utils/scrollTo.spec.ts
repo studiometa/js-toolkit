@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cdp } from 'vitest/browser';
 import type {} from '@vitest/browser-playwright';
 import { createElement } from './dom.js';
-import { scrollTo, SCROLL_AXES } from './scrollTo.js';
+import { scrollPosition, scrollTo, SCROLL_AXES } from './scrollTo.js';
 
 /** A page taller and wider than the viewport, with a target inside it. */
 function givenAScrollablePage(): HTMLElement {
@@ -184,5 +184,116 @@ describe('scrollTo', () => {
 
     expect(spy).toHaveBeenCalledWith({ left: 0, top: 100, behavior: 'auto' });
     spy.mockRestore();
+  });
+});
+
+describe('scrollPosition', () => {
+  it('answers where a scroll would land without scrolling', () => {
+    givenAScrollablePage();
+
+    const destination = scrollPosition('#target', { axis: SCROLL_AXES.both });
+
+    expect(destination).toEqual({ left: 1500, top: 2000 });
+    // The measurement half moves nothing: that is the whole point of it.
+    expect(window.scrollY).toBe(0);
+    expect(window.scrollX).toBe(0);
+  });
+
+  it('gives the current position back for a target that is not there', () => {
+    givenAScrollablePage();
+    window.scrollTo({ left: 10, top: 20, behavior: 'instant' });
+
+    expect(scrollPosition('#nothing', { axis: SCROLL_AXES.both })).toEqual({ left: 10, top: 20 });
+  });
+
+  it('agrees with what `scrollTo()` does', () => {
+    const { root, target } = givenAScrollingElement();
+
+    const measured = scrollPosition(target, { rootElement: root, axis: SCROLL_AXES.both });
+    const moved = scrollTo(target, {
+      rootElement: root,
+      axis: SCROLL_AXES.both,
+      behavior: 'instant',
+    });
+
+    expect(measured).toEqual(moved);
+  });
+});
+
+describe('scrollTo — alignment', () => {
+  it('centres an element in its scroller', () => {
+    const { root, target } = givenAScrollingElement();
+
+    const destination = scrollTo(target, {
+      rootElement: root,
+      axis: SCROLL_AXES.both,
+      align: 'center',
+      behavior: 'instant',
+    });
+
+    // The target starts at 700/600 in the content, the scroller shows 200
+    // square — `clientWidth` is the content box, so the borders are already
+    // out — and the target is 50 square: centring backs off (200 - 50) / 2.
+    expect(destination).toEqual({ left: 625, top: 525 });
+  });
+
+  it('rests an element against the end of its scroller', () => {
+    const { root, target } = givenAScrollingElement();
+
+    const destination = scrollTo(target, {
+      rootElement: root,
+      axis: SCROLL_AXES.both,
+      align: 'end',
+      behavior: 'instant',
+    });
+
+    // The whole gap this time: 200 - 50.
+    expect(destination).toEqual({ left: 550, top: 450 });
+  });
+
+  it('takes one alignment per axis', () => {
+    const { root, target } = givenAScrollingElement();
+
+    const destination = scrollTo(target, {
+      rootElement: root,
+      axis: SCROLL_AXES.both,
+      align: { x: 'center' },
+      behavior: 'instant',
+    });
+
+    // `y` was left alone, so it keeps the start alignment.
+    expect(destination).toEqual({ left: 625, top: 600 });
+  });
+
+  it('clamps a centred element at the start of the scroller', () => {
+    const { root } = givenAScrollingElement();
+    const near = createElement('div');
+    near.style.cssText = 'width: 50px; height: 50px; position: absolute; top: 0; left: 0;';
+    root.firstElementChild?.append(near);
+
+    const destination = scrollTo(near, {
+      rootElement: root,
+      axis: SCROLL_AXES.both,
+      align: 'center',
+      behavior: 'instant',
+    });
+
+    // Centring the first item would ask for a negative offset.
+    expect(destination).toEqual({ left: 0, top: 0 });
+  });
+
+  it('leaves a position target alone, since it names its own destination', () => {
+    const { root } = givenAScrollingElement();
+
+    const destination = scrollTo(
+      { left: 100, top: 100 },
+      {
+        rootElement: root,
+        align: 'center',
+        behavior: 'instant',
+      },
+    );
+
+    expect(destination).toEqual({ left: 100, top: 100 });
   });
 });

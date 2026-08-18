@@ -624,9 +624,17 @@
       "types": "./dist/subpaths/utils/randomItem.d.ts",
       "import": "./dist/subpaths/utils/randomItem.js"
     },
+    "./utils/SCROLL_ALIGNMENTS": {
+      "types": "./dist/subpaths/utils/SCROLL_ALIGNMENTS.d.ts",
+      "import": "./dist/subpaths/utils/SCROLL_ALIGNMENTS.js"
+    },
     "./utils/SCROLL_AXES": {
       "types": "./dist/subpaths/utils/SCROLL_AXES.d.ts",
       "import": "./dist/subpaths/utils/SCROLL_AXES.js"
+    },
+    "./utils/scrollPosition": {
+      "types": "./dist/subpaths/utils/scrollPosition.d.ts",
+      "import": "./dist/subpaths/utils/scrollPosition.js"
     },
     "./utils/scrollTo": {
       "types": "./dist/subpaths/utils/scrollTo.d.ts",

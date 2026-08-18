@@ -783,6 +783,18 @@ Promoted from `migration/utils/` into `src/`:
 - The easing functions, on `utils/easings.ts`.
 - `spring()` and `smoothTo()`.
 
+### Scrolling to a target
+
+```js
+scrollPosition(target, { rootElement, axis, offset, align }): ScrollPosition
+scrollTo(target, { …the same, behavior }): ScrollPosition
+```
+
+- **The two halves are separate because callers need them separately.** `scrollPosition()` measures and returns; `scrollTo()` calls it and moves. A carousel asks which slide is nearest three times for every time it travels, and asking used to mean scrolling.
+- **`align` is `'start' | 'center' | 'end'`, or one per axis**, and it applies to an **element** target only: a number or a position names its own destination. The names are physical, like `axis` — `x` and `y`, not the platform's `inline` and `block` — because nothing here maps a writing mode, and borrowing that vocabulary without the mapping would promise what `compute-scroll-into-view` promises and does not deliver.
+- **The viewport is the client box**, so a scrollbar gutter is out of the arithmetic without a special case, and the destination is clamped to the scroll range: centring the first slide asks for a negative offset and gets `0`.
+- **A dependency was measured and refused.** `compute-scroll-into-view` is 1.4 kB and walks every scrolling ancestor — which is what v4's single `rootElement` contract declines, and what `@studiometa/ui` already cancels with `boundary`. Its own source leaves writing modes unimplemented and reads no `scroll-padding`, so the real delta over core was ~20 lines.
+
 The keyframes interpolator and its `cubicBezier` stay in `migration/ScrollAnimation/`, beside the only family that calls them, so they leave with it in one deletion.
 
 Out of core, in a separate `ui-animation` package: time-based playback, stagger, sequencing, morphing and text splitting. Two entry points over one package — Motion as declarative components (`data-component="Motion"`, its props as `data-option-*`), and GSAP as a lifecycle and scoping decorator (`gsap.context()` bound to the mount cycle) with thin `Gsap` and `GsapTimeline` components. Both keep the vocabulary of their engine.

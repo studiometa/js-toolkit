@@ -14,8 +14,4 @@ export {
   type IndexableInstruction,
   type IndexableProps,
 } from './Indexable.js';
-export {
-  centeredScrollPosition,
-  getClosestIndex,
-  type ScrollPosition as CarouselScrollPosition,
-} from './utils.js';
+export { getClosestIndex, type ScrollPosition as CarouselScrollPosition } from './utils.js';
