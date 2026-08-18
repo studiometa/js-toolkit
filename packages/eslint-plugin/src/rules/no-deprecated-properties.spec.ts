@@ -73,6 +73,7 @@ describe('no-deprecated-properties', () => {
         },
         {
           code: `class Slider extends Base {
+                   static config = { name: 'Slider' };
                    mounted() { this.$log('a'); }
                  }`,
           options: v4,
@@ -80,6 +81,7 @@ describe('no-deprecated-properties', () => {
         },
         {
           code: `class Slider extends Base {
+                   static config = { name: 'Slider' };
                    mounted() { this.$warn('a'); }
                  }`,
           options: v4,
@@ -87,6 +89,7 @@ describe('no-deprecated-properties', () => {
         },
         {
           code: `class Slider extends Base {
+                   static config = { name: 'Slider' };
                    mounted() { this.$update(); }
                  }`,
           options: v4,
@@ -94,6 +97,7 @@ describe('no-deprecated-properties', () => {
         },
         {
           code: `class Slider extends Base {
+                   static config = { name: 'Slider' };
                    onClick() { this.$terminate(); }
                  }`,
           options: v4,
@@ -115,6 +119,7 @@ describe('no-deprecated-properties', () => {
         },
         {
           code: `class Slider extends Base {
+                   static config = { name: 'Slider' };
                    updated() {}
                  }`,
           options: v4,
@@ -122,6 +127,7 @@ describe('no-deprecated-properties', () => {
         },
         {
           code: `class Slider extends Base {
+                   static config = { name: 'Slider' };
                    terminated() {}
                  }`,
           options: v4,

@@ -217,26 +217,111 @@ function unwrapTypeArguments(node: Node): Node {
 }
 
 /**
+ * The instance surface only a v4 component has.
+ *
+ * Reaching for one of these off `this` is the signal that a class extending
+ * something unresolvable is a component rather than an ordinary subclass. The
+ * lifecycle and service hook names are deliberately **not** in this set: they
+ * are the very thing a rule like `no-write-in-read-phase` keys on, so counting
+ * them as proof would make the test circular and let `class Store extends
+ * Error { ticked() {} }` pass for a component.
+ */
+const COMPONENT_MEMBERS = new Set([
+  '$el',
+  '$refs',
+  '$options',
+  '$id',
+  '$config',
+  '$isMounted',
+  '$emit',
+  '$on',
+  '$off',
+  '$query',
+  '$closest',
+  '$watchChildren',
+  '$provide',
+  '$inject',
+  '$injectSync',
+  '$read',
+  '$write',
+  '$mount',
+  '$destroy',
+  '$services',
+]);
+
+/**
+ * Returns true if the class body reaches for the framework surface off `this`.
+ */
+function usesComponentSurface(node: Node): boolean {
+  let found = false;
+
+  walk(node.body, (inner: Node) => {
+    if (found) return false;
+
+    // A nested class carries its own identity; do not read it as this one's.
+    if (
+      inner !== node.body &&
+      (inner.type === 'ClassDeclaration' || inner.type === 'ClassExpression')
+    ) {
+      return false;
+    }
+
+    if (
+      inner.type === 'MemberExpression' &&
+      !inner.computed &&
+      inner.object?.type === 'ThisExpression' &&
+      COMPONENT_MEMBERS.has(inner.property?.name)
+    ) {
+      found = true;
+      return false;
+    }
+  });
+
+  return found;
+}
+
+/**
  * Returns true if a class looks like a v4 component.
  *
- * v4 has three spellings and a lint rule sees no types, so this accepts all of
- * them: `extends Base`, `extends with<Service>(…)` at any nesting depth, and a
- * class carrying the `@component({ … })` decorator. A class extending a local
- * abstract component — `extends AbstractCarouselChild` — is accepted too,
- * because the base and the subclass live in different files and a single-file
- * linter cannot follow the chain. Anything not extending and not decorated is
- * rejected.
+ * A component always extends something — `Base`, a `with<Service>(…)` mixin,
+ * or a local abstract component — so a superclass is necessary. It is nowhere
+ * near sufficient: `class Store extends Error` would read as a component, and
+ * `prefer-instance-scheduler` would then tell it to call a `this.$read()` it
+ * does not have, which is wrong advice rather than mere noise.
+ *
+ * Restricting to a list of known bases is not the answer either. `extends
+ * AbstractCarouselChild`, `extends Indexable` and `extends AbstractPrefetch`
+ * are the common shape in `@studiometa/ui`, and a single-file linter cannot
+ * follow the chain to `Base`.
+ *
+ * So a superclass **plus** a second signal in the same class body: a
+ * `@component({ … })` decorator, a `static config`, or use of the framework
+ * surface off `this`. That keeps a subclass of a local abstract component —
+ * which reads `this.$el` or emits — while rejecting a class that merely
+ * extends something.
+ *
+ * Requiring the superclass is what keeps `Base` itself out. It declares
+ * `static config` and defines the whole surface, but it extends nothing, and
+ * the class defining `$read()` is not a class that should be told to call it.
+ *
+ * A component using none of the three anywhere in its body is missed, which
+ * is the right way to be wrong: a false negative rather than advice that does
+ * not apply.
  */
 export function isComponentClass(node: Node): boolean {
   if (node?.type !== 'ClassDeclaration' && node?.type !== 'ClassExpression') {
     return false;
   }
 
-  if (hasDecorator(node, new Set(['component']))) {
-    return true;
+  if (!unwrapTypeArguments(node.superClass)) {
+    return false;
   }
 
-  return Boolean(unwrapTypeArguments(node.superClass));
+  return (
+    hasDecorator(node, new Set(['component'])) ||
+    Boolean(findStaticConfig(node)) ||
+    usesComponentSurface(node)
+  );
 }
 
 /** The object literal passed to a class's `@component({ … })` decorator. */

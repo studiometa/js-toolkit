@@ -90,6 +90,19 @@ describe('no-write-in-read-phase', () => {
              document.body.style.color = 'red';
            }
          }`,
+        // Extending something is not enough. A `ticked` method cannot be its
+        // own proof of being a component, or the test would be circular.
+        `class Store extends Error {
+           ticked() {
+             document.body.style.color = 'red';
+           }
+         }`,
+        // Nor does an unrelated subclass become one by holding a scheduler.
+        `class Queue extends Array {
+           scrolled() {
+             document.body.classList.add('x');
+           }
+         }`,
       ],
       invalid: [
         {
@@ -184,6 +197,29 @@ describe('no-write-in-read-phase', () => {
           code: `class Foo extends Base {
                    scrolled() {
                      this.$el.scrollTo(0, 0);
+                   }
+                 }`,
+          errors: [{ messageId: 'writeInReadPhase' }],
+        },
+        {
+          // A subclass of a local abstract component, with no decorator and no
+          // static config: the framework surface it reaches for is the proof.
+          // The base lives in another file, so nothing else could be.
+          code: `class CarouselItem extends AbstractCarouselChild {
+                   ticked() {
+                     this.$el.style.transform = 'none';
+                   }
+                 }`,
+          errors: [{ messageId: 'writeInReadPhase' }],
+        },
+        {
+          // The surface may be anywhere in the body, not only in the hook.
+          code: `class SliderItem extends Indexable {
+                   mounted() {
+                     this.$emit('ready');
+                   }
+                   scrolled() {
+                     document.body.style.color = 'red';
                    }
                  }`,
           errors: [{ messageId: 'writeInReadPhase' }],
