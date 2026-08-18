@@ -1,5 +1,4 @@
 import {
-  defaultScheduler,
   useRaf,
   useResize,
   useWindowScroll,
@@ -234,12 +233,15 @@ function apply(
       props.dampedCurrentY = props.currentY;
       props.dampedProgressX = props.progressX;
       props.dampedProgressY = props.progressY;
-      // Destruction cancels instance-owned tasks, so use the global scheduler.
-      defaultScheduler.read(() => {
+      // `$destroy()` cancels the instance's pending tasks before it runs the
+      // cleanups and `destroyed()`, so the instance lane is still live here
+      // and the snap render survives — while staying cancelable by a later
+      // destroy, which the global scheduler never was.
+      this.$read(() => {
         // Called through the optional-call so the hook stays bound to `this`.
         const render = (this as unknown as ScrolledInViewHook).scrolledInView?.(props);
         if (typeof render === 'function') {
-          defaultScheduler.write(render);
+          this.$write(render);
         }
       });
     }
