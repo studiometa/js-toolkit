@@ -646,6 +646,8 @@ The click that ends a drag is suppressed from a flag armed by movement. Reading 
 
 - **The sugar layers are keyed on a declared name, and that is worth saying rather than discovering.** Two ports found the same wall from two directions — `Action` for `on<Event>`, `Track` for `with<Service>` — and both were right to hand-roll. The earlier write-up called the name "compile-time", which is wrong twice: nothing resolves at compile time, and the audience this framework puts first has no compile step at all. What is fixed is that one method is one subscription, decided by the class rather than by the markup. A component whose subscriptions are data subscribes by hand, and the framework's job is to make that path obvious instead of making the sugar dynamic.
 
+- **The `target` resolver's typing cannot be fixed, so the failure it hides is checked instead.** A mixin runs while the class it is applied to is still being defined, so the resolver cannot be typed against that class: the call site asserts a shape, as v3 does with `@ts-expect-error`. A ref-name form was built and rejected — it removed the cast, but it added a second spelling of one option to fix a typing inconvenience. What the cast actually costs is not the syntax but the silence: an assertion that goes stale resolves to `undefined`, and `useResize()` defaults its target to the document element, so the component observes the page and looks fine. Core reports that instead, which is five lines rather than twenty-five, and it covers a hand-written resolver as well as a stale one.
+
 ## 9. Animation
 
 The usage data across `@studiometa/ui` is one-sided:

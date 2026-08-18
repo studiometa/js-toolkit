@@ -89,8 +89,9 @@ export class Draggable<T extends BaseProps = BaseProps> extends withResize(
   withRaf(
     withDrag(Base, {
       // The mixin is applied before this class exists, so the host is `Base`
-      // and the resolver has to name the shape it needs rather than the class.
-      // v3 spells the same thing `@ts-expect-error`.
+      // and the resolver names the shape it needs rather than the class. v3
+      // spells the same thing `@ts-expect-error`. It is an assertion, not a
+      // check — core reports a resolver which comes back with nothing.
       target: (instance) => (instance as Base & { readonly target: HTMLElement }).target,
     }),
     { manual: true },

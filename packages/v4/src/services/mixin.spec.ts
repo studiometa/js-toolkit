@@ -464,6 +464,67 @@ describe('service mixins', () => {
   });
 });
 
+describe('a resolver which comes back with nothing', () => {
+  it('reports it and starts no subscription, rather than observing a default', async () => {
+    const codes: string[] = [];
+    const onDiagnostic = (event: Event) => {
+      event.preventDefault();
+      codes.push((event as CustomEvent<{ code: string }>).detail.code);
+    };
+    document.addEventListener('js-toolkit:diagnostic', onDiagnostic);
+
+    class Renamed extends Base {
+      static config = { name: 'RenamedTarget' };
+      calls = 0;
+      resized(): void {
+        this.calls += 1;
+      }
+    }
+    // What a stale assertion looks like: the ref it named is gone.
+    const Mixed = withResize(Renamed, {
+      target: (instance) => (instance as unknown as { gone: HTMLElement }).gone,
+      immediate: true,
+    });
+
+    const instance = new Mixed(render()).$mount();
+    await settle();
+    document.removeEventListener('js-toolkit:diagnostic', onDiagnostic);
+
+    expect(codes).toEqual(['service.missing-target']);
+    // `useResize()` defaults its target to the document element, so without
+    // this the component would have observed the page and looked fine.
+    expect(instance.calls).toBe(0);
+    // One subscription is missing, not the mount cycle.
+    expect(instance.$isMounted).toBe(true);
+
+    instance.$destroy();
+  });
+
+  it('leaves a service whose own target is nothing alone', () => {
+    const codes: string[] = [];
+    const onDiagnostic = (event: Event) => {
+      event.preventDefault();
+      codes.push((event as CustomEvent<{ code: string }>).detail.code);
+    };
+    document.addEventListener('js-toolkit:diagnostic', onDiagnostic);
+
+    // `withRaf` resolves no target by design, and that is the contract rather
+    // than a mistake — only a caller's resolver can be wrong.
+    // No settle: `Ticker` is registered by an earlier spec, and the registry
+    // destroys an instance whose element carries no matching token — which is
+    // correct, and would take this instance with it.
+    const instance = new Ticker(render()).$mount();
+    document.removeEventListener('js-toolkit:diagnostic', onDiagnostic);
+
+    expect(codes).toEqual([]);
+    // It subscribed: this service observes nothing by design, which is the
+    // contract rather than a mistake.
+    expect(instance.$services.ticked.isActive).toBe(true);
+
+    instance.$destroy();
+  });
+});
+
 describe('a manual hook', () => {
   class Settler extends withRaf(Base, { manual: true }) {
     static config = { name: 'Settler' };
