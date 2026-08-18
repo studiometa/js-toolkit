@@ -1,4 +1,5 @@
 import { defaultScheduler } from './scheduler.js';
+import { getSharedRuntimeSlot } from './shared-runtime.js';
 
 /**
  * Control when an instance mounts.
@@ -13,13 +14,29 @@ export type MountStrategy =
   | `in-view:${string}`
   | 'idle'
   | 'interaction'
+  | 'interaction:'
+  | 'interaction:page'
   | `media:${string}`;
+
+/** The one scope `interaction` takes; bare `interaction` is the element. */
+const PAGE_SCOPE = 'page';
 
 /**
  * Events that mount before the related interaction completes.
  * `pointerenter` also fires when an element appears under a resting cursor.
  */
 const INTENT_EVENTS = ['pointerenter', 'pointerdown', 'focusin'] as const;
+
+/**
+ * What counts as the user engaging with the **page**.
+ *
+ * Aiming is intent for one element and noise for a document: a pointer
+ * crossing into the page says nothing about engagement, and `pointerenter` on
+ * the document would fire on the first mouse move of almost every desktop
+ * visit. So the page set keeps the deliberate acts only — a press, a key, a
+ * focus — and drops the hover the element set is built around.
+ */
+const PAGE_INTENT_EVENTS = ['pointerdown', 'keydown', 'focusin'] as const;
 
 export interface MountStrategyHooks {
   mount: () => void;
@@ -45,7 +62,7 @@ export type AppliedMountStrategy =
 type ParsedMountStrategy =
   | { kind: 'eager' }
   | { kind: 'idle' }
-  | { kind: 'interaction' }
+  | { kind: 'interaction'; page: boolean }
   | { kind: 'media'; query: string }
   | { kind: 'viewport'; reversible: boolean; rootMargin?: string }
   | { kind: 'invalid'; error: unknown };
@@ -73,7 +90,19 @@ function parseMountStrategy(strategy: string): ParsedMountStrategy {
         }
       : { kind: 'media', query: parameter };
   }
-  if (strategy === 'eager' || strategy === 'idle' || strategy === 'interaction') {
+  if (name === 'interaction') {
+    // An empty parameter reads as the bare name, as `visible:` does.
+    if (parameter === '' || parameter === PAGE_SCOPE) {
+      return { kind: 'interaction', page: parameter === PAGE_SCOPE };
+    }
+    return {
+      kind: 'invalid',
+      error: new TypeError(
+        `The interaction mount strategy takes "${PAGE_SCOPE}" or nothing, not "${parameter}".`,
+      ),
+    };
+  }
+  if (strategy === 'eager' || strategy === 'idle') {
     return { kind: strategy };
   }
   return { kind: 'invalid', error: new TypeError(`Unknown mount strategy "${strategy}".`) };
@@ -106,6 +135,74 @@ export function mountStrategyBehaviour(strategy: string): MountStrategyBehaviour
 /** Keep an invalid strategy inert while exposing the exact failure. */
 function rejectMountStrategy(error: unknown): AppliedMountStrategy {
   return { valid: false, dispose() {}, error };
+}
+
+/**
+ * The page-wide interaction signal, shared by every element waiting for it.
+ *
+ * One listener per event type for the whole page, not per waiting element: a
+ * page deferring fifty components would otherwise put a hundred and fifty
+ * listeners on the document to answer one question. `hasFired` is the other
+ * half of that — the signal is a fact about the visit, so an element which
+ * arrives after the user has already interacted mounts at once rather than
+ * waiting for a second interaction that may never come.
+ */
+const pageInteraction = /* @__PURE__ */ getSharedRuntimeSlot<{
+  waiting: Set<() => void>;
+  hasFired: boolean;
+  release: (() => void) | null;
+}>('mount-strategy:page-interaction', 1, () => ({
+  waiting: new Set(),
+  hasFired: false,
+  release: null,
+}));
+
+/** Listen in the capture phase, so a handler stopping propagation cannot hide the visit. */
+function listenForPageInteraction(): void {
+  const onIntent = () => {
+    pageInteraction.hasFired = true;
+    pageInteraction.release?.();
+    // Snapshot: a mount may register or dispose another waiting element.
+    const batch = [...pageInteraction.waiting];
+    pageInteraction.waiting.clear();
+    for (const mount of batch) {
+      mount();
+    }
+  };
+
+  for (const type of PAGE_INTENT_EVENTS) {
+    document.addEventListener(type, onIntent, { capture: true });
+  }
+
+  pageInteraction.release = () => {
+    pageInteraction.release = null;
+    for (const type of PAGE_INTENT_EVENTS) {
+      document.removeEventListener(type, onIntent, { capture: true });
+    }
+  };
+}
+
+/** Wait for the first interaction with the page, or mount now if it already happened. */
+function whenPageInteracted(mount: () => void): AppliedMountStrategy {
+  if (pageInteraction.hasFired) {
+    mount();
+    return { valid: true, dispose() {} };
+  }
+
+  pageInteraction.waiting.add(mount);
+  if (!pageInteraction.release) {
+    listenForPageInteraction();
+  }
+
+  return {
+    valid: true,
+    dispose() {
+      pageInteraction.waiting.delete(mount);
+      if (pageInteraction.waiting.size === 0) {
+        pageInteraction.release?.();
+      }
+    },
+  };
 }
 
 /**
@@ -161,6 +258,10 @@ export function applyMountStrategy(
   }
 
   if (parsed.kind === 'interaction') {
+    if (parsed.page) {
+      return whenPageInteracted(mount);
+    }
+
     const onIntent = () => {
       teardown();
       mount();

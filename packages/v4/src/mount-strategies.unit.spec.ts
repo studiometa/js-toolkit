@@ -37,6 +37,8 @@ expectTypeOf<'visible:200px'>().toMatchTypeOf<MountStrategy>();
 expectTypeOf<'in-view:200px 0px'>().toMatchTypeOf<MountStrategy>();
 expectTypeOf<'in-view:-10% 0px'>().toMatchTypeOf<MountStrategy>();
 expectTypeOf<'visible:'>().toMatchTypeOf<MountStrategy>();
+expectTypeOf<'interaction:page'>().toMatchTypeOf<MountStrategy>();
+expectTypeOf<'interaction:'>().toMatchTypeOf<MountStrategy>();
 expectTypeOf<'visible:200px'>().toMatchTypeOf<NonNullable<BaseConfig['mountStrategy']>>();
 expectTypeOf<'in-view:-10% 0px'>().toMatchTypeOf<
   NonNullable<ComponentManifestEntry['mountStrategy']>
@@ -44,6 +46,9 @@ expectTypeOf<'in-view:-10% 0px'>().toMatchTypeOf<
 // @ts-expect-error only visible and in-view accept viewport parameters
 const invalidViewportStrategy: MountStrategy = 'viewport:200px';
 void invalidViewportStrategy;
+// @ts-expect-error `page` is the only scope the interaction strategy takes
+const invalidInteractionScope: MountStrategy = 'interaction:document';
+void invalidInteractionScope;
 
 describe('mountStrategyBehaviour', () => {
   // The registry schedules against these two facts, so they belong to the
@@ -58,6 +63,8 @@ describe('mountStrategyBehaviour', () => {
     ['in-view:-10% 0px', { eager: false, reversible: true }],
     ['idle', { eager: false, reversible: false }],
     ['interaction', { eager: false, reversible: false }],
+    ['interaction:page', { eager: false, reversible: false }],
+    ['interaction:nope', { eager: false, reversible: false }],
     ['media:(min-width: 1px)', { eager: false, reversible: true }],
     ['eagre', { eager: false, reversible: false }],
     ['media:', { eager: false, reversible: false }],
@@ -99,6 +106,33 @@ describe('applyMountStrategy synchronous evaluation', () => {
       applied.dispose();
     },
   );
+});
+
+describe('applyMountStrategy interaction scope', () => {
+  it('reads a bare or empty parameter as the element scope', () => {
+    for (const strategy of ['interaction', 'interaction:']) {
+      const el = document.createElement('div');
+      const mount = vi.fn();
+      const applied = applyMountStrategy(el, strategy, { mount, destroy: () => {} });
+
+      expect(applied.valid).toBe(true);
+      el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      expect(mount).toHaveBeenCalledTimes(1);
+      applied.dispose();
+    }
+  });
+
+  it('refuses a scope it does not know, naming the one it takes', () => {
+    const applied = applyMountStrategy(document.createElement('div'), 'interaction:document', {
+      mount: () => {},
+      destroy: () => {},
+    });
+
+    expect(applied.valid).toBe(false);
+    expect(applied.error).toBeInstanceOf(TypeError);
+    expect((applied.error as TypeError).message).toContain('"page"');
+    applied.dispose();
+  });
 });
 
 describe('applyMountStrategy viewport parameters', () => {

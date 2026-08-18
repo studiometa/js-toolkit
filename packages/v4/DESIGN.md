@@ -235,24 +235,29 @@ The plain `data-component` token set is always active. One responsive token set 
 
 ### Mount strategies (#751)
 
-| strategy                 | mounts when                           | reversible |
-| ------------------------ | ------------------------------------- | ---------- |
-| `eager` (default)        | the element enters the document       | no         |
-| `visible[:<rootMargin>]` | it first intersects the viewport      | no         |
-| `in-view[:<rootMargin>]` | it intersects the viewport            | yes        |
-| `idle`                   | the main thread becomes idle          | no         |
-| `interaction`            | the user first aims at it             | no         |
-| `media:<query>`          | the query is not empty and it matches | yes        |
+| strategy                 | mounts when                            | reversible |
+| ------------------------ | -------------------------------------- | ---------- |
+| `eager` (default)        | the element enters the document        | no         |
+| `visible[:<rootMargin>]` | it first intersects the viewport       | no         |
+| `in-view[:<rootMargin>]` | it intersects the viewport             | yes        |
+| `idle`                   | the main thread becomes idle           | no         |
+| `interaction`            | the user first aims at **it**          | no         |
+| `interaction:page`       | the user first interacts with the page | no         |
+| `media:<query>`          | the query is not empty and it matches  | yes        |
 
 A component declares its default with `config.mountStrategy`. Any element overrides it with `data-mount`.
 
-The accepted values are exactly `eager`, `visible`, `visible:`, `visible:<rootMargin>`, `in-view`, `in-view:`, `in-view:<rootMargin>`, `idle`, `interaction` and `media:<non-empty query>`. A viewport suffix is passed as `IntersectionObserverInit.rootMargin`. The empty suffix behaves as the bare strategy. There is no threshold, no root element, no JSON options and no second attribute.
+The accepted values are exactly `eager`, `visible`, `visible:`, `visible:<rootMargin>`, `in-view`, `in-view:`, `in-view:<rootMargin>`, `idle`, `interaction`, `interaction:`, `interaction:page` and `media:<non-empty query>`. `page` is the only scope the interaction strategy takes; any other suffix is invalid. A viewport suffix is passed as `IntersectionObserverInit.rootMargin`. The empty suffix behaves as the bare strategy. There is no threshold, no root element, no JSON options and no second attribute.
 
 An unknown value, an empty media query, or a `rootMargin` that the browser refuses leaves the component unmounted. The registry dispatches one cancelable `js-toolkit:diagnostic` event with the code `DIAGNOSTICS.component.invalidMountStrategy`, the severity `error`, the name of the component and the original error. Cancellation suppresses the default `reportError()` output only. The inert controller stays current while the declaration does not change, so the registry does not report it again. A corrected attribute replaces that controller. A failed strategy cannot stop the rest of a reconciliation.
 
 - **A strategy constructs nothing.** It decides when the registry calls the mount and destroy hooks. `withMountWhenInView` is deleted.
 - **One-shot and reversible are separate values.** `visible` mounts once and stays. `in-view` mounts and unmounts on each crossing. `mountStrategyBehaviour()` reads those two facts from the grammar.
-- **`interaction` uses intent**: `pointerenter`, `pointerdown` and `focusin`, so the component mounts before the click arrives.
+- **`interaction` uses intent, on the element**: `pointerenter`, `pointerdown` and `focusin`, bound to the element itself, so the component mounts before the click arrives. Two of the three bubble, so an interaction anywhere inside the component's subtree counts; `pointerenter` fires for the root element only.
+- **`interaction:page` waits for the visit, not for the element.** It is the deferred-widget case — a chat panel, an embed, a third-party script — where nothing about the element predicts the moment, and any sign of a live user does. The events are the deliberate ones: `pointerdown`, `keydown` and `focusin`. Hovering is deliberately not one of them: aiming is intent for one element and noise for a document, and `pointerenter` on the document would fire on the first mouse move of nearly every desktop visit.
+  - **One listener set for the page**, in the shared runtime, not one per waiting element — fifty deferred components would otherwise put a hundred and fifty listeners on the document to answer one question. They are attached with the first waiting element, released on the first interaction, and released again if every waiting element leaves first.
+  - **They are captured**, so a handler which stops propagation cannot hide the visit.
+  - **The signal is a fact about the visit.** An element which arrives after the interaction mounts at once rather than waiting for a second one — but only when the strategy was already listening, since nothing observes a page that has asked for nothing.
 - **Several components on one element share the `data-mount` of that element.** A component that needs its own policy declares it in its config.
 - **A component that waits has no instance.** It is invisible to `$query`, `$closest`, `$watchChildren` and `getInstances()`, and it announces nothing.
 - **Teardown follows the element.** A strategy is disposed when its element leaves the document. A move ends as a destroy and a mount of the same instance.
