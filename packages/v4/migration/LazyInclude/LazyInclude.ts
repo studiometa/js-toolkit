@@ -112,8 +112,16 @@ export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyInclu
     }
   }
 
-  /** Remember that the work is done, so a later mount does not repeat it. */
-  @on('always')
+  /**
+   * Remember a **successful** load, so a later mount does not repeat it.
+   *
+   * `always` fires from the `finally` of the request, so a failed fetch would
+   * mark the element as loaded and never try again. v3 has the same defect for
+   * the same reason — it terminates from `onAlways()` — and this is the one
+   * place the port departs from it: a request that failed is exactly the one
+   * worth retrying when the element mounts again.
+   */
+  @on('content')
   rememberLoad(): void {
     this.hasLoaded = this.$options.terminateOnLoad;
   }

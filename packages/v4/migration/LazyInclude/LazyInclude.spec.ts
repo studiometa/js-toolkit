@@ -270,6 +270,25 @@ describe('LazyInclude', () => {
    * on its element across a move, so "already loaded" survives with it — where
    * termination detached the instance and lost the memory it was made of.
    */
+  it('fetches again after a failed load, whatever `terminateOnLoad` says', async () => {
+    const client = vi.fn().mockRejectedValue(new Error('offline'));
+    vi.stubGlobal('fetch', client);
+    const root = await render(
+      `<div data-component="LazyInclude" data-option-src="/lazy.html" data-option-terminate-on-load></div>`,
+    );
+    const el = root.firstElementChild as HTMLElement;
+    await included();
+    expect(getInstance<LazyInclude>(el, 'LazyInclude').hasLoaded).toBe(false);
+
+    const other = document.createElement('section');
+    document.body.append(other);
+    other.append(el);
+    await included();
+
+    // A request that failed is the one worth retrying on the next mount.
+    expect(client).toHaveBeenCalledTimes(2);
+  });
+
   it('does not fetch again once `terminateOnLoad` has been honoured', async () => {
     const client = stubFetch('<p>remote</p>');
     const root = await render(
