@@ -36,6 +36,8 @@ export const noOptionsAssignment = createRule({
     messages: {
       assignment:
         '`$options` is a read-only view of the element attributes: every property is a getter with no setter, so this throws at runtime. Write the attribute instead, with setAttribute().',
+      viewAssignment:
+        '`$options` is defined non-writable, so replacing the view throws at runtime — and everything else in the framework would go on reading the original. Write the attributes instead, with setAttribute().',
       objectAssign:
         'Object.assign() onto `$options` writes properties which are getters with no setter, so this throws at runtime. Write the attributes instead, with setAttribute().',
     },
@@ -50,12 +52,15 @@ export const noOptionsAssignment = createRule({
       AssignmentExpression(node: Node) {
         const left = node.left;
         if (left?.type !== 'MemberExpression') return;
-        // `this.$options` itself is a plain field; only its properties throw.
-        if (left.object?.type === 'ThisExpression') return;
         if (!isOptionsPath(left)) return;
         if (!inComponent(node)) return;
 
-        context.report({ node, messageId: 'assignment' });
+        // `this.$options` is defined non-writable, so replacing the view
+        // throws just as writing through it does — a different sentence.
+        const isWholeView =
+          left.object?.type === 'ThisExpression' && left.property?.name === '$options';
+
+        context.report({ node, messageId: isWholeView ? 'viewAssignment' : 'assignment' });
       },
 
       CallExpression(node: Node) {

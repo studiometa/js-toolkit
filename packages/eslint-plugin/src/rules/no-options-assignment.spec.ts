@@ -50,6 +50,14 @@ describe('no-options-assignment', () => {
                  }`,
           errors: [{ messageId: 'objectAssign' }],
         },
+        {
+          // `$options` is defined non-writable, so replacing the view throws
+          // too — and the rest of the framework would read the original.
+          code: `class Foo extends Base {
+                   mounted() { this.$options = { speed: 5 }; }
+                 }`,
+          errors: [{ messageId: 'viewAssignment' }],
+        },
       ],
     });
   });

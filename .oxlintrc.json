@@ -157,7 +157,12 @@
         "js-toolkit/no-dispatch-event": "off",
         "js-toolkit/no-shadow-dom": "off",
         "js-toolkit/no-create-app": "off",
-        "js-toolkit/no-event-listener-methods": "off"
+        "js-toolkit/no-event-listener-methods": "off",
+        "js-toolkit/no-write-in-read-phase": "off",
+        "js-toolkit/no-options-assignment": "off",
+        "js-toolkit/prefer-instance-scheduler": "off",
+        "js-toolkit/option-default-factory": "off",
+        "js-toolkit/no-conflicting-negated-option": "off"
       }
     }
   ]
