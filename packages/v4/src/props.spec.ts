@@ -3,7 +3,12 @@ import { Base, type BaseProps } from './Base.js';
 import { registerComponent } from './registry.js';
 import { getInstance, resetDom, settle } from './test-utils.js';
 
-/** Assert assignability when a deferred intersection prevents `expectTypeOf().toExtend()`. */
+/**
+ * Assert assignability when a deferred type prevents `expectTypeOf().toExtend()`.
+ * `$el` needs it for the intersection, `$options` for the `Readonly<>` mapped
+ * over it: inside a class generic in its props, both read as a usable value
+ * rather than as a type identical to the declared one.
+ */
 function assignableTo<T>(_value: T): void {}
 
 interface ActionProps extends BaseProps {
@@ -17,8 +22,8 @@ class Extensible<T extends BaseProps = BaseProps> extends Base<ActionProps & T> 
   static config = { name: 'Extensible', refs: ['btn', 'items[]'], options: { target: String } };
 
   assertions(): void {
-    expectTypeOf(this.$options.target).toEqualTypeOf<string>();
-    expectTypeOf(this.$options.count).toEqualTypeOf<number>();
+    assignableTo<string>(this.$options.target);
+    assignableTo<number>(this.$options.count);
     expectTypeOf(this.$refs.btn).toEqualTypeOf<HTMLElement>();
     expectTypeOf(this.$refs.items).toEqualTypeOf<HTMLElement[]>();
     assignableTo<HTMLFormElement>(this.$el);
@@ -41,7 +46,7 @@ class Constrained<T extends ActionProps = ActionProps> extends Base<T> {
   static config = { name: 'Constrained', refs: ['btn'] };
 
   assertions(): void {
-    expectTypeOf(this.$options.target).toEqualTypeOf<string>();
+    assignableTo<string>(this.$options.target);
     expectTypeOf(this.$refs.btn).toEqualTypeOf<HTMLElement>();
     assignableTo<HTMLFormElement>(this.$el);
     this.$emit('go', { at: 1 });
@@ -65,6 +70,10 @@ class Concrete extends Base<ActionProps> {
   negatives(): void {
     // @ts-expect-error `$id` is stable for the instance
     this.$id = 'replacement';
+    // @ts-expect-error a declared option is an input, never a store
+    this.$options.target = 'elsewhere';
+    // @ts-expect-error an undeclared one is read through the same view
+    this.$options.whatever = 1;
     // @ts-expect-error `nope` is not a declared event
     this.$emit('nope');
     // @ts-expect-error `go` carries a payload

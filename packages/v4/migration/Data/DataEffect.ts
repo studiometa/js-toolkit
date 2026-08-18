@@ -8,9 +8,7 @@ export type DataEffectProps = DataBindProps & {
 };
 
 /** Run an expression on each group update without writing a value back. */
-export class DataEffect extends DataBind {
-  declare $options: DataEffectProps['$options'];
-
+export class DataEffect extends DataBind<DataEffectProps> {
   static config: BaseConfig = {
     name: 'DataEffect',
     options: {
