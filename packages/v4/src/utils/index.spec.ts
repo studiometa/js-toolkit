@@ -11,6 +11,7 @@ import * as maths from './maths.js';
 import * as memoModule from './memo.js';
 import * as noopModule from './noop.js';
 import * as randomModule from './random.js';
+import * as scrollLockModule from './scroll-lock.js';
 import * as scrollToModule from './scrollTo.js';
 import * as selectors from './selectors.js';
 import * as smoothToModule from './smoothTo.js';
@@ -34,6 +35,7 @@ describe('the utils barrel', () => {
       ...Object.keys(memoModule),
       ...Object.keys(noopModule),
       ...Object.keys(randomModule),
+      ...Object.keys(scrollLockModule),
       ...Object.keys(scrollToModule),
       ...Object.keys(selectors),
       ...Object.keys(smoothToModule),

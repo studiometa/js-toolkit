@@ -783,6 +783,18 @@ Promoted from `migration/utils/` into `src/`:
 - The easing functions, on `utils/easings.ts`.
 - `spring()` and `smoothTo()`.
 
+### Locking the page scroll
+
+```js
+lockScroll(target = document.documentElement): () => void
+```
+
+- **It counts.** A modal surface is not alone on a page: a dialog opened from inside a drawer is two holders, and the one which closes first must not put the scroll back under the one still open. The first lock saves the inline value it found, the last release puts exactly that value back, and the ones between only move the count.
+- **The count is shared across evaluated copies of the package**, through the runtime slot `focus` already uses for the same reason: there is one scroll per document.
+- **The release is idempotent**, so a surface calls it on close and again on destroy without counting twice — and a component destroyed while open owes the page its scroll, which is what the second call is for.
+- **It is `overflow: hidden` and nothing else.** No `paddingRight` compensation: `scrollbar-gutter: stable` is the page's own answer and it does not mis-handle fixed children. iOS Safari remains unreliable, which is the argument for having one function rather than a copy per component.
+- `<dialog>`'s `showModal()` gives the top layer, the backdrop, a focus trap and Escape — it does **not** stop the page behind it scrolling, so a native dialog needs this too.
+
 ### Scrolling to a target
 
 ```js

@@ -141,3 +141,35 @@ describe('Dialog', () => {
     expect(document.activeElement).toBe(last);
   });
 });
+
+describe('Dialog — the page scroll', () => {
+  it('keeps the page locked while a second dialog is still open', async () => {
+    const first = render({ withTransition: false });
+    const second = render({ withTransition: false });
+    await settle();
+
+    await getInstance<Dialog>(first, 'Dialog').open();
+    await getInstance<Dialog>(second, 'Dialog').open();
+    expect(document.documentElement.style.overflow).toBe('hidden');
+
+    await getInstance<Dialog>(second, 'Dialog').close();
+
+    // The first one is still open: the page is not its to give back.
+    expect(document.documentElement.style.overflow).toBe('hidden');
+
+    await getInstance<Dialog>(first, 'Dialog').close();
+    expect(document.documentElement.style.overflow).toBe('');
+  });
+
+  it('gives the scroll back when a dialog is destroyed while open', async () => {
+    const el = render({ withTransition: false });
+    await settle();
+    await getInstance<Dialog>(el, 'Dialog').open();
+    expect(document.documentElement.style.overflow).toBe('hidden');
+
+    el.remove();
+    await settle();
+
+    expect(document.documentElement.style.overflow).toBe('');
+  });
+});

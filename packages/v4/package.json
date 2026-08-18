@@ -640,6 +640,10 @@
       "types": "./dist/subpaths/utils/scrollTo.d.ts",
       "import": "./dist/subpaths/utils/scrollTo.js"
     },
+    "./utils/lockScroll": {
+      "types": "./dist/subpaths/utils/lockScroll.d.ts",
+      "import": "./dist/subpaths/utils/lockScroll.js"
+    },
     "./utils/selectorFor": {
       "types": "./dist/subpaths/utils/selectorFor.d.ts",
       "import": "./dist/subpaths/utils/selectorFor.js"
