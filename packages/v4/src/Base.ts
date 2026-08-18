@@ -484,8 +484,6 @@ interface OptionReader {
   read(raw: string | null): unknown;
 }
 
-const optionReaders = new WeakMap<Base, Map<string, OptionReader>>();
-
 /** The method name an option's effect is declared under. */
 function optionChangedMethod(name: string): string {
   return `option${capitalize(name)}Changed`;
@@ -618,10 +616,16 @@ export function declaresBoolean(definition: OptionDefinition): boolean {
   return isOptionTypes(type) ? type.includes(Boolean) : type === Boolean;
 }
 
-function buildOptions(instance: Base): Record<string, unknown> {
+/**
+ * The `$options` view and the readers behind it, built in one pass: the getters
+ * and the readers are the same closures seen from two sides.
+ */
+function buildOptions(instance: Base): {
+  options: Record<string, unknown>;
+  readers: Map<string, OptionReader>;
+} {
   const options: Record<string, unknown> = {};
   const readers = new Map<string, OptionReader>();
-  optionReaders.set(instance, readers);
   const el = instance.$el;
   for (const [name, definition] of Object.entries(instance.$config.options ?? {})) {
     const shorthand = isOptionShorthand(definition);
@@ -691,22 +695,17 @@ function buildOptions(instance: Base): Record<string, unknown> {
       get: () => read(rawValue()),
     });
   }
-  return options;
+  return { options, readers };
 }
-
-const resolvedConfigs = new WeakMap<BaseConstructor, BaseConfig>();
 
 /**
  * Merge inherited config. Collections merge; declared scalar values override parent values.
  *
- * The registry uses this before an instance exists.
+ * The registry uses this before an instance exists. Memoised per class: a
+ * config is a pure function of the prototype chain, and `$config` reads it on
+ * every access.
  */
-export function resolveConfig(ctor: BaseConstructor): BaseConfig {
-  const cached = resolvedConfigs.get(ctor);
-  if (cached) {
-    return cached;
-  }
-
+export const resolveConfig = /* @__PURE__ */ memo((ctor: BaseConstructor): BaseConfig => {
   const chain: BaseConfig[] = [];
   let current: BaseConstructor | null = ctor;
   while (current?.config) {
@@ -727,9 +726,8 @@ export function resolveConfig(ctor: BaseConstructor): BaseConfig {
     { name: ctor.name },
   );
 
-  resolvedConfigs.set(ctor, config);
   return config;
-}
+});
 
 /** Reserved handler prefixes for global targets. They take precedence over child and ref names. */
 const GLOBAL_PREFIXES = ['Window', 'Document'] as const;
@@ -908,6 +906,15 @@ export class Base<T extends BaseProps = BaseProps> {
   /** Per-mount-cycle cleanups (service unsubscriptions, `mounted()` return values). */
   #destroyCallbacks: Array<() => void> = [];
 
+  /**
+   * The reader behind each declared option, built with the `$options` view.
+   *
+   * A side table rather than a cache: it holds no computed value, it holds the
+   * other half of what `buildOptions()` produced, so it lives with the
+   * instance like every other piece of its state.
+   */
+  #optionReaders: Map<string, OptionReader>;
+
   /** Cleanup returned by each active `option<Name>Changed()` effect. */
   #optionCleanups = new Map<string, () => void>();
 
@@ -943,7 +950,9 @@ export class Base<T extends BaseProps = BaseProps> {
     el[INSTANCES].set(name, this);
     // Both views resolve on access, so they are built once and stay correct
     // for the instance's whole life.
-    this.$options = buildOptions(this);
+    const built = buildOptions(this);
+    this.$options = built.options;
+    this.#optionReaders = built.readers;
     this.$refs = buildRefs(this);
   }
 
@@ -1216,7 +1225,7 @@ export class Base<T extends BaseProps = BaseProps> {
         ? (changes.get(attributeName) ?? null)
         : this.$el.getAttribute(attributeName);
 
-    for (const [name, reader] of optionReaders.get(this) ?? []) {
+    for (const [name, reader] of this.#optionReaders) {
       // The base attribute is one lookup; any of the scoped spellings may be
       // the one the cascade was selecting, so a miss asks about every changed
       // name before giving up.
@@ -1276,7 +1285,7 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   #initializeOptionEffects(cycle: number): void {
-    for (const [name, reader] of optionReaders.get(this) ?? []) {
+    for (const [name, reader] of this.#optionReaders) {
       if (!this.#isActiveMountCycle(cycle)) {
         return;
       }
@@ -1286,7 +1295,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /** Subscribe to breakpoint changes for this mount cycle only when an option effect exists. */
   #initializeResponsiveOptions(cycle: number): void {
-    const readers = optionReaders.get(this);
+    const readers = this.#optionReaders;
     if (!readers || readers.size === 0) {
       return;
     }
