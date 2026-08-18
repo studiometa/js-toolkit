@@ -99,7 +99,10 @@ export class Cursor<T extends BaseProps = BaseProps> extends withPointer(Base)<C
 
   /** Follow the pointer and decide the scale it is heading to. */
   moved({ event, x, y, isDown }: PointerProps): void {
-    let { scale } = this.$options;
+    // Annotated rather than inferred: this class is generic in its props, so
+    // each option reads as a deferred indexed access and two of them do not
+    // measure as one type.
+    let scale: number = this.$options.scale;
 
     if (!event) {
       this.motion({ x, y, scale });

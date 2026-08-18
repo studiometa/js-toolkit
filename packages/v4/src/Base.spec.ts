@@ -160,6 +160,25 @@ describe('$options', () => {
     expect(instance.$options.count).toBe(9);
   });
 
+  it('refuses a write, and the attribute is what changes the value', () => {
+    class Panel extends Base<{ $options: { open: boolean } }> {
+      static config = { name: 'Panel', options: { open: Boolean } };
+    }
+
+    const el = document.createElement('div');
+    const instance = new Panel(el).$mount();
+
+    expect(instance.$options.open).toBe(false);
+    expect(() => {
+      // @ts-expect-error the view is read-only, and this is the runtime half of it
+      instance.$options.open = true;
+    }).toThrow(TypeError);
+    expect(instance.$options.open).toBe(false);
+
+    el.setAttribute('data-option-open', '');
+    expect(instance.$options.open).toBe(true);
+  });
+
   it('reads the first matching type from a union option', () => {
     class Offset extends Base<{ $options: { offset: number | unknown[] } }> {
       static config = {
