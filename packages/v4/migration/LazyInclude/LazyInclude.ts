@@ -37,6 +37,9 @@ export type LazyIncludeProps = BaseProps & {
   },
 })
 export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyIncludeProps & T> {
+  /** The content injection in flight, so `always` can wait for it. */
+  injection: Promise<void> = Promise.resolve();
+
   /** Load the lazy content on mount. */
   mounted(): void {
     if (!this.$options.src) {
@@ -46,8 +49,14 @@ export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyInclu
 
     fetch(this.$options.src)
       .then((response) => response.text())
-      .then((content) => {
+      .then(async (content) => {
         this.$emit('content', { content });
+        // `$emit()` dispatches synchronously and returns before an async
+        // listener has finished, so the injection is awaited here: `always`,
+        // and the `terminateOnLoad` which listens for it, must not arrive on
+        // an element whose content has not landed. v3 needs nothing — its
+        // handler assigns `innerHTML` inside the dispatch.
+        await this.injection;
       })
       .catch((error: unknown) => {
         this.$emit('error', { error });
@@ -64,14 +73,18 @@ export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyInclu
    * and returns before anything inside it has mounted. `swap()` is this
    * element's exact shape — the children change, the element does not — so it
    * owns both, and the awaited settle is what makes `always` meaningful.
+   *
+   * The promise is kept because the announcement cannot carry it: an event
+   * listener's return value goes nowhere, so the emitter has no other way to
+   * know that its own handler is still working.
    */
   @on('content')
-  async inject(event: CustomEvent<{ content: string }>): Promise<void> {
+  inject(event: CustomEvent<{ content: string }>): void {
     const { loading } = this.$refs;
     if (loading) {
       loading.style.display = 'none';
     }
-    await swap(this.$el, event.detail.content);
+    this.injection = swap(this.$el, event.detail.content);
   }
 
   /** Reveal the error ref. */

@@ -19,7 +19,7 @@ Fifteen component families were ported onto v4 to find out what a real migration
 | `ClickOutside`    | `ClickOutside`                                                                                   | full                           | —                                                                   |
 | `Fetch`           | `Fetch`, `FetchShopifySection`, `utils`                                                          | full                           | `FetchShopifyPartial` (§9d), and `Frame` — see below                |
 | `LazyInclude`     | `LazyInclude`                                                                                    | full                           | —                                                                   |
-| `Prefetch`        | `AbstractPrefetch`, `PrefetchWhenVisible`, `PrefetchOnInteraction`                                    | full                           | —                                                                   |
+| `Prefetch`        | `AbstractPrefetch`, `PrefetchWhenVisible`, `PrefetchOnInteraction`                               | full                           | —                                                                   |
 | `Cursor`          | `Cursor`                                                                                         | full                           | —                                                                   |
 | `Draggable`       | `Draggable`                                                                                      | full                           | —                                                                   |
 | `Carousel`        | all seven classes, `utils`, plus the `Indexable`/`withIndex` base it extends                     | full                           | —                                                                   |
@@ -554,6 +554,15 @@ Read next to §10: the same helper covers `LazyInclude` completely. **The axis i
 The section subclass earns its place the way `TrackShopify` did: it exercises subclass config merging, a generic props parameter, and four `super` overrides (`url`, `fetch`, `parseResponse`, `update`). It now declares only `name` and its own `sections` option — no `...Fetch.config` spread — because configs merge along the prototype chain (#627), and a spec asserts that its `selector` option and `headers[]` ref arrive inherited.
 
 `FetchShopifyPartial` is skipped, and the reason is that it measures nothing v4-shaped. It re-implements the whole `fetch()` lifecycle around a dynamic `import('@shopify/partial-rendering')` — a preview package that is not installed, behind a static override seam that exists so tests can inject a fake. Every core-relevant thing in it (the subclass seam, the generic props, the `super` chain) is already covered by the section subclass, and what remains is Shopify's API surface rather than v4's.
+
+### 9e-bis. Two v3 shapes the port keeps, and a third it had to repair
+
+Kept, because the exercise measures v4 rather than improves ui, and both are ui's calls to make in 2.0:
+
+- **`self` in a `response` expression is the global, not the component.** `parseResponse()` compiles `new Function('response', 'url', 'requestInit', 'self', …)` and calls it with `self` — which inside a function body already resolves to `window`, so the binding buys nothing. v3 does exactly the same (`Fetch.ts:370`), and its own doc says the instance arrives "via `this`", so `self` reads like a parameter named for the component and handed the global instead. Ported verbatim; **ui 2.0 should decide** whether `self` becomes the instance.
+- **`fetch()` does not await `update()`.** v3 calls it and moves on (`Fetch.ts:337`), so an awaited `fetch()` resolves before the DOM has changed and a failure inside the update never reaches `fetch-error`. The port keeps the shape, with an explicit `void` where v3 leaves a floating promise. It matters more in v4 than in v3 — `update()` now awaits DOM settlement through `swap()` — which is the argument for changing it, in ui, deliberately.
+
+Repaired, because the port introduced it: **`LazyInclude` announced `always` before its own listener had finished.** v3's content handler assigns `innerHTML` and is done inside the dispatch, so the `.finally()` that emits `always` runs after the content is in. The port's handler awaits `swap()`, and `$emit()` returns before an async listener settles, so `always` — and the `terminateOnLoad` that listens for it — arrived on an empty element. The component now keeps the injection promise and awaits it before announcing, because an event cannot carry one: a listener's return value goes nowhere, which is the general shape of the thing and worth remembering for any handler that does real work.
 
 ### 9e. What v4 changed for the better, for free
 

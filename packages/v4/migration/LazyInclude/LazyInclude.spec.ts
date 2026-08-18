@@ -137,6 +137,21 @@ describe('LazyInclude', () => {
     expect(seen).toEqual(['content', 'always']);
   });
 
+  it('emits always only once the content is in the DOM', async () => {
+    stubFetch('<p>remote</p>');
+    let contentWhenAlways: string | undefined;
+    document.addEventListener('always', (event) => {
+      contentWhenAlways = (event.target as HTMLElement).innerHTML;
+    });
+
+    await render(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
+    await included();
+
+    // `$emit()` returns before an async listener has finished, so an `always`
+    // announced from the fetch chain alone would arrive on an empty element.
+    expect(contentWhenAlways).toContain('<p>remote</p>');
+  });
+
   it('emits error, then always, when the request fails', async () => {
     stubFailure();
     const seen: string[] = [];
