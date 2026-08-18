@@ -1405,6 +1405,69 @@ describe('$watchChildren', () => {
     expect(collection.size).toBe(0);
     expect(added).toEqual([]);
   });
+
+  it('serves every watcher from one shared document listener', async () => {
+    class Child extends Base {
+      static config = { name: 'WatchSharedChild' };
+    }
+    class Owner extends Base {
+      static config = { name: 'WatchSharedOwner' };
+    }
+
+    const root = document.createElement('div');
+    document.body.append(root);
+    // Attach the shared listener first, so the counts below do not depend on
+    // whether another spec in this file already created a watcher.
+    new Owner(root).$watchChildren(Child);
+
+    const attach = vi.spyOn(document, 'addEventListener');
+    const detach = vi.spyOn(document, 'removeEventListener');
+    const owners = Array.from({ length: 20 }, () => {
+      const owner = new Owner(root.appendChild(document.createElement('div')));
+      owner.$watchChildren(Child);
+      return owner;
+    });
+
+    // A per-instance listener is what made a watching component immortal: the
+    // document held it, and only `$terminate()` — which ordinary teardown
+    // never calls — took it back.
+    expect(attach).not.toHaveBeenCalled();
+    for (const owner of owners) {
+      owner.$terminate();
+    }
+    expect(detach).not.toHaveBeenCalled();
+
+    attach.mockRestore();
+    detach.mockRestore();
+    await settle();
+  });
+
+  it('removes a destroyed child from every watcher of it', async () => {
+    class Child extends Base {
+      static config = { name: 'WatchFanoutChild' };
+    }
+    class Owner extends Base {
+      static config = { name: 'WatchFanoutOwner' };
+    }
+
+    const root = document.createElement('div');
+    const childEl = root.appendChild(document.createElement('div'));
+    document.body.append(root);
+    const child = new Child(childEl).$mount();
+    const first = new Owner(root);
+    const second = new Owner(root);
+    const firstCollection = first.$watchChildren(Child);
+    const secondCollection = second.$watchChildren(Child);
+    await settle();
+
+    expect(firstCollection.items).toEqual([child]);
+    expect(secondCollection.items).toEqual([child]);
+
+    child.$destroy();
+
+    expect(firstCollection.size).toBe(0);
+    expect(secondCollection.size).toBe(0);
+  });
 });
 
 describe('lifecycle', () => {

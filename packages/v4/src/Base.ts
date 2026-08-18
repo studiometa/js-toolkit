@@ -7,6 +7,7 @@ import {
 } from './attributes.js';
 import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
+import { registerChildrenWatcher, type ChildrenWatcher } from './children-watchers.js';
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
 import { reportDiagnostic, warnOnce } from './diagnostics.js';
 import { compareDocumentOrder } from './document-order.js';
@@ -918,6 +919,13 @@ export class Base<T extends BaseProps = BaseProps> {
   /** Instance-lifetime cleanups ($provide, $watchChildren…), run on `$terminate()`. */
   #terminateCallbacks: Array<() => void> = [];
 
+  /**
+   * The `$watchChildren()` watchers this instance owns. The shared destroy
+   * listener only holds weak references to them, so this field is what keeps
+   * them alive — and what lets them die with their owner.
+   */
+  #childrenWatchers: ChildrenWatcher[] = [];
+
   #tasks = new Set<ScheduledTask<unknown>>();
 
   /** Filled by the `@on` decorator's initializers, if any are used. */
@@ -1174,20 +1182,23 @@ export class Base<T extends BaseProps = BaseProps> {
         add(instance);
       }
     };
-    // Destroyed events use `document` because their elements can be detached.
-    const onDestroyed = (event: Event) => {
-      const { instance } = (event as CustomEvent<LifecycleEventDetail>).detail;
+    // Destroyed instances announce from `document`, because their elements can
+    // be detached. The instance keeps its own watchers, and the shared listener
+    // reaches them weakly, so watching children adds no reference from the
+    // document to this component.
+    const watcher: ChildrenWatcher = (instance) => {
       if (matches(instance)) {
         remove(instance);
       }
     };
+    this.#childrenWatchers.push(watcher);
+    const releaseWatcher = registerChildrenWatcher(watcher);
 
     this.$el.addEventListener(EVENTS.component.mounted, onMounted);
-    document.addEventListener(EVENTS.component.destroyed, onDestroyed);
     // Instance-lifetime: the collection survives destroy/mount cycles.
     this.#terminateCallbacks.push(() => {
       this.$el.removeEventListener(EVENTS.component.mounted, onMounted);
-      document.removeEventListener(EVENTS.component.destroyed, onDestroyed);
+      releaseWatcher();
     });
 
     return {
