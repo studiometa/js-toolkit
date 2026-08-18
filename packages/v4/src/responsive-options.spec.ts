@@ -95,14 +95,11 @@ class Flags extends Base<{
   }
 }
 
-/** A component whose own option owns the spelling a sibling would negate. */
-class Sorted extends Base<{ $options: { sort: boolean; noSort: boolean } }> {
+/** An option whose own name starts with `no`, which negates independently. */
+class Sorted extends Base<{ $options: { noSort: boolean } }> {
   static config = {
     name: 'Sorted',
-    options: {
-      sort: { type: Boolean, default: true },
-      noSort: Boolean,
-    },
+    options: { noSort: { type: Boolean, default: true } },
   };
 }
 
@@ -470,22 +467,38 @@ describe('negated boolean options', () => {
     expect(flags.$options.viewTransition).toBe(false);
   });
 
-  it('means exactly what `="false"` means, value and all', async () => {
+  it('is the only way to turn a boolean off, because presence is the value', async () => {
     const root = render(
       `<p data-component="Flags" data-option-no-view-transition></p>` +
         `<p data-component="Flags" data-option-view-transition="false"></p>`,
     );
     await settle();
-    const [negated, explicit] = [...root.children].map((el) => getInstance<Flags>(el, 'Flags'));
+    const [negated, valued] = [...root.children].map((el) => getInstance<Flags>(el, 'Flags'));
 
-    expect(negated.$options.viewTransition).toBe(explicit.$options.viewTransition);
+    expect(negated.$options.viewTransition).toBe(false);
+    // A boolean attribute is there or it is not, as `disabled` is: the string
+    // says nothing, so removing it or negating it are the two ways to say no.
+    expect(valued.$options.viewTransition).toBe(true);
+  });
+
+  it('reads a boolean as on for any value it carries', async () => {
+    const root = render(
+      `<p data-component="Flags" data-option-autostart></p>` +
+        `<p data-component="Flags" data-option-autostart="false"></p>` +
+        `<p data-component="Flags" data-option-autostart="0"></p>`,
+    );
+    await settle();
+
+    for (const el of root.children) {
+      expect(getInstance<Flags>(el, 'Flags').$options.autostart).toBe(true);
+    }
   });
 
   it('states its case by being there, whatever value it carries', async () => {
     const root = render(`<p data-component="Flags" data-option-no-view-transition="false"></p>`);
     await settle();
 
-    // A negation is a flag: it is present or it is not.
+    // A negation is a flag too: it is present or it is not.
     expect(getInstance<Flags>(root.firstElementChild, 'Flags').$options.viewTransition).toBe(false);
   });
 
@@ -549,20 +562,17 @@ describe('negated boolean options', () => {
     expect(flags.changes.at(-1)).toMatchObject({ value: false, previousValue: true });
   });
 
-  it('leaves a declared option its own attribute, and says so', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const root = render(`<p data-component="Sorted" data-option-no-sort></p>`);
-    await settle();
-    const sorted = getInstance<Sorted>(root.firstElementChild, 'Sorted');
-
-    // `noSort` declared the attribute, so it is `noSort`'s value, not `sort`'s.
-    expect(sorted.$options.noSort).toBe(true);
-    expect(sorted.$options.sort).toBe(true);
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('[js-toolkit:option.negated-collision]'),
+  it('negates an option whose own name starts with `no`, without collision', async () => {
+    const root = render(
+      `<p data-component="Sorted"></p>` + `<p data-component="Sorted" data-option-no-no-sort></p>`,
     );
-    expect(warn.mock.calls.flat().join('')).toContain('`data-option-no-sort`');
-    warn.mockRestore();
+    await settle();
+    const [plain, negated] = [...root.children].map((el) => getInstance<Sorted>(el, 'Sorted'));
+
+    // `noSort` owns `data-option-no-sort`; its own off spelling doubles the
+    // prefix, so nothing an author writes means two things at once.
+    expect(plain.$options.noSort).toBe(true);
+    expect(negated.$options.noSort).toBe(false);
   });
 
   it('gives a non-boolean option no negated spelling', async () => {

@@ -32,10 +32,7 @@ describe('diagnostics', () => {
       },
       event: { invalidEmitPayload: 'event.invalid-emit-payload' },
       manifest: { duplicateToken: 'manifest.duplicate-token' },
-      option: {
-        literalDefault: 'option.literal-default',
-        negatedCollision: 'option.negated-collision',
-      },
+      option: { literalDefault: 'option.literal-default' },
       protocol: {
         lateRegistration: 'protocol.late-registration',
         unappliedDomUpdate: 'protocol.unapplied-dom-update',
@@ -78,7 +75,6 @@ describe('diagnostics', () => {
       | 'event.invalid-emit-payload'
       | 'manifest.duplicate-token'
       | 'option.literal-default'
-      | 'option.negated-collision'
       | 'protocol.late-registration'
       | 'protocol.unapplied-dom-update'
       | 'ref.mismatch'

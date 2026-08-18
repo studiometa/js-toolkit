@@ -353,20 +353,16 @@ function resolveComponentClass(module: unknown, name: string): BaseConstructor |
 
 function optionAttributes(ComponentClass: BaseConstructor): string[] {
   const names: string[] = [];
-  const options = Object.entries(resolveConfig(ComponentClass).options ?? {});
-  const declaredAttributes = new Set(options.map(([name]) => optionAttributeFor(name)));
-
-  for (const [name, definition] of options) {
+  for (const [name, definition] of Object.entries(resolveConfig(ComponentClass).options ?? {})) {
     const attribute = optionAttributeFor(name);
     names.push(attribute);
     // Register each exact breakpoint-scoped spelling with the observer filter.
     observeResponsiveAttribute(attribute);
 
     // Only a boolean can be turned off by a bare attribute, so only a boolean
-    // costs the observer its negated spellings — and never one another option
-    // already declares, which `buildOptions()` reports and refuses.
-    const negated = negatedOptionAttributeFor(name);
-    if (declaresBoolean(definition) && !declaredAttributes.has(negated)) {
+    // costs the observer its negated spellings.
+    if (declaresBoolean(definition)) {
+      const negated = negatedOptionAttributeFor(name);
       names.push(negated);
       observeResponsiveAttribute(negated);
     }

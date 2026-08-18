@@ -1,5 +1,6 @@
 import {
   isNetChange,
+  NEGATED_RAW,
   negatedOptionAttributeFor,
   optionAttributeFor,
   REF_ATTRIBUTE,
@@ -561,9 +562,15 @@ function isOptionValue(value: unknown, type: OptionType): boolean {
 
 /** What each supported option type makes of its attribute. */
 const OPTION_TYPE_RULES = new Map<OptionType, OptionTypeRule>([
-  // Presence is the value, so — unlike every other type — a declared `null`
-  // default still reads as `false`.
-  [Boolean, (raw, defaultValue) => (raw === null ? (defaultValue() ?? false) : raw !== 'false')],
+  // Presence is the value — the attribute is there or it is not, as a platform
+  // boolean attribute is — so `data-option-x="false"` reads `true` and the way
+  // to turn one off is to remove the attribute or to write its negated
+  // spelling. Unlike every other type, a declared `null` default still reads
+  // as `false`.
+  [
+    Boolean,
+    (raw, defaultValue) => (raw === null ? (defaultValue() ?? false) : raw !== NEGATED_RAW),
+  ],
   [Number, (raw, defaultValue) => (raw === null ? absentValue(defaultValue, 0) : Number(raw))],
   [String, (raw, defaultValue) => (raw === null ? absentValue(defaultValue, '') : raw)],
   [Array, readJSON],
@@ -603,60 +610,18 @@ export function declaresBoolean(definition: OptionDefinition): boolean {
   return isOptionTypes(type) ? type.includes(Boolean) : type === Boolean;
 }
 
-/**
- * The presence-only spelling which turns a boolean option off, or `undefined`
- * when the option has no such spelling.
- *
- * A declaration always outranks a derived name: a component declaring an
- * option called `noSort` owns `data-option-no-sort`, so a sibling `sort`
- * cannot also claim it. The collision is reported rather than resolved
- * silently, because the markup would otherwise mean two things at once.
- */
-function negatedAttributeFor(
-  componentName: string,
-  option: string,
-  definition: OptionDefinition,
-  declaredAttributes: ReadonlySet<string>,
-  target: Element,
-): string | undefined {
-  if (!declaresBoolean(definition)) {
-    return undefined;
-  }
-
-  const negated = negatedOptionAttributeFor(option);
-  if (!declaredAttributes.has(negated)) {
-    return negated;
-  }
-
-  warnOnce(
-    definition,
-    '',
-    'option.negated-collision',
-    `\`${componentName}\` declares an option whose attribute is \`${negated}\`, which is also how \`${option}\` would be turned off. The declared option keeps the attribute; turn \`${option}\` off with \`${optionAttributeFor(option)}="false"\`.`,
-    { component: componentName, target },
-  );
-  return undefined;
-}
-
 function buildOptions(instance: Base): Record<string, unknown> {
   const options: Record<string, unknown> = {};
   const readers = new Map<string, OptionReader>();
   optionReaders.set(instance, readers);
   const el = instance.$el;
-  const entries = Object.entries(instance.$config.options ?? {});
-  const declaredAttributes = new Set(entries.map(([name]) => optionAttributeFor(name)));
-  for (const [name, definition] of entries) {
+  for (const [name, definition] of Object.entries(instance.$config.options ?? {})) {
     const shorthand = isOptionShorthand(definition);
     const type = shorthand ? definition : definition.type;
     const declared = shorthand ? undefined : definition.default;
     const attribute = optionAttributeFor(name);
-    const negated = negatedAttributeFor(
-      instance.$config.name,
-      name,
-      definition,
-      declaredAttributes,
-      el,
-    );
+    // Only an option which can hold `false` has an off spelling to read.
+    const negated = declaresBoolean(definition) ? negatedOptionAttributeFor(name) : undefined;
 
     if (!shorthand && declared !== null && typeof declared === 'object') {
       warnLiteralDefault(instance.$config.name, name, definition, declared, el);

@@ -3,7 +3,7 @@
  *
  * Values are resolved on read and are not stored.
  */
-import { RESPONSIVE_SEPARATOR } from './attributes.js';
+import { NEGATED_RAW, RESPONSIVE_SEPARATOR } from './attributes.js';
 import { warnOnce } from './diagnostics.js';
 import { registerDOMOptionAttributes, replaceDOMOptionAttributes } from './dom-mutations.js';
 import { breakpointNames, onBreakpointsReplaced, useBreakpoint } from './services/breakpoint.js';
@@ -69,11 +69,11 @@ export function isResponsiveAttribute(attribute: string, name: string): boolean 
 /**
  * Resolve a raw option value by cascading from a breakpoint to the base attribute.
  *
- * `negated` is the presence-only spelling of a boolean option, consulted at
- * each level **after** the value-carrying one: at the same breakpoint an
- * explicit value states more than a flag, and a narrower breakpoint wins over
- * a wider one whichever spelling it uses. It resolves to the string `false`,
- * so the boolean rule reads it without a second parsing path.
+ * `negated` is the off spelling of a boolean option, consulted at each level
+ * **after** the on spelling: a narrower breakpoint wins over a wider one
+ * whichever spelling it uses, and at one breakpoint the positive attribute
+ * wins, since declaring both there says nothing coherent. It resolves to
+ * `NEGATED_RAW`, so one cascade answers both spellings.
  */
 export function responsiveRawValue(
   attribute: string,
@@ -94,15 +94,12 @@ export function responsiveRawValue(
       return value;
     }
     if (get(scopedNegations[index]) !== null) {
-      return NEGATED_VALUE;
+      return NEGATED_RAW;
     }
   }
 
-  return get(attribute) ?? (get(negated) === null ? null : NEGATED_VALUE);
+  return get(attribute) ?? (get(negated) === null ? null : NEGATED_RAW);
 }
-
-/** What a present negation resolves to, which the boolean rule already reads. */
-const NEGATED_VALUE = 'false';
 
 /**
  * The scoped value in force at one breakpoint, without falling back to the

@@ -817,10 +817,10 @@ describe('Action — interop with the ported Dialog', () => {
       <button id="close" data-component="Action"
         data-on:click="Dialog([data-can-be-closed]) -> target.close()"></button>
       <dialog id="modal" data-can-be-closed data-component="Action Dialog"
-        data-option-modal="false"
+        data-option-no-modal
         data-on:cancel.prevent="Dialog.close()"></dialog>
       <dialog id="drawer" data-can-be-closed data-component="Dialog"
-        data-option-modal="false"></dialog>
+        data-option-no-modal></dialog>
     `);
   });
 
