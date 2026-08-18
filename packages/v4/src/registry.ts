@@ -559,9 +559,16 @@ function reconcileElement(el: HTMLElement): void {
   for (const name of names) {
     if (!tokens.has(name) && (registry.has(name) || manifest.has(name))) {
       disposeController(el, name);
-      // Removing a declaration while the element remains is final. Unlike a
-      // disconnection, it removes the component identity from this element.
-      el[INSTANCES]?.get(name)?.$terminate();
+      // Removing a declaration while the element remains is not a
+      // disconnection: it withdraws the component identity from the element,
+      // so the instance is torn down and dropped rather than retained for a
+      // later insertion. Declaring the name again builds a new instance,
+      // which is what the responsive crossing back expects.
+      const instance = el[INSTANCES]?.get(name);
+      if (instance) {
+        instance.$destroy();
+        el[INSTANCES]?.delete(name);
+      }
     }
   }
 

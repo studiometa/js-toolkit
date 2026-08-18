@@ -167,7 +167,7 @@ try {
     serviceSubpath: useRaf === namedUseRaf && typeof useRaf === 'function',
   };
 
-  component.$terminate();
+  component.$destroy();
   element.remove();
 } catch (error) {
   globalThis.__V4_PACKED_CONSUMER__ = {

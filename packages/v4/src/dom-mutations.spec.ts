@@ -288,10 +288,10 @@ describe('watchAttributes', () => {
     expect(calls).toEqual(['option', 'attribute']);
   });
 
-  it('lets mounted cleanup stop delivery before same-batch termination completes', async () => {
-    const name = uniqueName('TerminatedAttribute');
+  it('lets mounted cleanup stop delivery before the same-batch withdrawal completes', async () => {
+    const name = uniqueName('WithdrawnAttribute');
     const calls: string[] = [];
-    class TerminatedAttribute extends Base {
+    class WithdrawnAttribute extends Base {
       static config = { name };
 
       mounted(): () => void {
@@ -302,20 +302,21 @@ describe('watchAttributes', () => {
         };
       }
     }
-    registerComponent(TerminatedAttribute);
+    registerComponent(WithdrawnAttribute);
 
     const el = document.createElement('div');
     el.setAttribute('data-component', name);
     el.setAttribute(VIRTUAL_ATTRIBUTE, 'open()');
     document.body.append(el);
     await whenDOMSettled();
-    const instance = getInstance<TerminatedAttribute>(el, name);
+    const instance = getInstance<WithdrawnAttribute>(el, name);
 
     el.setAttribute('data-component', '');
     el.setAttribute(VIRTUAL_ATTRIBUTE, 'close()');
     await whenDOMSettled();
 
-    expect(instance.$isTerminated).toBe(true);
+    expect(instance.$isMounted).toBe(false);
+    expect(el[INSTANCES]?.has(name)).toBe(false);
     expect(calls).toEqual(['cleanup']);
   });
 

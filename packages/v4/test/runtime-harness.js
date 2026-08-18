@@ -740,7 +740,7 @@ async function run(copyA, copyB) {
     sharedInViewRoot.remove();
     otherTarget.remove();
     contextScope.remove();
-    decorated.$terminate();
+    decorated.$destroy();
     await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
     copyA.setBreakpoints(copyA.BREAKPOINTS);
     await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);

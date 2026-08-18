@@ -121,7 +121,7 @@ describe('v3 and v4 sharing a document', () => {
     expect(v3Instances(v3El)?.get('Widget')).toBe('terminated');
   });
 
-  it('terminates its own instance, not the v3 one under the same name', async () => {
+  it('tears down its own instance, not the v3 one under the same name', async () => {
     const root = render('<div data-component="Widget2"></div>');
     const el = root.firstElementChild as HTMLElement;
     await settle();
@@ -131,8 +131,9 @@ describe('v3 and v4 sharing a document', () => {
     const v3Widget = await new V3Widget2(el).$mount();
     expect(v4Widget.$isMounted).toBe(true);
 
-    // Dropping the declaration makes v4 terminate what its map holds for that
-    // name, on an element that stays connected. v3 has no reason to react.
+    // Dropping the declaration makes v4 tear down and withdraw what its map
+    // holds for that name, on an element that stays connected. v3 has no
+    // reason to react.
     el.removeAttribute('data-component');
     await settle();
 

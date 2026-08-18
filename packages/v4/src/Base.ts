@@ -902,8 +902,6 @@ export class Base<T extends BaseProps = BaseProps> {
 
   #isMounted = false;
 
-  #isTerminated = false;
-
   /** Per-mount-cycle listeners, removed on every `$destroy()`. */
   #listeners: Array<[string, EventListener, EventTarget, boolean]> = [];
 
@@ -915,9 +913,6 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /** Increments on mount so a reentrant effect cannot attach to a later cycle. */
   #mountCycle = 0;
-
-  /** Instance-lifetime cleanups ($provide, $watchChildren…), run on `$terminate()`. */
-  #terminateCallbacks: Array<() => void> = [];
 
   /**
    * The `$watchChildren()` watchers this instance owns. The shared destroy
@@ -937,11 +932,6 @@ export class Base<T extends BaseProps = BaseProps> {
 
   get $isMounted(): boolean {
     return this.#isMounted;
-  }
-
-  /** Whether `$terminate()` has run — the instance never mounts again. */
-  get $isTerminated(): boolean {
-    return this.#isTerminated;
   }
 
   constructor(el: HTMLElement) {
@@ -978,16 +968,13 @@ export class Base<T extends BaseProps = BaseProps> {
 
   destroyed(): void {}
 
-  terminated(): void {}
-
   /**
    * Mount the instance. Mounting is reversible: `$destroy()` is its inverse
    * and the same instance can mount again — this is what happens when an
-   * element is moved or re-inserted in the DOM. A terminated instance never
-   * mounts again.
+   * element is moved or re-inserted in the DOM.
    */
   $mount(): this {
-    if (this.#isMounted || this.#isTerminated) {
+    if (this.#isMounted) {
       return this;
     }
     this.#bindHandlers();
@@ -1048,27 +1035,6 @@ export class Base<T extends BaseProps = BaseProps> {
     document.dispatchEvent(
       new CustomEvent(EVENTS.component.destroyed, { cancelable: false, detail }),
     );
-    return this;
-  }
-
-  /**
-   * End of life — irreversible. Destroys first if needed, runs the
-   * instance-lifetime cleanups ($provide, $watchChildren…), calls the
-   * `terminated()` hook and detaches the instance from its element.
-   */
-  $terminate(): this {
-    if (this.#isTerminated) {
-      return this;
-    }
-    this.$destroy();
-    this.#isTerminated = true;
-    const callbacks = this.#terminateCallbacks;
-    this.#terminateCallbacks = [];
-    for (const callback of callbacks) {
-      this.#guard('A termination cleanup failed.', callback);
-    }
-    this.#guard('`terminated()` failed.', () => this.terminated());
-    this.$el[INSTANCES]?.delete(this.$config.name);
     return this;
   }
 
@@ -1157,9 +1123,6 @@ export class Base<T extends BaseProps = BaseProps> {
 
     // Defer callbacks until construction completes; listeners attach before the sweep.
     queueMicrotask(() => {
-      if (this.#isTerminated) {
-        return;
-      }
       if (typeof target === 'string') {
         for (const instance of this.$query<T>(target)) {
           add(instance);
@@ -1192,14 +1155,12 @@ export class Base<T extends BaseProps = BaseProps> {
       }
     };
     this.#childrenWatchers.push(watcher);
-    const releaseWatcher = registerChildrenWatcher(watcher);
-
+    registerChildrenWatcher(watcher);
+    // Instance-lifetime, so neither registration is released: the collection
+    // survives destroy and mount cycles, and both ends die with the instance —
+    // the mount listener with the element it sits on, the watcher with the
+    // field above.
     this.$el.addEventListener(EVENTS.component.mounted, onMounted);
-    // Instance-lifetime: the collection survives destroy/mount cycles.
-    this.#terminateCallbacks.push(() => {
-      this.$el.removeEventListener(EVENTS.component.mounted, onMounted);
-      releaseWatcher();
-    });
 
     return {
       get size() {
@@ -1214,10 +1175,16 @@ export class Base<T extends BaseProps = BaseProps> {
     };
   }
 
-  /** Provide a value verbatim to the subtree until `$terminate()`. The nearest provider wins. */
+  /**
+   * Provide a value verbatim to the subtree for as long as the element lives.
+   * The nearest provider wins.
+   *
+   * The provider sits on the element, not on the mount cycle, so it answers
+   * through every destroy and mount. Nothing releases it early: a component
+   * whose declaration is withdrawn keeps providing until its element goes.
+   */
   $provide<V>(key: ContextKey<V>, value: V): V {
-    const { dispose } = provideContext(this.$el, key, value);
-    this.#terminateCallbacks.push(dispose);
+    provideContext(this.$el, key, value);
     return value;
   }
 

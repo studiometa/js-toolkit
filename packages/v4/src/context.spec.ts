@@ -378,7 +378,7 @@ describe('provide/inject', () => {
       consumer.$inject(Key, { subscribe: true, onProvide: (_value: string) => {} });
     };
     void removedOptionsTypeAssertions;
-    consumer.$terminate();
+    consumer.$destroy();
   });
 
   it('provides the value verbatim, wrapping nothing', async () => {
@@ -502,7 +502,7 @@ describe('provide/inject', () => {
     await settle();
     expect(received).toEqual(['late']);
 
-    consumer.$terminate();
+    consumer.$destroy();
     dispose();
   });
 

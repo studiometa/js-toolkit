@@ -110,7 +110,7 @@ export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> &
 };
 
 /**
- * Build a lifecycle-bound service mixin. Automatic subscriptions last for one mount cycle. Manual subscriptions also stop on destroy or termination.
+ * Build a lifecycle-bound service mixin. Automatic subscriptions last for one mount cycle. Manual subscriptions also stop on destroy.
  */
 export function createServiceMixin<Instance, Target, Options extends object = object>(
   definition: ServiceMixinDefinition<Target, Options>,
@@ -129,7 +129,6 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
         super(el);
         const host = this as unknown as {
           $services?: Record<string, Toggle>;
-          $isTerminated: boolean;
         };
         // Share one handle object across stacked mixins.
         const services = (host.$services ??= {});
@@ -156,13 +155,7 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
           get isActive() {
             return handle.isActive;
           },
-          // A terminated instance never mounts again, so nothing would ever
-          // release the subscription this would start.
-          start: () => {
-            if (!host.$isTerminated) {
-              handle.start();
-            }
-          },
+          start: handle.start,
           stop: handle.stop,
         };
       }
@@ -174,15 +167,13 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
        * needed every subclass to chain `super.mounted()`, and forgetting was
        * total and silent: the subscription simply never happened, with no
        * warning, no type error and no failing hook. `$mount()` is the
-       * framework's own method — the one `$terminate()` already overrides —
-       * so there is nothing left to chain.
+       * framework's own method, so there is nothing left to chain.
        *
        * The subscription therefore starts once the whole `mounted()` has run,
        * which is also when an `immediate` first delivery reaches a component
-       * that is fully set up. `$isMounted` is the guard, and it covers the two
-       * cases where there is nothing left to subscribe for: a hook which
-       * terminated the instance, and a reversible strategy which unmounted it
-       * mid-cycle.
+       * that is fully set up. `$isMounted` is the guard, and it covers the
+       * case where there is nothing left to subscribe for: a hook, or a
+       * reversible strategy, which unmounted the instance mid-cycle.
        *
        * A hook which **threw** is deliberately not one of them. `#guard()`
        * reports the failure and the cycle continues — the component stays
@@ -201,19 +192,18 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
       /**
        * Release before the cycle unwinds, so `destroyed()` sees the same
        * stopped subscription it saw when the release was a mount cleanup.
+       *
+       * The stop is unconditional, where it once ran only for a mounted
+       * instance and `$terminate()` covered the rest. `$terminate()` is gone
+       * and `$destroy()` is the only teardown there is, so a manual
+       * subscription started outside a mount cycle would otherwise have
+       * nothing left to release it. `stop` is bound and idempotent, so an
+       * instance which never mounted pays nothing for the call — and it now
+       * releases on element removal too, which termination never did.
        */
       $destroy(): this {
-        if (this.$isMounted) {
-          // `stop` is bound and idempotent.
-          (this as unknown as { $services: Record<string, Toggle> }).$services[hook].stop();
-        }
-        return super.$destroy();
-      }
-
-      $terminate(): this {
-        // Stop a manual subscription that started outside a mount cycle.
         (this as unknown as { $services: Record<string, Toggle> }).$services[hook].stop();
-        return super.$terminate();
+        return super.$destroy();
       }
     };
   }

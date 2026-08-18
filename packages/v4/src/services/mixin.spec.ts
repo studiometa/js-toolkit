@@ -55,7 +55,7 @@ describe('service mixins', () => {
     await frames(4);
     expect(instance.ticks - before).toBeLessThanOrEqual(5);
 
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('subscribes for a component whose `mounted()` does not chain `super`', async () => {
@@ -87,7 +87,7 @@ describe('service mixins', () => {
     await frames(3);
     expect(instance.ticks).toBe(frozen);
 
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('starts the subscription once the whole `mounted()` has run', async () => {
@@ -114,7 +114,7 @@ describe('service mixins', () => {
     // an `immediate` service would otherwise interrupt.
     expect(order).toEqual(['mounted:false', 'ticked']);
 
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('subscribes for a component whose `mounted()` threw, as its handlers stay bound', async () => {
@@ -160,7 +160,7 @@ describe('service mixins', () => {
     expect(instance.clicks).toBe(1);
     expect(instance.ticks).toBeGreaterThan(0);
 
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('follows the registry: an element leaving the DOM leaves no subscription', async () => {
@@ -481,7 +481,7 @@ describe('a manual hook', () => {
 
     expect(instance.ticks).toBe(0);
     expect(instance.$services.ticked.isActive).toBe(false);
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('runs while the component wants it, and not after', async () => {
@@ -497,7 +497,7 @@ describe('a manual hook', () => {
     await frames(3);
     expect(instance.ticks).toBe(whileRunning);
     expect(instance.$services.ticked.isActive).toBe(false);
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('genuinely stops the frame loop, not just the callback', async () => {
@@ -510,7 +510,7 @@ describe('a manual hook', () => {
     const framesRequested = await countRequestedFrames(() => frames(4));
 
     expect(framesRequested).toBe(4);
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('start() is idempotent, so one stop() is enough', async () => {
@@ -525,7 +525,7 @@ describe('a manual hook', () => {
     await frames(3);
 
     expect(instance.ticks).toBe(atStop);
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('is released by the mount cycle whichever side started it', async () => {
@@ -538,23 +538,15 @@ describe('a manual hook', () => {
     const atDestroy = instance.ticks;
     await frames(3);
     expect(instance.ticks).toBe(atDestroy);
-    instance.$terminate();
+    instance.$destroy();
   });
 
-  it('does not subscribe on a terminated instance, which nothing would release', () => {
-    const instance = new Settler(render()).$mount();
-    instance.$terminate();
-
-    instance.$services.ticked.start();
-    expect(instance.$services.ticked.isActive).toBe(false);
-  });
-
-  it('releases a hook started before the first mount, on terminate', () => {
+  it('releases a hook started before the first mount, on destroy', () => {
     const instance = new Settler(render());
     instance.$services.ticked.start();
     expect(instance.$services.ticked.isActive).toBe(true);
 
-    instance.$terminate();
+    instance.$destroy();
     expect(instance.$services.ticked.isActive).toBe(false);
   });
 
@@ -581,7 +573,7 @@ describe('a manual hook', () => {
     expect(instance.ticks).toBeGreaterThan(0);
     expect(instance.$services.ticked.isActive).toBe(true);
     expect(instance.$services.scrolled.isActive).toBe(false);
-    instance.$terminate();
+    instance.$destroy();
   });
 });
 

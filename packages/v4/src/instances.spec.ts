@@ -82,15 +82,14 @@ describe('getInstances', () => {
     expect(getInstances('TodoItem')).toEqual([]);
   });
 
-  it('drops a terminated instance', async () => {
+  it('drops a destroyed instance', async () => {
     const root = renderTodoList({ items: ['one'] });
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]') as HTMLElement;
     const instance = getInstance<TodoItem>(li, 'TodoItem');
-    instance.$terminate();
+    instance.$destroy();
 
-    expect(instance.$isTerminated).toBe(true);
     expect(instance.$isMounted).toBe(false);
     expect(getInstances('TodoItem')).toEqual([]);
   });
@@ -131,7 +130,7 @@ describe('getInstances on an element', () => {
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]') as HTMLElement;
-    getInstance<TodoItem>(li, 'TodoItem').$terminate();
+    getInstance<TodoItem>(li, 'TodoItem').$destroy();
 
     expect(getInstances(li)).toEqual([]);
   });

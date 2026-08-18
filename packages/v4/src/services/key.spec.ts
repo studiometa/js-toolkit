@@ -253,7 +253,7 @@ describe('withKey', () => {
     expect(seen[0]?.ESC).toBe(true);
     expect(seen[0]?.isDown).toBe(true);
 
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('supports the stage-3 decorator form', () => {
@@ -273,7 +273,7 @@ describe('withKey', () => {
     press(KEYS.SPACE);
     expect(seen.map(flagsOf)).toEqual([flagsFor('SPACE')]);
 
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('leaves a manual hook stopped on mount and drives it through $services', () => {
@@ -302,7 +302,7 @@ describe('withKey', () => {
     press(KEYS.TAB);
     expect(seen).toHaveLength(1);
 
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('resolves a custom target, so only its subtree reaches the hook', () => {
@@ -330,10 +330,10 @@ describe('withKey', () => {
     press(KEYS.LEFT, el);
     expect(seen).toHaveLength(1);
 
-    instance.$terminate();
+    instance.$destroy();
   });
 
-  it('releases the subscription on destroy and on terminate', () => {
+  it('releases the subscription on destroy and takes it back on mount', () => {
     const seen: KeyProps[] = [];
 
     class Trap extends withKey(Base) {
@@ -357,7 +357,7 @@ describe('withKey', () => {
     press(KEYS.UP);
     expect(seen).toHaveLength(2);
 
-    instance.$terminate();
+    instance.$destroy();
     press(KEYS.UP);
     expect(seen).toHaveLength(2);
   });

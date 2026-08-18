@@ -24,6 +24,19 @@ A moved element gives one removal record and one addition record. Both sides mus
 
 Open for later: an opt-in path that preserves state through a move, once the semantics of `Node.moveBefore()` are considered.
 
+### Why termination went away
+
+A third lifecycle notion earned its place only if something needed it, and by the end nothing did. `terminated()` had no override outside the specs that existed to test it. `$terminate()` had one production caller, the registry, on a withdrawn declaration — which is a registry bookkeeping step, not a state a component reaches. And the two registrations it released, `$provide` and `$watchChildren`, both sit on things that already die on their own: the provider on the element, the watcher on the instance.
+
+What it did earn was a leak. `$watchChildren` released a `document` listener from a terminate callback, and ordinary teardown never gets there — removing an element calls `$destroy()`. A `document` listener is a strong reference from the document to the instance, so every watching component stayed alive for the life of the page. The concept was not paying for itself; it was hiding a bug, and one that was fixed by removing the reference rather than by finding more ways to call `$terminate()`.
+
+Two consequences are accepted rather than worked around:
+
+- **A withdrawn declaration no longer releases the provider.** A component whose token leaves `data-component` while its element stays keeps providing context until the element goes. `$provide()` returns the value rather than a disposer, so termination was the only door out, and that door was never the right shape. Releasing a provider early wants its own answer.
+- **Re-adding a token re-mounts.** Nothing latches "never again" any more. The registry drops the instance from the element, so declaring the name again builds a new one and mounts it — which is what the responsive crossing already expected on the way back.
+
+`mount` and `destroy` are now the whole vocabulary, and both are reversible. That is one fewer word to explain, and one fewer word that meant two things.
+
 ### Why `mounted()` returns its cleanup
 
 The cleanup lives in the same closure as the resource that it releases. There is no instance field and no paired `destroyed()` code, and the symmetry is guaranteed for each mount cycle. This matters because `data-mount` strategies mount the same instance many times.
@@ -133,7 +146,7 @@ Measured in `responsive-options.bench.ts`, in Chromium:
 - **`data-option-no-<name>` is kept, and kept as a spelling rather than a rule.** v3 has it, `@studiometa/ui` writes it 33 times over 12 options, and it reads better than `="false"` for what is a flag. What it is not is a second grammar: it resolves to the string `false` and re-enters the one boolean rule, it cascades through the one breakpoint walk, and it is registered by the one filter. The alternative — refusing it and warning — was costed at twelve lines and rejected: the markup is not wrong, and a framework whose premise is that the attribute is the source of truth should read the attribute the audience already writes.
 - **A boolean reads presence, and only presence.** The platform's own boolean attributes do: `disabled="false"` disables. Reading the string as well would give a component two ways to be off — a missing attribute and a particular value — and the two disagree the moment a template interpolates `{{ flag }}` into the attribute, which is the bug v3 shipped. One rule, stated in one line: the attribute is there or it is not. Code toggles it with `setAttribute`/`removeAttribute`, a template writes it inside a condition, and an option declared `default: true` is turned off by its negated spelling.
 - **`noSort` needs no special case.** Its own off spelling is `data-option-no-no-sort`, so an option whose name starts with `no` collides with nothing. Only a component declaring both `sort` and `noSort` would make one attribute mean two things, and that is a mistake in a declaration — where a lint rule can see it — rather than a condition worth checking on every mount.
-- **`$terminate()` is not "my work is done".** It is what the registry calls when an element stops declaring a component, and it detaches the instance — which is why v3's version of it could hold a memory and v4's cannot. "Once per element" is a field: `$destroy()` leaves the instance where it is, so the field outlives every move, re-insertion and swap that keeps the element, and a replaced element gets a new instance, which is exactly when the work should happen again. The framework needed no mechanism for this; it needed the word to mean one thing.
+- **"My work is done" is a field, and there is no lifecycle notion for it.** v3's `$terminate()` kept a memory on the element and refused forever; v4's detached the instance, so the next mount pass built a fresh one which had never heard of the termination — the same word doing two different things. The answer was not a better termination but none at all: `$destroy()` leaves the instance where it is, so a plain field outlives every move, re-insertion and swap that keeps the element, and a replaced element gets a new instance, which is exactly when the work should happen again. The framework needed no mechanism for this. See "Why termination went away" below for the rest of what fell out with it.
 - **Every read walks the cascade, and this cost was real.** In a loop, a read cost 4.70 µs against 0.052 µs for a plain `getAttribute()`, which is 91×. Nearly all of it was asking eight `MediaQueryList` objects for `.matches`. After the active breakpoint name was memoised, the same batched read is 0.38 µs, which is 12.3× faster, and 7.4× a plain attribute read instead of 91×. What is left is the cascade walk itself, up to nine `getAttribute()` calls instead of one, which is the feature.
 
 ### Why the memo lasts one task
@@ -192,7 +205,7 @@ Any module can widen the filter: declared options and their scoped spellings arr
 
 The helper knows nothing about `Base` or the component lifecycle, so a component calls it from `mounted()` and runs the cleanup before it releases resources that a callback could reach.
 
-A callback must see settled component lifecycle and settled declared options, not a half-reconciled batch. Nothing in the framework reads these arbitrary attributes, so no framework decision can depend on a callback, and the reverse order would have no reader. The consequence is accepted: a component that stops its watcher from its mount cleanup during a termination in the same batch hears nothing about the attribute change of that batch.
+A callback must see settled component lifecycle and settled declared options, not a half-reconciled batch. Nothing in the framework reads these arbitrary attributes, so no framework decision can depend on a callback, and the reverse order would have no reader. The consequence is accepted: a component that stops its watcher from its mount cleanup during a teardown in the same batch hears nothing about the attribute change of that batch.
 
 ### `watchAttributes()`: measured cost
 
@@ -658,7 +671,7 @@ Each is a one-line DOM call, but each needs the same before-and-after script dif
 
 ### Why `morph` does not sync attributes
 
-`@studiometa/ui` morphs the target itself, so the attributes of the incoming element land on it. On a v4 element, `data-component` and `data-mount` are lifecycle declarations, and to rewrite them as a side effect of a content update would terminate and recreate instances. A caller who wants attributes synced is asking for something else than a content swap.
+`@studiometa/ui` morphs the target itself, so the attributes of the incoming element land on it. On a v4 element, `data-component` and `data-mount` are lifecycle declarations, and to rewrite them as a side effect of a content update would tear down and recreate instances. A caller who wants attributes synced is asking for something else than a content swap.
 
 ### The `morphdom` dependency
 

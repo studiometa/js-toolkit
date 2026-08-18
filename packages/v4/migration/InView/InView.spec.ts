@@ -136,7 +136,6 @@ describe('InViewOnce', () => {
     await observed();
 
     expect(instance?.$isMounted).toBe(true);
-    expect(instance?.$isTerminated).toBe(false);
   });
 
   it('still emits `out-of-view` never, when the element is removed from the DOM', async () => {

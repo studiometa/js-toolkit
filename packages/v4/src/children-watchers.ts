@@ -59,18 +59,15 @@ function onComponentDestroyed(event: Event): void {
  * number of listeners on the document does not grow with the number of
  * watchers.
  *
- * @returns The function releasing this watcher.
+ * Registering takes no release. A watcher lasts as long as the instance that
+ * asked for it, which is the whole of what `$watchChildren()` promises, and
+ * the index forgets it on the first pass after its owner is collected.
  */
-export function registerChildrenWatcher(watcher: ChildrenWatcher): () => void {
-  const ref = new WeakRef(watcher);
-  watcherIndex.add(ref);
+export function registerChildrenWatcher(watcher: ChildrenWatcher): void {
+  watcherIndex.add(new WeakRef(watcher));
 
   if (!watcherState.isDestroyListenerAttached) {
     watcherState.isDestroyListenerAttached = true;
     document.addEventListener(EVENTS.component.destroyed, onComponentDestroyed);
   }
-
-  return () => {
-    watcherIndex.delete(ref);
-  };
 }

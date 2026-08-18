@@ -279,7 +279,7 @@ describe('withInView', () => {
     const entry = entryFor(target, true);
     observer?.deliver([entry]);
     expect(seen).toEqual([{ isInView: true, entry }]);
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('supports the stage-3 decorator form', () => {
@@ -302,7 +302,7 @@ describe('withInView', () => {
     const entry = entryFor(target, false);
     observer?.deliver([entry]);
     expect(seen).toEqual([{ isInView: false, entry }]);
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('resolves a custom target and forwards only IntersectionObserverInit fields', () => {
@@ -337,7 +337,7 @@ describe('withInView', () => {
     expect(observer?.init).not.toHaveProperty('target');
     expect(observer?.init).not.toHaveProperty('manual');
     expect(observer?.init).not.toHaveProperty('immediate');
-    instance.$terminate();
+    instance.$destroy();
   });
 
   it('defaults to honest immediate delivery and honours an explicit false', () => {
@@ -384,9 +384,9 @@ describe('withInView', () => {
     expect(later.at(-1)).toEqual({ isInView: true, entry: nextEntry });
     expect(quiet).toEqual([{ isInView: true, entry: nextEntry }]);
 
-    firstInstance.$terminate();
-    laterInstance.$terminate();
-    quietInstance.$terminate();
+    firstInstance.$destroy();
+    laterInstance.$destroy();
+    quietInstance.$destroy();
   });
 
   it('releases each automatic mount cycle and waits for a new real entry on remount', () => {
@@ -415,11 +415,11 @@ describe('withInView', () => {
 
     secondObserver?.deliver([entryFor(target, false)]);
     expect(seen).toHaveLength(2);
-    instance.$terminate();
+    instance.$destroy();
     expect(secondObserver?.disconnects).toBe(1);
   });
 
-  it('leaves a manual hook stopped on mount and releases starts on destroy or terminate', () => {
+  it('leaves a manual hook stopped on mount and releases every start on destroy', () => {
     const seen: InViewProps[] = [];
 
     class Reveal extends withInView(Base, { manual: true }) {
@@ -451,7 +451,7 @@ describe('withInView', () => {
     const secondObserver = FakeIntersectionObserver.instances[1];
     expect(instance.$services.intersected.isActive).toBe(true);
 
-    instance.$terminate();
+    instance.$destroy();
     expect(instance.$services.intersected.isActive).toBe(false);
     expect(secondObserver?.disconnects).toBe(1);
   });

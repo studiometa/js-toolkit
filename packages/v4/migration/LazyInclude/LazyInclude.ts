@@ -47,8 +47,9 @@ export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyInclu
    * `$destroy()` leaves the instance on its element, so this field survives
    * every move, re-insertion and `swap()` which preserves the element — and
    * an element that is genuinely replaced gets a new instance, which is
-   * exactly when the content should be fetched again. `$terminate()` would
-   * have detached the instance and thrown this memory away with it.
+   * exactly when the content should be fetched again. The option keeps v3's
+   * name, but v4 has no termination to honour: what it records is that the
+   * content has been loaded.
    */
   hasLoaded = false;
 
