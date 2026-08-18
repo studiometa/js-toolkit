@@ -644,6 +644,8 @@ The click that ends a drag is suppressed from a flag armed by movement. Reading 
 
 - **A mixin binds from `$mount()`, not from `mounted()`.** Occupying a lifecycle hook made a mixin's correctness depend on every subclass remembering `super.mounted()`, and forgetting was total and silent — no warning, no type error, no failing hook, just a subscription that never happened. The port found it the hard way: a component was written without the chain and twelve specs failed at once with nothing to point at. A diagnostic would have made the trap visible; overriding the framework's own method removes it, and costs a component nothing it can forget.
 
+- **The sugar layers are keyed on a declared name, and that is worth saying rather than discovering.** Two ports found the same wall from two directions — `Action` for `on<Event>`, `Track` for `with<Service>` — and both were right to hand-roll. The earlier write-up called the name "compile-time", which is wrong twice: nothing resolves at compile time, and the audience this framework puts first has no compile step at all. What is fixed is that one method is one subscription, decided by the class rather than by the markup. A component whose subscriptions are data subscribes by hand, and the framework's job is to make that path obvious instead of making the sugar dynamic.
+
 ## 9. Animation
 
 The usage data across `@studiometa/ui` is one-sided:
