@@ -28,3 +28,4 @@ export { requireOptionsDeclaredInConfig } from './require-options-declared-in-co
 export { preferDestructuredLookups } from './prefer-destructured-lookups.ts';
 export { noDollarPrefix } from './no-dollar-prefix.ts';
 export { requireDestroyedCleanup } from './require-destroyed-cleanup.ts';
+export { noWriteInReadPhase } from './no-write-in-read-phase.ts';
