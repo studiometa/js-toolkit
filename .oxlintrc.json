@@ -75,7 +75,19 @@
         "typescript/require-await": "error",
         "typescript/restrict-plus-operands": "error",
         "typescript/restrict-template-expressions": "error",
-        "typescript/unbound-method": "error"
+        "typescript/unbound-method": "error",
+        "js-toolkit/no-write-in-read-phase": "error",
+        "js-toolkit/no-options-assignment": "error",
+        "js-toolkit/prefer-instance-scheduler": "warn",
+        "js-toolkit/option-default-factory": "error",
+        "js-toolkit/no-conflicting-negated-option": "error",
+        "js-toolkit/no-deprecated-properties": ["error", { "version": "v4" }],
+        "js-toolkit/no-dispatch-event": "warn",
+        "js-toolkit/no-shadow-dom": "error",
+        "js-toolkit/no-event-listener-methods": "error",
+        "js-toolkit/no-manual-mutation-observer": "warn",
+        "js-toolkit/refs-no-bracket-access": "error",
+        "js-toolkit/prefer-ref-over-query-selector": "warn"
       }
     },
     {

@@ -30,6 +30,11 @@ import {
   preferDestructuredLookups,
   noDollarPrefix,
   requireDestroyedCleanup,
+  noWriteInReadPhase,
+  noOptionsAssignment,
+  preferInstanceScheduler,
+  optionDefaultFactory,
+  noConflictingNegatedOption,
 } from './rules/index.ts';
 
 const PLUGIN_NAME = 'js-toolkit';
@@ -65,6 +70,11 @@ const rules = {
   'prefer-destructured-lookups': preferDestructuredLookups,
   'no-dollar-prefix': noDollarPrefix,
   'require-destroyed-cleanup': requireDestroyedCleanup,
+  'no-write-in-read-phase': noWriteInReadPhase,
+  'no-options-assignment': noOptionsAssignment,
+  'prefer-instance-scheduler': preferInstanceScheduler,
+  'option-default-factory': optionDefaultFactory,
+  'no-conflicting-negated-option': noConflictingNegatedOption,
 };
 
 const recommendedRules: Record<string, string> = {
@@ -99,6 +109,30 @@ const recommendedRules: Record<string, string> = {
   [`${PLUGIN_NAME}/require-destroyed-cleanup`]: 'warn',
 };
 
+/**
+ * v4 rules.
+ *
+ * v4 is not v3 with a bigger version number, so this is a separate set rather
+ * than an extension of `recommended`. Rules policing something v4 removed —
+ * `config.emits`, `$children`, the v3 decorator names — are absent, and
+ * `async-lifecycle-methods` is absent because a v4 frame hook returns the
+ * function which writes rather than a promise.
+ */
+const v4Rules: Record<string, unknown> = {
+  [`${PLUGIN_NAME}/no-write-in-read-phase`]: 'error',
+  [`${PLUGIN_NAME}/no-options-assignment`]: 'error',
+  [`${PLUGIN_NAME}/prefer-instance-scheduler`]: 'warn',
+  [`${PLUGIN_NAME}/option-default-factory`]: 'error',
+  [`${PLUGIN_NAME}/no-conflicting-negated-option`]: 'error',
+  [`${PLUGIN_NAME}/no-deprecated-properties`]: ['error', { version: 'v4' }],
+  [`${PLUGIN_NAME}/no-dispatch-event`]: 'warn',
+  [`${PLUGIN_NAME}/no-shadow-dom`]: 'error',
+  [`${PLUGIN_NAME}/no-event-listener-methods`]: 'error',
+  [`${PLUGIN_NAME}/no-manual-mutation-observer`]: 'warn',
+  [`${PLUGIN_NAME}/refs-no-bracket-access`]: 'error',
+  [`${PLUGIN_NAME}/prefer-ref-over-query-selector`]: 'warn',
+};
+
 const base = eslintCompatPlugin({
   meta: {
     name: '@studiometa/eslint-plugin-js-toolkit',
@@ -111,6 +145,11 @@ const plugin = Object.assign(base, { configs: {} as Record<string, object> });
 plugin.configs['recommended'] = {
   plugins: { [PLUGIN_NAME]: plugin },
   rules: recommendedRules,
+};
+
+plugin.configs['v4'] = {
+  plugins: { [PLUGIN_NAME]: plugin },
+  rules: v4Rules,
 };
 
 export { plugin as jsToolkit };
