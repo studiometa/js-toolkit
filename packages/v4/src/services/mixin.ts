@@ -179,8 +179,16 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
        *
        * The subscription therefore starts once the whole `mounted()` has run,
        * which is also when an `immediate` first delivery reaches a component
-       * that is fully set up. `$isMounted` is the guard: a hook that
-       * terminated the instance, or threw, leaves nothing to subscribe for.
+       * that is fully set up. `$isMounted` is the guard, and it covers the two
+       * cases where there is nothing left to subscribe for: a hook which
+       * terminated the instance, and a reversible strategy which unmounted it
+       * mid-cycle.
+       *
+       * A hook which **threw** is deliberately not one of them. `#guard()`
+       * reports the failure and the cycle continues — the component stays
+       * mounted, its handlers stay bound and its option effects stay live — so
+       * withholding the subscription alone would make services the only
+       * subsystem treating a thrown `mounted()` as fatal.
        */
       $mount(): this {
         super.$mount();
