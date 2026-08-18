@@ -66,14 +66,43 @@ export function isResponsiveAttribute(attribute: string, name: string): boolean 
   return name === attribute || name.startsWith(`${attribute}${RESPONSIVE_SEPARATOR}`);
 }
 
-/** Resolve a raw option value by cascading from a breakpoint to the base attribute. */
+/**
+ * Resolve a raw option value by cascading from a breakpoint to the base attribute.
+ *
+ * `negated` is the presence-only spelling of a boolean option, consulted at
+ * each level **after** the value-carrying one: at the same breakpoint an
+ * explicit value states more than a flag, and a narrower breakpoint wins over
+ * a wider one whichever spelling it uses. It resolves to the string `false`,
+ * so the boolean rule reads it without a second parsing path.
+ */
 export function responsiveRawValue(
   attribute: string,
   breakpoint: string,
   get: (name: string) => string | null,
+  negated?: string,
 ): string | null {
-  return responsiveScopedRawValue(attribute, breakpoint, get) ?? get(attribute);
+  if (negated === undefined) {
+    return responsiveScopedRawValue(attribute, breakpoint, get) ?? get(attribute);
+  }
+
+  const names = breakpointNames();
+  const scoped = scopedAttributes(attribute);
+  const scopedNegations = scopedAttributes(negated);
+  for (let index = names.indexOf(breakpoint); index >= 0; index -= 1) {
+    const value = get(scoped[index]);
+    if (value !== null) {
+      return value;
+    }
+    if (get(scopedNegations[index]) !== null) {
+      return NEGATED_VALUE;
+    }
+  }
+
+  return get(attribute) ?? (get(negated) === null ? null : NEGATED_VALUE);
 }
+
+/** What a present negation resolves to, which the boolean rule already reads. */
+const NEGATED_VALUE = 'false';
 
 /**
  * The scoped value in force at one breakpoint, without falling back to the

@@ -194,6 +194,21 @@ options: {
 - The active breakpoint name is memoised for the length of one task, through `utils/memo.js`. `setBreakpoints()` and the `change` handler of a running service clear it at once.
 - The breakpoint service is part of the core graph on every page.
 
+### Turning a boolean option off — `data-option-no-<name>`
+
+A boolean option is turned off by an attribute which only has to be there:
+
+```html
+<div data-component="Dialog" data-option-no-trap-focus></div>
+```
+
+- **It is another spelling of `="false"`, and nothing else.** `data-option-no-x` resolves to the raw string `false`, which is what the boolean rule already reads, so there is no second parsing path and no third state.
+- **Only an option which can hold `false` has one.** A declared `Boolean`, or a union containing it (`[Boolean, String]`). A `String` option has nothing to turn off, so `data-option-no-label` is not its attribute and the observer never watches for it.
+- **It is responsive like every other spelling.** `data-option-no-x:s` exists and cascades with the rest. One cascade, from the active breakpoint down to the base: at each level the value-carrying spelling is read first, then the negation, and the first hit wins. So a narrower breakpoint turns an option back **on** with `data-option-x:l="true"`, and at one breakpoint an explicit value outranks a flag.
+- **Presence is the whole statement.** A value on the negated attribute is not read: `data-option-no-x="false"` is not a double negative, it is the same flag.
+- **A declaration outranks a derived name.** A component declaring an option called `noSort` owns `data-option-no-sort`, so a sibling `sort` does not also claim it: the declared option keeps the attribute, `sort` loses its negated spelling, and the collision is reported once as `option.negated-collision`. The markup would otherwise mean two things at once.
+- The cost is paid by boolean options only: each one adds its negated name, and one scoped spelling per breakpoint, to the observer's filter.
+
 See [RATIONALE.md — 1. Independent components](./RATIONALE.md#1-independent-components).
 
 ## 2. One registry

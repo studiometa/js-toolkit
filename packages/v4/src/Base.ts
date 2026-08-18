@@ -1,4 +1,9 @@
-import { isNetChange, optionAttributeFor, REF_ATTRIBUTE } from './attributes.js';
+import {
+  isNetChange,
+  negatedOptionAttributeFor,
+  optionAttributeFor,
+  REF_ATTRIBUTE,
+} from './attributes.js';
 import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
@@ -588,16 +593,70 @@ function isOptionShorthand(definition: OptionDefinition): definition is OptionTy
   return typeof definition === 'function' || isOptionTypes(definition);
 }
 
+/**
+ * Whether an option can hold `false`, and therefore whether the negated
+ * attribute means anything for it. A union is enough: `[Boolean, String]` can
+ * be turned off, `[String, Number]` has nothing to turn off.
+ */
+export function declaresBoolean(definition: OptionDefinition): boolean {
+  const type = isOptionShorthand(definition) ? definition : definition.type;
+  return isOptionTypes(type) ? type.includes(Boolean) : type === Boolean;
+}
+
+/**
+ * The presence-only spelling which turns a boolean option off, or `undefined`
+ * when the option has no such spelling.
+ *
+ * A declaration always outranks a derived name: a component declaring an
+ * option called `noSort` owns `data-option-no-sort`, so a sibling `sort`
+ * cannot also claim it. The collision is reported rather than resolved
+ * silently, because the markup would otherwise mean two things at once.
+ */
+function negatedAttributeFor(
+  componentName: string,
+  option: string,
+  definition: OptionDefinition,
+  declaredAttributes: ReadonlySet<string>,
+  target: Element,
+): string | undefined {
+  if (!declaresBoolean(definition)) {
+    return undefined;
+  }
+
+  const negated = negatedOptionAttributeFor(option);
+  if (!declaredAttributes.has(negated)) {
+    return negated;
+  }
+
+  warnOnce(
+    definition,
+    '',
+    'option.negated-collision',
+    `\`${componentName}\` declares an option whose attribute is \`${negated}\`, which is also how \`${option}\` would be turned off. The declared option keeps the attribute; turn \`${option}\` off with \`${optionAttributeFor(option)}="false"\`.`,
+    { component: componentName, target },
+  );
+  return undefined;
+}
+
 function buildOptions(instance: Base): Record<string, unknown> {
   const options: Record<string, unknown> = {};
   const readers = new Map<string, OptionReader>();
   optionReaders.set(instance, readers);
   const el = instance.$el;
-  for (const [name, definition] of Object.entries(instance.$config.options ?? {})) {
+  const entries = Object.entries(instance.$config.options ?? {});
+  const declaredAttributes = new Set(entries.map(([name]) => optionAttributeFor(name)));
+  for (const [name, definition] of entries) {
     const shorthand = isOptionShorthand(definition);
     const type = shorthand ? definition : definition.type;
     const declared = shorthand ? undefined : definition.default;
     const attribute = optionAttributeFor(name);
+    const negated = negatedAttributeFor(
+      instance.$config.name,
+      name,
+      definition,
+      declaredAttributes,
+      el,
+    );
 
     if (!shorthand && declared !== null && typeof declared === 'object') {
       warnLiteralDefault(instance.$config.name, name, definition, declared, el);
@@ -646,10 +705,12 @@ function buildOptions(instance: Base): Record<string, unknown> {
     // is what lets `$options` stay a read-only view — there is no moment at
     // which a breakpoint change has to write a value in.
     const fromElement = (attributeName: string) => el.getAttribute(attributeName);
-    const rawValue = () => responsiveRawValue(attribute, activeBreakpoint(), fromElement);
+    const rawValue = () => responsiveRawValue(attribute, activeBreakpoint(), fromElement, negated);
     const rawValueAt = (breakpoint: string, get: (attributeName: string) => string | null) =>
-      responsiveRawValue(attribute, breakpoint, get);
-    const owns = (attributeName: string) => isResponsiveAttribute(attribute, attributeName);
+      responsiveRawValue(attribute, breakpoint, get, negated);
+    const owns = (attributeName: string) =>
+      isResponsiveAttribute(attribute, attributeName) ||
+      (negated !== undefined && isResponsiveAttribute(negated, attributeName));
 
     readers.set(name, { attribute, rawValue, rawValueAt, owns, read });
     Object.defineProperty(options, name, {

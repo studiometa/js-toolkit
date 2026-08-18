@@ -75,9 +75,42 @@ class Banner extends Base<{ $options: { theme: string } }> {
   }
 }
 
+/** Two boolean options, one on by default and one off, plus a union. */
+class Flags extends Base<{
+  $options: { viewTransition: boolean; autostart: boolean; mode: boolean | string };
+}> {
+  static config = {
+    name: 'Flags',
+    options: {
+      viewTransition: { type: Boolean, default: true },
+      autostart: Boolean,
+      mode: [Boolean, String] as const,
+    },
+  };
+
+  changes: OptionChange[] = [];
+
+  optionViewTransitionChanged(change: OptionChange): void {
+    this.changes.push(change);
+  }
+}
+
+/** A component whose own option owns the spelling a sibling would negate. */
+class Sorted extends Base<{ $options: { sort: boolean; noSort: boolean } }> {
+  static config = {
+    name: 'Sorted',
+    options: {
+      sort: { type: Boolean, default: true },
+      noSort: Boolean,
+    },
+  };
+}
+
 registerComponent(Label);
 registerComponent(Grid);
 registerComponent(Banner);
+registerComponent(Flags);
+registerComponent(Sorted);
 
 function render(html: string): HTMLElement {
   const root = document.createElement('div');
@@ -425,5 +458,118 @@ describe('responsive options', () => {
       expect.stringContaining('`data-option-label:small:large` names no breakpoint'),
     );
     warn.mockRestore();
+  });
+});
+
+describe('negated boolean options', () => {
+  it('turns a boolean off by the presence of its negated attribute', async () => {
+    const root = render(`<p data-component="Flags" data-option-no-view-transition></p>`);
+    await settle();
+    const flags = getInstance<Flags>(root.firstElementChild, 'Flags');
+
+    expect(flags.$options.viewTransition).toBe(false);
+  });
+
+  it('means exactly what `="false"` means, value and all', async () => {
+    const root = render(
+      `<p data-component="Flags" data-option-no-view-transition></p>` +
+        `<p data-component="Flags" data-option-view-transition="false"></p>`,
+    );
+    await settle();
+    const [negated, explicit] = [...root.children].map((el) => getInstance<Flags>(el, 'Flags'));
+
+    expect(negated.$options.viewTransition).toBe(explicit.$options.viewTransition);
+  });
+
+  it('states its case by being there, whatever value it carries', async () => {
+    const root = render(`<p data-component="Flags" data-option-no-view-transition="false"></p>`);
+    await settle();
+
+    // A negation is a flag: it is present or it is not.
+    expect(getInstance<Flags>(root.firstElementChild, 'Flags').$options.viewTransition).toBe(false);
+  });
+
+  it('turns off an option of a union type that accepts a boolean', async () => {
+    const root = render(`<p data-component="Flags" data-option-no-mode></p>`);
+    await settle();
+
+    expect(getInstance<Flags>(root.firstElementChild, 'Flags').$options.mode).toBe(false);
+  });
+
+  it('cascades from a breakpoint like every other spelling', async () => {
+    atSmall();
+    const root = render(`<p data-component="Flags" data-option-no-view-transition:large></p>`);
+    await settle();
+    const flags = getInstance<Flags>(root.firstElementChild, 'Flags');
+
+    expect(flags.$options.viewTransition).toBe(true);
+
+    atLarge();
+    expect(flags.$options.viewTransition).toBe(false);
+  });
+
+  it('lets a narrower breakpoint turn an option back on', async () => {
+    atSmall();
+    const root = render(
+      `<p data-component="Flags"
+          data-option-no-view-transition
+          data-option-view-transition:large="true"></p>`,
+    );
+    await settle();
+    const flags = getInstance<Flags>(root.firstElementChild, 'Flags');
+
+    expect(flags.$options.viewTransition).toBe(false);
+
+    atLarge();
+    expect(flags.$options.viewTransition).toBe(true);
+  });
+
+  it('reads the value-carrying spelling first when both sit at one breakpoint', async () => {
+    const root = render(
+      `<p data-component="Flags"
+          data-option-view-transition="true"
+          data-option-no-view-transition></p>`,
+    );
+    await settle();
+
+    // An explicit value states more than a flag does.
+    expect(getInstance<Flags>(root.firstElementChild, 'Flags').$options.viewTransition).toBe(true);
+  });
+
+  it('announces a change to the negated attribute like any other option change', async () => {
+    const root = render(`<p data-component="Flags"></p>`);
+    await settle();
+    const flags = getInstance<Flags>(root.firstElementChild, 'Flags');
+    expect(flags.$options.viewTransition).toBe(true);
+
+    (root.firstElementChild as HTMLElement).setAttribute('data-option-no-view-transition', '');
+    await settle();
+
+    expect(flags.$options.viewTransition).toBe(false);
+    expect(flags.changes.at(-1)).toMatchObject({ value: false, previousValue: true });
+  });
+
+  it('leaves a declared option its own attribute, and says so', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const root = render(`<p data-component="Sorted" data-option-no-sort></p>`);
+    await settle();
+    const sorted = getInstance<Sorted>(root.firstElementChild, 'Sorted');
+
+    // `noSort` declared the attribute, so it is `noSort`'s value, not `sort`'s.
+    expect(sorted.$options.noSort).toBe(true);
+    expect(sorted.$options.sort).toBe(true);
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('[js-toolkit:option.negated-collision]'),
+    );
+    expect(warn.mock.calls.flat().join('')).toContain('`data-option-no-sort`');
+    warn.mockRestore();
+  });
+
+  it('gives a non-boolean option no negated spelling', async () => {
+    const root = render(`<p data-component="Label" data-option-no-label></p>`);
+    await settle();
+
+    // Nothing to turn off, so the attribute is not this option's: the default stands.
+    expect(getInstance<Label>(root.firstElementChild, 'Label').$options.label).toBe('base');
   });
 });

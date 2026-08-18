@@ -44,6 +44,17 @@ export function optionAttributeFor(name: string): string {
 }
 
 /**
+ * The attribute which turns a boolean option off by being there.
+ *
+ * `data-option-no-view-transition` is another spelling of
+ * `data-option-view-transition="false"`, which is what v3 wrote and what reads
+ * better in markup: a flag is present or it is not.
+ */
+export function negatedOptionAttributeFor(name: string): string {
+  return `${OPTION_ATTRIBUTE_PREFIX}no-${kebabCase(name)}`;
+}
+
+/**
  * Whether a name is a declared option's, at any breakpoint. The scoped
  * spellings share the prefix, so one test covers the whole family.
  */

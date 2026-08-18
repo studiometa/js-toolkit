@@ -29,6 +29,7 @@ const manifest = Object.freeze({
 
 const option = Object.freeze({
   literalDefault: 'option.literal-default',
+  negatedCollision: 'option.negated-collision',
 } as const);
 
 const protocol = Object.freeze({
