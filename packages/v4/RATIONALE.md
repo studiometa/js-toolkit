@@ -110,6 +110,24 @@ A literal object or array default would live on the class, so two instances woul
 
 **A literal default is warned about and not repaired.** A shallow copy made an unsupported declaration appear to work one level deep. A deep copy made core guess how to rebuild a `Date`, a `Map` or a class instance. Neither is the job of core when the contract already has an answer that works all the way down. The type-level ban settles it for anyone with a build step; the no-build path never sees a type, so the rule is said out loud once per declaration.
 
+### Why `$options` has no setter
+
+**An option is an input, never a store.** The view is built from getters alone, and the type now says so: `$options` is `Readonly<…>`, which is the type-level half of a rule the runtime already enforced — an assignment to a getter-only property throws a `TypeError` in a module, and it always did. What was missing was a compiler that agreed with it.
+
+The real surface was counted rather than estimated: **nine assignments across three files of `@studiometa/ui`** — `Disclosure` five, `AccordionItem` two, `withIndex` two. Only `Disclosure`'s `enable()`/`disable()` pair is genuine reconfiguration, and both become one `removeAttribute()`/`setAttribute()` call. The rest is component state that was living in the wrong place: `AccordionItem.isOpen` and `Indexable.isReverse` are private fields seeded from their option, which is the shape both had to take in the port anyway.
+
+Two setters were considered, and each fails on its own terms.
+
+**A setter that writes the attribute back has no attribute to write.** Every option is responsive, so `open` is spelled by nine names — the base one and one per breakpoint — and the base attribute is silently outranked by `data-option-open:s` while the viewport is at `s`. A setter would have to pick one, and every choice is wrong somewhere: write the base name and the assignment does nothing visible at that breakpoint; write the active one and a component invents markup the author never wrote, which then survives the crossing back. The write also comes back as a mutation record, so it re-enters `option<Name>Changed()` as though the DOM had spoken — and a component which sets an option from inside its own change hook is a loop.
+
+**A setter that shadows the value in memory is v3's `__values` cache**, whose consequence v3 shipped: `OptionsManager.get()` fills `__values[name]` on the first read of an `Array` or `Object` option and returns it forever after, so the attribute stops being the source of truth for exactly the options most likely to carry structure — and `set()` writes the shadow only, leaving the DOM saying something else. It also splits every read in two, into the DOM's answer and the shadow's, which is the question a derived read exists to not have.
+
+**v3 already refuses this**, from the responsive half: `ResponsiveOptionsManager.set()` warns "Responsive options are read-only." In v4 every option is responsive, so a writable `$options` would make v4 **less** consistent than the version it replaces, not more.
+
+**The readonly has one price, and it was measured rather than assumed.** `Readonly<…>` is a mapped type, and a mapped type over a props parameter is deferred for the same reason the conditional of gap 22 was: inside a class **generic in its props**, an option is no longer a type identical to the declared one. Nothing about reading it changes — it assigns to an annotated slot, it passes to a function, it typechecks — but two things stop compiling on their own: an identity assertion, and a variable inferred from one option then assigned from another. Across the fifteen ported families the whole cost is **one line** — `Cursor.moved()` annotates its `scale` — plus three assertions in `props.spec.ts` which move to the `assignableTo()` helper that file already had, and already used for `$el` in exactly the same generic classes. Concrete props, which is nearly every component, keep their exact types and their identity assertions.
+
+What is left is not a hole, because the two replacements are already the documented idiom. Presence-only booleans made the DOM update a one-line statement, and the private field seeded from an option is the port's own precedent, found twice before this ruling was written. The type stops the mistake for anyone with a build step; the no-build-step audience — this framework's first-class one — is reached by a lint rule, which is a different item and not core's code.
+
 ### Responsive options: why there is no `responsive: true` flag
 
 A prototype carried one and it was removed before the merge. Three reasons:

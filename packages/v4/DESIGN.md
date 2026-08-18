@@ -143,7 +143,38 @@ class Action<T extends BaseProps = BaseProps> extends Base<ActionProps & T> {
 
 Each prop is read as an intersection with its default, such as `T['$options'] & Record<string, unknown>`. Do not read a prop through a conditional type. `$emits` is the one exception and needs a conditional. The price of the intersection is the index signature of the default: an option or a ref that a component does not declare reads as `unknown`, or as `HTMLElement | HTMLElement[]`, and not as an error. Declared props keep their exact types.
 
+`$options` is read through the same intersection and then mapped to `Readonly<…>`, which has one price of its own: a mapped type over a props parameter is deferred, so inside a class **generic in its props** a declared option is a usable value of its declared type rather than a type identical to it. Reading it, passing it and annotating it all work; asserting its identity, or assigning one option to a variable inferred from another, needs an annotation.
+
 `src/props.spec.ts` holds the assertions. `npm run lint:types` enforces them.
+
+### `$options` is a read-only view
+
+**An option is an input, never a store.** `buildOptions()` defines every property with a getter and no setter, so the value is derived from the element and the viewport on each access and nothing is written in. The field is typed `Readonly<…>`, and an assignment throws, since a module is strict code:
+
+```js
+this.$options.open = true;
+// TypeError: Cannot set property open of #<Object> which has only a getter
+```
+
+Two idioms replace the write, and which one a component wants is decided by what the value is:
+
+- **The DOM is meant to change** — write the attribute, the same statement the markup makes. `enable()` and `disable()` are one call each:
+
+  ```js
+  enable() {
+    this.$el.removeAttribute('data-option-disabled');
+  }
+  ```
+
+  The next read gives the new value, and `option<Name>Changed()` announces it to anyone listening.
+
+- **The value was never an input** — keep a private field seeded from the option. The attribute says where the component starts; the field carries where it has got to:
+
+  ```js
+  #isOpen = this.$options.open;
+  ```
+
+An option a component only reads keeps neither: it reads `this.$options.x` where it needs it.
 
 ### Option defaults
 
@@ -161,7 +192,7 @@ options: {
 - A default is built once per instance and then kept. Two instances never share one default. `Array` and `Object` with no declared default get an empty value per instance.
 - A factory is lazy. Nothing is built for an option that nobody reads. A component whose attribute is present never runs its factory.
 - A literal object or array default gives one warning per declaration, with the component, the option and the correction. The value is then used as declared and shared between instances.
-- `$options` reads its `data-option-*` attribute on each access, so a change to a value that comes from an attribute is not kept.
+- A default is the one option value that lives on the instance, so mutating the object a factory built is kept — `this.$options.tween.ease = 'ease-out'` sticks, for that instance. Replacing the option itself does not: `this.$options.tween = {}` throws, like every other write to the view.
 
 **An option can accept several types.** Declare the constructors in order: `offset: [Number, Array]` reads `"10"` as a number and `"[10, 20]"` as an array. Each parser must give a value of its declared type before the next parser runs. An absent union option uses its declared default, or the empty value of its first type.
 
