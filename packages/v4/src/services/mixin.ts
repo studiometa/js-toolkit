@@ -1,4 +1,4 @@
-import type { Base, BaseConstructor, BaseProps, MountedReturn } from '../Base.js';
+import type { Base, BaseConstructor, BaseProps } from '../Base.js';
 import type { Service } from './service.js';
 import { toggle, type Toggle } from './toggle.js';
 
@@ -167,14 +167,39 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
         };
       }
 
-      mounted(): MountedReturn {
-        const inherited = super.mounted();
-        const handle = (this as unknown as { $services: Record<string, Toggle> }).$services[hook];
-        if (!isManual) {
-          handle.start();
+      /**
+       * Bind from `$mount()` rather than from `mounted()`.
+       *
+       * `mounted()` belongs to the component author. A mixin which occupied it
+       * needed every subclass to chain `super.mounted()`, and forgetting was
+       * total and silent: the subscription simply never happened, with no
+       * warning, no type error and no failing hook. `$mount()` is the
+       * framework's own method — the one `$terminate()` already overrides —
+       * so there is nothing left to chain.
+       *
+       * The subscription therefore starts once the whole `mounted()` has run,
+       * which is also when an `immediate` first delivery reaches a component
+       * that is fully set up. `$isMounted` is the guard: a hook that
+       * terminated the instance, or threw, leaves nothing to subscribe for.
+       */
+      $mount(): this {
+        super.$mount();
+        if (!isManual && this.$isMounted) {
+          (this as unknown as { $services: Record<string, Toggle> }).$services[hook].start();
         }
-        // `stop` is bound and idempotent.
-        return [inherited, handle.stop];
+        return this;
+      }
+
+      /**
+       * Release before the cycle unwinds, so `destroyed()` sees the same
+       * stopped subscription it saw when the release was a mount cleanup.
+       */
+      $destroy(): this {
+        if (this.$isMounted) {
+          // `stop` is bound and idempotent.
+          (this as unknown as { $services: Record<string, Toggle> }).$services[hook].stop();
+        }
+        return super.$destroy();
       }
 
       $terminate(): this {

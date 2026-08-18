@@ -58,6 +58,65 @@ describe('service mixins', () => {
     instance.$terminate();
   });
 
+  it('subscribes for a component whose `mounted()` does not chain `super`', async () => {
+    class Unchained extends withRaf(Base) {
+      static config = { name: 'Unchained' };
+
+      ticks = 0;
+      mountedRan = false;
+
+      // No `super.mounted()`, which is how most components are written and
+      // what used to leave the mixin subscribed to nothing.
+      mounted(): void {
+        this.mountedRan = true;
+      }
+
+      ticked(): void {
+        this.ticks += 1;
+      }
+    }
+
+    const instance = new Unchained(render()).$mount();
+    await frames(3);
+
+    expect(instance.mountedRan).toBe(true);
+    expect(instance.ticks).toBeGreaterThan(0);
+
+    instance.$destroy();
+    const frozen = instance.ticks;
+    await frames(3);
+    expect(instance.ticks).toBe(frozen);
+
+    instance.$terminate();
+  });
+
+  it('starts the subscription once the whole `mounted()` has run', async () => {
+    const order: string[] = [];
+
+    class Ordered extends withRaf(Base) {
+      static config = { name: 'Ordered' };
+
+      mounted(): void {
+        order.push(`mounted:${this.$services.ticked.isActive}`);
+      }
+
+      ticked(): void {
+        if (order.at(-1) !== 'ticked') {
+          order.push('ticked');
+        }
+      }
+    }
+
+    const instance = new Ordered(render()).$mount();
+    await frames(2);
+
+    // The component is fully set up before its first delivery, which is what
+    // an `immediate` service would otherwise interrupt.
+    expect(order).toEqual(['mounted:false', 'ticked']);
+
+    instance.$terminate();
+  });
+
   it('follows the registry: an element leaving the DOM leaves no subscription', async () => {
     registerComponent(Ticker);
     const el = render();

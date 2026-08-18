@@ -609,6 +609,9 @@ It writes only when the computed value is `auto`, so consumer CSS is deliberate 
 
 The click that ends a drag is suppressed from a flag armed by movement. Reading the persistent `distance*` fields instead made every later click on the target unreachable, keyboard activation of a link inside it included.
 
+- **A mixin binds from `$mount()`, not from `mounted()`.** Occupying a lifecycle hook made a mixin's correctness depend on every subclass remembering `super.mounted()`, and forgetting was total and silent — no warning, no type error, no failing hook, just a subscription that never happened. The port found it the hard way: a component was written without the chain and twelve specs failed at once with nothing to point at. A diagnostic would have made the trap visible; overriding the framework's own method removes it, and costs a component nothing it can forget.
+
+
 ## 9. Animation
 
 The usage data across `@studiometa/ui` is one-sided:
