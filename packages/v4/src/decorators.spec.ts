@@ -981,6 +981,48 @@ describe('@read / @write', () => {
     await defaultScheduler.whenIdle();
     expect(ran).toBe(false);
   });
+
+  it('does not follow a subclass override — the wrapper is the base class property', async () => {
+    const order: string[] = [];
+
+    class PhasedBase extends Base {
+      static config = { name: 'PhasedBase' };
+
+      @write
+      update(label: string): void {
+        order.push(`base:${label}`);
+      }
+
+      run(label: string): void {
+        this.update(label);
+      }
+    }
+
+    class PhasedChild extends PhasedBase {
+      static config = { name: 'PhasedChild' };
+
+      // No decorator: this is a plain property on the subclass, and it is what
+      // `this.update()` resolves to.
+      override update(label: string): void {
+        order.push(`child:${label}`);
+      }
+    }
+
+    const el = document.createElement('div');
+    document.body.append(el);
+    const child = new PhasedChild(el).$mount();
+
+    child.run('now');
+
+    // The base scheduled nothing: the phase belongs to the call site, so a
+    // template method a subclass implements keeps an explicit `$write()`.
+    expect(order).toEqual(['child:now']);
+
+    await defaultScheduler.whenIdle();
+    expect(order).toEqual(['child:now']);
+
+    child.$destroy();
+  });
 });
 
 describe('@on stacked with @read / @write', () => {

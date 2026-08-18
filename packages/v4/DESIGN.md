@@ -657,6 +657,15 @@ No engine ships stage-3 decorators, so **every decorator is a thin wrapper over 
 - **A global target goes through `bindGlobal()`**, the binding that `onWindow<Event>` uses: bubble phase, one listener per mount cycle, removed by `$destroy()`.
 - **Any other `EventTarget` is refused**, by the overloads and by a `TypeError`. A decorator is evaluated once, at class definition, so an arbitrary target can only be a module-scope value.
 
+**`@read` and `@write` are leaf-method sugar: the phase belongs to the call site.** A phase decorator returns a wrapper around the method it decorates, and that wrapper is a property of **that class**. A subclass which overrides the method defines its own, undecorated, and `this.method()` resolves to it — so the base's scheduling disappears and the body runs in whatever phase the caller was in. Decorate a method nobody overrides. A **template method** — a base which schedules work its subclasses implement — schedules at the call site instead:
+
+```js
+// in the base, where the call is
+state.subscribe((value) => this.$write(() => this.update(value)));
+```
+
+`AbstractCarouselChild` is that shape and writes exactly this. The alternative — dispatching a decorated method through something a subclass cannot replace — was refused: it would make a decorator's behaviour depend on inheritance depth, which nothing else in v4 does, to buy a convenience no consumer has asked for.
+
 **The skip is keyed by the method name, so `@on` and `@read`/`@write` stack in either order.** The order decides what the listener calls: a phase decorator written below the `@on`, nearest the method, schedules the body of the handler; one written above it schedules direct calls only. Write `@read` and `@write` closest to the method body.
 
 Each value decorator works on a plain field and on an `accessor` field.
