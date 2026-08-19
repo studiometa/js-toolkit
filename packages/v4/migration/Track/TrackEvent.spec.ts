@@ -1,8 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { resetDom, settle } from '../../src/test-utils.js';
+import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { parseEventDefinition } from '../event-modifiers.js';
 import { Track } from './Track.js';
-import { parseEventDefinition, resolveDetailPlaceholders } from './TrackEvent.js';
+import { resolveDetailPlaceholders } from './TrackEvent.js';
 
 registerComponents(Track);
 
@@ -32,21 +33,50 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 describe('parseEventDefinition', () => {
   it('splits an event from its modifiers', () => {
-    expect(parseEventDefinition('click.prevent.stop')).toEqual({
-      event: 'click',
-      modifiers: ['prevent', 'stop'],
-      debounceDelay: 0,
-      throttleDelay: 0,
-    });
+    const { event, modifiers } = parseEventDefinition('click.prevent.stop');
+    expect(event).toBe('click');
+    expect([...modifiers]).toEqual(['prevent', 'stop']);
   });
 
-  it('reads the delay out of a debounce or throttle modifier, with a default', () => {
-    expect(parseEventDefinition('input.debounce500')).toMatchObject({
-      modifiers: ['debounce'],
-      debounceDelay: 500,
-    });
-    expect(parseEventDefinition('input.debounce')).toMatchObject({ debounceDelay: 300 });
-    expect(parseEventDefinition('scroll.throttle')).toMatchObject({ throttleDelay: 16 });
+  it('reports only the delay an author wrote, leaving the fallback to the caller', () => {
+    expect(parseEventDefinition('input.debounce500').delay('debounce')).toBe(500);
+    // A bare modifier carries no number, so each family keeps its own default:
+    // `Track` reads 300 here and `Action` reads 100 from the same modifier.
+    expect(parseEventDefinition('input.debounce').delay('debounce')).toBeUndefined();
+    expect(parseEventDefinition('scroll.throttle').delay('throttle')).toBeUndefined();
+    expect(parseEventDefinition('scroll.throttle200').delay('throttle')).toBe(200);
+    expect(parseEventDefinition('click.prevent').delay('debounce')).toBeUndefined();
+  });
+
+  it('warns for a modifier that names nothing instead of binding it', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { event, modifiers } = parseEventDefinition('click.prevnet.stop');
+    expect(event).toBe('click');
+    // The typo is dropped; the modifiers that parsed still apply.
+    expect([...modifiers]).toEqual(['stop']);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls[0].join(' ')).toContain('prevnet');
+    spy.mockRestore();
+  });
+
+  it('rejects a malformed timed delay instead of parsing it to NaN', () => {
+    // `debounceoops` used to match on the `debounce` prefix alone, so its
+    // suffix went through `Number.parseInt` and produced `NaN` — a timeout
+    // browsers run immediately rather than warn about.
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { modifiers, delay } = parseEventDefinition('click.debounceoops');
+    expect([...modifiers]).toEqual([]);
+    expect(delay('debounce')).toBeUndefined();
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls[0].join(' ')).toContain('debounceoops');
+    spy.mockRestore();
+  });
+
+  it('applies the family default through the bound declaration', async () => {
+    const el = await render('<div data-component="Track" data-track:click.debounce></div>');
+    const [trackEvent] = getInstance<Track>(el, 'Track').trackEvents;
+    expect(trackEvent.debounceDelay).toBe(300);
+    expect(trackEvent.throttleDelay).toBe(16);
   });
 });
 

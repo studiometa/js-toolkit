@@ -1,4 +1,4 @@
-import { COMPONENT_ATTRIBUTE, RESPONSIVE_SEPARATOR } from './attributes.js';
+import { COMPONENT_ATTRIBUTE, isInNamespace } from './attributes.js';
 import {
   activeBreakpoint,
   responsiveAttributeNames,
@@ -25,10 +25,7 @@ export function componentTokens(el: Element): Set<string> {
 
 /** Whether an element carries any component spelling, including an invalid suffix. */
 export function hasComponentAttribute(el: Element): boolean {
-  const prefix = `${COMPONENT_ATTRIBUTE}${RESPONSIVE_SEPARATOR}`;
-  return el
-    .getAttributeNames()
-    .some((attribute) => attribute === COMPONENT_ATTRIBUTE || attribute.startsWith(prefix));
+  return el.getAttributeNames().some((attribute) => isInNamespace(COMPONENT_ATTRIBUTE, attribute));
 }
 
 /** Whether an element carries a scoped spelling from the configured breakpoint set. */

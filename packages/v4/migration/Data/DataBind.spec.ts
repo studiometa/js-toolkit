@@ -226,6 +226,69 @@ describe('DataBind — the element half', () => {
     expect(el(root, '#b').getAttribute('aria-expanded')).toBe('false');
   });
 
+  it('follows a virtual binding rewritten in place', async () => {
+    const root = await render(`
+      <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
+        data-bind:text="\`was: \${value}\`"></div>
+    `);
+
+    const bind = at<DataBind>(root, '#d', 'DataBind');
+    bind.set('one');
+    expect(el(root, '#d').textContent).toBe('was: one');
+
+    // The bindings used to be memoised on first read, so an attribute a morph
+    // or a `data-bind:if` template rewrote kept its first parse forever. The
+    // rewrite now applies the value already in force, with no `set()` needed.
+    el(root, '#d').setAttribute('data-bind:text', '`now: ${value}`');
+    await settle();
+    expect(el(root, '#d').textContent).toBe('now: one');
+
+    bind.set('two');
+    expect(el(root, '#d').textContent).toBe('now: two');
+  });
+
+  it('picks up a virtual binding added after mount, and drops a removed one', async () => {
+    const root = await render(`
+      <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
+        data-bind:text="value"></div>
+    `);
+
+    const bind = at<DataBind>(root, '#d', 'DataBind');
+    const div = el(root, '#d');
+    bind.set('on');
+    expect(div.textContent).toBe('on');
+
+    div.setAttribute('data-bind:class.is-active', 'value === "on"');
+    await settle();
+    expect(div.classList.contains('is-active')).toBe(true);
+
+    div.removeAttribute('data-bind:class.is-active');
+    await settle();
+    bind.set('off');
+    // The removed declaration stops being applied; what it wrote is left alone,
+    // as a binding the element no longer declares has nothing to say about it.
+    expect(div.textContent).toBe('off');
+    expect(div.classList.contains('is-active')).toBe(true);
+  });
+
+  it('warns for a binding type that names nothing', async () => {
+    const details: string[] = [];
+    document.addEventListener(EVENTS.diagnostic, (event) => {
+      const { detail } = event as CustomEvent<{ code: string; message: string }>;
+      details.push(detail.code);
+      event.preventDefault();
+    });
+
+    const root = await render(`
+      <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
+        data-bind:txet="value"></div>
+    `);
+
+    // The typo used to be an attribute that silently did nothing at all.
+    expect(details).toContain('attribute.unknown-qualifier');
+    expect(at<DataBind>(root, '#d', 'DataBind').hasVirtualBindings).toBe(false);
+  });
+
   it('fails quietly when a virtual expression throws', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const root = await render(`

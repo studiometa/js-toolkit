@@ -90,11 +90,13 @@ describe('ActionEvent — parsing and the effect evaluator', () => {
 
     const plain = new ActionEvent(action, 'click.prevent.stop', 'target');
     expect(plain.event).toBe('click');
-    expect(plain.modifiers).toEqual(['prevent', 'stop']);
+    expect([...plain.modifiers]).toEqual(['prevent', 'stop']);
+    // A bare `debounce` reads 100 here, where `Track` reads 300 from the one
+    // shared parser: the delay is the family's, the vocabulary is not.
     expect(plain.debounceDelay).toBe(100);
 
     const debounced = new ActionEvent(action, 'scroll.debounce300', 'target');
-    expect(debounced.modifiers).toEqual(['debounce']);
+    expect([...debounced.modifiers]).toEqual(['debounce']);
     expect(debounced.debounceDelay).toBe(300);
   });
 

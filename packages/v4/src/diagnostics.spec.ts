@@ -11,6 +11,7 @@ import { EVENTS } from './events.js';
 describe('diagnostics', () => {
   it('exposes exact deeply frozen stable codes', () => {
     expect(DIAGNOSTICS).toEqual({
+      attribute: { unknownQualifier: 'attribute.unknown-qualifier' },
       callback: {
         signalFailed: 'callback.signal-failed',
         contextSubscriptionFailed: 'callback.context-subscription-failed',
@@ -58,6 +59,7 @@ describe('diagnostics', () => {
     }
     expectTypeOf<ToolkitDiagnosticSeverity>().toEqualTypeOf<'warning' | 'error'>();
     expectTypeOf<ToolkitDiagnosticCode>().toEqualTypeOf<
+      | 'attribute.unknown-qualifier'
       | 'callback.signal-failed'
       | 'callback.context-subscription-failed'
       | 'callback.context-teardown-failed'

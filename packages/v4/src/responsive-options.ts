@@ -3,7 +3,7 @@
  *
  * Values are resolved on read and are not stored.
  */
-import { NEGATED_RAW, RESPONSIVE_SEPARATOR } from './attributes.js';
+import { NEGATED_RAW, namespaceQualifier, namespacedAttribute } from './attributes.js';
 import { warnOnce } from './diagnostics.js';
 import { registerDOMOptionAttributes, replaceDOMOptionAttributes } from './dom-mutations.js';
 import { breakpointNames, onBreakpointsReplaced, useBreakpoint } from './services/breakpoint.js';
@@ -22,7 +22,7 @@ const responsiveOptionsState = /* @__PURE__ */ getSharedRuntimeSlot<ResponsiveOp
   2,
   () => ({
     scopedAttributes: memo((attribute: string): readonly string[] =>
-      breakpointNames().map((name) => `${attribute}${RESPONSIVE_SEPARATOR}${name}`),
+      breakpointNames().map((name) => namespacedAttribute(attribute, name)),
     ),
     observed: new Set(),
     isReplacementListenerAttached: false,
@@ -59,11 +59,6 @@ export function observeResponsiveAttribute(attribute: string): void {
 /** Return the widest matching breakpoint without creating a subscription. */
 export function activeBreakpoint(): string {
   return useBreakpoint().props().name;
-}
-
-/** Whether an attribute name belongs to this option at any breakpoint. */
-export function isResponsiveAttribute(attribute: string, name: string): boolean {
-  return name === attribute || name.startsWith(`${attribute}${RESPONSIVE_SEPARATOR}`);
 }
 
 /**
@@ -142,8 +137,10 @@ export function checkResponsiveAttributes(el: HTMLElement, attributes: readonly 
   const names = breakpointNames();
   for (const name of el.getAttributeNames()) {
     for (const attribute of attributes) {
-      const prefix = `${attribute}${RESPONSIVE_SEPARATOR}`;
-      if (name.startsWith(prefix) && !names.includes(name.slice(prefix.length))) {
+      // The qualifier of a generated namespace is one breakpoint and nothing
+      // else, so an unknown one is a typo rather than a part core cannot read.
+      const qualifier = namespaceQualifier(attribute, name);
+      if (qualifier !== null && !names.includes(qualifier)) {
         warnOnce(
           el,
           name,

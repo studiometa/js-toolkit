@@ -1,17 +1,19 @@
 import {
   Base,
-  watchAttributes,
+  namespaceQualifier,
+  watchAttributeNamespace,
   type BaseConfig,
   type BaseProps,
   type MountedReturn,
 } from '../../src/index.js';
 import { ActionEvent } from './ActionEvent.js';
 
-/** The required prefix for virtual `on:<event>[.<modifier>]` options. */
-const ON_ATTRIBUTE_PREFIX = 'data-on:';
-
-/** Binding key that cannot collide with hyphenated attribute names. */
-const OPTION_BINDING_KEY = 'options';
+/**
+ * The namespace of the virtual `on:<event>[.<modifier>]` declarations. Its
+ * qualifiers are any DOM event, so the set of names is open and the namespace
+ * is watched per element rather than registered.
+ */
+const ON_NAMESPACE = 'data-on';
 
 export type ActionProps = BaseProps & {
   $options: {
@@ -38,8 +40,8 @@ export class Action extends Base<ActionProps> {
     },
   };
 
-  /** Live bindings by the key that produced them, each holding its release. */
-  #bindings = new Map<string, () => void>();
+  /** The release of the binding built from the `on`/`target`/`effect` triple. */
+  #releaseOptionBinding?: () => void;
 
   /** The `on`/`target`/`effect` values the option binding was built from. */
   #optionSignature: string | null = null;
@@ -67,23 +69,18 @@ export class Action extends Base<ActionProps> {
   }
 
   mounted(): MountedReturn {
-    // Initial option hooks bind the option triple before `mounted()`.
-    for (const { name, value } of Array.from(this.$el.attributes)) {
-      this.#bind(name, this.#parseAttribute(name, value));
-    }
-
-    const stopWatchingAttributes = watchAttributes(this.$el, ({ name, value }) => {
-      if (name.startsWith(ON_ATTRIBUTE_PREFIX)) {
-        this.#bind(name, this.#parseAttribute(name, value));
-      }
-    });
+    // The option triple is bound by the option hooks, which run before
+    // `mounted()`; the namespace owns the attribute half.
+    const stopWatchingNamespace = watchAttributeNamespace(
+      this.$el,
+      ON_NAMESPACE,
+      ({ qualifier, value }) => new ActionEvent(this, qualifier, value).attach(),
+    );
 
     return () => {
-      stopWatchingAttributes();
-      for (const release of this.#bindings.values()) {
-        release();
-      }
-      this.#bindings.clear();
+      stopWatchingNamespace();
+      this.#releaseOptionBinding?.();
+      this.#releaseOptionBinding = undefined;
       this.#optionSignature = null;
     };
   }
@@ -102,10 +99,11 @@ export class Action extends Base<ActionProps> {
 
   /** One `data-on:<event>` attribute, or `null` for anything else. */
   #parseAttribute(name: string, value: string | null): ActionEvent | null {
-    if (!name.startsWith(ON_ATTRIBUTE_PREFIX) || value === null) {
+    const qualifier = namespaceQualifier(ON_NAMESPACE, name);
+    if (qualifier === null || value === null) {
       return null;
     }
-    return new ActionEvent(this, name.slice(ON_ATTRIBUTE_PREFIX.length), value);
+    return new ActionEvent(this, qualifier, value);
   }
 
   /** The `on`/`target`/`effect` triple, or `null` when no effect is set. */
@@ -118,23 +116,19 @@ export class Action extends Base<ActionProps> {
     return new ActionEvent(this, on, definition);
   }
 
+  /**
+   * The one binding the namespace cannot own: it is derived from three
+   * independently reported options rather than from one attribute, so it needs
+   * its own release and its own change test.
+   */
   #bindOptions(): void {
     const { on, target, effect } = this.$options;
-    // Three independently reported options produce one binding.
     const signature = JSON.stringify([on, target, effect]);
     if (signature === this.#optionSignature) {
       return;
     }
     this.#optionSignature = signature;
-    this.#bind(OPTION_BINDING_KEY, this.#parseOptions());
-  }
-
-  /** Replace one keyed binding, releasing the previous listener first. */
-  #bind(key: string, actionEvent: ActionEvent | null): void {
-    this.#bindings.get(key)?.();
-    this.#bindings.delete(key);
-    if (actionEvent) {
-      this.#bindings.set(key, actionEvent.attach());
-    }
+    this.#releaseOptionBinding?.();
+    this.#releaseOptionBinding = this.#parseOptions()?.attach();
   }
 }

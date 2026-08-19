@@ -18,7 +18,10 @@ import {
   useMutation,
   usePointer,
   useScrollProgress,
+  watchAttributeNamespace,
   watchAttributes,
+  type AttributeNamespaceBinder,
+  type AttributeNamespaceDeclaration,
   withDrag,
   withInView,
   withKey,
@@ -96,6 +99,10 @@ import watchAttributesFromSubpath, {
   type AttributeChange as SubpathAttributeChange,
   type AttributeWatcher as SubpathAttributeWatcher,
 } from '@studiometa/js-toolkit-v4/watchAttributes';
+import watchAttributeNamespaceFromSubpath, {
+  watchAttributeNamespace as namedWatchAttributeNamespaceFromSubpath,
+  type AttributeNamespaceBinder as SubpathAttributeNamespaceBinder,
+} from '@studiometa/js-toolkit-v4/watchAttributeNamespace';
 import diagnosticsFromSubpath, {
   DIAGNOSTICS as namedDiagnosticsFromSubpath,
 } from '@studiometa/js-toolkit-v4/DIAGNOSTICS';
@@ -173,7 +180,7 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    expect(Object.keys(root)).toHaveLength(82);
+    expect(Object.keys(root)).toHaveLength(84);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [
@@ -202,6 +209,16 @@ describe('the package entry points', () => {
     expectTypeOf<AttributeChange>().toEqualTypeOf<SubpathAttributeChange>();
     expectTypeOf<AttributeWatcher>().toEqualTypeOf<SubpathAttributeWatcher>();
     expectTypeOf<AttributeWatcher>().toEqualTypeOf<(change: AttributeChange) => void>();
+  });
+
+  it('exports the attribute-namespace primitive from root and subpath, not Base', () => {
+    expect(watchAttributeNamespaceFromSubpath).toBe(watchAttributeNamespace);
+    expect(namedWatchAttributeNamespaceFromSubpath).toBe(watchAttributeNamespace);
+    expect(Base.prototype).not.toHaveProperty('$watchAttributeNamespace');
+    expectTypeOf<AttributeNamespaceBinder>().toEqualTypeOf<SubpathAttributeNamespaceBinder>();
+    expectTypeOf<AttributeNamespaceBinder>().toEqualTypeOf<
+      (declaration: AttributeNamespaceDeclaration) => (() => void) | void
+    >();
   });
 
   it('exports the optional context subscription helper from root and subpath', () => {

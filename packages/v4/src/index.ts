@@ -1,4 +1,10 @@
-export { MOUNT_ATTRIBUTE } from './attributes.js';
+export {
+  watchAttributeNamespace,
+  type AttributeNamespaceBinder,
+  type AttributeNamespaceDeclaration,
+  type AttributeNamespaceOptions,
+} from './attribute-namespaces.js';
+export { MOUNT_ATTRIBUTE, namespaceQualifier } from './attributes.js';
 export {
   Base,
   type BaseConfig,

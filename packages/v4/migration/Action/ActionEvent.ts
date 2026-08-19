@@ -1,4 +1,5 @@
 import { getInstances, type Base } from '../../src/index.js';
+import { MODIFIERS, parseEventDefinition, type Modifier } from '../event-modifiers.js';
 import { getEffect, type EffectFunction } from './expression.js';
 
 /**
@@ -7,7 +8,8 @@ import { getEffect, type EffectFunction } from './expression.js';
  */
 const TARGET_REGEX = /([a-zA-Z]+)(\((.*)\))?/;
 
-export type Modifier = 'prevent' | 'stop' | 'once' | 'passive' | 'capture' | 'debounce';
+/** What a bare `debounce` means here. `Track` reads the same modifier at 300. */
+const DEFAULT_DEBOUNCE_DELAY = 100;
 
 /** A resolved target: one entry, keyed by the component's name. */
 export type ActionTarget = Record<string, Base>;
@@ -18,7 +20,6 @@ function warn(...args: unknown[]): void {
 
 /** One runtime event binding from an attribute or the option triple. */
 export class ActionEvent {
-  static modifierSeparator = '.';
   static targetSeparator = ' ';
   static effectSeparator = '->';
 
@@ -28,9 +29,9 @@ export class ActionEvent {
   /** The event type to listen to. */
   event: string;
 
-  modifiers: Modifier[];
+  modifiers: ReadonlySet<Modifier>;
 
-  debounceDelay = 100;
+  debounceDelay: number;
 
   /** `Target Target(.selector)` — empty means "the action itself". */
   targetDefinition: string;
@@ -47,19 +48,11 @@ export class ActionEvent {
    */
   constructor(action: Base, eventDefinition: string, effectDefinition: string) {
     this.action = action;
-    const [event, ...modifiers] = eventDefinition.split(ActionEvent.modifierSeparator);
-    this.event = event;
 
-    const processedModifiers: Modifier[] = [];
-    for (const modifier of modifiers) {
-      if (modifier.startsWith('debounce')) {
-        processedModifiers.push('debounce');
-        this.debounceDelay = Number.parseInt(modifier.replace('debounce', '') || '100', 10);
-      } else {
-        processedModifiers.push(modifier as Modifier);
-      }
-    }
-    this.modifiers = processedModifiers;
+    const { event, modifiers, delay } = parseEventDefinition(eventDefinition);
+    this.event = event;
+    this.modifiers = modifiers;
+    this.debounceDelay = delay(MODIFIERS.DEBOUNCE) ?? DEFAULT_DEBOUNCE_DELAY;
 
     let effect = effectDefinition;
     let targetDefinition = '';
@@ -126,10 +119,10 @@ export class ActionEvent {
   handleEvent(event: Event): void {
     const { modifiers } = this;
 
-    if (modifiers.includes('prevent')) {
+    if (modifiers.has(MODIFIERS.PREVENT)) {
       event.preventDefault();
     }
-    if (modifiers.includes('stop')) {
+    if (modifiers.has(MODIFIERS.STOP)) {
       event.stopPropagation();
     }
 
@@ -138,7 +131,7 @@ export class ActionEvent {
     const effect = getEffect(this.effectDefinition, [...instances.keys()]);
     const { targets } = this;
 
-    if (modifiers.includes('debounce')) {
+    if (modifiers.has(MODIFIERS.DEBOUNCE)) {
       clearTimeout(this.#debounceTimer);
       this.#debounceTimer = window.setTimeout(() => {
         this.executeEffect(targets, effect, event, instances);
@@ -186,9 +179,9 @@ export class ActionEvent {
   attach(): () => void {
     const { modifiers } = this;
     const off = this.action.$on(this.event, (event) => this.handleEvent(event), {
-      capture: modifiers.includes('capture'),
-      once: modifiers.includes('once'),
-      passive: modifiers.includes('passive'),
+      capture: modifiers.has(MODIFIERS.CAPTURE),
+      once: modifiers.has(MODIFIERS.ONCE),
+      passive: modifiers.has(MODIFIERS.PASSIVE),
     });
 
     return () => {
