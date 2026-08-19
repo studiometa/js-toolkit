@@ -1,3 +1,7 @@
+const attribute = Object.freeze({
+  unknownQualifier: 'attribute.unknown-qualifier',
+} as const);
+
 const callback = Object.freeze({
   signalFailed: 'callback.signal-failed',
   contextSubscriptionFailed: 'callback.context-subscription-failed',
@@ -69,6 +73,7 @@ const storage = Object.freeze({
 
 /** Stable codes carried by toolkit diagnostics. */
 export const DIAGNOSTICS = Object.freeze({
+  attribute,
   callback,
   component,
   event,

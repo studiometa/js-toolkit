@@ -1,0 +1,1 @@
+export { watchAttributeNamespace, watchAttributeNamespace as default, type AttributeNamespaceBinder, type AttributeNamespaceDeclaration, type AttributeNamespaceOptions } from '../attribute-namespaces.js';

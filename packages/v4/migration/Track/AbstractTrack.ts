@@ -1,20 +1,23 @@
 import {
   Base,
   defaultScheduler,
-  watchAttributes,
+  namespaceQualifier,
+  watchAttributeNamespace,
   type BaseConfig,
   type BaseProps,
   type MountedReturn,
   type ScheduledTask,
-  type Unsubscribe,
 } from '../../src/index.js';
 import { deepmerge } from '../../src/utils/deepmerge.js';
 import { TrackContext } from './TrackContext.js';
 import { TRACK_PSEUDO_EVENTS, TrackEvent } from './TrackEvent.js';
 import { warn } from './utils.js';
 
-/** The attribute prefix one `TrackEvent` is declared by. */
-const TRACK_ATTRIBUTE_PREFIX = 'data-track:';
+/**
+ * The namespace one `TrackEvent` is declared by. Its qualifiers are any DOM
+ * event plus the two pseudo-events, so the set of names is open.
+ */
+const TRACK_NAMESPACE = 'data-track';
 
 export type AbstractTrackProps = BaseProps & {
   $refs: {
@@ -64,9 +67,6 @@ export class AbstractTrack<T extends BaseProps = BaseProps> extends Base<Abstrac
       },
     },
   };
-
-  /** Live bindings by the attribute that produced them, each holding its release. */
-  #bindings = new Map<string, Unsubscribe>();
 
   /** The deferred `mounted` dispatches, cancelled if the cycle ends first. */
   #deferred = new Set<ScheduledTask<unknown>>();
@@ -153,22 +153,14 @@ export class AbstractTrack<T extends BaseProps = BaseProps> extends Base<Abstrac
   dispatch(payload: Record<string, unknown>, event?: Event): void {}
 
   mounted(): MountedReturn {
-    for (const { name, value } of Array.from(this.$el.attributes)) {
-      this.#bind(name, this.#parseAttribute(name, value));
-    }
-
-    const stopWatchingAttributes = watchAttributes(this.$el, ({ name, value }) => {
-      if (name.startsWith(TRACK_ATTRIBUTE_PREFIX)) {
-        this.#bind(name, this.#parseAttribute(name, value));
-      }
-    });
+    const stopWatchingNamespace = watchAttributeNamespace(
+      this.$el,
+      TRACK_NAMESPACE,
+      ({ value, attribute }) => this.#bind(attribute, value),
+    );
 
     return () => {
-      stopWatchingAttributes();
-      for (const release of this.#bindings.values()) {
-        release();
-      }
-      this.#bindings.clear();
+      stopWatchingNamespace();
       for (const task of this.#deferred) {
         task.cancel();
       }
@@ -180,42 +172,48 @@ export class AbstractTrack<T extends BaseProps = BaseProps> extends Base<Abstrac
 
   /** One `data-track:<event>` attribute, or `null` for anything else. */
   #parseAttribute(name: string, value: string | null): TrackEvent | null {
-    if (!name.startsWith(TRACK_ATTRIBUTE_PREFIX) || value === null) {
+    const qualifier = namespaceQualifier(TRACK_NAMESPACE, name);
+    if (qualifier === null || value === null) {
       return null;
     }
 
     try {
-      return new TrackEvent(
-        this,
-        name.slice(TRACK_ATTRIBUTE_PREFIX.length),
-        parseEventValue(value),
-      );
+      return new TrackEvent(this, qualifier, parseEventValue(value));
     } catch (error) {
       warn(`Invalid JSON in ${name}:`, error);
       return null;
     }
   }
 
-  /** Replace one keyed binding. */
-  #bind(key: string, trackEvent: TrackEvent | null): void {
-    this.#bindings.get(key)?.();
-    this.#bindings.delete(key);
+  /** Attach one declaration and return its release, or nothing if it is malformed. */
+  #bind(attribute: string, value: string): (() => void) | undefined {
+    const trackEvent = this.#parseAttribute(attribute, value);
 
     if (!trackEvent) {
-      return;
+      return undefined;
     }
 
-    this.#bindings.set(key, trackEvent.attach());
+    const release = trackEvent.attach();
 
-    if (trackEvent.event === TRACK_PSEUDO_EVENTS.MOUNTED) {
-      // Run after queued mounts and cancel if this mount cycle ends first.
-      const task = defaultScheduler.background(() => {
-        this.#deferred.delete(task);
-        if (this.$isMounted) {
-          trackEvent.trigger();
-        }
-      });
-      this.#deferred.add(task);
+    if (trackEvent.event !== TRACK_PSEUDO_EVENTS.MOUNTED) {
+      return release;
     }
+
+    // Run after queued mounts and cancel if this mount cycle ends first — or if
+    // the declaration is rewritten before the task runs, which is why the
+    // cancel belongs to this binding's release rather than to the mount's.
+    const task = defaultScheduler.background(() => {
+      this.#deferred.delete(task);
+      if (this.$isMounted) {
+        trackEvent.trigger();
+      }
+    });
+    this.#deferred.add(task);
+
+    return () => {
+      this.#deferred.delete(task);
+      task.cancel();
+      release();
+    };
   }
 }

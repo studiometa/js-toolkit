@@ -20,9 +20,17 @@
       "import": "./dist/utils/index.js"
     },
     "./package.json": "./package.json",
+    "./watchAttributeNamespace": {
+      "types": "./dist/subpaths/watchAttributeNamespace.d.ts",
+      "import": "./dist/subpaths/watchAttributeNamespace.js"
+    },
     "./MOUNT_ATTRIBUTE": {
       "types": "./dist/subpaths/MOUNT_ATTRIBUTE.d.ts",
       "import": "./dist/subpaths/MOUNT_ATTRIBUTE.js"
+    },
+    "./namespaceQualifier": {
+      "types": "./dist/subpaths/namespaceQualifier.d.ts",
+      "import": "./dist/subpaths/namespaceQualifier.js"
     },
     "./Base": {
       "types": "./dist/subpaths/Base.d.ts",

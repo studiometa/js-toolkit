@@ -3,6 +3,7 @@ import {
   defaultScheduler,
   domUpdate,
   subscribeContext,
+  watchAttributeNamespace,
   type BaseConfig,
   type BaseProps,
 } from '../../src/index.js';
@@ -42,9 +43,31 @@ function warn(...args: unknown[]): void {
   console.warn('[data]', ...args);
 }
 
+/**
+ * The namespace a virtual binding is declared by. Its qualifier head is finite
+ * — the six binding types — while the name a `prop`, `attr`, `class` or `style`
+ * binding carries after the dot is open, so the set of names is **not**
+ * enumerable and the namespace is watched rather than registered. The finite
+ * head is still worth declaring: it is what turns `data-bind:prpo.value` into a
+ * warning instead of an attribute silently doing nothing.
+ */
+const BIND_NAMESPACE = 'data-bind';
+
+/** The qualifier heads that take no name. */
+const SIMPLE_BINDINGS = ['text', 'if'] as const;
+
+/** The qualifier heads that name what they write to. */
+const NAMED_BINDINGS = ['prop', 'attr', 'class', 'style'] as const;
+
+const BIND_QUALIFIERS = [...SIMPLE_BINDINGS, ...NAMED_BINDINGS];
+
+type SimpleBinding = (typeof SIMPLE_BINDINGS)[number];
+
+type NamedBinding = (typeof NAMED_BINDINGS)[number];
+
 type VirtualBinding =
-  | { type: 'text' | 'if'; expression: string }
-  | { type: 'prop' | 'attr' | 'class' | 'style'; name: string; expression: string };
+  | { type: SimpleBinding; expression: string }
+  | { type: NamedBinding; name: string; expression: string };
 
 /** A two-way binding between an element and a named data group. */
 /**
@@ -75,7 +98,13 @@ export class DataBind<T extends BaseProps = DataBindProps>
   /** Undoes `#connect()`. `undefined` while disconnected. @private */
   #leaveGroup?: () => void;
 
-  #virtualBindings?: VirtualBinding[];
+  /**
+   * Live bindings by the attribute that declared them. Kept in step with the
+   * element rather than memoised: a `data-bind:*` rewritten in place used to
+   * keep its first parse forever, which is the bug `watchAttributeNamespace()`
+   * exists to remove.
+   */
+  #virtualBindings = new Map<string, VirtualBinding>();
 
   #virtualValue?: DataValue;
 
@@ -180,35 +209,30 @@ export class DataBind<T extends BaseProps = DataBindProps>
   }
 
   get virtualBindings(): VirtualBinding[] {
-    if (!this.#virtualBindings) {
-      this.#virtualBindings = [];
-
-      for (const attribute of this.$el.attributes) {
-        const simpleMatch = /^data-bind:(text|if)$/.exec(attribute.name);
-        if (simpleMatch) {
-          this.#virtualBindings.push({
-            type: simpleMatch[1] as 'text' | 'if',
-            expression: attribute.value,
-          });
-          continue;
-        }
-
-        const match = /^data-bind:(prop|attr|class|style)\.(.+)$/.exec(attribute.name);
-        if (match) {
-          this.#virtualBindings.push({
-            type: match[1] as 'prop' | 'attr' | 'class' | 'style',
-            name: match[2],
-            expression: attribute.value,
-          });
-        }
-      }
-    }
-
-    return this.#virtualBindings;
+    return [...this.#virtualBindings.values()];
   }
 
   get hasVirtualBindings(): boolean {
-    return this.virtualBindings.length > 0;
+    return this.#virtualBindings.size > 0;
+  }
+
+  /**
+   * One `data-bind:<type>[.<name>]` qualifier. The head is validated by the
+   * namespace, so what is left here is the grammar's own rule: the first part
+   * names what a named binding writes to, and a head which takes no name
+   * carries no part.
+   * @private
+   */
+  #parseQualifier(qualifier: string, expression: string): VirtualBinding | undefined {
+    const separator = qualifier.indexOf('.');
+    const head = separator === -1 ? qualifier : qualifier.slice(0, separator);
+    const name = separator === -1 ? '' : qualifier.slice(separator + 1);
+
+    if ((SIMPLE_BINDINGS as readonly string[]).includes(head)) {
+      return name ? undefined : { type: head as SimpleBinding, expression };
+    }
+
+    return name ? { type: head as NamedBinding, name, expression } : undefined;
   }
 
   get value(): DataValue {
@@ -510,6 +534,27 @@ export class DataBind<T extends BaseProps = DataBindProps>
 
   /** Follow the nearest registry; create the required root registry as fallback. */
   mounted(): () => void {
+    // Before the registry: `dataKey`, `prop` and `get()` all branch on whether
+    // this element has virtual bindings, and `#connect()` reads them.
+    const stopWatchingNamespace = watchAttributeNamespace(
+      this.$el,
+      BIND_NAMESPACE,
+      ({ qualifier, value, attribute }) => {
+        const binding = this.#parseQualifier(qualifier, value);
+        if (!binding) {
+          return undefined;
+        }
+        this.#virtualBindings.set(attribute, binding);
+        // A rewritten declaration applies the value already in force. Nothing
+        // is in force during the initial scan, so the mount pays nothing.
+        if (this.#hasVirtualValue) {
+          this.#applyVirtualBindings(this.#virtualValue);
+        }
+        return () => this.#virtualBindings.delete(attribute);
+      },
+      { qualifiers: BIND_QUALIFIERS, component: this.$config.name },
+    );
+
     const unsubscribe = subscribeContext(this.$el, DataRegistryContext, (registry) => {
       this.#registry = registry;
       this.#connect();
@@ -527,6 +572,9 @@ export class DataBind<T extends BaseProps = DataBindProps>
     if (!this.#registry) {
       resolveDataRegistry(this.$el);
     }
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      stopWatchingNamespace();
+    };
   }
 }

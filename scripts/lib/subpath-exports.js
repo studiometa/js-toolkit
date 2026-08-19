@@ -180,6 +180,18 @@ const COMPANION_TYPES = new Map([
     resolve(dirname(new URL(import.meta.url).pathname), '../../packages/v4/src/dom-mutations.ts'),
     new Map([['watchAttributes', ['AttributeChange', 'AttributeWatcher']]]),
   ],
+  [
+    resolve(
+      dirname(new URL(import.meta.url).pathname),
+      '../../packages/v4/src/attribute-namespaces.ts',
+    ),
+    new Map([
+      [
+        'watchAttributeNamespace',
+        ['AttributeNamespaceBinder', 'AttributeNamespaceDeclaration', 'AttributeNamespaceOptions'],
+      ],
+    ]),
+  ],
 ]);
 
 /**
