@@ -58,7 +58,7 @@ assert.equal(createGroup, toolkit.createGroup);
 assert.equal(createGroupDefault, createGroup);
 // Keep in step with the same count in `src/exports.spec.ts`. This one runs
 // under `check:package`, which `npm test` does not cover.
-assert.equal(Object.keys(toolkit).length, 82);
+assert.equal(Object.keys(toolkit).length, 84);
 assert.equal(toolkit.ToolkitErrorDetail, undefined);
 assert.equal(toolkit.ToolkitErrorStage, undefined);
 // The stateless web storage adapters are exported as instances only.
