@@ -1,23 +1,14 @@
-/**
- * Expression evaluator for Data components. It uses `new Function`, so it
- * requires a Content Security Policy that permits `unsafe-eval`. The cache
- * keeps identical expressions in different groups separate.
- */
+import { compileExpression } from '../expression.js';
 
 export type DataExpression = (value: unknown, target: HTMLElement, $data: unknown) => unknown;
 
-const callbacks = new Map<string, DataExpression>();
+const ARG_NAMES = ['value', 'target', '$data'] as const;
 
-export function getCallback(name: string, code: string): DataExpression {
-  const key = code + name;
-
-  let callback = callbacks.get(key);
-  if (!callback) {
-    // Compiling the author's expression is the whole feature.
-    // oxlint-disable-next-line no-new-func, typescript/no-implied-eval
-    callback = new Function('value', 'target', '$data', code) as DataExpression;
-    callbacks.set(key, callback);
-  }
-
-  return callback;
+/**
+ * Compile a `data-bind:*`, `data-compute` or `data-effect` expression.
+ *
+ * @param code The expression source, for example `return value * 2;`.
+ */
+export function getCallback(code: string): DataExpression {
+  return compileExpression(ARG_NAMES, code);
 }

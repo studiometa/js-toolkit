@@ -19,3 +19,6 @@ export * from './Transition/index.js';
 
 /** Shared vocabulary, not a family: what the parts of a declaration mean. */
 export * from './event-modifiers.js';
+
+/** Shared primitive, not a family: the one `new Function` compiler. */
+export * from './expression.js';

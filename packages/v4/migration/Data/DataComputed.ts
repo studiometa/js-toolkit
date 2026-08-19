@@ -22,8 +22,7 @@ export class DataComputed extends DataBind<DataComputedProps> {
   }
 
   get compute(): DataExpression {
-    const { group, compute } = this.$options;
-    return getCallback(group, `return ${compute};`);
+    return getCallback(`return ${this.$options.compute};`);
   }
 
   override set(value: DataValue): void {
