@@ -20,6 +20,7 @@ export * from './ScrollTo/index.js';
 export * from './Sentinel/index.js';
 export * from './Slider/index.js';
 export * from './Sticky/index.js';
+export * from './Timer/index.js';
 export * from './Track/index.js';
 export * from './Transition/index.js';
 
