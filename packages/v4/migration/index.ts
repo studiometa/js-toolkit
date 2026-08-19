@@ -9,6 +9,7 @@ export * from './Data/index.js';
 export * from './Draggable/index.js';
 export * from './Dialog/index.js';
 export * from './Fetch/index.js';
+export * from './Hoverable/index.js';
 export * from './InView/index.js';
 export * from './LazyInclude/index.js';
 export * from './Prefetch/index.js';
