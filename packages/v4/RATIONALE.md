@@ -430,6 +430,8 @@ A class resolves through `resolveConfig()` and not through the own `config.name`
 
 The name is the one thing that both passes hold: the plan keys every magic handler by `method`, and `context.name` names the decorated method whatever else is stacked on it.
 
+- **A phase decorator stops at the class which carries it, and the fix is a rule rather than machinery.** Wrapping a method is how `@read`/`@write` work at all, and a wrapper lives on one class's prototype: a subclass override replaces it, silently, and the base's scheduling is gone. The shape that hits it is the template method — a coordinator scheduling work its subclasses implement — and that shape has one honest answer already, which is to schedule where the call is made. Making the decorator survive an override would mean dispatching through an indirection a subclass cannot replace, so a decorator's behaviour would depend on inheritance depth; nothing else in v4 does that, and no consumer has asked for it. The port that found it already writes the explicit form, so the ruling costs nobody a line.
+
 ## 7. One scheduler
 
 ### The weaknesses of v3.9
