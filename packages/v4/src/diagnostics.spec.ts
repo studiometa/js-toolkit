@@ -44,6 +44,7 @@ describe('diagnostics', () => {
       },
       responsive: { unknownBreakpoint: 'responsive.unknown-breakpoint' },
       scheduler: { backgroundPostFailed: 'scheduler.background-post-failed' },
+      service: { missingTarget: 'service.missing-target' },
       storage: {
         accessFailed: 'storage.access-failed',
         deserializeFailed: 'storage.deserialize-failed',
@@ -82,6 +83,7 @@ describe('diagnostics', () => {
       | 'registry.lazy-name-mismatch'
       | 'responsive.unknown-breakpoint'
       | 'scheduler.background-post-failed'
+      | 'service.missing-target'
       | 'storage.access-failed'
       | 'storage.deserialize-failed'
       | 'storage.serialize-failed'

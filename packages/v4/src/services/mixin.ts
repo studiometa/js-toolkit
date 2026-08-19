@@ -1,5 +1,6 @@
 import type { Base, BaseConstructor, BaseProps } from '../Base.js';
 import type { Service } from './service.js';
+import { warn } from '../diagnostics.js';
 import { toggle, type Toggle } from './toggle.js';
 
 /**
@@ -7,8 +8,18 @@ import { toggle, type Toggle } from './toggle.js';
  */
 export interface ServiceMixinOptions<Target, Host = Base> {
   /**
-   * What to observe, resolved per instance. Defaults to the service's own
-   * default target — the window, the viewport, the component's root element.
+   * What to observe, resolved per instance when the subscription starts.
+   * Defaults to the service's own target — the window, the viewport, the
+   * component's root element.
+   *
+   * The resolver is typed against the host **as declared**, which is `Base` in
+   * `withDrag(Base, …)`: a mixin is applied while the extends clause of its
+   * class is still being evaluated, so it cannot be typed against the class
+   * being defined. A component reaching past `Base` therefore names the shape
+   * it needs — and because that is an assertion rather than a check, a
+   * resolver which comes back with nothing is reported (`service.missing-target`)
+   * instead of being passed to the service, where a default parameter would
+   * quietly observe the wrong thing.
    */
   target?: (instance: Host) => Target;
   /** Do not subscribe on mount. Control the subscription through `this.$services.<hook>`. */
@@ -119,7 +130,10 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
 
   function apply(BaseClass: BaseConstructor, options: MixinOptions) {
     const { hook } = definition;
-    const target = options.target ?? definition.target;
+    // Only a caller's resolver can be wrong about its target: a service's own
+    // default is the contract, and `withRaf` legitimately resolves nothing.
+    const declared: ServiceMixinOptions<Target>['target'] = options.target;
+    const resolve = declared ?? definition.target;
     const isManual = options.manual ?? false;
     // One split per applied mixin: every instance asks for the same service.
     const serviceOptions = serviceOptionsOf<Options, Target>(options);
@@ -132,13 +146,18 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
         };
         // Share one handle object across stacked mixins.
         const services = (host.$services ??= {});
+        // Set by `start()`, just below, before it ever calls `handle.start()`:
+        // the toggle's own callback trusts an already-validated target rather
+        // than resolving (and reporting) a second time.
+        let pendingTarget: Target;
         const handle = toggle(() => {
           const method = (this as unknown as Record<string, unknown>)[hook];
           // Resolve the hook when subscribing because class fields initialize after `super()`.
           if (typeof method !== 'function') {
             return () => {};
           }
-          return definition.use(target(this), serviceOptions).subscribe(
+
+          return definition.use(pendingTarget, serviceOptions).subscribe(
             (props) => {
               const result = (method as (props: unknown) => unknown).call(this, props);
               if (definition.handleResult) {
@@ -155,7 +174,28 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
           get isActive() {
             return handle.isActive;
           },
-          start: handle.start,
+          /**
+           * Validate before `toggle()` ever runs, so a rejected target leaves
+           * the handle exactly as inactive as one that was never started —
+           * `toggle()` has no channel for "declined", only for "subscribed" or
+           * "not yet", and a no-op cleanup would have been the first of those.
+           */
+          start: () => {
+            const observed: Target = resolve(this);
+            if (declared !== undefined && (observed === undefined || observed === null)) {
+              // The mixed class is built from a loose constructor type, so the
+              // instance reads as `any` in here.
+              const instance = this as unknown as Base;
+              warn(
+                'service.missing-target',
+                `\`${hook}\` resolved no target on \`${instance.$config.name}\`. A resolver names a shape rather than checking it, so a renamed ref or a missing element arrives here as nothing — and a service with a default target would observe the wrong thing instead.`,
+                { component: instance.$config.name, target: instance.$el },
+              );
+              return;
+            }
+            pendingTarget = observed;
+            handle.start();
+          },
           stop: handle.stop,
         };
       }

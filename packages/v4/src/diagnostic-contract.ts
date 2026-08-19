@@ -57,6 +57,10 @@ const swap = Object.freeze({
   selfIgnored: 'swap.self-ignored',
 } as const);
 
+const service = Object.freeze({
+  missingTarget: 'service.missing-target',
+} as const);
+
 const storage = Object.freeze({
   accessFailed: 'storage.access-failed',
   deserializeFailed: 'storage.deserialize-failed',
@@ -75,6 +79,7 @@ export const DIAGNOSTICS = Object.freeze({
   registry,
   responsive,
   scheduler,
+  service,
   storage,
   swap,
 } as const);
