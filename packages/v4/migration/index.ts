@@ -14,6 +14,7 @@ export * from './InView/index.js';
 export * from './LazyInclude/index.js';
 export * from './Prefetch/index.js';
 export * from './ScrollAnimation/index.js';
+export * from './ScrollTo/index.js';
 export * from './Sentinel/index.js';
 export * from './Slider/index.js';
 export * from './Sticky/index.js';
