@@ -40,6 +40,9 @@ export type Modifier = (typeof MODIFIERS)[keyof typeof MODIFIERS];
 /** The modifiers which carry a number: `debounce500`, `throttle200`. */
 const TIMED_MODIFIERS = [MODIFIERS.DEBOUNCE, MODIFIERS.THROTTLE] as const;
 
+/** A timed modifier's name, then only digits or nothing — never `debounceoops`. */
+const TIMED_MODIFIER_PATTERN = new RegExp(`^(${TIMED_MODIFIERS.join('|')})(\\d*)$`);
+
 const MODIFIER_NAMES: readonly string[] = Object.values(MODIFIERS);
 
 export interface ParsedEventDefinition {
@@ -77,11 +80,15 @@ export function parseEventDefinition(definition: string): ParsedEventDefinition 
   const delays = new Map<Modifier, number>();
 
   for (const part of parts) {
-    const timed = TIMED_MODIFIERS.find((modifier) => part.startsWith(modifier));
+    // Matched as a whole, not by prefix: `part.startsWith('debounce')` would
+    // also accept `debounceoops`, whose suffix `Number.parseInt` turns into
+    // `NaN` — a timeout browsers run immediately rather than warn about.
+    const timedMatch = TIMED_MODIFIER_PATTERN.exec(part);
 
-    if (timed) {
+    if (timedMatch) {
+      const timed = timedMatch[1] as Modifier;
+      const written = timedMatch[2];
       modifiers.add(timed);
-      const written = part.slice(timed.length);
       if (written) {
         delays.set(timed, Number.parseInt(written, 10));
       }

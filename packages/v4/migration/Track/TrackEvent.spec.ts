@@ -59,6 +59,19 @@ describe('parseEventDefinition', () => {
     spy.mockRestore();
   });
 
+  it('rejects a malformed timed delay instead of parsing it to NaN', () => {
+    // `debounceoops` used to match on the `debounce` prefix alone, so its
+    // suffix went through `Number.parseInt` and produced `NaN` — a timeout
+    // browsers run immediately rather than warn about.
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { modifiers, delay } = parseEventDefinition('click.debounceoops');
+    expect([...modifiers]).toEqual([]);
+    expect(delay('debounce')).toBeUndefined();
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls[0].join(' ')).toContain('debounceoops');
+    spy.mockRestore();
+  });
+
   it('applies the family default through the bound declaration', async () => {
     const el = await render('<div data-component="Track" data-track:click.debounce></div>');
     const [trackEvent] = getInstance<Track>(el, 'Track').trackEvents;

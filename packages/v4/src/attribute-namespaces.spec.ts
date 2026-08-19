@@ -202,4 +202,29 @@ describe('watchAttributeNamespace', () => {
       expect(record.bound).toHaveLength(2);
     });
   });
+
+  it('rejects a second colon instead of binding it as part of the qualifier', async () => {
+    // `namespaceQualifier()` returns everything after the first colon
+    // unexamined, so an open namespace with no declared vocabulary must reject
+    // the second separator itself — nothing else stands between this and
+    // `Action` binding a literal `click:s` DOM event.
+    const el = element('<div data-on:click:s="a"></div>');
+    const details: ToolkitDiagnosticDetail[] = [];
+    document.addEventListener(EVENTS.diagnostic, (event) => {
+      details.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+      event.preventDefault();
+    });
+    const record = recorder();
+    watched(el, 'data-on', record.bind);
+
+    expect(record.bound).toEqual([]);
+    expect(details).toHaveLength(1);
+    expect(details[0].code).toBe('attribute.unknown-qualifier');
+
+    // Once per element and per name, not re-triggered by a rewrite of the value.
+    el.setAttribute('data-on:click:s', 'b');
+    await settle();
+    expect(record.bound).toEqual([]);
+    expect(details).toHaveLength(1);
+  });
 });

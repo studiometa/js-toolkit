@@ -16,7 +16,7 @@
  * qualifier head is finite while its tail is not. See DESIGN.md §3.
  */
 
-import { namespaceQualifier, qualifierHead } from './attributes.js';
+import { namespaceQualifier, qualifierHead, QUALIFIER_SEPARATOR } from './attributes.js';
 import { warnOnce } from './diagnostics.js';
 import { watchAttributes } from './dom-mutations.js';
 
@@ -87,6 +87,7 @@ export function watchAttributeNamespace(
     const release =
       value === null ||
       qualifier === null ||
+      !isWellFormed(el, attribute, qualifier, component) ||
       !isDeclared(el, namespace, attribute, qualifier, qualifiers, component)
         ? undefined
         : bind({ qualifier, value, attribute });
@@ -120,6 +121,34 @@ export function watchAttributeNamespace(
     }
     bindings.clear();
   };
+}
+
+/**
+ * Whether a qualifier holds the grammar's one colon and no more, warning once
+ * if not. `namespaceQualifier()` returns everything after the first colon
+ * unexamined, so `data-on:click:s` reaches here as the qualifier `click:s` —
+ * a second declaration's separator leaking into the first — and an open
+ * namespace with no declared vocabulary would otherwise bind it as though
+ * `click:s` were an event name instead of the ill-formed attribute J1 settled
+ * it to be.
+ */
+function isWellFormed(
+  el: Element,
+  attribute: string,
+  qualifier: string,
+  component: string | undefined,
+): boolean {
+  if (!qualifier.includes(QUALIFIER_SEPARATOR)) {
+    return true;
+  }
+  warnOnce(
+    el,
+    attribute,
+    'attribute.unknown-qualifier',
+    `\`${attribute}\` declares nothing: a qualifier holds one colon at most, and this one holds a second.`,
+    { component, target: el },
+  );
+  return false;
 }
 
 /** Whether a qualifier names a member of the vocabulary, warning once if not. */
