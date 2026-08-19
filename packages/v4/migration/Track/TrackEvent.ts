@@ -1,24 +1,14 @@
 import { useInView } from '../../src/index.js';
 import type { Unsubscribe } from '../../src/index.js';
 import { throttle } from '../../src/utils/timing.js';
+import { MODIFIERS, parseEventDefinition, type Modifier } from '../event-modifiers.js';
 import type { AbstractTrack } from './AbstractTrack.js';
 
-export type Modifier =
-  | 'prevent'
-  | 'stop'
-  | 'once'
-  | 'passive'
-  | 'capture'
-  | 'debounce'
-  | 'throttle'
-  | 'detail';
+/** What a bare `debounce` means here. `Action` reads the same modifier at 100. */
+const DEFAULT_DEBOUNCE_DELAY = 300;
 
-export interface ParsedEvent {
-  event: string;
-  modifiers: Modifier[];
-  debounceDelay: number;
-  throttleDelay: number;
-}
+/** What a bare `throttle` means: about one frame. */
+const DEFAULT_THROTTLE_DELAY = 16;
 
 /** Synthetic event names that do not map to DOM events. */
 export const TRACK_PSEUDO_EVENTS = {
@@ -29,29 +19,6 @@ export const TRACK_PSEUDO_EVENTS = {
 } as const;
 
 export type TrackPseudoEvent = (typeof TRACK_PSEUDO_EVENTS)[keyof typeof TRACK_PSEUDO_EVENTS];
-
-/** Parse definitions such as `click.prevent.stop` or `input.debounce500`. */
-export function parseEventDefinition(eventDefinition: string): ParsedEvent {
-  const [event, ...rawModifiers] = eventDefinition.split('.');
-
-  let debounceDelay = 0;
-  let throttleDelay = 0;
-  const modifiers: Modifier[] = [];
-
-  for (const mod of rawModifiers) {
-    if (mod.startsWith('debounce')) {
-      modifiers.push('debounce');
-      debounceDelay = Number.parseInt(mod.replace('debounce', '') || '300', 10);
-    } else if (mod.startsWith('throttle')) {
-      modifiers.push('throttle');
-      throttleDelay = Number.parseInt(mod.replace('throttle', '') || '16', 10);
-    } else {
-      modifiers.push(mod as Modifier);
-    }
-  }
-
-  return { event, modifiers, debounceDelay, throttleDelay };
-}
 
 /**
  * Resolve `$detail.*` placeholders in an arbitrary value, descending into both
@@ -99,7 +66,7 @@ function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
 export class TrackEvent {
   track: AbstractTrack;
   event: string;
-  modifiers: Modifier[];
+  modifiers: ReadonlySet<Modifier>;
   data: Record<string, unknown>;
   debounceDelay: number;
   throttleDelay: number;
@@ -116,23 +83,22 @@ export class TrackEvent {
     this.track = track;
     this.data = data;
 
-    const { event, modifiers, debounceDelay, throttleDelay } =
-      parseEventDefinition(eventDefinition);
+    const { event, modifiers, delay } = parseEventDefinition(eventDefinition);
     this.event = event;
     this.modifiers = modifiers;
-    this.debounceDelay = debounceDelay;
-    this.throttleDelay = throttleDelay;
+    this.debounceDelay = delay(MODIFIERS.DEBOUNCE) ?? DEFAULT_DEBOUNCE_DELAY;
+    this.throttleDelay = delay(MODIFIERS.THROTTLE) ?? DEFAULT_THROTTLE_DELAY;
 
     // Own the debounce timer so release can cancel it.
     const dispatch = (domEvent?: Event) => this.handleEvent(domEvent);
 
-    if (modifiers.includes('debounce')) {
+    if (modifiers.has(MODIFIERS.DEBOUNCE)) {
       this.#handler = (domEvent?: Event) => {
         clearTimeout(this.#debounceTimer);
-        this.#debounceTimer = setTimeout(() => dispatch(domEvent), debounceDelay);
+        this.#debounceTimer = setTimeout(() => dispatch(domEvent), this.debounceDelay);
       };
-    } else if (modifiers.includes('throttle')) {
-      this.#handler = throttle(dispatch, throttleDelay);
+    } else if (modifiers.has(MODIFIERS.THROTTLE)) {
+      this.#handler = throttle(dispatch, this.throttleDelay);
     } else {
       this.#handler = dispatch;
     }
@@ -149,11 +115,11 @@ export class TrackEvent {
       return;
     }
 
-    if (event && modifiers.includes('prevent')) {
+    if (event && modifiers.has(MODIFIERS.PREVENT)) {
       event.preventDefault();
     }
 
-    if (event && modifiers.includes('stop')) {
+    if (event && modifiers.has(MODIFIERS.STOP)) {
       event.stopPropagation();
     }
 
@@ -166,7 +132,7 @@ export class TrackEvent {
           ? (event.detail as Record<string, unknown>)
           : {};
 
-      finalData = modifiers.includes('detail')
+      finalData = modifiers.has(MODIFIERS.DETAIL)
         ? { ...data, ...detail }
         : resolveDetailPlaceholders(data, detail);
     }
@@ -214,7 +180,7 @@ export class TrackEvent {
           // make an impression unreachable for an element taller than the
           // viewport, whose ratio can never approach a non-zero threshold.
           this.#handler();
-          if (modifiers.includes('once')) {
+          if (modifiers.has(MODIFIERS.ONCE)) {
             // Hoisted because the callback can run during `subscribe()`.
             unsubscribe?.();
             unsubscribe = undefined;
@@ -225,9 +191,9 @@ export class TrackEvent {
     }
 
     return track.$on(event, this.#handler, {
-      capture: modifiers.includes('capture'),
-      once: modifiers.includes('once'),
-      passive: modifiers.includes('passive'),
+      capture: modifiers.has(MODIFIERS.CAPTURE),
+      once: modifiers.has(MODIFIERS.ONCE),
+      passive: modifiers.has(MODIFIERS.PASSIVE),
     });
   }
 }

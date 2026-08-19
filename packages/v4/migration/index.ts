@@ -16,3 +16,6 @@ export * from './ScrollAnimation/index.js';
 export * from './Slider/index.js';
 export * from './Track/index.js';
 export * from './Transition/index.js';
+
+/** Shared vocabulary, not a family: what the parts of a declaration mean. */
+export * from './event-modifiers.js';

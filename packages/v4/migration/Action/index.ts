@@ -4,6 +4,6 @@
  */
 
 export { Action, type ActionProps } from './Action.js';
-export { ActionEvent, type ActionTarget, type Modifier } from './ActionEvent.js';
+export { ActionEvent, type ActionTarget } from './ActionEvent.js';
 export { EFFECT_ARGUMENTS, getEffect, type EffectFunction } from './expression.js';
 export { Target } from './Target.js';
