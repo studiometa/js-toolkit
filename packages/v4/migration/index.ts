@@ -11,6 +11,7 @@ export * from './Draggable/index.js';
 export * from './Dialog/index.js';
 export * from './Fetch/index.js';
 export * from './Figure/index.js';
+export * from './FigureVideo/index.js';
 export * from './Hoverable/index.js';
 export * from './InView/index.js';
 export * from './LazyInclude/index.js';
