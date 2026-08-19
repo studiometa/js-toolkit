@@ -13,6 +13,7 @@ export * from './Fetch/index.js';
 export * from './Hoverable/index.js';
 export * from './InView/index.js';
 export * from './LazyInclude/index.js';
+export * from './Menu/index.js';
 export * from './Prefetch/index.js';
 export * from './ScrollAnimation/index.js';
 export * from './ScrollTo/index.js';
