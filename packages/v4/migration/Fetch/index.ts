@@ -7,6 +7,10 @@ export {
   type FetchProps,
 } from './Fetch.js';
 export {
+  FetchShopifyPartial,
+  type FetchShopifyPartialProps,
+} from './FetchShopifyPartial.js';
+export {
   FetchShopifySection,
   SECTIONS_PARAMETER,
   type FetchShopifySectionProps,
