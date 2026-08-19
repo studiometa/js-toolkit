@@ -1,4 +1,4 @@
-import { COMPONENT_ATTRIBUTE, RESPONSIVE_SEPARATOR } from './attributes.js';
+import { COMPONENT_ATTRIBUTE, QUALIFIER_SEPARATOR } from './attributes.js';
 import {
   activeBreakpoint,
   responsiveAttributeNames,
@@ -25,7 +25,7 @@ export function componentTokens(el: Element): Set<string> {
 
 /** Whether an element carries any component spelling, including an invalid suffix. */
 export function hasComponentAttribute(el: Element): boolean {
-  const prefix = `${COMPONENT_ATTRIBUTE}${RESPONSIVE_SEPARATOR}`;
+  const prefix = `${COMPONENT_ATTRIBUTE}${QUALIFIER_SEPARATOR}`;
   return el
     .getAttributeNames()
     .some((attribute) => attribute === COMPONENT_ATTRIBUTE || attribute.startsWith(prefix));

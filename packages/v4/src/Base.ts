@@ -1,4 +1,5 @@
 import {
+  isInNamespace,
   isNetChange,
   NEGATED_RAW,
   negatedOptionAttributeFor,
@@ -18,7 +19,6 @@ import { defaultScheduler, type ScheduledTask } from './scheduler.js';
 import {
   activeBreakpoint,
   checkResponsiveAttributes,
-  isResponsiveAttribute,
   responsiveRawValue,
   watchBreakpoint,
 } from './responsive-options.js';
@@ -685,9 +685,11 @@ function buildOptions(instance: Base): {
     const rawValue = () => responsiveRawValue(attribute, activeBreakpoint(), fromElement, negated);
     const rawValueAt = (breakpoint: string, get: (attributeName: string) => string | null) =>
       responsiveRawValue(attribute, breakpoint, get, negated);
+    // An option owns its generated namespace: the base name and every
+    // breakpoint-qualified spelling of it, on both the value and the negation.
     const owns = (attributeName: string) =>
-      isResponsiveAttribute(attribute, attributeName) ||
-      (negated !== undefined && isResponsiveAttribute(negated, attributeName));
+      isInNamespace(attribute, attributeName) ||
+      (negated !== undefined && isInNamespace(negated, attributeName));
 
     readers.set(name, { attribute, rawValue, rawValueAt, owns, read });
     Object.defineProperty(options, name, {

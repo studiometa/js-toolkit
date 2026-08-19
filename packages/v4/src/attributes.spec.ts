@@ -3,14 +3,20 @@ import {
   COMPONENT_ATTRIBUTE,
   FRAMEWORK_ATTRIBUTES,
   isComponentAttribute,
+  isInNamespace,
   isNetChange,
   isOptionAttribute,
   MOUNT_ATTRIBUTE,
+  namespacedAttribute,
+  namespaceQualifier,
+  negatedOptionAttributeFor,
   OPTION_ATTRIBUTE_PREFIX,
   optionAttributeFor,
+  PART_SEPARATOR,
+  qualifierHead,
   REF_ATTRIBUTE,
   rememberPreviousValue,
-  RESPONSIVE_SEPARATOR,
+  QUALIFIER_SEPARATOR,
 } from './attributes.js';
 
 describe('the framework attribute names', () => {
@@ -21,11 +27,63 @@ describe('the framework attribute names', () => {
     expect(MOUNT_ATTRIBUTE).toBe('data-mount');
     expect(REF_ATTRIBUTE).toBe('data-ref');
     expect(OPTION_ATTRIBUTE_PREFIX).toBe('data-option-');
-    expect(RESPONSIVE_SEPARATOR).toBe(':');
+    expect(QUALIFIER_SEPARATOR).toBe(':');
+    expect(PART_SEPARATOR).toBe('.');
   });
 
   it('names the three every page observes before a component registers', () => {
     expect([...FRAMEWORK_ATTRIBUTES]).toEqual(['data-component', 'data-mount', 'data-ref']);
+  });
+});
+
+describe('the grammar', () => {
+  it('holds at most one colon in every attribute the framework reads', () => {
+    // The invariant, spelled as the check it is: a namespace is a whole name, a
+    // colon introduces one qualifier of it, and the parts of that qualifier are
+    // separated by dots. A second colon would mean a nested grammar.
+    const everySpelling = [
+      COMPONENT_ATTRIBUTE,
+      MOUNT_ATTRIBUTE,
+      REF_ATTRIBUTE,
+      namespacedAttribute(COMPONENT_ATTRIBUTE, 's'),
+      optionAttributeFor('columns'),
+      namespacedAttribute(optionAttributeFor('columns'), 's'),
+      negatedOptionAttributeFor('trapFocus'),
+      namespacedAttribute(negatedOptionAttributeFor('trapFocus'), 's'),
+      // ui's namespaces answer to the same rule.
+      'data-on:click.prevent.stop',
+      'data-track:view.once',
+      'data-bind:prop.value',
+    ];
+
+    for (const attribute of everySpelling) {
+      expect(attribute.split(QUALIFIER_SEPARATOR).length).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('reads a qualifier off a name, and only a qualified one', () => {
+    expect(namespaceQualifier('data-on', 'data-on:click.prevent')).toBe('click.prevent');
+    expect(namespaceQualifier('data-option-columns', 'data-option-columns:s')).toBe('s');
+    // The bare namespace declares nothing, so it carries no qualifier.
+    expect(namespaceQualifier('data-on', 'data-on')).toBeNull();
+    expect(namespaceQualifier('data-on', 'data-once:click')).toBeNull();
+  });
+
+  it('tells belonging to a namespace from carrying a qualifier', () => {
+    // `isInNamespace` answers the observer's question — is this name mine —
+    // where `namespaceQualifier` answers the binder's: what does it declare.
+    expect(isInNamespace('data-component', 'data-component')).toBe(true);
+    expect(isInNamespace('data-component', 'data-component:s')).toBe(true);
+    expect(isInNamespace('data-component', 'data-components')).toBe(false);
+    expect(isInNamespace('data-component', null)).toBe(false);
+  });
+
+  it('reads the head of a qualifier and nothing past it', () => {
+    expect(qualifierHead('click.prevent.stop')).toBe('click');
+    expect(qualifierHead('prop.value')).toBe('prop');
+    expect(qualifierHead('s')).toBe('s');
+    // A name with its own dots stays one part as far as the head is concerned.
+    expect(qualifierHead('style.--custom-prop')).toBe('style');
   });
 });
 
@@ -39,7 +97,7 @@ describe('optionAttributeFor', () => {
 describe('isOptionAttribute', () => {
   it('accepts an option at any breakpoint', () => {
     expect(isOptionAttribute('data-option-columns')).toBe(true);
-    expect(isOptionAttribute(`data-option-columns${RESPONSIVE_SEPARATOR}s`)).toBe(true);
+    expect(isOptionAttribute(`data-option-columns${QUALIFIER_SEPARATOR}s`)).toBe(true);
   });
 
   it('rejects a near miss and an absent name', () => {
@@ -52,7 +110,7 @@ describe('isOptionAttribute', () => {
 describe('isComponentAttribute', () => {
   it('accepts the plain declaration and its breakpoint-scoped spellings', () => {
     expect(isComponentAttribute('data-component')).toBe(true);
-    expect(isComponentAttribute(`data-component${RESPONSIVE_SEPARATOR}s`)).toBe(true);
+    expect(isComponentAttribute(`data-component${QUALIFIER_SEPARATOR}s`)).toBe(true);
   });
 
   it('rejects a name which only starts like one', () => {
