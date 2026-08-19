@@ -146,26 +146,18 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
         };
         // Share one handle object across stacked mixins.
         const services = (host.$services ??= {});
+        // Set by `start()`, just below, before it ever calls `handle.start()`:
+        // the toggle's own callback trusts an already-validated target rather
+        // than resolving (and reporting) a second time.
+        let pendingTarget: Target;
         const handle = toggle(() => {
           const method = (this as unknown as Record<string, unknown>)[hook];
           // Resolve the hook when subscribing because class fields initialize after `super()`.
           if (typeof method !== 'function') {
             return () => {};
           }
-          const observed: Target = resolve(this);
-          if (declared !== undefined && (observed === undefined || observed === null)) {
-            // The mixed class is built from a loose constructor type, so the
-            // instance reads as `any` in here.
-            const instance = this as unknown as Base;
-            warn(
-              'service.missing-target',
-              `\`${hook}\` resolved no target on \`${instance.$config.name}\`. A resolver names a shape rather than checking it, so a renamed ref or a missing element arrives here as nothing — and a service with a default target would observe the wrong thing instead.`,
-              { component: instance.$config.name, target: instance.$el },
-            );
-            return () => {};
-          }
 
-          return definition.use(observed, serviceOptions).subscribe(
+          return definition.use(pendingTarget, serviceOptions).subscribe(
             (props) => {
               const result = (method as (props: unknown) => unknown).call(this, props);
               if (definition.handleResult) {
@@ -182,7 +174,28 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
           get isActive() {
             return handle.isActive;
           },
-          start: handle.start,
+          /**
+           * Validate before `toggle()` ever runs, so a rejected target leaves
+           * the handle exactly as inactive as one that was never started —
+           * `toggle()` has no channel for "declined", only for "subscribed" or
+           * "not yet", and a no-op cleanup would have been the first of those.
+           */
+          start: () => {
+            const observed: Target = resolve(this);
+            if (declared !== undefined && (observed === undefined || observed === null)) {
+              // The mixed class is built from a loose constructor type, so the
+              // instance reads as `any` in here.
+              const instance = this as unknown as Base;
+              warn(
+                'service.missing-target',
+                `\`${hook}\` resolved no target on \`${instance.$config.name}\`. A resolver names a shape rather than checking it, so a renamed ref or a missing element arrives here as nothing — and a service with a default target would observe the wrong thing instead.`,
+                { component: instance.$config.name, target: instance.$el },
+              );
+              return;
+            }
+            pendingTarget = observed;
+            handle.start();
+          },
           stop: handle.stop,
         };
       }

@@ -496,6 +496,8 @@ describe('a resolver which comes back with nothing', () => {
     expect(instance.calls).toBe(0);
     // One subscription is missing, not the mount cycle.
     expect(instance.$isMounted).toBe(true);
+    // Nothing subscribed, so the handle must say so too.
+    expect(instance.$services.resized.isActive).toBe(false);
 
     instance.$destroy();
   });
