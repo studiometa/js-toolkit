@@ -325,11 +325,7 @@ export class DataBind<T extends BaseProps = DataBindProps>
 
       if (binding.expression) {
         try {
-          result = getCallback(this.group, `return ${binding.expression};`)(
-            value,
-            this.target,
-            this.$data,
-          );
+          result = getCallback(`return ${binding.expression};`)(value, this.target, this.$data);
         } catch (error) {
           console.error('[data] Binding expression failed:', error);
           continue;

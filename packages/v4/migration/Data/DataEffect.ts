@@ -22,8 +22,7 @@ export class DataEffect extends DataBind<DataEffectProps> {
   }
 
   get effect(): DataExpression {
-    const { group, effect } = this.$options;
-    return getCallback(group, effect);
+    return getCallback(this.$options.effect);
   }
 
   override set(value: DataValue): void {

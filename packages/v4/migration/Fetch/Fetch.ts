@@ -12,6 +12,7 @@ import {
   type SwapMode,
 } from '../../src/index.js';
 import { historyPush } from '../../src/utils/history.js';
+import { compileExpression } from '../expression.js';
 
 /**
  * The lifecycle events a `Fetch` announces.
@@ -45,6 +46,9 @@ export const HEADER_NAMES = Object.freeze({
 
 /** One parser for every instance: it holds no state between calls. */
 const domParser = new DOMParser();
+
+/** `response` expression argument names, in `parseResponse()`'s call order. */
+const RESPONSE_ARGUMENTS = ['response', 'url', 'requestInit', 'self'] as const;
 
 /** The context every lifecycle event carries. */
 export interface FetchEventBase {
@@ -351,15 +355,12 @@ export class Fetch<T extends BaseProps = BaseProps> extends Base<FetchProps & T>
    * @protected
    */
   parseResponse(response: Response, url: URL, requestInit: RequestInit): Promise<string> | string {
-    // Evaluating the author's `response` expression is the documented feature.
-    // oxlint-disable-next-line no-new-func, typescript/no-implied-eval
-    const fn = new Function(
-      'response',
-      'url',
-      'requestInit',
-      'self',
-      `return ${this.$options.response}`,
-    ) as (response: Response, url: URL, requestInit: RequestInit, self: unknown) => string;
+    const fn = compileExpression(RESPONSE_ARGUMENTS, `return ${this.$options.response}`) as (
+      response: Response,
+      url: URL,
+      requestInit: RequestInit,
+      self: unknown,
+    ) => string;
     return fn.call(this, response, url, requestInit, self);
   }
 
