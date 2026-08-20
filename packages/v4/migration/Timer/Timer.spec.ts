@@ -50,7 +50,7 @@ describe('Timer', () => {
   });
 
   it('does not start on mount when autostart is disabled', async () => {
-    const { el, instance } = await render('data-option-delay="0.02" data-option-autostart="false"');
+    const { el, instance } = await render('data-option-delay="0.02" data-option-no-autostart');
     const events = record(el, 'timer-start', 'timer-end');
 
     await wait(60);
@@ -62,7 +62,7 @@ describe('Timer', () => {
   });
 
   it('pauses and resumes, preserving the remaining time', async () => {
-    const { el, instance } = await render('data-option-delay="0.1" data-option-autostart="false"');
+    const { el, instance } = await render('data-option-delay="0.1" data-option-no-autostart');
     const events = record(el, 'timer-pause', 'timer-resume', 'timer-end');
 
     instance.start();
@@ -106,7 +106,7 @@ describe('Timer', () => {
   });
 
   it('restarts from the beginning', async () => {
-    const { el, instance } = await render('data-option-delay="0.1" data-option-autostart="false"');
+    const { el, instance } = await render('data-option-delay="0.1" data-option-no-autostart');
     const events = record(el, 'timer-start');
 
     instance.start();

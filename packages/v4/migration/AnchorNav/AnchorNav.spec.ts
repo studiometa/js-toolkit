@@ -22,7 +22,7 @@ async function render(): Promise<{ root: HTMLElement; target: HTMLElement }> {
   const root = document.createElement('div');
   root.innerHTML = `
     <div data-component="AnchorNav">
-      <a data-component="AnchorNavLink" href="#one" data-option-enter-to="active" data-option-enter-keep="true" data-option-leave-keep="false"></a>
+      <a data-component="AnchorNavLink" href="#one" data-option-enter-to="active" data-option-enter-keep="true"></a>
       <div id="one" data-component="AnchorNavTarget" style="${OFFSCREEN}"></div>
     </div>`;
   document.body.append(root);

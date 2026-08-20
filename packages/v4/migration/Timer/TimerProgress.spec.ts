@@ -30,7 +30,7 @@ function recordProgress(el: HTMLElement): number[] {
 
 describe('TimerProgress', () => {
   it('does not run the frame loop before the countdown is armed', async () => {
-    const { el } = await render('data-option-autostart="false"');
+    const { el } = await render('data-option-no-autostart');
     const ratios = recordProgress(el);
 
     await wait(60);
