@@ -5,8 +5,8 @@ import {
   type BaseProps,
   type ChildrenCollection,
 } from '../../src/index.js';
-import { enterTransition, leaveTransition, type TransitionOptions } from '../../src/utils/transition.js';
-import type { Transitionable } from '../Transition/index.js';
+import { TRANSITION_OPTIONS, type TransitionOptions } from '../../src/utils/transition.js';
+import { withTransition, type TransitionProps } from '../Transition/index.js';
 
 const FOCUSABLE_ELEMENTS = [
   'a[href]:not([inert])',
@@ -22,19 +22,13 @@ const FOCUSABLE_ELEMENTS = [
   '[tabindex]:not([inert])',
 ].join(',');
 
-export type MenuListProps = BaseProps & {
-  $options: Omit<TransitionOptions, 'enterKeep' | 'leaveKeep'>;
-  $emits: {
-    'transition-enter': void;
-    'transition-enter-start': void;
-    'transition-enter-end': void;
-    'transition-leave': void;
-    'transition-leave-start': void;
-    'transition-leave-end': void;
-    'items-open': void;
-    'items-close': void;
+export type MenuListProps = BaseProps &
+  TransitionProps & {
+    $emits: TransitionProps['$emits'] & {
+      'items-open': void;
+      'items-close': void;
+    };
   };
-};
 
 /** The nearest `MenuList` instance at or above `el`, or `null`. */
 function closestMenuList(el: Element | null): MenuList | null {
@@ -50,48 +44,39 @@ function closestMenuList(el: Element | null): MenuList | null {
 }
 
 /**
- * The collapsible list child of a `Menu`. It implements `Transitionable`
- * (the same contract `Dialog` fans its own children out to) to animate its
- * reveal, exposes `open()`, `close()` and `toggle()`, keeps `aria-hidden`
- * and the `tabindex` of its focusable elements in sync with its visibility,
- * recursively closes nested lists, and emits `items-open`/`items-close`.
+ * The collapsible list child of a `Menu`. It mixes in `withTransition` to
+ * animate its reveal, exposes `open()`, `close()` and `toggle()`, keeps
+ * `aria-hidden` and the `tabindex` of its focusable elements in sync with
+ * its visibility, recursively closes nested lists, and emits
+ * `items-open`/`items-close`.
  *
- * v3 extended a `withTransition`-mixed class and forced `enterKeep`/
- * `leaveKeep` to `true` by overriding the `$options` getter — a menu's open
- * state must stay visible, not revert once the transition ends. v4's
- * `$options` is a read-only own property with no override point, and its
- * ported `Transition` is a plain, non-generic `Base` subclass rather than a
- * mixin, so extending it here would fix `MenuList`'s own props to
- * `Transition`'s. Since every one of `Transition`'s methods is overridden
- * below anyway to force the two flags, implementing `Transitionable`
- * directly avoids both problems at once.
+ * A menu left open must stay visible, so `enterKeep`/`leaveKeep` are forced
+ * rather than read from the markup. v3 forced them by overriding the
+ * `$options` getter, which v4 refuses — `$options` is a read-only view over
+ * attributes with no override point — so the override lands on
+ * `transitionOptions`, the declaration the mixin reads.
  *
  * @link https://ui.studiometa.dev/reference/items/Menu/
  */
-export class MenuList<T extends BaseProps = BaseProps>
-  extends Base<MenuListProps & T>
-  implements Transitionable
-{
+export class MenuList<T extends BaseProps = BaseProps> extends withTransition(Base)<
+  MenuListProps & T
+> {
   static config: BaseConfig = {
     name: 'MenuList',
-    options: {
-      enterFrom: String,
-      enterActive: String,
-      enterTo: String,
-      leaveFrom: String,
-      leaveActive: String,
-      leaveTo: String,
-    },
+    options: { ...TRANSITION_OPTIONS },
     components: { MenuList },
   };
-
-  state: 'entering' | 'leaving' | null = null;
 
   isOpen = false;
 
   isHover = false;
 
   #lists: ChildrenCollection<MenuList> = this.$watchChildren<MenuList>('MenuList');
+
+  /** Keep both end states, whatever the markup asked for. */
+  get transitionOptions(): TransitionOptions {
+    return { ...super.transitionOptions, enterKeep: true, leaveKeep: true };
+  }
 
   mounted(): void {
     this.#updateTabIndexes('close');
@@ -103,22 +88,6 @@ export class MenuList<T extends BaseProps = BaseProps>
 
   onMouseleave(): void {
     this.isHover = false;
-  }
-
-  async enter(): Promise<void> {
-    this.state = 'entering';
-    this.$emit('transition-enter');
-    this.$emit('transition-enter-start');
-    await enterTransition(this.$el, { ...this.$options, enterKeep: true, leaveKeep: true });
-    this.$emit('transition-enter-end');
-  }
-
-  async leave(): Promise<void> {
-    this.state = 'leaving';
-    this.$emit('transition-leave');
-    this.$emit('transition-leave-start');
-    await leaveTransition(this.$el, { ...this.$options, enterKeep: true, leaveKeep: true });
-    this.$emit('transition-leave-end');
   }
 
   /** Display the menu items. */

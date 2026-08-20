@@ -1,46 +1,33 @@
 import { Base, type BaseConfig, type BaseProps } from '../../src/index.js';
 import { loadImage } from '../../src/utils/load.js';
-import {
-  enterTransition,
-  leaveTransition,
-  TRANSITION_OPTIONS,
-  type TransitionOptions,
-} from '../../src/utils/transition.js';
-import type { Transitionable } from '../Transition/index.js';
+import { TRANSITION_OPTIONS } from '../../src/utils/transition.js';
+import { withTransition, type TransitionProps } from '../Transition/index.js';
 
 /** Gap: core ships no `$warn`. */
 function warn(...args: unknown[]): void {
   console.warn('[FigureVideo]', ...args);
 }
 
-export type FigureVideoProps = BaseProps & {
-  $refs: { video: HTMLVideoElement };
-  $options: TransitionOptions & { lazy: boolean };
-  $emits: {
-    'transition-enter': void;
-    'transition-enter-start': void;
-    'transition-enter-end': void;
-    'transition-leave': void;
-    'transition-leave-start': void;
-    'transition-leave-end': void;
-    load: void;
+export type FigureVideoProps = BaseProps &
+  TransitionProps & {
+    $refs: { video: HTMLVideoElement };
+    $options: TransitionProps['$options'] & { lazy: boolean };
+    $emits: TransitionProps['$emits'] & { load: void };
   };
-};
 
 /**
- * Lazy-loaded video counterpart to `Figure`. Implementing `Transitionable`
- * directly (the same reason `AbstractFigure` does, rather than extending
- * the ported `Transition`) and mounting through the `in-view` strategy, it
+ * Lazy-loaded video counterpart to `Figure`. Mixing in `withTransition`
+ * (whose `target` it overrides onto the `video` ref, as `AbstractFigure`
+ * does onto its `img`) and mounting through the `in-view` strategy, it
  * defers loading of the `video` ref's `data-poster` and `data-src` sources
  * until the element enters the viewport when `lazy` is set, runs the enter
  * transition, and emits `load`.
  *
  * @link https://ui.studiometa.dev/reference/items/FigureVideo/
  */
-export class FigureVideo<T extends BaseProps = BaseProps>
-  extends Base<FigureVideoProps & T>
-  implements Transitionable
-{
+export class FigureVideo<T extends BaseProps = BaseProps> extends withTransition(Base)<
+  FigureVideoProps & T
+> {
   static config: BaseConfig = {
     name: 'FigureVideo',
     refs: ['video'],
@@ -50,8 +37,6 @@ export class FigureVideo<T extends BaseProps = BaseProps>
       lazy: Boolean,
     },
   };
-
-  state: 'entering' | 'leaving' | null = null;
 
   /**
    * Whether the sources have already been loaded, so a later mount (the
@@ -70,26 +55,6 @@ export class FigureVideo<T extends BaseProps = BaseProps>
 
   get sources(): HTMLSourceElement[] {
     return [...this.$refs.video.querySelectorAll('source')];
-  }
-
-  async enter(): Promise<void> {
-    this.state = 'entering';
-    this.$emit('transition-enter');
-    this.$emit('transition-enter-start');
-    await enterTransition(this.target, this.$options);
-    this.$emit('transition-enter-end');
-  }
-
-  async leave(): Promise<void> {
-    this.state = 'leaving';
-    this.$emit('transition-leave');
-    this.$emit('transition-leave-start');
-    await leaveTransition(this.target, this.$options);
-    this.$emit('transition-leave-end');
-  }
-
-  toggle(): Promise<void> {
-    return this.state === 'entering' ? this.leave() : this.enter();
   }
 
   /** Load the poster onto the video element. */
