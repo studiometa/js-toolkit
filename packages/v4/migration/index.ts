@@ -2,6 +2,7 @@
 
 export * from './Accordion/index.js';
 export * from './Action/index.js';
+export * from './AnchorNav/index.js';
 export * from './Carousel/index.js';
 export * from './ClickOutside/index.js';
 export * from './Cursor/index.js';
@@ -9,11 +10,20 @@ export * from './Data/index.js';
 export * from './Draggable/index.js';
 export * from './Dialog/index.js';
 export * from './Fetch/index.js';
+export * from './Figure/index.js';
+export * from './FigureVideo/index.js';
+export * from './Hoverable/index.js';
 export * from './InView/index.js';
 export * from './LazyInclude/index.js';
+export * from './Menu/index.js';
 export * from './Prefetch/index.js';
 export * from './ScrollAnimation/index.js';
+export * from './ScrollTo/index.js';
+export * from './Sentinel/index.js';
 export * from './Slider/index.js';
+export * from './Sticky/index.js';
+export * from './Timer/index.js';
+export * from './Toaster/index.js';
 export * from './Track/index.js';
 export * from './Transition/index.js';
 
