@@ -1,5 +1,4 @@
 import { component, type BaseProps } from '../../src/index.js';
-import { TRANSITION_OPTIONS } from '../../src/utils/transition.js';
 import { ScrollTo } from '../ScrollTo/index.js';
 import { withTransition, type TransitionProps } from '../Transition/index.js';
 
@@ -19,7 +18,6 @@ export type AnchorNavLinkProps = BaseProps & TransitionProps;
  */
 @component({
   name: 'AnchorNavLink',
-  options: { ...TRANSITION_OPTIONS },
 })
 export class AnchorNavLink<T extends BaseProps = BaseProps> extends withTransition(ScrollTo)<
   AnchorNavLinkProps & T

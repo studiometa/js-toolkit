@@ -5,7 +5,7 @@ import {
   type BaseProps,
   type ChildrenCollection,
 } from '../../src/index.js';
-import { TRANSITION_OPTIONS, type TransitionOptions } from '../../src/utils/transition.js';
+import type { TransitionOptions } from '../../src/utils/transition.js';
 import { withTransition, type TransitionProps } from '../Transition/index.js';
 
 const FOCUSABLE_ELEMENTS = [
@@ -63,7 +63,6 @@ export class MenuList<T extends BaseProps = BaseProps> extends withTransition(Ba
 > {
   static config: BaseConfig = {
     name: 'MenuList',
-    options: { ...TRANSITION_OPTIONS },
     components: { MenuList },
   };
 

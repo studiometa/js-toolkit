@@ -1,7 +1,8 @@
-import type { BaseConstructor, MixedClass } from '../../src/index.js';
+import type { BaseConfig, BaseConstructor, MixedClass } from '../../src/index.js';
 import {
   enterTransition,
   leaveTransition,
+  TRANSITION_OPTIONS,
   type TransitionOptions,
 } from '../../src/utils/transition.js';
 
@@ -83,6 +84,19 @@ export interface TransitionMixin {
  */
 const applyTransition = (BaseClass: BaseConstructor) => {
   class WithTransition extends BaseClass implements Transitionable {
+    /**
+     * The options the mixin reads, declared once here instead of by every
+     * consumer: `resolveConfig()` walks the prototype chain and merges each
+     * own `config`, and a mixin class is a link in that chain like any other.
+     *
+     * Typed rather than spelled with a `name`, which `BaseConfig` requires and
+     * this has no business setting — a name here would be inherited by any
+     * consumer which declared none, registering it under a name it never
+     * chose. The merge treats a config without a name as a contributor to the
+     * one below it, which is exactly what a mixin is.
+     */
+    static config = { options: { ...TRANSITION_OPTIONS } } as BaseConfig;
+
     state: 'entering' | 'leaving' | null = null;
 
     /** What the transition runs on. Defaults to the root element. */

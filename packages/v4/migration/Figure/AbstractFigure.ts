@@ -1,6 +1,5 @@
 import { Base, type BaseConfig, type BaseProps } from '../../src/index.js';
 import { loadImage } from '../../src/utils/load.js';
-import { TRANSITION_OPTIONS } from '../../src/utils/transition.js';
 import { withTransition, type TransitionProps } from '../Transition/index.js';
 
 /** Gap: core ships no `$warn`. */
@@ -34,7 +33,6 @@ export class AbstractFigure<T extends BaseProps = BaseProps> extends withTransit
     refs: ['img'],
     mountStrategy: 'in-view',
     options: {
-      ...TRANSITION_OPTIONS,
       lazy: Boolean,
     },
   };

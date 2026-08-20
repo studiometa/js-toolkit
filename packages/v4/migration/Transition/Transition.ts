@@ -1,5 +1,4 @@
 import { Base, type BaseConfig, type BaseProps } from '../../src/index.js';
-import { TRANSITION_OPTIONS } from '../../src/utils/transition.js';
 import { withTransition } from './withTransition.js';
 
 export type { Transitionable, TransitionInterface, TransitionProps } from './withTransition.js';
@@ -15,6 +14,5 @@ export type { Transitionable, TransitionInterface, TransitionProps } from './wit
 export class Transition<T extends BaseProps = BaseProps> extends withTransition(Base)<T> {
   static config: BaseConfig = {
     name: 'Transition',
-    options: { ...TRANSITION_OPTIONS },
   };
 }
