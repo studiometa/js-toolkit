@@ -9,7 +9,10 @@ afterEach(resetDom);
 
 // `lazy` disabled for the same reason as the FigureShopify spec: `formatSrc`
 // is a pure function under test, and mounting must not fetch a fabricated URL.
-async function render(attributes = '', src = 'https://example.com/original/photo.jpg'): Promise<FigureTwicpics> {
+async function render(
+  attributes = '',
+  src = 'https://example.com/original/photo.jpg',
+): Promise<FigureTwicpics> {
   const root = document.createElement('div');
   root.innerHTML = `
     <div data-component="FigureTwicpics" data-option-no-lazy ${attributes}>
@@ -26,7 +29,9 @@ describe('FigureTwicpics', () => {
 
     const url = new URL(instance.formatSrc('https://example.com/original/photo.jpg'));
 
-    expect(url.searchParams.get('twic')).toBe(`v1/cover=${100 * window.devicePixelRatio}x${200 * window.devicePixelRatio}`);
+    expect(url.searchParams.get('twic')).toBe(
+      `v1/cover=${100 * window.devicePixelRatio}x${200 * window.devicePixelRatio}`,
+    );
   });
 
   it('includes the transform ahead of the mode when given', async () => {

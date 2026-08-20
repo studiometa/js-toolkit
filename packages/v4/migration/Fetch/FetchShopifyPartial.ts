@@ -58,7 +58,11 @@ export class FetchShopifyPartial<T extends BaseProps = BaseProps> extends Fetch<
    * inject a fake.
    */
   static async loadPartialsModule(): Promise<PartialsModule> {
-    return import(/* @vite-ignore */ this.PARTIALS_MODULE);
+    // Through `unknown`: a dynamic import of a non-literal specifier is `any`,
+    // and the shape is asserted rather than known — `resolvePartials()` is what
+    // turns a module that does not match into a `null` fallback.
+    const loaded: unknown = await import(/* @vite-ignore */ this.PARTIALS_MODULE);
+    return loaded as PartialsModule;
   }
 
   /** `undefined` means resolution has not been attempted yet, `null` means it failed. */

@@ -4,6 +4,7 @@ import {
   getInstances,
   withResize,
   withScroll,
+  write,
   type BaseProps,
   type ChildrenCollection,
   type DelegatedEvent,
@@ -39,9 +40,9 @@ export type StickyProps = BaseProps & {
     hideWhenDown: Boolean,
   },
 })
-export class Sticky<T extends BaseProps = BaseProps> extends withResize(
-  withScroll(Base),
-)<StickyProps & T> {
+export class Sticky<T extends BaseProps = BaseProps> extends withResize(withScroll(Base))<
+  StickyProps & T
+> {
   isSticky = false;
 
   isVisible = true;
@@ -105,9 +106,7 @@ export class Sticky<T extends BaseProps = BaseProps> extends withResize(
     }
 
     this.isVisible = false;
-    this.$el.classList.add('pointer-events-none');
-
-    this.instances.forEach((instance, index) => instance.setPosition(index));
+    this.applyVisibility();
   }
 
   /** Show the sticky component when the other one is not sticky anymore. */
@@ -117,8 +116,23 @@ export class Sticky<T extends BaseProps = BaseProps> extends withResize(
     }
 
     this.isVisible = true;
-    this.$el.classList.remove('pointer-events-none');
+    this.applyVisibility();
+  }
 
+  /**
+   * Write the visibility class and restack every instance.
+   *
+   * Split out of `hide()`/`show()` and marked `@write` because their caller is
+   * `scrolled()`, and the scroll service emits from inside
+   * `defaultScheduler.read()` — so writing `classList` straight from there
+   * interleaves a write into the read phase, which is gap 43's silent-cost
+   * bug rather than a visible one. The split is what keeps `isVisible`
+   * synchronous: it is logical state that `setPosition()` reads on every
+   * instance, and only the DOM work belongs in a later phase.
+   */
+  @write
+  applyVisibility(): void {
+    this.$el.classList.toggle('pointer-events-none', !this.isVisible);
     this.instances.forEach((instance, index) => instance.setPosition(index));
   }
 

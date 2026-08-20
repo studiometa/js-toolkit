@@ -20,7 +20,10 @@ async function observed(): Promise<void> {
   }
 }
 
-function render(style: string, attributes = 'data-option-lazy="true"'): { el: HTMLElement; video: HTMLVideoElement } {
+function render(
+  style: string,
+  attributes = 'data-option-lazy="true"',
+): { el: HTMLElement; video: HTMLVideoElement } {
   const root = document.createElement('div');
   root.innerHTML = `
     <div data-component="FigureVideo" style="${style}" ${attributes}>

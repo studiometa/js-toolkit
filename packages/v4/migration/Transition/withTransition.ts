@@ -2,7 +2,6 @@ import type { BaseConstructor, MixedClass } from '../../src/index.js';
 import {
   enterTransition,
   leaveTransition,
-  TRANSITION_OPTIONS,
   type TransitionOptions,
 } from '../../src/utils/transition.js';
 
@@ -88,7 +87,10 @@ const applyTransition = (BaseClass: BaseConstructor) => {
 
     /** What the transition runs on. Defaults to the root element. */
     get target(): HTMLElement {
-      return this.$el;
+      // Through `unknown` for the same reason as `transitionOptions` below:
+      // the host is a loose `BaseConstructor`, so `$el` is `any` here.
+      const el: unknown = this.$el;
+      return el as HTMLElement;
     }
 
     /**
@@ -103,7 +105,11 @@ const applyTransition = (BaseClass: BaseConstructor) => {
      * declaration this mixin reads instead of onto the options themselves.
      */
     get transitionOptions(): TransitionOptions {
-      return this.$options as unknown as TransitionOptions;
+      // Through `unknown`, not a direct assertion: the host is a loose
+      // `BaseConstructor`, so `$options` is `any` here and returning it
+      // straight would hand back an unchecked value under type-aware linting.
+      const options: unknown = this.$options;
+      return options as TransitionOptions;
     }
 
     async enter(): Promise<void> {

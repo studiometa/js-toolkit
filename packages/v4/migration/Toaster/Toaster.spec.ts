@@ -90,11 +90,9 @@ describe('Toaster', () => {
   it('emits show with the toast, message and type', async () => {
     const { root, instance } = await render();
     const events: Array<{ toast: HTMLElement; message: string; type: string }> = [];
-    root
-      .querySelector('[data-component="Toaster"]')!
-      .addEventListener('show', (event) => {
-        events.push((event as CustomEvent).detail);
-      });
+    root.querySelector('[data-component="Toaster"]')!.addEventListener('show', (event) => {
+      events.push((event as CustomEvent).detail);
+    });
 
     const toast = instance.show('Hi', { type: 'success' });
 

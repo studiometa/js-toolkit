@@ -112,11 +112,17 @@ describe('Sticky', () => {
     expect(first.isSticky).toBe(true);
     expect(second.isSticky).toBe(true);
 
+    // `applyVisibility()` carries `@write`, so the DOM work lands in the next
+    // write phase rather than synchronously — the scroll service emits from
+    // the read phase, and a write from there is the gap 43 bug. `isVisible`
+    // itself stays synchronous.
     first.hide();
+    await settle();
     expect(firstEl.classList.contains('pointer-events-none')).toBe(true);
     expect(secondInner.style.transform).toBe('translateY(-50px) translateZ(0px)');
 
     first.show();
+    await settle();
     expect(firstEl.classList.contains('pointer-events-none')).toBe(false);
     expect(secondInner.style.transform).toBe('translateY(0px) translateZ(0px)');
   });

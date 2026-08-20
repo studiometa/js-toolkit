@@ -58,7 +58,7 @@ describe('Menu', () => {
   });
 
   it('closes on a document click outside, in click mode', async () => {
-    const { root, menu } = await render();
+    const { menu } = await render();
     menu.open();
     expect(menu.menuList?.isOpen).toBe(true);
 

@@ -44,8 +44,19 @@ export class AbstractFigureDynamic<T extends BaseProps = BaseProps> extends with
     return src;
   }
 
-  /** Reassign the source from the original on resize. */
-  async resized(): Promise<void> {
+  /**
+   * Reassign the source from the original on resize.
+   *
+   * `ResizeHook.resized` is declared to return `void`, so the reload is
+   * started rather than awaited: handing the service a promise it does not
+   * consume is what `no-misused-promises` is about.
+   */
+  resized(): void {
+    void this.reloadSource();
+  }
+
+  /** Recompute the formatted source and swap it in once it has loaded. */
+  async reloadSource(): Promise<void> {
     const { original } = this;
 
     try {

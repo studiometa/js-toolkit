@@ -157,7 +157,9 @@ describe('FetchShopifyPartial', () => {
   });
 
   it('memoises the resolved partials module across calls', async () => {
-    const loadSpy = vi.fn(async () => ({ partials: { fetch: vi.fn(async () => ({})), apply: vi.fn() } }));
+    const loadSpy = vi.fn(async () => ({
+      partials: { fetch: vi.fn(async () => ({})), apply: vi.fn() },
+    }));
     FetchShopifyPartial.loadPartialsModule = loadSpy;
     const { instance } = await mount(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"></a>`,

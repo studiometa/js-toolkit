@@ -1,6 +1,10 @@
 import { withResize, type BaseConfig, type BaseProps } from '../../src/index.js';
 import { loadImage } from '../../src/utils/load.js';
-import { withLeadingSlash, withoutLeadingSlash, withoutTrailingSlash } from '../../src/utils/strings.js';
+import {
+  withLeadingSlash,
+  withoutLeadingSlash,
+  withoutTrailingSlash,
+} from '../../src/utils/strings.js';
 import { normalizeSize } from '../Figure/utils.js';
 import { FigureVideo, type FigureVideoProps } from './FigureVideo.js';
 
@@ -30,9 +34,9 @@ export type FigureVideoTwicpicsProps = FigureVideoProps & {
  *
  * @link https://ui.studiometa.dev/reference/items/FigureVideoTwicpics/
  */
-export class FigureVideoTwicpics<T extends BaseProps = BaseProps> extends withResize(
-  FigureVideo,
-)<FigureVideoTwicpicsProps & T> {
+export class FigureVideoTwicpics<T extends BaseProps = BaseProps> extends withResize(FigureVideo)<
+  FigureVideoTwicpicsProps & T
+> {
   static config: BaseConfig = {
     ...FigureVideo.config,
     name: 'FigureVideoTwicpics',
@@ -127,8 +131,18 @@ export class FigureVideoTwicpics<T extends BaseProps = BaseProps> extends withRe
     });
   }
 
-  /** Reassign and reload the sources from the original on resize. */
-  async resized(): Promise<void> {
+  /**
+   * Reassign and reload the sources from the original on resize.
+   *
+   * Started rather than awaited, for the reason `AbstractFigureDynamic`
+   * documents: `ResizeHook.resized` returns `void`.
+   */
+  resized(): void {
+    void this.reloadForSize();
+  }
+
+  /** Resize the video element and reload its sources, if the size changed. */
+  async reloadForSize(): Promise<void> {
     const width = this.#normalizeSize('offsetWidth');
     const height = this.#normalizeSize('offsetHeight');
 

@@ -1,5 +1,9 @@
 import type { BaseConfig, BaseProps } from '../../src/index.js';
-import { withLeadingSlash, withoutLeadingSlash, withoutTrailingSlash } from '../../src/utils/strings.js';
+import {
+  withLeadingSlash,
+  withoutLeadingSlash,
+  withoutTrailingSlash,
+} from '../../src/utils/strings.js';
 import { AbstractFigureDynamic, type AbstractFigureDynamicProps } from './AbstractFigureDynamic.js';
 import { normalizeSize } from './utils.js';
 

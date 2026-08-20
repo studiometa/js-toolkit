@@ -24,7 +24,10 @@ async function observed(): Promise<void> {
 const PLACEHOLDER =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 
-function render(style: string, attributes = 'data-option-lazy="true"'): {
+function render(
+  style: string,
+  attributes = 'data-option-lazy="true"',
+): {
   el: HTMLElement;
   img: HTMLImageElement;
 } {
@@ -66,7 +69,10 @@ describe('Figure (AbstractFigure)', () => {
   });
 
   it('runs the enter transition once loaded', async () => {
-    const { el, img } = render(ONSCREEN, 'data-option-lazy="true" data-option-enter-to="visible" data-option-enter-keep="true"');
+    const { el, img } = render(
+      ONSCREEN,
+      'data-option-lazy="true" data-option-enter-to="visible" data-option-enter-keep="true"',
+    );
 
     await observed();
 

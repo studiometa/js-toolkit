@@ -47,9 +47,9 @@ export type HoverableProps = BaseProps & {
     contained: Boolean,
   },
 })
-export class Hoverable<T extends BaseProps = BaseProps> extends withRaf(
-  withPointer(Base),
-)<HoverableProps & T> {
+export class Hoverable<T extends BaseProps = BaseProps> extends withRaf(withPointer(Base))<
+  HoverableProps & T
+> {
   props = {
     x: 0,
     y: 0,
@@ -91,7 +91,10 @@ export class Hoverable<T extends BaseProps = BaseProps> extends withRaf(
     // Stop updating when the pointer is outside the parent bounds.
     if (
       contained &&
-      (relativeProgressY < 0 || relativeProgressX < 0 || relativeProgressY > 1 || relativeProgressX > 1)
+      (relativeProgressY < 0 ||
+        relativeProgressX < 0 ||
+        relativeProgressY > 1 ||
+        relativeProgressX > 1)
     ) {
       return;
     }
